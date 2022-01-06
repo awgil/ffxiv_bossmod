@@ -1,0 +1,9 @@
+{
+  "Author": "veyn",
+  "Name": "Boss Mod",
+  "Punchline": "A bunch of utilities to simplify bosses.",
+  "Description": "TODO long description here.",
+  "InternalName": "bossMod",
+  "ApplicableVersion": "any",
+  "Tags": []
+}
