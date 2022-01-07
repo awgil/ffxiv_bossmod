@@ -4,6 +4,6 @@ namespace BossMod
 {
     public interface IBossModule : IDisposable
     {
-        public abstract void Draw();
+        public abstract void Draw(float cameraAzimuth);
     }
 }

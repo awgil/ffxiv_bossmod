@@ -77,7 +77,7 @@ namespace BossMod
                     }
                 }
             }
-            PluginLog.Log(res.ToString());
+            Service.Log(res.ToString());
         }
     }
 }

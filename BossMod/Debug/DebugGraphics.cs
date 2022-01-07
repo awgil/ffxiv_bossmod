@@ -1,4 +1,4 @@
-﻿using Dalamud.Logging;
+﻿using Dalamud.Interface;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -41,19 +41,26 @@ namespace BossMod
                 {
                     if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
                     {
-                        int size = 0x80;
-                        switch (o->GetObjectType())
+                        bool watched = _watchedRenderObjects.ContainsKey((IntPtr)o);
+                        if (!watched)
                         {
-                            case FFXIVClientStructs.FFXIV.Client.Graphics.Scene.ObjectType.CharacterBase:
-                                size = 0x8F0;
-                                break;
-                            case FFXIVClientStructs.FFXIV.Client.Graphics.Scene.ObjectType.VfxObject:
-                                size = 0x1C8;
-                                break;
+                            int size = 0x80;
+                            switch (o->GetObjectType())
+                            {
+                                case FFXIVClientStructs.FFXIV.Client.Graphics.Scene.ObjectType.CharacterBase:
+                                    size = 0x8F0;
+                                    break;
+                                case FFXIVClientStructs.FFXIV.Client.Graphics.Scene.ObjectType.VfxObject:
+                                    size = 0x1C8;
+                                    break;
+                            }
+                            WatchObject(o, size);
                         }
-                        WatchObject(o, size);
+                        else
+                        {
+                            _watchedRenderObjects.Remove((IntPtr)o);
+                        }
                     }
-                        
 
                     if (o->ChildObject != null)
                         DrawSceneNode(o->ChildObject);
@@ -77,7 +84,9 @@ namespace BossMod
                 return;
 
             foreach (var v in _watchedRenderObjects)
+            {
                 v.Value.Live = false;
+            }
 
             var root = FindSceneRoot();
             if (root != null)
@@ -101,6 +110,29 @@ namespace BossMod
                 ImGui.TableNextColumn(); DrawMods(v.Value);
             }
             ImGui.EndTable();
+
+            Vector2 playerPos;
+            if (Service.GameGui.WorldToScreen(Service.ClientState.LocalPlayer!.Position, out playerPos))
+            {
+                ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
+                ImGuiHelpers.ForceNextWindowMainViewport();
+                ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(0, 0));
+                ImGui.Begin("arrow_overlay", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground);
+                ImGui.SetWindowSize(ImGui.GetIO().DisplaySize);
+
+                foreach (var v in _watchedRenderObjects)
+                {
+                    var obj = (FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object*)v.Key;
+                    Vector2 objScreenPos;
+                    if (!Service.GameGui.WorldToScreen(obj->Position, out objScreenPos))
+                        continue;
+
+                    ImGui.GetWindowDrawList().AddLine(playerPos, objScreenPos, 0xff0000ff);
+                }
+
+                ImGui.End();
+                ImGui.PopStyleVar();
+            }
         }
 
         public unsafe void WatchObject(void* o, int size)
@@ -211,6 +243,51 @@ namespace BossMod
             ImGui.SameLine();
         }
 
+        public unsafe void DrawMatrices()
+        {
+            if (Camera.Instance == null)
+                return;
+
+            ImGui.BeginTable("matrices", 2);
+            ImGui.TableSetupColumn("Name");
+            ImGui.TableSetupColumn("Value");
+            ImGui.TableHeadersRow();
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn(); ImGui.Text("VP");
+            ImGui.TableNextColumn(); DrawMatrix(Camera.Instance.ViewProj);
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn(); ImGui.Text("P");
+            ImGui.TableNextColumn(); DrawMatrix(Camera.Instance.Proj);
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn(); ImGui.Text("V");
+            ImGui.TableNextColumn(); DrawMatrix(Camera.Instance.View);
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn(); ImGui.Text("Camera Altitude");
+            ImGui.TableNextColumn(); ImGui.Text(Utils.RadianString(Camera.Instance.CameraAltitude));
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn(); ImGui.Text("Camera Azimuth");
+            ImGui.TableNextColumn(); ImGui.Text(Utils.RadianString(Camera.Instance.CameraAzimuth));
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn(); ImGui.Text("W");
+            ImGui.TableNextColumn(); DrawMatrix(Camera.Instance.CameraWorld);
+
+            ImGui.EndTable();
+        }
+
+        private void DrawMatrix(SharpDX.Matrix mtx)
+        {
+            ImGui.Text($"{mtx[0]:f6} {mtx[1]:f6} {mtx[2]:f6} {mtx[3]:f6}");
+            ImGui.Text($"{mtx[4]:f6} {mtx[5]:f6} {mtx[6]:f6} {mtx[7]:f6}");
+            ImGui.Text($"{mtx[8]:f6} {mtx[9]:f6} {mtx[10]:f6} {mtx[11]:f6}");
+            ImGui.Text($"{mtx[12]:f6} {mtx[13]:f6} {mtx[14]:f6} {mtx[15]:f6}");
+        }
+
         public static unsafe FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* FindSceneRoot()
         {
             var player = Utils.GameObjectInternal(Service.ClientState.LocalPlayer);
@@ -231,7 +308,7 @@ namespace BossMod
             {
                 DumpSceneNode(res, root, "");
             }
-            PluginLog.Log(res.ToString());
+            Service.Log(res.ToString());
         }
 
         private static unsafe void DumpSceneNode(StringBuilder res, FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o, string prefix)

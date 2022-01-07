@@ -56,42 +56,42 @@ namespace BossMod
             PostAddAOENormal = 28027, // src=target=Helper
         };
 
-        private EventGenerator _gen;
+        private WorldState _ws;
         private ZodiarkStages _stages = new();
 
-        public Zodiark(EventGenerator gen)
+        public Zodiark(WorldState ws)
         {
-            _gen = gen;
-            _gen.PlayerCombatExit += ExitCombat;
-            _gen.ActorCastStarted += ActorCastStarted;
-            _gen.ActorCastFinished += ActorCastFinished;
-            _gen.ActorTeleported += ActorTeleported;
+            _ws = ws;
+            _ws.PlayerInCombatChanged += EnterExitCombat;
+            _ws.ActorCastStarted += ActorCastStarted;
+            _ws.ActorCastFinished += ActorCastFinished;
+            _ws.ActorMoved += ActorTeleported;
         }
 
         public void Dispose()
         {
-            _gen.PlayerCombatExit -= ExitCombat;
-            _gen.ActorCastStarted -= ActorCastStarted;
-            _gen.ActorCastFinished -= ActorCastFinished;
-            _gen.ActorTeleported -= ActorTeleported;
+            _ws.PlayerInCombatChanged -= EnterExitCombat;
+            _ws.ActorCastStarted -= ActorCastStarted;
+            _ws.ActorCastFinished -= ActorCastFinished;
+            _ws.ActorMoved -= ActorTeleported;
         }
 
-        public void Draw()
+        public void Draw(float cameraAzimuth)
         {
             ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(0xff00ffff), ManualActionHint());
             _stages.Draw();
             _stages.DrawDebugButtons();
         }
 
-        private void ExitCombat(object? sender, PlayerCharacter? pc)
+        private void EnterExitCombat(object? sender, bool inCombat)
         {
             _stages.Reset();
         }
 
-        private void ActorCastStarted(object? sender, EventGenerator.Actor actor)
+        private void ActorCastStarted(object? sender, WorldState.Actor actor)
         {
             // TODO: when {Diagonal1, Exo3, SideSmash1, } starts casting, dump render pos+flags of animals...
-            if ((OID)actor.Chara.DataId == OID.Boss)
+            if ((OID)actor.OID == OID.Boss)
             {
                 if (_stages.NextEvent == ZodiarkStages.BossEvent.Diagonal1 || _stages.NextEvent == ZodiarkStages.BossEvent.Exo3 || _stages.NextEvent == ZodiarkStages.BossEvent.SideSmash1 ||
                     _stages.NextEvent == ZodiarkStages.BossEvent.Rotate2 || _stages.NextEvent == ZodiarkStages.BossEvent.Rotate3)
@@ -103,7 +103,7 @@ namespace BossMod
 
             // TODO: consider updating undetected positions when Exo mobs start their casts...
 
-            switch ((AID)actor.CastActionID)
+            switch ((AID)actor.CastInfo!.ActionID)
             {
                 case AID.FlowCW:
                     SetRotationHint(ZodiarkSolver.RotDir.CW);
@@ -124,38 +124,38 @@ namespace BossMod
             }
         }
 
-        private void ActorCastFinished(object? sender, EventGenerator.Actor actor)
+        private void ActorCastFinished(object? sender, WorldState.Actor actor)
         {
-            if ((OID)actor.Chara.DataId == OID.Boss)
+            if ((OID)actor.OID == OID.Boss)
             {
                 _stages.NextTrigger();
             }
         }
 
-        private void ActorTeleported(object? sender, EventGenerator.Actor actor)
+        private void ActorTeleported(object? sender, (WorldState.Actor actor, Vector3 prevPos, float prevRot) args)
         {
             // ignore teleports after wipe
             if (_stages.NextEvent == ZodiarkStages.BossEvent.Kokytos || _stages.NextEvent == ZodiarkStages.BossEvent.Intermission1)
                 return; // TODO: show aoe hints during intermissions...
 
-            switch ((OID)actor.Chara.DataId)
+            switch ((OID)args.actor.OID)
             {
                 case OID.ExoSquare:
-                    SetSideHint(ZodiarkSolver.ExoType.Sq, actor.Position);
+                    SetSideHint(ZodiarkSolver.ExoType.Sq, args.actor.Position);
                     break;
                 case OID.ExoTri:
-                    SetSideHint(ZodiarkSolver.ExoType.Tri, actor.Position);
+                    SetSideHint(ZodiarkSolver.ExoType.Tri, args.actor.Position);
                     break;
             }
         }
 
         private void SetRotationHint(ZodiarkSolver.RotDir dir)
         {
-            PluginLog.Log($"Setting rotation hint: {dir}");
+            Service.Log($"Setting rotation hint: {dir}");
             var ev = _stages.NextEvent;
             if (ev != ZodiarkStages.BossEvent.Rotate1 && ev != ZodiarkStages.BossEvent.Rotate2 && ev != ZodiarkStages.BossEvent.Rotate3 && ev != ZodiarkStages.BossEvent.Rotate4 && ev != ZodiarkStages.BossEvent.Rotate5 && ev != ZodiarkStages.BossEvent.Rotate6)
             {
-                PluginLog.Log($"Unexpected stage for rotation hint - current next event is {ev}");
+                Service.Log($"Unexpected stage for rotation hint - current next event is {ev}");
             }
 
             _stages.Solver.ActiveRot = dir;
@@ -163,11 +163,11 @@ namespace BossMod
 
         private void SetDiagonalHint(ZodiarkSolver.LinePos pos)
         {
-            PluginLog.Log($"Setting diagonal hint: {pos}");
+            Service.Log($"Setting diagonal hint: {pos}");
             var ev = _stages.NextEvent;
             if (ev != ZodiarkStages.BossEvent.Diagonal1 && ev != ZodiarkStages.BossEvent.Diagonal2 && ev != ZodiarkStages.BossEvent.Diagonal3 && ev != ZodiarkStages.BossEvent.Diagonal4)
             {
-                PluginLog.Log($"Unexpected stage - current next event is {ev}");
+                Service.Log($"Unexpected stage - current next event is {ev}");
             }
 
             _stages.Solver.ActiveLine = pos;
@@ -184,7 +184,7 @@ namespace BossMod
             else if (pos.Z > 120)
                 return ZodiarkSolver.ExoSide.Bottom;
 
-            PluginLog.Log($"Can't determine exo-side from {Utils.Vec3String(pos)}");
+            Service.Log($"Can't determine exo-side from {Utils.Vec3String(pos)}");
             return (ZodiarkSolver.ExoSide)(-1);
         }
 
@@ -194,20 +194,20 @@ namespace BossMod
             if (side < 0)
                 return;
 
-            PluginLog.Log($"Setting side hint: {side} to {type}");
+            Service.Log($"Setting side hint: {side} to {type}");
             _stages.Solver.ActiveExo(side) = type;
         }
 
         private ZodiarkSolver.ExoType CountExoSqAndTriOnSide(ZodiarkSolver.ExoSide side)
         {
             int numSq = 0, numTri = 0;
-            foreach (var elem in _gen.Actors)
+            foreach (var elem in _ws.Actors)
             {
-                if (elem.Value.Chara.DataId != (uint)OID.ExoSquare && elem.Value.Chara.DataId != (uint)OID.ExoTri)
+                if (elem.Value.OID != (uint)OID.ExoSquare && elem.Value.OID != (uint)OID.ExoTri)
                     continue; // not interesting
                 if (DetermineSideFromPos(elem.Value.Position) != side)
                     continue; // not interesting (wrong side or not teleported yet)
-                if (elem.Value.Chara.DataId == (uint)OID.ExoSquare)
+                if (elem.Value.OID == (uint)OID.ExoSquare)
                     ++numSq;
                 else
                     ++numTri;
@@ -215,7 +215,7 @@ namespace BossMod
 
             if (numSq > 0 && numTri > 0)
             {
-                PluginLog.Log($"Found {numSq} sq and {numTri} tri on single side.");
+                Service.Log($"Found {numSq} sq and {numTri} tri on single side.");
                 return (ZodiarkSolver.ExoType)(-1);
             }
             else if (numSq > 0)
@@ -238,19 +238,19 @@ namespace BossMod
             var r = CountExoSqAndTriOnSide(ZodiarkSolver.ExoSide.Right);
             if (l < 0)
             {
-                PluginLog.Log($"Left side has both squares and triangles");
+                Service.Log($"Left side has both squares and triangles");
             }
             else if (r < 0)
             {
-                PluginLog.Log($"Right side has both squares and triangles");
+                Service.Log($"Right side has both squares and triangles");
             }
             else if (l == ZodiarkSolver.ExoType.None && r == ZodiarkSolver.ExoType.None)
             {
-                PluginLog.Log($"Sides have no exos");
+                Service.Log($"Sides have no exos");
             }
             else if (l != ZodiarkSolver.ExoType.None && r != ZodiarkSolver.ExoType.None)
             {
-                PluginLog.Log($"Exos from both sides: L={l}, R={r}");
+                Service.Log($"Exos from both sides: L={l}, R={r}");
             }
             else
             {
@@ -264,7 +264,7 @@ namespace BossMod
             var t = CountExoSqAndTriOnSide(side);
             if (t <= ZodiarkSolver.ExoType.None)
             {
-                PluginLog.Log($"Failed to determine exo for {side}");
+                Service.Log($"Failed to determine exo for {side}");
             }
             else
             {
@@ -274,7 +274,7 @@ namespace BossMod
 
         private void ApplyExoHints()
         {
-            PluginLog.Log($"Applying generic exo hints...");
+            Service.Log($"Applying generic exo hints...");
             switch (_stages.NextEvent)
             {
                 case ZodiarkStages.BossEvent.Exo1:
@@ -308,7 +308,7 @@ namespace BossMod
                     // always back square, could be reused - but we have a different hack to apply it anyway
                     break;
                 default:
-                    PluginLog.Log($"Unexpected stage - current next event is {_stages.NextEvent}");
+                    Service.Log($"Unexpected stage - current next event is {_stages.NextEvent}");
                     break;
             }
         }

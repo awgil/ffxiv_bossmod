@@ -16,7 +16,7 @@ namespace BossMod
     {
         public string Name => "Boss Mod";
 
-        private EventGenerator _gen { get; init; }
+        private WorldStateGame _ws { get; } = new();
         private DebugEventLogger _debugLogger;
         private DebugUI? _debugUI;
         private IBossModule? _activeModule;
@@ -30,8 +30,10 @@ namespace BossMod
             [RequiredVersion("1.0")] CommandManager commandManager)
         {
             pluginInterface.Create<Service>();
-            _gen = new EventGenerator();
-            _debugLogger = new DebugEventLogger(_gen);
+            Service.LogHandler = (string msg) => PluginLog.Log(msg);
+            Camera.Instance = new();
+
+            _debugLogger = new DebugEventLogger(_ws);
 
             this.PluginInterface = pluginInterface;
             this.CommandManager = commandManager;
@@ -51,13 +53,13 @@ namespace BossMod
             this.PluginInterface.UiBuilder.Draw += DrawUI;
             this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
 
-            _gen.CurrentZoneChanged += ZoneChanged;
-            ZoneChanged(null, _gen.CurrentZone);
+            _ws.CurrentZoneChanged += ZoneChanged;
+            ZoneChanged(null, _ws.CurrentZone);
         }
 
         public void Dispose()
         {
-            _gen.CurrentZoneChanged -= ZoneChanged;
+            _ws.CurrentZoneChanged -= ZoneChanged;
             this.CommandManager.RemoveHandler("/bmz");
             this.CommandManager.RemoveHandler("/bmd");
         }
@@ -68,7 +70,7 @@ namespace BossMod
             if (command == "/bmz")
                 ZoneChanged(null, ushort.Parse(args));
             else if (command == "/bmd" && _debugUI == null)
-                _debugUI = new DebugUI(_gen);
+                _debugUI = new DebugUI(_ws);
         }
 
         private void ZoneChanged(object? sender, ushort zone)
@@ -79,10 +81,10 @@ namespace BossMod
             switch (zone)
             {
                 case 993:
-                    _activeModule = new Zodiark(_gen);
+                    _activeModule = new Zodiark(_ws);
                     break;
                 case 1003:
-                    _activeModule = new Aspho1S(_gen);
+                    _activeModule = new P1S(_ws);
                     break;
             }
             PluginLog.Log($"Activated module: {_activeModule?.GetType().ToString() ?? "none"}");
@@ -90,7 +92,8 @@ namespace BossMod
 
         private void DrawUI()
         {
-            _gen.Update();
+            Camera.Instance?.Update();
+            _ws.Update();
 
             if (_debugUI != null)
             {
@@ -116,7 +119,7 @@ namespace BossMod
                 bool visible = true;
                 if (ImGui.Begin("Boss module", ref visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
                 {
-                    _activeModule!.Draw();
+                    _activeModule!.Draw(Camera.Instance?.CameraAzimuth ?? 0);
                 }
                 ImGui.End();
                 if (!visible)

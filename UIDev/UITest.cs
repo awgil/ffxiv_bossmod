@@ -3,6 +3,8 @@ using ImGuiScene;
 using System.Numerics;
 using BossMod;
 using System;
+using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace UIDev
 {
@@ -13,16 +15,18 @@ namespace UIDev
             UIBootstrap.Inititalize(new UITest());
         }
 
-        private SimpleImGuiScene? scene;
-        private StateMachineTest? _smTest;
+        private SimpleImGuiScene? _scene;
+        private List<Type> _testTypes = new();
+        private List<ITest> _tests = new();
         private ZodiarkSolver? _zodiarkSolver;
         private ZodiarkSolver.Control _zodiarkSolverControls = ZodiarkSolver.Control.All;
         private ZodiarkStages? _zodiarkStages;
-        private Aspho1SStages? _aspho1SStages;
         private DateTime _startTime = DateTime.Now;
 
         public void Initialize(SimpleImGuiScene scene)
         {
+            Service.LogHandler = (string msg) => Debug.WriteLine(msg);
+
             // scene is a little different from what you have access to in dalamud
             // but it can accomplish the same things, and is really only used for initial setup here
 
@@ -30,7 +34,16 @@ namespace UIDev
 
             // saving this only so we can kill the test application by closing the window
             // (instead of just by hitting escape)
-            this.scene = scene;
+            _scene = scene;
+
+            var testType = typeof(ITest);
+            foreach (var t in testType.Assembly.GetTypes())
+            {
+                if (t != testType && testType.IsAssignableFrom(t))
+                {
+                    _testTypes.Add(t);
+                }
+            }
         }
 
         public void Dispose()
@@ -44,25 +57,50 @@ namespace UIDev
         private void Draw()
         {
             if (!DrawWindow("Zodiark overlap demo", new Vector2(375, 330), DrawMainWindow))
-                scene!.ShouldQuit = true;
-            if (_smTest != null && !DrawWindow("State machine test", new Vector2(300, 300), DrawSMTest))
-                _smTest = null;
+                _scene!.ShouldQuit = true;
+
+            for (int i = 0; i < _tests.Count; ++i)
+            {
+                var test = _tests[i];
+                if (!DrawWindow(test.GetType().ToString(), new Vector2(375, 330), () => test.Draw()))
+                {
+                    test.Dispose();
+                    _tests.RemoveAt(i--);
+                }
+            }
+
+            // legacy tests
             if (_zodiarkSolver != null && !DrawWindow("Zodiark solver", new Vector2(375, 330), DrawZodiarkSolver))
                 _zodiarkSolver = null;
             if (_zodiarkStages != null && !DrawWindow("Zodiark stages", new Vector2(375, 330), DrawZodiarkStages))
                 _zodiarkStages = null;
-            if (_aspho1SStages != null && !DrawWindow("Aspho1S stages", new Vector2(375, 330), DrawAspho1SStages))
-                _aspho1SStages = null;
         }
 
         public void DrawMainWindow()
         {
             ImGui.Text($"Running time: {DateTime.Now - _startTime}");
 
-            bool smTestVisible = _smTest != null;
-            if (ImGui.Checkbox("Show state machine test", ref smTestVisible))
-                _smTest = smTestVisible ? new StateMachineTest() : null;
+            foreach (var t in _testTypes)
+            {
+                int index = _tests.FindIndex(v => v.GetType() == t);
+                bool active = index >= 0;
+                if (ImGui.Checkbox($"Enable {t}", ref active))
+                {
+                    if (active)
+                    {
+                        var inst = (ITest?)Activator.CreateInstance(t);
+                        if (inst != null)
+                            _tests.Add(inst);
+                    }
+                    else
+                    {
+                        _tests[index].Dispose();
+                        _tests.RemoveAt(index);
+                    }
+                }
+            }
 
+            // legacy tests
             bool zodiarkSolverVisible = _zodiarkSolver != null;
             if (ImGui.Checkbox("Show zodiark solver", ref zodiarkSolverVisible))
                 _zodiarkSolver = zodiarkSolverVisible ? new ZodiarkSolver() : null;
@@ -70,15 +108,6 @@ namespace UIDev
             bool zodiarkStagesVisible = _zodiarkStages != null;
             if (ImGui.Checkbox("Show zodiark stages", ref zodiarkStagesVisible))
                 _zodiarkStages = zodiarkStagesVisible ? new ZodiarkStages() : null;
-
-            bool aspho1sStagesVisible = _aspho1SStages != null;
-            if (ImGui.Checkbox("Show aspho1s stages", ref aspho1sStagesVisible))
-                _aspho1SStages = aspho1sStagesVisible ? new Aspho1SStages() : null;
-        }
-
-        private void DrawSMTest()
-        {
-            _smTest!.Draw();
         }
 
         private void DrawZodiarkSolver()
@@ -127,12 +156,6 @@ namespace UIDev
             ImGui.SameLine();
             if (ImGui.Button("Cast: rot CCW"))
                 _zodiarkStages.Solver.ActiveRot = ZodiarkSolver.RotDir.CCW;
-        }
-
-        private void DrawAspho1SStages()
-        {
-            _aspho1SStages!.Draw();
-            _aspho1SStages!.DrawDebugButtons();
         }
 
         private bool DrawWindow(string name, Vector2 sizeHint, Action drawFn)

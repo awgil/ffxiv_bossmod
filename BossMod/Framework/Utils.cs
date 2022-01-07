@@ -11,6 +11,12 @@ namespace BossMod
             return $"{obj.DataId:X} '{obj.Name}' <{obj.ObjectId:X}>";
         }
 
+        public static string ObjectString(uint id)
+        {
+            var obj = Service.ObjectTable.SearchById(id);
+            return obj != null ? ObjectString(obj) : $"(not found) <{id:X}>";
+        }
+
         public static string ObjectKindString(GameObject obj)
         {
             if (obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.BattleNpc)
@@ -41,6 +47,13 @@ namespace BossMod
             var actionData = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(actionID);
             string name = actionData?.Name ?? "<not found>";
             return $"{actionID} '{name}'";
+        }
+
+        public static string StatusString(uint statusID)
+        {
+            var statusData = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Status>()?.GetRow(statusID);
+            string name = statusData?.Name ?? "<not found>";
+            return $"{statusID} '{name}'";
         }
 
         public static string CastTimeString(float current, float total)
