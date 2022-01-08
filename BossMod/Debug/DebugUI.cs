@@ -12,6 +12,8 @@ namespace BossMod
         private DateTime _combatStart;
         private DebugObjects _debugObjects = new();
         private DebugGraphics _debugGraphics = new();
+        private DebugAction _debugAction = new();
+        private WarriorActions _war = new(); // TODO: remove
 
         public DebugUI(WorldState ws)
         {
@@ -58,6 +60,14 @@ namespace BossMod
             if (Camera.Instance != null && ImGui.CollapsingHeader("Matrices"))
             {
                 _debugGraphics.DrawMatrices();
+            }
+            if (ImGui.CollapsingHeader("Actions"))
+            {
+                _debugAction.DrawActionData();
+            }
+            if (ImGui.CollapsingHeader("WAR"))
+            {
+                _war.DrawActionHint();
             }
         }
 

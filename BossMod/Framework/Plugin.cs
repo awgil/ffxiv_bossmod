@@ -16,6 +16,8 @@ namespace BossMod
         private DebugUI? _debugUI;
         private IBossModule? _activeModule;
 
+        private Autorotation _autorotation;
+
         private DalamudPluginInterface PluginInterface { get; init; }
         private CommandManager CommandManager { get; init; }
         private Configuration Configuration { get; init; }
@@ -50,10 +52,13 @@ namespace BossMod
 
             _ws.CurrentZoneChanged += ZoneChanged;
             ZoneChanged(null, _ws.CurrentZone);
+
+            _autorotation = new();
         }
 
         public void Dispose()
         {
+            _autorotation.Dispose();
             _ws.CurrentZoneChanged -= ZoneChanged;
             this.CommandManager.RemoveHandler("/bmz");
             this.CommandManager.RemoveHandler("/bmd");
@@ -89,6 +94,7 @@ namespace BossMod
         {
             Camera.Instance?.Update();
             _ws.Update();
+            _autorotation?.Update();
 
             if (_debugUI != null)
             {
