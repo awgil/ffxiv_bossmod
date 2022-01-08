@@ -1,14 +1,9 @@
-﻿using Dalamud.Data;
-using Dalamud.Game.ClientState;
-using Dalamud.Game.ClientState.Objects;
-using Dalamud.Game.Command;
+﻿using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 using ImGuiNET;
-using System.IO;
 using System.Numerics;
-using System.Reflection;
 
 namespace BossMod
 {

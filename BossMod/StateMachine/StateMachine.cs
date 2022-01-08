@@ -8,103 +8,85 @@ using System.Threading.Tasks;
 namespace BossMod
 {
     // a lot of boss fights can be modeled as state machines
-    // by far the most common state has a single transition to a neighbouring state, and by far the most common transition is spell cast by boss
-    // state represents single meaningful mechanic in a boss fight - simplest example could be an aoe or a tankbuster
-    // more complex states (e.g. representing complex unique overlap of abilities) can e.g. have internal substates and transitions - this level knows nothing about it
-    // state (particularly complex one) could draw custom state-specific hints - but take care not to create layout surprises e.g. during state transitions
+    // by far the most common state has a single transition to a neighbouring state, and by far the most common transition is spell cast/finish by boss
     public class StateMachine
     {
-        public interface IState
+        public class State
         {
-            public int? Update(); // should return null if it wants to remain active, otherwise ID of the next state
-            public string Name();
-            public double EstimateTimeToTransition(); // we might call it for future state that is not yet active...
-            public int? PredictedNextState(); // called to predict future states, return null if it's impossible
-            public bool DrawHint(); // we always first try drawing hint for active state, if it returns false - try drawing hint for next state
-            public void Reset(StateMachine sm) {}
+            public string Name = ""; // if name is empty, state is "hidden" from UI
+            public float Duration = 0; // estimated state duration
+            public State? Next = null; // next state; note that this could be changed freely when needed
+            public bool Substate = false; // if true, this state is a logical 'substate' - it should be grouped together with next one for display purposes
+            public bool Active = false; // this is updated automatically by the framework when state is entered or exited
+            public bool Done = false; // when set, on next update framework will automatically transition to next state
+            public Action? Enter = null; // callback executed when state is activated
+            public Action? Exit = null; // callback executed when state is deactivated; note that this can happen unexpectedly, e.g. due to external reset
+            public Action<float>? Update = null; // callback executed every frame when state is active; should return whether transition to next state should happen; argument = time since activation
         }
 
-        public class Desc
+        private DateTime _lastTransition = DateTime.Now;
+        private float? _pauseTime;
+        public float TimeSinceTransition => _pauseTime ?? (float)(DateTime.Now - _lastTransition).TotalSeconds;
+        public bool Paused
         {
-            public Dictionary<int, IState> States = new();
-            public int NextID = 0;
-
-            public int ReserveIDRange(int size)
+            get => _pauseTime != null;
+            set
             {
-                int start = NextID;
-                NextID += size;
-                return start;
-            }
-
-            // when building typical state, it will be assigned to NextID, and its transition to NextID + 1
-            public int NextTransitionID => NextID + 1;
-
-            public T Add<T>(T state) where T : IState
-            {
-                States[NextID++] = state;
-                return state;
-            }
-        }
-
-        // initial state should have id 0, we automatically transition to it on pull
-        private Desc _desc;
-        public IReadOnlyDictionary<int, IState> States => _desc.States;
-
-        public IState? ActiveState { get; private set; }
-        public IState? NextState => ActiveState != null ? FindState(ActiveState.PredictedNextState()) : null;
-
-        public IState? FindState(int? id)
-        {
-            IState? s = null;
-            if (id != null)
-                States.TryGetValue(id.Value, out s);
-            return s;
-        }
-
-        public StateMachine(Desc desc)
-        {
-            _desc = desc;
-            Reset();
-        }
-
-        public void Reset()
-        {
-            ActiveState = null;
-            foreach (var s in States)
-            {
-                s.Value.Reset(this);
+                if (value && _pauseTime == null)
+                {
+                    _pauseTime = TimeSinceTransition;
+                }
+                else if (!value && _pauseTime != null)
+                {
+                    _lastTransition = DateTime.Now - TimeSpan.FromSeconds(_pauseTime.Value);
+                    _pauseTime = null;
+                }
             }
         }
 
-        public void Start(int initialState = 0)
+        private State? _activeState = null;
+        public State? ActiveState
         {
-            if (ActiveState != null)
-                return;
-            ActiveState = FindState(initialState);
+            get => _activeState;
+            set
+            {
+                if (_activeState != null)
+                {
+                    _activeState.Exit?.Invoke();
+                    _activeState.Active = false;
+                    _activeState.Done = false;
+                }
+                _activeState = value;
+                if (_activeState != null)
+                {
+                    _activeState.Active = true;
+                    _activeState.Done = false;
+                    _activeState.Enter?.Invoke();
+                }
+                _lastTransition = DateTime.Now;
+            }
         }
 
         public void Update()
         {
+            if (Paused)
+                return;
+
             while (ActiveState != null)
             {
-                int? transition = ActiveState.Update();
-                if (transition == null)
-                    return; // nothing more to update...
-
-                // perform state transition
-                ActiveState = FindState(transition.Value);
-                if (ActiveState == null)
-                {
-                    Reset();
-                }
+                ActiveState.Update?.Invoke(TimeSinceTransition);
+                if (!ActiveState.Done)
+                    break;
+                ActiveState = ActiveState.Next;
             }
         }
 
         public void Draw()
         {
-            ImGui.Text($"Cur: {ActiveString()}");
+            (var activeName, var next) = BuildComplexStateNameAndDuration(ActiveState, TimeSinceTransition, true);
+            ImGui.Text($"Cur: {activeName}");
 
-            var future = BuildStateChain(NextState, " ---> ");
+            var future = BuildStateChain(next, " ---> ");
             if (future.Length == 0)
             {
                 ImGui.Text("");
@@ -113,31 +95,15 @@ namespace BossMod
             {
                 ImGui.Text($"Then: {future}");
             }
-
-            var hintState = ActiveState;
-            while (hintState != null && !hintState.DrawHint())
-            {
-                hintState = FindState(hintState.PredictedNextState());
-            }
         }
 
-        public string ActiveString()
-        {
-            if (ActiveState == null)
-                return "Inactive";
-
-            var activeName = ActiveState.Name();
-            var timeLeft = ActiveState.EstimateTimeToTransition();
-            return timeLeft >= 0 ? $"{activeName} in {timeLeft:f1}s" : activeName;
-        }
-
-        public string BuildStateChain(IState? start, string sep, int maxCount = 5)
+        public string BuildStateChain(State? start, string sep, int maxCount = 5)
         {
             int count = 0;
             var res = new StringBuilder();
             while (start != null && count < maxCount)
             {
-                var name = start.Name();
+                (var name, var next) = BuildComplexStateNameAndDuration(start, 0, false);
                 if (name.Length > 0)
                 {
                     if (res.Length > 0)
@@ -145,9 +111,50 @@ namespace BossMod
                     res.Append(name);
                     ++count;
                 }
-                start = FindState(start.PredictedNextState());
+                start = next;
             }
             return res.ToString();
+        }
+
+        private (string, State?) BuildComplexStateNameAndDuration(State? start, float timeActive, bool writeTime)
+        {
+            if (start == null)
+                return ("Inactive", null);
+
+            var res = new StringBuilder(start.Name);
+            var timeLeft = MathF.Max(0, start.Duration - timeActive);
+            if (writeTime && res.Length > 0)
+            {
+                writeTime = false;
+                res.Append($" in {timeLeft:f1}s");
+            }
+
+            while (start.Substate && start.Next != null)
+            {
+                start = start.Next;
+                timeLeft += MathF.Max(0, start.Duration);
+                if (start.Name.Length > 0)
+                {
+                    if (res.Length > 0)
+                        res.Append(" + ");
+                    res.Append(start.Name);
+
+                    if (writeTime)
+                    {
+                        writeTime = false;
+                        res.Append($" in {timeLeft:f1}s");
+                    }
+                }
+            }
+
+            if (writeTime)
+            {
+                if (res.Length == 0)
+                    res.Append("???");
+                res.Append($" in {timeLeft:f1}s");
+            }
+
+            return (res.ToString(), start.Next);
         }
     }
 }

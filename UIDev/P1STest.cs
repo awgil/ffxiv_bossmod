@@ -28,12 +28,23 @@ namespace UIDev
 
             ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
             if (ImGui.Button(!_ws.PlayerInCombat ? "Pull" : "Wipe"))
+            {
+                _ws.UpdateCastInfo(_ws.FindActor(1)!, null);
                 _ws.PlayerInCombat = !_ws.PlayerInCombat;
+            }
             ImGui.SameLine();
+            if (ImGui.Button(_o.Paused ? "Resume" : "Pause"))
+                _o.Paused = !_o.Paused;
+
             var boss = _ws.FindActor(1)!;
+            int cnt = 0;
             foreach (var e in Enum.GetValues<P1S.AID>())
+            {
                 if (ImGui.Button(e.ToString()))
                     _ws.UpdateCastInfo(boss, boss.CastInfo == null ? new WorldState.CastInfo { ActionID = (uint)e } : null);
+                if (++cnt % 5 != 0)
+                    ImGui.SameLine();
+            }
         }
     }
 }

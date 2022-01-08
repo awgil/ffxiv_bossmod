@@ -51,39 +51,18 @@ namespace BossMod
             GaolerFlailO2 = 28077, // Helper->Helper, second hit, donut
         };
 
-        class SpellWithHintState : SpellCastState
-        {
-            private string _hint = "";
-            private Func<AID, string> _getHint;
-
-            public SpellWithHintState(int nextState, string name, WorldState ws, double timeBeforeCast, double castDuration, double resolveTime, Func<AID, string> getHint)
-                : base(nextState, name, ws, (uint)OID.Boss, timeBeforeCast, castDuration, resolveTime)
-            {
-                _getHint = getHint;
-            }
-
-            public override bool DrawHint()
-            {
-                if (_hint.Length > 0)
-                    ImGui.Text(_hint);
-                return true;
-            }
-
-            protected override void CastStarted(WorldState.Actor actor)
-            {
-                _hint = _getHint((AID)actor.CastInfo!.ActionID);
-            }
-
-            protected override void Clear()
-            {
-                _hint = "";
-            }
-        }
-
         private WorldState _ws;
         private WorldState.Actor? _boss;
-        private StateMachine _sm;
+        private string _hint = "";
         private MiniArena _arena = new();
+        private StateMachine _sm = new();
+        private StateMachine.State? _stateInitial;
+
+        public bool Paused
+        {
+            get => _sm.Paused;
+            set => _sm.Paused = value;
+        }
 
         public P1S(WorldState ws)
         {
@@ -93,100 +72,6 @@ namespace BossMod
             _ws.ActorDestroyed += ActorDestroyed;
             foreach (var v in _ws.Actors)
                 ActorCreated(null, v.Value);
-
-            StateMachine.Desc shacklesAndAOE = new();
-            shacklesAndAOE.Add(new ExpectedSpellCastState(shacklesAndAOE.NextTransitionID, "Shackles", ws, (uint)OID.Boss, (uint)AID.AetherialShackles, 6, 3));
-            shacklesAndAOE.Add(new ExpectedSpellCastState(shacklesAndAOE.NextTransitionID, "AOE", ws, (uint)OID.Boss, (uint)AID.WarderWrath, 4, 5));
-            shacklesAndAOE.Add(new TimeoutState(-1, "Shackles resolve", 10));
-
-            StateMachine.Desc intemp1 = new();
-            intemp1.Add(new ExpectedSpellCastState(intemp1.NextTransitionID, "Intemperance", ws, (uint)OID.Boss, (uint)AID.Intemperance, 11, 2));
-            intemp1.Add(new SpellWithHintState(intemp1.NextTransitionID, "Cube1", ws, 6, 10, 1, IntemperanceHint));
-            intemp1.Add(new ExpectedSpellCastState(intemp1.NextTransitionID, "AOE", ws, (uint)OID.Boss, (uint)AID.WarderWrath, 1, 5));
-            intemp1.Add(new TimeoutState(intemp1.NextTransitionID, "Cube2", 5));
-            intemp1.Add(new ExpectedSpellCastState(intemp1.NextTransitionID, "AOE", ws, (uint)OID.Boss, (uint)AID.WarderWrath, 0, 5));
-            intemp1.Add(new TimeoutState(-1, "Cube3", 6));
-
-            StateMachine.Desc sotAndTB = new();
-            sotAndTB.Add(new ExpectedSpellCastState(sotAndTB.NextTransitionID, "ShacklesOfTime", ws, (uint)OID.Boss, (uint)AID.ShacklesOfTime, 4, 4));
-            sotAndTB.Add(new ExpectedSpellCastState(sotAndTB.NextTransitionID, "Tankbuster", ws, (uint)OID.Boss, (uint)AID.HeavyHand, 5, 5));
-            sotAndTB.Add(new TimeoutState(-1, "Shackles resolve", 5));
-
-            StateMachine.Desc fourShackles = new();
-            fourShackles.Add(new ExpectedSpellCastState(fourShackles.NextTransitionID, "FourShackles", ws, (uint)OID.Boss, (uint)AID.FourShackles, 13, 3));
-            fourShackles.Add(new TimeoutState(fourShackles.NextTransitionID, "Hit1", 10));
-            fourShackles.Add(new TimeoutState(fourShackles.NextTransitionID, "Hit2", 5));
-            fourShackles.Add(new TimeoutState(fourShackles.NextTransitionID, "Hit3", 5));
-            fourShackles.Add(new TimeoutState(-1, "Hit4", 5));
-
-            StateMachine.Desc intemp2 = new();
-            intemp2.Add(new ExpectedSpellCastState(intemp2.NextTransitionID, "Intemperance", ws, (uint)OID.Boss, (uint)AID.Intemperance, 11, 2));
-            intemp2.Add(new SpellWithHintState(intemp2.NextTransitionID, "Cube1", ws, 6, 10, 1, IntemperanceHint));
-            intemp2.Add(new TimeoutState(intemp2.NextTransitionID, "Cube2", 11));
-            intemp2.Add(new TimeoutState(intemp2.NextTransitionID, "Flail", 7)); // TODO: cast-start happens 8 sec before cube2, cast-end happens 3 sec after cube2
-            intemp2.Add(new TimeoutState(-1, "Cube3", 4));
-
-            StateMachine.Desc shacklesAndAetherchainFirst = new();
-            shacklesAndAetherchainFirst.Add(new ExpectedSpellCastState(shacklesAndAetherchainFirst.NextTransitionID, "Aetherchain", ws, (uint)OID.Boss, (uint)AID.Aetherchain, 6, 5));
-            shacklesAndAetherchainFirst.Add(new ExpectedSpellCastState(shacklesAndAetherchainFirst.NextTransitionID, "Aetherchain", ws, (uint)OID.Boss, (uint)AID.Aetherchain, 3, 5));
-            shacklesAndAetherchainFirst.Add(new TimeoutState(-1, "Shackles resolve", 0));
-
-            StateMachine.Desc shacklesAndAetherchainSecond = new();
-            shacklesAndAetherchainSecond.Add(new ExpectedSpellCastState(shacklesAndAetherchainSecond.NextTransitionID, "Shackles", ws, (uint)OID.Boss, (uint)AID.AetherialShackles, 9, 3));
-            shacklesAndAetherchainSecond.Add(new ExpectedSpellCastState(shacklesAndAetherchainSecond.NextTransitionID, "Aetherchain", ws, (uint)OID.Boss, (uint)AID.Aetherchain, 6, 5));
-            shacklesAndAetherchainSecond.Add(new ExpectedSpellCastState(shacklesAndAetherchainSecond.NextTransitionID, "Aetherchain", ws, (uint)OID.Boss, (uint)AID.Aetherchain, 3, 5));
-            shacklesAndAetherchainSecond.Add(new TimeoutState(-1, "Shackles resolve", 0));
-
-            StateMachine.Desc sotAndKnockbackFirst = new();
-            sotAndKnockbackFirst.Add(new SpellWithHintState(sotAndKnockbackFirst.NextTransitionID, "Knockback", ws, 2, 5, 5, KnockbackHint));
-            sotAndKnockbackFirst.Add(new TimeoutState(-1, "Shackles resolve", 3));
-
-            StateMachine.Desc sotAndKnockbackSecond = new();
-            sotAndKnockbackSecond.Add(new ExpectedSpellCastState(sotAndKnockbackSecond.NextTransitionID, "ShacklesOfTime", ws, (uint)OID.Boss, (uint)AID.ShacklesOfTime, 6, 4));
-            sotAndKnockbackSecond.Add(new SpellWithHintState(sotAndKnockbackSecond.NextTransitionID, "Knockback", ws, 2, 5, 5, KnockbackHint));
-            sotAndKnockbackSecond.Add(new TimeoutState(-1, "Shackles resolve", 3));
-
-            StateMachine.Desc desc = new();
-            desc.Add(new ExpectedSpellCastState(desc.NextTransitionID, "Tankbuster", ws, (uint)OID.Boss, (uint)AID.HeavyHand, 8, 5));
-            desc.Add(new ComplexState(desc.NextTransitionID, shacklesAndAOE));
-            desc.Add(new SpellWithHintState(desc.NextTransitionID, "Flail", ws, 4, 12, 4, FlailHint));
-            desc.Add(new SpellWithHintState(desc.NextTransitionID, "Knockback", ws, 5, 5, 5, KnockbackHint));
-            desc.Add(new SpellWithHintState(desc.NextTransitionID, "Flail", ws, 3, 12, 4, FlailHint));
-            desc.Add(new ExpectedSpellCastState(desc.NextTransitionID, "AOE", ws, (uint)OID.Boss, (uint)AID.WarderWrath, 5, 5));
-            desc.Add(new ComplexState(desc.NextTransitionID, intemp1));
-            desc.Add(new SpellWithHintState(desc.NextTransitionID, "Knockback", ws, 5, 5, 5, KnockbackHint));
-            desc.Add(new ExpectedSpellCastState(desc.NextTransitionID, "Cells", ws, (uint)OID.Boss, (uint)AID.ShiningCells, 8, 7));
-            desc.Add(new SpellWithHintState(desc.NextTransitionID, "Aetherflail", ws, 8, 12, 4, AetherflailHint));
-            desc.Add(new SpellWithHintState(desc.NextTransitionID, "Knockback", ws, 7, 5, 5, KnockbackHint));
-            desc.Add(new SpellWithHintState(desc.NextTransitionID, "Aetherflail", ws, 2, 12, 4, AetherflailHint));
-            desc.Add(new ComplexState(desc.NextTransitionID, sotAndTB));
-            desc.Add(new ExpectedSpellCastState(desc.NextTransitionID, "SlamShut", ws, (uint)OID.Boss, (uint)AID.SlamShut, 1, 6));
-            desc.Add(new ComplexState(desc.NextTransitionID, fourShackles));
-            desc.Add(new ExpectedSpellCastState(desc.NextTransitionID, "AOE", ws, (uint)OID.Boss, (uint)AID.WarderWrath, 5, 5));
-            desc.Add(new ComplexState(desc.NextTransitionID, intemp2));
-            desc.Add(new ExpectedSpellCastState(desc.NextTransitionID, "AOE", ws, (uint)OID.Boss, (uint)AID.WarderWrath, 3, 5));
-            desc.Add(new ExpectedSpellCastState(desc.NextTransitionID, "Cells", ws, (uint)OID.Boss, (uint)AID.ShiningCells, 11, 7));
-            desc.Add(new VariantSpellCastState(ws, (uint)OID.Boss, 6, new VariantSpellCastState.Variant[] {
-                new VariantSpellCastState.Variant(50, "Shackles+Aetherchain", (uint)AID.AetherialShackles, 3),
-                new VariantSpellCastState.Variant(60, "ShacklesOfTime+Knockback", (uint)AID.ShacklesOfTime, 4)
-            }));
-            desc.NextID = 50;
-            desc.Add(new ComplexState(desc.NextTransitionID, shacklesAndAetherchainFirst));
-            desc.Add(new ExpectedSpellCastState(desc.NextTransitionID, "AOE", ws, (uint)OID.Boss, (uint)AID.WarderWrath, 7, 5));
-            desc.Add(new ComplexState(desc.NextTransitionID, sotAndKnockbackSecond));
-            desc.Add(new ExpectedSpellCastState(70, "AOE", ws, (uint)OID.Boss, (uint)AID.WarderWrath, 3, 5));
-            desc.NextID = 60;
-            desc.Add(new ComplexState(desc.NextTransitionID, sotAndKnockbackFirst));
-            desc.Add(new ExpectedSpellCastState(desc.NextTransitionID, "AOE", ws, (uint)OID.Boss, (uint)AID.WarderWrath, 3, 5));
-            desc.Add(new ComplexState(desc.NextTransitionID, shacklesAndAetherchainFirst));
-            desc.Add(new ExpectedSpellCastState(70, "AOE", ws, (uint)OID.Boss, (uint)AID.WarderWrath, 7, 5));
-            desc.NextID = 70;
-            desc.Add(new SpellWithHintState(desc.NextTransitionID, "Aetherflail", ws, 9, 12, 4, AetherflailHint));
-            desc.Add(new SpellWithHintState(desc.NextTransitionID, "Aetherflail", ws, 6, 12, 4, AetherflailHint));
-            desc.Add(new SpellWithHintState(desc.NextTransitionID, "Aetherflail", ws, 6, 12, 4, AetherflailHint));
-            desc.Add(new ExpectedSpellCastState(desc.NextTransitionID, "AOE", ws, (uint)OID.Boss, (uint)AID.WarderWrath, 13, 5));
-            desc.Add(new TimeoutState(-1, "???", 1000));
-            _sm = new(desc);
         }
 
         public void Dispose()
@@ -200,6 +85,7 @@ namespace BossMod
         {
             _sm.Update();
             _sm.Draw();
+            ImGui.Text(_hint);
 
             _arena.Begin(cameraAzimuth);
             _arena.BorderSquare();
@@ -210,86 +96,289 @@ namespace BossMod
 
         private void EnterExitCombat(object? sender, bool inCombat)
         {
-            if (inCombat)
-                _sm.Start();
-            else
-                _sm.Reset();
+            _sm.ActiveState = inCombat ? _stateInitial : null;
         }
 
         private void ActorCreated(object? sender, WorldState.Actor actor)
         {
             if ((OID)actor.OID == OID.Boss)
+            {
                 _boss = actor;
+                RebuildStateMachine();
+            }
         }
 
         private void ActorDestroyed(object? sender, WorldState.Actor actor)
         {
             if (_boss == actor)
+            {
                 _boss = null;
-        }
-
-        private static string FlailHint(AID actionID)
-        {
-            switch (actionID)
-            {
-                case AID.GaolerFlailRL:
-                    return "Order: right->left";
-                case AID.GaolerFlailLR:
-                    return "Order: left->right";
-                case AID.GaolerFlailIO1:
-                case AID.GaolerFlailIO2:
-                    return "Order: in->out";
-                case AID.GaolerFlailOI1:
-                case AID.GaolerFlailOI2:
-                    return "Order: out->in";
-                default:
-                    Service.Log($"Unexpected flails action: {actionID}");
-                    return "Order: ???";
+                RebuildStateMachine();
             }
         }
 
-        private static string KnockbackHint(AID actionID)
+        private void RebuildStateMachine()
         {
-            switch (actionID)
+            _hint = "";
+            if (_boss == null)
             {
-                case AID.KnockbackGrace:
-                    return "What to do: stack!";
-                case AID.KnockbackPurge:
-                    return "What to do: gtfo!";
-                default:
-                    Service.Log($"Unexpected knockback cast: {actionID}");
-                    return "What to do: ???";
+                _sm.ActiveState = _stateInitial = null;
+                return;
             }
+
+            StateMachine.State? s;
+            s = CommonStates.Cast(ref _stateInitial, _boss, AID.HeavyHand, 8, 5, "Tankbuster");
+
+            s = CommonStates.CastStart(ref s.Next, _boss, AID.AetherialShackles, 6);
+            s.Enter = () => { }; // TODO: start shackles helper
+            s = CommonStates.CastEnd(ref s.Next, _boss, 3, "Shackles");
+            s.Substate = true;
+            s = CommonStates.Cast(ref s.Next, _boss, AID.WarderWrath, 4, 5, "AOE");
+            s.Substate = true;
+            s = CommonStates.Timeout(ref s.Next, 10, "Shackles resolve");
+            s.Exit = () => { }; // TODO: end shackles helper
+
+            s = BuildFlailStates(ref s.Next, _boss, 4);
+            s = BuildKnockbackStates(ref s.Next, _boss, 5);
+            s = BuildFlailStates(ref s.Next, _boss, 3);
+            s = CommonStates.Cast(ref s.Next, _boss, AID.WarderWrath, 5, 5, "AOE");
+
+            s = BuildIntemperanceExplosionStart(ref s.Next, _boss, 11);
+            s = CommonStates.Cast(ref s.Next, _boss, AID.WarderWrath, 1, 5, "AOE");
+            s.Substate = true;
+            s = CommonStates.CastStart(ref s.Next, _boss, AID.WarderWrath, 5, "Cube2"); // cube2 and aoe start happen at almost same time
+            s.Substate = true;
+            s = CommonStates.CastEnd(ref s.Next, _boss, 5, "AOE");
+            s.Substate = true;
+            s = CommonStates.Timeout(ref s.Next, 6, "Cube3");
+
+            s = BuildKnockbackStates(ref s.Next, _boss, 5);
+
+            s = CommonStates.CastStart(ref s.Next, _boss, AID.ShiningCells, 8);
+            s.Enter = () => { }; // TODO: begin cells
+            s = CommonStates.CastEnd(ref s.Next, _boss, 7, "Cells");
+            s = BuildAetherflailStates(ref s.Next, _boss, 8);
+            s = BuildKnockbackStates(ref s.Next, _boss, 7);
+            s = BuildAetherflailStates(ref s.Next, _boss, 2);
+            s = CommonStates.Cast(ref s.Next, _boss, AID.ShacklesOfTime, 4, 4, "ShacklesOfTime"); // TODO: exit => SOT helper?.. or activate by debuff independently from state machines?..
+            s.Substate = true;
+            s = CommonStates.Cast(ref s.Next, _boss, AID.HeavyHand, 5, 5, "Tankbuster");
+            s.Substate = true;
+            s = CommonStates.Timeout(ref s.Next, 5, "Shackles resolve"); // TODO: exit => clear SOT helper
+            s = CommonStates.Cast(ref s.Next, _boss, AID.SlamShut, 1, 6, "SlamShut");
+            s.Exit = () => { }; // TODO: end cells
+
+            s = CommonStates.Cast(ref s.Next, _boss, AID.FourShackles, 13, 3, "FourShackles");
+            s.Substate = true;
+            s = CommonStates.Timeout(ref s.Next, 10, "Hit1");
+            s.Substate = true;
+            s = CommonStates.Timeout(ref s.Next, 5, "Hit2");
+            s.Substate = true;
+            s = CommonStates.Timeout(ref s.Next, 5, "Hit3");
+            s.Substate = true;
+            s = CommonStates.Timeout(ref s.Next, 5, "Hit4");
+
+            s = CommonStates.Cast(ref s.Next, _boss, AID.WarderWrath, 5, 5, "AOE");
+
+            s = BuildIntemperanceExplosionStart(ref s.Next, _boss, 11);
+            s = BuildFlailStartState(ref s.Next, _boss, 3);
+            s = CommonStates.Timeout(ref s.Next, 8, "Cube2");
+            s.Substate = true;
+            s = CommonStates.CastEnd(ref s.Next, _boss, 3);
+            s = CommonStates.Timeout(ref s.Next, 4, "Flails");
+            s.Substate = true;
+            s.Exit = () => _hint = "";
+            s = CommonStates.Timeout(ref s.Next, 4, "Cube3");
+
+            s = CommonStates.Cast(ref s.Next, _boss, AID.WarderWrath, 3, 5, "AOE");
+
+            s = CommonStates.CastStart(ref s.Next, _boss, AID.ShiningCells, 11);
+            s.Enter = () => { }; // TODO: begin cells
+            s = CommonStates.CastEnd(ref s.Next, _boss, 7, "Cells");
+
+            // subsequences
+            StateMachine.State? s1b = null, s1e = null;
+            s1e = CommonStates.CastEnd(ref s1b, _boss, 3, "Shackles");
+            s1e.Substate = true;
+            s1e = CommonStates.Cast(ref s1e.Next, _boss, AID.Aetherchain, 6, 5, "Aetherchain");
+            s1e.Substate = true;
+            s1e = CommonStates.Cast(ref s1e.Next, _boss, AID.Aetherchain, 3, 5, "Aetherchain + Shackles resolve");
+            s1e.Exit = () => { }; // TODO: end shackles helper
+            s1e = CommonStates.Cast(ref s1e.Next, _boss, AID.WarderWrath, 7, 5, "AOE");
+            s1e = CommonStates.Cast(ref s1e.Next, _boss, AID.ShacklesOfTime, 6, 4, "ShacklesOfTime"); // TODO: exit => SOT helper?.. or activate by debuff independently from state machines?..
+            s1e.Substate = true;
+            s1e = BuildKnockbackStates(ref s1e.Next, _boss, 2);
+            s1e.Substate = true;
+            s1e = CommonStates.Timeout(ref s1e.Next, 3, "Shackles resolve"); // TODO: exit => clear SOT helper
+            s1e = CommonStates.Cast(ref s1e.Next, _boss, AID.WarderWrath, 3, 5, "AOE");
+
+            StateMachine.State? s2b = null, s2e = null;
+            s2e = CommonStates.CastEnd(ref s2b, _boss, 4, "ShacklesOfTime"); // TODO: exit => SOT helper?.. or activate by debuff independently from state machines?..
+            s2e.Substate = true;
+            s2e = BuildKnockbackStates(ref s2e.Next, _boss, 2);
+            s2e.Substate = true;
+            s2e = CommonStates.Timeout(ref s2e.Next, 3, "Shackles resolve"); // TODO: exit => clear SOT helper
+            s2e = CommonStates.Cast(ref s2e.Next, _boss, AID.WarderWrath, 3, 5, "AOE");
+            s2e = CommonStates.CastStart(ref s2e.Next, _boss, AID.AetherialShackles, 9);
+            s2e.Enter = () => { }; // TODO: start shackles helper
+            s2e = CommonStates.CastEnd(ref s2e.Next, _boss, 3, "Shackles");
+            s2e.Substate = true;
+            s2e = CommonStates.Cast(ref s2e.Next, _boss, AID.Aetherchain, 6, 5, "Aetherchain");
+            s2e.Substate = true;
+            s2e = CommonStates.Cast(ref s2e.Next, _boss, AID.Aetherchain, 3, 5, "Aetherchain + Shackles resolve");
+            s2e.Exit = () => { }; // TODO: end shackles helper
+            s2e = CommonStates.Cast(ref s2e.Next, _boss, AID.WarderWrath, 7, 5, "AOE");
+
+            var fork = CommonStates.Simple(ref s.Next, 6, "Shackles+Aetherchains -or- ShacklesOfTime+Knockback");
+            fork.Update = (float timeSinceTransition) =>
+            {
+                if (_boss.CastInfo == null)
+                    return;
+                fork.Done = true;
+                switch ((AID)_boss.CastInfo.ActionID)
+                {
+                    case AID.AetherialShackles:
+                        fork.Next = s1b;
+                        break;
+                    case AID.ShacklesOfTime:
+                        fork.Next = s2b;
+                        break;
+                    default:
+                        Service.Log($"Unexpected spell cast start: {_boss.CastInfo.ActionID}");
+                        break;
+                }
+            };
+
+            // forks merge
+            s = BuildAetherflailStates(ref s1e.Next, _boss, 9);
+            s2e.Next = s1e.Next;
+            s = BuildAetherflailStates(ref s.Next, _boss, 6);
+            s = BuildAetherflailStates(ref s.Next, _boss, 6);
+            s = CommonStates.Cast(ref s.Next, _boss, AID.WarderWrath, 13, 5, "AOE");
+            s = CommonStates.Simple(ref s.Next, 0, "?????");
+
+            _stateInitial = fork;
         }
 
-        private static string IntemperanceHint(AID actionID)
+        private StateMachine.State BuildFlailStartState(ref StateMachine.State? link, WorldState.Actor boss, float delay)
         {
-            switch (actionID)
+            // TODO: better helper...
+            var start = CommonStates.CastStart(ref link, boss, delay);
+            start.Exit = () =>
             {
-                case AID.IntemperateTormentUp:
-                    return "Explosion order: bottom->top";
-                case AID.IntemperateTormentDown:
-                    return "Explosion order: top->bottom";
-                default:
-                    Service.Log($"Unexpected intemperance explosion cast: {actionID}");
-                    return "Explosion order: ???";
-            }
+                switch ((AID)boss.CastInfo!.ActionID)
+                {
+                    case AID.GaolerFlailRL:
+                        _hint = "Order: right->left";
+                        break;
+                    case AID.GaolerFlailLR:
+                        _hint = "Order: left->right";
+                        break;
+                    case AID.GaolerFlailIO1:
+                    case AID.GaolerFlailIO2:
+                        _hint = "Order: in->out";
+                        break;
+                    case AID.GaolerFlailOI1:
+                    case AID.GaolerFlailOI2:
+                        _hint = "Order: out->in";
+                        break;
+                    default:
+                        Service.Log($"Unexpected flails action: {boss.CastInfo.ActionID}");
+                        _hint = "Order: ???";
+                        break;
+                }
+            };
+            return start;
         }
 
-        private static string AetherflailHint(AID actionID)
+        private StateMachine.State BuildFlailStates(ref StateMachine.State? link, WorldState.Actor boss, float delay)
         {
-            // TODO
-            switch (actionID)
+            var start = BuildFlailStartState(ref link, boss, delay);
+            var end = CommonStates.CastEnd(ref start.Next, boss, 12);
+            var resolve = CommonStates.Timeout(ref end.Next, 4, "Flails");
+            resolve.Exit = () => _hint = "";
+            return resolve;
+        }
+
+        private StateMachine.State BuildAetherflailStates(ref StateMachine.State? link, WorldState.Actor boss, float delay)
+        {
+            // TODO: better helper...
+            var start = CommonStates.CastStart(ref link, boss, delay);
+            start.Exit = () =>
             {
-                case AID.Aetherflail1:
-                case AID.Aetherflail2:
-                case AID.Aetherflail3:
-                case AID.Aetherflail4:
-                    return "Order: unknown";
-                default:
-                    Service.Log($"Unexpected aetherflail cast: {actionID}");
-                    return "Order: ???";
-            }
+                switch ((AID)boss.CastInfo!.ActionID)
+                {
+                    case AID.Aetherflail1:
+                    case AID.Aetherflail2:
+                    case AID.Aetherflail3:
+                    case AID.Aetherflail4:
+                        _hint = "Order: unknown";
+                        break;
+                    default:
+                        Service.Log($"Unexpected flails action: {boss.CastInfo.ActionID}");
+                        _hint = "Order: ???";
+                        break;
+                }
+            };
+            var end = CommonStates.CastEnd(ref start.Next, boss, 12);
+            var resolve = CommonStates.Timeout(ref end.Next, 4, "Aetherflail");
+            resolve.Exit = () => _hint = "";
+            return resolve;
+        }
+
+        private StateMachine.State BuildKnockbackStates(ref StateMachine.State? link, WorldState.Actor boss, float delay)
+        {
+            // TODO: better helper...
+            var start = CommonStates.CastStart(ref link, boss, delay);
+            start.Exit = () =>
+            {
+                switch ((AID)boss.CastInfo!.ActionID)
+                {
+                    case AID.KnockbackGrace:
+                        _hint = "What to do: stack!";
+                        break;
+                    case AID.KnockbackPurge:
+                        _hint = "What to do: gtfo!";
+                        break;
+                    default:
+                        Service.Log($"Unexpected knockback cast: {boss.CastInfo.ActionID}");
+                        _hint = "What to do: ???";
+                        break;
+                }
+            };
+            var end = CommonStates.CastEnd(ref start.Next, boss, 5, "Knockback");
+            end.Substate = true;
+            var resolve = CommonStates.Timeout(ref end.Next, 5, "Explode");
+            resolve.Exit = () => _hint = "";
+            return resolve;
+        }
+
+        // intemperance cast start/end + explosion start/end + first resolve
+        private StateMachine.State BuildIntemperanceExplosionStart(ref StateMachine.State? link, WorldState.Actor boss, float delay)
+        {
+            var intemp = CommonStates.Cast(ref link, boss, AID.Intemperance, delay, 2, "Intemperance");
+            intemp.Substate = true;
+            var explosion = CommonStates.CastStart(ref intemp.Next, boss, 6);
+            explosion.Exit = () =>
+            {
+                switch ((AID)boss.CastInfo!.ActionID)
+                {
+                    case AID.IntemperateTormentUp:
+                        _hint = "Explosion order: bottom->top";
+                        break;
+                    case AID.IntemperateTormentDown:
+                        _hint = "Explosion order: top->bottom";
+                        break;
+                    default:
+                        Service.Log($"Unexpected intemperance explosion cast: {boss.CastInfo.ActionID}");
+                        _hint = "Explosion order: ???";
+                        break;
+                }
+            };
+            var end = CommonStates.CastEnd(ref explosion.Next, boss, 10);
+            var resolve = CommonStates.Timeout(ref end.Next, 1, "Cube1");
+            resolve.Substate = true;
+            return resolve;
         }
     }
 }
