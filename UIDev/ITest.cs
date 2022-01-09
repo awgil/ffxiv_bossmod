@@ -1,9 +1,11 @@
-﻿using System;
+﻿using ImGuiNET;
+using System;
 
 namespace UIDev
 {
     interface ITest : IDisposable
     {
-        public abstract void Draw();
+        public void Draw();
+        public ImGuiWindowFlags WindowFlags() { return ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse; }
     }
 }

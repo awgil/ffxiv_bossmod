@@ -3,7 +3,6 @@ using System;
 
 namespace BossMod
 {
-    // TODO: move to separate mod...
     class Autorotation : IDisposable
     {
         private delegate ulong OnGetIconDelegate(byte param1, uint param2);
@@ -27,6 +26,11 @@ namespace BossMod
         public void Update()
         {
             WarActions.Update();
+        }
+
+        public void Draw()
+        {
+            WarActions.DrawActionHint(false);
         }
 
         /// <summary>

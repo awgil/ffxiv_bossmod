@@ -13,7 +13,7 @@ namespace BossMod
         public unsafe float ComboTimeLeft => *_comboTimeLeft;
         public unsafe WARRotation.AID ComboLastMove => *_comboLastMove;
         public WARRotation.State State { get; private set; }
-        public WARRotation.Strategy Strategy = new();
+        public WARRotation.Strategy Strategy;
 
         public unsafe WarriorActions()
         {
@@ -23,6 +23,15 @@ namespace BossMod
 
             _actionManager = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
             State = BuildState();
+
+            Strategy = new()
+            {
+                SpendGauge = true,
+                EnableUpheaval = true,
+                EnableMovement = false,
+                NeedChargeIn = 0,
+                Aggressive = false,
+            };
         }
 
         public void Update()
@@ -87,22 +96,27 @@ namespace BossMod
             State = currState;
         }
 
-        public void DrawActionHint()
+        public void DrawActionHint(bool extended)
         {
-            ImGui.Text($"Gauge: {State.Gauge}");
-            ImGui.Text($"Surging tempest left: {State.SurgingTempestLeft:f2}");
-            ImGui.Text($"Nascent chaos left: {State.NascentChaosLeft:f2}");
-            ImGui.Text($"Primal rend left: {State.PrimalRendLeft:f2}");
-            ImGui.Text($"Inner release left: {State.InnerReleaseLeft:f2}");
-            ImGui.Text($"Combo State: last={State.ComboLastMove}, time left={State.ComboTimeLeft:f2}");
-            ImGui.Text($"GCD: {State.GCD:f2}");
-            ImGui.Text($"Infuriate: {State.InfuriateCD:f2}");
-            ImGui.Text($"Upheaval: {State.UpheavalCD:f2}");
-            ImGui.Text($"Inner Release: {State.InnerReleaseCD:f2}");
-            ImGui.Text($"Onslaught: {State.OnslaughtCD:f2}");
-            ImGui.Text($"Next GCD: {WARRotation.GetNextBestGCD(State, Strategy)}");
-            ImGui.Text($"Next oGCD: {WARRotation.GetNextBestOGCD(State, Strategy)}");
-            ImGui.Text($"Next action: {WARRotation.GetNextBestAction(State, Strategy)}");
+            ImGui.Checkbox("Spend mode", ref Strategy.SpendGauge);
+            ImGui.Checkbox("Enable movement", ref Strategy.EnableMovement);
+            if (extended)
+            {
+                ImGui.Text($"Gauge: {State.Gauge}");
+                ImGui.Text($"Surging tempest left: {State.SurgingTempestLeft:f2}");
+                ImGui.Text($"Nascent chaos left: {State.NascentChaosLeft:f2}");
+                ImGui.Text($"Primal rend left: {State.PrimalRendLeft:f2}");
+                ImGui.Text($"Inner release left: {State.InnerReleaseLeft:f2}");
+                ImGui.Text($"Combo State: last={State.ComboLastMove}, time left={State.ComboTimeLeft:f2}");
+                ImGui.Text($"GCD: {State.GCD:f2}");
+                ImGui.Text($"Infuriate: {State.InfuriateCD:f2}");
+                ImGui.Text($"Upheaval: {State.UpheavalCD:f2}");
+                ImGui.Text($"Inner Release: {State.InnerReleaseCD:f2}");
+                ImGui.Text($"Onslaught: {State.OnslaughtCD:f2}");
+                ImGui.Text($"Next GCD: {WARRotation.GetNextBestGCD(State, Strategy)}");
+                ImGui.Text($"Next oGCD: {WARRotation.GetNextBestOGCD(State, Strategy)}");
+                ImGui.Text($"Next action: {WARRotation.GetNextBestAction(State, Strategy)}");
+            }
         }
 
         public unsafe float ActionCooldown(WARRotation.AID action)

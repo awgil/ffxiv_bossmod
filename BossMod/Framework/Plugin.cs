@@ -15,8 +15,8 @@ namespace BossMod
         private DebugEventLogger _debugLogger;
         private DebugUI? _debugUI;
         private IBossModule? _activeModule;
-
         private Autorotation _autorotation;
+        private bool _autorotationUIVisible = true;
 
         private DalamudPluginInterface PluginInterface { get; init; }
         private CommandManager CommandManager { get; init; }
@@ -46,6 +46,10 @@ namespace BossMod
             {
                 HelpMessage = "Debug UI"
             });
+            this.CommandManager.AddHandler("/bma", new CommandInfo(OnCommand)
+            {
+                HelpMessage = "Autorotation UI"
+            });
 
             this.PluginInterface.UiBuilder.Draw += DrawUI;
             this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
@@ -62,6 +66,7 @@ namespace BossMod
             _ws.CurrentZoneChanged -= ZoneChanged;
             this.CommandManager.RemoveHandler("/bmz");
             this.CommandManager.RemoveHandler("/bmd");
+            this.CommandManager.RemoveHandler("/bma");
         }
 
         private void OnCommand(string command, string args)
@@ -71,6 +76,8 @@ namespace BossMod
                 ZoneChanged(null, ushort.Parse(args));
             else if (command == "/bmd" && _debugUI == null)
                 _debugUI = new DebugUI(_ws);
+            else if (command == "/bma")
+                _autorotationUIVisible = !_autorotationUIVisible;
         }
 
         private void ZoneChanged(object? sender, ushort zone)
@@ -94,7 +101,18 @@ namespace BossMod
         {
             Camera.Instance?.Update();
             _ws.Update();
-            _autorotation?.Update();
+            _autorotation.Update();
+
+            if (_autorotationUIVisible)
+            {
+                ImGui.SetNextWindowSize(new Vector2(100, 100), ImGuiCond.FirstUseEver);
+                ImGui.SetNextWindowSizeConstraints(new Vector2(100, 100), new Vector2(float.MaxValue, float.MaxValue));
+                if (ImGui.Begin("Autorotation", ref _autorotationUIVisible, ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+                {
+                    _autorotation.Draw();
+                }
+                ImGui.End();
+            }
 
             if (_debugUI != null)
             {

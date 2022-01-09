@@ -56,13 +56,13 @@ namespace UIDev
         // don't want to imply that is easy or the best way to go usually, so it's not done here either
         private void Draw()
         {
-            if (!DrawWindow("Zodiark overlap demo", new Vector2(375, 330), DrawMainWindow))
+            if (!DrawWindow("Zodiark overlap demo", new Vector2(375, 330), DrawMainWindow, ImGuiWindowFlags.None))
                 _scene!.ShouldQuit = true;
 
             for (int i = 0; i < _tests.Count; ++i)
             {
                 var test = _tests[i];
-                if (!DrawWindow(test.GetType().ToString(), new Vector2(375, 330), () => test.Draw()))
+                if (!DrawWindow(test.GetType().ToString(), new Vector2(375, 330), () => test.Draw(), test.WindowFlags()))
                 {
                     test.Dispose();
                     _tests.RemoveAt(i--);
@@ -70,9 +70,9 @@ namespace UIDev
             }
 
             // legacy tests
-            if (_zodiarkSolver != null && !DrawWindow("Zodiark solver", new Vector2(375, 330), DrawZodiarkSolver))
+            if (_zodiarkSolver != null && !DrawWindow("Zodiark solver", new Vector2(375, 330), DrawZodiarkSolver, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
                 _zodiarkSolver = null;
-            if (_zodiarkStages != null && !DrawWindow("Zodiark stages", new Vector2(375, 330), DrawZodiarkStages))
+            if (_zodiarkStages != null && !DrawWindow("Zodiark stages", new Vector2(375, 330), DrawZodiarkStages, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
                 _zodiarkStages = null;
         }
 
@@ -158,12 +158,12 @@ namespace UIDev
                 _zodiarkStages.Solver.ActiveRot = ZodiarkSolver.RotDir.CCW;
         }
 
-        private bool DrawWindow(string name, Vector2 sizeHint, Action drawFn)
+        private bool DrawWindow(string name, Vector2 sizeHint, Action drawFn, ImGuiWindowFlags windowFlags)
         {
             bool visible = true;
             ImGui.SetNextWindowSize(sizeHint, ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowSizeConstraints(sizeHint, new Vector2(float.MaxValue, float.MaxValue));
-            if (ImGui.Begin(name, ref visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+            if (ImGui.Begin(name, ref visible, windowFlags))
             {
                 drawFn();
             }

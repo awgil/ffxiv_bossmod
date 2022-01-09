@@ -67,7 +67,7 @@ namespace BossMod
             }
             if (ImGui.CollapsingHeader("WAR"))
             {
-                _war.DrawActionHint();
+                _war.DrawActionHint(true);
             }
         }
 
