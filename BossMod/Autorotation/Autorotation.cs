@@ -9,7 +9,7 @@ namespace BossMod
         private Hook<OnGetIconDelegate> _iconHook;
 
         public bool SimpleMode = false;
-        public WarriorActions WarActions { get; init; } = new();
+        public WARActions WarActions { get; init; } = new();
 
         public Autorotation()
         {

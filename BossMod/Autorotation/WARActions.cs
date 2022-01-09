@@ -4,7 +4,7 @@ using System;
 
 namespace BossMod
 {
-    class WarriorActions
+    class WARActions
     {
         private unsafe float* _comboTimeLeft = null;
         private unsafe WARRotation.AID* _comboLastMove = null;
@@ -15,7 +15,7 @@ namespace BossMod
         public WARRotation.State State { get; private set; }
         public WARRotation.Strategy Strategy;
 
-        public unsafe WarriorActions()
+        public unsafe WARActions()
         {
             IntPtr comboPtr = Service.SigScanner.GetStaticAddressFromSig("E8 ?? ?? ?? ?? 80 7E 21 00", 0x178);
             _comboTimeLeft = (float*)comboPtr;
@@ -100,22 +100,21 @@ namespace BossMod
         {
             ImGui.Checkbox("Spend mode", ref Strategy.SpendGauge);
             ImGui.Checkbox("Enable movement", ref Strategy.EnableMovement);
+            ImGui.Text($"Next: {WARRotation.GetNextBestAction(State, Strategy)}, GCD={State.GCD:f1}");
             if (extended)
             {
                 ImGui.Text($"Gauge: {State.Gauge}");
-                ImGui.Text($"Surging tempest left: {State.SurgingTempestLeft:f2}");
-                ImGui.Text($"Nascent chaos left: {State.NascentChaosLeft:f2}");
-                ImGui.Text($"Primal rend left: {State.PrimalRendLeft:f2}");
-                ImGui.Text($"Inner release left: {State.InnerReleaseLeft:f2}");
-                ImGui.Text($"Combo State: last={State.ComboLastMove}, time left={State.ComboTimeLeft:f2}");
-                ImGui.Text($"GCD: {State.GCD:f2}");
-                ImGui.Text($"Infuriate: {State.InfuriateCD:f2}");
-                ImGui.Text($"Upheaval: {State.UpheavalCD:f2}");
-                ImGui.Text($"Inner Release: {State.InnerReleaseCD:f2}");
-                ImGui.Text($"Onslaught: {State.OnslaughtCD:f2}");
+                ImGui.Text($"Surging tempest left: {State.SurgingTempestLeft:f1}");
+                ImGui.Text($"Nascent chaos left: {State.NascentChaosLeft:f1}");
+                ImGui.Text($"Primal rend left: {State.PrimalRendLeft:f1}");
+                ImGui.Text($"Inner release left: {State.InnerReleaseLeft:f1}");
+                ImGui.Text($"Combo State: last={State.ComboLastMove}, time left={State.ComboTimeLeft:f1}");
+                ImGui.Text($"Infuriate: {State.InfuriateCD:f1}");
+                ImGui.Text($"Upheaval: {State.UpheavalCD:f1}");
+                ImGui.Text($"Inner Release: {State.InnerReleaseCD:f1}");
+                ImGui.Text($"Onslaught: {State.OnslaughtCD:f1}");
                 ImGui.Text($"Next GCD: {WARRotation.GetNextBestGCD(State, Strategy)}");
                 ImGui.Text($"Next oGCD: {WARRotation.GetNextBestOGCD(State, Strategy)}");
-                ImGui.Text($"Next action: {WARRotation.GetNextBestAction(State, Strategy)}");
             }
         }
 

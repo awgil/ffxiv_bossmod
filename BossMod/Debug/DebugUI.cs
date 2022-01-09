@@ -13,7 +13,7 @@ namespace BossMod
         private DebugObjects _debugObjects = new();
         private DebugGraphics _debugGraphics = new();
         private DebugAction _debugAction = new();
-        private WarriorActions _war = new(); // TODO: remove
+        private WARActions _war = new(); // TODO: remove
 
         public DebugUI(WorldState ws)
         {
