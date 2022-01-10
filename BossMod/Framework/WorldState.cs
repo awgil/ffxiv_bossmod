@@ -62,6 +62,18 @@ namespace BossMod
             Pet = 0x202,
             Chocobo = 0x203,
             Enemy = 0x205,
+            EventNpc = 0x300,
+            Treasure = 0x400,
+            Aetheryte = 0x500,
+            GatheringPoint = 0x600,
+            EventObj = 0x700,
+            MountType = 0x800,
+            Companion = 0x900,
+            Retainer = 0xA00,
+            Area = 0xB00,
+            Housing = 0xC00,
+            Cutscene = 0xD00,
+            CardStand = 0xE00,
         }
 
         public class CastInfo

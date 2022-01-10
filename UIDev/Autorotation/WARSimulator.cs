@@ -26,8 +26,6 @@ namespace UIDev
             ComboLost = 1 << 12,
             ComboWrongMove = 1 << 13,
             InvalidMove = 1 << 14,
-
-            All = (1 << 15) - 1
         }
 
         public WARRotation.State InitialState;
@@ -365,19 +363,7 @@ namespace UIDev
 
         public string MistakeString(Mistake mistake)
         {
-            if (mistake == Mistake.None)
-                return "";
-            var res = new StringBuilder();
-            for (int flag = 1; flag < (int)Mistake.All; flag <<= 1)
-            {
-                if (((int)mistake & flag) != 0)
-                {
-                    if (res.Length != 0)
-                        res.Append(", ");
-                    res.Append((Mistake)flag);
-                }
-            }
-            return res.ToString();
+            return mistake == Mistake.None ? "" : mistake.ToString();
         }
 
         private bool IncrementOvercap(ref float tracker, float value, float min, float max)

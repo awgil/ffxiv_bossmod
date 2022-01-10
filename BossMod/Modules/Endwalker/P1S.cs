@@ -58,11 +58,9 @@ namespace BossMod
         private StateMachine _sm = new();
         private StateMachine.State? _stateInitial;
 
-        public bool Paused
-        {
-            get => _sm.Paused;
-            set => _sm.Paused = value;
-        }
+        // debug fields...
+        public StateMachine StateMachine => _sm;
+        public StateMachine.State? InitialState => _stateInitial;
 
         public P1S(WorldState ws)
         {
@@ -127,109 +125,95 @@ namespace BossMod
             }
 
             StateMachine.State? s;
-            s = CommonStates.Cast(ref _stateInitial, _boss, AID.HeavyHand, 8, 5, "Tankbuster");
+            s = BuildTankbusterState(ref _stateInitial, _boss, 8);
 
             s = CommonStates.CastStart(ref s.Next, _boss, AID.AetherialShackles, 6);
-            s.Enter = () => { }; // TODO: start shackles helper
-            s = CommonStates.CastEnd(ref s.Next, _boss, 3, "Shackles");
-            s.Substate = true;
-            s = CommonStates.Cast(ref s.Next, _boss, AID.WarderWrath, 4, 5, "AOE");
-            s.Substate = true;
-            s = CommonStates.Timeout(ref s.Next, 10, "Shackles resolve");
-            s.Exit = () => { }; // TODO: end shackles helper
+            s = BuildShacklesCastEndState(ref s.Next, _boss);
+            s = BuildWarderWrathState(ref s.Next, _boss, 4, true);
+            s = BuildShacklesResolveState(ref s.Next, 10);
 
             s = BuildFlailStates(ref s.Next, _boss, 4);
             s = BuildKnockbackStates(ref s.Next, _boss, 5);
             s = BuildFlailStates(ref s.Next, _boss, 3);
-            s = CommonStates.Cast(ref s.Next, _boss, AID.WarderWrath, 5, 5, "AOE");
+            s = BuildWarderWrathState(ref s.Next, _boss, 5);
 
             s = BuildIntemperanceExplosionStart(ref s.Next, _boss, 11);
-            s = CommonStates.Cast(ref s.Next, _boss, AID.WarderWrath, 1, 5, "AOE");
-            s.Substate = true;
-            s = CommonStates.CastStart(ref s.Next, _boss, AID.WarderWrath, 5, "Cube2"); // cube2 and aoe start happen at almost same time
-            s.Substate = true;
-            s = CommonStates.CastEnd(ref s.Next, _boss, 5, "AOE");
-            s.Substate = true;
+            s = BuildWarderWrathState(ref s.Next, _boss, 1, true);
+            s = BuildWarderWrathState(ref s.Next, _boss, 5, true, "Cube2"); // cube2 and aoe start happen at almost same time
             s = CommonStates.Timeout(ref s.Next, 6, "Cube3");
 
             s = BuildKnockbackStates(ref s.Next, _boss, 5);
 
-            s = CommonStates.CastStart(ref s.Next, _boss, AID.ShiningCells, 8);
-            s.Enter = () => { }; // TODO: begin cells
-            s = CommonStates.CastEnd(ref s.Next, _boss, 7, "Cells");
+            s = BuildCellsState(ref s.Next, _boss, 8);
             s = BuildAetherflailStates(ref s.Next, _boss, 8);
             s = BuildKnockbackStates(ref s.Next, _boss, 7);
             s = BuildAetherflailStates(ref s.Next, _boss, 2);
-            s = CommonStates.Cast(ref s.Next, _boss, AID.ShacklesOfTime, 4, 4, "ShacklesOfTime"); // TODO: exit => SOT helper?.. or activate by debuff independently from state machines?..
-            s.Substate = true;
-            s = CommonStates.Cast(ref s.Next, _boss, AID.HeavyHand, 5, 5, "Tankbuster");
-            s.Substate = true;
-            s = CommonStates.Timeout(ref s.Next, 5, "Shackles resolve"); // TODO: exit => clear SOT helper
-            s = CommonStates.Cast(ref s.Next, _boss, AID.SlamShut, 1, 6, "SlamShut");
-            s.Exit = () => { }; // TODO: end cells
+            s = CommonStates.CastStart(ref s.Next, _boss, AID.ShacklesOfTime, 4);
+            s = BuildShacklesOfTimeCastEndState(ref s.Next, _boss);
+            s = BuildTankbusterState(ref s.Next, _boss, 5, true);
+            s = BuildShacklesOfTimeResolveState(ref s.Next, 5);
+            s = BuildSlamShutState(ref s.Next, _boss, 1);
 
             s = CommonStates.Cast(ref s.Next, _boss, AID.FourShackles, 13, 3, "FourShackles");
-            s.Substate = true;
+            s.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
             s = CommonStates.Timeout(ref s.Next, 10, "Hit1");
-            s.Substate = true;
+            s.EndHint |= StateMachine.StateHint.GroupWithNext;
             s = CommonStates.Timeout(ref s.Next, 5, "Hit2");
-            s.Substate = true;
+            s.EndHint |= StateMachine.StateHint.GroupWithNext;
             s = CommonStates.Timeout(ref s.Next, 5, "Hit3");
-            s.Substate = true;
+            s.EndHint |= StateMachine.StateHint.GroupWithNext;
             s = CommonStates.Timeout(ref s.Next, 5, "Hit4");
+            s.EndHint |= StateMachine.StateHint.PositioningEnd;
 
-            s = CommonStates.Cast(ref s.Next, _boss, AID.WarderWrath, 5, 5, "AOE");
+            s = BuildWarderWrathState(ref s.Next, _boss, 5);
 
             s = BuildIntemperanceExplosionStart(ref s.Next, _boss, 11);
             s = BuildFlailStartState(ref s.Next, _boss, 3);
             s = CommonStates.Timeout(ref s.Next, 8, "Cube2");
-            s.Substate = true;
+            s.EndHint |= StateMachine.StateHint.GroupWithNext;
             s = CommonStates.CastEnd(ref s.Next, _boss, 3);
             s = CommonStates.Timeout(ref s.Next, 4, "Flails");
-            s.Substate = true;
+            s.EndHint |= StateMachine.StateHint.GroupWithNext;
             s.Exit = () => _hint = "";
             s = CommonStates.Timeout(ref s.Next, 4, "Cube3");
+            s.EndHint |= StateMachine.StateHint.PositioningEnd;
 
-            s = CommonStates.Cast(ref s.Next, _boss, AID.WarderWrath, 3, 5, "AOE");
+            s = BuildWarderWrathState(ref s.Next, _boss, 3);
 
-            s = CommonStates.CastStart(ref s.Next, _boss, AID.ShiningCells, 11);
-            s.Enter = () => { }; // TODO: begin cells
-            s = CommonStates.CastEnd(ref s.Next, _boss, 7, "Cells");
+            s = BuildCellsState(ref s.Next, _boss, 11);
+            var fork = CommonStates.Simple(ref s.Next, 6, "Shackles+Aetherchains -or- ShacklesOfTime+Knockback");
 
             // subsequences
             StateMachine.State? s1b = null, s1e = null;
-            s1e = CommonStates.CastEnd(ref s1b, _boss, 3, "Shackles");
-            s1e.Substate = true;
+            s1e = BuildShacklesCastEndState(ref s1b, _boss);
             s1e = CommonStates.Cast(ref s1e.Next, _boss, AID.Aetherchain, 6, 5, "Aetherchain");
-            s1e.Substate = true;
-            s1e = CommonStates.Cast(ref s1e.Next, _boss, AID.Aetherchain, 3, 5, "Aetherchain + Shackles resolve");
-            s1e.Exit = () => { }; // TODO: end shackles helper
-            s1e = CommonStates.Cast(ref s1e.Next, _boss, AID.WarderWrath, 7, 5, "AOE");
-            s1e = CommonStates.Cast(ref s1e.Next, _boss, AID.ShacklesOfTime, 6, 4, "ShacklesOfTime"); // TODO: exit => SOT helper?.. or activate by debuff independently from state machines?..
-            s1e.Substate = true;
-            s1e = BuildKnockbackStates(ref s1e.Next, _boss, 2);
-            s1e.Substate = true;
-            s1e = CommonStates.Timeout(ref s1e.Next, 3, "Shackles resolve"); // TODO: exit => clear SOT helper
-            s1e = CommonStates.Cast(ref s1e.Next, _boss, AID.WarderWrath, 3, 5, "AOE");
+            s1e.EndHint |= StateMachine.StateHint.GroupWithNext;
+            s1e = CommonStates.Cast(ref s1e.Next, _boss, AID.Aetherchain, 3, 5, "Aetherchain");
+            s1e.EndHint |= StateMachine.StateHint.GroupWithNext;
+            s1e = BuildShacklesResolveState(ref s1e.Next, 0);
+            s1e = BuildWarderWrathState(ref s1e.Next, _boss, 7);
+            s1e = CommonStates.CastStart(ref s1e.Next, _boss, AID.ShacklesOfTime, 6);
+            s1e = BuildShacklesOfTimeCastEndState(ref s1e.Next, _boss);
+            s1e = BuildKnockbackStates(ref s1e.Next, _boss, 2, true);
+            s1e = BuildShacklesOfTimeResolveState(ref s1e.Next, 3);
+            s1e = BuildWarderWrathState(ref s1e.Next, _boss, 3);
 
             StateMachine.State? s2b = null, s2e = null;
-            s2e = CommonStates.CastEnd(ref s2b, _boss, 4, "ShacklesOfTime"); // TODO: exit => SOT helper?.. or activate by debuff independently from state machines?..
-            s2e.Substate = true;
-            s2e = BuildKnockbackStates(ref s2e.Next, _boss, 2);
-            s2e.Substate = true;
-            s2e = CommonStates.Timeout(ref s2e.Next, 3, "Shackles resolve"); // TODO: exit => clear SOT helper
-            s2e = CommonStates.Cast(ref s2e.Next, _boss, AID.WarderWrath, 3, 5, "AOE");
+            s2e = BuildShacklesOfTimeCastEndState(ref s2b, _boss);
+            s2e = BuildKnockbackStates(ref s2e.Next, _boss, 2, true);
+            s2e = BuildShacklesOfTimeResolveState(ref s2e.Next, 3);
+            s2e = BuildWarderWrathState(ref s2e.Next, _boss, 3);
             s2e = CommonStates.CastStart(ref s2e.Next, _boss, AID.AetherialShackles, 9);
-            s2e.Enter = () => { }; // TODO: start shackles helper
-            s2e = CommonStates.CastEnd(ref s2e.Next, _boss, 3, "Shackles");
-            s2e.Substate = true;
+            s2e = BuildShacklesCastEndState(ref s2e.Next, _boss);
             s2e = CommonStates.Cast(ref s2e.Next, _boss, AID.Aetherchain, 6, 5, "Aetherchain");
-            s2e.Substate = true;
-            s2e = CommonStates.Cast(ref s2e.Next, _boss, AID.Aetherchain, 3, 5, "Aetherchain + Shackles resolve");
-            s2e.Exit = () => { }; // TODO: end shackles helper
-            s2e = CommonStates.Cast(ref s2e.Next, _boss, AID.WarderWrath, 7, 5, "AOE");
+            s2e.EndHint |= StateMachine.StateHint.GroupWithNext;
+            s2e = CommonStates.Cast(ref s2e.Next, _boss, AID.Aetherchain, 3, 5, "Aetherchain");
+            s1e.EndHint |= StateMachine.StateHint.GroupWithNext;
+            s2e = BuildShacklesResolveState(ref s2e.Next, 0);
+            s2e = BuildWarderWrathState(ref s2e.Next, _boss, 7);
 
-            var fork = CommonStates.Simple(ref s.Next, 6, "Shackles+Aetherchains -or- ShacklesOfTime+Knockback");
+            fork.PotentialSuccessors = new[] { s1b!, s2b! };
+            fork.EndHint |= StateMachine.StateHint.BossCastStart;
             fork.Update = (float timeSinceTransition) =>
             {
                 if (_boss.CastInfo == null)
@@ -254,19 +238,75 @@ namespace BossMod
             s2e.Next = s1e.Next;
             s = BuildAetherflailStates(ref s.Next, _boss, 6);
             s = BuildAetherflailStates(ref s.Next, _boss, 6);
-            s = CommonStates.Cast(ref s.Next, _boss, AID.WarderWrath, 13, 5, "AOE");
-            s = CommonStates.Simple(ref s.Next, 0, "?????");
+            s = BuildWarderWrathState(ref s.Next, _boss, 13);
+            s = CommonStates.Simple(ref s.Next, 2, "?????");
+        }
 
-            _stateInitial = fork;
+        private StateMachine.State BuildTankbusterState(ref StateMachine.State? link, WorldState.Actor boss, float delay, bool partOfGroup = false)
+        {
+            var s = CommonStates.Cast(ref link, boss, AID.HeavyHand, delay, 5, "HeavyHand");
+            s.EndHint |= StateMachine.StateHint.Tankbuster;
+            if (partOfGroup)
+                s.EndHint |= StateMachine.StateHint.GroupWithNext;
+            return s;
+        }
+
+        private StateMachine.State BuildWarderWrathState(ref StateMachine.State? link, WorldState.Actor boss, float delay, bool partOfGroup = false, string startName = "")
+        {
+            var start = CommonStates.CastStart(ref link, boss, AID.WarderWrath, delay, startName);
+            start.EndHint |= StateMachine.StateHint.GroupWithNext;
+            var end = CommonStates.CastEnd(ref start.Next, boss, 5, "Wrath");
+            end.EndHint |= StateMachine.StateHint.Raidwide;
+            if (partOfGroup)
+                end.EndHint |= StateMachine.StateHint.GroupWithNext;
+            return end;
+        }
+
+        // note: shackles are always combined with some other following mechanic, or at very least with resolve
+        private StateMachine.State BuildShacklesCastEndState(ref StateMachine.State? link, WorldState.Actor boss)
+        {
+            var s = CommonStates.CastEnd(ref link, boss, 3, "Shackles");
+            s.EndHint |= StateMachine.StateHint.PositioningStart | StateMachine.StateHint.GroupWithNext;
+            s.Exit = () => { }; // TODO: start shackles helper
+            return s;
+        }
+
+        // delay from cast-end is 19 seconds, but we usually have some intermediate states
+        private StateMachine.State BuildShacklesResolveState(ref StateMachine.State? link, float delay)
+        {
+            var s = CommonStates.Timeout(ref link, delay, "Shackles resolve");
+            s.EndHint |= StateMachine.StateHint.PositioningEnd;
+            s.Exit = () => { }; // TODO: end shackles helper
+            return s;
+        }
+
+        private StateMachine.State BuildShacklesOfTimeCastEndState(ref StateMachine.State? link, WorldState.Actor boss)
+        {
+            var s = CommonStates.CastEnd(ref link, boss, 4, "ShacklesOfTime");
+            s.EndHint |= StateMachine.StateHint.PositioningStart | StateMachine.StateHint.GroupWithNext;
+            s.Exit = () => { }; // TODO: SOT helper?.. or activate by debuff independently from state machines?..
+            return s;
+        }
+
+        // delay from cast-end is 15 seconds, but we usually have some intermediate states
+        private StateMachine.State BuildShacklesOfTimeResolveState(ref StateMachine.State? link, float delay)
+        {
+            var s = CommonStates.Timeout(ref link, delay, "Shackles resolve");
+            s.EndHint |= StateMachine.StateHint.PositioningEnd;
+            s.Exit = () => { }; // TODO: end SOT helper
+            return s;
         }
 
         private StateMachine.State BuildFlailStartState(ref StateMachine.State? link, WorldState.Actor boss, float delay)
         {
             // TODO: better helper...
             var start = CommonStates.CastStart(ref link, boss, delay);
+            start.EndHint |= StateMachine.StateHint.PositioningStart;
             start.Exit = () =>
             {
-                switch ((AID)boss.CastInfo!.ActionID)
+                if (boss.CastInfo == null)
+                    return;
+                switch ((AID)boss.CastInfo.ActionID)
                 {
                     case AID.GaolerFlailRL:
                         _hint = "Order: right->left";
@@ -296,6 +336,7 @@ namespace BossMod
             var start = BuildFlailStartState(ref link, boss, delay);
             var end = CommonStates.CastEnd(ref start.Next, boss, 12);
             var resolve = CommonStates.Timeout(ref end.Next, 4, "Flails");
+            resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
             resolve.Exit = () => _hint = "";
             return resolve;
         }
@@ -304,6 +345,7 @@ namespace BossMod
         {
             // TODO: better helper...
             var start = CommonStates.CastStart(ref link, boss, delay);
+            start.EndHint |= StateMachine.StateHint.PositioningStart;
             start.Exit = () =>
             {
                 switch ((AID)boss.CastInfo!.ActionID)
@@ -322,17 +364,23 @@ namespace BossMod
             };
             var end = CommonStates.CastEnd(ref start.Next, boss, 12);
             var resolve = CommonStates.Timeout(ref end.Next, 4, "Aetherflail");
+            resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
             resolve.Exit = () => _hint = "";
             return resolve;
         }
 
-        private StateMachine.State BuildKnockbackStates(ref StateMachine.State? link, WorldState.Actor boss, float delay)
+        // part of group => group-with-next hint + no positioning hints
+        private StateMachine.State BuildKnockbackStates(ref StateMachine.State? link, WorldState.Actor boss, float delay, bool partOfGroup = false)
         {
             // TODO: better helper...
             var start = CommonStates.CastStart(ref link, boss, delay);
+            if (!partOfGroup)
+                start.EndHint |= StateMachine.StateHint.PositioningStart;
             start.Exit = () =>
             {
-                switch ((AID)boss.CastInfo!.ActionID)
+                if (boss.CastInfo == null)
+                    return;
+                switch ((AID)boss.CastInfo.ActionID)
                 {
                     case AID.KnockbackGrace:
                         _hint = "What to do: stack!";
@@ -347,8 +395,9 @@ namespace BossMod
                 }
             };
             var end = CommonStates.CastEnd(ref start.Next, boss, 5, "Knockback");
-            end.Substate = true;
+            end.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Tankbuster;
             var resolve = CommonStates.Timeout(ref end.Next, 5, "Explode");
+            resolve.EndHint |= partOfGroup ? StateMachine.StateHint.GroupWithNext : StateMachine.StateHint.PositioningEnd;
             resolve.Exit = () => _hint = "";
             return resolve;
         }
@@ -357,11 +406,13 @@ namespace BossMod
         private StateMachine.State BuildIntemperanceExplosionStart(ref StateMachine.State? link, WorldState.Actor boss, float delay)
         {
             var intemp = CommonStates.Cast(ref link, boss, AID.Intemperance, delay, 2, "Intemperance");
-            intemp.Substate = true;
+            intemp.EndHint |= StateMachine.StateHint.GroupWithNext;
             var explosion = CommonStates.CastStart(ref intemp.Next, boss, 6);
             explosion.Exit = () =>
             {
-                switch ((AID)boss.CastInfo!.ActionID)
+                if (boss.CastInfo == null)
+                    return;
+                switch ((AID)boss.CastInfo.ActionID)
                 {
                     case AID.IntemperateTormentUp:
                         _hint = "Explosion order: bottom->top";
@@ -377,8 +428,24 @@ namespace BossMod
             };
             var end = CommonStates.CastEnd(ref explosion.Next, boss, 10);
             var resolve = CommonStates.Timeout(ref end.Next, 1, "Cube1");
-            resolve.Substate = true;
+            resolve.EndHint |= StateMachine.StateHint.GroupWithNext;
             return resolve;
+        }
+
+        private StateMachine.State BuildCellsState(ref StateMachine.State? link, WorldState.Actor boss, float delay)
+        {
+            var s = CommonStates.Cast(ref link, boss, AID.ShiningCells, delay, 7, "Cells");
+            s.EndHint |= StateMachine.StateHint.Raidwide;
+            s.Exit = () => { }; // TODO: begin cells
+            return s;
+        }
+
+        private StateMachine.State BuildSlamShutState(ref StateMachine.State? link, WorldState.Actor boss, float delay)
+        {
+            var s = CommonStates.Cast(ref link, boss, AID.SlamShut, delay, 6, "SlamShut");
+            s.EndHint |= StateMachine.StateHint.Raidwide;
+            s.Exit = () => { }; // TODO: end cells
+            return s;
         }
     }
 }

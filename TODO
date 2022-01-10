@@ -1,4 +1,27 @@
-* draw danger zones in world
-* show safe/unsafe marker
-* timings
-* memory show/watch
+general:
+- show safe/unsafe marker
+- draw danger zones in world
+- detect stuff like zodiark snakes, etc - look at graphics scene or maybe network messages...
+- memory show/watch utility
+
+boss modules:
+- data driven => would enable sequence autorecord and live editing
+- p1s
+-- shackles
+-- flails safe zones
+-- intemperance order (??)
+-- knockback range helper (for knockback and flare/stack)
+- p2s
+- zodiark
+-- refactor
+- hydaelyn, p3s, p4s: todo
+
+autorotation:
+- improve rotation logic
+- autodetect raidbuffs
+- integrate with bossmodules and enable/disable movement
+- defensive cooldowns (offensive veng, integrate with bossmodules - CD planner)
+- generalize to other classes
+- aoe rotation, maybe even auto-detect targets and autoselect st/aoe...
+
+

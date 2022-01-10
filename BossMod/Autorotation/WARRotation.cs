@@ -188,7 +188,7 @@ namespace BossMod
                 return AID.FellCleave;
 
             // TODO: reconsider min time left...
-            return state.SurgingTempestLeft < gcdDelay + 10 ? GetNextStormEyeComboAction(state) : GetNextStormPathComboAction(state);
+            return state.SurgingTempestLeft < gcdDelay + 12.5 ? GetNextStormEyeComboAction(state) : GetNextStormPathComboAction(state);
         }
 
         public static AID GetNextBestOGCD(State state, Strategy strategy)
