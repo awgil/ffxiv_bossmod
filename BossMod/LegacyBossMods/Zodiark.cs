@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace BossMod
 {
-    class Zodiark : IBossModule
+    class Zodiark : BossModule
     {
         private enum OID
         {
@@ -56,34 +56,35 @@ namespace BossMod
             PostAddAOENormal = 28027, // src=target=Helper
         };
 
-        private WorldState _ws;
         private ZodiarkStages _stages = new();
 
         public Zodiark(WorldState ws)
+            : base(ws)
         {
-            _ws = ws;
-            _ws.PlayerInCombatChanged += EnterExitCombat;
-            _ws.ActorCastStarted += ActorCastStarted;
-            _ws.ActorCastFinished += ActorCastFinished;
-            _ws.ActorMoved += ActorTeleported;
+            WorldState.ActorCastStarted += ActorCastStarted;
+            WorldState.ActorCastFinished += ActorCastFinished;
+            WorldState.ActorMoved += ActorTeleported;
         }
 
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            _ws.PlayerInCombatChanged -= EnterExitCombat;
-            _ws.ActorCastStarted -= ActorCastStarted;
-            _ws.ActorCastFinished -= ActorCastFinished;
-            _ws.ActorMoved -= ActorTeleported;
+            if (disposing)
+            {
+                WorldState.ActorCastStarted -= ActorCastStarted;
+                WorldState.ActorCastFinished -= ActorCastFinished;
+                WorldState.ActorMoved -= ActorTeleported;
+            }
+            base.Dispose(disposing);
         }
 
-        public void Draw(float cameraAzimuth)
+        public override void Draw(float cameraAzimuth)
         {
             ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(0xff00ffff), ManualActionHint());
             _stages.Draw();
             _stages.DrawDebugButtons();
         }
 
-        private void EnterExitCombat(object? sender, bool inCombat)
+        protected override void Reset()
         {
             _stages.Reset();
         }
@@ -201,7 +202,7 @@ namespace BossMod
         private ZodiarkSolver.ExoType CountExoSqAndTriOnSide(ZodiarkSolver.ExoSide side)
         {
             int numSq = 0, numTri = 0;
-            foreach (var elem in _ws.Actors)
+            foreach (var elem in WorldState.Actors)
             {
                 if (elem.Value.OID != (uint)OID.ExoSquare && elem.Value.OID != (uint)OID.ExoTri)
                     continue; // not interesting

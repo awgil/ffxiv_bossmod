@@ -191,21 +191,19 @@ namespace BossMod
             return state.SurgingTempestLeft < gcdDelay + 12.5 ? GetNextStormEyeComboAction(state) : GetNextStormPathComboAction(state);
         }
 
-        public static AID GetNextBestOGCD(State state, Strategy strategy)
+        public static AID GetNextBestOGCD(State state, Strategy strategy, float timeOffset = 0)
         {
-            // TODO: consider providing time offset (e.g. animation lock) and use it instead of 0's in CD checks
-
             // 1. spend second infuriate stacks asap (unless have IR or >50 gauge)
-            if (state.InfuriateCD <= 0 && state.InnerReleaseLeft <= 0 && state.NascentChaosLeft <= 0 && state.Gauge <= 50)
+            if (state.InfuriateCD <= timeOffset && state.InnerReleaseStacks == 0 && state.NascentChaosLeft <= timeOffset && state.Gauge <= 50)
                 return AID.Infuriate;
 
             // 2. upheaval, if surging tempest up
             // TODO: delay for 1 GCD during opener...
-            if (state.UpheavalCD <= 0 && state.SurgingTempestLeft > 0 && strategy.EnableUpheaval)
+            if (state.UpheavalCD <= timeOffset && state.SurgingTempestLeft > timeOffset && strategy.EnableUpheaval)
                 return AID.Upheaval;
 
             // 3. inner release, if surging tempest up and no nascent chaos up
-            if (state.InnerReleaseCD <= 0 && state.SurgingTempestLeft > 0 && state.NascentChaosLeft <= 0)
+            if (state.InnerReleaseCD <= timeOffset && state.SurgingTempestLeft > timeOffset && state.NascentChaosLeft <= timeOffset)
                 return AID.InnerRelease;
 
             // 4. infuriate - this is complex decision
@@ -214,7 +212,7 @@ namespace BossMod
             // - if IR is imminent, we need at least 22.5 secs of CD (IR+3xFC is 7.5s from spent gcds and 15s from FCs)
             // - if next combo action would overcap our gauge, we need at least 10 secs of CD (it+FC would take 2 gcds)
             // - otherwise we need to still be not overcapping by the next GCD
-            if (state.InfuriateCD < 60 && state.InnerReleaseLeft <= 0 && state.NascentChaosLeft <= 0 && state.Gauge <= 50)
+            if (state.InfuriateCD < (timeOffset + 60) && state.InnerReleaseStacks == 0 && state.NascentChaosLeft <= timeOffset && state.Gauge <= 50)
             {
                 float gcdDelay = state.GCD + (strategy.Aggressive ? 0 : 2.5f);
                 var irImminent = state.InnerReleaseCD < gcdDelay + 2.5;
@@ -225,7 +223,7 @@ namespace BossMod
             }
 
             // 5. onslaught, if surging tempest up
-            if (state.OnslaughtCD <= (strategy.NeedChargeIn + 30) && state.SurgingTempestLeft > 0 && strategy.EnableMovement)
+            if (state.OnslaughtCD <= (timeOffset + strategy.NeedChargeIn + 30) && state.SurgingTempestLeft > timeOffset && strategy.EnableMovement)
                 return AID.Onslaught;
 
             // no suitable oGCDs...
@@ -234,12 +232,30 @@ namespace BossMod
 
         public static AID GetNextBestAction(State state, Strategy strategy)
         {
-            if (state.GCD > 0.7)
+            // first ogcd slot
+            if (state.GCD > 1.7)
             {
-                var ogcd = GetNextBestOGCD(state, strategy);
+                var ogcd = GetNextBestOGCD(state, strategy, state.GCD - 1.7f);
                 if (ogcd != AID.None)
                     return ogcd;
             }
+
+            // second ogcd slot
+            if (state.GCD > 0.7)
+            {
+                var ogcd = GetNextBestOGCD(state, strategy, state.GCD - 0.7f);
+                if (ogcd != AID.None)
+                    return ogcd;
+            }
+
+            // old tried-and-true conservative logic, remove?
+            //if (state.GCD > 0.7)
+            //{
+            //    var ogcd = GetNextBestOGCD(state, strategy);
+            //    if (ogcd != AID.None)
+            //        return ogcd;
+            //}
+
             return GetNextBestGCD(state, strategy);
         }
 

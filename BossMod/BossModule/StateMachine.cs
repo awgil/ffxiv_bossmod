@@ -17,10 +17,11 @@ namespace BossMod
             BossCastEnd = 1 << 2, // state ends when boss ends a cast
             Tankbuster = 1 << 3, // state end is a tankbuster event - tank has to press some save
             Raidwide = 1 << 4, // state end is a raidwide damage event - someone better press some save
-            DowntimeStart = 1 << 5, // at state end downtime starts - there are no targets to damage
-            DowntimeEnd = 1 << 6, // at state end downtime ends
-            PositioningStart = 1 << 7, // at state end a phase with movement or precise positioning requirements starts - we should be careful with charges etc.
-            PositioningEnd = 1 << 8, // at state end positioning requirements are relaxed
+            Knockback = 1 << 5, // state end is a knockback event - it's a good time to use arm's length, or otherwise avoid being knocked into voidzones/walls/etc.
+            DowntimeStart = 1 << 6, // at state end downtime starts - there are no targets to damage
+            DowntimeEnd = 1 << 7, // at state end downtime ends
+            PositioningStart = 1 << 8, // at state end a phase with movement or precise positioning requirements starts - we should be careful with charges etc.
+            PositioningEnd = 1 << 9, // at state end positioning requirements are relaxed
         }
 
         public class State

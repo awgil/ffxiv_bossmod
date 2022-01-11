@@ -30,7 +30,7 @@ namespace UIDev
 
         public WARRotation.State InitialState;
         public WARRotation.Strategy Strategy;
-        public float Duration = 250;
+        public int Duration = 250;
         public bool BuffWindowEnable = true;
         public float BuffWindowOffset = 7.5f;
         public float BuffWindowDuration = 20;
@@ -38,7 +38,7 @@ namespace UIDev
 
         public void Draw()
         {
-            ImGui.InputFloat("Sim duration", ref Duration);
+            ImGui.InputInt("Sim duration (GCDs)", ref Duration);
 
             ImGui.Checkbox("Use buff window", ref BuffWindowEnable);
             if (BuffWindowEnable)
@@ -98,87 +98,41 @@ namespace UIDev
                 strategy.EnableUpheaval = false;
             }
             var state = InitialState;
-            float t = 0;
-            bool firstCast = true;
-            while (t < Duration)
+            var mistake = Mistake.None;
+            for (int i = 0; i < Duration; ++i)
             {
-                bool opener = t < (2.5 + (BuffWindowEnable ? BuffWindowOffset : 7.5));
-                var mistake = Mistake.None;
-                if (!firstCast)
-                {
-                    bool firstGCD = t < 2.5;
-                    t += 0.7f;
-                    mistake |= AdvanceTime(ref state, 0.7f, opener, firstGCD, opener || !strategy.EnableUpheaval, opener || !strategy.EnableMovement);
-                }
-                firstCast = false;
-                var action = WARRotation.GetNextBestAction(state, strategy);
-                bool isGCDAction = IsGCDAction(action);
-                if (isGCDAction && state.GCD > 0)
-                {
-                    t += state.GCD;
-                    mistake |= AdvanceTime(ref state, state.GCD, opener, false, opener || !strategy.EnableUpheaval, opener || !strategy.EnableMovement);
-                }
-                mistake |= Cast(ref state, action);
-
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn(); ImGui.Text($"{t:f1}");
-                ImGui.TableNextColumn(); ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(strategy.SpendGauge ? 0xff00ff00 : 0xffffffff), isGCDAction ? $"{action}" : $"** {action}");
-                ImGui.TableNextColumn(); ImGui.Text($"{MistakeString(mistake)}");
-
-                ImGui.TableNextColumn(); ImGui.Text($"{state.Gauge:f0}");
-                ImGui.TableNextColumn(); ImGui.Text($"{state.SurgingTempestLeft:f1}");
-
-                ImGui.TableNextColumn();
-                if (state.InnerReleaseStacks > 0)
-                    ImGui.Text($"{state.InnerReleaseStacks} stacks, {state.InnerReleaseLeft:f1} left");
-                else if (state.InnerReleaseCD > 0)
-                    ImGui.Text($"{state.InnerReleaseCD:f1} cd");
-                else
-                    ImGui.Text($"{state.InnerReleaseCD:f1} delay");
-
-                ImGui.TableNextColumn();
-                if (state.InfuriateCD > 60)
-                    ImGui.Text($"0, {(state.InfuriateCD - 60):f1} cd");
-                else if (state.InfuriateCD > 0)
-                    ImGui.Text($"1, {state.InfuriateCD:f1} cd");
-                else
-                    ImGui.Text($"2, {state.InfuriateCD:f1} delay");
-
-                ImGui.TableNextColumn();
-                if (state.NascentChaosLeft > 0)
-                    ImGui.Text($"{state.NascentChaosLeft:f1}");
-
-                ImGui.TableNextColumn();
-                if (state.PrimalRendLeft > 0)
-                    ImGui.Text($"{state.PrimalRendLeft:f1}");
-
-                ImGui.TableNextColumn();
-                if (state.UpheavalCD > 0)
-                    ImGui.Text($"{state.UpheavalCD:f1} cd");
-                else
-                    ImGui.Text($"{state.UpheavalCD:f1} delay");
-
-                ImGui.TableNextColumn();
-                if (state.OnslaughtCD > 60)
-                    ImGui.Text($"0, {(state.OnslaughtCD - 60):f1} cd");
-                else if (state.OnslaughtCD > 30)
-                    ImGui.Text($"1, {(state.OnslaughtCD - 30):f1} cd");
-                else if (state.OnslaughtCD > 0)
-                    ImGui.Text($"2, {state.OnslaughtCD:f1} cd");
-                else
-                    ImGui.Text($"3, {state.OnslaughtCD:f1} delay");
-
-                ImGui.TableNextColumn();
-                if (state.ComboTimeLeft > 0)
-                    ImGui.Text($"{state.ComboLastMove} ({state.ComboTimeLeft:f1} left)");
-
+                float t = 2.5f * i;
+                bool opener = t < 5 + (BuffWindowEnable ? BuffWindowOffset : 7.5);
                 if (BuffWindowEnable)
                 {
                     strategy.SpendGauge = ((t + BuffWindowFreq - BuffWindowOffset) % BuffWindowFreq) < BuffWindowDuration;
                     strategy.EnableUpheaval = t >= BuffWindowOffset;
                     strategy.EnableMovement = t >= BuffWindowOffset && Strategy.EnableMovement;
                 }
+
+                var gcd = WARRotation.GetNextBestGCD(state, strategy);
+                mistake |= Cast(ref state, gcd); // include mistake from last advance in prev iteration
+                DrawActionRow(gcd, true, ref mistake, t, state, strategy);
+
+                mistake |= AdvanceTime(ref state, 0.8f, opener, i == 0, opener || !strategy.EnableUpheaval, opener || !strategy.EnableMovement);
+                var ogcd1 = WARRotation.GetNextBestOGCD(state, strategy);
+                if (ogcd1 != WARRotation.AID.None)
+                {
+                    mistake |= Cast(ref state, ogcd1);
+                    DrawActionRow(ogcd1, false, ref mistake, t + 0.8f, state, strategy);
+                }
+
+                mistake |= AdvanceTime(ref state, 0.8f, opener, i == 0, opener || !strategy.EnableUpheaval, opener || !strategy.EnableMovement);
+                var ogcd2 = WARRotation.GetNextBestOGCD(state, strategy);
+                if (ogcd2 != WARRotation.AID.None)
+                {
+                    mistake |= Cast(ref state, ogcd2);
+                    DrawActionRow(ogcd2, false, ref mistake, t + 1.6f, state, strategy);
+                }
+
+                mistake |= AdvanceTime(ref state, 0.9f, opener, i == 0, opener || !strategy.EnableUpheaval, opener || !strategy.EnableMovement);
             }
+
             ImGui.EndTable();
         }
 
@@ -189,24 +143,6 @@ namespace UIDev
 
         public void Dispose()
         {
-        }
-
-        public bool IsGCDAction(WARRotation.AID aid)
-        {
-            return aid == WARRotation.AID.HeavySwing
-                || aid == WARRotation.AID.Maim
-                || aid == WARRotation.AID.StormPath
-                || aid == WARRotation.AID.StormEye
-                || aid == WARRotation.AID.InnerBeast
-                || aid == WARRotation.AID.FellCleave
-                || aid == WARRotation.AID.InnerChaos
-                || aid == WARRotation.AID.PrimalRend
-                || aid == WARRotation.AID.Overpower
-                || aid == WARRotation.AID.MythrilTempest
-                || aid == WARRotation.AID.SteelCyclone
-                || aid == WARRotation.AID.Decimate
-                || aid == WARRotation.AID.ChaoticCyclone
-                || aid == WARRotation.AID.Tomahawk;
         }
 
         public Mistake AdvanceTime(ref WARRotation.State state, float dt, bool delayIR, bool delayInfuriate, bool delayUpheaval, bool delayOnslaught)
@@ -364,6 +300,63 @@ namespace UIDev
         public string MistakeString(Mistake mistake)
         {
             return mistake == Mistake.None ? "" : mistake.ToString();
+        }
+
+        private void DrawActionRow(WARRotation.AID action, bool isGCD, ref Mistake mistake, float t, WARRotation.State state, WARRotation.Strategy strategy)
+        {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn(); ImGui.Text($"{t:f1}");
+            ImGui.TableNextColumn(); ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(strategy.SpendGauge ? 0xff00ff00 : 0xffffffff), isGCD ? $"{action}" : $"** {action}");
+
+            ImGui.TableNextColumn(); ImGui.Text($"{MistakeString(mistake)}");
+            mistake = Mistake.None; // reset mistake, so that next row doesn't include leftovers from previous
+
+            ImGui.TableNextColumn(); ImGui.Text($"{state.Gauge:f0}");
+            ImGui.TableNextColumn(); ImGui.Text($"{state.SurgingTempestLeft:f1}");
+
+            ImGui.TableNextColumn();
+            if (state.InnerReleaseStacks > 0)
+                ImGui.Text($"{state.InnerReleaseStacks} stacks, {state.InnerReleaseLeft:f1} left");
+            else if (state.InnerReleaseCD > 0)
+                ImGui.Text($"{state.InnerReleaseCD:f1} cd");
+            else
+                ImGui.Text($"{state.InnerReleaseCD:f1} delay");
+
+            ImGui.TableNextColumn();
+            if (state.InfuriateCD > 60)
+                ImGui.Text($"0, {(state.InfuriateCD - 60):f1} cd");
+            else if (state.InfuriateCD > 0)
+                ImGui.Text($"1, {state.InfuriateCD:f1} cd");
+            else
+                ImGui.Text($"2, {state.InfuriateCD:f1} delay");
+
+            ImGui.TableNextColumn();
+            if (state.NascentChaosLeft > 0)
+                ImGui.Text($"{state.NascentChaosLeft:f1}");
+
+            ImGui.TableNextColumn();
+            if (state.PrimalRendLeft > 0)
+                ImGui.Text($"{state.PrimalRendLeft:f1}");
+
+            ImGui.TableNextColumn();
+            if (state.UpheavalCD > 0)
+                ImGui.Text($"{state.UpheavalCD:f1} cd");
+            else
+                ImGui.Text($"{state.UpheavalCD:f1} delay");
+
+            ImGui.TableNextColumn();
+            if (state.OnslaughtCD > 60)
+                ImGui.Text($"0, {(state.OnslaughtCD - 60):f1} cd");
+            else if (state.OnslaughtCD > 30)
+                ImGui.Text($"1, {(state.OnslaughtCD - 30):f1} cd");
+            else if (state.OnslaughtCD > 0)
+                ImGui.Text($"2, {state.OnslaughtCD:f1} cd");
+            else
+                ImGui.Text($"3, {state.OnslaughtCD:f1} delay");
+
+            ImGui.TableNextColumn();
+            if (state.ComboTimeLeft > 0)
+                ImGui.Text($"{state.ComboLastMove} ({state.ComboTimeLeft:f1} left)");
         }
 
         private bool IncrementOvercap(ref float tracker, float value, float min, float max)

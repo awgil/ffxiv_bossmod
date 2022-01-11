@@ -5,8 +5,7 @@ using System.Numerics;
 
 namespace BossMod
 {
-    // visualization of a state machine
-    public class Timeline
+    public class StateMachineVisualizer
     {
         class Node
         {
@@ -29,21 +28,22 @@ namespace BossMod
         public bool DrawUnnamedNodes = true;
         public bool DrawTankbusterNodesOnly = false;
         public bool DrawRaidwideNodesOnly = false;
-        private float _fullDuration;
-        private Node _startNode;
-        private int _numBranches;
+        private float _fullDuration = 0;
+        private Node? _startNode = null;
+        private int _numBranches = 0;
 
         private float _vMargin = 10;
         private float _timeAxisWidth = 35;
         private float _circleRadius = 5;
 
-        public Timeline(StateMachine.State initial)
+        public StateMachineVisualizer(StateMachine.State? initial)
         {
             // build layout
-            (_startNode, _fullDuration, _numBranches) = LayoutNodeAndSuccessors(0, 0, initial);
+            if (initial != null)
+                (_startNode, _fullDuration, _numBranches) = LayoutNodeAndSuccessors(0, 0, initial);
         }
 
-        public void Draw(StateMachine.State? activeState, float timeSinceActivation)
+        public void Draw(StateMachine? sm)
         {
             if (ImGui.CollapsingHeader("Settings"))
             {
@@ -52,6 +52,15 @@ namespace BossMod
                 ImGui.Checkbox("Draw unnamed nodes", ref DrawUnnamedNodes);
                 ImGui.Checkbox("Draw tankbuster nodes only", ref DrawTankbusterNodesOnly);
                 ImGui.Checkbox("Draw raidwide nodes only", ref DrawRaidwideNodesOnly);
+            }
+
+            if (sm != null)
+            {
+                if (ImGui.Button(sm.Paused ? "Resume" : "Pause"))
+                    sm.Paused = !sm.Paused;
+                ImGui.SameLine();
+                if (ImGui.Button("Reset"))
+                    sm.ActiveState = null;
             }
 
             var cursor = ImGui.GetCursorScreenPos();
@@ -73,7 +82,8 @@ namespace BossMod
             }
 
             List<Node> hoverNodes = new();
-            DrawNodeAndSuccessors(_startNode, cursor, timeAxisStart + new Vector2(10, 0), hoverNodes, true, false, false, false, activeState, timeSinceActivation);
+            if (_startNode != null)
+                DrawNodeAndSuccessors(_startNode, cursor, timeAxisStart + new Vector2(10, 0), hoverNodes, true, false, false, false, sm);
             if (hoverNodes.Count > 0)
             {
                 ImGui.BeginTooltip();
@@ -106,40 +116,49 @@ namespace BossMod
         {
             var node = new Node(t + state.Duration, branchID, state);
             float succDuration = 0;
-            if (state.PotentialSuccessors != null)
-            {
-                foreach (var s in state.PotentialSuccessors)
-                {
-                    (var succ, var dur, var nextBranch) = LayoutNodeAndSuccessors(t + state.Duration, branchID, s);
-                    node.Successors.Add(succ);
-                    succDuration = Math.Max(succDuration, dur);
-                    branchID = nextBranch;
-                }
-            }
-            else if (state.Next != null)
+
+            // first layout default state, if any
+            if (state.Next != null)
             {
                 (var succ, var dur, var nextBranch) = LayoutNodeAndSuccessors(t + state.Duration, branchID, state.Next);
                 node.Successors.Add(succ);
                 succDuration = dur;
                 branchID = nextBranch;
             }
-            else
+
+            // now layout extra successors, if any
+            if (state.PotentialSuccessors != null)
             {
-                branchID++;
+                foreach (var s in state.PotentialSuccessors)
+                {
+                    if (state.Next == s)
+                        continue; // this is already processed
+
+                    (var succ, var dur, var nextBranch) = LayoutNodeAndSuccessors(t + state.Duration, branchID, s);
+                    node.Successors.Add(succ);
+                    succDuration = Math.Max(succDuration, dur);
+                    branchID = nextBranch;
+                }
             }
+
+            if (state.Next == null && state.PotentialSuccessors == null)
+            {
+                branchID++; // leaf
+            }
+
             return (node, state.Duration + succDuration, branchID);
         }
 
-        private void DrawNodeAndSuccessors(Node node, Vector2 screenTL, Vector2 predPos, List<Node> hoverNodes, bool inGroup, bool bossIsCasting, bool isDowntime, bool isPositioning, StateMachine.State? activeState, float timeSinceActivation)
+        private void DrawNodeAndSuccessors(Node node, Vector2 screenTL, Vector2 predPos, List<Node> hoverNodes, bool inGroup, bool bossIsCasting, bool isDowntime, bool isPositioning, StateMachine? sm)
         {
             var drawlist = ImGui.GetWindowDrawList();
             var nodePos = screenTL + new Vector2(_timeAxisWidth + node.BranchID * PixelsPerBranch + 10, _vMargin + node.Time * PixelsPerSecond);
             var connection = nodePos - predPos;
 
             Vector2? currentTimeScreenPos = null;
-            if (node.State == activeState)
+            if (node.State == sm?.ActiveState)
             {
-                currentTimeScreenPos = predPos + connection * Math.Clamp(timeSinceActivation / node.State.Duration, 0, 1);
+                currentTimeScreenPos = predPos + connection * Math.Clamp(sm.TimeSinceTransition / node.State.Duration, 0, 1);
             }
 
             // draw connection from predecessor
@@ -179,7 +198,7 @@ namespace BossMod
                 drawlist.AddCircleFilled(nodePos, _circleRadius, nodeColor);
                 drawlist.AddText(nodePos + new Vector2(7, -10), 0xffffffff, node.State.Name);
 
-                if (node.State == activeState)
+                if (node.State == sm?.ActiveState)
                 {
                     drawlist.AddCircle(nodePos, _circleRadius + 3, nodeColor);
                 }
@@ -187,6 +206,11 @@ namespace BossMod
                 if (ImGui.IsMouseHoveringRect(nodePos - new Vector2(_circleRadius), nodePos + new Vector2(_circleRadius)))
                 {
                     hoverNodes.Add(node);
+
+                    if (sm != null && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                    {
+                        sm.ActiveState = node.State;
+                    }
                 }
             }
 
@@ -203,7 +227,7 @@ namespace BossMod
             isPositioning = (isPositioning || node.State.EndHint.HasFlag(StateMachine.StateHint.PositioningStart)) && !node.State.EndHint.HasFlag(StateMachine.StateHint.PositioningEnd);
             foreach (var succ in node.Successors)
             {
-                DrawNodeAndSuccessors(succ, screenTL, nodePos, hoverNodes, inGroup, bossIsCasting, isDowntime, isPositioning, activeState, timeSinceActivation);
+                DrawNodeAndSuccessors(succ, screenTL, nodePos, hoverNodes, inGroup, bossIsCasting, isDowntime, isPositioning, sm);
             }
         }
     }

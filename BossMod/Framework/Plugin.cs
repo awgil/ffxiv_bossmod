@@ -13,8 +13,7 @@ namespace BossMod
 
         private WorldStateGame _ws { get; } = new();
         private DebugEventLogger _debugLogger;
-        private DebugUI? _debugUI;
-        private IBossModule? _activeModule;
+        private BossModule? _activeModule;
         private Autorotation _autorotation;
         private bool _autorotationUIVisible = true;
 
@@ -29,8 +28,12 @@ namespace BossMod
             pluginInterface.Create<Service>();
             Service.LogHandler = (string msg) => PluginLog.Log(msg);
             Camera.Instance = new();
+            _autorotation = new();
 
             _debugLogger = new DebugEventLogger(_ws);
+
+            _ws.CurrentZoneChanged += ZoneChanged;
+            ZoneChanged(null, _ws.CurrentZone);
 
             this.PluginInterface = pluginInterface;
             this.CommandManager = commandManager;
@@ -38,46 +41,42 @@ namespace BossMod
             this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             this.Configuration.Initialize(this.PluginInterface);
 
-            this.CommandManager.AddHandler("/bmz", new CommandInfo(OnCommand)
+            this.CommandManager.AddHandler("/bmz", new CommandInfo((command, args) => ZoneChanged(null, ushort.Parse(args)))
             {
-                HelpMessage = "Zodiark UI"
+                HelpMessage = "Show boss module for zone"
             });
-            this.CommandManager.AddHandler("/bmd", new CommandInfo(OnCommand)
+
+            this.CommandManager.AddHandler("/bmd", new CommandInfo((_, _) => OpenDebugUI())
             {
-                HelpMessage = "Debug UI"
+                HelpMessage = "Show debug UI"
             });
-            this.CommandManager.AddHandler("/bma", new CommandInfo(OnCommand)
+
+            this.CommandManager.AddHandler("/bma", new CommandInfo((_, _) => _autorotationUIVisible = !_autorotationUIVisible)
             {
                 HelpMessage = "Autorotation UI"
             });
 
             this.PluginInterface.UiBuilder.Draw += DrawUI;
             this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
-
-            _ws.CurrentZoneChanged += ZoneChanged;
-            ZoneChanged(null, _ws.CurrentZone);
-
-            _autorotation = new();
         }
 
         public void Dispose()
         {
+            WindowManager.Reset();
+            _debugLogger.Dispose();
             _autorotation.Dispose();
+            _activeModule?.Dispose();
             _ws.CurrentZoneChanged -= ZoneChanged;
             this.CommandManager.RemoveHandler("/bmz");
             this.CommandManager.RemoveHandler("/bmd");
             this.CommandManager.RemoveHandler("/bma");
         }
 
-        private void OnCommand(string command, string args)
+        private void OpenDebugUI()
         {
-            // in response to the slash command, just display our main ui
-            if (command == "/bmz")
-                ZoneChanged(null, ushort.Parse(args));
-            else if (command == "/bmd" && _debugUI == null)
-                _debugUI = new DebugUI(_ws);
-            else if (command == "/bma")
-                _autorotationUIVisible = !_autorotationUIVisible;
+            var ui = new DebugUI(_ws, _autorotation);
+            var w = WindowManager.CreateWindow("Boss mod debug UI", ui.Draw, ui.Dispose);
+            w.SizeHint = new Vector2(300, 200);
         }
 
         private void ZoneChanged(object? sender, ushort zone)
@@ -93,6 +92,9 @@ namespace BossMod
                 case 1003:
                     _activeModule = new P1S(_ws);
                     break;
+                case 1005:
+                    _activeModule = new P2S(_ws);
+                    break;
             }
             PluginLog.Log($"Activated module: {_activeModule?.GetType().ToString() ?? "none"}");
         }
@@ -103,6 +105,8 @@ namespace BossMod
             _ws.Update();
             _autorotation.Update();
 
+            WindowManager.DrawAll();
+
             if (_autorotationUIVisible)
             {
                 ImGui.SetNextWindowSize(new Vector2(100, 100), ImGuiCond.FirstUseEver);
@@ -112,23 +116,6 @@ namespace BossMod
                     _autorotation.Draw();
                 }
                 ImGui.End();
-            }
-
-            if (_debugUI != null)
-            {
-                ImGui.SetNextWindowSize(new Vector2(300, 200), ImGuiCond.FirstUseEver);
-                ImGui.SetNextWindowSizeConstraints(new Vector2(300, 200), new Vector2(float.MaxValue, float.MaxValue));
-                bool visible = true;
-                if (ImGui.Begin("Boss mod debug UI", ref visible, ImGuiWindowFlags.None))
-                {
-                    _debugUI!.Draw();
-                }
-                ImGui.End();
-                if (!visible)
-                {
-                    _debugUI!.Dispose();
-                    _debugUI = null;
-                }
             }
 
             if (_activeModule != null)

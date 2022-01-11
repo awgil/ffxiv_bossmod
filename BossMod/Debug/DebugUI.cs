@@ -9,16 +9,17 @@ namespace BossMod
     class DebugUI : IDisposable
     {
         private WorldState _ws;
+        private Autorotation _autorot;
         private DateTime _combatStart;
         private DebugObjects _debugObjects = new();
         private DebugGraphics _debugGraphics = new();
         private DebugAction _debugAction = new();
-        private WARActions _war = new(); // TODO: remove
 
-        public DebugUI(WorldState ws)
+        public DebugUI(WorldState ws, Autorotation autorot)
         {
             _ws = ws;
             _ws.PlayerInCombatChanged += EnterExitCombat;
+            _autorot = autorot;
         }
 
         public void Dispose()
@@ -67,7 +68,7 @@ namespace BossMod
             }
             if (ImGui.CollapsingHeader("WAR"))
             {
-                _war.DrawActionHint(true);
+                _autorot.WarActions.DrawActionHint(true);
             }
         }
 
