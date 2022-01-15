@@ -151,7 +151,7 @@ namespace BossMod
 
             // TODO: what part of this should be done by the framework?..
             Arena.Begin(cameraAzimuth);
-            Arena.BorderSquare();
+            Arena.Border();
             if (_boss != null)
                 Arena.Actor(_boss.Position, 0xff0000ff);
             Arena.End();

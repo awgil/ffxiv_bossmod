@@ -104,9 +104,11 @@ namespace BossMod
             for (int i = 0; i < _numBranches; ++i)
             {
                 ImGui.SetCursorPosX(margin + i * PixelsPerBranch);
-                ImGui.Button($"Tank CD");
+                ImGui.Button("Tank CD");
                 ImGui.SameLine();
-                ImGui.Button($"Raid CD");
+                ImGui.Button("Raid CD");
+                ImGui.SameLine();
+                ImGui.Button("Sim");
                 ImGui.SameLine();
             }
             ImGui.NewLine();

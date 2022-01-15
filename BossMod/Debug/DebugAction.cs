@@ -5,8 +5,23 @@ namespace BossMod
 {
     public class DebugAction
     {
+        private int _customAction = 0;
+
         public unsafe void DrawActionData()
         {
+            ImGui.InputInt("Action to show details for", ref _customAction);
+            if (_customAction != 0)
+            {
+                var data = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow((uint)_customAction);
+                if (data != null)
+                {
+                    ImGui.Text($"Name: {data.Name}");
+                    ImGui.Text($"Cast time: {data.Cast100ms / 10.0:f1}");
+                    ImGui.Text($"Range: {data.Range}");
+                    ImGui.Text($"Effect range: {data.EffectRange}");
+                }
+            }
+
             var hover = Service.GameGui.HoveredAction;
             if (hover.ActionID == 0)
             {

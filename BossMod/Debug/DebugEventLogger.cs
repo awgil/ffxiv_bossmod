@@ -1,6 +1,4 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Logging;
-using System;
+﻿using System;
 using System.Numerics;
 
 namespace BossMod
@@ -18,10 +16,11 @@ namespace BossMod
             _ws.ActorCreated += ActorCreated;
             _ws.ActorDestroyed += ActorDestroyed;
             _ws.ActorMoved += ActorMoved;
+            _ws.ActorTargetChanged += ActorTargetChanged;
             _ws.ActorCastStarted += ActorCastStarted;
             _ws.ActorCastFinished += ActorCastFinished;
-            _ws.ActorStatusAdded += ActorStatusAdded;
-            _ws.ActorStatusRemoved += ActorStatusRemoved;
+            _ws.ActorStatusGain += ActorStatusGain;
+            _ws.ActorStatusLose += ActorStatusLose;
         }
 
         public void Dispose()
@@ -32,10 +31,11 @@ namespace BossMod
             _ws.ActorCreated -= ActorCreated;
             _ws.ActorDestroyed -= ActorDestroyed;
             _ws.ActorMoved -= ActorMoved;
+            _ws.ActorTargetChanged -= ActorTargetChanged;
             _ws.ActorCastStarted -= ActorCastStarted;
             _ws.ActorCastFinished -= ActorCastFinished;
-            _ws.ActorStatusAdded -= ActorStatusAdded;
-            _ws.ActorStatusRemoved -= ActorStatusRemoved;
+            _ws.ActorStatusGain -= ActorStatusGain;
+            _ws.ActorStatusLose -= ActorStatusLose;
         }
 
         private void ZoneChange(object? sender, ushort zone)
@@ -58,41 +58,48 @@ namespace BossMod
 
         private void ActorCreated(object? sender, WorldState.Actor actor)
         {
-            Service.Log($"New actor: {Utils.ObjectString(actor.InstanceID)}, kind={actor.Type}, position={Utils.Vec3String(actor.Position)}, rotation={Utils.RadianString(actor.Rotation)}, playerOrPet={IsPlayerOrPet(actor)}");
+            Service.Log($"[Actor] New actor: {Utils.ObjectString(actor.InstanceID)}, kind={actor.Type}, position={Utils.Vec3String(actor.Position)}, rotation={Utils.RadianString(actor.Rotation)}, target={Utils.ObjectString(actor.TargetID)}, playerOrPet={IsPlayerOrPet(actor)}");
         }
 
         private void ActorDestroyed(object? sender, WorldState.Actor actor)
         {
-            Service.Log($"Removed actor: id={actor.InstanceID:X}, playerOrPet={IsPlayerOrPet(actor)}");
+            Service.Log($"[Actor] Removed actor: id={actor.InstanceID:X}, playerOrPet={IsPlayerOrPet(actor)}");
         }
 
         private void ActorMoved(object? sender, (WorldState.Actor actor, Vector3 prevPos, float prevRot) arg)
         {
             if ((arg.actor.Position - arg.prevPos).LengthSquared() < 4)
                 return;
-            Service.Log($"Actor teleported: {Utils.ObjectString(arg.actor.InstanceID)}, position={Utils.Vec3String(arg.actor.Position)}, rotation={Utils.RadianString(arg.actor.Rotation)}, playerOrPet={IsPlayerOrPet(arg.actor)}");
+            Service.Log($"[Actor] Actor teleported: {Utils.ObjectString(arg.actor.InstanceID)}, position={Utils.Vec3String(arg.actor.Position)}, rotation={Utils.RadianString(arg.actor.Rotation)}, playerOrPet={IsPlayerOrPet(arg.actor)}");
+        }
+
+        private void ActorTargetChanged(object? sender, (WorldState.Actor actor, uint prev) arg)
+        {
+            Service.Log($"[Actor] Actor target changed: {Utils.ObjectString(arg.actor.InstanceID)}, {Utils.ObjectString(arg.prev)} -> {Utils.ObjectString(arg.actor.TargetID)}, position={Utils.Vec3String(arg.actor.Position)}, rotation={Utils.RadianString(arg.actor.Rotation)}, playerOrPet={IsPlayerOrPet(arg.actor)}");
         }
 
         private void ActorCastStarted(object? sender, WorldState.Actor actor)
         {
-            Service.Log($"Cast started: caster={Utils.ObjectString(actor.InstanceID)}, target={Utils.ObjectString(actor.CastInfo!.TargetID)}, action={Utils.ActionString(actor.CastInfo!.ActionID)}, time={Utils.CastTimeString(actor.CastInfo!.CurrentTime, actor.CastInfo!.TotalTime)}, casterpos={Utils.Vec3String(actor.Position)}, targetpos={Utils.Vec3String(actor.CastInfo!.Location)}, casterrot={Utils.RadianString(actor.Rotation)}, playerOrPet={IsPlayerOrPet(actor)}");
+            Service.Log($"[Actor] Cast started: caster={Utils.ObjectString(actor.InstanceID)}, target={Utils.ObjectString(actor.CastInfo!.TargetID)}, action={Utils.ActionString(actor.CastInfo!.ActionID)}, time={Utils.CastTimeString(actor.CastInfo!.CurrentTime, actor.CastInfo!.TotalTime)}, casterpos={Utils.Vec3String(actor.Position)}, targetpos={Utils.Vec3String(actor.CastInfo!.Location)}, casterrot={Utils.RadianString(actor.Rotation)}, playerOrPet={IsPlayerOrPet(actor)}");
         }
 
         private void ActorCastFinished(object? sender, WorldState.Actor actor)
         {
-            Service.Log($"Cast finished: caster={Utils.ObjectString(actor.InstanceID)}, target={Utils.ObjectString(actor.CastInfo!.TargetID)}, action={Utils.ActionString(actor.CastInfo!.ActionID)}, time={Utils.CastTimeString(actor.CastInfo!.CurrentTime, actor.CastInfo!.TotalTime)}, casterpos={Utils.Vec3String(actor.Position)}, targetpos={Utils.Vec3String(actor.CastInfo!.Location)}, casterrot={Utils.RadianString(actor.Rotation)}, playerOrPet={IsPlayerOrPet(actor)}");
+            Service.Log($"[Actor] Cast finished: caster={Utils.ObjectString(actor.InstanceID)}, target={Utils.ObjectString(actor.CastInfo!.TargetID)}, action={Utils.ActionString(actor.CastInfo!.ActionID)}, time={Utils.CastTimeString(actor.CastInfo!.CurrentTime, actor.CastInfo!.TotalTime)}, casterpos={Utils.Vec3String(actor.Position)}, targetpos={Utils.Vec3String(actor.CastInfo!.Location)}, casterrot={Utils.RadianString(actor.Rotation)}, playerOrPet={IsPlayerOrPet(actor)}");
         }
 
-        private void ActorStatusAdded(object? sender, (WorldState.Actor actor, int index) arg)
+        private void ActorStatusGain(object? sender, (WorldState.Actor actor, int index) arg)
         {
             var s = arg.actor.Statuses[arg.index];
-            Service.Log($"Status applied: {Utils.ObjectString(arg.actor.InstanceID)}, status={Utils.StatusString(s.ID)}, param={s.Param}, stacks={s.StackCount}, time={s.RemainingTime:f2}, source={Utils.ObjectString(s.SourceID)}, position={Utils.Vec3String(arg.actor.Position)}, rotation={Utils.RadianString(arg.actor.Rotation)}, playerOrPet={IsPlayerOrPet(arg.actor)}");
+            var src = _ws.FindActor(s.SourceID);
+            Service.Log($"[Actor] Status +++ {Utils.StatusString(s.ID)}: param={s.Param}, stacks={s.StackCount}, time={s.RemainingTime:f2}, {Utils.ObjectString(s.SourceID)} -> {Utils.ObjectString(arg.actor.InstanceID)}, playerOrPet={(src != null ? IsPlayerOrPet(src) : false)}");
         }
 
-        private void ActorStatusRemoved(object? sender, (WorldState.Actor actor, int index) arg)
+        private void ActorStatusLose(object? sender, (WorldState.Actor actor, int index) arg)
         {
             var s = arg.actor.Statuses[arg.index];
-            Service.Log($"Status faded: {Utils.ObjectString(arg.actor.InstanceID)}, status={Utils.StatusString(s.ID)}, param={s.Param}, stacks={s.StackCount}, time={s.RemainingTime:f2}, source={Utils.ObjectString(s.SourceID)}, position={Utils.Vec3String(arg.actor.Position)}, rotation={Utils.RadianString(arg.actor.Rotation)}, playerOrPet={IsPlayerOrPet(arg.actor)}");
+            var src = _ws.FindActor(s.SourceID);
+            Service.Log($"[Actor] Status --- {Utils.StatusString(s.ID)}: param={s.Param}, stacks={s.StackCount}, time={s.RemainingTime:f2}, {Utils.ObjectString(s.SourceID)} -> {Utils.ObjectString(arg.actor.InstanceID)}, playerOrPet={(src != null ? IsPlayerOrPet(src) : false)}");
         }
 
         private bool IsPlayerOrPet(WorldState.Actor actor)

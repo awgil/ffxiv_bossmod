@@ -7,16 +7,18 @@ namespace BossMod
 {
     public class MiniArena
     {
+        public bool IsCircle = false;
         public Vector3 WorldCenter = new(100, 0, 100);
         public float WorldHalfSize = 20;
         public float ScreenHalfSize = 150;
         public float ScreenMarginSize = 20;
 
         // these are set at the beginning of each draw
+        public Vector2 ScreenCenter { get; private set; } = new();
         private float _cameraAzimuth = 0;
         private float _cameraSinAzimuth = 0;
         private float _cameraCosAzimuth = 1;
-        private Vector2 _screenCenterPos = new();
+        private List<Vector2> _clipPolygon = new();
 
         // useful points
         public Vector3 WorldN  => WorldCenter + new Vector3(             0, 0, -WorldHalfSize);
@@ -30,149 +32,9 @@ namespace BossMod
 
         // common color constants (ABGR)
         public uint ColorBorder = 0xffffffff;
-        public uint ColorBackground = 0xff000000;
+        public uint ColorBackground = 0xff0f0f0f;
         public uint ColorDanger = 0xff00ffff;
         public uint ColorSafe = 0xff00ff00;
-
-        // clipping utilities
-        public static bool ClipLineToRect(ref Vector3 a, ref Vector3 b, Vector3 min, Vector3 max)
-        {
-            // Liang-Barsky algorithm:
-            // consider point on line: P = A + t * (B-A); it lies in clip square if Min[i] <= P[i] <= Max[i] for both coords (X and Z)
-            // we can rewrite these inequalities as follows:
-            // P[i] >= Min[i] ==> A[i] + t * AB[i] >= Min[i] ==> t * AB[i] >= Min[i] - A[i] ==> t * (-AB[i]) <= (A[i] - Min[i])
-            // P[i] <= Max[i] ==> A[i] + t * AB[i] <= Max[i] ==> t * AB[i] <= Max[i] - A[i] ==> t * (+AB[i]) <= (Max[i] - A[i])
-            // AB[i] == 0 means that line is parallel to non-i'th axis; in such case this equation is not satisfied for any t if either of the right-hand sides is < 0, or satisfied for any t otherwise
-            var ab = b - a;
-            var q1 = a - min;
-            var q2 = max - a;
-            if (ab.X == 0 && (q1.X < 0 || q2.X < 0))
-                return false;
-            if (ab.Z == 0 && (q1.Z < 0 || q2.Z < 0))
-                return false;
-
-            // AB[i] < 0 ==> t <= q1[i] / (-AB[i]) *and* t >= q2[i] / (+AB[i])
-            // AB[i] > 0 ==> t >= q1[i] / (-AB[i]) *and* t <= q2[i] / (+AB[i])
-            float tmin = 0;
-            float tmax = 1;
-            if (ab.X < 0)
-            {
-                tmax = MathF.Min(tmax, q1.X / -ab.X);
-                tmin = MathF.Max(tmin, q2.X / +ab.X);
-            }
-            else if (ab.X > 0)
-            {
-                tmin = MathF.Max(tmin, q1.X / -ab.X);
-                tmax = MathF.Min(tmax, q2.X / +ab.X);
-            }
-            if (ab.Z < 0)
-            {
-                tmax = MathF.Min(tmax, q1.Z / -ab.Z);
-                tmin = MathF.Max(tmin, q2.Z / +ab.Z);
-            }
-            else if (ab.Z > 0)
-            {
-                tmin = MathF.Max(tmin, q1.Z / -ab.Z);
-                tmax = MathF.Min(tmax, q2.Z / +ab.Z);
-            }
-
-            if (tmax < tmin)
-                return false; // there is no such t that satisfies all inequalities, line is fully outside
-
-            b = a + tmax * ab;
-            a = a + tmin * ab;
-            return true;
-        }
-
-        public static bool ClipLineToCircle(ref Vector3 a, ref Vector3 b, Vector3 center, float radius)
-        {
-            var oa = a - center;
-            var ab = b - a;
-
-            // consider point on line: P = A + t * AB; it intersects with square if (P-O)^2 = R^2 ==> (OA + t * AB)^2 = R^2 => t^2*AB^2 + 2t(OA.AB) + (OA^2 - R^2) = 0
-            float abab = ab.X * ab.X + ab.Z * ab.Z;
-            float oaab = oa.X * ab.X + oa.Z * ab.Z;
-            float oaoa = oa.X * oa.X + oa.Z * oa.Z;
-            float d4 = oaab * oaab - (oaoa - radius * radius) * abab; // == d / 4
-            if (d4 <= 0)
-                return false; // line is fully outside circle
-
-            // t[1, 2] = tc +/- td
-            float td = MathF.Sqrt(d4) / abab; // > 0, so -td < +td
-            float tc = -oaab / abab;
-            float t1 = tc - td;
-            float t2 = tc + td;
-            if (t1 > 1 || t2 < 0)
-                return false; // line is fully outside circle (but would intersect, if extended to infinity)
-
-            b = a + MathF.Min(1, t2) * ab;
-            a = a + MathF.Max(0, t1) * ab;
-            return true;
-        }
-
-        public static List<Vector3> ClipPolygonToRect(IEnumerable<Vector3> pts, Vector3 tl, Vector3 br)
-        {
-            Vector3 tr = new(br.X, 0, tl.Z);
-            Vector3 bl = new(tl.X, 0, br.Z);
-            // Sutherland-Hodgman algorithm: clip polygon by each edge
-            var pt1 = ClipPolygonToEdge(pts, tl, Vector3.UnitZ);
-            var pt2 = ClipPolygonToEdge(pt1, tr, -Vector3.UnitX);
-            var pt3 = ClipPolygonToEdge(pt2, br, -Vector3.UnitZ);
-            var pt4 = ClipPolygonToEdge(pt3, bl, Vector3.UnitX);
-            return pt4;
-        }
-
-        private static List<Vector3> ClipPolygonToEdge(IEnumerable<Vector3> pts, Vector3 vertex, Vector3 normal)
-        {
-            // single iteration of Sutherland-Hodgman algorithm's outer loop
-            List<Vector3> res = new();
-            var it = pts.GetEnumerator();
-            if (!it.MoveNext())
-                return res; // empty polygon
-
-            var first = it.Current;
-            var prev = first;
-            while (it.MoveNext())
-            {
-                ClipPolygonVertexPairToEdge(res, prev, it.Current, vertex, normal);
-                prev = it.Current;
-            }
-            ClipPolygonVertexPairToEdge(res, prev, first, vertex, normal);
-            return res;
-        }
-
-        private static void ClipPolygonVertexPairToEdge(List<Vector3> res, Vector3 prev, Vector3 curr, Vector3 vertex, Vector3 normal)
-        {
-            // single iteration of Sutherland-Hodgman algorithm's inner loop
-            var ea = prev - vertex;
-            var eb = curr - vertex;
-            float ean = Vector3.Dot(ea, normal);
-            float ebn = Vector3.Dot(eb, normal);
-            // intersection point P = A + t * AB is such that (P-E).n = 0 ==> EA.n + t * AB.n = 0
-            // AB.n == 0 means that AB is parallel to the edge; for such edges we'll never calculate intersection points, since both A and B will be either inside or outside
-            // otherwise t = -EA.n/AB.n, and P = A + t * AB
-            Func<Vector3> intersection = () =>
-            {
-                var ab = curr - prev;
-                float abn = Vector3.Dot(ab, normal);
-                float t = -ean / abn;
-                return prev + t * ab;
-            };
-            if (ebn >= 0)
-            {
-                // curr is 'inside' edge
-                if (ean < 0)
-                {
-                    // but prev is not
-                    res.Add(intersection());
-                }
-                res.Add(curr);
-            }
-            else if (ean >= 0)
-            {
-                res.Add(intersection());
-            }
-        }
 
         // prepare for drawing - set up internal state, clip rect etc.
         public void Begin(float cameraAzimuthRadians)
@@ -189,14 +51,29 @@ namespace BossMod
             var fullSize = 2 * centerOffset;
             var cursor = ImGui.GetCursorScreenPos();
             ImGui.Dummy(fullSize);
-            _screenCenterPos = cursor + centerOffset;
+            ScreenCenter = cursor + centerOffset;
+
+            if (IsCircle)
+            {
+                _clipPolygon = GeometryUtils.BuildTesselatedCircle(ScreenCenter, ScreenHalfSize);
+            }
+            else
+            {
+                _clipPolygon.Clear();
+                _clipPolygon.Add(WorldPositionToScreenPosition(WorldNW));
+                _clipPolygon.Add(WorldPositionToScreenPosition(WorldNE));
+                _clipPolygon.Add(WorldPositionToScreenPosition(WorldSE));
+                _clipPolygon.Add(WorldPositionToScreenPosition(WorldSW));
+            }
+
+            ImGui.GetWindowDrawList().PushClipRect(cursor, cursor + fullSize);
         }
 
         // if you are 100% sure your primitive does not need clipping, you can use drawlist api directly
         // this helper allows converting world-space coords to screen-space ones
         public Vector2 WorldPositionToScreenPosition(Vector3 world)
         {
-            return _screenCenterPos + WorldOffsetToScreenOffset(world - WorldCenter);
+            return ScreenCenter + WorldOffsetToScreenOffset(world - WorldCenter);
             //var viewPos = SharpDX.Vector3.Transform(new SharpDX.Vector3(worldOffset.X, 0, worldOffset.Z), CameraView);
             //return ScreenHalfSize * new Vector2(viewPos.X / viewPos.Z, viewPos.Y / viewPos.Z);
             //return ScreenHalfSize * new Vector2(viewPos.X, viewPos.Y) / WorldHalfSize;
@@ -268,18 +145,89 @@ namespace BossMod
             ImGui.GetWindowDrawList().PathFillConvex(color);
         }
 
-        // clipped primitive rendering (TODO...)
+        // draw zones - these are filled primitives clipped to various borders
+        public void ZoneCone(Vector3 center, float innerRadius, float outerRadius, float angleStart, float angleEnd, uint color)
+        {
+            // TODO: think of a better way to do that (analytical clipping?)
+            if (innerRadius >= outerRadius || innerRadius < 0)
+                return;
+            if (angleStart == angleEnd)
+                return;
+            if (angleStart > angleEnd)
+            {
+                var tmp = angleEnd;
+                angleEnd = angleStart;
+                angleStart = tmp;
+            }
+            var angleLength = MathF.Min(angleEnd - angleStart, 2 * MathF.PI);
+
+            if (innerRadius == 0 && angleLength >= 2 * MathF.PI)
+            {
+                ZoneCircle(center, outerRadius, color);
+                return;
+            }
+
+            // convert angles to screen coords and normalize
+            angleStart += _cameraAzimuth - MathF.PI / 2;
+            angleStart %= 2 * MathF.PI;
+            if (angleStart < -MathF.PI)
+                angleStart += 2 * MathF.PI;
+            else if (angleStart > MathF.PI)
+                angleStart -= 2 * MathF.PI;
+            // at this point, angleStart is in [-pi, pi) and angleLength is in (0, 2pi)
+
+            var centerScreen = WorldPositionToScreenPosition(center);
+            float innerRadiusScreen = innerRadius / WorldHalfSize * ScreenHalfSize;
+            float outerRadiusScreen = outerRadius / WorldHalfSize * ScreenHalfSize;
+
+            int innerSegments = innerRadiusScreen > 0 ? GeometryUtils.CalculateTesselationSegments(innerRadiusScreen, angleLength) : 0;
+            int outerSegments = GeometryUtils.CalculateTesselationSegments(outerRadiusScreen, angleLength);
+
+            List<Vector2> tesselated = new();
+            if (innerSegments == 0)
+            {
+                tesselated.Add(centerScreen);
+            }
+            else
+            {
+                for (int i = innerSegments; i >= 0; --i)
+                {
+                    tesselated.Add(GeometryUtils.PolarToCartesian(centerScreen, innerRadiusScreen, angleStart + (float)i / (float)innerSegments * angleLength));
+                }
+            }
+            for (int i = 0; i <= outerSegments; ++i)
+            {
+                tesselated.Add(GeometryUtils.PolarToCartesian(centerScreen, outerRadiusScreen, angleStart + (float)i / (float)outerSegments * angleLength));
+            }
+
+            ClipAndFillConcave(tesselated, color);
+        }
+
+        public void ZoneCircle(Vector3 center, float radius, uint color)
+        {
+            var poly = GeometryUtils.BuildTesselatedCircle(WorldPositionToScreenPosition(center), radius / WorldHalfSize * ScreenHalfSize);
+            ClipAndFillConvex(poly, color);
+        }
+
+        public void ZoneQuad(Vector3 a, Vector3 b, Vector3 c, Vector3 d, uint color)
+        {
+            var quad = new Vector2[] { WorldPositionToScreenPosition(a), WorldPositionToScreenPosition(b), WorldPositionToScreenPosition(c), WorldPositionToScreenPosition(d) };
+            ClipAndFillConvex(quad, color);
+        }
+
+        public void ZoneRect(Vector3 tl, Vector3 br, uint color)
+        {
+            ZoneQuad(tl, new Vector3(br.X, 0, tl.Z), br, new Vector3(tl.X, 0, br.Z), color);
+        }
 
         // high level utilities
         // draw arena border
-        public void BorderSquare()
+        public void Border()
         {
-            AddQuad(WorldNW, WorldNE, WorldSE, WorldSW, ColorBorder, 2);
-        }
-
-        public void BorderCircle()
-        {
-            AddCircle(WorldCenter, WorldHalfSize, ColorBorder, 2);
+            if (IsCircle)
+                AddCircle(WorldCenter, WorldHalfSize, ColorBorder, 2);
+            else
+                AddQuad(WorldNW, WorldNE, WorldSE, WorldSW, ColorBorder, 2);
         }
 
         // draw actor representation (small circle)
@@ -291,7 +239,99 @@ namespace BossMod
 
         public void End()
         {
-            //ImGui.GetWindowDrawList().PopClipRect();
+            ImGui.GetWindowDrawList().PopClipRect();
+        }
+
+        private void ClipAndFillConvex(IEnumerable<Vector2> poly, uint color)
+        {
+            var drawlist = ImGui.GetWindowDrawList();
+            var clipped = GeometryUtils.ClipPolygonToPolygon(poly, _clipPolygon);
+            foreach (var p in clipped)
+                drawlist.PathLineToMergeDuplicate(p);
+            drawlist.PathFillConvex(color);
+        }
+
+        private void ClipAndFillConcave(IEnumerable<Vector2> poly, uint color)
+        {
+            var clipped = GeometryUtils.ClipPolygonToPolygon(poly, _clipPolygon);
+            if (clipped.Count < 3)
+                return;
+
+            // simple ear-clipping algorithm, TODO consider optimizing
+            Func<int, (Vector2, Vector2, Vector2)> getTri = (int index) =>
+            {
+                var prev = clipped[index == 0 ? clipped.Count - 1 : index - 1];
+                var curr = clipped[index];
+                var next = clipped[index == clipped.Count - 1 ? 0 : index + 1];
+                return (prev, curr, next);
+            };
+            Func<int, bool> isVertexConvex = (int index) =>
+            {
+                (var prev, var curr, var next) = getTri(index);
+                var pc = curr - prev;
+                var cn = next - curr;
+                var normal = new Vector2(-pc.Y, pc.X);
+                return Vector2.Dot(cn, normal) > 0;
+            };
+
+            List<bool> vertexIsConvex = new();
+            for (int i = 0; i < clipped.Count; ++i)
+                vertexIsConvex.Add(isVertexConvex(i));
+
+            Func<int, bool> isVertexEar = (int index) =>
+            {
+                if (!vertexIsConvex[index])
+                    return false; // concave vertex can't be an ear
+
+                (var prev, var curr, var next) = getTri(index);
+                var e1 = curr - prev;
+                var e2 = next - curr;
+                var e3 = prev - next;
+                var n1 = new Vector2(-e1.Y, e1.X);
+                var n2 = new Vector2(-e2.Y, e2.X);
+                var n3 = new Vector2(-e3.Y, e3.X);
+                for (int i = 0; i < clipped.Count; ++i)
+                    if (!vertexIsConvex[i] && Vector2.Dot(clipped[i] - prev, n1) > 0 && Vector2.Dot(clipped[i] - curr, n2) > 0 && Vector2.Dot(clipped[i] - next, n3) > 0)
+                        return false; // triangle contains concave vertex, so it's not an ear
+
+                return true;
+            };
+
+            var drawlist = ImGui.GetWindowDrawList();
+            var restoreFlags = drawlist.Flags;
+            drawlist.Flags &= ~ImDrawListFlags.AntiAliasedFill;
+            int searchStart = 0; // optimization: avoid restarting search from the beginning after clipping each ear
+            while (clipped.Count > 3)
+            {
+                // find and clip next ear - skip next concave vertices
+                int earIndex = searchStart;
+                for (; earIndex < clipped.Count; ++earIndex)
+                    if (isVertexEar(earIndex))
+                        break;
+                if (earIndex == clipped.Count)
+                    for (earIndex = 0; earIndex < searchStart; ++earIndex)
+                        if (isVertexEar(earIndex))
+                            break;
+
+                // we are guaranteed to find an ear, there's a theorem about that - now draw and clip it
+                (var prev, var curr, var next) = getTri(earIndex);
+                drawlist.AddTriangleFilled(prev, curr, next, color);
+
+                clipped.RemoveAt(earIndex);
+                vertexIsConvex.RemoveAt(earIndex);
+
+                // recalculate convexity for neighbouring edges
+                int neighbour = earIndex != 0 ? earIndex - 1 : clipped.Count - 1;
+                vertexIsConvex[neighbour] = isVertexConvex(neighbour);
+                neighbour = earIndex != clipped.Count ? earIndex : 0;
+                vertexIsConvex[neighbour] = isVertexConvex(neighbour);
+
+                searchStart = earIndex != clipped.Count ? earIndex : 0;
+            }
+
+            // draw final triangle
+            drawlist.AddTriangleFilled(clipped[0], clipped[1], clipped[2], color);
+            drawlist.Flags = restoreFlags;
         }
 
         private bool WorldOffsetInBounds(Vector3 offset)

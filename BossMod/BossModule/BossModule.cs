@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ImGuiNET;
+using System;
 
 namespace BossMod
 {
@@ -34,12 +35,32 @@ namespace BossMod
             }
         }
 
-        public virtual void Draw(float cameraAzimuth)
+        public virtual void Update()
         {
             StateMachine.Update();
-            StateMachine.Draw();
         }
 
+        public virtual void Draw(float cameraAzimuth)
+        {
+            StateMachine.Draw();
+            DrawHeader();
+            Arena.Begin(cameraAzimuth);
+            DrawArena();
+            Arena.End();
+            DrawFooter();
+
+            if (ImGui.Button("Show timeline"))
+            {
+                var timeline = new StateMachineVisualizer(InitialState);
+                var w = WindowManager.CreateWindow($"{GetType()} Timeline", () => timeline.Draw(StateMachine), () => { });
+                w.SizeHint = new(600, 600);
+                w.MinSize = new(100, 100);
+            }
+        }
+
+        protected virtual void DrawHeader() { }
+        protected virtual void DrawArena() { }
+        protected virtual void DrawFooter() { }
         protected virtual void ActorCreated(WorldState.Actor actor) { }
         protected virtual void ActorDestroyed(WorldState.Actor actor) { }
         protected virtual void Reset() { }

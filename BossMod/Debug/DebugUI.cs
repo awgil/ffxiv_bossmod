@@ -14,6 +14,7 @@ namespace BossMod
         private DebugObjects _debugObjects = new();
         private DebugGraphics _debugGraphics = new();
         private DebugAction _debugAction = new();
+        private Network? _network = null;
 
         public DebugUI(WorldState ws, Autorotation autorot)
         {
@@ -25,6 +26,9 @@ namespace BossMod
         public void Dispose()
         {
             _ws.PlayerInCombatChanged -= EnterExitCombat;
+
+            if (_network != null)
+                _network.Dispose();
         }
 
         public void Draw()
@@ -36,6 +40,20 @@ namespace BossMod
             {
                 DebugObjects.DumpObjectTable();
                 DebugGraphics.DumpScene();
+            }
+
+            bool networkDumpActive = _network != null;
+            if (ImGui.Checkbox("Dump network packets", ref networkDumpActive))
+            {
+                if (_network == null)
+                {
+                    _network = new();
+                }
+                else
+                {
+                    _network.Dispose();
+                    _network = null;
+                }
             }
 
             if (ImGui.CollapsingHeader("Full object list"))

@@ -4,6 +4,7 @@ using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.JobGauge;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Gui;
+using Dalamud.Game.Network;
 using Dalamud.IoC;
 using System;
 
@@ -18,6 +19,7 @@ namespace BossMod
         [PluginService] public static GameGui GameGui { get; private set; }
         [PluginService] public static SigScanner SigScanner { get; private set; }
         [PluginService] public static JobGauges JobGauges { get; private set; }
+        [PluginService] public static GameNetwork GameNetwork { get; private set; }
 #pragma warning restore CS8618
 
         public static Action<string>? LogHandler = null;
@@ -26,5 +28,7 @@ namespace BossMod
             if (LogHandler != null)
                 LogHandler(msg);
         }
+
+        //public static SharpDX.Direct3D11.Device? Device = null;
     }
 }

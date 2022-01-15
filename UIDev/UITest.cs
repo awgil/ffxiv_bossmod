@@ -23,6 +23,7 @@ namespace UIDev
         public void Initialize(SimpleImGuiScene scene)
         {
             Service.LogHandler = (string msg) => Debug.WriteLine(msg);
+            //Service.Device = (SharpDX.Direct3D11.Device?)scene.Renderer.GetType().GetField("_device", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(scene.Renderer);
 
             // scene is a little different from what you have access to in dalamud
             // but it can accomplish the same things, and is really only used for initial setup here

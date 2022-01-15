@@ -27,6 +27,7 @@ namespace BossMod
         {
             pluginInterface.Create<Service>();
             Service.LogHandler = (string msg) => PluginLog.Log(msg);
+            //Service.Device = pluginInterface.UiBuilder.Device;
             Camera.Instance = new();
             _autorotation = new();
 
@@ -120,17 +121,19 @@ namespace BossMod
 
             if (_activeModule != null)
             {
+                _activeModule.Update();
+
                 ImGui.SetNextWindowSize(new Vector2(400, 400), ImGuiCond.FirstUseEver);
                 ImGui.SetNextWindowSizeConstraints(new Vector2(400, 400), new Vector2(float.MaxValue, float.MaxValue));
                 bool visible = true;
                 if (ImGui.Begin("Boss module", ref visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
                 {
-                    _activeModule!.Draw(Camera.Instance?.CameraAzimuth ?? 0);
+                    _activeModule.Draw(Camera.Instance?.CameraAzimuth ?? 0);
                 }
                 ImGui.End();
                 if (!visible)
                 {
-                    _activeModule!.Dispose();
+                    _activeModule.Dispose();
                     _activeModule = null;
                 }
             }

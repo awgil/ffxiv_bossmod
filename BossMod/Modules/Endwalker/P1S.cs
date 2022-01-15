@@ -24,21 +24,34 @@ namespace BossMod
             GaolerFlailIO2 = 26105, // Boss->Boss
             GaolerFlailOI1 = 26106, // Boss->Boss
             GaolerFlailOI2 = 26107, // Boss->Boss
-            Aetherflail1 = 26114, // Boss->Boss -- seen BlueRI & RedRO
-            Aetherflail2 = 26115, // Boss->Boss -- seen BlueLO, RedLI, RedLO - maybe it's *L*?
-            Aetherflail3 = 26118, // Boss->Boss -- seen BlueOL
-            Aetherflail4 = 26119, // Boss->Boss -- seen RedOR
+            AetherflailRX = 26114, // Boss->Boss -- seen BlueRI & RedRO
+            AetherflailLX = 26115, // Boss->Boss -- seen BlueLO, RedLI, RedLO - maybe it's *L*?
+            AetherflailIL = 26116, // never seen one, inferred
+            AetherflailIR = 26117, // Boss->Boss -- RedIR
+            AetherflailOL = 26118, // Boss->Boss -- seen BlueOL, RedOL
+            AetherflailOR = 26119, // Boss->Boss -- seen RedOR
             KnockbackGrace = 26126, // Boss->MT
             KnockbackPurge = 26127, // Boss->MT
+            TrueHoly1 = 26128, // Boss->Boss, no cast, ???
+            TrueFlare1 = 26129, // Boss->Boss, no cast, ???
+            TrueHoly2 = 26130, // Helper->tank shared, no cast, damage after KnockbackGrace
+            TrueFlare2 = 26131, // Helper->tank and nearby, no cast, damage after KnockbackPurge
             ShiningCells = 26134, // Boss->Boss, raidwide aoe
             SlamShut = 26135, // Boss->Boss, raidwide aoe
             Aetherchain = 26137, // Boss->Boss
+            PowerfulFire = 26138, // Helper->???, no cast, damage during aetherflails for incorrect segments?..
             ShacklesOfTime = 26140, // Boss->Boss
             Intemperance = 26142, // Boss->Boss
             IntemperateTormentUp = 26143, // Boss->Boss (bottom->top)
             IntemperateTormentDown = 26144, // Boss->Boss (bottom->top)
+            HotSpell = 26145, // Helper->player, no cast, red cube explosion
+            ColdSpell = 26146, // Helper->player, no cast, blue cube explosion
+            DisastrousSpell = 26147, // Helper->player, no cast, purple cube explosion
+            PainfulFlux = 26148, // Helper->???, no cast, cube explosion fails?
             AetherialShackles = 26149, // Boss->Boss
             FourShackles = 26150, // Boss->Boss
+            ChainPainBlue = 26151, // Helper->chain target, no cast, damage during chain resolve
+            ChainPainRed = 26152, // Helper->chain target
             HeavyHand = 26153, // Boss->MT, generic tankbuster
             WarderWrath = 26154, // Boss->Boss, generic raidwide
             GaolerFlailR1 = 28070, // Helper->Helper, first hit, right-hand cone
@@ -51,12 +64,62 @@ namespace BossMod
             GaolerFlailO2 = 28077, // Helper->Helper, second hit, donut
         };
 
+        public enum SID : uint
+        {
+            ColdSpell = 2739, // intemperance: after blue cube explosion
+            HotSpell = 2740, // intemperance: after red cube explosion
+            ShacklesOfCompanionship = 2742, // shackles: purple (tether to 3 closest)
+            ShacklesOfLoneliness = 2743, // shackles: red (tether to 3 farthest)
+            InescapableCompanionship = 2744, // replaces corresponding shackles in 13s
+            InescapableLoneliness = 2745,
+            DamageDown = 2911, // applied by two successive cubes of the same color
+            MagicVulnerabilityUp = 2941, // applied by shackle resolve, knockbacks
+        }
+
+        private class PlayerState
+        {
+            public WorldState.Actor Actor;
+            public bool IsRedShackleSourceFuture = false;
+            public bool IsRedShackleSourceImminent = false;
+            public byte RedTetheredTo = 0; // includes self; mask of tether sources
+            public bool IsBlueShackleSourceFuture = false;
+            public bool IsBlueShackleSourceImminent = false;
+            public byte BlueTetheredTo = 0; // includes self; mask of tether sources
+            public byte PlayersInMyRedShackleExplosion = 0; // does not include self
+            public byte PlayersInMyBlueShackleExplosion = 0; // does not include self
+
+            public PlayerState(WorldState.Actor actor)
+            {
+                Actor = actor;
+            }
+        }
+
+        private enum FlailsZone { None, Left, Right, Inner, Outer }
+
+        private List<PlayerState> _players = new(); // TODO: should contain live players only!
         private WorldState.Actor? _boss;
+        private List<WorldState.Actor> _weaponsAnchor = new();
+        private List<WorldState.Actor> _weaponsBall = new();
+        private List<WorldState.Actor> _weaponsChakram = new();
+        private bool _showShackles;
+        private bool _showFlails;
+        private bool _showAetherflails;
+        private FlailsZone _imminentFlails = FlailsZone.None;
+        private FlailsZone _futureFlails = FlailsZone.None;
         private string _hint = "";
+        private string _problems = "";
+
+        // various constants, should probably be looked up in sheets...
+        private float _shackleBlueRadius = 4;
+        private float _shackleRedRadius = 8;
+        private float _flailCircleRadius = 10;
+        private float _flailConeHalfAngle = MathF.PI / 4;
 
         public P1S(WorldState ws)
             : base(ws)
         {
+            WorldState.ActorStatusGain += ActorStatusGain;
+            WorldState.ActorStatusLose += ActorStatusLose;
             foreach (var v in WorldState.Actors)
                 ActorCreated(v.Value);
 
@@ -107,10 +170,7 @@ namespace BossMod
             s = BuildFlailStartState(ref s.Next, 3);
             s = CommonStates.Timeout(ref s.Next, 8, "Cube2");
             s.EndHint |= StateMachine.StateHint.GroupWithNext;
-            s = CommonStates.CastEnd(ref s.Next, () => _boss, 3);
-            s = CommonStates.Timeout(ref s.Next, 4, "Flails");
-            s.EndHint |= StateMachine.StateHint.GroupWithNext;
-            s.Exit = () => _hint = "";
+            s = BuildFlailEndState(ref s.Next, 3, true);
             s = CommonStates.Timeout(ref s.Next, 4, "Cube3");
             s.EndHint |= StateMachine.StateHint.PositioningEnd;
 
@@ -161,46 +221,178 @@ namespace BossMod
             s = CommonStates.Simple(ref s.Next, 2, "?????");
         }
 
-        public override void Draw(float cameraAzimuth)
+        protected override void Dispose(bool disposing)
         {
-            base.Draw(cameraAzimuth);
-            ImGui.Text(_hint);
+            if (disposing)
+            {
+                WorldState.ActorStatusGain -= ActorStatusGain;
+                WorldState.ActorStatusLose -= ActorStatusLose;
+            }
+            base.Dispose(disposing);
+        }
 
-            // TODO: what part of this should be done by the framework?..
-            Arena.Begin(cameraAzimuth);
-            Arena.BorderSquare();
+        public override void Update()
+        {
+            base.Update();
+
+            _problems = "";
+            if (_showShackles && UpdateShackles())
+            {
+                _problems += "Shackles failing! ";
+            }
+            if (_showFlails && UpdateFlails())
+            {
+                _problems += "Flails failing! ";
+            }
+            if (_showAetherflails && UpdateAetherflails())
+            {
+                _problems += "Aetherflails failing! ";
+            }
+        }
+
+        protected override void DrawHeader()
+        {
+            ImGui.Text(_hint);
+            if (_problems.Length > 0)
+            {
+                ImGui.SameLine();
+                ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(0xff00ffff), _problems);
+            }
+        }
+
+        protected override void DrawArena()
+        {
+            if (_showFlails && _boss != null)
+            {
+                // TODO: find out real radius and cone angle
+                switch (_imminentFlails)
+                {
+                    case FlailsZone.Left:
+                        Arena.ZoneCone(_boss.Position, 0, 100, _boss.Rotation + MathF.PI / 2 - _flailConeHalfAngle, _boss.Rotation - 3 * MathF.PI / 2 + _flailConeHalfAngle, Arena.ColorDanger);
+                        break;
+                    case FlailsZone.Right:
+                        Arena.ZoneCone(_boss.Position, 0, 100, _boss.Rotation - MathF.PI / 2 + _flailConeHalfAngle, _boss.Rotation + 3 * MathF.PI / 2 - _flailConeHalfAngle, Arena.ColorDanger);
+                        break;
+                    case FlailsZone.Inner:
+                        Arena.ZoneCircle(_boss.Position, _flailCircleRadius, Arena.ColorDanger);
+                        break;
+                    case FlailsZone.Outer:
+                        Arena.ZoneCone(_boss.Position, _flailCircleRadius, 100, 0, 2 * MathF.PI, Arena.ColorDanger);
+                        break;
+                }
+            }
+
+            if (_showAetherflails && _boss != null)
+            {
+                // TODO: implement..
+            }
+
+            Arena.Border();
+
+            if (Arena.IsCircle)
+            {
+                // cells mode
+                float diag = Arena.WorldHalfSize / 1.414214f;
+                Arena.AddCircle(Arena.WorldCenter, 10, Arena.ColorBorder);
+                Arena.AddLine(Arena.WorldE, Arena.WorldW, Arena.ColorBorder);
+                Arena.AddLine(Arena.WorldN, Arena.WorldS, Arena.ColorBorder);
+                Arena.AddLine(Arena.WorldCenter + new Vector3(diag, 0, diag), Arena.WorldCenter - new Vector3(diag, 0, diag), Arena.ColorBorder);
+                Arena.AddLine(Arena.WorldCenter + new Vector3(diag, 0, -diag), Arena.WorldCenter - new Vector3(diag, 0, -diag), Arena.ColorBorder);
+            }
+
             if (_boss != null)
                 Arena.Actor(_boss.Position, 0xff0000ff);
-            Arena.End();
 
-            // TODO: I think framework should do this, since it should provide access to CD planners...
-            if (ImGui.Button("Show timeline"))
+            foreach (var v in _players)
             {
-                var timeline = new StateMachineVisualizer(InitialState);
-                var w = WindowManager.CreateWindow("P1S Timeline", () => timeline.Draw(StateMachine), () => { });
-                w.SizeHint = new(600, 600);
-                w.MinSize = new(100, 100);
+                if (v.Actor.InstanceID == WorldState.PlayerActorID)
+                {
+                    Arena.Actor(v.Actor.Position, 0xff00ff00);
+                }
+
+                var tetherMask = v.BlueTetheredTo | v.RedTetheredTo;
+                if (tetherMask != 0)
+                {
+                    uint actorColor = v.BlueTetheredTo != 0 ? (v.RedTetheredTo != 0 ? 0xff00ffff : 0xffff0080) : 0xff8080ff;
+                    Arena.Actor(v.Actor.Position, actorColor);
+                    for (int i = 0; i < 8; ++i)
+                    {
+                        var iMask = 1 << i;
+                        if ((tetherMask & iMask) != 0)
+                        {
+                            bool haveBlueTether = (v.BlueTetheredTo & iMask) != 0;
+                            bool haveRedTether = (v.RedTetheredTo & iMask) != 0;
+                            uint tetherColor = haveBlueTether ? (haveRedTether ? 0xff00ffff : 0xffff0080) : 0xff8080ff;
+                            Arena.AddLine(v.Actor.Position, _players[i].Actor.Position, tetherColor);
+                        }
+                    }
+                }
+
+                if (v.PlayersInMyBlueShackleExplosion != 0)
+                    Arena.AddCircle(v.Actor.Position, 4, 0xff00ffff);
+                if (v.PlayersInMyRedShackleExplosion != 0)
+                    Arena.AddCircle(v.Actor.Position, 8, 0xff00ffff);
             }
         }
 
         protected override void ActorCreated(WorldState.Actor actor)
         {
-            if ((OID)actor.OID == OID.Boss)
+            if (actor.Type == WorldState.ActorType.Player)
             {
-                _boss = actor;
+                _players.Add(new(actor));
+            }
+            else switch ((OID)actor.OID)
+            {
+                case OID.Boss:
+                    if (_boss != null)
+                        Service.Log($"[P1S] Created boss {actor.InstanceID} while another boss {_boss.InstanceID} is still alive");
+                    _boss = actor;
+                    break;
+                case OID.FlailLR:
+                    _weaponsAnchor.Add(actor);
+                    break;
+                case OID.FlailI:
+                    _weaponsBall.Add(actor);
+                    break;
+                case OID.FlailO:
+                    _weaponsChakram.Add(actor);
+                    break;
             }
         }
 
         protected override void ActorDestroyed(WorldState.Actor actor)
         {
-            if (_boss == actor)
+            if (actor.Type == WorldState.ActorType.Player)
             {
-                _boss = null;
+                int index = _players.FindIndex(x => x.Actor == actor);
+                if (index >= 0)
+                    _players.RemoveAt(index);
+            }
+            else switch ((OID)actor.OID)
+            {
+                case OID.Boss:
+                    if (_boss != actor)
+                        Service.Log($"[P1S] Destroying boss {actor.InstanceID} while active boss is different: {_boss?.InstanceID}");
+                    else
+                        _boss = null;
+                    break;
+                case OID.FlailLR:
+                    _weaponsAnchor.Remove(actor);
+                    break;
+                case OID.FlailI:
+                    _weaponsBall.Remove(actor);
+                    break;
+                case OID.FlailO:
+                    _weaponsChakram.Remove(actor);
+                    break;
             }
         }
 
         protected override void Reset()
         {
+            Arena.IsCircle = false;
+            _showShackles = _showFlails = false;
+            _imminentFlails = _futureFlails = FlailsZone.None;
             _hint = "";
         }
 
@@ -229,7 +421,7 @@ namespace BossMod
         {
             var s = CommonStates.CastEnd(ref link, () => _boss, 3, "Shackles");
             s.EndHint |= StateMachine.StateHint.PositioningStart | StateMachine.StateHint.GroupWithNext;
-            s.Exit = () => { }; // TODO: start shackles helper
+            s.Exit = () => _showShackles = true;
             return s;
         }
 
@@ -238,7 +430,7 @@ namespace BossMod
         {
             var s = CommonStates.Timeout(ref link, delay, "Shackles resolve");
             s.EndHint |= StateMachine.StateHint.PositioningEnd;
-            s.Exit = () => { }; // TODO: end shackles helper
+            s.Exit = () => _showShackles = false;
             return s;
         }
 
@@ -261,37 +453,59 @@ namespace BossMod
 
         private StateMachine.State BuildFlailStartState(ref StateMachine.State? link, float delay)
         {
-            // TODO: better helper...
+            Action<FlailsZone, FlailsZone> showFlails = (first, second) =>
+            {
+                _imminentFlails = first;
+                _futureFlails = second;
+                _showFlails = true;
+            };
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
-            dispatch[AID.GaolerFlailRL] = new(null, () => _hint = "Order: right->left");
-            dispatch[AID.GaolerFlailLR] = new(null, () => _hint = "Order: left->right");
-            dispatch[AID.GaolerFlailIO1] = new(null, () => _hint = "Order: in->out");
-            dispatch[AID.GaolerFlailIO2] = new(null, () => _hint = "Order: in->out");
-            dispatch[AID.GaolerFlailOI1] = new(null, () => _hint = "Order: out->in");
-            dispatch[AID.GaolerFlailOI2] = new(null, () => _hint = "Order: out->in");
+            dispatch[AID.GaolerFlailRL] = new(null, () => showFlails(FlailsZone.Right, FlailsZone.Left));
+            dispatch[AID.GaolerFlailLR] = new(null, () => showFlails(FlailsZone.Left, FlailsZone.Right));
+            dispatch[AID.GaolerFlailIO1] = new(null, () => showFlails(FlailsZone.Inner, FlailsZone.Outer));
+            dispatch[AID.GaolerFlailIO2] = new(null, () => showFlails(FlailsZone.Inner, FlailsZone.Outer));
+            dispatch[AID.GaolerFlailOI1] = new(null, () => showFlails(FlailsZone.Outer, FlailsZone.Inner));
+            dispatch[AID.GaolerFlailOI2] = new(null, () => showFlails(FlailsZone.Outer, FlailsZone.Inner));
             var start = CommonStates.CastStart(ref link, () => _boss, dispatch, delay);
             start.EndHint |= StateMachine.StateHint.PositioningStart;
             return start;
         }
 
+        // if group continues, positioning flag is not cleared
+        private StateMachine.State BuildFlailEndState(ref StateMachine.State? link, float castTimeLeft, bool continueGroup)
+        {
+            var end = CommonStates.CastEnd(ref link, () => _boss, castTimeLeft);
+            end.Exit = () =>
+            {
+                _imminentFlails = _futureFlails;
+                _futureFlails = FlailsZone.None;
+            };
+            var resolve = CommonStates.Timeout(ref end.Next, 4, "Flails");
+            resolve.EndHint |= continueGroup ? StateMachine.StateHint.GroupWithNext : StateMachine.StateHint.PositioningEnd;
+            resolve.Exit = () =>
+            {
+                _imminentFlails = _futureFlails = FlailsZone.None;
+                _showFlails = false;
+            };
+            return resolve;
+        }
+
         private StateMachine.State BuildFlailStates(ref StateMachine.State? link, float delay)
         {
             var start = BuildFlailStartState(ref link, delay);
-            var end = CommonStates.CastEnd(ref start.Next, () => _boss, 12);
-            var resolve = CommonStates.Timeout(ref end.Next, 4, "Flails");
-            resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
-            resolve.Exit = () => _hint = "";
-            return resolve;
+            return BuildFlailEndState(ref start.Next, 12, false);
         }
 
         private StateMachine.State BuildAetherflailStates(ref StateMachine.State? link, float delay)
         {
             // TODO: better helper...
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
-            dispatch[AID.Aetherflail1] = new(null, () => _hint = "Order: unknown");
-            dispatch[AID.Aetherflail2] = new(null, () => _hint = "Order: unknown");
-            dispatch[AID.Aetherflail3] = new(null, () => _hint = "Order: unknown");
-            dispatch[AID.Aetherflail4] = new(null, () => _hint = "Order: unknown");
+            dispatch[AID.AetherflailRX] = new(null, () => _hint = "Order: unknown");
+            dispatch[AID.AetherflailLX] = new(null, () => _hint = "Order: unknown");
+            dispatch[AID.AetherflailIL] = new(null, () => _hint = "Order: unknown");
+            dispatch[AID.AetherflailIR] = new(null, () => _hint = "Order: unknown");
+            dispatch[AID.AetherflailOL] = new(null, () => _hint = "Order: unknown");
+            dispatch[AID.AetherflailOR] = new(null, () => _hint = "Order: unknown");
             var start = CommonStates.CastStart(ref link, () => _boss, dispatch, delay);
             start.EndHint |= StateMachine.StateHint.PositioningStart;
             var end = CommonStates.CastEnd(ref start.Next, () => _boss, 12);
@@ -339,7 +553,7 @@ namespace BossMod
         {
             var s = CommonStates.Cast(ref link, () => _boss, AID.ShiningCells, delay, 7, "Cells");
             s.EndHint |= StateMachine.StateHint.Raidwide;
-            s.Exit = () => { }; // TODO: begin cells
+            s.Exit = () => Arena.IsCircle = true;
             return s;
         }
 
@@ -347,8 +561,164 @@ namespace BossMod
         {
             var s = CommonStates.Cast(ref link, () => _boss, AID.SlamShut, delay, 6, "SlamShut");
             s.EndHint |= StateMachine.StateHint.Raidwide;
-            s.Exit = () => { }; // TODO: end cells
+            s.Exit = () => Arena.IsCircle = false;
             return s;
+        }
+
+        // returns whether there any problems
+        private bool UpdateShackles()
+        {
+            bool haveShackles = false;
+            foreach (var p in _players)
+            {
+                p.BlueTetheredTo = p.RedTetheredTo = p.PlayersInMyRedShackleExplosion = p.PlayersInMyBlueShackleExplosion = 0;
+                haveShackles |= p.IsRedShackleSourceFuture | p.IsRedShackleSourceImminent | p.IsBlueShackleSourceFuture | p.IsBlueShackleSourceImminent;
+            }
+
+            if (!haveShackles)
+                return false; // no debuffs found
+
+            var numPlayers = Math.Min(_players.Count, 8);
+            var playersByDistance = new (int, float)[numPlayers];
+            for (int iSrc = 0; iSrc < numPlayers; ++iSrc)
+            {
+                var src = _players[iSrc];
+                var srcMask = (byte)(1 << iSrc);
+                for (int iTgt = 0; iTgt < numPlayers; ++iTgt)
+                    playersByDistance[iTgt] = new(iTgt, (_players[iTgt].Actor.Position - src.Actor.Position).LengthSquared());
+                Array.Sort(playersByDistance, (l, r) => l.Item2.CompareTo(r.Item2));
+
+                if (src.IsBlueShackleSourceFuture || src.IsBlueShackleSourceImminent)
+                {
+                    src.BlueTetheredTo |= srcMask;
+                    // purple => 3 closest, except player itself...
+                    for (int i = 1; i < 4; ++i)
+                        if (i < playersByDistance.Length)
+                            _players[playersByDistance[i].Item1].BlueTetheredTo |= srcMask;
+                }
+
+                if (src.IsRedShackleSourceFuture || src.IsRedShackleSourceImminent)
+                {
+                    src.RedTetheredTo |= srcMask;
+                    // red => 3 furthest
+                    for (int i = 0; i < 3; ++i)
+                        if (i < playersByDistance.Length - 1)
+                            _players[playersByDistance[playersByDistance.Length - 1 - i].Item1].RedTetheredTo |= srcMask;
+                }
+            }
+
+            bool foundProblems = false;
+            for (int iSrc = 0; iSrc < numPlayers; ++iSrc)
+            {
+                var src = _players[iSrc];
+                foundProblems |= src.BlueTetheredTo != 0 && src.RedTetheredTo != 0;
+
+                if (src.BlueTetheredTo != 0)
+                    for (int iTgt = 0; iTgt < numPlayers; ++iTgt)
+                        if (iSrc != iTgt && (src.Actor.Position - _players[iTgt].Actor.Position).LengthSquared() <= _shackleBlueRadius * _shackleBlueRadius)
+                            src.PlayersInMyBlueShackleExplosion |= (byte)(1 << iTgt);
+                foundProblems |= src.PlayersInMyBlueShackleExplosion != 0;
+
+                if (src.RedTetheredTo != 0)
+                    for (int iTgt = 0; iTgt < numPlayers; ++iTgt)
+                        if (iSrc != iTgt && (src.Actor.Position - _players[iTgt].Actor.Position).LengthSquared() <= _shackleRedRadius * _shackleRedRadius)
+                            src.PlayersInMyRedShackleExplosion |= (byte)(1 << iTgt);
+                foundProblems |= src.PlayersInMyRedShackleExplosion != 0;
+            }
+
+            return foundProblems;
+        }
+
+        private bool UpdateFlails()
+        {
+            var pc = WorldState.FindActor(WorldState.PlayerActorID);
+            if (_boss == null || pc == null)
+                return false;
+
+            Func<float, bool> inConeSafeZone = (float axisDir) =>
+            {
+                float safeZoneRot = _boss.Rotation + axisDir;
+                var safeZoneDir = new Vector3(MathF.Sin(safeZoneRot), 0, MathF.Cos(safeZoneRot));
+                float cosToPlayer = Vector3.Dot(Vector3.Normalize(pc.Position - _boss.Position), safeZoneDir);
+                return cosToPlayer > MathF.Cos(_flailConeHalfAngle);
+            };
+            switch (_imminentFlails)
+            {
+                case FlailsZone.Left:
+                    return !inConeSafeZone(MathF.PI / 2);
+                case FlailsZone.Right:
+                    return !inConeSafeZone(-MathF.PI / 2);
+                case FlailsZone.Inner:
+                    return (pc.Position - _boss.Position).LengthSquared() <= _flailCircleRadius * _flailCircleRadius;
+                case FlailsZone.Outer:
+                    return (pc.Position - _boss.Position).LengthSquared() >= _flailCircleRadius * _flailCircleRadius;
+            }
+            return false;
+        }
+
+        private bool UpdateAetherflails()
+        {
+            return false;
+        }
+
+        private void SetShackleDebuff(WorldState.Actor actor, bool isBlue, bool isImminent, bool active)
+        {
+            var p = _players.Find(x => x.Actor == actor);
+            if (p == null)
+                return;
+
+            if (isBlue)
+            {
+                if (isImminent)
+                    p.IsBlueShackleSourceImminent = active;
+                else
+                    p.IsBlueShackleSourceFuture = active;
+            }
+            else
+            {
+                if (isImminent)
+                    p.IsRedShackleSourceImminent = active;
+                else
+                    p.IsRedShackleSourceFuture = active;
+            }
+        }
+
+        private void ActorStatusGain(object? sender, (WorldState.Actor actor, int index) arg)
+        {
+            switch ((SID)arg.actor.Statuses[arg.index].ID)
+            {
+                case SID.ShacklesOfCompanionship:
+                    SetShackleDebuff(arg.actor, true, false, true);
+                    break;
+                case SID.ShacklesOfLoneliness:
+                    SetShackleDebuff(arg.actor, false, false, true);
+                    break;
+                case SID.InescapableCompanionship:
+                    SetShackleDebuff(arg.actor, true, true, true);
+                    break;
+                case SID.InescapableLoneliness:
+                    SetShackleDebuff(arg.actor, false, true, true);
+                    break;
+            }
+        }
+
+        private void ActorStatusLose(object? sender, (WorldState.Actor actor, int index) arg)
+        {
+            switch ((SID)arg.actor.Statuses[arg.index].ID)
+            {
+                case SID.ShacklesOfCompanionship:
+                    SetShackleDebuff(arg.actor, true, false, false);
+                    break;
+                case SID.ShacklesOfLoneliness:
+                    SetShackleDebuff(arg.actor, false, false, false);
+                    break;
+                case SID.InescapableCompanionship:
+                    SetShackleDebuff(arg.actor, true, true, false);
+                    break;
+                case SID.InescapableLoneliness:
+                    SetShackleDebuff(arg.actor, false, true, false);
+                    break;
+            }
         }
     }
 }

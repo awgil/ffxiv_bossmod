@@ -101,12 +101,13 @@ namespace BossMod
             public uint OID;
             public ActorType Type;
             public Vector3 Position = new();
-            public float Rotation;
+            public float Rotation; // 0 = pointing S, pi/2 = pointing E, pi = pointing N, -pi/2 = pointing W
             public float HitboxRadius;
+            public uint TargetID;
             public CastInfo? CastInfo;
             public Status[] Statuses = new Status[30]; // empty slots have ID=0
 
-            public Actor(uint instanceID, uint oid, ActorType type, Vector3 pos, float rot, float hitboxRadius)
+            public Actor(uint instanceID, uint oid, ActorType type, Vector3 pos, float rot, float hitboxRadius, uint targetID)
             {
                 InstanceID = instanceID;
                 OID = oid;
@@ -114,6 +115,7 @@ namespace BossMod
                 Position = pos;
                 Rotation = rot;
                 HitboxRadius = hitboxRadius;
+                TargetID = targetID;
             }
         }
 
@@ -127,9 +129,9 @@ namespace BossMod
         }
 
         public event EventHandler<Actor>? ActorCreated;
-        public Actor AddActor(uint instanceID, uint oid, ActorType type, Vector3 pos, float rot, float hitboxRadius)
+        public Actor AddActor(uint instanceID, uint oid, ActorType type, Vector3 pos, float rot, float hitboxRadius, uint targetID)
         {
-            var act = _actors[instanceID] = new Actor(instanceID, oid, type, pos, rot, hitboxRadius);
+            var act = _actors[instanceID] = new Actor(instanceID, oid, type, pos, rot, hitboxRadius, targetID);
             ActorCreated?.Invoke(this, act);
             return act;
         }
@@ -151,6 +153,17 @@ namespace BossMod
                 act.Position = newPos;
                 act.Rotation = newRot;
                 ActorMoved?.Invoke(this, (act, prevPos, prevRot));
+            }
+        }
+
+        public event EventHandler<(Actor, uint)>? ActorTargetChanged; // actor already contains new target, old is passed as extra arg
+        public void ChangeActorTarget(Actor act, uint newTarget)
+        {
+            if (act.TargetID != newTarget)
+            {
+                var prevTarget = act.TargetID;
+                act.TargetID = newTarget;
+                ActorTargetChanged?.Invoke(this, (act, prevTarget));
             }
         }
 
@@ -183,8 +196,8 @@ namespace BossMod
         }
 
         // argument = actor + status index; TODO stack/param notifications?...
-        public event EventHandler<(Actor, int)>? ActorStatusAdded;
-        public event EventHandler<(Actor, int)>? ActorStatusRemoved; // note that status structure still contains details when this is invoked; not invoked if actor disappears
+        public event EventHandler<(Actor, int)>? ActorStatusGain;
+        public event EventHandler<(Actor, int)>? ActorStatusLose; // note that status structure still contains details when this is invoked; not invoked if actor disappears
         public void UpdateStatuses(Actor act, Status[] statuses)
         {
             for (int i = 0; i < act.Statuses.Length; ++i)
@@ -201,13 +214,13 @@ namespace BossMod
                 if (act.Statuses[i].ID != 0)
                 {
                     // remove previous status
-                    ActorStatusRemoved?.Invoke(this, (act, i));
+                    ActorStatusLose?.Invoke(this, (act, i));
                 }
                 act.Statuses[i] = statuses[i];
                 if (act.Statuses[i].ID != 0)
                 {
                     // apply new status
-                    ActorStatusAdded?.Invoke(this, (act, i));
+                    ActorStatusGain?.Invoke(this, (act, i));
                 }
             }
         }
