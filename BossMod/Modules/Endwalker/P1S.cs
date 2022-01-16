@@ -80,21 +80,200 @@ namespace BossMod
             MagicVulnerabilityUp = 2941, // applied by shackle resolve, knockbacks
         }
 
-        private class PlayerState
+        private class Shackles
         {
-            public WorldState.Actor Actor;
-            public bool IsRedShackleSourceFuture = false;
-            public bool IsRedShackleSourceImminent = false;
-            public byte RedTetheredTo = 0; // includes self; mask of tether sources
-            public bool IsBlueShackleSourceFuture = false;
-            public bool IsBlueShackleSourceImminent = false;
-            public byte BlueTetheredTo = 0; // includes self; mask of tether sources
-            public byte PlayersInMyRedShackleExplosion = 0; // does not include self
-            public byte PlayersInMyBlueShackleExplosion = 0; // does not include self
+            public bool Active = false;
+            public byte DebuffsBlueImminent = 0;
+            public byte DebuffsBlueFuture = 0;
+            public byte DebuffsRedImminent = 0;
+            public byte DebuffsRedFuture = 0;
+            public ulong BlueTetherMatrix = 0;
+            public ulong RedTetherMatrix = 0; // bit (8*i+j) is set if there is a tether from j to i; bit [i,i] is always set
+            public ulong BlueExplosionMatrix = 0;
+            public ulong RedExplosionMatrix = 0; // bit (8*i+j) is set if player j is inside explosion of player i; bit [i,i] is never set
 
-            public PlayerState(WorldState.Actor actor)
+            private static float _blueExplosionRadius = 4;
+            private static float _redExplosionRadius = 8;
+            private static uint _colorRed = 0xff8080ff;
+            private static uint _colorBlue = 0xffff0080;
+            private static uint _colorFail = 0xff00ffff;
+            private static uint TetherColor(bool blue, bool red) => blue ? (red ? _colorFail : _colorBlue) : _colorRed;
+
+            private static void SetMatrixBit(ref ulong matrix, int i, int j)
             {
-                Actor = actor;
+                matrix |= 1ul << (8 * i + j);
+            }
+
+            private static void SetMatrixVector(ref ulong matrix, int i, byte vector)
+            {
+                matrix |= ((ulong)vector) << (8 * i);
+            }
+
+            private static void SetVectorBit(ref byte vector, int i, bool v)
+            {
+                if (v)
+                    vector |= (byte)(1 << i);
+                else
+                    vector &= (byte)~(1 << i);
+            }
+
+            private static bool IsMatrixBitSet(ulong matrix, int i, int j)
+            {
+                return (matrix & (1ul << (8 * i + j))) != 0;
+            }
+
+            private static byte ExtractVectorFromMatrix(ulong matrix, int i)
+            {
+                return (byte)(matrix >> (i * 8));
+            }
+
+            private static bool IsVectorBitSet(byte vector, int i)
+            {
+                return (vector & (1 << i)) != 0;
+            }
+
+            public void ModifyDebuff(int slot, bool isRed, bool isImminent, bool active)
+            {
+                if (slot < 0)
+                    return;
+
+                if (isRed)
+                {
+                    if (isImminent)
+                        SetVectorBit(ref DebuffsRedImminent, slot, active);
+                    else
+                        SetVectorBit(ref DebuffsRedFuture, slot, active);
+                }
+                else
+                {
+                    if (isImminent)
+                        SetVectorBit(ref DebuffsBlueImminent, slot, active);
+                    else
+                        SetVectorBit(ref DebuffsBlueFuture, slot, active);
+                }
+            }
+
+            public void ClearDebuffs(int slot)
+            {
+                if (slot < 0)
+                    return;
+                SetVectorBit(ref DebuffsBlueImminent, slot, false);
+                SetVectorBit(ref DebuffsBlueFuture, slot, false);
+                SetVectorBit(ref DebuffsRedImminent, slot, false);
+                SetVectorBit(ref DebuffsRedFuture, slot, false);
+            }
+
+            public void Update(P1S self)
+            {
+                BlueTetherMatrix = RedTetherMatrix = BlueExplosionMatrix = RedExplosionMatrix = 0;
+                byte blueDebuffs = (byte)(DebuffsBlueImminent | DebuffsBlueFuture);
+                byte redDebuffs = (byte)(DebuffsRedImminent | DebuffsRedFuture);
+                Active = (blueDebuffs | redDebuffs) != 0;
+                if (!Active)
+                    return; // nothing to do...
+
+                // update tether matrices
+                var playersByDistance = new List<(int, float)>();
+                for (int iSrc = 0; iSrc < self.RaidMembers.Length; ++iSrc)
+                {
+                    var src = self.RaidMembers[iSrc];
+                    if (src == null || src.IsDead)
+                        continue;
+
+                    bool hasBlue = IsVectorBitSet(blueDebuffs, iSrc);
+                    bool hasRed = IsVectorBitSet(redDebuffs, iSrc);
+                    if (!hasBlue && !hasRed)
+                        continue;
+
+                    for (int iTgt = 0; iTgt < self.RaidMembers.Length; ++iTgt)
+                    {
+                        var tgt = self.RaidMembers[iTgt];
+                        if (iTgt == iSrc || tgt == null || tgt.IsDead)
+                            continue;
+
+                        playersByDistance.Add(new(iTgt, (tgt.Position - src.Position).LengthSquared()));
+                    }
+                    playersByDistance.Sort((l, r) => l.Item2.CompareTo(r.Item2));
+                    var numPotentialTethers = Math.Min(playersByDistance.Count, 3);
+
+                    // blue => 3 closest
+                    if (hasBlue)
+                    {
+                        SetMatrixBit(ref BlueTetherMatrix, iSrc, iSrc);
+                        for (int i = 0; i < numPotentialTethers; ++i)
+                            SetMatrixBit(ref BlueTetherMatrix, playersByDistance[i].Item1, iSrc);
+                    }
+
+                    // red => 3 furthest
+                    if (hasRed)
+                    {
+                        SetMatrixBit(ref RedTetherMatrix, iSrc, iSrc);
+                        for (int i = 0; i < numPotentialTethers; ++i)
+                            SetMatrixBit(ref RedTetherMatrix, playersByDistance[playersByDistance.Count - i - 1].Item1, iSrc);
+                    }
+
+                    playersByDistance.Clear();
+                }
+
+                // update explosion matrices (has to be done in a separate pass)
+                for (int i = 0; i < self.RaidMembers.Length; ++i)
+                {
+                    if (ExtractVectorFromMatrix(BlueTetherMatrix, i) != 0)
+                    {
+                        SetMatrixVector(ref BlueExplosionMatrix, i, (byte)self.FindRaidMembersInRange(i, _blueExplosionRadius));
+                    }
+                    if (ExtractVectorFromMatrix(RedTetherMatrix, i) != 0)
+                    {
+                        SetMatrixVector(ref RedExplosionMatrix, i, (byte)self.FindRaidMembersInRange(i, _redExplosionRadius));
+                    }
+                }
+            }
+
+            public void DrawArena(P1S self)
+            {
+                if (!Active)
+                    return;
+
+                int pcIndex = self.FindPlayerSlot();
+                if (pcIndex < 0)
+                    return;
+                var pc = self.RaidMembers[pcIndex]!;
+
+                for (int i = 0; i < self.RaidMembers.Length; ++i)
+                {
+                    var actor = self.RaidMembers[i];
+                    if (actor == null || actor.IsDead)
+                        continue;
+
+                    // draw tethers
+                    var blueTetheredTo = ExtractVectorFromMatrix(BlueTetherMatrix, i);
+                    var redTetheredTo = ExtractVectorFromMatrix(RedTetherMatrix, i);
+                    var tetherMask = (byte)(blueTetheredTo | redTetheredTo);
+                    if (tetherMask != 0)
+                    {
+                        self.Arena.Actor(actor.Position, actor.Rotation, TetherColor(blueTetheredTo != 0, redTetheredTo != 0));
+                        for (int j = 0; j < 8; ++j)
+                        {
+                            var target = self.RaidMembers[j];
+                            if (target != null && i != j && IsVectorBitSet(tetherMask, j))
+                            {
+                                self.Arena.AddLine(actor.Position, target.Position, TetherColor(IsVectorBitSet(blueTetheredTo, j), IsVectorBitSet(redTetheredTo, j)));
+                            }
+                        }
+                    }
+
+                    // draw explosion circles that hit me
+                    if (IsMatrixBitSet(BlueExplosionMatrix, i, pcIndex))
+                        self.Arena.AddCircle(actor.Position, _blueExplosionRadius, _colorFail);
+                    if (IsMatrixBitSet(RedExplosionMatrix, i, pcIndex))
+                        self.Arena.AddCircle(actor.Position, _redExplosionRadius, _colorFail);
+                }
+
+                // draw explosion circles if I hit anyone
+                if (ExtractVectorFromMatrix(BlueExplosionMatrix, pcIndex) != 0)
+                    self.Arena.AddCircle(pc.Position, _blueExplosionRadius, _colorFail);
+                if (ExtractVectorFromMatrix(RedExplosionMatrix, pcIndex) != 0)
+                    self.Arena.AddCircle(pc.Position, _redExplosionRadius, _colorFail);
             }
         }
 
@@ -102,13 +281,14 @@ namespace BossMod
         private enum CellColor { None, Red, Blue }
         private enum KnockbackPhase { None, Knockback, AOE }
 
-        private List<PlayerState> _players = new();
         private WorldState.Actor? _playerWithShacklesOfTime;
         private WorldState.Actor? _boss;
         private List<WorldState.Actor> _weaponsAnchor = new();
         private List<WorldState.Actor> _weaponsBall = new();
         private List<WorldState.Actor> _weaponsChakram = new();
-        private bool _showShackles;
+
+        private Shackles _shackles = new();
+
         private bool _showShacklesOfTime;
         private bool _showFlails;
         private bool _showAetherflails;
@@ -127,18 +307,14 @@ namespace BossMod
         private float _knockbackDistance = 10;
         private float _knockbackFlareRange = 20;
         private float _knockbackHolyRange = 6;
-        private float _shackleBlueRadius = 4;
-        private float _shackleRedRadius = 8;
         private float _flailCircleRadius = 10;
         private float _flailConeHalfAngle = MathF.PI / 4;
 
         public P1S(WorldState ws)
-            : base(ws)
+            : base(ws, 8)
         {
             WorldState.ActorStatusGain += ActorStatusGain;
             WorldState.ActorStatusLose += ActorStatusLose;
-            foreach (var v in WorldState.Actors)
-                ActorCreated(v.Value);
 
             StateMachine.State? s;
             s = BuildTankbusterState(ref InitialState, 8);
@@ -172,7 +348,6 @@ namespace BossMod
 
             s = CommonStates.Cast(ref s.Next, () => _boss, AID.FourShackles, 13, 3, "FourShackles");
             s.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
-            s.Exit = () => _showShackles = true;
             s = CommonStates.Timeout(ref s.Next, 10, "Hit1");
             s.EndHint |= StateMachine.StateHint.GroupWithNext;
             s = CommonStates.Timeout(ref s.Next, 5, "Hit2");
@@ -181,7 +356,6 @@ namespace BossMod
             s.EndHint |= StateMachine.StateHint.GroupWithNext;
             s = CommonStates.Timeout(ref s.Next, 5, "Hit4");
             s.EndHint |= StateMachine.StateHint.PositioningEnd;
-            s.Exit = () => _showShackles = false;
 
             s = BuildWarderWrathState(ref s.Next, 5);
 
@@ -254,11 +428,9 @@ namespace BossMod
         {
             base.Update();
 
+            _shackles.Update(this);
+
             _problems = "";
-            if (_showShackles && UpdateShackles())
-            {
-                _problems += "Shackles failing! ";
-            }
             if (_showShacklesOfTime && UpdateShacklesOfTime())
             {
                 _problems += "ShacklesOfTime failing! ";
@@ -280,6 +452,8 @@ namespace BossMod
         protected override void DrawHeader()
         {
             ImGui.Text(_hint);
+
+            // TODO: shackles problem?..
             if (_problems.Length > 0)
             {
                 ImGui.SameLine();
@@ -327,10 +501,10 @@ namespace BossMod
                 if (_knockbackAOETarget.InstanceID == WorldState.PlayerActorID)
                 {
                     // draw all players to help with positioning
-                    for (int i = 0, iEnd = Math.Min(_players.Count, 8); i < iEnd; ++i)
+                    for (int i = 0; i < RaidMembers.Length; ++i)
                     {
-                        var p = _players[i].Actor;
-                        if (!p.IsDead)
+                        var p = RaidMembers[i];
+                        if (p != null && !p.IsDead)
                             Arena.Actor(p.Position, p.Rotation, (_knockbackAOEPlayersInRange & (1 << i)) != 0 ? 0xffff0080 : 0xff808080);
                     }
                 }
@@ -340,36 +514,12 @@ namespace BossMod
                 Arena.AddCircle(_knockbackAOETarget.Position, _knockbackAOEIsFlare ? _knockbackFlareRange : _knockbackHolyRange, 0xff00ffff);
             }
 
-            foreach (var v in _players)
-            {
-                if (v.Actor.InstanceID == WorldState.PlayerActorID)
-                {
-                    Arena.Actor(v.Actor.Position, v.Actor.Rotation, 0xff00ff00);
-                }
+            // draw player
+            var pc = WorldState.FindPlayer();
+            if (pc != null)
+                Arena.Actor(pc.Position, pc.Rotation, 0xff00ff00);
 
-                var tetherMask = v.BlueTetheredTo | v.RedTetheredTo;
-                if (tetherMask != 0)
-                {
-                    uint actorColor = v.BlueTetheredTo != 0 ? (v.RedTetheredTo != 0 ? 0xff00ffff : 0xffff0080) : 0xff8080ff;
-                    Arena.Actor(v.Actor.Position, v.Actor.Rotation, actorColor);
-                    for (int i = 0; i < 8; ++i)
-                    {
-                        var iMask = 1 << i;
-                        if ((tetherMask & iMask) != 0)
-                        {
-                            bool haveBlueTether = (v.BlueTetheredTo & iMask) != 0;
-                            bool haveRedTether = (v.RedTetheredTo & iMask) != 0;
-                            uint tetherColor = haveBlueTether ? (haveRedTether ? 0xff00ffff : 0xffff0080) : 0xff8080ff;
-                            Arena.AddLine(v.Actor.Position, _players[i].Actor.Position, tetherColor);
-                        }
-                    }
-                }
-
-                if (v.PlayersInMyBlueShackleExplosion != 0)
-                    Arena.AddCircle(v.Actor.Position, 4, 0xff00ffff);
-                if (v.PlayersInMyRedShackleExplosion != 0)
-                    Arena.AddCircle(v.Actor.Position, 8, 0xff00ffff);
-            }
+            _shackles.DrawArena(this);
 
             if (_playerWithShacklesOfTime != null && _playerWithShacklesOfTime.InstanceID != WorldState.PlayerActorID)
             {
@@ -377,13 +527,9 @@ namespace BossMod
             }
         }
 
-        protected override void ActorCreated(WorldState.Actor actor)
+        protected override void NonPlayerCreated(WorldState.Actor actor)
         {
-            if (actor.Type == WorldState.ActorType.Player)
-            {
-                _players.Add(new(actor));
-            }
-            else switch ((OID)actor.OID)
+            switch ((OID)actor.OID)
             {
                 case OID.Boss:
                     if (_boss != null)
@@ -402,15 +548,9 @@ namespace BossMod
             }
         }
 
-        protected override void ActorDestroyed(WorldState.Actor actor)
+        protected override void NonPlayerDestroyed(WorldState.Actor actor)
         {
-            if (actor.Type == WorldState.ActorType.Player)
-            {
-                int index = _players.FindIndex(x => x.Actor == actor);
-                if (index >= 0)
-                    _players.RemoveAt(index);
-            }
-            else switch ((OID)actor.OID)
+            switch ((OID)actor.OID)
             {
                 case OID.Boss:
                     if (_boss != actor)
@@ -428,15 +568,20 @@ namespace BossMod
                     _weaponsChakram.Remove(actor);
                     break;
             }
+        }
 
-            if (actor == _playerWithShacklesOfTime)
+        protected override void RaidMemberDestroyed(int index)
+        {
+            _shackles.ClearDebuffs(index);
+
+            if (RaidMembers[index] == _playerWithShacklesOfTime)
                 _playerWithShacklesOfTime = null;
         }
 
         protected override void Reset()
         {
             Arena.IsCircle = false;
-            _showShackles = _showShacklesOfTime = _showFlails = _showAetherflails = false;
+            _showShacklesOfTime = _showFlails = _showAetherflails = false;
             _imminentFlails = _futureFlails = FlailsZone.None;
             _aetherExplosion = CellColor.None;
             _knockbackPhase = KnockbackPhase.None;
@@ -469,7 +614,6 @@ namespace BossMod
         {
             var s = CommonStates.CastEnd(ref link, () => _boss, 3, "Shackles");
             s.EndHint |= StateMachine.StateHint.PositioningStart | StateMachine.StateHint.GroupWithNext;
-            s.Exit = () => _showShackles = true;
             return s;
         }
 
@@ -478,7 +622,6 @@ namespace BossMod
         {
             var s = CommonStates.Timeout(ref link, delay, "Shackles resolve");
             s.EndHint |= StateMachine.StateHint.PositioningEnd;
-            s.Exit = () => _showShackles = false;
             return s;
         }
 
@@ -641,96 +784,7 @@ namespace BossMod
             return (oddCone != outerCone) ? CellColor.Blue : CellColor.Red; // inner odd = blue, outer even = blue
         }
 
-        // return a mask containing other players in range
-        private byte FindLivePlayersInRange(WorldState.Actor actor, float radius)
-        {
-            var rsq = radius * radius;
-            byte mask = 0;
-            for (int i = 0, cnt = Math.Min(_players.Count, 8); i < cnt; ++i)
-            {
-                var target = _players[i].Actor;
-                if (target != actor && !target.IsDead && (target.Position - actor.Position).LengthSquared() <= rsq)
-                    mask |= (byte)(1 << i);
-            }
-            return mask;
-        }
-
         // returns whether there any problems
-        private bool UpdateShackles()
-        {
-            bool haveShackles = false;
-            foreach (var p in _players)
-            {
-                p.BlueTetheredTo = p.RedTetheredTo = p.PlayersInMyRedShackleExplosion = p.PlayersInMyBlueShackleExplosion = 0;
-                haveShackles |= p.IsRedShackleSourceFuture | p.IsRedShackleSourceImminent | p.IsBlueShackleSourceFuture | p.IsBlueShackleSourceImminent;
-            }
-
-            if (!haveShackles)
-                return false; // no debuffs found
-
-            var numPlayers = Math.Min(_players.Count, 8);
-            var playersByDistance = new (int, float)[numPlayers];
-            for (int iSrc = 0; iSrc < numPlayers; ++iSrc)
-            {
-                var src = _players[iSrc];
-                var srcMask = (byte)(1 << iSrc);
-                for (int iTgt = 0; iTgt < numPlayers; ++iTgt)
-                    playersByDistance[iTgt] = new(iTgt, (_players[iTgt].Actor.Position - src.Actor.Position).LengthSquared());
-                Array.Sort(playersByDistance, (l, r) => l.Item2.CompareTo(r.Item2));
-
-                if (src.IsBlueShackleSourceFuture || src.IsBlueShackleSourceImminent)
-                {
-                    src.BlueTetheredTo |= srcMask;
-                    // purple => 3 closest, except player itself...
-                    for (int i = 1, countedTethers = 0; i < numPlayers && countedTethers < 3; ++i)
-                    {
-                        var target = _players[playersByDistance[i].Item1];
-                        if (target.Actor.IsDead)
-                            continue;
-
-                        target.BlueTetheredTo |= srcMask;
-                        ++countedTethers;
-                    }
-                }
-
-                if (src.IsRedShackleSourceFuture || src.IsRedShackleSourceImminent)
-                {
-                    src.RedTetheredTo |= srcMask;
-                    // red => 3 furthest
-                    for (int i = numPlayers - 1, countedTethers = 0; i > 0 && countedTethers < 3; ++i)
-                    {
-                        var target = _players[playersByDistance[i].Item1];
-                        if (target.Actor.IsDead)
-                            continue;
-
-                        target.RedTetheredTo |= srcMask;
-                        ++countedTethers;
-                    }
-                }
-            }
-
-            bool foundProblems = false;
-            for (int iSrc = 0; iSrc < numPlayers; ++iSrc)
-            {
-                var src = _players[iSrc];
-                foundProblems |= src.BlueTetheredTo != 0 && src.RedTetheredTo != 0;
-
-                if (src.BlueTetheredTo != 0)
-                {
-                    src.PlayersInMyBlueShackleExplosion = FindLivePlayersInRange(src.Actor, _shackleBlueRadius);
-                }
-                foundProblems |= src.PlayersInMyBlueShackleExplosion != 0;
-
-                if (src.RedTetheredTo != 0)
-                {
-                    src.PlayersInMyRedShackleExplosion = FindLivePlayersInRange(src.Actor, _shackleRedRadius);
-                }
-                foundProblems |= src.PlayersInMyRedShackleExplosion != 0;
-            }
-
-            return foundProblems;
-        }
-
         private bool UpdateShacklesOfTime()
         {
             var pc = WorldState.FindActor(WorldState.PlayerActorID);
@@ -815,12 +869,15 @@ namespace BossMod
             }
             else if (_knockbackPhase == KnockbackPhase.AOE)
             {
-                _knockbackAOETarget = WorldState.FindActor(_boss.TargetID);
+                var knockbackAOETargetSlot = FindRaidMemberSlot(_boss.TargetID);
+                if (knockbackAOETargetSlot < 0)
+                    return false;
+                _knockbackAOETarget = RaidMembers[knockbackAOETargetSlot];
                 if (_knockbackAOETarget == null)
                     return false;
 
                 float aoeRange = _knockbackAOEIsFlare ? _knockbackFlareRange : _knockbackHolyRange;
-                _knockbackAOEPlayersInRange = FindLivePlayersInRange(_knockbackAOETarget, aoeRange);
+                _knockbackAOEPlayersInRange = (byte)FindRaidMembersInRange(knockbackAOETargetSlot, aoeRange);
                 if (_boss.TargetID != WorldState.PlayerActorID)
                 {
                     // boss won't hit me with flare/holy - I must either stack or gtfo from target
@@ -882,28 +939,6 @@ namespace BossMod
             }
         }
 
-        private void SetShackleDebuff(WorldState.Actor actor, bool isBlue, bool isImminent, bool active)
-        {
-            var p = _players.Find(x => x.Actor == actor);
-            if (p == null)
-                return;
-
-            if (isBlue)
-            {
-                if (isImminent)
-                    p.IsBlueShackleSourceImminent = active;
-                else
-                    p.IsBlueShackleSourceFuture = active;
-            }
-            else
-            {
-                if (isImminent)
-                    p.IsRedShackleSourceImminent = active;
-                else
-                    p.IsRedShackleSourceFuture = active;
-            }
-        }
-
         private void ActorStatusGain(object? sender, (WorldState.Actor actor, int index) arg)
         {
             switch ((SID)arg.actor.Statuses[arg.index].ID)
@@ -935,16 +970,16 @@ namespace BossMod
                     _playerWithShacklesOfTime = arg.actor;
                     break;
                 case SID.ShacklesOfCompanionship:
-                    SetShackleDebuff(arg.actor, true, false, true);
+                    _shackles.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), false, false, true);
                     break;
                 case SID.ShacklesOfLoneliness:
-                    SetShackleDebuff(arg.actor, false, false, true);
+                    _shackles.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), true, false, true);
                     break;
                 case SID.InescapableCompanionship:
-                    SetShackleDebuff(arg.actor, true, true, true);
+                    _shackles.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), false, true, true);
                     break;
                 case SID.InescapableLoneliness:
-                    SetShackleDebuff(arg.actor, false, true, true);
+                    _shackles.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), true, true, true);
                     break;
             }
         }
@@ -962,16 +997,16 @@ namespace BossMod
                         _playerWithShacklesOfTime = null;
                     break;
                 case SID.ShacklesOfCompanionship:
-                    SetShackleDebuff(arg.actor, true, false, false);
+                    _shackles.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), false, false, false);
                     break;
                 case SID.ShacklesOfLoneliness:
-                    SetShackleDebuff(arg.actor, false, false, false);
+                    _shackles.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), true, false, false);
                     break;
                 case SID.InescapableCompanionship:
-                    SetShackleDebuff(arg.actor, true, true, false);
+                    _shackles.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), false, true, false);
                     break;
                 case SID.InescapableLoneliness:
-                    SetShackleDebuff(arg.actor, false, true, false);
+                    _shackles.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), true, true, false);
                     break;
             }
         }

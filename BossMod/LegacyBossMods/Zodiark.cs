@@ -59,7 +59,7 @@ namespace BossMod
         private ZodiarkStages _stages = new();
 
         public Zodiark(WorldState ws)
-            : base(ws)
+            : base(ws, 8)
         {
             WorldState.ActorCastStarted += ActorCastStarted;
             WorldState.ActorCastFinished += ActorCastFinished;

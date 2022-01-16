@@ -117,6 +117,11 @@ namespace BossMod
                 Rotation = rot;
                 HitboxRadius = hitboxRadius;
             }
+
+            public Status? FindStatus(uint sid)
+            {
+                return Array.Find(Statuses, x => x.ID == sid);
+            }
         }
 
         private Dictionary<uint, Actor> _actors = new();
@@ -126,6 +131,11 @@ namespace BossMod
             Actor? res;
             Actors.TryGetValue(instanceID, out res);
             return res;
+        }
+
+        public Actor? FindPlayer()
+        {
+            return FindActor(PlayerActorID);
         }
 
         public event EventHandler<Actor>? ActorCreated;

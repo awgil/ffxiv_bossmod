@@ -45,11 +45,8 @@ namespace BossMod
         private WorldState.Actor? _boss;
 
         public P2S(WorldState ws)
-            : base(ws)
+            : base(ws, 8)
         {
-            foreach (var v in WorldState.Actors)
-                ActorCreated(v.Value);
-
             StateMachine.State? s;
             s = BuildMurkyDepthsState(ref InitialState, 10);
             s = BuildDoubledImpactState(ref s.Next, 5);
@@ -166,7 +163,7 @@ namespace BossMod
             }
         }
 
-        protected override void ActorCreated(WorldState.Actor actor)
+        protected override void NonPlayerCreated(WorldState.Actor actor)
         {
             if ((OID)actor.OID == OID.Boss)
             {
@@ -174,7 +171,7 @@ namespace BossMod
             }
         }
 
-        protected override void ActorDestroyed(WorldState.Actor actor)
+        protected override void NonPlayerDestroyed(WorldState.Actor actor)
         {
             if (_boss == actor)
             {
