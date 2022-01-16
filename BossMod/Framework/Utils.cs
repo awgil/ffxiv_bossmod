@@ -76,6 +76,11 @@ namespace BossMod
             return (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)chara?.Address;
         }
 
+        public static unsafe bool GameObjectIsDead(GameObject obj)
+        {
+            return GameObjectInternal(obj)->IsDead();
+        }
+
         public static unsafe Vector3 BattleCharaCastLocation(BattleChara chara)
         {
             return BattleCharaInternal(chara)->SpellCastInfo.CastLocation;

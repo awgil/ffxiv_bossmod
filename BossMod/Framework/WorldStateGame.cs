@@ -22,13 +22,14 @@ namespace BossMod
                 var act = FindActor(obj.ObjectId);
                 if (act == null)
                 {
-                    act = AddActor(obj.ObjectId, obj.DataId, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), obj.Position, obj.Rotation, obj.HitboxRadius, obj.TargetObjectId);
+                    act = AddActor(obj.ObjectId, obj.DataId, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), obj.Position, obj.Rotation, obj.HitboxRadius);
                 }
                 else
                 {
                     MoveActor(act, obj.Position, obj.Rotation);
-                    ChangeActorTarget(act, obj.TargetObjectId);
                 }
+                ChangeActorTarget(act, obj.TargetObjectId);
+                ChangeActorIsDead(act, Utils.GameObjectIsDead(obj));
 
                 var chara = obj as BattleChara;
                 if (chara != null)

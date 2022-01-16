@@ -531,10 +531,10 @@ namespace BossMod
                             }
                             break;
                         }
-                    case (Protocol.Opcode)191:
+                    case (Protocol.Opcode)0xBF:
                         {
                             var p = (uint*)dataPtr;
-                            Service.Log($"[Network] - {p[0]:X8} {p[1]:X8} {p[2]:X8} {p[3]:X8} {p[4]:X8} {p[5]:X8} {p[6]:X8} {p[7]:X8} {p[8]:X8} {p[9]:X8} {p[10]:X8} {p[11]:X8} {p[12]:X8} {p[13]:X8} {p[14]:X8} {p[15]:X8} {p[16]:X8} {p[17]:X8} {p[18]:X8} {p[19]:X8} {p[20]:X8} {p[21]:X8} {p[22]:X8} {p[23]:X8} {p[24]:X8} {p[25]:X8} {p[26]:X8} {p[27]:X8} {p[28]:X8} {p[29]:X8} {p[30]:X8} {p[31]:X8}");
+                            Service.Log($"[Network] - {p[0]:X8} {p[1]:X8} {p[2]:X8} {p[3]:X8}");
                             break;
                         }
                 }

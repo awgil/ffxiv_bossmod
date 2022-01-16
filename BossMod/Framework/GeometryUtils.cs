@@ -142,19 +142,24 @@ namespace BossMod
                 float t = -ean / abn;
                 return prev + t * ab;
             };
+            Action<Vector2> add = (Vector2 point) =>
+            {
+                if (res.Count == 0 || res[res.Count - 1] != point)
+                    res.Add(point);
+            };
             if (ebn >= 0)
             {
                 // curr is 'inside' edge
                 if (ean < 0)
                 {
                     // but prev is not
-                    res.Add(intersection());
+                    add(intersection());
                 }
-                res.Add(curr);
+                add(curr);
             }
             else if (ean >= 0)
             {
-                res.Add(intersection());
+                add(intersection());
             }
         }
 
@@ -183,15 +188,16 @@ namespace BossMod
         {
             // select max angle such that tesselation error is smaller than desired
             // error = R * (1 - cos(phi/2)) => cos(phi/2) = 1 - error/R ~= 1 - (phi/2)^2 / 2 => phi ~= sqrt(8*error/R)
-            float tessAngle = MathF.Sqrt(0.5f / radius); //MathF.Acos(1 - MathF.Min(0.3f / radius, 1));
+            float tessAngle = MathF.Sqrt(2f / radius); //MathF.Acos(1 - MathF.Min(0.3f / radius, 1));
             int tessNumSegments = (int)MathF.Ceiling(angularLength / tessAngle);
             tessNumSegments = ((tessNumSegments + 1) / 2) * 2; // round up to even for symmetry
             return Math.Clamp(tessNumSegments, 4, 512);
         }
 
+        // phi=0 corresponds to (r, 0), then phi increases counterclockwise - so phi=pi/2 corresponds to (0, -r)
         public static Vector2 PolarToCartesian(Vector2 center, float r, float phi)
         {
-            return center + r * new Vector2(MathF.Cos(phi), MathF.Sin(phi));
+            return center + r * new Vector2(MathF.Cos(phi), -MathF.Sin(phi));
         }
     }
 }

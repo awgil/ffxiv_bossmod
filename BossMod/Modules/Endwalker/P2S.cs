@@ -153,7 +153,7 @@ namespace BossMod
             Arena.Begin(cameraAzimuth);
             Arena.Border();
             if (_boss != null)
-                Arena.Actor(_boss.Position, 0xff0000ff);
+                Arena.Actor(_boss.Position, _boss.Rotation, 0xff0000ff);
             Arena.End();
 
             // TODO: I think framework should do this, since it should provide access to CD planners...

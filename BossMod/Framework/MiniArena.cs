@@ -5,6 +5,11 @@ using System.Numerics;
 
 namespace BossMod
 {
+    // note on coordinate systems:
+    // - world coordinates - X points West to East, Z points North to South - so SE is corner with both maximal coords, NW is corner with both minimal coords
+    //                       rotation 0 corresponds to South, and increases counterclockwise (so East is +pi/2, North is pi, West is -pi/2)
+    // - camera azimuth 0 correpsonds to camera looking North and increases counterclockwise
+    // - screen coordinates - X points left to right, Y points top to bottom
     public class MiniArena
     {
         public bool IsCircle = false;
@@ -56,6 +61,7 @@ namespace BossMod
             if (IsCircle)
             {
                 _clipPolygon = GeometryUtils.BuildTesselatedCircle(ScreenCenter, ScreenHalfSize);
+                _clipPolygon.Reverse();
             }
             else
             {
@@ -129,10 +135,9 @@ namespace BossMod
         }
 
         // adds a bunch of points corresponding to arc - if path is non empty, this adds an edge from last point to first arc point
-        // angle 0 is E here, TODO reconsider...
         public void PathArcTo(Vector3 center, float radius, float amin, float amax)
         {
-            ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / WorldHalfSize * ScreenHalfSize, amin + _cameraAzimuth, amax + _cameraAzimuth);
+            ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / WorldHalfSize * ScreenHalfSize, amin - MathF.PI / 2 + _cameraAzimuth, amax - MathF.PI / 2 + _cameraAzimuth);
         }
 
         public void PathStroke(bool closed, uint color, float thickness = 1)
@@ -190,12 +195,12 @@ namespace BossMod
             }
             else
             {
-                for (int i = innerSegments; i >= 0; --i)
+                for (int i = 0; i <= innerSegments; ++i)
                 {
                     tesselated.Add(GeometryUtils.PolarToCartesian(centerScreen, innerRadiusScreen, angleStart + (float)i / (float)innerSegments * angleLength));
                 }
             }
-            for (int i = 0; i <= outerSegments; ++i)
+            for (int i = outerSegments; i >= 0; --i)
             {
                 tesselated.Add(GeometryUtils.PolarToCartesian(centerScreen, outerRadiusScreen, angleStart + (float)i / (float)outerSegments * angleLength));
             }
@@ -230,16 +235,33 @@ namespace BossMod
                 AddQuad(WorldNW, WorldNE, WorldSE, WorldSW, ColorBorder, 2);
         }
 
-        // draw actor representation (small circle)
-        public void Actor(Vector3 position, uint color)
+        // draw actor representation
+        public void Actor(Vector3 position, float rotation, uint color)
         {
-            if (WorldInBounds(position))
-                AddCircleFilled(position, 0.5f, color);
+            if (InBounds(position))
+            {
+                var dir = new Vector3(MathF.Sin(rotation), 0, MathF.Cos(rotation));
+                var normal = new Vector3(-dir.Z, 0, dir.X);
+                AddTriangleFilled(position + 0.5f * dir, position - 0.25f * dir + 0.433f * normal, position - 0.25f * dir - 0.433f * normal, color);
+            }
         }
 
         public void End()
         {
             ImGui.GetWindowDrawList().PopClipRect();
+        }
+
+        public bool InBounds(Vector3 position)
+        {
+            var offset = position - WorldCenter;
+            if (IsCircle)
+            {
+                return offset.LengthSquared() <= WorldHalfSize * WorldHalfSize;
+            }
+            else
+            {
+                return Math.Abs(offset.X) <= WorldHalfSize && Math.Abs(offset.Z) <= WorldHalfSize;
+            }
         }
 
         private void ClipAndFillConvex(IEnumerable<Vector2> poly, uint color)
@@ -275,8 +297,24 @@ namespace BossMod
             };
 
             List<bool> vertexIsConvex = new();
+            int lastConcave = -1;
             for (int i = 0; i < clipped.Count; ++i)
-                vertexIsConvex.Add(isVertexConvex(i));
+            {
+                bool isConvex = isVertexConvex(i);
+                vertexIsConvex.Add(isConvex);
+                if (!isConvex)
+                    lastConcave = i;
+            }
+
+            if (lastConcave < 0)
+            {
+                // this is a convex polygon, use simple algorithm
+                var dl = ImGui.GetWindowDrawList();
+                foreach (var p in clipped)
+                    dl.PathLineTo(p);
+                dl.PathFillConvex(color);
+                return;
+            }
 
             Func<int, bool> isVertexEar = (int index) =>
             {
@@ -290,17 +328,29 @@ namespace BossMod
                 var n1 = new Vector2(-e1.Y, e1.X);
                 var n2 = new Vector2(-e2.Y, e2.X);
                 var n3 = new Vector2(-e3.Y, e3.X);
-                for (int i = 0; i < clipped.Count; ++i)
-                    if (!vertexIsConvex[i] && Vector2.Dot(clipped[i] - prev, n1) > 0 && Vector2.Dot(clipped[i] - curr, n2) > 0 && Vector2.Dot(clipped[i] - next, n3) > 0)
-                        return false; // triangle contains concave vertex, so it's not an ear
+                Func<int, bool> concaveVertexInTriangle = (int i) =>
+                {
+                    if (vertexIsConvex[i])
+                        return false; // don't care about convex vertices here
+                    var d1 = Vector2.Dot(clipped[i] - prev, n1);
+                    var d2 = Vector2.Dot(clipped[i] - curr, n2);
+                    var d3 = Vector2.Dot(clipped[i] - next, n3);
+                    return d1 >= 0 && d2 >= 0 && d3 >= 0;
+                };
 
+                for (int i = index + 2, iEnd = index == 0 ? clipped.Count - 1 : clipped.Count; i < iEnd; ++i)
+                    if (concaveVertexInTriangle(i))
+                        return false;
+                for (int i = (index == clipped.Count - 1) ? 1 : 0; i < index - 1; ++i)
+                    if (concaveVertexInTriangle(i))
+                        return false;
                 return true;
             };
 
             var drawlist = ImGui.GetWindowDrawList();
             var restoreFlags = drawlist.Flags;
             drawlist.Flags &= ~ImDrawListFlags.AntiAliasedFill;
-            int searchStart = 0; // optimization: avoid restarting search from the beginning after clipping each ear
+            int searchStart = lastConcave != clipped.Count - 1 ? lastConcave + 1 : 0; // optimization: avoid restarting search from the beginning after clipping each ear
             while (clipped.Count > 3)
             {
                 // find and clip next ear - skip next concave vertices
@@ -332,16 +382,6 @@ namespace BossMod
             // draw final triangle
             drawlist.AddTriangleFilled(clipped[0], clipped[1], clipped[2], color);
             drawlist.Flags = restoreFlags;
-        }
-
-        private bool WorldOffsetInBounds(Vector3 offset)
-        {
-            return Math.Abs(offset.X) <= WorldHalfSize && Math.Abs(offset.Z) <= WorldHalfSize;
-        }
-
-        private bool WorldInBounds(Vector3 world)
-        {
-            return WorldOffsetInBounds(world - WorldCenter);
         }
     }
 }

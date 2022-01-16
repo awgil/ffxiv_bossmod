@@ -13,15 +13,15 @@ namespace UIDev
         public P1STest()
         {
             _ws = new();
-            _ws.AddActor(1, 0, WorldState.ActorType.Player, new(105, 0, 100), 0, 1, 0);
-            _ws.AddActor(2, 0, WorldState.ActorType.Player, new(100, 0, 105), 0, 1, 0);
-            _ws.AddActor(3, 0, WorldState.ActorType.Player, new(100, 0,  95), 0, 1, 0);
-            _ws.AddActor(4, 0, WorldState.ActorType.Player, new( 95, 0, 100), 0, 1, 0);
-            _ws.AddActor(5, 0, WorldState.ActorType.Player, new(110, 0, 110), 0, 1, 0);
-            _ws.AddActor(6, 0, WorldState.ActorType.Player, new( 90, 0, 110), 0, 1, 0);
-            _ws.AddActor(7, 0, WorldState.ActorType.Player, new(110, 0,  90), 0, 1, 0);
-            _ws.AddActor(8, 0, WorldState.ActorType.Player, new( 90, 0,  90), 0, 1, 0);
-            _ws.AddActor(9, (uint)P1S.OID.Boss, WorldState.ActorType.Enemy, new(100, 0, 100), 0, 1, 0);
+            _ws.AddActor(1, 0, WorldState.ActorType.Player, new(105, 0, 100), 0, 1);
+            _ws.AddActor(2, 0, WorldState.ActorType.Player, new(100, 0, 105), 0, 1);
+            _ws.AddActor(3, 0, WorldState.ActorType.Player, new(100, 0,  95), 0, 1);
+            _ws.AddActor(4, 0, WorldState.ActorType.Player, new( 95, 0, 100), 0, 1);
+            _ws.AddActor(5, 0, WorldState.ActorType.Player, new(110, 0, 110), 0, 1);
+            _ws.AddActor(6, 0, WorldState.ActorType.Player, new( 90, 0, 110), 0, 1);
+            _ws.AddActor(7, 0, WorldState.ActorType.Player, new(110, 0,  90), 0, 1);
+            _ws.AddActor(8, 0, WorldState.ActorType.Player, new( 90, 0,  90), 0, 1);
+            _ws.AddActor(9, (uint)P1S.OID.Boss, WorldState.ActorType.Enemy, new(100, 0, 100), 0, 1);
             _ws.PlayerActorID = 1;
             _o = new P1S(_ws);
         }
@@ -73,21 +73,24 @@ namespace UIDev
                 if (actor.Value.Type == WorldState.ActorType.Player)
                 {
                     ImGui.SameLine();
+                    bool isMT = boss.TargetID == actor.Value.InstanceID;
+                    if (ImGui.Checkbox($"MT##{actor.Value.InstanceID}", ref isMT))
+                    {
+                        _ws.ChangeActorTarget(boss, isMT ? actor.Value.InstanceID : 0);
+                    }
+
+                    ImGui.SameLine();
                     bool blue = actor.Value.Statuses[0].ID != 0;
                     if (ImGui.Checkbox($"Blue shackle##{actor.Value.InstanceID}", ref blue))
                     {
-                        var newStatuses = (WorldState.Status[])actor.Value.Statuses.Clone();
                         if (blue)
                         {
-                            newStatuses[0].ID = (uint)P1S.SID.ShacklesOfCompanionship;
-                            _ws.UpdateStatuses(actor.Value, newStatuses);
+                            SetStatus(actor.Value, 0, (uint)P1S.SID.ShacklesOfCompanionship, 0);
                         }
                         else
                         {
-                            newStatuses[0].ID = (uint)P1S.SID.InescapableCompanionship;
-                            _ws.UpdateStatuses(actor.Value, newStatuses);
-                            newStatuses[0].ID = 0;
-                            _ws.UpdateStatuses(actor.Value, newStatuses);
+                            SetStatus(actor.Value, 0, (uint)P1S.SID.InescapableCompanionship, 0);
+                            SetStatus(actor.Value, 0, 0, 0);
                         }
                     }
 
@@ -95,22 +98,49 @@ namespace UIDev
                     bool redShackle = actor.Value.Statuses[1].ID != 0;
                     if (ImGui.Checkbox($"Red shackle##{actor.Value.InstanceID}", ref redShackle))
                     {
-                        var newStatuses = (WorldState.Status[])actor.Value.Statuses.Clone();
                         if (redShackle)
                         {
-                            newStatuses[1].ID = (uint)P1S.SID.ShacklesOfLoneliness;
-                            _ws.UpdateStatuses(actor.Value, newStatuses);
+                            SetStatus(actor.Value, 1, (uint)P1S.SID.ShacklesOfLoneliness, 0);
                         }
                         else
                         {
-                            newStatuses[1].ID = (uint)P1S.SID.InescapableLoneliness;
-                            _ws.UpdateStatuses(actor.Value, newStatuses);
-                            newStatuses[1].ID = 0;
-                            _ws.UpdateStatuses(actor.Value, newStatuses);
+                            SetStatus(actor.Value, 1, (uint)P1S.SID.InescapableLoneliness, 0);
+                            SetStatus(actor.Value, 1, 0, 0);
                         }
+                    }
+
+                    ImGui.SameLine();
+                    bool sot = actor.Value.Statuses[2].ID != 0;
+                    if (ImGui.Checkbox($"Shackle of time##{actor.Value.InstanceID}", ref sot))
+                    {
+                        SetStatus(actor.Value, 2, sot ? (uint)P1S.SID.ShacklesOfTime : 0, 0);
+                    }
+                }
+                else
+                {
+                    ImGui.SameLine();
+                    bool red = actor.Value.Statuses[0].ID != 0 && actor.Value.Statuses[0].StackCount == 0x4C;
+                    if (ImGui.Checkbox($"Red aether##{actor.Value.InstanceID}", ref red))
+                    {
+                        SetStatus(actor.Value, 0, red ? (uint)P1S.SID.AetherExplosion : 0, 0x4C);
+                    }
+
+                    ImGui.SameLine();
+                    bool blue = actor.Value.Statuses[0].ID != 0 && actor.Value.Statuses[0].StackCount == 0x4D;
+                    if (ImGui.Checkbox($"Blue aether##{actor.Value.InstanceID}", ref blue))
+                    {
+                        SetStatus(actor.Value, 0, blue ? (uint)P1S.SID.AetherExplosion : 0, 0x4D);
                     }
                 }
             }
+        }
+
+        private void SetStatus(WorldState.Actor actor, int index, uint statusID, byte param)
+        {
+            var newStatuses = (WorldState.Status[])actor.Statuses.Clone();
+            newStatuses[index].ID = statusID;
+            newStatuses[index].StackCount = param;
+            _ws.UpdateStatuses(actor, newStatuses);
         }
     }
 }

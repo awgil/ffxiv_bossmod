@@ -103,11 +103,12 @@ namespace BossMod
             public Vector3 Position = new();
             public float Rotation; // 0 = pointing S, pi/2 = pointing E, pi = pointing N, -pi/2 = pointing W
             public float HitboxRadius;
+            public bool IsDead;
             public uint TargetID;
             public CastInfo? CastInfo;
             public Status[] Statuses = new Status[30]; // empty slots have ID=0
 
-            public Actor(uint instanceID, uint oid, ActorType type, Vector3 pos, float rot, float hitboxRadius, uint targetID)
+            public Actor(uint instanceID, uint oid, ActorType type, Vector3 pos, float rot, float hitboxRadius)
             {
                 InstanceID = instanceID;
                 OID = oid;
@@ -115,7 +116,6 @@ namespace BossMod
                 Position = pos;
                 Rotation = rot;
                 HitboxRadius = hitboxRadius;
-                TargetID = targetID;
             }
         }
 
@@ -129,9 +129,9 @@ namespace BossMod
         }
 
         public event EventHandler<Actor>? ActorCreated;
-        public Actor AddActor(uint instanceID, uint oid, ActorType type, Vector3 pos, float rot, float hitboxRadius, uint targetID)
+        public Actor AddActor(uint instanceID, uint oid, ActorType type, Vector3 pos, float rot, float hitboxRadius)
         {
-            var act = _actors[instanceID] = new Actor(instanceID, oid, type, pos, rot, hitboxRadius, targetID);
+            var act = _actors[instanceID] = new Actor(instanceID, oid, type, pos, rot, hitboxRadius);
             ActorCreated?.Invoke(this, act);
             return act;
         }
@@ -153,6 +153,16 @@ namespace BossMod
                 act.Position = newPos;
                 act.Rotation = newRot;
                 ActorMoved?.Invoke(this, (act, prevPos, prevRot));
+            }
+        }
+
+        public event EventHandler<Actor>? ActorIsDeadChanged; // actor contains new state, old is inverted
+        public void ChangeActorIsDead(Actor act, bool newDead)
+        {
+            if (act.IsDead != newDead)
+            {
+                act.IsDead = newDead;
+                ActorIsDeadChanged?.Invoke(this, act);
             }
         }
 

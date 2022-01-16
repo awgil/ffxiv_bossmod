@@ -34,20 +34,21 @@ namespace BossMod
             KnockbackPurge = 26127, // Boss->MT
             TrueHoly1 = 26128, // Boss->Boss, no cast, ???
             TrueFlare1 = 26129, // Boss->Boss, no cast, ???
-            TrueHoly2 = 26130, // Helper->tank shared, no cast, damage after KnockbackGrace
-            TrueFlare2 = 26131, // Helper->tank and nearby, no cast, damage after KnockbackPurge
+            TrueHoly2 = 26130, // Helper->tank shared, no cast, damage after KnockbackGrace (range=6)
+            TrueFlare2 = 26131, // Helper->tank and nearby, no cast, damage after KnockbackPurge (range=50??)
             ShiningCells = 26134, // Boss->Boss, raidwide aoe
             SlamShut = 26135, // Boss->Boss, raidwide aoe
             Aetherchain = 26137, // Boss->Boss
             PowerfulFire = 26138, // Helper->???, no cast, damage during aetherflails for incorrect segments?..
             ShacklesOfTime = 26140, // Boss->Boss
+            OutOfTime = 26141, // Helper->???, no cast, after SoT resolve
             Intemperance = 26142, // Boss->Boss
             IntemperateTormentUp = 26143, // Boss->Boss (bottom->top)
             IntemperateTormentDown = 26144, // Boss->Boss (bottom->top)
             HotSpell = 26145, // Helper->player, no cast, red cube explosion
             ColdSpell = 26146, // Helper->player, no cast, blue cube explosion
             DisastrousSpell = 26147, // Helper->player, no cast, purple cube explosion
-            PainfulFlux = 26148, // Helper->???, no cast, cube explosion fails?
+            PainfulFlux = 26148, // Helper->player, no cast, separator cube explosion
             AetherialShackles = 26149, // Boss->Boss
             FourShackles = 26150, // Boss->Boss
             ChainPainBlue = 26151, // Helper->chain target, no cast, damage during chain resolve
@@ -62,12 +63,15 @@ namespace BossMod
             GaolerFlailL2 = 28075, // Helper->Helper, second hit, left-hand cone
             GaolerFlailI2 = 28076, // Helper->Helper, second hit, point-blank
             GaolerFlailO2 = 28077, // Helper->Helper, second hit, donut
+            InevitableFlame = 28353, // Helper->Helper no cast, after SoT resolve to red - hit others standing in fire?
         };
 
         public enum SID : uint
         {
+            AetherExplosion = 2195, // hidden and unnamed, 'stacks' parameter determines red/blue segments explosion (0x4D for blue, 0x4C for red)
             ColdSpell = 2739, // intemperance: after blue cube explosion
             HotSpell = 2740, // intemperance: after red cube explosion
+            ShacklesOfTime = 2741, // shackles of time: hits segments matching color on expiration
             ShacklesOfCompanionship = 2742, // shackles: purple (tether to 3 closest)
             ShacklesOfLoneliness = 2743, // shackles: red (tether to 3 farthest)
             InescapableCompanionship = 2744, // replaces corresponding shackles in 13s
@@ -94,22 +98,35 @@ namespace BossMod
             }
         }
 
-        private enum FlailsZone { None, Left, Right, Inner, Outer }
+        private enum FlailsZone { None, Left, Right, Inner, Outer, UnknownCircle }
+        private enum CellColor { None, Red, Blue }
+        private enum KnockbackPhase { None, Knockback, AOE }
 
-        private List<PlayerState> _players = new(); // TODO: should contain live players only!
+        private List<PlayerState> _players = new();
+        private WorldState.Actor? _playerWithShacklesOfTime;
         private WorldState.Actor? _boss;
         private List<WorldState.Actor> _weaponsAnchor = new();
         private List<WorldState.Actor> _weaponsBall = new();
         private List<WorldState.Actor> _weaponsChakram = new();
         private bool _showShackles;
+        private bool _showShacklesOfTime;
         private bool _showFlails;
         private bool _showAetherflails;
         private FlailsZone _imminentFlails = FlailsZone.None;
         private FlailsZone _futureFlails = FlailsZone.None;
+        private CellColor _aetherExplosion = CellColor.None;
+        private KnockbackPhase _knockbackPhase = KnockbackPhase.None;
+        private WorldState.Actor? _knockbackTarget;
+        private WorldState.Actor? _knockbackAOETarget;
+        private bool _knockbackAOEIsFlare; // true -> purge aka flare (stay away from MT), false -> grace aka holy (stack to MT)
+        private byte _knockbackAOEPlayersInRange;
         private string _hint = "";
         private string _problems = "";
 
         // various constants, should probably be looked up in sheets...
+        private float _knockbackDistance = 10;
+        private float _knockbackFlareRange = 20;
+        private float _knockbackHolyRange = 6;
         private float _shackleBlueRadius = 4;
         private float _shackleRedRadius = 8;
         private float _flailCircleRadius = 10;
@@ -155,6 +172,7 @@ namespace BossMod
 
             s = CommonStates.Cast(ref s.Next, () => _boss, AID.FourShackles, 13, 3, "FourShackles");
             s.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
+            s.Exit = () => _showShackles = true;
             s = CommonStates.Timeout(ref s.Next, 10, "Hit1");
             s.EndHint |= StateMachine.StateHint.GroupWithNext;
             s = CommonStates.Timeout(ref s.Next, 5, "Hit2");
@@ -163,6 +181,7 @@ namespace BossMod
             s.EndHint |= StateMachine.StateHint.GroupWithNext;
             s = CommonStates.Timeout(ref s.Next, 5, "Hit4");
             s.EndHint |= StateMachine.StateHint.PositioningEnd;
+            s.Exit = () => _showShackles = false;
 
             s = BuildWarderWrathState(ref s.Next, 5);
 
@@ -240,6 +259,10 @@ namespace BossMod
             {
                 _problems += "Shackles failing! ";
             }
+            if (_showShacklesOfTime && UpdateShacklesOfTime())
+            {
+                _problems += "ShacklesOfTime failing! ";
+            }
             if (_showFlails && UpdateFlails())
             {
                 _problems += "Flails failing! ";
@@ -247,6 +270,10 @@ namespace BossMod
             if (_showAetherflails && UpdateAetherflails())
             {
                 _problems += "Aetherflails failing! ";
+            }
+            if (_knockbackPhase != KnockbackPhase.None && UpdateKnockback())
+            {
+                _problems += "Knockback failing! ";
             }
         }
 
@@ -262,29 +289,21 @@ namespace BossMod
 
         protected override void DrawArena()
         {
-            if (_showFlails && _boss != null)
+            if (_showShacklesOfTime && _playerWithShacklesOfTime != null && _playerWithShacklesOfTime.InstanceID != WorldState.PlayerActorID)
             {
-                // TODO: find out real radius and cone angle
-                switch (_imminentFlails)
-                {
-                    case FlailsZone.Left:
-                        Arena.ZoneCone(_boss.Position, 0, 100, _boss.Rotation + MathF.PI / 2 - _flailConeHalfAngle, _boss.Rotation - 3 * MathF.PI / 2 + _flailConeHalfAngle, Arena.ColorDanger);
-                        break;
-                    case FlailsZone.Right:
-                        Arena.ZoneCone(_boss.Position, 0, 100, _boss.Rotation - MathF.PI / 2 + _flailConeHalfAngle, _boss.Rotation + 3 * MathF.PI / 2 - _flailConeHalfAngle, Arena.ColorDanger);
-                        break;
-                    case FlailsZone.Inner:
-                        Arena.ZoneCircle(_boss.Position, _flailCircleRadius, Arena.ColorDanger);
-                        break;
-                    case FlailsZone.Outer:
-                        Arena.ZoneCone(_boss.Position, _flailCircleRadius, 100, 0, 2 * MathF.PI, Arena.ColorDanger);
-                        break;
-                }
+                DrawAetherAOE(CellFromPosition(_playerWithShacklesOfTime.Position));
             }
 
-            if (_showAetherflails && _boss != null)
+            if (_showFlails)
             {
-                // TODO: implement..
+                DrawFlailAOE(_imminentFlails);
+            }
+
+            if (_showAetherflails)
+            {
+                DrawAetherAOE(_aetherExplosion);
+                DrawFlailAOE(_imminentFlails);
+                DrawFlailAOE(_futureFlails);
             }
 
             Arena.Border();
@@ -301,20 +320,38 @@ namespace BossMod
             }
 
             if (_boss != null)
-                Arena.Actor(_boss.Position, 0xff0000ff);
+                Arena.Actor(_boss.Position, _boss.Rotation, 0xff0000ff);
+
+            if (_knockbackPhase == KnockbackPhase.AOE && _knockbackAOETarget != null)
+            {
+                if (_knockbackAOETarget.InstanceID == WorldState.PlayerActorID)
+                {
+                    // draw all players to help with positioning
+                    for (int i = 0, iEnd = Math.Min(_players.Count, 8); i < iEnd; ++i)
+                    {
+                        var p = _players[i].Actor;
+                        if (!p.IsDead)
+                            Arena.Actor(p.Position, p.Rotation, (_knockbackAOEPlayersInRange & (1 << i)) != 0 ? 0xffff0080 : 0xff808080);
+                    }
+                }
+
+                // draw AOE source
+                Arena.Actor(_knockbackAOETarget.Position, _knockbackAOETarget.Rotation, 0xff8080ff);
+                Arena.AddCircle(_knockbackAOETarget.Position, _knockbackAOEIsFlare ? _knockbackFlareRange : _knockbackHolyRange, 0xff00ffff);
+            }
 
             foreach (var v in _players)
             {
                 if (v.Actor.InstanceID == WorldState.PlayerActorID)
                 {
-                    Arena.Actor(v.Actor.Position, 0xff00ff00);
+                    Arena.Actor(v.Actor.Position, v.Actor.Rotation, 0xff00ff00);
                 }
 
                 var tetherMask = v.BlueTetheredTo | v.RedTetheredTo;
                 if (tetherMask != 0)
                 {
                     uint actorColor = v.BlueTetheredTo != 0 ? (v.RedTetheredTo != 0 ? 0xff00ffff : 0xffff0080) : 0xff8080ff;
-                    Arena.Actor(v.Actor.Position, actorColor);
+                    Arena.Actor(v.Actor.Position, v.Actor.Rotation, actorColor);
                     for (int i = 0; i < 8; ++i)
                     {
                         var iMask = 1 << i;
@@ -332,6 +369,11 @@ namespace BossMod
                     Arena.AddCircle(v.Actor.Position, 4, 0xff00ffff);
                 if (v.PlayersInMyRedShackleExplosion != 0)
                     Arena.AddCircle(v.Actor.Position, 8, 0xff00ffff);
+            }
+
+            if (_playerWithShacklesOfTime != null && _playerWithShacklesOfTime.InstanceID != WorldState.PlayerActorID)
+            {
+                Arena.Actor(_playerWithShacklesOfTime.Position, _playerWithShacklesOfTime.Rotation, 0xff8080ff);
             }
         }
 
@@ -386,13 +428,19 @@ namespace BossMod
                     _weaponsChakram.Remove(actor);
                     break;
             }
+
+            if (actor == _playerWithShacklesOfTime)
+                _playerWithShacklesOfTime = null;
         }
 
         protected override void Reset()
         {
             Arena.IsCircle = false;
-            _showShackles = _showFlails = false;
+            _showShackles = _showShacklesOfTime = _showFlails = _showAetherflails = false;
             _imminentFlails = _futureFlails = FlailsZone.None;
+            _aetherExplosion = CellColor.None;
+            _knockbackPhase = KnockbackPhase.None;
+            _knockbackTarget = _knockbackAOETarget = null;
             _hint = "";
         }
 
@@ -438,7 +486,7 @@ namespace BossMod
         {
             var s = CommonStates.CastEnd(ref link, () => _boss, 4, "ShacklesOfTime");
             s.EndHint |= StateMachine.StateHint.PositioningStart | StateMachine.StateHint.GroupWithNext;
-            s.Exit = () => { }; // TODO: SOT helper?.. or activate by debuff independently from state machines?..
+            s.Exit = () => _showShacklesOfTime = true;
             return s;
         }
 
@@ -447,7 +495,7 @@ namespace BossMod
         {
             var s = CommonStates.Timeout(ref link, delay, "Shackles resolve");
             s.EndHint |= StateMachine.StateHint.PositioningEnd;
-            s.Exit = () => { }; // TODO: end SOT helper
+            s.Exit = () => _showShacklesOfTime = false;
             return s;
         }
 
@@ -498,44 +546,59 @@ namespace BossMod
 
         private StateMachine.State BuildAetherflailStates(ref StateMachine.State? link, float delay)
         {
-            // TODO: better helper...
+            Action<FlailsZone, FlailsZone> showAetherflails = (first, second) =>
+            {
+                _imminentFlails = first;
+                _futureFlails = second;
+                _showAetherflails = true;
+            };
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
-            dispatch[AID.AetherflailRX] = new(null, () => _hint = "Order: unknown");
-            dispatch[AID.AetherflailLX] = new(null, () => _hint = "Order: unknown");
-            dispatch[AID.AetherflailIL] = new(null, () => _hint = "Order: unknown");
-            dispatch[AID.AetherflailIR] = new(null, () => _hint = "Order: unknown");
-            dispatch[AID.AetherflailOL] = new(null, () => _hint = "Order: unknown");
-            dispatch[AID.AetherflailOR] = new(null, () => _hint = "Order: unknown");
+            dispatch[AID.AetherflailRX] = new(null, () => showAetherflails(FlailsZone.Right, FlailsZone.UnknownCircle));
+            dispatch[AID.AetherflailLX] = new(null, () => showAetherflails(FlailsZone.Left, FlailsZone.UnknownCircle));
+            dispatch[AID.AetherflailIL] = new(null, () => showAetherflails(FlailsZone.Inner, FlailsZone.Left));
+            dispatch[AID.AetherflailIR] = new(null, () => showAetherflails(FlailsZone.Inner, FlailsZone.Right));
+            dispatch[AID.AetherflailOL] = new(null, () => showAetherflails(FlailsZone.Outer, FlailsZone.Left));
+            dispatch[AID.AetherflailOR] = new(null, () => showAetherflails(FlailsZone.Outer, FlailsZone.Right));
             var start = CommonStates.CastStart(ref link, () => _boss, dispatch, delay);
             start.EndHint |= StateMachine.StateHint.PositioningStart;
             var end = CommonStates.CastEnd(ref start.Next, () => _boss, 12);
             var resolve = CommonStates.Timeout(ref end.Next, 4, "Aetherflail");
             resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
-            resolve.Exit = () => _hint = "";
+            resolve.Exit = () =>
+            {
+                _imminentFlails = _futureFlails = FlailsZone.None;
+                _showAetherflails = false;
+            };
             return resolve;
         }
 
         // part of group => group-with-next hint + no positioning hints
         private StateMachine.State BuildKnockbackStates(ref StateMachine.State? link, float delay, bool partOfGroup = false)
         {
-            // TODO: better helper...
+            Action<bool> startKnockback = isFlare => {
+                _knockbackPhase = KnockbackPhase.Knockback;
+                _knockbackTarget = _boss?.CastInfo != null ? WorldState.FindActor(_boss.CastInfo.TargetID) : null;
+                _knockbackAOEIsFlare = isFlare;
+            };
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
-            dispatch[AID.KnockbackGrace] = new(null, () => _hint = "What to do: stack!");
-            dispatch[AID.KnockbackPurge] = new(null, () => _hint = "What to do: gtfo!");
+            dispatch[AID.KnockbackGrace] = new(null, () => startKnockback(false));
+            dispatch[AID.KnockbackPurge] = new(null, () => startKnockback(true));
             var start = CommonStates.CastStart(ref link, () => _boss, dispatch, delay);
             if (!partOfGroup)
                 start.EndHint |= StateMachine.StateHint.PositioningStart;
             var end = CommonStates.CastEnd(ref start.Next, () => _boss, 5, "Knockback");
             end.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Tankbuster;
+            end.Exit = () => _knockbackPhase = KnockbackPhase.AOE;
             var resolve = CommonStates.Timeout(ref end.Next, 5, "Explode");
             resolve.EndHint |= partOfGroup ? StateMachine.StateHint.GroupWithNext : StateMachine.StateHint.PositioningEnd;
-            resolve.Exit = () => _hint = "";
+            resolve.Exit = () => { _knockbackPhase = KnockbackPhase.None; _knockbackTarget = null; };
             return resolve;
         }
 
         // intemperance cast start/end + explosion start/end + first resolve
         private StateMachine.State BuildIntemperanceExplosionStart(ref StateMachine.State? link, float delay)
         {
+            // TODO: determine cubes...
             var intemp = CommonStates.Cast(ref link, () => _boss, AID.Intemperance, delay, 2, "Intemperance");
             intemp.EndHint |= StateMachine.StateHint.GroupWithNext;
 
@@ -565,6 +628,33 @@ namespace BossMod
             return s;
         }
 
+        private CellColor CellFromPosition(Vector3 pos)
+        {
+            if (pos == Arena.WorldCenter)
+                return CellColor.None;
+
+            var offset = pos - Arena.WorldCenter;
+            var phi = MathF.Atan2(offset.Z, offset.X) + MathF.PI;
+            int coneIndex = (int)(4 * phi / MathF.PI); // phi / (pi/4); range [0, 8]
+            bool oddCone = (coneIndex & 1) != 0;
+            bool outerCone = offset.LengthSquared() > 10 * 10;
+            return (oddCone != outerCone) ? CellColor.Blue : CellColor.Red; // inner odd = blue, outer even = blue
+        }
+
+        // return a mask containing other players in range
+        private byte FindLivePlayersInRange(WorldState.Actor actor, float radius)
+        {
+            var rsq = radius * radius;
+            byte mask = 0;
+            for (int i = 0, cnt = Math.Min(_players.Count, 8); i < cnt; ++i)
+            {
+                var target = _players[i].Actor;
+                if (target != actor && !target.IsDead && (target.Position - actor.Position).LengthSquared() <= rsq)
+                    mask |= (byte)(1 << i);
+            }
+            return mask;
+        }
+
         // returns whether there any problems
         private bool UpdateShackles()
         {
@@ -592,18 +682,30 @@ namespace BossMod
                 {
                     src.BlueTetheredTo |= srcMask;
                     // purple => 3 closest, except player itself...
-                    for (int i = 1; i < 4; ++i)
-                        if (i < playersByDistance.Length)
-                            _players[playersByDistance[i].Item1].BlueTetheredTo |= srcMask;
+                    for (int i = 1, countedTethers = 0; i < numPlayers && countedTethers < 3; ++i)
+                    {
+                        var target = _players[playersByDistance[i].Item1];
+                        if (target.Actor.IsDead)
+                            continue;
+
+                        target.BlueTetheredTo |= srcMask;
+                        ++countedTethers;
+                    }
                 }
 
                 if (src.IsRedShackleSourceFuture || src.IsRedShackleSourceImminent)
                 {
                     src.RedTetheredTo |= srcMask;
                     // red => 3 furthest
-                    for (int i = 0; i < 3; ++i)
-                        if (i < playersByDistance.Length - 1)
-                            _players[playersByDistance[playersByDistance.Length - 1 - i].Item1].RedTetheredTo |= srcMask;
+                    for (int i = numPlayers - 1, countedTethers = 0; i > 0 && countedTethers < 3; ++i)
+                    {
+                        var target = _players[playersByDistance[i].Item1];
+                        if (target.Actor.IsDead)
+                            continue;
+
+                        target.RedTetheredTo |= srcMask;
+                        ++countedTethers;
+                    }
                 }
             }
 
@@ -614,51 +716,170 @@ namespace BossMod
                 foundProblems |= src.BlueTetheredTo != 0 && src.RedTetheredTo != 0;
 
                 if (src.BlueTetheredTo != 0)
-                    for (int iTgt = 0; iTgt < numPlayers; ++iTgt)
-                        if (iSrc != iTgt && (src.Actor.Position - _players[iTgt].Actor.Position).LengthSquared() <= _shackleBlueRadius * _shackleBlueRadius)
-                            src.PlayersInMyBlueShackleExplosion |= (byte)(1 << iTgt);
+                {
+                    src.PlayersInMyBlueShackleExplosion = FindLivePlayersInRange(src.Actor, _shackleBlueRadius);
+                }
                 foundProblems |= src.PlayersInMyBlueShackleExplosion != 0;
 
                 if (src.RedTetheredTo != 0)
-                    for (int iTgt = 0; iTgt < numPlayers; ++iTgt)
-                        if (iSrc != iTgt && (src.Actor.Position - _players[iTgt].Actor.Position).LengthSquared() <= _shackleRedRadius * _shackleRedRadius)
-                            src.PlayersInMyRedShackleExplosion |= (byte)(1 << iTgt);
+                {
+                    src.PlayersInMyRedShackleExplosion = FindLivePlayersInRange(src.Actor, _shackleRedRadius);
+                }
                 foundProblems |= src.PlayersInMyRedShackleExplosion != 0;
             }
 
             return foundProblems;
         }
 
-        private bool UpdateFlails()
+        private bool UpdateShacklesOfTime()
         {
             var pc = WorldState.FindActor(WorldState.PlayerActorID);
-            if (_boss == null || pc == null)
+            if (_playerWithShacklesOfTime == null || pc == null || pc == _playerWithShacklesOfTime)
+                return false;
+
+            return CellFromPosition(pc.Position) == CellFromPosition(_playerWithShacklesOfTime.Position);
+        }
+
+        private bool IsInFlailAOE(FlailsZone zone, Vector3 pos)
+        {
+            if (_boss == null)
                 return false;
 
             Func<float, bool> inConeSafeZone = (float axisDir) =>
             {
                 float safeZoneRot = _boss.Rotation + axisDir;
                 var safeZoneDir = new Vector3(MathF.Sin(safeZoneRot), 0, MathF.Cos(safeZoneRot));
-                float cosToPlayer = Vector3.Dot(Vector3.Normalize(pc.Position - _boss.Position), safeZoneDir);
+                float cosToPlayer = Vector3.Dot(Vector3.Normalize(pos - _boss.Position), safeZoneDir);
                 return cosToPlayer > MathF.Cos(_flailConeHalfAngle);
             };
-            switch (_imminentFlails)
+            switch (zone)
             {
                 case FlailsZone.Left:
-                    return !inConeSafeZone(MathF.PI / 2);
-                case FlailsZone.Right:
                     return !inConeSafeZone(-MathF.PI / 2);
+                case FlailsZone.Right:
+                    return !inConeSafeZone(MathF.PI / 2);
                 case FlailsZone.Inner:
-                    return (pc.Position - _boss.Position).LengthSquared() <= _flailCircleRadius * _flailCircleRadius;
+                    return (pos - _boss.Position).LengthSquared() <= _flailCircleRadius * _flailCircleRadius;
                 case FlailsZone.Outer:
-                    return (pc.Position - _boss.Position).LengthSquared() >= _flailCircleRadius * _flailCircleRadius;
+                    return (pos - _boss.Position).LengthSquared() >= _flailCircleRadius * _flailCircleRadius;
             }
             return false;
         }
 
+        private bool UpdateFlails()
+        {
+            var pc = WorldState.FindActor(WorldState.PlayerActorID);
+            if (pc == null)
+                return false;
+
+            return IsInFlailAOE(_imminentFlails, pc.Position);
+        }
+
         private bool UpdateAetherflails()
         {
+            if (_futureFlails == FlailsZone.UnknownCircle && _weaponsBall.Count + _weaponsChakram.Count > 0)
+            {
+                if (_weaponsBall.Count > 0 && _weaponsChakram.Count > 0)
+                {
+                    Service.Log($"[P1S] Failed to determine second aetherflail: there are {_weaponsBall.Count} balls and {_weaponsChakram.Count} chakrams");
+                }
+                else
+                {
+                    _futureFlails = _weaponsBall.Count > 0 ? FlailsZone.Inner : FlailsZone.Outer;
+                }
+            }
+
+            var pc = WorldState.FindActor(WorldState.PlayerActorID);
+            if (pc == null)
+                return false;
+
+            return IsInFlailAOE(_imminentFlails, pc.Position) || IsInFlailAOE(_futureFlails, pc.Position) || CellFromPosition(pc.Position) == _aetherExplosion;
+        }
+
+        private bool UpdateKnockback()
+        {
+            _knockbackAOEPlayersInRange = 0;
+            var pc = WorldState.FindActor(WorldState.PlayerActorID);
+            if (_boss == null || pc == null)
+                return false;
+
+            // TODO: remove this debug code...
+            if (_knockbackTarget != null)
+                Service.Log($"[P1S] Debug: {_knockbackTarget.InstanceID:X} pos {Utils.Vec3String(_knockbackTarget.Position)}");
+
+            if (_knockbackPhase == KnockbackPhase.Knockback && _boss.CastInfo != null && _boss.CastInfo.TargetID == WorldState.PlayerActorID)
+            {
+                var dir = Vector3.Normalize(pc.Position - _boss.Position);
+                var newPos = pc.Position + dir * _knockbackDistance;
+                return !Arena.InBounds(newPos);
+            }
+            else if (_knockbackPhase == KnockbackPhase.AOE)
+            {
+                _knockbackAOETarget = WorldState.FindActor(_boss.TargetID);
+                if (_knockbackAOETarget == null)
+                    return false;
+
+                float aoeRange = _knockbackAOEIsFlare ? _knockbackFlareRange : _knockbackHolyRange;
+                _knockbackAOEPlayersInRange = FindLivePlayersInRange(_knockbackAOETarget, aoeRange);
+                if (_boss.TargetID != WorldState.PlayerActorID)
+                {
+                    // boss won't hit me with flare/holy - I must either stack or gtfo from target
+                    bool inAOE = (_knockbackAOETarget.Position - pc.Position).LengthSquared() <= aoeRange * aoeRange;
+                    bool shouldBeInAOE = pc != _knockbackTarget && !_knockbackAOEIsFlare;
+                    return inAOE != shouldBeInAOE;
+                }
+                else if (pc == _knockbackTarget || _knockbackAOEIsFlare)
+                {
+                    // boss will hit me with flare/holy,
+                    // and he also hit me with knockback - so assume I'm taking it with invulnerability, so no one should be inside my AOE
+                    // or he hit co-tank with knockback and I should now eat flare alone
+                    return _knockbackAOEPlayersInRange != 0;
+                }
+                else
+                {
+                    // boss will hit me with flare/holy,
+                    // and he hit co-tank with knockback and now I'm about to take a holy - co-tank should not be in range, others should stack (TODO determine min targets?..)
+                    bool coTankHit = _knockbackTarget != null ? (_knockbackTarget.Position - pc.Position).LengthSquared() <= aoeRange * aoeRange : false;
+                    return coTankHit;
+                }
+            }
             return false;
+        }
+
+        private void DrawAetherAOE(CellColor color)
+        {
+            if (color == CellColor.None)
+                return;
+
+            float start = color == CellColor.Blue ? 0 : MathF.PI / 4;
+            for (int i = 0; i < 4; ++i)
+            {
+                Arena.ZoneCone(Arena.WorldCenter, 0, 10, start, start + MathF.PI / 4, Arena.ColorDanger);
+                Arena.ZoneCone(Arena.WorldCenter, 10, 20, start + MathF.PI / 4, start + MathF.PI / 2, Arena.ColorDanger);
+                start += MathF.PI / 2;
+            }
+        }
+
+        private void DrawFlailAOE(FlailsZone zone)
+        {
+            if (_boss == null)
+                return;
+
+            switch (zone)
+            {
+                case FlailsZone.Left:
+                    Arena.ZoneCone(_boss.Position, 0, 100, _boss.Rotation - MathF.PI / 2 + _flailConeHalfAngle, _boss.Rotation + 3 * MathF.PI / 2 - _flailConeHalfAngle, Arena.ColorDanger);
+                    break;
+                case FlailsZone.Right:
+                    Arena.ZoneCone(_boss.Position, 0, 100, _boss.Rotation + MathF.PI / 2 - _flailConeHalfAngle, _boss.Rotation - 3 * MathF.PI / 2 + _flailConeHalfAngle, Arena.ColorDanger);
+                    break;
+                case FlailsZone.Inner:
+                    Arena.ZoneCircle(_boss.Position, _flailCircleRadius, Arena.ColorDanger);
+                    break;
+                case FlailsZone.Outer:
+                    Arena.ZoneCone(_boss.Position, _flailCircleRadius, 100, 0, 2 * MathF.PI, Arena.ColorDanger);
+                    break;
+            }
         }
 
         private void SetShackleDebuff(WorldState.Actor actor, bool isBlue, bool isImminent, bool active)
@@ -687,6 +908,32 @@ namespace BossMod
         {
             switch ((SID)arg.actor.Statuses[arg.index].ID)
             {
+                case SID.AetherExplosion:
+                    if (arg.actor == _boss)
+                    {
+                        switch (arg.actor.Statuses[arg.index].StackCount)
+                        {
+                            case 0x4C:
+                                _aetherExplosion = CellColor.Red;
+                                break;
+                            case 0x4D:
+                                _aetherExplosion = CellColor.Blue;
+                                break;
+                            default:
+                                Service.Log($"[P1S] Unexpected aether explosion param {arg.actor.Statuses[arg.index].StackCount:X2}");
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        Service.Log($"[P1S] Unexpected aether explosion status on {Utils.ObjectString(arg.actor.InstanceID)}");
+                    }
+                    break;
+                case SID.ShacklesOfTime:
+                    if (_playerWithShacklesOfTime != null)
+                        Service.Log($"[P1S] Unexpected ShacklesOfTime on {Utils.ObjectString(arg.actor.InstanceID)} while another is up on {Utils.ObjectString(_playerWithShacklesOfTime.InstanceID)}");
+                    _playerWithShacklesOfTime = arg.actor;
+                    break;
                 case SID.ShacklesOfCompanionship:
                     SetShackleDebuff(arg.actor, true, false, true);
                     break;
@@ -706,6 +953,14 @@ namespace BossMod
         {
             switch ((SID)arg.actor.Statuses[arg.index].ID)
             {
+                case SID.AetherExplosion:
+                    if (arg.actor == _boss)
+                        _aetherExplosion = CellColor.None;
+                    break;
+                case SID.ShacklesOfTime:
+                    if (arg.actor == _playerWithShacklesOfTime)
+                        _playerWithShacklesOfTime = null;
+                    break;
                 case SID.ShacklesOfCompanionship:
                     SetShackleDebuff(arg.actor, true, false, false);
                     break;

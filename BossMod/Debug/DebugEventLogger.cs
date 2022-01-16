@@ -16,6 +16,7 @@ namespace BossMod
             _ws.ActorCreated += ActorCreated;
             _ws.ActorDestroyed += ActorDestroyed;
             _ws.ActorMoved += ActorMoved;
+            _ws.ActorIsDeadChanged += ActorIsDeadChanged;
             _ws.ActorTargetChanged += ActorTargetChanged;
             _ws.ActorCastStarted += ActorCastStarted;
             _ws.ActorCastFinished += ActorCastFinished;
@@ -31,6 +32,7 @@ namespace BossMod
             _ws.ActorCreated -= ActorCreated;
             _ws.ActorDestroyed -= ActorDestroyed;
             _ws.ActorMoved -= ActorMoved;
+            _ws.ActorIsDeadChanged -= ActorIsDeadChanged;
             _ws.ActorTargetChanged -= ActorTargetChanged;
             _ws.ActorCastStarted -= ActorCastStarted;
             _ws.ActorCastFinished -= ActorCastFinished;
@@ -58,7 +60,7 @@ namespace BossMod
 
         private void ActorCreated(object? sender, WorldState.Actor actor)
         {
-            Service.Log($"[Actor] New actor: {Utils.ObjectString(actor.InstanceID)}, kind={actor.Type}, position={Utils.Vec3String(actor.Position)}, rotation={Utils.RadianString(actor.Rotation)}, target={Utils.ObjectString(actor.TargetID)}, playerOrPet={IsPlayerOrPet(actor)}");
+            Service.Log($"[Actor] New actor: {Utils.ObjectString(actor.InstanceID)}, kind={actor.Type}, position={Utils.Vec3String(actor.Position)}, rotation={Utils.RadianString(actor.Rotation)}, playerOrPet={IsPlayerOrPet(actor)}");
         }
 
         private void ActorDestroyed(object? sender, WorldState.Actor actor)
@@ -71,6 +73,11 @@ namespace BossMod
             if ((arg.actor.Position - arg.prevPos).LengthSquared() < 4)
                 return;
             Service.Log($"[Actor] Actor teleported: {Utils.ObjectString(arg.actor.InstanceID)}, position={Utils.Vec3String(arg.actor.Position)}, rotation={Utils.RadianString(arg.actor.Rotation)}, playerOrPet={IsPlayerOrPet(arg.actor)}");
+        }
+
+        private void ActorIsDeadChanged(object? sender, WorldState.Actor actor)
+        {
+            Service.Log($"[Actor] Actor is-dead changed: {Utils.ObjectString(actor.InstanceID)} is now {(actor.IsDead ? "dead" : "alive")}, position={Utils.Vec3String(actor.Position)}, rotation={Utils.RadianString(actor.Rotation)}, playerOrPet={IsPlayerOrPet(actor)}");
         }
 
         private void ActorTargetChanged(object? sender, (WorldState.Actor actor, uint prev) arg)
