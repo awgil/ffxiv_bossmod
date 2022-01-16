@@ -173,7 +173,7 @@ namespace BossMod
             }
 
             // convert angles to screen coords and normalize
-            angleStart += _cameraAzimuth - MathF.PI / 2;
+            angleStart -= _cameraAzimuth + MathF.PI / 2;
             angleStart %= 2 * MathF.PI;
             if (angleStart < -MathF.PI)
                 angleStart += 2 * MathF.PI;

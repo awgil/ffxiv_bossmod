@@ -12,13 +12,20 @@ namespace BossMod
             PlayerInCombat = Service.ClientState.LocalPlayer?.StatusFlags.HasFlag(Dalamud.Game.ClientState.Objects.Enums.StatusFlags.InCombat) ?? false;
             PlayerActorID = Service.ClientState.LocalPlayer?.ObjectId ?? 0;
 
-            HashSet<uint> seenIDs = new();
+            Dictionary<uint, GameObject> seenIDs = new();
             foreach (var obj in Service.ObjectTable)
-            {
-                if (obj.ObjectId == GameObject.InvalidGameObjectId)
-                    continue;
+                if (obj.ObjectId != GameObject.InvalidGameObjectId)
+                    seenIDs.Add(obj.ObjectId, obj);
 
-                seenIDs.Add(obj.ObjectId);
+            List<uint> delIDs = new();
+            foreach (var e in Actors)
+                if (!seenIDs.ContainsKey(e.Key))
+                    delIDs.Add(e.Key);
+            foreach (var id in delIDs)
+                RemoveActor(id);
+
+            foreach ((_, var obj) in seenIDs)
+            {
                 var act = FindActor(obj.ObjectId);
                 if (act == null)
                 {
@@ -35,7 +42,8 @@ namespace BossMod
                 if (chara != null)
                 {
                     CastInfo? curCast = chara.IsCasting
-                        ? new CastInfo {
+                        ? new CastInfo
+                        {
                             ActionType = chara.CastActionType,
                             ActionID = chara.CastActionId,
                             TargetID = chara.CastTargetObjectId,
@@ -54,13 +62,6 @@ namespace BossMod
                     UpdateStatuses(act, statuses);
                 }
             }
-
-            List<uint> delIDs = new();
-            foreach (var e in Actors)
-                if (!seenIDs.Contains(e.Key))
-                    delIDs.Add(e.Key);
-            foreach (var id in delIDs)
-                RemoveActor(id);
         }
     }
 }

@@ -9,6 +9,7 @@ namespace BossMod
     {
         public WorldState WorldState { get; init; }
         public WorldState.Actor?[] RaidMembers; // this is fixed-size, but some slots could be empty; when player is removed, gap is created - existing players keep their indices
+        public int PlayerSlot { get; private set; } = -1;
         public StateMachine StateMachine { get; init; } = new();
         public StateMachine.State? InitialState = null;
         public MiniArena Arena { get; init; } = new();
@@ -17,6 +18,7 @@ namespace BossMod
         {
             WorldState = w;
             RaidMembers = new WorldState.Actor?[maxRaidMembers];
+            WorldState.PlayerActorIDChanged += PlayerIDChanged;
             WorldState.PlayerInCombatChanged += EnterExitCombat;
             WorldState.ActorCreated += OnActorCreated;
             WorldState.ActorDestroyed += OnActorDestroyed;
@@ -34,6 +36,7 @@ namespace BossMod
         {
             if (disposing)
             {
+                WorldState.PlayerActorIDChanged -= PlayerIDChanged;
                 WorldState.PlayerInCombatChanged -= EnterExitCombat;
                 WorldState.ActorCreated -= OnActorCreated;
                 WorldState.ActorDestroyed -= OnActorDestroyed;
@@ -65,12 +68,7 @@ namespace BossMod
 
         public int FindRaidMemberSlot(uint instanceID)
         {
-            return Array.FindIndex(RaidMembers, x => x != null && x.InstanceID == instanceID);
-        }
-
-        public int FindPlayerSlot()
-        {
-            return FindRaidMemberSlot(WorldState.PlayerActorID);
+            return instanceID != 0 ? Array.FindIndex(RaidMembers, x => x != null && x.InstanceID == instanceID) : -1;
         }
 
         // returns mask
@@ -112,6 +110,11 @@ namespace BossMod
         protected virtual void RaidMemberDestroyed(int index) { } // called just before slot is cleared, so still contains old actor
         protected virtual void Reset() { }
 
+        private void PlayerIDChanged(object? sender, uint id)
+        {
+            PlayerSlot = FindRaidMemberSlot(id);
+        }
+
         private void EnterExitCombat(object? sender, bool inCombat)
         {
             Reset();
@@ -126,6 +129,8 @@ namespace BossMod
                 if (slot != -1)
                 {
                     RaidMembers[slot] = actor;
+                    if (actor.InstanceID == WorldState.PlayerActorID)
+                        PlayerSlot = slot;
                     RaidMemberCreated(slot);
                 }
                 else
@@ -148,6 +153,8 @@ namespace BossMod
                 {
                     RaidMemberDestroyed(slot);
                     RaidMembers[slot] = null;
+                    if (PlayerSlot == slot)
+                        PlayerSlot = -1;
                 }
                 else
                 {
