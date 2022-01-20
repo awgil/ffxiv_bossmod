@@ -95,7 +95,7 @@ namespace BossMod
                 ActiveState.Update?.Invoke(TimeSinceTransition);
                 if (!ActiveState.Done)
                     break;
-                Service.Log($"[StateMachine] Transition from '{ActiveState.Name}' to '{(ActiveState.Next?.Name ?? "null")}', dt={TimeSinceTransition - ActiveState.Duration:f2}");
+                Service.Log($"[StateMachine] Transition from '{ActiveState.Name}' to '{(ActiveState.Next?.Name ?? "null")}', overdue={TimeSinceTransition - ActiveState.Duration:f2}");
                 ActiveState = ActiveState.Next;
             }
         }

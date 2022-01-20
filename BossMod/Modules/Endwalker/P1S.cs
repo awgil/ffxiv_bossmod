@@ -77,13 +77,23 @@ namespace BossMod
             ColdSpell = 2739, // intemperance: after blue cube explosion
             HotSpell = 2740, // intemperance: after red cube explosion
             ShacklesOfTime = 2741, // shackles of time: hits segments matching color on expiration
-            ShacklesOfCompanionship = 2742, // shackles: purple (tether to 3 closest)
-            ShacklesOfLoneliness = 2743, // shackles: red (tether to 3 farthest)
-            InescapableCompanionship = 2744, // replaces corresponding shackles in 13s
+            ShacklesOfCompanionship0 = 2742, // shackles: purple (tether to 3 closest) - normal 13s duration
+            ShacklesOfLoneliness0 = 2743, // shackles: red (tether to 3 farthest) - normal 13s duration
+            InescapableCompanionship = 2744, // replaces corresponding shackles in 13s, 5s duration
             InescapableLoneliness = 2745,
+            ShacklesOfCompanionship1 = 2885, // fourfold 3s duration
+            ShacklesOfCompanionship2 = 2886, // fourfold 8s duration
+            ShacklesOfCompanionship3 = 2887, // fourfold 13s duration
+            ShacklesOfLoneliness1 = 2888, // fourfold 3s duration
+            ShacklesOfLoneliness2 = 2889, // fourfold 8s duration
+            ShacklesOfLoneliness3 = 2890, // fourfold 13s duration
+            ShacklesOfCompanionship4 = 2923, // fourfold 18s duration
+            ShacklesOfLoneliness4 = 2924, // fourfold 18s duration
             DamageDown = 2911, // applied by two successive cubes of the same color
             MagicVulnerabilityUp = 2941, // applied by shackle resolve, knockbacks
         }
+
+        private static float _innerCircleRadius = 12; // this determines in/out shackles and cells boundary
 
         // state related to normal and fourfold shackles
         // controlled purely by debuffs on players
@@ -281,7 +291,7 @@ namespace BossMod
                 var phi = MathF.Atan2(offsetFromCenter.Z, offsetFromCenter.X) + MathF.PI;
                 int coneIndex = (int)(4 * phi / MathF.PI); // phi / (pi/4); range [0, 8]
                 bool oddCone = (coneIndex & 1) != 0;
-                bool outerCone = offsetFromCenter.LengthSquared() > 10 * 10;
+                bool outerCone = offsetFromCenter.LengthSquared() > _innerCircleRadius * _innerCircleRadius;
                 return (oddCone != outerCone) ? Cell.Blue : Cell.Red; // inner odd = blue, outer even = blue
             }
 
@@ -334,8 +344,8 @@ namespace BossMod
                 float start = ExplodingCells == Cell.Blue ? 0 : MathF.PI / 4;
                 for (int i = 0; i < 4; ++i)
                 {
-                    self.Arena.ZoneCone(self.Arena.WorldCenter, 0, 10, start, start + MathF.PI / 4, self.Arena.ColorDanger);
-                    self.Arena.ZoneCone(self.Arena.WorldCenter, 10, 20, start + MathF.PI / 4, start + MathF.PI / 2, self.Arena.ColorDanger);
+                    self.Arena.ZoneCone(self.Arena.WorldCenter, 0, _innerCircleRadius, start, start + MathF.PI / 4, self.Arena.ColorDanger);
+                    self.Arena.ZoneCone(self.Arena.WorldCenter, _innerCircleRadius, self.Arena.WorldHalfSize, start + MathF.PI / 4, start + MathF.PI / 2, self.Arena.ColorDanger);
                     start += MathF.PI / 2;
                 }
             }
@@ -373,7 +383,6 @@ namespace BossMod
             private Zone Future = Zone.None;
             private bool ShowBoth = false;
 
-            private static float _circleRadius = 10;
             private static float _coneHalfAngle = MathF.PI / 4;
 
             public void Reset(Zone imminent = Zone.None, Zone future = Zone.None, bool showBoth = false)
@@ -448,10 +457,10 @@ namespace BossMod
                         self.Arena.ZoneCone(origin, 0, 100, rot + MathF.PI / 2 - _coneHalfAngle, rot - 3 * MathF.PI / 2 + _coneHalfAngle, self.Arena.ColorDanger);
                         break;
                     case Zone.Inner:
-                        self.Arena.ZoneCircle(origin, _circleRadius, self.Arena.ColorDanger);
+                        self.Arena.ZoneCircle(origin, _innerCircleRadius, self.Arena.ColorDanger);
                         break;
                     case Zone.Outer:
-                        self.Arena.ZoneCone(origin, _circleRadius, 100, 0, 2 * MathF.PI, self.Arena.ColorDanger);
+                        self.Arena.ZoneCone(origin, _innerCircleRadius, 100, 0, 2 * MathF.PI, self.Arena.ColorDanger);
                         break;
                 }
             }
@@ -465,9 +474,9 @@ namespace BossMod
                     case Zone.Right:
                         return !IsInCone(pos - origin, rot + MathF.PI / 2);
                     case Zone.Inner:
-                        return (pos - origin).LengthSquared() <= _circleRadius * _circleRadius;
+                        return (pos - origin).LengthSquared() <= _innerCircleRadius * _innerCircleRadius;
                     case Zone.Outer:
-                        return (pos - origin).LengthSquared() >= _circleRadius * _circleRadius;
+                        return (pos - origin).LengthSquared() >= _innerCircleRadius * _innerCircleRadius;
                 }
                 return false;
             }
@@ -493,9 +502,9 @@ namespace BossMod
             private byte AOEInRange;
             private Behaviour DesiredBehaviour = Behaviour.Unknown;
 
-            private static float _kbDistance = 15;
-            private static float _flareRange = 20;
-            private static float _holyRange = 6;
+            private static float _kbDistance = 15; // quite sure about this
+            private static float _flareRange = 20; // unconfirmed
+            private static float _holyRange = 6; // unconfirmed, but looks correct...
             private static uint _colorInAOE = 0xffc0c0c0;
             private static uint _colorOutOfAOE = 0xff808080;
             private static uint _colorAOETarget = 0xff8080ff;
@@ -536,16 +545,6 @@ namespace BossMod
 
             public void Update(P1S self)
             {
-                if (CurrentPhase == Phase.None)
-                    return; // not active
-
-                // TODO: remove this debug code...
-                if (KnockbackTarget >= 0)
-                {
-                    var actor = self.RaidMembers[KnockbackTarget]!;
-                    Service.Log($"[P1S] Debug: {actor.InstanceID:X} pos {Utils.Vec3String(actor.Position)}");
-                }
-
                 if (CurrentPhase == Phase.AOE)
                 {
                     AOEInRange = 0;
@@ -712,28 +711,28 @@ namespace BossMod
             s = BuildWarderWrathState(ref s.Next, 4, true);
             s = BuildShacklesResolveState(ref s.Next, 10);
 
-            s = BuildFlailStates(ref s.Next, 4);
-            s = BuildKnockbackStates(ref s.Next, 5);
-            s = BuildFlailStates(ref s.Next, 3);
-            s = BuildWarderWrathState(ref s.Next, 5);
+            s = BuildFlailStates(ref s.Next, 4.3f);
+            s = BuildKnockbackStates(ref s.Next, 5.3f);
+            s = BuildFlailStates(ref s.Next, 2.7f);
+            s = BuildWarderWrathState(ref s.Next, 5.2f);
 
-            s = BuildIntemperanceExplosionStart(ref s.Next, 11);
-            s = BuildWarderWrathState(ref s.Next, 1, true);
-            s = BuildWarderWrathState(ref s.Next, 5, true, "Cube2"); // cube2 and aoe start happen at almost same time
+            s = BuildIntemperanceExplosionStart(ref s.Next, 11.2f);
+            s = BuildWarderWrathState(ref s.Next, 1.2f, true);
+            s = BuildWarderWrathState(ref s.Next, 5.2f, true, "Cube2"); // cube2 and aoe start happen at almost same time
             s = CommonStates.Timeout(ref s.Next, 6, "Cube3");
             s.Exit = () => _intemperance.Reset();
 
-            s = BuildKnockbackStates(ref s.Next, 5);
+            s = BuildKnockbackStates(ref s.Next, 5.3f);
 
-            s = BuildCellsState(ref s.Next, 8);
+            s = BuildCellsState(ref s.Next, 8.6f);
             s = BuildAetherflailStates(ref s.Next, 8);
-            s = BuildKnockbackStates(ref s.Next, 7);
-            s = BuildAetherflailStates(ref s.Next, 2);
-            s = CommonStates.CastStart(ref s.Next, () => _boss, AID.ShacklesOfTime, 4);
+            s = BuildKnockbackStates(ref s.Next, 7.2f);
+            s = BuildAetherflailStates(ref s.Next, 2.2f);
+            s = CommonStates.CastStart(ref s.Next, () => _boss, AID.ShacklesOfTime, 4.2f);
             s = BuildShacklesOfTimeCastEndState(ref s.Next);
-            s = BuildTankbusterState(ref s.Next, 5, true);
+            s = BuildTankbusterState(ref s.Next, 5.2f, true);
             s = BuildShacklesOfTimeResolveState(ref s.Next, 5);
-            s = BuildSlamShutState(ref s.Next, 1);
+            s = BuildSlamShutState(ref s.Next, 1.4f);
 
             s = CommonStates.Cast(ref s.Next, () => _boss, AID.FourShackles, 13, 3, "FourShackles");
             s.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
@@ -746,20 +745,20 @@ namespace BossMod
             s = CommonStates.Timeout(ref s.Next, 5, "Hit4");
             s.EndHint |= StateMachine.StateHint.PositioningEnd;
 
-            s = BuildWarderWrathState(ref s.Next, 5);
+            s = BuildWarderWrathState(ref s.Next, 4);
 
-            s = BuildIntemperanceExplosionStart(ref s.Next, 11);
-            s = BuildFlailStartState(ref s.Next, 3);
+            s = BuildIntemperanceExplosionStart(ref s.Next, 11.2f);
+            s = BuildFlailStartState(ref s.Next, 3.2f);
             s = CommonStates.Timeout(ref s.Next, 8, "Cube2");
             s.EndHint |= StateMachine.StateHint.GroupWithNext;
-            s = BuildFlailEndState(ref s.Next, 3, true);
+            s = BuildFlailEndState(ref s.Next, 3.5f, true);
             s = CommonStates.Timeout(ref s.Next, 4, "Cube3");
             s.EndHint |= StateMachine.StateHint.PositioningEnd;
             s.Exit = () => _intemperance.Reset();
 
-            s = BuildWarderWrathState(ref s.Next, 3);
+            s = BuildWarderWrathState(ref s.Next, 3.3f);
 
-            s = BuildCellsState(ref s.Next, 11);
+            s = BuildCellsState(ref s.Next, 11.2f);
 
             // subsequences
             StateMachine.State? s1b = null, s1e = null;
@@ -769,12 +768,12 @@ namespace BossMod
             s1e = CommonStates.Cast(ref s1e.Next, () => _boss, AID.Aetherchain, 3, 5, "Aetherchain");
             s1e.EndHint |= StateMachine.StateHint.GroupWithNext;
             s1e = BuildShacklesResolveState(ref s1e.Next, 0);
-            s1e = BuildWarderWrathState(ref s1e.Next, 7);
-            s1e = CommonStates.CastStart(ref s1e.Next, () => _boss, AID.ShacklesOfTime, 6);
+            s1e = BuildWarderWrathState(ref s1e.Next, 5.2f);
+            s1e = CommonStates.CastStart(ref s1e.Next, () => _boss, AID.ShacklesOfTime, 7.2f);
             s1e = BuildShacklesOfTimeCastEndState(ref s1e.Next);
-            s1e = BuildKnockbackStates(ref s1e.Next, 2, true);
+            s1e = BuildKnockbackStates(ref s1e.Next, 2.2f, true);
             s1e = BuildShacklesOfTimeResolveState(ref s1e.Next, 3);
-            s1e = BuildWarderWrathState(ref s1e.Next, 3);
+            s1e = BuildWarderWrathState(ref s1e.Next, 5.5f);
 
             StateMachine.State? s2b = null, s2e = null;
             s2e = BuildShacklesOfTimeCastEndState(ref s2b);
@@ -793,13 +792,13 @@ namespace BossMod
             Dictionary<AID, (StateMachine.State?, Action)> forkDispatch = new();
             forkDispatch[AID.AetherialShackles] = new(s1b, () => { });
             forkDispatch[AID.ShacklesOfTime] = new(s2b, () => { });
-            var fork = CommonStates.CastStart(ref s.Next, () => _boss, forkDispatch, 6, "Shackles+Aetherchains -or- ShacklesOfTime+Knockback");
+            var fork = CommonStates.CastStart(ref s.Next, () => _boss, forkDispatch, 6, "Shackles+Aetherchains -or- ShacklesOfTime+Knockback"); // first branch - delay ~8?
 
             // forks merge
             s = BuildAetherflailStates(ref s1e.Next, 9);
             s2e.Next = s1e.Next;
-            s = BuildAetherflailStates(ref s.Next, 6);
-            s = BuildAetherflailStates(ref s.Next, 6);
+            s = BuildAetherflailStates(ref s.Next, 2.3f);
+            s = BuildAetherflailStates(ref s.Next, 6); // not sure about timings below...
             s = BuildWarderWrathState(ref s.Next, 13);
             s = CommonStates.Simple(ref s.Next, 2, "?????");
         }
@@ -849,7 +848,7 @@ namespace BossMod
             {
                 // cells mode
                 float diag = Arena.WorldHalfSize / 1.414214f;
-                Arena.AddCircle(Arena.WorldCenter, 10, Arena.ColorBorder);
+                Arena.AddCircle(Arena.WorldCenter, _innerCircleRadius, Arena.ColorBorder);
                 Arena.AddLine(Arena.WorldE, Arena.WorldW, Arena.ColorBorder);
                 Arena.AddLine(Arena.WorldN, Arena.WorldS, Arena.ColorBorder);
                 Arena.AddLine(Arena.WorldCenter + new Vector3(diag, 0, diag), Arena.WorldCenter - new Vector3(diag, 0, diag), Arena.ColorBorder);
@@ -1010,7 +1009,7 @@ namespace BossMod
         private StateMachine.State BuildFlailStates(ref StateMachine.State? link, float delay)
         {
             var start = BuildFlailStartState(ref link, delay);
-            return BuildFlailEndState(ref start.Next, 12, false);
+            return BuildFlailEndState(ref start.Next, 11.5f, false);
         }
 
         private StateMachine.State BuildAetherflailStates(ref StateMachine.State? link, float delay)
@@ -1025,7 +1024,7 @@ namespace BossMod
             var start = CommonStates.CastStart(ref link, () => _boss, dispatch, delay);
             start.EndHint |= StateMachine.StateHint.PositioningStart;
 
-            var end = CommonStates.CastEnd(ref start.Next, () => _boss, 12);
+            var end = CommonStates.CastEnd(ref start.Next, () => _boss, 11.5f);
             end.Exit = () => _flails.Advance();
 
             var resolve = CommonStates.Timeout(ref end.Next, 4, "Aetherflail");
@@ -1057,7 +1056,16 @@ namespace BossMod
         // intemperance cast start/end + explosion start/end + first resolve
         private StateMachine.State BuildIntemperanceExplosionStart(ref StateMachine.State? link, float delay)
         {
-            // TODO: determine cubes...
+            // TODO: determine cubes... use the following idea:
+            // 1. look for a bunch of server messages with opcode 191 (~3 sec after intemp cast end) - there should be 25 of them
+            // 2. first 24 correspond to cubes, in groups of three (bottom->top), in order: NW N NE E SE S SW W
+            //    the last 191 can be ignored, probably corresponds to oneshot border
+            //    so asymmetrical pattern is: BPR RRB BPR RPR BPR RBB BPR RPR
+            //    and symmetrical pattern is: RPR BRB RPR RPB RPR BBB RPR RPB
+            // 3. each message has 4 dwords of payload; first dword is some id (800375A0), second dword is cube type, third dword is {XXXXXXsq} (where sq is sequential order, from 0 to 23), fourth dword is instance ID of boss
+            // 4. cube type is 00020001 for red, 00800040 for blue, 20001000 for purple
+            // 5. on each explosion, we get 8 191s, with type 00080004 for exploded red, 04000004 for exploded blue, 08000004 for exploded purple
+            // 6. 3 sec before second & third explosion, we get 8 191s, with type 00200020 for preparing red, 02000200 for preparing blue, 80008000 for preparing purple
             var intemp = CommonStates.Cast(ref link, () => _boss, AID.Intemperance, delay, 2, "Intemperance");
             intemp.EndHint |= StateMachine.StateHint.GroupWithNext;
 
@@ -1081,7 +1089,7 @@ namespace BossMod
 
         private StateMachine.State BuildSlamShutState(ref StateMachine.State? link, float delay)
         {
-            var s = CommonStates.Cast(ref link, () => _boss, AID.SlamShut, delay, 6, "SlamShut");
+            var s = CommonStates.Cast(ref link, () => _boss, AID.SlamShut, delay, 7, "SlamShut");
             s.EndHint |= StateMachine.StateHint.Raidwide;
             s.Exit = () => Arena.IsCircle = false;
             return s;
@@ -1115,10 +1123,18 @@ namespace BossMod
                 case SID.ShacklesOfTime:
                     _aetherExplosion.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), true);
                     break;
-                case SID.ShacklesOfCompanionship:
+                case SID.ShacklesOfCompanionship0:
+                case SID.ShacklesOfCompanionship1:
+                case SID.ShacklesOfCompanionship2:
+                case SID.ShacklesOfCompanionship3:
+                case SID.ShacklesOfCompanionship4:
                     _shackles.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), false, false, true);
                     break;
-                case SID.ShacklesOfLoneliness:
+                case SID.ShacklesOfLoneliness0:
+                case SID.ShacklesOfLoneliness1:
+                case SID.ShacklesOfLoneliness2:
+                case SID.ShacklesOfLoneliness3:
+                case SID.ShacklesOfLoneliness4:
                     _shackles.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), true, false, true);
                     break;
                 case SID.InescapableCompanionship:
@@ -1141,10 +1157,18 @@ namespace BossMod
                 case SID.ShacklesOfTime:
                     _aetherExplosion.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), false);
                     break;
-                case SID.ShacklesOfCompanionship:
+                case SID.ShacklesOfCompanionship0:
+                case SID.ShacklesOfCompanionship1:
+                case SID.ShacklesOfCompanionship2:
+                case SID.ShacklesOfCompanionship3:
+                case SID.ShacklesOfCompanionship4:
                     _shackles.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), false, false, false);
                     break;
-                case SID.ShacklesOfLoneliness:
+                case SID.ShacklesOfLoneliness0:
+                case SID.ShacklesOfLoneliness1:
+                case SID.ShacklesOfLoneliness2:
+                case SID.ShacklesOfLoneliness3:
+                case SID.ShacklesOfLoneliness4:
                     _shackles.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), true, false, false);
                     break;
                 case SID.InescapableCompanionship:

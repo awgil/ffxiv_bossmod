@@ -117,8 +117,16 @@ namespace BossMod
 
         private void EnterExitCombat(object? sender, bool inCombat)
         {
-            Reset();
-            StateMachine.ActiveState = inCombat ? InitialState : null;
+            if (inCombat)
+            {
+                Reset();
+                StateMachine.ActiveState = InitialState;
+            }
+            else
+            {
+                StateMachine.ActiveState = null;
+                Reset();
+            }
         }
 
         private void OnActorCreated(object? sender, WorldState.Actor actor)

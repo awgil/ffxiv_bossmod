@@ -142,25 +142,11 @@ namespace BossMod
             s = CommonStates.Cast(ref s.Next, () => _boss, AID.Enrage, 6, 10, "Enrage");
         }
 
-        public override void Draw(float cameraAzimuth)
+        protected override void DrawArena()
         {
-            base.Draw(cameraAzimuth);
-
-            // TODO: what part of this should be done by the framework?..
-            Arena.Begin(cameraAzimuth);
             Arena.Border();
             if (_boss != null)
                 Arena.Actor(_boss.Position, _boss.Rotation, 0xff0000ff);
-            Arena.End();
-
-            // TODO: I think framework should do this, since it should provide access to CD planners...
-            if (ImGui.Button("Show timeline"))
-            {
-                var timeline = new StateMachineVisualizer(InitialState);
-                var w = WindowManager.CreateWindow("P2S Timeline", () => timeline.Draw(StateMachine), () => { });
-                w.SizeHint = new(600, 600);
-                w.MinSize = new(100, 100);
-            }
         }
 
         protected override void NonPlayerCreated(WorldState.Actor actor)

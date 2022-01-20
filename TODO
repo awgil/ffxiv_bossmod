@@ -3,14 +3,12 @@ general:
 - draw danger zones in world
 - detect stuff like zodiark snakes, etc - look at graphics scene or maybe network messages...
 - memory show/watch utility
+- clip circles to arena bounds...
 
 boss modules:
 - data driven => would enable sequence autorecord and live editing
 - p1s
--- shackles
--- flails safe zones
 -- intemperance order (??)
--- knockback range helper (for knockback and flare/stack)
 - p2s
 - zodiark
 -- refactor
