@@ -85,7 +85,7 @@ namespace UIDev
                     {
                         if (blue)
                         {
-                            SetStatus(actor.Value, 0, (uint)P1S.SID.ShacklesOfCompanionship, 0);
+                            SetStatus(actor.Value, 0, (uint)P1S.SID.ShacklesOfCompanionship0, 0);
                         }
                         else
                         {
@@ -100,7 +100,7 @@ namespace UIDev
                     {
                         if (redShackle)
                         {
-                            SetStatus(actor.Value, 1, (uint)P1S.SID.ShacklesOfLoneliness, 0);
+                            SetStatus(actor.Value, 1, (uint)P1S.SID.ShacklesOfLoneliness0, 0);
                         }
                         else
                         {

@@ -96,6 +96,9 @@ namespace BossMod
                 case 1005:
                     _activeModule = new P2S(_ws);
                     break;
+                case 1007:
+                    _activeModule = new P3S(_ws);
+                    break;
             }
             PluginLog.Log($"Activated module: {_activeModule?.GetType().ToString() ?? "none"}");
         }

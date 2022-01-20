@@ -5,14 +5,21 @@ general:
 - memory show/watch utility
 - clip circles to arena bounds...
 
+network:
+- hook send/recv (a-la xivalexander)
+- store raw packets, create visualizer
+- auto detect new opcodes for known packets based on size
+- allow injecting custom client messages in next sent bundle (or just create new bundle?..)
+
 boss modules:
 - data driven => would enable sequence autorecord and live editing
 - p1s
--- intemperance order (??)
-- p2s
+-- intemperance cubes
+- p2s: ???
+- p3s
 - zodiark
 -- refactor
-- hydaelyn, p3s, p4s: todo
+- hydaelyn, p4s: todo
 
 autorotation:
 - improve rotation logic
