@@ -519,9 +519,9 @@ namespace BossMod
         {
             public uint FeatureID; // seen 0x80xxxxxx, seems to be unique identifier of controlled feature
             public uint State; // typically hiword and loword both have one bit set
-            public ushort u0; // padding?
-            public byte u1; // padding?
             public byte Index; // if feature has multiple elements, this is a 0-based index of element
+            public byte u0; // padding?
+            public ushort u1; // padding?
             public uint u2; // padding?
         }
     }
@@ -815,7 +815,7 @@ namespace BossMod
                 case Protocol.Opcode.EnvironmentControl:
                     {
                         var p = (Protocol.Server_EnvironmentControl*)dataPtr;
-                        Service.Log($"[Network] - {p->FeatureID:X8}.{p->Index:X2}: {p->State:X8}, u={p->u0:X4} {p->u1:X2} {p->u2:X8}");
+                        Service.Log($"[Network] - {p->FeatureID:X8}.{p->Index:X2}: {p->State:X8}, u={p->u0:X2} {p->u1:X4} {p->u2:X8}");
                         break;
                     }
             }

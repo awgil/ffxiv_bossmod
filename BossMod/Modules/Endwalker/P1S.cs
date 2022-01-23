@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Text;
 
@@ -146,42 +147,36 @@ namespace BossMod
 
                 // update tether matrices
                 var playersByDistance = new List<(int, float)>();
-                for (int iSrc = 0; iSrc < self.RaidMembers.Length; ++iSrc)
+                foreach ((int iSrc, var src) in self.IterateRaidMembers())
                 {
-                    var src = self.RaidMembers[iSrc];
-                    if (src == null || src.IsDead)
-                        continue;
-
                     bool hasBlue = BitVector.IsVector8BitSet(blueDebuffs, iSrc);
                     bool hasRed = BitVector.IsVector8BitSet(redDebuffs, iSrc);
                     if (!hasBlue && !hasRed)
                         continue;
 
-                    for (int iTgt = 0; iTgt < self.RaidMembers.Length; ++iTgt)
+                    foreach ((int iTgt, var tgt) in self.IterateRaidMembers())
                     {
-                        var tgt = self.RaidMembers[iTgt];
-                        if (iTgt == iSrc || tgt == null || tgt.IsDead)
-                            continue;
-
-                        playersByDistance.Add(new(iTgt, (tgt.Position - src.Position).LengthSquared()));
+                        if (iTgt != iSrc)
+                        {
+                            playersByDistance.Add(new(iTgt, (tgt.Position - src.Position).LengthSquared()));
+                        }
                     }
                     playersByDistance.Sort((l, r) => l.Item2.CompareTo(r.Item2));
-                    var numPotentialTethers = Math.Min(playersByDistance.Count, 3);
 
                     // blue => 3 closest
                     if (hasBlue)
                     {
                         BitVector.SetMatrix8x8Bit(ref BlueTetherMatrix, iSrc, iSrc, true);
-                        for (int i = 0; i < numPotentialTethers; ++i)
-                            BitVector.SetMatrix8x8Bit(ref BlueTetherMatrix, playersByDistance[i].Item1, iSrc, true);
+                        foreach ((int iTgt, _) in playersByDistance.Take(3))
+                            BitVector.SetMatrix8x8Bit(ref BlueTetherMatrix, iTgt, iSrc, true);
                     }
 
                     // red => 3 furthest
                     if (hasRed)
                     {
                         BitVector.SetMatrix8x8Bit(ref RedTetherMatrix, iSrc, iSrc, true);
-                        for (int i = 0; i < numPotentialTethers; ++i)
-                            BitVector.SetMatrix8x8Bit(ref RedTetherMatrix, playersByDistance[playersByDistance.Count - i - 1].Item1, iSrc, true);
+                        foreach ((int iTgt, _) in playersByDistance.TakeLast(3))
+                            BitVector.SetMatrix8x8Bit(ref RedTetherMatrix, iTgt, iSrc, true);
                     }
 
                     playersByDistance.Clear();
@@ -209,18 +204,12 @@ namespace BossMod
 
             public void DrawArenaForeground(P1S self)
             {
-                if (!Active)
-                    return;
                 var pc = self.RaidMember(self.PlayerSlot);
-                if (pc == null)
+                if (!Active || pc == null)
                     return;
 
-                for (int i = 0; i < self.RaidMembers.Length; ++i)
+                foreach ((int i, var actor) in self.IterateRaidMembers())
                 {
-                    var actor = self.RaidMembers[i];
-                    if (actor == null || actor.IsDead)
-                        continue;
-
                     // draw tethers
                     var blueTetheredTo = BitVector.ExtractVectorFromMatrix8x8(BlueTetherMatrix, i);
                     var redTetheredTo = BitVector.ExtractVectorFromMatrix8x8(RedTetherMatrix, i);
@@ -228,10 +217,9 @@ namespace BossMod
                     if (tetherMask != 0)
                     {
                         self.Arena.Actor(actor.Position, actor.Rotation, TetherColor(blueTetheredTo != 0, redTetheredTo != 0));
-                        for (int j = 0; j < 8; ++j)
+                        foreach ((int j, var target) in self.IterateRaidMembers(true))
                         {
-                            var target = self.RaidMembers[j];
-                            if (target != null && i != j && BitVector.IsVector8BitSet(tetherMask, j))
+                            if (i != j && BitVector.IsVector8BitSet(tetherMask, j))
                             {
                                 self.Arena.AddLine(actor.Position, target.Position, TetherColor(BitVector.IsVector8BitSet(blueTetheredTo, j), BitVector.IsVector8BitSet(redTetheredTo, j)));
                             }
@@ -352,9 +340,10 @@ namespace BossMod
 
             public void AddHints(P1S self, StringBuilder res)
             {
-                if (self.PlayerSlot >= 0 && self.PlayerSlot != MemberWithSOT && ExplodingCells != Cell.None)
+                var pc = self.RaidMember(self.PlayerSlot);
+                if (pc != null && self.PlayerSlot != MemberWithSOT && ExplodingCells != Cell.None)
                 {
-                    if (ExplodingCells == CellFromOffset(self.RaidMembers[self.PlayerSlot]!.Position - self.Arena.WorldCenter))
+                    if (ExplodingCells == CellFromOffset(pc.Position - self.Arena.WorldCenter))
                     {
                         res.Append("Hit by aether explosion! ");
                     }
@@ -420,15 +409,15 @@ namespace BossMod
 
             public void AddHints(P1S self, StringBuilder res)
             {
-                if (self.PlayerSlot < 0 || Imminent == Zone.None || self._boss == null)
+                var pc = self.RaidMember(self.PlayerSlot);
+                if (pc == null || Imminent == Zone.None || self._boss == null)
                     return;
 
-                var pcPos = self.RaidMembers[self.PlayerSlot]!.Position;
-                if (IsInAOE(pcPos, self._boss.Position, self._boss.Rotation, Imminent))
+                if (IsInAOE(pc.Position, self._boss.Position, self._boss.Rotation, Imminent))
                 {
                     res.Append("Hit by first flail! ");
                 }
-                if (ShowBoth && IsInAOE(pcPos, self._boss.Position, self._boss.Rotation, Future))
+                if (ShowBoth && IsInAOE(pc.Position, self._boss.Position, self._boss.Rotation, Future))
                 {
                     res.Append("Hit by next flail! ");
                 }
@@ -493,8 +482,6 @@ namespace BossMod
             private static float _kbDistance = 15; // quite sure about this
             private static float _flareRange = 20; // unconfirmed
             private static float _holyRange = 6; // unconfirmed, but looks correct...
-            private static uint _colorInAOE = 0xffc0c0c0;
-            private static uint _colorOutOfAOE = 0xff808080;
             private static uint _colorAOETarget = 0xff8080ff;
             private static uint _colorVulnerable = 0xffff00ff;
 
@@ -576,11 +563,9 @@ namespace BossMod
                     if (aoeTargetActor == pc)
                     {
                         // there will be AOE around me, draw all players to help with positioning
-                        for (int i = 0; i < self.RaidMembers.Length; ++i)
+                        foreach ((int i, var p) in self.IterateRaidMembers())
                         {
-                            var p = self.RaidMembers[i];
-                            if (p != null && !p.IsDead)
-                                self.Arena.Actor(p.Position, p.Rotation, BitVector.IsVector8BitSet(AOEInRange, i) ? _colorInAOE : _colorOutOfAOE);
+                            self.Arena.Actor(p.Position, p.Rotation, BitVector.IsVector8BitSet(AOEInRange, i) ? self.Arena.ColorPlayerInteresting : self.Arena.ColorPlayerGeneric);
                         }
                     }
 
@@ -595,14 +580,17 @@ namespace BossMod
 
             public void AddHints(P1S self, StringBuilder res)
             {
+                var pc = self.RaidMember(self.PlayerSlot);
+                if (pc == null || self._boss == null)
+                    return;
+
                 if (CurrentPhase == Phase.Knockback)
                 {
-                    var pc = self.RaidMember(self.PlayerSlot);
-                    bool pcIsMT = self._boss?.CastInfo?.TargetID == pc?.InstanceID;
-                    if (pc != null && pcIsMT)
+                    bool pcIsMT = self._boss.CastInfo != null && self._boss.CastInfo.TargetID == pc.InstanceID;
+                    if (pcIsMT)
                     {
                         // warn if about to be knocked into wall
-                        var dir = Vector3.Normalize(pc.Position - self._boss!.Position);
+                        var dir = Vector3.Normalize(pc.Position - self._boss.Position);
                         var newPos = pc.Position + dir * _kbDistance;
                         if (!self.Arena.InBounds(newPos))
                         {
@@ -610,7 +598,7 @@ namespace BossMod
                         }
                     }
                 }
-                else if (CurrentPhase == Phase.AOE && self.PlayerSlot >= 0)
+                else if (CurrentPhase == Phase.AOE)
                 {
                     switch (DesiredBehaviour)
                     {
@@ -648,29 +636,97 @@ namespace BossMod
             }
         }
 
-        // state related to intemperance mechanic (TODO)
+        // state related to intemperance mechanic (TODO: improve)
         private class Intemperance
         {
-            private bool Active = false;
-            private bool DirDown = false;
+            public enum State { None, TopToBottom, BottomToTop }
+            public enum Cube { None, R, B, P }
 
-            public void Reset()
+            private State _curState = State.None;
+            public Cube[] Cubes = new Cube[24]; // [3*i+j] corresponds to cell i [NW N NE E SE S SW W], cube j [bottom center top]
+
+            private static float _cellHalfSize = 6;
+
+            private static Cube[] _patternSymm = {
+                Cube.R, Cube.P, Cube.R,
+                Cube.B, Cube.R, Cube.B,
+                Cube.R, Cube.P, Cube.R,
+                Cube.R, Cube.P, Cube.B,
+                Cube.R, Cube.P, Cube.R,
+                Cube.B, Cube.B, Cube.B,
+                Cube.R, Cube.P, Cube.R,
+                Cube.R, Cube.P, Cube.B,
+            };
+            private static Cube[] _patternAsymm = {
+                Cube.B, Cube.P, Cube.R,
+                Cube.R, Cube.R, Cube.B,
+                Cube.B, Cube.P, Cube.R,
+                Cube.R, Cube.P, Cube.R,
+                Cube.B, Cube.P, Cube.R,
+                Cube.R, Cube.B, Cube.B,
+                Cube.B, Cube.P, Cube.R,
+                Cube.R, Cube.P, Cube.R,
+            };
+            private static Vector2[] _offsets = { new(-1, -1), new(0, -1), new(1, -1), new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0) };
+
+            public void Reset(State state = State.None)
             {
-                Active = false;
+                _curState = state;
+                for (int i = 0; i < Cubes.Length; ++i)
+                    Cubes[i] = Cube.None;
             }
 
-            public void Start(bool dirDown)
+            public void DrawArenaBackground(P1S self)
             {
-                Active = true;
-                DirDown = dirDown;
+                if (_curState == State.None)
+                    return; // not active
+
+                // draw cell delimiters
+                Vector3 v1 = new(_cellHalfSize + 1, 0, self.Arena.WorldHalfSize);
+                Vector3 v2 = new(-_cellHalfSize, 0, self.Arena.WorldHalfSize);
+                self.Arena.ZoneRect(self.Arena.WorldCenter - v1, self.Arena.WorldCenter + v2, self.Arena.ColorAOE);
+                self.Arena.ZoneRect(self.Arena.WorldCenter - v2, self.Arena.WorldCenter + v1, self.Arena.ColorAOE);
+
+                v1 = new(v1.Z, 0, v1.X);
+                v2 = new(v2.Z, 0, v2.X);
+                self.Arena.ZoneRect(self.Arena.WorldCenter - v1, self.Arena.WorldCenter + v2, self.Arena.ColorAOE);
+                self.Arena.ZoneRect(self.Arena.WorldCenter - v2, self.Arena.WorldCenter + v1, self.Arena.ColorAOE);
+
+                // draw cubes on margins
+                var drawlist = ImGui.GetWindowDrawList();
+                var marginOffset = self.Arena.ScreenHalfSize + self.Arena.ScreenMarginSize / 2;
+                for (int i = 0; i < 8; ++i)
+                {
+                    var center = self.Arena.ScreenCenter + self.Arena.RotatedCoords(_offsets[i] * marginOffset);
+                    DrawTinyCube(drawlist, center + new Vector2(-3,  5), Cubes[3 * i + 0]);
+                    DrawTinyCube(drawlist, center + new Vector2(-3,  0), Cubes[3 * i + 1]);
+                    DrawTinyCube(drawlist, center + new Vector2(-3, -5), Cubes[3 * i + 2]);
+
+                    float lineDir = _curState == State.BottomToTop ? -1 : 1;
+                    drawlist.AddLine(center + new Vector2(4, -7), center + new Vector2(4, 7), 0xffffffff);
+                    drawlist.AddLine(center + new Vector2(4, 7 * lineDir), center + new Vector2(2, 5 * lineDir), 0xffffffff);
+                    drawlist.AddLine(center + new Vector2(4, 7 * lineDir), center + new Vector2(6, 5 * lineDir), 0xffffffff);
+                }
             }
 
             public void AddHints(P1S self, StringBuilder res)
             {
-                if (Active)
+                if (_curState != State.None)
                 {
-                    res.Append(DirDown ? "Order: top->bottom " : "Order: bottom->top ");
+                    var pat = Cubes.SequenceEqual(_patternSymm) ? "symmetrical" : (Cubes.SequenceEqual(_patternAsymm) ? "asymmetrical" : "unknown");
+                    res.Append($"Order: {_curState}, pattern: {pat}. ");
                 }
+            }
+
+            private void DrawTinyCube(ImDrawListPtr drawlist, Vector2 center, Cube type)
+            {
+                Vector2 off = new(3);
+                if (type != Cube.None)
+                {
+                    uint col = type == Cube.R ? 0xff0000ff : (type == Cube.B ? 0xffff0000 : 0xffff00ff);
+                    drawlist.AddRectFilled(center - off, center + off, col);
+                }
+                drawlist.AddRect(center - off, center + off, 0xffffffff);
             }
         }
 
@@ -690,6 +746,7 @@ namespace BossMod
         {
             WorldState.ActorStatusGain += ActorStatusGain;
             WorldState.ActorStatusLose += ActorStatusLose;
+            WorldState.EventEnvControl += EventEnvControl;
 
             StateMachine.State? s;
             s = BuildTankbusterState(ref InitialState, 8);
@@ -797,6 +854,7 @@ namespace BossMod
             {
                 WorldState.ActorStatusGain -= ActorStatusGain;
                 WorldState.ActorStatusLose -= ActorStatusLose;
+                WorldState.EventEnvControl -= EventEnvControl;
             }
             base.Dispose(disposing);
         }
@@ -825,6 +883,7 @@ namespace BossMod
         {
             _aetherExplosion.DrawArenaBackground(this);
             _flails.DrawArenaBackground(this);
+            _intemperance.DrawArenaBackground(this);
 
             Arena.Border();
 
@@ -840,12 +899,12 @@ namespace BossMod
             }
 
             if (_boss != null)
-                Arena.Actor(_boss.Position, _boss.Rotation, 0xff0000ff);
+                Arena.Actor(_boss.Position, _boss.Rotation, Arena.ColorEnemy);
 
             // draw player
             var pc = RaidMember(PlayerSlot);
             if (pc != null)
-                Arena.Actor(pc.Position, pc.Rotation, 0xff00ff00);
+                Arena.Actor(pc.Position, pc.Rotation, Arena.ColorPC);
 
             _knockback.DrawArenaForeground(this);
             _shackles.DrawArenaForeground(this);
@@ -1052,8 +1111,8 @@ namespace BossMod
             intemp.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
-            dispatch[AID.IntemperateTormentUp] = new(null, () => _intemperance.Start(false));
-            dispatch[AID.IntemperateTormentDown] = new(null, () => _intemperance.Start(true));
+            dispatch[AID.IntemperateTormentUp] = new(null, () => _intemperance.Reset(Intemperance.State.BottomToTop));
+            dispatch[AID.IntemperateTormentDown] = new(null, () => _intemperance.Reset(Intemperance.State.TopToBottom));
             var explosion = CommonStates.CastStart(ref intemp.Next, () => _boss, dispatch, 6);
             var end = CommonStates.CastEnd(ref explosion.Next, () => _boss, 10);
             var resolve = CommonStates.Timeout(ref end.Next, 1, "Cube1");
@@ -1159,6 +1218,25 @@ namespace BossMod
                 case SID.InescapableLoneliness:
                     _shackles.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), true, true, false);
                     break;
+            }
+        }
+
+        private void EventEnvControl(object? sender, (uint featureID, byte index, uint state) arg)
+        {
+            if (arg.featureID == 0x800375A0 && arg.index < 24)
+            {
+                switch (arg.state)
+                {
+                    case 0x00020001:
+                        _intemperance.Cubes[arg.index] = Intemperance.Cube.R;
+                        break;
+                    case 0x00800040:
+                        _intemperance.Cubes[arg.index] = Intemperance.Cube.B;
+                        break;
+                    case 0x20001000:
+                        _intemperance.Cubes[arg.index] = Intemperance.Cube.P;
+                        break;
+                }
             }
         }
     }

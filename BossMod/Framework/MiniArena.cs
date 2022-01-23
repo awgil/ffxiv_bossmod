@@ -90,11 +90,17 @@ namespace BossMod
             //return ScreenHalfSize * new Vector2(viewPos.X, viewPos.Y) / WorldHalfSize;
         }
 
+        // this is useful for drawing on margins (TODO better api)
+        public Vector2 RotatedCoords(Vector2 coords)
+        {
+            var x = coords.X * _cameraCosAzimuth - coords.Y * _cameraSinAzimuth;
+            var y = coords.Y * _cameraCosAzimuth + coords.X * _cameraSinAzimuth;
+            return new(x, y);
+        }
+
         private Vector2 WorldOffsetToScreenOffset(Vector3 worldOffset)
         {
-            var viewX = worldOffset.X * _cameraCosAzimuth - worldOffset.Z * _cameraSinAzimuth;
-            var viewY = worldOffset.Z * _cameraCosAzimuth + worldOffset.X * _cameraSinAzimuth;
-            return ScreenHalfSize * new Vector2((float)viewX, (float)viewY) / WorldHalfSize;
+            return ScreenHalfSize *  RotatedCoords(new(worldOffset.X, worldOffset.Z)) / WorldHalfSize;
         }
 
         // unclipped primitive rendering that accept world-space positions; thin convenience wrappers around drawlist api
