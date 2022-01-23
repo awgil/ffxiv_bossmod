@@ -29,11 +29,12 @@ namespace BossMod
                 var act = FindActor(obj.ObjectId);
                 if (act == null)
                 {
-                    act = AddActor(obj.ObjectId, obj.DataId, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), obj.Position, obj.Rotation, obj.HitboxRadius);
+                    act = AddActor(obj.ObjectId, obj.DataId, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), obj.Position, obj.Rotation, obj.HitboxRadius, Utils.GameObjectIsTargetable(obj));
                 }
                 else
                 {
                     MoveActor(act, obj.Position, obj.Rotation);
+                    ChangeActorIsTargetable(act, Utils.GameObjectIsTargetable(obj));
                 }
                 ChangeActorTarget(act, obj.TargetObjectId);
                 ChangeActorIsDead(act, Utils.GameObjectIsDead(obj));
@@ -44,7 +45,7 @@ namespace BossMod
                     CastInfo? curCast = chara.IsCasting
                         ? new CastInfo
                         {
-                            ActionType = chara.CastActionType,
+                            ActionType = (ActionType)chara.CastActionType,
                             ActionID = chara.CastActionId,
                             TargetID = chara.CastTargetObjectId,
                             Location = Utils.BattleCharaCastLocation(chara),

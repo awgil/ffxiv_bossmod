@@ -9,26 +9,25 @@ namespace BossMod
     class DebugUI : IDisposable
     {
         private WorldState _ws;
+        private Network _network;
         private Autorotation _autorot;
         private DateTime _combatStart;
         private DebugObjects _debugObjects = new();
         private DebugGraphics _debugGraphics = new();
         private DebugAction _debugAction = new();
-        private Network? _network = null;
 
-        public DebugUI(WorldState ws, Autorotation autorot)
+        public DebugUI(WorldState ws, Network network, Autorotation autorot)
         {
             _ws = ws;
-            _ws.PlayerInCombatChanged += EnterExitCombat;
+            _network = network;
             _autorot = autorot;
+
+            _ws.PlayerInCombatChanged += EnterExitCombat;
         }
 
         public void Dispose()
         {
             _ws.PlayerInCombatChanged -= EnterExitCombat;
-
-            if (_network != null)
-                _network.Dispose();
         }
 
         public void Draw()
@@ -42,19 +41,8 @@ namespace BossMod
                 DebugGraphics.DumpScene();
             }
 
-            bool networkDumpActive = _network != null;
-            if (ImGui.Checkbox("Dump network packets", ref networkDumpActive))
-            {
-                if (_network == null)
-                {
-                    _network = new();
-                }
-                else
-                {
-                    _network.Dispose();
-                    _network = null;
-                }
-            }
+            ImGui.Checkbox("Dump server packets", ref _network.DumpServer);
+            ImGui.Checkbox("Dump client packets", ref _network.DumpClient);
 
             if (ImGui.CollapsingHeader("Full object list"))
             {
@@ -129,7 +117,7 @@ namespace BossMod
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(elem.Key));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(elem.Value.CastInfo.TargetID));
-                ImGui.TableNextColumn(); ImGui.Text(Utils.ActionString(elem.Value.CastInfo.ActionID));
+                ImGui.TableNextColumn(); ImGui.Text(Utils.ActionString(elem.Value.CastInfo.ActionID, elem.Value.CastInfo.ActionType));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.CastTimeString(elem.Value.CastInfo.CurrentTime, elem.Value.CastInfo.TotalTime));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(elem.Value.CastInfo.Location));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(elem.Value.Position));

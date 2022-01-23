@@ -13,7 +13,7 @@ namespace UIDev
         public P2STest()
         {
             _ws = new();
-            _ws.AddActor(1, (uint)P2S.OID.Boss, WorldState.ActorType.Enemy, new(100, 0, 100), 0, 1);
+            _ws.AddActor(1, (uint)P2S.OID.Boss, WorldState.ActorType.Enemy, new(100, 0, 100), 0, 1, true);
             _o = new P2S(_ws);
         }
 

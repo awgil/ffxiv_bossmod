@@ -6,10 +6,6 @@ using System.Text;
 
 namespace BossMod
 {
-    // TODOs:
-    // - determine range constants for knockback
-    // - find a way to detect cubes in intemperance phase
-    // - triple-check aetherflail AIDs and color SID param...
     public class P1S : BossModule
     {
         public enum OID : uint
@@ -125,27 +121,17 @@ namespace BossMod
                 if (isRed)
                 {
                     if (isImminent)
-                        BitVector.SetVector8Bit(ref DebuffsRedImminent, slot, active);
+                        BitVector.ModifyVector8Bit(ref DebuffsRedImminent, slot, active);
                     else
-                        BitVector.SetVector8Bit(ref DebuffsRedFuture, slot, active);
+                        BitVector.ModifyVector8Bit(ref DebuffsRedFuture, slot, active);
                 }
                 else
                 {
                     if (isImminent)
-                        BitVector.SetVector8Bit(ref DebuffsBlueImminent, slot, active);
+                        BitVector.ModifyVector8Bit(ref DebuffsBlueImminent, slot, active);
                     else
-                        BitVector.SetVector8Bit(ref DebuffsBlueFuture, slot, active);
+                        BitVector.ModifyVector8Bit(ref DebuffsBlueFuture, slot, active);
                 }
-            }
-
-            public void ClearDebuffs(int slot)
-            {
-                if (slot < 0)
-                    return;
-                BitVector.SetVector8Bit(ref DebuffsBlueImminent, slot, false);
-                BitVector.SetVector8Bit(ref DebuffsBlueFuture, slot, false);
-                BitVector.SetVector8Bit(ref DebuffsRedImminent, slot, false);
-                BitVector.SetVector8Bit(ref DebuffsRedFuture, slot, false);
             }
 
             public void Update(P1S self)
@@ -223,9 +209,11 @@ namespace BossMod
 
             public void DrawArenaForeground(P1S self)
             {
-                if (!Active || self.PlayerSlot < 0)
+                if (!Active)
                     return;
-                var pc = self.RaidMembers[self.PlayerSlot]!;
+                var pc = self.RaidMember(self.PlayerSlot);
+                if (pc == null)
+                    return;
 
                 for (int i = 0; i < self.RaidMembers.Length; ++i)
                 {
@@ -264,7 +252,7 @@ namespace BossMod
                     self.Arena.AddCircle(pc.Position, _redExplosionRadius, _colorFail);
             }
 
-            public void DescribeProblems(StringBuilder res)
+            public void AddHints(StringBuilder res)
             {
                 if (Failing)
                 {
@@ -325,7 +313,7 @@ namespace BossMod
 
             public void Update(P1S self)
             {
-                var sotActor = MemberWithSOT >= 0 ? self.RaidMembers[MemberWithSOT] : null;
+                var sotActor = self.RaidMember(MemberWithSOT);
                 if (sotActor != null)
                     ExplodingCells = CellFromOffset(sotActor.Position - self.Arena.WorldCenter);
             }
@@ -344,25 +332,25 @@ namespace BossMod
                 float start = ExplodingCells == Cell.Blue ? 0 : MathF.PI / 4;
                 for (int i = 0; i < 4; ++i)
                 {
-                    self.Arena.ZoneCone(self.Arena.WorldCenter, 0, _innerCircleRadius, start, start + MathF.PI / 4, self.Arena.ColorDanger);
-                    self.Arena.ZoneCone(self.Arena.WorldCenter, _innerCircleRadius, self.Arena.WorldHalfSize, start + MathF.PI / 4, start + MathF.PI / 2, self.Arena.ColorDanger);
+                    self.Arena.ZoneCone(self.Arena.WorldCenter, 0, _innerCircleRadius, start, start + MathF.PI / 4, self.Arena.ColorAOE);
+                    self.Arena.ZoneCone(self.Arena.WorldCenter, _innerCircleRadius, self.Arena.WorldHalfSize, start + MathF.PI / 4, start + MathF.PI / 2, self.Arena.ColorAOE);
                     start += MathF.PI / 2;
                 }
             }
 
             public void DrawArenaForeground(P1S self)
             {
-                if (MemberWithSOT < 0 || MemberWithSOT == self.PlayerSlot)
+                if (MemberWithSOT == self.PlayerSlot)
                     return;
 
-                var actor = self.RaidMembers[MemberWithSOT];
+                var actor = self.RaidMember(MemberWithSOT);
                 if (actor == null)
                     return;
 
                 self.Arena.Actor(actor.Position, actor.Rotation, _colorSOTActor);
             }
 
-            public void DescribeProblems(P1S self, StringBuilder res)
+            public void AddHints(P1S self, StringBuilder res)
             {
                 if (self.PlayerSlot >= 0 && self.PlayerSlot != MemberWithSOT && ExplodingCells != Cell.None)
                 {
@@ -430,7 +418,7 @@ namespace BossMod
                 }
             }
 
-            public void DescribeProblems(P1S self, StringBuilder res)
+            public void AddHints(P1S self, StringBuilder res)
             {
                 if (self.PlayerSlot < 0 || Imminent == Zone.None || self._boss == null)
                     return;
@@ -451,16 +439,16 @@ namespace BossMod
                 switch (zone)
                 {
                     case Zone.Left:
-                        self.Arena.ZoneCone(origin, 0, 100, rot - MathF.PI / 2 + _coneHalfAngle, rot + 3 * MathF.PI / 2 - _coneHalfAngle, self.Arena.ColorDanger);
+                        self.Arena.ZoneCone(origin, 0, 100, rot - MathF.PI / 2 + _coneHalfAngle, rot + 3 * MathF.PI / 2 - _coneHalfAngle, self.Arena.ColorAOE);
                         break;
                     case Zone.Right:
-                        self.Arena.ZoneCone(origin, 0, 100, rot + MathF.PI / 2 - _coneHalfAngle, rot - 3 * MathF.PI / 2 + _coneHalfAngle, self.Arena.ColorDanger);
+                        self.Arena.ZoneCone(origin, 0, 100, rot + MathF.PI / 2 - _coneHalfAngle, rot - 3 * MathF.PI / 2 + _coneHalfAngle, self.Arena.ColorAOE);
                         break;
                     case Zone.Inner:
-                        self.Arena.ZoneCircle(origin, _innerCircleRadius, self.Arena.ColorDanger);
+                        self.Arena.ZoneCircle(origin, _innerCircleRadius, self.Arena.ColorAOE);
                         break;
                     case Zone.Outer:
-                        self.Arena.ZoneCone(origin, _innerCircleRadius, 100, 0, 2 * MathF.PI, self.Arena.ColorDanger);
+                        self.Arena.ZoneCone(origin, _innerCircleRadius, 100, 0, 2 * MathF.PI, self.Arena.ColorAOE);
                         break;
                 }
             }
@@ -550,14 +538,14 @@ namespace BossMod
                     AOEInRange = 0;
                     DesiredBehaviour = Behaviour.Unknown;
                     AOETarget = self.FindRaidMemberSlot(self._boss?.TargetID ?? 0);
-                    var aoeTargetActor = AOETarget >= 0 ? self.RaidMembers[AOETarget] : null;
+                    var aoeTargetActor = self.RaidMember(AOETarget);
                     if (aoeTargetActor == null)
                         return;
 
                     float aoeRange = IsFlare ? _flareRange : _holyRange;
                     AOEInRange = (byte)self.FindRaidMembersInRange(AOETarget, aoeRange);
 
-                    var pc = self.PlayerSlot >= 0 ? self.RaidMembers[self.PlayerSlot] : null;
+                    var pc = self.RaidMember(self.PlayerSlot);
                     if (pc == null)
                         return;
 
@@ -579,9 +567,9 @@ namespace BossMod
             {
                 if (CurrentPhase == Phase.AOE)
                 {
-                    var pc = self.PlayerSlot >= 0 ? self.RaidMembers[self.PlayerSlot] : null;
-                    var aoeTargetActor = AOETarget >= 0 ? self.RaidMembers[AOETarget] : null;
-                    var knockbackActor = KnockbackTarget >= 0 ? self.RaidMembers[KnockbackTarget] : null;
+                    var pc = self.RaidMember(self.PlayerSlot);
+                    var aoeTargetActor = self.RaidMember(AOETarget);
+                    var knockbackActor = self.RaidMember(KnockbackTarget);
                     if (pc == null || aoeTargetActor == null || knockbackActor == null)
                         return;
 
@@ -605,11 +593,11 @@ namespace BossMod
                 }
             }
 
-            public void DescribeProblems(P1S self, StringBuilder res)
+            public void AddHints(P1S self, StringBuilder res)
             {
                 if (CurrentPhase == Phase.Knockback)
                 {
-                    var pc = self.PlayerSlot >= 0 ? self.RaidMembers[self.PlayerSlot] : null;
+                    var pc = self.RaidMember(self.PlayerSlot);
                     bool pcIsMT = self._boss?.CastInfo?.TargetID == pc?.InstanceID;
                     if (pc != null && pcIsMT)
                     {
@@ -660,7 +648,7 @@ namespace BossMod
             }
         }
 
-        // state related to intemperance mechanic
+        // state related to intemperance mechanic (TODO)
         private class Intemperance
         {
             private bool Active = false;
@@ -677,7 +665,7 @@ namespace BossMod
                 DirDown = dirDown;
             }
 
-            public void DescribeProblems(P1S self, StringBuilder res)
+            public void AddHints(P1S self, StringBuilder res)
             {
                 if (Active)
                 {
@@ -816,7 +804,6 @@ namespace BossMod
         public override void Update()
         {
             base.Update();
-
             _shackles.Update(this);
             _aetherExplosion.Update(this);
             _flails.Update(this);
@@ -825,16 +812,13 @@ namespace BossMod
 
         protected override void DrawHeader()
         {
-            var problems = new StringBuilder();
-            _shackles.DescribeProblems(problems);
-            _aetherExplosion.DescribeProblems(this, problems);
-            _flails.DescribeProblems(this, problems);
-            _knockback.DescribeProblems(this, problems);
-            _intemperance.DescribeProblems(this, problems);
-            if (problems.Length > 0)
-            {
-                ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(0xff00ffff), problems.ToString());
-            }
+            var hints = new StringBuilder();
+            _shackles.AddHints(hints);
+            _aetherExplosion.AddHints(this, hints);
+            _flails.AddHints(this, hints);
+            _knockback.AddHints(this, hints);
+            _intemperance.AddHints(this, hints);
+            ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(0xff00ffff), hints.ToString());
         }
 
         protected override void DrawArena()
@@ -859,7 +843,7 @@ namespace BossMod
                 Arena.Actor(_boss.Position, _boss.Rotation, 0xff0000ff);
 
             // draw player
-            var pc = PlayerSlot >= 0 ? RaidMembers[PlayerSlot] : null;
+            var pc = RaidMember(PlayerSlot);
             if (pc != null)
                 Arena.Actor(pc.Position, pc.Rotation, 0xff00ff00);
 
@@ -913,8 +897,6 @@ namespace BossMod
 
         protected override void RaidMemberDestroyed(int index)
         {
-            _shackles.ClearDebuffs(index);
-            _aetherExplosion.ModifyDebuff(index, false);
             if (_knockback.KnockbackTarget == index)
                 _knockback.Reset();
         }

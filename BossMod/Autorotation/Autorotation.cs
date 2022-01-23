@@ -5,8 +5,8 @@ namespace BossMod
 {
     class Autorotation : IDisposable
     {
-        private delegate ulong OnGetIconDelegate(byte param1, uint param2);
-        private Hook<OnGetIconDelegate> _iconHook;
+        private delegate ulong GetAdjustedActionIdDelegate(byte param1, uint param2);
+        private Hook<GetAdjustedActionIdDelegate> _getAdjustedActionIdHook;
         private unsafe float* _comboTimeLeft = null;
         private unsafe WARRotation.AID* _comboLastMove = null;
 
@@ -21,14 +21,14 @@ namespace BossMod
             _comboTimeLeft = (float*)comboPtr;
             _comboLastMove = (WARRotation.AID*)(comboPtr + 0x4);
 
-            var getIcon = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 8B F8 3B DF"); // 5.4
-            _iconHook = new(getIcon, new OnGetIconDelegate(GetIconDetour));
-            _iconHook.Enable();
+            var getAdjustedActionIdAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 8B F8 3B DF");
+            _getAdjustedActionIdHook = new(getAdjustedActionIdAddress, new GetAdjustedActionIdDelegate(GetAdjustedActionIdDetour));
+            _getAdjustedActionIdHook.Enable();
         }
 
         public void Dispose()
         {
-            _iconHook.Dispose();
+            _getAdjustedActionIdHook.Dispose();
         }
 
         public void Update()
@@ -41,21 +41,11 @@ namespace BossMod
             WarActions.DrawActionHint(false);
         }
 
-        /// <summary>
-        ///     Replace an ability with another ability
-        ///     actionID is the original ability to be "used"
-        ///     Return either actionID (itself) or a new Action table ID as the
-        ///     ability to take its place.
-        ///     I tend to make the "combo chain" button be the last move in the combo
-        ///     For example, Souleater combo on DRK happens by dragging Souleater
-        ///     onto your bar and mashing it.
-        /// </summary>
-        private ulong GetIconDetour(byte self, uint actionID)
+        private ulong GetAdjustedActionIdDetour(byte self, uint actionID)
         {
             if (Service.ClientState.LocalPlayer == null)
-                return _iconHook.Original(self, actionID);
+                return _getAdjustedActionIdHook.Original(self, actionID);
 
-            //Service.Log($"[AR] Detour: {(WarriorActions.AID)actionID}");
             switch (actionID)
             {
                 case (uint)WARRotation.AID.HeavySwing:
@@ -67,7 +57,7 @@ namespace BossMod
                 case (uint)WARRotation.AID.MythrilTempest:
                     return (uint)WARRotation.GetNextAOEComboAction(WarActions.State);
                 default:
-                    return _iconHook.Original(self, actionID);
+                    return _getAdjustedActionIdHook.Original(self, actionID);
             }
         }
     }

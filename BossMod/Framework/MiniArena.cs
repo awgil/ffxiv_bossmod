@@ -37,9 +37,14 @@ namespace BossMod
 
         // common color constants (ABGR)
         public uint ColorBorder = 0xffffffff;
-        public uint ColorBackground = 0xff0f0f0f;
+        public uint ColorAOE = 0x80008080;
+        //public uint ColorBackground = 0xff0f0f0f;
         public uint ColorDanger = 0xff00ffff;
         public uint ColorSafe = 0xff00ff00;
+        public uint ColorPC = 0xff00ff00;
+        public uint ColorEnemy = 0xff0000ff;
+        public uint ColorPlayerInteresting = 0xffc0c0c0;
+        public uint ColorPlayerGeneric = 0xff808080;
 
         // prepare for drawing - set up internal state, clip rect etc.
         public void Begin(float cameraAzimuthRadians)
@@ -214,6 +219,24 @@ namespace BossMod
             ClipAndFillConvex(poly, color);
         }
 
+        public void ZoneTri(Vector3 a, Vector3 b, Vector3 c, uint color)
+        {
+            var tri = new Vector2[] { WorldPositionToScreenPosition(a), WorldPositionToScreenPosition(b), WorldPositionToScreenPosition(c) };
+            ClipAndFillConvex(tri, color);
+        }
+
+        public void ZoneIsoscelesTri(Vector3 apex, Vector3 height, Vector3 halfBase, uint color)
+        {
+            ZoneTri(apex, apex + height + halfBase, apex + height - halfBase, color);
+        }
+
+        public void ZoneIsoscelesTri(Vector3 apex, float direction, float halfAngle, float height, uint color)
+        {
+            Vector3 dir = new(MathF.Sin(direction), 0, MathF.Cos(direction));
+            Vector3 normal = new(-dir.Z, 0, dir.X);
+            ZoneIsoscelesTri(apex, height * dir, height * MathF.Tan(halfAngle) * normal, color);
+        }
+
         public void ZoneQuad(Vector3 a, Vector3 b, Vector3 c, Vector3 d, uint color)
         {
             var quad = new Vector2[] { WorldPositionToScreenPosition(a), WorldPositionToScreenPosition(b), WorldPositionToScreenPosition(c), WorldPositionToScreenPosition(d) };
@@ -242,7 +265,7 @@ namespace BossMod
             {
                 var dir = new Vector3(MathF.Sin(rotation), 0, MathF.Cos(rotation));
                 var normal = new Vector3(-dir.Z, 0, dir.X);
-                AddTriangleFilled(position + 0.5f * dir, position - 0.25f * dir + 0.433f * normal, position - 0.25f * dir - 0.433f * normal, color);
+                AddTriangleFilled(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, color);
             }
         }
 
@@ -267,10 +290,15 @@ namespace BossMod
         private void ClipAndFillConvex(IEnumerable<Vector2> poly, uint color)
         {
             var drawlist = ImGui.GetWindowDrawList();
+            var restoreFlags = drawlist.Flags;
+            drawlist.Flags &= ~ImDrawListFlags.AntiAliasedFill;
+
             var clipped = GeometryUtils.ClipPolygonToPolygon(poly, _clipPolygon);
             foreach (var p in clipped)
                 drawlist.PathLineToMergeDuplicate(p);
             drawlist.PathFillConvex(color);
+
+            drawlist.Flags = restoreFlags;
         }
 
         private void ClipAndFillConcave(IEnumerable<Vector2> poly, uint color)

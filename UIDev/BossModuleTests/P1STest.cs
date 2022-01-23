@@ -13,15 +13,15 @@ namespace UIDev
         public P1STest()
         {
             _ws = new();
-            _ws.AddActor(1, 0, WorldState.ActorType.Player, new(105, 0, 100), 0, 1);
-            _ws.AddActor(2, 0, WorldState.ActorType.Player, new(100, 0, 105), 0, 1);
-            _ws.AddActor(3, 0, WorldState.ActorType.Player, new(100, 0,  95), 0, 1);
-            _ws.AddActor(4, 0, WorldState.ActorType.Player, new( 95, 0, 100), 0, 1);
-            _ws.AddActor(5, 0, WorldState.ActorType.Player, new(110, 0, 110), 0, 1);
-            _ws.AddActor(6, 0, WorldState.ActorType.Player, new( 90, 0, 110), 0, 1);
-            _ws.AddActor(7, 0, WorldState.ActorType.Player, new(110, 0,  90), 0, 1);
-            _ws.AddActor(8, 0, WorldState.ActorType.Player, new( 90, 0,  90), 0, 1);
-            _ws.AddActor(9, (uint)P1S.OID.Boss, WorldState.ActorType.Enemy, new(100, 0, 100), 0, 1);
+            _ws.AddActor(1, 0, WorldState.ActorType.Player, new(105, 0, 100), 0, 1, true);
+            _ws.AddActor(2, 0, WorldState.ActorType.Player, new(100, 0, 105), 0, 1, true);
+            _ws.AddActor(3, 0, WorldState.ActorType.Player, new(100, 0,  95), 0, 1, true);
+            _ws.AddActor(4, 0, WorldState.ActorType.Player, new( 95, 0, 100), 0, 1, true);
+            _ws.AddActor(5, 0, WorldState.ActorType.Player, new(110, 0, 110), 0, 1, true);
+            _ws.AddActor(6, 0, WorldState.ActorType.Player, new( 90, 0, 110), 0, 1, true);
+            _ws.AddActor(7, 0, WorldState.ActorType.Player, new(110, 0,  90), 0, 1, true);
+            _ws.AddActor(8, 0, WorldState.ActorType.Player, new( 90, 0,  90), 0, 1, true);
+            _ws.AddActor(9, (uint)P1S.OID.Boss, WorldState.ActorType.Enemy, new(100, 0, 100), 0, 1, true);
             _ws.PlayerActorID = 1;
             _o = new P1S(_ws);
         }

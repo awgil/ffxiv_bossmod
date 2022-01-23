@@ -42,11 +42,11 @@ namespace BossMod
             return $"[{q.X:f2}, {q.Y:f2}, {q.Z:f2}, {q.W:f2}]";
         }
 
-        public static string ActionString(uint actionID)
+        public static string ActionString(uint actionID, WorldState.ActionType actionType = WorldState.ActionType.Spell)
         {
             var actionData = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(actionID);
             string name = actionData?.Name ?? "<not found>";
-            return $"{actionID} '{name}'";
+            return $"{actionType} {actionID} '{name}'";
         }
 
         public static string StatusString(uint statusID)
@@ -79,6 +79,11 @@ namespace BossMod
         public static unsafe bool GameObjectIsDead(GameObject obj)
         {
             return GameObjectInternal(obj)->IsDead();
+        }
+
+        public static unsafe bool GameObjectIsTargetable(GameObject obj)
+        {
+            return GameObjectInternal(obj)->GetIsTargetable();
         }
 
         public static unsafe Vector3 BattleCharaCastLocation(BattleChara chara)

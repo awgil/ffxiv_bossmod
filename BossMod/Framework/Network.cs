@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.Network;
 using System;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace BossMod
@@ -35,8 +36,9 @@ namespace BossMod
             Waymark = 0xfd,
             SystemLogMessage = 0x27a,
 
+            // below are opcodes i've reversed myself...
+            EnvironmentControl = 0xbf, // size=16
             // 0x1fd == EventObjSpawn? for stuff like exit points, etc.
-            // 0xbf == HideShowBackground???
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -47,14 +49,6 @@ namespace BossMod
             public uint Unknown1;
             public uint Epoch;
             public uint Unknown2;
-        }
-
-        public enum Server_ActionEffectDisplayType : byte
-        {
-            HideActionName = 0,
-            ShowActionName = 1,
-            ShowItemName = 2,
-            MountName = 0x0d
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -70,7 +64,7 @@ namespace BossMod
             public ushort rotation;
             public ushort actionAnimationId;
             public byte variation; // animation
-            public Server_ActionEffectDisplayType effectDisplayType; // is this also item id / mount id?
+            public WorldState.ActionType actionType;
             public byte unknown20;
             public byte effectCount;
             public ushort padding21;
@@ -216,9 +210,9 @@ namespace BossMod
         public struct Server_ActorCast
         {
             public ushort ActionID;
-            public byte SkillType; // type = FFXIVClientStructs.FFXIV.Client.Game.ActionType
+            public WorldState.ActionType SkillType;
             public byte Unknown;
-            public uint Unknown1; // also action ID; dissector calls it ItemId
+            public uint Unknown1; // also action ID; dissector calls it ItemId - matches actionId of ActionEffectHeader
             public float CastTime;
             public uint TargetID;
             public float Rotation; // in radians
@@ -259,6 +253,7 @@ namespace BossMod
             ToggleActionUnlock = 41, // from dissector
             UpdateUiExp = 43, // from dissector
             DmgTakenMsg = 45, // from dissector
+            TetherCancel = 47,
             SetTarget = 50, // from dissector
             Targetable = 54, // dissector calls it ToggleNameHidden
             LimitBreakStart = 71, // from dissector
@@ -497,52 +492,50 @@ namespace BossMod
             public ushort Unknown4;
         }
 
-        [Flags]
-        public enum WaymarkType : byte
-        {
-            A = 0x1,
-            B = 0x2,
-            C = 0x4,
-            D = 0x8,
-            One = 0x10,
-            Two = 0x20,
-            Three = 0x40,
-            Four = 0x80,
-        };
-
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public unsafe struct Server_Waymark
         {
-            public enum WaymarkStatus : byte
-            {
-                Off = 0,
-                On = 1
-            };
-            public WaymarkType Waymark;
-            public WaymarkStatus Status;
+            public WorldState.Waymark Waymark;
+            public byte Active; // 0=off, 1=on
             public ushort unknown;
             public int PosX;
-            public int PosZ;// To calculate 'float' coords from these you cast them to float and then divide by 1000.0
-            public int PosY;
+            public int PosY;// To calculate 'float' coords from these you cast them to float and then divide by 1000.0
+            public int PosZ;
         }
 
-        // Thanks to Discord user Wintermute for decoding this
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public unsafe struct Server_PresetWaymark
         {
-            public WaymarkType WaymarkType;
+            public byte WaymarkMask;
             public byte Unknown1;
             public short Unknown2;
             public fixed int PosX[8];// Xints[0] has X of waymark A, Xints[1] X of B, etc.
-            public fixed int PosZ[8];// To calculate 'float' coords from these you cast them to float and then divide by 1000.0
-            public fixed int PosY[8];
+            public fixed int PosY[8];// To calculate 'float' coords from these you cast them to float and then divide by 1000.0
+            public fixed int PosZ[8];
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public unsafe struct Server_EnvironmentControl
+        {
+            public uint FeatureID; // seen 0x80xxxxxx, seems to be unique identifier of controlled feature
+            public uint State; // typically hiword and loword both have one bit set
+            public ushort u0; // padding?
+            public byte u1; // padding?
+            public byte Index; // if feature has multiple elements, this is a 0-based index of element
+            public uint u2; // padding?
         }
     }
 
     class Network : IDisposable
     {
-        public Network()
+        public bool DumpServer = false;
+        public bool DumpClient = false;
+
+        private WorldStateGame _ws;
+
+        public Network(WorldStateGame ws)
         {
+            _ws = ws;
             Service.GameNetwork.NetworkMessage += HandleMessage;
         }
 
@@ -556,136 +549,284 @@ namespace BossMod
             if (direction == NetworkMessageDirection.ZoneDown)
             {
                 // server->client
-                var header = (Protocol.Server_IPCHeader*)(dataPtr - 0x10);
-                Service.Log($"[Network] Server message {(Protocol.Opcode)opCode} -> {Utils.ObjectString(targetActorId)} (seq={header->Epoch})");
+                if (DumpServer)
+                {
+                    DumpServerMessage(dataPtr, opCode, targetActorId);
+                }
+
                 switch ((Protocol.Opcode)opCode)
                 {
                     case Protocol.Opcode.Ability1:
-                        {
-                            var p = (Protocol.Server_ActionEffect1*)dataPtr;
-                            HandleActionEffect(&p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 1, 0, 0);
-                            break;
-                        }
+                        HandleAbility1((Protocol.Server_ActionEffect1*)dataPtr, targetActorId);
+                        break;
                     case Protocol.Opcode.Ability8:
-                        {
-                            var p = (Protocol.Server_ActionEffect8*)dataPtr;
-                            HandleActionEffect(&p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 8, p->effectflags1, p->effectflags2);
-                            break;
-                        }
+                        HandleAbility8((Protocol.Server_ActionEffect8*)dataPtr, targetActorId);
+                        break;
                     case Protocol.Opcode.Ability16:
-                        {
-                            var p = (Protocol.Server_ActionEffect16*)dataPtr;
-                            HandleActionEffect(&p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 16, p->effectflags1, p->effectflags2);
-                            break;
-                        }
+                        HandleAbility16((Protocol.Server_ActionEffect16*)dataPtr, targetActorId);
+                        break;
                     case Protocol.Opcode.Ability24:
-                        {
-                            var p = (Protocol.Server_ActionEffect24*)dataPtr;
-                            HandleActionEffect(&p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 24, p->effectflags1, p->effectflags2);
-                            break;
-                        }
+                        HandleAbility24((Protocol.Server_ActionEffect24*)dataPtr, targetActorId);
+                        break;
                     case Protocol.Opcode.Ability32:
-                        {
-                            var p = (Protocol.Server_ActionEffect32*)dataPtr;
-                            HandleActionEffect(&p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 32, p->effectflags1, p->effectflags2);
-                            break;
-                        }
-                    case Protocol.Opcode.ActorCast:
-                        {
-                            var p = (Protocol.Server_ActorCast*)dataPtr;
-                            Service.Log($"[Network] - AID={Utils.ActionString(p->ActionID)}, type={p->SkillType}, target={Utils.ObjectString(p->TargetID)}, time={p->CastTime:f2}, rot={p->Rotation:f2}, x={p->PosX}, y={p->PosY}, z={p->PosZ}, u={p->Unknown:X2}, u1={Utils.ActionString(p->Unknown1)}, u2={Utils.ObjectString(p->Unknown2)}, u3={p->Unknown3:X4}");
-                            break;
-                        }
+                        HandleAbility32((Protocol.Server_ActionEffect32*)dataPtr, targetActorId);
+                        break;
                     case Protocol.Opcode.ActorControl:
-                        {
-                            var p = (Protocol.Server_ActorControl*)dataPtr;
-                            Service.Log($"[Network] - cat={p->category}, params={p->param1:X8} {p->param2:X8} {p->param3:X8} {p->param4:X8} {p->param5:X8}, unk={p->unk0:X4}");
-                            switch (p->category)
-                            {
-                                case Protocol.Server_ActorControlCategory.CancelAbility: // note: some successful boss casts have this message on completion, seen param1=param4=0, param2=1; param1 is related to cast time?..
-                                    Service.Log($"[Network] -- cancelled {Utils.ActionString(p->param3)}, interrupted={p->param4 == 1}");
-                                    break;
-                                case Protocol.Server_ActorControlCategory.GainEffect: // gain status effect, seen param2=param3=param4=0
-                                    Service.Log($"[Network] -- gained {Utils.StatusString(p->param1)}");
-                                    break;
-                                case Protocol.Server_ActorControlCategory.LoseEffect: // lose status effect, seen param2=param4=0, param3=invalid-oid
-                                    Service.Log($"[Network] -- lost {Utils.StatusString(p->param1)}");
-                                    break;
-                            }
-                            break;
-                        }
-                    case Protocol.Opcode.ActorControlSelf:
-                        {
-                            var p = (Protocol.Server_ActorControlSelf*)dataPtr;
-                            Service.Log($"[Network] - cat={p->category}, params={p->param1:X8} {p->param2:X8} {p->param3:X8} {p->param4:X8} {p->param5:X8} {p->param6:X8} {p->param7:X8}, unk={p->unk0:X4}");
-                            break;
-                        }
-                    case Protocol.Opcode.ActorControlTarget:
-                        {
-                            var p = (Protocol.Server_ActorControlTarget*)dataPtr;
-                            Service.Log($"[Network] - cat={p->category}, target={Utils.ObjectString(p->TargetID)}, params={p->param1:X8} {p->param2:X8} {p->param3:X8} {p->param4:X8} {p->param5:X8}, unk={p->unk0:X4} {p->unk1:X8}");
-                            break;
-                        }
-                    case Protocol.Opcode.ActorGauge:
-                        {
-                            var p = (Protocol.Server_ActorGauge*)dataPtr;
-                            Service.Log($"[Network] - params={p->param1:X} {p->param2:X} {p->param3:X} {p->param4:X}");
-                            break;
-                        }
-                    case Protocol.Opcode.EffectResult:
-                        {
-                            var p = (Protocol.Server_EffectResult*)dataPtr;
-                            Service.Log($"[Network] - seq={p->RelatedActionSequence}, actor={Utils.ObjectString(p->ActorID)}, hp={p->CurrentHP}/{p->MaxHP}, mp={p->CurrentMP}, shield={p->DamageShield}, u={p->Unknown1:X8} {p->Unknown3:X4} {p->Unknown6:X4}");
-                            var cnt = Math.Min(4, (int)p->EffectCount);
-                            for (int i = 0; i < cnt; ++i)
-                            {
-                                var eff = ((Protocol.Server_EffectResultEntry*)p->Effects) + i;
-                                Service.Log($"[Network] -- idx={eff->EffectIndex}, id={Utils.StatusString(eff->EffectID)}, dur={eff->duration:f2}, src={Utils.ObjectString(eff->SourceActorID)}, u={eff->unknown1:X2} {eff->unknown2:X4} {eff->unknown3:X4}");
-                            }
-                            break;
-                        }
-                    case Protocol.Opcode.EffectResultBasic:
-                        {
-                            var p = (Protocol.Server_EffectResultBasic*)dataPtr;
-                            Service.Log($"[Network] - seq={p->RelatedActionSequence}, actor={Utils.ObjectString(p->ActorID)}, hp={p->CurrentHP}, u={p->Unknown1:X8} {p->Unknown2:X8} {p->Unknown3:X4} {p->Unknown4:X4}");
-                            break;
-                        }
+                        HandleActorControl((Protocol.Server_ActorControl*)dataPtr, targetActorId);
+                        break;
+                    case Protocol.Opcode.EnvironmentControl:
+                        HandleEnvironmentControl((Protocol.Server_EnvironmentControl*)dataPtr, targetActorId);
+                        break;
                     case Protocol.Opcode.Waymark:
-                        {
-                            var p = (Protocol.Server_Waymark*)dataPtr;
-                            Service.Log($"[Network] - {p->Waymark}: {p->Status} at {p->PosX} {p->PosY} {p->PosZ}");
-                            break;
-                        }
+                        HandleWaymark((Protocol.Server_Waymark*)dataPtr);
+                        break;
                     case Protocol.Opcode.PresetWaymark:
-                        {
-                            var p = (Protocol.Server_PresetWaymark*)dataPtr;
-                            for (int i = 0; i < 8; ++i)
-                            {
-                                var t = (Protocol.WaymarkType)(1 << i);
-                                Service.Log($"[Network] - {t}: {((p->WaymarkType & t) == t ? Protocol.Server_Waymark.WaymarkStatus.On : Protocol.Server_Waymark.WaymarkStatus.Off)} at {p->PosX[i]} {p->PosY[i]} {p->PosZ[i]}");
-                            }
-                            break;
-                        }
-                    case (Protocol.Opcode)0xBF:
-                        {
-                            var p = (uint*)dataPtr;
-                            Service.Log($"[Network] - {p[0]:X8} {p[1]:X8} {p[2]:X8} {p[3]:X8}");
-                            break;
-                        }
+                        HandlePresetWaymark((Protocol.Server_PresetWaymark*)dataPtr);
+                        break;
                 }
             }
             else
             {
                 // client->server
-                //Service.Log($"[Network] Client message {opCode}");
+                if (DumpClient)
+                {
+                    DumpClientMessage(dataPtr, opCode);
+                }
             }
         }
 
-        private unsafe void HandleActionEffect(Protocol.Server_ActionEffectHeader* data, Protocol.Server_ActionEffect_EffectEntry* effects, ulong* targetIDs, uint maxTargets, uint flags1, ushort flags2)
+        private unsafe void HandleAbility1(Protocol.Server_ActionEffect1* p, uint actorID)
+        {
+            HandleAbility(actorID , & p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 1);
+        }
+
+        private unsafe void HandleAbility8(Protocol.Server_ActionEffect8* p, uint actorID)
+        {
+            HandleAbility(actorID, &p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 8);
+        }
+
+        private unsafe void HandleAbility16(Protocol.Server_ActionEffect16* p, uint actorID)
+        {
+            HandleAbility(actorID, &p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 16);
+        }
+
+        private unsafe void HandleAbility24(Protocol.Server_ActionEffect24* p, uint actorID)
+        {
+            HandleAbility(actorID, &p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 24);
+        }
+
+        private unsafe void HandleAbility32(Protocol.Server_ActionEffect32* p, uint actorID)
+        {
+            HandleAbility(actorID, &p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 32);
+        }
+
+        private unsafe void HandleAbility(uint casterID, Protocol.Server_ActionEffectHeader* header, Protocol.Server_ActionEffect_EffectEntry* effects, ulong* targetIDs, uint maxTargets)
+        {
+            var targets = Math.Min(header->effectCount, maxTargets);
+            uint validTargets = 0;
+            for (int i = 0; i < targets; ++i)
+            {
+                uint targetId = (uint)targetIDs[i];
+                if (targetId != 0)
+                    validTargets++;
+            }
+
+            var info = new WorldState.CastResult
+            {
+                CasterID = casterID,
+                MainTargetID = header->animationTargetId,
+                ActionID = header->actionType == WorldState.ActionType.Spell ? (uint)header->actionAnimationId : header->actionId, // note: for spells, actionId seems to be real id + some constant offset determined at zone-in, i've seen 200 and 209
+                ActionType = header->actionType,
+                AnimationLockTime = header->animationLockTime,
+                MaxTargets = maxTargets,
+                NumTargets = validTargets
+            };
+            _ws.DispatchEventCast(info);
+        }
+
+        private unsafe void HandleActorControl(Protocol.Server_ActorControl* p, uint actorID)
+        {
+            switch (p->category)
+            {
+                case Protocol.Server_ActorControlCategory.TargetIcon:
+                    _ws.DispatchEventIcon(actorID, p->param1);
+                    break;
+                case Protocol.Server_ActorControlCategory.Tether:
+                    {
+                        var act = _ws.FindActor(actorID);
+                        if (act != null)
+                            _ws.UpdateTether(act, new WorldState.TetherInfo { Target = p->param3, ID = p->param2 });
+                    }
+                    break;
+                case Protocol.Server_ActorControlCategory.TetherCancel:
+                    {
+                        var act = _ws.FindActor(actorID);
+                        if (act != null)
+                            _ws.UpdateTether(act, new());
+                    }
+                    break;
+            }
+        }
+
+        private unsafe void HandleEnvironmentControl(Protocol.Server_EnvironmentControl* p, uint actorID)
+        {
+            _ws.DispatchEventEnvControl(p->FeatureID, p->Index, p->State);
+        }
+
+        private unsafe void HandleWaymark(Protocol.Server_Waymark* p)
+        {
+            if (p->Waymark < WorldState.Waymark.Count)
+                _ws.SetWaymark(p->Waymark, p->Active != 0 ? new Vector3(p->PosX / 1000.0f, p->PosY / 1000.0f, p->PosZ / 1000.0f) : null);
+        }
+
+        private unsafe void HandlePresetWaymark(Protocol.Server_PresetWaymark* p)
+        {
+            byte mask = 1;
+            for (var i = WorldState.Waymark.A; i < WorldState.Waymark.Count; ++i)
+            {
+                _ws.SetWaymark(i, (p->WaymarkMask & mask) != 0 ? new Vector3(p->PosX[(byte)i] / 1000.0f, p->PosY[(byte)i] / 1000.0f, p->PosZ[(byte)i] / 1000.0f) : null);
+                mask <<= 1;
+            }
+        }
+
+        private unsafe void DumpClientMessage(IntPtr dataPtr, ushort opCode)
+        {
+            var header = (Protocol.Server_IPCHeader*)(dataPtr - 0x10);
+            Service.Log($"[Network] Client message {opCode} (seq = {header->Epoch})");
+        }
+
+        private unsafe void DumpServerMessage(IntPtr dataPtr, ushort opCode, uint targetActorId)
+        {
+            var header = (Protocol.Server_IPCHeader*)(dataPtr - 0x10);
+            Service.Log($"[Network] Server message {(Protocol.Opcode)opCode} -> {Utils.ObjectString(targetActorId)} (seq={header->Epoch})");
+            switch ((Protocol.Opcode)opCode)
+            {
+                case Protocol.Opcode.Ability1:
+                    {
+                        var p = (Protocol.Server_ActionEffect1*)dataPtr;
+                        DumpActionEffect(&p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 1, 0, 0);
+                        break;
+                    }
+                case Protocol.Opcode.Ability8:
+                    {
+                        var p = (Protocol.Server_ActionEffect8*)dataPtr;
+                        DumpActionEffect(&p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 8, p->effectflags1, p->effectflags2);
+                        break;
+                    }
+                case Protocol.Opcode.Ability16:
+                    {
+                        var p = (Protocol.Server_ActionEffect16*)dataPtr;
+                        DumpActionEffect(&p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 16, p->effectflags1, p->effectflags2);
+                        break;
+                    }
+                case Protocol.Opcode.Ability24:
+                    {
+                        var p = (Protocol.Server_ActionEffect24*)dataPtr;
+                        DumpActionEffect(&p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 24, p->effectflags1, p->effectflags2);
+                        break;
+                    }
+                case Protocol.Opcode.Ability32:
+                    {
+                        var p = (Protocol.Server_ActionEffect32*)dataPtr;
+                        DumpActionEffect(&p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 32, p->effectflags1, p->effectflags2);
+                        break;
+                    }
+                case Protocol.Opcode.ActorCast:
+                    {
+                        var p = (Protocol.Server_ActorCast*)dataPtr;
+                        Service.Log($"[Network] - AID={Utils.ActionString(p->ActionID, p->SkillType)}, target={Utils.ObjectString(p->TargetID)}, time={p->CastTime:f2}, rot={p->Rotation:f2}, x={p->PosX}, y={p->PosY}, z={p->PosZ}, u={p->Unknown:X2}, u1={Utils.ActionString(p->Unknown1)}, u2={Utils.ObjectString(p->Unknown2)}, u3={p->Unknown3:X4}");
+                        break;
+                    }
+                case Protocol.Opcode.ActorControl:
+                    {
+                        var p = (Protocol.Server_ActorControl*)dataPtr;
+                        Service.Log($"[Network] - cat={p->category}, params={p->param1:X8} {p->param2:X8} {p->param3:X8} {p->param4:X8} {p->param5:X8}, unk={p->unk0:X4}");
+                        switch (p->category)
+                        {
+                            case Protocol.Server_ActorControlCategory.CancelAbility: // note: some successful boss casts have this message on completion, seen param1=param4=0, param2=1; param1 is related to cast time?..
+                                Service.Log($"[Network] -- cancelled {Utils.ActionString(p->param3)}, interrupted={p->param4 == 1}");
+                                break;
+                            case Protocol.Server_ActorControlCategory.GainEffect: // gain status effect, seen param2=param3=param4=0
+                                Service.Log($"[Network] -- gained {Utils.StatusString(p->param1)}");
+                                break;
+                            case Protocol.Server_ActorControlCategory.LoseEffect: // lose status effect, seen param2=param4=0, param3=invalid-oid
+                                Service.Log($"[Network] -- lost {Utils.StatusString(p->param1)}");
+                                break;
+                        }
+                        break;
+                    }
+                case Protocol.Opcode.ActorControlSelf:
+                    {
+                        var p = (Protocol.Server_ActorControlSelf*)dataPtr;
+                        Service.Log($"[Network] - cat={p->category}, params={p->param1:X8} {p->param2:X8} {p->param3:X8} {p->param4:X8} {p->param5:X8} {p->param6:X8} {p->param7:X8}, unk={p->unk0:X4}");
+                        switch (p->category)
+                        {
+                            case Protocol.Server_ActorControlCategory.Cooldown:
+                                Service.Log($"[Network] -- group={p->param1}, action={Utils.ActionString(p->param2)}, time={p->param3 / 100.0f:f2}s");
+                                break;
+                        }
+                        break;
+                    }
+                case Protocol.Opcode.ActorControlTarget:
+                    {
+                        var p = (Protocol.Server_ActorControlTarget*)dataPtr;
+                        Service.Log($"[Network] - cat={p->category}, target={Utils.ObjectString(p->TargetID)}, params={p->param1:X8} {p->param2:X8} {p->param3:X8} {p->param4:X8} {p->param5:X8}, unk={p->unk0:X4} {p->unk1:X8}");
+                        break;
+                    }
+                case Protocol.Opcode.ActorGauge:
+                    {
+                        var p = (Protocol.Server_ActorGauge*)dataPtr;
+                        Service.Log($"[Network] - params={p->param1:X} {p->param2:X} {p->param3:X} {p->param4:X}");
+                        break;
+                    }
+                case Protocol.Opcode.EffectResult:
+                    {
+                        var p = (Protocol.Server_EffectResult*)dataPtr;
+                        Service.Log($"[Network] - seq={p->RelatedActionSequence}, actor={Utils.ObjectString(p->ActorID)}, hp={p->CurrentHP}/{p->MaxHP}, mp={p->CurrentMP}, shield={p->DamageShield}, u={p->Unknown1:X8} {p->Unknown3:X4} {p->Unknown6:X4}");
+                        var cnt = Math.Min(4, (int)p->EffectCount);
+                        for (int i = 0; i < cnt; ++i)
+                        {
+                            var eff = ((Protocol.Server_EffectResultEntry*)p->Effects) + i;
+                            Service.Log($"[Network] -- idx={eff->EffectIndex}, id={Utils.StatusString(eff->EffectID)}, dur={eff->duration:f2}, src={Utils.ObjectString(eff->SourceActorID)}, u={eff->unknown1:X2} {eff->unknown2:X4} {eff->unknown3:X4}");
+                        }
+                        break;
+                    }
+                case Protocol.Opcode.EffectResultBasic:
+                    {
+                        var p = (Protocol.Server_EffectResultBasic*)dataPtr;
+                        Service.Log($"[Network] - seq={p->RelatedActionSequence}, actor={Utils.ObjectString(p->ActorID)}, hp={p->CurrentHP}, u={p->Unknown1:X8} {p->Unknown2:X8} {p->Unknown3:X4} {p->Unknown4:X4}");
+                        break;
+                    }
+                case Protocol.Opcode.Waymark:
+                    {
+                        var p = (Protocol.Server_Waymark*)dataPtr;
+                        Service.Log($"[Network] - {p->Waymark}: {p->Active} at {p->PosX / 1000.0f:f3} {p->PosY / 1000.0f:f3} {p->PosZ / 1000.0f:f3}");
+                        break;
+                    }
+                case Protocol.Opcode.PresetWaymark:
+                    {
+                        var p = (Protocol.Server_PresetWaymark*)dataPtr;
+                        for (int i = 0; i < 8; ++i)
+                        {
+                            Service.Log($"[Network] - {(WorldState.Waymark)i}: {(p->WaymarkMask & (1 << i)) != 0} at {p->PosX[i] / 1000.0f:f3} {p->PosY[i] / 1000.0f:f3} {p->PosZ[i] / 1000.0f:f3}");
+                        }
+                        break;
+                    }
+                case Protocol.Opcode.EnvironmentControl:
+                    {
+                        var p = (Protocol.Server_EnvironmentControl*)dataPtr;
+                        Service.Log($"[Network] - {p->FeatureID:X8}.{p->Index:X2}: {p->State:X8}, u={p->u0:X4} {p->u1:X2} {p->u2:X8}");
+                        break;
+                    }
+            }
+        }
+
+        private unsafe void DumpActionEffect(Protocol.Server_ActionEffectHeader* data, Protocol.Server_ActionEffect_EffectEntry* effects, ulong* targetIDs, uint maxTargets, uint flags1, ushort flags2)
         {
             // rotation: 0 -> -180, 65535 -> +180
             float rot = (data->rotation / 65535.0f * 360.0f) - 180.0f;
-            Service.Log($"[Network] - AID={Utils.ActionString(data->actionId)}, animAID={Utils.ActionString(data->actionAnimationId)}, animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, animHidden={data->hiddenAnimation}, type={data->effectDisplayType}, someTarget={Utils.ObjectString(data->SomeTargetID)}, rot={rot:f0}, var={data->variation}, cntr={data->globalEffectCounter}, flags={flags1:X8} {flags2:X4}, u={data->unknown:X8} {data->unknown20:X2} {data->padding21:X4}");
+            uint aid = data->actionType == WorldState.ActionType.Spell ? data->actionAnimationId : data->actionId;
+            Service.Log($"[Network] - AID={Utils.ActionString(aid, data->actionType)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, animHidden={data->hiddenAnimation}, someTarget={Utils.ObjectString(data->SomeTargetID)}, rot={rot:f0}, var={data->variation}, cntr={data->globalEffectCounter}, flags={flags1:X8} {flags2:X4}, u={data->unknown:X8} {data->unknown20:X2} {data->padding21:X4}");
             var targets = Math.Min(data->effectCount, maxTargets);
             for (int i = 0; i < targets; ++i)
             {

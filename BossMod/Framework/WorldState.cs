@@ -53,6 +53,19 @@ namespace BossMod
             }
         }
 
+        public enum Waymark : byte { A, B, C, D, N1, N2, N3, N4, Count }
+        private Vector3?[] _waymarks = new Vector3?[8];
+        public event EventHandler<(Waymark, Vector3?)>? WaymarkChanged;
+        public Vector3? GetWaymark(Waymark i) => _waymarks[(int)i];
+        public void SetWaymark(Waymark i, Vector3? v)
+        {
+            if (GetWaymark(i) != v)
+            {
+                _waymarks[(int)i] = v;
+                WaymarkChanged?.Invoke(this, (i, v));
+            }
+        }
+
         // objkind << 8 + objsubkind
         public enum ActorType
         {
@@ -76,14 +89,43 @@ namespace BossMod
             CardStand = 0xE00,
         }
 
+        // matches FFXIVClientStructs.FFXIV.Client.Game.ActionType
+        public enum ActionType : byte
+        {
+            None = 0,
+            Spell = 1,
+            Item = 2,
+            KeyItem = 3,
+            Ability = 4,
+            General = 5,
+            Companion = 6,
+            CraftAction = 9,
+            MainCommand = 10,
+            PetAction = 11,
+            Mount = 13,
+            PvPAction = 14,
+            Waymark = 15,
+            ChocoboRaceAbility = 16,
+            ChocoboRaceItem = 17,
+            SquadronAction = 19,
+            Accessory = 20
+        }
+
         public class CastInfo
         {
-            public byte ActionType;
+            public ActionType ActionType;
             public uint ActionID;
             public uint TargetID;
             public Vector3 Location;
             public float CurrentTime;
             public float TotalTime;
+        }
+
+        // note on tethers - it is N:1 type of relation, actor can be tethered to 0 or 1 actors, but can itself have multiple actors tethering themselves to itself
+        public struct TetherInfo
+        {
+            public uint Target; // instance id
+            public uint ID;
         }
 
         public struct Status
@@ -103,12 +145,14 @@ namespace BossMod
             public Vector3 Position = new();
             public float Rotation; // 0 = pointing S, pi/2 = pointing E, pi = pointing N, -pi/2 = pointing W
             public float HitboxRadius;
+            public bool IsTargetable;
             public bool IsDead;
             public uint TargetID;
             public CastInfo? CastInfo;
+            public TetherInfo Tether = new();
             public Status[] Statuses = new Status[30]; // empty slots have ID=0
 
-            public Actor(uint instanceID, uint oid, ActorType type, Vector3 pos, float rot, float hitboxRadius)
+            public Actor(uint instanceID, uint oid, ActorType type, Vector3 pos, float rot, float hitboxRadius, bool targetable)
             {
                 InstanceID = instanceID;
                 OID = oid;
@@ -116,11 +160,17 @@ namespace BossMod
                 Position = pos;
                 Rotation = rot;
                 HitboxRadius = hitboxRadius;
+                IsTargetable = targetable;
             }
 
             public Status? FindStatus(uint sid)
             {
                 return Array.Find(Statuses, x => x.ID == sid);
+            }
+
+            public Vector3 DirectionFront()
+            {
+                return new(MathF.Sin(Rotation), 0, MathF.Cos(Rotation));
             }
         }
 
@@ -139,9 +189,9 @@ namespace BossMod
         }
 
         public event EventHandler<Actor>? ActorCreated;
-        public Actor AddActor(uint instanceID, uint oid, ActorType type, Vector3 pos, float rot, float hitboxRadius)
+        public Actor AddActor(uint instanceID, uint oid, ActorType type, Vector3 pos, float rot, float hitboxRadius, bool targetable)
         {
-            var act = _actors[instanceID] = new Actor(instanceID, oid, type, pos, rot, hitboxRadius);
+            var act = _actors[instanceID] = new Actor(instanceID, oid, type, pos, rot, hitboxRadius, targetable);
             ActorCreated?.Invoke(this, act);
             return act;
         }
@@ -149,7 +199,14 @@ namespace BossMod
         public event EventHandler<Actor>? ActorDestroyed;
         public void RemoveActor(uint instanceID)
         {
-            ActorDestroyed?.Invoke(this, _actors[instanceID]);
+            var actor = FindActor(instanceID);
+            if (actor == null)
+                return; // nothing to remove
+
+            UpdateCastInfo(actor, null); // stop casting
+            UpdateTether(actor, new()); // untether
+            UpdateStatuses(actor, new Status[30]); // clear statuses
+            ActorDestroyed?.Invoke(this, actor);
             _actors.Remove(instanceID);
         }
 
@@ -163,6 +220,16 @@ namespace BossMod
                 act.Position = newPos;
                 act.Rotation = newRot;
                 ActorMoved?.Invoke(this, (act, prevPos, prevRot));
+            }
+        }
+
+        public event EventHandler<Actor>? ActorIsTargetableChanged; // actor contains new state, old is inverted
+        public void ChangeActorIsTargetable(Actor act, bool newTargetable)
+        {
+            if (act.IsTargetable != newTargetable)
+            {
+                act.IsTargetable = newTargetable;
+                ActorIsTargetableChanged?.Invoke(this, act);
             }
         }
 
@@ -188,7 +255,7 @@ namespace BossMod
         }
 
         public event EventHandler<Actor>? ActorCastStarted;
-        public event EventHandler<Actor>? ActorCastFinished; // note that actor structure still contains cast details when this is invoked; not invoked if actor disappears without finishing cast?..
+        public event EventHandler<Actor>? ActorCastFinished; // note that actor structure still contains cast details when this is invoked; invoked if actor disappears without finishing cast
         public void UpdateCastInfo(Actor act, CastInfo? cast)
         {
             if (cast == null && act.CastInfo == null)
@@ -215,9 +282,27 @@ namespace BossMod
             }
         }
 
+        public event EventHandler<Actor>? ActorTethered;
+        public event EventHandler<Actor>? ActorUntethered; // note that actor structure still contains previous tether info when this is invoked; invoked if actor disappears without untethering
+        public void UpdateTether(Actor act, TetherInfo tether)
+        {
+            if (act.Tether.Target == tether.Target && act.Tether.ID == tether.ID)
+                return; // nothing changes
+
+            if (act.Tether.Target != 0)
+            {
+                ActorUntethered?.Invoke(this, act);
+            }
+            act.Tether = tether;
+            if (act.Tether.Target != 0)
+            {
+                ActorTethered?.Invoke(this, act);
+            }
+        }
+
         // argument = actor + status index; TODO stack/param notifications?...
         public event EventHandler<(Actor, int)>? ActorStatusGain;
-        public event EventHandler<(Actor, int)>? ActorStatusLose; // note that status structure still contains details when this is invoked; not invoked if actor disappears
+        public event EventHandler<(Actor, int)>? ActorStatusLose; // note that status structure still contains details when this is invoked; invoked if actor disappears
         public void UpdateStatuses(Actor act, Status[] statuses)
         {
             for (int i = 0; i < act.Statuses.Length; ++i)
@@ -243,6 +328,35 @@ namespace BossMod
                     ActorStatusGain?.Invoke(this, (act, i));
                 }
             }
+        }
+
+        // instant events
+        public event EventHandler<(uint, uint)>? EventIcon; // TODO: this should really be an actor field, but I have no idea what triggers icon clear...
+        public void DispatchEventIcon(uint actorID, uint iconID)
+        {
+            EventIcon?.Invoke(this, (actorID, iconID));
+        }
+
+        public class CastResult
+        {
+            public uint CasterID;
+            public uint MainTargetID; // note that actual affected targets could be completely different
+            public uint ActionID;
+            public ActionType ActionType;
+            public float AnimationLockTime;
+            public uint MaxTargets;
+            public uint NumTargets; // note: consider storing per-target ID and effects here...
+        }
+        public event EventHandler<CastResult>? EventCast;
+        public void DispatchEventCast(CastResult info)
+        {
+            EventCast?.Invoke(this, info);
+        }
+
+        public event EventHandler<(uint, byte, uint)>? EventEnvControl;
+        public void DispatchEventEnvControl(uint featureID, byte index, uint state)
+        {
+            EventEnvControl?.Invoke(this, (featureID, index, state));
         }
     }
 }

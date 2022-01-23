@@ -68,7 +68,7 @@ namespace BossMod
                     {
                         var target = Service.ObjectTable.SearchById(chara.CastTargetObjectId);
                         var targetString = target ? Utils.ObjectString(target!) : "unknown";
-                        res.Append($", castAction={Utils.ActionString(chara.CastActionId)}, castTarget={targetString}, castLoc={Utils.Vec3String(Utils.BattleCharaCastLocation(chara))}, castTime={Utils.CastTimeString(chara.CurrentCastTime, chara.TotalCastTime)}");
+                        res.Append($", castAction={Utils.ActionString(chara.CastActionId, (WorldState.ActionType)chara.CastActionType)}, castTarget={targetString}, castLoc={Utils.Vec3String(Utils.BattleCharaCastLocation(chara))}, castTime={Utils.CastTimeString(chara.CurrentCastTime, chara.TotalCastTime)}");
                     }
                     foreach (var status in chara!.StatusList)
                     {

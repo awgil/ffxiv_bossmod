@@ -8,12 +8,45 @@
             return (vector & (1 << i)) != 0;
         }
 
-        public static void SetVector8Bit(ref byte vector, int i, bool v)
+        public static void SetVector8Bit(ref byte vector, int i)
+        {
+            vector |= (byte)(1 << i);
+        }
+
+        public static void ClearVector8Bit(ref byte vector, int i)
+        {
+            vector &= (byte)~(1 << i);
+        }
+
+        public static void ModifyVector8Bit(ref byte vector, int i, bool v)
         {
             if (v)
-                vector |= (byte)(1 << i);
+                SetVector8Bit(ref vector, i);
             else
-                vector &= (byte)~(1 << i);
+                ClearVector8Bit(ref vector, i);
+        }
+
+        public static bool IsVector64BitSet(ulong vector, int i)
+        {
+            return (vector & (1ul << i)) != 0;
+        }
+
+        public static void SetVector64Bit(ref ulong vector, int i)
+        {
+            vector |= (byte)(1ul << i);
+        }
+
+        public static void ClearVector64Bit(ref ulong vector, int i)
+        {
+            vector &= (byte)~(1ul << i);
+        }
+
+        public static void ModifyVector64Bit(ref ulong vector, int i, bool v)
+        {
+            if (v)
+                SetVector64Bit(ref vector, i);
+            else
+                ClearVector64Bit(ref vector, i);
         }
 
         public static bool IsMatrix8x8BitSet(ulong matrix, int i, int j)

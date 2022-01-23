@@ -16,7 +16,7 @@ namespace UIDev
 
         public StateMachineTest()
         {
-            _ws.AddActor(1, 1, WorldState.ActorType.Enemy, new Vector3(), 0, 1);
+            _ws.AddActor(1, 1, WorldState.ActorType.Enemy, new Vector3(), 0, 1, true);
 
             var s = CommonStates.Timeout(ref _initial, 2, "Initial");
             s = CommonStates.Timeout(ref s.Next, 2);

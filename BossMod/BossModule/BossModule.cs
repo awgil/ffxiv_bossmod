@@ -1,5 +1,7 @@
 ﻿using ImGuiNET;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace BossMod
@@ -9,6 +11,7 @@ namespace BossMod
     {
         public WorldState WorldState { get; init; }
         public WorldState.Actor?[] RaidMembers; // this is fixed-size, but some slots could be empty; when player is removed, gap is created - existing players keep their indices
+        public WorldState.Actor? RaidMember(int slot) => (slot >= 0 && slot < RaidMembers.Length) ? RaidMembers[slot] : null; // bounds-checking accessor
         public int PlayerSlot { get; private set; } = -1;
         public StateMachine StateMachine { get; init; } = new();
         public StateMachine.State? InitialState = null;
@@ -71,34 +74,52 @@ namespace BossMod
             return instanceID != 0 ? Array.FindIndex(RaidMembers, x => x != null && x.InstanceID == instanceID) : -1;
         }
 
-        // returns mask
-        public ulong FindRaidMembersInRange(Vector3 position, float radius, bool includeDead = false)
+        // iterate over raid members, skipping empty slots and optionally dead players
+        public IEnumerable<(int, WorldState.Actor)> IterateRaidMembers(bool includeDead = false)
         {
-            var rsq = radius * radius;
-            ulong mask = 0;
             for (int i = 0; i < RaidMembers.Length; ++i)
             {
-                var target = RaidMembers[i];
-                if (target == null)
+                var player = RaidMembers[i];
+                if (player == null)
                     continue;
-                if (target.IsDead && !includeDead)
+                if (player.IsDead && !includeDead)
                     continue;
-                if ((target.Position - position).LengthSquared() > rsq)
-                    continue;
-                mask |= 1ul << i;
+                yield return (i, player);
             }
+        }
+
+        public ulong BuildMask(IEnumerable<(int, WorldState.Actor)> players)
+        {
+            ulong mask = 0;
+            foreach ((var i, _) in players)
+                BitVector.SetVector64Bit(ref mask, i);
             return mask;
         }
 
-        public ulong FindRaidMembersInRange(int slot, float radius, bool includeSelf = false, bool includeDead = false)
+        // note that overloads accepting actor ignore self; use overload accepting position if self is needed
+        public IEnumerable<(int, WorldState.Actor)> IterateRaidMembersInRange(Vector3 position, float radius, bool includeDead = false)
         {
-            var actor = RaidMembers[slot];
+            var rsq = radius * radius;
+            return IterateRaidMembers(includeDead).Where(indexActor => (indexActor.Item2.Position - position).LengthSquared() <= rsq);
+        }
+
+        public IEnumerable<(int, WorldState.Actor)> IterateRaidMembersInRange(int slot, float radius, bool includeDead = false)
+        {
+            var actor = RaidMember(slot);
             if (actor == null)
-                return 0;
-            var mask = FindRaidMembersInRange(actor.Position, radius, includeDead);
-            if (!includeSelf)
-                mask &= ~(1ul << slot);
-            return mask;
+                return Enumerable.Empty<(int, WorldState.Actor)>();
+            var rsq = radius * radius;
+            return IterateRaidMembers(includeDead).Where(indexActor => indexActor.Item1 != slot && (indexActor.Item2.Position - actor.Position).LengthSquared() <= rsq);
+        }
+
+        public ulong FindRaidMembersInRange(Vector3 position, float radius, bool includeDead = false)
+        {
+            return BuildMask(IterateRaidMembersInRange(position, radius, includeDead));
+        }
+
+        public ulong FindRaidMembersInRange(int slot, float radius, bool includeDead = false)
+        {
+            return BuildMask(IterateRaidMembersInRange(slot, radius, includeDead));
         }
 
         protected virtual void DrawHeader() { }

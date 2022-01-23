@@ -3,6 +3,7 @@ using Dalamud.IoC;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 using ImGuiNET;
+using System;
 using System.Numerics;
 
 namespace BossMod
@@ -15,6 +16,7 @@ namespace BossMod
         private DebugEventLogger _debugLogger;
         private BossModule? _activeModule;
         private Autorotation _autorotation;
+        private Network _network;
         private bool _autorotationUIVisible = true;
 
         private DalamudPluginInterface PluginInterface { get; init; }
@@ -30,6 +32,7 @@ namespace BossMod
             //Service.Device = pluginInterface.UiBuilder.Device;
             Camera.Instance = new();
             _autorotation = new();
+            _network = new(_ws);
 
             _debugLogger = new DebugEventLogger(_ws);
 
@@ -65,6 +68,7 @@ namespace BossMod
         {
             WindowManager.Reset();
             _debugLogger.Dispose();
+            _network.Dispose();
             _autorotation.Dispose();
             _activeModule?.Dispose();
             _ws.CurrentZoneChanged -= ZoneChanged;
@@ -75,7 +79,7 @@ namespace BossMod
 
         private void OpenDebugUI()
         {
-            var ui = new DebugUI(_ws, _autorotation);
+            var ui = new DebugUI(_ws, _network, _autorotation);
             var w = WindowManager.CreateWindow("Boss mod debug UI", ui.Draw, ui.Dispose);
             w.SizeHint = new Vector2(300, 200);
         }
@@ -124,19 +128,28 @@ namespace BossMod
 
             if (_activeModule != null)
             {
-                _activeModule.Update();
+                try
+                {
+                    _activeModule.Update();
 
-                ImGui.SetNextWindowSize(new Vector2(400, 400), ImGuiCond.FirstUseEver);
-                ImGui.SetNextWindowSizeConstraints(new Vector2(400, 400), new Vector2(float.MaxValue, float.MaxValue));
-                bool visible = true;
-                if (ImGui.Begin("Boss module", ref visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
-                {
-                    _activeModule.Draw(Camera.Instance?.CameraAzimuth ?? 0);
+                    ImGui.SetNextWindowSize(new Vector2(400, 400), ImGuiCond.FirstUseEver);
+                    ImGui.SetNextWindowSizeConstraints(new Vector2(400, 400), new Vector2(float.MaxValue, float.MaxValue));
+                    bool visible = true;
+                    if (ImGui.Begin("Boss module", ref visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+                    {
+                        _activeModule.Draw(Camera.Instance?.CameraAzimuth ?? 0);
+                    }
+                    ImGui.End();
+                    if (!visible)
+                    {
+                        _activeModule.Dispose();
+                        _activeModule = null;
+                    }
                 }
-                ImGui.End();
-                if (!visible)
+                catch (Exception ex)
                 {
-                    _activeModule.Dispose();
+                    PluginLog.Error(ex, "Boss module crashed");
+                    _activeModule?.Dispose();
                     _activeModule = null;
                 }
             }

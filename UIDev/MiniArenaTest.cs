@@ -11,7 +11,7 @@ namespace UIDev
         private MiniArena _arena = new();
         private float _azimuth;
         private float _altitude = 90;
-        private bool _lineEnabled;
+        //private bool _lineEnabled;
         private bool _coneEnabled = true;
         private List<Vector3> _shapeVertices = new();
         private Vector4 _lineEnds = new(90, 90, 110, 110);
