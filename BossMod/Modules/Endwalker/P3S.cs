@@ -184,12 +184,8 @@ namespace BossMod
                 if (CurState == State.None || self._boss == null)
                     return;
 
-                var offFront = 50 * self._boss.DirectionFront();
-                var offSide = CurState == State.Right ? new Vector3(-offFront.Z, 0, offFront.X) : new Vector3(offFront.Z, 0, -offFront.X);
-                var pFront = self._boss.Position + offFront;
-                var pBack = self._boss.Position - offFront;
-
-                self.Arena.ZoneQuad(pFront, pFront + offSide, pBack + offSide, pBack, self.Arena.ColorAOE);
+                float rot = CurState == State.Left ? MathF.PI / 2 : -MathF.PI / 2;
+                self.Arena.ZoneQuad(self._boss.Position, self._boss.Rotation + rot, 50, 0, 50, self.Arena.ColorAOE);
             }
 
             public void AddHints(P3S self, StringBuilder res)
@@ -267,15 +263,15 @@ namespace BossMod
                     return;
 
                 var dir = Vector3.Normalize(self.Arena.WorldCenter - self._boss.Position);
-                var normal = new Vector3(-dir.Z, 0, dir.X);
                 if (CurState == State.Center)
                 {
-                    DrawZone(self, self._boss.Position, dir, normal);
+                    self.Arena.ZoneQuad(self._boss.Position, dir, 2 * self.Arena.WorldHalfSize, 0, _halfWidth, self.Arena.ColorAOE);
                 }
                 else
                 {
-                    DrawZone(self, self._boss.Position + _sidesOffset * normal, dir, normal);
-                    DrawZone(self, self._boss.Position - _sidesOffset * normal, dir, normal);
+                    var offset = _sidesOffset * new Vector3(-dir.Z, 0, dir.X);
+                    self.Arena.ZoneQuad(self._boss.Position + offset, dir, 2 * self.Arena.WorldHalfSize, 0, _halfWidth, self.Arena.ColorAOE);
+                    self.Arena.ZoneQuad(self._boss.Position - offset, dir, 2 * self.Arena.WorldHalfSize, 0, _halfWidth, self.Arena.ColorAOE);
                 }
             }
 
@@ -330,15 +326,6 @@ namespace BossMod
                         res.Append("Stack in pairs! ");
                     }
                 }
-            }
-
-            private void DrawZone(P3S self, Vector3 origin, Vector3 dir, Vector3 normal)
-            {
-                var sideOff = _halfWidth * normal;
-                var farOff = 2 * self.Arena.WorldHalfSize * dir;
-                var p1 = origin + sideOff;
-                var p2 = origin - sideOff;
-                self.Arena.ZoneQuad(p1, p1 + farOff, p2 + farOff, p2, self.Arena.ColorAOE);
             }
 
             private bool InZone(Vector3 pos, Vector3 origin, Vector3 normal)
@@ -672,9 +659,9 @@ namespace BossMod
                 // draw aoe zones for imminent charges (TODO: only if player is standing in one, to reduce visual clutter?)
                 foreach ((var from, var to) in ImminentCharges(self))
                 {
-                    var dir = Vector3.Normalize(to.Position - from.Position);
-                    var off = _chargeHalfWidth * new Vector3(-dir.Z, 0, dir.X);
-                    self.Arena.ZoneQuad(from.Position + off, to.Position + off, to.Position - off, from.Position - off, self.Arena.ColorAOE);
+                    var offset = to.Position - from.Position;
+                    var dist = offset.Length();
+                    self.Arena.ZoneQuad(from.Position, offset / dist, dist, 0, _chargeHalfWidth, self.Arena.ColorAOE);
                 }
             }
 
@@ -769,9 +756,7 @@ namespace BossMod
                         continue;
 
                     var dir = Vector3.Normalize(target.Position - bird.Position);
-                    var front = dir * 50; // charge continues to "infinity"
-                    var off = _chargeHalfWidth * new Vector3(-dir.Z, 0, dir.X);
-                    self.Arena.ZoneQuad(bird.Position + off, front + off, front - off, bird.Position - off, self.Arena.ColorAOE);
+                    self.Arena.ZoneQuad(bird.Position, dir, 50, 0, _chargeHalfWidth, self.Arena.ColorAOE);
                 }
             }
 

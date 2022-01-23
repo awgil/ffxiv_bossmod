@@ -1,6 +1,8 @@
 ﻿using ImGuiNET;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
+using System.Text;
 
 namespace BossMod
 {
@@ -42,11 +44,125 @@ namespace BossMod
             ChannelingOverflow = 28098, // Boss->Boss (both 2nd and 3rd arrows)
         };
 
+        // state related to sewage deluge mechanic
+        private class SewageDeluge
+        {
+            public enum Corner { None, NW, NE, SW, SE };
+            public Corner BlockedCorner = Corner.None;
+
+            private float _offsetCorner = 9.5f; // not sure
+            private float _cornerHalfSize = 4; // not sure
+            private float _connectHalfWidth = 2; // not sure
+
+            private static Vector3[] _corners = { new(), new(-1, 0, -1), new(1, 0, -1), new(-1, 0, 1), new Vector3(1, 0, 1) };
+
+            public void DrawArenaBackground(P2S self)
+            {
+                if (BlockedCorner == Corner.None)
+                    return; // inactive
+
+                // central area + H additionals
+                var centerWidth = _offsetCorner - _cornerHalfSize;
+                var sideDiff = _cornerHalfSize - _connectHalfWidth;
+                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitX, centerWidth + sideDiff, centerWidth + sideDiff, centerWidth, self.Arena.ColorAOE);
+                // central V additionals
+                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitZ, centerWidth + sideDiff, -centerWidth, centerWidth, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter, -Vector3.UnitZ, centerWidth + sideDiff, -centerWidth, centerWidth, self.Arena.ColorAOE);
+                // outer additionals
+                var outerWidth = _offsetCorner + _cornerHalfSize;
+                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitX, outerWidth, -outerWidth + sideDiff, centerWidth, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter, -Vector3.UnitX, outerWidth, -outerWidth + sideDiff, centerWidth, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitZ, outerWidth, -outerWidth + sideDiff, centerWidth, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter, -Vector3.UnitZ, outerWidth, -outerWidth + sideDiff, centerWidth, self.Arena.ColorAOE);
+                // outer area
+                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitX, self.Arena.WorldHalfSize, -outerWidth, self.Arena.WorldHalfSize, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter, -Vector3.UnitX, self.Arena.WorldHalfSize, -outerWidth, self.Arena.WorldHalfSize, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitZ, self.Arena.WorldHalfSize, -outerWidth, outerWidth, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter, -Vector3.UnitZ, self.Arena.WorldHalfSize, -outerWidth, outerWidth, self.Arena.ColorAOE);
+
+                var corner = self.Arena.WorldCenter + _corners[(int)BlockedCorner] * _offsetCorner;
+                self.Arena.ZoneQuad(corner, Vector3.UnitX, _cornerHalfSize, _cornerHalfSize, _cornerHalfSize, self.Arena.ColorAOE);
+            }
+        }
+
+        // state related to cataract mechanic
+        private class Cataract
+        {
+            public enum State { None, Winged, Spoken }
+            public State CurState = State.None;
+
+            private static float _halfWidth = 7.5f;
+
+            public void DrawArenaBackground(P2S self)
+            {
+                if (CurState == State.None || self._boss == null)
+                    return;
+
+                self.Arena.ZoneQuad(self._boss.Position, self._boss.Rotation, self.Arena.WorldHalfSize, self.Arena.WorldHalfSize, _halfWidth, self.Arena.ColorAOE);
+
+                if (self._cataractHead?.CastInfo != null)
+                {
+                    float headRot = CurState == State.Winged ? MathF.PI : 0;
+                    self.Arena.ZoneQuad(self._cataractHead.Position, self._cataractHead.Rotation + headRot, self.Arena.WorldHalfSize, 0, self.Arena.WorldHalfSize, self.Arena.ColorAOE);
+                }
+            }
+
+            public void AddHints(P2S self, StringBuilder res)
+            {
+                var pc = self.RaidMember(self.PlayerSlot);
+                if (CurState == State.None || self._boss == null || pc == null)
+                    return;
+
+                if (GeometryUtils.PointInRect(pc.Position - self._boss.Position, self._boss.Rotation, self.Arena.WorldHalfSize, self.Arena.WorldHalfSize, _halfWidth))
+                {
+                    res.Append("GTFO from cataract! ");
+                    return;
+                }
+
+                if (self._cataractHead?.CastInfo != null)
+                {
+                    float headRot = CurState == State.Winged ? MathF.PI : 0;
+                    if (GeometryUtils.PointInRect(pc.Position - self._cataractHead.Position, self._cataractHead.Rotation + headRot, self.Arena.WorldHalfSize, 0, self.Arena.WorldHalfSize))
+                    {
+                        res.Append("GTFO from cataract! ");
+                    }
+                }
+            }
+        }
+
+        // state related to dissociation mechanic
+        private class Dissociation
+        {
+            private static float _halfWidth = 10;
+
+            public void DrawArenaBackground(P2S self)
+            {
+                if (self._dissocHead?.CastInfo != null)
+                    self.Arena.ZoneQuad(self._dissocHead.Position, self._dissocHead.Rotation, 50, 0, _halfWidth, self.Arena.ColorAOE);
+            }
+
+            public void AddHints(P2S self, StringBuilder res)
+            {
+                var pc = self.RaidMember(self.PlayerSlot);
+                if (pc != null && self._dissocHead?.CastInfo != null && GeometryUtils.PointInRect(pc.Position - self._dissocHead.Position, self._dissocHead.Rotation, 50, 0, _halfWidth))
+                {
+                    res.Append("GTFO from dissociation! ");
+                }
+            }
+        }
+
         private WorldState.Actor? _boss;
+        private WorldState.Actor? _cataractHead;
+        private WorldState.Actor? _dissocHead;
+        private SewageDeluge _sewageDeluge = new();
+        private Cataract _cataract = new();
+        private Dissociation _dissociation = new();
 
         public P2S(WorldState ws)
             : base(ws, 8)
         {
+            WorldState.EventEnvControl += EventEnvControl;
+
             StateMachine.State? s;
             s = BuildMurkyDepthsState(ref InitialState, 10);
             s = BuildDoubledImpactState(ref s.Next, 5);
@@ -56,7 +172,7 @@ namespace BossMod
             s = BuildMurkyDepthsState(ref s.Next, 7);
             s = BuildOminousBubblingState(ref s.Next, 4);
 
-            // avarice + cataract
+            // avarice + cataract (TODO: avarice helper)
             // status: 2768 Mark of the Tides - tank+dd, should gtfo
             // status: 2769 Mark of the Depths - healer, stack
             s = CommonStates.Cast(ref s.Next, () => _boss, AID.PredatoryAvarice, 12, 4, "Avarice");
@@ -64,7 +180,7 @@ namespace BossMod
             s = BuildCataractState(ref s.Next, 10, true);
             s = CommonStates.Timeout(ref s.Next, 7, "Avarice resolve"); // triggered by debuff expiration...
             s.EndHint |= StateMachine.StateHint.PositioningEnd | StateMachine.StateHint.Raidwide;
-            s.Exit = () => { }; // TODO: end deluge 1 marker mode
+            // note: deluge 1 ends here...
 
             // first flow
             // status: 2770 Fore Mark of the Tides - points North
@@ -98,7 +214,7 @@ namespace BossMod
             s.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd;
 
             s = BuildCataractState(ref s.Next, 2);
-            s.Exit = () => { }; // TODO: end deluge 2 marker mode
+            // note: deluge 2 ends here...
 
             // avarice + dissociation + cataract
             s = CommonStates.Cast(ref s.Next, () => _boss, AID.PredatoryAvarice, 15, 4, "Avarice");
@@ -142,31 +258,100 @@ namespace BossMod
             s = CommonStates.Cast(ref s.Next, () => _boss, AID.Enrage, 6, 10, "Enrage");
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                WorldState.EventEnvControl -= EventEnvControl;
+            }
+            base.Dispose(disposing);
+        }
+
+        protected override void DrawHeader()
+        {
+            var hints = new StringBuilder();
+            _cataract.AddHints(this, hints);
+            _dissociation.AddHints(this, hints);
+            ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(0xff00ffff), hints.ToString());
+        }
+
         protected override void DrawArena()
         {
+            _sewageDeluge.DrawArenaBackground(this);
+            _cataract.DrawArenaBackground(this);
+            _dissociation.DrawArenaBackground(this);
+
             Arena.Border();
             if (_boss != null)
-                Arena.Actor(_boss.Position, _boss.Rotation, 0xff0000ff);
+                Arena.Actor(_boss.Position, _boss.Rotation, Arena.ColorEnemy);
+
+            // draw player
+            var pc = RaidMember(PlayerSlot);
+            if (pc != null)
+                Arena.Actor(pc.Position, pc.Rotation, Arena.ColorPC);
+        }
+
+        protected override void DrawFooter()
+        {
+            // TODO: temp, debug
+            if (ImGui.Button("Reset deluge"))
+            {
+                _sewageDeluge.BlockedCorner = SewageDeluge.Corner.None;
+            }
+            ImGui.SameLine();
         }
 
         protected override void NonPlayerCreated(WorldState.Actor actor)
         {
-            if ((OID)actor.OID == OID.Boss)
+            switch ((OID)actor.OID)
             {
-                _boss = actor;
+                case OID.Boss:
+                    if (_boss != null)
+                        Service.Log($"[P2S] Created boss {actor.InstanceID} while another is still alive: {_boss.InstanceID}");
+                    _boss = actor;
+                    break;
+                case OID.CataractHead:
+                    if (_cataractHead != null)
+                        Service.Log($"[P2S] Created cataract head {actor.InstanceID} while another is still alive: {_cataractHead.InstanceID}");
+                    _cataractHead = actor;
+                    break;
+                case OID.DissociatedHead:
+                    if (_dissocHead != null)
+                        Service.Log($"[P2S] Created dissociated head {actor.InstanceID} while another is still alive: {_dissocHead.InstanceID}");
+                    _dissocHead = actor;
+                    break;
             }
         }
 
         protected override void NonPlayerDestroyed(WorldState.Actor actor)
         {
-            if (_boss == actor)
+            switch ((OID)actor.OID)
             {
-                _boss = null;
+                case OID.Boss:
+                    if (_boss != actor)
+                        Service.Log($"[P2S] Destroying boss {actor.InstanceID} while another is active: {_boss?.InstanceID}");
+                    else
+                        _boss = null;
+                    break;
+                case OID.CataractHead:
+                    if (_cataractHead != actor)
+                        Service.Log($"[P2S] Destroying cataract head {actor.InstanceID} while another is active: {_cataractHead?.InstanceID}");
+                    else
+                        _cataractHead = null;
+                    break;
+                case OID.DissociatedHead:
+                    if (_dissocHead != actor)
+                        Service.Log($"[P2S] Destroying dissociated head {actor.InstanceID} while another is active: {_dissocHead?.InstanceID}");
+                    else
+                        _dissocHead = null;
+                    break;
             }
         }
 
         protected override void Reset()
         {
+            _sewageDeluge.BlockedCorner = SewageDeluge.Corner.None;
+            _cataract.CurState = Cataract.State.None;
         }
 
         private StateMachine.State BuildMurkyDepthsState(ref StateMachine.State? link, float delay)
@@ -185,22 +370,23 @@ namespace BossMod
 
         private StateMachine.State BuildSewageDelugeState(ref StateMachine.State? link, float delay)
         {
+            // note: deluge component is controlled by events rather than states
             var s = CommonStates.Cast(ref link, () => _boss, AID.SewageDeluge, delay, 5, "Deluge");
             s.EndHint |= StateMachine.StateHint.Raidwide;
-            s.Exit = () => { }; // TODO: start showing deluge markers on arena, allow selecting oneshot corner
             return s;
         }
 
         // if group continues, last state won't clear positioning flag
         private StateMachine.State BuildCataractState(ref StateMachine.State? link, float delay, bool continueGroup = false)
         {
-            // TODO: helpers!!!
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
-            dispatch[AID.SpokenCataract] = new(null, () => { });
-            dispatch[AID.WingedCataract] = new(null, () => { });
+            dispatch[AID.SpokenCataract] = new(null, () => _cataract.CurState = Cataract.State.Spoken);
+            dispatch[AID.WingedCataract] = new(null, () => _cataract.CurState = Cataract.State.Winged);
             var start = CommonStates.CastStart(ref link, () => _boss, dispatch, delay);
             start.EndHint |= StateMachine.StateHint.PositioningStart;
+
             var end = CommonStates.CastEnd(ref start.Next, () => _boss, 8, "Cataract");
+            end.Exit = () => _cataract.CurState = Cataract.State.None;
             end.EndHint |= continueGroup ? StateMachine.StateHint.GroupWithNext : StateMachine.StateHint.PositioningEnd;
             return end;
         }
@@ -208,14 +394,15 @@ namespace BossMod
         // dissociation is always part of the group
         private StateMachine.State BuildDissociationState(ref StateMachine.State? link, float delay)
         {
+            // note: dissociation component is controlled by events rather than states
             var s = CommonStates.Cast(ref link, () => _boss, AID.Dissociation, delay, 4, "Dissociation");
             s.EndHint |= StateMachine.StateHint.GroupWithNext;
-            s.Exit = () => { }; // TODO: start dissociation mode
             return s;
         }
 
         private StateMachine.State BuildCoherenceState(ref StateMachine.State? link, float delay)
         {
+            // TODO: helper (show tether, aoe, ???)
             var s = CommonStates.Cast(ref link, () => _boss, AID.Coherence, delay, 12, 4, "Coherence");
             s.EndHint |= StateMachine.StateHint.Raidwide;
             return s;
@@ -251,6 +438,28 @@ namespace BossMod
             var resolve = CommonStates.Timeout(ref end.Next, 8, "Harma resolve");
             resolve.EndHint |= StateMachine.StateHint.DowntimeEnd | StateMachine.StateHint.PositioningEnd;
             return resolve;
+        }
+
+        private void EventEnvControl(object? sender, (uint featureID, byte index, uint state) arg)
+        {
+            // 800375A2: we typically get two events for index=0 (global) and index=N (corner)
+            // state 00200010 - "prepare" (show aoe that is still harmless)
+            // state 00020001 - "active" (dot in center/borders, oneshot in corner)
+            // state 00080004 - "finish" (reset)
+            if (arg.featureID == 0x800375A2 && arg.index > 0 && arg.index < 5)
+            {
+                switch (arg.state)
+                {
+                    case 0x00200010:
+                        _sewageDeluge.BlockedCorner = (SewageDeluge.Corner)arg.index;
+                        Service.Log($"[P2S] Debug: starting deluge, blocking corner {_sewageDeluge.BlockedCorner}");
+                        break;
+                    case 0x00080004:
+                        _sewageDeluge.BlockedCorner = SewageDeluge.Corner.None;
+                        Service.Log($"[P2S] Debug: ending deluge");
+                        break;
+                }
+            }
         }
     }
 }

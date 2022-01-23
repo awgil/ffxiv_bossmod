@@ -249,6 +249,20 @@ namespace BossMod
             ClipAndFillConvex(quad, color);
         }
 
+        public void ZoneQuad(Vector3 origin, Vector3 direction, float lenFront, float lenBack, float halfWidth, uint color)
+        {
+            Vector3 side = halfWidth * new Vector3(-direction.Z, 0, direction.X);
+            Vector3 front = origin + lenFront * direction;
+            Vector3 back = origin - lenBack * direction;
+            ZoneQuad(front + side, front - side, back - side, back + side, color);
+        }
+
+        public void ZoneQuad(Vector3 origin, float direction, float lenFront, float lenBack, float halfWidth, uint color)
+        {
+            Vector3 dir = new(MathF.Sin(direction), 0, MathF.Cos(direction));
+            ZoneQuad(origin, dir, lenFront, lenBack, halfWidth, color);
+        }
+
         public void ZoneRect(Vector3 tl, Vector3 br, uint color)
         {
             ZoneQuad(tl, new Vector3(br.X, 0, tl.Z), br, new Vector3(tl.X, 0, br.Z), color);

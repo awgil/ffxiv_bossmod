@@ -199,5 +199,30 @@ namespace BossMod
         {
             return center + r * new Vector2(MathF.Cos(phi), -MathF.Sin(phi));
         }
+
+        // zone checking
+        public static bool PointInRect(Vector3 offsetFromOrigin, Vector3 direction, float lenFront, float lenBack, float halfWidth)
+        {
+            var normal = new Vector3(-direction.Z, 0, direction.X);
+            var dotDir = Vector3.Dot(offsetFromOrigin, direction);
+            var dotNormal = Vector3.Dot(offsetFromOrigin, normal);
+            return dotDir >= -lenBack && dotDir <= lenFront && MathF.Abs(dotNormal) <= halfWidth;
+        }
+
+        public static bool PointInRect(Vector3 offsetFromOrigin, float direction, float lenFront, float lenBack, float halfWidth)
+        {
+            Vector3 dir = new(MathF.Sin(direction), 0, MathF.Cos(direction));
+            return PointInRect(offsetFromOrigin, dir, lenFront, lenBack, halfWidth);
+        }
+
+        public static bool PointInCircle(Vector3 offsetFromOrigin, float radius)
+        {
+            return offsetFromOrigin.LengthSquared() <= radius * radius;
+        }
+
+        public static bool PointInCone(Vector3 offsetFromOrigin, Vector3 direction, float halfAngle)
+        {
+            return Vector3.Dot(Vector3.Normalize(offsetFromOrigin), direction) >= MathF.Cos(halfAngle);
+        }
     }
 }
