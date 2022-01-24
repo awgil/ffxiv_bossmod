@@ -12,15 +12,17 @@ network:
 - allow injecting custom client messages in next sent bundle (or just create new bundle?..)
 
 boss modules:
+- p1s/p3s: factor out draw/aoe query utils
 - data driven => would enable sequence autorecord and live editing
 - p1s
 -- intemperance cubes
 - p2s
--- deluge debug...
--- avarice
+-- better timings
+-- deluge - confirm metrics
 -- kampeos
--- coherence
--- flow? doubled impact? tainted flood? shockwave? bubbling?
+-- coherence - ray test
+-- flow - show clipping especially during later flows, anything else?
+-- doubled impact? tainted flood? shockwave? bubbling?
 - zodiark
 -- refactor
 - hydaelyn, p4s: todo
@@ -32,5 +34,3 @@ autorotation:
 - defensive cooldowns (offensive veng, integrate with bossmodules - CD planner)
 - generalize to other classes
 - aoe rotation, maybe even auto-detect targets and autoselect st/aoe...
-
-

@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Text;
 
@@ -44,44 +45,101 @@ namespace BossMod
             ChannelingOverflow = 28098, // Boss->Boss (both 2nd and 3rd arrows)
         };
 
+        public enum SID : uint
+        {
+            MarkOfTides = 2768, // avarice - gtfo (tank+dd)
+            MarkOfDepths = 2769, // avarice - stack (healer)
+        }
+
+        public enum TetherID : uint
+        {
+            Coherence = 84,
+        }
+
         // state related to sewage deluge mechanic
         private class SewageDeluge
         {
             public enum Corner { None, NW, NE, SW, SE };
             public Corner BlockedCorner = Corner.None;
+            public bool Disable = false; // TODO: remove after confirming everything
 
-            private float _offsetCorner = 9.5f; // not sure
-            private float _cornerHalfSize = 4; // not sure
-            private float _connectHalfWidth = 2; // not sure
+            private static float _offsetCorner = 9.5f; // not sure
+            private static float _cornerHalfSize = 4; // not sure
+            private static float _connectHalfWidth = 2; // not sure
+            private static float _cornerInner = _offsetCorner - _cornerHalfSize;
+            private static float _cornerOuter = _offsetCorner + _cornerHalfSize;
+            private static float _connectInner = _offsetCorner - _connectHalfWidth;
+            private static float _connectOuter = _offsetCorner + _connectHalfWidth;
 
             private static Vector3[] _corners = { new(), new(-1, 0, -1), new(1, 0, -1), new(-1, 0, 1), new Vector3(1, 0, 1) };
 
             public void DrawArenaBackground(P2S self)
             {
-                if (BlockedCorner == Corner.None)
+                if (Disable || BlockedCorner == Corner.None)
                     return; // inactive
 
                 // central area + H additionals
-                var centerWidth = _offsetCorner - _cornerHalfSize;
-                var sideDiff = _cornerHalfSize - _connectHalfWidth;
-                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitX, centerWidth + sideDiff, centerWidth + sideDiff, centerWidth, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitX, _connectInner, _connectInner, _cornerInner, self.Arena.ColorAOE);
                 // central V additionals
-                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitZ, centerWidth + sideDiff, -centerWidth, centerWidth, self.Arena.ColorAOE);
-                self.Arena.ZoneQuad(self.Arena.WorldCenter, -Vector3.UnitZ, centerWidth + sideDiff, -centerWidth, centerWidth, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitZ, _connectInner, -_cornerInner, _cornerInner, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter, -Vector3.UnitZ, _connectInner, -_cornerInner, _cornerInner, self.Arena.ColorAOE);
                 // outer additionals
-                var outerWidth = _offsetCorner + _cornerHalfSize;
-                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitX, outerWidth, -outerWidth + sideDiff, centerWidth, self.Arena.ColorAOE);
-                self.Arena.ZoneQuad(self.Arena.WorldCenter, -Vector3.UnitX, outerWidth, -outerWidth + sideDiff, centerWidth, self.Arena.ColorAOE);
-                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitZ, outerWidth, -outerWidth + sideDiff, centerWidth, self.Arena.ColorAOE);
-                self.Arena.ZoneQuad(self.Arena.WorldCenter, -Vector3.UnitZ, outerWidth, -outerWidth + sideDiff, centerWidth, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitX, _cornerOuter, -_connectOuter, _cornerInner, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter, -Vector3.UnitX, _cornerOuter, -_connectOuter, _cornerInner, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitZ, _cornerOuter, -_connectOuter, _cornerInner, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter, -Vector3.UnitZ, _cornerOuter, -_connectOuter, _cornerInner, self.Arena.ColorAOE);
                 // outer area
-                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitX, self.Arena.WorldHalfSize, -outerWidth, self.Arena.WorldHalfSize, self.Arena.ColorAOE);
-                self.Arena.ZoneQuad(self.Arena.WorldCenter, -Vector3.UnitX, self.Arena.WorldHalfSize, -outerWidth, self.Arena.WorldHalfSize, self.Arena.ColorAOE);
-                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitZ, self.Arena.WorldHalfSize, -outerWidth, outerWidth, self.Arena.ColorAOE);
-                self.Arena.ZoneQuad(self.Arena.WorldCenter, -Vector3.UnitZ, self.Arena.WorldHalfSize, -outerWidth, outerWidth, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitX, self.Arena.WorldHalfSize, -_cornerOuter, self.Arena.WorldHalfSize, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter, -Vector3.UnitX, self.Arena.WorldHalfSize, -_cornerOuter, self.Arena.WorldHalfSize, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter,  Vector3.UnitZ, self.Arena.WorldHalfSize, -_cornerOuter, _cornerOuter, self.Arena.ColorAOE);
+                self.Arena.ZoneQuad(self.Arena.WorldCenter, -Vector3.UnitZ, self.Arena.WorldHalfSize, -_cornerOuter, _cornerOuter, self.Arena.ColorAOE);
 
                 var corner = self.Arena.WorldCenter + _corners[(int)BlockedCorner] * _offsetCorner;
                 self.Arena.ZoneQuad(corner, Vector3.UnitX, _cornerHalfSize, _cornerHalfSize, _cornerHalfSize, self.Arena.ColorAOE);
+            }
+
+            public void DrawArenaForeground(P2S self)
+            {
+                if (Disable)
+                    return;
+
+                // inner border
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_cornerInner,  0, -_cornerInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_cornerInner,  0, -_connectInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_cornerInner,  0, -_connectInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_cornerInner,  0, -_cornerInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_connectInner, 0, -_cornerInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_connectInner, 0, +_cornerInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_cornerInner,  0, +_cornerInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_cornerInner,  0, +_connectInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_cornerInner,  0, +_connectInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_cornerInner,  0, +_cornerInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_connectInner, 0, +_cornerInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_connectInner, 0, -_cornerInner));
+                self.Arena.PathStroke(true, self.Arena.ColorBorder);
+
+                // outer border
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_cornerOuter,  0, -_cornerOuter));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_cornerInner,  0, -_cornerOuter));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_cornerInner,  0, -_connectOuter));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_cornerInner,  0, -_connectOuter));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_cornerInner,  0, -_cornerOuter));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_cornerOuter,  0, -_cornerOuter));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_cornerOuter,  0, -_cornerInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_connectOuter, 0, -_cornerInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_connectOuter, 0, +_cornerInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_cornerOuter,  0, +_cornerInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_cornerOuter,  0, +_cornerOuter));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_cornerInner,  0, +_cornerOuter));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(+_cornerInner,  0, +_connectOuter));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_cornerInner,  0, +_connectOuter));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_cornerInner,  0, +_cornerOuter));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_cornerOuter,  0, +_cornerOuter));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_cornerOuter,  0, +_cornerInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_connectOuter, 0, +_cornerInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_connectOuter, 0, -_cornerInner));
+                self.Arena.PathLineTo(self.Arena.WorldCenter + new Vector3(-_cornerOuter,  0, -_cornerInner));
+                self.Arena.PathStroke(true, self.Arena.ColorBorder);
             }
         }
 
@@ -151,16 +209,154 @@ namespace BossMod
             }
         }
 
+        // state related to coherence mechanic
+        private class Coherence
+        {
+            public bool Active;
+
+            //private static float _aoeHalfWidth = 3;
+
+            public void DrawArenaForeground(P2S self)
+            {
+                if (!Active || self._boss == null)
+                    return;
+
+                // TODO: i'm not sure what are the exact mechanics - flare is probably distance-based, and ray is probably shared damage cast at closest target?..
+                foreach ((int i, var player) in self.IterateRaidMembers())
+                {
+                    if (player.Tether.ID == (uint)TetherID.Coherence)
+                    {
+                        self.Arena.AddLine(player.Position, self._boss.Position, self.Arena.ColorDanger);
+                        self.Arena.Actor(player.Position, player.Rotation, self.Arena.ColorDanger);
+                    }
+                    else
+                    {
+                        self.Arena.Actor(player.Position, player.Rotation, self.Arena.ColorPlayerGeneric);
+                    }
+                }
+            }
+        }
+
+        // state related to predatory avarice mechanic
+        // driven purely by debuffs
+        private class PredatoryAvarice
+        {
+            private ulong _playersWithTides = 0;
+            private ulong _playersWithDepths = 0;
+            private ulong _playersInTides = 0;
+            private ulong _playersInDepths = 0;
+
+            private static float _tidesRadius = 10;
+            private static float _depthsRadius = 6;
+
+            public bool Active => (_playersWithTides | _playersWithDepths) != 0;
+
+            public void ModifyDebuff(int slot, bool tides, bool active)
+            {
+                if (slot < 0)
+                    return;
+
+                if (tides)
+                    BitVector.ModifyVector64Bit(ref _playersWithTides, slot, active);
+                else
+                    BitVector.ModifyVector64Bit(ref _playersWithDepths, slot, active);
+            }
+
+            public void Update(P2S self)
+            {
+                _playersInTides = _playersInDepths = 0;
+                if (!Active)
+                    return;
+
+                foreach ((int i, var actor) in self.IterateRaidMembers())
+                {
+                    if (BitVector.IsVector64BitSet(_playersWithTides, i))
+                    {
+                        _playersInTides |= self.FindRaidMembersInRange(i, _tidesRadius);
+                    }
+                    else if (BitVector.IsVector64BitSet(_playersWithDepths, i))
+                    {
+                        _playersInDepths |= self.FindRaidMembersInRange(i, _depthsRadius);
+                    }
+                }
+            }
+
+            public void DrawArenaForeground(P2S self)
+            {
+                var pc = self.RaidMember(self.PlayerSlot);
+                if (!Active || pc == null)
+                    return;
+
+                bool pcHasTides = BitVector.IsVector64BitSet(_playersWithTides, self.PlayerSlot);
+                bool pcHasDepths = BitVector.IsVector64BitSet(_playersWithDepths, self.PlayerSlot);
+                foreach ((int i, var actor) in self.IterateRaidMembers())
+                {
+                    if (BitVector.IsVector64BitSet(_playersWithTides, i))
+                    {
+                        // tides are always drawn
+                        self.Arena.AddCircle(actor.Position, _tidesRadius, self.Arena.ColorDanger);
+                        self.Arena.Actor(actor.Position, actor.Rotation, self.Arena.ColorDanger);
+                    }
+                    else if (BitVector.IsVector64BitSet(_playersWithDepths, i) && !pcHasTides)
+                    {
+                        // depths are drawn only if pc has no tides - otherwise it is to be considered a generic player
+                        self.Arena.AddCircle(actor.Position, _tidesRadius, self.Arena.ColorSafe);
+                        self.Arena.Actor(actor.Position, actor.Rotation, self.Arena.ColorDanger);
+                    }
+                    else if (pcHasTides || pcHasDepths)
+                    {
+                        // other players are only drawn if pc has some debuff
+                        bool playerInteresting = BitVector.IsVector64BitSet(pcHasTides ? _playersInTides : _playersInDepths, i);
+                        self.Arena.Actor(actor.Position, actor.Rotation, playerInteresting ? self.Arena.ColorPlayerInteresting : self.Arena.ColorPlayerGeneric);
+                    }
+                }
+            }
+
+            public void AddHints(P2S self, StringBuilder res)
+            {
+                var pc = self.RaidMember(self.PlayerSlot);
+                if (!Active || pc == null)
+                    return;
+
+                if (BitVector.IsVector64BitSet(_playersWithTides, self.PlayerSlot))
+                {
+                    if (self.IterateRaidMembersInRange(self.PlayerSlot, _tidesRadius).Any())
+                    {
+                        res.Append("GTFO from raid! ");
+                    }
+                }
+                else
+                {
+                    if (BitVector.IsVector64BitSet(_playersInTides, self.PlayerSlot))
+                    {
+                        res.Append("GTFO from avarice! ");
+                    }
+
+                    bool warnToStack = BitVector.IsVector64BitSet(_playersWithDepths, self.PlayerSlot)
+                        ? BitOperations.PopCount(_playersInDepths) < 4 :
+                        !BitVector.IsVector64BitSet(_playersInDepths, self.PlayerSlot);
+                    if (warnToStack)
+                    {
+                        res.Append("Stack with raid! ");
+                    }
+                }
+            }
+        }
+
         private WorldState.Actor? _boss;
         private WorldState.Actor? _cataractHead;
         private WorldState.Actor? _dissocHead;
         private SewageDeluge _sewageDeluge = new();
         private Cataract _cataract = new();
         private Dissociation _dissociation = new();
+        private Coherence _coherence = new();
+        private PredatoryAvarice _predatoryAvarice = new();
 
         public P2S(WorldState ws)
             : base(ws, 8)
         {
+            WorldState.ActorStatusGain += ActorStatusGain;
+            WorldState.ActorStatusLose += ActorStatusLose;
             WorldState.EventEnvControl += EventEnvControl;
 
             StateMachine.State? s;
@@ -172,14 +368,10 @@ namespace BossMod
             s = BuildMurkyDepthsState(ref s.Next, 7);
             s = BuildOminousBubblingState(ref s.Next, 4);
 
-            // avarice + cataract (TODO: avarice helper)
-            // status: 2768 Mark of the Tides - tank+dd, should gtfo
-            // status: 2769 Mark of the Depths - healer, stack
-            s = CommonStates.Cast(ref s.Next, () => _boss, AID.PredatoryAvarice, 12, 4, "Avarice");
-            s.EndHint |= StateMachine.StateHint.GroupWithNext;
+            // avarice + cataract
+            s = BuildPredatoryAvariceCastState(ref s.Next, 12);
             s = BuildCataractState(ref s.Next, 10, true);
-            s = CommonStates.Timeout(ref s.Next, 7, "Avarice resolve"); // triggered by debuff expiration...
-            s.EndHint |= StateMachine.StateHint.PositioningEnd | StateMachine.StateHint.Raidwide;
+            s = BuildPredatoryAvariceResolveState(ref s.Next, 6);
             // note: deluge 1 ends here...
 
             // first flow
@@ -216,9 +408,8 @@ namespace BossMod
             s = BuildCataractState(ref s.Next, 2);
             // note: deluge 2 ends here...
 
-            // avarice + dissociation + cataract
-            s = CommonStates.Cast(ref s.Next, () => _boss, AID.PredatoryAvarice, 15, 4, "Avarice");
-            s.EndHint |= StateMachine.StateHint.GroupWithNext;
+            // avarice + dissociation + cataract (note that we don't create separate avarice resolve state here, since it resolves just before cataract)
+            s = BuildPredatoryAvariceCastState(ref s.Next, 15);
             s = BuildDissociationState(ref s.Next, 2);
             s = BuildCataractState(ref s.Next, 10);
 
@@ -262,9 +453,17 @@ namespace BossMod
         {
             if (disposing)
             {
+                WorldState.ActorStatusGain -= ActorStatusGain;
+                WorldState.ActorStatusLose -= ActorStatusLose;
                 WorldState.EventEnvControl -= EventEnvControl;
             }
             base.Dispose(disposing);
+        }
+
+        public override void Update()
+        {
+            base.Update();
+            _predatoryAvarice.Update(this);
         }
 
         protected override void DrawHeader()
@@ -272,6 +471,7 @@ namespace BossMod
             var hints = new StringBuilder();
             _cataract.AddHints(this, hints);
             _dissociation.AddHints(this, hints);
+            _predatoryAvarice.AddHints(this, hints);
             ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(0xff00ffff), hints.ToString());
         }
 
@@ -282,6 +482,10 @@ namespace BossMod
             _dissociation.DrawArenaBackground(this);
 
             Arena.Border();
+            _sewageDeluge.DrawArenaForeground(this);
+            _coherence.DrawArenaForeground(this);
+            _predatoryAvarice.DrawArenaForeground(this);
+
             if (_boss != null)
                 Arena.Actor(_boss.Position, _boss.Rotation, Arena.ColorEnemy);
 
@@ -294,10 +498,7 @@ namespace BossMod
         protected override void DrawFooter()
         {
             // TODO: temp, debug
-            if (ImGui.Button("Reset deluge"))
-            {
-                _sewageDeluge.BlockedCorner = SewageDeluge.Corner.None;
-            }
+            ImGui.Checkbox("Disable deluge", ref _sewageDeluge.Disable);
             ImGui.SameLine();
         }
 
@@ -352,6 +553,7 @@ namespace BossMod
         {
             _sewageDeluge.BlockedCorner = SewageDeluge.Corner.None;
             _cataract.CurState = Cataract.State.None;
+            _coherence.Active = false;
         }
 
         private StateMachine.State BuildMurkyDepthsState(ref StateMachine.State? link, float delay)
@@ -391,6 +593,24 @@ namespace BossMod
             return end;
         }
 
+        // avarice is always part of the group; note that subsequent states always set up positioning flag a bit later
+        private StateMachine.State BuildPredatoryAvariceCastState(ref StateMachine.State? link, float delay)
+        {
+            // note: avarice component is controlled by events rather than states
+            var s = CommonStates.Cast(ref link, () => _boss, AID.PredatoryAvarice, delay, 4, "Avarice");
+            s.EndHint |= StateMachine.StateHint.GroupWithNext;
+            return s;
+        }
+
+        // avarice resolve always clears positioning flag
+        private StateMachine.State BuildPredatoryAvariceResolveState(ref StateMachine.State? link, float delay)
+        {
+            var s = CommonStates.Simple(ref link, 7, "Avarice resolve");
+            s.Update = (float timeSinceActivation) => s.Done = !_predatoryAvarice.Active;
+            s.EndHint |= StateMachine.StateHint.PositioningEnd | StateMachine.StateHint.Raidwide;
+            return s;
+        }
+
         // dissociation is always part of the group
         private StateMachine.State BuildDissociationState(ref StateMachine.State? link, float delay)
         {
@@ -402,14 +622,20 @@ namespace BossMod
 
         private StateMachine.State BuildCoherenceState(ref StateMachine.State? link, float delay)
         {
-            // TODO: helper (show tether, aoe, ???)
-            var s = CommonStates.Cast(ref link, () => _boss, AID.Coherence, delay, 12, 4, "Coherence");
-            s.EndHint |= StateMachine.StateHint.Raidwide;
-            return s;
+            var start = CommonStates.CastStart(ref link, () => _boss, AID.Coherence, delay);
+            start.Exit = () => _coherence.Active = true;
+
+            var end = CommonStates.CastEnd(ref start.Next, () => _boss, 12);
+
+            var resolve = CommonStates.Timeout(ref end.Next, 4, "Coherence");
+            resolve.Exit = () => _coherence.Active = false;
+            resolve.EndHint |= StateMachine.StateHint.Raidwide;
+            return resolve;
         }
 
         private StateMachine.State BuildShockwaveState(ref StateMachine.State? link, float delay)
         {
+            // TODO: helper (knockback? or just make sure autorot uses arms length?)
             var s = CommonStates.Cast(ref link, () => _boss, AID.Shockwave, delay, 8, "Shockwave");
             s.EndHint |= StateMachine.StateHint.Knockback;
             return s;
@@ -438,6 +664,32 @@ namespace BossMod
             var resolve = CommonStates.Timeout(ref end.Next, 8, "Harma resolve");
             resolve.EndHint |= StateMachine.StateHint.DowntimeEnd | StateMachine.StateHint.PositioningEnd;
             return resolve;
+        }
+
+        private void ActorStatusGain(object? sender, (WorldState.Actor actor, int index) arg)
+        {
+            switch ((SID)arg.actor.Statuses[arg.index].ID)
+            {
+                case SID.MarkOfTides:
+                    _predatoryAvarice.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), true, true);
+                    break;
+                case SID.MarkOfDepths:
+                    _predatoryAvarice.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), false, true);
+                    break;
+            }
+        }
+
+        private void ActorStatusLose(object? sender, (WorldState.Actor actor, int index) arg)
+        {
+            switch ((SID)arg.actor.Statuses[arg.index].ID)
+            {
+                case SID.MarkOfTides:
+                    _predatoryAvarice.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), true, false);
+                    break;
+                case SID.MarkOfDepths:
+                    _predatoryAvarice.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), false, false);
+                    break;
+            }
         }
 
         private void EventEnvControl(object? sender, (uint featureID, byte index, uint state) arg)
