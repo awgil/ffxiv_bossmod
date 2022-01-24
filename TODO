@@ -14,6 +14,8 @@ network:
 boss modules:
 - p1s/p3s: factor out draw/aoe query utils
 - data driven => would enable sequence autorecord and live editing
+- draw arrows in world
+- show per-player risks and fails
 - p1s
 -- intemperance cubes
 - p2s

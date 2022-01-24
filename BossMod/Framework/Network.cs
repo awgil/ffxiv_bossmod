@@ -532,6 +532,10 @@ namespace BossMod
         public bool DumpClient = false;
 
         private WorldStateGame _ws;
+        // this is a mega weird thing - apparently some IDs sent over network have some extra delta added to them (e.g. action ids, icon ids, etc.)
+        // they change on relogs or zone changes or something...
+        // we have one simple way of detecting them - by looking at casts, since they contain both offset id and real ('animation') id
+        private int _unkDelta = 0;
 
         public Network(WorldStateGame ws)
         {
@@ -622,6 +626,16 @@ namespace BossMod
 
         private unsafe void HandleAbility(uint casterID, Protocol.Server_ActionEffectHeader* header, Protocol.Server_ActionEffect_EffectEntry* effects, ulong* targetIDs, uint maxTargets)
         {
+            if (header->actionType == WorldState.ActionType.Spell)
+            {
+                int newDelta = (int)header->actionId - (int)header->actionAnimationId;
+                if (_unkDelta != newDelta)
+                {
+                    Service.Log($"Updating network delta: {_unkDelta} -> {newDelta}");
+                    _unkDelta = newDelta;
+                }
+            }
+
             var targets = Math.Min(header->effectCount, maxTargets);
             uint validTargets = 0;
             for (int i = 0; i < targets; ++i)
@@ -649,7 +663,7 @@ namespace BossMod
             switch (p->category)
             {
                 case Protocol.Server_ActorControlCategory.TargetIcon:
-                    _ws.DispatchEventIcon(actorID, p->param1);
+                    _ws.DispatchEventIcon(actorID, (uint)(p->param1 - _unkDelta));
                     break;
                 case Protocol.Server_ActorControlCategory.Tether:
                     {

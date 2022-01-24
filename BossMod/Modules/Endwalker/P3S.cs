@@ -86,6 +86,7 @@ namespace BossMod
             SearingBreeze = 26372, // Boss->Boss
             SearingBreezeAOE = 36373, // Helper->Helper
             ScorchedExaltation = 26374, // Boss->Boss
+            FinalExaltation = 27691, // Boss->Boss
             DevouringBrandAOE = 28035, // Helper->Helper (one in the center), 20sec cast
         };
 
@@ -466,7 +467,7 @@ namespace BossMod
         // state related to ashplumes (normal or parts of gloryplume)
         private class Ashplume
         {
-            public enum State { None, Stack, Spread }
+            public enum State { None, UnknownGlory, Stack, Spread }
             public State CurState = State.None;
             private ulong _playersInMyAOE = 0;
 
@@ -475,12 +476,12 @@ namespace BossMod
 
             public void Update(P3S self)
             {
-                _playersInMyAOE = CurState != State.None ? self.FindRaidMembersInRange(self.PlayerSlot, CurState == State.Stack ? _stackRadius : _spreadRadius) : 0;
+                _playersInMyAOE = CurState > State.UnknownGlory ? self.FindRaidMembersInRange(self.PlayerSlot, CurState == State.Stack ? _stackRadius : _spreadRadius) : 0;
             }
 
             public void DrawArenaForeground(P3S self)
             {
-                if (CurState == State.None)
+                if (CurState <= State.UnknownGlory)
                     return;
 
                 // draw all raid members, to simplify positioning
@@ -520,40 +521,45 @@ namespace BossMod
 
         // state related to brightened fire mechanic
         // this helper relies on waymarks 1-4, and assumes they don't change during fight - this is of course quite an assumption, but whatever...
+        // TODO: consider how this can be improved...
         private class BrightenedFire
         {
-            private List<(WorldState.Actor, float)> _closestAdds = new(); // add + distance to mark
+            private ulong _myAdds = 0; // mask of adds pc should hit
 
             private static float _aoeRange = 7;
 
             public void Reset()
             {
-                _closestAdds.Clear();
+                _myAdds = 0;
             }
 
             public void SetPlayerOrder(P3S self, uint order)
             {
-                _closestAdds.Clear();
+                _myAdds = 0;
 
                 var markID = (WorldState.Waymark)((uint)WorldState.Waymark.N1 + order % 4);
                 var markPos = self.WorldState.GetWaymark(markID);
                 if (markPos == null)
                     return;
 
-                foreach (var add in self._darkenedFires)
-                    _closestAdds.Add(new(add, (add.Position - markPos.Value).LengthSquared()));
-                _closestAdds.Sort((l, r) => l.Item2.CompareTo(r.Item2));
+                List<(int, float)> addsByRange = new();
+                for (int i = 0; i < self._darkenedFires.Count; ++i)
+                    addsByRange.Add(new(i, (self._darkenedFires[i].Position - markPos.Value).LengthSquared()));
+                addsByRange.Sort((l, r) => l.Item2.CompareTo(r.Item2));
+                foreach ((var index, _) in addsByRange.Take(2))
+                    BitVector.SetVector64Bit(ref _myAdds, index);
             }
 
             public void DrawArenaForeground(P3S self)
             {
-                if (_closestAdds.Count == 0)
+                if (self._darkenedFires.Count == 0)
                     return;
 
-                // draw two closest adds
-                foreach ((var add, _) in _closestAdds.Take(2))
+                // draw all adds
+                for (int i = 0; i < self._darkenedFires.Count; ++i)
                 {
-                    self.Arena.Actor(add.Position, add.Rotation, self.Arena.ColorDanger);
+                    var add = self._darkenedFires[i];
+                    self.Arena.Actor(add.Position, add.Rotation, BitVector.IsVector64BitSet(_myAdds, i) ? self.Arena.ColorDanger : self.Arena.ColorPlayerGeneric);
                 }
 
                 // draw range circle
@@ -567,12 +573,12 @@ namespace BossMod
             public void AddHints(P3S self, StringBuilder res)
             {
                 var pc = self.RaidMember(self.PlayerSlot);
-                if (_closestAdds.Count == 0 || pc == null)
+                if (pc == null || _myAdds == 0)
                     return;
 
-                foreach ((var add, _) in _closestAdds.Take(2))
+                for (int i = 0; i < self._darkenedFires.Count; ++i)
                 {
-                    if ((pc.Position - add.Position).LengthSquared() >= _aoeRange * _aoeRange)
+                    if (BitVector.IsVector64BitSet(_myAdds, i) && !GeometryUtils.PointInCircle(pc.Position - self._darkenedFires[i].Position, _aoeRange))
                     {
                         res.Append("Get closer to add! ");
                         return;
@@ -657,45 +663,40 @@ namespace BossMod
                     return;
 
                 // draw aoe zones for imminent charges (TODO: only if player is standing in one, to reduce visual clutter?)
-                foreach ((var from, var to) in ImminentCharges(self))
+                foreach (var bird in self._birdsLarge)
                 {
-                    var offset = to.Position - from.Position;
-                    var dist = offset.Length();
-                    self.Arena.ZoneQuad(from.Position, offset / dist, dist, 0, _chargeHalfWidth, self.Arena.ColorAOE);
+                    var target = bird.Tether.Target != 0 ? self.WorldState.FindActor(bird.Tether.Target) : null;
+                    if (target != null)
+                    {
+                        var offset = target.Position - bird.Position;
+                        var dist = offset.Length();
+                        self.Arena.ZoneQuad(bird.Position, offset / dist, dist, 0, _chargeHalfWidth, self.Arena.ColorAOE);
+                    }
                 }
             }
 
             public void DrawArenaForeground(P3S self)
             {
                 var pc = self.RaidMember(self.PlayerSlot);
-                if (!Active || pc == null || pc.Tether.Target == 0)
-                    return; // nothing to do if pc is not tethered to anything
+                if (!Active || pc == null)
+                    return;
 
-                var pcTetherTarget = self.WorldState.FindActor(pc.Tether.Target);
-                if (pcTetherTarget == null)
-                    return; // something weird, whatever...
-
-                DrawTether(self, pc, pcTetherTarget, pc.Tether.ID);
-
-                if (pcTetherTarget.Type == WorldState.ActorType.Enemy)
+                var pcTetherTarget = pc.Tether.Target != 0 ? self.WorldState.FindActor(pc.Tether.Target) : null;
+                if (pcTetherTarget != null)
                 {
-                    // pc is tethered to phoenix, so find another player who is tethered to pc (if any)
-                    // note that there should be 0 or 1 such players...
-                    foreach (var raidMember in self.RaidMembers)
-                    {
-                        if (raidMember != null && raidMember.Tether.Target == pc.InstanceID)
-                        {
-                            DrawTether(self, pc, raidMember, raidMember.Tether.ID);
-                        }
-                    }
+                    DrawTether(self, pc, pcTetherTarget, pc.Tether.ID);
                 }
-                else
+
+                foreach (var pcTetherSource in FindTetherSources(self, pc))
                 {
-                    // pc is tethered to another player, follow that chain to phoenix
-                    var nextTetherTarget = pcTetherTarget.Tether.Target != 0 ? self.WorldState.FindActor(pcTetherTarget.Tether.Target) : null;
-                    if (nextTetherTarget != null)
+                    DrawTether(self, pc, pcTetherSource, pcTetherSource.Tether.ID);
+
+                    if (pcTetherSource.Type == WorldState.ActorType.Player)
                     {
-                        DrawTether(self, pcTetherTarget, nextTetherTarget, pcTetherTarget.Tether.ID);
+                        foreach (var secondTetherSource in FindTetherSources(self, pcTetherSource))
+                        {
+                            DrawTether(self, pcTetherSource, secondTetherSource, secondTetherSource.Tether.ID);
+                        }
                     }
                 }
             }
@@ -706,14 +707,18 @@ namespace BossMod
                 if (!Active || pc == null)
                     return;
 
-                foreach ((var from, var to) in ImminentCharges(self))
+                foreach (var bird in self._birdsLarge)
                 {
-                    if (to == pc)
+                    if (bird.Tether.Target == self.PlayerSlot)
                         continue;
 
-                    var dir = Vector3.Normalize(to.Position - from.Position);
+                    var target = bird.Tether.Target != 0 ? self.WorldState.FindActor(bird.Tether.Target) : null;
+                    if (target == null)
+                        continue;
+
+                    var dir = Vector3.Normalize(target.Position - bird.Position);
                     var normal = new Vector3(-dir.Z, 0, dir.X);
-                    var pcOffset = Vector3.Dot(pc.Position - from.Position, normal);
+                    var pcOffset = Vector3.Dot(pc.Position - bird.Position, normal);
                     if (MathF.Abs(pcOffset) <= _chargeHalfWidth)
                     {
                         res.Append("GTFO from charge zone! ");
@@ -722,14 +727,10 @@ namespace BossMod
                 }
             }
 
-            // return pairs (bird, player)
-            private IEnumerable<(WorldState.Actor, WorldState.Actor)> ImminentCharges(P3S self)
+            private IEnumerable<WorldState.Actor> FindTetherSources(P3S self, WorldState.Actor target)
             {
-                return self.RaidMembers
-                    .Where(player => player != null && player.Tether.Target != 0)
-                    .Select(player => (self.WorldState.FindActor(player!.Tether.Target), player!))
-                    .Where(fromTo => fromTo.Item1 != null && fromTo.Item1.Type == WorldState.ActorType.Enemy && fromTo.Item1.Position != fromTo.Item2.Position)
-                    .Select(fromTo => (fromTo.Item1!, fromTo.Item2));
+                return self._birdsLarge.Where(bird => bird.Tether.Target == target.InstanceID)
+                    .Concat(self.RaidMembers.Where(player => player?.Tether.Target == target.InstanceID).Select(player => player!));
             }
 
             private void DrawTether(P3S self, WorldState.Actor source, WorldState.Actor target, uint tetherID)
@@ -811,8 +812,16 @@ namespace BossMod
 
             public void DrawArenaBackground(P3S self)
             {
-                DrawZone(self, Directions[0] != null ? Directions[0] : Directions[2]);
-                DrawZone(self, Directions[1]);
+                if (Directions[0] != null)
+                {
+                    DrawZone(self, Directions[0], self.Arena.ColorDanger);
+                    DrawZone(self, Directions[1], self.Arena.ColorAOE);
+                }
+                else
+                {
+                    DrawZone(self, Directions[1], self.Arena.ColorAOE);
+                    DrawZone(self, Directions[2], self.Arena.ColorAOE);
+                }
             }
 
             public void AddHints(P3S self, StringBuilder res)
@@ -827,12 +836,12 @@ namespace BossMod
                 }
             }
 
-            private void DrawZone(P3S self, float? dir)
+            private void DrawZone(P3S self, float? dir, uint color)
             {
                 if (dir != null)
                 {
-                    self.Arena.ZoneIsoscelesTri(self.Arena.WorldCenter, dir.Value, MathF.PI / 6, 50, self.Arena.ColorAOE);
-                    self.Arena.ZoneIsoscelesTri(self.Arena.WorldCenter, dir.Value + MathF.PI, MathF.PI / 6, 50, self.Arena.ColorAOE);
+                    self.Arena.ZoneIsoscelesTri(self.Arena.WorldCenter, dir.Value, MathF.PI / 6, 50, color);
+                    self.Arena.ZoneIsoscelesTri(self.Arena.WorldCenter, dir.Value + MathF.PI, MathF.PI / 6, 50, color);
                 }
             }
 
@@ -1223,15 +1232,14 @@ namespace BossMod
             s = BuildHeatOfCondemnationState(ref s.Next, 3);
             s = BuildExperimentalFireplumeState(ref s.Next, 3.2f); // pos-start
 
-            s = CommonStates.Timeout(ref s.Next, 4);
-            s.EndHint |= StateMachine.StateHint.DowntimeStart; // flies away (TODO: trigger by becoming non-targetable)
-            s = BuildTrailOfCondemnationState(ref s.Next, 4);
+            s = CommonStates.Targetable(ref s.Next, () => _boss, false, 4.6f); // flies away
+            s = BuildTrailOfCondemnationState(ref s.Next, 3.8f);
             s = BuildSmallBirdsState(ref s.Next, 6);
             s = BuildLargeBirdsState(ref s.Next, 3.4f);
-            s = CommonStates.Timeout(ref s.Next, 5, "Boss reappears"); // TODO: trigger by becoming targetable
-            s.EndHint |= StateMachine.StateHint.PositioningEnd | StateMachine.StateHint.DowntimeEnd; // boss reappears
+            s = CommonStates.Targetable(ref s.Next, () => _boss, true, 5.2f, "Boss reappears");
+            s.EndHint |= StateMachine.StateHint.PositioningEnd;
 
-            s = CommonStates.Cast(ref s.Next, () => _boss, AID.DeadRebirth, 9.4f, 10, "DeadRebirth");
+            s = CommonStates.Cast(ref s.Next, () => _boss, AID.DeadRebirth, 9.2f, 10, "DeadRebirth");
             s.EndHint |= StateMachine.StateHint.Raidwide;
             s = BuildHeatOfCondemnationState(ref s.Next, 9.2f);
             s = BuildFledglingFlightState(ref s.Next, 8.2f);
@@ -1250,15 +1258,20 @@ namespace BossMod
             s = BuildFlamesOfAsphodelosState(ref s.Next, 2);
             s = BuildStormsOfAsphodelosState(ref s.Next, 10);
 
-            s = BuildDarkblazeTwisterState(ref s.Next, 2);
+            s = BuildDarkblazeTwisterState(ref s.Next, 2.2f);
 
             s = BuildScorchedExaltationState(ref s.Next, 2);
             s = BuildDeathTollState(ref s.Next, 7.2f);
-            s = BuildExperimentalGloryplumeSingleState(ref s.Next, 7);
-            s = BuildTrailOfCondemnationState(ref s.Next, 7);
+            s = BuildExperimentalGloryplumeSingleState(ref s.Next, 7.3f);
 
-            // brand+fireplume+breeze+wing -> 2x aoe -> enrage
-            s = CommonStates.Simple(ref s.Next, 2, "?????");
+            s = CommonStates.Targetable(ref s.Next, () => _boss, false, 3);
+            s = BuildTrailOfCondemnationState(ref s.Next, 3.8f);
+            s = CommonStates.Targetable(ref s.Next, () => _boss, true, 4.7f);
+
+            s = BuildDevouringBrandState(ref s.Next, 5.1f);
+            s = BuildScorchedExaltationState(ref s.Next, 6.2f);
+            s = BuildScorchedExaltationState(ref s.Next, 2.2f);
+            s = CommonStates.Cast(ref s.Next, () => _boss, AID.FinalExaltation, 2.1f, 10, "Enrage");
         }
 
         protected override void Dispose(bool disposing)
@@ -1466,7 +1479,7 @@ namespace BossMod
         private StateMachine.State BuildExperimentalAshplumeResolveState(ref StateMachine.State? link, float delay)
         {
             var resolve = CommonStates.Simple(ref link, delay, "Ashplume resolve");
-            resolve.Update = (float timeSinceTransition) => resolve.Done = _ashplume.CurState == Ashplume.State.None; // it will automatically turn off on cast...
+            resolve.Update = (_) => resolve.Done = _ashplume.CurState == Ashplume.State.None; // it will automatically turn off on cast...
             resolve.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd;
             return resolve;
         }
@@ -1478,9 +1491,11 @@ namespace BossMod
             // ~3 sec after cast ends, boss makes an instant cast that determines stack/spread (26316/26312), ~10 sec after that hits with real AOE (26317/26313)
             // note that our helpers rely on casts rather than states
             var cast = CommonStates.Cast(ref link, () => _boss, AID.ExperimentalGloryplumeMulti, delay, 5, "GloryplumeMulti");
+            cast.Exit = () => _ashplume.CurState = Ashplume.State.UnknownGlory; // instant cast turns this into correct state in ~3 sec
             cast.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
+
             var resolve = CommonStates.Simple(ref cast.Next, 13, "Gloryplume resolve");
-            resolve.Update = (float timeSinceActivation) => resolve.Done = _ashplume.CurState == Ashplume.State.None;
+            resolve.Update = (_) => resolve.Done = _ashplume.CurState == Ashplume.State.None;
             resolve.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd;
             return resolve;
         }
@@ -1492,9 +1507,11 @@ namespace BossMod
             // ~3 sec after cast ends, boss makes an instant cast that determines stack/spread (26316/26312), ~4 sec after that hits with real AOE (26317/26313)
             // note that our helpers rely on casts rather than states
             var cast = CommonStates.Cast(ref link, () => _boss, AID.ExperimentalGloryplumeSingle, delay, 5, "GloryplumeSingle");
+            cast.Exit = () => _ashplume.CurState = Ashplume.State.UnknownGlory; // instant cast turns this into correct state in ~3 sec
             cast.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
-            var resolve = CommonStates.Simple(ref cast.Next, 7, "Gloryplume resolve");
-            resolve.Update = (float timeSinceActivation) => resolve.Done = _ashplume.CurState == Ashplume.State.None;
+
+            var resolve = CommonStates.Simple(ref cast.Next, 7.2f, "Gloryplume resolve");
+            resolve.Update = (_) => resolve.Done = _ashplume.CurState == Ashplume.State.None;
             resolve.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd;
             return resolve;
         }
@@ -1569,12 +1586,12 @@ namespace BossMod
         private StateMachine.State BuildSmallBirdsState(ref StateMachine.State? link, float delay)
         {
             var spawn = CommonStates.Simple(ref link, delay, "Small birds");
-            spawn.Update = (float timeSinceTransition) => spawn.Done = _birdsSmall.Count > 0;
+            spawn.Update = (_) => spawn.Done = _birdsSmall.Count > 0;
             spawn.Exit = () => _birdDistance.WatchedBirds = _birdsSmall;
             spawn.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.DowntimeEnd; // adds become targetable <1sec after spawn
 
             var enrage = CommonStates.Simple(ref spawn.Next, 25, "Small birds enrage");
-            enrage.Update = (float timeSinceTransition) => enrage.Done = _birdsSmall.Find(x => !x.IsDead) == null;
+            enrage.Update = (_) => enrage.Done = _birdsSmall.Find(x => !x.IsDead) == null;
             enrage.Exit = () => _birdDistance.WatchedBirds = null;
             enrage.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.DowntimeStart; // raidwide (26326) happens ~3sec after last bird death
             return enrage;
@@ -1584,7 +1601,7 @@ namespace BossMod
         private StateMachine.State BuildLargeBirdsState(ref StateMachine.State? link, float delay)
         {
             var spawn = CommonStates.Simple(ref link, delay, "Large birds");
-            spawn.Update = (float timeSinceTransition) => spawn.Done = _birdsLarge.Count > 0;
+            spawn.Update = (_) => spawn.Done = _birdsLarge.Count > 0;
             spawn.Exit = () => _birdTether.Active = true; // tethers appear ~5s after this and last for ~11s
             spawn.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.DowntimeEnd; // adds become targetable ~1sec after spawn
 
@@ -1596,7 +1613,7 @@ namespace BossMod
             };
 
             var enrage = CommonStates.Simple(ref chargesDone.Next, 35, "Large birds enrage");
-            enrage.Update = (float timeSinceTransition) => enrage.Done = _birdsLarge.Find(x => !x.IsDead) == null;
+            enrage.Update = (_) => enrage.Done = _birdsLarge.Find(x => !x.IsDead) == null;
             enrage.Exit = () => _birdDistance.WatchedBirds = null;
             enrage.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.DowntimeStart; // raidwide (26326) happens ~3sec after last bird death
             return enrage;
@@ -1606,7 +1623,7 @@ namespace BossMod
         {
             // mechanic timeline:
             // 0s cast end
-            // 2s icons appear (19B - points east, 19C - points west, 19D - points south, 19E - points north)
+            // 2s icons appear
             // 8s 3540's teleport to players
             // 10s 3540's start casting 26342
             // 14s 3540's finish casting 26342
@@ -1620,7 +1637,7 @@ namespace BossMod
             // - on 26349 cast end, debuffs with 25sec appear
             // - 12-15sec after 26350 cast starts, eyes finish casting their cones - at this point, there's about 5sec left on debuffs
             // note that helper does relies on icons and cast events rather than states
-            var deathtoll = CommonStates.Cast(ref link, () => _boss, AID.DeathToll, 7.2f, 6, "DeathToll");
+            var deathtoll = CommonStates.Cast(ref link, () => _boss, AID.DeathToll, delay, 6, "DeathToll");
             deathtoll.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var eyes = CommonStates.Cast(ref deathtoll.Next, () => _boss, AID.FledglingFlight, 3.2f, 3, "Eyes");
@@ -1674,12 +1691,12 @@ namespace BossMod
             var ashplume = BuildExperimentalAshplumeCastState(ref breeze.Next, 4);
 
             var knockback = CommonStates.Simple(ref ashplume.Next, 3, "Knockback");
-            knockback.Update = (float timeSinceTransition) => knockback.Done = !_twisters.Any(twister => twister.CastInfo != null && twister.CastInfo.ActionID == (uint)AID.DarkTwister);
+            knockback.Update = (_) => knockback.Done = !_twisters.Any(twister => twister.CastInfo != null && twister.CastInfo.ActionID == (uint)AID.DarkTwister);
             knockback.Exit = () => _darkblazeTwister.CurState = DarkblazeTwister.State.AOE;
             knockback.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Knockback;
 
             var aoe = CommonStates.Simple(ref knockback.Next, 2, "AOE");
-            aoe.Update = (float timeSinceTransition) => aoe.Done = !_twisters.Any(twister => twister.CastInfo != null);
+            aoe.Update = (_) => aoe.Done = !_twisters.Any(twister => twister.CastInfo != null);
             aoe.Exit = () => _darkblazeTwister.CurState = DarkblazeTwister.State.None;
             aoe.EndHint |= StateMachine.StateHint.GroupWithNext;
 
@@ -1759,41 +1776,31 @@ namespace BossMod
 
         private void EventIcon(object? sender, (uint actorID, uint iconID) arg)
         {
-            if (arg.iconID >= 0x17F && arg.iconID <= 0x186 && arg.actorID == WorldState.PlayerActorID)
+            if (arg.iconID >= 268 && arg.iconID <= 275 && arg.actorID == WorldState.PlayerActorID)
             {
-                _brightenedFire.SetPlayerOrder(this, arg.iconID - 0x17F);
+                _brightenedFire.SetPlayerOrder(this, arg.iconID - 268);
             }
-            else if (arg.iconID >= 0x19B && arg.iconID <= 0x19E)
+            else if (arg.iconID >= 296 && arg.iconID <= 299)
             {
-                _fledglingFlight.AddPlayer(WorldState.FindActor(arg.actorID), arg.iconID - 0x19B);
+                _fledglingFlight.AddPlayer(WorldState.FindActor(arg.actorID), arg.iconID - 296);
             }
         }
 
         private void EventCast(object? sender, WorldState.CastResult info)
         {
-            switch ((OID)info.CasterID)
+            switch ((AID)info.ActionID)
             {
-                case OID.Boss:
-                    switch ((AID)info.ActionID)
-                    {
-                        case AID.ExperimentalGloryplumeSpread:
-                            _ashplume.CurState = Ashplume.State.Spread;
-                            break;
-                        case AID.ExperimentalGloryplumeStack:
-                            _ashplume.CurState = Ashplume.State.Stack;
-                            break;
-                    }
+                case AID.ExperimentalGloryplumeSpread:
+                    _ashplume.CurState = Ashplume.State.Spread;
                     break;
-                case OID.Helper:
-                    switch ((AID)info.ActionID)
-                    {
-                        case AID.ExperimentalGloryplumeSpreadAOE:
-                        case AID.ExperimentalGloryplumeStackAOE:
-                        case AID.ExperimentalAshplumeSpreadAOE:
-                        case AID.ExperimentalAshplumeStackAOE:
-                            _ashplume.CurState = Ashplume.State.None;
-                            break;
-                    }
+                case AID.ExperimentalGloryplumeStack:
+                    _ashplume.CurState = Ashplume.State.Stack;
+                    break;
+                case AID.ExperimentalGloryplumeSpreadAOE:
+                case AID.ExperimentalGloryplumeStackAOE:
+                case AID.ExperimentalAshplumeSpreadAOE:
+                case AID.ExperimentalAshplumeStackAOE:
+                    _ashplume.CurState = Ashplume.State.None;
                     break;
             }
         }

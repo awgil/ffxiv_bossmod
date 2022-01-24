@@ -120,5 +120,14 @@ namespace BossMod
             s = CastEnd(ref s.Next, actorAcc, castTime, "", actorIsBoss);
             return Timeout(ref s.Next, resolve, name);
         }
+
+        // create a state triggered by a particular actor becoming (un)targetable; automatically sets downtime begin/end flag
+        public static StateMachine.State Targetable(ref StateMachine.State? link, Func<WorldState.Actor?> actorAcc, bool targetable, float delay, string name = "")
+        {
+            var state = Simple(ref link, delay, name);
+            state.Update = (_) => state.Done = actorAcc()?.IsTargetable == targetable;
+            state.EndHint |= targetable ? StateMachine.StateHint.DowntimeEnd : StateMachine.StateHint.DowntimeStart;
+            return state;
+        }
     }
 }
