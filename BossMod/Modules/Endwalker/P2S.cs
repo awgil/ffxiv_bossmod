@@ -213,15 +213,46 @@ namespace BossMod
         private class Coherence
         {
             public bool Active;
+            private int _closest = -1;
 
-            //private static float _aoeHalfWidth = 3;
+            private static float _aoeHalfWidth = 3;
 
-            public void DrawArenaForeground(P2S self)
+            public void Update(P2S self)
             {
+                _closest = -1;
                 if (!Active || self._boss == null)
                     return;
 
+                float minDistSq = 100000;
+                foreach ((int i, var player) in self.IterateRaidMembers())
+                {
+                    float dist = (player.Position - self._boss.Position).LengthSquared();
+                    if (dist < minDistSq)
+                    {
+                        minDistSq = dist;
+                        _closest = i;
+                    }
+                }
+            }
+
+            public void DrawArenaBackground(P2S self)
+            {
+                var closest = self.RaidMember(_closest);
+                if (!Active || self._boss == null || closest == null || self._boss.Position == closest.Position)
+                    return;
+
+                var dir = Vector3.Normalize(closest.Position - self._boss.Position);
+                self.Arena.ZoneQuad(self._boss.Position, dir, 50, 0, _aoeHalfWidth, self.Arena.ColorAOE);
+            }
+
+            public void DrawArenaForeground(P2S self)
+            {
+                var closest = self.RaidMember(_closest);
+                if (!Active || self._boss == null || closest == null || self._boss.Position == closest.Position)
+                    return;
+
                 // TODO: i'm not sure what are the exact mechanics - flare is probably distance-based, and ray is probably shared damage cast at closest target?..
+                var dirToClosest = Vector3.Normalize(closest.Position - self._boss.Position);
                 foreach ((int i, var player) in self.IterateRaidMembers())
                 {
                     if (player.Tether.ID == (uint)TetherID.Coherence)
@@ -229,9 +260,14 @@ namespace BossMod
                         self.Arena.AddLine(player.Position, self._boss.Position, self.Arena.ColorDanger);
                         self.Arena.Actor(player.Position, player.Rotation, self.Arena.ColorDanger);
                     }
+                    else if (i == _closest)
+                    {
+                        self.Arena.Actor(player.Position, player.Rotation, self.Arena.ColorDanger);
+                    }
                     else
                     {
-                        self.Arena.Actor(player.Position, player.Rotation, self.Arena.ColorPlayerGeneric);
+                        bool inAOE = GeometryUtils.PointInRect(player.Position - self._boss.Position, dirToClosest, 50, 0, _aoeHalfWidth);
+                        self.Arena.Actor(player.Position, player.Rotation, inAOE ? self.Arena.ColorPlayerInteresting : self.Arena.ColorPlayerGeneric);
                     }
                 }
             }
@@ -343,6 +379,52 @@ namespace BossMod
             }
         }
 
+        // state related to kampeos harma mechanic
+        private class KampeosHarma
+        {
+            // icon order: sq1 sq2 sq3 sq4 tri1 tri2 tri3 tri4
+            public int PlayerOrder = -1;
+            public Vector3 StartingOffset = new();
+            public int NumCharges = 0;
+
+            public void Reset()
+            {
+                PlayerOrder = -1;
+                NumCharges = 0;
+            }
+
+            public void DrawArenaForeground(P2S self)
+            {
+                var pos = GetSafeZone(self);
+                if (pos != null)
+                    self.Arena.AddCircle(pos.Value, 1, self.Arena.ColorSafe);
+            }
+
+            private Vector3? GetSafeZone(P2S self)
+            {
+                switch (PlayerOrder)
+                {
+                    case 0: // sq 1 - opposite corner, hide after first charge
+                        return self.Arena.WorldCenter + (NumCharges < 1 ? -1.1f : -1.2f) * StartingOffset;
+                    case 1: // sq 2 - same corner, hide after second charge
+                        return self.Arena.WorldCenter + (NumCharges < 2 ? +1.1f : +1.2f) * StartingOffset;
+                    case 2: // sq 3 - opposite corner, hide before first charge
+                        return self.Arena.WorldCenter + (NumCharges < 1 ? -1.2f : -1.1f) * StartingOffset;
+                    case 3: // sq 4 - same corner, hide before second charge
+                        return self.Arena.WorldCenter + (NumCharges < 2 ? +1.2f : +1.1f) * StartingOffset;
+                    case 4: // tri 1 - waymark 1
+                        return self.WorldState.GetWaymark(WorldState.Waymark.N1);
+                    case 5: // tri 2 - waymark 2
+                        return self.WorldState.GetWaymark(WorldState.Waymark.N2);
+                    case 6: // tri 3 - waymark 3
+                        return self.WorldState.GetWaymark(WorldState.Waymark.N3);
+                    case 7: // tri 4 - waymark 4
+                        return self.WorldState.GetWaymark(WorldState.Waymark.N4);
+                }
+                return null;
+            }
+        }
+
         private WorldState.Actor? _boss;
         private WorldState.Actor? _cataractHead;
         private WorldState.Actor? _dissocHead;
@@ -351,27 +433,30 @@ namespace BossMod
         private Dissociation _dissociation = new();
         private Coherence _coherence = new();
         private PredatoryAvarice _predatoryAvarice = new();
+        private KampeosHarma _kampeosHarma = new();
 
         public P2S(WorldState ws)
             : base(ws, 8)
         {
             WorldState.ActorStatusGain += ActorStatusGain;
             WorldState.ActorStatusLose += ActorStatusLose;
+            WorldState.EventIcon += EventIcon;
+            WorldState.EventCast += EventCast;
             WorldState.EventEnvControl += EventEnvControl;
 
             StateMachine.State? s;
             s = BuildMurkyDepthsState(ref InitialState, 10);
-            s = BuildDoubledImpactState(ref s.Next, 5);
-            s = BuildSewageDelugeState(ref s.Next, 8);
-            s = BuildCataractState(ref s.Next, 15);
-            s = BuildCoherenceState(ref s.Next, 8);
-            s = BuildMurkyDepthsState(ref s.Next, 7);
-            s = BuildOminousBubblingState(ref s.Next, 4);
+            s = BuildDoubledImpactState(ref s.Next, 5.2f);
+            s = BuildSewageDelugeState(ref s.Next, 7.8f);
+            s = BuildCataractState(ref s.Next, 14.6f);
+            s = BuildCoherenceState(ref s.Next, 8.1f);
+            s = BuildMurkyDepthsState(ref s.Next, 7.4f);
+            s = BuildOminousBubblingState(ref s.Next, 3.7f);
 
             // avarice + cataract
-            s = BuildPredatoryAvariceCastState(ref s.Next, 12);
-            s = BuildCataractState(ref s.Next, 10, true);
-            s = BuildPredatoryAvariceResolveState(ref s.Next, 6);
+            s = BuildPredatoryAvariceCastState(ref s.Next, 11.7f);
+            s = BuildCataractState(ref s.Next, 9.7f, true);
+            s = BuildPredatoryAvariceResolveState(ref s.Next, 6.1f);
             // note: deluge 1 ends here...
 
             // first flow
@@ -380,71 +465,71 @@ namespace BossMod
             // status: 2772 Left Mark of the Tides - points East
             // status: 2773 Right Mark of the Tides - points West
             // status: 2656 Stun - 14 sec after cast end
-            s = CommonStates.Cast(ref s.Next, () => _boss, AID.ChannelingFlow, 8, 5, "Flow 1");
+            s = CommonStates.Cast(ref s.Next, () => _boss, AID.ChannelingFlow, 8.5f, 5, "Flow 1");
             s.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
             s = CommonStates.Timeout(ref s.Next, 14);
             s.EndHint |= StateMachine.StateHint.PositioningEnd | StateMachine.StateHint.DowntimeStart;
             s = CommonStates.Timeout(ref s.Next, 3, "Flow resolve");
             s.EndHint |= StateMachine.StateHint.DowntimeEnd | StateMachine.StateHint.Raidwide;
 
-            s = BuildDoubledImpactState(ref s.Next, 8);
-            s = BuildMurkyDepthsState(ref s.Next, 5);
-            s = BuildSewageDelugeState(ref s.Next, 12);
-            s = BuildShockwaveState(ref s.Next, 10);
-            s = BuildKampeosHarmaState(ref s.Next, 4);
-            s = BuildDoubledImpactState(ref s.Next, 9);
-            s = BuildMurkyDepthsState(ref s.Next, 4);
+            s = BuildDoubledImpactState(ref s.Next, 8.2f);
+            s = BuildMurkyDepthsState(ref s.Next, 5.2f);
+            s = BuildSewageDelugeState(ref s.Next, 11.6f);
+            s = BuildShockwaveState(ref s.Next, 9.6f);
+            s = BuildKampeosHarmaState(ref s.Next, 4.5f);
+            s = BuildDoubledImpactState(ref s.Next, 9.4f);
+            s = BuildMurkyDepthsState(ref s.Next, 4.2f);
 
             // second flow (same statuses, different durations)
-            s = CommonStates.Cast(ref s.Next, () => _boss, AID.ChannelingOverflow, 9, 5, "Flow 2");
+            s = CommonStates.Cast(ref s.Next, () => _boss, AID.ChannelingOverflow, 8.7f, 5, "Flow 2");
             s.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
-            s = CommonStates.Cast(ref s.Next, () => _boss, AID.TaintedFlood, 4, 3);
+            s = CommonStates.Cast(ref s.Next, () => _boss, AID.TaintedFlood, 4.2f, 3);
             s = CommonStates.Timeout(ref s.Next, 9, "Hit 1");
             s.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Raidwide;
-            s = CommonStates.Cast(ref s.Next, () => _boss, AID.TaintedFlood, 3, 3);
+            s = CommonStates.Cast(ref s.Next, () => _boss, AID.TaintedFlood, 3.4f, 3);
             s = CommonStates.Timeout(ref s.Next, 9, "Hit 2");
             s.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd;
 
-            s = BuildCataractState(ref s.Next, 2);
+            s = BuildCataractState(ref s.Next, 1.2f); // too close to prev timeout...
             // note: deluge 2 ends here...
 
             // avarice + dissociation + cataract (note that we don't create separate avarice resolve state here, since it resolves just before cataract)
-            s = BuildPredatoryAvariceCastState(ref s.Next, 15);
-            s = BuildDissociationState(ref s.Next, 2);
-            s = BuildCataractState(ref s.Next, 10);
+            s = BuildPredatoryAvariceCastState(ref s.Next, 15.2f);
+            s = BuildDissociationState(ref s.Next, 2.4f);
+            s = BuildCataractState(ref s.Next, 9.7f);
 
             // dissociation + eruption + flood + coherence
-            s = BuildDissociationState(ref s.Next, 9);
-            s = CommonStates.Cast(ref s.Next, () => _boss, AID.SewageEruption, 8, 5, "Eruption");
+            s = BuildDissociationState(ref s.Next, 9.8f);
+            s = CommonStates.Cast(ref s.Next, () => _boss, AID.SewageEruption, 8.2f, 5, "Eruption");
             s.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
-            s = CommonStates.Cast(ref s.Next, () => _boss, AID.TaintedFlood, 2, 3, "Flood");
+            s = CommonStates.Cast(ref s.Next, () => _boss, AID.TaintedFlood, 2.3f, 3, "Flood");
             s.EndHint |= StateMachine.StateHint.GroupWithNext;
-            s = BuildCoherenceState(ref s.Next, 5);
+            s = BuildCoherenceState(ref s.Next, 4.7f);
             s.EndHint |= StateMachine.StateHint.PositioningEnd;
 
-            s = BuildDoubledImpactState(ref s.Next, 6);
-            s = BuildMurkyDepthsState(ref s.Next, 3);
-            s = BuildSewageDelugeState(ref s.Next, 13);
+            s = BuildDoubledImpactState(ref s.Next, 6.6f);
+            s = BuildMurkyDepthsState(ref s.Next, 3.2f);
+            s = BuildSewageDelugeState(ref s.Next, 12.7f);
 
             // flow 3 (with coherence)
-            s = CommonStates.Cast(ref s.Next, () => _boss, AID.ChannelingOverflow, 12, 5, "Flow 3");
+            s = CommonStates.Cast(ref s.Next, () => _boss, AID.ChannelingOverflow, 11.9f, 5, "Flow 3");
             s.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
-            s = BuildCoherenceState(ref s.Next, 5); // first hit is around coherence cast end
+            s = BuildCoherenceState(ref s.Next, 5.5f); // first hit is around coherence cast end
             s.EndHint |= StateMachine.StateHint.GroupWithNext;
             s = CommonStates.Timeout(ref s.Next, 10, "Flow resolve"); // second hit
             s.EndHint |= StateMachine.StateHint.PositioningEnd;
 
             // dissociation + eruption
-            s = BuildDissociationState(ref s.Next, 11);
-            s = CommonStates.Cast(ref s.Next, () => _boss, AID.SewageEruption, 8, 5, "Eruption");
+            s = BuildDissociationState(ref s.Next, 7.4f);
+            s = CommonStates.Cast(ref s.Next, () => _boss, AID.SewageEruption, 8.3f, 5, "Eruption");
             s.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
             s = CommonStates.Timeout(ref s.Next, 5, "Resolve");
             s.EndHint |= StateMachine.StateHint.PositioningEnd;
 
-            s = BuildOminousBubblingState(ref s.Next, 3);
-            s = BuildDoubledImpactState(ref s.Next, 6);
-            s = BuildMurkyDepthsState(ref s.Next, 7);
-            s = BuildMurkyDepthsState(ref s.Next, 6);
+            s = BuildOminousBubblingState(ref s.Next, 3.4f);
+            s = BuildDoubledImpactState(ref s.Next, 6.2f);
+            s = BuildMurkyDepthsState(ref s.Next, 7.2f);
+            s = BuildMurkyDepthsState(ref s.Next, 6.2f);
 
             s = CommonStates.Cast(ref s.Next, () => _boss, AID.Enrage, 6, 10, "Enrage");
         }
@@ -455,6 +540,8 @@ namespace BossMod
             {
                 WorldState.ActorStatusGain -= ActorStatusGain;
                 WorldState.ActorStatusLose -= ActorStatusLose;
+                WorldState.EventIcon -= EventIcon;
+                WorldState.EventCast -= EventCast;
                 WorldState.EventEnvControl -= EventEnvControl;
             }
             base.Dispose(disposing);
@@ -485,6 +572,7 @@ namespace BossMod
             _sewageDeluge.DrawArenaForeground(this);
             _coherence.DrawArenaForeground(this);
             _predatoryAvarice.DrawArenaForeground(this);
+            _kampeosHarma.DrawArenaForeground(this);
 
             if (_boss != null)
                 Arena.Actor(_boss.Position, _boss.Rotation, Arena.ColorEnemy);
@@ -554,6 +642,7 @@ namespace BossMod
             _sewageDeluge.BlockedCorner = SewageDeluge.Corner.None;
             _cataract.CurState = Cataract.State.None;
             _coherence.Active = false;
+            _kampeosHarma.Reset();
         }
 
         private StateMachine.State BuildMurkyDepthsState(ref StateMachine.State? link, float delay)
@@ -605,7 +694,7 @@ namespace BossMod
         // avarice resolve always clears positioning flag
         private StateMachine.State BuildPredatoryAvariceResolveState(ref StateMachine.State? link, float delay)
         {
-            var s = CommonStates.Simple(ref link, 7, "Avarice resolve");
+            var s = CommonStates.Simple(ref link, delay, "Avarice resolve");
             s.Update = (float timeSinceActivation) => s.Done = !_predatoryAvarice.Active;
             s.EndHint |= StateMachine.StateHint.PositioningEnd | StateMachine.StateHint.Raidwide;
             return s;
@@ -647,7 +736,7 @@ namespace BossMod
             // note: can determine bubbling targets by watching 233Cs cast OminousBubblingAOE on two targets
             var bubbling = CommonStates.Cast(ref link, () => _boss, AID.OminousBubbling, delay, 3, "TwoStacks");
             bubbling.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
-            var shockwave = BuildShockwaveState(ref bubbling.Next, 3);
+            var shockwave = BuildShockwaveState(ref bubbling.Next, 2.8f);
             shockwave.EndHint |= StateMachine.StateHint.GroupWithNext;
             var resolve = CommonStates.Timeout(ref shockwave.Next, 3, "AOE resolve");
             resolve.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd;
@@ -657,11 +746,12 @@ namespace BossMod
         private StateMachine.State BuildKampeosHarmaState(ref StateMachine.State? link, float delay)
         {
             var start = CommonStates.CastStart(ref link, () => _boss, delay);
-            start.Enter = () => { }; // TODO: start harma helper ui...
+            start.Exit = () => _kampeosHarma.StartingOffset = _boss!.Position - Arena.WorldCenter;
             start.EndHint |= StateMachine.StateHint.PositioningStart;
-            var end = CommonStates.CastEnd(ref start.Next, () => _boss, 8, "Harma");
+            var end = CommonStates.CastEnd(ref start.Next, () => _boss, 8.4f, "Harma");
             end.EndHint |= StateMachine.StateHint.DowntimeStart | StateMachine.StateHint.GroupWithNext;
             var resolve = CommonStates.Timeout(ref end.Next, 8, "Harma resolve");
+            resolve.Exit = () => _kampeosHarma.Reset();
             resolve.EndHint |= StateMachine.StateHint.DowntimeEnd | StateMachine.StateHint.PositioningEnd;
             return resolve;
         }
@@ -690,6 +780,22 @@ namespace BossMod
                     _predatoryAvarice.ModifyDebuff(FindRaidMemberSlot(arg.actor.InstanceID), false, false);
                     break;
             }
+        }
+
+        private void EventIcon(object? sender, (uint actorID, uint iconID) arg)
+        {
+            if (arg.iconID >= 145 && arg.iconID <= 152 && arg.actorID == WorldState.PlayerActorID)
+            {
+                _kampeosHarma.PlayerOrder = (int)(arg.iconID - 145);
+            }
+        }
+
+        private void EventCast(object? sender, WorldState.CastResult info)
+        {
+            //switch ((AID)info.ActionID)
+            //{
+            //    // TODO harma
+            //}
         }
 
         private void EventEnvControl(object? sender, (uint featureID, byte index, uint state) arg)

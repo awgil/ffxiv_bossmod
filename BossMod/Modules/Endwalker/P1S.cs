@@ -479,7 +479,7 @@ namespace BossMod
             private byte AOEInRange;
             private Behaviour DesiredBehaviour = Behaviour.Unknown;
 
-            private static float _kbDistance = 15; // quite sure about this
+            private static float _kbDistance = 15;
             private static float _flareRange = 20; // unconfirmed
             private static float _holyRange = 6; // unconfirmed, but looks correct...
             private static uint _colorAOETarget = 0xff8080ff;
