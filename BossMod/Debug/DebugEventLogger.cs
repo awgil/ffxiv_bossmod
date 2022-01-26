@@ -16,6 +16,7 @@ namespace BossMod
             _ws.WaymarkChanged += WaymarkChanged;
             _ws.ActorCreated += ActorCreated;
             _ws.ActorDestroyed += ActorDestroyed;
+            _ws.ActorClassRoleChanged += ActorClassRoleChanged;
             _ws.ActorMoved += ActorMoved;
             _ws.ActorIsTargetableChanged += ActorIsTargetableChanged;
             _ws.ActorIsDeadChanged += ActorIsDeadChanged;
@@ -39,6 +40,7 @@ namespace BossMod
             _ws.WaymarkChanged -= WaymarkChanged;
             _ws.ActorCreated -= ActorCreated;
             _ws.ActorDestroyed -= ActorDestroyed;
+            _ws.ActorClassRoleChanged -= ActorClassRoleChanged;
             _ws.ActorMoved -= ActorMoved;
             _ws.ActorIsTargetableChanged -= ActorIsTargetableChanged;
             _ws.ActorIsDeadChanged -= ActorIsDeadChanged;
@@ -80,12 +82,17 @@ namespace BossMod
 
         private void ActorCreated(object? sender, WorldState.Actor actor)
         {
-            Service.Log($"[Actor] New actor: {Utils.ObjectString(actor.InstanceID)}, kind={actor.Type}, position={Utils.Vec3String(actor.Position)}, rotation={Utils.RadianString(actor.Rotation)}, targetable={actor.IsTargetable}, playerOrPet={IsPlayerOrPet(actor)}");
+            Service.Log($"[Actor] New actor: {Utils.ObjectString(actor.InstanceID)}, kind={actor.Type}, class={Utils.CharacterClassString(actor.ClassID)}, role={actor.Role}, position={Utils.Vec3String(actor.Position)}, rotation={Utils.RadianString(actor.Rotation)}, targetable={actor.IsTargetable}, playerOrPet={IsPlayerOrPet(actor)}");
         }
 
         private void ActorDestroyed(object? sender, WorldState.Actor actor)
         {
             Service.Log($"[Actor] Removed actor: id={actor.InstanceID:X}, playerOrPet={IsPlayerOrPet(actor)}");
+        }
+
+        private void ActorClassRoleChanged(object? sender, (WorldState.Actor actor, uint prevClass, WorldState.ActorRole prevRole) arg)
+        {
+            Service.Log($"[Actor] Actor class changed: {Utils.ObjectString(arg.actor.InstanceID)}, {Utils.CharacterClassString(arg.prevClass)} ({arg.prevRole}) -> {Utils.CharacterClassString(arg.actor.ClassID)} ({arg.actor.Role})");
         }
 
         private void ActorMoved(object? sender, (WorldState.Actor actor, Vector3 prevPos, float prevRot) arg)

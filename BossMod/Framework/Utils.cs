@@ -27,6 +27,12 @@ namespace BossMod
                 return $"{obj.ObjectKind}/{obj.SubKind}";
         }
 
+        public static string CharacterClassString(uint classID)
+        {
+            var classData = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.ClassJob>()?.GetRow(classID);
+            return classData?.Abbreviation ?? "<not found>";
+        }
+
         public static string RadianString(float rad)
         {
             return $"{(rad / Math.PI * 180):f0}";

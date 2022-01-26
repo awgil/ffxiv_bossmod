@@ -12,10 +12,11 @@ network:
 - allow injecting custom client messages in next sent bundle (or just create new bundle?..)
 
 boss modules:
-- p1s/p3s: factor out draw/aoe query utils
-- data driven => would enable sequence autorecord and live editing
-- draw arrows in world
+- common refactoring
+-- draw/query aoes
+-- object id watch
 - show per-player risks and fails
+- draw arrows in world
 - p1s
 -- intemperance cubes
 - p2s
@@ -23,6 +24,7 @@ boss modules:
 - zodiark
 -- refactor
 - hydaelyn, p4s: todo
+- data driven => would enable sequence autorecord and live editing
 
 autorotation:
 - improve rotation logic

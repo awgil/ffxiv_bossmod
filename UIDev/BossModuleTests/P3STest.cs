@@ -13,27 +13,27 @@ namespace UIDev
         public P3STest()
         {
             _ws = new();
-            _ws.AddActor(1, 0, WorldState.ActorType.Player, new(100, 0, 90), 0, 1, true);
-            _ws.AddActor(2, 0, WorldState.ActorType.Player, new(100, 0, 110), 0, 1, true);
-            _ws.AddActor(3, 0, WorldState.ActorType.Player, new(90, 0, 90), 0, 1, true);
-            _ws.AddActor(4, 0, WorldState.ActorType.Player, new(92, 0, 90), 0, 1, true);
-            _ws.AddActor(5, 0, WorldState.ActorType.Player, new(94, 0, 90), 0, 1, true);
-            _ws.AddActor(6, 0, WorldState.ActorType.Player, new(90, 0, 92), 0, 1, true);
-            _ws.AddActor(7, 0, WorldState.ActorType.Player, new(92, 0, 92), 0, 1, true);
-            _ws.AddActor(8, 0, WorldState.ActorType.Player, new(94, 0, 92), 0, 1, true);
-            _ws.AddActor(9, (uint)P3S.OID.Boss, WorldState.ActorType.Enemy, new(100, 0, 100), 0, 1, true);
-            _ws.AddActor(10, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, new(115, 0, 100), 0, 1, true);
-            _ws.AddActor(11, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, new(85, 0, 100), MathF.PI / 3, 1, true);
-            _ws.AddActor(12, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, new(110, 0, 110), 2 * MathF.PI / 3, 1, true);
-            _ws.AddActor(13, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, new(90, 0, 90), MathF.PI, 1, true);
-            _ws.AddActor(14, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, new(100, 0, 115), -MathF.PI / 3, 1, true);
-            _ws.AddActor(15, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, new(100, 0, 85), -2 * MathF.PI / 3, 1, true);
-            _ws.AddActor(16, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, new(90, 0, 110), 0, 1, true);
-            _ws.AddActor(17, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, new(110, 0, 90), 0, 1, true);
-            _ws.AddActor(18, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, new(100, 0, 100), 0, 1, true);
-            _ws.AddActor(19, (uint)P3S.OID.DarkblazeTwister, WorldState.ActorType.Enemy, new(114, 0, 108), -2 * MathF.PI / 3, 1, false);
-            _ws.AddActor(20, (uint)P3S.OID.DarkblazeTwister, WorldState.ActorType.Enemy, new(100, 0, 84), 0, 1, false);
-            _ws.AddActor(21, (uint)P3S.OID.DarkblazeTwister, WorldState.ActorType.Enemy, new(86, 0, 108), 2 * MathF.PI / 3, 1, false);
+            _ws.AddActor(1, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Tank, new(100, 0, 90), 0, 1, true);
+            _ws.AddActor(2, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Tank, new(100, 0, 110), 0, 1, true);
+            _ws.AddActor(3, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Healer, new(90, 0, 90), 0, 1, true);
+            _ws.AddActor(4, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Healer, new(92, 0, 90), 0, 1, true);
+            _ws.AddActor(5, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Ranged, new(94, 0, 90), 0, 1, true);
+            _ws.AddActor(6, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Ranged, new(90, 0, 92), 0, 1, true);
+            _ws.AddActor(7, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(92, 0, 92), 0, 1, true);
+            _ws.AddActor(8, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(94, 0, 92), 0, 1, true);
+            _ws.AddActor(9, (uint)P3S.OID.Boss, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), 0, 1, true);
+            _ws.AddActor(10, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(115, 0, 100), 0, 1, true);
+            _ws.AddActor(11, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(85, 0, 100), MathF.PI / 3, 1, true);
+            _ws.AddActor(12, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 110), 2 * MathF.PI / 3, 1, true);
+            _ws.AddActor(13, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 90), MathF.PI, 1, true);
+            _ws.AddActor(14, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 115), -MathF.PI / 3, 1, true);
+            _ws.AddActor(15, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 85), -2 * MathF.PI / 3, 1, true);
+            _ws.AddActor(16, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 110), 0, 1, true);
+            _ws.AddActor(17, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 90), 0, 1, true);
+            _ws.AddActor(18, (uint)P3S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), 0, 1, true);
+            _ws.AddActor(19, (uint)P3S.OID.DarkblazeTwister, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(114, 0, 108), -2 * MathF.PI / 3, 1, false);
+            _ws.AddActor(20, (uint)P3S.OID.DarkblazeTwister, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 84), 0, 1, false);
+            _ws.AddActor(21, (uint)P3S.OID.DarkblazeTwister, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(86, 0, 108), 2 * MathF.PI / 3, 1, false);
             _ws.PlayerActorID = 1;
             _o = new P3S(_ws);
         }

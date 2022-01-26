@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\6.2.0.23\</DalamudLibPath>
+    <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>
 
   <ItemGroup>

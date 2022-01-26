@@ -15,10 +15,11 @@ namespace BossMod
             ImGui.Checkbox("Show players, minions and mounts", ref _showCrap);
 
             int i = 0;
-            ImGui.BeginTable("objects", 8);
+            ImGui.BeginTable("objects", 9);
             ImGui.TableSetupColumn("Index");
             ImGui.TableSetupColumn("Actor");
             ImGui.TableSetupColumn("Kind/Subkind");
+            ImGui.TableSetupColumn("Class");
             ImGui.TableSetupColumn("OwnerID");
             ImGui.TableSetupColumn("Position");
             ImGui.TableSetupColumn("Rotation");
@@ -34,11 +35,13 @@ namespace BossMod
                 if (isCrap && !_showCrap)
                     continue;
 
+                var character = obj as Character;
                 var internalObj = Utils.GameObjectInternal(obj);
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn(); ImGui.Text($"{idx}");
                 ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(obj));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectKindString(obj));
+                ImGui.TableNextColumn(); ImGui.Text(character != null ? Utils.CharacterClassString(character.ClassJob.Id) : "---");
                 ImGui.TableNextColumn(); ImGui.Text($"{obj.OwnerId:X}");
                 ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(obj.Position));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.RadianString(obj.Rotation));
