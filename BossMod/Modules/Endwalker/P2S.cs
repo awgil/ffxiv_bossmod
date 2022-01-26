@@ -29,6 +29,7 @@ namespace BossMod
             ChannelingFlow = 26654, // Boss->Boss
             Crash = 26657, // Helper->Helper, attack after arrows resolve
             KampeosHarma = 26659, // Boss->Boss
+            KampeosHarmaCharge = 26660, // Boss->target, no cast
             PredatoryAvarice = 26663, // Boss->Boss
             OminousBubbling = 26666, // Boss->Boss
             OminousBubblingAOE = 26667, // Helper->targets
@@ -49,6 +50,10 @@ namespace BossMod
         {
             MarkOfTides = 2768, // avarice - gtfo (tank+dd)
             MarkOfDepths = 2769, // avarice - stack (healer)
+            MarkFlowN = 2770, // 'fore', points north
+            MarkFlowS = 2771, // 'rear', points south
+            MarkFlowW = 2772, // 'left', points west
+            MarkFlowE = 2773, // 'right', points east
         }
 
         public enum TetherID : uint
@@ -425,6 +430,45 @@ namespace BossMod
             }
         }
 
+        // state related to channeling [over]flow mechanics
+        private class ChannelingFlow
+        {
+            public bool Active = false;
+
+            private static float _typhoonHalfWidth = 2.5f;
+
+            public void DrawArenaBackground(P2S self)
+            {
+                if (!Active)
+                    return;
+
+                foreach ((int i, var player) in self.IterateRaidMembers())
+                {
+                    foreach (var status in player.Statuses)
+                    {
+                        if (status.RemainingTime > 10)
+                            continue;
+
+                        switch ((SID)status.ID)
+                        {
+                            case SID.MarkFlowN:
+                                self.Arena.ZoneQuad(player.Position, -Vector3.UnitZ, 50, 0, _typhoonHalfWidth, self.Arena.ColorAOE);
+                                break;
+                            case SID.MarkFlowS:
+                                self.Arena.ZoneQuad(player.Position,  Vector3.UnitZ, 50, 0, _typhoonHalfWidth, self.Arena.ColorAOE);
+                                break;
+                            case SID.MarkFlowW:
+                                self.Arena.ZoneQuad(player.Position, -Vector3.UnitX, 50, 0, _typhoonHalfWidth, self.Arena.ColorAOE);
+                                break;
+                            case SID.MarkFlowE:
+                                self.Arena.ZoneQuad(player.Position,  Vector3.UnitX, 50, 0, _typhoonHalfWidth, self.Arena.ColorAOE);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+
         private WorldState.Actor? _boss;
         private WorldState.Actor? _cataractHead;
         private WorldState.Actor? _dissocHead;
@@ -434,6 +478,7 @@ namespace BossMod
         private Coherence _coherence = new();
         private PredatoryAvarice _predatoryAvarice = new();
         private KampeosHarma _kampeosHarma = new();
+        private ChannelingFlow _channelingFlow = new();
 
         public P2S(WorldState ws)
             : base(ws, 8)
@@ -460,16 +505,13 @@ namespace BossMod
             // note: deluge 1 ends here...
 
             // first flow
-            // status: 2770 Fore Mark of the Tides - points North
-            // status: 2771 Rear Mark of the Tides - points South
-            // status: 2772 Left Mark of the Tides - points East
-            // status: 2773 Right Mark of the Tides - points West
-            // status: 2656 Stun - 14 sec after cast end
             s = CommonStates.Cast(ref s.Next, () => _boss, AID.ChannelingFlow, 8.5f, 5, "Flow 1");
+            s.Exit = () => _channelingFlow.Active = true;
             s.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
             s = CommonStates.Timeout(ref s.Next, 14);
             s.EndHint |= StateMachine.StateHint.PositioningEnd | StateMachine.StateHint.DowntimeStart;
             s = CommonStates.Timeout(ref s.Next, 3, "Flow resolve");
+            s.Exit = () => _channelingFlow.Active = false;
             s.EndHint |= StateMachine.StateHint.DowntimeEnd | StateMachine.StateHint.Raidwide;
 
             s = BuildDoubledImpactState(ref s.Next, 8.2f);
@@ -482,12 +524,14 @@ namespace BossMod
 
             // second flow (same statuses, different durations)
             s = CommonStates.Cast(ref s.Next, () => _boss, AID.ChannelingOverflow, 8.7f, 5, "Flow 2");
+            s.Exit = () => _channelingFlow.Active = true;
             s.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
             s = CommonStates.Cast(ref s.Next, () => _boss, AID.TaintedFlood, 4.2f, 3);
             s = CommonStates.Timeout(ref s.Next, 9, "Hit 1");
             s.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Raidwide;
             s = CommonStates.Cast(ref s.Next, () => _boss, AID.TaintedFlood, 3.4f, 3);
             s = CommonStates.Timeout(ref s.Next, 9, "Hit 2");
+            s.Exit = () => _channelingFlow.Active = false;
             s.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd;
 
             s = BuildCataractState(ref s.Next, 1.2f); // too close to prev timeout...
@@ -513,10 +557,12 @@ namespace BossMod
 
             // flow 3 (with coherence)
             s = CommonStates.Cast(ref s.Next, () => _boss, AID.ChannelingOverflow, 11.9f, 5, "Flow 3");
+            s.Exit = () => _channelingFlow.Active = true;
             s.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
             s = BuildCoherenceState(ref s.Next, 5.5f); // first hit is around coherence cast end
             s.EndHint |= StateMachine.StateHint.GroupWithNext;
             s = CommonStates.Timeout(ref s.Next, 10, "Flow resolve"); // second hit
+            s.Exit = () => _channelingFlow.Active = false;
             s.EndHint |= StateMachine.StateHint.PositioningEnd;
 
             // dissociation + eruption
@@ -567,6 +613,7 @@ namespace BossMod
             _sewageDeluge.DrawArenaBackground(this);
             _cataract.DrawArenaBackground(this);
             _dissociation.DrawArenaBackground(this);
+            _channelingFlow.DrawArenaBackground(this);
 
             Arena.Border();
             _sewageDeluge.DrawArenaForeground(this);
@@ -643,6 +690,7 @@ namespace BossMod
             _cataract.CurState = Cataract.State.None;
             _coherence.Active = false;
             _kampeosHarma.Reset();
+            _channelingFlow.Active = false;
         }
 
         private StateMachine.State BuildMurkyDepthsState(ref StateMachine.State? link, float delay)
@@ -748,8 +796,10 @@ namespace BossMod
             var start = CommonStates.CastStart(ref link, () => _boss, delay);
             start.Exit = () => _kampeosHarma.StartingOffset = _boss!.Position - Arena.WorldCenter;
             start.EndHint |= StateMachine.StateHint.PositioningStart;
+
             var end = CommonStates.CastEnd(ref start.Next, () => _boss, 8.4f, "Harma");
             end.EndHint |= StateMachine.StateHint.DowntimeStart | StateMachine.StateHint.GroupWithNext;
+
             var resolve = CommonStates.Timeout(ref end.Next, 8, "Harma resolve");
             resolve.Exit = () => _kampeosHarma.Reset();
             resolve.EndHint |= StateMachine.StateHint.DowntimeEnd | StateMachine.StateHint.PositioningEnd;
@@ -792,10 +842,12 @@ namespace BossMod
 
         private void EventCast(object? sender, WorldState.CastResult info)
         {
-            //switch ((AID)info.ActionID)
-            //{
-            //    // TODO harma
-            //}
+            switch ((AID)info.ActionID)
+            {
+                case AID.KampeosHarmaCharge:
+                    ++_kampeosHarma.NumCharges;
+                    break;
+            }
         }
 
         private void EventEnvControl(object? sender, (uint featureID, byte index, uint state) arg)

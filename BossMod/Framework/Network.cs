@@ -10,34 +10,34 @@ namespace BossMod
     {
         public enum Opcode
         {
-            StatusEffectList = 0xf188,
-            StatusEffectList2 = 0xf293,
-            StatusEffectList3 = 0xf353,
-            BossStatusEffectList = 0xf38f,
-            Ability1 = 0x3c7, // updated
-            Ability8 = 0x149, // updated
-            Ability16 = 0xf1fa,
-            Ability24 = 0xf300,
-            Ability32 = 0xf3cd,
-            ActorCast = 0xf307,
-            EffectResult = 0xf203,
-            EffectResultBasic = 0xf330,
-            ActorControl = 0x22f, // updated - look at toggle weapon
-            ActorControlSelf = 0x6b, // updated - look at cooldown
-            ActorControlTarget = 0x191, // updated - look at target change
-            UpdateHpMpTp = 0xf0f4,
-            PlayerSpawn = 0xf1e8,
-            NpcSpawn = 0xf1d2,
-            NpcSpawn2 = 0xf270,
-            ActorMove = 0xf0db,
-            ActorSetPos = 0xf081,
-            ActorGauge = 0xf22d,
-            PresetWaymark = 0x1fe, // updated
-            Waymark = 0x67, // updated
-            SystemLogMessage = 0xf27a,
+            StatusEffectList = 0x00bc,
+            StatusEffectList2 = 0x01ff,
+            StatusEffectList3 = 0x02af,
+            BossStatusEffectList = 0x007e,
+            Ability1 = 0x03c7,
+            Ability8 = 0x0149,
+            Ability16 = 0x00c1,
+            Ability24 = 0x0213,
+            Ability32 = 0x038b,
+            ActorCast = 0x0104,
+            EffectResult = 0x00de,
+            EffectResultBasic = 0x02d9,
+            ActorControl = 0x022f, // look at toggle weapon
+            ActorControlSelf = 0x006b, // look at cooldown
+            ActorControlTarget = 0x0191, // look at target change
+            UpdateHpMpTp = 0x02c9,
+            PlayerSpawn = 0x0142,
+            NpcSpawn = 0x032c,
+            NpcSpawn2 = 0x008f,
+            ActorMove = 0x0370,
+            ActorSetPos = 0x0395,
+            ActorGauge = 0x03b5,
+            PresetWaymark = 0x01fe,
+            Waymark = 0x0067,
+            SystemLogMessage = 0x00ef,
 
             // below are opcodes i've reversed myself...
-            EnvironmentControl = 0x3ba, // updated - size=16, typically starts with 0x800375xx
+            EnvironmentControl = 0x03ba, // updated - size=16, typically starts with 0x800375xx
             // old - 0x1fd == EventObjSpawn? for stuff like exit points, etc.
         }
 
