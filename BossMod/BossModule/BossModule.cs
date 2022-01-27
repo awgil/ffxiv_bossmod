@@ -10,37 +10,42 @@ namespace BossMod
     public class BossModule : IDisposable
     {
         public WorldState WorldState { get; init; }
+        public StateMachine StateMachine { get; init; } = new();
+        public StateMachine.State? InitialState = null;
+        public MiniArena Arena { get; init; } = new();
 
         public WorldState.Actor?[] RaidMembers; // this is fixed-size, but some slots could be empty; when player is removed, gap is created - existing players keep their indices
         public int PlayerSlot { get; private set; } = -1;
         public WorldState.Actor? RaidMember(int slot) => (slot >= 0 && slot < RaidMembers.Length) ? RaidMembers[slot] : null; // bounds-checking accessor
         public WorldState.Actor? Player() => RaidMember(PlayerSlot);
 
-        public StateMachine StateMachine { get; init; } = new();
-        public StateMachine.State? InitialState = null;
-        public MiniArena Arena { get; init; } = new();
-
-        public class RelevantEnemy
+        private class EnemyList
         {
-            public List<WorldState.Actor> Actors;
+            public List<WorldState.Actor> Actors = new();
             public bool Unique; // if true, actors list will always contain 0 or 1 elements
-
-            public RelevantEnemy(List<WorldState.Actor> actors, bool unique = false)
-            {
-                Actors = actors;
-                Unique = unique;
-            }
         }
-        private IReadOnlyDictionary<uint, RelevantEnemy> _relevantEnemies; // key = actor OID
+        private Dictionary<uint, EnemyList> _relevantEnemies = new(); // key = actor OID
+
+        // register new watched enemy list
+        protected List<WorldState.Actor> RegisterEnemies<OID>(OID oid, bool unique = false) where OID : Enum
+        {
+            var castOID = (uint)(object)oid;
+            var entry = new EnemyList() { Unique = unique };
+            foreach (var actor in WorldState.Actors.Values.Where(actor => actor.OID == castOID))
+                AddRelevantEnemy(entry, actor);
+            _relevantEnemies[castOID] = entry;
+            return entry.Actors;
+        }
+
+        // retrieve watched enemy list; it should have been already registered before
+        public List<WorldState.Actor> Enemies<OID>(OID oid) where OID : Enum
+        {
+            return _relevantEnemies[(uint)(object)oid].Actors;
+        }
 
         // different encounter mechanics can be split into independent components
         public class Component
         {
-            public Component(BossModule module)
-            {
-                module._components.Add(this);
-            }
-
             public virtual void Reset() { } // called when module is reset
             public virtual void Update() { } // called every frame - it is a good place to update any cached values
             public virtual void AddHints(int slot, WorldState.Actor actor, List<string> hints) { } // gather any relevant pieces of advice for specified raid member
@@ -58,11 +63,32 @@ namespace BossMod
         }
         private List<Component> _components = new();
 
+        // register new component
+        protected T RegisterComponent<T>(T comp) where T : Component
+        {
+            var existing = FindComponent<T>();
+            if (existing == null)
+            {
+                existing = comp;
+                _components.Add(comp);
+            }
+            else
+            {
+                Service.Log($"Trying to register component {comp.GetType()} twice");
+            }
+            return existing;
+        }
+
+        // find existing component by type
+        public T? FindComponent<T>() where T : Component
+        {
+            return (T?)_components.Find(c => c is T);
+        }
+
         public BossModule(WorldState w, int maxRaidMembers)
         {
             WorldState = w;
             RaidMembers = new WorldState.Actor?[maxRaidMembers];
-            _relevantEnemies = DefineRelevantEnemies();
 
             WorldState.PlayerActorIDChanged += PlayerIDChanged;
             WorldState.PlayerInCombatChanged += EnterExitCombat;
@@ -235,11 +261,20 @@ namespace BossMod
         protected virtual void DrawArenaForegroundPre() { } // after border, before modules foreground
         protected virtual void DrawArenaForegroundPost() { } // after modules foreground
         protected virtual void DrawFooter() { }
-        protected virtual Dictionary<uint, RelevantEnemy> DefineRelevantEnemies() { return new(); } // called once by constructor, boss mod can provide lists for interesting enemies that will be automatically managed
         protected virtual void NonPlayerCreated(WorldState.Actor actor) { }
         protected virtual void NonPlayerDestroyed(WorldState.Actor actor) { }
         protected virtual void RaidMemberCreated(int index) { }
         protected virtual void RaidMemberDestroyed(int index) { } // called just before slot is cleared, so still contains old actor
+
+        private void AddRelevantEnemy(EnemyList list, WorldState.Actor actor)
+        {
+            if (list.Unique && list.Actors.Count > 0)
+            {
+                Service.Log($"[BossModule] Got multiple instances of {actor.OID}, however it is expected to be unique; replacing {list.Actors[0].InstanceID:X} with {actor.InstanceID:X}");
+                list.Actors.Clear();
+            }
+            list.Actors.Add(actor);
+        }
 
         private void PlayerIDChanged(object? sender, uint id)
         {
@@ -281,14 +316,7 @@ namespace BossMod
             {
                 var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
                 if (relevant != null)
-                {
-                    if (relevant.Unique && relevant.Actors.Count > 0)
-                    {
-                        Service.Log($"[BossModule] Got multiple instances of {actor.OID}, however it is expected to be unique; replacing {relevant.Actors[0].InstanceID:X} with {actor.InstanceID:X}");
-                        relevant.Actors.Clear();
-                    }
-                    relevant.Actors.Add(actor);
-                }
+                    AddRelevantEnemy(relevant, actor);
 
                 NonPlayerCreated(actor);
             }
@@ -315,9 +343,7 @@ namespace BossMod
             {
                 var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
                 if (relevant != null)
-                {
                     relevant.Actors.Remove(actor);
-                }
 
                 NonPlayerDestroyed(actor);
             }

@@ -114,7 +114,7 @@ namespace BossMod
 
             private static float _aoeRange = 6;
 
-            public HeatOfCondemnation(P3S module) : base(module)
+            public HeatOfCondemnation(P3S module)
             {
                 _module = module;
             }
@@ -200,7 +200,7 @@ namespace BossMod
 
             private P3S _module;
 
-            public Cinderwing(P3S module) : base(module)
+            public Cinderwing(P3S module)
             {
                 _module = module;
             }
@@ -240,7 +240,7 @@ namespace BossMod
 
             private static float _halfWidth = 5;
 
-            public DevouringBrand(P3S module) : base(module)
+            public DevouringBrand(P3S module)
             {
                 _module = module;
             }
@@ -282,7 +282,7 @@ namespace BossMod
             private static float _sidesOffset = 12.5f;
             private static float _aoeRadius = 6;
 
-            public TrailOfCondemnation(P3S module) : base(module)
+            public TrailOfCondemnation(P3S module)
             {
                 _module = module;
             }
@@ -382,7 +382,7 @@ namespace BossMod
 
             private static float _radius = 15;
 
-            public FireplumeSingle(P3S module) : base(module)
+            public FireplumeSingle(P3S module)
             {
                 _module = module;
             }
@@ -435,7 +435,7 @@ namespace BossMod
             private static float _pairOffset = 15;
             private static float _radius = 10;
 
-            public FireplumeMulti(P3S module) : base(module)
+            public FireplumeMulti(P3S module)
             {
                 _module = module;
             }
@@ -532,7 +532,7 @@ namespace BossMod
             private static float _stackRadius = 8;
             private static float _spreadRadius = 6;
 
-            public Ashplume(P3S module) : base(module)
+            public Ashplume(P3S module)
             {
                 _module = module;
             }
@@ -623,7 +623,7 @@ namespace BossMod
             private static float _minRange = 10; // TODO: verify...
             private static float _maxRange = 13; // brigthened fire aoe radius is 7, so this is x2 minus some room for positioning
 
-            public DarkenedFire(P3S module) : base(module)
+            public DarkenedFire(P3S module)
             {
                 _module = module;
             }
@@ -691,13 +691,15 @@ namespace BossMod
             public int NumCastsHappened = 0;
 
             private P3S _module;
+            private List<WorldState.Actor> _darkenedFires;
             private int[] _playerOrder = new int[8]; // 0 if unknown, 1-8 otherwise
 
             private static float _aoeRange = 7;
 
-            public BrightenedFire(P3S module) : base(module)
+            public BrightenedFire(P3S module)
             {
                 _module = module;
+                _darkenedFires = module.Enemies(OID.DarkenedFire);
             }
 
             public override void Reset()
@@ -712,7 +714,7 @@ namespace BossMod
                 if (!Active || _playerOrder[slot] <= NumCastsHappened)
                     return;
 
-                int numHitAdds = _module._darkenedFires.Where(fire => GeometryUtils.PointInCircle(fire.Position - actor.Position, _aoeRange)).Count();
+                int numHitAdds = _darkenedFires.Where(fire => GeometryUtils.PointInCircle(fire.Position - actor.Position, _aoeRange)).Count();
                 if (numHitAdds < 2)
                 {
                     hints.Add("Get closer to adds!");
@@ -727,10 +729,10 @@ namespace BossMod
 
                 // find two closest adds to player's mark
                 var pos = PositionForOrder(_playerOrder[_module.PlayerSlot]);
-                var firesRange = new (WorldState.Actor, float)[_module._darkenedFires.Count];
-                for (int i = 0; i < _module._darkenedFires.Count; ++i)
+                var firesRange = new (WorldState.Actor, float)[_darkenedFires.Count];
+                for (int i = 0; i < _darkenedFires.Count; ++i)
                 {
-                    var fire = _module._darkenedFires[i];
+                    var fire = _darkenedFires[i];
                     firesRange[i] = (fire, (fire.Position - pos).LengthSquared());
                 }
                 Array.Sort(firesRange, (l, r) => l.Item2.CompareTo(r.Item2));
@@ -782,7 +784,7 @@ namespace BossMod
 
             private static float _radius = 13;
 
-            public BirdDistance(P3S module) : base(module)
+            public BirdDistance(P3S module)
             {
                 _module = module;
             }
@@ -848,13 +850,15 @@ namespace BossMod
             public bool Active = false;
 
             private P3S _module;
+            private List<WorldState.Actor> _birdsLarge;
             private (WorldState.Actor?, WorldState.Actor?, int)[] _chains = new (WorldState.Actor?, WorldState.Actor?, int)[4]; // actor1, actor2, num-charges
 
             private static float _chargeHalfWidth = 3;
 
-            public BirdTether(P3S module) : base(module)
+            public BirdTether(P3S module)
             {
                 _module = module;
+                _birdsLarge = module.Enemies(OID.SunbirdLarge);
             }
 
             public override void Reset()
@@ -868,12 +872,12 @@ namespace BossMod
                 if (!Active)
                     return;
 
-                for (int i = 0; i < Math.Min(_module._birdsLarge.Count, 4); ++i)
+                for (int i = 0; i < Math.Min(_birdsLarge.Count, 4); ++i)
                 {
                     if (_chains[i].Item3 == 2)
                         continue; // this is finished
 
-                    var bird = _module._birdsLarge[i];
+                    var bird = _birdsLarge[i];
                     if (_chains[i].Item1 == null && bird.Tether.Target != 0)
                     {
                         Service.Log($"[P3S] Debug: assign chain bird {bird.InstanceID:X} -> {bird.Tether.Target:X}");
@@ -903,7 +907,7 @@ namespace BossMod
                     return;
 
                 bool hitByCharge = false;
-                foreach ((var bird, (var p1, var p2, int numCharges)) in _module._birdsLarge.Zip(_chains))
+                foreach ((var bird, (var p1, var p2, int numCharges)) in _birdsLarge.Zip(_chains))
                 {
                     if (numCharges == 2)
                         continue;
@@ -943,7 +947,7 @@ namespace BossMod
                     return;
 
                 // draw aoe zones for imminent charges, except one towards player
-                foreach ((var bird, (var p1, var p2, int numCharges)) in _module._birdsLarge.Zip(_chains))
+                foreach ((var bird, (var p1, var p2, int numCharges)) in _birdsLarge.Zip(_chains))
                 {
                     if (numCharges == 2)
                         continue;
@@ -965,7 +969,7 @@ namespace BossMod
                     return;
 
                 // draw chains containing player
-                foreach ((var bird, (var p1, var p2, int numCharges)) in _module._birdsLarge.Zip(_chains))
+                foreach ((var bird, (var p1, var p2, int numCharges)) in _birdsLarge.Zip(_chains))
                 {
                     if (numCharges == 2)
                         continue;
@@ -1009,17 +1013,19 @@ namespace BossMod
         private class SunshadowTether : Component
         {
             private P3S _module;
+            private List<WorldState.Actor> _sunshadows;
 
             private static float _chargeHalfWidth = 3;
 
-            public SunshadowTether(P3S module) : base(module)
+            public SunshadowTether(P3S module)
             {
                 _module = module;
+                _sunshadows = module.Enemies(OID.Sunshadow);
             }
 
             public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
             {
-                foreach (var bird in _module._sunshadows)
+                foreach (var bird in _sunshadows)
                 {
                     if (bird.Tether.Target == 0 || bird.Tether.Target == actor.InstanceID)
                         continue;
@@ -1038,7 +1044,7 @@ namespace BossMod
 
             public override void DrawArenaBackground(MiniArena arena)
             {
-                foreach (var bird in _module._sunshadows)
+                foreach (var bird in _sunshadows)
                 {
                     if (bird.Tether.Target == 0 || bird.Tether.Target == _module.WorldState.PlayerActorID)
                         continue;
@@ -1055,7 +1061,7 @@ namespace BossMod
             public override void DrawArenaForeground(MiniArena arena)
             {
                 var pc = _module.Player();
-                var myBird = _module._sunshadows.Find(bird => bird.Tether.Target == _module.WorldState.PlayerActorID);
+                var myBird = _sunshadows.Find(bird => bird.Tether.Target == _module.WorldState.PlayerActorID);
                 if (pc == null || myBird == null)
                     return;
 
@@ -1070,7 +1076,7 @@ namespace BossMod
             private P3S _module;
             private float?[] _directions = new float?[3];
 
-            public FlamesOfAsphodelos(P3S module) : base(module)
+            public FlamesOfAsphodelos(P3S module)
             {
                 _module = module;
             }
@@ -1160,6 +1166,7 @@ namespace BossMod
             public bool Active = false;
 
             private P3S _module;
+            private List<WorldState.Actor> _twisters;
             private List<int> _twisterTargets = new();
             private ulong _tetherTargets = 0;
             private ulong _bossTargets = 0;
@@ -1169,9 +1176,10 @@ namespace BossMod
             private static float _coneHalfAngle = MathF.PI / 12; // not sure about this!!!
             private static float _beaconRadius = 6;
 
-            public StormsOfAsphodelos(P3S module) : base(module)
+            public StormsOfAsphodelos(P3S module)
             {
                 _module = module;
+                _twisters = module.Enemies(OID.DarkblazeTwister);
             }
 
             public override void Reset() => Active = false;
@@ -1211,7 +1219,7 @@ namespace BossMod
                     }
                 }
 
-                foreach (var twister in _module._twisters)
+                foreach (var twister in _twisters)
                 {
                     (var i, var player) = FindClosest(twister.Position).FirstOrDefault();
                     if (player == null)
@@ -1284,7 +1292,7 @@ namespace BossMod
                     }
                 }
 
-                foreach ((var twister, int i) in _module._twisters.Zip(_twisterTargets))
+                foreach ((var twister, int i) in _twisters.Zip(_twisterTargets))
                 {
                     var player = _module.RaidMember(i); // not sure if twister could really have invalid target, but let's be safe...
                     if (player == null || player.Position == twister.Position)
@@ -1339,14 +1347,16 @@ namespace BossMod
             public State CurState = State.None;
 
             private P3S _module;
+            private List<WorldState.Actor> _twisters;
 
             private static float _knockbackRange = 17;
             private static float _aoeInnerRadius = 7; // not sure about this...
             private static float _aoeOuterRadius = 20;
 
-            public DarkblazeTwister(P3S module) : base(module)
+            public DarkblazeTwister(P3S module)
             {
                 _module = module;
+                _twisters = module.Enemies(OID.DarkblazeTwister);
             }
 
             public override void Reset() => CurState = State.None;
@@ -1362,7 +1372,7 @@ namespace BossMod
                     hints.Add("About to be knocked back into wall!");
                 }
 
-                foreach (var twister in _module._twisters.Where(twister => twister.CastInfo?.ActionID == (uint)AID.BurningTwister))
+                foreach (var twister in _twisters.Where(twister => twister.CastInfo?.ActionID == (uint)AID.BurningTwister))
                 {
                     var offset = adjPos - twister.Position;
                     if (GeometryUtils.PointInCircle(adjPos, _aoeOuterRadius) && !GeometryUtils.PointInCircle(adjPos, _aoeInnerRadius))
@@ -1378,7 +1388,7 @@ namespace BossMod
                 if (CurState == State.None)
                     return;
 
-                foreach (var twister in _module._twisters.Where(twister => twister.CastInfo?.ActionID == (uint)AID.BurningTwister))
+                foreach (var twister in _twisters.Where(twister => twister.CastInfo?.ActionID == (uint)AID.BurningTwister))
                 {
                     arena.ZoneCone(twister.Position, _aoeInnerRadius, _aoeOuterRadius, 0, 2 * MathF.PI, arena.ColorAOE);
                 }
@@ -1403,7 +1413,7 @@ namespace BossMod
                 var pos = actor.Position;
                 if (CurState == State.Knockback)
                 {
-                    var twister = _module._twisters.Find(twister => twister.CastInfo?.ActionID == (uint)AID.DarkTwister);
+                    var twister = _twisters.Find(twister => twister.CastInfo?.ActionID == (uint)AID.DarkTwister);
                     if (twister != null && actor.Position != twister.Position)
                     {
                         var dir = Vector3.Normalize(actor.Position - twister.Position);
@@ -1425,7 +1435,7 @@ namespace BossMod
 
             private static float _coneHalfAngle = MathF.PI / 8; // not sure about this
 
-            public FledglingFlight(P3S module) : base(module)
+            public FledglingFlight(P3S module)
             {
                 _module = module;
             }
@@ -1512,50 +1522,35 @@ namespace BossMod
             }
         }
 
-        private List<WorldState.Actor> _boss = new();
-        private List<WorldState.Actor> _darkenedFires = new();
-        private List<WorldState.Actor> _birdsSmall = new();
-        private List<WorldState.Actor> _birdsLarge = new();
-        private List<WorldState.Actor> _sunshadows = new();
-        private List<WorldState.Actor> _twisters = new();
+        private List<WorldState.Actor> _boss;
         private WorldState.Actor? Boss() => _boss.FirstOrDefault();
-
-        private HeatOfCondemnation _heatOfCondemnation;
-        private Cinderwing _cinderwing;
-        private DevouringBrand _devouringBrand;
-        private TrailOfCondemnation _trailOfCondemnation;
-        private FireplumeSingle _fireplumeSingle;
-        private FireplumeMulti _fireplumeMulti;
-        private Ashplume _ashplume;
-        private DarkenedFire _darkenedFire;
-        private BrightenedFire _brightenedFire;
-        private BirdDistance _birdDistance;
-        private BirdTether _birdTether;
-        private SunshadowTether _sunshadowTether;
-        private FlamesOfAsphodelos _flamesOfAsphodelos;
-        private StormsOfAsphodelos _stormsOfAsphodelos;
-        private DarkblazeTwister _darkblazeTwister;
-        private FledglingFlight _fledglingFlight;
 
         public P3S(WorldState ws)
             : base(ws, 8)
         {
-            _heatOfCondemnation = new(this);
-            _cinderwing = new(this);
-            _devouringBrand = new(this);
-            _trailOfCondemnation = new(this);
-            _fireplumeSingle = new(this);
-            _fireplumeMulti = new(this);
-            _ashplume = new(this);
-            _darkenedFire = new(this);
-            _brightenedFire = new(this);
-            _birdDistance = new(this);
-            _birdTether = new(this);
-            _sunshadowTether = new(this);
-            _flamesOfAsphodelos = new(this);
-            _stormsOfAsphodelos = new(this);
-            _darkblazeTwister = new(this);
-            _fledglingFlight = new(this);
+            _boss = RegisterEnemies(OID.Boss, true);
+            RegisterEnemies(OID.DarkenedFire);
+            RegisterEnemies(OID.SunbirdSmall);
+            RegisterEnemies(OID.SunbirdLarge);
+            RegisterEnemies(OID.Sunshadow);
+            RegisterEnemies(OID.DarkblazeTwister);
+
+            RegisterComponent(new HeatOfCondemnation(this));
+            RegisterComponent(new Cinderwing(this));
+            RegisterComponent(new DevouringBrand(this));
+            RegisterComponent(new TrailOfCondemnation(this));
+            RegisterComponent(new FireplumeSingle(this));
+            RegisterComponent(new FireplumeMulti(this));
+            RegisterComponent(new Ashplume(this));
+            RegisterComponent(new DarkenedFire(this));
+            RegisterComponent(new BrightenedFire(this));
+            RegisterComponent(new BirdDistance(this));
+            RegisterComponent(new BirdTether(this));
+            RegisterComponent(new SunshadowTether(this));
+            RegisterComponent(new FlamesOfAsphodelos(this));
+            RegisterComponent(new StormsOfAsphodelos(this));
+            RegisterComponent(new DarkblazeTwister(this));
+            RegisterComponent(new FledglingFlight(this));
 
             Arena.IsCircle = true;
 
@@ -1623,18 +1618,6 @@ namespace BossMod
             Arena.Actor(Player(), Arena.ColorPC);
         }
 
-        protected override Dictionary<uint, RelevantEnemy> DefineRelevantEnemies()
-        {
-            Dictionary<uint, RelevantEnemy> res = new();
-            res[(uint)OID.Boss] = new(_boss, true);
-            res[(uint)OID.DarkenedFire] = new(_darkenedFires);
-            res[(uint)OID.SunbirdSmall] = new(_birdsSmall);
-            res[(uint)OID.SunbirdLarge] = new(_birdsLarge);
-            res[(uint)OID.Sunshadow] = new(_sunshadows);
-            res[(uint)OID.DarkblazeTwister] = new(_twisters);
-            return res;
-        }
-
         private StateMachine.State BuildScorchedExaltationState(ref StateMachine.State? link, float delay)
         {
             var s = CommonStates.Cast(ref link, Boss, AID.ScorchedExaltation, delay, 5, "AOE");
@@ -1645,8 +1628,8 @@ namespace BossMod
         private StateMachine.State BuildHeatOfCondemnationState(ref StateMachine.State? link, float delay)
         {
             var cast = CommonStates.Cast(ref link, Boss, AID.HeatOfCondemnation, delay, 6, "Tether");
-            cast.Enter = () => _heatOfCondemnation.Active = true;
-            cast.Exit = () => _heatOfCondemnation.Active = false;
+            cast.Enter = () => FindComponent<HeatOfCondemnation>()!.Active = true;
+            cast.Exit = () => FindComponent<HeatOfCondemnation>()!.Active = false;
             cast.EndHint |= StateMachine.StateHint.Tankbuster;
             // note: actual AOE is about 1s after cast end
             return cast;
@@ -1676,8 +1659,8 @@ namespace BossMod
         private StateMachine.State BuildExperimentalAshplumeCastState(ref StateMachine.State? link, float delay)
         {
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
-            dispatch[AID.ExperimentalAshplumeStack] = new(null, () => _ashplume.CurState = Ashplume.State.Stack);
-            dispatch[AID.ExperimentalAshplumeSpread] = new(null, () => _ashplume.CurState = Ashplume.State.Spread);
+            dispatch[AID.ExperimentalAshplumeStack] = new(null, () => FindComponent<Ashplume>()!.CurState = Ashplume.State.Stack);
+            dispatch[AID.ExperimentalAshplumeSpread] = new(null, () => FindComponent<Ashplume>()!.CurState = Ashplume.State.Spread);
             var start = CommonStates.CastStart(ref link, Boss, dispatch, delay);
             var end = CommonStates.CastEnd(ref start.Next, Boss, 5, "Ashplume");
             end.EndHint |= StateMachine.StateHint.GroupWithNext;
@@ -1687,40 +1670,43 @@ namespace BossMod
         // note: automatically clears positioning flag
         private StateMachine.State BuildExperimentalAshplumeResolveState(ref StateMachine.State? link, float delay)
         {
-            var resolve = CommonStates.Condition(ref link, delay, () => _ashplume.CurState == Ashplume.State.None, 1, "Ashplume resolve");
-            resolve.Exit = () => _ashplume.CurState = Ashplume.State.None;
+            var comp = FindComponent<Ashplume>()!;
+            var resolve = CommonStates.Condition(ref link, delay, () => comp.CurState == Ashplume.State.None, 1, "Ashplume resolve");
+            resolve.Exit = () => comp.CurState = Ashplume.State.None;
             resolve.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd;
             return resolve;
         }
 
         private StateMachine.State BuildExperimentalGloryplumeMultiState(ref StateMachine.State? link, float delay)
         {
+            var comp = FindComponent<Ashplume>()!;
             // first part for this mechanic always seems to be "multi-plume", works just like fireplume
             // 9 helpers teleport to position, first pair almost immediately starts casting 26315s, 1 sec stagger between pairs, 7 sec for each cast
             // ~3 sec after cast ends, boss makes an instant cast that determines stack/spread (26316/26312), ~10 sec after that hits with real AOE (26317/26313)
             // note that our helpers rely on casts rather than states
             var cast = CommonStates.Cast(ref link, Boss, AID.ExperimentalGloryplumeMulti, delay, 5, "GloryplumeMulti");
-            cast.Exit = () => _ashplume.CurState = Ashplume.State.UnknownGlory; // instant cast turns this into correct state in ~3 sec
+            cast.Exit = () => comp.CurState = Ashplume.State.UnknownGlory; // instant cast turns this into correct state in ~3 sec
             cast.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
-            var resolve = CommonStates.Condition(ref cast.Next, 13, () => _ashplume.CurState == Ashplume.State.None, 1, "Gloryplume resolve");
-            resolve.Exit = () => _ashplume.CurState = Ashplume.State.None;
+            var resolve = CommonStates.Condition(ref cast.Next, 13, () => comp.CurState == Ashplume.State.None, 1, "Gloryplume resolve");
+            resolve.Exit = () => comp.CurState = Ashplume.State.None;
             resolve.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd;
             return resolve;
         }
 
         private StateMachine.State BuildExperimentalGloryplumeSingleState(ref StateMachine.State? link, float delay)
         {
+            var comp = FindComponent<Ashplume>()!;
             // first part for this mechanic always seems to be "single-plume", works just like fireplume
             // helper teleports to position, almost immediately starts casting 26311, 6 sec for cast
             // ~3 sec after cast ends, boss makes an instant cast that determines stack/spread (26316/26312), ~4 sec after that hits with real AOE (26317/26313)
             // note that our helpers rely on casts rather than states
             var cast = CommonStates.Cast(ref link, Boss, AID.ExperimentalGloryplumeSingle, delay, 5, "GloryplumeSingle");
-            cast.Exit = () => _ashplume.CurState = Ashplume.State.UnknownGlory; // instant cast turns this into correct state in ~3 sec
+            cast.Exit = () => comp.CurState = Ashplume.State.UnknownGlory; // instant cast turns this into correct state in ~3 sec
             cast.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
-            var resolve = CommonStates.Condition(ref cast.Next, 7.2f, () => _ashplume.CurState == Ashplume.State.None, 1, "Gloryplume resolve");
-            resolve.Exit = () => _ashplume.CurState = Ashplume.State.None;
+            var resolve = CommonStates.Condition(ref cast.Next, 7.2f, () => comp.CurState == Ashplume.State.None, 1, "Gloryplume resolve");
+            resolve.Exit = () => comp.CurState = Ashplume.State.None;
             resolve.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd;
             return resolve;
         }
@@ -1728,12 +1714,12 @@ namespace BossMod
         private StateMachine.State BuildCinderwingState(ref StateMachine.State? link, float delay)
         {
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
-            dispatch[AID.RightCinderwing] = new(null, () => _cinderwing.CurState = Cinderwing.State.Right);
-            dispatch[AID.LeftCinderwing] = new(null, () => _cinderwing.CurState = Cinderwing.State.Left);
+            dispatch[AID.RightCinderwing] = new(null, () => FindComponent<Cinderwing>()!.CurState = Cinderwing.State.Right);
+            dispatch[AID.LeftCinderwing] = new(null, () => FindComponent<Cinderwing>()!.CurState = Cinderwing.State.Left);
             var start = CommonStates.CastStart(ref link, Boss, dispatch, delay);
 
             var end = CommonStates.CastEnd(ref start.Next, Boss, 5, "Wing");
-            end.Exit = () => _cinderwing.CurState = Cinderwing.State.None;
+            end.Exit = () => FindComponent<Cinderwing>()!.CurState = Cinderwing.State.None;
             return end;
         }
 
@@ -1744,13 +1730,13 @@ namespace BossMod
 
             var fireplume = BuildExperimentalFireplumeState(ref devouring.Next, 2); // pos-start
             fireplume.EndHint |= StateMachine.StateHint.GroupWithNext;
-            fireplume.Exit = () => _devouringBrand.Active = true;
+            fireplume.Exit = () => FindComponent<DevouringBrand>()!.Active = true;
 
             var breeze = CommonStates.Cast(ref fireplume.Next, Boss, AID.SearingBreeze, 7, 3, "SearingBreeze");
             breeze.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var wing = BuildCinderwingState(ref breeze.Next, 3);
-            wing.Enter = () => _devouringBrand.Active = false;
+            wing.Enter = () => FindComponent<DevouringBrand>()!.Active = false;
             wing.EndHint |= StateMachine.StateHint.PositioningEnd;
             return wing;
         }
@@ -1759,24 +1745,26 @@ namespace BossMod
         {
             // 3s after cast ends, adds start casting 26299
             var addsStart = CommonStates.CastStart(ref link, Boss, AID.DarkenedFire, delay);
-            addsStart.Exit = () => _darkenedFire.Active = true;
+            addsStart.Exit = () => FindComponent<DarkenedFire>()!.Active = true;
             addsStart.EndHint |= StateMachine.StateHint.PositioningStart;
+
             var addsEnd = CommonStates.CastEnd(ref addsStart.Next, Boss, 6, "DarkenedFire adds");
             addsEnd.Exit = () =>
             {
-                _darkenedFire.Active = false;
+                FindComponent<DarkenedFire>()!.Active = false;
                 // TODO: debug, remove...
                 foreach ((_, var player) in IterateRaidMembers())
                     Service.Log($"[P3S] Debug: {player.InstanceID:X} at {Utils.Vec3String(player.Position)}");
             };
             addsEnd.EndHint |= StateMachine.StateHint.GroupWithNext;
 
+            var brightenedComp = FindComponent<BrightenedFire>()!;
             var numbers = CommonStates.Cast(ref addsEnd.Next, Boss, AID.BrightenedFire, 5, 5, "Numbers"); // numbers appear at the beginning of the cast, at the end he starts shooting 1-8
-            numbers.Enter = () => _brightenedFire.Active = true;
+            numbers.Enter = () => brightenedComp.Active = true;
             numbers.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var lastAOE = CommonStates.Condition(ref numbers.Next, 8.4f, () => _brightenedFire.NumCastsHappened == 8);
-            lastAOE.Exit = () => _brightenedFire.Reset();
+            var lastAOE = CommonStates.Condition(ref numbers.Next, 8.4f, () => brightenedComp.NumCastsHappened == 8);
+            lastAOE.Exit = () => brightenedComp.Reset();
 
             var resolve = CommonStates.Timeout(ref lastAOE.Next, 6.6f, "DarkenedFire resolve");
             resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
@@ -1788,26 +1776,28 @@ namespace BossMod
             // at this point boss teleports to one of the cardinals
             // parallel to this one of the helpers casts 26365 (actual aoe fire trails)
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
-            dispatch[AID.TrailOfCondemnationCenter] = new(null, () => _trailOfCondemnation.CurState = TrailOfCondemnation.State.Center);
-            dispatch[AID.TrailOfCondemnationSides] = new(null, () => _trailOfCondemnation.CurState = TrailOfCondemnation.State.Sides);
+            dispatch[AID.TrailOfCondemnationCenter] = new(null, () => FindComponent<TrailOfCondemnation>()!.CurState = TrailOfCondemnation.State.Center);
+            dispatch[AID.TrailOfCondemnationSides] = new(null, () => FindComponent<TrailOfCondemnation>()!.CurState = TrailOfCondemnation.State.Sides);
             var start = CommonStates.CastStart(ref link, Boss, dispatch, delay);
             var end = CommonStates.CastEnd(ref start.Next, Boss, 6);
             var resolve = CommonStates.Timeout(ref end.Next, 2, "Trail");
-            resolve.Exit = () => _trailOfCondemnation.CurState = TrailOfCondemnation.State.None;
+            resolve.Exit = () => FindComponent<TrailOfCondemnation>()!.CurState = TrailOfCondemnation.State.None;
             return resolve;
         }
 
         // note: expects downtime at enter, clears when birds spawn, reset when birds die
         private StateMachine.State BuildSmallBirdsState(ref StateMachine.State? link, float delay)
         {
+            var birds = Enemies(OID.SunbirdSmall);
+
             var spawn = CommonStates.Simple(ref link, delay, "Small birds");
-            spawn.Update = (_) => spawn.Done = _birdsSmall.Count > 0;
-            spawn.Exit = () => _birdDistance.WatchedBirds = _birdsSmall;
+            spawn.Update = (_) => spawn.Done = birds.Count > 0;
+            spawn.Exit = () => FindComponent<BirdDistance>()!.WatchedBirds = birds;
             spawn.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.DowntimeEnd; // adds become targetable <1sec after spawn
 
             var enrage = CommonStates.Simple(ref spawn.Next, 25, "Small birds enrage");
-            enrage.Update = (_) => enrage.Done = _birdsSmall.Find(x => !x.IsDead) == null;
-            enrage.Exit = () => _birdDistance.WatchedBirds = null;
+            enrage.Update = (_) => enrage.Done = birds.Find(x => !x.IsDead) == null;
+            enrage.Exit = () => FindComponent<BirdDistance>()!.WatchedBirds = null;
             enrage.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.DowntimeStart; // raidwide (26326) happens ~3sec after last bird death
             return enrage;
         }
@@ -1815,22 +1805,24 @@ namespace BossMod
         // note: expects downtime at enter, clears when birds spawn, reset when birds die
         private StateMachine.State BuildLargeBirdsState(ref StateMachine.State? link, float delay)
         {
+            var birds = Enemies(OID.SunbirdLarge);
+
             var spawn = CommonStates.Simple(ref link, delay, "Large birds");
-            spawn.Update = (_) => spawn.Done = _birdsLarge.Count > 0;
+            spawn.Update = (_) => spawn.Done = birds.Count > 0;
             spawn.Exit = () =>
             {
                 // tethers appear ~5s after this and last for ~11s
-                _birdDistance.WatchedBirds = _birdsLarge;
-                _birdTether.Active = true;
+                FindComponent<BirdDistance>()!.WatchedBirds = birds;
+                FindComponent<BirdTether>()!.Active = true;
             };
             spawn.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.DowntimeEnd; // adds become targetable ~1sec after spawn
 
             var enrage = CommonStates.Simple(ref spawn.Next, 55, "Large birds enrage");
-            enrage.Update = (_) => enrage.Done = _birdsLarge.Find(x => !x.IsDead) == null;
+            enrage.Update = (_) => enrage.Done = birds.Find(x => !x.IsDead) == null;
             enrage.Exit = () =>
             {
-                _birdDistance.WatchedBirds = null;
-                _birdTether.Active = false;
+                FindComponent<BirdDistance>()!.WatchedBirds = null;
+                FindComponent<BirdTether>()!.Active = false;
             };
             enrage.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.DowntimeStart; // raidwide (26326) happens ~3sec after last bird death
             return enrage;
@@ -1888,16 +1880,18 @@ namespace BossMod
         private StateMachine.State BuildStormsOfAsphodelosState(ref StateMachine.State? link, float delay)
         {
             var state = CommonStates.Cast(ref link, Boss, AID.StormsOfAsphodelos, delay, 8, "Storms");
-            state.Enter = () => _stormsOfAsphodelos.Active = true;
-            state.Exit = () => _stormsOfAsphodelos.Active = false;
+            state.Enter = () => FindComponent<StormsOfAsphodelos>()!.Active = true;
+            state.Exit = () => FindComponent<StormsOfAsphodelos>()!.Active = false;
             state.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster;
             return state;
         }
 
         private StateMachine.State BuildDarkblazeTwisterState(ref StateMachine.State? link, float delay)
         {
+            var twisters = Enemies(OID.DarkblazeTwister);
+
             var twister = CommonStates.Cast(ref link, Boss, AID.DarkblazeTwister, delay, 4, "Twister");
-            twister.Exit = () => _darkblazeTwister.CurState = DarkblazeTwister.State.Knockback;
+            twister.Exit = () => FindComponent<DarkblazeTwister>()!.CurState = DarkblazeTwister.State.Knockback;
             twister.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
             var breeze = CommonStates.Cast(ref twister.Next, Boss, AID.SearingBreeze, 4, 3, "SearingBreeze");
@@ -1906,13 +1900,13 @@ namespace BossMod
             var ashplume = BuildExperimentalAshplumeCastState(ref breeze.Next, 4);
 
             var knockback = CommonStates.Simple(ref ashplume.Next, 3, "Knockback");
-            knockback.Update = (_) => knockback.Done = !_twisters.Any(twister => twister.CastInfo != null && twister.CastInfo.ActionID == (uint)AID.DarkTwister);
-            knockback.Exit = () => _darkblazeTwister.CurState = DarkblazeTwister.State.AOE;
+            knockback.Update = (_) => knockback.Done = !twisters.Any(twister => twister.CastInfo?.ActionID == (uint)AID.DarkTwister);
+            knockback.Exit = () => FindComponent<DarkblazeTwister>()!.CurState = DarkblazeTwister.State.AOE;
             knockback.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Knockback;
 
             var aoe = CommonStates.Simple(ref knockback.Next, 2, "AOE");
-            aoe.Update = (_) => aoe.Done = !_twisters.Any(twister => twister.CastInfo != null);
-            aoe.Exit = () => _darkblazeTwister.CurState = DarkblazeTwister.State.None;
+            aoe.Update = (_) => aoe.Done = !twisters.Any(twister => twister.CastInfo != null);
+            aoe.Exit = () => FindComponent<DarkblazeTwister>()!.CurState = DarkblazeTwister.State.None;
             aoe.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var resolve = BuildExperimentalAshplumeResolveState(ref aoe.Next, 2);
