@@ -836,7 +836,7 @@ namespace BossMod
                     }
                     else if (bird.TargetID == _module.WorldState.PlayerActorID)
                     {
-                        arena.Actor(bird.Position, bird.Rotation, BitVector.IsVector64BitSet(_birdsAtRisk, i) ? arena.ColorEnemy : arena.ColorPlayerGeneric);
+                        arena.Actor(bird, BitVector.IsVector64BitSet(_birdsAtRisk, i) ? arena.ColorEnemy : arena.ColorPlayerGeneric);
                     }
                 }
             }
@@ -1060,120 +1060,160 @@ namespace BossMod
                     return;
 
                 arena.AddLine(myBird.Position, pc.Position, arena.ColorSafe);
-                arena.Actor(myBird.Position, myBird.Rotation, arena.ColorEnemy);
+                arena.Actor(myBird, arena.ColorEnemy);
             }
         }
 
         // state related to flames of asphodelos mechanic (note that it is activated and deactivated based on helper casts rather than states due to tricky overlaps)
-        private class FlamesOfAsphodelos
+        private class FlamesOfAsphodelos : Component
         {
-            public float?[] Directions = new float?[3];
+            private P3S _module;
+            private float?[] _directions = new float?[3];
 
-            public void Reset()
+            public FlamesOfAsphodelos(P3S module) : base(module)
             {
-                Array.Fill(Directions, null);
+                _module = module;
             }
 
-            public void DrawArenaBackground(P3S self)
+            public override void Reset()
             {
-                if (Directions[0] != null)
+                Array.Fill(_directions, null);
+            }
+
+            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            {
+                if (InAOE(_directions[1], actor.Position) || InAOE(_directions[0] != null ? _directions[0] : _directions[2], actor.Position))
                 {
-                    DrawZone(self, Directions[0], self.Arena.ColorDanger);
-                    DrawZone(self, Directions[1], self.Arena.ColorAOE);
+                    hints.Add("GTFO from cone!");
+                }
+            }
+
+            public override void DrawArenaBackground(MiniArena arena)
+            {
+                if (_directions[0] != null)
+                {
+                    DrawZone(arena, _directions[0], arena.ColorDanger);
+                    DrawZone(arena, _directions[1], arena.ColorAOE);
                 }
                 else
                 {
-                    DrawZone(self, Directions[1], self.Arena.ColorAOE);
-                    DrawZone(self, Directions[2], self.Arena.ColorAOE);
+                    DrawZone(arena, _directions[1], arena.ColorAOE);
+                    DrawZone(arena, _directions[2], arena.ColorAOE);
                 }
             }
 
-            public void AddHints(P3S self, List<string> res)
+            public override void OnCastStarted(WorldState.Actor actor)
             {
-                var pc = self.RaidMember(self.PlayerSlot);
-                if (pc == null)
-                    return;
-
-                if (InAOE(self, Directions[1], pc.Position) || InAOE(self, Directions[0] != null ? Directions[0] : Directions[2], pc.Position))
+                switch ((AID)actor.CastInfo!.ActionID)
                 {
-                    res.Add("GTFO from cone! ");
+                    case AID.FlamesOfAsphodelosAOE1:
+                        _directions[0] = actor.Rotation;
+                        break;
+                    case AID.FlamesOfAsphodelosAOE2:
+                        _directions[1] = actor.Rotation;
+                        break;
+                    case AID.FlamesOfAsphodelosAOE3:
+                        _directions[2] = actor.Rotation;
+                        break;
                 }
             }
 
-            private void DrawZone(P3S self, float? dir, uint color)
+            public override void OnCastFinished(WorldState.Actor actor)
+            {
+                switch ((AID)actor.CastInfo!.ActionID)
+                {
+                    case AID.FlamesOfAsphodelosAOE1:
+                        _directions[0] = null;
+                        break;
+                    case AID.FlamesOfAsphodelosAOE2:
+                        _directions[1] = null;
+                        break;
+                    case AID.FlamesOfAsphodelosAOE3:
+                        _directions[2] = null;
+                        break;
+                }
+            }
+
+            private void DrawZone(MiniArena arena, float? dir, uint color)
             {
                 if (dir != null)
                 {
-                    self.Arena.ZoneIsoscelesTri(self.Arena.WorldCenter, dir.Value, MathF.PI / 6, 50, color);
-                    self.Arena.ZoneIsoscelesTri(self.Arena.WorldCenter, dir.Value + MathF.PI, MathF.PI / 6, 50, color);
+                    arena.ZoneIsoscelesTri(arena.WorldCenter, dir.Value, MathF.PI / 6, 50, color);
+                    arena.ZoneIsoscelesTri(arena.WorldCenter, dir.Value + MathF.PI, MathF.PI / 6, 50, color);
                 }
             }
 
-            private bool InAOE(P3S self, float? dir, Vector3 pos)
+            private bool InAOE(float? dir, Vector3 pos)
             {
                 if (dir == null)
                     return false;
 
-                var toPos = Vector3.Normalize(pos - self.Arena.WorldCenter);
+                var toPos = Vector3.Normalize(pos - _module.Arena.WorldCenter);
                 var toDir = GeometryUtils.DirectionToVec3(dir.Value);
                 return MathF.Abs(Vector3.Dot(toPos, toDir)) >= MathF.Cos(MathF.PI / 6);
             }
         }
 
         // state related to storms of asphodelos mechanics
-        private class StormsOfAsphodelos
+        private class StormsOfAsphodelos : Component
         {
             public bool Active = false;
-            private List<int> _bossTargets = new();
+
+            private P3S _module;
             private List<int> _twisterTargets = new();
-            private List<int> _tetherTargets = new();
-            private ulong _failingPlayers = 0;
-            private bool _invulNeeded = false;
+            private ulong _tetherTargets = 0;
+            private ulong _bossTargets = 0;
+            private ulong _closeToTetherTarget = 0;
+            private ulong _hitByMultipleAOEs = 0;
 
             private static float _coneHalfAngle = MathF.PI / 12; // not sure about this!!!
             private static float _beaconRadius = 6;
 
-            public void Update(P3S self)
+            public StormsOfAsphodelos(P3S module) : base(module)
             {
-                _bossTargets.Clear();
+                _module = module;
+            }
+
+            public override void Reset() => Active = false;
+
+            public override void Update()
+            {
                 _twisterTargets.Clear();
-                _tetherTargets.Clear();
-                _failingPlayers = 0;
-                _invulNeeded = false;
-                var boss = self.Boss();
+                _tetherTargets = _bossTargets = _closeToTetherTarget = _hitByMultipleAOEs = 0;
+                var boss = _module.Boss();
                 if (!Active || boss == null)
                     return;
 
                 // we determine failing players, trying to take two reasonable tactics in account:
                 // either two tanks immune and soak everything, or each player is hit by one mechanic
                 // for now, we consider tether target to be a "tank"
-                int[] aoesPerPlayer = new int[self.RaidMembers.Length];
+                int[] aoesPerPlayer = new int[_module.RaidMembers.Length];
 
-                foreach ((int i, var player) in self.IterateRaidMembers(true).Where(indexPlayer => indexPlayer.Item2.Tether.Target == boss.InstanceID))
+                foreach ((int i, var player) in _module.IterateRaidMembers(true).Where(indexPlayer => indexPlayer.Item2.Tether.Target == boss.InstanceID))
                 {
-                    _tetherTargets.Add(i);
+                    BitVector.SetVector64Bit(ref _tetherTargets, i);
 
                     ++aoesPerPlayer[i];
-                    foreach ((int j, var other) in self.IterateRaidMembersInRange(i, _beaconRadius))
+                    foreach ((int j, var other) in _module.IterateRaidMembersInRange(i, _beaconRadius))
                     {
                         ++aoesPerPlayer[j];
-                        BitVector.SetVector64Bit(ref _failingPlayers, j); // standing in other's tether is a fail even if it's the only aoe hitting a player...
+                        BitVector.SetVector64Bit(ref _closeToTetherTarget, j);
                     }
                 }
 
                 float cosHalfAngle = MathF.Cos(_coneHalfAngle);
-                foreach ((int i, var player) in FindClosest(self, boss.Position).Take(3))
+                foreach ((int i, var player) in FindClosest(boss.Position).Take(3))
                 {
-                    _bossTargets.Add(i);
-                    foreach ((int j, var other) in FindPlayersInWinds(self, boss.Position, player, cosHalfAngle))
+                    BitVector.SetVector64Bit(ref _bossTargets, i);
+                    foreach ((int j, var other) in FindPlayersInWinds(boss.Position, player, cosHalfAngle))
                     {
                         ++aoesPerPlayer[j];
                     }
                 }
 
-                foreach (var twister in self._twisters)
+                foreach (var twister in _module._twisters)
                 {
-                    (var i, var player) = FindClosest(self, twister.Position).FirstOrDefault();
+                    (var i, var player) = FindClosest(twister.Position).FirstOrDefault();
                     if (player == null)
                     {
                         _twisterTargets.Add(-1);
@@ -1181,104 +1221,109 @@ namespace BossMod
                     }
 
                     _twisterTargets.Add(i);
-                    foreach ((int j, var other) in FindPlayersInWinds(self, twister.Position, player, cosHalfAngle))
+                    foreach ((int j, var other) in FindPlayersInWinds(twister.Position, player, cosHalfAngle))
                     {
                         ++aoesPerPlayer[j];
                     }
                 }
 
                 for (int i = 0; i < aoesPerPlayer.Length; ++i)
-                {
-                    if (aoesPerPlayer[i] <= 1)
-                        continue; // this player is safe
+                    if (aoesPerPlayer[i] > 1)
+                        BitVector.SetVector64Bit(ref _hitByMultipleAOEs, i);
+            }
 
-                    if (!_tetherTargets.Contains(i))
+            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            {
+                bool tethered = BitVector.IsVector64BitSet(_tetherTargets, slot);
+                bool hitByMultipleAOEs = BitVector.IsVector64BitSet(_hitByMultipleAOEs, slot);
+                if (actor.Role == WorldState.ActorRole.Tank)
+                {
+                    if (!tethered)
                     {
-                        BitVector.SetVector64Bit(ref _failingPlayers, i);
+                        hints.Add("Intercept tether!");
                     }
-                    else if (i == self.PlayerSlot)
+                    if (hitByMultipleAOEs)
                     {
-                        _invulNeeded = true;
+                        hints.Add("Press invul!");
                     }
+                }
+                else
+                {
+                    if (tethered)
+                    {
+                        hints.Add("Pass the tether!");
+                    }
+                    if (hitByMultipleAOEs)
+                    {
+                        hints.Add("GTFO from aoes!");
+                    }
+                }
+                if (BitVector.IsVector64BitSet(_closeToTetherTarget, slot))
+                {
+                    hints.Add("GTFO from tether!");
                 }
             }
 
-            public void DrawArenaBackground(P3S self)
+            public override void DrawArenaBackground(MiniArena arena)
             {
-                var boss = self.Boss();
+                var boss = _module.Boss();
                 if (!Active || boss == null)
                     return;
 
-                foreach (int i in _bossTargets)
+                foreach ((int i, var player) in _module.IterateRaidMembers())
                 {
-                    var player = self.RaidMembers[i];
-                    if (player == null || player.Position == boss.Position)
-                        continue;
-
-                    var offset = player.Position - boss.Position;
-                    float phi = MathF.Atan2(offset.X, offset.Z);
-                    self.Arena.ZoneCone(boss.Position, 0, 50, phi - _coneHalfAngle, phi + _coneHalfAngle, self.Arena.ColorAOE);
+                    if (BitVector.IsVector64BitSet(_tetherTargets, i))
+                    {
+                        arena.ZoneCircle(player.Position, _beaconRadius, arena.ColorAOE);
+                    }
+                    if (BitVector.IsVector64BitSet(_bossTargets, i) && player.Position != boss.Position)
+                    {
+                        var offset = player.Position - boss.Position;
+                        float phi = MathF.Atan2(offset.X, offset.Z);
+                        arena.ZoneCone(boss.Position, 0, 50, phi - _coneHalfAngle, phi + _coneHalfAngle, arena.ColorAOE);
+                    }
                 }
 
-                foreach ((var twister, int i) in self._twisters.Zip(_twisterTargets))
+                foreach ((var twister, int i) in _module._twisters.Zip(_twisterTargets))
                 {
-                    var player = self.RaidMember(i); // not sure if twister could really have invalid target, but let's be safe...
+                    var player = _module.RaidMember(i); // not sure if twister could really have invalid target, but let's be safe...
                     if (player == null || player.Position == twister.Position)
                         continue;
 
                     var offset = player.Position - twister.Position;
                     float phi = MathF.Atan2(offset.X, offset.Z);
-                    self.Arena.ZoneCone(twister.Position, 0, 50, phi - _coneHalfAngle, phi + _coneHalfAngle, self.Arena.ColorAOE);
-                }
-
-                foreach (int i in _tetherTargets)
-                {
-                    var player = self.RaidMembers[i];
-                    if (player == null)
-                        continue;
-
-                    self.Arena.ZoneCircle(player.Position, _beaconRadius, self.Arena.ColorAOE);
+                    arena.ZoneCone(twister.Position, 0, 50, phi - _coneHalfAngle, phi + _coneHalfAngle, arena.ColorAOE);
                 }
             }
 
-            public void DrawArenaForeground(P3S self)
+            public override void DrawArenaForeground(MiniArena arena)
             {
                 if (!Active)
                     return;
 
-                foreach ((int i, var player) in self.IterateRaidMembers())
+                foreach ((int i, var player) in _module.IterateRaidMembers())
                 {
-                    bool active = _tetherTargets.Contains(i) || _bossTargets.Contains(i) || _twisterTargets.Contains(i);
-                    bool failing = BitVector.IsVector64BitSet(_failingPlayers, i);
-                    self.Arena.Actor(player.Position, player.Rotation, active ? self.Arena.ColorDanger : (failing ? self.Arena.ColorPlayerInteresting : self.Arena.ColorPlayerGeneric));
+                    if (i != _module.PlayerSlot)
+                    {
+                        bool active = BitVector.IsVector64BitSet(_tetherTargets | _bossTargets, i) || _twisterTargets.Contains(i);
+                        bool failing = BitVector.IsVector64BitSet(_hitByMultipleAOEs | _closeToTetherTarget, i);
+                        arena.Actor(player, active ? arena.ColorDanger : (failing ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric));
+                    }
                 }
             }
 
-            public void AddHints(P3S self, List<string> res)
+            private IEnumerable<(int, WorldState.Actor)> FindClosest(Vector3 position)
             {
-                // think of better hints here...
-                if (_invulNeeded)
-                {
-                    res.Add("Press invul! ");
-                }
-                if (_failingPlayers != 0)
-                {
-                    res.Add("Storms failing! ");
-                }
-            }
-
-            private IEnumerable<(int, WorldState.Actor)> FindClosest(P3S self, Vector3 position)
-            {
-                return self.IterateRaidMembers()
+                return _module.IterateRaidMembers()
                     .Select(indexPlayer => (indexPlayer.Item1, indexPlayer.Item2, (indexPlayer.Item2.Position - position).LengthSquared()))
                     .OrderBy(indexPlayerDist => indexPlayerDist.Item3)
                     .Select(indexPlayerDist => (indexPlayerDist.Item1, indexPlayerDist.Item2));
             }
 
-            private IEnumerable<(int, WorldState.Actor)> FindPlayersInWinds(P3S self, Vector3 origin, WorldState.Actor target, float cosHalfAngle)
+            private IEnumerable<(int, WorldState.Actor)> FindPlayersInWinds(Vector3 origin, WorldState.Actor target, float cosHalfAngle)
             {
                 var dir = Vector3.Normalize(target.Position - origin);
-                foreach ((int i, var player) in self.IterateRaidMembers())
+                foreach ((int i, var player) in _module.IterateRaidMembers())
                 {
                     var playerDir = Vector3.Normalize(player.Position - origin);
                     if (Vector3.Dot(dir, playerDir) >= cosHalfAngle)
@@ -1288,164 +1333,181 @@ namespace BossMod
         }
 
         // state related to darkblaze twister mechanics
-        private class DarkblazeTwister
+        private class DarkblazeTwister : Component
         {
             public enum State { None, Knockback, AOE }
             public State CurState = State.None;
-            private Vector3 _testPos = new();
+
+            private P3S _module;
 
             private static float _knockbackRange = 17;
             private static float _aoeInnerRadius = 7; // not sure about this...
             private static float _aoeOuterRadius = 20;
 
-            public void Update(P3S self)
+            public DarkblazeTwister(P3S module) : base(module)
             {
-                _testPos = new();
-                var pc = self.RaidMember(self.PlayerSlot);
-                if (CurState == State.None || pc == null)
-                    return;
-
-                _testPos = pc.Position;
-                if (CurState != State.Knockback)
-                    return;
-
-                var twister = self._twisters.Find(twister => twister.CastInfo != null && twister.CastInfo.ActionID == (uint)AID.DarkTwister);
-                if (twister == null || pc.Position == twister.Position)
-                    return;
-
-                var dir = Vector3.Normalize(pc.Position - twister.Position);
-                _testPos += _knockbackRange * dir;
+                _module = module;
             }
 
-            public void DrawArenaBackground(P3S self)
+            public override void Reset() => CurState = State.None;
+
+            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
             {
                 if (CurState == State.None)
                     return;
 
-                foreach (var twister in self._twisters.Where(twister => twister.CastInfo != null && twister.CastInfo.ActionID == (uint)AID.BurningTwister))
+                var adjPos = GetAdjustedActorPosition(actor);
+                if (CurState == State.Knockback &&  !GeometryUtils.PointInCircle(adjPos - _module.Arena.WorldCenter, _module.Arena.WorldHalfSize))
                 {
-                    self.Arena.ZoneCone(twister.Position, _aoeInnerRadius, _aoeOuterRadius, 0, 2 * MathF.PI, self.Arena.ColorAOE);
-                }
-            }
-
-            public void DrawArenaForeground(P3S self)
-            {
-                var pc = self.RaidMember(self.PlayerSlot);
-                if (CurState != State.Knockback || pc == null || _testPos == pc.Position)
-                    return;
-
-                self.Arena.AddLine(pc.Position, _testPos, self.Arena.ColorDanger);
-                self.Arena.Actor(_testPos, pc.Rotation, self.Arena.ColorDanger);
-            }
-
-            public void AddHints(P3S self, List<string> res)
-            {
-                if (CurState == State.None)
-                    return;
-
-                if (CurState == State.Knockback && (_testPos - self.Arena.WorldCenter).LengthSquared() >= self.Arena.WorldHalfSize * self.Arena.WorldHalfSize)
-                {
-                    res.Add("About to be knocked back into wall! ");
+                    hints.Add("About to be knocked back into wall!");
                 }
 
-                foreach (var twister in self._twisters.Where(twister => twister.CastInfo != null && twister.CastInfo.ActionID == (uint)AID.BurningTwister))
+                foreach (var twister in _module._twisters.Where(twister => twister.CastInfo?.ActionID == (uint)AID.BurningTwister))
                 {
-                    var distSq = (twister.Position - _testPos).LengthSquared();
-                    if (distSq >= _aoeInnerRadius * _aoeInnerRadius && distSq <= _aoeOuterRadius * _aoeOuterRadius)
+                    var offset = adjPos - twister.Position;
+                    if (GeometryUtils.PointInCircle(adjPos, _aoeOuterRadius) && !GeometryUtils.PointInCircle(adjPos, _aoeInnerRadius))
                     {
-                        res.Add("GTFO from aoe! ");
+                        hints.Add("GTFO from aoe!");
                         break;
                     }
                 }
             }
+
+            public override void DrawArenaBackground(MiniArena arena)
+            {
+                if (CurState == State.None)
+                    return;
+
+                foreach (var twister in _module._twisters.Where(twister => twister.CastInfo?.ActionID == (uint)AID.BurningTwister))
+                {
+                    arena.ZoneCone(twister.Position, _aoeInnerRadius, _aoeOuterRadius, 0, 2 * MathF.PI, arena.ColorAOE);
+                }
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                var pc = _module.Player();
+                if (CurState != State.Knockback || pc == null)
+                    return;
+
+                var adjPos = GetAdjustedActorPosition(pc);
+                if (adjPos != pc.Position)
+                {
+                    arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
+                    arena.Actor(adjPos, pc.Rotation, arena.ColorDanger);
+                }
+            }
+
+            private Vector3 GetAdjustedActorPosition(WorldState.Actor actor)
+            {
+                var pos = actor.Position;
+                if (CurState == State.Knockback)
+                {
+                    var twister = _module._twisters.Find(twister => twister.CastInfo?.ActionID == (uint)AID.DarkTwister);
+                    if (twister != null && actor.Position != twister.Position)
+                    {
+                        var dir = Vector3.Normalize(actor.Position - twister.Position);
+                        pos += _knockbackRange * dir;
+                    }
+                }
+                return pos;
+            }
         }
 
         // state related to fledgling flight & death toll mechanics
-        private class FledglingFlight
+        private class FledglingFlight : Component
         {
             public enum State { None, Players, Sparkfledgeds }
+
+            private P3S _module;
             private State _curState = State.None;
-            private List<(WorldState.Actor, float)> _sources = new();
+            private List<(WorldState.Actor, float)> _sources = new(); // actor + rotation
 
             private static float _coneHalfAngle = MathF.PI / 8; // not sure about this
 
-            public void Reset(State newState = State.None)
+            public FledglingFlight(P3S module) : base(module)
             {
-                _curState = newState;
+                _module = module;
+            }
+
+            public override void Reset()
+            {
+                _curState = State.None;
                 _sources.Clear();
             }
 
-            public void AddPlayer(WorldState.Actor? player, uint directionIndex)
+            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
             {
-                if (_curState != State.Players)
-                {
-                    Reset(State.Players);
-                }
-
-                if (player != null)
-                {
-                    // 0 -> E, 1 -> W, 2 -> S, 3 -> N
-                    float dir = (directionIndex < 2 ? MathF.PI / 2 : 0) + directionIndex * MathF.PI;
-                    _sources.Add(new(player, dir));
-                }
-            }
-
-            public void AddCaster(WorldState.Actor caster)
-            {
-                if (_curState != State.Sparkfledgeds)
-                {
-                    Reset(State.Sparkfledgeds);
-                }
-                _sources.Add(new(caster, caster.Rotation));
-            }
-
-            public void RemoveCaster(WorldState.Actor caster)
-            {
-                int index = _sources.FindIndex(x => x.Item1 == caster);
-                if (index < 0)
-                    return;
-
-                _sources.RemoveAt(index);
                 if (_sources.Count == 0)
-                {
-                    Reset();
-                }
-            }
-
-            public void DrawArenaBackground(P3S self)
-            {
-                foreach ((var source, var dir) in _sources)
-                {
-                    self.Arena.ZoneIsoscelesTri(source.Position, dir, _coneHalfAngle, 50, self.Arena.ColorAOE);
-                }
-            }
-
-            public void AddHints(P3S self, List<string> res)
-            {
-                var pc = self.RaidMember(self.PlayerSlot);
-                if (pc == null || _sources.Count == 0)
                     return;
 
-                int aoeCount = 0;
-                var cosHalfAngle = MathF.Cos(_coneHalfAngle);
-                foreach ((var source, var dir) in _sources)
-                {
-                    var toDir = GeometryUtils.DirectionToVec3(dir);
-                    var toCur = Vector3.Normalize(pc.Position - source.Position);
-                    if (Vector3.Dot(toDir, toCur) >= cosHalfAngle)
-                    {
-                        ++aoeCount;
-                    }
-                }
-
-                int deathTollStacks = pc.FindStatus((uint)SID.DeathsToll)?.StackCount ?? 0;
+                int aoeCount = _sources.Where(srcRot => GeometryUtils.PointInCone(actor.Position - srcRot.Item1.Position, srcRot.Item2, _coneHalfAngle)).Count();
+                int deathTollStacks = actor.FindStatus((uint)SID.DeathsToll)?.StackCount ?? 0;
                 if (aoeCount < deathTollStacks)
                 {
-                    res.Add($"Enter more aoes ({aoeCount}/{deathTollStacks})! ");
+                    hints.Add($"Enter more aoes ({aoeCount}/{deathTollStacks})!");
                 }
                 else if (aoeCount > deathTollStacks)
                 {
-                    res.Add($"GTFO from eyes ({aoeCount}/{deathTollStacks})! ");
+                    hints.Add($"GTFO from eyes ({aoeCount}/{deathTollStacks})!");
+                }
+            }
+
+            public override void DrawArenaBackground(MiniArena arena)
+            {
+                foreach ((var source, var dir) in _sources)
+                {
+                    arena.ZoneIsoscelesTri(source.Position, dir, _coneHalfAngle, 50, arena.ColorAOE);
+                }
+            }
+
+            public override void OnCastStarted(WorldState.Actor actor)
+            {
+                if ((AID)actor.CastInfo!.ActionID == AID.AshenEye)
+                {
+                    if (_curState != State.Sparkfledgeds)
+                    {
+                        _curState = State.Players;
+                        _sources.Clear();
+                    }
+                    _sources.Add((actor, actor.Rotation));
+                }
+            }
+
+            public override void OnCastFinished(WorldState.Actor actor)
+            {
+                if ((AID)actor.CastInfo!.ActionID == AID.AshenEye)
+                {
+                    int index = _sources.FindIndex(x => x.Item1 == actor);
+                    if (index < 0)
+                        return;
+
+                    _sources.RemoveAt(index);
+                    if (_sources.Count == 0)
+                    {
+                        Reset();
+                    }
+                }
+            }
+
+            public override void OnEventIcon(uint actorID, uint iconID)
+            {
+                if (iconID >= 296 && iconID <= 299)
+                {
+                    if (_curState != State.Players)
+                    {
+                        _curState = State.Players;
+                        _sources.Clear();
+                    }
+
+                    var actor = _module.WorldState.FindActor(actorID);
+                    if (actor != null)
+                    {
+                        // 296 -> E, 297 -> W, 298 -> S, 299 -> N
+                        uint directionIndex = iconID - 296;
+                        float dir = (directionIndex < 2 ? MathF.PI / 2 : 0) + directionIndex * MathF.PI;
+                        _sources.Add((actor, dir));
+                    }
                 }
             }
         }
@@ -1470,10 +1532,10 @@ namespace BossMod
         private BirdDistance _birdDistance;
         private BirdTether _birdTether;
         private SunshadowTether _sunshadowTether;
-        private FlamesOfAsphodelos _flamesOfAsphodelos = new();
-        private StormsOfAsphodelos _stormsOfAsphodelos = new();
-        private DarkblazeTwister _darkblazeTwister = new();
-        private FledglingFlight _fledglingFlight = new();
+        private FlamesOfAsphodelos _flamesOfAsphodelos;
+        private StormsOfAsphodelos _stormsOfAsphodelos;
+        private DarkblazeTwister _darkblazeTwister;
+        private FledglingFlight _fledglingFlight;
 
         public P3S(WorldState ws)
             : base(ws, 8)
@@ -1490,10 +1552,10 @@ namespace BossMod
             _birdDistance = new(this);
             _birdTether = new(this);
             _sunshadowTether = new(this);
-
-            WorldState.ActorCastStarted += ActorCastStarted;
-            WorldState.ActorCastFinished += ActorCastFinished;
-            WorldState.EventIcon += EventIcon;
+            _flamesOfAsphodelos = new(this);
+            _stormsOfAsphodelos = new(this);
+            _darkblazeTwister = new(this);
+            _fledglingFlight = new(this);
 
             Arena.IsCircle = true;
 
@@ -1555,52 +1617,8 @@ namespace BossMod
             s = CommonStates.Cast(ref s.Next, Boss, AID.FinalExaltation, 2.1f, 10, "Enrage");
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                WorldState.ActorCastStarted -= ActorCastStarted;
-                WorldState.ActorCastFinished -= ActorCastFinished;
-                WorldState.EventIcon -= EventIcon;
-            }
-            base.Dispose(disposing);
-        }
-
-        protected override void ResetModule()
-        {
-            _flamesOfAsphodelos.Reset();
-            _stormsOfAsphodelos.Active = false;
-            _darkblazeTwister.CurState = DarkblazeTwister.State.None;
-            _fledglingFlight.Reset();
-        }
-
-        protected override void UpdateModule()
-        {
-            _stormsOfAsphodelos.Update(this);
-            _darkblazeTwister.Update(this);
-        }
-
-        protected override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
-        {
-            _flamesOfAsphodelos.AddHints(this, hints);
-            _stormsOfAsphodelos.AddHints(this, hints);
-            _darkblazeTwister.AddHints(this, hints);
-            _fledglingFlight.AddHints(this, hints);
-        }
-
-        protected override void DrawArenaBackground()
-        {
-            _flamesOfAsphodelos.DrawArenaBackground(this);
-            _stormsOfAsphodelos.DrawArenaBackground(this);
-            _darkblazeTwister.DrawArenaBackground(this);
-            _fledglingFlight.DrawArenaBackground(this);
-        }
-
         protected override void DrawArenaForegroundPost()
         {
-            _stormsOfAsphodelos.DrawArenaForeground(this);
-            _darkblazeTwister.DrawArenaForeground(this);
-
             Arena.Actor(Boss(), Arena.ColorEnemy);
             Arena.Actor(Player(), Arena.ColorPC);
         }
@@ -1869,13 +1887,11 @@ namespace BossMod
 
         private StateMachine.State BuildStormsOfAsphodelosState(ref StateMachine.State? link, float delay)
         {
-            var start = CommonStates.CastStart(ref link, Boss, delay);
-            start.Exit = () => _stormsOfAsphodelos.Active = true;
-
-            var end = CommonStates.CastEnd(ref start.Next, Boss, 8, "Storms");
-            end.Exit = () => _stormsOfAsphodelos.Active = false;
-            end.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster;
-            return end;
+            var state = CommonStates.Cast(ref link, Boss, AID.StormsOfAsphodelos, delay, 8, "Storms");
+            state.Enter = () => _stormsOfAsphodelos.Active = true;
+            state.Exit = () => _stormsOfAsphodelos.Active = false;
+            state.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster;
+            return state;
         }
 
         private StateMachine.State BuildDarkblazeTwisterState(ref StateMachine.State? link, float delay)
@@ -1901,52 +1917,6 @@ namespace BossMod
 
             var resolve = BuildExperimentalAshplumeResolveState(ref aoe.Next, 2);
             return resolve;
-        }
-
-        private void ActorCastStarted(object? sender, WorldState.Actor actor)
-        {
-            switch ((AID)actor.CastInfo!.ActionID)
-            {
-                case AID.FlamesOfAsphodelosAOE1:
-                    _flamesOfAsphodelos.Directions[0] = actor.Rotation;
-                    break;
-                case AID.FlamesOfAsphodelosAOE2:
-                    _flamesOfAsphodelos.Directions[1] = actor.Rotation;
-                    break;
-                case AID.FlamesOfAsphodelosAOE3:
-                    _flamesOfAsphodelos.Directions[2] = actor.Rotation;
-                    break;
-                case AID.AshenEye:
-                    _fledglingFlight.AddCaster(actor);
-                    break;
-            }
-        }
-
-        private void ActorCastFinished(object? sender, WorldState.Actor actor)
-        {
-            switch ((AID)actor.CastInfo!.ActionID)
-            {
-                case AID.FlamesOfAsphodelosAOE1:
-                    _flamesOfAsphodelos.Directions[0] = null;
-                    break;
-                case AID.FlamesOfAsphodelosAOE2:
-                    _flamesOfAsphodelos.Directions[1] = null;
-                    break;
-                case AID.FlamesOfAsphodelosAOE3:
-                    _flamesOfAsphodelos.Directions[2] = null;
-                    break;
-                case AID.AshenEye:
-                    _fledglingFlight.RemoveCaster(actor);
-                    break;
-            }
-        }
-
-        private void EventIcon(object? sender, (uint actorID, uint iconID) arg)
-        {
-            if (arg.iconID >= 296 && arg.iconID <= 299)
-            {
-                _fledglingFlight.AddPlayer(WorldState.FindActor(arg.actorID), arg.iconID - 296);
-            }
         }
     }
 }
