@@ -460,7 +460,7 @@ namespace BossMod
 
             private bool IsInCone(Vector3 offset, float axisDir)
             {
-                var axis = new Vector3(MathF.Sin(axisDir), 0, MathF.Cos(axisDir));
+                var axis = GeometryUtils.DirectionToVec3(axisDir);
                 float cosToPlayer = Vector3.Dot(Vector3.Normalize(offset), axis);
                 return cosToPlayer > MathF.Cos(_coneHalfAngle);
             }
@@ -859,6 +859,16 @@ namespace BossMod
             base.Dispose(disposing);
         }
 
+        protected override void ResetModule()
+        {
+            Arena.IsCircle = false; // reset could happen during cells
+            // note: no need to clean up any shackles, they are controlled purely by active debuffs...
+            _aetherExplosion.SetForcedExplosion(AetherExplosion.Cell.None);
+            _flails.Reset();
+            _knockback.Reset();
+            _intemperance.Reset();
+        }
+
         public override void Update()
         {
             base.Update();
@@ -879,7 +889,7 @@ namespace BossMod
             ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(0xff00ffff), hints.ToString());
         }
 
-        protected override void DrawArena()
+        public override void DrawArena()
         {
             _aetherExplosion.DrawArenaBackground(this);
             _flails.DrawArenaBackground(this);
@@ -958,16 +968,6 @@ namespace BossMod
         {
             if (_knockback.KnockbackTarget == index)
                 _knockback.Reset();
-        }
-
-        protected override void Reset()
-        {
-            Arena.IsCircle = false; // reset could happen during cells
-            // note: no need to clean up any shackles, they are controlled purely by active debuffs...
-            _aetherExplosion.SetForcedExplosion(AetherExplosion.Cell.None);
-            _flails.Reset();
-            _knockback.Reset();
-            _intemperance.Reset();
         }
 
         private StateMachine.State BuildTankbusterState(ref StateMachine.State? link, float delay, bool partOfGroup = false)

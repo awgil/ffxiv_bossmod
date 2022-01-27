@@ -238,7 +238,7 @@ namespace BossMod
 
         public void ZoneIsoscelesTri(Vector3 apex, float direction, float halfAngle, float height, uint color)
         {
-            Vector3 dir = new(MathF.Sin(direction), 0, MathF.Cos(direction));
+            Vector3 dir = GeometryUtils.DirectionToVec3(direction);
             Vector3 normal = new(-dir.Z, 0, dir.X);
             ZoneIsoscelesTri(apex, height * dir, height * MathF.Tan(halfAngle) * normal, color);
         }
@@ -259,8 +259,7 @@ namespace BossMod
 
         public void ZoneQuad(Vector3 origin, float direction, float lenFront, float lenBack, float halfWidth, uint color)
         {
-            Vector3 dir = new(MathF.Sin(direction), 0, MathF.Cos(direction));
-            ZoneQuad(origin, dir, lenFront, lenBack, halfWidth, color);
+            ZoneQuad(origin, GeometryUtils.DirectionToVec3(direction), lenFront, lenBack, halfWidth, color);
         }
 
         public void ZoneRect(Vector3 tl, Vector3 br, uint color)
@@ -283,10 +282,16 @@ namespace BossMod
         {
             if (InBounds(position))
             {
-                var dir = new Vector3(MathF.Sin(rotation), 0, MathF.Cos(rotation));
+                var dir = GeometryUtils.DirectionToVec3(rotation);
                 var normal = new Vector3(-dir.Z, 0, dir.X);
                 AddTriangleFilled(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, color);
             }
+        }
+
+        public void Actor(WorldState.Actor? actor, uint color)
+        {
+            if (actor != null)
+                Actor(actor.Position, actor.Rotation, color);
         }
 
         public void End()

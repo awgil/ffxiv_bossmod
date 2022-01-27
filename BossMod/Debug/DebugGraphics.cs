@@ -151,9 +151,9 @@ namespace BossMod
             var start = o;
             do
             {
-                WatchedRenderObject? watch;
-                if (_watchedRenderObjects.TryGetValue((IntPtr)o, out watch))
-                    UpdateWatchedMod(o, watch!);
+                WatchedRenderObject? watch = _watchedRenderObjects.GetValueOrDefault((IntPtr)o);
+                if (watch != null)
+                    UpdateWatchedMod(o, watch);
 
                 if (o->ChildObject != null)
                     UpdateWatchedMods(o->ChildObject);

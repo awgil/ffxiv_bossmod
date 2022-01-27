@@ -181,25 +181,18 @@ namespace BossMod
             {
                 return Array.Find(Statuses, x => x.ID == sid);
             }
-
-            public Vector3 DirectionFront()
-            {
-                return new(MathF.Sin(Rotation), 0, MathF.Cos(Rotation));
-            }
         }
 
         private Dictionary<uint, Actor> _actors = new();
         public IReadOnlyDictionary<uint, Actor> Actors => _actors;
         public Actor? FindActor(uint instanceID)
         {
-            Actor? res;
-            Actors.TryGetValue(instanceID, out res);
-            return res;
+            return Actors.GetValueOrDefault(instanceID);
         }
 
         public Actor? FindPlayer()
         {
-            return FindActor(PlayerActorID);
+            return Actors.GetValueOrDefault(PlayerActorID);
         }
 
         public event EventHandler<Actor>? ActorCreated;

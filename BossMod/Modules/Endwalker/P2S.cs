@@ -608,7 +608,7 @@ namespace BossMod
             ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(0xff00ffff), hints.ToString());
         }
 
-        protected override void DrawArena()
+        public override void DrawArena()
         {
             _sewageDeluge.DrawArenaBackground(this);
             _cataract.DrawArenaBackground(this);
@@ -684,7 +684,7 @@ namespace BossMod
             }
         }
 
-        protected override void Reset()
+        protected override void ResetModule()
         {
             _sewageDeluge.BlockedCorner = SewageDeluge.Corner.None;
             _cataract.CurState = Cataract.State.None;

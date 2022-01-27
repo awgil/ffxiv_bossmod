@@ -4,6 +4,7 @@ general:
 - detect stuff like zodiark snakes, etc - look at graphics scene or maybe network messages...
 - memory show/watch utility
 - clip circles to arena bounds...
+- reconsider worldstate->bossmodule event subscription model (tedious to manually subscribe/unsubsribe and forward to components...)
 
 network:
 - hook send/recv (a-la xivalexander)

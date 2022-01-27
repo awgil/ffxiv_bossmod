@@ -25,6 +25,14 @@ namespace BossMod
             return state;
         }
 
+        // create state triggered by custom condition, or if it doesn't happen, by timeout
+        public static StateMachine.State Condition(ref StateMachine.State? link, float expected, Func<bool> condition, float maxOverdue = 1, string name = "")
+        {
+            var state = Simple(ref link, expected, name);
+            state.Update = (float timeSinceTransition) => state.Done = timeSinceTransition >= (expected + maxOverdue) || condition();
+            return state;
+        }
+
         // create state triggered by any cast start by a particular actor
         public static StateMachine.State CastStart(ref StateMachine.State? link, Func<WorldState.Actor?> actorAcc, float delay, string name = "", bool actorIsBoss = true)
         {

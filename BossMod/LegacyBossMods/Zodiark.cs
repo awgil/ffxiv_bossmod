@@ -84,7 +84,7 @@ namespace BossMod
             _stages.DrawDebugButtons();
         }
 
-        protected override void Reset()
+        protected override void ResetModule()
         {
             _stages.Reset();
         }
