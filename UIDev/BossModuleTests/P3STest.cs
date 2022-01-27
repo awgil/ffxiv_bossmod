@@ -34,6 +34,10 @@ namespace UIDev
             _ws.AddActor(19, (uint)P3S.OID.DarkblazeTwister, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(114, 0, 108), -2 * MathF.PI / 3, 1, false);
             _ws.AddActor(20, (uint)P3S.OID.DarkblazeTwister, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 84), 0, 1, false);
             _ws.AddActor(21, (uint)P3S.OID.DarkblazeTwister, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(86, 0, 108), 2 * MathF.PI / 3, 1, false);
+            _ws.AddActor(22, (uint)P3S.OID.SunbirdLarge, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 100), 0, 1, true);
+            _ws.AddActor(23, (uint)P3S.OID.SunbirdLarge, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 100), 0, 1, true);
+            _ws.AddActor(24, (uint)P3S.OID.SunbirdLarge, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 110), 0, 1, true);
+            _ws.AddActor(25, (uint)P3S.OID.SunbirdLarge, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 90), 0, 1, true);
             _ws.PlayerActorID = 1;
             _o = new P3S(_ws);
         }
@@ -146,6 +150,32 @@ namespace UIDev
                         ImGui.SameLine();
                         if (ImGui.Button($"Cone3##{actor.InstanceID}"))
                             _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.FlamesOfAsphodelosAOE3 });
+                    }
+                }
+                else if (actor.OID == (uint)P3S.OID.SunbirdLarge)
+                {
+                    ImGui.SameLine();
+                    if (ImGui.Button($"Tether 1->2##{actor.InstanceID}"))
+                    {
+                        _ws.UpdateTether(actor, new WorldState.TetherInfo { ID = 1, Target = 1 });
+                        _ws.UpdateTether(_ws.FindActor(1)!, new WorldState.TetherInfo { ID = 1, Target = 2 });
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button($"Tether 2->1##{actor.InstanceID}"))
+                    {
+                        _ws.UpdateTether(actor, new WorldState.TetherInfo { ID = 1, Target = 2 });
+                        _ws.UpdateTether(_ws.FindActor(2)!, new WorldState.TetherInfo { ID = 1, Target = 1 });
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button($"Tether 3->4##{actor.InstanceID}"))
+                    {
+                        _ws.UpdateTether(actor, new WorldState.TetherInfo { ID = 1, Target = 3 });
+                        _ws.UpdateTether(_ws.FindActor(3)!, new WorldState.TetherInfo { ID = 1, Target = 4 });
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button($"Charge##{actor.InstanceID}"))
+                    {
+                        _ws.UpdateTether(actor, new());
                     }
                 }
             }

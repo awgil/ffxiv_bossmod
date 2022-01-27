@@ -612,71 +612,160 @@ namespace BossMod
             }
         }
 
-        // state related to darkened/brightened fire mechanic
-        // this helper relies on waymarks 1-4, and assumes they don't change during fight - this is of course quite an assumption, but whatever...
-        // TODO: consider how this can be improved...
-        private class BrightenedFire
+        // state relared to darkened fire add placement mechanic
+        // adds should be neither too close (or they insta explode and wipe raid) nor too far (or during brightened fire someone wouldn't be able to hit two adds)
+        private class DarkenedFire : Component
         {
-            private ulong _myAdds = 0; // mask of adds pc should hit
+            public bool Active = false;
+
+            private P3S _module;
+
+            private static float _minRange = 10; // TODO: verify...
+            private static float _maxRange = 13; // brigthened fire aoe radius is 7, so this is x2 minus some room for positioning
+
+            public DarkenedFire(P3S module) : base(module)
+            {
+                _module = module;
+            }
+
+            public override void Reset() => Active = false;
+
+            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            {
+                if (!Active)
+                    return;
+
+                bool haveTooClose = false;
+                int numInRange = 0;
+                foreach ((_, var player) in _module.IterateRaidMembers().Where(indexPlayer => CanBothBeTargets(indexPlayer.Item2, actor)))
+                {
+                    var distance = player.Position - actor.Position;
+                    haveTooClose |= GeometryUtils.PointInCircle(distance, _minRange);
+                    if (GeometryUtils.PointInCircle(distance, _maxRange))
+                        ++numInRange;
+                }
+
+                if (haveTooClose)
+                {
+                    hints.Add("Too close to other players!");
+                }
+                else if (numInRange < 2)
+                {
+                    hints.Add("Too far from other players!");
+                }
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                var pc = _module.Player();
+                if (!Active || pc == null)
+                    return;
+
+                // draw other potential targets, to simplify positioning
+                bool healerOrTank = pc.Role == WorldState.ActorRole.Tank || pc.Role == WorldState.ActorRole.Healer;
+                foreach ((int i, var player) in _module.IterateRaidMembers().Where(indexPlayer => CanBothBeTargets(indexPlayer.Item2, pc)))
+                {
+                    var distance = player.Position - pc.Position;
+                    bool tooClose = GeometryUtils.PointInCircle(distance, _minRange);
+                    bool inRange = GeometryUtils.PointInCircle(distance, _maxRange);
+                    arena.Actor(player, tooClose ? arena.ColorDanger : (inRange ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric));
+                }
+
+                // draw circles around pc
+                arena.AddCircle(pc.Position, _minRange, arena.ColorDanger);
+                arena.AddCircle(pc.Position, _maxRange, arena.ColorSafe);
+            }
+
+            private bool CanBothBeTargets(WorldState.Actor one, WorldState.Actor two)
+            {
+                // TODO: verify this assumption, I don't know how exactly it works...
+                return one.InstanceID != two.InstanceID && (one.Role == WorldState.ActorRole.Tank || one.Role == WorldState.ActorRole.Healer) == (two.Role == WorldState.ActorRole.Tank || two.Role == WorldState.ActorRole.Healer);
+            }
+        }
+
+        // state related to brightened fire mechanic
+        // this helper relies on waymarks 1-4, and assumes they don't change during fight - this is of course quite an assumption, but whatever...
+        private class BrightenedFire : Component
+        {
+            public bool Active = false;
+            public int NumCastsHappened = 0;
+
+            private P3S _module;
+            private int[] _playerOrder = new int[8]; // 0 if unknown, 1-8 otherwise
 
             private static float _aoeRange = 7;
 
-            public void Reset()
+            public BrightenedFire(P3S module) : base(module)
             {
-                _myAdds = 0;
+                _module = module;
             }
 
-            public void SetPlayerOrder(P3S self, uint order)
+            public override void Reset()
             {
-                _myAdds = 0;
-
-                var markID = (WorldState.Waymark)((uint)WorldState.Waymark.N1 + order % 4);
-                var markPos = self.WorldState.GetWaymark(markID);
-                if (markPos == null)
-                    return;
-
-                List<(int, float)> addsByRange = new();
-                for (int i = 0; i < self._darkenedFires.Count; ++i)
-                    addsByRange.Add(new(i, (self._darkenedFires[i].Position - markPos.Value).LengthSquared()));
-                addsByRange.Sort((l, r) => l.Item2.CompareTo(r.Item2));
-                foreach ((var index, _) in addsByRange.Take(2))
-                    BitVector.SetVector64Bit(ref _myAdds, index);
+                Active = false;
+                NumCastsHappened = 0;
+                Array.Fill(_playerOrder, 0);
             }
 
-            public void DrawArenaForeground(P3S self)
+            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
             {
-                if (self._darkenedFires.Count == 0)
+                if (!Active || _playerOrder[slot] <= NumCastsHappened)
                     return;
+
+                int numHitAdds = _module._darkenedFires.Where(fire => GeometryUtils.PointInCircle(fire.Position - actor.Position, _aoeRange)).Count();
+                if (numHitAdds < 2)
+                {
+                    hints.Add("Get closer to adds!");
+                }
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                var pc = _module.Player();
+                if (!Active || pc == null || _playerOrder[_module.PlayerSlot] <= NumCastsHappened)
+                    return;
+
+                // find two closest adds to player's mark
+                var pos = PositionForOrder(_playerOrder[_module.PlayerSlot]);
+                var firesRange = new (WorldState.Actor, float)[_module._darkenedFires.Count];
+                for (int i = 0; i < _module._darkenedFires.Count; ++i)
+                {
+                    var fire = _module._darkenedFires[i];
+                    firesRange[i] = (fire, (fire.Position - pos).LengthSquared());
+                }
+                Array.Sort(firesRange, (l, r) => l.Item2.CompareTo(r.Item2));
 
                 // draw all adds
-                for (int i = 0; i < self._darkenedFires.Count; ++i)
+                for (int i = 0; i < firesRange.Length; ++i)
                 {
-                    var add = self._darkenedFires[i];
-                    self.Arena.Actor(add.Position, add.Rotation, BitVector.IsVector64BitSet(_myAdds, i) ? self.Arena.ColorDanger : self.Arena.ColorPlayerGeneric);
+                    arena.Actor(firesRange[i].Item1, i < 2 ? arena.ColorDanger : arena.ColorPlayerGeneric);
                 }
 
                 // draw range circle
-                var pc = self.RaidMember(self.PlayerSlot);
-                if (pc != null)
+                arena.AddCircle(pc.Position, _aoeRange, arena.ColorDanger);
+            }
+
+            public override void OnEventCast(WorldState.CastResult info)
+            {
+                if ((AID)info.ActionID == AID.BrightenedFireAOE)
+                    ++NumCastsHappened;
+            }
+
+            public override void OnEventIcon(uint actorID, uint iconID)
+            {
+                if (iconID >= 268 && iconID <= 275)
                 {
-                    self.Arena.AddCircle(pc.Position, _aoeRange, self.Arena.ColorDanger);
+                    int slot = _module.FindRaidMemberSlot(actorID);
+                    if (slot >= 0)
+                        _playerOrder[slot] = (int)iconID - 267;
                 }
             }
 
-            public void AddHints(P3S self, List<string> res)
+            private Vector3 PositionForOrder(int order)
             {
-                var pc = self.RaidMember(self.PlayerSlot);
-                if (pc == null || _myAdds == 0)
-                    return;
-
-                for (int i = 0; i < self._darkenedFires.Count; ++i)
-                {
-                    if (BitVector.IsVector64BitSet(_myAdds, i) && !GeometryUtils.PointInCircle(pc.Position - self._darkenedFires[i].Position, _aoeRange))
-                    {
-                        res.Add("Get closer to add! ");
-                        return;
-                    }
-                }
+                // TODO: consider how this can be improved...
+                var markID = (WorldState.Waymark)((int)WorldState.Waymark.N1 + (order - 1) % 4);
+                return _module.WorldState.GetWaymark(markID) ?? _module.Arena.WorldCenter;
             }
         }
 
@@ -684,39 +773,57 @@ namespace BossMod
         // when small birds die and large birds appear, they cast 26328, and if it hits any other large bird, they buff
         // when large birds die and sparkfledgeds appear, they cast 26329, and if it hits any other sparkfledged, they wipe the raid or something
         // so we show range helper for dead birds
-        private class BirdDistance
+        private class BirdDistance : Component
         {
             public List<WorldState.Actor>? WatchedBirds = null;
-            private bool _active;
+
+            private P3S _module;
             private ulong _birdsAtRisk = 0; // mask
 
             private static float _radius = 13;
 
-            public void Update(P3S self)
+            public BirdDistance(P3S module) : base(module)
             {
-                // distance utility is active only if pc is tanking at least one bird
+                _module = module;
+            }
+
+            public override void Reset() => WatchedBirds = null;
+
+            public override void Update()
+            {
                 _birdsAtRisk = 0;
-                _active = false;
                 if (WatchedBirds == null)
                     return;
 
                 for (int i = 0; i < WatchedBirds.Count; ++i)
                 {
                     var bird = WatchedBirds[i];
-                    if (!bird.IsDead && bird.TargetID == self.WorldState.PlayerActorID)
+                    if (!bird.IsDead && WatchedBirds.Where(other => other.IsDead && (bird.Position - other.Position).LengthSquared() <= _radius * _radius).Any())
                     {
-                        _active = true;
-                        if (WatchedBirds.Where(other => other.IsDead && (bird.Position - other.Position).LengthSquared() <= _radius * _radius).Any())
-                        {
-                            BitVector.SetVector64Bit(ref _birdsAtRisk, i);
-                        }
+                        BitVector.SetVector64Bit(ref _birdsAtRisk, i);
                     }
                 }
             }
 
-            public void DrawArenaForeground(P3S self)
+            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
             {
-                if (!_active || WatchedBirds == null)
+                if (WatchedBirds == null)
+                    return;
+
+                for (int i = 0; i < WatchedBirds.Count; ++i)
+                {
+                    var bird = WatchedBirds[i];
+                    if (!bird.IsDead && bird.TargetID == actor.InstanceID && BitVector.IsVector64BitSet(_birdsAtRisk, i))
+                    {
+                        hints.Add("Drag bird away!");
+                        return;
+                    }
+                }
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                if (WatchedBirds == null)
                     return;
 
                 // draw alive birds tanked by PC and circles around dead birds
@@ -725,170 +832,235 @@ namespace BossMod
                     var bird = WatchedBirds[i];
                     if (bird.IsDead)
                     {
-                        self.Arena.AddCircle(bird.Position, _radius, self.Arena.ColorDanger);
+                        arena.AddCircle(bird.Position, _radius, arena.ColorDanger);
                     }
-                    else if (bird.TargetID == self.WorldState.PlayerActorID)
+                    else if (bird.TargetID == _module.WorldState.PlayerActorID)
                     {
-                        self.Arena.Actor(bird.Position, bird.Rotation, BitVector.IsVector64BitSet(_birdsAtRisk, i) ? self.Arena.ColorEnemy : self.Arena.ColorPlayerGeneric);
+                        arena.Actor(bird.Position, bird.Rotation, BitVector.IsVector64BitSet(_birdsAtRisk, i) ? arena.ColorEnemy : arena.ColorPlayerGeneric);
                     }
-                }
-            }
-
-            public void AddHints(P3S self, List<string> res)
-            {
-                if (_birdsAtRisk != 0)
-                {
-                    res.Add("Drag bird away! ");
                 }
             }
         }
 
         // state related to large bird tethers
-        private class BirdTether
+        private class BirdTether : Component
         {
             public bool Active = false;
 
+            private P3S _module;
+            private (WorldState.Actor?, WorldState.Actor?, int)[] _chains = new (WorldState.Actor?, WorldState.Actor?, int)[4]; // actor1, actor2, num-charges
+
             private static float _chargeHalfWidth = 3;
 
-            public void DrawArenaBackground(P3S self)
+            public BirdTether(P3S module) : base(module)
+            {
+                _module = module;
+            }
+
+            public override void Reset()
+            {
+                Active = false;
+                Array.Fill(_chains, (null, null, 0));
+            }
+
+            public override void Update()
             {
                 if (!Active)
                     return;
 
-                // draw aoe zones for imminent charges (TODO: only if player is standing in one, to reduce visual clutter?)
-                foreach (var bird in self._birdsLarge)
+                for (int i = 0; i < Math.Min(_module._birdsLarge.Count, 4); ++i)
                 {
-                    var target = bird.Tether.Target != 0 ? self.WorldState.FindActor(bird.Tether.Target) : null;
-                    if (target != null)
+                    if (_chains[i].Item3 == 2)
+                        continue; // this is finished
+
+                    var bird = _module._birdsLarge[i];
+                    if (_chains[i].Item1 == null && bird.Tether.Target != 0)
                     {
-                        var offset = target.Position - bird.Position;
-                        var dist = offset.Length();
-                        self.Arena.ZoneQuad(bird.Position, offset / dist, dist, 0, _chargeHalfWidth, self.Arena.ColorAOE);
+                        Service.Log($"[P3S] Debug: assign chain bird {bird.InstanceID:X} -> {bird.Tether.Target:X}");
+                        _chains[i].Item1 = _module.WorldState.FindActor(bird.Tether.Target);
+                    }
+                    if (_chains[i].Item2 == null && (_chains[i].Item1?.Tether.Target ?? 0) != 0)
+                    {
+                        Service.Log($"[P3S] Debug: assign chain bird {bird.InstanceID:X} -> ... -> {_chains[i].Item1!.Tether.Target:X}");
+                        _chains[i].Item2 = _module.WorldState.FindActor(_chains[i].Item1!.Tether.Target);
+                    }
+                    if (_chains[i].Item3 == 0 && _chains[i].Item1 != null && bird.Tether.Target == 0)
+                    {
+                        Service.Log($"[P3S] Debug: first charge for {bird.InstanceID:X}");
+                        _chains[i].Item3 = 1;
+                    }
+                    if (_chains[i].Item3 == 1 && (_chains[i].Item1 == null || _chains[i].Item1!.Tether.Target == 0))
+                    {
+                        Service.Log($"[P3S] Debug: second charge for {bird.InstanceID:X}");
+                        _chains[i].Item3 = 2;
                     }
                 }
             }
 
-            public void DrawArenaForeground(P3S self)
+            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
             {
-                var pc = self.RaidMember(self.PlayerSlot);
+                if (!Active)
+                    return;
+
+                bool hitByCharge = false;
+                foreach ((var bird, (var p1, var p2, int numCharges)) in _module._birdsLarge.Zip(_chains))
+                {
+                    if (numCharges == 2)
+                        continue;
+
+                    var nextTarget = numCharges > 0 ? p2 : p1;
+                    if (actor != nextTarget)
+                    {
+                        // check that player won't be hit by this charge
+                        if (nextTarget != null && bird.Position != nextTarget.Position)
+                        {
+                            var fromTo = nextTarget.Position - bird.Position;
+                            float len = fromTo.Length();
+                            hitByCharge |= GeometryUtils.PointInRect(actor.Position - bird.Position, fromTo / len, len, 0, _chargeHalfWidth);
+                        }
+                    }
+                    else
+                    {
+                        // check that tether is 'safe'
+                        var tetherSource = numCharges > 0 ? p1 : bird;
+                        if (tetherSource?.Tether.ID != (uint)TetherID.LargeBirdFar)
+                        {
+                            hints.Add("Too close!");
+                        }
+                    }
+                }
+
+                if (hitByCharge)
+                {
+                    hints.Add("GTFO from charge zone!");
+                }
+            }
+
+            public override void DrawArenaBackground(MiniArena arena)
+            {
+                var pc = _module.Player();
                 if (!Active || pc == null)
                     return;
 
-                var pcTetherTarget = pc.Tether.Target != 0 ? self.WorldState.FindActor(pc.Tether.Target) : null;
-                if (pcTetherTarget != null)
+                // draw aoe zones for imminent charges, except one towards player
+                foreach ((var bird, (var p1, var p2, int numCharges)) in _module._birdsLarge.Zip(_chains))
                 {
-                    DrawTether(self, pc, pcTetherTarget, pc.Tether.ID);
-                }
+                    if (numCharges == 2)
+                        continue;
 
-                foreach (var pcTetherSource in FindTetherSources(self, pc))
-                {
-                    DrawTether(self, pc, pcTetherSource, pcTetherSource.Tether.ID);
-
-                    if (pcTetherSource.Type == WorldState.ActorType.Player)
+                    var nextTarget = numCharges > 0 ? p2 : p1;
+                    if (nextTarget != null && nextTarget != pc && nextTarget.Position != bird.Position)
                     {
-                        foreach (var secondTetherSource in FindTetherSources(self, pcTetherSource))
+                        var fromTo = nextTarget.Position - bird.Position;
+                        float len = fromTo.Length();
+                        arena.ZoneQuad(bird.Position, fromTo / len, len, 0, _chargeHalfWidth, arena.ColorAOE);
+                    }
+                }
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                var pc = _module.Player();
+                if (!Active || pc == null)
+                    return;
+
+                // draw chains containing player
+                foreach ((var bird, (var p1, var p2, int numCharges)) in _module._birdsLarge.Zip(_chains))
+                {
+                    if (numCharges == 2)
+                        continue;
+
+                    if (p1 == pc)
+                    {
+                        // bird -> pc -> other
+                        if (numCharges == 0)
                         {
-                            DrawTether(self, pcTetherSource, secondTetherSource, secondTetherSource.Tether.ID);
+                            arena.AddLine(bird.Position, pc.Position, (bird.Tether.ID == (uint)TetherID.LargeBirdFar) ? arena.ColorSafe : arena.ColorDanger);
+                            arena.Actor(bird, arena.ColorEnemy);
+                            if (p2 != null)
+                            {
+                                arena.AddLine(pc.Position, p2.Position, (pc.Tether.ID == (uint)TetherID.LargeBirdFar) ? arena.ColorSafe : arena.ColorDanger);
+                                arena.Actor(p2, arena.ColorPlayerGeneric);
+                            }
+                        }
+                        // else: don't care, charge to pc already happened
+                    }
+                    else if (p2 == pc && p1 != null)
+                    {
+                        // bird -> other -> pc
+                        if (numCharges == 0)
+                        {
+                            arena.AddLine(bird.Position, p1.Position, (bird.Tether.ID == (uint)TetherID.LargeBirdFar) ? arena.ColorSafe : arena.ColorDanger);
+                            arena.AddLine(p1.Position, pc.Position, (p1.Tether.ID == (uint)TetherID.LargeBirdFar) ? arena.ColorSafe : arena.ColorDanger);
+                            arena.Actor(bird, arena.ColorEnemy);
+                            arena.Actor(p1, arena.ColorPlayerGeneric);
+                        }
+                        else
+                        {
+                            arena.AddLine(bird.Position, pc.Position, (p1.Tether.ID == (uint)TetherID.LargeBirdFar) ? arena.ColorSafe : arena.ColorDanger);
+                            arena.Actor(bird, arena.ColorEnemy);
                         }
                     }
                 }
             }
-
-            public void AddHints(P3S self, List<string> res)
-            {
-                var pc = self.RaidMember(self.PlayerSlot);
-                if (!Active || pc == null)
-                    return;
-
-                foreach (var bird in self._birdsLarge)
-                {
-                    if (bird.Tether.Target == self.PlayerSlot)
-                        continue;
-
-                    var target = bird.Tether.Target != 0 ? self.WorldState.FindActor(bird.Tether.Target) : null;
-                    if (target == null)
-                        continue;
-
-                    var dir = Vector3.Normalize(target.Position - bird.Position);
-                    var normal = new Vector3(-dir.Z, 0, dir.X);
-                    var pcOffset = Vector3.Dot(pc.Position - bird.Position, normal);
-                    if (MathF.Abs(pcOffset) <= _chargeHalfWidth)
-                    {
-                        res.Add("GTFO from charge zone! ");
-                        break;
-                    }
-                }
-            }
-
-            private IEnumerable<WorldState.Actor> FindTetherSources(P3S self, WorldState.Actor target)
-            {
-                return self._birdsLarge.Where(bird => bird.Tether.Target == target.InstanceID)
-                    .Concat(self.RaidMembers.Where(player => player?.Tether.Target == target.InstanceID).Select(player => player!));
-            }
-
-            private void DrawTether(P3S self, WorldState.Actor source, WorldState.Actor target, uint tetherID)
-            {
-                self.Arena.AddLine(source.Position, target.Position, (tetherID == (uint)TetherID.LargeBirdFar) ? self.Arena.ColorSafe : self.Arena.ColorDanger);
-                self.Arena.Actor(target.Position, target.Rotation, target.Type == WorldState.ActorType.Enemy ? self.Arena.ColorEnemy : self.Arena.ColorPlayerGeneric);
-            }
         }
 
         // state related to sunshadow tethers during fountain of fire mechanics
-        private class SunshadowTether
+        private class SunshadowTether : Component
         {
+            private P3S _module;
+
             private static float _chargeHalfWidth = 3;
 
-            public void DrawArenaBackground(P3S self)
+            public SunshadowTether(P3S module) : base(module)
             {
-                foreach (var bird in self._sunshadows)
+                _module = module;
+            }
+
+            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            {
+                foreach (var bird in _module._sunshadows)
                 {
-                    if (bird.Tether.Target == 0 || bird.Tether.Target == self.WorldState.PlayerActorID)
+                    if (bird.Tether.Target == 0 || bird.Tether.Target == actor.InstanceID)
                         continue;
 
-                    var target = self.WorldState.FindActor(bird.Tether.Target);
+                    var target = _module.WorldState.FindActor(bird.Tether.Target);
                     if (target == null || bird.Position == target.Position)
                         continue;
 
-                    var dir = Vector3.Normalize(target.Position - bird.Position);
-                    self.Arena.ZoneQuad(bird.Position, dir, 50, 0, _chargeHalfWidth, self.Arena.ColorAOE);
-                }
-            }
-
-            public void DrawArenaForeground(P3S self)
-            {
-                var pc = self.RaidMember(self.PlayerSlot);
-                var myBird = self._sunshadows.Find(bird => bird.Tether.Target == self.WorldState.PlayerActorID);
-                if (pc == null || myBird == null)
-                    return;
-
-                self.Arena.AddLine(myBird.Position, pc.Position, self.Arena.ColorSafe);
-                self.Arena.Actor(myBird.Position, myBird.Rotation, self.Arena.ColorEnemy);
-            }
-
-            public void AddHints(P3S self, List<string> res)
-            {
-                var pc = self.RaidMember(self.PlayerSlot);
-                if (pc == null)
-                    return;
-
-                foreach (var bird in self._sunshadows)
-                {
-                    if (bird.Tether.Target == 0 || bird.Tether.Target == self.WorldState.PlayerActorID)
-                        continue;
-
-                    var target = self.WorldState.FindActor(bird.Tether.Target);
-                    if (target == null || bird.Position == target.Position)
-                        continue;
-
-                    var dir = Vector3.Normalize(target.Position - bird.Position);
-                    var normal = new Vector3(-dir.Z, 0, dir.X);
-                    var pcOffset = Vector3.Dot(pc.Position - bird.Position, normal);
-                    if (MathF.Abs(pcOffset) <= _chargeHalfWidth)
+                    if (GeometryUtils.PointInRect(actor.Position - bird.Position, Vector3.Normalize(target.Position - bird.Position), 50, 0, _chargeHalfWidth))
                     {
-                        res.Add("GTFO from charge zone! ");
+                        hints.Add("GTFO from charge zone!");
                         break;
                     }
                 }
+            }
+
+            public override void DrawArenaBackground(MiniArena arena)
+            {
+                foreach (var bird in _module._sunshadows)
+                {
+                    if (bird.Tether.Target == 0 || bird.Tether.Target == _module.WorldState.PlayerActorID)
+                        continue;
+
+                    var target = _module.WorldState.FindActor(bird.Tether.Target);
+                    if (target == null || bird.Position == target.Position)
+                        continue;
+
+                    var dir = Vector3.Normalize(target.Position - bird.Position);
+                    arena.ZoneQuad(bird.Position, dir, 50, 0, _chargeHalfWidth, arena.ColorAOE);
+                }
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                var pc = _module.Player();
+                var myBird = _module._sunshadows.Find(bird => bird.Tether.Target == _module.WorldState.PlayerActorID);
+                if (pc == null || myBird == null)
+                    return;
+
+                arena.AddLine(myBird.Position, pc.Position, arena.ColorSafe);
+                arena.Actor(myBird.Position, myBird.Rotation, arena.ColorEnemy);
             }
         }
 
@@ -899,8 +1071,7 @@ namespace BossMod
 
             public void Reset()
             {
-                for (int i = 0; i < Directions.Length; ++i)
-                    Directions[i] = null;
+                Array.Fill(Directions, null);
             }
 
             public void DrawArenaBackground(P3S self)
@@ -1294,10 +1465,11 @@ namespace BossMod
         private FireplumeSingle _fireplumeSingle;
         private FireplumeMulti _fireplumeMulti;
         private Ashplume _ashplume;
-        private BrightenedFire _brightenedFire = new();
-        private BirdDistance _birdDistance = new();
-        private BirdTether _birdTether = new();
-        private SunshadowTether _sunshadowTether = new();
+        private DarkenedFire _darkenedFire;
+        private BrightenedFire _brightenedFire;
+        private BirdDistance _birdDistance;
+        private BirdTether _birdTether;
+        private SunshadowTether _sunshadowTether;
         private FlamesOfAsphodelos _flamesOfAsphodelos = new();
         private StormsOfAsphodelos _stormsOfAsphodelos = new();
         private DarkblazeTwister _darkblazeTwister = new();
@@ -1313,6 +1485,11 @@ namespace BossMod
             _fireplumeSingle = new(this);
             _fireplumeMulti = new(this);
             _ashplume = new(this);
+            _darkenedFire = new(this);
+            _brightenedFire = new(this);
+            _birdDistance = new(this);
+            _birdTether = new(this);
+            _sunshadowTether = new(this);
 
             WorldState.ActorCastStarted += ActorCastStarted;
             WorldState.ActorCastFinished += ActorCastFinished;
@@ -1391,9 +1568,6 @@ namespace BossMod
 
         protected override void ResetModule()
         {
-            _brightenedFire.Reset();
-            _birdDistance.WatchedBirds = null;
-            _birdTether.Active = false;
             _flamesOfAsphodelos.Reset();
             _stormsOfAsphodelos.Active = false;
             _darkblazeTwister.CurState = DarkblazeTwister.State.None;
@@ -1402,17 +1576,12 @@ namespace BossMod
 
         protected override void UpdateModule()
         {
-            _birdDistance.Update(this);
             _stormsOfAsphodelos.Update(this);
             _darkblazeTwister.Update(this);
         }
 
         protected override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
         {
-            _brightenedFire.AddHints(this, hints);
-            _birdDistance.AddHints(this, hints);
-            _birdTether.AddHints(this, hints);
-            _sunshadowTether.AddHints(this, hints);
             _flamesOfAsphodelos.AddHints(this, hints);
             _stormsOfAsphodelos.AddHints(this, hints);
             _darkblazeTwister.AddHints(this, hints);
@@ -1421,8 +1590,6 @@ namespace BossMod
 
         protected override void DrawArenaBackground()
         {
-            _birdTether.DrawArenaBackground(this);
-            _sunshadowTether.DrawArenaBackground(this);
             _flamesOfAsphodelos.DrawArenaBackground(this);
             _stormsOfAsphodelos.DrawArenaBackground(this);
             _darkblazeTwister.DrawArenaBackground(this);
@@ -1431,10 +1598,6 @@ namespace BossMod
 
         protected override void DrawArenaForegroundPost()
         {
-            _brightenedFire.DrawArenaForeground(this);
-            _birdDistance.DrawArenaForeground(this);
-            _birdTether.DrawArenaForeground(this);
-            _sunshadowTether.DrawArenaForeground(this);
             _stormsOfAsphodelos.DrawArenaForeground(this);
             _darkblazeTwister.DrawArenaForeground(this);
 
@@ -1576,21 +1739,28 @@ namespace BossMod
 
         private StateMachine.State BuildDarkenedFireState(ref StateMachine.State? link, float delay)
         {
-            // TODO: helper for add placement - need to understand exact spawn mechanics for that...
             // 3s after cast ends, adds start casting 26299
             var addsStart = CommonStates.CastStart(ref link, Boss, AID.DarkenedFire, delay);
+            addsStart.Exit = () => _darkenedFire.Active = true;
             addsStart.EndHint |= StateMachine.StateHint.PositioningStart;
             var addsEnd = CommonStates.CastEnd(ref addsStart.Next, Boss, 6, "DarkenedFire adds");
+            addsEnd.Exit = () =>
+            {
+                _darkenedFire.Active = false;
+                // TODO: debug, remove...
+                foreach ((_, var player) in IterateRaidMembers())
+                    Service.Log($"[P3S] Debug: {player.InstanceID:X} at {Utils.Vec3String(player.Position)}");
+            };
             addsEnd.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var numbers = CommonStates.Cast(ref addsEnd.Next, Boss, AID.BrightenedFire, 5, 5, "Numbers"); // numbers appear at the beginning of the cast, at the end he starts shooting 1-8
+            numbers.Enter = () => _brightenedFire.Active = true;
             numbers.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            // note: first aoe happens ~0.2sec after cast end, then each next ~1.2sec after previous - consider resetting helper based on cast?..
-            var lastAOE = CommonStates.Timeout(ref numbers.Next, 8);
+            var lastAOE = CommonStates.Condition(ref numbers.Next, 8.4f, () => _brightenedFire.NumCastsHappened == 8);
             lastAOE.Exit = () => _brightenedFire.Reset();
 
-            var resolve = CommonStates.Timeout(ref lastAOE.Next, 7, "DarkenedFire resolve");
+            var resolve = CommonStates.Timeout(ref lastAOE.Next, 6.6f, "DarkenedFire resolve");
             resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
             return resolve;
         }
@@ -1629,20 +1799,21 @@ namespace BossMod
         {
             var spawn = CommonStates.Simple(ref link, delay, "Large birds");
             spawn.Update = (_) => spawn.Done = _birdsLarge.Count > 0;
-            spawn.Exit = () => _birdTether.Active = true; // tethers appear ~5s after this and last for ~11s
+            spawn.Exit = () =>
+            {
+                // tethers appear ~5s after this and last for ~11s
+                _birdDistance.WatchedBirds = _birdsLarge;
+                _birdTether.Active = true;
+            };
             spawn.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.DowntimeEnd; // adds become targetable ~1sec after spawn
 
-            Func<bool> allBirdsDead = () => _birdsLarge.Find(x => !x.IsDead) == null;
-            var chargesDone = CommonStates.Condition(ref spawn.Next, 20, allBirdsDead, 0);
-            chargesDone.Exit = () =>
-            {
-                _birdTether.Active = false;
-                _birdDistance.WatchedBirds = _birdsLarge;
-            };
-
-            var enrage = CommonStates.Simple(ref chargesDone.Next, 35, "Large birds enrage");
+            var enrage = CommonStates.Simple(ref spawn.Next, 55, "Large birds enrage");
             enrage.Update = (_) => enrage.Done = _birdsLarge.Find(x => !x.IsDead) == null;
-            enrage.Exit = () => _birdDistance.WatchedBirds = null;
+            enrage.Exit = () =>
+            {
+                _birdDistance.WatchedBirds = null;
+                _birdTether.Active = false;
+            };
             enrage.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.DowntimeStart; // raidwide (26326) happens ~3sec after last bird death
             return enrage;
         }
@@ -1734,65 +1905,45 @@ namespace BossMod
 
         private void ActorCastStarted(object? sender, WorldState.Actor actor)
         {
-            switch ((OID)actor.OID)
+            switch ((AID)actor.CastInfo!.ActionID)
             {
-                case OID.Helper:
-                    switch ((AID)actor.CastInfo!.ActionID)
-                    {
-                        case AID.FlamesOfAsphodelosAOE1:
-                            _flamesOfAsphodelos.Directions[0] = actor.Rotation;
-                            break;
-                        case AID.FlamesOfAsphodelosAOE2:
-                            _flamesOfAsphodelos.Directions[1] = actor.Rotation;
-                            break;
-                        case AID.FlamesOfAsphodelosAOE3:
-                            _flamesOfAsphodelos.Directions[2] = actor.Rotation;
-                            break;
-                    }
+                case AID.FlamesOfAsphodelosAOE1:
+                    _flamesOfAsphodelos.Directions[0] = actor.Rotation;
                     break;
-                case OID.Sparkfledged:
-                    if ((AID)actor.CastInfo!.ActionID == AID.AshenEye)
-                    {
-                        _fledglingFlight.AddCaster(actor);
-                    }
+                case AID.FlamesOfAsphodelosAOE2:
+                    _flamesOfAsphodelos.Directions[1] = actor.Rotation;
+                    break;
+                case AID.FlamesOfAsphodelosAOE3:
+                    _flamesOfAsphodelos.Directions[2] = actor.Rotation;
+                    break;
+                case AID.AshenEye:
+                    _fledglingFlight.AddCaster(actor);
                     break;
             }
         }
 
         private void ActorCastFinished(object? sender, WorldState.Actor actor)
         {
-            switch ((OID)actor.OID)
+            switch ((AID)actor.CastInfo!.ActionID)
             {
-                case OID.Helper:
-                    switch ((AID)actor.CastInfo!.ActionID)
-                    {
-                        case AID.FlamesOfAsphodelosAOE1:
-                            _flamesOfAsphodelos.Directions[0] = null;
-                            break;
-                        case AID.FlamesOfAsphodelosAOE2:
-                            _flamesOfAsphodelos.Directions[1] = null;
-                            break;
-                        case AID.FlamesOfAsphodelosAOE3:
-                            _flamesOfAsphodelos.Directions[2] = null;
-                            break;
-                    }
+                case AID.FlamesOfAsphodelosAOE1:
+                    _flamesOfAsphodelos.Directions[0] = null;
                     break;
-                case OID.Sparkfledged:
-                    if ((AID)actor.CastInfo!.ActionID == AID.AshenEye)
-                    {
-                        _fledglingFlight.RemoveCaster(actor);
-                    }
+                case AID.FlamesOfAsphodelosAOE2:
+                    _flamesOfAsphodelos.Directions[1] = null;
+                    break;
+                case AID.FlamesOfAsphodelosAOE3:
+                    _flamesOfAsphodelos.Directions[2] = null;
+                    break;
+                case AID.AshenEye:
+                    _fledglingFlight.RemoveCaster(actor);
                     break;
             }
         }
 
         private void EventIcon(object? sender, (uint actorID, uint iconID) arg)
         {
-            if (arg.iconID >= 268 && arg.iconID <= 275 && arg.actorID == WorldState.PlayerActorID)
-            {
-                _brightenedFire.SetPlayerOrder(this, arg.iconID - 268);
-            }
-            else if (arg.iconID >= 296 && arg.iconID <= 299)
+            if (arg.iconID >= 296 && arg.iconID <= 299)
             {
                 _fledglingFlight.AddPlayer(WorldState.FindActor(arg.actorID), arg.iconID - 296);
             }
