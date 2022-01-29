@@ -148,7 +148,6 @@ namespace BossMod
         {
             StateMachine.Draw();
             DrawHintForRaidMember(PlayerSlot);
-            DrawHeader();
             Arena.Begin(cameraAzimuth);
             DrawArena();
             Arena.End();
@@ -189,7 +188,6 @@ namespace BossMod
             List<string> hints = new();
             foreach (var comp in _components)
                 comp.AddHints(slot, actor, hints);
-            AddHints(slot, actor, hints);
 
             var hintColor = ImGui.ColorConvertU32ToFloat4(0xff00ffff);
             foreach (var hint in hints)
@@ -263,8 +261,6 @@ namespace BossMod
 
         protected virtual void ResetModule() { }
         protected virtual void UpdateModule() { }
-        protected virtual void AddHints(int slot, WorldState.Actor actor, List<string> hints) { } // temporary
-        protected virtual void DrawHeader() { } // deprecated, will be removed after refactoring
         protected virtual void DrawArenaBackground() { } // before modules background
         protected virtual void DrawArenaForegroundPre() { } // after border, before modules foreground
         protected virtual void DrawArenaForegroundPost() { } // after modules foreground
