@@ -18,10 +18,8 @@ boss modules:
 -- object id watch
 - show per-player risks and fails
 - draw arrows in world
-- p1s
--- intemperance cubes
+- p1s - make intemperance component useful
 - p2s
--- deluge - confirm metrics
 - zodiark
 -- refactor
 - hydaelyn, p4s: todo

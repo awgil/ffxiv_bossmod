@@ -253,6 +253,14 @@ namespace BossMod
             return BuildMask(IterateRaidMembersInRange(slot, radius, includeDead));
         }
 
+        // think where to put such utilities...
+        public static Vector3 AdjustPositionForKnockback(Vector3 pos, WorldState.Actor? source, float distance)
+        {
+            if (source != null && source.Position != pos)
+                pos += distance * Vector3.Normalize(pos - source.Position);
+            return pos;
+        }
+
         protected virtual void ResetModule() { }
         protected virtual void UpdateModule() { }
         protected virtual void AddHints(int slot, WorldState.Actor actor, List<string> hints) { } // temporary

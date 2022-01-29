@@ -1367,7 +1367,7 @@ namespace BossMod
                     return;
 
                 var adjPos = GetAdjustedActorPosition(actor);
-                if (CurState == State.Knockback &&  !GeometryUtils.PointInCircle(adjPos - _module.Arena.WorldCenter, _module.Arena.WorldHalfSize))
+                if (CurState == State.Knockback && !_module.Arena.InBounds(adjPos))
                 {
                     hints.Add("About to be knocked back into wall!");
                 }
@@ -1410,17 +1410,7 @@ namespace BossMod
 
             private Vector3 GetAdjustedActorPosition(WorldState.Actor actor)
             {
-                var pos = actor.Position;
-                if (CurState == State.Knockback)
-                {
-                    var twister = _twisters.Find(twister => twister.CastInfo?.ActionID == (uint)AID.DarkTwister);
-                    if (twister != null && actor.Position != twister.Position)
-                    {
-                        var dir = Vector3.Normalize(actor.Position - twister.Position);
-                        pos += _knockbackRange * dir;
-                    }
-                }
-                return pos;
+                return CurState == State.Knockback ? AdjustPositionForKnockback(actor.Position, _twisters.Find(twister => twister.CastInfo?.ActionID == (uint)AID.DarkTwister), _knockbackRange) : actor.Position;
             }
         }
 
@@ -1671,7 +1661,7 @@ namespace BossMod
         private StateMachine.State BuildExperimentalAshplumeResolveState(ref StateMachine.State? link, float delay)
         {
             var comp = FindComponent<Ashplume>()!;
-            var resolve = CommonStates.Condition(ref link, delay, () => comp.CurState == Ashplume.State.None, 1, "Ashplume resolve");
+            var resolve = CommonStates.Condition(ref link, delay, () => comp.CurState == Ashplume.State.None, "Ashplume resolve");
             resolve.Exit = () => comp.CurState = Ashplume.State.None;
             resolve.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd;
             return resolve;
@@ -1688,7 +1678,7 @@ namespace BossMod
             cast.Exit = () => comp.CurState = Ashplume.State.UnknownGlory; // instant cast turns this into correct state in ~3 sec
             cast.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
-            var resolve = CommonStates.Condition(ref cast.Next, 13, () => comp.CurState == Ashplume.State.None, 1, "Gloryplume resolve");
+            var resolve = CommonStates.Condition(ref cast.Next, 13, () => comp.CurState == Ashplume.State.None, "Gloryplume resolve");
             resolve.Exit = () => comp.CurState = Ashplume.State.None;
             resolve.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd;
             return resolve;
@@ -1705,7 +1695,7 @@ namespace BossMod
             cast.Exit = () => comp.CurState = Ashplume.State.UnknownGlory; // instant cast turns this into correct state in ~3 sec
             cast.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
-            var resolve = CommonStates.Condition(ref cast.Next, 7.2f, () => comp.CurState == Ashplume.State.None, 1, "Gloryplume resolve");
+            var resolve = CommonStates.Condition(ref cast.Next, 7.2f, () => comp.CurState == Ashplume.State.None, "Gloryplume resolve");
             resolve.Exit = () => comp.CurState = Ashplume.State.None;
             resolve.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd;
             return resolve;

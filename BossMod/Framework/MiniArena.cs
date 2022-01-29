@@ -304,7 +304,7 @@ namespace BossMod
             var offset = position - WorldCenter;
             if (IsCircle)
             {
-                return offset.LengthSquared() <= WorldHalfSize * WorldHalfSize;
+                return GeometryUtils.PointInCircle(offset, WorldHalfSize);
             }
             else
             {

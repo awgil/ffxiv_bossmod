@@ -26,10 +26,10 @@ namespace BossMod
         }
 
         // create state triggered by custom condition, or if it doesn't happen, by timeout
-        public static StateMachine.State Condition(ref StateMachine.State? link, float expected, Func<bool> condition, float maxOverdue = 1, string name = "")
+        public static StateMachine.State Condition(ref StateMachine.State? link, float expected, Func<bool> condition, string name = "", float maxOverdue = 1, float checkDelay = 0)
         {
             var state = Simple(ref link, expected, name);
-            state.Update = (float timeSinceTransition) => state.Done = timeSinceTransition >= (expected + maxOverdue) || condition();
+            state.Update = (float timeSinceTransition) => state.Done = timeSinceTransition >= (expected + maxOverdue) || (timeSinceTransition >= checkDelay && condition());
             return state;
         }
 
