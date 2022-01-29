@@ -151,7 +151,6 @@ namespace BossMod
             Arena.Begin(cameraAzimuth);
             DrawArena();
             Arena.End();
-            DrawFooter();
 
             if (ImGui.Button("Show timeline"))
             {
@@ -264,7 +263,6 @@ namespace BossMod
         protected virtual void DrawArenaBackground() { } // before modules background
         protected virtual void DrawArenaForegroundPre() { } // after border, before modules foreground
         protected virtual void DrawArenaForegroundPost() { } // after modules foreground
-        protected virtual void DrawFooter() { }
         protected virtual void NonPlayerCreated(WorldState.Actor actor) { }
         protected virtual void NonPlayerDestroyed(WorldState.Actor actor) { }
         protected virtual void RaidMemberCreated(int index) { }
