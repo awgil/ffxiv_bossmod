@@ -139,7 +139,7 @@ namespace BossMod
             {
                 var ab = curr - prev;
                 float abn = Vector2.Dot(ab, normal);
-                float t = -ean / abn;
+                float t = Math.Clamp(-ean / abn, 0, 1);
                 return prev + t * ab;
             };
             Action<Vector2> add = (Vector2 point) =>
