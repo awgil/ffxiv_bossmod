@@ -175,8 +175,7 @@ namespace BossMod
                     if (IsTethered(player))
                     {
                         arena.AddLine(player.Position, boss.Position, player.Role == WorldState.ActorRole.Tank ? arena.ColorSafe : arena.ColorDanger);
-                        if (i != _module.PlayerSlot)
-                            arena.Actor(player, arena.ColorDanger);
+                        arena.Actor(player, arena.ColorDanger);
                         arena.AddCircle(player.Position, _aoeRange, arena.ColorDanger);
                     }
                     else if (pc.Role == WorldState.ActorRole.Tank)
@@ -1311,12 +1310,9 @@ namespace BossMod
 
                 foreach ((int i, var player) in _module.IterateRaidMembers())
                 {
-                    if (i != _module.PlayerSlot)
-                    {
-                        bool active = BitVector.IsVector64BitSet(_tetherTargets | _bossTargets, i) || _twisterTargets.Contains(i);
-                        bool failing = BitVector.IsVector64BitSet(_hitByMultipleAOEs | _closeToTetherTarget, i);
-                        arena.Actor(player, active ? arena.ColorDanger : (failing ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric));
-                    }
+                    bool active = BitVector.IsVector64BitSet(_tetherTargets | _bossTargets, i) || _twisterTargets.Contains(i);
+                    bool failing = BitVector.IsVector64BitSet(_hitByMultipleAOEs | _closeToTetherTarget, i);
+                    arena.Actor(player, active ? arena.ColorDanger : (failing ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric));
                 }
             }
 

@@ -55,7 +55,7 @@ namespace BossMod
                 {
                     if (castInfo.ActionID != Convert.ToUInt32(id))
                     {
-                        Service.Log($"Unexpected cast start for actor {actorAcc()?.OID:X}: got {castInfo.ActionID}, expected {id}");
+                        Service.Log($"[StateMachine] Unexpected cast start for actor {actorAcc()?.OID:X}: got {castInfo.ActionID}, expected {id}");
                     }
                     state.Done = true;
                 }
@@ -85,7 +85,7 @@ namespace BossMod
                     }
                     else
                     {
-                        Service.Log($"Unexpected cast start for actor {actorAcc()?.OID:X}: got {castInfo.ActionID}");
+                        Service.Log($"[StateMachine] Unexpected cast start for actor {actorAcc()?.OID:X}: got {castInfo.ActionID}");
                     }
                     state.Done = true;
                 }

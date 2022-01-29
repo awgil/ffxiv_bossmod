@@ -706,8 +706,7 @@ namespace BossMod
                 {
                     // there will be AOE around me, draw all players to help with positioning - note that we use position adjusted for knockback
                     foreach ((int i, var player) in _module.IterateRaidMembers())
-                        if (i != _module.PlayerSlot)
-                            arena.Actor(player, GeometryUtils.PointInCircle(player.Position - targetPos, aoeRange) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                        arena.Actor(player, GeometryUtils.PointInCircle(player.Position - targetPos, aoeRange) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
                 }
                 else
                 {
