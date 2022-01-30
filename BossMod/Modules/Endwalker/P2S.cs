@@ -325,6 +325,9 @@ namespace BossMod
 
             public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
             {
+                if (!Active)
+                    return;
+
                 var boss = _module.Boss();
                 if (boss?.Tether.Target == actor.InstanceID)
                 {

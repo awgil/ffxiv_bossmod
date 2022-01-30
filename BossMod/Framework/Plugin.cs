@@ -15,9 +15,11 @@ namespace BossMod
         private WorldStateGame _ws { get; } = new();
         private DebugEventLogger _debugLogger;
         private BossModule? _activeModule;
+        private BossModuleRaidWarnings _raidWarnings = new();
         private Autorotation _autorotation;
         private Network _network;
         private bool _autorotationUIVisible = true;
+        private bool _raidWarningsUIVisible = true;
 
         private DalamudPluginInterface PluginInterface { get; init; }
         private CommandManager CommandManager { get; init; }
@@ -60,6 +62,11 @@ namespace BossMod
                 HelpMessage = "Autorotation UI"
             });
 
+            this.CommandManager.AddHandler("/bmrw", new CommandInfo((_, _) => _raidWarningsUIVisible = !_raidWarningsUIVisible)
+            {
+                HelpMessage = "Raid Warnings UI"
+            });
+
             this.PluginInterface.UiBuilder.Draw += DrawUI;
             this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
         }
@@ -75,6 +82,7 @@ namespace BossMod
             this.CommandManager.RemoveHandler("/bmz");
             this.CommandManager.RemoveHandler("/bmd");
             this.CommandManager.RemoveHandler("/bma");
+            this.CommandManager.RemoveHandler("/bmrw");
         }
 
         private void OpenDebugUI()
@@ -144,6 +152,18 @@ namespace BossMod
                     {
                         _activeModule.Dispose();
                         _activeModule = null;
+                    }
+
+                    // TODO: rework this...
+                    if (_raidWarningsUIVisible && _activeModule != null)
+                    {
+                        ImGui.SetNextWindowSize(new Vector2(100, 100), ImGuiCond.FirstUseEver);
+                        ImGui.SetNextWindowSizeConstraints(new Vector2(100, 100), new Vector2(float.MaxValue, float.MaxValue));
+                        if (ImGui.Begin("Raid warnings", ref _raidWarningsUIVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+                        {
+                            _raidWarnings.Draw(_activeModule);
+                        }
+                        ImGui.End();
                     }
                 }
                 catch (Exception ex)

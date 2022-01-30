@@ -178,16 +178,21 @@ namespace BossMod
             DrawArenaForegroundPost();
         }
 
+        public List<string> CalculateHintsForRaidMember(int slot, WorldState.Actor actor)
+        {
+            List<string> hints = new();
+            foreach (var comp in _components)
+                comp.AddHints(slot, actor, hints);
+            return hints;
+        }
+
         public void DrawHintForRaidMember(int slot)
         {
             var actor = RaidMember(slot);
             if (actor == null)
                 return;
 
-            List<string> hints = new();
-            foreach (var comp in _components)
-                comp.AddHints(slot, actor, hints);
-
+            var hints = CalculateHintsForRaidMember(slot, actor);
             var hintColor = ImGui.ColorConvertU32ToFloat4(0xff00ffff);
             foreach (var hint in hints)
             {
