@@ -19,8 +19,6 @@ boss modules:
 - p1s - make intemperance component useful
 - p2s - improve channeling flow component
 - p2s - minor components (shockwave, ominous bubbling, eruption?..)
-- p3s - for plume, show hint only if hit by next 2...
-- p3s - twisters - bad clipping (see longest pull @8:11)
 - zodiark
 -- refactor
 - hydaelyn, p4s: todo

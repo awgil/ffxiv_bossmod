@@ -444,7 +444,7 @@ namespace BossMod
             public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
             {
                 int numTotal = _numActiveCasts + _numPendingOrbs;
-                if ((numTotal >= 1 && GeometryUtils.PointInCircle(actor.Position - _module.Arena.WorldCenter, _radius)) ||
+                if ((numTotal >= 1 && numTotal < 9 && GeometryUtils.PointInCircle(actor.Position - _module.Arena.WorldCenter, _radius)) ||
                     (numTotal >= 3 && InPair(_startingDirection + MathF.PI / 4, actor)) ||
                     (numTotal >= 5 && InPair(_startingDirection - MathF.PI / 2, actor)) ||
                     (numTotal >= 7 && InPair(_startingDirection - MathF.PI / 4, actor)) ||
@@ -461,13 +461,13 @@ namespace BossMod
                     return; // inactive
 
                 if (numTotal < 9) // don't draw center aoe before first explosion, it's confusing - but start drawing it immediately after first explosion, to simplify positioning
-                    arena.ZoneCircle(arena.WorldCenter, _radius, _numPendingOrbs == 0 ? arena.ColorDanger : arena.ColorAOE);
+                    arena.ZoneCircle(arena.WorldCenter, _radius, numTotal <= 3 ? arena.ColorDanger : arena.ColorAOE);
 
                 // don't draw more than two next pairs
-                if (numTotal >= 3 && numTotal <= 5)
-                    DrawPair(arena, _startingDirection + MathF.PI / 4, _numPendingOrbs < 2);
-                if (numTotal >= 5 && numTotal <= 7)
-                    DrawPair(arena, _startingDirection - MathF.PI / 2, _numPendingOrbs < 4);
+                if (numTotal >= 3)
+                    DrawPair(arena, _startingDirection + MathF.PI / 4, _numPendingOrbs < 2 && numTotal <= 5);
+                if (numTotal >= 5)
+                    DrawPair(arena, _startingDirection - MathF.PI / 2, _numPendingOrbs < 4 && numTotal <= 7);
                 if (numTotal >= 7)
                     DrawPair(arena, _startingDirection - MathF.PI / 4, _numPendingOrbs < 6);
                 if (numTotal >= 9)
@@ -510,11 +510,11 @@ namespace BossMod
                     || GeometryUtils.PointInCircle(actor.Position - _module.Arena.WorldCenter + offset, _radius);
             }
 
-            private void DrawPair(MiniArena arena, float direction, bool active)
+            private void DrawPair(MiniArena arena, float direction, bool imminent)
             {
                 var offset = _pairOffset * GeometryUtils.DirectionToVec3(direction);
-                arena.ZoneCircle(arena.WorldCenter + offset, _radius, active ? arena.ColorDanger : arena.ColorAOE);
-                arena.ZoneCircle(arena.WorldCenter - offset, _radius, active ? arena.ColorDanger : arena.ColorAOE);
+                arena.ZoneCircle(arena.WorldCenter + offset, _radius, imminent ? arena.ColorDanger : arena.ColorAOE);
+                arena.ZoneCircle(arena.WorldCenter - offset, _radius, imminent ? arena.ColorDanger : arena.ColorAOE);
             }
         }
 
