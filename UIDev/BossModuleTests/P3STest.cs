@@ -9,6 +9,7 @@ namespace UIDev
         private float _azimuth;
         private WorldState _ws;
         private P3S _o;
+        private uint _numAssignedIcons = 0;
 
         public P3STest()
         {
@@ -38,6 +39,14 @@ namespace UIDev
             _ws.AddActor(23, (uint)P3S.OID.SunbirdLarge, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 100), 0, 1, true);
             _ws.AddActor(24, (uint)P3S.OID.SunbirdLarge, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 110), 0, 1, true);
             _ws.AddActor(25, (uint)P3S.OID.SunbirdLarge, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 90), 0, 1, true);
+            _ws.AddActor(26, (uint)P3S.OID.DarkenedFire, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(94, 0, 94), 0, 1, true);
+            _ws.AddActor(27, (uint)P3S.OID.DarkenedFire, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(106, 0, 94), 0, 1, true);
+            _ws.AddActor(28, (uint)P3S.OID.DarkenedFire, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(94, 0, 106), 0, 1, true);
+            _ws.AddActor(29, (uint)P3S.OID.DarkenedFire, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(106, 0, 106), 0, 1, true);
+            _ws.SetWaymark(WorldState.Waymark.N1, new(100, 0, 90));
+            _ws.SetWaymark(WorldState.Waymark.N2, new(110, 0, 100));
+            _ws.SetWaymark(WorldState.Waymark.N3, new(100, 0, 110));
+            _ws.SetWaymark(WorldState.Waymark.N4, new(90, 0, 100));
             _ws.PlayerActorID = 1;
             _o = new P3S(_ws);
         }
@@ -60,6 +69,11 @@ namespace UIDev
             {
                 _ws.UpdateCastInfo(boss, null);
                 _ws.PlayerInCombat = !_ws.PlayerInCombat;
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Reset icons"))
+            {
+                _numAssignedIcons = 0;
             }
 
             foreach (var actor in _ws.Actors.Values)
@@ -90,6 +104,13 @@ namespace UIDev
                     if (ImGui.Checkbox($"Heat tether##{actor.InstanceID}", ref heatTether))
                     {
                         _ws.UpdateTether(actor, heatTether ? new WorldState.TetherInfo { ID = (uint)P3S.TetherID.HeatOfCondemnation, Target = 9 } : new());
+                    }
+
+                    ImGui.SameLine();
+                    if (ImGui.Button($"Assign icon {_numAssignedIcons + 1}##{actor.InstanceID}"))
+                    {
+                        _ws.DispatchEventIcon(actor.InstanceID, 268 + _numAssignedIcons);
+                        ++_numAssignedIcons;
                     }
                 }
                 else if (actor.OID == (uint)P3S.OID.Boss)
@@ -150,6 +171,24 @@ namespace UIDev
                         ImGui.SameLine();
                         if (ImGui.Button($"Cone3##{actor.InstanceID}"))
                             _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.FlamesOfAsphodelosAOE3 });
+                    }
+                }
+                else if (actor.OID == (uint)P3S.OID.DarkblazeTwister)
+                {
+                    if (actor.CastInfo != null)
+                    {
+                        ImGui.SameLine();
+                        if (ImGui.Button($"Finish cast##{actor.InstanceID}"))
+                            _ws.UpdateCastInfo(actor, null);
+                    }
+                    else
+                    {
+                        ImGui.SameLine();
+                        if (ImGui.Button($"Knockback##{actor.InstanceID}"))
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.DarkTwister });
+                        ImGui.SameLine();
+                        if (ImGui.Button($"AOE##{actor.InstanceID}"))
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.BurningTwister });
                     }
                 }
                 else if (actor.OID == (uint)P3S.OID.SunbirdLarge)

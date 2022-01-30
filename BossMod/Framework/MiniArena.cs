@@ -38,7 +38,6 @@ namespace BossMod
         // common color constants (ABGR)
         public uint ColorBorder = 0xffffffff;
         public uint ColorAOE = 0x80008080;
-        //public uint ColorBackground = 0xff0f0f0f;
         public uint ColorDanger = 0xff00ffff;
         public uint ColorSafe = 0xff00ff00;
         public uint ColorPC = 0xff00ff00;
@@ -404,7 +403,7 @@ namespace BossMod
             var restoreFlags = drawlist.Flags;
             drawlist.Flags &= ~ImDrawListFlags.AntiAliasedFill;
             int searchStart = lastConcave != clipped.Count - 1 ? lastConcave + 1 : 0; // optimization: avoid restarting search from the beginning after clipping each ear
-            while (clipped.Count > 3)
+            while (clipped.Count >= 3)
             {
                 // find and clip next ear - skip next concave vertices
                 int earIndex = searchStart;
@@ -412,11 +411,16 @@ namespace BossMod
                     if (isVertexEar(earIndex))
                         break;
                 if (earIndex == clipped.Count)
+                {
                     for (earIndex = 0; earIndex < searchStart; ++earIndex)
                         if (isVertexEar(earIndex))
                             break;
+                    // we are guaranteed to find an ear, there's a theorem about that
+                    // if we fail, that's probably because we have only degenerate stuff left and floating-point imprecision affects us
+                    if (earIndex == searchStart)
+                        break;
+                }
 
-                // we are guaranteed to find an ear, there's a theorem about that - now draw and clip it
                 (var prev, var curr, var next) = getTri(earIndex);
                 drawlist.AddTriangleFilled(prev, curr, next, color);
 
@@ -431,9 +435,6 @@ namespace BossMod
 
                 searchStart = earIndex != clipped.Count ? earIndex : 0;
             }
-
-            // draw final triangle
-            drawlist.AddTriangleFilled(clipped[0], clipped[1], clipped[2], color);
             drawlist.Flags = restoreFlags;
         }
     }
