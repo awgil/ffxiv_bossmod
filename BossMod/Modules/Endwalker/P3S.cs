@@ -409,15 +409,13 @@ namespace BossMod
 
             public override void OnCastStarted(WorldState.Actor actor)
             {
-                var aid = (AID)actor.CastInfo!.ActionID;
-                if (aid == AID.ExperimentalFireplumeSingleAOE || aid == AID.ExperimentalGloryplumeSingleAOE)
+                if (actor.CastInfo!.IsSpell(AID.ExperimentalFireplumeSingleAOE) || actor.CastInfo!.IsSpell(AID.ExperimentalGloryplumeSingleAOE))
                     Position = actor.Position;
             }
 
             public override void OnCastFinished(WorldState.Actor actor)
             {
-                var aid = (AID)actor.CastInfo!.ActionID;
-                if (aid == AID.ExperimentalFireplumeSingleAOE || aid == AID.ExperimentalGloryplumeSingleAOE)
+                if (actor.CastInfo!.IsSpell(AID.ExperimentalFireplumeSingleAOE) || actor.CastInfo!.IsSpell(AID.ExperimentalGloryplumeSingleAOE))
                     Position = null;
             }
         }
@@ -476,8 +474,7 @@ namespace BossMod
 
             public override void OnCastStarted(WorldState.Actor actor)
             {
-                var aid = (AID)actor.CastInfo!.ActionID;
-                if (aid == AID.ExperimentalFireplumeMultiAOE || aid == AID.ExperimentalGloryplumeMultiAOE)
+                if (actor.CastInfo!.IsSpell(AID.ExperimentalFireplumeMultiAOE) || actor.CastInfo!.IsSpell(AID.ExperimentalGloryplumeMultiAOE))
                 {
                     if (_numActiveCasts++ == 0)
                     {
@@ -492,8 +489,7 @@ namespace BossMod
 
             public override void OnCastFinished(WorldState.Actor actor)
             {
-                var aid = (AID)actor.CastInfo!.ActionID;
-                if (aid == AID.ExperimentalFireplumeMultiAOE || aid == AID.ExperimentalGloryplumeMultiAOE)
+                if (actor.CastInfo!.IsSpell(AID.ExperimentalFireplumeMultiAOE) || actor.CastInfo!.IsSpell(AID.ExperimentalGloryplumeMultiAOE))
                 {
                     if (--_numActiveCasts <= 0)
                     {
@@ -593,6 +589,8 @@ namespace BossMod
 
             public override void OnEventCast(WorldState.CastResult info)
             {
+                if (!info.IsSpell())
+                    return;
                 switch ((AID)info.ActionID)
                 {
                     case AID.ExperimentalGloryplumeSpread:
@@ -756,7 +754,7 @@ namespace BossMod
 
             public override void OnEventCast(WorldState.CastResult info)
             {
-                if ((AID)info.ActionID == AID.BrightenedFireAOE)
+                if (info.IsSpell(AID.BrightenedFireAOE))
                     ++NumCastsHappened;
             }
 
@@ -1182,6 +1180,8 @@ namespace BossMod
 
             public override void OnCastStarted(WorldState.Actor actor)
             {
+                if (!actor.CastInfo!.IsSpell())
+                    return;
                 switch ((AID)actor.CastInfo!.ActionID)
                 {
                     case AID.FlamesOfAsphodelosAOE1:
@@ -1198,6 +1198,8 @@ namespace BossMod
 
             public override void OnCastFinished(WorldState.Actor actor)
             {
+                if (!actor.CastInfo!.IsSpell())
+                    return;
                 switch ((AID)actor.CastInfo!.ActionID)
                 {
                     case AID.FlamesOfAsphodelosAOE1:
@@ -1449,7 +1451,7 @@ namespace BossMod
                     hints.Add("About to be knocked back into wall!");
                 }
 
-                foreach (var twister in _twisters.Where(twister => twister.CastInfo?.ActionID == (uint)AID.BurningTwister))
+                foreach (var twister in _twisters.Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false))
                 {
                     var offset = adjPos - twister.Position;
                     if (GeometryUtils.PointInCircle(adjPos, _aoeOuterRadius) && !GeometryUtils.PointInCircle(adjPos, _aoeInnerRadius))
@@ -1465,7 +1467,7 @@ namespace BossMod
                 if (CurState == State.None)
                     return;
 
-                foreach (var twister in _twisters.Where(twister => twister.CastInfo?.ActionID == (uint)AID.BurningTwister))
+                foreach (var twister in _twisters.Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false))
                 {
                     arena.ZoneCone(twister.Position, _aoeInnerRadius, _aoeOuterRadius, 0, 2 * MathF.PI, arena.ColorAOE);
                 }
@@ -1487,7 +1489,7 @@ namespace BossMod
 
             private Vector3 GetAdjustedActorPosition(WorldState.Actor actor)
             {
-                return CurState == State.Knockback ? AdjustPositionForKnockback(actor.Position, _twisters.Find(twister => twister.CastInfo?.ActionID == (uint)AID.DarkTwister), _knockbackRange) : actor.Position;
+                return CurState == State.Knockback ? AdjustPositionForKnockback(actor.Position, _twisters.Find(twister => twister.CastInfo?.IsSpell(AID.DarkTwister) ?? false), _knockbackRange) : actor.Position;
             }
         }
 
@@ -1576,7 +1578,7 @@ namespace BossMod
 
             public override void OnCastStarted(WorldState.Actor actor)
             {
-                if ((AID)actor.CastInfo!.ActionID == AID.AshenEye)
+                if (actor.CastInfo!.IsSpell(AID.AshenEye))
                 {
                     if (_curState != State.Sparkfledgeds)
                     {
@@ -1589,7 +1591,7 @@ namespace BossMod
 
             public override void OnCastFinished(WorldState.Actor actor)
             {
-                if ((AID)actor.CastInfo!.ActionID == AID.AshenEye)
+                if (actor.CastInfo!.IsSpell(AID.AshenEye))
                 {
                     int index = _sources.FindIndex(x => x.Item1 == actor);
                     if (index < 0)
@@ -1683,13 +1685,13 @@ namespace BossMod
             s = BuildHeatOfCondemnationState(ref s.Next, 6.6f);
             s = BuildScorchedExaltationState(ref s.Next, 3.2f);
             s = BuildDevouringBrandState(ref s.Next, 7.2f);
-            s = BuildHeatOfCondemnationState(ref s.Next, 3);
+            s = BuildHeatOfCondemnationState(ref s.Next, 3.2f);
             s = BuildExperimentalFireplumeState(ref s.Next, 3.2f); // pos-start
 
             s = CommonStates.Targetable(ref s.Next, Boss, false, 4.6f); // flies away
             s = BuildTrailOfCondemnationState(ref s.Next, 3.8f);
-            s = BuildSmallBirdsState(ref s.Next, 6);
-            s = BuildLargeBirdsState(ref s.Next, 3.4f);
+            s = BuildSmallBirdsState(ref s.Next, 5.9f);
+            s = BuildLargeBirdsState(ref s.Next, 3.5f);
             s = CommonStates.Targetable(ref s.Next, Boss, true, 5.2f, "Boss reappears");
             s.EndHint |= StateMachine.StateHint.PositioningEnd;
 
@@ -1698,19 +1700,19 @@ namespace BossMod
             s = BuildHeatOfCondemnationState(ref s.Next, 9.2f);
             s = BuildFledglingFlightState(ref s.Next, 8.2f);
             s = BuildExperimentalGloryplumeMultiState(ref s.Next, 14.3f);
-            s = BuildFountainOfFireState(ref s.Next, 12.2f);
-            s = BuildScorchedExaltationState(ref s.Next, 5);
-            s = BuildScorchedExaltationState(ref s.Next, 2);
-            s = BuildHeatOfCondemnationState(ref s.Next, 5);
-            s = CommonStates.Cast(ref s.Next, Boss, AID.FirestormsOfAsphodelos, 9.6f, 5, "Firestorm");
+            s = BuildFountainOfFireState(ref s.Next, 12.1f);
+            s = BuildScorchedExaltationState(ref s.Next, 5.1f);
+            s = BuildScorchedExaltationState(ref s.Next, 2.1f);
+            s = BuildHeatOfCondemnationState(ref s.Next, 5.2f);
+            s = CommonStates.Cast(ref s.Next, Boss, AID.FirestormsOfAsphodelos, 9.7f, 5, "Firestorm");
             s.EndHint |= StateMachine.StateHint.Raidwide;
 
             s = BuildFlamesOfAsphodelosState(ref s.Next, 3.2f);
-            s = BuildExperimentalAshplumeCastState(ref s.Next, 2);
-            s = BuildExperimentalAshplumeResolveState(ref s.Next, 6);
+            s = BuildExperimentalAshplumeCastState(ref s.Next, 2.1f);
+            s = BuildExperimentalAshplumeResolveState(ref s.Next, 6.1f);
 
             s = BuildFlamesOfAsphodelosState(ref s.Next, 2);
-            s = BuildStormsOfAsphodelosState(ref s.Next, 10);
+            s = BuildStormsOfAsphodelosState(ref s.Next, 10.2f);
 
             s = BuildDarkblazeTwisterState(ref s.Next, 2.2f);
 
@@ -1720,7 +1722,7 @@ namespace BossMod
 
             s = CommonStates.Targetable(ref s.Next, Boss, false, 3);
             s = BuildTrailOfCondemnationState(ref s.Next, 3.8f);
-            s = CommonStates.Targetable(ref s.Next, Boss, true, 4.7f);
+            s = CommonStates.Targetable(ref s.Next, Boss, true, 2.7f);
 
             s = BuildDevouringBrandState(ref s.Next, 5.1f);
             s = BuildScorchedExaltationState(ref s.Next, 6.2f);
@@ -1804,7 +1806,7 @@ namespace BossMod
             cast.Exit = () => comp.CurState = Ashplume.State.UnknownGlory; // instant cast turns this into correct state in ~3 sec
             cast.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
-            var resolve = CommonStates.Condition(ref cast.Next, 13, () => comp.CurState == Ashplume.State.None, "Gloryplume resolve");
+            var resolve = CommonStates.Condition(ref cast.Next, 13.2f, () => comp.CurState == Ashplume.State.None, "Gloryplume resolve");
             resolve.Exit = () => comp.CurState = Ashplume.State.None;
             resolve.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd;
             return resolve;
@@ -1844,14 +1846,14 @@ namespace BossMod
             var devouring = CommonStates.Cast(ref link, Boss, AID.DevouringBrand, delay, 3, "DevouringBrand");
             devouring.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var fireplume = BuildExperimentalFireplumeState(ref devouring.Next, 2); // pos-start
+            var fireplume = BuildExperimentalFireplumeState(ref devouring.Next, 2.1f); // pos-start
             fireplume.EndHint |= StateMachine.StateHint.GroupWithNext;
             fireplume.Exit = () => FindComponent<DevouringBrand>()!.Active = true;
 
-            var breeze = CommonStates.Cast(ref fireplume.Next, Boss, AID.SearingBreeze, 7, 3, "SearingBreeze");
+            var breeze = CommonStates.Cast(ref fireplume.Next, Boss, AID.SearingBreeze, 7.2f, 3, "SearingBreeze");
             breeze.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var wing = BuildCinderwingState(ref breeze.Next, 3);
+            var wing = BuildCinderwingState(ref breeze.Next, 3.2f);
             wing.Enter = () => FindComponent<DevouringBrand>()!.Active = false;
             wing.EndHint |= StateMachine.StateHint.PositioningEnd;
             return wing;
@@ -1869,7 +1871,7 @@ namespace BossMod
             addsEnd.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var brightenedComp = FindComponent<BrightenedFire>()!;
-            var numbers = CommonStates.Cast(ref addsEnd.Next, Boss, AID.BrightenedFire, 5, 5, "Numbers"); // numbers appear at the beginning of the cast, at the end he starts shooting 1-8
+            var numbers = CommonStates.Cast(ref addsEnd.Next, Boss, AID.BrightenedFire, 5.2f, 5, "Numbers"); // numbers appear at the beginning of the cast, at the end he starts shooting 1-8
             numbers.Enter = () => brightenedComp.Active = true;
             numbers.EndHint |= StateMachine.StateHint.GroupWithNext;
 
@@ -1957,7 +1959,7 @@ namespace BossMod
             var eyes = CommonStates.Cast(ref deathtoll.Next, Boss, AID.FledglingFlight, 3.2f, 3, "Eyes");
             eyes.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var agonies = CommonStates.Cast(ref eyes.Next, Boss, AID.LifesAgonies, 2, 24, "LifeAgonies");
+            var agonies = CommonStates.Cast(ref eyes.Next, Boss, AID.LifesAgonies, 2.1f, 24, "LifeAgonies");
             return agonies;
         }
 
@@ -1968,7 +1970,7 @@ namespace BossMod
             var fountain = CommonStates.Cast(ref link, Boss, AID.FountainOfFire, delay, 6, "FountainOfFire");
             fountain.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
-            var charges = CommonStates.Cast(ref fountain.Next, Boss, AID.SunsPinion, 2, 6, 13, "Charges");
+            var charges = CommonStates.Cast(ref fountain.Next, Boss, AID.SunsPinion, 2.1f, 6, 13, "Charges");
             charges.EndHint |= StateMachine.StateHint.PositioningEnd;
             return charges;
         }
@@ -1999,22 +2001,20 @@ namespace BossMod
             twister.Exit = () => FindComponent<DarkblazeTwister>()!.CurState = DarkblazeTwister.State.Knockback;
             twister.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
-            var breeze = CommonStates.Cast(ref twister.Next, Boss, AID.SearingBreeze, 4, 3, "SearingBreeze");
+            var breeze = CommonStates.Cast(ref twister.Next, Boss, AID.SearingBreeze, 4.1f, 3, "SearingBreeze");
             breeze.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var ashplume = BuildExperimentalAshplumeCastState(ref breeze.Next, 4);
+            var ashplume = BuildExperimentalAshplumeCastState(ref breeze.Next, 4.1f);
 
-            var knockback = CommonStates.Simple(ref ashplume.Next, 3, "Knockback");
-            knockback.Update = (_) => knockback.Done = !twisters.Any(twister => twister.CastInfo?.ActionID == (uint)AID.DarkTwister);
+            var knockback = CommonStates.Condition(ref ashplume.Next, 2.8f, () => !twisters.Any(twister => twister.CastInfo?.IsSpell(AID.DarkTwister) ?? false), "Knockback");
             knockback.Exit = () => FindComponent<DarkblazeTwister>()!.CurState = DarkblazeTwister.State.AOE;
             knockback.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Knockback;
 
-            var aoe = CommonStates.Simple(ref knockback.Next, 2, "AOE");
-            aoe.Update = (_) => aoe.Done = !twisters.Any(twister => twister.CastInfo != null);
+            var aoe = CommonStates.Condition(ref knockback.Next, 2, () => !twisters.Any(twister => twister.CastInfo != null), "AOE");
             aoe.Exit = () => FindComponent<DarkblazeTwister>()!.CurState = DarkblazeTwister.State.None;
             aoe.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var resolve = BuildExperimentalAshplumeResolveState(ref aoe.Next, 2);
+            var resolve = BuildExperimentalAshplumeResolveState(ref aoe.Next, 2.3f);
             return resolve;
         }
     }

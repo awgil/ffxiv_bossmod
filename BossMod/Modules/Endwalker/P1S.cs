@@ -507,6 +507,8 @@ namespace BossMod
 
             public override void OnCastFinished(WorldState.Actor actor)
             {
+                if (!actor.CastInfo!.IsSpell())
+                    return;
                 switch ((AID)actor.CastInfo!.ActionID)
                 {
                     case AID.GaolerFlailR1:
@@ -722,7 +724,7 @@ namespace BossMod
 
             public override void OnEventCast(WorldState.CastResult info)
             {
-                if ((AID)info.ActionID == AID.TrueHoly2 || (AID)info.ActionID == AID.TrueFlare2)
+                if (info.IsSpell(AID.TrueHoly2) || info.IsSpell(AID.TrueFlare2))
                     AOEDone = true;
             }
 
@@ -826,7 +828,7 @@ namespace BossMod
 
             public override void OnEventCast(WorldState.CastResult info)
             {
-                if ((AID)info.ActionID == AID.PainfulFlux) // this is convenient to rely on, since exactly 1 cast happens right after every explosion
+                if (info.IsSpell(AID.PainfulFlux)) // this is convenient to rely on, since exactly 1 cast happens right after every explosion
                     ++NumExplosions;
             }
 

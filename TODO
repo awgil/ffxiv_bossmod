@@ -13,7 +13,6 @@ network:
 - allow injecting custom client messages in next sent bundle (or just create new bundle?..)
 
 boss modules:
-- better action-id check (only spells)
 - show per-player risks and fails
 - draw arrows in world
 - p1s - make intemperance component useful

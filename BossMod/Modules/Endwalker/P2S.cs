@@ -263,7 +263,7 @@ namespace BossMod
 
             public override void OnCastFinished(WorldState.Actor actor)
             {
-                if (actor == _module.DissociatedHead() && (AID)actor.CastInfo!.ActionID == AID.DissociationAOE)
+                if (actor == _module.DissociatedHead() && actor.CastInfo!.IsSpell(AID.DissociationAOE))
                     Active = false;
             }
         }
@@ -399,7 +399,7 @@ namespace BossMod
 
             public override void OnEventCast(WorldState.CastResult info)
             {
-                if ((AID)info.ActionID == AID.CoherenceRay)
+                if (info.IsSpell(AID.CoherenceRay))
                     Active = false;
             }
         }
@@ -588,7 +588,7 @@ namespace BossMod
 
             public override void OnEventCast(WorldState.CastResult info)
             {
-                if ((AID)info.ActionID == AID.KampeosHarmaChargeBoss)
+                if (info.IsSpell(AID.KampeosHarmaChargeBoss))
                     ++_numCharges;
             }
 

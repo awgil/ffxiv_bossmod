@@ -129,6 +129,9 @@ namespace BossMod
             public Vector3 Location;
             public float CurrentTime;
             public float TotalTime;
+
+            public bool IsSpell() => ActionType == ActionType.Spell;
+            public bool IsSpell<AID>(AID aid) where AID : Enum => ActionType == ActionType.Spell && ActionID == (uint)(object)aid;
         }
 
         // note on tethers - it is N:1 type of relation, actor can be tethered to 0 or 1 actors, but can itself have multiple actors tethering themselves to itself
@@ -366,6 +369,9 @@ namespace BossMod
             public float AnimationLockTime;
             public uint MaxTargets;
             public uint NumTargets; // note: consider storing per-target ID and effects here...
+
+            public bool IsSpell() => ActionType == ActionType.Spell;
+            public bool IsSpell<AID>(AID aid) where AID : Enum => ActionType == ActionType.Spell && ActionID == (uint)(object)aid;
         }
         public event EventHandler<CastResult>? EventCast;
         public void DispatchEventCast(CastResult info)

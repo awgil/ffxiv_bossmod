@@ -53,7 +53,7 @@ namespace BossMod
                 var castInfo = actorAcc()?.CastInfo;
                 if (castInfo != null)
                 {
-                    if (castInfo.ActionID != Convert.ToUInt32(id))
+                    if (!castInfo.IsSpell(id))
                     {
                         Service.Log($"[StateMachine] Unexpected cast start for actor {actorAcc()?.OID:X}: got {castInfo.ActionID}, expected {id}");
                     }
