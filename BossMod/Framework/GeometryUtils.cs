@@ -9,10 +9,10 @@ namespace BossMod
 {
     class GeometryUtils
     {
-        public static List<Vector2> ClipPolygonToPolygon(IEnumerable<Vector2> pts, IEnumerable<Vector2> clipPoly)
+        public static List<List<Vector2>> ClipPolygonToPolygon(IEnumerable<Vector2> pts, IEnumerable<Vector2> clipPoly)
         {
             // use Clipper library (Vatti algorithm)
-            ClipperLib.Clipper c = new(ClipperLib.Clipper.ioPreserveCollinear);
+            ClipperLib.Clipper c = new(ClipperLib.Clipper.ioStrictlySimple);
             List<ClipperLib.IntPoint> ipts = new();
 
             foreach (var p in clipPoly)
@@ -23,38 +23,69 @@ namespace BossMod
                 ipts.Add(new(p.X * 1000, p.Y * 1000));
             c.AddPath(ipts, ClipperLib.PolyType.ptSubject, true);
 
-            List<List<ClipperLib.IntPoint>> solution = new();
+            ClipperLib.PolyTree solution = new();
             c.Execute(ClipperLib.ClipType.ctIntersection, solution);
 
-            // TODO: improve this...
-            Func<ClipperLib.IntPoint, Vector2> cvtPt = (ipt) => new Vector2(ipt.X / 1000.0f, ipt.Y / 1000.0f);
-            List<Vector2> res = new();
-            if (solution.Count > 0)
-                foreach (var p in solution[0])
-                    res.Add(cvtPt(p));
-            if (solution.Count > 1)
-            {
-                var testPoint = cvtPt(solution[0][0]);
-                res.Add(testPoint);
+            List<List<Vector2>> polys = new();
+            AddPolysWithHoles(polys, solution);
+            return polys;
+        }
 
-                int closest = 0;
-                float closestDist = (cvtPt(solution[1][0]) - testPoint).LengthSquared();
-                for (int i = 1; i < solution[1].Count; ++i)
+        private static void AddPolysWithHoles(List<List<Vector2>> result, ClipperLib.PolyNode node)
+        {
+            Func<ClipperLib.IntPoint, Vector2> cvtPt = (ipt) => new Vector2(ipt.X / 1000.0f, ipt.Y / 1000.0f);
+            Func<ClipperLib.IntPoint, ClipperLib.IntPoint, long> intDist = (a, b) => {
+                ClipperLib.IntPoint d = new(a.X - b.X, a.Y - b.Y);
+                return d.X * d.X + d.Y * d.Y;
+            };
+            foreach (var outer in node.Childs)
+            {
+                if (outer.Contour.Count == 0 || outer.IsOpen)
+                    continue;
+
+                // TODO: this is not good...
+                List<(int, int)> connPoints = new();
+                for (int iHole = 0; iHole < outer.ChildCount; ++iHole)
                 {
-                    float dist = (cvtPt(solution[1][i]) - testPoint).LengthSquared();
-                    if (dist < closestDist)
+                    var hole = outer.Childs[iHole];
+                    if (hole.Contour.Count == 0)
+                        continue;
+
+                    int closestOuter = 0;
+                    long closestDist = intDist(hole.Contour[0], outer.Contour[0]);
+                    for (int iTest = 0; iTest < outer.Contour.Count; ++iTest)
                     {
-                        closest = i;
-                        closestDist = dist;
+                        long dist = intDist(hole.Contour[0], outer.Contour[iTest]);
+                        if (dist < closestDist)
+                        {
+                            closestOuter = iTest;
+                            closestDist = dist;
+                        }
+                    }
+
+                    connPoints.Add(new(iHole, closestOuter));
+                }
+                connPoints.Sort((l, r) => l.Item2.CompareTo(r.Item2));
+
+                List<Vector2> poly = new();
+                int iNextConn = 0;
+                for (int iOuter = 0; iOuter < outer.Contour.Count; ++iOuter)
+                {
+                    poly.Add(cvtPt(outer.Contour[iOuter]));
+                    if (iNextConn < connPoints.Count && connPoints[iNextConn].Item2 == iOuter)
+                    {
+                        var hole = outer.Childs[connPoints[iNextConn++].Item1];
+                        foreach (var p in hole.Contour)
+                            poly.Add(cvtPt(p));
+                        poly.Add(cvtPt(hole.Contour[0]));
+                        poly.Add(cvtPt(outer.Contour[iOuter]));
                     }
                 }
+                result.Add(poly);
 
-                for (int i = closest; i < solution[1].Count; ++i)
-                    res.Add(cvtPt(solution[1][i]));
-                for (int i = 0; i <= closest; ++i)
-                    res.Add(cvtPt(solution[1][i]));
+                foreach (var hole in outer.Childs)
+                    AddPolysWithHoles(result, hole);
             }
-            return res;
         }
 
         // note: startAngle assumed to be in [-pi, pi), length in (0, pi]
