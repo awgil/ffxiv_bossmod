@@ -18,6 +18,7 @@ boss modules:
 - p1s - make intemperance component useful
 - p2s - improve channeling flow component
 - p2s - minor components (shockwave, ominous bubbling, eruption?..)
+- p3s - ashplume - show green hint "stack/spread"
 - zodiark
 -- refactor
 - hydaelyn, p4s: todo

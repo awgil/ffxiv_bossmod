@@ -1128,6 +1128,12 @@ namespace BossMod
                 }
             }
 
+            public override void OnEventCast(WorldState.CastResult info)
+            {
+                if (info.IsSpell(AID.Fireglide))
+                    _chargedSunshadows.Add(info.CasterID);
+            }
+
             private uint BirdTarget(WorldState.Actor bird)
             {
                 // we don't get tether messages when birds spawn, so use target as a fallback
@@ -1429,7 +1435,8 @@ namespace BossMod
             private List<WorldState.Actor> _twisters;
 
             private static float _knockbackRange = 17;
-            private static float _aoeInnerRadius = 7; // not sure about this...
+            private static float _aoeInnerRadius = 5; // not sure about this...
+            private static float _aoeMiddleRadius = 7; // not sure about this...
             private static float _aoeOuterRadius = 20;
 
             public DarkblazeTwister(P3S module)
@@ -1454,7 +1461,7 @@ namespace BossMod
                 foreach (var twister in _twisters.Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false))
                 {
                     var offset = adjPos - twister.Position;
-                    if (GeometryUtils.PointInCircle(adjPos, _aoeOuterRadius) && !GeometryUtils.PointInCircle(adjPos, _aoeInnerRadius))
+                    if (GeometryUtils.PointInCircle(adjPos, _aoeInnerRadius) || GeometryUtils.PointInCircle(adjPos, _aoeOuterRadius) && !GeometryUtils.PointInCircle(adjPos, _aoeMiddleRadius))
                     {
                         hints.Add("GTFO from aoe!");
                         break;
@@ -1469,7 +1476,8 @@ namespace BossMod
 
                 foreach (var twister in _twisters.Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false))
                 {
-                    arena.ZoneCone(twister.Position, _aoeInnerRadius, _aoeOuterRadius, 0, 2 * MathF.PI, arena.ColorAOE);
+                    arena.ZoneCircle(twister.Position, _aoeInnerRadius, arena.ColorAOE);
+                    arena.ZoneCone(twister.Position, _aoeMiddleRadius, _aoeOuterRadius, 0, 2 * MathF.PI, arena.ColorAOE);
                 }
             }
 
@@ -1690,8 +1698,8 @@ namespace BossMod
 
             s = CommonStates.Targetable(ref s.Next, Boss, false, 4.6f); // flies away
             s = BuildTrailOfCondemnationState(ref s.Next, 3.8f);
-            s = BuildSmallBirdsState(ref s.Next, 5.9f);
-            s = BuildLargeBirdsState(ref s.Next, 3.5f);
+            s = BuildSmallBirdsState(ref s.Next, 6);
+            s = BuildLargeBirdsState(ref s.Next, 3.6f);
             s = CommonStates.Targetable(ref s.Next, Boss, true, 5.2f, "Boss reappears");
             s.EndHint |= StateMachine.StateHint.PositioningEnd;
 
@@ -1716,7 +1724,7 @@ namespace BossMod
 
             s = BuildDarkblazeTwisterState(ref s.Next, 2.2f);
 
-            s = BuildScorchedExaltationState(ref s.Next, 2);
+            s = BuildScorchedExaltationState(ref s.Next, 2.1f);
             s = BuildDeathTollState(ref s.Next, 7.2f);
             s = BuildExperimentalGloryplumeSingleState(ref s.Next, 7.3f);
 
@@ -1922,14 +1930,15 @@ namespace BossMod
             spawn.Exit = () => compTether.Active = true; // note that first tethers appear ~5s after this
             spawn.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.DowntimeEnd; // adds become targetable ~1sec after spawn
 
-            var chargesDone = CommonStates.Condition(ref spawn.Next, 17.5f, () => compTether.NumFinishedChains == 4, "", 10000);
+            var chargesDone = CommonStates.Condition(ref spawn.Next, 18.2f, () => compTether.NumFinishedChains == 4, "", 10000);
             chargesDone.Exit = () =>
             {
                 FindComponent<BirdDistance>()!.WatchedBirds = birds;
                 compTether.Reset();
             };
 
-            var enrage = CommonStates.Condition(ref chargesDone.Next, 55, () => birds.Find(x => !x.IsDead) == null, "Large birds enrage", 10000);
+            // note that enrage is ~55sec after spawn
+            var enrage = CommonStates.Condition(ref chargesDone.Next, 36.8f, () => birds.Find(x => !x.IsDead) == null, "Large birds enrage", 10000);
             enrage.Exit = () => FindComponent<BirdDistance>()!.WatchedBirds = null;
             enrage.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.DowntimeStart; // raidwide (26326) happens ~3sec after last bird death
             return enrage;
