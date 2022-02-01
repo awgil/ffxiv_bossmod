@@ -41,7 +41,7 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.Text($"{idx}");
                 ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(obj));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectKindString(obj));
-                ImGui.TableNextColumn(); ImGui.Text(character != null ? Utils.CharacterClassString(character.ClassJob.Id) : "---");
+                ImGui.TableNextColumn(); ImGui.Text(character != null ? $"{character.ClassJob.Id} ({Utils.CharacterClassString(character.ClassJob.Id)})" : "---");
                 ImGui.TableNextColumn(); ImGui.Text($"{obj.OwnerId:X}");
                 ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(obj.Position));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.RadianString(obj.Rotation));

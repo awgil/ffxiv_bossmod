@@ -528,18 +528,18 @@ namespace BossMod
 
     class Network : IDisposable
     {
-        public bool DumpServer = false;
-        public bool DumpClient = false;
-
         private WorldStateGame _ws;
+        private GeneralConfig _config;
+
         // this is a mega weird thing - apparently some IDs sent over network have some extra delta added to them (e.g. action ids, icon ids, etc.)
         // they change on relogs or zone changes or something...
         // we have one simple way of detecting them - by looking at casts, since they contain both offset id and real ('animation') id
         private int _unkDelta = 0;
 
-        public Network(WorldStateGame ws)
+        public Network(WorldStateGame ws, GeneralConfig config)
         {
             _ws = ws;
+            _config = config;
             Service.GameNetwork.NetworkMessage += HandleMessage;
         }
 
@@ -553,7 +553,7 @@ namespace BossMod
             if (direction == NetworkMessageDirection.ZoneDown)
             {
                 // server->client
-                if (DumpServer)
+                if (_config.DumpServerPackets)
                 {
                     DumpServerMessage(dataPtr, opCode, targetActorId);
                 }
@@ -592,7 +592,7 @@ namespace BossMod
             else
             {
                 // client->server
-                if (DumpClient)
+                if (_config.DumpClientPackets)
                 {
                     DumpClientMessage(dataPtr, opCode);
                 }

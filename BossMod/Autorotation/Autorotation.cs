@@ -1,10 +1,14 @@
 ﻿using Dalamud.Hooking;
+using ImGuiNET;
 using System;
 
 namespace BossMod
 {
     class Autorotation : IDisposable
     {
+        private GeneralConfig _config;
+        private WindowManager.Window? _ui;
+
         private delegate ulong GetAdjustedActionIdDelegate(byte param1, uint param2);
         private Hook<GetAdjustedActionIdDelegate> _getAdjustedActionIdHook;
         private unsafe float* _comboTimeLeft = null;
@@ -15,8 +19,10 @@ namespace BossMod
 
         public WARActions WarActions { get; init; } = new();
 
-        public unsafe Autorotation()
+        public unsafe Autorotation(GeneralConfig config)
         {
+            _config = config;
+
             IntPtr comboPtr = Service.SigScanner.GetStaticAddressFromSig("E8 ?? ?? ?? ?? 80 7E 21 00", 0x178);
             _comboTimeLeft = (float*)comboPtr;
             _comboLastMove = (WARRotation.AID*)(comboPtr + 0x4);
@@ -33,7 +39,37 @@ namespace BossMod
 
         public void Update()
         {
-            WarActions.Update(ComboLastMove, ComboTimeLeft);
+            bool enabled = false;
+            if (_config.AutorotationEnabled)
+            {
+                enabled = (Service.ClientState.LocalPlayer?.ClassJob.Id ?? 0) == 21; // 21 is WAR
+            }
+
+            if (enabled)
+            {
+                if (!_getAdjustedActionIdHook.IsEnabled)
+                    _getAdjustedActionIdHook.Enable();
+                WarActions.Update(ComboLastMove, ComboTimeLeft);
+            }
+            else
+            {
+                if (_getAdjustedActionIdHook.IsEnabled)
+                    _getAdjustedActionIdHook.Disable();
+            }
+
+            bool showUI = enabled && _config.AutorotationShowUI;
+            if (showUI && _ui == null)
+            {
+                _ui = WindowManager.CreateWindow("Autorotation", () => WarActions.DrawActionHint(false), () => { });
+                _ui.SizeHint = new(100, 100);
+                _ui.MinSize = new(100, 100);
+                _ui.Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
+            }
+            else if (!showUI && _ui != null)
+            {
+                _ui?.Close();
+                _ui = null;
+            }
         }
 
         public void Draw()

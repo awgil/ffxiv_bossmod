@@ -12,77 +12,74 @@ namespace BossMod
     {
         public string Name => "Boss Mod";
 
+        private ConfigRoot _config;
+        private CommandManager _commandManager { get; init; }
+
         private WorldStateGame _ws { get; } = new();
         private DebugEventLogger _debugLogger;
-        private BossModule? _activeModule;
-        private BossModuleRaidWarnings _raidWarnings = new();
+        private BossModuleManager _bossmod;
         private Autorotation _autorotation;
         private Network _network;
-        private bool _autorotationUIVisible = true;
-        private bool _raidWarningsUIVisible = true;
-
-        private DalamudPluginInterface PluginInterface { get; init; }
-        private CommandManager CommandManager { get; init; }
-        private Configuration Configuration { get; init; }
 
         public Plugin(
-            [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
+            [RequiredVersion("1.0")] DalamudPluginInterface dalamud,
             [RequiredVersion("1.0")] CommandManager commandManager)
         {
-            pluginInterface.Create<Service>();
+            dalamud.Create<Service>();
             Service.LogHandler = (string msg) => PluginLog.Log(msg);
             //Service.Device = pluginInterface.UiBuilder.Device;
             Camera.Instance = new();
-            _autorotation = new();
-            _network = new(_ws);
 
-            _debugLogger = new DebugEventLogger(_ws);
+            _config = ConfigRoot.ReadConfig(dalamud);
+            var generalCfg = _config.Get<GeneralConfig>();
 
-            _ws.CurrentZoneChanged += ZoneChanged;
-            ZoneChanged(null, _ws.CurrentZone);
+            _commandManager = commandManager;
+            _commandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
-            this.PluginInterface = pluginInterface;
-            this.CommandManager = commandManager;
+            _debugLogger = new(_ws, generalCfg);
+            _bossmod = new(_ws, _config);
+            _autorotation = new(generalCfg);
+            _network = new(_ws, generalCfg);
 
-            this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-            this.Configuration.Initialize(this.PluginInterface);
-
-            this.CommandManager.AddHandler("/bmz", new CommandInfo((command, args) => ZoneChanged(null, ushort.Parse(args)))
-            {
-                HelpMessage = "Show boss module for zone"
-            });
-
-            this.CommandManager.AddHandler("/bmd", new CommandInfo((_, _) => OpenDebugUI())
-            {
-                HelpMessage = "Show debug UI"
-            });
-
-            this.CommandManager.AddHandler("/bma", new CommandInfo((_, _) => _autorotationUIVisible = !_autorotationUIVisible)
-            {
-                HelpMessage = "Autorotation UI"
-            });
-
-            this.CommandManager.AddHandler("/bmrw", new CommandInfo((_, _) => _raidWarningsUIVisible = !_raidWarningsUIVisible)
-            {
-                HelpMessage = "Raid Warnings UI"
-            });
-
-            this.PluginInterface.UiBuilder.Draw += DrawUI;
-            this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
+            dalamud.UiBuilder.Draw += DrawUI;
+            dalamud.UiBuilder.OpenConfigUi += OpenConfigUI;
         }
 
         public void Dispose()
         {
             WindowManager.Reset();
             _debugLogger.Dispose();
+            _bossmod.Dispose();
             _network.Dispose();
             _autorotation.Dispose();
-            _activeModule?.Dispose();
-            _ws.CurrentZoneChanged -= ZoneChanged;
-            this.CommandManager.RemoveHandler("/bmz");
-            this.CommandManager.RemoveHandler("/bmd");
-            this.CommandManager.RemoveHandler("/bma");
-            this.CommandManager.RemoveHandler("/bmrw");
+            _commandManager.RemoveHandler("/vbm");
+        }
+
+        private void OnCommand(string cmd, string args)
+        {
+            Service.Log($"OnCommand: {cmd} {args}");
+            var split = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (split.Length == 0)
+            {
+                OpenConfigUI();
+                return;
+            }
+
+            switch (split[0])
+            {
+                case "z":
+                    _bossmod.ActivateModuleForZone(split.Length > 1 ? ushort.Parse(split[1]) : _ws.CurrentZone);
+                    break;
+                case "d":
+                    OpenDebugUI();
+                    break;
+            }
+        }
+
+        private void OpenConfigUI()
+        {
+            var w = WindowManager.CreateWindow("Boss mod config", _config.Draw, () => { });
+            w.SizeHint = new Vector2(300, 300);
         }
 
         private void OpenDebugUI()
@@ -92,92 +89,15 @@ namespace BossMod
             w.SizeHint = new Vector2(300, 200);
         }
 
-        private void ZoneChanged(object? sender, ushort zone)
-        {
-            _activeModule?.Dispose();
-            _activeModule = null;
-
-            switch (zone)
-            {
-                case 993:
-                    _activeModule = new Zodiark(_ws);
-                    break;
-                case 1003:
-                    _activeModule = new P1S(_ws);
-                    break;
-                case 1005:
-                    _activeModule = new P2S(_ws);
-                    break;
-                case 1007:
-                    _activeModule = new P3S(_ws);
-                    break;
-            }
-            PluginLog.Log($"Activated module: {_activeModule?.GetType().ToString() ?? "none"}");
-        }
-
         private void DrawUI()
         {
             Camera.Instance?.Update();
+            _debugLogger.Update();
             _ws.Update();
+            _bossmod.Update();
             _autorotation.Update();
 
             WindowManager.DrawAll();
-
-            if (_autorotationUIVisible)
-            {
-                ImGui.SetNextWindowSize(new Vector2(100, 100), ImGuiCond.FirstUseEver);
-                ImGui.SetNextWindowSizeConstraints(new Vector2(100, 100), new Vector2(float.MaxValue, float.MaxValue));
-                if (ImGui.Begin("Autorotation", ref _autorotationUIVisible, ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
-                {
-                    _autorotation.Draw();
-                }
-                ImGui.End();
-            }
-
-            if (_activeModule != null)
-            {
-                try
-                {
-                    _activeModule.Update();
-
-                    ImGui.SetNextWindowSize(new Vector2(400, 400), ImGuiCond.FirstUseEver);
-                    ImGui.SetNextWindowSizeConstraints(new Vector2(400, 400), new Vector2(float.MaxValue, float.MaxValue));
-                    bool visible = true;
-                    if (ImGui.Begin("Boss module", ref visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
-                    {
-                        _activeModule.Draw(Camera.Instance?.CameraAzimuth ?? 0, null);
-                    }
-                    ImGui.End();
-                    if (!visible)
-                    {
-                        _activeModule.Dispose();
-                        _activeModule = null;
-                    }
-
-                    // TODO: rework this...
-                    if (_raidWarningsUIVisible && _activeModule != null)
-                    {
-                        ImGui.SetNextWindowSize(new Vector2(100, 100), ImGuiCond.FirstUseEver);
-                        ImGui.SetNextWindowSizeConstraints(new Vector2(100, 100), new Vector2(float.MaxValue, float.MaxValue));
-                        if (ImGui.Begin("Raid warnings", ref _raidWarningsUIVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
-                        {
-                            _raidWarnings.Draw(_activeModule);
-                        }
-                        ImGui.End();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    PluginLog.Error(ex, "Boss module crashed");
-                    _activeModule?.Dispose();
-                    _activeModule = null;
-                }
-            }
-        }
-
-        private void DrawConfigUI()
-        {
-            //this.PluginUi.SettingsVisible = true;
         }
     }
 }

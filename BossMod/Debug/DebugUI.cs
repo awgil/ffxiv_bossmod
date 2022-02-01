@@ -41,9 +41,6 @@ namespace BossMod
                 DebugGraphics.DumpScene();
             }
 
-            ImGui.Checkbox("Dump server packets", ref _network.DumpServer);
-            ImGui.Checkbox("Dump client packets", ref _network.DumpClient);
-
             if (ImGui.CollapsingHeader("Full object list"))
             {
                 _debugObjects.DrawObjectTable();

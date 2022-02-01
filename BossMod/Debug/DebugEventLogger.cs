@@ -6,54 +6,82 @@ namespace BossMod
     class DebugEventLogger : IDisposable
     {
         private WorldState _ws;
+        private GeneralConfig _config;
+        private bool _subscribed = false;
 
-        public DebugEventLogger(WorldState ws)
+        public DebugEventLogger(WorldState ws, GeneralConfig config)
         {
             _ws = ws;
-            _ws.CurrentZoneChanged += ZoneChange;
-            _ws.PlayerInCombatChanged += EnterExitCombat;
-            _ws.PlayerActorIDChanged += PlayerIDChanged;
-            _ws.WaymarkChanged += WaymarkChanged;
-            _ws.ActorCreated += ActorCreated;
-            _ws.ActorDestroyed += ActorDestroyed;
-            _ws.ActorClassRoleChanged += ActorClassRoleChanged;
-            _ws.ActorMoved += ActorMoved;
-            _ws.ActorIsTargetableChanged += ActorIsTargetableChanged;
-            _ws.ActorIsDeadChanged += ActorIsDeadChanged;
-            _ws.ActorTargetChanged += ActorTargetChanged;
-            _ws.ActorCastStarted += ActorCastStarted;
-            _ws.ActorCastFinished += ActorCastFinished;
-            _ws.ActorTethered += ActorTethered;
-            _ws.ActorUntethered += ActorUntethered;
-            _ws.ActorStatusGain += ActorStatusGain;
-            _ws.ActorStatusLose += ActorStatusLose;
-            _ws.EventIcon += EventIcon;
-            _ws.EventCast += EventCast;
-            _ws.EventEnvControl += EventEnvControl;
+            _config = config;
         }
 
         public void Dispose()
         {
-            _ws.CurrentZoneChanged -= ZoneChange;
-            _ws.PlayerInCombatChanged -= EnterExitCombat;
-            _ws.PlayerActorIDChanged -= PlayerIDChanged;
-            _ws.WaymarkChanged -= WaymarkChanged;
-            _ws.ActorCreated -= ActorCreated;
-            _ws.ActorDestroyed -= ActorDestroyed;
-            _ws.ActorClassRoleChanged -= ActorClassRoleChanged;
-            _ws.ActorMoved -= ActorMoved;
-            _ws.ActorIsTargetableChanged -= ActorIsTargetableChanged;
-            _ws.ActorIsDeadChanged -= ActorIsDeadChanged;
-            _ws.ActorTargetChanged -= ActorTargetChanged;
-            _ws.ActorCastStarted -= ActorCastStarted;
-            _ws.ActorCastFinished -= ActorCastFinished;
-            _ws.ActorTethered -= ActorTethered;
-            _ws.ActorUntethered -= ActorUntethered;
-            _ws.ActorStatusGain -= ActorStatusGain;
-            _ws.ActorStatusLose -= ActorStatusLose;
-            _ws.EventIcon -= EventIcon;
-            _ws.EventCast -= EventCast;
-            _ws.EventEnvControl -= EventEnvControl;
+            Unsubscribe();
+        }
+
+        public void Update()
+        {
+            if (_config.DumpWorldStateEvents)
+                Subscribe();
+            else
+                Unsubscribe();
+        }
+
+        private void Subscribe()
+        {
+            if (!_subscribed)
+            {
+                _ws.CurrentZoneChanged += ZoneChange;
+                _ws.PlayerInCombatChanged += EnterExitCombat;
+                _ws.PlayerActorIDChanged += PlayerIDChanged;
+                _ws.WaymarkChanged += WaymarkChanged;
+                _ws.ActorCreated += ActorCreated;
+                _ws.ActorDestroyed += ActorDestroyed;
+                _ws.ActorClassRoleChanged += ActorClassRoleChanged;
+                _ws.ActorMoved += ActorMoved;
+                _ws.ActorIsTargetableChanged += ActorIsTargetableChanged;
+                _ws.ActorIsDeadChanged += ActorIsDeadChanged;
+                _ws.ActorTargetChanged += ActorTargetChanged;
+                _ws.ActorCastStarted += ActorCastStarted;
+                _ws.ActorCastFinished += ActorCastFinished;
+                _ws.ActorTethered += ActorTethered;
+                _ws.ActorUntethered += ActorUntethered;
+                _ws.ActorStatusGain += ActorStatusGain;
+                _ws.ActorStatusLose += ActorStatusLose;
+                _ws.EventIcon += EventIcon;
+                _ws.EventCast += EventCast;
+                _ws.EventEnvControl += EventEnvControl;
+                _subscribed = true;
+            }
+        }
+
+        private void Unsubscribe()
+        {
+            if (_subscribed)
+            {
+                _ws.CurrentZoneChanged -= ZoneChange;
+                _ws.PlayerInCombatChanged -= EnterExitCombat;
+                _ws.PlayerActorIDChanged -= PlayerIDChanged;
+                _ws.WaymarkChanged -= WaymarkChanged;
+                _ws.ActorCreated -= ActorCreated;
+                _ws.ActorDestroyed -= ActorDestroyed;
+                _ws.ActorClassRoleChanged -= ActorClassRoleChanged;
+                _ws.ActorMoved -= ActorMoved;
+                _ws.ActorIsTargetableChanged -= ActorIsTargetableChanged;
+                _ws.ActorIsDeadChanged -= ActorIsDeadChanged;
+                _ws.ActorTargetChanged -= ActorTargetChanged;
+                _ws.ActorCastStarted -= ActorCastStarted;
+                _ws.ActorCastFinished -= ActorCastFinished;
+                _ws.ActorTethered -= ActorTethered;
+                _ws.ActorUntethered -= ActorUntethered;
+                _ws.ActorStatusGain -= ActorStatusGain;
+                _ws.ActorStatusLose -= ActorStatusLose;
+                _ws.EventIcon -= EventIcon;
+                _ws.EventCast -= EventCast;
+                _ws.EventEnvControl -= EventEnvControl;
+                _subscribed = false;
+            }
         }
 
         private void ZoneChange(object? sender, ushort zone)
