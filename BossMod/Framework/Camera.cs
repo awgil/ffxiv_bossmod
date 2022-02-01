@@ -18,6 +18,7 @@ namespace BossMod
         public SharpDX.Matrix CameraWorld { get; private set; }
         public float CameraAzimuth { get; private set; } // facing north = 0, facing west = pi/4, facing south = +-pi/2, facing east = -pi/4
         public float CameraAltitude { get; private set; } // facing horizontally = 0, facing down = pi/4, facing up = -pi/4
+        public SharpDX.Vector2 ViewportSize { get; private set; }
 
         public Camera()
         {
@@ -34,6 +35,7 @@ namespace BossMod
             CameraWorld = SharpDX.Matrix.Invert(View);
             CameraAzimuth = MathF.Atan2(View.Column3.X, View.Column3.Z);
             CameraAltitude = MathF.Asin(View.Column3.Y);
+            ViewportSize = ReadVec2(matrixSingleton + 0x1f4);
         }
 
         private unsafe SharpDX.Matrix ReadMatrix(IntPtr address)
@@ -43,6 +45,12 @@ namespace BossMod
             for (var i = 0; i < 16; i++)
                 mtx[i] = *p++;
             return mtx;
+        }
+
+        private unsafe SharpDX.Vector2 ReadVec2(IntPtr address)
+        {
+            var p = (float*)address;
+            return new(p[0], p[1]);
         }
     }
 }

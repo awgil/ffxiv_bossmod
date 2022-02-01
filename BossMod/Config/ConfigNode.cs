@@ -9,15 +9,16 @@ namespace BossMod
     class ConfigNode
     {
         protected ConfigNode? Parent;
-        internal Dictionary<string, ConfigNode> Children = new();
+        private Dictionary<string, ConfigNode> _children = new();
+        public IReadOnlyDictionary<string, ConfigNode> Children() => _children;
 
         // get child node of specified type with specified name; if one doesn't exist or is of incorrect type, new child is created (old one with same name is then removed)
         public T Get<T>(string name) where T : ConfigNode, new()
         {
-            var child = Children.GetValueOrDefault(name) as T;
+            var child = _children.GetValueOrDefault(name) as T;
             if (child == null)
             {
-                var inserted = Children[name] = new T();
+                var inserted = _children[name] = new T();
                 child = inserted as T;
                 child!.Parent = this;
             }
@@ -39,7 +40,7 @@ namespace BossMod
         // draw this node and all children
         public void Draw()
         {
-            foreach ((var name, var child) in Children)
+            foreach ((var name, var child) in _children)
             {
                 var castChild = (ConfigNode)child;
                 if (ImGui.TreeNode(castChild.NameOverride() ?? name))
@@ -51,11 +52,17 @@ namespace BossMod
             DrawContents();
         }
 
+        public void AddDeserializedChild(string name, ConfigNode node)
+        {
+            node.Parent = this;
+            _children[name] = node;
+        }
+
         // save state; should be called by derived classes whenever they make any modifications
         // default implementation just forwards request to parent; root should handle actual saving
         protected virtual void Save()
         {
-            Parent!.Save();
+            Parent?.Save();
         }
 
         // draw actual node contents; at very least leaves should override this to draw something useful

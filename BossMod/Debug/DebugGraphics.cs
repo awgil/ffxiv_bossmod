@@ -277,6 +277,10 @@ namespace BossMod
             ImGui.TableNextColumn(); ImGui.Text("W");
             ImGui.TableNextColumn(); DrawMatrix(Camera.Instance.CameraWorld);
 
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn(); ImGui.Text("Viewport size");
+            ImGui.TableNextColumn(); ImGui.Text($"{Camera.Instance.ViewportSize.X:f6} {Camera.Instance.ViewportSize.Y:f6}");
+
             ImGui.EndTable();
         }
 

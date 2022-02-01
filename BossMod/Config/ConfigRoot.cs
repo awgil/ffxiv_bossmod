@@ -33,7 +33,7 @@ namespace BossMod
         private JObject SerializeNode(ConfigNode n)
         {
             JObject children = new();
-            foreach ((var name, var child) in n.Children)
+            foreach ((var name, var child) in n.Children())
                 children[name] = SerializeNode(child);
 
             JObject j = JObject.FromObject(n);
@@ -64,7 +64,7 @@ namespace BossMod
                         var child = DeserializeNode(jChild as JObject);
                         if (child != null)
                         {
-                            deserialized.Children[name] = child;
+                            deserialized.AddDeserializedChild(name, child);
                         }
                     }
                 }
