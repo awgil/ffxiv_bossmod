@@ -1,5 +1,4 @@
 ﻿using ImGuiNET;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
@@ -10,36 +9,7 @@ namespace BossMod
     class ConfigNode
     {
         protected ConfigNode? Parent;
-
-        [JsonProperty]
-        private Dictionary<string, object> Children = new();
-
-        [JsonProperty]
-        private string? _t;
-
-        protected void FixAfterDeserialize()
-        {
-            Dictionary<string, object> fix = new();
-            foreach ((string name, var child) in Children)
-            {
-                var serialized = child as Newtonsoft.Json.Linq.JObject;
-                if (serialized == null)
-                    continue;
-
-                var type = Type.GetType(serialized["_t"]?.ToString() ?? "");
-                if (type == null)
-                    continue;
-
-                var deserialized = serialized.ToObject(type) as ConfigNode;
-                if (deserialized == null)
-                    continue;
-
-                deserialized.Parent = this;
-                deserialized.FixAfterDeserialize();
-                fix[name] = deserialized;
-            }
-            Children = fix;
-        }
+        internal Dictionary<string, ConfigNode> Children = new();
 
         // get child node of specified type with specified name; if one doesn't exist or is of incorrect type, new child is created (old one with same name is then removed)
         public T Get<T>(string name) where T : ConfigNode, new()
@@ -50,7 +20,6 @@ namespace BossMod
                 var inserted = Children[name] = new T();
                 child = inserted as T;
                 child!.Parent = this;
-                child!._t = typeof(T).FullName;
             }
             return child!;
         }
