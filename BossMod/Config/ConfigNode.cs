@@ -42,10 +42,9 @@ namespace BossMod
         {
             foreach ((var name, var child) in _children)
             {
-                var castChild = (ConfigNode)child;
-                if (ImGui.TreeNode(castChild.NameOverride() ?? name))
+                if (ImGui.TreeNode(child.NameOverride() ?? name))
                 {
-                    castChild.Draw();
+                    child.Draw();
                     ImGui.TreePop();
                 }
             }
