@@ -53,10 +53,10 @@ namespace UIDev
                 var pos = actor.Position;
                 var rot = actor.Rotation / MathF.PI * 180;
                 ImGui.SetNextItemWidth(100);
-                ImGui.DragFloat($"X##{actor.InstanceID}", ref pos.X, 1, 80, 120);
+                ImGui.DragFloat($"X##{actor.InstanceID}", ref pos.X, 0.25f, 80, 120);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100);
-                ImGui.DragFloat($"Z##{actor.InstanceID}", ref pos.Z, 1, 80, 120);
+                ImGui.DragFloat($"Z##{actor.InstanceID}", ref pos.Z, 0.25f, 80, 120);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100);
                 ImGui.DragFloat($"Rot##{actor.InstanceID}", ref rot, 1, -180, 180);
@@ -70,13 +70,6 @@ namespace UIDev
                     {
                         _ws.ChangeActorTarget(boss, isMT ? actor.InstanceID : 0);
                     }
-
-                    //ImGui.SameLine();
-                    //bool heatTether = actor.Tether.ID == (uint)P3S.TetherID.HeatOfCondemnation;
-                    //if (ImGui.Checkbox($"Heat tether##{actor.InstanceID}", ref heatTether))
-                    //{
-                    //    _ws.UpdateTether(actor, heatTether ? new WorldState.TetherInfo { ID = (uint)P3S.TetherID.HeatOfCondemnation, Target = 9 } : new());
-                    //}
                 }
                 else if (actor.OID == (uint)P2S.OID.Boss)
                 {
@@ -93,18 +86,18 @@ namespace UIDev
                     {
                         ImGui.SameLine();
                         if (ImGui.Button("Generic"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = 1 });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = 1 });
                         ImGui.SameLine();
                         if (ImGui.Button("SpokenCata"))
                         {
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P2S.AID.SpokenCataract });
-                            _ws.UpdateCastInfo(_ws.FindActor(10)!, new WorldState.CastInfo { ActionID = (uint)P2S.AID.SpokenCataractSecondary });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P2S.AID.SpokenCataract });
+                            _ws.UpdateCastInfo(_ws.FindActor(10)!, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P2S.AID.SpokenCataractSecondary });
                         }
                         ImGui.SameLine();
                         if (ImGui.Button("WingedCata"))
                         {
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P2S.AID.WingedCataract });
-                            _ws.UpdateCastInfo(_ws.FindActor(10)!, new WorldState.CastInfo { ActionID = (uint)P2S.AID.WingedCataractSecondary });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P2S.AID.WingedCataract });
+                            _ws.UpdateCastInfo(_ws.FindActor(10)!, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P2S.AID.WingedCataractSecondary });
                         }
                     }
                 }
@@ -120,7 +113,7 @@ namespace UIDev
                     {
                         ImGui.SameLine();
                         if (ImGui.Button($"Start cast##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P2S.AID.DissociationAOE });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P2S.AID.DissociationAOE });
                     }
                 }
             }

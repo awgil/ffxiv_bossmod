@@ -50,7 +50,7 @@ namespace UIDev
             foreach (var e in Enum.GetValues<P1S.AID>())
             {
                 if (ImGui.Button(e.ToString()))
-                    _ws.UpdateCastInfo(boss, boss.CastInfo == null ? new WorldState.CastInfo { ActionID = (uint)e, TargetID = boss.TargetID } : null);
+                    _ws.UpdateCastInfo(boss, boss.CastInfo == null ? new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)e, TargetID = boss.TargetID } : null);
                 if (++cnt % 5 != 0)
                     ImGui.SameLine();
             }
@@ -61,10 +61,10 @@ namespace UIDev
                 var pos = actor.Value.Position;
                 var rot = actor.Value.Rotation / MathF.PI * 180;
                 ImGui.SetNextItemWidth(100);
-                ImGui.DragFloat($"X##{actor.Value.InstanceID}", ref pos.X, 1, 80, 120);
+                ImGui.DragFloat($"X##{actor.Value.InstanceID}", ref pos.X, 0.25f, 80, 120);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100);
-                ImGui.DragFloat($"Z##{actor.Value.InstanceID}", ref pos.Z, 1, 80, 120);
+                ImGui.DragFloat($"Z##{actor.Value.InstanceID}", ref pos.Z, 0.25f, 80, 120);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100);
                 ImGui.DragFloat($"Rot##{actor.Value.InstanceID}", ref rot, 1, -180, 180);

@@ -81,10 +81,10 @@ namespace UIDev
                 var pos = actor.Position;
                 var rot = actor.Rotation / MathF.PI * 180;
                 ImGui.SetNextItemWidth(100);
-                ImGui.DragFloat($"X##{actor.InstanceID}", ref pos.X, 1, 80, 120);
+                ImGui.DragFloat($"X##{actor.InstanceID}", ref pos.X, 0.25f, 80, 120);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100);
-                ImGui.DragFloat($"Z##{actor.InstanceID}", ref pos.Z, 1, 80, 120);
+                ImGui.DragFloat($"Z##{actor.InstanceID}", ref pos.Z, 0.25f, 80, 120);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100);
                 ImGui.DragFloat($"Rot##{actor.InstanceID}", ref rot, 1, -180, 180);
@@ -125,25 +125,25 @@ namespace UIDev
                     {
                         ImGui.SameLine();
                         if (ImGui.Button("Generic"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = 1 });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = 1 });
                         ImGui.SameLine();
                         if (ImGui.Button("WingL"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.LeftCinderwing });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P3S.AID.LeftCinderwing });
                         ImGui.SameLine();
                         if (ImGui.Button("WingR"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.RightCinderwing });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P3S.AID.RightCinderwing });
                         ImGui.SameLine();
                         if (ImGui.Button("AshSpread"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.ExperimentalAshplumeSpread });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P3S.AID.ExperimentalAshplumeSpread });
                         ImGui.SameLine();
                         if (ImGui.Button("AshStack"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.ExperimentalAshplumeStack });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P3S.AID.ExperimentalAshplumeStack });
                         ImGui.SameLine();
                         if (ImGui.Button("TrailC"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.TrailOfCondemnationCenter });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P3S.AID.TrailOfCondemnationCenter });
                         ImGui.SameLine();
                         if (ImGui.Button("TrailS"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.TrailOfCondemnationSides });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P3S.AID.TrailOfCondemnationSides });
                     }
                 }
                 else if (actor.OID == (uint)P3S.OID.Helper)
@@ -158,19 +158,19 @@ namespace UIDev
                     {
                         ImGui.SameLine();
                         if (ImGui.Button($"PlumeMulti##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.ExperimentalFireplumeMultiAOE });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P3S.AID.ExperimentalFireplumeMultiAOE });
                         ImGui.SameLine();
                         if (ImGui.Button($"PlumeSingle##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.ExperimentalFireplumeSingleAOE });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P3S.AID.ExperimentalFireplumeSingleAOE });
                         ImGui.SameLine();
                         if (ImGui.Button($"Cone1##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.FlamesOfAsphodelosAOE1 });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P3S.AID.FlamesOfAsphodelosAOE1 });
                         ImGui.SameLine();
                         if (ImGui.Button($"Cone2##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.FlamesOfAsphodelosAOE2 });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P3S.AID.FlamesOfAsphodelosAOE2 });
                         ImGui.SameLine();
                         if (ImGui.Button($"Cone3##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.FlamesOfAsphodelosAOE3 });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P3S.AID.FlamesOfAsphodelosAOE3 });
                     }
                 }
                 else if (actor.OID == (uint)P3S.OID.DarkblazeTwister)
@@ -185,10 +185,10 @@ namespace UIDev
                     {
                         ImGui.SameLine();
                         if (ImGui.Button($"Knockback##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.DarkTwister });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P3S.AID.DarkTwister });
                         ImGui.SameLine();
                         if (ImGui.Button($"AOE##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionID = (uint)P3S.AID.BurningTwister });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P3S.AID.BurningTwister });
                     }
                 }
                 else if (actor.OID == (uint)P3S.OID.SunbirdLarge)

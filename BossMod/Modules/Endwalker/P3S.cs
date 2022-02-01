@@ -1261,7 +1261,7 @@ namespace BossMod
             private ulong _closeToTetherTarget = 0;
             private ulong _hitByMultipleAOEs = 0;
 
-            private static float _coneHalfAngle = MathF.PI / 12; // not sure about this!!!
+            private static float _coneHalfAngle = MathF.PI / 6; // not sure about this!!!
             private static float _beaconRadius = 6;
 
             public StormsOfAsphodelos(P3S module)
@@ -1447,6 +1447,9 @@ namespace BossMod
             private static float _aoeMiddleRadius = 7; // not sure about this...
             private static float _aoeOuterRadius = 20;
 
+            public IEnumerable<WorldState.Actor> BurningTwisters => _twisters.Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false);
+            public WorldState.Actor? DarkTwister => _twisters.Find(twister => twister.CastInfo?.IsSpell(AID.DarkTwister) ?? false);
+
             public DarkblazeTwister(P3S module)
             {
                 _module = module;
@@ -1466,10 +1469,10 @@ namespace BossMod
                     hints.Add("About to be knocked back into wall!");
                 }
 
-                foreach (var twister in _twisters.Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false))
+                foreach (var twister in BurningTwisters)
                 {
                     var offset = adjPos - twister.Position;
-                    if (GeometryUtils.PointInCircle(adjPos, _aoeInnerRadius) || GeometryUtils.PointInCircle(adjPos, _aoeOuterRadius) && !GeometryUtils.PointInCircle(adjPos, _aoeMiddleRadius))
+                    if (GeometryUtils.PointInCircle(offset, _aoeInnerRadius) || GeometryUtils.PointInCircle(offset, _aoeOuterRadius) && !GeometryUtils.PointInCircle(offset, _aoeMiddleRadius))
                     {
                         hints.Add("GTFO from aoe!");
                         break;
@@ -1482,7 +1485,7 @@ namespace BossMod
                 if (CurState == State.None)
                     return;
 
-                foreach (var twister in _twisters.Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false))
+                foreach (var twister in BurningTwisters)
                 {
                     arena.ZoneCircle(twister.Position, _aoeInnerRadius, arena.ColorAOE);
                     arena.ZoneCone(twister.Position, _aoeMiddleRadius, _aoeOuterRadius, 0, 2 * MathF.PI, arena.ColorAOE);
@@ -1501,11 +1504,25 @@ namespace BossMod
                     arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
                     arena.Actor(adjPos, pc.Rotation, arena.ColorDanger);
                 }
+
+                var darkTwister = DarkTwister;
+                if (darkTwister != null)
+                {
+                    var safeOffset = _knockbackRange + (_aoeInnerRadius + _aoeMiddleRadius) / 2;
+                    var safeRadius = (_aoeMiddleRadius - _aoeInnerRadius) / 2;
+                    foreach (var burningTwister in BurningTwisters)
+                    {
+                        var dir = burningTwister.Position - darkTwister.Position;
+                        var len = dir.Length();
+                        dir /= len;
+                        arena.AddCircle(darkTwister.Position + dir * (len - safeOffset), safeRadius, arena.ColorSafe);
+                    }
+                }
             }
 
             private Vector3 GetAdjustedActorPosition(WorldState.Actor actor)
             {
-                return CurState == State.Knockback ? AdjustPositionForKnockback(actor.Position, _twisters.Find(twister => twister.CastInfo?.IsSpell(AID.DarkTwister) ?? false), _knockbackRange) : actor.Position;
+                return CurState == State.Knockback ? AdjustPositionForKnockback(actor.Position, DarkTwister, _knockbackRange) : actor.Position;
             }
         }
 
@@ -2012,10 +2029,10 @@ namespace BossMod
 
         private StateMachine.State BuildDarkblazeTwisterState(ref StateMachine.State? link, float delay)
         {
-            var twisters = Enemies(OID.DarkblazeTwister);
+            var comp = FindComponent<DarkblazeTwister>()!;
 
             var twister = CommonStates.Cast(ref link, Boss, AID.DarkblazeTwister, delay, 4, "Twister");
-            twister.Exit = () => FindComponent<DarkblazeTwister>()!.CurState = DarkblazeTwister.State.Knockback;
+            twister.Exit = () => comp.CurState = DarkblazeTwister.State.Knockback;
             twister.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
             var breeze = CommonStates.Cast(ref twister.Next, Boss, AID.SearingBreeze, 4.1f, 3, "SearingBreeze");
@@ -2023,12 +2040,12 @@ namespace BossMod
 
             var ashplume = BuildExperimentalAshplumeCastState(ref breeze.Next, 4.1f);
 
-            var knockback = CommonStates.Condition(ref ashplume.Next, 2.8f, () => !twisters.Any(twister => twister.CastInfo?.IsSpell(AID.DarkTwister) ?? false), "Knockback");
-            knockback.Exit = () => FindComponent<DarkblazeTwister>()!.CurState = DarkblazeTwister.State.AOE;
+            var knockback = CommonStates.Condition(ref ashplume.Next, 2.8f, () => comp.DarkTwister == null, "Knockback");
+            knockback.Exit = () => comp.CurState = DarkblazeTwister.State.AOE;
             knockback.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Knockback;
 
-            var aoe = CommonStates.Condition(ref knockback.Next, 2, () => !twisters.Any(twister => twister.CastInfo != null), "AOE");
-            aoe.Exit = () => FindComponent<DarkblazeTwister>()!.CurState = DarkblazeTwister.State.None;
+            var aoe = CommonStates.Condition(ref knockback.Next, 2, () => !comp.BurningTwisters.Any(), "AOE");
+            aoe.Exit = () => comp.CurState = DarkblazeTwister.State.None;
             aoe.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var resolve = BuildExperimentalAshplumeResolveState(ref aoe.Next, 2.3f);
