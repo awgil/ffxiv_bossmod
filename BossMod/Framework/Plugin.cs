@@ -145,7 +145,7 @@ namespace BossMod
                     bool visible = true;
                     if (ImGui.Begin("Boss module", ref visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
                     {
-                        _activeModule.Draw(Camera.Instance?.CameraAzimuth ?? 0);
+                        _activeModule.Draw(Camera.Instance?.CameraAzimuth ?? 0, null);
                     }
                     ImGui.End();
                     if (!visible)

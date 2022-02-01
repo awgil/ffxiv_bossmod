@@ -189,7 +189,7 @@ namespace BossMod
 
             public override void Reset() => CurState = State.None;
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (CurState == State.None)
                     return;
@@ -240,7 +240,7 @@ namespace BossMod
 
             public override void Reset() => Active = false;
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 var head = _module.DissociatedHead();
                 if (!Active || head == null || _module.Arena.InBounds(head.Position))
@@ -323,7 +323,7 @@ namespace BossMod
                 }
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (!Active)
                     return;
@@ -447,7 +447,7 @@ namespace BossMod
                 }
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (!Active)
                     return;
@@ -565,7 +565,7 @@ namespace BossMod
                 _numCharges = 0;
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 var safePos = GetSafeZone(slot);
                 if (safePos != null && !GeometryUtils.PointInCircle(actor.Position - safePos.Value, 1))

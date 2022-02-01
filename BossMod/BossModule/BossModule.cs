@@ -43,12 +43,24 @@ namespace BossMod
             return _relevantEnemies[(uint)(object)oid].Actors;
         }
 
+        // list of actor-specific hints (string + whether this is a "risk" type of hint)
+        public class TextHints : List<(string, bool)>
+        {
+            public void Add(string text, bool isRisk = true) => base.Add((text, isRisk));
+        }
+
+        // list of actor-specific "movement hints" (arrow start/end pos + color)
+        public class MovementHints : List<(Vector3, Vector3, uint)>
+        {
+            public void Add(Vector3 from, Vector3 to, uint color) => base.Add((from, to, color));
+        }
+
         // different encounter mechanics can be split into independent components
         public class Component
         {
             public virtual void Reset() { } // called when module is reset
             public virtual void Update() { } // called every frame - it is a good place to update any cached values
-            public virtual void AddHints(int slot, WorldState.Actor actor, List<string> hints) { } // gather any relevant pieces of advice for specified raid member
+            public virtual void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints) { } // gather any relevant pieces of advice for specified raid member
             public virtual void DrawArenaBackground(MiniArena arena) { } // called at the beginning of arena draw, good place to draw aoe zones
             public virtual void DrawArenaForeground(MiniArena arena) { } // called after arena background and borders are drawn, good place to draw actors, tethers, etc.
 
@@ -144,10 +156,10 @@ namespace BossMod
                 comp.Update();
         }
 
-        public virtual void Draw(float cameraAzimuth)
+        public virtual void Draw(float cameraAzimuth, MovementHints? pcMovementHints)
         {
             StateMachine.Draw();
-            DrawHintForRaidMember(PlayerSlot);
+            DrawHintForPlayer(pcMovementHints);
             Arena.Begin(cameraAzimuth);
             DrawArena();
             Arena.End();
@@ -178,28 +190,12 @@ namespace BossMod
             DrawArenaForegroundPost();
         }
 
-        public List<string> CalculateHintsForRaidMember(int slot, WorldState.Actor actor)
+        public TextHints CalculateHintsForRaidMember(int slot, WorldState.Actor actor, MovementHints? movementHints = null)
         {
-            List<string> hints = new();
+            TextHints hints = new();
             foreach (var comp in _components)
-                comp.AddHints(slot, actor, hints);
+                comp.AddHints(slot, actor, hints, movementHints);
             return hints;
-        }
-
-        public void DrawHintForRaidMember(int slot)
-        {
-            var actor = RaidMember(slot);
-            if (actor == null)
-                return;
-
-            var hints = CalculateHintsForRaidMember(slot, actor);
-            var hintColor = ImGui.ColorConvertU32ToFloat4(0xff00ffff);
-            foreach (var hint in hints)
-            {
-                ImGui.TextColored(hintColor, hint);
-                ImGui.SameLine();
-            }
-            ImGui.NewLine();
         }
 
         public int FindRaidMemberSlot(uint instanceID)
@@ -281,6 +277,23 @@ namespace BossMod
                 list.Actors.Clear();
             }
             list.Actors.Add(actor);
+        }
+
+        private void DrawHintForPlayer(MovementHints? movementHints)
+        {
+            var actor = Player();
+            if (actor == null)
+                return;
+
+            var hints = CalculateHintsForRaidMember(PlayerSlot, actor, movementHints);
+            var riskColor = ImGui.ColorConvertU32ToFloat4(Arena.ColorDanger);
+            var safeColor = ImGui.ColorConvertU32ToFloat4(Arena.ColorSafe);
+            foreach ((var hint, bool risk) in hints)
+            {
+                ImGui.TextColored(risk ? riskColor : safeColor, hint);
+                ImGui.SameLine();
+            }
+            ImGui.NewLine();
         }
 
         private void PlayerIDChanged(object? sender, uint id)

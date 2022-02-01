@@ -133,7 +133,7 @@ namespace BossMod
                 }
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (!Active)
                     return;
@@ -206,7 +206,7 @@ namespace BossMod
 
             public override void Reset() => CurState = State.None;
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 var boss = _module.Boss();
                 if (CurState == State.None || boss == null)
@@ -246,7 +246,7 @@ namespace BossMod
 
             public override void Reset() => Active = false;
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (!Active)
                     return;
@@ -288,7 +288,7 @@ namespace BossMod
 
             public override void Reset() => CurState = State.None;
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 var boss = _module.Boss();
                 if (CurState == State.None || boss == null || boss.Position == _module.Arena.WorldCenter)
@@ -388,7 +388,7 @@ namespace BossMod
 
             public override void Reset() => Position = null;
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (Position == null)
                     return;
@@ -439,7 +439,7 @@ namespace BossMod
 
             public override void Reset() => _numActiveCasts = _numPendingOrbs = 0;
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 int numTotal = _numActiveCasts + _numPendingOrbs;
                 if ((numTotal >= 1 && numTotal < 9 && GeometryUtils.PointInCircle(actor.Position - _module.Arena.WorldCenter, _radius)) ||
@@ -534,7 +534,7 @@ namespace BossMod
 
             public override void Reset() => CurState = State.None;
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (CurState == State.Stack)
                 {
@@ -556,12 +556,20 @@ namespace BossMod
                     {
                         hints.Add("Incorrect stack!");
                     }
+                    else
+                    {
+                        hints.Add("Stack!", false);
+                    }
                 }
                 else if (CurState == State.Spread)
                 {
                     if (_module.IterateRaidMembersInRange(slot, _spreadRadius).Any())
                     {
                         hints.Add("Spread!");
+                    }
+                    else
+                    {
+                        hints.Add("Spread!", false);
                     }
                 }
             }
@@ -627,7 +635,7 @@ namespace BossMod
 
             public override void Reset() => Active = false;
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (!Active)
                     return;
@@ -706,7 +714,7 @@ namespace BossMod
                 Array.Fill(_playerOrder, 0);
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (!Active || _playerOrder[slot] <= NumCastsHappened)
                     return;
@@ -812,7 +820,7 @@ namespace BossMod
                 }
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (WatchedBirds == null)
                     return;
@@ -925,7 +933,7 @@ namespace BossMod
                 }
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (!Active)
                     return;
@@ -1078,7 +1086,7 @@ namespace BossMod
                 }
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 foreach (var bird in _activeBirds)
                 {
@@ -1158,7 +1166,7 @@ namespace BossMod
                 Array.Fill(_directions, null);
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (InAOE(_directions[1], actor.Position) || InAOE(_directions[0] != null ? _directions[0] : _directions[2], actor.Position))
                 {
@@ -1320,7 +1328,7 @@ namespace BossMod
                         BitVector.SetVector64Bit(ref _hitByMultipleAOEs, i);
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (!Active)
                     return;
@@ -1447,7 +1455,7 @@ namespace BossMod
 
             public override void Reset() => CurState = State.None;
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (CurState == State.None)
                     return;
@@ -1540,7 +1548,7 @@ namespace BossMod
                 }
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (_sources.Count == 0)
                     return;

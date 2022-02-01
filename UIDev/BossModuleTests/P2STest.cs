@@ -37,7 +37,7 @@ namespace UIDev
         {
             _o.Update();
 
-            _o.Draw(_azimuth / 180 * MathF.PI);
+            _o.Draw(_azimuth / 180 * MathF.PI, null);
 
             ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
 

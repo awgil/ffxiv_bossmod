@@ -178,7 +178,7 @@ namespace BossMod
                 }
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (BitVector.ExtractVectorFromMatrix8x8(_blueTetherMatrix, slot) != 0 && BitVector.ExtractVectorFromMatrix8x8(_redTetherMatrix, slot) != 0)
                 {
@@ -326,7 +326,7 @@ namespace BossMod
                     _explodingCells = CellFromOffset(sotActor.Position - _module.Arena.WorldCenter);
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (slot != _memberWithSOT && _explodingCells != Cell.None && _explodingCells == CellFromOffset(actor.Position - _module.Arena.WorldCenter))
                 {
@@ -481,7 +481,7 @@ namespace BossMod
                 }
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 var boss = _module.Boss();
                 if (boss == null)
@@ -618,7 +618,7 @@ namespace BossMod
                 }
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 var boss = _module.Boss();
                 if (!_active || boss == null)
@@ -781,12 +781,12 @@ namespace BossMod
                 Array.Fill(_cubes, Cube.None);
             }
 
-            public override void AddHints(int slot, WorldState.Actor actor, List<string> hints)
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (CurState != State.Inactive)
                 {
                     var pat = _cubes.SequenceEqual(_patternSymm) ? "symmetrical" : (_cubes.SequenceEqual(_patternAsymm) ? "asymmetrical" : "unknown");
-                    hints.Add($"Order: {CurState}, pattern: {pat}.");
+                    hints.Add($"Order: {CurState}, pattern: {pat}.", false);
                 }
             }
 

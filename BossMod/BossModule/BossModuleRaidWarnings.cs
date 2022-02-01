@@ -7,6 +7,8 @@ namespace BossMod
     {
         public void Draw(BossModule module)
         {
+            var riskColor = ImGui.ColorConvertU32ToFloat4(0xff00ffff);
+            var safeColor = ImGui.ColorConvertU32ToFloat4(0xff00ff00);
             foreach ((int i, var player) in module.IterateRaidMembers())
             {
                 var obj = Service.ObjectTable.SearchById(player.InstanceID);
@@ -18,10 +20,10 @@ namespace BossMod
                     continue;
 
                 ImGui.Text($"{obj.Name}:");
-                foreach (var hint in hints)
+                foreach ((var hint, bool risk) in hints)
                 {
                     ImGui.SameLine();
-                    ImGui.Text(hint);
+                    ImGui.TextColored(risk ? riskColor : safeColor, hint);
                 }
             }
         }
