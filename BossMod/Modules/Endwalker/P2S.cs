@@ -568,8 +568,14 @@ namespace BossMod
             public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 var safePos = GetSafeZone(slot);
-                if (safePos != null && !GeometryUtils.PointInCircle(actor.Position - safePos.Value, 1))
+                if (safePos != null && !GeometryUtils.PointInCircle(actor.Position - safePos.Value, 2))
+                {
                     hints.Add("Go to safe zone!");
+                    if (movementHints != null)
+                    {
+                        movementHints.Add(actor.Position, safePos.Value, _module.Arena.ColorDanger);
+                    }
+                }
             }
 
             public override void DrawArenaForeground(MiniArena arena)
