@@ -50,7 +50,7 @@ namespace BossMod
             // TODO: consider what happens if client's action result prediction fails - what happens then? will it roll back cooldown?
 
             var currState = BuildState(comboLastAction, comboTimeLeft);
-            PatchSpeculatedState(currState);
+            PatchSpeculatedState(ref currState);
             LogStateChange(State, currState);
             State = currState;
             var nextBest = Enabled ? WARRotation.GetNextBestAction(State, Strategy) : WARRotation.AID.HeavySwing;
@@ -128,7 +128,7 @@ namespace BossMod
         }
 
         // uses current State field as reference
-        private void PatchSpeculatedState(WARRotation.State newState)
+        private void PatchSpeculatedState(ref WARRotation.State newState)
         {
             // note: theoretically we might have similar prediction concerns for GCDs (gauge/ST changes specifically)
             // consider alternative - "roll back" cooldowns instead of "predicting" effects? this will essentially be equivalent to player continuing spamming button until confirmation from server...

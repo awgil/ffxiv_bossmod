@@ -54,7 +54,7 @@ namespace UIDev
 
             ImGui.Checkbox("Allow movement", ref Strategy.EnableMovement);
             ImGui.Checkbox("Aggressive", ref Strategy.Aggressive);
-            ImGui.SliderFloat("Need charge in", ref Strategy.NeedChargeIn, 0, 30);
+            ImGui.SliderFloat("Need charge in", ref Strategy.NeedChargeIn, -30, 30);
             if (ImGui.CollapsingHeader("Initial state setup"))
             {
                 ImGui.SliderInt("Gauge", ref InitialState.Gauge, 0, 100);
