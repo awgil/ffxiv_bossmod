@@ -72,11 +72,6 @@ namespace BossMod
             }
         }
 
-        public void Draw()
-        {
-            WarActions.DrawActionHint(false);
-        }
-
         private ulong GetAdjustedActionIdDetour(byte self, uint actionID)
         {
             if (Service.ClientState.LocalPlayer == null)

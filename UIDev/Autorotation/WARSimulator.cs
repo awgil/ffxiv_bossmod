@@ -36,6 +36,11 @@ namespace UIDev
         public float BuffWindowDuration = 20;
         public float BuffWindowFreq = 120;
 
+        public WARSimulator()
+        {
+            Strategy.EnableUpheaval = true;
+        }
+
         public void Draw()
         {
             ImGui.InputInt("Sim duration (GCDs)", ref Duration);

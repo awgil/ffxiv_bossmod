@@ -790,7 +790,7 @@ namespace BossMod
                 case Protocol.Opcode.ActorGauge:
                     {
                         var p = (Protocol.Server_ActorGauge*)dataPtr;
-                        Service.Log($"[Network] - params={p->param1:X} {p->param2:X} {p->param3:X} {p->param4:X}");
+                        Service.Log($"[Network] - params={p->param1:X8} {p->param2:X8} {p->param3:X8} {p->param4:X8}");
                         break;
                     }
                 case Protocol.Opcode.EffectResult:

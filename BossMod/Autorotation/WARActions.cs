@@ -12,7 +12,11 @@ namespace BossMod
         public bool Enabled = true;
         public WARRotation.State State { get; private set; }
         public WARRotation.Strategy Strategy;
-        public WARRotation.AID NextBestAction = WARRotation.AID.HeavySwing;
+        public WARRotation.AID NextBestAction { get; private set; } = WARRotation.AID.HeavySwing;
+
+        // "predicted" means that client sent request to use action and started showing CD, but we didn't get server response with effect yet
+        private bool _predictedInfuriate = false;
+        private bool _predictedInnerRelease = false;
 
         public unsafe WARActions()
         {
@@ -31,10 +35,28 @@ namespace BossMod
 
         public void Update(WARRotation.AID comboLastAction, float comboTimeLeft)
         {
+            // some notes on various actions:
+            // they typically have the following sequence of events:
+            // - (apparently when sending message to server?) client 'speculatively' starts CD
+            // - ~50-100ms later client receives bundle (typically one, but are there corner cases?) with ActorControlSelf[Cooldown], ActorControl[Gain/LoseEffect], AbilityN, ActorGauge, StatusEffectList
+            //   new statuses have large negative duration (e.g. -30 when ST is applied) - theory: it means 'show as X, don't reduce' - TODO test?..
+            // - ~600ms later client receives EventResult with normal durations
+            // this means that if we're e.g. spamming IR, there's a small window of time during which we see the CD, but not the effect - and might try to spam Infuriate - if this is bigger than 0.6 anim lock, we're fucked
+            //
+            // here's a list of things we do now:
+            // 1. we use cooldowns as reported by ActionManager API rather than parse network messages. This (1) allows us to not rely on randomized opcodes, (2) allows us not to handle things like CD resets on wipes etc.
+            // 2. for oGCDs (GCD abilities don't have this speculative cd feature it seems), we add 'predicted' effect to the state, if needed
+            // 3. we convert large negative status durations to their expected values
+            // TODO: consider what happens if client's action result prediction fails - what happens then? will it roll back cooldown?
+
             var currState = BuildState(comboLastAction, comboTimeLeft);
             LogStateChange(State, currState);
+            PatchSpeculatedState(currState);
             State = currState;
-            NextBestAction = Enabled ? WARRotation.GetNextBestAction(State, Strategy) : WARRotation.AID.HeavySwing;
+            var nextBest = Enabled ? WARRotation.GetNextBestAction(State, Strategy) : WARRotation.AID.HeavySwing;
+            if (nextBest != NextBestAction)
+                Service.Log($"[AR] Next-best changed from {NextBestAction} to {nextBest} [{StateString(State)}]");
+            NextBestAction = nextBest;
         }
 
         public void DrawActionHint(bool extended)
@@ -77,20 +99,21 @@ namespace BossMod
 
                 foreach (var status in Service.ClientState.LocalPlayer.StatusList)
                 {
+                    // note: when buff is applied, it has large negative duration, and it is updated to correct one ~0.6sec later
                     switch ((WARRotation.StatusID)status.StatusId)
                     {
                         case WARRotation.StatusID.SurgingTempest:
-                            s.SurgingTempestLeft = status.RemainingTime;
+                            s.SurgingTempestLeft = status.RemainingTime < -25 ? 30 : status.RemainingTime;
                             break;
                         case WARRotation.StatusID.NascentChaos:
-                            s.NascentChaosLeft = status.RemainingTime;
+                            s.NascentChaosLeft = status.RemainingTime < -25 ? 30 : status.RemainingTime;
                             break;
                         case WARRotation.StatusID.InnerRelease:
-                            s.InnerReleaseLeft = status.RemainingTime;
+                            s.InnerReleaseLeft = status.RemainingTime < -10 ? 15 : status.RemainingTime;
                             s.InnerReleaseStacks = status.StackCount;
                             break;
                         case WARRotation.StatusID.PrimalRend:
-                            s.PrimalRendLeft = status.RemainingTime;
+                            s.PrimalRendLeft = status.RemainingTime < -25 ? 30 : status.RemainingTime;
                             break;
                     }
                 }
@@ -102,6 +125,66 @@ namespace BossMod
                 s.GCD = ActionCooldown(WARRotation.AID.HeavySwing);
             }
             return s;
+        }
+
+        // uses current State field as reference
+        private void PatchSpeculatedState(WARRotation.State newState)
+        {
+            // note: theoretically we might have similar prediction concerns for GCDs (gauge/ST changes specifically)
+            // consider alternative - "roll back" cooldowns instead of "predicting" effects? this will essentially be equivalent to player continuing spamming button until confirmation from server...
+            if (_predictedInfuriate)
+            {
+                bool commit = newState.NascentChaosLeft != 0;
+                if (commit || newState.InfuriateCD - State.InfuriateCD < -10)
+                {
+                    // we've either got buff or CD prediction was rolled back => end prediction mode
+                    _predictedInfuriate = false;
+                    Service.Log($"[AR] End infuriate prediction: {(commit ? "commit" : "rollback")} [{StateString(newState)}]");
+                }
+                else
+                {
+                    // continue prediction mode
+                    newState.NascentChaosLeft = State.NascentChaosLeft;
+                    newState.Gauge = Math.Max(newState.Gauge + 50, 100);
+                }
+            }
+            else if (newState.InfuriateCD > State.InfuriateCD && newState.NascentChaosLeft == 0)
+            {
+                // we've cast infuriate (judging by CD), but didn't gain NC buff => start prediction mode
+                _predictedInfuriate = true;
+                newState.NascentChaosLeft = 30;
+                newState.Gauge = Math.Max(newState.Gauge + 50, 100);
+                Service.Log($"[AR] Start infuriate prediction [{StateString(newState)}]");
+            }
+
+            if (_predictedInnerRelease)
+            {
+                bool commit = newState.InnerReleaseLeft != 0 || newState.PrimalRendLeft != 0;
+                if (commit || newState.InnerReleaseCD - State.InnerReleaseCD < -10)
+                {
+                    // we've either got buffs or CD prediction was rolled back => end prediction mode
+                    _predictedInnerRelease = false;
+                    Service.Log($"[AR] End IR prediction: {(commit ? "commit" : "rollback")} [{StateString(newState)}]");
+                }
+                else
+                {
+                    // continue prediction mode
+                    newState.InnerReleaseLeft = State.InnerReleaseLeft;
+                    newState.InnerReleaseStacks = State.InnerReleaseStacks;
+                    newState.PrimalRendLeft = State.PrimalRendLeft;
+                    newState.SurgingTempestLeft = newState.SurgingTempestLeft != 0 ? MathF.Max(newState.SurgingTempestLeft + 10, 60) : 0;
+                }
+            }
+            else if (newState.InnerReleaseCD > State.InnerReleaseCD && newState.InnerReleaseLeft == 0 && newState.PrimalRendLeft == 0)
+            {
+                // we've cast IR (judging by CD), but didn't gain IR/PR buffs => start prediction mode
+                _predictedInnerRelease = true;
+                newState.InnerReleaseLeft = 15;
+                newState.InnerReleaseStacks = 3;
+                newState.PrimalRendLeft = 30;
+                newState.SurgingTempestLeft = newState.SurgingTempestLeft != 0 ? MathF.Max(newState.SurgingTempestLeft + 10, 60) : 0;
+                Service.Log($"[AR] Start IR prediction [{StateString(newState)}]");
+            }
         }
 
         private static void LogStateChange(WARRotation.State prev, WARRotation.State curr)
