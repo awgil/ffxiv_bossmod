@@ -28,18 +28,13 @@ namespace UIDev
             InvalidMove = 1 << 14,
         }
 
-        public WARRotation.State InitialState;
-        public WARRotation.Strategy Strategy;
+        public WARRotation.State InitialState = new();
+        public WARRotation.Strategy Strategy = new() { EnableUpheaval = true };
         public int Duration = 250;
         public bool BuffWindowEnable = true;
         public float BuffWindowOffset = 7.5f;
         public float BuffWindowDuration = 20;
         public float BuffWindowFreq = 120;
-
-        public WARSimulator()
-        {
-            Strategy.EnableUpheaval = true;
-        }
 
         public void Draw()
         {

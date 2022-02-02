@@ -68,7 +68,7 @@ namespace BossMod
         }
 
         // full state needed for determining next action
-        public struct State
+        public class State
         {
             public float ComboTimeLeft; // 0 if not in combo, max 30
             public AID ComboLastMove;
@@ -86,7 +86,7 @@ namespace BossMod
         }
 
         // strategy configuration
-        public struct Strategy
+        public class Strategy
         {
             public bool SpendGauge; // if true, spend as much gauge as possible (e.g. during buff window); if false, retain as much as possible, but avoid overcapping anything
             public bool EnableUpheaval; // if true, enable using upheaval when needed; setting to false is useful during opener before first party buffs

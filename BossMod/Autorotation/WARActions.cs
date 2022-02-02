@@ -50,8 +50,8 @@ namespace BossMod
             // TODO: consider what happens if client's action result prediction fails - what happens then? will it roll back cooldown?
 
             var currState = BuildState(comboLastAction, comboTimeLeft);
-            LogStateChange(State, currState);
             PatchSpeculatedState(currState);
+            LogStateChange(State, currState);
             State = currState;
             var nextBest = Enabled ? WARRotation.GetNextBestAction(State, Strategy) : WARRotation.AID.HeavySwing;
             if (nextBest != NextBestAction)
@@ -145,7 +145,7 @@ namespace BossMod
                 {
                     // continue prediction mode
                     newState.NascentChaosLeft = State.NascentChaosLeft;
-                    newState.Gauge = Math.Max(newState.Gauge + 50, 100);
+                    newState.Gauge = Math.Min(newState.Gauge + 50, 100);
                 }
             }
             else if (newState.InfuriateCD > State.InfuriateCD && newState.NascentChaosLeft == 0)
@@ -153,7 +153,7 @@ namespace BossMod
                 // we've cast infuriate (judging by CD), but didn't gain NC buff => start prediction mode
                 _predictedInfuriate = true;
                 newState.NascentChaosLeft = 30;
-                newState.Gauge = Math.Max(newState.Gauge + 50, 100);
+                newState.Gauge = Math.Min(newState.Gauge + 50, 100);
                 Service.Log($"[AR] Start infuriate prediction [{StateString(newState)}]");
             }
 
@@ -172,7 +172,7 @@ namespace BossMod
                     newState.InnerReleaseLeft = State.InnerReleaseLeft;
                     newState.InnerReleaseStacks = State.InnerReleaseStacks;
                     newState.PrimalRendLeft = State.PrimalRendLeft;
-                    newState.SurgingTempestLeft = newState.SurgingTempestLeft != 0 ? MathF.Max(newState.SurgingTempestLeft + 10, 60) : 0;
+                    newState.SurgingTempestLeft = newState.SurgingTempestLeft != 0 ? MathF.Min(newState.SurgingTempestLeft + 10, 60) : 0;
                 }
             }
             else if (newState.InnerReleaseCD > State.InnerReleaseCD && newState.InnerReleaseLeft == 0 && newState.PrimalRendLeft == 0)
@@ -182,7 +182,7 @@ namespace BossMod
                 newState.InnerReleaseLeft = 15;
                 newState.InnerReleaseStacks = 3;
                 newState.PrimalRendLeft = 30;
-                newState.SurgingTempestLeft = newState.SurgingTempestLeft != 0 ? MathF.Max(newState.SurgingTempestLeft + 10, 60) : 0;
+                newState.SurgingTempestLeft = newState.SurgingTempestLeft != 0 ? MathF.Min(newState.SurgingTempestLeft + 10, 60) : 0;
                 Service.Log($"[AR] Start IR prediction [{StateString(newState)}]");
             }
         }
@@ -202,6 +202,13 @@ namespace BossMod
                 LogMistake("Primal Rend expired", curr);
             if (curr.SurgingTempestLeft == 0 && prev.SurgingTempestLeft != 0 && prev.SurgingTempestLeft < 1)
                 LogMistake("Surging Tempest expired", curr);
+
+            if (curr.GCD == 0 && prev.GCD > 0)
+                Service.Log($"[AR] GCD end");
+            else if (curr.GCD > 0 && prev.GCD == 0)
+                Service.Log($"[AR] GCD start {curr.GCD:f3}");
+            else if (curr.GCD > prev.GCD)
+                Service.Log($"[AR] GCD bump {prev.GCD:f3}->{curr.GCD:f3}");
 
             // detect cast GCDs
             // note: curr.GCD > prev.GCD check doesn't really work, since gcd is updated before things like combo and gauge
