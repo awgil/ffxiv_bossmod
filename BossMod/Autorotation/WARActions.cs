@@ -14,10 +14,6 @@ namespace BossMod
         public WARRotation.Strategy Strategy;
         public WARRotation.AID NextBestAction { get; private set; } = WARRotation.AID.HeavySwing;
 
-        // "predicted" means that client sent request to use action and started showing CD, but we didn't get server response with effect yet
-        private bool _predictedInfuriate = false;
-        private bool _predictedInnerRelease = false;
-
         public unsafe WARActions()
         {
             _actionManager = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
@@ -37,20 +33,33 @@ namespace BossMod
         {
             // some notes on various actions:
             // they typically have the following sequence of events:
-            // - (apparently when sending message to server?) client 'speculatively' starts CD
+            // - immediately after sending ActionRequest message, client 'speculatively' starts CD (including GCD)
             // - ~50-100ms later client receives bundle (typically one, but are there corner cases?) with ActorControlSelf[Cooldown], ActorControl[Gain/LoseEffect], AbilityN, ActorGauge, StatusEffectList
             //   new statuses have large negative duration (e.g. -30 when ST is applied) - theory: it means 'show as X, don't reduce' - TODO test?..
             // - ~600ms later client receives EventResult with normal durations
-            // this means that if we're e.g. spamming IR, there's a small window of time during which we see the CD, but not the effect - and might try to spam Infuriate - if this is bigger than 0.6 anim lock, we're fucked
+            //
+            // during this 'unconfirmed' window we might be considering wrong move to be the next-best one (e.g. imagine we've just started long IR cd and don't see the effect yet - next-best might be infuriate)
+            // but I don't think this matters in practice, as presumably client forbids queueing any actions while there are pending requests
+            // I don't know what happens if there is no confirmation for a long time (due to ping or packet loss) or outright reject from server
+            //
+            // IMPORTANT: it seems that client uses *client-side* cooldown to determine when next request can happen, here's an example:
+            // - 04:51.508: request Upheaval
+            // - 04:51.635: confirm Upheaval (ACS[Cooldown] = 30s)
+            // - 05:21.516: request Upheaval (30.008 since prev request, 29.881 since prev response)
+            // - 05:21.609: confirm Upheaval (29.974 since prev response)
             //
             // here's a list of things we do now:
-            // 1. we use cooldowns as reported by ActionManager API rather than parse network messages. This (1) allows us to not rely on randomized opcodes, (2) allows us not to handle things like CD resets on wipes etc.
-            // 2. for oGCDs (GCD abilities don't have this speculative cd feature it seems), we add 'predicted' effect to the state, if needed
-            // 3. we convert large negative status durations to their expected values
-            // TODO: consider what happens if client's action result prediction fails - what happens then? will it roll back cooldown?
+            // 1. we use cooldowns as reported by ActionManager API rather than parse network messages. This (1) allows us to not rely on randomized opcodes, (2) allows us not to handle things like CD resets on wipes, actor resets on zone changes, etc.
+            // 2. we convert large negative status durations to their expected values
+            //
+            // potential other implementation to consider:
+            // - on player create, init all interesting CDs from ActionManager (should be all zeros after wipe, or potentially non-zeros after teleport)
+            // - on ActionRequest, update CD, predict gauge/buff changes, enter 'locked' mode (meaning either continue reporting *old* action or start reporting *new* action)
+            // - on tick after ActionN, leave 'locked' mode (validate that predicted state matches real)
+            // - on reject, roll back all predictions and leave 'locked' mode (reinit?)
+            // or, even simpler - just lock updates on ActionRequest until commit/reject?..
 
             var currState = BuildState(comboLastAction, comboTimeLeft);
-            PatchSpeculatedState(ref currState);
             LogStateChange(State, currState);
             State = currState;
             var nextBest = Enabled ? WARRotation.GetNextBestAction(State, Strategy) : WARRotation.AID.HeavySwing;
@@ -125,66 +134,6 @@ namespace BossMod
                 s.GCD = ActionCooldown(WARRotation.AID.HeavySwing);
             }
             return s;
-        }
-
-        // uses current State field as reference
-        private void PatchSpeculatedState(ref WARRotation.State newState)
-        {
-            // note: theoretically we might have similar prediction concerns for GCDs (gauge/ST changes specifically)
-            // consider alternative - "roll back" cooldowns instead of "predicting" effects? this will essentially be equivalent to player continuing spamming button until confirmation from server...
-            if (_predictedInfuriate)
-            {
-                bool commit = newState.NascentChaosLeft != 0;
-                if (commit || newState.InfuriateCD - State.InfuriateCD < -10)
-                {
-                    // we've either got buff or CD prediction was rolled back => end prediction mode
-                    _predictedInfuriate = false;
-                    Service.Log($"[AR] End infuriate prediction: {(commit ? "commit" : "rollback")} [{StateString(newState)}]");
-                }
-                else
-                {
-                    // continue prediction mode
-                    newState.NascentChaosLeft = State.NascentChaosLeft;
-                    newState.Gauge = Math.Min(newState.Gauge + 50, 100);
-                }
-            }
-            else if (newState.InfuriateCD > State.InfuriateCD && newState.NascentChaosLeft == 0)
-            {
-                // we've cast infuriate (judging by CD), but didn't gain NC buff => start prediction mode
-                _predictedInfuriate = true;
-                newState.NascentChaosLeft = 30;
-                newState.Gauge = Math.Min(newState.Gauge + 50, 100);
-                Service.Log($"[AR] Start infuriate prediction [{StateString(newState)}]");
-            }
-
-            if (_predictedInnerRelease)
-            {
-                bool commit = newState.InnerReleaseLeft != 0 || newState.PrimalRendLeft != 0;
-                if (commit || newState.InnerReleaseCD - State.InnerReleaseCD < -10)
-                {
-                    // we've either got buffs or CD prediction was rolled back => end prediction mode
-                    _predictedInnerRelease = false;
-                    Service.Log($"[AR] End IR prediction: {(commit ? "commit" : "rollback")} [{StateString(newState)}]");
-                }
-                else
-                {
-                    // continue prediction mode
-                    newState.InnerReleaseLeft = State.InnerReleaseLeft;
-                    newState.InnerReleaseStacks = State.InnerReleaseStacks;
-                    newState.PrimalRendLeft = State.PrimalRendLeft;
-                    newState.SurgingTempestLeft = newState.SurgingTempestLeft != 0 ? MathF.Min(newState.SurgingTempestLeft + 10, 60) : 0;
-                }
-            }
-            else if (newState.InnerReleaseCD > State.InnerReleaseCD && newState.InnerReleaseLeft == 0 && newState.PrimalRendLeft == 0)
-            {
-                // we've cast IR (judging by CD), but didn't gain IR/PR buffs => start prediction mode
-                _predictedInnerRelease = true;
-                newState.InnerReleaseLeft = 15;
-                newState.InnerReleaseStacks = 3;
-                newState.PrimalRendLeft = 30;
-                newState.SurgingTempestLeft = newState.SurgingTempestLeft != 0 ? MathF.Min(newState.SurgingTempestLeft + 10, 60) : 0;
-                Service.Log($"[AR] Start IR prediction [{StateString(newState)}]");
-            }
         }
 
         private static void LogStateChange(WARRotation.State prev, WARRotation.State curr)

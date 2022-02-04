@@ -10,6 +10,7 @@ namespace BossMod
     {
         public enum Opcode
         {
+            // opcodes from machina
             StatusEffectList = 0x00bc,
             StatusEffectList2 = 0x01ff,
             StatusEffectList3 = 0x02af,
@@ -38,6 +39,7 @@ namespace BossMod
 
             // below are opcodes i've reversed myself...
             EnvironmentControl = 0x03ba, // updated - size=16, typically starts with 0x800375xx
+            ActionRequest = 0x008e, // just begin casting return...
             // old - 0x1fd == EventObjSpawn? for stuff like exit points, etc.
         }
 
@@ -60,7 +62,7 @@ namespace BossMod
             public uint globalEffectCounter;
             public float animationLockTime;
             public uint SomeTargetID;
-            public ushort hiddenAnimation; // 0 = show animation, otherwise hide animation; dissector calls this "sourceSequence"
+            public ushort SourceSequence; // 0 = initiated by server, otherwise corresponds to client request sequence id
             public ushort rotation;
             public ushort actionAnimationId;
             public byte variation; // animation
@@ -237,8 +239,8 @@ namespace BossMod
             ExpChainMsg = 12, // from dissector
             HpSetStat = 13, // from dissector
             DeathAnimation = 14, // from dissector
-            CancelAbility = 15, // dissector calls it CastInterrupt
-            Cooldown = 17, // dissector calls it ActionStart
+            CancelAbility = 15, // dissector calls it CastInterrupt (ActorControl)
+            Cooldown = 17, // dissector calls it ActionStart (ActorControlSelf)
             GainEffect = 20,
             LoseEffect = 21,
             UpdateEffect = 22,
@@ -362,7 +364,7 @@ namespace BossMod
             SetMaxGearSets = 560, // from dissector
             SetCharaGearParamUI = 608, // from dissector
             ToggleWireframeRendering = 609, // from dissector
-            ActionRejected = 700, // from XivAlexander
+            ActionRejected = 700, // from XivAlexander (ActorControlSelf)
             ExamineError = 703, // from dissector
             GearSetEquipMsg = 801, // from dissector
             SetFestival = 902, // from dissector
@@ -472,12 +474,10 @@ namespace BossMod
             public uint MaxHP;
             public ushort CurrentMP;
             public ushort Unknown3;
-            //        public UInt16 MaxMP;
-            //      public UInt16 Unknown4;
             public byte DamageShield;
             public byte EffectCount;
             public ushort Unknown6;
-            public fixed byte Effects[4 * 4 * 4];
+            public fixed byte Effects[4 * 4 * 4]; // Server_EffectResultEntry[4]
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -523,6 +523,23 @@ namespace BossMod
             public byte u0; // padding?
             public ushort u1; // padding?
             public uint u2; // padding?
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public unsafe struct Client_ActionRequest
+        {
+            public byte u0;
+            public WorldState.ActionType Type;
+            public ushort u1;
+            public uint ActionID;
+            public ushort Sequence;
+            public ushort u2;
+            public uint u3;
+            public uint TargetID;
+            public uint u4;
+            public ushort ItemSourceSlot;
+            public ushort ItemSourceContainer;
+            public uint u5;
         }
     }
 
@@ -649,7 +666,7 @@ namespace BossMod
             {
                 CasterID = casterID,
                 MainTargetID = header->animationTargetId,
-                ActionID = header->actionType == WorldState.ActionType.Spell ? (uint)header->actionAnimationId : header->actionId, // note: for spells, actionId seems to be real id + some constant offset determined at zone-in, i've seen 200 and 209
+                ActionID = header->actionType == WorldState.ActionType.Spell ? (uint)header->actionAnimationId : header->actionId, // note: see _unkDelta comment
                 ActionType = header->actionType,
                 AnimationLockTime = header->animationLockTime,
                 MaxTargets = maxTargets,
@@ -705,8 +722,16 @@ namespace BossMod
 
         private unsafe void DumpClientMessage(IntPtr dataPtr, ushort opCode)
         {
-            var header = (Protocol.Server_IPCHeader*)(dataPtr - 0x10);
-            Service.Log($"[Network] Client message {opCode} (seq = {header->Epoch})");
+            Service.Log($"[Network] Client message {(Protocol.Opcode)opCode}");
+            switch ((Protocol.Opcode)opCode)
+            {
+                case Protocol.Opcode.ActionRequest:
+                    {
+                        var p = (Protocol.Client_ActionRequest*)dataPtr;
+                        Service.Log($"[Network] - AID={Utils.ActionString(p->ActionID, p->Type)}, target={Utils.ObjectString(p->TargetID)}, seq={p->Sequence}, itemsrc={p->ItemSourceContainer}:{p->ItemSourceSlot}, u={p->u0:X2} {p->u1:X4} {p->u2:X4} {p->u3:X8} {p->u4:X8} {p->u5:X8}");
+                        break;
+                    }
+            }
         }
 
         private unsafe void DumpServerMessage(IntPtr dataPtr, ushort opCode, uint targetActorId)
@@ -840,7 +865,7 @@ namespace BossMod
             // rotation: 0 -> -180, 65535 -> +180
             float rot = (data->rotation / 65535.0f * 360.0f) - 180.0f;
             uint aid = data->actionType == WorldState.ActionType.Spell ? data->actionAnimationId : data->actionId;
-            Service.Log($"[Network] - AID={Utils.ActionString(aid, data->actionType)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, animHidden={data->hiddenAnimation}, someTarget={Utils.ObjectString(data->SomeTargetID)}, rot={rot:f0}, var={data->variation}, cntr={data->globalEffectCounter}, flags={flags1:X8} {flags2:X4}, u={data->unknown:X8} {data->unknown20:X2} {data->padding21:X4}");
+            Service.Log($"[Network] - AID={Utils.ActionString(aid, data->actionType)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, seq={data->SourceSequence}, cntr={data->globalEffectCounter}, rot={rot:f0}, var={data->variation}, flags={flags1:X8} {flags2:X4}, someTarget={Utils.ObjectString(data->SomeTargetID)}, u={data->unknown:X8} {data->unknown20:X2} {data->padding21:X4}");
             var targets = Math.Min(data->effectCount, maxTargets);
             for (int i = 0; i < targets; ++i)
             {
