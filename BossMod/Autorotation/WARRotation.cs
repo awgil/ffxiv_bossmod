@@ -241,9 +241,9 @@ namespace BossMod
             }
 
             // second ogcd slot
-            if (state.GCD > 0.9)
+            if (state.GCD > 0.7)
             {
-                var ogcd = GetNextBestOGCD(state, strategy, state.GCD - 0.9f);
+                var ogcd = GetNextBestOGCD(state, strategy, state.GCD - 0.7f);
                 if (ogcd != AID.None)
                     return ogcd;
             }

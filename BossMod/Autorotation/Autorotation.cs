@@ -154,7 +154,7 @@ namespace BossMod
                 Log($"Request/response action mismatch: requested {PendingActionString(_pendingActions[0])}, got {PendingActionString(pa)}", true);
                 _pendingActions[0] = pa;
             }
-            Log($"-+ {PendingActionString(pa)}");
+            Log($"-+ {PendingActionString(pa)}, lock={action.AnimationLockTime:f3}");
             _firstPendingJustCompleted = true;
         }
 

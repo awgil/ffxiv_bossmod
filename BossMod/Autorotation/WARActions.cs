@@ -225,6 +225,8 @@ namespace BossMod
                 Service.Log($"[AR] Expired PR [{StateString(curr)}]");
             if (curr.SurgingTempestLeft == 0 && prev.SurgingTempestLeft != 0 && prev.SurgingTempestLeft < 1)
                 Service.Log($"[AR] Expired ST [{StateString(curr)}]");
+            if (curr.ComboTimeLeft == 0 && prev.ComboTimeLeft != 0 && prev.ComboTimeLeft < 1)
+                Service.Log($"[AR] Expired combo [{StateString(curr)}]");
         }
 
         private static string StateString(WARRotation.State s)
