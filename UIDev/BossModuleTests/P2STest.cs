@@ -119,19 +119,19 @@ namespace UIDev
             }
 
             if (ImGui.Button("Deluge stop"))
-                _ws.DispatchEventEnvControl(0x800375A2, 1, 0x00080004);
+                _ws.DispatchEventEnvControl((0x800375A2, 1, 0x00080004));
             ImGui.SameLine();
             if (ImGui.Button("Deluge NW"))
-                _ws.DispatchEventEnvControl(0x800375A2, 1, 0x00200010);
+                _ws.DispatchEventEnvControl((0x800375A2, 1, 0x00200010));
             ImGui.SameLine();
             if (ImGui.Button("Deluge NE"))
-                _ws.DispatchEventEnvControl(0x800375A2, 2, 0x00200010);
+                _ws.DispatchEventEnvControl((0x800375A2, 2, 0x00200010));
             ImGui.SameLine();
             if (ImGui.Button("Deluge SW"))
-                _ws.DispatchEventEnvControl(0x800375A2, 3, 0x00200010);
+                _ws.DispatchEventEnvControl((0x800375A2, 3, 0x00200010));
             ImGui.SameLine();
             if (ImGui.Button("Deluge SE"))
-                _ws.DispatchEventEnvControl(0x800375A2, 4, 0x00200010);
+                _ws.DispatchEventEnvControl((0x800375A2, 4, 0x00200010));
         }
     }
 }

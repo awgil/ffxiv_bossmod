@@ -15,11 +15,11 @@ namespace BossMod
         private ConfigRoot _config;
         private CommandManager _commandManager { get; init; }
 
-        private WorldStateGame _ws { get; } = new();
+        private Network _network;
+        private WorldStateGame _ws;
         private DebugEventLogger _debugLogger;
         private BossModuleManager _bossmod;
         private Autorotation _autorotation;
-        private Network _network;
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface dalamud,
@@ -36,10 +36,11 @@ namespace BossMod
             _commandManager = commandManager;
             _commandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
+            _network = new(generalCfg);
+            _ws = new(_network);
             _debugLogger = new(_ws, generalCfg);
             _bossmod = new(_ws, _config);
-            _autorotation = new(generalCfg);
-            _network = new(_ws, generalCfg);
+            _autorotation = new(_network, generalCfg);
 
             dalamud.UiBuilder.Draw += DrawUI;
             dalamud.UiBuilder.OpenConfigUi += OpenConfigUI;

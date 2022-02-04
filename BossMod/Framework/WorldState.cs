@@ -354,10 +354,10 @@ namespace BossMod
         }
 
         // instant events
-        public event EventHandler<(uint, uint)>? EventIcon; // TODO: this should really be an actor field, but I have no idea what triggers icon clear...
-        public void DispatchEventIcon(uint actorID, uint iconID)
+        public event EventHandler<(uint actorID, uint iconID)>? EventIcon; // TODO: this should really be an actor field, but I have no idea what triggers icon clear...
+        public void DispatchEventIcon((uint actorID, uint iconID) args)
         {
-            EventIcon?.Invoke(this, (actorID, iconID));
+            EventIcon?.Invoke(this, args);
         }
 
         public class CastResult
@@ -369,6 +369,7 @@ namespace BossMod
             public float AnimationLockTime;
             public uint MaxTargets;
             public uint NumTargets; // note: consider storing per-target ID and effects here...
+            public uint SourceSequence;
 
             public bool IsSpell() => ActionType == ActionType.Spell;
             public bool IsSpell<AID>(AID aid) where AID : Enum => ActionType == ActionType.Spell && ActionID == (uint)(object)aid;
@@ -379,10 +380,10 @@ namespace BossMod
             EventCast?.Invoke(this, info);
         }
 
-        public event EventHandler<(uint, byte, uint)>? EventEnvControl;
-        public void DispatchEventEnvControl(uint featureID, byte index, uint state)
+        public event EventHandler<(uint featureID, byte index, uint state)>? EventEnvControl;
+        public void DispatchEventEnvControl((uint featureID, byte index, uint state) args)
         {
-            EventEnvControl?.Invoke(this, (featureID, index, state));
+            EventEnvControl?.Invoke(this, args);
         }
     }
 }

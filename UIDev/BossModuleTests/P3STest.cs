@@ -109,7 +109,7 @@ namespace UIDev
                     ImGui.SameLine();
                     if (ImGui.Button($"Assign icon {_numAssignedIcons + 1}##{actor.InstanceID}"))
                     {
-                        _ws.DispatchEventIcon(actor.InstanceID, 268 + _numAssignedIcons);
+                        _ws.DispatchEventIcon((actor.InstanceID, 268 + _numAssignedIcons));
                         ++_numAssignedIcons;
                     }
                 }
