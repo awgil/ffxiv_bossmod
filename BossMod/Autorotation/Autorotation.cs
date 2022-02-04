@@ -13,7 +13,11 @@ namespace BossMod
     //
     // during this 'unconfirmed' window we might be considering wrong move to be the next-best one (e.g. imagine we've just started long IR cd and don't see the effect yet - next-best might be infuriate)
     // but I don't think this matters in practice, as presumably client forbids queueing any actions while there are pending requests
-    // I don't know what happens if there is no confirmation for a long time (due to ping or packet loss) or outright reject from server
+    // I don't know what happens if there is no confirmation for a long time (due to ping or packet loss)
+    //
+    // reject scenario:
+    // a relatively easy way to repro it is doing no-movement rotation, then enabling moves when PR is up and 3 charges are up; next onslaught after PR seems to be often rejected
+    // it seems that game applies some extra client-side action lock after reject
     //
     // IMPORTANT: it seems that game uses *client-side* cooldown to determine when next request can happen, here's an example:
     // - 04:51.508: request Upheaval
@@ -150,7 +154,7 @@ namespace BossMod
                 Log($"Request/response action mismatch: requested {PendingActionString(_pendingActions[0])}, got {PendingActionString(pa)}", true);
                 _pendingActions[0] = pa;
             }
-            Log($"-- success {PendingActionString(pa)}");
+            Log($"-+ {PendingActionString(pa)}");
             _firstPendingJustCompleted = true;
         }
 
@@ -169,7 +173,7 @@ namespace BossMod
                     Log($"Unexpected action-cancel ({PendingActionString(_pendingActions[index])}): index={index}, first={PendingActionString(_pendingActions[0])}, count={_pendingActions.Count}", true);
                     _pendingActions.RemoveRange(0, index);
                 }
-                Log($"-- cancel {PendingActionString(_pendingActions[0])}");
+                Log($"-- {PendingActionString(_pendingActions[0])}");
                 _pendingActions.RemoveAt(0);
             }
         }
