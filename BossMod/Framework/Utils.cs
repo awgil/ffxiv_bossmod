@@ -60,8 +60,9 @@ namespace BossMod
                     }
                 case WorldState.ActionType.Item:
                     {
-                        bool isHQ = actionID > 1000000;
+                        // see Dalamud.Game.Text.SeStringHandling.Payloads.GetAdjustedId
                         // TODO: id > 500000 is "collectible", >2000000 is "event" ??
+                        bool isHQ = actionID > 1000000;
                         var itemData = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Item>()?.GetRow(actionID % 1000000);
                         string name = itemData?.Name ?? "<not found>";
                         return $"{actionType} {actionID} '{name}'{(isHQ ? " (HQ)" : "")}";
