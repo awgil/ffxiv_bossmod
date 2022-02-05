@@ -217,7 +217,13 @@ namespace BossMod
             }
         }
 
-        public ulong BuildMask(IEnumerable<(int, WorldState.Actor)> players)
+        // iterate over raid members matching condition (use instead of .Where if you don't care about index in predicate)
+        public IEnumerable<(int, WorldState.Actor)> IterateRaidMembersWhere(Func<WorldState.Actor, bool> predicate, bool includeDead = false)
+        {
+            return IterateRaidMembers(includeDead).Where(indexActor => predicate(indexActor.Item2));
+        }
+
+        public static ulong BuildMask(IEnumerable<(int, WorldState.Actor)> players)
         {
             ulong mask = 0;
             foreach ((var i, _) in players)
@@ -229,7 +235,7 @@ namespace BossMod
         public IEnumerable<(int, WorldState.Actor)> IterateRaidMembersInRange(Vector3 position, float radius, bool includeDead = false)
         {
             var rsq = radius * radius;
-            return IterateRaidMembers(includeDead).Where(indexActor => (indexActor.Item2.Position - position).LengthSquared() <= rsq);
+            return IterateRaidMembersWhere(actor => (actor.Position - position).LengthSquared() <= rsq, includeDead);
         }
 
         public IEnumerable<(int, WorldState.Actor)> IterateRaidMembersInRange(int slot, float radius, bool includeDead = false)

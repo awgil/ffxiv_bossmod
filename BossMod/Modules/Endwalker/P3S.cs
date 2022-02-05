@@ -127,7 +127,7 @@ namespace BossMod
                 if (!Active)
                     return;
 
-                foreach ((int i, var player) in _module.IterateRaidMembers().Where(indexPlayer => IsTethered(indexPlayer.Item2)))
+                foreach ((int i, var player) in _module.IterateRaidMembersWhere(IsTethered))
                 {
                     _inAnyAOE |= _module.FindRaidMembersInRange(i, _aoeRange);
                 }
@@ -642,7 +642,7 @@ namespace BossMod
 
                 bool haveTooClose = false;
                 int numInRange = 0;
-                foreach ((_, var player) in _module.IterateRaidMembers().Where(indexPlayer => CanBothBeTargets(indexPlayer.Item2, actor)))
+                foreach ((_, var player) in _module.IterateRaidMembersWhere(player => CanBothBeTargets(player, actor)))
                 {
                     var distance = player.Position - actor.Position;
                     haveTooClose |= GeometryUtils.PointInCircle(distance, _minRange);
@@ -668,7 +668,7 @@ namespace BossMod
 
                 // draw other potential targets, to simplify positioning
                 bool healerOrTank = pc.Role == WorldState.ActorRole.Tank || pc.Role == WorldState.ActorRole.Healer;
-                foreach ((int i, var player) in _module.IterateRaidMembers().Where(indexPlayer => CanBothBeTargets(indexPlayer.Item2, pc)))
+                foreach ((int i, var player) in _module.IterateRaidMembersWhere(player => CanBothBeTargets(player, pc)))
                 {
                     var distance = player.Position - pc.Position;
                     bool tooClose = GeometryUtils.PointInCircle(distance, _minRange);
@@ -1424,12 +1424,7 @@ namespace BossMod
             private IEnumerable<(int, WorldState.Actor)> FindPlayersInWinds(Vector3 origin, WorldState.Actor target, float cosHalfAngle)
             {
                 var dir = Vector3.Normalize(target.Position - origin);
-                foreach ((int i, var player) in _module.IterateRaidMembers())
-                {
-                    var playerDir = Vector3.Normalize(player.Position - origin);
-                    if (Vector3.Dot(dir, playerDir) >= cosHalfAngle)
-                        yield return (i, player);
-                }
+                return _module.IterateRaidMembersWhere(player => Vector3.Dot(dir, Vector3.Normalize(player.Position - origin)) >= cosHalfAngle);
             }
         }
 

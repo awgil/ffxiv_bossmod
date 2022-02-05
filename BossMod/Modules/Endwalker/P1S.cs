@@ -984,11 +984,9 @@ namespace BossMod
 
         private StateMachine.State BuildWarderWrathState(ref StateMachine.State? link, float delay)
         {
-            var start = CommonStates.CastStart(ref link, Boss, AID.WarderWrath, delay);
-            start.EndHint |= StateMachine.StateHint.GroupWithNext;
-            var end = CommonStates.CastEnd(ref start.Next, Boss, 5, "Wrath");
-            end.EndHint |= StateMachine.StateHint.Raidwide;
-            return end;
+            var s = CommonStates.Cast(ref link, Boss, AID.WarderWrath, delay, 5, "Wrath");
+            s.EndHint |= StateMachine.StateHint.Raidwide;
+            return s;
         }
 
         // note: shackles are always combined with some other following mechanic, or at very least with resolve

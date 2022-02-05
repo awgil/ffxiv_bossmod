@@ -87,6 +87,9 @@ namespace BossMod
                 case 1007:
                     _activeModule = new P3S(_ws);
                     break;
+                case 1009:
+                    _activeModule = new P4S(_ws);
+                    break;
             }
 
             if (_activeModule != null)

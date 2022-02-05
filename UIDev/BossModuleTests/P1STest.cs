@@ -39,13 +39,13 @@ namespace UIDev
 
             ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
 
+            var boss = _ws.FindActor(9)!;
             if (ImGui.Button(!_ws.PlayerInCombat ? "Pull" : "Wipe"))
             {
-                _ws.UpdateCastInfo(_ws.FindActor(1)!, null);
+                _ws.UpdateCastInfo(boss, null);
                 _ws.PlayerInCombat = !_ws.PlayerInCombat;
             }
 
-            var boss = _ws.FindActor(9)!;
             int cnt = 0;
             foreach (var e in Enum.GetValues<P1S.AID>())
             {
