@@ -1,6 +1,7 @@
 {
   "Author": "veyn",
   "Name": "Boss Mod",
+  "InternalName": "BossMod",
   "Description": "A bunch of utilities to simplify bosses.",
   "ApplicableVersion": "any"
 }
