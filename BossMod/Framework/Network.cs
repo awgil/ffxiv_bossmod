@@ -154,7 +154,7 @@ namespace BossMod
             {
                 CasterID = casterID,
                 MainTargetID = header->animationTargetId,
-                ActionID = header->actionType == WorldState.ActionType.Spell ? (uint)header->actionAnimationId : header->actionId, // note: see _unkDelta comment
+                ActionID = (uint)(header->actionId - _unkDelta), // note: see _unkDelta comment
                 ActionType = header->actionType,
                 AnimationLockTime = header->animationLockTime,
                 MaxTargets = maxTargets,
@@ -363,7 +363,7 @@ namespace BossMod
         {
             // rotation: 0 -> -180, 65535 -> +180
             float rot = (data->rotation / 65535.0f * 360.0f) - 180.0f;
-            uint aid = data->actionType == WorldState.ActionType.Spell ? data->actionAnimationId : data->actionId;
+            uint aid = (uint)(data->actionId - _unkDelta);
             Service.Log($"[Network] - AID={Utils.ActionString(aid, data->actionType)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, seq={data->SourceSequence}, cntr={data->globalEffectCounter}, rot={rot:f0}, var={data->variation}, flags={flags1:X8} {flags2:X4}, someTarget={Utils.ObjectString(data->SomeTargetID)}, u={data->unknown:X8} {data->unknown20:X2} {data->padding21:X4}");
             var targets = Math.Min(data->effectCount, maxTargets);
             for (int i = 0; i < targets; ++i)

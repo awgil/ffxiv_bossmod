@@ -376,6 +376,7 @@ namespace BossMod
                         switch (actor.Statuses[index].StackCount)
                         {
                             case 0x4C:
+                                _explodingCells = Cell.Red;
                                 break;
                             case 0x4D:
                                 _explodingCells = Cell.Blue;

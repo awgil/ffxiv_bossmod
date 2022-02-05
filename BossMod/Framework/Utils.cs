@@ -50,9 +50,25 @@ namespace BossMod
 
         public static string ActionString(uint actionID, WorldState.ActionType actionType = WorldState.ActionType.Spell)
         {
-            var actionData = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(actionID);
-            string name = actionData?.Name ?? "<not found>";
-            return $"{actionType} {actionID} '{name}'";
+            switch (actionType)
+            {
+                case WorldState.ActionType.Spell:
+                    {
+                        var actionData = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(actionID);
+                        string name = actionData?.Name ?? "<not found>";
+                        return $"{actionType} {actionID} '{name}'";
+                    }
+                case WorldState.ActionType.Item:
+                    {
+                        bool isHQ = actionID > 1000000;
+                        // TODO: id > 500000 is "collectible", >2000000 is "event" ??
+                        var itemData = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Item>()?.GetRow(actionID % 1000000);
+                        string name = itemData?.Name ?? "<not found>";
+                        return $"{actionType} {actionID} '{name}'{(isHQ ? " (HQ)" : "")}";
+                    }
+                default:
+                    return $"{actionType} {actionID}";
+            }
         }
 
         public static string StatusString(uint statusID)
