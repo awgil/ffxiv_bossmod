@@ -17,7 +17,7 @@ namespace BossMod
     //
     // reject scenario:
     // a relatively easy way to repro it is doing no-movement rotation, then enabling moves when PR is up and 3 charges are up; next onslaught after PR seems to be often rejected
-    // it seems that game applies some extra client-side action lock after reject
+    // it seems that game will not send another request after reject until 500ms passed since prev request
     //
     // IMPORTANT: it seems that game uses *client-side* cooldown to determine when next request can happen, here's an example:
     // - 04:51.508: request Upheaval
@@ -160,6 +160,9 @@ namespace BossMod
 
         private void OnNetworkActionCancel(object? sender, (uint actorID, uint actionID) args)
         {
+            if (args.actorID != Service.ClientState.LocalPlayer?.ObjectId)
+                return; // non-player-initiated
+
             int index = _pendingActions.FindIndex(a => a.ActionID == args.actionID);
             if (index == -1)
             {
