@@ -375,20 +375,20 @@ namespace BossMod
             {
                 if (_acid != null)
                 {
-                    arena.ZoneQuad(_acid.Position, Vector3.UnitX, 10, 10, 10, arena.ColorDanger);
+                    arena.ZoneQuad(_acid.Position, Vector3.UnitX, 10, 10, 10, arena.ColorAOE);
                 }
                 if (_fire != null)
                 {
-                    arena.ZoneQuad(_fire.Position, Vector3.UnitX, 10, 10, 10, arena.ColorDanger);
+                    arena.ZoneQuad(_fire.Position, Vector3.UnitX, 10, 10, 10, arena.ColorAOE);
                 }
                 if (_water != null)
                 {
-                    arena.ZoneQuad(_water.Position, Vector3.UnitX, 10, 10, 10, arena.ColorDanger);
+                    arena.ZoneQuad(_water.Position, Vector3.UnitX, 10, 10, 10, arena.ColorAOE);
                 }
                 if (_lighting != null)
                 {
-                    arena.ZoneQuad(_lighting.Position, Vector3.UnitX, 10, 10, 10, arena.ColorDanger);
-                    arena.ZoneQuad(arena.WorldCenter, Vector3.UnitX, _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance, arena.ColorDanger);
+                    arena.ZoneQuad(_lighting.Position, Vector3.UnitX, 10, 10, 10, arena.ColorAOE);
+                    arena.ZoneQuad(arena.WorldCenter, Vector3.UnitX, _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance, arena.ColorAOE);
                 }
             }
 
@@ -505,7 +505,7 @@ namespace BossMod
 
                 if (_isSword)
                 {
-                    arena.ZoneCone(_caster.Position, 0, 50, _caster.Rotation - _coneHalfAngle, _caster.Rotation + _coneHalfAngle, arena.ColorDanger);
+                    arena.ZoneCone(_caster.Position, 0, 50, _caster.Rotation - _coneHalfAngle, _caster.Rotation + _coneHalfAngle, arena.ColorAOE);
                 }
             }
 
@@ -616,7 +616,6 @@ namespace BossMod
 
             var pinax = CommonStates.Cast(ref setting.Next, Boss, AID.Pinax, 8.2f, 5, "Pinax");
             pinax.EndHint |= StateMachine.StateHint.GroupWithNext;
-
             // timeline:
             //  0.0s pinax cast end
             //  1.0s square 1 activation: env control (.10 = 00800040), helper starts casting 27095
@@ -632,17 +631,26 @@ namespace BossMod
             // 31.0s square 4 env control (.05 = 02000001)
             // 34.0s square 4 cast finish (+ instant 27089)
 
+            var p1 = CommonStates.Condition(ref pinax.Next, 10, () => comp.NumFinished == 1, "Corner1");
+            p1.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var p2 = CommonStates.Condition(ref p1.Next, 3, () => comp.NumFinished == 2, "Corner2");
+            p2.EndHint |= StateMachine.StateHint.GroupWithNext;
+
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
             dispatch[AID.EasterlyShift] = new(null, () => { });
-            var shiftStart = CommonStates.CastStart(ref pinax.Next, Boss, dispatch, 16.6f);
+            var shiftStart = CommonStates.CastStart(ref p2.Next, Boss, dispatch, 3.6f);
             // together with this, one of the helpers starts casting 27142 or ???
 
-            var shiftEnd = CommonStates.CastEnd(ref shiftStart.Next, Boss, 8, "Shift");
+            var p3 = CommonStates.Condition(ref shiftStart.Next, 6.4f, () => comp.NumFinished == 3, "Corner3");
+            p3.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var shiftEnd = CommonStates.CastEnd(ref p3.Next, Boss, 1.6f, "Shift");
             shiftEnd.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var resolve = CommonStates.Condition(ref shiftEnd.Next, 9.4f, () => comp.NumFinished == 4, "Pinax resolve");
-            resolve.Exit = comp.Reset;
-            return resolve;
+            var p4 = CommonStates.Condition(ref shiftEnd.Next, 9.4f, () => comp.NumFinished == 4, "Pinax resolve");
+            p4.Exit = comp.Reset;
+            return p4;
         }
     }
 }

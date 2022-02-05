@@ -26,6 +26,10 @@ namespace UIDev
             _ws.AddActor(7, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(110, 0, 90), 0, 1, true);
             _ws.AddActor(8, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(90, 0, 90), 0, 1, true);
             _ws.AddActor(9, (uint)P4S.OID.Boss, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), 0, 1, true);
+            _ws.AddActor(10, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 90), 0, 1, true);
+            _ws.AddActor(11, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 90), 0, 1, true);
+            _ws.AddActor(12, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 110), 0, 1, true);
+            _ws.AddActor(13, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 110), 0, 1, true);
             _ws.PlayerActorID = 1;
             _o = new P4S(_ws);
         }
@@ -80,6 +84,11 @@ namespace UIDev
                     bool chlamysTether = actor.Tether.ID == (uint)P4S.TetherID.Chlamys;
                     if (ImGui.Checkbox($"ChlamysTether##{actor.InstanceID}", ref chlamysTether))
                         _ws.UpdateTether(actor, new() { ID = chlamysTether ? (uint)P4S.TetherID.Chlamys : 0, Target = boss.InstanceID });
+
+                    ImGui.SameLine();
+                    bool roleCall = actor.Statuses[0].ID == (uint)P4S.SID.RoleCall;
+                    if (ImGui.Checkbox($"RoleCall##{actor.InstanceID}", ref roleCall))
+                        SetStatus(actor, 0, roleCall ? (uint)P4S.SID.RoleCall : 0);
                 }
                 else if (actor.OID == (uint)P4S.OID.Boss)
                 {
@@ -92,11 +101,42 @@ namespace UIDev
                     else
                     {
                         ImGui.SameLine();
-                        if (ImGui.Button("Generic"))
+                        if (ImGui.Button($"Generic##{actor.InstanceID}"))
                             _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = 1 });
                     }
                 }
+                else if (actor.OID == (uint)P4S.OID.Helper)
+                {
+                    if (actor.CastInfo != null)
+                    {
+                        ImGui.SameLine();
+                        if (ImGui.Button($"Finish cast##{actor.InstanceID}"))
+                            _ws.UpdateCastInfo(actor, null);
+                    }
+                    else
+                    {
+                        ImGui.SameLine();
+                        if (ImGui.Button($"PinaxA##{actor.InstanceID}"))
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P4S.AID.PinaxAcid });
+                        ImGui.SameLine();
+                        if (ImGui.Button($"PinaxF##{actor.InstanceID}"))
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P4S.AID.PinaxLava });
+                        ImGui.SameLine();
+                        if (ImGui.Button($"PinaxW##{actor.InstanceID}"))
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P4S.AID.PinaxWell });
+                        ImGui.SameLine();
+                        if (ImGui.Button($"PinaxL##{actor.InstanceID}"))
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P4S.AID.PinaxLevinstrike });
+                    }
+                }
             }
+        }
+
+        private void SetStatus(WorldState.Actor actor, int index, uint statusID)
+        {
+            var newStatuses = (WorldState.Status[])actor.Statuses.Clone();
+            newStatuses[index].ID = statusID;
+            _ws.UpdateStatuses(actor, newStatuses);
         }
     }
 }
