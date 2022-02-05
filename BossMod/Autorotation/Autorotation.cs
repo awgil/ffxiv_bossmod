@@ -7,7 +7,7 @@ namespace BossMod
 {
     // typically 'casting an action' causes the following sequence of events:
     // - immediately after sending ActionRequest message, client 'speculatively' starts CD (including GCD)
-    // - ~50-100ms later client receives bundle (typically one, but are there corner cases?) with ActorControlSelf[Cooldown], ActorControl[Gain/LoseEffect], AbilityN, ActorGauge, StatusEffectList
+    // - ~50-100ms later client receives bundle (typically one, but sometimes messages can be spread over two frames!) with ActorControlSelf[Cooldown], ActorControl[Gain/LoseEffect], AbilityN, ActorGauge, StatusEffectList
     //   new statuses have large negative duration (e.g. -30 when ST is applied) - theory: it means 'show as X, don't reduce' - TODO test?..
     // - ~600ms later client receives EventResult with normal durations
     //

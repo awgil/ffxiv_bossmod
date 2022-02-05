@@ -152,8 +152,8 @@ namespace BossMod
 
             // TODO: what if we have really high gauge and low ST? is it worth it to delay ST application to avoid overcapping gauge?
             // TODO: what if we have low but non-zero ST?
-            // 3. no ST => apply buff asap
-            if (state.SurgingTempestLeft <= 0)
+            // 3. no ST (or it will expire before next GCD) => apply buff asap
+            if (state.SurgingTempestLeft <= state.GCD)
                 return GetNextStormEyeComboAction(state);
 
             // 4. if we're delaying IR due to nascent chaos, cast it asap
@@ -207,16 +207,16 @@ namespace BossMod
                 return AID.InnerRelease;
 
             // 4. infuriate - this is complex decision
-            // if we are spending gauge, this is easy - just make sure we're not overcapping gauge or interfering with IR or previous infuriate cast
+            // if we are spending gauge, this is easy - just make sure we're not overcapping gauge or interfering with IR (active or coming off cd before next GCD) or previous infuriate cast
             // otherwise, we're hitting infuriate when either CD is very low:
             // - if IR is imminent, we need at least 22.5 secs of CD (IR+3xFC is 7.5s from spent gcds and 15s from FCs)
             // - if next combo action would overcap our gauge, we need at least 10 secs of CD (it+FC would take 2 gcds)
             // - otherwise we need to still be not overcapping by the next GCD
-            if (state.InfuriateCD < (timeOffset + 60) && state.InnerReleaseStacks == 0 && state.NascentChaosLeft <= timeOffset && state.Gauge <= 50)
+            if (state.InfuriateCD < (timeOffset + 60) && state.InnerReleaseStacks == 0 && state.InnerReleaseCD > (state.GCD - 0.7f) && state.NascentChaosLeft <= timeOffset && state.Gauge <= 50)
             {
                 float gcdDelay = state.GCD + (strategy.Aggressive ? 0 : 2.5f);
                 var irImminent = state.InnerReleaseCD < gcdDelay + 2.5;
-                int gaugeCap = state.ComboLastMove == AID.None ? 50 : (state.ComboLastMove == AID.HeavySwing ? 40 : 30); // theoretically we could 
+                int gaugeCap = state.ComboLastMove == AID.None ? 50 : (state.ComboLastMove == AID.HeavySwing ? 40 : 30);
                 float maxInfuriateCD = irImminent ? 22.5f : (state.Gauge > gaugeCap ? 10f : 2.5f);
                 if (strategy.SpendGauge || state.InfuriateCD <= gcdDelay + maxInfuriateCD)
                     return AID.Infuriate;
