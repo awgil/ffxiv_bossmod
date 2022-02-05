@@ -341,8 +341,8 @@ namespace BossMod
                     {
                         hints.Add("GTFO from fire square!");
                     }
-                    // TODO: determine proper stacks (I assume it targets two tanks or two healers)
-                    if (_module.IterateRaidMembersInRange(slot, _fireAOERadius).Count() != 3)
+                    // TODO: verify targeting (currently assuming 2 healers)
+                    if (_module.IterateRaidMembersWhere(other => other.Role == WorldState.ActorRole.Healer && GeometryUtils.PointInCircle(actor.Position - other.Position, _fireAOERadius)).Count() != 1)
                     {
                         hints.Add("Stack in fours!");
                     }
@@ -406,9 +406,18 @@ namespace BossMod
                 }
                 if (_fire != null)
                 {
-                    arena.AddCircle(pc.Position, _fireAOERadius, arena.ColorDanger);
                     foreach ((int i, var player) in _module.IterateRaidMembers())
-                        arena.Actor(player, arena.ColorPlayerGeneric); // TODO: determine compatible players
+                    {
+                        if (player.Role == WorldState.ActorRole.Healer)
+                        {
+                            arena.Actor(player, arena.ColorDanger);
+                            arena.AddCircle(pc.Position, _fireAOERadius, arena.ColorDanger);
+                        }
+                        else
+                        {
+                            arena.Actor(player, arena.ColorPlayerGeneric);
+                        }
+                    }
                 }
                 if (_water != null)
                 {
