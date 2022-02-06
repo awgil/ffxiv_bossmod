@@ -26,10 +26,11 @@ namespace UIDev
             _ws.AddActor(7, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(110, 0, 90), 0, 1, true);
             _ws.AddActor(8, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(90, 0, 90), 0, 1, true);
             _ws.AddActor(9, (uint)P4S.OID.Boss1, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), 0, 1, true);
-            _ws.AddActor(10, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 90), 0, 1, true);
-            _ws.AddActor(11, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 90), 0, 1, true);
-            _ws.AddActor(12, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 110), 0, 1, true);
-            _ws.AddActor(13, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 110), 0, 1, true);
+            _ws.AddActor(10, (uint)P4S.OID.Boss2, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), 0, 1, true);
+            _ws.AddActor(11, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 90), 0, 1, true);
+            _ws.AddActor(12, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 90), 0, 1, true);
+            _ws.AddActor(13, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 110), 0, 1, true);
+            _ws.AddActor(14, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 110), 0, 1, true);
             _ws.PlayerActorID = 1;
             _o = new P4S(_ws);
         }
@@ -47,12 +48,32 @@ namespace UIDev
 
             ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
 
-            var boss = _ws.FindActor(9)!;
+            var boss1 = _ws.FindActor(9);
+            var boss2 = _ws.FindActor(10)!;
             if (ImGui.Button(!_ws.PlayerInCombat ? "Pull" : "Wipe"))
             {
-                _ws.UpdateCastInfo(boss, null);
+                if (boss1 != null)
+                    _ws.UpdateCastInfo(boss1, null);
+                _ws.UpdateCastInfo(boss2, null);
                 _ws.PlayerInCombat = !_ws.PlayerInCombat;
             }
+
+            ImGui.SameLine();
+            bool phase1 = boss1 != null;
+            if (ImGui.Checkbox("Phase 1", ref phase1))
+            {
+                if (phase1)
+                {
+                    boss1 = _ws.AddActor(9, (uint)P4S.OID.Boss1, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), 0, 1, true);
+                }
+                else
+                {
+                    _ws.RemoveActor(9);
+                    boss1 = null;
+                }
+            }
+
+            var boss = boss1 ?? boss2;
 
             foreach (var actor in _ws.Actors.Values)
             {

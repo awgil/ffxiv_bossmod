@@ -91,6 +91,88 @@ namespace BossMod
             Bloodrake = 165,
         }
 
+        // state related to belone coils mechanic (role towers)
+        private class BeloneCoils : Component
+        {
+            public enum Soaker { Unknown, TankOrHealer, DamageDealer }
+
+            public Soaker ActiveSoakers { get; private set; } = Soaker.Unknown;
+
+            private P4S _module;
+            private List<WorldState.Actor> _activeTowers = new(); // actor + tank-or-healer
+
+            private static float _towerRadius = 4;
+
+            public BeloneCoils(P4S module)
+            {
+                _module = module;
+            }
+
+            public bool IsValidSoaker(WorldState.Actor player)
+            {
+                switch (ActiveSoakers)
+                {
+                    case Soaker.TankOrHealer: return player.Role == WorldState.ActorRole.Tank || player.Role == WorldState.ActorRole.Healer;
+                    case Soaker.DamageDealer: return player.Role == WorldState.ActorRole.Melee || player.Role == WorldState.ActorRole.Ranged;
+                    default: return false;
+                }
+            }
+
+            public override void Reset()
+            {
+                ActiveSoakers = Soaker.Unknown;
+                _activeTowers.Clear();
+            }
+
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+            {
+                if (ActiveSoakers == Soaker.Unknown)
+                    return;
+
+                bool isSoaking = _activeTowers.Where(tower => GeometryUtils.PointInCircle(actor.Position - tower.Position, _towerRadius)).Any();
+                if (IsValidSoaker(actor))
+                {
+                    hints.Add("Soak the tower", !isSoaking);
+                }
+                else
+                {
+                    hints.Add("GTFO from tower", isSoaking);
+                }
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                var pc = _module.Player();
+                if (ActiveSoakers == Soaker.Unknown)
+                    return;
+
+                bool validSoaker = IsValidSoaker(pc);
+                foreach (var tower in _activeTowers)
+                {
+                    arena.AddCircle(tower.Position, _towerRadius, validSoaker ? arena.ColorSafe : arena.ColorDanger);
+                }
+            }
+
+            public override void OnCastStarted(WorldState.Actor actor)
+            {
+                if (actor.CastInfo!.IsSpell(AID.BeloneCoilsDPS) || actor.CastInfo!.IsSpell(AID.BeloneCoilsTH))
+                {
+                    _activeTowers.Add(actor);
+                    ActiveSoakers = actor.CastInfo!.ActionID == (uint)AID.BeloneCoilsDPS ? Soaker.DamageDealer : Soaker.TankOrHealer;
+                }
+            }
+
+            public override void OnCastFinished(WorldState.Actor actor)
+            {
+                if (actor.CastInfo!.IsSpell(AID.BeloneCoilsDPS) || actor.CastInfo!.IsSpell(AID.BeloneCoilsTH))
+                {
+                    _activeTowers.Remove(actor);
+                    if (_activeTowers.Count == 0)
+                        ActiveSoakers = Soaker.Unknown;
+                }
+            }
+        }
+
         // state related to inversive chlamys mechanic (tethers)
         private class InversiveChlamys : Component
         {
@@ -127,6 +209,16 @@ namespace BossMod
 
             public override void Update()
             {
+                if (_assignFromCoils)
+                {
+                    var coils = _module.FindComponent<BeloneCoils>()!;
+                    if (coils.ActiveSoakers != BeloneCoils.Soaker.Unknown)
+                    {
+                        _tetherForbidden = BuildMask(_module.IterateRaidMembersWhere(coils.IsValidSoaker));
+                        _assignFromCoils = false;
+                    }
+                }
+
                 _tetherTargets = _tetherInAOE = 0;
                 if (_tetherForbidden == 0)
                     return;
@@ -205,21 +297,9 @@ namespace BossMod
                     }
                 }
             }
-
-            public override void OnCastStarted(WorldState.Actor actor)
-            {
-                if (_assignFromCoils && (actor.CastInfo!.IsSpell(AID.BeloneCoilsDPS) || actor.CastInfo!.IsSpell(AID.BeloneCoilsTH)))
-                {
-                    if (actor.CastInfo!.IsSpell(AID.BeloneCoilsDPS))
-                        _tetherForbidden = BuildMask(_module.IterateRaidMembersWhere(actor => actor.Role == WorldState.ActorRole.Melee || actor.Role == WorldState.ActorRole.Ranged));
-                    else
-                        _tetherForbidden = BuildMask(_module.IterateRaidMembersWhere(actor => actor.Role == WorldState.ActorRole.Tank || actor.Role == WorldState.ActorRole.Healer));
-                    _assignFromCoils = false;
-                }
-            }
         }
 
-        // state related to director's belone (debuffs & tethers) mechanic
+        // state related to director's belone (debuffs) mechanic
         private class DirectorsBelone : Component
         {
             private P4S _module;
@@ -249,6 +329,19 @@ namespace BossMod
             {
                 _assignFromCoils = false;
                 _debuffForbidden = _debuffTargets = _debuffImmune = 0;
+            }
+
+            public override void Update()
+            {
+                if (_assignFromCoils)
+                {
+                    var coils = _module.FindComponent<BeloneCoils>()!;
+                    if (coils.ActiveSoakers != BeloneCoils.Soaker.Unknown)
+                    {
+                        _debuffForbidden = BuildMask(_module.IterateRaidMembersWhere(coils.IsValidSoaker));
+                        _assignFromCoils = false;
+                    }
+                }
             }
 
             public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
@@ -334,18 +427,6 @@ namespace BossMod
                     case SID.Miscast:
                         ModifyDebuff(_module.FindRaidMemberSlot(actor.InstanceID), ref _debuffImmune, false);
                         break;
-                }
-            }
-
-            public override void OnCastStarted(WorldState.Actor actor)
-            {
-                if (_assignFromCoils && (actor.CastInfo!.IsSpell(AID.BeloneCoilsDPS) || actor.CastInfo!.IsSpell(AID.BeloneCoilsTH)))
-                {
-                    if (actor.CastInfo!.IsSpell(AID.BeloneCoilsDPS))
-                        _debuffForbidden = BuildMask(_module.IterateRaidMembersWhere(actor => actor.Role == WorldState.ActorRole.Melee || actor.Role == WorldState.ActorRole.Ranged));
-                    else
-                        _debuffForbidden = BuildMask(_module.IterateRaidMembersWhere(actor => actor.Role == WorldState.ActorRole.Tank || actor.Role == WorldState.ActorRole.Healer));
-                    _assignFromCoils = false;
                 }
             }
 
@@ -901,6 +982,7 @@ namespace BossMod
             _boss2 = RegisterEnemies(OID.Boss2, true);
             RegisterEnemies(OID.Orb);
 
+            RegisterComponent(new BeloneCoils(this));
             RegisterComponent(new InversiveChlamys(this));
             RegisterComponent(new DirectorsBelone(this));
             RegisterComponent(new Pinax(this));
