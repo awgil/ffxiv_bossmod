@@ -25,7 +25,7 @@ namespace UIDev
             _ws.AddActor(6, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Ranged, new(90, 0, 110), 0, 1, true);
             _ws.AddActor(7, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(110, 0, 90), 0, 1, true);
             _ws.AddActor(8, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(90, 0, 90), 0, 1, true);
-            _ws.AddActor(9, (uint)P4S.OID.Boss, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), 0, 1, true);
+            _ws.AddActor(9, (uint)P4S.OID.Boss1, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), 0, 1, true);
             _ws.AddActor(10, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 90), 0, 1, true);
             _ws.AddActor(11, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 90), 0, 1, true);
             _ws.AddActor(12, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 110), 0, 1, true);
@@ -90,7 +90,7 @@ namespace UIDev
                     if (ImGui.Checkbox($"RoleCall##{actor.InstanceID}", ref roleCall))
                         SetStatus(actor, 0, roleCall ? (uint)P4S.SID.RoleCall : 0);
                 }
-                else if (actor.OID == (uint)P4S.OID.Boss)
+                else if (actor.OID == (uint)P4S.OID.Boss1)
                 {
                     if (actor.CastInfo != null)
                     {
