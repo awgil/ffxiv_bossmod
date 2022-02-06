@@ -91,186 +91,107 @@ namespace BossMod
             Bloodrake = 165,
         }
 
-        // state related to director's belone (debuffs & tethers) mechanic
-        private class DirectorsBelone : Component
+        // state related to inversive chlamys mechanic (tethers)
+        private class InversiveChlamys : Component
         {
-            public enum State { Inactive, TethersAssigned, DebuffsAssigned, Chlamys, Resolve }
-
-            public State CurState = State.Inactive;
-
             private P4S _module;
+            private bool _assignFromCoils = false;
             private ulong _tetherForbidden = 0;
             private ulong _tetherTargets = 0;
             private ulong _tetherInAOE = 0;
-            private ulong _debuffForbidden = 0;
-            private ulong _debuffTargets = 0;
-            private ulong _debuffImmune = 0;
 
-            private static float _debuffPassRange = 3; // not sure about this...
-            private static float _tetherStackRange = 3; // this is arbitrary
             private static float _aoeRange = 5;
 
-            public DirectorsBelone(P4S module)
+            public bool TethersActive => _tetherTargets != 0;
+
+            public InversiveChlamys(P4S module)
             {
                 _module = module;
             }
 
-            public void AssignTethersFromBloodrake()
+            public void AssignFromBloodrake()
             {
                 _tetherForbidden = BuildMask(_module.IterateRaidMembersWhere(actor => actor.Tether.ID == (uint)TetherID.Bloodrake));
-                CurState = State.TethersAssigned;
             }
 
-            public void AssignDebuffsFromBloodrake()
+            public void AssignFromCoils()
             {
-                _debuffForbidden = BuildMask(_module.IterateRaidMembersWhere(actor => actor.Tether.ID == (uint)TetherID.Bloodrake));
-                CurState = State.DebuffsAssigned;
+                _assignFromCoils = true;
             }
 
             public override void Reset()
             {
-                CurState = State.Inactive;
-                _tetherForbidden = _debuffForbidden = _debuffTargets = _debuffImmune = 0;
+                _assignFromCoils = false;
+                _tetherForbidden = 0;
             }
 
             public override void Update()
             {
                 _tetherTargets = _tetherInAOE = 0;
-                switch (CurState)
+                if (_tetherForbidden == 0)
+                    return;
+
+                foreach ((int i, var player) in _module.IterateRaidMembersWhere(actor => actor.Tether.ID == (uint)TetherID.Chlamys))
                 {
-                    case State.Chlamys:
-                    case State.Resolve:
-                        foreach ((int i, var player) in _module.IterateRaidMembersWhere(actor => actor.Tether.ID == (uint)TetherID.Chlamys))
-                        {
-                            BitVector.SetVector64Bit(ref _tetherTargets, i);
-                            _tetherInAOE |= _module.FindRaidMembersInRange(i, _aoeRange);
-                        }
-                        if (_tetherTargets == 0 && CurState == State.Resolve)
-                            Reset();
-                        break;
+                    BitVector.SetVector64Bit(ref _tetherTargets, i);
+                    _tetherInAOE |= _module.FindRaidMembersInRange(i, _aoeRange);
                 }
             }
 
             public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
-                if (CurState == State.Inactive)
+                if (_tetherForbidden == 0)
                     return;
 
-                if (_debuffForbidden != 0)
+                if (!BitVector.IsVector64BitSet(_tetherForbidden, slot))
                 {
-                    if (!BitVector.IsVector64BitSet(_debuffForbidden, slot))
+                    // we should be grabbing tethers
+                    if (_tetherTargets == 0)
                     {
-                        // we should be grabbing debuff
-                        if (_debuffTargets == 0)
-                        {
-                            // debuffs not assigned yet => spread and prepare to grab
-                            bool stacked = _module.IterateRaidMembersInRange(slot, _debuffPassRange).Any();
-                            hints.Add("Debuffs: spread and prepare to handle!", stacked);
-                        }
-                        else if (BitVector.IsVector64BitSet(_debuffImmune, slot))
-                        {
-                            hints.Add("Debuffs: failed to handle");
-                        }
-                        else if (BitVector.IsVector64BitSet(_debuffTargets, slot))
-                        {
-                            hints.Add("Debuffs: OK", false);
-                        }
-                        else
-                        {
-                            hints.Add("Debuffs: grab!");
-                        }
+                        hints.Add("Tethers: prepare to intercept", false);
+                    }
+                    else if (!BitVector.IsVector64BitSet(_tetherTargets, slot))
+                    {
+                        hints.Add("Tethers: intercept!");
+                    }
+                    else if (_module.IterateRaidMembersInRange(slot, _aoeRange).Any())
+                    {
+                        hints.Add("Tethers: GTFO from others!");
                     }
                     else
                     {
-                        // we should be passing debuff
-                        if (_debuffTargets == 0)
-                        {
-                            bool badStack = _module.IterateRaidMembers().Where(ip => ip.Item1 != slot && BitVector.IsVector64BitSet(_debuffForbidden, ip.Item1) && !GeometryUtils.PointInCircle(actor.Position - ip.Item2.Position, _debuffPassRange)).Any();
-                            hints.Add("Debuffs: stack and prepare to pass!", badStack);
-                        }
-                        else if (BitVector.IsVector64BitSet(_debuffTargets, slot))
-                        {
-                            hints.Add("Debuffs: pass!");
-                        }
-                        else
-                        {
-                            hints.Add("Debuffs: avoid", false);
-                        }
+                        hints.Add("Tethers: OK", false);
                     }
                 }
-
-                if (_tetherForbidden != 0)
+                else
                 {
-                    if (!BitVector.IsVector64BitSet(_tetherForbidden, slot))
+                    // we should be passing tethers
+                    if (_tetherTargets == 0)
                     {
-                        // we should be grabbing tethers
-                        if (_tetherTargets == 0)
-                        {
-                            // no tethers yet => stack and prepare to intercept
-                            if (_debuffTargets == 0 || (_debuffTargets & _debuffForbidden) != 0)
-                            {
-                                // we're not done with debuffs yet, ignore tethers for now...
-                                hints.Add("Tethers: prepare to intercept", false);
-                            }
-                            else
-                            {
-                                bool badStack = _module.IterateRaidMembers().Where(ip => ip.Item1 != slot && !BitVector.IsVector64BitSet(_tetherForbidden, ip.Item1) && !GeometryUtils.PointInCircle(actor.Position - ip.Item2.Position, _tetherStackRange)).Any();
-                                hints.Add("Tethers: stack and prepare to intercept!", badStack);
-                            }
-                        }
-                        else if (!BitVector.IsVector64BitSet(_tetherTargets, slot))
-                        {
-                            hints.Add("Tethers: intercept!");
-                        }
-                        else if (_module.IterateRaidMembersInRange(slot, _aoeRange).Any())
-                        {
-                            hints.Add("Tethers: GTFO from others!");
-                        }
-                        else
-                        {
-                            hints.Add("Tethers: OK", false);
-                        }
+                        hints.Add("Tethers: prepare to pass", false);
+                    }
+                    else if (BitVector.IsVector64BitSet(_tetherTargets, slot))
+                    {
+                        hints.Add("Tethers: pass!");
+                    }
+                    else if (BitVector.IsVector64BitSet(_tetherInAOE, slot))
+                    {
+                        hints.Add("Tethers: GTFO from aoe!");
                     }
                     else
                     {
-                        // we should be passing tethers
-                        if (_tetherTargets == 0)
-                        {
-                            // no tethers yet => stack and prepare to pass
-                            if (_debuffTargets == 0 || (_debuffTargets & _debuffForbidden) != 0)
-                            {
-                                // we're not done with debuffs yet, ignore tethers for now...
-                                hints.Add("Tethers: prepare to pass", false);
-                            }
-                            else
-                            {
-                                bool badStack = _module.IterateRaidMembers().Where(ip => ip.Item1 != slot && BitVector.IsVector64BitSet(_tetherForbidden, ip.Item1) && !GeometryUtils.PointInCircle(actor.Position - ip.Item2.Position, _tetherStackRange)).Any();
-                                hints.Add("Tethers: stack and prepare to pass!", badStack);
-                            }
-                        }
-                        else if (BitVector.IsVector64BitSet(_tetherTargets, slot))
-                        {
-                            hints.Add("Tethers: pass!");
-                        }
-                        else if (BitVector.IsVector64BitSet(_tetherInAOE, slot))
-                        {
-                            hints.Add("Tethers: GTFO from aoe!");
-                        }
-                        else
-                        {
-                            hints.Add("Tethers: avoid", false);
-                        }
+                        hints.Add("Tethers: avoid", false);
                     }
                 }
             }
 
             public override void DrawArenaForeground(MiniArena arena)
             {
-                if (CurState == State.Inactive)
+                if (_tetherTargets == 0)
                     return;
 
                 var boss = _module.Boss1();
-                ulong failingPlayers = (_debuffForbidden & _debuffTargets) | (_tetherForbidden & _tetherTargets);
+                ulong failingPlayers = _tetherForbidden & _tetherTargets;
                 foreach ((int i, var player) in _module.IterateRaidMembers())
                 {
                     bool failing = BitVector.IsVector64BitSet(failingPlayers, i);
@@ -282,6 +203,111 @@ namespace BossMod
                         arena.AddLine(player.Position, boss.Position, failing ? arena.ColorDanger : arena.ColorSafe);
                         arena.AddCircle(player.Position, _aoeRange, arena.ColorDanger);
                     }
+                }
+            }
+
+            public override void OnCastStarted(WorldState.Actor actor)
+            {
+                if (_assignFromCoils && (actor.CastInfo!.IsSpell(AID.BeloneCoilsDPS) || actor.CastInfo!.IsSpell(AID.BeloneCoilsTH)))
+                {
+                    if (actor.CastInfo!.IsSpell(AID.BeloneCoilsDPS))
+                        _tetherForbidden = BuildMask(_module.IterateRaidMembersWhere(actor => actor.Role == WorldState.ActorRole.Melee || actor.Role == WorldState.ActorRole.Ranged));
+                    else
+                        _tetherForbidden = BuildMask(_module.IterateRaidMembersWhere(actor => actor.Role == WorldState.ActorRole.Tank || actor.Role == WorldState.ActorRole.Healer));
+                    _assignFromCoils = false;
+                }
+            }
+        }
+
+        // state related to director's belone (debuffs & tethers) mechanic
+        private class DirectorsBelone : Component
+        {
+            private P4S _module;
+            private bool _assignFromCoils = false;
+            private ulong _debuffForbidden = 0;
+            private ulong _debuffTargets = 0;
+            private ulong _debuffImmune = 0;
+
+            private static float _debuffPassRange = 3; // not sure about this...
+
+            public DirectorsBelone(P4S module)
+            {
+                _module = module;
+            }
+
+            public void AssignFromBloodrake()
+            {
+                _debuffForbidden = BuildMask(_module.IterateRaidMembersWhere(actor => actor.Tether.ID == (uint)TetherID.Bloodrake));
+            }
+
+            public void AssignFromCoils()
+            {
+                _assignFromCoils = true;
+            }
+
+            public override void Reset()
+            {
+                _assignFromCoils = false;
+                _debuffForbidden = _debuffTargets = _debuffImmune = 0;
+            }
+
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+            {
+                if (_debuffForbidden == 0)
+                    return;
+
+                if (!BitVector.IsVector64BitSet(_debuffForbidden, slot))
+                {
+                    // we should be grabbing debuff
+                    if (_debuffTargets == 0)
+                    {
+                        // debuffs not assigned yet => spread and prepare to grab
+                        bool stacked = _module.IterateRaidMembersInRange(slot, _debuffPassRange).Any();
+                        hints.Add("Debuffs: spread and prepare to handle!", stacked);
+                    }
+                    else if (BitVector.IsVector64BitSet(_debuffImmune, slot))
+                    {
+                        hints.Add("Debuffs: failed to handle");
+                    }
+                    else if (BitVector.IsVector64BitSet(_debuffTargets, slot))
+                    {
+                        hints.Add("Debuffs: OK", false);
+                    }
+                    else
+                    {
+                        hints.Add("Debuffs: grab!");
+                    }
+                }
+                else
+                {
+                    // we should be passing debuff
+                    if (_debuffTargets == 0)
+                    {
+                        bool badStack = _module.IterateRaidMembers().Where(ip => ip.Item1 != slot && BitVector.IsVector64BitSet(_debuffForbidden, ip.Item1) && !GeometryUtils.PointInCircle(actor.Position - ip.Item2.Position, _debuffPassRange)).Any();
+                        hints.Add("Debuffs: stack and prepare to pass!", badStack);
+                    }
+                    else if (BitVector.IsVector64BitSet(_debuffTargets, slot))
+                    {
+                        hints.Add("Debuffs: pass!");
+                    }
+                    else
+                    {
+                        hints.Add("Debuffs: avoid", false);
+                    }
+                }
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                if (_debuffTargets == 0)
+                    return;
+
+                var boss = _module.Boss1();
+                ulong failingPlayers = _debuffForbidden & _debuffTargets;
+                foreach ((int i, var player) in _module.IterateRaidMembers())
+                {
+                    bool failing = BitVector.IsVector64BitSet(failingPlayers, i);
+                    arena.Actor(player, failing ? arena.ColorDanger : arena.ColorPlayerGeneric);
                 }
             }
 
@@ -308,6 +334,18 @@ namespace BossMod
                     case SID.Miscast:
                         ModifyDebuff(_module.FindRaidMemberSlot(actor.InstanceID), ref _debuffImmune, false);
                         break;
+                }
+            }
+
+            public override void OnCastStarted(WorldState.Actor actor)
+            {
+                if (_assignFromCoils && (actor.CastInfo!.IsSpell(AID.BeloneCoilsDPS) || actor.CastInfo!.IsSpell(AID.BeloneCoilsTH)))
+                {
+                    if (actor.CastInfo!.IsSpell(AID.BeloneCoilsDPS))
+                        _debuffForbidden = BuildMask(_module.IterateRaidMembersWhere(actor => actor.Role == WorldState.ActorRole.Melee || actor.Role == WorldState.ActorRole.Ranged));
+                    else
+                        _debuffForbidden = BuildMask(_module.IterateRaidMembersWhere(actor => actor.Role == WorldState.ActorRole.Tank || actor.Role == WorldState.ActorRole.Healer));
+                    _assignFromCoils = false;
                 }
             }
 
@@ -863,6 +901,7 @@ namespace BossMod
             _boss2 = RegisterEnemies(OID.Boss2, true);
             RegisterEnemies(OID.Orb);
 
+            RegisterComponent(new InversiveChlamys(this));
             RegisterComponent(new DirectorsBelone(this));
             RegisterComponent(new Pinax(this));
             RegisterComponent(new Shift(this));
@@ -872,12 +911,14 @@ namespace BossMod
             // checkpoint is triggered by boss becoming untargetable...
             BuildPhase1States();
             BuildPhase2States();
-            InitialState = _phase1Start;
+
+            var fork = CommonStates.Timeout(ref InitialState, 0);
+            fork.PotentialSuccessors = new[] { _phase1Start!, _phase2Start! };
         }
 
         protected override void ResetModule()
         {
-            InitialState = Boss1() != null ? _phase1Start : _phase2Start;
+            InitialState!.Next = Boss1() != null ? _phase1Start : _phase2Start;
         }
 
         protected override void DrawArenaForegroundPost()
@@ -921,28 +962,35 @@ namespace BossMod
             return resolve;
         }
 
+        private StateMachine.State BuildInversiveChlamysState(ref StateMachine.State? link, float delay)
+        {
+            var comp = FindComponent<InversiveChlamys>()!;
+            var cast = CommonStates.Cast(ref link, Boss1, AID.InversiveChlamys, delay, 7);
+            var resolve = CommonStates.Condition(ref cast.Next, 0.8f, () => !comp.TethersActive, "Chlamys");
+            return resolve;
+        }
+
         private StateMachine.State BuildBloodrakeBeloneStates(ref StateMachine.State? link, float delay)
         {
-            var beloneComp = FindComponent<DirectorsBelone>()!;
-
             var bloodrake1 = CommonStates.Cast(ref link, Boss1, AID.Bloodrake, delay, 4, "Bloodrake 1");
-            bloodrake1.Enter = beloneComp.AssignTethersFromBloodrake;
+            bloodrake1.Enter = FindComponent<InversiveChlamys>()!.AssignFromBloodrake;
             bloodrake1.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var aetheric = CommonStates.Cast(ref bloodrake1.Next, Boss1, AID.AethericChlamys, 3.2f, 4);
 
             var bloodrake2 = CommonStates.Cast(ref aetheric.Next, Boss1, AID.Bloodrake, 4.2f, 4, "Bloodrake 2");
-            bloodrake2.Enter = beloneComp.AssignDebuffsFromBloodrake;
+            bloodrake2.Enter = FindComponent<DirectorsBelone>()!.AssignFromBloodrake;
             bloodrake2.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var belone = CommonStates.Cast(ref bloodrake2.Next, Boss1, AID.DirectorsBelone, 4.2f, 5);
 
-            var inv = CommonStates.Cast(ref belone.Next, Boss1, AID.InversiveChlamys, 9.2f, 7);
-            inv.Enter = () => beloneComp.CurState = DirectorsBelone.State.Chlamys;
-            inv.Exit = () => beloneComp.CurState = DirectorsBelone.State.Resolve;
-
-            var resolve = CommonStates.Condition(ref inv.Next, 0.8f, () => beloneComp.CurState == DirectorsBelone.State.Inactive, "Chlamys");
-            return resolve;
+            var inv = BuildInversiveChlamysState(ref belone.Next, 9.2f);
+            inv.Exit = () =>
+            {
+                FindComponent<InversiveChlamys>()!.Reset();
+                FindComponent<DirectorsBelone>()!.Reset();
+            };
+            return inv;
         }
 
         private StateMachine.State BuildPinaxStates(ref StateMachine.State? link, float delay)
@@ -1032,36 +1080,40 @@ namespace BossMod
 
         private StateMachine.State BuildBeloneCoilsStates(ref StateMachine.State? link, float delay)
         {
-            var beloneComp = FindComponent<DirectorsBelone>()!;
-
             var bloodrake5 = CommonStates.Cast(ref link, Boss1, AID.Bloodrake, delay, 4, "Bloodrake 5");
             bloodrake5.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Raidwide;
 
             var coils1 = CommonStates.Cast(ref bloodrake5.Next, Boss1, AID.BeloneCoils, 3.2f, 4, "Coils 1");
+            coils1.Exit = FindComponent<InversiveChlamys>()!.AssignFromCoils;
             coils1.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var inv1 = CommonStates.Cast(ref coils1.Next, Boss1, AID.InversiveChlamys, 3.2f, 7, "Chlamys");
+            var inv1 = BuildInversiveChlamysState(ref coils1.Next, 3.2f);
             inv1.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var aetheric = CommonStates.Cast(ref inv1.Next, Boss1, AID.AethericChlamys, 3.2f, 4);
+            var aetheric = CommonStates.Cast(ref inv1.Next, Boss1, AID.AethericChlamys, 2.4f, 4);
 
             var bloodrake6 = CommonStates.Cast(ref aetheric.Next, Boss1, AID.Bloodrake, 4.2f, 4, "Bloodrake 6");
             bloodrake6.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Raidwide;
 
             var coils2 = CommonStates.Cast(ref bloodrake6.Next, Boss1, AID.BeloneCoils, 4.2f, 4, "Coils 2");
+            coils2.Exit = FindComponent<DirectorsBelone>()!.AssignFromCoils;
             coils2.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var belone = CommonStates.Cast(ref coils2.Next, Boss1, AID.DirectorsBelone, 9.2f, 5);
 
-            var inv2 = CommonStates.Cast(ref belone.Next, Boss1, AID.InversiveChlamys, 9.2f, 7, "Chlamys");
-
-            var resolve = CommonStates.Condition(ref inv2.Next, 0.8f, () => beloneComp.CurState == DirectorsBelone.State.Inactive, "Chlamys");
-            return resolve;
+            var inv2 = BuildInversiveChlamysState(ref belone.Next, 9.2f);
+            inv2.Exit = () =>
+            {
+                FindComponent<InversiveChlamys>()!.Reset();
+                FindComponent<DirectorsBelone>()!.Reset();
+            };
+            return inv2;
         }
 
         private void BuildPhase2States()
         {
-            //StateMachine.State? s;
+            StateMachine.State? s;
+            s = CommonStates.Simple(ref _phase2Start, 1, "???");
         }
     }
 }
