@@ -1026,6 +1026,7 @@ namespace BossMod
             s = BuildDecollationState(ref s.Next, 0); // note: cast starts ~0.2s before pinax resolve, whatever...
             s = BuildDecollationState(ref s.Next, 4.2f);
             s = BuildDecollationState(ref s.Next, 4.2f);
+            s = CommonStates.Timeout(ref s.Next, 10, "Enrage");
         }
 
         private StateMachine.State BuildDecollationState(ref StateMachine.State? link, float delay)

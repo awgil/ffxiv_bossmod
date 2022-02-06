@@ -31,6 +31,10 @@ namespace UIDev
             _ws.AddActor(12, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 90), 0, 1, true);
             _ws.AddActor(13, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 110), 0, 1, true);
             _ws.AddActor(14, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 110), 0, 1, true);
+            _ws.AddActor(15, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(94.34f, 0, 94.34f), 0, 1, true);
+            _ws.AddActor(16, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(94.34f, 0, 105.66f), 0, 1, true);
+            _ws.AddActor(17, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(105.66f, 0, 94.34f), 0, 1, true);
+            _ws.AddActor(18, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(105.66f, 0, 105.66f), 0, 1, true);
             _ws.PlayerActorID = 1;
             _o = new P4S(_ws);
         }
@@ -148,6 +152,12 @@ namespace UIDev
                         ImGui.SameLine();
                         if (ImGui.Button($"PinaxL##{actor.InstanceID}"))
                             _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P4S.AID.PinaxLevinstrike });
+                        ImGui.SameLine();
+                        if (ImGui.Button($"BeloneCoilDPS##{actor.InstanceID}"))
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P4S.AID.BeloneCoilsDPS });
+                        ImGui.SameLine();
+                        if (ImGui.Button($"BeloneCoilTH##{actor.InstanceID}"))
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P4S.AID.BeloneCoilsTH });
                     }
                 }
             }
