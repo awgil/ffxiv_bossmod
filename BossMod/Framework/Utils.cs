@@ -1,10 +1,12 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace BossMod
 {
-    class Utils
+    static class Utils
     {
         public static string ObjectString(GameObject obj)
         {
@@ -117,6 +119,23 @@ namespace BossMod
         public static unsafe ulong SceneObjectFlags(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o)
         {
             return ReadField<ulong>(o, 0x38);
+        }
+
+        // actor iteration utilities
+        public static IEnumerable<WorldState.Actor> SortedByRange(this IEnumerable<WorldState.Actor> range, Vector3 origin)
+        {
+            return range
+                .Select(actor => (actor, (actor.Position - origin).LengthSquared()))
+                .OrderBy(actorDist => actorDist.Item2)
+                .Select(actorDist => actorDist.Item1);
+        }
+
+        public static IEnumerable<(int, WorldState.Actor)> SortedByRange(this IEnumerable<(int, WorldState.Actor)> range, Vector3 origin)
+        {
+            return range
+                .Select(indexPlayer => (indexPlayer.Item1, indexPlayer.Item2, (indexPlayer.Item2.Position - origin).LengthSquared()))
+                .OrderBy(indexPlayerDist => indexPlayerDist.Item3)
+                .Select(indexPlayerDist => (indexPlayerDist.Item1, indexPlayerDist.Item2));
         }
     }
 }

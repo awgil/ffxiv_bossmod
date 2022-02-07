@@ -139,8 +139,8 @@ namespace BossMod
         public enum IconID: uint
         {
             AkanthaiWater = 300, // act 4
-            AkanthaiDark = 301, // acts 2 & 4
-            AkanthaiWind = 302, // act 2
+            AkanthaiDark = 301, // acts 2 & 4 & 6
+            AkanthaiWind = 302, // acts 2 & 5
             AkanthaiFire = 303, // act 2
         }
 
@@ -1020,6 +1020,83 @@ namespace BossMod
             }
         }
 
+        // state related to nearsight & farsight mechanics
+        private class NearFarSight : Component
+        {
+            public enum State { None, Near, Far }
+            public State CurState = State.None;
+
+            private P4S _module;
+            private ulong _targets = 0;
+            private ulong _inAOE = 0;
+
+            private static float _aoeRadius = 5;
+
+            public NearFarSight(P4S module)
+            {
+                _module = module;
+            }
+
+            public override void Reset() => CurState = State.None;
+
+            public override void Update()
+            {
+                _targets = _inAOE = 0;
+                var boss = _module.Boss2();
+                if (boss == null || CurState == State.None)
+                    return;
+
+                var playersByRange = _module.IterateRaidMembers().SortedByRange(boss.Position);
+                foreach ((int i, var player) in CurState == State.Near ? playersByRange.Take(2) : playersByRange.TakeLast(2))
+                {
+                    BitVector.SetVector64Bit(ref _targets, i);
+                    _inAOE |= _module.FindRaidMembersInRange(i, _aoeRadius);
+                }
+            }
+
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+            {
+                if (_targets == 0)
+                    return;
+
+                bool isTarget = BitVector.IsVector64BitSet(_targets, slot);
+                bool shouldBeTarget = actor.Role == WorldState.ActorRole.Tank;
+                bool isFailing = isTarget != shouldBeTarget;
+                bool shouldBeNear = CurState == State.Near ? shouldBeTarget : !shouldBeTarget;
+                hints.Add(shouldBeNear ? "Stay near boss" : "Stay on max melee", isFailing);
+                if (BitVector.IsVector64BitSet(_inAOE, slot))
+                {
+                    hints.Add("GTFO from tanks!");
+                }
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                var pc = _module.Player();
+                if (pc == null || _targets == 0)
+                    return;
+
+                foreach ((int i, var player) in _module.IterateRaidMembers())
+                {
+                    if (BitVector.IsVector64BitSet(_targets, i))
+                    {
+                        arena.Actor(player, arena.ColorDanger);
+                        arena.AddCircle(player.Position, _aoeRadius, arena.ColorDanger);
+                    }
+                    else
+                    {
+                        arena.Actor(player, BitVector.IsVector64BitSet(_inAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    }
+                }
+            }
+
+            public override void OnEventCast(WorldState.CastResult info)
+            {
+                if (info.IsSpell(AID.NearsightAOE) || info.IsSpell(AID.FarsightAOE))
+                    CurState = State.None;
+            }
+        }
+
         private List<WorldState.Actor> _boss1;
         private List<WorldState.Actor> _boss2;
         private WorldState.Actor? Boss1() => _boss1.FirstOrDefault();
@@ -1042,6 +1119,7 @@ namespace BossMod
             RegisterComponent(new Shift(this));
             RegisterComponent(new VengefulBelone(this));
             RegisterComponent(new ElementalBelone(this));
+            RegisterComponent(new NearFarSight(this));
 
             // checkpoint is triggered by boss becoming untargetable...
             BuildPhase1States();
@@ -1058,7 +1136,7 @@ namespace BossMod
 
         protected override void DrawArenaForegroundPost()
         {
-            Arena.Actor(Boss1(), Arena.ColorEnemy);
+            Arena.Actor(Boss1() ?? Boss2(), Arena.ColorEnemy);
             Arena.Actor(Player(), Arena.ColorPC);
         }
 
@@ -1285,15 +1363,17 @@ namespace BossMod
 
         private StateMachine.State BuildFarNearSightState(ref StateMachine.State? link, float delay)
         {
-            // TODO: component (show aoe 5 range and nearest/farthest targets, ensure are tanks)
+            var comp = FindComponent<NearFarSight>()!;
+
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
-            dispatch[AID.Nearsight] = new(null, () => { });
-            dispatch[AID.Farsight] = new(null, () => { });
+            dispatch[AID.Nearsight] = new(null, () => comp.CurState = NearFarSight.State.Near);
+            dispatch[AID.Farsight] = new(null, () => comp.CurState = NearFarSight.State.Far);
             var start = CommonStates.CastStart(ref link, Boss2, dispatch, delay);
 
             var end = CommonStates.CastEnd(ref start.Next, Boss2, 5);
 
-            var resolve = CommonStates.Timeout(ref end.Next, 1.1f, "Far/nearsight");
+            var resolve = CommonStates.Condition(ref end.Next, 1.1f, () => comp.CurState == NearFarSight.State.None, "Far/nearsight");
+            resolve.Exit = comp.Reset;
             resolve.EndHint |= StateMachine.StateHint.Tankbuster;
             return resolve;
         }

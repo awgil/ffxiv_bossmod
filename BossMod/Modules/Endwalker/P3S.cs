@@ -738,22 +738,14 @@ namespace BossMod
                 if (!Active || pc == null || _playerOrder[_module.PlayerSlot] <= NumCastsHappened)
                     return;
 
-                // find two closest adds to player's mark
                 var pos = PositionForOrder(_playerOrder[_module.PlayerSlot]);
                 arena.AddCircle(pos, 1, arena.ColorSafe);
 
-                var firesRange = new (WorldState.Actor, float)[_darkenedFires.Count];
-                for (int i = 0; i < _darkenedFires.Count; ++i)
-                {
-                    var fire = _darkenedFires[i];
-                    firesRange[i] = (fire, (fire.Position - pos).LengthSquared());
-                }
-                Array.Sort(firesRange, (l, r) => l.Item2.CompareTo(r.Item2));
-
                 // draw all adds
-                for (int i = 0; i < firesRange.Length; ++i)
+                int addIndex = 0;
+                foreach (var fire in _darkenedFires.SortedByRange(pos))
                 {
-                    arena.Actor(firesRange[i].Item1, i < 2 ? arena.ColorDanger : arena.ColorPlayerGeneric);
+                    arena.Actor(fire, addIndex++ < 2 ? arena.ColorDanger : arena.ColorPlayerGeneric);
                 }
 
                 // draw range circle
@@ -1298,7 +1290,7 @@ namespace BossMod
                 }
 
                 float cosHalfAngle = MathF.Cos(_coneHalfAngle);
-                foreach ((int i, var player) in FindClosest(boss.Position).Take(3))
+                foreach ((int i, var player) in _module.IterateRaidMembers().SortedByRange(boss.Position).Take(3))
                 {
                     BitVector.SetVector64Bit(ref _bossTargets, i);
                     foreach ((int j, var other) in FindPlayersInWinds(boss.Position, player, cosHalfAngle))
@@ -1309,7 +1301,7 @@ namespace BossMod
 
                 foreach (var twister in _twisters)
                 {
-                    (var i, var player) = FindClosest(twister.Position).FirstOrDefault();
+                    (var i, var player) = _module.IterateRaidMembers().SortedByRange(twister.Position).FirstOrDefault();
                     if (player == null)
                     {
                         _twisterTargets.Add(-1);
@@ -1411,14 +1403,6 @@ namespace BossMod
                     bool failing = BitVector.IsVector64BitSet(_hitByMultipleAOEs | _closeToTetherTarget, i);
                     arena.Actor(player, active ? arena.ColorDanger : (failing ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric));
                 }
-            }
-
-            private IEnumerable<(int, WorldState.Actor)> FindClosest(Vector3 position)
-            {
-                return _module.IterateRaidMembers()
-                    .Select(indexPlayer => (indexPlayer.Item1, indexPlayer.Item2, (indexPlayer.Item2.Position - position).LengthSquared()))
-                    .OrderBy(indexPlayerDist => indexPlayerDist.Item3)
-                    .Select(indexPlayerDist => (indexPlayerDist.Item1, indexPlayerDist.Item2));
             }
 
             private IEnumerable<(int, WorldState.Actor)> FindPlayersInWinds(Vector3 origin, WorldState.Actor target, float cosHalfAngle)

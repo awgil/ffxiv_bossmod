@@ -129,40 +129,23 @@ namespace BossMod
                     return; // nothing to do...
 
                 // update tether matrices
-                var playersByDistance = new List<(int, float)>();
                 foreach ((int iSrc, var src) in _module.IterateRaidMembers())
                 {
-                    bool hasBlue = BitVector.IsVector8BitSet(blueDebuffs, iSrc);
-                    bool hasRed = BitVector.IsVector8BitSet(redDebuffs, iSrc);
-                    if (!hasBlue && !hasRed)
-                        continue;
-
-                    foreach ((int iTgt, var tgt) in _module.IterateRaidMembers())
-                    {
-                        if (iTgt != iSrc)
-                        {
-                            playersByDistance.Add(new(iTgt, (tgt.Position - src.Position).LengthSquared()));
-                        }
-                    }
-                    playersByDistance.Sort((l, r) => l.Item2.CompareTo(r.Item2));
-
                     // blue => 3 closest
-                    if (hasBlue)
+                    if (BitVector.IsVector8BitSet(blueDebuffs, iSrc))
                     {
                         BitVector.SetMatrix8x8Bit(ref _blueTetherMatrix, iSrc, iSrc, true);
-                        foreach ((int iTgt, _) in playersByDistance.Take(3))
+                        foreach ((int iTgt, _) in _module.IterateOtherRaidMembers(iSrc).SortedByRange(src.Position).Take(3))
                             BitVector.SetMatrix8x8Bit(ref _blueTetherMatrix, iTgt, iSrc, true);
                     }
 
                     // red => 3 furthest
-                    if (hasRed)
+                    if (BitVector.IsVector8BitSet(redDebuffs, iSrc))
                     {
                         BitVector.SetMatrix8x8Bit(ref _redTetherMatrix, iSrc, iSrc, true);
-                        foreach ((int iTgt, _) in playersByDistance.TakeLast(3))
+                        foreach ((int iTgt, _) in _module.IterateOtherRaidMembers(iSrc).SortedByRange(src.Position).TakeLast(3))
                             BitVector.SetMatrix8x8Bit(ref _redTetherMatrix, iTgt, iSrc, true);
                     }
-
-                    playersByDistance.Clear();
                 }
 
                 // update explosion matrices and detect problems (has to be done in a separate pass)

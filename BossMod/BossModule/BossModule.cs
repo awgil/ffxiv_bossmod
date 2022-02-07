@@ -217,6 +217,12 @@ namespace BossMod
             }
         }
 
+        // iterate over raid members other than specified
+        public IEnumerable<(int, WorldState.Actor)> IterateOtherRaidMembers(int skipSlot, bool includeDead = false)
+        {
+            return IterateRaidMembers(includeDead).Where(indexPlayer => indexPlayer.Item1 != skipSlot);
+        }
+
         // iterate over raid members matching condition (use instead of .Where if you don't care about index in predicate)
         public IEnumerable<(int, WorldState.Actor)> IterateRaidMembersWhere(Func<WorldState.Actor, bool> predicate, bool includeDead = false)
         {
