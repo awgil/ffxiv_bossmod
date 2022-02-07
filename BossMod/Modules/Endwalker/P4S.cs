@@ -21,10 +21,10 @@ namespace BossMod
 
         public enum AID : uint
         {
-            ElegantEviscerationSecond = 26649, // Boss->target, no cast, second hit
-            SettingTheScene = 27083, // Boss->Boss
-            ShiftStart = 27086, // Boss->Boss, no cast, tp to center, sword glowing (?)
-            Pinax = 27087, // Boss->Boss
+            ElegantEviscerationSecond = 26649, // Boss1->target, no cast, second hit
+            SettingTheScene = 27083, // Boss1->Boss1
+            ShiftStart = 27086, // Boss1->Boss1, no cast, tp to center, sword glowing (?)
+            Pinax = 27087, // Boss1->Boss1
             MekhaneAcid = 27088, // Helper->target, no cast
             MekhaneLava = 27089, // Helper->target, no cast
             MekhaneWell = 27090, // Helper->Helper, no cast, affects arena
@@ -33,22 +33,22 @@ namespace BossMod
             PinaxLava = 27093, // Helper->Helper, affects corner
             PinaxWell = 27094, // Helper->Helper, affects corner
             PinaxLevinstrike = 27095, // Helper->Helper, affects corner
-            Bloodrake = 27096, // Boss->Boss
-            BeloneBursts = 27097, // Boss->Boss
+            Bloodrake = 27096, // Boss1->Boss1
+            BeloneBursts = 27097, // Boss1->Boss1
             BeloneBurstsAOETank = 27098, // Orb->target, no cast
             BeloneBurstsAOEHealer = 27099, // Orb->target, no cast
             BeloneBurstsAOEDPS = 27100, // Orb->target, no cast
-            BeloneCoils = 27101, // Boss->Boss
+            BeloneCoils = 27101, // Boss1->Boss1
             BeloneCoilsDPS = 27102, // Helper->Helper, role towers ('no heals/tanks' variant)
             BeloneCoilsTH = 27103, // Helper->Helper, role towers ('no dps' variant)
-            DirectorsBelone = 27110, // Boss->Boss
+            DirectorsBelone = 27110, // Boss1->Boss1
             DirectorsBeloneDebuffs = 27111, // Helper->target, no cast, just applies Role Call debuffs
             CursedCasting = 27113, // Helper->target, no cast, does something bad if no role call?..
-            AethericChlamys = 27116, // Boss->Boss
-            InversiveChlamys = 27117, // Boss->Boss
+            AethericChlamys = 27116, // Boss1->Boss1
+            InversiveChlamys = 27117, // Boss1->Boss1
             InversiveChlamysAOE = 27119, // Helper->target, no cast, damage to tethered targets
-            ElementalBelone = 27122, // Boss->Boss
-            Periaktoi = 27124, // Boss->Boss
+            ElementalBelone = 27122, // Boss1->Boss1
+            Periaktoi = 27124, // Boss1->Boss1
             PeriaktoiSafeAcid = 27125, // Helper->Helper (unconfirmed)
             PeriaktoiSafeLava = 27126, // Helper->Helper
             PeriaktoiSafeWell = 27127, // Helper->Helper
@@ -57,19 +57,61 @@ namespace BossMod
             PeriaktoiDangerLava = 27130, // Helper->Helper
             PeriaktoiDangerWell = 27131, // Helper->Helper
             PeriaktoiDangerLevinstrike = 27132, // Helper->Helper
-            NortherlyShiftCloak = 27133, // Boss->Boss
-            SoutherlyShiftCloak = 27134, // Boss->Boss (unconfirmed)
-            EasterlyShiftCloak = 27135, // Boss->Boss (unconfirmed)
-            WesterlyShiftCloak = 27136, // Boss->Boss (unconfirmed)
+            NortherlyShiftCloak = 27133, // Boss1->Boss1
+            SoutherlyShiftCloak = 27134, // Boss1->Boss1 (unconfirmed)
+            EasterlyShiftCloak = 27135, // Boss1->Boss1 (unconfirmed)
+            WesterlyShiftCloak = 27136, // Boss1->Boss1 (unconfirmed)
             ShiftingStrikeCloak = 27137, // Helper->Helper
-            NortherlyShiftSword = 27138, // Boss->Boss
-            SoutherlyShiftSword = 27139, // Boss->Boss
-            EasterlyShiftSword = 27140, // Boss->Boss
-            WesterlyShiftSword = 27141, // Boss->Boss (unconfirmed)
+            NortherlyShiftSword = 27138, // Boss1->Boss1
+            SoutherlyShiftSword = 27139, // Boss1->Boss1
+            EasterlyShiftSword = 27140, // Boss1->Boss1
+            WesterlyShiftSword = 27141, // Boss1->Boss1 (unconfirmed)
             ShiftingStrikeSword = 27142, // Helper->Helper, sword attack
-            ElegantEvisceration = 27144, // Boss->target
-            Decollation = 27145, // Boss->Boss
-            VengefulBelone = 28194, // Boss->Boss
+            ElegantEvisceration = 27144, // Boss1->target
+            Decollation = 27145, // Boss1->Boss1
+            AkanthaiAct1 = 27148, // Boss2->Boss2
+            AkanthaiExplodeAOE = 27149, // Helper->Helper
+            AkanthaiExplodeTower = 27150, // Helper->Helper
+            AkanthaiExplodeKnockback = 27152, // Helper->Helper
+            AkanthaiVisualTower = 27153, // Akantha->Akantha
+            AkanthaiVisualAOE = 27154, // Akantha->Akantha
+            AkanthaiVisualKnockback  = 27155, // Akantha->Akantha
+            AkanthaiWaterBreakAOE = 27156, // Helper->targets, no cast
+            AkanthaiDarkBreakAOE = 27158, // Helper->targets, no cast
+            AkanthaiFireBreakAOE = 27160, // Helper->targets, no cast
+            AkanthaiWindBreakAOE = 27162, // Helper->targets, no cast
+            FleetingImpulseAOE = 27164, // Helper->target, no cast
+            HellsSting = 27166, // Boss2->Boss2
+            HellsStingSecond = 27167, // Boss2->Boss2, no cast
+            HellsStingAOE1 = 27168, // Helper->Helper
+            HellsStingAOE2 = 27169, // Helper->Helper
+            KothornosKock = 27170, // Boss2->Boss2
+            KothornosKickJump = 27171, // Boss2->target, no cast
+            Nearsight = 27174, // Boss2->Boss2
+            Farsight = 27175, // Boss2->Boss2
+            NearsightAOE = 27176, // Helper->target, no cast
+            DarkDesign = 27177, // Boss2->Boss2
+            DarkDesignAOE = 27178, // Helper->location
+            HeartStake = 27179, // Boss2->target
+            UltimateImpulse = 27180, // Boss2->Boss2
+            SearingStream = 27181, // Boss2->Boss2
+            WreathOfThorns1 = 27183, // Boss2->Boss2
+            WreathOfThorns2 = 27184, // Boss2->Boss2
+            WreathOfThorns3 = 27185, // Boss2->Boss2
+            WreathOfThorns4 = 27184, // Boss2->Boss2
+            WreathOfThorns5 = 27188, // Boss2->Boss2
+            WreathOfThorns6 = 27189, // Boss2->Boss2
+            AkanthaiCurtainCall = 27190, // Boss2->Boss2
+            Enrage = 27191, // Boss2->Boss2
+            FarsightAOE = 28123, // Helper->target, no cast
+            VengefulBelone = 28194, // Boss1->Boss1
+            HeartStakeSecond = 28279, // Boss2->target, no cast
+            DemigodDouble = 28280, // Boss2->target
+            AkanthaiAct2 = 28340, // Boss2->Boss2
+            AkanthaiAct3 = 28341, // Boss2->Boss2
+            AkanthaiAct4 = 28342, // Boss2->Boss2
+            AkanthaiFinale = 28343, // Boss2->Boss2
+            FleetingImpulse = 28344, // Boss2->Boss2
             InversiveChlamysAOE2 = 28437, // Helper->target, no cast, damage to tethered targets (during belone coils)
         };
 
@@ -79,6 +121,7 @@ namespace BossMod
             ThriceComeRuin = 2530,
             RoleCall = 2802,
             Miscast = 2803,
+            Thornpricked = 2804,
             ActingDPS = 2925,
             ActingHealer = 2926,
             ActingTank = 2927,
@@ -89,6 +132,16 @@ namespace BossMod
             ExplosiveAether = 17,
             Chlamys = 89,
             Bloodrake = 165,
+            WreathOfThornsPairsClose = 172,
+            WreathOfThorns = 173, // also used when pairs are about to break
+        }
+
+        public enum IconID: uint
+        {
+            AkanthaiWater = 300, // act 4
+            AkanthaiDark = 301, // acts 2 & 4
+            AkanthaiWind = 302, // act 2
+            AkanthaiFire = 303, // act 2
         }
 
         // state related to belone coils mechanic (role towers)
@@ -143,7 +196,7 @@ namespace BossMod
             public override void DrawArenaForeground(MiniArena arena)
             {
                 var pc = _module.Player();
-                if (ActiveSoakers == Soaker.Unknown)
+                if (pc == null || ActiveSoakers == Soaker.Unknown)
                     return;
 
                 bool validSoaker = IsValidSoaker(pc);
@@ -1196,7 +1249,297 @@ namespace BossMod
         private void BuildPhase2States()
         {
             StateMachine.State? s;
-            s = CommonStates.Simple(ref _phase2Start, 1, "???");
+            s = BuildSearingStreamState(ref _phase2Start, 10);
+            s = BuildAkanthaiAct1States(ref s.Next, 10.2f);
+            s = BuildFarNearSightState(ref s.Next, 1);
+            s = BuildAkanthaiAct2States(ref s.Next, 7.1f);
+            s = BuildUltimateImpulseState(ref s.Next, 0.3f);
+            s = BuildAkanthaiAct3States(ref s.Next, 8.2f);
+            s = BuildFarNearSightState(ref s.Next, 7.5f);
+            s = BuildHeartStakeState(ref s.Next, 9.2f);
+            s = BuildAkanthaiAct4States(ref s.Next, 4.2f);
+            s = BuildUltimateImpulseState(ref s.Next, 28.2f);
+            s = BuildSearingStreamState(ref s.Next, 9.3f);
+            s = BuildAkanthaiAct5States(ref s.Next, 4.2f);
+            s = BuildFarNearSightState(ref s.Next, 11.2f);
+            s = BuildSearingStreamState(ref s.Next, 7.2f);
+            s = BuildDemigodDoubleState(ref s.Next, 4.2f);
+            s = BuildAkanthaiAct6States(ref s.Next, 8.2f);
+            s = BuildUltimateImpulseState(ref s.Next, 9.1f);
+            s = CommonStates.Cast(ref s.Next, Boss2, AID.Enrage, 4.4f, 10, "Enrage"); // not sure whether it's really an enrage, but it's unique aid with 10 sec cast...
+        }
+
+        private StateMachine.State BuildSearingStreamState(ref StateMachine.State? link, float delay)
+        {
+            var s = CommonStates.Cast(ref link, Boss2, AID.SearingStream, delay, 5, "AOE");
+            s.EndHint |= StateMachine.StateHint.Raidwide;
+            return s;
+        }
+
+        private StateMachine.State BuildUltimateImpulseState(ref StateMachine.State? link, float delay)
+        {
+            var s = CommonStates.Cast(ref link, Boss2, AID.UltimateImpulse, delay, 7, "AOE");
+            s.EndHint |= StateMachine.StateHint.Raidwide;
+            return s;
+        }
+
+        private StateMachine.State BuildFarNearSightState(ref StateMachine.State? link, float delay)
+        {
+            // TODO: component (show aoe 5 range and nearest/farthest targets, ensure are tanks)
+            Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
+            dispatch[AID.Nearsight] = new(null, () => { });
+            dispatch[AID.Farsight] = new(null, () => { });
+            var start = CommonStates.CastStart(ref link, Boss2, dispatch, delay);
+
+            var end = CommonStates.CastEnd(ref start.Next, Boss2, 5);
+
+            var resolve = CommonStates.Timeout(ref end.Next, 1.1f, "Far/nearsight");
+            resolve.EndHint |= StateMachine.StateHint.Tankbuster;
+            return resolve;
+        }
+
+        private StateMachine.State BuildDemigodDoubleState(ref StateMachine.State? link, float delay)
+        {
+            var s = CommonStates.Cast(ref link, Boss2, AID.DemigodDouble, delay, 5, "SharedTankbuster");
+            s.EndHint |= StateMachine.StateHint.Tankbuster;
+            return s;
+        }
+
+        private StateMachine.State BuildHeartStakeState(ref StateMachine.State? link, float delay)
+        {
+            var cast = CommonStates.Cast(ref link, Boss2, AID.HeartStake, delay, 5, "Tankbuster");
+            cast.EndHint |= StateMachine.StateHint.Tankbuster | StateMachine.StateHint.GroupWithNext;
+            var resolve = CommonStates.Timeout(ref cast.Next, 3.1f, "Tankbuster");
+            resolve.EndHint |= StateMachine.StateHint.Tankbuster;
+            return resolve;
+        }
+
+        private StateMachine.State BuildHellStingStates(ref StateMachine.State? link, float delay)
+        {
+            // TODO: component; timeline is like this:
+            // 0.0s: cast start (boss visual + helpers real)
+            // 2.4s: visual cast end
+            // 3.0s: first aoes (helpers cast end)
+            // 5.5s: boss visual instant cast + helpers start cast
+            // 6.1s: second aoes (helpers cast end)
+            var cast = CommonStates.Cast(ref link, Boss2, AID.HellsSting, delay, 2.4f);
+            var hit1 = CommonStates.Timeout(ref cast.Next, 0.6f, "Cone");
+            hit1.EndHint |= StateMachine.StateHint.GroupWithNext;
+            var hit2 = CommonStates.Timeout(ref hit1.Next, 3.1f, "Cone");
+            return hit2;
+        }
+
+        private StateMachine.State BuildAkanthaiAct1States(ref StateMachine.State? link, float delay)
+        {
+            // TODO: component
+            var intro = CommonStates.Cast(ref link, Boss2, AID.AkanthaiAct1, delay, 5, "Act1");
+            intro.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var aoe = BuildSearingStreamState(ref intro.Next, 4.2f);
+            aoe.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            // timeline:
+            // -0.1s: first 2 aoes tethered
+            //  0.0s: wreath cast start ==> component should determine order and show first aoe pair
+            //  3.0s: towers tethered
+            //  6.0s: last 2 aoes tethered
+            //  8.0s: wreath cast end
+            // 10.0s: first 2 aoes start cast 27149
+            // 11.0s: first 2 aoes finish cast ==> component should show towers
+            // 13.0s: towers start cast 27150
+            // 14.0s: towers finish cast ==> component should show second aoe pair
+            // 16.0s: last 2 aoes start cast 27149
+            // 17.0s: last 2 aoes finish cast ==> component should reset
+            // 18.0s: boss starts casting far/nearsight
+            var wreath = CommonStates.Cast(ref aoe.Next, Boss2, AID.WreathOfThorns1, 6.2f, 8, "Wreath1");
+            wreath.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var aoe1 = CommonStates.Timeout(ref wreath.Next, 3, "AOE 1");
+            aoe1.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var aoe2 = CommonStates.Timeout(ref aoe1.Next, 3, "Towers");
+            aoe2.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var aoe3 = CommonStates.Timeout(ref aoe2.Next, 3, "AOE 2");
+            return aoe3;
+        }
+
+        private StateMachine.State BuildAkanthaiAct2States(ref StateMachine.State? link, float delay)
+        {
+            // TODO: component
+            var intro = CommonStates.Cast(ref link, Boss2, AID.AkanthaiAct2, delay, 5, "Act2");
+            intro.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var dd = BuildDemigodDoubleState(ref intro.Next, 4.2f);
+            dd.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            // timeline:
+            // -0.1s: two towers and two aoes tethered
+            //  0.0s: wreath cast start ==> component should determine order and show first aoe pair
+            //  3.0s: remaining tethers
+            //  6.0s: wreath cast end
+            //  6.8s: icons + tethers appear (1 dd pair and 1 tank-healer pair with fire, 1 dd pair with wind, 1 tank-healer pair with dark on healer) ==> component should show 'break' hint on dark pair and 'stack' hint on everyone else
+            //  9.2s: dark design cast start
+            // 11.8s: 'thornpricked' debuffs
+            // 14.2s: dark design cast end ==> component should show 'gtfo from aoe/soak tower' hint + 'break' for tank-healer pair
+            // 18.1s: first 2 aoes and towers start cast 27149/27150
+            // 19.1s: first 2 aoes and towers finish cast => component should show second pair, 'gtfo from aoe/soak tower' hint + 'break' for dd pair
+            // 25.1s: last 2 aoes and towers start cast 27149/27150
+            // 26.1s: last 2 aoes and towers finish cast => component should reset (or wait until wind expire?.. would mean overlap with aoe)
+            // 26.4s: boss starts casting aoe
+            // 27.8s: wind pair expires if not broken
+            // 33.4s: boss finishes casting aoe
+            var wreath = CommonStates.Cast(ref dd.Next, Boss2, AID.WreathOfThorns2, 4.2f, 6, "Wreath2");
+            wreath.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var darkDesign = CommonStates.Cast(ref wreath.Next, Boss2, AID.DarkDesign, 3.2f, 5, "DarkDesign");
+            darkDesign.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var resolve1 = CommonStates.Timeout(ref darkDesign.Next, 4.9f, "Resolve 1");
+            resolve1.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var resolve2 = CommonStates.Timeout(ref resolve1.Next, 7, "Resolve 2");
+            return resolve2;
+        }
+
+        private StateMachine.State BuildAkanthaiAct3States(ref StateMachine.State? link, float delay)
+        {
+            // TODO: component
+            var intro = CommonStates.Cast(ref link, Boss2, AID.AkanthaiAct3, delay, 5, "Act3");
+            intro.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            // timeline:
+            // -0.1s: four towers (E/W) tethered
+            //  0.0s: wreath cast start ==> component should determine order and show spots for everyone (rdd/healers to soak, some tank to bait jump)
+            //  3.0s: center tether
+            //  6.0s: remaining tethers
+            //  8.0s: wreath cast end
+            // 11.2s: kick cast start
+            // 16.1s: kick cast end
+            // 16.3s: first jump ==> component should switch from jump to cone mode
+            // 20.0s: first towers start cast 27150
+            // 20.2s: cones 1 go off ==> component should switch to second jump mode
+            // 21.0s: first towers finish cast => component should show second towers
+            // 22.0s: central tower starts cast 27152
+            // 23.0s: central tower finishes cast
+            // 26.0s: second towers start cast 27150
+            // 26.4s: second jump ==> component should switch to second cone mode
+            // 27.0s: second towers finish cast
+            // 27.4s: second cones
+            var wreath = CommonStates.Cast(ref intro.Next, Boss2, AID.WreathOfThorns3, 4.2f, 8, "Wreath3");
+            wreath.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var jump1 = CommonStates.Cast(ref wreath.Next, Boss2, AID.KothornosKock, 3.2f, 4.9f, "Jump1");
+            jump1.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var towers1 = CommonStates.Timeout(ref jump1.Next, 4.9f, "Towers1");
+            towers1.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var jump2 = CommonStates.Timeout(ref towers1.Next, 5.4f, "Jump2");
+            jump2.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var towers2 = CommonStates.Timeout(ref jump2.Next, 0.6f, "Towers2");
+            return towers2;
+        }
+
+        private StateMachine.State BuildAkanthaiAct4States(ref StateMachine.State? link, float delay)
+        {
+            // TODO: component
+            var intro = CommonStates.Cast(ref link, Boss2, AID.AkanthaiAct4, delay, 5, "Act4");
+            intro.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var aoe1 = BuildSearingStreamState(ref intro.Next, 4.2f);
+            aoe1.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            // timeline:
+            //  0.0s: wreath cast ends
+            //  0.8s: icons and tethers appear
+            //  3.2s: searing stream cast start
+            //  5.8s: 'thornpricked' debuffs
+            //  8.2s: searing stream cast end
+            // .....: blow up tethers
+            // 36.4s: ultimate impulse cast start
+            var wreath = CommonStates.Cast(ref aoe1.Next, Boss2, AID.WreathOfThorns4, 4.2f, 5, "Wreath4");
+            wreath.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var aoe2 = BuildSearingStreamState(ref wreath.Next, 3.2f);
+            return aoe2;
+        }
+
+        private StateMachine.State BuildAkanthaiAct5States(ref StateMachine.State? link, float delay)
+        {
+            // TODO: component
+            var intro = CommonStates.Cast(ref link, Boss2, AID.AkanthaiFinale, delay, 5, "Act5");
+            intro.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            // timeline:
+            //  0.0s: wreath cast ends
+            //  0.8s: icons and tethers appear
+            //  3.2s: fleeting impulse cast start
+            //  5.8s: 'thornpricked' debuffs
+            //  8.1s: fleeting impulse cast ends
+            //  8.4s: impulse hit 1 (~0.3 from cast end)
+            //  9.9s: impulse hit 2 (~1.3 from prev for each next)
+            // 11.2s: impulse hit 3
+            // 12.5s: impulse hit 4
+            // 13.9s: impulse hit 5
+            // 15.2s: impulse hit 6
+            // 16.6s: impulse hit 7
+            // 17.9s: impulse hit 8
+            // 18.8s: 'thornpricked' disappear and some sort of instant cast happens, that does nothing if there are no fails
+            // 21.6s: first tether for wreath 6; tethers switch every ~0.5s
+            // 21.7s: wreath 6 cast start
+            // 27.7s: wreath 6 cast end
+            // 29.8s: first tower starts 27150 cast
+            // 30.8s: first tower finishes cast
+            // ... towers are staggered by ~1.3s
+            // 38.8s: near/farsight cast start
+            // 39.1s: last tower finishes cast
+            var wreath5 = CommonStates.Cast(ref intro.Next, Boss2, AID.WreathOfThorns5, 4.2f, 5, "Wreath5");
+            wreath5.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var fleeting = CommonStates.Cast(ref wreath5.Next, Boss2, AID.FleetingImpulse, 3.2f, 4.9f, "Impulse");
+            fleeting.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var wreath6 = CommonStates.Cast(ref fleeting.Next, Boss2, AID.WreathOfThorns6, 13.6f, 6, "Wreath6");
+            return wreath6;
+        }
+
+        private StateMachine.State BuildAkanthaiAct6States(ref StateMachine.State? link, float delay)
+        {
+            // timeline:
+            //  0.0s: curtain call cast ends
+            //  0.8s: icons and tethers appear
+            //  5.8s: 'thornpricked' debuffs with 12/22/32/42 duration
+            // 10.2s: hell sting 1 sequence start
+            // 16.3s: hell sting 1 sequence end
+            // 30.5s: hell sting 2 sequence start
+            // 36.6s: hell sting 2 sequence end
+            // 45.7s: aoe start
+            // 52.7s: aoe end
+            // 55.7s: 'thornpricked' debuffs
+            // 59.9s: hell sting 3 sequence start
+            // 66.0s: hell sting 3 sequence end
+            // 80.2s: hell sting 4 sequence start
+            // 86.3s: hell sting 4 sequence end
+            // 95.4s: aoe start
+            var intro = CommonStates.Cast(ref link, Boss2, AID.AkanthaiCurtainCall, delay, 5, "Act6");
+            intro.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var sting1 = BuildHellStingStates(ref intro.Next, 10.2f);
+            sting1.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var sting2 = BuildHellStingStates(ref sting1.Next, 14.2f);
+            sting2.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var impulse = BuildUltimateImpulseState(ref sting2.Next, 9.1f);
+            impulse.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var sting3 = BuildHellStingStates(ref impulse.Next, 7.2f);
+            sting3.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var sting4 = BuildHellStingStates(ref sting3.Next, 14.2f);
+            return sting4;
         }
     }
 }
