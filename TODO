@@ -1,10 +1,9 @@
 general:
-- show safe/unsafe marker
-- draw danger zones in world
-- detect stuff like zodiark snakes, etc - look at graphics scene or maybe network messages...
 - memory show/watch utility
 - clip circles to arena bounds...
 - reconsider worldstate->bossmodule event subscription model (tedious to manually subscribe/unsubsribe and forward to components...)
+- fail log?
+- replays - to simplify testing framework...
 
 network:
 - hook send/recv (a-la xivalexander)
@@ -13,16 +12,14 @@ network:
 - allow injecting custom client messages in next sent bundle (or just create new bundle?..)
 
 boss modules:
-- show per-player risks and fails
-- draw arrows in world
 - refactor components (base class component list should only contain active components)
 - remove all remaining timeouts
 - p1s - make intemperance component useful
 - p2s - improve channeling flow component
 - p2s - minor components (shockwave, ominous bubbling, eruption?..)
-- zodiark
--- refactor
-- hydaelyn: todo
+- zodiark - refactor
+- hydaelyn - todo
+- improve per-player risks...
 - data driven => would enable sequence autorecord and live editing
 
 autorotation:
@@ -32,3 +29,7 @@ autorotation:
 - defensive cooldowns (offensive veng, integrate with bossmodules - CD planner)
 - generalize to other classes
 - aoe rotation, maybe even auto-detect targets and autoselect st/aoe...
+
+world rendering:
+- danger zones
+- arrows

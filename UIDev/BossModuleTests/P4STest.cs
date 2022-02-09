@@ -17,24 +17,24 @@ namespace UIDev
         public P4STest()
         {
             _ws = new();
-            _ws.AddActor(1, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Tank, new(105, 0, 100), 0, 1, true);
-            _ws.AddActor(2, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Tank, new(100, 0, 105), 0, 1, true);
-            _ws.AddActor(3, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Healer, new(100, 0, 95), 0, 1, true);
-            _ws.AddActor(4, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Healer, new(95, 0, 100), 0, 1, true);
-            _ws.AddActor(5, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Ranged, new(110, 0, 110), 0, 1, true);
-            _ws.AddActor(6, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Ranged, new(90, 0, 110), 0, 1, true);
-            _ws.AddActor(7, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(110, 0, 90), 0, 1, true);
-            _ws.AddActor(8, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(90, 0, 90), 0, 1, true);
-            _ws.AddActor(9, (uint)P4S.OID.Boss1, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), 0, 1, true);
-            _ws.AddActor(10, (uint)P4S.OID.Boss2, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), 0, 1, true);
-            _ws.AddActor(11, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 90), 0, 1, true);
-            _ws.AddActor(12, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 90), 0, 1, true);
-            _ws.AddActor(13, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 110), 0, 1, true);
-            _ws.AddActor(14, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 110), 0, 1, true);
-            _ws.AddActor(15, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(94.34f, 0, 94.34f), 0, 1, true);
-            _ws.AddActor(16, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(94.34f, 0, 105.66f), 0, 1, true);
-            _ws.AddActor(17, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(105.66f, 0, 94.34f), 0, 1, true);
-            _ws.AddActor(18, (uint)P4S.OID.Helper, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(105.66f, 0, 105.66f), 0, 1, true);
+            _ws.AddActor(1, 0, "T1", WorldState.ActorType.Player, 0, WorldState.ActorRole.Tank, new(105, 0, 100), 0, 1, true);
+            _ws.AddActor(2, 0, "T2", WorldState.ActorType.Player, 0, WorldState.ActorRole.Tank, new(100, 0, 105), 0, 1, true);
+            _ws.AddActor(3, 0, "H1", WorldState.ActorType.Player, 0, WorldState.ActorRole.Healer, new(100, 0, 95), 0, 1, true);
+            _ws.AddActor(4, 0, "H2", WorldState.ActorType.Player, 0, WorldState.ActorRole.Healer, new(95, 0, 100), 0, 1, true);
+            _ws.AddActor(5, 0, "R1", WorldState.ActorType.Player, 0, WorldState.ActorRole.Ranged, new(110, 0, 110), 0, 1, true);
+            _ws.AddActor(6, 0, "R2", WorldState.ActorType.Player, 0, WorldState.ActorRole.Ranged, new(90, 0, 110), 0, 1, true);
+            _ws.AddActor(7, 0, "M1", WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(110, 0, 90), 0, 1, true);
+            _ws.AddActor(8, 0, "M2", WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(90, 0, 90), 0, 1, true);
+            _ws.AddActor(9, (uint)P4S.OID.Boss1, "Boss1", WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), 0, 1, true);
+            _ws.AddActor(10, (uint)P4S.OID.Boss2, "Boss2", WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), 0, 1, true);
+            _ws.AddActor(11, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 90), 0, 1, true);
+            _ws.AddActor(12, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 90), 0, 1, true);
+            _ws.AddActor(13, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 110), 0, 1, true);
+            _ws.AddActor(14, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(110, 0, 110), 0, 1, true);
+            _ws.AddActor(15, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(94.34f, 0, 94.34f), 0, 1, true);
+            _ws.AddActor(16, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(94.34f, 0, 105.66f), 0, 1, true);
+            _ws.AddActor(17, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(105.66f, 0, 94.34f), 0, 1, true);
+            _ws.AddActor(18, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(105.66f, 0, 105.66f), 0, 1, true);
             _ws.PlayerActorID = 1;
             _o = new P4S(_ws);
         }
@@ -68,7 +68,7 @@ namespace UIDev
             {
                 if (phase1)
                 {
-                    boss1 = _ws.AddActor(9, (uint)P4S.OID.Boss1, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), 0, 1, true);
+                    boss1 = _ws.AddActor(9, (uint)P4S.OID.Boss1, "Boss1", WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), 0, 1, true);
                 }
                 else
                 {

@@ -154,6 +154,7 @@ namespace BossMod
         {
             public uint InstanceID; // 'uuid'
             public uint OID;
+            public string Name;
             public ActorType Type;
             public uint ClassID;
             public ActorRole Role;
@@ -167,10 +168,11 @@ namespace BossMod
             public TetherInfo Tether = new();
             public Status[] Statuses = new Status[30]; // empty slots have ID=0
 
-            public Actor(uint instanceID, uint oid, ActorType type, uint classID, ActorRole role, Vector3 pos, float rot, float hitboxRadius, bool targetable)
+            public Actor(uint instanceID, uint oid, string name, ActorType type, uint classID, ActorRole role, Vector3 pos, float rot, float hitboxRadius, bool targetable)
             {
                 InstanceID = instanceID;
                 OID = oid;
+                Name = name;
                 Type = type;
                 ClassID = classID;
                 Role = role;
@@ -199,9 +201,9 @@ namespace BossMod
         }
 
         public event EventHandler<Actor>? ActorCreated;
-        public Actor AddActor(uint instanceID, uint oid, ActorType type, uint classID, ActorRole role, Vector3 pos, float rot, float hitboxRadius, bool targetable)
+        public Actor AddActor(uint instanceID, uint oid, string name, ActorType type, uint classID, ActorRole role, Vector3 pos, float rot, float hitboxRadius, bool targetable)
         {
-            var act = _actors[instanceID] = new Actor(instanceID, oid, type, classID, role, pos, rot, hitboxRadius, targetable);
+            var act = _actors[instanceID] = new Actor(instanceID, oid, name, type, classID, role, pos, rot, hitboxRadius, targetable);
             ActorCreated?.Invoke(this, act);
             return act;
         }
@@ -218,6 +220,17 @@ namespace BossMod
             UpdateStatuses(actor, new Status[30]); // clear statuses
             ActorDestroyed?.Invoke(this, actor);
             _actors.Remove(instanceID);
+        }
+
+        public event EventHandler<(Actor, string)>? ActorRenamed; // actor already has new name, old is passed as extra arg
+        public void RenameActor(Actor act, string newName)
+        {
+            if (act.Name != newName)
+            {
+                var prevName = act.Name;
+                act.Name = newName;
+                ActorRenamed?.Invoke(this, (act, prevName));
+            }
         }
 
         public event EventHandler<(Actor, uint, ActorRole)>? ActorClassRoleChanged; // actor already contains new position, old is passed as extra args

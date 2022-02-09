@@ -13,17 +13,17 @@ namespace UIDev
         public P2STest()
         {
             _ws = new();
-            _ws.AddActor(1, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Tank, new(100, 0, 90), 0, 1, true);
-            _ws.AddActor(2, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Tank, new(100, 0, 110), 0, 1, true);
-            _ws.AddActor(3, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Healer, new(90, 0, 90), 0, 1, true);
-            _ws.AddActor(4, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Healer, new(92, 0, 90), 0, 1, true);
-            _ws.AddActor(5, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Ranged, new(94, 0, 90), 0, 1, true);
-            _ws.AddActor(6, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Ranged, new(90, 0, 92), 0, 1, true);
-            _ws.AddActor(7, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(92, 0, 92), 0, 1, true);
-            _ws.AddActor(8, 0, WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(94, 0, 92), 0, 1, true);
-            _ws.AddActor(9, (uint)P2S.OID.Boss, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), -MathF.PI / 2, 1, true);
-            _ws.AddActor(10, (uint)P2S.OID.CataractHead, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), MathF.PI, 1, true);
-            _ws.AddActor(11, (uint)P2S.OID.DissociatedHead, WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 75), 0, 1, true);
+            _ws.AddActor(1, 0, "T1", WorldState.ActorType.Player, 0, WorldState.ActorRole.Tank, new(100, 0, 90), 0, 1, true);
+            _ws.AddActor(2, 0, "T2", WorldState.ActorType.Player, 0, WorldState.ActorRole.Tank, new(100, 0, 110), 0, 1, true);
+            _ws.AddActor(3, 0, "H1", WorldState.ActorType.Player, 0, WorldState.ActorRole.Healer, new(90, 0, 90), 0, 1, true);
+            _ws.AddActor(4, 0, "H2", WorldState.ActorType.Player, 0, WorldState.ActorRole.Healer, new(92, 0, 90), 0, 1, true);
+            _ws.AddActor(5, 0, "R1", WorldState.ActorType.Player, 0, WorldState.ActorRole.Ranged, new(94, 0, 90), 0, 1, true);
+            _ws.AddActor(6, 0, "R2", WorldState.ActorType.Player, 0, WorldState.ActorRole.Ranged, new(90, 0, 92), 0, 1, true);
+            _ws.AddActor(7, 0, "M1", WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(92, 0, 92), 0, 1, true);
+            _ws.AddActor(8, 0, "M2", WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(94, 0, 92), 0, 1, true);
+            _ws.AddActor(9, (uint)P2S.OID.Boss, "Boss", WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), -MathF.PI / 2, 1, true);
+            _ws.AddActor(10, (uint)P2S.OID.CataractHead, "CHead", WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), MathF.PI, 1, true);
+            _ws.AddActor(11, (uint)P2S.OID.DissociatedHead, "DHead", WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(90, 0, 75), 0, 1, true);
             _ws.PlayerActorID = 1;
             _o = new P2S(_ws);
         }

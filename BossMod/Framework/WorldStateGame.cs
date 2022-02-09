@@ -57,13 +57,14 @@ namespace BossMod
                 var act = FindActor(obj.ObjectId);
                 if (act == null)
                 {
-                    act = AddActor(obj.ObjectId, obj.DataId, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), characterClass, (ActorRole?)character?.ClassJob.GameData?.Role ?? ActorRole.None,
+                    act = AddActor(obj.ObjectId, obj.DataId, obj.Name.TextValue, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), characterClass, (ActorRole?)character?.ClassJob.GameData?.Role ?? ActorRole.None,
                         obj.Position, obj.Rotation, obj.HitboxRadius, Utils.GameObjectIsTargetable(obj));
                 }
                 else
                 {
                     if (act.ClassID != characterClass)
                         ChangeActorClassRole(act, characterClass, (ActorRole?)character?.ClassJob.GameData?.Role ?? ActorRole.None);
+                    RenameActor(act, obj.Name.TextValue);
                     MoveActor(act, obj.Position, obj.Rotation);
                     ChangeActorIsTargetable(act, Utils.GameObjectIsTargetable(obj));
                 }
