@@ -15,7 +15,6 @@ network:
 boss modules:
 - show per-player risks and fails
 - draw arrows in world
-- remove RegisterEnemy, registration should be on-demand
 - refactor components (base class component list should only contain active components)
 - remove all remaining timeouts
 - p1s - make intemperance component useful

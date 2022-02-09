@@ -1974,10 +1974,8 @@ namespace BossMod
         public P4S(WorldState ws)
             : base(ws, 8)
         {
-            _boss1 = RegisterEnemies(OID.Boss1, true);
-            _boss2 = RegisterEnemies(OID.Boss2, true);
-            RegisterEnemies(OID.Orb);
-            RegisterEnemies(OID.Helper);
+            _boss1 = Enemies(OID.Boss1, true);
+            _boss2 = Enemies(OID.Boss2, true);
 
             RegisterComponent(new ElegantEvisceration());
             RegisterComponent(new BeloneCoils(this));

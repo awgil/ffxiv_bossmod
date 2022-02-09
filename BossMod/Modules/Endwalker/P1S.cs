@@ -861,9 +861,7 @@ namespace BossMod
         public P1S(WorldState ws)
             : base(ws, 8)
         {
-            _boss = RegisterEnemies(OID.Boss, true);
-            RegisterEnemies(OID.FlailI);
-            RegisterEnemies(OID.FlailO);
+            _boss = Enemies(OID.Boss, true);
 
             RegisterComponent(new Shackles(this));
             RegisterComponent(new AetherExplosion(this));

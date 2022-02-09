@@ -685,9 +685,9 @@ namespace BossMod
         public P2S(WorldState ws)
             : base(ws, 8)
         {
-            _boss = RegisterEnemies(OID.Boss, true);
-            _cataractHead = RegisterEnemies(OID.CataractHead, true);
-            _dissociatedHead = RegisterEnemies(OID.DissociatedHead, true);
+            _boss = Enemies(OID.Boss, true);
+            _cataractHead = Enemies(OID.CataractHead, true);
+            _dissociatedHead = Enemies(OID.DissociatedHead, true);
 
             RegisterComponent(new SewageDeluge(this));
             RegisterComponent(new Cataract(this));

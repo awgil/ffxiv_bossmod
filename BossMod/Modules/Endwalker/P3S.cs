@@ -1658,12 +1658,7 @@ namespace BossMod
         public P3S(WorldState ws)
             : base(ws, 8)
         {
-            _boss = RegisterEnemies(OID.Boss, true);
-            RegisterEnemies(OID.DarkenedFire);
-            RegisterEnemies(OID.SunbirdSmall);
-            RegisterEnemies(OID.SunbirdLarge);
-            RegisterEnemies(OID.Sunshadow);
-            RegisterEnemies(OID.DarkblazeTwister);
+            _boss = Enemies(OID.Boss, true);
 
             RegisterComponent(new HeatOfCondemnation(this));
             RegisterComponent(new Cinderwing(this));

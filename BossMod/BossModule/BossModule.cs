@@ -26,21 +26,24 @@ namespace BossMod
         }
         private Dictionary<uint, EnemyList> _relevantEnemies = new(); // key = actor OID
 
-        // register new watched enemy list
-        protected List<WorldState.Actor> RegisterEnemies<OID>(OID oid, bool unique = false) where OID : Enum
+        // retrieve watched enemy list; it is filled on first request
+        // all requests should have matching 'unique' flag
+        public List<WorldState.Actor> Enemies<OID>(OID oid, bool unique = false) where OID : Enum
         {
             var castOID = (uint)(object)oid;
-            var entry = new EnemyList() { Unique = unique };
-            foreach (var actor in WorldState.Actors.Values.Where(actor => actor.OID == castOID))
-                AddRelevantEnemy(entry, actor);
-            _relevantEnemies[castOID] = entry;
+            var entry = _relevantEnemies.GetValueOrDefault(castOID);
+            if (entry == null)
+            {
+                entry = new EnemyList() { Unique = unique };
+                foreach (var actor in WorldState.Actors.Values.Where(actor => actor.OID == castOID))
+                    AddRelevantEnemy(entry, actor);
+                _relevantEnemies[castOID] = entry;
+            }
+            else if (entry.Unique != unique)
+            {
+                Service.Log($"[BossModule] Mismatched unique flag for list of {oid}");
+            }
             return entry.Actors;
-        }
-
-        // retrieve watched enemy list; it should have been already registered before
-        public List<WorldState.Actor> Enemies<OID>(OID oid) where OID : Enum
-        {
-            return _relevantEnemies[(uint)(object)oid].Actors;
         }
 
         // list of actor-specific hints (string + whether this is a "risk" type of hint)
