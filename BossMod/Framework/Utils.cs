@@ -137,5 +137,49 @@ namespace BossMod
                 .OrderBy(indexPlayerDist => indexPlayerDist.Item3)
                 .Select(indexPlayerDist => (indexPlayerDist.Item1, indexPlayerDist.Item2));
         }
+
+        public static IEnumerable<WorldState.Actor> InRadius(this IEnumerable<WorldState.Actor> range, Vector3 origin, float radius)
+        {
+            return range.Where(actor => GeometryUtils.PointInCircle(actor.Position - origin, radius));
+        }
+
+        // backport from .net 6
+        public static TSource? MinBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector) where TKey : IComparable
+        {
+            var res = source.FirstOrDefault();
+            if (res != null)
+            {
+                var score = keySelector(res);
+                foreach (var s in source.Skip(1))
+                {
+                    var cur = keySelector(s);
+                    if (cur.CompareTo(score) < 0)
+                    {
+                        score = cur;
+                        res = s;
+                    }
+                }
+            }
+            return res;
+        }
+
+        public static TSource? MaxBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector) where TKey : IComparable
+        {
+            var res = source.FirstOrDefault();
+            if (res != null)
+            {
+                var score = keySelector(res);
+                foreach (var s in source.Skip(1))
+                {
+                    var cur = keySelector(s);
+                    if (cur.CompareTo(score) > 0)
+                    {
+                        score = cur;
+                        res = s;
+                    }
+                }
+            }
+            return res;
+        }
     }
 }

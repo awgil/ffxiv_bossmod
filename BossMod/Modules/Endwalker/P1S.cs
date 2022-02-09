@@ -565,7 +565,6 @@ namespace BossMod
             private static float _flareRange = 20; // this is tricky - range is actually 50, but it has some sort of falloff - not sure what is 'far enough'
             private static float _holyRange = 6;
             private static uint _colorAOETarget = 0xff8080ff;
-            private static uint _colorVulnerable = 0xffff00ff;
 
             public Knockback(P1S module)
             {
@@ -703,7 +702,7 @@ namespace BossMod
 
                 // draw vulnerable target
                 if (_knockbackTarget != pc && _knockbackTarget != target)
-                    arena.Actor(_knockbackTarget, _colorVulnerable);
+                    arena.Actor(_knockbackTarget, arena.ColorVulnerable);
             }
 
             public override void OnEventCast(WorldState.CastResult info)

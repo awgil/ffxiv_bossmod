@@ -44,6 +44,7 @@ namespace BossMod
         public uint ColorEnemy = 0xff0000ff;
         public uint ColorPlayerInteresting = 0xffc0c0c0;
         public uint ColorPlayerGeneric = 0xff808080;
+        public uint ColorVulnerable = 0xffff00ff;
 
         // prepare for drawing - set up internal state, clip rect etc.
         public void Begin(float cameraAzimuthRadians)

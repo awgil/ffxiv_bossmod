@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace BossMod
 {
     // note: functions that create state chains assign first state to link and return last state
-    public class CommonStates
+    public static class CommonStates
     {
         // create simple state without any actions; by default, if name is empty, it is marked as substate
         public static StateMachine.State Simple(ref StateMachine.State? link, float duration, string name = "")

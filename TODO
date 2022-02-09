@@ -15,12 +15,15 @@ network:
 boss modules:
 - show per-player risks and fails
 - draw arrows in world
+- remove RegisterEnemy, registration should be on-demand
+- refactor components (base class component list should only contain active components)
+- remove all remaining timeouts
 - p1s - make intemperance component useful
 - p2s - improve channeling flow component
 - p2s - minor components (shockwave, ominous bubbling, eruption?..)
 - zodiark
 -- refactor
-- hydaelyn, p4s: todo
+- hydaelyn: todo
 - data driven => would enable sequence autorecord and live editing
 
 autorotation:

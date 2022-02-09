@@ -87,6 +87,8 @@ namespace BossMod
             HellsStingAOE2 = 27169, // Helper->Helper
             KothornosKock = 27170, // Boss2->Boss2
             KothornosKickJump = 27171, // Boss2->target, no cast
+            KothornosQuake2 = 27172, // Boss2->Boss2, no cast
+            KothornosQuakeAOE = 27173, // Helper->target, no cast
             Nearsight = 27174, // Boss2->Boss2
             Farsight = 27175, // Boss2->Boss2
             NearsightAOE = 27176, // Helper->target, no cast
@@ -105,6 +107,7 @@ namespace BossMod
             Enrage = 27191, // Boss2->Boss2
             FarsightAOE = 28123, // Helper->target, no cast
             VengefulBelone = 28194, // Boss1->Boss1
+            KothornosQuake1 = 28276, // Boss2->Boss2, no cast
             HeartStakeSecond = 28279, // Boss2->target, no cast
             DemigodDouble = 28280, // Boss2->target
             AkanthaiAct2 = 28340, // Boss2->Boss2
@@ -138,10 +141,18 @@ namespace BossMod
 
         public enum IconID: uint
         {
+            None = 0,
             AkanthaiWater = 300, // act 4
             AkanthaiDark = 301, // acts 2 & 4 & 6
             AkanthaiWind = 302, // acts 2 & 5
             AkanthaiFire = 303, // act 2
+        }
+
+        // state related to elegant evisceration mechanic (dual hit tankbuster)
+        // TODO: consider showing some tank swap / invul hint...
+        private class ElegantEvisceration : CommonComponents.CastCounter
+        {
+            public ElegantEvisceration() : base((uint)AID.ElegantEviscerationSecond) { }
         }
 
         // state related to belone coils mechanic (role towers)
@@ -1097,6 +1108,861 @@ namespace BossMod
             }
         }
 
+        // state related to heart stake mechanic (dual hit tankbuster with bleed)
+        // TODO: consider showing some tank swap / invul hint...
+        private class HeartStake : CommonComponents.CastCounter
+        {
+            public HeartStake() : base((uint)AID.HeartStakeSecond) { }
+        }
+
+        // state related to hell's sting mechanic (part of curtain call sequence)
+        private class HellsSting : Component
+        {
+            public int NumCasts { get; private set; } = 0;
+
+            private P4S _module;
+            private float? _direction = null;
+
+            private static float _coneHalfAngle = MathF.PI / 12; // not sure about this...
+
+            public HellsSting(P4S module)
+            {
+                _module = module;
+            }
+
+            public void Start(float dir)
+            {
+                _direction = dir;
+            }
+
+            public override void Reset()
+            {
+                NumCasts = 0;
+                _direction = null;
+            }
+
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+            {
+                var boss = _module.Boss2();
+                if (_direction == null || NumCasts >= 2 || boss == null)
+                    return;
+
+                for (int i = 0; i < 8; ++i)
+                {
+                    float dir = _direction.Value + NumCasts * MathF.PI / 8 + i * MathF.PI / 4;
+                    if (GeometryUtils.PointInCone(actor.Position - boss.Position, dir, _coneHalfAngle))
+                    {
+                        hints.Add("GTFO from cone!");
+                        break;
+                    }
+                }
+            }
+
+            public override void DrawArenaBackground(MiniArena arena)
+            {
+                var boss = _module.Boss2();
+                if (_direction == null || NumCasts >= 2 || boss == null)
+                    return;
+
+                for (int i = 0; i < 8; ++i)
+                {
+                    float dir = _direction.Value + NumCasts * MathF.PI / 8 + i * MathF.PI / 4;
+                    arena.ZoneCone(boss.Position, 0, 50, dir - _coneHalfAngle, dir + _coneHalfAngle, arena.ColorAOE);
+                }
+            }
+
+            public override void OnCastFinished(WorldState.Actor actor)
+            {
+                if (_direction != null && (actor.CastInfo!.IsSpell(AID.HellsStingAOE1) || actor.CastInfo!.IsSpell(AID.HellsStingAOE2)))
+                    ++NumCasts;
+            }
+        }
+
+        // common wreath of thorns constants
+        private static float _wreathAOERadius = 20;
+        private static float _wreathTowerRadius = 4;
+
+        // state related to act 1 wreath of thorns
+        private class WreathOfThorns1 : Component
+        {
+            public enum State { Inactive, FirstAOEs, Towers, LastAOEs }
+            public State CurState { get; private set; } = State.Inactive;
+
+            private P4S _module;
+            private List<WorldState.Actor> _helpers;
+            private List<WorldState.Actor> _relevantHelpers = new(); // 2 aoes -> 8 towers -> 2 aoes
+
+            private IEnumerable<WorldState.Actor> _firstAOEs => _relevantHelpers.Take(2);
+            private IEnumerable<WorldState.Actor> _towers => _relevantHelpers.Skip(2).Take(8);
+            private IEnumerable<WorldState.Actor> _lastAOEs => _relevantHelpers.Skip(10);
+
+            public WreathOfThorns1(P4S module)
+            {
+                _module = module;
+                _helpers = module.Enemies(OID.Helper);
+            }
+
+            public void Begin()
+            {
+                CurState = State.FirstAOEs;
+                // there should be two tethered helpers for aoes
+                _relevantHelpers = _helpers.Where(actor => actor.Tether.ID == (uint)TetherID.WreathOfThorns).ToList();
+            }
+
+            public override void Reset()
+            {
+                CurState = State.Inactive;
+                _relevantHelpers.Clear();
+            }
+
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+            {
+                switch (CurState)
+                {
+                    case State.FirstAOEs:
+                        if (_firstAOEs.InRadius(actor.Position, _wreathAOERadius).Any())
+                        {
+                            hints.Add("GTFO from AOE!");
+                        }
+                        break;
+                    case State.Towers:
+                        {
+                            var soakedTower = _towers.InRadius(actor.Position, _wreathTowerRadius).FirstOrDefault();
+                            if (soakedTower == null)
+                            {
+                                hints.Add("Soak the tower!");
+                            }
+                            else if (_module.IterateRaidMembersInRange(soakedTower.Position, _wreathTowerRadius).Any(ip => ip.Item1 != slot))
+                            {
+                                hints.Add("Multiple soakers for the tower!");
+                            }
+                        }
+                        break;
+                    case State.LastAOEs:
+                        if (_lastAOEs.InRadius(actor.Position, _wreathAOERadius).Any())
+                        {
+                            hints.Add("GTFO from AOE!");
+                        }
+                        break;
+                }
+            }
+
+            public override void DrawArenaBackground(MiniArena arena)
+            {
+                if (CurState == State.FirstAOEs || CurState == State.LastAOEs)
+                    foreach (var aoe in CurState == State.FirstAOEs ? _firstAOEs : _lastAOEs)
+                        arena.ZoneCircle(aoe.Position, _wreathAOERadius, arena.ColorAOE);
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                if (CurState == State.Towers)
+                {
+                    foreach (var tower in _towers)
+                        arena.AddCircle(tower.Position, _wreathTowerRadius, arena.ColorSafe);
+                    foreach ((_, var player) in _module.IterateRaidMembers())
+                        arena.Actor(player, arena.ColorPlayerGeneric);
+                }
+            }
+
+            public override void OnTethered(WorldState.Actor actor)
+            {
+                if (CurState != State.Inactive && actor.OID == (uint)OID.Helper && actor.Tether.ID == (uint)TetherID.WreathOfThorns)
+                    _relevantHelpers.Add(actor);
+            }
+
+            public override void OnCastFinished(WorldState.Actor actor)
+            {
+                if (CurState == State.FirstAOEs && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeAOE))
+                    CurState = State.Towers;
+                else if (CurState == State.Towers && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeTower))
+                    CurState = State.LastAOEs;
+                else if (CurState == State.LastAOEs && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeAOE))
+                    CurState = State.Inactive;
+            }
+        }
+
+        // state related to act 2 wreath of thorns
+        // note: we assume that (1) dark targets soak all towers, (2) first fire to be broken is tank-healer pair (since their debuff is slightly shorter)
+        // theoretically second set of towers could be soaked by first fire pair, but whatever...
+        private class WreathOfThorns2 : Component
+        {
+            public enum State { Inactive, DarkDesign, FirstSet, SecondSet }
+            public enum TetherType { None, Wind, FireDD, FireTH, Dark } // sorted in break priority order
+
+            public State CurState { get; private set; } = State.Inactive;
+
+            private P4S _module;
+            private List<WorldState.Actor> _helpers;
+            private List<WorldState.Actor> _relevantHelpers = new(); // 2 aoes -> 8 towers -> 2 aoes
+            private IconID[] _playerIcons = new IconID[8];
+            private int _numAOECasts = 0;
+
+            private IEnumerable<WorldState.Actor> _firstSet => _relevantHelpers.Take(4);
+            private IEnumerable<WorldState.Actor> _secondSet => _relevantHelpers.Skip(4);
+
+            private static float _fireExplosionRadius = 6;
+
+            public WreathOfThorns2(P4S module)
+            {
+                _module = module;
+                _helpers = module.Enemies(OID.Helper);
+            }
+
+            public void Begin()
+            {
+                CurState = State.DarkDesign;
+                // there should be four tethered helpers
+                _relevantHelpers = _helpers.Where(actor => actor.Tether.ID == (uint)TetherID.WreathOfThorns).ToList();
+            }
+
+            public override void Reset()
+            {
+                CurState = State.Inactive;
+                _relevantHelpers.Clear();
+                Array.Fill(_playerIcons, IconID.None);
+                _numAOECasts = 0;
+            }
+
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+            {
+                if (CurState == State.Inactive)
+                    return;
+
+                if (CurState == State.DarkDesign)
+                {
+                    var darkSource = _module.IterateRaidMembers().Where(ip => _playerIcons[ip.Item1] == IconID.AkanthaiDark).FirstOrDefault().Item2;
+                    if (actor == darkSource || actor.InstanceID == darkSource?.Tether.Target)
+                    {
+                        hints.Add("Break tether!");
+                    }
+                    else
+                    {
+                        hints.Add("Stay in center", false);
+                    }
+                }
+                else
+                {
+                    (var nextTetherSource, var nextTetherType) = ActiveTethers().MaxBy(pt => pt.Item2);
+                    bool isNextTether = actor == nextTetherSource || actor.InstanceID == nextTetherSource?.Tether.Target;
+                    if (isNextTether)
+                    {
+                        hints.Add("Break tether!");
+                    }
+
+                    var relevantHelpers = CurState == State.FirstSet ? _firstSet : _secondSet;
+                    if (relevantHelpers.Where(IsAOE).InRadius(actor.Position, _wreathAOERadius).Any())
+                    {
+                        hints.Add("GTFO from AOE!");
+                    }
+
+                    var soakedTower = relevantHelpers.Where(IsTower).InRadius(actor.Position, _wreathTowerRadius).FirstOrDefault();
+                    if (_playerIcons[slot] != IconID.AkanthaiWind && _playerIcons[slot] != IconID.AkanthaiFire)
+                    {
+                        // note: we're assuming that players with 'dark' soak all towers
+                        hints.Add("Soak the tower!", soakedTower == null);
+                    }
+                    else
+                    {
+                        if (soakedTower != null)
+                        {
+                            hints.Add("GTFO from tower!");
+                        }
+
+                        if (!isNextTether && nextTetherSource != null && (nextTetherType == TetherType.FireDD || nextTetherType == TetherType.FireTH))
+                        {
+                            bool nearFire = GeometryUtils.PointInCircle(nextTetherSource.Position - actor.Position, _fireExplosionRadius);
+                            if (!nearFire)
+                            {
+                                var nextTetherTarget = _module.WorldState.FindActor(nextTetherSource.Tether.Target);
+                                nearFire = nextTetherTarget != null && GeometryUtils.PointInCircle(nextTetherTarget.Position - actor.Position, _fireExplosionRadius);
+                            }
+                            hints.Add("Stack with breaking tether!", !nearFire);
+                        }
+                    }
+                }
+            }
+
+            public override void DrawArenaBackground(MiniArena arena)
+            {
+                if (CurState == State.Inactive)
+                    return;
+
+                foreach (var aoe in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsAOE))
+                    arena.ZoneCircle(aoe.Position, _wreathAOERadius, arena.ColorAOE);
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                if (CurState == State.Inactive)
+                    return;
+
+                foreach (var tower in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsTower))
+                    arena.AddCircle(tower.Position, _wreathTowerRadius, arena.ColorSafe);
+
+                foreach ((int i, var player) in _module.IterateRaidMembers())
+                {
+                    arena.Actor(player, arena.ColorPlayerGeneric);
+                    var tetherTarget = player.Tether.Target != 0 ? _module.WorldState.FindActor(player.Tether.Target) : null;
+                    if (tetherTarget != null)
+                    {
+                        bool breaking = player.Tether.ID == (uint)TetherID.WreathOfThorns;
+                        arena.AddLine(player.Position, tetherTarget.Position, breaking ? arena.ColorDanger : arena.ColorSafe);
+                        if (breaking && _playerIcons[i] == IconID.AkanthaiFire)
+                        {
+                            arena.AddCircle(player.Position, _fireExplosionRadius, arena.ColorDanger);
+                            arena.AddCircle(tetherTarget.Position, _fireExplosionRadius, arena.ColorDanger);
+                        }
+                    }
+                }
+            }
+
+            public override void OnTethered(WorldState.Actor actor)
+            {
+                if (CurState != State.Inactive && actor.OID == (uint)OID.Helper && actor.Tether.ID == (uint)TetherID.WreathOfThorns)
+                    _relevantHelpers.Add(actor);
+            }
+
+            public override void OnCastFinished(WorldState.Actor actor)
+            {
+                if (CurState == State.DarkDesign && actor.CastInfo!.IsSpell(AID.DarkDesign))
+                    CurState = State.FirstSet;
+                else if (CurState == State.FirstSet && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeAOE) && ++_numAOECasts >= 2)
+                    CurState = State.SecondSet;
+                else if (CurState == State.SecondSet && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeAOE) && ++_numAOECasts >= 4)
+                    CurState = State.Inactive;
+            }
+
+            public override void OnEventIcon(uint actorID, uint iconID)
+            {
+                if (CurState != State.Inactive)
+                {
+                    var slot = _module.FindRaidMemberSlot(actorID);
+                    if (slot >= 0)
+                        _playerIcons[slot] = (IconID)iconID;
+                }
+            }
+
+            private bool IsTower(WorldState.Actor actor)
+            {
+                if (actor.Position.X < 90)
+                    return actor.Position.Z > 100;
+                else if (actor.Position.Z < 90)
+                    return actor.Position.X < 100;
+                else if (actor.Position.X > 110)
+                    return actor.Position.Z < 100;
+                else if (actor.Position.Z > 110)
+                    return actor.Position.X > 100;
+                else
+                    return false;
+            }
+
+            private bool IsAOE(WorldState.Actor actor)
+            {
+                if (actor.Position.X < 90)
+                    return actor.Position.Z < 100;
+                else if (actor.Position.Z < 90)
+                    return actor.Position.X > 100;
+                else if (actor.Position.X > 110)
+                    return actor.Position.Z > 100;
+                else if (actor.Position.Z > 110)
+                    return actor.Position.X < 100;
+                else
+                    return false;
+            }
+
+            private TetherType TetherPriority(WorldState.Actor player, IconID icon)
+            {
+                return icon switch
+                {
+                    IconID.AkanthaiDark => TetherType.Dark,
+                    IconID.AkanthaiWind => TetherType.Wind,
+                    IconID.AkanthaiFire => (player.Role == WorldState.ActorRole.Tank || player.Role == WorldState.ActorRole.Healer) ? TetherType.FireTH : TetherType.FireDD,
+                    _ => TetherType.None
+                };
+            }
+
+            private IEnumerable<(WorldState.Actor, TetherType)> ActiveTethers()
+            {
+                return _module.IterateRaidMembers()
+                    .Select(ip => (ip.Item2, TetherPriority(ip.Item2, _playerIcons[ip.Item1])))
+                    .Where(it => it.Item2 != TetherType.None);
+            }
+        }
+
+        // state related to act 3 wreath of thorns
+        private class WreathOfThorns3 : Component
+        {
+            public enum State { Inactive, RangedTowers, Knockback, MeleeTowers, Done }
+            public State CurState { get; private set; } = State.Inactive;
+            public int NumJumps { get; private set; } = 0;
+            public int NumCones { get; private set; } = 0;
+
+            private P4S _module;
+            private List<WorldState.Actor> _helpers;
+            private List<WorldState.Actor> _relevantHelpers = new(); // 4 towers -> knockback -> 4 towers
+            private WorldState.Actor? _jumpTarget = null; // either predicted (if jump is imminent) or last actual (if cones are imminent)
+            private ulong _coneTargets = 0;
+            private ulong _playersInAOE = 0;
+
+            private IEnumerable<WorldState.Actor> _rangedTowers => _relevantHelpers.Take(4);
+            private IEnumerable<WorldState.Actor> _knockbackThorn => _relevantHelpers.Skip(4).Take(1);
+            private IEnumerable<WorldState.Actor> _meleeTowers => _relevantHelpers.Skip(5);
+
+            private static float _jumpAOERadius = 10;
+            private static float _coneHalfAngle = MathF.PI / 4; // not sure about this...
+
+            public WreathOfThorns3(P4S module)
+            {
+                _module = module;
+                _helpers = module.Enemies(OID.Helper);
+            }
+
+            public void Begin()
+            {
+                CurState = State.RangedTowers;
+                // there should be four tethered helpers
+                _relevantHelpers = _helpers.Where(actor => actor.Tether.ID == (uint)TetherID.WreathOfThorns).ToList();
+            }
+
+            public override void Reset()
+            {
+                CurState = State.Inactive;
+                NumJumps = NumCones = 0;
+                _relevantHelpers.Clear();
+                _jumpTarget = null;
+            }
+
+            public override void Update()
+            {
+                _coneTargets = _playersInAOE = 0;
+                var boss = _module.Boss2();
+                if (CurState == State.Inactive || boss == null)
+                    return;
+
+                if (NumCones == NumJumps)
+                {
+                    _jumpTarget = _module.IterateRaidMembers().SortedByRange(boss.Position).LastOrDefault().Item2;
+                    _playersInAOE = _jumpTarget != null ? BuildMask(_module.IterateRaidMembersInRange(_jumpTarget.Position, _jumpAOERadius).Where(ip => ip.Item2 != _jumpTarget)) : 0;
+                }
+                else
+                {
+                    foreach ((int i, var player) in _module.IterateRaidMembers().SortedByRange(boss.Position).Take(3))
+                    {
+                        BitVector.SetVector64Bit(ref _coneTargets, i);
+                        if (player.Position != boss.Position)
+                        {
+                            var direction = Vector3.Normalize(player.Position - boss.Position);
+                            _playersInAOE |= BuildMask(_module.IterateOtherRaidMembers(i).Where(ip => GeometryUtils.PointInCone(ip.Item2.Position - boss.Position, direction, _coneHalfAngle)));
+                        }
+                    }
+                }
+            }
+
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+            {
+                if (CurState == State.Inactive)
+                    return;
+
+                if (CurState != State.Done)
+                {
+                    // TODO: consider raid comps with 3+ melee or ranged...
+                    bool shouldSoakTower = CurState == State.RangedTowers
+                        ? (actor.Role == WorldState.ActorRole.Ranged || actor.Role == WorldState.ActorRole.Healer)
+                        : (actor.Role == WorldState.ActorRole.Melee || actor.Role == WorldState.ActorRole.Tank);
+                    var soakedTower = (CurState == State.RangedTowers ? _rangedTowers : _meleeTowers).InRadius(actor.Position, _wreathTowerRadius).FirstOrDefault();
+                    if (shouldSoakTower)
+                    {
+                        hints.Add("Soak the tower!", soakedTower == null);
+                    }
+                    else if (soakedTower != null)
+                    {
+                        hints.Add("GTFO from tower!");
+                    }
+                }
+
+                if (BitVector.IsVector64BitSet(_playersInAOE, slot))
+                {
+                    hints.Add("GTFO from aoe!");
+                }
+                if (NumCones == NumJumps && actor == _jumpTarget && _playersInAOE != 0)
+                {
+                    hints.Add("GTFO from raid!");
+                }
+                if (NumCones != NumJumps && actor == _jumpTarget && BitVector.IsVector64BitSet(_coneTargets, slot))
+                {
+                    hints.Add("GTFO from boss!");
+                }
+            }
+
+            public override void DrawArenaBackground(MiniArena arena)
+            {
+                var boss = _module.Boss2();
+                if (_coneTargets != 0 && boss != null)
+                {
+                    foreach ((_, var player) in _module.IterateRaidMembers().Where(ip => BitVector.IsVector64BitSet(_coneTargets, ip.Item1) && boss.Position != ip.Item2.Position))
+                    {
+                        var offset = player.Position - boss.Position;
+                        float phi = MathF.Atan2(offset.X, offset.Z);
+                        arena.ZoneCone(boss.Position, 0, 50, phi - _coneHalfAngle, phi + _coneHalfAngle, arena.ColorAOE);
+                    }
+                }
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                if (CurState == State.Inactive)
+                    return;
+
+                foreach ((int i, var player) in _module.IterateRaidMembers())
+                    arena.Actor(player, BitVector.IsVector64BitSet(_playersInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+
+                if (CurState != State.Done)
+                {
+                    foreach (var tower in (CurState == State.RangedTowers ? _rangedTowers : _meleeTowers))
+                        arena.AddCircle(tower.Position, _wreathTowerRadius, arena.ColorSafe);
+                }
+
+                if (NumCones != NumJumps)
+                {
+                    foreach ((_, var player) in _module.IterateRaidMembers().Where(ip => BitVector.IsVector64BitSet(_coneTargets, ip.Item1)))
+                        arena.Actor(player, arena.ColorDanger);
+                    arena.Actor(_jumpTarget, arena.ColorVulnerable);
+                }
+                else if (_jumpTarget != null)
+                {
+                    arena.Actor(_jumpTarget, arena.ColorDanger);
+                    arena.AddCircle(_jumpTarget.Position, _jumpAOERadius, arena.ColorDanger);
+                }
+            }
+
+            public override void OnTethered(WorldState.Actor actor)
+            {
+                if (CurState != State.Inactive && actor.OID == (uint)OID.Helper && actor.Tether.ID == (uint)TetherID.WreathOfThorns)
+                    _relevantHelpers.Add(actor);
+            }
+
+            public override void OnCastFinished(WorldState.Actor actor)
+            {
+                if (CurState == State.RangedTowers && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeTower))
+                    CurState = State.Knockback;
+                else if (CurState == State.Knockback && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeKnockback))
+                    CurState = State.MeleeTowers;
+                else if (CurState == State.MeleeTowers && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeTower))
+                    CurState = State.Done;
+            }
+
+            public override void OnEventCast(WorldState.CastResult info)
+            {
+                if (info.IsSpell(AID.KothornosKickJump))
+                {
+                    ++NumJumps;
+                    _jumpTarget = _module.WorldState.FindActor(info.MainTargetID);
+                }
+                else if (info.IsSpell(AID.KothornosQuake1) || info.IsSpell(AID.KothornosQuake2))
+                {
+                    ++NumCones;
+                }
+            }
+        }
+
+        // state related to act 4 wreath of thorns
+        // note: we assume that aoes are popped in waymark order...
+        private class WreathOfThorns4 : Component
+        {
+            public bool Active = false;
+
+            private P4S _module;
+            private IconID[] _playerIcons = new IconID[8];
+            private WorldState.Actor?[] _playerTetherSource = new WorldState.Actor?[8];
+            private int _doneTowers = 0;
+            private int _doneAOEs = 0;
+
+            private static float _waterExplosionRange = 10;
+
+            public WreathOfThorns4(P4S module)
+            {
+                _module = module;
+            }
+
+            public override void Reset()
+            {
+                Active = false;
+                Array.Fill(_playerIcons, IconID.None);
+                Array.Fill(_playerTetherSource, null);
+                _doneTowers = _doneAOEs = 0;
+            }
+
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+            {
+                if (!Active)
+                    return;
+
+                if (_doneTowers < 4)
+                {
+                    if (_playerIcons[slot] == IconID.AkanthaiWater)
+                    {
+                        hints.Add("Break tether!");
+                        if (_module.IterateRaidMembersInRange(slot, _waterExplosionRange).Any())
+                        {
+                            hints.Add("GTFO from others!");
+                        }
+                    }
+                    else
+                    {
+                        var soakedTower = _playerTetherSource.Zip(_playerIcons).Where(si => si.Item1 != null && si.Item2 == IconID.AkanthaiWater).Select(si => si.Item1!).InRadius(actor.Position, _wreathTowerRadius).FirstOrDefault();
+                        hints.Add("Soak the tower!", soakedTower == null);
+                    }
+                }
+                else
+                {
+                    var nextAOE = NextAOE();
+                    if (nextAOE != null)
+                    {
+                        if (nextAOE.Tether.Target == actor.InstanceID)
+                        {
+                            hints.Add("Break tether!");
+                        }
+                        if (GeometryUtils.PointInCircle(actor.Position - nextAOE.Position, _wreathAOERadius))
+                        {
+                            hints.Add("GTFO from AOE!");
+                        }
+                    }
+                }
+            }
+
+            public override void DrawArenaBackground(MiniArena arena)
+            {
+                if (!Active || _doneTowers < 4)
+                    return;
+
+                var nextAOE = NextAOE();
+                if (nextAOE != null)
+                    arena.ZoneCircle(nextAOE.Position, _wreathAOERadius, arena.ColorAOE);
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                if (!Active)
+                    return;
+
+                var nextAOE = _doneTowers < 4 ? null : NextAOE();
+                foreach (((var player, var icon), var source) in _module.RaidMembers.Zip(_playerIcons).Zip(_playerTetherSource))
+                {
+                    arena.Actor(player, arena.ColorPlayerGeneric);
+                    if (player == null || source == null)
+                        continue;
+
+                    if (icon == IconID.AkanthaiWater)
+                    {
+                        arena.AddCircle(source.Position, _wreathTowerRadius, arena.ColorSafe);
+                        arena.AddCircle(player.Position, _waterExplosionRange, arena.ColorDanger);
+                        arena.AddLine(player.Position, source.Position, source.Tether.ID == (uint)TetherID.WreathOfThorns ? arena.ColorDanger : arena.ColorSafe);
+                    }
+                    else if (source == nextAOE)
+                    {
+                        arena.AddLine(player.Position, source.Position, source.Tether.ID == (uint)TetherID.WreathOfThorns ? arena.ColorDanger : arena.ColorSafe);
+                    }
+                }
+            }
+
+            public override void OnTethered(WorldState.Actor actor)
+            {
+                if (Active && actor.OID == (uint)OID.Helper)
+                {
+                    var slot = _module.FindRaidMemberSlot(actor.Tether.Target);
+                    if (slot >= 0)
+                        _playerTetherSource[slot] = actor;
+                }
+            }
+
+            public override void OnUntethered(WorldState.Actor actor)
+            {
+                if (Active && actor.OID == (uint)OID.Helper)
+                {
+                    var slot = _module.FindRaidMemberSlot(actor.Tether.Target);
+                    if (slot >= 0)
+                        _playerTetherSource[slot] = null;
+                }
+            }
+
+            public override void OnCastFinished(WorldState.Actor actor)
+            {
+                if (Active && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeTower))
+                    ++_doneTowers;
+                if (Active && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeAOE))
+                    ++_doneAOEs;
+            }
+
+            public override void OnEventIcon(uint actorID, uint iconID)
+            {
+                if (Active)
+                {
+                    var slot = _module.FindRaidMemberSlot(actorID);
+                    if (slot >= 0)
+                        _playerIcons[slot] = (IconID)iconID;
+                }
+            }
+
+            private WorldState.Actor? NextAOE()
+            {
+                // note: this is quite a hack to be honest...
+                var pos = _doneAOEs < 4 ? _module.WorldState.GetWaymark((WorldState.Waymark)((int)WorldState.Waymark.N1 + _doneAOEs)) : null;
+                return pos != null ? _playerTetherSource.Zip(_playerIcons).Where(si => si.Item1 != null && si.Item2 == IconID.AkanthaiDark).Select(si => si.Item1!).MinBy(s => (s.Position - pos.Value).LengthSquared()) : null;
+            }
+        }
+
+        // state related to act 5 (finale) wreath of thorns
+        private class WreathOfThorns5 : Component
+        {
+            public bool Active = false;
+
+            private P4S _module;
+            private List<uint> _playersOrder = new();
+            private List<WorldState.Actor> _towersOrder = new();
+            private int _castsDone = 0;
+
+            private static float _impulseAOERadius = 5;
+
+            public WreathOfThorns5(P4S module)
+            {
+                _module = module;
+            }
+
+            public override void Reset()
+            {
+                Active = false;
+                _playersOrder.Clear();
+                _towersOrder.Clear();
+                _castsDone = 0;
+            }
+
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+            {
+                if (!Active)
+                    return;
+
+                int order = _playersOrder.IndexOf(actor.InstanceID);
+                if (order >= 0)
+                {
+                    hints.Add($"Order: {order}", false);
+
+                    if (order >= _castsDone && order < _towersOrder.Count)
+                    {
+                        hints.Add("Soak tower!", !GeometryUtils.PointInCircle(actor.Position - _towersOrder[order].Position, _wreathTowerRadius));
+                    }
+                }
+
+                if (_playersOrder.Count < 8)
+                {
+                    hints.Add("Spread!", _module.IterateRaidMembersInRange(slot, _impulseAOERadius).Any());
+                }
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                var pc = _module.Player();
+                if (!Active || pc == null)
+                    return;
+
+                int order = _playersOrder.IndexOf(pc.InstanceID);
+                if (order >= _castsDone && order < _towersOrder.Count)
+                    arena.AddCircle(_towersOrder[order].Position, _wreathTowerRadius, arena.ColorSafe);
+
+                if (_playersOrder.Count < 8)
+                {
+                    arena.AddCircle(pc.Position, _impulseAOERadius, arena.ColorDanger);
+                    foreach ((_, var player) in _module.IterateOtherRaidMembers(_module.PlayerSlot))
+                        arena.Actor(player, GeometryUtils.PointInCircle(player.Position - pc.Position, _impulseAOERadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                }
+            }
+
+            public override void OnTethered(WorldState.Actor actor)
+            {
+                if (Active && actor.OID == (uint)OID.Helper)
+                    _towersOrder.Add(actor);
+            }
+
+            public override void OnEventCast(WorldState.CastResult info)
+            {
+                if (!Active)
+                    return;
+                if (info.IsSpell(AID.FleetingImpulseAOE))
+                    _playersOrder.Add(info.MainTargetID);
+                else if (info.IsSpell(AID.AkanthaiExplodeTower))
+                    ++_castsDone;
+            }
+        }
+
+        // state related to curtain call mechanic
+        // TODO: unhardcode relative order in pairs, currently tanks/healers pop first...
+        private class CurtainCall : Component
+        {
+            private P4S _module;
+            private bool _active = false;
+            private int[] _playerOrder = new int[8];
+            private int _numCasts = 0;
+
+            public CurtainCall(P4S module)
+            {
+                _module = module;
+            }
+
+            public void Restart()
+            {
+                _active = true;
+                _numCasts = 0;
+                Array.Fill(_playerOrder, 0);
+            }
+
+            public override void Reset()
+            {
+                _active = false;
+                _numCasts = 0;
+                Array.Fill(_playerOrder, 0);
+            }
+
+            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+            {
+                if (_active && _playerOrder[slot] > _numCasts)
+                {
+                    var relOrder = _playerOrder[slot] - _numCasts;
+                    hints.Add($"Tether break order: {relOrder}", relOrder == 1);
+                }
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                var pc = _module.Player();
+                if (_active && _playerOrder[_module.PlayerSlot] > _numCasts && pc != null)
+                {
+                    var tetherTarget = pc.Tether.Target != 0 ? _module.WorldState.FindActor(pc.Tether.Target) : null;
+                    if (tetherTarget != null)
+                        arena.AddLine(pc.Position, tetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? arena.ColorDanger : arena.ColorSafe);
+                }
+            }
+
+            public override void OnStatusGain(WorldState.Actor actor, int index)
+            {
+                if (_active && actor.Statuses[index].ID == (uint)SID.Thornpricked)
+                {
+                    int slot = _module.FindRaidMemberSlot(actor.InstanceID);
+                    if (slot >= 0)
+                    {
+                        _playerOrder[slot] = 2 * (int)(actor.Statuses[index].RemainingTime / 10); // 2/4/6/8
+                        if (actor.Role == WorldState.ActorRole.Tank || actor.Role == WorldState.ActorRole.Healer)
+                            --_playerOrder[slot];
+                    }
+                }
+            }
+
+            public override void OnStatusLose(WorldState.Actor actor, int index)
+            {
+                if (_active && actor.Statuses[index].ID == (uint)SID.Thornpricked)
+                    ++_numCasts;
+            }
+        }
+
         private List<WorldState.Actor> _boss1;
         private List<WorldState.Actor> _boss2;
         private WorldState.Actor? Boss1() => _boss1.FirstOrDefault();
@@ -1111,7 +1977,9 @@ namespace BossMod
             _boss1 = RegisterEnemies(OID.Boss1, true);
             _boss2 = RegisterEnemies(OID.Boss2, true);
             RegisterEnemies(OID.Orb);
+            RegisterEnemies(OID.Helper);
 
+            RegisterComponent(new ElegantEvisceration());
             RegisterComponent(new BeloneCoils(this));
             RegisterComponent(new InversiveChlamys(this));
             RegisterComponent(new DirectorsBelone(this));
@@ -1120,8 +1988,15 @@ namespace BossMod
             RegisterComponent(new VengefulBelone(this));
             RegisterComponent(new ElementalBelone(this));
             RegisterComponent(new NearFarSight(this));
+            RegisterComponent(new HeartStake());
+            RegisterComponent(new HellsSting(this));
+            RegisterComponent(new WreathOfThorns1(this));
+            RegisterComponent(new WreathOfThorns2(this));
+            RegisterComponent(new WreathOfThorns3(this));
+            RegisterComponent(new WreathOfThorns4(this));
+            RegisterComponent(new WreathOfThorns5(this));
+            RegisterComponent(new CurtainCall(this));
 
-            // checkpoint is triggered by boss becoming untargetable...
             BuildPhase1States();
             BuildPhase2States();
 
@@ -1157,7 +2032,7 @@ namespace BossMod
             s = BuildDecollationState(ref s.Next, 0); // note: cast starts ~0.2s before pinax resolve, whatever...
             s = BuildDecollationState(ref s.Next, 4.2f);
             s = BuildDecollationState(ref s.Next, 4.2f);
-            s = CommonStates.Timeout(ref s.Next, 10, "Enrage");
+            s = CommonStates.Targetable(ref s.Next, Boss1, false, 10, "Enrage"); // checkpoint is triggered by boss becoming untargetable...
         }
 
         private StateMachine.State BuildDecollationState(ref StateMachine.State? link, float delay)
@@ -1169,11 +2044,15 @@ namespace BossMod
 
         private StateMachine.State BuildElegantEviscerationState(ref StateMachine.State? link, float delay)
         {
+            var comp = FindComponent<ElegantEvisceration>()!;
             var cast = CommonStates.Cast(ref link, Boss1, AID.ElegantEvisceration, delay, 5, "Tankbuster");
+            cast.Exit = comp.Reset;
             cast.EndHint |= StateMachine.StateHint.Tankbuster | StateMachine.StateHint.GroupWithNext;
-            var resolve = CommonStates.Timeout(ref cast.Next, 3, "Tankbuster");
-            resolve.EndHint |= StateMachine.StateHint.Tankbuster;
-            return resolve;
+
+            var second = CommonStates.Condition(ref cast.Next, 3, () => comp.NumCasts > 0, "Tankbuster");
+            second.Exit = comp.Reset;
+            second.EndHint |= StateMachine.StateHint.Tankbuster;
+            return second;
         }
 
         private StateMachine.State BuildInversiveChlamysState(ref StateMachine.State? link, float delay)
@@ -1186,18 +2065,25 @@ namespace BossMod
 
         private StateMachine.State BuildBloodrakeBeloneStates(ref StateMachine.State? link, float delay)
         {
+            // note: just before (~0.1s) every bloodrake cast start, its targets are tethered to boss
+            // targets of first bloodrake will be killed if they are targets of chlamys tethers later
             var bloodrake1 = CommonStates.Cast(ref link, Boss1, AID.Bloodrake, delay, 4, "Bloodrake 1");
             bloodrake1.Enter = FindComponent<InversiveChlamys>()!.AssignFromBloodrake;
             bloodrake1.EndHint |= StateMachine.StateHint.GroupWithNext;
 
+            // this cast is pure flavour and does nothing (replaces status 2799 'Aethersucker' with status 2800 'Casting Chlamys' on boss)
             var aetheric = CommonStates.Cast(ref bloodrake1.Next, Boss1, AID.AethericChlamys, 3.2f, 4);
 
+            // targets of second bloodrake will be killed if they are targets of 'Cursed Casting' (which targets players with 'Role Call')
             var bloodrake2 = CommonStates.Cast(ref aetheric.Next, Boss1, AID.Bloodrake, 4.2f, 4, "Bloodrake 2");
             bloodrake2.Enter = FindComponent<DirectorsBelone>()!.AssignFromBloodrake;
             bloodrake2.EndHint |= StateMachine.StateHint.GroupWithNext;
 
+            // this cast removes status 2799 'Aethersucker' from boss
+            // right after it ends, instant cast 27111 applies 'Role Call' debuffs - corresponding component handles that
             var belone = CommonStates.Cast(ref bloodrake2.Next, Boss1, AID.DirectorsBelone, 4.2f, 5);
 
+            // Cursed Casting happens right before (0.5s) chlamys resolve
             var inv = BuildInversiveChlamysState(ref belone.Next, 9.2f);
             inv.Exit = () =>
             {
@@ -1269,6 +2155,8 @@ namespace BossMod
         {
             var compElemental = FindComponent<ElementalBelone>()!;
 
+            // all other bloodrakes target all players
+            // third bloodrake in addition 'targets' three of the four corner helpers - untethered one is safe during later mechanic
             var bloodrake3 = CommonStates.Cast(ref link, Boss1, AID.Bloodrake, delay, 4, "Bloodrake 3");
             bloodrake3.Enter = compElemental.AssignSafespotFromBloodrake;
             bloodrake3.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Raidwide;
@@ -1333,17 +2221,14 @@ namespace BossMod
             s = BuildAkanthaiAct2States(ref s.Next, 7.1f);
             s = BuildUltimateImpulseState(ref s.Next, 0.3f);
             s = BuildAkanthaiAct3States(ref s.Next, 8.2f);
-            s = BuildFarNearSightState(ref s.Next, 7.5f);
+            s = BuildFarNearSightState(ref s.Next, 4.1f);
             s = BuildHeartStakeState(ref s.Next, 9.2f);
             s = BuildAkanthaiAct4States(ref s.Next, 4.2f);
-            s = BuildUltimateImpulseState(ref s.Next, 28.2f);
             s = BuildSearingStreamState(ref s.Next, 9.3f);
             s = BuildAkanthaiAct5States(ref s.Next, 4.2f);
-            s = BuildFarNearSightState(ref s.Next, 11.2f);
             s = BuildSearingStreamState(ref s.Next, 7.2f);
             s = BuildDemigodDoubleState(ref s.Next, 4.2f);
             s = BuildAkanthaiAct6States(ref s.Next, 8.2f);
-            s = BuildUltimateImpulseState(ref s.Next, 9.1f);
             s = CommonStates.Cast(ref s.Next, Boss2, AID.Enrage, 4.4f, 10, "Enrage"); // not sure whether it's really an enrage, but it's unique aid with 10 sec cast...
         }
 
@@ -1387,31 +2272,42 @@ namespace BossMod
 
         private StateMachine.State BuildHeartStakeState(ref StateMachine.State? link, float delay)
         {
+            var comp = FindComponent<HeartStake>()!;
             var cast = CommonStates.Cast(ref link, Boss2, AID.HeartStake, delay, 5, "Tankbuster");
+            cast.Exit = comp.Reset;
             cast.EndHint |= StateMachine.StateHint.Tankbuster | StateMachine.StateHint.GroupWithNext;
-            var resolve = CommonStates.Timeout(ref cast.Next, 3.1f, "Tankbuster");
-            resolve.EndHint |= StateMachine.StateHint.Tankbuster;
-            return resolve;
+
+            var second = CommonStates.Condition(ref cast.Next, 3.1f, () => comp.NumCasts > 0, "Tankbuster");
+            second.Exit = comp.Reset;
+            second.EndHint |= StateMachine.StateHint.Tankbuster;
+            return second;
         }
 
         private StateMachine.State BuildHellStingStates(ref StateMachine.State? link, float delay)
         {
-            // TODO: component; timeline is like this:
+            // timeline:
             // 0.0s: cast start (boss visual + helpers real)
             // 2.4s: visual cast end
             // 3.0s: first aoes (helpers cast end)
             // 5.5s: boss visual instant cast + helpers start cast
             // 6.1s: second aoes (helpers cast end)
+            var comp = FindComponent<HellsSting>()!;
             var cast = CommonStates.Cast(ref link, Boss2, AID.HellsSting, delay, 2.4f);
-            var hit1 = CommonStates.Timeout(ref cast.Next, 0.6f, "Cone");
+            cast.Enter = () => comp.Start(Boss2()?.Rotation ?? 0);
+
+            var hit1 = CommonStates.Condition(ref cast.Next, 0.6f, () => comp.NumCasts > 0, "Cone");
             hit1.EndHint |= StateMachine.StateHint.GroupWithNext;
-            var hit2 = CommonStates.Timeout(ref hit1.Next, 3.1f, "Cone");
+
+            var hit2 = CommonStates.Condition(ref hit1.Next, 3.1f, () => comp.NumCasts > 1, "Cone");
+            hit1.Exit = comp.Reset;
             return hit2;
         }
 
         private StateMachine.State BuildAkanthaiAct1States(ref StateMachine.State? link, float delay)
         {
-            // TODO: component
+            // 'act 1' is 4 aoes (N/S/E/W) and 8 towers; explosion order is 2 opposite aoes -> all towers -> remaining aoes
+            // 'intro' cast is pure flavour, it is cast together with 'visual' casts by towers and aoes
+            // aoes are at (82/118, 100) and (100, 82/118), towers are at (95.05/104.95, 95.05/104.95) and (88.69/111.31, 88.69/111.31)
             var intro = CommonStates.Cast(ref link, Boss2, AID.AkanthaiAct1, delay, 5, "Act1");
             intro.EndHint |= StateMachine.StateHint.GroupWithNext;
 
@@ -1420,33 +2316,38 @@ namespace BossMod
 
             // timeline:
             // -0.1s: first 2 aoes tethered
-            //  0.0s: wreath cast start ==> component should determine order and show first aoe pair
+            //  0.0s: wreath cast start ==> component determines order and starts showing first aoe pair
             //  3.0s: towers tethered
             //  6.0s: last 2 aoes tethered
             //  8.0s: wreath cast end
             // 10.0s: first 2 aoes start cast 27149
-            // 11.0s: first 2 aoes finish cast ==> component should show towers
+            // 11.0s: first 2 aoes finish cast ==> component starts showing towers
             // 13.0s: towers start cast 27150
-            // 14.0s: towers finish cast ==> component should show second aoe pair
+            // 14.0s: towers finish cast ==> component starts showing second aoe pair
             // 16.0s: last 2 aoes start cast 27149
-            // 17.0s: last 2 aoes finish cast ==> component should reset
+            // 17.0s: last 2 aoes finish cast ==> component is reset
             // 18.0s: boss starts casting far/nearsight
+            var comp = FindComponent<WreathOfThorns1>()!;
             var wreath = CommonStates.Cast(ref aoe.Next, Boss2, AID.WreathOfThorns1, 6.2f, 8, "Wreath1");
+            wreath.Enter = comp.Begin;
             wreath.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var aoe1 = CommonStates.Timeout(ref wreath.Next, 3, "AOE 1");
+            var aoe1 = CommonStates.Condition(ref wreath.Next, 3, () => comp.CurState != WreathOfThorns1.State.FirstAOEs, "AOE 1");
             aoe1.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var aoe2 = CommonStates.Timeout(ref aoe1.Next, 3, "Towers");
+            var aoe2 = CommonStates.Condition(ref aoe1.Next, 3, () => comp.CurState != WreathOfThorns1.State.Towers, "Towers");
             aoe2.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var aoe3 = CommonStates.Timeout(ref aoe2.Next, 3, "AOE 2");
+            var aoe3 = CommonStates.Condition(ref aoe2.Next, 3, () => comp.CurState != WreathOfThorns1.State.LastAOEs, "AOE 2");
+            aoe3.Exit = comp.Reset;
             return aoe3;
         }
 
         private StateMachine.State BuildAkanthaiAct2States(ref StateMachine.State? link, float delay)
         {
-            // TODO: component
+            // 'act 2' is 4 aoes and 4 towers + player pairwise tethers
+            // 'intro' cast is pure flavour, it is cast together with 'visual' casts by towers and aoes
+            // towers are at (96,82), (118,96), (104,118) and (82,104); aoes are at (104,82), (118,104), (96,118) and (82,96)
             var intro = CommonStates.Cast(ref link, Boss2, AID.AkanthaiAct2, delay, 5, "Act2");
             intro.EndHint |= StateMachine.StateHint.GroupWithNext;
 
@@ -1455,36 +2356,41 @@ namespace BossMod
 
             // timeline:
             // -0.1s: two towers and two aoes tethered
-            //  0.0s: wreath cast start ==> component should determine order and show first aoe pair
+            //  0.0s: wreath cast start ==> component determines order and starts showing first set
             //  3.0s: remaining tethers
             //  6.0s: wreath cast end
-            //  6.8s: icons + tethers appear (1 dd pair and 1 tank-healer pair with fire, 1 dd pair with wind, 1 tank-healer pair with dark on healer) ==> component should show 'break' hint on dark pair and 'stack' hint on everyone else
+            //  6.8s: icons + tethers appear (1 dd pair and 1 tank-healer pair with fire, 1 dd pair with wind, 1 tank-healer pair with dark on healer) ==> component starts showing 'break' hint on dark pair and 'stack in center' hint on everyone else
             //  9.2s: dark design cast start
             // 11.8s: 'thornpricked' debuffs
-            // 14.2s: dark design cast end ==> component should show 'gtfo from aoe/soak tower' hint + 'break' for tank-healer pair
+            // 14.2s: dark design cast end ==> component starts showing 'gtfo from aoe/soak tower' hint + 'break' hint for next pair
             // 18.1s: first 2 aoes and towers start cast 27149/27150
-            // 19.1s: first 2 aoes and towers finish cast => component should show second pair, 'gtfo from aoe/soak tower' hint + 'break' for dd pair
+            // 19.1s: first 2 aoes and towers finish cast => component starts showing second set
             // 25.1s: last 2 aoes and towers start cast 27149/27150
-            // 26.1s: last 2 aoes and towers finish cast => component should reset (or wait until wind expire?.. would mean overlap with aoe)
+            // 26.1s: last 2 aoes and towers finish cast => component is reset
             // 26.4s: boss starts casting aoe
             // 27.8s: wind pair expires if not broken
             // 33.4s: boss finishes casting aoe
+            var comp = FindComponent<WreathOfThorns2>()!;
             var wreath = CommonStates.Cast(ref dd.Next, Boss2, AID.WreathOfThorns2, 4.2f, 6, "Wreath2");
+            wreath.Enter = comp.Begin;
             wreath.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var darkDesign = CommonStates.Cast(ref wreath.Next, Boss2, AID.DarkDesign, 3.2f, 5, "DarkDesign");
             darkDesign.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var resolve1 = CommonStates.Timeout(ref darkDesign.Next, 4.9f, "Resolve 1");
+            var resolve1 = CommonStates.Condition(ref darkDesign.Next, 4.9f, () => comp.CurState != WreathOfThorns2.State.FirstSet, "Resolve 1");
             resolve1.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var resolve2 = CommonStates.Timeout(ref resolve1.Next, 7, "Resolve 2");
+            var resolve2 = CommonStates.Condition(ref resolve1.Next, 7, () => comp.CurState != WreathOfThorns2.State.SecondSet, "Resolve 2");
+            resolve2.Exit = comp.Reset;
             return resolve2;
         }
 
         private StateMachine.State BuildAkanthaiAct3States(ref StateMachine.State? link, float delay)
         {
-            // TODO: component
+            // 'act 3' is two sets of 4 towers + jumps and knockback from center
+            // 'intro' cast is pure flavour, it is cast together with 'visual' casts by towers and knockback
+            // towers are at (82.61/117.39, 104.66/95.34) and (87.27/112.73, 87.27/112.73)
             var intro = CommonStates.Cast(ref link, Boss2, AID.AkanthaiAct3, delay, 5, "Act3");
             intro.EndHint |= StateMachine.StateHint.GroupWithNext;
 
@@ -1505,26 +2411,40 @@ namespace BossMod
             // 26.0s: second towers start cast 27150
             // 26.4s: second jump ==> component should switch to second cone mode
             // 27.0s: second towers finish cast
-            // 27.4s: second cones
+            // 30.4s: second cones
+            var comp = FindComponent<WreathOfThorns3>()!;
             var wreath = CommonStates.Cast(ref intro.Next, Boss2, AID.WreathOfThorns3, 4.2f, 8, "Wreath3");
+            wreath.Enter = comp.Begin;
             wreath.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var jump1 = CommonStates.Cast(ref wreath.Next, Boss2, AID.KothornosKock, 3.2f, 4.9f, "Jump1");
             jump1.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var towers1 = CommonStates.Timeout(ref jump1.Next, 4.9f, "Towers1");
+            var cones1 = CommonStates.Condition(ref jump1.Next, 4.9f, () => comp.NumCones > 0, "Cones1");
+            cones1.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var towers1 = CommonStates.Condition(ref cones1.Next, 0.8f, () => comp.CurState != WreathOfThorns3.State.RangedTowers, "Towers1");
             towers1.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var jump2 = CommonStates.Timeout(ref towers1.Next, 5.4f, "Jump2");
+            var knockback = CommonStates.Condition(ref towers1.Next, 2, () => comp.CurState != WreathOfThorns3.State.Knockback, "Knockback");
+            knockback.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Knockback;
+
+            var jump2 = CommonStates.Condition(ref knockback.Next, 3.4f, () => comp.NumJumps > 1, "Jump2");
             jump2.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var towers2 = CommonStates.Timeout(ref jump2.Next, 0.6f, "Towers2");
-            return towers2;
+            var towers2 = CommonStates.Condition(ref jump2.Next, 0.6f, () => comp.CurState != WreathOfThorns3.State.MeleeTowers, "Towers2");
+            towers2.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var cones2 = CommonStates.Condition(ref towers2.Next, 3.4f, () => comp.NumCones > 1, "Cones2");
+            cones2.Exit = comp.Reset;
+            return cones2;
         }
 
         private StateMachine.State BuildAkanthaiAct4States(ref StateMachine.State? link, float delay)
         {
-            // TODO: component
+            // 'act 4' is 4 towers + 4 aoes, tethered to players
+            // 'intro' cast is pure flavour, it is cast together with 'visual' casts by towers and aoes
+            // towers are at (82/118, 100) and (100, 82/118), aoes are at (87.27/112.73, 87.27/112.73)
             var intro = CommonStates.Cast(ref link, Boss2, AID.AkanthaiAct4, delay, 5, "Act4");
             intro.EndHint |= StateMachine.StateHint.GroupWithNext;
 
@@ -1539,16 +2459,24 @@ namespace BossMod
             //  8.2s: searing stream cast end
             // .....: blow up tethers
             // 36.4s: ultimate impulse cast start
+            var comp = FindComponent<WreathOfThorns4>()!;
             var wreath = CommonStates.Cast(ref aoe1.Next, Boss2, AID.WreathOfThorns4, 4.2f, 5, "Wreath4");
+            wreath.Exit = () => comp.Active = true;
             wreath.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var aoe2 = BuildSearingStreamState(ref wreath.Next, 3.2f);
-            return aoe2;
+            aoe2.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var aoe3 = BuildUltimateImpulseState(ref aoe2.Next, 28.2f);
+            aoe3.Exit = comp.Reset;
+            return aoe3;
         }
 
         private StateMachine.State BuildAkanthaiAct5States(ref StateMachine.State? link, float delay)
         {
-            // TODO: component
+            // 'act 5' ('finale') is 8 staggered towers that should be soaked in correct order
+            // 'intro' cast is pure flavour, it is cast together with 'visual' casts by towers
+            // towers are at (88/112, 100), (100, 88/112), (91.5/108.5, 91.5/108.5)
             var intro = CommonStates.Cast(ref link, Boss2, AID.AkanthaiFinale, delay, 5, "Act5");
             intro.EndHint |= StateMachine.StateHint.GroupWithNext;
 
@@ -1575,14 +2503,20 @@ namespace BossMod
             // ... towers are staggered by ~1.3s
             // 38.8s: near/farsight cast start
             // 39.1s: last tower finishes cast
+            var comp = FindComponent<WreathOfThorns5>()!;
             var wreath5 = CommonStates.Cast(ref intro.Next, Boss2, AID.WreathOfThorns5, 4.2f, 5, "Wreath5");
+            wreath5.Exit = () => comp.Active = true;
             wreath5.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var fleeting = CommonStates.Cast(ref wreath5.Next, Boss2, AID.FleetingImpulse, 3.2f, 4.9f, "Impulse");
             fleeting.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var wreath6 = CommonStates.Cast(ref fleeting.Next, Boss2, AID.WreathOfThorns6, 13.6f, 6, "Wreath6");
-            return wreath6;
+            wreath6.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var tb = BuildFarNearSightState(ref wreath6.Next, 11.2f);
+            tb.Exit = comp.Reset;
+            return tb;
         }
 
         private StateMachine.State BuildAkanthaiAct6States(ref StateMachine.State? link, float delay)
@@ -1603,7 +2537,9 @@ namespace BossMod
             // 80.2s: hell sting 4 sequence start
             // 86.3s: hell sting 4 sequence end
             // 95.4s: aoe start
+            var comp = FindComponent<CurtainCall>()!;
             var intro = CommonStates.Cast(ref link, Boss2, AID.AkanthaiCurtainCall, delay, 5, "Act6");
+            intro.Exit = comp.Restart;
             intro.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var sting1 = BuildHellStingStates(ref intro.Next, 10.2f);
@@ -1612,14 +2548,19 @@ namespace BossMod
             var sting2 = BuildHellStingStates(ref sting1.Next, 14.2f);
             sting2.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var impulse = BuildUltimateImpulseState(ref sting2.Next, 9.1f);
-            impulse.EndHint |= StateMachine.StateHint.GroupWithNext;
+            var impulse1 = BuildUltimateImpulseState(ref sting2.Next, 9.1f);
+            impulse1.Exit = comp.Restart;
+            impulse1.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var sting3 = BuildHellStingStates(ref impulse.Next, 7.2f);
+            var sting3 = BuildHellStingStates(ref impulse1.Next, 7.2f);
             sting3.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var sting4 = BuildHellStingStates(ref sting3.Next, 14.2f);
-            return sting4;
+            sting4.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var impulse2 = BuildUltimateImpulseState(ref sting4.Next, 9.1f);
+            impulse2.Exit = comp.Reset;
+            return impulse2;
         }
     }
 }

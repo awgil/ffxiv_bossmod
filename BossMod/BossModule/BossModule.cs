@@ -67,6 +67,8 @@ namespace BossMod
             // world state event handlers
             public virtual void OnStatusGain(WorldState.Actor actor, int index) { }
             public virtual void OnStatusLose(WorldState.Actor actor, int index) { }
+            public virtual void OnTethered(WorldState.Actor actor) { }
+            public virtual void OnUntethered(WorldState.Actor actor) { }
             public virtual void OnCastStarted(WorldState.Actor actor) { }
             public virtual void OnCastFinished(WorldState.Actor actor) { }
             public virtual void OnEventCast(WorldState.CastResult info) { }
@@ -108,6 +110,8 @@ namespace BossMod
             WorldState.ActorDestroyed += OnActorDestroyed;
             WorldState.ActorCastStarted += OnActorCastStarted;
             WorldState.ActorCastFinished += OnActorCastFinished;
+            WorldState.ActorTethered += OnActorTethered;
+            WorldState.ActorUntethered += OnActorUntethered;
             WorldState.ActorStatusGain += OnActorStatusGain;
             WorldState.ActorStatusLose += OnActorStatusLose;
             WorldState.EventIcon += OnEventIcon;
@@ -133,6 +137,8 @@ namespace BossMod
                 WorldState.ActorDestroyed -= OnActorDestroyed;
                 WorldState.ActorCastStarted -= OnActorCastStarted;
                 WorldState.ActorCastFinished -= OnActorCastFinished;
+                WorldState.ActorTethered -= OnActorTethered;
+                WorldState.ActorUntethered -= OnActorUntethered;
                 WorldState.ActorStatusGain -= OnActorStatusGain;
                 WorldState.ActorStatusLose -= OnActorStatusLose;
                 WorldState.EventIcon -= OnEventIcon;
@@ -391,6 +397,18 @@ namespace BossMod
         {
             foreach (var comp in _components)
                 comp.OnCastFinished(actor);
+        }
+
+        private void OnActorTethered(object? sender, WorldState.Actor actor)
+        {
+            foreach (var comp in _components)
+                comp.OnTethered(actor);
+        }
+
+        private void OnActorUntethered(object? sender, WorldState.Actor actor)
+        {
+            foreach (var comp in _components)
+                comp.OnUntethered(actor);
         }
 
         private void OnActorStatusGain(object? sender, (WorldState.Actor actor, int index) arg)
