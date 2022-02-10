@@ -375,13 +375,21 @@ namespace BossMod
 
         public class CastResult
         {
+            public unsafe struct Target
+            {
+                public uint ID;
+                public fixed ulong Effects[8];
+
+                public ulong this[int index] => Effects[index];
+            }
+
             public uint CasterID;
             public uint MainTargetID; // note that actual affected targets could be completely different
             public uint ActionID;
             public ActionType ActionType;
             public float AnimationLockTime;
             public uint MaxTargets;
-            public uint NumTargets; // note: consider storing per-target ID and effects here...
+            public List<Target> Targets = new();
             public uint SourceSequence;
 
             public bool IsSpell() => ActionType == ActionType.Spell;

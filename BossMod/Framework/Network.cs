@@ -141,15 +141,6 @@ namespace BossMod
                 }
             }
 
-            var targets = Math.Min(header->effectCount, maxTargets);
-            uint validTargets = 0;
-            for (int i = 0; i < targets; ++i)
-            {
-                uint targetId = (uint)targetIDs[i];
-                if (targetId != 0)
-                    validTargets++;
-            }
-
             var info = new WorldState.CastResult
             {
                 CasterID = casterID,
@@ -158,9 +149,23 @@ namespace BossMod
                 ActionType = header->actionType,
                 AnimationLockTime = header->animationLockTime,
                 MaxTargets = maxTargets,
-                NumTargets = validTargets,
                 SourceSequence = header->SourceSequence
             };
+
+            var targets = Math.Min(header->NumTargets, maxTargets);
+            for (int i = 0; i < targets; ++i)
+            {
+                uint targetID = (uint)targetIDs[i];
+                if (targetID != 0)
+                {
+                    var target = new WorldState.CastResult.Target();
+                    target.ID = targetID;
+                    for (int j = 0; j < 8; ++j)
+                        target.Effects[j] = *(ulong*)(effects + (i * 8) + j);
+                    info.Targets.Add(target);
+                }
+            }
+
             EventActionEffect?.Invoke(this, info);
         }
 
@@ -365,7 +370,7 @@ namespace BossMod
             float rot = (data->rotation / 65535.0f * 360.0f) - 180.0f;
             uint aid = (uint)(data->actionId - _unkDelta);
             Service.Log($"[Network] - AID={Utils.ActionString(aid, data->actionType)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, seq={data->SourceSequence}, cntr={data->globalEffectCounter}, rot={rot:f0}, var={data->variation}, flags={flags1:X8} {flags2:X4}, someTarget={Utils.ObjectString(data->SomeTargetID)}, u={data->unknown:X8} {data->unknown20:X2} {data->padding21:X4}");
-            var targets = Math.Min(data->effectCount, maxTargets);
+            var targets = Math.Min(data->NumTargets, maxTargets);
             for (int i = 0; i < targets; ++i)
             {
                 uint targetId = (uint)targetIDs[i];

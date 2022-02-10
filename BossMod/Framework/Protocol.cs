@@ -65,7 +65,7 @@ namespace BossMod
             public byte variation; // animation
             public WorldState.ActionType actionType;
             public byte unknown20;
-            public byte effectCount;
+            public byte NumTargets; // machina calls it 'effectCount', but it is misleading imo
             public ushort padding21;
             public ushort padding22;
             public ushort padding23;
@@ -142,7 +142,7 @@ namespace BossMod
         public unsafe struct Server_ActionEffect1
         {
             public Server_ActionEffectHeader Header;
-            public fixed uint Effects[2 * 8]; // Server_ActionEffect_EffectEntry[8]
+            public fixed ulong Effects[8]; // Server_ActionEffect_EffectEntry[8]
             public ushort padding3;
             public uint padding4;
             public fixed ulong TargetID[1]; // dissector calls hi-word "effect flags"
@@ -153,7 +153,7 @@ namespace BossMod
         public unsafe struct Server_ActionEffect8
         {
             public Server_ActionEffectHeader Header;
-            public fixed uint Effects[2 * 8 * 8];
+            public fixed ulong Effects[8 * 8];
             public ushort padding3;
             public uint padding4;
             public fixed ulong TargetID[8];
@@ -167,7 +167,7 @@ namespace BossMod
         public unsafe struct Server_ActionEffect16
         {
             public Server_ActionEffectHeader Header;
-            public fixed uint Effects[2 * 8 * 16];
+            public fixed ulong Effects[8 * 16];
             public ushort padding3;
             public uint padding4;
             public fixed ulong TargetID[16];
@@ -181,7 +181,7 @@ namespace BossMod
         public unsafe struct Server_ActionEffect24
         {
             public Server_ActionEffectHeader Header;
-            public fixed uint Effects[2 * 8 * 24];
+            public fixed ulong Effects[8 * 24];
             public ushort padding3;
             public uint padding4;
             public fixed ulong TargetID[24];
@@ -195,7 +195,7 @@ namespace BossMod
         public unsafe struct Server_ActionEffect32
         {
             public Server_ActionEffectHeader Header;
-            public fixed uint Effects[2 * 8 * 32];
+            public fixed ulong Effects[8 * 32];
             public ushort padding3;
             public uint padding4;
             public fixed ulong TargetID[32];

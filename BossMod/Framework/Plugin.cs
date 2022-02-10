@@ -17,7 +17,7 @@ namespace BossMod
 
         private Network _network;
         private WorldStateGame _ws;
-        private DebugEventLogger _debugLogger;
+        private WorldStateLogger _debugLogger;
         private BossModuleManager _bossmod;
         private Autorotation _autorotation;
 
@@ -38,7 +38,7 @@ namespace BossMod
 
             _network = new(generalCfg);
             _ws = new(_network);
-            _debugLogger = new(_ws, generalCfg);
+            _debugLogger = new(_ws, generalCfg, dalamud.ConfigDirectory);
             _bossmod = new(_ws, _config);
             _autorotation = new(_network, generalCfg);
 
