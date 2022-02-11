@@ -90,7 +90,12 @@ namespace BossMod
                     for (int i = 0; i < statuses.Length; ++i)
                     {
                         var s = chara.StatusList[i];
-                        statuses[i] = s != null ? new Status { ID = s.StatusId, Param = s.Param, StackCount = s.StackCount, RemainingTime = s.RemainingTime, SourceID = s.SourceID } : new Status { };
+                        if (s == null)
+                            continue;
+                        statuses[i].ID = s.StatusId;
+                        statuses[i].Extra = (ushort)((s.Param << 8) | s.StackCount);
+                        statuses[i].RemainingTime = s.RemainingTime;
+                        statuses[i].SourceID = s.SourceID;
                     }
                     UpdateStatuses(act, statuses);
                 }

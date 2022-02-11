@@ -94,6 +94,7 @@ namespace BossMod
                 _ws.ActorUntethered += ActorUntethered;
                 _ws.ActorStatusGain += ActorStatusGain;
                 _ws.ActorStatusLose += ActorStatusLose;
+                _ws.ActorStatusChange += ActorStatusChange;
                 _ws.EventIcon += EventIcon;
                 _ws.EventCast += EventCast;
                 _ws.EventEnvControl += EventEnvControl;
@@ -122,6 +123,7 @@ namespace BossMod
                 _ws.ActorUntethered -= ActorUntethered;
                 _ws.ActorStatusGain -= ActorStatusGain;
                 _ws.ActorStatusLose -= ActorStatusLose;
+                _ws.ActorStatusChange -= ActorStatusChange;
                 _ws.EventIcon -= EventIcon;
                 _ws.EventCast -= EventCast;
                 _ws.EventEnvControl -= EventEnvControl;
@@ -239,13 +241,19 @@ namespace BossMod
         private void ActorStatusGain(object? sender, (WorldState.Actor actor, int index) arg)
         {
             var s = arg.actor.Statuses[arg.index];
-            Log("STA+", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Param}|{s.StackCount}|{s.RemainingTime:f2}|{Actor(s.SourceID)}");
+            Log("STA+", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Extra:X4}|{s.RemainingTime:f2}|{Actor(s.SourceID)}");
         }
 
         private void ActorStatusLose(object? sender, (WorldState.Actor actor, int index) arg)
         {
             var s = arg.actor.Statuses[arg.index];
-            Log("STA-", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Param}|{s.StackCount}|{s.RemainingTime:f2}|{Actor(s.SourceID)}");
+            Log("STA-", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Extra:X4}|{s.RemainingTime:f2}|{Actor(s.SourceID)}");
+        }
+
+        private void ActorStatusChange(object? sender, (WorldState.Actor actor, int index, ushort prevExtra) arg)
+        {
+            var s = arg.actor.Statuses[arg.index];
+            Log("STA!", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Extra:X4}|{s.RemainingTime:f2}|{Actor(s.SourceID)}");
         }
 
         private void EventIcon(object? sender, (uint actorID, uint iconID) arg)

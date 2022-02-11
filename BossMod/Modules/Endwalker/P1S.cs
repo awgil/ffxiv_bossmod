@@ -356,7 +356,7 @@ namespace BossMod
                         if (actor != _module.Boss())
                             Service.Log($"[P1S] Unexpected aether explosion status on {Utils.ObjectString(actor.InstanceID)}");
                         // we rely on parameter of an invisible status on boss to detect red/blue
-                        switch (actor.Statuses[index].StackCount)
+                        switch (actor.Statuses[index].Extra)
                         {
                             case 0x4C:
                                 _explodingCells = Cell.Red;
@@ -365,7 +365,7 @@ namespace BossMod
                                 _explodingCells = Cell.Blue;
                                 break;
                             default:
-                                Service.Log($"[P1S] Unexpected aether explosion param {actor.Statuses[index].StackCount:X2}");
+                                Service.Log($"[P1S] Unexpected aether explosion param {actor.Statuses[index].Extra:X2}");
                                 break;
                         }
                         break;

@@ -144,8 +144,7 @@ namespace BossMod
         public struct Status
         {
             public uint ID;
-            public byte Param;
-            public byte StackCount;
+            public ushort Extra;
             public float RemainingTime;
             public uint SourceID;
         }
@@ -336,9 +335,10 @@ namespace BossMod
             }
         }
 
-        // argument = actor + status index; TODO stack/param notifications?...
+        // argument = actor + status index
         public event EventHandler<(Actor, int)>? ActorStatusGain;
         public event EventHandler<(Actor, int)>? ActorStatusLose; // note that status structure still contains details when this is invoked; invoked if actor disappears
+        public event EventHandler<(Actor, int, ushort)>? ActorStatusChange; // invoked when extra is changed; status contains new value, old is passed as extra arg
         public void UpdateStatuses(Actor act, Status[] statuses)
         {
             for (int i = 0; i < act.Statuses.Length; ++i)
@@ -346,9 +346,13 @@ namespace BossMod
                 if (act.Statuses[i].ID == statuses[i].ID && act.Statuses[i].SourceID == statuses[i].SourceID)
                 {
                     // status was and still is active; just update details
-                    act.Statuses[i].Param = statuses[i].Param; // what is it? can it be changed for live status, or does it mean status fade+apply?
-                    act.Statuses[i].StackCount = statuses[i].StackCount; // this probably warrants a notification...
                     act.Statuses[i].RemainingTime = statuses[i].RemainingTime;
+                    if (act.Statuses[i].Extra != statuses[i].Extra)
+                    {
+                        var prev = act.Statuses[i].Extra;
+                        act.Statuses[i].Extra = statuses[i].Extra;
+                        ActorStatusChange?.Invoke(this, (act, i, prev));
+                    }
                     continue;
                 }
 

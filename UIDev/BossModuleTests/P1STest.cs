@@ -119,14 +119,14 @@ namespace UIDev
                 else
                 {
                     ImGui.SameLine();
-                    bool red = actor.Value.Statuses[0].ID != 0 && actor.Value.Statuses[0].StackCount == 0x4C;
+                    bool red = actor.Value.Statuses[0].ID != 0 && actor.Value.Statuses[0].Extra == 0x4C;
                     if (ImGui.Checkbox($"Red aether##{actor.Value.InstanceID}", ref red))
                     {
                         SetStatus(actor.Value, 0, red ? (uint)P1S.SID.AetherExplosion : 0, 0x4C);
                     }
 
                     ImGui.SameLine();
-                    bool blue = actor.Value.Statuses[0].ID != 0 && actor.Value.Statuses[0].StackCount == 0x4D;
+                    bool blue = actor.Value.Statuses[0].ID != 0 && actor.Value.Statuses[0].Extra == 0x4D;
                     if (ImGui.Checkbox($"Blue aether##{actor.Value.InstanceID}", ref blue))
                     {
                         SetStatus(actor.Value, 0, blue ? (uint)P1S.SID.AetherExplosion : 0, 0x4D);
@@ -135,11 +135,11 @@ namespace UIDev
             }
         }
 
-        private void SetStatus(WorldState.Actor actor, int index, uint statusID, byte param)
+        private void SetStatus(WorldState.Actor actor, int index, uint statusID, ushort param)
         {
             var newStatuses = (WorldState.Status[])actor.Statuses.Clone();
             newStatuses[index].ID = statusID;
-            newStatuses[index].StackCount = param;
+            newStatuses[index].Extra = param;
             _ws.UpdateStatuses(actor, newStatuses);
         }
     }

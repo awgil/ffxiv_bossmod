@@ -1539,7 +1539,7 @@ namespace BossMod
 
                 foreach ((int i, var player) in _module.IterateRaidMembers())
                 {
-                    _playerDeathTollStacks[i] = player.FindStatus((uint)SID.DeathsToll)?.StackCount ?? 0;
+                    _playerDeathTollStacks[i] = player.FindStatus((uint)SID.DeathsToll)?.Extra ?? 0; // TODO: use status events here...
                     _playerAOECount[i] = _sources.Where(srcRot => GeometryUtils.PointInCone(player.Position - srcRot.Item1.Position, srcRot.Item2, _coneHalfAngle)).Count();
                 }
             }

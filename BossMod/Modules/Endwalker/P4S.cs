@@ -794,14 +794,6 @@ namespace BossMod
                 Array.Fill(_playerActingRole, WorldState.ActorRole.None);
             }
 
-            public override void Update()
-            {
-                for (int i = 0; i < _playerRuinCount.Length; ++i)
-                {
-                    _playerRuinCount[i] = _module.RaidMembers[i]?.FindStatus((uint)SID.ThriceComeRuin)?.StackCount ?? 0;
-                }
-            }
-
             public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (_orbTargets.Count == 0 || _orbsExploded == _orbTargets.Count)
@@ -875,8 +867,10 @@ namespace BossMod
                 switch ((SID)actor.Statuses[index].ID)
                 {
                     case SID.OrbRole:
-                        // TODO: or .Param???
-                        _orbTargets[actor.InstanceID] = OrbRoleFromStatusParam(actor.Statuses[index].StackCount);
+                        _orbTargets[actor.InstanceID] = OrbRoleFromStatusParam(actor.Statuses[index].Extra);
+                        break;
+                    case SID.ThriceComeRuin:
+                        ModifyRuinStacks(_module.FindRaidMemberSlot(actor.InstanceID), actor.Statuses[index].Extra);
                         break;
                     case SID.ActingDPS:
                         ModifyActingRole(_module.FindRaidMemberSlot(actor.InstanceID), WorldState.ActorRole.Melee);
@@ -894,12 +888,21 @@ namespace BossMod
             {
                 switch ((SID)actor.Statuses[index].ID)
                 {
+                    case SID.ThriceComeRuin:
+                        ModifyRuinStacks(_module.FindRaidMemberSlot(actor.InstanceID), 0);
+                        break;
                     case SID.ActingDPS:
                     case SID.ActingHealer:
                     case SID.ActingTank:
                         ModifyActingRole(_module.FindRaidMemberSlot(actor.InstanceID), WorldState.ActorRole.None);
                         break;
                 }
+            }
+
+            public override void OnStatusChange(WorldState.Actor actor, int index)
+            {
+                if ((SID)actor.Statuses[index].ID == SID.ThriceComeRuin)
+                    ModifyRuinStacks(_module.FindRaidMemberSlot(actor.InstanceID), actor.Statuses[index].Extra);
             }
 
             public override void OnEventCast(WorldState.CastResult info)
@@ -933,6 +936,12 @@ namespace BossMod
 
                 var playerRole = player.Role == WorldState.ActorRole.Ranged ? WorldState.ActorRole.Melee : player.Role;
                 return orbRole == playerRole;
+            }
+
+            private void ModifyRuinStacks(int slot, ushort count)
+            {
+                if (slot >= 0)
+                    _playerRuinCount[slot] = count;
             }
 
             private void ModifyActingRole(int slot, WorldState.ActorRole role)

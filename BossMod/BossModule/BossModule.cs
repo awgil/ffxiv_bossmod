@@ -70,6 +70,7 @@ namespace BossMod
             // world state event handlers
             public virtual void OnStatusGain(WorldState.Actor actor, int index) { }
             public virtual void OnStatusLose(WorldState.Actor actor, int index) { }
+            public virtual void OnStatusChange(WorldState.Actor actor, int index) { }
             public virtual void OnTethered(WorldState.Actor actor) { }
             public virtual void OnUntethered(WorldState.Actor actor) { }
             public virtual void OnCastStarted(WorldState.Actor actor) { }
@@ -117,6 +118,7 @@ namespace BossMod
             WorldState.ActorUntethered += OnActorUntethered;
             WorldState.ActorStatusGain += OnActorStatusGain;
             WorldState.ActorStatusLose += OnActorStatusLose;
+            WorldState.ActorStatusChange += OnActorStatusChange;
             WorldState.EventIcon += OnEventIcon;
             WorldState.EventCast += OnEventCast;
             WorldState.EventEnvControl += OnEventEnvControl;
@@ -144,6 +146,7 @@ namespace BossMod
                 WorldState.ActorUntethered -= OnActorUntethered;
                 WorldState.ActorStatusGain -= OnActorStatusGain;
                 WorldState.ActorStatusLose -= OnActorStatusLose;
+                WorldState.ActorStatusChange -= OnActorStatusChange;
                 WorldState.EventIcon -= OnEventIcon;
                 WorldState.EventCast -= OnEventCast;
                 WorldState.EventEnvControl -= OnEventEnvControl;
@@ -424,6 +427,12 @@ namespace BossMod
         {
             foreach (var comp in _components)
                 comp.OnStatusLose(arg.actor, arg.index);
+        }
+
+        private void OnActorStatusChange(object? sender, (WorldState.Actor actor, int index, ushort prev) arg)
+        {
+            foreach (var comp in _components)
+                comp.OnStatusChange(arg.actor, arg.index);
         }
 
         private void OnEventIcon(object? sender, (uint actorID, uint iconID) arg)
