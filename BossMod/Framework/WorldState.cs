@@ -380,7 +380,10 @@ namespace BossMod
                 public uint ID;
                 public fixed ulong Effects[8];
 
-                public ulong this[int index] => Effects[index];
+                public ulong this[int index] {
+                    get => Effects[index];
+                    set => Effects[index] = value;
+                }
             }
 
             public uint CasterID;
