@@ -155,102 +155,102 @@ namespace BossMod
 
         private void ZoneChange(object? sender, ushort zone)
         {
-            Log("ZC", zone);
+            Log("ZONE", zone);
         }
 
         private void EnterExitCombat(object? sender, bool inCombat)
         {
-            Log("PC", inCombat);
+            Log("PCOM", inCombat);
         }
 
         private void PlayerIDChanged(object? sender, uint id)
         {
-            Log("PI", Actor(id));
+            Log("PID ", Actor(id));
         }
 
         private void WaymarkChanged(object? sender, (WorldState.Waymark i, Vector3? value) arg)
         {
             if (arg.value != null)
-                Log("W+", $"{arg.i}|{Vec3(arg.value.Value)}");
+                Log("WAY+", $"{arg.i}|{Vec3(arg.value.Value)}");
             else
-                Log("W-", arg.i);
+                Log("WAY-", arg.i);
         }
 
         private void ActorCreated(object? sender, WorldState.Actor actor)
         {
-            Log("A+", $"{Actor(actor)}|{Utils.CharacterClassString(actor.ClassID)}|{actor.Role}|{actor.IsTargetable}|{actor.HitboxRadius:f3}");
+            Log("ACT+", $"{Actor(actor)}|{Utils.CharacterClassString(actor.ClassID)}|{actor.Role}|{actor.IsTargetable}|{actor.HitboxRadius:f3}");
         }
 
         private void ActorDestroyed(object? sender, WorldState.Actor actor)
         {
-            Log("A-", Actor(actor));
+            Log("ACT-", Actor(actor));
         }
 
         private void ActorRenamed(object? sender, (WorldState.Actor actor, string oldName) arg)
         {
-            Log("AN", $"{Actor(arg.actor)}|{arg.oldName}");
+            Log("NAME", $"{Actor(arg.actor)}|{arg.oldName}");
         }
 
         private void ActorClassRoleChanged(object? sender, (WorldState.Actor actor, uint prevClass, WorldState.ActorRole prevRole) arg)
         {
-            Log("AC", $"{Actor(arg.actor)}|{Utils.CharacterClassString(arg.prevClass)}|{arg.prevRole}|{Utils.CharacterClassString(arg.actor.ClassID)}|{arg.actor.Role}");
+            Log("CLSR", $"{Actor(arg.actor)}|{Utils.CharacterClassString(arg.prevClass)}|{arg.prevRole}|{Utils.CharacterClassString(arg.actor.ClassID)}|{arg.actor.Role}");
         }
 
         private void ActorMoved(object? sender, (WorldState.Actor actor, Vector3 prevPos, float prevRot) arg)
         {
-            Log("AM", Actor(arg.actor));
+            Log("MOVE", Actor(arg.actor));
         }
 
         private void ActorIsTargetableChanged(object? sender, WorldState.Actor actor)
         {
-            Log(actor.IsTargetable ? "V+" : "V-", Actor(actor));
+            Log(actor.IsTargetable ? "ATG+" : "ATG-", Actor(actor));
         }
 
         private void ActorIsDeadChanged(object? sender, WorldState.Actor actor)
         {
-            Log(actor.IsDead ? "D+" : "D-", Actor(actor));
+            Log(actor.IsDead ? "DIE+" : "DIE-", Actor(actor));
         }
 
         private void ActorTargetChanged(object? sender, (WorldState.Actor actor, uint prev) arg)
         {
-            Log("AT", $"{Actor(arg.actor)}|{Actor(arg.actor.TargetID)}");
+            Log("TARG", $"{Actor(arg.actor)}|{Actor(arg.actor.TargetID)}");
         }
 
         private void ActorCastStarted(object? sender, WorldState.Actor actor)
         {
-            Log("C+", $"{Actor(actor)}|{Utils.ActionString(actor.CastInfo!.ActionID, actor.CastInfo!.ActionType)}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString(actor.CastInfo!.CurrentTime, actor.CastInfo!.TotalTime)}");
+            Log("CST+", $"{Actor(actor)}|{Utils.ActionString(actor.CastInfo!.ActionID, actor.CastInfo!.ActionType)}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString(actor.CastInfo!.CurrentTime, actor.CastInfo!.TotalTime)}");
         }
 
         private void ActorCastFinished(object? sender, WorldState.Actor actor)
         {
-            Log("C-", $"{Actor(actor)}|{Utils.ActionString(actor.CastInfo!.ActionID, actor.CastInfo!.ActionType)}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString(actor.CastInfo!.CurrentTime, actor.CastInfo!.TotalTime)}");
+            Log("CST-", $"{Actor(actor)}|{Utils.ActionString(actor.CastInfo!.ActionID, actor.CastInfo!.ActionType)}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString(actor.CastInfo!.CurrentTime, actor.CastInfo!.TotalTime)}");
         }
 
         private void ActorTethered(object? sender, WorldState.Actor actor)
         {
-            Log("T+", $"{Actor(actor)}|{actor.Tether.ID}|{Actor(actor.Tether.Target)}");
+            Log("TET+", $"{Actor(actor)}|{actor.Tether.ID}|{Actor(actor.Tether.Target)}");
         }
 
         private void ActorUntethered(object? sender, WorldState.Actor actor)
         {
-            Log("T-", $"{Actor(actor)}|{actor.Tether.ID}|{Actor(actor.Tether.Target)}");
+            Log("TET-", $"{Actor(actor)}|{actor.Tether.ID}|{Actor(actor.Tether.Target)}");
         }
 
         private void ActorStatusGain(object? sender, (WorldState.Actor actor, int index) arg)
         {
             var s = arg.actor.Statuses[arg.index];
-            Log("S+", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Param}|{s.StackCount}|{s.RemainingTime:f2}|{Actor(s.SourceID)}");
+            Log("STA+", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Param}|{s.StackCount}|{s.RemainingTime:f2}|{Actor(s.SourceID)}");
         }
 
         private void ActorStatusLose(object? sender, (WorldState.Actor actor, int index) arg)
         {
             var s = arg.actor.Statuses[arg.index];
-            Log("S-", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Param}|{s.StackCount}|{s.RemainingTime:f2}|{Actor(s.SourceID)}");
+            Log("STA-", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Param}|{s.StackCount}|{s.RemainingTime:f2}|{Actor(s.SourceID)}");
         }
 
         private void EventIcon(object? sender, (uint actorID, uint iconID) arg)
         {
-            Log("I+", $"{Actor(arg.actorID)}|{arg.iconID}");
+            Log("ICON", $"{Actor(arg.actorID)}|{arg.iconID}");
         }
 
         private void EventCast(object? sender, WorldState.CastResult info)
@@ -263,12 +263,12 @@ namespace BossMod
                     if (t[i] != 0)
                         sb.Append($"!{t[i]:X16}");
             }
-            Log("C!", sb.ToString());
+            Log("CST!", sb.ToString());
         }
 
         private void EventEnvControl(object? sender, (uint featureID, byte index, uint state) arg)
         {
-            Log("EC", $"{arg.featureID:X8}|{arg.index:X2}|{arg.state:X8}");
+            Log("ENVC", $"{arg.featureID:X8}|{arg.index:X2}|{arg.state:X8}");
         }
     }
 }
