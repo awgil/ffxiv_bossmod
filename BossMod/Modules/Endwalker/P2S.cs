@@ -652,7 +652,7 @@ namespace BossMod
                 {
                     foreach (var status in player.Statuses)
                     {
-                        if (status.RemainingTime > 10)
+                        if ((status.ExpireAt - DateTime.Now).TotalSeconds > 10)
                             continue;
 
                         switch ((SID)status.ID)

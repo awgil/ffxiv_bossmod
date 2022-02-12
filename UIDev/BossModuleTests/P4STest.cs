@@ -115,7 +115,7 @@ namespace UIDev
                     ImGui.SameLine();
                     bool roleCall = actor.Statuses[0].ID == (uint)P4S.SID.RoleCall;
                     if (ImGui.Checkbox($"RoleCall##{actor.InstanceID}", ref roleCall))
-                        SetStatus(actor, 0, roleCall ? (uint)P4S.SID.RoleCall : 0);
+                        _ws.UpdateStatus(actor, 0, new() { ID = roleCall ? (uint)P4S.SID.RoleCall : 0 });
                 }
                 else if (actor.OID == (uint)P4S.OID.Boss1)
                 {
@@ -163,13 +163,6 @@ namespace UIDev
                     }
                 }
             }
-        }
-
-        private void SetStatus(WorldState.Actor actor, int index, uint statusID)
-        {
-            var newStatuses = (WorldState.Status[])actor.Statuses.Clone();
-            newStatuses[index].ID = statusID;
-            _ws.UpdateStatuses(actor, newStatuses);
         }
     }
 }

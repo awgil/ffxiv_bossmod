@@ -94,8 +94,8 @@ namespace BossMod
             public ActionID Action;
             public uint TargetID;
             public Vector3 Location;
-            public float CurrentTime;
             public float TotalTime;
+            public DateTime FinishAt;
 
             public bool IsSpell() => Action.Type == ActionType.Spell;
             public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);
@@ -111,9 +111,9 @@ namespace BossMod
         public struct Status
         {
             public uint ID;
-            public ushort Extra;
-            public float RemainingTime;
             public uint SourceID;
+            public ushort Extra;
+            public DateTime ExpireAt;
         }
 
         public class Actor
@@ -135,7 +135,6 @@ namespace BossMod
             public Role Role => Class.GetRole();
             public Vector3 Position => new(PosRot.X, PosRot.Y, PosRot.Z);
             public float Rotation => PosRot.W;
-            public float RotationDeg => PosRot.W / MathF.PI * 180;
 
             public Actor(uint instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius, bool targetable)
             {
@@ -184,7 +183,8 @@ namespace BossMod
 
             UpdateCastInfo(actor, null); // stop casting
             UpdateTether(actor, new()); // untether
-            UpdateStatuses(actor, new Status[30]); // clear statuses
+            for (int i = 0; i < actor.Statuses.Length; ++i)
+                UpdateStatus(actor, i, new()); // clear statuses
             ActorDestroyed?.Invoke(this, actor);
             _actors.Remove(instanceID);
         }
@@ -263,8 +263,8 @@ namespace BossMod
             if (cast != null && act.CastInfo != null && cast.Action == act.CastInfo.Action && cast.TargetID == act.CastInfo.TargetID)
             {
                 // continuing casting same spell
-                act.CastInfo.CurrentTime = cast.CurrentTime;
                 act.CastInfo.TotalTime = cast.TotalTime;
+                act.CastInfo.FinishAt = cast.FinishAt;
                 return;
             }
 
@@ -302,34 +302,33 @@ namespace BossMod
         // argument = actor + status index
         public event EventHandler<(Actor, int)>? ActorStatusGain;
         public event EventHandler<(Actor, int)>? ActorStatusLose; // note that status structure still contains details when this is invoked; invoked if actor disappears
-        public event EventHandler<(Actor, int, ushort)>? ActorStatusChange; // invoked when extra is changed; status contains new value, old is passed as extra arg
-        public void UpdateStatuses(Actor act, Status[] statuses)
+        public event EventHandler<(Actor, int, ushort, DateTime)>? ActorStatusChange; // invoked when extra or expiration time is changed; status contains new values, old are passed as extra args
+        public void UpdateStatus(Actor act, int index, Status value)
         {
-            for (int i = 0; i < act.Statuses.Length; ++i)
+            if (act.Statuses[index].ID == value.ID && act.Statuses[index].SourceID == value.SourceID)
             {
-                if (act.Statuses[i].ID == statuses[i].ID && act.Statuses[i].SourceID == statuses[i].SourceID)
+                // status was and still is active; just update details
+                if (act.Statuses[index].Extra != value.Extra || (act.Statuses[index].ExpireAt - value.ExpireAt).Duration().TotalSeconds > 2)
                 {
-                    // status was and still is active; just update details
-                    act.Statuses[i].RemainingTime = statuses[i].RemainingTime;
-                    if (act.Statuses[i].Extra != statuses[i].Extra)
-                    {
-                        var prev = act.Statuses[i].Extra;
-                        act.Statuses[i].Extra = statuses[i].Extra;
-                        ActorStatusChange?.Invoke(this, (act, i, prev));
-                    }
-                    continue;
+                    var prevExtra = act.Statuses[index].Extra;
+                    var prevExpire = act.Statuses[index].ExpireAt;
+                    act.Statuses[index].Extra = value.Extra;
+                    act.Statuses[index].ExpireAt = value.ExpireAt;
+                    ActorStatusChange?.Invoke(this, (act, index, prevExtra, prevExpire));
                 }
-
-                if (act.Statuses[i].ID != 0)
+            }
+            else
+            {
+                if (act.Statuses[index].ID != 0)
                 {
                     // remove previous status
-                    ActorStatusLose?.Invoke(this, (act, i));
+                    ActorStatusLose?.Invoke(this, (act, index));
                 }
-                act.Statuses[i] = statuses[i];
-                if (act.Statuses[i].ID != 0)
+                act.Statuses[index] = value;
+                if (act.Statuses[index].ID != 0)
                 {
                     // apply new status
-                    ActorStatusGain?.Invoke(this, (act, i));
+                    ActorStatusGain?.Invoke(this, (act, index));
                 }
             }
         }

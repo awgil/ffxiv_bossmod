@@ -85,12 +85,12 @@ namespace UIDev
                     {
                         if (blue)
                         {
-                            SetStatus(actor.Value, 0, (uint)P1S.SID.ShacklesOfCompanionship0, 0);
+                            _ws.UpdateStatus(actor.Value, 0, new() { ID = (uint)P1S.SID.ShacklesOfCompanionship0 });
                         }
                         else
                         {
-                            SetStatus(actor.Value, 0, (uint)P1S.SID.InescapableCompanionship, 0);
-                            SetStatus(actor.Value, 0, 0, 0);
+                            _ws.UpdateStatus(actor.Value, 0, new() { ID = (uint)P1S.SID.InescapableCompanionship });
+                            _ws.UpdateStatus(actor.Value, 0, new());
                         }
                     }
 
@@ -100,12 +100,12 @@ namespace UIDev
                     {
                         if (redShackle)
                         {
-                            SetStatus(actor.Value, 1, (uint)P1S.SID.ShacklesOfLoneliness0, 0);
+                            _ws.UpdateStatus(actor.Value, 1, new() { ID = (uint)P1S.SID.ShacklesOfLoneliness0 });
                         }
                         else
                         {
-                            SetStatus(actor.Value, 1, (uint)P1S.SID.InescapableLoneliness, 0);
-                            SetStatus(actor.Value, 1, 0, 0);
+                            _ws.UpdateStatus(actor.Value, 1, new() { ID = (uint)P1S.SID.InescapableLoneliness });
+                            _ws.UpdateStatus(actor.Value, 1, new());
                         }
                     }
 
@@ -113,7 +113,7 @@ namespace UIDev
                     bool sot = actor.Value.Statuses[2].ID != 0;
                     if (ImGui.Checkbox($"Shackle of time##{actor.Value.InstanceID}", ref sot))
                     {
-                        SetStatus(actor.Value, 2, sot ? (uint)P1S.SID.ShacklesOfTime : 0, 0);
+                        _ws.UpdateStatus(actor.Value, 2, new() { ID = sot ? (uint)P1S.SID.ShacklesOfTime : 0 });
                     }
                 }
                 else
@@ -122,25 +122,17 @@ namespace UIDev
                     bool red = actor.Value.Statuses[0].ID != 0 && actor.Value.Statuses[0].Extra == 0x4C;
                     if (ImGui.Checkbox($"Red aether##{actor.Value.InstanceID}", ref red))
                     {
-                        SetStatus(actor.Value, 0, red ? (uint)P1S.SID.AetherExplosion : 0, 0x4C);
+                        _ws.UpdateStatus(actor.Value, 0, new() { ID = red ? (uint)P1S.SID.AetherExplosion : 0, Extra = 0x4C });
                     }
 
                     ImGui.SameLine();
                     bool blue = actor.Value.Statuses[0].ID != 0 && actor.Value.Statuses[0].Extra == 0x4D;
                     if (ImGui.Checkbox($"Blue aether##{actor.Value.InstanceID}", ref blue))
                     {
-                        SetStatus(actor.Value, 0, blue ? (uint)P1S.SID.AetherExplosion : 0, 0x4D);
+                        _ws.UpdateStatus(actor.Value, 0, new() { ID = blue ? (uint)P1S.SID.AetherExplosion : 0, Extra = 0x4D });
                     }
                 }
             }
-        }
-
-        private void SetStatus(WorldState.Actor actor, int index, uint statusID, ushort param)
-        {
-            var newStatuses = (WorldState.Status[])actor.Statuses.Clone();
-            newStatuses[index].ID = statusID;
-            newStatuses[index].Extra = param;
-            _ws.UpdateStatuses(actor, newStatuses);
         }
     }
 }

@@ -78,23 +78,24 @@ namespace BossMod
                             Action = new((ActionType)chara.CastActionType, chara.CastActionId),
                             TargetID = chara.CastTargetObjectId,
                             Location = Utils.BattleCharaCastLocation(chara),
-                            CurrentTime = chara.CurrentCastTime,
-                            TotalTime = chara.TotalCastTime
+                            TotalTime = chara.TotalCastTime,
+                            FinishAt = DateTime.Now.AddSeconds(chara.CurrentCastTime)
                         } : null;
                     UpdateCastInfo(act, curCast);
 
-                    var statuses = new Status[chara.StatusList.Length];
-                    for (int i = 0; i < statuses.Length; ++i)
+                    for (int i = 0; i < chara.StatusList.Length; ++i)
                     {
+                        Status status = new();
                         var s = chara.StatusList[i];
-                        if (s == null)
-                            continue;
-                        statuses[i].ID = s.StatusId;
-                        statuses[i].Extra = (ushort)((s.Param << 8) | s.StackCount);
-                        statuses[i].RemainingTime = s.RemainingTime;
-                        statuses[i].SourceID = s.SourceID;
+                        if (s != null)
+                        {
+                            status.ID = s.StatusId;
+                            status.SourceID = s.SourceID;
+                            status.Extra = (ushort)((s.Param << 8) | s.StackCount);
+                            status.ExpireAt = s.RemainingTime == 0 ? DateTime.MaxValue : DateTime.Now.AddSeconds(s.RemainingTime);
+                        }
+                        UpdateStatus(act, i, status);
                     }
-                    UpdateStatuses(act, statuses);
                 }
             }
         }

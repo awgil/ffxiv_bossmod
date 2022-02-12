@@ -144,6 +144,11 @@ namespace BossMod
             return $"{v.X:f3}/{v.Y:f3}/{v.Z:f3}";
         }
 
+        private string StatusTime(DateTime expireAt)
+        {
+            return $"{(expireAt != DateTime.MaxValue ? (expireAt - DateTime.Now).TotalSeconds : 0):f3}";
+        }
+
         private string Actor(WorldState.Actor actor)
         {
             return $"{actor.InstanceID:X8}/{actor.OID:X}/{actor.Name}/{actor.Type}/{Vec3(actor.Position)}/{Utils.RadianString(actor.Rotation)}";
@@ -220,12 +225,12 @@ namespace BossMod
 
         private void ActorCastStarted(object? sender, WorldState.Actor actor)
         {
-            Log("CST+", $"{Actor(actor)}|{actor.CastInfo!.Action}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString(actor.CastInfo!.CurrentTime, actor.CastInfo!.TotalTime)}");
+            Log("CST+", $"{Actor(actor)}|{actor.CastInfo!.Action}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString((float)(actor.CastInfo!.FinishAt - DateTime.Now).TotalSeconds, actor.CastInfo!.TotalTime)}");
         }
 
         private void ActorCastFinished(object? sender, WorldState.Actor actor)
         {
-            Log("CST-", $"{Actor(actor)}|{actor.CastInfo!.Action}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString(actor.CastInfo!.CurrentTime, actor.CastInfo!.TotalTime)}");
+            Log("CST-", $"{Actor(actor)}|{actor.CastInfo!.Action}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString((float)(actor.CastInfo!.FinishAt - DateTime.Now).TotalSeconds, actor.CastInfo!.TotalTime)}");
         }
 
         private void ActorTethered(object? sender, WorldState.Actor actor)
@@ -241,19 +246,19 @@ namespace BossMod
         private void ActorStatusGain(object? sender, (WorldState.Actor actor, int index) arg)
         {
             var s = arg.actor.Statuses[arg.index];
-            Log("STA+", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Extra:X4}|{s.RemainingTime:f2}|{Actor(s.SourceID)}");
+            Log("STA+", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Extra:X4}|{StatusTime(s.ExpireAt)}|{Actor(s.SourceID)}");
         }
 
         private void ActorStatusLose(object? sender, (WorldState.Actor actor, int index) arg)
         {
             var s = arg.actor.Statuses[arg.index];
-            Log("STA-", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Extra:X4}|{s.RemainingTime:f2}|{Actor(s.SourceID)}");
+            Log("STA-", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Extra:X4}|{StatusTime(s.ExpireAt)}|{Actor(s.SourceID)}");
         }
 
-        private void ActorStatusChange(object? sender, (WorldState.Actor actor, int index, ushort prevExtra) arg)
+        private void ActorStatusChange(object? sender, (WorldState.Actor actor, int index, ushort prevExtra, DateTime prevExpire) arg)
         {
             var s = arg.actor.Statuses[arg.index];
-            Log("STA!", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Extra:X4}|{s.RemainingTime:f2}|{Actor(s.SourceID)}");
+            Log("STA!", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Extra:X4}|{StatusTime(s.ExpireAt)}|{Actor(s.SourceID)}");
         }
 
         private void EventIcon(object? sender, (uint actorID, uint iconID) arg)

@@ -429,7 +429,7 @@ namespace BossMod
                 comp.OnStatusLose(arg.actor, arg.index);
         }
 
-        private void OnActorStatusChange(object? sender, (WorldState.Actor actor, int index, ushort prev) arg)
+        private void OnActorStatusChange(object? sender, (WorldState.Actor actor, int index, ushort prevExtra, DateTime prevExpire) arg)
         {
             foreach (var comp in _components)
                 comp.OnStatusChange(arg.actor, arg.index);

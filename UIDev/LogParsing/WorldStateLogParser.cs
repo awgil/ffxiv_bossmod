@@ -485,8 +485,8 @@ namespace UIDev
                     res.Value.Location = Vec3(payload[5]);
 
                     var parts = payload[6].Split('/');
-                    res.Value.CurrentTime = float.Parse(parts[0]);
                     res.Value.TotalTime = float.Parse(parts[1]);
+                    res.Value.FinishAt = DateTime.Parse(payload[0]).AddSeconds(float.Parse(parts[0]));
                 }
                 return res;
             }
@@ -501,7 +501,8 @@ namespace UIDev
                     res.Value = new();
                     res.Value.Action = new(ActionType.Spell, uint.Parse(payload[4], NumberStyles.HexNumber));
                     res.Value.TargetID = uint.Parse(payload[6], NumberStyles.HexNumber);
-                    res.Value.CurrentTime = res.Value.TotalTime = float.Parse(payload[8]);
+                    res.Value.TotalTime = float.Parse(payload[8]);
+                    res.Value.FinishAt = DateTime.Parse(payload[1]).AddSeconds(res.Value.TotalTime);
                     ACTAddPos(pos, res.InstanceID, payload, 9);
                 }
                 return (res, pos);
@@ -590,9 +591,10 @@ namespace UIDev
                 {
                     int sep = payload[4].IndexOf(' ');
                     res.Value.ID = uint.Parse(sep >= 0 ? payload[4].AsSpan(0, sep) : payload[4].AsSpan());
-                    res.Value.Extra = ushort.Parse(payload[5], NumberStyles.HexNumber);
-                    res.Value.RemainingTime = float.Parse(payload[6]);
                     res.Value.SourceID = ActorID(payload[7]);
+                    res.Value.Extra = ushort.Parse(payload[5], NumberStyles.HexNumber);
+                    var timeLeft = float.Parse(payload[6]);
+                    res.Value.ExpireAt = timeLeft != 0 ? DateTime.Parse(payload[0]).AddSeconds(timeLeft) : DateTime.MaxValue;
                 }
                 return res;
             }
@@ -612,9 +614,9 @@ namespace UIDev
                         if (res.Index == -1)
                             res.Index = Array.FindIndex(actor.Statuses, x => x.ID == 0); // new buff
                         res.Value.ID = id;
-                        res.Value.Extra = ushort.Parse(payload[9], NumberStyles.HexNumber);
-                        res.Value.RemainingTime = float.Parse(payload[4]);
                         res.Value.SourceID = source;
+                        res.Value.Extra = ushort.Parse(payload[9], NumberStyles.HexNumber);
+                        res.Value.ExpireAt = DateTime.Parse(payload[1]).AddSeconds(float.Parse(payload[4]));
                     }
                     else if (res.Index == -1)
                     {
@@ -630,9 +632,7 @@ namespace UIDev
                 if (actor != null)
                 {
                     _prev = actor.Statuses[Index];
-                    var newStatuses = (WorldState.Status[])actor.Statuses.Clone();
-                    newStatuses[Index] = Value;
-                    ws.UpdateStatuses(actor, newStatuses);
+                    ws.UpdateStatus(actor, Index, Value);
                 }
             }
 
@@ -641,9 +641,7 @@ namespace UIDev
                 var actor = ws.FindActor(InstanceID);
                 if (actor != null)
                 {
-                    var newStatuses = (WorldState.Status[])actor.Statuses.Clone();
-                    newStatuses[Index] = _prev;
-                    ws.UpdateStatuses(actor, newStatuses);
+                    ws.UpdateStatus(actor, Index, _prev);
                 }
             }
         }
