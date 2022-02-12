@@ -89,16 +89,6 @@ namespace BossMod
             CardStand = 0xE00,
         }
 
-        // this matches values in ClassJob excel sheet
-        public enum ActorRole
-        {
-            None = 0,
-            Tank = 1,
-            Melee = 2,
-            Ranged = 3,
-            Healer = 4,
-        }
-
         // matches FFXIVClientStructs.FFXIV.Client.Game.ActionType
         public enum ActionType : byte
         {
@@ -155,10 +145,8 @@ namespace BossMod
             public uint OID;
             public string Name;
             public ActorType Type;
-            public uint ClassID;
-            public ActorRole Role;
-            public Vector3 Position = new();
-            public float Rotation; // 0 = pointing S, pi/2 = pointing E, pi = pointing N, -pi/2 = pointing W
+            public Class Class;
+            public Vector4 PosRot = new(); // W = rotation: 0 = pointing S, pi/2 = pointing E, pi = pointing N, -pi/2 = pointing W
             public float HitboxRadius;
             public bool IsTargetable;
             public bool IsDead;
@@ -167,16 +155,19 @@ namespace BossMod
             public TetherInfo Tether = new();
             public Status[] Statuses = new Status[30]; // empty slots have ID=0
 
-            public Actor(uint instanceID, uint oid, string name, ActorType type, uint classID, ActorRole role, Vector3 pos, float rot, float hitboxRadius, bool targetable)
+            public Role Role => Class.GetRole();
+            public Vector3 Position => new(PosRot.X, PosRot.Y, PosRot.Z);
+            public float Rotation => PosRot.W;
+            public float RotationDeg => PosRot.W / MathF.PI * 180;
+
+            public Actor(uint instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius, bool targetable)
             {
                 InstanceID = instanceID;
                 OID = oid;
                 Name = name;
                 Type = type;
-                ClassID = classID;
-                Role = role;
-                Position = pos;
-                Rotation = rot;
+                Class = classID;
+                PosRot = posRot;
                 HitboxRadius = hitboxRadius;
                 IsTargetable = targetable;
             }
@@ -200,9 +191,9 @@ namespace BossMod
         }
 
         public event EventHandler<Actor>? ActorCreated;
-        public Actor AddActor(uint instanceID, uint oid, string name, ActorType type, uint classID, ActorRole role, Vector3 pos, float rot, float hitboxRadius, bool targetable)
+        public Actor AddActor(uint instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius, bool targetable)
         {
-            var act = _actors[instanceID] = new Actor(instanceID, oid, name, type, classID, role, pos, rot, hitboxRadius, targetable);
+            var act = _actors[instanceID] = new Actor(instanceID, oid, name, type, classID, posRot, hitboxRadius, targetable);
             ActorCreated?.Invoke(this, act);
             return act;
         }
@@ -232,29 +223,25 @@ namespace BossMod
             }
         }
 
-        public event EventHandler<(Actor, uint, ActorRole)>? ActorClassRoleChanged; // actor already contains new position, old is passed as extra args
-        public void ChangeActorClassRole(Actor act, uint newClass, ActorRole newRole)
+        public event EventHandler<(Actor, Class)>? ActorClassChanged; // actor already has new class, old is passed as extra args
+        public void ChangeActorClass(Actor act, Class newClass)
         {
-            if (act.ClassID != newClass || act.Role != newRole)
+            if (act.Class != newClass)
             {
-                var prevClass = act.ClassID;
-                var prevRole = act.Role;
-                act.ClassID = newClass;
-                act.Role = newRole;
-                ActorClassRoleChanged?.Invoke(this, (act, prevClass, prevRole));
+                var prevClass = act.Class;
+                act.Class = newClass;
+                ActorClassChanged?.Invoke(this, (act, prevClass));
             }
         }
 
-        public event EventHandler<(Actor, Vector3, float)>? ActorMoved; // actor already contains new position, old is passed as extra args
-        public void MoveActor(Actor act, Vector3 newPos, float newRot)
+        public event EventHandler<(Actor, Vector4)>? ActorMoved; // actor already contains new position/rotation, old is passed as extra args
+        public void MoveActor(Actor act, Vector4 newPosRot)
         {
-            if (act.Position != newPos || act.Rotation != newRot)
+            if (act.PosRot != newPosRot)
             {
-                var prevPos = act.Position;
-                var prevRot = act.Rotation;
-                act.Position = newPos;
-                act.Rotation = newRot;
-                ActorMoved?.Invoke(this, (act, prevPos, prevRot));
+                var prevPosRot = act.PosRot;
+                act.PosRot = newPosRot;
+                ActorMoved?.Invoke(this, (act, prevPosRot));
             }
         }
 

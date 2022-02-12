@@ -13,15 +13,15 @@ namespace UIDev
         public P1STest()
         {
             _ws = new();
-            _ws.AddActor(1, 0, "T1", WorldState.ActorType.Player, 0, WorldState.ActorRole.Tank, new(105, 0, 100), 0, 1, true);
-            _ws.AddActor(2, 0, "T2", WorldState.ActorType.Player, 0, WorldState.ActorRole.Tank, new(100, 0, 105), 0, 1, true);
-            _ws.AddActor(3, 0, "H1", WorldState.ActorType.Player, 0, WorldState.ActorRole.Healer, new(100, 0,  95), 0, 1, true);
-            _ws.AddActor(4, 0, "H2", WorldState.ActorType.Player, 0, WorldState.ActorRole.Healer, new( 95, 0, 100), 0, 1, true);
-            _ws.AddActor(5, 0, "R1", WorldState.ActorType.Player, 0, WorldState.ActorRole.Ranged, new(110, 0, 110), 0, 1, true);
-            _ws.AddActor(6, 0, "R2", WorldState.ActorType.Player, 0, WorldState.ActorRole.Ranged, new( 90, 0, 110), 0, 1, true);
-            _ws.AddActor(7, 0, "M1", WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new(110, 0,  90), 0, 1, true);
-            _ws.AddActor(8, 0, "M2", WorldState.ActorType.Player, 0, WorldState.ActorRole.Melee, new( 90, 0,  90), 0, 1, true);
-            _ws.AddActor(9, (uint)P1S.OID.Boss, "Boss", WorldState.ActorType.Enemy, 0, WorldState.ActorRole.None, new(100, 0, 100), 0, 1, true);
+            _ws.AddActor(1, 0, "T1", WorldState.ActorType.Player, Class.WAR, new(105, 0, 100, 0), 1, true);
+            _ws.AddActor(2, 0, "T2", WorldState.ActorType.Player, Class.PLD, new(100, 0, 105, 0), 1, true);
+            _ws.AddActor(3, 0, "H1", WorldState.ActorType.Player, Class.WHM, new(100, 0,  95, 0), 1, true);
+            _ws.AddActor(4, 0, "H2", WorldState.ActorType.Player, Class.SGE, new( 95, 0, 100, 0), 1, true);
+            _ws.AddActor(5, 0, "R1", WorldState.ActorType.Player, Class.BLM, new(110, 0, 110, 0), 1, true);
+            _ws.AddActor(6, 0, "R2", WorldState.ActorType.Player, Class.MCH, new( 90, 0, 110, 0), 1, true);
+            _ws.AddActor(7, 0, "M1", WorldState.ActorType.Player, Class.MNK, new(110, 0,  90, 0), 1, true);
+            _ws.AddActor(8, 0, "M2", WorldState.ActorType.Player, Class.RPR, new( 90, 0,  90, 0), 1, true);
+            _ws.AddActor(9, (uint)P1S.OID.Boss, "Boss", WorldState.ActorType.Enemy, Class.None, new(100, 0, 100, 0), 1, true);
             _ws.PlayerActorID = 1;
             _o = new P1S(_ws);
         }
@@ -68,7 +68,7 @@ namespace UIDev
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100);
                 ImGui.DragFloat($"Rot##{actor.Value.InstanceID}", ref rot, 1, -180, 180);
-                _ws.MoveActor(actor.Value, pos, rot / 180 * MathF.PI);
+                _ws.MoveActor(actor.Value, new(pos, rot / 180 * MathF.PI));
 
                 if (actor.Value.Type == WorldState.ActorType.Player)
                 {

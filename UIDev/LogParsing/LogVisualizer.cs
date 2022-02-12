@@ -67,7 +67,7 @@ namespace UIDev
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100);
                 ImGui.DragFloat($"Rot##{actor.InstanceID}", ref rot, 1, -180, 180);
-                _ws.MoveActor(actor, pos, rot / 180 * MathF.PI);
+                _ws.MoveActor(actor, new(pos, rot / 180 * MathF.PI));
                 ImGui.SameLine();
                 ImGui.Text($"{actor.Name} ({actor.OID:X})");
                 if (actor.CastInfo != null)

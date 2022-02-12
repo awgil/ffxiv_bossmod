@@ -52,20 +52,18 @@ namespace BossMod
             foreach ((_, var obj) in seenIDs)
             {
                 var character = obj as Character;
-                uint characterClass = character?.ClassJob.Id ?? 0;
+                var classID = (Class)(character?.ClassJob.Id ?? 0);
 
                 var act = FindActor(obj.ObjectId);
                 if (act == null)
                 {
-                    act = AddActor(obj.ObjectId, obj.DataId, obj.Name.TextValue, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), characterClass, (ActorRole?)character?.ClassJob.GameData?.Role ?? ActorRole.None,
-                        obj.Position, obj.Rotation, obj.HitboxRadius, Utils.GameObjectIsTargetable(obj));
+                    act = AddActor(obj.ObjectId, obj.DataId, obj.Name.TextValue, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), classID, new(obj.Position, obj.Rotation), obj.HitboxRadius, Utils.GameObjectIsTargetable(obj));
                 }
                 else
                 {
-                    if (act.ClassID != characterClass)
-                        ChangeActorClassRole(act, characterClass, (ActorRole?)character?.ClassJob.GameData?.Role ?? ActorRole.None);
+                    ChangeActorClass(act, classID);
                     RenameActor(act, obj.Name.TextValue);
-                    MoveActor(act, obj.Position, obj.Rotation);
+                    MoveActor(act, new(obj.Position, obj.Rotation));
                     ChangeActorIsTargetable(act, Utils.GameObjectIsTargetable(obj));
                 }
                 ChangeActorTarget(act, obj.TargetObjectId);

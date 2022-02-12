@@ -138,7 +138,7 @@ namespace BossMod
                 if (!Active)
                     return;
 
-                if (actor.Role == WorldState.ActorRole.Tank)
+                if (actor.Role == Role.Tank)
                 {
                     if (!IsTethered(actor))
                     {
@@ -174,11 +174,11 @@ namespace BossMod
                 {
                     if (IsTethered(player))
                     {
-                        arena.AddLine(player.Position, boss.Position, player.Role == WorldState.ActorRole.Tank ? arena.ColorSafe : arena.ColorDanger);
+                        arena.AddLine(player.Position, boss.Position, player.Role == Role.Tank ? arena.ColorSafe : arena.ColorDanger);
                         arena.Actor(player, arena.ColorDanger);
                         arena.AddCircle(player.Position, _aoeRange, arena.ColorDanger);
                     }
-                    else if (pc.Role == WorldState.ActorRole.Tank)
+                    else if (pc.Role == Role.Tank)
                     {
                         arena.Actor(player, BitVector.IsVector64BitSet(_inAnyAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
                     }
@@ -320,7 +320,7 @@ namespace BossMod
                     foreach ((_, var pair) in _module.IterateRaidMembersInRange(slot, _aoeRadius))
                     {
                         ++numStacked;
-                        goodPair = (actor.Role == WorldState.ActorRole.Tank || actor.Role == WorldState.ActorRole.Healer) != (pair.Role == WorldState.ActorRole.Tank || pair.Role == WorldState.ActorRole.Healer);
+                        goodPair = (actor.Role == Role.Tank || actor.Role == Role.Healer) != (pair.Role == Role.Tank || pair.Role == Role.Healer);
                     }
                     if (numStacked != 1)
                     {
@@ -540,13 +540,13 @@ namespace BossMod
                 {
                     // note: it seems to always target 1 tank & 1 healer, so correct stacks are always tanks+dd and healers+dd
                     int numStacked = 0;
-                    bool haveTanks = actor.Role == WorldState.ActorRole.Tank;
-                    bool haveHealers = actor.Role == WorldState.ActorRole.Healer;
+                    bool haveTanks = actor.Role == Role.Tank;
+                    bool haveHealers = actor.Role == Role.Healer;
                     foreach ((_, var pair) in _module.IterateRaidMembersInRange(slot, _stackRadius))
                     {
                         ++numStacked;
-                        haveTanks |= pair.Role == WorldState.ActorRole.Tank;
-                        haveHealers |= pair.Role == WorldState.ActorRole.Healer;
+                        haveTanks |= pair.Role == Role.Tank;
+                        haveHealers |= pair.Role == Role.Healer;
                     }
                     if (numStacked != 3)
                     {
@@ -667,7 +667,7 @@ namespace BossMod
                     return;
 
                 // draw other potential targets, to simplify positioning
-                bool healerOrTank = pc.Role == WorldState.ActorRole.Tank || pc.Role == WorldState.ActorRole.Healer;
+                bool healerOrTank = pc.Role == Role.Tank || pc.Role == Role.Healer;
                 foreach ((int i, var player) in _module.IterateRaidMembersWhere(player => CanBothBeTargets(player, pc)))
                 {
                     var distance = player.Position - pc.Position;
@@ -684,7 +684,7 @@ namespace BossMod
             private bool CanBothBeTargets(WorldState.Actor one, WorldState.Actor two)
             {
                 // i'm quite sure it selects either 4 dds or 2 tanks + 2 healers
-                return one.InstanceID != two.InstanceID && (one.Role == WorldState.ActorRole.Tank || one.Role == WorldState.ActorRole.Healer) == (two.Role == WorldState.ActorRole.Tank || two.Role == WorldState.ActorRole.Healer);
+                return one.InstanceID != two.InstanceID && (one.Role == Role.Tank || one.Role == Role.Healer) == (two.Role == Role.Tank || two.Role == Role.Healer);
             }
         }
 
@@ -1327,7 +1327,7 @@ namespace BossMod
 
                 bool tethered = BitVector.IsVector64BitSet(_tetherTargets, slot);
                 bool hitByMultipleAOEs = BitVector.IsVector64BitSet(_hitByMultipleAOEs, slot);
-                if (actor.Role == WorldState.ActorRole.Tank)
+                if (actor.Role == Role.Tank)
                 {
                     if (!tethered)
                     {

@@ -148,10 +148,8 @@ namespace UIDev
             public uint OID;
             public string Name = "";
             public WorldState.ActorType Type;
-            public uint Class;
-            public WorldState.ActorRole Role;
-            public Vector3 Pos;
-            public float Rot;
+            public Class Class;
+            public Vector4 PosRot;
             public float HitboxRadius;
             public bool IsTargetable;
 
@@ -163,12 +161,10 @@ namespace UIDev
                 res.OID = uint.Parse(parts[1], NumberStyles.HexNumber);
                 res.Name = parts[2];
                 res.Type = Enum.Parse<WorldState.ActorType>(parts[3]);
-                //res.Class = TODO...
-                res.Role = Enum.Parse<WorldState.ActorRole>(payload[4]);
-                res.Pos = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]));
-                res.Rot = float.Parse(parts[7]) * MathF.PI / 180;
-                res.IsTargetable = bool.Parse(payload[5]);
-                res.HitboxRadius = float.Parse(payload[6]);
+                res.Class = Enum.Parse<Class>(payload[3]);
+                res.PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]) * MathF.PI / 180);
+                res.IsTargetable = bool.Parse(payload[4]);
+                res.HitboxRadius = float.Parse(payload[5]);
                 return res;
             }
 
@@ -186,18 +182,15 @@ namespace UIDev
                 else
                     res.Type = WorldState.ActorType.Enemy;
 
-                res.Class = uint.Parse(payload[4], NumberStyles.HexNumber);
-                //res.Role = TODO...
-                var posRot = ACTPosRot(payload, 17);
-                res.Pos = posRot != null ? new(posRot.Value.X, posRot.Value.Y, posRot.Value.Z) : new();
-                res.Rot = posRot?.W ?? 0;
+                res.Class = (Class)uint.Parse(payload[4], NumberStyles.HexNumber);
+                res.PosRot = ACTPosRot(payload, 17) ?? new();
                 res.IsTargetable = true;
                 return (res, new());
             }
 
             public override void Redo(WorldState ws)
             {
-                ws.AddActor(InstanceID, OID, Name, Type, Class, Role, Pos, Rot, HitboxRadius, IsTargetable);
+                ws.AddActor(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, IsTargetable);
             }
 
             public override void Undo(WorldState ws)
@@ -212,10 +205,8 @@ namespace UIDev
             private uint OID;
             private string Name = "";
             private WorldState.ActorType Type;
-            private uint Class;
-            private WorldState.ActorRole Role;
-            private Vector3 Pos;
-            private float Rot;
+            private Class Class;
+            private Vector4 PosRot;
             private float HitboxRadius;
             private bool IsTargetable;
 
@@ -241,10 +232,8 @@ namespace UIDev
                 OID = actor?.OID ?? 0;
                 Name = actor?.Name ?? "";
                 Type = actor?.Type ?? WorldState.ActorType.None;
-                Class = actor?.ClassID ?? 0;
-                Role = actor?.Role ?? WorldState.ActorRole.None;
-                Pos = actor?.Position ?? new();
-                Rot = actor?.Rotation ?? 0;
+                Class = actor?.Class ?? Class.None;
+                PosRot = actor?.PosRot ?? new();
                 HitboxRadius = actor?.HitboxRadius ?? 0;
                 IsTargetable = actor?.IsTargetable ?? false;
                 ws.RemoveActor(InstanceID);
@@ -252,7 +241,7 @@ namespace UIDev
 
             public override void Undo(WorldState ws)
             {
-                ws.AddActor(InstanceID, OID, Name, Type, Class, Role, Pos, Rot, HitboxRadius, IsTargetable);
+                ws.AddActor(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, IsTargetable);
             }
         }
 
@@ -294,17 +283,14 @@ namespace UIDev
         public class OpActorClassChange : Operation
         {
             public uint InstanceID;
-            public uint Class;
-            public WorldState.ActorRole Role;
-            private uint _prevClass;
-            private WorldState.ActorRole _prevRole;
+            public Class Class;
+            private Class _prevClass;
 
             public static Operation? Parse(string[] payload)
             {
                 OpActorClassChange res = new();
                 res.InstanceID = ActorID(payload[2]);
-                res.Class = 0; // TODO...
-                res.Role = Enum.Parse<WorldState.ActorRole>(payload[6]);
+                res.Class = Enum.Parse<Class>(payload[4]);
                 return res;
             }
 
@@ -313,9 +299,8 @@ namespace UIDev
                 var actor = ws.FindActor(InstanceID);
                 if (actor != null)
                 {
-                    _prevClass = actor.ClassID;
-                    _prevRole = actor.Role;
-                    ws.ChangeActorClassRole(actor, Class, Role);
+                    _prevClass = actor.Class;
+                    ws.ChangeActorClass(actor, Class);
                 }
             }
 
@@ -324,7 +309,7 @@ namespace UIDev
                 var actor = ws.FindActor(InstanceID);
                 if (actor != null)
                 {
-                    ws.ChangeActorClassRole(actor, _prevClass, _prevRole);
+                    ws.ChangeActorClass(actor, _prevClass);
                 }
             }
         }
@@ -332,18 +317,15 @@ namespace UIDev
         public class OpActorMove : Operation
         {
             public uint InstanceID;
-            public Vector3 Pos;
-            public float Rot;
-            private Vector3 _prevPos;
-            private float _prevRot;
+            public Vector4 PosRot;
+            private Vector4 _prevPosRot;
 
             public static Operation? Parse(string[] payload)
             {
                 var parts = payload[2].Split('/');
                 OpActorMove res = new();
                 res.InstanceID = uint.Parse(parts[0], NumberStyles.HexNumber);
-                res.Pos = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]));
-                res.Rot = float.Parse(parts[7]) * MathF.PI / 180;
+                res.PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]) * MathF.PI / 180);
                 return res;
             }
 
@@ -352,9 +334,8 @@ namespace UIDev
                 var actor = ws.FindActor(InstanceID);
                 if (actor != null)
                 {
-                    _prevPos = actor.Position;
-                    _prevRot = actor.Rotation;
-                    ws.MoveActor(actor, Pos, Rot);
+                    _prevPosRot = actor.PosRot;
+                    ws.MoveActor(actor, PosRot);
                 }
             }
 
@@ -363,7 +344,7 @@ namespace UIDev
                 var actor = ws.FindActor(InstanceID);
                 if (actor != null)
                 {
-                    ws.MoveActor(actor, _prevPos, _prevRot);
+                    ws.MoveActor(actor, _prevPosRot);
                 }
             }
         }
@@ -959,8 +940,7 @@ namespace UIDev
                                 OpActorMove moveOp = new();
                                 moveOp.Timestamp = timestamp;
                                 moveOp.InstanceID = id;
-                                moveOp.Pos = new(posRot.X, posRot.Y, posRot.Z);
-                                moveOp.Rot = posRot.W;
+                                moveOp.PosRot = posRot;
                                 moveOp.Redo(ws);
                                 res.Ops.Add(moveOp);
                             }

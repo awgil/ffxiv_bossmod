@@ -331,7 +331,7 @@ namespace BossMod
                 var boss = _module.Boss();
                 if (boss?.Tether.Target == actor.InstanceID)
                 {
-                    if (actor.Role != WorldState.ActorRole.Tank)
+                    if (actor.Role != Role.Tank)
                     {
                         hints.Add("Pass tether to tank!");
                     }
@@ -342,7 +342,7 @@ namespace BossMod
                 }
                 else if (actor == _closest)
                 {
-                    if (actor.Role != WorldState.ActorRole.Tank)
+                    if (actor.Role != Role.Tank)
                     {
                         hints.Add("Go behind tank!");
                     }
@@ -353,7 +353,7 @@ namespace BossMod
                 }
                 else
                 {
-                    if (actor.Role == WorldState.ActorRole.Tank)
+                    if (actor.Role == Role.Tank)
                     {
                         hints.Add("Go in front of raid!");
                     }

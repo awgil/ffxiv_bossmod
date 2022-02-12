@@ -177,8 +177,8 @@ namespace BossMod
             {
                 switch (ActiveSoakers)
                 {
-                    case Soaker.TankOrHealer: return player.Role == WorldState.ActorRole.Tank || player.Role == WorldState.ActorRole.Healer;
-                    case Soaker.DamageDealer: return player.Role == WorldState.ActorRole.Melee || player.Role == WorldState.ActorRole.Ranged;
+                    case Soaker.TankOrHealer: return player.Role == Role.Tank || player.Role == Role.Healer;
+                    case Soaker.DamageDealer: return player.Role == Role.Melee || player.Role == Role.Ranged;
                     default: return false;
                 }
             }
@@ -566,7 +566,7 @@ namespace BossMod
                     {
                         hints.Add("GTFO from fire square!");
                     }
-                    if (_module.IterateRaidMembersWhere(other => other.Role == WorldState.ActorRole.Healer && GeometryUtils.PointInCircle(actor.Position - other.Position, _fireAOERadius)).Count() != 1)
+                    if (_module.IterateRaidMembersWhere(other => other.Role == Role.Healer && GeometryUtils.PointInCircle(actor.Position - other.Position, _fireAOERadius)).Count() != 1)
                     {
                         hints.Add("Stack in fours!");
                     }
@@ -632,7 +632,7 @@ namespace BossMod
                 {
                     foreach ((int i, var player) in _module.IterateRaidMembers())
                     {
-                        if (player.Role == WorldState.ActorRole.Healer)
+                        if (player.Role == Role.Healer)
                         {
                             arena.Actor(player, arena.ColorDanger);
                             arena.AddCircle(pc.Position, _fireAOERadius, arena.ColorDanger);
@@ -778,14 +778,14 @@ namespace BossMod
         {
             private P4S _module;
             private List<WorldState.Actor> _orbs;
-            private Dictionary<uint, WorldState.ActorRole> _orbTargets = new();
+            private Dictionary<uint, Role> _orbTargets = new();
             private int _orbsExploded = 0;
             private int[] _playerRuinCount = new int[8];
-            private WorldState.ActorRole[] _playerActingRole = new WorldState.ActorRole[8];
+            private Role[] _playerActingRole = new Role[8];
 
             private static float _burstRadius = 8;
 
-            private WorldState.ActorRole OrbTarget(uint instanceID) => _orbTargets.GetValueOrDefault(instanceID, WorldState.ActorRole.None);
+            private Role OrbTarget(uint instanceID) => _orbTargets.GetValueOrDefault(instanceID, Role.None);
 
             public VengefulBelone(P4S module)
             {
@@ -798,7 +798,7 @@ namespace BossMod
                 _orbTargets.Clear();
                 _orbsExploded = 0;
                 Array.Fill(_playerRuinCount, 0);
-                Array.Fill(_playerActingRole, WorldState.ActorRole.None);
+                Array.Fill(_playerActingRole, Role.None);
             }
 
             public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
@@ -807,7 +807,7 @@ namespace BossMod
                     return; // inactive
 
                 int ruinCount = _playerRuinCount[slot];
-                if (ruinCount > 2 || (ruinCount == 2 && _playerActingRole[slot] != WorldState.ActorRole.None))
+                if (ruinCount > 2 || (ruinCount == 2 && _playerActingRole[slot] != Role.None))
                 {
                     hints.Add("Failed orbs...");
                 }
@@ -822,7 +822,7 @@ namespace BossMod
                     // TODO: stack check...
                     hints.Add($"Pop next orb {ruinCount + 1}/2!", false);
                 }
-                else if (ruinCount == 2 && _playerActingRole[slot] == WorldState.ActorRole.None)
+                else if (ruinCount == 2 && _playerActingRole[slot] == Role.None)
                 {
                     hints.Add($"Avoid orbs", false);
                 }
@@ -837,7 +837,7 @@ namespace BossMod
                 foreach (var orb in _orbs)
                 {
                     var orbRole = OrbTarget(orb.InstanceID);
-                    if (orbRole == WorldState.ActorRole.None)
+                    if (orbRole == Role.None)
                         continue; // this orb has already exploded
 
                     bool lethal = IsOrbLethal(_module.PlayerSlot, pc, orbRole);
@@ -880,13 +880,13 @@ namespace BossMod
                         ModifyRuinStacks(_module.FindRaidMemberSlot(actor.InstanceID), actor.Statuses[index].Extra);
                         break;
                     case SID.ActingDPS:
-                        ModifyActingRole(_module.FindRaidMemberSlot(actor.InstanceID), WorldState.ActorRole.Melee);
+                        ModifyActingRole(_module.FindRaidMemberSlot(actor.InstanceID), Role.Melee);
                         break;
                     case SID.ActingHealer:
-                        ModifyActingRole(_module.FindRaidMemberSlot(actor.InstanceID), WorldState.ActorRole.Healer);
+                        ModifyActingRole(_module.FindRaidMemberSlot(actor.InstanceID), Role.Healer);
                         break;
                     case SID.ActingTank:
-                        ModifyActingRole(_module.FindRaidMemberSlot(actor.InstanceID), WorldState.ActorRole.Tank);
+                        ModifyActingRole(_module.FindRaidMemberSlot(actor.InstanceID), Role.Tank);
                         break;
                 }
             }
@@ -901,7 +901,7 @@ namespace BossMod
                     case SID.ActingDPS:
                     case SID.ActingHealer:
                     case SID.ActingTank:
-                        ModifyActingRole(_module.FindRaidMemberSlot(actor.InstanceID), WorldState.ActorRole.None);
+                        ModifyActingRole(_module.FindRaidMemberSlot(actor.InstanceID), Role.None);
                         break;
                 }
             }
@@ -916,32 +916,32 @@ namespace BossMod
             {
                 if (info.IsSpell(AID.BeloneBurstsAOETank) || info.IsSpell(AID.BeloneBurstsAOEHealer) || info.IsSpell(AID.BeloneBurstsAOEDPS))
                 {
-                    _orbTargets[info.CasterID] = WorldState.ActorRole.None;
+                    _orbTargets[info.CasterID] = Role.None;
                     ++_orbsExploded;
                 }
             }
 
-            private WorldState.ActorRole OrbRoleFromStatusParam(uint param)
+            private Role OrbRoleFromStatusParam(uint param)
             {
                 return param switch {
-                    0x13A => WorldState.ActorRole.Tank,
-                    0x13B => WorldState.ActorRole.Melee,
-                    0x13C => WorldState.ActorRole.Healer,
-                    _ => WorldState.ActorRole.None
+                    0x13A => Role.Tank,
+                    0x13B => Role.Melee,
+                    0x13C => Role.Healer,
+                    _ => Role.None
                 };
             }
 
-            private bool IsOrbLethal(int slot, WorldState.Actor player, WorldState.ActorRole orbRole)
+            private bool IsOrbLethal(int slot, WorldState.Actor player, Role orbRole)
             {
                 int ruinCount = _playerRuinCount[slot];
                 if (ruinCount >= 2)
                     return true; // any orb is now lethal
 
                 var actingRole = _playerActingRole[slot];
-                if (ruinCount == 1 && actingRole != WorldState.ActorRole.None)
+                if (ruinCount == 1 && actingRole != Role.None)
                     return orbRole != actingRole; // player must clear acting debuff, or he will die
 
-                var playerRole = player.Role == WorldState.ActorRole.Ranged ? WorldState.ActorRole.Melee : player.Role;
+                var playerRole = player.Role == Role.Ranged ? Role.Melee : player.Role;
                 return orbRole == playerRole;
             }
 
@@ -951,7 +951,7 @@ namespace BossMod
                     _playerRuinCount[slot] = count;
             }
 
-            private void ModifyActingRole(int slot, WorldState.ActorRole role)
+            private void ModifyActingRole(int slot, Role role)
             {
                 if (slot >= 0)
                     _playerActingRole[slot] = role;
@@ -1087,7 +1087,7 @@ namespace BossMod
                     return;
 
                 bool isTarget = BitVector.IsVector64BitSet(_targets, slot);
-                bool shouldBeTarget = actor.Role == WorldState.ActorRole.Tank;
+                bool shouldBeTarget = actor.Role == Role.Tank;
                 bool isFailing = isTarget != shouldBeTarget;
                 bool shouldBeNear = CurState == State.Near ? shouldBeTarget : !shouldBeTarget;
                 hints.Add(shouldBeNear ? "Stay near boss" : "Stay on max melee", isFailing);
@@ -1493,7 +1493,7 @@ namespace BossMod
                 {
                     IconID.AkanthaiDark => TetherType.Dark,
                     IconID.AkanthaiWind => TetherType.Wind,
-                    IconID.AkanthaiFire => (player.Role == WorldState.ActorRole.Tank || player.Role == WorldState.ActorRole.Healer) ? TetherType.FireTH : TetherType.FireDD,
+                    IconID.AkanthaiFire => (player.Role == Role.Tank || player.Role == Role.Healer) ? TetherType.FireTH : TetherType.FireDD,
                     _ => TetherType.None
                 };
             }
@@ -1584,8 +1584,8 @@ namespace BossMod
                 {
                     // TODO: consider raid comps with 3+ melee or ranged...
                     bool shouldSoakTower = CurState == State.RangedTowers
-                        ? (actor.Role == WorldState.ActorRole.Ranged || actor.Role == WorldState.ActorRole.Healer)
-                        : (actor.Role == WorldState.ActorRole.Melee || actor.Role == WorldState.ActorRole.Tank);
+                        ? (actor.Role == Role.Ranged || actor.Role == Role.Healer)
+                        : (actor.Role == Role.Melee || actor.Role == Role.Tank);
                     var soakedTower = (CurState == State.RangedTowers ? _rangedTowers : _meleeTowers).InRadius(actor.Position, _wreathTowerRadius).FirstOrDefault();
                     if (shouldSoakTower)
                     {
@@ -1966,7 +1966,7 @@ namespace BossMod
                     if (slot >= 0)
                     {
                         _playerOrder[slot] = 2 * (int)(actor.Statuses[index].RemainingTime / 10); // 2/4/6/8
-                        if (actor.Role == WorldState.ActorRole.Tank || actor.Role == WorldState.ActorRole.Healer)
+                        if (actor.Role == Role.Tank || actor.Role == Role.Healer)
                             --_playerOrder[slot];
                     }
                 }

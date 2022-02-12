@@ -83,7 +83,7 @@ namespace BossMod
                 _ws.ActorCreated += ActorCreated;
                 _ws.ActorDestroyed += ActorDestroyed;
                 _ws.ActorRenamed += ActorRenamed;
-                _ws.ActorClassRoleChanged += ActorClassRoleChanged;
+                _ws.ActorClassChanged += ActorClassChanged;
                 _ws.ActorMoved += ActorMoved;
                 _ws.ActorIsTargetableChanged += ActorIsTargetableChanged;
                 _ws.ActorIsDeadChanged += ActorIsDeadChanged;
@@ -112,7 +112,7 @@ namespace BossMod
                 _ws.ActorCreated -= ActorCreated;
                 _ws.ActorDestroyed -= ActorDestroyed;
                 _ws.ActorRenamed -= ActorRenamed;
-                _ws.ActorClassRoleChanged -= ActorClassRoleChanged;
+                _ws.ActorClassChanged -= ActorClassChanged;
                 _ws.ActorMoved -= ActorMoved;
                 _ws.ActorIsTargetableChanged -= ActorIsTargetableChanged;
                 _ws.ActorIsDeadChanged -= ActorIsDeadChanged;
@@ -180,7 +180,7 @@ namespace BossMod
 
         private void ActorCreated(object? sender, WorldState.Actor actor)
         {
-            Log("ACT+", $"{Actor(actor)}|{Utils.CharacterClassString(actor.ClassID)}|{actor.Role}|{actor.IsTargetable}|{actor.HitboxRadius:f3}");
+            Log("ACT+", $"{Actor(actor)}|{actor.Class}|{actor.IsTargetable}|{actor.HitboxRadius:f3}");
         }
 
         private void ActorDestroyed(object? sender, WorldState.Actor actor)
@@ -193,12 +193,12 @@ namespace BossMod
             Log("NAME", $"{Actor(arg.actor)}|{arg.oldName}");
         }
 
-        private void ActorClassRoleChanged(object? sender, (WorldState.Actor actor, uint prevClass, WorldState.ActorRole prevRole) arg)
+        private void ActorClassChanged(object? sender, (WorldState.Actor actor, Class prevClass) arg)
         {
-            Log("CLSR", $"{Actor(arg.actor)}|{Utils.CharacterClassString(arg.prevClass)}|{arg.prevRole}|{Utils.CharacterClassString(arg.actor.ClassID)}|{arg.actor.Role}");
+            Log("CLSR", $"{Actor(arg.actor)}|{arg.prevClass}|{arg.actor.Class}");
         }
 
-        private void ActorMoved(object? sender, (WorldState.Actor actor, Vector3 prevPos, float prevRot) arg)
+        private void ActorMoved(object? sender, (WorldState.Actor actor, Vector4 prevPosRot) arg)
         {
             Log("MOVE", Actor(arg.actor));
         }

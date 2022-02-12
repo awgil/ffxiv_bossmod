@@ -133,7 +133,7 @@ namespace BossMod
             }
         }
 
-        private void ActorTeleported(object? sender, (WorldState.Actor actor, Vector3 prevPos, float prevRot) args)
+        private void ActorTeleported(object? sender, (WorldState.Actor actor, Vector4 prevPos) args)
         {
             // ignore teleports after wipe
             if (_stages.NextEvent == ZodiarkStages.BossEvent.Kokytos || _stages.NextEvent == ZodiarkStages.BossEvent.Intermission1)
