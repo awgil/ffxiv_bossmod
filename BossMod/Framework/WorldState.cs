@@ -8,6 +8,8 @@ namespace BossMod
     // it does not know anything about dalamud, so it can be used for UI test - there is a separate utility that updates it based on game state every frame
     public class WorldState
     {
+        public DateTime CurrentTime;
+
         private ushort _currentZone;
         public event EventHandler<ushort>? CurrentZoneChanged;
         public ushort CurrentZone

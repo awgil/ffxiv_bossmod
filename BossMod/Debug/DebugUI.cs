@@ -32,7 +32,7 @@ namespace BossMod
 
         public void Draw()
         {
-            string combatTime = _ws.PlayerInCombat ? (DateTime.Now - _combatStart).ToString() : "---";
+            string combatTime = _ws.PlayerInCombat ? (_ws.CurrentTime - _combatStart).ToString() : "---";
             ImGui.Text($"Current zone: {_ws.CurrentZone}, pos = {Utils.Vec3String(Service.ClientState.LocalPlayer?.Position ?? new Vector3())}");
             ImGui.Text($"Combat time: {combatTime}, target = {Utils.ObjectString(Service.ClientState.LocalPlayer?.TargetObjectId ?? 0)}");
             if (ImGui.Button("Perform full dump"))
@@ -115,7 +115,7 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(elem.Key));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(elem.Value.CastInfo.TargetID));
                 ImGui.TableNextColumn(); ImGui.Text(elem.Value.CastInfo.Action.ToString());
-                ImGui.TableNextColumn(); ImGui.Text(Utils.CastTimeString((float)(elem.Value.CastInfo.FinishAt - DateTime.Now).TotalSeconds, elem.Value.CastInfo.TotalTime));
+                ImGui.TableNextColumn(); ImGui.Text(Utils.CastTimeString((float)(elem.Value.CastInfo.FinishAt - _ws.CurrentTime).TotalSeconds, elem.Value.CastInfo.TotalTime));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(elem.Value.CastInfo.Location));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(elem.Value.Position));
             }

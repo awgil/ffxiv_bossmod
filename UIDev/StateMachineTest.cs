@@ -1,5 +1,6 @@
 ﻿using BossMod;
 using ImGuiNET;
+using System;
 using System.Numerics;
 using System.Text;
 
@@ -37,7 +38,7 @@ namespace UIDev
 
         public void Draw()
         {
-            _sm.Update();
+            _sm.Update(DateTime.Now);
             _sm.Draw();
 
             if (ImGui.Button("Start"))

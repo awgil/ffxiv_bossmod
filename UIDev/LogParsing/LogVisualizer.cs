@@ -13,7 +13,6 @@ namespace UIDev
     {
         private WorldStateLogParser _data;
         private WorldState _ws = new();
-        private DateTime _cur;
         private int _cursor = 0;
         private List<(DateTime, bool)> _checkpoints = new();
         private DateTime _first;
@@ -26,7 +25,7 @@ namespace UIDev
         public LogVisualizer(WorldStateLogParser data)
         {
             _data = data;
-            _cur = data.Ops.First().Timestamp;
+            _ws.CurrentTime = data.Ops.First().Timestamp;
 
             foreach (var op in data.Ops.OfType<WorldStateLogParser.OpEnterExitCombat>())
                 _checkpoints.Add((op.Timestamp, op.Value));
@@ -41,7 +40,7 @@ namespace UIDev
         public void Draw()
         {
             var curFrame = DateTime.Now;
-            MoveTo(_cur + (curFrame - _prevFrame) * _playSpeed);
+            MoveTo(_ws.CurrentTime + (curFrame - _prevFrame) * _playSpeed);
             _prevFrame = curFrame;
 
             DrawControlRow();
@@ -103,6 +102,8 @@ namespace UIDev
 
         private void DrawControlRow()
         {
+            ImGui.Text($"{_ws.CurrentTime:O}");
+            ImGui.SameLine();
             if (ImGui.Button("<<<"))
                 _playSpeed = -5;
             ImGui.SameLine();
@@ -113,20 +114,7 @@ namespace UIDev
                 _playSpeed = -0.2f;
             ImGui.SameLine();
             if (ImGui.Button("||"))
-            {
-                if (_playSpeed == 0)
-                {
-                    _playSpeed = 1;
-                    if (_bossmod != null)
-                        _bossmod.StateMachine.Paused = false;
-                }
-                else
-                {
-                    _playSpeed = 0;
-                    if (_bossmod != null)
-                        _bossmod.StateMachine.Paused = true;
-                }
-            }
+                _playSpeed = _playSpeed == 0 ? 1 : 0;
             ImGui.SameLine();
             if (ImGui.Button(">"))
                 _playSpeed = 0.2f;
@@ -150,7 +138,7 @@ namespace UIDev
             cursor.Y += 4;
             dl.AddLine(cursor, cursor + new Vector2(w, 0), 0xff00ffff);
 
-            var curp = cursor + new Vector2(w * (float)((_cur - _first) / (_last - _first)), 0);
+            var curp = cursor + new Vector2(w * (float)((_ws.CurrentTime - _first) / (_last - _first)), 0);
             dl.AddTriangleFilled(curp, curp + new Vector2(3, 5), curp + new Vector2(-3, 5), 0xff00ffff);
             foreach ((var checkpoint, bool type) in _checkpoints)
             {
@@ -167,17 +155,17 @@ namespace UIDev
 
         private void MoveTo(DateTime t)
         {
-            if (t > _cur)
+            if (t > _ws.CurrentTime)
             {
                 while (_cursor < _data.Ops.Count && t > _data.Ops[_cursor].Timestamp)
                     _data.Ops[_cursor++].Redo(_ws);
             }
-            else if (t < _cur)
+            else if (t < _ws.CurrentTime)
             {
                 while (_cursor > 0 && t <= _data.Ops[_cursor - 1].Timestamp)
                     _data.Ops[--_cursor].Undo(_ws);
             }
-            _cur = t;
+            _ws.CurrentTime = t;
         }
 
         private void ActivateBossMod<T>() where T : BossModule

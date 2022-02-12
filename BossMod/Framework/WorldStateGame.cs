@@ -33,6 +33,7 @@ namespace BossMod
 
         public void Update()
         {
+            CurrentTime = DateTime.Now;
             CurrentZone = Service.ClientState.TerritoryType;
             PlayerInCombat = Service.ClientState.LocalPlayer?.StatusFlags.HasFlag(Dalamud.Game.ClientState.Objects.Enums.StatusFlags.InCombat) ?? false;
             PlayerActorID = Service.ClientState.LocalPlayer?.ObjectId ?? 0;
@@ -79,7 +80,7 @@ namespace BossMod
                             TargetID = chara.CastTargetObjectId,
                             Location = Utils.BattleCharaCastLocation(chara),
                             TotalTime = chara.TotalCastTime,
-                            FinishAt = DateTime.Now.AddSeconds(chara.CurrentCastTime)
+                            FinishAt = CurrentTime.AddSeconds(chara.CurrentCastTime)
                         } : null;
                     UpdateCastInfo(act, curCast);
 
@@ -92,7 +93,7 @@ namespace BossMod
                             status.ID = s.StatusId;
                             status.SourceID = s.SourceID;
                             status.Extra = (ushort)((s.Param << 8) | s.StackCount);
-                            status.ExpireAt = s.RemainingTime == 0 ? DateTime.MaxValue : DateTime.Now.AddSeconds(s.RemainingTime);
+                            status.ExpireAt = s.RemainingTime == 0 ? DateTime.MaxValue : CurrentTime.AddSeconds(s.RemainingTime);
                         }
                         UpdateStatus(act, i, status);
                     }

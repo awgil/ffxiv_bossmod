@@ -136,7 +136,7 @@ namespace BossMod
         private void Log(string type, object msg)
         {
             if (_logger != null)
-                _logger.WriteLine($"{DateTime.Now:O}|{type}|{msg}");
+                _logger.WriteLine($"{_ws.CurrentTime:O}|{type}|{msg}");
         }
 
         private string Vec3(Vector3 v)
@@ -146,7 +146,7 @@ namespace BossMod
 
         private string StatusTime(DateTime expireAt)
         {
-            return $"{(expireAt != DateTime.MaxValue ? (expireAt - DateTime.Now).TotalSeconds : 0):f3}";
+            return $"{(expireAt != DateTime.MaxValue ? (expireAt - _ws.CurrentTime).TotalSeconds : 0):f3}";
         }
 
         private string Actor(WorldState.Actor actor)
@@ -225,12 +225,12 @@ namespace BossMod
 
         private void ActorCastStarted(object? sender, WorldState.Actor actor)
         {
-            Log("CST+", $"{Actor(actor)}|{actor.CastInfo!.Action}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString((float)(actor.CastInfo!.FinishAt - DateTime.Now).TotalSeconds, actor.CastInfo!.TotalTime)}");
+            Log("CST+", $"{Actor(actor)}|{actor.CastInfo!.Action}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString((float)(actor.CastInfo!.FinishAt - _ws.CurrentTime).TotalSeconds, actor.CastInfo!.TotalTime)}");
         }
 
         private void ActorCastFinished(object? sender, WorldState.Actor actor)
         {
-            Log("CST-", $"{Actor(actor)}|{actor.CastInfo!.Action}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString((float)(actor.CastInfo!.FinishAt - DateTime.Now).TotalSeconds, actor.CastInfo!.TotalTime)}");
+            Log("CST-", $"{Actor(actor)}|{actor.CastInfo!.Action}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString((float)(actor.CastInfo!.FinishAt - _ws.CurrentTime).TotalSeconds, actor.CastInfo!.TotalTime)}");
         }
 
         private void ActorTethered(object? sender, WorldState.Actor actor)

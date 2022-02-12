@@ -1965,7 +1965,7 @@ namespace BossMod
                     int slot = _module.FindRaidMemberSlot(actor.InstanceID);
                     if (slot >= 0)
                     {
-                        _playerOrder[slot] = 2 * (int)((actor.Statuses[index].ExpireAt - DateTime.Now).TotalSeconds / 10); // 2/4/6/8
+                        _playerOrder[slot] = 2 * (int)((actor.Statuses[index].ExpireAt - _module.WorldState.CurrentTime).TotalSeconds / 10); // 2/4/6/8
                         if (actor.Role == Role.Tank || actor.Role == Role.Healer)
                             --_playerOrder[slot];
                     }

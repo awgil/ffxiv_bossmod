@@ -162,7 +162,7 @@ namespace BossMod
 
         public virtual void Update()
         {
-            StateMachine.Update();
+            StateMachine.Update(WorldState.CurrentTime);
             UpdateModule();
             foreach (var comp in _components)
                 comp.Update();

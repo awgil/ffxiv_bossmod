@@ -40,9 +40,10 @@ namespace BossMod
             public StateHint EndHint = StateHint.None; // special flags for state end
         }
 
-        private DateTime _lastTransition = DateTime.Now;
+        private DateTime _curTime;
+        private DateTime _lastTransition;
         private float? _pauseTime;
-        public float TimeSinceTransition => _pauseTime ?? (float)(DateTime.Now - _lastTransition).TotalSeconds;
+        public float TimeSinceTransition => _pauseTime ?? (float)(_curTime - _lastTransition).TotalSeconds;
         public bool Paused
         {
             get => _pauseTime != null;
@@ -54,7 +55,7 @@ namespace BossMod
                 }
                 else if (!value && _pauseTime != null)
                 {
-                    _lastTransition = DateTime.Now - TimeSpan.FromSeconds(_pauseTime.Value);
+                    _lastTransition = _curTime - TimeSpan.FromSeconds(_pauseTime.Value);
                     _pauseTime = null;
                 }
             }
@@ -79,14 +80,15 @@ namespace BossMod
                     _activeState.Done = false;
                     _activeState.Enter?.Invoke();
                 }
-                _lastTransition = DateTime.Now;
+                _lastTransition = _curTime;
                 if (Paused)
                     _pauseTime = 0;
             }
         }
 
-        public void Update()
+        public void Update(DateTime now)
         {
+            _curTime = now;
             if (Paused)
                 return;
 
