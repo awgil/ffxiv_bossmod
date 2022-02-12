@@ -189,8 +189,8 @@ namespace UIDev
                 res.Class = uint.Parse(payload[4], NumberStyles.HexNumber);
                 //res.Role = TODO...
                 var posRot = ACTPosRot(payload, 17);
-                res.Pos = new(posRot.X, posRot.Y, posRot.Z);
-                res.Rot = posRot.W;
+                res.Pos = posRot != null ? new(posRot.Value.X, posRot.Value.Y, posRot.Value.Z) : new();
+                res.Rot = posRot?.W ?? 0;
                 res.IsTargetable = true;
                 return (res, new());
             }
@@ -231,7 +231,7 @@ namespace UIDev
                 OpActorDestroy res = new();
                 List<(uint, Vector4)> pos = new();
                 res.InstanceID = uint.Parse(payload[2], NumberStyles.HexNumber);
-                pos.Add((res.InstanceID, ACTPosRot(payload, 17)));
+                ACTAddPos(pos, res.InstanceID, payload, 17);
                 return (res, pos);
             }
 
@@ -522,7 +522,7 @@ namespace UIDev
                     res.Value.ActionID = uint.Parse(payload[4], NumberStyles.HexNumber);
                     res.Value.TargetID = uint.Parse(payload[6], NumberStyles.HexNumber);
                     res.Value.CurrentTime = res.Value.TotalTime = float.Parse(payload[8]);
-                    pos.Add((res.InstanceID, ACTPosRot(payload, 9)));
+                    ACTAddPos(pos, res.InstanceID, payload, 9);
                 }
                 return (res, pos);
             }
@@ -620,23 +620,25 @@ namespace UIDev
             public static (Operation?, List<(uint, Vector4)>) ParseACT(string[] payload, WorldState ws, bool gain)
             {
                 OpActorStatus res = new();
-                res.InstanceID = uint.Parse(payload[5], NumberStyles.HexNumber);
+                res.InstanceID = uint.Parse(payload[7], NumberStyles.HexNumber);
                 var actor = ws.FindActor(res.InstanceID);
                 if (actor != null)
                 {
+                    var id = uint.Parse(payload[2], NumberStyles.HexNumber);
+                    var source = uint.Parse(payload[5], NumberStyles.HexNumber);
+                    res.Index = Array.FindIndex(actor.Statuses, x => x.ID == id && x.SourceID == source);
                     if (gain)
                     {
-                        res.Index = Array.FindIndex(actor.Statuses, x => x.ID == 0);
-                        res.Value.ID = uint.Parse(payload[2], NumberStyles.HexNumber);
+                        if (res.Index == -1)
+                            res.Index = Array.FindIndex(actor.Statuses, x => x.ID == 0); // new buff
+                        res.Value.ID = id;
                         res.Value.Extra = ushort.Parse(payload[9], NumberStyles.HexNumber);
                         res.Value.RemainingTime = float.Parse(payload[4]);
-                        res.Value.SourceID = uint.Parse(payload[7], NumberStyles.HexNumber);
+                        res.Value.SourceID = source;
                     }
-                    else
+                    else if (res.Index == -1)
                     {
-                        var id = uint.Parse(payload[2], NumberStyles.HexNumber);
-                        var source = uint.Parse(payload[7], NumberStyles.HexNumber);
-                        res.Index = Array.FindIndex(actor.Statuses, x => x.ID == id && x.SourceID == source);
+                        return (null, new()); // lose non-existent, ignore...
                     }
                 }
                 return (res, new());
@@ -728,11 +730,13 @@ namespace UIDev
                 res.Value.CasterID = uint.Parse(payload[2], NumberStyles.HexNumber);
                 var aid = uint.Parse(payload[4], NumberStyles.HexNumber);
                 res.Value.ActionType = (WorldState.ActionType)(aid >> 24);
+                if (res.Value.ActionType == WorldState.ActionType.None)
+                    res.Value.ActionType = WorldState.ActionType.Spell;
                 res.Value.ActionID = aid & 0x00FFFFFF;
                 if (res.Value.ActionType != WorldState.ActionType.Spell)
                     res.Value.ActionID = (uint)((int)res.Value.ActionID - networkDelta);
                 res.Value.MainTargetID = uint.Parse(payload[6], NumberStyles.HexNumber);
-                pos.Add((res.Value.CasterID, ACTPosRot(payload, 30)));
+                ACTAddPos(pos, res.Value.CasterID, payload, 40);
                 if (res.Value.MainTargetID != 0xE0000000u)
                 {
                     WorldState.CastResult.Target target = new();
@@ -744,7 +748,7 @@ namespace UIDev
                         target[i] = (hi << 32) | lo;
                     }
                     res.Value.Targets.Add(target);
-                    pos.Add((res.Value.MainTargetID, ACTPosRot(payload, 40)));
+                    ACTAddPos(pos, res.Value.MainTargetID, payload, 30);
                 }
                 res.Value.SourceSequence = uint.Parse(payload[44], NumberStyles.HexNumber);
                 res.Value.MaxTargets = uint.Parse(payload[46]);
@@ -854,6 +858,7 @@ namespace UIDev
         {
             WorldState ws = new();
             WorldStateLogParser res = new();
+            uint inCombatWith = 0;
             try
             {
                 using (var reader = new StreamReader(path))
@@ -869,6 +874,9 @@ namespace UIDev
                             continue; // invalid string
 
                         var timestamp = DateTime.Parse(elements[1]);
+                        if (res.Ops.Count > 0 && res.Ops.Last().Timestamp > timestamp)
+                            timestamp = res.Ops.Last().Timestamp;
+
                         (Operation? newOp, List<(uint, Vector4)> newPos) = int.Parse(elements[0]) switch
                         {
                             1 => OpZoneChange.ParseACT(elements),
@@ -918,6 +926,29 @@ namespace UIDev
                                 endCastOp.Redo(ws);
                                 res.Ops.Add(endCastOp);
                             }
+
+                            if (newCastOp.Value.CasterID == ws.PlayerActorID && inCombatWith == 0 && newCastOp.Value.Targets.Count > 0)
+                            {
+                                var target = ws.FindActor(newCastOp.Value.Targets.First().ID);
+                                if (target?.Type == WorldState.ActorType.Enemy)
+                                {
+                                    inCombatWith = target.InstanceID;
+                                    OpEnterExitCombat combatOp = new();
+                                    combatOp.Timestamp = timestamp;
+                                    combatOp.Value = true;
+                                    res.Ops.Add(combatOp);
+                                }
+                            }
+                        }
+
+                        var newRemoveOp = newOp as OpActorDestroy;
+                        if (newRemoveOp?.InstanceID == inCombatWith)
+                        {
+                            inCombatWith = 0;
+                            OpEnterExitCombat combatOp = new();
+                            combatOp.Timestamp = timestamp;
+                            combatOp.Value = false;
+                            res.Ops.Add(combatOp);
                         }
 
                         foreach ((var id, var posRot) in newPos)
@@ -971,15 +1002,22 @@ namespace UIDev
             return (type, id);
         }
 
-        private static Vector4 ACTPosRot(string[] payload, int startIndex)
+        private static Vector4? ACTPosRot(string[] payload, int startIndex)
         {
-            return new(float.Parse(payload[startIndex]), float.Parse(payload[startIndex + 2]), float.Parse(payload[startIndex + 1]), float.Parse(payload[startIndex + 3]));
+            return payload[startIndex].Length > 0 ? new(float.Parse(payload[startIndex]), float.Parse(payload[startIndex + 2]), float.Parse(payload[startIndex + 1]), float.Parse(payload[startIndex + 3])) : null;
+        }
+
+        private static void ACTAddPos(List<(uint, Vector4)> list, uint id, string[] payload, int startIndex)
+        {
+            var res = ACTPosRot(payload, startIndex);
+            if (res != null)
+                list.Add((id, res.Value));
         }
 
         private static (Operation?, List<(uint, Vector4)>) ParseACTCoords(string[] payload, int actorIndex, int startIndex)
         {
             List<(uint, Vector4)> pos = new();
-            pos.Add((uint.Parse(payload[actorIndex], NumberStyles.HexNumber), ACTPosRot(payload, startIndex)));
+            ACTAddPos(pos, uint.Parse(payload[actorIndex], NumberStyles.HexNumber), payload, startIndex);
             return (null, pos);
         }
     }

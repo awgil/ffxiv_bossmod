@@ -19,6 +19,7 @@ namespace UIDev
         private SimpleImGuiScene? _scene;
         private List<Type> _testTypes = new();
         private DateTime _startTime = DateTime.Now;
+        private string _openLogName = "";
 
         public void Initialize(SimpleImGuiScene scene)
         {
@@ -53,6 +54,18 @@ namespace UIDev
         private void DrawMainWindow()
         {
             ImGui.Text($"Running time: {DateTime.Now - _startTime}");
+
+            ImGui.InputText("Log path", ref _openLogName, 500);
+            ImGui.SameLine();
+            if (ImGui.Button("Open ACT log..."))
+            {
+                var data = WorldStateLogParser.ParseActLog(_openLogName, 0);
+                if (data.Ops.Count > 0)
+                {
+                    var visu = new LogVisualizer(data);
+                    WindowManager.CreateWindow(_openLogName, visu.Draw, visu.Dispose);
+                }
+            }
 
             foreach (var t in _testTypes)
             {

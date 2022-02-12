@@ -43,7 +43,8 @@ namespace BossMod
             BeloneCoilsTH = 27103, // Helper->Helper, role towers ('no dps' variant)
             DirectorsBelone = 27110, // Boss1->Boss1
             DirectorsBeloneDebuffs = 27111, // Helper->target, no cast, just applies Role Call debuffs
-            CursedCasting = 27113, // Helper->target, no cast, does something bad if no role call?..
+            CursedCasting2 = 27112, // Helper->target, no cast, during second director's belone, does something bad if no role call?..
+            CursedCasting1 = 27113, // Helper->target, no cast, during first director's belone, does something bad if no role call?..
             AethericChlamys = 27116, // Boss1->Boss1
             InversiveChlamys = 27117, // Boss1->Boss1
             InversiveChlamysAOE = 27119, // Helper->target, no cast, damage to tethered targets
@@ -492,6 +493,12 @@ namespace BossMod
                         ModifyDebuff(_module.FindRaidMemberSlot(actor.InstanceID), ref _debuffImmune, false);
                         break;
                 }
+            }
+
+            public override void OnEventCast(WorldState.CastResult info)
+            {
+                if (info.IsSpell(AID.CursedCasting1) || info.IsSpell(AID.CursedCasting2))
+                    _debuffForbidden = 0;
             }
 
             private void ModifyDebuff(int slot, ref ulong vector, bool active)
@@ -2029,13 +2036,13 @@ namespace BossMod
             s = BuildBloodrakeBeloneStates(ref s.Next, 4.2f);
             s = BuildDecollationState(ref s.Next, 3.4f);
             s = BuildElegantEviscerationState(ref s.Next, 4.2f);
-            s = BuildPinaxStates(ref s.Next, 11.4f);
-            s = BuildElegantEviscerationState(ref s.Next, 3.8f);
+            s = BuildPinaxStates(ref s.Next, 11.3f);
+            s = BuildElegantEviscerationState(ref s.Next, 4.4f);
             s = BuildVengefulElementalBeloneStates(ref s.Next, 4.2f);
             s = BuildBeloneCoilsStates(ref s.Next, 8.2f);
             s = BuildDecollationState(ref s.Next, 3.4f);
             s = BuildElegantEviscerationState(ref s.Next, 4.2f);
-            s = BuildPinaxStates(ref s.Next, 11.4f);
+            s = BuildPinaxStates(ref s.Next, 11.3f);
             s = BuildDecollationState(ref s.Next, 0); // note: cast starts ~0.2s before pinax resolve, whatever...
             s = BuildDecollationState(ref s.Next, 4.2f);
             s = BuildDecollationState(ref s.Next, 4.2f);
@@ -2056,7 +2063,7 @@ namespace BossMod
             cast.Exit = comp.Reset;
             cast.EndHint |= StateMachine.StateHint.Tankbuster | StateMachine.StateHint.GroupWithNext;
 
-            var second = CommonStates.Condition(ref cast.Next, 3, () => comp.NumCasts > 0, "Tankbuster");
+            var second = CommonStates.Condition(ref cast.Next, 3.2f, () => comp.NumCasts > 0, "Tankbuster");
             second.Exit = comp.Reset;
             second.EndHint |= StateMachine.StateHint.Tankbuster;
             return second;

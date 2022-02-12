@@ -92,6 +92,8 @@ namespace UIDev
                 ImGui.SetNextItemWidth(100);
                 ImGui.DragFloat($"Rot##{actor.InstanceID}", ref rot, 1, -180, 180);
                 _ws.MoveActor(actor, pos, rot / 180 * MathF.PI);
+                ImGui.SameLine();
+                ImGui.Text(actor.Name);
 
                 if (actor.Type == WorldState.ActorType.Player)
                 {
