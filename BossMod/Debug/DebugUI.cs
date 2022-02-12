@@ -115,7 +115,7 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(elem.Key));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(elem.Value.CastInfo.TargetID));
                 ImGui.TableNextColumn(); ImGui.Text(elem.Value.CastInfo.Action.ToString());
-                ImGui.TableNextColumn(); ImGui.Text(Utils.CastTimeString((float)(elem.Value.CastInfo.FinishAt - _ws.CurrentTime).TotalSeconds, elem.Value.CastInfo.TotalTime));
+                ImGui.TableNextColumn(); ImGui.Text(Utils.CastTimeString(elem.Value.CastInfo, _ws.CurrentTime));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(elem.Value.CastInfo.Location));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(elem.Value.Position));
             }

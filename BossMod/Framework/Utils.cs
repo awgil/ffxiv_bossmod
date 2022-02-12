@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace BossMod
 {
-    static class Utils
+    public static class Utils
     {
         public static string ObjectString(GameObject obj)
         {
@@ -46,14 +46,24 @@ namespace BossMod
 
         public static string StatusString(uint statusID)
         {
-            var statusData = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Status>()?.GetRow(statusID);
+            var statusData = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Status>()?.GetRow(statusID);
             string name = statusData?.Name ?? "<not found>";
             return $"{statusID} '{name}'";
+        }
+
+        public static string StatusTimeString(DateTime expireAt, DateTime now)
+        {
+            return $"{(expireAt != DateTime.MaxValue ? (expireAt - now).TotalSeconds : 0):f3}";
         }
 
         public static string CastTimeString(float current, float total)
         {
             return $"{current:f2}/{total:f2}";
+        }
+
+        public static string CastTimeString(WorldState.CastInfo cast, DateTime now)
+        {
+            return CastTimeString((float)(cast.FinishAt - now).TotalSeconds, cast.TotalTime);
         }
 
         public static unsafe T ReadField<T>(void* address, int offset) where T : unmanaged

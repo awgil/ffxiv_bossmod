@@ -52,52 +52,9 @@ namespace UIDev
                 _bossmod.Draw(_azimuth / 180 * MathF.PI, null);
             }
 
-            var riskColor = ImGui.ColorConvertU32ToFloat4(0xff00ffff);
-            var safeColor = ImGui.ColorConvertU32ToFloat4(0xff00ff00);
-            foreach (var actor in _ws.Actors.Values)
-            {
-                var pos = actor.Position;
-                var rot = actor.Rotation / MathF.PI * 180;
-                ImGui.SetNextItemWidth(100);
-                ImGui.DragFloat($"X##{actor.InstanceID}", ref pos.X, 0.25f, 80, 120);
-                ImGui.SameLine();
-                ImGui.SetNextItemWidth(100);
-                ImGui.DragFloat($"Z##{actor.InstanceID}", ref pos.Z, 0.25f, 80, 120);
-                ImGui.SameLine();
-                ImGui.SetNextItemWidth(100);
-                ImGui.DragFloat($"Rot##{actor.InstanceID}", ref rot, 1, -180, 180);
-                _ws.MoveActor(actor, new(pos, rot / 180 * MathF.PI));
-                ImGui.SameLine();
-                ImGui.Text($"{actor.Name} ({actor.OID:X})");
-                if (actor.CastInfo != null)
-                {
-                    ImGui.SameLine();
-                    ImGui.Text($"Casting {actor.CastInfo.Action}");
-                }
-
-                foreach (var s in actor.Statuses.Where(s => s.ID != 0))
-                {
-                    var src = _ws.FindActor(s.SourceID);
-                    if (src?.Type == WorldState.ActorType.Player || src?.Type == WorldState.ActorType.Pet)
-                        continue;
-                    ImGui.SameLine();
-                    ImGui.Text($"Status {s.ID} ({s.Extra})");
-                }
-
-                if (_bossmod != null && actor.Type == WorldState.ActorType.Player)
-                {
-                    int slot = _bossmod.FindRaidMemberSlot(actor.InstanceID);
-                    if (slot >= 0)
-                    {
-                        var hints = _bossmod.CalculateHintsForRaidMember(slot, actor);
-                        foreach ((var hint, bool risk) in hints)
-                        {
-                            ImGui.SameLine();
-                            ImGui.TextColored(risk ? riskColor : safeColor, hint);
-                        }
-                    }
-                }
-            }
+            DrawPartyTable();
+            DrawEnemyTables();
+            DrawAllActorsTable();
         }
 
         private void DrawControlRow()
@@ -151,6 +108,135 @@ namespace UIDev
                 }
             }
             ImGui.Dummy(new(w, 8));
+        }
+
+        // x, z, rot, name, cast, statuses
+        private void DrawCommonColumns(WorldState.Actor actor)
+        {
+            var pos = actor.Position;
+            var rot = actor.Rotation / MathF.PI * 180;
+            ImGui.TableNextColumn(); ImGui.DragFloat("###X", ref pos.X, 0.25f, 80, 120);
+            ImGui.TableNextColumn(); ImGui.DragFloat("###Z", ref pos.Z, 0.25f, 80, 120);
+            ImGui.TableNextColumn(); ImGui.DragFloat("###Rot", ref rot, 1, -180, 180);
+            _ws.MoveActor(actor, new(pos, rot / 180 * MathF.PI));
+
+            ImGui.TableNextColumn(); ImGui.Text(actor.Name);
+
+            ImGui.TableNextColumn();
+            if (actor.CastInfo != null)
+                ImGui.Text($"{actor.CastInfo.Action}: {Utils.CastTimeString(actor.CastInfo, _ws.CurrentTime)}");
+
+            ImGui.TableNextColumn();
+            foreach (var s in actor.Statuses.Where(s => s.ID != 0))
+            {
+                var src = _ws.FindActor(s.SourceID);
+                if (src?.Type == WorldState.ActorType.Player || src?.Type == WorldState.ActorType.Pet)
+                    continue;
+                ImGui.Text($"{Utils.StatusString(s.ID)} ({s.Extra}): {Utils.StatusTimeString(s.ExpireAt, _ws.CurrentTime)}");
+                ImGui.SameLine();
+            }
+        }
+
+        private void DrawPartyTable()
+        {
+            if (_bossmod == null || !ImGui.CollapsingHeader("Party"))
+                return;
+
+            var riskColor = ImGui.ColorConvertU32ToFloat4(0xff00ffff);
+            var safeColor = ImGui.ColorConvertU32ToFloat4(0xff00ff00);
+
+            ImGui.BeginTable("party", 9);
+            ImGui.TableSetupColumn("POV", ImGuiTableColumnFlags.WidthFixed, 25);
+            ImGui.TableSetupColumn("Class", ImGuiTableColumnFlags.WidthFixed, 30);
+            ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed, 90);
+            ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed, 90);
+            ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed, 90);
+            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 100);
+            ImGui.TableSetupColumn("Cast", ImGuiTableColumnFlags.WidthFixed, 100);
+            ImGui.TableSetupColumn("Statuses", ImGuiTableColumnFlags.WidthFixed, 100);
+            ImGui.TableSetupColumn("Hints");
+            ImGui.TableHeadersRow();
+            foreach ((int slot, var player) in _bossmod.IterateRaidMembers(true))
+            {
+                ImGui.PushID((int)player.InstanceID);
+                ImGui.TableNextRow();
+
+                bool isPOV = _ws.PlayerActorID == player.InstanceID;
+                ImGui.TableNextColumn();
+                ImGui.Checkbox("###POV", ref isPOV);
+                if (isPOV && _ws.PlayerActorID != player.InstanceID)
+                    _ws.PlayerActorID = player.InstanceID;
+
+                ImGui.TableNextColumn();
+                ImGui.Text(player.Class.ToString());
+
+                DrawCommonColumns(player);
+
+                ImGui.TableNextColumn();
+                var hints = _bossmod.CalculateHintsForRaidMember(slot, player);
+                foreach ((var hint, bool risk) in hints)
+                {
+                    ImGui.TextColored(risk ? riskColor : safeColor, hint);
+                    ImGui.SameLine();
+                }
+
+                ImGui.PopID();
+            }
+            ImGui.EndTable();
+        }
+
+        private void DrawEnemyTables()
+        {
+            if (_bossmod == null)
+                return;
+
+            var oidType = _bossmod.GetType().GetNestedType("OID");
+            foreach ((var oid, var list) in _bossmod.RelevantEnemies)
+            {
+                var oidName = oidType?.GetEnumName(oid);
+                if (!ImGui.CollapsingHeader($"Enemy {oid:X} {oidName ?? ""}") || list.Actors.Count == 0)
+                    continue;
+
+                ImGui.BeginTable($"enemy_{oid}", 6);
+                ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed, 90);
+                ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed, 90);
+                ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed, 90);
+                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 100);
+                ImGui.TableSetupColumn("Cast");
+                ImGui.TableSetupColumn("Statuses");
+                ImGui.TableHeadersRow();
+                foreach (var enemy in list.Actors)
+                {
+                    ImGui.PushID((int)enemy.InstanceID);
+                    ImGui.TableNextRow();
+                    DrawCommonColumns(enemy);
+                    ImGui.PopID();
+                }
+                ImGui.EndTable();
+            }
+        }
+
+        private void DrawAllActorsTable()
+        {
+            if (!ImGui.CollapsingHeader("All actors"))
+                return;
+
+            ImGui.BeginTable($"actors", 6);
+            ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed, 90);
+            ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed, 90);
+            ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed, 90);
+            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 100);
+            ImGui.TableSetupColumn("Cast");
+            ImGui.TableSetupColumn("Statuses");
+            ImGui.TableHeadersRow();
+            foreach (var actor in _ws.Actors.Values)
+            {
+                ImGui.PushID((int)actor.InstanceID);
+                ImGui.TableNextRow();
+                DrawCommonColumns(actor);
+                ImGui.PopID();
+            }
+            ImGui.EndTable();
         }
 
         private void MoveTo(DateTime t)

@@ -19,12 +19,13 @@ namespace BossMod
         public WorldState.Actor? RaidMember(int slot) => (slot >= 0 && slot < RaidMembers.Length) ? RaidMembers[slot] : null; // bounds-checking accessor
         public WorldState.Actor? Player() => RaidMember(PlayerSlot);
 
-        private class EnemyList
+        public class EnemyList
         {
             public List<WorldState.Actor> Actors = new();
             public bool Unique; // if true, actors list will always contain 0 or 1 elements
         }
         private Dictionary<uint, EnemyList> _relevantEnemies = new(); // key = actor OID
+        public IReadOnlyDictionary<uint, EnemyList> RelevantEnemies => _relevantEnemies;
 
         // retrieve watched enemy list; it is filled on first request
         // all requests should have matching 'unique' flag
