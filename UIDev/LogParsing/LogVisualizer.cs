@@ -73,7 +73,7 @@ namespace UIDev
                 if (actor.CastInfo != null)
                 {
                     ImGui.SameLine();
-                    ImGui.Text($"Casting {actor.CastInfo.ActionID}");
+                    ImGui.Text($"Casting {actor.CastInfo.Action}");
                 }
 
                 foreach (var s in actor.Statuses.Where(s => s.ID != 0))

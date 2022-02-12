@@ -29,13 +29,13 @@ namespace BossMod
             };
         }
 
-        public void CastSucceeded(WorldState.ActionType actionType, uint actionID)
+        public void CastSucceeded(ActionID actionID)
         {
-            if (actionType != WorldState.ActionType.Spell)
+            if (actionID.Type != ActionType.Spell)
                 return;
 
             string comment = "";
-            switch ((WARRotation.AID)actionID)
+            switch ((WARRotation.AID)actionID.ID)
             {
                 case WARRotation.AID.HeavySwing:
                     if (State.ComboLastMove == WARRotation.AID.HeavySwing || State.ComboLastMove == WARRotation.AID.Maim)
@@ -128,7 +128,7 @@ namespace BossMod
                         comment += $", mistake=wasted-ir-stack";
                     break;
             }
-            Service.Log($"[AR] Cast {Utils.ActionString(actionID)}, next-best={NextBestAction}{comment} [{StateString(State)}]");
+            Service.Log($"[AR] Cast {actionID}, next-best={NextBestAction}{comment} [{StateString(State)}]");
         }
 
         public void Update(uint comboLastAction, float comboTimeLeft)

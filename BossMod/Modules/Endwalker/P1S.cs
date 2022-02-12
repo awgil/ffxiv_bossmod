@@ -493,7 +493,7 @@ namespace BossMod
             {
                 if (!actor.CastInfo!.IsSpell())
                     return;
-                switch ((AID)actor.CastInfo!.ActionID)
+                switch ((AID)actor.CastInfo!.Action.ID)
                 {
                     case AID.GaolerFlailR1:
                     case AID.GaolerFlailL1:

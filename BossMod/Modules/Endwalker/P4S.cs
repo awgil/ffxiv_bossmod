@@ -153,7 +153,7 @@ namespace BossMod
         // TODO: consider showing some tank swap / invul hint...
         private class ElegantEvisceration : CommonComponents.CastCounter
         {
-            public ElegantEvisceration() : base((uint)AID.ElegantEviscerationSecond) { }
+            public ElegantEvisceration() : base(ActionID.MakeSpell(AID.ElegantEviscerationSecond)) { }
         }
 
         // state related to belone coils mechanic (role towers)
@@ -223,7 +223,7 @@ namespace BossMod
                 if (actor.CastInfo!.IsSpell(AID.BeloneCoilsDPS) || actor.CastInfo!.IsSpell(AID.BeloneCoilsTH))
                 {
                     _activeTowers.Add(actor);
-                    ActiveSoakers = actor.CastInfo!.ActionID == (uint)AID.BeloneCoilsDPS ? Soaker.DamageDealer : Soaker.TankOrHealer;
+                    ActiveSoakers = actor.CastInfo!.Action.ID == (uint)AID.BeloneCoilsDPS ? Soaker.DamageDealer : Soaker.TankOrHealer;
                 }
             }
 
@@ -658,7 +658,7 @@ namespace BossMod
             {
                 if (!actor.CastInfo!.IsSpell())
                     return;
-                switch ((AID)actor.CastInfo!.ActionID)
+                switch ((AID)actor.CastInfo!.Action.ID)
                 {
                     case AID.PinaxAcid:
                         _acid = actor;
@@ -679,7 +679,7 @@ namespace BossMod
             {
                 if (!actor.CastInfo!.IsSpell())
                     return;
-                switch ((AID)actor.CastInfo!.ActionID)
+                switch ((AID)actor.CastInfo!.Action.ID)
                 {
                     case AID.PinaxAcid:
                         _acid = null;
@@ -762,7 +762,7 @@ namespace BossMod
                 if (actor.CastInfo!.IsSpell(AID.ShiftingStrikeCloak) || actor.CastInfo!.IsSpell(AID.ShiftingStrikeSword))
                 {
                     _caster = actor;
-                    _isSword = actor.CastInfo!.ActionID == (uint)AID.ShiftingStrikeSword;
+                    _isSword = actor.CastInfo!.Action.ID == (uint)AID.ShiftingStrikeSword;
                 }
             }
 
@@ -1013,7 +1013,7 @@ namespace BossMod
             {
                 if (!actor.CastInfo!.IsSpell())
                     return;
-                switch ((AID)actor.CastInfo!.ActionID)
+                switch ((AID)actor.CastInfo!.Action.ID)
                 {
                     case AID.PinaxAcid:
                         _cornerAssignments |= (uint)Element.Acid << (2 * CornerFromPos(actor.Position));
@@ -1128,7 +1128,7 @@ namespace BossMod
         // TODO: consider showing some tank swap / invul hint...
         private class HeartStake : CommonComponents.CastCounter
         {
-            public HeartStake() : base((uint)AID.HeartStakeSecond) { }
+            public HeartStake() : base(ActionID.MakeSpell(AID.HeartStakeSecond)) { }
         }
 
         // state related to hell's sting mechanic (part of curtain call sequence)

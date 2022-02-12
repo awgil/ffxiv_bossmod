@@ -89,39 +89,16 @@ namespace BossMod
             CardStand = 0xE00,
         }
 
-        // matches FFXIVClientStructs.FFXIV.Client.Game.ActionType
-        public enum ActionType : byte
-        {
-            None = 0,
-            Spell = 1,
-            Item = 2,
-            KeyItem = 3,
-            Ability = 4,
-            General = 5,
-            Companion = 6,
-            CraftAction = 9,
-            MainCommand = 10,
-            PetAction = 11,
-            Mount = 13,
-            PvPAction = 14,
-            Waymark = 15,
-            ChocoboRaceAbility = 16,
-            ChocoboRaceItem = 17,
-            SquadronAction = 19,
-            Accessory = 20
-        }
-
         public class CastInfo
         {
-            public ActionType ActionType;
-            public uint ActionID;
+            public ActionID Action;
             public uint TargetID;
             public Vector3 Location;
             public float CurrentTime;
             public float TotalTime;
 
-            public bool IsSpell() => ActionType == ActionType.Spell;
-            public bool IsSpell<AID>(AID aid) where AID : Enum => ActionType == ActionType.Spell && ActionID == (uint)(object)aid;
+            public bool IsSpell() => Action.Type == ActionType.Spell;
+            public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);
         }
 
         // note on tethers - it is N:1 type of relation, actor can be tethered to 0 or 1 actors, but can itself have multiple actors tethering themselves to itself
@@ -283,7 +260,7 @@ namespace BossMod
             if (cast == null && act.CastInfo == null)
                 return; // was not casting and is not casting
 
-            if (cast != null && act.CastInfo != null && cast.ActionType == act.CastInfo.ActionType && cast.ActionID == act.CastInfo.ActionID && cast.TargetID == act.CastInfo.TargetID)
+            if (cast != null && act.CastInfo != null && cast.Action == act.CastInfo.Action && cast.TargetID == act.CastInfo.TargetID)
             {
                 // continuing casting same spell
                 act.CastInfo.CurrentTime = cast.CurrentTime;
@@ -379,15 +356,14 @@ namespace BossMod
 
             public uint CasterID;
             public uint MainTargetID; // note that actual affected targets could be completely different
-            public uint ActionID;
-            public ActionType ActionType;
+            public ActionID Action;
             public float AnimationLockTime;
             public uint MaxTargets;
             public List<Target> Targets = new();
             public uint SourceSequence;
 
-            public bool IsSpell() => ActionType == ActionType.Spell;
-            public bool IsSpell<AID>(AID aid) where AID : Enum => ActionType == ActionType.Spell && ActionID == (uint)(object)aid;
+            public bool IsSpell() => Action.Type == ActionType.Spell;
+            public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);
         }
         public event EventHandler<CastResult>? EventCast;
         public void DispatchEventCast(CastResult info)

@@ -63,7 +63,7 @@ namespace BossMod
             public ushort rotation;
             public ushort actionAnimationId;
             public byte variation; // animation
-            public WorldState.ActionType actionType;
+            public ActionType actionType;
             public byte unknown20;
             public byte NumTargets; // machina calls it 'effectCount', but it is misleading imo
             public ushort padding21;
@@ -209,7 +209,7 @@ namespace BossMod
         public struct Server_ActorCast
         {
             public ushort ActionID;
-            public WorldState.ActionType SkillType;
+            public ActionType SkillType;
             public byte Unknown;
             public uint Unknown1; // also action ID; dissector calls it ItemId - matches actionId of ActionEffectHeader
             public float CastTime;
@@ -526,7 +526,7 @@ namespace BossMod
         public unsafe struct Client_ActionRequest
         {
             public byte u0;
-            public WorldState.ActionType Type;
+            public ActionType Type;
             public ushort u1;
             public uint ActionID;
             public ushort Sequence;

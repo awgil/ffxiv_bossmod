@@ -86,18 +86,18 @@ namespace UIDev
                     {
                         ImGui.SameLine();
                         if (ImGui.Button("Generic"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = 1 });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = new(ActionType.Spell, 1) });
                         ImGui.SameLine();
                         if (ImGui.Button("SpokenCata"))
                         {
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P2S.AID.SpokenCataract });
-                            _ws.UpdateCastInfo(_ws.FindActor(10)!, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P2S.AID.SpokenCataractSecondary });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P2S.AID.SpokenCataract) });
+                            _ws.UpdateCastInfo(_ws.FindActor(10)!, new WorldState.CastInfo { Action = ActionID.MakeSpell(P2S.AID.SpokenCataractSecondary) });
                         }
                         ImGui.SameLine();
                         if (ImGui.Button("WingedCata"))
                         {
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P2S.AID.WingedCataract });
-                            _ws.UpdateCastInfo(_ws.FindActor(10)!, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P2S.AID.WingedCataractSecondary });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P2S.AID.WingedCataract) });
+                            _ws.UpdateCastInfo(_ws.FindActor(10)!, new WorldState.CastInfo { Action = ActionID.MakeSpell(P2S.AID.WingedCataractSecondary) });
                         }
                     }
                 }
@@ -113,7 +113,7 @@ namespace UIDev
                     {
                         ImGui.SameLine();
                         if (ImGui.Button($"Start cast##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P2S.AID.DissociationAOE });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P2S.AID.DissociationAOE) });
                     }
                 }
             }

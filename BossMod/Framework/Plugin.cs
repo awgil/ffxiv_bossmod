@@ -27,6 +27,7 @@ namespace BossMod
         {
             dalamud.Create<Service>();
             Service.LogHandler = (string msg) => PluginLog.Log(msg);
+            Service.LuminaGameData = Service.DataManager.GameData;
             //Service.Device = pluginInterface.UiBuilder.Device;
             Camera.Instance = new();
 

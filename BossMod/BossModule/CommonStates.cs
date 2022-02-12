@@ -48,14 +48,15 @@ namespace BossMod
             where AID : Enum
         {
             var state = Simple(ref link, delay, name);
+            var expected = ActionID.MakeSpell(id);
             state.Update = (float timeSinceTransition) =>
             {
                 var castInfo = actorAcc()?.CastInfo;
                 if (castInfo != null)
                 {
-                    if (!castInfo.IsSpell(id))
+                    if (castInfo.Action != expected)
                     {
-                        Service.Log($"[StateMachine] Unexpected cast start for actor {actorAcc()?.OID:X}: got {castInfo.ActionID}, expected {id}");
+                        Service.Log($"[StateMachine] Unexpected cast start for actor {actorAcc()?.OID:X}: got {castInfo.Action}, expected {id}");
                     }
                     state.Done = true;
                 }
@@ -77,7 +78,7 @@ namespace BossMod
                 if (castInfo != null)
                 {
                     (StateMachine.State?, Action) entry;
-                    if (dispatch.TryGetValue((AID)(object)castInfo.ActionID, out entry))
+                    if (dispatch.TryGetValue((AID)(object)castInfo.Action.ID, out entry))
                     {
                         entry.Item2();
                         if (entry.Item1 != null)
@@ -85,7 +86,7 @@ namespace BossMod
                     }
                     else
                     {
-                        Service.Log($"[StateMachine] Unexpected cast start for actor {actorAcc()?.OID:X}: got {castInfo.ActionID}");
+                        Service.Log($"[StateMachine] Unexpected cast start for actor {actorAcc()?.OID:X}: got {castInfo.Action}");
                     }
                     state.Done = true;
                 }

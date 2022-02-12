@@ -26,6 +26,12 @@
     <Reference Include="SDL2-CS">
       <HintPath>$(DalamudLibPath)SDL2-CS.dll</HintPath>
     </Reference>
+    <Reference Include="Lumina">
+      <HintPath>$(DalamudLibPath)Lumina.dll</HintPath>
+    </Reference>
+    <Reference Include="Lumina.Excel">
+      <HintPath>$(DalamudLibPath)Lumina.Excel.dll</HintPath>
+    </Reference>
     <Reference Include="SharpDX.Direct3D11">
       <HintPath>$(DalamudLibPath)SharpDX.Direct3D11.dll</HintPath>
     </Reference>

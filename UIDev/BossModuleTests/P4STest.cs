@@ -129,7 +129,7 @@ namespace UIDev
                     {
                         ImGui.SameLine();
                         if (ImGui.Button($"Generic##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = 1 });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = new(ActionType.Spell, 1) });
                     }
                 }
                 else if (actor.OID == (uint)P4S.OID.Helper)
@@ -144,22 +144,22 @@ namespace UIDev
                     {
                         ImGui.SameLine();
                         if (ImGui.Button($"PinaxA##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P4S.AID.PinaxAcid });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P4S.AID.PinaxAcid) });
                         ImGui.SameLine();
                         if (ImGui.Button($"PinaxF##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P4S.AID.PinaxLava });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P4S.AID.PinaxLava) });
                         ImGui.SameLine();
                         if (ImGui.Button($"PinaxW##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P4S.AID.PinaxWell });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P4S.AID.PinaxWell) });
                         ImGui.SameLine();
                         if (ImGui.Button($"PinaxL##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P4S.AID.PinaxLevinstrike });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P4S.AID.PinaxLevinstrike) });
                         ImGui.SameLine();
                         if (ImGui.Button($"BeloneCoilDPS##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P4S.AID.BeloneCoilsDPS });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P4S.AID.BeloneCoilsDPS) });
                         ImGui.SameLine();
                         if (ImGui.Button($"BeloneCoilTH##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)P4S.AID.BeloneCoilsTH });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P4S.AID.BeloneCoilsTH) });
                     }
                 }
             }

@@ -75,8 +75,7 @@ namespace BossMod
                     CastInfo? curCast = chara.IsCasting
                         ? new CastInfo
                         {
-                            ActionType = (ActionType)chara.CastActionType,
-                            ActionID = chara.CastActionId,
+                            Action = new((ActionType)chara.CastActionType, chara.CastActionId),
                             TargetID = chara.CastTargetObjectId,
                             Location = Utils.BattleCharaCastLocation(chara),
                             CurrentTime = chara.CurrentCastTime,

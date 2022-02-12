@@ -480,7 +480,7 @@ namespace UIDev
                 if (start)
                 {
                     res.Value = new();
-                    (res.Value.ActionType, res.Value.ActionID) = Action(payload[3]);
+                    res.Value.Action = Action(payload[3]);
                     res.Value.TargetID = ActorID(payload[4]);
                     res.Value.Location = Vec3(payload[5]);
 
@@ -499,8 +499,7 @@ namespace UIDev
                 if (start)
                 {
                     res.Value = new();
-                    res.Value.ActionType = WorldState.ActionType.Spell;
-                    res.Value.ActionID = uint.Parse(payload[4], NumberStyles.HexNumber);
+                    res.Value.Action = new(ActionType.Spell, uint.Parse(payload[4], NumberStyles.HexNumber));
                     res.Value.TargetID = uint.Parse(payload[6], NumberStyles.HexNumber);
                     res.Value.CurrentTime = res.Value.TotalTime = float.Parse(payload[8]);
                     ACTAddPos(pos, res.InstanceID, payload, 9);
@@ -688,7 +687,7 @@ namespace UIDev
             {
                 OpEventCast res = new();
                 res.Value.CasterID = ActorID(payload[2]);
-                (res.Value.ActionType, res.Value.ActionID) = Action(payload[3]);
+                res.Value.Action = Action(payload[3]);
                 res.Value.MainTargetID = ActorID(payload[4]);
                 res.Value.AnimationLockTime = float.Parse(payload[5]);
                 res.Value.MaxTargets = uint.Parse(payload[6]);
@@ -709,13 +708,16 @@ namespace UIDev
                 OpEventCast res = new();
                 List<(uint, Vector4)> pos = new();
                 res.Value.CasterID = uint.Parse(payload[2], NumberStyles.HexNumber);
-                var aid = uint.Parse(payload[4], NumberStyles.HexNumber);
-                res.Value.ActionType = (WorldState.ActionType)(aid >> 24);
-                if (res.Value.ActionType == WorldState.ActionType.None)
-                    res.Value.ActionType = WorldState.ActionType.Spell;
-                res.Value.ActionID = aid & 0x00FFFFFF;
-                if (res.Value.ActionType != WorldState.ActionType.Spell)
-                    res.Value.ActionID = (uint)((int)res.Value.ActionID - networkDelta);
+
+                var araw = uint.Parse(payload[4], NumberStyles.HexNumber);
+                var atype = (ActionType)(araw >> 24);
+                if (atype == ActionType.None)
+                    atype = ActionType.Spell;
+                var aid = araw & 0x00FFFFFF;
+                if (atype != ActionType.Spell)
+                    aid = (uint)((int)aid - networkDelta);
+                res.Value.Action = new(atype, aid);
+
                 res.Value.MainTargetID = uint.Parse(payload[6], NumberStyles.HexNumber);
                 ACTAddPos(pos, res.Value.CasterID, payload, 40);
                 if (res.Value.MainTargetID != 0xE0000000u)
@@ -888,8 +890,7 @@ namespace UIDev
                             var prevCastOp = res.Ops.LastOrDefault() as OpEventCast;
                             if (prevCastOp != null &&
                                 prevCastOp.Value.CasterID == newCastOp.Value.CasterID &&
-                                prevCastOp.Value.ActionID == newCastOp.Value.ActionID &&
-                                prevCastOp.Value.ActionType == newCastOp.Value.ActionType &&
+                                prevCastOp.Value.Action == newCastOp.Value.Action &&
                                 prevCastOp.Value.MaxTargets == newCastOp.Value.MaxTargets &&
                                 prevCastOp.Value.SourceSequence == newCastOp.Value.SourceSequence)
                             {
@@ -899,7 +900,7 @@ namespace UIDev
                             }
 
                             var cast = ws.FindActor(newCastOp.Value.CasterID)?.CastInfo;
-                            if (cast != null && cast.ActionID == newCastOp.Value.ActionID && cast.ActionType == newCastOp.Value.ActionType)
+                            if (cast != null && cast.Action == newCastOp.Value.Action)
                             {
                                 OpActorCast endCastOp = new();
                                 endCastOp.Timestamp = timestamp;
@@ -974,12 +975,12 @@ namespace UIDev
             return uint.Parse(sep >= 0 ? actor.AsSpan(0, sep) : actor.AsSpan(), NumberStyles.HexNumber);
         }
 
-        private static (WorldState.ActionType, uint) Action(string repr)
+        private static ActionID Action(string repr)
         {
             var parts = repr.Split(' ');
-            var type = parts.Length > 0 ? Enum.Parse<WorldState.ActionType>(parts[0]) : WorldState.ActionType.None;
+            var type = parts.Length > 0 ? Enum.Parse<ActionType>(parts[0]) : ActionType.None;
             var id = parts.Length > 1 ? uint.Parse(parts[1]) : 0;
-            return (type, id);
+            return new(type, id);
         }
 
         private static Vector4? ACTPosRot(string[] payload, int startIndex)

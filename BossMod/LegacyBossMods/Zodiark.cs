@@ -104,7 +104,7 @@ namespace BossMod
 
             // TODO: consider updating undetected positions when Exo mobs start their casts...
 
-            switch ((AID)actor.CastInfo!.ActionID)
+            switch ((AID)actor.CastInfo!.Action.ID)
             {
                 case AID.FlowCW:
                     SetRotationHint(ZodiarkSolver.RotDir.CW);

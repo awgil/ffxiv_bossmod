@@ -82,7 +82,7 @@ namespace BossMod
             bool enabled = false;
             if (_config.AutorotationEnabled)
             {
-                enabled = (Service.ClientState.LocalPlayer?.ClassJob.Id ?? 0) == 21; // 21 is WAR
+                enabled = (Class)(Service.ClientState.LocalPlayer?.ClassJob.Id ?? 0) == Class.WAR;
             }
 
             if (enabled)
@@ -91,7 +91,7 @@ namespace BossMod
 
                 if (_firstPendingJustCompleted)
                 {
-                    WarActions.CastSucceeded(_pendingActions[0].ActionType, _pendingActions[0].ActionID);
+                    WarActions.CastSucceeded(_pendingActions[0].Action);
                     _pendingActions.RemoveAt(0);
                     _firstPendingJustCompleted = false;
                 }
@@ -136,7 +136,7 @@ namespace BossMod
             if (action.SourceSequence == 0 || action.CasterID != Service.ClientState.LocalPlayer?.ObjectId)
                 return; // non-player-initiated
 
-            var pa = new Network.PendingAction() { ActionType = action.ActionType, ActionID = action.ActionID, TargetID = action.MainTargetID, Sequence = action.SourceSequence };
+            var pa = new Network.PendingAction() { Action = action.Action, TargetID = action.MainTargetID, Sequence = action.SourceSequence };
             int index = _pendingActions.FindIndex(a => a.Sequence == action.SourceSequence);
             if (index == -1)
             {
@@ -149,7 +149,7 @@ namespace BossMod
                 Log($"Unexpected action-effect ({PendingActionString(pa)}): index={index}, first={PendingActionString(_pendingActions[0])}, count={_pendingActions.Count}", true);
                 _pendingActions.RemoveRange(0, index);
             }
-            if (_pendingActions[0].ActionType != action.ActionType || _pendingActions[0].ActionID != action.ActionID)
+            if (_pendingActions[0].Action != action.Action)
             {
                 Log($"Request/response action mismatch: requested {PendingActionString(_pendingActions[0])}, got {PendingActionString(pa)}", true);
                 _pendingActions[0] = pa;
@@ -163,7 +163,7 @@ namespace BossMod
             if (args.actorID != Service.ClientState.LocalPlayer?.ObjectId)
                 return; // non-player-initiated
 
-            int index = _pendingActions.FindIndex(a => a.ActionID == args.actionID);
+            int index = _pendingActions.FindIndex(a => a.Action.ID == args.actionID);
             if (index == -1)
             {
                 Log($"Unexpected action-cancel ({args.actionID}): currently {_pendingActions.Count} are pending", true);
@@ -185,7 +185,7 @@ namespace BossMod
         {
             int index = args.sourceSequence != 0
                 ? _pendingActions.FindIndex(a => a.Sequence == args.sourceSequence)
-                : _pendingActions.FindIndex(a => a.ActionID == args.actionID);
+                : _pendingActions.FindIndex(a => a.Action.ID == args.actionID);
             if (index == -1)
             {
                 Log($"Unexpected action-reject (#{args.sourceSequence} '{args.actionID}'): currently {_pendingActions.Count} are pending", true);
@@ -198,7 +198,7 @@ namespace BossMod
                     Log($"Unexpected action-reject ({PendingActionString(_pendingActions[index])}): index={index}, first={PendingActionString(_pendingActions[0])}, count={_pendingActions.Count}", true);
                     _pendingActions.RemoveRange(0, index);
                 }
-                if (_pendingActions[0].ActionID != args.actionID)
+                if (_pendingActions[0].Action.ID != args.actionID)
                 {
                     Log($"Request/reject action mismatch: requested {PendingActionString(_pendingActions[0])}, got {args.actionID}", true);
                 }
@@ -209,7 +209,7 @@ namespace BossMod
 
         private string PendingActionString(Network.PendingAction a)
         {
-            return $"#{a.Sequence} '{Utils.ActionString(a.ActionID, a.ActionType)}' @ {Utils.ObjectString(a.TargetID)}";
+            return $"#{a.Sequence} {a.Action} @ {Utils.ObjectString(a.TargetID)}";
         }
 
         private void Log(string message, bool warning = false)

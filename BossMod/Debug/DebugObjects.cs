@@ -41,7 +41,7 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.Text($"{idx}");
                 ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(obj));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectKindString(obj));
-                ImGui.TableNextColumn(); ImGui.Text(character != null ? $"{character.ClassJob.Id} ({Utils.CharacterClassString(character.ClassJob.Id)})" : "---");
+                ImGui.TableNextColumn(); ImGui.Text(character != null ? $"{character.ClassJob.Id} ({(Class)character.ClassJob.Id})" : "---");
                 ImGui.TableNextColumn(); ImGui.Text($"{obj.OwnerId:X}");
                 ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(obj.Position));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.RadianString(obj.Rotation));
@@ -71,7 +71,7 @@ namespace BossMod
                     {
                         var target = Service.ObjectTable.SearchById(chara.CastTargetObjectId);
                         var targetString = target ? Utils.ObjectString(target!) : "unknown";
-                        res.Append($", castAction={Utils.ActionString(chara.CastActionId, (WorldState.ActionType)chara.CastActionType)}, castTarget={targetString}, castLoc={Utils.Vec3String(Utils.BattleCharaCastLocation(chara))}, castTime={Utils.CastTimeString(chara.CurrentCastTime, chara.TotalCastTime)}");
+                        res.Append($", castAction={new ActionID((ActionType)chara.CastActionType, chara.CastActionId)}, castTarget={targetString}, castLoc={Utils.Vec3String(Utils.BattleCharaCastLocation(chara))}, castTime={Utils.CastTimeString(chara.CurrentCastTime, chara.TotalCastTime)}");
                     }
                     foreach (var status in chara!.StatusList)
                     {

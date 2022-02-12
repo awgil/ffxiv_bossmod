@@ -50,7 +50,7 @@ namespace UIDev
             foreach (var e in Enum.GetValues<P1S.AID>())
             {
                 if (ImGui.Button(e.ToString()))
-                    _ws.UpdateCastInfo(boss, boss.CastInfo == null ? new WorldState.CastInfo { ActionType = WorldState.ActionType.Spell, ActionID = (uint)e, TargetID = boss.TargetID } : null);
+                    _ws.UpdateCastInfo(boss, boss.CastInfo == null ? new WorldState.CastInfo { Action = new(ActionType.Spell, (uint)e), TargetID = boss.TargetID } : null);
                 if (++cnt % 5 != 0)
                     ImGui.SameLine();
             }

@@ -9,8 +9,7 @@ namespace BossMod
     {
         public struct PendingAction
         {
-            public WorldState.ActionType ActionType;
-            public uint ActionID;
+            public ActionID Action;
             public uint TargetID;
             public uint Sequence;
         }
@@ -131,7 +130,7 @@ namespace BossMod
 
         private unsafe void HandleActionEffect(uint casterID, Protocol.Server_ActionEffectHeader* header, Protocol.Server_ActionEffect_EffectEntry* effects, ulong* targetIDs, uint maxTargets)
         {
-            if (header->actionType == WorldState.ActionType.Spell)
+            if (header->actionType == ActionType.Spell)
             {
                 int newDelta = (int)header->actionId - (int)header->actionAnimationId;
                 if (_unkDelta != newDelta)
@@ -145,8 +144,7 @@ namespace BossMod
             {
                 CasterID = casterID,
                 MainTargetID = header->animationTargetId,
-                ActionID = (uint)(header->actionId - _unkDelta), // note: see _unkDelta comment
-                ActionType = header->actionType,
+                Action = new(header->actionType, (uint)(header->actionId - _unkDelta)), // note: see _unkDelta comment
                 AnimationLockTime = header->animationLockTime,
                 MaxTargets = maxTargets,
                 SourceSequence = header->SourceSequence
@@ -221,7 +219,7 @@ namespace BossMod
 
         private unsafe void HandleActionRequest(Protocol.Client_ActionRequest* p)
         {
-            EventActionRequest?.Invoke(this, new() { ActionType = p->Type, ActionID = p->ActionID, TargetID = p->TargetID, Sequence = p->Sequence });
+            EventActionRequest?.Invoke(this, new() { Action = new(p->Type, p->ActionID), TargetID = p->TargetID, Sequence = p->Sequence });
         }
 
         private unsafe void DumpClientMessage(IntPtr dataPtr, ushort opCode)
@@ -232,7 +230,7 @@ namespace BossMod
                 case Protocol.Opcode.ActionRequest:
                     {
                         var p = (Protocol.Client_ActionRequest*)dataPtr;
-                        Service.Log($"[Network] - AID={Utils.ActionString(p->ActionID, p->Type)}, target={Utils.ObjectString(p->TargetID)}, seq={p->Sequence}, itemsrc={p->ItemSourceContainer}:{p->ItemSourceSlot}, u={p->u0:X2} {p->u1:X4} {p->u2:X4} {p->u3:X8} {p->u4:X8} {p->u5:X8}");
+                        Service.Log($"[Network] - AID={new ActionID(p->Type, p->ActionID)}, target={Utils.ObjectString(p->TargetID)}, seq={p->Sequence}, itemsrc={p->ItemSourceContainer}:{p->ItemSourceSlot}, u={p->u0:X2} {p->u1:X4} {p->u2:X4} {p->u3:X8} {p->u4:X8} {p->u5:X8}");
                         break;
                     }
             }
@@ -277,7 +275,7 @@ namespace BossMod
                 case Protocol.Opcode.ActorCast:
                     {
                         var p = (Protocol.Server_ActorCast*)dataPtr;
-                        Service.Log($"[Network] - AID={Utils.ActionString(p->ActionID, p->SkillType)}, target={Utils.ObjectString(p->TargetID)}, time={p->CastTime:f2}, rot={p->Rotation:f2}, x={p->PosX}, y={p->PosY}, z={p->PosZ}, u={p->Unknown:X2}, u1={Utils.ActionString(p->Unknown1)}, u2={Utils.ObjectString(p->Unknown2)}, u3={p->Unknown3:X4}");
+                        Service.Log($"[Network] - AID={new ActionID(p->SkillType, p->ActionID)}, target={Utils.ObjectString(p->TargetID)}, time={p->CastTime:f2}, rot={p->Rotation:f2}, x={p->PosX}, y={p->PosY}, z={p->PosZ}, u={p->Unknown:X2}, u1={new ActionID(ActionType.Spell, p->Unknown1)}, u2={Utils.ObjectString(p->Unknown2)}, u3={p->Unknown3:X4}");
                         break;
                     }
                 case Protocol.Opcode.ActorControl:
@@ -287,7 +285,7 @@ namespace BossMod
                         switch (p->category)
                         {
                             case Protocol.Server_ActorControlCategory.CancelCast: // note: some successful boss casts have this message on completion, seen param1=param4=0, param2=1; param1 is related to cast time?..
-                                Service.Log($"[Network] -- cancelled {Utils.ActionString(p->param3)}, interrupted={p->param4 == 1}");
+                                Service.Log($"[Network] -- cancelled {new ActionID(ActionType.Spell, p->param3)}, interrupted={p->param4 == 1}");
                                 break;
                             case Protocol.Server_ActorControlCategory.GainEffect: // gain status effect, seen param2=param3=param4=0
                                 Service.Log($"[Network] -- gained {Utils.StatusString(p->param1)}");
@@ -305,7 +303,7 @@ namespace BossMod
                         switch (p->category)
                         {
                             case Protocol.Server_ActorControlCategory.Cooldown:
-                                Service.Log($"[Network] -- group={p->param1}, action={Utils.ActionString(p->param2)}, time={p->param3 / 100.0f:f2}s");
+                                Service.Log($"[Network] -- group={p->param1}, action={new ActionID(ActionType.Spell, p->param2)}, time={p->param3 / 100.0f:f2}s");
                                 break;
                         }
                         break;
@@ -369,7 +367,7 @@ namespace BossMod
             // rotation: 0 -> -180, 65535 -> +180
             float rot = (data->rotation / 65535.0f * 360.0f) - 180.0f;
             uint aid = (uint)(data->actionId - _unkDelta);
-            Service.Log($"[Network] - AID={Utils.ActionString(aid, data->actionType)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, seq={data->SourceSequence}, cntr={data->globalEffectCounter}, rot={rot:f0}, var={data->variation}, flags={flags1:X8} {flags2:X4}, someTarget={Utils.ObjectString(data->SomeTargetID)}, u={data->unknown:X8} {data->unknown20:X2} {data->padding21:X4}");
+            Service.Log($"[Network] - AID={new ActionID(data->actionType, aid)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, seq={data->SourceSequence}, cntr={data->globalEffectCounter}, rot={rot:f0}, var={data->variation}, flags={flags1:X8} {flags2:X4}, someTarget={Utils.ObjectString(data->SomeTargetID)}, u={data->unknown:X8} {data->unknown20:X2} {data->padding21:X4}");
             var targets = Math.Min(data->NumTargets, maxTargets);
             for (int i = 0; i < targets; ++i)
             {

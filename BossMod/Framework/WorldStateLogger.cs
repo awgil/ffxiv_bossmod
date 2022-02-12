@@ -220,12 +220,12 @@ namespace BossMod
 
         private void ActorCastStarted(object? sender, WorldState.Actor actor)
         {
-            Log("CST+", $"{Actor(actor)}|{Utils.ActionString(actor.CastInfo!.ActionID, actor.CastInfo!.ActionType)}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString(actor.CastInfo!.CurrentTime, actor.CastInfo!.TotalTime)}");
+            Log("CST+", $"{Actor(actor)}|{actor.CastInfo!.Action}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString(actor.CastInfo!.CurrentTime, actor.CastInfo!.TotalTime)}");
         }
 
         private void ActorCastFinished(object? sender, WorldState.Actor actor)
         {
-            Log("CST-", $"{Actor(actor)}|{Utils.ActionString(actor.CastInfo!.ActionID, actor.CastInfo!.ActionType)}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString(actor.CastInfo!.CurrentTime, actor.CastInfo!.TotalTime)}");
+            Log("CST-", $"{Actor(actor)}|{actor.CastInfo!.Action}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString(actor.CastInfo!.CurrentTime, actor.CastInfo!.TotalTime)}");
         }
 
         private void ActorTethered(object? sender, WorldState.Actor actor)
@@ -263,7 +263,7 @@ namespace BossMod
 
         private void EventCast(object? sender, WorldState.CastResult info)
         {
-            var sb = new StringBuilder($"{Actor(info.CasterID)}|{Utils.ActionString(info.ActionID, info.ActionType)}|{Actor(info.MainTargetID)}|{info.AnimationLockTime:f2}|{info.MaxTargets}");
+            var sb = new StringBuilder($"{Actor(info.CasterID)}|{info.Action}|{Actor(info.MainTargetID)}|{info.AnimationLockTime:f2}|{info.MaxTargets}");
             foreach (var t in info.Targets)
             {
                 sb.Append($"|{Actor(t.ID)}");

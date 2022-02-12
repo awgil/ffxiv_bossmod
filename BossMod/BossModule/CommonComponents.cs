@@ -13,9 +13,9 @@ namespace BossMod
         {
             public int NumCasts { get; private set; } = 0;
 
-            private uint _watchedCastID;
+            private ActionID _watchedCastID;
 
-            public CastCounter(uint aid)
+            public CastCounter(ActionID aid)
             {
                 _watchedCastID = aid;
             }
@@ -24,7 +24,7 @@ namespace BossMod
 
             public override void OnEventCast(WorldState.CastResult info)
             {
-                if (info.IsSpell() && info.ActionID == _watchedCastID)
+                if (info.Action == _watchedCastID)
                 {
                     ++NumCasts;
                 }

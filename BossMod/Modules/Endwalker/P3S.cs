@@ -599,7 +599,7 @@ namespace BossMod
             {
                 if (!info.IsSpell())
                     return;
-                switch ((AID)info.ActionID)
+                switch ((AID)info.Action.ID)
                 {
                     case AID.ExperimentalGloryplumeSpread:
                         CurState = State.Spread;
@@ -1188,7 +1188,7 @@ namespace BossMod
             {
                 if (!actor.CastInfo!.IsSpell())
                     return;
-                switch ((AID)actor.CastInfo!.ActionID)
+                switch ((AID)actor.CastInfo!.Action.ID)
                 {
                     case AID.FlamesOfAsphodelosAOE1:
                         _directions[0] = actor.Rotation;
@@ -1206,7 +1206,7 @@ namespace BossMod
             {
                 if (!actor.CastInfo!.IsSpell())
                     return;
-                switch ((AID)actor.CastInfo!.ActionID)
+                switch ((AID)actor.CastInfo!.Action.ID)
                 {
                     case AID.FlamesOfAsphodelosAOE1:
                         _directions[0] = null;

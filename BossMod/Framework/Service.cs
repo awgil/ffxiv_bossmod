@@ -29,6 +29,8 @@ namespace BossMod
                 LogHandler(msg);
         }
 
+        public static Lumina.GameData? LuminaGameData = null;
+
         //public static SharpDX.Direct3D11.Device? Device = null;
     }
 }
