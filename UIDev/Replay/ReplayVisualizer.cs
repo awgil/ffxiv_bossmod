@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace UIDev
 {
-    class LogVisualizer : IDisposable
+    class ReplayVisualizer : IDisposable
     {
-        private WorldStateLogParser _data;
+        private Replay _data;
         private WorldState _ws = new();
         private int _cursor = 0;
         private List<(DateTime, bool)> _checkpoints = new();
@@ -22,12 +22,12 @@ namespace UIDev
         private BossModule? _bossmod;
         private float _azimuth;
 
-        public LogVisualizer(WorldStateLogParser data)
+        public ReplayVisualizer(Replay data)
         {
             _data = data;
             _ws.CurrentTime = data.Ops.First().Timestamp;
 
-            foreach (var op in data.Ops.OfType<WorldStateLogParser.OpEnterExitCombat>())
+            foreach (var op in data.Ops.OfType<Replay.OpEnterExitCombat>())
                 _checkpoints.Add((op.Timestamp, op.Value));
             _first = data.Ops.First().Timestamp;
             _last = data.Ops.Last().Timestamp;
@@ -120,7 +120,13 @@ namespace UIDev
             ImGui.TableNextColumn(); ImGui.DragFloat("###Rot", ref rot, 1, -180, 180);
             _ws.MoveActor(actor, new(pos, rot / 180 * MathF.PI));
 
-            ImGui.TableNextColumn(); ImGui.Text(actor.Name);
+            ImGui.TableNextColumn();
+            if (actor.IsDead)
+            {
+                ImGui.Text("(Dead)");
+                ImGui.SameLine();
+            }
+            ImGui.Text(actor.Name);
 
             ImGui.TableNextColumn();
             if (actor.CastInfo != null)

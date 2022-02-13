@@ -60,10 +60,10 @@ namespace UIDev
             ImGui.SameLine();
             if (ImGui.Button("Open ACT log..."))
             {
-                var data = WorldStateLogParser.ParseActLog(_openLogName, 0);
+                var data = ReplayParserAct.Parse(_openLogName, 0);
                 if (data.Ops.Count > 0)
                 {
-                    var visu = new LogVisualizer(data);
+                    var visu = new ReplayVisualizer(data);
                     WindowManager.CreateWindow(_openLogName, visu.Draw, visu.Dispose);
                 }
             }
@@ -81,24 +81,5 @@ namespace UIDev
                 }
             }
         }
-
-        //public void DrawSettingsWindow()
-        //{
-        //    if (!SettingsVisible)
-        //    {
-        //        return;
-        //    }
-
-        //    ImGui.SetNextWindowSize(new Vector2(232, 75), ImGuiCond.Always);
-        //    if (ImGui.Begin("A Wonderful Configuration Window", ref this.settingsVisible,
-        //        ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
-        //    {
-        //        if (ImGui.Checkbox("Random Config Bool", ref this.fakeConfigBool))
-        //        {
-        //            // nothing to do in a fake ui!
-        //        }
-        //    }
-        //    ImGui.End();
-        //}
     }
 }
