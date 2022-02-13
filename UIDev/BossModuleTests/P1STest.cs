@@ -9,10 +9,13 @@ namespace UIDev
         private float _azimuth;
         private WorldState _ws;
         private P1S _o;
+        private DateTime _prevFrame;
+        private bool _paused;
 
         public P1STest()
         {
             _ws = new();
+            _ws.CurrentTime = _prevFrame = DateTime.Now;
             _ws.AddActor(1, 0, "T1", WorldState.ActorType.Player, Class.WAR, new(105, 0, 100, 0), 1, true);
             _ws.AddActor(2, 0, "T2", WorldState.ActorType.Player, Class.PLD, new(100, 0, 105, 0), 1, true);
             _ws.AddActor(3, 0, "H1", WorldState.ActorType.Player, Class.WHM, new(100, 0,  95, 0), 1, true);
@@ -33,6 +36,11 @@ namespace UIDev
 
         public void Draw()
         {
+            var now = DateTime.Now;
+            if (!_paused)
+                _ws.CurrentTime += now - _prevFrame;
+            _prevFrame = now;
+
             _o.Update();
 
             _o.Draw(_azimuth / 180 * MathF.PI, null);
@@ -45,6 +53,13 @@ namespace UIDev
                 _ws.UpdateCastInfo(boss, null);
                 _ws.PlayerInCombat = !_ws.PlayerInCombat;
             }
+
+            ImGui.SameLine();
+            if (ImGui.Button(_paused ? "Resume" : "Pause"))
+                _paused = !_paused;
+
+            ImGui.SameLine();
+            ImGui.Text($"Downtime in: {_o.StateMachine.EstimateTimeToNextDowntime():f2}, Positioning in: {_o.StateMachine.EstimateTimeToNextPositioning():f2}");
 
             int cnt = 0;
             foreach (var e in Enum.GetValues<P1S.AID>())

@@ -37,6 +37,8 @@ namespace BossMod
 
         private List<Network.PendingAction> _pendingActions = new();
         private bool _firstPendingJustCompleted = false;
+        private DateTime _animLockEnd;
+        private float _animLockDelay = 0.1f; // smoothed delay between client request and response
 
         private delegate ulong GetAdjustedActionIdDelegate(byte param1, uint param2);
         private Hook<GetAdjustedActionIdDelegate> _getAdjustedActionIdHook;
@@ -46,9 +48,9 @@ namespace BossMod
         public unsafe float ComboTimeLeft => *_comboTimeLeft;
         public unsafe uint ComboLastMove => *_comboLastMove;
 
-        public WARActions WarActions { get; init; } = new();
+        public WARActions WarActions { get; init; }
 
-        public unsafe Autorotation(Network network, GeneralConfig config)
+        public unsafe Autorotation(Network network, GeneralConfig config, BossModuleManager bossmods)
         {
             _network = network;
             _config = config;
@@ -65,6 +67,8 @@ namespace BossMod
             var getAdjustedActionIdAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 8B F8 3B DF");
             _getAdjustedActionIdHook = new(getAdjustedActionIdAddress, new GetAdjustedActionIdDelegate(GetAdjustedActionIdDetour));
             _getAdjustedActionIdHook.Enable();
+
+            WarActions = new(bossmods);
         }
 
         public void Dispose()
@@ -98,7 +102,7 @@ namespace BossMod
 
                 if (_pendingActions.Count == 0)
                 {
-                    WarActions.Update(ComboLastMove, ComboTimeLeft);
+                    WarActions.Update(ComboLastMove, ComboTimeLeft, MathF.Max((float)(_animLockEnd - DateTime.Now).TotalSeconds, 0), _animLockDelay);
                 }
             }
             else
@@ -109,7 +113,7 @@ namespace BossMod
             bool showUI = enabled && _config.AutorotationShowUI;
             if (showUI && _ui == null)
             {
-                _ui = WindowManager.CreateWindow("Autorotation", () => WarActions.DrawActionHint(false), () => { });
+                _ui = WindowManager.CreateWindow("Autorotation", WarActions.DrawOverlay, () => { });
                 _ui.SizeHint = new(100, 100);
                 _ui.MinSize = new(100, 100);
                 _ui.Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
@@ -129,6 +133,7 @@ namespace BossMod
             }
             Log($"++ {PendingActionString(action)}");
             _pendingActions.Add(action);
+            _animLockEnd = DateTime.Now.AddSeconds(0.5);
         }
 
         private void OnNetworkActionEffect(object? sender, WorldState.CastResult action)
@@ -156,6 +161,11 @@ namespace BossMod
             }
             Log($"-+ {PendingActionString(pa)}, lock={action.AnimationLockTime:f3}");
             _firstPendingJustCompleted = true;
+
+            var now = DateTime.Now;
+            var delay = (float)(now.AddSeconds(0.5) - _animLockEnd).TotalSeconds;
+            _animLockDelay = delay * 0.5f + _animLockDelay * 0.5f; // TODO: tweak smoothing constant
+            _animLockEnd = now.AddSeconds(action.AnimationLockTime);
         }
 
         private void OnNetworkActionCancel(object? sender, (uint actorID, uint actionID) args)
@@ -228,9 +238,9 @@ namespace BossMod
                 case (uint)WARRotation.AID.HeavySwing:
                     return (uint)WarActions.NextBestAction;
                 case (uint)WARRotation.AID.StormEye:
-                    return (uint)WARRotation.GetNextStormEyeComboAction(WarActions.State);
+                    return (uint)WARRotation.GetNextSTComboAction(WarActions.State.ComboLastMove, WARRotation.AID.StormEye);
                 case (uint)WARRotation.AID.StormPath:
-                    return (uint)WARRotation.GetNextStormPathComboAction(WarActions.State);
+                    return (uint)WARRotation.GetNextSTComboAction(WarActions.State.ComboLastMove, WARRotation.AID.StormPath);
                 case (uint)WARRotation.AID.MythrilTempest:
                     return (uint)WARRotation.GetNextAOEComboAction(WarActions.State);
                 default:

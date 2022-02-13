@@ -22,10 +22,8 @@ boss modules:
 - data driven => would enable sequence autorecord and live editing
 
 autorotation:
-- improve rotation logic
-- autodetect raidbuffs
-- integrate with bossmodules and enable/disable movement
-- defensive cooldowns (offensive veng, integrate with bossmodules - CD planner)
+- planner (defensive CDs, charge, delay offensive?)
+- offensive veng
 - generalize to other classes
 - aoe rotation, maybe even auto-detect targets and autoselect st/aoe...
 

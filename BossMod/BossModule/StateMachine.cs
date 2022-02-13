@@ -36,9 +36,12 @@ namespace BossMod
             public Action<float>? Update = null; // callback executed every frame when state is active; should return whether transition to next state should happen; argument = time since activation
 
             // fields below are used for visualization, autorotations, etc.
-            public State[]? PotentialSuccessors = null; // if null, we consider the only potential successor to be Next; otherwise we use this list instead when building timelie
+            public State[]? PotentialSuccessors = null; // if null, we consider the only potential successor to be Next; otherwise we use this list instead when building timeline
             public StateHint EndHint = StateHint.None; // special flags for state end
         }
+
+        private bool _isDowntime = true;
+        private bool _isPositioning = false;
 
         private DateTime _curTime;
         private DateTime _lastTransition;
@@ -72,14 +75,28 @@ namespace BossMod
                     _activeState.Exit?.Invoke();
                     _activeState.Active = false;
                     _activeState.Done = false;
+                    _isDowntime = (_isDowntime || _activeState.EndHint.HasFlag(StateHint.DowntimeStart)) && !_activeState.EndHint.HasFlag(StateHint.DowntimeEnd);
+                    _isPositioning = (_isPositioning || _activeState.EndHint.HasFlag(StateHint.PositioningStart)) && !_activeState.EndHint.HasFlag(StateHint.PositioningEnd);
                 }
+                else
+                {
+                    _isDowntime = _isPositioning = false;
+                }
+
                 _activeState = value;
+
                 if (_activeState != null)
                 {
                     _activeState.Active = true;
                     _activeState.Done = false;
                     _activeState.Enter?.Invoke();
                 }
+                else
+                {
+                    _isDowntime = true;
+                    _isPositioning = false;
+                }
+
                 _lastTransition = _curTime;
                 if (Paused)
                     _pauseTime = 0;
@@ -116,6 +133,62 @@ namespace BossMod
             {
                 ImGui.Text($"Then: {future}");
             }
+        }
+
+        public float EstimateTimeToNextDowntime()
+        {
+            if (_isDowntime || _activeState == null)
+                return 0;
+            var t = MathF.Max(0, _activeState.Duration - TimeSinceTransition);
+            State s = _activeState;
+            while (!s.EndHint.HasFlag(StateHint.DowntimeStart))
+            {
+                if (s.Next != null)
+                {
+                    s = s.Next;
+                    t += s.Duration;
+                }
+                else if (s.PotentialSuccessors != null && s.PotentialSuccessors.Length > 0)
+                {
+                    // this is a fork and we don't know where we'll go - assume there will be no downtime ever...
+                    return 10000;
+                }
+                else
+                {
+                    // this is a last state, assume combat ends...
+                    break;
+                }
+            }
+            return t;
+        }
+
+        public float EstimateTimeToNextPositioning()
+        {
+            if (_isPositioning)
+                return 0;
+            if (_activeState == null)
+                return 10000;
+            var t = MathF.Max(0, _activeState.Duration - TimeSinceTransition);
+            State s = _activeState;
+            while (!s.EndHint.HasFlag(StateHint.PositioningStart))
+            {
+                if (s.Next != null)
+                {
+                    s = s.Next;
+                    t += s.Duration;
+                }
+                else if (s.PotentialSuccessors != null && s.PotentialSuccessors.Length > 0)
+                {
+                    // this is a fork and we don't know where we'll go - assume there will be no positioning ever...
+                    return 10000;
+                }
+                else
+                {
+                    // this is a last state, assume combat ends...
+                    return 10000;
+                }
+            }
+            return t;
         }
 
         public string BuildStateChain(State? start, string sep, int maxCount = 5)

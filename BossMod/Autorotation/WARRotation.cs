@@ -5,7 +5,7 @@ namespace BossMod
     // TODO: consider making a 'plan' based on selected strategy, instead of determining best action reactively
     public class WARRotation
     {
-        public enum AID
+        public enum AID : uint
         {
             None = 0,
 
@@ -70,9 +70,12 @@ namespace BossMod
         // full state needed for determining next action
         public struct State
         {
+            public float AnimationLock; // typical actions have 0.6 delay, but some (notably primal rend and potion) are >1
+            public float AnimationLockDelay; // average time between action request and confirmation; this is added to effective animation lock for actions
             public float ComboTimeLeft; // 0 if not in combo, max 30
             public AID ComboLastMove;
             public int Gauge; // 0 to 100
+            public float RaidBuffsLeft; // 0 if no damage-up status is up, otherwise it is time left on longest
             public float SurgingTempestLeft; // 0 if buff not up, max 60
             public float NascentChaosLeft; // 0 if buff not up, max 30
             public float PrimalRendLeft; // 0 if buff not up, max 30
@@ -86,33 +89,38 @@ namespace BossMod
         }
 
         // strategy configuration
+        // many strategy decisions are represented as "need-something-in" counters; 0 means "use asap", >0 means "do not use unless value is larger than cooldown" (so 'infinity' means 'free to use')
+        // for planning, we typically use "windows" (as in, some CD has to be pressed from this point and up to this point);
+        // before "min point" counter is >0, between "min point" and "max point" it is == 0, after "max point" we switch to next planned action (assuming if we've missed the window, CD is no longer needed)
         public struct Strategy
         {
-            public bool SpendGauge; // if true, spend as much gauge as possible (e.g. during buff window); if false, retain as much as possible, but avoid overcapping anything
+            public float FightEndIn; // how long fight will last (we try to spend all resources before this happens)
+            public float RaidBuffsIn; // estimate time when new raidbuff window starts (if it is smaller than FightEndIn, we try to conserve resources)
+            public float PositionLockIn; // time left to use moving abilities (Primal Rend and Onslaught) - we won't use them if it is ==0; setting this to 2.5f will make us use PR asap
+            public float FirstChargeIn; // when do we need to use onslaught charge (0 means 'use asap if out of melee range', >0 means that we'll try to make sure 1 charge is available in this time)
+            public float SecondChargeIn; // when do we need to use two onslaught charges in a short amount of time
             public bool EnableUpheaval; // if true, enable using upheaval when needed; setting to false is useful during opener before first party buffs
-            public bool EnableMovement; // if true, allows selecting moving abilities (Primal Rend and Onslaught) - disabling is useful if there are positioning mechanics active
-            public float NeedChargeIn; // ensure that at least 1 charge stack is available in specified time (setting this to 0 will always preserve 1 charge stack, setting to >=30 will spend all stacks)
             public bool Aggressive; // if true, we use buffs and stuff at last possible moment; otherwise we make sure to keep at least 1 GCD safety net
         }
 
-        public static AID GetNextStormPathComboAction(State state)
+        public static AID GetNextSTComboAction(AID comboLastMove, AID finisher)
         {
-            if (state.ComboLastMove == AID.Maim)
-                return AID.StormPath;
-            else if (state.ComboLastMove == AID.HeavySwing)
-                return AID.Maim;
-            else
-                return AID.HeavySwing;
+            return comboLastMove switch
+            {
+                AID.Maim => finisher,
+                AID.HeavySwing => AID.Maim,
+                _ => AID.HeavySwing
+            };
         }
 
-        public static AID GetNextStormEyeComboAction(State state)
+        public static int GetSTComboLength(AID comboLastMove)
         {
-            if (state.ComboLastMove == AID.Maim)
-                return AID.StormEye;
-            else if (state.ComboLastMove == AID.HeavySwing)
-                return AID.Maim;
-            else
-                return AID.HeavySwing;
+            return comboLastMove switch
+            {
+                AID.Maim => 1,
+                AID.HeavySwing => 2,
+                _ => 3
+            };
         }
 
         public static AID GetNextAOEComboAction(State state)
@@ -122,88 +130,104 @@ namespace BossMod
 
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
-            // TODO: consider whether we should try to cast ability if correspoding buff didn't expire yet, but will expire before GCD is up
-            float minBuff = 0; // or state.GCD?
+            // we spend resources either under raid buffs or if another raid buff window will cover at least 4 GCDs of the fight
+            bool spendGauge = state.RaidBuffsLeft > state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10;
+            float primalRendWindow = MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);
+            var nextFCAction = state.NascentChaosLeft > state.GCD ? AID.InnerChaos : AID.FellCleave;
 
             // 1. if it is the last CD possible for PR/NC, don't waste them
             float gcdDelay = state.GCD + (strategy.Aggressive ? 0 : 2.5f);
             float secondGCDIn = gcdDelay + 2.5f;
             float thirdGCDIn = gcdDelay + 5f;
-            if (state.PrimalRendLeft > minBuff && state.PrimalRendLeft < secondGCDIn && strategy.EnableMovement)
+            if (primalRendWindow > state.GCD && primalRendWindow < secondGCDIn)
                 return AID.PrimalRend;
-            if (state.NascentChaosLeft > minBuff && state.NascentChaosLeft < secondGCDIn)
+            if (state.NascentChaosLeft > state.GCD && state.NascentChaosLeft < secondGCDIn)
                 return AID.InnerChaos;
-            if (state.NascentChaosLeft > minBuff && state.PrimalRendLeft > minBuff && strategy.EnableMovement && state.PrimalRendLeft < thirdGCDIn && state.NascentChaosLeft < thirdGCDIn)
+            if (primalRendWindow > state.GCD && state.NascentChaosLeft > state.GCD && primalRendWindow < thirdGCDIn && state.NascentChaosLeft < thirdGCDIn)
                 return AID.PrimalRend; // either is fine
 
             // 2. if IR is up, don't waste charges - it is only safe to cast FC/PR
             if (state.InnerReleaseStacks > 0)
             {
                 // currently we prioritize PR in 'spend' phase, unless doing so will cost us IR stacks
-                if (state.PrimalRendLeft > minBuff && strategy.EnableMovement && strategy.SpendGauge &&
-                    state.InnerReleaseLeft >= (gcdDelay + state.InnerReleaseStacks * 2.5))
-                {
-                    return AID.PrimalRend;
-                }
-
-                // just cast FC/IC
-                return state.NascentChaosLeft > 0 ? AID.InnerChaos : AID.FellCleave;
+                bool preferPR = primalRendWindow > state.GCD && spendGauge && state.InnerReleaseLeft >= (gcdDelay + state.InnerReleaseStacks * 2.5);
+                return preferPR ? AID.PrimalRend : nextFCAction;
             }
 
+            // 3. no ST (or it will expire if we don't combo asap) => apply buff asap
             // TODO: what if we have really high gauge and low ST? is it worth it to delay ST application to avoid overcapping gauge?
-            // TODO: what if we have low but non-zero ST?
-            // 3. no ST (or it will expire before next GCD) => apply buff asap
-            if (state.SurgingTempestLeft <= state.GCD)
-                return GetNextStormEyeComboAction(state);
+            if (state.SurgingTempestLeft <= state.GCD + 2.5f * (GetSTComboLength(state.ComboLastMove) - 1))
+                return GetNextSTComboAction(state.ComboLastMove, AID.StormEye);
 
             // 4. if we're delaying IR due to nascent chaos, cast it asap
             if (state.NascentChaosLeft > 0 && state.InnerReleaseCD <= secondGCDIn && state.Gauge >= 50)
-                return AID.InnerChaos;
+                return nextFCAction;
 
             // 5. if we're delaying Infuriate due to gauge, cast FC asap (7.5 for FC)
             if (state.Gauge > 50 && state.InfuriateCD <= gcdDelay + 7.5)
-                return state.NascentChaosLeft > 0 ? AID.InnerChaos : AID.FellCleave;
+                return nextFCAction;
 
             // 6. if we have >50 gauge, IR is imminent, and casting it will cause us to overcap infuriate, spend gauge asap, so that we can infuriate after
             // 30 seconds is for FC + IR + 3xFC - this is 4 gcds (10 sec) and 4 FCs (another 20 sec)
             if (state.Gauge > 50 && state.InfuriateCD <= gcdDelay + 30 && state.InnerReleaseCD < thirdGCDIn)
-                return state.NascentChaosLeft > 0 ? AID.InnerChaos : AID.FellCleave;
+                return nextFCAction;
 
-            if (!strategy.SpendGauge)
+            // 7. if there is no chance we can delay PR until next raid buffs, just cast it now
+            if (primalRendWindow > state.GCD && primalRendWindow <= strategy.RaidBuffsIn)
+                return AID.PrimalRend;
+
+            if (!spendGauge)
             {
                 // we want to delay spending gauge unless doing so will cause us problems later
                 var maxSTToAvoidOvercap = 20 + Math.Clamp(state.InnerReleaseCD, 0, 10);
-                var combo = state.SurgingTempestLeft < maxSTToAvoidOvercap ? GetNextStormEyeComboAction(state) : GetNextStormPathComboAction(state);
-                int comboGauge = combo == AID.HeavySwing ? 0 : (combo == AID.StormPath ? 20 : 10);
+                var nextCombo = GetNextSTComboAction(state.ComboLastMove, state.SurgingTempestLeft < maxSTToAvoidOvercap ? AID.StormEye : AID.StormPath);
+                int comboGauge = nextCombo == AID.HeavySwing ? 0 : (nextCombo == AID.StormPath ? 20 : 10);
                 if (state.Gauge + comboGauge <= 100)
-                    return combo;
+                    return nextCombo;
             }
 
             // ok at this point, we just want to spend gauge - either because we're using greedy strategy, or something prevented us from casting combo
-            if (state.PrimalRendLeft > minBuff && strategy.EnableMovement)
+            if (primalRendWindow > state.GCD)
                 return AID.PrimalRend;
-            if (state.NascentChaosLeft > minBuff)
-                return AID.InnerChaos;
             if (state.Gauge >= 50)
-                return AID.FellCleave;
+                return nextFCAction;
 
             // TODO: reconsider min time left...
-            return state.SurgingTempestLeft < gcdDelay + 12.5 ? GetNextStormEyeComboAction(state) : GetNextStormPathComboAction(state);
+            return GetNextSTComboAction(state.ComboLastMove, state.SurgingTempestLeft < gcdDelay + 12.5 ? AID.StormEye : AID.StormPath);
         }
 
-        public static AID GetNextBestOGCD(State state, Strategy strategy, float timeOffset = 0)
+        public static bool IsOGCDAvailable(float cooldown, float actionLock, float delay, float windowEnd)
         {
-            // 1. spend second infuriate stacks asap (unless have IR or >50 gauge)
-            if (state.InfuriateCD <= timeOffset && state.InnerReleaseStacks == 0 && state.NascentChaosLeft <= timeOffset && state.Gauge <= 50)
+            return MathF.Max(cooldown, 0) + actionLock + delay <= windowEnd;
+        }
+
+        public static float GetOGCDDelay(float animLockDelay)
+        {
+            return 0.1f; // TODO: consider returning animLockDelay instead...
+        }
+
+        // window-end is either GCD or GCD - time-for-second-ogcd; we are allowed to use ogcds only if their animation lock would complete before window-end
+        public static AID GetNextBestOGCD(State state, Strategy strategy, float windowEnd)
+        {
+            var lockDelay = GetOGCDDelay(state.AnimationLockDelay);
+
+            bool infuriateAvailable = IsOGCDAvailable(state.InfuriateCD - 60, 0.6f, lockDelay, windowEnd); // note: for second stack, this will be true if casting it won't delay our next gcd
+            infuriateAvailable &= state.InnerReleaseLeft <= state.GCD; // never cast infuriate if IR is up for next GCD
+            infuriateAvailable &= state.NascentChaosLeft <= state.GCD; // never cast infuriate if NC from previous infuriate is still up for next GCD
+            infuriateAvailable &= state.Gauge <= 50; // never cast infuriate if doing so would overcap gauge
+
+            // 1. spend second infuriate stacks asap (unless have IR, another NC, or >50 gauge)
+            // note that next-best-gcd could be FC, so we bump up min CD to ensure we don't overcap
+            if (infuriateAvailable && state.InfuriateCD <= state.GCD + 7.5)
                 return AID.Infuriate;
 
-            // 2. upheaval, if surging tempest up
+            // 2. upheaval, if surging tempest up and not forbidden
             // TODO: delay for 1 GCD during opener...
-            if (state.UpheavalCD <= timeOffset && state.SurgingTempestLeft > timeOffset && strategy.EnableUpheaval)
+            if (IsOGCDAvailable(state.UpheavalCD, 0.6f, lockDelay, windowEnd) && state.SurgingTempestLeft > MathF.Max(state.UpheavalCD, 0) && strategy.EnableUpheaval)
                 return AID.Upheaval;
 
             // 3. inner release, if surging tempest up and no nascent chaos up
-            if (state.InnerReleaseCD <= timeOffset && state.SurgingTempestLeft > timeOffset && state.NascentChaosLeft <= timeOffset)
+            if (IsOGCDAvailable(state.InnerReleaseCD, 0.6f, lockDelay, windowEnd) && state.SurgingTempestLeft > state.GCD + 5 && state.NascentChaosLeft <= state.GCD)
                 return AID.InnerRelease;
 
             // 4. infuriate - this is complex decision
@@ -212,19 +236,30 @@ namespace BossMod
             // - if IR is imminent, we need at least 22.5 secs of CD (IR+3xFC is 7.5s from spent gcds and 15s from FCs)
             // - if next combo action would overcap our gauge, we need at least 10 secs of CD (it+FC would take 2 gcds)
             // - otherwise we need to still be not overcapping by the next GCD
-            if (state.InfuriateCD < (timeOffset + 60) && state.InnerReleaseStacks == 0 && state.InnerReleaseCD > (state.GCD - 0.7f) && state.NascentChaosLeft <= timeOffset && state.Gauge <= 50)
+            bool spendGauge = state.RaidBuffsLeft >= state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10;
+            if (infuriateAvailable && !IsOGCDAvailable(state.InnerReleaseCD, 0.6f, lockDelay, state.GCD))
             {
                 float gcdDelay = state.GCD + (strategy.Aggressive ? 0 : 2.5f);
                 var irImminent = state.InnerReleaseCD < gcdDelay + 2.5;
                 int gaugeCap = state.ComboLastMove == AID.None ? 50 : (state.ComboLastMove == AID.HeavySwing ? 40 : 30);
                 float maxInfuriateCD = irImminent ? 22.5f : (state.Gauge > gaugeCap ? 10f : 2.5f);
-                if (strategy.SpendGauge || state.InfuriateCD <= gcdDelay + maxInfuriateCD)
+                if (spendGauge || state.InfuriateCD <= gcdDelay + maxInfuriateCD)
                     return AID.Infuriate;
             }
 
-            // 5. onslaught, if surging tempest up
-            if (state.OnslaughtCD <= (timeOffset + strategy.NeedChargeIn + 30) && state.SurgingTempestLeft > timeOffset && strategy.EnableMovement)
-                return AID.Onslaught;
+            // 5. onslaught, if surging tempest up and not forbidden
+            if (IsOGCDAvailable(state.OnslaughtCD - 60, 0.6f, lockDelay, windowEnd) && strategy.PositionLockIn > state.AnimationLock && state.SurgingTempestLeft > state.AnimationLock)
+            {
+                if (state.OnslaughtCD < state.GCD + 2.5)
+                    return AID.Onslaught; // onslaught now, otherwise we risk overcapping charges
+
+                if (strategy.FirstChargeIn <= 0)
+                    return AID.Onslaught; // onslaught now, since strategy asks for it
+
+                // otherwise use onslaught only if we're spending gauge and not needing it for something
+                if (spendGauge && state.OnslaughtCD <= strategy.FirstChargeIn + 30 && state.OnslaughtCD <= strategy.SecondChargeIn)
+                    return AID.Onslaught;
+            }
 
             // no suitable oGCDs...
             return AID.None;
@@ -232,18 +267,21 @@ namespace BossMod
 
         public static AID GetNextBestAction(State state, Strategy strategy)
         {
+            var ogcdSlotLength = 0.6f + GetOGCDDelay(state.AnimationLockDelay);
+
             // first ogcd slot
-            if (state.GCD > 1.7)
+            var doubleWeavingWindowEnd = state.GCD - ogcdSlotLength;
+            if (state.AnimationLock + ogcdSlotLength <= doubleWeavingWindowEnd)
             {
-                var ogcd = GetNextBestOGCD(state, strategy, state.GCD - 1.7f);
+                var ogcd = GetNextBestOGCD(state, strategy, doubleWeavingWindowEnd);
                 if (ogcd != AID.None)
                     return ogcd;
             }
 
-            // second ogcd slot
-            if (state.GCD > 0.7)
+            // second/only ogcd slot
+            if (state.AnimationLock + ogcdSlotLength <= state.GCD)
             {
-                var ogcd = GetNextBestOGCD(state, strategy, state.GCD - 0.7f);
+                var ogcd = GetNextBestOGCD(state, strategy, state.GCD);
                 if (ogcd != AID.None)
                     return ogcd;
             }

@@ -50,6 +50,7 @@ namespace UIDev
             {
                 _bossmod.Update();
                 _bossmod.Draw(_azimuth / 180 * MathF.PI, null);
+                ImGui.Text($"Downtime in: {_bossmod.StateMachine.EstimateTimeToNextDowntime():f2}, Positioning in: {_bossmod.StateMachine.EstimateTimeToNextPositioning():f2}");
             }
 
             DrawPartyTable();

@@ -1,31 +1,30 @@
 ﻿using Dalamud.Game.ClientState.JobGauge.Types;
+using Dalamud.Game.ClientState.Objects.Enums;
 using ImGuiNET;
 using System;
 using System.Text;
 
 namespace BossMod
 {
-    class WARActions
+    class WARActions : CommonActions
     {
-        private unsafe FFXIVClientStructs.FFXIV.Client.Game.ActionManager* _actionManager = null;
-
         public bool Enabled = true;
         public WARRotation.State State { get; private set; }
         public WARRotation.Strategy Strategy;
         public WARRotation.AID NextBestAction { get; private set; } = WARRotation.AID.HeavySwing;
 
-        public unsafe WARActions()
-        {
-            _actionManager = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
-            State = BuildState(WARRotation.AID.None, 0);
+        private BossModuleManager _bossmods;
+        private uint _forceMovementFlags = 1; // 0 = force-disable, 3 = force-enable, other = whatever planner says
 
+        public WARActions(BossModuleManager bossmods)
+        {
+            _bossmods = bossmods;
+            State = BuildState(WARRotation.AID.None, 0, 0, 0.1f);
             Strategy = new()
             {
-                SpendGauge = true,
+                FirstChargeIn = 0.1f, // by default, always preserve 1 onslaught charge
+                SecondChargeIn = 10000, // ... but don't preserve second
                 EnableUpheaval = true,
-                EnableMovement = false,
-                NeedChargeIn = 0,
-                Aggressive = false,
             };
         }
 
@@ -131,81 +130,86 @@ namespace BossMod
             Service.Log($"[AR] Cast {actionID}, next-best={NextBestAction}{comment} [{StateString(State)}]");
         }
 
-        public void Update(uint comboLastAction, float comboTimeLeft)
+        public void Update(uint comboLastAction, float comboTimeLeft, float animLock, float animLockDelay)
         {
-            var currState = BuildState((WARRotation.AID)comboLastAction, comboTimeLeft);
+            if (Service.ClientState.LocalPlayer == null || !Service.ClientState.LocalPlayer.StatusFlags.HasFlag(StatusFlags.InCombat))
+                ClearRaidCooldowns();
+
+            var currState = BuildState((WARRotation.AID)comboLastAction, comboTimeLeft, animLock, animLockDelay);
             LogStateChange(State, currState);
             State = currState;
+
+            Strategy.RaidBuffsIn = NextDamageBuffIn();
+            if (_forceMovementFlags == 0)
+                Strategy.PositionLockIn = 0;
+            else if (_forceMovementFlags == 3 || _bossmods.ActiveModule == null)
+                Strategy.PositionLockIn = 10000;
+            else
+                Strategy.PositionLockIn = _bossmods.ActiveModule.StateMachine.EstimateTimeToNextPositioning();
+            Strategy.FightEndIn = _bossmods.ActiveModule != null ? _bossmods.ActiveModule.StateMachine.EstimateTimeToNextDowntime() : 0;
+
             var nextBest = Enabled ? WARRotation.GetNextBestAction(State, Strategy) : WARRotation.AID.HeavySwing;
             if (nextBest != NextBestAction)
                 Service.Log($"[AR] Next-best changed from {NextBestAction} to {nextBest} [{StateString(State)}]");
             NextBestAction = nextBest;
         }
 
-        public void DrawActionHint(bool extended)
+        public void DrawOverlay()
         {
-            ImGui.Checkbox("Spend mode", ref Strategy.SpendGauge);
-            ImGui.Checkbox("Enable movement", ref Strategy.EnableMovement);
-            ImGui.Text($"Next: {NextBestAction}, GCD={State.GCD:f1}");
-            if (extended)
-            {
-                ImGui.Checkbox("Enable", ref Enabled);
-                ImGui.SliderFloat("Need charge in", ref Strategy.NeedChargeIn, 0, 30);
-                ImGui.Text($"Gauge: {State.Gauge}");
-                ImGui.Text($"Surging tempest left: {State.SurgingTempestLeft:f1}");
-                ImGui.Text($"Nascent chaos left: {State.NascentChaosLeft:f1}");
-                ImGui.Text($"Primal rend left: {State.PrimalRendLeft:f1}");
-                ImGui.Text($"Inner release left: {State.InnerReleaseLeft:f1} ({State.InnerReleaseStacks} stacks)");
-                ImGui.Text($"Combo State: last={State.ComboLastMove}, time left={State.ComboTimeLeft:f1}");
-                ImGui.Text($"Infuriate: {State.InfuriateCD:f1}");
-                ImGui.Text($"Upheaval: {State.UpheavalCD:f1}");
-                ImGui.Text($"Inner Release: {State.InnerReleaseCD:f1}");
-                ImGui.Text($"Onslaught: {State.OnslaughtCD:f1}");
-                ImGui.Text($"Next GCD: {WARRotation.GetNextBestGCD(State, Strategy)}");
-                ImGui.Text($"Next oGCD: {WARRotation.GetNextBestOGCD(State, Strategy)}");
-            }
+            var switchToDefault = _forceMovementFlags == 0;
+            if (ImGui.CheckboxFlags("Enable movement", ref _forceMovementFlags, 3) && switchToDefault)
+                _forceMovementFlags = 1;
+            ImGui.Text($"Next: {NextBestAction}");
+            ImGui.Text($"GCD={State.GCD:f3}, Lock={State.AnimationLock:f3}, RBLeft={State.RaidBuffsLeft:f2}");
+            ImGui.Text($"FightEnd={Strategy.FightEndIn:f3}, PosLock={Strategy.PositionLockIn:f3}, RBIn={Strategy.RaidBuffsIn:f2}");
         }
 
-        public unsafe float ActionCooldown(WARRotation.AID action)
+        public void DrawDebug()
         {
-            return _actionManager->GetRecastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Spell, (uint)action) - _actionManager->GetRecastTimeElapsed(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Spell, (uint)action);
+            ImGui.Checkbox("Enable", ref Enabled);
         }
 
-        public WARRotation.State BuildState(WARRotation.AID comboLastAction, float comboTimeLeft)
+        public WARRotation.State BuildState(WARRotation.AID comboLastAction, float comboTimeLeft, float animLock, float animLockDelay)
         {
             WARRotation.State s = new();
             if (Service.ClientState.LocalPlayer != null)
             {
+                s.AnimationLock = animLock;
+                s.AnimationLockDelay = animLockDelay;
                 s.ComboTimeLeft = comboTimeLeft;
                 s.ComboLastMove = comboLastAction;
                 s.Gauge = Service.JobGauges.Get<WARGauge>().BeastGauge;
 
                 foreach (var status in Service.ClientState.LocalPlayer.StatusList)
                 {
-                    // note: when buff is applied, it has large negative duration, and it is updated to correct one ~0.6sec later
+                    if (CheckDamageBuff(status))
+                    {
+                        s.RaidBuffsLeft = MathF.Max(s.RaidBuffsLeft, StatusDuration(status.RemainingTime));
+                    }
+
                     switch ((WARRotation.StatusID)status.StatusId)
                     {
                         case WARRotation.StatusID.SurgingTempest:
-                            s.SurgingTempestLeft = status.RemainingTime < -25 ? 30 : status.RemainingTime;
+                            s.SurgingTempestLeft = StatusDuration(status.RemainingTime);
                             break;
                         case WARRotation.StatusID.NascentChaos:
-                            s.NascentChaosLeft = status.RemainingTime < -25 ? 30 : status.RemainingTime;
+                            s.NascentChaosLeft = StatusDuration(status.RemainingTime);
                             break;
                         case WARRotation.StatusID.InnerRelease:
-                            s.InnerReleaseLeft = status.RemainingTime < -10 ? 15 : status.RemainingTime;
+                            s.InnerReleaseLeft = StatusDuration(status.RemainingTime);
                             s.InnerReleaseStacks = status.StackCount;
                             break;
                         case WARRotation.StatusID.PrimalRend:
-                            s.PrimalRendLeft = status.RemainingTime < -25 ? 30 : status.RemainingTime;
+                            s.PrimalRendLeft = StatusDuration(status.RemainingTime);
                             break;
                     }
                 }
 
-                s.InfuriateCD = ActionCooldown(WARRotation.AID.Infuriate);
-                s.UpheavalCD = ActionCooldown(WARRotation.AID.Upheaval);
-                s.InnerReleaseCD = ActionCooldown(WARRotation.AID.InnerRelease);
-                s.OnslaughtCD = ActionCooldown(WARRotation.AID.Onslaught);
-                s.GCD = ActionCooldown(WARRotation.AID.HeavySwing);
+                s.InfuriateCD = SpellCooldown(WARRotation.AID.Infuriate);
+                s.UpheavalCD = SpellCooldown(WARRotation.AID.Upheaval);
+                s.InnerReleaseCD = SpellCooldown(WARRotation.AID.InnerRelease);
+                s.OnslaughtCD = SpellCooldown(WARRotation.AID.Onslaught);
+                s.GCD = SpellCooldown(WARRotation.AID.HeavySwing);
             }
             return s;
         }
@@ -213,7 +217,7 @@ namespace BossMod
         private static void LogStateChange(WARRotation.State prev, WARRotation.State curr)
         {
             // do nothing if not in combat
-            if (Service.ClientState.LocalPlayer == null || !Service.ClientState.LocalPlayer.StatusFlags.HasFlag(Dalamud.Game.ClientState.Objects.Enums.StatusFlags.InCombat))
+            if (Service.ClientState.LocalPlayer == null || !Service.ClientState.LocalPlayer.StatusFlags.HasFlag(StatusFlags.InCombat))
                 return;
 
             // detect expired buffs
@@ -231,7 +235,7 @@ namespace BossMod
 
         private static string StateString(WARRotation.State s)
         {
-            return $"g={s.Gauge}, ST={s.SurgingTempestLeft:f1}, NC={s.NascentChaosLeft:f1}, PR={s.PrimalRendLeft:f1}, IR={s.InnerReleaseStacks}/{s.InnerReleaseLeft:f1}, IRCD={s.InnerReleaseCD:f1}, InfCD={s.InfuriateCD:f1}, UphCD={s.UpheavalCD:f1}, OnsCD={s.OnslaughtCD:f1}, GCD={s.GCD:f3}";
+            return $"g={s.Gauge}, RB={s.RaidBuffsLeft:f1}, ST={s.SurgingTempestLeft:f1}, NC={s.NascentChaosLeft:f1}, PR={s.PrimalRendLeft:f1}, IR={s.InnerReleaseStacks}/{s.InnerReleaseLeft:f1}, IRCD={s.InnerReleaseCD:f1}, InfCD={s.InfuriateCD:f1}, UphCD={s.UpheavalCD:f1}, OnsCD={s.OnslaughtCD:f1}, GCD={s.GCD:f3}, ALock={s.AnimationLock:f3}, ALockDelay={s.AnimationLockDelay:f3}";
         }
     }
 }

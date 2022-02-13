@@ -41,7 +41,7 @@ namespace BossMod
             _ws = new(_network);
             _debugLogger = new(_ws, generalCfg, dalamud.ConfigDirectory);
             _bossmod = new(_ws, _config);
-            _autorotation = new(_network, generalCfg);
+            _autorotation = new(_network, generalCfg, _bossmod);
 
             dalamud.UiBuilder.Draw += DrawUI;
             dalamud.UiBuilder.OpenConfigUi += OpenConfigUI;

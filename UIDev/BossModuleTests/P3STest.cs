@@ -9,11 +9,14 @@ namespace UIDev
         private float _azimuth;
         private WorldState _ws;
         private P3S _o;
+        private DateTime _prevFrame;
+        private bool _paused;
         private uint _numAssignedIcons = 0;
 
         public P3STest()
         {
             _ws = new();
+            _ws.CurrentTime = _prevFrame = DateTime.Now;
             _ws.AddActor(1, 0, "T1", WorldState.ActorType.Player, Class.WAR, new(100, 0,  90, 0), 1, true);
             _ws.AddActor(2, 0, "T2", WorldState.ActorType.Player, Class.PLD, new(100, 0, 110, 0), 1, true);
             _ws.AddActor(3, 0, "H1", WorldState.ActorType.Player, Class.WHM, new( 90, 0,  90, 0), 1, true);
@@ -58,6 +61,11 @@ namespace UIDev
 
         public void Draw()
         {
+            var now = DateTime.Now;
+            if (!_paused)
+                _ws.CurrentTime += now - _prevFrame;
+            _prevFrame = now;
+
             _o.Update();
 
             _o.Draw(_azimuth / 180 * MathF.PI, null);
@@ -70,11 +78,19 @@ namespace UIDev
                 _ws.UpdateCastInfo(boss, null);
                 _ws.PlayerInCombat = !_ws.PlayerInCombat;
             }
+
+            ImGui.SameLine();
+            if (ImGui.Button(_paused ? "Resume" : "Pause"))
+                _paused = !_paused;
+
             ImGui.SameLine();
             if (ImGui.Button("Reset icons"))
             {
                 _numAssignedIcons = 0;
             }
+
+            ImGui.SameLine();
+            ImGui.Text($"Downtime in: {_o.StateMachine.EstimateTimeToNextDowntime():f2}, Positioning in: {_o.StateMachine.EstimateTimeToNextPositioning():f2}");
 
             foreach (var actor in _ws.Actors.Values)
             {

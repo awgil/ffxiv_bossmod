@@ -26,12 +26,11 @@ namespace UIDev
             ComboLost = 1 << 12,
             ComboWrongMove = 1 << 13,
             InvalidMove = 1 << 14,
+            GCDExpired = 1 << 15,
         }
 
-        public WARRotation.State InitialState = new();
-        public WARRotation.Strategy Strategy = new() { EnableUpheaval = true };
-        public int Duration = 250;
-        public bool BuffWindowEnable = true;
+        public WARRotation.State InitialState = new() { AnimationLockDelay = 0.1f };
+        public int Duration = 260;
         public float BuffWindowOffset = 7.5f;
         public float BuffWindowDuration = 20;
         public float BuffWindowFreq = 120;
@@ -39,24 +38,13 @@ namespace UIDev
         public void Draw()
         {
             ImGui.InputInt("Sim duration (GCDs)", ref Duration);
+            ImGui.SliderFloat("Buff window offset", ref BuffWindowOffset, 0, 60);
+            ImGui.SliderFloat("Buff window duration", ref BuffWindowDuration, 1, 30);
+            ImGui.SliderFloat("Buff window frequency", ref BuffWindowFreq, 30, 120);
 
-            ImGui.Checkbox("Use buff window", ref BuffWindowEnable);
-            if (BuffWindowEnable)
-            {
-                ImGui.SliderFloat("Buff window offset", ref BuffWindowOffset, 0, 60);
-                ImGui.SliderFloat("Buff window duration", ref BuffWindowOffset, 1, 30);
-                ImGui.SliderFloat("Buff window frequency", ref BuffWindowOffset, 30, 120);
-            }
-            else
-            {
-                ImGui.Checkbox("Spend gauge", ref Strategy.SpendGauge);
-            }
-
-            ImGui.Checkbox("Allow movement", ref Strategy.EnableMovement);
-            ImGui.Checkbox("Aggressive", ref Strategy.Aggressive);
-            ImGui.SliderFloat("Need charge in", ref Strategy.NeedChargeIn, -30, 30);
             if (ImGui.CollapsingHeader("Initial state setup"))
             {
+                ImGui.SliderFloat("Animation lock delay", ref InitialState.AnimationLockDelay, 0, 0.5f);
                 ImGui.SliderInt("Gauge", ref InitialState.Gauge, 0, 100);
                 ImGui.SliderFloat("Surging Tempest time", ref InitialState.SurgingTempestLeft, 0, 60);
                 ImGui.SliderFloat("Nascent Chaos time", ref InitialState.NascentChaosLeft, 0, 30);
@@ -90,47 +78,23 @@ namespace UIDev
             ImGui.TableSetupColumn("Combo", ImGuiTableColumnFlags.WidthFixed, 150);
             ImGui.TableHeadersRow();
 
-            var strategy = Strategy;
-            if (BuffWindowEnable)
-            {
-                strategy.SpendGauge = false;
-                strategy.EnableMovement = false;
-                strategy.EnableUpheaval = false;
-            }
+            var strategy = new WARRotation.Strategy();
+            strategy.PositionLockIn = 10000;
+            strategy.FirstChargeIn = strategy.SecondChargeIn = 10000;
+            strategy.EnableUpheaval = true;
+
             var state = InitialState;
-            var mistake = Mistake.None;
-            for (int i = 0; i < Duration; ++i)
+            float t = 0;
+            var fightLength = Duration * 2.5f;
+            while (t < fightLength)
             {
-                float t = 2.5f * i;
-                bool opener = t < 5 + (BuffWindowEnable ? BuffWindowOffset : 7.5);
-                if (BuffWindowEnable)
-                {
-                    strategy.SpendGauge = ((t + BuffWindowFreq - BuffWindowOffset) % BuffWindowFreq) < BuffWindowDuration;
-                    strategy.EnableUpheaval = t >= BuffWindowOffset;
-                    strategy.EnableMovement = t >= BuffWindowOffset && Strategy.EnableMovement;
-                }
+                strategy.FightEndIn = fightLength - t;
+                var nextBuffCycleIndex = MathF.Ceiling((t - BuffWindowOffset) / BuffWindowFreq);
+                strategy.RaidBuffsIn = t < BuffWindowOffset ? 0 : (BuffWindowOffset + nextBuffCycleIndex * BuffWindowFreq - t);
 
-                var gcd = WARRotation.GetNextBestGCD(state, strategy);
-                mistake |= Cast(ref state, gcd); // include mistake from last advance in prev iteration
-                DrawActionRow(gcd, true, ref mistake, t, state, strategy);
-
-                mistake |= AdvanceTime(ref state, 0.8f, opener, i == 0, opener || !strategy.EnableUpheaval, opener || !strategy.EnableMovement);
-                var ogcd1 = WARRotation.GetNextBestOGCD(state, strategy);
-                if (ogcd1 != WARRotation.AID.None)
-                {
-                    mistake |= Cast(ref state, ogcd1);
-                    DrawActionRow(ogcd1, false, ref mistake, t + 0.8f, state, strategy);
-                }
-
-                mistake |= AdvanceTime(ref state, 0.8f, opener, i == 0, opener || !strategy.EnableUpheaval, opener || !strategy.EnableMovement);
-                var ogcd2 = WARRotation.GetNextBestOGCD(state, strategy);
-                if (ogcd2 != WARRotation.AID.None)
-                {
-                    mistake |= Cast(ref state, ogcd2);
-                    DrawActionRow(ogcd2, false, ref mistake, t + 1.6f, state, strategy);
-                }
-
-                mistake |= AdvanceTime(ref state, 0.9f, opener, i == 0, opener || !strategy.EnableUpheaval, opener || !strategy.EnableMovement);
+                var action = WARRotation.GetNextBestAction(state, strategy);
+                (var mistake, var ogcd) = Cast(ref state, action, ref t);
+                DrawActionRow(action, !ogcd, mistake, t, state, strategy);
             }
 
             ImGui.EndTable();
@@ -145,10 +109,21 @@ namespace UIDev
         {
         }
 
-        public Mistake AdvanceTime(ref WARRotation.State state, float dt, bool delayIR, bool delayInfuriate, bool delayUpheaval, bool delayOnslaught)
+        public Mistake AdvanceTime(ref WARRotation.State state, ref float t, float animLock, float cooldown)
         {
+            var dt = MathF.Max(animLock, cooldown);
+            t += dt;
+            var curBuffCycleIndex = MathF.Floor((t - BuffWindowOffset) / BuffWindowFreq);
+            var timeInCycle = t - (BuffWindowOffset + curBuffCycleIndex * BuffWindowFreq);
+            state.RaidBuffsLeft = MathF.Max(0, BuffWindowDuration - timeInCycle);
+
             var res = Mistake.None;
-            state.GCD = MathF.Max(0, state.GCD - dt);
+            state.AnimationLock = MathF.Max(0, state.AnimationLock - dt);
+            if (state.GCD >= 0 && (state.GCD -= dt) < 0)
+            {
+                res |= Mistake.GCDExpired;
+                state.GCD = 0;
+            }
             if (state.ComboTimeLeft > 0 && (state.ComboTimeLeft -= dt) <= 0)
             {
                 res |= Mistake.ComboLost;
@@ -178,32 +153,37 @@ namespace UIDev
             }
 
             state.InnerReleaseCD -= dt;
-            if (!delayIR && state.InnerReleaseCD <= -2.5)
+            if (state.InnerReleaseCD < -2.5f)
                 res |= Mistake.InnerReleaseDelayed;
             state.UpheavalCD -= dt;
-            if (!delayUpheaval && state.UpheavalCD <= -2.5)
+            if (state.UpheavalCD < -2.5f)
                 res |= Mistake.UpheavalDelayed;
             state.OnslaughtCD -= dt;
-            if (!delayOnslaught && state.OnslaughtCD < 0)
+            if (state.OnslaughtCD < -2.5f)
                 res |= Mistake.OnslaughtDelayed;
             state.InfuriateCD -= dt;
-            if (!delayInfuriate && state.InfuriateCD < 0)
+            if (state.InfuriateCD < -2.5f)
                 res |= Mistake.InfuriateDelayed;
 
             return res;
         }
 
-        public Mistake Cast(ref WARRotation.State state, WARRotation.AID action)
+        public (Mistake, bool) Cast(ref WARRotation.State state, WARRotation.AID action, ref float t)
         {
             var res = Mistake.None;
+            bool isOGCD = false;
             switch (action)
             {
                 case WARRotation.AID.HeavySwing:
+                    res = AdvanceTime(ref state, ref t, state.AnimationLock, state.GCD);
+                    state.AnimationLock = state.AnimationLockDelay + 0.6f;
                     res |= AdjustCD(ref state.GCD, 2.5f, 2.5f);
                     UseIRCharge(ref state, ref res, false);
                     ComboAdvance(ref state, ref res, WARRotation.AID.None, WARRotation.AID.HeavySwing);
                     break;
                 case WARRotation.AID.Maim:
+                    res = AdvanceTime(ref state, ref t, state.AnimationLock, state.GCD);
+                    state.AnimationLock = state.AnimationLockDelay + 0.6f;
                     res |= AdjustCD(ref state.GCD, 2.5f, 2.5f);
                     UseIRCharge(ref state, ref res, false);
                     if (ComboAdvance(ref state, ref res, WARRotation.AID.HeavySwing, WARRotation.AID.Maim))
@@ -212,6 +192,8 @@ namespace UIDev
                     }
                     break;
                 case WARRotation.AID.StormPath:
+                    res = AdvanceTime(ref state, ref t, state.AnimationLock, state.GCD);
+                    state.AnimationLock = state.AnimationLockDelay + 0.6f;
                     res |= AdjustCD(ref state.GCD, 2.5f, 2.5f);
                     UseIRCharge(ref state, ref res, false);
                     if (ComboAdvance(ref state, ref res, WARRotation.AID.Maim, WARRotation.AID.None))
@@ -220,6 +202,8 @@ namespace UIDev
                     }
                     break;
                 case WARRotation.AID.StormEye:
+                    res = AdvanceTime(ref state, ref t, state.AnimationLock, state.GCD);
+                    state.AnimationLock = state.AnimationLockDelay + 0.6f;
                     res |= AdjustCD(ref state.GCD, 2.5f, 2.5f);
                     UseIRCharge(ref state, ref res, false);
                     if (ComboAdvance(ref state, ref res, WARRotation.AID.Maim, WARRotation.AID.None))
@@ -229,6 +213,8 @@ namespace UIDev
                     }
                     break;
                 case WARRotation.AID.FellCleave:
+                    res = AdvanceTime(ref state, ref t, state.AnimationLock, state.GCD);
+                    state.AnimationLock = state.AnimationLockDelay + 0.6f;
                     res |= AdjustCD(ref state.GCD, 2.5f, 2.5f);
                     if (state.NascentChaosLeft > 0 || (state.InnerReleaseStacks <= 0 && state.Gauge < 50))
                     {
@@ -245,6 +231,8 @@ namespace UIDev
                     }
                     break;
                 case WARRotation.AID.InnerChaos:
+                    res = AdvanceTime(ref state, ref t, state.AnimationLock, state.GCD);
+                    state.AnimationLock = state.AnimationLockDelay + 0.6f;
                     res |= AdjustCD(ref state.GCD, 2.5f, 2.5f);
                     if (state.NascentChaosLeft <= 0 || (state.InnerReleaseStacks <= 0 && state.Gauge < 50))
                     {
@@ -263,6 +251,8 @@ namespace UIDev
                     }
                     break;
                 case WARRotation.AID.PrimalRend:
+                    res = AdvanceTime(ref state, ref t, state.AnimationLock, state.GCD);
+                    state.AnimationLock = state.AnimationLockDelay + 1.15f;
                     res |= AdjustCD(ref state.GCD, 2.5f, 2.5f);
                     if (state.PrimalRendLeft <= 0)
                     {
@@ -271,6 +261,9 @@ namespace UIDev
                     state.PrimalRendLeft = 0;
                     break;
                 case WARRotation.AID.Infuriate:
+                    isOGCD = true;
+                    res = AdvanceTime(ref state, ref t, state.AnimationLock, state.InfuriateCD - 60);
+                    state.AnimationLock = state.AnimationLockDelay + 0.6f;
                     res |= AdjustCD(ref state.InfuriateCD, 60, 120);
                     res |= GainGauge(ref state, 50);
                     if (state.NascentChaosLeft > 0)
@@ -280,12 +273,21 @@ namespace UIDev
                     state.NascentChaosLeft = 30;
                     break;
                 case WARRotation.AID.Onslaught:
+                    isOGCD = true;
+                    res = AdvanceTime(ref state, ref t, state.AnimationLock, state.OnslaughtCD - 60);
+                    state.AnimationLock = state.AnimationLockDelay + 0.6f;
                     res |= AdjustCD(ref state.OnslaughtCD, 30, 90);
                     break;
                 case WARRotation.AID.Upheaval:
+                    isOGCD = true;
+                    res = AdvanceTime(ref state, ref t, state.AnimationLock, state.UpheavalCD);
+                    state.AnimationLock = state.AnimationLockDelay + 0.6f;
                     res |= AdjustCD(ref state.UpheavalCD, 30, 30);
                     break;
                 case WARRotation.AID.InnerRelease:
+                    isOGCD = true;
+                    res = AdvanceTime(ref state, ref t, state.AnimationLock, state.InnerReleaseCD);
+                    state.AnimationLock = state.AnimationLockDelay + 0.6f;
                     res |= AdjustCD(ref state.InnerReleaseCD, 60, 60);
                     state.InnerReleaseLeft = 15;
                     state.InnerReleaseStacks = 3;
@@ -294,7 +296,7 @@ namespace UIDev
                         res |= GainSurgingTempest(ref state, 10);
                     break;
             }
-            return res;
+            return (res, isOGCD);
         }
 
         public string MistakeString(Mistake mistake)
@@ -302,14 +304,13 @@ namespace UIDev
             return mistake == Mistake.None ? "" : mistake.ToString();
         }
 
-        private void DrawActionRow(WARRotation.AID action, bool isGCD, ref Mistake mistake, float t, WARRotation.State state, WARRotation.Strategy strategy)
+        private void DrawActionRow(WARRotation.AID action, bool isGCD, Mistake mistake, float t, WARRotation.State state, WARRotation.Strategy strategy)
         {
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); ImGui.Text($"{t:f1}");
-            ImGui.TableNextColumn(); ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(strategy.SpendGauge ? 0xff00ff00 : 0xffffffff), isGCD ? $"{action}" : $"** {action}");
+            ImGui.TableNextColumn(); ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(state.RaidBuffsLeft > 0 ? 0xff00ff00 : 0xffffffff), isGCD ? $"{action}" : $"** {action}");
 
             ImGui.TableNextColumn(); ImGui.Text($"{MistakeString(mistake)}");
-            mistake = Mistake.None; // reset mistake, so that next row doesn't include leftovers from previous
 
             ImGui.TableNextColumn(); ImGui.Text($"{state.Gauge:f0}");
             ImGui.TableNextColumn(); ImGui.Text($"{state.SurgingTempestLeft:f1}");

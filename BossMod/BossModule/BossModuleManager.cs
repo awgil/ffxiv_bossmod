@@ -31,6 +31,8 @@ namespace BossMod
         private WindowManager.Window? _mainWindow;
         private WindowManager.Window? _raidWarnings;
 
+        public BossModule? ActiveModule => _activeModule;
+
         public BossModuleManager(WorldState ws, ConfigNode settings)
         {
             _ws = ws;
