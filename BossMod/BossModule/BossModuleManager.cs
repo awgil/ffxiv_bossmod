@@ -11,11 +11,13 @@ namespace BossMod
     {
         public class BossModuleConfig : ConfigNode
         {
+            public bool RotateArena = true;
             public bool ShowRaidWarnings = true;
             public bool ShowWorldArrows = false;
 
             protected override void DrawContents()
             {
+                DrawProperty(ref RotateArena, "Rotate map to match camera orientation");
                 DrawProperty(ref ShowRaidWarnings, "Show warnings for all raid members");
                 DrawProperty(ref ShowWorldArrows, "Show movement hints in world");
             }
@@ -106,7 +108,7 @@ namespace BossMod
         private void DrawMainWindow()
         {
             BossModule.MovementHints? movementHints = _config.ShowWorldArrows ? new() : null;
-            _activeModule?.Draw(Camera.Instance?.CameraAzimuth ?? 0, movementHints);
+            _activeModule?.Draw(_config.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, movementHints);
             DrawMovementHints(movementHints);
         }
 
