@@ -58,6 +58,16 @@ namespace UIDev
 
             ImGui.InputText("Log path", ref _openLogName, 500);
             ImGui.SameLine();
+            if (ImGui.Button("Open native log..."))
+            {
+                var data = ReplayParserLog.Parse(_openLogName);
+                if (data.Ops.Count > 0)
+                {
+                    var visu = new ReplayVisualizer(data);
+                    WindowManager.CreateWindow(_openLogName, visu.Draw, visu.Dispose);
+                }
+            }
+            ImGui.SameLine();
             if (ImGui.Button("Open ACT log..."))
             {
                 var data = ReplayParserAct.Parse(_openLogName, 0);
