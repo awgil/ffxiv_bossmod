@@ -358,10 +358,10 @@ namespace BossMod
                         // we rely on parameter of an invisible status on boss to detect red/blue
                         switch (actor.Statuses[index].Extra)
                         {
-                            case 0x4C:
+                            case 0x14C:
                                 _explodingCells = Cell.Red;
                                 break;
-                            case 0x4D:
+                            case 0x14D:
                                 _explodingCells = Cell.Blue;
                                 break;
                             default:

@@ -84,6 +84,15 @@ namespace UIDev
                 _playSpeed = 5;
 
             ImGui.SameLine();
+            if (ImGui.Button("P1S"))
+                ActivateBossMod<P1S>();
+            ImGui.SameLine();
+            if (ImGui.Button("P2S"))
+                ActivateBossMod<P2S>();
+            ImGui.SameLine();
+            if (ImGui.Button("P3S"))
+                ActivateBossMod<P3S>();
+            ImGui.SameLine();
             if (ImGui.Button("P4S"))
                 ActivateBossMod<P4S>();
         }
@@ -152,16 +161,16 @@ namespace UIDev
             var riskColor = ImGui.ColorConvertU32ToFloat4(0xff00ffff);
             var safeColor = ImGui.ColorConvertU32ToFloat4(0xff00ff00);
 
-            ImGui.BeginTable("party", 9);
-            ImGui.TableSetupColumn("POV", ImGuiTableColumnFlags.WidthFixed, 25);
-            ImGui.TableSetupColumn("Class", ImGuiTableColumnFlags.WidthFixed, 30);
-            ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed, 90);
-            ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed, 90);
-            ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed, 90);
-            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 100);
-            ImGui.TableSetupColumn("Cast", ImGuiTableColumnFlags.WidthFixed, 100);
-            ImGui.TableSetupColumn("Statuses", ImGuiTableColumnFlags.WidthFixed, 100);
-            ImGui.TableSetupColumn("Hints");
+            ImGui.BeginTable("party", 9, ImGuiTableFlags.Resizable);
+            ImGui.TableSetupColumn("POV", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 25);
+            ImGui.TableSetupColumn("Class", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 30);
+            ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
+            ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
+            ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
+            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 100);
+            ImGui.TableSetupColumn("Cast", ImGuiTableColumnFlags.None, 100);
+            ImGui.TableSetupColumn("Statuses", ImGuiTableColumnFlags.None, 100);
+            ImGui.TableSetupColumn("Hints", ImGuiTableColumnFlags.None, 250);
             ImGui.TableHeadersRow();
             foreach ((int slot, var player) in _bossmod.IterateRaidMembers(true))
             {
@@ -204,11 +213,11 @@ namespace UIDev
                 if (!ImGui.CollapsingHeader($"Enemy {oid:X} {oidName ?? ""}") || list.Actors.Count == 0)
                     continue;
 
-                ImGui.BeginTable($"enemy_{oid}", 6);
-                ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed, 90);
-                ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed, 90);
-                ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed, 90);
-                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 100);
+                ImGui.BeginTable($"enemy_{oid}", 6, ImGuiTableFlags.Resizable);
+                ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
+                ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
+                ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
+                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 100);
                 ImGui.TableSetupColumn("Cast");
                 ImGui.TableSetupColumn("Statuses");
                 ImGui.TableHeadersRow();
@@ -228,11 +237,11 @@ namespace UIDev
             if (!ImGui.CollapsingHeader("All actors"))
                 return;
 
-            ImGui.BeginTable($"actors", 6);
-            ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed, 90);
-            ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed, 90);
-            ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed, 90);
-            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 100);
+            ImGui.BeginTable($"actors", 6, ImGuiTableFlags.Resizable);
+            ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
+            ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
+            ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
+            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 100);
             ImGui.TableSetupColumn("Cast");
             ImGui.TableSetupColumn("Statuses");
             ImGui.TableHeadersRow();

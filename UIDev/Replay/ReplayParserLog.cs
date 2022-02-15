@@ -191,7 +191,7 @@ namespace UIDev
 
                 var parts = payload[6].Split('/');
                 res.Value.TotalTime = float.Parse(parts[1]);
-                res.Value.FinishAt = DateTime.Parse(payload[0]).AddSeconds(float.Parse(parts[0]));
+                res.Value.FinishAt = DateTime.Parse(payload[0]).AddSeconds(res.Value.TotalTime - float.Parse(parts[0]));
             }
             return res;
         }

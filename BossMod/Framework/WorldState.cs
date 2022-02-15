@@ -310,7 +310,7 @@ namespace BossMod
             if (act.Statuses[index].ID == value.ID && act.Statuses[index].SourceID == value.SourceID)
             {
                 // status was and still is active; just update details
-                if (act.Statuses[index].Extra != value.Extra || (act.Statuses[index].ExpireAt - value.ExpireAt).Duration().TotalSeconds > 2)
+                if (value.ID != 0 && (act.Statuses[index].Extra != value.Extra || (act.Statuses[index].ExpireAt - value.ExpireAt).Duration().TotalSeconds > 2))
                 {
                     var prevExtra = act.Statuses[index].Extra;
                     var prevExpire = act.Statuses[index].ExpireAt;
