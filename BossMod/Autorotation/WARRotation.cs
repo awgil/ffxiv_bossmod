@@ -123,9 +123,14 @@ namespace BossMod
             };
         }
 
-        public static AID GetNextAOEComboAction(State state)
+        public static AID GetNextMaimComboAction(AID comboLastMove)
         {
-            return state.ComboLastMove == AID.Overpower ? AID.MythrilTempest : AID.Overpower;
+            return comboLastMove == AID.HeavySwing ? AID.Maim : AID.HeavySwing;
+        }
+
+        public static AID GetNextAOEComboAction(AID comboLastMove)
+        {
+            return comboLastMove == AID.Overpower ? AID.MythrilTempest : AID.Overpower;
         }
 
         public static AID GetNextBestGCD(State state, Strategy strategy)
@@ -292,7 +297,7 @@ namespace BossMod
         //public static AID GetNextBestAOE(State state, Strategy strategy)
         //{
         //    // TODO implement!
-        //    return GetNextAOEComboAction(state);
+        //    return GetNextAOEComboAction(state.ComboLastMove);
         //}
     }
 }

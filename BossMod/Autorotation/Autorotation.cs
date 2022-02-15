@@ -234,19 +234,15 @@ namespace BossMod
             if (Service.ClientState.LocalPlayer == null)
                 return _getAdjustedActionIdHook.Original(self, actionID);
 
-            switch (actionID)
+            return actionID switch
             {
-                case (uint)WARRotation.AID.HeavySwing:
-                    return (uint)WarActions.NextBestAction;
-                case (uint)WARRotation.AID.StormEye:
-                    return (uint)WARRotation.GetNextSTComboAction(WarActions.State.ComboLastMove, WARRotation.AID.StormEye);
-                case (uint)WARRotation.AID.StormPath:
-                    return (uint)WARRotation.GetNextSTComboAction(WarActions.State.ComboLastMove, WARRotation.AID.StormPath);
-                case (uint)WARRotation.AID.MythrilTempest:
-                    return (uint)WARRotation.GetNextAOEComboAction(WarActions.State);
-                default:
-                    return _getAdjustedActionIdHook.Original(self, actionID);
-            }
+                (uint)WARRotation.AID.HeavySwing => (uint)WarActions.NextBestAction,
+                (uint)WARRotation.AID.Maim => (uint)WARRotation.GetNextMaimComboAction(WarActions.State.ComboLastMove),
+                (uint)WARRotation.AID.StormEye => (uint)WARRotation.GetNextSTComboAction(WarActions.State.ComboLastMove, WARRotation.AID.StormEye),
+                (uint)WARRotation.AID.StormPath => (uint)WARRotation.GetNextSTComboAction(WarActions.State.ComboLastMove, WARRotation.AID.StormPath),
+                (uint)WARRotation.AID.MythrilTempest => (uint)WARRotation.GetNextAOEComboAction(WarActions.State.ComboLastMove),
+                _ => _getAdjustedActionIdHook.Original(self, actionID)
+            };
         }
     }
 }
