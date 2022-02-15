@@ -39,6 +39,7 @@ namespace BossMod
         private bool _firstPendingJustCompleted = false;
         private DateTime _animLockEnd;
         private float _animLockDelay = 0.1f; // smoothed delay between client request and response
+        private float _animLockDelaySmoothing = 0.8f; // TODO tweak
 
         private delegate ulong GetAdjustedActionIdDelegate(byte param1, uint param2);
         private Hook<GetAdjustedActionIdDelegate> _getAdjustedActionIdHook;
@@ -164,7 +165,7 @@ namespace BossMod
 
             var now = DateTime.Now;
             var delay = (float)(now.AddSeconds(0.5) - _animLockEnd).TotalSeconds;
-            _animLockDelay = delay * 0.5f + _animLockDelay * 0.5f; // TODO: tweak smoothing constant
+            _animLockDelay = delay * (1 - _animLockDelaySmoothing) + _animLockDelay * _animLockDelaySmoothing;
             _animLockEnd = now.AddSeconds(action.AnimationLockTime);
         }
 
