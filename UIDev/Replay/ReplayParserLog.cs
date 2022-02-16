@@ -219,8 +219,7 @@ namespace UIDev
                 res.Value.ID = uint.Parse(sep >= 0 ? payload[4].AsSpan(0, sep) : payload[4].AsSpan());
                 res.Value.SourceID = ActorID(payload[7]);
                 res.Value.Extra = ushort.Parse(payload[5], NumberStyles.HexNumber);
-                var timeLeft = float.Parse(payload[6]);
-                res.Value.ExpireAt = timeLeft != 0 ? DateTime.Parse(payload[0]).AddSeconds(timeLeft) : DateTime.MaxValue;
+                res.Value.ExpireAt = DateTime.Parse(payload[0]).AddSeconds(float.Parse(payload[6]));
             }
             return res;
         }

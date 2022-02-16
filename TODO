@@ -3,7 +3,6 @@ general:
 - clip circles to arena bounds...
 - reconsider worldstate->bossmodule event subscription model (tedious to manually subscribe/unsubsribe and forward to components...)
 - fail log?
-- look into bogus STA! messages (fc buffs always have 30.0 duration..., 0 duration...)
 - StateMachine update should return (done + taken-fork) and not touch Next
 
 network:

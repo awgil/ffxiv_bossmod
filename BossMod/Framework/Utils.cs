@@ -53,7 +53,7 @@ namespace BossMod
 
         public static string StatusTimeString(DateTime expireAt, DateTime now)
         {
-            return $"{(expireAt != DateTime.MaxValue ? (expireAt - now).TotalSeconds : 0):f3}";
+            return $"{Math.Max(0, (expireAt - now).TotalSeconds):f3}";
         }
 
         public static string CastTimeString(float current, float total)

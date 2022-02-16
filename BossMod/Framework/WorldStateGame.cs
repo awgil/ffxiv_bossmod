@@ -9,6 +9,7 @@ namespace BossMod
     class WorldStateGame : WorldState, IDisposable
     {
         private Network _network;
+        private Dictionary<uint, float[]> _prevStatusDurations = new();
 
         public WorldStateGame(Network network)
         {
@@ -47,8 +48,12 @@ namespace BossMod
             foreach (var e in Actors)
                 if (!seenIDs.ContainsKey(e.Key))
                     delIDs.Add(e.Key);
+
             foreach (var id in delIDs)
+            {
                 RemoveActor(id);
+                _prevStatusDurations.Remove(id);
+            }
 
             foreach ((_, var obj) in seenIDs)
             {
@@ -59,6 +64,7 @@ namespace BossMod
                 if (act == null)
                 {
                     act = AddActor(obj.ObjectId, obj.DataId, obj.Name.TextValue, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), classID, new(obj.Position, obj.Rotation), obj.HitboxRadius, Utils.GameObjectIsTargetable(obj));
+                    _prevStatusDurations[obj.ObjectId] = new float[30];
                 }
                 else
                 {
@@ -84,22 +90,32 @@ namespace BossMod
                         } : null;
                     UpdateCastInfo(act, curCast);
 
+                    var prevDurations = _prevStatusDurations[obj.ObjectId];
                     for (int i = 0; i < chara.StatusList.Length; ++i)
                     {
-                        Status status = new();
                         var s = chara.StatusList[i];
-                        if (s != null)
+                        if (s == null)
                         {
+                            UpdateStatus(act, i, new());
+                        }
+                        else if (s.StatusId != act.Statuses[i].ID || s.SourceID != act.Statuses[i].SourceID || StatusExtra(s) != act.Statuses[i].Extra || s.RemainingTime > prevDurations[i])
+                        {
+                            Status status = new();
                             status.ID = s.StatusId;
                             status.SourceID = s.SourceID;
-                            status.Extra = (ushort)((s.Param << 8) | s.StackCount);
-                            status.ExpireAt = s.RemainingTime == 0 ? DateTime.MaxValue : CurrentTime.AddSeconds(s.RemainingTime);
+                            status.Extra = StatusExtra(s);
+                            status.ExpireAt = CurrentTime.AddSeconds(s.RemainingTime);
+                            UpdateStatus(act, i, status);
                         }
-                        UpdateStatus(act, i, status);
+                        // note: some statuses have non-zero remaining time but never tick down (e.g. FC buffs)
+                        // currently we ignore that fact, to avoid log spam...
+                        prevDurations[i] = s?.RemainingTime ?? 0;
                     }
                 }
             }
         }
+
+        private ushort StatusExtra(Dalamud.Game.ClientState.Statuses.Status s) => (ushort)((s.Param << 8) | s.StackCount);
 
         private void OnNetworkActionEffect(object? sender, CastResult info) => DispatchEventCast(info);
         private void OnNetworkActorControlTargetIcon(object? sender, (uint actorID, uint iconID) args) => DispatchEventIcon(args);
