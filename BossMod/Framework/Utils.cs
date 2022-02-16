@@ -101,28 +101,6 @@ namespace BossMod
             return ReadField<ulong>(o, 0x38);
         }
 
-        // actor iteration utilities
-        public static IEnumerable<WorldState.Actor> SortedByRange(this IEnumerable<WorldState.Actor> range, Vector3 origin)
-        {
-            return range
-                .Select(actor => (actor, (actor.Position - origin).LengthSquared()))
-                .OrderBy(actorDist => actorDist.Item2)
-                .Select(actorDist => actorDist.Item1);
-        }
-
-        public static IEnumerable<(int, WorldState.Actor)> SortedByRange(this IEnumerable<(int, WorldState.Actor)> range, Vector3 origin)
-        {
-            return range
-                .Select(indexPlayer => (indexPlayer.Item1, indexPlayer.Item2, (indexPlayer.Item2.Position - origin).LengthSquared()))
-                .OrderBy(indexPlayerDist => indexPlayerDist.Item3)
-                .Select(indexPlayerDist => (indexPlayerDist.Item1, indexPlayerDist.Item2));
-        }
-
-        public static IEnumerable<WorldState.Actor> InRadius(this IEnumerable<WorldState.Actor> range, Vector3 origin, float radius)
-        {
-            return range.Where(actor => GeometryUtils.PointInCircle(actor.Position - origin, radius));
-        }
-
         // backport from .net 6
         public static TSource? MinBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector) where TKey : IComparable
         {

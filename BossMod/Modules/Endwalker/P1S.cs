@@ -129,13 +129,13 @@ namespace BossMod
                     return; // nothing to do...
 
                 // update tether matrices
-                foreach ((int iSrc, var src) in _module.IterateRaidMembers())
+                foreach ((int iSrc, var src) in _module.RaidMembers.WithSlot())
                 {
                     // blue => 3 closest
                     if (BitVector.IsVector8BitSet(blueDebuffs, iSrc))
                     {
                         BitVector.SetMatrix8x8Bit(ref _blueTetherMatrix, iSrc, iSrc, true);
-                        foreach ((int iTgt, _) in _module.IterateOtherRaidMembers(iSrc).SortedByRange(src.Position).Take(3))
+                        foreach ((int iTgt, _) in _module.RaidMembers.WithSlot().Exclude(iSrc).SortedByRange(src.Position).Take(3))
                             BitVector.SetMatrix8x8Bit(ref _blueTetherMatrix, iTgt, iSrc, true);
                     }
 
@@ -143,20 +143,20 @@ namespace BossMod
                     if (BitVector.IsVector8BitSet(redDebuffs, iSrc))
                     {
                         BitVector.SetMatrix8x8Bit(ref _redTetherMatrix, iSrc, iSrc, true);
-                        foreach ((int iTgt, _) in _module.IterateOtherRaidMembers(iSrc).SortedByRange(src.Position).TakeLast(3))
+                        foreach ((int iTgt, _) in _module.RaidMembers.WithSlot().Exclude(iSrc).SortedByRange(src.Position).TakeLast(3))
                             BitVector.SetMatrix8x8Bit(ref _redTetherMatrix, iTgt, iSrc, true);
                     }
                 }
 
                 // update explosion matrices and detect problems (has to be done in a separate pass)
-                for (int i = 0; i < _module.RaidMembers.Length; ++i)
+                foreach ((int i, var actor) in _module.RaidMembers.WithSlot())
                 {
                     if (BitVector.ExtractVectorFromMatrix8x8(_blueTetherMatrix, i) != 0)
-                        foreach ((int j, _) in _module.IterateRaidMembersInRange(i, _blueExplosionRadius))
+                        foreach ((int j, _) in _module.RaidMembers.WithSlot().InRadiusExcluding(actor, _blueExplosionRadius))
                             BitVector.SetMatrix8x8Bit(ref _blueExplosionMatrix, j, i, true);
 
                     if (BitVector.ExtractVectorFromMatrix8x8(_redTetherMatrix, i) != 0)
-                        foreach ((int j, _) in _module.IterateRaidMembersInRange(i, _redExplosionRadius))
+                        foreach ((int j, _) in _module.RaidMembers.WithSlot().InRadiusExcluding(actor, _redExplosionRadius))
                             BitVector.SetMatrix8x8Bit(ref _redExplosionMatrix, j, i, true);
                 }
             }
@@ -181,7 +181,7 @@ namespace BossMod
 
                 bool drawBlueAroundMe = false;
                 bool drawRedAroundMe = false;
-                foreach ((int i, var actor) in _module.IterateRaidMembers())
+                foreach ((int i, var actor) in _module.RaidMembers.WithSlot())
                 {
                     // draw tethers
                     var blueTetheredTo = BitVector.ExtractVectorFromMatrix8x8(_blueTetherMatrix, i);
@@ -190,7 +190,7 @@ namespace BossMod
                     if (tetherMask != 0)
                     {
                         arena.Actor(actor, TetherColor(blueTetheredTo != 0, redTetheredTo != 0));
-                        foreach ((int j, var target) in _module.IterateRaidMembers(true))
+                        foreach ((int j, var target) in _module.RaidMembers.WithSlot(true))
                         {
                             if (i != j && BitVector.IsVector8BitSet(tetherMask, j))
                             {
@@ -272,7 +272,7 @@ namespace BossMod
 
             private void ModifyDebuff(WorldState.Actor actor, ref byte vector, bool active)
             {
-                int slot = _module.FindRaidMemberSlot(actor.InstanceID);
+                int slot = _module.RaidMembers.FindSlot(actor.InstanceID);
                 if (slot >= 0)
                     BitVector.ModifyVector8Bit(ref vector, slot, active);
             }
@@ -373,7 +373,7 @@ namespace BossMod
                     case SID.ShacklesOfTime:
                         if (_memberWithSOT >= 0)
                             Service.Log($"[P1S] Unexpected ShacklesOfTime: another is already active!");
-                        _memberWithSOT = _module.FindRaidMemberSlot(actor.InstanceID);
+                        _memberWithSOT = _module.RaidMembers.FindSlot(actor.InstanceID);
                         _explodingCells = Cell.None;
                         break;
                 }
@@ -623,7 +623,7 @@ namespace BossMod
                         {
                             hints.Add("GTFO from co-tank!");
                         }
-                        if (_module.IterateRaidMembersInRange(slot, aoeRange).Count() < 7)
+                        if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, aoeRange).Count() < 7)
                         {
                             hints.Add("Stack with raid!");
                         }
@@ -635,7 +635,7 @@ namespace BossMod
                         {
                             hints.Add("Press invul!");
                         }
-                        if (_module.IterateRaidMembersInRange(slot, aoeRange).Any())
+                        if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, aoeRange).Any())
                         {
                             hints.Add("GTFO from raid!");
                         }
@@ -690,7 +690,7 @@ namespace BossMod
                 if (target == pc)
                 {
                     // there will be AOE around me, draw all players to help with positioning - note that we use position adjusted for knockback
-                    foreach ((int i, var player) in _module.IterateRaidMembers())
+                    foreach (var player in _module.RaidMembers.WithoutSlot())
                         arena.Actor(player, GeometryUtils.PointInCircle(player.Position - targetPos, aoeRange) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
                 }
                 else
@@ -861,7 +861,7 @@ namespace BossMod
         public P1S(WorldState ws)
             : base(ws, 8)
         {
-            _boss = Enemies(OID.Boss, true);
+            _boss = Enemies(OID.Boss);
 
             RegisterComponent(new Shackles(this));
             RegisterComponent(new AetherExplosion(this));

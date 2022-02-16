@@ -12,7 +12,6 @@ network:
 
 boss modules:
 - refactor components (base class component list should only contain active components)
-- refactor Enemies
 - refactor state machine (add id/comment, add ComponentCondition, better bosscast states, remove timeouts)
 - p1s - make intemperance component useful
 - p2s - improve channeling flow component

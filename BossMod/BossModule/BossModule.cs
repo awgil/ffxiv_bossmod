@@ -19,32 +19,21 @@ namespace BossMod
         public WorldState.Actor? RaidMember(int slot) => (slot >= 0 && slot < RaidMembers.Length) ? RaidMembers[slot] : null; // bounds-checking accessor
         public WorldState.Actor? Player() => RaidMember(PlayerSlot);
 
-        public class EnemyList
-        {
-            public List<WorldState.Actor> Actors = new();
-            public bool Unique; // if true, actors list will always contain 0 or 1 elements
-        }
-        private Dictionary<uint, EnemyList> _relevantEnemies = new(); // key = actor OID
-        public IReadOnlyDictionary<uint, EnemyList> RelevantEnemies => _relevantEnemies;
-
-        // retrieve watched enemy list; it is filled on first request
-        // all requests should have matching 'unique' flag
-        public List<WorldState.Actor> Enemies<OID>(OID oid, bool unique = false) where OID : Enum
+        // per-oid enemy lists; filled on first request
+        private Dictionary<uint, List<WorldState.Actor>> _relevantEnemies = new(); // key = actor OID
+        public IReadOnlyDictionary<uint, List<WorldState.Actor>> RelevantEnemies => _relevantEnemies;
+        public List<WorldState.Actor> Enemies<OID>(OID oid) where OID : Enum
         {
             var castOID = (uint)(object)oid;
             var entry = _relevantEnemies.GetValueOrDefault(castOID);
             if (entry == null)
             {
-                entry = new EnemyList() { Unique = unique };
+                entry = new();
                 foreach (var actor in WorldState.Actors.Values.Where(actor => actor.OID == castOID))
-                    AddRelevantEnemy(entry, actor);
+                    entry.Add(actor);
                 _relevantEnemies[castOID] = entry;
             }
-            else if (entry.Unique != unique)
-            {
-                Service.Log($"[BossModule] Mismatched unique flag for list of {oid}");
-            }
-            return entry.Actors;
+            return entry;
         }
 
         // list of actor-specific hints (string + whether this is a "risk" type of hint)
@@ -211,71 +200,6 @@ namespace BossMod
             return hints;
         }
 
-        public int FindRaidMemberSlot(uint instanceID)
-        {
-            return instanceID != 0 ? Array.FindIndex(RaidMembers, x => x != null && x.InstanceID == instanceID) : -1;
-        }
-
-        // iterate over raid members, skipping empty slots and optionally dead players
-        public IEnumerable<(int, WorldState.Actor)> IterateRaidMembers(bool includeDead = false)
-        {
-            for (int i = 0; i < RaidMembers.Length; ++i)
-            {
-                var player = RaidMembers[i];
-                if (player == null)
-                    continue;
-                if (player.IsDead && !includeDead)
-                    continue;
-                yield return (i, player);
-            }
-        }
-
-        // iterate over raid members other than specified
-        public IEnumerable<(int, WorldState.Actor)> IterateOtherRaidMembers(int skipSlot, bool includeDead = false)
-        {
-            return IterateRaidMembers(includeDead).Where(indexPlayer => indexPlayer.Item1 != skipSlot);
-        }
-
-        // iterate over raid members matching condition (use instead of .Where if you don't care about index in predicate)
-        public IEnumerable<(int, WorldState.Actor)> IterateRaidMembersWhere(Func<WorldState.Actor, bool> predicate, bool includeDead = false)
-        {
-            return IterateRaidMembers(includeDead).Where(indexActor => predicate(indexActor.Item2));
-        }
-
-        public static ulong BuildMask(IEnumerable<(int, WorldState.Actor)> players)
-        {
-            ulong mask = 0;
-            foreach ((var i, _) in players)
-                BitVector.SetVector64Bit(ref mask, i);
-            return mask;
-        }
-
-        // note that overloads accepting actor ignore self; use overload accepting position if self is needed
-        public IEnumerable<(int, WorldState.Actor)> IterateRaidMembersInRange(Vector3 position, float radius, bool includeDead = false)
-        {
-            var rsq = radius * radius;
-            return IterateRaidMembersWhere(actor => (actor.Position - position).LengthSquared() <= rsq, includeDead);
-        }
-
-        public IEnumerable<(int, WorldState.Actor)> IterateRaidMembersInRange(int slot, float radius, bool includeDead = false)
-        {
-            var actor = RaidMember(slot);
-            if (actor == null)
-                return Enumerable.Empty<(int, WorldState.Actor)>();
-            var rsq = radius * radius;
-            return IterateRaidMembers(includeDead).Where(indexActor => indexActor.Item1 != slot && (indexActor.Item2.Position - actor.Position).LengthSquared() <= rsq);
-        }
-
-        public ulong FindRaidMembersInRange(Vector3 position, float radius, bool includeDead = false)
-        {
-            return BuildMask(IterateRaidMembersInRange(position, radius, includeDead));
-        }
-
-        public ulong FindRaidMembersInRange(int slot, float radius, bool includeDead = false)
-        {
-            return BuildMask(IterateRaidMembersInRange(slot, radius, includeDead));
-        }
-
         // think where to put such utilities...
         public static Vector3 AdjustPositionForKnockback(Vector3 pos, WorldState.Actor? source, float distance)
         {
@@ -293,16 +217,6 @@ namespace BossMod
         protected virtual void NonPlayerDestroyed(WorldState.Actor actor) { }
         protected virtual void RaidMemberCreated(int index) { }
         protected virtual void RaidMemberDestroyed(int index) { } // called just before slot is cleared, so still contains old actor
-
-        private void AddRelevantEnemy(EnemyList list, WorldState.Actor actor)
-        {
-            if (list.Unique && list.Actors.Count > 0)
-            {
-                Service.Log($"[BossModule] Got multiple instances of {actor.OID}, however it is expected to be unique; replacing {list.Actors[0].InstanceID:X} with {actor.InstanceID:X}");
-                list.Actors.Clear();
-            }
-            list.Actors.Add(actor);
-        }
 
         private void DrawHintForPlayer(MovementHints? movementHints)
         {
@@ -323,7 +237,7 @@ namespace BossMod
 
         private void PlayerIDChanged(object? sender, uint id)
         {
-            PlayerSlot = FindRaidMemberSlot(id);
+            PlayerSlot = RaidMembers.FindSlot(id);
         }
 
         private void EnterExitCombat(object? sender, bool inCombat)
@@ -361,7 +275,7 @@ namespace BossMod
             {
                 var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
                 if (relevant != null)
-                    AddRelevantEnemy(relevant, actor);
+                    relevant.Add(actor);
 
                 NonPlayerCreated(actor);
             }
@@ -371,7 +285,7 @@ namespace BossMod
         {
             if (actor.Type == WorldState.ActorType.Player)
             {
-                int slot = FindRaidMemberSlot(actor.InstanceID);
+                int slot = RaidMembers.FindSlot(actor.InstanceID);
                 if (slot != -1)
                 {
                     RaidMemberDestroyed(slot);
@@ -388,7 +302,7 @@ namespace BossMod
             {
                 var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
                 if (relevant != null)
-                    relevant.Actors.Remove(actor);
+                    relevant.Remove(actor);
 
                 NonPlayerDestroyed(actor);
             }

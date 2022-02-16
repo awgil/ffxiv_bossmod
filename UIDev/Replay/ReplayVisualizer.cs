@@ -161,7 +161,7 @@ namespace UIDev
             ImGui.TableSetupColumn("Statuses", ImGuiTableColumnFlags.None, 100);
             ImGui.TableSetupColumn("Hints", ImGuiTableColumnFlags.None, 250);
             ImGui.TableHeadersRow();
-            foreach ((int slot, var player) in _bossmod.IterateRaidMembers(true))
+            foreach ((int slot, var player) in _bossmod.RaidMembers.WithSlot(true))
             {
                 ImGui.PushID((int)player.InstanceID);
                 ImGui.TableNextRow();
@@ -199,7 +199,7 @@ namespace UIDev
             foreach ((var oid, var list) in _bossmod.RelevantEnemies)
             {
                 var oidName = oidType?.GetEnumName(oid);
-                if (!ImGui.CollapsingHeader($"Enemy {oid:X} {oidName ?? ""}") || list.Actors.Count == 0)
+                if (!ImGui.CollapsingHeader($"Enemy {oid:X} {oidName ?? ""}") || list.Count == 0)
                     continue;
 
                 ImGui.BeginTable($"enemy_{oid}", 6, ImGuiTableFlags.Resizable);
@@ -210,7 +210,7 @@ namespace UIDev
                 ImGui.TableSetupColumn("Cast");
                 ImGui.TableSetupColumn("Statuses");
                 ImGui.TableHeadersRow();
-                foreach (var enemy in list.Actors)
+                foreach (var enemy in list)
                 {
                     ImGui.PushID((int)enemy.InstanceID);
                     ImGui.TableNextRow();

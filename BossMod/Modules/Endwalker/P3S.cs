@@ -127,9 +127,9 @@ namespace BossMod
                 if (!Active)
                     return;
 
-                foreach ((int i, var player) in _module.IterateRaidMembersWhere(IsTethered))
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot().WhereActor(IsTethered))
                 {
-                    _inAnyAOE |= _module.FindRaidMembersInRange(i, _aoeRange);
+                    _inAnyAOE |= _module.RaidMembers.WithSlot().InRadiusExcluding(player, _aoeRange).Mask();
                 }
             }
 
@@ -144,7 +144,7 @@ namespace BossMod
                     {
                         hints.Add("Grab the tether!");
                     }
-                    else if (_module.IterateRaidMembersInRange(slot, _aoeRange).Any())
+                    else if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _aoeRange).Any())
                     {
                         hints.Add("GTFO from raid!");
                     }
@@ -170,7 +170,7 @@ namespace BossMod
                     return;
 
                 // currently we always show tethered targets with circles, and if pc is a tank, also untethered players
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                 {
                     if (IsTethered(player))
                     {
@@ -301,7 +301,7 @@ namespace BossMod
                     {
                         hints.Add("GTFO from aoe!");
                     }
-                    if (_module.IterateRaidMembersInRange(slot, _aoeRadius).Any())
+                    if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _aoeRadius).Any())
                     {
                         hints.Add("Spread!");
                     }
@@ -317,7 +317,7 @@ namespace BossMod
                     // note: sparks either target all tanks & healers or all dds - so correct pairings are always dd+tank/healer
                     int numStacked = 0;
                     bool goodPair = false;
-                    foreach ((_, var pair) in _module.IterateRaidMembersInRange(slot, _aoeRadius))
+                    foreach (var pair in _module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _aoeRadius))
                     {
                         ++numStacked;
                         goodPair = (actor.Role == Role.Tank || actor.Role == Role.Healer) != (pair.Role == Role.Tank || pair.Role == Role.Healer);
@@ -359,13 +359,10 @@ namespace BossMod
                     return;
 
                 // draw all raid members, to simplify positioning
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach (var player in _module.RaidMembers.WithoutSlot().Exclude(pc))
                 {
-                    if (i != _module.PlayerSlot)
-                    {
-                        bool inRange = GeometryUtils.PointInCircle(player.Position - pc.Position, _aoeRadius);
-                        arena.Actor(player, inRange ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
-                    }
+                    bool inRange = GeometryUtils.PointInCircle(player.Position - pc.Position, _aoeRadius);
+                    arena.Actor(player, inRange ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
                 }
 
                 // draw circle around pc
@@ -542,7 +539,7 @@ namespace BossMod
                     int numStacked = 0;
                     bool haveTanks = actor.Role == Role.Tank;
                     bool haveHealers = actor.Role == Role.Healer;
-                    foreach ((_, var pair) in _module.IterateRaidMembersInRange(slot, _stackRadius))
+                    foreach (var pair in _module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _stackRadius))
                     {
                         ++numStacked;
                         haveTanks |= pair.Role == Role.Tank;
@@ -563,7 +560,7 @@ namespace BossMod
                 }
                 else if (CurState == State.Spread)
                 {
-                    if (_module.IterateRaidMembersInRange(slot, _spreadRadius).Any())
+                    if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _spreadRadius).Any())
                     {
                         hints.Add("Spread!");
                     }
@@ -582,13 +579,10 @@ namespace BossMod
 
                 // draw all raid members, to simplify positioning
                 float aoeRadius = CurState == State.Stack ? _stackRadius : _spreadRadius;
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach (var player in _module.RaidMembers.WithoutSlot().Exclude(pc))
                 {
-                    if (i != _module.PlayerSlot)
-                    {
-                        bool inRange = GeometryUtils.PointInCircle(player.Position - pc.Position, aoeRadius);
-                        arena.Actor(player, inRange ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
-                    }
+                    bool inRange = GeometryUtils.PointInCircle(player.Position - pc.Position, aoeRadius);
+                    arena.Actor(player, inRange ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
                 }
 
                 // draw circle around pc
@@ -642,7 +636,7 @@ namespace BossMod
 
                 bool haveTooClose = false;
                 int numInRange = 0;
-                foreach ((_, var player) in _module.IterateRaidMembersWhere(player => CanBothBeTargets(player, actor)))
+                foreach (var player in _module.RaidMembers.WithoutSlot().Where(player => CanBothBeTargets(player, actor)))
                 {
                     var distance = player.Position - actor.Position;
                     haveTooClose |= GeometryUtils.PointInCircle(distance, _minRange);
@@ -668,7 +662,7 @@ namespace BossMod
 
                 // draw other potential targets, to simplify positioning
                 bool healerOrTank = pc.Role == Role.Tank || pc.Role == Role.Healer;
-                foreach ((int i, var player) in _module.IterateRaidMembersWhere(player => CanBothBeTargets(player, pc)))
+                foreach (var player in _module.RaidMembers.WithoutSlot().Where(player => CanBothBeTargets(player, pc)))
                 {
                     var distance = player.Position - pc.Position;
                     bool tooClose = GeometryUtils.PointInCircle(distance, _minRange);
@@ -762,7 +756,7 @@ namespace BossMod
             {
                 if (iconID >= 268 && iconID <= 275)
                 {
-                    int slot = _module.FindRaidMemberSlot(actorID);
+                    int slot = _module.RaidMembers.FindSlot(actorID);
                     if (slot >= 0)
                         _playerOrder[slot] = (int)iconID - 267;
                 }
@@ -914,7 +908,7 @@ namespace BossMod
                         var fromTo = nextTarget.Position - bird.Position;
                         float len = fromTo.Length();
                         fromTo /= len;
-                        foreach ((int j, var player) in _module.IterateRaidMembers())
+                        foreach ((int j, var player) in _module.RaidMembers.WithSlot())
                         {
                             if (player != nextTarget && GeometryUtils.PointInRect(player.Position - bird.Position, fromTo, len, 0, _chargeHalfWidth))
                             {
@@ -984,7 +978,7 @@ namespace BossMod
                 // draw all birds and all players
                 foreach (var bird in _birdsLarge)
                     arena.Actor(bird, arena.ColorEnemy);
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                     arena.Actor(player, BitVector.IsVector64BitSet(_playersInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
                 // draw chains containing player
@@ -1067,7 +1061,7 @@ namespace BossMod
                     if (target != null && target.Position != bird.Position)
                     {
                         var dir = Vector3.Normalize(target.Position - bird.Position);
-                        foreach ((int i, var player) in _module.IterateRaidMembers())
+                        foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                         {
                             if (player != target && GeometryUtils.PointInRect(player.Position - bird.Position, dir, 50, 0, _chargeHalfWidth))
                             {
@@ -1115,7 +1109,7 @@ namespace BossMod
                     return;
 
                 // draw all players
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                     arena.Actor(player, BitVector.IsVector64BitSet(_playersInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
                 // draw my tether
@@ -1277,12 +1271,12 @@ namespace BossMod
                 // for now, we consider tether target to be a "tank"
                 int[] aoesPerPlayer = new int[_module.RaidMembers.Length];
 
-                foreach ((int i, var player) in _module.IterateRaidMembers(true).Where(indexPlayer => indexPlayer.Item2.Tether.Target == boss.InstanceID))
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot(true).Where(indexPlayer => indexPlayer.Item2.Tether.Target == boss.InstanceID))
                 {
                     BitVector.SetVector64Bit(ref _tetherTargets, i);
 
                     ++aoesPerPlayer[i];
-                    foreach ((int j, var other) in _module.IterateRaidMembersInRange(i, _beaconRadius))
+                    foreach ((int j, var other) in _module.RaidMembers.WithSlot().InRadiusExcluding(player, _beaconRadius))
                     {
                         ++aoesPerPlayer[j];
                         BitVector.SetVector64Bit(ref _closeToTetherTarget, j);
@@ -1290,7 +1284,7 @@ namespace BossMod
                 }
 
                 float cosHalfAngle = MathF.Cos(_coneHalfAngle);
-                foreach ((int i, var player) in _module.IterateRaidMembers().SortedByRange(boss.Position).Take(3))
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot().SortedByRange(boss.Position).Take(3))
                 {
                     BitVector.SetVector64Bit(ref _bossTargets, i);
                     foreach ((int j, var other) in FindPlayersInWinds(boss.Position, player, cosHalfAngle))
@@ -1301,7 +1295,7 @@ namespace BossMod
 
                 foreach (var twister in _twisters)
                 {
-                    (var i, var player) = _module.IterateRaidMembers().SortedByRange(twister.Position).FirstOrDefault();
+                    (var i, var player) = _module.RaidMembers.WithSlot().SortedByRange(twister.Position).FirstOrDefault();
                     if (player == null)
                     {
                         _twisterTargets.Add(-1);
@@ -1361,7 +1355,7 @@ namespace BossMod
                 if (!Active || boss == null)
                     return;
 
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                 {
                     if (BitVector.IsVector64BitSet(_tetherTargets, i))
                     {
@@ -1397,7 +1391,7 @@ namespace BossMod
                     arena.Actor(twister, arena.ColorEnemy);
                 }
 
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                 {
                     bool active = BitVector.IsVector64BitSet(_tetherTargets | _bossTargets, i) || _twisterTargets.Contains(i);
                     bool failing = BitVector.IsVector64BitSet(_hitByMultipleAOEs | _closeToTetherTarget, i);
@@ -1408,7 +1402,7 @@ namespace BossMod
             private IEnumerable<(int, WorldState.Actor)> FindPlayersInWinds(Vector3 origin, WorldState.Actor target, float cosHalfAngle)
             {
                 var dir = Vector3.Normalize(target.Position - origin);
-                return _module.IterateRaidMembersWhere(player => Vector3.Dot(dir, Vector3.Normalize(player.Position - origin)) >= cosHalfAngle);
+                return _module.RaidMembers.WithSlot().WhereActor(player => Vector3.Dot(dir, Vector3.Normalize(player.Position - origin)) >= cosHalfAngle);
             }
         }
 
@@ -1537,7 +1531,7 @@ namespace BossMod
                 if (_sources.Count == 0)
                     return;
 
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                 {
                     _playerDeathTollStacks[i] = player.FindStatus((uint)SID.DeathsToll)?.Extra ?? 0; // TODO: use status events here...
                     _playerAOECount[i] = _sources.Where(srcRot => GeometryUtils.PointInCone(player.Position - srcRot.Item1.Position, srcRot.Item2, _coneHalfAngle)).Count();
@@ -1572,7 +1566,7 @@ namespace BossMod
                     return;
 
                 // draw all players
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                     arena.Actor(player, _playerAOECount[i] != _playerDeathTollStacks[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
                 var eyePos = GetEyePlacementPosition(_module.PlayerSlot, pc);
@@ -1658,7 +1652,7 @@ namespace BossMod
         public P3S(WorldState ws)
             : base(ws, 8)
         {
-            _boss = Enemies(OID.Boss, true);
+            _boss = Enemies(OID.Boss);
 
             RegisterComponent(new HeatOfCondemnation(this));
             RegisterComponent(new Cinderwing(this));

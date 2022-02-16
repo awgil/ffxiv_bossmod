@@ -258,7 +258,7 @@ namespace BossMod
 
             public void AssignFromBloodrake()
             {
-                _tetherForbidden = BuildMask(_module.IterateRaidMembersWhere(actor => actor.Tether.ID == (uint)TetherID.Bloodrake));
+                _tetherForbidden = _module.RaidMembers.WithSlot().WhereActor(actor => actor.Tether.ID == (uint)TetherID.Bloodrake).Mask();
             }
 
             public void AssignFromCoils()
@@ -279,7 +279,7 @@ namespace BossMod
                     var coils = _module.FindComponent<BeloneCoils>()!;
                     if (coils.ActiveSoakers != BeloneCoils.Soaker.Unknown)
                     {
-                        _tetherForbidden = BuildMask(_module.IterateRaidMembersWhere(coils.IsValidSoaker));
+                        _tetherForbidden = _module.RaidMembers.WithSlot().WhereActor(coils.IsValidSoaker).Mask();
                         _assignFromCoils = false;
                     }
                 }
@@ -288,10 +288,10 @@ namespace BossMod
                 if (_tetherForbidden == 0)
                     return;
 
-                foreach ((int i, var player) in _module.IterateRaidMembersWhere(actor => actor.Tether.ID == (uint)TetherID.Chlamys))
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot().WhereActor(actor => actor.Tether.ID == (uint)TetherID.Chlamys))
                 {
                     BitVector.SetVector64Bit(ref _tetherTargets, i);
-                    _tetherInAOE |= _module.FindRaidMembersInRange(i, _aoeRange);
+                    _tetherInAOE |= _module.RaidMembers.WithSlot().InRadiusExcluding(player, _aoeRange).Mask();
                 }
             }
 
@@ -311,7 +311,7 @@ namespace BossMod
                     {
                         hints.Add("Tethers: intercept!");
                     }
-                    else if (_module.IterateRaidMembersInRange(slot, _aoeRange).Any())
+                    else if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _aoeRange).Any())
                     {
                         hints.Add("Tethers: GTFO from others!");
                     }
@@ -349,7 +349,7 @@ namespace BossMod
 
                 var boss = _module.Boss1();
                 ulong failingPlayers = _tetherForbidden & _tetherTargets;
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                 {
                     bool failing = BitVector.IsVector64BitSet(failingPlayers, i);
                     bool inAOE = BitVector.IsVector64BitSet(_tetherInAOE, i);
@@ -382,7 +382,7 @@ namespace BossMod
 
             public void AssignFromBloodrake()
             {
-                _debuffForbidden = BuildMask(_module.IterateRaidMembersWhere(actor => actor.Tether.ID == (uint)TetherID.Bloodrake));
+                _debuffForbidden = _module.RaidMembers.WithSlot().WhereActor(actor => actor.Tether.ID == (uint)TetherID.Bloodrake).Mask();
             }
 
             public void AssignFromCoils()
@@ -403,7 +403,7 @@ namespace BossMod
                     var coils = _module.FindComponent<BeloneCoils>()!;
                     if (coils.ActiveSoakers != BeloneCoils.Soaker.Unknown)
                     {
-                        _debuffForbidden = BuildMask(_module.IterateRaidMembersWhere(coils.IsValidSoaker));
+                        _debuffForbidden = _module.RaidMembers.WithSlot().WhereActor(coils.IsValidSoaker).Mask();
                         _assignFromCoils = false;
                     }
                 }
@@ -420,7 +420,7 @@ namespace BossMod
                     if (_debuffTargets == 0)
                     {
                         // debuffs not assigned yet => spread and prepare to grab
-                        bool stacked = _module.IterateRaidMembersInRange(slot, _debuffPassRange).Any();
+                        bool stacked = _module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _debuffPassRange).Any();
                         hints.Add("Debuffs: spread and prepare to handle!", stacked);
                     }
                     else if (BitVector.IsVector64BitSet(_debuffImmune, slot))
@@ -441,7 +441,7 @@ namespace BossMod
                     // we should be passing debuff
                     if (_debuffTargets == 0)
                     {
-                        bool badStack = _module.IterateRaidMembers().Where(ip => ip.Item1 != slot && BitVector.IsVector64BitSet(_debuffForbidden, ip.Item1) && !GeometryUtils.PointInCircle(actor.Position - ip.Item2.Position, _debuffPassRange)).Any();
+                        bool badStack = _module.RaidMembers.WithSlot().Where(ip => ip.Item1 != slot && BitVector.IsVector64BitSet(_debuffForbidden, ip.Item1) && !GeometryUtils.PointInCircle(actor.Position - ip.Item2.Position, _debuffPassRange)).Any();
                         hints.Add("Debuffs: stack and prepare to pass!", badStack);
                     }
                     else if (BitVector.IsVector64BitSet(_debuffTargets, slot))
@@ -462,7 +462,7 @@ namespace BossMod
 
                 var boss = _module.Boss1();
                 ulong failingPlayers = _debuffForbidden & _debuffTargets;
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                 {
                     bool failing = BitVector.IsVector64BitSet(failingPlayers, i);
                     arena.Actor(player, failing ? arena.ColorDanger : arena.ColorPlayerGeneric);
@@ -474,10 +474,10 @@ namespace BossMod
                 switch ((SID)actor.Statuses[index].ID)
                 {
                     case SID.RoleCall:
-                        ModifyDebuff(_module.FindRaidMemberSlot(actor.InstanceID), ref _debuffTargets, true);
+                        ModifyDebuff(_module.RaidMembers.FindSlot(actor.InstanceID), ref _debuffTargets, true);
                         break;
                     case SID.Miscast:
-                        ModifyDebuff(_module.FindRaidMemberSlot(actor.InstanceID), ref _debuffImmune, true);
+                        ModifyDebuff(_module.RaidMembers.FindSlot(actor.InstanceID), ref _debuffImmune, true);
                         break;
                 }
             }
@@ -487,10 +487,10 @@ namespace BossMod
                 switch ((SID)actor.Statuses[index].ID)
                 {
                     case SID.RoleCall:
-                        ModifyDebuff(_module.FindRaidMemberSlot(actor.InstanceID), ref _debuffTargets, false);
+                        ModifyDebuff(_module.RaidMembers.FindSlot(actor.InstanceID), ref _debuffTargets, false);
                         break;
                     case SID.Miscast:
-                        ModifyDebuff(_module.FindRaidMemberSlot(actor.InstanceID), ref _debuffImmune, false);
+                        ModifyDebuff(_module.RaidMembers.FindSlot(actor.InstanceID), ref _debuffImmune, false);
                         break;
                 }
             }
@@ -542,8 +542,8 @@ namespace BossMod
                 _acidInAOE = 0;
                 if (_acid != null)
                 {
-                    foreach ((int i, var player) in _module.IterateRaidMembers())
-                        _acidInAOE |= _module.FindRaidMembersInRange(i, _acidAOERadius);
+                    foreach (var player in _module.RaidMembers.WithoutSlot())
+                        _acidInAOE |= _module.RaidMembers.WithSlot().InRadiusExcluding(player, _acidAOERadius).Mask();
                 }
             }
 
@@ -566,7 +566,7 @@ namespace BossMod
                     {
                         hints.Add("GTFO from fire square!");
                     }
-                    if (_module.IterateRaidMembersWhere(other => other.Role == Role.Healer && GeometryUtils.PointInCircle(actor.Position - other.Position, _fireAOERadius)).Count() != 1)
+                    if (_module.RaidMembers.WithoutSlot().Where(other => other.Role == Role.Healer && GeometryUtils.PointInCircle(actor.Position - other.Position, _fireAOERadius)).Count() != 1)
                     {
                         hints.Add("Stack in fours!");
                     }
@@ -625,12 +625,12 @@ namespace BossMod
                 if (_acid != null)
                 {
                     arena.AddCircle(pc.Position, _acidAOERadius, arena.ColorDanger);
-                    foreach ((int i, var player) in _module.IterateRaidMembers())
+                    foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                         arena.Actor(player, BitVector.IsVector64BitSet(_acidInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
                 }
                 if (_fire != null)
                 {
-                    foreach ((int i, var player) in _module.IterateRaidMembers())
+                    foreach (var player in _module.RaidMembers.WithoutSlot())
                     {
                         if (player.Role == Role.Healer)
                         {
@@ -850,7 +850,7 @@ namespace BossMod
                     }
 
                     int goodInRange = 0, badInRange = 0;
-                    foreach ((var i, var player) in _module.IterateRaidMembersInRange(orb.Position, _burstRadius))
+                    foreach ((var i, var player) in _module.RaidMembers.WithSlot().InRadius(orb.Position, _burstRadius))
                     {
                         if (IsOrbLethal(i, player, orbRole))
                             ++badInRange;
@@ -862,7 +862,7 @@ namespace BossMod
                     arena.AddCircle(orb.Position, _burstRadius, goodToExplode ? arena.ColorSafe : arena.ColorDanger);
                 }
 
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                 {
                     bool nearLethalOrb = _orbs.Where(orb => IsOrbLethal(i, player, OrbTarget(orb.InstanceID)) && GeometryUtils.PointInCircle(player.Position - orb.Position, _burstRadius)).Any();
                     arena.Actor(player, nearLethalOrb ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
@@ -877,16 +877,16 @@ namespace BossMod
                         _orbTargets[actor.InstanceID] = OrbRoleFromStatusParam(actor.Statuses[index].Extra);
                         break;
                     case SID.ThriceComeRuin:
-                        ModifyRuinStacks(_module.FindRaidMemberSlot(actor.InstanceID), actor.Statuses[index].Extra);
+                        ModifyRuinStacks(_module.RaidMembers.FindSlot(actor.InstanceID), actor.Statuses[index].Extra);
                         break;
                     case SID.ActingDPS:
-                        ModifyActingRole(_module.FindRaidMemberSlot(actor.InstanceID), Role.Melee);
+                        ModifyActingRole(_module.RaidMembers.FindSlot(actor.InstanceID), Role.Melee);
                         break;
                     case SID.ActingHealer:
-                        ModifyActingRole(_module.FindRaidMemberSlot(actor.InstanceID), Role.Healer);
+                        ModifyActingRole(_module.RaidMembers.FindSlot(actor.InstanceID), Role.Healer);
                         break;
                     case SID.ActingTank:
-                        ModifyActingRole(_module.FindRaidMemberSlot(actor.InstanceID), Role.Tank);
+                        ModifyActingRole(_module.RaidMembers.FindSlot(actor.InstanceID), Role.Tank);
                         break;
                 }
             }
@@ -896,12 +896,12 @@ namespace BossMod
                 switch ((SID)actor.Statuses[index].ID)
                 {
                     case SID.ThriceComeRuin:
-                        ModifyRuinStacks(_module.FindRaidMemberSlot(actor.InstanceID), 0);
+                        ModifyRuinStacks(_module.RaidMembers.FindSlot(actor.InstanceID), 0);
                         break;
                     case SID.ActingDPS:
                     case SID.ActingHealer:
                     case SID.ActingTank:
-                        ModifyActingRole(_module.FindRaidMemberSlot(actor.InstanceID), Role.None);
+                        ModifyActingRole(_module.RaidMembers.FindSlot(actor.InstanceID), Role.None);
                         break;
                 }
             }
@@ -909,7 +909,7 @@ namespace BossMod
             public override void OnStatusChange(WorldState.Actor actor, int index)
             {
                 if ((SID)actor.Statuses[index].ID == SID.ThriceComeRuin)
-                    ModifyRuinStacks(_module.FindRaidMemberSlot(actor.InstanceID), actor.Statuses[index].Extra);
+                    ModifyRuinStacks(_module.RaidMembers.FindSlot(actor.InstanceID), actor.Statuses[index].Extra);
             }
 
             public override void OnEventCast(WorldState.CastResult info)
@@ -1073,11 +1073,11 @@ namespace BossMod
                 if (boss == null || CurState == State.None)
                     return;
 
-                var playersByRange = _module.IterateRaidMembers().SortedByRange(boss.Position);
+                var playersByRange = _module.RaidMembers.WithSlot().SortedByRange(boss.Position);
                 foreach ((int i, var player) in CurState == State.Near ? playersByRange.Take(2) : playersByRange.TakeLast(2))
                 {
                     BitVector.SetVector64Bit(ref _targets, i);
-                    _inAOE |= _module.FindRaidMembersInRange(i, _aoeRadius);
+                    _inAOE |= _module.RaidMembers.WithSlot().InRadiusExcluding(player, _aoeRadius).Mask();
                 }
             }
 
@@ -1103,7 +1103,7 @@ namespace BossMod
                 if (pc == null || _targets == 0)
                     return;
 
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                 {
                     if (BitVector.IsVector64BitSet(_targets, i))
                     {
@@ -1248,7 +1248,7 @@ namespace BossMod
                             {
                                 hints.Add("Soak the tower!");
                             }
-                            else if (_module.IterateRaidMembersInRange(soakedTower.Position, _wreathTowerRadius).Any(ip => ip.Item1 != slot))
+                            else if (_module.RaidMembers.WithoutSlot().Exclude(actor).InRadius(soakedTower.Position, _wreathTowerRadius).Any())
                             {
                                 hints.Add("Multiple soakers for the tower!");
                             }
@@ -1276,7 +1276,7 @@ namespace BossMod
                 {
                     foreach (var tower in _towers)
                         arena.AddCircle(tower.Position, _wreathTowerRadius, arena.ColorSafe);
-                    foreach ((_, var player) in _module.IterateRaidMembers())
+                    foreach (var player in _module.RaidMembers.WithoutSlot())
                         arena.Actor(player, arena.ColorPlayerGeneric);
                 }
             }
@@ -1347,7 +1347,7 @@ namespace BossMod
 
                 if (CurState == State.DarkDesign)
                 {
-                    var darkSource = _module.IterateRaidMembers().Where(ip => _playerIcons[ip.Item1] == IconID.AkanthaiDark).FirstOrDefault().Item2;
+                    var darkSource = _module.RaidMembers.WithSlot().Where(ip => _playerIcons[ip.Item1] == IconID.AkanthaiDark).FirstOrDefault().Item2;
                     if (actor == darkSource || actor.InstanceID == darkSource?.Tether.Target)
                     {
                         hints.Add("Break tether!");
@@ -1416,7 +1416,7 @@ namespace BossMod
                 foreach (var tower in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsTower))
                     arena.AddCircle(tower.Position, _wreathTowerRadius, arena.ColorSafe);
 
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                 {
                     arena.Actor(player, arena.ColorPlayerGeneric);
                     var tetherTarget = player.Tether.Target != 0 ? _module.WorldState.FindActor(player.Tether.Target) : null;
@@ -1453,7 +1453,7 @@ namespace BossMod
             {
                 if (CurState != State.Inactive)
                 {
-                    var slot = _module.FindRaidMemberSlot(actorID);
+                    var slot = _module.RaidMembers.FindSlot(actorID);
                     if (slot >= 0)
                         _playerIcons[slot] = (IconID)iconID;
                 }
@@ -1500,7 +1500,7 @@ namespace BossMod
 
             private IEnumerable<(WorldState.Actor, TetherType)> ActiveTethers()
             {
-                return _module.IterateRaidMembers()
+                return _module.RaidMembers.WithSlot()
                     .Select(ip => (ip.Item2, TetherPriority(ip.Item2, _playerIcons[ip.Item1])))
                     .Where(it => it.Item2 != TetherType.None);
             }
@@ -1558,18 +1558,18 @@ namespace BossMod
 
                 if (NumCones == NumJumps)
                 {
-                    _jumpTarget = _module.IterateRaidMembers().SortedByRange(boss.Position).LastOrDefault().Item2;
-                    _playersInAOE = _jumpTarget != null ? BuildMask(_module.IterateRaidMembersInRange(_jumpTarget.Position, _jumpAOERadius).Where(ip => ip.Item2 != _jumpTarget)) : 0;
+                    _jumpTarget = _module.RaidMembers.WithoutSlot().SortedByRange(boss.Position).LastOrDefault();
+                    _playersInAOE = _jumpTarget != null ? _module.RaidMembers.WithSlot().InRadiusExcluding(_jumpTarget, _jumpAOERadius).Mask() : 0;
                 }
                 else
                 {
-                    foreach ((int i, var player) in _module.IterateRaidMembers().SortedByRange(boss.Position).Take(3))
+                    foreach ((int i, var player) in _module.RaidMembers.WithSlot().SortedByRange(boss.Position).Take(3))
                     {
                         BitVector.SetVector64Bit(ref _coneTargets, i);
                         if (player.Position != boss.Position)
                         {
                             var direction = Vector3.Normalize(player.Position - boss.Position);
-                            _playersInAOE |= BuildMask(_module.IterateOtherRaidMembers(i).Where(ip => GeometryUtils.PointInCone(ip.Item2.Position - boss.Position, direction, _coneHalfAngle)));
+                            _playersInAOE |= _module.RaidMembers.WithSlot().Exclude(i).WhereActor(p => GeometryUtils.PointInCone(p.Position - boss.Position, direction, _coneHalfAngle)).Mask();
                         }
                     }
                 }
@@ -1616,7 +1616,7 @@ namespace BossMod
                 var boss = _module.Boss2();
                 if (_coneTargets != 0 && boss != null)
                 {
-                    foreach ((_, var player) in _module.IterateRaidMembers().Where(ip => BitVector.IsVector64BitSet(_coneTargets, ip.Item1) && boss.Position != ip.Item2.Position))
+                    foreach ((_, var player) in _module.RaidMembers.WithSlot().Where(ip => BitVector.IsVector64BitSet(_coneTargets, ip.Item1) && boss.Position != ip.Item2.Position))
                     {
                         var offset = player.Position - boss.Position;
                         float phi = MathF.Atan2(offset.X, offset.Z);
@@ -1630,7 +1630,7 @@ namespace BossMod
                 if (CurState == State.Inactive)
                     return;
 
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                     arena.Actor(player, BitVector.IsVector64BitSet(_playersInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
                 if (CurState != State.Done)
@@ -1641,7 +1641,7 @@ namespace BossMod
 
                 if (NumCones != NumJumps)
                 {
-                    foreach ((_, var player) in _module.IterateRaidMembers().Where(ip => BitVector.IsVector64BitSet(_coneTargets, ip.Item1)))
+                    foreach ((_, var player) in _module.RaidMembers.WithSlot().Where(ip => BitVector.IsVector64BitSet(_coneTargets, ip.Item1)))
                         arena.Actor(player, arena.ColorDanger);
                     arena.Actor(_jumpTarget, arena.ColorVulnerable);
                 }
@@ -1719,7 +1719,7 @@ namespace BossMod
                     if (_playerIcons[slot] == IconID.AkanthaiWater)
                     {
                         hints.Add("Break tether!");
-                        if (_module.IterateRaidMembersInRange(slot, _waterExplosionRange).Any())
+                        if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _waterExplosionRange).Any())
                         {
                             hints.Add("GTFO from others!");
                         }
@@ -1786,7 +1786,7 @@ namespace BossMod
             {
                 if (Active && actor.OID == (uint)OID.Helper)
                 {
-                    var slot = _module.FindRaidMemberSlot(actor.Tether.Target);
+                    var slot = _module.RaidMembers.FindSlot(actor.Tether.Target);
                     if (slot >= 0)
                         _playerTetherSource[slot] = actor;
                 }
@@ -1796,7 +1796,7 @@ namespace BossMod
             {
                 if (Active && actor.OID == (uint)OID.Helper)
                 {
-                    var slot = _module.FindRaidMemberSlot(actor.Tether.Target);
+                    var slot = _module.RaidMembers.FindSlot(actor.Tether.Target);
                     if (slot >= 0)
                         _playerTetherSource[slot] = null;
                 }
@@ -1814,7 +1814,7 @@ namespace BossMod
             {
                 if (Active)
                 {
-                    var slot = _module.FindRaidMemberSlot(actorID);
+                    var slot = _module.RaidMembers.FindSlot(actorID);
                     if (slot >= 0)
                         _playerIcons[slot] = (IconID)iconID;
                 }
@@ -1871,7 +1871,7 @@ namespace BossMod
 
                 if (_playersOrder.Count < 8)
                 {
-                    hints.Add("Spread!", _module.IterateRaidMembersInRange(slot, _impulseAOERadius).Any());
+                    hints.Add("Spread!", _module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _impulseAOERadius).Any());
                 }
             }
 
@@ -1888,7 +1888,7 @@ namespace BossMod
                 if (_playersOrder.Count < 8)
                 {
                     arena.AddCircle(pc.Position, _impulseAOERadius, arena.ColorDanger);
-                    foreach ((_, var player) in _module.IterateOtherRaidMembers(_module.PlayerSlot))
+                    foreach (var player in _module.RaidMembers.WithoutSlot().Exclude(pc))
                         arena.Actor(player, GeometryUtils.PointInCircle(player.Position - pc.Position, _impulseAOERadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
                 }
             }
@@ -1962,7 +1962,7 @@ namespace BossMod
             {
                 if (_active && actor.Statuses[index].ID == (uint)SID.Thornpricked)
                 {
-                    int slot = _module.FindRaidMemberSlot(actor.InstanceID);
+                    int slot = _module.RaidMembers.FindSlot(actor.InstanceID);
                     if (slot >= 0)
                     {
                         _playerOrder[slot] = 2 * (int)((actor.Statuses[index].ExpireAt - _module.WorldState.CurrentTime).TotalSeconds / 10); // 2/4/6/8
@@ -1990,8 +1990,8 @@ namespace BossMod
         public P4S(WorldState ws)
             : base(ws, 8)
         {
-            _boss1 = Enemies(OID.Boss1, true);
-            _boss2 = Enemies(OID.Boss2, true);
+            _boss1 = Enemies(OID.Boss1);
+            _boss2 = Enemies(OID.Boss2);
 
             RegisterComponent(new ElegantEvisceration());
             RegisterComponent(new BeloneCoils(this));

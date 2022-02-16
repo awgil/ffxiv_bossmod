@@ -297,7 +297,7 @@ namespace BossMod
                     return;
 
                 float minDistSq = 100000;
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach (var player in _module.RaidMembers.WithoutSlot())
                 {
                     if (boss.Tether.Target == player.InstanceID)
                         continue; // assume both won't target same player for tethers and ray...
@@ -314,7 +314,7 @@ namespace BossMod
                     return;
 
                 var dirToClosest = Vector3.Normalize(_closest.Position - boss.Position);
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                 {
                     if (boss.Tether.Target == player.InstanceID)
                         continue; // assume both won't target same player for tethers and ray...
@@ -335,7 +335,7 @@ namespace BossMod
                     {
                         hints.Add("Pass tether to tank!");
                     }
-                    else if (_module.IterateRaidMembersInRange(slot, _aoeRadius).Any())
+                    else if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _aoeRadius).Any())
                     {
                         hints.Add("GTFO from raid!");
                     }
@@ -381,7 +381,7 @@ namespace BossMod
                     return;
 
                 // TODO: i'm not sure what are the exact mechanics - flare is probably distance-based, and ray is probably shared damage cast at closest target?..
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                 {
                     if (boss.Tether.Target == player.InstanceID)
                     {
@@ -434,15 +434,15 @@ namespace BossMod
                 if (!Active)
                     return;
 
-                foreach ((int i, var actor) in _module.IterateRaidMembers())
+                foreach ((int i, var player) in _module.RaidMembers.WithSlot())
                 {
                     if (BitVector.IsVector64BitSet(_playersWithTides, i))
                     {
-                        _playersInTides |= _module.FindRaidMembersInRange(i, _tidesRadius);
+                        _playersInTides |= _module.RaidMembers.WithSlot().InRadiusExcluding(player, _tidesRadius).Mask();
                     }
                     else if (BitVector.IsVector64BitSet(_playersWithDepths, i))
                     {
-                        _playersInDepths |= _module.FindRaidMembersInRange(i, _depthsRadius);
+                        _playersInDepths |= _module.RaidMembers.WithSlot().InRadiusExcluding(player, _depthsRadius).Mask();
                     }
                 }
             }
@@ -454,7 +454,7 @@ namespace BossMod
 
                 if (BitVector.IsVector64BitSet(_playersWithTides, slot))
                 {
-                    if (_module.IterateRaidMembersInRange(slot, _tidesRadius).Any())
+                    if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _tidesRadius).Any())
                     {
                         hints.Add("GTFO from raid!");
                     }
@@ -484,7 +484,7 @@ namespace BossMod
 
                 bool pcHasTides = BitVector.IsVector64BitSet(_playersWithTides, _module.PlayerSlot);
                 bool pcHasDepths = BitVector.IsVector64BitSet(_playersWithDepths, _module.PlayerSlot);
-                foreach ((int i, var actor) in _module.IterateRaidMembers())
+                foreach ((int i, var actor) in _module.RaidMembers.WithSlot())
                 {
                     if (BitVector.IsVector64BitSet(_playersWithTides, i))
                     {
@@ -512,10 +512,10 @@ namespace BossMod
                 switch ((SID)actor.Statuses[index].ID)
                 {
                     case SID.MarkOfTides:
-                        ModifyDebuff(_module.FindRaidMemberSlot(actor.InstanceID), ref _playersWithTides, true);
+                        ModifyDebuff(_module.RaidMembers.FindSlot(actor.InstanceID), ref _playersWithTides, true);
                         break;
                     case SID.MarkOfDepths:
-                        ModifyDebuff(_module.FindRaidMemberSlot(actor.InstanceID), ref _playersWithDepths, true);
+                        ModifyDebuff(_module.RaidMembers.FindSlot(actor.InstanceID), ref _playersWithDepths, true);
                         break;
                 }
             }
@@ -525,10 +525,10 @@ namespace BossMod
                 switch ((SID)actor.Statuses[index].ID)
                 {
                     case SID.MarkOfTides:
-                        ModifyDebuff(_module.FindRaidMemberSlot(actor.InstanceID), ref _playersWithTides, false);
+                        ModifyDebuff(_module.RaidMembers.FindSlot(actor.InstanceID), ref _playersWithTides, false);
                         break;
                     case SID.MarkOfDepths:
-                        ModifyDebuff(_module.FindRaidMemberSlot(actor.InstanceID), ref _playersWithDepths, false);
+                        ModifyDebuff(_module.RaidMembers.FindSlot(actor.InstanceID), ref _playersWithDepths, false);
                         break;
                 }
             }
@@ -589,7 +589,7 @@ namespace BossMod
             {
                 if (iconID >= 145 && iconID <= 152)
                 {
-                    int slot = _module.FindRaidMemberSlot(actorID);
+                    int slot = _module.RaidMembers.FindSlot(actorID);
                     if (slot >= 0)
                         _playerOrder[slot] = (int)(iconID - 144);
                 }
@@ -648,7 +648,7 @@ namespace BossMod
                 if (!Active)
                     return;
 
-                foreach ((int i, var player) in _module.IterateRaidMembers())
+                foreach (var player in _module.RaidMembers.WithoutSlot())
                 {
                     foreach (var status in player.Statuses)
                     {
@@ -685,9 +685,9 @@ namespace BossMod
         public P2S(WorldState ws)
             : base(ws, 8)
         {
-            _boss = Enemies(OID.Boss, true);
-            _cataractHead = Enemies(OID.CataractHead, true);
-            _dissociatedHead = Enemies(OID.DissociatedHead, true);
+            _boss = Enemies(OID.Boss);
+            _cataractHead = Enemies(OID.CataractHead);
+            _dissociatedHead = Enemies(OID.DissociatedHead);
 
             RegisterComponent(new SewageDeluge(this));
             RegisterComponent(new Cataract(this));
