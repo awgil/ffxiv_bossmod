@@ -26,6 +26,7 @@ namespace UIDev
         {
             _data = data;
             _ws.CurrentTime = data.Ops.First().Timestamp;
+            _ws.CurrentZoneChanged += OnZoneChanged;
 
             foreach (var op in data.Ops.OfType<Replay.OpEnterExitCombat>())
                 _checkpoints.Add((op.Timestamp, op.Value));
@@ -35,6 +36,7 @@ namespace UIDev
 
         public void Dispose()
         {
+            _ws.CurrentZoneChanged -= OnZoneChanged;
         }
 
         public void Draw()
@@ -82,19 +84,6 @@ namespace UIDev
             ImGui.SameLine();
             if (ImGui.Button(">>>"))
                 _playSpeed = 5;
-
-            ImGui.SameLine();
-            if (ImGui.Button("P1S"))
-                ActivateBossMod<P1S>();
-            ImGui.SameLine();
-            if (ImGui.Button("P2S"))
-                ActivateBossMod<P2S>();
-            ImGui.SameLine();
-            if (ImGui.Button("P3S"))
-                ActivateBossMod<P3S>();
-            ImGui.SameLine();
-            if (ImGui.Button("P4S"))
-                ActivateBossMod<P4S>();
         }
 
         private void DrawTimelineRow()
@@ -270,18 +259,18 @@ namespace UIDev
             _ws.CurrentTime = t;
         }
 
-        private void ActivateBossMod<T>() where T : BossModule
-        {
-            _bossmod?.Dispose();
-            _bossmod = (BossModule?)Activator.CreateInstance(typeof(T), _ws);
-        }
-
         private bool ClickedAt(Vector2 centerPos, float halfSize)
         {
             if (!ImGui.IsMouseClicked(ImGuiMouseButton.Left) && !ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                 return false;
             var pos = ImGui.GetMousePos();
             return pos.X >= centerPos.X - halfSize && pos.X <= centerPos.X + halfSize && pos.Y >= centerPos.Y - halfSize && pos.Y <= centerPos.Y + halfSize;
+        }
+
+        private void OnZoneChanged(object? sender, ushort zone)
+        {
+            _bossmod?.Dispose();
+            _bossmod = ZoneModule.CreateModule(zone, _ws);
         }
     }
 }

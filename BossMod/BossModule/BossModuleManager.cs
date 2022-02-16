@@ -72,29 +72,11 @@ namespace BossMod
 
         public void ActivateModuleForZone(ushort zone)
         {
-            _activeModule?.Dispose();
-            _activeModule = null;
             _mainWindow?.Close();
             _mainWindow = null;
 
-            switch (zone)
-            {
-                case 993:
-                    _activeModule = new Zodiark(_ws);
-                    break;
-                case 1003:
-                    _activeModule = new P1S(_ws);
-                    break;
-                case 1005:
-                    _activeModule = new P2S(_ws);
-                    break;
-                case 1007:
-                    _activeModule = new P3S(_ws);
-                    break;
-                case 1009:
-                    _activeModule = new P4S(_ws);
-                    break;
-            }
+            _activeModule?.Dispose();
+            _activeModule = ZoneModule.CreateModule(zone, _ws);
 
             if (_activeModule != null)
             {
