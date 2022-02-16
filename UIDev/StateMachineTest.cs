@@ -23,8 +23,8 @@ namespace UIDev
             s = CommonStates.Timeout(ref s.Next, 2);
 
             _fork = s.Next = new StateMachine.State { Name = "Fork A -or- B", Duration = 3 };
-            _fork.Update = (float timeSinceTransition) => { _fork.Done = _fork.Next != null; };
-            _fork.Exit = () => { _fork.Next = null; };
+            _fork.Update = (_) => _fork.Next;
+            _fork.Exit = () => _fork.Next = null;
 
             CommonStates.Timeout(ref _varA, 3, "Variant A");
             CommonStates.Timeout(ref _varB, 2, "Variant B");
@@ -47,13 +47,13 @@ namespace UIDev
             if (ImGui.Button("Reset"))
                 _sm.ActiveState = null;
 
-            if (_fork!.Active)
+            if (_sm.ActiveState == _fork)
             {
                 if (ImGui.Button("Choose A"))
-                    _fork.Next = _varA;
+                    _fork!.Next = _varA;
                 ImGui.SameLine();
                 if (ImGui.Button("Choose B"))
-                    _fork.Next = _varB;
+                    _fork!.Next = _varB;
             }
         }
 

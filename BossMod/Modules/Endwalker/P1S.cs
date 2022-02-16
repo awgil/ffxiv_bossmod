@@ -923,7 +923,6 @@ namespace BossMod
             forkDispatch[AID.AetherialShackles] = new(s1b, () => { });
             forkDispatch[AID.ShacklesOfTime] = new(s2b, () => { });
             var fork = CommonStates.CastStart(ref s.Next, Boss, forkDispatch, 6, "Shackles+Aetherchains -or- ShacklesOfTime+Knockback"); // first branch delay = 7.8
-            fork.Exit = () => fork.Next = null;
 
             // forks merge
             s = BuildAetherflailStates(ref s1e.Next, 9);

@@ -21,7 +21,7 @@ namespace BossMod
         public static StateMachine.State Timeout(ref StateMachine.State? link, float duration, string name = "")
         {
             var state = Simple(ref link, duration, name);
-            state.Update = (float timeSinceTransition) => state.Done = timeSinceTransition >= state.Duration;
+            state.Update = (timeSinceTransition) => timeSinceTransition >= state.Duration ? state.Next : null;
             return state;
         }
 
@@ -29,7 +29,7 @@ namespace BossMod
         public static StateMachine.State Condition(ref StateMachine.State? link, float expected, Func<bool> condition, string name = "", float maxOverdue = 1, float checkDelay = 0)
         {
             var state = Simple(ref link, expected, name);
-            state.Update = (float timeSinceTransition) => state.Done = timeSinceTransition >= (expected + maxOverdue) || (timeSinceTransition >= checkDelay && condition());
+            state.Update = (timeSinceTransition) => timeSinceTransition >= (expected + maxOverdue) || (timeSinceTransition >= checkDelay && condition()) ? state.Next : null;
             return state;
         }
 
@@ -37,7 +37,7 @@ namespace BossMod
         public static StateMachine.State CastStart(ref StateMachine.State? link, Func<WorldState.Actor?> actorAcc, float delay, string name = "", bool actorIsBoss = true)
         {
             var state = Simple(ref link, delay, name);
-            state.Update = (float timeSinceTransition) => state.Done = actorAcc()?.CastInfo != null;
+            state.Update = (_) => actorAcc()?.CastInfo != null ? state.Next : null;
             if (actorIsBoss)
                 state.EndHint |= StateMachine.StateHint.BossCastStart;
             return state;
@@ -49,17 +49,14 @@ namespace BossMod
         {
             var state = Simple(ref link, delay, name);
             var expected = ActionID.MakeSpell(id);
-            state.Update = (float timeSinceTransition) =>
+            state.Update = (_) =>
             {
                 var castInfo = actorAcc()?.CastInfo;
-                if (castInfo != null)
-                {
-                    if (castInfo.Action != expected)
-                    {
-                        Service.Log($"[StateMachine] Unexpected cast start for actor {actorAcc()?.OID:X}: got {castInfo.Action}, expected {id}");
-                    }
-                    state.Done = true;
-                }
+                if (castInfo == null)
+                    return null;
+                if (castInfo.Action != expected)
+                    Service.Log($"[StateMachine] Unexpected cast start for actor {actorAcc()?.OID:X}: got {castInfo.Action}, expected {id}");
+                return state.Next;
             };
             if (actorIsBoss)
                 state.EndHint |= StateMachine.StateHint.BossCastStart;
@@ -72,24 +69,17 @@ namespace BossMod
             where AID : Enum
         {
             var state = Simple(ref link, delay, name);
-            state.Update = (float timeSinceTransition) =>
+            state.Update = (_) =>
             {
                 var castInfo = actorAcc()?.CastInfo;
-                if (castInfo != null)
-                {
-                    (StateMachine.State?, Action) entry;
-                    if (dispatch.TryGetValue((AID)(object)castInfo.Action.ID, out entry))
-                    {
-                        entry.Item2();
-                        if (entry.Item1 != null)
-                            state.Next = entry.Item1;
-                    }
-                    else
-                    {
-                        Service.Log($"[StateMachine] Unexpected cast start for actor {actorAcc()?.OID:X}: got {castInfo.Action}");
-                    }
-                    state.Done = true;
-                }
+                if (castInfo == null)
+                    return null;
+                (StateMachine.State? dest, Action? op) = dispatch.GetValueOrDefault((AID)(object)castInfo.Action.ID);
+                if (op != null)
+                    op();
+                else
+                    Service.Log($"[StateMachine] Unexpected cast start for actor {actorAcc()?.OID:X}: got {castInfo.Action}");
+                return dest ?? state.Next;
             };
             if (actorIsBoss)
                 state.EndHint |= StateMachine.StateHint.BossCastStart;
@@ -108,7 +98,7 @@ namespace BossMod
         public static StateMachine.State CastEnd(ref StateMachine.State? link, Func<WorldState.Actor?> actorAcc, float castTime, string name = "", bool actorIsBoss = true)
         {
             var state = Simple(ref link, castTime, name);
-            state.Update = (float timeSinceTransition) => state.Done = actorAcc()?.CastInfo == null;
+            state.Update = (_) => actorAcc()?.CastInfo == null ? state.Next : null;
             if (actorIsBoss)
                 state.EndHint |= StateMachine.StateHint.BossCastEnd;
             return state;
@@ -134,7 +124,7 @@ namespace BossMod
         public static StateMachine.State Targetable(ref StateMachine.State? link, Func<WorldState.Actor?> actorAcc, bool targetable, float delay, string name = "")
         {
             var state = Simple(ref link, delay, name);
-            state.Update = (_) => state.Done = actorAcc()?.IsTargetable == targetable;
+            state.Update = (_) => actorAcc()?.IsTargetable == targetable ? state.Next : null;
             state.EndHint |= targetable ? StateMachine.StateHint.DowntimeEnd : StateMachine.StateHint.DowntimeStart;
             return state;
         }

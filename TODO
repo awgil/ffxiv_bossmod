@@ -3,7 +3,6 @@ general:
 - clip circles to arena bounds...
 - reconsider worldstate->bossmodule event subscription model (tedious to manually subscribe/unsubsribe and forward to components...)
 - fail log?
-- StateMachine update should return (done + taken-fork) and not touch Next
 
 network:
 - hook send/recv (a-la xivalexander)

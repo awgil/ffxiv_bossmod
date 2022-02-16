@@ -2014,13 +2014,9 @@ namespace BossMod
             BuildPhase1States();
             BuildPhase2States();
 
-            var fork = CommonStates.Timeout(ref InitialState, 0);
+            var fork = CommonStates.Simple(ref InitialState, 0);
+            fork.Update = (_) => Boss1() != null ? _phase1Start : _phase2Start;
             fork.PotentialSuccessors = new[] { _phase1Start!, _phase2Start! };
-        }
-
-        protected override void ResetModule()
-        {
-            InitialState!.Next = Boss1() != null ? _phase1Start : _phase2Start;
         }
 
         protected override void DrawArenaForegroundPost()

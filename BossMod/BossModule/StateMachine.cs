@@ -28,14 +28,12 @@ namespace BossMod
         {
             public string Name = ""; // if name is empty, state is "hidden" from UI
             public float Duration = 0; // estimated state duration
-            public State? Next = null; // next state; note that this could be changed freely when needed
-            public bool Active = false; // this is updated automatically by the framework when state is entered or exited
-            public bool Done = false; // when set, on next update framework will automatically transition to next state
             public Action? Enter = null; // callback executed when state is activated
             public Action? Exit = null; // callback executed when state is deactivated; note that this can happen unexpectedly, e.g. due to external reset
-            public Action<float>? Update = null; // callback executed every frame when state is active; should return whether transition to next state should happen; argument = time since activation
+            public Func<float, State?>? Update = null; // callback executed every frame when state is active; should return target state for transition or null to remain in current state; argument = time since activation
 
             // fields below are used for visualization, autorotations, etc.
+            public State? Next = null; // expected next state; note that actual next state is determined by update function
             public State[]? PotentialSuccessors = null; // if null, we consider the only potential successor to be Next; otherwise we use this list instead when building timeline
             public StateHint EndHint = StateHint.None; // special flags for state end
         }
@@ -73,8 +71,6 @@ namespace BossMod
                 if (_activeState != null)
                 {
                     _activeState.Exit?.Invoke();
-                    _activeState.Active = false;
-                    _activeState.Done = false;
                     _isDowntime = (_isDowntime || _activeState.EndHint.HasFlag(StateHint.DowntimeStart)) && !_activeState.EndHint.HasFlag(StateHint.DowntimeEnd);
                     _isPositioning = (_isPositioning || _activeState.EndHint.HasFlag(StateHint.PositioningStart)) && !_activeState.EndHint.HasFlag(StateHint.PositioningEnd);
                 }
@@ -87,8 +83,6 @@ namespace BossMod
 
                 if (_activeState != null)
                 {
-                    _activeState.Active = true;
-                    _activeState.Done = false;
                     _activeState.Enter?.Invoke();
                 }
                 else
@@ -111,11 +105,11 @@ namespace BossMod
 
             while (ActiveState != null)
             {
-                ActiveState.Update?.Invoke(TimeSinceTransition);
-                if (!ActiveState.Done)
+                var transition = ActiveState.Update?.Invoke(TimeSinceTransition);
+                if (transition == null)
                     break;
-                Service.Log($"[StateMachine] Transition from '{ActiveState.Name}' to '{(ActiveState.Next?.Name ?? "null")}', overdue={TimeSinceTransition:f2}-{ActiveState.Duration:f2}={TimeSinceTransition - ActiveState.Duration:f2}");
-                ActiveState = ActiveState.Next;
+                Service.Log($"[StateMachine] Transition from '{ActiveState.Name}' to '{transition.Name}', overdue={TimeSinceTransition:f2}-{ActiveState.Duration:f2}={TimeSinceTransition - ActiveState.Duration:f2}");
+                ActiveState = transition;
             }
         }
 
