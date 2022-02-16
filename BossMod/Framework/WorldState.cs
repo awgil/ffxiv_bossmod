@@ -127,6 +127,7 @@ namespace BossMod
             public Class Class;
             public Vector4 PosRot = new(); // W = rotation: 0 = pointing S, pi/2 = pointing E, pi = pointing N, -pi/2 = pointing W
             public float HitboxRadius;
+            public bool IsDestroyed; // set to true when actor is removed from world; object might still be alive because of other references
             public bool IsTargetable;
             public bool IsDead;
             public uint TargetID;
@@ -183,6 +184,7 @@ namespace BossMod
             if (actor == null)
                 return; // nothing to remove
 
+            actor.IsDestroyed = true;
             UpdateCastInfo(actor, null); // stop casting
             UpdateTether(actor, new()); // untether
             for (int i = 0; i < actor.Statuses.Length; ++i)
