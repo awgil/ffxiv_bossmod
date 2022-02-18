@@ -79,6 +79,18 @@ namespace BossMod
             return range.WhereSlot(i => i != slot);
         }
 
+        // select actors that have their corresponding bit in mask set
+        public static IEnumerable<(int, WorldState.Actor)> IncludedInMask(this IEnumerable<(int, WorldState.Actor)> range, ulong mask)
+        {
+            return range.WhereSlot(i => BitVector.IsVector64BitSet(mask, i));
+        }
+
+        // select actors that have their corresponding bit in mask cleared
+        public static IEnumerable<(int, WorldState.Actor)> ExcludedFromMask(this IEnumerable<(int, WorldState.Actor)> range, ulong mask)
+        {
+            return range.WhereSlot(i => !BitVector.IsVector64BitSet(mask, i));
+        }
+
         // select actors in specified radius from specified point
         public static IEnumerable<WorldState.Actor> InRadius(this IEnumerable<WorldState.Actor> range, Vector3 origin, float radius)
         {
@@ -88,6 +100,17 @@ namespace BossMod
         public static IEnumerable<(int, WorldState.Actor)> InRadius(this IEnumerable<(int, WorldState.Actor)> range, Vector3 origin, float radius)
         {
             return range.WhereActor(actor => GeometryUtils.PointInCircle(actor.Position - origin, radius));
+        }
+
+        // select actors outside specified radius from specified point
+        public static IEnumerable<WorldState.Actor> OutOfRadius(this IEnumerable<WorldState.Actor> range, Vector3 origin, float radius)
+        {
+            return range.Where(actor => !GeometryUtils.PointInCircle(actor.Position - origin, radius));
+        }
+
+        public static IEnumerable<(int, WorldState.Actor)> OutOfRadius(this IEnumerable<(int, WorldState.Actor)> range, Vector3 origin, float radius)
+        {
+            return range.WhereActor(actor => !GeometryUtils.PointInCircle(actor.Position - origin, radius));
         }
 
         // select actors in specified radius from specified actor, excluding actor itself
@@ -101,6 +124,18 @@ namespace BossMod
             return range.Exclude(origin).InRadius(origin.Position, radius);
         }
 
+        // select actors that have tether with specific ID
+        public static IEnumerable<WorldState.Actor> Tethered<ID>(this IEnumerable<WorldState.Actor> range, ID id) where ID : Enum
+        {
+            var castID = (uint)(object)id;
+            return range.Where(actor => actor.Tether.ID == castID);
+        }
+
+        public static IEnumerable<(int, WorldState.Actor)> Tethered<ID>(this IEnumerable<(int, WorldState.Actor)> range, ID id) where ID : Enum
+        {
+            var castID = (uint)(object)id;
+            return range.WhereActor(actor => actor.Tether.ID == castID);
+        }
 
         // sort range by distance from point
         public static IEnumerable<WorldState.Actor> SortedByRange(this IEnumerable<WorldState.Actor> range, Vector3 origin)

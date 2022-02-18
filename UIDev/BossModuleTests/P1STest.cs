@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
 using BossMod;
 using System;
+using BossMod.P1S;
 
 namespace UIDev
 {
@@ -24,7 +25,7 @@ namespace UIDev
             _ws.AddActor(6, 0, "R2", WorldState.ActorType.Player, Class.MCH, new( 90, 0, 110, 0), 1, true);
             _ws.AddActor(7, 0, "M1", WorldState.ActorType.Player, Class.MNK, new(110, 0,  90, 0), 1, true);
             _ws.AddActor(8, 0, "M2", WorldState.ActorType.Player, Class.RPR, new( 90, 0,  90, 0), 1, true);
-            _ws.AddActor(9, (uint)P1S.OID.Boss, "Boss", WorldState.ActorType.Enemy, Class.None, new(100, 0, 100, 0), 1, true);
+            _ws.AddActor(9, (uint)OID.Boss, "Boss", WorldState.ActorType.Enemy, Class.None, new(100, 0, 100, 0), 1, true);
             _ws.PlayerActorID = 1;
             _o = new P1S(_ws);
         }
@@ -62,7 +63,7 @@ namespace UIDev
             ImGui.Text($"Downtime in: {_o.StateMachine.EstimateTimeToNextDowntime():f2}, Positioning in: {_o.StateMachine.EstimateTimeToNextPositioning():f2}");
 
             int cnt = 0;
-            foreach (var e in Enum.GetValues<P1S.AID>())
+            foreach (var e in Enum.GetValues<AID>())
             {
                 if (ImGui.Button(e.ToString()))
                     _ws.UpdateCastInfo(boss, boss.CastInfo == null ? new WorldState.CastInfo { Action = new(ActionType.Spell, (uint)e), TargetID = boss.TargetID } : null);
@@ -100,11 +101,11 @@ namespace UIDev
                     {
                         if (blue)
                         {
-                            _ws.UpdateStatus(actor.Value, 0, new() { ID = (uint)P1S.SID.ShacklesOfCompanionship0 });
+                            _ws.UpdateStatus(actor.Value, 0, new() { ID = (uint)SID.ShacklesOfCompanionship0 });
                         }
                         else
                         {
-                            _ws.UpdateStatus(actor.Value, 0, new() { ID = (uint)P1S.SID.InescapableCompanionship });
+                            _ws.UpdateStatus(actor.Value, 0, new() { ID = (uint)SID.InescapableCompanionship });
                             _ws.UpdateStatus(actor.Value, 0, new());
                         }
                     }
@@ -115,11 +116,11 @@ namespace UIDev
                     {
                         if (redShackle)
                         {
-                            _ws.UpdateStatus(actor.Value, 1, new() { ID = (uint)P1S.SID.ShacklesOfLoneliness0 });
+                            _ws.UpdateStatus(actor.Value, 1, new() { ID = (uint)SID.ShacklesOfLoneliness0 });
                         }
                         else
                         {
-                            _ws.UpdateStatus(actor.Value, 1, new() { ID = (uint)P1S.SID.InescapableLoneliness });
+                            _ws.UpdateStatus(actor.Value, 1, new() { ID = (uint)SID.InescapableLoneliness });
                             _ws.UpdateStatus(actor.Value, 1, new());
                         }
                     }
@@ -128,7 +129,7 @@ namespace UIDev
                     bool sot = actor.Value.Statuses[2].ID != 0;
                     if (ImGui.Checkbox($"Shackle of time##{actor.Value.InstanceID}", ref sot))
                     {
-                        _ws.UpdateStatus(actor.Value, 2, new() { ID = sot ? (uint)P1S.SID.ShacklesOfTime : 0 });
+                        _ws.UpdateStatus(actor.Value, 2, new() { ID = sot ? (uint)SID.ShacklesOfTime : 0 });
                     }
                 }
                 else
@@ -137,14 +138,14 @@ namespace UIDev
                     bool red = actor.Value.Statuses[0].ID != 0 && actor.Value.Statuses[0].Extra == 0x4C;
                     if (ImGui.Checkbox($"Red aether##{actor.Value.InstanceID}", ref red))
                     {
-                        _ws.UpdateStatus(actor.Value, 0, new() { ID = red ? (uint)P1S.SID.AetherExplosion : 0, Extra = 0x4C });
+                        _ws.UpdateStatus(actor.Value, 0, new() { ID = red ? (uint)SID.AetherExplosion : 0, Extra = 0x4C });
                     }
 
                     ImGui.SameLine();
                     bool blue = actor.Value.Statuses[0].ID != 0 && actor.Value.Statuses[0].Extra == 0x4D;
                     if (ImGui.Checkbox($"Blue aether##{actor.Value.InstanceID}", ref blue))
                     {
-                        _ws.UpdateStatus(actor.Value, 0, new() { ID = blue ? (uint)P1S.SID.AetherExplosion : 0, Extra = 0x4D });
+                        _ws.UpdateStatus(actor.Value, 0, new() { ID = blue ? (uint)SID.AetherExplosion : 0, Extra = 0x4D });
                     }
                 }
             }

@@ -52,7 +52,13 @@ namespace UIDev
             {
                 _bossmod.Update();
                 _bossmod.Draw(_azimuth / 180 * MathF.PI, null);
-                ImGui.Text($"Downtime in: {_bossmod.StateMachine.EstimateTimeToNextDowntime():f2}, Positioning in: {_bossmod.StateMachine.EstimateTimeToNextPositioning():f2}");
+
+                ImGui.Text($"Downtime in: {_bossmod.StateMachine.EstimateTimeToNextDowntime():f2}, Positioning in: {_bossmod.StateMachine.EstimateTimeToNextPositioning():f2}, Components:");
+                foreach (var comp in _bossmod.Components)
+                {
+                    ImGui.SameLine();
+                    ImGui.Text(comp.GetType().Name);
+                }
             }
 
             DrawPartyTable();
@@ -195,7 +201,7 @@ namespace UIDev
             if (_bossmod == null)
                 return;
 
-            var oidType = _bossmod.GetType().GetNestedType("OID");
+            var oidType = _bossmod.GetType().Module.GetType($"{_bossmod.GetType().Namespace}.OID");
             foreach ((var oid, var list) in _bossmod.RelevantEnemies)
             {
                 var oidName = oidType?.GetEnumName(oid);
@@ -249,12 +255,18 @@ namespace UIDev
             if (t > _ws.CurrentTime)
             {
                 while (_cursor < _data.Ops.Count && t > _data.Ops[_cursor].Timestamp)
+                {
+                    _ws.CurrentTime = _data.Ops[_cursor].Timestamp;
                     _data.Ops[_cursor++].Redo(_ws);
+                }
             }
             else if (t < _ws.CurrentTime)
             {
                 while (_cursor > 0 && t <= _data.Ops[_cursor - 1].Timestamp)
+                {
+                    _ws.CurrentTime = _data.Ops[_cursor - 1].Timestamp;
                     _data.Ops[--_cursor].Undo(_ws);
+                }
             }
             _ws.CurrentTime = t;
         }

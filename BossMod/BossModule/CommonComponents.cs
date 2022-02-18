@@ -20,8 +20,6 @@ namespace BossMod
                 _watchedCastID = aid;
             }
 
-            public override void Reset() => NumCasts = 0;
-
             public override void OnEventCast(WorldState.CastResult info)
             {
                 if (info.Action == _watchedCastID)

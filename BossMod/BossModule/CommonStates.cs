@@ -33,6 +33,23 @@ namespace BossMod
             return state;
         }
 
+        // create state triggered by component condition (or timeout if it never happens); if component is not present, error is logged and transition is triggered immediately
+        public static StateMachine.State ComponentCondition<T>(ref StateMachine.State? link, float expected, BossModule module, Func<T, bool> condition, string name = "", float maxOverdue = 1, float checkDelay = 0) where T : BossModule.Component
+        {
+            var state = Simple(ref link, expected, name);
+            state.Update = (timeSinceTransition) =>
+            {
+                var comp = module.FindComponent<T>();
+                if (comp == null)
+                {
+                    Service.Log($"[StateMachine] Component {typeof(T)} needed for condition is missing");
+                    return state.Next;
+                }
+                return timeSinceTransition >= (expected + maxOverdue) || (timeSinceTransition >= checkDelay && condition(comp)) ? state.Next : null;
+            };
+            return state;
+        }
+
         // create state triggered by any cast start by a particular actor
         public static StateMachine.State CastStart(ref StateMachine.State? link, Func<WorldState.Actor?> actorAcc, float delay, string name = "", bool actorIsBoss = true)
         {
@@ -104,20 +121,12 @@ namespace BossMod
             return state;
         }
 
-        // create a chain of states: CastStart -> CastEnd (and optionally -> Timeout)
+        // create a chain of states: CastStart -> CastEnd
         public static StateMachine.State Cast<AID>(ref StateMachine.State? link, Func<WorldState.Actor?> actorAcc, AID id, float delay, float castTime, string name = "", bool actorIsBoss = true)
             where AID : Enum
         {
             var s = CastStart(ref link, actorAcc, id, delay, "", actorIsBoss);
             return CastEnd(ref s.Next, actorAcc, castTime, name, actorIsBoss);
-        }
-
-        public static StateMachine.State Cast<AID>(ref StateMachine.State? link, Func<WorldState.Actor?> actorAcc, AID id, float delay, float castTime, float resolve, string name = "", bool actorIsBoss = true)
-            where AID : Enum
-        {
-            var s = CastStart(ref link, actorAcc, id, delay, "", actorIsBoss);
-            s = CastEnd(ref s.Next, actorAcc, castTime, "", actorIsBoss);
-            return Timeout(ref s.Next, resolve, name);
         }
 
         // create a state triggered by a particular actor becoming (un)targetable; automatically sets downtime begin/end flag

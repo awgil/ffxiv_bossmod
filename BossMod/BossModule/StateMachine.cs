@@ -1,5 +1,6 @@
 ﻿using ImGuiNET;
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace BossMod
@@ -28,8 +29,8 @@ namespace BossMod
         {
             public string Name = ""; // if name is empty, state is "hidden" from UI
             public float Duration = 0; // estimated state duration
-            public Action? Enter = null; // callback executed when state is activated
-            public Action? Exit = null; // callback executed when state is deactivated; note that this can happen unexpectedly, e.g. due to external reset
+            public List<Action> Enter = new(); // callbacks executed when state is activated
+            public List<Action> Exit = new(); // callbacks executed when state is deactivated; note that this can happen unexpectedly, e.g. due to external reset
             public Func<float, State?>? Update = null; // callback executed every frame when state is active; should return target state for transition or null to remain in current state; argument = time since activation
 
             // fields below are used for visualization, autorotations, etc.
@@ -70,7 +71,8 @@ namespace BossMod
             {
                 if (_activeState != null)
                 {
-                    _activeState.Exit?.Invoke();
+                    foreach (var cb in _activeState.Exit)
+                        cb();
                     _isDowntime = (_isDowntime || _activeState.EndHint.HasFlag(StateHint.DowntimeStart)) && !_activeState.EndHint.HasFlag(StateHint.DowntimeEnd);
                     _isPositioning = (_isPositioning || _activeState.EndHint.HasFlag(StateHint.PositioningStart)) && !_activeState.EndHint.HasFlag(StateHint.PositioningEnd);
                 }
@@ -83,7 +85,8 @@ namespace BossMod
 
                 if (_activeState != null)
                 {
-                    _activeState.Enter?.Invoke();
+                    foreach (var cb in _activeState.Enter)
+                        cb();
                 }
                 else
                 {

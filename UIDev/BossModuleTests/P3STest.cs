@@ -1,4 +1,5 @@
 ﻿using BossMod;
+using BossMod.P3S;
 using ImGuiNET;
 using System;
 
@@ -17,35 +18,35 @@ namespace UIDev
         {
             _ws = new();
             _ws.CurrentTime = _prevFrame = DateTime.Now;
-            _ws.AddActor(1, 0, "T1", WorldState.ActorType.Player, Class.WAR, new(100, 0,  90, 0), 1, true);
+            _ws.AddActor(1, 0, "T1", WorldState.ActorType.Player, Class.WAR, new(100, 0, 90, 0), 1, true);
             _ws.AddActor(2, 0, "T2", WorldState.ActorType.Player, Class.PLD, new(100, 0, 110, 0), 1, true);
-            _ws.AddActor(3, 0, "H1", WorldState.ActorType.Player, Class.WHM, new( 90, 0,  90, 0), 1, true);
-            _ws.AddActor(4, 0, "H2", WorldState.ActorType.Player, Class.SGE, new( 92, 0,  90, 0), 1, true);
-            _ws.AddActor(5, 0, "R1", WorldState.ActorType.Player, Class.BLM, new( 94, 0,  90, 0), 1, true);
-            _ws.AddActor(6, 0, "R2", WorldState.ActorType.Player, Class.MCH, new( 90, 0,  92, 0), 1, true);
-            _ws.AddActor(7, 0, "M1", WorldState.ActorType.Player, Class.MNK, new( 92, 0,  92, 0), 1, true);
-            _ws.AddActor(8, 0, "M2", WorldState.ActorType.Player, Class.RPR, new( 94, 0,  92, 0), 1, true);
-            _ws.AddActor(9, (uint)P3S.OID.Boss, "Boss", WorldState.ActorType.Enemy, Class.None, new(100, 0, 100, 0), 1, true);
-            _ws.AddActor(10, (uint)P3S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(115, 0, 100, 0), 1, true);
-            _ws.AddActor(11, (uint)P3S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(85, 0, 100, MathF.PI / 3), 1, true);
-            _ws.AddActor(12, (uint)P3S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(110, 0, 110, 2 * MathF.PI / 3), 1, true);
-            _ws.AddActor(13, (uint)P3S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(90, 0, 90, MathF.PI), 1, true);
-            _ws.AddActor(14, (uint)P3S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(100, 0, 115, -MathF.PI / 3), 1, true);
-            _ws.AddActor(15, (uint)P3S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(100, 0, 85, -2 * MathF.PI / 3), 1, true);
-            _ws.AddActor(16, (uint)P3S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(90, 0, 110, 0), 1, true);
-            _ws.AddActor(17, (uint)P3S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(110, 0, 90, 0), 1, true);
-            _ws.AddActor(18, (uint)P3S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(100, 0, 100, 0), 1, true);
-            _ws.AddActor(19, (uint)P3S.OID.DarkblazeTwister, "Twister", WorldState.ActorType.Enemy, Class.None, new(114, 0, 108, -2 * MathF.PI / 3), 1, false);
-            _ws.AddActor(20, (uint)P3S.OID.DarkblazeTwister, "Twister", WorldState.ActorType.Enemy, Class.None, new(100, 0, 84, 0), 1, false);
-            _ws.AddActor(21, (uint)P3S.OID.DarkblazeTwister, "Twister", WorldState.ActorType.Enemy, Class.None, new(86, 0, 108, 2 * MathF.PI / 3), 1, false);
-            _ws.AddActor(22, (uint)P3S.OID.SunbirdLarge, "BirdLarge", WorldState.ActorType.Enemy, Class.None, new(110, 0, 100, 0), 1, true);
-            _ws.AddActor(23, (uint)P3S.OID.SunbirdLarge, "BirdLarge", WorldState.ActorType.Enemy, Class.None, new(90, 0, 100, 0), 1, true);
-            _ws.AddActor(24, (uint)P3S.OID.SunbirdLarge, "BirdLarge", WorldState.ActorType.Enemy, Class.None, new(100, 0, 110, 0), 1, true);
-            _ws.AddActor(25, (uint)P3S.OID.SunbirdLarge, "BirdLarge", WorldState.ActorType.Enemy, Class.None, new(100, 0, 90, 0), 1, true);
-            _ws.AddActor(26, (uint)P3S.OID.DarkenedFire, "Fire", WorldState.ActorType.Enemy, Class.None, new(94, 0, 94, 0), 1, true);
-            _ws.AddActor(27, (uint)P3S.OID.DarkenedFire, "Fire", WorldState.ActorType.Enemy, Class.None, new(106, 0, 94, 0), 1, true);
-            _ws.AddActor(28, (uint)P3S.OID.DarkenedFire, "Fire", WorldState.ActorType.Enemy, Class.None, new(94, 0, 106, 0), 1, true);
-            _ws.AddActor(29, (uint)P3S.OID.DarkenedFire, "Fire", WorldState.ActorType.Enemy, Class.None, new(106, 0, 106, 0), 1, true);
+            _ws.AddActor(3, 0, "H1", WorldState.ActorType.Player, Class.WHM, new(90, 0, 90, 0), 1, true);
+            _ws.AddActor(4, 0, "H2", WorldState.ActorType.Player, Class.SGE, new(92, 0, 90, 0), 1, true);
+            _ws.AddActor(5, 0, "R1", WorldState.ActorType.Player, Class.BLM, new(94, 0, 90, 0), 1, true);
+            _ws.AddActor(6, 0, "R2", WorldState.ActorType.Player, Class.MCH, new(90, 0, 92, 0), 1, true);
+            _ws.AddActor(7, 0, "M1", WorldState.ActorType.Player, Class.MNK, new(92, 0, 92, 0), 1, true);
+            _ws.AddActor(8, 0, "M2", WorldState.ActorType.Player, Class.RPR, new(94, 0, 92, 0), 1, true);
+            _ws.AddActor(9, (uint)OID.Boss, "Boss", WorldState.ActorType.Enemy, Class.None, new(100, 0, 100, 0), 1, true);
+            _ws.AddActor(10, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(115, 0, 100, 0), 1, true);
+            _ws.AddActor(11, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(85, 0, 100, MathF.PI / 3), 1, true);
+            _ws.AddActor(12, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(110, 0, 110, 2 * MathF.PI / 3), 1, true);
+            _ws.AddActor(13, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(90, 0, 90, MathF.PI), 1, true);
+            _ws.AddActor(14, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(100, 0, 115, -MathF.PI / 3), 1, true);
+            _ws.AddActor(15, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(100, 0, 85, -2 * MathF.PI / 3), 1, true);
+            _ws.AddActor(16, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(90, 0, 110, 0), 1, true);
+            _ws.AddActor(17, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(110, 0, 90, 0), 1, true);
+            _ws.AddActor(18, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(100, 0, 100, 0), 1, true);
+            _ws.AddActor(19, (uint)OID.DarkblazeTwister, "Twister", WorldState.ActorType.Enemy, Class.None, new(114, 0, 108, -2 * MathF.PI / 3), 1, false);
+            _ws.AddActor(20, (uint)OID.DarkblazeTwister, "Twister", WorldState.ActorType.Enemy, Class.None, new(100, 0, 84, 0), 1, false);
+            _ws.AddActor(21, (uint)OID.DarkblazeTwister, "Twister", WorldState.ActorType.Enemy, Class.None, new(86, 0, 108, 2 * MathF.PI / 3), 1, false);
+            _ws.AddActor(22, (uint)OID.SunbirdLarge, "BirdLarge", WorldState.ActorType.Enemy, Class.None, new(110, 0, 100, 0), 1, true);
+            _ws.AddActor(23, (uint)OID.SunbirdLarge, "BirdLarge", WorldState.ActorType.Enemy, Class.None, new(90, 0, 100, 0), 1, true);
+            _ws.AddActor(24, (uint)OID.SunbirdLarge, "BirdLarge", WorldState.ActorType.Enemy, Class.None, new(100, 0, 110, 0), 1, true);
+            _ws.AddActor(25, (uint)OID.SunbirdLarge, "BirdLarge", WorldState.ActorType.Enemy, Class.None, new(100, 0, 90, 0), 1, true);
+            _ws.AddActor(26, (uint)OID.DarkenedFire, "Fire", WorldState.ActorType.Enemy, Class.None, new(94, 0, 94, 0), 1, true);
+            _ws.AddActor(27, (uint)OID.DarkenedFire, "Fire", WorldState.ActorType.Enemy, Class.None, new(106, 0, 94, 0), 1, true);
+            _ws.AddActor(28, (uint)OID.DarkenedFire, "Fire", WorldState.ActorType.Enemy, Class.None, new(94, 0, 106, 0), 1, true);
+            _ws.AddActor(29, (uint)OID.DarkenedFire, "Fire", WorldState.ActorType.Enemy, Class.None, new(106, 0, 106, 0), 1, true);
             _ws.SetWaymark(WorldState.Waymark.N1, new(100, 0, 90));
             _ws.SetWaymark(WorldState.Waymark.N2, new(110, 0, 100));
             _ws.SetWaymark(WorldState.Waymark.N3, new(100, 0, 110));
@@ -116,10 +117,10 @@ namespace UIDev
                     }
 
                     ImGui.SameLine();
-                    bool heatTether = actor.Tether.ID == (uint)P3S.TetherID.HeatOfCondemnation;
+                    bool heatTether = actor.Tether.ID == (uint)TetherID.HeatOfCondemnation;
                     if (ImGui.Checkbox($"Heat tether##{actor.InstanceID}", ref heatTether))
                     {
-                        _ws.UpdateTether(actor, heatTether ? new WorldState.TetherInfo { ID = (uint)P3S.TetherID.HeatOfCondemnation, Target = 9 } : new());
+                        _ws.UpdateTether(actor, heatTether ? new WorldState.TetherInfo { ID = (uint)TetherID.HeatOfCondemnation, Target = 9 } : new());
                     }
 
                     ImGui.SameLine();
@@ -129,7 +130,7 @@ namespace UIDev
                         ++_numAssignedIcons;
                     }
                 }
-                else if (actor.OID == (uint)P3S.OID.Boss)
+                else if (actor.OID == (uint)OID.Boss)
                 {
                     if (actor.CastInfo != null)
                     {
@@ -144,25 +145,25 @@ namespace UIDev
                             _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = new(ActionType.Spell, 1) });
                         ImGui.SameLine();
                         if (ImGui.Button("WingL"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P3S.AID.LeftCinderwing) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.LeftCinderwing) });
                         ImGui.SameLine();
                         if (ImGui.Button("WingR"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P3S.AID.RightCinderwing) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.RightCinderwing) });
                         ImGui.SameLine();
                         if (ImGui.Button("AshSpread"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P3S.AID.ExperimentalAshplumeSpread) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.ExperimentalAshplumeSpread) });
                         ImGui.SameLine();
                         if (ImGui.Button("AshStack"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P3S.AID.ExperimentalAshplumeStack) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.ExperimentalAshplumeStack) });
                         ImGui.SameLine();
                         if (ImGui.Button("TrailC"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P3S.AID.TrailOfCondemnationCenter) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.TrailOfCondemnationCenter) });
                         ImGui.SameLine();
                         if (ImGui.Button("TrailS"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P3S.AID.TrailOfCondemnationSides) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.TrailOfCondemnationSides) });
                     }
                 }
-                else if (actor.OID == (uint)P3S.OID.Helper)
+                else if (actor.OID == (uint)OID.Helper)
                 {
                     if (actor.CastInfo != null)
                     {
@@ -174,22 +175,22 @@ namespace UIDev
                     {
                         ImGui.SameLine();
                         if (ImGui.Button($"PlumeMulti##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P3S.AID.ExperimentalFireplumeMultiAOE) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.ExperimentalFireplumeMultiAOE) });
                         ImGui.SameLine();
                         if (ImGui.Button($"PlumeSingle##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P3S.AID.ExperimentalFireplumeSingleAOE) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.ExperimentalFireplumeSingleAOE) });
                         ImGui.SameLine();
                         if (ImGui.Button($"Cone1##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P3S.AID.FlamesOfAsphodelosAOE1) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.FlamesOfAsphodelosAOE1) });
                         ImGui.SameLine();
                         if (ImGui.Button($"Cone2##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P3S.AID.FlamesOfAsphodelosAOE2) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.FlamesOfAsphodelosAOE2) });
                         ImGui.SameLine();
                         if (ImGui.Button($"Cone3##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P3S.AID.FlamesOfAsphodelosAOE3) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.FlamesOfAsphodelosAOE3) });
                     }
                 }
-                else if (actor.OID == (uint)P3S.OID.DarkblazeTwister)
+                else if (actor.OID == (uint)OID.DarkblazeTwister)
                 {
                     if (actor.CastInfo != null)
                     {
@@ -201,13 +202,13 @@ namespace UIDev
                     {
                         ImGui.SameLine();
                         if (ImGui.Button($"Knockback##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P3S.AID.DarkTwister) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.DarkTwister) });
                         ImGui.SameLine();
                         if (ImGui.Button($"AOE##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P3S.AID.BurningTwister) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.BurningTwister) });
                     }
                 }
-                else if (actor.OID == (uint)P3S.OID.SunbirdLarge)
+                else if (actor.OID == (uint)OID.SunbirdLarge)
                 {
                     ImGui.SameLine();
                     if (ImGui.Button($"Tether 1->2##{actor.InstanceID}"))

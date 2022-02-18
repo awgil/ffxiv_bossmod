@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod
 {
@@ -12,10 +8,10 @@ namespace BossMod
         {
             return zone switch {
                 993 => typeof(Zodiark),
-                1003 => typeof(P1S),
-                1005 => typeof(P2S),
-                1007 => typeof(P3S),
-                1009 => typeof(P4S),
+                1003 => typeof(P1S.P1S),
+                1005 => typeof(P2S.P2S),
+                1007 => typeof(P3S.P3S),
+                1009 => typeof(P4S.P4S),
                 _ => null,
             };
         }

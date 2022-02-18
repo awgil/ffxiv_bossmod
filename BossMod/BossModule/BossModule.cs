@@ -49,9 +49,9 @@ namespace BossMod
         }
 
         // different encounter mechanics can be split into independent components
+        // individual components should be activated and deactivated when needed (typically by state machine transitions)
         public class Component
         {
-            public virtual void Reset() { } // called when module is reset
             public virtual void Update() { } // called every frame - it is a good place to update any cached values
             public virtual void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints) { } // gather any relevant pieces of advice for specified raid member
             public virtual void DrawArenaBackground(MiniArena arena) { } // called at the beginning of arena draw, good place to draw aoe zones
@@ -70,27 +70,39 @@ namespace BossMod
             public virtual void OnEventEnvControl(uint featureID, byte index, uint state) { }
         }
         private List<Component> _components = new();
+        public IReadOnlyList<Component> Components => _components;
 
-        // register new component
-        protected T RegisterComponent<T>(T comp) where T : Component
+        protected T ActivateComponent<T>(T comp) where T : Component
         {
-            var existing = FindComponent<T>();
-            if (existing == null)
+            if (FindComponent<T>() != null)
             {
-                existing = comp;
-                _components.Add(comp);
+                Service.Log($"[BossModule] Activating a component of type {comp.GetType()} when another of the same type is already active; old one is deactivated automatically");
+                DeactivateComponent<T>();
             }
-            else
+            _components.Add(comp);
+            foreach (var actor in WorldState.Actors.Values)
             {
-                Service.Log($"Trying to register component {comp.GetType()} twice");
+                if (actor.CastInfo != null)
+                    comp.OnCastStarted(actor);
+                if (actor.Tether.ID != 0)
+                    comp.OnTethered(actor);
+                for (int i = 0; i < actor.Statuses.Length; ++i)
+                    if (actor.Statuses[i].ID != 0)
+                        comp.OnStatusGain(actor, i);
             }
-            return existing;
+            return comp;
         }
 
-        // find existing component by type
+        protected void DeactivateComponent<T>() where T : Component
+        {
+            int count = _components.RemoveAll(x => x is T);
+            if (count == 0)
+                Service.Log($"[BossModule] Could not find a component of type {typeof(T)} to deactivate");
+        }
+
         public T? FindComponent<T>() where T : Component
         {
-            return (T?)_components.Find(c => c is T);
+            return _components.OfType<T>().FirstOrDefault();
         }
 
         public BossModule(WorldState w, int maxRaidMembers)
@@ -145,9 +157,8 @@ namespace BossMod
 
         public virtual void Reset()
         {
+            _components.Clear();
             ResetModule();
-            foreach (var comp in _components)
-                comp.Reset();
         }
 
         public virtual void Update()
@@ -200,7 +211,7 @@ namespace BossMod
             return hints;
         }
 
-        // think where to put such utilities...
+        // TODO: move to some better place...
         public static Vector3 AdjustPositionForKnockback(Vector3 pos, WorldState.Actor? source, float distance)
         {
             if (source != null && source.Position != pos)

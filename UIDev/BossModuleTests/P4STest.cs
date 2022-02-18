@@ -1,4 +1,5 @@
 ﻿using BossMod;
+using BossMod.P4S;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -22,22 +23,22 @@ namespace UIDev
             _ws.CurrentTime = _prevFrame = DateTime.Now;
             _ws.AddActor(1, 0, "T1", WorldState.ActorType.Player, Class.WAR, new(105, 0, 100, 0), 1, true);
             _ws.AddActor(2, 0, "T2", WorldState.ActorType.Player, Class.PLD, new(100, 0, 105, 0), 1, true);
-            _ws.AddActor(3, 0, "H1", WorldState.ActorType.Player, Class.WHM, new(100, 0,  95, 0), 1, true);
-            _ws.AddActor(4, 0, "H2", WorldState.ActorType.Player, Class.SGE, new( 95, 0, 100, 0), 1, true);
+            _ws.AddActor(3, 0, "H1", WorldState.ActorType.Player, Class.WHM, new(100, 0, 95, 0), 1, true);
+            _ws.AddActor(4, 0, "H2", WorldState.ActorType.Player, Class.SGE, new(95, 0, 100, 0), 1, true);
             _ws.AddActor(5, 0, "R1", WorldState.ActorType.Player, Class.BLM, new(110, 0, 110, 0), 1, true);
-            _ws.AddActor(6, 0, "R2", WorldState.ActorType.Player, Class.MCH, new( 90, 0, 110, 0), 1, true);
-            _ws.AddActor(7, 0, "M1", WorldState.ActorType.Player, Class.MNK, new(110, 0,  90, 0), 1, true);
-            _ws.AddActor(8, 0, "M2", WorldState.ActorType.Player, Class.RPR, new( 90, 0,  90, 0), 1, true);
-            _ws.AddActor(9, (uint)P4S.OID.Boss1, "Boss1", WorldState.ActorType.Enemy, Class.None, new(100, 0, 100, 0), 1, true);
-            _ws.AddActor(10, (uint)P4S.OID.Boss2, "Boss2", WorldState.ActorType.Enemy, Class.None, new(100, 0, 100, 0), 1, true);
-            _ws.AddActor(11, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(90, 0, 90, 0), 1, true);
-            _ws.AddActor(12, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(110, 0, 90, 0), 1, true);
-            _ws.AddActor(13, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(90, 0, 110, 0), 1, true);
-            _ws.AddActor(14, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(110, 0, 110, 0), 1, true);
-            _ws.AddActor(15, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(94.34f, 0, 94.34f, 0), 1, true);
-            _ws.AddActor(16, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(94.34f, 0, 105.66f, 0), 1, true);
-            _ws.AddActor(17, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(105.66f, 0, 94.34f, 0), 1, true);
-            _ws.AddActor(18, (uint)P4S.OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(105.66f, 0, 105.66f, 0), 1, true);
+            _ws.AddActor(6, 0, "R2", WorldState.ActorType.Player, Class.MCH, new(90, 0, 110, 0), 1, true);
+            _ws.AddActor(7, 0, "M1", WorldState.ActorType.Player, Class.MNK, new(110, 0, 90, 0), 1, true);
+            _ws.AddActor(8, 0, "M2", WorldState.ActorType.Player, Class.RPR, new(90, 0, 90, 0), 1, true);
+            _ws.AddActor(9, (uint)OID.Boss1, "Boss1", WorldState.ActorType.Enemy, Class.None, new(100, 0, 100, 0), 1, true);
+            _ws.AddActor(10, (uint)OID.Boss2, "Boss2", WorldState.ActorType.Enemy, Class.None, new(100, 0, 100, 0), 1, true);
+            _ws.AddActor(11, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(90, 0, 90, 0), 1, true);
+            _ws.AddActor(12, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(110, 0, 90, 0), 1, true);
+            _ws.AddActor(13, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(90, 0, 110, 0), 1, true);
+            _ws.AddActor(14, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(110, 0, 110, 0), 1, true);
+            _ws.AddActor(15, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(94.34f, 0, 94.34f, 0), 1, true);
+            _ws.AddActor(16, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(94.34f, 0, 105.66f, 0), 1, true);
+            _ws.AddActor(17, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(105.66f, 0, 94.34f, 0), 1, true);
+            _ws.AddActor(18, (uint)OID.Helper, "Helper", WorldState.ActorType.Enemy, Class.None, new(105.66f, 0, 105.66f, 0), 1, true);
             _ws.PlayerActorID = 1;
             _o = new P4S(_ws);
         }
@@ -80,7 +81,7 @@ namespace UIDev
             {
                 if (phase1)
                 {
-                    boss1 = _ws.AddActor(9, (uint)P4S.OID.Boss1, "Boss1", WorldState.ActorType.Enemy, Class.None, new(100, 0, 100, 0), 1, true);
+                    boss1 = _ws.AddActor(9, (uint)OID.Boss1, "Boss1", WorldState.ActorType.Enemy, Class.None, new(100, 0, 100, 0), 1, true);
                 }
                 else
                 {
@@ -118,21 +119,21 @@ namespace UIDev
                         _ws.ChangeActorTarget(boss, isMT ? actor.InstanceID : 0);
 
                     ImGui.SameLine();
-                    bool bloodrakeTether = actor.Tether.ID == (uint)P4S.TetherID.Bloodrake;
+                    bool bloodrakeTether = actor.Tether.ID == (uint)TetherID.Bloodrake;
                     if (ImGui.Checkbox($"BloodrakeTether##{actor.InstanceID}", ref bloodrakeTether))
-                        _ws.UpdateTether(actor, new() { ID = bloodrakeTether ? (uint)P4S.TetherID.Bloodrake : 0, Target = boss.InstanceID });
+                        _ws.UpdateTether(actor, new() { ID = bloodrakeTether ? (uint)TetherID.Bloodrake : 0, Target = boss.InstanceID });
 
                     ImGui.SameLine();
-                    bool chlamysTether = actor.Tether.ID == (uint)P4S.TetherID.Chlamys;
+                    bool chlamysTether = actor.Tether.ID == (uint)TetherID.Chlamys;
                     if (ImGui.Checkbox($"ChlamysTether##{actor.InstanceID}", ref chlamysTether))
-                        _ws.UpdateTether(actor, new() { ID = chlamysTether ? (uint)P4S.TetherID.Chlamys : 0, Target = boss.InstanceID });
+                        _ws.UpdateTether(actor, new() { ID = chlamysTether ? (uint)TetherID.Chlamys : 0, Target = boss.InstanceID });
 
                     ImGui.SameLine();
-                    bool roleCall = actor.Statuses[0].ID == (uint)P4S.SID.RoleCall;
+                    bool roleCall = actor.Statuses[0].ID == (uint)SID.RoleCall;
                     if (ImGui.Checkbox($"RoleCall##{actor.InstanceID}", ref roleCall))
-                        _ws.UpdateStatus(actor, 0, new() { ID = roleCall ? (uint)P4S.SID.RoleCall : 0 });
+                        _ws.UpdateStatus(actor, 0, new() { ID = roleCall ? (uint)SID.RoleCall : 0 });
                 }
-                else if (actor.OID == (uint)P4S.OID.Boss1)
+                else if (actor.OID == (uint)OID.Boss1)
                 {
                     if (actor.CastInfo != null)
                     {
@@ -147,7 +148,7 @@ namespace UIDev
                             _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = new(ActionType.Spell, 1) });
                     }
                 }
-                else if (actor.OID == (uint)P4S.OID.Helper)
+                else if (actor.OID == (uint)OID.Helper)
                 {
                     if (actor.CastInfo != null)
                     {
@@ -159,22 +160,22 @@ namespace UIDev
                     {
                         ImGui.SameLine();
                         if (ImGui.Button($"PinaxA##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P4S.AID.PinaxAcid) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.PinaxAcid) });
                         ImGui.SameLine();
                         if (ImGui.Button($"PinaxF##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P4S.AID.PinaxLava) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.PinaxLava) });
                         ImGui.SameLine();
                         if (ImGui.Button($"PinaxW##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P4S.AID.PinaxWell) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.PinaxWell) });
                         ImGui.SameLine();
                         if (ImGui.Button($"PinaxL##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P4S.AID.PinaxLevinstrike) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.PinaxLevinstrike) });
                         ImGui.SameLine();
                         if (ImGui.Button($"BeloneCoilDPS##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P4S.AID.BeloneCoilsDPS) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.BeloneCoilsDPS) });
                         ImGui.SameLine();
                         if (ImGui.Button($"BeloneCoilTH##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(P4S.AID.BeloneCoilsTH) });
+                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.BeloneCoilsTH) });
                     }
                 }
             }
