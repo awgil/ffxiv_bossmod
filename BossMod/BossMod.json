@@ -2,7 +2,7 @@
   "Author": "veyn",
   "Name": "Boss Mod",
   "InternalName": "BossMod",
-  "Description": "A bunch of utilities to simplify bosses.",
+  "Description": "A bunch of utilities to simplify bosses. ***very early alpha, use at your own risk***",
   "ApplicableVersion": "any",
   "RepoUrl": "https://github.com/awgil/ffxiv_bossmod"
 }

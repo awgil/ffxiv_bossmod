@@ -62,7 +62,12 @@ namespace BossMod
 
         private bool UpdateRaidCooldown(Status status, float duration, float cooldown)
         {
-            _raidCooldowns[(status.SourceID, status.StatusId)] = DateTime.Now.AddSeconds(cooldown - duration + StatusDuration(status.RemainingTime));
+            uint source = status.SourceID;
+            var obj = Service.ObjectTable.SearchById(source);
+            if (obj != null && obj.OwnerId != 0 && obj.OwnerId != Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId)
+                source = obj.OwnerId;
+
+            _raidCooldowns[(source, status.StatusId)] = DateTime.Now.AddSeconds(cooldown - duration + StatusDuration(status.RemainingTime));
             return true;
         }
     }
