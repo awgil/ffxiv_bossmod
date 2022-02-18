@@ -212,11 +212,14 @@ namespace BossMod
         }
 
         // TODO: move to some better place...
+        public static Vector3 AdjustPositionForKnockback(Vector3 pos, Vector3 origin, float distance)
+        {
+            return pos != origin ? pos + distance * Vector3.Normalize(pos - origin) : pos;
+        }
+
         public static Vector3 AdjustPositionForKnockback(Vector3 pos, WorldState.Actor? source, float distance)
         {
-            if (source != null && source.Position != pos)
-                pos += distance * Vector3.Normalize(pos - source.Position);
-            return pos;
+            return source != null ? AdjustPositionForKnockback(pos, source.Position, distance) : pos;
         }
 
         protected virtual void ResetModule() { }

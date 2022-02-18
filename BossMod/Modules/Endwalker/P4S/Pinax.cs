@@ -56,7 +56,7 @@ namespace BossMod.P4S
                 {
                     hints.Add("GTFO from water square!");
                 }
-                if (!_module.Arena.InBounds(AdjustPositionForKnockback(actor.Position, _water, _knockbackRadius)))
+                if (!_module.Arena.InBounds(AdjustPositionForKnockback(actor.Position, _module.Arena.WorldCenter, _knockbackRadius)))
                 {
                     hints.Add("About to be knocked into wall!");
                 }
@@ -124,7 +124,7 @@ namespace BossMod.P4S
             }
             if (_water != null)
             {
-                var adjPos = AdjustPositionForKnockback(pc.Position, _module.Boss1(), _knockbackRadius);
+                var adjPos = AdjustPositionForKnockback(pc.Position, _module.Arena.WorldCenter, _knockbackRadius);
                 if (adjPos != pc.Position)
                 {
                     arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
