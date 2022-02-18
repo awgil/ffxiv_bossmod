@@ -98,7 +98,7 @@ namespace BossMod
                         {
                             UpdateStatus(act, i, new());
                         }
-                        else if (s.StatusId != act.Statuses[i].ID || s.SourceID != act.Statuses[i].SourceID || StatusExtra(s) != act.Statuses[i].Extra || s.RemainingTime > prevDurations[i])
+                        else if (s.StatusId != act.Statuses[i].ID || s.SourceID != act.Statuses[i].SourceID || StatusExtra(s) != act.Statuses[i].Extra || s.RemainingTime > prevDurations[i] + 1)
                         {
                             Status status = new();
                             status.ID = s.StatusId;

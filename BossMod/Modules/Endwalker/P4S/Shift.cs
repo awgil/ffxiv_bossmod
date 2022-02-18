@@ -12,7 +12,7 @@ namespace BossMod.P4S
         private bool _isSword;
 
         private static float _coneHalfAngle = MathF.PI / 3; // not sure about this...
-        private static float _knockbackRange = 20; // TODO: find out real value
+        private static float _knockbackRange = 30;
 
         public Shift(P4S module)
         {

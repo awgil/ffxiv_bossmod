@@ -34,10 +34,7 @@ namespace BossMod.P4S
                 {
                     hints.Add("GTFO from acid square!");
                 }
-                if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _acidAOERadius).Any())
-                {
-                    hints.Add("Spread!");
-                }
+                hints.Add("Spread!", _module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _acidAOERadius).Any());
             }
             if (_fire != null)
             {
@@ -45,10 +42,7 @@ namespace BossMod.P4S
                 {
                     hints.Add("GTFO from fire square!");
                 }
-                if (_module.RaidMembers.WithoutSlot().Where(x => x.Role == Role.Healer).InRadius(actor.Position, _fireAOERadius).Count() != 1)
-                {
-                    hints.Add("Stack in fours!");
-                }
+                hints.Add("Stack in fours!", _module.RaidMembers.WithoutSlot().Where(x => x.Role == Role.Healer).InRadius(actor.Position, _fireAOERadius).Count() != 1);
             }
             if (_water != null)
             {
@@ -67,10 +61,7 @@ namespace BossMod.P4S
                 {
                     hints.Add("GTFO from lighting square!");
                 }
-                if (GeometryUtils.PointInRect(actor.Position - _module.Arena.WorldCenter, Vector3.UnitX, _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance))
-                {
-                    hints.Add("GTFO from center!");
-                }
+                hints.Add("GTFO from center!", GeometryUtils.PointInRect(actor.Position - _module.Arena.WorldCenter, Vector3.UnitX, _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance));
             }
         }
 

@@ -35,16 +35,6 @@ namespace BossMod.P4S
             _boss1 = Enemies(OID.Boss1);
             _boss2 = Enemies(OID.Boss2);
 
-            //RegisterComponent(new NearFarSight(this));
-            //RegisterComponent(new HeartStake());
-            //RegisterComponent(new HellsSting(this));
-            //RegisterComponent(new WreathOfThorns1(this));
-            //RegisterComponent(new WreathOfThorns2(this));
-            //RegisterComponent(new WreathOfThorns3(this));
-            //RegisterComponent(new WreathOfThorns4(this));
-            //RegisterComponent(new WreathOfThorns5(this));
-            //RegisterComponent(new CurtainCall(this));
-
             StateMachine.State? p1 = null, p2 = null;
             Phase1(ref p1);
             Phase2(ref p2);
@@ -137,14 +127,36 @@ namespace BossMod.P4S
         private StateMachine.State Pinax(ref StateMachine.State? link, float delay, bool activateElementalBelone)
         {
             var setting = CommonStates.Cast(ref link, Boss1, AID.SettingTheScene, delay, 4, "Scene");
+            setting.Exit.Add(() => ActivateComponent(new PinaxUptime(this)));
             setting.EndHint |= StateMachine.StateHint.GroupWithNext;
             // ~1s after cast end, we get a bunch of env controls 8003759C, state=00020001
             // what I've seen so far:
             // 1. WF arrangement: indices 1, 2, 3, 4, 5, 10, 15, 20
             //    AL
-            // index 5 corresponds to NE fire, index 10 corresponds to SE lighting, index 15 corresponds to SW acid, index 20 corresponds to NW water
+            // 2. FW arrangement: indices 1, 2, 3, 4, 8, 11, 14, 17
+            //    LA
+            // 2. WL arrangement: indices 1, 2, 3, 4, 6, 9, 15, 20
+            //    AF
+            // so indices are the following:
+            //  5 => NE fire
+            //  6 => SE fire
+            //  7 => SW fire?
+            //  8 => NW fire
+            //  9 => NE lighting
+            // 10 => SE lighting
+            // 11 => SW lighting
+            // 12 => NW lighting?
+            // 13 => NE acid?
+            // 14 => SE acid
+            // 15 => SW acid
+            // 16 => NW acid?
+            // 17 => NE water
+            // 18 => SE water?
+            // 19 => SW water?
+            // 20 => NW water
 
             var pinax = CommonStates.Cast(ref setting.Next, Boss1, AID.Pinax, 8.2f, 5, "Pinax");
+            pinax.Exit.Add(DeactivateComponent<PinaxUptime>);
             pinax.Exit.Add(() => ActivateComponent(new Pinax(this)));
             if (activateElementalBelone)
                 pinax.Exit.Add(() => ActivateComponent(new ElementalBelone(this))); // it will watch for pinax casts to determine elemental => corner assignments during first pinax
