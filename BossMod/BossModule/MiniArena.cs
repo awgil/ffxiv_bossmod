@@ -15,8 +15,9 @@ namespace BossMod
         public bool IsCircle = false;
         public Vector3 WorldCenter = new(100, 0, 100);
         public float WorldHalfSize = 20;
-        public float ScreenHalfSize = 150;
-        public float ScreenMarginSize = 20;
+        public float ScreenScale = 1;
+        public float ScreenHalfSize => 150 * ScreenScale;
+        public float ScreenMarginSize => 20 * ScreenScale;
 
         // these are set at the beginning of each draw
         public Vector2 ScreenCenter { get; private set; } = new();
@@ -77,7 +78,9 @@ namespace BossMod
                 _clipPolygon.Add(WorldPositionToScreenPosition(WorldSW));
             }
 
-            ImGui.GetWindowDrawList().PushClipRect(cursor, cursor + fullSize);
+            var wmin = ImGui.GetWindowPos();
+            var wmax = wmin + ImGui.GetWindowSize();
+            ImGui.GetWindowDrawList().PushClipRect(Vector2.Max(cursor, wmin), Vector2.Min(cursor + fullSize, wmax));
         }
 
         // if you are 100% sure your primitive does not need clipping, you can use drawlist api directly

@@ -169,25 +169,33 @@ namespace BossMod
                 comp.Update();
         }
 
-        public virtual void Draw(float cameraAzimuth, MovementHints? pcMovementHints)
+        public virtual void Draw(float cameraAzimuth, MovementHints? pcMovementHints, float arenaScale = 1, bool onlyArena = false)
         {
-            StateMachine.Draw();
-            DrawHintForPlayer(pcMovementHints);
+            if (!onlyArena)
+            {
+                StateMachine.Draw();
+                DrawHintForPlayer(pcMovementHints);
+            }
+
+            Arena.ScreenScale = arenaScale;
             Arena.Begin(cameraAzimuth);
             DrawArena();
             Arena.End();
 
-            if (ImGui.Button("Show timeline"))
+            if (!onlyArena)
             {
-                var timeline = new StateMachineVisualizer(InitialState);
-                var w = WindowManager.CreateWindow($"{GetType()} Timeline", () => timeline.Draw(StateMachine), () => { });
-                w.SizeHint = new(600, 600);
-                w.MinSize = new(100, 100);
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Force transition") && StateMachine.ActiveState?.Next != null)
-            {
-                StateMachine.ActiveState = StateMachine.ActiveState.Next;
+                if (ImGui.Button("Show timeline"))
+                {
+                    var timeline = new StateMachineVisualizer(InitialState);
+                    var w = WindowManager.CreateWindow($"{GetType()} Timeline", () => timeline.Draw(StateMachine), () => { });
+                    w.SizeHint = new(600, 600);
+                    w.MinSize = new(100, 100);
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Force transition") && StateMachine.ActiveState?.Next != null)
+                {
+                    StateMachine.ActiveState = StateMachine.ActiveState.Next;
+                }
             }
         }
 

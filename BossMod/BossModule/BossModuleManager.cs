@@ -11,13 +11,18 @@ namespace BossMod
     {
         public class BossModuleConfig : ConfigNode
         {
+            public float ArenaScale = 1;
             public bool RotateArena = true;
+            public bool TrishaMode = false;
             public bool ShowRaidWarnings = true;
             public bool ShowWorldArrows = false;
 
             protected override void DrawContents()
             {
+                if (ImGui.DragFloat("Arena scale factor", ref ArenaScale, 0.1f, 0.1f, 10, "%.1f", ImGuiSliderFlags.Logarithmic))
+                    Save();
                 DrawProperty(ref RotateArena, "Rotate map to match camera orientation");
+                DrawProperty(ref TrishaMode, "Trisha mode: show only arena without hints and with transparent background");
                 DrawProperty(ref ShowRaidWarnings, "Show warnings for all raid members");
                 DrawProperty(ref ShowWorldArrows, "Show movement hints in world");
             }
@@ -68,6 +73,13 @@ namespace BossMod
             {
                 TryExec(_activeModule.Update);
             }
+
+            if (_mainWindow != null)
+            {
+                _mainWindow.Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
+                if (_config.TrishaMode)
+                    _mainWindow.Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
+            }
         }
 
         public void ActivateModuleForZone(ushort zone)
@@ -92,7 +104,7 @@ namespace BossMod
         private void DrawMainWindow()
         {
             BossModule.MovementHints? movementHints = _config.ShowWorldArrows ? new() : null;
-            _activeModule?.Draw(_config.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, movementHints);
+            _activeModule?.Draw(_config.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, movementHints, _config.ArenaScale, _config.TrishaMode);
             DrawMovementHints(movementHints);
         }
 
