@@ -94,26 +94,27 @@ namespace BossMod
                     for (int i = 0; i < chara.StatusList.Length; ++i)
                     {
                         var s = chara.StatusList[i];
+                        var dur = Math.Clamp(s?.RemainingTime ?? 0, 0, 100000);
                         if (s == null)
                         {
                             UpdateStatus(act, i, new());
                         }
-                        else if (s.StatusId != act.Statuses[i].ID || s.SourceID != act.Statuses[i].SourceID || StatusExtra(s) != act.Statuses[i].Extra || s.RemainingTime > prevDurations[i] + 1)
+                        else if (s.StatusId != act.Statuses[i].ID || s.SourceID != act.Statuses[i].SourceID || StatusExtra(s) != act.Statuses[i].Extra || dur > prevDurations[i] + 1)
                         {
                             Status status = new();
                             status.ID = s.StatusId;
                             status.SourceID = s.SourceID;
                             status.Extra = StatusExtra(s);
-                            status.ExpireAt = CurrentTime.AddSeconds(s.RemainingTime);
+                            status.ExpireAt = CurrentTime.AddSeconds(dur);
                             UpdateStatus(act, i, status);
                         }
-                        else if (s.RemainingTime > prevDurations[i])
+                        else if (dur > prevDurations[i])
                         {
                             Service.Log($"[WSG] Slight status duration update: {Utils.StatusString(s.StatusId)} ({StatusExtra(s):X4}) {prevDurations[i]:f3} -> {s.RemainingTime:f3}");
                         }
                         // note: some statuses have non-zero remaining time but never tick down (e.g. FC buffs)
                         // currently we ignore that fact, to avoid log spam...
-                        prevDurations[i] = s?.RemainingTime ?? 0;
+                        prevDurations[i] = dur;
                     }
                 }
             }
