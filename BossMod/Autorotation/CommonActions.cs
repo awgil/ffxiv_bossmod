@@ -68,11 +68,18 @@ namespace BossMod
         {
             uint source = status.SourceID;
             var obj = Service.ObjectTable.SearchById(source);
-            if (obj != null && obj.OwnerId != 0 && obj.OwnerId != Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId)
+            if (obj == null)
+                return true;
+
+            if (obj.OwnerId != 0 && obj.OwnerId != Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId)
                 source = obj.OwnerId;
 
-            _raidCooldowns[(source, status.StatusId)] = DateTime.Now.AddSeconds(cooldown - duration + StatusDuration(status.RemainingTime));
-            Service.Log($"[RaidCD] Update {Utils.StatusString(status.StatusId)} from {Utils.ObjectString(source)}: dur={duration:f3}, cd={cooldown:f3}; now have {_raidCooldowns.Count} entries");
+            var expiration = DateTime.Now.AddSeconds(cooldown - duration + StatusDuration(status.RemainingTime));
+            if ((expiration - _raidCooldowns.GetValueOrDefault((source, status.StatusId))).TotalSeconds > 2)
+            {
+                _raidCooldowns[(source, status.StatusId)] = expiration;
+                Service.Log($"[RaidCD] Update {Utils.StatusString(status.StatusId)} from {Utils.ObjectString(source)}: remain={status.RemainingTime:f3}, cd={cooldown:f3}; now have {_raidCooldowns.Count} entries");
+            }
             return true;
         }
     }

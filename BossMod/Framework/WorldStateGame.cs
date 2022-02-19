@@ -93,6 +93,9 @@ namespace BossMod
                     var prevDurations = _prevStatusDurations[obj.ObjectId];
                     for (int i = 0; i < chara.StatusList.Length; ++i)
                     {
+                        // note: some statuses have non-zero remaining time but never tick down (e.g. FC buffs); currently we ignore that fact, to avoid log spam...
+                        // note: RemainingTime is not monotonously decreasing (I assume because it is really calculated by game and frametime fluctuates...), we ignore 'slight' duration increases (<1 sec)
+                        // note: sometimes (Ocean Fishing) remaining-time is weird (I assume too large?) and causes exception in AddSeconds - so we just clamp it to some reasonable range
                         var s = chara.StatusList[i];
                         var dur = Math.Clamp(s?.RemainingTime ?? 0, 0, 100000);
                         if (s == null)
@@ -108,12 +111,6 @@ namespace BossMod
                             status.ExpireAt = CurrentTime.AddSeconds(dur);
                             UpdateStatus(act, i, status);
                         }
-                        else if (dur > prevDurations[i])
-                        {
-                            Service.Log($"[WSG] Slight status duration update: {Utils.StatusString(s.StatusId)} ({StatusExtra(s):X4}) {prevDurations[i]:f3} -> {s.RemainingTime:f3}");
-                        }
-                        // note: some statuses have non-zero remaining time but never tick down (e.g. FC buffs)
-                        // currently we ignore that fact, to avoid log spam...
                         prevDurations[i] = dur;
                     }
                 }
