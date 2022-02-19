@@ -180,7 +180,7 @@ namespace BossMod
 
         private void ActorCreated(object? sender, WorldState.Actor actor)
         {
-            Log("ACT+", $"{Actor(actor)}|{actor.Class}|{actor.IsTargetable}|{actor.HitboxRadius:f3}");
+            Log("ACT+", $"{Actor(actor)}|{actor.Class}|{actor.IsTargetable}|{actor.HitboxRadius:f3}|{Actor(actor.OwnerID)}");
         }
 
         private void ActorDestroyed(object? sender, WorldState.Actor actor)

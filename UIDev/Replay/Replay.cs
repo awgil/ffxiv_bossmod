@@ -97,10 +97,11 @@ namespace UIDev
             public Vector4 PosRot;
             public float HitboxRadius;
             public bool IsTargetable;
+            public uint OwnerID;
 
             public override void Redo(WorldState ws)
             {
-                ws.AddActor(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, IsTargetable);
+                ws.AddActor(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, IsTargetable, OwnerID);
             }
 
             public override void Undo(WorldState ws)
@@ -119,6 +120,7 @@ namespace UIDev
             private Vector4 PosRot;
             private float HitboxRadius;
             private bool IsTargetable;
+            private uint OwnerID;
 
             public override void Redo(WorldState ws)
             {
@@ -130,12 +132,13 @@ namespace UIDev
                 PosRot = actor?.PosRot ?? new();
                 HitboxRadius = actor?.HitboxRadius ?? 0;
                 IsTargetable = actor?.IsTargetable ?? false;
+                OwnerID = actor?.OwnerID ?? 0;
                 ws.RemoveActor(InstanceID);
             }
 
             public override void Undo(WorldState ws)
             {
-                ws.AddActor(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, IsTargetable);
+                ws.AddActor(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, IsTargetable, OwnerID);
             }
         }
 

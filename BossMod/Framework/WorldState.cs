@@ -130,6 +130,7 @@ namespace BossMod
             public bool IsDestroyed; // set to true when actor is removed from world; object might still be alive because of other references
             public bool IsTargetable;
             public bool IsDead;
+            public uint OwnerID; // uuid of owner, for pets and similar
             public uint TargetID;
             public CastInfo? CastInfo;
             public TetherInfo Tether = new();
@@ -139,7 +140,7 @@ namespace BossMod
             public Vector3 Position => new(PosRot.X, PosRot.Y, PosRot.Z);
             public float Rotation => PosRot.W;
 
-            public Actor(uint instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius, bool targetable)
+            public Actor(uint instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius, bool targetable, uint ownerID)
             {
                 InstanceID = instanceID;
                 OID = oid;
@@ -149,6 +150,7 @@ namespace BossMod
                 PosRot = posRot;
                 HitboxRadius = hitboxRadius;
                 IsTargetable = targetable;
+                OwnerID = ownerID;
             }
 
             public Status? FindStatus(uint sid)
@@ -170,9 +172,9 @@ namespace BossMod
         }
 
         public event EventHandler<Actor>? ActorCreated;
-        public Actor AddActor(uint instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius, bool targetable)
+        public Actor AddActor(uint instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, bool targetable = true, uint ownerID = 0)
         {
-            var act = _actors[instanceID] = new Actor(instanceID, oid, name, type, classID, posRot, hitboxRadius, targetable);
+            var act = _actors[instanceID] = new Actor(instanceID, oid, name, type, classID, posRot, hitboxRadius, targetable, ownerID);
             ActorCreated?.Invoke(this, act);
             return act;
         }

@@ -118,6 +118,7 @@ namespace UIDev
             res.PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]) * MathF.PI / 180);
             res.IsTargetable = bool.Parse(payload[4]);
             res.HitboxRadius = float.Parse(payload[5]);
+            res.OwnerID = payload.Length > 6 ? ActorID(payload[6]) : 0;
             return res;
         }
 

@@ -63,7 +63,7 @@ namespace BossMod
                 var act = FindActor(obj.ObjectId);
                 if (act == null)
                 {
-                    act = AddActor(obj.ObjectId, obj.DataId, obj.Name.TextValue, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), classID, new(obj.Position, obj.Rotation), obj.HitboxRadius, Utils.GameObjectIsTargetable(obj));
+                    act = AddActor(obj.ObjectId, obj.DataId, obj.Name.TextValue, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), classID, new(obj.Position, obj.Rotation), obj.HitboxRadius, Utils.GameObjectIsTargetable(obj), SanitizedObjectID(obj.OwnerId));
                     _prevStatusDurations[obj.ObjectId] = new float[30];
                 }
                 else
@@ -73,7 +73,7 @@ namespace BossMod
                     MoveActor(act, new(obj.Position, obj.Rotation));
                     ChangeActorIsTargetable(act, Utils.GameObjectIsTargetable(obj));
                 }
-                ChangeActorTarget(act, obj.TargetObjectId);
+                ChangeActorTarget(act, SanitizedObjectID(obj.TargetObjectId));
                 ChangeActorIsDead(act, Utils.GameObjectIsDead(obj));
 
                 var chara = obj as BattleChara;
@@ -83,7 +83,7 @@ namespace BossMod
                         ? new CastInfo
                         {
                             Action = new((ActionType)chara.CastActionType, chara.CastActionId),
-                            TargetID = chara.CastTargetObjectId,
+                            TargetID = SanitizedObjectID(chara.CastTargetObjectId),
                             Location = Utils.BattleCharaCastLocation(chara),
                             TotalTime = chara.TotalCastTime,
                             FinishAt = CurrentTime.AddSeconds(chara.CurrentCastTime)
@@ -98,15 +98,16 @@ namespace BossMod
                         // note: sometimes (Ocean Fishing) remaining-time is weird (I assume too large?) and causes exception in AddSeconds - so we just clamp it to some reasonable range
                         var s = chara.StatusList[i];
                         var dur = Math.Clamp(s?.RemainingTime ?? 0, 0, 100000);
+                        var srcID = SanitizedObjectID(s?.SourceID ?? 0);
                         if (s == null)
                         {
                             UpdateStatus(act, i, new());
                         }
-                        else if (s.StatusId != act.Statuses[i].ID || s.SourceID != act.Statuses[i].SourceID || StatusExtra(s) != act.Statuses[i].Extra || dur > prevDurations[i] + 1)
+                        else if (s.StatusId != act.Statuses[i].ID || srcID != act.Statuses[i].SourceID || StatusExtra(s) != act.Statuses[i].Extra || dur > prevDurations[i] + 1)
                         {
                             Status status = new();
                             status.ID = s.StatusId;
-                            status.SourceID = s.SourceID;
+                            status.SourceID = srcID;
                             status.Extra = StatusExtra(s);
                             status.ExpireAt = CurrentTime.AddSeconds(dur);
                             UpdateStatus(act, i, status);
@@ -118,6 +119,7 @@ namespace BossMod
         }
 
         private ushort StatusExtra(Dalamud.Game.ClientState.Statuses.Status s) => (ushort)((s.Param << 8) | s.StackCount);
+        private uint SanitizedObjectID(uint raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;
 
         private void OnNetworkActionEffect(object? sender, CastResult info) => DispatchEventCast(info);
         private void OnNetworkActorControlTargetIcon(object? sender, (uint actorID, uint iconID) args) => DispatchEventIcon(args);
