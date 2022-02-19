@@ -22,7 +22,7 @@ namespace BossMod.P3S
         {
             bool haveTooClose = false;
             int numInRange = 0;
-            foreach (var player in _module.RaidMembers.WithoutSlot().Where(player => CanBothBeTargets(player, actor)))
+            foreach (var player in _module.Raid.WithoutSlot().Where(player => CanBothBeTargets(player, actor)))
             {
                 var distance = player.Position - actor.Position;
                 haveTooClose |= GeometryUtils.PointInCircle(distance, _minRange);
@@ -48,7 +48,7 @@ namespace BossMod.P3S
 
             // draw other potential targets, to simplify positioning
             bool healerOrTank = pc.Role == Role.Tank || pc.Role == Role.Healer;
-            foreach (var player in _module.RaidMembers.WithoutSlot().Where(player => CanBothBeTargets(player, pc)))
+            foreach (var player in _module.Raid.WithoutSlot().Where(player => CanBothBeTargets(player, pc)))
             {
                 var distance = player.Position - pc.Position;
                 bool tooClose = GeometryUtils.PointInCircle(distance, _minRange);

@@ -30,7 +30,7 @@ namespace BossMod.P3S
             if (_sources.Count == 0)
                 return;
 
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
             {
                 _playerDeathTollStacks[i] = player.FindStatus((uint)SID.DeathsToll)?.Extra ?? 0; // TODO: use status events here...
                 _playerAOECount[i] = _sources.Where(srcRot => GeometryUtils.PointInCone(player.Position - srcRot.Item1.Position, srcRot.Item2, _coneHalfAngle)).Count();
@@ -65,10 +65,10 @@ namespace BossMod.P3S
                 return;
 
             // draw all players
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
                 arena.Actor(player, _playerAOECount[i] != _playerDeathTollStacks[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
-            var eyePos = GetEyePlacementPosition(_module.PlayerSlot, pc);
+            var eyePos = GetEyePlacementPosition(_module.Raid.PlayerSlot, pc);
             if (eyePos != null)
                 arena.AddCircle(eyePos.Value, 1, arena.ColorSafe);
         }

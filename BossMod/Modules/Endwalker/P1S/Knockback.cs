@@ -64,7 +64,7 @@ namespace BossMod.P1S
                     {
                         hints.Add("GTFO from co-tank!");
                     }
-                    if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, aoeRange).Count() < 7)
+                    if (_module.Raid.WithoutSlot().InRadiusExcluding(actor, aoeRange).Count() < 7)
                     {
                         hints.Add("Stack with raid!");
                     }
@@ -76,7 +76,7 @@ namespace BossMod.P1S
                     {
                         hints.Add("Press invul!");
                     }
-                    if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, aoeRange).Any())
+                    if (_module.Raid.WithoutSlot().InRadiusExcluding(actor, aoeRange).Any())
                     {
                         hints.Add("GTFO from raid!");
                     }
@@ -131,7 +131,7 @@ namespace BossMod.P1S
             if (target == pc)
             {
                 // there will be AOE around me, draw all players to help with positioning - note that we use position adjusted for knockback
-                foreach (var player in _module.RaidMembers.WithoutSlot())
+                foreach (var player in _module.Raid.WithoutSlot())
                     arena.Actor(player, GeometryUtils.PointInCircle(player.Position - targetPos, aoeRange) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
             else

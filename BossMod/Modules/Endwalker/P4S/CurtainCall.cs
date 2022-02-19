@@ -29,7 +29,7 @@ namespace BossMod.P4S
         public override void DrawArenaForeground(MiniArena arena)
         {
             var pc = _module.Player();
-            if (_playerOrder[_module.PlayerSlot] > _numCasts && pc != null)
+            if (_playerOrder[_module.Raid.PlayerSlot] > _numCasts && pc != null)
             {
                 var tetherTarget = pc.Tether.Target != 0 ? _module.WorldState.FindActor(pc.Tether.Target) : null;
                 if (tetherTarget != null)
@@ -41,7 +41,7 @@ namespace BossMod.P4S
         {
             if (actor.Statuses[index].ID == (uint)SID.Thornpricked)
             {
-                int slot = _module.RaidMembers.FindSlot(actor.InstanceID);
+                int slot = _module.Raid.FindSlot(actor.InstanceID);
                 if (slot >= 0)
                 {
                     _playerOrder[slot] = 2 * (int)((actor.Statuses[index].ExpireAt - _module.WorldState.CurrentTime).TotalSeconds / 10); // 2/4/6/8

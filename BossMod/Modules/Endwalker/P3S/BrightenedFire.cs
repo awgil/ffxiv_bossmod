@@ -45,10 +45,10 @@ namespace BossMod.P3S
         public override void DrawArenaForeground(MiniArena arena)
         {
             var pc = _module.Player();
-            if (pc == null || _playerOrder[_module.PlayerSlot] <= NumCasts)
+            if (pc == null || _playerOrder[_module.Raid.PlayerSlot] <= NumCasts)
                 return;
 
-            var pos = PositionForOrder(_playerOrder[_module.PlayerSlot]);
+            var pos = PositionForOrder(_playerOrder[_module.Raid.PlayerSlot]);
             arena.AddCircle(pos, 1, arena.ColorSafe);
 
             // draw all adds
@@ -66,7 +66,7 @@ namespace BossMod.P3S
         {
             if (iconID >= 268 && iconID <= 275)
             {
-                int slot = _module.RaidMembers.FindSlot(actorID);
+                int slot = _module.Raid.FindSlot(actorID);
                 if (slot >= 0)
                     _playerOrder[slot] = (int)iconID - 267;
             }

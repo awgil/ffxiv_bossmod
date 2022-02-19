@@ -22,10 +22,10 @@ namespace BossMod.P3S
         public override void Update()
         {
             _tetherTargets = _inAnyAOE = 0;
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot().Tethered(TetherID.HeatOfCondemnation))
+            foreach ((int i, var player) in _module.Raid.WithSlot().Tethered(TetherID.HeatOfCondemnation))
             {
                 BitVector.SetVector64Bit(ref _tetherTargets, i);
-                _inAnyAOE |= _module.RaidMembers.WithSlot().InRadiusExcluding(player, _aoeRange).Mask();
+                _inAnyAOE |= _module.Raid.WithSlot().InRadiusExcluding(player, _aoeRange).Mask();
             }
         }
 
@@ -37,7 +37,7 @@ namespace BossMod.P3S
                 {
                     hints.Add("Grab the tether!");
                 }
-                else if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _aoeRange).Any())
+                else if (_module.Raid.WithoutSlot().InRadiusExcluding(actor, _aoeRange).Any())
                 {
                     hints.Add("GTFO from raid!");
                 }
@@ -63,7 +63,7 @@ namespace BossMod.P3S
                 return;
 
             // currently we always show tethered targets with circles, and if pc is a tank, also untethered players
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
             {
                 if (player.Tether.ID == (uint)TetherID.HeatOfCondemnation)
                 {

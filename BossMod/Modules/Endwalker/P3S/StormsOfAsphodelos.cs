@@ -38,14 +38,14 @@ namespace BossMod.P3S
             // we determine failing players, trying to take two reasonable tactics in account:
             // either two tanks immune and soak everything, or each player is hit by one mechanic
             // for now, we consider tether target to be a "tank"
-            int[] aoesPerPlayer = new int[_module.RaidMembers.Length];
+            int[] aoesPerPlayer = new int[_module.Raid.Members.Length];
 
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot(true).WhereActor(x => x.Tether.Target == boss.InstanceID))
+            foreach ((int i, var player) in _module.Raid.WithSlot(true).WhereActor(x => x.Tether.Target == boss.InstanceID))
             {
                 BitVector.SetVector64Bit(ref _tetherTargets, i);
 
                 ++aoesPerPlayer[i];
-                foreach ((int j, var other) in _module.RaidMembers.WithSlot().InRadiusExcluding(player, _beaconRadius))
+                foreach ((int j, var other) in _module.Raid.WithSlot().InRadiusExcluding(player, _beaconRadius))
                 {
                     ++aoesPerPlayer[j];
                     BitVector.SetVector64Bit(ref _closeToTetherTarget, j);
@@ -53,7 +53,7 @@ namespace BossMod.P3S
             }
 
             float cosHalfAngle = MathF.Cos(_coneHalfAngle);
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot().SortedByRange(boss.Position).Take(3))
+            foreach ((int i, var player) in _module.Raid.WithSlot().SortedByRange(boss.Position).Take(3))
             {
                 BitVector.SetVector64Bit(ref _bossTargets, i);
                 foreach ((int j, var other) in FindPlayersInWinds(boss.Position, player, cosHalfAngle))
@@ -64,7 +64,7 @@ namespace BossMod.P3S
 
             foreach (var twister in _twisters)
             {
-                (var i, var player) = _module.RaidMembers.WithSlot().SortedByRange(twister.Position).FirstOrDefault();
+                (var i, var player) = _module.Raid.WithSlot().SortedByRange(twister.Position).FirstOrDefault();
                 if (player == null)
                 {
                     _twisterTargets.Add(-1);
@@ -121,7 +121,7 @@ namespace BossMod.P3S
             if (boss == null)
                 return;
 
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
             {
                 if (BitVector.IsVector64BitSet(_tetherTargets, i))
                 {
@@ -137,7 +137,7 @@ namespace BossMod.P3S
 
             foreach ((var twister, int i) in _twisters.Zip(_twisterTargets))
             {
-                var player = _module.RaidMember(i); // not sure if twister could really have invalid target, but let's be safe...
+                var player = _module.Raid[i]; // not sure if twister could really have invalid target, but let's be safe...
                 if (player == null || player.Position == twister.Position)
                     continue;
 
@@ -154,7 +154,7 @@ namespace BossMod.P3S
                 arena.Actor(twister, arena.ColorEnemy);
             }
 
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
             {
                 bool active = BitVector.IsVector64BitSet(_tetherTargets | _bossTargets, i) || _twisterTargets.Contains(i);
                 bool failing = BitVector.IsVector64BitSet(_hitByMultipleAOEs | _closeToTetherTarget, i);
@@ -165,7 +165,7 @@ namespace BossMod.P3S
         private IEnumerable<(int, WorldState.Actor)> FindPlayersInWinds(Vector3 origin, WorldState.Actor target, float cosHalfAngle)
         {
             var dir = Vector3.Normalize(target.Position - origin);
-            return _module.RaidMembers.WithSlot().WhereActor(player => Vector3.Dot(dir, Vector3.Normalize(player.Position - origin)) >= cosHalfAngle);
+            return _module.Raid.WithSlot().WhereActor(player => Vector3.Dot(dir, Vector3.Normalize(player.Position - origin)) >= cosHalfAngle);
         }
     }
 }

@@ -145,7 +145,7 @@ namespace BossMod
             // TODO: this should really snap to player in party ui...
             var riskColor = ImGui.ColorConvertU32ToFloat4(0xff00ffff);
             var safeColor = ImGui.ColorConvertU32ToFloat4(0xff00ff00);
-            foreach ((int i, var player) in _activeModule.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _activeModule.Raid.WithSlot())
             {
                 var hints = _activeModule.CalculateHintsForRaidMember(i, player);
                 if (hints.Count == 0)

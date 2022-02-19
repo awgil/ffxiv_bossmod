@@ -31,7 +31,7 @@ namespace BossMod.P2S
                 return;
 
             float minDistSq = 100000;
-            foreach (var player in _module.RaidMembers.WithoutSlot())
+            foreach (var player in _module.Raid.WithoutSlot())
             {
                 if (boss.Tether.Target == player.InstanceID)
                     continue; // assume both won't target same player for tethers and ray...
@@ -48,7 +48,7 @@ namespace BossMod.P2S
                 return;
 
             var dirToClosest = Vector3.Normalize(_closest.Position - boss.Position);
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
             {
                 if (boss.Tether.Target == player.InstanceID)
                     continue; // assume both won't target same player for tethers and ray...
@@ -66,7 +66,7 @@ namespace BossMod.P2S
                 {
                     hints.Add("Pass tether to tank!");
                 }
-                else if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _aoeRadius).Any())
+                else if (_module.Raid.WithoutSlot().InRadiusExcluding(actor, _aoeRadius).Any())
                 {
                     hints.Add("GTFO from raid!");
                 }
@@ -112,7 +112,7 @@ namespace BossMod.P2S
                 return;
 
             // TODO: i'm not sure what are the exact mechanics - flare is probably distance-based, and ray is probably shared damage cast at closest target?..
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
             {
                 if (boss.Tether.Target == player.InstanceID)
                 {

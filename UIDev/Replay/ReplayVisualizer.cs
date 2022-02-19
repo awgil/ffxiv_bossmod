@@ -167,7 +167,7 @@ namespace UIDev
             ImGui.TableSetupColumn("Statuses", ImGuiTableColumnFlags.None, 100);
             ImGui.TableSetupColumn("Hints", ImGuiTableColumnFlags.None, 250);
             ImGui.TableHeadersRow();
-            foreach ((int slot, var player) in _bossmod.RaidMembers.WithSlot(true))
+            foreach ((int slot, var player) in _bossmod.Raid.WithSlot(true))
             {
                 ImGui.PushID((int)player.InstanceID);
                 ImGui.TableNextRow();

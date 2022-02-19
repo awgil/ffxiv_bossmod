@@ -34,7 +34,7 @@ namespace BossMod.P2S
 
         public override void DrawArenaForeground(MiniArena arena)
         {
-            var pos = GetSafeZone(_module.PlayerSlot);
+            var pos = GetSafeZone(_module.Raid.PlayerSlot);
             if (pos != null)
                 arena.AddCircle(pos.Value, 1, arena.ColorSafe);
         }
@@ -47,7 +47,7 @@ namespace BossMod.P2S
                 if (boss != null)
                     _startingOffset = boss.Position - _module.Arena.WorldCenter;
 
-                int slot = _module.RaidMembers.FindSlot(actorID);
+                int slot = _module.Raid.FindSlot(actorID);
                 if (slot >= 0)
                     _playerOrder[slot] = (int)(iconID - 144);
             }

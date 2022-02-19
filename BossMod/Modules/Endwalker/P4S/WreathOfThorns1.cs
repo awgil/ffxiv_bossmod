@@ -41,7 +41,7 @@ namespace BossMod.P4S
                         {
                             hints.Add("Soak the tower!");
                         }
-                        else if (_module.RaidMembers.WithoutSlot().Exclude(actor).InRadius(soakedTower.Position, P4S.WreathTowerRadius).Any())
+                        else if (_module.Raid.WithoutSlot().Exclude(actor).InRadius(soakedTower.Position, P4S.WreathTowerRadius).Any())
                         {
                             hints.Add("Multiple soakers for the tower!");
                         }
@@ -69,7 +69,7 @@ namespace BossMod.P4S
             {
                 foreach (var tower in _towers)
                     arena.AddCircle(tower.Position, P4S.WreathTowerRadius, arena.ColorSafe);
-                foreach (var player in _module.RaidMembers.WithoutSlot())
+                foreach (var player in _module.Raid.WithoutSlot())
                     arena.Actor(player, arena.ColorPlayerGeneric);
             }
         }

@@ -14,12 +14,10 @@ namespace BossMod
         public StateMachine.State? InitialState = null;
         public MiniArena Arena { get; init; } = new();
 
-        public bool DrawOnlyArena = false;
+        public RaidState Raid { get; init; }
+        public WorldState.Actor? Player() => Raid.Player();
 
-        public WorldState.Actor?[] RaidMembers; // this is fixed-size, but some slots could be empty; when player is removed, gap is created - existing players keep their indices
-        public int PlayerSlot { get; private set; } = -1;
-        public WorldState.Actor? RaidMember(int slot) => (slot >= 0 && slot < RaidMembers.Length) ? RaidMembers[slot] : null; // bounds-checking accessor
-        public WorldState.Actor? Player() => RaidMember(PlayerSlot);
+        public bool DrawOnlyArena = false;
 
         // per-oid enemy lists; filled on first request
         private Dictionary<uint, List<WorldState.Actor>> _relevantEnemies = new(); // key = actor OID
@@ -110,7 +108,7 @@ namespace BossMod
         public BossModule(WorldState w, int maxRaidMembers)
         {
             WorldState = w;
-            RaidMembers = new WorldState.Actor?[maxRaidMembers];
+            Raid = new(maxRaidMembers);
 
             WorldState.PlayerActorIDChanged += PlayerIDChanged;
             WorldState.PlayerInCombatChanged += EnterExitCombat;
@@ -236,10 +234,6 @@ namespace BossMod
         protected virtual void DrawArenaBackground() { } // before modules background
         protected virtual void DrawArenaForegroundPre() { } // after border, before modules foreground
         protected virtual void DrawArenaForegroundPost() { } // after modules foreground
-        protected virtual void NonPlayerCreated(WorldState.Actor actor) { }
-        protected virtual void NonPlayerDestroyed(WorldState.Actor actor) { }
-        protected virtual void RaidMemberCreated(int index) { }
-        protected virtual void RaidMemberDestroyed(int index) { } // called just before slot is cleared, so still contains old actor
 
         private void DrawHintForPlayer(MovementHints? movementHints)
         {
@@ -247,7 +241,7 @@ namespace BossMod
             if (actor == null)
                 return;
 
-            var hints = CalculateHintsForRaidMember(PlayerSlot, actor, movementHints);
+            var hints = CalculateHintsForRaidMember(Raid.PlayerSlot, actor, movementHints);
             var riskColor = ImGui.ColorConvertU32ToFloat4(Arena.ColorDanger);
             var safeColor = ImGui.ColorConvertU32ToFloat4(Arena.ColorSafe);
             foreach ((var hint, bool risk) in hints)
@@ -260,7 +254,7 @@ namespace BossMod
 
         private void PlayerIDChanged(object? sender, uint id)
         {
-            PlayerSlot = RaidMembers.FindSlot(id);
+            Raid.UpdatePlayer(id);
         }
 
         private void EnterExitCombat(object? sender, bool inCombat)
@@ -274,60 +268,37 @@ namespace BossMod
             {
                 StateMachine.ActiveState = null;
                 Reset();
+                Raid.ClearRaidCooldowns();
             }
         }
 
         private void OnActorCreated(object? sender, WorldState.Actor actor)
         {
-            if (actor.Type == WorldState.ActorType.Player)
+            switch (actor.Type)
             {
-                int slot = Array.FindIndex(RaidMembers, x => x == null);
-                if (slot != -1)
-                {
-                    RaidMembers[slot] = actor;
-                    if (actor.InstanceID == WorldState.PlayerActorID)
-                        PlayerSlot = slot;
-                    RaidMemberCreated(slot);
-                }
-                else
-                {
-                    Service.Log($"[BossModule] Too many raid members: {RaidMembers.Length} already exist; skipping new actor {actor.InstanceID:X}");
-                }
-            }
-            else
-            {
-                var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
-                if (relevant != null)
-                    relevant.Add(actor);
-
-                NonPlayerCreated(actor);
+                case WorldState.ActorType.Player:
+                    Raid.AddMember(actor, actor.InstanceID == WorldState.PlayerActorID);
+                    break;
+                case WorldState.ActorType.Enemy:
+                    var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
+                    if (relevant != null)
+                        relevant.Add(actor);
+                    break;
             }
         }
 
         private void OnActorDestroyed(object? sender, WorldState.Actor actor)
         {
-            if (actor.Type == WorldState.ActorType.Player)
+            switch (actor.Type)
             {
-                int slot = RaidMembers.FindSlot(actor.InstanceID);
-                if (slot != -1)
-                {
-                    RaidMemberDestroyed(slot);
-                    RaidMembers[slot] = null;
-                    if (PlayerSlot == slot)
-                        PlayerSlot = -1;
-                }
-                else
-                {
-                    Service.Log($"[BossModule] Destroyed player actor {actor.InstanceID:X} not found among raid members");
-                }
-            }
-            else
-            {
-                var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
-                if (relevant != null)
-                    relevant.Remove(actor);
-
-                NonPlayerDestroyed(actor);
+                case WorldState.ActorType.Player:
+                    Raid.RemoveMember(actor);
+                    break;
+                case WorldState.ActorType.Enemy:
+                    var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
+                    if (relevant != null)
+                        relevant.Remove(actor);
+                    break;
             }
         }
 
@@ -381,6 +352,7 @@ namespace BossMod
 
         private void OnEventCast(object? sender, WorldState.CastResult info)
         {
+            Raid.HandleCast(WorldState.CurrentTime, info);
             foreach (var comp in _components)
                 comp.OnEventCast(info);
         }

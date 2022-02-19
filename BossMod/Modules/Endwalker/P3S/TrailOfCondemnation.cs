@@ -35,7 +35,7 @@ namespace BossMod.P3S
                 {
                     hints.Add("GTFO from aoe!");
                 }
-                if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _aoeRadius).Any())
+                if (_module.Raid.WithoutSlot().InRadiusExcluding(actor, _aoeRadius).Any())
                 {
                     hints.Add("Spread!");
                 }
@@ -51,7 +51,7 @@ namespace BossMod.P3S
                 // note: sparks either target all tanks & healers or all dds - so correct pairings are always dd+tank/healer
                 int numStacked = 0;
                 bool goodPair = false;
-                foreach (var pair in _module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _aoeRadius))
+                foreach (var pair in _module.Raid.WithoutSlot().InRadiusExcluding(actor, _aoeRadius))
                 {
                     ++numStacked;
                     goodPair = (actor.Role == Role.Tank || actor.Role == Role.Healer) != (pair.Role == Role.Tank || pair.Role == Role.Healer);
@@ -93,7 +93,7 @@ namespace BossMod.P3S
                 return;
 
             // draw all raid members, to simplify positioning
-            foreach (var player in _module.RaidMembers.WithoutSlot().Exclude(pc))
+            foreach (var player in _module.Raid.WithoutSlot().Exclude(pc))
             {
                 bool inRange = GeometryUtils.PointInCircle(player.Position - pc.Position, _aoeRadius);
                 arena.Actor(player, inRange ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);

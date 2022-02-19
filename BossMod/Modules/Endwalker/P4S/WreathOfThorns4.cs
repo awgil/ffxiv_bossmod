@@ -29,7 +29,7 @@ namespace BossMod.P4S
                 if (_playerIcons[slot] == IconID.AkanthaiWater)
                 {
                     hints.Add("Break tether!");
-                    if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _waterExplosionRange).Any())
+                    if (_module.Raid.WithoutSlot().InRadiusExcluding(actor, _waterExplosionRange).Any())
                     {
                         hints.Add("GTFO from others!");
                     }
@@ -70,7 +70,7 @@ namespace BossMod.P4S
         public override void DrawArenaForeground(MiniArena arena)
         {
             var nextAOE = _doneTowers < 4 ? null : NextAOE();
-            foreach (((var player, var icon), var source) in _module.RaidMembers.Zip(_playerIcons).Zip(_playerTetherSource))
+            foreach (((var player, var icon), var source) in _module.Raid.Members.Zip(_playerIcons).Zip(_playerTetherSource))
             {
                 arena.Actor(player, arena.ColorPlayerGeneric);
                 if (player == null || source == null)
@@ -93,7 +93,7 @@ namespace BossMod.P4S
         {
             if (actor.OID == (uint)OID.Helper)
             {
-                var slot = _module.RaidMembers.FindSlot(actor.Tether.Target);
+                var slot = _module.Raid.FindSlot(actor.Tether.Target);
                 if (slot >= 0)
                     _playerTetherSource[slot] = actor;
             }
@@ -103,7 +103,7 @@ namespace BossMod.P4S
         {
             if (actor.OID == (uint)OID.Helper)
             {
-                var slot = _module.RaidMembers.FindSlot(actor.Tether.Target);
+                var slot = _module.Raid.FindSlot(actor.Tether.Target);
                 if (slot >= 0)
                     _playerTetherSource[slot] = null;
             }
@@ -119,7 +119,7 @@ namespace BossMod.P4S
 
         public override void OnEventIcon(uint actorID, uint iconID)
         {
-            var slot = _module.RaidMembers.FindSlot(actorID);
+            var slot = _module.Raid.FindSlot(actorID);
             if (slot >= 0)
                 _playerIcons[slot] = (IconID)iconID;
         }

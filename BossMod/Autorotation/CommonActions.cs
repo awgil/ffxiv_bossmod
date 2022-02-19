@@ -2,15 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod
 {
     class CommonActions
     {
         private unsafe FFXIVClientStructs.FFXIV.Client.Game.ActionManager* _actionManager = null;
-        private Dictionary<(uint, uint), DateTime> _raidCooldowns = new();
 
         protected unsafe CommonActions()
         {
@@ -35,52 +32,19 @@ namespace BossMod
             return MathF.Abs(dur);
         }
 
-        public void ClearRaidCooldowns()
-        {
-            if (_raidCooldowns.Count > 0)
-            {
-                Service.Log($"[RaidCD] Clearing {_raidCooldowns.Count} entries");
-                _raidCooldowns.Clear();
-            }
-        }
-
-        public float NextDamageBuffIn()
-        {
-            return _raidCooldowns.Count == 0 ? 0 : MathF.Max(0, (float)(_raidCooldowns.Values.Min() - DateTime.Now).TotalSeconds);
-        }
-
-        // check whether specified status is a damage buff, and if so, update cooldown
-        public bool CheckDamageBuff(Status status)
+        // check whether specified status is a damage buff
+        public bool IsDamageBuff(uint statusID)
         {
             // see https://i.redd.it/xrtgpras94881.png
             // TODO: AST, DRG, BRD, DNC, RDM buffs
-            return status.StatusId switch
+            return statusID switch
             {
                 49 => true, // medicated
-                1185 => UpdateRaidCooldown(status, 15, 120), // MNK brotherhood
-                2599 => UpdateRaidCooldown(status, 20, 120), // RPR arcane circle
-                2703 => UpdateRaidCooldown(status, 30, 120), // SMN searing light
+                1185 => true, // MNK brotherhood
+                2599 => true, // RPR arcane circle
+                2703 => true, // SMN searing light
                 _ => false
             };
-        }
-
-        private bool UpdateRaidCooldown(Status status, float duration, float cooldown)
-        {
-            uint source = status.SourceID;
-            var obj = Service.ObjectTable.SearchById(source);
-            if (obj == null)
-                return true;
-
-            if (obj.OwnerId != 0 && obj.OwnerId != Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId)
-                source = obj.OwnerId;
-
-            var expiration = DateTime.Now.AddSeconds(cooldown - duration + StatusDuration(status.RemainingTime));
-            if ((expiration - _raidCooldowns.GetValueOrDefault((source, status.StatusId))).TotalSeconds > 2)
-            {
-                _raidCooldowns[(source, status.StatusId)] = expiration;
-                Service.Log($"[RaidCD] Update {Utils.StatusString(status.StatusId)} from {Utils.ObjectString(source)}: remain={status.RemainingTime:f3}, cd={cooldown:f3}; now have {_raidCooldowns.Count} entries");
-            }
-            return true;
         }
     }
 }

@@ -30,15 +30,15 @@ namespace BossMod.P2S
             if (!Active)
                 return;
 
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
             {
                 if (BitVector.IsVector64BitSet(_playersWithTides, i))
                 {
-                    _playersInTides |= _module.RaidMembers.WithSlot().InRadiusExcluding(player, _tidesRadius).Mask();
+                    _playersInTides |= _module.Raid.WithSlot().InRadiusExcluding(player, _tidesRadius).Mask();
                 }
                 else if (BitVector.IsVector64BitSet(_playersWithDepths, i))
                 {
-                    _playersInDepths |= _module.RaidMembers.WithSlot().InRadiusExcluding(player, _depthsRadius).Mask();
+                    _playersInDepths |= _module.Raid.WithSlot().InRadiusExcluding(player, _depthsRadius).Mask();
                 }
             }
         }
@@ -50,7 +50,7 @@ namespace BossMod.P2S
 
             if (BitVector.IsVector64BitSet(_playersWithTides, slot))
             {
-                if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _tidesRadius).Any())
+                if (_module.Raid.WithoutSlot().InRadiusExcluding(actor, _tidesRadius).Any())
                 {
                     hints.Add("GTFO from raid!");
                 }
@@ -78,9 +78,9 @@ namespace BossMod.P2S
             if (!Active || pc == null)
                 return;
 
-            bool pcHasTides = BitVector.IsVector64BitSet(_playersWithTides, _module.PlayerSlot);
-            bool pcHasDepths = BitVector.IsVector64BitSet(_playersWithDepths, _module.PlayerSlot);
-            foreach ((int i, var actor) in _module.RaidMembers.WithSlot())
+            bool pcHasTides = BitVector.IsVector64BitSet(_playersWithTides, _module.Raid.PlayerSlot);
+            bool pcHasDepths = BitVector.IsVector64BitSet(_playersWithDepths, _module.Raid.PlayerSlot);
+            foreach ((int i, var actor) in _module.Raid.WithSlot())
             {
                 if (BitVector.IsVector64BitSet(_playersWithTides, i))
                 {
@@ -131,7 +131,7 @@ namespace BossMod.P2S
 
         private void ModifyDebuff(WorldState.Actor actor, ref ulong vector, bool active)
         {
-            int slot = _module.RaidMembers.FindSlot(actor.InstanceID);
+            int slot = _module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
                 BitVector.ModifyVector64Bit(ref vector, slot, active);
         }

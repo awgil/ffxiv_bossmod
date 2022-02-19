@@ -60,7 +60,7 @@ namespace BossMod.P3S
                     var fromTo = nextTarget.Position - bird.Position;
                     float len = fromTo.Length();
                     fromTo /= len;
-                    foreach ((int j, var player) in _module.RaidMembers.WithSlot().Exclude(nextTarget))
+                    foreach ((int j, var player) in _module.Raid.WithSlot().Exclude(nextTarget))
                     {
                         if (GeometryUtils.PointInRect(player.Position - bird.Position, fromTo, len, 0, _chargeHalfWidth))
                         {
@@ -124,7 +124,7 @@ namespace BossMod.P3S
             // draw all birds and all players
             foreach (var bird in _birdsLarge)
                 arena.Actor(bird, arena.ColorEnemy);
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
                 arena.Actor(player, BitVector.IsVector64BitSet(_playersInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
             // draw chains containing player

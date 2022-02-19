@@ -58,7 +58,7 @@ namespace BossMod
             Interject = 7538,
         }
 
-        public enum StatusID
+        public enum SID : uint
         {
             None = 0,
             SurgingTempest = 2677, // applied by StormEye, damage buff

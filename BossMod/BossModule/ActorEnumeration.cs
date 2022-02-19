@@ -10,39 +10,6 @@ namespace BossMod
     // for raid members, we support both indexed and non-indexed enumeration
     public static class ActorEnumeration
     {
-        // select non-null and optionally alive raid members
-        public static IEnumerable<WorldState.Actor> WithoutSlot(this WorldState.Actor?[] raidMembers, bool includeDead = false)
-        {
-            for (int i = 0; i < raidMembers.Length; ++i)
-            {
-                var player = raidMembers[i];
-                if (player == null)
-                    continue;
-                if (player.IsDead && !includeDead)
-                    continue;
-                yield return player;
-            }
-        }
-
-        public static IEnumerable<(int, WorldState.Actor)> WithSlot(this WorldState.Actor?[] raidMembers, bool includeDead = false)
-        {
-            for (int i = 0; i < raidMembers.Length; ++i)
-            {
-                var player = raidMembers[i];
-                if (player == null)
-                    continue;
-                if (player.IsDead && !includeDead)
-                    continue;
-                yield return (i, player);
-            }
-        }
-
-        // find a slot index containing specified player (by instance ID); returns -1 if not found
-        public static int FindSlot(this WorldState.Actor?[] raidMembers, uint instanceID)
-        {
-            return instanceID != 0 ? Array.FindIndex(raidMembers, x => x?.InstanceID == instanceID) : -1;
-        }
-
         // build a mask with set bits corresponding to slots in range
         public static ulong Mask(this IEnumerable<(int, WorldState.Actor)> range)
         {

@@ -34,7 +34,7 @@ namespace BossMod.P4S
                 {
                     hints.Add("GTFO from acid square!");
                 }
-                hints.Add("Spread!", _module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _acidAOERadius).Any());
+                hints.Add("Spread!", _module.Raid.WithoutSlot().InRadiusExcluding(actor, _acidAOERadius).Any());
             }
             if (_fire != null)
             {
@@ -42,7 +42,7 @@ namespace BossMod.P4S
                 {
                     hints.Add("GTFO from fire square!");
                 }
-                hints.Add("Stack in fours!", _module.RaidMembers.WithoutSlot().Where(x => x.Role == Role.Healer).InRadius(actor.Position, _fireAOERadius).Count() != 1);
+                hints.Add("Stack in fours!", _module.Raid.WithoutSlot().Where(x => x.Role == Role.Healer).InRadius(actor.Position, _fireAOERadius).Count() != 1);
             }
             if (_water != null)
             {
@@ -95,12 +95,12 @@ namespace BossMod.P4S
             if (_acid != null)
             {
                 arena.AddCircle(pc.Position, _acidAOERadius, arena.ColorDanger);
-                foreach (var player in _module.RaidMembers.WithoutSlot().Exclude(pc))
+                foreach (var player in _module.Raid.WithoutSlot().Exclude(pc))
                     arena.Actor(player, GeometryUtils.PointInCircle(player.Position - pc.Position, _acidAOERadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
             if (_fire != null)
             {
-                foreach (var player in _module.RaidMembers.WithoutSlot())
+                foreach (var player in _module.Raid.WithoutSlot())
                 {
                     if (player.Role == Role.Healer)
                     {

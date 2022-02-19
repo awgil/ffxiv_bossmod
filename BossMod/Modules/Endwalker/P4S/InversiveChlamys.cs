@@ -22,7 +22,7 @@ namespace BossMod.P4S
             _module = module;
             if (fromBloodrake)
             {
-                _tetherForbidden = _module.RaidMembers.WithSlot().Tethered(TetherID.Bloodrake).Mask();
+                _tetherForbidden = _module.Raid.WithSlot().Tethered(TetherID.Bloodrake).Mask();
             }
             else
             {
@@ -37,7 +37,7 @@ namespace BossMod.P4S
                 var coils = _module.FindComponent<BeloneCoils>();
                 if (coils != null && coils.ActiveSoakers != BeloneCoils.Soaker.Unknown)
                 {
-                    _tetherForbidden = _module.RaidMembers.WithSlot().WhereActor(coils.IsValidSoaker).Mask();
+                    _tetherForbidden = _module.Raid.WithSlot().WhereActor(coils.IsValidSoaker).Mask();
                     _assignFromCoils = false;
                 }
             }
@@ -46,10 +46,10 @@ namespace BossMod.P4S
             if (_tetherForbidden == 0)
                 return;
 
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot().Tethered(TetherID.Chlamys))
+            foreach ((int i, var player) in _module.Raid.WithSlot().Tethered(TetherID.Chlamys))
             {
                 BitVector.SetVector64Bit(ref _tetherTargets, i);
-                _tetherInAOE |= _module.RaidMembers.WithSlot().InRadiusExcluding(player, _aoeRange).Mask();
+                _tetherInAOE |= _module.Raid.WithSlot().InRadiusExcluding(player, _aoeRange).Mask();
             }
         }
 
@@ -69,7 +69,7 @@ namespace BossMod.P4S
                 {
                     hints.Add("Tethers: intercept!");
                 }
-                else if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _aoeRange).Any())
+                else if (_module.Raid.WithoutSlot().InRadiusExcluding(actor, _aoeRange).Any())
                 {
                     hints.Add("Tethers: GTFO from others!");
                 }
@@ -107,7 +107,7 @@ namespace BossMod.P4S
 
             var boss = _module.Boss1();
             ulong failingPlayers = _tetherForbidden & _tetherTargets;
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
             {
                 bool failing = BitVector.IsVector64BitSet(failingPlayers, i);
                 bool inAOE = BitVector.IsVector64BitSet(_tetherInAOE, i);

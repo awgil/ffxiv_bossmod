@@ -132,14 +132,11 @@ namespace BossMod
 
         public void Update(uint comboLastAction, float comboTimeLeft, float animLock, float animLockDelay)
         {
-            if (Service.ClientState.LocalPlayer == null || !Service.ClientState.LocalPlayer.StatusFlags.HasFlag(StatusFlags.InCombat))
-                ClearRaidCooldowns();
-
             var currState = BuildState((WARRotation.AID)comboLastAction, comboTimeLeft, animLock, animLockDelay);
             LogStateChange(State, currState);
             State = currState;
 
-            Strategy.RaidBuffsIn = NextDamageBuffIn();
+            Strategy.RaidBuffsIn = _bossmods.ActiveModule != null ? _bossmods.ActiveModule.Raid.NextDamageBuffIn(_bossmods.ActiveModule.WorldState.CurrentTime) : 0;
             if (_forceMovementFlags == 0)
                 Strategy.PositionLockIn = 0;
             else if (_forceMovementFlags == 3 || _bossmods.ActiveModule == null)
@@ -182,24 +179,24 @@ namespace BossMod
 
                 foreach (var status in Service.ClientState.LocalPlayer.StatusList)
                 {
-                    if (CheckDamageBuff(status))
+                    if (IsDamageBuff(status.StatusId))
                     {
                         s.RaidBuffsLeft = MathF.Max(s.RaidBuffsLeft, StatusDuration(status.RemainingTime));
                     }
 
-                    switch ((WARRotation.StatusID)status.StatusId)
+                    switch ((WARRotation.SID)status.StatusId)
                     {
-                        case WARRotation.StatusID.SurgingTempest:
+                        case WARRotation.SID.SurgingTempest:
                             s.SurgingTempestLeft = StatusDuration(status.RemainingTime);
                             break;
-                        case WARRotation.StatusID.NascentChaos:
+                        case WARRotation.SID.NascentChaos:
                             s.NascentChaosLeft = StatusDuration(status.RemainingTime);
                             break;
-                        case WARRotation.StatusID.InnerRelease:
+                        case WARRotation.SID.InnerRelease:
                             s.InnerReleaseLeft = StatusDuration(status.RemainingTime);
                             s.InnerReleaseStacks = status.StackCount;
                             break;
-                        case WARRotation.StatusID.PrimalRend:
+                        case WARRotation.SID.PrimalRend:
                             s.PrimalRendLeft = StatusDuration(status.RemainingTime);
                             break;
                     }

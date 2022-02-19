@@ -65,7 +65,7 @@ namespace BossMod.P4S
                 if (orbRole == Role.None)
                     continue; // this orb has already exploded
 
-                bool lethal = IsOrbLethal(_module.PlayerSlot, pc, orbRole);
+                bool lethal = IsOrbLethal(_module.Raid.PlayerSlot, pc, orbRole);
                 arena.Actor(orb, lethal ? arena.ColorEnemy : arena.ColorDanger);
 
                 var target = _module.WorldState.FindActor(orb.Tether.Target);
@@ -75,7 +75,7 @@ namespace BossMod.P4S
                 }
 
                 int goodInRange = 0, badInRange = 0;
-                foreach ((var i, var player) in _module.RaidMembers.WithSlot().InRadius(orb.Position, _burstRadius))
+                foreach ((var i, var player) in _module.Raid.WithSlot().InRadius(orb.Position, _burstRadius))
                 {
                     if (IsOrbLethal(i, player, orbRole))
                         ++badInRange;
@@ -87,7 +87,7 @@ namespace BossMod.P4S
                 arena.AddCircle(orb.Position, _burstRadius, goodToExplode ? arena.ColorSafe : arena.ColorDanger);
             }
 
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
             {
                 bool nearLethalOrb = _orbs.Where(orb => IsOrbLethal(i, player, OrbTarget(orb.InstanceID))).InRadius(player.Position, _burstRadius).Any();
                 arena.Actor(player, nearLethalOrb ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
@@ -173,14 +173,14 @@ namespace BossMod.P4S
 
         private void ModifyRuinStacks(WorldState.Actor actor, ushort count)
         {
-            int slot = _module.RaidMembers.FindSlot(actor.InstanceID);
+            int slot = _module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
                 _playerRuinCount[slot] = count;
         }
 
         private void ModifyActingRole(WorldState.Actor actor, Role role)
         {
-            int slot = _module.RaidMembers.FindSlot(actor.InstanceID);
+            int slot = _module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
                 _playerActingRole[slot] = role;
         }

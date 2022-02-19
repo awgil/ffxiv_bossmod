@@ -31,7 +31,7 @@ namespace BossMod.P3S
                 int numStacked = 0;
                 bool haveTanks = actor.Role == Role.Tank;
                 bool haveHealers = actor.Role == Role.Healer;
-                foreach (var pair in _module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _stackRadius))
+                foreach (var pair in _module.Raid.WithoutSlot().InRadiusExcluding(actor, _stackRadius))
                 {
                     ++numStacked;
                     haveTanks |= pair.Role == Role.Tank;
@@ -52,7 +52,7 @@ namespace BossMod.P3S
             }
             else if (CurState == State.Spread)
             {
-                if (_module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _spreadRadius).Any())
+                if (_module.Raid.WithoutSlot().InRadiusExcluding(actor, _spreadRadius).Any())
                 {
                     hints.Add("Spread!");
                 }
@@ -71,7 +71,7 @@ namespace BossMod.P3S
 
             // draw all raid members, to simplify positioning
             float aoeRadius = CurState == State.Stack ? _stackRadius : _spreadRadius;
-            foreach (var player in _module.RaidMembers.WithoutSlot().Exclude(pc))
+            foreach (var player in _module.Raid.WithoutSlot().Exclude(pc))
             {
                 bool inRange = GeometryUtils.PointInCircle(player.Position - pc.Position, aoeRadius);
                 arena.Actor(player, inRange ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);

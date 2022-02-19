@@ -20,7 +20,7 @@ namespace BossMod.P4S
             _module = module;
             if (fromBloodrake)
             {
-                _debuffForbidden = _module.RaidMembers.WithSlot().Tethered(TetherID.Bloodrake).Mask();
+                _debuffForbidden = _module.Raid.WithSlot().Tethered(TetherID.Bloodrake).Mask();
             }
             else
             {
@@ -35,7 +35,7 @@ namespace BossMod.P4S
                 var coils = _module.FindComponent<BeloneCoils>();
                 if (coils != null && coils.ActiveSoakers != BeloneCoils.Soaker.Unknown)
                 {
-                    _debuffForbidden = _module.RaidMembers.WithSlot().WhereActor(coils.IsValidSoaker).Mask();
+                    _debuffForbidden = _module.Raid.WithSlot().WhereActor(coils.IsValidSoaker).Mask();
                     _assignFromCoils = false;
                 }
             }
@@ -52,7 +52,7 @@ namespace BossMod.P4S
                 if (_debuffTargets == 0)
                 {
                     // debuffs not assigned yet => spread and prepare to grab
-                    bool stacked = _module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _debuffPassRange).Any();
+                    bool stacked = _module.Raid.WithoutSlot().InRadiusExcluding(actor, _debuffPassRange).Any();
                     hints.Add("Debuffs: spread and prepare to handle!", stacked);
                 }
                 else if (BitVector.IsVector64BitSet(_debuffImmune, slot))
@@ -73,7 +73,7 @@ namespace BossMod.P4S
                 // we should be passing debuff
                 if (_debuffTargets == 0)
                 {
-                    bool badStack = _module.RaidMembers.WithSlot().Exclude(slot).IncludedInMask(_debuffForbidden).OutOfRadius(actor.Position, _debuffPassRange).Any();
+                    bool badStack = _module.Raid.WithSlot().Exclude(slot).IncludedInMask(_debuffForbidden).OutOfRadius(actor.Position, _debuffPassRange).Any();
                     hints.Add("Debuffs: stack and prepare to pass!", badStack);
                 }
                 else if (BitVector.IsVector64BitSet(_debuffTargets, slot))
@@ -93,7 +93,7 @@ namespace BossMod.P4S
                 return;
 
             ulong failingPlayers = _debuffForbidden & _debuffTargets;
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
             {
                 bool failing = BitVector.IsVector64BitSet(failingPlayers, i);
                 arena.Actor(player, failing ? arena.ColorDanger : arena.ColorPlayerGeneric);
@@ -134,7 +134,7 @@ namespace BossMod.P4S
 
         private void ModifyDebuff(WorldState.Actor actor, ref ulong vector, bool active)
         {
-            int slot = _module.RaidMembers.FindSlot(actor.InstanceID);
+            int slot = _module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
                 BitVector.ModifyVector64Bit(ref vector, slot, active);
         }

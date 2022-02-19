@@ -38,7 +38,7 @@ namespace BossMod.P4S
 
             if (CurState == State.DarkDesign)
             {
-                var darkSource = _module.RaidMembers.WithSlot().WhereSlot(i => _playerIcons[i] == IconID.AkanthaiDark).FirstOrDefault().Item2;
+                var darkSource = _module.Raid.WithSlot().WhereSlot(i => _playerIcons[i] == IconID.AkanthaiDark).FirstOrDefault().Item2;
                 if (actor == darkSource || actor.InstanceID == darkSource?.Tether.Target)
                 {
                     hints.Add("Break tether!");
@@ -107,7 +107,7 @@ namespace BossMod.P4S
             foreach (var tower in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsTower))
                 arena.AddCircle(tower.Position, P4S.WreathTowerRadius, arena.ColorSafe);
 
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
             {
                 arena.Actor(player, arena.ColorPlayerGeneric);
                 var tetherTarget = player.Tether.Target != 0 ? _module.WorldState.FindActor(player.Tether.Target) : null;
@@ -142,7 +142,7 @@ namespace BossMod.P4S
 
         public override void OnEventIcon(uint actorID, uint iconID)
         {
-            var slot = _module.RaidMembers.FindSlot(actorID);
+            var slot = _module.Raid.FindSlot(actorID);
             if (slot >= 0)
                 _playerIcons[slot] = (IconID)iconID;
         }
@@ -188,7 +188,7 @@ namespace BossMod.P4S
 
         private IEnumerable<(WorldState.Actor, TetherType)> ActiveTethers()
         {
-            return _module.RaidMembers.WithSlot()
+            return _module.Raid.WithSlot()
                 .Select(ip => (ip.Item2, TetherPriority(ip.Item2, _playerIcons[ip.Item1])))
                 .Where(it => it.Item2 != TetherType.None);
         }

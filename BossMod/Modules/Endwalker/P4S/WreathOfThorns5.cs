@@ -35,7 +35,7 @@ namespace BossMod.P4S
 
             if (_playersOrder.Count < 8)
             {
-                hints.Add("Spread!", _module.RaidMembers.WithoutSlot().InRadiusExcluding(actor, _impulseAOERadius).Any());
+                hints.Add("Spread!", _module.Raid.WithoutSlot().InRadiusExcluding(actor, _impulseAOERadius).Any());
             }
         }
 
@@ -52,7 +52,7 @@ namespace BossMod.P4S
             if (_playersOrder.Count < 8)
             {
                 arena.AddCircle(pc.Position, _impulseAOERadius, arena.ColorDanger);
-                foreach (var player in _module.RaidMembers.WithoutSlot().Exclude(pc))
+                foreach (var player in _module.Raid.WithoutSlot().Exclude(pc))
                     arena.Actor(player, GeometryUtils.PointInCircle(player.Position - pc.Position, _impulseAOERadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
         }

@@ -19,7 +19,7 @@ namespace BossMod.P2S
 
         public override void DrawArenaBackground(MiniArena arena)
         {
-            foreach (var player in _module.RaidMembers.WithoutSlot())
+            foreach (var player in _module.Raid.WithoutSlot())
             {
                 foreach (var status in player.Statuses)
                 {

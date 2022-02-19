@@ -35,7 +35,7 @@ namespace BossMod.P3S
                 if (target != null && target.Position != bird.Position)
                 {
                     var dir = Vector3.Normalize(target.Position - bird.Position);
-                    foreach ((int i, var player) in _module.RaidMembers.WithSlot().Exclude(target))
+                    foreach ((int i, var player) in _module.Raid.WithSlot().Exclude(target))
                     {
                         if (GeometryUtils.PointInRect(player.Position - bird.Position, dir, 50, 0, _chargeHalfWidth))
                         {
@@ -83,7 +83,7 @@ namespace BossMod.P3S
                 return;
 
             // draw all players
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
                 arena.Actor(player, BitVector.IsVector64BitSet(_playersInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
             // draw my tether

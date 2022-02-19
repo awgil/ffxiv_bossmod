@@ -41,13 +41,13 @@ namespace BossMod.P1S
                 return; // nothing to do...
 
             // update tether matrices
-            foreach ((int iSrc, var src) in _module.RaidMembers.WithSlot())
+            foreach ((int iSrc, var src) in _module.Raid.WithSlot())
             {
                 // blue => 3 closest
                 if (BitVector.IsVector8BitSet(blueDebuffs, iSrc))
                 {
                     BitVector.SetMatrix8x8Bit(ref _blueTetherMatrix, iSrc, iSrc, true);
-                    foreach ((int iTgt, _) in _module.RaidMembers.WithSlot().Exclude(iSrc).SortedByRange(src.Position).Take(3))
+                    foreach ((int iTgt, _) in _module.Raid.WithSlot().Exclude(iSrc).SortedByRange(src.Position).Take(3))
                         BitVector.SetMatrix8x8Bit(ref _blueTetherMatrix, iTgt, iSrc, true);
                 }
 
@@ -55,20 +55,20 @@ namespace BossMod.P1S
                 if (BitVector.IsVector8BitSet(redDebuffs, iSrc))
                 {
                     BitVector.SetMatrix8x8Bit(ref _redTetherMatrix, iSrc, iSrc, true);
-                    foreach ((int iTgt, _) in _module.RaidMembers.WithSlot().Exclude(iSrc).SortedByRange(src.Position).TakeLast(3))
+                    foreach ((int iTgt, _) in _module.Raid.WithSlot().Exclude(iSrc).SortedByRange(src.Position).TakeLast(3))
                         BitVector.SetMatrix8x8Bit(ref _redTetherMatrix, iTgt, iSrc, true);
                 }
             }
 
             // update explosion matrices and detect problems (has to be done in a separate pass)
-            foreach ((int i, var actor) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var actor) in _module.Raid.WithSlot())
             {
                 if (BitVector.ExtractVectorFromMatrix8x8(_blueTetherMatrix, i) != 0)
-                    foreach ((int j, _) in _module.RaidMembers.WithSlot().InRadiusExcluding(actor, _blueExplosionRadius))
+                    foreach ((int j, _) in _module.Raid.WithSlot().InRadiusExcluding(actor, _blueExplosionRadius))
                         BitVector.SetMatrix8x8Bit(ref _blueExplosionMatrix, j, i, true);
 
                 if (BitVector.ExtractVectorFromMatrix8x8(_redTetherMatrix, i) != 0)
-                    foreach ((int j, _) in _module.RaidMembers.WithSlot().InRadiusExcluding(actor, _redExplosionRadius))
+                    foreach ((int j, _) in _module.Raid.WithSlot().InRadiusExcluding(actor, _redExplosionRadius))
                         BitVector.SetMatrix8x8Bit(ref _redExplosionMatrix, j, i, true);
             }
         }
@@ -93,7 +93,7 @@ namespace BossMod.P1S
 
             bool drawBlueAroundMe = false;
             bool drawRedAroundMe = false;
-            foreach ((int i, var actor) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var actor) in _module.Raid.WithSlot())
             {
                 // draw tethers
                 var blueTetheredTo = BitVector.ExtractVectorFromMatrix8x8(_blueTetherMatrix, i);
@@ -102,7 +102,7 @@ namespace BossMod.P1S
                 if (tetherMask != 0)
                 {
                     arena.Actor(actor, TetherColor(blueTetheredTo != 0, redTetheredTo != 0));
-                    foreach ((int j, var target) in _module.RaidMembers.WithSlot(true))
+                    foreach ((int j, var target) in _module.Raid.WithSlot(true))
                     {
                         if (i != j && BitVector.IsVector8BitSet(tetherMask, j))
                         {
@@ -112,13 +112,13 @@ namespace BossMod.P1S
                 }
 
                 // draw explosion circles that hit me
-                if (BitVector.IsMatrix8x8BitSet(_blueExplosionMatrix, _module.PlayerSlot, i))
+                if (BitVector.IsMatrix8x8BitSet(_blueExplosionMatrix, _module.Raid.PlayerSlot, i))
                     arena.AddCircle(actor.Position, _blueExplosionRadius, arena.ColorDanger);
-                if (BitVector.IsMatrix8x8BitSet(_redExplosionMatrix, _module.PlayerSlot, i))
+                if (BitVector.IsMatrix8x8BitSet(_redExplosionMatrix, _module.Raid.PlayerSlot, i))
                     arena.AddCircle(actor.Position, _redExplosionRadius, arena.ColorDanger);
 
-                drawBlueAroundMe |= BitVector.IsMatrix8x8BitSet(_blueExplosionMatrix, i, _module.PlayerSlot);
-                drawRedAroundMe |= BitVector.IsMatrix8x8BitSet(_redExplosionMatrix, i, _module.PlayerSlot);
+                drawBlueAroundMe |= BitVector.IsMatrix8x8BitSet(_blueExplosionMatrix, i, _module.Raid.PlayerSlot);
+                drawRedAroundMe |= BitVector.IsMatrix8x8BitSet(_redExplosionMatrix, i, _module.Raid.PlayerSlot);
             }
 
             // draw explosion circles if I hit anyone
@@ -184,7 +184,7 @@ namespace BossMod.P1S
 
         private void ModifyDebuff(WorldState.Actor actor, ref byte vector, bool active)
         {
-            int slot = _module.RaidMembers.FindSlot(actor.InstanceID);
+            int slot = _module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
                 BitVector.ModifyVector8Bit(ref vector, slot, active);
         }

@@ -43,18 +43,18 @@ namespace BossMod.P4S
 
             if (NumCones == NumJumps)
             {
-                _jumpTarget = _module.RaidMembers.WithoutSlot().SortedByRange(boss.Position).LastOrDefault();
-                _playersInAOE = _jumpTarget != null ? _module.RaidMembers.WithSlot().InRadiusExcluding(_jumpTarget, _jumpAOERadius).Mask() : 0;
+                _jumpTarget = _module.Raid.WithoutSlot().SortedByRange(boss.Position).LastOrDefault();
+                _playersInAOE = _jumpTarget != null ? _module.Raid.WithSlot().InRadiusExcluding(_jumpTarget, _jumpAOERadius).Mask() : 0;
             }
             else
             {
-                foreach ((int i, var player) in _module.RaidMembers.WithSlot().SortedByRange(boss.Position).Take(3))
+                foreach ((int i, var player) in _module.Raid.WithSlot().SortedByRange(boss.Position).Take(3))
                 {
                     BitVector.SetVector64Bit(ref _coneTargets, i);
                     if (player.Position != boss.Position)
                     {
                         var direction = Vector3.Normalize(player.Position - boss.Position);
-                        _playersInAOE |= _module.RaidMembers.WithSlot().Exclude(i).WhereActor(p => GeometryUtils.PointInCone(p.Position - boss.Position, direction, _coneHalfAngle)).Mask();
+                        _playersInAOE |= _module.Raid.WithSlot().Exclude(i).WhereActor(p => GeometryUtils.PointInCone(p.Position - boss.Position, direction, _coneHalfAngle)).Mask();
                     }
                 }
             }
@@ -98,7 +98,7 @@ namespace BossMod.P4S
             var boss = _module.Boss2();
             if (_coneTargets != 0 && boss != null)
             {
-                foreach ((_, var player) in _module.RaidMembers.WithSlot().IncludedInMask(_coneTargets).WhereActor(x => boss.Position != x.Position))
+                foreach ((_, var player) in _module.Raid.WithSlot().IncludedInMask(_coneTargets).WhereActor(x => boss.Position != x.Position))
                 {
                     var offset = player.Position - boss.Position;
                     float phi = MathF.Atan2(offset.X, offset.Z);
@@ -109,7 +109,7 @@ namespace BossMod.P4S
 
         public override void DrawArenaForeground(MiniArena arena)
         {
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
                 arena.Actor(player, BitVector.IsVector64BitSet(_playersInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
             if (CurState != State.Done)
@@ -120,7 +120,7 @@ namespace BossMod.P4S
 
             if (NumCones != NumJumps)
             {
-                foreach ((_, var player) in _module.RaidMembers.WithSlot().IncludedInMask(_coneTargets))
+                foreach ((_, var player) in _module.Raid.WithSlot().IncludedInMask(_coneTargets))
                     arena.Actor(player, arena.ColorDanger);
                 arena.Actor(_jumpTarget, arena.ColorVulnerable);
             }

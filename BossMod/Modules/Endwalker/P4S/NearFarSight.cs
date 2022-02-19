@@ -29,11 +29,11 @@ namespace BossMod.P4S
             if (boss == null || CurState == State.Done)
                 return;
 
-            var playersByRange = _module.RaidMembers.WithSlot().SortedByRange(boss.Position);
+            var playersByRange = _module.Raid.WithSlot().SortedByRange(boss.Position);
             foreach ((int i, var player) in CurState == State.Near ? playersByRange.Take(2) : playersByRange.TakeLast(2))
             {
                 BitVector.SetVector64Bit(ref _targets, i);
-                _inAOE |= _module.RaidMembers.WithSlot().InRadiusExcluding(player, _aoeRadius).Mask();
+                _inAOE |= _module.Raid.WithSlot().InRadiusExcluding(player, _aoeRadius).Mask();
             }
         }
 
@@ -59,7 +59,7 @@ namespace BossMod.P4S
             if (pc == null || _targets == 0)
                 return;
 
-            foreach ((int i, var player) in _module.RaidMembers.WithSlot())
+            foreach ((int i, var player) in _module.Raid.WithSlot())
             {
                 if (BitVector.IsVector64BitSet(_targets, i))
                 {
