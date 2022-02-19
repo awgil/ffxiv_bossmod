@@ -9,6 +9,8 @@ namespace BossMod
         // create simple state without any actions; by default, if name is empty, it is marked as substate
         public static StateMachine.State Simple(ref StateMachine.State? link, float duration, string name = "")
         {
+            if (link != null)
+                Service.Log($"[StateMachine] Overwriting link from {link.Name} to {name}");
             return link = new StateMachine.State
             {
                 Name = name,

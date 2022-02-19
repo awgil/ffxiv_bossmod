@@ -107,6 +107,10 @@ namespace BossMod
                             status.ExpireAt = CurrentTime.AddSeconds(s.RemainingTime);
                             UpdateStatus(act, i, status);
                         }
+                        else if (s.RemainingTime > prevDurations[i])
+                        {
+                            Service.Log($"[WSG] Slight status duration update: {Utils.StatusString(s.StatusId)} ({StatusExtra(s):X4}) {prevDurations[i]:f3} -> {s.RemainingTime:f3}");
+                        }
                         // note: some statuses have non-zero remaining time but never tick down (e.g. FC buffs)
                         // currently we ignore that fact, to avoid log spam...
                         prevDurations[i] = s?.RemainingTime ?? 0;

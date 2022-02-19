@@ -37,6 +37,7 @@ namespace BossMod
 
         public void ClearRaidCooldowns()
         {
+            Service.Log($"[RaidCD] Clearing {_raidCooldowns.Count} entries");
             _raidCooldowns.Clear();
         }
 
@@ -68,6 +69,7 @@ namespace BossMod
                 source = obj.OwnerId;
 
             _raidCooldowns[(source, status.StatusId)] = DateTime.Now.AddSeconds(cooldown - duration + StatusDuration(status.RemainingTime));
+            Service.Log($"[RaidCD] Update {Utils.StatusString(status.StatusId)} from {Utils.ObjectString(source)}: dur={duration:f3}, cd={cooldown:f3}; now have {_raidCooldowns.Count} entries");
             return true;
         }
     }
