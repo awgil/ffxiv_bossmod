@@ -17,14 +17,17 @@ namespace BossMod
             _ws = ws;
             _config = config;
             _logDir = logDir;
+
+            _config.Modified += ApplyConfig;
         }
 
         public void Dispose()
         {
+            _config.Modified -= ApplyConfig;
             Unsubscribe();
         }
 
-        public void Update()
+        private void ApplyConfig(object? sender, EventArgs args)
         {
             if (_config.DumpWorldStateEvents)
                 Subscribe();

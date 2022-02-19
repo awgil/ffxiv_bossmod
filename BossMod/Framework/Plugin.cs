@@ -94,7 +94,6 @@ namespace BossMod
         private void DrawUI()
         {
             Camera.Instance?.Update();
-            _debugLogger.Update();
             _ws.Update();
             _bossmod.Update();
             _autorotation.Update();
