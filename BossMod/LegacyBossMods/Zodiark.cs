@@ -77,7 +77,7 @@ namespace BossMod
             base.Dispose(disposing);
         }
 
-        public override void Draw(float cameraAzimuth, MovementHints? pcMovementHints, float arenaScale = 1, bool onlyArena = false)
+        public override void Draw(float cameraAzimuth, MovementHints? pcMovementHints)
         {
             ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(0xff00ffff), ManualActionHint());
             _stages.Draw();

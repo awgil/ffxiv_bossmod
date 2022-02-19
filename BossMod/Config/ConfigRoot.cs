@@ -23,11 +23,14 @@ namespace BossMod
             return obj;
         }
 
-        protected override void Save()
+        public ConfigRoot()
         {
-            Serialized serialized = new();
-            serialized.Payload = SerializeNode(this);
-            _dalamud?.SavePluginConfig(serialized);
+            Modified += (_, _) =>
+            {
+                Serialized serialized = new();
+                serialized.Payload = SerializeNode(this);
+                _dalamud?.SavePluginConfig(serialized);
+            };
         }
 
         private JObject SerializeNode(ConfigNode n)

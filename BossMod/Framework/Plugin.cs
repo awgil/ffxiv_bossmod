@@ -70,7 +70,7 @@ namespace BossMod
             switch (split[0])
             {
                 case "z":
-                    _bossmod.ActivateModuleForZone(split.Length > 1 ? ushort.Parse(split[1]) : _ws.CurrentZone);
+                    _bossmod.ApplyConfigAndZoneChanges(split.Length > 1 ? ushort.Parse(split[1]) : _ws.CurrentZone);
                     break;
                 case "d":
                     OpenDebugUI();

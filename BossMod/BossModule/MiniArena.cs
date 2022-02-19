@@ -13,6 +13,7 @@ namespace BossMod
     public class MiniArena
     {
         public bool IsCircle = false;
+        public bool ShowCardinals = true;
         public Vector3 WorldCenter = new(100, 0, 100);
         public float WorldHalfSize = 20;
         public float ScreenScale = 1;
@@ -284,6 +285,17 @@ namespace BossMod
                 AddCircle(WorldCenter, WorldHalfSize, ColorBorder, 2);
             else
                 AddQuad(WorldNW, WorldNE, WorldSE, WorldSW, ColorBorder, 2);
+
+            if (ShowCardinals)
+            {
+                var dl = ImGui.GetWindowDrawList();
+                var offCenter = ScreenHalfSize + 10;
+                var offCorner = new Vector2(8, 8);
+                dl.AddText(ScreenCenter + RotatedCoords(new(0, -offCenter)) - offCorner, ColorBorder, "N");
+                dl.AddText(ScreenCenter + RotatedCoords(new(0,  offCenter)) - offCorner, ColorBorder, "S");
+                dl.AddText(ScreenCenter + RotatedCoords(new( offCenter, 0)) - offCorner, ColorBorder, "E");
+                dl.AddText(ScreenCenter + RotatedCoords(new(-offCenter, 0)) - offCorner, ColorBorder, "W");
+            }
         }
 
         // draw actor representation

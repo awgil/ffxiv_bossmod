@@ -50,9 +50,11 @@ namespace BossMod
                 _onClose();
             }
 
-            public void Close()
+            public void Close(bool noCallback = false)
             {
                 _wantClose = true;
+                if (noCallback)
+                    _onClose = () => { };
             }
         }
         private static List<Window> _windows = new();

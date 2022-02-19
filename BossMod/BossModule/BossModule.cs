@@ -14,6 +14,8 @@ namespace BossMod
         public StateMachine.State? InitialState = null;
         public MiniArena Arena { get; init; } = new();
 
+        public bool DrawOnlyArena = false;
+
         public WorldState.Actor?[] RaidMembers; // this is fixed-size, but some slots could be empty; when player is removed, gap is created - existing players keep their indices
         public int PlayerSlot { get; private set; } = -1;
         public WorldState.Actor? RaidMember(int slot) => (slot >= 0 && slot < RaidMembers.Length) ? RaidMembers[slot] : null; // bounds-checking accessor
@@ -169,20 +171,19 @@ namespace BossMod
                 comp.Update();
         }
 
-        public virtual void Draw(float cameraAzimuth, MovementHints? pcMovementHints, float arenaScale = 1, bool onlyArena = false)
+        public virtual void Draw(float cameraAzimuth, MovementHints? pcMovementHints)
         {
-            if (!onlyArena)
+            if (!DrawOnlyArena)
             {
                 StateMachine.Draw();
                 DrawHintForPlayer(pcMovementHints);
             }
 
-            Arena.ScreenScale = arenaScale;
             Arena.Begin(cameraAzimuth);
             DrawArena();
             Arena.End();
 
-            if (!onlyArena)
+            if (!DrawOnlyArena)
             {
                 if (ImGui.Button("Show timeline"))
                 {

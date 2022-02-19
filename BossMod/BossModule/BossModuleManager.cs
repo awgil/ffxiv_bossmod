@@ -12,19 +12,25 @@ namespace BossMod
         public class BossModuleConfig : ConfigNode
         {
             public float ArenaScale = 1;
+            public bool Enable = true;
             public bool RotateArena = true;
+            public bool ShowCardinals = false;
             public bool TrishaMode = false;
             public bool ShowRaidWarnings = true;
             public bool ShowWorldArrows = false;
+            public bool ShowDemo = false;
 
             protected override void DrawContents()
             {
                 if (ImGui.DragFloat("Arena scale factor", ref ArenaScale, 0.1f, 0.1f, 10, "%.1f", ImGuiSliderFlags.Logarithmic))
-                    Save();
+                    NotifyModified();
+                DrawProperty(ref Enable, "Enable boss modules");
                 DrawProperty(ref RotateArena, "Rotate map to match camera orientation");
+                DrawProperty(ref ShowCardinals, "Show cardinal direction names");
                 DrawProperty(ref TrishaMode, "Trisha mode: show only arena without hints and with transparent background");
                 DrawProperty(ref ShowRaidWarnings, "Show warnings for all raid members");
                 DrawProperty(ref ShowWorldArrows, "Show movement hints in world");
+                DrawProperty(ref ShowDemo, "Show boss module demo out of instances (useful for configuring windows)");
             }
 
             protected override string? NameOverride() => "Boss modules settings";
@@ -44,17 +50,71 @@ namespace BossMod
             _config = settings.Get<BossModuleConfig>();
 
             _ws.CurrentZoneChanged += ZoneChanged;
-            ActivateModuleForZone(_ws.CurrentZone);
+            _config.Modified += ConfigChanged;
+
+            ApplyConfigAndZoneChanges();
         }
 
         public void Dispose()
         {
             _activeModule?.Dispose();
             _ws.CurrentZoneChanged -= ZoneChanged;
+            _config.Modified -= ConfigChanged;
         }
 
         public void Update()
         {
+            if (_activeModule != null)
+            {
+                TryExec(_activeModule.Update);
+            }
+        }
+
+        public void ApplyConfigAndZoneChanges(ushort? forcedZone = null)
+        {
+            var zone = forcedZone ?? _ws.CurrentZone;
+            var desiredType = _config.Enable ? ZoneModule.TypeForZone(zone) : null;
+            if (desiredType == null && _config.Enable && _config.ShowDemo)
+                desiredType = typeof(DemoModule);
+
+            // recreate module if needed
+            if (forcedZone != null || (_activeModule?.GetType() ?? null) != desiredType)
+            {
+                _activeModule?.Dispose();
+                _activeModule = ZoneModule.CreateModule(desiredType, _ws);
+                Service.Log($"Activated module: {_activeModule?.GetType().ToString() ?? "none"}");
+            }
+
+            // update module properties
+            if (_activeModule != null)
+            {
+                _activeModule.Arena.ScreenScale = _config.ArenaScale;
+                _activeModule.Arena.ShowCardinals = _config.ShowCardinals;
+                _activeModule.DrawOnlyArena = _config.TrishaMode;
+            }
+
+            // create or destroy main window if needed
+            if (_mainWindow != null && _activeModule == null)
+            {
+                _mainWindow.Close(true);
+                _mainWindow = null;
+            }
+            else if (_mainWindow == null && _activeModule != null)
+            {
+                _mainWindow = WindowManager.CreateWindow("Boss module", () => TryExec(DrawMainWindow), MainWindowClosedByUser);
+                _mainWindow.SizeHint = new(400, 400);
+                _mainWindow.MinSize = new(400, 400);
+            }
+
+            // update main window properties
+            if (_mainWindow != null)
+            {
+                _mainWindow.Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
+                if (_config.TrishaMode)
+                    _mainWindow.Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
+            }
+
+            // create or destroy raid warnings window
             bool wantRaidWarnings = _activeModule != null && _config.ShowRaidWarnings;
             if (wantRaidWarnings && _raidWarnings == null)
             {
@@ -68,43 +128,12 @@ namespace BossMod
                 _raidWarnings?.Close();
                 _raidWarnings = null;
             }
-
-            if (_activeModule != null)
-            {
-                TryExec(_activeModule.Update);
-            }
-
-            if (_mainWindow != null)
-            {
-                _mainWindow.Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
-                if (_config.TrishaMode)
-                    _mainWindow.Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
-            }
-        }
-
-        public void ActivateModuleForZone(ushort zone)
-        {
-            _mainWindow?.Close();
-            _mainWindow = null;
-
-            _activeModule?.Dispose();
-            _activeModule = ZoneModule.CreateModule(zone, _ws);
-
-            if (_activeModule != null)
-            {
-                _mainWindow = WindowManager.CreateWindow("Boss module", () => TryExec(DrawMainWindow), () => ActivateModuleForZone(0));
-                _mainWindow.SizeHint = new(400, 400);
-                _mainWindow.MinSize = new(400, 400);
-                _mainWindow.Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
-            }
-
-            Service.Log($"Activated module: {_activeModule?.GetType().ToString() ?? "none"}");
         }
 
         private void DrawMainWindow()
         {
             BossModule.MovementHints? movementHints = _config.ShowWorldArrows ? new() : null;
-            _activeModule?.Draw(_config.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, movementHints, _config.ArenaScale, _config.TrishaMode);
+            _activeModule?.Draw(_config.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, movementHints);
             DrawMovementHints(movementHints);
         }
 
@@ -185,9 +214,22 @@ namespace BossMod
             }
         }
 
+        private void MainWindowClosedByUser()
+        {
+            // temporarily disable, but do not save...
+            Service.Log($"Bossmod window closed by user, disabling temporarily");
+            _config.Enable = false;
+            ApplyConfigAndZoneChanges();
+        }
+
         private void ZoneChanged(object? sender, ushort zone)
         {
-            ActivateModuleForZone(zone);
+            ApplyConfigAndZoneChanges();
+        }
+
+        private void ConfigChanged(object? sender, EventArgs args)
+        {
+            ApplyConfigAndZoneChanges();
         }
     }
 }

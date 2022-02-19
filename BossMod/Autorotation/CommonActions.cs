@@ -37,8 +37,11 @@ namespace BossMod
 
         public void ClearRaidCooldowns()
         {
-            Service.Log($"[RaidCD] Clearing {_raidCooldowns.Count} entries");
-            _raidCooldowns.Clear();
+            if (_raidCooldowns.Count > 0)
+            {
+                Service.Log($"[RaidCD] Clearing {_raidCooldowns.Count} entries");
+                _raidCooldowns.Clear();
+            }
         }
 
         public float NextDamageBuffIn()

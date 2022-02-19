@@ -8,6 +8,7 @@ namespace BossMod
     // configuration is split into hierarchical structure to allow storing options next to classes they're relevant to
     class ConfigNode
     {
+        public event EventHandler? Modified;
         protected ConfigNode? Parent;
         private Dictionary<string, ConfigNode> _children = new();
         public IReadOnlyDictionary<string, ConfigNode> Children() => _children;
@@ -57,11 +58,13 @@ namespace BossMod
             _children[name] = node;
         }
 
-        // save state; should be called by derived classes whenever they make any modifications
-        // default implementation just forwards request to parent; root should handle actual saving
-        protected virtual void Save()
+        // notify that configuration node was modified; should be called by derived classes whenever they make any modifications
+        // implementation dispatches modification event and forwards request to parent
+        // root should subscribe to modification event to save updated configuration
+        protected void NotifyModified()
         {
-            Parent?.Save();
+            Modified?.Invoke(this, EventArgs.Empty);
+            Parent?.NotifyModified();
         }
 
         // draw actual node contents; at very least leaves should override this to draw something useful
@@ -74,7 +77,7 @@ namespace BossMod
         protected void DrawProperty(ref bool v, string label)
         {
             if (ImGui.Checkbox(label, ref v))
-                Save();
+                NotifyModified();
         }
     }
 }
