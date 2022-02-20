@@ -13,6 +13,7 @@ namespace BossMod
         {
             public float ArenaScale = 1;
             public bool Enable = true;
+            public bool Lock = false;
             public bool RotateArena = true;
             public bool ShowCardinals = false;
             public bool TrishaMode = false;
@@ -25,6 +26,7 @@ namespace BossMod
                 if (ImGui.DragFloat("Arena scale factor", ref ArenaScale, 0.1f, 0.1f, 10, "%.1f", ImGuiSliderFlags.Logarithmic))
                     NotifyModified();
                 DrawProperty(ref Enable, "Enable boss modules");
+                DrawProperty(ref Lock, "Lock movement and mouse interaction");
                 DrawProperty(ref RotateArena, "Rotate map to match camera orientation");
                 DrawProperty(ref ShowCardinals, "Show cardinal direction names");
                 DrawProperty(ref TrishaMode, "Trisha mode: show only arena without hints and with transparent background");
@@ -110,7 +112,9 @@ namespace BossMod
             {
                 _mainWindow.Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
                 if (_config.TrishaMode)
-                    _mainWindow.Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoMove;
+                    _mainWindow.Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
+                if (_config.Lock)
+                    _mainWindow.Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
             }
 
             // create or destroy raid warnings window
