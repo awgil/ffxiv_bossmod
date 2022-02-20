@@ -103,7 +103,6 @@ namespace BossMod
             {
                 _mainWindow = WindowManager.CreateWindow("Boss module", () => TryExec(DrawMainWindow), MainWindowClosedByUser);
                 _mainWindow.SizeHint = new(400, 400);
-                _mainWindow.MinSize = new(400, 400);
             }
 
             // update main window properties
@@ -111,7 +110,7 @@ namespace BossMod
             {
                 _mainWindow.Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
                 if (_config.TrishaMode)
-                    _mainWindow.Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
+                    _mainWindow.Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoMove;
             }
 
             // create or destroy raid warnings window
