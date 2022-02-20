@@ -12,11 +12,13 @@ namespace BossMod.P4S
     class WreathOfThorns2 : Component
     {
         public enum State { DarkDesign, FirstSet, SecondSet, Done }
-        public enum TetherType { None, Wind, FireDD, FireTH, Dark } // sorted in break priority order
 
         public State CurState { get; private set; } = State.DarkDesign;
         private P4S _module;
         private List<WorldState.Actor> _relevantHelpers = new(); // 2 aoes -> 8 towers -> 2 aoes
+        private (WorldState.Actor?, WorldState.Actor?) _darkTH; // first is one having tether
+        private (WorldState.Actor?, WorldState.Actor?) _fireTH;
+        private (WorldState.Actor?, WorldState.Actor?) _fireDD;
         private IconID[] _playerIcons = new IconID[8];
         private int _numAOECasts = 0;
 
@@ -36,23 +38,24 @@ namespace BossMod.P4S
             if (CurState == State.Done)
                 return;
 
+            bool isTowerSoaker = actor == _darkTH.Item1 || actor == _darkTH.Item2;
             if (CurState == State.DarkDesign)
             {
-                var darkSource = _module.Raid.WithSlot().WhereSlot(i => _playerIcons[i] == IconID.AkanthaiDark).FirstOrDefault().Item2;
-                if (actor == darkSource || actor.InstanceID == darkSource?.Tether.Target)
-                {
-                    hints.Add("Break tether!");
-                }
-                else
+                if (!isTowerSoaker)
                 {
                     hints.Add("Stay in center", false);
+                }
+                else if (_darkTH.Item1!.Tether.ID != 0)
+                {
+                    hints.Add("Break tether!");
                 }
             }
             else
             {
-                (var nextTetherSource, var nextTetherType) = ActiveTethers().MaxBy(pt => pt.Item2);
-                bool isNextTether = actor == nextTetherSource || actor.InstanceID == nextTetherSource?.Tether.Target;
-                if (isNextTether)
+                var curFirePair = CurState == State.FirstSet ? _fireTH : _fireDD;
+                bool curFirePairUnbroken = curFirePair.Item1 != null && curFirePair.Item1.Tether.ID != 0;
+                bool isFromCurrentPair = actor == curFirePair.Item1 || actor == curFirePair.Item2;
+                if (isFromCurrentPair && curFirePairUnbroken)
                 {
                     hints.Add("Break tether!");
                 }
@@ -64,7 +67,7 @@ namespace BossMod.P4S
                 }
 
                 var soakedTower = relevantHelpers.Where(IsTower).InRadius(actor.Position, P4S.WreathTowerRadius).FirstOrDefault();
-                if (_playerIcons[slot] != IconID.AkanthaiWind && _playerIcons[slot] != IconID.AkanthaiFire)
+                if (isTowerSoaker)
                 {
                     // note: we're assuming that players with 'dark' soak all towers
                     hints.Add("Soak the tower!", soakedTower == null);
@@ -76,14 +79,9 @@ namespace BossMod.P4S
                         hints.Add("GTFO from tower!");
                     }
 
-                    if (!isNextTether && nextTetherSource != null && (nextTetherType == TetherType.FireDD || nextTetherType == TetherType.FireTH))
+                    if (!isFromCurrentPair && curFirePairUnbroken)
                     {
-                        bool nearFire = GeometryUtils.PointInCircle(nextTetherSource.Position - actor.Position, _fireExplosionRadius);
-                        if (!nearFire)
-                        {
-                            var nextTetherTarget = _module.WorldState.FindActor(nextTetherSource.Tether.Target);
-                            nearFire = nextTetherTarget != null && GeometryUtils.PointInCircle(nextTetherTarget.Position - actor.Position, _fireExplosionRadius);
-                        }
+                        bool nearFire = GeometryUtils.PointInCircle(actor.Position - curFirePair.Item1!.Position, _fireExplosionRadius) || GeometryUtils.PointInCircle(actor.Position - curFirePair.Item2!.Position, _fireExplosionRadius);
                         hints.Add("Stack with breaking tether!", !nearFire);
                     }
                 }
@@ -101,12 +99,11 @@ namespace BossMod.P4S
 
         public override void DrawArenaForeground(MiniArena arena)
         {
-            if (CurState == State.Done)
+            var pc = _module.Player();
+            if (pc == null || CurState == State.Done)
                 return;
 
-            foreach (var tower in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsTower))
-                arena.AddCircle(tower.Position, P4S.WreathTowerRadius, arena.ColorSafe);
-
+            // draw players and their tethers
             foreach ((int i, var player) in _module.Raid.WithSlot())
             {
                 arena.Actor(player, arena.ColorPlayerGeneric);
@@ -115,11 +112,24 @@ namespace BossMod.P4S
                 {
                     bool breaking = player.Tether.ID == (uint)TetherID.WreathOfThorns;
                     arena.AddLine(player.Position, tetherTarget.Position, breaking ? arena.ColorDanger : arena.ColorSafe);
-                    if (breaking && _playerIcons[i] == IconID.AkanthaiFire)
-                    {
-                        arena.AddCircle(player.Position, _fireExplosionRadius, arena.ColorDanger);
-                        arena.AddCircle(tetherTarget.Position, _fireExplosionRadius, arena.ColorDanger);
-                    }
+                }
+            }
+
+            // draw towers for designated tower soakers
+            bool isTowerSoaker = pc == _darkTH.Item1 || pc == _darkTH.Item2;
+            if (isTowerSoaker)
+                foreach (var tower in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsTower))
+                    arena.AddCircle(tower.Position, P4S.WreathTowerRadius, CurState == State.DarkDesign ?  arena.ColorDanger : arena.ColorSafe);
+
+            // draw circles around next imminent fire explosion
+            if (CurState != State.DarkDesign)
+            {
+                var curFirePair = CurState == State.FirstSet ? _fireTH : _fireDD;
+                bool curFirePairUnbroken = curFirePair.Item1 != null && curFirePair.Item1.Tether.ID != 0;
+                if (curFirePairUnbroken)
+                {
+                    arena.AddCircle(curFirePair.Item1!.Position, _fireExplosionRadius, isTowerSoaker ? arena.ColorDanger : arena.ColorSafe);
+                    arena.AddCircle(curFirePair.Item2!.Position, _fireExplosionRadius, isTowerSoaker ? arena.ColorDanger : arena.ColorSafe);
                 }
             }
         }
@@ -127,7 +137,13 @@ namespace BossMod.P4S
         public override void OnTethered(WorldState.Actor actor)
         {
             if (actor.OID == (uint)OID.Helper && actor.Tether.ID == (uint)TetherID.WreathOfThorns)
+            {
                 _relevantHelpers.Add(actor);
+            }
+            else if (actor.Type == WorldState.ActorType.Player)
+            {
+                PlayerTetherOrIconAssigned(_module.Raid.FindSlot(actor.InstanceID), actor);
+            }
         }
 
         public override void OnCastFinished(WorldState.Actor actor)
@@ -143,8 +159,33 @@ namespace BossMod.P4S
         public override void OnEventIcon(uint actorID, uint iconID)
         {
             var slot = _module.Raid.FindSlot(actorID);
-            if (slot >= 0)
-                _playerIcons[slot] = (IconID)iconID;
+            if (slot == -1)
+                return;
+
+            _playerIcons[slot] = (IconID)iconID;
+            PlayerTetherOrIconAssigned(slot, _module.Raid[slot]!);
+        }
+
+        private void PlayerTetherOrIconAssigned(int slot, WorldState.Actor actor)
+        {
+            if (slot == -1 || _playerIcons[slot] == IconID.None || actor.Tether.Target == 0)
+                return; // icon or tether not assigned yet
+
+            var tetherTarget = _module.WorldState.FindActor(actor.Tether.Target);
+            if (tetherTarget == null)
+                return; // weird
+
+            if (_playerIcons[slot] == IconID.AkanthaiDark)
+            {
+                _darkTH = (actor, tetherTarget);
+            }
+            else if (_playerIcons[slot] == IconID.AkanthaiFire)
+            {
+                if (actor.Role == Role.Tank || actor.Role == Role.Healer)
+                    _fireTH = (actor, tetherTarget);
+                else
+                    _fireDD = (actor, tetherTarget);
+            }
         }
 
         private bool IsTower(WorldState.Actor actor)
@@ -173,24 +214,6 @@ namespace BossMod.P4S
                 return actor.Position.X < 100;
             else
                 return false;
-        }
-
-        private TetherType TetherPriority(WorldState.Actor player, IconID icon)
-        {
-            return icon switch
-            {
-                IconID.AkanthaiDark => TetherType.Dark,
-                IconID.AkanthaiWind => TetherType.Wind,
-                IconID.AkanthaiFire => (player.Role == Role.Tank || player.Role == Role.Healer) ? TetherType.FireTH : TetherType.FireDD,
-                _ => TetherType.None
-            };
-        }
-
-        private IEnumerable<(WorldState.Actor, TetherType)> ActiveTethers()
-        {
-            return _module.Raid.WithSlot()
-                .Select(ip => (ip.Item2, TetherPriority(ip.Item2, _playerIcons[ip.Item1])))
-                .Where(it => it.Item2 != TetherType.None);
         }
     }
 }

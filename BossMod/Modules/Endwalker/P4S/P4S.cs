@@ -38,6 +38,8 @@ namespace BossMod.P4S
             StateMachine.State? p1 = null, p2 = null;
             Phase1(ref p1);
             Phase2(ref p2);
+            p1!.Enter.Add(() => Arena.IsCircle = false);
+            p2!.Enter.Add(() => Arena.IsCircle = true);
 
             var fork = CommonStates.Simple(ref InitialState, 0);
             fork.Update = (_) => Boss1() != null ? p1 : p2;
