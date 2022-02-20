@@ -14,6 +14,7 @@ namespace BossMod
     {
         public bool IsCircle = false;
         public bool ShowCardinals = true;
+        public bool OpaqueBackground = false;
         public Vector3 WorldCenter = new(100, 0, 100);
         public float WorldHalfSize = 20;
         public float ScreenScale = 1;
@@ -38,6 +39,7 @@ namespace BossMod
         public Vector3 WorldNW => WorldCenter + new Vector3(-WorldHalfSize, 0, -WorldHalfSize);
 
         // common color constants (ABGR)
+        public uint ColorBackground = 0xc00f0f0f;
         public uint ColorBorder = 0xffffffff;
         public uint ColorAOE = 0x80008080;
         public uint ColorDanger = 0xff00ffff;
@@ -82,6 +84,13 @@ namespace BossMod
             var wmin = ImGui.GetWindowPos();
             var wmax = wmin + ImGui.GetWindowSize();
             ImGui.GetWindowDrawList().PushClipRect(Vector2.Max(cursor, wmin), Vector2.Min(cursor + fullSize, wmax));
+            if (OpaqueBackground)
+            {
+                if (IsCircle)
+                    ZoneCircle(WorldCenter, WorldHalfSize, ColorBackground);
+                else
+                    ZoneQuad(WorldNW, WorldNE, WorldSE, WorldSW, ColorBackground);
+            }
         }
 
         // if you are 100% sure your primitive does not need clipping, you can use drawlist api directly
@@ -277,6 +286,17 @@ namespace BossMod
             ZoneQuad(tl, new Vector3(br.X, 0, tl.Z), br, new Vector3(tl.X, 0, br.Z), color);
         }
 
+        public void TextScreen(Vector2 center, string text, uint color, float fontSize = 17)
+        {
+            var size = ImGui.CalcTextSize(text);
+            ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontSize, center - size / 2, color, text);
+        }
+
+        public void TextWorld(Vector3 center, string text, uint color, float fontSize = 17)
+        {
+            TextScreen(WorldPositionToScreenPosition(center), text, color, fontSize);
+        }
+
         // high level utilities
         // draw arena border
         public void Border()
@@ -288,13 +308,11 @@ namespace BossMod
 
             if (ShowCardinals)
             {
-                var dl = ImGui.GetWindowDrawList();
                 var offCenter = ScreenHalfSize + 10;
-                var offCorner = new Vector2(8, 8);
-                dl.AddText(ScreenCenter + RotatedCoords(new(0, -offCenter)) - offCorner, ColorBorder, "N");
-                dl.AddText(ScreenCenter + RotatedCoords(new(0,  offCenter)) - offCorner, ColorBorder, "S");
-                dl.AddText(ScreenCenter + RotatedCoords(new( offCenter, 0)) - offCorner, ColorBorder, "E");
-                dl.AddText(ScreenCenter + RotatedCoords(new(-offCenter, 0)) - offCorner, ColorBorder, "W");
+                TextScreen(ScreenCenter + RotatedCoords(new(0, -offCenter)), "N", ColorBorder);
+                TextScreen(ScreenCenter + RotatedCoords(new(0,  offCenter)), "S", ColorBorder);
+                TextScreen(ScreenCenter + RotatedCoords(new( offCenter, 0)), "E", ColorBorder);
+                TextScreen(ScreenCenter + RotatedCoords(new(-offCenter, 0)), "W", ColorBorder);
             }
         }
 

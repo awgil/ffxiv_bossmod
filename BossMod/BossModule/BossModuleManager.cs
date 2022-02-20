@@ -16,7 +16,12 @@ namespace BossMod
             public bool Lock = false;
             public bool RotateArena = true;
             public bool ShowCardinals = false;
+            public bool ShowWaymarks = false;
+            public bool ShowMechanicTimers = true;
+            public bool ShowPlayerHints = true;
+            public bool ShowControlButtons = true;
             public bool TrishaMode = false;
+            public bool OpaqueArenaBackground = false;
             public bool ShowRaidWarnings = true;
             public bool ShowWorldArrows = false;
             public bool ShowDemo = false;
@@ -29,7 +34,12 @@ namespace BossMod
                 DrawProperty(ref Lock, "Lock movement and mouse interaction");
                 DrawProperty(ref RotateArena, "Rotate map to match camera orientation");
                 DrawProperty(ref ShowCardinals, "Show cardinal direction names");
-                DrawProperty(ref TrishaMode, "Trisha mode: show only arena without hints and with transparent background");
+                DrawProperty(ref ShowWaymarks, "Show waymarks on radar");
+                DrawProperty(ref ShowMechanicTimers, "Show mechanics sequence and timers");
+                DrawProperty(ref ShowPlayerHints, "Show warnings and hints for player");
+                DrawProperty(ref ShowControlButtons, "Show control buttons under radar");
+                DrawProperty(ref TrishaMode, "Trisha mode: show radar without window");
+                DrawProperty(ref OpaqueArenaBackground, "Add opaque background to the arena");
                 DrawProperty(ref ShowRaidWarnings, "Show warnings for all raid members");
                 DrawProperty(ref ShowWorldArrows, "Show movement hints in world");
                 DrawProperty(ref ShowDemo, "Show boss module demo out of instances (useful for configuring windows)");
@@ -92,7 +102,11 @@ namespace BossMod
             {
                 _activeModule.Arena.ScreenScale = _config.ArenaScale;
                 _activeModule.Arena.ShowCardinals = _config.ShowCardinals;
-                _activeModule.DrawOnlyArena = _config.TrishaMode;
+                _activeModule.Arena.OpaqueBackground = _config.OpaqueArenaBackground;
+                _activeModule.ShowStateMachine = _config.ShowMechanicTimers;
+                _activeModule.ShowPlayerHints = _config.ShowPlayerHints;
+                _activeModule.ShowControlButtons = _config.ShowControlButtons;
+                _activeModule.ShowWaymarks = _config.ShowWaymarks;
             }
 
             // create or destroy main window if needed

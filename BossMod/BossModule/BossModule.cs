@@ -17,7 +17,10 @@ namespace BossMod
         public RaidState Raid { get; init; }
         public WorldState.Actor? Player() => Raid.Player();
 
-        public bool DrawOnlyArena = false;
+        public bool ShowStateMachine = true;
+        public bool ShowPlayerHints = true;
+        public bool ShowControlButtons = true;
+        public bool ShowWaymarks = true;
 
         // per-oid enemy lists; filled on first request
         private Dictionary<uint, List<WorldState.Actor>> _relevantEnemies = new(); // key = actor OID
@@ -171,17 +174,17 @@ namespace BossMod
 
         public virtual void Draw(float cameraAzimuth, MovementHints? pcMovementHints)
         {
-            if (!DrawOnlyArena)
-            {
+            if (ShowStateMachine)
                 StateMachine.Draw();
+
+            if (ShowPlayerHints)
                 DrawHintForPlayer(pcMovementHints);
-            }
 
             Arena.Begin(cameraAzimuth);
             DrawArena();
             Arena.End();
 
-            if (!DrawOnlyArena)
+            if (ShowControlButtons)
             {
                 if (ImGui.Button("Show timeline"))
                 {
@@ -204,6 +207,8 @@ namespace BossMod
             foreach (var comp in _components)
                 comp.DrawArenaBackground(Arena);
             Arena.Border();
+            if (ShowWaymarks)
+                DrawWaymarks();
             DrawArenaForegroundPre();
             foreach (var comp in _components)
                 comp.DrawArenaForeground(Arena);
@@ -250,6 +255,26 @@ namespace BossMod
                 ImGui.SameLine();
             }
             ImGui.NewLine();
+        }
+
+        private void DrawWaymarks()
+        {
+            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.A), "A", 0xffba4e53);
+            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.B), "B", 0xffd5aa39);
+            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.C), "C", 0xff6cb4e0);
+            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.D), "D", 0xff7128c0);
+            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.N1), "1", 0xffba4e53);
+            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.N2), "2", 0xffd5aa39);
+            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.N3), "3", 0xff6cb4e0);
+            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.N4), "4", 0xff7128c0);
+        }
+
+        private void DrawWaymark(Vector3? pos, string text, uint color)
+        {
+            if (pos != null)
+            {
+                Arena.TextWorld(pos.Value, text, color, 22);
+            }
         }
 
         private void PlayerIDChanged(object? sender, uint id)
