@@ -115,12 +115,16 @@ namespace BossMod.P4S
 
             // this cast removes status 2799 'Aethersucker' from boss
             // right after it ends, instant cast 27111 applies 'Role Call' debuffs - corresponding component handles that
-            var belone = CommonStates.Cast(ref bloodrake2.Next, Boss1, AID.DirectorsBelone, 4.2f, 5);
+            var beloneStart = CommonStates.CastStart(ref bloodrake2.Next, Boss1, AID.DirectorsBelone, 4.2f);
+            beloneStart.EndHint |= StateMachine.StateHint.PositioningStart;
+
+            var beloneEnd = CommonStates.CastEnd(ref beloneStart.Next, Boss1, 5);
 
             // Cursed Casting happens right before (0.5s) chlamys resolve
-            var inv = InversiveChlamys(ref belone.Next, 9.2f);
+            var inv = InversiveChlamys(ref beloneEnd.Next, 9.2f);
             inv.Exit.Add(DeactivateComponent<InversiveChlamys>);
             inv.Exit.Add(DeactivateComponent<DirectorsBelone>);
+            inv.EndHint |= StateMachine.StateHint.PositioningEnd;
             return inv;
         }
 
@@ -128,7 +132,7 @@ namespace BossMod.P4S
         {
             var setting = CommonStates.Cast(ref link, Boss1, AID.SettingTheScene, delay, 4, "Scene");
             setting.Exit.Add(() => ActivateComponent(new PinaxUptime(this)));
-            setting.EndHint |= StateMachine.StateHint.GroupWithNext;
+            setting.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
             // ~1s after cast end, we get a bunch of env controls 8003759C, state=00020001
             // what I've seen so far:
             // 1. WF arrangement: indices 1, 2, 3, 4, 5, 10, 15, 20
@@ -155,12 +159,15 @@ namespace BossMod.P4S
             // 19 => SW water?
             // 20 => NW water
 
-            var pinax = CommonStates.Cast(ref setting.Next, Boss1, AID.Pinax, 8.2f, 5, "Pinax");
-            pinax.Exit.Add(DeactivateComponent<PinaxUptime>);
-            pinax.Exit.Add(() => ActivateComponent(new Pinax(this)));
+            var pinaxStart = CommonStates.CastStart(ref setting.Next, Boss1, AID.Pinax, 8.2f);
+            pinaxStart.Exit.Add(DeactivateComponent<PinaxUptime>);
+            pinaxStart.EndHint |= StateMachine.StateHint.PositioningEnd;
+
+            var pinaxEnd = CommonStates.CastEnd(ref pinaxStart.Next, Boss1, 5, "Pinax");
+            pinaxEnd.Exit.Add(() => ActivateComponent(new Pinax(this)));
             if (activateElementalBelone)
-                pinax.Exit.Add(() => ActivateComponent(new ElementalBelone(this))); // it will watch for pinax casts to determine elemental => corner assignments during first pinax
-            pinax.EndHint |= StateMachine.StateHint.GroupWithNext;
+                pinaxEnd.Exit.Add(() => ActivateComponent(new ElementalBelone(this))); // it will watch for pinax casts to determine elemental => corner assignments during first pinax
+            pinaxEnd.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
             // timeline:
             //  0.0s pinax cast end
             //  1.0s square 1 activation: env control (.10 = 00800040), helper starts casting 27095
@@ -176,11 +183,11 @@ namespace BossMod.P4S
             // 31.0s square 4 env control (.05 = 02000001)
             // 34.0s square 4 cast finish (+ instant 27089)
 
-            var p1 = CommonStates.ComponentCondition<Pinax>(ref pinax.Next, 10, this, comp => comp.NumFinished == 1, "Corner1");
+            var p1 = CommonStates.ComponentCondition<Pinax>(ref pinaxEnd.Next, 10, this, comp => comp.NumFinished == 1, "Corner1");
             p1.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var p2 = CommonStates.ComponentCondition<Pinax>(ref p1.Next, 3, this, comp => comp.NumFinished == 2, "Corner2");
-            p2.EndHint |= StateMachine.StateHint.GroupWithNext;
+            p2.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningEnd;
 
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
             dispatch[AID.NortherlyShiftCloak] = new(null, () => { });
@@ -193,6 +200,7 @@ namespace BossMod.P4S
             dispatch[AID.WesterlyShiftSword] = new(null, () => { });
             var shiftStart = CommonStates.CastStart(ref p2.Next, Boss1, dispatch, 3.6f);
             shiftStart.Exit.Add(() => ActivateComponent(new Shift(this))); // together with this, one of the helpers starts casting 27142 or 27137
+            shiftStart.EndHint |= StateMachine.StateHint.PositioningStart;
 
             var p3 = CommonStates.ComponentCondition<Pinax>(ref shiftStart.Next, 6.4f, this, comp => comp.NumFinished == 3, "Corner3");
             p3.EndHint |= StateMachine.StateHint.GroupWithNext;
@@ -203,6 +211,7 @@ namespace BossMod.P4S
             var p4 = CommonStates.ComponentCondition<Pinax>(ref shiftEnd.Next, 9.4f, this, comp => comp.NumFinished == 4, "Pinax resolve");
             p4.Exit.Add(DeactivateComponent<Pinax>);
             p4.Exit.Add(DeactivateComponent<Shift>);
+            p4.EndHint |= StateMachine.StateHint.PositioningEnd;
             return p4;
         }
 
@@ -227,11 +236,12 @@ namespace BossMod.P4S
             bloodrake4.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Raidwide;
 
             var bursts = CommonStates.Cast(ref bloodrake4.Next, Boss1, AID.BeloneBursts, 4.2f, 5, "Orbs"); // orbs appear at cast start, tether and start moving at cast end
-            bursts.EndHint |= StateMachine.StateHint.GroupWithNext;
+            bursts.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
             var periaktoi = CommonStates.Cast(ref bursts.Next, Boss1, AID.Periaktoi, 9.2f, 5, "Square explode");
             periaktoi.Exit.Add(DeactivateComponent<ElementalBelone>);
             periaktoi.Exit.Add(DeactivateComponent<VengefulBelone>); // TODO: reconsider deactivation time, debuffs fade ~12s later, but I think vengeful needs to be handled before explosion?
+            periaktoi.EndHint |= StateMachine.StateHint.PositioningEnd;
             return periaktoi;
         }
 
@@ -243,10 +253,10 @@ namespace BossMod.P4S
             var coils1 = CommonStates.Cast(ref bloodrake5.Next, Boss1, AID.BeloneCoils, 3.2f, 4, "Coils 1");
             coils1.Exit.Add(() => ActivateComponent(new BeloneCoils(this)));
             coils1.Exit.Add(() => ActivateComponent(new InversiveChlamys(this, false)));
-            coils1.EndHint |= StateMachine.StateHint.GroupWithNext;
+            coils1.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
             var inv1 = InversiveChlamys(ref coils1.Next, 3.2f);
-            inv1.EndHint |= StateMachine.StateHint.GroupWithNext;
+            inv1.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningEnd;
 
             var aetheric = CommonStates.Cast(ref inv1.Next, Boss1, AID.AethericChlamys, 2.4f, 4);
 
@@ -255,7 +265,7 @@ namespace BossMod.P4S
 
             var coils2 = CommonStates.Cast(ref bloodrake6.Next, Boss1, AID.BeloneCoils, 4.2f, 4, "Coils 2");
             coils2.Exit.Add(() => ActivateComponent(new DirectorsBelone(this, false)));
-            coils2.EndHint |= StateMachine.StateHint.GroupWithNext;
+            coils2.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
             var belone = CommonStates.Cast(ref coils2.Next, Boss1, AID.DirectorsBelone, 9.2f, 5);
 
@@ -263,6 +273,7 @@ namespace BossMod.P4S
             inv2.Exit.Add(DeactivateComponent<BeloneCoils>);
             inv2.Exit.Add(DeactivateComponent<InversiveChlamys>);
             inv2.Exit.Add(DeactivateComponent<DirectorsBelone>);
+            inv2.EndHint |= StateMachine.StateHint.PositioningEnd;
             return inv2;
         }
 
@@ -307,12 +318,13 @@ namespace BossMod.P4S
             dispatch[AID.Nearsight] = new(null, () => ActivateComponent(new NearFarSight(this, NearFarSight.State.Near)));
             dispatch[AID.Farsight] = new(null, () => ActivateComponent(new NearFarSight(this, NearFarSight.State.Far)));
             var start = CommonStates.CastStart(ref link, Boss2, dispatch, delay);
+            start.EndHint |= StateMachine.StateHint.PositioningStart;
 
             var end = CommonStates.CastEnd(ref start.Next, Boss2, 5);
 
             var resolve = CommonStates.ComponentCondition<NearFarSight>(ref end.Next, 1.1f, this, comp => comp.CurState == NearFarSight.State.Done, "Far/nearsight");
             resolve.Exit.Add(DeactivateComponent<NearFarSight>);
-            resolve.EndHint |= StateMachine.StateHint.Tankbuster;
+            resolve.EndHint |= StateMachine.StateHint.Tankbuster | StateMachine.StateHint.PositioningEnd;
             return resolve;
         }
 
@@ -381,7 +393,7 @@ namespace BossMod.P4S
             // 18.0s: boss starts casting far/nearsight
             var wreath = CommonStates.Cast(ref aoe.Next, Boss2, AID.WreathOfThorns1, 6.2f, 8, "Wreath1");
             wreath.Enter.Add(() => ActivateComponent(new WreathOfThorns1(this)));
-            wreath.EndHint |= StateMachine.StateHint.GroupWithNext;
+            wreath.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
             var aoe1 = CommonStates.ComponentCondition<WreathOfThorns1>(ref wreath.Next, 3, this, comp => comp.CurState != WreathOfThorns1.State.FirstAOEs, "AOE 1");
             aoe1.EndHint |= StateMachine.StateHint.GroupWithNext;
@@ -391,6 +403,7 @@ namespace BossMod.P4S
 
             var aoe3 = CommonStates.ComponentCondition<WreathOfThorns1>(ref aoe2.Next, 3, this, comp => comp.CurState != WreathOfThorns1.State.LastAOEs, "AOE 2");
             aoe3.Exit.Add(DeactivateComponent<WreathOfThorns1>);
+            aoe3.EndHint |= StateMachine.StateHint.PositioningEnd;
             return aoe3;
         }
 
@@ -423,7 +436,7 @@ namespace BossMod.P4S
             // 33.4s: boss finishes casting aoe
             var wreath = CommonStates.Cast(ref dd.Next, Boss2, AID.WreathOfThorns2, 4.2f, 6, "Wreath2");
             wreath.Enter.Add(() => ActivateComponent(new WreathOfThorns2(this)));
-            wreath.EndHint |= StateMachine.StateHint.GroupWithNext;
+            wreath.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
             var darkDesign = CommonStates.Cast(ref wreath.Next, Boss2, AID.DarkDesign, 3.2f, 5, "DarkDesign");
             darkDesign.EndHint |= StateMachine.StateHint.GroupWithNext;
@@ -433,6 +446,7 @@ namespace BossMod.P4S
 
             var resolve2 = CommonStates.ComponentCondition<WreathOfThorns2>(ref resolve1.Next, 7, this, comp => comp.CurState != WreathOfThorns2.State.SecondSet, "Resolve 2");
             resolve2.Exit.Add(DeactivateComponent<WreathOfThorns2>);
+            resolve2.EndHint |= StateMachine.StateHint.PositioningEnd;
             return resolve2;
         }
 
@@ -464,7 +478,7 @@ namespace BossMod.P4S
             // 30.4s: second cones
             var wreath = CommonStates.Cast(ref intro.Next, Boss2, AID.WreathOfThorns3, 4.2f, 8, "Wreath3");
             wreath.Enter.Add(() => ActivateComponent(new WreathOfThorns3(this)));
-            wreath.EndHint |= StateMachine.StateHint.GroupWithNext;
+            wreath.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
             var jump1 = CommonStates.Cast(ref wreath.Next, Boss2, AID.KothornosKock, 3.2f, 4.9f, "Jump1");
             jump1.EndHint |= StateMachine.StateHint.GroupWithNext;
@@ -486,6 +500,7 @@ namespace BossMod.P4S
 
             var cones2 = CommonStates.ComponentCondition<WreathOfThorns3>(ref towers2.Next, 3.4f, this, comp => comp.NumCones > 1, "Cones2");
             cones2.Exit.Add(DeactivateComponent<WreathOfThorns3>);
+            cones2.EndHint |= StateMachine.StateHint.PositioningEnd;
             return cones2;
         }
 
@@ -513,10 +528,11 @@ namespace BossMod.P4S
             wreath.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var aoe2 = SearingStream(ref wreath.Next, 3.2f);
-            aoe2.EndHint |= StateMachine.StateHint.GroupWithNext;
+            aoe2.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
             var aoe3 = UltimateImpulse(ref aoe2.Next, 28.2f);
             aoe3.Exit.Add(DeactivateComponent<WreathOfThorns4>);
+            aoe3.EndHint |= StateMachine.StateHint.PositioningEnd;
             return aoe3;
         }
 
