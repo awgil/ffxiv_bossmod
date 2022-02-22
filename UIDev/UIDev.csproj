@@ -51,4 +51,8 @@
   <ItemGroup>
     <ProjectReference Include="..\BossMod\BossMod.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ImGui.NET" Version="1.86.0" />
+  </ItemGroup>
 </Project>
