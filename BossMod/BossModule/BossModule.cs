@@ -304,6 +304,7 @@ namespace BossMod
                 case WorldState.ActorType.Player:
                     Raid.AddMember(actor, actor.InstanceID == WorldState.PlayerActorID);
                     break;
+                case WorldState.ActorType.Unknown:
                 case WorldState.ActorType.Enemy:
                     var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
                     if (relevant != null)
@@ -319,6 +320,7 @@ namespace BossMod
                 case WorldState.ActorType.Player:
                     Raid.RemoveMember(actor);
                     break;
+                case WorldState.ActorType.Unknown:
                 case WorldState.ActorType.Enemy:
                     var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
                     if (relevant != null)
