@@ -86,7 +86,7 @@ namespace BossMod
                             TargetID = SanitizedObjectID(chara.CastTargetObjectId),
                             Location = Utils.BattleCharaCastLocation(chara),
                             TotalTime = chara.TotalCastTime,
-                            FinishAt = CurrentTime.AddSeconds(chara.CurrentCastTime)
+                            FinishAt = CurrentTime.AddSeconds(Math.Clamp(chara.CurrentCastTime, 0, 100000))
                         } : null;
                     UpdateCastInfo(act, curCast);
 
