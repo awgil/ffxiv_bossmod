@@ -261,8 +261,11 @@ namespace BossMod
                 if (strategy.FirstChargeIn <= 0)
                     return AID.Onslaught; // onslaught now, since strategy asks for it
 
-                // otherwise use onslaught only if we're spending gauge and not needing it for something
-                if (spendGauge && state.OnslaughtCD <= strategy.FirstChargeIn + 30 && state.OnslaughtCD <= strategy.SecondChargeIn)
+                // check whether using onslaught now won't prevent us from using it when strategy demands
+                bool safeToUseOnslaught = state.OnslaughtCD <= strategy.FirstChargeIn + 30 && state.OnslaughtCD <= strategy.SecondChargeIn;
+
+                // use onslaught now if it's safe and we're either spending gauge or won't be able to delay it until next buff window anyway
+                if (safeToUseOnslaught && (spendGauge || state.OnslaughtCD <= strategy.RaidBuffsIn))
                     return AID.Onslaught;
             }
 

@@ -31,6 +31,7 @@ namespace UIDev
 
         public WARRotation.State InitialState = new() { AnimationLockDelay = 0.1f };
         public int Duration = 260;
+        public bool KeepOnslaughtCharge = false;
         public float BuffWindowOffset = 7.5f;
         public float BuffWindowDuration = 20;
         public float BuffWindowFreq = 120;
@@ -38,6 +39,7 @@ namespace UIDev
         public void Draw()
         {
             ImGui.InputInt("Sim duration (GCDs)", ref Duration);
+            ImGui.Checkbox("Keep onslaught charge", ref KeepOnslaughtCharge);
             ImGui.SliderFloat("Buff window offset", ref BuffWindowOffset, 0, 60);
             ImGui.SliderFloat("Buff window duration", ref BuffWindowDuration, 1, 30);
             ImGui.SliderFloat("Buff window frequency", ref BuffWindowFreq, 30, 120);
@@ -80,7 +82,8 @@ namespace UIDev
 
             var strategy = new WARRotation.Strategy();
             strategy.PositionLockIn = 10000;
-            strategy.FirstChargeIn = strategy.SecondChargeIn = 10000;
+            strategy.FirstChargeIn = KeepOnslaughtCharge ? 0.1f : 10000;
+            strategy.SecondChargeIn = 10000;
             strategy.EnableUpheaval = true;
 
             var state = InitialState;
