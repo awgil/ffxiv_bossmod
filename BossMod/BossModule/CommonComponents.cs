@@ -28,5 +28,32 @@ namespace BossMod
                 }
             }
         }
+
+        // generic 'shared tankbuster' component that shows radius around boss target
+        // TODO: consider showing invuln/stack/gtfo hints...
+        public class SharedTankbuster : BossModule.Component
+        {
+            private BossModule _module;
+            private List<WorldState.Actor> _caster;
+            private float _radius;
+
+            public SharedTankbuster(BossModule module, List<WorldState.Actor> caster, float radius)
+            {
+                _module = module;
+                _caster = caster;
+                _radius = radius;
+            }
+
+            public override void DrawArenaForeground(MiniArena arena)
+            {
+                var targetID = _caster.FirstOrDefault()?.TargetID ?? 0;
+                var target = targetID != 0 ? _module.WorldState.FindActor(targetID) : null;
+                if (target != null)
+                {
+                    arena.Actor(target, arena.ColorPlayerGeneric);
+                    arena.AddCircle(target.Position, _radius, arena.ColorDanger);
+                }
+            }
+        }
     }
 }

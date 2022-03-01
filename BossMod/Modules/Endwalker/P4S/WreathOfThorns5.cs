@@ -25,7 +25,7 @@ namespace BossMod.P4S
             int order = _playersOrder.IndexOf(actor.InstanceID);
             if (order >= 0)
             {
-                hints.Add($"Order: {order}", false);
+                hints.Add($"Order: {order + 1}", false);
 
                 if (order >= _castsDone && order < _towersOrder.Count)
                 {
@@ -48,6 +48,12 @@ namespace BossMod.P4S
             int order = _playersOrder.IndexOf(pc.InstanceID);
             if (order >= _castsDone && order < _towersOrder.Count)
                 arena.AddCircle(_towersOrder[order].Position, P4S.WreathTowerRadius, arena.ColorSafe);
+
+            var pcTetherTarget = pc.Tether.Target != 0 ? _module.WorldState.FindActor(pc.Tether.Target) : null;
+            if (pcTetherTarget != null)
+            {
+                arena.AddLine(pc.Position, pcTetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? arena.ColorDanger : arena.ColorSafe);
+            }
 
             if (_playersOrder.Count < 8)
             {

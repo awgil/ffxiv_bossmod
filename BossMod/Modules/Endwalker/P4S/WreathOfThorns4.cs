@@ -7,6 +7,7 @@ namespace BossMod.P4S
 
     // state related to act 4 wreath of thorns
     // note: we assume that aoes are popped in waymark order...
+    // TODO: show concrete position hint for blue breaks (e.g. assume dark move 1/8 CW and blue move 3/8 CW)
     class WreathOfThorns4 : Component
     {
         private P4S _module;
@@ -69,22 +70,24 @@ namespace BossMod.P4S
 
         public override void DrawArenaForeground(MiniArena arena)
         {
-            var nextAOE = _doneTowers < 4 ? null : NextAOE();
+            var pc = _module.Player();
             foreach (((var player, var icon), var source) in _module.Raid.Members.Zip(_playerIcons).Zip(_playerTetherSource))
             {
                 arena.Actor(player, arena.ColorPlayerGeneric);
                 if (player == null || source == null)
                     continue;
 
+                // tower soak & explosion
                 if (icon == IconID.AkanthaiWater)
                 {
                     arena.AddCircle(source.Position, P4S.WreathTowerRadius, arena.ColorSafe);
                     arena.AddCircle(player.Position, _waterExplosionRange, arena.ColorDanger);
-                    arena.AddLine(player.Position, source.Position, source.Tether.ID == (uint)TetherID.WreathOfThorns ? arena.ColorDanger : arena.ColorSafe);
                 }
-                else if (source == nextAOE)
+
+                // tether
+                if (player == pc)
                 {
-                    arena.AddLine(player.Position, source.Position, source.Tether.ID == (uint)TetherID.WreathOfThorns ? arena.ColorDanger : arena.ColorSafe);
+                    arena.AddLine(player.Position, source.Position, icon == IconID.AkanthaiWater ? 0xffff8000 : 0xffff00ff);
                 }
             }
         }

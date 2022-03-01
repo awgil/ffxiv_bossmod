@@ -11,6 +11,12 @@ namespace BossMod.P4S
         public ElegantEvisceration() : base(ActionID.MakeSpell(AID.ElegantEviscerationSecond)) { }
     }
 
+    // state related to demigod double mechanic (shared tankbuster)
+    class DemigodDouble : CommonComponents.SharedTankbuster
+    {
+        public DemigodDouble(P4S module) : base(module, module.Enemies(OID.Boss2), 6) { }
+    }
+
     // state related to heart stake mechanic (dual hit tankbuster with bleed)
     // TODO: consider showing some tank swap / invul hint...
     class HeartStake : CommonComponents.CastCounter
@@ -286,7 +292,6 @@ namespace BossMod.P4S
             s = AkanthaiAct1(ref s.Next, 10.2f);
             s = FarNearSight(ref s.Next, 1);
             s = AkanthaiAct2(ref s.Next, 7.1f);
-            s = UltimateImpulse(ref s.Next, 0.3f);
             s = AkanthaiAct3(ref s.Next, 8.2f);
             s = FarNearSight(ref s.Next, 4.1f);
             s = HeartStake(ref s.Next, 9.2f);
@@ -333,6 +338,8 @@ namespace BossMod.P4S
         private StateMachine.State DemigodDouble(ref StateMachine.State? link, float delay)
         {
             var s = CommonStates.Cast(ref link, Boss2, AID.DemigodDouble, delay, 5, "SharedTankbuster");
+            s.Enter.Add(() => ActivateComponent(new DemigodDouble(this)));
+            s.Exit.Add(DeactivateComponent<DemigodDouble>);
             s.EndHint |= StateMachine.StateHint.Tankbuster;
             return s;
         }
@@ -447,9 +454,12 @@ namespace BossMod.P4S
             resolve1.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var resolve2 = CommonStates.ComponentCondition<WreathOfThorns2>(ref resolve1.Next, 7, this, comp => comp.CurState != WreathOfThorns2.State.SecondSet, "Resolve 2");
-            resolve2.Exit.Add(DeactivateComponent<WreathOfThorns2>);
-            resolve2.EndHint |= StateMachine.StateHint.PositioningEnd;
-            return resolve2;
+            resolve2.EndHint |= StateMachine.StateHint.GroupWithNext;
+
+            var aoe = UltimateImpulse(ref resolve2.Next, 0.3f);
+            aoe.Exit.Add(DeactivateComponent<WreathOfThorns2>);
+            aoe.EndHint |= StateMachine.StateHint.PositioningEnd;
+            return aoe;
         }
 
         private StateMachine.State AkanthaiAct3(ref StateMachine.State? link, float delay)

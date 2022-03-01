@@ -8,7 +8,6 @@ namespace BossMod.P4S
 
     // state related to act 2 wreath of thorns
     // note: we assume that (1) dark targets soak all towers, (2) first fire to be broken is tank-healer pair (since their debuff is slightly shorter)
-    // theoretically second set of towers could be soaked by first fire pair, but whatever...
     class WreathOfThorns2 : Component
     {
         public enum State { DarkDesign, FirstSet, SecondSet, Done }
@@ -35,9 +34,6 @@ namespace BossMod.P4S
 
         public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (CurState == State.Done)
-                return;
-
             bool isTowerSoaker = actor == _darkTH.Item1 || actor == _darkTH.Item2;
             if (CurState == State.DarkDesign)
             {
@@ -45,44 +41,42 @@ namespace BossMod.P4S
                 {
                     hints.Add("Stay in center", false);
                 }
-                else if (_darkTH.Item1!.Tether.ID != 0)
+                else if (_darkTH.Item1!.Tether.ID != 0) // tether not broken yet
                 {
                     hints.Add("Break tether!");
                 }
             }
             else
             {
-                var curFirePair = CurState == State.FirstSet ? _fireTH : _fireDD;
-                bool curFirePairUnbroken = curFirePair.Item1 != null && curFirePair.Item1.Tether.ID != 0;
+                var curFirePair = (_fireTH.Item1 != null && _fireTH.Item1.Tether.ID != 0) ? _fireTH : ((_fireDD.Item1 != null && _fireDD.Item1.Tether.ID != 0) ? _fireDD : (null, null));
                 bool isFromCurrentPair = actor == curFirePair.Item1 || actor == curFirePair.Item2;
-                if (isFromCurrentPair && curFirePairUnbroken)
+                if (isFromCurrentPair)
                 {
                     hints.Add("Break tether!");
                 }
-
-                var relevantHelpers = CurState == State.FirstSet ? _firstSet : _secondSet;
-                if (relevantHelpers.Where(IsAOE).InRadius(actor.Position, P4S.WreathAOERadius).Any())
+                else if (curFirePair.Item1 != null && !isTowerSoaker)
                 {
-                    hints.Add("GTFO from AOE!");
+                    bool nearFire = GeometryUtils.PointInCircle(actor.Position - curFirePair.Item1!.Position, _fireExplosionRadius) || GeometryUtils.PointInCircle(actor.Position - curFirePair.Item2!.Position, _fireExplosionRadius);
+                    hints.Add("Stack with breaking tether!", !nearFire);
                 }
 
-                var soakedTower = relevantHelpers.Where(IsTower).InRadius(actor.Position, P4S.WreathTowerRadius).FirstOrDefault();
-                if (isTowerSoaker)
+                if (CurState != State.Done)
                 {
-                    // note: we're assuming that players with 'dark' soak all towers
-                    hints.Add("Soak the tower!", soakedTower == null);
-                }
-                else
-                {
-                    if (soakedTower != null)
+                    var relevantHelpers = CurState == State.FirstSet ? _firstSet : _secondSet;
+                    if (relevantHelpers.Where(IsAOE).InRadius(actor.Position, P4S.WreathAOERadius).Any())
                     {
-                        hints.Add("GTFO from tower!");
+                        hints.Add("GTFO from AOE!");
                     }
 
-                    if (!isFromCurrentPair && curFirePairUnbroken)
+                    var soakedTower = relevantHelpers.Where(IsTower).InRadius(actor.Position, P4S.WreathTowerRadius).FirstOrDefault();
+                    if (isTowerSoaker)
                     {
-                        bool nearFire = GeometryUtils.PointInCircle(actor.Position - curFirePair.Item1!.Position, _fireExplosionRadius) || GeometryUtils.PointInCircle(actor.Position - curFirePair.Item2!.Position, _fireExplosionRadius);
-                        hints.Add("Stack with breaking tether!", !nearFire);
+                        // note: we're assuming that players with 'dark' soak all towers
+                        hints.Add("Soak the tower!", soakedTower == null);
+                    }
+                    else if (soakedTower != null)
+                    {
+                        hints.Add("GTFO from tower!");
                     }
                 }
             }
@@ -100,33 +94,38 @@ namespace BossMod.P4S
         public override void DrawArenaForeground(MiniArena arena)
         {
             var pc = _module.Player();
-            if (pc == null || CurState == State.Done)
+            if (pc == null)
                 return;
 
-            // draw players and their tethers
-            foreach ((int i, var player) in _module.Raid.WithSlot())
-            {
+            // draw players
+            foreach (var player in _module.Raid.WithoutSlot().Exclude(pc))
                 arena.Actor(player, arena.ColorPlayerGeneric);
-                var tetherTarget = player.Tether.Target != 0 ? _module.WorldState.FindActor(player.Tether.Target) : null;
-                if (tetherTarget != null)
-                {
-                    bool breaking = player.Tether.ID == (uint)TetherID.WreathOfThorns;
-                    arena.AddLine(player.Position, tetherTarget.Position, breaking ? arena.ColorDanger : arena.ColorSafe);
-                }
+
+            // draw pc's tether
+            var pcPartner = pc.Tether.Target != 0
+                ? _module.WorldState.FindActor(pc.Tether.Target)
+                : _module.Raid.WithoutSlot().FirstOrDefault(p => p.Tether.Target == pc.InstanceID);
+            if (pcPartner != null)
+            {
+                var tetherColor = _playerIcons[_module.Raid.PlayerSlot] switch {
+                    IconID.AkanthaiFire => 0xff00ffff,
+                    IconID.AkanthaiWind => 0xff00ff00,
+                    _ => 0xffff00ff
+                };
+                arena.AddLine(pc.Position, pcPartner.Position, tetherColor);
             }
 
             // draw towers for designated tower soakers
             bool isTowerSoaker = pc == _darkTH.Item1 || pc == _darkTH.Item2;
-            if (isTowerSoaker)
+            if (isTowerSoaker && CurState != State.Done)
                 foreach (var tower in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsTower))
                     arena.AddCircle(tower.Position, P4S.WreathTowerRadius, CurState == State.DarkDesign ?  arena.ColorDanger : arena.ColorSafe);
 
             // draw circles around next imminent fire explosion
             if (CurState != State.DarkDesign)
             {
-                var curFirePair = CurState == State.FirstSet ? _fireTH : _fireDD;
-                bool curFirePairUnbroken = curFirePair.Item1 != null && curFirePair.Item1.Tether.ID != 0;
-                if (curFirePairUnbroken)
+                var curFirePair = (_fireTH.Item1 != null && _fireTH.Item1.Tether.ID != 0) ? _fireTH : ((_fireDD.Item1 != null && _fireDD.Item1.Tether.ID != 0) ? _fireDD : (null, null));
+                if (curFirePair.Item1 != null)
                 {
                     arena.AddCircle(curFirePair.Item1!.Position, _fireExplosionRadius, isTowerSoaker ? arena.ColorDanger : arena.ColorSafe);
                     arena.AddCircle(curFirePair.Item2!.Position, _fireExplosionRadius, isTowerSoaker ? arena.ColorDanger : arena.ColorSafe);
