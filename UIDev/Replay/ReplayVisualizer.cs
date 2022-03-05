@@ -71,7 +71,7 @@ namespace UIDev
             ImGui.Text($"{_ws.CurrentTime:O}");
             ImGui.SameLine();
             if (ImGui.Button("<<<"))
-                _playSpeed = -5;
+                _playSpeed = -10;
             ImGui.SameLine();
             if (ImGui.Button("<<"))
                 _playSpeed = -1;
@@ -89,7 +89,7 @@ namespace UIDev
                 _playSpeed = 1;
             ImGui.SameLine();
             if (ImGui.Button(">>>"))
-                _playSpeed = 5;
+                _playSpeed = 10;
         }
 
         private void DrawTimelineRow()

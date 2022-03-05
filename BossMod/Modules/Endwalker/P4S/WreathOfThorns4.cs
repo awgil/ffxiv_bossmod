@@ -6,8 +6,8 @@ namespace BossMod.P4S
     using static BossModule;
 
     // state related to act 4 wreath of thorns
-    // note: we assume that aoes are popped in waymark order...
     // TODO: show concrete position hint for blue breaks (e.g. assume dark move 1/8 CW and blue move 3/8 CW)
+    // TODO: show hints for dark break order, probably configurable...
     class WreathOfThorns4 : Component
     {
         private P4S _module;
@@ -15,6 +15,7 @@ namespace BossMod.P4S
         private WorldState.Actor?[] _playerTetherSource = new WorldState.Actor?[8];
         private int _doneTowers = 0;
         private int _doneAOEs = 0;
+        private int _activeTethers = 0;
 
         private static float _waterExplosionRange = 10;
 
@@ -98,7 +99,10 @@ namespace BossMod.P4S
             {
                 var slot = _module.Raid.FindSlot(actor.Tether.Target);
                 if (slot >= 0)
+                {
                     _playerTetherSource[slot] = actor;
+                    ++_activeTethers;
+                }
             }
         }
 
@@ -108,7 +112,10 @@ namespace BossMod.P4S
             {
                 var slot = _module.Raid.FindSlot(actor.Tether.Target);
                 if (slot >= 0)
+                {
                     _playerTetherSource[slot] = null;
+                    --_activeTethers;
+                }
             }
         }
 
@@ -130,7 +137,9 @@ namespace BossMod.P4S
         private WorldState.Actor? NextAOE()
         {
             // note: this is quite a hack to be honest...
-            var pos = _doneAOEs < 4 ? _module.WorldState.GetWaymark((WorldState.Waymark)((int)WorldState.Waymark.N1 + _doneAOEs)) : null;
+            // it works well for aoes at cardinals if broken in correct order (1-2-3-4), or for aoes at intercardinals if broken in correct and 'slightly-incorrect' orders (4/1 - 2/1 - ...) or (2/1 - 3/2 - ...)
+            // (assuming 1 is N, 2-3-4 CW)
+            var pos = (_activeTethers > 0 && _activeTethers <= 4) ? _module.WorldState.GetWaymark((WorldState.Waymark)((int)WorldState.Waymark.A + (4 - _activeTethers))) : null;
             return pos != null ? _playerTetherSource.Zip(_playerIcons).Where(si => si.Item1 != null && si.Item2 == IconID.AkanthaiDark).Select(si => si.Item1!).MinBy(s => (s.Position - pos.Value).LengthSquared()) : null;
         }
     }

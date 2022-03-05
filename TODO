@@ -23,9 +23,22 @@ boss modules:
 
 autorotation:
 - planner (defensive CDs, charge, delay offensive?)
-- offensive veng
-- generalize to other classes
-- aoe rotation, maybe even auto-detect targets and autoselect st/aoe...
+- war: offensive veng
+- war: aoe rotation, maybe even auto-detect targets and autoselect st/aoe...
+- whm:
+-- dia/glare -> downscale lvl; select based on debuff
+-- holy: manual
+-- assize, pom: manual?
+-- st gcd heal: affsolace -> cure2 (no lilies) -> cure (lvl/mana)
+-- aoe gcd heal: affrapture -> medica2 (no lilies) -> cure3 (buff up/not nearby) -> medica (lvl/mana/not stacked)
+-- st ogcd heal: tetra, db, bene (manual)
+-- asylum: manual
+-- regen: manual
+-- pi/temperance: manual
+-- affmisery: manual (needed to cover movement)
+-- swiftcast: manual
+-- lucid dreaming, thin air: ???
+-- surecast: manual (or planned for kb)
 
 world rendering:
 - danger zones
