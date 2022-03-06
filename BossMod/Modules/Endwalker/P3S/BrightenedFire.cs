@@ -12,7 +12,7 @@ namespace BossMod.P3S
     class BrightenedFire : CommonComponents.CastCounter
     {
         private P3S _module;
-        private List<WorldState.Actor> _darkenedFires;
+        private List<Actor> _darkenedFires;
         private int[] _playerOrder = new int[8]; // 0 if unknown, 1-8 otherwise
 
         private static float _aoeRange = 7;
@@ -24,7 +24,7 @@ namespace BossMod.P3S
             _darkenedFires = module.Enemies(OID.DarkenedFire);
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_playerOrder[slot] <= NumCasts)
                 return;
@@ -45,10 +45,10 @@ namespace BossMod.P3S
         public override void DrawArenaForeground(MiniArena arena)
         {
             var pc = _module.Player();
-            if (pc == null || _playerOrder[_module.Raid.PlayerSlot] <= NumCasts)
+            if (pc == null || _playerOrder[_module.PlayerSlot] <= NumCasts)
                 return;
 
-            var pos = PositionForOrder(_playerOrder[_module.Raid.PlayerSlot]);
+            var pos = PositionForOrder(_playerOrder[_module.PlayerSlot]);
             arena.AddCircle(pos, 1, arena.ColorSafe);
 
             // draw all adds
@@ -75,8 +75,8 @@ namespace BossMod.P3S
         private Vector3 PositionForOrder(int order)
         {
             // TODO: consider how this can be improved...
-            var markID = (WorldState.Waymark)((int)WorldState.Waymark.N1 + (order - 1) % 4);
-            return _module.WorldState.GetWaymark(markID) ?? _module.Arena.WorldCenter;
+            var markID = (Waymark)((int)Waymark.N1 + (order - 1) % 4);
+            return _module.WorldState.Waymarks[markID] ?? _module.Arena.WorldCenter;
         }
     }
 }

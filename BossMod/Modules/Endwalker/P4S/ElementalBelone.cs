@@ -20,13 +20,13 @@ namespace BossMod.P4S
 
             var assignments = module.FindComponent<SettingTheScene>()!;
             uint forbiddenCorners = 1; // 0 corresponds to 'unknown' corner
-            foreach (var actor in _module.WorldState.Actors.Values.Where(a => a.OID == (uint)OID.Helper).Tethered(TetherID.Bloodrake))
+            foreach (var actor in _module.WorldState.Actors.Where(a => a.OID == (uint)OID.Helper).Tethered(TetherID.Bloodrake))
                 forbiddenCorners |= 1u << (int)assignments.FromPos(actor.Position);
             var safeCorner = (SettingTheScene.Corner)BitOperations.TrailingZeroCount(~forbiddenCorners);
             _safeElement = assignments.FindElement(safeCorner);
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_imminentExplodingCorners.Where(p => GeometryUtils.PointInRect(actor.Position - p, Vector3.UnitX, 10, 10, 10)).Any())
             {
@@ -57,7 +57,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnCastStarted(WorldState.Actor actor)
+        public override void OnCastStarted(Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;

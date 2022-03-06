@@ -41,7 +41,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_debuffForbidden == 0)
                 return;
@@ -109,7 +109,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnStatusGain(WorldState.Actor actor, int index)
+        public override void OnStatusGain(Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {
@@ -122,7 +122,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnStatusLose(WorldState.Actor actor, int index)
+        public override void OnStatusLose(Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {
@@ -135,13 +135,13 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnEventCast(WorldState.CastResult info)
+        public override void OnEventCast(CastEvent info)
         {
             if (info.IsSpell(AID.CursedCasting1) || info.IsSpell(AID.CursedCasting2))
                 _debuffForbidden = 0;
         }
 
-        private void ModifyDebuff(WorldState.Actor actor, ref ulong vector, bool active)
+        private void ModifyDebuff(Actor actor, ref ulong vector, bool active)
         {
             int slot = _module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)

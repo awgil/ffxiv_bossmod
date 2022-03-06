@@ -43,7 +43,7 @@ namespace BossMod.P2S
             }
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (!Active)
                 return;
@@ -78,8 +78,8 @@ namespace BossMod.P2S
             if (!Active || pc == null)
                 return;
 
-            bool pcHasTides = BitVector.IsVector64BitSet(_playersWithTides, _module.Raid.PlayerSlot);
-            bool pcHasDepths = BitVector.IsVector64BitSet(_playersWithDepths, _module.Raid.PlayerSlot);
+            bool pcHasTides = BitVector.IsVector64BitSet(_playersWithTides, _module.PlayerSlot);
+            bool pcHasDepths = BitVector.IsVector64BitSet(_playersWithDepths, _module.PlayerSlot);
             foreach ((int i, var actor) in _module.Raid.WithSlot())
             {
                 if (BitVector.IsVector64BitSet(_playersWithTides, i))
@@ -103,7 +103,7 @@ namespace BossMod.P2S
             }
         }
 
-        public override void OnStatusGain(WorldState.Actor actor, int index)
+        public override void OnStatusGain(Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {
@@ -116,7 +116,7 @@ namespace BossMod.P2S
             }
         }
 
-        public override void OnStatusLose(WorldState.Actor actor, int index)
+        public override void OnStatusLose(Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {
@@ -129,7 +129,7 @@ namespace BossMod.P2S
             }
         }
 
-        private void ModifyDebuff(WorldState.Actor actor, ref ulong vector, bool active)
+        private void ModifyDebuff(Actor actor, ref ulong vector, bool active)
         {
             int slot = _module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)

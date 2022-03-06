@@ -16,7 +16,7 @@ namespace BossMod.P3S
             _module = module;
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (InAOE(_directions[1], actor.Position) || InAOE(_directions[0] != null ? _directions[0] : _directions[2], actor.Position))
             {
@@ -42,7 +42,7 @@ namespace BossMod.P3S
             }
         }
 
-        public override void OnCastStarted(WorldState.Actor actor)
+        public override void OnCastStarted(Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;
@@ -60,7 +60,7 @@ namespace BossMod.P3S
             }
         }
 
-        public override void OnCastFinished(WorldState.Actor actor)
+        public override void OnCastFinished(Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;

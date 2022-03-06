@@ -12,15 +12,15 @@ namespace BossMod.P2S
 
     public class P2S : BossModule
     {
-        private List<WorldState.Actor> _boss;
-        private List<WorldState.Actor> _cataractHead;
-        private List<WorldState.Actor> _dissociatedHead;
-        public WorldState.Actor? Boss() => _boss.FirstOrDefault();
-        public WorldState.Actor? CataractHead() => _cataractHead.FirstOrDefault();
-        public WorldState.Actor? DissociatedHead() => _dissociatedHead.FirstOrDefault();
+        private List<Actor> _boss;
+        private List<Actor> _cataractHead;
+        private List<Actor> _dissociatedHead;
+        public Actor? Boss() => _boss.FirstOrDefault();
+        public Actor? CataractHead() => _cataractHead.FirstOrDefault();
+        public Actor? DissociatedHead() => _dissociatedHead.FirstOrDefault();
 
         public P2S(WorldState ws)
-            : base(ws, 8)
+            : base(ws)
         {
             _boss = Enemies(OID.Boss);
             _cataractHead = Enemies(OID.CataractHead);

@@ -53,7 +53,7 @@ namespace BossMod
         }
 
         // create state triggered by any cast start by a particular actor
-        public static StateMachine.State CastStart(ref StateMachine.State? link, Func<WorldState.Actor?> actorAcc, float delay, string name = "", bool actorIsBoss = true)
+        public static StateMachine.State CastStart(ref StateMachine.State? link, Func<Actor?> actorAcc, float delay, string name = "", bool actorIsBoss = true)
         {
             var state = Simple(ref link, delay, name);
             state.Update = (_) => actorAcc()?.CastInfo != null ? state.Next : null;
@@ -63,7 +63,7 @@ namespace BossMod
         }
 
         // create state triggered by expected cast start by a particular actor; unexpected casts still trigger a transition, but log error
-        public static StateMachine.State CastStart<AID>(ref StateMachine.State? link, Func<WorldState.Actor?> actorAcc, AID id, float delay, string name = "", bool actorIsBoss = true)
+        public static StateMachine.State CastStart<AID>(ref StateMachine.State? link, Func<Actor?> actorAcc, AID id, float delay, string name = "", bool actorIsBoss = true)
             where AID : Enum
         {
             var state = Simple(ref link, delay, name);
@@ -84,7 +84,7 @@ namespace BossMod
 
         // create state triggered by cast start by a particular actor; map is used to select reaction to each spell
         // is performed either to mapped state (if it is non-null) or, if entry is not found, to default Next state
-        public static StateMachine.State CastStart<AID>(ref StateMachine.State? link, Func<WorldState.Actor?> actorAcc, Dictionary<AID, (StateMachine.State?, Action)> dispatch, float delay, string name = "", bool actorIsBoss = true)
+        public static StateMachine.State CastStart<AID>(ref StateMachine.State? link, Func<Actor?> actorAcc, Dictionary<AID, (StateMachine.State?, Action)> dispatch, float delay, string name = "", bool actorIsBoss = true)
             where AID : Enum
         {
             var state = Simple(ref link, delay, name);
@@ -114,7 +114,7 @@ namespace BossMod
         }
 
         // create state triggered by cast end by a particular actor
-        public static StateMachine.State CastEnd(ref StateMachine.State? link, Func<WorldState.Actor?> actorAcc, float castTime, string name = "", bool actorIsBoss = true)
+        public static StateMachine.State CastEnd(ref StateMachine.State? link, Func<Actor?> actorAcc, float castTime, string name = "", bool actorIsBoss = true)
         {
             var state = Simple(ref link, castTime, name);
             state.Update = (_) => actorAcc()?.CastInfo == null ? state.Next : null;
@@ -124,7 +124,7 @@ namespace BossMod
         }
 
         // create a chain of states: CastStart -> CastEnd
-        public static StateMachine.State Cast<AID>(ref StateMachine.State? link, Func<WorldState.Actor?> actorAcc, AID id, float delay, float castTime, string name = "", bool actorIsBoss = true)
+        public static StateMachine.State Cast<AID>(ref StateMachine.State? link, Func<Actor?> actorAcc, AID id, float delay, float castTime, string name = "", bool actorIsBoss = true)
             where AID : Enum
         {
             var s = CastStart(ref link, actorAcc, id, delay, "", actorIsBoss);
@@ -132,7 +132,7 @@ namespace BossMod
         }
 
         // create a state triggered by a particular actor becoming (un)targetable; automatically sets downtime begin/end flag
-        public static StateMachine.State Targetable(ref StateMachine.State? link, Func<WorldState.Actor?> actorAcc, bool targetable, float delay, string name = "")
+        public static StateMachine.State Targetable(ref StateMachine.State? link, Func<Actor?> actorAcc, bool targetable, float delay, string name = "")
         {
             var state = Simple(ref link, delay, name);
             state.Update = (_) => actorAcc()?.IsTargetable == targetable ? state.Next : null;

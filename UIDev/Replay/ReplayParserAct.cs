@@ -5,8 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace UIDev
 {
@@ -47,6 +45,7 @@ namespace UIDev
         private WorldState _ws = new();
         private uint _inCombatWith = 0;
         private int _networkDelta = 0;
+        private ulong _lastPlayerContentID = 0;
 
         private static Vector4? ParsePosRot(string[] payload, int startIndex)
         {
@@ -65,6 +64,7 @@ namespace UIDev
                 case 2: ParseChangePrimaryPlayer(timestamp, payload); break;
                 case 3: ParseAddCombatant(timestamp, payload); break;
                 case 4: ParseRemoveCombatant(timestamp, payload); break;
+                case 11: ParsePartyList(timestamp, payload); break;
                 case 20: ParseStartsCasting(timestamp, payload); break;
                 case 21: ParseActionEffect(timestamp, payload, false); break;
                 case 22: ParseActionEffect(timestamp, payload, true); break;
@@ -92,12 +92,12 @@ namespace UIDev
 
         private void AddMove(DateTime timestamp, uint id, string[] payload, int startPos)
         {
-            var actor = _ws.FindActor(id);
+            var actor = _ws.Actors.Find(id);
             if (actor == null)
                 return;
 
             // implicit resurrect
-            if (actor.IsDead && actor.Type == WorldState.ActorType.Player)
+            if (actor.IsDead && actor.Type == ActorType.Player)
             {
                 OpActorDead op = new();
                 op.InstanceID = id;
@@ -117,15 +117,20 @@ namespace UIDev
 
         private void ParseTerritory(DateTime timestamp, string[] payload)
         {
-            if (_ws.PlayerActorID != 0)
+            for (int i = PartyState.MaxSize - 1; i >= 0; ++i)
             {
-                OpPlayerIDChange op = new();
-                op.Value = 0;
-                AddOp(timestamp, op);
+                if (_ws.Party.ContentIDs[i] != 0)
+                {
+                    OpPartyLeave op = new();
+                    op.ContentID = _ws.Party.ContentIDs[i];
+                    op.InstanceID = _ws.Party.Members[i]?.InstanceID ?? 0;
+                    AddOp(timestamp, op);
+                }
             }
+            _lastPlayerContentID = 0;
 
-            WorldState.Actor? existing;
-            while ((existing = _ws.Actors.Values.FirstOrDefault()) != null)
+            Actor? existing;
+            while ((existing = _ws.Actors.FirstOrDefault()) != null)
             {
                 OpActorDestroy op = new();
                 op.InstanceID = existing.InstanceID;
@@ -139,9 +144,10 @@ namespace UIDev
 
         private void ParseChangePrimaryPlayer(DateTime timestamp, string[] payload)
         {
-            OpPlayerIDChange res = new();
-            res.Value = uint.Parse(payload[2], NumberStyles.HexNumber);
-            AddOp(timestamp, res);
+            // do nothing, this is always followed by player-add it seems...
+            //OpPlayerIDChange res = new();
+            //res.Value = uint.Parse(payload[2], NumberStyles.HexNumber);
+            //AddOp(timestamp, res);
         }
 
         private void ParseAddCombatant(DateTime timestamp, string[] payload)
@@ -152,20 +158,29 @@ namespace UIDev
             res.Name = payload[3];
 
             if ((res.InstanceID & 0xF0000000u) == 0x10000000u)
-                res.Type = WorldState.ActorType.Player;
+                res.Type = ActorType.Player;
             else if (uint.Parse(payload[6], NumberStyles.HexNumber) != 0) // owner id
-                res.Type = WorldState.ActorType.Pet;
+                res.Type = ActorType.Pet;
             else
-                res.Type = WorldState.ActorType.Enemy;
+                res.Type = ActorType.Enemy;
 
             res.Class = (Class)uint.Parse(payload[4], NumberStyles.HexNumber);
             res.PosRot = ParsePosRot(payload, 17) ?? new();
             res.IsTargetable = true;
 
-            var existing = _ws.FindActor(res.InstanceID);
+            var existing = _ws.Actors.Find(res.InstanceID);
             if (existing == null)
             {
                 AddOp(timestamp, res);
+
+                if (res.Type == ActorType.Player && _lastPlayerContentID == 0)
+                {
+                    OpPartyJoin opJoin = new();
+                    opJoin.ContentID = ++_lastPlayerContentID;
+                    opJoin.InstanceID = res.InstanceID;
+                    AddOp(timestamp, res);
+                }
+
                 return;
             }
 
@@ -217,6 +232,46 @@ namespace UIDev
                 combatOp.Value = false;
                 AddOp(timestamp, combatOp);
             }
+
+            var slot = _ws.Party.FindSlot(res.InstanceID);
+            if (slot >= 0)
+            {
+                OpPartyLeave opLeave = new();
+                opLeave.ContentID = _ws.Party.ContentIDs[slot];
+                opLeave.InstanceID = res.InstanceID;
+                AddOp(timestamp, opLeave);
+            }
+        }
+
+        private void ParsePartyList(DateTime timestamp, string[] payload)
+        {
+            int size = int.Parse(payload[2]);
+            HashSet<uint> party = new();
+            for (int i = 0; i < size; ++i)
+                party.Add(uint.Parse(payload[3 + i], NumberStyles.HexNumber));
+
+            for (int i = PartyState.MaxSize - 1; i >= 0; ++i)
+            {
+                var m = _ws.Party.Members[i];
+                if (m != null && !party.Contains(m.InstanceID))
+                {
+                    OpPartyLeave op = new();
+                    op.ContentID = _ws.Party.ContentIDs[i];
+                    op.InstanceID = m.InstanceID;
+                    AddOp(timestamp, op);
+                }
+            }
+
+            foreach (uint instanceID in party)
+            {
+                if (_ws.Party.FindSlot(instanceID) == -1)
+                {
+                    OpPartyJoin op = new();
+                    op.ContentID = ++_lastPlayerContentID;
+                    op.InstanceID = instanceID;
+                    AddOp(timestamp, op);
+                }
+            }
         }
 
         private void ParseStartsCasting(DateTime timestamp, string[] payload)
@@ -232,8 +287,8 @@ namespace UIDev
             AddOp(timestamp, res);
 
             // implicit resurrect
-            var actor = _ws.FindActor(res.InstanceID);
-            if (actor != null && actor.IsDead && actor.Type == WorldState.ActorType.Player)
+            var actor = _ws.Actors.Find(res.InstanceID);
+            if (actor != null && actor.IsDead && actor.Type == ActorType.Player)
             {
                 OpActorDead op = new();
                 op.InstanceID = actor.InstanceID;
@@ -281,7 +336,7 @@ namespace UIDev
             AddMove(timestamp, res.Value.CasterID, payload, 40);
             if (res.Value.MainTargetID != 0xE0000000u)
             {
-                WorldState.CastResult.Target target = new();
+                CastEvent.Target target = new();
                 target.ID = res.Value.MainTargetID;
                 for (int i = 0; i < 8; ++i)
                 {
@@ -295,7 +350,7 @@ namespace UIDev
             AddOp(timestamp, res);
 
             // implicitly end cast
-            var caster = _ws.FindActor(res.Value.CasterID);
+            var caster = _ws.Actors.Find(res.Value.CasterID);
             if (caster?.CastInfo?.Action == res.Value.Action)
             {
                 OpActorCast endCastOp = new();
@@ -304,10 +359,10 @@ namespace UIDev
             }
 
             // implicitly enter combat
-            if (res.Value.CasterID == _ws.PlayerActorID && _inCombatWith == 0 && res.Value.Targets.Count > 0)
+            if (res.Value.CasterID == _ws.Party.Player()?.InstanceID && _inCombatWith == 0 && res.Value.Targets.Count > 0)
             {
-                var target = _ws.FindActor(res.Value.Targets.Last().ID);
-                if (target?.Type == WorldState.ActorType.Enemy)
+                var target = _ws.Actors.Find(res.Value.Targets.Last().ID);
+                if (target?.Type == ActorType.Enemy)
                 {
                     _inCombatWith = target.InstanceID;
                     OpEnterExitCombat combatOp = new();
@@ -317,7 +372,7 @@ namespace UIDev
             }
 
             // implicit resurrect
-            if (caster != null && caster.IsDead && caster.Type == WorldState.ActorType.Player)
+            if (caster != null && caster.IsDead && caster.Type == ActorType.Player)
             {
                 OpActorDead op = new();
                 op.InstanceID = caster.InstanceID;
@@ -343,7 +398,7 @@ namespace UIDev
 
         private void ParseStatusAdd(DateTime timestamp, string[] payload)
         {
-            var actor = _ws.FindActor(uint.Parse(payload[7], NumberStyles.HexNumber));
+            var actor = _ws.Actors.Find(uint.Parse(payload[7], NumberStyles.HexNumber));
             if (actor == null)
                 return;
 
@@ -383,7 +438,7 @@ namespace UIDev
         private void ParseWaymarkMarker(DateTime timestamp, string[] payload)
         {
             OpWaymarkChange res = new();
-            res.ID = (WorldState.Waymark)uint.Parse(payload[3]);
+            res.ID = (Waymark)uint.Parse(payload[3]);
             if (payload[2] == "Add")
                 res.Pos = new(float.Parse(payload[6]), float.Parse(payload[8]), float.Parse(payload[7]));
             AddOp(timestamp, res);
@@ -391,7 +446,7 @@ namespace UIDev
 
         private void ParseStatusRemove(DateTime timestamp, string[] payload)
         {
-            var actor = _ws.FindActor(uint.Parse(payload[7], NumberStyles.HexNumber));
+            var actor = _ws.Actors.Find(uint.Parse(payload[7], NumberStyles.HexNumber));
             if (actor == null)
                 return;
 

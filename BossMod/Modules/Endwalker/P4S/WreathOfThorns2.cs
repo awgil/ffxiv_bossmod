@@ -14,15 +14,15 @@ namespace BossMod.P4S
 
         public State CurState { get; private set; } = State.DarkDesign;
         private P4S _module;
-        private List<WorldState.Actor> _relevantHelpers = new(); // 2 aoes -> 8 towers -> 2 aoes
-        private (WorldState.Actor?, WorldState.Actor?) _darkTH; // first is one having tether
-        private (WorldState.Actor?, WorldState.Actor?) _fireTH;
-        private (WorldState.Actor?, WorldState.Actor?) _fireDD;
+        private List<Actor> _relevantHelpers = new(); // 2 aoes -> 8 towers -> 2 aoes
+        private (Actor?, Actor?) _darkTH; // first is one having tether
+        private (Actor?, Actor?) _fireTH;
+        private (Actor?, Actor?) _fireDD;
         private IconID[] _playerIcons = new IconID[8];
         private int _numAOECasts = 0;
 
-        private IEnumerable<WorldState.Actor> _firstSet => _relevantHelpers.Take(4);
-        private IEnumerable<WorldState.Actor> _secondSet => _relevantHelpers.Skip(4);
+        private IEnumerable<Actor> _firstSet => _relevantHelpers.Take(4);
+        private IEnumerable<Actor> _secondSet => _relevantHelpers.Skip(4);
 
         private static float _fireExplosionRadius = 6;
 
@@ -32,7 +32,7 @@ namespace BossMod.P4S
             // note: there should be four tethered helpers on activation
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             bool isTowerSoaker = actor == _darkTH.Item1 || actor == _darkTH.Item2;
             if (CurState == State.DarkDesign)
@@ -103,11 +103,11 @@ namespace BossMod.P4S
 
             // draw pc's tether
             var pcPartner = pc.Tether.Target != 0
-                ? _module.WorldState.FindActor(pc.Tether.Target)
+                ? _module.WorldState.Actors.Find(pc.Tether.Target)
                 : _module.Raid.WithoutSlot().FirstOrDefault(p => p.Tether.Target == pc.InstanceID);
             if (pcPartner != null)
             {
-                var tetherColor = _playerIcons[_module.Raid.PlayerSlot] switch {
+                var tetherColor = _playerIcons[_module.PlayerSlot] switch {
                     IconID.AkanthaiFire => 0xff00ffff,
                     IconID.AkanthaiWind => 0xff00ff00,
                     _ => 0xffff00ff
@@ -133,19 +133,19 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnTethered(WorldState.Actor actor)
+        public override void OnTethered(Actor actor)
         {
             if (actor.OID == (uint)OID.Helper && actor.Tether.ID == (uint)TetherID.WreathOfThorns)
             {
                 _relevantHelpers.Add(actor);
             }
-            else if (actor.Type == WorldState.ActorType.Player)
+            else if (actor.Type == ActorType.Player)
             {
                 PlayerTetherOrIconAssigned(_module.Raid.FindSlot(actor.InstanceID), actor);
             }
         }
 
-        public override void OnCastFinished(WorldState.Actor actor)
+        public override void OnCastFinished(Actor actor)
         {
             if (CurState == State.DarkDesign && actor.CastInfo!.IsSpell(AID.DarkDesign))
                 CurState = State.FirstSet;
@@ -165,12 +165,12 @@ namespace BossMod.P4S
             PlayerTetherOrIconAssigned(slot, _module.Raid[slot]!);
         }
 
-        private void PlayerTetherOrIconAssigned(int slot, WorldState.Actor actor)
+        private void PlayerTetherOrIconAssigned(int slot, Actor actor)
         {
             if (slot == -1 || _playerIcons[slot] == IconID.None || actor.Tether.Target == 0)
                 return; // icon or tether not assigned yet
 
-            var tetherTarget = _module.WorldState.FindActor(actor.Tether.Target);
+            var tetherTarget = _module.WorldState.Actors.Find(actor.Tether.Target);
             if (tetherTarget == null)
                 return; // weird
 
@@ -187,7 +187,7 @@ namespace BossMod.P4S
             }
         }
 
-        private bool IsTower(WorldState.Actor actor)
+        private bool IsTower(Actor actor)
         {
             if (actor.Position.X < 90)
                 return actor.Position.Z > 100;
@@ -201,7 +201,7 @@ namespace BossMod.P4S
                 return false;
         }
 
-        private bool IsAOE(WorldState.Actor actor)
+        private bool IsAOE(Actor actor)
         {
             if (actor.Position.X < 90)
                 return actor.Position.Z < 100;

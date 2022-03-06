@@ -17,18 +17,19 @@ namespace UIDev
         {
             _ws = new();
             _ws.CurrentTime = _prevFrame = DateTime.Now;
-            _ws.AddActor(1, 0, "T1", WorldState.ActorType.Player, Class.WAR, new(100, 0, 90, 0));
-            _ws.AddActor(2, 0, "T2", WorldState.ActorType.Player, Class.PLD, new(100, 0, 110, 0));
-            _ws.AddActor(3, 0, "H1", WorldState.ActorType.Player, Class.WHM, new(90, 0, 90, 0));
-            _ws.AddActor(4, 0, "H2", WorldState.ActorType.Player, Class.SGE, new(92, 0, 90, 0));
-            _ws.AddActor(5, 0, "R1", WorldState.ActorType.Player, Class.BLM, new(94, 0, 90, 0));
-            _ws.AddActor(6, 0, "R2", WorldState.ActorType.Player, Class.MCH, new(90, 0, 92, 0));
-            _ws.AddActor(7, 0, "M1", WorldState.ActorType.Player, Class.MNK, new(92, 0, 92, 0));
-            _ws.AddActor(8, 0, "M2", WorldState.ActorType.Player, Class.RPR, new(94, 0, 92, 0));
-            _ws.AddActor(9, (uint)OID.Boss, "Boss", WorldState.ActorType.Enemy, Class.None, new(100, 0, 100, -MathF.PI / 2));
-            _ws.AddActor(10, (uint)OID.CataractHead, "CHead", WorldState.ActorType.Enemy, Class.None, new(100, 0, 100, MathF.PI));
-            _ws.AddActor(11, (uint)OID.DissociatedHead, "DHead", WorldState.ActorType.Enemy, Class.None, new(90, 0, 75, 0));
-            _ws.PlayerActorID = 1;
+            _ws.Actors.Add(1, 0, "T1", ActorType.Player, Class.WAR, new(100, 0, 90, 0));
+            _ws.Actors.Add(2, 0, "T2", ActorType.Player, Class.PLD, new(100, 0, 110, 0));
+            _ws.Actors.Add(3, 0, "H1", ActorType.Player, Class.WHM, new(90, 0, 90, 0));
+            _ws.Actors.Add(4, 0, "H2", ActorType.Player, Class.SGE, new(92, 0, 90, 0));
+            _ws.Actors.Add(5, 0, "R1", ActorType.Player, Class.BLM, new(94, 0, 90, 0));
+            _ws.Actors.Add(6, 0, "R2", ActorType.Player, Class.MCH, new(90, 0, 92, 0));
+            _ws.Actors.Add(7, 0, "M1", ActorType.Player, Class.MNK, new(92, 0, 92, 0));
+            _ws.Actors.Add(8, 0, "M2", ActorType.Player, Class.RPR, new(94, 0, 92, 0));
+            _ws.Actors.Add(9, (uint)OID.Boss, "Boss", ActorType.Enemy, Class.None, new(100, 0, 100, -MathF.PI / 2));
+            _ws.Actors.Add(10, (uint)OID.CataractHead, "CHead", ActorType.Enemy, Class.None, new(100, 0, 100, MathF.PI));
+            _ws.Actors.Add(11, (uint)OID.DissociatedHead, "DHead", ActorType.Enemy, Class.None, new(90, 0, 75, 0));
+            for (int i = 1; i <= 8; ++i)
+                _ws.Party.Add((ulong)i, _ws.Actors.Find((uint)i), i == 1);
             _o = new P2S(_ws);
         }
 
@@ -50,10 +51,10 @@ namespace UIDev
 
             ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
 
-            var boss = _ws.FindActor(9)!;
+            var boss = _ws.Actors.Find(9)!;
             if (ImGui.Button(!_ws.PlayerInCombat ? "Pull" : "Wipe"))
             {
-                _ws.UpdateCastInfo(boss, null);
+                _ws.Actors.UpdateCastInfo(boss, null);
                 _ws.PlayerInCombat = !_ws.PlayerInCombat;
             }
 
@@ -64,7 +65,7 @@ namespace UIDev
             ImGui.SameLine();
             ImGui.Text($"Downtime in: {_o.StateMachine.EstimateTimeToNextDowntime():f2}, Positioning in: {_o.StateMachine.EstimateTimeToNextPositioning():f2}");
 
-            foreach (var actor in _ws.Actors.Values)
+            foreach (var actor in _ws.Actors)
             {
                 var pos = actor.Position;
                 var rot = actor.Rotation / MathF.PI * 180;
@@ -76,15 +77,15 @@ namespace UIDev
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100);
                 ImGui.DragFloat($"Rot##{actor.InstanceID}", ref rot, 1, -180, 180);
-                _ws.MoveActor(actor, new(pos, rot / 180 * MathF.PI));
+                _ws.Actors.Move(actor, new(pos, rot / 180 * MathF.PI));
 
-                if (actor.Type == WorldState.ActorType.Player)
+                if (actor.Type == ActorType.Player)
                 {
                     ImGui.SameLine();
                     bool isMT = boss.TargetID == actor.InstanceID;
                     if (ImGui.Checkbox($"MT##{actor.InstanceID}", ref isMT))
                     {
-                        _ws.ChangeActorTarget(boss, isMT ? actor.InstanceID : 0);
+                        _ws.Actors.ChangeTarget(boss, isMT ? actor.InstanceID : 0);
                     }
                 }
                 else if (actor.OID == (uint)OID.Boss)
@@ -94,26 +95,26 @@ namespace UIDev
                         ImGui.SameLine();
                         if (ImGui.Button($"Finish cast##{actor.InstanceID}"))
                         {
-                            _ws.UpdateCastInfo(actor, null);
-                            _ws.UpdateCastInfo(_ws.FindActor(10)!, null);
+                            _ws.Actors.UpdateCastInfo(actor, null);
+                            _ws.Actors.UpdateCastInfo(_ws.Actors.Find(10)!, null);
                         }
                     }
                     else
                     {
                         ImGui.SameLine();
                         if (ImGui.Button("Generic"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = new(ActionType.Spell, 1) });
+                            _ws.Actors.UpdateCastInfo(actor, new ActorCastInfo { Action = new(ActionType.Spell, 1) });
                         ImGui.SameLine();
                         if (ImGui.Button("SpokenCata"))
                         {
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.SpokenCataract) });
-                            _ws.UpdateCastInfo(_ws.FindActor(10)!, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.SpokenCataractSecondary) });
+                            _ws.Actors.UpdateCastInfo(actor, new ActorCastInfo { Action = ActionID.MakeSpell(AID.SpokenCataract) });
+                            _ws.Actors.UpdateCastInfo(_ws.Actors.Find(10)!, new ActorCastInfo { Action = ActionID.MakeSpell(AID.SpokenCataractSecondary) });
                         }
                         ImGui.SameLine();
                         if (ImGui.Button("WingedCata"))
                         {
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.WingedCataract) });
-                            _ws.UpdateCastInfo(_ws.FindActor(10)!, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.WingedCataractSecondary) });
+                            _ws.Actors.UpdateCastInfo(actor, new ActorCastInfo { Action = ActionID.MakeSpell(AID.WingedCataract) });
+                            _ws.Actors.UpdateCastInfo(_ws.Actors.Find(10)!, new ActorCastInfo { Action = ActionID.MakeSpell(AID.WingedCataractSecondary) });
                         }
                     }
                 }
@@ -123,31 +124,31 @@ namespace UIDev
                     {
                         ImGui.SameLine();
                         if (ImGui.Button($"Finish cast##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, null);
+                            _ws.Actors.UpdateCastInfo(actor, null);
                     }
                     else
                     {
                         ImGui.SameLine();
                         if (ImGui.Button($"Start cast##{actor.InstanceID}"))
-                            _ws.UpdateCastInfo(actor, new WorldState.CastInfo { Action = ActionID.MakeSpell(AID.DissociationAOE) });
+                            _ws.Actors.UpdateCastInfo(actor, new ActorCastInfo { Action = ActionID.MakeSpell(AID.DissociationAOE) });
                     }
                 }
             }
 
             if (ImGui.Button("Deluge stop"))
-                _ws.DispatchEventEnvControl((0x800375A2, 1, 0x00080004));
+                _ws.Events.DispatchEnvControl((0x800375A2, 1, 0x00080004));
             ImGui.SameLine();
             if (ImGui.Button("Deluge NW"))
-                _ws.DispatchEventEnvControl((0x800375A2, 1, 0x00200010));
+                _ws.Events.DispatchEnvControl((0x800375A2, 1, 0x00200010));
             ImGui.SameLine();
             if (ImGui.Button("Deluge NE"))
-                _ws.DispatchEventEnvControl((0x800375A2, 2, 0x00200010));
+                _ws.Events.DispatchEnvControl((0x800375A2, 2, 0x00200010));
             ImGui.SameLine();
             if (ImGui.Button("Deluge SW"))
-                _ws.DispatchEventEnvControl((0x800375A2, 3, 0x00200010));
+                _ws.Events.DispatchEnvControl((0x800375A2, 3, 0x00200010));
             ImGui.SameLine();
             if (ImGui.Button("Deluge SE"))
-                _ws.DispatchEventEnvControl((0x800375A2, 4, 0x00200010));
+                _ws.Events.DispatchEnvControl((0x800375A2, 4, 0x00200010));
         }
     }
 }

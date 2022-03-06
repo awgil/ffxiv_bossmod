@@ -492,7 +492,7 @@ namespace BossMod
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public unsafe struct Server_Waymark
         {
-            public WorldState.Waymark Waymark;
+            public Waymark Waymark;
             public byte Active; // 0=off, 1=on
             public ushort unknown;
             public int PosX;

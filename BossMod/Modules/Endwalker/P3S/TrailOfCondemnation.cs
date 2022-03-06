@@ -22,7 +22,7 @@ namespace BossMod.P3S
             _isCenter = center;
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var boss = _module.Boss();
             if (boss == null || boss.Position == _module.Arena.WorldCenter)
@@ -103,7 +103,7 @@ namespace BossMod.P3S
             arena.AddCircle(pc.Position, _aoeRadius, arena.ColorDanger);
         }
 
-        public override void OnEventCast(WorldState.CastResult info)
+        public override void OnEventCast(CastEvent info)
         {
             if (info.IsSpell(AID.FlareOfCondemnation) || info.IsSpell(AID.SparksOfCondemnation))
                 Done = true;

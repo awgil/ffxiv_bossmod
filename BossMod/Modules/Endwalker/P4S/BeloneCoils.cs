@@ -12,7 +12,7 @@ namespace BossMod.P4S
 
         public Soaker ActiveSoakers { get; private set; } = Soaker.Unknown;
         private P4S _module;
-        private List<WorldState.Actor> _activeTowers = new(); // actor + tank-or-healer
+        private List<Actor> _activeTowers = new(); // actor + tank-or-healer
 
         private static float _towerRadius = 4;
 
@@ -21,7 +21,7 @@ namespace BossMod.P4S
             _module = module;
         }
 
-        public bool IsValidSoaker(WorldState.Actor player)
+        public bool IsValidSoaker(Actor player)
         {
             return ActiveSoakers switch
             {
@@ -31,7 +31,7 @@ namespace BossMod.P4S
             };
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (ActiveSoakers == Soaker.Unknown)
                 return;
@@ -60,7 +60,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnCastStarted(WorldState.Actor actor)
+        public override void OnCastStarted(Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.BeloneCoilsDPS) || actor.CastInfo!.IsSpell(AID.BeloneCoilsTH))
             {
@@ -69,7 +69,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnCastFinished(WorldState.Actor actor)
+        public override void OnCastFinished(Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.BeloneCoilsDPS) || actor.CastInfo!.IsSpell(AID.BeloneCoilsTH))
             {

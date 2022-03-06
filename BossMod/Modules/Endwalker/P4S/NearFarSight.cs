@@ -37,7 +37,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_targets == 0)
                 return;
@@ -73,7 +73,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnEventCast(WorldState.CastResult info)
+        public override void OnEventCast(CastEvent info)
         {
             if (info.IsSpell(AID.NearsightAOE) || info.IsSpell(AID.FarsightAOE))
                 CurState = State.Done;

@@ -116,14 +116,14 @@ namespace UIDev
         }
 
         // x, z, rot, name, cast, statuses
-        private void DrawCommonColumns(WorldState.Actor actor)
+        private void DrawCommonColumns(Actor actor)
         {
             var pos = actor.Position;
             var rot = actor.Rotation / MathF.PI * 180;
             ImGui.TableNextColumn(); ImGui.DragFloat("###X", ref pos.X, 0.25f, 80, 120);
             ImGui.TableNextColumn(); ImGui.DragFloat("###Z", ref pos.Z, 0.25f, 80, 120);
             ImGui.TableNextColumn(); ImGui.DragFloat("###Rot", ref rot, 1, -180, 180);
-            _ws.MoveActor(actor, new(pos, rot / 180 * MathF.PI));
+            _ws.Actors.Move(actor, new(pos, rot / 180 * MathF.PI));
 
             ImGui.TableNextColumn();
             if (actor.IsDead)
@@ -140,8 +140,8 @@ namespace UIDev
             ImGui.TableNextColumn();
             foreach (var s in actor.Statuses.Where(s => s.ID != 0))
             {
-                var src = _ws.FindActor(s.SourceID);
-                if (src?.Type == WorldState.ActorType.Player || src?.Type == WorldState.ActorType.Pet)
+                var src = _ws.Actors.Find(s.SourceID);
+                if (src?.Type == ActorType.Player || src?.Type == ActorType.Pet)
                     continue;
                 ImGui.Text($"{Utils.StatusString(s.ID)} ({s.Extra}): {Utils.StatusTimeString(s.ExpireAt, _ws.CurrentTime)}");
                 ImGui.SameLine();
@@ -172,11 +172,11 @@ namespace UIDev
                 ImGui.PushID((int)player.InstanceID);
                 ImGui.TableNextRow();
 
-                bool isPOV = _ws.PlayerActorID == player.InstanceID;
+                bool isPOV = _bossmod.PlayerSlot == slot;
                 ImGui.TableNextColumn();
                 ImGui.Checkbox("###POV", ref isPOV);
-                if (isPOV && _ws.PlayerActorID != player.InstanceID)
-                    _ws.PlayerActorID = player.InstanceID;
+                if (isPOV && _bossmod.PlayerSlot != slot)
+                    _bossmod.PlayerSlot = slot;
 
                 ImGui.TableNextColumn();
                 ImGui.Text(player.Class.ToString());
@@ -240,7 +240,7 @@ namespace UIDev
             ImGui.TableSetupColumn("Cast");
             ImGui.TableSetupColumn("Statuses");
             ImGui.TableHeadersRow();
-            foreach (var actor in _ws.Actors.Values)
+            foreach (var actor in _ws.Actors)
             {
                 ImGui.PushID((int)actor.InstanceID);
                 ImGui.TableNextRow();

@@ -13,9 +13,12 @@ namespace BossMod
         public StateMachine StateMachine { get; init; } = new();
         public StateMachine.State? InitialState = null;
         public MiniArena Arena { get; init; } = new();
+        public RaidCooldowns RaidCooldowns { get; init; } = new();
 
-        public RaidState Raid { get; init; }
-        public WorldState.Actor? Player() => Raid.Player();
+        public PartyState Raid => WorldState.Party;
+        // TODO: refactor this...
+        public int PlayerSlot = PartyState.PlayerSlot;
+        public Actor? Player() => WorldState.Party[PlayerSlot];
 
         public bool ShowStateMachine = true;
         public bool ShowGlobalHints = true;
@@ -24,16 +27,16 @@ namespace BossMod
         public bool ShowWaymarks = true;
 
         // per-oid enemy lists; filled on first request
-        private Dictionary<uint, List<WorldState.Actor>> _relevantEnemies = new(); // key = actor OID
-        public IReadOnlyDictionary<uint, List<WorldState.Actor>> RelevantEnemies => _relevantEnemies;
-        public List<WorldState.Actor> Enemies<OID>(OID oid) where OID : Enum
+        private Dictionary<uint, List<Actor>> _relevantEnemies = new(); // key = actor OID
+        public IReadOnlyDictionary<uint, List<Actor>> RelevantEnemies => _relevantEnemies;
+        public List<Actor> Enemies<OID>(OID oid) where OID : Enum
         {
             var castOID = (uint)(object)oid;
             var entry = _relevantEnemies.GetValueOrDefault(castOID);
             if (entry == null)
             {
                 entry = new();
-                foreach (var actor in WorldState.Actors.Values.Where(actor => actor.OID == castOID))
+                foreach (var actor in WorldState.Actors.Where(actor => actor.OID == castOID))
                     entry.Add(actor);
                 _relevantEnemies[castOID] = entry;
             }
@@ -60,20 +63,20 @@ namespace BossMod
         public class Component
         {
             public virtual void Update() { } // called every frame - it is a good place to update any cached values
-            public virtual void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints) { } // gather any relevant pieces of advice for specified raid member
+            public virtual void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints) { } // gather any relevant pieces of advice for specified raid member
             public virtual void AddGlobalHints(GlobalHints hints) { } // gather any relevant pieces of advice for whole raid
             public virtual void DrawArenaBackground(MiniArena arena) { } // called at the beginning of arena draw, good place to draw aoe zones
             public virtual void DrawArenaForeground(MiniArena arena) { } // called after arena background and borders are drawn, good place to draw actors, tethers, etc.
 
             // world state event handlers
-            public virtual void OnStatusGain(WorldState.Actor actor, int index) { }
-            public virtual void OnStatusLose(WorldState.Actor actor, int index) { }
-            public virtual void OnStatusChange(WorldState.Actor actor, int index) { }
-            public virtual void OnTethered(WorldState.Actor actor) { }
-            public virtual void OnUntethered(WorldState.Actor actor) { }
-            public virtual void OnCastStarted(WorldState.Actor actor) { }
-            public virtual void OnCastFinished(WorldState.Actor actor) { }
-            public virtual void OnEventCast(WorldState.CastResult info) { }
+            public virtual void OnStatusGain(Actor actor, int index) { }
+            public virtual void OnStatusLose(Actor actor, int index) { }
+            public virtual void OnStatusChange(Actor actor, int index) { }
+            public virtual void OnTethered(Actor actor) { }
+            public virtual void OnUntethered(Actor actor) { }
+            public virtual void OnCastStarted(Actor actor) { }
+            public virtual void OnCastFinished(Actor actor) { }
+            public virtual void OnEventCast(CastEvent info) { }
             public virtual void OnEventIcon(uint actorID, uint iconID) { }
             public virtual void OnEventEnvControl(uint featureID, byte index, uint state) { }
         }
@@ -88,7 +91,7 @@ namespace BossMod
                 DeactivateComponent<T>();
             }
             _components.Add(comp);
-            foreach (var actor in WorldState.Actors.Values)
+            foreach (var actor in WorldState.Actors)
             {
                 if (actor.CastInfo != null)
                     comp.OnCastStarted(actor);
@@ -113,27 +116,24 @@ namespace BossMod
             return _components.OfType<T>().FirstOrDefault();
         }
 
-        public BossModule(WorldState w, int maxRaidMembers)
+        public BossModule(WorldState w)
         {
             WorldState = w;
-            Raid = new(maxRaidMembers);
-
-            WorldState.PlayerActorIDChanged += PlayerIDChanged;
             WorldState.PlayerInCombatChanged += EnterExitCombat;
-            WorldState.ActorCreated += OnActorCreated;
-            WorldState.ActorDestroyed += OnActorDestroyed;
-            WorldState.ActorCastStarted += OnActorCastStarted;
-            WorldState.ActorCastFinished += OnActorCastFinished;
-            WorldState.ActorTethered += OnActorTethered;
-            WorldState.ActorUntethered += OnActorUntethered;
-            WorldState.ActorStatusGain += OnActorStatusGain;
-            WorldState.ActorStatusLose += OnActorStatusLose;
-            WorldState.ActorStatusChange += OnActorStatusChange;
-            WorldState.EventIcon += OnEventIcon;
-            WorldState.EventCast += OnEventCast;
-            WorldState.EventEnvControl += OnEventEnvControl;
+            WorldState.Actors.Added += OnActorCreated;
+            WorldState.Actors.Removed += OnActorDestroyed;
+            WorldState.Actors.CastStarted += OnActorCastStarted;
+            WorldState.Actors.CastFinished += OnActorCastFinished;
+            WorldState.Actors.Tethered += OnActorTethered;
+            WorldState.Actors.Untethered += OnActorUntethered;
+            WorldState.Actors.StatusGain += OnActorStatusGain;
+            WorldState.Actors.StatusLose += OnActorStatusLose;
+            WorldState.Actors.StatusChange += OnActorStatusChange;
+            WorldState.Events.Icon += OnEventIcon;
+            WorldState.Events.Cast += OnEventCast;
+            WorldState.Events.EnvControl += OnEventEnvControl;
             foreach (var v in WorldState.Actors)
-                OnActorCreated(null, v.Value);
+                OnActorCreated(null, v);
         }
 
         public void Dispose()
@@ -146,20 +146,19 @@ namespace BossMod
         {
             if (disposing)
             {
-                WorldState.PlayerActorIDChanged -= PlayerIDChanged;
                 WorldState.PlayerInCombatChanged -= EnterExitCombat;
-                WorldState.ActorCreated -= OnActorCreated;
-                WorldState.ActorDestroyed -= OnActorDestroyed;
-                WorldState.ActorCastStarted -= OnActorCastStarted;
-                WorldState.ActorCastFinished -= OnActorCastFinished;
-                WorldState.ActorTethered -= OnActorTethered;
-                WorldState.ActorUntethered -= OnActorUntethered;
-                WorldState.ActorStatusGain -= OnActorStatusGain;
-                WorldState.ActorStatusLose -= OnActorStatusLose;
-                WorldState.ActorStatusChange -= OnActorStatusChange;
-                WorldState.EventIcon -= OnEventIcon;
-                WorldState.EventCast -= OnEventCast;
-                WorldState.EventEnvControl -= OnEventEnvControl;
+                WorldState.Actors.Added -= OnActorCreated;
+                WorldState.Actors.Removed -= OnActorDestroyed;
+                WorldState.Actors.CastStarted -= OnActorCastStarted;
+                WorldState.Actors.CastFinished -= OnActorCastFinished;
+                WorldState.Actors.Tethered -= OnActorTethered;
+                WorldState.Actors.Untethered -= OnActorUntethered;
+                WorldState.Actors.StatusGain -= OnActorStatusGain;
+                WorldState.Actors.StatusLose -= OnActorStatusLose;
+                WorldState.Actors.StatusChange -= OnActorStatusChange;
+                WorldState.Events.Icon -= OnEventIcon;
+                WorldState.Events.Cast -= OnEventCast;
+                WorldState.Events.EnvControl -= OnEventEnvControl;
             }
         }
 
@@ -223,7 +222,7 @@ namespace BossMod
             DrawArenaForegroundPost();
         }
 
-        public TextHints CalculateHintsForRaidMember(int slot, WorldState.Actor actor, MovementHints? movementHints = null)
+        public TextHints CalculateHintsForRaidMember(int slot, Actor actor, MovementHints? movementHints = null)
         {
             TextHints hints = new();
             foreach (var comp in _components)
@@ -245,7 +244,7 @@ namespace BossMod
             return pos != origin ? pos + distance * Vector3.Normalize(pos - origin) : pos;
         }
 
-        public static Vector3 AdjustPositionForKnockback(Vector3 pos, WorldState.Actor? source, float distance)
+        public static Vector3 AdjustPositionForKnockback(Vector3 pos, Actor? source, float distance)
         {
             return source != null ? AdjustPositionForKnockback(pos, source.Position, distance) : pos;
         }
@@ -274,7 +273,7 @@ namespace BossMod
             if (actor == null)
                 return;
 
-            var hints = CalculateHintsForRaidMember(Raid.PlayerSlot, actor, movementHints);
+            var hints = CalculateHintsForRaidMember(PlayerSlot, actor, movementHints);
             var riskColor = ImGui.ColorConvertU32ToFloat4(Arena.ColorDanger);
             var safeColor = ImGui.ColorConvertU32ToFloat4(Arena.ColorSafe);
             foreach ((var hint, bool risk) in hints)
@@ -287,14 +286,14 @@ namespace BossMod
 
         private void DrawWaymarks()
         {
-            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.A), "A", 0xffba4e53);
-            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.B), "B", 0xffd5aa39);
-            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.C), "C", 0xff6cb4e0);
-            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.D), "D", 0xff7128c0);
-            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.N1), "1", 0xffba4e53);
-            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.N2), "2", 0xffd5aa39);
-            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.N3), "3", 0xff6cb4e0);
-            DrawWaymark(WorldState.GetWaymark(WorldState.Waymark.N4), "4", 0xff7128c0);
+            DrawWaymark(WorldState.Waymarks[Waymark.A], "A", 0xffba4e53);
+            DrawWaymark(WorldState.Waymarks[Waymark.B], "B", 0xffd5aa39);
+            DrawWaymark(WorldState.Waymarks[Waymark.C], "C", 0xff6cb4e0);
+            DrawWaymark(WorldState.Waymarks[Waymark.D], "D", 0xff7128c0);
+            DrawWaymark(WorldState.Waymarks[Waymark.N1], "1", 0xffba4e53);
+            DrawWaymark(WorldState.Waymarks[Waymark.N2], "2", 0xffd5aa39);
+            DrawWaymark(WorldState.Waymarks[Waymark.N3], "3", 0xff6cb4e0);
+            DrawWaymark(WorldState.Waymarks[Waymark.N4], "4", 0xff7128c0);
         }
 
         private void DrawWaymark(Vector3? pos, string text, uint color)
@@ -303,11 +302,6 @@ namespace BossMod
             {
                 Arena.TextWorld(pos.Value, text, color, 22);
             }
-        }
-
-        private void PlayerIDChanged(object? sender, uint id)
-        {
-            Raid.UpdatePlayer(id);
         }
 
         private void EnterExitCombat(object? sender, bool inCombat)
@@ -321,19 +315,16 @@ namespace BossMod
             {
                 StateMachine.ActiveState = null;
                 Reset();
-                Raid.ClearRaidCooldowns();
+                RaidCooldowns.Clear();
             }
         }
 
-        private void OnActorCreated(object? sender, WorldState.Actor actor)
+        private void OnActorCreated(object? sender, Actor actor)
         {
             switch (actor.Type)
             {
-                case WorldState.ActorType.Player:
-                    Raid.AddMember(actor, actor.InstanceID == WorldState.PlayerActorID);
-                    break;
-                case WorldState.ActorType.Unknown:
-                case WorldState.ActorType.Enemy:
+                case ActorType.Unknown:
+                case ActorType.Enemy:
                     var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
                     if (relevant != null)
                         relevant.Add(actor);
@@ -341,15 +332,12 @@ namespace BossMod
             }
         }
 
-        private void OnActorDestroyed(object? sender, WorldState.Actor actor)
+        private void OnActorDestroyed(object? sender, Actor actor)
         {
             switch (actor.Type)
             {
-                case WorldState.ActorType.Player:
-                    Raid.RemoveMember(actor);
-                    break;
-                case WorldState.ActorType.Unknown:
-                case WorldState.ActorType.Enemy:
+                case ActorType.Unknown:
+                case ActorType.Enemy:
                     var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
                     if (relevant != null)
                         relevant.Remove(actor);
@@ -357,43 +345,43 @@ namespace BossMod
             }
         }
 
-        private void OnActorCastStarted(object? sender, WorldState.Actor actor)
+        private void OnActorCastStarted(object? sender, Actor actor)
         {
             foreach (var comp in _components)
                 comp.OnCastStarted(actor);
         }
 
-        private void OnActorCastFinished(object? sender, WorldState.Actor actor)
+        private void OnActorCastFinished(object? sender, Actor actor)
         {
             foreach (var comp in _components)
                 comp.OnCastFinished(actor);
         }
 
-        private void OnActorTethered(object? sender, WorldState.Actor actor)
+        private void OnActorTethered(object? sender, Actor actor)
         {
             foreach (var comp in _components)
                 comp.OnTethered(actor);
         }
 
-        private void OnActorUntethered(object? sender, WorldState.Actor actor)
+        private void OnActorUntethered(object? sender, Actor actor)
         {
             foreach (var comp in _components)
                 comp.OnUntethered(actor);
         }
 
-        private void OnActorStatusGain(object? sender, (WorldState.Actor actor, int index) arg)
+        private void OnActorStatusGain(object? sender, (Actor actor, int index) arg)
         {
             foreach (var comp in _components)
                 comp.OnStatusGain(arg.actor, arg.index);
         }
 
-        private void OnActorStatusLose(object? sender, (WorldState.Actor actor, int index) arg)
+        private void OnActorStatusLose(object? sender, (Actor actor, int index) arg)
         {
             foreach (var comp in _components)
                 comp.OnStatusLose(arg.actor, arg.index);
         }
 
-        private void OnActorStatusChange(object? sender, (WorldState.Actor actor, int index, ushort prevExtra, DateTime prevExpire) arg)
+        private void OnActorStatusChange(object? sender, (Actor actor, int index, ushort prevExtra, DateTime prevExpire) arg)
         {
             foreach (var comp in _components)
                 comp.OnStatusChange(arg.actor, arg.index);
@@ -405,9 +393,9 @@ namespace BossMod
                 comp.OnEventIcon(arg.actorID, arg.iconID);
         }
 
-        private void OnEventCast(object? sender, WorldState.CastResult info)
+        private void OnEventCast(object? sender, CastEvent info)
         {
-            Raid.HandleCast(WorldState.CurrentTime, info);
+            RaidCooldowns.HandleCast(WorldState.CurrentTime, info);
             foreach (var comp in _components)
                 comp.OnEventCast(info);
         }

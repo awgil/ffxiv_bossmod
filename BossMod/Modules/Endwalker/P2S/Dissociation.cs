@@ -15,7 +15,7 @@
             _module = module;
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var head = _module.DissociatedHead();
             if (_done || head == null || _module.Arena.InBounds(head.Position))
@@ -36,7 +36,7 @@
             arena.ZoneQuad(head.Position, head.Rotation, 50, 0, _halfWidth, arena.ColorAOE);
         }
 
-        public override void OnCastFinished(WorldState.Actor actor)
+        public override void OnCastFinished(Actor actor)
         {
             if (actor == _module.DissociatedHead() && actor.CastInfo!.IsSpell(AID.DissociationAOE))
                 _done = true;

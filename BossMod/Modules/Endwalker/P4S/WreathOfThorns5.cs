@@ -10,7 +10,7 @@ namespace BossMod.P4S
     {
         private P4S _module;
         private List<uint> _playersOrder = new();
-        private List<WorldState.Actor> _towersOrder = new();
+        private List<Actor> _towersOrder = new();
         private int _castsDone = 0;
 
         private static float _impulseAOERadius = 5;
@@ -20,7 +20,7 @@ namespace BossMod.P4S
             _module = module;
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             int order = _playersOrder.IndexOf(actor.InstanceID);
             if (order >= 0)
@@ -41,7 +41,7 @@ namespace BossMod.P4S
 
         public override void AddGlobalHints(GlobalHints hints)
         {
-            hints.Add($"Order: {string.Join(" -> ", _playersOrder.Skip(_castsDone).Select(id => _module.WorldState.FindActor(id)?.Name ?? "???"))}");
+            hints.Add($"Order: {string.Join(" -> ", _playersOrder.Skip(_castsDone).Select(id => _module.WorldState.Actors.Find(id)?.Name ?? "???"))}");
         }
 
         public override void DrawArenaForeground(MiniArena arena)
@@ -54,7 +54,7 @@ namespace BossMod.P4S
             if (order >= _castsDone && order < _towersOrder.Count)
                 arena.AddCircle(_towersOrder[order].Position, P4S.WreathTowerRadius, arena.ColorSafe);
 
-            var pcTetherTarget = pc.Tether.Target != 0 ? _module.WorldState.FindActor(pc.Tether.Target) : null;
+            var pcTetherTarget = pc.Tether.Target != 0 ? _module.WorldState.Actors.Find(pc.Tether.Target) : null;
             if (pcTetherTarget != null)
             {
                 arena.AddLine(pc.Position, pcTetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? arena.ColorDanger : arena.ColorSafe);
@@ -68,13 +68,13 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnTethered(WorldState.Actor actor)
+        public override void OnTethered(Actor actor)
         {
             if (actor.OID == (uint)OID.Helper)
                 _towersOrder.Add(actor);
         }
 
-        public override void OnEventCast(WorldState.CastResult info)
+        public override void OnEventCast(CastEvent info)
         {
             if (info.IsSpell(AID.FleetingImpulseAOE))
                 _playersOrder.Add(info.MainTargetID);

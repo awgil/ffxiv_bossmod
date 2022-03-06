@@ -13,10 +13,10 @@ namespace BossMod.P4S
         public int NumFinished { get; private set; } = 0;
         private P4S _module;
         private Order _order;
-        private WorldState.Actor? _acid;
-        private WorldState.Actor? _fire;
-        private WorldState.Actor? _water;
-        private WorldState.Actor? _lighting;
+        private Actor? _acid;
+        private Actor? _fire;
+        private Actor? _water;
+        private Actor? _lighting;
 
         private static float _acidAOERadius = 5;
         private static float _fireAOERadius = 6;
@@ -28,7 +28,7 @@ namespace BossMod.P4S
             _module = module;
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_acid != null)
             {
@@ -141,7 +141,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnCastStarted(WorldState.Actor actor)
+        public override void OnCastStarted(Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;
@@ -174,7 +174,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnCastFinished(WorldState.Actor actor)
+        public override void OnCastFinished(Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;

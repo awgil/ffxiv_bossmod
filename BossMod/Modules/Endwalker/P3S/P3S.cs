@@ -8,11 +8,11 @@ namespace BossMod.P3S
 {
     public class P3S : BossModule
     {
-        private List<WorldState.Actor> _boss;
-        public WorldState.Actor? Boss() => _boss.FirstOrDefault();
+        private List<Actor> _boss;
+        public Actor? Boss() => _boss.FirstOrDefault();
 
         public P3S(WorldState ws)
-            : base(ws, 8)
+            : base(ws)
         {
             _boss = Enemies(OID.Boss);
 

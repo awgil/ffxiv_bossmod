@@ -136,7 +136,7 @@ namespace BossMod
             LogStateChange(State, currState);
             State = currState;
 
-            Strategy.RaidBuffsIn = _bossmods.ActiveModule != null ? _bossmods.ActiveModule.Raid.NextDamageBuffIn(_bossmods.ActiveModule.WorldState.CurrentTime) : 0;
+            Strategy.RaidBuffsIn = _bossmods.ActiveModule != null ? _bossmods.ActiveModule.RaidCooldowns.NextDamageBuffIn(_bossmods.ActiveModule.WorldState.CurrentTime) : 0;
             if (_forceMovementFlags == 0)
                 Strategy.PositionLockIn = 0;
             else if (_forceMovementFlags == 3 || _bossmods.ActiveModule == null)

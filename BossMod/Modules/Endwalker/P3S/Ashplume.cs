@@ -23,7 +23,7 @@ namespace BossMod.P3S
             _module = module;
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (CurState == State.Stack)
             {
@@ -81,7 +81,7 @@ namespace BossMod.P3S
             arena.AddCircle(pc.Position, aoeRadius, arena.ColorDanger);
         }
 
-        public override void OnEventCast(WorldState.CastResult info)
+        public override void OnEventCast(CastEvent info)
         {
             if (!info.IsSpell())
                 return;

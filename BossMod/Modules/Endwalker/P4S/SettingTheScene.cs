@@ -43,7 +43,7 @@
                 : (pos.Z > _module.Arena.WorldCenter.Z ? Corner.SW : Corner.NW);
         }
 
-        public override void OnCastStarted(WorldState.Actor actor)
+        public override void OnCastStarted(Actor actor)
         {
             // this is a fallback in case env-control assignment doesn't work for some reason...
             if (!actor.CastInfo!.IsSpell())

@@ -21,7 +21,7 @@ namespace BossMod.P4S
             _module = module;
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var boss = _module.Boss2();
             if (NumCasts >= _directions.Count * 2 || boss == null)
@@ -46,13 +46,13 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnCastStarted(WorldState.Actor actor)
+        public override void OnCastStarted(Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.HellsStingAOE1))
                 _directions.Add(actor.Rotation);
         }
 
-        public override void OnCastFinished(WorldState.Actor actor)
+        public override void OnCastFinished(Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.HellsStingAOE1) || actor.CastInfo!.IsSpell(AID.HellsStingAOE2))
                 ++NumCasts;

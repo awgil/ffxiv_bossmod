@@ -10,7 +10,7 @@ namespace BossMod
     {
         private class DemoComponent : Component
         {
-            public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+            public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 hints.Add("Hint", false);
                 hints.Add("Risk");
@@ -28,7 +28,7 @@ namespace BossMod
         }
 
         public DemoModule(WorldState ws)
-            : base(ws, 8)
+            : base(ws)
         {
             ActivateComponent(new DemoComponent());
         }

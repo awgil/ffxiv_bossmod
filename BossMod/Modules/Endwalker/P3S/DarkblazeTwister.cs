@@ -11,15 +11,15 @@ namespace BossMod.P3S
     class DarkblazeTwister : Component
     {
         private P3S _module;
-        private List<WorldState.Actor> _twisters;
+        private List<Actor> _twisters;
 
         private static float _knockbackRange = 17;
         private static float _aoeInnerRadius = 5; // not sure about this...
         private static float _aoeMiddleRadius = 7; // not sure about this...
         private static float _aoeOuterRadius = 20;
 
-        public IEnumerable<WorldState.Actor> BurningTwisters => _twisters.Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false);
-        public WorldState.Actor? DarkTwister => _twisters.Find(twister => twister.CastInfo?.IsSpell(AID.DarkTwister) ?? false);
+        public IEnumerable<Actor> BurningTwisters => _twisters.Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false);
+        public Actor? DarkTwister => _twisters.Find(twister => twister.CastInfo?.IsSpell(AID.DarkTwister) ?? false);
 
         public DarkblazeTwister(P3S module)
         {
@@ -27,7 +27,7 @@ namespace BossMod.P3S
             _twisters = module.Enemies(OID.DarkblazeTwister);
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var adjPos = AdjustPositionForKnockback(actor.Position, DarkTwister, _knockbackRange);
             if (actor.Position != adjPos && !_module.Arena.InBounds(adjPos))

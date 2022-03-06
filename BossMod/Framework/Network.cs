@@ -14,14 +14,14 @@ namespace BossMod
             public uint Sequence;
         }
 
-        public event EventHandler<WorldState.CastResult>? EventActionEffect;
+        public event EventHandler<CastEvent>? EventActionEffect;
         public event EventHandler<(uint actorID, uint actionID)>? EventActorControlCancelCast;
         public event EventHandler<(uint actorID, uint iconID)>? EventActorControlTargetIcon;
         public event EventHandler<(uint actorID, uint targetID, uint tetherID)>? EventActorControlTether;
         public event EventHandler<uint>? EventActorControlTetherCancel;
         public event EventHandler<(uint actorID, uint actionID, uint sourceSequence)>? EventActorControlSelfActionRejected;
         public event EventHandler<(uint featureID, byte index, uint state)>? EventEnvControl;
-        public event EventHandler<(WorldState.Waymark waymark, Vector3? pos)>? EventWaymark;
+        public event EventHandler<(Waymark waymark, Vector3? pos)>? EventWaymark;
         public event EventHandler<PendingAction>? EventActionRequest;
 
         private GeneralConfig _config;
@@ -140,7 +140,7 @@ namespace BossMod
                 }
             }
 
-            var info = new WorldState.CastResult
+            var info = new CastEvent
             {
                 CasterID = casterID,
                 MainTargetID = header->animationTargetId,
@@ -156,7 +156,7 @@ namespace BossMod
                 uint targetID = (uint)targetIDs[i];
                 if (targetID != 0)
                 {
-                    var target = new WorldState.CastResult.Target();
+                    var target = new CastEvent.Target();
                     target.ID = targetID;
                     for (int j = 0; j < 8; ++j)
                         target.Effects[j] = *(ulong*)(effects + (i * 8) + j);
@@ -203,14 +203,14 @@ namespace BossMod
 
         private unsafe void HandleWaymark(Protocol.Server_Waymark* p)
         {
-            if (p->Waymark < WorldState.Waymark.Count)
+            if (p->Waymark < Waymark.Count)
                 EventWaymark?.Invoke(this, (p->Waymark, p->Active != 0 ? new Vector3(p->PosX / 1000.0f, p->PosY / 1000.0f, p->PosZ / 1000.0f) : null));
         }
 
         private unsafe void HandlePresetWaymark(Protocol.Server_PresetWaymark* p)
         {
             byte mask = 1;
-            for (var i = WorldState.Waymark.A; i < WorldState.Waymark.Count; ++i)
+            for (var i = Waymark.A; i < Waymark.Count; ++i)
             {
                 EventWaymark?.Invoke(this, (i, (p->WaymarkMask & mask) != 0 ? new Vector3(p->PosX[(byte)i] / 1000.0f, p->PosY[(byte)i] / 1000.0f, p->PosZ[(byte)i] / 1000.0f) : null));
                 mask <<= 1;
@@ -349,7 +349,7 @@ namespace BossMod
                         var p = (Protocol.Server_PresetWaymark*)dataPtr;
                         for (int i = 0; i < 8; ++i)
                         {
-                            Service.Log($"[Network] - {(WorldState.Waymark)i}: {(p->WaymarkMask & (1 << i)) != 0} at {p->PosX[i] / 1000.0f:f3} {p->PosY[i] / 1000.0f:f3} {p->PosZ[i] / 1000.0f:f3}");
+                            Service.Log($"[Network] - {(Waymark)i}: {(p->WaymarkMask & (1 << i)) != 0} at {p->PosX[i] / 1000.0f:f3} {p->PosY[i] / 1000.0f:f3} {p->PosZ[i] / 1000.0f:f3}");
                         }
                         break;
                     }

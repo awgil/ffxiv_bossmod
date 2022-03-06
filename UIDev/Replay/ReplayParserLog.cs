@@ -12,11 +12,11 @@ namespace UIDev
 {
     using static Replay;
 
-    static class ReplayParserLog
+    class ReplayParserLog
     {
         public static Replay Parse(string path)
         {
-            Replay res = new();
+            ReplayParserLog parser = new();
             try
             {
                 using (var reader = new StreamReader(path))
@@ -31,41 +31,7 @@ namespace UIDev
                         if (elements.Length < 2)
                             continue; // invalid string
 
-                        Operation? op = elements[1] switch
-                        {
-                            "ZONE" => ParseZoneChange(elements),
-                            "PCOM" => ParseEnterExitCombat(elements),
-                            "PID " => ParsePlayerIDChange(elements),
-                            "WAY+" => ParseWaymarkChange(elements, true),
-                            "WAY-" => ParseWaymarkChange(elements, false),
-                            "ACT+" => ParseActorCreate(elements),
-                            "ACT-" => ParseActorDestroy(elements),
-                            "NAME" => ParseActorRename(elements),
-                            "CLSR" => ParseActorClassChange(elements),
-                            "MOVE" => ParseActorMove(elements),
-                            "ATG+" => ParseActorTargetable(elements, true),
-                            "ATG-" => ParseActorTargetable(elements, false),
-                            "DIE+" => ParseActorDead(elements, true),
-                            "DIE-" => ParseActorDead(elements, false),
-                            "TARG" => ParseActorTarget(elements),
-                            "CST+" => ParseActorCast(elements, true),
-                            "CST-" => ParseActorCast(elements, false),
-                            "TET+" => ParseActorTether(elements, true),
-                            "TET-" => ParseActorTether(elements, false),
-                            "STA+" => ParseActorStatus(elements, true),
-                            "STA-" => ParseActorStatus(elements, false),
-                            "STA!" => ParseActorStatus(elements, true),
-                            "ICON" => ParseEventIcon(elements),
-                            "CST!" => ParseEventCast(elements),
-                            "ENVC" => ParseEventEnvControl(elements),
-                            _ => null
-                        };
-
-                        if (op != null)
-                        {
-                            op.Timestamp = DateTime.Parse(elements[0]);
-                            res.Ops.Add(op);
-                        }
+                        parser.ParseLine(elements);
                     }
                 }
             }
@@ -73,113 +39,196 @@ namespace UIDev
             {
                 Service.Log($"Failed to read {path}: {e}");
             }
-            return res;
+            return parser._res;
         }
 
-        private static OpZoneChange ParseZoneChange(string[] payload)
+        private Replay _res = new();
+        private WorldState _ws = new();
+        private int _version = 0;
+        private ulong _lastFakeContentID = 0;
+
+        private void ParseLine(string[] payload)
+        {
+            var timestamp = DateTime.Parse(payload[0]);
+            switch (payload[1])
+            {
+                case "VER ": ParseVersion(timestamp, payload); break;
+                case "ZONE": ParseZoneChange(timestamp, payload); break;
+                case "PCOM": ParseEnterExitCombat(timestamp, payload); break;
+                case "PID ": ParsePlayerIDChange(timestamp, payload); break;
+                case "WAY+": ParseWaymarkChange(timestamp, payload, true); break;
+                case "WAY-": ParseWaymarkChange(timestamp, payload, false); break;
+                case "ACT+": ParseActorCreate(timestamp, payload); break;
+                case "ACT-": ParseActorDestroy(timestamp, payload); break;
+                case "NAME": ParseActorRename(timestamp, payload); break;
+                case "CLSR": ParseActorClassChange(timestamp, payload); break;
+                case "MOVE": ParseActorMove(timestamp, payload); break;
+                case "ATG+": ParseActorTargetable(timestamp, payload, true); break;
+                case "ATG-": ParseActorTargetable(timestamp, payload, false); break;
+                case "DIE+": ParseActorDead(timestamp, payload, true); break;
+                case "DIE-": ParseActorDead(timestamp, payload, false); break;
+                case "TARG": ParseActorTarget(timestamp, payload); break;
+                case "CST+": ParseActorCast(timestamp, payload, true); break;
+                case "CST-": ParseActorCast(timestamp, payload, false); break;
+                case "TET+": ParseActorTether(timestamp, payload, true); break;
+                case "TET-": ParseActorTether(timestamp, payload, false); break;
+                case "STA+": ParseActorStatus(timestamp, payload, true); break;
+                case "STA-": ParseActorStatus(timestamp, payload, false); break;
+                case "STA!": ParseActorStatus(timestamp, payload, true); break;
+                case "PAR+": ParsePartyJoin(timestamp, payload); break;
+                case "PAR-": ParsePartyLeave(timestamp, payload); break;
+                case "PAR!": ParsePartyAssign(timestamp, payload); break;
+                case "ICON": ParseEventIcon(timestamp, payload); break;
+                case "CST!": ParseEventCast(timestamp, payload); break;
+                case "ENVC": ParseEventEnvControl(timestamp, payload); break;
+            }
+        }
+
+        private void AddOp(DateTime timestamp, Operation op)
+        {
+            op.Timestamp = timestamp;
+            op.Redo(_ws);
+            _res.Ops.Add(op);
+        }
+
+        private void ParseVersion(DateTime timestamp, string[] payload)
+        {
+            _version = int.Parse(payload[2]);
+        }
+
+        private void ParseZoneChange(DateTime timestamp, string[] payload)
         {
             OpZoneChange res = new();
             res.Zone = ushort.Parse(payload[2]);
-            return res;
+            AddOp(timestamp, res);
         }
 
-        private static OpEnterExitCombat ParseEnterExitCombat(string[] payload)
+        private void ParseEnterExitCombat(DateTime timestamp, string[] payload)
         {
             OpEnterExitCombat res = new();
             res.Value = bool.Parse(payload[2]);
-            return res;
+            AddOp(timestamp, res);
         }
 
-        private static OpPlayerIDChange ParsePlayerIDChange(string[] payload)
+        private void ParsePlayerIDChange(DateTime timestamp, string[] payload)
         {
-            OpPlayerIDChange res = new();
-            res.Value = ActorID(payload[2]);
-            return res;
+            OpPartyJoin pcJoin = new();
+            pcJoin.ContentID = ++_lastFakeContentID;
+            pcJoin.InstanceID = ActorID(payload[2]);
+            AddOp(timestamp, pcJoin);
+
+            foreach (var player in _ws.Actors.Where(a => a.Type == ActorType.Player && a.InstanceID != pcJoin.InstanceID))
+            {
+                OpPartyJoin otherJoin = new();
+                otherJoin.ContentID = ++_lastFakeContentID;
+                otherJoin.InstanceID = player.InstanceID;
+                AddOp(timestamp, otherJoin);
+            }
         }
 
-        private static OpWaymarkChange ParseWaymarkChange(string[] payload, bool set)
+        private void ParseWaymarkChange(DateTime timestamp, string[] payload, bool set)
         {
             OpWaymarkChange res = new();
-            res.ID = Enum.Parse<WorldState.Waymark>(payload[2]);
+            res.ID = Enum.Parse<Waymark>(payload[2]);
             if (set)
                 res.Pos = Vec3(payload[3]);
-            return res;
+            AddOp(timestamp, res);
         }
 
-        private static OpActorCreate ParseActorCreate(string[] payload)
+        private void ParseActorCreate(DateTime timestamp, string[] payload)
         {
             var parts = payload[2].Split('/');
             OpActorCreate res = new();
             res.InstanceID = uint.Parse(parts[0], NumberStyles.HexNumber);
             res.OID = uint.Parse(parts[1], NumberStyles.HexNumber);
             res.Name = parts[2];
-            res.Type = Enum.Parse<WorldState.ActorType>(parts[3]);
+            res.Type = Enum.Parse<ActorType>(parts[3]);
             res.Class = Enum.Parse<Class>(payload[3]);
             res.PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]) * MathF.PI / 180);
             res.IsTargetable = bool.Parse(payload[4]);
             res.HitboxRadius = float.Parse(payload[5]);
             res.OwnerID = payload.Length > 6 ? ActorID(payload[6]) : 0;
-            return res;
+            AddOp(timestamp, res);
+
+            if (_lastFakeContentID > 0 && res.Type == ActorType.Player)
+            {
+                OpPartyJoin join = new();
+                join.ContentID = ++_lastFakeContentID;
+                join.InstanceID = res.InstanceID;
+                AddOp(timestamp, join);
+            }
         }
 
-        private static OpActorDestroy ParseActorDestroy(string[] payload)
+        private void ParseActorDestroy(DateTime timestamp, string[] payload)
         {
             OpActorDestroy res = new();
             res.InstanceID = ActorID(payload[2]);
-            return res;
+            AddOp(timestamp, res);
+
+            if (_lastFakeContentID > 0)
+            {
+                var slot = _ws.Party.FindSlot(res.InstanceID);
+                if (slot >= 0)
+                {
+                    OpPartyLeave leave = new();
+                    leave.ContentID = _ws.Party.ContentIDs[slot];
+                    leave.InstanceID = res.InstanceID;
+                    AddOp(timestamp, leave);
+                }
+            }
         }
 
-        private static OpActorRename ParseActorRename(string[] payload)
+        private void ParseActorRename(DateTime timestamp, string[] payload)
         {
             var parts = payload[2].Split('/');
             OpActorRename res = new();
             res.InstanceID = uint.Parse(parts[0], NumberStyles.HexNumber);
             res.Name = parts[2];
-            return res;
+            AddOp(timestamp, res);
         }
 
-        private static OpActorClassChange ParseActorClassChange(string[] payload)
+        private void ParseActorClassChange(DateTime timestamp, string[] payload)
         {
             OpActorClassChange res = new();
             res.InstanceID = ActorID(payload[2]);
             res.Class = Enum.Parse<Class>(payload[4]);
-            return res;
+            AddOp(timestamp, res);
         }
 
-        private static OpActorMove ParseActorMove(string[] payload)
+        private void ParseActorMove(DateTime timestamp, string[] payload)
         {
             var parts = payload[2].Split('/');
             OpActorMove res = new();
             res.InstanceID = uint.Parse(parts[0], NumberStyles.HexNumber);
             res.PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]) * MathF.PI / 180);
-            return res;
+            AddOp(timestamp, res);
         }
 
-        private static OpActorTargetable ParseActorTargetable(string[] payload, bool targetable)
+        private void ParseActorTargetable(DateTime timestamp, string[] payload, bool targetable)
         {
             OpActorTargetable res = new();
             res.InstanceID = ActorID(payload[2]);
             res.Value = targetable;
-            return res;
+            AddOp(timestamp, res);
         }
 
-        private static OpActorDead ParseActorDead(string[] payload, bool dead)
+        private void ParseActorDead(DateTime timestamp, string[] payload, bool dead)
         {
             OpActorDead res = new();
             res.InstanceID = ActorID(payload[2]);
             res.Value = dead;
-            return res;
+            AddOp(timestamp, res);
         }
 
-        private static OpActorTarget ParseActorTarget(string[] payload)
+        private void ParseActorTarget(DateTime timestamp, string[] payload)
         {
             OpActorTarget res = new();
             res.InstanceID = ActorID(payload[2]);
             res.Value = ActorID(payload[3]);
-            return res;
+            AddOp(timestamp, res);
         }
 
-        private static OpActorCast ParseActorCast(string[] payload, bool start)
+        private void ParseActorCast(DateTime timestamp, string[] payload, bool start)
         {
             OpActorCast res = new();
             res.InstanceID = ActorID(payload[2]);
@@ -194,10 +243,10 @@ namespace UIDev
                 res.Value.TotalTime = float.Parse(parts[1]);
                 res.Value.FinishAt = DateTime.Parse(payload[0]).AddSeconds(res.Value.TotalTime - float.Parse(parts[0]));
             }
-            return res;
+            AddOp(timestamp, res);
         }
 
-        private static OpActorTether ParseActorTether(string[] payload, bool tether)
+        private void ParseActorTether(DateTime timestamp, string[] payload, bool tether)
         {
             OpActorTether res = new();
             res.InstanceID = ActorID(payload[2]);
@@ -206,10 +255,10 @@ namespace UIDev
                 res.Value.ID = uint.Parse(payload[3]);
                 res.Value.Target = ActorID(payload[4]);
             }
-            return res;
+            AddOp(timestamp, res);
         }
 
-        private static OpActorStatus ParseActorStatus(string[] payload, bool gainOrUpdate)
+        private void ParseActorStatus(DateTime timestamp, string[] payload, bool gainOrUpdate)
         {
             OpActorStatus res = new();
             res.InstanceID = ActorID(payload[2]);
@@ -222,18 +271,42 @@ namespace UIDev
                 res.Value.Extra = ushort.Parse(payload[5], NumberStyles.HexNumber);
                 res.Value.ExpireAt = DateTime.Parse(payload[0]).AddSeconds(float.Parse(payload[6]));
             }
-            return res;
+            AddOp(timestamp, res);
         }
 
-        private static OpEventIcon ParseEventIcon(string[] payload)
+        private void ParsePartyJoin(DateTime timestamp, string[] payload)
+        {
+            OpPartyJoin res = new();
+            res.ContentID = ulong.Parse(payload[3], NumberStyles.HexNumber);
+            res.InstanceID = uint.Parse(payload[4], NumberStyles.HexNumber);
+            AddOp(timestamp, res);
+        }
+
+        private void ParsePartyLeave(DateTime timestamp, string[] payload)
+        {
+            OpPartyLeave res = new();
+            res.ContentID = ulong.Parse(payload[3], NumberStyles.HexNumber);
+            res.InstanceID = uint.Parse(payload[4], NumberStyles.HexNumber);
+            AddOp(timestamp, res);
+        }
+
+        private void ParsePartyAssign(DateTime timestamp, string[] payload)
+        {
+            OpPartyAssign res = new();
+            res.ContentID = ulong.Parse(payload[3], NumberStyles.HexNumber);
+            res.InstanceID = uint.Parse(payload[4], NumberStyles.HexNumber);
+            AddOp(timestamp, res);
+        }
+
+        private void ParseEventIcon(DateTime timestamp, string[] payload)
         {
             OpEventIcon res = new();
             res.InstanceID = ActorID(payload[2]);
             res.IconID = uint.Parse(payload[3]);
-            return res;
+            AddOp(timestamp, res);
         }
 
-        private static OpEventCast ParseEventCast(string[] payload)
+        private void ParseEventCast(DateTime timestamp, string[] payload)
         {
             OpEventCast res = new();
             res.Value.CasterID = ActorID(payload[2]);
@@ -244,22 +317,22 @@ namespace UIDev
             for (int i = 7; i < payload.Length; ++i)
             {
                 var parts = payload[i].Split('!');
-                WorldState.CastResult.Target target = new();
+                CastEvent.Target target = new();
                 target.ID = ActorID(parts[0]);
                 for (int j = 1; j < parts.Length; ++j)
                     target[j - 1] = ulong.Parse(parts[j], NumberStyles.HexNumber);
                 res.Value.Targets.Add(target);
             }
-            return res;
+            AddOp(timestamp, res);
         }
 
-        private static OpEventEnvControl ParseEventEnvControl(string[] payload)
+        private void ParseEventEnvControl(DateTime timestamp, string[] payload)
         {
             OpEventEnvControl res = new();
             res.FeatureID = uint.Parse(payload[2], NumberStyles.HexNumber);
             res.Index = byte.Parse(payload[3], NumberStyles.HexNumber);
             res.State = uint.Parse(payload[4], NumberStyles.HexNumber);
-            return res;
+            AddOp(timestamp, res);
         }
 
         private static Vector3 Vec3(string repr)

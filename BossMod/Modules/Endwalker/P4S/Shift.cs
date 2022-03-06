@@ -8,7 +8,7 @@ namespace BossMod.P4S
     class Shift : Component
     {
         private P4S _module;
-        private WorldState.Actor? _caster;
+        private Actor? _caster;
         private bool _isSword;
 
         private static float _coneHalfAngle = MathF.PI / 3; // not sure about this...
@@ -19,7 +19,7 @@ namespace BossMod.P4S
             _module = module;
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_caster == null)
                 return;
@@ -58,7 +58,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnCastStarted(WorldState.Actor actor)
+        public override void OnCastStarted(Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.ShiftingStrikeCloak) || actor.CastInfo!.IsSpell(AID.ShiftingStrikeSword))
             {
@@ -67,7 +67,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnCastFinished(WorldState.Actor actor)
+        public override void OnCastFinished(Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.ShiftingStrikeCloak) || actor.CastInfo!.IsSpell(AID.ShiftingStrikeSword))
                 _caster = null;

@@ -16,7 +16,7 @@ namespace BossMod.P3S
             _rot = left ? MathF.PI / 2 : -MathF.PI / 2;
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var boss = _module.Boss();
             if (boss != null && GeometryUtils.PointInCone(actor.Position - boss.Position, boss.Rotation + _rot, MathF.PI / 2))

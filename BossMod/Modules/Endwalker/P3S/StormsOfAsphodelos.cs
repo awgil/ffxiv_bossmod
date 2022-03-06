@@ -11,7 +11,7 @@ namespace BossMod.P3S
     class StormsOfAsphodelos : Component
     {
         private P3S _module;
-        private List<WorldState.Actor> _twisters;
+        private List<Actor> _twisters;
         private List<int> _twisterTargets = new();
         private ulong _tetherTargets = 0;
         private ulong _bossTargets = 0;
@@ -38,7 +38,7 @@ namespace BossMod.P3S
             // we determine failing players, trying to take two reasonable tactics in account:
             // either two tanks immune and soak everything, or each player is hit by one mechanic
             // for now, we consider tether target to be a "tank"
-            int[] aoesPerPlayer = new int[_module.Raid.Members.Length];
+            int[] aoesPerPlayer = new int[PartyState.MaxSize];
 
             foreach ((int i, var player) in _module.Raid.WithSlot(true).WhereActor(x => x.Tether.Target == boss.InstanceID))
             {
@@ -83,7 +83,7 @@ namespace BossMod.P3S
                     BitVector.SetVector64Bit(ref _hitByMultipleAOEs, i);
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             bool tethered = BitVector.IsVector64BitSet(_tetherTargets, slot);
             bool hitByMultipleAOEs = BitVector.IsVector64BitSet(_hitByMultipleAOEs, slot);
@@ -162,7 +162,7 @@ namespace BossMod.P3S
             }
         }
 
-        private IEnumerable<(int, WorldState.Actor)> FindPlayersInWinds(Vector3 origin, WorldState.Actor target, float cosHalfAngle)
+        private IEnumerable<(int, Actor)> FindPlayersInWinds(Vector3 origin, Actor target, float cosHalfAngle)
         {
             var dir = Vector3.Normalize(target.Position - origin);
             return _module.Raid.WithSlot().WhereActor(player => Vector3.Dot(dir, Vector3.Normalize(player.Position - origin)) >= cosHalfAngle);

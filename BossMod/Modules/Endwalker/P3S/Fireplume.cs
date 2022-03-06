@@ -23,7 +23,7 @@ namespace BossMod.P3S
             _module = module;
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_singlePos != null && GeometryUtils.PointInCircle(actor.Position - _singlePos.Value, _singleRadius))
             {
@@ -67,7 +67,7 @@ namespace BossMod.P3S
             }
         }
 
-        public override void OnCastStarted(WorldState.Actor actor)
+        public override void OnCastStarted(Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;
@@ -88,7 +88,7 @@ namespace BossMod.P3S
             }
         }
 
-        public override void OnCastFinished(WorldState.Actor actor)
+        public override void OnCastFinished(Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;
@@ -105,7 +105,7 @@ namespace BossMod.P3S
             }
         }
 
-        private bool InPair(float direction, WorldState.Actor actor)
+        private bool InPair(float direction, Actor actor)
         {
             var offset = _multiPairOffset * GeometryUtils.DirectionToVec3(direction);
             return GeometryUtils.PointInCircle(actor.Position - _module.Arena.WorldCenter - offset, _multiRadius)

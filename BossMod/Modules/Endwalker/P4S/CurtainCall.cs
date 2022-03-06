@@ -12,7 +12,7 @@ namespace BossMod.P4S
     {
         private P4S _module;
         private int[] _playerOrder = new int[8];
-        private List<WorldState.Actor>? _playersInBreakOrder;
+        private List<Actor>? _playersInBreakOrder;
         private int _numCasts = 0;
 
         public CurtainCall(P4S module)
@@ -28,7 +28,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_playerOrder[slot] > _numCasts)
             {
@@ -54,12 +54,12 @@ namespace BossMod.P4S
                 arena.Actor(player, _playerOrder[slot] == _numCasts + 1 ? arena.ColorDanger : arena.ColorPlayerGeneric);
 
             // tether
-            var tetherTarget = pc.Tether.Target != 0 ? _module.WorldState.FindActor(pc.Tether.Target) : null;
+            var tetherTarget = pc.Tether.Target != 0 ? _module.WorldState.Actors.Find(pc.Tether.Target) : null;
             if (tetherTarget != null)
                 arena.AddLine(pc.Position, tetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? arena.ColorDanger : arena.ColorSafe);
         }
 
-        public override void OnStatusGain(WorldState.Actor actor, int index)
+        public override void OnStatusGain(Actor actor, int index)
         {
             if (actor.Statuses[index].ID == (uint)SID.Thornpricked)
             {
@@ -74,13 +74,13 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnStatusLose(WorldState.Actor actor, int index)
+        public override void OnStatusLose(Actor actor, int index)
         {
             if (actor.Statuses[index].ID == (uint)SID.Thornpricked)
                 ++_numCasts;
         }
 
-        private string OrderTextForPlayer(WorldState.Actor player)
+        private string OrderTextForPlayer(Actor player)
         {
             //return player.Name;
             var status = player.FindStatus((uint)SID.Thornpricked);

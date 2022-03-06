@@ -59,20 +59,20 @@ namespace BossMod
         private ZodiarkStages _stages = new();
 
         public Zodiark(WorldState ws)
-            : base(ws, 8)
+            : base(ws)
         {
-            WorldState.ActorCastStarted += ActorCastStarted;
-            WorldState.ActorCastFinished += ActorCastFinished;
-            WorldState.ActorMoved += ActorTeleported;
+            WorldState.Actors.CastStarted += ActorCastStarted;
+            WorldState.Actors.CastFinished += ActorCastFinished;
+            WorldState.Actors.Moved += ActorTeleported;
         }
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                WorldState.ActorCastStarted -= ActorCastStarted;
-                WorldState.ActorCastFinished -= ActorCastFinished;
-                WorldState.ActorMoved -= ActorTeleported;
+                WorldState.Actors.CastStarted -= ActorCastStarted;
+                WorldState.Actors.CastFinished -= ActorCastFinished;
+                WorldState.Actors.Moved -= ActorTeleported;
             }
             base.Dispose(disposing);
         }
@@ -89,7 +89,7 @@ namespace BossMod
             _stages.Reset();
         }
 
-        private void ActorCastStarted(object? sender, WorldState.Actor actor)
+        private void ActorCastStarted(object? sender, Actor actor)
         {
             // TODO: when {Diagonal1, Exo3, SideSmash1, } starts casting, dump render pos+flags of animals...
             if ((OID)actor.OID == OID.Boss)
@@ -125,7 +125,7 @@ namespace BossMod
             }
         }
 
-        private void ActorCastFinished(object? sender, WorldState.Actor actor)
+        private void ActorCastFinished(object? sender, Actor actor)
         {
             if ((OID)actor.OID == OID.Boss)
             {
@@ -133,7 +133,7 @@ namespace BossMod
             }
         }
 
-        private void ActorTeleported(object? sender, (WorldState.Actor actor, Vector4 prevPos) args)
+        private void ActorTeleported(object? sender, (Actor actor, Vector4 prevPos) args)
         {
             // ignore teleports after wipe
             if (_stages.NextEvent == ZodiarkStages.BossEvent.Kokytos || _stages.NextEvent == ZodiarkStages.BossEvent.Intermission1)
@@ -204,11 +204,11 @@ namespace BossMod
             int numSq = 0, numTri = 0;
             foreach (var elem in WorldState.Actors)
             {
-                if (elem.Value.OID != (uint)OID.ExoSquare && elem.Value.OID != (uint)OID.ExoTri)
+                if (elem.OID != (uint)OID.ExoSquare && elem.OID != (uint)OID.ExoTri)
                     continue; // not interesting
-                if (DetermineSideFromPos(elem.Value.Position) != side)
+                if (DetermineSideFromPos(elem.Position) != side)
                     continue; // not interesting (wrong side or not teleported yet)
-                if (elem.Value.OID == (uint)OID.ExoSquare)
+                if (elem.OID == (uint)OID.ExoSquare)
                     ++numSq;
                 else
                     ++numTri;

@@ -13,8 +13,8 @@ namespace BossMod.P4S
         public bool ReadyToBreak;
         private P4S _module;
         private IconID[] _playerIcons = new IconID[8];
-        private WorldState.Actor?[] _playerTetherSource = new WorldState.Actor?[8];
-        private List<WorldState.Actor>? _darkOrder; // contains sources
+        private Actor?[] _playerTetherSource = new Actor?[8];
+        private List<Actor>? _darkOrder; // contains sources
         private int _doneTowers = 0;
         private int _activeTethers = 0;
 
@@ -56,7 +56,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (!ReadyToBreak)
                 return;
@@ -99,7 +99,7 @@ namespace BossMod.P4S
             if (_darkOrder != null && _activeTethers > 0)
             {
                 var skip = 4 - Math.Min(_activeTethers, 4);
-                hints.Add($"Dark order: {string.Join(" -> ", _darkOrder.Skip(skip).Select(src => _module.WorldState.FindActor(src.Tether.Target)?.Name ?? "???"))}");
+                hints.Add($"Dark order: {string.Join(" -> ", _darkOrder.Skip(skip).Select(src => _module.WorldState.Actors.Find(src.Tether.Target)?.Name ?? "???"))}");
             }
         }
 
@@ -127,11 +127,11 @@ namespace BossMod.P4S
             }
 
             // tether
-            var pcTetherSource = _playerTetherSource[_module.Raid.PlayerSlot];
+            var pcTetherSource = _playerTetherSource[_module.PlayerSlot];
             if (pcTetherSource == null)
                 return; // pc is not tethered anymore, nothing to draw...
 
-            var pcIcon = _playerIcons[_module.Raid.PlayerSlot];
+            var pcIcon = _playerIcons[_module.PlayerSlot];
             arena.AddLine(pc.Position, pcTetherSource.Position, pcIcon == IconID.AkanthaiWater ? 0xffff8000 : 0xffff00ff);
 
             if (_doneTowers < 4)
@@ -161,7 +161,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnTethered(WorldState.Actor actor)
+        public override void OnTethered(Actor actor)
         {
             if (actor.OID == (uint)OID.Helper)
             {
@@ -174,7 +174,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnUntethered(WorldState.Actor actor)
+        public override void OnUntethered(Actor actor)
         {
             if (actor.OID == (uint)OID.Helper)
             {
@@ -187,7 +187,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnCastFinished(WorldState.Actor actor)
+        public override void OnCastFinished(Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.AkanthaiExplodeTower))
                 ++_doneTowers;
@@ -200,7 +200,7 @@ namespace BossMod.P4S
                 _playerIcons[slot] = (IconID)iconID;
         }
 
-        private void AddAOETargetToOrder(List<WorldState.Actor> order, Predicate<Vector3> sourcePred)
+        private void AddAOETargetToOrder(List<Actor> order, Predicate<Vector3> sourcePred)
         {
             var source = _playerTetherSource.Zip(_playerIcons).Where(si => si.Item2 == IconID.AkanthaiDark && si.Item1 != null && sourcePred(si.Item1.Position)).FirstOrDefault().Item1;
             if (source != null)
@@ -215,20 +215,20 @@ namespace BossMod.P4S
             return _module.Arena.WorldCenter + radius * GeometryUtils.DirectionToVec3(dir);
         }
 
-        private Vector3 DetermineWaterSafeSpot(WorldState.Actor source)
+        private Vector3 DetermineWaterSafeSpot(Actor source)
         {
             // TODO: this should be configurable; for now assume it is 3/8 of circle CW from tower
             return RotateCW(source.Position, 3 * MathF.PI / 4, 18);
         }
 
-        private WorldState.Actor? DetermineTowerToSoak(WorldState.Actor source)
+        private Actor? DetermineTowerToSoak(Actor source)
         {
             // TODO: this should be configurable; for now assume it is 1/8 of circle CW from aoe
             var pos = RotateCW(source.Position, MathF.PI / 4, 18);
             return _playerTetherSource.Where(x => x != null && GeometryUtils.PointInCircle(x.Position - pos, 4)).FirstOrDefault();
         }
 
-        private WorldState.Actor? NextAOE()
+        private Actor? NextAOE()
         {
             int nextIndex = Math.Max(0, 4 - _activeTethers);
             return _darkOrder != null && nextIndex < _darkOrder.Count ? _darkOrder[nextIndex] : null;

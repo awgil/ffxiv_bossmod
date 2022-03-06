@@ -29,7 +29,7 @@ namespace BossMod.P3S
             }
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (actor.Role == Role.Tank)
             {

@@ -82,7 +82,7 @@ namespace BossMod
         {
             foreach (var elem in _ws.Actors)
             {
-                var obj = Service.ObjectTable.SearchById(elem.Key);
+                var obj = Service.ObjectTable.SearchById(elem.InstanceID);
                 if (ImGui.TreeNode(Utils.ObjectString(obj!)))
                 {
                     var chara = obj as BattleChara;
@@ -111,16 +111,16 @@ namespace BossMod
             ImGui.TableHeadersRow();
             foreach (var elem in _ws.Actors)
             {
-                if (elem.Value.CastInfo == null || elem.Value.Type != WorldState.ActorType.Enemy)
+                if (elem.CastInfo == null || elem.Type != ActorType.Enemy)
                     continue;
 
                 ImGui.TableNextRow();
-                ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(elem.Key));
-                ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(elem.Value.CastInfo.TargetID));
-                ImGui.TableNextColumn(); ImGui.Text(elem.Value.CastInfo.Action.ToString());
-                ImGui.TableNextColumn(); ImGui.Text(Utils.CastTimeString(elem.Value.CastInfo, _ws.CurrentTime));
-                ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(elem.Value.CastInfo.Location));
-                ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(elem.Value.Position));
+                ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(elem.InstanceID));
+                ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(elem.CastInfo.TargetID));
+                ImGui.TableNextColumn(); ImGui.Text(elem.CastInfo.Action.ToString());
+                ImGui.TableNextColumn(); ImGui.Text(Utils.CastTimeString(elem.CastInfo, _ws.CurrentTime));
+                ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(elem.CastInfo.Location));
+                ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(elem.Position));
             }
             ImGui.EndTable();
         }

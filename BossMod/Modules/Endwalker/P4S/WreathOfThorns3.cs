@@ -16,14 +16,14 @@ namespace BossMod.P4S
         public int NumJumps { get; private set; } = 0;
         public int NumCones { get; private set; } = 0;
         private P4S _module;
-        private List<WorldState.Actor> _relevantHelpers = new(); // 4 towers -> knockback -> 4 towers
-        private WorldState.Actor? _jumpTarget = null; // either predicted (if jump is imminent) or last actual (if cones are imminent)
+        private List<Actor> _relevantHelpers = new(); // 4 towers -> knockback -> 4 towers
+        private Actor? _jumpTarget = null; // either predicted (if jump is imminent) or last actual (if cones are imminent)
         private ulong _coneTargets = 0;
         private ulong _playersInAOE = 0;
 
-        private IEnumerable<WorldState.Actor> _rangedTowers => _relevantHelpers.Take(4);
-        private IEnumerable<WorldState.Actor> _knockbackThorn => _relevantHelpers.Skip(4).Take(1);
-        private IEnumerable<WorldState.Actor> _meleeTowers => _relevantHelpers.Skip(5);
+        private IEnumerable<Actor> _rangedTowers => _relevantHelpers.Take(4);
+        private IEnumerable<Actor> _knockbackThorn => _relevantHelpers.Skip(4).Take(1);
+        private IEnumerable<Actor> _meleeTowers => _relevantHelpers.Skip(5);
 
         private static float _jumpAOERadius = 10;
         private static float _coneHalfAngle = MathF.PI / 4; // not sure about this...
@@ -60,7 +60,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (CurState != State.Done)
             {
@@ -131,13 +131,13 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnTethered(WorldState.Actor actor)
+        public override void OnTethered(Actor actor)
         {
             if (actor.OID == (uint)OID.Helper && actor.Tether.ID == (uint)TetherID.WreathOfThorns)
                 _relevantHelpers.Add(actor);
         }
 
-        public override void OnCastFinished(WorldState.Actor actor)
+        public override void OnCastFinished(Actor actor)
         {
             if (CurState == State.RangedTowers && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeTower))
                 CurState = State.Knockback;
@@ -147,12 +147,12 @@ namespace BossMod.P4S
                 CurState = State.Done;
         }
 
-        public override void OnEventCast(WorldState.CastResult info)
+        public override void OnEventCast(CastEvent info)
         {
             if (info.IsSpell(AID.KothornosKickJump))
             {
                 ++NumJumps;
-                _jumpTarget = _module.WorldState.FindActor(info.MainTargetID);
+                _jumpTarget = _module.WorldState.Actors.Find(info.MainTargetID);
             }
             else if (info.IsSpell(AID.KothornosQuake1) || info.IsSpell(AID.KothornosQuake2))
             {

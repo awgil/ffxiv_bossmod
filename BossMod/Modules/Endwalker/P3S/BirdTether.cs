@@ -12,8 +12,8 @@ namespace BossMod.P3S
     {
         public int NumFinishedChains { get; private set; } = 0;
         private P3S _module;
-        private List<WorldState.Actor> _birdsLarge;
-        private (WorldState.Actor?, WorldState.Actor?, int)[] _chains = new (WorldState.Actor?, WorldState.Actor?, int)[4]; // actor1, actor2, num-charges
+        private List<Actor> _birdsLarge;
+        private (Actor?, Actor?, int)[] _chains = new (Actor?, Actor?, int)[4]; // actor1, actor2, num-charges
         private ulong _playersInAOE = 0;
 
         private static float _chargeHalfWidth = 3;
@@ -36,11 +36,11 @@ namespace BossMod.P3S
                 var bird = _birdsLarge[i];
                 if (_chains[i].Item1 == null && bird.Tether.Target != 0)
                 {
-                    _chains[i].Item1 = _module.WorldState.FindActor(bird.Tether.Target); // first target found
+                    _chains[i].Item1 = _module.WorldState.Actors.Find(bird.Tether.Target); // first target found
                 }
                 if (_chains[i].Item2 == null && (_chains[i].Item1?.Tether.Target ?? 0) != 0)
                 {
-                    _chains[i].Item2 = _module.WorldState.FindActor(_chains[i].Item1!.Tether.Target); // second target found
+                    _chains[i].Item2 = _module.WorldState.Actors.Find(_chains[i].Item1!.Tether.Target); // second target found
                 }
                 if (_chains[i].Item3 == 0 && _chains[i].Item1 != null && bird.Tether.Target == 0)
                 {
@@ -71,7 +71,7 @@ namespace BossMod.P3S
             }
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             foreach ((var bird, (var p1, var p2, int numCharges)) in _birdsLarge.Zip(_chains))
             {

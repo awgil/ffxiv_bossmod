@@ -12,11 +12,11 @@ namespace BossMod.P4S
 
         public State CurState { get; private set; } = State.FirstAOEs;
         private P4S _module;
-        private List<WorldState.Actor> _relevantHelpers = new(); // 2 aoes -> 8 towers -> 2 aoes
+        private List<Actor> _relevantHelpers = new(); // 2 aoes -> 8 towers -> 2 aoes
 
-        private IEnumerable<WorldState.Actor> _firstAOEs => _relevantHelpers.Take(2);
-        private IEnumerable<WorldState.Actor> _towers => _relevantHelpers.Skip(2).Take(8);
-        private IEnumerable<WorldState.Actor> _lastAOEs => _relevantHelpers.Skip(10);
+        private IEnumerable<Actor> _firstAOEs => _relevantHelpers.Take(2);
+        private IEnumerable<Actor> _towers => _relevantHelpers.Skip(2).Take(8);
+        private IEnumerable<Actor> _lastAOEs => _relevantHelpers.Skip(10);
 
         public WreathOfThorns1(P4S module)
         {
@@ -24,7 +24,7 @@ namespace BossMod.P4S
             // note: there should be two tethered helpers for aoes on activation
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             switch (CurState)
             {
@@ -74,13 +74,13 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnTethered(WorldState.Actor actor)
+        public override void OnTethered(Actor actor)
         {
             if (actor.OID == (uint)OID.Helper && actor.Tether.ID == (uint)TetherID.WreathOfThorns)
                 _relevantHelpers.Add(actor);
         }
 
-        public override void OnCastFinished(WorldState.Actor actor)
+        public override void OnCastFinished(Actor actor)
         {
             if (CurState == State.FirstAOEs && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeAOE))
                 CurState = State.Towers;

@@ -10,7 +10,7 @@ namespace BossMod.P4S
     class VengefulBelone : Component
     {
         private P4S _module;
-        private List<WorldState.Actor> _orbs;
+        private List<Actor> _orbs;
         private Dictionary<uint, Role> _orbTargets = new();
         private int _orbsExploded = 0;
         private int[] _playerRuinCount = new int[8];
@@ -26,7 +26,7 @@ namespace BossMod.P4S
             _orbs = module.Enemies(OID.Orb);
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_orbTargets.Count == 0 || _orbsExploded == _orbTargets.Count)
                 return; // inactive
@@ -65,10 +65,10 @@ namespace BossMod.P4S
                 if (orbRole == Role.None)
                     continue; // this orb has already exploded
 
-                bool lethal = IsOrbLethal(_module.Raid.PlayerSlot, pc, orbRole);
+                bool lethal = IsOrbLethal(_module.PlayerSlot, pc, orbRole);
                 arena.Actor(orb, lethal ? arena.ColorEnemy : arena.ColorDanger);
 
-                var target = _module.WorldState.FindActor(orb.Tether.Target);
+                var target = _module.WorldState.Actors.Find(orb.Tether.Target);
                 if (target != null)
                 {
                     arena.AddLine(orb.Position, target.Position, arena.ColorDanger);
@@ -94,7 +94,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnStatusGain(WorldState.Actor actor, int index)
+        public override void OnStatusGain(Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {
@@ -116,7 +116,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnStatusLose(WorldState.Actor actor, int index)
+        public override void OnStatusLose(Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {
@@ -131,13 +131,13 @@ namespace BossMod.P4S
             }
         }
 
-        public override void OnStatusChange(WorldState.Actor actor, int index)
+        public override void OnStatusChange(Actor actor, int index)
         {
             if ((SID)actor.Statuses[index].ID == SID.ThriceComeRuin)
                 ModifyRuinStacks(actor, actor.Statuses[index].Extra);
         }
 
-        public override void OnEventCast(WorldState.CastResult info)
+        public override void OnEventCast(CastEvent info)
         {
             if (info.IsSpell(AID.BeloneBurstsAOETank) || info.IsSpell(AID.BeloneBurstsAOEHealer) || info.IsSpell(AID.BeloneBurstsAOEDPS))
             {
@@ -157,7 +157,7 @@ namespace BossMod.P4S
             };
         }
 
-        private bool IsOrbLethal(int slot, WorldState.Actor player, Role orbRole)
+        private bool IsOrbLethal(int slot, Actor player, Role orbRole)
         {
             int ruinCount = _playerRuinCount[slot];
             if (ruinCount >= 2)
@@ -171,14 +171,14 @@ namespace BossMod.P4S
             return orbRole == playerRole;
         }
 
-        private void ModifyRuinStacks(WorldState.Actor actor, ushort count)
+        private void ModifyRuinStacks(Actor actor, ushort count)
         {
             int slot = _module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
                 _playerRuinCount[slot] = count;
         }
 
-        private void ModifyActingRole(WorldState.Actor actor, Role role)
+        private void ModifyActingRole(Actor actor, Role role)
         {
             int slot = _module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)

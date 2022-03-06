@@ -11,7 +11,7 @@ namespace BossMod.P1S
         private enum Cell { None, Red, Blue }
 
         private P1S _module;
-        private WorldState.Actor? _memberWithSOT = null; // if not null, then every update exploding cells are recalculated based on this raid member's position
+        private Actor? _memberWithSOT = null; // if not null, then every update exploding cells are recalculated based on this raid member's position
         private Cell _explodingCells = Cell.None;
 
         private static uint _colorSOTActor = 0xff8080ff;
@@ -29,7 +29,7 @@ namespace BossMod.P1S
                 _explodingCells = CellFromOffset(_memberWithSOT.Position - _module.Arena.WorldCenter);
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (actor != _memberWithSOT && _explodingCells != Cell.None && _explodingCells == CellFromOffset(actor.Position - _module.Arena.WorldCenter))
             {
@@ -63,7 +63,7 @@ namespace BossMod.P1S
                 arena.Actor(_memberWithSOT, _colorSOTActor);
         }
 
-        public override void OnStatusGain(WorldState.Actor actor, int index)
+        public override void OnStatusGain(Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {
@@ -93,7 +93,7 @@ namespace BossMod.P1S
             }
         }
 
-        public override void OnStatusLose(WorldState.Actor actor, int index)
+        public override void OnStatusLose(Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {

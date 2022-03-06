@@ -30,13 +30,13 @@ namespace BossMod.P4S
         public static float WreathAOERadius = 20;
         public static float WreathTowerRadius = 4;
 
-        private List<WorldState.Actor> _boss1;
-        private List<WorldState.Actor> _boss2;
-        public WorldState.Actor? Boss1() => _boss1.FirstOrDefault();
-        public WorldState.Actor? Boss2() => _boss2.FirstOrDefault();
+        private List<Actor> _boss1;
+        private List<Actor> _boss2;
+        public Actor? Boss1() => _boss1.FirstOrDefault();
+        public Actor? Boss2() => _boss2.FirstOrDefault();
 
         public P4S(WorldState ws)
-            : base(ws, 8)
+            : base(ws)
         {
             _boss1 = Enemies(OID.Boss1);
             _boss2 = Enemies(OID.Boss2);

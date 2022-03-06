@@ -48,7 +48,7 @@ namespace BossMod.P1S
             _module = module;
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var pat = _cubes.SequenceEqual(_patternSymm) ? "symmetrical" : (_cubes.SequenceEqual(_patternAsymm) ? "asymmetrical" : "unknown");
             hints.Add($"Order: {CurState}, pattern: {pat}.", false);
@@ -87,7 +87,7 @@ namespace BossMod.P1S
             }
         }
 
-        public override void OnEventCast(WorldState.CastResult info)
+        public override void OnEventCast(CastEvent info)
         {
             if (info.IsSpell(AID.PainfulFlux)) // this is convenient to rely on, since exactly 1 cast happens right after every explosion
                 ++NumExplosions;

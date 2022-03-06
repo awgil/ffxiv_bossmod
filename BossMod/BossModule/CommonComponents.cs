@@ -20,7 +20,7 @@ namespace BossMod
                 _watchedCastID = aid;
             }
 
-            public override void OnEventCast(WorldState.CastResult info)
+            public override void OnEventCast(CastEvent info)
             {
                 if (info.Action == _watchedCastID)
                 {
@@ -34,10 +34,10 @@ namespace BossMod
         public class SharedTankbuster : BossModule.Component
         {
             private BossModule _module;
-            private List<WorldState.Actor> _caster;
+            private List<Actor> _caster;
             private float _radius;
 
-            public SharedTankbuster(BossModule module, List<WorldState.Actor> caster, float radius)
+            public SharedTankbuster(BossModule module, List<Actor> caster, float radius)
             {
                 _module = module;
                 _caster = caster;
@@ -47,7 +47,7 @@ namespace BossMod
             public override void DrawArenaForeground(MiniArena arena)
             {
                 var targetID = _caster.FirstOrDefault()?.TargetID ?? 0;
-                var target = targetID != 0 ? _module.WorldState.FindActor(targetID) : null;
+                var target = targetID != 0 ? _module.WorldState.Actors.Find(targetID) : null;
                 if (target != null)
                 {
                     arena.Actor(target, arena.ColorPlayerGeneric);

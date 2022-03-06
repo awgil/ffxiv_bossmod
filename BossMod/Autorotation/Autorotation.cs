@@ -148,7 +148,7 @@ namespace BossMod
             _animLockEnd = DateTime.Now.AddSeconds(0.5);
         }
 
-        private void OnNetworkActionEffect(object? sender, WorldState.CastResult action)
+        private void OnNetworkActionEffect(object? sender, CastEvent action)
         {
             if (action.SourceSequence == 0 || action.CasterID != Service.ClientState.LocalPlayer?.ObjectId)
                 return; // non-player-initiated

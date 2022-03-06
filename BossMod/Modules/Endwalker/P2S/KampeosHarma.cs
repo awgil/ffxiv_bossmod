@@ -19,7 +19,7 @@ namespace BossMod.P2S
             _module = module;
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var safePos = GetSafeZone(slot);
             if (safePos != null && !GeometryUtils.PointInCircle(actor.Position - safePos.Value, 2))
@@ -34,7 +34,7 @@ namespace BossMod.P2S
 
         public override void DrawArenaForeground(MiniArena arena)
         {
-            var pos = GetSafeZone(_module.Raid.PlayerSlot);
+            var pos = GetSafeZone(_module.PlayerSlot);
             if (pos != null)
                 arena.AddCircle(pos.Value, 1, arena.ColorSafe);
         }
@@ -66,13 +66,13 @@ namespace BossMod.P2S
                 case 4: // sq 4 - same corner, hide before second charge
                     return _module.Arena.WorldCenter + (NumCasts < 2 ? +1.4f : +1.2f) * _startingOffset;
                 case 5: // tri 1 - waymark 1
-                    return _module.WorldState.GetWaymark(WorldState.Waymark.N1);
+                    return _module.WorldState.Waymarks[Waymark.N1];
                 case 6: // tri 2 - waymark 2
-                    return _module.WorldState.GetWaymark(WorldState.Waymark.N2);
+                    return _module.WorldState.Waymarks[Waymark.N2];
                 case 7: // tri 3 - waymark 3
-                    return _module.WorldState.GetWaymark(WorldState.Waymark.N3);
+                    return _module.WorldState.Waymarks[Waymark.N3];
                 case 8: // tri 4 - waymark 4
-                    return _module.WorldState.GetWaymark(WorldState.Waymark.N4);
+                    return _module.WorldState.Waymarks[Waymark.N4];
             }
             return null;
         }

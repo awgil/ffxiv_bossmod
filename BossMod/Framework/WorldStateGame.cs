@@ -36,9 +36,13 @@ namespace BossMod
         {
             CurrentTime = DateTime.Now;
             CurrentZone = Service.ClientState.TerritoryType;
+            UpdateActors();
+            UpdateParty();
             PlayerInCombat = Service.ClientState.LocalPlayer?.StatusFlags.HasFlag(Dalamud.Game.ClientState.Objects.Enums.StatusFlags.InCombat) ?? false;
-            PlayerActorID = Service.ClientState.LocalPlayer?.ObjectId ?? 0;
+        }
 
+        private void UpdateActors()
+        {
             Dictionary<uint, GameObject> seenIDs = new();
             foreach (var obj in Service.ObjectTable)
                 if (obj.ObjectId != GameObject.InvalidGameObjectId)
@@ -46,12 +50,12 @@ namespace BossMod
 
             List<uint> delIDs = new();
             foreach (var e in Actors)
-                if (!seenIDs.ContainsKey(e.Key))
-                    delIDs.Add(e.Key);
+                if (!seenIDs.ContainsKey(e.InstanceID))
+                    delIDs.Add(e.InstanceID);
 
             foreach (var id in delIDs)
             {
-                RemoveActor(id);
+                Actors.Remove(id);
                 _prevStatusDurations.Remove(id);
             }
 
@@ -60,27 +64,27 @@ namespace BossMod
                 var character = obj as Character;
                 var classID = (Class)(character?.ClassJob.Id ?? 0);
 
-                var act = FindActor(obj.ObjectId);
+                var act = Actors.Find(obj.ObjectId);
                 if (act == null)
                 {
-                    act = AddActor(obj.ObjectId, obj.DataId, obj.Name.TextValue, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), classID, new(obj.Position, obj.Rotation), obj.HitboxRadius, Utils.GameObjectIsTargetable(obj), SanitizedObjectID(obj.OwnerId));
+                    act = Actors.Add(obj.ObjectId, obj.DataId, obj.Name.TextValue, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), classID, new(obj.Position, obj.Rotation), obj.HitboxRadius, Utils.GameObjectIsTargetable(obj), SanitizedObjectID(obj.OwnerId));
                     _prevStatusDurations[obj.ObjectId] = new float[30];
                 }
                 else
                 {
-                    ChangeActorClass(act, classID);
-                    RenameActor(act, obj.Name.TextValue);
-                    MoveActor(act, new(obj.Position, obj.Rotation));
-                    ChangeActorIsTargetable(act, Utils.GameObjectIsTargetable(obj));
+                    Actors.ChangeClass(act, classID);
+                    Actors.Rename(act, obj.Name.TextValue);
+                    Actors.Move(act, new(obj.Position, obj.Rotation));
+                    Actors.ChangeIsTargetable(act, Utils.GameObjectIsTargetable(obj));
                 }
-                ChangeActorTarget(act, SanitizedObjectID(obj.TargetObjectId));
-                ChangeActorIsDead(act, Utils.GameObjectIsDead(obj));
+                Actors.ChangeTarget(act, SanitizedObjectID(obj.TargetObjectId));
+                Actors.ChangeIsDead(act, Utils.GameObjectIsDead(obj));
 
                 var chara = obj as BattleChara;
                 if (chara != null)
                 {
-                    CastInfo? curCast = chara.IsCasting
-                        ? new CastInfo
+                    ActorCastInfo? curCast = chara.IsCasting
+                        ? new ActorCastInfo
                         {
                             Action = new((ActionType)chara.CastActionType, chara.CastActionId),
                             TargetID = SanitizedObjectID(chara.CastTargetObjectId),
@@ -88,7 +92,7 @@ namespace BossMod
                             TotalTime = chara.TotalCastTime,
                             FinishAt = CurrentTime.AddSeconds(Math.Clamp(chara.CurrentCastTime, 0, 100000))
                         } : null;
-                    UpdateCastInfo(act, curCast);
+                    Actors.UpdateCastInfo(act, curCast);
 
                     var prevDurations = _prevStatusDurations[obj.ObjectId];
                     for (int i = 0; i < chara.StatusList.Length; ++i)
@@ -101,16 +105,16 @@ namespace BossMod
                         var srcID = SanitizedObjectID(s?.SourceID ?? 0);
                         if (s == null)
                         {
-                            UpdateStatus(act, i, new());
+                            Actors.UpdateStatus(act, i, new());
                         }
                         else if (s.StatusId != act.Statuses[i].ID || srcID != act.Statuses[i].SourceID || StatusExtra(s) != act.Statuses[i].Extra || dur > prevDurations[i] + 1)
                         {
-                            Status status = new();
+                            ActorStatus status = new();
                             status.ID = s.StatusId;
                             status.SourceID = srcID;
                             status.Extra = StatusExtra(s);
                             status.ExpireAt = CurrentTime.AddSeconds(dur);
-                            UpdateStatus(act, i, status);
+                            Actors.UpdateStatus(act, i, status);
                         }
                         prevDurations[i] = dur;
                     }
@@ -118,24 +122,79 @@ namespace BossMod
             }
         }
 
+        private void UpdateParty()
+        {
+            if (Service.ClientState.LocalContentId != Party.ContentIDs[PartyState.PlayerSlot])
+            {
+                // player content ID has changed - so clear any old party state
+                // remove old player last
+                for (int i = Party.ContentIDs.Length - 1; i >= 0; --i)
+                    if (Party.ContentIDs[i] != 0)
+                        Party.Remove(i);
+
+                // if player is now available, add as first element
+                if (Service.ClientState.LocalContentId != 0)
+                {
+                    var playerActor = Actors.Find(Service.ClientState.LocalPlayer?.ObjectId ?? 0);
+                    var playerSlot = Party.Add(Service.ClientState.LocalContentId, playerActor, true);
+                    if (playerSlot != PartyState.PlayerSlot)
+                    {
+                        Service.Log($"[WorldState] Player was added to wrong slot {playerSlot}");
+                    }
+                }
+            }
+
+            if (Service.ClientState.LocalContentId == 0)
+                return; // player not in world, party is empty
+
+            if (Service.PartyList.Length == 0)
+            {
+                // solo - just update player actor
+                var playerActor = Actors.Find(Service.ClientState.LocalPlayer?.ObjectId ?? 0);
+                Party.AssignActor(PartyState.PlayerSlot, Service.ClientState.LocalContentId, playerActor);
+                return;
+            }
+
+            Dictionary<ulong, Actor?> seenIDs = new();
+            foreach (var obj in Service.PartyList)
+                seenIDs[(ulong)obj.ContentId] = Actors.Find(SanitizedObjectID(obj.ObjectId));
+
+            for (int i = 1; i < Party.ContentIDs.Length; ++i)
+                if (Party.ContentIDs[i] != 0 && !seenIDs.ContainsKey(Party.ContentIDs[i]))
+                    Party.Remove(i);
+
+            foreach ((ulong contentID, Actor? actor) in seenIDs)
+            {
+                int slot = Party.ContentIDs.IndexOf(contentID);
+                if (slot != -1)
+                {
+                    Party.AssignActor(slot, contentID, actor);
+                }
+                else
+                {
+                    Party.Add(contentID, actor, false);
+                }
+            }
+        }
+
         private ushort StatusExtra(Dalamud.Game.ClientState.Statuses.Status s) => (ushort)((s.Param << 8) | s.StackCount);
         private uint SanitizedObjectID(uint raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;
 
-        private void OnNetworkActionEffect(object? sender, CastResult info) => DispatchEventCast(info);
-        private void OnNetworkActorControlTargetIcon(object? sender, (uint actorID, uint iconID) args) => DispatchEventIcon(args);
+        private void OnNetworkActionEffect(object? sender, CastEvent info) => Events.DispatchCast(info);
+        private void OnNetworkActorControlTargetIcon(object? sender, (uint actorID, uint iconID) args) => Events.DispatchIcon(args);
         private void OnNetworkActorControlTether(object? sender, (uint actorID, uint targetID, uint tetherID) args)
         {
-            var act = FindActor(args.actorID);
+            var act = Actors.Find(args.actorID);
             if (act != null)
-                UpdateTether(act, new TetherInfo { Target = args.targetID, ID = args.tetherID });
+                Actors.UpdateTether(act, new ActorTetherInfo { Target = args.targetID, ID = args.tetherID });
         }
         private void OnNetworkActorControlTetherCancel(object? sender, uint actorID)
         {
-            var act = FindActor(actorID);
+            var act = Actors.Find(actorID);
             if (act != null)
-                UpdateTether(act, new());
+                Actors.UpdateTether(act, new());
         }
-        private void OnNetworkEnvControl(object? sender, (uint featureID, byte index, uint state) args) => DispatchEventEnvControl(args);
-        private void OnNetworkWaymark(object? sender, (WorldState.Waymark waymark, Vector3? pos) args) => SetWaymark(args.waymark, args.pos);
+        private void OnNetworkEnvControl(object? sender, (uint featureID, byte index, uint state) args) => Events.DispatchEnvControl(args);
+        private void OnNetworkWaymark(object? sender, (Waymark waymark, Vector3? pos) args) => Waymarks[args.waymark] = args.pos;
     }
 }

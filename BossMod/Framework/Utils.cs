@@ -61,7 +61,7 @@ namespace BossMod
             return $"{current:f2}/{total:f2}";
         }
 
-        public static string CastTimeString(WorldState.CastInfo cast, DateTime now)
+        public static string CastTimeString(ActorCastInfo cast, DateTime now)
         {
             return CastTimeString((float)(cast.FinishAt - now).TotalSeconds, cast.TotalTime);
         }

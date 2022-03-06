@@ -41,8 +41,8 @@
 //        {
 //            Custom, // custom state; all three methods are searched in boss module type and assigned as state actions
 //            Timeout, // CommonStates.Timeout: custom update method is ignored
-//            SpellCastStart, // CommonStates.CastStart: custom update method should return WorldState.Actor?, for which condition is checked; enter/exit are customizable
-//            SpellCastEnd, // CommonStates.CastEnd: custom update method should return WorldState.Actor?, for which condition is checked; enter/exit are customizable
+//            SpellCastStart, // CommonStates.CastStart: custom update method should return Actor?, for which condition is checked; enter/exit are customizable
+//            SpellCastEnd, // CommonStates.CastEnd: custom update method should return Actor?, for which condition is checked; enter/exit are customizable
 //        };
 
 //        public class Transition

@@ -73,7 +73,7 @@ namespace BossMod.P1S
             }
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (BitVector.ExtractVectorFromMatrix8x8(_blueTetherMatrix, slot) != 0 && BitVector.ExtractVectorFromMatrix8x8(_redTetherMatrix, slot) != 0)
             {
@@ -112,13 +112,13 @@ namespace BossMod.P1S
                 }
 
                 // draw explosion circles that hit me
-                if (BitVector.IsMatrix8x8BitSet(_blueExplosionMatrix, _module.Raid.PlayerSlot, i))
+                if (BitVector.IsMatrix8x8BitSet(_blueExplosionMatrix, _module.PlayerSlot, i))
                     arena.AddCircle(actor.Position, _blueExplosionRadius, arena.ColorDanger);
-                if (BitVector.IsMatrix8x8BitSet(_redExplosionMatrix, _module.Raid.PlayerSlot, i))
+                if (BitVector.IsMatrix8x8BitSet(_redExplosionMatrix, _module.PlayerSlot, i))
                     arena.AddCircle(actor.Position, _redExplosionRadius, arena.ColorDanger);
 
-                drawBlueAroundMe |= BitVector.IsMatrix8x8BitSet(_blueExplosionMatrix, i, _module.Raid.PlayerSlot);
-                drawRedAroundMe |= BitVector.IsMatrix8x8BitSet(_redExplosionMatrix, i, _module.Raid.PlayerSlot);
+                drawBlueAroundMe |= BitVector.IsMatrix8x8BitSet(_blueExplosionMatrix, i, _module.PlayerSlot);
+                drawRedAroundMe |= BitVector.IsMatrix8x8BitSet(_redExplosionMatrix, i, _module.PlayerSlot);
             }
 
             // draw explosion circles if I hit anyone
@@ -128,7 +128,7 @@ namespace BossMod.P1S
                 arena.AddCircle(pc.Position, _redExplosionRadius, arena.ColorDanger);
         }
 
-        public override void OnStatusGain(WorldState.Actor actor, int index)
+        public override void OnStatusGain(Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {
@@ -155,7 +155,7 @@ namespace BossMod.P1S
             }
         }
 
-        public override void OnStatusLose(WorldState.Actor actor, int index)
+        public override void OnStatusLose(Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {
@@ -182,7 +182,7 @@ namespace BossMod.P1S
             }
         }
 
-        private void ModifyDebuff(WorldState.Actor actor, ref byte vector, bool active)
+        private void ModifyDebuff(Actor actor, ref byte vector, bool active)
         {
             int slot = _module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)

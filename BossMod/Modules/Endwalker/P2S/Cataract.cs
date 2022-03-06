@@ -18,7 +18,7 @@ namespace BossMod.P2S
             _isWinged = winged;
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var boss = _module.Boss();
             var head = _module.CataractHead();

@@ -327,7 +327,7 @@ namespace BossMod
             }
         }
 
-        public void Actor(WorldState.Actor? actor, uint color)
+        public void Actor(Actor? actor, uint color)
         {
             if (actor != null)
                 Actor(actor.Position, actor.Rotation, color);

@@ -12,7 +12,7 @@ namespace BossMod.P1S
         public bool AOEDone { get; private set; } = false;
         private P1S _module;
         private bool _isFlare = false; // true -> purge aka flare (stay away from MT), false -> grace aka holy (stack to MT)
-        private WorldState.Actor? _knockbackTarget = null;
+        private Actor? _knockbackTarget = null;
         private Vector3 _knockbackPos = new();
 
         private static float _kbDistance = 15;
@@ -24,7 +24,7 @@ namespace BossMod.P1S
         {
             _module = module;
             _isFlare = isFlare;
-            _knockbackTarget = _module.WorldState.FindActor(knockbackTargetID);
+            _knockbackTarget = _module.WorldState.Actors.Find(knockbackTargetID);
             if (_knockbackTarget == null)
                 Service.Log("[P1S] Failed to determine knockback target");
         }
@@ -42,7 +42,7 @@ namespace BossMod.P1S
             }
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var boss = _module.Boss();
             if (boss == null)
@@ -85,7 +85,7 @@ namespace BossMod.P1S
             else
             {
                 // i'm not the current tank - I should gtfo if tank is invul soaking, from flare or from holy if i'm vulnerable, otherwise stack to current tank
-                var target = _module.WorldState.FindActor(boss.TargetID);
+                var target = _module.WorldState.Actors.Find(boss.TargetID);
                 if (target == null)
                     return;
 
@@ -122,7 +122,7 @@ namespace BossMod.P1S
                 arena.Actor(_knockbackPos, pc.Rotation, arena.ColorDanger);
             }
 
-            var target = _module.WorldState.FindActor(boss.TargetID);
+            var target = _module.WorldState.Actors.Find(boss.TargetID);
             if (target == null)
                 return;
 
@@ -146,13 +146,13 @@ namespace BossMod.P1S
                 arena.Actor(_knockbackTarget, arena.ColorVulnerable);
         }
 
-        public override void OnEventCast(WorldState.CastResult info)
+        public override void OnEventCast(CastEvent info)
         {
             if (info.IsSpell(AID.TrueHoly2) || info.IsSpell(AID.TrueFlare2))
                 AOEDone = true;
         }
 
         // we assume that if boss target is the same as knockback target, it's a tank using invul, and so raid shouldn't stack
-        private bool RaidShouldStack(WorldState.Actor bossTarget) =>  !_isFlare && _knockbackTarget != bossTarget;
+        private bool RaidShouldStack(Actor bossTarget) =>  !_isFlare && _knockbackTarget != bossTarget;
     }
 }

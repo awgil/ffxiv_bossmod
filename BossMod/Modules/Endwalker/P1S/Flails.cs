@@ -13,8 +13,8 @@ namespace BossMod.P1S
 
         public int NumCasts { get; private set; } = 0;
         private P1S _module;
-        private List<WorldState.Actor> _weaponsBall;
-        private List<WorldState.Actor> _weaponsChakram;
+        private List<Actor> _weaponsBall;
+        private List<Actor> _weaponsChakram;
         private Zone _first = Zone.None;
         private Zone _second = Zone.None;
         private bool _showFirst = false;
@@ -50,7 +50,7 @@ namespace BossMod.P1S
             }
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var boss = _module.Boss();
             if (boss == null)
@@ -74,7 +74,7 @@ namespace BossMod.P1S
                 DrawZone(arena, boss, _second);
         }
 
-        public override void OnCastFinished(WorldState.Actor actor)
+        public override void OnCastFinished(Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;
@@ -98,7 +98,7 @@ namespace BossMod.P1S
             }
         }
 
-        private static bool IsInAOE(Vector3 pos, WorldState.Actor boss, Zone zone)
+        private static bool IsInAOE(Vector3 pos, Actor boss, Zone zone)
         {
             return zone switch
             {
@@ -110,7 +110,7 @@ namespace BossMod.P1S
             };
         }
 
-        private static void DrawZone(MiniArena arena, WorldState.Actor boss, Zone zone)
+        private static void DrawZone(MiniArena arena, Actor boss, Zone zone)
         {
             switch (zone)
             {

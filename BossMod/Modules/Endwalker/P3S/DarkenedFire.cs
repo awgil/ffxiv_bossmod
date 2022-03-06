@@ -18,7 +18,7 @@ namespace BossMod.P3S
             _module = module;
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             bool haveTooClose = false;
             int numInRange = 0;
@@ -61,7 +61,7 @@ namespace BossMod.P3S
             arena.AddCircle(pc.Position, _maxRange, arena.ColorSafe);
         }
 
-        private bool CanBothBeTargets(WorldState.Actor one, WorldState.Actor two)
+        private bool CanBothBeTargets(Actor one, Actor two)
         {
             // i'm quite sure it selects either 4 dds or 2 tanks + 2 healers
             return one != two && (one.Role == Role.Tank || one.Role == Role.Healer) == (two.Role == Role.Tank || two.Role == Role.Healer);

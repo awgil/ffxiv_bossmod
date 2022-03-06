@@ -13,7 +13,7 @@ namespace BossMod.P3S
         public bool PlacementDone { get; private set; } = false;
         public bool CastsDone { get; private set; } = false;
         private P3S _module;
-        private List<(WorldState.Actor, float)> _sources = new(); // actor + rotation
+        private List<(Actor, float)> _sources = new(); // actor + rotation
         private int[] _playerDeathTollStacks = new int[8];
         private int[] _playerAOECount = new int[8];
 
@@ -37,7 +37,7 @@ namespace BossMod.P3S
             }
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_sources.Count == 0)
                 return;
@@ -68,7 +68,7 @@ namespace BossMod.P3S
             foreach ((int i, var player) in _module.Raid.WithSlot())
                 arena.Actor(player, _playerAOECount[i] != _playerDeathTollStacks[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
-            var eyePos = GetEyePlacementPosition(_module.Raid.PlayerSlot, pc);
+            var eyePos = GetEyePlacementPosition(_module.PlayerSlot, pc);
             if (eyePos != null)
                 arena.AddCircle(eyePos.Value, 1, arena.ColorSafe);
         }
@@ -81,7 +81,7 @@ namespace BossMod.P3S
             }
         }
 
-        public override void OnCastStarted(WorldState.Actor actor)
+        public override void OnCastStarted(Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.AshenEye))
             {
@@ -94,7 +94,7 @@ namespace BossMod.P3S
             }
         }
 
-        public override void OnCastFinished(WorldState.Actor actor)
+        public override void OnCastFinished(Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.AshenEye))
             {
@@ -113,7 +113,7 @@ namespace BossMod.P3S
                     return;
                 }
 
-                var actor = _module.WorldState.FindActor(actorID);
+                var actor = _module.WorldState.Actors.Find(actorID);
                 if (actor != null)
                 {
                     float dir = iconID switch
@@ -129,7 +129,7 @@ namespace BossMod.P3S
             }
         }
 
-        private Vector3? GetEyePlacementPosition(int slot, WorldState.Actor player)
+        private Vector3? GetEyePlacementPosition(int slot, Actor player)
         {
             if (PlacementDone)
                 return null;

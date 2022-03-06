@@ -10,7 +10,7 @@ namespace BossMod.P2S
     class Coherence : CommonComponents.CastCounter
     {
         private P2S _module;
-        private WorldState.Actor? _closest;
+        private Actor? _closest;
         private ulong _inRay = 0;
 
         private static float _aoeRadius = 10; // not sure about this - actual range is 60, but it has some sort of falloff
@@ -57,7 +57,7 @@ namespace BossMod.P2S
             }
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var boss = _module.Boss();
             if (boss?.Tether.Target == actor.InstanceID)

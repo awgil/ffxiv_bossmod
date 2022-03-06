@@ -10,12 +10,12 @@ namespace BossMod.P3S
     class SunshadowTether : Component
     {
         private P3S _module;
-        private List<WorldState.Actor> _sunshadows;
+        private List<Actor> _sunshadows;
         private HashSet<uint> _chargedSunshadows = new();
         private ulong _playersInAOE = 0;
 
         public int NumCharges => _chargedSunshadows.Count;
-        private IEnumerable<WorldState.Actor> _activeBirds => _sunshadows.Where(bird => !_chargedSunshadows.Contains(bird.InstanceID));
+        private IEnumerable<Actor> _activeBirds => _sunshadows.Where(bird => !_chargedSunshadows.Contains(bird.InstanceID));
 
         private static float _chargeHalfWidth = 3;
 
@@ -31,7 +31,7 @@ namespace BossMod.P3S
             foreach (var bird in _activeBirds)
             {
                 uint targetID = BirdTarget(bird);
-                var target = targetID != 0 ? _module.WorldState.FindActor(targetID) : null;
+                var target = targetID != 0 ? _module.WorldState.Actors.Find(targetID) : null;
                 if (target != null && target.Position != bird.Position)
                 {
                     var dir = Vector3.Normalize(target.Position - bird.Position);
@@ -46,7 +46,7 @@ namespace BossMod.P3S
             }
         }
 
-        public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             foreach (var bird in _activeBirds)
             {
@@ -65,10 +65,11 @@ namespace BossMod.P3S
 
         public override void DrawArenaBackground(MiniArena arena)
         {
+            var pc = _module.Player();
             foreach (var bird in _activeBirds)
             {
                 uint targetID = BirdTarget(bird);
-                var target = (targetID != 0 && targetID != _module.WorldState.PlayerActorID) ? _module.WorldState.FindActor(targetID) : null;
+                var target = (targetID != 0 && targetID != pc?.InstanceID) ? _module.WorldState.Actors.Find(targetID) : null;
                 if (target != null && target.Position != bird.Position)
                 {
                     var dir = Vector3.Normalize(target.Position - bird.Position);
@@ -88,7 +89,7 @@ namespace BossMod.P3S
 
             // draw my tether
             var pc = _module.Player();
-            var myBird = _sunshadows.Find(bird => BirdTarget(bird) == _module.WorldState.PlayerActorID);
+            var myBird = _sunshadows.Find(bird => BirdTarget(bird) == pc?.InstanceID);
             if (pc != null && myBird != null && !_chargedSunshadows.Contains(myBird.InstanceID))
             {
                 arena.AddLine(myBird.Position, pc.Position, myBird.Tether.ID != (uint)TetherID.LargeBirdFar ? arena.ColorDanger : arena.ColorSafe);
@@ -96,13 +97,13 @@ namespace BossMod.P3S
             }
         }
 
-        public override void OnEventCast(WorldState.CastResult info)
+        public override void OnEventCast(CastEvent info)
         {
             if (info.IsSpell(AID.Fireglide))
                 _chargedSunshadows.Add(info.CasterID);
         }
 
-        private uint BirdTarget(WorldState.Actor bird)
+        private uint BirdTarget(Actor bird)
         {
             // we don't get tether messages when birds spawn, so use target as a fallback
             // TODO: investigate this... we do get actor-control 503 before spawn, maybe this is related somehow...
