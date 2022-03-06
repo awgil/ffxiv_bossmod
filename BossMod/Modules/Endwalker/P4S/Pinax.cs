@@ -6,11 +6,13 @@ namespace BossMod.P4S
     using static BossModule;
 
     // state related to pinax mechanics
-    // note: for now, we assume Lava Mekhane always targets 2 healers
     class Pinax : Component
     {
+        private enum Order { Unknown, LUWU, WULU, LFWA, LAWF, WFLA, WALF }
+
         public int NumFinished { get; private set; } = 0;
         private P4S _module;
+        private Order _order;
         private WorldState.Actor? _acid;
         private WorldState.Actor? _fire;
         private WorldState.Actor? _water;
@@ -63,6 +65,21 @@ namespace BossMod.P4S
                 }
                 hints.Add("GTFO from center!", GeometryUtils.PointInRect(actor.Position - _module.Arena.WorldCenter, Vector3.UnitX, _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance));
             }
+        }
+
+        public override void AddGlobalHints(GlobalHints hints)
+        {
+            string order = _order switch
+            {
+                Order.LUWU => "Lightning - ??? - Water - ???",
+                Order.WULU => "Water - ??? - Lightning - ???",
+                Order.LFWA => "Lightning - Fire - Water - Acid",
+                Order.LAWF => "Lightning - Acid - Water - Fire",
+                Order.WFLA => "Water - Fire - Lightning - Acid",
+                Order.WALF => "Water - Acid - Lightning - Fire",
+                _ => "???"
+            };
+            hints.Add($"Pinax order: {order}");
         }
 
         public override void DrawArenaBackground(MiniArena arena)
@@ -132,15 +149,27 @@ namespace BossMod.P4S
             {
                 case AID.PinaxAcid:
                     _acid = actor;
+                    if (_order == Order.WULU)
+                        _order = Order.WALF;
+                    else if (_order == Order.LUWU)
+                        _order = Order.LAWF;
                     break;
                 case AID.PinaxLava:
                     _fire = actor;
+                    if (_order == Order.WULU)
+                        _order = Order.WFLA;
+                    else if (_order == Order.LUWU)
+                        _order = Order.LFWA;
                     break;
                 case AID.PinaxWell:
                     _water = actor;
+                    if (_order == Order.Unknown)
+                        _order = Order.WULU;
                     break;
                 case AID.PinaxLevinstrike:
                     _lighting = actor;
+                    if (_order == Order.Unknown)
+                        _order = Order.LUWU;
                     break;
             }
         }

@@ -18,6 +18,7 @@ namespace BossMod
             public bool ShowCardinals = false;
             public bool ShowWaymarks = false;
             public bool ShowMechanicTimers = true;
+            public bool ShowGlobalHints = true;
             public bool ShowPlayerHints = true;
             public bool ShowControlButtons = true;
             public bool TrishaMode = false;
@@ -36,6 +37,7 @@ namespace BossMod
                 DrawProperty(ref ShowCardinals, "Show cardinal direction names");
                 DrawProperty(ref ShowWaymarks, "Show waymarks on radar");
                 DrawProperty(ref ShowMechanicTimers, "Show mechanics sequence and timers");
+                DrawProperty(ref ShowGlobalHints, "Show raidwide hints");
                 DrawProperty(ref ShowPlayerHints, "Show warnings and hints for player");
                 DrawProperty(ref ShowControlButtons, "Show control buttons under radar");
                 DrawProperty(ref TrishaMode, "Trisha mode: show radar without window");
@@ -104,6 +106,7 @@ namespace BossMod
                 _activeModule.Arena.ShowCardinals = _config.ShowCardinals;
                 _activeModule.Arena.OpaqueBackground = _config.OpaqueArenaBackground;
                 _activeModule.ShowStateMachine = _config.ShowMechanicTimers;
+                _activeModule.ShowGlobalHints = _config.ShowGlobalHints;
                 _activeModule.ShowPlayerHints = _config.ShowPlayerHints;
                 _activeModule.ShowControlButtons = _config.ShowControlButtons;
                 _activeModule.ShowWaymarks = _config.ShowWaymarks;

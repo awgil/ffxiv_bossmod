@@ -136,36 +136,13 @@ namespace BossMod.P4S
             return inv;
         }
 
-        private StateMachine.State Pinax(ref StateMachine.State? link, float delay, bool activateElementalBelone)
+        private StateMachine.State Pinax(ref StateMachine.State? link, float delay, bool keepScene)
         {
             var setting = CommonStates.Cast(ref link, Boss1, AID.SettingTheScene, delay, 4, "Scene");
+            setting.Exit.Add(() => ActivateComponent(new SettingTheScene(this)));
             setting.Exit.Add(() => ActivateComponent(new PinaxUptime(this)));
             setting.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
-            // ~1s after cast end, we get a bunch of env controls 8003759C, state=00020001
-            // what I've seen so far:
-            // 1. WF arrangement: indices 1, 2, 3, 4, 5, 10, 15, 20
-            //    AL
-            // 2. FW arrangement: indices 1, 2, 3, 4, 8, 11, 14, 17
-            //    LA
-            // 2. WL arrangement: indices 1, 2, 3, 4, 6, 9, 15, 20
-            //    AF
-            // so indices are the following:
-            //  5 => NE fire
-            //  6 => SE fire
-            //  7 => SW fire?
-            //  8 => NW fire
-            //  9 => NE lighting
-            // 10 => SE lighting
-            // 11 => SW lighting
-            // 12 => NW lighting?
-            // 13 => NE acid?
-            // 14 => SE acid
-            // 15 => SW acid
-            // 16 => NW acid?
-            // 17 => NE water
-            // 18 => SE water?
-            // 19 => SW water?
-            // 20 => NW water
+            // ~1s after cast end, we get a bunch of env controls
 
             var pinaxStart = CommonStates.CastStart(ref setting.Next, Boss1, AID.Pinax, 8.2f);
             pinaxStart.Exit.Add(DeactivateComponent<PinaxUptime>);
@@ -173,8 +150,6 @@ namespace BossMod.P4S
 
             var pinaxEnd = CommonStates.CastEnd(ref pinaxStart.Next, Boss1, 5, "Pinax");
             pinaxEnd.Exit.Add(() => ActivateComponent(new Pinax(this)));
-            if (activateElementalBelone)
-                pinaxEnd.Exit.Add(() => ActivateComponent(new ElementalBelone(this))); // it will watch for pinax casts to determine elemental => corner assignments during first pinax
             pinaxEnd.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
             // timeline:
             //  0.0s pinax cast end
@@ -217,6 +192,8 @@ namespace BossMod.P4S
             shiftEnd.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var p4 = CommonStates.ComponentCondition<Pinax>(ref shiftEnd.Next, 9.4f, this, comp => comp.NumFinished == 4, "Pinax resolve");
+            if (!keepScene)
+                p4.Exit.Add(DeactivateComponent<SettingTheScene>);
             p4.Exit.Add(DeactivateComponent<Pinax>);
             p4.Exit.Add(DeactivateComponent<Shift>);
             p4.EndHint |= StateMachine.StateHint.PositioningEnd;
@@ -228,10 +205,13 @@ namespace BossMod.P4S
             // all other bloodrakes target all players
             // third bloodrake in addition 'targets' three of the four corner helpers - untethered one is safe during later mechanic
             var bloodrake3 = CommonStates.Cast(ref link, Boss1, AID.Bloodrake, delay, 4, "Bloodrake 3");
-            bloodrake3.Enter.Add(() => FindComponent<ElementalBelone>()?.AssignSafespotFromBloodrake());
+            bloodrake3.Enter.Add(() => ActivateComponent(new ElementalBelone(this)));
+            bloodrake3.Exit.Add(DeactivateComponent<SettingTheScene>);
             bloodrake3.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Raidwide;
 
             var setting = CommonStates.Cast(ref bloodrake3.Next, Boss1, AID.SettingTheScene, 7.2f, 4, "Scene");
+            setting.Exit.Add(() => ActivateComponent(new SettingTheScene(this)));
+            setting.Exit.Add(() => FindComponent<ElementalBelone>()!.Visible = true);
             setting.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var vengeful = CommonStates.Cast(ref setting.Next, Boss1, AID.VengefulBelone, 8.2f, 4, "Roles"); // acting X applied after cast end
@@ -247,6 +227,7 @@ namespace BossMod.P4S
             bursts.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
             var periaktoi = CommonStates.Cast(ref bursts.Next, Boss1, AID.Periaktoi, 9.2f, 5, "Square explode");
+            periaktoi.Exit.Add(DeactivateComponent<SettingTheScene>);
             periaktoi.Exit.Add(DeactivateComponent<ElementalBelone>);
             periaktoi.Exit.Add(DeactivateComponent<VengefulBelone>); // TODO: reconsider deactivation time, debuffs fade ~12s later, but I think vengeful needs to be handled before explosion?
             periaktoi.EndHint |= StateMachine.StateHint.PositioningEnd;
@@ -366,13 +347,13 @@ namespace BossMod.P4S
             // 5.5s: boss visual instant cast + helpers start cast
             // 6.1s: second aoes (helpers cast end)
             var cast = CommonStates.Cast(ref link, Boss2, AID.HellsSting, delay, 2.4f);
-            cast.Enter.Add(() => ActivateComponent(new HellsSting(this, Boss2()?.Rotation ?? 0)));
+            cast.Enter.Add(() => ActivateComponent(new HellsSting(this)));
 
             var hit1 = CommonStates.ComponentCondition<HellsSting>(ref cast.Next, 0.6f, this, comp => comp.NumCasts > 0, "Cone");
             hit1.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var hit2 = CommonStates.ComponentCondition<HellsSting>(ref hit1.Next, 3.1f, this, comp => comp.NumCasts > 1, "Cone");
-            hit1.Exit.Add(DeactivateComponent<HellsSting>);
+            var hit2 = CommonStates.ComponentCondition<HellsSting>(ref hit1.Next, 3.1f, this, comp => comp.NumCasts > 8, "Cone");
+            hit2.Exit.Add(DeactivateComponent<HellsSting>);
             return hit2;
         }
 
@@ -540,6 +521,7 @@ namespace BossMod.P4S
             wreath.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var aoe2 = SearingStream(ref wreath.Next, 3.2f);
+            aoe2.Exit.Add(() => FindComponent<WreathOfThorns4>()!.ReadyToBreak = true);
             aoe2.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
             var aoe3 = UltimateImpulse(ref aoe2.Next, 28.2f);

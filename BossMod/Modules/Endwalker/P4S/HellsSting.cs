@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.P4S
 {
@@ -10,50 +12,55 @@ namespace BossMod.P4S
         public int NumCasts { get; private set; } = 0;
 
         private P4S _module;
-        private float _direction;
+        private List<float> _directions = new();
 
         private static float _coneHalfAngle = MathF.PI / 12; // not sure about this...
 
-        public HellsSting(P4S module, float dir)
+        public HellsSting(P4S module)
         {
             _module = module;
-            _direction = dir;
         }
 
         public override void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var boss = _module.Boss2();
-            if (NumCasts >= 2 || boss == null)
+            if (NumCasts >= _directions.Count * 2 || boss == null)
                 return;
 
-            for (int i = 0; i < 8; ++i)
+            var offset = actor.Position - boss.Position;
+            if (ConeDirections().Any(x => GeometryUtils.PointInCone(offset, x, _coneHalfAngle)))
             {
-                float dir = _direction + NumCasts * MathF.PI / 8 + i * MathF.PI / 4;
-                if (GeometryUtils.PointInCone(actor.Position - boss.Position, dir, _coneHalfAngle))
-                {
-                    hints.Add("GTFO from cone!");
-                    break;
-                }
+                hints.Add("GTFO from cone!");
             }
         }
 
         public override void DrawArenaBackground(MiniArena arena)
         {
             var boss = _module.Boss2();
-            if (NumCasts >= 2 || boss == null)
+            if (NumCasts >= _directions.Count * 2 || boss == null)
                 return;
 
-            for (int i = 0; i < 8; ++i)
+            foreach (var dir in ConeDirections())
             {
-                float dir = _direction + NumCasts * MathF.PI / 8 + i * MathF.PI / 4;
                 arena.ZoneCone(boss.Position, 0, 50, dir - _coneHalfAngle, dir + _coneHalfAngle, arena.ColorAOE);
             }
+        }
+
+        public override void OnCastStarted(WorldState.Actor actor)
+        {
+            if (actor.CastInfo!.IsSpell(AID.HellsStingAOE1))
+                _directions.Add(actor.Rotation);
         }
 
         public override void OnCastFinished(WorldState.Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.HellsStingAOE1) || actor.CastInfo!.IsSpell(AID.HellsStingAOE2))
                 ++NumCasts;
+        }
+
+        private IEnumerable<float> ConeDirections()
+        {
+            return NumCasts < _directions.Count ? _directions : _directions.Select(x => x + MathF.PI / 8);
         }
     }
 }

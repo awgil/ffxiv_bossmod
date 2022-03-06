@@ -18,6 +18,7 @@ namespace BossMod
         public WorldState.Actor? Player() => Raid.Player();
 
         public bool ShowStateMachine = true;
+        public bool ShowGlobalHints = true;
         public bool ShowPlayerHints = true;
         public bool ShowControlButtons = true;
         public bool ShowWaymarks = true;
@@ -51,12 +52,16 @@ namespace BossMod
             public void Add(Vector3 from, Vector3 to, uint color) => base.Add((from, to, color));
         }
 
+        // list of global hints
+        public class GlobalHints : List<string> { }
+
         // different encounter mechanics can be split into independent components
         // individual components should be activated and deactivated when needed (typically by state machine transitions)
         public class Component
         {
             public virtual void Update() { } // called every frame - it is a good place to update any cached values
             public virtual void AddHints(int slot, WorldState.Actor actor, TextHints hints, MovementHints? movementHints) { } // gather any relevant pieces of advice for specified raid member
+            public virtual void AddGlobalHints(GlobalHints hints) { } // gather any relevant pieces of advice for whole raid
             public virtual void DrawArenaBackground(MiniArena arena) { } // called at the beginning of arena draw, good place to draw aoe zones
             public virtual void DrawArenaForeground(MiniArena arena) { } // called after arena background and borders are drawn, good place to draw actors, tethers, etc.
 
@@ -177,6 +182,9 @@ namespace BossMod
             if (ShowStateMachine)
                 StateMachine.Draw();
 
+            if (ShowGlobalHints)
+                DrawGlobalHints();
+
             if (ShowPlayerHints)
                 DrawHintForPlayer(pcMovementHints);
 
@@ -223,6 +231,14 @@ namespace BossMod
             return hints;
         }
 
+        public GlobalHints CalculateGlobalHints()
+        {
+            GlobalHints hints = new();
+            foreach (var comp in _components)
+                comp.AddGlobalHints(hints);
+            return hints;
+        }
+
         // TODO: move to some better place...
         public static Vector3 AdjustPositionForKnockback(Vector3 pos, Vector3 origin, float distance)
         {
@@ -239,6 +255,18 @@ namespace BossMod
         protected virtual void DrawArenaBackground() { } // before modules background
         protected virtual void DrawArenaForegroundPre() { } // after border, before modules foreground
         protected virtual void DrawArenaForegroundPost() { } // after modules foreground
+
+        private void DrawGlobalHints()
+        {
+            var hints = CalculateGlobalHints();
+            var hintColor = ImGui.ColorConvertU32ToFloat4(0xffff8000);
+            foreach (var hint in hints)
+            {
+                ImGui.TextColored(hintColor, hint);
+                ImGui.SameLine();
+            }
+            ImGui.NewLine();
+        }
 
         private void DrawHintForPlayer(MovementHints? movementHints)
         {

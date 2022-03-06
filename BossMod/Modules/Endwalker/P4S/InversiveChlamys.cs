@@ -100,6 +100,15 @@ namespace BossMod.P4S
             }
         }
 
+        public override void AddGlobalHints(GlobalHints hints)
+        {
+            if (_tetherForbidden != 0)
+            {
+                var forbidden = _module.Raid.WithSlot().IncludedInMask(_tetherForbidden).FirstOrDefault().Item2.Role;
+                hints.Add($"Intercept: {(forbidden == Role.Tank || forbidden == Role.Healer ? "DD" : "Tanks/Healers")}");
+            }
+        }
+
         public override void DrawArenaForeground(MiniArena arena)
         {
             if (_tetherTargets == 0)

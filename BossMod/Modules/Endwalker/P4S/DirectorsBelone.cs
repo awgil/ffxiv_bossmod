@@ -87,6 +87,15 @@ namespace BossMod.P4S
             }
         }
 
+        public override void AddGlobalHints(GlobalHints hints)
+        {
+            if (_debuffForbidden != 0)
+            {
+                var forbidden = _module.Raid.WithSlot().IncludedInMask(_debuffForbidden).FirstOrDefault().Item2.Role;
+                hints.Add($"Stack: {(forbidden == Role.Tank || forbidden == Role.Healer ? "Tanks/Healers" : "DD")}");
+            }
+        }
+
         public override void DrawArenaForeground(MiniArena arena)
         {
             if (_debuffTargets == 0)

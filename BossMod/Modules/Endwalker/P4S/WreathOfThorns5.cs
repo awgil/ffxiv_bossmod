@@ -39,6 +39,11 @@ namespace BossMod.P4S
             }
         }
 
+        public override void AddGlobalHints(GlobalHints hints)
+        {
+            hints.Add($"Order: {string.Join(" -> ", _playersOrder.Skip(_castsDone).Select(id => _module.WorldState.FindActor(id)?.Name ?? "???"))}");
+        }
+
         public override void DrawArenaForeground(MiniArena arena)
         {
             var pc = _module.Player();
