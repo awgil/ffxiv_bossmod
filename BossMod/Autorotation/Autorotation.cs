@@ -46,6 +46,9 @@ namespace BossMod
         private unsafe float* _comboTimeLeft = null;
         private unsafe uint* _comboLastMove = null;
 
+        //private delegate bool UseActionDelegate(ulong self, ActionType actionType, uint actionID, uint targetID, uint a4, uint a5, uint a6, ulong a7);
+        //private Hook<UseActionDelegate> _useActionHook;
+
         public unsafe float ComboTimeLeft => *_comboTimeLeft;
         public unsafe uint ComboLastMove => *_comboLastMove;
 
@@ -68,6 +71,10 @@ namespace BossMod
             var getAdjustedActionIdAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 8B F8 3B DF");
             _getAdjustedActionIdHook = new(getAdjustedActionIdAddress, new GetAdjustedActionIdDelegate(GetAdjustedActionIdDetour));
             _getAdjustedActionIdHook.Enable();
+
+            //var useActionAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 64 B1 01");
+            //_useActionHook = new(useActionAddress, new UseActionDelegate(UseActionDetour));
+            //_useActionHook.Enable();
 
             WarActions = new(bossmods);
         }
@@ -248,5 +255,16 @@ namespace BossMod
                 _ => _getAdjustedActionIdHook.Original(self, actionID)
             };
         }
+
+        //private bool UseActionDetour(ulong self, ActionType actionType, uint actionID, uint targetID, uint a4, uint a5, uint a6, ulong a7)
+        //{
+        //    // when spamming e.g. HS, every click (~0.2 sec) this function is called; aid=HS, a4=a5=a6=a7==0, returns True
+        //    // ~0.3s before GCD/animlock end, it starts returning False - probably meaning "next action is already queued"?
+        //    // right when GCD ends, it is called internally (by queue mechanism I assume) with aid=adjusted-id, a5=1, a4=a6=a7==0, returns True
+        //    // a5==1 means "forced"?
+        //    bool res = _useActionHook.Original(self, actionType, actionID, targetID, a4, a5, a6, a7);
+        //    Service.Log($"[AR] UseAction: {new ActionID(actionType, actionID)} @ {targetID:X}, args={a4} {a5} {a6} {a7:X} -> {res}");
+        //    return res;
+        //}
     }
 }

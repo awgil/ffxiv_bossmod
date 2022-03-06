@@ -40,7 +40,7 @@ namespace BossMod.P4S
         public override void AddGlobalHints(GlobalHints hints)
         {
             if (_playersInBreakOrder != null)
-                hints.Add($"Order: {string.Join(" -> ", _playersInBreakOrder.Skip(_numCasts).Select(a => a.Name))}");
+                hints.Add($"Order: {string.Join(" -> ", _playersInBreakOrder.Skip(_numCasts).Select(OrderTextForPlayer))}");
         }
 
         public override void DrawArenaForeground(MiniArena arena)
@@ -78,6 +78,14 @@ namespace BossMod.P4S
         {
             if (actor.Statuses[index].ID == (uint)SID.Thornpricked)
                 ++_numCasts;
+        }
+
+        private string OrderTextForPlayer(WorldState.Actor player)
+        {
+            //return player.Name;
+            var status = player.FindStatus((uint)SID.Thornpricked);
+            var remaining = status != null ? (status.Value.ExpireAt - _module.WorldState.CurrentTime).TotalSeconds : 0;
+            return $"{player.Name} ({remaining:f1}s)";
         }
     }
 }

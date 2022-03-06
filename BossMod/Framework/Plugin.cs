@@ -86,7 +86,7 @@ namespace BossMod
 
         private void OpenDebugUI()
         {
-            var ui = new DebugUI(_ws, _network, _autorotation);
+            var ui = new DebugUI(_ws, _autorotation);
             var w = WindowManager.CreateWindow("Boss mod debug UI", ui.Draw, ui.Dispose);
             w.SizeHint = new Vector2(300, 200);
         }

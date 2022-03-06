@@ -9,17 +9,16 @@ namespace BossMod
     class DebugUI : IDisposable
     {
         private WorldState _ws;
-        private Network _network;
         private Autorotation _autorot;
         private DateTime _combatStart;
         private DebugObjects _debugObjects = new();
+        private DebugParty _debugParty = new();
         private DebugGraphics _debugGraphics = new();
         private DebugAction _debugAction = new();
 
-        public DebugUI(WorldState ws, Network network, Autorotation autorot)
+        public DebugUI(WorldState ws, Autorotation autorot)
         {
             _ws = ws;
-            _network = network;
             _autorot = autorot;
 
             _ws.PlayerInCombatChanged += EnterExitCombat;
@@ -52,6 +51,10 @@ namespace BossMod
             if (ImGui.CollapsingHeader("Casting enemies"))
             {
                 DrawCastingEnemiesList();
+            }
+            if (ImGui.CollapsingHeader("Party"))
+            {
+                _debugParty.DrawParty();
             }
             if (ImGui.CollapsingHeader("Graphics scene"))
             {

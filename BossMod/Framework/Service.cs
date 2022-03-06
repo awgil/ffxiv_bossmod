@@ -3,6 +3,7 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.JobGauge;
 using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Party;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Network;
 using Dalamud.IoC;
@@ -16,6 +17,7 @@ namespace BossMod
         [PluginService] public static DataManager DataManager { get; private set; }
         [PluginService] public static ClientState ClientState { get; private set; }
         [PluginService] public static ObjectTable ObjectTable { get; private set; }
+        [PluginService] public static PartyList PartyList { get; private set; }
         [PluginService] public static GameGui GameGui { get; private set; }
         [PluginService] public static SigScanner SigScanner { get; private set; }
         [PluginService] public static JobGauges JobGauges { get; private set; }
