@@ -39,6 +39,7 @@ autorotation:
 -- swiftcast: manual
 -- lucid dreaming, thin air: ???
 -- surecast: manual (or planned for kb)
+- action not learned = GetActionStatus -> 573 (this is rowid of LogMessage "action not yet learned")
 
 world rendering:
 - danger zones

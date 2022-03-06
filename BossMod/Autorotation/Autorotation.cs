@@ -97,8 +97,6 @@ namespace BossMod
                 if (_firstPendingJustCompleted)
                 {
                     WarActions.CastSucceeded(_pendingActions[0].Action);
-                    _pendingActions.RemoveAt(0);
-                    _firstPendingJustCompleted = false;
                 }
 
                 if (_pendingActions.Count == 0)
@@ -109,6 +107,12 @@ namespace BossMod
             else
             {
                 _getAdjustedActionIdHook.Disable();
+            }
+
+            if (_firstPendingJustCompleted)
+            {
+                _pendingActions.RemoveAt(0);
+                _firstPendingJustCompleted = false;
             }
 
             bool showUI = enabled && _config.AutorotationShowUI;
