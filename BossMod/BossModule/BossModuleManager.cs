@@ -153,7 +153,7 @@ namespace BossMod
         private void DrawMainWindow()
         {
             BossModule.MovementHints? movementHints = _config.ShowWorldArrows ? new() : null;
-            _activeModule?.Draw(_config.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, movementHints);
+            _activeModule?.Draw(_config.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, PartyState.PlayerSlot, movementHints);
             DrawMovementHints(movementHints);
         }
 

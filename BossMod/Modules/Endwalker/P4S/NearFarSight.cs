@@ -53,10 +53,9 @@ namespace BossMod.P4S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (pc == null || _targets == 0)
+            if (_targets == 0)
                 return;
 
             foreach ((int i, var player) in _module.Raid.WithSlot())

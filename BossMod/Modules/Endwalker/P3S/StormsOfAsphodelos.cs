@@ -115,7 +115,7 @@ namespace BossMod.P3S
             }
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             var boss = _module.Boss();
             if (boss == null)
@@ -147,7 +147,7 @@ namespace BossMod.P3S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var twister in _twisters)
             {

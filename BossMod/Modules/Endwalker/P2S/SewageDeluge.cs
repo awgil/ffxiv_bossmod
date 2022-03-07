@@ -27,7 +27,7 @@ namespace BossMod.P2S
             _module = module;
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             if (_blockedCorner == Corner.None)
                 return;
@@ -52,7 +52,7 @@ namespace BossMod.P2S
             arena.ZoneQuad(corner, Vector3.UnitX, _cornerHalfSize, _cornerHalfSize, _cornerHalfSize, arena.ColorAOE);
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
             // inner border
             arena.PathLineTo(arena.WorldCenter + new Vector3(-_cornerInner, 0, -_cornerInner));

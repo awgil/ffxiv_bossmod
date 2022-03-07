@@ -62,7 +62,7 @@ namespace BossMod.P1S
                 hints.Add("Hit by second flail!");
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             var boss = _module.Boss();
             if (boss == null)

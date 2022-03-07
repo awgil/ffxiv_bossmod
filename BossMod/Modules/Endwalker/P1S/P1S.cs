@@ -59,7 +59,7 @@ namespace BossMod.P1S
             Arena.IsCircle = false; // reset could happen during cells
         }
 
-        protected override void DrawArenaForegroundPost()
+        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
             if (Arena.IsCircle)
             {
@@ -73,7 +73,7 @@ namespace BossMod.P1S
             }
 
             Arena.Actor(Boss(), Arena.ColorEnemy);
-            Arena.Actor(Player(), Arena.ColorPC);
+            Arena.Actor(pc, Arena.ColorPC);
         }
 
         private StateMachine.State HeavyHand(ref StateMachine.State? link, float delay)

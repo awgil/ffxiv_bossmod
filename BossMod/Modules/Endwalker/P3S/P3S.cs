@@ -50,10 +50,10 @@ namespace BossMod.P3S
             s = CommonStates.Cast(ref s.Next, Boss, AID.FinalExaltation, 2.1f, 10, "Enrage");
         }
 
-        protected override void DrawArenaForegroundPost()
+        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
             Arena.Actor(Boss(), Arena.ColorEnemy);
-            Arena.Actor(Player(), Arena.ColorPC);
+            Arena.Actor(pc, Arena.ColorPC);
         }
 
         private StateMachine.State ScorchedExaltation(ref StateMachine.State? link, float delay)

@@ -82,7 +82,7 @@ namespace BossMod.P4S
             hints.Add($"Pinax order: {order}");
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             if (_acid != null)
             {
@@ -103,12 +103,8 @@ namespace BossMod.P4S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (pc == null)
-                return;
-
             if (_acid != null)
             {
                 arena.AddCircle(pc.Position, _acidAOERadius, arena.ColorDanger);

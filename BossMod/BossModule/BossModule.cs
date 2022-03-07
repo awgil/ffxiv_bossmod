@@ -16,9 +16,6 @@ namespace BossMod
         public RaidCooldowns RaidCooldowns { get; init; } = new();
 
         public PartyState Raid => WorldState.Party;
-        // TODO: refactor this...
-        public int PlayerSlot = PartyState.PlayerSlot;
-        public Actor? Player() => WorldState.Party[PlayerSlot];
 
         public bool ShowStateMachine = true;
         public bool ShowGlobalHints = true;
@@ -65,8 +62,8 @@ namespace BossMod
             public virtual void Update() { } // called every frame - it is a good place to update any cached values
             public virtual void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints) { } // gather any relevant pieces of advice for specified raid member
             public virtual void AddGlobalHints(GlobalHints hints) { } // gather any relevant pieces of advice for whole raid
-            public virtual void DrawArenaBackground(MiniArena arena) { } // called at the beginning of arena draw, good place to draw aoe zones
-            public virtual void DrawArenaForeground(MiniArena arena) { } // called after arena background and borders are drawn, good place to draw actors, tethers, etc.
+            public virtual void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena) { } // called at the beginning of arena draw, good place to draw aoe zones
+            public virtual void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena) { } // called after arena background and borders are drawn, good place to draw actors, tethers, etc.
 
             // world state event handlers
             public virtual void OnStatusGain(Actor actor, int index) { }
@@ -176,7 +173,7 @@ namespace BossMod
                 comp.Update();
         }
 
-        public virtual void Draw(float cameraAzimuth, MovementHints? pcMovementHints)
+        public virtual void Draw(float cameraAzimuth, int pcSlot, MovementHints? pcMovementHints)
         {
             if (ShowStateMachine)
                 StateMachine.Draw();
@@ -185,10 +182,10 @@ namespace BossMod
                 DrawGlobalHints();
 
             if (ShowPlayerHints)
-                DrawHintForPlayer(pcMovementHints);
+                DrawHintForPlayer(pcSlot, pcMovementHints);
 
             Arena.Begin(cameraAzimuth);
-            DrawArena();
+            DrawArena(pcSlot);
             Arena.End();
 
             if (ShowControlButtons)
@@ -208,18 +205,22 @@ namespace BossMod
             }
         }
 
-        public virtual void DrawArena()
+        public virtual void DrawArena(int pcSlot)
         {
-            DrawArenaBackground();
+            var pc = Raid[pcSlot];
+            if (pc == null)
+                return;
+
+            DrawArenaBackground(pcSlot, pc);
             foreach (var comp in _components)
-                comp.DrawArenaBackground(Arena);
+                comp.DrawArenaBackground(pcSlot, pc, Arena);
             Arena.Border();
             if (ShowWaymarks)
                 DrawWaymarks();
-            DrawArenaForegroundPre();
+            DrawArenaForegroundPre(pcSlot, pc);
             foreach (var comp in _components)
-                comp.DrawArenaForeground(Arena);
-            DrawArenaForegroundPost();
+                comp.DrawArenaForeground(pcSlot, pc, Arena);
+            DrawArenaForegroundPost(pcSlot, pc);
         }
 
         public TextHints CalculateHintsForRaidMember(int slot, Actor actor, MovementHints? movementHints = null)
@@ -251,9 +252,9 @@ namespace BossMod
 
         protected virtual void ResetModule() { }
         protected virtual void UpdateModule() { }
-        protected virtual void DrawArenaBackground() { } // before modules background
-        protected virtual void DrawArenaForegroundPre() { } // after border, before modules foreground
-        protected virtual void DrawArenaForegroundPost() { } // after modules foreground
+        protected virtual void DrawArenaBackground(int pcSlot, Actor pc) { } // before modules background
+        protected virtual void DrawArenaForegroundPre(int pcSlot, Actor pc) { } // after border, before modules foreground
+        protected virtual void DrawArenaForegroundPost(int pcSlot, Actor pc) { } // after modules foreground
 
         private void DrawGlobalHints()
         {
@@ -267,13 +268,13 @@ namespace BossMod
             ImGui.NewLine();
         }
 
-        private void DrawHintForPlayer(MovementHints? movementHints)
+        private void DrawHintForPlayer(int pcSlot, MovementHints? movementHints)
         {
-            var actor = Player();
-            if (actor == null)
+            var pc = Raid[pcSlot];
+            if (pc == null)
                 return;
 
-            var hints = CalculateHintsForRaidMember(PlayerSlot, actor, movementHints);
+            var hints = CalculateHintsForRaidMember(pcSlot, pc, movementHints);
             var riskColor = ImGui.ColorConvertU32ToFloat4(Arena.ColorDanger);
             var safeColor = ImGui.ColorConvertU32ToFloat4(Arena.ColorSafe);
             foreach ((var hint, bool risk) in hints)
@@ -395,7 +396,7 @@ namespace BossMod
 
         private void OnEventCast(object? sender, CastEvent info)
         {
-            RaidCooldowns.HandleCast(WorldState.CurrentTime, info);
+            RaidCooldowns.HandleCast(WorldState.CurrentTime, WorldState.Party, info);
             foreach (var comp in _components)
                 comp.OnEventCast(info);
         }

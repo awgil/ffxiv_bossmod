@@ -24,7 +24,7 @@ namespace BossMod.P3S
             }
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             if (_directions[0] != null)
             {

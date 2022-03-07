@@ -54,7 +54,7 @@ namespace BossMod.P1S
             hints.Add($"Order: {CurState}, pattern: {pat}.", false);
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             // draw cell delimiters
             Vector3 v1 = new(_cellHalfSize + 1, 0, arena.WorldHalfSize);

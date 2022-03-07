@@ -70,7 +70,7 @@ namespace UIDev
 
             _o.Update();
 
-            _o.Draw(_azimuth / 180 * MathF.PI, null);
+            _o.Draw(_azimuth / 180 * MathF.PI, PartyState.PlayerSlot, null);
 
             ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
 

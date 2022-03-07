@@ -67,7 +67,7 @@ namespace BossMod.P3S
             }
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             var boss = _module.Boss();
             if (boss == null || boss.Position == arena.WorldCenter)
@@ -86,12 +86,8 @@ namespace BossMod.P3S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (pc == null)
-                return;
-
             // draw all raid members, to simplify positioning
             foreach (var player in _module.Raid.WithoutSlot().Exclude(pc))
             {

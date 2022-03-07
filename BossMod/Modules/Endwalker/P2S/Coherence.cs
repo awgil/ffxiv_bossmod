@@ -95,7 +95,7 @@ namespace BossMod.P2S
             }
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             var boss = _module.Boss();
             if (boss == null || _closest == null || boss.Position == _closest.Position)
@@ -105,7 +105,7 @@ namespace BossMod.P2S
             arena.ZoneQuad(boss.Position, dir, 50, 0, _rayHalfWidth, arena.ColorAOE);
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
             var boss = _module.Boss();
             if (boss == null || _closest == null || boss.Position == _closest.Position)

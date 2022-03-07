@@ -43,12 +43,8 @@ namespace BossMod.P4S
                 hints.Add($"Order: {string.Join(" -> ", _playersInBreakOrder.Skip(_numCasts).Select(OrderTextForPlayer))}");
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (pc == null)
-                return;
-
             // draw other players
             foreach ((int slot, var player) in _module.Raid.WithSlot().Exclude(pc))
                 arena.Actor(player, _playerOrder[slot] == _numCasts + 1 ? arena.ColorDanger : arena.ColorPlayerGeneric);

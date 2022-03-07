@@ -49,10 +49,9 @@ namespace BossMod.P3S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
             // draw alive birds tanked by PC and circles around dead birds
-            var pc = _module.Player();
             for (int i = 0; i < _watchedBirds.Count; ++i)
             {
                 var bird = _watchedBirds[i];
@@ -60,7 +59,7 @@ namespace BossMod.P3S
                 {
                     arena.AddCircle(bird.Position, _radius, arena.ColorDanger);
                 }
-                else if (bird.TargetID == pc?.InstanceID)
+                else if (bird.TargetID == pc.InstanceID)
                 {
                     arena.Actor(bird, BitVector.IsVector64BitSet(_birdsAtRisk, i) ? arena.ColorEnemy : arena.ColorPlayerGeneric);
                 }

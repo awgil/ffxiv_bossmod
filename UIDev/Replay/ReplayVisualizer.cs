@@ -21,6 +21,7 @@ namespace UIDev
         private float _playSpeed = 0;
         private BossModule? _bossmod;
         private float _azimuth;
+        private int _povSlot = PartyState.PlayerSlot;
 
         public ReplayVisualizer(Replay data)
         {
@@ -51,7 +52,7 @@ namespace UIDev
             if (_bossmod != null)
             {
                 _bossmod.Update();
-                _bossmod.Draw(_azimuth / 180 * MathF.PI, null);
+                _bossmod.Draw(_azimuth / 180 * MathF.PI, _povSlot, null);
 
                 ImGui.Text($"Downtime in: {_bossmod.StateMachine.EstimateTimeToNextDowntime():f2}, Positioning in: {_bossmod.StateMachine.EstimateTimeToNextPositioning():f2}, Components:");
                 foreach (var comp in _bossmod.Components)
@@ -172,11 +173,11 @@ namespace UIDev
                 ImGui.PushID((int)player.InstanceID);
                 ImGui.TableNextRow();
 
-                bool isPOV = _bossmod.PlayerSlot == slot;
+                bool isPOV = _povSlot == slot;
                 ImGui.TableNextColumn();
                 ImGui.Checkbox("###POV", ref isPOV);
-                if (isPOV && _bossmod.PlayerSlot != slot)
-                    _bossmod.PlayerSlot = slot;
+                if (isPOV)
+                    _povSlot = slot;
 
                 ImGui.TableNextColumn();
                 ImGui.Text(player.Class.ToString());

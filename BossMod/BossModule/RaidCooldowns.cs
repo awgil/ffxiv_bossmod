@@ -8,7 +8,7 @@ namespace BossMod
     {
         private Dictionary<(uint, ActionID), DateTime> _damageCooldowns = new(); // TODO: this should be improved - determine available cooldowns by class?..
 
-        public void HandleCast(DateTime t, CastEvent info)
+        public void HandleCast(DateTime t, PartyState party, CastEvent info)
         {
             if (!info.IsSpell())
                 return;
@@ -16,16 +16,16 @@ namespace BossMod
             // TODO: AST, DRG, BRD, DNC, RDM damage buffs, all non-damage buffs
             _ = info.Action.ID switch
             {
-                7396 => UpdateDamageCooldown(info.CasterID, info.Action, t, 15, 120), // MNK brotherhood
-                24405 => UpdateDamageCooldown(info.CasterID, info.Action, t, 20, 120), // RPR arcane circle
-                25801 => UpdateDamageCooldown(info.CasterID, info.Action, t, 30, 120), // SMN searing light
+                7396 => UpdateDamageCooldown(party, info.CasterID, info.Action, t, 15, 120), // MNK brotherhood
+                24405 => UpdateDamageCooldown(party, info.CasterID, info.Action, t, 20, 120), // RPR arcane circle
+                25801 => UpdateDamageCooldown(party, info.CasterID, info.Action, t, 30, 120), // SMN searing light
                 _ => false
             };
         }
 
         public void Clear()
         {
-            Service.Log($"[RaidState] Clearing damage cooldowns ({_damageCooldowns.Count} entries)");
+            Service.Log($"[RaidCooldowns] Clearing damage cooldowns ({_damageCooldowns.Count} entries)");
             _damageCooldowns.Clear();
         }
 
@@ -43,10 +43,14 @@ namespace BossMod
             return MathF.Max(0, (float)(firstAvailable - now).TotalSeconds);
         }
 
-        private bool UpdateDamageCooldown(uint casterID, ActionID action, DateTime t, float duration, float cooldown)
+        private bool UpdateDamageCooldown(PartyState party, uint casterID, ActionID action, DateTime t, float duration, float cooldown)
         {
+            int slot = party.FindSlot(casterID);
+            if (slot < 0)
+                return false;
+
             _damageCooldowns[(casterID, action)] = t.AddSeconds(cooldown);
-            Service.Log($"[RaidState] Updating damage cooldown: {action} by {casterID:X} will last for {duration:f1}s and will next be available in {cooldown:f1}s; there are now {_damageCooldowns.Count} entries");
+            Service.Log($"[RaidCooldowns] Updating damage cooldown: {action} by {party[slot]?.Name} will last for {duration:f1}s and will next be available in {cooldown:f1}s; there are now {_damageCooldowns.Count} entries");
             return true;
         }
     }

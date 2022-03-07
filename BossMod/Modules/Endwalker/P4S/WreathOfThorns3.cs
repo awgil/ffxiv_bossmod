@@ -93,7 +93,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             var boss = _module.Boss2();
             if (_coneTargets != 0 && boss != null)
@@ -107,7 +107,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
             foreach ((int i, var player) in _module.Raid.WithSlot())
                 arena.Actor(player, BitVector.IsVector64BitSet(_playersInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);

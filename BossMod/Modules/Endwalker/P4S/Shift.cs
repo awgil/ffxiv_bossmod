@@ -34,7 +34,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             if (_caster != null && _isSword)
             {
@@ -42,10 +42,9 @@ namespace BossMod.P4S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (pc != null && _caster != null && !_isSword)
+            if (_caster != null && !_isSword)
             {
                 arena.AddCircle(_caster.Position, 5, arena.ColorSafe);
 

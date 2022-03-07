@@ -73,10 +73,10 @@ namespace BossMod.P2S
             InitialState!.Enter.Add(() => ActivateComponent(new SewageDeluge(this)));
         }
 
-        protected override void DrawArenaForegroundPost()
+        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
             Arena.Actor(Boss(), Arena.ColorEnemy);
-            Arena.Actor(Player(), Arena.ColorPC);
+            Arena.Actor(pc, Arena.ColorPC);
         }
 
         private StateMachine.State MurkyDepths(ref StateMachine.State? link, float delay)

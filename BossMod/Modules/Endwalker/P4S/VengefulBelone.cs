@@ -53,10 +53,9 @@ namespace BossMod.P4S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (pc == null || _orbTargets.Count == 0 || _orbsExploded == _orbTargets.Count)
+            if (_orbTargets.Count == 0 || _orbsExploded == _orbTargets.Count)
                 return;
 
             foreach (var orb in _orbs)
@@ -65,7 +64,7 @@ namespace BossMod.P4S
                 if (orbRole == Role.None)
                     continue; // this orb has already exploded
 
-                bool lethal = IsOrbLethal(_module.PlayerSlot, pc, orbRole);
+                bool lethal = IsOrbLethal(pcSlot, pc, orbRole);
                 arena.Actor(orb, lethal ? arena.ColorEnemy : arena.ColorDanger);
 
                 var target = _module.WorldState.Actors.Find(orb.Tether.Target);

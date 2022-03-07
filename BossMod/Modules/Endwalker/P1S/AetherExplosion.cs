@@ -37,9 +37,9 @@ namespace BossMod.P1S
             }
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_explodingCells == Cell.None || _module.Player() == _memberWithSOT)
+            if (_explodingCells == Cell.None || pc == _memberWithSOT)
                 return; // nothing to draw
 
             if (!_module.Arena.IsCircle)
@@ -57,9 +57,9 @@ namespace BossMod.P1S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_memberWithSOT != _module.Player())
+            if (_memberWithSOT != pc)
                 arena.Actor(_memberWithSOT, _colorSOTActor);
         }
 

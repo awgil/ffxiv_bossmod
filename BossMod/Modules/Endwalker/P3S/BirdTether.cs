@@ -96,10 +96,9 @@ namespace BossMod.P3S
             }
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             // draw aoe zones for imminent charges, except one towards player
-            var pc = _module.Player();
             foreach ((var bird, (var p1, var p2, int numCharges)) in _birdsLarge.Zip(_chains))
             {
                 if (numCharges == 2)
@@ -115,12 +114,8 @@ namespace BossMod.P3S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (pc == null)
-                return;
-
             // draw all birds and all players
             foreach (var bird in _birdsLarge)
                 arena.Actor(bird, arena.ColorEnemy);

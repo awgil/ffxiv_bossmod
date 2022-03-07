@@ -44,10 +44,9 @@ namespace BossMod
                 _radius = radius;
             }
 
-            public override void DrawArenaForeground(MiniArena arena)
+            public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
             {
-                var targetID = _caster.FirstOrDefault()?.TargetID ?? 0;
-                var target = targetID != 0 ? _module.WorldState.Actors.Find(targetID) : null;
+                var target = _module.WorldState.Actors.Find(_caster.FirstOrDefault()?.TargetID ?? 0);
                 if (target != null)
                 {
                     arena.Actor(target, arena.ColorPlayerGeneric);

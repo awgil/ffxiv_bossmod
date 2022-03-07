@@ -52,10 +52,10 @@ namespace BossMod.P4S
             fork.PotentialSuccessors = new[] { p1!, p2! };
         }
 
-        protected override void DrawArenaForegroundPost()
+        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
             Arena.Actor(Boss1() ?? Boss2(), Arena.ColorEnemy);
-            Arena.Actor(Player(), Arena.ColorPC);
+            Arena.Actor(pc, Arena.ColorPC);
         }
 
         private StateMachine.State Phase1(ref StateMachine.State? link)

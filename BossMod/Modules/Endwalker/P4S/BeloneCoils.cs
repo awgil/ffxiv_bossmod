@@ -47,10 +47,9 @@ namespace BossMod.P4S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (pc == null || ActiveSoakers == Soaker.Unknown)
+            if (ActiveSoakers == Soaker.Unknown)
                 return;
 
             bool validSoaker = IsValidSoaker(pc);

@@ -45,7 +45,8 @@ namespace UIDev
         private Replay _res = new();
         private WorldState _ws = new();
         private int _version = 0;
-        private ulong _lastFakeContentID = 0;
+        private ulong _lastFakeContentID = 0; // pc will always have id=1
+        private uint _playerID = 0;
 
         private void ParseLine(string[] payload)
         {
@@ -112,18 +113,21 @@ namespace UIDev
 
         private void ParsePlayerIDChange(DateTime timestamp, string[] payload)
         {
-            OpPartyJoin pcJoin = new();
-            pcJoin.ContentID = ++_lastFakeContentID;
-            pcJoin.InstanceID = ActorID(payload[2]);
-            AddOp(timestamp, pcJoin);
-
-            foreach (var player in _ws.Actors.Where(a => a.Type == ActorType.Player && a.InstanceID != pcJoin.InstanceID))
+            for (int i = PartyState.MaxSize - 1; i >= 0; --i)
             {
-                OpPartyJoin otherJoin = new();
-                otherJoin.ContentID = ++_lastFakeContentID;
-                otherJoin.InstanceID = player.InstanceID;
-                AddOp(timestamp, otherJoin);
+                if (_ws.Party.ContentIDs[i] != 0)
+                {
+                    OpPartyLeave opLeave = new();
+                    opLeave.ContentID = _ws.Party.ContentIDs[i];
+                    opLeave.InstanceID = _ws.Party.Members[i]?.InstanceID ?? 0;
+                    AddOp(timestamp, opLeave);
+                }
             }
+            _lastFakeContentID = 0;
+
+            _playerID = ActorID(payload[2]);
+            if (_ws.Actors.Find(_playerID) != null)
+                BuildV0Party(timestamp);
         }
 
         private void ParseWaymarkChange(DateTime timestamp, string[] payload, bool set)
@@ -150,32 +154,40 @@ namespace UIDev
             res.OwnerID = payload.Length > 6 ? ActorID(payload[6]) : 0;
             AddOp(timestamp, res);
 
-            if (_lastFakeContentID > 0 && res.Type == ActorType.Player)
+            if (_version == 0 && res.Type == ActorType.Player)
             {
-                OpPartyJoin join = new();
-                join.ContentID = ++_lastFakeContentID;
-                join.InstanceID = res.InstanceID;
-                AddOp(timestamp, join);
+                if (res.InstanceID == _playerID)
+                {
+                    BuildV0Party(timestamp);
+                }
+                else
+                {
+                    OpPartyJoin join = new();
+                    join.ContentID = ++_lastFakeContentID;
+                    join.InstanceID = res.InstanceID;
+                    AddOp(timestamp, join);
+                }
             }
         }
 
         private void ParseActorDestroy(DateTime timestamp, string[] payload)
         {
-            OpActorDestroy res = new();
-            res.InstanceID = ActorID(payload[2]);
-            AddOp(timestamp, res);
-
-            if (_lastFakeContentID > 0)
+            var instanceID = ActorID(payload[2]);
+            if (_version == 0 && _playerID != 0)
             {
-                var slot = _ws.Party.FindSlot(res.InstanceID);
+                var slot = _ws.Party.FindSlot(instanceID);
                 if (slot >= 0)
                 {
                     OpPartyLeave leave = new();
                     leave.ContentID = _ws.Party.ContentIDs[slot];
-                    leave.InstanceID = res.InstanceID;
+                    leave.InstanceID = instanceID;
                     AddOp(timestamp, leave);
                 }
             }
+
+            OpActorDestroy res = new();
+            res.InstanceID = instanceID;
+            AddOp(timestamp, res);
         }
 
         private void ParseActorRename(DateTime timestamp, string[] payload)
@@ -333,6 +345,22 @@ namespace UIDev
             res.Index = byte.Parse(payload[3], NumberStyles.HexNumber);
             res.State = uint.Parse(payload[4], NumberStyles.HexNumber);
             AddOp(timestamp, res);
+        }
+
+        private void BuildV0Party(DateTime timestamp)
+        {
+            OpPartyJoin pcJoin = new();
+            pcJoin.ContentID = ++_lastFakeContentID;
+            pcJoin.InstanceID = _playerID;
+            AddOp(timestamp, pcJoin);
+
+            foreach (var player in _ws.Actors.Where(a => a.Type == ActorType.Player && a.InstanceID != _playerID))
+            {
+                OpPartyJoin otherJoin = new();
+                otherJoin.ContentID = ++_lastFakeContentID;
+                otherJoin.InstanceID = player.InstanceID;
+                AddOp(timestamp, otherJoin);
+            }
         }
 
         private static Vector3 Vec3(string repr)

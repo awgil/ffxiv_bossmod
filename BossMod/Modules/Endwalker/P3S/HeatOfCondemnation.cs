@@ -55,11 +55,10 @@ namespace BossMod.P3S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
             var boss = _module.Boss();
-            if (boss == null || pc == null)
+            if (boss == null)
                 return;
 
             // currently we always show tethered targets with circles, and if pc is a tank, also untethered players

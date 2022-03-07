@@ -16,10 +16,9 @@ namespace BossMod.P4S
             _assignments = module.FindComponent<SettingTheScene>()!;
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (pc?.Role != Role.Tank)
+            if (pc.Role != Role.Tank)
                 return;
 
             // draw position between lighting and fire squares

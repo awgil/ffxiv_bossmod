@@ -103,7 +103,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             if (_doneTowers < 4)
                 return;
@@ -112,12 +112,8 @@ namespace BossMod.P4S
                 arena.ZoneCircle(nextAOE.Position, P4S.WreathAOERadius, arena.ColorAOE);
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (pc == null)
-                return;
-
             // draw other players
             foreach ((int slot, var player) in _module.Raid.WithSlot().Exclude(pc))
             {
@@ -127,11 +123,11 @@ namespace BossMod.P4S
             }
 
             // tether
-            var pcTetherSource = _playerTetherSource[_module.PlayerSlot];
+            var pcTetherSource = _playerTetherSource[pcSlot];
             if (pcTetherSource == null)
                 return; // pc is not tethered anymore, nothing to draw...
 
-            var pcIcon = _playerIcons[_module.PlayerSlot];
+            var pcIcon = _playerIcons[pcSlot];
             arena.AddLine(pc.Position, pcTetherSource.Position, pcIcon == IconID.AkanthaiWater ? 0xffff8000 : 0xffff00ff);
 
             if (_doneTowers < 4)

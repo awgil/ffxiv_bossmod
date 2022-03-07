@@ -27,7 +27,7 @@
             }
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             var head = _module.DissociatedHead();
             if (_done || head == null || _module.Arena.InBounds(head.Position))

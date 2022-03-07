@@ -63,10 +63,9 @@ namespace BossMod.P3S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (CurState == State.UnknownGlory || CurState == State.Done || pc == null)
+            if (CurState == State.UnknownGlory || CurState == State.Done)
                 return;
 
             // draw all raid members, to simplify positioning

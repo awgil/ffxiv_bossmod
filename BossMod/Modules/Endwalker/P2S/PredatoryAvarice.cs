@@ -72,14 +72,13 @@ namespace BossMod.P2S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (!Active || pc == null)
+            if (!Active)
                 return;
 
-            bool pcHasTides = BitVector.IsVector64BitSet(_playersWithTides, _module.PlayerSlot);
-            bool pcHasDepths = BitVector.IsVector64BitSet(_playersWithDepths, _module.PlayerSlot);
+            bool pcHasTides = BitVector.IsVector64BitSet(_playersWithTides, pcSlot);
+            bool pcHasDepths = BitVector.IsVector64BitSet(_playersWithDepths, pcSlot);
             foreach ((int i, var actor) in _module.Raid.WithSlot())
             {
                 if (BitVector.IsVector64BitSet(_playersWithTides, i))

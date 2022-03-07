@@ -42,13 +42,12 @@ namespace BossMod.P3S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (pc == null || _playerOrder[_module.PlayerSlot] <= NumCasts)
+            if (_playerOrder[pcSlot] <= NumCasts)
                 return;
 
-            var pos = PositionForOrder(_playerOrder[_module.PlayerSlot]);
+            var pos = PositionForOrder(_playerOrder[pcSlot]);
             arena.AddCircle(pos, 1, arena.ColorSafe);
 
             // draw all adds

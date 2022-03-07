@@ -40,12 +40,8 @@ namespace BossMod.P3S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (pc == null)
-                return;
-
             // draw other potential targets, to simplify positioning
             bool healerOrTank = pc.Role == Role.Tank || pc.Role == Role.Healer;
             foreach (var player in _module.Raid.WithoutSlot().Where(player => CanBothBeTargets(player, pc)))

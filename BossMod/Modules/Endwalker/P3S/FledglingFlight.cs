@@ -58,22 +58,21 @@ namespace BossMod.P3S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (_sources.Count == 0 || pc == null)
+            if (_sources.Count == 0)
                 return;
 
             // draw all players
             foreach ((int i, var player) in _module.Raid.WithSlot())
                 arena.Actor(player, _playerAOECount[i] != _playerDeathTollStacks[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
-            var eyePos = GetEyePlacementPosition(_module.PlayerSlot, pc);
+            var eyePos = GetEyePlacementPosition(pcSlot, pc);
             if (eyePos != null)
                 arena.AddCircle(eyePos.Value, 1, arena.ColorSafe);
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             foreach ((var source, var dir) in _sources)
             {

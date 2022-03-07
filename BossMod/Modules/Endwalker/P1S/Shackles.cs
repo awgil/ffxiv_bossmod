@@ -85,10 +85,9 @@ namespace BossMod.P1S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (!_active || pc == null)
+            if (!_active)
                 return;
 
             bool drawBlueAroundMe = false;
@@ -112,13 +111,13 @@ namespace BossMod.P1S
                 }
 
                 // draw explosion circles that hit me
-                if (BitVector.IsMatrix8x8BitSet(_blueExplosionMatrix, _module.PlayerSlot, i))
+                if (BitVector.IsMatrix8x8BitSet(_blueExplosionMatrix, pcSlot, i))
                     arena.AddCircle(actor.Position, _blueExplosionRadius, arena.ColorDanger);
-                if (BitVector.IsMatrix8x8BitSet(_redExplosionMatrix, _module.PlayerSlot, i))
+                if (BitVector.IsMatrix8x8BitSet(_redExplosionMatrix, pcSlot, i))
                     arena.AddCircle(actor.Position, _redExplosionRadius, arena.ColorDanger);
 
-                drawBlueAroundMe |= BitVector.IsMatrix8x8BitSet(_blueExplosionMatrix, i, _module.PlayerSlot);
-                drawRedAroundMe |= BitVector.IsMatrix8x8BitSet(_redExplosionMatrix, i, _module.PlayerSlot);
+                drawBlueAroundMe |= BitVector.IsMatrix8x8BitSet(_blueExplosionMatrix, i, pcSlot);
+                drawRedAroundMe |= BitVector.IsMatrix8x8BitSet(_redExplosionMatrix, i, pcSlot);
             }
 
             // draw explosion circles if I hit anyone

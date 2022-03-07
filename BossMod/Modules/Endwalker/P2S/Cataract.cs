@@ -30,7 +30,7 @@ namespace BossMod.P2S
             }
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             var boss = _module.Boss();
             if (boss != null)

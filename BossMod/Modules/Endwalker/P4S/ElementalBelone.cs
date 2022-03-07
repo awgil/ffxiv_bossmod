@@ -39,7 +39,7 @@ namespace BossMod.P4S
             hints.Add($"Safe square: {_safeElement}");
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             if (Visible)
             {

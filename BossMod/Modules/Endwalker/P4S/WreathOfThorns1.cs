@@ -56,14 +56,14 @@ namespace BossMod.P4S
             }
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             if (CurState == State.FirstAOEs || CurState == State.LastAOEs)
                 foreach (var aoe in CurState == State.FirstAOEs ? _firstAOEs : _lastAOEs)
                     arena.ZoneCircle(aoe.Position, P4S.WreathAOERadius, arena.ColorAOE);
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
             if (CurState == State.Towers)
             {

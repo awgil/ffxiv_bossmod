@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BossMod
+﻿namespace BossMod
 {
     public class DemoModule : BossModule
     {
@@ -16,12 +10,12 @@ namespace BossMod
                 hints.Add("Risk");
             }
 
-            public override void DrawArenaBackground(MiniArena arena)
+            public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
             {
                 arena.ZoneCircle(arena.WorldCenter, 10, arena.ColorAOE);
             }
 
-            public override void DrawArenaForeground(MiniArena arena)
+            public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
             {
                 arena.Actor(arena.WorldCenter, 0, arena.ColorPC);
             }

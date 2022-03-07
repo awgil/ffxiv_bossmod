@@ -82,7 +82,7 @@ namespace BossMod.P4S
             }
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
             if (CurState == State.Done)
                 return;
@@ -91,12 +91,8 @@ namespace BossMod.P4S
                 arena.ZoneCircle(aoe.Position, P4S.WreathAOERadius, arena.ColorAOE);
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (pc == null)
-                return;
-
             // draw players
             foreach (var player in _module.Raid.WithoutSlot().Exclude(pc))
                 arena.Actor(player, arena.ColorPlayerGeneric);
@@ -107,7 +103,7 @@ namespace BossMod.P4S
                 : _module.Raid.WithoutSlot().FirstOrDefault(p => p.Tether.Target == pc.InstanceID);
             if (pcPartner != null)
             {
-                var tetherColor = _playerIcons[_module.PlayerSlot] switch {
+                var tetherColor = _playerIcons[pcSlot] switch {
                     IconID.AkanthaiFire => 0xff00ffff,
                     IconID.AkanthaiWind => 0xff00ff00,
                     _ => 0xffff00ff

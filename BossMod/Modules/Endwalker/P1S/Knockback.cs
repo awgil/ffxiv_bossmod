@@ -109,11 +109,10 @@ namespace BossMod.P1S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
             var boss = _module.Boss();
-            if (pc == null || boss == null)
+            if (boss == null)
                 return;
 
             if (boss.CastInfo != null && pc == _knockbackTarget && pc.Position != _knockbackPos)

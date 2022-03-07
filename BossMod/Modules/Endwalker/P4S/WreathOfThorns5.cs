@@ -44,12 +44,8 @@ namespace BossMod.P4S
             hints.Add($"Order: {string.Join(" -> ", _playersOrder.Skip(_castsDone).Select(id => _module.WorldState.Actors.Find(id)?.Name ?? "???"))}");
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
-            if (pc == null)
-                return;
-
             int order = _playersOrder.IndexOf(pc.InstanceID);
             if (order >= _castsDone && order < _towersOrder.Count)
                 arena.AddCircle(_towersOrder[order].Position, P4S.WreathTowerRadius, arena.ColorSafe);

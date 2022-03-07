@@ -32,9 +32,9 @@ namespace BossMod.P2S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pos = GetSafeZone(_module.PlayerSlot);
+            var pos = GetSafeZone(pcSlot);
             if (pos != null)
                 arena.AddCircle(pos.Value, 1, arena.ColorSafe);
         }

@@ -63,13 +63,12 @@ namespace BossMod.P3S
             }
         }
 
-        public override void DrawArenaBackground(MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var pc = _module.Player();
             foreach (var bird in _activeBirds)
             {
                 uint targetID = BirdTarget(bird);
-                var target = (targetID != 0 && targetID != pc?.InstanceID) ? _module.WorldState.Actors.Find(targetID) : null;
+                var target = (targetID != 0 && targetID != pc.InstanceID) ? _module.WorldState.Actors.Find(targetID) : null;
                 if (target != null && target.Position != bird.Position)
                 {
                     var dir = Vector3.Normalize(target.Position - bird.Position);
@@ -78,7 +77,7 @@ namespace BossMod.P3S
             }
         }
 
-        public override void DrawArenaForeground(MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
             if (_activeBirds.Count() == 0)
                 return;
@@ -88,9 +87,8 @@ namespace BossMod.P3S
                 arena.Actor(player, BitVector.IsVector64BitSet(_playersInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
             // draw my tether
-            var pc = _module.Player();
-            var myBird = _sunshadows.Find(bird => BirdTarget(bird) == pc?.InstanceID);
-            if (pc != null && myBird != null && !_chargedSunshadows.Contains(myBird.InstanceID))
+            var myBird = _sunshadows.Find(bird => BirdTarget(bird) == pc.InstanceID);
+            if (myBird != null && !_chargedSunshadows.Contains(myBird.InstanceID))
             {
                 arena.AddLine(myBird.Position, pc.Position, myBird.Tether.ID != (uint)TetherID.LargeBirdFar ? arena.ColorDanger : arena.ColorSafe);
                 arena.Actor(myBird, arena.ColorEnemy);
