@@ -52,13 +52,15 @@ namespace BossMod
                 }
 
                 // log initial state
-                Log("VER ", 1);
+                Log("VER ", 2);
                 ZoneChange(null, _ws.CurrentZone);
                 foreach (var actor in _ws.Actors)
                 {
                     ActorCreated(null, actor);
                     if (actor.IsDead)
                         ActorIsDeadChanged(null, actor);
+                    if (actor.InCombat)
+                        ActorInCombatChanged(null, actor);
                     if (actor.TargetID != 0)
                         ActorTargetChanged(null, (actor, 0));
                     if (actor.CastInfo != null)
@@ -78,12 +80,9 @@ namespace BossMod
                     if (w != null)
                         WaymarkChanged(null, (i, w));
                 }
-                if (_ws.PlayerInCombat)
-                    EnterExitCombat(null, true);
 
                 // log changes
                 _ws.CurrentZoneChanged += ZoneChange;
-                _ws.PlayerInCombatChanged += EnterExitCombat;
                 _ws.Waymarks.Changed += WaymarkChanged;
                 _ws.Actors.Added += ActorCreated;
                 _ws.Actors.Removed += ActorDestroyed;
@@ -92,6 +91,7 @@ namespace BossMod
                 _ws.Actors.Moved += ActorMoved;
                 _ws.Actors.IsTargetableChanged += ActorIsTargetableChanged;
                 _ws.Actors.IsDeadChanged += ActorIsDeadChanged;
+                _ws.Actors.InCombatChanged += ActorInCombatChanged;
                 _ws.Actors.TargetChanged += ActorTargetChanged;
                 _ws.Actors.CastStarted += ActorCastStarted;
                 _ws.Actors.CastFinished += ActorCastFinished;
@@ -114,7 +114,6 @@ namespace BossMod
             if (_logger != null)
             {
                 _ws.CurrentZoneChanged -= ZoneChange;
-                _ws.PlayerInCombatChanged -= EnterExitCombat;
                 _ws.Waymarks.Changed -= WaymarkChanged;
                 _ws.Actors.Added -= ActorCreated;
                 _ws.Actors.Removed -= ActorDestroyed;
@@ -123,6 +122,7 @@ namespace BossMod
                 _ws.Actors.Moved -= ActorMoved;
                 _ws.Actors.IsTargetableChanged -= ActorIsTargetableChanged;
                 _ws.Actors.IsDeadChanged -= ActorIsDeadChanged;
+                _ws.Actors.InCombatChanged -= ActorInCombatChanged;
                 _ws.Actors.TargetChanged -= ActorTargetChanged;
                 _ws.Actors.CastStarted -= ActorCastStarted;
                 _ws.Actors.CastFinished -= ActorCastFinished;
@@ -170,11 +170,6 @@ namespace BossMod
             Log("ZONE", zone);
         }
 
-        private void EnterExitCombat(object? sender, bool inCombat)
-        {
-            Log("PCOM", inCombat);
-        }
-
         private void WaymarkChanged(object? sender, (Waymark i, Vector3? value) arg)
         {
             if (arg.value != null)
@@ -216,6 +211,11 @@ namespace BossMod
         private void ActorIsDeadChanged(object? sender, Actor actor)
         {
             Log(actor.IsDead ? "DIE+" : "DIE-", Actor(actor));
+        }
+
+        private void ActorInCombatChanged(object? sender, Actor actor)
+        {
+            Log(actor.InCombat ? "COM+" : "COM-", Actor(actor));
         }
 
         private void ActorTargetChanged(object? sender, (Actor actor, uint prev) arg)

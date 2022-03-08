@@ -50,10 +50,11 @@ namespace UIDev
             ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
 
             var boss = _ws.Actors.Find(9)!;
-            if (ImGui.Button(!_ws.PlayerInCombat ? "Pull" : "Wipe"))
+            var pc = _ws.Party.Player()!;
+            if (ImGui.Button(!pc.InCombat ? "Pull" : "Wipe"))
             {
                 _ws.Actors.UpdateCastInfo(boss, null);
-                _ws.PlayerInCombat = !_ws.PlayerInCombat;
+                _ws.Actors.ChangeInCombat(pc, !pc.InCombat);
             }
 
             ImGui.SameLine();

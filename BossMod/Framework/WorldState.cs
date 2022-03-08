@@ -28,21 +28,5 @@ namespace BossMod
                 }
             }
         }
-
-        // TODO: redesign this, it should be a per-actor flag
-        private bool _playerInCombat;
-        public event EventHandler<bool>? PlayerInCombatChanged;
-        public bool PlayerInCombat
-        {
-            get => _playerInCombat;
-            set
-            {
-                if (_playerInCombat != value)
-                {
-                    _playerInCombat = value;
-                    PlayerInCombatChanged?.Invoke(this, value);
-                }
-            }
-        }
     }
 }

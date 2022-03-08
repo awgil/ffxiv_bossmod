@@ -68,6 +68,8 @@ namespace UIDev
                 case "ATG-": ParseActorTargetable(timestamp, payload, false); break;
                 case "DIE+": ParseActorDead(timestamp, payload, true); break;
                 case "DIE-": ParseActorDead(timestamp, payload, false); break;
+                case "COM+": ParseActorCombat(timestamp, payload, true); break;
+                case "COM-": ParseActorCombat(timestamp, payload, false); break;
                 case "TARG": ParseActorTarget(timestamp, payload); break;
                 case "CST+": ParseActorCast(timestamp, payload, true); break;
                 case "CST-": ParseActorCast(timestamp, payload, false); break;
@@ -106,9 +108,14 @@ namespace UIDev
 
         private void ParseEnterExitCombat(DateTime timestamp, string[] payload)
         {
-            OpEnterExitCombat res = new();
-            res.Value = bool.Parse(payload[2]);
-            AddOp(timestamp, res);
+            bool value = bool.Parse(payload[2]);
+            foreach (var act in _ws.Actors)
+            {
+                OpActorCombat op = new();
+                op.InstanceID = act.InstanceID;
+                op.Value = value;
+                AddOp(timestamp, op);
+            }
         }
 
         private void ParsePlayerIDChange(DateTime timestamp, string[] payload)
@@ -229,6 +236,14 @@ namespace UIDev
             OpActorDead res = new();
             res.InstanceID = ActorID(payload[2]);
             res.Value = dead;
+            AddOp(timestamp, res);
+        }
+
+        private void ParseActorCombat(DateTime timestamp, string[] payload, bool value)
+        {
+            OpActorCombat res = new();
+            res.InstanceID = ActorID(payload[2]);
+            res.Value = value;
             AddOp(timestamp, res);
         }
 

@@ -9,7 +9,6 @@ namespace BossMod
     {
         private WorldState _ws;
         private Autorotation _autorot;
-        private DateTime _combatStart;
         private DebugObjects _debugObjects = new();
         private DebugParty _debugParty = new();
         private DebugGraphics _debugGraphics = new();
@@ -20,20 +19,15 @@ namespace BossMod
         {
             _ws = ws;
             _autorot = autorot;
-
-            _ws.PlayerInCombatChanged += EnterExitCombat;
         }
 
         public void Dispose()
         {
-            _ws.PlayerInCombatChanged -= EnterExitCombat;
         }
 
         public void Draw()
         {
-            string combatTime = _ws.PlayerInCombat ? (_ws.CurrentTime - _combatStart).ToString() : "---";
             ImGui.Text($"Current zone: {_ws.CurrentZone}, pos = {Utils.Vec3String(Service.ClientState.LocalPlayer?.Position ?? new Vector3())}");
-            ImGui.Text($"Combat time: {combatTime}, target = {Utils.ObjectString(Service.ClientState.LocalPlayer?.TargetObjectId ?? 0)}");
             if (ImGui.Button("Perform full dump"))
             {
                 DebugObjects.DumpObjectTable();
@@ -127,11 +121,6 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(elem.Position));
             }
             ImGui.EndTable();
-        }
-
-        private void EnterExitCombat(object? sender, bool inCombat)
-        {
-            _combatStart = DateTime.Now;
         }
     }
 }

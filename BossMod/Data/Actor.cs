@@ -65,6 +65,7 @@ namespace BossMod
         public bool IsDestroyed; // set to true when actor is removed from world; object might still be alive because of other references
         public bool IsTargetable;
         public bool IsDead;
+        public bool InCombat;
         public uint OwnerID; // uuid of owner, for pets and similar
         public uint TargetID;
         public ActorCastInfo? CastInfo;

@@ -228,7 +228,8 @@ namespace UIDev
             if (res.InstanceID == _inCombatWith)
             {
                 _inCombatWith = 0;
-                OpEnterExitCombat combatOp = new();
+                OpActorCombat combatOp = new();
+                combatOp.InstanceID = _ws.Party.Player()?.InstanceID ?? 0;
                 combatOp.Value = false;
                 AddOp(timestamp, combatOp);
             }
@@ -365,9 +366,15 @@ namespace UIDev
                 if (target?.Type == ActorType.Enemy)
                 {
                     _inCombatWith = target.InstanceID;
-                    OpEnterExitCombat combatOp = new();
-                    combatOp.Value = true;
-                    AddOp(timestamp, combatOp);
+                    OpActorCombat combatOp1 = new();
+                    combatOp1.InstanceID = res.Value.CasterID;
+                    combatOp1.Value = true;
+                    AddOp(timestamp, combatOp1);
+
+                    OpActorCombat combatOp2 = new();
+                    combatOp2.InstanceID = res.Value.CasterID;
+                    combatOp2.Value = true;
+                    AddOp(timestamp, combatOp2);
                 }
             }
 

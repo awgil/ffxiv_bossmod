@@ -116,9 +116,9 @@ namespace BossMod
         public BossModule(WorldState w)
         {
             WorldState = w;
-            WorldState.PlayerInCombatChanged += EnterExitCombat;
             WorldState.Actors.Added += OnActorCreated;
             WorldState.Actors.Removed += OnActorDestroyed;
+            WorldState.Actors.InCombatChanged += EnterExitCombat;
             WorldState.Actors.CastStarted += OnActorCastStarted;
             WorldState.Actors.CastFinished += OnActorCastFinished;
             WorldState.Actors.Tethered += OnActorTethered;
@@ -143,9 +143,9 @@ namespace BossMod
         {
             if (disposing)
             {
-                WorldState.PlayerInCombatChanged -= EnterExitCombat;
                 WorldState.Actors.Added -= OnActorCreated;
                 WorldState.Actors.Removed -= OnActorDestroyed;
+                WorldState.Actors.InCombatChanged -= EnterExitCombat;
                 WorldState.Actors.CastStarted -= OnActorCastStarted;
                 WorldState.Actors.CastFinished -= OnActorCastFinished;
                 WorldState.Actors.Tethered -= OnActorTethered;
@@ -305,21 +305,6 @@ namespace BossMod
             }
         }
 
-        private void EnterExitCombat(object? sender, bool inCombat)
-        {
-            if (inCombat)
-            {
-                Reset();
-                StateMachine.ActiveState = InitialState;
-            }
-            else
-            {
-                StateMachine.ActiveState = null;
-                Reset();
-                RaidCooldowns.Clear();
-            }
-        }
-
         private void OnActorCreated(object? sender, Actor actor)
         {
             switch (actor.Type)
@@ -343,6 +328,24 @@ namespace BossMod
                     if (relevant != null)
                         relevant.Remove(actor);
                     break;
+            }
+        }
+
+        private void EnterExitCombat(object? sender, Actor actor)
+        {
+            if (actor != WorldState.Party.Player())
+                return;
+
+            if (actor.InCombat)
+            {
+                Reset();
+                StateMachine.ActiveState = InitialState;
+            }
+            else
+            {
+                StateMachine.ActiveState = null;
+                Reset();
+                RaidCooldowns.Clear();
             }
         }
 

@@ -64,12 +64,13 @@ namespace UIDev
 
             var boss1 = _ws.Actors.Find(9);
             var boss2 = _ws.Actors.Find(10)!;
-            if (ImGui.Button(!_ws.PlayerInCombat ? "Pull" : "Wipe"))
+            var pc = _ws.Party.Player()!;
+            if (ImGui.Button(!pc.InCombat ? "Pull" : "Wipe"))
             {
                 if (boss1 != null)
                     _ws.Actors.UpdateCastInfo(boss1, null);
                 _ws.Actors.UpdateCastInfo(boss2, null);
-                _ws.PlayerInCombat = !_ws.PlayerInCombat;
+                _ws.Actors.ChangeInCombat(pc, !pc.InCombat);
             }
 
             ImGui.SameLine();

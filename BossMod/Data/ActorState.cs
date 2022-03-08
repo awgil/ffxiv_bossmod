@@ -92,6 +92,16 @@ namespace BossMod
             }
         }
 
+        public event EventHandler<Actor>? InCombatChanged; // actor contains new state, old is inverted
+        public void ChangeInCombat(Actor act, bool newValue)
+        {
+            if (act.InCombat != newValue)
+            {
+                act.InCombat = newValue;
+                InCombatChanged?.Invoke(this, act);
+            }
+        }
+
         public event EventHandler<(Actor, uint)>? TargetChanged; // actor already contains new target, old is passed as extra arg
         public void ChangeTarget(Actor act, uint newTarget)
         {

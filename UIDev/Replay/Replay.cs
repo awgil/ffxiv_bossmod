@@ -32,23 +32,6 @@ namespace UIDev
             }
         }
 
-        public class OpEnterExitCombat : Operation
-        {
-            public bool Value;
-            private bool _prev;
-
-            public override void Redo(WorldState ws)
-            {
-                _prev = ws.PlayerInCombat;
-                ws.PlayerInCombat = Value;
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                ws.PlayerInCombat = _prev;
-            }
-        }
-
         public class OpWaymarkChange : Operation
         {
             public Waymark ID;
@@ -248,6 +231,32 @@ namespace UIDev
                 if (actor != null)
                 {
                     ws.Actors.ChangeIsDead(actor, _prev);
+                }
+            }
+        }
+
+        public class OpActorCombat : Operation
+        {
+            public uint InstanceID;
+            public bool Value;
+            private bool _prev;
+
+            public override void Redo(WorldState ws)
+            {
+                var actor = ws.Actors.Find(InstanceID);
+                if (actor != null)
+                {
+                    _prev = actor.InCombat;
+                    ws.Actors.ChangeInCombat(actor, Value);
+                }
+            }
+
+            public override void Undo(WorldState ws)
+            {
+                var actor = ws.Actors.Find(InstanceID);
+                if (actor != null)
+                {
+                    ws.Actors.ChangeInCombat(actor, _prev);
                 }
             }
         }

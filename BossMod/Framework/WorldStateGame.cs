@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Game.ClientState.Objects.Types;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -38,7 +39,6 @@ namespace BossMod
             CurrentZone = Service.ClientState.TerritoryType;
             UpdateActors();
             UpdateParty();
-            PlayerInCombat = Service.ClientState.LocalPlayer?.StatusFlags.HasFlag(Dalamud.Game.ClientState.Objects.Enums.StatusFlags.InCombat) ?? false;
         }
 
         private void UpdateActors()
@@ -79,6 +79,7 @@ namespace BossMod
                 }
                 Actors.ChangeTarget(act, SanitizedObjectID(obj.TargetObjectId));
                 Actors.ChangeIsDead(act, Utils.GameObjectIsDead(obj));
+                Actors.ChangeInCombat(act, character?.StatusFlags.HasFlag(StatusFlags.InCombat) ?? false);
 
                 var chara = obj as BattleChara;
                 if (chara != null)

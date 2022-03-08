@@ -29,8 +29,9 @@ namespace UIDev
             _ws.CurrentTime = data.Ops.First().Timestamp;
             _ws.CurrentZoneChanged += OnZoneChanged;
 
-            foreach (var op in data.Ops.OfType<Replay.OpEnterExitCombat>())
-                _checkpoints.Add((op.Timestamp, op.Value));
+            foreach (var op in data.Ops.OfType<Replay.OpActorCombat>())
+                if (_checkpoints.Count == 0 || (op.Timestamp - _checkpoints.Last().Item1).TotalSeconds > 5)
+                    _checkpoints.Add((op.Timestamp, op.Value));
             _first = data.Ops.First().Timestamp;
             _last = data.Ops.Last().Timestamp;
         }
