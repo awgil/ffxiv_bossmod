@@ -9,6 +9,7 @@ namespace BossMod.P1S
     // TODO: provide movement hint for fourfold shackles (timer strat)
     class Shackles : Component
     {
+        public int NumExpiredDebuffs { get; private set; } = 0;
         private P1S _module;
         private bool _active = false;
         private byte _debuffsBlueImminent = 0;
@@ -28,8 +29,6 @@ namespace BossMod.P1S
         {
             _module = module;
         }
-
-        public int NumDebuffs() => BitOperations.PopCount((uint)_debuffsBlueFuture | _debuffsBlueImminent | _debuffsRedFuture | _debuffsRedImminent);
 
         public override void Update()
         {
@@ -174,9 +173,11 @@ namespace BossMod.P1S
                     break;
                 case SID.InescapableCompanionship:
                     ModifyDebuff(actor, ref _debuffsBlueImminent, false);
+                    ++NumExpiredDebuffs;
                     break;
                 case SID.InescapableLoneliness:
                     ModifyDebuff(actor, ref _debuffsRedImminent, false);
+                    ++NumExpiredDebuffs;
                     break;
             }
         }

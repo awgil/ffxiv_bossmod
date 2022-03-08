@@ -126,7 +126,7 @@ namespace BossMod.P1S
 
             // ~19sec after cast end
             // technically, resolve happens ~0.4sec before second aetherchain cast end, but that's irrelevant
-            var resolve = CommonStates.ComponentCondition<Shackles>(ref overlap.Next, withAetherchains ? 0 : 9.8f, this, comp => comp.NumDebuffs() == 0, "Shackles resolve");
+            var resolve = CommonStates.ComponentCondition<Shackles>(ref overlap.Next, withAetherchains ? 0 : 9.8f, this, comp => comp.NumExpiredDebuffs >= 2, "Shackles resolve");
             resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
             resolve.Exit.Add(DeactivateComponent<Shackles>);
             return resolve;
@@ -139,13 +139,13 @@ namespace BossMod.P1S
             cast.Exit.Add(() => ActivateComponent(new Shackles(this)));
 
             // note that it takes almost a second for debuffs to be applied
-            var hit1 = CommonStates.ComponentCondition<Shackles>(ref cast.Next, 9, this, comp => comp.NumDebuffs() <= 6, "Hit1", 1, 3);
+            var hit1 = CommonStates.ComponentCondition<Shackles>(ref cast.Next, 9, this, comp => comp.NumExpiredDebuffs >= 2, "Hit1", 1, 3);
             hit1.EndHint |= StateMachine.StateHint.GroupWithNext;
-            var hit2 = CommonStates.ComponentCondition<Shackles>(ref hit1.Next, 5, this, comp => comp.NumDebuffs() <= 4, "Hit2");
+            var hit2 = CommonStates.ComponentCondition<Shackles>(ref hit1.Next, 5, this, comp => comp.NumExpiredDebuffs >= 4, "Hit2");
             hit2.EndHint |= StateMachine.StateHint.GroupWithNext;
-            var hit3 = CommonStates.ComponentCondition<Shackles>(ref hit2.Next, 5, this, comp => comp.NumDebuffs() <= 2, "Hit3");
+            var hit3 = CommonStates.ComponentCondition<Shackles>(ref hit2.Next, 5, this, comp => comp.NumExpiredDebuffs >= 6, "Hit3");
             hit3.EndHint |= StateMachine.StateHint.GroupWithNext;
-            var hit4 = CommonStates.ComponentCondition<Shackles>(ref hit3.Next, 5, this, comp => comp.NumDebuffs() == 0, "Hit4");
+            var hit4 = CommonStates.ComponentCondition<Shackles>(ref hit3.Next, 5, this, comp => comp.NumExpiredDebuffs >= 8, "Hit4");
             hit4.EndHint |= StateMachine.StateHint.PositioningEnd;
             hit4.Exit.Add(DeactivateComponent<Shackles>);
             return hit4;
