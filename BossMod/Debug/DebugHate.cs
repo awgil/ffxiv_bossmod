@@ -63,6 +63,7 @@ namespace BossMod
         {
             var uistate = FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance();
 
+            // aggro list of current target
             var hate = (Hate*)((IntPtr)uistate + 0x08);
             ImGui.BeginTable("hate", 3);
             ImGui.TableSetupColumn("ObjectID");
@@ -78,6 +79,7 @@ namespace BossMod
             }
             ImGui.EndTable();
 
+            // list of actors aggroed to player
             var hater = (Hater*)((IntPtr)uistate + 0x110);
             ImGui.BeginTable("hater", 3);
             ImGui.TableSetupColumn("ObjectID");

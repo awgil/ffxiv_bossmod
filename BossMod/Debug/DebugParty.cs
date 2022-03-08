@@ -26,8 +26,8 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.Text($"{member.ContentId:X}");
                 ImGui.TableNextColumn(); ImGui.Text($"{member.ObjectId:X}");
                 ImGui.TableNextColumn(); ImGui.Text(member.Name.ToString());
-                ImGui.TableNextColumn(); ImGui.Text(member.Territory.GameData?.Name.ToString());
-                ImGui.TableNextColumn(); ImGui.Text(member.World.GameData?.Name.ToString());
+                ImGui.TableNextColumn(); ImGui.Text($"{member.Territory.Id}");
+                ImGui.TableNextColumn(); ImGui.Text($"{member.World.Id}");
                 ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(member.Position));
             }
             ImGui.EndTable();

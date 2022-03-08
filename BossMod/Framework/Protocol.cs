@@ -2,41 +2,94 @@
 
 namespace BossMod
 {
-    // taken from Machina, FFXIVPacketDissector, XIVAlexander and custom research
+    // taken from Machina, FFXIVPacketDissector, XIVAlexander, FFXIVOpcodes and custom research
     class Protocol
     {
         public enum Opcode
         {
             // opcodes from machina
-            StatusEffectList = 0xf0bc,
-            StatusEffectList2 = 0xf1ff,
-            StatusEffectList3 = 0xf2af,
+            StatusEffectList = 0xf0BC,
+            StatusEffectList2 = 0xf1FF,
+            StatusEffectList3 = 0xf2AF,
             BossStatusEffectList = 0xf07e,
-            ActionEffect1 = 0x035e, // Machina calls it AbilityN, size=124
-            ActionEffect8 = 0x02ba, // size=636
-            ActionEffect16 = 0xf0c1,
-            ActionEffect24 = 0xf213,
-            ActionEffect32 = 0xf38b,
-            ActorCast = 0xf104,
-            EffectResult = 0xf0de,
+            ActionEffect1 = 0x035E, // Machina calls it AbilityN, size=124
+            ActionEffect8 = 0x02BA, // size=636
+            ActionEffect16 = 0x010D,
+            ActionEffect24 = 0x00F7,
+            ActionEffect32 = 0x01CA,
+            ActorCast = 0x01F4,
+            EffectResult = 0x021A,
             EffectResultBasic = 0xf2d9,
             ActorControl = 0x0202, // look at toggle weapon
             ActorControlSelf = 0x0301, // look at cooldown
-            ActorControlTarget = 0xf3b0, // look at target change
-            UpdateHpMpTp = 0xf2c9,
-            PlayerSpawn = 0xf142,
-            NpcSpawn = 0xf32c,
+            ActorControlTarget = 0x0333, // look at target change
+            UpdateHpMpTp = 0x0240,
+            //PlayerSpawn = 0xf142,
+            NpcSpawn = 0x032F,
             NpcSpawn2 = 0xf08f,
-            ActorMove = 0xf370,
-            ActorSetPos = 0xf395,
-            ActorGauge = 0xf3b5,
-            PresetWaymark = 0x0074,
-            Waymark = 0x03ba,
-            SystemLogMessage = 0xf0ef,
+            ActorMove = 0x03CB,
+            ActorSetPos = 0x033C,
+            ActorGauge = 0x0374,
+            PresetWaymark = 0x0074, // FFXIVOpcodes calls this PlaceFieldMarkerPreset
+            Waymark = 0x03BA, // FFXIVOpcodes calls this PlaceFieldMarker
+            SystemLogMessage = 0x030B, // FFXIVOpcodes calls this SomeDirectorUnk4
+
+            // opcodes from FFXIVOpcodes
+            PlayerSetup = 0x01DB,
+            PlayerStats = 0x015F,
+            Playtime = 0x01A0,
+            UpdateSearchInfo = 0x0231,
+            ExamineSearchInfo = 0x0293,
+            Examine = 0x03AE,
+            MarketBoardSearchResult = 0x023A,
+            MarketBoardItemListingCount = 0x0370,
+            MarketBoardItemListingHistory = 0x0103,
+            MarketBoardItemListing = 0x014B,
+            MarketBoardPurchase = 0x02F3,
+            ResultDialog = 0x00DA,
+            RetainerInformation = 0x01A4,
+            ItemMarketBoardInfo = 0x014E,
+            PlayerSpawn = 0x03DC,
+            ContainerInfo = 0x03C9,
+            ItemInfo = 0x00EC,
+            UpdateClassInfo = 0x02F8,
+            CurrencyCrystalInfo = 0x019F,
+            InitZone = 0x017F,
+            EventStart = 0x036E,
+            EventFinish = 0x0085,
+            UpdateInventorySlot = 0x01C5,
+            DesynthResult = 0x00B2,
+            InventoryActionAck = 0x0172,
+            InventoryTransaction = 0x0134,
+            InventoryTransactionFinish = 0x0291,
+            CFNotify = 0x016E,
+            PrepareZoning = 0x01CB,
+            ObjectSpawn = 0x006A,
+            //StatusEffectList = 0x0275,
+            FreeCompanyInfo = 0x01EA,
+            FreeCompanyDialog = 0x030D,
+            AirshipTimers = 0x0142,
+            SubmarineTimers = 0x02B1,
+            AirshipStatusList = 0x011D,
+            AirshipStatus = 0x03AD,
+            AirshipExplorationResult = 0x006F,
+            SubmarineProgressionStatus = 0x03CA,
+            SubmarineStatusList = 0x00D7,
+            SubmarineExplorationResult = 0x0210,
+            EventPlay = 0x027A,
+            EventPlay4 = 0x012E,
+            EventPlay8 = 0x02E6,
+            EventPlay16 = 0x021E,
+            EventPlay32 = 0x01F9,
+            EventPlay64 = 0x0360,
+            EventPlay128 = 0x033B,
+            EventPlay255 = 0x034D,
+            Logout = 0x0181,
 
             // below are opcodes i've reversed myself...
             EnvironmentControl = 0x0351, // updated - size=16, typically starts with 0x800375xx
-            ActionRequest = 0x03e0, // just begin casting return...
+            ActionRequest = 0x03E0, // just begin casting return...
+            ActionRequestGroundTargeted = 0x02E0, // XIVAlexander
             // old - 0x1fd == EventObjSpawn? for stuff like exit points, etc.
         }
 
