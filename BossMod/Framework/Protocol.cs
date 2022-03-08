@@ -8,35 +8,35 @@ namespace BossMod
         public enum Opcode
         {
             // opcodes from machina
-            StatusEffectList = 0x00bc,
-            StatusEffectList2 = 0x01ff,
-            StatusEffectList3 = 0x02af,
-            BossStatusEffectList = 0x007e,
-            ActionEffect1 = 0x03c7, // Machina calls it AbilityN
-            ActionEffect8 = 0x0149,
-            ActionEffect16 = 0x00c1,
-            ActionEffect24 = 0x0213,
-            ActionEffect32 = 0x038b,
-            ActorCast = 0x0104,
-            EffectResult = 0x00de,
-            EffectResultBasic = 0x02d9,
-            ActorControl = 0x022f, // look at toggle weapon
-            ActorControlSelf = 0x006b, // look at cooldown
-            ActorControlTarget = 0x0191, // look at target change
-            UpdateHpMpTp = 0x02c9,
-            PlayerSpawn = 0x0142,
-            NpcSpawn = 0x032c,
-            NpcSpawn2 = 0x008f,
-            ActorMove = 0x0370,
-            ActorSetPos = 0x0395,
-            ActorGauge = 0x03b5,
-            PresetWaymark = 0x01fe,
-            Waymark = 0x0067,
-            SystemLogMessage = 0x00ef,
+            StatusEffectList = 0xf0bc,
+            StatusEffectList2 = 0xf1ff,
+            StatusEffectList3 = 0xf2af,
+            BossStatusEffectList = 0xf07e,
+            ActionEffect1 = 0x035e, // Machina calls it AbilityN, size=124
+            ActionEffect8 = 0x02ba, // size=636
+            ActionEffect16 = 0xf0c1,
+            ActionEffect24 = 0xf213,
+            ActionEffect32 = 0xf38b,
+            ActorCast = 0xf104,
+            EffectResult = 0xf0de,
+            EffectResultBasic = 0xf2d9,
+            ActorControl = 0x0202, // look at toggle weapon
+            ActorControlSelf = 0x0301, // look at cooldown
+            ActorControlTarget = 0xf3b0, // look at target change
+            UpdateHpMpTp = 0xf2c9,
+            PlayerSpawn = 0xf142,
+            NpcSpawn = 0xf32c,
+            NpcSpawn2 = 0xf08f,
+            ActorMove = 0xf370,
+            ActorSetPos = 0xf395,
+            ActorGauge = 0xf3b5,
+            PresetWaymark = 0x0074,
+            Waymark = 0x03ba,
+            SystemLogMessage = 0xf0ef,
 
             // below are opcodes i've reversed myself...
-            EnvironmentControl = 0x03ba, // updated - size=16, typically starts with 0x800375xx
-            ActionRequest = 0x008e, // just begin casting return...
+            EnvironmentControl = 0x0351, // updated - size=16, typically starts with 0x800375xx
+            ActionRequest = 0x03e0, // just begin casting return...
             // old - 0x1fd == EventObjSpawn? for stuff like exit points, etc.
         }
 

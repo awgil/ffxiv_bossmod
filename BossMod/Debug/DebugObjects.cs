@@ -1,5 +1,4 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Logging;
 using ImGuiNET;
 using System;
 using System.Text;
@@ -15,12 +14,13 @@ namespace BossMod
             ImGui.Checkbox("Show players, minions and mounts", ref _showCrap);
 
             int i = 0;
-            ImGui.BeginTable("objects", 9);
+            ImGui.BeginTable("objects", 10);
             ImGui.TableSetupColumn("Index");
             ImGui.TableSetupColumn("Actor");
             ImGui.TableSetupColumn("Kind/Subkind");
             ImGui.TableSetupColumn("Class");
             ImGui.TableSetupColumn("OwnerID");
+            ImGui.TableSetupColumn("Flags");
             ImGui.TableSetupColumn("Position");
             ImGui.TableSetupColumn("Rotation");
             ImGui.TableSetupColumn("Render flags");
@@ -43,6 +43,7 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectKindString(obj));
                 ImGui.TableNextColumn(); ImGui.Text(character != null ? $"{character.ClassJob.Id} ({(Class)character.ClassJob.Id})" : "---");
                 ImGui.TableNextColumn(); ImGui.Text($"{obj.OwnerId:X}");
+                ImGui.TableNextColumn(); ImGui.Text($"{character?.StatusFlags}");
                 ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(obj.Position));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.RadianString(obj.Rotation));
                 ImGui.TableNextColumn(); ImGui.Text($"{internalObj->RenderFlags:X}");

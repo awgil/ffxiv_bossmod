@@ -1,5 +1,4 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Game.ClientState.Objects.Types;
 using ImGuiNET;
 using System;
 using System.Numerics;
@@ -15,6 +14,7 @@ namespace BossMod
         private DebugParty _debugParty = new();
         private DebugGraphics _debugGraphics = new();
         private DebugAction _debugAction = new();
+        private DebugHate _debugHate = new();
 
         public DebugUI(WorldState ws, Autorotation autorot)
         {
@@ -75,6 +75,10 @@ namespace BossMod
             if (ImGui.CollapsingHeader("WAR"))
             {
                 _autorot.WarActions.DrawDebug();
+            }
+            if (ImGui.CollapsingHeader("Hate"))
+            {
+                _debugHate.Draw();
             }
         }
 
