@@ -8,16 +8,16 @@ using System.Numerics;
 
 namespace UIDev
 {
-    using static Replay;
+    using static ReplayOps;
 
-    class ReplayParserAct
+    class ReplayParserAct : ReplayParser
     {
         public static Replay Parse(string path, int networkDelta)
         {
-            ReplayParserAct parser = new();
-            parser._networkDelta = networkDelta;
             try
             {
+                ReplayParserAct parser = new();
+                parser._networkDelta = networkDelta;
                 using (var reader = new StreamReader(path))
                 {
                     string? line;
@@ -33,16 +33,15 @@ namespace UIDev
                         parser.ParseLine(elements);
                     }
                 }
+                return parser.Finish();
             }
             catch (Exception e)
             {
                 Service.Log($"Failed to read {path}: {e}");
+                return new();
             }
-            return parser._res;
         }
 
-        private Replay _res = new();
-        private WorldState _ws = new();
         private uint _inCombatWith = 0;
         private int _networkDelta = 0;
         private ulong _lastPlayerContentID = 0;
@@ -81,13 +80,6 @@ namespace UIDev
                 case 38: AddMove(timestamp, uint.Parse(payload[2], NumberStyles.HexNumber), payload, 11); break;
                 case 39: AddMove(timestamp, uint.Parse(payload[2], NumberStyles.HexNumber), payload, 10); break;
             };
-        }
-
-        private void AddOp(DateTime timestamp, Operation op)
-        {
-            op.Timestamp = timestamp;
-            op.Redo(_ws);
-            _res.Ops.Add(op);
         }
 
         private void AddMove(DateTime timestamp, uint id, string[] payload, int startPos)

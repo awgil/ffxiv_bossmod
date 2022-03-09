@@ -12,14 +12,13 @@ namespace BossMod
     // - screen coordinates - X points left to right, Y points top to bottom
     public class MiniArena
     {
+        public BossModuleConfig Config { get; init; }
+
         public bool IsCircle = false;
-        public bool ShowCardinals = true;
-        public bool OpaqueBackground = false;
         public Vector3 WorldCenter = new(100, 0, 100);
         public float WorldHalfSize = 20;
-        public float ScreenScale = 1;
-        public float ScreenHalfSize => 150 * ScreenScale;
-        public float ScreenMarginSize => 20 * ScreenScale;
+        public float ScreenHalfSize => 150 * Config.ArenaScale;
+        public float ScreenMarginSize => 20 * Config.ArenaScale;
 
         // these are set at the beginning of each draw
         public Vector2 ScreenCenter { get; private set; } = new();
@@ -49,6 +48,11 @@ namespace BossMod
         public uint ColorPlayerInteresting = 0xffc0c0c0;
         public uint ColorPlayerGeneric = 0xff808080;
         public uint ColorVulnerable = 0xffff00ff;
+
+        public MiniArena(BossModuleConfig config)
+        {
+            Config = config;
+        }
 
         // prepare for drawing - set up internal state, clip rect etc.
         public void Begin(float cameraAzimuthRadians)
@@ -84,7 +88,7 @@ namespace BossMod
             var wmin = ImGui.GetWindowPos();
             var wmax = wmin + ImGui.GetWindowSize();
             ImGui.GetWindowDrawList().PushClipRect(Vector2.Max(cursor, wmin), Vector2.Min(cursor + fullSize, wmax));
-            if (OpaqueBackground)
+            if (Config.OpaqueArenaBackground)
             {
                 if (IsCircle)
                     ZoneCircle(WorldCenter, WorldHalfSize, ColorBackground);
@@ -306,7 +310,7 @@ namespace BossMod
             else
                 AddQuad(WorldNW, WorldNE, WorldSE, WorldSW, ColorBorder, 2);
 
-            if (ShowCardinals)
+            if (Config.ShowCardinals)
             {
                 var offCenter = ScreenHalfSize + 10;
                 TextScreen(ScreenCenter + RotatedCoords(new(0, -offCenter)), "N", ColorBorder);

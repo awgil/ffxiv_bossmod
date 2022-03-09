@@ -64,7 +64,7 @@ namespace UIDev
                 if (data.Ops.Count > 0)
                 {
                     var visu = new ReplayVisualizer(data);
-                    WindowManager.CreateWindow(_openLogName, visu.Draw, visu.Dispose);
+                    WindowManager.CreateWindow(_openLogName, visu.Draw, () => { visu.Dispose(); return true; });
                 }
             }
             ImGui.SameLine();
@@ -74,7 +74,7 @@ namespace UIDev
                 if (data.Ops.Count > 0)
                 {
                     var visu = new ReplayVisualizer(data);
-                    WindowManager.CreateWindow(_openLogName, visu.Draw, visu.Dispose);
+                    WindowManager.CreateWindow(_openLogName, visu.Draw, () => { visu.Dispose(); return true; });
                 }
             }
 
@@ -85,7 +85,7 @@ namespace UIDev
                     var inst = (ITest?)Activator.CreateInstance(t);
                     if (inst != null)
                     {
-                        var window = WindowManager.CreateWindow(t.ToString(), inst.Draw, inst.Dispose);
+                        var window = WindowManager.CreateWindow(t.ToString(), inst.Draw, () => { inst.Dispose(); return true; });
                         window.Flags = inst.WindowFlags();
                     }
                 }

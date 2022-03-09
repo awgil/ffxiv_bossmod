@@ -1,6 +1,6 @@
 ﻿namespace BossMod
 {
-    class GeneralConfig : ConfigNode
+    public class GeneralConfig : ConfigNode
     {
         public bool DumpWorldStateEvents = false;
         public bool DumpServerPackets = false;

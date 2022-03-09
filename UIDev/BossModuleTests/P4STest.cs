@@ -41,7 +41,7 @@ namespace UIDev
             _ws.Actors.Add(18, (uint)OID.Helper, "Helper", ActorType.Enemy, Class.None, new(105.66f, 0, 105.66f, 0));
             for (int i = 1; i <= 8; ++i)
                 _ws.Party.Add((ulong)i, _ws.Actors.Find((uint)i), i == 1);
-            _o = new P4S(_ws);
+            _o = new P4S(new(_ws, new()), _ws.Actors.Find(10)!);
         }
 
         public void Dispose()

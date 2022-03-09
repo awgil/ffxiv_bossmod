@@ -30,7 +30,7 @@ namespace UIDev
             _ws.Actors.Add(11, (uint)OID.DissociatedHead, "DHead", ActorType.Enemy, Class.None, new(90, 0, 75, 0));
             for (int i = 1; i <= 8; ++i)
                 _ws.Party.Add((ulong)i, _ws.Actors.Find((uint)i), i == 1);
-            _o = new P2S(_ws);
+            _o = new P2S(new(_ws, new()), _ws.Actors.Find(9)!);
         }
 
         public void Dispose()

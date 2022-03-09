@@ -1,255 +1,226 @@
-﻿using Dalamud.Interface;
-using Dalamud.Logging;
-using Dalamud.Utility;
-using ImGuiNET;
+﻿using ImGuiNET;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace BossMod
 {
-    class BossModuleManager : IDisposable
+    // base class that creates and manages instances of proper boss modules in response to world state changes
+    // derived class should perform rendering as appropriate
+    public class BossModuleManager : IDisposable
     {
-        public class BossModuleConfig : ConfigNode
-        {
-            public float ArenaScale = 1;
-            public bool Enable = true;
-            public bool Lock = false;
-            public bool RotateArena = true;
-            public bool ShowCardinals = false;
-            public bool ShowWaymarks = false;
-            public bool ShowMechanicTimers = true;
-            public bool ShowGlobalHints = true;
-            public bool ShowPlayerHints = true;
-            public bool ShowControlButtons = true;
-            public bool TrishaMode = false;
-            public bool OpaqueArenaBackground = false;
-            public bool ShowRaidWarnings = true;
-            public bool ShowWorldArrows = false;
-            public bool ShowDemo = false;
+        public WorldState WorldState { get; init; }
+        public BossModuleConfig Config { get; init; }
+        public RaidCooldowns RaidCooldowns { get; init; }
 
-            protected override void DrawContents()
-            {
-                if (ImGui.DragFloat("Arena scale factor", ref ArenaScale, 0.1f, 0.1f, 10, "%.1f", ImGuiSliderFlags.Logarithmic))
-                    NotifyModified();
-                DrawProperty(ref Enable, "Enable boss modules");
-                DrawProperty(ref Lock, "Lock movement and mouse interaction");
-                DrawProperty(ref RotateArena, "Rotate map to match camera orientation");
-                DrawProperty(ref ShowCardinals, "Show cardinal direction names");
-                DrawProperty(ref ShowWaymarks, "Show waymarks on radar");
-                DrawProperty(ref ShowMechanicTimers, "Show mechanics sequence and timers");
-                DrawProperty(ref ShowGlobalHints, "Show raidwide hints");
-                DrawProperty(ref ShowPlayerHints, "Show warnings and hints for player");
-                DrawProperty(ref ShowControlButtons, "Show control buttons under radar");
-                DrawProperty(ref TrishaMode, "Trisha mode: show radar without window");
-                DrawProperty(ref OpaqueArenaBackground, "Add opaque background to the arena");
-                DrawProperty(ref ShowRaidWarnings, "Show warnings for all raid members");
-                DrawProperty(ref ShowWorldArrows, "Show movement hints in world");
-                DrawProperty(ref ShowDemo, "Show boss module demo out of instances (useful for configuring windows)");
-            }
+        private bool _running = false;
+        private Dictionary<uint, BossModule> _loadedModules = new(); // key = primary actor instance ID
+        private List<BossModule> _activeModules = new();
 
-            protected override string? NameOverride() => "Boss modules settings";
-        }
-
-        private WorldState _ws;
-        private BossModuleConfig _config;
-        private BossModule? _activeModule;
-        private WindowManager.Window? _mainWindow;
-        private WindowManager.Window? _raidWarnings;
-
-        public BossModule? ActiveModule => _activeModule;
+        public BossModule? ActiveModule => _activeModules.FirstOrDefault();
+        public IReadOnlyCollection<BossModule> ActiveModules => _activeModules;
+        public IReadOnlyCollection<BossModule> LoadedModules => _loadedModules.Values;
 
         public BossModuleManager(WorldState ws, ConfigNode settings)
         {
-            _ws = ws;
-            _config = settings.Get<BossModuleConfig>();
+            WorldState = ws;
+            Config = settings.Get<BossModuleConfig>();
+            RaidCooldowns = new(ws);
 
-            _ws.CurrentZoneChanged += ZoneChanged;
-            _config.Modified += ConfigChanged;
+            Config.Modified += ConfigChanged;
 
-            ApplyConfigAndZoneChanges();
+            if (Config.Enable)
+            {
+                Startup();
+                RefreshConfigOrModules();
+            }
         }
 
         public void Dispose()
         {
-            _activeModule?.Dispose();
-            _ws.CurrentZoneChanged -= ZoneChanged;
-            _config.Modified -= ConfigChanged;
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Shutdown();
+                RefreshConfigOrModules();
+                Config.Modified -= ConfigChanged;
+                RaidCooldowns.Dispose();
+            }
         }
 
         public void Update()
         {
-            if (_activeModule != null)
-            {
-                TryExec(_activeModule.Update);
-            }
-        }
-
-        public void ApplyConfigAndZoneChanges(ushort? forcedZone = null)
-        {
-            var zone = forcedZone ?? _ws.CurrentZone;
-            var desiredType = _config.Enable ? ZoneModule.TypeForZone(zone) : null;
-            if (desiredType == null && _config.Enable && _config.ShowDemo)
-                desiredType = typeof(DemoModule);
-
-            // recreate module if needed
-            if (forcedZone != null || (_activeModule?.GetType() ?? null) != desiredType)
-            {
-                _activeModule?.Dispose();
-                _activeModule = ZoneModule.CreateModule(desiredType, _ws);
-                Service.Log($"Activated module: {_activeModule?.GetType().ToString() ?? "none"}");
-            }
-
-            // update module properties
-            if (_activeModule != null)
-            {
-                _activeModule.Arena.ScreenScale = _config.ArenaScale;
-                _activeModule.Arena.ShowCardinals = _config.ShowCardinals;
-                _activeModule.Arena.OpaqueBackground = _config.OpaqueArenaBackground;
-                _activeModule.ShowStateMachine = _config.ShowMechanicTimers;
-                _activeModule.ShowGlobalHints = _config.ShowGlobalHints;
-                _activeModule.ShowPlayerHints = _config.ShowPlayerHints;
-                _activeModule.ShowControlButtons = _config.ShowControlButtons;
-                _activeModule.ShowWaymarks = _config.ShowWaymarks;
-            }
-
-            // create or destroy main window if needed
-            if (_mainWindow != null && _activeModule == null)
-            {
-                _mainWindow.Close(true);
-                _mainWindow = null;
-            }
-            else if (_mainWindow == null && _activeModule != null)
-            {
-                _mainWindow = WindowManager.CreateWindow("Boss module", () => TryExec(DrawMainWindow), MainWindowClosedByUser);
-                _mainWindow.SizeHint = new(400, 400);
-            }
-
-            // update main window properties
-            if (_mainWindow != null)
-            {
-                _mainWindow.Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
-                if (_config.TrishaMode)
-                    _mainWindow.Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
-                if (_config.Lock)
-                    _mainWindow.Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
-            }
-
-            // create or destroy raid warnings window
-            bool wantRaidWarnings = _activeModule != null && _config.ShowRaidWarnings;
-            if (wantRaidWarnings && _raidWarnings == null)
-            {
-                _raidWarnings = WindowManager.CreateWindow("Raid warnings", () => TryExec(DrawRaidWarnings), () => _raidWarnings = null);
-                _raidWarnings.SizeHint = new(100, 100);
-                _raidWarnings.MinSize = new(100, 100);
-                _raidWarnings.Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
-            }
-            else if (!wantRaidWarnings && _raidWarnings != null)
-            {
-                _raidWarnings?.Close();
-                _raidWarnings = null;
-            }
-        }
-
-        private void DrawMainWindow()
-        {
-            BossModule.MovementHints? movementHints = _config.ShowWorldArrows ? new() : null;
-            _activeModule?.Draw(_config.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, PartyState.PlayerSlot, movementHints);
-            DrawMovementHints(movementHints);
-        }
-
-        private void DrawRaidWarnings()
-        {
-            if (_activeModule == null)
+            if (!_running)
                 return;
 
-            // TODO: this should really snap to player in party ui...
-            var riskColor = ImGui.ColorConvertU32ToFloat4(0xff00ffff);
-            var safeColor = ImGui.ColorConvertU32ToFloat4(0xff00ff00);
-            foreach ((int i, var player) in _activeModule.Raid.WithSlot())
+            try
             {
-                var hints = _activeModule.CalculateHintsForRaidMember(i, player);
-                if (hints.Count == 0)
-                    continue;
+                foreach (var m in _activeModules)
+                    m.Update();
+            }
+            catch (Exception ex)
+            {
+                Service.Log($"Boss module crashed: {ex}");
+                Config.Enable = false;
+                Shutdown();
+                RefreshConfigOrModules();
+            }
+        }
 
-                ImGui.Text($"{player.Name}:");
-                foreach ((var hint, bool risk) in hints)
+        protected virtual void RefreshConfigOrModules() { }
+
+        private void Startup()
+        {
+            if (_running)
+                return;
+
+            _running = true;
+            WorldState.Actors.Added += ActorAdded;
+            WorldState.Actors.Removed += ActorRemoved;
+            WorldState.Actors.InCombatChanged += EnterExitCombat;
+
+            if (Config.ShowDemo)
+            {
+                LoadDemo();
+            }
+
+            foreach (var a in WorldState.Actors)
+            {
+                var m = LoadModule(a);
+                if (m != null && a.InCombat)
                 {
-                    ImGui.SameLine();
-                    ImGui.TextColored(risk ? riskColor : safeColor, hint);
+                    ActivateModule(m);
                 }
             }
         }
 
-        private void DrawMovementHints(BossModule.MovementHints? arrows)
+        private void Shutdown()
         {
-            if (arrows == null || arrows.Count == 0 || Camera.Instance == null)
+            if (!_running)
                 return;
 
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
-            ImGuiHelpers.ForceNextWindowMainViewport();
-            ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(0, 0));
-            ImGui.Begin("movement_hints_overlay", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground);
-            ImGui.SetWindowSize(ImGui.GetIO().DisplaySize);
+            _running = false;
+            WorldState.Actors.Added -= ActorAdded;
+            WorldState.Actors.Removed -= ActorRemoved;
+            WorldState.Actors.InCombatChanged -= EnterExitCombat;
 
-            foreach ((var start, var end, uint color) in arrows)
+            foreach (var m in _activeModules)
             {
-                DrawWorldLine(start, end, color, Camera.Instance);
-                var dir = Vector3.Normalize(end - start);
-                var arrowStart = end - 0.4f * dir;
-                var offset = 0.07f * Vector3.Normalize(Vector3.Cross(Vector3.UnitY, dir));
-                DrawWorldLine(arrowStart + offset, end, color, Camera.Instance);
-                DrawWorldLine(arrowStart - offset, end, color, Camera.Instance);
+                m.StateMachine.ActiveState = null;
+                m.Reset();
             }
+            _activeModules.Clear();
 
-            ImGui.End();
-            ImGui.PopStyleVar();
+            foreach (var m in _loadedModules.Values)
+                m.Dispose();
+            _loadedModules.Clear();
         }
 
-        private void DrawWorldLine(Vector3 start, Vector3 end, uint color, Camera camera)
+        private bool LoadDemo()
         {
-            var p1 = start.ToSharpDX();
-            var p2 = end.ToSharpDX();
-            if (!GeometryUtils.ClipLineToNearPlane(ref p1, ref p2, camera.ViewProj))
+            if (_running && !_loadedModules.ContainsKey(0))
+            {
+                _loadedModules[0] = new DemoModule(this, new(0, 0, "", ActorType.None, Class.None, new(), 0, false, 0));
+                return true;
+            }
+            return false;
+        }
+
+        private BossModule? LoadModule(Actor actor)
+        {
+            var m = ModuleRegistry.CreateModule(actor.OID, this, actor);
+            if (m != null)
+            {
+                Service.Log($"[BMM] Loading boss module '{m.GetType()}' for actor {actor.InstanceID:X} ({actor.OID:X}) '{actor.Name}'");
+                _loadedModules[actor.InstanceID] = m;
+            }
+            return m;
+        }
+
+        public bool UnloadModule(uint instanceID)
+        {
+            var m = _loadedModules.GetValueOrDefault(instanceID);
+            if (m == null)
+                return false;
+
+            DeactivateModule(m);
+
+            Service.Log($"[BMM] Unloading boss module '{m.GetType()}' for actor {instanceID:X}");
+            m.Dispose();
+            _loadedModules.Remove(instanceID);
+            return true;
+        }
+
+        public void ActivateModule(BossModule m)
+        {
+            Service.Log($"[BMM] Activating boss module '{m.GetType()}' for actor {m.PrimaryActor.InstanceID:X} ({m.PrimaryActor.OID:X}) '{m.PrimaryActor.Name}'");
+            m.Reset();
+            m.StateMachine.ActiveState = m.InitialState;
+            _activeModules.Add(m);
+        }
+
+        public void DeactivateModule(BossModule m)
+        {
+            if (_activeModules.Remove(m))
+            {
+                Service.Log($"[BMM] Deactivating boss module '{m.GetType()}' for actor {m.PrimaryActor.InstanceID:X} ({m.PrimaryActor.OID:X}) '{m.PrimaryActor.Name}'");
+                m.StateMachine.ActiveState = null;
+                m.Reset();
+            }
+        }
+
+        private void ActorAdded(object? sender, Actor actor)
+        {
+            if (LoadModule(actor) != null)
+            {
+                RefreshConfigOrModules();
+            }
+        }
+
+        private void ActorRemoved(object? sender, Actor actor)
+        {
+            if (UnloadModule(actor.InstanceID))
+            {
+                RefreshConfigOrModules();
+            }
+        }
+
+        private void EnterExitCombat(object? sender, Actor actor)
+        {
+            var m = _loadedModules.GetValueOrDefault(actor.InstanceID);
+            if (m == null)
                 return;
 
-            p1 = SharpDX.Vector3.TransformCoordinate(p1, camera.ViewProj);
-            p2 = SharpDX.Vector3.TransformCoordinate(p2, camera.ViewProj);
-            var p1screen = new Vector2(0.5f * camera.ViewportSize.X * (1 + p1.X), 0.5f * camera.ViewportSize.Y * (1 - p1.Y)) + ImGuiHelpers.MainViewport.Pos;
-            var p2screen = new Vector2(0.5f * camera.ViewportSize.X * (1 + p2.X), 0.5f * camera.ViewportSize.Y * (1 - p2.Y)) + ImGuiHelpers.MainViewport.Pos;
-            ImGui.GetWindowDrawList().AddLine(p1screen, p2screen, color);
-            //ImGui.GetWindowDrawList().AddText(p1screen, color, $"({p1.X:f3},{p1.Y:f3},{p1.Z:f3}) -> ({p2.X:f3},{p2.Y:f3},{p2.Z:f3})");
-        }
-
-        private void TryExec(Action action)
-        {
-            try
+            if (actor.InCombat)
             {
-                action();
+                ActivateModule(m);
             }
-            catch (Exception ex)
+            else
             {
-                PluginLog.Error(ex, "Boss module crashed");
-                _activeModule?.Dispose();
-                _activeModule = null;
+                DeactivateModule(m);
             }
-        }
-
-        private void MainWindowClosedByUser()
-        {
-            // temporarily disable, but do not save...
-            Service.Log($"Bossmod window closed by user, disabling temporarily");
-            _config.Enable = false;
-            ApplyConfigAndZoneChanges();
-        }
-
-        private void ZoneChanged(object? sender, ushort zone)
-        {
-            ApplyConfigAndZoneChanges();
+            RefreshConfigOrModules();
         }
 
         private void ConfigChanged(object? sender, EventArgs args)
         {
-            ApplyConfigAndZoneChanges();
+            if (Config.Enable)
+                Startup();
+            else
+                Shutdown();
+
+            if (Config.ShowDemo)
+                LoadDemo();
+            else
+                UnloadModule(0);
+
+            RefreshConfigOrModules();
         }
     }
 }

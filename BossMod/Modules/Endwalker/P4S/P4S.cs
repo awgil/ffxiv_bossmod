@@ -35,8 +35,8 @@ namespace BossMod.P4S
         public Actor? Boss1() => _boss1.FirstOrDefault();
         public Actor? Boss2() => _boss2.FirstOrDefault();
 
-        public P4S(WorldState ws)
-            : base(ws)
+        public P4S(BossModuleManager manager, Actor primary)
+            : base(manager, primary, true)
         {
             _boss1 = Enemies(OID.Boss1);
             _boss2 = Enemies(OID.Boss2);

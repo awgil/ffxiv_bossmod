@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace UIDev
 {
@@ -13,32 +11,44 @@ namespace UIDev
     {
         private Replay _data;
         private WorldState _ws = new();
+        private BossModuleManager _mgr;
         private int _cursor = 0;
         private List<(DateTime, bool)> _checkpoints = new();
         private DateTime _first;
         private DateTime _last;
         private DateTime _prevFrame;
         private float _playSpeed = 0;
-        private BossModule? _bossmod;
         private float _azimuth;
         private int _povSlot = PartyState.PlayerSlot;
 
         public ReplayVisualizer(Replay data)
         {
             _data = data;
-            _ws.CurrentTime = data.Ops.First().Timestamp;
-            _ws.CurrentZoneChanged += OnZoneChanged;
+            _mgr = new(_ws, new());
 
-            foreach (var op in data.Ops.OfType<Replay.OpActorCombat>())
-                if (_checkpoints.Count == 0 || (op.Timestamp - _checkpoints.Last().Item1).TotalSeconds > 5)
-                    _checkpoints.Add((op.Timestamp, op.Value));
-            _first = data.Ops.First().Timestamp;
+            WorldState temp = new();
+            foreach (var op in data.Ops)
+            {
+                op.Redo(temp);
+
+                var combatOp = op as ReplayOps.OpActorCombat;
+                if (combatOp != null)
+                {
+                    var act = temp.Actors.Find(combatOp.InstanceID);
+                    var mt = ModuleRegistry.TypeForOID(act?.OID ?? 0);
+                    if (mt != null)
+                    {
+                        _checkpoints.Add((op.Timestamp, combatOp.Value));
+                    }
+                }
+            }
+
+            _ws.CurrentTime = _first = data.Ops.First().Timestamp;
             _last = data.Ops.Last().Timestamp;
         }
 
         public void Dispose()
         {
-            _ws.CurrentZoneChanged -= OnZoneChanged;
         }
 
         public void Draw()
@@ -47,16 +57,18 @@ namespace UIDev
             MoveTo(_ws.CurrentTime + (curFrame - _prevFrame) * _playSpeed);
             _prevFrame = curFrame;
 
+            _mgr.Update();
+
             DrawControlRow();
             DrawTimelineRow();
+            ImGui.Text($"Num loaded modules: {_mgr.LoadedModules.Count}, num active modules: {_mgr.ActiveModules.Count}, active module: {_mgr.ActiveModule?.GetType()}");
             ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
-            if (_bossmod != null)
+            if (_mgr.ActiveModule != null)
             {
-                _bossmod.Update();
-                _bossmod.Draw(_azimuth / 180 * MathF.PI, _povSlot, null);
+                _mgr.ActiveModule.Draw(_azimuth / 180 * MathF.PI, _povSlot, null);
 
-                ImGui.Text($"Downtime in: {_bossmod.StateMachine.EstimateTimeToNextDowntime():f2}, Positioning in: {_bossmod.StateMachine.EstimateTimeToNextPositioning():f2}, Components:");
-                foreach (var comp in _bossmod.Components)
+                ImGui.Text($"Downtime in: {_mgr.ActiveModule.StateMachine.EstimateTimeToNextDowntime():f2}, Positioning in: {_mgr.ActiveModule.StateMachine.EstimateTimeToNextPositioning():f2}, Components:");
+                foreach (var comp in _mgr.ActiveModule.Components)
                 {
                     ImGui.SameLine();
                     ImGui.Text(comp.GetType().Name);
@@ -152,7 +164,7 @@ namespace UIDev
 
         private void DrawPartyTable()
         {
-            if (_bossmod == null || !ImGui.CollapsingHeader("Party"))
+            if (!ImGui.CollapsingHeader("Party"))
                 return;
 
             var riskColor = ImGui.ColorConvertU32ToFloat4(0xff00ffff);
@@ -169,7 +181,7 @@ namespace UIDev
             ImGui.TableSetupColumn("Statuses", ImGuiTableColumnFlags.None, 100);
             ImGui.TableSetupColumn("Hints", ImGuiTableColumnFlags.None, 250);
             ImGui.TableHeadersRow();
-            foreach ((int slot, var player) in _bossmod.Raid.WithSlot(true))
+            foreach ((int slot, var player) in _ws.Party.WithSlot(true))
             {
                 ImGui.PushID((int)player.InstanceID);
                 ImGui.TableNextRow();
@@ -186,11 +198,14 @@ namespace UIDev
                 DrawCommonColumns(player);
 
                 ImGui.TableNextColumn();
-                var hints = _bossmod.CalculateHintsForRaidMember(slot, player);
-                foreach ((var hint, bool risk) in hints)
+                if (_mgr.ActiveModule != null)
                 {
-                    ImGui.TextColored(risk ? riskColor : safeColor, hint);
-                    ImGui.SameLine();
+                    var hints = _mgr.ActiveModule.CalculateHintsForRaidMember(slot, player);
+                    foreach ((var hint, bool risk) in hints)
+                    {
+                        ImGui.TextColored(risk ? riskColor : safeColor, hint);
+                        ImGui.SameLine();
+                    }
                 }
 
                 ImGui.PopID();
@@ -200,33 +215,39 @@ namespace UIDev
 
         private void DrawEnemyTables()
         {
-            if (_bossmod == null)
+            if (_mgr.ActiveModule == null)
                 return;
 
-            var oidType = _bossmod.GetType().Module.GetType($"{_bossmod.GetType().Namespace}.OID");
-            foreach ((var oid, var list) in _bossmod.RelevantEnemies)
+            DrawEnemyTable(_mgr.ActiveModule.PrimaryActor.OID, new Actor[] { _mgr.ActiveModule.PrimaryActor });
+            foreach ((var oid, var list) in _mgr.ActiveModule.RelevantEnemies)
             {
-                var oidName = oidType?.GetEnumName(oid);
-                if (!ImGui.CollapsingHeader($"Enemy {oid:X} {oidName ?? ""}") || list.Count == 0)
-                    continue;
-
-                ImGui.BeginTable($"enemy_{oid}", 6, ImGuiTableFlags.Resizable);
-                ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
-                ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
-                ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
-                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 100);
-                ImGui.TableSetupColumn("Cast");
-                ImGui.TableSetupColumn("Statuses");
-                ImGui.TableHeadersRow();
-                foreach (var enemy in list)
-                {
-                    ImGui.PushID((int)enemy.InstanceID);
-                    ImGui.TableNextRow();
-                    DrawCommonColumns(enemy);
-                    ImGui.PopID();
-                }
-                ImGui.EndTable();
+                DrawEnemyTable(oid, list);
             }
+        }
+
+        private void DrawEnemyTable(uint oid, ICollection<Actor> actors)
+        {
+            var oidType = _mgr.ActiveModule != null ? _mgr.ActiveModule.GetType().Module.GetType($"{_mgr.ActiveModule.GetType().Namespace}.OID") : null;
+            var oidName = oidType?.GetEnumName(oid);
+            if (!ImGui.CollapsingHeader($"Enemy {oid:X} {oidName ?? ""}") || actors.Count == 0)
+                return;
+
+            ImGui.BeginTable($"enemy_{oid}", 6, ImGuiTableFlags.Resizable);
+            ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
+            ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
+            ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
+            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 100);
+            ImGui.TableSetupColumn("Cast");
+            ImGui.TableSetupColumn("Statuses");
+            ImGui.TableHeadersRow();
+            foreach (var enemy in actors)
+            {
+                ImGui.PushID((int)enemy.InstanceID);
+                ImGui.TableNextRow();
+                DrawCommonColumns(enemy);
+                ImGui.PopID();
+            }
+            ImGui.EndTable();
         }
 
         private void DrawAllActorsTable()
@@ -279,12 +300,6 @@ namespace UIDev
                 return false;
             var pos = ImGui.GetMousePos();
             return pos.X >= centerPos.X - halfSize && pos.X <= centerPos.X + halfSize && pos.Y >= centerPos.Y - halfSize && pos.Y <= centerPos.Y + halfSize;
-        }
-
-        private void OnZoneChanged(object? sender, ushort zone)
-        {
-            _bossmod?.Dispose();
-            _bossmod = ZoneModule.CreateModule(zone, _ws);
         }
     }
 }

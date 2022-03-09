@@ -125,7 +125,7 @@ namespace BossMod
             bool showUI = enabled && _config.AutorotationShowUI;
             if (showUI && _ui == null)
             {
-                _ui = WindowManager.CreateWindow("Autorotation", WarActions.DrawOverlay, () => { });
+                _ui = WindowManager.CreateWindow("Autorotation", WarActions.DrawOverlay, () => true);
                 _ui.SizeHint = new(100, 100);
                 _ui.MinSize = new(100, 100);
                 _ui.Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;

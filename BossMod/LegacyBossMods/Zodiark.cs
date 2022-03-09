@@ -8,7 +8,7 @@ namespace BossMod
 {
     class Zodiark : BossModule
     {
-        private enum OID
+        public enum OID
         {
             Boss = 0x324D,
             Helper = 0x233C,
@@ -58,8 +58,8 @@ namespace BossMod
 
         private ZodiarkStages _stages = new();
 
-        public Zodiark(WorldState ws)
-            : base(ws)
+        public Zodiark(BossModuleManager manager, Actor primary)
+            : base(manager, primary, true)
         {
             WorldState.Actors.CastStarted += ActorCastStarted;
             WorldState.Actors.CastFinished += ActorCastFinished;

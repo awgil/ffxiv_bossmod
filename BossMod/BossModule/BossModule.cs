@@ -9,19 +9,16 @@ namespace BossMod
     // base for boss modules - provides all the common features, so that look is standardized
     public class BossModule : IDisposable
     {
-        public WorldState WorldState { get; init; }
+        public BossModuleManager Manager { get; init; }
+        public Actor PrimaryActor { get; init; }
+        public MiniArena Arena { get; init; }
         public StateMachine StateMachine { get; init; } = new();
         public StateMachine.State? InitialState = null;
-        public MiniArena Arena { get; init; } = new();
-        public RaidCooldowns RaidCooldowns { get; init; } = new();
 
+        public WorldState WorldState => Manager.WorldState;
         public PartyState Raid => WorldState.Party;
 
-        public bool ShowStateMachine = true;
-        public bool ShowGlobalHints = true;
-        public bool ShowPlayerHints = true;
-        public bool ShowControlButtons = true;
-        public bool ShowWaymarks = true;
+        private bool _resetRaidCooldowns;
 
         // per-oid enemy lists; filled on first request
         private Dictionary<uint, List<Actor>> _relevantEnemies = new(); // key = actor OID
@@ -113,12 +110,15 @@ namespace BossMod
             return _components.OfType<T>().FirstOrDefault();
         }
 
-        public BossModule(WorldState w)
+        public BossModule(BossModuleManager manager, Actor primary, bool resetCooldownsOnReset)
         {
-            WorldState = w;
+            Manager = manager;
+            PrimaryActor = primary;
+            Arena = new(Manager.Config);
+            _resetRaidCooldowns = resetCooldownsOnReset;
+
             WorldState.Actors.Added += OnActorCreated;
             WorldState.Actors.Removed += OnActorDestroyed;
-            WorldState.Actors.InCombatChanged += EnterExitCombat;
             WorldState.Actors.CastStarted += OnActorCastStarted;
             WorldState.Actors.CastFinished += OnActorCastFinished;
             WorldState.Actors.Tethered += OnActorTethered;
@@ -145,7 +145,6 @@ namespace BossMod
             {
                 WorldState.Actors.Added -= OnActorCreated;
                 WorldState.Actors.Removed -= OnActorDestroyed;
-                WorldState.Actors.InCombatChanged -= EnterExitCombat;
                 WorldState.Actors.CastStarted -= OnActorCastStarted;
                 WorldState.Actors.CastFinished -= OnActorCastFinished;
                 WorldState.Actors.Tethered -= OnActorTethered;
@@ -163,6 +162,9 @@ namespace BossMod
         {
             _components.Clear();
             ResetModule();
+
+            if (_resetRaidCooldowns)
+                Manager.RaidCooldowns.Clear();
         }
 
         public virtual void Update()
@@ -175,25 +177,25 @@ namespace BossMod
 
         public virtual void Draw(float cameraAzimuth, int pcSlot, MovementHints? pcMovementHints)
         {
-            if (ShowStateMachine)
+            if (Manager.Config.ShowMechanicTimers)
                 StateMachine.Draw();
 
-            if (ShowGlobalHints)
+            if (Manager.Config.ShowGlobalHints)
                 DrawGlobalHints();
 
-            if (ShowPlayerHints)
+            if (Manager.Config.ShowPlayerHints)
                 DrawHintForPlayer(pcSlot, pcMovementHints);
 
             Arena.Begin(cameraAzimuth);
             DrawArena(pcSlot);
             Arena.End();
 
-            if (ShowControlButtons)
+            if (Manager.Config.ShowControlButtons)
             {
                 if (ImGui.Button("Show timeline"))
                 {
                     var timeline = new StateMachineVisualizer(InitialState);
-                    var w = WindowManager.CreateWindow($"{GetType()} Timeline", () => timeline.Draw(StateMachine), () => { });
+                    var w = WindowManager.CreateWindow($"{GetType()} Timeline", () => timeline.Draw(StateMachine), () => true);
                     w.SizeHint = new(600, 600);
                     w.MinSize = new(100, 100);
                 }
@@ -215,7 +217,7 @@ namespace BossMod
             foreach (var comp in _components)
                 comp.DrawArenaBackground(pcSlot, pc, Arena);
             Arena.Border();
-            if (ShowWaymarks)
+            if (Manager.Config.ShowWaymarks)
                 DrawWaymarks();
             DrawArenaForegroundPre(pcSlot, pc);
             foreach (var comp in _components)
@@ -259,7 +261,7 @@ namespace BossMod
         private void DrawGlobalHints()
         {
             var hints = CalculateGlobalHints();
-            var hintColor = ImGui.ColorConvertU32ToFloat4(0xffff8000);
+            var hintColor = ImGui.ColorConvertU32ToFloat4(0xffffff00);
             foreach (var hint in hints)
             {
                 ImGui.TextColored(hintColor, hint);
@@ -331,24 +333,6 @@ namespace BossMod
             }
         }
 
-        private void EnterExitCombat(object? sender, Actor actor)
-        {
-            if (actor != WorldState.Party.Player())
-                return;
-
-            if (actor.InCombat)
-            {
-                Reset();
-                StateMachine.ActiveState = InitialState;
-            }
-            else
-            {
-                StateMachine.ActiveState = null;
-                Reset();
-                RaidCooldowns.Clear();
-            }
-        }
-
         private void OnActorCastStarted(object? sender, Actor actor)
         {
             foreach (var comp in _components)
@@ -399,7 +383,6 @@ namespace BossMod
 
         private void OnEventCast(object? sender, CastEvent info)
         {
-            RaidCooldowns.HandleCast(WorldState.CurrentTime, WorldState.Party, info);
             foreach (var comp in _components)
                 comp.OnEventCast(info);
         }

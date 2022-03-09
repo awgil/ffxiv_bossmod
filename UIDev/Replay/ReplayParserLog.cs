@@ -10,15 +10,15 @@ using System.Threading.Tasks;
 
 namespace UIDev
 {
-    using static Replay;
+    using static ReplayOps;
 
-    class ReplayParserLog
+    class ReplayParserLog : ReplayParser
     {
         public static Replay Parse(string path)
         {
-            ReplayParserLog parser = new();
             try
             {
+                ReplayParserLog parser = new();
                 using (var reader = new StreamReader(path))
                 {
                     string? line;
@@ -34,16 +34,15 @@ namespace UIDev
                         parser.ParseLine(elements);
                     }
                 }
+                return parser.Finish();
             }
             catch (Exception e)
             {
                 Service.Log($"Failed to read {path}: {e}");
+                return new();
             }
-            return parser._res;
         }
 
-        private Replay _res = new();
-        private WorldState _ws = new();
         private int _version = 0;
         private ulong _lastFakeContentID = 0; // pc will always have id=1
         private uint _playerID = 0;
@@ -85,13 +84,6 @@ namespace UIDev
                 case "CST!": ParseEventCast(timestamp, payload); break;
                 case "ENVC": ParseEventEnvControl(timestamp, payload); break;
             }
-        }
-
-        private void AddOp(DateTime timestamp, Operation op)
-        {
-            op.Timestamp = timestamp;
-            op.Redo(_ws);
-            _res.Ops.Add(op);
         }
 
         private void ParseVersion(DateTime timestamp, string[] payload)

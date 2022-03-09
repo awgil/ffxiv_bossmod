@@ -10,16 +10,17 @@ namespace BossMod
         public class Window
         {
             private Action _onDraw;
-            private Action _onClose;
+            private Func<bool> _onClose;
             private bool _wantClose;
 
             public bool Closed { get; private set; } = false;
             public Vector2 SizeHint = new(300, 300);
             public Vector2 MinSize = new(50, 50);
             public ImGuiWindowFlags Flags = ImGuiWindowFlags.None;
-            public string Name = "";
+            public string Name;
+            public string? Title;
 
-            internal Window(string name, Action draw, Action close)
+            internal Window(string name, Action draw, Func<bool> close)
             {
                 Name = name;
                 _onDraw = draw;
@@ -31,17 +32,15 @@ namespace BossMod
                 var visible = !_wantClose;
                 ImGui.SetNextWindowSize(SizeHint, ImGuiCond.FirstUseEver);
                 ImGui.SetNextWindowSizeConstraints(MinSize, new Vector2(float.MaxValue, float.MaxValue));
-                if (ImGui.Begin(Name, ref visible, Flags))
+                if (ImGui.Begin(Title != null ? $"{Title}###{Name}" : Name, ref visible, Flags))
                 {
                     _onDraw();
                 }
                 ImGui.End();
 
                 if (!visible)
-                {
-                    _onClose();
-                    Closed = true;
-                }
+                    visible = !_onClose();
+                Closed = visible;
                 return visible;
             }
 
@@ -54,13 +53,13 @@ namespace BossMod
             {
                 _wantClose = true;
                 if (noCallback)
-                    _onClose = () => { };
+                    _onClose = () => true;
             }
         }
         private static List<Window> _windows = new();
         private static int _nextUniqueID = 0;
 
-        public static Window CreateWindow(string name, Action draw, Action close, bool unique = true)
+        public static Window CreateWindow(string name, Action draw, Func<bool> close, bool unique = true)
         {
             var w = unique ? _windows.Find(x => x.Name == name) : null;
             if (w == null)

@@ -8,7 +8,7 @@ namespace UIDev
 {
     class MiniArenaTest : ITest
     {
-        private MiniArena _arena = new();
+        private MiniArena _arena = new(new());
         private float _azimuth = -72;
         private float _altitude = 90;
         //private bool _lineEnabled;

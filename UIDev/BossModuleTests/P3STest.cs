@@ -53,7 +53,7 @@ namespace UIDev
             _ws.Waymarks[Waymark.N4] = new(90, 0, 100);
             for (int i = 1; i <= 8; ++i)
                 _ws.Party.Add((ulong)i, _ws.Actors.Find((uint)i), i == 1);
-            _o = new P3S(_ws);
+            _o = new P3S(new(_ws, new()), _ws.Actors.Find(9)!);
         }
 
         public void Dispose()

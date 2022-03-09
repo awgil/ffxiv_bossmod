@@ -3,6 +3,8 @@ general:
 - clip circles to arena bounds...
 - reconsider worldstate->bossmodule event subscription model (tedious to manually subscribe/unsubsribe and forward to components...)
 - fail log?
+- better log analysis (find OID/AID/StatusID/TetherID/IconIDs; determine ability targets, damage, etc...; gather statistics for state transitions)
+- determine exact mechanism for cooldown reset (on instance enter and on wipe)
 
 network:
 - hook send/recv (a-la xivalexander)

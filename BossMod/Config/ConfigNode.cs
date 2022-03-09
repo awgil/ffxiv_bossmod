@@ -6,7 +6,7 @@ namespace BossMod
 {
     // base class for configuration nodes
     // configuration is split into hierarchical structure to allow storing options next to classes they're relevant to
-    class ConfigNode
+    public class ConfigNode
     {
         public event EventHandler? Modified;
         protected ConfigNode? Parent;

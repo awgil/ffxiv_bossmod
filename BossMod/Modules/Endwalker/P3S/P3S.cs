@@ -8,14 +8,11 @@ namespace BossMod.P3S
 {
     public class P3S : BossModule
     {
-        private List<Actor> _boss;
-        public Actor? Boss() => _boss.FirstOrDefault();
+        public Actor? Boss() => PrimaryActor;
 
-        public P3S(WorldState ws)
-            : base(ws)
+        public P3S(BossModuleManager manager, Actor primary)
+            : base(manager, primary, true)
         {
-            _boss = Enemies(OID.Boss);
-
             Arena.IsCircle = true;
 
             StateMachine.State? s;

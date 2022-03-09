@@ -31,6 +31,7 @@ namespace BossMod
                 return; // nothing to remove
 
             actor.IsDestroyed = true;
+            ChangeInCombat(actor, false); // exit combat
             UpdateCastInfo(actor, null); // stop casting
             UpdateTether(actor, new()); // untether
             for (int i = 0; i < actor.Statuses.Length; ++i)

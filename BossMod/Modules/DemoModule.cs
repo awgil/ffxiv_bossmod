@@ -10,6 +10,11 @@
                 hints.Add("Risk");
             }
 
+            public override void AddGlobalHints(GlobalHints hints)
+            {
+                hints.Add("Global");
+            }
+
             public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
             {
                 arena.ZoneCircle(arena.WorldCenter, 10, arena.ColorAOE);
@@ -21,8 +26,8 @@
             }
         }
 
-        public DemoModule(WorldState ws)
-            : base(ws)
+        public DemoModule(BossModuleManager manager, Actor primary)
+            : base(manager, primary, false)
         {
             ActivateComponent(new DemoComponent());
         }

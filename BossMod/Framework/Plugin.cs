@@ -18,7 +18,7 @@ namespace BossMod
         private Network _network;
         private WorldStateGame _ws;
         private WorldStateLogger _debugLogger;
-        private BossModuleManager _bossmod;
+        private BossModuleManagerGame _bossmod;
         private Autorotation _autorotation;
 
         public Plugin(
@@ -69,9 +69,6 @@ namespace BossMod
 
             switch (split[0])
             {
-                case "z":
-                    _bossmod.ApplyConfigAndZoneChanges(split.Length > 1 ? ushort.Parse(split[1]) : _ws.CurrentZone);
-                    break;
                 case "d":
                     OpenDebugUI();
                     break;
@@ -80,14 +77,14 @@ namespace BossMod
 
         private void OpenConfigUI()
         {
-            var w = WindowManager.CreateWindow("Boss mod config", _config.Draw, () => { });
+            var w = WindowManager.CreateWindow("Boss mod config", _config.Draw, () => true);
             w.SizeHint = new Vector2(300, 300);
         }
 
         private void OpenDebugUI()
         {
             var ui = new DebugUI(_ws, _autorotation);
-            var w = WindowManager.CreateWindow("Boss mod debug UI", ui.Draw, ui.Dispose);
+            var w = WindowManager.CreateWindow("Boss mod debug UI", ui.Draw, () => { ui.Dispose(); return true; });
             w.SizeHint = new Vector2(300, 200);
         }
 

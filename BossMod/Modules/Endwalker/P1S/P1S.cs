@@ -11,14 +11,11 @@ namespace BossMod.P1S
     {
         public static float InnerCircleRadius { get; } = 12; // this determines in/out flails and cells boundary
 
-        private List<Actor> _boss;
-        public Actor? Boss() => _boss.FirstOrDefault();
+        public Actor? Boss() => PrimaryActor;
 
-        public P1S(WorldState ws)
-            : base(ws)
+        public P1S(BossModuleManager manager, Actor primary)
+            : base(manager, primary, true)
         {
-            _boss = Enemies(OID.Boss);
-
             StateMachine.State? s;
             s = HeavyHand(ref InitialState, 8);
             s = AetherialShackles(ref s.Next, 6, false);
