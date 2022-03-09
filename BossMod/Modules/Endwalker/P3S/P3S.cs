@@ -8,8 +8,6 @@ namespace BossMod.P3S
 {
     public class P3S : BossModule
     {
-        public Actor? Boss() => PrimaryActor;
-
         public P3S(BossModuleManager manager, Actor primary)
             : base(manager, primary, true)
         {
@@ -44,39 +42,39 @@ namespace BossMod.P3S
             s = DevouringBrandFireplumeBreezeCinderwing(ref s.Next, 5.1f);
             s = ScorchedExaltation(ref s.Next, 6.2f);
             s = ScorchedExaltation(ref s.Next, 2.2f);
-            s = CommonStates.Cast(ref s.Next, Boss, AID.FinalExaltation, 2.1f, 10, "Enrage");
+            s = CommonStates.Cast(ref s.Next, this, AID.FinalExaltation, 2.1f, 10, "Enrage");
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
-            Arena.Actor(Boss(), Arena.ColorEnemy);
+            Arena.Actor(PrimaryActor, Arena.ColorEnemy);
             Arena.Actor(pc, Arena.ColorPC);
         }
 
         private StateMachine.State ScorchedExaltation(ref StateMachine.State? link, float delay)
         {
-            var s = CommonStates.Cast(ref link, Boss, AID.ScorchedExaltation, delay, 5, "AOE");
+            var s = CommonStates.Cast(ref link, this, AID.ScorchedExaltation, delay, 5, "AOE");
             s.EndHint |= StateMachine.StateHint.Raidwide;
             return s;
         }
 
         private StateMachine.State DeadRebirth(ref StateMachine.State? link, float delay)
         {
-            var s = CommonStates.Cast(ref link, Boss, AID.DeadRebirth, delay, 10, "DeadRebirth");
+            var s = CommonStates.Cast(ref link, this, AID.DeadRebirth, delay, 10, "DeadRebirth");
             s.EndHint |= StateMachine.StateHint.Raidwide;
             return s;
         }
 
         private StateMachine.State FirestormsOfAsphodelos(ref StateMachine.State? link, float delay)
         {
-            var s = CommonStates.Cast(ref link, Boss, AID.FirestormsOfAsphodelos, delay, 5, "Firestorm");
+            var s = CommonStates.Cast(ref link, this, AID.FirestormsOfAsphodelos, delay, 5, "Firestorm");
             s.EndHint |= StateMachine.StateHint.Raidwide;
             return s;
         }
 
         private StateMachine.State HeatOfCondemnation(ref StateMachine.State? link, float delay)
         {
-            var cast = CommonStates.Cast(ref link, Boss, AID.HeatOfCondemnation, delay, 6);
+            var cast = CommonStates.Cast(ref link, this, AID.HeatOfCondemnation, delay, 6);
             cast.Enter.Add(() => ActivateComponent(new HeatOfCondemnation(this)));
 
             var resolve = CommonStates.ComponentCondition<HeatOfCondemnation>(ref cast.Next, 1.1f, this, comp => comp.NumCasts > 0, "Tether");
@@ -98,10 +96,10 @@ namespace BossMod.P3S
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
             dispatch[AID.ExperimentalFireplumeSingle] = new(null, () => { });
             dispatch[AID.ExperimentalFireplumeMulti] = new(null, () => { });
-            var start = CommonStates.CastStart(ref link, Boss, dispatch, delay);
+            var start = CommonStates.CastStart(ref link, this, dispatch, delay);
             start.EndHint |= StateMachine.StateHint.PositioningStart;
 
-            var end = CommonStates.CastEnd(ref start.Next, Boss, 5, "Fireplume");
+            var end = CommonStates.CastEnd(ref start.Next, this, 5, "Fireplume");
             end.Exit.Add(() => ActivateComponent(new Fireplume(this)));
             return end;
         }
@@ -113,8 +111,8 @@ namespace BossMod.P3S
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
             dispatch[AID.ExperimentalAshplumeStack] = new(null, () => ActivateComponent(new Ashplume(this, Ashplume.State.Stack)));
             dispatch[AID.ExperimentalAshplumeSpread] = new(null, () => ActivateComponent(new Ashplume(this, Ashplume.State.Spread)));
-            var start = CommonStates.CastStart(ref link, Boss, dispatch, delay);
-            var end = CommonStates.CastEnd(ref start.Next, Boss, 5, "Ashplume");
+            var start = CommonStates.CastStart(ref link, this, dispatch, delay);
+            var end = CommonStates.CastEnd(ref start.Next, this, 5, "Ashplume");
             end.EndHint |= StateMachine.StateHint.GroupWithNext;
             return end;
         }
@@ -132,7 +130,7 @@ namespace BossMod.P3S
             // first part for this mechanic always seems to be "multi-plume", works just like fireplume
             // 9 helpers teleport to position, first pair almost immediately starts casting 26315s, 1 sec stagger between pairs, 7 sec for each cast
             // ~3 sec after cast ends, boss makes an instant cast that determines stack/spread (26316/26312), ~10 sec after that hits with real AOE (26317/26313)
-            var cast = CommonStates.Cast(ref link, Boss, AID.ExperimentalGloryplumeMulti, delay, 5, "GloryplumeMulti");
+            var cast = CommonStates.Cast(ref link, this, AID.ExperimentalGloryplumeMulti, delay, 5, "GloryplumeMulti");
             cast.Exit.Add(() => ActivateComponent(new Fireplume(this)));
             cast.Exit.Add(() => ActivateComponent(new Ashplume(this, Ashplume.State.UnknownGlory))); // instant cast turns this into correct state in ~3 sec
             cast.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
@@ -150,7 +148,7 @@ namespace BossMod.P3S
             // helper teleports to position, almost immediately starts casting 26311, 6 sec for cast
             // ~3 sec after cast ends, boss makes an instant cast that determines stack/spread (26316/26312), ~4 sec after that hits with real AOE (26317/26313)
             // note that our helpers rely on casts rather than states
-            var cast = CommonStates.Cast(ref link, Boss, AID.ExperimentalGloryplumeSingle, delay, 5, "GloryplumeSingle");
+            var cast = CommonStates.Cast(ref link, this, AID.ExperimentalGloryplumeSingle, delay, 5, "GloryplumeSingle");
             cast.Exit.Add(() => ActivateComponent(new Fireplume(this)));
             cast.Exit.Add(() => ActivateComponent(new Ashplume(this, Ashplume.State.UnknownGlory))); // instant cast turns this into correct state in ~3 sec
             cast.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
@@ -167,9 +165,9 @@ namespace BossMod.P3S
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
             dispatch[AID.RightCinderwing] = new(null, () => ActivateComponent(new Cinderwing(this, false)));
             dispatch[AID.LeftCinderwing] = new(null, () => ActivateComponent(new Cinderwing(this, true)));
-            var start = CommonStates.CastStart(ref link, Boss, dispatch, delay);
+            var start = CommonStates.CastStart(ref link, this, dispatch, delay);
 
-            var end = CommonStates.CastEnd(ref start.Next, Boss, 5, "Wing");
+            var end = CommonStates.CastEnd(ref start.Next, this, 5, "Wing");
             end.Exit.Add(DeactivateComponent<Cinderwing>);
             return end;
         }
@@ -187,14 +185,14 @@ namespace BossMod.P3S
 
         private StateMachine.State DevouringBrandFireplumeBreezeCinderwing(ref StateMachine.State? link, float delay)
         {
-            var devouring = CommonStates.Cast(ref link, Boss, AID.DevouringBrand, delay, 3, "DevouringBrand");
+            var devouring = CommonStates.Cast(ref link, this, AID.DevouringBrand, delay, 3, "DevouringBrand");
             devouring.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var fireplume = Fireplume(ref devouring.Next, 2.1f); // pos-start
             fireplume.Exit.Add(() => ActivateComponent(new DevouringBrand(this)));
             fireplume.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var breeze = CommonStates.Cast(ref fireplume.Next, Boss, AID.SearingBreeze, 7.2f, 3, "SearingBreeze");
+            var breeze = CommonStates.Cast(ref fireplume.Next, this, AID.SearingBreeze, 7.2f, 3, "SearingBreeze");
             breeze.Enter.Add(DeactivateComponent<Fireplume>);
             breeze.EndHint |= StateMachine.StateHint.GroupWithNext;
 
@@ -207,16 +205,16 @@ namespace BossMod.P3S
         private StateMachine.State DarkenedFire(ref StateMachine.State? link, float delay)
         {
             // 3s after cast ends, adds start casting 26299
-            var addsStart = CommonStates.CastStart(ref link, Boss, AID.DarkenedFire, delay);
+            var addsStart = CommonStates.CastStart(ref link, this, AID.DarkenedFire, delay);
             addsStart.Exit.Add(() => ActivateComponent(new DarkenedFire(this)));
             addsStart.EndHint |= StateMachine.StateHint.PositioningStart;
 
-            var addsEnd = CommonStates.CastEnd(ref addsStart.Next, Boss, 6, "DarkenedFire adds");
+            var addsEnd = CommonStates.CastEnd(ref addsStart.Next, this, 6, "DarkenedFire adds");
             addsEnd.Exit.Add(DeactivateComponent<DarkenedFire>);
             addsEnd.Exit.Add(() => ActivateComponent(new BrightenedFire(this))); // icons appear just before next cast start
             addsEnd.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var numbers = CommonStates.Cast(ref addsEnd.Next, Boss, AID.BrightenedFire, 5.2f, 5, "Numbers"); // numbers appear at the beginning of the cast, at the end he starts shooting 1-8
+            var numbers = CommonStates.Cast(ref addsEnd.Next, this, AID.BrightenedFire, 5.2f, 5, "Numbers"); // numbers appear at the beginning of the cast, at the end he starts shooting 1-8
             numbers.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var lastAOE = CommonStates.ComponentCondition<BrightenedFire>(ref numbers.Next, 8.4f, this, comp => comp.NumCasts == 8);
@@ -234,9 +232,9 @@ namespace BossMod.P3S
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
             dispatch[AID.TrailOfCondemnationCenter] = new(null, () => ActivateComponent(new TrailOfCondemnation(this, true)));
             dispatch[AID.TrailOfCondemnationSides] = new(null, () => ActivateComponent(new TrailOfCondemnation(this, false)));
-            var start = CommonStates.CastStart(ref link, Boss, dispatch, delay);
+            var start = CommonStates.CastStart(ref link, this, dispatch, delay);
 
-            var end = CommonStates.CastEnd(ref start.Next, Boss, 6);
+            var end = CommonStates.CastEnd(ref start.Next, this, 6);
 
             var resolve = CommonStates.ComponentCondition<TrailOfCondemnation>(ref end.Next, 1.6f, this, comp => comp.Done, "Trail");
             resolve.Exit.Add(DeactivateComponent<TrailOfCondemnation>);
@@ -282,7 +280,7 @@ namespace BossMod.P3S
         {
             var plume = Fireplume(ref link, delay); // pos-start
 
-            var flyAway = CommonStates.Targetable(ref plume.Next, Boss, false, 4.6f);
+            var flyAway = CommonStates.Targetable(ref plume.Next, this, false, 4.6f);
 
             var trail = TrailOfCondemnation(ref flyAway.Next, 3.8f);
             trail.Enter.Add(DeactivateComponent<Fireplume>);
@@ -291,19 +289,19 @@ namespace BossMod.P3S
 
             var large = LargeBirdsPhase(ref small.Next, 3.6f);
 
-            var reappear = CommonStates.Targetable(ref large.Next, Boss, true, 5.2f, "Boss reappears");
+            var reappear = CommonStates.Targetable(ref large.Next, this, true, 5.2f, "Boss reappears");
             reappear.EndHint |= StateMachine.StateHint.PositioningEnd;
             return reappear;
         }
 
         private StateMachine.State FlyAwayNoBirds(ref StateMachine.State? link, float delay)
         {
-            var flyAway = CommonStates.Targetable(ref link, Boss, false, delay);
+            var flyAway = CommonStates.Targetable(ref link, this, false, delay);
 
             var trail = TrailOfCondemnation(ref flyAway.Next, 3.8f);
             trail.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var reappear = CommonStates.Targetable(ref trail.Next, Boss, true, 3.1f, "Boss reappears");
+            var reappear = CommonStates.Targetable(ref trail.Next, this, true, 3.1f, "Boss reappears");
             return reappear;
         }
 
@@ -316,7 +314,7 @@ namespace BossMod.P3S
             // 10s 3540's start casting 26342
             // 14s 3540's finish casting 26342
             // note that helper does relies on icons and cast events rather than states
-            var cast = CommonStates.Cast(ref link, Boss, AID.FledglingFlight, delay, 3);
+            var cast = CommonStates.Cast(ref link, this, AID.FledglingFlight, delay, 3);
             cast.Exit.Add(() => ActivateComponent(new FledglingFlight(this)));
 
             var placement = CommonStates.ComponentCondition<FledglingFlight>(ref cast.Next, 10.3f, this, comp => comp.PlacementDone, "Eyes place");
@@ -332,14 +330,14 @@ namespace BossMod.P3S
             // notes on mechanics:
             // - on 26349 cast end, debuffs with 25sec appear
             // - 12-15sec after 26350 cast starts, eyes finish casting their cones - at this point, there's about 5sec left on debuffs
-            var deathtoll = CommonStates.Cast(ref link, Boss, AID.DeathToll, delay, 6, "DeathToll");
+            var deathtoll = CommonStates.Cast(ref link, this, AID.DeathToll, delay, 6, "DeathToll");
             deathtoll.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var eyes = CommonStates.Cast(ref deathtoll.Next, Boss, AID.FledglingFlight, 3.2f, 3, "Eyes");
+            var eyes = CommonStates.Cast(ref deathtoll.Next, this, AID.FledglingFlight, 3.2f, 3, "Eyes");
             eyes.Exit.Add(() => ActivateComponent(new FledglingFlight(this)));
             eyes.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var agonies = CommonStates.Cast(ref eyes.Next, Boss, AID.LifesAgonies, 2.1f, 24, "LifeAgonies");
+            var agonies = CommonStates.Cast(ref eyes.Next, this, AID.LifesAgonies, 2.1f, 24, "LifeAgonies");
             agonies.Exit.Add(DeactivateComponent<FledglingFlight>);
             return agonies;
         }
@@ -347,10 +345,10 @@ namespace BossMod.P3S
         private StateMachine.State FountainOfFire(ref StateMachine.State? link, float delay)
         {
             // TODO: healer component - not even sure, mechanic looks so simple...
-            var fountain = CommonStates.Cast(ref link, Boss, AID.FountainOfFire, delay, 6, "FountainOfFire");
+            var fountain = CommonStates.Cast(ref link, this, AID.FountainOfFire, delay, 6, "FountainOfFire");
             fountain.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
-            var pinion = CommonStates.Cast(ref fountain.Next, Boss, AID.SunsPinion, 2.1f, 6);
+            var pinion = CommonStates.Cast(ref fountain.Next, this, AID.SunsPinion, 2.1f, 6);
             pinion.Exit.Add(() => ActivateComponent(new SunshadowTether(this)));
 
             var charges = CommonStates.ComponentCondition<SunshadowTether>(ref pinion.Next, 16, this, comp => comp.NumCharges == 6, "Charges");
@@ -361,7 +359,7 @@ namespace BossMod.P3S
 
         private StateMachine.State ConesAshplume(ref StateMachine.State? link, float delay)
         {
-            var flames = CommonStates.Cast(ref link, Boss, AID.FlamesOfAsphodelos, delay, 3, "Cones");
+            var flames = CommonStates.Cast(ref link, this, AID.FlamesOfAsphodelos, delay, 3, "Cones");
             flames.Exit.Add(() => ActivateComponent(new FlamesOfAsphodelos(this)));
             flames.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
@@ -375,11 +373,11 @@ namespace BossMod.P3S
 
         private StateMachine.State ConesStorms(ref StateMachine.State? link, float delay)
         {
-            var flames = CommonStates.Cast(ref link, Boss, AID.FlamesOfAsphodelos, delay, 3, "Cones");
+            var flames = CommonStates.Cast(ref link, this, AID.FlamesOfAsphodelos, delay, 3, "Cones");
             flames.Exit.Add(() => ActivateComponent(new FlamesOfAsphodelos(this)));
             flames.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
-            var state = CommonStates.Cast(ref flames.Next, Boss, AID.StormsOfAsphodelos, 10.2f, 8, "Storms");
+            var state = CommonStates.Cast(ref flames.Next, this, AID.StormsOfAsphodelos, 10.2f, 8, "Storms");
             state.Enter.Add(DeactivateComponent<FlamesOfAsphodelos>);
             state.Enter.Add(() => ActivateComponent(new StormsOfAsphodelos(this)));
             state.Exit.Add(DeactivateComponent<StormsOfAsphodelos>);
@@ -389,11 +387,11 @@ namespace BossMod.P3S
 
         private StateMachine.State DarkblazeTwister(ref StateMachine.State? link, float delay)
         {
-            var twister = CommonStates.Cast(ref link, Boss, AID.DarkblazeTwister, delay, 4, "Twister");
+            var twister = CommonStates.Cast(ref link, this, AID.DarkblazeTwister, delay, 4, "Twister");
             twister.Exit.Add(() => ActivateComponent(new DarkblazeTwister(this)));
             twister.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
-            var breeze = CommonStates.Cast(ref twister.Next, Boss, AID.SearingBreeze, 4.1f, 3, "SearingBreeze");
+            var breeze = CommonStates.Cast(ref twister.Next, this, AID.SearingBreeze, 4.1f, 3, "SearingBreeze");
             breeze.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             var ashplume = AshplumeCast(ref breeze.Next, 4.1f);

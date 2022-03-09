@@ -20,10 +20,9 @@ namespace BossMod.P2S
 
         public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            var boss = _module.Boss();
             var head = _module.CataractHead();
             float headRot = _isWinged ? MathF.PI : 0;
-            if ((boss != null && GeometryUtils.PointInRect(actor.Position - boss.Position, boss.Rotation, _module.Arena.WorldHalfSize, _module.Arena.WorldHalfSize, _halfWidth)) ||
+            if (GeometryUtils.PointInRect(actor.Position - _module.PrimaryActor.Position, _module.PrimaryActor.Rotation, _module.Arena.WorldHalfSize, _module.Arena.WorldHalfSize, _halfWidth) ||
                 (head != null && GeometryUtils.PointInRect(actor.Position - head.Position, head.Rotation + headRot, _module.Arena.WorldHalfSize, 0, _module.Arena.WorldHalfSize)))
             {
                 hints.Add("GTFO from cataract!");
@@ -32,11 +31,7 @@ namespace BossMod.P2S
 
         public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var boss = _module.Boss();
-            if (boss != null)
-            {
-                arena.ZoneQuad(boss.Position, boss.Rotation, arena.WorldHalfSize, arena.WorldHalfSize, _halfWidth, arena.ColorAOE);
-            }
+            arena.ZoneQuad(_module.PrimaryActor.Position, _module.PrimaryActor.Rotation, arena.WorldHalfSize, arena.WorldHalfSize, _halfWidth, arena.ColorAOE);
 
             var head = _module.CataractHead();
             if (head != null)

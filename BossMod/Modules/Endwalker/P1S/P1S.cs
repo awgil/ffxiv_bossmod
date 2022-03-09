@@ -11,8 +11,6 @@ namespace BossMod.P1S
     {
         public static float InnerCircleRadius { get; } = 12; // this determines in/out flails and cells boundary
 
-        public Actor? Boss() => PrimaryActor;
-
         public P1S(BossModuleManager manager, Actor primary)
             : base(manager, primary, true)
         {
@@ -48,7 +46,7 @@ namespace BossMod.P1S
             Dictionary<AID, (StateMachine.State?, Action)> forkDispatch = new();
             forkDispatch[AID.AetherialShackles] = new(fork1, () => { });
             forkDispatch[AID.ShacklesOfTime] = new(fork2, () => { });
-            var fork = CommonStates.CastStart(ref s.Next, Boss, forkDispatch, 6, "Shackles+Aetherchains -or- ShacklesOfTime+Knockback"); // first branch delay = 7.8
+            var fork = CommonStates.CastStart(ref s.Next, this, forkDispatch, 6, "Shackles+Aetherchains -or- ShacklesOfTime+Knockback"); // first branch delay = 7.8
         }
 
         protected override void ResetModule()
@@ -69,27 +67,27 @@ namespace BossMod.P1S
                 Arena.AddLine(Arena.WorldCenter + new Vector3(diag, 0, -diag), Arena.WorldCenter - new Vector3(diag, 0, -diag), Arena.ColorBorder);
             }
 
-            Arena.Actor(Boss(), Arena.ColorEnemy);
+            Arena.Actor(PrimaryActor, Arena.ColorEnemy);
             Arena.Actor(pc, Arena.ColorPC);
         }
 
         private StateMachine.State HeavyHand(ref StateMachine.State? link, float delay)
         {
-            var s = CommonStates.Cast(ref link, Boss, AID.HeavyHand, delay, 5, "HeavyHand");
+            var s = CommonStates.Cast(ref link, this, AID.HeavyHand, delay, 5, "HeavyHand");
             s.EndHint |= StateMachine.StateHint.Tankbuster;
             return s;
         }
 
         private StateMachine.State WarderWrath(ref StateMachine.State? link, float delay)
         {
-            var s = CommonStates.Cast(ref link, Boss, AID.WarderWrath, delay, 5, "Wrath");
+            var s = CommonStates.Cast(ref link, this, AID.WarderWrath, delay, 5, "Wrath");
             s.EndHint |= StateMachine.StateHint.Raidwide;
             return s;
         }
 
         private StateMachine.State Aetherchain(ref StateMachine.State? link, float delay)
         {
-            var s = CommonStates.Cast(ref link, Boss, AID.Aetherchain, delay, 5, "Aetherchain");
+            var s = CommonStates.Cast(ref link, this, AID.Aetherchain, delay, 5, "Aetherchain");
             s.Enter.Add(() => ActivateComponent(new AetherExplosion(this)));
             s.Exit.Add(DeactivateComponent<AetherExplosion>);
             return s;
@@ -106,9 +104,9 @@ namespace BossMod.P1S
         private StateMachine.State CastMaybeOmitStart(ref StateMachine.State? link, AID aid, float delay, float castTime, string name)
         {
             if (delay > 0)
-                return CommonStates.Cast(ref link, Boss, aid, delay, castTime, name);
+                return CommonStates.Cast(ref link, this, aid, delay, castTime, name);
             else
-                return CommonStates.CastEnd(ref link, Boss, castTime, name);
+                return CommonStates.CastEnd(ref link, this, castTime, name);
         }
 
         // aetherial shackles is paired either with wrath (first time) or two aetherchains (second time)
@@ -131,7 +129,7 @@ namespace BossMod.P1S
 
         private StateMachine.State FourfoldShackles(ref StateMachine.State? link, float delay)
         {
-            var cast = CommonStates.Cast(ref link, Boss, AID.FourShackles, delay, 3, "FourShackles");
+            var cast = CommonStates.Cast(ref link, this, AID.FourShackles, delay, 3, "FourShackles");
             cast.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
             cast.Exit.Add(() => ActivateComponent(new Shackles(this)));
 
@@ -174,12 +172,12 @@ namespace BossMod.P1S
             dispatch[AID.GaolerFlailIO2] = new(null, () => ActivateComponent(new Flails(this, Flails.Zone.Inner, Flails.Zone.Outer)));
             dispatch[AID.GaolerFlailOI1] = new(null, () => ActivateComponent(new Flails(this, Flails.Zone.Outer, Flails.Zone.Inner)));
             dispatch[AID.GaolerFlailOI2] = new(null, () => ActivateComponent(new Flails(this, Flails.Zone.Outer, Flails.Zone.Inner)));
-            return CommonStates.CastStart(ref link, Boss, dispatch, delay);
+            return CommonStates.CastStart(ref link, this, dispatch, delay);
         }
 
         private StateMachine.State GaolerFlailEnd(ref StateMachine.State? link, float castTimeLeft, string name)
         {
-            var end = CommonStates.CastEnd(ref link, Boss, castTimeLeft);
+            var end = CommonStates.CastEnd(ref link, this, castTimeLeft);
 
             var resolve = CommonStates.ComponentCondition<Flails>(ref end.Next, 3.6f, this, comp => comp.NumCasts == 2, name);
             resolve.Exit.Add(DeactivateComponent<Flails>);
@@ -205,7 +203,7 @@ namespace BossMod.P1S
             dispatch[AID.AetherflailIR] = new(null, () => ActivateComponent(new Flails(this, Flails.Zone.Inner, Flails.Zone.Right)));
             dispatch[AID.AetherflailOL] = new(null, () => ActivateComponent(new Flails(this, Flails.Zone.Outer, Flails.Zone.Left)));
             dispatch[AID.AetherflailOR] = new(null, () => ActivateComponent(new Flails(this, Flails.Zone.Outer, Flails.Zone.Right)));
-            var start = CommonStates.CastStart(ref link, Boss, dispatch, delay);
+            var start = CommonStates.CastStart(ref link, this, dispatch, delay);
             start.EndHint |= StateMachine.StateHint.PositioningStart;
             start.Exit.Add(() => ActivateComponent(new AetherExplosion(this)));
 
@@ -218,13 +216,13 @@ namespace BossMod.P1S
         private StateMachine.State Knockback(ref StateMachine.State? link, float delay, bool positioningHints = true)
         {
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
-            dispatch[AID.KnockbackGrace] = new(null, () => ActivateComponent(new Knockback(this, Boss()?.CastInfo?.TargetID ?? 0, false)));
-            dispatch[AID.KnockbackPurge] = new(null, () => ActivateComponent(new Knockback(this, Boss()?.CastInfo?.TargetID ?? 0, true)));
-            var start = CommonStates.CastStart(ref link, Boss, dispatch, delay);
+            dispatch[AID.KnockbackGrace] = new(null, () => ActivateComponent(new Knockback(this, PrimaryActor.CastInfo?.TargetID ?? 0, false)));
+            dispatch[AID.KnockbackPurge] = new(null, () => ActivateComponent(new Knockback(this, PrimaryActor.CastInfo?.TargetID ?? 0, true)));
+            var start = CommonStates.CastStart(ref link, this, dispatch, delay);
             if (positioningHints)
                 start.EndHint |= StateMachine.StateHint.PositioningStart;
 
-            var end = CommonStates.CastEnd(ref start.Next, Boss, 5, "Knockback");
+            var end = CommonStates.CastEnd(ref start.Next, this, 5, "Knockback");
             end.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Tankbuster;
 
             var resolve = CommonStates.ComponentCondition<Knockback>(ref end.Next, 4.4f, this, comp => comp.AOEDone, "Explode");
@@ -237,15 +235,15 @@ namespace BossMod.P1S
         // full intemperance phases (overlap either with 2 wraths or with flails)
         private StateMachine.State IntemperancePhase(ref StateMachine.State? link, float delay, bool withWraths)
         {
-            var intemp = CommonStates.Cast(ref link, Boss, AID.Intemperance, delay, 2, "Intemperance");
+            var intemp = CommonStates.Cast(ref link, this, AID.Intemperance, delay, 2, "Intemperance");
             intemp.Exit.Add(() => ActivateComponent(new Intemperance(this)));
             intemp.EndHint |= StateMachine.StateHint.GroupWithNext;
 
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
             dispatch[AID.IntemperateTormentUp] = new(null, () => FindComponent<Intemperance>()!.CurState = Intemperance.State.BottomToTop);
             dispatch[AID.IntemperateTormentDown] = new(null, () => FindComponent<Intemperance>()!.CurState = Intemperance.State.TopToBottom);
-            var explosionStart = CommonStates.CastStart(ref intemp.Next, Boss, dispatch, 5.8f);
-            var explosionEnd = CommonStates.CastEnd(ref explosionStart.Next, Boss, 10);
+            var explosionStart = CommonStates.CastStart(ref intemp.Next, this, dispatch, 5.8f);
+            var explosionEnd = CommonStates.CastEnd(ref explosionStart.Next, this, 10);
 
             var cube1 = CommonStates.ComponentCondition<Intemperance>(ref explosionEnd.Next, 1.2f, this, comp => comp.NumExplosions > 0, "Cube1", 0.2f);
             cube1.EndHint |= StateMachine.StateHint.GroupWithNext;
@@ -285,7 +283,7 @@ namespace BossMod.P1S
 
         private StateMachine.State ShiningCells(ref StateMachine.State? link, float delay)
         {
-            var s = CommonStates.Cast(ref link, Boss, AID.ShiningCells, delay, 7, "Cells");
+            var s = CommonStates.Cast(ref link, this, AID.ShiningCells, delay, 7, "Cells");
             s.EndHint |= StateMachine.StateHint.Raidwide;
             s.Exit.Add(() => Arena.IsCircle = true);
             return s;
@@ -293,7 +291,7 @@ namespace BossMod.P1S
 
         private StateMachine.State SlamShut(ref StateMachine.State? link, float delay)
         {
-            var s = CommonStates.Cast(ref link, Boss, AID.SlamShut, delay, 7, "SlamShut");
+            var s = CommonStates.Cast(ref link, this, AID.SlamShut, delay, 7, "SlamShut");
             s.EndHint |= StateMachine.StateHint.Raidwide;
             s.Exit.Add(() => Arena.IsCircle = false);
             return s;

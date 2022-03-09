@@ -1,7 +1,8 @@
-﻿namespace BossMod.P4S
+﻿using System;
+using System.Numerics;
+
+namespace BossMod.P4S1
 {
-    using System;
-    using System.Numerics;
     using static BossModule;
 
     // component detecting corner assignments for 'setting the scene'; it is used by other components to show various warnings
@@ -10,11 +11,11 @@
         public enum Corner { Unknown, NE, SE, SW, NW }
         public enum Element { Fire, Lightning, Acid, Water }
 
-        private P4S _module;
+        private P4S1 _module;
         private Corner[] _assignments = new Corner[4];
         public Corner Assignment(Element elem) => _assignments[(int)elem];
 
-        public SettingTheScene(P4S module)
+        public SettingTheScene(P4S1 module)
         {
             _module = module;
         }

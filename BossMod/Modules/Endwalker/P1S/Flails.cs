@@ -52,26 +52,18 @@ namespace BossMod.P1S
 
         public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            var boss = _module.Boss();
-            if (boss == null)
-                return;
-
-            if (_showFirst && IsInAOE(actor.Position, boss, _first))
+            if (_showFirst && IsInAOE(actor.Position, _module.PrimaryActor, _first))
                 hints.Add("Hit by first flail!");
-            if (_showSecond && IsInAOE(actor.Position, boss,_second))
+            if (_showSecond && IsInAOE(actor.Position, _module.PrimaryActor, _second))
                 hints.Add("Hit by second flail!");
         }
 
         public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var boss = _module.Boss();
-            if (boss == null)
-                return;
-
             if (_showFirst)
-                DrawZone(arena, boss, _first);
+                DrawZone(arena, _module.PrimaryActor, _first);
             if (_showSecond)
-                DrawZone(arena, boss, _second);
+                DrawZone(arena, _module.PrimaryActor, _second);
         }
 
         public override void OnCastFinished(Actor actor)

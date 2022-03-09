@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.P4S
+namespace BossMod.P4S1
 {
     using static BossModule;
 
     // state related to vengeful belone mechanic
     class VengefulBelone : Component
     {
-        private P4S _module;
+        private P4S1 _module;
         private List<Actor> _orbs;
         private Dictionary<uint, Role> _orbTargets = new();
         private int _orbsExploded = 0;
@@ -20,7 +20,7 @@ namespace BossMod.P4S
 
         private Role OrbTarget(uint instanceID) => _orbTargets.GetValueOrDefault(instanceID, Role.None);
 
-        public VengefulBelone(P4S module)
+        public VengefulBelone(P4S1 module)
         {
             _module = module;
             _orbs = module.Enemies(OID.Orb);

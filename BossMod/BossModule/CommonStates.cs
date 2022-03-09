@@ -52,56 +52,53 @@ namespace BossMod
             return state;
         }
 
-        // create state triggered by any cast start by a particular actor
-        public static StateMachine.State CastStart(ref StateMachine.State? link, Func<Actor?> actorAcc, float delay, string name = "", bool actorIsBoss = true)
+        // create state triggered by any cast start by a primary actor
+        public static StateMachine.State CastStart(ref StateMachine.State? link, BossModule module, float delay, string name = "")
         {
             var state = Simple(ref link, delay, name);
-            state.Update = (_) => actorAcc()?.CastInfo != null ? state.Next : null;
-            if (actorIsBoss)
-                state.EndHint |= StateMachine.StateHint.BossCastStart;
+            state.Update = (_) => module.PrimaryActor.CastInfo != null ? state.Next : null;
+            state.EndHint |= StateMachine.StateHint.BossCastStart;
             return state;
         }
 
-        // create state triggered by expected cast start by a particular actor; unexpected casts still trigger a transition, but log error
-        public static StateMachine.State CastStart<AID>(ref StateMachine.State? link, Func<Actor?> actorAcc, AID id, float delay, string name = "", bool actorIsBoss = true)
+        // create state triggered by expected cast start by a primary actor; unexpected casts still trigger a transition, but log error
+        public static StateMachine.State CastStart<AID>(ref StateMachine.State? link, BossModule module, AID id, float delay, string name = "")
             where AID : Enum
         {
             var state = Simple(ref link, delay, name);
             var expected = ActionID.MakeSpell(id);
             state.Update = (_) =>
             {
-                var castInfo = actorAcc()?.CastInfo;
+                var castInfo = module.PrimaryActor.CastInfo;
                 if (castInfo == null)
                     return null;
                 if (castInfo.Action != expected)
-                    Service.Log($"[StateMachine] Unexpected cast start for actor {actorAcc()?.OID:X}: got {castInfo.Action}, expected {id}");
+                    Service.Log($"[StateMachine] Unexpected cast start for actor {module.PrimaryActor.OID:X}: got {castInfo.Action}, expected {id}");
                 return state.Next;
             };
-            if (actorIsBoss)
-                state.EndHint |= StateMachine.StateHint.BossCastStart;
+            state.EndHint |= StateMachine.StateHint.BossCastStart;
             return state;
         }
 
-        // create state triggered by cast start by a particular actor; map is used to select reaction to each spell
+        // create state triggered by cast start by a primary actor; map is used to select reaction to each spell
         // is performed either to mapped state (if it is non-null) or, if entry is not found, to default Next state
-        public static StateMachine.State CastStart<AID>(ref StateMachine.State? link, Func<Actor?> actorAcc, Dictionary<AID, (StateMachine.State?, Action)> dispatch, float delay, string name = "", bool actorIsBoss = true)
+        public static StateMachine.State CastStart<AID>(ref StateMachine.State? link, BossModule module, Dictionary<AID, (StateMachine.State?, Action)> dispatch, float delay, string name = "")
             where AID : Enum
         {
             var state = Simple(ref link, delay, name);
             state.Update = (_) =>
             {
-                var castInfo = actorAcc()?.CastInfo;
+                var castInfo = module.PrimaryActor.CastInfo;
                 if (castInfo == null)
                     return null;
                 (StateMachine.State? dest, Action? op) = dispatch.GetValueOrDefault((AID)(object)castInfo.Action.ID);
                 if (op != null)
                     op();
                 else
-                    Service.Log($"[StateMachine] Unexpected cast start for actor {actorAcc()?.OID:X}: got {castInfo.Action}");
+                    Service.Log($"[StateMachine] Unexpected cast start for actor {module.PrimaryActor.OID:X}: got {castInfo.Action}");
                 return dest ?? state.Next;
             };
-            if (actorIsBoss)
-                state.EndHint |= StateMachine.StateHint.BossCastStart;
+            state.EndHint |= StateMachine.StateHint.BossCastStart;
 
             HashSet<StateMachine.State> successors = new();
             foreach (var v in dispatch)
@@ -113,29 +110,28 @@ namespace BossMod
             return state;
         }
 
-        // create state triggered by cast end by a particular actor
-        public static StateMachine.State CastEnd(ref StateMachine.State? link, Func<Actor?> actorAcc, float castTime, string name = "", bool actorIsBoss = true)
+        // create state triggered by cast end by a primary actor
+        public static StateMachine.State CastEnd(ref StateMachine.State? link, BossModule module, float castTime, string name = "")
         {
             var state = Simple(ref link, castTime, name);
-            state.Update = (_) => actorAcc()?.CastInfo == null ? state.Next : null;
-            if (actorIsBoss)
-                state.EndHint |= StateMachine.StateHint.BossCastEnd;
+            state.Update = (_) => module.PrimaryActor.CastInfo == null ? state.Next : null;
+            state.EndHint |= StateMachine.StateHint.BossCastEnd;
             return state;
         }
 
         // create a chain of states: CastStart -> CastEnd
-        public static StateMachine.State Cast<AID>(ref StateMachine.State? link, Func<Actor?> actorAcc, AID id, float delay, float castTime, string name = "", bool actorIsBoss = true)
+        public static StateMachine.State Cast<AID>(ref StateMachine.State? link, BossModule module, AID id, float delay, float castTime, string name = "")
             where AID : Enum
         {
-            var s = CastStart(ref link, actorAcc, id, delay, "", actorIsBoss);
-            return CastEnd(ref s.Next, actorAcc, castTime, name, actorIsBoss);
+            var s = CastStart(ref link, module, id, delay, "");
+            return CastEnd(ref s.Next, module, castTime, name);
         }
 
-        // create a state triggered by a particular actor becoming (un)targetable; automatically sets downtime begin/end flag
-        public static StateMachine.State Targetable(ref StateMachine.State? link, Func<Actor?> actorAcc, bool targetable, float delay, string name = "")
+        // create a state triggered by a primary actor becoming (un)targetable; automatically sets downtime begin/end flag
+        public static StateMachine.State Targetable(ref StateMachine.State? link, BossModule module, bool targetable, float delay, string name = "")
         {
             var state = Simple(ref link, delay, name);
-            state.Update = (_) => actorAcc()?.IsTargetable == targetable ? state.Next : null;
+            state.Update = (_) => module.PrimaryActor.IsTargetable == targetable ? state.Next : null;
             state.EndHint |= targetable ? StateMachine.StateHint.DowntimeEnd : StateMachine.StateHint.DowntimeStart;
             return state;
         }

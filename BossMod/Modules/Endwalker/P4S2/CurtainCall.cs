@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.P4S
+namespace BossMod.P4S2
 {
     using static BossModule;
 
@@ -10,12 +10,12 @@ namespace BossMod.P4S
     // TODO: unhardcode relative order in pairs, currently tanks/healers pop first...
     class CurtainCall : Component
     {
-        private P4S _module;
+        private P4S2 _module;
         private int[] _playerOrder = new int[8];
         private List<Actor>? _playersInBreakOrder;
         private int _numCasts = 0;
 
-        public CurtainCall(P4S module)
+        public CurtainCall(P4S2 module)
         {
             _module = module;
         }

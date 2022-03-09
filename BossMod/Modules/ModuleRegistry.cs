@@ -11,7 +11,8 @@ namespace BossMod
                 (uint)P1S.OID.Boss => typeof(P1S.P1S),
                 (uint)P2S.OID.Boss => typeof(P2S.P2S),
                 (uint)P3S.OID.Boss => typeof(P3S.P3S),
-                (uint)P4S.OID.Boss2 => typeof(P4S.P4S),
+                (uint)P4S1.OID.Boss => typeof(P4S1.P4S1),
+                (uint)P4S2.OID.Boss => typeof(P4S2.P4S2),
                 _ => null,
             };
         }

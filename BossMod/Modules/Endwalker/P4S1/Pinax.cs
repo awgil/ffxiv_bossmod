@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Numerics;
 
-namespace BossMod.P4S
+namespace BossMod.P4S1
 {
     using static BossModule;
 
@@ -11,7 +11,7 @@ namespace BossMod.P4S
         private enum Order { Unknown, LUWU, WULU, LFWA, LAWF, WFLA, WALF }
 
         public int NumFinished { get; private set; } = 0;
-        private P4S _module;
+        private P4S1 _module;
         private Order _order;
         private Actor? _acid;
         private Actor? _fire;
@@ -23,7 +23,7 @@ namespace BossMod.P4S
         private static float _knockbackRadius = 13;
         private static float _lightingSafeDistance = 15; // not sure about this, what is real safe distance?
 
-        public Pinax(P4S module)
+        public Pinax(P4S1 module)
         {
             _module = module;
         }

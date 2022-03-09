@@ -57,16 +57,12 @@ namespace BossMod.P3S
 
         public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var boss = _module.Boss();
-            if (boss == null)
-                return;
-
             // currently we always show tethered targets with circles, and if pc is a tank, also untethered players
             foreach ((int i, var player) in _module.Raid.WithSlot())
             {
                 if (player.Tether.ID == (uint)TetherID.HeatOfCondemnation)
                 {
-                    arena.AddLine(player.Position, boss.Position, player.Role == Role.Tank ? arena.ColorSafe : arena.ColorDanger);
+                    arena.AddLine(player.Position, _module.PrimaryActor.Position, player.Role == Role.Tank ? arena.ColorSafe : arena.ColorDanger);
                     arena.Actor(player, arena.ColorDanger);
                     arena.AddCircle(player.Position, _aoeRange, arena.ColorDanger);
                 }

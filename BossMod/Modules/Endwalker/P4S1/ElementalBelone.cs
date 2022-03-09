@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Numerics;
 
-namespace BossMod.P4S
+namespace BossMod.P4S1
 {
     using static BossModule;
 
@@ -10,11 +10,11 @@ namespace BossMod.P4S
     class ElementalBelone : Component
     {
         public bool Visible = false;
-        private P4S _module;
+        private P4S1 _module;
         private SettingTheScene.Element _safeElement;
         private List<Vector3> _imminentExplodingCorners = new();
 
-        public ElementalBelone(P4S module)
+        public ElementalBelone(P4S1 module)
         {
             _module = module;
 

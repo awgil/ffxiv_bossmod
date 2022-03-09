@@ -1,21 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.P4S
+namespace BossMod.P4S2
 {
     using static BossModule;
 
     // state related to act 5 (finale) wreath of thorns
     class WreathOfThorns5 : Component
     {
-        private P4S _module;
+        private P4S2 _module;
         private List<uint> _playersOrder = new();
         private List<Actor> _towersOrder = new();
         private int _castsDone = 0;
 
         private static float _impulseAOERadius = 5;
 
-        public WreathOfThorns5(P4S module)
+        public WreathOfThorns5(P4S2 module)
         {
             _module = module;
         }
@@ -29,7 +29,7 @@ namespace BossMod.P4S
 
                 if (order >= _castsDone && order < _towersOrder.Count)
                 {
-                    hints.Add("Soak tower!", !GeometryUtils.PointInCircle(actor.Position - _towersOrder[order].Position, P4S.WreathTowerRadius));
+                    hints.Add("Soak tower!", !GeometryUtils.PointInCircle(actor.Position - _towersOrder[order].Position, P4S2.WreathTowerRadius));
                 }
             }
 
@@ -48,7 +48,7 @@ namespace BossMod.P4S
         {
             int order = _playersOrder.IndexOf(pc.InstanceID);
             if (order >= _castsDone && order < _towersOrder.Count)
-                arena.AddCircle(_towersOrder[order].Position, P4S.WreathTowerRadius, arena.ColorSafe);
+                arena.AddCircle(_towersOrder[order].Position, P4S2.WreathTowerRadius, arena.ColorSafe);
 
             var pcTetherTarget = pc.Tether.Target != 0 ? _module.WorldState.Actors.Find(pc.Tether.Target) : null;
             if (pcTetherTarget != null)

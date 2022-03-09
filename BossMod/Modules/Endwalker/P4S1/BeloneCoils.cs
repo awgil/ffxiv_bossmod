@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.P4S
+namespace BossMod.P4S1
 {
     using static BossModule;
 
@@ -11,12 +11,12 @@ namespace BossMod.P4S
         public enum Soaker { Unknown, TankOrHealer, DamageDealer }
 
         public Soaker ActiveSoakers { get; private set; } = Soaker.Unknown;
-        private P4S _module;
+        private P4S1 _module;
         private List<Actor> _activeTowers = new(); // actor + tank-or-healer
 
         private static float _towerRadius = 4;
 
-        public BeloneCoils(P4S module)
+        public BeloneCoils(P4S1 module)
         {
             _module = module;
         }

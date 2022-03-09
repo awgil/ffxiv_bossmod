@@ -1,13 +1,13 @@
 ﻿using System.Linq;
 
-namespace BossMod.P4S
+namespace BossMod.P4S1
 {
     using static BossModule;
 
     // state related to inversive chlamys mechanic (tethers)
     class InversiveChlamys : Component
     {
-        private P4S _module;
+        private P4S1 _module;
         private bool _assignFromCoils = false;
         private ulong _tetherForbidden = 0;
         private ulong _tetherTargets = 0;
@@ -17,7 +17,7 @@ namespace BossMod.P4S
 
         public bool TethersActive => _tetherTargets != 0;
 
-        public InversiveChlamys(P4S module, bool fromBloodrake)
+        public InversiveChlamys(P4S1 module, bool fromBloodrake)
         {
             _module = module;
             if (fromBloodrake)
@@ -114,7 +114,6 @@ namespace BossMod.P4S
             if (_tetherTargets == 0)
                 return;
 
-            var boss = _module.Boss1();
             ulong failingPlayers = _tetherForbidden & _tetherTargets;
             foreach ((int i, var player) in _module.Raid.WithSlot())
             {
@@ -122,9 +121,9 @@ namespace BossMod.P4S
                 bool inAOE = BitVector.IsVector64BitSet(_tetherInAOE, i);
                 arena.Actor(player, failing ? arena.ColorDanger : (inAOE ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric));
 
-                if (boss != null && player.Tether.ID == (uint)TetherID.Chlamys)
+                if (player.Tether.ID == (uint)TetherID.Chlamys)
                 {
-                    arena.AddLine(player.Position, boss.Position, failing ? arena.ColorDanger : arena.ColorSafe);
+                    arena.AddLine(player.Position, _module.PrimaryActor.Position, failing ? arena.ColorDanger : arena.ColorSafe);
                     arena.AddCircle(player.Position, _aoeRange, arena.ColorDanger);
                 }
             }

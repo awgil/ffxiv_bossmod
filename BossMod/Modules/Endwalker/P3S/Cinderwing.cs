@@ -18,8 +18,7 @@ namespace BossMod.P3S
 
         public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            var boss = _module.Boss();
-            if (boss != null && GeometryUtils.PointInCone(actor.Position - boss.Position, boss.Rotation + _rot, MathF.PI / 2))
+            if (GeometryUtils.PointInCone(actor.Position - _module.PrimaryActor.Position, _module.PrimaryActor.Rotation + _rot, MathF.PI / 2))
             {
                 hints.Add("GTFO from wing!");
             }
@@ -27,11 +26,7 @@ namespace BossMod.P3S
 
         public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var boss = _module.Boss();
-            if (boss != null)
-            {
-                arena.ZoneQuad(boss.Position, boss.Rotation + _rot, 50, 0, 50, arena.ColorAOE);
-            }
+            arena.ZoneQuad(_module.PrimaryActor.Position, _module.PrimaryActor.Rotation + _rot, 50, 0, 50, arena.ColorAOE);
         }
     }
 }

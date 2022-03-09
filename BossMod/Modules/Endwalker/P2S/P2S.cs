@@ -14,7 +14,6 @@ namespace BossMod.P2S
     {
         private List<Actor> _cataractHead;
         private List<Actor> _dissociatedHead;
-        public Actor? Boss() => PrimaryActor;
         public Actor? CataractHead() => _cataractHead.FirstOrDefault();
         public Actor? DissociatedHead() => _dissociatedHead.FirstOrDefault();
 
@@ -65,7 +64,7 @@ namespace BossMod.P2S
             s = MurkyDepths(ref s.Next, 7.2f);
             s = MurkyDepths(ref s.Next, 6.2f);
 
-            s = CommonStates.Cast(ref s.Next, Boss, AID.Enrage, 5.3f, 10, "Enrage");
+            s = CommonStates.Cast(ref s.Next, this, AID.Enrage, 5.3f, 10, "Enrage");
 
             // TODO: reconsider...
             InitialState!.Enter.Add(() => ActivateComponent(new SewageDeluge(this)));
@@ -73,27 +72,27 @@ namespace BossMod.P2S
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
-            Arena.Actor(Boss(), Arena.ColorEnemy);
+            Arena.Actor(PrimaryActor, Arena.ColorEnemy);
             Arena.Actor(pc, Arena.ColorPC);
         }
 
         private StateMachine.State MurkyDepths(ref StateMachine.State? link, float delay)
         {
-            var s = CommonStates.Cast(ref link, Boss, AID.MurkyDepths, delay, 5, "MurkyDepths");
+            var s = CommonStates.Cast(ref link, this, AID.MurkyDepths, delay, 5, "MurkyDepths");
             s.EndHint |= StateMachine.StateHint.Raidwide;
             return s;
         }
 
         private StateMachine.State DoubledImpact(ref StateMachine.State? link, float delay)
         {
-            var s = CommonStates.Cast(ref link, Boss, AID.DoubledImpact, delay, 5, "DoubledImpact");
+            var s = CommonStates.Cast(ref link, this, AID.DoubledImpact, delay, 5, "DoubledImpact");
             s.EndHint |= StateMachine.StateHint.Tankbuster;
             return s;
         }
 
         private StateMachine.State SewageDeluge(ref StateMachine.State? link, float delay)
         {
-            var s = CommonStates.Cast(ref link, Boss, AID.SewageDeluge, delay, 5, "Deluge");
+            var s = CommonStates.Cast(ref link, this, AID.SewageDeluge, delay, 5, "Deluge");
             s.EndHint |= StateMachine.StateHint.Raidwide;
             return s;
         }
@@ -103,10 +102,10 @@ namespace BossMod.P2S
             Dictionary<AID, (StateMachine.State?, Action)> dispatch = new();
             dispatch[AID.SpokenCataract] = new(null, () => ActivateComponent(new Cataract(this, false)));
             dispatch[AID.WingedCataract] = new(null, () => ActivateComponent(new Cataract(this, true)));
-            var start = CommonStates.CastStart(ref link, Boss, dispatch, delay);
+            var start = CommonStates.CastStart(ref link, this, dispatch, delay);
             start.EndHint |= StateMachine.StateHint.PositioningStart;
 
-            var end = CommonStates.CastEnd(ref start.Next, Boss, 8, "Cataract");
+            var end = CommonStates.CastEnd(ref start.Next, this, 8, "Cataract");
             end.Exit.Add(DeactivateComponent<Cataract>);
             end.EndHint |= StateMachine.StateHint.PositioningEnd;
             return end;
@@ -114,10 +113,10 @@ namespace BossMod.P2S
 
         private StateMachine.State Coherence(ref StateMachine.State? link, float delay)
         {
-            var start = CommonStates.CastStart(ref link, Boss, AID.Coherence, delay);
+            var start = CommonStates.CastStart(ref link, this, AID.Coherence, delay);
             start.Exit.Add(() => ActivateComponent(new Coherence(this)));
 
-            var end = CommonStates.CastEnd(ref start.Next, Boss, 12);
+            var end = CommonStates.CastEnd(ref start.Next, this, 12);
 
             var resolve = CommonStates.ComponentCondition<Coherence>(ref end.Next, 3.1f, this, comp => comp.NumCasts > 0, "Coherence");
             resolve.Exit.Add(DeactivateComponent<Coherence>);
@@ -128,7 +127,7 @@ namespace BossMod.P2S
         // note: this activates component, which has to be deactivated later manually - and this is automatically grouped with next cast
         private StateMachine.State PredatoryAvarice(ref StateMachine.State? link, float delay)
         {
-            var s = CommonStates.Cast(ref link, Boss, AID.PredatoryAvarice, delay, 4, "Avarice");
+            var s = CommonStates.Cast(ref link, this, AID.PredatoryAvarice, delay, 4, "Avarice");
             s.Exit.Add(() => ActivateComponent(new PredatoryAvarice(this)));
             s.EndHint |= StateMachine.StateHint.GroupWithNext;
             return s;
@@ -137,7 +136,7 @@ namespace BossMod.P2S
         // note: this activates component, which has to be deactivated later manually - and this is automatically grouped with next cast
         private StateMachine.State Dissociation(ref StateMachine.State? link, float delay)
         {
-            var s = CommonStates.Cast(ref link, Boss, AID.Dissociation, delay, 4, "Dissociation");
+            var s = CommonStates.Cast(ref link, this, AID.Dissociation, delay, 4, "Dissociation");
             s.Exit.Add(() => ActivateComponent(new Dissociation(this)));
             s.EndHint |= StateMachine.StateHint.GroupWithNext;
             return s;
@@ -174,10 +173,10 @@ namespace BossMod.P2S
         {
             var dissociation = Dissociation(ref link, delay);
 
-            var eruption = CommonStates.Cast(ref dissociation.Next, Boss, AID.SewageEruption, 8.2f, 5, "Eruption");
+            var eruption = CommonStates.Cast(ref dissociation.Next, this, AID.SewageEruption, 8.2f, 5, "Eruption");
             eruption.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
-            var flood = CommonStates.Cast(ref eruption.Next, Boss, AID.TaintedFlood, 2.3f, 3, "Flood");
+            var flood = CommonStates.Cast(ref eruption.Next, this, AID.TaintedFlood, 2.3f, 3, "Flood");
             flood.Exit.Add(DeactivateComponent<Dissociation>);
             flood.EndHint |= StateMachine.StateHint.GroupWithNext;
 
@@ -191,7 +190,7 @@ namespace BossMod.P2S
             // TODO: get rid of timeout!
             var dissociation = Dissociation(ref link, delay);
 
-            var eruption = CommonStates.Cast(ref dissociation.Next, Boss, AID.SewageEruption, 8.3f, 5, "Eruption");
+            var eruption = CommonStates.Cast(ref dissociation.Next, this, AID.SewageEruption, 8.3f, 5, "Eruption");
             eruption.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
             var resolve = CommonStates.Timeout(ref eruption.Next, 5, "Resolve"); // should be last eruption...
@@ -203,7 +202,7 @@ namespace BossMod.P2S
         private StateMachine.State Flow1(ref StateMachine.State? link, float delay)
         {
             // TODO: get rid of timeouts!
-            var cast = CommonStates.Cast(ref link, Boss, AID.ChannelingFlow, delay, 5, "Flow 1");
+            var cast = CommonStates.Cast(ref link, this, AID.ChannelingFlow, delay, 5, "Flow 1");
             cast.Exit.Add(() => ActivateComponent(new ChannelingFlow(this)));
             cast.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
@@ -220,16 +219,16 @@ namespace BossMod.P2S
         {
             // TODO: get rid of timeouts!
             // flow 2: same statuses as first flow, different durations
-            var cast = CommonStates.Cast(ref link, Boss, AID.ChannelingOverflow, delay, 5, "Flow 2");
+            var cast = CommonStates.Cast(ref link, this, AID.ChannelingOverflow, delay, 5, "Flow 2");
             cast.Exit.Add(() => ActivateComponent(new ChannelingFlow(this)));
             cast.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
-            var flood1 = CommonStates.Cast(ref cast.Next, Boss, AID.TaintedFlood, 4.2f, 3);
+            var flood1 = CommonStates.Cast(ref cast.Next, this, AID.TaintedFlood, 4.2f, 3);
 
             var hit1 = CommonStates.Timeout(ref flood1.Next, 9, "Hit 1");
             hit1.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Raidwide;
 
-            var flood2 = CommonStates.Cast(ref hit1.Next, Boss, AID.TaintedFlood, 3.4f, 3);
+            var flood2 = CommonStates.Cast(ref hit1.Next, this, AID.TaintedFlood, 3.4f, 3);
 
             var hit2 = CommonStates.Timeout(ref flood2.Next, 9, "Hit 2");
             hit2.Exit.Add(DeactivateComponent<ChannelingFlow>);
@@ -241,7 +240,7 @@ namespace BossMod.P2S
         {
             // TODO: get rid of timeouts!
             // flow 3: same as flow 2, but with coherence instead of floods
-            var cast = CommonStates.Cast(ref link, Boss, AID.ChannelingOverflow, delay, 5, "Flow 3");
+            var cast = CommonStates.Cast(ref link, this, AID.ChannelingOverflow, delay, 5, "Flow 3");
             cast.Exit.Add(() => ActivateComponent(new ChannelingFlow(this)));
             cast.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
@@ -257,7 +256,7 @@ namespace BossMod.P2S
         private StateMachine.State Shockwave(ref StateMachine.State? link, float delay)
         {
             // TODO: some component (knockback? or just make sure autorot uses arms length?)
-            var s = CommonStates.Cast(ref link, Boss, AID.Shockwave, delay, 8, "Shockwave");
+            var s = CommonStates.Cast(ref link, this, AID.Shockwave, delay, 8, "Shockwave");
             s.EndHint |= StateMachine.StateHint.Knockback;
             return s;
         }
@@ -266,7 +265,7 @@ namespace BossMod.P2S
         {
             // note: can determine bubbling targets by watching 233Cs cast OminousBubblingAOE on two targets
             // TODO: some component...
-            var bubbling = CommonStates.Cast(ref link, Boss, AID.OminousBubbling, delay, 3, "TwoStacks");
+            var bubbling = CommonStates.Cast(ref link, this, AID.OminousBubbling, delay, 3, "TwoStacks");
             bubbling.Exit.Add(() => ActivateComponent(new OminousBubbling()));
             bubbling.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.PositioningStart;
 
@@ -281,14 +280,14 @@ namespace BossMod.P2S
 
         private StateMachine.State KampeosHarma(ref StateMachine.State? link, float delay)
         {
-            var start = CommonStates.CastStart(ref link, Boss, AID.KampeosHarma, delay);
+            var start = CommonStates.CastStart(ref link, this, AID.KampeosHarma, delay);
             start.Enter.Add(() => ActivateComponent(new KampeosHarma(this)));// note: icons appear right before harma cast start...
             start.EndHint |= StateMachine.StateHint.PositioningStart;
 
-            var end = CommonStates.CastEnd(ref start.Next, Boss, 8.4f, "Harma");
+            var end = CommonStates.CastEnd(ref start.Next, this, 8.4f, "Harma");
             end.EndHint |= StateMachine.StateHint.DowntimeStart | StateMachine.StateHint.GroupWithNext;
 
-            var resolve = CommonStates.Condition(ref end.Next, 7.5f, () => Boss()?.IsTargetable ?? true, "Harma resolve", 1, 1); // protection for boss becoming untargetable slightly later than cast end
+            var resolve = CommonStates.Condition(ref end.Next, 7.5f, () => PrimaryActor.IsTargetable, "Harma resolve", 1, 1); // protection for boss becoming untargetable slightly later than cast end
             resolve.Exit.Add(DeactivateComponent<KampeosHarma>);
             resolve.EndHint |= StateMachine.StateHint.DowntimeEnd | StateMachine.StateHint.PositioningEnd;
             return resolve;

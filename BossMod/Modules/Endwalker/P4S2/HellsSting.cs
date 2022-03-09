@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.P4S
+namespace BossMod.P4S2
 {
     using static BossModule;
 
@@ -11,23 +11,22 @@ namespace BossMod.P4S
     {
         public int NumCasts { get; private set; } = 0;
 
-        private P4S _module;
+        private P4S2 _module;
         private List<float> _directions = new();
 
         private static float _coneHalfAngle = MathF.PI / 12; // not sure about this...
 
-        public HellsSting(P4S module)
+        public HellsSting(P4S2 module)
         {
             _module = module;
         }
 
         public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            var boss = _module.Boss2();
-            if (NumCasts >= _directions.Count * 2 || boss == null)
+            if (NumCasts >= _directions.Count * 2)
                 return;
 
-            var offset = actor.Position - boss.Position;
+            var offset = actor.Position - _module.PrimaryActor.Position;
             if (ConeDirections().Any(x => GeometryUtils.PointInCone(offset, x, _coneHalfAngle)))
             {
                 hints.Add("GTFO from cone!");
@@ -36,13 +35,12 @@ namespace BossMod.P4S
 
         public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var boss = _module.Boss2();
-            if (NumCasts >= _directions.Count * 2 || boss == null)
+            if (NumCasts >= _directions.Count * 2)
                 return;
 
             foreach (var dir in ConeDirections())
             {
-                arena.ZoneCone(boss.Position, 0, 50, dir - _coneHalfAngle, dir + _coneHalfAngle, arena.ColorAOE);
+                arena.ZoneCone(_module.PrimaryActor.Position, 0, 50, dir - _coneHalfAngle, dir + _coneHalfAngle, arena.ColorAOE);
             }
         }
 

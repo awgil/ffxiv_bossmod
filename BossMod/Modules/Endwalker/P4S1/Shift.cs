@@ -1,20 +1,20 @@
 ﻿using System;
 
-namespace BossMod.P4S
+namespace BossMod.P4S1
 {
     using static BossModule;
 
     // state related to shift mechanics
     class Shift : Component
     {
-        private P4S _module;
+        private P4S1 _module;
         private Actor? _caster;
         private bool _isSword;
 
         private static float _coneHalfAngle = MathF.PI / 3; // not sure about this...
         private static float _knockbackRange = 30;
 
-        public Shift(P4S module)
+        public Shift(P4S1 module)
         {
             _module = module;
         }

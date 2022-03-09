@@ -26,17 +26,14 @@ namespace BossMod.P2S
         {
             _closest = null;
             _inRay = 0;
-            var boss = _module.Boss();
-            if (boss == null)
-                return;
 
             float minDistSq = 100000;
             foreach (var player in _module.Raid.WithoutSlot())
             {
-                if (boss.Tether.Target == player.InstanceID)
+                if (_module.PrimaryActor.Tether.Target == player.InstanceID)
                     continue; // assume both won't target same player for tethers and ray...
 
-                float dist = (player.Position - boss.Position).LengthSquared();
+                float dist = (player.Position - _module.PrimaryActor.Position).LengthSquared();
                 if (dist < minDistSq)
                 {
                     minDistSq = dist;
@@ -47,20 +44,19 @@ namespace BossMod.P2S
             if (_closest == null)
                 return;
 
-            var dirToClosest = Vector3.Normalize(_closest.Position - boss.Position);
+            var dirToClosest = Vector3.Normalize(_closest.Position - _module.PrimaryActor.Position);
             foreach ((int i, var player) in _module.Raid.WithSlot())
             {
-                if (boss.Tether.Target == player.InstanceID)
+                if (_module.PrimaryActor.Tether.Target == player.InstanceID)
                     continue; // assume both won't target same player for tethers and ray...
-                if (player == _closest || GeometryUtils.PointInRect(player.Position - boss.Position, dirToClosest, 50, 0, _rayHalfWidth))
+                if (player == _closest || GeometryUtils.PointInRect(player.Position - _module.PrimaryActor.Position, dirToClosest, 50, 0, _rayHalfWidth))
                     BitVector.SetVector64Bit(ref _inRay, i);
             }
         }
 
         public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            var boss = _module.Boss();
-            if (boss?.Tether.Target == actor.InstanceID)
+            if (_module.PrimaryActor.Tether.Target == actor.InstanceID)
             {
                 if (actor.Role != Role.Tank)
                 {
@@ -97,26 +93,24 @@ namespace BossMod.P2S
 
         public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var boss = _module.Boss();
-            if (boss == null || _closest == null || boss.Position == _closest.Position)
+            if (_closest == null || _module.PrimaryActor.Position == _closest.Position)
                 return;
 
-            var dir = Vector3.Normalize(_closest.Position - boss.Position);
-            arena.ZoneQuad(boss.Position, dir, 50, 0, _rayHalfWidth, arena.ColorAOE);
+            var dir = Vector3.Normalize(_closest.Position - _module.PrimaryActor.Position);
+            arena.ZoneQuad(_module.PrimaryActor.Position, dir, 50, 0, _rayHalfWidth, arena.ColorAOE);
         }
 
         public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var boss = _module.Boss();
-            if (boss == null || _closest == null || boss.Position == _closest.Position)
+            if (_closest == null || _module.PrimaryActor.Position == _closest.Position)
                 return;
 
             // TODO: i'm not sure what are the exact mechanics - flare is probably distance-based, and ray is probably shared damage cast at closest target?..
             foreach ((int i, var player) in _module.Raid.WithSlot())
             {
-                if (boss.Tether.Target == player.InstanceID)
+                if (_module.PrimaryActor.Tether.Target == player.InstanceID)
                 {
-                    arena.AddLine(player.Position, boss.Position, arena.ColorDanger);
+                    arena.AddLine(player.Position, _module.PrimaryActor.Position, arena.ColorDanger);
                     arena.Actor(player, arena.ColorDanger);
                     arena.AddCircle(player.Position, _aoeRadius, arena.ColorDanger);
                 }

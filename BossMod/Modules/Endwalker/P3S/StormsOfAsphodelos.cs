@@ -31,16 +31,13 @@ namespace BossMod.P3S
         {
             _twisterTargets.Clear();
             _tetherTargets = _bossTargets = _closeToTetherTarget = _hitByMultipleAOEs = 0;
-            var boss = _module.Boss();
-            if (boss == null)
-                return;
 
             // we determine failing players, trying to take two reasonable tactics in account:
             // either two tanks immune and soak everything, or each player is hit by one mechanic
             // for now, we consider tether target to be a "tank"
             int[] aoesPerPlayer = new int[PartyState.MaxSize];
 
-            foreach ((int i, var player) in _module.Raid.WithSlot(true).WhereActor(x => x.Tether.Target == boss.InstanceID))
+            foreach ((int i, var player) in _module.Raid.WithSlot(true).WhereActor(x => x.Tether.Target == _module.PrimaryActor.InstanceID))
             {
                 BitVector.SetVector64Bit(ref _tetherTargets, i);
 
@@ -53,10 +50,10 @@ namespace BossMod.P3S
             }
 
             float cosHalfAngle = MathF.Cos(_coneHalfAngle);
-            foreach ((int i, var player) in _module.Raid.WithSlot().SortedByRange(boss.Position).Take(3))
+            foreach ((int i, var player) in _module.Raid.WithSlot().SortedByRange(_module.PrimaryActor.Position).Take(3))
             {
                 BitVector.SetVector64Bit(ref _bossTargets, i);
-                foreach ((int j, var other) in FindPlayersInWinds(boss.Position, player, cosHalfAngle))
+                foreach ((int j, var other) in FindPlayersInWinds(_module.PrimaryActor.Position, player, cosHalfAngle))
                 {
                     ++aoesPerPlayer[j];
                 }
@@ -117,21 +114,17 @@ namespace BossMod.P3S
 
         public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var boss = _module.Boss();
-            if (boss == null)
-                return;
-
             foreach ((int i, var player) in _module.Raid.WithSlot())
             {
                 if (BitVector.IsVector64BitSet(_tetherTargets, i))
                 {
                     arena.ZoneCircle(player.Position, _beaconRadius, arena.ColorAOE);
                 }
-                if (BitVector.IsVector64BitSet(_bossTargets, i) && player.Position != boss.Position)
+                if (BitVector.IsVector64BitSet(_bossTargets, i) && player.Position != _module.PrimaryActor.Position)
                 {
-                    var offset = player.Position - boss.Position;
+                    var offset = player.Position - _module.PrimaryActor.Position;
                     float phi = MathF.Atan2(offset.X, offset.Z);
-                    arena.ZoneCone(boss.Position, 0, 50, phi - _coneHalfAngle, phi + _coneHalfAngle, arena.ColorAOE);
+                    arena.ZoneCone(_module.PrimaryActor.Position, 0, 50, phi - _coneHalfAngle, phi + _coneHalfAngle, arena.ColorAOE);
                 }
             }
 

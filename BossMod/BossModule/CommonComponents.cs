@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BossMod
+﻿namespace BossMod
 {
     public static class CommonComponents
     {
@@ -34,19 +28,17 @@ namespace BossMod
         public class SharedTankbuster : BossModule.Component
         {
             private BossModule _module;
-            private List<Actor> _caster;
             private float _radius;
 
-            public SharedTankbuster(BossModule module, List<Actor> caster, float radius)
+            public SharedTankbuster(BossModule module, float radius)
             {
                 _module = module;
-                _caster = caster;
                 _radius = radius;
             }
 
             public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
             {
-                var target = _module.WorldState.Actors.Find(_caster.FirstOrDefault()?.TargetID ?? 0);
+                var target = _module.WorldState.Actors.Find(_module.PrimaryActor.TargetID);
                 if (target != null)
                 {
                     arena.Actor(target, arena.ColorPlayerGeneric);

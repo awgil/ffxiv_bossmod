@@ -34,27 +34,22 @@ namespace BossMod.P1S
             if (_knockbackTarget != null)
             {
                 _knockbackPos = _knockbackTarget.Position;
-                var boss = _module.Boss();
-                if (boss?.CastInfo != null)
+                if (_module.PrimaryActor.CastInfo != null)
                 {
-                    _knockbackPos = AdjustPositionForKnockback(_knockbackPos, boss, _kbDistance);
+                    _knockbackPos = AdjustPositionForKnockback(_knockbackPos, _module.PrimaryActor, _kbDistance);
                 }
             }
         }
 
         public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            var boss = _module.Boss();
-            if (boss == null)
-                return;
-
-            if (boss.CastInfo != null && actor == _knockbackTarget && !_module.Arena.InBounds(_knockbackPos))
+            if (_module.PrimaryActor.CastInfo != null && actor == _knockbackTarget && !_module.Arena.InBounds(_knockbackPos))
             {
                 hints.Add("About to be knocked into wall!");
             }
 
             float aoeRange = _isFlare ? _flareRange : _holyRange;
-            if (boss.TargetID == actor.InstanceID)
+            if (_module.PrimaryActor.TargetID == actor.InstanceID)
             {
                 // i'm the current tank - i should gtfo from raid if i'll get the flare -or- if i'm vulnerable (assuming i'll pop invul not to die)
                 if (RaidShouldStack(actor))
@@ -85,7 +80,7 @@ namespace BossMod.P1S
             else
             {
                 // i'm not the current tank - I should gtfo if tank is invul soaking, from flare or from holy if i'm vulnerable, otherwise stack to current tank
-                var target = _module.WorldState.Actors.Find(boss.TargetID);
+                var target = _module.WorldState.Actors.Find(_module.PrimaryActor.TargetID);
                 if (target == null)
                     return;
 
@@ -111,17 +106,13 @@ namespace BossMod.P1S
 
         public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var boss = _module.Boss();
-            if (boss == null)
-                return;
-
-            if (boss.CastInfo != null && pc == _knockbackTarget && pc.Position != _knockbackPos)
+            if (_module.PrimaryActor.CastInfo != null && pc == _knockbackTarget && pc.Position != _knockbackPos)
             {
                 arena.AddLine(pc.Position, _knockbackPos, arena.ColorDanger);
                 arena.Actor(_knockbackPos, pc.Rotation, arena.ColorDanger);
             }
 
-            var target = _module.WorldState.Actors.Find(boss.TargetID);
+            var target = _module.WorldState.Actors.Find(_module.PrimaryActor.TargetID);
             if (target == null)
                 return;
 

@@ -1,13 +1,13 @@
 ﻿using System.Linq;
 
-namespace BossMod.P4S
+namespace BossMod.P4S1
 {
     using static BossModule;
 
     // state related to director's belone (debuffs) mechanic
     class DirectorsBelone : Component
     {
-        private P4S _module;
+        private P4S1 _module;
         private bool _assignFromCoils = false;
         private ulong _debuffForbidden = 0;
         private ulong _debuffTargets = 0;
@@ -15,7 +15,7 @@ namespace BossMod.P4S
 
         private static float _debuffPassRange = 3; // not sure about this...
 
-        public DirectorsBelone(P4S module, bool fromBloodrake)
+        public DirectorsBelone(P4S1 module, bool fromBloodrake)
         {
             _module = module;
             if (fromBloodrake)

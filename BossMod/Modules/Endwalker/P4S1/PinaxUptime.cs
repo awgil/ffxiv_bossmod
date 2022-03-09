@@ -1,16 +1,16 @@
 ﻿using System.Numerics;
 
-namespace BossMod.P4S
+namespace BossMod.P4S1
 {
     using static BossModule;
 
     // component showing where to drag boss for max pinax uptime
     class PinaxUptime : Component
     {
-        private P4S _module;
+        private P4S1 _module;
         private SettingTheScene _assignments;
 
-        public PinaxUptime(P4S module)
+        public PinaxUptime(P4S1 module)
         {
             _module = module;
             _assignments = module.FindComponent<SettingTheScene>()!;

@@ -43,9 +43,7 @@ namespace BossMod.P2S
         {
             if (iconID >= 145 && iconID <= 152)
             {
-                var boss = _module.Boss();
-                if (boss != null)
-                    _startingOffset = boss.Position - _module.Arena.WorldCenter;
+                _startingOffset = _module.PrimaryActor.Position - _module.Arena.WorldCenter;
 
                 int slot = _module.Raid.FindSlot(actorID);
                 if (slot >= 0)

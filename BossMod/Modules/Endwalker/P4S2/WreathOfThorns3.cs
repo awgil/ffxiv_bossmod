@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-namespace BossMod.P4S
+namespace BossMod.P4S2
 {
     using static BossModule;
 
@@ -15,7 +15,7 @@ namespace BossMod.P4S
         public State CurState { get; private set; } = State.RangedTowers;
         public int NumJumps { get; private set; } = 0;
         public int NumCones { get; private set; } = 0;
-        private P4S _module;
+        private P4S2 _module;
         private List<Actor> _relevantHelpers = new(); // 4 towers -> knockback -> 4 towers
         private Actor? _jumpTarget = null; // either predicted (if jump is imminent) or last actual (if cones are imminent)
         private ulong _coneTargets = 0;
@@ -28,7 +28,7 @@ namespace BossMod.P4S
         private static float _jumpAOERadius = 10;
         private static float _coneHalfAngle = MathF.PI / 4; // not sure about this...
 
-        public WreathOfThorns3(P4S module)
+        public WreathOfThorns3(P4S2 module)
         {
             _module = module;
             // note: there should be four tethered helpers on activation
@@ -37,24 +37,20 @@ namespace BossMod.P4S
         public override void Update()
         {
             _coneTargets = _playersInAOE = 0;
-            var boss = _module.Boss2();
-            if (boss == null)
-                return;
-
             if (NumCones == NumJumps)
             {
-                _jumpTarget = _module.Raid.WithoutSlot().SortedByRange(boss.Position).LastOrDefault();
+                _jumpTarget = _module.Raid.WithoutSlot().SortedByRange(_module.PrimaryActor.Position).LastOrDefault();
                 _playersInAOE = _jumpTarget != null ? _module.Raid.WithSlot().InRadiusExcluding(_jumpTarget, _jumpAOERadius).Mask() : 0;
             }
             else
             {
-                foreach ((int i, var player) in _module.Raid.WithSlot().SortedByRange(boss.Position).Take(3))
+                foreach ((int i, var player) in _module.Raid.WithSlot().SortedByRange(_module.PrimaryActor.Position).Take(3))
                 {
                     BitVector.SetVector64Bit(ref _coneTargets, i);
-                    if (player.Position != boss.Position)
+                    if (player.Position != _module.PrimaryActor.Position)
                     {
-                        var direction = Vector3.Normalize(player.Position - boss.Position);
-                        _playersInAOE |= _module.Raid.WithSlot().Exclude(i).WhereActor(p => GeometryUtils.PointInCone(p.Position - boss.Position, direction, _coneHalfAngle)).Mask();
+                        var direction = Vector3.Normalize(player.Position - _module.PrimaryActor.Position);
+                        _playersInAOE |= _module.Raid.WithSlot().Exclude(i).WhereActor(p => GeometryUtils.PointInCone(p.Position - _module.PrimaryActor.Position, direction, _coneHalfAngle)).Mask();
                     }
                 }
             }
@@ -68,7 +64,7 @@ namespace BossMod.P4S
                 bool shouldSoakTower = CurState == State.RangedTowers
                     ? (actor.Role == Role.Ranged || actor.Role == Role.Healer)
                     : (actor.Role == Role.Melee || actor.Role == Role.Tank);
-                var soakedTower = (CurState == State.RangedTowers ? _rangedTowers : _meleeTowers).InRadius(actor.Position, P4S.WreathTowerRadius).FirstOrDefault();
+                var soakedTower = (CurState == State.RangedTowers ? _rangedTowers : _meleeTowers).InRadius(actor.Position, P4S2.WreathTowerRadius).FirstOrDefault();
                 if (shouldSoakTower)
                 {
                     hints.Add("Soak the tower!", soakedTower == null);
@@ -95,14 +91,13 @@ namespace BossMod.P4S
 
         public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
-            var boss = _module.Boss2();
-            if (_coneTargets != 0 && boss != null)
+            if (_coneTargets != 0)
             {
-                foreach ((_, var player) in _module.Raid.WithSlot().IncludedInMask(_coneTargets).WhereActor(x => boss.Position != x.Position))
+                foreach ((_, var player) in _module.Raid.WithSlot().IncludedInMask(_coneTargets).WhereActor(x => _module.PrimaryActor.Position != x.Position))
                 {
-                    var offset = player.Position - boss.Position;
+                    var offset = player.Position - _module.PrimaryActor.Position;
                     float phi = MathF.Atan2(offset.X, offset.Z);
-                    arena.ZoneCone(boss.Position, 0, 50, phi - _coneHalfAngle, phi + _coneHalfAngle, arena.ColorAOE);
+                    arena.ZoneCone(_module.PrimaryActor.Position, 0, 50, phi - _coneHalfAngle, phi + _coneHalfAngle, arena.ColorAOE);
                 }
             }
         }
@@ -115,7 +110,7 @@ namespace BossMod.P4S
             if (CurState != State.Done)
             {
                 foreach (var tower in (CurState == State.RangedTowers ? _rangedTowers : _meleeTowers))
-                    arena.AddCircle(tower.Position, P4S.WreathTowerRadius, arena.ColorSafe);
+                    arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, arena.ColorSafe);
             }
 
             if (NumCones != NumJumps)

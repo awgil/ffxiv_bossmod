@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-namespace BossMod.P4S
+namespace BossMod.P4S2
 {
     using static BossModule;
 
@@ -11,7 +11,7 @@ namespace BossMod.P4S
     class WreathOfThorns4 : Component
     {
         public bool ReadyToBreak;
-        private P4S _module;
+        private P4S2 _module;
         private IconID[] _playerIcons = new IconID[8];
         private Actor?[] _playerTetherSource = new Actor?[8];
         private List<Actor>? _darkOrder; // contains sources
@@ -20,7 +20,7 @@ namespace BossMod.P4S
 
         private static float _waterExplosionRange = 10;
 
-        public WreathOfThorns4(P4S module)
+        public WreathOfThorns4(P4S2 module)
         {
             _module = module;
         }
@@ -73,7 +73,7 @@ namespace BossMod.P4S
                 }
                 else if (_playerIcons[slot] == IconID.AkanthaiDark)
                 {
-                    var soakedTower = _playerTetherSource.Zip(_playerIcons).Where(si => si.Item1 != null && si.Item2 == IconID.AkanthaiWater).Select(si => si.Item1!).InRadius(actor.Position, P4S.WreathTowerRadius).FirstOrDefault();
+                    var soakedTower = _playerTetherSource.Zip(_playerIcons).Where(si => si.Item1 != null && si.Item2 == IconID.AkanthaiWater).Select(si => si.Item1!).InRadius(actor.Position, P4S2.WreathTowerRadius).FirstOrDefault();
                     hints.Add("Soak the tower!", soakedTower == null);
                 }
             }
@@ -86,7 +86,7 @@ namespace BossMod.P4S
                     {
                         hints.Add("Break tether!");
                     }
-                    if (GeometryUtils.PointInCircle(actor.Position - nextAOE.Position, P4S.WreathAOERadius))
+                    if (GeometryUtils.PointInCircle(actor.Position - nextAOE.Position, P4S2.WreathAOERadius))
                     {
                         hints.Add("GTFO from AOE!");
                     }
@@ -109,7 +109,7 @@ namespace BossMod.P4S
                 return;
             var nextAOE = NextAOE();
             if (nextAOE != null)
-                arena.ZoneCircle(nextAOE.Position, P4S.WreathAOERadius, arena.ColorAOE);
+                arena.ZoneCircle(nextAOE.Position, P4S2.WreathAOERadius, arena.ColorAOE);
         }
 
         public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
@@ -151,7 +151,7 @@ namespace BossMod.P4S
                     var tower = DetermineTowerToSoak(pcTetherSource);
                     if (tower != null)
                     {
-                        arena.AddCircle(tower.Position, P4S.WreathTowerRadius, arena.ColorSafe);
+                        arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, arena.ColorSafe);
                     }
                 }
             }

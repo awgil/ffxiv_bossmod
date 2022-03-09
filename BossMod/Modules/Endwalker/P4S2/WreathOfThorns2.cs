@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.P4S
+namespace BossMod.P4S2
 {
     using static BossModule;
 
@@ -13,7 +13,7 @@ namespace BossMod.P4S
         public enum State { DarkDesign, FirstSet, SecondSet, Done }
 
         public State CurState { get; private set; } = State.DarkDesign;
-        private P4S _module;
+        private P4S2 _module;
         private List<Actor> _relevantHelpers = new(); // 2 aoes -> 8 towers -> 2 aoes
         private (Actor?, Actor?) _darkTH; // first is one having tether
         private (Actor?, Actor?) _fireTH;
@@ -26,7 +26,7 @@ namespace BossMod.P4S
 
         private static float _fireExplosionRadius = 6;
 
-        public WreathOfThorns2(P4S module)
+        public WreathOfThorns2(P4S2 module)
         {
             _module = module;
             // note: there should be four tethered helpers on activation
@@ -63,12 +63,12 @@ namespace BossMod.P4S
                 if (CurState != State.Done)
                 {
                     var relevantHelpers = CurState == State.FirstSet ? _firstSet : _secondSet;
-                    if (relevantHelpers.Where(IsAOE).InRadius(actor.Position, P4S.WreathAOERadius).Any())
+                    if (relevantHelpers.Where(IsAOE).InRadius(actor.Position, P4S2.WreathAOERadius).Any())
                     {
                         hints.Add("GTFO from AOE!");
                     }
 
-                    var soakedTower = relevantHelpers.Where(IsTower).InRadius(actor.Position, P4S.WreathTowerRadius).FirstOrDefault();
+                    var soakedTower = relevantHelpers.Where(IsTower).InRadius(actor.Position, P4S2.WreathTowerRadius).FirstOrDefault();
                     if (isTowerSoaker)
                     {
                         // note: we're assuming that players with 'dark' soak all towers
@@ -88,7 +88,7 @@ namespace BossMod.P4S
                 return;
 
             foreach (var aoe in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsAOE))
-                arena.ZoneCircle(aoe.Position, P4S.WreathAOERadius, arena.ColorAOE);
+                arena.ZoneCircle(aoe.Position, P4S2.WreathAOERadius, arena.ColorAOE);
         }
 
         public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
@@ -115,7 +115,7 @@ namespace BossMod.P4S
             bool isTowerSoaker = pc == _darkTH.Item1 || pc == _darkTH.Item2;
             if (isTowerSoaker && CurState != State.Done)
                 foreach (var tower in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsTower))
-                    arena.AddCircle(tower.Position, P4S.WreathTowerRadius, CurState == State.DarkDesign ?  arena.ColorDanger : arena.ColorSafe);
+                    arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, CurState == State.DarkDesign ?  arena.ColorDanger : arena.ColorSafe);
 
             // draw circles around next imminent fire explosion
             if (CurState != State.DarkDesign)

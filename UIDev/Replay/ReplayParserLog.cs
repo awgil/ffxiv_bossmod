@@ -101,7 +101,7 @@ namespace UIDev
         private void ParseEnterExitCombat(DateTime timestamp, string[] payload)
         {
             bool value = bool.Parse(payload[2]);
-            foreach (var act in _ws.Actors)
+            foreach (var act in _ws.Actors.Where(a => a.IsTargetable))
             {
                 OpActorCombat op = new();
                 op.InstanceID = act.InstanceID;

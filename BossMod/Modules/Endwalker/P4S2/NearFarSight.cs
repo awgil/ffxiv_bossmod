@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace BossMod.P4S
+namespace BossMod.P4S2
 {
     using static BossModule;
 
@@ -10,13 +10,13 @@ namespace BossMod.P4S
         public enum State { Near, Far, Done }
 
         public State CurState { get; private set; }
-        private P4S _module;
+        private P4S2 _module;
         private ulong _targets = 0;
         private ulong _inAOE = 0;
 
         private static float _aoeRadius = 5;
 
-        public NearFarSight(P4S module, State state)
+        public NearFarSight(P4S2 module, State state)
         {
             CurState = state;
             _module = module;
@@ -25,11 +25,10 @@ namespace BossMod.P4S
         public override void Update()
         {
             _targets = _inAOE = 0;
-            var boss = _module.Boss2();
-            if (boss == null || CurState == State.Done)
+            if (CurState == State.Done)
                 return;
 
-            var playersByRange = _module.Raid.WithSlot().SortedByRange(boss.Position);
+            var playersByRange = _module.Raid.WithSlot().SortedByRange(_module.PrimaryActor.Position);
             foreach ((int i, var player) in CurState == State.Near ? playersByRange.Take(2) : playersByRange.TakeLast(2))
             {
                 BitVector.SetVector64Bit(ref _targets, i);
