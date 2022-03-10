@@ -105,30 +105,30 @@ namespace BossMod
 
         private unsafe void HandleActionEffect1(Protocol.Server_ActionEffect1* p, uint actorID)
         {
-            HandleActionEffect(actorID, & p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 1);
+            HandleActionEffect(actorID, & p->Header, (ActionEffect*)p->Effects, p->TargetID, 1);
         }
 
         private unsafe void HandleActionEffect8(Protocol.Server_ActionEffect8* p, uint actorID)
         {
-            HandleActionEffect(actorID, &p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 8);
+            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 8);
         }
 
         private unsafe void HandleActionEffect16(Protocol.Server_ActionEffect16* p, uint actorID)
         {
-            HandleActionEffect(actorID, &p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 16);
+            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 16);
         }
 
         private unsafe void HandleActionEffect24(Protocol.Server_ActionEffect24* p, uint actorID)
         {
-            HandleActionEffect(actorID, &p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 24);
+            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 24);
         }
 
         private unsafe void HandleActionEffect32(Protocol.Server_ActionEffect32* p, uint actorID)
         {
-            HandleActionEffect(actorID, &p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 32);
+            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 32);
         }
 
-        private unsafe void HandleActionEffect(uint casterID, Protocol.Server_ActionEffectHeader* header, Protocol.Server_ActionEffect_EffectEntry* effects, ulong* targetIDs, uint maxTargets)
+        private unsafe void HandleActionEffect(uint casterID, Protocol.Server_ActionEffectHeader* header, ActionEffect* effects, ulong* targetIDs, uint maxTargets)
         {
             if (header->actionType == ActionType.Spell)
             {
@@ -245,31 +245,31 @@ namespace BossMod
                 case Protocol.Opcode.ActionEffect1:
                     {
                         var p = (Protocol.Server_ActionEffect1*)dataPtr;
-                        DumpActionEffect(&p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 1, 0, 0);
+                        DumpActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 1, 0, 0);
                         break;
                     }
                 case Protocol.Opcode.ActionEffect8:
                     {
                         var p = (Protocol.Server_ActionEffect8*)dataPtr;
-                        DumpActionEffect(&p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 8, p->effectflags1, p->effectflags2);
+                        DumpActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 8, p->effectflags1, p->effectflags2);
                         break;
                     }
                 case Protocol.Opcode.ActionEffect16:
                     {
                         var p = (Protocol.Server_ActionEffect16*)dataPtr;
-                        DumpActionEffect(&p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 16, p->effectflags1, p->effectflags2);
+                        DumpActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 16, p->effectflags1, p->effectflags2);
                         break;
                     }
                 case Protocol.Opcode.ActionEffect24:
                     {
                         var p = (Protocol.Server_ActionEffect24*)dataPtr;
-                        DumpActionEffect(&p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 24, p->effectflags1, p->effectflags2);
+                        DumpActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 24, p->effectflags1, p->effectflags2);
                         break;
                     }
                 case Protocol.Opcode.ActionEffect32:
                     {
                         var p = (Protocol.Server_ActionEffect32*)dataPtr;
-                        DumpActionEffect(&p->Header, (Protocol.Server_ActionEffect_EffectEntry*)p->Effects, p->TargetID, 32, p->effectflags1, p->effectflags2);
+                        DumpActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 32, p->effectflags1, p->effectflags2);
                         break;
                     }
                 case Protocol.Opcode.ActorCast:
@@ -362,7 +362,7 @@ namespace BossMod
             }
         }
 
-        private unsafe void DumpActionEffect(Protocol.Server_ActionEffectHeader* data, Protocol.Server_ActionEffect_EffectEntry* effects, ulong* targetIDs, uint maxTargets, uint flags1, ushort flags2)
+        private unsafe void DumpActionEffect(Protocol.Server_ActionEffectHeader* data, ActionEffect* effects, ulong* targetIDs, uint maxTargets, uint flags1, ushort flags2)
         {
             // rotation: 0 -> -180, 65535 -> +180
             float rot = (data->rotation / 65535.0f * 360.0f) - 180.0f;
@@ -378,11 +378,11 @@ namespace BossMod
                 Service.Log($"[Network] -- target {i} == {Utils.ObjectString(targetId)}, hiword = {targetIDs[i] >> 32:X8}");
                 for (int j = 0; j < 8; ++j)
                 {
-                    Protocol.Server_ActionEffect_EffectEntry* eff = effects + (i * 8) + j;
-                    if (eff->effectType == Protocol.Server_ActionEffectType.Nothing)
+                    ActionEffect* eff = effects + (i * 8) + j;
+                    if (eff->effectType == ActionEffectType.Nothing)
                         continue;
 
-                    Service.Log($"[Network] --- effect {j} == {eff->effectType}, params={eff->hitSeverity:X2} {eff->param:X2} {eff->bonusPercent:X2} {eff->valueMultiplier:X2} {eff->flag:X2} {eff->value:X4}");
+                    Service.Log($"[Network] --- effect {j} == {eff->effectType}, params={eff->param0:X2} {eff->param1:X2} {eff->param2:X2} {eff->param3:X2} {eff->param4:X2} {eff->value:X4}");
                 }
             }
         }

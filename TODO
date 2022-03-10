@@ -6,7 +6,6 @@ general:
 - determine exact mechanism for cooldown reset (on instance enter and on wipe)
 
 replay encounter analysis:
-- ability effects (damage, etc)
 - ability relative positioning
 - metaanalysis (read multiple logs and determine statistics)
 -- state transition times

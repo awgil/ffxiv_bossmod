@@ -56,6 +56,13 @@ namespace BossMod
             return $"{Math.Max(0, (expireAt - now).TotalSeconds):f3}";
         }
 
+        public static string KnockbackString(uint knockbackID)
+        {
+            var kbData = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Knockback>()?.GetRow(knockbackID);
+            string details = kbData != null ? $"distance={kbData.Distance}" : "not found";
+            return $"{knockbackID} ({details})";
+        }
+
         public static string CastTimeString(float current, float total)
         {
             return $"{current:f2}/{total:f2}";

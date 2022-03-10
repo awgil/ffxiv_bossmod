@@ -335,7 +335,7 @@ namespace UIDev
                 {
                     var lo = ulong.Parse(payload[8 + 2 * i], NumberStyles.HexNumber);
                     var hi = ulong.Parse(payload[9 + 2 * i], NumberStyles.HexNumber);
-                    target[i] = (hi << 32) | lo;
+                    target.Effects[i] = (hi << 32) | lo;
                 }
                 res.Value.Targets.Add(target);
                 AddMove(timestamp, res.Value.MainTargetID, payload, 30);

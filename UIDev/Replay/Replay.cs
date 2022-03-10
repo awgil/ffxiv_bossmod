@@ -17,6 +17,7 @@ namespace UIDev
         public class ActionTarget
         {
             public Participant? Target;
+            public ActionEffects Effects;
         }
 
         public class Action
@@ -82,10 +83,11 @@ namespace UIDev
             public DateTime Start;
             public DateTime End;
             public ushort Zone;
-            public List<Participant> Players = new();
-            public Dictionary<uint, List<Participant>> Enemies = new(); // key = oid
-            public List<Action> Actions = new();
-            public List<Status> Statuses = new();
+            public Dictionary<uint, List<Participant>> Participants = new(); // key = oid
+            public List<Action> InterestingActions = new();
+            public List<Action> OtherActions = new();
+            public List<Status> InterestingStatuses = new();
+            public List<Status> OtherStatuses = new();
             public List<Tether> Tethers = new();
             public List<Icon> Icons = new();
             public List<EnvControl> EnvControls = new();

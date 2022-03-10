@@ -339,7 +339,7 @@ namespace UIDev
                 CastEvent.Target target = new();
                 target.ID = ActorID(parts[0]);
                 for (int j = 1; j < parts.Length; ++j)
-                    target[j - 1] = ulong.Parse(parts[j], NumberStyles.HexNumber);
+                    target.Effects[j - 1] = ulong.Parse(parts[j], NumberStyles.HexNumber);
                 res.Value.Targets.Add(target);
             }
             AddOp(timestamp, res);

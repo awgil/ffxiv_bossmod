@@ -62,15 +62,8 @@ namespace UIDev
 
         private void AddParticipantToEncounter(Replay.Encounter e, Replay.Participant p)
         {
-            if (p.Type == ActorType.Player)
-            {
-                e.Players.Add(p);
-            }
-            else if (p.Type != ActorType.Pet && p.Type != ActorType.Chocobo)
-            {
-                e.Enemies.TryAdd(p.OID, new());
-                e.Enemies[p.OID].Add(p);
-            }
+            e.Participants.TryAdd(p.OID, new());
+            e.Participants[p.OID].Add(p);
         }
 
         private void ActorAdded(object? sender, Actor actor)
@@ -136,17 +129,17 @@ namespace UIDev
 
         private void StatusGain(object? sender, (Actor actor, int index) args)
         {
-            if (args.actor.Type == ActorType.Pet)
-                return; // ignore
-
             var s = args.actor.Statuses[args.index];
             var src = _participants.GetValueOrDefault(s.SourceID);
-            if (src?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
-                return; // ignore
-
+            bool interesting = !(args.actor.Type is ActorType.Pet or ActorType.Chocobo) && !(src?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo);
             var r = _statuses[(args.actor.InstanceID, s.ID, s.SourceID)] = new() { ID = s.ID, Target = _participants[args.actor.InstanceID], Source = src, Apply = _ws.CurrentTime, Expire = s.ExpireAt, StartingExtra = s.Extra };
             foreach (var e in _encounters.Values)
-                e.Statuses.Add(r);
+            {
+                if (interesting)
+                    e.InterestingStatuses.Add(r);
+                else
+                    e.OtherStatuses.Add(r);
+            }
         }
 
         private void StatusLose(object? sender, (Actor actor, int index) args)
@@ -174,16 +167,17 @@ namespace UIDev
             var a = new Replay.Action() { ID = info.Action, Time = _ws.CurrentTime, Source = src, MainTarget = _participants.GetValueOrDefault(info.MainTargetID) };
             foreach (var t in info.Targets)
             {
-                a.Targets.Add(new() { Target = _participants.GetValueOrDefault(t.ID) });
+                a.Targets.Add(new() { Target = _participants.GetValueOrDefault(t.ID), Effects = t.Effects });
             }
             src.Actions.Add(a);
 
-            if (src.Type != ActorType.Player && src.Type != ActorType.Pet && src.Type != ActorType.Chocobo)
+            bool interesting = !(src.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo);
+            foreach (var e in _encounters.Values)
             {
-                foreach (var e in _encounters.Values)
-                {
-                    e.Actions.Add(a);
-                }
+                if (interesting)
+                    e.InterestingActions.Add(a);
+                else
+                    e.OtherActions.Add(a);
             }
         }
 

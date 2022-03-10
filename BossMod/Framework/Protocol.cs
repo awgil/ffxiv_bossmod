@@ -8,10 +8,10 @@ namespace BossMod
         public enum Opcode
         {
             // opcodes from machina
-            StatusEffectList = 0xf0BC,
-            StatusEffectList2 = 0xf1FF,
-            StatusEffectList3 = 0xf2AF,
-            BossStatusEffectList = 0xf07e,
+            StatusEffectList = 0x0275,
+            StatusEffectList2 = 0x012F,
+            StatusEffectList3 = 0x01D6,
+            BossStatusEffectList = 0x0114,
             ActionEffect1 = 0x035E, // Machina calls it AbilityN, size=124
             ActionEffect8 = 0x02BA, // size=636
             ActionEffect16 = 0x010D,
@@ -19,14 +19,14 @@ namespace BossMod
             ActionEffect32 = 0x01CA,
             ActorCast = 0x01F4,
             EffectResult = 0x021A,
-            EffectResultBasic = 0xf2d9,
+            EffectResultBasic = 0x016A,
             ActorControl = 0x0202, // look at toggle weapon
             ActorControlSelf = 0x0301, // look at cooldown
             ActorControlTarget = 0x0333, // look at target change
             UpdateHpMpTp = 0x0240,
-            //PlayerSpawn = 0xf142,
+            PlayerSpawnMachina = 0x0268,
             NpcSpawn = 0x032F,
-            NpcSpawn2 = 0xf08f,
+            NpcSpawn2 = 0x0380,
             ActorMove = 0x03CB,
             ActorSetPos = 0x033C,
             ActorGauge = 0x0374,
@@ -49,7 +49,7 @@ namespace BossMod
             ResultDialog = 0x00DA,
             RetainerInformation = 0x01A4,
             ItemMarketBoardInfo = 0x014E,
-            PlayerSpawn = 0x03DC,
+            PlayerSpawnFFXIVOpcodes = 0x03DC,
             ContainerInfo = 0x03C9,
             ItemInfo = 0x00EC,
             UpdateClassInfo = 0x02F8,
@@ -65,7 +65,6 @@ namespace BossMod
             CFNotify = 0x016E,
             PrepareZoning = 0x01CB,
             ObjectSpawn = 0x006A,
-            //StatusEffectList = 0x0275,
             FreeCompanyInfo = 0x01EA,
             FreeCompanyDialog = 0x030D,
             AirshipTimers = 0x0142,
@@ -125,77 +124,11 @@ namespace BossMod
             public ushort padding24;
         }
 
-        public enum Server_ActionEffectType : byte
-        {
-            Nothing = 0,
-            Miss = 1,
-            FullResist = 2,
-            Damage = 3,
-            Heal = 4,
-            BlockedDamage = 5,
-            ParriedDamage = 6,
-            Invulnerable = 7,
-            NoEffectText = 8,
-            Unknown_9 = 9,
-            MpLoss = 10, // 0x0A
-            MpGain = 11, // 0x0B
-            TpLoss = 12, // 0x0C
-            TpGain = 13, // 0x0D
-            ApplyStatusEffectTarget = 14, // 0x0E - dissector calls this "GpGain"
-            ApplyStatusEffectSource = 15, // 0x0F
-            RecoveredFromStatusEffect = 16, // 0x10
-            LoseStatusEffectTarget = 17, // 0x11
-            LoseStatusEffectSource = 18, // 0x12
-            Unknown_13 = 19, // 0x13
-            StatusNoEffect = 20, // 0x14
-            ThreatPosition = 24, // 0x18
-            EnmityAmountUp = 25, // 0x19
-            EnmityAmountDown = 26, // 0x1A
-            StartActionCombo = 27, // 0x1B
-            Unknown_1d = 29, // 0x1D
-            Unknown_20 = 32, // 0x20 -- this looks like knockback?.. p1s, p2s
-            Knockback = 33, // 0x21
-            Unknown_22 = 34, // 0x22
-            Unknown_27 = 39, // 0x27
-            Mount = 40, // 0x28
-            unknown_30 = 48, // 0x30
-            unknown_31 = 49, // 0x31
-            Unknown_32 = 50, // 0x32
-            Unknown_33 = 51, // 0x33
-            FullResistStatus = 52, // 0x34
-            Unknown_37 = 55, // 0x37
-            Unknown_38 = 56, // 0x38
-            Unknown_39 = 57, // 0x39
-            VFX = 59, // 0x3B
-            Gauge = 60, // 0x3C
-            Unknown_3d = 61, // 0x3D
-            Unknown_40 = 64, // 0x40
-            Unknown_42 = 66, // 0x42
-            Unknown_46 = 70, // 0x46
-            Unknown_47 = 71, // 0x47
-            Unknown_48 = 72, // 0x48
-            Unknown_49 = 73, // 0x49
-            Partial_Invulnerable = 74, // 0x4A
-            Interrupt = 75, // 0x4B
-        }
-
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public unsafe struct Server_ActionEffect_EffectEntry
-        {
-            public Server_ActionEffectType effectType;
-            public byte hitSeverity;
-            public byte param;
-            public byte bonusPercent;
-            public byte valueMultiplier;
-            public byte flag;
-            public ushort value;
-        }
-
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public unsafe struct Server_ActionEffect1
         {
             public Server_ActionEffectHeader Header;
-            public fixed ulong Effects[8]; // Server_ActionEffect_EffectEntry[8]
+            public fixed ulong Effects[8]; // ActionEffect[8]
             public ushort padding3;
             public uint padding4;
             public fixed ulong TargetID[1]; // dissector calls hi-word "effect flags"

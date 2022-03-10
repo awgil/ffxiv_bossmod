@@ -288,8 +288,8 @@ namespace BossMod
             {
                 sb.Append($"|{Actor(t.ID)}");
                 for (int i = 0; i < 8; ++i)
-                    if (t[i] != 0)
-                        sb.Append($"!{t[i]:X16}");
+                    if (t.Effects[i] != 0)
+                        sb.Append($"!{t.Effects[i]:X16}");
             }
             Log("CST!", sb.ToString());
         }
