@@ -46,5 +46,53 @@
                 }
             }
         }
+
+        // generic component that is 'active' during specific primary target's cast
+        // useful for simple bosses - outdoor, dungeons, etc.
+        public class CastHint : BossModule.Component
+        {
+            protected BossModule _module;
+            protected ActionID _action;
+            protected string _hint;
+
+            public bool Active => _module.PrimaryActor.CastInfo?.Action == _action;
+
+            public CastHint(BossModule module, ActionID action, string hint)
+            {
+                _module = module;
+                _action = action;
+                _hint = hint;
+            }
+
+            public override void AddGlobalHints(BossModule.GlobalHints hints)
+            {
+                if (Active)
+                    hints.Add(_hint);
+            }
+        }
+
+        // generic avoidable aoe
+        public class CastHintAvoidable : CastHint
+        {
+            protected AOEShape _shape;
+
+            public CastHintAvoidable(BossModule module, ActionID action, AOEShape shape)
+                : base(module, action, "Avoidable AOE")
+            {
+                _shape = shape;
+            }
+
+            public override void AddHints(int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+            {
+                if (Active && _shape.Check(actor.Position, _module.PrimaryActor))
+                    hints.Add("GTFO from aoe!");
+            }
+
+            public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+            {
+                if (Active)
+                    _shape.Draw(arena, _module.PrimaryActor);
+            }
+        }
     }
 }

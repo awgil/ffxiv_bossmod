@@ -13,6 +13,18 @@ namespace BossMod
                 (uint)P3S.OID.Boss => typeof(P3S.P3S),
                 (uint)P4S1.OID.Boss => typeof(P4S1.P4S1),
                 (uint)P4S2.OID.Boss => typeof(P4S2.P4S2),
+                (uint)Endwalker.ARanks.Hulder.OID.Boss => typeof(Endwalker.ARanks.Hulder.Hulder),
+                (uint)Endwalker.ARanks.Storsie.OID.Boss => typeof(Endwalker.ARanks.Storsie.Storsie),
+                (uint)Endwalker.ARanks.Sugriva.OID.Boss => typeof(Endwalker.ARanks.Sugriva.Sugriva),
+                (uint)Endwalker.ARanks.Yilan.OID.Boss => typeof(Endwalker.ARanks.Yilan.Yilan),
+                (uint)Endwalker.ARanks.Minerva.OID.Boss => typeof(Endwalker.ARanks.Minerva.Minerva),
+                (uint)Endwalker.ARanks.Aegeiros.OID.Boss => typeof(Endwalker.ARanks.Aegeiros.Aegeiros),
+                (uint)Endwalker.ARanks.MoussePrincess.OID.Boss => typeof(Endwalker.ARanks.MoussePrincess.MoussePrincess),
+                (uint)Endwalker.ARanks.LunatenderQueen.OID.Boss => typeof(Endwalker.ARanks.LunatenderQueen.LunatenderQueen),
+                (uint)Endwalker.ARanks.Petalodus.OID.Boss => typeof(Endwalker.ARanks.Petalodus.Petalodus),
+                (uint)Endwalker.ARanks.Gurangatch.OID.Boss => typeof(Endwalker.ARanks.Gurangatch.Gurangatch),
+                (uint)Endwalker.ARanks.ArchEta.OID.Boss => typeof(Endwalker.ARanks.ArchEta.ArchEta),
+                (uint)Endwalker.ARanks.FanAil.OID.Boss => typeof(Endwalker.ARanks.FanAil.FanAil),
                 _ => null,
             };
         }

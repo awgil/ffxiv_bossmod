@@ -27,7 +27,6 @@ boss modules:
 - hydaelyn - todo
 - improve per-player risks...
 - data driven => would enable sequence autorecord and live editing
-- open-world encounters
 
 autorotation:
 - planner (defensive CDs, charge, delay offensive?)

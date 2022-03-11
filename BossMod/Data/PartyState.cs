@@ -84,7 +84,7 @@ namespace BossMod
 
         public void Remove(int slot)
         {
-            if (_contentIDs[slot] == 0)
+            if (slot == -1 || _contentIDs[slot] == 0)
             {
                 Service.Log($"[PartyState] Trying to remove non-existent member from slot {slot}");
             }

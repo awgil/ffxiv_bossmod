@@ -69,6 +69,7 @@ namespace UIDev
         private void ActorAdded(object? sender, Actor actor)
         {
             var p = _participants[actor.InstanceID] = new() { InstanceID = actor.InstanceID, OID = actor.OID, Type = actor.Type, Name = actor.Name, Spawn = _ws.CurrentTime };
+            _res.Participants.Add(p);
             foreach (var e in _encounters.Values)
                 AddParticipantToEncounter(e, p);
         }
@@ -86,7 +87,8 @@ namespace UIDev
                 var m = ModuleRegistry.TypeForOID(actor.OID);
                 if (m != null)
                 {
-                    var e = _encounters[actor.InstanceID] = new() { InstanceID = actor.InstanceID, OID = actor.OID, Start = _ws.CurrentTime, Zone = _ws.CurrentZone };
+                    var e = _encounters[actor.InstanceID] = new() { InstanceID = actor.InstanceID, OID = actor.OID, Start = _ws.CurrentTime, Zone = _ws.CurrentZone,
+                        FirstAction = _res.Actions.Count, FirstStatus = _res.Statuses.Count, FirstTether = _res.Tethers.Count, FirstIcon = _res.Icons.Count, FirstEnvControl = _res.EnvControls.Count };
                     foreach (var p in _participants.Values)
                         AddParticipantToEncounter(e, p);
                     _res.Encounters.Add(e);
@@ -106,7 +108,7 @@ namespace UIDev
         private void CastStart(object? sender, Actor actor)
         {
             var c = actor.CastInfo!;
-            _participants[actor.InstanceID].Casts.Add(new() { ID = c.Action, Start = _ws.CurrentTime, Target = _participants.GetValueOrDefault(c.TargetID) });
+            _participants[actor.InstanceID].Casts.Add(new() { ID = c.Action, Start = _ws.CurrentTime, Target = _participants.GetValueOrDefault(c.TargetID), Location = c.Location });
         }
 
         private void CastFinish(object? sender, Actor actor)
@@ -117,8 +119,7 @@ namespace UIDev
         private void TetherAdd(object? sender, Actor actor)
         {
             var t = _tethers[actor.InstanceID] = new() { ID = actor.Tether.ID, Source = _participants[actor.InstanceID], Target = _participants.GetValueOrDefault(actor.Tether.Target), Appear = _ws.CurrentTime };
-            foreach (var e in _encounters.Values)
-                e.Tethers.Add(t);
+            _res.Tethers.Add(t);
         }
 
         private void TetherRemove(object? sender, Actor actor)
@@ -129,17 +130,12 @@ namespace UIDev
 
         private void StatusGain(object? sender, (Actor actor, int index) args)
         {
+            var p = _participants[args.actor.InstanceID];
             var s = args.actor.Statuses[args.index];
             var src = _participants.GetValueOrDefault(s.SourceID);
-            bool interesting = !(args.actor.Type is ActorType.Pet or ActorType.Chocobo) && !(src?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo);
-            var r = _statuses[(args.actor.InstanceID, s.ID, s.SourceID)] = new() { ID = s.ID, Target = _participants[args.actor.InstanceID], Source = src, Apply = _ws.CurrentTime, Expire = s.ExpireAt, StartingExtra = s.Extra };
-            foreach (var e in _encounters.Values)
-            {
-                if (interesting)
-                    e.InterestingStatuses.Add(r);
-                else
-                    e.OtherStatuses.Add(r);
-            }
+            var r = _statuses[(args.actor.InstanceID, s.ID, s.SourceID)] = new() { ID = s.ID, Target = p, Source = src, Apply = _ws.CurrentTime, Expire = s.ExpireAt, StartingExtra = s.Extra };
+            p.HasAnyStatuses = true;
+            _res.Statuses.Add(r);
         }
 
         private void StatusLose(object? sender, (Actor actor, int index) args)
@@ -155,38 +151,29 @@ namespace UIDev
 
         private void EventIcon(object? sender, (uint actorID, uint iconID) args)
         {
-            foreach (var e in _encounters.Values)
-            {
-                e.Icons.Add(new() { ID = args.iconID, Target = _participants.GetValueOrDefault(args.actorID), Timestamp = _ws.CurrentTime });
-            }
+            _res.Icons.Add(new() { ID = args.iconID, Target = _participants.GetValueOrDefault(args.actorID), Timestamp = _ws.CurrentTime });
         }
 
         private void EventCast(object? sender, CastEvent info)
         {
-            var src = _participants[info.CasterID];
-            var a = new Replay.Action() { ID = info.Action, Time = _ws.CurrentTime, Source = src, MainTarget = _participants.GetValueOrDefault(info.MainTargetID) };
+            var p = _participants.GetValueOrDefault(info.CasterID);
+            if (p == null)
+            {
+                Service.Log($"Skipping {info.Action} cast from unknown actor {info.CasterID:X}");
+                return;
+            }
+            var a = new Replay.Action() { ID = info.Action, Time = _ws.CurrentTime, Source = p, MainTarget = _participants.GetValueOrDefault(info.MainTargetID) };
             foreach (var t in info.Targets)
             {
                 a.Targets.Add(new() { Target = _participants.GetValueOrDefault(t.ID), Effects = t.Effects });
             }
-            src.Actions.Add(a);
-
-            bool interesting = !(src.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo);
-            foreach (var e in _encounters.Values)
-            {
-                if (interesting)
-                    e.InterestingActions.Add(a);
-                else
-                    e.OtherActions.Add(a);
-            }
+            p.HasAnyActions = true;
+            _res.Actions.Add(a);
         }
 
         private void EventEnvControl(object? sender, (uint feature, byte index, uint state) args)
         {
-            foreach (var e in _encounters.Values)
-            {
-                e.EnvControls.Add(new() { Feature = args.feature, Index = args.index, State = args.state, Timestamp = _ws.CurrentTime });
-            }
+            _res.EnvControls.Add(new() { Feature = args.feature, Index = args.index, State = args.state, Timestamp = _ws.CurrentTime });
         }
     }
 }

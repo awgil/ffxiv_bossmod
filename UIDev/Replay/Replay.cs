@@ -1,6 +1,8 @@
 ﻿using BossMod;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace UIDev
 {
@@ -12,6 +14,7 @@ namespace UIDev
             public DateTime Start;
             public DateTime End;
             public Participant? Target;
+            public Vector3 Location;
         }
 
         public class ActionTarget
@@ -38,7 +41,8 @@ namespace UIDev
             public DateTime Spawn;
             public DateTime Despawn;
             public List<Cast> Casts = new();
-            public List<Action> Actions = new();
+            public bool HasAnyActions;
+            public bool HasAnyStatuses;
         }
 
         public class Status
@@ -84,16 +88,26 @@ namespace UIDev
             public DateTime End;
             public ushort Zone;
             public Dictionary<uint, List<Participant>> Participants = new(); // key = oid
-            public List<Action> InterestingActions = new();
-            public List<Action> OtherActions = new();
-            public List<Status> InterestingStatuses = new();
-            public List<Status> OtherStatuses = new();
-            public List<Tether> Tethers = new();
-            public List<Icon> Icons = new();
-            public List<EnvControl> EnvControls = new();
+            public int FirstAction;
+            public int FirstStatus;
+            public int FirstTether;
+            public int FirstIcon;
+            public int FirstEnvControl;
         }
 
         public List<ReplayOps.Operation> Ops = new();
+        public List<Participant> Participants = new();
+        public List<Action> Actions = new();
+        public List<Status> Statuses = new();
+        public List<Tether> Tethers = new();
+        public List<Icon> Icons = new();
+        public List<EnvControl> EnvControls = new();
         public List<Encounter> Encounters = new();
+
+        public IEnumerable<Action> EncounterActions(Encounter e) => Actions.Skip(e.FirstAction).TakeWhile(a => a.Time <= e.End);
+        public IEnumerable<Status> EncounterStatuses(Encounter e) => Statuses.Skip(e.FirstStatus).TakeWhile(s => s.Apply <= e.End);
+        public IEnumerable<Tether> EncounterTethers(Encounter e) => Tethers.Skip(e.FirstTether).TakeWhile(t => t.Appear <= e.End);
+        public IEnumerable<Icon> EncounterIcons(Encounter e) => Icons.Skip(e.FirstIcon).TakeWhile(i => i.Timestamp <= e.End);
+        public IEnumerable<EnvControl> EncounterEnvControls(Encounter e) => EnvControls.Skip(e.FirstEnvControl).TakeWhile(ec => ec.Timestamp <= e.End);
     }
 }
