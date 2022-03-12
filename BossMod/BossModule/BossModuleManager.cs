@@ -8,6 +8,7 @@ namespace BossMod
 {
     // base class that creates and manages instances of proper boss modules in response to world state changes
     // derived class should perform rendering as appropriate
+    // note: currently boss module is activated whenever primary actor is both *in combat* and *targetable* and deactivated when it leaves combat; TODO rethink... (consider P4S1)
     public class BossModuleManager : IDisposable
     {
         public WorldState WorldState { get; init; }
@@ -84,6 +85,7 @@ namespace BossMod
             WorldState.Actors.Added += ActorAdded;
             WorldState.Actors.Removed += ActorRemoved;
             WorldState.Actors.InCombatChanged += EnterExitCombat;
+            WorldState.Actors.IsTargetableChanged += TargetableChanged;
 
             if (Config.ShowDemo)
             {
@@ -93,7 +95,7 @@ namespace BossMod
             foreach (var a in WorldState.Actors)
             {
                 var m = LoadModule(a);
-                if (m != null && a.InCombat)
+                if (m != null && a.InCombat && a.IsTargetable)
                 {
                     ActivateModule(m);
                 }
@@ -109,6 +111,7 @@ namespace BossMod
             WorldState.Actors.Added -= ActorAdded;
             WorldState.Actors.Removed -= ActorRemoved;
             WorldState.Actors.InCombatChanged -= EnterExitCombat;
+            WorldState.Actors.IsTargetableChanged -= TargetableChanged;
 
             foreach (var m in _activeModules)
             {
@@ -157,22 +160,30 @@ namespace BossMod
             return true;
         }
 
-        public void ActivateModule(BossModule m)
+        public bool ActivateModule(BossModule m)
         {
-            Service.Log($"[BMM] Activating boss module '{m.GetType()}' for actor {m.PrimaryActor.InstanceID:X} ({m.PrimaryActor.OID:X}) '{m.PrimaryActor.Name}'");
-            m.Reset();
-            m.StateMachine.ActiveState = m.InitialState;
-            _activeModules.Add(m);
+            if (!_activeModules.Contains(m))
+            {
+                Service.Log($"[BMM] Activating boss module '{m.GetType()}' for actor {m.PrimaryActor.InstanceID:X} ({m.PrimaryActor.OID:X}) '{m.PrimaryActor.Name}'");
+                m.Reset();
+                m.Update(); // we need this update to ensure state-machine's current time is initialized
+                m.StateMachine.ActiveState = m.InitialState;
+                _activeModules.Add(m);
+                return true;
+            }
+            return false;
         }
 
-        public void DeactivateModule(BossModule m)
+        public bool DeactivateModule(BossModule m)
         {
             if (_activeModules.Remove(m))
             {
                 Service.Log($"[BMM] Deactivating boss module '{m.GetType()}' for actor {m.PrimaryActor.InstanceID:X} ({m.PrimaryActor.OID:X}) '{m.PrimaryActor.Name}'");
                 m.StateMachine.ActiveState = null;
                 m.Reset();
+                return true;
             }
+            return false;
         }
 
         private void ActorAdded(object? sender, Actor actor)
@@ -197,15 +208,28 @@ namespace BossMod
             if (m == null)
                 return;
 
-            if (actor.InCombat)
-            {
-                ActivateModule(m);
-            }
-            else
-            {
-                DeactivateModule(m);
-            }
-            RefreshConfigOrModules();
+            bool didSomething = false;
+            if (!actor.InCombat)
+                didSomething = DeactivateModule(m);
+            else if (actor.IsTargetable)
+                didSomething = ActivateModule(m);
+
+            if (didSomething)
+                RefreshConfigOrModules();
+        }
+
+        private void TargetableChanged(object? sender, Actor actor)
+        {
+            var m = _loadedModules.GetValueOrDefault(actor.InstanceID);
+            if (m == null)
+                return;
+
+            bool didSomething = false;
+            if (actor.InCombat && actor.IsTargetable)
+                didSomething = ActivateModule(m);
+
+            if (didSomething)
+                RefreshConfigOrModules();
         }
 
         private void ConfigChanged(object? sender, EventArgs args)

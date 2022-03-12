@@ -19,6 +19,7 @@ namespace UIDev
             _ws.Actors.Added += ActorAdded;
             _ws.Actors.Removed += ActorRemoved;
             _ws.Actors.InCombatChanged += ActorCombat;
+            _ws.Actors.IsTargetableChanged += ActorTargetable;
             _ws.Actors.CastStarted += CastStart;
             _ws.Actors.CastFinished += CastFinish;
             _ws.Actors.Tethered += TetherAdd;
@@ -66,6 +67,42 @@ namespace UIDev
             e.Participants[p.OID].Add(p);
         }
 
+        private void StartEncounter(Actor actor)
+        {
+            if (_encounters.ContainsKey(actor.InstanceID))
+                return;
+
+            var m = ModuleRegistry.TypeForOID(actor.OID);
+            if (m == null)
+                return;
+
+            var e = _encounters[actor.InstanceID] = new()
+            {
+                InstanceID = actor.InstanceID,
+                OID = actor.OID,
+                Start = _ws.CurrentTime,
+                Zone = _ws.CurrentZone,
+                FirstAction = _res.Actions.Count,
+                FirstStatus = _res.Statuses.Count,
+                FirstTether = _res.Tethers.Count,
+                FirstIcon = _res.Icons.Count,
+                FirstEnvControl = _res.EnvControls.Count
+            };
+            foreach (var p in _participants.Values)
+                AddParticipantToEncounter(e, p);
+            _res.Encounters.Add(e);
+        }
+
+        private void FinishEncounter(Actor actor)
+        {
+            var e = _encounters.GetValueOrDefault(actor.InstanceID);
+            if (e == null)
+                return;
+
+            e.End = _ws.CurrentTime;
+            _encounters.Remove(actor.InstanceID);
+        }
+
         private void ActorAdded(object? sender, Actor actor)
         {
             var p = _participants[actor.InstanceID] = new() { InstanceID = actor.InstanceID, OID = actor.OID, Type = actor.Type, Name = actor.Name, Spawn = _ws.CurrentTime };
@@ -82,27 +119,16 @@ namespace UIDev
 
         private void ActorCombat(object? sender, Actor actor)
         {
-            if (actor.InCombat)
-            {
-                var m = ModuleRegistry.TypeForOID(actor.OID);
-                if (m != null)
-                {
-                    var e = _encounters[actor.InstanceID] = new() { InstanceID = actor.InstanceID, OID = actor.OID, Start = _ws.CurrentTime, Zone = _ws.CurrentZone,
-                        FirstAction = _res.Actions.Count, FirstStatus = _res.Statuses.Count, FirstTether = _res.Tethers.Count, FirstIcon = _res.Icons.Count, FirstEnvControl = _res.EnvControls.Count };
-                    foreach (var p in _participants.Values)
-                        AddParticipantToEncounter(e, p);
-                    _res.Encounters.Add(e);
-                }
-            }
-            else
-            {
-                var e = _encounters.GetValueOrDefault(actor.InstanceID);
-                if (e != null)
-                {
-                    e.End = _ws.CurrentTime;
-                    _encounters.Remove(actor.InstanceID);
-                }
-            }
+            if (!actor.InCombat)
+                FinishEncounter(actor);
+            else if (actor.IsTargetable)
+                StartEncounter(actor);
+        }
+
+        private void ActorTargetable(object? sender, Actor actor)
+        {
+            if (actor.InCombat && actor.IsTargetable)
+                StartEncounter(actor);
         }
 
         private void CastStart(object? sender, Actor actor)

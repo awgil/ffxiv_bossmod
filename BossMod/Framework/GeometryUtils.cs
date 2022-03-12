@@ -151,6 +151,11 @@ namespace BossMod
             return new(MathF.Sin(direction), 0, MathF.Cos(direction));
         }
 
+        public static float DirectionFromVec3(Vector3 direction)
+        {
+            return MathF.Atan2(direction.X, direction.Z);
+        }
+
         // zone checking
         public static bool PointInRect(Vector3 offsetFromOrigin, Vector3 direction, float lenFront, float lenBack, float halfWidth)
         {

@@ -4,6 +4,12 @@ using System.Linq;
 
 namespace BossMod.P2S
 {
+    // state related to demigod double mechanic (shared tankbuster)
+    class DoubledImpact : CommonComponents.SharedTankbuster
+    {
+        public DoubledImpact(P2S module) : base(module, 6) { }
+    }
+
     // TODO: improve this somehow...
     class OminousBubbling : CommonComponents.CastCounter
     {
@@ -86,6 +92,8 @@ namespace BossMod.P2S
         private StateMachine.State DoubledImpact(ref StateMachine.State? link, float delay)
         {
             var s = CommonStates.Cast(ref link, this, AID.DoubledImpact, delay, 5, "DoubledImpact");
+            s.Enter.Add(() => ActivateComponent(new DoubledImpact(this)));
+            s.Exit.Add(DeactivateComponent<DoubledImpact>);
             s.EndHint |= StateMachine.StateHint.Tankbuster;
             return s;
         }

@@ -107,14 +107,11 @@ namespace BossMod.P1S
 
         private static Cell CellFromOffset(Vector3 offsetFromCenter)
         {
-            if (offsetFromCenter.X == 0 && offsetFromCenter.Z == 0)
-                return Cell.None;
-
-            var phi = MathF.Atan2(offsetFromCenter.Z, offsetFromCenter.X) + MathF.PI;
+            var phi = GeometryUtils.DirectionFromVec3(offsetFromCenter) + MathF.PI;
             int coneIndex = (int)(4 * phi / MathF.PI); // phi / (pi/4); range [0, 8]
             bool oddCone = (coneIndex & 1) != 0;
             bool outerCone = !GeometryUtils.PointInCircle(offsetFromCenter, P1S.InnerCircleRadius);
-            return (oddCone != outerCone) ? Cell.Blue : Cell.Red; // inner odd = blue, outer even = blue
+            return (oddCone == outerCone) ? Cell.Blue : Cell.Red; // outer odd = inner even = blue
         }
     }
 }

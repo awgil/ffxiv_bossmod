@@ -8,37 +8,26 @@ namespace BossMod.P2S
     class Cataract : Component
     {
         private P2S _module;
-        private bool _isWinged;
-
-        private static float _halfWidth = 7.5f;
+        private AOEShapeRect _aoeBoss = new(50, 7.5f, 50);
+        private AOEShapeRect _aoeHead = new(50, 50);
 
         public Cataract(P2S module, bool winged)
         {
             _module = module;
-            _isWinged = winged;
+            if (winged)
+                _aoeHead.DirectionOffset = MathF.PI;
         }
 
         public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            var head = _module.CataractHead();
-            float headRot = _isWinged ? MathF.PI : 0;
-            if (GeometryUtils.PointInRect(actor.Position - _module.PrimaryActor.Position, _module.PrimaryActor.Rotation, _module.Arena.WorldHalfSize, _module.Arena.WorldHalfSize, _halfWidth) ||
-                (head != null && GeometryUtils.PointInRect(actor.Position - head.Position, head.Rotation + headRot, _module.Arena.WorldHalfSize, 0, _module.Arena.WorldHalfSize)))
-            {
+            if (_aoeBoss.Check(actor.Position, _module.PrimaryActor) || _aoeHead.Check(actor.Position, _module.CataractHead()))
                 hints.Add("GTFO from cataract!");
-            }
         }
 
         public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.ZoneQuad(_module.PrimaryActor.Position, _module.PrimaryActor.Rotation, arena.WorldHalfSize, arena.WorldHalfSize, _halfWidth, arena.ColorAOE);
-
-            var head = _module.CataractHead();
-            if (head != null)
-            {
-                float headRot = _isWinged ? MathF.PI : 0;
-                arena.ZoneQuad(head.Position, head.Rotation + headRot, arena.WorldHalfSize, 0, arena.WorldHalfSize, arena.ColorAOE);
-            }
+            _aoeBoss.Draw(arena, _module.PrimaryActor);
+            _aoeHead.Draw(arena, _module.CataractHead());
         }
     }
 }

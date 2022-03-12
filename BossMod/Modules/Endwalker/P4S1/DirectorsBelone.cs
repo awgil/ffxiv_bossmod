@@ -89,10 +89,10 @@ namespace BossMod.P4S1
 
         public override void AddGlobalHints(GlobalHints hints)
         {
-            if (_debuffForbidden != 0)
+            var forbidden = _module.Raid.WithSlot(true).IncludedInMask(_debuffForbidden).FirstOrDefault().Item2;
+            if (forbidden != null)
             {
-                var forbidden = _module.Raid.WithSlot().IncludedInMask(_debuffForbidden).FirstOrDefault().Item2.Role;
-                hints.Add($"Stack: {(forbidden == Role.Tank || forbidden == Role.Healer ? "Tanks/Healers" : "DD")}");
+                hints.Add($"Stack: {(forbidden.Role is Role.Tank or Role.Healer ? "Tanks/Healers" : "DD")}");
             }
         }
 

@@ -8,8 +8,16 @@ namespace BossMod
         public abstract bool Check(Vector3 position, Vector3 origin, float rotation);
         public abstract void Draw(MiniArena arena, Vector3 origin, float rotation);
 
-        public bool Check(Vector3 position, Actor origin) => Check(position, origin.Position, origin.Rotation);
-        public void Draw(MiniArena arena, Actor origin) => Draw(arena, origin.Position, origin.Rotation);
+        public bool Check(Vector3 position, Actor? origin)
+        {
+            return origin != null ? Check(position, origin.Position, origin.Rotation) : false;
+        }
+
+        public void Draw(MiniArena arena, Actor? origin)
+        {
+            if (origin != null)
+                Draw(arena, origin.Position, origin.Rotation);
+        }
     }
 
     public class AOEShapeCone : AOEShape
@@ -110,7 +118,7 @@ namespace BossMod
             // this is a bit of a hack, but whatever...
             var dir = endpoint - origin;
             LengthFront = dir.Length();
-            DirectionOffset = MathF.Atan2(dir.X, dir.Z) - rotation;
+            DirectionOffset = GeometryUtils.DirectionFromVec3(dir) - rotation;
         }
 
         public void SetEndPointFromCastLocation(Actor caster)

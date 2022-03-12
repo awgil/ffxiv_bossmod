@@ -6,15 +6,16 @@ namespace BossMod.P2S
     using static BossModule;
 
     // state related to coherence mechanic
-    // TODO: i'm not 100% sure how exactly it selects target for aoe ray, and who should that be...
+    // TODO: i'm not 100% sure how exactly it selects target for aoe ray, I assume it is closest player except tether target?..
     class Coherence : CommonComponents.CastCounter
     {
         private P2S _module;
-        private Actor? _closest;
+        private Actor? _tetherTarget;
+        private Actor? _rayTarget;
+        private AOEShapeRect _rayShape = new(50, 3);
         private ulong _inRay = 0;
 
         private static float _aoeRadius = 10; // not sure about this - actual range is 60, but it has some sort of falloff
-        private static float _rayHalfWidth = 3;
 
         public Coherence(P2S module)
             : base(ActionID.MakeSpell(AID.CoherenceRay))
@@ -24,39 +25,25 @@ namespace BossMod.P2S
 
         public override void Update()
         {
-            _closest = null;
-            _inRay = 0;
-
-            float minDistSq = 100000;
-            foreach (var player in _module.Raid.WithoutSlot())
+            // if tether is still active, update tether target
+            var head = _module.CataractHead();
+            if (head != null && head.Tether.Target != 0 && head.Tether.Target != _tetherTarget?.InstanceID)
             {
-                if (_module.PrimaryActor.Tether.Target == player.InstanceID)
-                    continue; // assume both won't target same player for tethers and ray...
-
-                float dist = (player.Position - _module.PrimaryActor.Position).LengthSquared();
-                if (dist < minDistSq)
-                {
-                    minDistSq = dist;
-                    _closest = player;
-                }
+                _tetherTarget = _module.WorldState.Actors.Find(head.Tether.Target);
             }
 
-            if (_closest == null)
-                return;
-
-            var dirToClosest = Vector3.Normalize(_closest.Position - _module.PrimaryActor.Position);
-            foreach ((int i, var player) in _module.Raid.WithSlot())
+            _inRay = 0;
+            _rayTarget = _module.Raid.WithoutSlot().Exclude(_tetherTarget).MinBy(a => (a.Position - _module.PrimaryActor.Position).LengthSquared());
+            if (_rayTarget != null)
             {
-                if (_module.PrimaryActor.Tether.Target == player.InstanceID)
-                    continue; // assume both won't target same player for tethers and ray...
-                if (player == _closest || GeometryUtils.PointInRect(player.Position - _module.PrimaryActor.Position, dirToClosest, 50, 0, _rayHalfWidth))
-                    BitVector.SetVector64Bit(ref _inRay, i);
+                _rayShape.DirectionOffset = GeometryUtils.DirectionFromVec3(_rayTarget.Position - _module.PrimaryActor.Position);
+                _inRay = _module.Raid.WithSlot().InShape(_rayShape, _module.PrimaryActor.Position, 0).Mask();
             }
         }
 
         public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_module.PrimaryActor.Tether.Target == actor.InstanceID)
+            if (actor == _tetherTarget)
             {
                 if (actor.Role != Role.Tank)
                 {
@@ -67,7 +54,7 @@ namespace BossMod.P2S
                     hints.Add("GTFO from raid!");
                 }
             }
-            else if (actor == _closest)
+            else if (actor == _rayTarget)
             {
                 if (actor.Role != Role.Tank)
                 {
@@ -93,32 +80,27 @@ namespace BossMod.P2S
 
         public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_closest == null || _module.PrimaryActor.Position == _closest.Position)
-                return;
-
-            var dir = Vector3.Normalize(_closest.Position - _module.PrimaryActor.Position);
-            arena.ZoneQuad(_module.PrimaryActor.Position, dir, 50, 0, _rayHalfWidth, arena.ColorAOE);
+            if (_rayTarget != null)
+                _rayShape.Draw(arena, _module.PrimaryActor.Position, 0);
         }
 
         public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_closest == null || _module.PrimaryActor.Position == _closest.Position)
-                return;
-
             // TODO: i'm not sure what are the exact mechanics - flare is probably distance-based, and ray is probably shared damage cast at closest target?..
+            var head = _module.CataractHead();
             foreach ((int i, var player) in _module.Raid.WithSlot())
             {
-                if (_module.PrimaryActor.Tether.Target == player.InstanceID)
+                if (head?.Tether.Target == player.InstanceID)
                 {
                     arena.AddLine(player.Position, _module.PrimaryActor.Position, arena.ColorDanger);
                     arena.Actor(player, arena.ColorDanger);
                     arena.AddCircle(player.Position, _aoeRadius, arena.ColorDanger);
                 }
-                else if (player == _closest)
+                else if (player == _rayTarget)
                 {
                     arena.Actor(player, arena.ColorDanger);
                 }
-                else
+                else if (player != _tetherTarget)
                 {
                     arena.Actor(player, BitVector.IsVector64BitSet(_inRay, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
                 }

@@ -102,10 +102,10 @@ namespace BossMod.P4S1
 
         public override void AddGlobalHints(GlobalHints hints)
         {
-            if (_tetherForbidden != 0)
+            var forbidden = _module.Raid.WithSlot(true).IncludedInMask(_tetherForbidden).FirstOrDefault().Item2;
+            if (forbidden != null)
             {
-                var forbidden = _module.Raid.WithSlot().IncludedInMask(_tetherForbidden).FirstOrDefault().Item2.Role;
-                hints.Add($"Intercept: {(forbidden == Role.Tank || forbidden == Role.Healer ? "DD" : "Tanks/Healers")}");
+                hints.Add($"Intercept: {(forbidden.Role is Role.Tank or Role.Healer ? "DD" : "Tanks/Healers")}");
             }
         }
 

@@ -31,12 +31,12 @@ namespace BossMod
         }
 
         // exclude specified actor from enumeration
-        public static IEnumerable<Actor> Exclude(this IEnumerable<Actor> range, Actor actor)
+        public static IEnumerable<Actor> Exclude(this IEnumerable<Actor> range, Actor? actor)
         {
             return range.Where(x => x != actor);
         }
 
-        public static IEnumerable<(int, Actor)> Exclude(this IEnumerable<(int, Actor)> range, Actor actor)
+        public static IEnumerable<(int, Actor)> Exclude(this IEnumerable<(int, Actor)> range, Actor? actor)
         {
             return range.WhereActor(x => x != actor);
         }
@@ -89,6 +89,27 @@ namespace BossMod
         public static IEnumerable<(int, Actor)> InRadiusExcluding(this IEnumerable<(int, Actor)> range, Actor origin, float radius)
         {
             return range.Exclude(origin).InRadius(origin.Position, radius);
+        }
+
+        // select actors in specified shape
+        public static IEnumerable<Actor> InShape(this IEnumerable<Actor> range, AOEShape shape, Actor origin)
+        {
+            return range.Where(actor => shape.Check(actor.Position, origin));
+        }
+
+        public static IEnumerable<(int, Actor)> InShape(this IEnumerable<(int, Actor)> range, AOEShape shape, Actor origin)
+        {
+            return range.WhereActor(actor => shape.Check(actor.Position, origin));
+        }
+
+        public static IEnumerable<Actor> InShape(this IEnumerable<Actor> range, AOEShape shape, Vector3 origin, float rotation)
+        {
+            return range.Where(actor => shape.Check(actor.Position, origin, rotation));
+        }
+
+        public static IEnumerable<(int, Actor)> InShape(this IEnumerable<(int, Actor)> range, AOEShape shape, Vector3 origin, float rotation)
+        {
+            return range.WhereActor(actor => shape.Check(actor.Position, origin, rotation));
         }
 
         // select actors that have tether with specific ID

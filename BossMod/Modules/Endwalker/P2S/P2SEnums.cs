@@ -16,11 +16,14 @@
         WingedCataractSecondary = 26645, // CHead->CHead, half in front is safe
         SpokenCataract = 26647, // Boss->Boss
         WingedCataract = 26648, // Boss->Boss
-        CoherenceAOE = 26640, // Boss->n/a, no cast, aoe around tether target
+        CoherenceAOE = 26650, // Boss->n/a, no cast, aoe around tether target
         Coherence = 26651, // Boss->Boss
         CoherenceRay = 26652, //Boss->Boss, no cast, ray on closest target
         ChannelingFlow = 26654, // Boss->Boss
-        Crash = 26657, // Helper->Helper, attack after arrows resolve
+        GreaterTyphoon = 26655, // Helper->Helper, no cast, ??? (sometimes knockbacks for 50, maybe if there is no partner?; also hits people right after coherence during third flow...)
+        GreatTyphoon = 26656, // Helper->none, no cast, small damage on main target, large on clipped targets during overflow (TODO: check what happens if distance is too small...)
+        Crash = 26657, // Helper->Helper, attack after knockback targets collide
+        FlowResolve = 26658, // Helper->target, knockback after arrow debuff fades
         KampeosHarma = 26659, // Boss->Boss
         KampeosHarmaChargeBoss = 26660, // Boss->target, no cast
         KampeosHarmaChargeHead = 26661, // CHead->target, no cast, first 3 charges
@@ -36,8 +39,10 @@
         DoubledImpact = 26674, // Boss->MT
         MurkyDepths = 26675, // Boss->Boss
         Enrage = 26676, // Boss->Boss
+        Teleport = 26678, // Boss->none, no cast
         TaintedFlood = 26679, // Boss->Boss
         TaintedFloodAOE = 26680, // Helper->targets
+        AutoAttack = 27978, // Boss->MT, no cast
         ChannelingOverflow = 28098, // Boss->Boss (both 2nd and 3rd arrows)
     };
 
