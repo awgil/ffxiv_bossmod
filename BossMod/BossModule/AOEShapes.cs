@@ -84,7 +84,7 @@ namespace BossMod
 
         public override void Draw(MiniArena arena, Vector3 origin, float rotation)
         {
-            arena.ZoneCone(origin, InnerRadius, OuterRadius, 0, 2 * MathF.PI, arena.ColorAOE);
+            arena.ZoneDonut(origin, InnerRadius, OuterRadius, arena.ColorAOE);
         }
     }
 

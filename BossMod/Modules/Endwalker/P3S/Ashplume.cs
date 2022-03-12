@@ -45,10 +45,6 @@ namespace BossMod.P3S
                 {
                     hints.Add("Incorrect stack!");
                 }
-                else
-                {
-                    hints.Add("Stack!", false);
-                }
             }
             else if (CurState == State.Spread)
             {
@@ -56,11 +52,15 @@ namespace BossMod.P3S
                 {
                     hints.Add("Spread!");
                 }
-                else
-                {
-                    hints.Add("Spread!", false);
-                }
             }
+        }
+
+        public override void AddGlobalHints(GlobalHints hints)
+        {
+            if (CurState == State.Stack)
+                hints.Add("Stack!");
+            else if (CurState == State.Spread)
+                hints.Add("Spread!");
         }
 
         public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)

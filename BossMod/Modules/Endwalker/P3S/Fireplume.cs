@@ -80,10 +80,7 @@ namespace BossMod.P3S
                 case AID.ExperimentalFireplumeMultiAOE:
                 case AID.ExperimentalGloryplumeMultiAOE:
                     if (_multiStartedCasts++ == 0)
-                    {
-                        var offset = actor.Position - _module.Arena.WorldCenter;
-                        _multiStartingDirection = MathF.Atan2(offset.X, offset.Z);
-                    }
+                        _multiStartingDirection = GeometryUtils.DirectionFromVec3(actor.Position - _module.Arena.WorldCenter);
                     break;
             }
         }

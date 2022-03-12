@@ -12,14 +12,13 @@ namespace BossMod.P3S
     {
         private P3S _module;
         private List<Actor> _twisters;
-        private List<int> _twisterTargets = new();
+        private AOEShapeCone _windsAOE = new(50, MathF.PI / 6); // not sure about half-angle!!!
+        private AOEShapeCircle _beaconAOE = new(6);
+        private List<Actor> _twisterTargets = new();
         private ulong _tetherTargets = 0;
         private ulong _bossTargets = 0;
         private ulong _closeToTetherTarget = 0;
         private ulong _hitByMultipleAOEs = 0;
-
-        private static float _coneHalfAngle = MathF.PI / 6; // not sure about this!!!
-        private static float _beaconRadius = 6;
 
         public StormsOfAsphodelos(P3S module)
         {
@@ -42,18 +41,17 @@ namespace BossMod.P3S
                 BitVector.SetVector64Bit(ref _tetherTargets, i);
 
                 ++aoesPerPlayer[i];
-                foreach ((int j, var other) in _module.Raid.WithSlot().InRadiusExcluding(player, _beaconRadius))
+                foreach ((int j, var other) in _module.Raid.WithSlot().InRadiusExcluding(player, _beaconAOE.Radius))
                 {
                     ++aoesPerPlayer[j];
                     BitVector.SetVector64Bit(ref _closeToTetherTarget, j);
                 }
             }
 
-            float cosHalfAngle = MathF.Cos(_coneHalfAngle);
             foreach ((int i, var player) in _module.Raid.WithSlot().SortedByRange(_module.PrimaryActor.Position).Take(3))
             {
                 BitVector.SetVector64Bit(ref _bossTargets, i);
-                foreach ((int j, var other) in FindPlayersInWinds(_module.PrimaryActor.Position, player, cosHalfAngle))
+                foreach ((int j, var other) in FindPlayersInWinds(_module.PrimaryActor, player))
                 {
                     ++aoesPerPlayer[j];
                 }
@@ -61,15 +59,12 @@ namespace BossMod.P3S
 
             foreach (var twister in _twisters)
             {
-                (var i, var player) = _module.Raid.WithSlot().SortedByRange(twister.Position).FirstOrDefault();
-                if (player == null)
-                {
-                    _twisterTargets.Add(-1);
-                    continue;
-                }
+                var target = _module.Raid.WithoutSlot().MinBy(a => (a.Position - twister.Position).LengthSquared());
+                if (target == null)
+                    continue; // there are no alive players - target list will be left empty
 
-                _twisterTargets.Add(i);
-                foreach ((int j, var other) in FindPlayersInWinds(twister.Position, player, cosHalfAngle))
+                _twisterTargets.Add(target);
+                foreach ((int j, var other) in FindPlayersInWinds(twister, target))
                 {
                     ++aoesPerPlayer[j];
                 }
@@ -118,25 +113,17 @@ namespace BossMod.P3S
             {
                 if (BitVector.IsVector64BitSet(_tetherTargets, i))
                 {
-                    arena.ZoneCircle(player.Position, _beaconRadius, arena.ColorAOE);
+                    _beaconAOE.Draw(arena, player);
                 }
                 if (BitVector.IsVector64BitSet(_bossTargets, i) && player.Position != _module.PrimaryActor.Position)
                 {
-                    var offset = player.Position - _module.PrimaryActor.Position;
-                    float phi = MathF.Atan2(offset.X, offset.Z);
-                    arena.ZoneCone(_module.PrimaryActor.Position, 0, 50, phi - _coneHalfAngle, phi + _coneHalfAngle, arena.ColorAOE);
+                    _windsAOE.Draw(arena, _module.PrimaryActor.Position, GeometryUtils.DirectionFromVec3(player.Position - _module.PrimaryActor.Position));
                 }
             }
 
-            foreach ((var twister, int i) in _twisters.Zip(_twisterTargets))
+            foreach (var (twister, target) in _twisters.Zip(_twisterTargets))
             {
-                var player = _module.Raid[i]; // not sure if twister could really have invalid target, but let's be safe...
-                if (player == null || player.Position == twister.Position)
-                    continue;
-
-                var offset = player.Position - twister.Position;
-                float phi = MathF.Atan2(offset.X, offset.Z);
-                arena.ZoneCone(twister.Position, 0, 50, phi - _coneHalfAngle, phi + _coneHalfAngle, arena.ColorAOE);
+                _windsAOE.Draw(arena, twister.Position, GeometryUtils.DirectionFromVec3(target.Position - twister.Position));
             }
         }
 
@@ -149,16 +136,18 @@ namespace BossMod.P3S
 
             foreach ((int i, var player) in _module.Raid.WithSlot())
             {
-                bool active = BitVector.IsVector64BitSet(_tetherTargets | _bossTargets, i) || _twisterTargets.Contains(i);
+                bool tethered = BitVector.IsVector64BitSet(_tetherTargets, i);
+                if (tethered)
+                    arena.AddLine(_module.PrimaryActor.Position, player.Position, player.Role == Role.Tank ? arena.ColorSafe : arena.ColorDanger);
+                bool active = tethered || BitVector.IsVector64BitSet(_bossTargets, i) || _twisterTargets.Contains(player);
                 bool failing = BitVector.IsVector64BitSet(_hitByMultipleAOEs | _closeToTetherTarget, i);
                 arena.Actor(player, active ? arena.ColorDanger : (failing ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric));
             }
         }
 
-        private IEnumerable<(int, Actor)> FindPlayersInWinds(Vector3 origin, Actor target, float cosHalfAngle)
+        private IEnumerable<(int, Actor)> FindPlayersInWinds(Actor origin, Actor target)
         {
-            var dir = Vector3.Normalize(target.Position - origin);
-            return _module.Raid.WithSlot().WhereActor(player => Vector3.Dot(dir, Vector3.Normalize(player.Position - origin)) >= cosHalfAngle);
+            return _module.Raid.WithSlot().InShape(_windsAOE, origin.Position, GeometryUtils.DirectionFromVec3(target.Position - origin.Position));
         }
     }
 }

@@ -248,6 +248,11 @@ namespace BossMod
             ClipAndFillConvex(poly, color);
         }
 
+        public void ZoneDonut(Vector3 center, float innerRadius, float outerRadius, uint color)
+        {
+            ZoneCone(center, innerRadius, outerRadius, 0, 2 * MathF.PI, color);
+        }
+
         public void ZoneTri(Vector3 a, Vector3 b, Vector3 c, uint color)
         {
             var tri = new Vector2[] { WorldPositionToScreenPosition(a), WorldPositionToScreenPosition(b), WorldPositionToScreenPosition(c) };

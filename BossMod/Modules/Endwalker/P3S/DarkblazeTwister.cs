@@ -51,7 +51,7 @@ namespace BossMod.P3S
             foreach (var twister in BurningTwisters)
             {
                 arena.ZoneCircle(twister.Position, _aoeInnerRadius, arena.ColorAOE);
-                arena.ZoneCone(twister.Position, _aoeMiddleRadius, _aoeOuterRadius, 0, 2 * MathF.PI, arena.ColorAOE);
+                arena.ZoneDonut(twister.Position, _aoeMiddleRadius, _aoeOuterRadius, arena.ColorAOE);
             }
         }
 

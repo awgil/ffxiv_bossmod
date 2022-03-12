@@ -12,9 +12,8 @@ namespace BossMod.P4S2
         public int NumCasts { get; private set; } = 0;
 
         private P4S2 _module;
+        private AOEShapeCone _cone = new(50, MathF.PI / 12); // not sure about half-width...
         private List<float> _directions = new();
-
-        private static float _coneHalfAngle = MathF.PI / 12; // not sure about this...
 
         public HellsSting(P4S2 module)
         {
@@ -27,10 +26,8 @@ namespace BossMod.P4S2
                 return;
 
             var offset = actor.Position - _module.PrimaryActor.Position;
-            if (ConeDirections().Any(x => GeometryUtils.PointInCone(offset, x, _coneHalfAngle)))
-            {
+            if (ConeDirections().Any(x => GeometryUtils.PointInCone(offset, x, _cone.HalfAngle)))
                 hints.Add("GTFO from cone!");
-            }
         }
 
         public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
@@ -39,9 +36,7 @@ namespace BossMod.P4S2
                 return;
 
             foreach (var dir in ConeDirections())
-            {
-                arena.ZoneCone(_module.PrimaryActor.Position, 0, 50, dir - _coneHalfAngle, dir + _coneHalfAngle, arena.ColorAOE);
-            }
+                _cone.Draw(arena, _module.PrimaryActor.Position, dir);
         }
 
         public override void OnCastStarted(Actor actor)

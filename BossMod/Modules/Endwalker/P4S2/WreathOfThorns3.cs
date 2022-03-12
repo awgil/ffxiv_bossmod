@@ -16,6 +16,7 @@ namespace BossMod.P4S2
         public int NumJumps { get; private set; } = 0;
         public int NumCones { get; private set; } = 0;
         private P4S2 _module;
+        private AOEShapeCone _coneAOE = new(50, MathF.PI / 4); // not sure about half-width...
         private List<Actor> _relevantHelpers = new(); // 4 towers -> knockback -> 4 towers
         private Actor? _jumpTarget = null; // either predicted (if jump is imminent) or last actual (if cones are imminent)
         private ulong _coneTargets = 0;
@@ -26,7 +27,6 @@ namespace BossMod.P4S2
         private IEnumerable<Actor> _meleeTowers => _relevantHelpers.Skip(5);
 
         private static float _jumpAOERadius = 10;
-        private static float _coneHalfAngle = MathF.PI / 4; // not sure about this...
 
         public WreathOfThorns3(P4S2 module)
         {
@@ -50,7 +50,7 @@ namespace BossMod.P4S2
                     if (player.Position != _module.PrimaryActor.Position)
                     {
                         var direction = Vector3.Normalize(player.Position - _module.PrimaryActor.Position);
-                        _playersInAOE |= _module.Raid.WithSlot().Exclude(i).WhereActor(p => GeometryUtils.PointInCone(p.Position - _module.PrimaryActor.Position, direction, _coneHalfAngle)).Mask();
+                        _playersInAOE |= _module.Raid.WithSlot().Exclude(i).WhereActor(p => GeometryUtils.PointInCone(p.Position - _module.PrimaryActor.Position, direction, _coneAOE.HalfAngle)).Mask();
                     }
                 }
             }
@@ -93,11 +93,9 @@ namespace BossMod.P4S2
         {
             if (_coneTargets != 0)
             {
-                foreach ((_, var player) in _module.Raid.WithSlot().IncludedInMask(_coneTargets).WhereActor(x => _module.PrimaryActor.Position != x.Position))
+                foreach ((_, var player) in _module.Raid.WithSlot().IncludedInMask(_coneTargets))
                 {
-                    var offset = player.Position - _module.PrimaryActor.Position;
-                    float phi = MathF.Atan2(offset.X, offset.Z);
-                    arena.ZoneCone(_module.PrimaryActor.Position, 0, 50, phi - _coneHalfAngle, phi + _coneHalfAngle, arena.ColorAOE);
+                    _coneAOE.Draw(arena, _module.PrimaryActor.Position, GeometryUtils.DirectionFromVec3(player.Position - _module.PrimaryActor.Position));
                 }
             }
         }

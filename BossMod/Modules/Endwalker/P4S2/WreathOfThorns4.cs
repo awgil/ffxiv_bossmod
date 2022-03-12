@@ -205,9 +205,7 @@ namespace BossMod.P4S2
 
         private Vector3 RotateCW(Vector3 pos, float angle, float radius)
         {
-            var offset = pos - _module.Arena.WorldCenter;
-            float dir = MathF.Atan2(offset.X, offset.Z);
-            dir -= angle;
+            float dir = GeometryUtils.DirectionFromVec3(pos - _module.Arena.WorldCenter) - angle;
             return _module.Arena.WorldCenter + radius * GeometryUtils.DirectionToVec3(dir);
         }
 

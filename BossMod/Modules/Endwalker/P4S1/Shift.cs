@@ -8,10 +8,10 @@ namespace BossMod.P4S1
     class Shift : Component
     {
         private P4S1 _module;
-        private Actor? _caster;
-        private bool _isSword;
+        private AOEShapeCone _swordAOE = new(50, MathF.PI / 3); // not sure about half-angle...
+        private Actor? _swordCaster;
+        private Actor? _cloakCaster;
 
-        private static float _coneHalfAngle = MathF.PI / 3; // not sure about this...
         private static float _knockbackRange = 30;
 
         public Shift(P4S1 module)
@@ -21,14 +21,11 @@ namespace BossMod.P4S1
 
         public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_caster == null)
-                return;
-
-            if (_isSword && GeometryUtils.PointInCone(actor.Position - _caster.Position, _caster.Rotation, _coneHalfAngle))
+            if (_swordAOE.Check(actor.Position, _swordCaster))
             {
                 hints.Add("GTFO from sword!");
             }
-            else if (!_isSword && !_module.Arena.InBounds(AdjustPositionForKnockback(actor.Position, _caster, _knockbackRange)))
+            else if (_cloakCaster != null && !_module.Arena.InBounds(AdjustPositionForKnockback(actor.Position, _cloakCaster, _knockbackRange)))
             {
                 hints.Add("About to be knocked into wall!");
             }
@@ -36,19 +33,16 @@ namespace BossMod.P4S1
 
         public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_caster != null && _isSword)
-            {
-                arena.ZoneCone(_caster.Position, 0, 50, _caster.Rotation - _coneHalfAngle, _caster.Rotation + _coneHalfAngle, arena.ColorAOE);
-            }
+            _swordAOE.Draw(arena, _swordCaster);
         }
 
         public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_caster != null && !_isSword)
+            if (_cloakCaster != null)
             {
-                arena.AddCircle(_caster.Position, 5, arena.ColorSafe);
+                arena.AddCircle(_cloakCaster.Position, 5, arena.ColorSafe);
 
-                var adjPos = AdjustPositionForKnockback(pc.Position, _caster, _knockbackRange);
+                var adjPos = AdjustPositionForKnockback(pc.Position, _cloakCaster, _knockbackRange);
                 if (adjPos != pc.Position)
                 {
                     arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
@@ -59,17 +53,18 @@ namespace BossMod.P4S1
 
         public override void OnCastStarted(Actor actor)
         {
-            if (actor.CastInfo!.IsSpell(AID.ShiftingStrikeCloak) || actor.CastInfo!.IsSpell(AID.ShiftingStrikeSword))
-            {
-                _caster = actor;
-                _isSword = actor.CastInfo!.Action.ID == (uint)AID.ShiftingStrikeSword;
-            }
+            if (actor.CastInfo!.IsSpell(AID.ShiftingStrikeCloak))
+                _cloakCaster = actor;
+            else if (actor.CastInfo!.IsSpell(AID.ShiftingStrikeSword))
+                _swordCaster = actor;
         }
 
         public override void OnCastFinished(Actor actor)
         {
-            if (actor.CastInfo!.IsSpell(AID.ShiftingStrikeCloak) || actor.CastInfo!.IsSpell(AID.ShiftingStrikeSword))
-                _caster = null;
+            if (actor.CastInfo!.IsSpell(AID.ShiftingStrikeCloak))
+                _cloakCaster = null;
+            else if (actor.CastInfo!.IsSpell(AID.ShiftingStrikeSword))
+                _swordCaster = null;
         }
     }
 }
