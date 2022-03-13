@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Numerics;
 
-namespace BossMod.P3S
+namespace BossMod.Endwalker.P3S
 {
     using static BossModule;
 

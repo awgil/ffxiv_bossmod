@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.P4S2
+namespace BossMod.Endwalker.P4S2
 {
     using static BossModule;
 
     // state related to curtain call mechanic
-    // TODO: unhardcode relative order in pairs, currently tanks/healers pop first...
     class CurtainCall : Component
     {
         private P4S2 _module;
@@ -63,8 +62,8 @@ namespace BossMod.P4S2
                 if (slot >= 0)
                 {
                     _playerOrder[slot] = 2 * (int)((actor.Statuses[index].ExpireAt - _module.WorldState.CurrentTime).TotalSeconds / 10); // 2/4/6/8
-                    if (actor.Role == Role.Tank || actor.Role == Role.Healer)
-                        --_playerOrder[slot]; // TODO: this should be configurable (DD first vs tank first)
+                    if (_module.Config.CurtainCallDDFirst != actor.Role is Role.Tank or Role.Healer)
+                        --_playerOrder[slot];
                     _playersInBreakOrder = null;
                 }
             }

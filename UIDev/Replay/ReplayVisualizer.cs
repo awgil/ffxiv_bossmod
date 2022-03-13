@@ -19,6 +19,7 @@ namespace UIDev
         private float _playSpeed = 0;
         private float _azimuth;
         private int _povSlot = PartyState.PlayerSlot;
+        private bool _showConfig = false;
 
         public ReplayVisualizer(Replay data)
         {
@@ -86,6 +87,13 @@ namespace UIDev
             ImGui.SameLine();
             if (ImGui.Button(">>>"))
                 _playSpeed = 10;
+
+            ImGui.SameLine();
+            ImGui.Checkbox("Show config", ref _showConfig);
+            if (_showConfig)
+            {
+                _mgr.Config.Draw();
+            }
         }
 
         private void DrawTimelineRow()

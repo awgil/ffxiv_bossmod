@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Numerics;
 
-namespace BossMod.P4S1
+namespace BossMod.Endwalker.P4S1
 {
     using static BossModule;
 

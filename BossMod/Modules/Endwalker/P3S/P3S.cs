@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace BossMod.P3S
+namespace BossMod.Endwalker.P3S
 {
     public class P3S : BossModule
     {

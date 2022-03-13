@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.P4S2
+namespace BossMod.Endwalker.P4S2
 {
     using static BossModule;
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-namespace BossMod.P4S2
+namespace BossMod.Endwalker.P4S2
 {
     using static BossModule;
 
@@ -211,14 +211,13 @@ namespace BossMod.P4S2
 
         private Vector3 DetermineWaterSafeSpot(Actor source)
         {
-            // TODO: this should be configurable; for now assume it is 3/8 of circle CW from tower
-            return RotateCW(source.Position, 3 * MathF.PI / 4, 18);
+            float dir = (_module.Config.Act4WaterBreakCCW ? -3 : 3) * MathF.PI / 4;
+            return RotateCW(source.Position, dir, 18);
         }
 
         private Actor? DetermineTowerToSoak(Actor source)
         {
-            // TODO: this should be configurable; for now assume it is 1/8 of circle CW from aoe
-            var pos = RotateCW(source.Position, MathF.PI / 4, 18);
+            var pos = RotateCW(source.Position, (_module.Config.Act4DarkSoakCCW ? -1 : 1) * MathF.PI / 4, 18);
             return _playerTetherSource.Where(x => x != null && GeometryUtils.PointInCircle(x.Position - pos, 4)).FirstOrDefault();
         }
 

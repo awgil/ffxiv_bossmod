@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BossMod.P4S2
+namespace BossMod.Endwalker.P4S2
 {
     // state related to demigod double mechanic (shared tankbuster)
     class DemigodDouble : CommonComponents.SharedTankbuster
@@ -21,6 +21,8 @@ namespace BossMod.P4S2
 
     public class P4S2 : BossModule
     {
+        public P4S2Config Config;
+
         // common wreath of thorns constants
         public static float WreathAOERadius = 20;
         public static float WreathTowerRadius = 4;
@@ -28,6 +30,7 @@ namespace BossMod.P4S2
         public P4S2(BossModuleManager manager, Actor primary)
             : base(manager, primary, true)
         {
+            Config = manager.Config.Get("Endwalker").Get<P4S2Config>();
             Arena.IsCircle = true;
 
             StateMachine.State? s;

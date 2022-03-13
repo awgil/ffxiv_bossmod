@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 
-namespace BossMod.P1S
+namespace BossMod.Endwalker.P1S
 {
     using static BossModule;
 

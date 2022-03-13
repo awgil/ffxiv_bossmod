@@ -41,6 +41,7 @@ namespace BossMod
         // draw this node and all children
         public void Draw()
         {
+            DrawContents();
             foreach ((var name, var child) in _children)
             {
                 if (ImGui.TreeNode(child.NameOverride() ?? name))
@@ -49,7 +50,6 @@ namespace BossMod
                     ImGui.TreePop();
                 }
             }
-            DrawContents();
         }
 
         public void AddDeserializedChild(string name, ConfigNode node)

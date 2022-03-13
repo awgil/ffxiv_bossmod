@@ -8,11 +8,11 @@ namespace BossMod
         {
             return oid switch {
                 (uint)Zodiark.OID.Boss => typeof(Zodiark),
-                (uint)P1S.OID.Boss => typeof(P1S.P1S),
-                (uint)P2S.OID.Boss => typeof(P2S.P2S),
-                (uint)P3S.OID.Boss => typeof(P3S.P3S),
-                (uint)P4S1.OID.Boss => typeof(P4S1.P4S1),
-                (uint)P4S2.OID.Boss => typeof(P4S2.P4S2),
+                (uint)Endwalker.P1S.OID.Boss => typeof(Endwalker.P1S.P1S),
+                (uint)Endwalker.P2S.OID.Boss => typeof(Endwalker.P2S.P2S),
+                (uint)Endwalker.P3S.OID.Boss => typeof(Endwalker.P3S.P3S),
+                (uint)Endwalker.P4S1.OID.Boss => typeof(Endwalker.P4S1.P4S1),
+                (uint)Endwalker.P4S2.OID.Boss => typeof(Endwalker.P4S2.P4S2),
                 (uint)Endwalker.ARanks.Hulder.OID.Boss => typeof(Endwalker.ARanks.Hulder.Hulder),
                 (uint)Endwalker.ARanks.Storsie.OID.Boss => typeof(Endwalker.ARanks.Storsie.Storsie),
                 (uint)Endwalker.ARanks.Sugriva.OID.Boss => typeof(Endwalker.ARanks.Sugriva.Sugriva),

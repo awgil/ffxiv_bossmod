@@ -1,4 +1,4 @@
-﻿namespace BossMod.P2S
+﻿namespace BossMod.Endwalker.P2S
 {
     public enum OID : uint
     {

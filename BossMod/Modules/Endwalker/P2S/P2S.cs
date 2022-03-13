@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.P2S
+namespace BossMod.Endwalker.P2S
 {
     // state related to demigod double mechanic (shared tankbuster)
     class DoubledImpact : CommonComponents.SharedTankbuster

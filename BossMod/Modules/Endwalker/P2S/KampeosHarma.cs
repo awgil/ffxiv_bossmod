@@ -1,7 +1,6 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 
-namespace BossMod.P2S
+namespace BossMod.Endwalker.P2S
 {
     using static BossModule;
 

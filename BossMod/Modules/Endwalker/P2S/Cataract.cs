@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BossMod.P2S
+namespace BossMod.Endwalker.P2S
 {
     using static BossModule;
 

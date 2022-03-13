@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BossMod.P1S
+namespace BossMod.Endwalker.P1S
 {
     public class P1S : BossModule
     {

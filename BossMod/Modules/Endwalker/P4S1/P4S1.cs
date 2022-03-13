@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.P4S1
+namespace BossMod.Endwalker.P4S1
 {
     // state related to elegant evisceration mechanic (dual hit tankbuster)
     // TODO: consider showing some tank swap / invul hint...

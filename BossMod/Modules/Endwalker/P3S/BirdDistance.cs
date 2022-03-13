@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.P3S
+namespace BossMod.Endwalker.P3S
 {
     using static BossModule;
 
