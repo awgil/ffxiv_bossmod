@@ -56,7 +56,7 @@ namespace UIDev
         {
             ImGui.Text($"Running time: {DateTime.Now - _startTime}");
 
-            ImGui.InputText("Log path", ref _openLogName, 500);
+            ImGui.InputText("Path", ref _openLogName, 500);
             ImGui.SameLine();
             if (ImGui.Button("Open native log..."))
             {
@@ -76,6 +76,12 @@ namespace UIDev
                     var visu = new ReplayVisualizer(data);
                     WindowManager.CreateWindow(_openLogName, visu.Draw, () => { visu.Dispose(); return true; });
                 }
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Analyze all logs..."))
+            {
+                var a = new MetaAnalysis(_openLogName);
+                WindowManager.CreateWindow("Meta analysis", a.Draw, () => { a.Dispose(); return true; });
             }
 
             foreach (var t in _testTypes)

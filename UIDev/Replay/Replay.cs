@@ -95,6 +95,7 @@ namespace UIDev
             public int FirstEnvControl;
         }
 
+        public string Path = "";
         public List<ReplayOps.Operation> Ops = new();
         public List<Participant> Participants = new();
         public List<Action> Actions = new();

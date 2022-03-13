@@ -136,8 +136,7 @@ namespace BossMod
                 // if player is now available, add as first element
                 if (Service.ClientState.LocalContentId != 0)
                 {
-                    var playerActor = Actors.Find(Service.ClientState.LocalPlayer?.ObjectId ?? 0);
-                    var playerSlot = Party.Add(Service.ClientState.LocalContentId, playerActor, true);
+                    var playerSlot = Party.Add(Service.ClientState.LocalContentId, Service.ClientState.LocalPlayer?.ObjectId ?? 0, true);
                     if (playerSlot != PartyState.PlayerSlot)
                     {
                         Service.Log($"[WorldState] Player was added to wrong slot {playerSlot}");
@@ -151,29 +150,28 @@ namespace BossMod
             if (Service.PartyList.Length == 0)
             {
                 // solo - just update player actor
-                var playerActor = Actors.Find(Service.ClientState.LocalPlayer?.ObjectId ?? 0);
-                Party.AssignActor(PartyState.PlayerSlot, Service.ClientState.LocalContentId, playerActor);
+                Party.AssignActor(PartyState.PlayerSlot, Service.ClientState.LocalContentId, Service.ClientState.LocalPlayer?.ObjectId ?? 0);
                 return;
             }
 
-            Dictionary<ulong, Actor?> seenIDs = new();
+            Dictionary<ulong, uint> seenIDs = new();
             foreach (var obj in Service.PartyList)
-                seenIDs[(ulong)obj.ContentId] = Actors.Find(SanitizedObjectID(obj.ObjectId));
+                seenIDs[(ulong)obj.ContentId] = SanitizedObjectID(obj.ObjectId);
 
             for (int i = 1; i < Party.ContentIDs.Length; ++i)
                 if (Party.ContentIDs[i] != 0 && !seenIDs.ContainsKey(Party.ContentIDs[i]))
                     Party.Remove(i);
 
-            foreach ((ulong contentID, Actor? actor) in seenIDs)
+            foreach ((ulong contentID, uint actorID) in seenIDs)
             {
                 int slot = Party.ContentIDs.IndexOf(contentID);
                 if (slot != -1)
                 {
-                    Party.AssignActor(slot, contentID, actor);
+                    Party.AssignActor(slot, contentID, actorID);
                 }
                 else
                 {
-                    Party.Add(contentID, actor, false);
+                    Party.Add(contentID, actorID, false);
                 }
             }
         }

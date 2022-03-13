@@ -41,6 +41,7 @@ namespace BossMod
         public uint ColorBackground = 0xc00f0f0f;
         public uint ColorBorder = 0xffffffff;
         public uint ColorAOE = 0x80008080;
+        public uint ColorSafeFromAOE = 0x80008000;
         public uint ColorDanger = 0xff00ffff;
         public uint ColorSafe = 0xff00ff00;
         public uint ColorPC = 0xff00ff00;

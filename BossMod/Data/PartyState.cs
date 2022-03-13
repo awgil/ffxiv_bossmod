@@ -15,14 +15,34 @@ namespace BossMod
         public static int PlayerSlot { get; } = 0;
         public static int MaxSize { get; } = 8;
 
+        private ActorState _actorState;
         private ulong[] _contentIDs = new ulong[MaxSize]; // empty slots contain 0's
+        private uint[] _actorIDs = new uint[MaxSize];
         private Actor?[] _actors = new Actor?[MaxSize];
 
         public ReadOnlySpan<ulong> ContentIDs => _contentIDs;
+        public ReadOnlySpan<uint> ActorIDs => _actorIDs;
         public ReadOnlyCollection<Actor?> Members => Array.AsReadOnly(_actors);
 
         public Actor? this[int slot] => (slot >= 0 && slot < _actors.Length) ? _actors[slot] : null; // bounds-checking accessor
         public Actor? Player() => this[PlayerSlot];
+
+        public PartyState(ActorState actorState)
+        {
+            _actorState = actorState;
+            actorState.Added += (_, actor) =>
+            {
+                var slot = FindSlot(actor.InstanceID);
+                if (slot >= 0)
+                    _actors[slot] = actor;
+            };
+            actorState.Removed += (_, actor) =>
+            {
+                var slot = FindSlot(actor.InstanceID);
+                if (slot >= 0)
+                    _actors[slot] = null;
+            };
+        }
 
         // select non-null and optionally alive raid members
         public IEnumerable<Actor> WithoutSlot(bool includeDead = false)
@@ -54,14 +74,14 @@ namespace BossMod
         // find a slot index containing specified player (by instance ID); returns -1 if not found
         public int FindSlot(uint instanceID)
         {
-            return instanceID != 0 ? Array.FindIndex(_actors, x => x?.InstanceID == instanceID) : -1;
+            return instanceID != 0 ? Array.IndexOf(_actorIDs, instanceID) : -1;
         }
 
-        public event EventHandler<(int, ulong, Actor?)>? Joined;
-        public event EventHandler<(int, ulong, Actor?)>? Left;
-        public event EventHandler<(int, ulong, Actor?)>? Reassigned; // actor representation changed for same player (usually to/from null)
+        public event EventHandler<(int, ulong, uint)>? Joined;
+        public event EventHandler<(int, ulong, uint)>? Left;
+        public event EventHandler<(int, ulong, uint)>? Reassigned; // actor representation changed for same player (usually to/from null)
 
-        public int Add(ulong contentID, Actor? actor, bool isPlayer)
+        public int Add(ulong contentID, uint instanceID, bool isPlayer)
         {
             int slot = Array.IndexOf(_contentIDs, 0ul);
             if (slot == -1)
@@ -76,8 +96,9 @@ namespace BossMod
             else
             {
                 _contentIDs[slot] = contentID;
-                _actors[slot] = actor;
-                Joined?.Invoke(this, (slot, contentID, actor));
+                _actorIDs[slot] = instanceID;
+                _actors[slot] = _actorState.Find(instanceID);
+                Joined?.Invoke(this, (slot, contentID, instanceID));
             }
             return slot;
         }
@@ -90,22 +111,24 @@ namespace BossMod
             }
             else
             {
-                Left?.Invoke(this, (slot, _contentIDs[slot], _actors[slot]));
+                Left?.Invoke(this, (slot, _contentIDs[slot], _actorIDs[slot]));
                 _contentIDs[slot] = 0;
+                _actorIDs[slot] = 0;
                 _actors[slot] = null;
             }
         }
 
-        public void AssignActor(int slot, ulong contentID, Actor? actor)
+        public void AssignActor(int slot, ulong contentID, uint instanceID)
         {
             if (_contentIDs[slot] != contentID || contentID == 0)
             {
                 Service.Log($"[PartyState] Trying to assign actor to non-existent or incorrect slot #{slot}: contains {_contentIDs[slot]:X}, got {contentID:X}");
             }
-            else if (_actors[slot] != actor)
+            else if (_actorIDs[slot] != instanceID)
             {
-                _actors[slot] = actor;
-                Reassigned?.Invoke(this, (slot, contentID, actor));
+                _actorIDs[slot] = instanceID;
+                _actors[slot] = _actorState.Find(instanceID);
+                Reassigned?.Invoke(this, (slot, contentID, instanceID));
             }
         }
     }

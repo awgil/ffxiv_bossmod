@@ -11,7 +11,7 @@ namespace BossMod
         public DateTime CurrentTime;
         public WaymarkState Waymarks { get; init; } = new();
         public ActorState Actors { get; init; } = new();
-        public PartyState Party { get; init; } = new();
+        public PartyState Party { get; init; }
         public WorldEvents Events { get; init; } = new();
 
         private ushort _currentZone;
@@ -27,6 +27,11 @@ namespace BossMod
                     CurrentZoneChanged?.Invoke(this, value);
                 }
             }
+        }
+
+        public WorldState()
+        {
+            Party = new(Actors);
         }
     }
 }

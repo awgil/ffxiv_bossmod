@@ -38,8 +38,9 @@ namespace UIDev
             _res.Ops.Add(op);
         }
 
-        protected Replay Finish()
+        protected Replay Finish(string path = "")
         {
+            _res.Path = path;
             foreach (var enc in _encounters.Values)
             {
                 enc.End = _ws.CurrentTime;

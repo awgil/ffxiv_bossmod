@@ -33,7 +33,7 @@ namespace UIDev
                         parser.ParseLine(elements);
                     }
                 }
-                return parser.Finish();
+                return parser.Finish(path);
             }
             catch (Exception e)
             {

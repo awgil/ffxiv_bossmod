@@ -281,7 +281,6 @@ namespace UIDev
                 s = "(source) " + s;
             switch (eff.effectType)
             {
-                case ActionEffectType.Miss:
                 case ActionEffectType.Damage:
                 case ActionEffectType.BlockedDamage:
                 case ActionEffectType.ParriedDamage:

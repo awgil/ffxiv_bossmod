@@ -373,7 +373,7 @@ namespace UIDev
 
             public override void Redo(WorldState ws)
             {
-                _slot = ws.Party.Add(ContentID, ws.Actors.Find(InstanceID), ws.Party.ContentIDs[0] == 0);
+                _slot = ws.Party.Add(ContentID, InstanceID, ws.Party.ContentIDs[0] == 0);
             }
 
             public override void Undo(WorldState ws)
@@ -395,7 +395,7 @@ namespace UIDev
 
             public override void Undo(WorldState ws)
             {
-                ws.Party.Add(ContentID, ws.Actors.Find(InstanceID), ws.Party.ContentIDs[0] == 0);
+                ws.Party.Add(ContentID, InstanceID, ws.Party.ContentIDs[0] == 0);
             }
         }
 
@@ -408,14 +408,14 @@ namespace UIDev
             public override void Redo(WorldState ws)
             {
                 var slot = ws.Party.ContentIDs.IndexOf(ContentID);
-                _prevID = ws.Party.Members[slot]?.InstanceID ?? 0;
-                ws.Party.AssignActor(slot, ContentID, ws.Actors.Find(InstanceID));
+                _prevID = ws.Party.ActorIDs[slot];
+                ws.Party.AssignActor(slot, ContentID, InstanceID);
             }
 
             public override void Undo(WorldState ws)
             {
                 var slot = ws.Party.ContentIDs.IndexOf(ContentID);
-                ws.Party.AssignActor(slot, ContentID, ws.Actors.Find(_prevID));
+                ws.Party.AssignActor(slot, ContentID, _prevID);
             }
         }
 

@@ -73,7 +73,7 @@ namespace BossMod
                 }
                 for (int i = 0; i < _ws.Party.ContentIDs.Length; ++i)
                     if (_ws.Party.ContentIDs[i] != 0)
-                        PartyJoined(null, (i, _ws.Party.ContentIDs[i], _ws.Party.Members[i]));
+                        PartyJoined(null, (i, _ws.Party.ContentIDs[i], _ws.Party.ActorIDs[i]));
                 for (var i = Waymark.A; i < Waymark.Count; ++i)
                 {
                     var w = _ws.Waymarks[i];
@@ -261,19 +261,19 @@ namespace BossMod
             Log("STA!", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Extra:X4}|{Utils.StatusTimeString(s.ExpireAt, _ws.CurrentTime)}|{Actor(s.SourceID)}");
         }
 
-        private void PartyJoined(object? sender, (int slot, ulong contentID, Actor? actor) arg)
+        private void PartyJoined(object? sender, (int slot, ulong contentID, uint actorID) arg)
         {
-            Log("PAR+", $"{arg.slot}|{arg.contentID:X}|{arg.actor?.InstanceID ?? 0:X8}");
+            Log("PAR+", $"{arg.slot}|{arg.contentID:X}|{arg.actorID:X8}");
         }
 
-        private void PartyLeft(object? sender, (int slot, ulong contentID, Actor? actor) arg)
+        private void PartyLeft(object? sender, (int slot, ulong contentID, uint actorID) arg)
         {
-            Log("PAR-", $"{arg.slot}|{arg.contentID:X}|{arg.actor?.InstanceID ?? 0:X8}");
+            Log("PAR-", $"{arg.slot}|{arg.contentID:X}|{arg.actorID:X8}");
         }
 
-        private void PartyReassigned(object? sender, (int slot, ulong contentID, Actor? actor) arg)
+        private void PartyReassigned(object? sender, (int slot, ulong contentID, uint actorID) arg)
         {
-            Log("PAR!", $"{arg.slot}|{arg.contentID:X}|{arg.actor?.InstanceID ?? 0:X8}");
+            Log("PAR!", $"{arg.slot}|{arg.contentID:X}|{arg.actorID:X8}");
         }
 
         private void EventIcon(object? sender, (uint actorID, uint iconID) arg)

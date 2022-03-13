@@ -9,7 +9,10 @@
         {
             Arena.IsCircle = true;
             Arena.WorldHalfSize = 30;
-            CommonStates.Simple(ref InitialState, 0, "???");
+
+            var s = CommonStates.Simple(ref InitialState, 0, "Fight");
+            s.Update = (_) => PrimaryActor.IsDead ? s.Next : null;
+            CommonStates.Simple(ref s.Next, 0, "???");
         }
 
         protected override void UpdateModule()

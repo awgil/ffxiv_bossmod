@@ -48,7 +48,7 @@ namespace BossMod.Endwalker.P4S1
                 if (safeCorner != SettingTheScene.Corner.Unknown)
                 {
                     var p = _module.Arena.WorldCenter + 10 * assignments.Direction(safeCorner);
-                    arena.ZoneQuad(p, Vector3.UnitX, 10, 10, 10, 0x80008000);
+                    arena.ZoneQuad(p, Vector3.UnitX, 10, 10, 10, arena.ColorSafeFromAOE);
                 }
             }
             foreach (var p in _imminentExplodingCorners)
