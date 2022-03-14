@@ -276,28 +276,12 @@ namespace UIDev
 
         private string ActionEffectString(ActionEffect eff)
         {
-            var s = $"{eff.effectType}: {eff.param0:X2} {eff.param1:X2} {eff.param2:X2} {eff.param3:X2} {eff.param4:X2} {eff.value:X4}";
-            if ((eff.param4 & 0x80) != 0)
+            var s = $"{eff.Type}: {eff.Param0:X2} {eff.Param1:X2} {eff.Param2:X2} {eff.Param3:X2} {eff.Param4:X2} {eff.Value:X4}";
+            if ((eff.Param4 & 0x80) != 0)
                 s = "(source) " + s;
-            switch (eff.effectType)
-            {
-                case ActionEffectType.Damage:
-                case ActionEffectType.BlockedDamage:
-                case ActionEffectType.ParriedDamage:
-                    s += $": amount={eff.value + ((eff.param4 & 0x40) != 0 ? eff.param3 * 0x10000 : 0)} {(DamageType)(eff.param1 & 0x0F)} {(DamageElementType)(eff.param1 >> 4)}{((eff.param0 & 1) != 0 ? " crit" : "")}{((eff.param0 & 2) != 0 ? " dh" : "")}";
-                    break;
-                case ActionEffectType.Heal:
-                    s += $": amount={eff.value + ((eff.param4 & 0x40) != 0 ? eff.param3 * 0x10000 : 0)}{((eff.param1 & 1) != 0 ? " crit" : "")}";
-                    break;
-                case ActionEffectType.ApplyStatusEffectTarget:
-                case ActionEffectType.ApplyStatusEffectSource:
-                    s += $": {Utils.StatusString(eff.value)}";
-                    break;
-                case ActionEffectType.Knockback1:
-                case ActionEffectType.Knockback:
-                    s += $": {Utils.KnockbackString(eff.value)}";
-                    break;
-            }
+            var desc = ActionEffectParser.DescribeFields(eff);
+            if (desc.Length > 0)
+                s += $": {desc}";
             return s;
         }
 

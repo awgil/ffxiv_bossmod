@@ -379,10 +379,10 @@ namespace BossMod
                 for (int j = 0; j < 8; ++j)
                 {
                     ActionEffect* eff = effects + (i * 8) + j;
-                    if (eff->effectType == ActionEffectType.Nothing)
+                    if (eff->Type == ActionEffectType.Nothing)
                         continue;
 
-                    Service.Log($"[Network] --- effect {j} == {eff->effectType}, params={eff->param0:X2} {eff->param1:X2} {eff->param2:X2} {eff->param3:X2} {eff->param4:X2} {eff->value:X4}");
+                    Service.Log($"[Network] --- effect {j} == {eff->Type}, params={eff->Param0:X2} {eff->Param1:X2} {eff->Param2:X2} {eff->Param3:X2} {eff->Param4:X2} {eff->Value:X4}");
                 }
             }
         }

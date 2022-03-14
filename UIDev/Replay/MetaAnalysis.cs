@@ -50,7 +50,7 @@ namespace UIDev
                     {
                         foreach (var (replay, action, target, effect) in effects)
                         {
-                            if (ImGui.TreeNodeEx($"{effect.param0:X2} {effect.param1:X2} {effect.param2:X2} {effect.param3:X2} {effect.param4:X2} {effect.value:X4}: {replay.Path} {action.Time:O} {action.ID} {ParticipantString(action.Source)} -> {ParticipantString(action.MainTarget)} @ {ParticipantString(target.Target)}", ImGuiTreeNodeFlags.Leaf))
+                            if (ImGui.TreeNodeEx($"{effect.Param0:X2} {effect.Param1:X2} {effect.Param2:X2} {effect.Param3:X2} {effect.Param4:X2} {effect.Value:X4} = {ActionEffectParser.DescribeFields(effect)}: {replay.Path} {action.Time:O} {action.ID} {ParticipantString(action.Source)} -> {ParticipantString(action.MainTarget)} @ {ParticipantString(target.Target)}", ImGuiTreeNodeFlags.Leaf))
                                 ImGui.TreePop();
                         }
                         ImGui.TreePop();
@@ -68,53 +68,15 @@ namespace UIDev
                 {
                     foreach (var effect in target.Effects)
                     {
-                        var cat = CategorizeUnknownEffect(effect);
+                        var cat = ActionEffectParser.DescribeUnknown(effect);
                         if (cat.Length > 0)
                         {
-                            var catName = $"{(byte)effect.effectType:X2} {effect.effectType}: {cat}";
+                            var catName = $"{(byte)effect.Type:X2} {effect.Type}: {cat}";
                             _unknownActionEffects.TryAdd(catName, new());
                             _unknownActionEffects[catName].Add((replay, action, target, effect));
                         }
                     }
                 }
-            }
-        }
-
-        private string CategorizeUnknownEffect(ActionEffect eff)
-        {
-            switch (eff.effectType)
-            {
-                case ActionEffectType.Miss:
-                case ActionEffectType.FullResist:
-                    return eff.param0 != 0 || eff.param1 != 0 || eff.param2 != 0 || eff.param3 != 0 || eff.param4 != 0 || eff.value != 0 ? "non-zero params" : "";
-                case ActionEffectType.Damage:
-                case ActionEffectType.BlockedDamage:
-                case ActionEffectType.ParriedDamage:
-                    if ((eff.param0 & ~3) != 0)
-                        return "unknown bits in param0";
-                    else if (eff.param2 != 0)
-                        return "non-zero param2";
-                    else if (eff.param3 != 0 && (eff.param4 & 0x40) == 0)
-                        return "non-zero param3 while large-value bit is unset";
-                    else if ((eff.param4 & ~0xC0) != 0)
-                        return "unknown bits in param4";
-                    else
-                        return "";
-                case ActionEffectType.Heal:
-                    if (eff.param0 != 0)
-                        return "non-zero param0";
-                    else if ((eff.param1 & ~1) != 0)
-                        return "unknown bits in param1";
-                    else if (eff.param2 != 0)
-                        return "non-zero param2";
-                    else if (eff.param3 != 0 && (eff.param4 & 0x40) == 0)
-                        return "non-zero param3 while large-value bit is unset";
-                    else if ((eff.param4 & ~0xC0) != 0)
-                        return "unknown bits in param4";
-                    else
-                        return "";
-                default:
-                    return $"unknown type";
             }
         }
 
