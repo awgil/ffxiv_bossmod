@@ -16,6 +16,7 @@ namespace BossMod
         public RaidCooldowns RaidCooldowns { get; init; }
 
         private bool _running = false;
+        private bool _configOrModulesUpdated = false;
         private Dictionary<uint, BossModule> _loadedModules = new(); // key = primary actor instance ID
         private List<BossModule> _activeModules = new();
 
@@ -34,7 +35,6 @@ namespace BossMod
             if (Config.Enable)
             {
                 Startup();
-                RefreshConfigOrModules();
             }
         }
 
@@ -49,7 +49,6 @@ namespace BossMod
             if (disposing)
             {
                 Shutdown();
-                RefreshConfigOrModules();
                 Config.Modified -= ConfigChanged;
                 RaidCooldowns.Dispose();
             }
@@ -59,6 +58,12 @@ namespace BossMod
         {
             if (!_running)
                 return;
+
+            if (_configOrModulesUpdated)
+            {
+                RefreshConfigOrModules();
+                _configOrModulesUpdated = false;
+            }
 
             try
             {
@@ -70,7 +75,6 @@ namespace BossMod
                 Service.Log($"Boss module crashed: {ex}");
                 Config.Enable = false;
                 Shutdown();
-                RefreshConfigOrModules();
             }
         }
 
@@ -81,6 +85,7 @@ namespace BossMod
             if (_running)
                 return;
 
+            Service.Log("[BMM] Starting up...");
             _running = true;
             WorldState.Actors.Added += ActorAdded;
             WorldState.Actors.Removed += ActorRemoved;
@@ -100,6 +105,8 @@ namespace BossMod
                     ActivateModule(m);
                 }
             }
+
+            _configOrModulesUpdated = true;
         }
 
         private void Shutdown()
@@ -107,6 +114,7 @@ namespace BossMod
             if (!_running)
                 return;
 
+            Service.Log("[BMM] Shutting down...");
             _running = false;
             WorldState.Actors.Added -= ActorAdded;
             WorldState.Actors.Removed -= ActorRemoved;
@@ -123,6 +131,9 @@ namespace BossMod
             foreach (var m in _loadedModules.Values)
                 m.Dispose();
             _loadedModules.Clear();
+
+            RefreshConfigOrModules();
+            _configOrModulesUpdated = false;
         }
 
         private bool LoadDemo()
@@ -130,6 +141,7 @@ namespace BossMod
             if (_running && !_loadedModules.ContainsKey(0))
             {
                 _loadedModules[0] = new DemoModule(this, new(0, 0, "", ActorType.None, Class.None, new(), 0, false, 0));
+                _configOrModulesUpdated = true;
                 return true;
             }
             return false;
@@ -142,6 +154,7 @@ namespace BossMod
             {
                 Service.Log($"[BMM] Loading boss module '{m.GetType()}' for actor {actor.InstanceID:X} ({actor.OID:X}) '{actor.Name}'");
                 _loadedModules[actor.InstanceID] = m;
+                _configOrModulesUpdated = true;
             }
             return m;
         }
@@ -157,6 +170,7 @@ namespace BossMod
             Service.Log($"[BMM] Unloading boss module '{m.GetType()}' for actor {instanceID:X}");
             m.Dispose();
             _loadedModules.Remove(instanceID);
+            _configOrModulesUpdated = true;
             return true;
         }
 
@@ -169,6 +183,7 @@ namespace BossMod
                 m.Update(); // we need this update to ensure state-machine's current time is initialized
                 m.StateMachine.ActiveState = m.InitialState;
                 _activeModules.Add(m);
+                _configOrModulesUpdated = true;
                 return true;
             }
             return false;
@@ -181,6 +196,7 @@ namespace BossMod
                 Service.Log($"[BMM] Deactivating boss module '{m.GetType()}' for actor {m.PrimaryActor.InstanceID:X} ({m.PrimaryActor.OID:X}) '{m.PrimaryActor.Name}'");
                 m.StateMachine.ActiveState = null;
                 m.Reset();
+                _configOrModulesUpdated = true;
                 return true;
             }
             return false;
@@ -188,18 +204,12 @@ namespace BossMod
 
         private void ActorAdded(object? sender, Actor actor)
         {
-            if (LoadModule(actor) != null)
-            {
-                RefreshConfigOrModules();
-            }
+            LoadModule(actor);
         }
 
         private void ActorRemoved(object? sender, Actor actor)
         {
-            if (UnloadModule(actor.InstanceID))
-            {
-                RefreshConfigOrModules();
-            }
+            UnloadModule(actor.InstanceID);
         }
 
         private void EnterExitCombat(object? sender, Actor actor)
@@ -208,14 +218,10 @@ namespace BossMod
             if (m == null)
                 return;
 
-            bool didSomething = false;
             if (!actor.InCombat)
-                didSomething = DeactivateModule(m);
+                DeactivateModule(m);
             else if (actor.IsTargetable)
-                didSomething = ActivateModule(m);
-
-            if (didSomething)
-                RefreshConfigOrModules();
+                ActivateModule(m);
         }
 
         private void TargetableChanged(object? sender, Actor actor)
@@ -224,12 +230,8 @@ namespace BossMod
             if (m == null)
                 return;
 
-            bool didSomething = false;
             if (actor.InCombat && actor.IsTargetable)
-                didSomething = ActivateModule(m);
-
-            if (didSomething)
-                RefreshConfigOrModules();
+                ActivateModule(m);
         }
 
         private void ConfigChanged(object? sender, EventArgs args)
@@ -243,8 +245,6 @@ namespace BossMod
                 LoadDemo();
             else
                 UnloadModule(0);
-
-            RefreshConfigOrModules();
         }
     }
 }

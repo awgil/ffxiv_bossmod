@@ -23,11 +23,13 @@ namespace BossMod
             // create or destroy main window if needed
             if (_mainWindow != null && LoadedModules.Count == 0)
             {
+                Service.Log("[BMM] Closing main window, since there are no more loaded modules");
                 _mainWindow.Close(true);
                 _mainWindow = null;
             }
             else if (_mainWindow == null && LoadedModules.Count > 0)
             {
+                Service.Log("[BMM] Creating main window, since there are now loaded modules");
                 _mainWindow = WindowManager.CreateWindow("Boss module", DrawMainWindow, MainWindowClosedByUser);
                 _mainWindow.SizeHint = new(400, 400);
             }
@@ -129,8 +131,8 @@ namespace BossMod
             }
             else
             {
-                // temporarily disable, but do not save...
-                Service.Log($"Bossmod window closed by user, disabling temporarily");
+                // close main window
+                Service.Log("[BMM] Bossmod window closed by user, disabling temporarily");
                 _mainWindow = null;
                 return true;
             }
