@@ -269,35 +269,19 @@ namespace UIDev
             ImGui.EndTable();
         }
 
-        private string ParticipantString(Replay.Participant? p)
-        {
-            return p != null ? $"{p.Type} {p.InstanceID:X} ({p.OID:X}) '{p.Name}'" : "<none>";
-        }
-
-        private string ActionEffectString(ActionEffect eff)
-        {
-            var s = $"{eff.Type}: {eff.Param0:X2} {eff.Param1:X2} {eff.Param2:X2} {eff.Param3:X2} {eff.Param4:X2} {eff.Value:X4}";
-            if ((eff.Param4 & 0x80) != 0)
-                s = "(source) " + s;
-            var desc = ActionEffectParser.DescribeFields(eff);
-            if (desc.Length > 0)
-                s += $": {desc}";
-            return s;
-        }
-
         private void DrawActionNodes(IEnumerable<Replay.Action> actions, DateTime start, Type? aidType)
         {
             foreach (var a in actions)
             {
-                if (ImGui.TreeNodeEx($"{(a.Time - start).TotalSeconds:f2}: {a.ID} ({aidType?.GetEnumName(a.ID.ID)}): {ParticipantString(a.Source)} -> {ParticipantString(a.MainTarget)} ({a.Targets.Count} affected)", a.Targets.Count > 0 ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf))
+                if (ImGui.TreeNodeEx($"{(a.Time - start).TotalSeconds:f2}: {a.ID} ({aidType?.GetEnumName(a.ID.ID)}): {ReplayUtils.ParticipantString(a.Source)} -> {ReplayUtils.ParticipantString(a.MainTarget)} ({a.Targets.Count} affected)", a.Targets.Count > 0 ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf))
                 {
                     foreach (var t in a.Targets)
                     {
-                        if (ImGui.TreeNode($"{ParticipantString(t.Target)}"))
+                        if (ImGui.TreeNode($"{ReplayUtils.ParticipantString(t.Target)}"))
                         {
                             foreach (var eff in t.Effects)
                             {
-                                if (ImGui.TreeNodeEx(ActionEffectString(eff), ImGuiTreeNodeFlags.Leaf))
+                                if (ImGui.TreeNodeEx(ReplayUtils.ActionEffectString(eff), ImGuiTreeNodeFlags.Leaf))
                                     ImGui.TreePop();
                             }
                             ImGui.TreePop();
@@ -312,7 +296,7 @@ namespace UIDev
         {
             foreach (var s in statuses)
             {
-                if (ImGui.TreeNodeEx($"{(s.Apply - start).TotalSeconds:f2} + {(s.Expire - s.Apply).TotalSeconds:f2} / {(s.Fade - s.Apply).TotalSeconds:f2}: {Utils.StatusString(s.ID)} ({sidType?.GetEnumName(s.ID)}) ({s.StartingExtra:X}) @ {ParticipantString(s.Target)} from {ParticipantString(s.Source)}", ImGuiTreeNodeFlags.Leaf))
+                if (ImGui.TreeNodeEx($"{(s.Apply - start).TotalSeconds:f2} + {(s.Expire - s.Apply).TotalSeconds:f2} / {(s.Fade - s.Apply).TotalSeconds:f2}: {Utils.StatusString(s.ID)} ({sidType?.GetEnumName(s.ID)}) ({s.StartingExtra:X}) @ {ReplayUtils.ParticipantString(s.Target)} from {ReplayUtils.ParticipantString(s.Source)}", ImGuiTreeNodeFlags.Leaf))
                     ImGui.TreePop();
             }
         }
@@ -341,14 +325,14 @@ namespace UIDev
                                 foreach (var p in list)
                                 {
                                     var pflags = (p.Casts.Count > 0 || p.HasAnyActions || p.HasAnyStatuses) ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf;
-                                    if (ImGui.TreeNodeEx($"{ParticipantString(p)}: spawn at {(p.Spawn - e.Start).TotalSeconds:f2}, despawn at {(p.Despawn - e.Start).TotalSeconds:f2}", pflags))
+                                    if (ImGui.TreeNodeEx($"{ReplayUtils.ParticipantString(p)}: spawn at {(p.Spawn - e.Start).TotalSeconds:f2}, despawn at {(p.Despawn - e.Start).TotalSeconds:f2}", pflags))
                                     {
                                         if (p.Casts.Count > 0 && ImGui.TreeNode("Casts"))
                                         {
                                             for (int i = 0; i < p.Casts.Count; ++i)
                                             {
                                                 var c = p.Casts[i];
-                                                if (ImGui.TreeNodeEx($"{(c.Start - e.Start).TotalSeconds:f2} ({(c.Start - (i == 0 ? e.Start : p.Casts[i - 1].End)).TotalSeconds:f2}) + {(c.End - c.Start).TotalSeconds:f2}: {c.ID} ({aidType?.GetEnumName(c.ID.ID)}) @ {ParticipantString(c.Target)} / {Utils.Vec3String(c.Location)}", ImGuiTreeNodeFlags.Leaf))
+                                                if (ImGui.TreeNodeEx($"{(c.Start - e.Start).TotalSeconds:f2} ({(c.Start - (i == 0 ? e.Start : p.Casts[i - 1].End)).TotalSeconds:f2}) + {(c.End - c.Start).TotalSeconds:f2}: {c.ID} ({aidType?.GetEnumName(c.ID.ID)}) @ {ReplayUtils.ParticipantString(c.Target)} / {Utils.Vec3String(c.Location)}", ImGuiTreeNodeFlags.Leaf))
                                                     ImGui.TreePop();
                                             }
                                             ImGui.TreePop();
@@ -402,7 +386,7 @@ namespace UIDev
                     {
                         foreach (var t in _data.EncounterTethers(e))
                         {
-                            if (ImGui.TreeNodeEx($"{(t.Appear - e.Start).TotalSeconds:f2} + {(t.Disappear - t.Appear).TotalSeconds:f2}: {t.ID} ({tidType?.GetEnumName(t.ID)}) @ {ParticipantString(t.Source)} -> {ParticipantString(t.Target)}", ImGuiTreeNodeFlags.Leaf))
+                            if (ImGui.TreeNodeEx($"{(t.Appear - e.Start).TotalSeconds:f2} + {(t.Disappear - t.Appear).TotalSeconds:f2}: {t.ID} ({tidType?.GetEnumName(t.ID)}) @ {ReplayUtils.ParticipantString(t.Source)} -> {ReplayUtils.ParticipantString(t.Target)}", ImGuiTreeNodeFlags.Leaf))
                                 ImGui.TreePop();
                         }
                         ImGui.TreePop();
@@ -412,7 +396,7 @@ namespace UIDev
                     {
                         foreach (var i in _data.EncounterIcons(e))
                         {
-                            if (ImGui.TreeNodeEx($"{(i.Timestamp - e.Start).TotalSeconds:f2}: {i.ID} ({iidType?.GetEnumName(i.ID)}) @ {ParticipantString(i.Target)}", ImGuiTreeNodeFlags.Leaf))
+                            if (ImGui.TreeNodeEx($"{(i.Timestamp - e.Start).TotalSeconds:f2}: {i.ID} ({iidType?.GetEnumName(i.ID)}) @ {ReplayUtils.ParticipantString(i.Target)}", ImGuiTreeNodeFlags.Leaf))
                                 ImGui.TreePop();
                         }
                         ImGui.TreePop();

@@ -19,7 +19,7 @@ namespace UIDev
         private SimpleImGuiScene? _scene;
         private List<Type> _testTypes = new();
         private DateTime _startTime = DateTime.Now;
-        private string _openLogName = "";
+        private string _path = "";
 
         public void Initialize(SimpleImGuiScene scene)
         {
@@ -54,34 +54,31 @@ namespace UIDev
 
         private void DrawMainWindow()
         {
-            ImGui.Text($"Running time: {DateTime.Now - _startTime}");
-
-            ImGui.InputText("Path", ref _openLogName, 500);
-            ImGui.SameLine();
+            ImGui.InputText("Path", ref _path, 500);
             if (ImGui.Button("Open native log..."))
             {
-                var data = ReplayParserLog.Parse(_openLogName);
+                var data = ReplayParserLog.Parse(_path);
                 if (data.Ops.Count > 0)
                 {
                     var visu = new ReplayVisualizer(data);
-                    WindowManager.CreateWindow(_openLogName, visu.Draw, () => { visu.Dispose(); return true; });
+                    WindowManager.CreateWindow($"Native log: {_path}", visu.Draw, () => { visu.Dispose(); return true; });
                 }
             }
             ImGui.SameLine();
             if (ImGui.Button("Open ACT log..."))
             {
-                var data = ReplayParserAct.Parse(_openLogName, 0);
+                var data = ReplayParserAct.Parse(_path, 0);
                 if (data.Ops.Count > 0)
                 {
                     var visu = new ReplayVisualizer(data);
-                    WindowManager.CreateWindow(_openLogName, visu.Draw, () => { visu.Dispose(); return true; });
+                    WindowManager.CreateWindow($"ACT log: {_path}", visu.Draw, () => { visu.Dispose(); return true; });
                 }
             }
             ImGui.SameLine();
             if (ImGui.Button("Analyze all logs..."))
             {
-                var a = new MetaAnalysis(_openLogName);
-                WindowManager.CreateWindow("Meta analysis", a.Draw, () => { a.Dispose(); return true; });
+                var a = new AnalysisManager(_path);
+                WindowManager.CreateWindow($"Multiple logs: {_path}", a.Draw, () => { a.Dispose(); return true; });
             }
 
             foreach (var t in _testTypes)

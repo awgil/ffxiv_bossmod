@@ -146,5 +146,17 @@ namespace BossMod
             }
             return res;
         }
+
+        // get existing map element or create new
+        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> map, TKey key) where TValue : new()
+        {
+            TValue? value;
+            if (!map.TryGetValue(key, out value))
+            {
+                value = new();
+                map[key] = value;
+            }
+            return value;
+        }
     }
 }

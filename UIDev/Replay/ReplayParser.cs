@@ -62,12 +62,6 @@ namespace UIDev
             return _res;
         }
 
-        private void AddParticipantToEncounter(Replay.Encounter e, Replay.Participant p)
-        {
-            e.Participants.TryAdd(p.OID, new());
-            e.Participants[p.OID].Add(p);
-        }
-
         private void StartEncounter(Actor actor)
         {
             if (_encounters.ContainsKey(actor.InstanceID))
@@ -90,7 +84,7 @@ namespace UIDev
                 FirstEnvControl = _res.EnvControls.Count
             };
             foreach (var p in _participants.Values)
-                AddParticipantToEncounter(e, p);
+                e.Participants.GetOrAdd(p.OID).Add(p);
             _res.Encounters.Add(e);
         }
 
@@ -109,7 +103,7 @@ namespace UIDev
             var p = _participants[actor.InstanceID] = new() { InstanceID = actor.InstanceID, OID = actor.OID, Type = actor.Type, Name = actor.Name, Spawn = _ws.CurrentTime };
             _res.Participants.Add(p);
             foreach (var e in _encounters.Values)
-                AddParticipantToEncounter(e, p);
+                e.Participants.GetOrAdd(p.OID).Add(p);
         }
 
         private void ActorRemoved(object? sender, Actor actor)
