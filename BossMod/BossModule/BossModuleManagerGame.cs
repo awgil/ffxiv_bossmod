@@ -24,13 +24,12 @@ namespace BossMod
             if (_mainWindow != null && LoadedModules.Count == 0)
             {
                 Service.Log("[BMM] Closing main window, since there are no more loaded modules");
-                _mainWindow.Close(true);
-                _mainWindow = null;
+                WindowManager.CloseWindow(_mainWindow);
             }
             else if (_mainWindow == null && LoadedModules.Count > 0)
             {
                 Service.Log("[BMM] Creating main window, since there are now loaded modules");
-                _mainWindow = WindowManager.CreateWindow("Boss module", DrawMainWindow, MainWindowClosedByUser);
+                _mainWindow = WindowManager.CreateWindow("Boss module", DrawMainWindow, MainWindowClosed, MainWindowClosedByUser);
                 _mainWindow.SizeHint = new(400, 400);
             }
 
@@ -121,11 +120,18 @@ namespace BossMod
             //ImGui.GetWindowDrawList().AddText(p1screen, color, $"({p1.X:f3},{p1.Y:f3},{p1.Z:f3}) -> ({p2.X:f3},{p2.Y:f3},{p2.Z:f3})");
         }
 
+        private void MainWindowClosed()
+        {
+            Service.Log("[BMM] Main window closed");
+            _mainWindow = null;
+        }
+
         private bool MainWindowClosedByUser()
         {
             if (_drawnModule != null)
             {
                 // show module list instead of boss module
+                Service.Log("[BMM] Bossmod window closed by user, showing module list instead...");
                 SetDrawnModule(null);
                 return false;
             }
@@ -133,7 +139,6 @@ namespace BossMod
             {
                 // close main window
                 Service.Log("[BMM] Bossmod window closed by user, disabling temporarily");
-                _mainWindow = null;
                 return true;
             }
         }

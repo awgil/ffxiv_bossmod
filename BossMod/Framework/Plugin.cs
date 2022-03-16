@@ -77,14 +77,14 @@ namespace BossMod
 
         private void OpenConfigUI()
         {
-            var w = WindowManager.CreateWindow("Boss mod config", _config.Draw, () => true);
+            var w = WindowManager.CreateWindow("Boss mod config", _config.Draw, () => { }, () => true);
             w.SizeHint = new Vector2(300, 300);
         }
 
         private void OpenDebugUI()
         {
             var ui = new DebugUI(_ws, _autorotation);
-            var w = WindowManager.CreateWindow("Boss mod debug UI", ui.Draw, () => { ui.Dispose(); return true; });
+            var w = WindowManager.CreateWindow("Boss mod debug UI", ui.Draw, ui.Dispose, () => true);
             w.SizeHint = new Vector2(300, 200);
         }
 

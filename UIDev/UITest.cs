@@ -45,7 +45,7 @@ namespace UIDev
                 }
             }
 
-            WindowManager.CreateWindow("Boss mod UI development", DrawMainWindow, () => scene.ShouldQuit = true);
+            WindowManager.CreateWindow("Boss mod UI development", DrawMainWindow, () => scene.ShouldQuit = true, () => true);
         }
 
         public void Dispose()
@@ -61,7 +61,7 @@ namespace UIDev
                 if (data.Ops.Count > 0)
                 {
                     var visu = new ReplayVisualizer(data);
-                    WindowManager.CreateWindow($"Native log: {_path}", visu.Draw, () => { visu.Dispose(); return true; });
+                    WindowManager.CreateWindow($"Native log: {_path}", visu.Draw, visu.Dispose, () => true);
                 }
             }
             ImGui.SameLine();
@@ -71,14 +71,14 @@ namespace UIDev
                 if (data.Ops.Count > 0)
                 {
                     var visu = new ReplayVisualizer(data);
-                    WindowManager.CreateWindow($"ACT log: {_path}", visu.Draw, () => { visu.Dispose(); return true; });
+                    WindowManager.CreateWindow($"ACT log: {_path}", visu.Draw, visu.Dispose, () => true);
                 }
             }
             ImGui.SameLine();
             if (ImGui.Button("Analyze all logs..."))
             {
                 var a = new AnalysisManager(_path);
-                WindowManager.CreateWindow($"Multiple logs: {_path}", a.Draw, () => { a.Dispose(); return true; });
+                WindowManager.CreateWindow($"Multiple logs: {_path}", a.Draw, a.Dispose, () => true);
             }
 
             foreach (var t in _testTypes)
@@ -88,7 +88,7 @@ namespace UIDev
                     var inst = (ITest?)Activator.CreateInstance(t);
                     if (inst != null)
                     {
-                        var window = WindowManager.CreateWindow(t.ToString(), inst.Draw, () => { inst.Dispose(); return true; });
+                        var window = WindowManager.CreateWindow(t.ToString(), inst.Draw, inst.Dispose, () => true);
                         window.Flags = inst.WindowFlags();
                     }
                 }

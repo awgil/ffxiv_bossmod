@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace BossMod
@@ -9,62 +10,54 @@ namespace BossMod
     {
         public class Window
         {
-            private Action _onDraw;
-            private Func<bool> _onClose;
-            private bool _wantClose;
+            private Action _draw;
+            private Action _close;
+            private Func<bool> _userClose;
 
-            public bool Closed { get; private set; } = false;
             public Vector2 SizeHint = new(300, 300);
             public Vector2 MinSize = new(50, 50);
             public ImGuiWindowFlags Flags = ImGuiWindowFlags.None;
             public string Name;
             public string? Title;
 
-            internal Window(string name, Action draw, Func<bool> close)
+            internal Window(string name, Action draw, Action close, Func<bool> userClose)
             {
                 Name = name;
-                _onDraw = draw;
-                _onClose = close;
+                _draw = draw;
+                _close = close;
+                _userClose = userClose;
             }
 
             internal bool Draw()
             {
-                var visible = !_wantClose;
+                var visible = true;
                 ImGui.SetNextWindowSize(SizeHint, ImGuiCond.FirstUseEver);
                 ImGui.SetNextWindowSizeConstraints(MinSize, new Vector2(float.MaxValue, float.MaxValue));
                 if (ImGui.Begin(Title != null ? $"{Title}###{Name}" : Name, ref visible, Flags))
                 {
-                    _onDraw();
+                    _draw();
                 }
                 ImGui.End();
 
                 if (!visible)
-                    visible = !_onClose();
-                Closed = visible;
+                    visible = !_userClose();
                 return visible;
             }
 
             internal void Reset()
             {
-                _onClose();
-            }
-
-            public void Close(bool noCallback = false)
-            {
-                _wantClose = true;
-                if (noCallback)
-                    _onClose = () => true;
+                _close();
             }
         }
         private static List<Window> _windows = new();
-        private static int _nextUniqueID = 0;
+        private static int _nextDrawIndex = -1; // this is used to allow closing window during draw
 
-        public static Window CreateWindow(string name, Action draw, Func<bool> close, bool unique = true)
+        public static Window CreateWindow(string name, Action draw, Action close, Func<bool> userClose)
         {
-            var w = unique ? _windows.Find(x => x.Name == name) : null;
+            var w = _windows.Find(x => x.Name == name);
             if (w == null)
             {
-                w = new Window(unique ? name : $"{name}##{_nextUniqueID++}", draw, close);
+                w = new Window(name, draw, close, userClose);
                 _windows.Add(w);
             }
             else
@@ -75,23 +68,37 @@ namespace BossMod
             return w;
         }
 
+        public static void CloseWindow(Window w)
+        {
+            int index = _windows.IndexOf(w);
+            if (index < 0)
+                return; // window not found
+
+            w.Reset();
+            if (index < _nextDrawIndex)
+                --_nextDrawIndex;
+            _windows.RemoveAt(index);
+        }
+
         public static void DrawAll()
         {
-            for (int i = 0; i < _windows.Count; ++i)
+            _nextDrawIndex = 0;
+            while (_nextDrawIndex < _windows.Count)
             {
-                if (!_windows[i].Draw())
+                var w = _windows[_nextDrawIndex++];
+                if (!w.Draw())
                 {
-                    _windows.RemoveAt(i--);
+                    CloseWindow(w);
                 }
             }
+            _nextDrawIndex = -1;
         }
 
         public static void Reset()
         {
-            foreach (var w in _windows)
-                w.Reset();
-            _windows.Clear();
-            _nextUniqueID = 0;
+            // note that window's close can potentially close another window...
+            while (_windows.Count > 0)
+                CloseWindow(_windows.First());
         }
     }
 }
