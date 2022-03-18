@@ -324,7 +324,7 @@ namespace UIDev
                             {
                                 foreach (var p in list)
                                 {
-                                    var pflags = (p.Casts.Count > 0 || p.HasAnyActions || p.HasAnyStatuses) ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf;
+                                    var pflags = (p.Casts.Count > 0 || p.HasAnyActions || p.HasAnyStatuses || p.IsTargetOfAnyActions) ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf;
                                     if (ImGui.TreeNodeEx($"{ReplayUtils.ParticipantString(p)}: spawn at {(p.Spawn - e.Start).TotalSeconds:f2}, despawn at {(p.Despawn - e.Start).TotalSeconds:f2}", pflags))
                                     {
                                         if (p.Casts.Count > 0 && ImGui.TreeNode("Casts"))
@@ -340,6 +340,11 @@ namespace UIDev
                                         if (p.HasAnyActions && ImGui.TreeNode("Actions"))
                                         {
                                             DrawActionNodes(_data.EncounterActions(e).Where(a => a.Source == p), e.Start, aidType);
+                                            ImGui.TreePop();
+                                        }
+                                        if (p.IsTargetOfAnyActions && ImGui.TreeNode("Affected by actions"))
+                                        {
+                                            DrawActionNodes(_data.EncounterActions(e).Where(a => a.Targets.Any(t => t.Target == p)), e.Start, aidType);
                                             ImGui.TreePop();
                                         }
                                         if (p.HasAnyStatuses && ImGui.TreeNode("Statuses"))

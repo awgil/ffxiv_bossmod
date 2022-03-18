@@ -40,6 +40,19 @@ namespace UIDev
 
         protected Replay Finish(string path = "")
         {
+            //foreach (var a in _res.Actions)
+            //{
+            //    Service.Log($"{a.ID} {ReplayUtils.ParticipantString(a.Source)} -> {ReplayUtils.ParticipantString(a.MainTarget)}");
+            //    foreach (var t in a.Targets)
+            //    {
+            //        Service.Log($"- {ReplayUtils.ParticipantString(t.Target)}");
+            //        foreach (var e in t.Effects)
+            //        {
+            //            Service.Log($"-- {ReplayUtils.ActionEffectString(e)} ({ActionEffectParser.DescribeUnknown(e)})");
+            //        }
+            //    }
+            //}
+
             _res.Path = path;
             foreach (var enc in _encounters.Values)
             {
@@ -186,7 +199,10 @@ namespace UIDev
             var a = new Replay.Action() { ID = info.Action, Time = _ws.CurrentTime, Source = p, MainTarget = _participants.GetValueOrDefault(info.MainTargetID) };
             foreach (var t in info.Targets)
             {
-                a.Targets.Add(new() { Target = _participants.GetValueOrDefault(t.ID), Effects = t.Effects });
+                var target = _participants.GetValueOrDefault(t.ID);
+                if (target != null)
+                    target.IsTargetOfAnyActions = true;
+                a.Targets.Add(new() { Target = target, Effects = t.Effects });
             }
             p.HasAnyActions = true;
             _res.Actions.Add(a);

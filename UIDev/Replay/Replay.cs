@@ -43,6 +43,7 @@ namespace UIDev
             public List<Cast> Casts = new();
             public bool HasAnyActions;
             public bool HasAnyStatuses;
+            public bool IsTargetOfAnyActions;
         }
 
         public class Status
