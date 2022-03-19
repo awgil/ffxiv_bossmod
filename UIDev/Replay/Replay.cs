@@ -14,12 +14,13 @@ namespace UIDev
             public DateTime Start;
             public DateTime End;
             public Participant? Target;
-            public Vector3 Location;
+            public Vector3 Location; // if target is non-null, corresponds to target's position at cast start
         }
 
         public class ActionTarget
         {
             public Participant? Target;
+            public Vector4 PosRot;
             public ActionEffects Effects;
         }
 
@@ -28,7 +29,9 @@ namespace UIDev
             public ActionID ID;
             public DateTime Time;
             public Participant? Source;
+            public Vector4 SourcePosRot;
             public Participant? MainTarget;
+            public Vector4 MainTargetPosRot;
             public List<ActionTarget> Targets = new();
         }
 

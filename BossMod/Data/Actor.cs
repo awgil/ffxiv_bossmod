@@ -89,9 +89,7 @@ namespace BossMod
             OwnerID = ownerID;
         }
 
-        public ActorStatus? FindStatus(uint sid)
-        {
-            return Array.Find(Statuses, x => x.ID == sid);
-        }
+        public ActorStatus? FindStatus(uint sid) => Array.Find(Statuses, x => x.ID == sid);
+        public ActorStatus? FindStatus<SID>(SID sid) where SID : Enum => FindStatus((uint)(object)sid);
     }
 }

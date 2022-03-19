@@ -142,7 +142,8 @@ namespace UIDev
         private void CastStart(object? sender, Actor actor)
         {
             var c = actor.CastInfo!;
-            _participants[actor.InstanceID].Casts.Add(new() { ID = c.Action, Start = _ws.CurrentTime, Target = _participants.GetValueOrDefault(c.TargetID), Location = c.Location });
+            var target = _participants.GetValueOrDefault(c.TargetID);
+            _participants[actor.InstanceID].Casts.Add(new() { ID = c.Action, Start = _ws.CurrentTime, Target = target, Location = c.TargetID == 0 ? c.Location : (_ws.Actors.Find(c.TargetID)?.Position ?? new()) });
         }
 
         private void CastFinish(object? sender, Actor actor)
@@ -196,13 +197,14 @@ namespace UIDev
                 Service.Log($"Skipping {info.Action} cast from unknown actor {info.CasterID:X}");
                 return;
             }
-            var a = new Replay.Action() { ID = info.Action, Time = _ws.CurrentTime, Source = p, MainTarget = _participants.GetValueOrDefault(info.MainTargetID) };
+            var a = new Replay.Action() { ID = info.Action, Time = _ws.CurrentTime, Source = p, SourcePosRot = _ws.Actors.Find(info.CasterID)?.PosRot ?? new(),
+                MainTarget = _participants.GetValueOrDefault(info.MainTargetID), MainTargetPosRot = _ws.Actors.Find(info.MainTargetID)?.PosRot ?? new() };
             foreach (var t in info.Targets)
             {
                 var target = _participants.GetValueOrDefault(t.ID);
                 if (target != null)
                     target.IsTargetOfAnyActions = true;
-                a.Targets.Add(new() { Target = target, Effects = t.Effects });
+                a.Targets.Add(new() { Target = target, PosRot = _ws.Actors.Find(t.ID)?.PosRot ?? new(), Effects = t.Effects });
             }
             p.HasAnyActions = true;
             _res.Actions.Add(a);

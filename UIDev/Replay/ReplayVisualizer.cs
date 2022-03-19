@@ -273,11 +273,11 @@ namespace UIDev
         {
             foreach (var a in actions)
             {
-                if (ImGui.TreeNodeEx($"{(a.Time - start).TotalSeconds:f2}: {a.ID} ({aidType?.GetEnumName(a.ID.ID)}): {ReplayUtils.ParticipantString(a.Source)} -> {ReplayUtils.ParticipantString(a.MainTarget)} ({a.Targets.Count} affected)", a.Targets.Count > 0 ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf))
+                if (ImGui.TreeNodeEx($"{(a.Time - start).TotalSeconds:f2}: {a.ID} ({aidType?.GetEnumName(a.ID.ID)}): {ReplayUtils.ParticipantPosRotString(a.Source, a.SourcePosRot)} -> {ReplayUtils.ParticipantPosRotString(a.MainTarget, a.MainTargetPosRot)} ({a.Targets.Count} affected)", a.Targets.Count > 0 ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf))
                 {
                     foreach (var t in a.Targets)
                     {
-                        if (ImGui.TreeNode($"{ReplayUtils.ParticipantString(t.Target)}"))
+                        if (ImGui.TreeNode($"{ReplayUtils.ParticipantPosRotString(t.Target, t.PosRot)}"))
                         {
                             foreach (var eff in t.Effects)
                             {

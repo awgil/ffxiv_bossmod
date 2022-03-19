@@ -16,6 +16,9 @@ namespace UIDev
             using var scene = new SimpleImGuiScene(RendererFactory.RendererBackend.DirectX11, new WindowCreateInfo
             {
                 Title = "UI Test",
+                //YPos = 20,
+                //Width = 1200,
+                //Height = 800,
                 Fullscreen = true,
                 TransparentColor = new float[] { 0, 0, 0 },
             });

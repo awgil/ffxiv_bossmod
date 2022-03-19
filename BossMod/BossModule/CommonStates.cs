@@ -128,10 +128,10 @@ namespace BossMod
         }
 
         // create a state triggered by a primary actor becoming (un)targetable; automatically sets downtime begin/end flag
-        public static StateMachine.State Targetable(ref StateMachine.State? link, BossModule module, bool targetable, float delay, string name = "")
+        public static StateMachine.State Targetable(ref StateMachine.State? link, BossModule module, bool targetable, float delay, string name = "", float checkDelay = 0)
         {
             var state = Simple(ref link, delay, name);
-            state.Update = (_) => module.PrimaryActor.IsTargetable == targetable ? state.Next : null;
+            state.Update = (timeSinceTransition) => timeSinceTransition >= checkDelay && module.PrimaryActor.IsTargetable == targetable ? state.Next : null;
             state.EndHint |= targetable ? StateMachine.StateHint.DowntimeEnd : StateMachine.StateHint.DowntimeStart;
             return state;
         }

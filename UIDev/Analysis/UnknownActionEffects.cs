@@ -58,7 +58,7 @@ namespace UIDev.Analysis
                         {
                             foreach (var entry in entries)
                             {
-                                if (ImGui.TreeNodeEx($"{ReplayUtils.ActionEffectString(entry.Effect)}: {entry.Replay.Path} {entry.Action.Time:O} {ReplayUtils.ParticipantString(entry.Action.Source)} -> {ReplayUtils.ParticipantString(entry.Action.MainTarget)} @ {ReplayUtils.ParticipantString(entry.Target.Target)}", ImGuiTreeNodeFlags.Leaf))
+                                if (ImGui.TreeNodeEx($"{ReplayUtils.ActionEffectString(entry.Effect)}: {entry.Replay.Path} {entry.Action.Time:O} {ReplayUtils.ParticipantPosRotString(entry.Action.Source, entry.Action.SourcePosRot)} -> {ReplayUtils.ParticipantPosRotString(entry.Action.MainTarget, entry.Action.MainTargetPosRot)} @ {ReplayUtils.ParticipantPosRotString(entry.Target.Target, entry.Target.PosRot)}", ImGuiTreeNodeFlags.Leaf))
                                     ImGui.TreePop();
                             }
                             ImGui.TreePop();

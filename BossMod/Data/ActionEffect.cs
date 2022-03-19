@@ -54,7 +54,7 @@ namespace BossMod
         Unknown_46 = 70, // 0x46
         Unknown_47 = 71, // 0x47
         Unknown_48 = 72, // 0x48 - looks like 'keep in place'?
-        Unknown_49 = 73, // 0x49
+        SetHP = 73, // 0x49 - e.g. zodiark's kokytos
         Partial_Invulnerable = 74, // 0x4A
         Interrupt = 75, // 0x4B
     }
@@ -202,6 +202,9 @@ namespace BossMod
                 case ActionEffectType.Knockback:
                     res.Append(Utils.KnockbackString(eff.Value));
                     break;
+                case ActionEffectType.SetHP:
+                    res.Append($"value={eff.Value}");
+                    break;
             }
             return res.ToString();
         }
@@ -251,6 +254,7 @@ namespace BossMod
                 case ActionEffectType.TpGain:
                 case ActionEffectType.LoseStatusEffectTarget:
                 case ActionEffectType.LoseStatusEffectSource:
+                case ActionEffectType.SetHP:
                     // so far only seen 'source' flag and non-zero values
                     return eff.Param0 != 0 || eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || (eff.Param4 & ~0x80) != 0 ? "non-zero params" : "";
                 case ActionEffectType.ApplyStatusEffectTarget:

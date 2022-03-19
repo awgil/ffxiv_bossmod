@@ -7,7 +7,7 @@ namespace BossMod
         public static Type? TypeForOID(uint oid)
         {
             return oid switch {
-                (uint)Zodiark.OID.Boss => typeof(Zodiark),
+                //(uint)Endwalker.ZodiarkEx.OID.Boss => typeof(Endwalker.ZodiarkEx.ZodiarkEx),
                 (uint)Endwalker.P1S.OID.Boss => typeof(Endwalker.P1S.P1S),
                 (uint)Endwalker.P2S.OID.Boss => typeof(Endwalker.P2S.P2S),
                 (uint)Endwalker.P3S.OID.Boss => typeof(Endwalker.P3S.P3S),

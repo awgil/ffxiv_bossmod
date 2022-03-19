@@ -1,7 +1,4 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Logging;
-using ImGuiNET;
-using System;
+﻿using ImGuiNET;
 using System.Numerics;
 
 namespace BossMod
