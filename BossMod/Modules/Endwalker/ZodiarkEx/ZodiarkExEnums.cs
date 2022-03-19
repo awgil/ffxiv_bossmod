@@ -53,8 +53,8 @@
         AniaAOE = 27491, // Helper->MT, starts with Ania, 1 sec longer
         Kokytos = 27744, // Boss->self
         AutoAttack = 27763, // Boss->target, no cast
-        //PostAddAOELethal = 28026, // src=target=Helper
-        //PostAddAOENormal = 28027, // src=target=Helper
+        ApomnemoneumataLethal = 28026, // Helper->self
+        ApomnemoneumataNormal = 28027, // Helper->self
     };
 
     public enum SID : uint

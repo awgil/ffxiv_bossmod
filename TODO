@@ -7,10 +7,8 @@ general:
 - data driven boss modules?.. would enable sequence autorecord and live editing - or is it covered by replay analysis?
 
 replay encounter analysis:
-- ability relative positioning
-- metaanalysis (read multiple logs and determine statistics)
--- state transition times
--- aoe shape
+- state transition times
+- aoe shape
 
 network:
 - hook send/recv (a-la xivalexander)
@@ -23,7 +21,7 @@ boss modules:
 - refactor state machine (add id/comment, remove timeouts)
 - p1s - make intemperance component useful
 - p2s - minor components (shockwave, ominous bubbling, eruption?..)
-- zodiark - refactor
+- zodiark - test and confirm enrage
 - hydaelyn - todo
 
 autorotation:
