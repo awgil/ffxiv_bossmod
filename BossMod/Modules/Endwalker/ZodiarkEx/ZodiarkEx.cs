@@ -18,17 +18,17 @@ namespace BossMod.Endwalker.ZodiarkEx
             StateMachine.State? s;
             s = CommonStates.Cast(ref InitialState, this, AID.Kokytos, 6.1f, 4, "Kokytos");
             s = Paradeigma1(ref s.Next, 7.2f);
-            s = Ania(ref s.Next, 2.8f);
+            s = Ania(ref s.Next, 2.7f);
             s = Exoterikos1(ref s.Next, 4.2f);
-            s = Paradeigma2(ref s.Next, 9.4f);
-            s = Phobos(ref s.Next, 7.4f);
+            s = Paradeigma2(ref s.Next, 9.2f);
+            s = Phobos(ref s.Next, 7.2f);
             s = Paradeigma3(ref s.Next, 7.2f);
-            s = Ania(ref s.Next, 2.5f);
+            s = Ania(ref s.Next, 3);
             s = Paradeigma4(ref s.Next, 3.2f);
             s = Intermission(ref s.Next, 9.5f);
-            s = AstralEclipse(ref s.Next, 6.2f, true);
-            s = Paradeigma5(ref s.Next, 10.2f);
-            s = Ania(ref s.Next, 8.5f);
+            s = AstralEclipse(ref s.Next, 6.1f, true);
+            s = Paradeigma5(ref s.Next, 10.1f);
+            s = Ania(ref s.Next, 9);
             s = Exoterikos4(ref s.Next, 6.2f);
             s = Paradeigma6(ref s.Next, 10.2f);
             s = TrimorphosExoterikos(ref s.Next, 0.6f, true);
@@ -102,7 +102,7 @@ namespace BossMod.Endwalker.ZodiarkEx
             cast.Enter.Add(() => ActivateComponent(new Styx(this)));
             cast.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var resolve = CommonStates.ComponentCondition<Styx>(ref cast.Next, 1.1f * numHits, this, comp => comp.NumCasts >= numHits, "Stack resolve", 2);
+            var resolve = CommonStates.ComponentCondition<Styx>(ref cast.Next, 1.1f * numHits - 0.1f, this, comp => comp.NumCasts >= numHits, "Stack resolve", 2);
             resolve.Exit.Add(DeactivateComponent<Styx>);
             return resolve;
         }
@@ -140,7 +140,7 @@ namespace BossMod.Endwalker.ZodiarkEx
             var end = CommonStates.CastEnd(ref start.Next, this, 10, "Rotate");
             end.EndHint |= StateMachine.StateHint.GroupWithNext;
 
-            var resolve = CommonStates.Condition(ref end.Next, 6.7f, () => WorldState.Party.WithoutSlot().All(a => (a.FindStatus(SID.TenebrousGrasp) == null)), "Rotate resolve", 5, 1);
+            var resolve = CommonStates.Condition(ref end.Next, 6.2f, () => WorldState.Party.WithoutSlot().All(a => (a.FindStatus(SID.TenebrousGrasp) == null)), "Rotate resolve", 5, 1);
             resolve.Exit.Add(DeactivateComponent<Paradeigma>);
             return resolve;
         }
@@ -234,8 +234,8 @@ namespace BossMod.Endwalker.ZodiarkEx
         private StateMachine.State Paradeigma7(ref StateMachine.State? link, float delay)
         {
             var para = ParadeigmaStart(ref link, delay, "Para7 (snakes)");
-            var exo = ExoterikosStart(ref para.Next, 2.2f, "Exo5 (side)");
-            var flow = AstralFlow(ref exo.Next, 2);
+            var exo = ExoterikosStart(ref para.Next, 2.1f, "Exo5 (side)");
+            var flow = AstralFlow(ref exo.Next, 2.2f);
             flow.Exit.Add(DeactivateComponent<Exoterikos>);
             flow.EndHint |= StateMachine.StateHint.GroupWithNext;
 
@@ -297,7 +297,7 @@ namespace BossMod.Endwalker.ZodiarkEx
             raidwide.Exit.Add(DeactivateComponent<Apomnemoneumata>);
             raidwide.EndHint |= StateMachine.StateHint.GroupWithNext | StateMachine.StateHint.Raidwide;
 
-            var reappear = CommonStates.Targetable(ref raidwide.Next, this, true, 10.5f, "Intermission end");
+            var reappear = CommonStates.Targetable(ref raidwide.Next, this, true, 10.6f, "Intermission end");
             return reappear;
         }
 
@@ -324,7 +324,7 @@ namespace BossMod.Endwalker.ZodiarkEx
             // 13.2s third explosion
             // 17.7s algedon cast end
             // 18.7s algedon aoe
-            var followup = first ? TripleEsotericRay(ref reappear.Next, 8.2f, true) : Algedon(ref reappear.Next, 10.5f);
+            var followup = first ? TripleEsotericRay(ref reappear.Next, 8.2f, true) : Algedon(ref reappear.Next, 10.6f);
             followup.Exit.Add(DeactivateComponent<AstralEclipse>);
             return followup;
         }

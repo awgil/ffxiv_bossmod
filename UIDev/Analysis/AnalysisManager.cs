@@ -3,9 +3,6 @@ using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace UIDev
 {
@@ -13,6 +10,7 @@ namespace UIDev
     {
         private List<Replay> _replays = new();
         private Analysis.UnknownActionEffects? _unkEffects;
+        private Analysis.StateTransitionTimings? _transitionTimings;
 
         public AnalysisManager(string rootPath)
         {
@@ -44,6 +42,14 @@ namespace UIDev
                 if (_unkEffects == null)
                     _unkEffects = new Analysis.UnknownActionEffects(_replays);
                 _unkEffects.Draw();
+                ImGui.TreePop();
+            }
+
+            if (ImGui.TreeNode("State transition timings"))
+            {
+                if (_transitionTimings == null)
+                    _transitionTimings = new Analysis.StateTransitionTimings(_replays);
+                _transitionTimings.Draw();
                 ImGui.TreePop();
             }
         }

@@ -1,13 +1,4 @@
-general:
-- memory show/watch utility
-- clip circles to arena bounds...
-- reconsider worldstate->bossmodule event subscription model (tedious to manually subscribe/unsubsribe and forward to components...)
-- fail log?
-- determine exact mechanism for cooldown reset (on instance enter and on wipe)
-- data driven boss modules?.. would enable sequence autorecord and live editing - or is it covered by replay analysis?
-
 replay encounter analysis:
-- state transition times
 - aoe shape
 
 network:
@@ -47,3 +38,11 @@ autorotation:
 world rendering:
 - danger zones (modify action vfx?)
 - arrows
+
+misc:
+- memory show/watch utility
+- clip circles to arena bounds...
+- reconsider worldstate->bossmodule event subscription model (tedious to manually subscribe/unsubsribe and forward to components...)
+- fail log?
+- determine exact mechanism for cooldown reset (on instance enter and on wipe)
+- data driven boss modules?.. would enable sequence autorecord and live editing - or is it covered by replay analysis?
