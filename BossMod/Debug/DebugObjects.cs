@@ -14,7 +14,7 @@ namespace BossMod
             ImGui.Checkbox("Show players, minions and mounts", ref _showCrap);
 
             int i = 0;
-            ImGui.BeginTable("objects", 10);
+            ImGui.BeginTable("objects", 11);
             ImGui.TableSetupColumn("Index");
             ImGui.TableSetupColumn("Actor");
             ImGui.TableSetupColumn("Kind/Subkind");
@@ -23,6 +23,7 @@ namespace BossMod
             ImGui.TableSetupColumn("Flags");
             ImGui.TableSetupColumn("Position");
             ImGui.TableSetupColumn("Rotation");
+            ImGui.TableSetupColumn("Cast");
             ImGui.TableSetupColumn("Render flags");
             ImGui.TableSetupColumn("Draw data");
             ImGui.TableHeadersRow();
@@ -36,6 +37,7 @@ namespace BossMod
                     continue;
 
                 var character = obj as Character;
+                var battleChara = obj as BattleChara;
                 var internalObj = Utils.GameObjectInternal(obj);
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn(); ImGui.Text($"{idx}");
@@ -46,6 +48,7 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.Text($"{character?.StatusFlags}");
                 ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(obj.Position));
                 ImGui.TableNextColumn(); ImGui.Text(Utils.RadianString(obj.Rotation));
+                ImGui.TableNextColumn(); ImGui.Text(battleChara != null ? $"{battleChara.CurrentCastTime:f2}/{battleChara.TotalCastTime:f2}" : "---");
                 ImGui.TableNextColumn(); ImGui.Text($"{internalObj->RenderFlags:X}");
                 ImGui.TableNextColumn(); ImGui.Text($"0x{(IntPtr)internalObj->DrawObject:X}");
             }

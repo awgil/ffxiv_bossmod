@@ -22,7 +22,7 @@
             DemigodDouble(0x00420000, 4.2f);
 
             AkanthaiAct6(0x00500000, 8.2f);
-            Cast(0x00510000, AID.Enrage, 4.4f, 10, "Enrage"); // not sure whether it's really an enrage, but it's unique aid with 10 sec cast...
+            Cast(0x00510000, AID.Enrage, 4.4f, 10, "Enrage");
         }
 
         private StateMachine.State SearingStream(uint id, float delay)

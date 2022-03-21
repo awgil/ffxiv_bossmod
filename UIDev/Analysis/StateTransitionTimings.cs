@@ -8,12 +8,27 @@ namespace UIDev.Analysis
 {
     class StateTransitionTimings
     {
+        class TransitionMetric
+        {
+            public double Duration;
+            public Replay Replay;
+            public DateTime Time;
+
+            public TransitionMetric(double duration, Replay replay, DateTime time)
+            {
+                Duration = duration;
+                Replay = replay;
+                Time = time;
+            }
+        }
+
         class TransitionMetrics
         {
-            public int NumTransitions;
             public double MinTime = Double.MaxValue;
             public double MaxTime;
-            public double SumTimes;
+            public double AvgTime;
+            public double StdDev;
+            public List<TransitionMetric> Instances = new();
         }
 
         class StateMetrics
@@ -42,25 +57,23 @@ namespace UIDev.Analysis
                 }
             }
 
-            public void RecordTransition(int from, int to, double time)
+            public void RecordTransition(int from, int to, TransitionMetric metric)
             {
-                var m = Metrics[from].Transitions.GetOrAdd(to);
-                ++m.NumTransitions;
-                m.MinTime = Math.Min(m.MinTime, time);
-                m.MaxTime = Math.Max(m.MaxTime, time);
-                m.SumTimes += time;
+                Metrics[from].Transitions.GetOrAdd(to).Instances.Add(metric);
             }
         }
 
         class ActiveModuleState
         {
+            public Replay Replay;
             public StateMachine.State? CurState;
             public DateTime StateEnter;
             public Dictionary<StateMachine.State, int> StateMap = new();
             public EncounterMetrics? Metrics;
 
-            public ActiveModuleState(BossModule m)
+            public ActiveModuleState(Replay replay, BossModule m)
             {
+                Replay = replay;
                 if (m.InitialState != null)
                     EnumerateStates(m.InitialState, 1);
             }
@@ -69,7 +82,7 @@ namespace UIDev.Analysis
             {
                 var stateIndex = CurState != null ? StateMap[CurState] : 0;
                 var destIndex = state != null ? StateMap[state] : 0;
-                Metrics?.RecordTransition(stateIndex, destIndex, (time - StateEnter).TotalSeconds);
+                Metrics?.RecordTransition(stateIndex, destIndex, new((time - StateEnter).TotalSeconds, Replay, time));
                 CurState = state;
                 StateEnter = time;
             }
@@ -111,7 +124,7 @@ namespace UIDev.Analysis
                         var s = states.GetValueOrDefault(m);
                         if (s == null)
                         {
-                            states[m] = s = new(m);
+                            states[m] = s = new(replay, m);
                             s.Metrics = _metrics.GetValueOrDefault(m.PrimaryActor.OID);
                             if (s.Metrics == null)
                             {
@@ -122,6 +135,27 @@ namespace UIDev.Analysis
                         if (s.CurState != m.StateMachine.ActiveState)
                         {
                             s.Transition(m.StateMachine.ActiveState, ws.CurrentTime);
+                        }
+                    }
+                }
+
+                foreach (var (_, metrics) in _metrics)
+                {
+                    foreach (var state in metrics.Metrics)
+                    {
+                        foreach (var (_, trans) in state.Transitions)
+                        {
+                            trans.Instances.Sort((l, r) => l.Duration.CompareTo(r.Duration));
+                            trans.MinTime = trans.Instances.First().Duration;
+                            trans.MaxTime = trans.Instances.Last().Duration;
+                            double sum = 0, sumSq = 0;
+                            foreach (var inst in trans.Instances)
+                            {
+                                sum += inst.Duration;
+                                sumSq += inst.Duration * inst.Duration;
+                            }
+                            trans.AvgTime = sum / trans.Instances.Count;
+                            trans.StdDev = trans.Instances.Count > 0 ? Math.Sqrt((sumSq - sum * sum / trans.Instances.Count) / (trans.Instances.Count - 1)) : 0;
                         }
                     }
                 }
@@ -142,11 +176,21 @@ namespace UIDev.Analysis
                             if (toIndex != 0)
                             {
                                 var to = metrics.Metrics[toIndex];
-                                var avg = m.SumTimes / m.NumTransitions;
-                                bool warn = from.ExpectedTime < Math.Round(m.MinTime, 1) || from.ExpectedTime > Math.Round(m.MaxTime, 1);
+                                //bool warn = from.ExpectedTime < Math.Round(m.MinTime, 1) || from.ExpectedTime > Math.Round(m.MaxTime, 1);
+                                bool warn = Math.Abs(from.ExpectedTime - m.AvgTime) > Math.Ceiling(m.StdDev * 10) / 10;
                                 ImGui.PushStyleColor(ImGuiCol.Text, warn ? 0xff00ffff : 0xffffffff);
-                                if (ImGui.TreeNodeEx($"{from.Name} -> {to.Name}: avg={avg:f2}-{from.ExpectedTime:f2}={avg - from.ExpectedTime:f2}, [{m.MinTime:f2}, {m.MaxTime:f2}] range, {m.NumTransitions} seen", ImGuiTreeNodeFlags.Leaf))
+                                if (ImGui.TreeNode($"{from.Name} -> {to.Name}: avg={m.AvgTime:f2}-{from.ExpectedTime:f2}={m.AvgTime - from.ExpectedTime:f2} +- {m.StdDev:f2}, [{m.MinTime:f2}, {m.MaxTime:f2}] range, {m.Instances.Count} seen"))
+                                {
+                                    foreach (var inst in m.Instances)
+                                    {
+                                        warn = Math.Abs(inst.Duration - m.AvgTime) > m.StdDev;
+                                        ImGui.PushStyleColor(ImGuiCol.Text, warn ? 0xff00ffff : 0xffffffff);
+                                        if (ImGui.TreeNodeEx($"{inst.Duration:f2}: {inst.Replay.Path} @ {inst.Time:O}", ImGuiTreeNodeFlags.Leaf))
+                                            ImGui.TreePop();
+                                        ImGui.PopStyleColor();
+                                    }
                                     ImGui.TreePop();
+                                }
                                 ImGui.PopStyleColor();
                             }
                         }
