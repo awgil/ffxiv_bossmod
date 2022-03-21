@@ -7,13 +7,13 @@ namespace BossMod.Endwalker.P4S2
     using static BossModule;
 
     // state related to act 2 wreath of thorns
+    // note: there should be four tethered helpers on activation
     // note: we assume that (1) dark targets soak all towers, (2) first fire to be broken is tank-healer pair (since their debuff is slightly shorter)
     class WreathOfThorns2 : Component
     {
         public enum State { DarkDesign, FirstSet, SecondSet, Done }
 
         public State CurState { get; private set; } = State.DarkDesign;
-        private P4S2 _module;
         private List<Actor> _relevantHelpers = new(); // 2 aoes -> 8 towers -> 2 aoes
         private (Actor?, Actor?) _darkTH; // first is one having tether
         private (Actor?, Actor?) _fireTH;
@@ -26,13 +26,7 @@ namespace BossMod.Endwalker.P4S2
 
         private static float _fireExplosionRadius = 6;
 
-        public WreathOfThorns2(P4S2 module)
-        {
-            _module = module;
-            // note: there should be four tethered helpers on activation
-        }
-
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             bool isTowerSoaker = actor == _darkTH.Item1 || actor == _darkTH.Item2;
             if (CurState == State.DarkDesign)
@@ -82,7 +76,7 @@ namespace BossMod.Endwalker.P4S2
             }
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (CurState == State.Done)
                 return;
@@ -91,16 +85,16 @@ namespace BossMod.Endwalker.P4S2
                 arena.ZoneCircle(aoe.Position, P4S2.WreathAOERadius, arena.ColorAOE);
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             // draw players
-            foreach (var player in _module.Raid.WithoutSlot().Exclude(pc))
+            foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
                 arena.Actor(player, arena.ColorPlayerGeneric);
 
             // draw pc's tether
             var pcPartner = pc.Tether.Target != 0
-                ? _module.WorldState.Actors.Find(pc.Tether.Target)
-                : _module.Raid.WithoutSlot().FirstOrDefault(p => p.Tether.Target == pc.InstanceID);
+                ? module.WorldState.Actors.Find(pc.Tether.Target)
+                : module.Raid.WithoutSlot().FirstOrDefault(p => p.Tether.Target == pc.InstanceID);
             if (pcPartner != null)
             {
                 var tetherColor = _playerIcons[pcSlot] switch {
@@ -129,7 +123,7 @@ namespace BossMod.Endwalker.P4S2
             }
         }
 
-        public override void OnTethered(Actor actor)
+        public override void OnTethered(BossModule module, Actor actor)
         {
             if (actor.OID == (uint)OID.Helper && actor.Tether.ID == (uint)TetherID.WreathOfThorns)
             {
@@ -137,11 +131,11 @@ namespace BossMod.Endwalker.P4S2
             }
             else if (actor.Type == ActorType.Player)
             {
-                PlayerTetherOrIconAssigned(_module.Raid.FindSlot(actor.InstanceID), actor);
+                PlayerTetherOrIconAssigned(module, module.Raid.FindSlot(actor.InstanceID), actor);
             }
         }
 
-        public override void OnCastFinished(Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor)
         {
             if (CurState == State.DarkDesign && actor.CastInfo!.IsSpell(AID.DarkDesign))
                 CurState = State.FirstSet;
@@ -151,22 +145,22 @@ namespace BossMod.Endwalker.P4S2
                 CurState = State.Done;
         }
 
-        public override void OnEventIcon(uint actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, uint actorID, uint iconID)
         {
-            var slot = _module.Raid.FindSlot(actorID);
+            var slot = module.Raid.FindSlot(actorID);
             if (slot == -1)
                 return;
 
             _playerIcons[slot] = (IconID)iconID;
-            PlayerTetherOrIconAssigned(slot, _module.Raid[slot]!);
+            PlayerTetherOrIconAssigned(module, slot, module.Raid[slot]!);
         }
 
-        private void PlayerTetherOrIconAssigned(int slot, Actor actor)
+        private void PlayerTetherOrIconAssigned(BossModule module, int slot, Actor actor)
         {
             if (slot == -1 || _playerIcons[slot] == IconID.None || actor.Tether.Target == 0)
                 return; // icon or tether not assigned yet
 
-            var tetherTarget = _module.WorldState.Actors.Find(actor.Tether.Target);
+            var tetherTarget = module.WorldState.Actors.Find(actor.Tether.Target);
             if (tetherTarget == null)
                 return; // weird
 

@@ -29,31 +29,25 @@ namespace BossMod.Endwalker.ARanks.Yilan
 
     public class Mechanics : BossModule.Component
     {
-        private BossModule _module;
         private AOEShapeCircle _miniLight = new(18);
         private AOEShapeCircle _bogBomb = new(6);
         private AOEShapeCone _brackishRain = new(10, MathF.PI / 4); // TODO: verify angle
 
         private static float _marchDistance = 12;
 
-        public Mechanics(BossModule module)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
-        {
-            var (aoe, pos) = ActiveAOE(actor);
-            if (aoe?.Check(actor.Position, pos, _module.PrimaryActor.Rotation) ?? false)
+            var (aoe, pos) = ActiveAOE(module, actor);
+            if (aoe?.Check(actor.Position, pos, module.PrimaryActor.Rotation) ?? false)
                 hints.Add("GTFO from aoe!");
         }
 
-        public override void AddGlobalHints(BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
-            if (!(_module.PrimaryActor.CastInfo?.IsSpell() ?? false))
+            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return;
 
-            string hint = (AID)_module.PrimaryActor.CastInfo.Action.ID switch
+            string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.Soundstorm => "Apply march debuffs",
                 AID.MiniLight or AID.BogBomb or AID.BrackishRain => "Avoidable AOE",
@@ -64,13 +58,13 @@ namespace BossMod.Endwalker.ARanks.Yilan
                 hints.Add(hint);
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            var (aoe, pos) = ActiveAOE(pc);
-            aoe?.Draw(arena, pos, _module.PrimaryActor.Rotation);
+            var (aoe, pos) = ActiveAOE(module, pc);
+            aoe?.Draw(arena, pos, module.PrimaryActor.Rotation);
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             var marchDirection = MarchDirection(pc);
             if (marchDirection != SID.None)
@@ -88,19 +82,19 @@ namespace BossMod.Endwalker.ARanks.Yilan
             }
         }
 
-        private (AOEShape?, Vector3) ActiveAOE(Actor pc)
+        private (AOEShape?, Vector3) ActiveAOE(BossModule module, Actor pc)
         {
             if (MarchDirection(pc) != SID.None)
-                return (_miniLight, _module.PrimaryActor.Position);
+                return (_miniLight, module.PrimaryActor.Position);
 
-            if (!(_module.PrimaryActor.CastInfo?.IsSpell() ?? false))
+            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return (null, new());
 
-            return (AID)_module.PrimaryActor.CastInfo.Action.ID switch
+            return (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
-                AID.MiniLight => (_miniLight, _module.PrimaryActor.Position),
-                AID.BogBomb => (_bogBomb, _module.PrimaryActor.CastInfo.Location),
-                AID.BrackishRain => (_brackishRain, _module.PrimaryActor.Position),
+                AID.MiniLight => (_miniLight, module.PrimaryActor.Position),
+                AID.BogBomb => (_bogBomb, module.PrimaryActor.CastInfo.Location),
+                AID.BrackishRain => (_brackishRain, module.PrimaryActor.Position),
                 _ => (null, new())
             };
         }
@@ -119,7 +113,7 @@ namespace BossMod.Endwalker.ARanks.Yilan
         public Yilan(BossModuleManager manager, Actor primary)
             : base(manager, primary)
         {
-            InitialState?.Enter.Add(() => ActivateComponent(new Mechanics(this)));
+            BuildStateMachine<Mechanics>();
         }
     }
 }

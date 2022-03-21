@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace BossMod.Endwalker.P2S
 {
@@ -7,27 +8,25 @@ namespace BossMod.Endwalker.P2S
     // state related to cataract mechanic
     class Cataract : Component
     {
-        private P2S _module;
         private AOEShapeRect _aoeBoss = new(50, 7.5f, 50);
         private AOEShapeRect _aoeHead = new(50, 50);
 
-        public Cataract(P2S module, bool winged)
+        public override void Init(BossModule module)
         {
-            _module = module;
-            if (winged)
+            if (module.PrimaryActor.CastInfo?.IsSpell(AID.WingedCataract) ?? false)
                 _aoeHead.DirectionOffset = MathF.PI;
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_aoeBoss.Check(actor.Position, _module.PrimaryActor) || _aoeHead.Check(actor.Position, _module.CataractHead()))
+            if (_aoeBoss.Check(actor.Position, module.PrimaryActor) || _aoeHead.Check(actor.Position, module.Enemies(OID.CataractHead).FirstOrDefault()))
                 hints.Add("GTFO from cataract!");
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            _aoeBoss.Draw(arena, _module.PrimaryActor);
-            _aoeHead.Draw(arena, _module.CataractHead());
+            _aoeBoss.Draw(arena, module.PrimaryActor);
+            _aoeHead.Draw(arena, module.Enemies(OID.CataractHead).FirstOrDefault());
         }
     }
 }

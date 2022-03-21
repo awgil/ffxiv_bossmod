@@ -11,15 +11,9 @@ namespace BossMod.Endwalker.P4S1
         public enum Soaker { Unknown, TankOrHealer, DamageDealer }
 
         public Soaker ActiveSoakers { get; private set; } = Soaker.Unknown;
-        private P4S1 _module;
         private List<Actor> _activeTowers = new(); // actor + tank-or-healer
 
         private static float _towerRadius = 4;
-
-        public BeloneCoils(P4S1 module)
-        {
-            _module = module;
-        }
 
         public bool IsValidSoaker(Actor player)
         {
@@ -31,7 +25,7 @@ namespace BossMod.Endwalker.P4S1
             };
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (ActiveSoakers == Soaker.Unknown)
                 return;
@@ -47,7 +41,7 @@ namespace BossMod.Endwalker.P4S1
             }
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (ActiveSoakers == Soaker.Unknown)
                 return;
@@ -59,7 +53,7 @@ namespace BossMod.Endwalker.P4S1
             }
         }
 
-        public override void OnCastStarted(Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.BeloneCoilsDPS) || actor.CastInfo!.IsSpell(AID.BeloneCoilsTH))
             {
@@ -68,7 +62,7 @@ namespace BossMod.Endwalker.P4S1
             }
         }
 
-        public override void OnCastFinished(Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.BeloneCoilsDPS) || actor.CastInfo!.IsSpell(AID.BeloneCoilsTH))
             {

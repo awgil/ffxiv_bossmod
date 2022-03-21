@@ -29,6 +29,8 @@ namespace BossMod
         {
             public string Name = ""; // if name is empty, state is "hidden" from UI
             public float Duration = 0; // estimated state duration
+            public uint ID = 0;
+            public string Comment = "";
             public List<Action> Enter = new(); // callbacks executed when state is activated
             public List<Action> Exit = new(); // callbacks executed when state is deactivated; note that this can happen unexpectedly, e.g. due to external reset
             public Func<float, State?>? Update = null; // callback executed every frame when state is active; should return target state for transition or null to remain in current state; argument = time since activation
@@ -111,7 +113,7 @@ namespace BossMod
                 var transition = ActiveState.Update?.Invoke(TimeSinceTransition);
                 if (transition == null)
                     break;
-                Service.Log($"[StateMachine] Transition from '{ActiveState.Name}' to '{transition.Name}', overdue={TimeSinceTransition:f2}-{ActiveState.Duration:f2}={TimeSinceTransition - ActiveState.Duration:f2}");
+                Service.Log($"[StateMachine] Transition from {ActiveState.ID:X} '{ActiveState.Name}' to {transition.ID:X} '{transition.Name}', overdue={TimeSinceTransition:f2}-{ActiveState.Duration:f2}={TimeSinceTransition - ActiveState.Duration:f2}");
                 ActiveState = transition;
             }
         }

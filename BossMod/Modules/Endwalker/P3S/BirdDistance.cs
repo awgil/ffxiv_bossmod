@@ -11,36 +11,36 @@ namespace BossMod.Endwalker.P3S
     // so we show range helper for dead birds
     class BirdDistance : Component
     {
-        private P3S _module;
-        private List<Actor> _watchedBirds;
+        private OID _watchedBirdsID;
         private ulong _birdsAtRisk = 0; // mask
 
         private static float _radius = 13;
 
-        public BirdDistance(P3S module, List<Actor> birds)
+        public BirdDistance(OID watchedBirdsID)
         {
-            _module = module;
-            _watchedBirds = birds;
+            _watchedBirdsID = watchedBirdsID;
         }
 
-        public override void Update()
+        public override void Update(BossModule module)
         {
             _birdsAtRisk = 0;
-            for (int i = 0; i < _watchedBirds.Count; ++i)
+            var watchedBirds = module.Enemies(_watchedBirdsID);
+            for (int i = 0; i < watchedBirds.Count; ++i)
             {
-                var bird = _watchedBirds[i];
-                if (!bird.IsDead && _watchedBirds.Where(other => other.IsDead).InRadius(bird.Position, _radius).Any())
+                var bird = watchedBirds[i];
+                if (!bird.IsDead && watchedBirds.Where(other => other.IsDead).InRadius(bird.Position, _radius).Any())
                 {
                     BitVector.SetVector64Bit(ref _birdsAtRisk, i);
                 }
             }
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            for (int i = 0; i < _watchedBirds.Count; ++i)
+            var watchedBirds = module.Enemies(_watchedBirdsID);
+            for (int i = 0; i < watchedBirds.Count; ++i)
             {
-                var bird = _watchedBirds[i];
+                var bird = watchedBirds[i];
                 if (!bird.IsDead && bird.TargetID == actor.InstanceID && BitVector.IsVector64BitSet(_birdsAtRisk, i))
                 {
                     hints.Add("Drag bird away!");
@@ -49,12 +49,13 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             // draw alive birds tanked by PC and circles around dead birds
-            for (int i = 0; i < _watchedBirds.Count; ++i)
+            var watchedBirds = module.Enemies(_watchedBirdsID);
+            for (int i = 0; i < watchedBirds.Count; ++i)
             {
-                var bird = _watchedBirds[i];
+                var bird = watchedBirds[i];
                 if (bird.IsDead)
                 {
                     arena.AddCircle(bird.Position, _radius, arena.ColorDanger);
@@ -65,5 +66,15 @@ namespace BossMod.Endwalker.P3S
                 }
             }
         }
+    }
+
+    class SmallBirdDistance : BirdDistance
+    {
+        public SmallBirdDistance() : base(OID.SunbirdSmall) { }
+    }
+
+    class LargeBirdDistance : BirdDistance
+    {
+        public LargeBirdDistance() : base(OID.SunbirdLarge) { }
     }
 }

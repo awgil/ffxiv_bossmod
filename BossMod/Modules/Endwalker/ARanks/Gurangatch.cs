@@ -26,48 +26,42 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
 
     public class Mechanics : BossModule.Component
     {
-        private BossModule _module;
         private AOEShapeCone _slammer = new(30, MathF.PI / 2);
         private int _remainingSlams = 0;
         private float _slamDir;
         private float _slamDirIncrement;
 
-        public Mechanics(BossModule module)
+        public override void Update(BossModule module)
         {
-            _module = module;
-        }
-
-        public override void Update()
-        {
-            if (_module.PrimaryActor.CastInfo == null || !_module.PrimaryActor.CastInfo.IsSpell())
+            if (module.PrimaryActor.CastInfo == null || !module.PrimaryActor.CastInfo.IsSpell())
                 return;
-            switch ((AID)_module.PrimaryActor.CastInfo.Action.ID)
+            switch ((AID)module.PrimaryActor.CastInfo.Action.ID)
             {
                 case AID.LeftHammerSlammer:
                 case AID.OctupleSlammerLCW:
                 case AID.OctupleSlammerLCCW:
-                    _slamDir = _module.PrimaryActor.Rotation + MathF.PI / 2;
+                    _slamDir = module.PrimaryActor.Rotation + MathF.PI / 2;
                     break;
                 case AID.RightHammerSlammer:
                 case AID.OctupleSlammerRCW:
                 case AID.OctupleSlammerRCCW:
-                    _slamDir = _module.PrimaryActor.Rotation - MathF.PI / 2;
+                    _slamDir = module.PrimaryActor.Rotation - MathF.PI / 2;
                     break;
             }
         }
 
-        public override void AddHints(int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (_remainingSlams > 0 && _slammer.Check(actor.Position, _module.PrimaryActor.Position, _slamDir))
+            if (_remainingSlams > 0 && _slammer.Check(actor.Position, module.PrimaryActor.Position, _slamDir))
                 hints.Add("GTFO from aoe!");
         }
 
-        public override void AddGlobalHints(BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
-            if (!(_module.PrimaryActor.CastInfo?.IsSpell() ?? false))
+            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return;
 
-            string hint = (AID)_module.PrimaryActor.CastInfo.Action.ID switch
+            string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.BoneShaker => "Raidwide",
                 _ => "",
@@ -76,19 +70,19 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
                 hints.Add(hint);
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_remainingSlams <= 0)
                 return;
 
-            _slammer.Draw(arena, _module.PrimaryActor.Position, _slamDir);
+            _slammer.Draw(arena, module.PrimaryActor.Position, _slamDir);
             if (_slamDirIncrement != MathF.PI)
-                arena.ZoneCone(_module.PrimaryActor.Position, 0, _slammer.Radius, _slamDir - _slamDirIncrement * 2, _slamDir - _slamDirIncrement, arena.ColorSafeFromAOE);
+                arena.ZoneCone(module.PrimaryActor.Position, 0, _slammer.Radius, _slamDir - _slamDirIncrement * 2, _slamDir - _slamDirIncrement, arena.ColorSafeFromAOE);
         }
 
-        public override void OnCastStarted(Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor)
         {
-            if (actor != _module.PrimaryActor || !actor.CastInfo!.IsSpell())
+            if (actor != module.PrimaryActor || !actor.CastInfo!.IsSpell())
                 return;
             switch ((AID)actor.CastInfo.Action.ID)
             {
@@ -119,9 +113,9 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
             }
         }
 
-        public override void OnCastFinished(Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor)
         {
-            if (actor != _module.PrimaryActor || !actor.CastInfo!.IsSpell())
+            if (actor != module.PrimaryActor || !actor.CastInfo!.IsSpell())
                 return;
             switch ((AID)actor.CastInfo.Action.ID)
             {
@@ -147,7 +141,7 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
         public Gurangatch(BossModuleManager manager, Actor primary)
             : base(manager, primary)
         {
-            InitialState?.Enter.Add(() => ActivateComponent(new Mechanics(this)));
+            BuildStateMachine<Mechanics>();
         }
     }
 }

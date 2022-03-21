@@ -198,7 +198,7 @@ namespace BossMod
                     ? (node.State.EndHint.HasFlag(StateMachine.StateHint.Tankbuster) ? 0xffff00ff : 0xffff0000)
                     : (node.State.EndHint.HasFlag(StateMachine.StateHint.Tankbuster) ? 0xff0000ff : 0xffffffff);
                 drawlist.AddCircleFilled(nodePos, _circleRadius, nodeColor);
-                drawlist.AddText(nodePos + new Vector2(7, -10), 0xffffffff, node.State.Name);
+                drawlist.AddText(nodePos + new Vector2(7, -10), 0xffffffff, $"{node.State.ID:X} '{node.State.Name}' ({node.State.Comment})");
 
                 if (node.State == sm?.ActiveState)
                 {

@@ -25,7 +25,6 @@ namespace BossMod.Endwalker.ARanks.Sugriva
 
     public class Mechanics : BossModule.Component
     {
-        private BossModule _module;
         private AOEShapeCircle _scytheTail = new(17); // TODO: is this actually a cone? wiki seems to imply it is, but in lumina it looks like a circle...
         private AOEShapeCircle _rockThrow = new(6);
         private AOEShapeCone _butcherRip = new(8, MathF.PI / 4); // TODO: verify angle
@@ -35,24 +34,19 @@ namespace BossMod.Endwalker.ARanks.Sugriva
         private static float _twisterRadius = 8;
         private static float _twisterKnockback = 20;
 
-        public Mechanics(BossModule module)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
-        {
-            var (aoe, pos) = ActiveAOE();
-            if (aoe?.Check(actor.Position, pos, _module.PrimaryActor.Rotation) ?? false)
+            var (aoe, pos) = ActiveAOE(module);
+            if (aoe?.Check(actor.Position, pos, module.PrimaryActor.Rotation) ?? false)
                 hints.Add("GTFO from aoe!");
         }
 
-        public override void AddGlobalHints(BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
-            if (!(_module.PrimaryActor.CastInfo?.IsSpell() ?? false))
+            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return;
 
-            string hint = (AID)_module.PrimaryActor.CastInfo.Action.ID switch
+            string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.Twister => "Stack and knockback",
                 AID.ScytheTail or AID.Butcher or AID.Rip or AID.RockThrowFirst or AID.RockThrowRest => "Avoidable AOE",
@@ -63,17 +57,17 @@ namespace BossMod.Endwalker.ARanks.Sugriva
                 hints.Add(hint);
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            var (aoe, pos) = ActiveAOE();
-            aoe?.Draw(arena, pos, _module.PrimaryActor.Rotation);
+            var (aoe, pos) = ActiveAOE(module);
+            aoe?.Draw(arena, pos, module.PrimaryActor.Rotation);
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false)
+            if (module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false)
             {
-                var target = _module.WorldState.Actors.Find(_module.PrimaryActor.CastInfo!.TargetID);
+                var target = module.WorldState.Actors.Find(module.PrimaryActor.CastInfo!.TargetID);
                 if (target != null)
                 {
                     arena.Actor(target, arena.ColorDanger);
@@ -97,14 +91,14 @@ namespace BossMod.Endwalker.ARanks.Sugriva
             }
         }
 
-        public override void OnEventCast(CastEvent info)
+        public override void OnEventCast(BossModule module, CastEvent info)
         {
-            if (info.CasterID != _module.PrimaryActor.InstanceID)
+            if (info.CasterID != module.PrimaryActor.InstanceID)
                 return;
 
             if (info.IsSpell(AID.ApplyPrey))
             {
-                _rockThrowTarget = _module.WorldState.Actors.Find(info.MainTargetID);
+                _rockThrowTarget = module.WorldState.Actors.Find(info.MainTargetID);
             }
             else if (info.IsSpell(AID.RockThrowRest) && ++_numSecondaryRockThrows == 2)
             {
@@ -113,16 +107,16 @@ namespace BossMod.Endwalker.ARanks.Sugriva
             }
         }
 
-        private (AOEShape?, Vector3) ActiveAOE()
+        private (AOEShape?, Vector3) ActiveAOE(BossModule module)
         {
-            if (!(_module.PrimaryActor.CastInfo?.IsSpell() ?? false))
+            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return (null, new());
 
-            return (AID)_module.PrimaryActor.CastInfo.Action.ID switch
+            return (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
-                AID.ScytheTail => (_scytheTail, _module.PrimaryActor.Position),
-                AID.RockThrowFirst or AID.RockThrowRest => (_rockThrow, _module.PrimaryActor.CastInfo.Location),
-                AID.Butcher or AID.Rip => (_butcherRip, _module.PrimaryActor.Position),
+                AID.ScytheTail => (_scytheTail, module.PrimaryActor.Position),
+                AID.RockThrowFirst or AID.RockThrowRest => (_rockThrow, module.PrimaryActor.CastInfo.Location),
+                AID.Butcher or AID.Rip => (_butcherRip, module.PrimaryActor.Position),
                 _ => (null, new())
             };
         }
@@ -133,7 +127,7 @@ namespace BossMod.Endwalker.ARanks.Sugriva
         public Sugriva(BossModuleManager manager, Actor primary)
             : base(manager, primary)
         {
-            InitialState?.Enter.Add(() => ActivateComponent(new Mechanics(this)));
+            BuildStateMachine<Mechanics>();
         }
     }
 }

@@ -9,7 +9,6 @@ namespace BossMod.Endwalker.P2S
     {
         public enum Corner { None, NW, NE, SW, SE };
 
-        private P2S _module;
         private Corner _blockedCorner = Corner.None;
 
         private static float _offsetCorner = 9.5f; // not sure
@@ -22,12 +21,7 @@ namespace BossMod.Endwalker.P2S
 
         private static Vector3[] _corners = { new(), new(-1, 0, -1), new(1, 0, -1), new(-1, 0, 1), new Vector3(1, 0, 1) };
 
-        public SewageDeluge(P2S module)
-        {
-            _module = module;
-        }
-
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_blockedCorner == Corner.None)
                 return;
@@ -52,7 +46,7 @@ namespace BossMod.Endwalker.P2S
             arena.ZoneQuad(corner, Vector3.UnitX, _cornerHalfSize, _cornerHalfSize, _cornerHalfSize, arena.ColorAOE);
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             // inner border
             arena.PathLineTo(arena.WorldCenter + new Vector3(-_cornerInner, 0, -_cornerInner));
@@ -93,7 +87,7 @@ namespace BossMod.Endwalker.P2S
             arena.PathStroke(true, arena.ColorBorder);
         }
 
-        public override void OnEventEnvControl(uint featureID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state)
         {
             // 800375A2: we typically get two events for index=0 (global) and index=N (corner)
             // state 00200010 - "prepare" (show aoe that is still harmless)

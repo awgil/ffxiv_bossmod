@@ -10,23 +10,20 @@ namespace BossMod.Endwalker.P4S1
     class ElementalBelone : Component
     {
         public bool Visible = false;
-        private P4S1 _module;
         private SettingTheScene.Element _safeElement;
         private List<Vector3> _imminentExplodingCorners = new();
 
-        public ElementalBelone(P4S1 module)
+        public override void Init(BossModule module)
         {
-            _module = module;
-
             var assignments = module.FindComponent<SettingTheScene>()!;
             uint forbiddenCorners = 1; // 0 corresponds to 'unknown' corner
-            foreach (var actor in _module.WorldState.Actors.Where(a => a.OID == (uint)OID.Helper).Tethered(TetherID.Bloodrake))
-                forbiddenCorners |= 1u << (int)assignments.FromPos(actor.Position);
+            foreach (var actor in module.WorldState.Actors.Where(a => a.OID == (uint)OID.Helper).Tethered(TetherID.Bloodrake))
+                forbiddenCorners |= 1u << (int)assignments.FromPos(module, actor.Position);
             var safeCorner = (SettingTheScene.Corner)BitOperations.TrailingZeroCount(~forbiddenCorners);
             _safeElement = assignments.FindElement(safeCorner);
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_imminentExplodingCorners.Where(p => GeometryUtils.PointInRect(actor.Position - p, Vector3.UnitX, 10, 10, 10)).Any())
             {
@@ -34,20 +31,20 @@ namespace BossMod.Endwalker.P4S1
             }
         }
 
-        public override void AddGlobalHints(GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             hints.Add($"Safe square: {_safeElement}");
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (Visible)
             {
-                var assignments = _module.FindComponent<SettingTheScene>()!;
+                var assignments = module.FindComponent<SettingTheScene>()!;
                 var safeCorner = assignments.Assignment(_safeElement);
                 if (safeCorner != SettingTheScene.Corner.Unknown)
                 {
-                    var p = _module.Arena.WorldCenter + 10 * assignments.Direction(safeCorner);
+                    var p = module.Arena.WorldCenter + 10 * assignments.Direction(safeCorner);
                     arena.ZoneQuad(p, Vector3.UnitX, 10, 10, 10, arena.ColorSafeFromAOE);
                 }
             }
@@ -57,7 +54,7 @@ namespace BossMod.Endwalker.P4S1
             }
         }
 
-        public override void OnCastStarted(Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;

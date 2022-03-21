@@ -5,10 +5,10 @@ namespace BossMod.Endwalker.P4S1
     using static BossModule;
 
     // state related to inversive chlamys mechanic (tethers)
+    // note that forbidden targets are selected either from bloodrake tethers (first instance of mechanic) or from tower types (second instance of mechanic)
     class InversiveChlamys : Component
     {
-        private P4S1 _module;
-        private bool _assignFromCoils = false;
+        private bool _assigned = false;
         private ulong _tetherForbidden = 0;
         private ulong _tetherTargets = 0;
         private ulong _tetherInAOE = 0;
@@ -17,28 +17,22 @@ namespace BossMod.Endwalker.P4S1
 
         public bool TethersActive => _tetherTargets != 0;
 
-        public InversiveChlamys(P4S1 module, bool fromBloodrake)
+        public override void Update(BossModule module)
         {
-            _module = module;
-            if (fromBloodrake)
+            if (!_assigned)
             {
-                _tetherForbidden = _module.Raid.WithSlot().Tethered(TetherID.Bloodrake).Mask();
-            }
-            else
-            {
-                _assignFromCoils = true; // assignment happens with some delay
-            }
-        }
-
-        public override void Update()
-        {
-            if (_assignFromCoils)
-            {
-                var coils = _module.FindComponent<BeloneCoils>();
-                if (coils != null && coils.ActiveSoakers != BeloneCoils.Soaker.Unknown)
+                var coils = module.FindComponent<BeloneCoils>();
+                if (coils == null)
                 {
-                    _tetherForbidden = _module.Raid.WithSlot().WhereActor(coils.IsValidSoaker).Mask();
-                    _assignFromCoils = false;
+                    // assign from bloodrake tethers
+                    _tetherForbidden = module.Raid.WithSlot().Tethered(TetherID.Bloodrake).Mask();
+                    _assigned = true;
+                }
+                else if (coils.ActiveSoakers != BeloneCoils.Soaker.Unknown)
+                {
+                    // assign from coils (note that it happens with some delay)
+                    _tetherForbidden = module.Raid.WithSlot().WhereActor(coils.IsValidSoaker).Mask();
+                    _assigned = true;
                 }
             }
 
@@ -46,14 +40,14 @@ namespace BossMod.Endwalker.P4S1
             if (_tetherForbidden == 0)
                 return;
 
-            foreach ((int i, var player) in _module.Raid.WithSlot().Tethered(TetherID.Chlamys))
+            foreach ((int i, var player) in module.Raid.WithSlot().Tethered(TetherID.Chlamys))
             {
                 BitVector.SetVector64Bit(ref _tetherTargets, i);
-                _tetherInAOE |= _module.Raid.WithSlot().InRadiusExcluding(player, _aoeRange).Mask();
+                _tetherInAOE |= module.Raid.WithSlot().InRadiusExcluding(player, _aoeRange).Mask();
             }
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_tetherForbidden == 0)
                 return;
@@ -69,7 +63,7 @@ namespace BossMod.Endwalker.P4S1
                 {
                     hints.Add("Tethers: intercept!");
                 }
-                else if (_module.Raid.WithoutSlot().InRadiusExcluding(actor, _aoeRange).Any())
+                else if (module.Raid.WithoutSlot().InRadiusExcluding(actor, _aoeRange).Any())
                 {
                     hints.Add("Tethers: GTFO from others!");
                 }
@@ -100,22 +94,22 @@ namespace BossMod.Endwalker.P4S1
             }
         }
 
-        public override void AddGlobalHints(GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            var forbidden = _module.Raid.WithSlot(true).IncludedInMask(_tetherForbidden).FirstOrDefault().Item2;
+            var forbidden = module.Raid.WithSlot(true).IncludedInMask(_tetherForbidden).FirstOrDefault().Item2;
             if (forbidden != null)
             {
                 hints.Add($"Intercept: {(forbidden.Role is Role.Tank or Role.Healer ? "DD" : "Tanks/Healers")}");
             }
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_tetherTargets == 0)
                 return;
 
             ulong failingPlayers = _tetherForbidden & _tetherTargets;
-            foreach ((int i, var player) in _module.Raid.WithSlot())
+            foreach ((int i, var player) in module.Raid.WithSlot())
             {
                 bool failing = BitVector.IsVector64BitSet(failingPlayers, i);
                 bool inAOE = BitVector.IsVector64BitSet(_tetherInAOE, i);
@@ -123,7 +117,7 @@ namespace BossMod.Endwalker.P4S1
 
                 if (player.Tether.ID == (uint)TetherID.Chlamys)
                 {
-                    arena.AddLine(player.Position, _module.PrimaryActor.Position, failing ? arena.ColorDanger : arena.ColorSafe);
+                    arena.AddLine(player.Position, module.PrimaryActor.Position, failing ? arena.ColorDanger : arena.ColorSafe);
                     arena.AddCircle(player.Position, _aoeRange, arena.ColorDanger);
                 }
             }

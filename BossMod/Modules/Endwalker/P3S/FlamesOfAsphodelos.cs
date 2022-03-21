@@ -8,23 +8,17 @@ namespace BossMod.Endwalker.P3S
     // state related to flames of asphodelos mechanic
     class FlamesOfAsphodelos : Component
     {
-        private P3S _module;
         private float?[] _directions = new float?[3];
 
-        public FlamesOfAsphodelos(P3S module)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (InAOE(_directions[1], actor.Position) || InAOE(_directions[0] != null ? _directions[0] : _directions[2], actor.Position))
+            if (InAOE(module, _directions[1], actor.Position) || InAOE(module, _directions[0] != null ? _directions[0] : _directions[2], actor.Position))
             {
                 hints.Add("GTFO from cone!");
             }
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_directions[0] != null)
             {
@@ -42,7 +36,7 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void OnCastStarted(Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;
@@ -60,7 +54,7 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void OnCastFinished(Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;
@@ -87,12 +81,12 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        private bool InAOE(float? dir, Vector3 pos)
+        private bool InAOE(BossModule module, float? dir, Vector3 pos)
         {
             if (dir == null)
                 return false;
 
-            var toPos = Vector3.Normalize(pos - _module.Arena.WorldCenter);
+            var toPos = Vector3.Normalize(pos - module.Arena.WorldCenter);
             var toDir = GeometryUtils.DirectionToVec3(dir.Value);
             return MathF.Abs(Vector3.Dot(toPos, toDir)) >= MathF.Cos(MathF.PI / 6);
         }

@@ -11,7 +11,6 @@ namespace BossMod.Endwalker.P4S1
         private enum Order { Unknown, LUWU, WULU, LFWA, LAWF, WFLA, WALF }
 
         public int NumFinished { get; private set; } = 0;
-        private P4S1 _module;
         private Order _order;
         private Actor? _acid;
         private Actor? _fire;
@@ -23,12 +22,7 @@ namespace BossMod.Endwalker.P4S1
         private static float _knockbackRadius = 13;
         private static float _lightingSafeDistance = 15; // not sure about this, what is real safe distance?
 
-        public Pinax(P4S1 module)
-        {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_acid != null)
             {
@@ -36,7 +30,7 @@ namespace BossMod.Endwalker.P4S1
                 {
                     hints.Add("GTFO from acid square!");
                 }
-                hints.Add("Spread!", _module.Raid.WithoutSlot().InRadiusExcluding(actor, _acidAOERadius).Any());
+                hints.Add("Spread!", module.Raid.WithoutSlot().InRadiusExcluding(actor, _acidAOERadius).Any());
             }
             if (_fire != null)
             {
@@ -44,7 +38,7 @@ namespace BossMod.Endwalker.P4S1
                 {
                     hints.Add("GTFO from fire square!");
                 }
-                hints.Add("Stack in fours!", _module.Raid.WithoutSlot().Where(x => x.Role == Role.Healer).InRadius(actor.Position, _fireAOERadius).Count() != 1);
+                hints.Add("Stack in fours!", module.Raid.WithoutSlot().Where(x => x.Role == Role.Healer).InRadius(actor.Position, _fireAOERadius).Count() != 1);
             }
             if (_water != null)
             {
@@ -52,7 +46,7 @@ namespace BossMod.Endwalker.P4S1
                 {
                     hints.Add("GTFO from water square!");
                 }
-                if (!_module.Arena.InBounds(AdjustPositionForKnockback(actor.Position, _module.Arena.WorldCenter, _knockbackRadius)))
+                if (!module.Arena.InBounds(AdjustPositionForKnockback(actor.Position, module.Arena.WorldCenter, _knockbackRadius)))
                 {
                     hints.Add("About to be knocked into wall!");
                 }
@@ -63,11 +57,11 @@ namespace BossMod.Endwalker.P4S1
                 {
                     hints.Add("GTFO from lighting square!");
                 }
-                hints.Add("GTFO from center!", GeometryUtils.PointInRect(actor.Position - _module.Arena.WorldCenter, Vector3.UnitX, _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance));
+                hints.Add("GTFO from center!", GeometryUtils.PointInRect(actor.Position - module.Arena.WorldCenter, Vector3.UnitX, _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance));
             }
         }
 
-        public override void AddGlobalHints(GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             string order = _order switch
             {
@@ -82,7 +76,7 @@ namespace BossMod.Endwalker.P4S1
             hints.Add($"Pinax order: {order}");
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_acid != null)
             {
@@ -103,17 +97,17 @@ namespace BossMod.Endwalker.P4S1
             }
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_acid != null)
             {
                 arena.AddCircle(pc.Position, _acidAOERadius, arena.ColorDanger);
-                foreach (var player in _module.Raid.WithoutSlot().Exclude(pc))
+                foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
                     arena.Actor(player, GeometryUtils.PointInCircle(player.Position - pc.Position, _acidAOERadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
             if (_fire != null)
             {
-                foreach (var player in _module.Raid.WithoutSlot())
+                foreach (var player in module.Raid.WithoutSlot())
                 {
                     if (player.Role == Role.Healer)
                     {
@@ -128,7 +122,7 @@ namespace BossMod.Endwalker.P4S1
             }
             if (_water != null)
             {
-                var adjPos = AdjustPositionForKnockback(pc.Position, _module.Arena.WorldCenter, _knockbackRadius);
+                var adjPos = AdjustPositionForKnockback(pc.Position, module.Arena.WorldCenter, _knockbackRadius);
                 if (adjPos != pc.Position)
                 {
                     arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
@@ -137,7 +131,7 @@ namespace BossMod.Endwalker.P4S1
             }
         }
 
-        public override void OnCastStarted(Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;
@@ -170,7 +164,7 @@ namespace BossMod.Endwalker.P4S1
             }
         }
 
-        public override void OnCastFinished(Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;

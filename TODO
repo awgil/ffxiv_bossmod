@@ -9,9 +9,9 @@ network:
 
 boss modules:
 - assignments and sharing (webservice?)
-- refactor state machine (add id/comment, remove timeouts)
 - p1s - make intemperance component useful
 - p2s - minor components (shockwave, ominous bubbling, eruption?..)
+- p3s - verify bird tethers on zerg
 - zodiark - test and confirm enrage
 - hydaelyn - todo
 

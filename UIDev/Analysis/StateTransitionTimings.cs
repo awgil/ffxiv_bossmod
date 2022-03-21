@@ -37,7 +37,7 @@ namespace UIDev.Analysis
                 foreach (var (state, index) in referenceState.StateMap)
                 {
                     var m = Metrics[index];
-                    m.Name = state.Name;
+                    m.Name = $"{state.ID:X} '{state.Name}' ({state.Comment})";
                     m.ExpectedTime = Math.Round(state.Duration, 1);
                 }
             }
@@ -145,7 +145,7 @@ namespace UIDev.Analysis
                                 var avg = m.SumTimes / m.NumTransitions;
                                 bool warn = from.ExpectedTime < Math.Round(m.MinTime, 1) || from.ExpectedTime > Math.Round(m.MaxTime, 1);
                                 ImGui.PushStyleColor(ImGuiCol.Text, warn ? 0xff00ffff : 0xffffffff);
-                                if (ImGui.TreeNodeEx($"'{from.Name}' -> '{to.Name}': avg={avg:f2}-{from.ExpectedTime:f2}={avg - from.ExpectedTime:f2}, [{m.MinTime:f2}, {m.MaxTime:f2}] range, {m.NumTransitions} seen", ImGuiTreeNodeFlags.Leaf))
+                                if (ImGui.TreeNodeEx($"{from.Name} -> {to.Name}: avg={avg:f2}-{from.ExpectedTime:f2}={avg - from.ExpectedTime:f2}, [{m.MinTime:f2}, {m.MaxTime:f2}] range, {m.NumTransitions} seen", ImGuiTreeNodeFlags.Leaf))
                                     ImGui.TreePop();
                                 ImGui.PopStyleColor();
                             }

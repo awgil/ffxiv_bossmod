@@ -9,21 +9,15 @@ namespace BossMod.Endwalker.ZodiarkEx
     {
         private Actor? _target;
         private DateTime _assignTime;
-        private ZodiarkEx _module;
 
-        public Actor? Target => (_module.WorldState.CurrentTime - _assignTime).TotalSeconds < 20 ? _target : null; // that's a slight hack, since we don't know when icons disappear
+        public Actor? Target(BossModule module) => (module.WorldState.CurrentTime - _assignTime).TotalSeconds < 20 ? _target : null; // that's a slight hack, since we don't know when icons disappear
 
-        public StyxTargetTracker(ZodiarkEx module)
-        {
-            _module = module;
-        }
-
-        public override void OnEventIcon(uint actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, uint actorID, uint iconID)
         {
             if (iconID == (uint)IconID.Styx)
             {
-                _target = _module.WorldState.Actors.Find(actorID);
-                _assignTime = _module.WorldState.CurrentTime;
+                _target = module.WorldState.Actors.Find(actorID);
+                _assignTime = module.WorldState.CurrentTime;
             }
         }
     }
@@ -31,28 +25,20 @@ namespace BossMod.Endwalker.ZodiarkEx
     // state related to styx mechanic
     class Styx : CommonComponents.CastCounter
     {
-        private ZodiarkEx _module;
-        private StyxTargetTracker? _tracker;
-
         private static float _stackRadius = 5;
 
-        public Styx(ZodiarkEx module)
-            : base(ActionID.MakeSpell(AID.StyxAOE))
-        {
-            _module = module;
-            _tracker = module.FindComponent<StyxTargetTracker>();
-        }
+        public Styx() : base(ActionID.MakeSpell(AID.StyxAOE)) { }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            var target = _tracker?.Target;
+            var target = module.FindComponent<StyxTargetTracker>()?.Target(module);
             if (target != null && target != actor && !GeometryUtils.PointInCircle(actor.Position - target.Position, _stackRadius))
                 hints.Add("Stack!");
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            var target = _tracker?.Target;
+            var target = module.FindComponent<StyxTargetTracker>()?.Target(module);
             if (target == null)
                 return;
 
@@ -60,7 +46,7 @@ namespace BossMod.Endwalker.ZodiarkEx
             if (target == pc)
             {
                 // draw other players to simplify stacking
-                foreach (var a in _module.Raid.WithoutSlot().Exclude(pc))
+                foreach (var a in module.Raid.WithoutSlot().Exclude(pc))
                     arena.Actor(a, GeometryUtils.PointInCircle(a.Position - target.Position, _stackRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
             else

@@ -11,36 +11,29 @@ namespace BossMod.Endwalker.P3S
     class BirdTether : Component
     {
         public int NumFinishedChains { get; private set; } = 0;
-        private P3S _module;
-        private List<Actor> _birdsLarge;
         private (Actor?, Actor?, int)[] _chains = new (Actor?, Actor?, int)[4]; // actor1, actor2, num-charges
         private ulong _playersInAOE = 0;
 
         private static float _chargeHalfWidth = 3;
         private static float _chargeMinSafeDistance = 30;
 
-        public BirdTether(P3S module)
-        {
-            _module = module;
-            _birdsLarge = module.Enemies(OID.SunbirdLarge);
-        }
-
-        public override void Update()
+        public override void Update(BossModule module)
         {
             _playersInAOE = 0;
-            for (int i = 0; i < Math.Min(_birdsLarge.Count, _chains.Length); ++i)
+            var birdsLarge = module.Enemies(OID.SunbirdLarge);
+            for (int i = 0; i < Math.Min(birdsLarge.Count, _chains.Length); ++i)
             {
                 if (_chains[i].Item3 == 2)
                     continue; // this is finished
 
-                var bird = _birdsLarge[i];
+                var bird = birdsLarge[i];
                 if (_chains[i].Item1 == null && bird.Tether.Target != 0)
                 {
-                    _chains[i].Item1 = _module.WorldState.Actors.Find(bird.Tether.Target); // first target found
+                    _chains[i].Item1 = module.WorldState.Actors.Find(bird.Tether.Target); // first target found
                 }
                 if (_chains[i].Item2 == null && (_chains[i].Item1?.Tether.Target ?? 0) != 0)
                 {
-                    _chains[i].Item2 = _module.WorldState.Actors.Find(_chains[i].Item1!.Tether.Target); // second target found
+                    _chains[i].Item2 = module.WorldState.Actors.Find(_chains[i].Item1!.Tether.Target); // second target found
                 }
                 if (_chains[i].Item3 == 0 && _chains[i].Item1 != null && bird.Tether.Target == 0)
                 {
@@ -60,7 +53,7 @@ namespace BossMod.Endwalker.P3S
                     var fromTo = nextTarget.Position - bird.Position;
                     float len = fromTo.Length();
                     fromTo /= len;
-                    foreach ((int j, var player) in _module.Raid.WithSlot().Exclude(nextTarget))
+                    foreach ((int j, var player) in module.Raid.WithSlot().Exclude(nextTarget))
                     {
                         if (GeometryUtils.PointInRect(player.Position - bird.Position, fromTo, len, 0, _chargeHalfWidth))
                         {
@@ -71,9 +64,10 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            foreach ((var bird, (var p1, var p2, int numCharges)) in _birdsLarge.Zip(_chains))
+            var birdsLarge = module.Enemies(OID.SunbirdLarge);
+            foreach ((var bird, (var p1, var p2, int numCharges)) in birdsLarge.Zip(_chains))
             {
                 if (numCharges == 2)
                     continue;
@@ -96,10 +90,11 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             // draw aoe zones for imminent charges, except one towards player
-            foreach ((var bird, (var p1, var p2, int numCharges)) in _birdsLarge.Zip(_chains))
+            var birdsLarge = module.Enemies(OID.SunbirdLarge);
+            foreach ((var bird, (var p1, var p2, int numCharges)) in birdsLarge.Zip(_chains))
             {
                 if (numCharges == 2)
                     continue;
@@ -114,16 +109,17 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             // draw all birds and all players
-            foreach (var bird in _birdsLarge)
+            var birdsLarge = module.Enemies(OID.SunbirdLarge);
+            foreach (var bird in birdsLarge)
                 arena.Actor(bird, arena.ColorEnemy);
-            foreach ((int i, var player) in _module.Raid.WithSlot())
+            foreach ((int i, var player) in module.Raid.WithSlot())
                 arena.Actor(player, BitVector.IsVector64BitSet(_playersInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
             // draw chains containing player
-            foreach ((var bird, (var p1, var p2, int numCharges)) in _birdsLarge.Zip(_chains))
+            foreach ((var bird, (var p1, var p2, int numCharges)) in birdsLarge.Zip(_chains))
             {
                 if (numCharges == 2)
                     continue;

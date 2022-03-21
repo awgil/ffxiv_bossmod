@@ -26,29 +26,23 @@ namespace BossMod.Endwalker.ARanks.Storsie
     {
         private enum AspectType { None, Earth, Wind, Lightning }
 
-        private BossModule _module;
         private AspectType _imminentAspect;
         private AOEShapeCone _earthenAugur = new(30, 3 * MathF.PI / 4);
         private AOEShapeDonut _whorlstorm = new(10, 40); // TODO: verify inner radius
         private AOEShapeCircle _defibrillate = new(22);
 
-        public Mechanics(BossModule module)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
-        {
-            if (ActiveAOE()?.Check(actor.Position, _module.PrimaryActor) ?? false)
+            if (ActiveAOE()?.Check(actor.Position, module.PrimaryActor) ?? false)
                 hints.Add("GTFO from aoe!");
         }
 
-        public override void AddGlobalHints(BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
-            if (!(_module.PrimaryActor.CastInfo?.IsSpell() ?? false))
+            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return;
 
-            string hint = (AID)_module.PrimaryActor.CastInfo.Action.ID switch
+            string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.FangsEnd => "Tankbuster",
                 AID.AspectEarth or AID.AspectWind or AID.AspectLightning => "Select AOE shape",
@@ -59,14 +53,14 @@ namespace BossMod.Endwalker.ARanks.Storsie
                 hints.Add(hint);
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            ActiveAOE()?.Draw(arena, _module.PrimaryActor);
+            ActiveAOE()?.Draw(arena, module.PrimaryActor);
         }
 
-        public override void OnCastStarted(Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor)
         {
-            if (actor != _module.PrimaryActor || !actor.CastInfo!.IsSpell())
+            if (actor != module.PrimaryActor || !actor.CastInfo!.IsSpell())
                 return;
             switch ((AID)actor.CastInfo!.Action.ID)
             {
@@ -76,9 +70,9 @@ namespace BossMod.Endwalker.ARanks.Storsie
             }
         }
 
-        public override void OnCastFinished(Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor)
         {
-            if (actor != _module.PrimaryActor || !actor.CastInfo!.IsSpell())
+            if (actor != module.PrimaryActor || !actor.CastInfo!.IsSpell())
                 return;
             switch ((AID)actor.CastInfo!.Action.ID)
             {
@@ -107,7 +101,7 @@ namespace BossMod.Endwalker.ARanks.Storsie
         public Storsie(BossModuleManager manager, Actor primary)
             : base(manager, primary)
         {
-            InitialState?.Enter.Add(() => ActivateComponent(new Mechanics(this)));
+            BuildStateMachine<Mechanics>();
         }
     }
 }

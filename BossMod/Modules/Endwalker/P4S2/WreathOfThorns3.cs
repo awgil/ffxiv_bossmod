@@ -8,6 +8,7 @@ namespace BossMod.Endwalker.P4S2
     using static BossModule;
 
     // state related to act 3 wreath of thorns
+    // note: there should be four tethered helpers on activation
     class WreathOfThorns3 : Component
     {
         public enum State { RangedTowers, Knockback, MeleeTowers, Done }
@@ -15,7 +16,6 @@ namespace BossMod.Endwalker.P4S2
         public State CurState { get; private set; } = State.RangedTowers;
         public int NumJumps { get; private set; } = 0;
         public int NumCones { get; private set; } = 0;
-        private P4S2 _module;
         private AOEShapeCone _coneAOE = new(50, MathF.PI / 4); // not sure about half-width...
         private List<Actor> _relevantHelpers = new(); // 4 towers -> knockback -> 4 towers
         private Actor? _jumpTarget = null; // either predicted (if jump is imminent) or last actual (if cones are imminent)
@@ -28,35 +28,29 @@ namespace BossMod.Endwalker.P4S2
 
         private static float _jumpAOERadius = 10;
 
-        public WreathOfThorns3(P4S2 module)
-        {
-            _module = module;
-            // note: there should be four tethered helpers on activation
-        }
-
-        public override void Update()
+        public override void Update(BossModule module)
         {
             _coneTargets = _playersInAOE = 0;
             if (NumCones == NumJumps)
             {
-                _jumpTarget = _module.Raid.WithoutSlot().SortedByRange(_module.PrimaryActor.Position).LastOrDefault();
-                _playersInAOE = _jumpTarget != null ? _module.Raid.WithSlot().InRadiusExcluding(_jumpTarget, _jumpAOERadius).Mask() : 0;
+                _jumpTarget = module.Raid.WithoutSlot().SortedByRange(module.PrimaryActor.Position).LastOrDefault();
+                _playersInAOE = _jumpTarget != null ? module.Raid.WithSlot().InRadiusExcluding(_jumpTarget, _jumpAOERadius).Mask() : 0;
             }
             else
             {
-                foreach ((int i, var player) in _module.Raid.WithSlot().SortedByRange(_module.PrimaryActor.Position).Take(3))
+                foreach ((int i, var player) in module.Raid.WithSlot().SortedByRange(module.PrimaryActor.Position).Take(3))
                 {
                     BitVector.SetVector64Bit(ref _coneTargets, i);
-                    if (player.Position != _module.PrimaryActor.Position)
+                    if (player.Position != module.PrimaryActor.Position)
                     {
-                        var direction = Vector3.Normalize(player.Position - _module.PrimaryActor.Position);
-                        _playersInAOE |= _module.Raid.WithSlot().Exclude(i).WhereActor(p => GeometryUtils.PointInCone(p.Position - _module.PrimaryActor.Position, direction, _coneAOE.HalfAngle)).Mask();
+                        var direction = Vector3.Normalize(player.Position - module.PrimaryActor.Position);
+                        _playersInAOE |= module.Raid.WithSlot().Exclude(i).WhereActor(p => GeometryUtils.PointInCone(p.Position - module.PrimaryActor.Position, direction, _coneAOE.HalfAngle)).Mask();
                     }
                 }
             }
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (CurState != State.Done)
             {
@@ -89,20 +83,20 @@ namespace BossMod.Endwalker.P4S2
             }
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_coneTargets != 0)
             {
-                foreach ((_, var player) in _module.Raid.WithSlot().IncludedInMask(_coneTargets))
+                foreach ((_, var player) in module.Raid.WithSlot().IncludedInMask(_coneTargets))
                 {
-                    _coneAOE.Draw(arena, _module.PrimaryActor.Position, GeometryUtils.DirectionFromVec3(player.Position - _module.PrimaryActor.Position));
+                    _coneAOE.Draw(arena, module.PrimaryActor.Position, GeometryUtils.DirectionFromVec3(player.Position - module.PrimaryActor.Position));
                 }
             }
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach ((int i, var player) in _module.Raid.WithSlot())
+            foreach ((int i, var player) in module.Raid.WithSlot())
                 arena.Actor(player, BitVector.IsVector64BitSet(_playersInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
             if (CurState != State.Done)
@@ -113,7 +107,7 @@ namespace BossMod.Endwalker.P4S2
 
             if (NumCones != NumJumps)
             {
-                foreach ((_, var player) in _module.Raid.WithSlot().IncludedInMask(_coneTargets))
+                foreach ((_, var player) in module.Raid.WithSlot().IncludedInMask(_coneTargets))
                     arena.Actor(player, arena.ColorDanger);
                 arena.Actor(_jumpTarget, arena.ColorVulnerable);
             }
@@ -124,13 +118,13 @@ namespace BossMod.Endwalker.P4S2
             }
         }
 
-        public override void OnTethered(Actor actor)
+        public override void OnTethered(BossModule module, Actor actor)
         {
             if (actor.OID == (uint)OID.Helper && actor.Tether.ID == (uint)TetherID.WreathOfThorns)
                 _relevantHelpers.Add(actor);
         }
 
-        public override void OnCastFinished(Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor)
         {
             if (CurState == State.RangedTowers && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeTower))
                 CurState = State.Knockback;
@@ -140,12 +134,12 @@ namespace BossMod.Endwalker.P4S2
                 CurState = State.Done;
         }
 
-        public override void OnEventCast(CastEvent info)
+        public override void OnEventCast(BossModule module, CastEvent info)
         {
             if (info.IsSpell(AID.KothornosKickJump))
             {
                 ++NumJumps;
-                _jumpTarget = _module.WorldState.Actors.Find(info.MainTargetID);
+                _jumpTarget = module.WorldState.Actors.Find(info.MainTargetID);
             }
             else if (info.IsSpell(AID.KothornosQuake1) || info.IsSpell(AID.KothornosQuake2))
             {

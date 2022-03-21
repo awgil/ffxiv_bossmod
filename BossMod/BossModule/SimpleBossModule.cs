@@ -9,10 +9,19 @@
         {
             Arena.IsCircle = true;
             Arena.WorldHalfSize = 30;
+        }
 
-            var s = CommonStates.Simple(ref InitialState, 0, "Fight");
-            s.Update = (_) => PrimaryActor.IsDead ? s.Next : null;
-            CommonStates.Simple(ref s.Next, 0, "???");
+        // build a simple state machine, with first state activating provided component
+        protected void BuildStateMachine<T>() where T : Component, new()
+        {
+            var sb = new StateMachineBuilder(this);
+
+            var s = sb.Simple(0, 0, "Fight");
+            s.Update = _ => PrimaryActor.IsDead ? s.Next : null;
+            s.Enter.Add(ActivateComponent<T>);
+            s.Exit.Add(DeactivateComponent<T>);
+
+            sb.Simple(1, 0, "???");
         }
 
         protected override void UpdateModule()

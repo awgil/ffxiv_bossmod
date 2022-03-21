@@ -9,8 +9,6 @@ namespace BossMod.Endwalker.P4S1
     // state related to vengeful belone mechanic
     class VengefulBelone : Component
     {
-        private P4S1 _module;
-        private List<Actor> _orbs;
         private Dictionary<uint, Role> _orbTargets = new();
         private int _orbsExploded = 0;
         private int[] _playerRuinCount = new int[8];
@@ -20,13 +18,7 @@ namespace BossMod.Endwalker.P4S1
 
         private Role OrbTarget(uint instanceID) => _orbTargets.GetValueOrDefault(instanceID, Role.None);
 
-        public VengefulBelone(P4S1 module)
-        {
-            _module = module;
-            _orbs = module.Enemies(OID.Orb);
-        }
-
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_orbTargets.Count == 0 || _orbsExploded == _orbTargets.Count)
                 return; // inactive
@@ -37,7 +29,7 @@ namespace BossMod.Endwalker.P4S1
                 hints.Add("Failed orbs...");
             }
 
-            if (_orbs.Where(orb => IsOrbLethal(slot, actor, OrbTarget(orb.InstanceID))).InRadius(actor.Position, _burstRadius).Any())
+            if (module.Enemies(OID.Orb).Where(orb => IsOrbLethal(slot, actor, OrbTarget(orb.InstanceID))).InRadius(actor.Position, _burstRadius).Any())
             {
                 hints.Add("GTFO from wrong orb!");
             }
@@ -53,12 +45,13 @@ namespace BossMod.Endwalker.P4S1
             }
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_orbTargets.Count == 0 || _orbsExploded == _orbTargets.Count)
                 return;
 
-            foreach (var orb in _orbs)
+            var orbs = module.Enemies(OID.Orb);
+            foreach (var orb in orbs)
             {
                 var orbRole = OrbTarget(orb.InstanceID);
                 if (orbRole == Role.None)
@@ -67,14 +60,14 @@ namespace BossMod.Endwalker.P4S1
                 bool lethal = IsOrbLethal(pcSlot, pc, orbRole);
                 arena.Actor(orb, lethal ? arena.ColorEnemy : arena.ColorDanger);
 
-                var target = _module.WorldState.Actors.Find(orb.Tether.Target);
+                var target = module.WorldState.Actors.Find(orb.Tether.Target);
                 if (target != null)
                 {
                     arena.AddLine(orb.Position, target.Position, arena.ColorDanger);
                 }
 
                 int goodInRange = 0, badInRange = 0;
-                foreach ((var i, var player) in _module.Raid.WithSlot().InRadius(orb.Position, _burstRadius))
+                foreach ((var i, var player) in module.Raid.WithSlot().InRadius(orb.Position, _burstRadius))
                 {
                     if (IsOrbLethal(i, player, orbRole))
                         ++badInRange;
@@ -86,14 +79,14 @@ namespace BossMod.Endwalker.P4S1
                 arena.AddCircle(orb.Position, _burstRadius, goodToExplode ? arena.ColorSafe : arena.ColorDanger);
             }
 
-            foreach ((int i, var player) in _module.Raid.WithSlot())
+            foreach ((int i, var player) in module.Raid.WithSlot())
             {
-                bool nearLethalOrb = _orbs.Where(orb => IsOrbLethal(i, player, OrbTarget(orb.InstanceID))).InRadius(player.Position, _burstRadius).Any();
+                bool nearLethalOrb = orbs.Where(orb => IsOrbLethal(i, player, OrbTarget(orb.InstanceID))).InRadius(player.Position, _burstRadius).Any();
                 arena.Actor(player, nearLethalOrb ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
         }
 
-        public override void OnStatusGain(Actor actor, int index)
+        public override void OnStatusGain(BossModule module, Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {
@@ -101,42 +94,42 @@ namespace BossMod.Endwalker.P4S1
                     _orbTargets[actor.InstanceID] = OrbRoleFromStatusParam(actor.Statuses[index].Extra);
                     break;
                 case SID.ThriceComeRuin:
-                    ModifyRuinStacks(actor, actor.Statuses[index].Extra);
+                    ModifyRuinStacks(module, actor, actor.Statuses[index].Extra);
                     break;
                 case SID.ActingDPS:
-                    ModifyActingRole(actor, Role.Melee);
+                    ModifyActingRole(module, actor, Role.Melee);
                     break;
                 case SID.ActingHealer:
-                    ModifyActingRole(actor, Role.Healer);
+                    ModifyActingRole(module, actor, Role.Healer);
                     break;
                 case SID.ActingTank:
-                    ModifyActingRole(actor, Role.Tank);
+                    ModifyActingRole(module, actor, Role.Tank);
                     break;
             }
         }
 
-        public override void OnStatusLose(Actor actor, int index)
+        public override void OnStatusLose(BossModule module, Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {
                 case SID.ThriceComeRuin:
-                    ModifyRuinStacks(actor, 0);
+                    ModifyRuinStacks(module, actor, 0);
                     break;
                 case SID.ActingDPS:
                 case SID.ActingHealer:
                 case SID.ActingTank:
-                    ModifyActingRole(actor, Role.None);
+                    ModifyActingRole(module, actor, Role.None);
                     break;
             }
         }
 
-        public override void OnStatusChange(Actor actor, int index)
+        public override void OnStatusChange(BossModule module, Actor actor, int index)
         {
             if ((SID)actor.Statuses[index].ID == SID.ThriceComeRuin)
-                ModifyRuinStacks(actor, actor.Statuses[index].Extra);
+                ModifyRuinStacks(module, actor, actor.Statuses[index].Extra);
         }
 
-        public override void OnEventCast(CastEvent info)
+        public override void OnEventCast(BossModule module, CastEvent info)
         {
             if (info.IsSpell(AID.BeloneBurstsAOETank) || info.IsSpell(AID.BeloneBurstsAOEHealer) || info.IsSpell(AID.BeloneBurstsAOEDPS))
             {
@@ -170,16 +163,16 @@ namespace BossMod.Endwalker.P4S1
             return orbRole == playerRole;
         }
 
-        private void ModifyRuinStacks(Actor actor, ushort count)
+        private void ModifyRuinStacks(BossModule module, Actor actor, ushort count)
         {
-            int slot = _module.Raid.FindSlot(actor.InstanceID);
+            int slot = module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
                 _playerRuinCount[slot] = count;
         }
 
-        private void ModifyActingRole(Actor actor, Role role)
+        private void ModifyActingRole(BossModule module, Actor actor, Role role)
         {
-            int slot = _module.Raid.FindSlot(actor.InstanceID);
+            int slot = module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
                 _playerActingRole[slot] = role;
         }

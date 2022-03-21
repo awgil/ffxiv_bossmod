@@ -9,7 +9,6 @@ namespace BossMod.Endwalker.ZodiarkEx
     // state related to exoterikos, trimorphos exoterikos and triple esoteric ray mechanics
     class Exoterikos : Component
     {
-        private ZodiarkEx _module;
         private List<(Actor, AOEShape)> _sources= new();
 
         private static AOEShapeRect _aoeSquare = new(21, 21);
@@ -18,29 +17,24 @@ namespace BossMod.Endwalker.ZodiarkEx
 
         public bool Done => _sources.Count == 0;
 
-        public Exoterikos(ZodiarkEx module)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (ActiveSources().Any(actShape => actShape.Item2.Check(actor.Position, actShape.Item1)))
+            if (ActiveSources(module).Any(actShape => actShape.Item2.Check(actor.Position, actShape.Item1)))
                 hints.Add("GTFO from exo aoe!");
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var (src, shape) in ActiveSources())
+            foreach (var (src, shape) in ActiveSources(module))
                 shape.Draw(arena, src);
         }
 
-        public override void OnTethered(Actor actor)
+        public override void OnTethered(BossModule module, Actor actor)
         {
-            if (actor != _module.PrimaryActor)
+            if (actor != module.PrimaryActor)
                 return;
 
-            var target = _module.WorldState.Actors.Find(actor.Tether.Target);
+            var target = module.WorldState.Actors.Find(actor.Tether.Target);
             if (target == null)
                 return;
 
@@ -49,14 +43,14 @@ namespace BossMod.Endwalker.ZodiarkEx
                 _sources.Add((target, shape));
         }
 
-        public override void OnCastStarted(Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor)
         {
             var shape = ShapeForSigil(actor);
             if (shape != null && !_sources.Any(actShape => actShape.Item1 == actor))
                 _sources.Add((actor, shape));
         }
 
-        public override void OnCastFinished(Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor)
         {
             _sources.RemoveAll(actShape => actShape.Item1 == actor);
         }
@@ -72,13 +66,13 @@ namespace BossMod.Endwalker.ZodiarkEx
             };
         }
 
-        private IEnumerable<(Actor, AOEShape)> ActiveSources()
+        private IEnumerable<(Actor, AOEShape)> ActiveSources(BossModule module)
         {
             bool hadSideSquare = false; // we don't show multiple side-squares, since that would cover whole arena and be useless
             DateTime lastRay = new(); // we only show first rays, otherwise triple rays would cover whole arena and be useless
             foreach (var (actor, shape) in _sources)
             {
-                if (shape == _aoeSquare && MathF.Abs(actor.Position.X - _module.Arena.WorldCenter.X) > 10)
+                if (shape == _aoeSquare && MathF.Abs(actor.Position.X - module.Arena.WorldCenter.X) > 10)
                 {
                     if (hadSideSquare)
                         continue;

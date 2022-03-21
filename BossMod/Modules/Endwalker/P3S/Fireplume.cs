@@ -8,7 +8,6 @@ namespace BossMod.Endwalker.P3S
     // state related to 'single' and 'multi' fireplumes (normal or parts of gloryplume)
     class Fireplume : Component
     {
-        private P3S _module;
         private Vector3? _singlePos = null;
         private float _multiStartingDirection;
         private int _multiStartedCasts = 0;
@@ -18,12 +17,7 @@ namespace BossMod.Endwalker.P3S
         private static float _multiRadius = 10;
         private static float _multiPairOffset = 15;
 
-        public Fireplume(P3S module)
-        {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_singlePos != null && GeometryUtils.PointInCircle(actor.Position - _singlePos.Value, _singleRadius))
             {
@@ -32,18 +26,18 @@ namespace BossMod.Endwalker.P3S
 
             if (_multiStartedCasts > _multiFinishedCasts)
             {
-                if (_multiFinishedCasts > 0 && GeometryUtils.PointInCircle(actor.Position - _module.Arena.WorldCenter, _multiRadius) ||
-                    _multiFinishedCasts < 8 && InPair(_multiStartingDirection + MathF.PI / 4, actor) ||
-                    _multiFinishedCasts < 6 && InPair(_multiStartingDirection - MathF.PI / 2, actor) ||
-                    _multiFinishedCasts < 4 && InPair(_multiStartingDirection - MathF.PI / 4, actor) ||
-                    _multiFinishedCasts < 2 && InPair(_multiStartingDirection, actor))
+                if (_multiFinishedCasts > 0 && GeometryUtils.PointInCircle(actor.Position - module.Arena.WorldCenter, _multiRadius) ||
+                    _multiFinishedCasts < 8 && InPair(module, _multiStartingDirection + MathF.PI / 4, actor) ||
+                    _multiFinishedCasts < 6 && InPair(module, _multiStartingDirection - MathF.PI / 2, actor) ||
+                    _multiFinishedCasts < 4 && InPair(module, _multiStartingDirection - MathF.PI / 4, actor) ||
+                    _multiFinishedCasts < 2 && InPair(module, _multiStartingDirection, actor))
                 {
                     hints.Add("GTFO from plume!");
                 }
             }
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_singlePos != null)
             {
@@ -67,7 +61,7 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void OnCastStarted(Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;
@@ -80,12 +74,12 @@ namespace BossMod.Endwalker.P3S
                 case AID.ExperimentalFireplumeMultiAOE:
                 case AID.ExperimentalGloryplumeMultiAOE:
                     if (_multiStartedCasts++ == 0)
-                        _multiStartingDirection = GeometryUtils.DirectionFromVec3(actor.Position - _module.Arena.WorldCenter);
+                        _multiStartingDirection = GeometryUtils.DirectionFromVec3(actor.Position - module.Arena.WorldCenter);
                     break;
             }
         }
 
-        public override void OnCastFinished(Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;
@@ -102,11 +96,11 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        private bool InPair(float direction, Actor actor)
+        private bool InPair(BossModule module, float direction, Actor actor)
         {
             var offset = _multiPairOffset * GeometryUtils.DirectionToVec3(direction);
-            return GeometryUtils.PointInCircle(actor.Position - _module.Arena.WorldCenter - offset, _multiRadius)
-                || GeometryUtils.PointInCircle(actor.Position - _module.Arena.WorldCenter + offset, _multiRadius);
+            return GeometryUtils.PointInCircle(actor.Position - module.Arena.WorldCenter - offset, _multiRadius)
+                || GeometryUtils.PointInCircle(actor.Position - module.Arena.WorldCenter + offset, _multiRadius);
         }
 
         private void DrawPair(MiniArena arena, float direction, bool imminent)

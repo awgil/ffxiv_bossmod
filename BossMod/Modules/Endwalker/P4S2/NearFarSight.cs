@@ -10,33 +10,38 @@ namespace BossMod.Endwalker.P4S2
         public enum State { Near, Far, Done }
 
         public State CurState { get; private set; }
-        private P4S2 _module;
         private ulong _targets = 0;
         private ulong _inAOE = 0;
 
         private static float _aoeRadius = 5;
 
-        public NearFarSight(P4S2 module, State state)
+        public override void Init(BossModule module)
         {
-            CurState = state;
-            _module = module;
+            CurState = (AID)(module.PrimaryActor.CastInfo?.Action.ID ?? 0) switch
+            {
+                AID.Nearsight => State.Near,
+                AID.Farsight => State.Far,
+                _ => State.Done
+            };
+            if (CurState == State.Done)
+                Service.Log($"[P4S2] Failed to initialize near/far sight, unexpected cast {module.PrimaryActor.CastInfo?.Action}");
         }
 
-        public override void Update()
+        public override void Update(BossModule module)
         {
             _targets = _inAOE = 0;
             if (CurState == State.Done)
                 return;
 
-            var playersByRange = _module.Raid.WithSlot().SortedByRange(_module.PrimaryActor.Position);
+            var playersByRange = module.Raid.WithSlot().SortedByRange(module.PrimaryActor.Position);
             foreach ((int i, var player) in CurState == State.Near ? playersByRange.Take(2) : playersByRange.TakeLast(2))
             {
                 BitVector.SetVector64Bit(ref _targets, i);
-                _inAOE |= _module.Raid.WithSlot().InRadiusExcluding(player, _aoeRadius).Mask();
+                _inAOE |= module.Raid.WithSlot().InRadiusExcluding(player, _aoeRadius).Mask();
             }
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_targets == 0)
                 return;
@@ -52,12 +57,12 @@ namespace BossMod.Endwalker.P4S2
             }
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_targets == 0)
                 return;
 
-            foreach ((int i, var player) in _module.Raid.WithSlot())
+            foreach ((int i, var player) in module.Raid.WithSlot())
             {
                 if (BitVector.IsVector64BitSet(_targets, i))
                 {
@@ -71,7 +76,7 @@ namespace BossMod.Endwalker.P4S2
             }
         }
 
-        public override void OnEventCast(CastEvent info)
+        public override void OnEventCast(BossModule module, CastEvent info)
         {
             if (info.IsSpell(AID.NearsightAOE) || info.IsSpell(AID.FarsightAOE))
                 CurState = State.Done;

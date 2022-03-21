@@ -8,21 +8,14 @@ namespace BossMod.Endwalker.P3S
     // adds should be neither too close (or they insta explode and wipe raid) nor too far (or during brightened fire someone wouldn't be able to hit two adds)
     class DarkenedFire : Component
     {
-        private P3S _module;
-
         private static float _minRange = 11; // note: on one of our pulls adds at (94.14, 105.55) and (94.21, 94.69) (distance=10.860) linked and wiped us
         private static float _maxRange = 13; // brigthened fire aoe radius is 7, so this is x2 minus some room for positioning
 
-        public DarkenedFire(P3S module)
-        {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             bool haveTooClose = false;
             int numInRange = 0;
-            foreach (var player in _module.Raid.WithoutSlot().Where(player => CanBothBeTargets(player, actor)))
+            foreach (var player in module.Raid.WithoutSlot().Where(player => CanBothBeTargets(player, actor)))
             {
                 var distance = player.Position - actor.Position;
                 haveTooClose |= GeometryUtils.PointInCircle(distance, _minRange);
@@ -40,11 +33,11 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             // draw other potential targets, to simplify positioning
             bool healerOrTank = pc.Role == Role.Tank || pc.Role == Role.Healer;
-            foreach (var player in _module.Raid.WithoutSlot().Where(player => CanBothBeTargets(player, pc)))
+            foreach (var player in module.Raid.WithoutSlot().Where(player => CanBothBeTargets(player, pc)))
             {
                 var distance = player.Position - pc.Position;
                 bool tooClose = GeometryUtils.PointInCircle(distance, _minRange);

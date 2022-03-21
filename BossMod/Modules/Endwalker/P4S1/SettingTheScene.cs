@@ -11,14 +11,8 @@ namespace BossMod.Endwalker.P4S1
         public enum Corner { Unknown, NE, SE, SW, NW }
         public enum Element { Fire, Lightning, Acid, Water }
 
-        private P4S1 _module;
         private Corner[] _assignments = new Corner[4];
         public Corner Assignment(Element elem) => _assignments[(int)elem];
-
-        public SettingTheScene(P4S1 module)
-        {
-            _module = module;
-        }
 
         public Element FindElement(Corner corner)
         {
@@ -37,14 +31,14 @@ namespace BossMod.Endwalker.P4S1
             };
         }
 
-        public Corner FromPos(Vector3 pos)
+        public Corner FromPos(BossModule module, Vector3 pos)
         {
-            return pos.X > _module.Arena.WorldCenter.X
-                ? (pos.Z > _module.Arena.WorldCenter.Z ? Corner.SE : Corner.NE)
-                : (pos.Z > _module.Arena.WorldCenter.Z ? Corner.SW : Corner.NW);
+            return pos.X > module.Arena.WorldCenter.X
+                ? (pos.Z > module.Arena.WorldCenter.Z ? Corner.SE : Corner.NE)
+                : (pos.Z > module.Arena.WorldCenter.Z ? Corner.SW : Corner.NW);
         }
 
-        public override void OnCastStarted(Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor)
         {
             // this is a fallback in case env-control assignment doesn't work for some reason...
             if (!actor.CastInfo!.IsSpell())
@@ -52,21 +46,21 @@ namespace BossMod.Endwalker.P4S1
             switch ((AID)actor.CastInfo!.Action.ID)
             {
                 case AID.PinaxAcid:
-                    AssignFromCast(Element.Acid, actor.Position);
+                    AssignFromCast(module, Element.Acid, actor.Position);
                     break;
                 case AID.PinaxLava:
-                    AssignFromCast(Element.Fire, actor.Position);
+                    AssignFromCast(module, Element.Fire, actor.Position);
                     break;
                 case AID.PinaxWell:
-                    AssignFromCast(Element.Water, actor.Position);
+                    AssignFromCast(module, Element.Water, actor.Position);
                     break;
                 case AID.PinaxLevinstrike:
-                    AssignFromCast(Element.Lightning, actor.Position);
+                    AssignFromCast(module, Element.Lightning, actor.Position);
                     break;
             }
         }
 
-        public override void OnEventEnvControl(uint featureID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state)
         {
             // 8003759C, state=00020001
             // what I've seen so far:
@@ -100,9 +94,9 @@ namespace BossMod.Endwalker.P4S1
             }
         }
 
-        private void AssignFromCast(Element elem, Vector3 pos)
+        private void AssignFromCast(BossModule module, Element elem, Vector3 pos)
         {
-            var corner = FromPos(pos);
+            var corner = FromPos(module, pos);
             var prev = Assignment(elem);
             if (prev != Corner.Unknown && prev != corner)
             {

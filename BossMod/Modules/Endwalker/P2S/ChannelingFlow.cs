@@ -10,25 +10,19 @@ namespace BossMod.Endwalker.P2S
     // state related to channeling [over]flow mechanics
     class ChannelingFlow : Component
     {
-        private P2S _module;
         private (Vector3, DateTime)[] _arrows = new (Vector3, DateTime)[PartyState.MaxSize];
 
         private static float _typhoonHalfWidth = 2.5f;
 
-        public ChannelingFlow(P2S module)
-        {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             Actor? partner = null;
-            if (SlotActive(slot))
+            if (SlotActive(module, slot))
             {
                 int numPartners = 0, numClipped = 0;
                 var partnerDir = -_arrows[slot].Item1;
                 float minDistance = 50;
-                foreach (var (otherSlot, otherActor) in ActorsHitBy(slot, actor))
+                foreach (var (otherSlot, otherActor) in ActorsHitBy(module, slot, actor))
                 {
                     if (_arrows[otherSlot].Item1 == partnerDir)
                     {
@@ -50,19 +44,19 @@ namespace BossMod.Endwalker.P2S
                     hints.Add("Too close to partner!");
             }
 
-            if (ActiveArrows().Any(pd => pd.Item1 != actor && pd.Item1 != partner && GeometryUtils.PointInRect(actor.Position - pd.Item1.Position, pd.Item2, 50, 0, _typhoonHalfWidth)))
+            if (ActiveArrows(module).Any(pd => pd.Item1 != actor && pd.Item1 != partner && GeometryUtils.PointInRect(actor.Position - pd.Item1.Position, pd.Item2, 50, 0, _typhoonHalfWidth)))
                 hints.Add("GTFO from imminent flow!");
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var (player, dir) in ActiveArrows())
+            foreach (var (player, dir) in ActiveArrows(module))
             {
                 arena.ZoneQuad(player.Position, dir, 50, 0, _typhoonHalfWidth, arena.ColorAOE);
             }
         }
 
-        public override void OnStatusGain(Actor actor, int index)
+        public override void OnStatusGain(BossModule module, Actor actor, int index)
         {
             var dir = (SID)actor.Statuses[index].ID switch
             {
@@ -74,37 +68,37 @@ namespace BossMod.Endwalker.P2S
             };
             if (dir != Vector3.Zero)
             {
-                var slot = _module.WorldState.Party.FindSlot(actor.InstanceID);
+                var slot = module.WorldState.Party.FindSlot(actor.InstanceID);
                 if (slot >= 0)
                     _arrows[slot] = (dir, actor.Statuses[index].ExpireAt);
             }
         }
 
-        public override void OnStatusLose(Actor actor, int index)
+        public override void OnStatusLose(BossModule module, Actor actor, int index)
         {
             var s = actor.Statuses[index];
             if ((SID)s.ID is SID.MarkFlowN or SID.MarkFlowS or SID.MarkFlowW or SID.MarkFlowE)
             {
-                var slot = _module.WorldState.Party.FindSlot(actor.InstanceID);
+                var slot = module.WorldState.Party.FindSlot(actor.InstanceID);
                 if (slot >= 0)
                     _arrows[slot] = (Vector3.Zero, new());
             }
         }
 
-        private bool SlotActive(int slot)
+        private bool SlotActive(BossModule module, int slot)
         {
             var (dir, expire) = _arrows[slot];
-            return dir != Vector3.Zero && (expire - _module.WorldState.CurrentTime).TotalSeconds < 13;
+            return dir != Vector3.Zero && (expire - module.WorldState.CurrentTime).TotalSeconds < 13;
         }
 
-        private IEnumerable<(Actor, Vector3)> ActiveArrows()
+        private IEnumerable<(Actor, Vector3)> ActiveArrows(BossModule module)
         {
-            return _module.Raid.WithSlot().WhereSlot(SlotActive).Select(ia => (ia.Item2, _arrows[ia.Item1].Item1));
+            return module.Raid.WithSlot().WhereSlot(slot => SlotActive(module, slot)).Select(ia => (ia.Item2, _arrows[ia.Item1].Item1));
         }
 
-        private IEnumerable<(int, Actor)> ActorsHitBy(int slot, Actor actor)
+        private IEnumerable<(int, Actor)> ActorsHitBy(BossModule module, int slot, Actor actor)
         {
-            return _module.Raid.WithSlot().Exclude(slot).WhereActor(a => GeometryUtils.PointInRect(a.Position - actor.Position, _arrows[slot].Item1, 50, 0, _typhoonHalfWidth));
+            return module.Raid.WithSlot().Exclude(slot).WhereActor(a => GeometryUtils.PointInRect(a.Position - actor.Position, _arrows[slot].Item1, 50, 0, _typhoonHalfWidth));
         }
     }
 }

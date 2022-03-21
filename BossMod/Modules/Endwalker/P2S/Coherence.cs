@@ -9,7 +9,6 @@ namespace BossMod.Endwalker.P2S
     // TODO: i'm not 100% sure how exactly it selects target for aoe ray, I assume it is closest player except tether target?..
     class Coherence : CommonComponents.CastCounter
     {
-        private P2S _module;
         private Actor? _tetherTarget;
         private Actor? _rayTarget;
         private AOEShapeRect _rayShape = new(50, 3);
@@ -17,31 +16,27 @@ namespace BossMod.Endwalker.P2S
 
         private static float _aoeRadius = 10; // not sure about this - actual range is 60, but it has some sort of falloff
 
-        public Coherence(P2S module)
-            : base(ActionID.MakeSpell(AID.CoherenceRay))
-        {
-            _module = module;
-        }
+        public Coherence() : base(ActionID.MakeSpell(AID.CoherenceRay)) { }
 
-        public override void Update()
+        public override void Update(BossModule module)
         {
             // if tether is still active, update tether target
-            var head = _module.CataractHead();
+            var head = module.Enemies(OID.CataractHead).FirstOrDefault();
             if (head != null && head.Tether.Target != 0 && head.Tether.Target != _tetherTarget?.InstanceID)
             {
-                _tetherTarget = _module.WorldState.Actors.Find(head.Tether.Target);
+                _tetherTarget = module.WorldState.Actors.Find(head.Tether.Target);
             }
 
             _inRay = 0;
-            _rayTarget = _module.Raid.WithoutSlot().Exclude(_tetherTarget).MinBy(a => (a.Position - _module.PrimaryActor.Position).LengthSquared());
+            _rayTarget = module.Raid.WithoutSlot().Exclude(_tetherTarget).MinBy(a => (a.Position - module.PrimaryActor.Position).LengthSquared());
             if (_rayTarget != null)
             {
-                _rayShape.DirectionOffset = GeometryUtils.DirectionFromVec3(_rayTarget.Position - _module.PrimaryActor.Position);
-                _inRay = _module.Raid.WithSlot().InShape(_rayShape, _module.PrimaryActor.Position, 0).Mask();
+                _rayShape.DirectionOffset = GeometryUtils.DirectionFromVec3(_rayTarget.Position - module.PrimaryActor.Position);
+                _inRay = module.Raid.WithSlot().InShape(_rayShape, module.PrimaryActor.Position, 0).Mask();
             }
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (actor == _tetherTarget)
             {
@@ -49,7 +44,7 @@ namespace BossMod.Endwalker.P2S
                 {
                     hints.Add("Pass tether to tank!");
                 }
-                else if (_module.Raid.WithoutSlot().InRadiusExcluding(actor, _aoeRadius).Any())
+                else if (module.Raid.WithoutSlot().InRadiusExcluding(actor, _aoeRadius).Any())
                 {
                     hints.Add("GTFO from raid!");
                 }
@@ -78,21 +73,21 @@ namespace BossMod.Endwalker.P2S
             }
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_rayTarget != null)
-                _rayShape.Draw(arena, _module.PrimaryActor.Position, 0);
+                _rayShape.Draw(arena, module.PrimaryActor.Position, 0);
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             // TODO: i'm not sure what are the exact mechanics - flare is probably distance-based, and ray is probably shared damage cast at closest target?..
-            var head = _module.CataractHead();
-            foreach ((int i, var player) in _module.Raid.WithSlot())
+            var head = module.Enemies(OID.CataractHead).FirstOrDefault();
+            foreach ((int i, var player) in module.Raid.WithSlot())
             {
                 if (head?.Tether.Target == player.InstanceID)
                 {
-                    arena.AddLine(player.Position, _module.PrimaryActor.Position, arena.ColorDanger);
+                    arena.AddLine(player.Position, module.PrimaryActor.Position, arena.ColorDanger);
                     arena.Actor(player, arena.ColorDanger);
                     arena.AddCircle(player.Position, _aoeRadius, arena.ColorDanger);
                 }

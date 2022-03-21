@@ -12,7 +12,6 @@ namespace BossMod.Endwalker.ZodiarkEx
     {
         public enum FlowDirection { None, CW, CCW };
 
-        private ZodiarkEx _module;
         private FlowDirection _flow;
         private List<Vector3> _birds = new();
         private List<Vector3> _behemoths = new();
@@ -27,40 +26,35 @@ namespace BossMod.Endwalker.ZodiarkEx
         private static AOEShapeCircle _behemothAOE = new(15);
         private static AOEShapeRect _snakeAOE = new(42, 5.5f);
 
-        public Paradeigma(ZodiarkEx module)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (_birds.Select(RotatedPosition).Any(b => _birdAOE.Check(actor.Position, b, 0)) || _behemoths.Select(RotatedPosition).Any(b => _behemothAOE.Check(actor.Position, b, 0)))
+            if (RotatedBirds(module).Any(b => _birdAOE.Check(actor.Position, b, 0)) || RotatedBehemoths(module).Any(b => _behemothAOE.Check(actor.Position, b, 0)))
                 hints.Add("GTFO from bird/behemoth aoe!");
-            if (_snakes.Select(RotatedPosRot).Any(s => _snakeAOE.Check(actor.Position, new(s.X, s.Y, s.Z), s.W)))
+            if (RotatedSnakes(module).Any(s => _snakeAOE.Check(actor.Position, new(s.X, s.Y, s.Z), s.W)))
                 hints.Add("GTFO from snake aoe!");
-            if (_fireLine.Any(c => InFireAOE(c, actor.Position)))
+            if (_fireLine.Any(c => InFireAOE(module, c, actor.Position)))
                 hints.Add("GTFO from fire aoe!");
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var b in _birds.Select(RotatedPosition))
+            foreach (var b in RotatedBirds(module))
                 _birdAOE.Draw(arena, b, 0);
-            foreach (var b in _behemoths.Select(RotatedPosition))
+            foreach (var b in RotatedBehemoths(module))
                 _behemothAOE.Draw(arena, b, 0);
-            foreach (var s in _snakes.Select(RotatedPosRot))
+            foreach (var s in RotatedSnakes(module))
                 _snakeAOE.Draw(arena, new(s.X, s.Y, s.Z), s.W);
             foreach (var c in _fireLine)
-                arena.ZoneTri(_module.Arena.WorldCenter + c, RotatedPosition(c), arena.WorldCenter, arena.ColorAOE);
+                arena.ZoneTri(module.Arena.WorldCenter + c, RotatedPosition(module, c), arena.WorldCenter, arena.ColorAOE);
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_fireLine.Count == 2)
-                arena.AddLine(_module.Arena.WorldCenter + _fireLine[0], _module.Arena.WorldCenter + _fireLine[1], arena.ColorDanger);
+                arena.AddLine(module.Arena.WorldCenter + _fireLine[0], module.Arena.WorldCenter + _fireLine[1], arena.ColorDanger);
         }
 
-        public override void OnEventEnvControl(uint featureID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state)
         {
             if (featureID != 0x80034E71)
                 return;
@@ -82,12 +76,12 @@ namespace BossMod.Endwalker.ZodiarkEx
                 switch (state)
                 {
                     case 0x00020001:
-                        _fireLine.Add(new(+_module.Arena.WorldHalfSize, 0, -_module.Arena.WorldHalfSize));
-                        _fireLine.Add(new(-_module.Arena.WorldHalfSize, 0, +_module.Arena.WorldHalfSize));
+                        _fireLine.Add(new(+module.Arena.WorldHalfSize, 0, -module.Arena.WorldHalfSize));
+                        _fireLine.Add(new(-module.Arena.WorldHalfSize, 0, +module.Arena.WorldHalfSize));
                         break;
                     case 0x00400020:
-                        _fireLine.Add(new(-_module.Arena.WorldHalfSize, 0, -_module.Arena.WorldHalfSize));
-                        _fireLine.Add(new(+_module.Arena.WorldHalfSize, 0, +_module.Arena.WorldHalfSize));
+                        _fireLine.Add(new(-module.Arena.WorldHalfSize, 0, -module.Arena.WorldHalfSize));
+                        _fireLine.Add(new(+module.Arena.WorldHalfSize, 0, +module.Arena.WorldHalfSize));
                         break;
                 }
             }
@@ -140,33 +134,37 @@ namespace BossMod.Endwalker.ZodiarkEx
             }
         }
 
-        private Vector3 RotatedPosition(Vector3 pos)
+        private Vector3 RotatedPosition(BossModule module, Vector3 pos)
         {
             return _flow switch
             {
-                FlowDirection.CW  => _module.Arena.WorldCenter + new Vector3(-pos.Z, 0, pos.X),
-                FlowDirection.CCW => _module.Arena.WorldCenter + new Vector3(pos.Z, 0, -pos.X),
-                _ => _module.Arena.WorldCenter + pos
+                FlowDirection.CW  => module.Arena.WorldCenter + new Vector3(-pos.Z, 0, pos.X),
+                FlowDirection.CCW => module.Arena.WorldCenter + new Vector3(pos.Z, 0, -pos.X),
+                _ => module.Arena.WorldCenter + pos
             };
         }
 
-        private Vector4 RotatedPosRot(Vector4 posRot)
+        private Vector4 RotatedPosRot(BossModule module, Vector4 posRot)
         {
             return _flow switch
             {
-                FlowDirection.CW  => new(_module.Arena.WorldCenter.X - posRot.Z, 0, _module.Arena.WorldCenter.Z + posRot.X, posRot.W - MathF.PI / 2),
-                FlowDirection.CCW => new(_module.Arena.WorldCenter.X + posRot.Z, 0, _module.Arena.WorldCenter.Z - posRot.X, posRot.W + MathF.PI / 2),
-                _ => new Vector4(_module.Arena.WorldCenter, 0) + posRot
+                FlowDirection.CW  => new(module.Arena.WorldCenter.X - posRot.Z, 0, module.Arena.WorldCenter.Z + posRot.X, posRot.W - MathF.PI / 2),
+                FlowDirection.CCW => new(module.Arena.WorldCenter.X + posRot.Z, 0, module.Arena.WorldCenter.Z - posRot.X, posRot.W + MathF.PI / 2),
+                _ => new Vector4(module.Arena.WorldCenter, 0) + posRot
             };
         }
 
-        private bool InFireAOE(Vector3 corner, Vector3 pos)
+        private IEnumerable<Vector3> RotatedBirds(BossModule module) => _birds.Select(x => RotatedPosition(module, x));
+        private IEnumerable<Vector3> RotatedBehemoths(BossModule module) => _behemoths.Select(x => RotatedPosition(module, x));
+        private IEnumerable<Vector4> RotatedSnakes(BossModule module) => _snakes.Select(x => RotatedPosRot(module, x));
+
+        private bool InFireAOE(BossModule module, Vector3 corner, Vector3 pos)
         {
-            var p1 = _module.Arena.WorldCenter + corner;
-            var p2 = RotatedPosition(corner);
+            var p1 = module.Arena.WorldCenter + corner;
+            var p2 = RotatedPosition(module, corner);
             var pMid = (p1 + p2) / 2;
-            var dirMid = Vector3.Normalize(pMid - _module.Arena.WorldCenter);
-            return GeometryUtils.PointInCone(pos - _module.Arena.WorldCenter, dirMid, MathF.PI / 4);
+            var dirMid = Vector3.Normalize(pMid - module.Arena.WorldCenter);
+            return GeometryUtils.PointInCone(pos - module.Arena.WorldCenter, dirMid, MathF.PI / 4);
         }
     }
 }

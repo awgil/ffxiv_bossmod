@@ -7,22 +7,14 @@ namespace BossMod.Endwalker.P4S1
     // component showing where to drag boss for max pinax uptime
     class PinaxUptime : Component
     {
-        private P4S1 _module;
-        private SettingTheScene _assignments;
-
-        public PinaxUptime(P4S1 module)
-        {
-            _module = module;
-            _assignments = module.FindComponent<SettingTheScene>()!;
-        }
-
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (pc.Role != Role.Tank)
                 return;
 
             // draw position between lighting and fire squares
-            var doubleOffset = _assignments.Direction(_assignments.Assignment(SettingTheScene.Element.Fire)) + _assignments.Direction(_assignments.Assignment(SettingTheScene.Element.Lightning));
+            var assignments = module.FindComponent<SettingTheScene>()!;
+            var doubleOffset = assignments.Direction(assignments.Assignment(SettingTheScene.Element.Fire)) + assignments.Direction(assignments.Assignment(SettingTheScene.Element.Lightning));
             if (doubleOffset == Vector3.Zero)
                 return;
 

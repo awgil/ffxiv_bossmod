@@ -25,30 +25,24 @@ namespace BossMod.Endwalker.ARanks.Minerva
 
     public class Mechanics : BossModule.Component
     {
-        private BossModule _module;
         private AOEShapeCircle _ballisticMissileCircle = new(6);
         private AOEShapeDonut _ballisticMissileDonut = new(8, 20); // TODO: verify inner radius
         private AOEShape? _activeBallisticMissile;
         private Actor? _activeBallisticMissileTarget;
         private Vector3 _activeBallisticMissileLocation = new();
 
-        public Mechanics(BossModule module)
-        {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (_activeBallisticMissile?.Check(actor.Position, _activeBallisticMissileTarget?.Position ?? _activeBallisticMissileLocation, 0) ?? false)
                 hints.Add("GTFO from aoe!");
         }
 
-        public override void AddGlobalHints(BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
-            if (!(_module.PrimaryActor.CastInfo?.IsSpell() ?? false))
+            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return;
 
-            string hint = (AID)_module.PrimaryActor.CastInfo.Action.ID switch
+            string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.AntiPersonnelBuild or AID.RingBuild => "Select next AOE type",
                 AID.BallisticMissileCircleWarning or AID.BallisticMissileDonutWarning => "Select next AOE target",
@@ -61,24 +55,24 @@ namespace BossMod.Endwalker.ARanks.Minerva
                 hints.Add(hint);
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             _activeBallisticMissile?.Draw(arena, _activeBallisticMissileTarget?.Position ?? _activeBallisticMissileLocation, 0);
         }
 
-        public override void OnCastStarted(Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor)
         {
-            if (actor != _module.PrimaryActor || !actor.CastInfo!.IsSpell())
+            if (actor != module.PrimaryActor || !actor.CastInfo!.IsSpell())
                 return;
             switch ((AID)actor.CastInfo.Action.ID)
             {
                 case AID.BallisticMissileCircleWarning:
                     _activeBallisticMissile = _ballisticMissileCircle;
-                    _activeBallisticMissileTarget = _module.WorldState.Actors.Find(actor.CastInfo.TargetID);
+                    _activeBallisticMissileTarget = module.WorldState.Actors.Find(actor.CastInfo.TargetID);
                     break;
                 case AID.BallisticMissileDonutWarning:
                     _activeBallisticMissile = _ballisticMissileDonut;
-                    _activeBallisticMissileTarget = _module.WorldState.Actors.Find(actor.CastInfo.TargetID);
+                    _activeBallisticMissileTarget = module.WorldState.Actors.Find(actor.CastInfo.TargetID);
                     break;
                 case AID.BallisticMissileCircle:
                 case AID.BallisticMissileDonut:
@@ -87,9 +81,9 @@ namespace BossMod.Endwalker.ARanks.Minerva
             }
         }
 
-        public override void OnCastFinished(Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor)
         {
-            if (actor != _module.PrimaryActor || !actor.CastInfo!.IsSpell())
+            if (actor != module.PrimaryActor || !actor.CastInfo!.IsSpell())
                 return;
             switch ((AID)actor.CastInfo.Action.ID)
             {
@@ -111,7 +105,7 @@ namespace BossMod.Endwalker.ARanks.Minerva
         public Minerva(BossModuleManager manager, Actor primary)
             : base(manager, primary)
         {
-            InitialState?.Enter.Add(() => ActivateComponent(new Mechanics(this)));
+            BuildStateMachine<Mechanics>();
         }
     }
 }

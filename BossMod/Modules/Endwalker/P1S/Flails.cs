@@ -8,62 +8,82 @@ namespace BossMod.Endwalker.P1S
     // state related to [aether]flails mechanics
     class Flails : Component
     {
-        public enum Zone { Left, Right, Inner, Outer, UnknownCircle }
-
         public int NumCasts { get; private set; } = 0;
-        private P1S _module;
-        private List<Actor> _weaponsBall;
-        private List<Actor> _weaponsChakram;
         private AOEShape? _first;
         private AOEShape? _second;
         private bool _detectSecond;
         private bool _showSecond;
 
-        public Flails(P1S module, Zone first, Zone second)
+        private static AOEShape _aoeLeft = new AOEShapeCone(60, 3 * MathF.PI / 4, MathF.PI / 2);
+        private static AOEShape _aoeRight = new AOEShapeCone(60, 3 * MathF.PI / 4, -MathF.PI / 2);
+        private static AOEShape _aoeInner = new AOEShapeCircle(P1S.InnerCircleRadius);
+        private static AOEShape _aoeOuter = new AOEShapeDonut(P1S.InnerCircleRadius, 60);
+
+        public override void Init(BossModule module)
         {
-            _module = module;
-            _weaponsBall = module.Enemies(OID.FlailI);
-            _weaponsChakram = module.Enemies(OID.FlailO);
-            _first = ShapeForZone(first);
-            _second = ShapeForZone(second);
-            _detectSecond = second == Zone.UnknownCircle;
+            (_first, _second) = (AID)(module.PrimaryActor.CastInfo?.Action.ID ?? 0) switch
+            {
+                AID.GaolerFlailRL => (_aoeRight, _aoeLeft),
+                AID.GaolerFlailLR => (_aoeLeft, _aoeRight),
+                AID.GaolerFlailIO1 => (_aoeInner, _aoeOuter),
+                AID.GaolerFlailIO2 => (_aoeInner, _aoeOuter),
+                AID.GaolerFlailOI1 => (_aoeOuter, _aoeInner),
+                AID.GaolerFlailOI2 => (_aoeOuter, _aoeInner),
+                AID.AetherflailRX => (_aoeRight, null),
+                AID.AetherflailLX => (_aoeLeft, null),
+                AID.AetherflailIL => (_aoeInner, _aoeLeft),
+                AID.AetherflailIR => (_aoeInner, _aoeRight),
+                AID.AetherflailOL => (_aoeOuter, _aoeLeft),
+                AID.AetherflailOR => (_aoeOuter, _aoeRight),
+                _ => (null, null)
+            };
+
+            if (_first == null)
+                Service.Log($"[P1S] Failed to detect flail zones");
+
+            _detectSecond = _first != null && _second == null;
             _showSecond = _first is AOEShapeCone != _second is AOEShapeCone;
         }
 
-        public override void Update()
+        public override void Update(BossModule module)
         {
             // currently the best way i've found to determine secondary aetherflail attack if first attack is a cone is to watch spawned npcs
             // these can appear few frames later...
-            if (_detectSecond && _weaponsBall.Count + _weaponsChakram.Count > 0)
+            if (!_detectSecond)
+                return;
+
+            var weaponsBall = module.Enemies(OID.FlailI);
+            var weaponsChakram = module.Enemies(OID.FlailO);
+            if (weaponsBall.Count + weaponsChakram.Count > 0)
             {
                 _detectSecond = false;
-                if (_weaponsBall.Count > 0 && _weaponsChakram.Count > 0)
+                if (weaponsBall.Count > 0 && weaponsChakram.Count > 0)
                 {
-                    Service.Log($"[P1S] Failed to determine second aetherflail: there are {_weaponsBall.Count} balls and {_weaponsChakram.Count} chakrams");
+                    Service.Log($"[P1S] Failed to determine second aetherflail: there are {weaponsBall.Count} balls and {weaponsChakram.Count} chakrams");
                 }
                 else
                 {
-                    _second = ShapeForZone(_weaponsBall.Count > 0 ? Zone.Inner : Zone.Outer);
+                    _second = weaponsBall.Count > 0 ? _aoeInner : _aoeOuter;
                 }
             }
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_first?.Check(actor.Position, _module.PrimaryActor) ?? false)
+            if (_first?.Check(actor.Position, module.PrimaryActor) ?? false)
                 hints.Add("Hit by first flail!");
-            if (_showSecond && _second != null && _second.Check(actor.Position, _module.PrimaryActor))
+            if (_showSecond && _second != null && _second.Check(actor.Position, module.PrimaryActor))
                 hints.Add("Hit by second flail!");
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            _first?.Draw(arena, _module.PrimaryActor);
+            _first?.Draw(arena, module.PrimaryActor);
             if (_showSecond)
-                _second?.Draw(arena, _module.PrimaryActor);
+                _second?.Draw(arena, module.PrimaryActor);
         }
 
-        public override void OnCastFinished(Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
                 return;
@@ -85,18 +105,6 @@ namespace BossMod.Endwalker.P1S
                     _second = null;
                     break;
             }
-        }
-
-        private static AOEShape? ShapeForZone(Zone zone)
-        {
-            return zone switch
-            {
-                Zone.Left => new AOEShapeCone(60, 3 * MathF.PI / 4, MathF.PI / 2),
-                Zone.Right => new AOEShapeCone(60, 3 * MathF.PI / 4, -MathF.PI / 2),
-                Zone.Inner => new AOEShapeCircle(P1S.InnerCircleRadius),
-                Zone.Outer => new AOEShapeDonut(P1S.InnerCircleRadius, 60),
-                _ => null
-            };
         }
     }
 }

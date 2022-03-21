@@ -10,7 +10,6 @@ namespace BossMod.Endwalker.P1S
     class Knockback : Component
     {
         public bool AOEDone { get; private set; } = false;
-        private P1S _module;
         private bool _isFlare = false; // true -> purge aka flare (stay away from MT), false -> grace aka holy (stack to MT)
         private Actor? _knockbackTarget = null;
         private Vector3 _knockbackPos = new();
@@ -20,36 +19,35 @@ namespace BossMod.Endwalker.P1S
         private static float _holyRange = 6;
         private static uint _colorAOETarget = 0xff8080ff;
 
-        public Knockback(P1S module, uint knockbackTargetID, bool isFlare)
+        public override void Init(BossModule module)
         {
-            _module = module;
-            _isFlare = isFlare;
-            _knockbackTarget = _module.WorldState.Actors.Find(knockbackTargetID);
+            _isFlare = module.PrimaryActor.CastInfo?.IsSpell(AID.KnockbackPurge) ?? false;
+            _knockbackTarget = module.WorldState.Actors.Find(module.PrimaryActor.CastInfo?.TargetID ?? 0);
             if (_knockbackTarget == null)
                 Service.Log("[P1S] Failed to determine knockback target");
         }
 
-        public override void Update()
+        public override void Update(BossModule module)
         {
             if (_knockbackTarget != null)
             {
                 _knockbackPos = _knockbackTarget.Position;
-                if (_module.PrimaryActor.CastInfo != null)
+                if (module.PrimaryActor.CastInfo != null)
                 {
-                    _knockbackPos = AdjustPositionForKnockback(_knockbackPos, _module.PrimaryActor, _kbDistance);
+                    _knockbackPos = AdjustPositionForKnockback(_knockbackPos, module.PrimaryActor, _kbDistance);
                 }
             }
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_module.PrimaryActor.CastInfo != null && actor == _knockbackTarget && !_module.Arena.InBounds(_knockbackPos))
+            if (module.PrimaryActor.CastInfo != null && actor == _knockbackTarget && !module.Arena.InBounds(_knockbackPos))
             {
                 hints.Add("About to be knocked into wall!");
             }
 
             float aoeRange = _isFlare ? _flareRange : _holyRange;
-            if (_module.PrimaryActor.TargetID == actor.InstanceID)
+            if (module.PrimaryActor.TargetID == actor.InstanceID)
             {
                 // i'm the current tank - i should gtfo from raid if i'll get the flare -or- if i'm vulnerable (assuming i'll pop invul not to die)
                 if (RaidShouldStack(actor))
@@ -59,7 +57,7 @@ namespace BossMod.Endwalker.P1S
                     {
                         hints.Add("GTFO from co-tank!");
                     }
-                    if (_module.Raid.WithoutSlot().InRadiusExcluding(actor, aoeRange).Count() < 7)
+                    if (module.Raid.WithoutSlot().InRadiusExcluding(actor, aoeRange).Count() < 7)
                     {
                         hints.Add("Stack with raid!");
                     }
@@ -71,7 +69,7 @@ namespace BossMod.Endwalker.P1S
                     {
                         hints.Add("Press invul!");
                     }
-                    if (_module.Raid.WithoutSlot().InRadiusExcluding(actor, aoeRange).Any())
+                    if (module.Raid.WithoutSlot().InRadiusExcluding(actor, aoeRange).Any())
                     {
                         hints.Add("GTFO from raid!");
                     }
@@ -80,7 +78,7 @@ namespace BossMod.Endwalker.P1S
             else
             {
                 // i'm not the current tank - I should gtfo if tank is invul soaking, from flare or from holy if i'm vulnerable, otherwise stack to current tank
-                var target = _module.WorldState.Actors.Find(_module.PrimaryActor.TargetID);
+                var target = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
                 if (target == null)
                     return;
 
@@ -104,15 +102,15 @@ namespace BossMod.Endwalker.P1S
             }
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_module.PrimaryActor.CastInfo != null && pc == _knockbackTarget && pc.Position != _knockbackPos)
+            if (module.PrimaryActor.CastInfo != null && pc == _knockbackTarget && pc.Position != _knockbackPos)
             {
                 arena.AddLine(pc.Position, _knockbackPos, arena.ColorDanger);
                 arena.Actor(_knockbackPos, pc.Rotation, arena.ColorDanger);
             }
 
-            var target = _module.WorldState.Actors.Find(_module.PrimaryActor.TargetID);
+            var target = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
             if (target == null)
                 return;
 
@@ -121,7 +119,7 @@ namespace BossMod.Endwalker.P1S
             if (target == pc)
             {
                 // there will be AOE around me, draw all players to help with positioning - note that we use position adjusted for knockback
-                foreach (var player in _module.Raid.WithoutSlot())
+                foreach (var player in module.Raid.WithoutSlot())
                     arena.Actor(player, GeometryUtils.PointInCircle(player.Position - targetPos, aoeRange) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
             else
@@ -136,7 +134,7 @@ namespace BossMod.Endwalker.P1S
                 arena.Actor(_knockbackTarget, arena.ColorVulnerable);
         }
 
-        public override void OnEventCast(CastEvent info)
+        public override void OnEventCast(BossModule module, CastEvent info)
         {
             if (info.IsSpell(AID.TrueHoly2) || info.IsSpell(AID.TrueFlare2))
                 AOEDone = true;

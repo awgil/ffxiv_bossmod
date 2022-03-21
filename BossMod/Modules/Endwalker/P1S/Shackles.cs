@@ -9,7 +9,6 @@ namespace BossMod.Endwalker.P1S
     class Shackles : Component
     {
         public int NumExpiredDebuffs { get; private set; } = 0;
-        private P1S _module;
         private bool _active = false;
         private byte _debuffsBlueImminent = 0;
         private byte _debuffsBlueFuture = 0;
@@ -24,12 +23,7 @@ namespace BossMod.Endwalker.P1S
         private static float _redExplosionRadius = 8;
         private static uint TetherColor(bool blue, bool red) => blue ? (red ? 0xff00ffff : 0xffff0080) : 0xff8080ff;
 
-        public Shackles(P1S module)
-        {
-            _module = module;
-        }
-
-        public override void Update()
+        public override void Update(BossModule module)
         {
             _blueTetherMatrix = _redTetherMatrix = _blueExplosionMatrix = _redExplosionMatrix = 0;
             byte blueDebuffs = (byte)(_debuffsBlueImminent | _debuffsBlueFuture);
@@ -39,13 +33,13 @@ namespace BossMod.Endwalker.P1S
                 return; // nothing to do...
 
             // update tether matrices
-            foreach ((int iSrc, var src) in _module.Raid.WithSlot())
+            foreach ((int iSrc, var src) in module.Raid.WithSlot())
             {
                 // blue => 3 closest
                 if (BitVector.IsVector8BitSet(blueDebuffs, iSrc))
                 {
                     BitVector.SetMatrix8x8Bit(ref _blueTetherMatrix, iSrc, iSrc, true);
-                    foreach ((int iTgt, _) in _module.Raid.WithSlot().Exclude(iSrc).SortedByRange(src.Position).Take(3))
+                    foreach ((int iTgt, _) in module.Raid.WithSlot().Exclude(iSrc).SortedByRange(src.Position).Take(3))
                         BitVector.SetMatrix8x8Bit(ref _blueTetherMatrix, iTgt, iSrc, true);
                 }
 
@@ -53,25 +47,25 @@ namespace BossMod.Endwalker.P1S
                 if (BitVector.IsVector8BitSet(redDebuffs, iSrc))
                 {
                     BitVector.SetMatrix8x8Bit(ref _redTetherMatrix, iSrc, iSrc, true);
-                    foreach ((int iTgt, _) in _module.Raid.WithSlot().Exclude(iSrc).SortedByRange(src.Position).TakeLast(3))
+                    foreach ((int iTgt, _) in module.Raid.WithSlot().Exclude(iSrc).SortedByRange(src.Position).TakeLast(3))
                         BitVector.SetMatrix8x8Bit(ref _redTetherMatrix, iTgt, iSrc, true);
                 }
             }
 
             // update explosion matrices and detect problems (has to be done in a separate pass)
-            foreach ((int i, var actor) in _module.Raid.WithSlot())
+            foreach ((int i, var actor) in module.Raid.WithSlot())
             {
                 if (BitVector.ExtractVectorFromMatrix8x8(_blueTetherMatrix, i) != 0)
-                    foreach ((int j, _) in _module.Raid.WithSlot().InRadiusExcluding(actor, _blueExplosionRadius))
+                    foreach ((int j, _) in module.Raid.WithSlot().InRadiusExcluding(actor, _blueExplosionRadius))
                         BitVector.SetMatrix8x8Bit(ref _blueExplosionMatrix, j, i, true);
 
                 if (BitVector.ExtractVectorFromMatrix8x8(_redTetherMatrix, i) != 0)
-                    foreach ((int j, _) in _module.Raid.WithSlot().InRadiusExcluding(actor, _redExplosionRadius))
+                    foreach ((int j, _) in module.Raid.WithSlot().InRadiusExcluding(actor, _redExplosionRadius))
                         BitVector.SetMatrix8x8Bit(ref _redExplosionMatrix, j, i, true);
             }
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (BitVector.ExtractVectorFromMatrix8x8(_blueTetherMatrix, slot) != 0 && BitVector.ExtractVectorFromMatrix8x8(_redTetherMatrix, slot) != 0)
             {
@@ -83,14 +77,14 @@ namespace BossMod.Endwalker.P1S
             }
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (!_active)
                 return;
 
             bool drawBlueAroundMe = false;
             bool drawRedAroundMe = false;
-            foreach ((int i, var actor) in _module.Raid.WithSlot())
+            foreach ((int i, var actor) in module.Raid.WithSlot())
             {
                 // draw tethers
                 var blueTetheredTo = BitVector.ExtractVectorFromMatrix8x8(_blueTetherMatrix, i);
@@ -99,7 +93,7 @@ namespace BossMod.Endwalker.P1S
                 if (tetherMask != 0)
                 {
                     arena.Actor(actor, TetherColor(blueTetheredTo != 0, redTetheredTo != 0));
-                    foreach ((int j, var target) in _module.Raid.WithSlot(true))
+                    foreach ((int j, var target) in module.Raid.WithSlot(true))
                     {
                         if (i != j && BitVector.IsVector8BitSet(tetherMask, j))
                         {
@@ -125,7 +119,7 @@ namespace BossMod.Endwalker.P1S
                 arena.AddCircle(pc.Position, _redExplosionRadius, arena.ColorDanger);
         }
 
-        public override void OnStatusGain(Actor actor, int index)
+        public override void OnStatusGain(BossModule module, Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {
@@ -134,25 +128,25 @@ namespace BossMod.Endwalker.P1S
                 case SID.ShacklesOfCompanionship2:
                 case SID.ShacklesOfCompanionship3:
                 case SID.ShacklesOfCompanionship4:
-                    ModifyDebuff(actor, ref _debuffsBlueFuture, true);
+                    ModifyDebuff(module, actor, ref _debuffsBlueFuture, true);
                     break;
                 case SID.ShacklesOfLoneliness0:
                 case SID.ShacklesOfLoneliness1:
                 case SID.ShacklesOfLoneliness2:
                 case SID.ShacklesOfLoneliness3:
                 case SID.ShacklesOfLoneliness4:
-                    ModifyDebuff(actor, ref _debuffsRedFuture, true);
+                    ModifyDebuff(module, actor, ref _debuffsRedFuture, true);
                     break;
                 case SID.InescapableCompanionship:
-                    ModifyDebuff(actor, ref _debuffsBlueImminent, true);
+                    ModifyDebuff(module, actor, ref _debuffsBlueImminent, true);
                     break;
                 case SID.InescapableLoneliness:
-                    ModifyDebuff(actor, ref _debuffsRedImminent, true);
+                    ModifyDebuff(module, actor, ref _debuffsRedImminent, true);
                     break;
             }
         }
 
-        public override void OnStatusLose(Actor actor, int index)
+        public override void OnStatusLose(BossModule module, Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {
@@ -161,29 +155,29 @@ namespace BossMod.Endwalker.P1S
                 case SID.ShacklesOfCompanionship2:
                 case SID.ShacklesOfCompanionship3:
                 case SID.ShacklesOfCompanionship4:
-                    ModifyDebuff(actor, ref _debuffsBlueFuture, false);
+                    ModifyDebuff(module, actor, ref _debuffsBlueFuture, false);
                     break;
                 case SID.ShacklesOfLoneliness0:
                 case SID.ShacklesOfLoneliness1:
                 case SID.ShacklesOfLoneliness2:
                 case SID.ShacklesOfLoneliness3:
                 case SID.ShacklesOfLoneliness4:
-                    ModifyDebuff(actor, ref _debuffsRedFuture, false);
+                    ModifyDebuff(module, actor, ref _debuffsRedFuture, false);
                     break;
                 case SID.InescapableCompanionship:
-                    ModifyDebuff(actor, ref _debuffsBlueImminent, false);
+                    ModifyDebuff(module, actor, ref _debuffsBlueImminent, false);
                     ++NumExpiredDebuffs;
                     break;
                 case SID.InescapableLoneliness:
-                    ModifyDebuff(actor, ref _debuffsRedImminent, false);
+                    ModifyDebuff(module, actor, ref _debuffsRedImminent, false);
                     ++NumExpiredDebuffs;
                     break;
             }
         }
 
-        private void ModifyDebuff(Actor actor, ref byte vector, bool active)
+        private void ModifyDebuff(BossModule module, Actor actor, ref byte vector, bool active)
         {
-            int slot = _module.Raid.FindSlot(actor.InstanceID);
+            int slot = module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
                 BitVector.ModifyVector8Bit(ref vector, slot, active);
         }

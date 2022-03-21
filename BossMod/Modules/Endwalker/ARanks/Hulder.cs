@@ -19,36 +19,30 @@ namespace BossMod.Endwalker.ARanks.Hulder
 
     public class Mechanics : BossModule.Component
     {
-        private BossModule _module;
         private AOEShapeCone _layOfMislaidMemory = new(30, MathF.PI / 4); // TODO: verify angle
         private AOEShapeRect _tempestuousWrath = new(0, 4);
         private AOEShapeDonut _rottingElegy = new(5.4f, 50); // TODO: verify inner radius
 
-        public Mechanics(BossModule module)
+        public override void Update(BossModule module)
         {
-            _module = module;
-        }
-
-        public override void Update()
-        {
-            if (_module.PrimaryActor.CastInfo?.IsSpell(AID.TempestuousWrath) ?? false)
+            if (module.PrimaryActor.CastInfo?.IsSpell(AID.TempestuousWrath) ?? false)
             {
-                _tempestuousWrath.SetEndPointFromCastLocation(_module.PrimaryActor);
+                _tempestuousWrath.SetEndPointFromCastLocation(module.PrimaryActor);
             }
         }
 
-        public override void AddHints(int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (ActiveAOE()?.Check(actor.Position, _module.PrimaryActor) ?? false)
+            if (ActiveAOE(module)?.Check(actor.Position, module.PrimaryActor) ?? false)
                 hints.Add("GTFO from aoe!");
         }
 
-        public override void AddGlobalHints(BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
-            if (!(_module.PrimaryActor.CastInfo?.IsSpell() ?? false))
+            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return;
 
-            string hint = (AID)_module.PrimaryActor.CastInfo.Action.ID switch
+            string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.LayOfMislaidMemory or AID.TempestuousWrath or AID.RottingElegy => "Avoidable AOE",
                 AID.StormOfColor => "Tankbuster",
@@ -59,17 +53,17 @@ namespace BossMod.Endwalker.ARanks.Hulder
                 hints.Add(hint);
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            ActiveAOE()?.Draw(arena, _module.PrimaryActor);
+            ActiveAOE(module)?.Draw(arena, module.PrimaryActor);
         }
 
-        private AOEShape? ActiveAOE()
+        private AOEShape? ActiveAOE(BossModule module)
         {
-            if (!(_module.PrimaryActor.CastInfo?.IsSpell() ?? false))
+            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return null;
 
-            return (AID)_module.PrimaryActor.CastInfo.Action.ID switch
+            return (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.LayOfMislaidMemory => _layOfMislaidMemory,
                 AID.TempestuousWrath => _tempestuousWrath,
@@ -84,7 +78,7 @@ namespace BossMod.Endwalker.ARanks.Hulder
         public Hulder(BossModuleManager manager, Actor primary)
             : base(manager, primary)
         {
-            InitialState?.Enter.Add(() => ActivateComponent(new Mechanics(this)));
+            BuildStateMachine<Mechanics>();
         }
     }
 }

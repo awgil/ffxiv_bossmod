@@ -23,32 +23,26 @@ namespace BossMod.Endwalker.ARanks.LunatenderQueen
 
     public class Mechanics : BossModule.Component
     {
-        private BossModule _module;
         private AOEShapeCircle _needles = new(6);
         private AOEShapeCircle _circle = new(15);
         private AOEShapeDonut _donut = new(6, 40); // TODO: verify inner radius
 
-        public Mechanics(BossModule module)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
-        {
-            if (ActiveAOE()?.Check(actor.Position, _module.PrimaryActor) ?? false)
+            if (ActiveAOE(module)?.Check(actor.Position, module.PrimaryActor) ?? false)
                 hints.Add("GTFO from aoe!");
-            if ((_module.PrimaryActor.CastInfo?.IsSpell(AID.AvertYourEyes) ?? false) && Vector3.Dot(GeometryUtils.DirectionToVec3(actor.Rotation), _module.PrimaryActor.Position - actor.Position) > 0)
+            if ((module.PrimaryActor.CastInfo?.IsSpell(AID.AvertYourEyes) ?? false) && Vector3.Dot(GeometryUtils.DirectionToVec3(actor.Rotation), module.PrimaryActor.Position - actor.Position) > 0)
                 hints.Add("Look away from boss!");
-            if ((_module.PrimaryActor.CastInfo?.IsSpell(AID.AvertYourEyesInverted) ?? false) && Vector3.Dot(GeometryUtils.DirectionToVec3(actor.Rotation), _module.PrimaryActor.Position - actor.Position) < 0)
+            if ((module.PrimaryActor.CastInfo?.IsSpell(AID.AvertYourEyesInverted) ?? false) && Vector3.Dot(GeometryUtils.DirectionToVec3(actor.Rotation), module.PrimaryActor.Position - actor.Position) < 0)
                 hints.Add("Look at the boss!");
         }
 
-        public override void AddGlobalHints(BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
-            if (!(_module.PrimaryActor.CastInfo?.IsSpell() ?? false))
+            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return;
 
-            string hint = (AID)_module.PrimaryActor.CastInfo.Action.ID switch
+            string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.YouMayApproach or AID.AwayWithYou or AID.YouMayApproachInverted or AID.AwayWithYouInverted or AID.Needles => "Avoidable AOE",
                 AID.AvertYourEyes => "Turn away",
@@ -60,17 +54,17 @@ namespace BossMod.Endwalker.ARanks.LunatenderQueen
                 hints.Add(hint);
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            ActiveAOE()?.Draw(arena, _module.PrimaryActor);
+            ActiveAOE(module)?.Draw(arena, module.PrimaryActor);
         }
 
-        private AOEShape? ActiveAOE()
+        private AOEShape? ActiveAOE(BossModule module)
         {
-            if (!(_module.PrimaryActor.CastInfo?.IsSpell() ?? false))
+            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return null;
 
-            return (AID)_module.PrimaryActor.CastInfo.Action.ID switch
+            return (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.AwayWithYou or AID.YouMayApproachInverted => _circle,
                 AID.YouMayApproach or AID.AwayWithYouInverted => _donut,
@@ -85,7 +79,7 @@ namespace BossMod.Endwalker.ARanks.LunatenderQueen
         public LunatenderQueen(BossModuleManager manager, Actor primary)
             : base(manager, primary)
         {
-            InitialState?.Enter.Add(() => ActivateComponent(new Mechanics(this)));
+            BuildStateMachine<Mechanics>();
         }
     }
 }

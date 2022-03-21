@@ -1,22 +1,17 @@
 ﻿namespace BossMod.Endwalker.P2S
 {
+    using System.Linq;
     using static BossModule;
 
     // state related to dissociation mechanic
     class Dissociation : Component
     {
-        private P2S _module;
         private AOEShapeRect? _shape = new(50, 10);
 
-        public Dissociation(P2S module)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            var head = _module.DissociatedHead();
-            if (_shape == null || head == null || _module.Arena.InBounds(head.Position))
+            var head = module.Enemies(OID.DissociatedHead).FirstOrDefault();
+            if (_shape == null || head == null || module.Arena.InBounds(head.Position))
                 return; // inactive or head not teleported yet
 
             if (_shape.Check(actor.Position, head))
@@ -25,18 +20,18 @@
             }
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            var head = _module.DissociatedHead();
-            if (_shape == null || head == null || _module.Arena.InBounds(head.Position))
+            var head = module.Enemies(OID.DissociatedHead).FirstOrDefault();
+            if (_shape == null || head == null || module.Arena.InBounds(head.Position))
                 return; // inactive or head not teleported yet
 
             _shape.Draw(arena, head);
         }
 
-        public override void OnCastFinished(Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor)
         {
-            if (actor == _module.DissociatedHead() && actor.CastInfo!.IsSpell(AID.DissociationAOE))
+            if (actor.OID == (uint)OID.DissociatedHead && actor.CastInfo!.IsSpell(AID.DissociationAOE))
                 _shape = null;
         }
     }

@@ -14,9 +14,8 @@ namespace BossMod.Endwalker.P1S
         public enum State { Unknown, TopToBottom, BottomToTop }
         public enum Cube { None, R, B, P }
 
-        public State CurState = State.Unknown;
         public int NumExplosions { get; private set; } = 0;
-        private P1S _module;
+        private State _curState = State.Unknown;
         private Cube[] _cubes = new Cube[24]; // [3*i+j] corresponds to cell i [NW N NE E SE S SW W], cube j [bottom center top]
 
         private static float _cellHalfSize = 6;
@@ -43,18 +42,13 @@ namespace BossMod.Endwalker.P1S
         };
         private static Vector2[] _offsets = { new(-1, -1), new(0, -1), new(1, -1), new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0) };
 
-        public Intemperance(P1S module)
-        {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var pat = _cubes.SequenceEqual(_patternSymm) ? "symmetrical" : (_cubes.SequenceEqual(_patternAsymm) ? "asymmetrical" : "unknown");
-            hints.Add($"Order: {CurState}, pattern: {pat}.", false);
+            hints.Add($"Order: {_curState}, pattern: {pat}.", false);
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             // draw cell delimiters
             Vector3 v1 = new(_cellHalfSize + 1, 0, arena.WorldHalfSize);
@@ -78,22 +72,33 @@ namespace BossMod.Endwalker.P1S
                 DrawTinyCube(drawlist, center + new Vector2(-3, -5), _cubes[3 * i + 2]);
 
                 drawlist.AddLine(center + new Vector2(4, -7), center + new Vector2(4, 7), 0xffffffff);
-                if (CurState != State.Unknown)
+                if (_curState != State.Unknown)
                 {
-                    float lineDir = CurState == State.BottomToTop ? -1 : 1;
+                    float lineDir = _curState == State.BottomToTop ? -1 : 1;
                     drawlist.AddLine(center + new Vector2(4, 7 * lineDir), center + new Vector2(2, 5 * lineDir), 0xffffffff);
                     drawlist.AddLine(center + new Vector2(4, 7 * lineDir), center + new Vector2(6, 5 * lineDir), 0xffffffff);
                 }
             }
         }
 
-        public override void OnEventCast(CastEvent info)
+        public override void OnCastStarted(BossModule module, Actor actor)
+        {
+            if (actor != module.PrimaryActor)
+                return;
+
+            if (actor.CastInfo!.IsSpell(AID.IntemperateTormentUp))
+                _curState = State.BottomToTop;
+            else if (actor.CastInfo!.IsSpell(AID.IntemperateTormentDown))
+                _curState = State.TopToBottom;
+        }
+
+        public override void OnEventCast(BossModule module, CastEvent info)
         {
             if (info.IsSpell(AID.PainfulFlux)) // this is convenient to rely on, since exactly 1 cast happens right after every explosion
                 ++NumExplosions;
         }
 
-        public override void OnEventEnvControl(uint featureID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state)
         {
             // we get the following env-control messages:
             // 1. ~2.8s after 26142 cast, we get 25 EnvControl messages with featureID 800375A0

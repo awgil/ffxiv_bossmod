@@ -12,7 +12,6 @@ namespace BossMod.Endwalker.P3S
     {
         public bool PlacementDone { get; private set; } = false;
         public bool CastsDone { get; private set; } = false;
-        private P3S _module;
         private List<(Actor, float)> _sources = new(); // actor + rotation
         private int[] _playerDeathTollStacks = new int[8];
         private int[] _playerAOECount = new int[8];
@@ -20,29 +19,24 @@ namespace BossMod.Endwalker.P3S
         private static float _coneHalfAngle = MathF.PI / 8; // not sure about this
         private static float _eyePlacementOffset = 10;
 
-        public FledglingFlight(P3S module)
-        {
-            _module = module;
-        }
-
-        public override void Update()
+        public override void Update(BossModule module)
         {
             if (_sources.Count == 0)
                 return;
 
-            foreach ((int i, var player) in _module.Raid.WithSlot())
+            foreach ((int i, var player) in module.Raid.WithSlot())
             {
                 _playerDeathTollStacks[i] = player.FindStatus((uint)SID.DeathsToll)?.Extra ?? 0; // TODO: use status events here...
                 _playerAOECount[i] = _sources.Where(srcRot => GeometryUtils.PointInCone(player.Position - srcRot.Item1.Position, srcRot.Item2, _coneHalfAngle)).Count();
             }
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_sources.Count == 0)
                 return;
 
-            var eyePos = GetEyePlacementPosition(slot, actor);
+            var eyePos = GetEyePlacementPosition(module, slot, actor);
             if (eyePos != null && !GeometryUtils.PointInCircle(actor.Position - eyePos.Value, 5))
             {
                 hints.Add("Get closer to eye placement position!");
@@ -58,21 +52,21 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_sources.Count == 0)
                 return;
 
             // draw all players
-            foreach ((int i, var player) in _module.Raid.WithSlot())
+            foreach ((int i, var player) in module.Raid.WithSlot())
                 arena.Actor(player, _playerAOECount[i] != _playerDeathTollStacks[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
-            var eyePos = GetEyePlacementPosition(pcSlot, pc);
+            var eyePos = GetEyePlacementPosition(module, pcSlot, pc);
             if (eyePos != null)
                 arena.AddCircle(eyePos.Value, 1, arena.ColorSafe);
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach ((var source, var dir) in _sources)
             {
@@ -80,7 +74,7 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void OnCastStarted(Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.AshenEye))
             {
@@ -93,7 +87,7 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void OnCastFinished(Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.AshenEye))
             {
@@ -102,7 +96,7 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void OnEventIcon(uint actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, uint actorID, uint iconID)
         {
             if (iconID >= 296 && iconID <= 299)
             {
@@ -112,7 +106,7 @@ namespace BossMod.Endwalker.P3S
                     return;
                 }
 
-                var actor = _module.WorldState.Actors.Find(actorID);
+                var actor = module.WorldState.Actors.Find(actorID);
                 if (actor != null)
                 {
                     float dir = iconID switch
@@ -128,7 +122,7 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        private Vector3? GetEyePlacementPosition(int slot, Actor player)
+        private Vector3? GetEyePlacementPosition(BossModule module, int slot, Actor player)
         {
             if (PlacementDone)
                 return null;
@@ -138,7 +132,7 @@ namespace BossMod.Endwalker.P3S
                 return null;
 
             var offset = GeometryUtils.DirectionToVec3(rot) * _eyePlacementOffset;
-            return _playerDeathTollStacks[slot] > 0 ? _module.Arena.WorldCenter - offset : _module.Arena.WorldCenter + offset;
+            return _playerDeathTollStacks[slot] > 0 ? module.Arena.WorldCenter - offset : module.Arena.WorldCenter + offset;
         }
     }
 }

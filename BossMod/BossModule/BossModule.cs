@@ -14,6 +14,7 @@ namespace BossMod
         public MiniArena Arena { get; init; }
         public StateMachine StateMachine { get; init; } = new();
         public StateMachine.State? InitialState = null;
+        public ConfigNode? Config;
 
         public WorldState WorldState => Manager.WorldState;
         public PartyState Raid => WorldState.Party;
@@ -56,49 +57,51 @@ namespace BossMod
         // individual components should be activated and deactivated when needed (typically by state machine transitions)
         public class Component
         {
-            public virtual void Update() { } // called every frame - it is a good place to update any cached values
-            public virtual void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints) { } // gather any relevant pieces of advice for specified raid member
-            public virtual void AddGlobalHints(GlobalHints hints) { } // gather any relevant pieces of advice for whole raid
-            public virtual void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena) { } // called at the beginning of arena draw, good place to draw aoe zones
-            public virtual void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena) { } // called after arena background and borders are drawn, good place to draw actors, tethers, etc.
+            public virtual void Init(BossModule module) { } // called at activation
+            public virtual void Update(BossModule module) { } // called every frame - it is a good place to update any cached values
+            public virtual void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) { } // gather any relevant pieces of advice for specified raid member
+            public virtual void AddGlobalHints(BossModule module, GlobalHints hints) { } // gather any relevant pieces of advice for whole raid
+            public virtual void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { } // called at the beginning of arena draw, good place to draw aoe zones
+            public virtual void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { } // called after arena background and borders are drawn, good place to draw actors, tethers, etc.
 
             // world state event handlers
-            public virtual void OnStatusGain(Actor actor, int index) { }
-            public virtual void OnStatusLose(Actor actor, int index) { }
-            public virtual void OnStatusChange(Actor actor, int index) { }
-            public virtual void OnTethered(Actor actor) { }
-            public virtual void OnUntethered(Actor actor) { }
-            public virtual void OnCastStarted(Actor actor) { }
-            public virtual void OnCastFinished(Actor actor) { }
-            public virtual void OnEventCast(CastEvent info) { }
-            public virtual void OnEventIcon(uint actorID, uint iconID) { }
-            public virtual void OnEventEnvControl(uint featureID, byte index, uint state) { }
+            public virtual void OnStatusGain(BossModule module, Actor actor, int index) { }
+            public virtual void OnStatusLose(BossModule module, Actor actor, int index) { }
+            public virtual void OnStatusChange(BossModule module, Actor actor, int index) { }
+            public virtual void OnTethered(BossModule module, Actor actor) { }
+            public virtual void OnUntethered(BossModule module, Actor actor) { }
+            public virtual void OnCastStarted(BossModule module, Actor actor) { }
+            public virtual void OnCastFinished(BossModule module, Actor actor) { }
+            public virtual void OnEventCast(BossModule module, CastEvent info) { }
+            public virtual void OnEventIcon(BossModule module, uint actorID, uint iconID) { }
+            public virtual void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state) { }
         }
         private List<Component> _components = new();
         public IReadOnlyList<Component> Components => _components;
 
-        protected T ActivateComponent<T>(T comp) where T : Component
+        public void ActivateComponent<T>() where T : Component, new()
         {
             if (FindComponent<T>() != null)
             {
-                Service.Log($"[BossModule] Activating a component of type {comp.GetType()} when another of the same type is already active; old one is deactivated automatically");
+                Service.Log($"[BossModule] Activating a component of type {typeof(T)} when another of the same type is already active; old one is deactivated automatically");
                 DeactivateComponent<T>();
             }
+            T comp = new();
             _components.Add(comp);
+            comp.Init(this);
             foreach (var actor in WorldState.Actors)
             {
                 if (actor.CastInfo != null)
-                    comp.OnCastStarted(actor);
+                    comp.OnCastStarted(this, actor);
                 if (actor.Tether.ID != 0)
-                    comp.OnTethered(actor);
+                    comp.OnTethered(this, actor);
                 for (int i = 0; i < actor.Statuses.Length; ++i)
                     if (actor.Statuses[i].ID != 0)
-                        comp.OnStatusGain(actor, i);
+                        comp.OnStatusGain(this, actor, i);
             }
-            return comp;
         }
 
-        protected void DeactivateComponent<T>() where T : Component
+        public void DeactivateComponent<T>() where T : Component
         {
             int count = _components.RemoveAll(x => x is T);
             if (count == 0)
@@ -172,7 +175,7 @@ namespace BossMod
             StateMachine.Update(WorldState.CurrentTime);
             UpdateModule();
             foreach (var comp in _components)
-                comp.Update();
+                comp.Update(this);
         }
 
         public virtual void Draw(float cameraAzimuth, int pcSlot, MovementHints? pcMovementHints)
@@ -215,13 +218,13 @@ namespace BossMod
 
             DrawArenaBackground(pcSlot, pc);
             foreach (var comp in _components)
-                comp.DrawArenaBackground(pcSlot, pc, Arena);
+                comp.DrawArenaBackground(this, pcSlot, pc, Arena);
             Arena.Border();
             if (Manager.Config.ShowWaymarks)
                 DrawWaymarks();
             DrawArenaForegroundPre(pcSlot, pc);
             foreach (var comp in _components)
-                comp.DrawArenaForeground(pcSlot, pc, Arena);
+                comp.DrawArenaForeground(this, pcSlot, pc, Arena);
             DrawArenaForegroundPost(pcSlot, pc);
         }
 
@@ -229,7 +232,7 @@ namespace BossMod
         {
             TextHints hints = new();
             foreach (var comp in _components)
-                comp.AddHints(slot, actor, hints, movementHints);
+                comp.AddHints(this, slot, actor, hints, movementHints);
             return hints;
         }
 
@@ -237,7 +240,7 @@ namespace BossMod
         {
             GlobalHints hints = new();
             foreach (var comp in _components)
-                comp.AddGlobalHints(hints);
+                comp.AddGlobalHints(this, hints);
             return hints;
         }
 
@@ -336,61 +339,61 @@ namespace BossMod
         private void OnActorCastStarted(object? sender, Actor actor)
         {
             foreach (var comp in _components)
-                comp.OnCastStarted(actor);
+                comp.OnCastStarted(this, actor);
         }
 
         private void OnActorCastFinished(object? sender, Actor actor)
         {
             foreach (var comp in _components)
-                comp.OnCastFinished(actor);
+                comp.OnCastFinished(this, actor);
         }
 
         private void OnActorTethered(object? sender, Actor actor)
         {
             foreach (var comp in _components)
-                comp.OnTethered(actor);
+                comp.OnTethered(this, actor);
         }
 
         private void OnActorUntethered(object? sender, Actor actor)
         {
             foreach (var comp in _components)
-                comp.OnUntethered(actor);
+                comp.OnUntethered(this, actor);
         }
 
         private void OnActorStatusGain(object? sender, (Actor actor, int index) arg)
         {
             foreach (var comp in _components)
-                comp.OnStatusGain(arg.actor, arg.index);
+                comp.OnStatusGain(this, arg.actor, arg.index);
         }
 
         private void OnActorStatusLose(object? sender, (Actor actor, int index) arg)
         {
             foreach (var comp in _components)
-                comp.OnStatusLose(arg.actor, arg.index);
+                comp.OnStatusLose(this, arg.actor, arg.index);
         }
 
         private void OnActorStatusChange(object? sender, (Actor actor, int index, ushort prevExtra, DateTime prevExpire) arg)
         {
             foreach (var comp in _components)
-                comp.OnStatusChange(arg.actor, arg.index);
+                comp.OnStatusChange(this, arg.actor, arg.index);
         }
 
         private void OnEventIcon(object? sender, (uint actorID, uint iconID) arg)
         {
             foreach (var comp in _components)
-                comp.OnEventIcon(arg.actorID, arg.iconID);
+                comp.OnEventIcon(this, arg.actorID, arg.iconID);
         }
 
         private void OnEventCast(object? sender, CastEvent info)
         {
             foreach (var comp in _components)
-                comp.OnEventCast(info);
+                comp.OnEventCast(this, info);
         }
 
         private void OnEventEnvControl(object? sender, (uint featureID, byte index, uint state) arg)
         {
             foreach (var comp in _components)
-                comp.OnEventEnvControl(arg.featureID, arg.index, arg.state);
+                comp.OnEventEnvControl(this, arg.featureID, arg.index, arg.state);
         }
     }
 }

@@ -20,28 +20,22 @@ namespace BossMod.Endwalker.ARanks.ArchEta
 
     public class Mechanics : BossModule.Component
     {
-        private BossModule _module;
         private AOEShapeCircle _heavyStomp = new(17);
         private AOEShapeRect _energyWave = new(40, 7);
         private AOEShapeCone _tailSwipe = new(25, MathF.PI / 4, MathF.PI);
 
-        public Mechanics(BossModule module)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
-        {
-            if (ActiveAOE()?.Check(actor.Position, _module.PrimaryActor) ?? false)
+            if (ActiveAOE(module)?.Check(actor.Position, module.PrimaryActor) ?? false)
                 hints.Add("GTFO from aoe!");
         }
 
-        public override void AddGlobalHints(BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
-            if (!(_module.PrimaryActor.CastInfo?.IsSpell() ?? false))
+            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return;
 
-            string hint = (AID)_module.PrimaryActor.CastInfo.Action.ID switch
+            string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.HeavyStomp or AID.EnergyWave or AID.TailSwipe => "Avoidable AOE",
                 AID.SonicHowl => "Raidwide",
@@ -52,17 +46,17 @@ namespace BossMod.Endwalker.ARanks.ArchEta
                 hints.Add(hint);
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            ActiveAOE()?.Draw(arena, _module.PrimaryActor);
+            ActiveAOE(module)?.Draw(arena, module.PrimaryActor);
         }
 
-        private AOEShape? ActiveAOE()
+        private AOEShape? ActiveAOE(BossModule module)
         {
-            if (!(_module.PrimaryActor.CastInfo?.IsSpell() ?? false))
+            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return null;
 
-            return (AID)_module.PrimaryActor.CastInfo.Action.ID switch
+            return (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.HeavyStomp => _heavyStomp,
                 AID.EnergyWave => _energyWave,
@@ -77,7 +71,7 @@ namespace BossMod.Endwalker.ARanks.ArchEta
         public ArchEta(BossModuleManager manager, Actor primary)
             : base(manager, primary)
         {
-            InitialState?.Enter.Add(() => ActivateComponent(new Mechanics(this)));
+            BuildStateMachine<Mechanics>();
         }
     }
 }

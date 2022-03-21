@@ -10,39 +10,33 @@ namespace BossMod.Endwalker.P1S
     {
         private enum Cell { None, Red, Blue }
 
-        private P1S _module;
         private Actor? _memberWithSOT = null; // if not null, then every update exploding cells are recalculated based on this raid member's position
         private Cell _explodingCells = Cell.None;
 
         private static uint _colorSOTActor = 0xff8080ff;
 
-        public AetherExplosion(P1S module)
-        {
-            _module = module;
-        }
-
         public bool SOTActive => _memberWithSOT != null;
 
-        public override void Update()
+        public override void Update(BossModule module)
         {
             if (_memberWithSOT != null)
-                _explodingCells = CellFromOffset(_memberWithSOT.Position - _module.Arena.WorldCenter);
+                _explodingCells = CellFromOffset(_memberWithSOT.Position - module.Arena.WorldCenter);
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (actor != _memberWithSOT && _explodingCells != Cell.None && _explodingCells == CellFromOffset(actor.Position - _module.Arena.WorldCenter))
+            if (actor != _memberWithSOT && _explodingCells != Cell.None && _explodingCells == CellFromOffset(actor.Position - module.Arena.WorldCenter))
             {
                 hints.Add("Hit by aether explosion!");
             }
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_explodingCells == Cell.None || pc == _memberWithSOT)
                 return; // nothing to draw
 
-            if (!_module.Arena.IsCircle)
+            if (!module.Arena.IsCircle)
             {
                 Service.Log("[P1S] Trying to draw aether AOE when cells mode is not active...");
                 return;
@@ -57,13 +51,13 @@ namespace BossMod.Endwalker.P1S
             }
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_memberWithSOT != pc)
                 arena.Actor(_memberWithSOT, _colorSOTActor);
         }
 
-        public override void OnStatusGain(Actor actor, int index)
+        public override void OnStatusGain(BossModule module, Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {
@@ -93,7 +87,7 @@ namespace BossMod.Endwalker.P1S
             }
         }
 
-        public override void OnStatusLose(Actor actor, int index)
+        public override void OnStatusLose(BossModule module, Actor actor, int index)
         {
             switch ((SID)actor.Statuses[index].ID)
             {

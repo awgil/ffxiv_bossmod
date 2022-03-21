@@ -7,36 +7,30 @@ namespace BossMod.Endwalker.P4S1
     // state related to shift mechanics
     class Shift : Component
     {
-        private P4S1 _module;
         private AOEShapeCone _swordAOE = new(50, MathF.PI / 3); // not sure about half-angle...
         private Actor? _swordCaster;
         private Actor? _cloakCaster;
 
         private static float _knockbackRange = 30;
 
-        public Shift(P4S1 module)
-        {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_swordAOE.Check(actor.Position, _swordCaster))
             {
                 hints.Add("GTFO from sword!");
             }
-            else if (_cloakCaster != null && !_module.Arena.InBounds(AdjustPositionForKnockback(actor.Position, _cloakCaster, _knockbackRange)))
+            else if (_cloakCaster != null && !module.Arena.InBounds(AdjustPositionForKnockback(actor.Position, _cloakCaster, _knockbackRange)))
             {
                 hints.Add("About to be knocked into wall!");
             }
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             _swordAOE.Draw(arena, _swordCaster);
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_cloakCaster != null)
             {
@@ -51,7 +45,7 @@ namespace BossMod.Endwalker.P4S1
             }
         }
 
-        public override void OnCastStarted(Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.ShiftingStrikeCloak))
                 _cloakCaster = actor;
@@ -59,7 +53,7 @@ namespace BossMod.Endwalker.P4S1
                 _swordCaster = actor;
         }
 
-        public override void OnCastFinished(Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor)
         {
             if (actor.CastInfo!.IsSpell(AID.ShiftingStrikeCloak))
                 _cloakCaster = null;

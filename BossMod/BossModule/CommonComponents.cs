@@ -14,7 +14,7 @@
                 _watchedCastID = aid;
             }
 
-            public override void OnEventCast(CastEvent info)
+            public override void OnEventCast(BossModule module, CastEvent info)
             {
                 if (info.Action == _watchedCastID)
                 {
@@ -27,18 +27,16 @@
         // TODO: consider showing invuln/stack/gtfo hints...
         public class SharedTankbuster : BossModule.Component
         {
-            private BossModule _module;
             private float _radius;
 
-            public SharedTankbuster(BossModule module, float radius)
+            public SharedTankbuster(float radius)
             {
-                _module = module;
                 _radius = radius;
             }
 
-            public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+            public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
             {
-                var target = _module.WorldState.Actors.Find(_module.PrimaryActor.TargetID);
+                var target = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
                 if (target != null)
                 {
                     arena.Actor(target, arena.ColorPlayerGeneric);
@@ -51,22 +49,20 @@
         // useful for simple bosses - outdoor, dungeons, etc.
         public class CastHint : BossModule.Component
         {
-            protected BossModule _module;
             protected ActionID _action;
             protected string _hint;
 
-            public bool Active => _module.PrimaryActor.CastInfo?.Action == _action;
-
-            public CastHint(BossModule module, ActionID action, string hint)
+            public CastHint(ActionID action, string hint)
             {
-                _module = module;
                 _action = action;
                 _hint = hint;
             }
 
-            public override void AddGlobalHints(BossModule.GlobalHints hints)
+            public bool Active(BossModule module) => module.PrimaryActor.CastInfo?.Action == _action;
+
+            public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
             {
-                if (Active)
+                if (Active(module))
                     hints.Add(_hint);
             }
         }
@@ -76,22 +72,22 @@
         {
             protected AOEShape _shape;
 
-            public CastHintAvoidable(BossModule module, ActionID action, AOEShape shape)
-                : base(module, action, "Avoidable AOE")
+            public CastHintAvoidable(ActionID action, AOEShape shape)
+                : base(action, "Avoidable AOE")
             {
                 _shape = shape;
             }
 
-            public override void AddHints(int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+            public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
             {
-                if (Active && _shape.Check(actor.Position, _module.PrimaryActor))
+                if (Active(module) && _shape.Check(actor.Position, module.PrimaryActor))
                     hints.Add("GTFO from aoe!");
             }
 
-            public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+            public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
             {
-                if (Active)
-                    _shape.Draw(arena, _module.PrimaryActor);
+                if (Active(module))
+                    _shape.Draw(arena, module.PrimaryActor);
             }
         }
     }

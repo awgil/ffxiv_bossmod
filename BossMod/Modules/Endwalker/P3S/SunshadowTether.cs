@@ -9,33 +9,24 @@ namespace BossMod.Endwalker.P3S
     // state related to sunshadow tethers during fountain of fire mechanics
     class SunshadowTether : Component
     {
-        private P3S _module;
-        private List<Actor> _sunshadows;
         private HashSet<uint> _chargedSunshadows = new();
         private ulong _playersInAOE = 0;
 
-        public int NumCharges => _chargedSunshadows.Count;
-        private IEnumerable<Actor> _activeBirds => _sunshadows.Where(bird => !_chargedSunshadows.Contains(bird.InstanceID));
-
         private static float _chargeHalfWidth = 3;
 
-        public SunshadowTether(P3S module)
-        {
-            _module = module;
-            _sunshadows = module.Enemies(OID.Sunshadow);
-        }
+        public int NumCharges => _chargedSunshadows.Count;
 
-        public override void Update()
+        public override void Update(BossModule module)
         {
             _playersInAOE = 0;
-            foreach (var bird in _activeBirds)
+            foreach (var bird in ActiveBirds(module))
             {
                 uint targetID = BirdTarget(bird);
-                var target = targetID != 0 ? _module.WorldState.Actors.Find(targetID) : null;
+                var target = targetID != 0 ? module.WorldState.Actors.Find(targetID) : null;
                 if (target != null && target.Position != bird.Position)
                 {
                     var dir = Vector3.Normalize(target.Position - bird.Position);
-                    foreach ((int i, var player) in _module.Raid.WithSlot().Exclude(target))
+                    foreach ((int i, var player) in module.Raid.WithSlot().Exclude(target))
                     {
                         if (GeometryUtils.PointInRect(player.Position - bird.Position, dir, 50, 0, _chargeHalfWidth))
                         {
@@ -46,9 +37,9 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            foreach (var bird in _activeBirds)
+            foreach (var bird in ActiveBirds(module))
             {
                 uint birdTarget = BirdTarget(bird);
                 if (birdTarget == actor.InstanceID && bird.Tether.ID != (uint)TetherID.LargeBirdFar)
@@ -63,12 +54,12 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var bird in _activeBirds)
+            foreach (var bird in ActiveBirds(module))
             {
                 uint targetID = BirdTarget(bird);
-                var target = (targetID != 0 && targetID != pc.InstanceID) ? _module.WorldState.Actors.Find(targetID) : null;
+                var target = (targetID != 0 && targetID != pc.InstanceID) ? module.WorldState.Actors.Find(targetID) : null;
                 if (target != null && target.Position != bird.Position)
                 {
                     var dir = Vector3.Normalize(target.Position - bird.Position);
@@ -77,17 +68,17 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_activeBirds.Count() == 0)
+            if (!ActiveBirds(module).Any())
                 return;
 
             // draw all players
-            foreach ((int i, var player) in _module.Raid.WithSlot())
+            foreach ((int i, var player) in module.Raid.WithSlot())
                 arena.Actor(player, BitVector.IsVector64BitSet(_playersInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
             // draw my tether
-            var myBird = _sunshadows.Find(bird => BirdTarget(bird) == pc.InstanceID);
+            var myBird = module.Enemies(OID.Sunshadow).Find(bird => BirdTarget(bird) == pc.InstanceID);
             if (myBird != null && !_chargedSunshadows.Contains(myBird.InstanceID))
             {
                 arena.AddLine(myBird.Position, pc.Position, myBird.Tether.ID != (uint)TetherID.LargeBirdFar ? arena.ColorDanger : arena.ColorSafe);
@@ -95,7 +86,7 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void OnEventCast(CastEvent info)
+        public override void OnEventCast(BossModule module, CastEvent info)
         {
             if (info.IsSpell(AID.Fireglide))
                 _chargedSunshadows.Add(info.CasterID);
@@ -106,6 +97,11 @@ namespace BossMod.Endwalker.P3S
             // we don't get tether messages when birds spawn, so use target as a fallback
             // TODO: investigate this... we do get actor-control 503 before spawn, maybe this is related somehow...
             return bird.Tether.Target != 0 ? bird.Tether.Target : bird.TargetID;
+        }
+
+        private IEnumerable<Actor> ActiveBirds(BossModule module)
+        {
+            return module.Enemies(OID.Sunshadow).Where(bird => !_chargedSunshadows.Contains(bird.InstanceID));
         }
     }
 }

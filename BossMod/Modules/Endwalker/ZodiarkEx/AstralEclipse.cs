@@ -12,7 +12,6 @@ namespace BossMod.Endwalker.ZodiarkEx
     // 'completed' or 'not started' is represented as fully safe (all 0) mask, 'unknown' pattern is represented as fully dangerous (all 1) mask
     class AstralEclipse : Component
     {
-        private ZodiarkEx _module;
         private int[] _patterns = new int[3]; // W -> S -> E
 
         private static AOEShapeCircle _aoe = new(10);
@@ -22,36 +21,31 @@ namespace BossMod.Endwalker.ZodiarkEx
         private static Vector3[] _basisX = new Vector3[3] { -Vector3.UnitZ, -Vector3.UnitX, Vector3.UnitZ };
         private static Vector3[] _basisY = new Vector3[3] { -Vector3.UnitX,  Vector3.UnitZ, Vector3.UnitX };
 
-        public AstralEclipse(ZodiarkEx module)
-        {
-            _module = module;
-        }
-
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             int nextPattern = _patterns.SkipWhile(p => p == 0).FirstOrDefault();
-            if (PatternSpots(nextPattern).Any(p => _aoe.Check(actor.Position, p, 0)))
+            if (PatternSpots(module, nextPattern).Any(p => _aoe.Check(actor.Position, p, 0)))
                 hints.Add("GTFO from explosion!");
 
             if (movementHints != null)
-                foreach (var (from, to) in MovementHints(actor.Position))
-                    movementHints.Add(from, to, _module.Arena.ColorSafe);
+                foreach (var (from, to) in MovementHints(module, actor.Position))
+                    movementHints.Add(from, to, module.Arena.ColorSafe);
         }
 
-        public override void DrawArenaBackground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             int nextPattern = _patterns.SkipWhile(p => p == 0).FirstOrDefault();
-            foreach (var p in PatternSpots(nextPattern))
+            foreach (var p in PatternSpots(module, nextPattern))
                 _aoe.Draw(arena, p, 0);
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var (from, to) in MovementHints(pc.Position))
+            foreach (var (from, to) in MovementHints(module, pc.Position))
                 arena.AddLine(from, to, arena.ColorSafe);
         }
 
-        public override void OnEventEnvControl(uint featureID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state)
         {
             if (featureID != 0x80034E71 || index < 6 || index > 8)
                 return;
@@ -80,16 +74,16 @@ namespace BossMod.Endwalker.ZodiarkEx
             return 0x777 & ~BuildMask(seq, safe1) & ~BuildMask(seq, safe2);
         }
 
-        private IEnumerable<Vector3> PatternSpots(int pattern)
+        private IEnumerable<Vector3> PatternSpots(BossModule module, int pattern)
         {
             if (pattern != 0)
                 for (int z = -1; z <= 1; ++z)
                     for (int x = -1; x <= 1; ++x)
                         if ((pattern & (1 << ((z + 1) * 4 + (x + 1)))) != 0)
-                            yield return _module.Arena.WorldCenter + _centerOffset * new Vector3(x, 0, z);
+                            yield return module.Arena.WorldCenter + _centerOffset * new Vector3(x, 0, z);
         }
 
-        private IEnumerable<(Vector3, Vector3)> MovementHints(Vector3 startingPosition)
+        private IEnumerable<(Vector3, Vector3)> MovementHints(BossModule module, Vector3 startingPosition)
         {
             Vector3 prev = startingPosition;
             foreach (var p in _patterns.Where(p => p != 0))
@@ -97,7 +91,7 @@ namespace BossMod.Endwalker.ZodiarkEx
                 if (p == 0xFFFF)
                     break;
 
-                var next = PatternSpots(~p).MinBy(pos => (pos - prev).LengthSquared() + (pos - _module.PrimaryActor.Position).LengthSquared() * 0.2f); // slightly penalize far positions...
+                var next = PatternSpots(module, ~p).MinBy(pos => (pos - prev).LengthSquared() + (pos - module.PrimaryActor.Position).LengthSquared() * 0.2f); // slightly penalize far positions...
                 yield return (prev, next);
                 prev = next;
             }

@@ -12,18 +12,24 @@ namespace BossMod.Endwalker.P3S
         public enum State { UnknownGlory, Stack, Spread, Done }
 
         public State CurState { get; private set; }
-        private P3S _module;
 
         private static float _stackRadius = 8;
         private static float _spreadRadius = 6;
 
-        public Ashplume(P3S module, State initial)
+        public override void Init(BossModule module)
         {
-            CurState = initial;
-            _module = module;
+            CurState = (AID)(module.PrimaryActor.CastInfo?.Action.ID ?? 0) switch
+            {
+                AID.ExperimentalAshplumeStack => State.Stack,
+                AID.ExperimentalAshplumeSpread => State.Spread,
+                AID.ExperimentalGloryplumeSingle or AID.ExperimentalGloryplumeMulti => State.UnknownGlory, // instant cast turns this into correct state ~3 sec after cast end
+                _ => State.Done
+            };
+            if (CurState == State.Done)
+                Service.Log($"[P3S] Failed to initialize ashplume component, unexpected cast {module.PrimaryActor.CastInfo?.Action}");
         }
 
-        public override void AddHints(int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (CurState == State.Stack)
             {
@@ -31,7 +37,7 @@ namespace BossMod.Endwalker.P3S
                 int numStacked = 0;
                 bool haveTanks = actor.Role == Role.Tank;
                 bool haveHealers = actor.Role == Role.Healer;
-                foreach (var pair in _module.Raid.WithoutSlot().InRadiusExcluding(actor, _stackRadius))
+                foreach (var pair in module.Raid.WithoutSlot().InRadiusExcluding(actor, _stackRadius))
                 {
                     ++numStacked;
                     haveTanks |= pair.Role == Role.Tank;
@@ -48,14 +54,14 @@ namespace BossMod.Endwalker.P3S
             }
             else if (CurState == State.Spread)
             {
-                if (_module.Raid.WithoutSlot().InRadiusExcluding(actor, _spreadRadius).Any())
+                if (module.Raid.WithoutSlot().InRadiusExcluding(actor, _spreadRadius).Any())
                 {
                     hints.Add("Spread!");
                 }
             }
         }
 
-        public override void AddGlobalHints(GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (CurState == State.Stack)
                 hints.Add("Stack!");
@@ -63,14 +69,14 @@ namespace BossMod.Endwalker.P3S
                 hints.Add("Spread!");
         }
 
-        public override void DrawArenaForeground(int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (CurState == State.UnknownGlory || CurState == State.Done)
                 return;
 
             // draw all raid members, to simplify positioning
             float aoeRadius = CurState == State.Stack ? _stackRadius : _spreadRadius;
-            foreach (var player in _module.Raid.WithoutSlot().Exclude(pc))
+            foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
             {
                 bool inRange = GeometryUtils.PointInCircle(player.Position - pc.Position, aoeRadius);
                 arena.Actor(player, inRange ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
@@ -80,7 +86,7 @@ namespace BossMod.Endwalker.P3S
             arena.AddCircle(pc.Position, aoeRadius, arena.ColorDanger);
         }
 
-        public override void OnEventCast(CastEvent info)
+        public override void OnEventCast(BossModule module, CastEvent info)
         {
             if (!info.IsSpell())
                 return;
