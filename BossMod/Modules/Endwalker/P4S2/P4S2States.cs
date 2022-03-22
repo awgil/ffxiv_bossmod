@@ -4,7 +4,7 @@
     {
         public P4S2States(BossModule module) : base(module)
         {
-            SearingStream(0x00000000, 10);
+            SearingStream(0x00000000, 10.1f);
             AkanthaiAct1(0x00010000, 10.2f);
             FarNearSight(0x00020000, 1);
 
@@ -22,7 +22,7 @@
             DemigodDouble(0x00420000, 4.2f);
 
             AkanthaiAct6(0x00500000, 8.2f);
-            Cast(0x00510000, AID.Enrage, 4.4f, 10, "Enrage");
+            Cast(0x00510000, AID.Enrage, 4.8f, 10, "Enrage");
         }
 
         private StateMachine.State SearingStream(uint id, float delay)
@@ -187,14 +187,14 @@
             wreath.EndHint |= StateMachine.StateHint.PositioningStart;
 
             Cast(id + 0x2000, AID.KothornosKock, 3.2f, 4.9f, "Jump1");
-            ComponentCondition<WreathOfThorns3>(id + 0x2100, 4.9f, comp => comp.NumCones > 0, "Cones1");
+            ComponentCondition<WreathOfThorns3>(id + 0x2100, 4.3f, comp => comp.NumCones > 0, "Cones1");
             ComponentCondition<WreathOfThorns3>(id + 0x2200, 0.8f, comp => comp.CurState != WreathOfThorns3.State.RangedTowers, "Towers1");
 
             var knockback = ComponentCondition<WreathOfThorns3>(id + 0x3000, 2, comp => comp.CurState != WreathOfThorns3.State.Knockback, "Knockback");
             knockback.EndHint |= StateMachine.StateHint.Knockback;
 
-            ComponentCondition<WreathOfThorns3>(id + 0x4000, 3.4f, comp => comp.NumJumps > 1, "Jump2");
-            ComponentCondition<WreathOfThorns3>(id + 0x4100, 0.6f, comp => comp.CurState != WreathOfThorns3.State.MeleeTowers, "Towers2");
+            ComponentCondition<WreathOfThorns3>(id + 0x4000, 3.3f, comp => comp.NumJumps > 1, "Jump2");
+            ComponentCondition<WreathOfThorns3>(id + 0x4100, 0.7f, comp => comp.CurState != WreathOfThorns3.State.MeleeTowers, "Towers2");
             var resolve = ComponentCondition<WreathOfThorns3>(id + 0x4200, 3.4f, comp => comp.NumCones > 1, "Cones2");
             resolve.Exit.Add(Module.DeactivateComponent<WreathOfThorns3>);
             resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
@@ -292,14 +292,14 @@
             HellSting(id + 0x1000, 10.2f);
             HellSting(id + 0x2000, 14.2f);
 
-            var impulse1 = UltimateImpulse(id + 0x3000, 9.1f);
+            var impulse1 = UltimateImpulse(id + 0x3000, 9.2f);
             impulse1.Exit.Add(Module.DeactivateComponent<CurtainCall>);
             impulse1.Exit.Add(Module.ActivateComponent<CurtainCall>);
 
             HellSting(id + 0x4000, 7.2f);
             HellSting(id + 0x5000, 14.2f);
 
-            var impulse2 = UltimateImpulse(id + 0x6000, 9.1f);
+            var impulse2 = UltimateImpulse(id + 0x6000, 9.2f);
             impulse2.Exit.Add(Module.DeactivateComponent<CurtainCall>);
         }
     }

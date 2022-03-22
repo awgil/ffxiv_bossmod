@@ -245,6 +245,8 @@ namespace BossMod
                 LoadDemo();
             else
                 UnloadModule(0);
+
+            _configOrModulesUpdated = true;
         }
     }
 }

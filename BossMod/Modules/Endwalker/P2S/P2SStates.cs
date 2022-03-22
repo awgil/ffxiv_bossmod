@@ -4,12 +4,12 @@
     {
         public P2SStates(BossModule module) : base(module)
         {
-            MurkyDepths(0x00000000, 10);
+            MurkyDepths(0x00000000, 10.2f);
             DoubledImpact(0x00010000, 5.2f);
 
             // deluge 1
             SewageDeluge(0x00100000, 7.8f);
-            Cataract(0x00110000, 14.9f);
+            Cataract(0x00110000, 15);
             Coherence(0x00120000, 8.1f);
             MurkyDepths(0x00130000, 8.2f);
             OminousBubblingShockwave(0x00140000, 3.7f);
@@ -24,7 +24,7 @@
             SewageDeluge(0x00300000, 11.7f);
             Shockwave(0x00310000, 9.6f);
             KampeosHarma(0x00320000, 4.4f);
-            DoubledImpact(0x00330000, 9.9f);
+            DoubledImpact(0x00330000, 10);
             MurkyDepths(0x00340000, 4.2f);
             Flow2(0x00350000, 8.6f);
             Cataract(0x00360000, 1.2f);
@@ -84,7 +84,7 @@
             var cast = Cast(id, AID.Coherence, delay, 12);
             cast.Enter.Add(Module.ActivateComponent<Coherence>);
 
-            var resolve = ComponentCondition<Coherence>(id + 2, 3.1f, comp => comp.NumCasts > 0, "Coherence");
+            var resolve = ComponentCondition<Coherence>(id + 2, 3.2f, comp => comp.NumCasts > 0, "Coherence");
             resolve.Exit.Add(Module.DeactivateComponent<Coherence>);
             resolve.EndHint |= StateMachine.StateHint.Raidwide;
             return resolve;
@@ -142,7 +142,7 @@
             var eruption = Cast(id + 0x1000, AID.SewageEruption, 8.2f, 5, "Eruption");
             eruption.EndHint |= StateMachine.StateHint.PositioningStart;
 
-            var flood = Cast(id + 0x2000, AID.TaintedFlood, 2.3f, 3, "Flood");
+            var flood = Cast(id + 0x2000, AID.TaintedFlood, 2.4f, 3, "Flood");
             flood.Exit.Add(Module.DeactivateComponent<Dissociation>);
 
             var coherence = Coherence(id + 0x3000, 4.7f);
@@ -233,10 +233,10 @@
             start.Enter.Add(Module.ActivateComponent<KampeosHarma>); // note: icons appear right before harma cast start...
             start.EndHint |= StateMachine.StateHint.PositioningStart;
 
-            CastEnd(id + 1, 8.4f, "Harma");
+            CastEnd(id + 1, 8.5f, "Harma");
             Targetable(id + 2, false, 0); // usually happens together with cast end
 
-            var resolve = Targetable(id + 3, true, 7.5f, "Harma resolve");
+            var resolve = Targetable(id + 3, true, 7.4f, "Harma resolve");
             resolve.Exit.Add(Module.DeactivateComponent<KampeosHarma>);
             resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
         }

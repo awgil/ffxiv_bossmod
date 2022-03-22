@@ -10,7 +10,7 @@
             ElegantEvisceration(0x00030000, 4.2f);
 
             Pinax(0x00100000, 11.3f, true);
-            ElegantEvisceration(0x00110000, 4.4f);
+            ElegantEvisceration(0x00110000, 4.1f);
 
             VengefulElementalBelone(0x00200000, 4.2f);
 
@@ -107,20 +107,20 @@
             // 31.0s square 4 env control (.05 = 02000001)
             // 34.0s square 4 cast finish (+ instant 27089)
 
-            var p1 = ComponentCondition<Pinax>(id + 0x2000, 10, comp => comp.NumFinished == 1, "Corner1");
+            var p1 = ComponentCondition<Pinax>(id + 0x2000, 10.1f, comp => comp.NumFinished == 1, "Corner1");
 
             var p2 = ComponentCondition<Pinax>(id + 0x3000, 3, comp => comp.NumFinished == 2, "Corner2");
             p2.EndHint |= StateMachine.StateHint.PositioningEnd;
 
-            var shiftStart = CastStartMulti(id + 0x4000, new AID[] { AID.NortherlyShiftCloak, AID.SoutherlyShiftCloak, AID.EasterlyShiftCloak, AID.WesterlyShiftCloak, AID.NortherlyShiftSword, AID.SoutherlyShiftSword, AID.EasterlyShiftSword, AID.WesterlyShiftSword }, 3.6f);
+            var shiftStart = CastStartMulti(id + 0x4000, new AID[] { AID.NortherlyShiftCloak, AID.SoutherlyShiftCloak, AID.EasterlyShiftCloak, AID.WesterlyShiftCloak, AID.NortherlyShiftSword, AID.SoutherlyShiftSword, AID.EasterlyShiftSword, AID.WesterlyShiftSword }, 3.9f);
             shiftStart.Exit.Add(Module.ActivateComponent<Shift>); // together with this, one of the helpers starts casting 27142 or 27137
             shiftStart.EndHint |= StateMachine.StateHint.PositioningStart;
 
-            var p3 = ComponentCondition<Pinax>(id + 0x5000, 6.4f, comp => comp.NumFinished == 3, "Corner3");
+            var p3 = ComponentCondition<Pinax>(id + 0x5000, 6.1f, comp => comp.NumFinished == 3, "Corner3");
 
-            var shiftEnd = CastEnd(id + 0x6000, 1.6f, "Shift");
+            var shiftEnd = CastEnd(id + 0x6000, 1.9f, "Shift");
 
-            var p4 = ComponentCondition<Pinax>(id + 0x7000, 9.4f, comp => comp.NumFinished == 4, "Pinax resolve");
+            var p4 = ComponentCondition<Pinax>(id + 0x7000, 9.1f, comp => comp.NumFinished == 4, "Pinax resolve");
             if (!keepScene)
                 p4.Exit.Add(Module.DeactivateComponent<SettingTheScene>);
             p4.Exit.Add(Module.DeactivateComponent<Pinax>);
@@ -137,7 +137,7 @@
             bloodrake3.Exit.Add(Module.DeactivateComponent<SettingTheScene>);
             bloodrake3.EndHint |= StateMachine.StateHint.Raidwide;
 
-            var setting = Cast(id + 0x1000, AID.SettingTheScene, 7.2f, 4, "Scene");
+            var setting = Cast(id + 0x1000, AID.SettingTheScene, 7.3f, 4, "Scene");
             setting.Exit.Add(Module.ActivateComponent<SettingTheScene>);
             setting.Exit.Add(() => Module.FindComponent<ElementalBelone>()!.Visible = true);
 

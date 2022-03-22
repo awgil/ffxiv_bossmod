@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.P3S
     {
         public P3SStates(BossModule module) : base(module)
         {
-            ScorchedExaltation(0x00000000, 8);
+            ScorchedExaltation(0x00000000, 8.1f);
             HeatOfCondemnation(0x00010000, 3.2f);
             FireplumeCinderwing(0x00020000, 5.1f);
             DarkenedFire(0x00030000, 8.2f);
@@ -30,7 +30,7 @@ namespace BossMod.Endwalker.P3S
             HeatOfCondemnation(0x00320000, 5.2f);
             FirestormsOfAsphodelos(0x00330000, 8.6f);
             ConesAshplume(0x00340000, 3.2f);
-            ConesStorms(0x00350000, 2);
+            ConesStorms(0x00350000, 2.1f);
             DarkblazeTwister(0x00360000, 2.2f);
             ScorchedExaltation(0x00370000, 2.1f);
             DeathToll(0x00380000, 7.2f);
@@ -204,7 +204,7 @@ namespace BossMod.Endwalker.P3S
 
             CastEnd(id + 1, 6);
 
-            var resolve = ComponentCondition<TrailOfCondemnation>(id + 2, 1.6f, comp => comp.Done, "Trail");
+            var resolve = ComponentCondition<TrailOfCondemnation>(id + 2, 1.5f, comp => comp.Done, "Trail");
             resolve.Exit.Add(Module.DeactivateComponent<TrailOfCondemnation>);
             return resolve;
         }
@@ -251,8 +251,8 @@ namespace BossMod.Endwalker.P3S
             var trail = TrailOfCondemnation(id + 0x20000, 3.8f);
             trail.Enter.Add(Module.DeactivateComponent<Fireplume>);
 
-            SmallBirdsPhase(id + 0x30000, 6.4f);
-            LargeBirdsPhase(id + 0x40000, 3.6f);
+            SmallBirdsPhase(id + 0x30000, 6.5f);
+            LargeBirdsPhase(id + 0x40000, 3.4f);
 
             var reappear = Targetable(id + 0x50000, true, 5.2f, "Boss reappears");
             reappear.EndHint |= StateMachine.StateHint.PositioningEnd;
@@ -306,7 +306,7 @@ namespace BossMod.Endwalker.P3S
             var pinion = Cast(id + 0x1000, AID.SunsPinion, 2.1f, 6, "First birds");
             pinion.Exit.Add(Module.ActivateComponent<SunshadowTether>);
 
-            var charges = ComponentCondition<SunshadowTether>(id + 0x2000, 16, comp => comp.NumCharges == 6, "Charges");
+            var charges = ComponentCondition<SunshadowTether>(id + 0x2000, 16.1f, comp => comp.NumCharges == 6, "Charges");
             charges.Exit.Add(Module.DeactivateComponent<SunshadowTether>);
             charges.EndHint |= StateMachine.StateHint.PositioningEnd;
         }
