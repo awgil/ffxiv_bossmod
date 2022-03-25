@@ -8,11 +8,20 @@ namespace UIDev
 {
     public class Replay
     {
+        public class TimeRange
+        {
+            public DateTime Start;
+            public DateTime End;
+
+            public TimeRange(DateTime start = new(), DateTime end = new()) { Start = start; End = end; }
+            public override string ToString() => $"{(End - Start).TotalSeconds:f2}";
+        }
+
         public class Cast
         {
             public ActionID ID;
-            public DateTime Start;
-            public DateTime End;
+            public float ExpectedCastTime;
+            public TimeRange Time = new();
             public Participant? Target;
             public Vector3 Location; // if target is non-null, corresponds to target's position at cast start
         }
@@ -27,7 +36,7 @@ namespace UIDev
         public class Action
         {
             public ActionID ID;
-            public DateTime Time;
+            public DateTime Timestamp;
             public Participant? Source;
             public Vector4 SourcePosRot;
             public Participant? MainTarget;
@@ -41,8 +50,8 @@ namespace UIDev
             public uint OID;
             public ActorType Type;
             public string Name = "";
-            public DateTime Spawn;
-            public DateTime Despawn;
+            public TimeRange Existence = new();
+            public List<TimeRange> Targetable = new();
             public List<Cast> Casts = new();
             public bool HasAnyActions;
             public bool HasAnyStatuses;
@@ -54,9 +63,8 @@ namespace UIDev
             public uint ID;
             public Participant? Target;
             public Participant? Source;
-            public DateTime Apply;
-            public DateTime Expire; // initial expire timer
-            public DateTime Fade; // status could be removed before or after official expire time
+            public float InitialDuration;
+            public TimeRange Time = new();
             public ushort StartingExtra;
         }
 
@@ -65,8 +73,7 @@ namespace UIDev
             public uint ID;
             public Participant? Source;
             public Participant? Target;
-            public DateTime Appear;
-            public DateTime Disappear;
+            public TimeRange Time = new();
         }
 
         public class Icon
@@ -88,8 +95,7 @@ namespace UIDev
         {
             public uint InstanceID;
             public uint OID;
-            public DateTime Start;
-            public DateTime End;
+            public TimeRange Time = new();
             public ushort Zone;
             public Dictionary<uint, List<Participant>> Participants = new(); // key = oid
             public int FirstAction;
@@ -109,10 +115,10 @@ namespace UIDev
         public List<EnvControl> EnvControls = new();
         public List<Encounter> Encounters = new();
 
-        public IEnumerable<Action> EncounterActions(Encounter e) => Actions.Skip(e.FirstAction).TakeWhile(a => a.Time <= e.End);
-        public IEnumerable<Status> EncounterStatuses(Encounter e) => Statuses.Skip(e.FirstStatus).TakeWhile(s => s.Apply <= e.End);
-        public IEnumerable<Tether> EncounterTethers(Encounter e) => Tethers.Skip(e.FirstTether).TakeWhile(t => t.Appear <= e.End);
-        public IEnumerable<Icon> EncounterIcons(Encounter e) => Icons.Skip(e.FirstIcon).TakeWhile(i => i.Timestamp <= e.End);
-        public IEnumerable<EnvControl> EncounterEnvControls(Encounter e) => EnvControls.Skip(e.FirstEnvControl).TakeWhile(ec => ec.Timestamp <= e.End);
+        public IEnumerable<Action> EncounterActions(Encounter e) => Actions.Skip(e.FirstAction).TakeWhile(a => a.Timestamp <= e.Time.End);
+        public IEnumerable<Status> EncounterStatuses(Encounter e) => Statuses.Skip(e.FirstStatus).TakeWhile(s => s.Time.Start <= e.Time.End);
+        public IEnumerable<Tether> EncounterTethers(Encounter e) => Tethers.Skip(e.FirstTether).TakeWhile(t => t.Time.Start <= e.Time.End);
+        public IEnumerable<Icon> EncounterIcons(Encounter e) => Icons.Skip(e.FirstIcon).TakeWhile(i => i.Timestamp <= e.Time.End);
+        public IEnumerable<EnvControl> EncounterEnvControls(Encounter e) => EnvControls.Skip(e.FirstEnvControl).TakeWhile(ec => ec.Timestamp <= e.Time.End);
     }
 }

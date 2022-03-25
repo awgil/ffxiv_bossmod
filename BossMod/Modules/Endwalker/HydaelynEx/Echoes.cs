@@ -1,16 +1,16 @@
 ﻿using System;
 
-namespace BossMod.Endwalker.ZodiarkEx
+namespace BossMod.Endwalker.HydaelynEx
 {
     using static BossModule;
 
-    class Styx : CommonComponents.FullPartyStack
+    class Echoes : CommonComponents.FullPartyStack
     {
-        public Styx() : base(ActionID.MakeSpell(AID.StyxAOE), 5) { }
+        public Echoes() : base(ActionID.MakeSpell(AID.EchoesAOE), 6) { }
 
         public override void OnEventIcon(BossModule module, uint actorID, uint iconID)
         {
-            if (iconID == (uint)IconID.Styx)
+            if (iconID == (uint)IconID.Echoes)
             {
                 Target = module.WorldState.Actors.Find(actorID);
             }

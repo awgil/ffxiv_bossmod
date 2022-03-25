@@ -70,6 +70,40 @@ namespace BossMod
             return state;
         }
 
+        // create a fork state that checks passed condition; when it returns non-null, next state is one built by corresponding action in dispatch map
+        public StateMachine.State ConditionFork<Key>(uint id, float expected, Func<bool> condition, Func<Key> select, Dictionary<Key, Action> dispatch, string name = "")
+            where Key : notnull
+        {
+            Dictionary<Key, StateMachine.State?> stateDispatch = new();
+
+            var state = Simple(id, expected, name);
+            state.Comment = $"Fork: [{string.Join(", ", dispatch.Keys)}]";
+            state.Update = _ =>
+            {
+                if (!condition())
+                    return null;
+
+                var key = select();
+                var fork = stateDispatch.GetValueOrDefault(key);
+                if (fork == null)
+                    Service.Log($"[StateMachine] Unexpected fork condition result: got {key}");
+                return fork;
+            };
+
+            var prevInit = Module.InitialState;
+            foreach (var (key, action) in dispatch)
+            {
+                _lastState = Module.InitialState = null;
+                action();
+                stateDispatch[key] = Module.InitialState;
+            }
+            Module.InitialState = prevInit;
+            _lastState = null;
+
+            state.PotentialSuccessors = stateDispatch.Values.OfType<StateMachine.State>().Distinct().ToArray();
+            return state;
+        }
+
         // create a state triggered by component condition (or timeout if it never happens); if component is not present, error is logged and transition is triggered immediately
         public StateMachine.State ComponentCondition<T>(uint id, float expected, Func<T, bool> condition, string name = "", float maxOverdue = 1, float checkDelay = 0) where T : BossModule.Component
         {
@@ -86,6 +120,24 @@ namespace BossMod
                 return timeSinceTransition >= (expected + maxOverdue) || (timeSinceTransition >= checkDelay && condition(comp)) ? state.Next : null;
             };
             return state;
+        }
+
+        // create a fork state triggered by component condition
+        public StateMachine.State ComponentConditionFork<T, Key>(uint id, float expected, Func<T, bool> condition, Func<T, Key> select, Dictionary<Key, Action> dispatch, string name = "")
+            where T : BossModule.Component
+            where Key : notnull
+        {
+            Func<bool> cond = () =>
+            {
+                var comp = Module.FindComponent<T>();
+                if (comp == null)
+                {
+                    Service.Log($"[StateMachine] Component {typeof(T)} needed for condition is missing");
+                    return false;
+                }
+                return condition(comp);
+            };
+            return ConditionFork(id, expected, cond, () => select(Module.FindComponent<T>()!), dispatch, name);
         }
 
         // create a state triggered by expected cast start by a primary actor; unexpected casts still trigger a transition, but log error
@@ -132,34 +184,8 @@ namespace BossMod
         public StateMachine.State CastStartFork<AID>(uint id, Dictionary<AID, Action> dispatch, float delay, string name = "")
              where AID : Enum
         {
-            Dictionary<ActionID, StateMachine.State?> stateDispatch = new();
-
-            var state = Simple(id, delay, name);
-            state.Comment = $"Fork: [{string.Join(", ", dispatch.Keys)}]";
-            state.Update = _ =>
-            {
-                var castInfo = Module.PrimaryActor.CastInfo;
-                if (castInfo == null)
-                    return null;
-
-                var fork = stateDispatch.GetValueOrDefault(castInfo.Action);
-                if (fork == null)
-                    Service.Log($"[StateMachine] Unexpected cast start for actor {Module.PrimaryActor.OID:X}: got {castInfo.Action}");
-                return fork;
-            };
+            var state = ConditionFork(id, delay, () => Module.PrimaryActor.CastInfo != null, () => (AID)(object)(Module.PrimaryActor.CastInfo!.IsSpell() ? Module.PrimaryActor.CastInfo.Action.ID : 0), dispatch, name);
             state.EndHint |= StateMachine.StateHint.BossCastStart;
-
-            var prevInit = Module.InitialState;
-            foreach (var (aid, action) in dispatch)
-            {
-                _lastState = Module.InitialState = null;
-                action();
-                stateDispatch[ActionID.MakeSpell(aid)] = Module.InitialState;
-            }
-            Module.InitialState = prevInit;
-            _lastState = null;
-
-            state.PotentialSuccessors = stateDispatch.Values.OfType<StateMachine.State>().Distinct().ToArray();
             return state;
         }
 
@@ -178,6 +204,14 @@ namespace BossMod
             where AID : Enum
         {
             CastStart(id, aid, delay, "");
+            return CastEnd(id + 1, castTime, name);
+        }
+
+        // create a chain of states: CastStartMulti -> CastEnd; second state uses id+1
+        public StateMachine.State CastMulti<AID>(uint id, IEnumerable<AID> aids, float delay, float castTime, string name = "")
+            where AID : Enum
+        {
+            CastStartMulti(id, aids, delay, "");
             return CastEnd(id + 1, castTime, name);
         }
 

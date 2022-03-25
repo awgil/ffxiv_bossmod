@@ -45,6 +45,45 @@
             }
         }
 
+        // generic 'stack to target' component that shows radius around specific actor; derived class should set actor as needed
+        // it is also a cast counter
+        public class FullPartyStack : CastCounter
+        {
+            protected float StackRadius;
+            protected Actor? Target;
+
+            public FullPartyStack(ActionID aid, float stackRadius)
+                : base(aid)
+            {
+                StackRadius = stackRadius;
+            }
+
+            public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+            {
+                if (Target != null && Target != actor && !GeometryUtils.PointInCircle(actor.Position - Target.Position, StackRadius))
+                    hints.Add("Stack!");
+            }
+
+            public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+            {
+                if (Target == null)
+                    return;
+
+                arena.AddCircle(Target.Position, StackRadius, arena.ColorDanger);
+                if (Target == pc)
+                {
+                    // draw other players to simplify stacking
+                    foreach (var a in module.Raid.WithoutSlot().Exclude(pc))
+                        arena.Actor(a, GeometryUtils.PointInCircle(a.Position - Target.Position, StackRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                }
+                else
+                {
+                    // draw target next to which pc is to stack
+                    arena.Actor(Target, arena.ColorDanger);
+                }
+            }
+        }
+
         // generic component that is 'active' during specific primary target's cast
         // useful for simple bosses - outdoor, dungeons, etc.
         public class CastHint : BossModule.Component

@@ -6,6 +6,7 @@ namespace BossMod
     {
         public abstract bool Check(Vector3 position, Vector3 origin, float rotation);
         public abstract void Draw(MiniArena arena, Vector3 origin, float rotation);
+        public abstract void Outline(MiniArena arena, Vector3 origin, float rotation);
 
         public bool Check(Vector3 position, Actor? origin)
         {
@@ -16,6 +17,12 @@ namespace BossMod
         {
             if (origin != null)
                 Draw(arena, origin.Position, origin.Rotation);
+        }
+
+        public void Outline(MiniArena arena, Actor? origin)
+        {
+            if (origin != null)
+                Outline(arena, origin.Position, origin.Rotation);
         }
     }
 
@@ -42,6 +49,11 @@ namespace BossMod
         {
             arena.ZoneCone(origin, 0, Radius, rotation + DirectionOffset - HalfAngle, rotation + DirectionOffset + HalfAngle, arena.ColorAOE);
         }
+
+        public override void Outline(MiniArena arena, Vector3 origin, float rotation)
+        {
+            arena.AddCone(origin, Radius, rotation + DirectionOffset, HalfAngle, arena.ColorDanger);
+        }
     }
 
     public class AOEShapeCircle : AOEShape
@@ -61,6 +73,11 @@ namespace BossMod
         public override void Draw(MiniArena arena, Vector3 origin, float rotation)
         {
             arena.ZoneCircle(origin, Radius, arena.ColorAOE);
+        }
+
+        public override void Outline(MiniArena arena, Vector3 origin, float rotation)
+        {
+            arena.AddCircle(origin, Radius, arena.ColorDanger);
         }
     }
 
@@ -84,6 +101,12 @@ namespace BossMod
         public override void Draw(MiniArena arena, Vector3 origin, float rotation)
         {
             arena.ZoneDonut(origin, InnerRadius, OuterRadius, arena.ColorAOE);
+        }
+
+        public override void Outline(MiniArena arena, Vector3 origin, float rotation)
+        {
+            arena.AddCircle(origin, InnerRadius, arena.ColorDanger);
+            arena.AddCircle(origin, OuterRadius, arena.ColorDanger);
         }
     }
 
@@ -110,6 +133,15 @@ namespace BossMod
         public override void Draw(MiniArena arena, Vector3 origin, float rotation)
         {
             arena.ZoneQuad(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth, arena.ColorAOE);
+        }
+
+        public override void Outline(MiniArena arena, Vector3 origin, float rotation)
+        {
+            Vector3 direction = GeometryUtils.DirectionToVec3(rotation + DirectionOffset);
+            Vector3 side = HalfWidth * new Vector3(-direction.Z, 0, direction.X);
+            Vector3 front = origin + LengthFront * direction;
+            Vector3 back = origin - LengthBack * direction;
+            arena.AddQuad(front + side, front - side, back - side, back + side, arena.ColorDanger);
         }
 
         public void SetEndPoint(Vector3 endpoint, Vector3 origin, float rotation)

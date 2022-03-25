@@ -25,11 +25,20 @@ namespace BossMod
             if (!info.IsSpell())
                 return;
             // see https://i.redd.it/xrtgpras94881.png
-            // TODO: AST, DRG, BRD, DNC, RDM damage buffs, all non-damage buffs
+            // TODO: AST card buffs?, all non-damage buffs
             _ = info.Action.ID switch
             {
+                118 => UpdateDamageCooldown(info.CasterID, info.Action, 15, 120), // BRD battle voice
+                //2258 => UpdateDamageCooldown(info.CasterID, info.Action, 15, 60), // NIN trick attack - note that this results in debuff on enemy, which isn't handled properly for now
+                3557 => UpdateDamageCooldown(info.CasterID, info.Action, 15, 120), // DRG battle litany
                 7396 => UpdateDamageCooldown(info.CasterID, info.Action, 15, 120), // MNK brotherhood
+                //7398 => UpdateDamageCooldown(info.CasterID, info.Action, 20, 120), // DRG dragon sight - note that it is single-target rather than raid
+                //7436 => UpdateDamageCooldown(info.CasterID, info.Action, 15, 120), // SCH chain stratagem - note that this results in debuff on enemy, which isn't handled properly for now
+                7520 => UpdateDamageCooldown(info.CasterID, info.Action, 20, 120), // RDM embolden
+                16196 => UpdateDamageCooldown(info.CasterID, info.Action, 20, 120), // DNC technical finish
+                16552 => UpdateDamageCooldown(info.CasterID, info.Action, 15, 120), // AST divination
                 24405 => UpdateDamageCooldown(info.CasterID, info.Action, 20, 120), // RPR arcane circle
+                25785 => UpdateDamageCooldown(info.CasterID, info.Action, 15, 120), // BRD radiant finale - note that even though CD is 110, it's used together with other 2min cds
                 25801 => UpdateDamageCooldown(info.CasterID, info.Action, 30, 120), // SMN searing light
                 _ => false
             };

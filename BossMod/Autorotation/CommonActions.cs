@@ -1,7 +1,4 @@
-﻿using Dalamud.Game.ClientState.Statuses;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 
 namespace BossMod
 {
@@ -36,13 +33,21 @@ namespace BossMod
         public bool IsDamageBuff(uint statusID)
         {
             // see https://i.redd.it/xrtgpras94881.png
-            // TODO: AST, DRG, BRD, DNC, RDM buffs
+            // TODO: AST card buffs?, enemy debuffs?, single-target buffs (DRG dragon sight, DNC devilment)
             return statusID switch
             {
                 49 => true, // medicated
+                141 => true, // BRD battle voice
+                //638 => true, // NIN trick attack - note that this is a debuff on enemy
+                786 => true, // DRG battle litany
                 1185 => true, // MNK brotherhood
+                //1221 => true, // SCH chain stratagem - note that this is a debuff on enemy
+                1297 => true, // RDM embolden
+                1822 => true, // DNC technical finish
+                1878 => true, // AST divination
                 2599 => true, // RPR arcane circle
                 2703 => true, // SMN searing light
+                2964 => true, // BRD radiant finale
                 _ => false
             };
         }

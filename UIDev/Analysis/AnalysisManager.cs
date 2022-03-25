@@ -11,6 +11,7 @@ namespace UIDev
         private List<Replay> _replays = new();
         private Analysis.UnknownActionEffects? _unkEffects;
         private Analysis.StateTransitionTimings? _transitionTimings;
+        private Analysis.AbilityDamage? _abilityDamage;
 
         public AnalysisManager(string rootPath)
         {
@@ -50,6 +51,14 @@ namespace UIDev
                 if (_transitionTimings == null)
                     _transitionTimings = new Analysis.StateTransitionTimings(_replays);
                 _transitionTimings.Draw();
+                ImGui.TreePop();
+            }
+
+            if (ImGui.TreeNode("Ability damage"))
+            {
+                if (_abilityDamage == null)
+                    _abilityDamage = new Analysis.AbilityDamage(_replays);
+                _abilityDamage.Draw();
                 ImGui.TreePop();
             }
         }

@@ -108,8 +108,8 @@ namespace UIDev
             dl.AddTriangleFilled(curp, curp + new Vector2(3, 5), curp + new Vector2(-3, 5), 0xff00ffff);
             foreach (var e in _data.Encounters)
             {
-                DrawCheckpoint(e.Start, 0xff00ff00, cursor, w);
-                DrawCheckpoint(e.End, 0xff0000ff, cursor, w);
+                DrawCheckpoint(e.Time.Start, 0xff00ff00, cursor, w);
+                DrawCheckpoint(e.Time.End, 0xff0000ff, cursor, w);
             }
             ImGui.Dummy(new(w, 8));
         }
@@ -273,7 +273,7 @@ namespace UIDev
         {
             foreach (var a in actions)
             {
-                if (ImGui.TreeNodeEx($"{(a.Time - start).TotalSeconds:f2}: {a.ID} ({aidType?.GetEnumName(a.ID.ID)}): {ReplayUtils.ParticipantPosRotString(a.Source, a.SourcePosRot)} -> {ReplayUtils.ParticipantPosRotString(a.MainTarget, a.MainTargetPosRot)} ({a.Targets.Count} affected)", a.Targets.Count > 0 ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf))
+                if (ImGui.TreeNodeEx($"{new Replay.TimeRange(start, a.Timestamp)}: {a.ID} ({aidType?.GetEnumName(a.ID.ID)}): {ReplayUtils.ParticipantPosRotString(a.Source, a.SourcePosRot)} -> {ReplayUtils.ParticipantPosRotString(a.MainTarget, a.MainTargetPosRot)} ({a.Targets.Count} affected)", a.Targets.Count > 0 ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf))
                 {
                     foreach (var t in a.Targets)
                     {
@@ -296,7 +296,7 @@ namespace UIDev
         {
             foreach (var s in statuses)
             {
-                if (ImGui.TreeNodeEx($"{(s.Apply - start).TotalSeconds:f2} + {(s.Expire - s.Apply).TotalSeconds:f2} / {(s.Fade - s.Apply).TotalSeconds:f2}: {Utils.StatusString(s.ID)} ({sidType?.GetEnumName(s.ID)}) ({s.StartingExtra:X}) @ {ReplayUtils.ParticipantString(s.Target)} from {ReplayUtils.ParticipantString(s.Source)}", ImGuiTreeNodeFlags.Leaf))
+                if (ImGui.TreeNodeEx($"{new Replay.TimeRange(start, s.Time.Start)} + {s.InitialDuration:f2} / {s.Time}: {Utils.StatusString(s.ID)} ({sidType?.GetEnumName(s.ID)}) ({s.StartingExtra:X}) @ {ReplayUtils.ParticipantString(s.Target)} from {ReplayUtils.ParticipantString(s.Source)}", ImGuiTreeNodeFlags.Leaf))
                     ImGui.TreePop();
             }
         }
@@ -314,42 +314,51 @@ namespace UIDev
                 var sidType = moduleType.Module.GetType($"{moduleType.Namespace}.SID");
                 var iidType = moduleType.Module.GetType($"{moduleType.Namespace}.IconID");
                 var tidType = moduleType.Module.GetType($"{moduleType.Namespace}.TetherID");
-                if (ImGui.TreeNode($"{moduleType}: {e.InstanceID:X}, zone={e.Zone}, start={e.Start:O}, duration={(e.End - e.Start).TotalSeconds:f2}"))
+                if (ImGui.TreeNode($"{moduleType}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}"))
                 {
                     if (ImGui.TreeNodeEx("Participants", e.Participants.Count > 0 ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf))
                     {
                         foreach ((var oid, var list) in e.Participants)
                         {
-                            if (ImGui.TreeNode($"{oid:X} '{oidType?.GetEnumName(oid)}'"))
+                            if (ImGui.TreeNode($"{oid:X} '{oidType?.GetEnumName(oid)}' ({list.Count} objects)"))
                             {
                                 foreach (var p in list)
                                 {
-                                    var pflags = (p.Casts.Count > 0 || p.HasAnyActions || p.HasAnyStatuses || p.IsTargetOfAnyActions) ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf;
-                                    if (ImGui.TreeNodeEx($"{ReplayUtils.ParticipantString(p)}: spawn at {(p.Spawn - e.Start).TotalSeconds:f2}, despawn at {(p.Despawn - e.Start).TotalSeconds:f2}", pflags))
+                                    var pflags = (p.Casts.Count > 0 || p.HasAnyActions || p.HasAnyStatuses || p.IsTargetOfAnyActions || p.Targetable.Count > 0) ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf;
+                                    if (ImGui.TreeNodeEx($"{ReplayUtils.ParticipantString(p)}: spawn at {new Replay.TimeRange(e.Time.Start, p.Existence.Start)}, despawn at {new Replay.TimeRange(e.Time.Start, p.Existence.End)}", pflags))
                                     {
                                         if (p.Casts.Count > 0 && ImGui.TreeNode("Casts"))
                                         {
                                             for (int i = 0; i < p.Casts.Count; ++i)
                                             {
                                                 var c = p.Casts[i];
-                                                if (ImGui.TreeNodeEx($"{(c.Start - e.Start).TotalSeconds:f2} ({(c.Start - (i == 0 ? e.Start : p.Casts[i - 1].End)).TotalSeconds:f2}) + {(c.End - c.Start).TotalSeconds:f2}: {c.ID} ({aidType?.GetEnumName(c.ID.ID)}) @ {ReplayUtils.ParticipantString(c.Target)} / {Utils.Vec3String(c.Location)}", ImGuiTreeNodeFlags.Leaf))
+                                                if (ImGui.TreeNodeEx($"{new Replay.TimeRange(e.Time.Start, c.Time.Start)} ({new Replay.TimeRange(i == 0 ? e.Time.Start : p.Casts[i - 1].Time.End, c.Time.Start)}) + {c.ExpectedCastTime + 0.3f:f2} ({c.Time}): {c.ID} ({aidType?.GetEnumName(c.ID.ID)}) @ {ReplayUtils.ParticipantString(c.Target)} / {Utils.Vec3String(c.Location)}", ImGuiTreeNodeFlags.Leaf))
                                                     ImGui.TreePop();
                                             }
                                             ImGui.TreePop();
                                         }
                                         if (p.HasAnyActions && ImGui.TreeNode("Actions"))
                                         {
-                                            DrawActionNodes(_data.EncounterActions(e).Where(a => a.Source == p), e.Start, aidType);
+                                            DrawActionNodes(_data.EncounterActions(e).Where(a => a.Source == p), e.Time.Start, aidType);
                                             ImGui.TreePop();
                                         }
                                         if (p.IsTargetOfAnyActions && ImGui.TreeNode("Affected by actions"))
                                         {
-                                            DrawActionNodes(_data.EncounterActions(e).Where(a => a.Targets.Any(t => t.Target == p)), e.Start, aidType);
+                                            DrawActionNodes(_data.EncounterActions(e).Where(a => a.Targets.Any(t => t.Target == p)), e.Time.Start, aidType);
                                             ImGui.TreePop();
                                         }
                                         if (p.HasAnyStatuses && ImGui.TreeNode("Statuses"))
                                         {
-                                            DrawStatusNodes(_data.EncounterStatuses(e).Where(s => s.Target == p), e.Start, sidType);
+                                            DrawStatusNodes(_data.EncounterStatuses(e).Where(s => s.Target == p), e.Time.Start, sidType);
+                                            ImGui.TreePop();
+                                        }
+                                        if (p.Targetable.Count > 0 && ImGui.TreeNode("Targetable"))
+                                        {
+                                            foreach (var r in p.Targetable)
+                                            {
+                                                if (ImGui.TreeNodeEx($"{new Replay.TimeRange(e.Time.Start, r.Start)} - {new Replay.TimeRange(e.Time.Start, r.End)}", ImGuiTreeNodeFlags.Leaf))
+                                                    ImGui.TreePop();
+                                            }
                                             ImGui.TreePop();
                                         }
                                         ImGui.TreePop();
@@ -365,12 +374,12 @@ namespace UIDev
                     Func<Replay.Action, bool> actionIsCrap = a => a.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo;
                     if (ImGui.TreeNodeEx("Interesting actions", haveActions ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf))
                     {
-                        DrawActionNodes(_data.EncounterActions(e).Where(a => !actionIsCrap(a)), e.Start, aidType);
+                        DrawActionNodes(_data.EncounterActions(e).Where(a => !actionIsCrap(a)), e.Time.Start, aidType);
                         ImGui.TreePop();
                     }
                     if (ImGui.TreeNodeEx("Other actions", haveActions ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf))
                     {
-                        DrawActionNodes(_data.EncounterActions(e).Where(actionIsCrap), e.Start, aidType);
+                        DrawActionNodes(_data.EncounterActions(e).Where(actionIsCrap), e.Time.Start, aidType);
                         ImGui.TreePop();
                     }
 
@@ -378,12 +387,12 @@ namespace UIDev
                     Func<Replay.Status, bool> statusIsCrap = s => (s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo) || (s.Target?.Type is ActorType.Pet or ActorType.Chocobo);
                     if (ImGui.TreeNodeEx("Interesting statuses", haveStatuses ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf))
                     {
-                        DrawStatusNodes(_data.EncounterStatuses(e).Where(s => !statusIsCrap(s)), e.Start, sidType);
+                        DrawStatusNodes(_data.EncounterStatuses(e).Where(s => !statusIsCrap(s)), e.Time.Start, sidType);
                         ImGui.TreePop();
                     }
                     if (ImGui.TreeNodeEx("Other statuses", haveStatuses ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf))
                     {
-                        DrawStatusNodes(_data.EncounterStatuses(e).Where(statusIsCrap), e.Start, sidType);
+                        DrawStatusNodes(_data.EncounterStatuses(e).Where(statusIsCrap), e.Time.Start, sidType);
                         ImGui.TreePop();
                     }
 
@@ -391,7 +400,7 @@ namespace UIDev
                     {
                         foreach (var t in _data.EncounterTethers(e))
                         {
-                            if (ImGui.TreeNodeEx($"{(t.Appear - e.Start).TotalSeconds:f2} + {(t.Disappear - t.Appear).TotalSeconds:f2}: {t.ID} ({tidType?.GetEnumName(t.ID)}) @ {ReplayUtils.ParticipantString(t.Source)} -> {ReplayUtils.ParticipantString(t.Target)}", ImGuiTreeNodeFlags.Leaf))
+                            if (ImGui.TreeNodeEx($"{new Replay.TimeRange(e.Time.Start, t.Time.Start)} + {t.Time}: {t.ID} ({tidType?.GetEnumName(t.ID)}) @ {ReplayUtils.ParticipantString(t.Source)} -> {ReplayUtils.ParticipantString(t.Target)}", ImGuiTreeNodeFlags.Leaf))
                                 ImGui.TreePop();
                         }
                         ImGui.TreePop();
@@ -401,7 +410,7 @@ namespace UIDev
                     {
                         foreach (var i in _data.EncounterIcons(e))
                         {
-                            if (ImGui.TreeNodeEx($"{(i.Timestamp - e.Start).TotalSeconds:f2}: {i.ID} ({iidType?.GetEnumName(i.ID)}) @ {ReplayUtils.ParticipantString(i.Target)}", ImGuiTreeNodeFlags.Leaf))
+                            if (ImGui.TreeNodeEx($"{new Replay.TimeRange(e.Time.Start, i.Timestamp)}: {i.ID} ({iidType?.GetEnumName(i.ID)}) @ {ReplayUtils.ParticipantString(i.Target)}", ImGuiTreeNodeFlags.Leaf))
                                 ImGui.TreePop();
                         }
                         ImGui.TreePop();
@@ -411,7 +420,7 @@ namespace UIDev
                     {
                         foreach (var ec in _data.EncounterEnvControls(e))
                         {
-                            if (ImGui.TreeNodeEx($"{(ec.Timestamp - e.Start).TotalSeconds:f2}: {ec.Feature:X8}.{ec.Index:X2} = {ec.State:X8}", ImGuiTreeNodeFlags.Leaf))
+                            if (ImGui.TreeNodeEx($"{new Replay.TimeRange(e.Time.Start, ec.Timestamp)}: {ec.Feature:X8}.{ec.Index:X2} = {ec.State:X8}", ImGuiTreeNodeFlags.Leaf))
                                 ImGui.TreePop();
                         }
                         ImGui.TreePop();

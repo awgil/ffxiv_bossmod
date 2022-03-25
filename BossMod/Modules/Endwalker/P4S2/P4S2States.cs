@@ -55,7 +55,7 @@
 
         private void DemigodDouble(uint id, float delay)
         {
-            var s = Cast(id, AID.DemigodDouble, delay, 5, "SharedTankbuster");
+            var s = Cast(id, AID.DemigodDouble, delay, 5, "Shared Tankbuster");
             s.Enter.Add(Module.ActivateComponent<DemigodDouble>);
             s.Exit.Add(Module.DeactivateComponent<DemigodDouble>);
             s.EndHint |= StateMachine.StateHint.Tankbuster;

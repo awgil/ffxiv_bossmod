@@ -26,6 +26,7 @@ namespace UIDev
             _ws.Actors.Untethered += TetherRemove;
             _ws.Actors.StatusGain += StatusGain;
             _ws.Actors.StatusLose += StatusLose;
+            _ws.Actors.StatusChange += StatusChange;
             _ws.Events.Icon += EventIcon;
             _ws.Events.Cast += EventCast;
             _ws.Events.EnvControl += EventEnvControl;
@@ -56,21 +57,23 @@ namespace UIDev
             _res.Path = path;
             foreach (var enc in _encounters.Values)
             {
-                enc.End = _ws.CurrentTime;
+                enc.Time.End = _ws.CurrentTime;
             }
             foreach (var p in _participants.Values)
             {
-                p.Despawn = _ws.CurrentTime;
-                if (p.Casts.LastOrDefault()?.End == new DateTime())
-                    p.Casts.Last().End = _ws.CurrentTime;
+                p.Existence.End = _ws.CurrentTime;
+                if (p.Casts.LastOrDefault()?.Time.End == new DateTime())
+                    p.Casts.Last().Time.End = _ws.CurrentTime;
+                if (p.Targetable.LastOrDefault()?.End == new DateTime())
+                    p.Targetable.Last().End = _ws.CurrentTime;
             }
             foreach (var s in _statuses.Values)
             {
-                s.Fade = _ws.CurrentTime;
+                s.Time.End = _ws.CurrentTime;
             }
             foreach (var t in _tethers.Values)
             {
-                t.Disappear = _ws.CurrentTime;
+                t.Time.End = _ws.CurrentTime;
             }
             return _res;
         }
@@ -88,7 +91,7 @@ namespace UIDev
             {
                 InstanceID = actor.InstanceID,
                 OID = actor.OID,
-                Start = _ws.CurrentTime,
+                Time = new(_ws.CurrentTime),
                 Zone = _ws.CurrentZone,
                 FirstAction = _res.Actions.Count,
                 FirstStatus = _res.Statuses.Count,
@@ -107,13 +110,15 @@ namespace UIDev
             if (e == null)
                 return;
 
-            e.End = _ws.CurrentTime;
+            e.Time.End = _ws.CurrentTime;
             _encounters.Remove(actor.InstanceID);
         }
 
         private void ActorAdded(object? sender, Actor actor)
         {
-            var p = _participants[actor.InstanceID] = new() { InstanceID = actor.InstanceID, OID = actor.OID, Type = actor.Type, Name = actor.Name, Spawn = _ws.CurrentTime };
+            var p = _participants[actor.InstanceID] = new() { InstanceID = actor.InstanceID, OID = actor.OID, Type = actor.Type, Name = actor.Name, Existence = new(_ws.CurrentTime) };
+            if (actor.IsTargetable)
+                p.Targetable.Add(new(_ws.CurrentTime));
             _res.Participants.Add(p);
             foreach (var e in _encounters.Values)
                 e.Participants.GetOrAdd(p.OID).Add(p);
@@ -121,7 +126,10 @@ namespace UIDev
 
         private void ActorRemoved(object? sender, Actor actor)
         {
-            _participants[actor.InstanceID].Despawn = _ws.CurrentTime;
+            var p = _participants[actor.InstanceID];
+            p.Existence.End = _ws.CurrentTime;
+            if (actor.IsTargetable)
+                p.Targetable.Last().End = _ws.CurrentTime;
             _participants.Remove(actor.InstanceID);
         }
 
@@ -135,6 +143,12 @@ namespace UIDev
 
         private void ActorTargetable(object? sender, Actor actor)
         {
+            var p = _participants[actor.InstanceID];
+            if (actor.IsTargetable)
+                p.Targetable.Add(new(_ws.CurrentTime));
+            else
+                p.Targetable.Last().End = _ws.CurrentTime;
+
             if (actor.InCombat && actor.IsTargetable)
                 StartEncounter(actor);
         }
@@ -143,23 +157,23 @@ namespace UIDev
         {
             var c = actor.CastInfo!;
             var target = _participants.GetValueOrDefault(c.TargetID);
-            _participants[actor.InstanceID].Casts.Add(new() { ID = c.Action, Start = _ws.CurrentTime, Target = target, Location = c.TargetID == 0 ? c.Location : (_ws.Actors.Find(c.TargetID)?.Position ?? new()) });
+            _participants[actor.InstanceID].Casts.Add(new() { ID = c.Action, ExpectedCastTime = c.TotalTime, Time = new(_ws.CurrentTime), Target = target, Location = c.TargetID == 0 ? c.Location : (_ws.Actors.Find(c.TargetID)?.Position ?? new()) });
         }
 
         private void CastFinish(object? sender, Actor actor)
         {
-            _participants[actor.InstanceID].Casts.Last().End = _ws.CurrentTime;
+            _participants[actor.InstanceID].Casts.Last().Time.End = _ws.CurrentTime;
         }
 
         private void TetherAdd(object? sender, Actor actor)
         {
-            var t = _tethers[actor.InstanceID] = new() { ID = actor.Tether.ID, Source = _participants[actor.InstanceID], Target = _participants.GetValueOrDefault(actor.Tether.Target), Appear = _ws.CurrentTime };
+            var t = _tethers[actor.InstanceID] = new() { ID = actor.Tether.ID, Source = _participants[actor.InstanceID], Target = _participants.GetValueOrDefault(actor.Tether.Target), Time = new(_ws.CurrentTime) };
             _res.Tethers.Add(t);
         }
 
         private void TetherRemove(object? sender, Actor actor)
         {
-            _tethers[actor.InstanceID].Disappear = _ws.CurrentTime;
+            _tethers[actor.InstanceID].Time.End = _ws.CurrentTime;
             _tethers.Remove(actor.InstanceID);
         }
 
@@ -168,7 +182,7 @@ namespace UIDev
             var p = _participants[args.actor.InstanceID];
             var s = args.actor.Statuses[args.index];
             var src = _participants.GetValueOrDefault(s.SourceID);
-            var r = _statuses[(args.actor.InstanceID, s.ID, s.SourceID)] = new() { ID = s.ID, Target = p, Source = src, Apply = _ws.CurrentTime, Expire = s.ExpireAt, StartingExtra = s.Extra };
+            var r = _statuses[(args.actor.InstanceID, s.ID, s.SourceID)] = new() { ID = s.ID, Target = p, Source = src, InitialDuration = (float)(s.ExpireAt - _ws.CurrentTime).TotalSeconds, Time = new(_ws.CurrentTime), StartingExtra = s.Extra };
             p.HasAnyStatuses = true;
             _res.Statuses.Add(r);
         }
@@ -180,8 +194,14 @@ namespace UIDev
             if (r == null)
                 return;
 
-            r.Fade = _ws.CurrentTime;
+            r.Time.End = _ws.CurrentTime;
             _statuses.Remove((args.actor.InstanceID, s.ID, s.SourceID));
+        }
+
+        private void StatusChange(object? sender, (Actor actor, int index, ushort, DateTime) args)
+        {
+            StatusLose(sender, (args.actor, args.index));
+            StatusGain(sender, (args.actor, args.index));
         }
 
         private void EventIcon(object? sender, (uint actorID, uint iconID) args)
@@ -197,7 +217,7 @@ namespace UIDev
                 Service.Log($"Skipping {info.Action} cast from unknown actor {info.CasterID:X}");
                 return;
             }
-            var a = new Replay.Action() { ID = info.Action, Time = _ws.CurrentTime, Source = p, SourcePosRot = _ws.Actors.Find(info.CasterID)?.PosRot ?? new(),
+            var a = new Replay.Action() { ID = info.Action, Timestamp = _ws.CurrentTime, Source = p, SourcePosRot = _ws.Actors.Find(info.CasterID)?.PosRot ?? new(),
                 MainTarget = _participants.GetValueOrDefault(info.MainTargetID), MainTargetPosRot = _ws.Actors.Find(info.MainTargetID)?.PosRot ?? new() };
             foreach (var t in info.Targets)
             {

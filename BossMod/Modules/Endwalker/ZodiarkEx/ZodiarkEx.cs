@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.ZodiarkEx
+﻿namespace BossMod.Endwalker.ZodiarkEx
 {
     // simple component tracking raidwide cast at the end of intermission
     public class Apomnemoneumata : CommonComponents.CastCounter
@@ -16,11 +12,6 @@ namespace BossMod.Endwalker.ZodiarkEx
             : base(manager, primary, true)
         {
             new ZodiarkExStates(this);
-        }
-
-        protected override void ResetModule()
-        {
-            ActivateComponent<StyxTargetTracker>();
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

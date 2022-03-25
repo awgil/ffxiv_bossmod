@@ -312,28 +312,16 @@ namespace BossMod
 
         private void OnActorCreated(object? sender, Actor actor)
         {
-            switch (actor.Type)
-            {
-                case ActorType.Unknown:
-                case ActorType.Enemy:
-                    var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
-                    if (relevant != null)
-                        relevant.Add(actor);
-                    break;
-            }
+            var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
+            if (relevant != null)
+                relevant.Add(actor);
         }
 
         private void OnActorDestroyed(object? sender, Actor actor)
         {
-            switch (actor.Type)
-            {
-                case ActorType.Unknown:
-                case ActorType.Enemy:
-                    var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
-                    if (relevant != null)
-                        relevant.Remove(actor);
-                    break;
-            }
+            var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
+            if (relevant != null)
+                relevant.Remove(actor);
         }
 
         private void OnActorCastStarted(object? sender, Actor actor)

@@ -157,6 +157,16 @@ namespace BossMod
             ImGui.GetWindowDrawList().AddCircleFilled(WorldPositionToScreenPosition(center), radius / WorldHalfSize * ScreenHalfSize, color);
         }
 
+        public void AddCone(Vector3 center, float radius, float centerDirection, float halfAngle, uint color, float thickness = 1)
+        {
+            var sCenter = WorldPositionToScreenPosition(center);
+            float sDir = centerDirection - MathF.PI / 2 + _cameraAzimuth;
+            var drawlist = ImGui.GetWindowDrawList();
+            drawlist.PathLineTo(sCenter);
+            drawlist.PathArcTo(sCenter, radius / WorldHalfSize * ScreenHalfSize, sDir - halfAngle, sDir + halfAngle);
+            drawlist.PathStroke(color, ImDrawFlags.Closed, thickness);
+        }
+
         // path api: add new point to path; this adds new edge from last added point, or defines first vertex if path is empty
         public void PathLineTo(Vector3 p)
         {

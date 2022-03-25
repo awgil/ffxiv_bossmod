@@ -47,13 +47,13 @@ namespace BossMod.Endwalker.P1S
 
         private void HeavyHand(uint id, float delay)
         {
-            var s = Cast(id, AID.HeavyHand, delay, 5, "HeavyHand");
+            var s = Cast(id, AID.HeavyHand, delay, 5, "Tankbuster");
             s.EndHint |= StateMachine.StateHint.Tankbuster;
         }
 
         private void WarderWrath(uint id, float delay)
         {
-            var s = Cast(id, AID.WarderWrath, delay, 5, "Wrath");
+            var s = Cast(id, AID.WarderWrath, delay, 5, "Raidwide");
             s.EndHint |= StateMachine.StateHint.Raidwide;
         }
 

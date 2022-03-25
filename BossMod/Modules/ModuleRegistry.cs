@@ -8,6 +8,7 @@ namespace BossMod
         {
             return oid switch {
                 (uint)Endwalker.ZodiarkEx.OID.Boss => typeof(Endwalker.ZodiarkEx.ZodiarkEx),
+                (uint)Endwalker.HydaelynEx.OID.Boss => typeof(Endwalker.HydaelynEx.HydaelynEx),
                 (uint)Endwalker.P1S.OID.Boss => typeof(Endwalker.P1S.P1S),
                 (uint)Endwalker.P2S.OID.Boss => typeof(Endwalker.P2S.P2S),
                 (uint)Endwalker.P3S.OID.Boss => typeof(Endwalker.P3S.P3S),

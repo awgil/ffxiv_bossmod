@@ -81,8 +81,10 @@ namespace BossMod.Endwalker.ZodiarkEx
 
         private StateMachine.State Styx(uint id, float delay, int numHits)
         {
-            var cast = Cast(id, AID.Styx, delay, 5, "Stack");
-            cast.Enter.Add(Module.ActivateComponent<Styx>);
+            var start = CastStart(id, AID.Styx, delay);
+            start.Enter.Add(Module.ActivateComponent<Styx>);
+
+            CastEnd(id + 1, 5, "Stack");
 
             var resolve = ComponentCondition<Styx>(id + 0x10, 1.1f * numHits - 0.1f, comp => comp.NumCasts >= numHits, "Stack resolve", 2);
             resolve.Exit.Add(Module.DeactivateComponent<Styx>);

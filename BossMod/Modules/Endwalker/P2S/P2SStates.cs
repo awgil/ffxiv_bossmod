@@ -49,13 +49,13 @@
 
         private void MurkyDepths(uint id, float delay)
         {
-            var s = Cast(id, AID.MurkyDepths, delay, 5, "MurkyDepths");
+            var s = Cast(id, AID.MurkyDepths, delay, 5, "Raidwide");
             s.EndHint |= StateMachine.StateHint.Raidwide;
         }
 
         private void DoubledImpact(uint id, float delay)
         {
-            var s = Cast(id, AID.DoubledImpact, delay, 5, "DoubledImpact");
+            var s = Cast(id, AID.DoubledImpact, delay, 5, "Shared Tankbuster");
             s.Enter.Add(Module.ActivateComponent<DoubledImpact>);
             s.Exit.Add(Module.DeactivateComponent<DoubledImpact>);
             s.EndHint |= StateMachine.StateHint.Tankbuster;

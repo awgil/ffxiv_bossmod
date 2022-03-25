@@ -13,7 +13,9 @@ boss modules:
 - p1s - make intemperance component useful
 - p2s - minor components (shockwave, ominous bubbling, eruption?..)
 - p3s - verify bird tethers on zerg
-- hydaelyn - todo
+- hydaelyn - get some enrage logs
+- hydaelyn - weapon aoe timings, consider using hidden buff instead...
+- hydaelyn - elemental aoe timings
 
 autorotation:
 - planner (defensive CDs, charge, delay offensive?)
