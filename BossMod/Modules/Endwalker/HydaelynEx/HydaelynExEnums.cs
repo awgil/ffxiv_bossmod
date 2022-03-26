@@ -18,14 +18,15 @@
     public enum AID : uint
     {
         AutoAttackSword = 870,
+        Enrage = 24571, // Boss->self
         WeaponChangeAOEChakram = 26004, // Boss->self, no cast, chakram aoe
         WeaponChangeAOEStaff = 26008, // Boss->self, no cast, staff aoe
         ShiningSaberAOE = 26006, // Boss->target, no cast, shared damage
-        Crystallize1 = 26010, // Boss->self: (1) water+blue->red/green, (6) ?
-        Crystallize2 = 26011, // Boss->self: (3) earth+green->blue
-        Crystallize3 = 26012, // Boss->self: (2) ice+green->red, (4) ice+green->green
-        Crystallize4 = 26013, // Boss->self: (2) ice+red->green
-        Crystallize5 = 26014, // Boss->self: (3) earth+red->blue
+        CrystallizeSwordStaffWater = 26010, // Boss->self: (1) water+blue->red/green, (6) ?
+        CrystallizeStaffEarth = 26011, // Boss->self: (3) earth+green->blue
+        CrystallizeStaffIce = 26012, // Boss->self: (2) ice+green->red, (4) ice+green->green
+        CrystallizeChakramIce = 26013, // Boss->self: (2) ice+red->green
+        CrystallizeChakramEarth = 26014, // Boss->self: (3) earth+red->blue
         CrystallizeTriggerEarth = 26015, // Boss->self, no cast, removes buff and triggers aoe
         CrystallizeTriggerIce = 26016, // Boss->self, no cast, removes buff and triggers aoe
         CrystallizeTriggerWater = 26017, // Boss->self, no cast, removes buff and triggers aoe
@@ -45,7 +46,9 @@
         BeaconParhelion = 26034, // Parhelion->location
         BeaconSubparhelion = 26035, // Parhelion->self, no cast
         RadiantHalo = 26036, // Boss->self
-        Echoes = 26037, // Boss->self
+        EchoesSword = 26037, // Boss->self
+        EchoesStaff = 26038, // Boss->self
+        EchoesChakram = 26039, // Boss->self
         DichroicSpectrum = 26040, // Helper->mt
         BrightSpectrum = 26041, // Helper->non-tank
         EchoesAOE = 26042, // Helper->target, no cast
@@ -57,24 +60,26 @@
         HerosRadiance = 26049, // Boss->self
         MagosRadiance = 26050, // Boss->self
         WeaponChangeVisualSword = 26051, // Boss->self, no cast, sword visual
-        LateralAureole1 = 26053, // Boss->self (first only?)
+        LateralAureole1 = 26053, // Boss->self
         Exodus = 26155, // Helper->self, no cast, raidwide
         InfralateralArc = 26217, // Boss->self
-        LateralAureole1AOE = 26256, // Helper->self (first only?)
-        Lightwave = 26259, // Boss->self
+        LateralAureole1AOE = 26256, // Helper->self
+        LightwaveSword = 26259, // Boss->self
+        LightwaveStaff = 26260, // Boss->self
+        LightwaveChakram = 26261, // Boss->self
         CrystalOfLightDeath = 26732, // Helper->Echo, no cast, 1 cast per echo after each crystal dies
         ShiningSaber = 26824, // Boss->self
         AutoAttackStaff = 27732,
         AutoAttackChakram = 27733,
         Subparhelion = 27734, // Boss->self
-        Aureole1 = 27793, // Boss->self (first only?)
-        Aureole1AOE = 27794, // Helper->self (first only?)
+        Aureole1 = 27793, // Boss->self
+        Aureole1AOE = 27794, // Helper->self
         WeaponChangeAOESword = 28338, // Helper->self, no cast, sword aoe
-        Crystallize6 = 28373, // Boss->self: (5) water+red->red
-        Aureole2 = 28433, // Boss->self (non-first only?)
-        Aureole2AOE = 28434, // Helper->self (non-first only?)
-        LateralAureole2 = 28435, // Boss->self (non-first only?)
-        LateralAureole2AOE = 28436, // Helper->self (non-first only?)
+        CrystallizeChakramWater = 28373, // Boss->self: (5) water+red->red
+        Aureole2 = 28433, // Boss->self
+        Aureole2AOE = 28434, // Helper->self
+        LateralAureole2 = 28435, // Boss->self
+        LateralAureole2AOE = 28436, // Helper->self
     };
 
     public enum SID : uint

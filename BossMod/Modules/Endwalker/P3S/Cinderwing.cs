@@ -18,7 +18,7 @@ namespace BossMod.Endwalker.P3S
                 _ => 0
             };
             if (_aoe.DirectionOffset == 0)
-                Service.Log($"[P3S] Failed to initialize cinderwing; unexpected boss cast {module.PrimaryActor.CastInfo?.Action}");
+                module.ReportError(this, $"Failed to initialize cinderwing; unexpected boss cast {module.PrimaryActor.CastInfo?.Action}");
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)

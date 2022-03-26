@@ -66,7 +66,20 @@ namespace BossMod
         {
             var state = Simple(id, expected, name);
             state.Comment = "Generic condition";
-            state.Update = timeSinceTransition => timeSinceTransition >= (expected + maxOverdue) || (timeSinceTransition >= checkDelay && condition()) ? state.Next : null;
+            state.Update = timeSinceTransition =>
+            {
+                if (timeSinceTransition < checkDelay)
+                    return null; // too early to check for condition
+
+                if (condition())
+                    return state.Next;
+
+                if (timeSinceTransition < expected + maxOverdue)
+                    return null;
+
+                Module.ReportError(null, $"State {id:X}: transition triggered because of overdue");
+                return state.Next;
+            };
             return state;
         }
 
@@ -86,7 +99,7 @@ namespace BossMod
                 var key = select();
                 var fork = stateDispatch.GetValueOrDefault(key);
                 if (fork == null)
-                    Service.Log($"[StateMachine] Unexpected fork condition result: got {key}");
+                    Module.ReportError(null, $"State {id:X}: unexpected fork condition result: got {key}");
                 return fork;
             };
 
@@ -114,7 +127,7 @@ namespace BossMod
                 var comp = Module.FindComponent<T>();
                 if (comp == null)
                 {
-                    Service.Log($"[StateMachine] Component {typeof(T)} needed for condition is missing");
+                    Module.ReportError(null, $"State {id:X}: component {typeof(T)} needed for condition is missing");
                     return state.Next;
                 }
                 return timeSinceTransition >= (expected + maxOverdue) || (timeSinceTransition >= checkDelay && condition(comp)) ? state.Next : null;
@@ -132,7 +145,7 @@ namespace BossMod
                 var comp = Module.FindComponent<T>();
                 if (comp == null)
                 {
-                    Service.Log($"[StateMachine] Component {typeof(T)} needed for condition is missing");
+                    Module.ReportError(null, $"State {id:X}: component {typeof(T)} needed for condition is missing");
                     return false;
                 }
                 return condition(comp);
@@ -153,7 +166,7 @@ namespace BossMod
                 if (castInfo == null)
                     return null;
                 if (castInfo.Action != expected)
-                    Service.Log($"[StateMachine] Unexpected cast start for actor {Module.PrimaryActor.OID:X}: got {castInfo.Action}, expected {id}");
+                    Module.ReportError(null, $"State {id:X}: unexpected cast start: got {castInfo.Action}, expected {expected}");
                 return state.Next;
             };
             state.EndHint |= StateMachine.StateHint.BossCastStart;
@@ -172,7 +185,7 @@ namespace BossMod
                 if (castInfo == null)
                     return null;
                 if (!aids.Any(aid => castInfo.IsSpell(aid)))
-                    Service.Log($"[StateMachine] Unexpected cast start for actor {Module.PrimaryActor.OID:X}: got {castInfo.Action}");
+                    Module.ReportError(null, $"State {id:X}: unexpected cast start: got {castInfo.Action}");
                 return state.Next;
             };
             state.EndHint |= StateMachine.StateHint.BossCastStart;

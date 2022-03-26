@@ -16,6 +16,7 @@ namespace UIDev
             using var scene = new SimpleImGuiScene(RendererFactory.RendererBackend.DirectX11, new WindowCreateInfo
             {
                 Title = "UI Test",
+                XPos = -10,
                 //YPos = 20,
                 //Width = 1200,
                 //Height = 800,

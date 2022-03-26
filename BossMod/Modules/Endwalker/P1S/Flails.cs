@@ -39,7 +39,7 @@ namespace BossMod.Endwalker.P1S
             };
 
             if (_first == null)
-                Service.Log($"[P1S] Failed to detect flail zones");
+                module.ReportError(this, "Failed to detect flail zones");
 
             _detectSecond = _first != null && _second == null;
             _showSecond = _first is AOEShapeCone != _second is AOEShapeCone;
@@ -59,7 +59,7 @@ namespace BossMod.Endwalker.P1S
                 _detectSecond = false;
                 if (weaponsBall.Count > 0 && weaponsChakram.Count > 0)
                 {
-                    Service.Log($"[P1S] Failed to determine second aetherflail: there are {weaponsBall.Count} balls and {weaponsChakram.Count} chakrams");
+                    module.ReportError(this, $"Failed to determine second aetherflail: there are {weaponsBall.Count} balls and {weaponsChakram.Count} chakrams");
                 }
                 else
                 {

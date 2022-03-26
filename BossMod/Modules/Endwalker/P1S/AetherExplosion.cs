@@ -38,7 +38,7 @@ namespace BossMod.Endwalker.P1S
 
             if (!module.Arena.IsCircle)
             {
-                Service.Log("[P1S] Trying to draw aether AOE when cells mode is not active...");
+                module.ReportError(this, "Trying to draw aether AOE when cells mode is not active...");
                 return;
             }
 
@@ -70,17 +70,17 @@ namespace BossMod.Endwalker.P1S
                         _ => Cell.None
                     };
                     if (_explodingCells == Cell.None)
-                        Service.Log($"[P1S] Unexpected aether explosion param {actor.Statuses[index].Extra:X2}");
+                        module.ReportError(this, $"Unexpected aether explosion param {actor.Statuses[index].Extra:X2}");
                     if (_memberWithSOT != null)
                     {
-                        Service.Log($"[P1S] Unexpected forced explosion while SOT is active");
+                        module.ReportError(this, "Unexpected forced explosion while SOT is active");
                         _memberWithSOT = null;
                     }
                     break;
 
                 case SID.ShacklesOfTime:
                     if (_memberWithSOT != null)
-                        Service.Log($"[P1S] Unexpected ShacklesOfTime: another is already active!");
+                        module.ReportError(this, "Unexpected ShacklesOfTime: another is already active!");
                     _memberWithSOT = actor;
                     _explodingCells = Cell.None;
                     break;

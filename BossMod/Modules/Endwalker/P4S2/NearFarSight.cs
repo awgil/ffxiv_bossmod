@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.P4S2
                 _ => State.Done
             };
             if (CurState == State.Done)
-                Service.Log($"[P4S2] Failed to initialize near/far sight, unexpected cast {module.PrimaryActor.CastInfo?.Action}");
+                module.ReportError(this, $"Failed to initialize near/far sight, unexpected cast {module.PrimaryActor.CastInfo?.Action}");
         }
 
         public override void Update(BossModule module)

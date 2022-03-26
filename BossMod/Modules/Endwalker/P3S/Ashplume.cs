@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.P3S
                 _ => State.Done
             };
             if (CurState == State.Done)
-                Service.Log($"[P3S] Failed to initialize ashplume component, unexpected cast {module.PrimaryActor.CastInfo?.Action}");
+                module.ReportError(this, $"Failed to initialize ashplume component, unexpected cast {module.PrimaryActor.CastInfo?.Action}");
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)

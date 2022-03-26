@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.HydaelynEx
         {
             _target = module.WorldState.Actors.Find(module.PrimaryActor.CastInfo?.TargetID ?? 0);
             if (_target == null)
-                Service.Log($"[HydaelynEx] Failed to determine target for heros sundering: {module.PrimaryActor.CastInfo?.TargetID:X}");
+                module.ReportError(this, $"Failed to determine target for heros sundering: {module.PrimaryActor.CastInfo?.TargetID:X}");
         }
 
         public override void Update(BossModule module)

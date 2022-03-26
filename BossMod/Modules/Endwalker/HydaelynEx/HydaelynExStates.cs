@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.HydaelynEx
         {
             HerosRadiance(0x00000000, 10.2f);
             ShiningSaber(0x00010000, 5.2f);
-            CrystallizeSwitchWeapon(0x00020000, 5.1f);
+            CrystallizeSwitchWeapon(0x00020000, 5.5f, false);
             ForkByWeapon(0x00030000, 8, ForkFirstStaff, ForkFirstChakram);
         }
 
@@ -24,23 +24,23 @@ namespace BossMod.Endwalker.HydaelynEx
 
         private void ForkFirstStaff(uint id)
         {
-            MagosRadiance(id, 2.8f);
+            MagosRadiance(id, 2.7f);
             Aureole(id + 0x10000, 5.2f);
-            CrystallizeSwitchWeapon(id + 0x20000, 4.6f);
-            MousaScorn(id + 0x30000, 3.3f);
+            CrystallizeSwitchWeapon(id + 0x20000, 4.6f, false);
+            MousaScorn(id + 0x30000, 3.2f);
             Aureole(id + 0x40000, 5.2f);
-            CrystallizeSwitchWeapon(id + 0x50000, 4.6f);
+            CrystallizeSwitchWeapon(id + 0x50000, 4.6f, true);
             ForkFirstMerge(id, 2.2f);
         }
 
         private void ForkFirstChakram(uint id)
         {
-            MousaScorn(id, 3.3f);
+            MousaScorn(id, 3.2f);
             Aureole(id + 0x10000, 5.2f);
-            CrystallizeSwitchWeapon(id + 0x20000, 4.7f);
-            MagosRadiance(id + 0x30000, 2.8f);
+            CrystallizeSwitchWeapon(id + 0x20000, 4.6f, false);
+            MagosRadiance(id + 0x30000, 2.7f);
             Aureole(id + 0x40000, 5.2f);
-            CrystallizeSwitchWeapon(id + 0x50000, 4.6f);
+            CrystallizeSwitchWeapon(id + 0x50000, 4.6f, true);
             ForkFirstMerge(id, 2.2f);
         }
 
@@ -50,10 +50,10 @@ namespace BossMod.Endwalker.HydaelynEx
             Halo(id + 0x200000, 10.2f);
             Lightwave1(id + 0x210000, 4.1f);
             Lightwave2(id + 0x220000, 2.1f);
-            Halo(id + 0x230000, 4);
+            Halo(id + 0x230000, 3.8f);
             HerosSundering(id + 0x240000, 6.1f);
             ShiningSaber(id + 0x250000, 5.3f);
-            SwitchWeapon(id + 0x260000, 5.4f);
+            SwitchWeapon(id + 0x260000, 5.9f, false);
             ForkByWeapon(id + 0x270000, 4, ForkSecondStaff, ForkSecondChakram);
         }
 
@@ -61,33 +61,36 @@ namespace BossMod.Endwalker.HydaelynEx
         {
             MagosRadiance(id, 5.2f);
             CrystallizeParhelicCircleAureole(id + 0x10000, 5.2f);
-            SwitchWeapon(id + 0x20000, 4.9f);
+            SwitchWeapon(id + 0x20000, 5, false);
             MousaScorn(id + 0x30000, 5.2f);
             ParhelionCrystallizeAureole(id + 0x40000, 6.8f);
-            SwitchWeapon(id + 0x50000, 5);
-            ForkSecondMerge(id, 7.9f);
+            SwitchWeapon(id + 0x50000, 5, true);
+            ForkSecondMerge(id, 8);
         }
 
         private void ForkSecondChakram(uint id)
         {
             MousaScorn(id, 5.2f);
             ParhelionCrystallizeAureole(id + 0x10000, 6.8f);
-            SwitchWeapon(id + 0x20000, 5);
+            SwitchWeapon(id + 0x20000, 5, false);
             MagosRadiance(id + 0x30000, 5.2f);
             CrystallizeParhelicCircleAureole(id + 0x40000, 5.2f);
-            SwitchWeapon(id + 0x50000, 5);
-            ForkSecondMerge(id, 7.9f);
+            SwitchWeapon(id + 0x50000, 5, true);
+            ForkSecondMerge(id, 8);
         }
 
         private void ForkSecondMerge(uint id, float delay)
         {
             RadiantHalo(id + 0x100000, delay);
-            Lightwave3(id + 0x110000, 5.1f);
-            CrystallizeShiningSaber(id + 0x120000, 9.2f); // TODO: can there be aureole instead of saber here?..
-            SwitchWeapon(id + 0x130000, 1.3f);
-            // TODO: should there be a fork here?..
+            Lightwave3(id + 0x110000, 5.2f);
+            CrystallizeShiningSaber(id + 0x120000, 9.1f); // TODO: can there be aureole instead of saber here?..
+            SwitchWeapon(id + 0x130000, 1.3f, false); // note: we don't create a fork here, since it's kind of irrelevant...
             Lightwave3(id + 0x140000, 7.3f);
-            // TODO: what next?..
+            CrystallizeAureole(id + 0x150000, 9.1f, true);
+            SwitchWeapon(id + 0x160000, 1.3f, false);
+            CrystallizeAureole(id + 0x170000, 7.3f, false);
+            SwitchWeapon(id + 0x180000, 1.3f, true);
+            Cast(id + 0x190000, AID.Enrage, 9.5f, 10, "Enrage");
         }
 
         private void Intermission(uint id, float delay)
@@ -115,7 +118,7 @@ namespace BossMod.Endwalker.HydaelynEx
 
         private void Lightwave1(uint id, float delay)
         {
-            Cast(id, AID.Lightwave, delay, 4, "Lightwave1");
+            Cast(id, AID.LightwaveSword, delay, 4, "Lightwave1");
 
             var hit1 = ComponentCondition<Lightwave1>(id + 0x1000, 12.1f, comp => comp.NumCasts > 0, "Crystal1");
             hit1.Enter.Add(Module.ActivateComponent<Lightwave1>);
@@ -131,27 +134,27 @@ namespace BossMod.Endwalker.HydaelynEx
             var hit3 = ComponentCondition<Lightwave1>(id + 0x4000, 1.3f, comp => comp.NumCasts > 2, "Crystal3");
             hit3.Exit.Add(Module.DeactivateComponent<Lightwave1>);
 
-            var resolve = ComponentCondition<InfralateralArc>(id + 0x6000, 2.7f, comp => comp.NumCasts > 2, "Resolve");
+            var resolve = ComponentCondition<InfralateralArc>(id + 0x6000, 2.2f, comp => comp.NumCasts > 2, "Resolve", 1.5f); // very large variance here...
             resolve.Exit.Add(Module.DeactivateComponent<InfralateralArc>);
             resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
         }
 
         private void Lightwave2(uint id, float delay)
         {
-            Cast(id, AID.Lightwave, delay, 4, "Lightwave2");
+            Cast(id, AID.LightwaveSword, delay, 4, "Lightwave2");
 
             // note that we don't show any hints until first glory starts casting, since it's a bit misleading...
-            var glory1 = Cast(id + 0x1000, AID.HerosGlory, 4.9f, 5, "Glory1");
+            var glory1 = Cast(id + 0x1000, AID.HerosGlory, 4.7f, 5, "Glory1");
             glory1.Enter.Add(Module.ActivateComponent<Lightwave2>);
             glory1.EndHint |= StateMachine.StateHint.PositioningStart;
 
-            ComponentCondition<Lightwave2>(id + 0x2000, 4.4f, comp => comp.NumCasts > 0, "Crystal1");
+            ComponentCondition<Lightwave2>(id + 0x2000, 4.6f, comp => comp.NumCasts > 0, "Crystal1");
             ComponentCondition<Lightwave2>(id + 0x3000, 3.0f, comp => comp.NumCasts > 1);
             ComponentCondition<Lightwave2>(id + 0x4000, 2.9f, comp => comp.NumCasts > 2);
             ComponentCondition<Lightwave2>(id + 0x5000, 3.0f, comp => comp.NumCasts > 3);
-            Cast(id + 0x6000, AID.HerosGlory, 0.7f, 5, "Glory2");
+            Cast(id + 0x6000, AID.HerosGlory, 0.5f, 5, "Glory2");
 
-            var resolve = ComponentCondition<Lightwave2>(id + 0x7000, 1.2f, comp => comp.NumCasts > 4, "Resolve");
+            var resolve = ComponentCondition<Lightwave2>(id + 0x7000, 1.3f, comp => comp.NumCasts > 4, "Resolve");
             resolve.Exit.Add(Module.DeactivateComponent<Lightwave2>);
             resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
         }
@@ -159,9 +162,9 @@ namespace BossMod.Endwalker.HydaelynEx
         // note: keeps Lightwave3 component active, since it is relevant for next mechanic
         private void Lightwave3(uint id, float delay)
         {
-            Cast(id, AID.Lightwave, delay, 4, "Lightwave");
+            CastMulti(id, new AID[] { AID.LightwaveSword, AID.LightwaveStaff, AID.LightwaveChakram }, delay, 4, "Lightwave");
 
-            var echoesStart = CastStart(id + 0x1000, AID.Echoes, 15.2f);
+            var echoesStart = CastStartMulti(id + 0x1000, new AID[] { AID.EchoesSword, AID.EchoesStaff, AID.EchoesChakram }, 15.2f);
             echoesStart.Enter.Add(Module.ActivateComponent<Lightwave3>);
             echoesStart.Enter.Add(Module.ActivateComponent<Echoes>); // note that icon appears slightly before cast start...
 
@@ -220,61 +223,70 @@ namespace BossMod.Endwalker.HydaelynEx
 
         private void ShiningSaber(uint id, float delay)
         {
-            var cast = Cast(id, AID.ShiningSaber, delay, 4.9f);
+            // note: resolve happens slightly after cast, but variance is too large (0.2-0.5s), so just ignore it...
+            var cast = Cast(id, AID.ShiningSaber, delay, 4.9f, "Stack");
             cast.Enter.Add(Module.ActivateComponent<ShiningSaber>);
-
-            var resolve = ComponentCondition<ShiningSaber>(id + 2, 0.4f, comp => comp.NumCasts > 0, "Stack");
-            resolve.Exit.Add(Module.DeactivateComponent<ShiningSaber>);
-            resolve.EndHint |= StateMachine.StateHint.Raidwide;
+            cast.Exit.Add(Module.DeactivateComponent<ShiningSaber>);
+            cast.EndHint |= StateMachine.StateHint.Raidwide;
         }
 
         private StateMachine.State Aureole(uint id, float delay)
         {
+            // note: what is the difference between aureole spells? seems to be determined by weapon?..
             var cast = CastMulti(id, new AID[] { AID.Aureole1, AID.Aureole2, AID.LateralAureole1, AID.LateralAureole2 }, delay, 5);
             cast.Enter.Add(Module.ActivateComponent<Aureole>);
 
-            var resolve = ComponentCondition<Aureole>(id + 2, 0.6f, comp => comp.Done, "Aureole");
+            var resolve = ComponentCondition<Aureole>(id + 2, 0.5f, comp => comp.Done, "Aureole");
             resolve.Exit.Add(Module.DeactivateComponent<Aureole>);
             return resolve;
         }
 
-        private void SwitchWeapon(uint id, float delay)
+        private void ParhelicCircle(uint id, float delay)
         {
-            ComponentCondition<WeaponTracker>(id, delay, comp => comp.AOEImminent, "Select weapon");
-            ComponentCondition<WeaponTracker>(id + 0x10, 3.6f, comp => !comp.AOEImminent, "Weapon AOE");
+            var cast = Cast(id, AID.ParhelicCircle, delay, 6, "Orbs");
+            cast.Enter.Add(Module.ActivateComponent<ParhelicCircle>);
+
+            var resolve = ComponentCondition<ParhelicCircle>(id + 0x10, 1.9f, comp => comp.NumCasts > 0, "Orbs resolve");
+            resolve.Exit.Add(Module.DeactivateComponent<ParhelicCircle>);
         }
 
-        private void CrystallizeSwitchWeapon(uint id, float delay)
+        private void SwitchWeapon(uint id, float delay, bool toSword)
+        {
+            ComponentCondition<WeaponTracker>(id, delay, comp => comp.AOEImminent, "Select weapon");
+            ComponentCondition<WeaponTracker>(id + 0x10, toSword ? 4.5f : 3.7f, comp => !comp.AOEImminent, "Weapon AOE");
+        }
+
+        // note: activates Crystallize component and sets positioning flag
+        private StateMachine.State CrystallizeCast(uint id, float delay, string name = "Crystallize")
         {
             // note: there are several crystallize spells, concrete is determined by element and current weapon; weapon to switch to doesn't seem to matter
-            var cast = CastMulti(id, new AID[] { AID.Crystallize1, AID.Crystallize2, AID.Crystallize3, AID.Crystallize4, AID.Crystallize5, AID.Crystallize6 }, delay, 4);
-            cast.Enter.Add(Module.ActivateComponent<Crystallize>);
-            cast.EndHint |= StateMachine.StateHint.PositioningStart;
+            var s = CastMulti(id, new AID[] { AID.CrystallizeSwordStaffWater, AID.CrystallizeStaffEarth, AID.CrystallizeStaffIce, AID.CrystallizeChakramIce, AID.CrystallizeChakramEarth, AID.CrystallizeChakramWater }, delay, 4, name);
+            s.Enter.Add(Module.ActivateComponent<Crystallize>);
+            s.EndHint |= StateMachine.StateHint.PositioningStart;
+            return s;
+        }
 
-            ComponentCondition<Crystallize>(id + 0x100, 0.8f, comp => comp.CurElement != Crystallize.Element.None, "Select element");
-            SwitchWeapon(id + 0x200, 4.7f);
-
-            var resolve = ComponentCondition<Crystallize>(id + 0x300, 4, comp => comp.CurElement == Crystallize.Element.None, "Element resolve");
+        // note: deactivates Crystallize component and clears positioning flag
+        private void CrystallizeResolve(uint id, float delay, string name = "Element resolve")
+        {
+            var resolve = ComponentCondition<Crystallize>(id, delay, comp => comp.CurElement == Crystallize.Element.None, name);
             resolve.Exit.Add(Module.DeactivateComponent<Crystallize>);
             resolve.EndHint |= StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd;
         }
 
+        private void CrystallizeSwitchWeapon(uint id, float delay, bool toSword)
+        {
+            CrystallizeCast(id, delay);
+            SwitchWeapon(id + 0x200, 5.5f, toSword);
+            CrystallizeResolve(id + 0x300, toSword ? 3.2f : 4);
+        }
+
         private void CrystallizeParhelicCircleAureole(uint id, float delay)
         {
-            var ice = Cast(id, AID.Crystallize3, delay, 4, "Crystallize (ice)");
-            ice.Enter.Add(Module.ActivateComponent<Crystallize>);
-
-            var orbs = Cast(id + 0x1000, AID.ParhelicCircle, 4.7f, 6, "Orbs");
-            orbs.Enter.Add(Module.ActivateComponent<ParhelicCircle>);
-
-            var orbsResolve = ComponentCondition<ParhelicCircle>(id + 0x2000, 1.9f, comp => comp.NumCasts > 0, "Orbs resolve");
-            orbsResolve.Exit.Add(Module.DeactivateComponent<ParhelicCircle>);
-
-            var crystallizeResolve = ComponentCondition<Crystallize>(id + 0x3000, 2, comp => comp.CurElement == Crystallize.Element.None, "Ice resolve");
-            crystallizeResolve.Exit.Add(Module.DeactivateComponent<Crystallize>);
-            crystallizeResolve.EndHint |= StateMachine.StateHint.Raidwide;
-
-            Aureole(id + 0x4000, 2.4f);
+            CrystallizeCast(id, delay, "Crystallize (ice)");
+            ParhelicCircle(id + 0x1000, 4.8f);
+            CrystallizeResolve(id + 0x3000, 3.5f, "Ice resolve");
+            Aureole(id + 0x4000, 1);
         }
 
         private void ParhelionCrystallizeAureole(uint id, float delay)
@@ -282,28 +294,32 @@ namespace BossMod.Endwalker.HydaelynEx
             var parhelion = Cast(id, AID.Parhelion, delay, 5, "Parhelion");
             parhelion.Enter.Add(Module.ActivateComponent<Parhelion>);
 
-            var water = Cast(id + 0x1000, AID.Crystallize6, 4.8f, 4, "Crystallize (water)");
-            water.Enter.Add(Module.ActivateComponent<Crystallize>);
+            CrystallizeCast(id + 0x1000, 4.8f, "Crystallize (water)");
+            Cast(id + 0x2000, AID.Subparhelion, 3.2f, 5, "Subparhelion");
+            CrystallizeResolve(id + 0x2800, 2, "Water resolve");
 
-            // note: subparhelion cast end happens exactly together with crystallize resolve
-            var subparhelion = Cast(id + 0x2000, AID.Subparhelion, 3.2f, 5, "Subparhelion");
-            subparhelion.Exit.Add(Module.DeactivateComponent<Crystallize>);
-            subparhelion.EndHint |= StateMachine.StateHint.Raidwide;
-
-            var aureole = Aureole(id + 0x3000, 5.2f); // note that aureole cast starts slightly before last subparhelion resolves
+            var aureole = Aureole(id + 0x3000, 3.3f); // note that aureole cast starts slightly before last subparhelion resolves
             aureole.Exit.Add(Module.DeactivateComponent<Parhelion>); // note that last beacon happens slightly after cast start
         }
 
+        // note: expects Lightwave3 component
         private void CrystallizeShiningSaber(uint id, float delay)
         {
-            var cast = CastMulti(id, new AID[] { AID.Crystallize1, AID.Crystallize2, AID.Crystallize3, AID.Crystallize4, AID.Crystallize5, AID.Crystallize6 }, delay, 4);
-            cast.Enter.Add(Module.ActivateComponent<Crystallize>);
+            var cast = CrystallizeCast(id, delay);
+            cast.Exit.Add(Module.DeactivateComponent<Lightwave3>);
 
             ShiningSaber(id + 0x1000, 3.2f);
+            CrystallizeResolve(id + 0x3000, 4.3f);
+        }
 
-            var resolve = ComponentCondition<Crystallize>(id + 0x300, 4.1f, comp => comp.CurElement == Crystallize.Element.None, "Element resolve");
-            resolve.Exit.Add(Module.DeactivateComponent<Crystallize>);
-            resolve.EndHint |= StateMachine.StateHint.Raidwide;
+        private void CrystallizeAureole(uint id, float delay, bool afterLightwave)
+        {
+            var cast = CrystallizeCast(id, delay);
+            if (afterLightwave)
+                cast.Exit.Add(Module.DeactivateComponent<Lightwave3>);
+
+            Aureole(id + 0x1000, 3.1f);
+            CrystallizeResolve(id + 0x3000, 3.7f);
         }
     }
 }

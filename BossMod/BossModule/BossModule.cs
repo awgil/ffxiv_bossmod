@@ -255,6 +255,12 @@ namespace BossMod
             return source != null ? AdjustPositionForKnockback(pos, source.Position, distance) : pos;
         }
 
+        public void ReportError(Component? comp, string message)
+        {
+            Service.Log($"[ModuleError] [{this.GetType().Name}] [{comp?.GetType().Name}] {message}");
+            Manager.HandleError(this, comp, message);
+        }
+
         protected virtual void ResetModule() { }
         protected virtual void UpdateModule() { }
         protected virtual void DrawArenaBackground(int pcSlot, Actor pc) { } // before modules background

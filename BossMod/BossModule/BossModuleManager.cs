@@ -78,6 +78,7 @@ namespace BossMod
             }
         }
 
+        public virtual void HandleError(BossModule module, BossModule.Component? comp, string message) { }
         protected virtual void RefreshConfigOrModules() { }
 
         private void Startup()

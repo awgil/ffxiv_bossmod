@@ -102,7 +102,7 @@ namespace BossMod.Endwalker.P3S
             {
                 if (PlacementDone)
                 {
-                    Service.Log($"[P3S] [FledglingFlight] Unexpected icon after eyes started casting");
+                    module.ReportError(this, $"Unexpected icon after eyes started casting");
                     return;
                 }
 

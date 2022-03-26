@@ -4,7 +4,6 @@ namespace BossMod.Endwalker.HydaelynEx
 {
     using static BossModule;
 
-    // component tracking crystallize mechanic
     class Crystallize : Component
     {
         public enum Element { None, Water, Earth, Ice }
@@ -13,6 +12,19 @@ namespace BossMod.Endwalker.HydaelynEx
         private static float _waterRadius = 6;
         private static float _earthRadius = 6;
         private static float _iceRadius = 5;
+
+        public override void Init(BossModule module)
+        {
+            CurElement = (AID)(module.PrimaryActor.CastInfo?.Action.ID ?? 0) switch
+            {
+                AID.CrystallizeSwordStaffWater or AID.CrystallizeChakramWater => Element.Water,
+                AID.CrystallizeStaffEarth or AID.CrystallizeChakramEarth => Element.Earth,
+                AID.CrystallizeStaffIce or AID.CrystallizeChakramIce => Element.Ice,
+                _ => Element.None
+            };
+            if (CurElement == Element.None)
+                module.ReportError(this, $"Unexpected boss cast {module.PrimaryActor.CastInfo?.Action.ID ?? 0}");
+        }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
@@ -80,27 +92,42 @@ namespace BossMod.Endwalker.HydaelynEx
             }
         }
 
+        // note: this is pure validation, we currently rely on crystallize cast id to determine element...
         public override void OnStatusGain(BossModule module, Actor actor, int index)
         {
             if (actor != module.PrimaryActor || (SID)actor.Statuses[index].ID != SID.CrystallizeElement)
                 return;
 
-            CurElement = actor.Statuses[index].Extra switch
+            var element = actor.Statuses[index].Extra switch
             {
                 0x151 => Element.Water,
                 0x152 => Element.Earth,
                 0x153 => Element.Ice,
                 _ => Element.None
             };
-            if (CurElement == Element.None)
-                Service.Log($"[HydaelynEx] Unexpected extra of element buff: {actor.Statuses[index].Extra:X4}");
+            if (element == Element.None || element != CurElement)
+                module.ReportError(this, $"Unexpected extra of element buff: {actor.Statuses[index].Extra:X4}, cur element {CurElement}");
         }
 
-        // TODO: we probably should use cast instead for completion, since sometimes status disappears much later...
-        public override void OnStatusLose(BossModule module, Actor actor, int index)
+        public override void OnEventCast(BossModule module, CastEvent info)
         {
-            if (actor == module.PrimaryActor && (SID)actor.Statuses[index].ID == SID.CrystallizeElement)
-                CurElement = Element.None;
+            if (CurElement == Element.None || !info.IsSpell())
+                return;
+
+            var element = (AID)info.Action.ID switch
+            {
+                AID.CrystallineWater => Element.Water,
+                AID.CrystallineStone => Element.Earth,
+                AID.CrystallineBlizzard => Element.Ice,
+                _ => Element.None
+            };
+
+            if (element == Element.None)
+                return;
+
+            if (element != CurElement)
+                module.ReportError(this, $"Unexpected element cast: got {(AID)info.Action.ID}, expected {CurElement}");
+            CurElement = Element.None;
         }
     }
 }

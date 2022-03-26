@@ -38,9 +38,26 @@ namespace UIDev.Analysis
             public SortedDictionary<int, TransitionMetrics> Transitions = new();
         }
 
+        class EncounterError
+        {
+            public Replay Replay;
+            public DateTime Timestamp;
+            public Type? CompType;
+            public string Message;
+
+            public EncounterError(Replay replay, DateTime timestamp, Type? compType, string message)
+            {
+                Replay = replay;
+                Timestamp = timestamp;
+                CompType = compType;
+                Message = message;
+            }
+        }
+
         class EncounterMetrics
         {
             public List<StateMetrics> Metrics;
+            public List<EncounterError> Errors = new();
 
             public EncounterMetrics(ActiveModuleState referenceState)
             {
@@ -102,14 +119,32 @@ namespace UIDev.Analysis
             }
         }
 
-        private Dictionary<uint, EncounterMetrics> _metrics = new();
+        class BossModuleManagerWrapper : BossModuleManager
+        {
+            private StateTransitionTimings _self;
+            private Replay _replay;
+
+            public BossModuleManagerWrapper(StateTransitionTimings self, Replay replay, WorldState ws)
+                : base(ws, new())
+            {
+                _self = self;
+                _replay = replay;
+            }
+
+            public override void HandleError(BossModule module, BossModule.Component? comp, string message)
+            {
+                _self._metrics[module.PrimaryActor.OID].Errors.Add(new(_replay, module.WorldState.CurrentTime, comp?.GetType(), message));
+            }
+        }
+
+        private Dictionary<uint, EncounterMetrics> _metrics = new(); // key = OID
 
         public StateTransitionTimings(List<Replay> replays)
         {
             foreach (var replay in replays.Where(r => r.Encounters.Count > 0))
             {
                 WorldState ws = new();
-                BossModuleManager mgr = new(ws, new());
+                BossModuleManagerWrapper mgr = new(this, replay, ws);
                 Dictionary<BossModule, ActiveModuleState> states = new();
                 int nextOp = 0;
                 while (nextOp < replay.Ops.Count)
@@ -169,6 +204,16 @@ namespace UIDev.Analysis
                 var moduleType = ModuleRegistry.TypeForOID(oid);
                 if (ImGui.TreeNode($"{oid:X} ({moduleType?.Name})"))
                 {
+                    if (ImGui.TreeNodeEx("Errors", metrics.Errors.Count == 0 ? ImGuiTreeNodeFlags.Leaf : ImGuiTreeNodeFlags.None))
+                    {
+                        foreach (var error in metrics.Errors)
+                        {
+                            if (ImGui.TreeNodeEx($"{error.Replay.Path} @ {error.Timestamp:O} [{error.CompType}] {error.Message}", ImGuiTreeNodeFlags.Leaf))
+                                ImGui.TreePop();
+                        }
+                        ImGui.TreePop();
+                    }
+
                     foreach (var from in metrics.Metrics.Skip(1))
                     {
                         foreach (var (toIndex, m) in from.Transitions)

@@ -100,7 +100,7 @@ namespace BossMod.Endwalker.P4S1
             var prev = Assignment(elem);
             if (prev != Corner.Unknown && prev != corner)
             {
-                Service.Log($"[P4S] SettingTheScene assignment mismatch: {prev} from env-control, {corner} from cast");
+                module.ReportError(this, $"Assignment mismatch: {prev} from env-control, {corner} from cast");
             }
             _assignments[(int)elem] = corner;
         }

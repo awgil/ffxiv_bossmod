@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.P1S
             _isFlare = module.PrimaryActor.CastInfo?.IsSpell(AID.KnockbackPurge) ?? false;
             _knockbackTarget = module.WorldState.Actors.Find(module.PrimaryActor.CastInfo?.TargetID ?? 0);
             if (_knockbackTarget == null)
-                Service.Log("[P1S] Failed to determine knockback target");
+                module.ReportError(this, "Failed to determine knockback target");
         }
 
         public override void Update(BossModule module)
