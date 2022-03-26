@@ -25,51 +25,45 @@
             Cast(0x00510000, AID.Enrage, 4.8f, 10, "Enrage");
         }
 
-        private StateMachine.State SearingStream(uint id, float delay)
+        private State SearingStream(uint id, float delay)
         {
-            var s = Cast(id, AID.SearingStream, delay, 5, "AOE");
-            s.EndHint |= StateMachine.StateHint.Raidwide;
-            return s;
+            return Cast(id, AID.SearingStream, delay, 5, "AOE")
+                .SetHint(StateMachine.StateHint.Raidwide);
         }
 
-        private StateMachine.State UltimateImpulse(uint id, float delay)
+        private State UltimateImpulse(uint id, float delay)
         {
-            var s = Cast(id, AID.UltimateImpulse, delay, 7, "AOE");
-            s.EndHint |= StateMachine.StateHint.Raidwide;
-            return s;
+            return Cast(id, AID.UltimateImpulse, delay, 7, "AOE")
+                .SetHint(StateMachine.StateHint.Raidwide);
         }
 
-        private StateMachine.State FarNearSight(uint id, float delay)
+        private State FarNearSight(uint id, float delay)
         {
-            var start = CastStartMulti(id, new AID[] { AID.Nearsight, AID.Farsight }, delay);
-            start.Exit.Add(Module.ActivateComponent<NearFarSight>);
-            start.EndHint |= StateMachine.StateHint.PositioningStart;
-
-            CastEnd(id + 1, 5);
-
-            var resolve = ComponentCondition<NearFarSight>(id + 2, 1.1f, comp => comp.CurState == NearFarSight.State.Done, "Far/nearsight");
-            resolve.Exit.Add(Module.DeactivateComponent<NearFarSight>);
-            resolve.EndHint |= StateMachine.StateHint.Tankbuster | StateMachine.StateHint.PositioningEnd;
-            return resolve;
+            CastStartMulti(id, new AID[] { AID.Nearsight, AID.Farsight }, delay)
+                .SetHint(StateMachine.StateHint.PositioningStart);
+            CastEnd(id + 1, 5)
+                .ActivateOnEnter<NearFarSight>();
+            return ComponentCondition<NearFarSight>(id + 2, 1.1f, comp => comp.CurState == NearFarSight.State.Done, "Far/nearsight")
+                .DeactivateOnExit<NearFarSight>()
+                .SetHint(StateMachine.StateHint.Tankbuster | StateMachine.StateHint.PositioningEnd);
         }
 
         private void DemigodDouble(uint id, float delay)
         {
-            var s = Cast(id, AID.DemigodDouble, delay, 5, "Shared Tankbuster");
-            s.Enter.Add(Module.ActivateComponent<DemigodDouble>);
-            s.Exit.Add(Module.DeactivateComponent<DemigodDouble>);
-            s.EndHint |= StateMachine.StateHint.Tankbuster;
+            Cast(id, AID.DemigodDouble, delay, 5, "Shared Tankbuster")
+                .ActivateOnEnter<DemigodDouble>()
+                .DeactivateOnExit<DemigodDouble>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
         }
 
         private void HeartStake(uint id, float delay)
         {
-            var cast = Cast(id, AID.HeartStake, delay, 5, "Tankbuster");
-            cast.Exit.Add(Module.ActivateComponent<HeartStake>);
-            cast.EndHint |= StateMachine.StateHint.Tankbuster;
-
-            var second = ComponentCondition<HeartStake>(id + 2, 3.1f, comp => comp.NumCasts > 0, "Tankbuster");
-            second.Exit.Add(Module.DeactivateComponent<HeartStake>);
-            second.EndHint |= StateMachine.StateHint.Tankbuster;
+            Cast(id, AID.HeartStake, delay, 5, "Tankbuster")
+                .ActivateOnEnter<HeartStake>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ComponentCondition<HeartStake>(id + 2, 3.1f, comp => comp.NumCasts > 0, "Tankbuster")
+                .DeactivateOnExit<HeartStake>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
         }
 
         private void HellSting(uint id, float delay)
@@ -80,12 +74,11 @@
             // 3.0s: first aoes (helpers cast end)
             // 5.5s: boss visual instant cast + helpers start cast
             // 6.1s: second aoes (helpers cast end)
-            var cast = Cast(id, AID.HellsSting, delay, 2.4f);
-            cast.Enter.Add(Module.ActivateComponent<HellsSting>);
-
-            var hit1 = ComponentCondition<HellsSting>(id + 0x10, 0.6f, comp => comp.NumCasts > 0, "Cone");
-            var hit2 = ComponentCondition<HellsSting>(id + 0x20, 3.1f, comp => comp.NumCasts > 8, "Cone");
-            hit2.Exit.Add(Module.DeactivateComponent<HellsSting>);
+            Cast(id, AID.HellsSting, delay, 2.4f)
+                .ActivateOnEnter<HellsSting>();
+            ComponentCondition<HellsSting>(id + 0x10, 0.6f, comp => comp.NumCasts > 0, "Cone");
+            ComponentCondition<HellsSting>(id + 0x20, 3.1f, comp => comp.NumCasts > 8, "Cone")
+                .DeactivateOnExit<HellsSting>();
         }
 
         private void AkanthaiAct1(uint id, float delay)
@@ -109,15 +102,14 @@
             // 16.0s: last 2 aoes start cast 27149
             // 17.0s: last 2 aoes finish cast ==> component is reset
             // 18.0s: boss starts casting far/nearsight
-            var wreath = Cast(id + 0x2000, AID.WreathOfThorns1, 6.2f, 8, "Wreath1");
-            wreath.Enter.Add(Module.ActivateComponent<WreathOfThorns1>);
-            wreath.EndHint |= StateMachine.StateHint.PositioningStart;
-
-            var aoe1 = ComponentCondition<WreathOfThorns1>(id + 0x3000, 3, comp => comp.CurState != WreathOfThorns1.State.FirstAOEs, "AOE 1");
-            var aoe2 = ComponentCondition<WreathOfThorns1>(id + 0x4000, 3, comp => comp.CurState != WreathOfThorns1.State.Towers, "Towers");
-            var aoe3 = ComponentCondition<WreathOfThorns1>(id + 0x5000, 3, comp => comp.CurState != WreathOfThorns1.State.LastAOEs, "AOE 2");
-            aoe3.Exit.Add(Module.DeactivateComponent<WreathOfThorns1>);
-            aoe3.EndHint |= StateMachine.StateHint.PositioningEnd;
+            Cast(id + 0x2000, AID.WreathOfThorns1, 6.2f, 8, "Wreath1")
+                .ActivateOnEnter<WreathOfThorns1>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
+            ComponentCondition<WreathOfThorns1>(id + 0x3000, 3, comp => comp.CurState != WreathOfThorns1.State.FirstAOEs, "AOE 1");
+            ComponentCondition<WreathOfThorns1>(id + 0x4000, 3, comp => comp.CurState != WreathOfThorns1.State.Towers, "Towers");
+            ComponentCondition<WreathOfThorns1>(id + 0x5000, 3, comp => comp.CurState != WreathOfThorns1.State.LastAOEs, "AOE 2")
+                .DeactivateOnExit<WreathOfThorns1>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void AkanthaiAct2(uint id, float delay)
@@ -144,17 +136,15 @@
             // 26.4s: boss starts casting aoe
             // 27.8s: wind pair expires if not broken
             // 33.4s: boss finishes casting aoe
-            var wreath = Cast(id + 0x2000, AID.WreathOfThorns2, 4.2f, 6, "Wreath2");
-            wreath.Enter.Add(Module.ActivateComponent<WreathOfThorns2>);
-            wreath.EndHint |= StateMachine.StateHint.PositioningStart;
-
+            Cast(id + 0x2000, AID.WreathOfThorns2, 4.2f, 6, "Wreath2")
+                .ActivateOnEnter<WreathOfThorns2>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
             Cast(id + 0x3000, AID.DarkDesign, 3.2f, 5, "DarkDesign");
             ComponentCondition<WreathOfThorns2>(id + 0x4000, 4.9f, comp => comp.CurState != WreathOfThorns2.State.FirstSet, "Resolve 1");
             ComponentCondition<WreathOfThorns2>(id + 0x5000, 7, comp => comp.CurState != WreathOfThorns2.State.SecondSet, "Resolve 2");
-
-            var aoe = UltimateImpulse(id + 0x6000, 0.3f);
-            aoe.Exit.Add(Module.DeactivateComponent<WreathOfThorns2>);
-            aoe.EndHint |= StateMachine.StateHint.PositioningEnd;
+            UltimateImpulse(id + 0x6000, 0.3f)
+                .DeactivateOnExit<WreathOfThorns2>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void AkanthaiAct3(uint id, float delay)
@@ -182,22 +172,19 @@
             // 26.4s: second jump ==> component should switch to second cone mode
             // 27.0s: second towers finish cast
             // 30.4s: second cones
-            var wreath = Cast(id + 0x1000, AID.WreathOfThorns3, 4.2f, 8, "Wreath3");
-            wreath.Enter.Add(Module.ActivateComponent<WreathOfThorns3>);
-            wreath.EndHint |= StateMachine.StateHint.PositioningStart;
-
+            Cast(id + 0x1000, AID.WreathOfThorns3, 4.2f, 8, "Wreath3")
+                .ActivateOnEnter<WreathOfThorns3>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
             Cast(id + 0x2000, AID.KothornosKock, 3.2f, 4.9f, "Jump1");
             ComponentCondition<WreathOfThorns3>(id + 0x2100, 4.3f, comp => comp.NumCones > 0, "Cones1");
             ComponentCondition<WreathOfThorns3>(id + 0x2200, 0.8f, comp => comp.CurState != WreathOfThorns3.State.RangedTowers, "Towers1");
-
-            var knockback = ComponentCondition<WreathOfThorns3>(id + 0x3000, 2, comp => comp.CurState != WreathOfThorns3.State.Knockback, "Knockback");
-            knockback.EndHint |= StateMachine.StateHint.Knockback;
-
+            ComponentCondition<WreathOfThorns3>(id + 0x3000, 2, comp => comp.CurState != WreathOfThorns3.State.Knockback, "Knockback")
+                .SetHint(StateMachine.StateHint.Knockback);
             ComponentCondition<WreathOfThorns3>(id + 0x4000, 3.3f, comp => comp.NumJumps > 1, "Jump2");
             ComponentCondition<WreathOfThorns3>(id + 0x4100, 0.7f, comp => comp.CurState != WreathOfThorns3.State.MeleeTowers, "Towers2");
-            var resolve = ComponentCondition<WreathOfThorns3>(id + 0x4200, 3.4f, comp => comp.NumCones > 1, "Cones2");
-            resolve.Exit.Add(Module.DeactivateComponent<WreathOfThorns3>);
-            resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
+            ComponentCondition<WreathOfThorns3>(id + 0x4200, 3.4f, comp => comp.NumCones > 1, "Cones2")
+                .DeactivateOnExit<WreathOfThorns3>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void AkanthaiAct4(uint id, float delay)
@@ -216,16 +203,14 @@
             //  8.2s: searing stream cast end
             // .....: blow up tethers
             // 36.4s: ultimate impulse cast start
-            var wreath = Cast(id + 0x2000, AID.WreathOfThorns4, 4.2f, 5, "Wreath4");
-            wreath.Exit.Add(Module.ActivateComponent<WreathOfThorns4>);
-
-            var aoe2 = SearingStream(id + 0x3000, 3.2f);
-            aoe2.Exit.Add(() => Module.FindComponent<WreathOfThorns4>()!.ReadyToBreak = true);
-            aoe2.EndHint |= StateMachine.StateHint.PositioningStart;
-
-            var aoe3 = UltimateImpulse(id + 0x4000, 28.2f);
-            aoe3.Exit.Add(Module.DeactivateComponent<WreathOfThorns4>);
-            aoe3.EndHint |= StateMachine.StateHint.PositioningEnd;
+            Cast(id + 0x2000, AID.WreathOfThorns4, 4.2f, 5, "Wreath4")
+                .ActivateOnEnter<WreathOfThorns4>();
+            SearingStream(id + 0x3000, 3.2f)
+                .SetHint(StateMachine.StateHint.PositioningStart)
+                .Raw.Exit.Add(() => Module.FindComponent<WreathOfThorns4>()!.ReadyToBreak = true);
+            UltimateImpulse(id + 0x4000, 28.2f)
+                .DeactivateOnExit<WreathOfThorns4>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void AkanthaiAct5(uint id, float delay)
@@ -258,14 +243,12 @@
             // ... towers are staggered by ~1.3s
             // 38.8s: near/farsight cast start
             // 39.1s: last tower finishes cast
-            var wreath5 = Cast(id + 0x1000, AID.WreathOfThorns5, 4.2f, 5, "Wreath5");
-            wreath5.Exit.Add(Module.ActivateComponent<WreathOfThorns5>);
-
+            Cast(id + 0x1000, AID.WreathOfThorns5, 4.2f, 5, "Wreath5")
+                .ActivateOnEnter<WreathOfThorns5>();
             Cast(id + 0x2000, AID.FleetingImpulse, 3.2f, 4.9f, "Impulse");
             Cast(id + 0x3000, AID.WreathOfThorns6, 13.6f, 6, "Wreath6");
-
-            var tb = FarNearSight(id + 0x4000, 11.2f);
-            tb.Exit.Add(Module.DeactivateComponent<WreathOfThorns5>);
+            FarNearSight(id + 0x4000, 11.2f)
+                .DeactivateOnExit<WreathOfThorns5>();
         }
 
         private void AkanthaiAct6(uint id, float delay)
@@ -286,21 +269,17 @@
             // 80.2s: hell sting 4 sequence start
             // 86.3s: hell sting 4 sequence end
             // 95.4s: aoe start
-            var intro = Cast(id, AID.AkanthaiCurtainCall, delay, 5, "Act6");
-            intro.Exit.Add(Module.ActivateComponent<CurtainCall>);
-
+            Cast(id, AID.AkanthaiCurtainCall, delay, 5, "Act6")
+                .Raw.Exit.Add(Module.ActivateComponent<CurtainCall>);
             HellSting(id + 0x1000, 10.2f);
             HellSting(id + 0x2000, 14.2f);
-
-            var impulse1 = UltimateImpulse(id + 0x3000, 9.2f);
-            impulse1.Exit.Add(Module.DeactivateComponent<CurtainCall>);
-            impulse1.Exit.Add(Module.ActivateComponent<CurtainCall>);
-
+            UltimateImpulse(id + 0x3000, 9.2f)
+                .DeactivateOnExit<CurtainCall>()
+                .Raw.Exit.Add(Module.ActivateComponent<CurtainCall>);
             HellSting(id + 0x4000, 7.2f);
             HellSting(id + 0x5000, 14.2f);
-
-            var impulse2 = UltimateImpulse(id + 0x6000, 9.2f);
-            impulse2.Exit.Add(Module.DeactivateComponent<CurtainCall>);
+            UltimateImpulse(id + 0x6000, 9.2f)
+                .DeactivateOnExit<CurtainCall>();
         }
     }
 }

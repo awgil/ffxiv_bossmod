@@ -37,7 +37,7 @@ namespace BossMod.Endwalker.P1S
         }
 
         // if delay is >0, build cast-start + cast-end states, otherwise build only cast-end state (used for first cast after fork)
-        private StateMachine.State CastMaybeOmitStart(uint id, AID aid, float delay, float castTime, string name)
+        private State CastMaybeOmitStart(uint id, AID aid, float delay, float castTime, string name)
         {
             if (delay > 0)
                 return Cast(id, aid, delay, castTime, name);
@@ -47,29 +47,29 @@ namespace BossMod.Endwalker.P1S
 
         private void HeavyHand(uint id, float delay)
         {
-            var s = Cast(id, AID.HeavyHand, delay, 5, "Tankbuster");
-            s.EndHint |= StateMachine.StateHint.Tankbuster;
+            Cast(id, AID.HeavyHand, delay, 5, "Tankbuster")
+                .SetHint(StateMachine.StateHint.Tankbuster);
         }
 
         private void WarderWrath(uint id, float delay)
         {
-            var s = Cast(id, AID.WarderWrath, delay, 5, "Raidwide");
-            s.EndHint |= StateMachine.StateHint.Raidwide;
+            Cast(id, AID.WarderWrath, delay, 5, "Raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
         }
 
         private void Aetherchain(uint id, float delay)
         {
-            var s = Cast(id, AID.Aetherchain, delay, 5, "Aetherchain");
-            s.Enter.Add(Module.ActivateComponent<AetherExplosion>);
-            s.Exit.Add(Module.DeactivateComponent<AetherExplosion>);
+            Cast(id, AID.Aetherchain, delay, 5, "Aetherchain")
+                .ActivateOnEnter<AetherExplosion>()
+                .DeactivateOnExit<AetherExplosion>();
         }
 
         // aetherial shackles is paired either with wrath (first time) or two aetherchains (second time)
         private void AetherialShackles(uint id, float delay, bool withAetherchains)
         {
-            var cast = CastMaybeOmitStart(id, AID.AetherialShackles, delay, 3, "Shackles");
-            cast.Exit.Add(Module.ActivateComponent<Shackles>);
-            cast.EndHint |= StateMachine.StateHint.PositioningStart;
+            CastMaybeOmitStart(id, AID.AetherialShackles, delay, 3, "Shackles")
+                .ActivateOnEnter<Shackles>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
 
             if (withAetherchains)
             {
@@ -83,32 +83,31 @@ namespace BossMod.Endwalker.P1S
 
             // ~19sec after cast end
             // technically, resolve happens ~0.4sec before second aetherchain cast end, but that's irrelevant
-            var resolve = ComponentCondition<Shackles>(id + 0x2000, withAetherchains ? 0 : 9.7f, comp => comp.NumExpiredDebuffs >= 2, "Shackles resolve");
-            resolve.Exit.Add(Module.DeactivateComponent<Shackles>);
-            resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
+            ComponentCondition<Shackles>(id + 0x2000, withAetherchains ? 0 : 9.7f, comp => comp.NumExpiredDebuffs >= 2, "Shackles resolve")
+                .DeactivateOnExit<Shackles>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void FourfoldShackles(uint id, float delay)
         {
-            var cast = Cast(id, AID.FourShackles, delay, 3, "FourShackles");
-            cast.Exit.Add(Module.ActivateComponent<Shackles>);
-            cast.EndHint |= StateMachine.StateHint.PositioningStart;
-
+            Cast(id, AID.FourShackles, delay, 3, "FourShackles")
+                .ActivateOnEnter<Shackles>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
             // note that it takes almost a second for debuffs to be applied
-            var hit1 = ComponentCondition<Shackles>(id + 0x10, 8.9f, comp => comp.NumExpiredDebuffs >= 2, "Hit1", 1, 3);
-            var hit2 = ComponentCondition<Shackles>(id + 0x20, 5, comp => comp.NumExpiredDebuffs >= 4, "Hit2");
-            var hit3 = ComponentCondition<Shackles>(id + 0x30, 5, comp => comp.NumExpiredDebuffs >= 6, "Hit3");
-            var hit4 = ComponentCondition<Shackles>(id + 0x40, 5, comp => comp.NumExpiredDebuffs >= 8, "Hit4");
-            hit4.Exit.Add(Module.DeactivateComponent<Shackles>);
-            hit4.EndHint |= StateMachine.StateHint.PositioningEnd;
+            ComponentCondition<Shackles>(id + 0x10, 8.9f, comp => comp.NumExpiredDebuffs >= 2, "Hit1", 1, 3);
+            ComponentCondition<Shackles>(id + 0x20, 5, comp => comp.NumExpiredDebuffs >= 4, "Hit2");
+            ComponentCondition<Shackles>(id + 0x30, 5, comp => comp.NumExpiredDebuffs >= 6, "Hit3");
+            ComponentCondition<Shackles>(id + 0x40, 5, comp => comp.NumExpiredDebuffs >= 8, "Hit4")
+                .DeactivateOnExit<Shackles>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         // shackles of time is paired either with heavy hand or knockback mechanics; also cast-start sometimes is omitted if delay is 0, since it is used to determine fork path
         private void ShacklesOfTime(uint id, float delay, bool withKnockback)
         {
-            var cast = CastMaybeOmitStart(id, AID.ShacklesOfTime, delay, 4, "ShacklesOfTime");
-            cast.Exit.Add(Module.ActivateComponent<AetherExplosion>);
-            cast.EndHint |= StateMachine.StateHint.PositioningStart;
+            var cast = CastMaybeOmitStart(id, AID.ShacklesOfTime, delay, 4, "ShacklesOfTime")
+                .ActivateOnEnter<AetherExplosion>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
 
             if (withKnockback)
             {
@@ -120,108 +119,96 @@ namespace BossMod.Endwalker.P1S
             }
 
             // ~15s from cast end
-            var resolve = ComponentCondition<AetherExplosion>(id + 0x2000, withKnockback ? 3.4f : 4.7f, comp => !comp.SOTActive, "Shackles resolve");
-            resolve.Exit.Add(Module.DeactivateComponent<AetherExplosion>);
-            resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
+            ComponentCondition<AetherExplosion>(id + 0x2000, withKnockback ? 3.4f : 4.7f, comp => !comp.SOTActive, "Shackles resolve")
+                .DeactivateOnExit<AetherExplosion>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
-        private StateMachine.State GaolerFlailStart(uint id, float delay)
-        {
-            var s = CastStartMulti(id, new AID[] { AID.GaolerFlailRL, AID.GaolerFlailLR, AID.GaolerFlailIO1, AID.GaolerFlailIO2, AID.GaolerFlailOI1, AID.GaolerFlailOI2 }, delay);
-            s.Exit.Add(Module.ActivateComponent<Flails>);
-            return s;
-        }
-
-        private StateMachine.State GaolerFlailEnd(uint id, float castTimeLeft, string name)
-        {
-            var end = CastEnd(id, castTimeLeft);
-            var resolve = ComponentCondition<Flails>(id + 1, 3.6f, comp => comp.NumCasts == 2, name);
-            resolve.Exit.Add(Module.DeactivateComponent<Flails>);
-            return resolve;
-        }
+        //private StateMachine.State GaolerFlailEnd(uint id, float castTimeLeft, string name)
+        //{
+        //    var end = CastEnd(id, castTimeLeft);
+        //    var resolve = ComponentCondition<Flails>(id + 1, 3.6f, comp => comp.NumCasts == 2, name);
+        //    resolve.DeactivateOnExit<Flails>();
+        //    return resolve;
+        //}
 
         private void GaolerFlail(uint id, float delay)
         {
-            var start = GaolerFlailStart(id, delay);
-            start.EndHint |= StateMachine.StateHint.PositioningStart;
-
-            var resolve = GaolerFlailEnd(id + 1, 11.5f, "Flails");
-            resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
+            CastStartMulti(id, new AID[] { AID.GaolerFlailRL, AID.GaolerFlailLR, AID.GaolerFlailIO1, AID.GaolerFlailIO2, AID.GaolerFlailOI1, AID.GaolerFlailOI2 }, delay)
+                .SetHint(StateMachine.StateHint.PositioningStart);
+            CastEnd(id + 1, 11.5f)
+                .ActivateOnEnter<Flails>();
+            ComponentCondition<Flails>(id + 2, 3.6f, comp => comp.NumCasts == 2, "Flails")
+                .DeactivateOnExit<Flails>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void Aetherflail(uint id, float delay)
         {
-            var start = CastStartMulti(id, new AID[] { AID.AetherflailRX, AID.AetherflailLX, AID.AetherflailIL, AID.AetherflailIR, AID.AetherflailOL, AID.AetherflailOR }, delay);
-            start.Exit.Add(Module.ActivateComponent<Flails>);
-            start.Exit.Add(Module.ActivateComponent<AetherExplosion>);
-            start.EndHint |= StateMachine.StateHint.PositioningStart;
-
-            var resolve = GaolerFlailEnd(id + 1, 11.5f, "Aetherflail");
-            resolve.Exit.Add(Module.DeactivateComponent<AetherExplosion>);
-            resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
+            CastStartMulti(id, new AID[] { AID.AetherflailRX, AID.AetherflailLX, AID.AetherflailIL, AID.AetherflailIR, AID.AetherflailOL, AID.AetherflailOR }, delay)
+                .SetHint(StateMachine.StateHint.PositioningStart);
+            CastEnd(id + 1, 11.5f)
+                .ActivateOnEnter<Flails>()
+                .ActivateOnEnter<AetherExplosion>();
+            ComponentCondition<Flails>(id + 2, 3.6f, comp => comp.NumCasts == 2, "Aetherflail")
+                .DeactivateOnExit<Flails>()
+                .DeactivateOnExit<AetherExplosion>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void Knockback(uint id, float delay, bool positioningHints = true)
         {
-            var start = CastStartMulti(id, new AID[] { AID.KnockbackGrace, AID.KnockbackPurge }, delay);
-            start.Exit.Add(Module.ActivateComponent<Knockback>);
-            if (positioningHints)
-                start.EndHint |= StateMachine.StateHint.PositioningStart;
-
-            var end = CastEnd(id + 1, 5, "Knockback");
-            end.EndHint |= StateMachine.StateHint.Tankbuster;
-
-            var resolve = ComponentCondition<Knockback>(id + 2, 4.3f, comp => comp.AOEDone, "Explode");
-            resolve.Exit.Add(Module.DeactivateComponent<Knockback>);
-            if (positioningHints)
-                resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
+            CastStartMulti(id, new AID[] { AID.KnockbackGrace, AID.KnockbackPurge }, delay)
+                .SetHint(StateMachine.StateHint.PositioningStart, positioningHints);
+            CastEnd(id + 1, 5, "Knockback")
+                .ActivateOnEnter<Knockback>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ComponentCondition<Knockback>(id + 2, 4.3f, comp => comp.AOEDone, "Explode")
+                .DeactivateOnExit<Knockback>()
+                .SetHint(StateMachine.StateHint.PositioningEnd, positioningHints);
         }
 
         // full intemperance phases (overlap either with 2 wraths or with flails)
         private void IntemperancePhase(uint id, float delay, bool withWraths)
         {
-            var intemp = Cast(id, AID.Intemperance, delay, 2, "Intemperance");
-            intemp.Exit.Add(Module.ActivateComponent<Intemperance>);
-
-            CastStartMulti(id + 0x1000, new AID[] { AID.IntemperateTormentUp, AID.IntemperateTormentDown }, 5.9f);
+            Cast(id, AID.Intemperance, delay, 2, "Intemperance");
+            CastStartMulti(id + 0x1000, new AID[] { AID.IntemperateTormentUp, AID.IntemperateTormentDown }, 5.9f)
+                .ActivateOnEnter<Intemperance>();
             CastEnd(id + 0x1001, 10);
-
-            ComponentCondition<Intemperance>(id + 0x2000, 1.2f, comp => comp.NumExplosions > 0, "Cube1", 0.2f);
+            ComponentCondition<Intemperance>(id + 0x2000, 1.2f, comp => comp.NumExplosions > 0, "Cube1", 0.2f)
+                .SetHint(StateMachine.StateHint.PositioningStart);
             if (withWraths)
             {
                 WarderWrath(id + 0x3000, 1);
                 ComponentCondition<Intemperance>(id + 0x4000, 5, comp => comp.NumExplosions > 1, "Cube2", 0.2f);
                 WarderWrath(id + 0x5000, 0.2f);
-
-                var resolve = ComponentCondition<Intemperance>(id + 0x6000, 5.8f, comp => comp.NumExplosions > 2, "Cube3");
-                resolve.Exit.Add(Module.DeactivateComponent<Intemperance>);
             }
             else
             {
-                var flailStart = GaolerFlailStart(id + 0x3000, 3);
-                flailStart.EndHint |= StateMachine.StateHint.PositioningStart;
-
-                ComponentCondition<Intemperance>(id + 0x4000, 8, comp => comp.NumExplosions > 1, "Cube2");
-                GaolerFlailEnd(id + 0x5000, 3.5f, "Flails");
-
-                var resolve = ComponentCondition<Intemperance>(id + 0x6000, 3.9f, comp => comp.NumExplosions > 2, "Cube3");
-                resolve.Exit.Add(Module.DeactivateComponent<Intemperance>);
-                resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
+                CastStartMulti(id + 0x3000, new AID[] { AID.GaolerFlailRL, AID.GaolerFlailLR, AID.GaolerFlailIO1, AID.GaolerFlailIO2, AID.GaolerFlailOI1, AID.GaolerFlailOI2 }, 3);
+                ComponentCondition<Intemperance>(id + 0x4000, 8, comp => comp.NumExplosions > 1, "Cube2")
+                    .ActivateOnEnter<Flails>();
+                CastEnd(id + 0x5000, 3.5f);
+                ComponentCondition<Flails>(id + 0x5001, 3.6f, comp => comp.NumCasts == 2, "Flails")
+                    .DeactivateOnExit<Flails>();
             }
+            ComponentCondition<Intemperance>(id + 0x6000, withWraths ? 5.8f : 3.9f, comp => comp.NumExplosions > 2, "Cube3")
+                .DeactivateOnExit<Intemperance>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void ShiningCells(uint id, float delay)
         {
-            var s = Cast(id, AID.ShiningCells, delay, 7, "Cells");
-            s.EndHint |= StateMachine.StateHint.Raidwide;
-            s.Exit.Add(() => Module.Arena.IsCircle = true);
+            var s = Cast(id, AID.ShiningCells, delay, 7, "Cells")
+                .SetHint(StateMachine.StateHint.Raidwide);
+            s.Raw.Exit.Add(() => Module.Arena.IsCircle = true);
         }
 
         private void SlamShut(uint id, float delay)
         {
-            var s = Cast(id, AID.SlamShut, delay, 7, "SlamShut");
-            s.EndHint |= StateMachine.StateHint.Raidwide;
-            s.Exit.Add(() => Module.Arena.IsCircle = false);
+            var s = Cast(id, AID.SlamShut, delay, 7, "SlamShut")
+                .SetHint(StateMachine.StateHint.Raidwide);
+            s.Raw.Exit.Add(() => Module.Arena.IsCircle = false);
         }
 
         private void Fork1()

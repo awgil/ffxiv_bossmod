@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.P4S1
         public enum Soaker { Unknown, TankOrHealer, DamageDealer }
 
         public Soaker ActiveSoakers { get; private set; } = Soaker.Unknown;
-        private List<Actor> _activeTowers = new(); // actor + tank-or-healer
+        private List<Actor> _activeTowers = new();
 
         private static float _towerRadius = 4;
 

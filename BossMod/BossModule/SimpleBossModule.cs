@@ -16,10 +16,10 @@
         {
             var sb = new StateMachineBuilder(this);
 
-            var s = sb.Simple(0, 0, "Fight");
-            s.Update = _ => PrimaryActor.IsDead ? s.Next : null;
-            s.Enter.Add(ActivateComponent<T>);
-            s.Exit.Add(DeactivateComponent<T>);
+            var s = sb.Simple(0, 0, "Fight")
+                .ActivateOnEnter<T>()
+                .DeactivateOnExit<T>();
+            s.Raw.Update = _ => PrimaryActor.IsDead ? s.Raw.Next : null;
 
             sb.Simple(1, 0, "???");
         }

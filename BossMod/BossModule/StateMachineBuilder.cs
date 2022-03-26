@@ -16,6 +16,47 @@ namespace BossMod
     // this is all done to provide ids that are relatively stable across refactorings (these are used e.g. for cooldown planning)
     public class StateMachineBuilder
     {
+        // wrapper that simplifies building states
+        public class State
+        {
+            public StateMachine.State Raw { get; private init; }
+            private BossModule _module;
+
+            public State(StateMachine.State raw, BossModule module)
+            {
+                Raw = raw;
+                _module = module;
+            }
+
+            public State ActivateOnEnter<C>(bool condition = true) where C : BossModule.Component, new()
+            {
+                if (condition)
+                    Raw.Enter.Add(_module.ActivateComponent<C>);
+                return this;
+            }
+
+            public State DeactivateOnExit<C>(bool condition = true) where C : BossModule.Component, new()
+            {
+                if (condition)
+                    Raw.Exit.Add(_module.DeactivateComponent<C>);
+                return this;
+            }
+
+            public State SetHint(StateMachine.StateHint h, bool condition = true)
+            {
+                if (condition)
+                    Raw.EndHint |= h;
+                return this;
+            }
+
+            public State ClearHint(StateMachine.StateHint h, bool condition = true)
+            {
+                if (condition)
+                    Raw.EndHint &= ~h;
+                return this;
+            }
+        }
+
         protected BossModule Module;
         private StateMachine.State? _lastState;
         private Dictionary<uint, StateMachine.State> _states;
@@ -27,7 +68,7 @@ namespace BossMod
         }
 
         // create a simple state without any actions
-        public StateMachine.State Simple(uint id, float duration, string name)
+        public State Simple(uint id, float duration, string name)
         {
             if (_states.ContainsKey(id))
                 throw new Exception($"Duplicate state id {id}");
@@ -49,49 +90,49 @@ namespace BossMod
             }
 
             _lastState = state;
-            return state;
+            return new(state, Module);
         }
 
         // create a state triggered by timeout
-        public StateMachine.State Timeout(uint id, float duration, string name = "")
+        public State Timeout(uint id, float duration, string name = "")
         {
             var state = Simple(id, duration, name);
-            state.Comment = "Timeout";
-            state.Update = timeSinceTransition => timeSinceTransition >= state.Duration ? state.Next : null;
+            state.Raw.Comment = "Timeout";
+            state.Raw.Update = timeSinceTransition => timeSinceTransition >= state.Raw.Duration ? state.Raw.Next : null;
             return state;
         }
 
         // create a state triggered by custom condition, or if it doesn't happen, by timeout
-        public StateMachine.State Condition(uint id, float expected, Func<bool> condition, string name = "", float maxOverdue = 1, float checkDelay = 0)
+        public State Condition(uint id, float expected, Func<bool> condition, string name = "", float maxOverdue = 1, float checkDelay = 0)
         {
             var state = Simple(id, expected, name);
-            state.Comment = "Generic condition";
-            state.Update = timeSinceTransition =>
+            state.Raw.Comment = "Generic condition";
+            state.Raw.Update = timeSinceTransition =>
             {
                 if (timeSinceTransition < checkDelay)
                     return null; // too early to check for condition
 
                 if (condition())
-                    return state.Next;
+                    return state.Raw.Next;
 
                 if (timeSinceTransition < expected + maxOverdue)
                     return null;
 
                 Module.ReportError(null, $"State {id:X}: transition triggered because of overdue");
-                return state.Next;
+                return state.Raw.Next;
             };
             return state;
         }
 
         // create a fork state that checks passed condition; when it returns non-null, next state is one built by corresponding action in dispatch map
-        public StateMachine.State ConditionFork<Key>(uint id, float expected, Func<bool> condition, Func<Key> select, Dictionary<Key, Action> dispatch, string name = "")
+        public State ConditionFork<Key>(uint id, float expected, Func<bool> condition, Func<Key> select, Dictionary<Key, Action> dispatch, string name = "")
             where Key : notnull
         {
             Dictionary<Key, StateMachine.State?> stateDispatch = new();
 
             var state = Simple(id, expected, name);
-            state.Comment = $"Fork: [{string.Join(", ", dispatch.Keys)}]";
-            state.Update = _ =>
+            state.Raw.Comment = $"Fork: [{string.Join(", ", dispatch.Keys)}]";
+            state.Raw.Update = _ =>
             {
                 if (!condition())
                     return null;
@@ -113,30 +154,41 @@ namespace BossMod
             Module.InitialState = prevInit;
             _lastState = null;
 
-            state.PotentialSuccessors = stateDispatch.Values.OfType<StateMachine.State>().Distinct().ToArray();
+            state.Raw.PotentialSuccessors = stateDispatch.Values.OfType<StateMachine.State>().Distinct().ToArray();
             return state;
         }
 
         // create a state triggered by component condition (or timeout if it never happens); if component is not present, error is logged and transition is triggered immediately
-        public StateMachine.State ComponentCondition<T>(uint id, float expected, Func<T, bool> condition, string name = "", float maxOverdue = 1, float checkDelay = 0) where T : BossModule.Component
+        public State ComponentCondition<T>(uint id, float expected, Func<T, bool> condition, string name = "", float maxOverdue = 1, float checkDelay = 0) where T : BossModule.Component
         {
             var state = Simple(id, expected, name);
-            state.Comment = $"Condition on {typeof(T).Name}";
-            state.Update = (timeSinceTransition) =>
+            state.Raw.Comment = $"Condition on {typeof(T).Name}";
+            state.Raw.Update = (timeSinceTransition) =>
             {
+                if (timeSinceTransition < checkDelay)
+                    return null; // too early to check for condition
+
                 var comp = Module.FindComponent<T>();
                 if (comp == null)
                 {
                     Module.ReportError(null, $"State {id:X}: component {typeof(T)} needed for condition is missing");
-                    return state.Next;
+                    return state.Raw.Next;
                 }
-                return timeSinceTransition >= (expected + maxOverdue) || (timeSinceTransition >= checkDelay && condition(comp)) ? state.Next : null;
+
+                if (condition(comp))
+                    return state.Raw.Next;
+
+                if (timeSinceTransition < expected + maxOverdue)
+                    return null;
+
+                Module.ReportError(null, $"State {id:X}: transition triggered because of overdue");
+                return state.Raw.Next;
             };
             return state;
         }
 
         // create a fork state triggered by component condition
-        public StateMachine.State ComponentConditionFork<T, Key>(uint id, float expected, Func<T, bool> condition, Func<T, Key> select, Dictionary<Key, Action> dispatch, string name = "")
+        public State ComponentConditionFork<T, Key>(uint id, float expected, Func<T, bool> condition, Func<T, Key> select, Dictionary<Key, Action> dispatch, string name = "")
             where T : BossModule.Component
             where Key : notnull
         {
@@ -154,66 +206,66 @@ namespace BossMod
         }
 
         // create a state triggered by expected cast start by a primary actor; unexpected casts still trigger a transition, but log error
-        public StateMachine.State CastStart<AID>(uint id, AID aid, float delay, string name = "")
+        public State CastStart<AID>(uint id, AID aid, float delay, string name = "")
             where AID : Enum
         {
             var state = Simple(id, delay, name);
             var expected = ActionID.MakeSpell(aid);
-            state.Comment = $"Cast start: {aid}";
-            state.Update = _ =>
+            state.Raw.Comment = $"Cast start: {aid}";
+            state.Raw.Update = _ =>
             {
                 var castInfo = Module.PrimaryActor.CastInfo;
                 if (castInfo == null)
                     return null;
                 if (castInfo.Action != expected)
                     Module.ReportError(null, $"State {id:X}: unexpected cast start: got {castInfo.Action}, expected {expected}");
-                return state.Next;
+                return state.Raw.Next;
             };
-            state.EndHint |= StateMachine.StateHint.BossCastStart;
+            state.SetHint(StateMachine.StateHint.BossCastStart);
             return state;
         }
 
         // create a state triggered by one of a set of expected casts by a primary actor; unexpected casts still trigger a transition, but log error
-        public StateMachine.State CastStartMulti<AID>(uint id, IEnumerable<AID> aids, float delay, string name = "")
+        public State CastStartMulti<AID>(uint id, IEnumerable<AID> aids, float delay, string name = "")
             where AID : Enum
         {
             var state = Simple(id, delay, name);
-            state.Comment = $"Cast start: [{string.Join(", ", aids)}]";
-            state.Update = _ =>
+            state.Raw.Comment = $"Cast start: [{string.Join(", ", aids)}]";
+            state.Raw.Update = _ =>
             {
                 var castInfo = Module.PrimaryActor.CastInfo;
                 if (castInfo == null)
                     return null;
                 if (!aids.Any(aid => castInfo.IsSpell(aid)))
                     Module.ReportError(null, $"State {id:X}: unexpected cast start: got {castInfo.Action}");
-                return state.Next;
+                return state.Raw.Next;
             };
-            state.EndHint |= StateMachine.StateHint.BossCastStart;
+            state.SetHint(StateMachine.StateHint.BossCastStart);
             return state;
         }
 
         // create a state triggered by one of a set of expected casts by a primary actor, each of which forking to a separate subsequence
         // values in map are actions building state chains corresponding to each fork
-        public StateMachine.State CastStartFork<AID>(uint id, Dictionary<AID, Action> dispatch, float delay, string name = "")
+        public State CastStartFork<AID>(uint id, Dictionary<AID, Action> dispatch, float delay, string name = "")
              where AID : Enum
         {
             var state = ConditionFork(id, delay, () => Module.PrimaryActor.CastInfo != null, () => (AID)(object)(Module.PrimaryActor.CastInfo!.IsSpell() ? Module.PrimaryActor.CastInfo.Action.ID : 0), dispatch, name);
-            state.EndHint |= StateMachine.StateHint.BossCastStart;
+            state.SetHint(StateMachine.StateHint.BossCastStart);
             return state;
         }
 
         // create a state triggered by cast end by a primary actor
-        public StateMachine.State CastEnd(uint id, float castTime, string name = "")
+        public State CastEnd(uint id, float castTime, string name = "")
         {
             var state = Simple(id, castTime, name);
-            state.Comment = "Cast end";
-            state.Update = _ => Module.PrimaryActor.CastInfo == null ? state.Next : null;
-            state.EndHint |= StateMachine.StateHint.BossCastEnd;
+            state.Raw.Comment = "Cast end";
+            state.Raw.Update = _ => Module.PrimaryActor.CastInfo == null ? state.Raw.Next : null;
+            state.SetHint(StateMachine.StateHint.BossCastEnd);
             return state;
         }
 
         // create a chain of states: CastStart -> CastEnd; second state uses id+1
-        public StateMachine.State Cast<AID>(uint id, AID aid, float delay, float castTime, string name = "")
+        public State Cast<AID>(uint id, AID aid, float delay, float castTime, string name = "")
             where AID : Enum
         {
             CastStart(id, aid, delay, "");
@@ -221,7 +273,7 @@ namespace BossMod
         }
 
         // create a chain of states: CastStartMulti -> CastEnd; second state uses id+1
-        public StateMachine.State CastMulti<AID>(uint id, IEnumerable<AID> aids, float delay, float castTime, string name = "")
+        public State CastMulti<AID>(uint id, IEnumerable<AID> aids, float delay, float castTime, string name = "")
             where AID : Enum
         {
             CastStartMulti(id, aids, delay, "");
@@ -229,12 +281,12 @@ namespace BossMod
         }
 
         // create a state triggered by a primary actor becoming (un)targetable; automatically sets downtime begin/end flag
-        public StateMachine.State Targetable(uint id, bool targetable, float delay, string name = "", float checkDelay = 0)
+        public State Targetable(uint id, bool targetable, float delay, string name = "", float checkDelay = 0)
         {
             var state = Simple(id, delay, name);
-            state.Comment = targetable ? "Targetable" : "Untargetable";
-            state.Update = timeSinceTransition => timeSinceTransition >= checkDelay && Module.PrimaryActor.IsTargetable == targetable ? state.Next : null;
-            state.EndHint |= targetable ? StateMachine.StateHint.DowntimeEnd : StateMachine.StateHint.DowntimeStart;
+            state.Raw.Comment = targetable ? "Targetable" : "Untargetable";
+            state.Raw.Update = timeSinceTransition => timeSinceTransition >= checkDelay && Module.PrimaryActor.IsTargetable == targetable ? state.Raw.Next : null;
+            state.SetHint(targetable ? StateMachine.StateHint.DowntimeEnd : StateMachine.StateHint.DowntimeStart);
             return state;
         }
     }

@@ -8,14 +8,11 @@ network:
 - allow injecting custom client messages in next sent bundle (or just create new bundle?..)
 
 boss modules:
-- try not to activate components on exit (problems on early exit on wipe)
 - assignments and sharing (webservice?)
+- p1s - get enrage log
+- p1s - timer strat
 - p1s - make intemperance component useful
 - p2s - minor components (shockwave, ominous bubbling, eruption?..)
-- p3s - verify bird tethers on zerg
-- hydaelyn - get some enrage logs
-- hydaelyn - weapon aoe timings, consider using hidden buff instead...
-- hydaelyn - elemental aoe timings
 
 autorotation:
 - planner (defensive CDs, charge, delay offensive?)

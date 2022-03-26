@@ -39,133 +39,115 @@ namespace BossMod.Endwalker.ZodiarkEx
 
         private void Ania(uint id, float delay)
         {
-            var cast = Cast(id, AID.Ania, delay, 4);
-            cast.Enter.Add(Module.ActivateComponent<Ania>);
-
-            var resolve = ComponentCondition<Ania>(id + 2, 1, comp => comp.Done, "Tankbuster");
-            resolve.Exit.Add(Module.DeactivateComponent<Ania>);
-            resolve.EndHint |= StateMachine.StateHint.Tankbuster;
+            Cast(id, AID.Ania, delay, 4)
+                .ActivateOnEnter<Ania>();
+            ComponentCondition<Ania>(id + 2, 1, comp => comp.Done, "Tankbuster")
+                .DeactivateOnExit<Ania>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
         }
 
         private void Phobos(uint id, float delay)
         {
-            var s = Cast(id, AID.Phobos, delay, 4, "Raidwide");
-            s.EndHint |= StateMachine.StateHint.Raidwide;
+            Cast(id, AID.Phobos, delay, 4, "Raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
         }
 
-        private StateMachine.State Algedon(uint id, float delay, bool setPosFlags)
+        private State Algedon(uint id, float delay, bool setPosFlags)
         {
-            var start = CastStartMulti(id, new AID[] { AID.AlgedonTL, AID.AlgedonTR }, delay);
-            start.Exit.Add(Module.ActivateComponent<Algedon>);
-            if (setPosFlags)
-                start.EndHint |= StateMachine.StateHint.PositioningStart;
-
-            CastEnd(id + 1, 7);
-
-            var resolve = ComponentCondition<Algedon>(id + 2, 1, comp => comp.Done, "Diagonal");
-            resolve.Exit.Add(Module.DeactivateComponent<Algedon>);
-            if (setPosFlags)
-                resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
-            return resolve;
+            CastStartMulti(id, new AID[] { AID.AlgedonTL, AID.AlgedonTR }, delay)
+                .SetHint(StateMachine.StateHint.PositioningStart, setPosFlags);
+            CastEnd(id + 1, 7)
+                .ActivateOnEnter<Algedon>();
+            return ComponentCondition<Algedon>(id + 2, 1, comp => comp.Done, "Diagonal")
+                .DeactivateOnExit<Algedon>()
+                .SetHint(StateMachine.StateHint.PositioningEnd, setPosFlags);
         }
 
-        private StateMachine.State Adikia(uint id, float delay)
+        private State Adikia(uint id, float delay)
         {
-            var cast = Cast(id, AID.Adikia, delay, 6);
-            cast.Enter.Add(Module.ActivateComponent<Adikia>);
-
-            var resolve = ComponentCondition<Adikia>(id + 0x10, 1.7f, comp => comp.Done, "SideSmash");
-            resolve.Exit.Add(Module.DeactivateComponent<Adikia>);
-            return resolve;
+            Cast(id, AID.Adikia, delay, 6)
+                .ActivateOnEnter<Adikia>();
+            return ComponentCondition<Adikia>(id + 0x10, 1.7f, comp => comp.Done, "SideSmash")
+                .DeactivateOnExit<Adikia>();
         }
 
-        private StateMachine.State Styx(uint id, float delay, int numHits)
+        private State Styx(uint id, float delay, int numHits)
         {
-            var start = CastStart(id, AID.Styx, delay);
-            start.Enter.Add(Module.ActivateComponent<Styx>);
-
+            CastStart(id, AID.Styx, delay)
+                .ActivateOnEnter<Styx>();
             CastEnd(id + 1, 5, "Stack");
-
-            var resolve = ComponentCondition<Styx>(id + 0x10, 1.1f * numHits - 0.1f, comp => comp.NumCasts >= numHits, "Stack resolve", 2);
-            resolve.Exit.Add(Module.DeactivateComponent<Styx>);
-            return resolve;
+            return ComponentCondition<Styx>(id + 0x10, 1.1f * numHits - 0.1f, comp => comp.NumCasts >= numHits, "Stack resolve", 2)
+                .DeactivateOnExit<Styx>();
         }
 
         // note that exoterikos component is optionally activated, but unconditionally deactivated
-        private StateMachine.State TripleEsotericRay(uint id, float delay, bool startExo, bool setPosFlags)
+        private State TripleEsotericRay(uint id, float delay, bool startExo, bool setPosFlags)
         {
-            var cast = Cast(id, AID.TripleEsotericRay, delay, 7, "TripleRay");
-            if (startExo)
-                cast.Enter.Add(Module.ActivateComponent<Exoterikos>);
-            if (setPosFlags)
-                cast.EndHint |= StateMachine.StateHint.PositioningStart;
-
-            var resolve = ComponentCondition<Exoterikos>(id + 0x10, 3.1f, comp => comp.Done, "TripleRay resolve");
-            resolve.Exit.Add(Module.DeactivateComponent<Exoterikos>);
-            if (setPosFlags)
-                resolve.EndHint |= StateMachine.StateHint.PositioningEnd;
-            return resolve;
+            Cast(id, AID.TripleEsotericRay, delay, 7, "TripleRay")
+                .ActivateOnEnter<Exoterikos>(startExo)
+                .SetHint(StateMachine.StateHint.PositioningStart, setPosFlags);
+            return ComponentCondition<Exoterikos>(id + 0x10, 3.1f, comp => comp.Done, "TripleRay resolve")
+                .DeactivateOnExit<Exoterikos>()
+                .SetHint(StateMachine.StateHint.PositioningEnd, setPosFlags);
         }
 
         // this is used by various paradeigma states; the state activates component
         private void ParadeigmaStart(uint id, float delay, string name)
         {
-            var s = Cast(id, AID.Paradeigma, delay, 3, name);
-            s.Exit.Add(Module.ActivateComponent<Paradeigma>);
+            Cast(id, AID.Paradeigma, delay, 3, name)
+                .ActivateOnEnter<Paradeigma>();
         }
 
         // this is used by various paradeigma states; automatically deactivates paradeigma component
-        private StateMachine.State AstralFlow(uint id, float delay)
+        private State AstralFlow(uint id, float delay)
         {
             CastStartMulti(id, new AID[] { AID.AstralFlowCW, AID.AstralFlowCCW }, delay);
             CastEnd(id + 1, 10, "Rotate");
-
-            var resolve = Condition(id + 0x10, 6.2f, () => Module.WorldState.Party.WithoutSlot().All(a => (a.FindStatus(SID.TenebrousGrasp) == null)), "Rotate resolve", 5, 1);
-            resolve.Exit.Add(Module.DeactivateComponent<Paradeigma>);
-            return resolve;
+            return Condition(id + 0x10, 6.2f, () => Module.WorldState.Party.WithoutSlot().All(a => (a.FindStatus(SID.TenebrousGrasp) == null)), "Rotate resolve", 5, 1)
+                .DeactivateOnExit<Paradeigma>();
         }
 
         // this is used by various exoterikos states; the state activates component
         private void ExoterikosStart(uint id, float delay, string name)
         {
-            var s = Cast(id, AID.ExoterikosGeneric, delay, 5, name);
-            s.Enter.Add(Module.ActivateComponent<Exoterikos>);
+            Cast(id, AID.ExoterikosGeneric, delay, 5, name)
+                .ActivateOnEnter<Exoterikos>();
         }
 
         private void Paradeigma1(uint id, float delay)
         {
             ParadeigmaStart(id, delay, "Para1 (4 birds)");
             var styx = Styx(id + 0x1000, 11.2f, 6);
-            styx.Enter.Add(Module.DeactivateComponent<Paradeigma>);
+            styx.Raw.Enter.Add(Module.DeactivateComponent<Paradeigma>); // TODO: paradeigma should hide itself when done, then we can deactivate it on state exit...
         }
 
         private void Exoterikos1(uint id, float delay)
         {
             ExoterikosStart(id, delay, "Exo1 (side tri)");
-            var exo2 = Cast(id + 0x1000, AID.ExoterikosFront, 2.1f, 7, "Exo2 (front)");
-            exo2.Exit.Add(Module.DeactivateComponent<Exoterikos>);
+            Cast(id + 0x1000, AID.ExoterikosFront, 2.1f, 7, "Exo2 (front)")
+                .DeactivateOnExit<Exoterikos>();
         }
 
         private void Paradeigma2(uint id, float delay)
         {
             ParadeigmaStart(id, delay, "Para2 (birds/behemoths)");
-            var diag = Algedon(id + 0x1000, 5.2f, true);
-            diag.Exit.Add(Module.DeactivateComponent<Paradeigma>);
+            Algedon(id + 0x1000, 5.2f, true)
+                .DeactivateOnExit<Paradeigma>();
         }
 
         private void Paradeigma3(uint id, float delay)
         {
             ParadeigmaStart(id, delay, "Para3 (snakes)");
             ExoterikosStart(id + 0x1000, 2.1f, "Exo3 (side)");
-            var flow = AstralFlow(id + 0x2000, 2.2f);
-            flow.Exit.Add(Module.DeactivateComponent<Exoterikos>);
+            AstralFlow(id + 0x2000, 2.2f)
+                .DeactivateOnExit<Exoterikos>();
         }
 
         private void Paradeigma4(uint id, float delay)
         {
             ParadeigmaStart(id, delay, "Para4 (snakes side)");
-            var adikia = Adikia(id + 0x1000, 4.1f);
-            adikia.Exit.Add(Module.DeactivateComponent<Paradeigma>);
+            Adikia(id + 0x1000, 4.1f)
+                .DeactivateOnExit<Paradeigma>();
         }
 
         private void Paradeigma5(uint id, float delay)
@@ -177,8 +159,8 @@ namespace BossMod.Endwalker.ZodiarkEx
         private void Exoterikos4(uint id, float delay)
         {
             ExoterikosStart(id, delay, "Exo4 (side sq)");
-            var diag = Algedon(id + 0x1000, 2.1f, true);
-            diag.Exit.Add(Module.DeactivateComponent<Exoterikos>);
+            Algedon(id + 0x1000, 2.1f, true)
+                .DeactivateOnExit<Exoterikos>();
         }
 
         private void Paradeigma6(uint id, float delay)
@@ -190,19 +172,19 @@ namespace BossMod.Endwalker.ZodiarkEx
 
         private void TrimorphosExoterikos(uint id, float delay, bool first)
         {
-            var exo = Cast(id, AID.TrimorphosExoterikos, delay, 13, "TriExo");
-            exo.Enter.Add(Module.ActivateComponent<Exoterikos>);
+            Cast(id, AID.TrimorphosExoterikos, delay, 13, "TriExo")
+                .ActivateOnEnter<Exoterikos>();
 
             var followup = first ? Adikia(id + 0x1000, 6.2f) : Algedon(id + 0x1000, 5.2f, true);
-            followup.Enter.Add(Module.DeactivateComponent<Exoterikos>);
+            followup.DeactivateOnExit<Exoterikos>();
         }
 
         private void Paradeigma7(uint id, float delay)
         {
             ParadeigmaStart(id, delay, "Para7 (snakes)");
             ExoterikosStart(id + 0x1000, 2.1f, "Exo5 (side)");
-            var flow = AstralFlow(id + 0x2000, 2.2f);
-            flow.Exit.Add(Module.DeactivateComponent<Exoterikos>);
+            AstralFlow(id + 0x2000, 2.2f)
+                .DeactivateOnExit<Exoterikos>();
 
             // TODO: component
             Cast(id + 0x3000, AID.Phlegeton, 0, 2.9f, "Puddles"); // note: 3s cast starts ~0.1s before flow resolve...
@@ -221,48 +203,42 @@ namespace BossMod.Endwalker.ZodiarkEx
         {
             ParadeigmaStart(id, delay, "Para8 (birds/behemoths)");
             ExoterikosStart(id + 0x1000, 2.1f, "Exo7 (back sq)");
-            var flow = AstralFlow(id + 0x2000, 2.1f);
-            flow.Exit.Add(Module.DeactivateComponent<Exoterikos>);
+            AstralFlow(id + 0x2000, 2.1f)
+                .DeactivateOnExit<Exoterikos>();
         }
 
         private void Paradeigma9(uint id, float delay)
         {
             ParadeigmaStart(id, delay, "Para9 (4 birds + snakes)");
             ExoterikosStart(id + 0x1000, 2.1f, "Exo8 (side/back?)");
-            var flow = AstralFlow(id + 0x2000, 2.1f);
-            flow.Exit.Add(Module.DeactivateComponent<Exoterikos>);
-
+            AstralFlow(id + 0x2000, 2.1f)
+                .DeactivateOnExit<Exoterikos>();
             Styx(id + 0x3000, 0, 9); // note: cast starts right as flow resolve happens
         }
 
         private void Intermission(uint id, float delay)
         {
-            var disappear = Targetable(id, false, delay, "Intermission start");
-            disappear.Exit.Add(Module.ActivateComponent<Exoterikos>);
-            disappear.EndHint &= ~StateMachine.StateHint.DowntimeStart; // adds appear almost immediately, so there is no downtime
-
-            var addsEndStart = CastStartMulti(id + 0x1000, new AID[] { AID.AddsEndFail, AID.AddsEndSuccess }, 40, "Add enrage");
-            addsEndStart.Exit.Add(Module.DeactivateComponent<Exoterikos>);
-            addsEndStart.EndHint |= StateMachine.StateHint.DowntimeStart;
-
-            var addsEndEnd = CastEnd(id + 0x2000, 1.1f);
-            addsEndEnd.Exit.Add(Module.ActivateComponent<Apomnemoneumata>);
-
-            var raidwide = ComponentCondition<Apomnemoneumata>(id + 0x3000, 11.5f, comp => comp.NumCasts > 0, "Raidwide");
-            raidwide.Exit.Add(Module.DeactivateComponent<Apomnemoneumata>);
-            raidwide.EndHint |= StateMachine.StateHint.Raidwide;
-
+            Targetable(id, false, delay, "Intermission start")
+                .ClearHint(StateMachine.StateHint.DowntimeStart); // adds appear almost immediately, so there is no downtime
+            CastStartMulti(id + 0x1000, new AID[] { AID.AddsEndFail, AID.AddsEndSuccess }, 40, "Add enrage")
+                .ActivateOnEnter<Exoterikos>()
+                .DeactivateOnExit<Exoterikos>()
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            CastEnd(id + 0x2000, 1.1f);
+            ComponentCondition<Apomnemoneumata>(id + 0x3000, 11.5f, comp => comp.NumCasts > 0, "Raidwide")
+                .ActivateOnEnter<Apomnemoneumata>()
+                .DeactivateOnExit<Apomnemoneumata>()
+                .SetHint(StateMachine.StateHint.Raidwide);
             Targetable(id + 0x4000, true, 10.6f, "Intermission end");
         }
 
         private void AstralEclipse(uint id, float delay, bool first)
         {
-            var eclipse = Cast(id, AID.AstralEclipse, delay, 5, "Eclipse");
-            eclipse.Exit.Add(Module.ActivateComponent<AstralEclipse>);
-            eclipse.EndHint |= StateMachine.StateHint.DowntimeStart;
-
-            var reappear = Targetable(id + 0x1000, true, 12.1f, "Boss reappear", 1);
-            reappear.EndHint |= StateMachine.StateHint.PositioningStart;
+            Cast(id, AID.AstralEclipse, delay, 5, "Eclipse")
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            Targetable(id + 0x1000, true, 12.1f, "Boss reappear", 1)
+                .ActivateOnEnter<AstralEclipse>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
 
             //  5.1s first explosion
             //  8.2s triple ray cast start
@@ -279,8 +255,8 @@ namespace BossMod.Endwalker.ZodiarkEx
             // 17.7s algedon cast end
             // 18.7s algedon aoe
             var followup = first ? TripleEsotericRay(id + 0x2000, 8.2f, true, false) : Algedon(id + 0x2000, 10.6f, false);
-            followup.Exit.Add(Module.DeactivateComponent<AstralEclipse>);
-            followup.EndHint |= StateMachine.StateHint.PositioningEnd;
+            followup.DeactivateOnExit<AstralEclipse>();
+            followup.SetHint(StateMachine.StateHint.PositioningEnd);
         }
     }
 }
