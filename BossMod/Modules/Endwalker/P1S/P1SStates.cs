@@ -124,14 +124,6 @@ namespace BossMod.Endwalker.P1S
                 .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
-        //private StateMachine.State GaolerFlailEnd(uint id, float castTimeLeft, string name)
-        //{
-        //    var end = CastEnd(id, castTimeLeft);
-        //    var resolve = ComponentCondition<Flails>(id + 1, 3.6f, comp => comp.NumCasts == 2, name);
-        //    resolve.DeactivateOnExit<Flails>();
-        //    return resolve;
-        //}
-
         private void GaolerFlail(uint id, float delay)
         {
             CastStartMulti(id, new AID[] { AID.GaolerFlailRL, AID.GaolerFlailLR, AID.GaolerFlailIO1, AID.GaolerFlailIO2, AID.GaolerFlailOI1, AID.GaolerFlailOI2 }, delay)
@@ -177,6 +169,7 @@ namespace BossMod.Endwalker.P1S
             CastEnd(id + 0x1001, 10);
             ComponentCondition<Intemperance>(id + 0x2000, 1.2f, comp => comp.NumExplosions > 0, "Cube1", 0.2f)
                 .SetHint(StateMachine.StateHint.PositioningStart);
+
             if (withWraths)
             {
                 WarderWrath(id + 0x3000, 1);
@@ -192,6 +185,7 @@ namespace BossMod.Endwalker.P1S
                 ComponentCondition<Flails>(id + 0x5001, 3.6f, comp => comp.NumCasts == 2, "Flails")
                     .DeactivateOnExit<Flails>();
             }
+
             ComponentCondition<Intemperance>(id + 0x6000, withWraths ? 5.8f : 3.9f, comp => comp.NumExplosions > 2, "Cube3")
                 .DeactivateOnExit<Intemperance>()
                 .SetHint(StateMachine.StateHint.PositioningEnd);

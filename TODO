@@ -10,7 +10,6 @@ network:
 boss modules:
 - assignments and sharing (webservice?)
 - p1s - get enrage log
-- p1s - timer strat
 - p1s - make intemperance component useful
 - p2s - minor components (shockwave, ominous bubbling, eruption?..)
 

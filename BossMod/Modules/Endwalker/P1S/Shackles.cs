@@ -1,11 +1,11 @@
 ﻿using System.Linq;
+using System.Numerics;
 
 namespace BossMod.Endwalker.P1S
 {
     using static BossModule;
 
     // state related to normal and fourfold shackles
-    // TODO: provide movement hint for fourfold shackles (timer strat)
     class Shackles : Component
     {
         public int NumExpiredDebuffs { get; private set; } = 0;
@@ -18,10 +18,11 @@ namespace BossMod.Endwalker.P1S
         private ulong _redTetherMatrix = 0; // bit (8*i+j) is set if there is a tether from j to i; bit [i,i] is always set
         private ulong _blueExplosionMatrix = 0;
         private ulong _redExplosionMatrix = 0; // bit (8*i+j) is set if player i is inside explosion of player j; bit [i,i] is never set
+        private Vector3[] _preferredPositions = new Vector3[8];
 
         private static float _blueExplosionRadius = 4;
         private static float _redExplosionRadius = 8;
-        private static uint TetherColor(bool blue, bool red) => blue ? (red ? 0xff00ffff : 0xffff0080) : 0xff8080ff;
+        private static uint TetherColor(bool blue, bool red) => blue ? (red ? 0xff00ffff : 0xffff0080) : (red ? 0xff8080ff : 0xff808080);
 
         public override void Update(BossModule module)
         {
@@ -75,6 +76,11 @@ namespace BossMod.Endwalker.P1S
             {
                 hints.Add("GTFO from explosion!");
             }
+
+            if (movementHints != null && _preferredPositions[slot] != Vector3.Zero)
+            {
+                movementHints.Add(actor.Position, _preferredPositions[slot], module.Arena.ColorSafe);
+            }
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -86,21 +92,13 @@ namespace BossMod.Endwalker.P1S
             bool drawRedAroundMe = false;
             foreach ((int i, var actor) in module.Raid.WithSlot())
             {
-                // draw tethers
                 var blueTetheredTo = BitVector.ExtractVectorFromMatrix8x8(_blueTetherMatrix, i);
                 var redTetheredTo = BitVector.ExtractVectorFromMatrix8x8(_redTetherMatrix, i);
-                var tetherMask = (byte)(blueTetheredTo | redTetheredTo);
-                if (tetherMask != 0)
-                {
-                    arena.Actor(actor, TetherColor(blueTetheredTo != 0, redTetheredTo != 0));
-                    foreach ((int j, var target) in module.Raid.WithSlot(true))
-                    {
-                        if (i != j && BitVector.IsVector8BitSet(tetherMask, j))
-                        {
-                            arena.AddLine(actor.Position, target.Position, TetherColor(BitVector.IsVector8BitSet(blueTetheredTo, j), BitVector.IsVector8BitSet(redTetheredTo, j)));
-                        }
-                    }
-                }
+                arena.Actor(actor, TetherColor(blueTetheredTo != 0, redTetheredTo != 0));
+
+                // draw tethers
+                foreach ((int j, var target) in module.Raid.WithSlot(true).Exclude(i).IncludedInMask((ulong)(blueTetheredTo | redTetheredTo)))
+                    arena.AddLine(actor.Position, target.Position, TetherColor(BitVector.IsVector8BitSet(blueTetheredTo, j), BitVector.IsVector8BitSet(redTetheredTo, j)));
 
                 // draw explosion circles that hit me
                 if (BitVector.IsMatrix8x8BitSet(_blueExplosionMatrix, pcSlot, i))
@@ -117,6 +115,11 @@ namespace BossMod.Endwalker.P1S
                 arena.AddCircle(pc.Position, _blueExplosionRadius, arena.ColorDanger);
             if (drawRedAroundMe)
                 arena.AddCircle(pc.Position, _redExplosionRadius, arena.ColorDanger);
+
+            // draw assigned spot, if any
+            if (_preferredPositions[pcSlot] != Vector3.Zero)
+                arena.AddCircle(_preferredPositions[pcSlot], 2, arena.ColorSafe);
+
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, int index)
@@ -124,18 +127,42 @@ namespace BossMod.Endwalker.P1S
             switch ((SID)actor.Statuses[index].ID)
             {
                 case SID.ShacklesOfCompanionship0:
-                case SID.ShacklesOfCompanionship1:
-                case SID.ShacklesOfCompanionship2:
-                case SID.ShacklesOfCompanionship3:
-                case SID.ShacklesOfCompanionship4:
                     ModifyDebuff(module, actor, ref _debuffsBlueFuture, true);
                     break;
+                case SID.ShacklesOfCompanionship1:
+                    ModifyDebuff(module, actor, ref _debuffsBlueFuture, true);
+                    AssignOrder(module, actor, 0, false);
+                    break;
+                case SID.ShacklesOfCompanionship2:
+                    ModifyDebuff(module, actor, ref _debuffsBlueFuture, true);
+                    AssignOrder(module, actor, 1, false);
+                    break;
+                case SID.ShacklesOfCompanionship3:
+                    ModifyDebuff(module, actor, ref _debuffsBlueFuture, true);
+                    AssignOrder(module, actor, 2, false);
+                    break;
+                case SID.ShacklesOfCompanionship4:
+                    ModifyDebuff(module, actor, ref _debuffsBlueFuture, true);
+                    AssignOrder(module, actor, 3, false);
+                    break;
                 case SID.ShacklesOfLoneliness0:
+                    ModifyDebuff(module, actor, ref _debuffsRedFuture, true);
+                    break;
                 case SID.ShacklesOfLoneliness1:
+                    ModifyDebuff(module, actor, ref _debuffsRedFuture, true);
+                    AssignOrder(module, actor, 0, true);
+                    break;
                 case SID.ShacklesOfLoneliness2:
+                    ModifyDebuff(module, actor, ref _debuffsRedFuture, true);
+                    AssignOrder(module, actor, 1, true);
+                    break;
                 case SID.ShacklesOfLoneliness3:
+                    ModifyDebuff(module, actor, ref _debuffsRedFuture, true);
+                    AssignOrder(module, actor, 2, true);
+                    break;
                 case SID.ShacklesOfLoneliness4:
                     ModifyDebuff(module, actor, ref _debuffsRedFuture, true);
+                    AssignOrder(module, actor, 3, true);
                     break;
                 case SID.InescapableCompanionship:
                     ModifyDebuff(module, actor, ref _debuffsBlueImminent, true);
@@ -180,6 +207,21 @@ namespace BossMod.Endwalker.P1S
             int slot = module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
                 BitVector.ModifyVector8Bit(ref vector, slot, active);
+        }
+
+        private void AssignOrder(BossModule module, Actor actor, int order, bool far)
+        {
+            var way1 = module.WorldState.Waymarks[(Waymark)((int)Waymark.A + order)];
+            var way2 = module.WorldState.Waymarks[(Waymark)((int)Waymark.N1 + order)];
+            if (way1 == null || way2 == null)
+                return;
+
+            var d1 = (way1.Value - module.Arena.WorldCenter).LengthSquared();
+            var d2 = (way2.Value - module.Arena.WorldCenter).LengthSquared();
+            bool use1 = far ? d1 > d2 : d1 < d2;
+            int slot = module.Raid.FindSlot(actor.InstanceID);
+            if (slot >= 0)
+                _preferredPositions[slot] = use1 ? way1.Value : way2.Value;
         }
     }
 }
