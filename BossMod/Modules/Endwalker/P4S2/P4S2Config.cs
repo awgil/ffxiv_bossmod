@@ -6,16 +6,16 @@
         public bool Act4WaterBreakCCW = false;
         public bool CurtainCallDDFirst = false;
 
+        public P4S2Config()
+        {
+            DisplayOrder = 0x142;
+        }
+
         protected override void DrawContents()
         {
             DrawProperty(ref Act4DarkSoakCCW, "Act 4: go 1/8 CCW to soak tower with dark debuff");
             DrawProperty(ref Act4WaterBreakCCW, "Act 4: go 3/8 CCW to break water tether");
             DrawProperty(ref CurtainCallDDFirst, "Curtain call: DD break debuff first");
-        }
-
-        protected override string? NameOverride()
-        {
-            return "P4S2";
         }
     }
 }

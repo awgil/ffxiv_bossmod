@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod
 {
@@ -10,41 +11,32 @@ namespace BossMod
     {
         public event EventHandler? Modified;
         protected ConfigNode? Parent;
-        private Dictionary<string, ConfigNode> _children = new();
-        public IReadOnlyDictionary<string, ConfigNode> Children() => _children;
+        protected string? DisplayName;
+        protected int DisplayOrder;
 
-        // get child node of specified type with specified name; if one doesn't exist or is of incorrect type, new child is created (old one with same name is then removed)
-        public T Get<T>(string name) where T : ConfigNode, new()
-        {
-            var child = _children.GetValueOrDefault(name) as T;
-            if (child == null)
-            {
-                var inserted = _children[name] = new T();
-                child = inserted as T;
-                child!.Parent = this;
-            }
-            return child!;
-        }
-
-        // get generic child node with specified name
-        public ConfigNode Get(string name)
-        {
-            return Get<ConfigNode>(name);
-        }
+        private List<ConfigNode> _children = new();
+        public IReadOnlyList<ConfigNode> Children => _children;
 
         // get child node of specified type with name matching type name
+        // if one doesn't exist or is of incorrect type, new child is created (old one with same name is then removed)
         public T Get<T>() where T : ConfigNode, new()
         {
-            return Get<T>(typeof(T).Name);
+            var child = _children.OfType<T>().FirstOrDefault();
+            if (child != null)
+                return child;
+
+            child = new();
+            AddChild(child);
+            return child;
         }
 
         // draw this node and all children
         public void Draw()
         {
             DrawContents();
-            foreach ((var name, var child) in _children)
+            foreach (var child in _children)
             {
-                if (ImGui.TreeNode(child.NameOverride() ?? name))
+                if (ImGui.TreeNode(child.DisplayName ?? child.GetType().Name))
                 {
                     child.Draw();
                     ImGui.TreePop();
@@ -52,10 +44,17 @@ namespace BossMod
             }
         }
 
-        public void AddDeserializedChild(string name, ConfigNode node)
+        public void AddChild(ConfigNode child)
         {
-            node.Parent = this;
-            _children[name] = node;
+            child.Parent = this;
+            if (child.DisplayName == null)
+            {
+                child.DisplayName = child.GetType().Name;
+                if (child.DisplayName.EndsWith("Config"))
+                    child.DisplayName = child.DisplayName.Remove(child.DisplayName.Length - "Config".Length);
+            }
+            _children.Add(child);
+            _children.Sort((l, r) => l.DisplayOrder.CompareTo(r.DisplayOrder));
         }
 
         // notify that configuration node was modified; should be called by derived classes whenever they make any modifications
@@ -70,14 +69,27 @@ namespace BossMod
         // draw actual node contents; at very least leaves should override this to draw something useful
         protected virtual void DrawContents() { }
 
-        // return human-readable name override for the node
-        protected virtual string? NameOverride() { return null; }
-
         // draw common property types
         protected void DrawProperty(ref bool v, string label)
         {
             if (ImGui.Checkbox(label, ref v))
                 NotifyModified();
+        }
+
+        protected void DrawProperty<E>(ref E v, string label) where E : struct, Enum
+        {
+            if (ImGui.BeginCombo(label, v.ToString()))
+            {
+                foreach (var opt in Enum.GetValues<E>())
+                {
+                    if (ImGui.Selectable(opt.ToString(), opt.Equals(v)))
+                    {
+                        v = opt;
+                        NotifyModified();
+                    }
+                }
+                ImGui.EndCombo();
+            }
         }
     }
 }

@@ -117,7 +117,7 @@ namespace BossMod
         {
             Manager = manager;
             PrimaryActor = primary;
-            Arena = new(Manager.Config);
+            Arena = new(Manager.WindowConfig);
             _resetRaidCooldowns = resetCooldownsOnReset;
 
             WorldState.Actors.Added += OnActorCreated;
@@ -180,20 +180,20 @@ namespace BossMod
 
         public virtual void Draw(float cameraAzimuth, int pcSlot, MovementHints? pcMovementHints)
         {
-            if (Manager.Config.ShowMechanicTimers)
+            if (Manager.WindowConfig.ShowMechanicTimers)
                 StateMachine.Draw();
 
-            if (Manager.Config.ShowGlobalHints)
+            if (Manager.WindowConfig.ShowGlobalHints)
                 DrawGlobalHints();
 
-            if (Manager.Config.ShowPlayerHints)
+            if (Manager.WindowConfig.ShowPlayerHints)
                 DrawHintForPlayer(pcSlot, pcMovementHints);
 
             Arena.Begin(cameraAzimuth);
             DrawArena(pcSlot);
             Arena.End();
 
-            if (Manager.Config.ShowControlButtons)
+            if (Manager.WindowConfig.ShowControlButtons)
             {
                 if (ImGui.Button("Show timeline"))
                 {
@@ -220,7 +220,7 @@ namespace BossMod
             foreach (var comp in _components)
                 comp.DrawArenaBackground(this, pcSlot, pc, Arena);
             Arena.Border();
-            if (Manager.Config.ShowWaymarks)
+            if (Manager.WindowConfig.ShowWaymarks)
                 DrawWaymarks();
             DrawArenaForegroundPre(pcSlot, pc);
             foreach (var comp in _components)

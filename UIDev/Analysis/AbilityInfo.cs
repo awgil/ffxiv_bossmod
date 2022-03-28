@@ -3,12 +3,10 @@ using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace UIDev.Analysis
 {
-    class AbilityDamage
+    class AbilityInfo
     {
         class ActionInfo
         {
@@ -37,7 +35,7 @@ namespace UIDev.Analysis
 
         private Dictionary<uint, Dictionary<ActionID, Dictionary<uint, ActionData>>> _data = new(); // [encounter-oid][aid][source-oid]
 
-        public AbilityDamage(List<Replay> replays)
+        public AbilityInfo(List<Replay> replays)
         {
             foreach (var replay in replays)
             {
@@ -103,7 +101,7 @@ namespace UIDev.Analysis
                                 {
                                     foreach (var inst in action.Instances)
                                     {
-                                        var delta = inst.Target.PosRot - inst.Action.SourcePosRot;
+                                        var delta = inst.Target.PosRot - inst.Action.MainTargetPosRot;
                                         if (ImGui.TreeNode($"{inst.Damage}: {inst.Replay.Path} {inst.Action.Timestamp} -> {ReplayUtils.ParticipantString(inst.Target.Target)}, dpos=[{delta.X:f2}, {delta.Z:f2}]={MathF.Sqrt(delta.X * delta.X + delta.Z * delta.Z):f2}"))
                                         {
                                             foreach (var eff in inst.Target.Effects)

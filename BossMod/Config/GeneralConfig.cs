@@ -9,6 +9,12 @@
         public bool AutorotationLogging = false;
         public bool AutorotationShowUI = false;
 
+        public GeneralConfig()
+        {
+            DisplayName = "General settings";
+            DisplayOrder = 0;
+        }
+
         protected override void DrawContents()
         {
             DrawProperty(ref DumpWorldStateEvents, "Dump world state events");
@@ -18,7 +24,5 @@
             DrawProperty(ref AutorotationLogging, "Log autorotation messages");
             DrawProperty(ref AutorotationShowUI, "Show autorotation UI");
         }
-
-        protected override string? NameOverride() => "General settings";
     }
 }

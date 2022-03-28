@@ -12,7 +12,8 @@ namespace BossMod
     public class BossModuleManager : IDisposable
     {
         public WorldState WorldState { get; init; }
-        public BossModuleConfig Config { get; init; }
+        public BossModuleConfig WindowConfig { get; init; }
+        public ModuleConfig EncounterConfig { get; init; }
         public RaidCooldowns RaidCooldowns { get; init; }
 
         private bool _running = false;
@@ -27,12 +28,13 @@ namespace BossMod
         public BossModuleManager(WorldState ws, ConfigNode settings)
         {
             WorldState = ws;
-            Config = settings.Get<BossModuleConfig>();
+            WindowConfig = settings.Get<BossModuleConfig>();
+            EncounterConfig = settings.Get<ModuleConfig>();
             RaidCooldowns = new(ws);
 
-            Config.Modified += ConfigChanged;
+            WindowConfig.Modified += ConfigChanged;
 
-            if (Config.Enable)
+            if (WindowConfig.Enable)
             {
                 Startup();
             }
@@ -49,7 +51,7 @@ namespace BossMod
             if (disposing)
             {
                 Shutdown();
-                Config.Modified -= ConfigChanged;
+                WindowConfig.Modified -= ConfigChanged;
                 RaidCooldowns.Dispose();
             }
         }
@@ -73,7 +75,7 @@ namespace BossMod
             catch (Exception ex)
             {
                 Service.Log($"Boss module crashed: {ex}");
-                Config.Enable = false;
+                WindowConfig.Enable = false;
                 Shutdown();
             }
         }
@@ -93,7 +95,7 @@ namespace BossMod
             WorldState.Actors.InCombatChanged += EnterExitCombat;
             WorldState.Actors.IsTargetableChanged += TargetableChanged;
 
-            if (Config.ShowDemo)
+            if (WindowConfig.ShowDemo)
             {
                 LoadDemo();
             }
@@ -237,12 +239,12 @@ namespace BossMod
 
         private void ConfigChanged(object? sender, EventArgs args)
         {
-            if (Config.Enable)
+            if (WindowConfig.Enable)
                 Startup();
             else
                 Shutdown();
 
-            if (Config.ShowDemo)
+            if (WindowConfig.ShowDemo)
                 LoadDemo();
             else
                 UnloadModule(0);

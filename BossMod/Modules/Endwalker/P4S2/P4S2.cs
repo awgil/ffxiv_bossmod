@@ -22,7 +22,7 @@
         public P4S2(BossModuleManager manager, Actor primary)
             : base(manager, primary, true)
         {
-            Config = manager.Config.Get("Endwalker").Get<P4S2Config>();
+            Config = manager.EncounterConfig.Get<EndwalkerConfig>().Get<P4S2Config>();
             Arena.IsCircle = true;
             new P4S2States(this);
         }

@@ -19,6 +19,12 @@ namespace BossMod
         public bool ShowWorldArrows = false;
         public bool ShowDemo = false;
 
+        public BossModuleConfig()
+        {
+            DisplayName = "Boss module window settings";
+            DisplayOrder = 1;
+        }
+
         protected override void DrawContents()
         {
             if (ImGui.DragFloat("Arena scale factor", ref ArenaScale, 0.1f, 0.1f, 10, "%.1f", ImGuiSliderFlags.Logarithmic))
@@ -37,7 +43,5 @@ namespace BossMod
             DrawProperty(ref ShowWorldArrows, "Show movement hints in world");
             DrawProperty(ref ShowDemo, "Show boss module demo out of instances (useful for configuring windows)");
         }
-
-        protected override string? NameOverride() => "Boss modules settings";
     }
 }

@@ -92,7 +92,8 @@ namespace UIDev
             ImGui.Checkbox("Show config", ref _showConfig);
             if (_showConfig)
             {
-                _mgr.Config.Draw();
+                _mgr.WindowConfig.Draw();
+                _mgr.EncounterConfig.Draw();
             }
         }
 

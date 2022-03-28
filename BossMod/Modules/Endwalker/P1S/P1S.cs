@@ -9,6 +9,7 @@ namespace BossMod.Endwalker.P1S
         public P1S(BossModuleManager manager, Actor primary)
             : base(manager, primary, true)
         {
+            Config = manager.EncounterConfig.Get<EndwalkerConfig>().Get<P1SConfig>();
             new P1SStates(this);
         }
 

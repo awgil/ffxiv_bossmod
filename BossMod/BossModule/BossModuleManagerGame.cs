@@ -38,9 +38,9 @@ namespace BossMod
             if (_mainWindow != null)
             {
                 _mainWindow.Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
-                if (Config.TrishaMode)
+                if (WindowConfig.TrishaMode)
                     _mainWindow.Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
-                if (Config.Lock)
+                if (WindowConfig.Lock)
                     _mainWindow.Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
             }
         }
@@ -58,8 +58,8 @@ namespace BossMod
             {
                 try
                 {
-                    BossModule.MovementHints? movementHints = Config.ShowWorldArrows ? new() : null;
-                    _drawnModule.Draw(Config.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, PartyState.PlayerSlot, movementHints);
+                    BossModule.MovementHints? movementHints = WindowConfig.ShowWorldArrows ? new() : null;
+                    _drawnModule.Draw(WindowConfig.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, PartyState.PlayerSlot, movementHints);
                     DrawMovementHints(movementHints);
                 }
                 catch (Exception ex)

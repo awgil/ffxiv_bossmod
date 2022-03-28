@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.P1S
         private Vector3 _knockbackPos = new();
 
         private static float _kbDistance = 15;
-        private static float _flareRange = 20; // this is tricky - range is actually 50, but it has some sort of falloff - not sure what is 'far enough'
+        private static float _flareRange = 20; // max range is 50, but it has distance falloff - hits for ~40k at 15, ~30k at 18 and ~5k at 20
         private static float _holyRange = 6;
         private static uint _colorAOETarget = 0xff8080ff;
 

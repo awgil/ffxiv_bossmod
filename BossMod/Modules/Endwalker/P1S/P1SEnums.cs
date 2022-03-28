@@ -11,52 +11,55 @@
 
     public enum AID : uint
     {
-        GaolerFlailRL = 26102, // Boss->Boss
-        GaolerFlailLR = 26103, // Boss->Boss
-        GaolerFlailIO1 = 26104, // Boss->Boss
-        GaolerFlailIO2 = 26105, // Boss->Boss
-        GaolerFlailOI1 = 26106, // Boss->Boss
-        GaolerFlailOI2 = 26107, // Boss->Boss
-        AetherflailRX = 26114, // Boss->Boss -- seen BlueRI & RedRO
-        AetherflailLX = 26115, // Boss->Boss -- seen BlueLO, RedLI, RedLO - maybe it's *L*?
+        AutoAttack = 872,
+        GaolerFlailRL = 26102, // Boss->self
+        GaolerFlailLR = 26103, // Boss->self
+        GaolerFlailIO1 = 26104, // Boss->self
+        GaolerFlailIO2 = 26105, // Boss->self
+        GaolerFlailOI1 = 26106, // Boss->self
+        GaolerFlailOI2 = 26107, // Boss->self
+        AetherflailRX = 26114, // Boss->self
+        AetherflailLX = 26115, // Boss->self
         AetherflailIL = 26116, // never seen one, inferred
-        AetherflailIR = 26117, // Boss->Boss -- RedIR
-        AetherflailOL = 26118, // Boss->Boss -- seen BlueOL, RedOL
-        AetherflailOR = 26119, // Boss->Boss -- seen RedOR
+        AetherflailIR = 26117, // Boss->self
+        AetherflailOL = 26118, // Boss->self
+        AetherflailOR = 26119, // Boss->self
         KnockbackGrace = 26126, // Boss->MT
         KnockbackPurge = 26127, // Boss->MT
-        TrueHoly1 = 26128, // Boss->Boss, no cast, ???
-        TrueFlare1 = 26129, // Boss->Boss, no cast, ???
+        TrueHoly1 = 26128, // Boss->self, no cast, ???
+        TrueFlare1 = 26129, // Boss->self, no cast, ???
         TrueHoly2 = 26130, // Helper->tank shared, no cast, damage after KnockbackGrace (range=6)
         TrueFlare2 = 26131, // Helper->tank and nearby, no cast, damage after KnockbackPurge (range=50??)
-        ShiningCells = 26134, // Boss->Boss, raidwide aoe
-        SlamShut = 26135, // Boss->Boss, raidwide aoe
-        Aetherchain = 26137, // Boss->Boss
-        PowerfulFire = 26138, // Helper->???, no cast, damage during aetherflails for incorrect segments?..
-        ShacklesOfTime = 26140, // Boss->Boss
+        ShiningCells = 26134, // Boss->self, raidwide aoe
+        SlamShut = 26135, // Boss->self, raidwide aoe
+        Aetherchain = 26137, // Boss->self
+        PowerfulFire = 26138, // Helper->self, no cast, damage during aetherflails for incorrect segments
+        PowerfulLight = 26139, // Helper->self, no cast, damage during aetherflails for incorrect segments
+        ShacklesOfTime = 26140, // Boss->self
         OutOfTime = 26141, // Helper->???, no cast, after SoT resolve
-        Intemperance = 26142, // Boss->Boss
-        IntemperateTormentUp = 26143, // Boss->Boss (bottom->top)
-        IntemperateTormentDown = 26144, // Boss->Boss (bottom->top)
+        Intemperance = 26142, // Boss->self
+        IntemperateTormentUp = 26143, // Boss->self (bottom->top)
+        IntemperateTormentDown = 26144, // Boss->self (bottom->top)
         HotSpell = 26145, // Helper->player, no cast, red cube explosion
         ColdSpell = 26146, // Helper->player, no cast, blue cube explosion
         DisastrousSpell = 26147, // Helper->player, no cast, purple cube explosion
         PainfulFlux = 26148, // Helper->player, no cast, separator cube explosion
-        AetherialShackles = 26149, // Boss->Boss
-        FourShackles = 26150, // Boss->Boss
+        AetherialShackles = 26149, // Boss->self
+        FourShackles = 26150, // Boss->self
         ChainPainBlue = 26151, // Helper->chain target, no cast, damage during chain resolve
         ChainPainRed = 26152, // Helper->chain target
         HeavyHand = 26153, // Boss->MT, generic tankbuster
-        WarderWrath = 26154, // Boss->Boss, generic raidwide
-        GaolerFlailR1 = 28070, // Helper->Helper, first hit, right-hand cone
-        GaolerFlailL1 = 28071, // Helper->Helper, first hit, left-hand cone
-        GaolerFlailI1 = 28072, // Helper->Helper, first hit, point-blank
-        GaolerFlailO1 = 28073, // Helper->Helper, first hit, donut
-        GaolerFlailR2 = 28074, // Helper->Helper, second hit, right-hand cone
-        GaolerFlailL2 = 28075, // Helper->Helper, second hit, left-hand cone
-        GaolerFlailI2 = 28076, // Helper->Helper, second hit, point-blank
-        GaolerFlailO2 = 28077, // Helper->Helper, second hit, donut
-        InevitableFlame = 28353, // Helper->Helper no cast, after SoT resolve to red - hit others standing in fire?
+        WarderWrath = 26154, // Boss->self, generic raidwide
+        GaolerFlailR1 = 28070, // Helper->self, first hit, right-hand cone
+        GaolerFlailL1 = 28071, // Helper->self, first hit, left-hand cone
+        GaolerFlailI1 = 28072, // Helper->self, first hit, point-blank
+        GaolerFlailO1 = 28073, // Helper->self, first hit, donut
+        GaolerFlailR2 = 28074, // Helper->self, second hit, right-hand cone
+        GaolerFlailL2 = 28075, // Helper->self, second hit, left-hand cone
+        GaolerFlailI2 = 28076, // Helper->self, second hit, point-blank
+        GaolerFlailO2 = 28077, // Helper->self, second hit, donut
+        InevitableFlame = 28353, // Helper->self, no cast, after SoT resolve to red - hit others standing in fire
+        InevitableLight = 28354, // Helper->self, no cast, after SoT resolve to red - hit others standing in blue
     };
 
     public enum SID : uint

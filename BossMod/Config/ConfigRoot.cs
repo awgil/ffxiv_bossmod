@@ -9,7 +9,7 @@ namespace BossMod
     {
         private class Serialized : IPluginConfiguration
         {
-            public int Version { get; set; } = 0;
+            public int Version { get; set; } = 1;
             public JObject? Payload;
         }
 
@@ -17,8 +17,12 @@ namespace BossMod
 
         public static ConfigRoot ReadConfig(DalamudPluginInterface dalamud)
         {
+            ConfigRoot? obj = null;
             var serialized = dalamud.GetPluginConfig() as Serialized;
-            var obj = DeserializeNode(serialized?.Payload) as ConfigRoot ?? new ConfigRoot();
+            if (serialized?.Payload != null)
+                obj = DeserializeNode(serialized.Payload, typeof(ConfigRoot), serialized.Version) as ConfigRoot;
+            if (obj == null)
+                obj = new();
             obj._dalamud = dalamud;
             return obj;
         }
@@ -36,39 +40,39 @@ namespace BossMod
         private JObject SerializeNode(ConfigNode n)
         {
             JObject children = new();
-            foreach ((var name, var child) in n.Children())
-                children[name] = SerializeNode(child);
+            foreach (var child in n.Children)
+                children[child.GetType().FullName!] = SerializeNode(child);
 
             JObject j = JObject.FromObject(n);
-            j["__type__"] = n.GetType().FullName;
             j["__children__"] = children;
             return j;
         }
 
-        private static ConfigNode? DeserializeNode(JObject? j)
+        private static ConfigNode? DeserializeNode(JObject j, Type type, int version)
         {
-            if (j == null)
-                return null;
-            var typeName = j["__type__"]?.ToString();
-            if (typeName == null)
-                return null;
-            var type = Type.GetType(typeName);
-            if (type == null)
-                return null;
-
             var deserialized = j.ToObject(type) as ConfigNode;
+            if (version == 0 && type == typeof(BossModuleConfig))
+                return deserialized; // children of this node are moved...
+
             if (deserialized != null)
             {
                 var children = j["__children__"] as JObject;
                 if (children != null)
                 {
-                    foreach ((var name, var jChild) in children)
+                    foreach ((var childTypeName, var jChild) in children)
                     {
-                        var child = DeserializeNode(jChild as JObject);
+                        var jChildObj = jChild as JObject;
+                        if (jChildObj == null)
+                            continue;
+
+                        var realTypeName = version == 0 ? jChildObj["__type__"]?.ToString() : childTypeName;
+                        var childType = realTypeName != null ? Type.GetType(realTypeName) : null;
+                        if (childType == null)
+                            continue;
+
+                        var child = DeserializeNode(jChildObj, childType, version);
                         if (child != null)
-                        {
-                            deserialized.AddDeserializedChild(name, child);
-                        }
+                            deserialized.AddChild(child);
                     }
                 }
             }

@@ -8,9 +8,9 @@ network:
 - allow injecting custom client messages in next sent bundle (or just create new bundle?..)
 
 boss modules:
+- draw actors by framework (components should return color+prio)
 - assignments and sharing (webservice?)
 - p1s - get enrage log
-- p1s - make intemperance component useful
 - p2s - minor components (shockwave, ominous bubbling, eruption?..)
 
 autorotation:
@@ -44,3 +44,4 @@ misc:
 - fail log?
 - determine exact mechanism for cooldown reset (on instance enter and on wipe)
 - data driven boss modules?.. would enable sequence autorecord and live editing - or is it covered by replay analysis?
+- draw target max-melee and boss positioning hints?..
