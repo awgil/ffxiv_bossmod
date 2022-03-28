@@ -15,7 +15,7 @@ namespace BossMod
         protected int DisplayOrder;
 
         private List<ConfigNode> _children = new();
-        public IReadOnlyList<ConfigNode> Children => _children;
+        public IReadOnlyList<ConfigNode> Children() => _children;
 
         // get child node of specified type with name matching type name
         // if one doesn't exist or is of incorrect type, new child is created (old one with same name is then removed)

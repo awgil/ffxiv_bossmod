@@ -40,7 +40,7 @@ namespace BossMod
         private JObject SerializeNode(ConfigNode n)
         {
             JObject children = new();
-            foreach (var child in n.Children)
+            foreach (var child in n.Children())
                 children[child.GetType().FullName!] = SerializeNode(child);
 
             JObject j = JObject.FromObject(n);
