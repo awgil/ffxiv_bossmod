@@ -1,15 +1,13 @@
 ﻿namespace BossMod.Endwalker.P2S
 {
-    // state related to demigod double mechanic (shared tankbuster)
     class DoubledImpact : CommonComponents.SharedTankbuster
     {
         public DoubledImpact() : base(6) { }
     }
 
-    // TODO: improve this somehow...
-    class OminousBubbling : CommonComponents.CastCounter
+    class SewageEruption : CommonComponents.Puddles
     {
-        public OminousBubbling() : base(ActionID.MakeSpell(AID.OminousBubblingAOE)) { }
+        public SewageEruption() : base(ActionID.MakeSpell(AID.SewageEruptionAOE), 6) { }
     }
 
     public class P2S : BossModule

@@ -10,9 +10,16 @@ namespace BossMod.Endwalker.P2S
     // state related to channeling [over]flow mechanics
     class ChannelingFlow : Component
     {
+        public int NumStunned { get; private set; }
         private (Vector3, DateTime)[] _arrows = new (Vector3, DateTime)[PartyState.MaxSize];
 
         private static float _typhoonHalfWidth = 2.5f;
+
+        public bool SlotActive(BossModule module, int slot)
+        {
+            var (dir, expire) = _arrows[slot];
+            return dir != Vector3.Zero && (expire - module.WorldState.CurrentTime).TotalSeconds < 13;
+        }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
@@ -58,37 +65,47 @@ namespace BossMod.Endwalker.P2S
 
         public override void OnStatusGain(BossModule module, Actor actor, int index)
         {
-            var dir = (SID)actor.Statuses[index].ID switch
+            switch ((SID)actor.Statuses[index].ID)
             {
-                SID.MarkFlowN => -Vector3.UnitZ,
-                SID.MarkFlowS =>  Vector3.UnitZ,
-                SID.MarkFlowW => -Vector3.UnitX,
-                SID.MarkFlowE =>  Vector3.UnitX,
-                _ => Vector3.Zero
-            };
-            if (dir != Vector3.Zero)
-            {
-                var slot = module.WorldState.Party.FindSlot(actor.InstanceID);
-                if (slot >= 0)
-                    _arrows[slot] = (dir, actor.Statuses[index].ExpireAt);
+                case SID.MarkFlowN:
+                    SetArrow(module, actor, -Vector3.UnitZ, actor.Statuses[index].ExpireAt);
+                    break;
+                case SID.MarkFlowS:
+                    SetArrow(module, actor,  Vector3.UnitZ, actor.Statuses[index].ExpireAt);
+                    break;
+                case SID.MarkFlowW:
+                    SetArrow(module, actor, -Vector3.UnitX, actor.Statuses[index].ExpireAt);
+                    break;
+                case SID.MarkFlowE:
+                    SetArrow(module, actor,  Vector3.UnitX, actor.Statuses[index].ExpireAt);
+                    break;
+                case SID.Stun:
+                    ++NumStunned;
+                    break;
             }
         }
 
         public override void OnStatusLose(BossModule module, Actor actor, int index)
         {
-            var s = actor.Statuses[index];
-            if ((SID)s.ID is SID.MarkFlowN or SID.MarkFlowS or SID.MarkFlowW or SID.MarkFlowE)
+            switch ((SID)actor.Statuses[index].ID)
             {
-                var slot = module.WorldState.Party.FindSlot(actor.InstanceID);
-                if (slot >= 0)
-                    _arrows[slot] = (Vector3.Zero, new());
+                case SID.MarkFlowN:
+                case SID.MarkFlowS:
+                case SID.MarkFlowW:
+                case SID.MarkFlowE:
+                    SetArrow(module, actor, Vector3.Zero, new());
+                    break;
+                case SID.Stun:
+                    --NumStunned;
+                    break;
             }
         }
 
-        private bool SlotActive(BossModule module, int slot)
+        private void SetArrow(BossModule module, Actor actor, Vector3 dir, DateTime expire)
         {
-            var (dir, expire) = _arrows[slot];
-            return dir != Vector3.Zero && (expire - module.WorldState.CurrentTime).TotalSeconds < 13;
+            var slot = module.WorldState.Party.FindSlot(actor.InstanceID);
+            if (slot >= 0)
+                _arrows[slot] = (dir, expire);
         }
 
         private IEnumerable<(Actor, Vector3)> ActiveArrows(BossModule module)

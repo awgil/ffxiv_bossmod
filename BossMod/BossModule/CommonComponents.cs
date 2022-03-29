@@ -1,4 +1,7 @@
-﻿namespace BossMod
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace BossMod
 {
     public static class CommonComponents
     {
@@ -80,6 +83,51 @@
                 {
                     // draw target next to which pc is to stack
                     arena.Actor(Target, arena.ColorDanger);
+                }
+            }
+        }
+
+        // generic 'puddles' component that shows circle aoes for casters that target specific location
+        public class Puddles : BossModule.Component
+        {
+            public bool Done { get; private set; } // set when currently there are no casters, but at least 1 cast was started before
+            private ActionID _watchedAction;
+            private AOEShapeCircle _aoe;
+            private List<Actor> _casters = new();
+
+            public Puddles(ActionID aid, float radius)
+            {
+                _watchedAction = aid;
+                _aoe = new(radius);
+            }
+
+            public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+            {
+                if (_casters.Any(c => _aoe.Check(actor.Position, c.CastInfo!.Location, 0)))
+                    hints.Add("GTFO from puddle!");
+            }
+
+            public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+            {
+                foreach (var c in _casters)
+                    _aoe.Draw(arena, c.CastInfo!.Location, 0);
+            }
+
+            public override void OnCastStarted(BossModule module, Actor actor)
+            {
+                if (actor.CastInfo!.Action == _watchedAction)
+                {
+                    _casters.Add(actor);
+                    Done = false;
+                }
+            }
+
+            public override void OnCastFinished(BossModule module, Actor actor)
+            {
+                if (actor.CastInfo!.Action == _watchedAction)
+                {
+                    _casters.Remove(actor);
+                    Done = _casters.Count == 0;
                 }
             }
         }

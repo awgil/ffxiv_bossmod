@@ -27,7 +27,7 @@
             DoubledImpact(0x00330000, 10);
             MurkyDepths(0x00340000, 4.2f);
             Flow2(0x00350000, 8.6f);
-            Cataract(0x00360000, 1.2f);
+            Cataract(0x00360000, 0.7f);
             // note: deluge 2 ends here...
 
             AvariceDissociationCataract(0x00400000, 15.2f);
@@ -38,8 +38,8 @@
             // deluge 3
             SewageDeluge(0x00500000, 12.8f);
             Flow3(0x00510000, 11.7f);
-            DissociationEruption(0x00520000, 8.3f);
-            OminousBubblingShockwave(0x00530000, 3.4f);
+            DissociationEruption(0x00520000, 6.9f);
+            OminousBubblingShockwave(0x00530000, 0.8f);
             DoubledImpact(0x00540000, 5.4f);
             MurkyDepths(0x00550000, 7.2f);
             MurkyDepths(0x00560000, 6.2f);
@@ -88,7 +88,7 @@
 
         private void Shockwave(uint id, float delay)
         {
-            // TODO: some component (knockback? or just make sure autorot uses arms length?)
+            // TODO: some component (knockback distance=16? or just make sure autorot uses arms length?)
             Cast(id, AID.Shockwave, delay, 8, "Shockwave")
                 .SetHint(StateMachine.StateHint.Knockback);
         }
@@ -105,6 +105,20 @@
         {
             Cast(id, AID.Dissociation, delay, 4, "Dissociation")
                 .ActivateOnEnter<Dissociation>();
+        }
+
+        // note: this activates component, which has to be deactivated later manually
+        private State TaintedFlood(uint id, float delay)
+        {
+            return Cast(id, AID.TaintedFlood, delay, 3, "Flood")
+                .ActivateOnEnter<TaintedFlood>();
+        }
+
+        // note: this activates component, which has to be deactivated later manually
+        private State SewageEruption(uint id, float delay)
+        {
+            return Cast(id, AID.SewageEruption, delay, 5, "Eruption")
+                .ActivateOnEnter<SewageEruption>();
         }
 
         private void AvariceCataract(uint id, float delay)
@@ -131,71 +145,75 @@
         private void DissociationEruptionFloodCoherence(uint id, float delay)
         {
             Dissociation(id, delay);
-            Cast(id + 0x1000, AID.SewageEruption, 8.2f, 5, "Eruption")
+            SewageEruption(id + 0x1000, 8.2f)
                 .SetHint(StateMachine.StateHint.PositioningStart);
-            Cast(id + 0x2000, AID.TaintedFlood, 2.4f, 3, "Flood")
-                .DeactivateOnExit<Dissociation>();
+            TaintedFlood(id + 0x2000, 2.4f)
+                .DeactivateOnExit<Dissociation>(); // resolve happens mid-cast
             Coherence(id + 0x3000, 4.7f)
+                .DeactivateOnExit<SewageEruption>() // resolve happens right before cast start
+                .DeactivateOnExit<TaintedFlood>() // resolve happens mid-cast
                 .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void DissociationEruption(uint id, float delay)
         {
-            // TODO: get rid of timeout!
             Dissociation(id, delay);
-            Cast(id + 0x1000, AID.SewageEruption, 8.3f, 5, "Eruption")
+            SewageEruption(id + 0x1000, 8.3f)
                 .SetHint(StateMachine.StateHint.PositioningStart);
-            Timeout(id + 0x2000, 5, "Resolve") // should be last eruption...
-                .DeactivateOnExit<Dissociation>()
+            ComponentCondition<SewageEruption>(id + 0x2000, 7.6f, comp => comp.Done, "Resolve")
+                .DeactivateOnExit<Dissociation>() // resolve happens at the same time as the first set of eruptions
+                .DeactivateOnExit<SewageEruption>()
                 .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void Flow1(uint id, float delay)
         {
-            // TODO: get rid of timeouts!
             Cast(id, AID.ChannelingFlow, delay, 5, "Flow 1")
                 .ActivateOnEnter<ChannelingFlow>()
                 .SetHint(StateMachine.StateHint.PositioningStart);
-            Timeout(id + 0x1000, 14)
+            ComponentCondition<ChannelingFlow>(id + 0x1000, 14, comp => comp.NumStunned > 0)
                 .SetHint(StateMachine.StateHint.PositioningEnd | StateMachine.StateHint.DowntimeStart);
-            Timeout(id + 0x2000, 3, "Flow resolve")
+            ComponentCondition<ChannelingFlow>(id + 0x2000, 3, comp => comp.NumStunned == 0, "Flow resolve")
                 .DeactivateOnExit<ChannelingFlow>()
                 .SetHint(StateMachine.StateHint.DowntimeEnd | StateMachine.StateHint.Raidwide);
         }
 
         private void Flow2(uint id, float delay)
         {
-            // TODO: get rid of timeouts!
             // flow 2: same statuses as first flow, different durations
             Cast(id, AID.ChannelingOverflow, delay, 5, "Flow 2")
                 .ActivateOnEnter<ChannelingFlow>()
                 .SetHint(StateMachine.StateHint.PositioningStart);
-            Cast(id + 0x1000, AID.TaintedFlood, 4.2f, 3, "Flood 1");
-            Timeout(id + 0x2000, 9, "Hit 1")
+            TaintedFlood(id + 0x1000, 4.2f);
+            ComponentCondition<ChannelingFlow>(id + 0x2000, 6.8f, comp => comp.NumStunned > 0);
+            ComponentCondition<TaintedFlood>(id + 0x2001, 0.3f, comp => comp.NumCasts > 0)
+                .DeactivateOnExit<TaintedFlood>();
+            ComponentCondition<ChannelingFlow>(id + 0x2002, 2.7f, comp => comp.NumStunned == 0, "Hit 1")
                 .SetHint(StateMachine.StateHint.Raidwide);
-            Cast(id + 0x3000, AID.TaintedFlood, 3.4f, 3, "Flood 2");
-            Timeout(id + 0x4000, 9, "Hit 2")
+            TaintedFlood(id + 0x3000, 2.6f);
+            ComponentCondition<ChannelingFlow>(id + 0x4000, 6.4f, comp => comp.NumStunned > 0);
+            ComponentCondition<TaintedFlood>(id + 0x4001, 0.6f, comp => comp.NumCasts > 0)
+                .DeactivateOnExit<TaintedFlood>();
+            ComponentCondition<ChannelingFlow>(id + 0x4002, 2.4f, comp => comp.NumStunned == 0, "Hit 2")
                 .DeactivateOnExit<ChannelingFlow>()
                 .SetHint(StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd);
         }
 
         private void Flow3(uint id, float delay)
         {
-            // TODO: get rid of timeouts!
             // flow 3: same as flow 2, but with coherence instead of floods
             Cast(id, AID.ChannelingOverflow, delay, 5, "Flow 3")
                 .ActivateOnEnter<ChannelingFlow>()
                 .SetHint(StateMachine.StateHint.PositioningStart);
             Coherence(id + 0x1000, 5.5f); // first hit is around coherence cast end
-            Timeout(id + 0x3000, 10, "Flow resolve") // second hit
+            ComponentCondition<ChannelingFlow>(id + 0x2000, 8.3f, comp => comp.NumStunned > 0);
+            ComponentCondition<ChannelingFlow>(id + 0x3000, 3, comp => comp.NumStunned == 0, "Flow resolve") // second hit
                 .DeactivateOnExit<ChannelingFlow>()
                 .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void OminousBubblingShockwave(uint id, float delay)
         {
-            // note: can determine bubbling targets by watching 233Cs cast OminousBubblingAOE on two targets
-            // TODO: some component...
             Cast(id, AID.OminousBubbling, delay, 3, "TwoStacks")
                 .ActivateOnEnter<OminousBubbling>()
                 .SetHint(StateMachine.StateHint.PositioningStart);

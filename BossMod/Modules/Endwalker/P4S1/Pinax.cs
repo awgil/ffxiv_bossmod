@@ -112,7 +112,7 @@ namespace BossMod.Endwalker.P4S1
                     if (player.Role == Role.Healer)
                     {
                         arena.Actor(player, arena.ColorDanger);
-                        arena.AddCircle(pc.Position, _fireAOERadius, arena.ColorDanger);
+                        arena.AddCircle(player.Position, _fireAOERadius, arena.ColorDanger);
                     }
                     else
                     {

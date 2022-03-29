@@ -185,12 +185,10 @@ namespace BossMod.Endwalker.ZodiarkEx
             ExoterikosStart(id + 0x1000, 2.1f, "Exo5 (side)");
             AstralFlow(id + 0x2000, 2.2f)
                 .DeactivateOnExit<Exoterikos>();
-
-            // TODO: component
-            Cast(id + 0x3000, AID.Phlegeton, 0, 2.9f, "Puddles"); // note: 3s cast starts ~0.1s before flow resolve...
-            // TODO: resolve; it overlaps with styx cast start
-
-            Styx(id + 0x4000, 2.2f, 8);
+            Cast(id + 0x3000, AID.Phlegeton, 0, 2.9f, "Puddles") // note: 3s cast starts ~0.1s before flow resolve...
+                .ActivateOnEnter<Phlegethon>();
+            Styx(id + 0x4000, 2.2f, 8)
+                .DeactivateOnExit<Phlegethon>(); // resolve happens mid cast
         }
 
         private void Exoterikos6(uint id, float delay)

@@ -48,6 +48,7 @@
 
     public enum SID : uint
     {
+        Stun = 2656,
         MarkOfTides = 2768, // avarice - gtfo (tank+dd)
         MarkOfDepths = 2769, // avarice - stack (healer)
         MarkFlowN = 2770, // 'fore', points north

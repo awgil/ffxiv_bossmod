@@ -6,6 +6,11 @@
         public Apomnemoneumata() : base(ActionID.MakeSpell(AID.ApomnemoneumataNormal)) { }
     }
 
+    public class Phlegethon : CommonComponents.Puddles
+    {
+        public Phlegethon() : base(ActionID.MakeSpell(AID.PhlegetonAOE), 5) { }
+    }
+
     public class ZodiarkEx : BossModule
     {
         public ZodiarkEx(BossModuleManager manager, Actor primary)

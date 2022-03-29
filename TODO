@@ -11,7 +11,7 @@ boss modules:
 - draw actors by framework (components should return color+prio)
 - assignments and sharing (webservice?)
 - p1s - get enrage log
-- p2s - minor components (shockwave, ominous bubbling, eruption?..)
+- p3s - review, searing breeze component
 
 autorotation:
 - planner (defensive CDs, charge, delay offensive?)
