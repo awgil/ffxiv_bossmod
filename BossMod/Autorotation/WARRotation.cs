@@ -2,7 +2,6 @@
 
 namespace BossMod
 {
-    // TODO: consider making a 'plan' based on selected strategy, instead of determining best action reactively
     public class WARRotation
     {
         public enum AID : uint

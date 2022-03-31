@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BossMod
 {
-    class GeometryUtils
+    public class GeometryUtils
     {
         public static List<List<Vector2>> ClipPolygonToPolygon(IEnumerable<Vector2> pts, IEnumerable<Vector2> clipPoly)
         {

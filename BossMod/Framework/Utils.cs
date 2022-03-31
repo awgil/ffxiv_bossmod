@@ -29,6 +29,8 @@ namespace BossMod
                 return $"{obj.ObjectKind}/{obj.SubKind}";
         }
 
+        public static Vector3 XYZ(this Vector4 v) => new(v.X, v.Y, v.Z);
+
         public static string RadianString(float rad)
         {
             return $"{(rad / Math.PI * 180):f0}";

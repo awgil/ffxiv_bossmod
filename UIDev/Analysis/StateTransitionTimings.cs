@@ -176,25 +176,25 @@ namespace UIDev.Analysis
                         }
                     }
                 }
+            }
 
-                foreach (var (_, metrics) in _metrics)
+            foreach (var (_, metrics) in _metrics)
+            {
+                foreach (var state in metrics.Metrics)
                 {
-                    foreach (var state in metrics.Metrics)
+                    foreach (var (_, trans) in state.Transitions)
                     {
-                        foreach (var (_, trans) in state.Transitions)
+                        trans.Instances.Sort((l, r) => l.Duration.CompareTo(r.Duration));
+                        trans.MinTime = trans.Instances.First().Duration;
+                        trans.MaxTime = trans.Instances.Last().Duration;
+                        double sum = 0, sumSq = 0;
+                        foreach (var inst in trans.Instances)
                         {
-                            trans.Instances.Sort((l, r) => l.Duration.CompareTo(r.Duration));
-                            trans.MinTime = trans.Instances.First().Duration;
-                            trans.MaxTime = trans.Instances.Last().Duration;
-                            double sum = 0, sumSq = 0;
-                            foreach (var inst in trans.Instances)
-                            {
-                                sum += inst.Duration;
-                                sumSq += inst.Duration * inst.Duration;
-                            }
-                            trans.AvgTime = sum / trans.Instances.Count;
-                            trans.StdDev = trans.Instances.Count > 0 ? Math.Sqrt((sumSq - sum * sum / trans.Instances.Count) / (trans.Instances.Count - 1)) : 0;
+                            sum += inst.Duration;
+                            sumSq += inst.Duration * inst.Duration;
                         }
+                        trans.AvgTime = sum / trans.Instances.Count;
+                        trans.StdDev = trans.Instances.Count > 0 ? Math.Sqrt((sumSq - sum * sum / trans.Instances.Count) / (trans.Instances.Count - 1)) : 0;
                     }
                 }
             }
