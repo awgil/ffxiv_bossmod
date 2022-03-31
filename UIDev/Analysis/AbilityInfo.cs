@@ -33,10 +33,13 @@ namespace UIDev.Analysis
             public List<ActionInfo> Instances = new();
         }
 
+        private Tree _tree;
         private Dictionary<uint, Dictionary<ActionID, Dictionary<uint, ActionData>>> _data = new(); // [encounter-oid][aid][source-oid]
 
-        public AbilityInfo(List<Replay> replays)
+        public AbilityInfo(List<Replay> replays, Tree tree)
         {
+            _tree = tree;
+
             foreach (var replay in replays)
             {
                 foreach (var enc in replay.Encounters)
@@ -84,43 +87,28 @@ namespace UIDev.Analysis
 
         public void Draw()
         {
-            foreach (var (encOID, perEnc) in _data)
+            foreach (var (encOID, perEnc) in _tree.Nodes(_data, kv => ($"{kv.Key:X} ({ModuleRegistry.TypeForOID(kv.Key)?.Name})", false)))
             {
                 var moduleType = ModuleRegistry.TypeForOID(encOID);
                 var oidType = moduleType?.Module.GetType($"{moduleType.Namespace}.OID");
                 var aidType = moduleType?.Module.GetType($"{moduleType.Namespace}.AID");
-                if (ImGui.TreeNode($"{encOID:X} ({moduleType?.Name})"))
+                foreach (var (aid, perSource) in _tree.Nodes(perEnc, kv => ($"{kv.Key} ({aidType?.GetEnumName(kv.Key.ID)})", false)))
                 {
-                    foreach (var (aid, perSource) in perEnc)
+                    foreach (var (srcOID, action) in _tree.Nodes(perSource, kv => ($"{kv.Key:X} ({oidType?.GetEnumName(kv.Key)}): avg={kv.Value.AvgDamage:f0} +- {kv.Value.StdDev:f0}, [{kv.Value.MinDamage:f0}, {kv.Value.MaxDamage:f0}] range, {kv.Value.Instances.Count} seen", false)))
                     {
-                        if (ImGui.TreeNode($"{aid} ({aidType?.GetEnumName(aid.ID)})"))
+                        foreach (var inst in _tree.Nodes(action.Instances, inst => (ActionInfoString(inst), false)))
                         {
-                            foreach (var (srcOID, action) in perSource)
-                            {
-                                if (ImGui.TreeNode($"{srcOID:X} ({oidType?.GetEnumName(srcOID)}): avg={action.AvgDamage:f0} +- {action.StdDev:f0}, [{action.MinDamage:f0}, {action.MaxDamage:f0}] range, {action.Instances.Count} seen"))
-                                {
-                                    foreach (var inst in action.Instances)
-                                    {
-                                        var delta = inst.Target.PosRot - inst.Action.MainTargetPosRot;
-                                        if (ImGui.TreeNode($"{inst.Damage}: {inst.Replay.Path} {inst.Action.Timestamp} -> {ReplayUtils.ParticipantString(inst.Target.Target)}, dpos=[{delta.X:f2}, {delta.Z:f2}]={MathF.Sqrt(delta.X * delta.X + delta.Z * delta.Z):f2}"))
-                                        {
-                                            foreach (var eff in inst.Target.Effects)
-                                            {
-                                                if (ImGui.TreeNodeEx(ReplayUtils.ActionEffectString(eff), ImGuiTreeNodeFlags.Leaf))
-                                                    ImGui.TreePop();
-                                            }
-                                            ImGui.TreePop();
-                                        }
-                                    }
-                                    ImGui.TreePop();
-                                }
-                            }
-                            ImGui.TreePop();
+                            _tree.LeafNodes(inst.Target.Effects, ReplayUtils.ActionEffectString);
                         }
                     }
-                    ImGui.TreePop();
                 }
             }
+        }
+
+        private string ActionInfoString(ActionInfo inst)
+        {
+            var delta = inst.Target.PosRot - inst.Action.MainTargetPosRot;
+            return $"{inst.Damage}: {inst.Replay.Path} {inst.Action.Timestamp} -> {ReplayUtils.ParticipantString(inst.Target.Target)}, dpos=[{delta.X:f2}, {delta.Z:f2}]={MathF.Sqrt(delta.X * delta.X + delta.Z * delta.Z):f2}";
         }
     }
 }

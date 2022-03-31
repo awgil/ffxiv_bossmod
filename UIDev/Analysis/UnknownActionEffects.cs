@@ -22,10 +22,13 @@ namespace UIDev.Analysis
             }
         }
 
+        private Tree _tree;
         private SortedDictionary<string, Dictionary<ActionID, List<Entry>>> _unknownActionEffects = new();
 
-        public UnknownActionEffects(List<Replay> replays)
+        public UnknownActionEffects(List<Replay> replays, Tree tree)
         {
+            _tree = tree;
+
             foreach (var replay in replays)
             {
                 foreach (var action in replay.Actions)
@@ -48,23 +51,11 @@ namespace UIDev.Analysis
 
         public void Draw()
         {
-            foreach (var (type, actions) in _unknownActionEffects)
+            foreach (var (type, actions) in _tree.Nodes(_unknownActionEffects, kv => ($"{kv.Key} ({kv.Value.Count} actions)", false)))
             {
-                if (ImGui.TreeNode($"{type} ({actions.Count} actions)"))
+                foreach (var (action, entries) in _tree.Nodes(actions, kv => ($"{kv.Key} ({kv.Value.Count} entries)", false)))
                 {
-                    foreach (var (action, entries) in actions)
-                    {
-                        if (ImGui.TreeNode($"{action} ({entries.Count} entries)"))
-                        {
-                            foreach (var entry in entries)
-                            {
-                                if (ImGui.TreeNodeEx($"{ReplayUtils.ActionEffectString(entry.Effect)}: {entry.Replay.Path} {entry.Action.Timestamp:O} {ReplayUtils.ParticipantPosRotString(entry.Action.Source, entry.Action.SourcePosRot)} -> {ReplayUtils.ParticipantPosRotString(entry.Action.MainTarget, entry.Action.MainTargetPosRot)} @ {ReplayUtils.ParticipantPosRotString(entry.Target.Target, entry.Target.PosRot)}", ImGuiTreeNodeFlags.Leaf))
-                                    ImGui.TreePop();
-                            }
-                            ImGui.TreePop();
-                        }
-                    }
-                    ImGui.TreePop();
+                    _tree.LeafNodes(entries, entry => $"{ReplayUtils.ActionEffectString(entry.Effect)}: {entry.Replay.Path} {entry.Action.Timestamp:O} {ReplayUtils.ParticipantPosRotString(entry.Action.Source, entry.Action.SourcePosRot)} -> {ReplayUtils.ParticipantPosRotString(entry.Action.MainTarget, entry.Action.MainTargetPosRot)} @ {ReplayUtils.ParticipantPosRotString(entry.Target.Target, entry.Target.PosRot)}");
                 }
             }
         }

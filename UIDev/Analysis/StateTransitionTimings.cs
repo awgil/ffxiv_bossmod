@@ -137,10 +137,13 @@ namespace UIDev.Analysis
             }
         }
 
+        private Tree _tree;
         private Dictionary<uint, EncounterMetrics> _metrics = new(); // key = OID
 
-        public StateTransitionTimings(List<Replay> replays)
+        public StateTransitionTimings(List<Replay> replays, Tree tree)
         {
+            _tree = tree;
+
             foreach (var replay in replays.Where(r => r.Encounters.Count > 0))
             {
                 WorldState ws = new();
@@ -199,48 +202,37 @@ namespace UIDev.Analysis
 
         public void Draw()
         {
-            foreach (var (oid, metrics) in _metrics)
+            foreach (var (oid, metrics) in _tree.Nodes(_metrics, kv => ($"{kv.Key:X} ({ModuleRegistry.TypeForOID(kv.Key)?.Name})", false)))
             {
                 var moduleType = ModuleRegistry.TypeForOID(oid);
-                if (ImGui.TreeNode($"{oid:X} ({moduleType?.Name})"))
+                foreach (var n in _tree.Node("Errors", metrics.Errors.Count == 0))
                 {
-                    if (ImGui.TreeNodeEx("Errors", metrics.Errors.Count == 0 ? ImGuiTreeNodeFlags.Leaf : ImGuiTreeNodeFlags.None))
-                    {
-                        foreach (var error in metrics.Errors)
-                        {
-                            if (ImGui.TreeNodeEx($"{error.Replay.Path} @ {error.Timestamp:O} [{error.CompType}] {error.Message}", ImGuiTreeNodeFlags.Leaf))
-                                ImGui.TreePop();
-                        }
-                        ImGui.TreePop();
-                    }
+                    _tree.LeafNodes(metrics.Errors, error => $"{error.Replay.Path} @ {error.Timestamp:O} [{error.CompType}] {error.Message}");
+                }
 
-                    foreach (var from in metrics.Metrics.Skip(1))
+                foreach (var from in metrics.Metrics.Skip(1))
+                {
+                    foreach (var (toIndex, m) in from.Transitions)
                     {
-                        foreach (var (toIndex, m) in from.Transitions)
+                        if (toIndex != 0)
                         {
-                            if (toIndex != 0)
+                            var to = metrics.Metrics[toIndex];
+                            //bool warn = from.ExpectedTime < Math.Round(m.MinTime, 1) || from.ExpectedTime > Math.Round(m.MaxTime, 1);
+                            bool warn = Math.Abs(from.ExpectedTime - m.AvgTime) > Math.Ceiling(m.StdDev * 10) / 10;
+                            ImGui.PushStyleColor(ImGuiCol.Text, warn ? 0xff00ffff : 0xffffffff);
+                            foreach (var tn in _tree.Node($"{from.Name} -> {to.Name}: avg={m.AvgTime:f2}-{from.ExpectedTime:f2}={m.AvgTime - from.ExpectedTime:f2} +- {m.StdDev:f2}, [{m.MinTime:f2}, {m.MaxTime:f2}] range, {m.Instances.Count} seen"))
                             {
-                                var to = metrics.Metrics[toIndex];
-                                //bool warn = from.ExpectedTime < Math.Round(m.MinTime, 1) || from.ExpectedTime > Math.Round(m.MaxTime, 1);
-                                bool warn = Math.Abs(from.ExpectedTime - m.AvgTime) > Math.Ceiling(m.StdDev * 10) / 10;
-                                ImGui.PushStyleColor(ImGuiCol.Text, warn ? 0xff00ffff : 0xffffffff);
-                                if (ImGui.TreeNode($"{from.Name} -> {to.Name}: avg={m.AvgTime:f2}-{from.ExpectedTime:f2}={m.AvgTime - from.ExpectedTime:f2} +- {m.StdDev:f2}, [{m.MinTime:f2}, {m.MaxTime:f2}] range, {m.Instances.Count} seen"))
+                                foreach (var inst in m.Instances)
                                 {
-                                    foreach (var inst in m.Instances)
-                                    {
-                                        warn = Math.Abs(inst.Duration - m.AvgTime) > m.StdDev;
-                                        ImGui.PushStyleColor(ImGuiCol.Text, warn ? 0xff00ffff : 0xffffffff);
-                                        if (ImGui.TreeNodeEx($"{inst.Duration:f2}: {inst.Replay.Path} @ {inst.Time:O}", ImGuiTreeNodeFlags.Leaf))
-                                            ImGui.TreePop();
-                                        ImGui.PopStyleColor();
-                                    }
-                                    ImGui.TreePop();
+                                    warn = Math.Abs(inst.Duration - m.AvgTime) > m.StdDev;
+                                    ImGui.PushStyleColor(ImGuiCol.Text, warn ? 0xff00ffff : 0xffffffff);
+                                    _tree.LeafNode($"{inst.Duration:f2}: {inst.Replay.Path} @ {inst.Time:O}");
+                                    ImGui.PopStyleColor();
                                 }
-                                ImGui.PopStyleColor();
                             }
+                            ImGui.PopStyleColor();
                         }
                     }
-                    ImGui.TreePop();
                 }
             }
         }

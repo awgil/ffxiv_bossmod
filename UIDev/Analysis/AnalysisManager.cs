@@ -12,6 +12,7 @@ namespace UIDev
         private Analysis.UnknownActionEffects? _unkEffects;
         private Analysis.StateTransitionTimings? _transitionTimings;
         private Analysis.AbilityInfo? _abilityInfo;
+        private Tree _tree = new();
 
         public AnalysisManager(string rootPath)
         {
@@ -38,28 +39,25 @@ namespace UIDev
         {
             ImGui.Text($"{_replays.Count} logs found");
 
-            if (ImGui.TreeNode("Unknown action effects"))
+            foreach (var n in _tree.Node("Unknown action effects"))
             {
                 if (_unkEffects == null)
-                    _unkEffects = new Analysis.UnknownActionEffects(_replays);
+                    _unkEffects = new Analysis.UnknownActionEffects(_replays, _tree);
                 _unkEffects.Draw();
-                ImGui.TreePop();
             }
 
-            if (ImGui.TreeNode("State transition timings"))
+            foreach (var n in _tree.Node("State transition timings"))
             {
                 if (_transitionTimings == null)
-                    _transitionTimings = new Analysis.StateTransitionTimings(_replays);
+                    _transitionTimings = new Analysis.StateTransitionTimings(_replays, _tree);
                 _transitionTimings.Draw();
-                ImGui.TreePop();
             }
 
-            if (ImGui.TreeNode("Ability info"))
+            foreach (var n in _tree.Node("Ability info"))
             {
                 if (_abilityInfo == null)
-                    _abilityInfo = new Analysis.AbilityInfo(_replays);
+                    _abilityInfo = new Analysis.AbilityInfo(_replays, _tree);
                 _abilityInfo.Draw();
-                ImGui.TreePop();
             }
         }
     }
