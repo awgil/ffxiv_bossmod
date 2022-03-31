@@ -13,7 +13,7 @@ namespace BossMod.Endwalker.ARanks.Sugriva
         AutoAttack = 872,
         Twister = 27219,
         BarrelingSmash = 27220, // instant cast, charges to random player - starts casting Scythe Tail immediately afterwards
-        Spark = 27221, // TODO: never seen it...
+        Spark = 27221,
         ScytheTail = 27222,
         Butcher = 27223,
         Rip = 27224,
@@ -25,6 +25,7 @@ namespace BossMod.Endwalker.ARanks.Sugriva
 
     public class Mechanics : BossModule.Component
     {
+        private AOEShapeDonut _spark = new(14, 24);
         private AOEShapeCircle _scytheTail = new(17); // TODO: is this actually a cone? wiki seems to imply it is, but in lumina it looks like a circle...
         private AOEShapeCircle _rockThrow = new(6);
         private AOEShapeCone _butcherRip = new(8, MathF.PI / 4); // TODO: verify angle
@@ -49,7 +50,7 @@ namespace BossMod.Endwalker.ARanks.Sugriva
             string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.Twister => "Stack and knockback",
-                AID.ScytheTail or AID.Butcher or AID.Rip or AID.RockThrowFirst or AID.RockThrowRest => "Avoidable AOE",
+                AID.Spark or AID.ScytheTail or AID.Butcher or AID.Rip or AID.RockThrowFirst or AID.RockThrowRest => "Avoidable AOE",
                 AID.Crosswind => "Raidwide",
                 _ => "",
             };
@@ -114,6 +115,7 @@ namespace BossMod.Endwalker.ARanks.Sugriva
 
             return (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
+                AID.Spark => (_spark, module.PrimaryActor.Position),
                 AID.ScytheTail => (_scytheTail, module.PrimaryActor.Position),
                 AID.RockThrowFirst or AID.RockThrowRest => (_rockThrow, module.PrimaryActor.CastInfo.Location),
                 AID.Butcher or AID.Rip => (_butcherRip, module.PrimaryActor.Position),
