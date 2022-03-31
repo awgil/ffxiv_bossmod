@@ -13,9 +13,9 @@ namespace UIDev.Analysis
         {
             public Replay Replay;
             public Replay.Action Action;
-            public List<(uint, Vector4)> PositionSnapshot;
+            public List<(Actor, Vector4)> PositionSnapshot;
 
-            public ActionInfo(Replay r, Replay.Action a, List<(uint, Vector4)> snaps)
+            public ActionInfo(Replay r, Replay.Action a, List<(Actor, Vector4)> snaps)
             {
                 Replay = r;
                 Action = a;
@@ -25,34 +25,75 @@ namespace UIDev.Analysis
 
         class ConeAnalysis
         {
-            public List<(ActionInfo Info, uint Target, float Angle, float Range, bool Hit)> InstancesByAngle = new();
-            public List<(ActionInfo Info, uint Target, float Angle, float Range, bool Hit)> InstancesByRange;
-            public Vector2 RangeLimit = new(0, 1000);
-            public Vector2 AngleLimit = new(-180, 180);
+            private Plot _plot = new();
+            private List<(ActionInfo Info, Actor Target, float Angle, float Range, bool Hit)> _points = new();
 
             public ConeAnalysis(List<ActionInfo> infos)
             {
+                _plot.DataMin = new(-180, 0);
+                _plot.DataMax = new(180, 60);
+                _plot.TickAdvance = new(45, 5);
                 foreach (var info in infos)
                 {
-                    var src = info.Action.SourcePosRot.XYZ();
+                    var origin = info.Action.MainTargetPosRot.XYZ();
                     var dir = GeometryUtils.DirectionToVec3(info.Action.SourcePosRot.W);
                     var left = new Vector3(dir.Z, 0, -dir.X);
-                    foreach (var (id, posRot) in info.PositionSnapshot)
+                    foreach (var (actor, posRot) in info.PositionSnapshot)
                     {
-                        var toTarget = posRot.XYZ() - src;
+                        var toTarget = posRot.XYZ() - origin;
                         var dist = toTarget.Length();
                         toTarget /= dist;
                         var angle = MathF.Acos(Vector3.Dot(toTarget, dir));
                         if (Vector3.Dot(toTarget, left) < 0)
                             angle = -angle;
-                        bool hit = info.Action.Targets.Any(t => t.Target?.InstanceID == id);
-                        InstancesByAngle.Add((info, id, angle, dist, hit));
+                        bool hit = info.Action.Targets.Any(t => t.Target?.InstanceID == actor.InstanceID);
+                        _points.Add((info, actor, angle / MathF.PI * 180, dist, hit));
                     }
                 }
-                InstancesByAngle.Sort((l, r) => l.Angle.CompareTo(r.Angle));
+            }
 
-                InstancesByRange = InstancesByAngle.ToList();
-                InstancesByRange.Sort((l, r) => l.Range.CompareTo(r.Range));
+            public void Draw()
+            {
+                _plot.Begin();
+                foreach (var i in _points)
+                    _plot.Point(new(i.Angle, i.Range), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.Name} {i.Target.InstanceID:X} {i.Info.Replay.Path} @ {i.Info.Action.Timestamp:O}");
+                _plot.End();
+            }
+        }
+
+        class DamageFalloffAnalysis
+        {
+            private Plot _plot = new();
+            private List<(ActionInfo Info, Actor Target, float Range, int Damage)> _points = new();
+
+            public DamageFalloffAnalysis(List<ActionInfo> infos, bool useMaxComp)
+            {
+                _plot.DataMin = new(0, 0);
+                _plot.DataMax = new(100, 200000);
+                _plot.TickAdvance = new(5, 10000);
+                foreach (var info in infos)
+                {
+                    var origin = info.Action.MainTargetPosRot.XYZ();
+                    foreach (var (actor, posRot) in info.PositionSnapshot)
+                    {
+                        var offset = posRot.XYZ() - origin;
+                        var dist = useMaxComp ? MathF.Max(Math.Abs(offset.X), Math.Abs(offset.Z)): offset.Length();
+                        var hit = info.Action.Targets.Find(t => t.Target?.InstanceID == actor.InstanceID);
+                        int damage = 0;
+                        if (hit != null)
+                            foreach (var eff in hit.Effects.Where(eff => eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage && (eff.Param4 & 0x80) == 0))
+                                damage += eff.Value + ((eff.Param4 & 0x40) != 0 ? eff.Param3 * 0x10000 : 0);
+                        _points.Add((info, actor, dist, damage));
+                    }
+                }
+            }
+
+            public void Draw()
+            {
+                _plot.Begin();
+                foreach (var i in _points)
+                    _plot.Point(new(i.Range, i.Damage), i.Damage > 0 ? 0xff00ffff : 0xff808080, () => $"{i.Damage} {i.Target.Name} {i.Target.InstanceID:X} {i.Info.Replay.Path} @ {i.Info.Action.Timestamp:O}");
+                _plot.End();
             }
         }
 
@@ -60,6 +101,8 @@ namespace UIDev.Analysis
         {
             public List<ActionInfo> Instances = new();
             public ConeAnalysis? ConeAnalysis;
+            public DamageFalloffAnalysis? DamageFalloffAnalysisDist;
+            public DamageFalloffAnalysis? DamageFalloffAnalysisMinCoord;
         }
 
         private Tree _tree;
@@ -71,7 +114,7 @@ namespace UIDev.Analysis
 
             foreach (var replay in replays.Where(r => r.Encounters.Count > 0))
             {
-                List<List<(uint, Vector4)>> snaps = new();
+                List<List<(Actor, Vector4)>> snaps = new();
                 WorldState ws = new();
                 int nextOp = 0;
                 foreach (var action in replay.Actions)
@@ -93,11 +136,6 @@ namespace UIDev.Analysis
                         if (!crap)
                         {
                             var data = _data.GetOrAdd(enc.OID).GetOrAdd(action.ID);
-                            //int damage = 0;
-                            //foreach (var eff in target.Effects.Where(eff => eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage && (eff.Param4 & 0x80) == 0))
-                            //{
-                            //    damage += eff.Value + ((eff.Param4 & 0x40) != 0 ? eff.Param3 * 0x10000 : 0);
-                            //}
                             data.Instances.Add(new(replay, action, snaps[index]));
                         }
                         ++index;
@@ -115,38 +153,34 @@ namespace UIDev.Analysis
                 var aidType = moduleType?.Module.GetType($"{moduleType.Namespace}.AID");
                 foreach (var (aid, data) in _tree.Nodes(perEnc, kv => ($"{kv.Key} ({aidType?.GetEnumName(kv.Key.ID)})", false)))
                 {
-                    foreach (var an in _tree.Node("Cone range"))
+                    foreach (var an in _tree.Node("Cone analysis"))
                     {
                         if (data.ConeAnalysis == null)
                             data.ConeAnalysis = new(data.Instances);
-                        ImGui.InputFloat2("Angle limit", ref data.ConeAnalysis.AngleLimit);
-                        var radLim = data.ConeAnalysis.AngleLimit * MathF.PI / 180;
-                        _tree.LeafNodes(data.ConeAnalysis.InstancesByRange.Where(x => x.Angle >= radLim.X && x.Angle <= radLim.Y),
-                            x => $"{x.Range:f1} = {(x.Hit ? "hit" : "miss")}: {x.Info.Replay.Path} {x.Info.Action.Timestamp:O} {x.Target:X}");
+                        data.ConeAnalysis.Draw();
                     }
-
-                    foreach (var an in _tree.Node("Cone angles"))
+                    foreach (var an in _tree.Node("Damage falloff analysis (by distance)"))
                     {
-                        if (data.ConeAnalysis == null)
-                            data.ConeAnalysis = new(data.Instances);
-                        ImGui.InputFloat2("Range limit", ref data.ConeAnalysis.RangeLimit);
-                        _tree.LeafNodes(data.ConeAnalysis.InstancesByAngle.Where(x => x.Range >= data.ConeAnalysis.RangeLimit.X && x.Range <= data.ConeAnalysis.RangeLimit.Y),
-                            x => $"{Utils.RadianString(x.Angle)} ({x.Range:f1}) = {(x.Hit ? "hit" : "miss")}: {x.Info.Replay.Path} {x.Info.Action.Timestamp:O} {x.Target:X}");
+                        if (data.DamageFalloffAnalysisDist == null)
+                            data.DamageFalloffAnalysisDist = new(data.Instances, false);
+                        data.DamageFalloffAnalysisDist.Draw();
+                    }
+                    foreach (var an in _tree.Node("Damage falloff analysis (by max coord)"))
+                    {
+                        if (data.DamageFalloffAnalysisMinCoord == null)
+                            data.DamageFalloffAnalysisMinCoord = new(data.Instances, true);
+                        data.DamageFalloffAnalysisMinCoord.Draw();
                     }
                 }
             }
         }
 
-        private List<(uint, Vector4)> BuildPositionSnapshot(WorldState ws)
+        private List<(Actor, Vector4)> BuildPositionSnapshot(WorldState ws)
         {
-            List<(uint, Vector4)> res = new();
+            List<(Actor, Vector4)> res = new();
             foreach (var actor in ws.Actors.Where(a => !a.IsDead && a.Type is ActorType.Player or ActorType.Chocobo))
-                res.Add((actor.InstanceID, actor.PosRot));
+                res.Add((actor, actor.PosRot));
             return res;
-        }
-
-        private void AnalyzeConeAOE(ActionData data)
-        {
         }
     }
 }

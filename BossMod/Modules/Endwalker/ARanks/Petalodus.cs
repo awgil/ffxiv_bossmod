@@ -19,7 +19,7 @@ namespace BossMod.Endwalker.ARanks.Petalodus
     public class Mechanics : BossModule.Component
     {
         private AOEShapeCircle _tidalGuillotine = new(13);
-        private AOEShapeCone _ancientBlizzard = new(40, MathF.PI / 4); // TODO: verify angle
+        private AOEShapeCone _ancientBlizzard = new(40, MathF.PI / 8);
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {

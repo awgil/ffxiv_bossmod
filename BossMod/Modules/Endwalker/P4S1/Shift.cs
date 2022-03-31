@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.P4S1
     // state related to shift mechanics
     class Shift : Component
     {
-        private AOEShapeCone _swordAOE = new(50, MathF.PI / 3); // not sure about half-angle...
+        private AOEShapeCone _swordAOE = new(50, MathF.PI / 3);
         private Actor? _swordCaster;
         private Actor? _cloakCaster;
 

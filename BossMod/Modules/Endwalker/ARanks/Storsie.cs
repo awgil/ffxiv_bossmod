@@ -28,7 +28,7 @@ namespace BossMod.Endwalker.ARanks.Storsie
 
         private AspectType _imminentAspect;
         private AOEShapeCone _earthenAugur = new(30, 3 * MathF.PI / 4);
-        private AOEShapeDonut _whorlstorm = new(10, 40); // TODO: verify inner radius
+        private AOEShapeDonut _whorlstorm = new(10, 40);
         private AOEShapeCircle _defibrillate = new(22);
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)

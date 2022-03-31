@@ -30,7 +30,7 @@ namespace BossMod.Endwalker.ARanks.MoussePrincess
     public class Mechanics : BossModule.Component
     {
         private float? _threnodyDirection = null;
-        private AOEShapeCone _princessThrenody = new(40, MathF.PI / 3); // TODO: verify angle
+        private AOEShapeCone _princessThrenody = new(40, MathF.PI / 3);
         private AOEShapeCircle _amorphicFlail = new(9);
         private AOEShapeCircle _princessCacophony = new(12);
 

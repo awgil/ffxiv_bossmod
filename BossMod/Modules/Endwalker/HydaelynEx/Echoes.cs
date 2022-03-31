@@ -1,9 +1,5 @@
-﻿using System;
-
-namespace BossMod.Endwalker.HydaelynEx
+﻿namespace BossMod.Endwalker.HydaelynEx
 {
-    using static BossModule;
-
     class Echoes : CommonComponents.FullPartyStack
     {
         public Echoes() : base(ActionID.MakeSpell(AID.EchoesAOE), 6) { }

@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.ARanks.Minerva
     public class Mechanics : BossModule.Component
     {
         private AOEShapeCircle _ballisticMissileCircle = new(6);
-        private AOEShapeDonut _ballisticMissileDonut = new(8, 20); // TODO: verify inner radius
+        private AOEShapeDonut _ballisticMissileDonut = new(6, 20);
         private AOEShape? _activeBallisticMissile;
         private Actor? _activeBallisticMissileTarget;
         private Vector3 _activeBallisticMissileLocation = new();

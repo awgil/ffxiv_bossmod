@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.ARanks.Aegeiros
         private AOEShapeCircle _leafstorm = new(10);
         private AOEShapeCone _rimestorm = new(40, MathF.PI / 2);
         private AOEShapeCircle _snowball = new(8);
-        private AOEShapeCone _backhandBlow = new(12, MathF.PI / 4, MathF.PI); // TODO: verify angle
+        private AOEShapeCone _backhandBlow = new(12, MathF.PI / 3, MathF.PI);
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {

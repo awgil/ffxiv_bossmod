@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.P3S
         private int[] _playerDeathTollStacks = new int[8];
         private int[] _playerAOECount = new int[8];
 
-        private static float _coneHalfAngle = MathF.PI / 8; // not sure about this
+        private static float _coneHalfAngle = MathF.PI / 4;
         private static float _eyePlacementOffset = 10;
 
         public override void Update(BossModule module)

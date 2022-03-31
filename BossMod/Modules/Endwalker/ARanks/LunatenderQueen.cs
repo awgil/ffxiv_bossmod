@@ -25,7 +25,7 @@ namespace BossMod.Endwalker.ARanks.LunatenderQueen
     {
         private AOEShapeCircle _needles = new(6);
         private AOEShapeCircle _circle = new(15);
-        private AOEShapeDonut _donut = new(6, 40); // TODO: verify inner radius
+        private AOEShapeDonut _donut = new(5, 40);
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {

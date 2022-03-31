@@ -26,9 +26,9 @@ namespace BossMod.Endwalker.ARanks.Sugriva
     public class Mechanics : BossModule.Component
     {
         private AOEShapeDonut _spark = new(14, 24);
-        private AOEShapeCircle _scytheTail = new(17); // TODO: is this actually a cone? wiki seems to imply it is, but in lumina it looks like a circle...
+        private AOEShapeCircle _scytheTail = new(17);
         private AOEShapeCircle _rockThrow = new(6);
-        private AOEShapeCone _butcherRip = new(8, MathF.PI / 4); // TODO: verify angle
+        private AOEShapeCone _butcherRip = new(8, MathF.PI / 4); // TODO: verify angle, too little data points so far...
         private Actor? _rockThrowTarget;
         private int _numSecondaryRockThrows;
 

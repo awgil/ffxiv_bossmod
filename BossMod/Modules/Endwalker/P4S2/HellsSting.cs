@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.P4S2
     {
         public int NumCasts { get; private set; } = 0;
 
-        private AOEShapeCone _cone = new(50, MathF.PI / 12); // not sure about half-width...
+        private AOEShapeCone _cone = new(50, MathF.PI / 12);
         private List<float> _directions = new();
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)

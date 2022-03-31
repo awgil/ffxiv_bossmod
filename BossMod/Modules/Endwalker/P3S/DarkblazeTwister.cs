@@ -11,8 +11,8 @@ namespace BossMod.Endwalker.P3S
     class DarkblazeTwister : Component
     {
         private static float _knockbackRange = 17;
-        private static float _aoeInnerRadius = 5; // not sure about this...
-        private static float _aoeMiddleRadius = 7; // not sure about this...
+        private static float _aoeInnerRadius = 5;
+        private static float _aoeMiddleRadius = 7;
         private static float _aoeOuterRadius = 20;
 
         public IEnumerable<Actor> BurningTwisters(BossModule module) => module.Enemies(OID.DarkblazeTwister).Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false);

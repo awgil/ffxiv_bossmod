@@ -31,7 +31,7 @@ namespace BossMod.Endwalker.ARanks.Yilan
     {
         private AOEShapeCircle _miniLight = new(18);
         private AOEShapeCircle _bogBomb = new(6);
-        private AOEShapeCone _brackishRain = new(10, MathF.PI / 4); // TODO: verify angle
+        private AOEShapeCone _brackishRain = new(10, MathF.PI / 4);
 
         private static float _marchDistance = 12;
 

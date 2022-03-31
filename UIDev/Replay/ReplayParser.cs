@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace UIDev
 {
@@ -217,8 +218,20 @@ namespace UIDev
                 Service.Log($"Skipping {info.Action} cast from unknown actor {info.CasterID:X}");
                 return;
             }
-            var a = new Replay.Action() { ID = info.Action, Timestamp = _ws.CurrentTime, Source = p, SourcePosRot = _ws.Actors.Find(info.CasterID)?.PosRot ?? new(),
-                MainTarget = _participants.GetValueOrDefault(info.MainTargetID), MainTargetPosRot = _ws.Actors.Find(info.MainTargetID)?.PosRot ?? new() };
+
+            var srcActor = _ws.Actors.Find(info.CasterID);
+            var tgtActor = _ws.Actors.Find(info.MainTargetID);
+
+            Vector4 targetPosRot = new();
+            if (tgtActor != null)
+                targetPosRot = tgtActor.PosRot;
+            else if (srcActor?.CastInfo != null)
+                targetPosRot = new(srcActor.CastInfo.Location, 0);
+            else if (info.Targets.Count > 0)
+                targetPosRot = _ws.Actors.Find(info.Targets[0].ID)?.PosRot ?? new();
+
+            var a = new Replay.Action() { ID = info.Action, Timestamp = _ws.CurrentTime, Source = p, SourcePosRot = srcActor?.PosRot ?? new(),
+                MainTarget = _participants.GetValueOrDefault(info.MainTargetID), MainTargetPosRot = targetPosRot };
             foreach (var t in info.Targets)
             {
                 var target = _participants.GetValueOrDefault(t.ID);

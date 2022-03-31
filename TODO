@@ -1,5 +1,5 @@
 replay encounter analysis:
-- aoe shape
+- tether & debuff passing range
 
 network:
 - hook send/recv (a-la xivalexander)
@@ -40,6 +40,7 @@ world rendering:
 misc:
 - memory show/watch utility
 - clip circles to arena bounds...
+- fix clipping/triangulation bugs
 - reconsider worldstate->bossmodule event subscription model (tedious to manually subscribe/unsubsribe and forward to components...)
 - fail log?
 - determine exact mechanism for cooldown reset (on instance enter and on wipe)

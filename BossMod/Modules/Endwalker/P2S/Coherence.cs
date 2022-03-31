@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.P2S
         private AOEShapeRect _rayShape = new(50, 3);
         private ulong _inRay = 0;
 
-        private static float _aoeRadius = 10; // not sure about this - actual range is 60, but it has some sort of falloff
+        private static float _aoeRadius = 10; // not sure about this - actual range is 60, but it has some sort of falloff? i have very few data points < 15
 
         public Coherence() : base(ActionID.MakeSpell(AID.CoherenceRay)) { }
 
