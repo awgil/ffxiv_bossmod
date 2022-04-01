@@ -52,7 +52,7 @@ namespace BossMod
                 }
 
                 // log initial state
-                Log("VER ", 2);
+                Log("VER ", 3);
                 ZoneChange(null, _ws.CurrentZone);
                 foreach (var actor in _ws.Actors)
                 {

@@ -9,8 +9,17 @@ namespace BossMod
     // world state that is updated to correspond to game state
     class WorldStateGame : WorldState, IDisposable
     {
+        private class ActorEvents
+        {
+            public List<CastEvent>? Casts;
+            public ActorTetherInfo? TetherUpdate;
+            public uint? IconUpdate;
+        }
+
         private Network _network;
         private Dictionary<uint, float[]> _prevStatusDurations = new();
+        private List<(uint featureID, byte index, uint state)> _envControls = new();
+        private Dictionary<uint, ActorEvents> _actorEvents = new();
 
         public WorldStateGame(Network network)
         {
@@ -37,8 +46,16 @@ namespace BossMod
         {
             CurrentTime = DateTime.Now;
             CurrentZone = Service.ClientState.TerritoryType;
+            DispatchEnvControls();
             UpdateActors();
             UpdateParty();
+        }
+
+        private void DispatchEnvControls()
+        {
+            foreach (var arg in _envControls)
+                Events.DispatchEnvControl(arg);
+            _envControls.Clear();
         }
 
         private void UpdateActors()
@@ -48,15 +65,16 @@ namespace BossMod
                 if (obj.ObjectId != GameObject.InvalidGameObjectId)
                     seenIDs.Add(obj.ObjectId, obj);
 
-            List<uint> delIDs = new();
+            List<Actor> delActors = new();
             foreach (var e in Actors)
                 if (!seenIDs.ContainsKey(e.InstanceID))
-                    delIDs.Add(e.InstanceID);
+                    delActors.Add(e);
 
-            foreach (var id in delIDs)
+            foreach (var actor in delActors)
             {
-                Actors.Remove(id);
-                _prevStatusDurations.Remove(id);
+                DispatchActorEvents(actor);
+                Actors.Remove(actor.InstanceID);
+                _prevStatusDurations.Remove(actor.InstanceID);
             }
 
             foreach ((_, var obj) in seenIDs)
@@ -80,6 +98,7 @@ namespace BossMod
                 Actors.ChangeTarget(act, SanitizedObjectID(obj.TargetObjectId));
                 Actors.ChangeIsDead(act, Utils.GameObjectIsDead(obj));
                 Actors.ChangeInCombat(act, character?.StatusFlags.HasFlag(StatusFlags.InCombat) ?? false);
+                DispatchActorEvents(act);
 
                 var chara = obj as BattleChara;
                 if (chara != null)
@@ -120,6 +139,11 @@ namespace BossMod
                         prevDurations[i] = dur;
                     }
                 }
+            }
+
+            foreach (var (id, events) in _actorEvents)
+            {
+                Service.Log($"[WorldState] Actor events for unknown entity {id:X}:{(events.Casts != null ? " casts" : "")}{(events.TetherUpdate != null ? " tether" : "")}{(events.IconUpdate != null ? " icon" : "")}");
             }
         }
 
@@ -179,21 +203,60 @@ namespace BossMod
         private ushort StatusExtra(Dalamud.Game.ClientState.Statuses.Status s) => (ushort)((s.Param << 8) | s.StackCount);
         private uint SanitizedObjectID(uint raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;
 
-        private void OnNetworkActionEffect(object? sender, CastEvent info) => Events.DispatchCast(info);
-        private void OnNetworkActorControlTargetIcon(object? sender, (uint actorID, uint iconID) args) => Events.DispatchIcon(args);
+        private void DispatchActorEvents(Actor actor)
+        {
+            var ev = _actorEvents.GetValueOrDefault(actor.InstanceID);
+            if (ev != null)
+            {
+                if (ev.Casts != null)
+                    foreach (var c in ev.Casts)
+                        Events.DispatchCast(c);
+                if (ev.TetherUpdate != null)
+                    Actors.UpdateTether(actor, ev.TetherUpdate.Value);
+                if (ev.IconUpdate != null)
+                    Events.DispatchIcon((actor.InstanceID, ev.IconUpdate.Value));
+
+                _actorEvents.Remove(actor.InstanceID);
+            }
+        }
+
+        private void OnNetworkActionEffect(object? sender, CastEvent info)
+        {
+            var ev = _actorEvents.GetOrAdd(info.CasterID);
+            if (ev.Casts == null)
+                ev.Casts = new();
+            ev.Casts.Add(info);
+        }
+
+        private void OnNetworkActorControlTargetIcon(object? sender, (uint actorID, uint iconID) args)
+        {
+            var ev = _actorEvents.GetOrAdd(args.actorID);
+            if (ev.IconUpdate != null)
+                Service.Log($"[WorldState] Multiple icon updates for a single actor {args.actorID:X} per frame: {ev.IconUpdate.Value} -> {args.iconID}");
+            ev.IconUpdate = args.iconID;
+        }
+
         private void OnNetworkActorControlTether(object? sender, (uint actorID, uint targetID, uint tetherID) args)
         {
-            var act = Actors.Find(args.actorID);
-            if (act != null)
-                Actors.UpdateTether(act, new ActorTetherInfo { Target = args.targetID, ID = args.tetherID });
+            var ev = _actorEvents.GetOrAdd(args.actorID);
+            if (ev.TetherUpdate != null)
+                Service.Log($"[WorldState] Multiple tether updates for a single actor {args.actorID:X} per frame: {ev.TetherUpdate.Value.ID} @ {ev.TetherUpdate.Value.Target:X} -> {args.tetherID} @ {args.targetID:X}");
+            ev.TetherUpdate = new ActorTetherInfo { Target = args.targetID, ID = args.tetherID };
         }
+
         private void OnNetworkActorControlTetherCancel(object? sender, uint actorID)
         {
-            var act = Actors.Find(actorID);
-            if (act != null)
-                Actors.UpdateTether(act, new());
+            var ev = _actorEvents.GetOrAdd(actorID);
+            if (ev.TetherUpdate != null)
+                Service.Log($"[WorldState] Multiple tether updates for a single actor {actorID:X} per frame: {ev.TetherUpdate.Value.ID} @ {ev.TetherUpdate.Value.Target:X} -> none");
+            ev.TetherUpdate = new();
         }
-        private void OnNetworkEnvControl(object? sender, (uint featureID, byte index, uint state) args) => Events.DispatchEnvControl(args);
+
+        private void OnNetworkEnvControl(object? sender, (uint featureID, byte index, uint state) args)
+        {
+            _envControls.Add(args);
+        }
+
         private void OnNetworkWaymark(object? sender, (Waymark waymark, Vector3? pos) args) => Waymarks[args.waymark] = args.pos;
     }
 }
