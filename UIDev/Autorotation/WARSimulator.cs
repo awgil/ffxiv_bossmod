@@ -35,6 +35,7 @@ namespace UIDev
         public float BuffWindowOffset = 7.5f;
         public float BuffWindowDuration = 20;
         public float BuffWindowFreq = 120;
+        public WARRotation.Strategy.PotionUse PotionUse = WARRotation.Strategy.PotionUse.DelayUntilBuffs;
 
         public void Draw()
         {
@@ -43,6 +44,13 @@ namespace UIDev
             ImGui.SliderFloat("Buff window offset", ref BuffWindowOffset, 0, 60);
             ImGui.SliderFloat("Buff window duration", ref BuffWindowDuration, 1, 30);
             ImGui.SliderFloat("Buff window frequency", ref BuffWindowFreq, 30, 120);
+            if (ImGui.BeginCombo("Potion use strategy", PotionUse.ToString()))
+            {
+                foreach (var opt in Enum.GetValues<WARRotation.Strategy.PotionUse>())
+                    if (ImGui.Selectable(opt.ToString(), opt.Equals(PotionUse)))
+                        PotionUse = opt;
+                ImGui.EndCombo();
+            }
 
             if (ImGui.CollapsingHeader("Initial state setup"))
             {
@@ -85,6 +93,7 @@ namespace UIDev
             strategy.PositionLockIn = 10000;
             strategy.FirstChargeIn = KeepOnslaughtCharge ? 0.1f : 10000;
             strategy.SecondChargeIn = 10000;
+            strategy.Potion = PotionUse;
 
             var state = new WARRotation.State();
             foreach (var f in state.GetType().GetFields())
@@ -121,6 +130,9 @@ namespace UIDev
             var curBuffCycleIndex = MathF.Floor((t - BuffWindowOffset) / BuffWindowFreq);
             var timeInCycle = t - (BuffWindowOffset + curBuffCycleIndex * BuffWindowFreq);
             state.RaidBuffsLeft = MathF.Max(0, BuffWindowDuration - timeInCycle);
+
+            var potionLeft = MathF.Max(state.PotionCD - 240, 0);
+            state.RaidBuffsLeft = MathF.Max(state.RaidBuffsLeft, potionLeft);
 
             var res = Mistake.None;
             state.AnimationLock = MathF.Max(0, state.AnimationLock - dt);
@@ -169,6 +181,20 @@ namespace UIDev
             state.InfuriateCD -= dt;
             if (state.InfuriateCD < -2.5f)
                 res |= Mistake.InfuriateDelayed;
+
+            state.RampartCD -= dt;
+            state.VengeanceCD -= dt;
+            state.ThrillOfBattleCD -= dt;
+            state.HolmgangCD -= dt;
+            state.EquilibriumCD -= dt;
+            state.ReprisalCD -= dt;
+            state.ShakeItOffCD -= dt;
+            state.BloodwhettingCD -= dt;
+            state.ArmsLengthCD -= dt;
+            state.ProvokeCD -= dt;
+            state.ShirkCD -= dt;
+            state.SprintCD -= dt;
+            state.PotionCD -= dt;
 
             return res;
         }

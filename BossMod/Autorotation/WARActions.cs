@@ -159,6 +159,10 @@ namespace BossMod
             LogStateChange(_state, currState);
             _state = currState;
 
+            _strategy.Potion = _qPotion.Active ? WARRotation.Strategy.PotionUse.Immediate : _config.PotionUse;
+            if (_strategy.Potion != WARRotation.Strategy.PotionUse.Manual && !HavePotions()) // don't try to use potions if player doesn't have any
+                _strategy.Potion = WARRotation.Strategy.PotionUse.Manual;
+
             _strategy.RaidBuffsIn = _bossmods.RaidCooldowns.NextDamageBuffIn(_bossmods.WorldState.CurrentTime);
             if (_forceMovementFlags == 0)
                 _strategy.PositionLockIn = 0;
@@ -173,7 +177,7 @@ namespace BossMod
             _strategy.ExecuteVengeance = _qVengeance.Active;
             _strategy.ExecuteThrillOfBattle = _qThrillOfBattle.Active;
             _strategy.ExecuteHolmgang = _qHolmgang.Active;
-            _strategy.ExecuteEquilibrium = _qEquilibrium.Active; // TODO: check that hp is not full!
+            _strategy.ExecuteEquilibrium = _qEquilibrium.Active && Service.ClientState.LocalPlayer?.CurrentHp < Service.ClientState.LocalPlayer?.MaxHp;
             _strategy.ExecuteReprisal = _qReprisal.Active; // TODO: check that at least one enemy is in range!
             _strategy.ExecuteShakeItOff = _qShakeItOff.Active; // TODO: check that raid is in range?...
             _strategy.ExecuteBloodwhetting = _qBloodwhetting.Active; // TODO: consider auto-use?..
@@ -182,7 +186,6 @@ namespace BossMod
             _strategy.ExecuteProvoke = _qProvoke.Active; // TODO: check that not MT already
             _strategy.ExecuteShirk = _qShirk.Active; // TODO: check that hate is close to MT...
             _strategy.ExecuteSprint = _qSprint.Active;
-            _strategy.ExecutePotion = _qPotion.Active;
 
             var nextBest = _config.FullSTRotation ? WARRotation.GetNextBestAction(_state, _strategy) : ActionID.MakeSpell(WARRotation.AID.HeavySwing);
             if (nextBest != _nextBestAction)
@@ -296,6 +299,11 @@ namespace BossMod
             return s;
         }
 
+        private unsafe bool HavePotions()
+        {
+            return FFXIVClientStructs.FFXIV.Client.Game.InventoryManager.Instance()->GetInventoryItemCount(WARRotation.IDStatPotion.ID % 1000000, true, false, false) > 0;
+        }
+
         private void LogStateChange(WARRotation.State prev, WARRotation.State curr)
         {
             // do nothing if not in combat
@@ -349,8 +357,6 @@ namespace BossMod
                 sb.Append(" NascentFlash");
             if (strategy.ExecuteSprint)
                 sb.Append(" Sprint");
-            if (strategy.ExecutePotion)
-                sb.Append(" Potion");
             return sb.ToString();
         }
 

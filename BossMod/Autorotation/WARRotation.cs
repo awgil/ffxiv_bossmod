@@ -110,11 +110,14 @@ namespace BossMod
         // before "min point" counter is >0, between "min point" and "max point" it is == 0, after "max point" we switch to next planned action (assuming if we've missed the window, CD is no longer needed)
         public class Strategy
         {
+            public enum PotionUse { Manual, DelayUntilBuffs, DelayUntilIR, Immediate }
+
             public float FightEndIn; // how long fight will last (we try to spend all resources before this happens)
             public float RaidBuffsIn; // estimate time when new raidbuff window starts (if it is smaller than FightEndIn, we try to conserve resources)
             public float PositionLockIn; // time left to use moving abilities (Primal Rend and Onslaught) - we won't use them if it is ==0; setting this to 2.5f will make us use PR asap
             public float FirstChargeIn; // when do we need to use onslaught charge (0 means 'use asap if out of melee range', >0 means that we'll try to make sure 1 charge is available in this time)
             public float SecondChargeIn; // when do we need to use two onslaught charges in a short amount of time
+            public PotionUse Potion; // strategy for automatic potion use
             public bool EnableUpheaval = true; // if true, enable using upheaval when needed; setting to false is useful during opener before first party buffs
             public bool Aggressive; // if true, we use buffs and stuff at last possible moment; otherwise we make sure to keep at least 1 GCD safety net
             // 'execute' flags: if true, we execute corresponding action in next free ogcd slot (potentially delaying a bit to avoid losing damage)
@@ -132,7 +135,6 @@ namespace BossMod
             public bool ExecuteProvoke;
             public bool ExecuteShirk;
             public bool ExecuteSprint;
-            public bool ExecutePotion; // TODO: this should really be done differently...
         }
 
         public static AID GetNextSTComboAction(AID comboLastMove, AID finisher)
@@ -253,7 +255,12 @@ namespace BossMod
             infuriateAvailable &= state.NascentChaosLeft <= state.GCD; // never cast infuriate if NC from previous infuriate is still up for next GCD
             infuriateAvailable &= state.Gauge <= 50; // never cast infuriate if doing so would overcap gauge
 
-            // 0. use cooldowns if requested in rough priority order (note that we use SOI before buffs it can eat...)
+            // 1. spend second infuriate stacks asap (unless have IR, another NC, or >50 gauge)
+            // note that next-best-gcd could be FC, so we bump up min CD to ensure we don't overcap
+            if (infuriateAvailable && state.InfuriateCD <= state.GCD + 7.5)
+                return ActionID.MakeSpell(AID.Infuriate);
+
+            // 2. use cooldowns if requested in rough priority order
             if (strategy.ExecuteProvoke && IsOGCDAvailable(state.ProvokeCD, 0.6f, lockDelay, windowEnd))
                 return ActionID.MakeSpell(AID.Provoke);
             if (strategy.ExecuteShirk && IsOGCDAvailable(state.ShirkCD, 0.6f, lockDelay, windowEnd))
@@ -262,16 +269,16 @@ namespace BossMod
                 return ActionID.MakeSpell(AID.Holmgang);
             if (strategy.ExecuteArmsLength && IsOGCDAvailable(state.ArmsLengthCD, 0.6f, lockDelay, windowEnd))
                 return ActionID.MakeSpell(AID.ArmsLength);
-            if (strategy.ExecuteShakeItOff && IsOGCDAvailable(state.ShakeItOffCD, 0.6f, lockDelay, windowEnd))
+            if (strategy.ExecuteThrillOfBattle && IsOGCDAvailable(state.ThrillOfBattleCD, 0.6f, lockDelay, windowEnd)) // prefer using thrill before SOI, so that it can be eaten
+                return ActionID.MakeSpell(AID.ThrillOfBattle);
+            if (strategy.ExecuteEquilibrium && IsOGCDAvailable(state.EquilibriumCD, 0.6f, lockDelay, windowEnd)) // prefer to use equilibrium after thrill for extra healing
+                return ActionID.MakeSpell(AID.Equilibrium);
+            if (strategy.ExecuteShakeItOff && IsOGCDAvailable(state.ShakeItOffCD, 0.6f, lockDelay, windowEnd)) // prefer to use SOI after thrill (to consume it), but before vengeance & bloodwhetting (too useful)
                 return ActionID.MakeSpell(AID.ShakeItOff);
             if (strategy.ExecuteVengeance && IsOGCDAvailable(state.VengeanceCD, 0.6f, lockDelay, windowEnd))
                 return ActionID.MakeSpell(AID.Vengeance);
             if (strategy.ExecuteRampart && IsOGCDAvailable(state.RampartCD, 0.6f, lockDelay, windowEnd))
                 return ActionID.MakeSpell(AID.Rampart);
-            if (strategy.ExecuteThrillOfBattle && IsOGCDAvailable(state.ThrillOfBattleCD, 0.6f, lockDelay, windowEnd))
-                return ActionID.MakeSpell(AID.ThrillOfBattle);
-            if (strategy.ExecuteEquilibrium && IsOGCDAvailable(state.EquilibriumCD, 0.6f, lockDelay, windowEnd))
-                return ActionID.MakeSpell(AID.Equilibrium);
             if (strategy.ExecuteReprisal && IsOGCDAvailable(state.ReprisalCD, 0.6f, lockDelay, windowEnd))
                 return ActionID.MakeSpell(AID.Reprisal);
             if (strategy.ExecuteBloodwhetting && IsOGCDAvailable(state.BloodwhettingCD, 0.6f, lockDelay, windowEnd))
@@ -280,24 +287,28 @@ namespace BossMod
                 return ActionID.MakeSpell(AID.NascentFlash);
             if (strategy.ExecuteSprint && IsOGCDAvailable(state.SprintCD, 0.6f, lockDelay, windowEnd))
                 return IDSprint;
-            if (strategy.ExecutePotion && IsOGCDAvailable(state.PotionCD, 1.1f, lockDelay, windowEnd))
-                return IDStatPotion; // this is really wrong, we need proper potion strategy...
 
-            // 1. spend second infuriate stacks asap (unless have IR, another NC, or >50 gauge)
-            // note that next-best-gcd could be FC, so we bump up min CD to ensure we don't overcap
-            if (infuriateAvailable && state.InfuriateCD <= state.GCD + 7.5)
-                return ActionID.MakeSpell(AID.Infuriate);
+            // 3. potion, if required by strategy, and not too early in opener (TODO: reconsider priority)
+            bool allowPotion = strategy.Potion switch
+            {
+                Strategy.PotionUse.DelayUntilBuffs => state.RaidBuffsLeft > 0 || strategy.RaidBuffsIn <= 2.5, // TODO: reconsider timings?..
+                Strategy.PotionUse.DelayUntilIR => state.InnerReleaseStacks > 0 || state.InnerReleaseCD < 15, // TODO: reconsider timings?..
+                Strategy.PotionUse.Immediate => true,
+                _ => false,
+            };
+            if (allowPotion && IsOGCDAvailable(state.PotionCD, 1.1f, lockDelay, windowEnd) && (state.SurgingTempestLeft > 0 || state.ComboLastMove == AID.Maim))
+                return IDStatPotion;
 
-            // 2. upheaval, if surging tempest up and not forbidden
+            // 4. upheaval, if surging tempest up and not forbidden
             // TODO: delay for 1 GCD during opener...
             if (IsOGCDAvailable(state.UpheavalCD, 0.6f, lockDelay, windowEnd) && state.SurgingTempestLeft > MathF.Max(state.UpheavalCD, 0) && strategy.EnableUpheaval)
                 return ActionID.MakeSpell(AID.Upheaval);
 
-            // 3. inner release, if surging tempest up and no nascent chaos up
+            // 5. inner release, if surging tempest up and no nascent chaos up
             if (IsOGCDAvailable(state.InnerReleaseCD, 0.6f, lockDelay, windowEnd) && state.SurgingTempestLeft > state.GCD + 5 && state.NascentChaosLeft <= state.GCD)
                 return ActionID.MakeSpell(AID.InnerRelease);
 
-            // 4. infuriate - this is complex decision
+            // 6. infuriate - this is complex decision
             // if we are spending gauge, this is easy - just make sure we're not overcapping gauge or interfering with IR (active or coming off cd before next GCD) or previous infuriate cast
             // otherwise, we're hitting infuriate when either CD is very low:
             // - if IR is imminent, we need at least 22.5 secs of CD (IR+3xFC is 7.5s from spent gcds and 15s from FCs)
@@ -314,7 +325,7 @@ namespace BossMod
                     return ActionID.MakeSpell(AID.Infuriate);
             }
 
-            // 5. onslaught, if surging tempest up and not forbidden
+            // 7. onslaught, if surging tempest up and not forbidden
             if (IsOGCDAvailable(state.OnslaughtCD - 60, 0.6f, lockDelay, windowEnd) && strategy.PositionLockIn > state.AnimationLock && state.SurgingTempestLeft > state.AnimationLock)
             {
                 if (state.OnslaughtCD < state.GCD + 2.5)

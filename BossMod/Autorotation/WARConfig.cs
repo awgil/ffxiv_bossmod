@@ -9,6 +9,7 @@
         public bool SmartShirkTarget = true;
         public bool SmartNascentFlashTarget = true;
         public bool HolmgangSelf = true;
+        public WARRotation.Strategy.PotionUse PotionUse = WARRotation.Strategy.PotionUse.Manual;
 
         protected override void DrawContents()
         {
@@ -19,6 +20,7 @@
             DrawProperty(ref SmartShirkTarget, "Smart targeting for Shirk (target if friendly, otherwise mouseover if friendly, otherwise offtank if available)");
             DrawProperty(ref SmartNascentFlashTarget, "Smart targeting for Nascent Flash (target if friendly, otherwise mouseover if friendly, otherwise offtank if available)");
             DrawProperty(ref HolmgangSelf, "Use self for holmgang target");
+            DrawProperty(ref PotionUse, "Potion use strategy");
         }
     }
 }
