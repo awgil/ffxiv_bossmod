@@ -295,6 +295,8 @@ namespace BossMod
                 s.ArmsLengthCD = SpellCooldown(WARRotation.AID.ArmsLength);
                 s.ProvokeCD = SpellCooldown(WARRotation.AID.Provoke);
                 s.ShirkCD = SpellCooldown(WARRotation.AID.Shirk);
+                s.SprintCD = ActionCooldown(WARRotation.IDSprint);
+                s.PotionCD = ActionCooldown(WARRotation.IDStatPotion);
             }
             return s;
         }
@@ -325,7 +327,7 @@ namespace BossMod
 
         private static string StateString(WARRotation.State s)
         {
-            return $"g={s.Gauge}, RB={s.RaidBuffsLeft:f1}, ST={s.SurgingTempestLeft:f1}, NC={s.NascentChaosLeft:f1}, PR={s.PrimalRendLeft:f1}, IR={s.InnerReleaseStacks}/{s.InnerReleaseLeft:f1}, IRCD={s.InnerReleaseCD:f1}, InfCD={s.InfuriateCD:f1}, UphCD={s.UpheavalCD:f1}, OnsCD={s.OnslaughtCD:f1}, GCD={s.GCD:f3}, ALock={s.AnimationLock:f3}, ALockDelay={s.AnimationLockDelay:f3}, lvl={s.Level}";
+            return $"g={s.Gauge}, RB={s.RaidBuffsLeft:f1}, ST={s.SurgingTempestLeft:f1}, NC={s.NascentChaosLeft:f1}, PR={s.PrimalRendLeft:f1}, IR={s.InnerReleaseStacks}/{s.InnerReleaseLeft:f1}, IRCD={s.InnerReleaseCD:f1}, InfCD={s.InfuriateCD:f1}, UphCD={s.UpheavalCD:f1}, OnsCD={s.OnslaughtCD:f1}, PotCD={s.PotionCD:f1}, GCD={s.GCD:f3}, ALock={s.AnimationLock:f3}, ALockDelay={s.AnimationLockDelay:f3}, lvl={s.Level}";
         }
 
         private static string SmartQueueString(WARRotation.Strategy strategy)
