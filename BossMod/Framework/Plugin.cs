@@ -30,6 +30,7 @@ namespace BossMod
             Service.LuminaGameData = Service.DataManager.GameData;
             //Service.Device = pluginInterface.UiBuilder.Device;
             Camera.Instance = new();
+            Mouseover.Instance = new();
 
             _config = ConfigRoot.ReadConfig(dalamud);
             var generalCfg = _config.Get<GeneralConfig>();
@@ -41,7 +42,7 @@ namespace BossMod
             _ws = new(_network);
             _debugLogger = new(_ws, generalCfg, dalamud.ConfigDirectory);
             _bossmod = new(_ws, _config);
-            _autorotation = new(_network, generalCfg, _bossmod);
+            _autorotation = new(_network, _config, _bossmod);
 
             dalamud.UiBuilder.Draw += DrawUI;
             dalamud.UiBuilder.OpenConfigUi += OpenConfigUI;

@@ -32,8 +32,10 @@ namespace BossMod
     class Autorotation : IDisposable
     {
         private Network _network;
-        private GeneralConfig _config;
+        private AutorotationConfig _config;
+        private BossModuleManager _bossmods;
         private WindowManager.Window? _ui;
+        private CommonActions? _classActions;
 
         private List<Network.PendingAction> _pendingActions = new();
         private bool _firstPendingJustCompleted = false;
@@ -41,23 +43,19 @@ namespace BossMod
         private float _animLockDelay = 0.1f; // smoothed delay between client request and response
         private float _animLockDelaySmoothing = 0.8f; // TODO tweak
 
-        private delegate ulong GetAdjustedActionIdDelegate(byte param1, uint param2);
-        private Hook<GetAdjustedActionIdDelegate> _getAdjustedActionIdHook;
+        private delegate bool UseActionDelegate(ulong self, ActionType actionType, uint actionID, uint targetID, uint a4, uint a5, uint a6, ulong a7);
+        private Hook<UseActionDelegate> _useActionHook;
         private unsafe float* _comboTimeLeft = null;
         private unsafe uint* _comboLastMove = null;
-
-        //private delegate bool UseActionDelegate(ulong self, ActionType actionType, uint actionID, uint targetID, uint a4, uint a5, uint a6, ulong a7);
-        //private Hook<UseActionDelegate> _useActionHook;
 
         public unsafe float ComboTimeLeft => *_comboTimeLeft;
         public unsafe uint ComboLastMove => *_comboLastMove;
 
-        public WARActions WarActions { get; init; }
-
-        public unsafe Autorotation(Network network, GeneralConfig config, BossModuleManager bossmods)
+        public unsafe Autorotation(Network network, ConfigNode settings, BossModuleManager bossmods)
         {
             _network = network;
-            _config = config;
+            _config = settings.Get<AutorotationConfig>();
+            _bossmods = bossmods;
 
             _network.EventActionRequest += OnNetworkActionRequest;
             _network.EventActionEffect += OnNetworkActionEffect;
@@ -68,15 +66,8 @@ namespace BossMod
             _comboTimeLeft = (float*)comboPtr;
             _comboLastMove = (uint*)(comboPtr + 0x4);
 
-            var getAdjustedActionIdAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 8B F8 3B DF");
-            _getAdjustedActionIdHook = new(getAdjustedActionIdAddress, new GetAdjustedActionIdDelegate(GetAdjustedActionIdDetour));
-            _getAdjustedActionIdHook.Enable();
-
-            //var useActionAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 64 B1 01");
-            //_useActionHook = new(useActionAddress, new UseActionDelegate(UseActionDetour));
-            //_useActionHook.Enable();
-
-            WarActions = new(bossmods);
+            var useActionAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 64 B1 01");
+            _useActionHook = new(useActionAddress, new UseActionDelegate(UseActionDetour));
         }
 
         public void Dispose()
@@ -86,34 +77,46 @@ namespace BossMod
             _network.EventActorControlCancelCast -= OnNetworkActionCancel;
             _network.EventActorControlSelfActionRejected -= OnNetworkActionReject;
 
-            _getAdjustedActionIdHook.Dispose();
+            _useActionHook.Dispose();
         }
 
         public void Update()
         {
-            bool enabled = false;
-            if (_config.AutorotationEnabled)
+            Type? classType = null;
+            if (_config.Enabled)
             {
-                enabled = (Class)(Service.ClientState.LocalPlayer?.ClassJob.Id ?? 0) == Class.WAR;
+                classType = (Class)(Service.ClientState.LocalPlayer?.ClassJob.Id ?? 0) switch
+                {
+                    Class.WAR => typeof(WARActions),
+                    _ => null
+                };
             }
 
-            if (enabled)
+            if (_classActions?.GetType() != classType)
             {
-                _getAdjustedActionIdHook.Enable();
+                if (classType == null)
+                {
+                    _useActionHook.Disable();
+                    _classActions = null;
+                }
+                else
+                {
+                    _classActions = (CommonActions?)Activator.CreateInstance(classType, _config, _bossmods);
+                    _useActionHook.Enable();
+                }
+            }
 
+            if (_classActions != null)
+            {
                 if (_firstPendingJustCompleted)
                 {
-                    WarActions.CastSucceeded(_pendingActions[0].Action);
+                    _classActions.CastSucceeded(_pendingActions[0].Action);
                 }
 
                 if (_pendingActions.Count == 0)
                 {
-                    WarActions.Update(ComboLastMove, ComboTimeLeft, MathF.Max((float)(_animLockEnd - DateTime.Now).TotalSeconds, 0), _animLockDelay);
+                    _classActions.Update(ComboLastMove, ComboTimeLeft, MathF.Max((float)(_animLockEnd - DateTime.Now).TotalSeconds, 0), _animLockDelay);
                 }
-            }
-            else
-            {
-                _getAdjustedActionIdHook.Disable();
             }
 
             if (_firstPendingJustCompleted)
@@ -122,10 +125,10 @@ namespace BossMod
                 _firstPendingJustCompleted = false;
             }
 
-            bool showUI = enabled && _config.AutorotationShowUI;
+            bool showUI = _classActions != null && _config.ShowUI;
             if (showUI && _ui == null)
             {
-                _ui = WindowManager.CreateWindow("Autorotation", WarActions.DrawOverlay, () => { }, () => true);
+                _ui = WindowManager.CreateWindow("Autorotation", _classActions!.DrawOverlay, () => { }, () => true);
                 _ui.SizeHint = new(100, 100);
                 _ui.MinSize = new(100, 100);
                 _ui.Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
@@ -236,35 +239,23 @@ namespace BossMod
 
         private void Log(string message, bool warning = false)
         {
-            if (warning || _config.AutorotationLogging)
+            if (warning || _config.Logging)
                 Service.Log($"[AR] {message}");
         }
 
-        private ulong GetAdjustedActionIdDetour(byte self, uint actionID)
+        private bool UseActionDetour(ulong self, ActionType actionType, uint actionID, uint targetID, uint a4, uint a5, uint a6, ulong a7)
         {
-            if (Service.ClientState.LocalPlayer == null)
-                return _getAdjustedActionIdHook.Original(self, actionID);
+            // when spamming e.g. HS, every click (~0.2 sec) this function is called; aid=HS, a4=a5=a6=a7==0, returns True
+            // ~0.3s before GCD/animlock end, it starts returning False - probably meaning "next action is already queued"?
+            // right when GCD ends, it is called internally (by queue mechanism I assume) with aid=adjusted-id, a5=1, a4=a6=a7==0, returns True
+            // a5==1 means "forced"?
+            // a4==0 for spells, 65535 for item used from hotbar, some value (e.g. 6) for item used from inventory; it is the same as a4 in UseActionLocation
+            if (_classActions == null || actionType != ActionType.Spell)
+                return _useActionHook.Original(self, actionType, actionID, targetID, a4, a5, a6, a7);
 
-            return actionID switch
-            {
-                (uint)WARRotation.AID.HeavySwing => (uint)WarActions.NextBestAction,
-                (uint)WARRotation.AID.Maim => (uint)WARRotation.GetNextMaimComboAction(WarActions.State.ComboLastMove),
-                (uint)WARRotation.AID.StormEye => (uint)WARRotation.GetNextSTComboAction(WarActions.State.ComboLastMove, WARRotation.AID.StormEye),
-                (uint)WARRotation.AID.StormPath => (uint)WARRotation.GetNextSTComboAction(WarActions.State.ComboLastMove, WARRotation.AID.StormPath),
-                (uint)WARRotation.AID.MythrilTempest => (uint)WARRotation.GetNextAOEComboAction(WarActions.State.ComboLastMove),
-                _ => _getAdjustedActionIdHook.Original(self, actionID)
-            };
+            var (adjAction, adjTarget) = _classActions.ReplaceActionAndTarget(new(actionType, actionID), targetID);
+            var adjArg4 = adjAction.Type == ActionType.Item && a4 == 0 ? 65535 : a4;
+            return _useActionHook.Original(self, adjAction.Type, adjAction.ID, adjTarget, adjArg4, a5, a6, a7);
         }
-
-        //private bool UseActionDetour(ulong self, ActionType actionType, uint actionID, uint targetID, uint a4, uint a5, uint a6, ulong a7)
-        //{
-        //    // when spamming e.g. HS, every click (~0.2 sec) this function is called; aid=HS, a4=a5=a6=a7==0, returns True
-        //    // ~0.3s before GCD/animlock end, it starts returning False - probably meaning "next action is already queued"?
-        //    // right when GCD ends, it is called internally (by queue mechanism I assume) with aid=adjusted-id, a5=1, a4=a6=a7==0, returns True
-        //    // a5==1 means "forced"?
-        //    bool res = _useActionHook.Original(self, actionType, actionID, targetID, a4, a5, a6, a7);
-        //    Service.Log($"[AR] UseAction: {new ActionID(actionType, actionID)} @ {targetID:X}, args={a4} {a5} {a6} {a7:X} -> {res}");
-        //    return res;
-        //}
     }
 }

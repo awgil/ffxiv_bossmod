@@ -2,12 +2,16 @@
 
 namespace BossMod
 {
-    class CommonActions
+    abstract class CommonActions
     {
+        protected BossModuleManager _bossmods;
+        private AutorotationConfig _config;
         private unsafe FFXIVClientStructs.FFXIV.Client.Game.ActionManager* _actionManager = null;
 
-        protected unsafe CommonActions()
+        protected unsafe CommonActions(AutorotationConfig config, BossModuleManager bossmods)
         {
+            _bossmods = bossmods;
+            _config = config;
             _actionManager = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
         }
 
@@ -50,6 +54,17 @@ namespace BossMod
                 2964 => true, // BRD radiant finale
                 _ => false
             };
+        }
+
+        abstract public void CastSucceeded(ActionID actionID);
+        abstract public void Update(uint comboLastAction, float comboTimeLeft, float animLock, float animLockDelay);
+        abstract public (ActionID, uint) ReplaceActionAndTarget(ActionID actionID, uint targetID);
+        abstract public void DrawOverlay();
+
+        protected void Log(string message)
+        {
+            if (_config.Logging)
+                Service.Log($"[AR] [{GetType().Name}] {message}");
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace BossMod
 {
@@ -67,8 +68,10 @@ namespace BossMod
         }
 
         // full state needed for determining next action
-        public struct State
+        public class State
         {
+            public int Level; // TODO: consider abilities unlocked by quests - they could be unavailable despite level being high enough
+            public float GCD; // 2.5 max (decreased by SkS), 0 if not on gcd
             public float AnimationLock; // typical actions have 0.6 delay, but some (notably primal rend and potion) are >1
             public float AnimationLockDelay; // average time between action request and confirmation; this is added to effective animation lock for actions
             public float ComboTimeLeft; // 0 if not in combo, max 30
@@ -84,22 +87,46 @@ namespace BossMod
             public float InfuriateCD; // 120 max, >60 if 0 stacks ready, >0 if 1 stack ready, ==0 if 2 stacks ready
             public float UpheavalCD; // 60 max, 0 if ready
             public float OnslaughtCD; // 90 max, >60 if 0 stacks ready, >30 if 1 stack ready, >0 if 2 stacks ready, ==0 if 3 stacks ready
-            public float GCD; // 2.5 max (decreased by SkS), 0 if not on gcd
+            public float RampartCD; // 90 max, 0 if ready
+            public float VengeanceCD; // 120 max, 0 if ready
+            public float ThrillOfBattleCD; // 90 max, 0 if ready
+            public float HolmgangCD; // 240 max, 0 if ready
+            public float EquilibriumCD; // 60 max, 0 if ready
+            public float ReprisalCD; // 60 max, 0 if ready
+            public float ShakeItOffCD; // 90 max, 0 if ready
+            public float BloodwhettingCD; // 25 max, 0 if ready (also applies to nascent flash)
+            public float ArmsLengthCD; // 120 max, 0 if ready
+            public float ProvokeCD;  // 30 max, 0 if ready
+            public float ShirkCD;  // 120 max, 0 if ready
         }
 
         // strategy configuration
         // many strategy decisions are represented as "need-something-in" counters; 0 means "use asap", >0 means "do not use unless value is larger than cooldown" (so 'infinity' means 'free to use')
         // for planning, we typically use "windows" (as in, some CD has to be pressed from this point and up to this point);
         // before "min point" counter is >0, between "min point" and "max point" it is == 0, after "max point" we switch to next planned action (assuming if we've missed the window, CD is no longer needed)
-        public struct Strategy
+        public class Strategy
         {
             public float FightEndIn; // how long fight will last (we try to spend all resources before this happens)
             public float RaidBuffsIn; // estimate time when new raidbuff window starts (if it is smaller than FightEndIn, we try to conserve resources)
             public float PositionLockIn; // time left to use moving abilities (Primal Rend and Onslaught) - we won't use them if it is ==0; setting this to 2.5f will make us use PR asap
             public float FirstChargeIn; // when do we need to use onslaught charge (0 means 'use asap if out of melee range', >0 means that we'll try to make sure 1 charge is available in this time)
             public float SecondChargeIn; // when do we need to use two onslaught charges in a short amount of time
-            public bool EnableUpheaval; // if true, enable using upheaval when needed; setting to false is useful during opener before first party buffs
+            public bool EnableUpheaval = true; // if true, enable using upheaval when needed; setting to false is useful during opener before first party buffs
             public bool Aggressive; // if true, we use buffs and stuff at last possible moment; otherwise we make sure to keep at least 1 GCD safety net
+            // 'execute' flags: if true, we execute corresponding action in next free ogcd slot (potentially delaying a bit to avoid losing damage)
+            // we assume the logic setting the flag ensures the action isn't wasted (e.g. equilibrium at full hp, reprisal out of range of any enemies, SIO out of range of full raid, etc.)
+            public bool ExecuteRampart;
+            public bool ExecuteVengeance; // note: it has some minor offensive value, but we prefer letting plan the usage explicitly for that
+            public bool ExecuteThrillOfBattle;
+            public bool ExecuteHolmgang;
+            public bool ExecuteEquilibrium;
+            public bool ExecuteReprisal;
+            public bool ExecuteShakeItOff;
+            public bool ExecuteBloodwhetting;
+            public bool ExecuteNascentFlash;
+            public bool ExecuteArmsLength;
+            public bool ExecuteProvoke;
+            public bool ExecuteShirk;
         }
 
         public static AID GetNextSTComboAction(AID comboLastMove, AID finisher)
@@ -219,6 +246,32 @@ namespace BossMod
             infuriateAvailable &= state.InnerReleaseLeft <= state.GCD; // never cast infuriate if IR is up for next GCD
             infuriateAvailable &= state.NascentChaosLeft <= state.GCD; // never cast infuriate if NC from previous infuriate is still up for next GCD
             infuriateAvailable &= state.Gauge <= 50; // never cast infuriate if doing so would overcap gauge
+
+            // 0. use cooldowns if requested in rough priority order (note that we use SOI before buffs it can eat...)
+            if (strategy.ExecuteProvoke && IsOGCDAvailable(state.ProvokeCD, 0.6f, lockDelay, windowEnd))
+                return AID.Provoke;
+            if (strategy.ExecuteShirk && IsOGCDAvailable(state.ShirkCD, 0.6f, lockDelay, windowEnd))
+                return AID.Shirk;
+            if (strategy.ExecuteHolmgang && IsOGCDAvailable(state.HolmgangCD, 0.6f, lockDelay, windowEnd))
+                return AID.Holmgang;
+            if (strategy.ExecuteArmsLength && IsOGCDAvailable(state.ArmsLengthCD, 0.6f, lockDelay, windowEnd))
+                return AID.ArmsLength;
+            if (strategy.ExecuteShakeItOff && IsOGCDAvailable(state.ShakeItOffCD, 0.6f, lockDelay, windowEnd))
+                return AID.ShakeItOff;
+            if (strategy.ExecuteVengeance && IsOGCDAvailable(state.VengeanceCD, 0.6f, lockDelay, windowEnd))
+                return AID.Vengeance;
+            if (strategy.ExecuteRampart && IsOGCDAvailable(state.RampartCD, 0.6f, lockDelay, windowEnd))
+                return AID.Rampart;
+            if (strategy.ExecuteThrillOfBattle && IsOGCDAvailable(state.ThrillOfBattleCD, 0.6f, lockDelay, windowEnd))
+                return AID.ThrillOfBattle;
+            if (strategy.ExecuteEquilibrium && IsOGCDAvailable(state.EquilibriumCD, 0.6f, lockDelay, windowEnd))
+                return AID.Equilibrium;
+            if (strategy.ExecuteReprisal && IsOGCDAvailable(state.ReprisalCD, 0.6f, lockDelay, windowEnd))
+                return AID.Reprisal;
+            if (strategy.ExecuteBloodwhetting && IsOGCDAvailable(state.BloodwhettingCD, 0.6f, lockDelay, windowEnd))
+                return AID.Bloodwhetting;
+            if (strategy.ExecuteNascentFlash && IsOGCDAvailable(state.BloodwhettingCD, 0.6f, lockDelay, windowEnd))
+                return AID.NascentFlash;
 
             // 1. spend second infuriate stacks asap (unless have IR, another NC, or >50 gauge)
             // note that next-best-gcd could be FC, so we bump up min CD to ensure we don't overcap

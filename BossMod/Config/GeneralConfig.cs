@@ -5,9 +5,6 @@
         public bool DumpWorldStateEvents = false;
         public bool DumpServerPackets = false;
         public bool DumpClientPackets = false;
-        public bool AutorotationEnabled = false;
-        public bool AutorotationLogging = false;
-        public bool AutorotationShowUI = false;
 
         public GeneralConfig()
         {
@@ -20,9 +17,6 @@
             DrawProperty(ref DumpWorldStateEvents, "Dump world state events");
             DrawProperty(ref DumpServerPackets, "Dump server packets");
             DrawProperty(ref DumpClientPackets, "Dump client packets");
-            DrawProperty(ref AutorotationEnabled, "Enable autorotation (experimental!)");
-            DrawProperty(ref AutorotationLogging, "Log autorotation messages");
-            DrawProperty(ref AutorotationShowUI, "Show autorotation UI");
         }
     }
 }

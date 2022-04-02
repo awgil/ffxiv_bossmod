@@ -66,13 +66,13 @@ namespace BossMod
             {
                 _debugAction.DrawActionData();
             }
-            if (ImGui.CollapsingHeader("WAR"))
-            {
-                _autorot.WarActions.DrawDebug();
-            }
             if (ImGui.CollapsingHeader("Hate"))
             {
                 _debugHate.Draw();
+            }
+            if (ImGui.CollapsingHeader("Targets"))
+            {
+                DrawTargets();
             }
         }
 
@@ -121,6 +121,17 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(elem.Position));
             }
             ImGui.EndTable();
+        }
+
+        private unsafe void DrawTargets()
+        {
+            var ts = FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance();
+            ImGui.Text($"Target: {(ts->Target != null ? Utils.ObjectString(ts->Target->ObjectID) : "<null>")}");
+            ImGui.Text($"Soft target: {(ts->SoftTarget != null ? Utils.ObjectString(ts->SoftTarget->ObjectID) : "<null>")}");
+            ImGui.Text($"GPose target: {(ts->GPoseTarget != null ? Utils.ObjectString(ts->GPoseTarget->ObjectID) : "<null>")}");
+            ImGui.Text($"Mouseover: {(ts->MouseOverTarget != null ? Utils.ObjectString(ts->MouseOverTarget->ObjectID) : "<null>")}");
+            ImGui.Text($"Focus: {(ts->FocusTarget != null ? Utils.ObjectString(ts->FocusTarget->ObjectID) : "<null>")}");
+            ImGui.Text($"UI Mouseover: {(Mouseover.Instance?.Object != null ? Utils.ObjectString(Mouseover.Instance.Object) : "<null>")}");
         }
     }
 }
