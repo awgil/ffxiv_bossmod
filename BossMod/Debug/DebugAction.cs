@@ -22,10 +22,10 @@ namespace BossMod
                 }
             }
 
+            var mgr = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
             var hover = Service.GameGui.HoveredAction;
             if (hover.ActionID != 0)
             {
-                var mgr = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
                 ImGui.Text($"Hover action: {hover.ActionKind} {hover.ActionID} (base={hover.BaseActionID}) (WAR: {(WARRotation.AID)hover.ActionID})");
 
                 var (name, type) = hover.ActionKind switch
@@ -61,12 +61,22 @@ namespace BossMod
             }
             else if (Service.GameGui.HoveredItem != 0)
             {
+                uint itemID = (uint)Service.GameGui.HoveredItem % 1000000;
+                bool isHQ = Service.GameGui.HoveredItem / 1000000 > 0;
                 ImGui.Text($"Hover item: {Service.GameGui.HoveredItem}");
-                var row = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Item>()?.GetRow(hover.ActionID % 1000000);
-                if (row != null)
-                {
-                    ImGui.Text($"Name: {row.Name}{(hover.ActionID / 1000000 > 0 ? " (HQ)" : "")}");
-                }
+                ImGui.Text($"Name: {Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Item>()?.GetRow(itemID)?.Name}{(isHQ ? " (HQ)" : "")}");
+                ImGui.Text($"Count: {FFXIVClientStructs.FFXIV.Client.Game.InventoryManager.Instance()->GetInventoryItemCount(itemID, isHQ, false, false)}");
+                ImGui.Text($"Status: {mgr->GetActionStatus(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID)}");
+                ImGui.Text($"Adjusted recast: {mgr->GetAdjustedRecastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID):f2}");
+                ImGui.Text($"Adjusted cast: {mgr->GetAdjustedCastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID):f2}");
+                ImGui.Text($"Recast: {mgr->GetRecastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID):f2}");
+                ImGui.Text($"Recast elapsed: {mgr->GetRecastTimeElapsed(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID):f2}");
+                ImGui.Text($"Recast active: {mgr->IsRecastTimerActive(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID)}");
+                var groupID = mgr->GetRecastGroup(2, itemID);
+                ImGui.Text($"Recast group: {groupID}");
+                var group = mgr->GetRecastGroupDetail(groupID);
+                if (group != null)
+                    ImGui.Text($"Recast group details: active={group->IsActive}, action={group->ActionID}, elapsed={group->Elapsed}, total={group->Total}");
             }
             else
             {

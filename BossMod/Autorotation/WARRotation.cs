@@ -57,6 +57,8 @@ namespace BossMod
             LowBlow = 7540,
             Interject = 7538,
         }
+        public static ActionID IDSprint = new(ActionType.General, 4);
+        public static ActionID IDStatPotion = new(ActionType.Item, 1036109); // hq grade 6 tincture of strength
 
         public enum SID : uint
         {
@@ -96,8 +98,10 @@ namespace BossMod
             public float ShakeItOffCD; // 90 max, 0 if ready
             public float BloodwhettingCD; // 25 max, 0 if ready (also applies to nascent flash)
             public float ArmsLengthCD; // 120 max, 0 if ready
-            public float ProvokeCD;  // 30 max, 0 if ready
-            public float ShirkCD;  // 120 max, 0 if ready
+            public float ProvokeCD; // 30 max, 0 if ready
+            public float ShirkCD; // 120 max, 0 if ready
+            public float SprintCD; // 60 max, 0 if ready
+            public float PotionCD; // variable max, 0 if ready
         }
 
         // strategy configuration
@@ -127,6 +131,8 @@ namespace BossMod
             public bool ExecuteArmsLength;
             public bool ExecuteProvoke;
             public bool ExecuteShirk;
+            public bool ExecuteSprint;
+            public bool ExecutePotion; // TODO: this should really be done differently...
         }
 
         public static AID GetNextSTComboAction(AID comboLastMove, AID finisher)
@@ -238,7 +244,7 @@ namespace BossMod
         }
 
         // window-end is either GCD or GCD - time-for-second-ogcd; we are allowed to use ogcds only if their animation lock would complete before window-end
-        public static AID GetNextBestOGCD(State state, Strategy strategy, float windowEnd)
+        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float windowEnd)
         {
             var lockDelay = GetOGCDDelay(state.AnimationLockDelay);
 
@@ -249,43 +255,47 @@ namespace BossMod
 
             // 0. use cooldowns if requested in rough priority order (note that we use SOI before buffs it can eat...)
             if (strategy.ExecuteProvoke && IsOGCDAvailable(state.ProvokeCD, 0.6f, lockDelay, windowEnd))
-                return AID.Provoke;
+                return ActionID.MakeSpell(AID.Provoke);
             if (strategy.ExecuteShirk && IsOGCDAvailable(state.ShirkCD, 0.6f, lockDelay, windowEnd))
-                return AID.Shirk;
+                return ActionID.MakeSpell(AID.Shirk);
             if (strategy.ExecuteHolmgang && IsOGCDAvailable(state.HolmgangCD, 0.6f, lockDelay, windowEnd))
-                return AID.Holmgang;
+                return ActionID.MakeSpell(AID.Holmgang);
             if (strategy.ExecuteArmsLength && IsOGCDAvailable(state.ArmsLengthCD, 0.6f, lockDelay, windowEnd))
-                return AID.ArmsLength;
+                return ActionID.MakeSpell(AID.ArmsLength);
             if (strategy.ExecuteShakeItOff && IsOGCDAvailable(state.ShakeItOffCD, 0.6f, lockDelay, windowEnd))
-                return AID.ShakeItOff;
+                return ActionID.MakeSpell(AID.ShakeItOff);
             if (strategy.ExecuteVengeance && IsOGCDAvailable(state.VengeanceCD, 0.6f, lockDelay, windowEnd))
-                return AID.Vengeance;
+                return ActionID.MakeSpell(AID.Vengeance);
             if (strategy.ExecuteRampart && IsOGCDAvailable(state.RampartCD, 0.6f, lockDelay, windowEnd))
-                return AID.Rampart;
+                return ActionID.MakeSpell(AID.Rampart);
             if (strategy.ExecuteThrillOfBattle && IsOGCDAvailable(state.ThrillOfBattleCD, 0.6f, lockDelay, windowEnd))
-                return AID.ThrillOfBattle;
+                return ActionID.MakeSpell(AID.ThrillOfBattle);
             if (strategy.ExecuteEquilibrium && IsOGCDAvailable(state.EquilibriumCD, 0.6f, lockDelay, windowEnd))
-                return AID.Equilibrium;
+                return ActionID.MakeSpell(AID.Equilibrium);
             if (strategy.ExecuteReprisal && IsOGCDAvailable(state.ReprisalCD, 0.6f, lockDelay, windowEnd))
-                return AID.Reprisal;
+                return ActionID.MakeSpell(AID.Reprisal);
             if (strategy.ExecuteBloodwhetting && IsOGCDAvailable(state.BloodwhettingCD, 0.6f, lockDelay, windowEnd))
-                return AID.Bloodwhetting;
+                return ActionID.MakeSpell(AID.Bloodwhetting);
             if (strategy.ExecuteNascentFlash && IsOGCDAvailable(state.BloodwhettingCD, 0.6f, lockDelay, windowEnd))
-                return AID.NascentFlash;
+                return ActionID.MakeSpell(AID.NascentFlash);
+            if (strategy.ExecuteSprint && IsOGCDAvailable(state.SprintCD, 0.6f, lockDelay, windowEnd))
+                return IDSprint;
+            if (strategy.ExecutePotion && IsOGCDAvailable(state.PotionCD, 1.1f, lockDelay, windowEnd))
+                return IDStatPotion; // this is really wrong, we need proper potion strategy...
 
             // 1. spend second infuriate stacks asap (unless have IR, another NC, or >50 gauge)
             // note that next-best-gcd could be FC, so we bump up min CD to ensure we don't overcap
             if (infuriateAvailable && state.InfuriateCD <= state.GCD + 7.5)
-                return AID.Infuriate;
+                return ActionID.MakeSpell(AID.Infuriate);
 
             // 2. upheaval, if surging tempest up and not forbidden
             // TODO: delay for 1 GCD during opener...
             if (IsOGCDAvailable(state.UpheavalCD, 0.6f, lockDelay, windowEnd) && state.SurgingTempestLeft > MathF.Max(state.UpheavalCD, 0) && strategy.EnableUpheaval)
-                return AID.Upheaval;
+                return ActionID.MakeSpell(AID.Upheaval);
 
             // 3. inner release, if surging tempest up and no nascent chaos up
             if (IsOGCDAvailable(state.InnerReleaseCD, 0.6f, lockDelay, windowEnd) && state.SurgingTempestLeft > state.GCD + 5 && state.NascentChaosLeft <= state.GCD)
-                return AID.InnerRelease;
+                return ActionID.MakeSpell(AID.InnerRelease);
 
             // 4. infuriate - this is complex decision
             // if we are spending gauge, this is easy - just make sure we're not overcapping gauge or interfering with IR (active or coming off cd before next GCD) or previous infuriate cast
@@ -301,31 +311,31 @@ namespace BossMod
                 int gaugeCap = state.ComboLastMove == AID.None ? 50 : (state.ComboLastMove == AID.HeavySwing ? 40 : 30);
                 float maxInfuriateCD = irImminent ? 22.5f : (state.Gauge > gaugeCap ? 10f : 2.5f);
                 if (spendGauge || state.InfuriateCD <= gcdDelay + maxInfuriateCD)
-                    return AID.Infuriate;
+                    return ActionID.MakeSpell(AID.Infuriate);
             }
 
             // 5. onslaught, if surging tempest up and not forbidden
             if (IsOGCDAvailable(state.OnslaughtCD - 60, 0.6f, lockDelay, windowEnd) && strategy.PositionLockIn > state.AnimationLock && state.SurgingTempestLeft > state.AnimationLock)
             {
                 if (state.OnslaughtCD < state.GCD + 2.5)
-                    return AID.Onslaught; // onslaught now, otherwise we risk overcapping charges
+                    return ActionID.MakeSpell(AID.Onslaught); // onslaught now, otherwise we risk overcapping charges
 
                 if (strategy.FirstChargeIn <= 0)
-                    return AID.Onslaught; // onslaught now, since strategy asks for it
+                    return ActionID.MakeSpell(AID.Onslaught); // onslaught now, since strategy asks for it
 
                 // check whether using onslaught now won't prevent us from using it when strategy demands
                 bool safeToUseOnslaught = state.OnslaughtCD <= strategy.FirstChargeIn + 30 && state.OnslaughtCD <= strategy.SecondChargeIn;
 
                 // use onslaught now if it's safe and we're either spending gauge or won't be able to delay it until next buff window anyway
                 if (safeToUseOnslaught && (spendGauge || state.OnslaughtCD <= strategy.RaidBuffsIn))
-                    return AID.Onslaught;
+                    return ActionID.MakeSpell(AID.Onslaught);
             }
 
             // no suitable oGCDs...
-            return AID.None;
+            return new();
         }
 
-        public static AID GetNextBestAction(State state, Strategy strategy)
+        public static ActionID GetNextBestAction(State state, Strategy strategy)
         {
             var ogcdSlotLength = 0.6f + GetOGCDDelay(state.AnimationLockDelay);
 
@@ -334,7 +344,7 @@ namespace BossMod
             if (state.AnimationLock + ogcdSlotLength <= doubleWeavingWindowEnd)
             {
                 var ogcd = GetNextBestOGCD(state, strategy, doubleWeavingWindowEnd);
-                if (ogcd != AID.None)
+                if (ogcd != new ActionID())
                     return ogcd;
             }
 
@@ -342,11 +352,11 @@ namespace BossMod
             if (state.AnimationLock + ogcdSlotLength <= state.GCD)
             {
                 var ogcd = GetNextBestOGCD(state, strategy, state.GCD);
-                if (ogcd != AID.None)
+                if (ogcd != new ActionID())
                     return ogcd;
             }
 
-            return GetNextBestGCD(state, strategy);
+            return ActionID.MakeSpell(GetNextBestGCD(state, strategy));
         }
 
         //public static AID GetNextBestAOE(State state, Strategy strategy)

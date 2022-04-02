@@ -250,7 +250,7 @@ namespace BossMod
             // right when GCD ends, it is called internally (by queue mechanism I assume) with aid=adjusted-id, a5=1, a4=a6=a7==0, returns True
             // a5==1 means "forced"?
             // a4==0 for spells, 65535 for item used from hotbar, some value (e.g. 6) for item used from inventory; it is the same as a4 in UseActionLocation
-            if (_classActions == null || actionType != ActionType.Spell)
+            if (_classActions == null)
                 return _useActionHook.Original(self, actionType, actionID, targetID, a4, a5, a6, a7);
 
             var (adjAction, adjTarget) = _classActions.ReplaceActionAndTarget(new(actionType, actionID), targetID);

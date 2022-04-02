@@ -22,7 +22,7 @@ namespace BossMod
         private WARConfig _config;
         private WARRotation.State _state;
         private WARRotation.Strategy _strategy;
-        private WARRotation.AID _nextBestAction = WARRotation.AID.HeavySwing;
+        private ActionID _nextBestAction = ActionID.MakeSpell(WARRotation.AID.HeavySwing);
         private uint _forceMovementFlags = 1; // 0 = force-disable, 3 = force-enable, other = whatever planner says
         private SmartQueueEntry _qRampart;
         private SmartQueueEntry _qVengeance;
@@ -36,6 +36,8 @@ namespace BossMod
         private SmartQueueEntry _qArmsLength;
         private SmartQueueEntry _qProvoke;
         private SmartQueueEntry _qShirk;
+        private SmartQueueEntry _qSprint;
+        private SmartQueueEntry _qPotion;
 
         public WARActions(AutorotationConfig config, BossModuleManager bossmods)
             : base(config, bossmods)
@@ -51,102 +53,102 @@ namespace BossMod
 
         public override void CastSucceeded(ActionID actionID)
         {
-            if (actionID.Type != ActionType.Spell)
-                return;
-
             string comment = "";
-            switch ((WARRotation.AID)actionID.ID)
+            if (actionID.Type == ActionType.Spell)
             {
-                case WARRotation.AID.HeavySwing:
-                    if (_state.ComboLastMove == WARRotation.AID.HeavySwing || _state.ComboLastMove == WARRotation.AID.Maim)
-                        comment += $", mistake=wrong-combo({_state.ComboLastMove})";
-                    if (_state.InnerReleaseStacks > 0)
-                        comment += $", mistake=wasted-ir-stack";
-                    break;
-                case WARRotation.AID.Maim:
-                    if (_state.ComboLastMove != WARRotation.AID.HeavySwing)
-                        comment += $", mistake=wrong-combo({_state.ComboLastMove})";
-                    if (_state.InnerReleaseStacks > 0)
-                        comment += $", mistake=wasted-ir-stack";
-                    if (_state.Gauge > 90)
-                        comment += $", mistake=overcap-gauge";
-                    break;
-                case WARRotation.AID.StormPath:
-                    if (_state.ComboLastMove != WARRotation.AID.Maim)
-                        comment += $", mistake=wrong-combo({_state.ComboLastMove})";
-                    if (_state.InnerReleaseStacks > 0)
-                        comment += $", mistake=wasted-ir-stack";
-                    if (_state.Gauge > 80)
-                        comment += $", mistake=overcap-gauge";
-                    if (_state.SurgingTempestLeft <= 0)
-                        comment += $", mistake=no-st";
-                    break;
-                case WARRotation.AID.StormEye:
-                    if (_state.ComboLastMove != WARRotation.AID.Maim)
-                        comment += $", mistake=wrong-combo({_state.ComboLastMove})";
-                    if (_state.InnerReleaseStacks > 0)
-                        comment += $", mistake=wasted-ir-stack";
-                    if (_state.Gauge > 90)
-                        comment += $", mistake=overcap-gauge";
-                    if (_state.SurgingTempestLeft > 30)
-                        comment += $", mistake=overcap-st";
-                    break;
-                case WARRotation.AID.FellCleave:
-                    comment += _state.InnerReleaseStacks > 0 ? ", spent IR stack" : ", spent gauge";
-                    if (_state.InfuriateCD < 5)
-                        comment += $", mistake=overcap-infuriate";
-                    if (_state.SurgingTempestLeft <= 0)
-                        comment += $", mistake=no-st";
-                    break;
-                case WARRotation.AID.InnerChaos:
-                    if (_state.InnerReleaseStacks > 0)
-                        comment += $", mistake=wasted-ir-stack";
-                    if (_state.InfuriateCD < 5)
-                        comment += $", mistake=overcap-infuriate";
-                    if (_state.SurgingTempestLeft <= 0)
-                        comment += $", mistake=no-st";
-                    break;
-                case WARRotation.AID.Overpower:
-                    if (_state.ComboLastMove == WARRotation.AID.Overpower)
-                        comment += $", mistake=wrong-combo({_state.ComboLastMove})";
-                    if (_state.InnerReleaseStacks > 0)
-                        comment += $", mistake=wasted-ir-stack";
-                    break;
-                case WARRotation.AID.MythrilTempest:
-                    if (_state.ComboLastMove != WARRotation.AID.Overpower)
-                        comment += $", mistake=wrong-combo({_state.ComboLastMove})";
-                    if (_state.InnerReleaseStacks > 0)
-                        comment += $", mistake=wasted-ir-stack";
-                    if (_state.Gauge > 80)
-                        comment += $", mistake=overcap-gauge";
-                    break;
-                case WARRotation.AID.Infuriate:
-                    if (_state.Gauge > 50)
-                        comment += $", mistake=overcap-gauge";
-                    if (_state.NascentChaosLeft > 0)
-                        comment += $", mistake=overwrite-nc";
-                    if (_state.InnerReleaseStacks > 0)
-                        comment += $", mistake=infuriate-under-ir";
-                    break;
-                case WARRotation.AID.Onslaught:
-                    // note: onslaught without ST is not really a mistake...
-                    break;
-                case WARRotation.AID.Upheaval:
-                    if (_state.SurgingTempestLeft <= 0)
-                        comment += $", mistake=no-st";
-                    break;
-                case WARRotation.AID.InnerRelease:
-                    if (_state.SurgingTempestLeft <= 0)
-                        comment += $", mistake=no-st";
-                    if (_state.NascentChaosLeft > 0)
-                        comment += $", mistake=ir-under-nc";
-                    if (_state.SurgingTempestLeft > 50)
-                        comment += $", mistake=overcap-st";
-                    break;
-                case WARRotation.AID.Tomahawk:
-                    if (_state.InnerReleaseStacks > 0)
-                        comment += $", mistake=wasted-ir-stack";
-                    break;
+                switch ((WARRotation.AID)actionID.ID)
+                {
+                    case WARRotation.AID.HeavySwing:
+                        if (_state.ComboLastMove == WARRotation.AID.HeavySwing || _state.ComboLastMove == WARRotation.AID.Maim)
+                            comment += $", mistake=wrong-combo({_state.ComboLastMove})";
+                        if (_state.InnerReleaseStacks > 0)
+                            comment += $", mistake=wasted-ir-stack";
+                        break;
+                    case WARRotation.AID.Maim:
+                        if (_state.ComboLastMove != WARRotation.AID.HeavySwing)
+                            comment += $", mistake=wrong-combo({_state.ComboLastMove})";
+                        if (_state.InnerReleaseStacks > 0)
+                            comment += $", mistake=wasted-ir-stack";
+                        if (_state.Gauge > 90)
+                            comment += $", mistake=overcap-gauge";
+                        break;
+                    case WARRotation.AID.StormPath:
+                        if (_state.ComboLastMove != WARRotation.AID.Maim)
+                            comment += $", mistake=wrong-combo({_state.ComboLastMove})";
+                        if (_state.InnerReleaseStacks > 0)
+                            comment += $", mistake=wasted-ir-stack";
+                        if (_state.Gauge > 80)
+                            comment += $", mistake=overcap-gauge";
+                        if (_state.SurgingTempestLeft <= 0)
+                            comment += $", mistake=no-st";
+                        break;
+                    case WARRotation.AID.StormEye:
+                        if (_state.ComboLastMove != WARRotation.AID.Maim)
+                            comment += $", mistake=wrong-combo({_state.ComboLastMove})";
+                        if (_state.InnerReleaseStacks > 0)
+                            comment += $", mistake=wasted-ir-stack";
+                        if (_state.Gauge > 90)
+                            comment += $", mistake=overcap-gauge";
+                        if (_state.SurgingTempestLeft > 30)
+                            comment += $", mistake=overcap-st";
+                        break;
+                    case WARRotation.AID.FellCleave:
+                        comment += _state.InnerReleaseStacks > 0 ? ", spent IR stack" : ", spent gauge";
+                        if (_state.InfuriateCD < 5)
+                            comment += $", mistake=overcap-infuriate";
+                        if (_state.SurgingTempestLeft <= 0)
+                            comment += $", mistake=no-st";
+                        break;
+                    case WARRotation.AID.InnerChaos:
+                        if (_state.InnerReleaseStacks > 0)
+                            comment += $", mistake=wasted-ir-stack";
+                        if (_state.InfuriateCD < 5)
+                            comment += $", mistake=overcap-infuriate";
+                        if (_state.SurgingTempestLeft <= 0)
+                            comment += $", mistake=no-st";
+                        break;
+                    case WARRotation.AID.Overpower:
+                        if (_state.ComboLastMove == WARRotation.AID.Overpower)
+                            comment += $", mistake=wrong-combo({_state.ComboLastMove})";
+                        if (_state.InnerReleaseStacks > 0)
+                            comment += $", mistake=wasted-ir-stack";
+                        break;
+                    case WARRotation.AID.MythrilTempest:
+                        if (_state.ComboLastMove != WARRotation.AID.Overpower)
+                            comment += $", mistake=wrong-combo({_state.ComboLastMove})";
+                        if (_state.InnerReleaseStacks > 0)
+                            comment += $", mistake=wasted-ir-stack";
+                        if (_state.Gauge > 80)
+                            comment += $", mistake=overcap-gauge";
+                        break;
+                    case WARRotation.AID.Infuriate:
+                        if (_state.Gauge > 50)
+                            comment += $", mistake=overcap-gauge";
+                        if (_state.NascentChaosLeft > 0)
+                            comment += $", mistake=overwrite-nc";
+                        if (_state.InnerReleaseStacks > 0)
+                            comment += $", mistake=infuriate-under-ir";
+                        break;
+                    case WARRotation.AID.Onslaught:
+                        // note: onslaught without ST is not really a mistake...
+                        break;
+                    case WARRotation.AID.Upheaval:
+                        if (_state.SurgingTempestLeft <= 0)
+                            comment += $", mistake=no-st";
+                        break;
+                    case WARRotation.AID.InnerRelease:
+                        if (_state.SurgingTempestLeft <= 0)
+                            comment += $", mistake=no-st";
+                        if (_state.NascentChaosLeft > 0)
+                            comment += $", mistake=ir-under-nc";
+                        if (_state.SurgingTempestLeft > 50)
+                            comment += $", mistake=overcap-st";
+                        break;
+                    case WARRotation.AID.Tomahawk:
+                        if (_state.InnerReleaseStacks > 0)
+                            comment += $", mistake=wasted-ir-stack";
+                        break;
+                }
             }
             Log($"Cast {actionID}, next-best={_nextBestAction}{comment} [{StateString(_state)}]");
         }
@@ -179,8 +181,10 @@ namespace BossMod
             _strategy.ExecuteArmsLength = _qArmsLength.Active;
             _strategy.ExecuteProvoke = _qProvoke.Active; // TODO: check that not MT already
             _strategy.ExecuteShirk = _qShirk.Active; // TODO: check that hate is close to MT...
+            _strategy.ExecuteSprint = _qSprint.Active;
+            _strategy.ExecutePotion = _qPotion.Active;
 
-            var nextBest = _config.FullSTRotation ? WARRotation.GetNextBestAction(_state, _strategy) : WARRotation.AID.HeavySwing;
+            var nextBest = _config.FullSTRotation ? WARRotation.GetNextBestAction(_state, _strategy) : ActionID.MakeSpell(WARRotation.AID.HeavySwing);
             if (nextBest != _nextBestAction)
                 Log($"Next-best changed from {_nextBestAction} to {nextBest} [{StateString(_state)}]");
             _nextBestAction = nextBest;
@@ -188,36 +192,41 @@ namespace BossMod
 
         public override (ActionID, uint) ReplaceActionAndTarget(ActionID actionID, uint targetID)
         {
-            var aidOri = (WARRotation.AID)actionID.ID;
-            var aidAdj = aidOri switch
+            var actionAdj = actionID.Type switch
             {
-                WARRotation.AID.HeavySwing => _config.FullSTRotation ? _nextBestAction : aidOri,
-                WARRotation.AID.Maim => _config.STCombos ? WARRotation.GetNextMaimComboAction(_state.ComboLastMove) : aidOri,
-                WARRotation.AID.StormEye => _config.STCombos ? WARRotation.GetNextSTComboAction(_state.ComboLastMove, WARRotation.AID.StormEye) : aidOri,
-                WARRotation.AID.StormPath => _config.STCombos ? WARRotation.GetNextSTComboAction(_state.ComboLastMove, WARRotation.AID.StormPath) : aidOri,
-                WARRotation.AID.MythrilTempest => _config.AOECombos ? WARRotation.GetNextAOEComboAction(_state.ComboLastMove) : aidOri,
-                WARRotation.AID.Rampart => SmartQueue(aidOri, ref _qRampart),
-                WARRotation.AID.Vengeance => SmartQueue(aidOri, ref _qVengeance),
-                WARRotation.AID.ThrillOfBattle => SmartQueue(aidOri, ref _qThrillOfBattle),
-                WARRotation.AID.Holmgang => SmartQueue(aidOri, ref _qHolmgang),
-                WARRotation.AID.Equilibrium => SmartQueue(aidOri, ref _qEquilibrium),
-                WARRotation.AID.Reprisal => SmartQueue(aidOri, ref _qReprisal),
-                WARRotation.AID.ShakeItOff => SmartQueue(aidOri, ref _qShakeItOff),
-                WARRotation.AID.Bloodwhetting or WARRotation.AID.RawIntuition => SmartQueue(aidOri, ref _qBloodwhetting),
-                WARRotation.AID.NascentFlash => SmartQueue(aidOri, ref _qNascentFlash),
-                WARRotation.AID.ArmsLength => SmartQueue(aidOri, ref _qArmsLength),
-                WARRotation.AID.Provoke => SmartQueue(aidOri, ref _qProvoke),
-                WARRotation.AID.Shirk => SmartQueue(aidOri, ref _qShirk),
-                _ => aidOri
+                ActionType.Spell => (WARRotation.AID)actionID.ID switch
+                {
+                    WARRotation.AID.HeavySwing => _config.FullSTRotation ? _nextBestAction : actionID,
+                    WARRotation.AID.Maim => _config.STCombos ? ActionID.MakeSpell(WARRotation.GetNextMaimComboAction(_state.ComboLastMove)) : actionID,
+                    WARRotation.AID.StormEye => _config.STCombos ? ActionID.MakeSpell(WARRotation.GetNextSTComboAction(_state.ComboLastMove, WARRotation.AID.StormEye)) : actionID,
+                    WARRotation.AID.StormPath => _config.STCombos ? ActionID.MakeSpell(WARRotation.GetNextSTComboAction(_state.ComboLastMove, WARRotation.AID.StormPath)) : actionID,
+                    WARRotation.AID.MythrilTempest => _config.AOECombos ? ActionID.MakeSpell(WARRotation.GetNextAOEComboAction(_state.ComboLastMove)) : actionID,
+                    WARRotation.AID.Rampart => SmartQueue(actionID, ref _qRampart),
+                    WARRotation.AID.Vengeance => SmartQueue(actionID, ref _qVengeance),
+                    WARRotation.AID.ThrillOfBattle => SmartQueue(actionID, ref _qThrillOfBattle),
+                    WARRotation.AID.Holmgang => SmartQueue(actionID, ref _qHolmgang),
+                    WARRotation.AID.Equilibrium => SmartQueue(actionID, ref _qEquilibrium),
+                    WARRotation.AID.Reprisal => SmartQueue(actionID, ref _qReprisal),
+                    WARRotation.AID.ShakeItOff => SmartQueue(actionID, ref _qShakeItOff),
+                    WARRotation.AID.Bloodwhetting or WARRotation.AID.RawIntuition => SmartQueue(actionID, ref _qBloodwhetting),
+                    WARRotation.AID.NascentFlash => SmartQueue(actionID, ref _qNascentFlash),
+                    WARRotation.AID.ArmsLength => SmartQueue(actionID, ref _qArmsLength),
+                    WARRotation.AID.Provoke => SmartQueue(actionID, ref _qProvoke),
+                    WARRotation.AID.Shirk => SmartQueue(actionID, ref _qShirk),
+                    _ => actionID
+                },
+                ActionType.General => actionID == WARRotation.IDSprint ? SmartQueue(actionID, ref _qSprint) : actionID,
+                ActionType.Item => actionID == WARRotation.IDStatPotion ? SmartQueue(actionID, ref _qPotion) : actionID,
+                _ => actionID
             };
-            var targetAdj = aidAdj switch
+            var targetAdj = actionID.Type == ActionType.Spell ? (WARRotation.AID)actionID.ID switch
             {
                 WARRotation.AID.NascentFlash => _config.SmartNascentFlashTarget ? SmartTargetCoTank(targetID, ref _qNascentFlash) : targetID,
                 WARRotation.AID.Shirk => _config.SmartShirkTarget ? SmartTargetCoTank(targetID, ref _qShirk) : targetID,
                 WARRotation.AID.Holmgang => _config.HolmgangSelf ? Service.ClientState.LocalPlayer?.ObjectId ?? targetID : targetID,
                 _ => targetID
-            };
-            return (ActionID.MakeSpell(aidAdj), targetAdj);
+            } : targetID;
+            return (actionAdj, targetAdj);
         }
 
         public override void DrawOverlay()
@@ -338,10 +347,14 @@ namespace BossMod
                 sb.Append(" Bloodwhetting");
             if (strategy.ExecuteNascentFlash)
                 sb.Append(" NascentFlash");
+            if (strategy.ExecuteSprint)
+                sb.Append(" Sprint");
+            if (strategy.ExecutePotion)
+                sb.Append(" Potion");
             return sb.ToString();
         }
 
-        private WARRotation.AID SmartQueue(WARRotation.AID action, ref SmartQueueEntry q)
+        private ActionID SmartQueue(ActionID action, ref SmartQueueEntry q)
         {
             if (!_config.SmartCooldownQueueing || (_state.GCD <= 0 && _state.AnimationLock <= 0))
             {
