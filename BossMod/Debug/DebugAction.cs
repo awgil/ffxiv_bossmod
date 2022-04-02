@@ -25,28 +25,39 @@ namespace BossMod
             var hover = Service.GameGui.HoveredAction;
             if (hover.ActionID != 0)
             {
-                ImGui.Text($"Hover action: {hover.ActionKind} {hover.ActionID} (base={hover.BaseActionID}) (WAR: {(WARRotation.AID)hover.ActionID})");
-                if (hover.ActionKind != HoverActionKind.Action)
-                    return;
-
-                ImGui.Text($"Name: {Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(hover.ActionID)?.Name}");
                 var mgr = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
-                ImGui.Text($"Range: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionRange(hover.ActionID)}");
-                ImGui.Text($"Stacks: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(hover.ActionID, 0)}");
-                //ImGui.Text($"Cost: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionCost(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Spell, hover.ActionID, 0, 0, 0, 0)}");
-                ImGui.Text($"Status: {mgr->GetActionStatus(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Spell, hover.ActionID)}");
-                ImGui.Text($"Adjusted ID: {mgr->GetAdjustedActionId(hover.ActionID)}");
-                ImGui.Text($"Adjusted recast: {mgr->GetAdjustedRecastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Spell, hover.ActionID):f2}");
-                ImGui.Text($"Adjusted cast: {mgr->GetAdjustedCastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Spell, hover.ActionID):f2}");
-                ImGui.Text($"Recast: {mgr->GetRecastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Spell, hover.ActionID):f2}");
-                ImGui.Text($"Recast elapsed: {mgr->GetRecastTimeElapsed(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Spell, hover.ActionID):f2}");
-                ImGui.Text($"Recast active: {mgr->IsRecastTimerActive(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Spell, hover.ActionID)}");
+                ImGui.Text($"Hover action: {hover.ActionKind} {hover.ActionID} (base={hover.BaseActionID}) (WAR: {(WARRotation.AID)hover.ActionID})");
 
-                var groupID = mgr->GetRecastGroup(1, hover.ActionID);
-                ImGui.Text($"Recast group: {groupID}");
-                var group = mgr->GetRecastGroupDetail(groupID);
-                if (group != null)
-                    ImGui.Text($"Recast group details: active={group->IsActive}, action={group->ActionID}, elapsed={group->Elapsed}, total={group->Total}");
+                var (name, type) = hover.ActionKind switch
+                {
+                    HoverActionKind.Action => (Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(hover.ActionID)?.Name, FFXIVClientStructs.FFXIV.Client.Game.ActionType.Spell),
+                    HoverActionKind.GeneralAction => (Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.GeneralAction>()?.GetRow(hover.ActionID)?.Name, FFXIVClientStructs.FFXIV.Client.Game.ActionType.General),
+                    _ => (null, FFXIVClientStructs.FFXIV.Client.Game.ActionType.None)
+                };
+                ImGui.Text($"Name: {name}");
+
+                if (hover.ActionKind == HoverActionKind.Action)
+                {
+                    ImGui.Text($"Range: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionRange(hover.ActionID)}");
+                    ImGui.Text($"Stacks: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(hover.ActionID, 0)}");
+                    ImGui.Text($"Adjusted ID: {mgr->GetAdjustedActionId(hover.ActionID)}");
+                }
+
+                if (type != FFXIVClientStructs.FFXIV.Client.Game.ActionType.None)
+                {
+                    //ImGui.Text($"Cost: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionCost(type, hover.ActionID, 0, 0, 0, 0)}");
+                    ImGui.Text($"Status: {mgr->GetActionStatus(type, hover.ActionID)}");
+                    ImGui.Text($"Adjusted recast: {mgr->GetAdjustedRecastTime(type, hover.ActionID):f2}");
+                    ImGui.Text($"Adjusted cast: {mgr->GetAdjustedCastTime(type, hover.ActionID):f2}");
+                    ImGui.Text($"Recast: {mgr->GetRecastTime(type, hover.ActionID):f2}");
+                    ImGui.Text($"Recast elapsed: {mgr->GetRecastTimeElapsed(type, hover.ActionID):f2}");
+                    ImGui.Text($"Recast active: {mgr->IsRecastTimerActive(type, hover.ActionID)}");
+                    var groupID = mgr->GetRecastGroup((int)type, hover.ActionID);
+                    ImGui.Text($"Recast group: {groupID}");
+                    var group = mgr->GetRecastGroupDetail(groupID);
+                    if (group != null)
+                        ImGui.Text($"Recast group details: active={group->IsActive}, action={group->ActionID}, elapsed={group->Elapsed}, total={group->Total}");
+                }
             }
             else if (Service.GameGui.HoveredItem != 0)
             {

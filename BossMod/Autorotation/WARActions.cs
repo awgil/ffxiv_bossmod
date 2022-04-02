@@ -214,6 +214,7 @@ namespace BossMod
             {
                 WARRotation.AID.NascentFlash => _config.SmartNascentFlashTarget ? SmartTargetCoTank(targetID, ref _qNascentFlash) : targetID,
                 WARRotation.AID.Shirk => _config.SmartShirkTarget ? SmartTargetCoTank(targetID, ref _qShirk) : targetID,
+                WARRotation.AID.Holmgang => _config.HolmgangSelf ? Service.ClientState.LocalPlayer?.ObjectId ?? targetID : targetID,
                 _ => targetID
             };
             return (ActionID.MakeSpell(aidAdj), targetAdj);
