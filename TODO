@@ -14,9 +14,7 @@ boss modules:
 - p3s - review, searing breeze component
 
 autorotation:
-- planner (defensive CDs, charge, delay offensive?)
-- war: offensive veng
-- war: aoe rotation, maybe even auto-detect targets and autoselect st/aoe...
+- war: aoe rotation, smart target
 - war: low-level rotation
 - whm:
 -- dia/glare -> downscale lvl; select based on debuff
@@ -32,7 +30,15 @@ autorotation:
 -- swiftcast: manual
 -- lucid dreaming, thin air: ???
 -- surecast: manual (or planned for kb)
-- action not learned = GetActionStatus -> 573 (this is rowid of LogMessage "action not yet learned")
+
+cooldown planner:
+- select columns to show (concrete actions, categories)
+- plan offensive CD usage (delay auto-use if needed)
+- war: automatic bloodwhetting?
+- war: charge planning
+- plan tankswaps
+- plan raid cooldowns (think about ui and storage for that...)
+- build state-id => metrics (delay-to-planned action, delay-to-positioning/downtime) map instead of doing calculations every frame
 
 world rendering:
 - danger zones (modify action vfx?)
@@ -47,3 +53,4 @@ misc:
 - determine exact mechanism for cooldown reset (on instance enter and on wipe)
 - data driven boss modules?.. would enable sequence autorecord and live editing - or is it covered by replay analysis?
 - draw target max-melee and boss positioning hints?..
+- action not learned = GetActionStatus -> 573 (this is rowid of LogMessage "action not yet learned") => can be used to disable non-learned spells
