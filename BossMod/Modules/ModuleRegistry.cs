@@ -35,6 +35,8 @@ namespace BossMod
             }
         }
 
+        public static IReadOnlyDictionary<uint, Type> RegisteredModules => _modules;
+
         public static Type? TypeForOID(uint oid)
         {
             return _modules.GetValueOrDefault(oid);

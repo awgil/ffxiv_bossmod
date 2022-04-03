@@ -383,7 +383,7 @@ namespace BossMod
             if (state == null)
                 return;
 
-            var plan = module.CurrentCooldownPlan?.PlanAbilities.GetValueOrDefault(ActionID.MakeSpell(aid));
+            var plan = module.CurrentCooldownPlan?.PlanAbilities.GetValueOrDefault(ActionID.MakeSpell(aid).Raw);
             if (plan == null)
                 return;
 

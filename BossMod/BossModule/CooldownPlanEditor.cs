@@ -64,7 +64,7 @@ namespace BossMod
             foreach (var aid in CooldownPlan.SupportedClasses[plan.Class].Abilities.Keys)
             {
                 var mt = _modifiedTracks[aid] = new();
-                foreach (var e in plan.PlanAbilities[aid])
+                foreach (var e in plan.PlanAbilities[aid.Raw])
                 {
                     var state = _tree.Nodes.GetValueOrDefault(e.StateID);
                     if (state != null)
@@ -294,7 +294,7 @@ namespace BossMod
             _curPlan.PlanAbilities = new();
             foreach (var (k, entries) in _modifiedTracks)
             {
-                var list = _curPlan.PlanAbilities[k] = new();
+                var list = _curPlan.PlanAbilities[k.Raw] = new();
                 foreach (var e in entries.Where(e => e.AttachNode != null))
                 {
                     var pred = e.AttachNode?.Predecessor?.Time ?? 0;

@@ -56,14 +56,14 @@ namespace BossMod
 
         public Class Class;
         public string Name;
-        public Dictionary<ActionID, List<AbilityUse>> PlanAbilities = new();
+        public Dictionary<uint, List<AbilityUse>> PlanAbilities = new();
 
         public CooldownPlan(Class @class, string name)
         {
             Class = @class;
             Name = name;
             foreach (var k in SupportedClasses[@class].Abilities.Keys)
-                PlanAbilities[k] = new();
+                PlanAbilities[k.Raw] = new();
         }
     }
 }
