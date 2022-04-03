@@ -2,6 +2,7 @@
 using Dalamud.Game.ClientState.Objects.Enums;
 using ImGuiNET;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -12,11 +13,11 @@ namespace BossMod
         // after pressing a cooldown button, it will stay 'queued' for a few seconds - this is to limit the effect of e.g. misclick while ability has long cooldown
         private struct SmartQueueEntry
         {
-            private DateTime _queuedAt;
+            private DateTime _queueEndAt;
 
-            public bool Active => (DateTime.Now - _queuedAt).TotalSeconds < 3;
-            public void Activate() => _queuedAt = DateTime.Now;
-            public void Deactivate() => _queuedAt = new();
+            public bool Active => DateTime.Now < _queueEndAt;
+            public void Activate(float expire = 3) => _queueEndAt = DateTime.Now.AddSeconds(expire);
+            public void Deactivate() => _queueEndAt = new();
         }
 
         private WARConfig _config;
@@ -172,7 +173,17 @@ namespace BossMod
                 _strategy.PositionLockIn = _bossmods.ActiveModule.StateMachine.EstimateTimeToNextPositioning();
             _strategy.FightEndIn = _bossmods.ActiveModule != null ? _bossmods.ActiveModule.StateMachine.EstimateTimeToNextDowntime() : 0;
 
-            // cooldown management (TODO: planning)
+            // cooldown planning
+            ActivateIfPlanned(WARRotation.AID.Rampart, ref _qRampart);
+            ActivateIfPlanned(WARRotation.AID.Vengeance, ref _qVengeance);
+            ActivateIfPlanned(WARRotation.AID.ThrillOfBattle, ref _qThrillOfBattle);
+            ActivateIfPlanned(WARRotation.AID.Equilibrium, ref _qEquilibrium);
+            ActivateIfPlanned(WARRotation.AID.Bloodwhetting, ref _qBloodwhetting);
+            ActivateIfPlanned(WARRotation.AID.ArmsLength, ref _qArmsLength);
+            ActivateIfPlanned(WARRotation.AID.Reprisal, ref _qReprisal);
+            ActivateIfPlanned(WARRotation.AID.ShakeItOff, ref _qShakeItOff);
+
+            // cooldown execution
             _strategy.ExecuteRampart = _qRampart.Active;
             _strategy.ExecuteVengeance = _qVengeance.Active;
             _strategy.ExecuteThrillOfBattle = _qThrillOfBattle.Active;
@@ -360,6 +371,28 @@ namespace BossMod
             if (strategy.ExecuteSprint)
                 sb.Append(" Sprint");
             return sb.ToString();
+        }
+
+        private void ActivateIfPlanned(WARRotation.AID aid, ref SmartQueueEntry q)
+        {
+            var module = _bossmods.ActiveModule;
+            if (module == null)
+                return;
+
+            var state = module.StateMachine.ActiveState;
+            if (state == null)
+                return;
+
+            var plan = module.CurrentCooldownPlan?.PlanAbilities.GetValueOrDefault(ActionID.MakeSpell(aid));
+            if (plan == null)
+                return;
+
+            foreach (var e in plan.Where(e => e.StateID == state.ID && module.StateMachine.TimeSinceTransition >= e.TimeSinceActivation))
+            {
+                var windowLeft = e.WindowLength - (module.StateMachine.TimeSinceTransition - e.TimeSinceActivation);
+                if (windowLeft > 0)
+                    q.Activate(windowLeft);
+            }
         }
 
         private ActionID SmartQueue(ActionID action, ref SmartQueueEntry q)
