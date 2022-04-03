@@ -2,7 +2,6 @@
 using Dalamud.IoC;
 using Dalamud.Logging;
 using Dalamud.Plugin;
-using ImGuiNET;
 using System;
 using System.Numerics;
 

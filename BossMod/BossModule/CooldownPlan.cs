@@ -1,27 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace BossMod
 {
     public class CooldownPlan
     {
-        public enum SupportedClass { WAR, Count }
         public enum AbilityCategory { SelfMitigation, RaidMitigation }
 
-        public class SupportedAbility
+        public struct SupportedAbility
         {
             public AbilityCategory Category;
-            public ActionID Action;
             public float Duration;
             public float Cooldown;
 
-            public SupportedAbility(AbilityCategory category, ActionID action, float duration, float cooldown)
+            public SupportedAbility(AbilityCategory category, float duration, float cooldown)
             {
                 Category = category;
-                Action = action;
                 Duration = duration;
                 Cooldown = cooldown;
             }
@@ -29,26 +22,22 @@ namespace BossMod
 
         public class SupportedClassData
         {
-            public Class ClassID;
-            public List<SupportedAbility> Abilities = new();
+            public Dictionary<ActionID, SupportedAbility> Abilities = new();
         }
 
-        public static SupportedClassData[] SupportedClasses;
+        public static Dictionary<Class, SupportedClassData> SupportedClasses = new();
 
         static CooldownPlan()
         {
-            SupportedClasses = new SupportedClassData[(int)SupportedClass.Count + 1];
-            SupportedClasses[(int)SupportedClass.Count] = new();
-
-            var war = SupportedClasses[(int)SupportedClass.WAR] = new() { ClassID = Class.WAR };
-            war.Abilities.Add(new(AbilityCategory.SelfMitigation, ActionID.MakeSpell(WARRotation.AID.Rampart), 20, 90));
-            war.Abilities.Add(new(AbilityCategory.SelfMitigation, ActionID.MakeSpell(WARRotation.AID.Vengeance), 15, 120));
-            war.Abilities.Add(new(AbilityCategory.SelfMitigation, ActionID.MakeSpell(WARRotation.AID.ThrillOfBattle), 10, 90));
-            war.Abilities.Add(new(AbilityCategory.SelfMitigation, ActionID.MakeSpell(WARRotation.AID.Equilibrium), 0, 60));
-            war.Abilities.Add(new(AbilityCategory.SelfMitigation, ActionID.MakeSpell(WARRotation.AID.Bloodwhetting), 4, 25));
-            war.Abilities.Add(new(AbilityCategory.SelfMitigation, ActionID.MakeSpell(WARRotation.AID.ArmsLength), 6, 120));
-            war.Abilities.Add(new(AbilityCategory.RaidMitigation, ActionID.MakeSpell(WARRotation.AID.Reprisal), 10, 60));
-            war.Abilities.Add(new(AbilityCategory.RaidMitigation, ActionID.MakeSpell(WARRotation.AID.ShakeItOff), 15, 90));
+            var war = SupportedClasses[Class.WAR] = new();
+            war.Abilities[ActionID.MakeSpell(WARRotation.AID.Rampart)] = new(AbilityCategory.SelfMitigation, 20, 90);
+            war.Abilities[ActionID.MakeSpell(WARRotation.AID.Vengeance)] = new(AbilityCategory.SelfMitigation, 15, 120);
+            war.Abilities[ActionID.MakeSpell(WARRotation.AID.ThrillOfBattle)] = new(AbilityCategory.SelfMitigation, 10, 90);
+            war.Abilities[ActionID.MakeSpell(WARRotation.AID.Equilibrium)] = new(AbilityCategory.SelfMitigation, 0, 60);
+            war.Abilities[ActionID.MakeSpell(WARRotation.AID.Bloodwhetting)] = new(AbilityCategory.SelfMitigation, 4, 25);
+            war.Abilities[ActionID.MakeSpell(WARRotation.AID.ArmsLength)] = new(AbilityCategory.SelfMitigation, 6, 120);
+            war.Abilities[ActionID.MakeSpell(WARRotation.AID.Reprisal)] = new(AbilityCategory.RaidMitigation, 10, 60);
+            war.Abilities[ActionID.MakeSpell(WARRotation.AID.ShakeItOff)] = new(AbilityCategory.RaidMitigation, 15, 90);
         }
 
         public class AbilityUse
@@ -65,17 +54,16 @@ namespace BossMod
             }
         }
 
-        public SupportedClass PlanClass;
-        public List<AbilityUse>[] PlanAbilities; // [i] - list of uses for ability #i
+        public Class Class;
+        public string Name;
+        public Dictionary<ActionID, List<AbilityUse>> PlanAbilities = new();
 
-        public CooldownPlan(SupportedClass planClass)
+        public CooldownPlan(Class @class, string name)
         {
-            PlanClass = planClass;
-
-            var suppAbilities = SupportedClasses[(int)planClass].Abilities;
-            PlanAbilities = new List<AbilityUse>[suppAbilities.Count];
-            for (int i = 0; i < suppAbilities.Count; ++i)
-                PlanAbilities[i] = new();
+            Class = @class;
+            Name = name;
+            foreach (var k in SupportedClasses[@class].Abilities.Keys)
+                PlanAbilities[k] = new();
         }
     }
 }

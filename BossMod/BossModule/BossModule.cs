@@ -15,6 +15,7 @@ namespace BossMod
         public StateMachine StateMachine { get; init; } = new();
         public StateMachine.State? InitialState = null;
         public ConfigNode? Config;
+        public CooldownPlan? CurrentCooldownPlan;
 
         public WorldState WorldState => Manager.WorldState;
         public PartyState Raid => WorldState.Party;
@@ -207,6 +208,8 @@ namespace BossMod
                 {
                     StateMachine.ActiveState = StateMachine.ActiveState.Next;
                 }
+                ImGui.SameLine();
+                CurrentCooldownPlan = Manager.CooldownPlanManager.DrawSelectionUI(CurrentCooldownPlan, PrimaryActor.OID, Raid.Player()?.Class ?? Class.None, InitialState);
             }
         }
 

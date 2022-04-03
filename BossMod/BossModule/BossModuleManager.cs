@@ -14,6 +14,7 @@ namespace BossMod
         public WorldState WorldState { get; init; }
         public BossModuleConfig WindowConfig { get; init; }
         public ModuleConfig EncounterConfig { get; init; }
+        public CooldownPlanManager CooldownPlanManager { get; init; }
         public RaidCooldowns RaidCooldowns { get; init; }
 
         private bool _running = false;
@@ -30,6 +31,7 @@ namespace BossMod
             WorldState = ws;
             WindowConfig = settings.Get<BossModuleConfig>();
             EncounterConfig = settings.Get<ModuleConfig>();
+            CooldownPlanManager = settings.Get<CooldownPlanManager>();
             RaidCooldowns = new(ws);
 
             WindowConfig.Modified += ConfigChanged;
