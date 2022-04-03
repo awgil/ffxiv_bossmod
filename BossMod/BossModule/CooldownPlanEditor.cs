@@ -99,11 +99,11 @@ namespace BossMod
             List<StateMachineTree.Node> hoverNodes = new();
             List<TrackElement> hoverTracks = new();
 
-            var cursor = _timeline.Begin(_tracksHOffset + _trackHBetween * _visibleTracks.Count, 5, _tree.MaxTime);
+            _timeline.Begin(_tracksHOffset + _trackHBetween * _visibleTracks.Count, 5, _tree.MaxTime);
             foreach (var n in _tree.BranchNodes(_selectedBranch))
-                DrawNode(n, cursor, hoverNodes);
+                DrawNode(n, hoverNodes);
             for (int i = 0; i < _visibleTracks.Count; ++i)
-                DrawTrack(cursor, i, hoverTracks);
+                DrawTrack(i, hoverTracks);
             _timeline.End();
 
             if (hoverNodes.Count > 0 || hoverTracks.Count > 0)
@@ -135,9 +135,9 @@ namespace BossMod
             }
         }
 
-        private Vector2 NodeScreenPos(Vector2 screenTL, StateMachineTree.Node? node)
+        private Vector2 NodeScreenPos(StateMachineTree.Node? node)
         {
-            return _timeline.ToScreenCoords(screenTL, _nodeHOffset, node?.Time ?? 0);
+            return _timeline.ToScreenCoords(_nodeHOffset, node?.Time ?? 0);
         }
 
         private float TrackCenterX(int trackIndex)
@@ -150,11 +150,11 @@ namespace BossMod
             return point.X >= min.X && point.X <= max.X && point.Y >= min.Y && point.Y <= max.Y;
         }
 
-        private void DrawNode(StateMachineTree.Node node, Vector2 screenTL, List<StateMachineTree.Node> hoverNodes)
+        private void DrawNode(StateMachineTree.Node node, List<StateMachineTree.Node> hoverNodes)
         {
             var drawlist = ImGui.GetWindowDrawList();
-            var nodeScreenPos = NodeScreenPos(screenTL, node);
-            var predScreenPos = NodeScreenPos(screenTL, node.Predecessor);
+            var nodeScreenPos = NodeScreenPos(node);
+            var predScreenPos = NodeScreenPos(node.Predecessor);
             var connection = nodeScreenPos - predScreenPos;
 
             // draw connection from predecessor
@@ -196,7 +196,7 @@ namespace BossMod
             }
         }
 
-        private void DrawTrack(Vector2 screenTL, int trackIndex, List<TrackElement> hoverTracks)
+        private void DrawTrack(int trackIndex, List<TrackElement> hoverTracks)
         {
             var drawlist = ImGui.GetWindowDrawList();
             var action = _visibleTracks[trackIndex];
@@ -204,14 +204,14 @@ namespace BossMod
             var entries = _modifiedTracks[action];
 
             var xCenter = TrackCenterX(trackIndex);
-            var trackMin = screenTL + new Vector2(xCenter - _trackHalfWidth, 0);
-            var trackMax = screenTL + new Vector2(xCenter + _trackHalfWidth, _timeline.Height);
+            var trackMin = _timeline.ScreenClientTL + new Vector2(xCenter - _trackHalfWidth, 0);
+            var trackMax = _timeline.ScreenClientTL + new Vector2(xCenter + _trackHalfWidth, _timeline.Height);
             drawlist.AddRectFilled(trackMin, trackMax, 0x40404040);
 
             var mousePos = ImGui.GetMousePos();
             var lclickPos = ImGui.GetIO().MouseClickedPos[0];
             var rclickPos = ImGui.GetIO().MouseClickedPos[1];
-            var dragInProgress = ImGui.IsMouseDragging(ImGuiMouseButton.Left) && PointInRect(lclickPos, trackMin, trackMax);
+            var dragInProgress = ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left) && PointInRect(lclickPos, trackMin, trackMax);
             var deleteEntry = ImGui.IsItemClicked(ImGuiMouseButton.Right) && PointInRect(rclickPos, trackMin, trackMax);
             bool trackHovered = PointInRect(mousePos, trackMin, trackMax);
             bool selectEntryToEdit = dragInProgress && _edit == null;
@@ -219,10 +219,10 @@ namespace BossMod
 
             foreach (var e in entries.Where(e => _tree.BranchNodes(_selectedBranch).Contains(e.AttachNode)))
             {
-                var yWindowStart = _timeline.ToScreenCoords(screenTL, 0, e.WindowStart).Y;
-                var yWindowEnd = _timeline.ToScreenCoords(screenTL, 0, e.WindowStart + e.WindowLength).Y;
-                var yEffectEnd = _timeline.ToScreenCoords(screenTL, 0, e.WindowStart + info.Duration).Y;
-                var yCooldownEnd = _timeline.ToScreenCoords(screenTL, 0, e.WindowStart + e.WindowLength + info.Cooldown).Y;
+                var yWindowStart = _timeline.ToScreenCoords(0, e.WindowStart).Y;
+                var yWindowEnd = _timeline.ToScreenCoords(0, e.WindowStart + e.WindowLength).Y;
+                var yEffectEnd = _timeline.ToScreenCoords(0, e.WindowStart + info.Duration).Y;
+                var yCooldownEnd = _timeline.ToScreenCoords(0, e.WindowStart + e.WindowLength + info.Cooldown).Y;
 
                 drawlist.AddRectFilled(new(trackMin.X, yWindowStart), new(trackMax.X, yWindowEnd), 0x800000ff);
                 if (yEffectEnd > yWindowEnd)
@@ -237,14 +237,14 @@ namespace BossMod
                 {
                     hoverTracks.Add(e);
                     if (!dragInProgress && _edit == null)
-                        HighlightElement(screenTL, xCenter, e);
+                        HighlightElement(xCenter, e);
                 }
             }
 
             if (selectEntryToEdit && _edit == null)
             {
                 // create new entry
-                var t = _timeline.TimeFromScreen(screenTL, lclickPos);
+                var t = _timeline.TimeFromScreen(lclickPos);
                 var newElem = new TrackElement(action, _tree.TimeToBranchNode(_selectedBranch, t), t, 0);
                 entries.Add(newElem);
                 _edit = new(newElem, true);
@@ -254,7 +254,7 @@ namespace BossMod
             {
                 if (dragInProgress)
                 {
-                    HighlightElement(screenTL, xCenter, _edit.Element);
+                    HighlightElement(xCenter, _edit.Element);
 
                     var dt = ImGui.GetIO().MouseDelta.Y / _timeline.PixelsPerSecond;
                     if (_edit.EditingEnd)
@@ -280,12 +280,12 @@ namespace BossMod
             }
         }
 
-        private void HighlightElement(Vector2 screenTL, float xCenter, TrackElement elem)
+        private void HighlightElement(float xCenter, TrackElement elem)
         {
             var end = elem.WindowStart + elem.WindowLength;
             var dl = ImGui.GetWindowDrawList();
-            dl.AddLine(_timeline.ToScreenCoords(screenTL, xCenter, elem.WindowStart), _timeline.ToScreenCoords(screenTL, 0, elem.WindowStart), 0xffffffff);
-            dl.AddLine(_timeline.ToScreenCoords(screenTL, xCenter, end), _timeline.ToScreenCoords(screenTL, 0, end), 0xffffffff);
+            dl.AddLine(_timeline.ToScreenCoords(xCenter, elem.WindowStart), _timeline.ToScreenCoords(0, elem.WindowStart), 0xffffffff);
+            dl.AddLine(_timeline.ToScreenCoords(xCenter, end), _timeline.ToScreenCoords(0, end), 0xffffffff);
         }
 
         private void Save()

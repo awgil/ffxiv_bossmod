@@ -57,9 +57,9 @@ namespace BossMod
 
             List<StateMachineTree.Node> hoverNodes = new();
 
-            var cursor = _timeline.Begin(_tree.NumBranches * PixelsPerBranch, 5, _tree.MaxTime, currentTime);
+            _timeline.Begin(_tree.NumBranches * PixelsPerBranch, 5, _tree.MaxTime, currentTime);
             foreach (var n in _tree.Nodes.Values)
-                DrawNode(n, cursor, hoverNodes, sm);
+                DrawNode(n, hoverNodes, sm);
             _timeline.End();
 
             if (hoverNodes.Count > 0)
@@ -80,17 +80,17 @@ namespace BossMod
             }
         }
 
-        private Vector2 NodeScreenPos(Vector2 screenTL, StateMachineTree.Node? node)
+        private Vector2 NodeScreenPos(StateMachineTree.Node? node)
         {
             var (branch, time) = node != null ? (node.BranchID, node.Time) : (0, 0);
-            return _timeline.ToScreenCoords(screenTL, _nodeHOffset + branch * PixelsPerBranch, time);
+            return _timeline.ToScreenCoords(_nodeHOffset + branch * PixelsPerBranch, time);
         }
 
-        private void DrawNode(StateMachineTree.Node node, Vector2 screenTL, List<StateMachineTree.Node> hoverNodes, StateMachine? sm)
+        private void DrawNode(StateMachineTree.Node node, List<StateMachineTree.Node> hoverNodes, StateMachine? sm)
         {
             var drawlist = ImGui.GetWindowDrawList();
-            var nodeScreenPos = NodeScreenPos(screenTL, node);
-            var predScreenPos = NodeScreenPos(screenTL, node.Predecessor);
+            var nodeScreenPos = NodeScreenPos(node);
+            var predScreenPos = NodeScreenPos(node.Predecessor);
             var connection = nodeScreenPos - predScreenPos;
 
             // draw connection from predecessor
