@@ -13,6 +13,7 @@ namespace BossMod
         protected ConfigNode? Parent;
         protected string? DisplayName;
         protected int DisplayOrder;
+        protected bool Visible = true;
 
         private List<ConfigNode> _children = new();
         public IReadOnlyList<ConfigNode> Children() => _children;
@@ -36,7 +37,7 @@ namespace BossMod
             DrawContents();
             foreach (var child in _children)
             {
-                if (ImGui.TreeNode(child.DisplayName ?? child.GetType().Name))
+                if (child.Visible && ImGui.TreeNode(child.DisplayName ?? child.GetType().Name))
                 {
                     child.Draw();
                     ImGui.TreePop();

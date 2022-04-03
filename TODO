@@ -17,6 +17,7 @@ autorotation:
 - planner (defensive CDs, charge, delay offensive?)
 - war: offensive veng
 - war: aoe rotation, maybe even auto-detect targets and autoselect st/aoe...
+- war: low-level rotation
 - whm:
 -- dia/glare -> downscale lvl; select based on debuff
 -- holy: manual
