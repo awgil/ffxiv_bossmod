@@ -15,7 +15,7 @@ boss modules:
 
 autorotation:
 - war: aoe rotation, smart target
-- war: low-level rotation
+- war: low-level rotation - improve berserk delay logic
 - whm:
 -- dia/glare -> downscale lvl; select based on debuff
 -- holy: manual

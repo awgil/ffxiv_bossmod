@@ -40,6 +40,7 @@ namespace BossMod
 
         public static bool operator ==(ActionID l, ActionID r) => l.Raw == r.Raw;
         public static bool operator !=(ActionID l, ActionID r) => l.Raw != r.Raw;
+        public static implicit operator bool(ActionID x) => x.Raw != 0;
 
         public override bool Equals(object? obj)
         {
