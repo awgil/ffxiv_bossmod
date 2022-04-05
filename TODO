@@ -14,8 +14,11 @@ boss modules:
 - p3s - review, searing breeze component
 
 autorotation:
-- war: aoe rotation, smart target
-- war: low-level rotation - improve berserk delay logic
+- war
+-- low-level rotation - improve berserk delay logic
+-- automatic bloodwhetting?
+-- charge planning
+-- offensive CD planning/delay
 - whm:
 -- dia/glare -> downscale lvl; select based on debuff
 -- holy: manual
@@ -33,9 +36,6 @@ autorotation:
 
 cooldown planner:
 - select columns to show (concrete actions, categories)
-- plan offensive CD usage (delay auto-use if needed)
-- war: automatic bloodwhetting?
-- war: charge planning
 - plan tankswaps
 - plan raid cooldowns (think about ui and storage for that...)
 - build state-id => metrics (delay-to-planned action, delay-to-positioning/downtime) map instead of doing calculations every frame

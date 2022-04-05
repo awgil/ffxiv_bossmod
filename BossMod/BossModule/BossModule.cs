@@ -209,7 +209,7 @@ namespace BossMod
                     StateMachine.ActiveState = StateMachine.ActiveState.Next;
                 }
                 ImGui.SameLine();
-                CurrentCooldownPlan = Manager.CooldownPlanManager.DrawSelectionUI(CurrentCooldownPlan, PrimaryActor.OID, Raid.Player()?.Class ?? Class.None, InitialState);
+                CurrentCooldownPlan = Manager.CooldownPlanManager.DrawSelectionUI(PrimaryActor.OID, Raid.Player()?.Class ?? Class.None, InitialState);
             }
         }
 

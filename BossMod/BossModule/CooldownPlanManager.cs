@@ -7,7 +7,15 @@ namespace BossMod
 {
     public class CooldownPlanManager : ConfigNode
     {
-        public Dictionary<uint, Dictionary<Class, List<CooldownPlan>>> Plans = new(); // [encounter-oid][class]
+        public class PlanList
+        {
+            public List<CooldownPlan> Available = new();
+            public int SelectedIndex = -1;
+
+            public CooldownPlan? Selected => SelectedIndex >= 0 ? Available[SelectedIndex] : null;
+        }
+
+        public Dictionary<uint, Dictionary<Class, PlanList>> Plans = new(); // [encounter-oid][class]
 
         public CooldownPlanManager()
         {
@@ -23,36 +31,41 @@ namespace BossMod
             DisplayOrder = 4;
         }
 
-        public CooldownPlan? DrawSelectionUI(CooldownPlan? current, uint encounterOID, Class curClass, StateMachine.State? initial)
+        public CooldownPlan? DrawSelectionUI(uint encounterOID, Class curClass, StateMachine.State? initial)
         {
             if (!CooldownPlan.SupportedClasses.ContainsKey(curClass))
                 return null; // class is not supported
 
-            if (current != null && current.Class != curClass)
-                current = null;
-
             var plans = Plans.GetOrAdd(encounterOID).GetOrAdd(curClass);
             ImGui.SetNextItemWidth(100);
-            if (ImGui.BeginCombo("Cooldown plan", current?.Name ?? "none"))
+            if (ImGui.BeginCombo("Cooldown plan", plans.Selected?.Name ?? "none"))
             {
-                if (ImGui.Selectable("none", current == null))
-                    current = null;
-                foreach (var plan in plans)
-                    if (ImGui.Selectable(plan.Name, current == plan))
-                        current = plan;
+                if (ImGui.Selectable("none", plans.SelectedIndex < 0))
+                {
+                    plans.SelectedIndex = -1;
+                    NotifyModified();
+                }
+                for (int i = 0; i < plans.Available.Count; ++i)
+                {
+                    if (ImGui.Selectable(plans.Available[i].Name, plans.SelectedIndex == i))
+                    {
+                        plans.SelectedIndex = i;
+                        NotifyModified();
+                    }
+                }
                 ImGui.EndCombo();
             }
             ImGui.SameLine();
-            if (ImGui.Button(current != null ? "Edit plan" : "Create new plan"))
+            if (ImGui.Button(plans.SelectedIndex >= 0 ? "Edit plan" : "Create new plan"))
             {
-                if (current == null)
+                if (plans.SelectedIndex < 0)
                 {
-                    current = new(curClass, $"New {plans.Count}");
-                    plans.Add(current);
+                    plans.Available.Add(new(curClass, $"New {plans.Available.Count + 1}"));
+                    plans.SelectedIndex = plans.Available.Count - 1;
                 }
-                StartPlanEditor(current, initial);
+                StartPlanEditor(plans.Available[plans.SelectedIndex], initial);
             }
-            return current;
+            return plans.Selected;
         }
 
         protected override void DrawContents()
@@ -60,20 +73,19 @@ namespace BossMod
             Tree tree = new();
             foreach (var (e, eEntries) in tree.Nodes(Plans, kv => (ModuleRegistry.TypeForOID(kv.Key)?.Name ?? $"{kv.Key:X}", false)))
             {
-                foreach (var (c, cEntries) in tree.Nodes(eEntries, kv => (kv.Key.ToString(), false)))
+                foreach (var (c, plans) in tree.Nodes(eEntries, kv => (kv.Key.ToString(), false)))
                 {
-                    int i = 0;
-                    foreach (var plan in cEntries)
+                    for (int i = 0; i < plans.Available.Count; ++i)
                     {
-                        if (ImGui.Button($"Edit {plan.Name}##{i++}"))
+                        if (ImGui.Button($"Edit {plans.Available[i].Name}##{e}/{c}/{i}"))
                         {
-                            StartPlanEditor(plan, CreateStateForOID(e));
+                            StartPlanEditor(plans.Available[i], CreateStateForOID(e));
                         }
                     }
-                    if (ImGui.Button($"Add new...##{i++}"))
+                    if (ImGui.Button($"Add new...##{e}/{c}"))
                     {
-                        var plan = new CooldownPlan(c, $"New {cEntries.Count}");
-                        cEntries.Add(plan);
+                        var plan = new CooldownPlan(c, $"New {plans.Available.Count}");
+                        plans.Available.Add(plan);
                         StartPlanEditor(plan, CreateStateForOID(e));
                     }
                 }

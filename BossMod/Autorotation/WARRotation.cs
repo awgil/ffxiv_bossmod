@@ -177,6 +177,17 @@ namespace BossMod
             public bool ExecuteSprint;
         }
 
+        public static int GaugeGainedFromAction(State state, AID action)
+        {
+            return action switch
+            {
+                AID.Maim or AID.StormEye => 10,
+                AID.StormPath => 20,
+                AID.MythrilTempest => state.UnlockedMasteringTheBeast ? 20 : 0,
+                _ => 0
+            };
+        }
+
         public static AID GetNextSTComboAction(AID comboLastMove, AID finisher)
         {
             return comboLastMove switch
@@ -207,22 +218,33 @@ namespace BossMod
             return comboLastMove == AID.Overpower ? AID.MythrilTempest : AID.Overpower;
         }
 
-        public static AID GetNextUnlockedSTComboAction(State state, float minBuffToRefresh)
+        public static AID GetNextUnlockedComboAction(State state, float minBuffToRefresh, bool aoe)
         {
-            return state.ComboLastMove switch
+            if (aoe && state.UnlockedOverpower)
             {
-                AID.Maim => state.UnlockedStormPath ? (state.UnlockedStormEye && state.SurgingTempestLeft < minBuffToRefresh ? AID.StormEye : AID.StormPath) : AID.HeavySwing,
-                AID.HeavySwing => state.UnlockedMaim ? AID.Maim : AID.HeavySwing,
-                _ => AID.HeavySwing
-            };
+                // for AOE rotation, assume dropping ST combo is fine
+                return state.UnlockedMythrilTempest && state.ComboLastMove == AID.Overpower ? AID.MythrilTempest : AID.Overpower;
+            }
+            else
+            {
+                // for ST rotation, assume dropping AOE combo is fine (HS is 200 pot vs MT 100, is 20 gauge + 30 sec ST worth it?..)
+                return state.ComboLastMove switch
+                {
+                    AID.Maim => state.UnlockedStormPath ? (state.UnlockedStormEye && state.SurgingTempestLeft < minBuffToRefresh ? AID.StormEye : AID.StormPath) : AID.HeavySwing,
+                    AID.HeavySwing => state.UnlockedMaim ? AID.Maim : AID.HeavySwing,
+                    _ => AID.HeavySwing
+                };
+            }
         }
 
-        public static AID GetNextBestGCD(State state, Strategy strategy)
+        public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
         {
             // we spend resources either under raid buffs or if another raid buff window will cover at least 4 GCDs of the fight
             bool spendGauge = state.RaidBuffsLeft > state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10;
             float primalRendWindow = MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);
-            var nextFCAction = state.NascentChaosLeft > state.GCD ? (state.UnlockedInnerChaos ? AID.InnerChaos : AID.ChaoticCyclone) : (state.UnlockedFellCleave ? AID.FellCleave : AID.InnerBeast);
+            var nextFCAction = state.NascentChaosLeft > state.GCD ? (state.UnlockedInnerChaos && !aoe ? AID.InnerChaos : AID.ChaoticCyclone)
+                : (aoe && state.UnlockedSteelCyclone) ? (state.UnlockedDecimate ? AID.Decimate : AID.SteelCyclone)
+                : (state.UnlockedFellCleave ? AID.FellCleave : AID.InnerBeast);
 
             // 1. if it is the last CD possible for PR/NC, don't waste them
             float gcdDelay = state.GCD + (strategy.Aggressive ? 0 : 2.5f);
@@ -245,17 +267,26 @@ namespace BossMod
                     bool preferPR = primalRendWindow > state.GCD && spendGauge && state.InnerReleaseLeft >= (gcdDelay + state.InnerReleaseStacks * 2.5);
                     return preferPR ? AID.PrimalRend : nextFCAction;
                 }
-                else if (state.Gauge >= 50 && (state.UnlockedFellCleave || state.ComboLastMove != AID.Maim))
+                else if (state.Gauge >= 50 && (state.UnlockedFellCleave || state.ComboLastMove != AID.Maim || aoe && state.UnlockedSteelCyclone))
                 {
-                    // FC > SE/ST > IB > Maim > HS
+                    // single-target: FC > SE/ST > IB > Maim > HS
+                    // aoe: Decimate > SC > Combo
                     return nextFCAction;
                 }
             }
 
             // 3. no ST (or it will expire if we don't combo asap) => apply buff asap
             // TODO: what if we have really high gauge and low ST? is it worth it to delay ST application to avoid overcapping gauge?
-            if (state.UnlockedStormEye && state.SurgingTempestLeft <= state.GCD + 2.5f * (GetSTComboLength(state.ComboLastMove) - 1))
-                return GetNextSTComboAction(state.ComboLastMove, AID.StormEye);
+            if (!aoe)
+            {
+                if (state.UnlockedStormEye && state.SurgingTempestLeft <= state.GCD + 2.5f * (GetSTComboLength(state.ComboLastMove) - 1))
+                    return GetNextSTComboAction(state.ComboLastMove, AID.StormEye);
+            }
+            else
+            {
+                if (state.UnlockedMasteringTheBeast && state.SurgingTempestLeft <= state.GCD + (state.ComboLastMove != AID.Overpower ? 2.5f : 0))
+                    return GetNextAOEComboAction(state.ComboLastMove);
+            }
 
             // 4. if we're delaying IR due to nascent chaos, cast it asap
             if (state.NascentChaosLeft > 0 && state.InnerReleaseCD <= secondGCDIn && state.Gauge >= 50)
@@ -279,9 +310,8 @@ namespace BossMod
             {
                 // we want to delay spending gauge unless doing so will cause us problems later
                 var maxSTToAvoidOvercap = 20 + Math.Clamp(state.InnerReleaseCD, 0, 10);
-                var nextCombo = GetNextUnlockedSTComboAction(state, maxSTToAvoidOvercap);
-                int comboGauge = nextCombo == AID.HeavySwing ? 0 : (nextCombo == AID.StormPath ? 20 : 10);
-                if (state.Gauge + comboGauge <= 100)
+                var nextCombo = GetNextUnlockedComboAction(state, maxSTToAvoidOvercap, aoe);
+                if (state.Gauge + GaugeGainedFromAction(state, nextCombo) <= 100)
                     return nextCombo;
             }
 
@@ -292,7 +322,7 @@ namespace BossMod
                 return nextFCAction;
 
             // TODO: reconsider min time left...
-            return GetNextUnlockedSTComboAction(state, gcdDelay + 12.5f);
+            return GetNextUnlockedComboAction(state, gcdDelay + 12.5f, aoe);
         }
 
         public static bool IsOGCDAvailable(float cooldown, float actionLock, float delay, float windowEnd)
@@ -341,7 +371,7 @@ namespace BossMod
         }
 
         // window-end is either GCD or GCD - time-for-second-ogcd; we are allowed to use ogcds only if their animation lock would complete before window-end
-        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float windowEnd)
+        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float windowEnd, bool aoe)
         {
             var lockDelay = GetOGCDDelay(state.AnimationLockDelay);
 
@@ -402,7 +432,7 @@ namespace BossMod
             // 4. upheaval, if surging tempest up and not forbidden
             // TODO: delay for 1 GCD during opener...
             if (state.UnlockedUpheaval && IsOGCDAvailable(state.UpheavalCD, 0.6f, lockDelay, windowEnd) && state.SurgingTempestLeft > MathF.Max(state.UpheavalCD, 0) && strategy.EnableUpheaval)
-                return ActionID.MakeSpell(AID.Upheaval);
+                return ActionID.MakeSpell(aoe && state.UnlockedOrogeny ? AID.Orogeny : AID.Upheaval);
 
             // 5. inner release, if surging tempest up and no nascent chaos up
             // if not unlocked yet, use berserk instead, but only if we have enough gauge
@@ -411,7 +441,7 @@ namespace BossMod
             {
                 if (state.UnlockedInnerRelease)
                     return ActionID.MakeSpell(AID.InnerRelease);
-                else if (!DelayBerserk(state))
+                else if (aoe || !DelayBerserk(state))
                     return ActionID.MakeSpell(AID.Berserk);
             }
 
@@ -469,7 +499,7 @@ namespace BossMod
             return new();
         }
 
-        public static ActionID GetNextBestAction(State state, Strategy strategy)
+        public static ActionID GetNextBestAction(State state, Strategy strategy, bool aoe)
         {
             var ogcdSlotLength = 0.6f + GetOGCDDelay(state.AnimationLockDelay);
 
@@ -477,7 +507,7 @@ namespace BossMod
             var doubleWeavingWindowEnd = state.GCD - ogcdSlotLength;
             if (state.AnimationLock + ogcdSlotLength <= doubleWeavingWindowEnd)
             {
-                var ogcd = GetNextBestOGCD(state, strategy, doubleWeavingWindowEnd);
+                var ogcd = GetNextBestOGCD(state, strategy, doubleWeavingWindowEnd, aoe);
                 if (ogcd)
                     return ogcd;
             }
@@ -485,18 +515,18 @@ namespace BossMod
             // second/only ogcd slot
             if (state.AnimationLock + ogcdSlotLength <= state.GCD)
             {
-                var ogcd = GetNextBestOGCD(state, strategy, state.GCD);
+                var ogcd = GetNextBestOGCD(state, strategy, state.GCD, aoe);
                 if (ogcd)
                     return ogcd;
             }
 
-            return ActionID.MakeSpell(GetNextBestGCD(state, strategy));
+            return ActionID.MakeSpell(GetNextBestGCD(state, strategy, aoe));
         }
 
-        //public static AID GetNextBestAOE(State state, Strategy strategy)
-        //{
-        //    // TODO implement!
-        //    return GetNextAOEComboAction(state.ComboLastMove);
-        //}
+        // short string for supported action
+        public static string ActionShortString(ActionID action)
+        {
+            return action == IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
+        }
     }
 }

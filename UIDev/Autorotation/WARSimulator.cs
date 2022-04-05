@@ -31,6 +31,7 @@ namespace UIDev
 
         public WARRotation.State InitialState = new() { Level = 90, AnimationLockDelay = 0.1f };
         public int Duration = 260;
+        public bool AOERotation = false;
         public bool KeepOnslaughtCharge = false;
         public float BuffWindowOffset = 7.5f;
         public float BuffWindowDuration = 20;
@@ -41,6 +42,7 @@ namespace UIDev
         {
             ImGui.InputInt("Sim duration (GCDs)", ref Duration);
             ImGui.Checkbox("Keep onslaught charge", ref KeepOnslaughtCharge);
+            ImGui.Checkbox("AOE rotation", ref AOERotation);
             ImGui.SliderFloat("Buff window offset", ref BuffWindowOffset, 0, 60);
             ImGui.SliderFloat("Buff window duration", ref BuffWindowDuration, 1, 30);
             ImGui.SliderFloat("Buff window frequency", ref BuffWindowFreq, 30, 120);
@@ -106,7 +108,7 @@ namespace UIDev
                 var nextBuffCycleIndex = MathF.Ceiling((t - BuffWindowOffset) / BuffWindowFreq);
                 strategy.RaidBuffsIn = t < BuffWindowOffset ? 0 : (BuffWindowOffset + nextBuffCycleIndex * BuffWindowFreq - t);
 
-                var action = WARRotation.GetNextBestAction(state, strategy);
+                var action = WARRotation.GetNextBestAction(state, strategy, AOERotation);
                 (var mistake, var ogcd) = Cast(state, action, ref t);
                 DrawActionRow(action, !ogcd, mistake, t, state, strategy);
             }
@@ -293,6 +295,39 @@ namespace UIDev
                         res |= CheckValid(state.PrimalRendLeft > 0);
                         state.PrimalRendLeft = 0;
                         break;
+                    case WARRotation.AID.Overpower:
+                        res |= CheckValid(state.UnlockedOverpower);
+                        res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
+                        res |= AdjustCD(ref state.GCD, 2.5f, 2.5f);
+                        res |= UseIRCharge(state, false, 0);
+                        if (state.UnlockedMythrilTempest)
+                            ComboAdvance(state, ref res, WARRotation.AID.None, WARRotation.AID.Overpower);
+                        break;
+                    case WARRotation.AID.MythrilTempest:
+                        res |= CheckValid(state.UnlockedMythrilTempest);
+                        res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
+                        res |= AdjustCD(ref state.GCD, 2.5f, 2.5f);
+                        res |= UseIRCharge(state, false, 0);
+                        if (ComboAdvance(state, ref res, WARRotation.AID.Overpower, WARRotation.AID.None))
+                        {
+                            if (state.UnlockedMasteringTheBeast)
+                                res |= GainGauge(state, 20);
+                            res |= GainSurgingTempest(state, 30);
+                        }
+                        break;
+                    case WARRotation.AID.SteelCyclone:
+                    case WARRotation.AID.Decimate:
+                        res |= CheckValid(aid == WARRotation.AID.Decimate ? state.UnlockedDecimate : state.UnlockedSteelCyclone);
+                        res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
+                        res |= AdjustCD(ref state.GCD, 2.5f, 2.5f);
+                        res |= CheckValid(state.NascentChaosLeft <= 0);
+                        res |= CheckValid(state.InnerReleaseStacks > 0 || state.Gauge >= 50);
+                        res |= UseIRCharge(state, true, 50);
+                        if (state.UnlockedEnhancedInfuriate && (state.InfuriateCD -= 5) <= 0)
+                        {
+                            res |= Mistake.InfuriateDelayed;
+                        }
+                        break;
                     case WARRotation.AID.Infuriate:
                         isOGCD = true;
                         res |= CheckValid(state.UnlockedInfuriate);
@@ -315,8 +350,9 @@ namespace UIDev
                         res |= AdjustCD(ref state.OnslaughtCD, 30, state.UnlockedEnhancedOnslaught ? 90 : 60);
                         break;
                     case WARRotation.AID.Upheaval:
+                    case WARRotation.AID.Orogeny:
                         isOGCD = true;
-                        res |= CheckValid(state.UnlockedUpheaval);
+                        res |= CheckValid(aid == WARRotation.AID.Orogeny ? state.UnlockedOrogeny : state.UnlockedUpheaval);
                         res |= AdvanceTime(state, ref t, 0.6f, state.UpheavalCD);
                         res |= AdjustCD(ref state.UpheavalCD, 30, 30);
                         break;
@@ -350,7 +386,7 @@ namespace UIDev
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); ImGui.Text($"{t:f1}");
 
-            var name = action == WARRotation.IDSprint ? "Sprint" : action == WARRotation.IDStatPotion ? "StatPotion" : ((WARRotation.AID)action.ID).ToString();
+            var name = WARRotation.ActionShortString(action);
             ImGui.TableNextColumn(); ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(state.RaidBuffsLeft > 0 ? 0xff00ff00 : 0xffffffff), isGCD ? $"{name}" : $"** {name}");
             ImGui.TableNextColumn(); ImGui.Text($"{MistakeString(mistake)}");
 

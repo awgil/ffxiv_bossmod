@@ -2,7 +2,6 @@
 using Dalamud.Game.ClientState.Objects.Enums;
 using ImGuiNET;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -10,35 +9,11 @@ namespace BossMod
 {
     class WARActions : CommonActions
     {
-        // after pressing a cooldown button, it will stay 'queued' for a few seconds - this is to limit the effect of e.g. misclick while ability has long cooldown
-        private struct SmartQueueEntry
-        {
-            private DateTime _queueEndAt;
-
-            public bool Active => DateTime.Now < _queueEndAt;
-            public void Activate(float expire = 3) => _queueEndAt = DateTime.Now.AddSeconds(expire);
-            public void Deactivate() => _queueEndAt = new();
-        }
-
         private WARConfig _config;
         private WARRotation.State _state;
         private WARRotation.Strategy _strategy;
-        private ActionID _nextBestAction = ActionID.MakeSpell(WARRotation.AID.HeavySwing);
-        private uint _forceMovementFlags = 1; // 0 = force-disable, 3 = force-enable, other = whatever planner says
-        private SmartQueueEntry _qRampart;
-        private SmartQueueEntry _qVengeance;
-        private SmartQueueEntry _qThrillOfBattle;
-        private SmartQueueEntry _qHolmgang;
-        private SmartQueueEntry _qEquilibrium;
-        private SmartQueueEntry _qReprisal;
-        private SmartQueueEntry _qShakeItOff;
-        private SmartQueueEntry _qBloodwhetting;
-        private SmartQueueEntry _qNascentFlash;
-        private SmartQueueEntry _qArmsLength;
-        private SmartQueueEntry _qProvoke;
-        private SmartQueueEntry _qShirk;
-        private SmartQueueEntry _qSprint;
-        private SmartQueueEntry _qPotion;
+        private ActionID _nextBestSTAction = ActionID.MakeSpell(WARRotation.AID.HeavySwing);
+        private ActionID _nextBestAOEAction = ActionID.MakeSpell(WARRotation.AID.Overpower);
 
         public WARActions(AutorotationConfig config, BossModuleManager bossmods)
             : base(config, bossmods)
@@ -50,9 +25,25 @@ namespace BossMod
                 FirstChargeIn = 0.01f, // by default, always preserve 1 onslaught charge
                 SecondChargeIn = 10000, // ... but don't preserve second
             };
+
+            SmartQueueRegisterSpell(WARRotation.AID.Rampart);
+            SmartQueueRegisterSpell(WARRotation.AID.Vengeance);
+            SmartQueueRegisterSpell(WARRotation.AID.ThrillOfBattle);
+            SmartQueueRegisterSpell(WARRotation.AID.Holmgang);
+            SmartQueueRegisterSpell(WARRotation.AID.Equilibrium);
+            SmartQueueRegisterSpell(WARRotation.AID.Reprisal);
+            SmartQueueRegisterSpell(WARRotation.AID.ShakeItOff);
+            SmartQueueRegisterSpell(WARRotation.AID.RawIntuition);
+            SmartQueueRegisterSpell(WARRotation.AID.NascentFlash);
+            SmartQueueRegisterSpell(WARRotation.AID.Bloodwhetting);
+            SmartQueueRegisterSpell(WARRotation.AID.ArmsLength);
+            SmartQueueRegisterSpell(WARRotation.AID.Provoke);
+            SmartQueueRegisterSpell(WARRotation.AID.Shirk);
+            SmartQueueRegister(WARRotation.IDSprint);
+            SmartQueueRegister(WARRotation.IDStatPotion);
         }
 
-        public override void CastSucceeded(ActionID actionID)
+        protected override void OnCastSucceeded(ActionID actionID)
         {
             string comment = "";
             if (actionID.Type == ActionType.Spell)
@@ -151,104 +142,83 @@ namespace BossMod
                         break;
                 }
             }
-            Log($"Cast {actionID}, next-best={_nextBestAction}{comment} [{StateString(_state)}]");
+            Log($"Cast {actionID}, next-best={_nextBestSTAction}/{_nextBestAOEAction}{comment} [{StateString(_state)}]");
         }
 
-        public override void Update(uint comboLastAction, float comboTimeLeft, float animLock, float animLockDelay)
+        protected override void OnUpdate(uint comboLastAction, float comboTimeLeft, float animLock, float animLockDelay)
         {
             var currState = BuildState((WARRotation.AID)comboLastAction, comboTimeLeft, animLock, animLockDelay);
             LogStateChange(_state, currState);
             _state = currState;
 
-            _strategy.Potion = _qPotion.Active ? WARRotation.Strategy.PotionUse.Immediate : _config.PotionUse;
+            _strategy.Potion = SmartQueueActive(WARRotation.IDStatPotion) ? WARRotation.Strategy.PotionUse.Immediate : _config.PotionUse;
             if (_strategy.Potion != WARRotation.Strategy.PotionUse.Manual && !HavePotions()) // don't try to use potions if player doesn't have any
                 _strategy.Potion = WARRotation.Strategy.PotionUse.Manual;
 
             _strategy.RaidBuffsIn = _bossmods.RaidCooldowns.NextDamageBuffIn(_bossmods.WorldState.CurrentTime);
-            if (_forceMovementFlags == 0)
-                _strategy.PositionLockIn = 0;
-            else if (_forceMovementFlags == 3 || _bossmods.ActiveModule == null)
-                _strategy.PositionLockIn = 10000;
-            else
-                _strategy.PositionLockIn = _bossmods.ActiveModule.StateMachine.EstimateTimeToNextPositioning();
-            _strategy.FightEndIn = _bossmods.ActiveModule != null ? _bossmods.ActiveModule.StateMachine.EstimateTimeToNextDowntime() : 0;
-
-            // cooldown planning
-            ActivateIfPlanned(WARRotation.AID.Rampart, ref _qRampart);
-            ActivateIfPlanned(WARRotation.AID.Vengeance, ref _qVengeance);
-            ActivateIfPlanned(WARRotation.AID.ThrillOfBattle, ref _qThrillOfBattle);
-            ActivateIfPlanned(WARRotation.AID.Equilibrium, ref _qEquilibrium);
-            ActivateIfPlanned(WARRotation.AID.Bloodwhetting, ref _qBloodwhetting);
-            ActivateIfPlanned(WARRotation.AID.ArmsLength, ref _qArmsLength);
-            ActivateIfPlanned(WARRotation.AID.Reprisal, ref _qReprisal);
-            ActivateIfPlanned(WARRotation.AID.ShakeItOff, ref _qShakeItOff);
+            _strategy.PositionLockIn = _config.EnableMovement ? (_bossmods.ActiveModule?.StateMachine.EstimateTimeToNextPositioning() ?? 10000) : 0;
+            _strategy.FightEndIn = _bossmods.ActiveModule?.StateMachine.EstimateTimeToNextDowntime() ?? 0;
 
             // cooldown execution
-            _strategy.ExecuteRampart = _qRampart.Active;
-            _strategy.ExecuteVengeance = _qVengeance.Active;
-            _strategy.ExecuteThrillOfBattle = _qThrillOfBattle.Active;
-            _strategy.ExecuteHolmgang = _qHolmgang.Active;
-            _strategy.ExecuteEquilibrium = _qEquilibrium.Active && Service.ClientState.LocalPlayer?.CurrentHp < Service.ClientState.LocalPlayer?.MaxHp;
-            _strategy.ExecuteReprisal = _qReprisal.Active; // TODO: check that at least one enemy is in range!
-            _strategy.ExecuteShakeItOff = _qShakeItOff.Active; // TODO: check that raid is in range?...
-            _strategy.ExecuteBloodwhetting = _qBloodwhetting.Active; // TODO: consider auto-use?..
-            _strategy.ExecuteNascentFlash = _qNascentFlash.Active;
-            _strategy.ExecuteArmsLength = _qArmsLength.Active;
-            _strategy.ExecuteProvoke = _qProvoke.Active; // TODO: check that not MT already
-            _strategy.ExecuteShirk = _qShirk.Active; // TODO: check that hate is close to MT...
-            _strategy.ExecuteSprint = _qSprint.Active;
+            _strategy.ExecuteRampart = SmartQueueActiveSpell(WARRotation.AID.Rampart);
+            _strategy.ExecuteVengeance = SmartQueueActiveSpell(WARRotation.AID.Vengeance);
+            _strategy.ExecuteThrillOfBattle = SmartQueueActiveSpell(WARRotation.AID.ThrillOfBattle);
+            _strategy.ExecuteHolmgang = SmartQueueActiveSpell(WARRotation.AID.Holmgang);
+            _strategy.ExecuteEquilibrium = SmartQueueActiveSpell(WARRotation.AID.Equilibrium) && Service.ClientState.LocalPlayer?.CurrentHp < Service.ClientState.LocalPlayer?.MaxHp;
+            _strategy.ExecuteReprisal = SmartQueueActiveSpell(WARRotation.AID.Reprisal); // TODO: check that at least one enemy is in range!
+            _strategy.ExecuteShakeItOff = SmartQueueActiveSpell(WARRotation.AID.ShakeItOff); // TODO: check that raid is in range?...
+            _strategy.ExecuteBloodwhetting = SmartQueueActiveSpell(WARRotation.AID.RawIntuition) || SmartQueueActiveSpell(WARRotation.AID.Bloodwhetting); // TODO: consider auto-use?..
+            _strategy.ExecuteNascentFlash = SmartQueueActiveSpell(WARRotation.AID.NascentFlash);
+            _strategy.ExecuteArmsLength = SmartQueueActiveSpell(WARRotation.AID.ArmsLength);
+            _strategy.ExecuteProvoke = SmartQueueActiveSpell(WARRotation.AID.Provoke); // TODO: check that not MT already
+            _strategy.ExecuteShirk = SmartQueueActiveSpell(WARRotation.AID.Shirk); // TODO: check that hate is close to MT...
+            _strategy.ExecuteSprint = SmartQueueActive(WARRotation.IDSprint);
 
-            var nextBest = _config.FullSTRotation ? WARRotation.GetNextBestAction(_state, _strategy) : ActionID.MakeSpell(WARRotation.AID.HeavySwing);
-            if (nextBest != _nextBestAction)
-                Log($"Next-best changed from {_nextBestAction} to {nextBest} [{StateString(_state)}]");
-            _nextBestAction = nextBest;
+            var nextBestST = _config.FullRotation ? WARRotation.GetNextBestAction(_state, _strategy, false) : ActionID.MakeSpell(WARRotation.AID.HeavySwing);
+            if (nextBestST != _nextBestSTAction)
+                Log($"Next-best ST changed from {_nextBestSTAction} to {nextBestST} [{StateString(_state)}]");
+            _nextBestSTAction = nextBestST;
+
+            var nextBestAOE = _config.FullRotation ? WARRotation.GetNextBestAction(_state, _strategy, true) : ActionID.MakeSpell(WARRotation.AID.Overpower);
+            if (nextBestAOE != _nextBestAOEAction)
+                Log($"Next-best AOE changed from {_nextBestAOEAction} to {nextBestAOE} [{StateString(_state)}]");
+            _nextBestAOEAction = nextBestAOE;
+
+            SmartQueueSetActive(_state.GCD > 0 || _state.AnimationLock > 0); // TODO: reconsider, move to common...
         }
 
-        public override (ActionID, uint) ReplaceActionAndTarget(ActionID actionID, uint targetID)
+        protected override (ActionID, uint) DoReplaceActionAndTarget(ActionID actionID, uint targetID)
         {
-            var actionAdj = actionID.Type switch
+            if (actionID.Type == ActionType.Spell)
             {
-                ActionType.Spell => (WARRotation.AID)actionID.ID switch
+                actionID = (WARRotation.AID)actionID.ID switch
                 {
-                    WARRotation.AID.HeavySwing => _config.FullSTRotation ? _nextBestAction : actionID,
+                    WARRotation.AID.HeavySwing => _config.FullRotation ? _nextBestSTAction : actionID,
+                    WARRotation.AID.Overpower => _config.FullRotation ? _nextBestAOEAction : actionID,
                     WARRotation.AID.Maim => _config.STCombos ? ActionID.MakeSpell(WARRotation.GetNextMaimComboAction(_state.ComboLastMove)) : actionID,
                     WARRotation.AID.StormEye => _config.STCombos ? ActionID.MakeSpell(WARRotation.GetNextSTComboAction(_state.ComboLastMove, WARRotation.AID.StormEye)) : actionID,
                     WARRotation.AID.StormPath => _config.STCombos ? ActionID.MakeSpell(WARRotation.GetNextSTComboAction(_state.ComboLastMove, WARRotation.AID.StormPath)) : actionID,
                     WARRotation.AID.MythrilTempest => _config.AOECombos ? ActionID.MakeSpell(WARRotation.GetNextAOEComboAction(_state.ComboLastMove)) : actionID,
-                    WARRotation.AID.Rampart => SmartQueue(actionID, ref _qRampart),
-                    WARRotation.AID.Vengeance => SmartQueue(actionID, ref _qVengeance),
-                    WARRotation.AID.ThrillOfBattle => SmartQueue(actionID, ref _qThrillOfBattle),
-                    WARRotation.AID.Holmgang => SmartQueue(actionID, ref _qHolmgang),
-                    WARRotation.AID.Equilibrium => SmartQueue(actionID, ref _qEquilibrium),
-                    WARRotation.AID.Reprisal => SmartQueue(actionID, ref _qReprisal),
-                    WARRotation.AID.ShakeItOff => SmartQueue(actionID, ref _qShakeItOff),
-                    WARRotation.AID.Bloodwhetting or WARRotation.AID.RawIntuition => SmartQueue(actionID, ref _qBloodwhetting),
-                    WARRotation.AID.NascentFlash => SmartQueue(actionID, ref _qNascentFlash),
-                    WARRotation.AID.ArmsLength => SmartQueue(actionID, ref _qArmsLength),
-                    WARRotation.AID.Provoke => SmartQueue(actionID, ref _qProvoke),
-                    WARRotation.AID.Shirk => SmartQueue(actionID, ref _qShirk),
                     _ => actionID
-                },
-                ActionType.General => actionID == WARRotation.IDSprint ? SmartQueue(actionID, ref _qSprint) : actionID,
-                ActionType.Item => actionID == WARRotation.IDStatPotion ? SmartQueue(actionID, ref _qPotion) : actionID,
-                _ => actionID
-            };
-            var targetAdj = actionID.Type == ActionType.Spell ? (WARRotation.AID)actionID.ID switch
+                };
+            }
+            if (actionID.Type == ActionType.Spell)
             {
-                WARRotation.AID.NascentFlash => _config.SmartNascentFlashTarget ? SmartTargetCoTank(targetID, ref _qNascentFlash) : targetID,
-                WARRotation.AID.Shirk => _config.SmartShirkTarget ? SmartTargetCoTank(targetID, ref _qShirk) : targetID,
-                WARRotation.AID.Holmgang => _config.HolmgangSelf ? Service.ClientState.LocalPlayer?.ObjectId ?? targetID : targetID,
-                _ => targetID
-            } : targetID;
-            return (actionAdj, targetAdj);
+                targetID = (WARRotation.AID)actionID.ID switch
+                {
+                    WARRotation.AID.NascentFlash => _config.SmartNascentFlashTarget ? SmartTargetCoTank(targetID, ActionID.MakeSpell(WARRotation.AID.NascentFlash)) : targetID,
+                    WARRotation.AID.Shirk => _config.SmartShirkTarget ? SmartTargetCoTank(targetID, ActionID.MakeSpell(WARRotation.AID.Shirk)) : targetID,
+                    WARRotation.AID.Holmgang => _config.HolmgangSelf ? Service.ClientState.LocalPlayer?.ObjectId ?? targetID : targetID,
+                    _ => targetID
+                };
+            }
+            return (actionID, targetID);
         }
 
         public override void DrawOverlay()
         {
-            var switchToDefault = _forceMovementFlags == 0;
-            if (ImGui.CheckboxFlags("Enable movement", ref _forceMovementFlags, 3) && switchToDefault)
-                _forceMovementFlags = 1;
-            ImGui.Text($"Next: {_nextBestAction}, SmartQueue:{SmartQueueString(_strategy)}");
+            ImGui.Text($"Next: {WARRotation.ActionShortString(_nextBestSTAction)} / {WARRotation.ActionShortString(_nextBestAOEAction)}");
+            ImGui.Text($"SmartQueue:{SmartQueueString(_strategy)}");
             ImGui.Text($"GCD={_state.GCD:f3}, Lock={_state.AnimationLock:f3}, RBLeft={_state.RaidBuffsLeft:f2}");
             ImGui.Text($"FightEnd={_strategy.FightEndIn:f3}, PosLock={_strategy.PositionLockIn:f3}, RBIn={_strategy.RaidBuffsIn:f2}");
         }
@@ -373,47 +343,8 @@ namespace BossMod
             return sb.ToString();
         }
 
-        private void ActivateIfPlanned(WARRotation.AID aid, ref SmartQueueEntry q)
-        {
-            var module = _bossmods.ActiveModule;
-            if (module == null)
-                return;
-
-            var state = module.StateMachine.ActiveState;
-            if (state == null)
-                return;
-
-            var plan = module.CurrentCooldownPlan?.PlanAbilities.GetValueOrDefault(ActionID.MakeSpell(aid).Raw);
-            if (plan == null)
-                return;
-
-            foreach (var e in plan.Where(e => e.StateID == state.ID && module.StateMachine.TimeSinceTransition >= e.TimeSinceActivation))
-            {
-                var windowLeft = e.WindowLength - (module.StateMachine.TimeSinceTransition - e.TimeSinceActivation);
-                if (windowLeft > 0)
-                    q.Activate(windowLeft);
-            }
-        }
-
-        private ActionID SmartQueue(ActionID action, ref SmartQueueEntry q)
-        {
-            if (!_config.SmartCooldownQueueing || (_state.GCD <= 0 && _state.AnimationLock <= 0))
-            {
-                // smart queueing is disabled, or we're pressing action when not otherwise busy (e.g. during downtime), so execute it immediately
-                return action;
-            }
-            else
-            {
-                // perform smart queueing and return next-best ST (?) action
-                // TODO: consider smart queueing when spamming AOE rotation...
-                Log($"Smart-queueing {action}");
-                q.Activate();
-                return _nextBestAction;
-            }
-        }
-
         // shirk/nascent flash smart targeting: target if friendly > mouseover if friendly > other tank
-        private uint SmartTargetCoTank(uint targetID, ref SmartQueueEntry q)
+        private uint SmartTargetCoTank(uint targetID, ActionID action)
         {
             var target = _bossmods.WorldState.Actors.Find(targetID);
             if (target?.Type is ActorType.Player or ActorType.Chocobo)
@@ -429,7 +360,7 @@ namespace BossMod
 
             // can't find good target, deactivate smart-queue entry to prevent silly spam
             Log($"Smart-target failed, removing from queue");
-            q.Deactivate();
+            SmartQueueDeactivate(action);
             return targetID;
         }
     }
