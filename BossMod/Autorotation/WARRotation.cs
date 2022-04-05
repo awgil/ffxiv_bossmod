@@ -449,7 +449,6 @@ namespace BossMod
             }
 
             // 7. onslaught, if surging tempest up and not forbidden
-            // TODO: reconsider logic below level 88, when we have only 2 charges max
             if (state.UnlockedOnslaught && IsOGCDAvailable(state.OnslaughtCD - (state.UnlockedEnhancedOnslaught ? 60 : 30), 0.6f, lockDelay, windowEnd) && strategy.PositionLockIn > state.AnimationLock && state.SurgingTempestLeft > state.AnimationLock)
             {
                 if (state.OnslaughtCD < state.GCD + 2.5)

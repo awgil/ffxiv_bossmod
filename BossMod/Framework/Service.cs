@@ -2,6 +2,7 @@
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.JobGauge;
+using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Party;
 using Dalamud.Game.Gui;
@@ -22,6 +23,7 @@ namespace BossMod
         [PluginService] public static SigScanner SigScanner { get; private set; }
         [PluginService] public static JobGauges JobGauges { get; private set; }
         [PluginService] public static GameNetwork GameNetwork { get; private set; }
+        [PluginService] public static KeyState KeyState { get; private set; }
 #pragma warning restore CS8618
 
         public static Action<string>? LogHandler = null;

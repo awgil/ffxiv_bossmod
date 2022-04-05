@@ -76,6 +76,15 @@ namespace BossMod
             }
         }
 
+        public bool IsCasted()
+        {
+            return Type switch
+            {
+                ActionType.Spell => (Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(ID)?.Cast100ms ?? 0) > 0,
+                _ => false
+            };
+        }
+
         public static ActionID MakeSpell<AID>(AID id) where AID : Enum
         {
             return new(ActionType.Spell, (uint)(object)id);

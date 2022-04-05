@@ -1,4 +1,5 @@
-﻿using Dalamud.Hooking;
+﻿using Dalamud.Game.ClientState.Keys;
+using Dalamud.Hooking;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -31,6 +32,7 @@ namespace BossMod
     // 3. when there are pending actions, we don't update internal state, leaving same next-best recommendation
     class Autorotation : IDisposable
     {
+        private InputOverride _inputOverride = new();
         private Network _network;
         private AutorotationConfig _config;
         private BossModuleManager _bossmods;
@@ -68,6 +70,7 @@ namespace BossMod
 
             var useActionAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 64 B1 01");
             _useActionHook = new(useActionAddress, new UseActionDelegate(UseActionDetour));
+            _useActionHook.Enable();
         }
 
         public void Dispose()
@@ -94,16 +97,7 @@ namespace BossMod
 
             if (_classActions?.GetType() != classType)
             {
-                if (classType == null)
-                {
-                    _useActionHook.Disable();
-                    _classActions = null;
-                }
-                else
-                {
-                    _classActions = (CommonActions?)Activator.CreateInstance(classType, _config, _bossmods);
-                    _useActionHook.Enable();
-                }
+                _classActions = classType != null ? (CommonActions?)Activator.CreateInstance(classType, _config, _bossmods) : null;
             }
 
             if (_classActions != null)
@@ -181,6 +175,8 @@ namespace BossMod
             var delay = (float)(now.AddSeconds(0.5) - _animLockEnd).TotalSeconds;
             _animLockDelay = delay * (1 - _animLockDelaySmoothing) + _animLockDelay * _animLockDelaySmoothing;
             _animLockEnd = now.AddSeconds(action.AnimationLockTime);
+
+            _inputOverride.UnblockMovement();
         }
 
         private void OnNetworkActionCancel(object? sender, (uint actorID, uint actionID) args)
@@ -204,6 +200,8 @@ namespace BossMod
                 Log($"-- {PendingActionString(_pendingActions[0])}");
                 _pendingActions.RemoveAt(0);
             }
+
+            _inputOverride.UnblockMovement();
         }
 
         private void OnNetworkActionReject(object? sender, (uint actorID, uint actionID, uint sourceSequence) args)
@@ -230,6 +228,8 @@ namespace BossMod
                 Log($"!! {PendingActionString(_pendingActions[0])}");
                 _pendingActions.RemoveAt(0);
             }
+
+            _inputOverride.UnblockMovement();
         }
 
         private string PendingActionString(Network.PendingAction a)
@@ -250,10 +250,14 @@ namespace BossMod
             // right when GCD ends, it is called internally (by queue mechanism I assume) with aid=adjusted-id, a5=1, a4=a6=a7==0, returns True
             // a5==1 means "forced"?
             // a4==0 for spells, 65535 for item used from hotbar, some value (e.g. 6) for item used from inventory; it is the same as a4 in UseActionLocation
+            var action = new ActionID(actionType, actionID);
+            if (_config.PreventMovingWhileCasting && action.IsCasted())
+                _inputOverride.BlockMovement();
+
             if (_classActions == null)
                 return _useActionHook.Original(self, actionType, actionID, targetID, a4, a5, a6, a7);
 
-            var (adjAction, adjTarget) = _classActions.ReplaceActionAndTarget(new(actionType, actionID), targetID);
+            var (adjAction, adjTarget) = _classActions.ReplaceActionAndTarget(action, targetID);
             var adjArg4 = adjAction.Type == ActionType.Item && a4 == 0 ? 65535 : a4;
             return _useActionHook.Original(self, adjAction.Type, adjAction.ID, adjTarget, adjArg4, a5, a6, a7);
         }
