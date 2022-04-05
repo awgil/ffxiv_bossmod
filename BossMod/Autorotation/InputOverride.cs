@@ -1,22 +1,45 @@
 ﻿using Dalamud.Game.ClientState.Keys;
 using Dalamud.Hooking;
-using System.Collections.Generic;
+using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace BossMod
 {
     // utility for overriding keyboard input as seen in game
-    class InputOverride
+    // TODO: currently we don't handle cast-start while moving correctly, blocking movement on keypress is too late, cast gets cancelled anyway
+    class InputOverride : IDisposable
     {
-        private bool _movementBlocked;
+        private const int WM_KEYDOWN = 0x0100;
+
+        private bool _movementBlocked = false;
+
+        private unsafe delegate int PeekMessageDelegate(ulong* lpMsg, void* hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg);
+        private Hook<PeekMessageDelegate> _peekMessageHook;
+
+        //private delegate void WndprocDelegate(ulong hWnd, uint uMsg, ulong wParam, ulong lParam, ulong uIdSubclass, ulong dwRefData);
+        //private Hook<WndprocDelegate> _wndprocHook;
 
         private delegate ref int GetRefValueDelegate(int vkCode);
         private GetRefValueDelegate _getKeyRef;
 
-        public InputOverride()
+        public unsafe InputOverride()
         {
+            // note: it would be better to hook this instead of PeekMessage, but I didn't figure it out yet...
+            //var wndprocAddress = Service.SigScanner.ScanText("48 89 5C 24 08 55 56 57 41 56 41 57 48 8D 6C 24 B0"); // note: look for callers of GetKeyboardState
+            //Service.Log($"Addr: {wndprocAddress}");
+            //_wndprocHook = new(wndprocAddress, new WndprocDelegate(WndprocDetour));
+
+            _peekMessageHook = Hook<PeekMessageDelegate>.FromSymbol("user32.dll", "PeekMessageW", PeekMessageDetour);
+            _peekMessageHook.Enable();
+
             _getKeyRef = Service.KeyState.GetType().GetMethod("GetRefValue", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<GetRefValueDelegate>(Service.KeyState);
+        }
+
+        public void Dispose()
+        {
+            //_wndprocHook.Dispose();
+            _peekMessageHook.Dispose();
         }
 
         public void BlockMovement()
@@ -45,18 +68,13 @@ namespace BossMod
 
         private void Block(VirtualKey vk)
         {
-            if (Pressed(vk))
-            {
-                //InjectEvent(vk, false);
-                _getKeyRef((int)vk) = 0;
-            }
+            _getKeyRef((int)vk) = 0;
         }
 
         private void Unblock(VirtualKey vk)
         {
             if (Pressed(vk))
             {
-                //InjectEvent(vk, true);
                 _getKeyRef((int)vk) = 1;
             }
         }
@@ -66,15 +84,36 @@ namespace BossMod
             return (GetKeyState((int)vk) & 0x8000) == 0x8000;
         }
 
-        private void InjectEvent(VirtualKey vk, bool press)
+        //private void WndprocDetour(ulong hWnd, uint uMsg, ulong wParam, ulong lParam, ulong uIdSubclass, ulong dwRefData)
+        //{
+        //    if (_movementBlocked && uMsg == WM_KEYDOWN && (VirtualKey)wParam is VirtualKey.W or VirtualKey.S or VirtualKey.A or VirtualKey.D)
+        //        return;
+        //    _wndprocHook.Original(hWnd, uMsg, wParam, lParam, uIdSubclass, dwRefData);
+        //}
+
+        private unsafe int PeekMessageDetour(ulong* lpMsg, void* hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg)
         {
-            keybd_event((byte)vk, 0, press ? 0 : 2, 0);
+            do
+            {
+                var res = _peekMessageHook.Original(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
+                if (res == 0)
+                    return res;
+
+                if (_movementBlocked && lpMsg[1] == WM_KEYDOWN && (VirtualKey)lpMsg[2] is VirtualKey.W or VirtualKey.S or VirtualKey.A or VirtualKey.D)
+                {
+                    // eat message
+                    if ((wRemoveMsg & 1) == 0)
+                    {
+                        _peekMessageHook.Original(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | 1);
+                    }
+                    continue;
+                }
+
+                return res;
+            } while (true);
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         private static extern short GetKeyState(int keyCode);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
-        private static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
     }
 }

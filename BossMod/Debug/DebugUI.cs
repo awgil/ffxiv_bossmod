@@ -14,6 +14,7 @@ namespace BossMod
         private DebugGraphics _debugGraphics = new();
         private DebugAction _debugAction = new();
         private DebugHate _debugHate = new();
+        private DebugInput _debugInput = new();
 
         public DebugUI(WorldState ws, Autorotation autorot)
         {
@@ -73,6 +74,10 @@ namespace BossMod
             if (ImGui.CollapsingHeader("Targets"))
             {
                 DrawTargets();
+            }
+            if (ImGui.CollapsingHeader("Input"))
+            {
+                _debugInput.Draw();
             }
         }
 

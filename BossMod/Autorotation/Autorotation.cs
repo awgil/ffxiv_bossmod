@@ -75,6 +75,8 @@ namespace BossMod
 
         public void Dispose()
         {
+            _inputOverride.Dispose();
+
             _network.EventActionRequest -= OnNetworkActionRequest;
             _network.EventActionEffect -= OnNetworkActionEffect;
             _network.EventActorControlCancelCast -= OnNetworkActionCancel;
@@ -143,6 +145,9 @@ namespace BossMod
             Log($"++ {PendingActionString(action)}");
             _pendingActions.Add(action);
             _animLockEnd = DateTime.Now.AddSeconds(0.5);
+
+            if (_config.PreventMovingWhileCasting && action.Action.IsCasted())
+                _inputOverride.BlockMovement();
         }
 
         private void OnNetworkActionEffect(object? sender, CastEvent action)
@@ -251,15 +256,17 @@ namespace BossMod
             // a5==1 means "forced"?
             // a4==0 for spells, 65535 for item used from hotbar, some value (e.g. 6) for item used from inventory; it is the same as a4 in UseActionLocation
             var action = new ActionID(actionType, actionID);
-            if (_config.PreventMovingWhileCasting && action.IsCasted())
+            if (_classActions != null)
+            {
+                (action, targetID) = _classActions.ReplaceActionAndTarget(action, targetID);
+                if (a4 == 0 && action.Type == ActionType.Item)
+                    a4 = 65535;
+            }
+
+            var res = _useActionHook.Original(self, action.Type, action.ID, targetID, a4, a5, a6, a7);
+            if (!res && _config.PreventMovingWhileCasting && action.IsCasted())
                 _inputOverride.BlockMovement();
-
-            if (_classActions == null)
-                return _useActionHook.Original(self, actionType, actionID, targetID, a4, a5, a6, a7);
-
-            var (adjAction, adjTarget) = _classActions.ReplaceActionAndTarget(action, targetID);
-            var adjArg4 = adjAction.Type == ActionType.Item && a4 == 0 ? 65535 : a4;
-            return _useActionHook.Original(self, adjAction.Type, adjAction.ID, adjTarget, adjArg4, a5, a6, a7);
+            return res;
         }
     }
 }
