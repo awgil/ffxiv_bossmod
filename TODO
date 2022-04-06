@@ -1,5 +1,6 @@
 replay encounter analysis:
 - tether & debuff passing range
+- pull range
 
 network:
 - hook send/recv (a-la xivalexander)
@@ -10,7 +11,7 @@ network:
 boss modules:
 - draw actors by framework (components should return color+prio)
 - assignments and sharing (webservice?)
-- p1s - get enrage log
+- targeting should take hitbox into account (0.5 for players) - cones, circles, rects...
 - p3s - review, searing breeze component
 
 autorotation:
@@ -54,3 +55,8 @@ misc:
 - data driven boss modules?.. would enable sequence autorecord and live editing - or is it covered by replay analysis?
 - draw target max-melee and boss positioning hints?..
 - action not learned = GetActionStatus -> 573 (this is rowid of LogMessage "action not yet learned") => can be used to disable non-learned spells
+
+notes on targeting:
+- aoe (e.g. cone) will hit if shape intersects target's hitbox; for players it is == 0.5
+- max melee range is raw range (usually 3) + source hitbox radius + target hitbox radius; for players this usually means 3.5 + target hitbox
+- charge/onslaught will bring player to source hitbox radius + target hitbox radius range, or leave in place if current distance is less

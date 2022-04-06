@@ -130,13 +130,27 @@ namespace BossMod
 
         private unsafe void DrawTargets()
         {
+            var selfPos = Service.ClientState.LocalPlayer?.Position ?? new();
+            var targPos = Service.ClientState.LocalPlayer?.TargetObject?.Position ?? new();
+            var angle = GeometryUtils.DirectionFromVec3(targPos - selfPos);
             var ts = FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance();
-            ImGui.Text($"Target: {(ts->Target != null ? Utils.ObjectString(ts->Target->ObjectID) : "<null>")}");
-            ImGui.Text($"Soft target: {(ts->SoftTarget != null ? Utils.ObjectString(ts->SoftTarget->ObjectID) : "<null>")}");
-            ImGui.Text($"GPose target: {(ts->GPoseTarget != null ? Utils.ObjectString(ts->GPoseTarget->ObjectID) : "<null>")}");
-            ImGui.Text($"Mouseover: {(ts->MouseOverTarget != null ? Utils.ObjectString(ts->MouseOverTarget->ObjectID) : "<null>")}");
-            ImGui.Text($"Focus: {(ts->FocusTarget != null ? Utils.ObjectString(ts->FocusTarget->ObjectID) : "<null>")}");
+            DrawTarget("Target", ts->Target, selfPos, angle);
+            DrawTarget("Soft target", ts->SoftTarget, selfPos, angle);
+            DrawTarget("GPose target", ts->GPoseTarget, selfPos, angle);
+            DrawTarget("Mouseover", ts->MouseOverTarget, selfPos, angle);
+            DrawTarget("Focus", ts->FocusTarget, selfPos, angle);
             ImGui.Text($"UI Mouseover: {(Mouseover.Instance?.Object != null ? Utils.ObjectString(Mouseover.Instance.Object) : "<null>")}");
+        }
+
+        private unsafe void DrawTarget(string kind, FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* obj, Vector3 selfPos, float refAngle)
+        {
+            if (obj == null)
+                return;
+
+            var dist = (obj->Position - selfPos).Length();
+            var angle = GeometryUtils.DirectionFromVec3(obj->Position - selfPos) - refAngle;
+            var visHalf = MathF.Asin(obj->HitboxRadius / dist);
+            ImGui.Text($"{kind}: {Utils.ObjectString(obj->ObjectID)}, hb={obj->HitboxRadius} ({Utils.RadianString(visHalf)}), dist={dist}, angle={Utils.RadianString(angle)} ({Utils.RadianString(Math.Max(0, Math.Abs(angle) - visHalf))})");
         }
     }
 }

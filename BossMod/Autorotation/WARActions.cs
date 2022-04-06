@@ -159,7 +159,7 @@ namespace BossMod
             _strategy.ExecuteThrillOfBattle = SmartQueueActiveSpell(WARRotation.AID.ThrillOfBattle);
             _strategy.ExecuteHolmgang = SmartQueueActiveSpell(WARRotation.AID.Holmgang);
             _strategy.ExecuteEquilibrium = SmartQueueActiveSpell(WARRotation.AID.Equilibrium) && Service.ClientState.LocalPlayer?.CurrentHp < Service.ClientState.LocalPlayer?.MaxHp;
-            _strategy.ExecuteReprisal = SmartQueueActiveSpell(WARRotation.AID.Reprisal); // TODO: check that at least one enemy is in range!
+            _strategy.ExecuteReprisal = SmartQueueActiveSpell(WARRotation.AID.Reprisal) && AllowReprisal();
             _strategy.ExecuteShakeItOff = SmartQueueActiveSpell(WARRotation.AID.ShakeItOff); // TODO: check that raid is in range?...
             _strategy.ExecuteBloodwhetting = SmartQueueActiveSpell(WARRotation.AID.RawIntuition) || SmartQueueActiveSpell(WARRotation.AID.Bloodwhetting); // TODO: consider auto-use?..
             _strategy.ExecuteNascentFlash = SmartQueueActiveSpell(WARRotation.AID.NascentFlash);
@@ -338,6 +338,13 @@ namespace BossMod
             Log($"Smart-target failed, removing from queue");
             SmartQueueDeactivate(action);
             return targetID;
+        }
+
+        // check whether any targetable enemies are in reprisal range (TODO: consider checking only target?..)
+        private bool AllowReprisal()
+        {
+            var playerPos = Service.ClientState.LocalPlayer?.Position ?? new();
+            return Service.ObjectTable.Any(o => o.ObjectKind == ObjectKind.BattleNpc && (BattleNpcSubKind)o.SubKind == BattleNpcSubKind.Enemy && Utils.GameObjectIsTargetable(o) && GeometryUtils.PointInCircle(o.Position - playerPos, 5 + o.HitboxRadius));
         }
     }
 }

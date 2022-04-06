@@ -229,8 +229,10 @@ namespace BossMod.Endwalker.P1S
             Aetherflail(id, delay);
             Aetherflail(id + 0x10000, 2.7f);
             Aetherflail(id + 0x20000, 2.7f);
-            WarderWrath(id + 0x30000, 13); // not sure about timings below...
-            Simple(id + 0x40000, 2, "?????");
+            WarderWrath(id + 0x30000, 10.7f);
+            WarderWrath(id + 0x40000, 4.2f);
+            WarderWrath(id + 0x50000, 4.2f);
+            Cast(id + 0x60000, AID.Enrage, 8.2f, 12, "Enrage");
         }
     }
 }

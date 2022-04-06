@@ -32,6 +32,7 @@
         TrueFlare2 = 26131, // Helper->tank and nearby, no cast, damage after KnockbackPurge (range=50??)
         ShiningCells = 26134, // Boss->self, raidwide aoe
         SlamShut = 26135, // Boss->self, raidwide aoe
+        Enrage = 26136, // Boss->self
         Aetherchain = 26137, // Boss->self
         PowerfulFire = 26138, // Helper->self, no cast, damage during aetherflails for incorrect segments
         PowerfulLight = 26139, // Helper->self, no cast, damage during aetherflails for incorrect segments
