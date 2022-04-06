@@ -66,6 +66,7 @@ namespace BossMod
         public enum SID : uint
         {
             None = 0,
+            Aero = 143,
             Medica2 = 150,
             Freecure = 155,
             Swiftcast = 167,
@@ -326,8 +327,8 @@ namespace BossMod
             if (canCastRapture)
                 return AID.AfflatusRapture;
 
-            // 7. fallback to medica 1
-            return AID.Medica1;
+            // 7. fallback to medica 1/2
+            return canCastMedica2 ? AID.Medica2 : AID.Medica1;
         }
 
         public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe, bool heal)

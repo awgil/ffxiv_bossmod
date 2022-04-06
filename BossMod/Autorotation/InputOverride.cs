@@ -47,6 +47,8 @@ namespace BossMod
             return Service.KeyState[VirtualKey.W] || Service.KeyState[VirtualKey.S] || Service.KeyState[VirtualKey.A] || Service.KeyState[VirtualKey.D];
         }
 
+        public bool IsBlocked() => _movementBlocked;
+
         public void BlockMovement()
         {
             if (_movementBlocked)

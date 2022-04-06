@@ -79,6 +79,7 @@ namespace BossMod
 
         protected void DrawProperty<E>(ref E v, string label) where E : struct, Enum
         {
+            ImGui.SetNextItemWidth(100);
             if (ImGui.BeginCombo(label, v.ToString()))
             {
                 foreach (var opt in Enum.GetValues<E>())

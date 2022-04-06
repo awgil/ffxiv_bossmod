@@ -165,6 +165,7 @@ namespace BossMod
                     {
                         switch ((WHMRotation.SID)status.StatusId)
                         {
+                            case WHMRotation.SID.Aero:
                             case WHMRotation.SID.Dia:
                                 if (status.SourceID == player.ObjectId)
                                     s.TargetDiaLeft = StatusDuration(status.RemainingTime);

@@ -32,7 +32,6 @@ namespace BossMod
     // 3. when there are pending actions, we don't update internal state, leaving same next-best recommendation
     class Autorotation : IDisposable
     {
-        private InputOverride _inputOverride = new();
         private Network _network;
         private AutorotationConfig _config;
         private BossModuleManager _bossmods;
@@ -44,6 +43,9 @@ namespace BossMod
         private DateTime _animLockEnd;
         private float _animLockDelay = 0.1f; // smoothed delay between client request and response
         private float _animLockDelaySmoothing = 0.8f; // TODO tweak
+
+        private InputOverride _inputOverride = new();
+        private DateTime _inputPendingUnblock;
 
         private delegate bool UseActionDelegate(ulong self, ActionType actionType, uint actionID, uint targetID, uint a4, uint a5, uint a6, ulong a7);
         private Hook<UseActionDelegate> _useActionHook;
@@ -127,10 +129,17 @@ namespace BossMod
                 _firstPendingJustCompleted = false;
             }
 
+            // unblock 'speculative' movement locks
+            if (_inputPendingUnblock != new DateTime() && _inputPendingUnblock < DateTime.Now)
+            {
+                _inputOverride.UnblockMovement();
+                _inputPendingUnblock = new();
+            }
+
             bool showUI = _classActions != null && _config.ShowUI;
             if (showUI && _ui == null)
             {
-                _ui = WindowManager.CreateWindow("Autorotation", _classActions!.DrawOverlay, () => { }, () => true);
+                _ui = WindowManager.CreateWindow("Autorotation", () => _classActions?.DrawOverlay(), () => { }, () => true);
                 _ui.SizeHint = new(100, 100);
                 _ui.MinSize = new(100, 100);
                 _ui.Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
@@ -152,8 +161,13 @@ namespace BossMod
             _pendingActions.Add(action);
             _animLockEnd = DateTime.Now.AddSeconds(0.5); // note: i think it is less for casted (~0.1) - check by running and spamming cast, you'll see interrupt in ~0.2 and next cast in ~0.05 after that...
 
-            if (_config.PreventMovingWhileCasting && action.Action.IsCasted())
-                _inputOverride.BlockMovement();
+            if (_inputPendingUnblock > DateTime.Now)
+            {
+                // we have speculative movement block; if we've actually requested casted action, extend it until cast ends, otherwise cancel it
+                if (!action.Action.IsCasted())
+                    _inputOverride.UnblockMovement();
+                _inputPendingUnblock = new();
+            }
         }
 
         private void OnNetworkActionEffect(object? sender, CastEvent action)
@@ -187,6 +201,7 @@ namespace BossMod
             _animLockDelay = delay * (1 - _animLockDelaySmoothing) + _animLockDelay * _animLockDelaySmoothing;
             _animLockEnd = now.AddSeconds(action.AnimationLockTime);
 
+            // unblock input unconditionally on successful cast (I assume there are no instances where we need to immediately start next GCD?)
             _inputOverride.UnblockMovement();
         }
 
@@ -212,7 +227,8 @@ namespace BossMod
                 _pendingActions.RemoveAt(0);
             }
 
-            _inputOverride.UnblockMovement();
+            // keep movement locked for a slight duration after interrupted cast, in case player restarts it
+            _inputPendingUnblock = DateTime.Now.AddSeconds(0.2f);
         }
 
         private void OnNetworkActionReject(object? sender, (uint actorID, uint actionID, uint sourceSequence) args)
@@ -240,6 +256,7 @@ namespace BossMod
                 _pendingActions.RemoveAt(0);
             }
 
+            // unblock input unconditionally on reject (TODO: investigate more why it can happen)
             _inputOverride.UnblockMovement();
         }
 
@@ -254,7 +271,7 @@ namespace BossMod
                 Service.Log($"[AR] {message}");
         }
 
-        private bool UseActionDetour(ulong self, ActionType actionType, uint actionID, uint targetID, uint a4, uint a5, uint a6, ulong a7)
+        private unsafe bool UseActionDetour(ulong self, ActionType actionType, uint actionID, uint targetID, uint a4, uint a5, uint a6, ulong a7)
         {
             // when spamming e.g. HS, every click (~0.2 sec) this function is called; aid=HS, a4=a5=a6=a7==0, returns True
             // ~0.3s before GCD/animlock end, it starts returning False - probably meaning "next action is already queued"?
@@ -269,10 +286,31 @@ namespace BossMod
                     a4 = 65535;
             }
 
-            var res = _useActionHook.Original(self, action.Type, action.ID, targetID, a4, a5, a6, a7);
-            if (!res && _config.PreventMovingWhileCasting && action.IsCasted())
-                _inputOverride.BlockMovement();
-            return res;
+            // if we're spamming casted action, we have to block movement a bit before cast starts, otherwise it would be interrupted
+            // if we block movement now, we might or might not get actual action request when GCD ends; if we do, we'll extend lock until cast ends, otherwise (e.g. if we got out of range) we'll remove lock after slight delay
+            if (_config.PreventMovingWhileCasting && !_inputOverride.IsBlocked() && action.IsCasted())
+            {
+                var gcd = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance()->GetRecastGroupDetail(57);
+                var gcdLeft = gcd->Total - gcd->Elapsed;
+                if (gcdLeft < 0.3f)
+                {
+                    _inputOverride.BlockMovement();
+                    _inputPendingUnblock = DateTime.Now.AddSeconds(gcdLeft + 0.1f);
+                }
+            }
+
+            bool ret = _useActionHook.Original(self, action.Type, action.ID, targetID, a4, a5, a6, a7);
+
+            if (_config.GTMode != AutorotationConfig.GroundTargetingMode.Manual && action.IsGroundTargeted())
+            {
+                // hack to cast ground-targeted immediately
+                var am = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
+                if (_config.GTMode == AutorotationConfig.GroundTargetingMode.AtTarget)
+                    *(long*)((IntPtr)am + 0x98) = targetID;
+                *(byte*)((IntPtr)am + 0xB8) = 1;
+            }
+
+            return ret;
         }
     }
 }

@@ -85,6 +85,15 @@ namespace BossMod
             };
         }
 
+        public bool IsGroundTargeted()
+        {
+            return Type switch
+            {
+                ActionType.Spell => Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(ID)?.TargetArea ?? false,
+                _ => false
+            };
+        }
+
         public static ActionID MakeSpell<AID>(AID id) where AID : Enum
         {
             return new(ActionType.Spell, (uint)(object)id);

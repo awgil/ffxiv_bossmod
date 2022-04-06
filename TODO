@@ -21,9 +21,9 @@ autorotation:
 -- charge planning
 -- offensive CD planning/delay
 - whm:
--- glare - low-level status ids
+-- aero - low-level status ids
 -- auto assize
--- asylum/liturgy queue
+-- planner
 
 cooldown planner:
 - select columns to show (concrete actions, categories)
