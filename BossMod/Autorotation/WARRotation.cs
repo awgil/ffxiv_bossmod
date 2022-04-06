@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Text;
 
 namespace BossMod
 {
@@ -135,6 +135,11 @@ namespace BossMod
             public bool UnlockedOrogeny => Level >= 86;
             public bool UnlockedEnhancedOnslaught => Level >= 88; // passive, gives third charge to onslaught
             public bool UnlockedPrimalRend => Level >= 90;
+
+            public override string ToString()
+            {
+                return $"g={Gauge}, RB={RaidBuffsLeft:f1}, ST={SurgingTempestLeft:f1}, NC={NascentChaosLeft:f1}, PR={PrimalRendLeft:f1}, IR={InnerReleaseStacks}/{InnerReleaseLeft:f1}, IRCD={InnerReleaseCD:f1}, InfCD={InfuriateCD:f1}, UphCD={UpheavalCD:f1}, OnsCD={OnslaughtCD:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+            }
         }
 
         // strategy configuration
@@ -161,6 +166,38 @@ namespace BossMod
             public bool ExecuteArmsLength;
             public bool ExecuteProvoke;
             public bool ExecuteShirk;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("SmartQueue:");
+                if (ExecuteProvoke)
+                    sb.Append(" Provoke");
+                if (ExecuteShirk)
+                    sb.Append(" Shirk");
+                if (ExecuteHolmgang)
+                    sb.Append(" Holmgang");
+                if (ExecuteArmsLength)
+                    sb.Append(" ArmsLength");
+                if (ExecuteShakeItOff)
+                    sb.Append(" ShakeItOff");
+                if (ExecuteVengeance)
+                    sb.Append(" Vengeance");
+                if (ExecuteRampart)
+                    sb.Append(" Rampart");
+                if (ExecuteThrillOfBattle)
+                    sb.Append(" ThrillOfBattle");
+                if (ExecuteEquilibrium)
+                    sb.Append(" Equilibrium");
+                if (ExecuteReprisal)
+                    sb.Append(" Reprisal");
+                if (ExecuteBloodwhetting)
+                    sb.Append(" Bloodwhetting");
+                if (ExecuteNascentFlash)
+                    sb.Append(" NascentFlash");
+                if (ExecuteSprint)
+                    sb.Append(" Sprint");
+                return sb.ToString();
+            }
         }
 
         public static int GaugeGainedFromAction(State state, AID action)

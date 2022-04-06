@@ -98,6 +98,7 @@ namespace BossMod
                 classType = (Class)(Service.ClientState.LocalPlayer?.ClassJob.Id ?? 0) switch
                 {
                     Class.WAR => typeof(WARActions),
+                    Class.WHM => typeof(WHMActions),
                     _ => null
                 };
             }

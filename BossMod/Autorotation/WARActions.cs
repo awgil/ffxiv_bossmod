@@ -1,9 +1,7 @@
 ﻿using Dalamud.Game.ClientState.JobGauge.Types;
 using Dalamud.Game.ClientState.Objects.Enums;
 using ImGuiNET;
-using System;
 using System.Linq;
-using System.Text;
 
 namespace BossMod
 {
@@ -142,10 +140,10 @@ namespace BossMod
                         break;
                 }
             }
-            Log($"Cast {actionID}, next-best={_nextBestSTAction}/{_nextBestAOEAction}{comment} [{StateString(_state)}]");
+            Log($"Cast {actionID}, next-best={_nextBestSTAction}/{_nextBestAOEAction}{comment} [{_state}]");
         }
 
-        protected override void OnUpdate()
+        protected override CommonRotation.State OnUpdate()
         {
             var currState = BuildState();
             LogStateChange(_state, currState);
@@ -168,16 +166,14 @@ namespace BossMod
             _strategy.ExecuteShirk = SmartQueueActiveSpell(WARRotation.AID.Shirk); // TODO: check that hate is close to MT...
 
             var nextBestST = _config.FullRotation ? WARRotation.GetNextBestAction(_state, _strategy, false) : ActionID.MakeSpell(WARRotation.AID.HeavySwing);
-            if (nextBestST != _nextBestSTAction)
-                Log($"Next-best ST changed from {_nextBestSTAction} to {nextBestST} [{StateString(_state)}]");
-            _nextBestSTAction = nextBestST;
-
             var nextBestAOE = _config.FullRotation ? WARRotation.GetNextBestAction(_state, _strategy, true) : ActionID.MakeSpell(WARRotation.AID.Overpower);
-            if (nextBestAOE != _nextBestAOEAction)
-                Log($"Next-best AOE changed from {_nextBestAOEAction} to {nextBestAOE} [{StateString(_state)}]");
-            _nextBestAOEAction = nextBestAOE;
-
-            SmartQueueSetActive(_state.GCD > 0 || _state.AnimationLock > 0); // TODO: reconsider, move to common...
+            if (_nextBestSTAction != nextBestST || _nextBestAOEAction != nextBestAOE)
+            {
+                Log($"Next-best changed: ST={_nextBestSTAction}->{nextBestST}, AOE={_nextBestAOEAction}->{nextBestAOE} [{_state}]");
+                _nextBestSTAction = nextBestST;
+                _nextBestAOEAction = nextBestAOE;
+            }
+            return _state;
         }
 
         protected override (ActionID, uint) DoReplaceActionAndTarget(ActionID actionID, uint targetID)
@@ -199,8 +195,7 @@ namespace BossMod
             {
                 targetID = (WARRotation.AID)actionID.ID switch
                 {
-                    WARRotation.AID.NascentFlash => _config.SmartNascentFlashTarget ? SmartTargetCoTank(targetID, ActionID.MakeSpell(WARRotation.AID.NascentFlash)) : targetID,
-                    WARRotation.AID.Shirk => _config.SmartShirkTarget ? SmartTargetCoTank(targetID, ActionID.MakeSpell(WARRotation.AID.Shirk)) : targetID,
+                    WARRotation.AID.NascentFlash or WARRotation.AID.Shirk => SmartTargetNascentFlashShirk(actionID, targetID),
                     WARRotation.AID.Holmgang => _config.HolmgangSelf ? Service.ClientState.LocalPlayer?.ObjectId ?? targetID : targetID,
                     _ => targetID
                 };
@@ -211,9 +206,10 @@ namespace BossMod
         public override void DrawOverlay()
         {
             ImGui.Text($"Next: {WARRotation.ActionShortString(_nextBestSTAction)} / {WARRotation.ActionShortString(_nextBestAOEAction)}");
-            ImGui.Text($"SmartQueue:{SmartQueueString(_strategy)}");
-            ImGui.Text($"GCD={_state.GCD:f3}, Lock={_state.AnimationLock:f3}, RBLeft={_state.RaidBuffsLeft:f2}");
-            ImGui.Text($"FightEnd={_strategy.FightEndIn:f3}, PosLock={_strategy.PositionLockIn:f3}, RBIn={_strategy.RaidBuffsIn:f2}");
+            ImGui.Text(_strategy.ToString());
+            ImGui.Text($"Raidbuffs: {_state.RaidBuffsLeft:f2}s left, next in {_strategy.RaidBuffsIn:f2}s");
+            ImGui.Text($"Downtime: {_strategy.FightEndIn:f2}s, pos-lock: {_strategy.PositionLockIn:f2}");
+            ImGui.Text($"GCD={_state.GCD:f3}, AnimLock={_state.AnimationLock:f3}+{_state.AnimationLockDelay:f3}");
         }
 
         private WARRotation.State BuildState()
@@ -271,68 +267,31 @@ namespace BossMod
 
             // detect expired buffs
             if (curr.InnerReleaseLeft == 0 && prev.InnerReleaseLeft != 0 && prev.InnerReleaseLeft < 1)
-                Log($"Expired IR [{StateString(curr)}]");
+                Log($"Expired IR [{curr}]");
             if (curr.NascentChaosLeft == 0 && prev.NascentChaosLeft != 0 && prev.NascentChaosLeft < 1)
-                Log($"Expired NC [{StateString(curr)}]");
+                Log($"Expired NC [{curr}]");
             if (curr.PrimalRendLeft == 0 && prev.PrimalRendLeft != 0 && prev.PrimalRendLeft < 1)
-                Log($"Expired PR [{StateString(curr)}]");
+                Log($"Expired PR [{curr}]");
             if (curr.SurgingTempestLeft == 0 && prev.SurgingTempestLeft != 0 && prev.SurgingTempestLeft < 1)
-                Log($"Expired ST [{StateString(curr)}]");
+                Log($"Expired ST [{curr}]");
             if (curr.ComboTimeLeft == 0 && prev.ComboTimeLeft != 0 && prev.ComboTimeLeft < 1)
-                Log($"Expired combo [{StateString(curr)}]");
-        }
-
-        private static string StateString(WARRotation.State s)
-        {
-            return $"g={s.Gauge}, RB={s.RaidBuffsLeft:f1}, ST={s.SurgingTempestLeft:f1}, NC={s.NascentChaosLeft:f1}, PR={s.PrimalRendLeft:f1}, IR={s.InnerReleaseStacks}/{s.InnerReleaseLeft:f1}, IRCD={s.InnerReleaseCD:f1}, InfCD={s.InfuriateCD:f1}, UphCD={s.UpheavalCD:f1}, OnsCD={s.OnslaughtCD:f1}, PotCD={s.PotionCD:f1}, GCD={s.GCD:f3}, ALock={s.AnimationLock:f3}, ALockDelay={s.AnimationLockDelay:f3}, lvl={s.Level}";
-        }
-
-        private static string SmartQueueString(WARRotation.Strategy strategy)
-        {
-            var sb = new StringBuilder();
-            if (strategy.ExecuteProvoke)
-                sb.Append(" Provoke");
-            if (strategy.ExecuteShirk)
-                sb.Append(" Shirk");
-            if (strategy.ExecuteHolmgang)
-                sb.Append(" Holmgang");
-            if (strategy.ExecuteArmsLength)
-                sb.Append(" ArmsLength");
-            if (strategy.ExecuteShakeItOff)
-                sb.Append(" ShakeItOff");
-            if (strategy.ExecuteVengeance)
-                sb.Append(" Vengeance");
-            if (strategy.ExecuteRampart)
-                sb.Append(" Rampart");
-            if (strategy.ExecuteThrillOfBattle)
-                sb.Append(" ThrillOfBattle");
-            if (strategy.ExecuteEquilibrium)
-                sb.Append(" Equilibrium");
-            if (strategy.ExecuteReprisal)
-                sb.Append(" Reprisal");
-            if (strategy.ExecuteBloodwhetting)
-                sb.Append(" Bloodwhetting");
-            if (strategy.ExecuteNascentFlash)
-                sb.Append(" NascentFlash");
-            if (strategy.ExecuteSprint)
-                sb.Append(" Sprint");
-            return sb.ToString();
+                Log($"Expired combo [{curr}]");
         }
 
         // shirk/nascent flash smart targeting: target if friendly > mouseover if friendly > other tank
-        private uint SmartTargetCoTank(uint targetID, ActionID action)
+        private uint SmartTargetNascentFlashShirk(ActionID action, uint targetID)
         {
-            var target = Autorot.Bossmods.WorldState.Actors.Find(targetID);
-            if (target?.Type is ActorType.Player or ActorType.Chocobo)
-                return target.InstanceID;
-
-            target = Autorot.Bossmods.WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
-            if (target?.Type is ActorType.Player or ActorType.Chocobo)
-                return target.InstanceID;
-
-            target = Autorot.Bossmods.WorldState.Party.WithoutSlot().FirstOrDefault(a => a.InstanceID != Service.ClientState.LocalPlayer?.ObjectId && a.Role == Role.Tank);
+            targetID = SmartQueueTarget(action, targetID);
+            var target = SmartTargetFriendly(targetID, _config.SmartNascentFlashShirkTarget);
             if (target != null)
                 return target.InstanceID;
+
+            if (_config.SmartNascentFlashShirkTarget)
+            {
+                target = Autorot.Bossmods.WorldState.Party.WithoutSlot().FirstOrDefault(a => a.InstanceID != Service.ClientState.LocalPlayer?.ObjectId && a.Role == Role.Tank);
+                if (target != null)
+                    return target.InstanceID;
+            }
 
             // can't find good target, deactivate smart-queue entry to prevent silly spam
             Log($"Smart-target failed, removing from queue");

@@ -16,24 +16,14 @@ boss modules:
 
 autorotation:
 - war
--- low-level rotation - improve berserk delay logic
+-- low-level rotation - improve berserk delay logic, berserk buff id
 -- automatic bloodwhetting?
 -- charge planning
 -- offensive CD planning/delay
 - whm:
--- dia/glare -> downscale lvl; select based on debuff
--- holy: manual
--- assize, pom: manual?
--- st gcd heal: affsolace -> cure2 (no lilies) -> cure (lvl/mana)
--- aoe gcd heal: affrapture -> medica2 (no lilies) -> cure3 (buff up/not nearby) -> medica (lvl/mana/not stacked)
--- st ogcd heal: tetra, db, bene (manual)
--- asylum: manual
--- regen: manual
--- pi/temperance: manual
--- affmisery: manual (needed to cover movement)
--- swiftcast: manual
--- lucid dreaming, thin air: ???
--- surecast: manual (or planned for kb)
+-- glare - low-level status ids
+-- auto assize
+-- asylum/liturgy queue
 
 cooldown planner:
 - select columns to show (concrete actions, categories)

@@ -123,7 +123,8 @@ namespace BossMod
                 }
             }
 
-            OnUpdate();
+            var state = OnUpdate();
+            _sq.Active = state.GCD > 0 || state.AnimationLock > 0;
         }
 
         public (ActionID, uint) ReplaceActionAndTarget(ActionID actionID, uint targetID)
@@ -144,7 +145,7 @@ namespace BossMod
         }
 
         abstract protected void OnCastSucceeded(ActionID actionID);
-        abstract protected void OnUpdate();
+        abstract protected CommonRotation.State OnUpdate();
         abstract protected (ActionID, uint) DoReplaceActionAndTarget(ActionID actionID, uint targetID);
         abstract public void DrawOverlay();
 
@@ -183,7 +184,7 @@ namespace BossMod
             strategy.FightEndIn = Autorot.Bossmods.ActiveModule?.StateMachine.EstimateTimeToNextDowntime() ?? 0;
             strategy.RaidBuffsIn = Autorot.Bossmods.RaidCooldowns.NextDamageBuffIn(Autorot.Bossmods.WorldState.CurrentTime);
             strategy.PositionLockIn = Autorot.Config.EnableMovement ? (Autorot.Bossmods.ActiveModule?.StateMachine.EstimateTimeToNextPositioning() ?? 10000) : 0;
-            strategy.Potion = potion ? (SmartQueueActive(potion) ? CommonRotation.Strategy.PotionUse.Immediate : Autorot.Config.PotionUse) : CommonRotation.Strategy.PotionUse.Manual;
+            strategy.Potion = SmartQueueActive(potion) ? CommonRotation.Strategy.PotionUse.Immediate : Autorot.Config.PotionUse;
             if (strategy.Potion != CommonRotation.Strategy.PotionUse.Manual && !HaveItemInInventory(potion.ID)) // don't try to use potions if player doesn't have any
                 strategy.Potion = CommonRotation.Strategy.PotionUse.Manual;
             strategy.ExecuteSprint = SmartQueueActive(CommonRotation.IDSprint);
@@ -193,23 +194,37 @@ namespace BossMod
         protected void SmartQueueRegister(ActionID action) => _sq.Entries[action] = new();
         protected void SmartQueueRegisterSpell<AID>(AID spell) where AID : Enum => SmartQueueRegister(ActionID.MakeSpell(spell));
 
-        // activate or deactivate smart-queue
-        protected void SmartQueueSetActive(bool active) => _sq.Active = active;
+        // check whether smart-queueable action is queued
+        protected bool SmartQueueActive(ActionID action) => _sq.Entries.GetValueOrDefault(action)?.Active ?? false;
+        protected bool SmartQueueActiveSpell<AID>(AID spell) where AID : Enum => SmartQueueActive(ActionID.MakeSpell(spell));
 
-        // check whether smart-queueable action is queued; return queued target or null
-        protected uint? SmartQueueActiveTarget(ActionID action)
+        // get smart-queue target, if available; otherwise (if smart-queue is inactive or if it was planned without specific target) return fallback (current target probably)
+        protected uint SmartQueueTarget(ActionID action, uint fallback)
         {
             var e = _sq.Entries.GetValueOrDefault(action);
-            return e != null && e.Active ? e.Target : null;
+            return e != null && e.Active && e.Target != 0 ? e.Target : fallback;
         }
-        protected uint? SmartQueueActiveSpellTarget<AID>(AID spell) where AID : Enum => SmartQueueActiveTarget(ActionID.MakeSpell(spell));
-
-        // check whether smart-queueable action is queued
-        protected bool SmartQueueActive(ActionID action) => SmartQueueActiveTarget(action) != null;
-        protected bool SmartQueueActiveSpell<AID>(AID spell) where AID : Enum => SmartQueueActiveTarget(ActionID.MakeSpell(spell)) != null;
+        protected uint SmartQueueTargetSpell<AID>(AID spell, uint fallback) where AID : Enum => SmartQueueTarget(ActionID.MakeSpell(spell), fallback);
 
         // deactivate smart-queue entry
         protected void SmartQueueDeactivate(ActionID action) => _sq.Entries.GetValueOrDefault(action)?.Deactivate();
+
+        // smart targeting utility: return target (if friendly) or mouseover (if friendly and allowed) or null (otherwise)
+        protected Actor? SmartTargetFriendly(uint targetID, bool allowMouseover)
+        {
+            var target = Autorot.Bossmods.WorldState.Actors.Find(targetID);
+            if (target?.Type is ActorType.Player or ActorType.Chocobo)
+                return target;
+
+            if (allowMouseover)
+            {
+                target = Autorot.Bossmods.WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
+                if (target?.Type is ActorType.Player or ActorType.Chocobo)
+                    return target;
+            }
+
+            return null;
+        }
 
         protected void Log(string message)
         {

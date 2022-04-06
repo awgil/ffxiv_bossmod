@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace BossMod
 {
@@ -60,11 +61,16 @@ namespace BossMod
             Esuna = 7568,
             Rescue = 7571,
         }
+        public static ActionID IDStatPotion = new(ActionType.Item, 1036113); // hq grade 6 tincture of mind
 
         public enum SID : uint
         {
             None = 0,
-            Dia = 2677, // applied by Dia, dot
+            Medica2 = 150,
+            Freecure = 155,
+            Swiftcast = 167,
+            ThinAir = 1217,
+            Dia = 1871,
         }
 
         // full state needed for determining next action
@@ -140,7 +146,12 @@ namespace BossMod
             public AID BestHoly => UnlockedHoly3 ? AID.Holy3 : AID.Holy1;
 
             // num lilies on next GCD
-            public int NormalLiliesOnNextGCD => UnlockedAfflatusSolace ? Math.Max(NormalLilies + (NextLilyIn < GCD ? 1 : 0), 3) : 0;
+            public int NormalLiliesOnNextGCD => UnlockedAfflatusSolace ? Math.Min(NormalLilies + (NextLilyIn < GCD ? 1 : 0), 3) : 0;
+
+            public override string ToString()
+            {
+                return $"g={NormalLilies}/{BloodLilies}/{NextLilyIn:f1}, MP={CurMP}, moving={Moving}, RB={RaidBuffsLeft:f1}, Dia={TargetDiaLeft:f1}, Medica={MedicaLeft:f1}, Swiftcast={SwiftcastLeft:f1}, TA={ThinAirLeft:f1}, Freecure={FreecureLeft:f1}, AssizeCD={AssizeCD:f1}, PoMCD={PresenceOfMindCD:f1}, LDCD={LucidDreamingCD:f1}, TACD={ThinAirCD:f1}, PlenCD={PlenaryIndulgenceCD:f1}, AsylumCD={AsylumCD:f1}, BeniCD={DivineBenisonCD:f1}, TetraCD={TetragrammatonCD:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+            }
         }
 
         public class Strategy : CommonRotation.Strategy
@@ -159,6 +170,34 @@ namespace BossMod
             public bool ExecuteTemperance;
             public bool ExecuteAquaveil;
             public bool ExecuteSurecast;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder($"M2={NumRaptureMedica2Targets}, C3={NumCure3Targets}, SmartQueue:");
+                if (ExecuteBenediction)
+                    sb.Append(" Benediction");
+                if (ExecuteLiturgyOfTheBell)
+                    sb.Append(" Liturgy");
+                if (ExecuteSurecast)
+                    sb.Append(" Surecast");
+                if (ExecuteAssize)
+                    sb.Append(" Assize");
+                if (ExecuteAsylum)
+                    sb.Append(" Asylum");
+                if (ExecuteDivineBenison)
+                    sb.Append(" DB");
+                if (ExecuteTetragrammaton)
+                    sb.Append(" Tetra");
+                if (ExecuteSwiftcast)
+                    sb.Append(" Swiftcast");
+                if (ExecuteTemperance)
+                    sb.Append(" Temperance");
+                if (ExecuteAquaveil)
+                    sb.Append(" Aquaveil");
+                if (ExecuteSprint)
+                    sb.Append(" Sprint");
+                return sb.ToString();
+            }
         }
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float windowEnd, bool aoe, bool heal)
@@ -191,15 +230,17 @@ namespace BossMod
             if (strategy.ExecuteSprint && state.CanWeave(state.SprintCD, 0.6f, windowEnd))
                 return CommonRotation.IDSprint;
 
-            // 3. pom (TODO: consider delaying until raidbuffs?)
+            // 3.potion (TODO)
+
+            // 4. pom (TODO: consider delaying until raidbuffs?)
             if (state.UnlockedPresenceOfMind && state.CanWeave(state.PresenceOfMindCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.PresenceOfMind);
 
-            // 4. lucid dreaming, if we won't waste mana (TODO: revise mp limit)
+            // 5. lucid dreaming, if we won't waste mana (TODO: revise mp limit)
             if (state.CurMP < 7000 && state.UnlockedLucidDreaming && state.CanWeave(state.LucidDreamingCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.LucidDreaming);
 
-            // 5. thin air, if we have some mana deficit and we're either sitting on 2 charges or we're gonna cast expensive spell (TODO: revise mp limit)
+            // 6. thin air, if we have some mana deficit and we're either sitting on 2 charges or we're gonna cast expensive spell (TODO: revise mp limit)
             if (state.CurMP < 9000 && state.UnlockedThinAir && state.CanWeave(state.ThinAirCD - 60, 0.6f, windowEnd))
             {
                 if (state.ThinAirCD < state.GCD)
@@ -306,6 +347,12 @@ namespace BossMod
             if (!res) // gcd
                 res = ActionID.MakeSpell(GetNextBestGCD(state, strategy, aoe, heal));
             return res;
+        }
+
+        // short string for supported action
+        public static string ActionShortString(ActionID action)
+        {
+            return action == CommonRotation.IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
         }
     }
 }
