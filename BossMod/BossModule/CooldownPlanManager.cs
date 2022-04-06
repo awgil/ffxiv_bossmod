@@ -12,7 +12,7 @@ namespace BossMod
             public List<CooldownPlan> Available = new();
             public int SelectedIndex = -1;
 
-            public CooldownPlan? Selected => SelectedIndex >= 0 ? Available[SelectedIndex] : null;
+            public CooldownPlan? Selected() => SelectedIndex >= 0 ? Available[SelectedIndex] : null;
         }
 
         public Dictionary<uint, Dictionary<Class, PlanList>> Plans = new(); // [encounter-oid][class]
@@ -38,7 +38,7 @@ namespace BossMod
 
             var plans = Plans.GetOrAdd(encounterOID).GetOrAdd(curClass);
             ImGui.SetNextItemWidth(100);
-            if (ImGui.BeginCombo("Cooldown plan", plans.Selected?.Name ?? "none"))
+            if (ImGui.BeginCombo("Cooldown plan", plans.Selected()?.Name ?? "none"))
             {
                 if (ImGui.Selectable("none", plans.SelectedIndex < 0))
                 {
@@ -65,7 +65,7 @@ namespace BossMod
                 }
                 StartPlanEditor(plans.Available[plans.SelectedIndex], initial);
             }
-            return plans.Selected;
+            return plans.Selected();
         }
 
         protected override void DrawContents()

@@ -42,6 +42,11 @@ namespace BossMod
             _peekMessageHook.Dispose();
         }
 
+        public bool IsMoving()
+        {
+            return Service.KeyState[VirtualKey.W] || Service.KeyState[VirtualKey.S] || Service.KeyState[VirtualKey.A] || Service.KeyState[VirtualKey.D];
+        }
+
         public void BlockMovement()
         {
             if (_movementBlocked)

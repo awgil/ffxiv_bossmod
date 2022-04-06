@@ -15,11 +15,11 @@ namespace BossMod
         private ActionID _nextBestSTAction = ActionID.MakeSpell(WARRotation.AID.HeavySwing);
         private ActionID _nextBestAOEAction = ActionID.MakeSpell(WARRotation.AID.Overpower);
 
-        public WARActions(AutorotationConfig config, BossModuleManager bossmods)
-            : base(config, bossmods)
+        public WARActions(Autorotation autorot)
+            : base(autorot)
         {
-            _config = config.Get<WARConfig>();
-            _state = BuildState(WARRotation.AID.None, 0, 0, 0.1f);
+            _config = autorot.Config.Get<WARConfig>();
+            _state = BuildState();
             _strategy = new()
             {
                 FirstChargeIn = 0.01f, // by default, always preserve 1 onslaught charge
@@ -39,7 +39,7 @@ namespace BossMod
             SmartQueueRegisterSpell(WARRotation.AID.ArmsLength);
             SmartQueueRegisterSpell(WARRotation.AID.Provoke);
             SmartQueueRegisterSpell(WARRotation.AID.Shirk);
-            SmartQueueRegister(WARRotation.IDSprint);
+            SmartQueueRegister(CommonRotation.IDSprint);
             SmartQueueRegister(WARRotation.IDStatPotion);
         }
 
@@ -145,19 +145,13 @@ namespace BossMod
             Log($"Cast {actionID}, next-best={_nextBestSTAction}/{_nextBestAOEAction}{comment} [{StateString(_state)}]");
         }
 
-        protected override void OnUpdate(uint comboLastAction, float comboTimeLeft, float animLock, float animLockDelay)
+        protected override void OnUpdate()
         {
-            var currState = BuildState((WARRotation.AID)comboLastAction, comboTimeLeft, animLock, animLockDelay);
+            var currState = BuildState();
             LogStateChange(_state, currState);
             _state = currState;
 
-            _strategy.Potion = SmartQueueActive(WARRotation.IDStatPotion) ? WARRotation.Strategy.PotionUse.Immediate : _config.PotionUse;
-            if (_strategy.Potion != WARRotation.Strategy.PotionUse.Manual && !HavePotions()) // don't try to use potions if player doesn't have any
-                _strategy.Potion = WARRotation.Strategy.PotionUse.Manual;
-
-            _strategy.RaidBuffsIn = _bossmods.RaidCooldowns.NextDamageBuffIn(_bossmods.WorldState.CurrentTime);
-            _strategy.PositionLockIn = _config.EnableMovement ? (_bossmods.ActiveModule?.StateMachine.EstimateTimeToNextPositioning() ?? 10000) : 0;
-            _strategy.FightEndIn = _bossmods.ActiveModule?.StateMachine.EstimateTimeToNextDowntime() ?? 0;
+            FillCommonStrategy(_strategy, WARRotation.IDStatPotion);
 
             // cooldown execution
             _strategy.ExecuteRampart = SmartQueueActiveSpell(WARRotation.AID.Rampart);
@@ -172,7 +166,6 @@ namespace BossMod
             _strategy.ExecuteArmsLength = SmartQueueActiveSpell(WARRotation.AID.ArmsLength);
             _strategy.ExecuteProvoke = SmartQueueActiveSpell(WARRotation.AID.Provoke); // TODO: check that not MT already
             _strategy.ExecuteShirk = SmartQueueActiveSpell(WARRotation.AID.Shirk); // TODO: check that hate is close to MT...
-            _strategy.ExecuteSprint = SmartQueueActive(WARRotation.IDSprint);
 
             var nextBestST = _config.FullRotation ? WARRotation.GetNextBestAction(_state, _strategy, false) : ActionID.MakeSpell(WARRotation.AID.HeavySwing);
             if (nextBestST != _nextBestSTAction)
@@ -223,25 +216,16 @@ namespace BossMod
             ImGui.Text($"FightEnd={_strategy.FightEndIn:f3}, PosLock={_strategy.PositionLockIn:f3}, RBIn={_strategy.RaidBuffsIn:f2}");
         }
 
-        private WARRotation.State BuildState(WARRotation.AID comboLastAction, float comboTimeLeft, float animLock, float animLockDelay)
+        private WARRotation.State BuildState()
         {
             WARRotation.State s = new();
+            FillCommonState(s, WARRotation.AID.HeavySwing, WARRotation.IDStatPotion);
             if (Service.ClientState.LocalPlayer != null)
             {
-                s.Level = Service.ClientState.LocalPlayer.Level;
-                s.AnimationLock = animLock;
-                s.AnimationLockDelay = animLockDelay;
-                s.ComboTimeLeft = comboTimeLeft;
-                s.ComboLastMove = comboLastAction;
                 s.Gauge = Service.JobGauges.Get<WARGauge>().BeastGauge;
 
                 foreach (var status in Service.ClientState.LocalPlayer.StatusList)
                 {
-                    if (IsDamageBuff(status.StatusId))
-                    {
-                        s.RaidBuffsLeft = MathF.Max(s.RaidBuffsLeft, StatusDuration(status.RemainingTime));
-                    }
-
                     switch ((WARRotation.SID)status.StatusId)
                     {
                         case WARRotation.SID.SurgingTempest:
@@ -260,7 +244,6 @@ namespace BossMod
                     }
                 }
 
-                s.GCD = SpellCooldown(WARRotation.AID.HeavySwing);
                 s.InfuriateCD = SpellCooldown(WARRotation.AID.Infuriate);
                 s.UpheavalCD = SpellCooldown(WARRotation.AID.Upheaval);
                 s.InnerReleaseCD = SpellCooldown(WARRotation.AID.InnerRelease);
@@ -276,15 +259,8 @@ namespace BossMod
                 s.ArmsLengthCD = SpellCooldown(WARRotation.AID.ArmsLength);
                 s.ProvokeCD = SpellCooldown(WARRotation.AID.Provoke);
                 s.ShirkCD = SpellCooldown(WARRotation.AID.Shirk);
-                s.SprintCD = ActionCooldown(WARRotation.IDSprint);
-                s.PotionCD = ActionCooldown(WARRotation.IDStatPotion);
             }
             return s;
-        }
-
-        private unsafe bool HavePotions()
-        {
-            return FFXIVClientStructs.FFXIV.Client.Game.InventoryManager.Instance()->GetInventoryItemCount(WARRotation.IDStatPotion.ID % 1000000, true, false, false) > 0;
         }
 
         private void LogStateChange(WARRotation.State prev, WARRotation.State curr)
@@ -346,15 +322,15 @@ namespace BossMod
         // shirk/nascent flash smart targeting: target if friendly > mouseover if friendly > other tank
         private uint SmartTargetCoTank(uint targetID, ActionID action)
         {
-            var target = _bossmods.WorldState.Actors.Find(targetID);
+            var target = Autorot.Bossmods.WorldState.Actors.Find(targetID);
             if (target?.Type is ActorType.Player or ActorType.Chocobo)
                 return target.InstanceID;
 
-            target = _bossmods.WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
+            target = Autorot.Bossmods.WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
             if (target?.Type is ActorType.Player or ActorType.Chocobo)
                 return target.InstanceID;
 
-            target = _bossmods.WorldState.Party.WithoutSlot().FirstOrDefault(a => a.InstanceID != Service.ClientState.LocalPlayer?.ObjectId && a.Role == Role.Tank);
+            target = Autorot.Bossmods.WorldState.Party.WithoutSlot().FirstOrDefault(a => a.InstanceID != Service.ClientState.LocalPlayer?.ObjectId && a.Role == Role.Tank);
             if (target != null)
                 return target.InstanceID;
 

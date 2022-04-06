@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BossMod
 {
-    public class WARRotation
+    public static class WARRotation
     {
         public enum AID : uint
         {
@@ -57,7 +57,6 @@ namespace BossMod
             LowBlow = 7540,
             Interject = 7538,
         }
-        public static ActionID IDSprint = new(ActionType.General, 4);
         public static ActionID IDStatPotion = new(ActionType.Item, 1036109); // hq grade 6 tincture of strength
 
         public enum SID : uint
@@ -67,19 +66,13 @@ namespace BossMod
             NascentChaos = 1897, // applied by Infuriate, converts next FC to IC
             InnerRelease = 1177, // applied by InnerRelease, next 3 GCDs should be free FCs
             PrimalRend = 2624, // applied by InnerRelease, allows casting PR
+            // TODO: berserk, defensive CDs
         }
 
         // full state needed for determining next action
-        public class State
+        public class State : CommonRotation.State
         {
-            public int Level;
-            public float GCD; // 2.5 max (decreased by SkS), 0 if not on gcd
-            public float AnimationLock; // typical actions have 0.6 delay, but some (notably primal rend and potion) are >1
-            public float AnimationLockDelay; // average time between action request and confirmation; this is added to effective animation lock for actions
-            public float ComboTimeLeft; // 0 if not in combo, max 30
-            public AID ComboLastMove;
             public int Gauge; // 0 to 100
-            public float RaidBuffsLeft; // 0 if no damage-up status is up, otherwise it is time left on longest
             public float SurgingTempestLeft; // 0 if buff not up, max 60
             public float NascentChaosLeft; // 0 if buff not up, max 30
             public float PrimalRendLeft; // 0 if buff not up, max 30
@@ -100,8 +93,8 @@ namespace BossMod
             public float ArmsLengthCD; // 120 max, 0 if ready
             public float ProvokeCD; // 30 max, 0 if ready
             public float ShirkCD; // 120 max, 0 if ready
-            public float SprintCD; // 60 max, 0 if ready
-            public float PotionCD; // variable max, 0 if ready
+
+            public AID ComboLastMove => (AID)ComboLastAction;
 
             // per-level ability unlocks (TODO: consider abilities unlocked by quests - they could be unavailable despite level being high enough)
             public bool UnlockedMaim => Level >= 4;
@@ -148,16 +141,10 @@ namespace BossMod
         // many strategy decisions are represented as "need-something-in" counters; 0 means "use asap", >0 means "do not use unless value is larger than cooldown" (so 'infinity' means 'free to use')
         // for planning, we typically use "windows" (as in, some CD has to be pressed from this point and up to this point);
         // before "min point" counter is >0, between "min point" and "max point" it is == 0, after "max point" we switch to next planned action (assuming if we've missed the window, CD is no longer needed)
-        public class Strategy
+        public class Strategy : CommonRotation.Strategy
         {
-            public enum PotionUse { Manual, DelayUntilBuffs, DelayUntilIR, Immediate }
-
-            public float FightEndIn; // how long fight will last (we try to spend all resources before this happens)
-            public float RaidBuffsIn; // estimate time when new raidbuff window starts (if it is smaller than FightEndIn, we try to conserve resources)
-            public float PositionLockIn; // time left to use moving abilities (Primal Rend and Onslaught) - we won't use them if it is ==0; setting this to 2.5f will make us use PR asap
             public float FirstChargeIn; // when do we need to use onslaught charge (0 means 'use asap if out of melee range', >0 means that we'll try to make sure 1 charge is available in this time)
             public float SecondChargeIn; // when do we need to use two onslaught charges in a short amount of time
-            public PotionUse Potion; // strategy for automatic potion use
             public bool EnableUpheaval = true; // if true, enable using upheaval when needed; setting to false is useful during opener before first party buffs
             public bool Aggressive; // if true, we use buffs and stuff at last possible moment; otherwise we make sure to keep at least 1 GCD safety net
             // 'execute' flags: if true, we execute corresponding action in next free ogcd slot (potentially delaying a bit to avoid losing damage)
@@ -174,7 +161,6 @@ namespace BossMod
             public bool ExecuteArmsLength;
             public bool ExecuteProvoke;
             public bool ExecuteShirk;
-            public bool ExecuteSprint;
         }
 
         public static int GaugeGainedFromAction(State state, AID action)
@@ -325,16 +311,6 @@ namespace BossMod
             return GetNextUnlockedComboAction(state, gcdDelay + 12.5f, aoe);
         }
 
-        public static bool IsOGCDAvailable(float cooldown, float actionLock, float delay, float windowEnd)
-        {
-            return MathF.Max(cooldown, 0) + actionLock + delay <= windowEnd;
-        }
-
-        public static float GetOGCDDelay(float animLockDelay)
-        {
-            return 0.1f; // TODO: consider returning animLockDelay instead...
-        }
-
         // check whether berserk should be delayed (we want to spend it on FCs)
         // this is relevant only until we unlock IR
         public static bool DelayBerserk(State state)
@@ -373,9 +349,7 @@ namespace BossMod
         // window-end is either GCD or GCD - time-for-second-ogcd; we are allowed to use ogcds only if their animation lock would complete before window-end
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float windowEnd, bool aoe)
         {
-            var lockDelay = GetOGCDDelay(state.AnimationLockDelay);
-
-            bool infuriateAvailable = state.UnlockedInfuriate && IsOGCDAvailable(state.InfuriateCD - 60, 0.6f, lockDelay, windowEnd); // note: for second stack, this will be true if casting it won't delay our next gcd
+            bool infuriateAvailable = state.UnlockedInfuriate && state.CanWeave(state.InfuriateCD - 60, 0.6f, windowEnd); // note: for second stack, this will be true if casting it won't delay our next gcd
             infuriateAvailable &= state.Gauge <= 50; // never cast infuriate if doing so would overcap gauge
             if (state.UnlockedChaoticCyclone)
             {
@@ -390,53 +364,53 @@ namespace BossMod
                 return ActionID.MakeSpell(AID.Infuriate);
 
             // 2. use cooldowns if requested in rough priority order
-            if (strategy.ExecuteProvoke && state.UnlockedProvoke && IsOGCDAvailable(state.ProvokeCD, 0.6f, lockDelay, windowEnd))
+            if (strategy.ExecuteProvoke && state.UnlockedProvoke && state.CanWeave(state.ProvokeCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Provoke);
-            if (strategy.ExecuteShirk && state.UnlockedShirk && IsOGCDAvailable(state.ShirkCD, 0.6f, lockDelay, windowEnd))
+            if (strategy.ExecuteShirk && state.UnlockedShirk && state.CanWeave(state.ShirkCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Shirk);
-            if (strategy.ExecuteHolmgang && state.UnlockedHolmgang && IsOGCDAvailable(state.HolmgangCD, 0.6f, lockDelay, windowEnd))
+            if (strategy.ExecuteHolmgang && state.UnlockedHolmgang && state.CanWeave(state.HolmgangCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Holmgang);
-            if (strategy.ExecuteArmsLength && state.UnlockedArmsLength && IsOGCDAvailable(state.ArmsLengthCD, 0.6f, lockDelay, windowEnd))
+            if (strategy.ExecuteArmsLength && state.UnlockedArmsLength && state.CanWeave(state.ArmsLengthCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.ArmsLength);
-            if (strategy.ExecuteThrillOfBattle && state.UnlockedThrillOfBattle && IsOGCDAvailable(state.ThrillOfBattleCD, 0.6f, lockDelay, windowEnd)) // prefer using thrill before SOI, so that it can be eaten
+            if (strategy.ExecuteThrillOfBattle && state.UnlockedThrillOfBattle && state.CanWeave(state.ThrillOfBattleCD, 0.6f, windowEnd)) // prefer using thrill before SOI, so that it can be eaten
                 return ActionID.MakeSpell(AID.ThrillOfBattle);
-            if (strategy.ExecuteEquilibrium && state.UnlockedEquilibrium && IsOGCDAvailable(state.EquilibriumCD, 0.6f, lockDelay, windowEnd)) // prefer to use equilibrium after thrill for extra healing
+            if (strategy.ExecuteEquilibrium && state.UnlockedEquilibrium && state.CanWeave(state.EquilibriumCD, 0.6f, windowEnd)) // prefer to use equilibrium after thrill for extra healing
                 return ActionID.MakeSpell(AID.Equilibrium);
-            if (strategy.ExecuteShakeItOff && state.UnlockedShakeItOff && IsOGCDAvailable(state.ShakeItOffCD, 0.6f, lockDelay, windowEnd)) // prefer to use SOI after thrill (to consume it), but before vengeance & bloodwhetting (too useful)
+            if (strategy.ExecuteShakeItOff && state.UnlockedShakeItOff && state.CanWeave(state.ShakeItOffCD, 0.6f, windowEnd)) // prefer to use SOI after thrill (to consume it), but before vengeance & bloodwhetting (too useful)
                 return ActionID.MakeSpell(AID.ShakeItOff);
-            if (strategy.ExecuteVengeance && state.UnlockedVengeance && IsOGCDAvailable(state.VengeanceCD, 0.6f, lockDelay, windowEnd))
+            if (strategy.ExecuteVengeance && state.UnlockedVengeance && state.CanWeave(state.VengeanceCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Vengeance);
-            if (strategy.ExecuteRampart && state.UnlockedRampart && IsOGCDAvailable(state.RampartCD, 0.6f, lockDelay, windowEnd))
+            if (strategy.ExecuteRampart && state.UnlockedRampart && state.CanWeave(state.RampartCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Rampart);
-            if (strategy.ExecuteReprisal && state.UnlockedReprisal && IsOGCDAvailable(state.ReprisalCD, 0.6f, lockDelay, windowEnd))
+            if (strategy.ExecuteReprisal && state.UnlockedReprisal && state.CanWeave(state.ReprisalCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Reprisal);
-            if (strategy.ExecuteBloodwhetting && state.UnlockedRawIntuition && IsOGCDAvailable(state.BloodwhettingCD, 0.6f, lockDelay, windowEnd))
+            if (strategy.ExecuteBloodwhetting && state.UnlockedRawIntuition && state.CanWeave(state.BloodwhettingCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(state.UnlockedBloodwhetting ? AID.Bloodwhetting : AID.RawIntuition);
-            if (strategy.ExecuteNascentFlash && state.UnlockedNascentFlash && IsOGCDAvailable(state.BloodwhettingCD, 0.6f, lockDelay, windowEnd))
+            if (strategy.ExecuteNascentFlash && state.UnlockedNascentFlash && state.CanWeave(state.BloodwhettingCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.NascentFlash);
-            if (strategy.ExecuteSprint && IsOGCDAvailable(state.SprintCD, 0.6f, lockDelay, windowEnd))
-                return IDSprint;
+            if (strategy.ExecuteSprint && state.CanWeave(state.SprintCD, 0.6f, windowEnd))
+                return CommonRotation.IDSprint;
 
             // 3. potion, if required by strategy, and not too early in opener (TODO: reconsider priority)
             bool allowPotion = strategy.Potion switch
             {
-                Strategy.PotionUse.DelayUntilBuffs => state.RaidBuffsLeft > 0 || strategy.RaidBuffsIn <= 2.5, // TODO: reconsider timings?..
-                Strategy.PotionUse.DelayUntilIR => state.InnerReleaseStacks > 0 || state.InnerReleaseCD < 15, // TODO: reconsider timings?..
+                Strategy.PotionUse.DelayUntilRaidBuffs => state.RaidBuffsLeft > 0 || strategy.RaidBuffsIn <= 2.5, // TODO: reconsider timings?..
+                Strategy.PotionUse.DelayUntilPersonalBuffs => state.InnerReleaseStacks > 0 || state.InnerReleaseCD < 15, // TODO: reconsider timings?..
                 Strategy.PotionUse.Immediate => true,
                 _ => false,
             };
             // note: this check will not allow using potions before lvl 50, but who cares...
-            if (allowPotion && IsOGCDAvailable(state.PotionCD, 1.1f, lockDelay, windowEnd) && (state.SurgingTempestLeft > 0 || state.ComboLastMove == AID.Maim))
+            if (allowPotion && state.CanWeave(state.PotionCD, 1.1f, windowEnd) && (state.SurgingTempestLeft > 0 || state.ComboLastMove == AID.Maim))
                 return IDStatPotion;
 
             // 4. upheaval, if surging tempest up and not forbidden
             // TODO: delay for 1 GCD during opener...
-            if (state.UnlockedUpheaval && IsOGCDAvailable(state.UpheavalCD, 0.6f, lockDelay, windowEnd) && state.SurgingTempestLeft > MathF.Max(state.UpheavalCD, 0) && strategy.EnableUpheaval)
+            if (state.UnlockedUpheaval && state.CanWeave(state.UpheavalCD, 0.6f, windowEnd) && state.SurgingTempestLeft > MathF.Max(state.UpheavalCD, 0) && strategy.EnableUpheaval)
                 return ActionID.MakeSpell(aoe && state.UnlockedOrogeny ? AID.Orogeny : AID.Upheaval);
 
             // 5. inner release, if surging tempest up and no nascent chaos up
             // if not unlocked yet, use berserk instead, but only if we have enough gauge
-            bool irReady = IsOGCDAvailable(state.InnerReleaseCD, 0.6f, lockDelay, windowEnd);
+            bool irReady = state.CanWeave(state.InnerReleaseCD, 0.6f, windowEnd);
             if (state.UnlockedBerserk && irReady && (state.SurgingTempestLeft > state.GCD + 5 || !state.UnlockedStormEye) && state.NascentChaosLeft <= state.GCD)
             {
                 if (state.UnlockedInnerRelease)
@@ -479,7 +453,7 @@ namespace BossMod
             }
 
             // 7. onslaught, if surging tempest up and not forbidden
-            if (state.UnlockedOnslaught && IsOGCDAvailable(state.OnslaughtCD - (state.UnlockedEnhancedOnslaught ? 60 : 30), 0.6f, lockDelay, windowEnd) && strategy.PositionLockIn > state.AnimationLock && state.SurgingTempestLeft > state.AnimationLock)
+            if (state.UnlockedOnslaught && state.CanWeave(state.OnslaughtCD - (state.UnlockedEnhancedOnslaught ? 60 : 30), 0.6f, windowEnd) && strategy.PositionLockIn > state.AnimationLock && state.SurgingTempestLeft > state.AnimationLock)
             {
                 if (state.OnslaughtCD < state.GCD + 2.5)
                     return ActionID.MakeSpell(AID.Onslaught); // onslaught now, otherwise we risk overcapping charges
@@ -501,32 +475,20 @@ namespace BossMod
 
         public static ActionID GetNextBestAction(State state, Strategy strategy, bool aoe)
         {
-            var ogcdSlotLength = 0.6f + GetOGCDDelay(state.AnimationLockDelay);
-
-            // first ogcd slot
-            var doubleWeavingWindowEnd = state.GCD - ogcdSlotLength;
-            if (state.AnimationLock + ogcdSlotLength <= doubleWeavingWindowEnd)
-            {
-                var ogcd = GetNextBestOGCD(state, strategy, doubleWeavingWindowEnd, aoe);
-                if (ogcd)
-                    return ogcd;
-            }
-
-            // second/only ogcd slot
-            if (state.AnimationLock + ogcdSlotLength <= state.GCD)
-            {
-                var ogcd = GetNextBestOGCD(state, strategy, state.GCD, aoe);
-                if (ogcd)
-                    return ogcd;
-            }
-
-            return ActionID.MakeSpell(GetNextBestGCD(state, strategy, aoe));
+            ActionID res = new();
+            if (state.CanDoubleWeave) // first ogcd slot
+                res = GetNextBestOGCD(state, strategy, state.DoubleWeaveWindowEnd, aoe);
+            if (!res && state.CanSingleWeave) // second/only ogcd slot
+                res = GetNextBestOGCD(state, strategy, state.GCD, aoe);
+            if (!res) // gcd
+                res = ActionID.MakeSpell(GetNextBestGCD(state, strategy, aoe));
+            return res;
         }
 
         // short string for supported action
         public static string ActionShortString(ActionID action)
         {
-            return action == IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
+            return action == CommonRotation.IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
         }
     }
 }

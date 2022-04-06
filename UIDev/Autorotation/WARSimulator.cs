@@ -36,7 +36,7 @@ namespace UIDev
         public float BuffWindowOffset = 7.5f;
         public float BuffWindowDuration = 20;
         public float BuffWindowFreq = 120;
-        public WARRotation.Strategy.PotionUse PotionUse = WARRotation.Strategy.PotionUse.DelayUntilBuffs;
+        public CommonRotation.Strategy.PotionUse PotionUse = CommonRotation.Strategy.PotionUse.DelayUntilRaidBuffs;
 
         public void Draw()
         {
@@ -48,7 +48,7 @@ namespace UIDev
             ImGui.SliderFloat("Buff window frequency", ref BuffWindowFreq, 30, 120);
             if (ImGui.BeginCombo("Potion use strategy", PotionUse.ToString()))
             {
-                foreach (var opt in Enum.GetValues<WARRotation.Strategy.PotionUse>())
+                foreach (var opt in Enum.GetValues<CommonRotation.Strategy.PotionUse>())
                     if (ImGui.Selectable(opt.ToString(), opt.Equals(PotionUse)))
                         PotionUse = opt;
                 ImGui.EndCombo();
@@ -147,7 +147,7 @@ namespace UIDev
             {
                 res |= Mistake.ComboLost;
                 state.ComboTimeLeft = 0;
-                state.ComboLastMove = WARRotation.AID.None;
+                state.ComboLastAction = 0;
             }
             if (state.SurgingTempestLeft > 0 && (state.SurgingTempestLeft -= dt) <= 0)
             {
@@ -205,7 +205,7 @@ namespace UIDev
         {
             var res = Mistake.None;
             bool isOGCD = false;
-            if (action == WARRotation.IDSprint)
+            if (action == CommonRotation.IDSprint)
             {
                 isOGCD = true;
                 res |= AdvanceTime(state, ref t, 0.6f, state.SprintCD);
@@ -501,19 +501,19 @@ namespace UIDev
                 if (prev == WARRotation.AID.None)
                 {
                     // restart combo chain anyway
-                    state.ComboLastMove = next;
+                    state.ComboLastAction = (uint)next;
                     state.ComboTimeLeft = 30;
                 }
                 else
                 {
-                    state.ComboLastMove = WARRotation.AID.None;
+                    state.ComboLastAction = 0;
                     state.ComboTimeLeft = 0;
                 }
                 return false;
             }
             else
             {
-                state.ComboLastMove = next;
+                state.ComboLastAction = (uint)next;
                 state.ComboTimeLeft = next != WARRotation.AID.None ? 30 : 0;
                 return true;
             }

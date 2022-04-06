@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.Gui;
 using ImGuiNET;
+using System;
 
 namespace BossMod
 {
@@ -26,7 +27,9 @@ namespace BossMod
             var hover = Service.GameGui.HoveredAction;
             if (hover.ActionID != 0)
             {
-                ImGui.Text($"Hover action: {hover.ActionKind} {hover.ActionID} (base={hover.BaseActionID}) (WAR: {(WARRotation.AID)hover.ActionID})");
+                var mnemonic = Service.ClientState.LocalPlayer?.ClassJob.GameData?.Abbreviation.ToString();
+                var rotationType = mnemonic != null ? Type.GetType($"BossMod.{mnemonic}Rotation")?.GetNestedType("AID") : null;
+                ImGui.Text($"Hover action: {hover.ActionKind} {hover.ActionID} (base={hover.BaseActionID}) ({mnemonic}: {rotationType?.GetEnumName(hover.ActionID)})");
 
                 var (name, type) = hover.ActionKind switch
                 {

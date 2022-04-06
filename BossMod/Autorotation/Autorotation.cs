@@ -50,8 +50,13 @@ namespace BossMod
         private unsafe float* _comboTimeLeft = null;
         private unsafe uint* _comboLastMove = null;
 
+        public AutorotationConfig Config => _config;
+        public BossModuleManager Bossmods => _bossmods;
+        public float AnimLock => MathF.Max((float)(_animLockEnd - DateTime.Now).TotalSeconds, 0);
+        public float AnimLockDelay => _animLockDelay;
         public unsafe float ComboTimeLeft => *_comboTimeLeft;
         public unsafe uint ComboLastMove => *_comboLastMove;
+        public bool Moving => _inputOverride.IsMoving();
 
         public unsafe Autorotation(Network network, ConfigNode settings, BossModuleManager bossmods)
         {
@@ -99,7 +104,7 @@ namespace BossMod
 
             if (_classActions?.GetType() != classType)
             {
-                _classActions = classType != null ? (CommonActions?)Activator.CreateInstance(classType, _config, _bossmods) : null;
+                _classActions = classType != null ? (CommonActions?)Activator.CreateInstance(classType, this) : null;
             }
 
             if (_classActions != null)
@@ -111,7 +116,7 @@ namespace BossMod
 
                 if (_pendingActions.Count == 0)
                 {
-                    _classActions.Update(ComboLastMove, ComboTimeLeft, MathF.Max((float)(_animLockEnd - DateTime.Now).TotalSeconds, 0), _animLockDelay);
+                    _classActions.Update();
                 }
             }
 
@@ -144,7 +149,7 @@ namespace BossMod
             }
             Log($"++ {PendingActionString(action)}");
             _pendingActions.Add(action);
-            _animLockEnd = DateTime.Now.AddSeconds(0.5);
+            _animLockEnd = DateTime.Now.AddSeconds(0.5); // note: i think it is less for casted (~0.1) - check by running and spamming cast, you'll see interrupt in ~0.2 and next cast in ~0.05 after that...
 
             if (_config.PreventMovingWhileCasting && action.Action.IsCasted())
                 _inputOverride.BlockMovement();

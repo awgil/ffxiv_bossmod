@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dalamud.Game.ClientState.Objects.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -38,15 +39,13 @@ namespace BossMod
             public Dictionary<ActionID, Entry> Entries = new(); // key = smart-queueable action, value = expiration timestamp + target
         }
 
-        protected BossModuleManager _bossmods;
-        private AutorotationConfig _config;
+        protected Autorotation Autorot;
         private SmartQueue _sq = new();
         private unsafe FFXIVClientStructs.FFXIV.Client.Game.ActionManager* _actionManager = null;
 
-        protected unsafe CommonActions(AutorotationConfig config, BossModuleManager bossmods)
+        protected unsafe CommonActions(Autorotation autorot)
         {
-            _bossmods = bossmods;
-            _config = config;
+            Autorot = autorot;
             _actionManager = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
         }
 
@@ -60,6 +59,11 @@ namespace BossMod
         public float SpellCooldown<AID>(AID spell) where AID : Enum
         {
             return ActionCooldown(ActionID.MakeSpell(spell));
+        }
+
+        public unsafe bool HaveItemInInventory(uint id)
+        {
+            return FFXIVClientStructs.FFXIV.Client.Game.InventoryManager.Instance()->GetInventoryItemCount(id % 1000000, id >= 1000000, false, false) > 0;
         }
 
         public float StatusDuration(float dur)
@@ -97,11 +101,11 @@ namespace BossMod
             OnCastSucceeded(actionID);
         }
 
-        public void Update(uint comboLastAction, float comboTimeLeft, float animLock, float animLockDelay)
+        public void Update()
         {
             // cooldown planning
-            var activeState = _bossmods.ActiveModule?.StateMachine.ActiveState;
-            var cooldownPlan = _bossmods.ActiveModule?.CurrentCooldownPlan;
+            var activeState = Autorot.Bossmods.ActiveModule?.StateMachine.ActiveState;
+            var cooldownPlan = Autorot.Bossmods.ActiveModule?.CurrentCooldownPlan;
             if (cooldownPlan != null && activeState != null)
             {
                 foreach (var (action, entry) in _sq.Entries)
@@ -109,9 +113,9 @@ namespace BossMod
                     var plan = cooldownPlan.PlanAbilities.GetValueOrDefault(action.Raw);
                     if (plan != null)
                     {
-                        foreach (var e in plan.Where(e => e.StateID == activeState.ID && _bossmods.ActiveModule!.StateMachine.TimeSinceTransition >= e.TimeSinceActivation))
+                        foreach (var e in plan.Where(e => e.StateID == activeState.ID && Autorot.Bossmods.ActiveModule!.StateMachine.TimeSinceTransition >= e.TimeSinceActivation))
                         {
-                            var windowLeft = e.WindowLength - (_bossmods.ActiveModule!.StateMachine.TimeSinceTransition - e.TimeSinceActivation);
+                            var windowLeft = e.WindowLength - (Autorot.Bossmods.ActiveModule!.StateMachine.TimeSinceTransition - e.TimeSinceActivation);
                             if (windowLeft > 0)
                                 entry.Activate(0, windowLeft);
                         }
@@ -119,12 +123,12 @@ namespace BossMod
                 }
             }
 
-            OnUpdate(comboLastAction, comboTimeLeft, animLock, animLockDelay);
+            OnUpdate();
         }
 
         public (ActionID, uint) ReplaceActionAndTarget(ActionID actionID, uint targetID)
         {
-            if (_config.SmartCooldownQueueing && _sq.Active)
+            if (Autorot.Config.SmartCooldownQueueing && _sq.Active)
             {
                 var e = _sq.Entries.GetValueOrDefault(actionID);
                 if (e != null)
@@ -140,9 +144,50 @@ namespace BossMod
         }
 
         abstract protected void OnCastSucceeded(ActionID actionID);
-        abstract protected void OnUpdate(uint comboLastAction, float comboTimeLeft, float animLock, float animLockDelay);
+        abstract protected void OnUpdate();
         abstract protected (ActionID, uint) DoReplaceActionAndTarget(ActionID actionID, uint targetID);
         abstract public void DrawOverlay();
+
+        // fill common state properties
+        protected void FillCommonState<AID>(CommonRotation.State s, AID gcdSpell, ActionID potion) where AID : Enum
+        {
+            if (Service.ClientState.LocalPlayer == null)
+                return;
+
+            s.Level = Service.ClientState.LocalPlayer.Level;
+            s.CurMP = Service.ClientState.LocalPlayer.CurrentMp;
+            s.Moving = Autorot.Moving;
+            s.GCD = SpellCooldown(gcdSpell);
+            s.AnimationLock = Autorot.AnimLock;
+            s.AnimationLockDelay = Autorot.AnimLockDelay;
+            s.ComboTimeLeft = Autorot.ComboTimeLeft;
+            s.ComboLastAction = Autorot.ComboLastMove;
+
+            foreach (var status in Service.ClientState.LocalPlayer.StatusList.Where(s => IsDamageBuff(s.StatusId)))
+            {
+                s.RaidBuffsLeft = MathF.Max(s.RaidBuffsLeft, StatusDuration(status.RemainingTime));
+            }
+            // TODO: also check damage-taken debuffs on target
+
+            s.SprintCD = ActionCooldown(CommonRotation.IDSprint);
+            s.PotionCD = ActionCooldown(potion);
+        }
+
+        // fill common strategy properties
+        protected void FillCommonStrategy(CommonRotation.Strategy strategy, ActionID potion)
+        {
+            if (Service.ClientState.LocalPlayer == null)
+                return;
+
+            strategy.Prepull = !Service.ClientState.LocalPlayer.StatusFlags.HasFlag(StatusFlags.InCombat);
+            strategy.FightEndIn = Autorot.Bossmods.ActiveModule?.StateMachine.EstimateTimeToNextDowntime() ?? 0;
+            strategy.RaidBuffsIn = Autorot.Bossmods.RaidCooldowns.NextDamageBuffIn(Autorot.Bossmods.WorldState.CurrentTime);
+            strategy.PositionLockIn = Autorot.Config.EnableMovement ? (Autorot.Bossmods.ActiveModule?.StateMachine.EstimateTimeToNextPositioning() ?? 10000) : 0;
+            strategy.Potion = potion ? (SmartQueueActive(potion) ? CommonRotation.Strategy.PotionUse.Immediate : Autorot.Config.PotionUse) : CommonRotation.Strategy.PotionUse.Manual;
+            if (strategy.Potion != CommonRotation.Strategy.PotionUse.Manual && !HaveItemInInventory(potion.ID)) // don't try to use potions if player doesn't have any
+                strategy.Potion = CommonRotation.Strategy.PotionUse.Manual;
+            strategy.ExecuteSprint = SmartQueueActive(CommonRotation.IDSprint);
+        }
 
         // register new smart-queueable action
         protected void SmartQueueRegister(ActionID action) => _sq.Entries[action] = new();
@@ -168,7 +213,7 @@ namespace BossMod
 
         protected void Log(string message)
         {
-            if (_config.Logging)
+            if (Autorot.Config.Logging)
                 Service.Log($"[AR] [{GetType().Name}] {message}");
         }
     }
