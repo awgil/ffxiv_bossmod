@@ -1,0 +1,4 @@
+Install instructions:
+1. esc -> dalamud settings -> experimental -> custom plugin repositories, add https://raw.githubusercontent.com/awgil/ffxiv_plugin_distribution/master/pluginmaster.json
+2. esc -> dalamud plugins -> all plugins -> find "Boss Mod" and install
+3. settings are accessible either via esc menu or /vbm console command
