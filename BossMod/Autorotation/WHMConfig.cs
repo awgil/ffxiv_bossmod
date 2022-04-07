@@ -6,6 +6,7 @@
         public bool SwiftFreeRaise = true;
         public bool MouseoverFriendly = true;
         public bool SmartCure3Target = true;
+        public bool NeverOvercapBloodLilies = false;
 
         protected override void DrawContents()
         {
@@ -13,6 +14,7 @@
             DrawProperty(ref SwiftFreeRaise, "When trying to cast raise, apply swiftcast and thin air automatically, if possible");
             DrawProperty(ref MouseoverFriendly, "Use mouseover targeting for friendly spells");
             DrawProperty(ref SmartCure3Target, "Smart targeting for Cure 3 (target/mouseover if friendly, otherwise party member that has most nearby damaged players)");
+            DrawProperty(ref NeverOvercapBloodLilies, "Never overcap blood lilies: cast misery instead of solace/rapture if needed");
         }
     }
 }

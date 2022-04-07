@@ -25,7 +25,6 @@ namespace BossMod
             _state = BuildState();
             _strategy = new();
 
-            SmartQueueRegisterSpell(WHMRotation.AID.Assize);
             SmartQueueRegisterSpell(WHMRotation.AID.Asylum);
             SmartQueueRegisterSpell(WHMRotation.AID.DivineBenison);
             SmartQueueRegisterSpell(WHMRotation.AID.Tetragrammaton);
@@ -52,21 +51,23 @@ namespace BossMod
 
             FillCommonStrategy(_strategy, WHMRotation.IDStatPotion);
 
-            // cooldown execution
             var player = Service.ClientState.LocalPlayer;
             if (player != null)
             {
-                _strategy.NumMedica1Targets = CountAOEHealTargets(15, player.Position);
+                _strategy.NumAssizeMedica1Targets = CountAOEHealTargets(15, player.Position);
                 _strategy.NumRaptureMedica2Targets = CountAOEHealTargets(20, player.Position);
                 _strategy.NumCure3Targets = SmartCure3Target().Item2;
             }
             else
             {
-                _strategy.NumMedica1Targets = _strategy.NumRaptureMedica2Targets = _strategy.NumCure3Targets = 0;
+                _strategy.NumAssizeMedica1Targets = _strategy.NumRaptureMedica2Targets = _strategy.NumCure3Targets = 0;
             }
-            _strategy.ExecuteAssize = SmartQueueActiveSpell(WHMRotation.AID.Assize);
+            _strategy.EnableAssize = AllowAssize(); // note: should be plannable...
+            _strategy.AllowReplacingHealWithMisery = _config.NeverOvercapBloodLilies && TargetIsEnemy();
+
+            // cooldown execution
             _strategy.ExecuteAsylum = SmartQueueActiveSpell(WHMRotation.AID.Asylum);
-            _strategy.ExecuteDivineBenison = SmartQueueActiveSpell(WHMRotation.AID.DivineBenison);
+            _strategy.ExecuteDivineBenison = SmartQueueActiveSpell(WHMRotation.AID.DivineBenison); // TODO: check that target doesn't already have DB...
             _strategy.ExecuteTetragrammaton = SmartQueueActiveSpell(WHMRotation.AID.Tetragrammaton);
             _strategy.ExecuteBenediction = SmartQueueActiveSpell(WHMRotation.AID.Benediction);
             _strategy.ExecuteLiturgyOfTheBell = SmartQueueActiveSpell(WHMRotation.AID.LiturgyOfTheBell);
@@ -90,7 +91,7 @@ namespace BossMod
             return _state;
         }
 
-        protected override (ActionID, uint) DoReplaceActionAndTarget(ActionID actionID, uint targetID)
+        protected override (ActionID, uint) DoReplaceActionAndTarget(ActionID actionID, Targets targets)
         {
             if (actionID.Type == ActionType.Spell)
             {
@@ -104,16 +105,13 @@ namespace BossMod
                     _ => actionID
                 };
             }
-            if (actionID.Type == ActionType.Spell)
+            uint targetID = actionID.Type == ActionType.Spell ? (WHMRotation.AID)actionID.ID switch
             {
-                targetID = (WHMRotation.AID)actionID.ID switch
-                {
-                    WHMRotation.AID.Cure1 or WHMRotation.AID.Cure2 or WHMRotation.AID.Regen or WHMRotation.AID.AfflatusSolace or WHMRotation.AID.Raise or WHMRotation.AID.Esuna or WHMRotation.AID.Rescue => SmartTargetSTFriendly(actionID, targetID, false),
-                    WHMRotation.AID.DivineBenison or WHMRotation.AID.Tetragrammaton or WHMRotation.AID.Benediction or WHMRotation.AID.Aquaveil => SmartTargetSTFriendly(actionID, targetID, true),
-                    WHMRotation.AID.Cure3 => SmartTargetCure3(targetID),
-                    _ => targetID
-                };
-            }
+                WHMRotation.AID.Cure1 or WHMRotation.AID.Cure2 or WHMRotation.AID.Regen or WHMRotation.AID.AfflatusSolace or WHMRotation.AID.Raise or WHMRotation.AID.Esuna or WHMRotation.AID.Rescue => SmartTargetSTFriendly(actionID, targets, false),
+                WHMRotation.AID.DivineBenison or WHMRotation.AID.Tetragrammaton or WHMRotation.AID.Benediction or WHMRotation.AID.Aquaveil => SmartTargetSTFriendly(actionID, targets, true),
+                WHMRotation.AID.Cure3 => SmartTargetCure3(targets),
+                _ => targets.MainTarget
+            } : targets.MainTarget;
             return (actionID, targetID);
         }
 
@@ -153,7 +151,8 @@ namespace BossMod
                             s.FreecureLeft = StatusDuration(status.RemainingTime);
                             break;
                         case WHMRotation.SID.Medica2:
-                            s.MedicaLeft = StatusDuration(status.RemainingTime);
+                            if (status.SourceID == player.ObjectId)
+                                s.MedicaLeft = StatusDuration(status.RemainingTime);
                             break;
                     }
                 }
@@ -220,12 +219,12 @@ namespace BossMod
             return WHMRotation.AID.Raise;
         }
 
-        private uint SmartTargetSTFriendly(ActionID action, uint targetID, bool smartQueued)
+        private uint SmartTargetSTFriendly(ActionID action, Targets targets, bool smartQueued)
         {
             if (smartQueued)
-                targetID = SmartQueueTarget(action, targetID);
+                targets = SmartQueueTarget(action, targets);
 
-            var target = SmartTargetFriendly(targetID, _config.MouseoverFriendly);
+            var target = SmartTargetFriendly(targets, _config.MouseoverFriendly);
             if (target != null)
                 return target.InstanceID;
 
@@ -237,16 +236,16 @@ namespace BossMod
                 Log($"Smart-target failed, removing from queue");
                 SmartQueueDeactivate(action);
             }
-            return targetID;
+            return targets.MainTarget; // TODO: consider returning invalid target instead, since self-target is probably not what we want...
         }
 
-        private uint SmartTargetCure3(uint targetID)
+        private uint SmartTargetCure3(Targets targets)
         {
-            var target = SmartTargetFriendly(targetID, _config.MouseoverFriendly);
+            var target = SmartTargetFriendly(targets, _config.MouseoverFriendly);
             if (target != null)
                 return target.InstanceID;
 
-            return _config.SmartCure3Target ? SmartCure3Target().Item1 : targetID;
+            return _config.SmartCure3Target ? SmartCure3Target().Item1 : targets.MainTarget;
         }
 
         private int CountAOEHealTargets(float radius, Vector3 center)
@@ -279,6 +278,20 @@ namespace BossMod
                 if (o != null && !Utils.GameObjectIsDead(o))
                     yield return o;
             }
+        }
+
+        // check whether player's target is hostile
+        private bool TargetIsEnemy()
+        {
+            var target = Service.ClientState.LocalPlayer?.TargetObject;
+            return target != null && target.ObjectKind == ObjectKind.BattleNpc && (BattleNpcSubKind)target.SubKind == BattleNpcSubKind.Enemy;
+        }
+
+        // check whether any targetable enemies are in assize range
+        private bool AllowAssize()
+        {
+            var playerPos = Service.ClientState.LocalPlayer?.Position ?? new();
+            return Service.ObjectTable.Any(o => o.ObjectKind == ObjectKind.BattleNpc && (BattleNpcSubKind)o.SubKind == BattleNpcSubKind.Enemy && Utils.GameObjectIsTargetable(o) && GeometryUtils.PointInCircle(o.Position - playerPos, 15 + o.HitboxRadius));
         }
     }
 }

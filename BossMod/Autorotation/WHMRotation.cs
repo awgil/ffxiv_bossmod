@@ -93,7 +93,7 @@ namespace BossMod
             public float LiturgyOfTheBellCD; // 180 max, 0 if ready
             public float SwiftcastCD; // 60 max, 0 if ready
             public float LucidDreamingCD; // 60 max, 0 if ready
-            public float PresenceOfMindCD; // 150 max, 0 if ready
+            public float PresenceOfMindCD; // 120 max, 0 if ready
             public float ThinAirCD; // 120 max, >60 if 0 stacks ready, >0 if 1 stack ready, ==0 if 2 stacks ready
             public float PlenaryIndulgenceCD; // 60 max, 0 if ready
             public float TemperanceCD; // 120 max, 0 if ready
@@ -157,11 +157,12 @@ namespace BossMod
 
         public class Strategy : CommonRotation.Strategy
         {
-            public int NumMedica1Targets; // how many targets would medica1 heal (15y around self)
+            public int NumAssizeMedica1Targets; // how many targets would assize/medica1 heal (15y around self)
             public int NumRaptureMedica2Targets; // how many targets would rapture/medica2 heal (20y around self)
             public int NumCure3Targets; // how many targets cure3 would heal (6y around selected/best target)
+            public bool EnableAssize;
+            public bool AllowReplacingHealWithMisery; // if true, allow replacing solace/rapture with misery
             // cooldowns
-            public bool ExecuteAssize; // TODO: consider auto use
             public bool ExecuteAsylum;
             public bool ExecuteDivineBenison;
             public bool ExecuteTetragrammaton;
@@ -181,8 +182,6 @@ namespace BossMod
                     sb.Append(" Liturgy");
                 if (ExecuteSurecast)
                     sb.Append(" Surecast");
-                if (ExecuteAssize)
-                    sb.Append(" Assize");
                 if (ExecuteAsylum)
                     sb.Append(" Asylum");
                 if (ExecuteDivineBenison)
@@ -203,8 +202,8 @@ namespace BossMod
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float windowEnd, bool aoe, bool heal)
         {
-            // 1. plenary indulgence, if we're gonna cast aoe gcd heal (TODO: reconsider priority)
-            if (aoe && heal && state.UnlockedPlenaryIndulgence && state.CanWeave(state.PlenaryIndulgenceCD, 0.6f, windowEnd))
+            // 1. plenary indulgence, if we're gonna cast aoe gcd heal that will actually heal someone... (TODO: reconsider priority)
+            if (aoe && heal && (strategy.NumRaptureMedica2Targets > 0 || strategy.NumCure3Targets > 0) && state.UnlockedPlenaryIndulgence && state.CanWeave(state.PlenaryIndulgenceCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.PlenaryIndulgence);
 
             // 2. use cooldowns if requested in rough priority order
@@ -214,8 +213,6 @@ namespace BossMod
                 return ActionID.MakeSpell(AID.LiturgyOfTheBell);
             if (strategy.ExecuteSurecast && state.UnlockedSurecast && state.CanWeave(state.SurecastCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Surecast);
-            if (strategy.ExecuteAssize && state.UnlockedAssize && state.CanWeave(state.AssizeCD, 0.6f, windowEnd))
-                return ActionID.MakeSpell(AID.Assize);
             if (strategy.ExecuteAsylum && state.UnlockedAsylum && state.CanWeave(state.AsylumCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Asylum);
             if (strategy.ExecuteDivineBenison && state.UnlockedDivineBenison && state.CanWeave(state.DivineBenisonCD - (state.UnlockedEnhancedDivineBenison ? 30 : 0), 0.6f, windowEnd))
@@ -233,16 +230,20 @@ namespace BossMod
 
             // 3.potion (TODO)
 
-            // 4. pom (TODO: consider delaying until raidbuffs?)
+            // 4. assize, if allowed and if we have some mana deficit (TODO: consider delaying until raidbuffs?)
+            if (strategy.EnableAssize && state.CurMP <= 9000 && state.UnlockedAssize && state.CanWeave(state.AssizeCD, 0.6f, windowEnd))
+                return ActionID.MakeSpell(AID.Assize);
+
+            // 5. pom (TODO: consider delaying until raidbuffs?)
             if (state.UnlockedPresenceOfMind && state.CanWeave(state.PresenceOfMindCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.PresenceOfMind);
 
-            // 5. lucid dreaming, if we won't waste mana (TODO: revise mp limit)
-            if (state.CurMP < 7000 && state.UnlockedLucidDreaming && state.CanWeave(state.LucidDreamingCD, 0.6f, windowEnd))
+            // 6. lucid dreaming, if we won't waste mana (TODO: revise mp limit)
+            if (state.CurMP <= 7000 && state.UnlockedLucidDreaming && state.CanWeave(state.LucidDreamingCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.LucidDreaming);
 
-            // 6. thin air, if we have some mana deficit and we're either sitting on 2 charges or we're gonna cast expensive spell (TODO: revise mp limit)
-            if (state.CurMP < 9000 && state.UnlockedThinAir && state.CanWeave(state.ThinAirCD - 60, 0.6f, windowEnd))
+            // 7. thin air, if we have some mana deficit and we're either sitting on 2 charges or we're gonna cast expensive spell (TODO: revise mp limit)
+            if (state.CurMP <= 9000 && state.UnlockedThinAir && state.CanWeave(state.ThinAirCD - 60, 0.6f, windowEnd))
             {
                 if (state.ThinAirCD < state.GCD)
                     return ActionID.MakeSpell(AID.ThinAir); // spend second charge to start cooldown ticking, even if we gonna cast glare
@@ -259,8 +260,8 @@ namespace BossMod
             if (strategy.Prepull)
                 return state.BestGlare;
 
-            // 1. refresh dia/aero, if time is less than 2.5 sec (TODO: verify threshold to make sure we don't miss ticks)
-            if (state.UnlockedAero1 && state.TargetDiaLeft < state.GCD + 2.5f)
+            // 1. refresh dia/aero, if needed (TODO: tweak threshold so that we don't overwrite or miss ticks...)
+            if (state.UnlockedAero1 && state.TargetDiaLeft < state.GCD + 3.0f)
                 return state.BestDia;
 
             // 2. glare, if not moving or if under swiftcast
@@ -287,9 +288,9 @@ namespace BossMod
             if (state.UnlockedCure2 && (state.FreecureLeft > state.GCD || state.ThinAirLeft > state.GCD))
                 return AID.Cure2;
 
-            // 2. afflatus solace, if possible
+            // 2. afflatus solace, if possible (replace with misery if needed)
             if (state.NormalLiliesOnNextGCD > 0)
-                return AID.AfflatusSolace;
+                return strategy.AllowReplacingHealWithMisery && state.BloodLilies >= 3 ? AID.AfflatusMisery : AID.AfflatusSolace;
 
             // 3. cure 2, if possible
             if (state.UnlockedCure2 && state.CurMP >= 1000)
@@ -301,10 +302,10 @@ namespace BossMod
 
         public static AID GetNextBestAOEHealGCD(State state, Strategy strategy)
         {
-            // 1. afflatus rapture, if possible (TODO: consider full overheal for lilies, during downtime or to get last misery)
+            // 1. afflatus rapture, if possible  (replace with misery if needed)
             bool canCastRapture = state.UnlockedAfflatusRapture && state.NormalLiliesOnNextGCD > 0;
             if (canCastRapture && strategy.NumRaptureMedica2Targets > 0)
-                return AID.AfflatusRapture;
+                return strategy.AllowReplacingHealWithMisery && state.BloodLilies >= 3 ? AID.AfflatusMisery : AID.AfflatusRapture;
 
             // 2. medica 2, if possible and useful, and buff is not already up; we consider it ok to overwrite last tick
             bool canCastMedica2 = state.UnlockedMedica2 && (state.CurMP >= 1000 || state.ThinAirLeft > state.GCD);
@@ -316,15 +317,15 @@ namespace BossMod
                 return AID.Cure3;
 
             // 4. medica 1, if possible and useful
-            if (strategy.NumMedica1Targets > 0 && state.UnlockedMedica1 && (state.CurMP >= 900 || state.ThinAirLeft > state.GCD))
+            if (strategy.NumAssizeMedica1Targets > 0 && state.UnlockedMedica1 && (state.CurMP >= 900 || state.ThinAirLeft > state.GCD))
                 return AID.Medica1;
 
             // 5. fallback: overheal medica 2 for hot (e.g. during downtime)
             if (canCastMedica2 && !state.Moving && state.MedicaLeft <= state.GCD + 5)
                 return AID.Medica2;
 
-            // 6. fallback: overheal rapture
-            if (canCastRapture)
+            // 6. fallback: overheal rapture, unless capped on blood lilies
+            if (canCastRapture && state.BloodLilies < 3)
                 return AID.AfflatusRapture;
 
             // 7. fallback to medica 1/2

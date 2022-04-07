@@ -7,6 +7,13 @@ namespace BossMod
 {
     abstract class CommonActions
     {
+        // all relevant target IDs used for smart target selection
+        protected struct Targets
+        {
+            public uint MainTarget;
+            public uint MouseoverTarget;
+        }
+
         // 'smart oGCD queueing': when using auto-rotation, pressing manual ogcds is slightly problematic:
         // 1. it might delay next GCD, which is bad for damage
         // 2. it might require awkward spamming, otherwise returning to spamming rotation button might override it with rotational ogcd
@@ -19,23 +26,35 @@ namespace BossMod
             public class Entry
             {
                 public DateTime Expire;
-                public uint Target; // 0 for planned activation
+                public Targets? Targets; // null for planned activation
 
-                public bool Active => DateTime.Now < Expire;
-                public void Activate(uint target, float expire = 3)
+                public bool Active(DateTime now) => now < Expire;
+
+                public void ActivateManual(DateTime now, Targets targets)
                 {
-                    var newExpire = DateTime.Now.AddSeconds(expire);
+                    var newExpire = now.AddSeconds(3);
                     if (newExpire > Expire)
-                    {
                         Expire = newExpire;
-                        Target = target;
-                    }
+                    Targets = targets;
                 }
-                public void Deactivate() => Expire = new();
+
+                public void ActivatePlanned(DateTime now, float window)
+                {
+                    var newExpire = now.AddSeconds(window);
+                    if (newExpire > Expire)
+                        Expire = newExpire;
+                    // don't touch targets, if they were manually requested
+                }
+
+                public void Deactivate()
+                {
+                    Expire = new();
+                    Targets = null;
+                }
             }
 
             public bool Active; // if active, actions are queued and replacement is returned; otherwise smart-queue is transparent
-            public (ActionID, uint) Replacement; // action + target that will be returned instead of smart-queued action
+            public (ActionID, Targets) Replacement; // action + target that will be returned instead of smart-queued action
             public Dictionary<ActionID, Entry> Entries = new(); // key = smart-queueable action, value = expiration timestamp + target
         }
 
@@ -117,7 +136,7 @@ namespace BossMod
                         {
                             var windowLeft = e.WindowLength - (Autorot.Bossmods.ActiveModule!.StateMachine.TimeSinceTransition - e.TimeSinceActivation);
                             if (windowLeft > 0)
-                                entry.Activate(0, windowLeft);
+                                entry.ActivatePlanned(Autorot.Bossmods.WorldState.CurrentTime, windowLeft);
                         }
                     }
                 }
@@ -129,24 +148,25 @@ namespace BossMod
 
         public (ActionID, uint) ReplaceActionAndTarget(ActionID actionID, uint targetID)
         {
+            var targets = new Targets() { MainTarget = targetID, MouseoverTarget = Mouseover.Instance?.Object?.ObjectId ?? 0 };
             if (Autorot.Config.SmartCooldownQueueing && _sq.Active)
             {
                 var e = _sq.Entries.GetValueOrDefault(actionID);
                 if (e != null)
                 {
                     Log($"Smart-queueing {actionID} @ {targetID:X}");
-                    e.Activate(targetID);
-                    (actionID, targetID) = _sq.Replacement;
+                    e.ActivateManual(Autorot.Bossmods.WorldState.CurrentTime, targets);
+                    (actionID, targets) = _sq.Replacement;
                 }
             }
-            _sq.Replacement = (actionID, targetID); // if we're not smart-queueing, update replacement to last action
+            _sq.Replacement = (actionID, targets); // if we're not smart-queueing, update replacement to last action
 
-            return DoReplaceActionAndTarget(actionID, targetID);
+            return DoReplaceActionAndTarget(actionID, targets);
         }
 
         abstract protected void OnCastSucceeded(ActionID actionID);
         abstract protected CommonRotation.State OnUpdate();
-        abstract protected (ActionID, uint) DoReplaceActionAndTarget(ActionID actionID, uint targetID);
+        abstract protected (ActionID, uint) DoReplaceActionAndTarget(ActionID actionID, Targets targets);
         abstract public void DrawOverlay();
 
         // fill common state properties
@@ -195,30 +215,30 @@ namespace BossMod
         protected void SmartQueueRegisterSpell<AID>(AID spell) where AID : Enum => SmartQueueRegister(ActionID.MakeSpell(spell));
 
         // check whether smart-queueable action is queued
-        protected bool SmartQueueActive(ActionID action) => _sq.Entries.GetValueOrDefault(action)?.Active ?? false;
+        protected bool SmartQueueActive(ActionID action) => _sq.Entries.GetValueOrDefault(action)?.Active(Autorot.Bossmods.WorldState.CurrentTime) ?? false;
         protected bool SmartQueueActiveSpell<AID>(AID spell) where AID : Enum => SmartQueueActive(ActionID.MakeSpell(spell));
 
-        // get smart-queue target, if available; otherwise (if smart-queue is inactive or if it was planned without specific target) return fallback (current target probably)
-        protected uint SmartQueueTarget(ActionID action, uint fallback)
+        // get smart-queue target, if available; otherwise (if smart-queue is inactive or if it was planned without specific target) return fallback (current targets)
+        protected Targets SmartQueueTarget(ActionID action, Targets fallback)
         {
             var e = _sq.Entries.GetValueOrDefault(action);
-            return e != null && e.Active && e.Target != 0 ? e.Target : fallback;
+            return e != null && e.Active(Autorot.Bossmods.WorldState.CurrentTime) && e.Targets != null ? e.Targets.Value : fallback;
         }
-        protected uint SmartQueueTargetSpell<AID>(AID spell, uint fallback) where AID : Enum => SmartQueueTarget(ActionID.MakeSpell(spell), fallback);
+        protected Targets SmartQueueTargetSpell<AID>(AID spell, Targets fallback) where AID : Enum => SmartQueueTarget(ActionID.MakeSpell(spell), fallback);
 
         // deactivate smart-queue entry
         protected void SmartQueueDeactivate(ActionID action) => _sq.Entries.GetValueOrDefault(action)?.Deactivate();
 
         // smart targeting utility: return target (if friendly) or mouseover (if friendly and allowed) or null (otherwise)
-        protected Actor? SmartTargetFriendly(uint targetID, bool allowMouseover)
+        protected Actor? SmartTargetFriendly(Targets targets, bool allowMouseover)
         {
-            var target = Autorot.Bossmods.WorldState.Actors.Find(targetID);
+            var target = Autorot.Bossmods.WorldState.Actors.Find(targets.MainTarget);
             if (target?.Type is ActorType.Player or ActorType.Chocobo)
                 return target;
 
             if (allowMouseover)
             {
-                target = Autorot.Bossmods.WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
+                target = Autorot.Bossmods.WorldState.Actors.Find(targets.MouseoverTarget);
                 if (target?.Type is ActorType.Player or ActorType.Chocobo)
                     return target;
             }

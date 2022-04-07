@@ -176,7 +176,7 @@ namespace BossMod
             return _state;
         }
 
-        protected override (ActionID, uint) DoReplaceActionAndTarget(ActionID actionID, uint targetID)
+        protected override (ActionID, uint) DoReplaceActionAndTarget(ActionID actionID, Targets targets)
         {
             if (actionID.Type == ActionType.Spell)
             {
@@ -191,15 +191,12 @@ namespace BossMod
                     _ => actionID
                 };
             }
-            if (actionID.Type == ActionType.Spell)
+            uint targetID = actionID.Type == ActionType.Spell ? (WARRotation.AID)actionID.ID switch
             {
-                targetID = (WARRotation.AID)actionID.ID switch
-                {
-                    WARRotation.AID.NascentFlash or WARRotation.AID.Shirk => SmartTargetNascentFlashShirk(actionID, targetID),
-                    WARRotation.AID.Holmgang => _config.HolmgangSelf ? Service.ClientState.LocalPlayer?.ObjectId ?? targetID : targetID,
-                    _ => targetID
-                };
-            }
+                WARRotation.AID.NascentFlash or WARRotation.AID.Shirk => SmartTargetNascentFlashShirk(actionID, targets),
+                WARRotation.AID.Holmgang => _config.HolmgangSelf ? Service.ClientState.LocalPlayer?.ObjectId ?? targets.MainTarget : targets.MainTarget,
+                _ => targets.MainTarget
+            } : targets.MainTarget;
             return (actionID, targetID);
         }
 
@@ -279,10 +276,10 @@ namespace BossMod
         }
 
         // shirk/nascent flash smart targeting: target if friendly > mouseover if friendly > other tank
-        private uint SmartTargetNascentFlashShirk(ActionID action, uint targetID)
+        private uint SmartTargetNascentFlashShirk(ActionID action, Targets targets)
         {
-            targetID = SmartQueueTarget(action, targetID);
-            var target = SmartTargetFriendly(targetID, _config.SmartNascentFlashShirkTarget);
+            targets = SmartQueueTarget(action, targets);
+            var target = SmartTargetFriendly(targets, _config.SmartNascentFlashShirkTarget);
             if (target != null)
                 return target.InstanceID;
 
@@ -296,7 +293,7 @@ namespace BossMod
             // can't find good target, deactivate smart-queue entry to prevent silly spam
             Log($"Smart-target failed, removing from queue");
             SmartQueueDeactivate(action);
-            return targetID;
+            return targets.MainTarget;
         }
 
         // check whether any targetable enemies are in reprisal range (TODO: consider checking only target?..)

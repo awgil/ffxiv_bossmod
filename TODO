@@ -22,8 +22,9 @@ autorotation:
 -- offensive CD planning/delay
 - whm:
 -- aero - low-level status ids
--- auto assize
 -- planner
+-- do not overwrite DB
+-- disable heal self-target, add proper self-targeting?..
 
 cooldown planner:
 - select columns to show (concrete actions, categories)

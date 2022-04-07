@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Keys;
+﻿using Dalamud;
+using Dalamud.Game.ClientState.Keys;
 using Dalamud.Hooking;
 using ImGuiNET;
 using System;
@@ -52,6 +53,8 @@ namespace BossMod
         private unsafe float* _comboTimeLeft = null;
         private unsafe uint* _comboLastMove = null;
 
+        private IntPtr _gtQueuePatch;
+
         public AutorotationConfig Config => _config;
         public BossModuleManager Bossmods => _bossmods;
         public float AnimLock => MathF.Max((float)(_animLockEnd - DateTime.Now).TotalSeconds, 0);
@@ -78,6 +81,9 @@ namespace BossMod
             var useActionAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 64 B1 01");
             _useActionHook = new(useActionAddress, new UseActionDelegate(UseActionDetour));
             _useActionHook.Enable();
+
+            _gtQueuePatch = Service.SigScanner.ScanModule("74 24 41 81 FE F5 0D 00 00");
+            SafeMemory.WriteBytes(_gtQueuePatch, new byte[] { 0xEB });
         }
 
         public void Dispose()
@@ -90,6 +96,7 @@ namespace BossMod
             _network.EventActorControlSelfActionRejected -= OnNetworkActionReject;
 
             _useActionHook.Dispose();
+            SafeMemory.WriteBytes(_gtQueuePatch, new byte[] { 0x74 });
         }
 
         public void Update()
@@ -159,7 +166,7 @@ namespace BossMod
             }
             Log($"++ {PendingActionString(action)}");
             _pendingActions.Add(action);
-            _animLockEnd = DateTime.Now.AddSeconds(0.5); // note: i think it is less for casted (~0.1) - check by running and spamming cast, you'll see interrupt in ~0.2 and next cast in ~0.05 after that...
+            _animLockEnd = DateTime.Now.AddSeconds(0.5); // TODO: i think it is less for casted (~0.1) - check by running and spamming cast, you'll see interrupt in ~0.2 and next cast in ~0.05 after that...
 
             if (_inputPendingUnblock > DateTime.Now)
             {
@@ -197,7 +204,7 @@ namespace BossMod
             _firstPendingJustCompleted = true;
 
             var now = DateTime.Now;
-            var delay = (float)(now.AddSeconds(0.5) - _animLockEnd).TotalSeconds;
+            var delay = (float)(now.AddSeconds(0.5) - _animLockEnd).TotalSeconds; // TODO: this isn't correct for casted spells...
             _animLockDelay = delay * (1 - _animLockDelaySmoothing) + _animLockDelay * _animLockDelaySmoothing;
             _animLockEnd = now.AddSeconds(action.AnimationLockTime);
 
