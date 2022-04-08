@@ -98,6 +98,7 @@ namespace UIDev
             public TimeRange Time = new();
             public ushort Zone;
             public Dictionary<uint, List<Participant>> Participants = new(); // key = oid
+            public List<(Participant, Class)> PartyMembers = new();
             public int FirstAction;
             public int FirstStatus;
             public int FirstTether;

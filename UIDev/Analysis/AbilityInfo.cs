@@ -79,10 +79,7 @@ namespace UIDev.Analysis
                         var offset = posRot.XYZ() - origin;
                         var dist = useMaxComp ? MathF.Max(Math.Abs(offset.X), Math.Abs(offset.Z)): offset.Length();
                         var hit = info.Action.Targets.Find(t => t.Target?.InstanceID == actor.InstanceID);
-                        int damage = 0;
-                        if (hit != null)
-                            foreach (var eff in hit.Effects.Where(eff => eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage && (eff.Param4 & 0x80) == 0))
-                                damage += eff.Value + ((eff.Param4 & 0x40) != 0 ? eff.Param3 * 0x10000 : 0);
+                        int damage = hit != null ? ReplayUtils.ActionDamage(hit) : 0;
                         _points.Add((info, actor, dist, damage));
                     }
                 }

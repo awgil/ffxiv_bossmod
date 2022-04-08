@@ -35,6 +35,7 @@ namespace BossMod
             war.Abilities[ActionID.MakeSpell(WARRotation.AID.ThrillOfBattle)] = new(AbilityCategory.SelfMitigation, 10, 90);
             war.Abilities[ActionID.MakeSpell(WARRotation.AID.Equilibrium)] = new(AbilityCategory.SelfMitigation, 0, 60);
             war.Abilities[ActionID.MakeSpell(WARRotation.AID.Bloodwhetting)] = new(AbilityCategory.SelfMitigation, 4, 25);
+            war.Abilities[ActionID.MakeSpell(WARRotation.AID.Holmgang)] = new(AbilityCategory.SelfMitigation, 10, 240);
             war.Abilities[ActionID.MakeSpell(WARRotation.AID.ArmsLength)] = new(AbilityCategory.SelfMitigation, 6, 120);
             war.Abilities[ActionID.MakeSpell(WARRotation.AID.Reprisal)] = new(AbilityCategory.RaidMitigation, 10, 60);
             war.Abilities[ActionID.MakeSpell(WARRotation.AID.ShakeItOff)] = new(AbilityCategory.RaidMitigation, 15, 90);
@@ -52,6 +53,11 @@ namespace BossMod
                 TimeSinceActivation = timeSinceActivation;
                 WindowLength = windowLength;
             }
+
+            public AbilityUse Clone()
+            {
+                return (AbilityUse)MemberwiseClone();
+            }
         }
 
         public Class Class;
@@ -64,6 +70,15 @@ namespace BossMod
             Name = name;
             foreach (var k in SupportedClasses[@class].Abilities.Keys)
                 PlanAbilities[k.Raw] = new();
+        }
+
+        public CooldownPlan Clone()
+        {
+            var res = new CooldownPlan(Class, Name);
+            foreach (var (k, vRes) in res.PlanAbilities)
+                foreach (var vSrc in PlanAbilities[k])
+                    vRes.Add(vSrc.Clone());
+            return res;
         }
     }
 }

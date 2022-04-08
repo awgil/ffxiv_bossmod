@@ -102,6 +102,8 @@ namespace UIDev
             };
             foreach (var p in _participants.Values)
                 e.Participants.GetOrAdd(p.OID).Add(p);
+            foreach (var p in _ws.Party.WithoutSlot(true))
+                e.PartyMembers.Add((_participants[p.InstanceID], p.Class));
             _res.Encounters.Add(e);
         }
 

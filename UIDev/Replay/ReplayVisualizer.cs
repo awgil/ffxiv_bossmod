@@ -297,6 +297,76 @@ namespace UIDev
             _encountersTree.LeafNodes(statuses, s => StatusString(s, start, sidType));
         }
 
+        private CooldownPlanEditor.TimelineEvent BuildCooldownPlannerEvent(Replay.Encounter enc, Replay.Action a, bool isPlayer)
+        {
+            var text = new List<string>();
+            text.Add($"{a.ID} {ReplayUtils.ParticipantString(a.Source)} -> {ReplayUtils.ParticipantString(a.MainTarget)}");
+            bool damage = false;
+            foreach (var t in a.Targets)
+            {
+                text.Add($"- {ReplayUtils.ParticipantString(t.Target)}");
+                foreach (var e in t.Effects)
+                {
+                    text.Add($"-- {ReplayUtils.ActionEffectString(e)}");
+                    damage |= t.Target?.Type == ActorType.Player && e.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage;
+                }
+            }
+            return new((float)(a.Timestamp - enc.Time.Start).TotalSeconds, text, damage ? 0xffffffff : 0x80808080, isPlayer ? a.ID : new());
+        }
+
+        private void OpenCooldownPlanner(Replay.Encounter enc, Class pcClass, Replay.Participant? pc = null)
+        {
+            var supportedPlayerAbilities = CooldownPlan.SupportedClasses[pcClass].Abilities;
+            List<CooldownPlanEditor.TimelineEvent> events = new();
+            foreach (var a in _data.EncounterActions(enc))
+            {
+                if (!(a.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo))
+                    events.Add(BuildCooldownPlannerEvent(enc, a, false));
+                else if (a.Source == pc && supportedPlayerAbilities.ContainsKey(a.ID))
+                    events.Add(BuildCooldownPlannerEvent(enc, a, true));
+            }
+
+            var ws = new WorldState();
+            int nextOp = 0;
+            while (nextOp < _data.Ops.Count && _data.Ops[nextOp].Timestamp <= enc.Time.Start)
+            {
+                ws.CurrentTime = _data.Ops[nextOp].Timestamp;
+                _data.Ops[nextOp++].Redo(ws);
+            }
+            var bmm = new BossModuleManager(ws, new());
+            var m = bmm.ActiveModules.FirstOrDefault(m => m.PrimaryActor.InstanceID == enc.InstanceID);
+            StateMachine.State? prevState = m?.StateMachine.ActiveState;
+            DateTime prevStateEnter = ws.CurrentTime;
+            if (m != null)
+            {
+                while (nextOp < _data.Ops.Count && ws.CurrentTime < enc.Time.End)
+                {
+                    ws.CurrentTime = _data.Ops[nextOp].Timestamp;
+                    while (nextOp < _data.Ops.Count && _data.Ops[nextOp].Timestamp == ws.CurrentTime)
+                        _data.Ops[nextOp++].Redo(ws);
+                    m.Update();
+                    if (m.StateMachine.ActiveState == null)
+                        break;
+
+                    if (prevState != m.StateMachine.ActiveState)
+                    {
+                        if (prevState != null)
+                            prevState.Duration = (float)(ws.CurrentTime - prevStateEnter).TotalSeconds;
+                        prevState = m.StateMachine.ActiveState;
+                        prevStateEnter = ws.CurrentTime;
+                    }
+                }
+            }
+
+            var stateTree = new StateMachineTree(m?.InitialState);
+            int curBranch = prevState != null ? (stateTree.Nodes.GetValueOrDefault(prevState.ID)?.BranchID ?? 0) : 0;
+
+            var editor = new CooldownPlanEditor(new CooldownPlan(pcClass, ""), stateTree, () => { }, events, curBranch);
+            var w = WindowManager.CreateWindow($"Cooldown planner", editor.Draw, () => { }, () => true);
+            w.SizeHint = new(600, 600);
+            w.MinSize = new(100, 100);
+        }
+
         private void DrawEncounters()
         {
             if (!ImGui.CollapsingHeader("Encounters"))
@@ -394,6 +464,25 @@ namespace UIDev
                 foreach (var n in _encountersTree.Node("EnvControls", !_data.EncounterEnvControls(e).Any()))
                 {
                     _encountersTree.LeafNodes(_data.EncounterEnvControls(e), ec => $"{new Replay.TimeRange(e.Time.Start, ec.Timestamp)}: {ec.Feature:X8}.{ec.Index:X2} = {ec.State:X8}");
+                }
+
+                foreach (var n in _encountersTree.Node("Cooldown plans", false))
+                {
+                    foreach (var c in CooldownPlan.SupportedClasses.Keys)
+                    {
+                        if (ImGui.Button(c.ToString()))
+                        {
+                            OpenCooldownPlanner(e, c);
+                        }
+                        foreach (var (p, _) in e.PartyMembers.Where(pc => pc.Item2 == c))
+                        {
+                            ImGui.SameLine();
+                            if (ImGui.Button($"{p.Name}##{p.InstanceID:X}"))
+                            {
+                                OpenCooldownPlanner(e, c, p);
+                            }
+                        }
+                    }
                 }
             }
         }

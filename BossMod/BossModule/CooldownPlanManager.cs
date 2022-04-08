@@ -62,6 +62,7 @@ namespace BossMod
                 {
                     plans.Available.Add(new(curClass, $"New {plans.Available.Count + 1}"));
                     plans.SelectedIndex = plans.Available.Count - 1;
+                    NotifyModified();
                 }
                 StartPlanEditor(plans.Available[plans.SelectedIndex], initial);
             }
@@ -81,11 +82,32 @@ namespace BossMod
                         {
                             StartPlanEditor(plans.Available[i], CreateStateForOID(e));
                         }
+                        ImGui.SameLine();
+                        if (ImGui.Button($"Copy##{e}/{c}/{i}"))
+                        {
+                            var plan = plans.Available[i].Clone();
+                            plan.Name += " Copy";
+                            plans.Available.Add(plan);
+                            NotifyModified();
+                            StartPlanEditor(plan, CreateStateForOID(e));
+                        }
+                        ImGui.SameLine();
+                        if (ImGui.Button($"Delete##{e}/{c}/{i}"))
+                        {
+                            if (plans.SelectedIndex == i)
+                                plans.SelectedIndex = -1;
+                            else if (plans.SelectedIndex > i)
+                                plans.SelectedIndex--;
+                            plans.Available.RemoveAt(i);
+                            --i;
+                            NotifyModified();
+                        }
                     }
                     if (ImGui.Button($"Add new...##{e}/{c}"))
                     {
                         var plan = new CooldownPlan(c, $"New {plans.Available.Count}");
                         plans.Available.Add(plan);
+                        NotifyModified();
                         StartPlanEditor(plan, CreateStateForOID(e));
                     }
                 }
@@ -94,13 +116,13 @@ namespace BossMod
 
         private void StartPlanEditor(CooldownPlan plan, StateMachine.State? initial)
         {
-            var editor = new CooldownPlanEditor(plan, initial, NotifyModified);
+            var editor = new CooldownPlanEditor(plan, new(initial), NotifyModified, new());
             var w = WindowManager.CreateWindow($"Cooldown planner", editor.Draw, () => { }, () => true);
             w.SizeHint = new(600, 600);
             w.MinSize = new(100, 100);
         }
 
-        private StateMachine.State? CreateStateForOID(uint oid)
+        private static StateMachine.State? CreateStateForOID(uint oid)
         {
             return ModuleRegistry.CreateModule(oid, new(new(), new()), new(0, oid, "", ActorType.None, Class.None, new(), 0, false, 0))?.InitialState;
         }

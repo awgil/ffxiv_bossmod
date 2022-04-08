@@ -1,4 +1,5 @@
 ﻿using BossMod;
+using System.Linq;
 using System.Numerics;
 
 namespace UIDev
@@ -29,6 +30,14 @@ namespace UIDev
             if (desc.Length > 0)
                 s += $": {desc}";
             return s;
+        }
+
+        public static int ActionDamage(Replay.ActionTarget a)
+        {
+            int res = 0;
+            foreach (var eff in a.Effects.Where(eff => eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage && (eff.Param4 & 0x80) == 0))
+                res += eff.Value + ((eff.Param4 & 0x40) != 0 ? eff.Param3 * 0x10000 : 0);
+            return res;
         }
     }
 }
