@@ -114,16 +114,18 @@ namespace BossMod
                 var name = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(_visibleTracks[i].ID)?.Name.ToString() ?? "(unknown)";
                 _timeline.DrawHeader(TrackCenterX(i), name, 0xffffffff);
             }
+            _timeline.DrawHeader(TrackCenterX(_visibleTracks.Count), "Unplanned", 0xffffffff);
 
             List<TimelineEvent> hoverEvents = new();
             List<StateMachineTree.Node> hoverNodes = new();
             List<TrackElement> hoverTracks = new();
 
-            _timeline.Begin(_tracksHOffset + _trackHBetween * _visibleTracks.Count, 5, _tree.MaxTime);
+            _timeline.Begin(_tracksHOffset + _trackHBetween * (_visibleTracks.Count + 1), 5, _tree.MaxTime);
             foreach (var n in _tree.BranchNodes(_selectedBranch))
                 DrawNode(n, hoverNodes);
             for (int i = 0; i < _visibleTracks.Count; ++i)
                 DrawTrack(i, hoverTracks);
+            DrawUnplannedTrack();
             foreach (var e in _events)
                 DrawEvent(e, hoverEvents);
             _timeline.End();
@@ -188,7 +190,7 @@ namespace BossMod
             {
                 var trackIndex = _visibleTracks.IndexOf(e.PlayerAction);
                 if (trackIndex == -1)
-                    return;
+                    trackIndex = _visibleTracks.Count; // unplanned track
                 hOffset = TrackCenterX(trackIndex);
             }
             var screenPos = _timeline.ToScreenCoords(hOffset, e.Timestamp);
@@ -196,7 +198,7 @@ namespace BossMod
             if (ImGui.IsMouseHoveringRect(screenPos - new Vector2(_eventRadius), screenPos + new Vector2(_eventRadius)))
             {
                 hoverEvents.Add(e);
-                ImGui.GetWindowDrawList().AddLine(_timeline.ToScreenCoords(0, e.Timestamp), _timeline.ToScreenCoords(_tracksHOffset + _trackHBetween * _visibleTracks.Count, e.Timestamp), e.Color);
+                ImGui.GetWindowDrawList().AddLine(_timeline.ToScreenCoords(0, e.Timestamp), _timeline.ToScreenCoords(_tracksHOffset + _trackHBetween * (_visibleTracks.Count + 1), e.Timestamp), e.Color);
             }
         }
 
@@ -330,6 +332,14 @@ namespace BossMod
             }
         }
 
+        private void DrawUnplannedTrack()
+        {
+            var xCenter = TrackCenterX(_visibleTracks.Count);
+            var trackMin = _timeline.ScreenClientTL + new Vector2(xCenter - _trackHalfWidth, 0);
+            var trackMax = _timeline.ScreenClientTL + new Vector2(xCenter + _trackHalfWidth, _timeline.Height);
+            ImGui.GetWindowDrawList().AddRectFilled(trackMin, trackMax, 0x40404040);
+        }
+
         private void HighlightElement(float xCenter, TrackElement elem, float duration)
         {
             var windowEnd = elem.WindowStart + elem.WindowLength;
@@ -377,7 +387,9 @@ namespace BossMod
 
         private void Save()
         {
-            _curPlan = BuildPlan();
+            var plan = BuildPlan();
+            _curPlan.Name = plan.Name;
+            _curPlan.PlanAbilities = plan.PlanAbilities;
             _onModified();
             _modified = false;
         }

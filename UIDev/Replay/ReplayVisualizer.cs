@@ -311,7 +311,8 @@ namespace UIDev
                     damage |= t.Target?.Type == ActorType.Player && e.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage;
                 }
             }
-            return new((float)(a.Timestamp - enc.Time.Start).TotalSeconds, text, isPlayer || damage ? 0xffffffff : 0x80808080, isPlayer ? a.ID : new());
+            bool highlight = isPlayer ? (a.ID != new ActionID(ActionType.Spell, 7)) : damage;
+            return new((float)(a.Timestamp - enc.Time.Start).TotalSeconds, text, highlight ? 0xffffffff : 0x80808080, isPlayer ? a.ID : new());
         }
 
         private void OpenCooldownPlanner(Replay.Encounter enc, Class pcClass, Replay.Participant? pc = null)
@@ -322,7 +323,7 @@ namespace UIDev
             {
                 if (!(a.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo))
                     events.Add(BuildCooldownPlannerEvent(enc, a, false));
-                else if (a.Source == pc && supportedPlayerAbilities.ContainsKey(a.ID))
+                else if (a.Source == pc)
                     events.Add(BuildCooldownPlannerEvent(enc, a, true));
             }
 
