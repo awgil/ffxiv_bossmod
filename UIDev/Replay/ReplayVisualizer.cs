@@ -311,7 +311,7 @@ namespace UIDev
                     damage |= t.Target?.Type == ActorType.Player && e.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage;
                 }
             }
-            return new((float)(a.Timestamp - enc.Time.Start).TotalSeconds, text, damage ? 0xffffffff : 0x80808080, isPlayer ? a.ID : new());
+            return new((float)(a.Timestamp - enc.Time.Start).TotalSeconds, text, isPlayer || damage ? 0xffffffff : 0x80808080, isPlayer ? a.ID : new());
         }
 
         private void OpenCooldownPlanner(Replay.Encounter enc, Class pcClass, Replay.Participant? pc = null)

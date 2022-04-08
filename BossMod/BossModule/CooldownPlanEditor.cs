@@ -132,15 +132,6 @@ namespace BossMod
             {
                 ImGui.BeginTooltip();
                 bool first = true;
-                foreach (var e in hoverEvents)
-                {
-                    if (!first)
-                        ImGui.Separator();
-                    first = false;
-                    ImGui.TextUnformatted($"{e.Timestamp:f1}: {e.Text.FirstOrDefault()}");
-                    for (int i = 1; i < e.Text.Count; ++i)
-                        ImGui.TextUnformatted(e.Text[i]);
-                }
                 foreach (var n in hoverNodes)
                 {
                     if (!first)
@@ -161,6 +152,15 @@ namespace BossMod
                     ImGui.Text($"Window: {t.WindowLength:f1}s");
                     if (t != _edit?.Element)
                         ImGui.Text($"Attached: {(t.AttachNode?.Time ?? 0) - t.WindowStart:f1}s before {t.AttachNode?.State.ID:X} '{t.AttachNode?.State.Name}' ({t.AttachNode?.State.Comment})");
+                }
+                foreach (var e in hoverEvents)
+                {
+                    if (!first)
+                        ImGui.Separator();
+                    first = false;
+                    ImGui.TextUnformatted($"{e.Timestamp:f1}: {e.Text.FirstOrDefault()}");
+                    for (int i = 1; i < e.Text.Count; ++i)
+                        ImGui.TextUnformatted(e.Text[i]);
                 }
                 ImGui.EndTooltip();
             }
@@ -196,7 +196,7 @@ namespace BossMod
             if (ImGui.IsMouseHoveringRect(screenPos - new Vector2(_eventRadius), screenPos + new Vector2(_eventRadius)))
             {
                 hoverEvents.Add(e);
-                ImGui.GetWindowDrawList().AddLine(new Vector2(0, screenPos.Y), new Vector2(_tracksHOffset + _trackHBetween * _visibleTracks.Count, screenPos.Y), e.Color);
+                ImGui.GetWindowDrawList().AddLine(_timeline.ToScreenCoords(0, e.Timestamp), _timeline.ToScreenCoords(_tracksHOffset + _trackHBetween * _visibleTracks.Count, e.Timestamp), e.Color);
             }
         }
 
