@@ -71,6 +71,7 @@ namespace BossMod
             Freecure = 155,
             Swiftcast = 167,
             ThinAir = 1217,
+            DivineBenison = 1218,
             Dia = 1871,
         }
 

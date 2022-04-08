@@ -67,7 +67,7 @@ namespace BossMod
 
             // cooldown execution
             _strategy.ExecuteAsylum = SmartQueueActiveSpell(WHMRotation.AID.Asylum);
-            _strategy.ExecuteDivineBenison = SmartQueueActiveSpell(WHMRotation.AID.DivineBenison); // TODO: check that target doesn't already have DB...
+            _strategy.ExecuteDivineBenison = SmartQueueActiveSpell(WHMRotation.AID.DivineBenison) && AllowDivineBenison();
             _strategy.ExecuteTetragrammaton = SmartQueueActiveSpell(WHMRotation.AID.Tetragrammaton);
             _strategy.ExecuteBenediction = SmartQueueActiveSpell(WHMRotation.AID.Benediction);
             _strategy.ExecuteLiturgyOfTheBell = SmartQueueActiveSpell(WHMRotation.AID.LiturgyOfTheBell);
@@ -236,7 +236,7 @@ namespace BossMod
                 Log($"Smart-target failed, removing from queue");
                 SmartQueueDeactivate(action);
             }
-            return targets.MainTarget; // TODO: consider returning invalid target instead, since self-target is probably not what we want...
+            return targets.MainTarget; // TODO: self-target is probably not what we want...
         }
 
         private uint SmartTargetCure3(Targets targets)
@@ -292,6 +292,14 @@ namespace BossMod
         {
             var playerPos = Service.ClientState.LocalPlayer?.Position ?? new();
             return Service.ObjectTable.Any(o => o.ObjectKind == ObjectKind.BattleNpc && (BattleNpcSubKind)o.SubKind == BattleNpcSubKind.Enemy && Utils.GameObjectIsTargetable(o) && GeometryUtils.PointInCircle(o.Position - playerPos, 15 + o.HitboxRadius));
+        }
+
+        // check whether potential divine benison target doesn't already have it applied
+        private bool AllowDivineBenison()
+        {
+            var targets = SmartQueueTargetSpell(WHMRotation.AID.DivineBenison, new());
+            var target = SmartTargetFriendly(targets, _config.MouseoverFriendly);
+            return target != null && target.FindStatus(WHMRotation.SID.DivineBenison, Service.ClientState.LocalPlayer?.ObjectId ?? 0) == null;
         }
     }
 }

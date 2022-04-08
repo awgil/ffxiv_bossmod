@@ -15,6 +15,7 @@ namespace BossMod
         }
 
         public event EventHandler<CastEvent>? EventActionEffect;
+        public event EventHandler<(uint actorID, ActionID action, float castTime, uint targetID)>? EventActorCast;
         public event EventHandler<(uint actorID, uint actionID)>? EventActorControlCancelCast;
         public event EventHandler<(uint actorID, uint iconID)>? EventActorControlTargetIcon;
         public event EventHandler<(uint actorID, uint targetID, uint tetherID)>? EventActorControlTether;
@@ -23,6 +24,7 @@ namespace BossMod
         public event EventHandler<(uint featureID, byte index, uint state)>? EventEnvControl;
         public event EventHandler<(Waymark waymark, Vector3? pos)>? EventWaymark;
         public event EventHandler<PendingAction>? EventActionRequest;
+        public event EventHandler<PendingAction>? EventActionRequestGT;
 
         private GeneralConfig _config;
 
@@ -69,6 +71,9 @@ namespace BossMod
                     case Protocol.Opcode.ActionEffect32:
                         HandleActionEffect32((Protocol.Server_ActionEffect32*)dataPtr, targetActorId);
                         break;
+                    case Protocol.Opcode.ActorCast:
+                        HandleActorCast((Protocol.Server_ActorCast*)dataPtr, targetActorId);
+                        break;
                     case Protocol.Opcode.ActorControl:
                         HandleActorControl((Protocol.Server_ActorControl*)dataPtr, targetActorId);
                         break;
@@ -98,6 +103,9 @@ namespace BossMod
                 {
                     case Protocol.Opcode.ActionRequest:
                         HandleActionRequest((Protocol.Client_ActionRequest*)dataPtr);
+                        break;
+                    case Protocol.Opcode.ActionRequestGroundTargeted:
+                        HandleActionRequestGT((Protocol.Client_ActionRequestGroundTargeted*)dataPtr);
                         break;
                 }
             }
@@ -167,6 +175,11 @@ namespace BossMod
             EventActionEffect?.Invoke(this, info);
         }
 
+        private unsafe void HandleActorCast(Protocol.Server_ActorCast* p, uint actorID)
+        {
+            EventActorCast?.Invoke(this, (actorID, new(p->SkillType, p->ActionID), p->CastTime, p->TargetID));
+        }
+
         private unsafe void HandleActorControl(Protocol.Server_ActorControl* p, uint actorID)
         {
             switch (p->category)
@@ -222,6 +235,11 @@ namespace BossMod
             EventActionRequest?.Invoke(this, new() { Action = new(p->Type, p->ActionID), TargetID = p->TargetID, Sequence = p->Sequence });
         }
 
+        private unsafe void HandleActionRequestGT(Protocol.Client_ActionRequestGroundTargeted* p)
+        {
+            EventActionRequestGT?.Invoke(this, new() { Action = new(p->Type, p->ActionID), TargetID = 0, Sequence = p->Sequence });
+        }
+
         private unsafe void DumpClientMessage(IntPtr dataPtr, ushort opCode)
         {
             Service.Log($"[Network] Client message {(Protocol.Opcode)opCode}");
@@ -231,6 +249,12 @@ namespace BossMod
                     {
                         var p = (Protocol.Client_ActionRequest*)dataPtr;
                         Service.Log($"[Network] - AID={new ActionID(p->Type, p->ActionID)}, target={Utils.ObjectString(p->TargetID)}, seq={p->Sequence}, itemsrc={p->ItemSourceContainer}:{p->ItemSourceSlot}, u={p->u0:X2} {p->u1:X4} {p->u2:X4} {p->u3:X8} {p->u4:X8} {p->u5:X8}");
+                        break;
+                    }
+                case Protocol.Opcode.ActionRequestGroundTargeted:
+                    {
+                        var p = (Protocol.Client_ActionRequestGroundTargeted*)dataPtr;
+                        Service.Log($"[Network] - AID={new ActionID(p->Type, p->ActionID)}, seq={p->Sequence}, u={p->u0:X2} {p->u1:X4} {p->u2:X4} {p->u3:X8} {p->u4:X8} {p->u5:X8} {p->u6:X8} {p->u7:X8}");
                         break;
                     }
             }

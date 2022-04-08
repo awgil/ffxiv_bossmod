@@ -95,6 +95,13 @@ namespace BossMod
             return i >= 0 ? Statuses[i] : null;
         }
 
+        public ActorStatus? FindStatus(uint sid, uint source)
+        {
+            var i = Array.FindIndex(Statuses, x => x.ID == sid && x.SourceID == source);
+            return i >= 0 ? Statuses[i] : null;
+        }
+
         public ActorStatus? FindStatus<SID>(SID sid) where SID : Enum => FindStatus((uint)(object)sid);
+        public ActorStatus? FindStatus<SID>(SID sid, uint source) where SID : Enum => FindStatus((uint)(object)sid, source);
     }
 }

@@ -70,6 +70,8 @@ namespace BossMod
             _bossmods = bossmods;
 
             _network.EventActionRequest += OnNetworkActionRequest;
+            _network.EventActionRequestGT += OnNetworkActionRequest;
+            _network.EventActorCast += OnNetworkActionCastStart;
             _network.EventActionEffect += OnNetworkActionEffect;
             _network.EventActorControlCancelCast += OnNetworkActionCancel;
             _network.EventActorControlSelfActionRejected += OnNetworkActionReject;
@@ -91,6 +93,8 @@ namespace BossMod
             _inputOverride.Dispose();
 
             _network.EventActionRequest -= OnNetworkActionRequest;
+            _network.EventActionRequestGT -= OnNetworkActionRequest;
+            _network.EventActorCast -= OnNetworkActionCastStart;
             _network.EventActionEffect -= OnNetworkActionEffect;
             _network.EventActorControlCancelCast -= OnNetworkActionCancel;
             _network.EventActorControlSelfActionRejected -= OnNetworkActionReject;
@@ -166,7 +170,7 @@ namespace BossMod
             }
             Log($"++ {PendingActionString(action)}");
             _pendingActions.Add(action);
-            _animLockEnd = DateTime.Now.AddSeconds(0.5); // TODO: i think it is less for casted (~0.1) - check by running and spamming cast, you'll see interrupt in ~0.2 and next cast in ~0.05 after that...
+            _animLockEnd = DateTime.Now.AddSeconds(0.5); // note: for casted spells, it is actually 0.1 after cast end - we update it if we receive cast-start message
 
             if (_inputPendingUnblock > DateTime.Now)
             {
@@ -175,6 +179,15 @@ namespace BossMod
                     _inputOverride.UnblockMovement();
                 _inputPendingUnblock = new();
             }
+        }
+
+        private void OnNetworkActionCastStart(object? sender, (uint actorID, ActionID action, float castTime, uint targetID) args)
+        {
+            if (args.actorID != Service.ClientState.LocalPlayer?.ObjectId)
+                return; // not a player cast
+
+            // update animation lock end for casted spells: it is 0.1 after cast end instead of 0.5 after request
+            _animLockEnd = _animLockEnd.AddSeconds(args.castTime - 0.4f);
         }
 
         private void OnNetworkActionEffect(object? sender, CastEvent action)
@@ -234,6 +247,9 @@ namespace BossMod
                 _pendingActions.RemoveAt(0);
             }
 
+            // clear animation lock (TODO: or should it be set to 0.1? I think if you spam cast while running, next cast will start <0.1s after interrupt...)
+            _animLockEnd = new();
+
             // keep movement locked for a slight duration after interrupted cast, in case player restarts it
             _inputPendingUnblock = DateTime.Now.AddSeconds(0.2f);
         }
@@ -262,6 +278,8 @@ namespace BossMod
                 Log($"!! {PendingActionString(_pendingActions[0])}");
                 _pendingActions.RemoveAt(0);
             }
+
+            // TODO: should we clear animation lock here?..
 
             // unblock input unconditionally on reject (TODO: investigate more why it can happen)
             _inputOverride.UnblockMovement();

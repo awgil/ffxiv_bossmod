@@ -524,5 +524,21 @@ namespace BossMod
             public ushort ItemSourceContainer;
             public uint u5;
         }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public unsafe struct Client_ActionRequestGroundTargeted
+        {
+            public byte u0;
+            public ActionType Type;
+            public ushort u1;
+            public uint ActionID;
+            public ushort Sequence;
+            public ushort u2;
+            public uint u3;
+            public uint u4;
+            public uint u5;
+            public uint u6;
+            public uint u7;
+        }
     }
 }
