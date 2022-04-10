@@ -80,7 +80,7 @@ namespace BossMod
             public int InnerReleaseStacks; // 0 if buff not up, max 3
             public float InnerReleaseCD; // 60 max, 0 if ready
             public float InfuriateCD; // 120 max, >60 if 0 stacks ready, >0 if 1 stack ready, ==0 if 2 stacks ready
-            public float UpheavalCD; // 60 max, 0 if ready
+            public float UpheavalCD; // 30 max, 0 if ready
             public float OnslaughtCD; // 90 max, >60 if 0 stacks ready, >30 if 1 stack ready, >0 if 2 stacks ready, ==0 if 3 stacks ready
             public float RampartCD; // 90 max, 0 if ready
             public float VengeanceCD; // 120 max, 0 if ready
@@ -198,6 +198,48 @@ namespace BossMod
                     sb.Append(" Sprint");
                 return sb.ToString();
             }
+        }
+
+        public static AbilityDefinitions.Class BuildDefinitions()
+        {
+            var res = CommonRotation.BuildCommonDefinitions();
+            res.AddGCDSpell(AID.HeavySwing);
+            res.AddGCDSpell(AID.Maim);
+            res.AddGCDSpell(AID.StormPath);
+            res.AddGCDSpell(AID.StormEye);
+            res.AddGCDSpell(AID.InnerBeast);
+            res.AddGCDSpell(AID.FellCleave);
+            res.AddGCDSpell(AID.InnerChaos);
+            res.AddGCDSpell(AID.PrimalRend).AnimLock = 1.15f;
+            res.AddGCDSpell(AID.Overpower);
+            res.AddGCDSpell(AID.MythrilTempest);
+            res.AddGCDSpell(AID.SteelCyclone);
+            res.AddGCDSpell(AID.Decimate);
+            res.AddGCDSpell(AID.ChaoticCyclone);
+            res.AddCooldownTrackAndSpell(AID.Infuriate, 60, 30).Charges = 2;
+            res.AddCooldownTrackAndSpell(AID.Onslaught, 30).Charges = 3;
+            res.AddSharedCooldownSpells(new AID[] { AID.Upheaval, AID.Orogeny }, "Upheaval", 30);
+            res.AddSharedCooldownSpells(new AID[] { AID.Berserk, AID.InnerRelease }, "IR", 60, 15);
+            res.AddCooldownTrackAndSpell(AID.Rampart, 90, 20, AbilityDefinitions.Ability.Category.SelfMitigation);
+            res.AddCooldownTrackAndSpell(AID.Vengeance, 120, 15, AbilityDefinitions.Ability.Category.SelfMitigation);
+            res.AddCooldownTrackAndSpell(AID.ThrillOfBattle, 90, 10, AbilityDefinitions.Ability.Category.SelfMitigation);
+            res.AddCooldownTrackAndSpell(AID.Holmgang, 240, 10, AbilityDefinitions.Ability.Category.SelfMitigation);
+            res.AddCooldownTrackAndSpell(AID.Equilibrium, 60, 0, AbilityDefinitions.Ability.Category.SelfMitigation);
+            res.AddCooldownTrackAndSpell(AID.Reprisal, 60, 10, AbilityDefinitions.Ability.Category.RaidMitigation);
+            res.AddCooldownTrackAndSpell(AID.ShakeItOff, 90, 15, AbilityDefinitions.Ability.Category.RaidMitigation);
+            int bloodwhettingTrack = res.AddTrack(AbilityDefinitions.Track.Category.SharedCooldown, "Bloodwhetting");
+            res.AddSpell(AID.RawIntuition, bloodwhettingTrack, 25, 6);
+            res.AddSpell(AID.NascentFlash, bloodwhettingTrack, 25, 4);
+            res.AddSpell(AID.Bloodwhetting, bloodwhettingTrack, 25, 4, AbilityDefinitions.Ability.Category.SelfMitigation);
+            res.AddCooldownTrackAndSpell(AID.ArmsLength, 120, 6, AbilityDefinitions.Ability.Category.SelfMitigation);
+            res.AddGCDSpell(AID.Tomahawk);
+            res.AddCooldownTrackAndSpell(AID.Defiance, 10);
+            res.AddCooldownTrackAndSpell(AID.Provoke, 30);
+            res.AddCooldownTrackAndSpell(AID.Shirk, 120);
+            res.AddCooldownTrackAndSpell(AID.LowBlow, 25);
+            res.AddCooldownTrackAndSpell(AID.Interject, 30);
+            res.Abilities[IDStatPotion] = new() { CooldownTrack = res.AddTrack(AbilityDefinitions.Track.Category.SharedCooldown, "Potion"), AnimLock = 1.1f, Cooldown = 270, EffectDuration = 30 };
+            return res;
         }
 
         public static int GaugeGainedFromAction(State state, AID action)
@@ -409,16 +451,16 @@ namespace BossMod
                 return ActionID.MakeSpell(AID.Holmgang);
             if (strategy.ExecuteArmsLength && state.UnlockedArmsLength && state.CanWeave(state.ArmsLengthCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.ArmsLength);
-            if (strategy.ExecuteThrillOfBattle && state.UnlockedThrillOfBattle && state.CanWeave(state.ThrillOfBattleCD, 0.6f, windowEnd)) // prefer using thrill before SOI, so that it can be eaten
-                return ActionID.MakeSpell(AID.ThrillOfBattle);
-            if (strategy.ExecuteEquilibrium && state.UnlockedEquilibrium && state.CanWeave(state.EquilibriumCD, 0.6f, windowEnd)) // prefer to use equilibrium after thrill for extra healing
-                return ActionID.MakeSpell(AID.Equilibrium);
-            if (strategy.ExecuteShakeItOff && state.UnlockedShakeItOff && state.CanWeave(state.ShakeItOffCD, 0.6f, windowEnd)) // prefer to use SOI after thrill (to consume it), but before vengeance & bloodwhetting (too useful)
+            if (strategy.ExecuteShakeItOff && state.UnlockedShakeItOff && state.CanWeave(state.ShakeItOffCD, 0.6f, windowEnd)) // prefer to use SOI before buffs
                 return ActionID.MakeSpell(AID.ShakeItOff);
             if (strategy.ExecuteVengeance && state.UnlockedVengeance && state.CanWeave(state.VengeanceCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Vengeance);
             if (strategy.ExecuteRampart && state.UnlockedRampart && state.CanWeave(state.RampartCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Rampart);
+            if (strategy.ExecuteThrillOfBattle && state.UnlockedThrillOfBattle && state.CanWeave(state.ThrillOfBattleCD, 0.6f, windowEnd))
+                return ActionID.MakeSpell(AID.ThrillOfBattle);
+            if (strategy.ExecuteEquilibrium && state.UnlockedEquilibrium && state.CanWeave(state.EquilibriumCD, 0.6f, windowEnd)) // prefer to use equilibrium after thrill for extra healing
+                return ActionID.MakeSpell(AID.Equilibrium);
             if (strategy.ExecuteReprisal && state.UnlockedReprisal && state.CanWeave(state.ReprisalCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Reprisal);
             if (strategy.ExecuteBloodwhetting && state.UnlockedRawIntuition && state.CanWeave(state.BloodwhettingCD, 0.6f, windowEnd))
@@ -429,16 +471,29 @@ namespace BossMod
                 return CommonRotation.IDSprint;
 
             // 3. potion, if required by strategy, and not too early in opener (TODO: reconsider priority)
-            bool allowPotion = strategy.Potion switch
-            {
-                Strategy.PotionUse.DelayUntilRaidBuffs => state.RaidBuffsLeft > 0 || strategy.RaidBuffsIn <= 2.5, // TODO: reconsider timings?..
-                Strategy.PotionUse.DelayUntilPersonalBuffs => state.InnerReleaseStacks > 0 || state.InnerReleaseCD < 15, // TODO: reconsider timings?..
-                Strategy.PotionUse.Immediate => true,
-                _ => false,
-            };
             // note: this check will not allow using potions before lvl 50, but who cares...
-            if (allowPotion && state.CanWeave(state.PotionCD, 1.1f, windowEnd) && (state.SurgingTempestLeft > 0 || state.ComboLastMove == AID.Maim))
-                return IDStatPotion;
+            if (strategy.Potion != Strategy.PotionUse.Manual && state.CanWeave(state.PotionCD, 1.1f, windowEnd) && (state.SurgingTempestLeft > 0 || state.ComboLastMove == AID.Maim))
+            {
+                // note: potion should never be delayed during opener slot
+                // we have a problem with late buff application during opener: between someone casting first raidbuff and us receiving buff, RaidBuffsLeft will be 0 and RaidBuffsIn will be very large
+                // after opener this won't be a huge deal, since we have several GCDs of leeway + most likely we have several raid buffs that are at least somewhat staggered
+                bool allowPotion = true;
+                if (strategy.Potion != Strategy.PotionUse.Immediate && state.SurgingTempestLeft > 0)
+                {
+                    // if we're delaying potion, make sure it covers IR (note: if IR is already up, it is too late...)
+                    allowPotion &= state.InnerReleaseCD < 15; // note: absolute max is 10, since we need 4 GCDs to fully consume IR
+                    if (strategy.Potion == Strategy.PotionUse.DelayUntilRaidBuffs)
+                    {
+                        // further delay potion until raidbuffs are up or imminent
+                        // we can't really control whether raidbuffs cover IR window, so skip potion only if we're sure raidbuffs might be up for next IR window
+                        // we assume that typical average raidbuff window is 20 sec, so raidbuffs will cover next window if they will start in ~(time to next IR - buff duration) ~= (IRCD + 60 - 20)
+                        allowPotion &= state.RaidBuffsLeft > 0 || strategy.RaidBuffsIn < state.InnerReleaseCD + 40;
+                    }
+                }
+
+                if (allowPotion)
+                    return IDStatPotion;
+            }
 
             // 4. upheaval, if surging tempest up and not forbidden
             // TODO: delay for 1 GCD during opener...

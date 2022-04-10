@@ -146,15 +146,11 @@ namespace UIDev.Analysis
 
             foreach (var replay in replays.Where(r => r.Encounters.Count > 0))
             {
-                WorldState ws = new();
-                BossModuleManagerWrapper mgr = new(this, replay, ws);
+                ReplayPlayer player = new(replay);
+                BossModuleManagerWrapper mgr = new(this, replay, player.WorldState);
                 Dictionary<BossModule, ActiveModuleState> states = new();
-                int nextOp = 0;
-                while (nextOp < replay.Ops.Count)
+                while (player.TickForward())
                 {
-                    ws.CurrentTime = replay.Ops[nextOp].Timestamp;
-                    while (nextOp < replay.Ops.Count && replay.Ops[nextOp].Timestamp == ws.CurrentTime)
-                        replay.Ops[nextOp++].Redo(ws);
                     mgr.Update();
 
                     foreach (var m in mgr.ActiveModules)
@@ -172,7 +168,7 @@ namespace UIDev.Analysis
 
                         if (s.CurState != m.StateMachine.ActiveState)
                         {
-                            s.Transition(m.StateMachine.ActiveState, ws.CurrentTime);
+                            s.Transition(m.StateMachine.ActiveState, player.WorldState.CurrentTime);
                         }
                     }
                 }

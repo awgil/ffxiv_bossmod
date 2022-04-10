@@ -8,6 +8,7 @@ namespace BossMod
 {
     public static class CommonRotation
     {
+        public static ActionID IDAutoAttack = new(ActionType.Spell, 7);
         public static ActionID IDSprint = new(ActionType.General, 4);
 
         public class State
@@ -45,6 +46,14 @@ namespace BossMod
             public float PositionLockIn; // time left to use moving abilities (Primal Rend and Onslaught) - we won't use them if it is ==0; setting this to 2.5f will make us use PR asap
             public PotionUse Potion; // strategy for automatic potion use
             public bool ExecuteSprint;
+        }
+
+        public static AbilityDefinitions.Class BuildCommonDefinitions()
+        {
+            AbilityDefinitions.Class res = new();
+            int sprintTrack = res.AddTrack(AbilityDefinitions.Track.Category.SharedCooldown, "Sprint");
+            res.Abilities[IDSprint] = new() { CooldownTrack = sprintTrack, Cooldown = 60, EffectDuration = 10 };
+            return res;
         }
     }
 }

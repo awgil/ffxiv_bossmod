@@ -89,6 +89,7 @@ namespace BossMod
                 _ws.Actors.Renamed += ActorRenamed;
                 _ws.Actors.ClassChanged += ActorClassChanged;
                 _ws.Actors.Moved += ActorMoved;
+                _ws.Actors.HPChanged += ActorHPChanged;
                 _ws.Actors.IsTargetableChanged += ActorIsTargetableChanged;
                 _ws.Actors.IsDeadChanged += ActorIsDeadChanged;
                 _ws.Actors.InCombatChanged += ActorInCombatChanged;
@@ -120,6 +121,7 @@ namespace BossMod
                 _ws.Actors.Renamed -= ActorRenamed;
                 _ws.Actors.ClassChanged -= ActorClassChanged;
                 _ws.Actors.Moved -= ActorMoved;
+                _ws.Actors.HPChanged -= ActorHPChanged;
                 _ws.Actors.IsTargetableChanged -= ActorIsTargetableChanged;
                 _ws.Actors.IsDeadChanged -= ActorIsDeadChanged;
                 _ws.Actors.InCombatChanged -= ActorInCombatChanged;
@@ -180,7 +182,7 @@ namespace BossMod
 
         private void ActorCreated(object? sender, Actor actor)
         {
-            Log("ACT+", $"{Actor(actor)}|{actor.Class}|{actor.IsTargetable}|{actor.HitboxRadius:f3}|{Actor(actor.OwnerID)}");
+            Log("ACT+", $"{Actor(actor)}|{actor.Class}|{actor.IsTargetable}|{actor.HitboxRadius:f3}|{Actor(actor.OwnerID)}|{actor.HPCur}/{actor.HPMax}");
         }
 
         private void ActorDestroyed(object? sender, Actor actor)
@@ -201,6 +203,11 @@ namespace BossMod
         private void ActorMoved(object? sender, (Actor actor, Vector4 prevPosRot) arg)
         {
             Log("MOVE", Actor(arg.actor));
+        }
+
+        private void ActorHPChanged(object? sender, (Actor actor, uint prevCur, uint prevMax) arg)
+        {
+            Log("HP  ", $"{Actor(arg.actor)}|{arg.actor.HPCur}/{arg.actor.HPMax}");
         }
 
         private void ActorIsTargetableChanged(object? sender, Actor actor)

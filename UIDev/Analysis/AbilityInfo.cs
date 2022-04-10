@@ -112,16 +112,12 @@ namespace UIDev.Analysis
             foreach (var replay in replays.Where(r => r.Encounters.Count > 0))
             {
                 List<List<(Actor, Vector4)>> snaps = new();
-                WorldState ws = new();
-                int nextOp = 0;
+                ReplayPlayer player = new(replay);
                 foreach (var action in replay.Actions)
                 {
-                    while (nextOp < replay.Ops.Count && replay.Ops[nextOp].Timestamp < action.Timestamp)
-                    {
-                        ws.CurrentTime = replay.Ops[nextOp].Timestamp;
-                        replay.Ops[nextOp++].Redo(ws);
-                    }
-                    snaps.Add(BuildPositionSnapshot(ws));
+                    while (player.WorldState.CurrentTime < action.Timestamp)
+                        player.TickForward();
+                    snaps.Add(BuildPositionSnapshot(player.WorldState));
                 }
 
                 foreach (var enc in replay.Encounters)

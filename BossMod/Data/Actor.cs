@@ -62,6 +62,8 @@ namespace BossMod
         public Class Class;
         public Vector4 PosRot = new(); // W = rotation: 0 = pointing S, pi/2 = pointing E, pi = pointing N, -pi/2 = pointing W
         public float HitboxRadius;
+        public uint HPCur;
+        public uint HPMax;
         public bool IsDestroyed; // set to true when actor is removed from world; object might still be alive because of other references
         public bool IsTargetable;
         public bool IsDead;
@@ -73,10 +75,10 @@ namespace BossMod
         public ActorStatus[] Statuses = new ActorStatus[30]; // empty slots have ID=0
 
         public Role Role => Class.GetRole();
-        public Vector3 Position => new(PosRot.X, PosRot.Y, PosRot.Z);
+        public Vector3 Position => PosRot.XYZ();
         public float Rotation => PosRot.W;
 
-        public Actor(uint instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius, bool targetable, uint ownerID)
+        public Actor(uint instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius, uint hpCur, uint hpMax, bool targetable, uint ownerID)
         {
             InstanceID = instanceID;
             OID = oid;
@@ -85,6 +87,8 @@ namespace BossMod
             Class = classID;
             PosRot = posRot;
             HitboxRadius = hitboxRadius;
+            HPCur = hpCur;
+            HPMax = hpMax;
             IsTargetable = targetable;
             OwnerID = ownerID;
         }

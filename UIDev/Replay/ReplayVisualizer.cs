@@ -9,10 +9,8 @@ namespace UIDev
 {
     class ReplayVisualizer : IDisposable
     {
-        private Replay _data;
-        private WorldState _ws = new();
+        private ReplayPlayer _player;
         private BossModuleManager _mgr;
-        private int _cursor = 0;
         private DateTime _first;
         private DateTime _last;
         private DateTime _prevFrame;
@@ -24,10 +22,11 @@ namespace UIDev
 
         public ReplayVisualizer(Replay data)
         {
-            _data = data;
-            _mgr = new(_ws, new());
-            _ws.CurrentTime = _first = data.Ops.First().Timestamp;
+            _player = new(data);
+            _mgr = new(_player.WorldState, new());
+            _first = data.Ops.First().Timestamp;
             _last = data.Ops.Last().Timestamp;
+            _player.AdvanceTo(_first, _mgr.Update);
         }
 
         public void Dispose()
@@ -37,10 +36,8 @@ namespace UIDev
         public void Draw()
         {
             var curFrame = DateTime.Now;
-            MoveTo(_ws.CurrentTime + (curFrame - _prevFrame) * _playSpeed);
+            MoveTo(_player.WorldState.CurrentTime + (curFrame - _prevFrame) * _playSpeed);
             _prevFrame = curFrame;
-
-            _mgr.Update();
 
             DrawControlRow();
             DrawTimelineRow();
@@ -66,7 +63,7 @@ namespace UIDev
 
         private void DrawControlRow()
         {
-            ImGui.Text($"{_ws.CurrentTime:O}");
+            ImGui.Text($"{_player.WorldState.CurrentTime:O}");
             ImGui.SameLine();
             if (ImGui.Button("<<<"))
                 _playSpeed = -10;
@@ -106,9 +103,9 @@ namespace UIDev
             cursor.Y += 4;
             dl.AddLine(cursor, cursor + new Vector2(w, 0), 0xff00ffff);
 
-            var curp = cursor + new Vector2(w * (float)((_ws.CurrentTime - _first) / (_last - _first)), 0);
+            var curp = cursor + new Vector2(w * (float)((_player.WorldState.CurrentTime - _first) / (_last - _first)), 0);
             dl.AddTriangleFilled(curp, curp + new Vector2(3, 5), curp + new Vector2(-3, 5), 0xff00ffff);
-            foreach (var e in _data.Encounters)
+            foreach (var e in _player.Replay.Encounters)
             {
                 DrawCheckpoint(e.Time.Start, 0xff00ff00, cursor, w);
                 DrawCheckpoint(e.Time.End, 0xff0000ff, cursor, w);
@@ -135,7 +132,7 @@ namespace UIDev
             ImGui.TableNextColumn(); ImGui.DragFloat("###X", ref pos.X, 0.25f, 80, 120);
             ImGui.TableNextColumn(); ImGui.DragFloat("###Z", ref pos.Z, 0.25f, 80, 120);
             ImGui.TableNextColumn(); ImGui.DragFloat("###Rot", ref rot, 1, -180, 180);
-            _ws.Actors.Move(actor, new(pos, rot / 180 * MathF.PI));
+            _player.WorldState.Actors.Move(actor, new(pos, rot / 180 * MathF.PI));
 
             ImGui.TableNextColumn();
             if (actor.IsDead)
@@ -147,15 +144,15 @@ namespace UIDev
 
             ImGui.TableNextColumn();
             if (actor.CastInfo != null)
-                ImGui.Text($"{actor.CastInfo.Action}: {Utils.CastTimeString(actor.CastInfo, _ws.CurrentTime)}");
+                ImGui.Text($"{actor.CastInfo.Action}: {Utils.CastTimeString(actor.CastInfo, _player.WorldState.CurrentTime)}");
 
             ImGui.TableNextColumn();
             foreach (var s in actor.Statuses.Where(s => s.ID != 0))
             {
-                var src = _ws.Actors.Find(s.SourceID);
+                var src = _player.WorldState.Actors.Find(s.SourceID);
                 if (src?.Type == ActorType.Player || src?.Type == ActorType.Pet)
                     continue;
-                ImGui.Text($"{Utils.StatusString(s.ID)} ({s.Extra}): {Utils.StatusTimeString(s.ExpireAt, _ws.CurrentTime)}");
+                ImGui.Text($"{Utils.StatusString(s.ID)} ({s.Extra}): {Utils.StatusTimeString(s.ExpireAt, _player.WorldState.CurrentTime)}");
                 ImGui.SameLine();
             }
         }
@@ -179,7 +176,7 @@ namespace UIDev
             ImGui.TableSetupColumn("Statuses", ImGuiTableColumnFlags.None, 100);
             ImGui.TableSetupColumn("Hints", ImGuiTableColumnFlags.None, 250);
             ImGui.TableHeadersRow();
-            foreach ((int slot, var player) in _ws.Party.WithSlot(true))
+            foreach ((int slot, var player) in _player.WorldState.Party.WithSlot(true))
             {
                 ImGui.PushID((int)player.InstanceID);
                 ImGui.TableNextRow();
@@ -261,7 +258,7 @@ namespace UIDev
             ImGui.TableSetupColumn("Cast");
             ImGui.TableSetupColumn("Statuses");
             ImGui.TableHeadersRow();
-            foreach (var actor in _ws.Actors)
+            foreach (var actor in _player.WorldState.Actors)
             {
                 ImGui.PushID((int)actor.InstanceID);
                 ImGui.TableNextRow();
@@ -297,73 +294,10 @@ namespace UIDev
             _encountersTree.LeafNodes(statuses, s => StatusString(s, start, sidType));
         }
 
-        private CooldownPlanEditor.TimelineEvent BuildCooldownPlannerEvent(Replay.Encounter enc, Replay.Action a, bool isPlayer)
-        {
-            var text = new List<string>();
-            text.Add($"{a.ID} {ReplayUtils.ParticipantString(a.Source)} -> {ReplayUtils.ParticipantString(a.MainTarget)}");
-            bool damage = false;
-            foreach (var t in a.Targets)
-            {
-                text.Add($"- {ReplayUtils.ParticipantString(t.Target)}");
-                foreach (var e in t.Effects)
-                {
-                    text.Add($"-- {ReplayUtils.ActionEffectString(e)}");
-                    damage |= t.Target?.Type == ActorType.Player && e.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage;
-                }
-            }
-            bool highlight = isPlayer ? (a.ID != new ActionID(ActionType.Spell, 7)) : damage;
-            return new((float)(a.Timestamp - enc.Time.Start).TotalSeconds, text, highlight ? 0xffffffff : 0x80808080, isPlayer ? a.ID : new());
-        }
-
         private void OpenCooldownPlanner(Replay.Encounter enc, Class pcClass, Replay.Participant? pc = null)
         {
-            var supportedPlayerAbilities = CooldownPlan.SupportedClasses[pcClass].Abilities;
-            List<CooldownPlanEditor.TimelineEvent> events = new();
-            foreach (var a in _data.EncounterActions(enc))
-            {
-                if (!(a.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo))
-                    events.Add(BuildCooldownPlannerEvent(enc, a, false));
-                else if (a.Source == pc)
-                    events.Add(BuildCooldownPlannerEvent(enc, a, true));
-            }
-
-            var ws = new WorldState();
-            int nextOp = 0;
-            while (nextOp < _data.Ops.Count && _data.Ops[nextOp].Timestamp <= enc.Time.Start)
-            {
-                ws.CurrentTime = _data.Ops[nextOp].Timestamp;
-                _data.Ops[nextOp++].Redo(ws);
-            }
-            var bmm = new BossModuleManager(ws, new());
-            var m = bmm.ActiveModules.FirstOrDefault(m => m.PrimaryActor.InstanceID == enc.InstanceID);
-            StateMachine.State? prevState = m?.StateMachine.ActiveState;
-            DateTime prevStateEnter = ws.CurrentTime;
-            if (m != null)
-            {
-                while (nextOp < _data.Ops.Count && ws.CurrentTime < enc.Time.End)
-                {
-                    ws.CurrentTime = _data.Ops[nextOp].Timestamp;
-                    while (nextOp < _data.Ops.Count && _data.Ops[nextOp].Timestamp == ws.CurrentTime)
-                        _data.Ops[nextOp++].Redo(ws);
-                    m.Update();
-                    if (m.StateMachine.ActiveState == null)
-                        break;
-
-                    if (prevState != m.StateMachine.ActiveState)
-                    {
-                        if (prevState != null)
-                            prevState.Duration = (float)(ws.CurrentTime - prevStateEnter).TotalSeconds;
-                        prevState = m.StateMachine.ActiveState;
-                        prevStateEnter = ws.CurrentTime;
-                    }
-                }
-            }
-
-            var stateTree = new StateMachineTree(m?.InitialState);
-            int curBranch = prevState != null ? (stateTree.Nodes.GetValueOrDefault(prevState.ID)?.BranchID ?? 0) : 0;
-
-            var editor = new CooldownPlanEditor(new CooldownPlan(pcClass, ""), stateTree, () => { }, events, curBranch);
-            var w = WindowManager.CreateWindow($"Cooldown planner", editor.Draw, () => { }, () => true);
+            var planner = new ReplayVisPlayer(_player.Replay, enc, pcClass, pc);
+            var w = WindowManager.CreateWindow($"Cooldown planner", planner.Draw, () => { }, () => true);
             w.SizeHint = new(600, 600);
             w.MinSize = new(100, 100);
         }
@@ -373,7 +307,7 @@ namespace UIDev
             if (!ImGui.CollapsingHeader("Encounters"))
                 return;
 
-            foreach (var e in _encountersTree.Nodes(_data.Encounters, e => ($"{ModuleRegistry.TypeForOID(e.OID)}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}", false)))
+            foreach (var e in _encountersTree.Nodes(_player.Replay.Encounters, e => ($"{ModuleRegistry.TypeForOID(e.OID)}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}", false)))
             {
                 var moduleType = ModuleRegistry.TypeForOID(e.OID)!;
                 var oidType = moduleType.Module.GetType($"{moduleType.Namespace}.OID");
@@ -402,21 +336,21 @@ namespace UIDev
                             {
                                 foreach (var an in _encountersTree.Node("Actions"))
                                 {
-                                    DrawActionNodes(_data.EncounterActions(e).Where(a => a.Source == p), e.Time.Start, aidType);
+                                    DrawActionNodes(_player.Replay.EncounterActions(e).Where(a => a.Source == p), e.Time.Start, aidType);
                                 }
                             }
                             if (p.IsTargetOfAnyActions)
                             {
                                 foreach (var an in _encountersTree.Node("Affected by actions"))
                                 {
-                                    DrawActionNodes(_data.EncounterActions(e).Where(a => a.Targets.Any(t => t.Target == p)), e.Time.Start, aidType);
+                                    DrawActionNodes(_player.Replay.EncounterActions(e).Where(a => a.Targets.Any(t => t.Target == p)), e.Time.Start, aidType);
                                 }
                             }
                             if (p.HasAnyStatuses)
                             {
                                 foreach (var an in _encountersTree.Node("Statuses"))
                                 {
-                                    DrawStatusNodes(_data.EncounterStatuses(e).Where(s => s.Target == p), e.Time.Start, sidType);
+                                    DrawStatusNodes(_player.Replay.EncounterStatuses(e).Where(s => s.Target == p), e.Time.Start, sidType);
                                 }
                             }
                             if (p.Targetable.Count > 0)
@@ -430,46 +364,46 @@ namespace UIDev
                     }
                 }
 
-                bool haveActions = _data.EncounterActions(e).Any();
+                bool haveActions = _player.Replay.EncounterActions(e).Any();
                 Func<Replay.Action, bool> actionIsCrap = a => a.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo;
                 foreach (var n in _encountersTree.Node("Interesting actions", !haveActions))
                 {
-                    DrawActionNodes(_data.EncounterActions(e).Where(a => !actionIsCrap(a)), e.Time.Start, aidType);
+                    DrawActionNodes(_player.Replay.EncounterActions(e).Where(a => !actionIsCrap(a)), e.Time.Start, aidType);
                 }
                 foreach (var n in _encountersTree.Node("Other actions", !haveActions))
                 {
-                    DrawActionNodes(_data.EncounterActions(e).Where(actionIsCrap), e.Time.Start, aidType);
+                    DrawActionNodes(_player.Replay.EncounterActions(e).Where(actionIsCrap), e.Time.Start, aidType);
                 }
 
-                bool haveStatuses = _data.EncounterStatuses(e).Any();
+                bool haveStatuses = _player.Replay.EncounterStatuses(e).Any();
                 Func<Replay.Status, bool> statusIsCrap = s => (s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo) || (s.Target?.Type is ActorType.Pet or ActorType.Chocobo);
                 foreach (var n in _encountersTree.Node("Interesting statuses", !haveStatuses))
                 {
-                    DrawStatusNodes(_data.EncounterStatuses(e).Where(s => !statusIsCrap(s)), e.Time.Start, sidType);
+                    DrawStatusNodes(_player.Replay.EncounterStatuses(e).Where(s => !statusIsCrap(s)), e.Time.Start, sidType);
                 }
                 foreach (var n in _encountersTree.Node("Other statuses", !haveStatuses))
                 {
-                    DrawStatusNodes(_data.EncounterStatuses(e).Where(statusIsCrap), e.Time.Start, sidType);
+                    DrawStatusNodes(_player.Replay.EncounterStatuses(e).Where(statusIsCrap), e.Time.Start, sidType);
                 }
 
-                foreach (var n in _encountersTree.Node("Tethers", !_data.EncounterTethers(e).Any()))
+                foreach (var n in _encountersTree.Node("Tethers", !_player.Replay.EncounterTethers(e).Any()))
                 {
-                    _encountersTree.LeafNodes(_data.EncounterTethers(e), t => $"{new Replay.TimeRange(e.Time.Start, t.Time.Start)} + {t.Time}: {t.ID} ({tidType?.GetEnumName(t.ID)}) @ {ReplayUtils.ParticipantString(t.Source)} -> {ReplayUtils.ParticipantString(t.Target)}");
+                    _encountersTree.LeafNodes(_player.Replay.EncounterTethers(e), t => $"{new Replay.TimeRange(e.Time.Start, t.Time.Start)} + {t.Time}: {t.ID} ({tidType?.GetEnumName(t.ID)}) @ {ReplayUtils.ParticipantString(t.Source)} -> {ReplayUtils.ParticipantString(t.Target)}");
                 }
 
-                foreach (var n in _encountersTree.Node("Icons", !_data.EncounterIcons(e).Any()))
+                foreach (var n in _encountersTree.Node("Icons", !_player.Replay.EncounterIcons(e).Any()))
                 {
-                    _encountersTree.LeafNodes(_data.EncounterIcons(e), i => $"{new Replay.TimeRange(e.Time.Start, i.Timestamp)}: {i.ID} ({iidType?.GetEnumName(i.ID)}) @ {ReplayUtils.ParticipantString(i.Target)}");
+                    _encountersTree.LeafNodes(_player.Replay.EncounterIcons(e), i => $"{new Replay.TimeRange(e.Time.Start, i.Timestamp)}: {i.ID} ({iidType?.GetEnumName(i.ID)}) @ {ReplayUtils.ParticipantString(i.Target)}");
                 }
 
-                foreach (var n in _encountersTree.Node("EnvControls", !_data.EncounterEnvControls(e).Any()))
+                foreach (var n in _encountersTree.Node("EnvControls", !_player.Replay.EncounterEnvControls(e).Any()))
                 {
-                    _encountersTree.LeafNodes(_data.EncounterEnvControls(e), ec => $"{new Replay.TimeRange(e.Time.Start, ec.Timestamp)}: {ec.Feature:X8}.{ec.Index:X2} = {ec.State:X8}");
+                    _encountersTree.LeafNodes(_player.Replay.EncounterEnvControls(e), ec => $"{new Replay.TimeRange(e.Time.Start, ec.Timestamp)}: {ec.Feature:X8}.{ec.Index:X2} = {ec.State:X8}");
                 }
 
-                foreach (var n in _encountersTree.Node("Cooldown plans", false))
+                foreach (var n in _encountersTree.Node("Player actions timeline", false))
                 {
-                    foreach (var c in CooldownPlan.SupportedClasses.Keys)
+                    foreach (var c in AbilityDefinitions.Classes.Keys)
                     {
                         if (ImGui.Button(c.ToString()))
                         {
@@ -490,23 +424,14 @@ namespace UIDev
 
         private void MoveTo(DateTime t)
         {
-            if (t > _ws.CurrentTime)
+            if (t > _player.WorldState.CurrentTime)
             {
-                while (_cursor < _data.Ops.Count && t > _data.Ops[_cursor].Timestamp)
-                {
-                    _ws.CurrentTime = _data.Ops[_cursor].Timestamp;
-                    _data.Ops[_cursor++].Redo(_ws);
-                }
+                _player.AdvanceTo(t, _mgr.Update);
             }
-            else if (t < _ws.CurrentTime)
+            else if (t < _player.WorldState.CurrentTime)
             {
-                while (_cursor > 0 && t <= _data.Ops[_cursor - 1].Timestamp)
-                {
-                    _ws.CurrentTime = _data.Ops[_cursor - 1].Timestamp;
-                    _data.Ops[--_cursor].Undo(_ws);
-                }
+                _player.ReverseTo(t, _mgr.Update);
             }
-            _ws.CurrentTime = t;
         }
 
         private bool ClickedAt(Vector2 centerPos, float halfSize)

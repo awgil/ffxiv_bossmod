@@ -63,6 +63,7 @@ namespace UIDev
                 case "NAME": ParseActorRename(timestamp, payload); break;
                 case "CLSR": ParseActorClassChange(timestamp, payload); break;
                 case "MOVE": ParseActorMove(timestamp, payload); break;
+                case "HP  ": ParseActorHP(timestamp, payload); break;
                 case "ATG+": ParseActorTargetable(timestamp, payload, true); break;
                 case "ATG-": ParseActorTargetable(timestamp, payload, false); break;
                 case "DIE+": ParseActorDead(timestamp, payload, true); break;
@@ -151,6 +152,7 @@ namespace UIDev
             res.IsTargetable = bool.Parse(payload[4]);
             res.HitboxRadius = float.Parse(payload[5]);
             res.OwnerID = payload.Length > 6 ? ActorID(payload[6]) : 0;
+            (res.HPCur, res.HPMax) = payload.Length > 7 ? CurMax(payload[7]) : (0, 0);
             AddOp(timestamp, res);
 
             if (_version == 0 && res.Type == ActorType.Player)
@@ -212,6 +214,14 @@ namespace UIDev
             OpActorMove res = new();
             res.InstanceID = uint.Parse(parts[0], NumberStyles.HexNumber);
             res.PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]) * MathF.PI / 180);
+            AddOp(timestamp, res);
+        }
+
+        private void ParseActorHP(DateTime timestamp, string[] payload)
+        {
+            OpActorHP res = new();
+            res.InstanceID = ActorID(payload[2]);
+            (res.Cur, res.Max) = CurMax(payload[3]);
             AddOp(timestamp, res);
         }
 
@@ -380,6 +390,12 @@ namespace UIDev
         {
             var sep = actor.IndexOf('/');
             return uint.Parse(sep >= 0 ? actor.AsSpan(0, sep) : actor.AsSpan(), NumberStyles.HexNumber);
+        }
+
+        private static (uint, uint) CurMax(string repr)
+        {
+            var parts = repr.Split('/');
+            return (uint.Parse(parts[0]), uint.Parse(parts[1]));
         }
 
         private static ActionID Action(string repr)

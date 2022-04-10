@@ -46,24 +46,7 @@ namespace BossMod
 
         private DateTime _curTime;
         private DateTime _lastTransition;
-        private float? _pauseTime;
-        public float TimeSinceTransition => _pauseTime ?? (float)(_curTime - _lastTransition).TotalSeconds;
-        public bool Paused
-        {
-            get => _pauseTime != null;
-            set
-            {
-                if (value && _pauseTime == null)
-                {
-                    _pauseTime = TimeSinceTransition;
-                }
-                else if (!value && _pauseTime != null)
-                {
-                    _lastTransition = _curTime - TimeSpan.FromSeconds(_pauseTime.Value);
-                    _pauseTime = null;
-                }
-            }
-        }
+        public float TimeSinceTransition => (float)(_curTime - _lastTransition).TotalSeconds;
 
         private State? _activeState = null;
         public State? ActiveState
@@ -97,17 +80,12 @@ namespace BossMod
                 }
 
                 _lastTransition = _curTime;
-                if (Paused)
-                    _pauseTime = 0;
             }
         }
 
         public void Update(DateTime now)
         {
             _curTime = now;
-            if (Paused)
-                return;
-
             while (ActiveState != null)
             {
                 var transition = ActiveState.Update?.Invoke(TimeSinceTransition);

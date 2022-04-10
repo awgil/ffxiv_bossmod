@@ -23,7 +23,7 @@ namespace BossMod
             foreach (var (oid, t) in ModuleRegistry.RegisteredModules.Where(kv => !kv.Value.IsAssignableTo(simple)))
             {
                 var p = Plans[oid] = new();
-                foreach (var c in CooldownPlan.SupportedClasses.Keys)
+                foreach (var c in AbilityDefinitions.Classes.Keys)
                     p[c] = new();
             }
 
@@ -33,7 +33,7 @@ namespace BossMod
 
         public CooldownPlan? DrawSelectionUI(uint encounterOID, Class curClass, StateMachine.State? initial)
         {
-            if (!CooldownPlan.SupportedClasses.ContainsKey(curClass))
+            if (!AbilityDefinitions.Classes.ContainsKey(curClass))
                 return null; // class is not supported
 
             var plans = Plans.GetOrAdd(encounterOID).GetOrAdd(curClass);
@@ -124,7 +124,7 @@ namespace BossMod
 
         private static StateMachine.State? CreateStateForOID(uint oid)
         {
-            return ModuleRegistry.CreateModule(oid, new(new(), new()), new(0, oid, "", ActorType.None, Class.None, new(), 0, false, 0))?.InitialState;
+            return ModuleRegistry.CreateModule(oid, new(new(), new()), new(0, oid, "", ActorType.None, Class.None, new(), 0, 0, 0, false, 0))?.InitialState;
         }
     }
 }

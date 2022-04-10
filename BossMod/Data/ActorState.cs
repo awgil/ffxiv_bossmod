@@ -16,9 +16,9 @@ namespace BossMod
         public Actor? Find(uint instanceID) => instanceID != 0 ? _actors.GetValueOrDefault(instanceID) : null;
 
         public event EventHandler<Actor>? Added;
-        public Actor Add(uint instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, bool targetable = true, uint ownerID = 0)
+        public Actor Add(uint instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, uint hpCur = 0, uint hpMax = 0, bool targetable = true, uint ownerID = 0)
         {
-            var act = _actors[instanceID] = new Actor(instanceID, oid, name, type, classID, posRot, hitboxRadius, targetable, ownerID);
+            var act = _actors[instanceID] = new Actor(instanceID, oid, name, type, classID, posRot, hitboxRadius, hpCur, hpMax, targetable, ownerID);
             Added?.Invoke(this, act);
             return act;
         }
@@ -70,6 +70,19 @@ namespace BossMod
                 var prevPosRot = act.PosRot;
                 act.PosRot = newPosRot;
                 Moved?.Invoke(this, (act, prevPosRot));
+            }
+        }
+
+        public event EventHandler<(Actor, uint, uint)>? HPChanged; // actor already contains new cur/max hp, old are passed as extra args
+        public void UpdateHP(Actor act, uint cur, uint max)
+        {
+            if (act.HPCur != cur || act.HPMax != max)
+            {
+                var prevCur = act.HPCur;
+                var prevMax = act.HPMax;
+                act.HPCur = cur;
+                act.HPMax = max;
+                HPChanged?.Invoke(this, (act, prevCur, prevMax));
             }
         }
 

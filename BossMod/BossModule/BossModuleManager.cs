@@ -145,7 +145,7 @@ namespace BossMod
         {
             if (_running && !_loadedModules.ContainsKey(0))
             {
-                _loadedModules[0] = new DemoModule(this, new(0, 0, "", ActorType.None, Class.None, new(), 0, false, 0));
+                _loadedModules[0] = new DemoModule(this, new(0, 0, "", ActorType.None, Class.None, new(), 0, 0, 0, false, 0));
                 _configOrModulesUpdated = true;
                 return true;
             }

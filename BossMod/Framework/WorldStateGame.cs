@@ -81,11 +81,13 @@ namespace BossMod
             {
                 var character = obj as Character;
                 var classID = (Class)(character?.ClassJob.Id ?? 0);
+                var curHP = character?.CurrentHp ?? 0;
+                var maxHP = character?.MaxHp ?? 0;
 
                 var act = Actors.Find(obj.ObjectId);
                 if (act == null)
                 {
-                    act = Actors.Add(obj.ObjectId, obj.DataId, obj.Name.TextValue, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), classID, new(obj.Position, obj.Rotation), obj.HitboxRadius, Utils.GameObjectIsTargetable(obj), SanitizedObjectID(obj.OwnerId));
+                    act = Actors.Add(obj.ObjectId, obj.DataId, obj.Name.TextValue, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), classID, new(obj.Position, obj.Rotation), obj.HitboxRadius, curHP, maxHP, Utils.GameObjectIsTargetable(obj), SanitizedObjectID(obj.OwnerId));
                     _prevStatusDurations[obj.ObjectId] = new float[30];
                 }
                 else
@@ -93,6 +95,7 @@ namespace BossMod
                     Actors.ChangeClass(act, classID);
                     Actors.Rename(act, obj.Name.TextValue);
                     Actors.Move(act, new(obj.Position, obj.Rotation));
+                    Actors.UpdateHP(act, curHP, maxHP);
                     Actors.ChangeIsTargetable(act, Utils.GameObjectIsTargetable(obj));
                 }
                 Actors.ChangeTarget(act, SanitizedObjectID(obj.TargetObjectId));
@@ -145,6 +148,7 @@ namespace BossMod
             {
                 Service.Log($"[WorldState] Actor events for unknown entity {id:X}:{(events.Casts != null ? " casts" : "")}{(events.TetherUpdate != null ? " tether" : "")}{(events.IconUpdate != null ? " icon" : "")}");
             }
+            _actorEvents.Clear();
         }
 
         private void UpdateParty()

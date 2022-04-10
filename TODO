@@ -18,6 +18,7 @@ autorotation:
 -- automatic bloodwhetting?
 -- charge planning
 -- offensive CD planning/delay
+-- potion use (first, second)
 - whm:
 -- aero - low-level status ids
 -- planner
@@ -28,6 +29,7 @@ cooldown planner:
 - plan tankswaps
 - plan raid cooldowns (think about ui and storage for that...)
 - build state-id => metrics (delay-to-planned action, delay-to-positioning/downtime) map instead of doing calculations every frame
+- show hp, ...
 
 world rendering:
 - danger zones (modify action vfx?)

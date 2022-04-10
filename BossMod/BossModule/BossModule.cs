@@ -198,8 +198,8 @@ namespace BossMod
             {
                 if (ImGui.Button("Show timeline"))
                 {
-                    var timeline = new StateMachineVisualizer(InitialState);
-                    var w = WindowManager.CreateWindow($"{GetType()} Timeline", () => timeline.Draw(StateMachine), () => { }, () => true);
+                    var timeline = new StateMachineVisualizer(InitialState, StateMachine);
+                    var w = WindowManager.CreateWindow($"{GetType()} Timeline", timeline.Draw, () => { }, () => true);
                     w.SizeHint = new(600, 600);
                     w.MinSize = new(100, 100);
                 }

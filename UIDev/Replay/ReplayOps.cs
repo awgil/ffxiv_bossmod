@@ -58,12 +58,14 @@ namespace UIDev
             public Class Class;
             public Vector4 PosRot;
             public float HitboxRadius;
+            public uint HPCur;
+            public uint HPMax;
             public bool IsTargetable;
             public uint OwnerID;
 
             public override void Redo(WorldState ws)
             {
-                ws.Actors.Add(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, IsTargetable, OwnerID);
+                ws.Actors.Add(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, HPCur, HPMax, IsTargetable, OwnerID);
             }
 
             public override void Undo(WorldState ws)
@@ -81,6 +83,8 @@ namespace UIDev
             private Class Class;
             private Vector4 PosRot;
             private float HitboxRadius;
+            private uint HPCur;
+            private uint HPMax;
             private bool IsTargetable;
             private uint OwnerID;
 
@@ -93,6 +97,8 @@ namespace UIDev
                 Class = actor?.Class ?? Class.None;
                 PosRot = actor?.PosRot ?? new();
                 HitboxRadius = actor?.HitboxRadius ?? 0;
+                HPCur = actor?.HPCur ?? 0;
+                HPMax = actor?.HPMax ?? 0;
                 IsTargetable = actor?.IsTargetable ?? false;
                 OwnerID = actor?.OwnerID ?? 0;
                 ws.Actors.Remove(InstanceID);
@@ -100,7 +106,7 @@ namespace UIDev
 
             public override void Undo(WorldState ws)
             {
-                ws.Actors.Add(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, IsTargetable, OwnerID);
+                ws.Actors.Add(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, HPCur, HPMax, IsTargetable, OwnerID);
             }
         }
 
@@ -178,6 +184,35 @@ namespace UIDev
                 if (actor != null)
                 {
                     ws.Actors.Move(actor, _prevPosRot);
+                }
+            }
+        }
+
+        public class OpActorHP : Operation
+        {
+            public uint InstanceID;
+            public uint Cur;
+            public uint Max;
+            private uint _prevCur;
+            private uint _prevMax;
+
+            public override void Redo(WorldState ws)
+            {
+                var actor = ws.Actors.Find(InstanceID);
+                if (actor != null)
+                {
+                    _prevCur = actor.HPCur;
+                    _prevMax = actor.HPMax;
+                    ws.Actors.UpdateHP(actor, Cur, Max);
+                }
+            }
+
+            public override void Undo(WorldState ws)
+            {
+                var actor = ws.Actors.Find(InstanceID);
+                if (actor != null)
+                {
+                    ws.Actors.UpdateHP(actor, _prevCur, _prevMax);
                 }
             }
         }
