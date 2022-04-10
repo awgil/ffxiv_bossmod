@@ -24,7 +24,7 @@
         {
             Config = manager.EncounterConfig.Get<EndwalkerConfig>().Get<P4S2Config>();
             Arena.IsCircle = true;
-            new P4S2States(this);
+            InitStates(new P4S2States(this).Initial);
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

@@ -47,11 +47,16 @@ namespace UIDev
             {
                 _mgr.ActiveModule.Draw(_azimuth / 180 * MathF.PI, _povSlot, null);
 
-                ImGui.Text($"Downtime in: {_mgr.ActiveModule.StateMachine.EstimateTimeToNextDowntime():f2}, Positioning in: {_mgr.ActiveModule.StateMachine.EstimateTimeToNextPositioning():f2}, Components:");
+                ImGui.Text($"Downtime in: {_mgr.ActiveModule.PlanExecution?.EstimateTimeToNextDowntime(_mgr.ActiveModule.StateMachine):f2}, Positioning in: {_mgr.ActiveModule.PlanExecution?.EstimateTimeToNextPositioning(_mgr.ActiveModule.StateMachine):f2}, Components:");
                 foreach (var comp in _mgr.ActiveModule.Components)
                 {
                     ImGui.SameLine();
                     ImGui.Text(comp.GetType().Name);
+                }
+
+                if (ImGui.CollapsingHeader("Plan execution"))
+                {
+                    _mgr.ActiveModule.PlanExecution?.Draw(_mgr.ActiveModule.StateMachine);
                 }
             }
 

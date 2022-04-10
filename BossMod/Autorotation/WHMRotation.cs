@@ -66,7 +66,8 @@ namespace BossMod
         public enum SID : uint
         {
             None = 0,
-            Aero = 143,
+            Aero1 = 143,
+            Aero2 = 144,
             Medica2 = 150,
             Freecure = 155,
             Swiftcast = 167,

@@ -41,9 +41,6 @@ namespace BossMod
             public StateHint EndHint = StateHint.None; // special flags for state end
         }
 
-        private bool _isDowntime = true;
-        private bool _isPositioning = false;
-
         private DateTime _curTime;
         private DateTime _lastTransition;
         public float TimeSinceTransition => (float)(_curTime - _lastTransition).TotalSeconds;
@@ -58,12 +55,6 @@ namespace BossMod
                 {
                     foreach (var cb in _activeState.Exit)
                         cb();
-                    _isDowntime = (_isDowntime || _activeState.EndHint.HasFlag(StateHint.DowntimeStart)) && !_activeState.EndHint.HasFlag(StateHint.DowntimeEnd);
-                    _isPositioning = (_isPositioning || _activeState.EndHint.HasFlag(StateHint.PositioningStart)) && !_activeState.EndHint.HasFlag(StateHint.PositioningEnd);
-                }
-                else
-                {
-                    _isDowntime = _isPositioning = false;
                 }
 
                 _activeState = value;
@@ -72,11 +63,6 @@ namespace BossMod
                 {
                     foreach (var cb in _activeState.Enter)
                         cb();
-                }
-                else
-                {
-                    _isDowntime = true;
-                    _isPositioning = false;
                 }
 
                 _lastTransition = _curTime;
@@ -110,62 +96,6 @@ namespace BossMod
             {
                 ImGui.Text($"Then: {future}");
             }
-        }
-
-        public float EstimateTimeToNextDowntime()
-        {
-            if (_isDowntime || _activeState == null)
-                return 0;
-            var t = MathF.Max(0, _activeState.Duration - TimeSinceTransition);
-            State s = _activeState;
-            while (!s.EndHint.HasFlag(StateHint.DowntimeStart))
-            {
-                if (s.Next != null)
-                {
-                    s = s.Next;
-                    t += s.Duration;
-                }
-                else if (s.PotentialSuccessors != null && s.PotentialSuccessors.Length > 0)
-                {
-                    // this is a fork and we don't know where we'll go - assume there will be no downtime ever...
-                    return 10000;
-                }
-                else
-                {
-                    // this is a last state, assume combat ends...
-                    break;
-                }
-            }
-            return t;
-        }
-
-        public float EstimateTimeToNextPositioning()
-        {
-            if (_isPositioning)
-                return 0;
-            if (_activeState == null)
-                return 10000;
-            var t = MathF.Max(0, _activeState.Duration - TimeSinceTransition);
-            State s = _activeState;
-            while (!s.EndHint.HasFlag(StateHint.PositioningStart))
-            {
-                if (s.Next != null)
-                {
-                    s = s.Next;
-                    t += s.Duration;
-                }
-                else if (s.PotentialSuccessors != null && s.PotentialSuccessors.Length > 0)
-                {
-                    // this is a fork and we don't know where we'll go - assume there will be no positioning ever...
-                    return 10000;
-                }
-                else
-                {
-                    // this is a last state, assume combat ends...
-                    return 10000;
-                }
-            }
-            return t;
         }
 
         public string BuildStateChain(State? start, string sep, int maxCount = 5)

@@ -12,7 +12,7 @@
         public P4S1(BossModuleManager manager, Actor primary)
             : base(manager, primary, true)
         {
-            new P4S1States(this);
+            InitStates(new P4S1States(this).Initial);
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

@@ -24,7 +24,7 @@
             : base(manager, primary, true)
         {
             Arena.IsCircle = true;
-            new HydaelynExStates(this);
+            InitStates(new HydaelynExStates(this).Initial);
         }
 
         protected override void ResetModule()

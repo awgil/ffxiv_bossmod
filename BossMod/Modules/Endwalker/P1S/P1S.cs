@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.P1S
             : base(manager, primary, true)
         {
             Config = manager.EncounterConfig.Get<EndwalkerConfig>().Get<P1SConfig>();
-            new P1SStates(this);
+            InitStates(new P1SStates(this).Initial);
         }
 
         protected override void ResetModule()

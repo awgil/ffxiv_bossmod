@@ -17,6 +17,8 @@ namespace BossMod
 
         public Dictionary<uint, Dictionary<Class, PlanList>> Plans = new(); // [encounter-oid][class]
 
+        public CooldownPlan? SelectedPlan(uint encounterOID, Class curClass) => Plans.GetValueOrDefault(encounterOID)?.GetValueOrDefault(curClass)?.Selected();
+
         public CooldownPlanManager()
         {
             var simple = typeof(SimpleBossModule);
@@ -31,10 +33,10 @@ namespace BossMod
             DisplayOrder = 4;
         }
 
-        public CooldownPlan? DrawSelectionUI(uint encounterOID, Class curClass, StateMachine.State? initial)
+        public void DrawSelectionUI(uint encounterOID, Class curClass, StateMachine.State? initial)
         {
             if (!AbilityDefinitions.Classes.ContainsKey(curClass))
-                return null; // class is not supported
+                return; // class is not supported
 
             var plans = Plans.GetOrAdd(encounterOID).GetOrAdd(curClass);
             ImGui.SetNextItemWidth(100);
@@ -66,7 +68,6 @@ namespace BossMod
                 }
                 StartPlanEditor(plans.Available[plans.SelectedIndex], initial);
             }
-            return plans.Selected();
         }
 
         protected override void DrawContents()

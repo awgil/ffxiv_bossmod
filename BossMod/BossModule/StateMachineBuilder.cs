@@ -57,6 +57,7 @@ namespace BossMod
             }
         }
 
+        public StateMachine.State? Initial { get; private set; } = null;
         protected BossModule Module;
         private StateMachine.State? _lastState;
         private Dictionary<uint, StateMachine.State> _states;
@@ -80,9 +81,9 @@ namespace BossMod
                 if ((_lastState.ID & 0xFFFF0000) == (id & 0xFFFF0000))
                     _lastState.EndHint |= StateMachine.StateHint.GroupWithNext;
             }
-            else if (Module.InitialState == null)
+            else if (Initial == null)
             {
-                Module.InitialState = state;
+                Initial = state;
             }
             else
             {
@@ -144,14 +145,14 @@ namespace BossMod
                 return fork;
             };
 
-            var prevInit = Module.InitialState;
+            var prevInit = Initial;
             foreach (var (key, action) in dispatch)
             {
-                _lastState = Module.InitialState = null;
+                _lastState = Initial = null;
                 action();
-                stateDispatch[key] = Module.InitialState;
+                stateDispatch[key] = Initial;
             }
-            Module.InitialState = prevInit;
+            Initial = prevInit;
             _lastState = null;
 
             state.Raw.PotentialSuccessors = stateDispatch.Values.OfType<StateMachine.State>().Distinct().ToArray();

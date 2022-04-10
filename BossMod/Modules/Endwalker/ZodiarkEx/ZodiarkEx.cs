@@ -16,7 +16,7 @@
         public ZodiarkEx(BossModuleManager manager, Actor primary)
             : base(manager, primary, true)
         {
-            new ZodiarkExStates(this);
+            InitStates(new ZodiarkExStates(this).Initial);
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

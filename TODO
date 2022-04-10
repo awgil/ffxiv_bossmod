@@ -1,6 +1,7 @@
 replay encounter analysis:
 - tether & debuff passing range
 - pull range
+- actual log with filtering and context
 
 network:
 - hook send/recv (a-la xivalexander)
@@ -13,6 +14,7 @@ boss modules:
 - p3s - review, searing breeze component
 
 autorotation:
+- opener support
 - war
 -- low-level rotation - improve berserk delay logic, berserk buff id
 -- automatic bloodwhetting?
@@ -20,11 +22,11 @@ autorotation:
 -- offensive CD planning/delay
 -- potion use (first, second)
 - whm:
--- aero - low-level status ids
 -- planner
 -- smart-targeting for ST actions
 
 cooldown planner:
+- in-combat cooldown plan ui
 - select columns to show (concrete actions, categories)
 - plan tankswaps
 - plan raid cooldowns (think about ui and storage for that...)

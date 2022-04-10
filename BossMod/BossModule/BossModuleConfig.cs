@@ -18,6 +18,7 @@ namespace BossMod
         public bool OpaqueArenaBackground = false;
         public bool ShowWorldArrows = false;
         public bool ShowDemo = false;
+        public bool EnableTimerWindow = false;
 
         public BossModuleConfig()
         {
@@ -42,6 +43,7 @@ namespace BossMod
             DrawProperty(ref OpaqueArenaBackground, "Add opaque background to the arena");
             DrawProperty(ref ShowWorldArrows, "Show movement hints in world");
             DrawProperty(ref ShowDemo, "Show boss module demo out of instances (useful for configuring windows)");
+            DrawProperty(ref EnableTimerWindow, "Show window with cooldown plan timers");
         }
     }
 }

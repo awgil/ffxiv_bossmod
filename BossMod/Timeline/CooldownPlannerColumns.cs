@@ -14,7 +14,6 @@ namespace BossMod
         private StateMachineTree _tree;
         private string _name = "";
         private Dictionary<ActionID, ActionUseColumn> _columns = new();
-        private int _selectedBranch = 0;
 
         private float _trackWidth = 80;
 
@@ -23,7 +22,6 @@ namespace BossMod
             _plan = plan;
             _onModified = onModified;
             _tree = tree;
-            _selectedBranch = initialBranch;
             foreach (var (aid, info) in AbilityDefinitions.Classes[plan.Class].Abilities)
             {
                 if (!info.IsPlannable)
@@ -48,7 +46,6 @@ namespace BossMod
 
         public void SelectBranch(int branch)
         {
-            _selectedBranch = branch;
             foreach (var c in _columns.Values)
                 c.SelectedBranch = branch;
         }

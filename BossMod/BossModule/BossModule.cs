@@ -13,9 +13,9 @@ namespace BossMod
         public Actor PrimaryActor { get; init; }
         public MiniArena Arena { get; init; }
         public StateMachine StateMachine { get; init; } = new();
-        public StateMachine.State? InitialState = null;
+        public StateMachine.State? InitialState { get; private set; } = null;
         public ConfigNode? Config;
-        public CooldownPlan? CurrentCooldownPlan;
+        public CooldownPlanExecution? PlanExecution = null;
 
         public WorldState WorldState => Manager.WorldState;
         public PartyState Raid => WorldState.Party;
@@ -162,6 +162,17 @@ namespace BossMod
             }
         }
 
+        protected void InitStates(StateMachine.State? initial)
+        {
+            InitialState = initial;
+            RebuildPlan();
+        }
+
+        public void RebuildPlan()
+        {
+            PlanExecution = new(InitialState, Manager.CooldownPlanManager.SelectedPlan(PrimaryActor.OID, Raid.Player()?.Class ?? Class.None));
+        }
+
         public virtual void Reset()
         {
             _components.Clear();
@@ -209,7 +220,7 @@ namespace BossMod
                     StateMachine.ActiveState = StateMachine.ActiveState.Next;
                 }
                 ImGui.SameLine();
-                CurrentCooldownPlan = Manager.CooldownPlanManager.DrawSelectionUI(PrimaryActor.OID, Raid.Player()?.Class ?? Class.None, InitialState);
+                Manager.CooldownPlanManager.DrawSelectionUI(PrimaryActor.OID, Raid.Player()?.Class ?? Class.None, InitialState);
             }
         }
 

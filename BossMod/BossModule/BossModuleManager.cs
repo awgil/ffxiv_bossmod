@@ -35,6 +35,7 @@ namespace BossMod
             RaidCooldowns = new(ws);
 
             WindowConfig.Modified += ConfigChanged;
+            CooldownPlanManager.Modified += PlanChanged;
 
             if (WindowConfig.Enable)
             {
@@ -54,6 +55,7 @@ namespace BossMod
             {
                 Shutdown();
                 WindowConfig.Modified -= ConfigChanged;
+                CooldownPlanManager.Modified -= PlanChanged;
                 RaidCooldowns.Dispose();
             }
         }
@@ -251,6 +253,13 @@ namespace BossMod
             else
                 UnloadModule(0);
 
+            _configOrModulesUpdated = true;
+        }
+
+        private void PlanChanged(object? sender, EventArgs args)
+        {
+            foreach (var m in _loadedModules.Values)
+                m.RebuildPlan();
             _configOrModulesUpdated = true;
         }
     }

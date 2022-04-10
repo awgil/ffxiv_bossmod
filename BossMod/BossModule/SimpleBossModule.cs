@@ -22,6 +22,8 @@
             s.Raw.Update = _ => PrimaryActor.IsDead ? s.Raw.Next : null;
 
             sb.Simple(1, 0, "???");
+
+            InitStates(sb.Initial);
         }
 
         protected override void UpdateModule()

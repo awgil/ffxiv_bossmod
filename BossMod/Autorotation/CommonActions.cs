@@ -123,20 +123,20 @@ namespace BossMod
         public void Update()
         {
             // cooldown planning
-            var activeState = Autorot.Bossmods.ActiveModule?.StateMachine.ActiveState;
-            var cooldownPlan = Autorot.Bossmods.ActiveModule?.CurrentCooldownPlan;
-            if (cooldownPlan != null && activeState != null)
+            var cooldownPlan = Autorot.Bossmods.ActiveModule?.PlanExecution;
+            if (cooldownPlan != null)
             {
+                var stateData = cooldownPlan.FindStateData(Autorot.Bossmods.ActiveModule?.StateMachine.ActiveState);
                 foreach (var (action, entry) in _sq.Entries)
                 {
-                    var plan = cooldownPlan.PlanAbilities.GetValueOrDefault(action.Raw);
+                    var plan = stateData?.Abilities.GetValueOrDefault(action);
                     if (plan != null)
                     {
-                        foreach (var e in plan.Where(e => e.StateID == activeState.ID && Autorot.Bossmods.ActiveModule!.StateMachine.TimeSinceTransition >= e.TimeSinceActivation))
+                        var progress = Autorot.Bossmods.ActiveModule!.StateMachine.TimeSinceTransition;
+                        var activeWindow = plan.ActivationWindows.FindIndex(w => w.Start <= progress && w.End > progress);
+                        if (activeWindow != -1)
                         {
-                            var windowLeft = e.WindowLength - (Autorot.Bossmods.ActiveModule!.StateMachine.TimeSinceTransition - e.TimeSinceActivation);
-                            if (windowLeft > 0)
-                                entry.ActivatePlanned(Autorot.Bossmods.WorldState.CurrentTime, windowLeft);
+                            entry.ActivatePlanned(Autorot.Bossmods.WorldState.CurrentTime, plan.ActivationWindows[activeWindow].End - progress);
                         }
                     }
                 }
@@ -201,9 +201,9 @@ namespace BossMod
                 return;
 
             strategy.Prepull = !Service.ClientState.LocalPlayer.StatusFlags.HasFlag(StatusFlags.InCombat);
-            strategy.FightEndIn = Autorot.Bossmods.ActiveModule?.StateMachine.EstimateTimeToNextDowntime() ?? 0;
+            strategy.FightEndIn = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextDowntime(Autorot.Bossmods.ActiveModule?.StateMachine) ?? 0;
             strategy.RaidBuffsIn = Autorot.Bossmods.RaidCooldowns.NextDamageBuffIn(Autorot.Bossmods.WorldState.CurrentTime);
-            strategy.PositionLockIn = Autorot.Config.EnableMovement ? (Autorot.Bossmods.ActiveModule?.StateMachine.EstimateTimeToNextPositioning() ?? 10000) : 0;
+            strategy.PositionLockIn = Autorot.Config.EnableMovement ? (Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextPositioning(Autorot.Bossmods.ActiveModule?.StateMachine) ?? 10000) : 0;
             strategy.Potion = SmartQueueActive(potion) ? CommonRotation.Strategy.PotionUse.Immediate : Autorot.Config.PotionUse;
             if (strategy.Potion != CommonRotation.Strategy.PotionUse.Manual && !HaveItemInInventory(potion.ID)) // don't try to use potions if player doesn't have any
                 strategy.Potion = CommonRotation.Strategy.PotionUse.Manual;

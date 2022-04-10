@@ -11,6 +11,7 @@ namespace BossMod
     class BossModuleManagerGame : BossModuleManager
     {
         private WindowManager.Window? _mainWindow;
+        private WindowManager.Window? _planWindow;
         private BossModule? _drawnModule;
 
         public BossModuleManagerGame(WorldState ws, ConfigNode settings)
@@ -42,6 +43,30 @@ namespace BossMod
                     _mainWindow.Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
                 if (WindowConfig.Lock)
                     _mainWindow.Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
+            }
+
+            // create or destroy plan window if needed
+            bool showPlanWindow = WindowConfig.EnableTimerWindow && _drawnModule?.PlanExecution?.Plan != null;
+            if (_planWindow != null && !showPlanWindow)
+            {
+                Service.Log("[BMM] Closing plan window");
+                WindowManager.CloseWindow(_planWindow);
+            }
+            else if (_planWindow == null && showPlanWindow)
+            {
+                Service.Log("[BMM] Opening plan window");
+                _planWindow = WindowManager.CreateWindow("Cooldown plan", DrawPlanWindow, PlanWindowClosed, () => true);
+                _planWindow.SizeHint = new(400, 400);
+            }
+
+            // update plan window properties
+            if (_planWindow != null)
+            {
+                _planWindow.Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
+                if (WindowConfig.TrishaMode)
+                    _planWindow.Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
+                if (WindowConfig.Lock)
+                    _planWindow.Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
             }
         }
 
@@ -141,6 +166,17 @@ namespace BossMod
                 Service.Log("[BMM] Bossmod window closed by user, disabling temporarily");
                 return true;
             }
+        }
+
+        private void DrawPlanWindow()
+        {
+            _drawnModule?.PlanExecution?.Draw(_drawnModule?.StateMachine);
+        }
+
+        private void PlanWindowClosed()
+        {
+            Service.Log("[BMM] Plan window closed");
+            _planWindow = null;
         }
     }
 }
