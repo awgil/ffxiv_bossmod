@@ -9,58 +9,63 @@ namespace UIDev
     class OpList
     {
         private Replay _replay;
-        private Tree _tree;
         private Action<DateTime> _scrollTo;
+        private List<(DateTime Timestamp, string Text, Action<Tree>? Children)> _nodes = new();
 
-        public OpList(Replay r, Tree t, Action<DateTime> scrollTo)
+        public OpList(Replay r, IEnumerable<ReplayOps.Operation> ops, Action<DateTime> scrollTo)
         {
             _replay = r;
-            _tree = t;
             _scrollTo = scrollTo;
+            foreach (var op in ops.Where(FilterOp))
+            {
+                _nodes.Add((op.Timestamp, OpName(op), OpChildren(op)));
+            }
         }
 
-        public void Draw(IEnumerable<ReplayOps.Operation> ops, DateTime reference)
+        public void Draw(Tree tree, DateTime reference)
         {
             //foreach (var n in _tree.Node("Settings"))
             //{
             //    DrawSettings();
             //}
 
-            foreach (var op in ops.Where(FilterOp))
+            foreach (var node in _nodes)
             {
                 bool? activated = null;
-                foreach (var n in _tree.Node($"{(op.Timestamp - reference).TotalSeconds:f3}: {OpName(op)}", OpLeaf(op)))
+                foreach (var n in tree.Node($"{(node.Timestamp - reference).TotalSeconds:f3}: {node.Text}", node.Children == null))
                 {
                     activated = ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left);
-                    DrawOp(op);
+                    if (node.Children != null)
+                        node.Children(tree);
                 }
 
                 if (activated == null)
                     activated = ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left);
                 if (activated.Value)
-                    _scrollTo(op.Timestamp);
+                    _scrollTo(node.Timestamp);
             }
         }
 
-        private bool IsActorPlayer(uint instanceID, DateTime timestamp)
+        private bool IsActorPlayerRelated(uint instanceID, DateTime timestamp)
         {
             var p = _replay.Participants.Find(p => p.InstanceID == instanceID && p.Existence.Contains(timestamp));
-            return p?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo;
+            return p?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Area;
         }
 
         private bool FilterOp(ReplayOps.Operation o)
         {
             return o switch
             {
-                ReplayOps.OpActorCreate op => !IsActorPlayer(op.InstanceID, op.Timestamp),
-                ReplayOps.OpActorDestroy op => !IsActorPlayer(op.InstanceID, op.Timestamp),
+                ReplayOps.OpActorCreate op => !IsActorPlayerRelated(op.InstanceID, op.Timestamp),
+                ReplayOps.OpActorDestroy op => !IsActorPlayerRelated(op.InstanceID, op.Timestamp),
                 ReplayOps.OpActorMove => false,
                 ReplayOps.OpActorHP => false,
+                ReplayOps.OpActorTargetable op => !IsActorPlayerRelated(op.InstanceID, op.Timestamp),
                 ReplayOps.OpActorCombat => false,
                 ReplayOps.OpActorTarget => false, // reconsider...
-                ReplayOps.OpActorCast op => !IsActorPlayer(op.InstanceID, op.Timestamp),
+                ReplayOps.OpActorCast op => !IsActorPlayerRelated(op.InstanceID, op.Timestamp),
                 ReplayOps.OpActorStatus op => !(FindStatus(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0)?.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo),
-                ReplayOps.OpEventCast op => !IsActorPlayer(op.Value.CasterID, op.Timestamp),
+                ReplayOps.OpEventCast op => !IsActorPlayerRelated(op.Value.CasterID, op.Timestamp),
                 _ => true
             };
         }
@@ -84,25 +89,20 @@ namespace UIDev
             };
         }
 
-        private bool OpLeaf(ReplayOps.Operation o)
+        private Action<Tree>? OpChildren(ReplayOps.Operation o)
         {
             return o switch
             {
-                ReplayOps.OpEventCast op => op.Value.Targets.Count == 0,
-                _ => true
+                ReplayOps.OpEventCast op => op.Value.Targets.Count != 0 ? tree => DrawEventCast(tree, op) : null,
+                _ => null
             };
         }
 
-        private void DrawOp(ReplayOps.Operation o)
+        private void DrawEventCast(Tree tree, ReplayOps.OpEventCast op)
         {
-            switch (o)
+            foreach (var t in tree.Nodes(op.Value.Targets, t => (ActorString(t.ID, op.Timestamp), false)))
             {
-                case ReplayOps.OpEventCast op:
-                    foreach (var t in _tree.Nodes(op.Value.Targets, t => (ActorString(t.ID, op.Timestamp), false)))
-                    {
-                        _tree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
-                    }
-                    break;
+                tree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
             }
         }
 
@@ -117,13 +117,13 @@ namespace UIDev
         private string CastString(uint instanceID, DateTime timestamp)
         {
             var p = FindParticipant(instanceID, timestamp);
-            var c = p?.Casts.Find(c => c.Time.Contains(timestamp));
-            return $"{ReplayUtils.ParticipantString(p)}: {c!.ID}, {c!.ExpectedCastTime:f2}s ({c.Time} actual) @ {ReplayUtils.ParticipantString(c.Target)} {Utils.Vec3String(c.Location)}";
+            var c = p?.Casts.Find(c => c.Time.Contains(timestamp))!;
+            return $"{ReplayUtils.ParticipantString(p)}: {c.ID}, {c.ExpectedCastTime:f2}s ({c.Time} actual) @ {ReplayUtils.ParticipantString(c.Target)} {Utils.Vec3String(c.Location)}";
         }
 
         private string StatusString(uint instanceID, int index, DateTime timestamp, bool gain)
         {
-            var s = FindStatus(instanceID, index, timestamp, gain);
+            var s = FindStatus(instanceID, index, timestamp, gain)!;
             return $"{ReplayUtils.ParticipantString(s.Target)}: {Utils.StatusString(s!.ID)} ({s.StartingExtra:X}), {s.InitialDuration:f2}s / {s.Time}, from {ReplayUtils.ParticipantString(s.Source)}";
         }
     }

@@ -9,23 +9,39 @@ namespace UIDev
     class EventList
     {
         private Replay _replay;
+        Action<DateTime> _scrollTo;
         private Tree _tree = new();
-        private OpList _opList;
+        private OpList? _opListRaw;
+        private Dictionary<Replay.Encounter, OpList> _opListsFiltered = new();
 
         public EventList(Replay r, Action<DateTime> scrollTo)
         {
             _replay = r;
-            _opList = new(r, _tree, scrollTo);
+            _scrollTo = scrollTo;
         }
 
         public void Draw()
         {
             foreach (var n in _tree.Node("Full data"))
             {
+                foreach (var no in _tree.Node("Raw ops"))
+                {
+                    if (_opListRaw == null)
+                        _opListRaw = new(_replay, _replay.Ops, _scrollTo);
+                    _opListRaw.Draw(_tree, _replay.Ops.First().Timestamp);
+                }
+
                 DrawContents(null);
             }
             foreach (var e in _tree.Nodes(_replay.Encounters, e => ($"{ModuleRegistry.TypeForOID(e.OID)}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}", false)))
             {
+                foreach (var n in _tree.Node("Raw ops"))
+                {
+                    if (!_opListsFiltered.ContainsKey(e))
+                        _opListsFiltered[e] = new(_replay, _replay.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), _scrollTo);
+                    _opListsFiltered[e].Draw(_tree, e.Time.Start);
+                }
+
                 DrawContents(e);
                 DrawPlayerActions(e);
             }
@@ -46,11 +62,6 @@ namespace UIDev
             var tethers = filter != null ? _replay.EncounterTethers(filter) : _replay.Tethers;
             var icons = filter != null ? _replay.EncounterIcons(filter) : _replay.Icons;
             var envControls = filter != null ? _replay.EncounterEnvControls(filter) : _replay.EnvControls;
-
-            foreach (var n in _tree.Node("Raw ops"))
-            {
-                _opList.Draw(filter != null ? _replay.Ops.SkipWhile(o => o.Timestamp < filter.Time.Start).TakeWhile(o => o.Timestamp <= filter.Time.End) : _replay.Ops, reference);
-            }
 
             foreach (var n in _tree.Node("Participants"))
             {

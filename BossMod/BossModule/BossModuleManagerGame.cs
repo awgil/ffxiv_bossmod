@@ -170,7 +170,20 @@ namespace BossMod
 
         private void DrawPlanWindow()
         {
-            _drawnModule?.PlanExecution?.Draw(_drawnModule?.StateMachine);
+            if (_drawnModule == null)
+                return;
+
+            if (ImGui.Button("Show timeline"))
+            {
+                var timeline = new StateMachineVisualizer(_drawnModule.InitialState, _drawnModule.StateMachine);
+                var w = WindowManager.CreateWindow($"{_drawnModule.GetType().Name} timeline", timeline.Draw, () => { }, () => true);
+                w.SizeHint = new(600, 600);
+                w.MinSize = new(100, 100);
+            }
+            ImGui.SameLine();
+            CooldownPlanManager.DrawSelectionUI(_drawnModule.PrimaryActor.OID, _drawnModule.Raid.Player()?.Class ?? Class.None, _drawnModule.InitialState);
+
+            _drawnModule.PlanExecution?.Draw(_drawnModule.StateMachine);
         }
 
         private void PlanWindowClosed()

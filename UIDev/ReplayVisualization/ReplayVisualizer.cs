@@ -27,7 +27,7 @@ namespace UIDev
             _first = data.Ops.First().Timestamp;
             _last = data.Ops.Last().Timestamp;
             _player.AdvanceTo(_first, _mgr.Update);
-            _events = new(data, MoveTo);
+            _events = new(data, MoveToForced);
         }
 
         public void Dispose()
@@ -57,6 +57,16 @@ namespace UIDev
 
                 if (ImGui.CollapsingHeader("Plan execution"))
                 {
+                    if (ImGui.Button("Show timeline"))
+                    {
+                        var timeline = new StateMachineVisualizer(_mgr.ActiveModule.InitialState, _mgr.ActiveModule.StateMachine);
+                        var w = WindowManager.CreateWindow($"{_mgr.ActiveModule.GetType().Name} timeline", timeline.Draw, () => { }, () => true);
+                        w.SizeHint = new(600, 600);
+                        w.MinSize = new(100, 100);
+                    }
+                    ImGui.SameLine();
+                    _mgr.CooldownPlanManager.DrawSelectionUI(_mgr.ActiveModule.PrimaryActor.OID, _mgr.ActiveModule.Raid[_povSlot]?.Class ?? Class.None, _mgr.ActiveModule.InitialState);
+
                     _mgr.ActiveModule.PlanExecution?.Draw(_mgr.ActiveModule.StateMachine);
                 }
             }
@@ -295,6 +305,20 @@ namespace UIDev
             else if (t < _player.WorldState.CurrentTime)
             {
                 _player.ReverseTo(t, _mgr.Update);
+            }
+        }
+
+        private void MoveToForced(DateTime t)
+        {
+            if (t > _player.WorldState.CurrentTime)
+            {
+                _player.AdvanceTo(t, _mgr.Update);
+            }
+            else if(t < _player.WorldState.CurrentTime)
+            {
+                _player.Reset();
+                _mgr = new(_player.WorldState, new());
+                _player.AdvanceTo(t, _mgr.Update);
             }
         }
 

@@ -13,7 +13,6 @@ namespace BossMod
         public bool ShowMechanicTimers = true;
         public bool ShowGlobalHints = true;
         public bool ShowPlayerHints = true;
-        public bool ShowControlButtons = true;
         public bool TrishaMode = false;
         public bool OpaqueArenaBackground = false;
         public bool ShowWorldArrows = false;
@@ -38,7 +37,6 @@ namespace BossMod
             DrawProperty(ref ShowMechanicTimers, "Show mechanics sequence and timers");
             DrawProperty(ref ShowGlobalHints, "Show raidwide hints");
             DrawProperty(ref ShowPlayerHints, "Show warnings and hints for player");
-            DrawProperty(ref ShowControlButtons, "Show control buttons under radar");
             DrawProperty(ref TrishaMode, "Trisha mode: show radar without window");
             DrawProperty(ref OpaqueArenaBackground, "Add opaque background to the arena");
             DrawProperty(ref ShowWorldArrows, "Show movement hints in world");

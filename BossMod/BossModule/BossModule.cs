@@ -204,24 +204,6 @@ namespace BossMod
             Arena.Begin(cameraAzimuth);
             DrawArena(pcSlot);
             Arena.End();
-
-            if (Manager.WindowConfig.ShowControlButtons)
-            {
-                if (ImGui.Button("Show timeline"))
-                {
-                    var timeline = new StateMachineVisualizer(InitialState, StateMachine);
-                    var w = WindowManager.CreateWindow($"{GetType()} Timeline", timeline.Draw, () => { }, () => true);
-                    w.SizeHint = new(600, 600);
-                    w.MinSize = new(100, 100);
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("Force transition") && StateMachine.ActiveState?.Next != null)
-                {
-                    StateMachine.ActiveState = StateMachine.ActiveState.Next;
-                }
-                ImGui.SameLine();
-                Manager.CooldownPlanManager.DrawSelectionUI(PrimaryActor.OID, Raid.Player()?.Class ?? Class.None, InitialState);
-            }
         }
 
         public virtual void DrawArena(int pcSlot)
