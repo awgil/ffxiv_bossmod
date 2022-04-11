@@ -1,4 +1,5 @@
 ﻿using BossMod;
+using System;
 using System.Linq;
 using System.Numerics;
 
@@ -6,19 +7,14 @@ namespace UIDev
 {
     public static class ReplayUtils
     {
-        public static string PosRotString(Vector4 posRot)
-        {
-            return $"[{posRot.X:f2}, {posRot.Y:f2}, {posRot.Z:f2}, {Utils.RadianString(posRot.W)}]";
-        }
-
         public static string ParticipantString(Replay.Participant? p)
         {
             return p != null ? $"{p.Type} {p.InstanceID:X} ({p.OID:X}) '{p.Name}'" : "<none>";
         }
 
-        public static string ParticipantPosRotString(Replay.Participant? p, Vector4 posRot)
+        public static string ParticipantPosRotString(Replay.Participant? p, DateTime t)
         {
-            return $"{ParticipantString(p)} {PosRotString(posRot)}";
+            return p != null ? $"{ParticipantString(p)} {Utils.PosRotString(p.PosRotAt(t))}" : "<none>";
         }
 
         public static string ActionEffectString(ActionEffect eff)

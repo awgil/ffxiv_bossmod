@@ -18,7 +18,7 @@ namespace UIDev
         private float _azimuth;
         private int _povSlot = PartyState.PlayerSlot;
         private bool _showConfig = false;
-        private Tree _encountersTree = new();
+        private EventList _events;
 
         public ReplayVisualizer(Replay data)
         {
@@ -27,6 +27,7 @@ namespace UIDev
             _first = data.Ops.First().Timestamp;
             _last = data.Ops.Last().Timestamp;
             _player.AdvanceTo(_first, _mgr.Update);
+            _events = new(data);
         }
 
         public void Dispose()
@@ -63,7 +64,9 @@ namespace UIDev
             DrawPartyTable();
             DrawEnemyTables();
             DrawAllActorsTable();
-            DrawEncounters();
+
+            if (ImGui.CollapsingHeader("Events"))
+                _events.Draw();
         }
 
         private void DrawControlRow()
@@ -129,7 +132,7 @@ namespace UIDev
             }
         }
 
-        // x, z, rot, name, cast, statuses
+        // x, z, rot, name, hp, cast, statuses
         private void DrawCommonColumns(Actor actor)
         {
             var pos = actor.Position;
@@ -146,6 +149,13 @@ namespace UIDev
                 ImGui.SameLine();
             }
             ImGui.Text(actor.Name);
+
+            ImGui.TableNextColumn();
+            if (actor.HPMax > 0)
+            {
+                float frac = (float)actor.HPCur / actor.HPMax;
+                ImGui.ProgressBar(frac, new(ImGui.GetColumnWidth(), 0), $"{frac * 100:f1}% ({actor.HPCur} / {actor.HPMax})");
+            }
 
             ImGui.TableNextColumn();
             if (actor.CastInfo != null)
@@ -170,13 +180,14 @@ namespace UIDev
             var riskColor = ImGui.ColorConvertU32ToFloat4(0xff00ffff);
             var safeColor = ImGui.ColorConvertU32ToFloat4(0xff00ff00);
 
-            ImGui.BeginTable("party", 9, ImGuiTableFlags.Resizable);
+            ImGui.BeginTable("party", 10, ImGuiTableFlags.Resizable);
             ImGui.TableSetupColumn("POV", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 25);
             ImGui.TableSetupColumn("Class", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 30);
             ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 100);
+            ImGui.TableSetupColumn("HP", ImGuiTableColumnFlags.WidthFixed, 200);
             ImGui.TableSetupColumn("Cast", ImGuiTableColumnFlags.None, 100);
             ImGui.TableSetupColumn("Statuses", ImGuiTableColumnFlags.None, 100);
             ImGui.TableSetupColumn("Hints", ImGuiTableColumnFlags.None, 250);
@@ -232,11 +243,12 @@ namespace UIDev
             if (!ImGui.CollapsingHeader($"Enemy {oid:X} {oidName ?? ""}") || actors.Count == 0)
                 return;
 
-            ImGui.BeginTable($"enemy_{oid}", 6, ImGuiTableFlags.Resizable);
+            ImGui.BeginTable($"enemy_{oid}", 7, ImGuiTableFlags.Resizable);
             ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 100);
+            ImGui.TableSetupColumn("HP", ImGuiTableColumnFlags.WidthFixed, 200);
             ImGui.TableSetupColumn("Cast");
             ImGui.TableSetupColumn("Statuses");
             ImGui.TableHeadersRow();
@@ -255,11 +267,12 @@ namespace UIDev
             if (!ImGui.CollapsingHeader("All actors"))
                 return;
 
-            ImGui.BeginTable($"actors", 6, ImGuiTableFlags.Resizable);
+            ImGui.BeginTable($"actors", 7, ImGuiTableFlags.Resizable);
             ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 100);
+            ImGui.TableSetupColumn("HP", ImGuiTableColumnFlags.WidthFixed, 200);
             ImGui.TableSetupColumn("Cast");
             ImGui.TableSetupColumn("Statuses");
             ImGui.TableHeadersRow();
@@ -271,160 +284,6 @@ namespace UIDev
                 ImGui.PopID();
             }
             ImGui.EndTable();
-        }
-
-        private string ActionString(Replay.Action a, DateTime start, Type? aidType)
-        {
-            return $"{new Replay.TimeRange(start, a.Timestamp)}: {a.ID} ({aidType?.GetEnumName(a.ID.ID)}): {ReplayUtils.ParticipantPosRotString(a.Source, a.SourcePosRot)} -> {ReplayUtils.ParticipantPosRotString(a.MainTarget, a.MainTargetPosRot)} ({a.Targets.Count} affected)";
-        }
-
-        private string StatusString(Replay.Status s, DateTime start, Type? sidType)
-        {
-            return $"{new Replay.TimeRange(start, s.Time.Start)} + {s.InitialDuration:f2} / {s.Time}: {Utils.StatusString(s.ID)} ({sidType?.GetEnumName(s.ID)}) ({s.StartingExtra:X}) @ {ReplayUtils.ParticipantString(s.Target)} from {ReplayUtils.ParticipantString(s.Source)}";
-        }
-
-        private void DrawActionNodes(IEnumerable<Replay.Action> actions, DateTime start, Type? aidType)
-        {
-            foreach (var a in _encountersTree.Nodes(actions, a => (ActionString(a, start, aidType), a.Targets.Count == 0)))
-            {
-                foreach (var t in _encountersTree.Nodes(a.Targets, t => (ReplayUtils.ParticipantPosRotString(t.Target, t.PosRot), false)))
-                {
-                    _encountersTree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
-                }
-            }
-        }
-
-        private void DrawStatusNodes(IEnumerable<Replay.Status> statuses, DateTime start, Type? sidType)
-        {
-            _encountersTree.LeafNodes(statuses, s => StatusString(s, start, sidType));
-        }
-
-        private void OpenCooldownPlanner(Replay.Encounter enc, Class pcClass, Replay.Participant? pc = null)
-        {
-            var planner = new ReplayVisPlayer(_player.Replay, enc, pcClass, pc);
-            var w = WindowManager.CreateWindow($"Cooldown planner", planner.Draw, () => { }, () => true);
-            w.SizeHint = new(600, 600);
-            w.MinSize = new(100, 100);
-        }
-
-        private void DrawEncounters()
-        {
-            if (!ImGui.CollapsingHeader("Encounters"))
-                return;
-
-            foreach (var e in _encountersTree.Nodes(_player.Replay.Encounters, e => ($"{ModuleRegistry.TypeForOID(e.OID)}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}", false)))
-            {
-                var moduleType = ModuleRegistry.TypeForOID(e.OID)!;
-                var oidType = moduleType.Module.GetType($"{moduleType.Namespace}.OID");
-                var aidType = moduleType.Module.GetType($"{moduleType.Namespace}.AID");
-                var sidType = moduleType.Module.GetType($"{moduleType.Namespace}.SID");
-                var iidType = moduleType.Module.GetType($"{moduleType.Namespace}.IconID");
-                var tidType = moduleType.Module.GetType($"{moduleType.Namespace}.TetherID");
-                foreach (var en in _encountersTree.Node("Participants", e.Participants.Count == 0))
-                {
-                    foreach (var (oid, list) in _encountersTree.Nodes(e.Participants, kv => ($"{kv.Key:X} '{oidType?.GetEnumName(kv.Key)}' ({kv.Value.Count} objects)", false)))
-                    {
-                        foreach (var p in _encountersTree.Nodes(list, p => ($"{ReplayUtils.ParticipantString(p)}: spawn at {new Replay.TimeRange(e.Time.Start, p.Existence.Start)}, despawn at {new Replay.TimeRange(e.Time.Start, p.Existence.End)}", p.Casts.Count == 0 && !p.HasAnyActions && !p.HasAnyStatuses && !p.IsTargetOfAnyActions && p.Targetable.Count == 0)))
-                        {
-                            if (p.Casts.Count > 0)
-                            {
-                                foreach (var cn in _encountersTree.Node("Casts"))
-                                {
-                                    var prev = e.Time.Start;
-                                    foreach (var c in _encountersTree.Nodes(p.Casts, c => ($"{new Replay.TimeRange(e.Time.Start, c.Time.Start)} ({new Replay.TimeRange(prev, c.Time.Start)}) + {c.ExpectedCastTime + 0.3f:f2} ({c.Time}): {c.ID} ({aidType?.GetEnumName(c.ID.ID)}) @ {ReplayUtils.ParticipantString(c.Target)} / {Utils.Vec3String(c.Location)}", true)))
-                                    {
-                                        prev = c.Time.End;
-                                    }
-                                }
-                            }
-                            if (p.HasAnyActions)
-                            {
-                                foreach (var an in _encountersTree.Node("Actions"))
-                                {
-                                    DrawActionNodes(_player.Replay.EncounterActions(e).Where(a => a.Source == p), e.Time.Start, aidType);
-                                }
-                            }
-                            if (p.IsTargetOfAnyActions)
-                            {
-                                foreach (var an in _encountersTree.Node("Affected by actions"))
-                                {
-                                    DrawActionNodes(_player.Replay.EncounterActions(e).Where(a => a.Targets.Any(t => t.Target == p)), e.Time.Start, aidType);
-                                }
-                            }
-                            if (p.HasAnyStatuses)
-                            {
-                                foreach (var an in _encountersTree.Node("Statuses"))
-                                {
-                                    DrawStatusNodes(_player.Replay.EncounterStatuses(e).Where(s => s.Target == p), e.Time.Start, sidType);
-                                }
-                            }
-                            if (p.Targetable.Count > 0)
-                            {
-                                foreach (var an in _encountersTree.Node("Targetable"))
-                                {
-                                    _encountersTree.LeafNodes(p.Targetable, r => $"{new Replay.TimeRange(e.Time.Start, r.Start)} - {new Replay.TimeRange(e.Time.Start, r.End)}");
-                                }
-                            }
-                        }
-                    }
-                }
-
-                bool haveActions = _player.Replay.EncounterActions(e).Any();
-                Func<Replay.Action, bool> actionIsCrap = a => a.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo;
-                foreach (var n in _encountersTree.Node("Interesting actions", !haveActions))
-                {
-                    DrawActionNodes(_player.Replay.EncounterActions(e).Where(a => !actionIsCrap(a)), e.Time.Start, aidType);
-                }
-                foreach (var n in _encountersTree.Node("Other actions", !haveActions))
-                {
-                    DrawActionNodes(_player.Replay.EncounterActions(e).Where(actionIsCrap), e.Time.Start, aidType);
-                }
-
-                bool haveStatuses = _player.Replay.EncounterStatuses(e).Any();
-                Func<Replay.Status, bool> statusIsCrap = s => (s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo) || (s.Target?.Type is ActorType.Pet or ActorType.Chocobo);
-                foreach (var n in _encountersTree.Node("Interesting statuses", !haveStatuses))
-                {
-                    DrawStatusNodes(_player.Replay.EncounterStatuses(e).Where(s => !statusIsCrap(s)), e.Time.Start, sidType);
-                }
-                foreach (var n in _encountersTree.Node("Other statuses", !haveStatuses))
-                {
-                    DrawStatusNodes(_player.Replay.EncounterStatuses(e).Where(statusIsCrap), e.Time.Start, sidType);
-                }
-
-                foreach (var n in _encountersTree.Node("Tethers", !_player.Replay.EncounterTethers(e).Any()))
-                {
-                    _encountersTree.LeafNodes(_player.Replay.EncounterTethers(e), t => $"{new Replay.TimeRange(e.Time.Start, t.Time.Start)} + {t.Time}: {t.ID} ({tidType?.GetEnumName(t.ID)}) @ {ReplayUtils.ParticipantString(t.Source)} -> {ReplayUtils.ParticipantString(t.Target)}");
-                }
-
-                foreach (var n in _encountersTree.Node("Icons", !_player.Replay.EncounterIcons(e).Any()))
-                {
-                    _encountersTree.LeafNodes(_player.Replay.EncounterIcons(e), i => $"{new Replay.TimeRange(e.Time.Start, i.Timestamp)}: {i.ID} ({iidType?.GetEnumName(i.ID)}) @ {ReplayUtils.ParticipantString(i.Target)}");
-                }
-
-                foreach (var n in _encountersTree.Node("EnvControls", !_player.Replay.EncounterEnvControls(e).Any()))
-                {
-                    _encountersTree.LeafNodes(_player.Replay.EncounterEnvControls(e), ec => $"{new Replay.TimeRange(e.Time.Start, ec.Timestamp)}: {ec.Feature:X8}.{ec.Index:X2} = {ec.State:X8}");
-                }
-
-                foreach (var n in _encountersTree.Node("Player actions timeline", false))
-                {
-                    foreach (var c in AbilityDefinitions.Classes.Keys)
-                    {
-                        if (ImGui.Button(c.ToString()))
-                        {
-                            OpenCooldownPlanner(e, c);
-                        }
-                        foreach (var (p, _) in e.PartyMembers.Where(pc => pc.Item2 == c))
-                        {
-                            ImGui.SameLine();
-                            if (ImGui.Button($"{p.Name}##{p.InstanceID:X}"))
-                            {
-                                OpenCooldownPlanner(e, c, p);
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         private void MoveTo(DateTime t)

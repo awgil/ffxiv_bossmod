@@ -7,7 +7,7 @@ using System.Linq;
 namespace UIDev
 {
     // replay visualization using player's actions timeline + embedded personal cooldown planner
-    class ReplayVisPlayer
+    class PlayerActions
     {
         private Timeline _timeline = new();
         private StateMachineBranchColumn _colStates;
@@ -15,7 +15,7 @@ namespace UIDev
         private CooldownPlannerColumns _planner;
         private CastHistoryColumns? _casts;
 
-        public ReplayVisPlayer(Replay replay, Replay.Encounter enc, Class pcClass, Replay.Participant? pc = null)
+        public PlayerActions(Replay replay, Replay.Encounter enc, Class pcClass, Replay.Participant? pc = null)
         {
             ReplayPlayer player = new(replay);
             player.AdvanceTo(enc.Time.Start, () => { });

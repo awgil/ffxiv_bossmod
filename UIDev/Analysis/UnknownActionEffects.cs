@@ -55,7 +55,7 @@ namespace UIDev.Analysis
             {
                 foreach (var (action, entries) in _tree.Nodes(actions, kv => ($"{kv.Key} ({kv.Value.Count} entries)", false)))
                 {
-                    _tree.LeafNodes(entries, entry => $"{ReplayUtils.ActionEffectString(entry.Effect)}: {entry.Replay.Path} {entry.Action.Timestamp:O} {ReplayUtils.ParticipantPosRotString(entry.Action.Source, entry.Action.SourcePosRot)} -> {ReplayUtils.ParticipantPosRotString(entry.Action.MainTarget, entry.Action.MainTargetPosRot)} @ {ReplayUtils.ParticipantPosRotString(entry.Target.Target, entry.Target.PosRot)}");
+                    _tree.LeafNodes(entries, entry => $"{ReplayUtils.ActionEffectString(entry.Effect)}: {entry.Replay.Path} {entry.Action.Timestamp:O} {ReplayUtils.ParticipantPosRotString(entry.Action.Source, entry.Action.Timestamp)} -> {ReplayUtils.ParticipantString(entry.Action.MainTarget)} {Utils.Vec3String(entry.Action.TargetPos)} @ {ReplayUtils.ParticipantPosRotString(entry.Target.Target, entry.Action.Timestamp)}");
                 }
             }
         }

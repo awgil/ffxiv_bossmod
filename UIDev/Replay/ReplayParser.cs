@@ -21,6 +21,9 @@ namespace UIDev
             _ws.Actors.Removed += ActorRemoved;
             _ws.Actors.InCombatChanged += ActorCombat;
             _ws.Actors.IsTargetableChanged += ActorTargetable;
+            _ws.Actors.IsDeadChanged += ActorDead;
+            _ws.Actors.Moved += ActorMoved;
+            _ws.Actors.HPChanged += ActorHP;
             _ws.Actors.CastStarted += CastStart;
             _ws.Actors.CastFinished += CastFinish;
             _ws.Actors.Tethered += TetherAdd;
@@ -65,8 +68,8 @@ namespace UIDev
                 p.Existence.End = _ws.CurrentTime;
                 if (p.Casts.LastOrDefault()?.Time.End == new DateTime())
                     p.Casts.Last().Time.End = _ws.CurrentTime;
-                if (p.Targetable.LastOrDefault()?.End == new DateTime())
-                    p.Targetable.Last().End = _ws.CurrentTime;
+                if (p.TargetableHistory.LastOrDefault().Value)
+                    p.TargetableHistory.Add(_ws.CurrentTime, false);
             }
             foreach (var s in _statuses.Values)
             {
@@ -121,7 +124,9 @@ namespace UIDev
         {
             var p = _participants[actor.InstanceID] = new() { InstanceID = actor.InstanceID, OID = actor.OID, Type = actor.Type, Name = actor.Name, Existence = new(_ws.CurrentTime) };
             if (actor.IsTargetable)
-                p.Targetable.Add(new(_ws.CurrentTime));
+                p.TargetableHistory.Add(_ws.CurrentTime, true);
+            p.PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
+            p.HPHistory.Add(_ws.CurrentTime, (actor.HPCur, actor.HPMax));
             _res.Participants.Add(p);
             foreach (var e in _encounters.Values)
                 e.Participants.GetOrAdd(p.OID).Add(p);
@@ -132,7 +137,7 @@ namespace UIDev
             var p = _participants[actor.InstanceID];
             p.Existence.End = _ws.CurrentTime;
             if (actor.IsTargetable)
-                p.Targetable.Last().End = _ws.CurrentTime;
+                p.TargetableHistory.Add(_ws.CurrentTime, false);
             _participants.Remove(actor.InstanceID);
         }
 
@@ -146,14 +151,24 @@ namespace UIDev
 
         private void ActorTargetable(object? sender, Actor actor)
         {
-            var p = _participants[actor.InstanceID];
-            if (actor.IsTargetable)
-                p.Targetable.Add(new(_ws.CurrentTime));
-            else
-                p.Targetable.Last().End = _ws.CurrentTime;
-
+            _participants[actor.InstanceID].TargetableHistory.Add(_ws.CurrentTime, actor.IsTargetable);
             if (actor.InCombat && actor.IsTargetable)
                 StartEncounter(actor);
+        }
+
+        private void ActorDead(object? sender, Actor actor)
+        {
+            _participants[actor.InstanceID].DeadHistory.Add(_ws.CurrentTime, actor.IsDead);
+        }
+
+        private void ActorMoved(object? sender, (Actor actor, Vector4 prevPosRot) args)
+        {
+            _participants[args.actor.InstanceID].PosRotHistory.Add(_ws.CurrentTime, args.actor.PosRot);
+        }
+
+        private void ActorHP(object? sender, (Actor actor, uint prevCur, uint prevMax) args)
+        {
+            _participants[args.actor.InstanceID].HPHistory.Add(_ws.CurrentTime, (args.actor.HPCur, args.actor.HPMax));
         }
 
         private void CastStart(object? sender, Actor actor)
@@ -224,22 +239,22 @@ namespace UIDev
             var srcActor = _ws.Actors.Find(info.CasterID);
             var tgtActor = _ws.Actors.Find(info.MainTargetID);
 
-            Vector4 targetPosRot = new();
+            Vector3 targetPos = new();
             if (tgtActor != null)
-                targetPosRot = tgtActor.PosRot;
+                targetPos = tgtActor.Position;
             else if (srcActor?.CastInfo != null)
-                targetPosRot = new(srcActor.CastInfo.Location, 0);
+                targetPos = srcActor.CastInfo.Location;
             else if (info.Targets.Count > 0)
-                targetPosRot = _ws.Actors.Find(info.Targets[0].ID)?.PosRot ?? new();
+                targetPos = _ws.Actors.Find(info.Targets[0].ID)?.Position ?? new();
 
-            var a = new Replay.Action() { ID = info.Action, Timestamp = _ws.CurrentTime, Source = p, SourcePosRot = srcActor?.PosRot ?? new(),
-                MainTarget = _participants.GetValueOrDefault(info.MainTargetID), MainTargetPosRot = targetPosRot };
+            var a = new Replay.Action() { ID = info.Action, Timestamp = _ws.CurrentTime, Source = p,
+                MainTarget = _participants.GetValueOrDefault(info.MainTargetID), TargetPos = targetPos };
             foreach (var t in info.Targets)
             {
                 var target = _participants.GetValueOrDefault(t.ID);
                 if (target != null)
                     target.IsTargetOfAnyActions = true;
-                a.Targets.Add(new() { Target = target, PosRot = _ws.Actors.Find(t.ID)?.PosRot ?? new(), Effects = t.Effects });
+                a.Targets.Add(new() { Target = target, Effects = t.Effects });
             }
             p.HasAnyActions = true;
             _res.Actions.Add(a);

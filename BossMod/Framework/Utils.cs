@@ -46,6 +46,11 @@ namespace BossMod
             return $"[{q.X:f2}, {q.Y:f2}, {q.Z:f2}, {q.W:f2}]";
         }
 
+        public static string PosRotString(Vector4 posRot)
+        {
+            return $"[{posRot.X:f2}, {posRot.Y:f2}, {posRot.Z:f2}, {RadianString(posRot.W)}]";
+        }
+
         public static string StatusString(uint statusID)
         {
             var statusData = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Status>()?.GetRow(statusID);
@@ -159,6 +164,48 @@ namespace BossMod
                 map[key] = value;
             }
             return value;
+        }
+
+        // lower bound: given sorted list, find index of first element with key >= than test value
+        public static int LowerBound<TKey, TValue>(this SortedList<TKey, TValue> list, TKey test) where TKey : notnull, IComparable
+        {
+            int first = 0, size = list.Count;
+            while (size > 0)
+            {
+                int step = size / 2;
+                int mid = first + step;
+                if (list.Keys[mid].CompareTo(test) < 0)
+                {
+                    first = mid + 1;
+                    size -= step + 1;
+                }
+                else
+                {
+                    size = step;
+                }
+            }
+            return first;
+        }
+
+        // upper bound: given sorted list, find index of first element with key > than test value
+        public static int UpperBound<TKey, TValue>(this SortedList<TKey, TValue> list, TKey test) where TKey : notnull, IComparable
+        {
+            int first = 0, size = list.Count;
+            while (size > 0)
+            {
+                int step = size / 2;
+                int mid = first + step;
+                if (list.Keys[mid].CompareTo(test) <= 0)
+                {
+                    first = mid + 1;
+                    size -= step + 1;
+                }
+                else
+                {
+                    size = step;
+                }
+            }
+            return first;
         }
     }
 }

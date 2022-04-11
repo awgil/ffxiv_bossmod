@@ -15,6 +15,7 @@ namespace UIDev
 
             public TimeRange(DateTime start = new(), DateTime end = new()) { Start = start; End = end; }
             public override string ToString() => $"{(End - Start).TotalSeconds:f2}";
+            public bool Contains(DateTime t) => t >= Start && t < End;
         }
 
         public class Cast
@@ -29,7 +30,6 @@ namespace UIDev
         public class ActionTarget
         {
             public Participant? Target;
-            public Vector4 PosRot;
             public ActionEffects Effects;
         }
 
@@ -38,9 +38,8 @@ namespace UIDev
             public ActionID ID;
             public DateTime Timestamp;
             public Participant? Source;
-            public Vector4 SourcePosRot;
             public Participant? MainTarget;
-            public Vector4 MainTargetPosRot;
+            public Vector3 TargetPos;
             public List<ActionTarget> Targets = new();
         }
 
@@ -51,11 +50,25 @@ namespace UIDev
             public ActorType Type;
             public string Name = "";
             public TimeRange Existence = new();
-            public List<TimeRange> Targetable = new();
+            public SortedList<DateTime, bool> TargetableHistory = new();
+            public SortedList<DateTime, bool> DeadHistory = new();
+            public SortedList<DateTime, Vector4> PosRotHistory = new();
+            public SortedList<DateTime, (uint, uint)> HPHistory = new();
             public List<Cast> Casts = new();
             public bool HasAnyActions;
             public bool HasAnyStatuses;
             public bool IsTargetOfAnyActions;
+
+            public bool TargetableAt(DateTime t) => HistoryEntryAt(TargetableHistory, t);
+            public bool DeadAt(DateTime t) => HistoryEntryAt(DeadHistory, t);
+            public Vector4 PosRotAt(DateTime t) => HistoryEntryAt(PosRotHistory, t);
+            public (uint, uint) HPAt(DateTime t) => HistoryEntryAt(HPHistory, t);
+
+            private T? HistoryEntryAt<T>(SortedList<DateTime, T> history, DateTime t)
+            {
+                int next = history.UpperBound(t);
+                return next == 0 ? default : history.Values[next - 1];
+            }
         }
 
         public class Status

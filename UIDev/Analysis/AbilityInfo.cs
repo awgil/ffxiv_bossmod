@@ -9,45 +9,33 @@ namespace UIDev.Analysis
 {
     class AbilityInfo
     {
-        class ActionInfo
-        {
-            public Replay Replay;
-            public Replay.Action Action;
-            public List<(Actor, Vector4)> PositionSnapshot;
-
-            public ActionInfo(Replay r, Replay.Action a, List<(Actor, Vector4)> snaps)
-            {
-                Replay = r;
-                Action = a;
-                PositionSnapshot = snaps;
-            }
-        }
-
         class ConeAnalysis
         {
             private Plot _plot = new();
-            private List<(ActionInfo Info, Actor Target, float Angle, float Range, bool Hit)> _points = new();
+            private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Angle, float Range, bool Hit)> _points = new();
 
-            public ConeAnalysis(List<ActionInfo> infos)
+            public ConeAnalysis(List<(Replay, Replay.Action)> infos)
             {
                 _plot.DataMin = new(-180, 0);
                 _plot.DataMax = new(180, 60);
                 _plot.TickAdvance = new(45, 5);
-                foreach (var info in infos)
+                foreach (var (r, a) in infos)
                 {
-                    var origin = info.Action.MainTargetPosRot.XYZ();
-                    var dir = GeometryUtils.DirectionToVec3(info.Action.SourcePosRot.W);
+                    var origin = a.TargetPos;
+                    var dir = GeometryUtils.DirectionToVec3(a.Source?.PosRotAt(a.Timestamp).W ?? 0);
                     var left = new Vector3(dir.Z, 0, -dir.X);
-                    foreach (var (actor, posRot) in info.PositionSnapshot)
+                    foreach (var target in AlivePlayersAt(r, a.Timestamp))
                     {
-                        var toTarget = posRot.XYZ() - origin;
+                        // TODO: take target hitbox size into account...
+                        var pos = target.PosRotAt(a.Timestamp).XYZ();
+                        var toTarget = pos - origin;
                         var dist = toTarget.Length();
                         toTarget /= dist;
                         var angle = MathF.Acos(Vector3.Dot(toTarget, dir));
                         if (Vector3.Dot(toTarget, left) < 0)
                             angle = -angle;
-                        bool hit = info.Action.Targets.Any(t => t.Target?.InstanceID == actor.InstanceID);
-                        _points.Add((info, actor, angle / MathF.PI * 180, dist, hit));
+                        bool hit = a.Targets.Any(t => t.Target?.InstanceID == target.InstanceID);
+                        _points.Add((r, a, target, angle / MathF.PI * 180, dist, hit));
                     }
                 }
             }
@@ -56,7 +44,7 @@ namespace UIDev.Analysis
             {
                 _plot.Begin();
                 foreach (var i in _points)
-                    _plot.Point(new(i.Angle, i.Range), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.Name} {i.Target.InstanceID:X} {i.Info.Replay.Path} @ {i.Info.Action.Timestamp:O}");
+                    _plot.Point(new(i.Angle, i.Range), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.Name} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
                 _plot.End();
             }
         }
@@ -64,23 +52,24 @@ namespace UIDev.Analysis
         class DamageFalloffAnalysis
         {
             private Plot _plot = new();
-            private List<(ActionInfo Info, Actor Target, float Range, int Damage)> _points = new();
+            private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Range, int Damage)> _points = new();
 
-            public DamageFalloffAnalysis(List<ActionInfo> infos, bool useMaxComp)
+            public DamageFalloffAnalysis(List<(Replay, Replay.Action)> infos, bool useMaxComp)
             {
                 _plot.DataMin = new(0, 0);
                 _plot.DataMax = new(100, 200000);
                 _plot.TickAdvance = new(5, 10000);
-                foreach (var info in infos)
+                foreach (var (r, a) in infos)
                 {
-                    var origin = info.Action.MainTargetPosRot.XYZ();
-                    foreach (var (actor, posRot) in info.PositionSnapshot)
+                    var origin = a.TargetPos;
+                    foreach (var target in a.Targets)
                     {
-                        var offset = posRot.XYZ() - origin;
-                        var dist = useMaxComp ? MathF.Max(Math.Abs(offset.X), Math.Abs(offset.Z)): offset.Length();
-                        var hit = info.Action.Targets.Find(t => t.Target?.InstanceID == actor.InstanceID);
-                        int damage = hit != null ? ReplayUtils.ActionDamage(hit) : 0;
-                        _points.Add((info, actor, dist, damage));
+                        if (target.Target == null)
+                            continue;
+
+                        var offset = target.Target.PosRotAt(a.Timestamp).XYZ() - origin;
+                        var dist = useMaxComp ? MathF.Max(Math.Abs(offset.X), Math.Abs(offset.Z)) : offset.Length();
+                        _points.Add((r, a, target.Target, dist, ReplayUtils.ActionDamage(target)));
                     }
                 }
             }
@@ -89,14 +78,14 @@ namespace UIDev.Analysis
             {
                 _plot.Begin();
                 foreach (var i in _points)
-                    _plot.Point(new(i.Range, i.Damage), i.Damage > 0 ? 0xff00ffff : 0xff808080, () => $"{i.Damage} {i.Target.Name} {i.Target.InstanceID:X} {i.Info.Replay.Path} @ {i.Info.Action.Timestamp:O}");
+                    _plot.Point(new(i.Range, i.Damage), i.Damage > 0 ? 0xff00ffff : 0xff808080, () => $"{i.Damage} {i.Target.Name} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
                 _plot.End();
             }
         }
 
         class ActionData
         {
-            public List<ActionInfo> Instances = new();
+            public List<(Replay, Replay.Action)> Instances = new();
             public ConeAnalysis? ConeAnalysis;
             public DamageFalloffAnalysis? DamageFalloffAnalysisDist;
             public DamageFalloffAnalysis? DamageFalloffAnalysisMinCoord;
@@ -108,30 +97,13 @@ namespace UIDev.Analysis
         public AbilityInfo(List<Replay> replays, Tree tree)
         {
             _tree = tree;
-
-            foreach (var replay in replays.Where(r => r.Encounters.Count > 0))
+            foreach (var replay in replays)
             {
-                List<List<(Actor, Vector4)>> snaps = new();
-                ReplayPlayer player = new(replay);
-                foreach (var action in replay.Actions)
-                {
-                    while (player.WorldState.CurrentTime < action.Timestamp)
-                        player.TickForward();
-                    snaps.Add(BuildPositionSnapshot(player.WorldState));
-                }
-
                 foreach (var enc in replay.Encounters)
                 {
-                    int index = enc.FirstAction;
-                    foreach (var action in replay.EncounterActions(enc))
+                    foreach (var action in replay.EncounterActions(enc).Where(a => !(a.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)))
                     {
-                        bool crap = action.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo;
-                        if (!crap)
-                        {
-                            var data = _data.GetOrAdd(enc.OID).GetOrAdd(action.ID);
-                            data.Instances.Add(new(replay, action, snaps[index]));
-                        }
-                        ++index;
+                        _data.GetOrAdd(enc.OID).GetOrAdd(action.ID).Instances.Add((replay, action));
                     }
                 }
             }
@@ -168,12 +140,9 @@ namespace UIDev.Analysis
             }
         }
 
-        private List<(Actor, Vector4)> BuildPositionSnapshot(WorldState ws)
+        private static IEnumerable<Replay.Participant> AlivePlayersAt(Replay r, DateTime t)
         {
-            List<(Actor, Vector4)> res = new();
-            foreach (var actor in ws.Actors.Where(a => !a.IsDead && a.Type is ActorType.Player or ActorType.Chocobo))
-                res.Add((actor, actor.PosRot));
-            return res;
+            return r.Participants.Where(p => p.Type is ActorType.Player or ActorType.Chocobo && p.Existence.Contains(t) && !p.DeadAt(t));
         }
     }
 }

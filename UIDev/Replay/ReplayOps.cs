@@ -29,6 +29,11 @@ namespace UIDev
             {
                 ws.CurrentZone = _prev;
             }
+
+            public override string ToString()
+            {
+                return $"Zone change: {Zone}";
+            }
         }
 
         public class OpWaymarkChange : Operation
@@ -46,6 +51,11 @@ namespace UIDev
             public override void Undo(WorldState ws)
             {
                 ws.Waymarks[ID] = _prev;
+            }
+
+            public override string ToString()
+            {
+                return $"Waymark change: {ID} = {(Pos != null ? Utils.Vec3String(Pos.Value) : "removed")}";
             }
         }
 
@@ -71,6 +81,11 @@ namespace UIDev
             public override void Undo(WorldState ws)
             {
                 ws.Actors.Remove(InstanceID);
+            }
+
+            public override string ToString()
+            {
+                return $"Actor create: {InstanceID:X} {OID:X} '{Name}' {Type} {Class} {Utils.PosRotString(PosRot)} r={HitboxRadius} hp={HPCur}/{HPMax} targetable={IsTargetable} owner={OwnerID:X}";
             }
         }
 
@@ -108,6 +123,11 @@ namespace UIDev
             {
                 ws.Actors.Add(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, HPCur, HPMax, IsTargetable, OwnerID);
             }
+
+            public override string ToString()
+            {
+                return $"Actor destroy: {InstanceID:X}";
+            }
         }
 
         public class OpActorRename : Operation
@@ -133,6 +153,11 @@ namespace UIDev
                 {
                     ws.Actors.Rename(actor, _prev);
                 }
+            }
+
+            public override string ToString()
+            {
+                return $"Actor rename: {InstanceID:X} -> '{Name}'";
             }
         }
 
@@ -160,6 +185,11 @@ namespace UIDev
                     ws.Actors.ChangeClass(actor, _prevClass);
                 }
             }
+
+            public override string ToString()
+            {
+                return $"Actor class change: {InstanceID:X} -> {Class}";
+            }
         }
 
         public class OpActorMove : Operation
@@ -185,6 +215,11 @@ namespace UIDev
                 {
                     ws.Actors.Move(actor, _prevPosRot);
                 }
+            }
+
+            public override string ToString()
+            {
+                return $"Actor move: {InstanceID:X} -> {Utils.PosRotString(PosRot)}";
             }
         }
 
@@ -215,6 +250,11 @@ namespace UIDev
                     ws.Actors.UpdateHP(actor, _prevCur, _prevMax);
                 }
             }
+
+            public override string ToString()
+            {
+                return $"Actor HP change: {InstanceID:X} -> {Cur}/{Max}";
+            }
         }
 
         public class OpActorTargetable : Operation
@@ -240,6 +280,11 @@ namespace UIDev
                 {
                     ws.Actors.ChangeIsTargetable(actor, _prev);
                 }
+            }
+
+            public override string ToString()
+            {
+                return $"Actor targetable: {InstanceID:X} -> {Value}";
             }
         }
 
@@ -267,6 +312,11 @@ namespace UIDev
                     ws.Actors.ChangeIsDead(actor, _prev);
                 }
             }
+
+            public override string ToString()
+            {
+                return $"Actor dead: {InstanceID:X} -> {Value}";
+            }
         }
 
         public class OpActorCombat : Operation
@@ -292,6 +342,11 @@ namespace UIDev
                 {
                     ws.Actors.ChangeInCombat(actor, _prev);
                 }
+            }
+
+            public override string ToString()
+            {
+                return $"Actor combat: {InstanceID:X} -> {Value}";
             }
         }
 
@@ -319,6 +374,11 @@ namespace UIDev
                     ws.Actors.ChangeTarget(actor, _prev);
                 }
             }
+
+            public override string ToString()
+            {
+                return $"Actor target: {InstanceID:X} -> {Value:X}";
+            }
         }
 
         public class OpActorCast : Operation
@@ -345,6 +405,11 @@ namespace UIDev
                     ws.Actors.UpdateCastInfo(actor, _prev);
                 }
             }
+
+            public override string ToString()
+            {
+                return $"Actor cast: {InstanceID:X} -> {(Value != null ? $"{Value.Action} @ {Value.TargetID:X} / {Utils.Vec3String(Value.Location)}, {(Value.FinishAt - Timestamp).TotalSeconds:f2}/{Value.TotalTime:f2}s" : "end")}";
+            }
         }
 
         public class OpActorTether : Operation
@@ -370,6 +435,11 @@ namespace UIDev
                 {
                     ws.Actors.UpdateTether(actor, _prev);
                 }
+            }
+
+            public override string ToString()
+            {
+                return $"Actor tether: {InstanceID:X} -> {Value.ID} @ {Value.Target:X}";
             }
         }
 
@@ -398,6 +468,11 @@ namespace UIDev
                     ws.Actors.UpdateStatus(actor, Index, _prev);
                 }
             }
+
+            public override string ToString()
+            {
+                return $"Actor status: {InstanceID:X} [{Index}] -> {Value.ID} ({Value.Extra:X4}) from {Value.SourceID:X}, {(Value.ExpireAt - Timestamp).TotalSeconds:f2}s left";
+            }
         }
 
         public class OpPartyJoin : Operation
@@ -415,6 +490,11 @@ namespace UIDev
             {
                 ws.Party.Remove(_slot);
             }
+
+            public override string ToString()
+            {
+                return $"Party join: {ContentID:X} {InstanceID:X}";
+            }
         }
 
         public class OpPartyLeave : Operation
@@ -431,6 +511,11 @@ namespace UIDev
             public override void Undo(WorldState ws)
             {
                 ws.Party.Add(ContentID, InstanceID, ws.Party.ContentIDs[0] == 0);
+            }
+
+            public override string ToString()
+            {
+                return $"Party leave: {ContentID:X} {InstanceID:X}";
             }
         }
 
@@ -452,6 +537,11 @@ namespace UIDev
                 var slot = ws.Party.ContentIDs.IndexOf(ContentID);
                 ws.Party.AssignActor(slot, ContentID, _prevID);
             }
+
+            public override string ToString()
+            {
+                return $"Party assign: {ContentID:X} {InstanceID:X}";
+            }
         }
 
         public class OpEventIcon : Operation
@@ -467,6 +557,11 @@ namespace UIDev
             public override void Undo(WorldState ws)
             {
             }
+
+            public override string ToString()
+            {
+                return $"Icon: {InstanceID:X} -> {IconID}";
+            }
         }
 
         public class OpEventCast : Operation
@@ -480,6 +575,11 @@ namespace UIDev
 
             public override void Undo(WorldState ws)
             {
+            }
+
+            public override string ToString()
+            {
+                return $"Cast: {Value.CasterID:X} -> {Value.Action} @ {Value.MainTargetID:X}";
             }
         }
 
@@ -496,6 +596,11 @@ namespace UIDev
 
             public override void Undo(WorldState ws)
             {
+            }
+
+            public override string ToString()
+            {
+                return $"EnvControl: {FeatureID:X8}.{Index:X2} = {State:X8}";
             }
         }
     }
