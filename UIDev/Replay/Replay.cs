@@ -15,7 +15,7 @@ namespace UIDev
 
             public TimeRange(DateTime start = new(), DateTime end = new()) { Start = start; End = end; }
             public override string ToString() => $"{(End - Start).TotalSeconds:f2}";
-            public bool Contains(DateTime t) => t >= Start && t < End;
+            public bool Contains(DateTime t) => t >= Start && t <= End;
         }
 
         public class Cast
@@ -74,6 +74,7 @@ namespace UIDev
         public class Status
         {
             public uint ID;
+            public int Index;
             public Participant? Target;
             public Participant? Source;
             public float InitialDuration;

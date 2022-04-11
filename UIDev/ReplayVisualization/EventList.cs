@@ -3,8 +3,6 @@ using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace UIDev
 {
@@ -14,10 +12,10 @@ namespace UIDev
         private Tree _tree = new();
         private OpList _opList;
 
-        public EventList(Replay r)
+        public EventList(Replay r, Action<DateTime> scrollTo)
         {
             _replay = r;
-            _opList = new(r, _tree);
+            _opList = new(r, _tree, scrollTo);
         }
 
         public void Draw()
@@ -49,10 +47,10 @@ namespace UIDev
             var icons = filter != null ? _replay.EncounterIcons(filter) : _replay.Icons;
             var envControls = filter != null ? _replay.EncounterEnvControls(filter) : _replay.EnvControls;
 
-            //foreach (var n in _tree.Node("Raw ops"))
-            //{
-            //    _opList.Draw(filter != null ? _replay.Ops.SkipWhile(o => o.Timestamp < filter.Time.Start).TakeWhile(o => o.Timestamp <= filter.Time.End) : _replay.Ops, reference);
-            //}
+            foreach (var n in _tree.Node("Raw ops"))
+            {
+                _opList.Draw(filter != null ? _replay.Ops.SkipWhile(o => o.Timestamp < filter.Time.Start).TakeWhile(o => o.Timestamp <= filter.Time.End) : _replay.Ops, reference);
+            }
 
             foreach (var n in _tree.Node("Participants"))
             {
@@ -151,7 +149,7 @@ namespace UIDev
 
         private string CastString(Replay.Cast c, DateTime reference, DateTime prev, Type? aidType)
         {
-            return $"{new Replay.TimeRange(reference, c.Time.Start)} ({new Replay.TimeRange(prev, c.Time.Start)}) + {c.ExpectedCastTime + 0.3f:f2} ({c.Time}): {c.ID} ({aidType?.GetEnumName(c.ID.ID)}) @ {ReplayUtils.ParticipantString(c.Target)} / {Utils.Vec3String(c.Location)}";
+            return $"{new Replay.TimeRange(reference, c.Time.Start)} ({new Replay.TimeRange(prev, c.Time.Start)}) + {c.ExpectedCastTime + 0.3f:f2} ({c.Time}): {c.ID} ({aidType?.GetEnumName(c.ID.ID)}) @ {ReplayUtils.ParticipantString(c.Target)} {Utils.Vec3String(c.Location)}";
         }
 
         private void DrawCasts(IEnumerable<Replay.Cast> list, DateTime reference, Type? aidType)

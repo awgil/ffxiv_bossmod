@@ -27,7 +27,7 @@ namespace UIDev
             _first = data.Ops.First().Timestamp;
             _last = data.Ops.Last().Timestamp;
             _player.AdvanceTo(_first, _mgr.Update);
-            _events = new(data);
+            _events = new(data, MoveTo);
         }
 
         public void Dispose()

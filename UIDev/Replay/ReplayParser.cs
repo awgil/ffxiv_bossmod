@@ -12,7 +12,7 @@ namespace UIDev
         protected WorldState _ws = new();
         private Dictionary<uint, Replay.Encounter> _encounters = new();
         private Dictionary<uint, Replay.Participant> _participants = new();
-        private Dictionary<(uint, uint, uint), Replay.Status> _statuses = new();
+        private Dictionary<(uint, int), Replay.Status> _statuses = new();
         private Dictionary<uint, Replay.Tether> _tethers = new();
 
         protected ReplayParser()
@@ -200,7 +200,7 @@ namespace UIDev
             var p = _participants[args.actor.InstanceID];
             var s = args.actor.Statuses[args.index];
             var src = _participants.GetValueOrDefault(s.SourceID);
-            var r = _statuses[(args.actor.InstanceID, s.ID, s.SourceID)] = new() { ID = s.ID, Target = p, Source = src, InitialDuration = (float)(s.ExpireAt - _ws.CurrentTime).TotalSeconds, Time = new(_ws.CurrentTime), StartingExtra = s.Extra };
+            var r = _statuses[(args.actor.InstanceID, args.index)] = new() { ID = s.ID, Index = args.index, Target = p, Source = src, InitialDuration = (float)(s.ExpireAt - _ws.CurrentTime).TotalSeconds, Time = new(_ws.CurrentTime), StartingExtra = s.Extra };
             p.HasAnyStatuses = true;
             _res.Statuses.Add(r);
         }
@@ -208,12 +208,12 @@ namespace UIDev
         private void StatusLose(object? sender, (Actor actor, int index) args)
         {
             var s = args.actor.Statuses[args.index];
-            var r = _statuses.GetValueOrDefault((args.actor.InstanceID, s.ID, s.SourceID));
+            var r = _statuses.GetValueOrDefault((args.actor.InstanceID, args.index));
             if (r == null)
                 return;
 
             r.Time.End = _ws.CurrentTime;
-            _statuses.Remove((args.actor.InstanceID, s.ID, s.SourceID));
+            _statuses.Remove((args.actor.InstanceID, args.index));
         }
 
         private void StatusChange(object? sender, (Actor actor, int index, ushort, DateTime) args)

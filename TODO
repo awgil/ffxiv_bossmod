@@ -1,7 +1,6 @@
 replay encounter analysis:
 - tether & debuff passing range
 - pull range
-- actual log with filtering and context
 
 network:
 - hook send/recv (a-la xivalexander)
