@@ -72,7 +72,8 @@ namespace BossMod
         {
             var type = (FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type;
             var id = action.ID;
-            return _actionManager->GetRecastTime(type, id) - _actionManager->GetRecastTimeElapsed(type, id);
+            var recast = _actionManager->GetRecastGroupDetail(_actionManager->GetRecastGroup((int)action.Type, action.ID));
+            return recast->Total - recast->Elapsed;
         }
 
         public float SpellCooldown<AID>(AID spell) where AID : Enum

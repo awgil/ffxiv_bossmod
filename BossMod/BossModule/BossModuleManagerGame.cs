@@ -46,7 +46,7 @@ namespace BossMod
             }
 
             // create or destroy plan window if needed
-            bool showPlanWindow = WindowConfig.EnableTimerWindow && _drawnModule?.PlanExecution?.Plan != null;
+            bool showPlanWindow = WindowConfig.EnableTimerWindow && _drawnModule?.PlanExecution != null;
             if (_planWindow != null && !showPlanWindow)
             {
                 Service.Log("[BMM] Closing plan window");

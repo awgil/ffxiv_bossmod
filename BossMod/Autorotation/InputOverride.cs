@@ -26,7 +26,7 @@ namespace BossMod
         public unsafe InputOverride()
         {
             // note: it would be better to hook this instead of PeekMessage, but I didn't figure it out yet...
-            //var wndprocAddress = Service.SigScanner.ScanText("48 89 5C 24 08 55 56 57 41 56 41 57 48 8D 6C 24 B0"); // note: look for callers of GetKeyboardState
+            //var wndprocAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 4C 8B CB 4C 8B C7 8B D6 48 8B CD 48 8B 5C 24 40 48 8B 6C 24 48 48 8B 74 24 50 48 83 C4 30 5F E9 0A B2 01 01"); // note: look for callers of GetKeyboardState
             //Service.Log($"Addr: {wndprocAddress}");
             //_wndprocHook = new(wndprocAddress, new WndprocDelegate(WndprocDetour));
 

@@ -29,6 +29,7 @@
         public DemoModule(BossModuleManager manager, Actor primary)
             : base(manager, primary, false)
         {
+            InitStates(null);
             ActivateComponent<DemoComponent>();
         }
     }

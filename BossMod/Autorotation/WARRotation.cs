@@ -66,6 +66,7 @@ namespace BossMod
             NascentChaos = 1897, // applied by Infuriate, converts next FC to IC
             InnerRelease = 1177, // applied by InnerRelease, next 3 GCDs should be free FCs
             PrimalRend = 2624, // applied by InnerRelease, allows casting PR
+            InnerStrength = 2663, // applied by InnerRelease, immunes
             // TODO: berserk, defensive CDs
         }
 

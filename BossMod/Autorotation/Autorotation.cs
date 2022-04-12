@@ -76,7 +76,7 @@ namespace BossMod
             _network.EventActorControlCancelCast += OnNetworkActionCancel;
             _network.EventActorControlSelfActionRejected += OnNetworkActionReject;
 
-            IntPtr comboPtr = Service.SigScanner.GetStaticAddressFromSig("E8 ?? ?? ?? ?? 80 7E 21 00", 0x178);
+            IntPtr comboPtr = Service.SigScanner.GetStaticAddressFromSig("E8 ?? ?? ?? ?? 80 7E 21 00", 0x19E);
             _comboTimeLeft = (float*)comboPtr;
             _comboLastMove = (uint*)(comboPtr + 0x4);
 
