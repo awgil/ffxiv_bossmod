@@ -87,7 +87,7 @@ namespace BossMod
             Logout = 0x0295,
 
             // below are opcodes i've reversed myself...
-            EnvironmentControl = 0xF351, // updated - size=16, typically starts with 0x800375xx
+            EnvironmentControl = 0x03AE, // updated - size=16, typically starts with 0x800375xx
             ActionRequest = 0x00B8, // just begin casting return...
             ActionRequestGroundTargeted = 0x0328, // XIVAlexander
             // old - 0x1fd == EventObjSpawn? for stuff like exit points, etc.
