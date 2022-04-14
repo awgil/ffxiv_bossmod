@@ -84,29 +84,34 @@
         private void ElegeiaFatalism(uint id, float delay)
         {
             Cast(id, AID.Fatalism, delay, 3, "Double Planets")
-                .ActivateOnEnter<Planets>();
+                .ActivateOnEnter<Planets>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
             // resolve happens ~19s after this
             Elenchos(id + 0x100, 17.2f)
-                .DeactivateOnExit<Planets>();
+                .DeactivateOnExit<Planets>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void ElegeiaDoubleFatalism(uint id, float delay, bool withTelos)
         {
             Cast(id, AID.Fatalism, delay, 3, "Quad Planets")
                 .ActivateOnEnter<Planets>();
-            Cast(id + 0x1000, AID.Fatalism, 7.2f, 3);
+            Cast(id + 0x1000, AID.Fatalism, 7.2f, 3)
+                .SetHint(StateMachine.StateHint.PositioningStart);
 
             if (withTelos)
             {
                 Telos(id + 0x2000, 19.3f)
-                    .DeactivateOnExit<Planets>();
+                    .DeactivateOnExit<Planets>()
+                    .SetHint(StateMachine.StateHint.PositioningEnd);
             }
             else
             {
                 // TODO: components
                 Cast(id + 0x2000, AID.Katasterismoi, 11.2f, 3, "Towers");
                 Elenchos(id + 0x3000, 6.2f)
-                    .DeactivateOnExit<Planets>();
+                    .DeactivateOnExit<Planets>()
+                    .SetHint(StateMachine.StateHint.PositioningEnd);
             }
         }
 
@@ -132,19 +137,28 @@
                 .SetHint(StateMachine.StateHint.Raidwide);
         }
 
+        private State AporrhoiaUnforgotten(uint id, float delay)
+        {
+            CastStart(id, AID.AporrhoiaUnforgotten, delay)
+                .SetHint(StateMachine.StateHint.PositioningStart);
+            return CastEnd(id + 1, 5)
+                .SetHint(StateMachine.StateHint.PositioningEnd);
+        }
+
         private void TwinsongAporrhoia(uint id, float delay)
         {
             Cast(id, AID.TwinsongAporrhoia, delay, 3, "Twinsong");
-            Cast(id + 0x100, AID.AporrhoiaUnforgotten, 6.2f, 5)
+            AporrhoiaUnforgotten(id + 0x100, 6.2f)
                 .ActivateOnEnter<TwinsongAporrhoia>();
-            Cast(id + 0x200, AID.AporrhoiaUnforgotten, 4.2f, 5);
-            Cast(id + 0x300, AID.AporrhoiaUnforgotten, 4.2f, 5);
-            Cast(id + 0x400, AID.TheologicalFatalism, 5.2f, 3, "Rewind");
+            AporrhoiaUnforgotten(id + 0x200, 4.2f);
+            AporrhoiaUnforgotten(id + 0x300, 4.2f);
+            Cast(id + 0x400, AID.TheologicalFatalism, 5.2f, 3, "Rewind")
+                .SetHint(StateMachine.StateHint.PositioningStart);
             Elenchos(id + 0x500, 7.2f)
                 .ActivateOnEnter<Eironeia>()
                 .DeactivateOnExit<TwinsongAporrhoia>()
                 .DeactivateOnExit<Eironeia>() // note: no separate state, since it's almost immediate
-                .SetHint(StateMachine.StateHint.Raidwide);
+                .SetHint(StateMachine.StateHint.Raidwide | StateMachine.StateHint.PositioningEnd);
         }
 
         private void DespairUnforgotten(uint id, float delay)
@@ -163,9 +177,11 @@
         {
             Cast(id, AID.EndsongAporrhoia, delay, 3, "Endsong");
             Cast(id + 0x100, AID.Endsong, 5.2f, 3)
-                .ActivateOnEnter<Endsong>();
+                .ActivateOnEnter<Endsong>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
             Elenchos(id + 0x200, 26.2f)
-                .DeactivateOnExit<Endsong>();
+                .DeactivateOnExit<Endsong>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void Enrage(uint id, float delay)
