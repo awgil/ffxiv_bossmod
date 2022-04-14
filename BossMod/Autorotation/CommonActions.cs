@@ -73,7 +73,15 @@ namespace BossMod
             var type = (FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type;
             var id = action.ID;
             var recast = _actionManager->GetRecastGroupDetail(_actionManager->GetRecastGroup((int)action.Type, action.ID));
-            return recast->Total - recast->Elapsed;
+            if (recast != null)
+            {
+                return recast->Total - recast->Elapsed;
+            }
+            else
+            {
+                Service.Log($"Failed to retrieve recast for {action}");
+                return 0;
+            }
         }
 
         public float SpellCooldown<AID>(AID spell) where AID : Enum

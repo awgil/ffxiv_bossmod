@@ -50,8 +50,8 @@ namespace BossMod
                 {
                     //ImGui.Text($"Cost: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionCost(type, hover.ActionID, 0, 0, 0, 0)}");
                     ImGui.Text($"Status: {mgr->GetActionStatus(type, hover.ActionID)}");
-                    ImGui.Text($"Adjusted recast: {mgr->GetAdjustedRecastTime(type, hover.ActionID):f2}");
-                    ImGui.Text($"Adjusted cast: {mgr->GetAdjustedCastTime(type, hover.ActionID):f2}");
+                    ImGui.Text($"Adjusted recast: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetAdjustedRecastTime(type, hover.ActionID):f2}");
+                    ImGui.Text($"Adjusted cast: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetAdjustedCastTime(type, hover.ActionID):f2}");
                     ImGui.Text($"Recast: {mgr->GetRecastTime(type, hover.ActionID):f2}");
                     ImGui.Text($"Recast elapsed: {mgr->GetRecastTimeElapsed(type, hover.ActionID):f2}");
                     ImGui.Text($"Recast active: {mgr->IsRecastTimerActive(type, hover.ActionID)}");
@@ -70,8 +70,8 @@ namespace BossMod
                 ImGui.Text($"Name: {Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Item>()?.GetRow(itemID)?.Name}{(isHQ ? " (HQ)" : "")}");
                 ImGui.Text($"Count: {FFXIVClientStructs.FFXIV.Client.Game.InventoryManager.Instance()->GetInventoryItemCount(itemID, isHQ, false, false)}");
                 ImGui.Text($"Status: {mgr->GetActionStatus(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID)}");
-                ImGui.Text($"Adjusted recast: {mgr->GetAdjustedRecastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID):f2}");
-                ImGui.Text($"Adjusted cast: {mgr->GetAdjustedCastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID):f2}");
+                ImGui.Text($"Adjusted recast: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetAdjustedRecastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID):f2}");
+                ImGui.Text($"Adjusted cast: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetAdjustedCastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID):f2}");
                 ImGui.Text($"Recast: {mgr->GetRecastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID):f2}");
                 ImGui.Text($"Recast elapsed: {mgr->GetRecastTimeElapsed(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID):f2}");
                 ImGui.Text($"Recast active: {mgr->IsRecastTimerActive(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID)}");
