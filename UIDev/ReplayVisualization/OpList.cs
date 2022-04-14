@@ -46,26 +46,41 @@ namespace UIDev
             }
         }
 
-        private bool IsActorPlayerRelated(uint instanceID, DateTime timestamp)
+        private bool FilterInterestingActor(uint instanceID, DateTime timestamp, bool allowPlayers)
         {
-            var p = _replay.Participants.Find(p => p.InstanceID == instanceID && p.Existence.Contains(timestamp));
-            return p?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Area;
+            var p = _replay.Participants.Find(p => p.InstanceID == instanceID && p.Existence.Contains(timestamp))!;
+            if (p.Type is ActorType.Pet or ActorType.Chocobo or ActorType.Area)
+                return false;
+            if (p.Type == ActorType.Player && !allowPlayers)
+                return false;
+            return true;
+        }
+
+        private bool FilterInterestingStatus(uint instanceID, int index, DateTime timestamp, bool gain)
+        {
+            var s = FindStatus(instanceID, index, timestamp, gain)!;
+            if (s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
+                return false; // don't care about statuses applied by players
+            if (s.Target?.Type is ActorType.Pet)
+                return false; // don't care about statuses applied to pets
+            return true;
         }
 
         private bool FilterOp(ReplayOps.Operation o)
         {
             return o switch
             {
-                ReplayOps.OpActorCreate op => !IsActorPlayerRelated(op.InstanceID, op.Timestamp),
-                ReplayOps.OpActorDestroy op => !IsActorPlayerRelated(op.InstanceID, op.Timestamp),
+                ReplayOps.OpActorCreate op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
+                ReplayOps.OpActorDestroy op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ReplayOps.OpActorMove => false,
                 ReplayOps.OpActorHP => false,
-                ReplayOps.OpActorTargetable op => !IsActorPlayerRelated(op.InstanceID, op.Timestamp),
+                ReplayOps.OpActorTargetable op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
+                ReplayOps.OpActorDead op => FilterInterestingActor(op.InstanceID, op.Timestamp, true),
                 ReplayOps.OpActorCombat => false,
                 ReplayOps.OpActorTarget => false, // reconsider...
-                ReplayOps.OpActorCast op => !IsActorPlayerRelated(op.InstanceID, op.Timestamp),
-                ReplayOps.OpActorStatus op => !(FindStatus(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0)?.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo),
-                ReplayOps.OpEventCast op => !IsActorPlayerRelated(op.Value.CasterID, op.Timestamp),
+                ReplayOps.OpActorCast op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
+                ReplayOps.OpActorStatus op => FilterInterestingStatus(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0),
+                ReplayOps.OpEventCast op => FilterInterestingActor(op.Value.CasterID, op.Timestamp, false),
                 _ => true
             };
         }
@@ -78,12 +93,12 @@ namespace UIDev
                 ReplayOps.OpActorDestroy op => $"Actor destroy: {ActorString(op.InstanceID, op.Timestamp)}",
                 ReplayOps.OpActorRename op => $"Actor rename: {ActorString(op.InstanceID, op.Timestamp)} -> {op.Name}",
                 ReplayOps.OpActorClassChange op => $"Actor class change: {ActorString(op.InstanceID, op.Timestamp)} -> {op.Class}",
-                ReplayOps.OpActorTargetable op => $"Actor targetable: {ActorString(op.InstanceID, op.Timestamp)} -> {op.Value}",
-                ReplayOps.OpActorDead op => $"Actor dead: {ActorString(op.InstanceID, op.Timestamp)} -> {op.Value}",
-                ReplayOps.OpActorCast op => $"Actor cast {(op.Value != null ? "started" : "ended")}: {CastString(op.InstanceID, op.Timestamp)}",
-                ReplayOps.OpActorTether op => $"Actor tether: {ActorString(op.InstanceID, op.Timestamp)} {op.Value.ID} @ {ActorString(op.Value.Target, op.Timestamp)}",
-                ReplayOps.OpActorStatus op => $"Actor status {(op.Value.ID != 0 ? "gain" : "lose")}: {StatusString(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0)}",
-                ReplayOps.OpEventIcon op => $"Actor icon: {ActorString(op.InstanceID, op.Timestamp)} -> {op.IconID}",
+                ReplayOps.OpActorTargetable op => $"{(op.Value ? "Targetable" : "Untargetable")}: {ActorString(op.InstanceID, op.Timestamp)}",
+                ReplayOps.OpActorDead op => $"{(op.Value ? "Die" : "Resurrect")}: {ActorString(op.InstanceID, op.Timestamp)}",
+                ReplayOps.OpActorCast op => $"Cast {(op.Value != null ? "started" : "ended")}: {CastString(op.InstanceID, op.Timestamp)}",
+                ReplayOps.OpActorTether op => $"Tether: {ActorString(op.InstanceID, op.Timestamp)} {op.Value.ID} @ {ActorString(op.Value.Target, op.Timestamp)}",
+                ReplayOps.OpActorStatus op => $"Status {(op.Value.ID != 0 ? "gain" : "lose")}: {StatusString(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0)}",
+                ReplayOps.OpEventIcon op => $"Icon: {ActorString(op.InstanceID, op.Timestamp)} -> {op.IconID}",
                 ReplayOps.OpEventCast op => $"Cast event: {ActorString(op.Value.CasterID, op.Timestamp)}: {op.Value.Action} @ {ActorString(op.Value.MainTargetID, op.Timestamp)} ({op.Value.Targets.Count} targets affected)",
                 _ => o.ToString() ?? o.GetType().Name
             };

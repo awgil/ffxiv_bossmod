@@ -69,7 +69,12 @@ namespace UIDev
                 if (p.Casts.LastOrDefault()?.Time.End == new DateTime())
                     p.Casts.Last().Time.End = _ws.CurrentTime;
                 if (p.TargetableHistory.LastOrDefault().Value)
-                    p.TargetableHistory.Add(_ws.CurrentTime, false);
+                {
+                    if (p.TargetableHistory.Last().Key < _ws.CurrentTime)
+                        p.TargetableHistory.Add(_ws.CurrentTime, false);
+                    else
+                        p.TargetableHistory.RemoveAt(p.TargetableHistory.Count - 1);
+                }
             }
             foreach (var s in _statuses.Values)
             {

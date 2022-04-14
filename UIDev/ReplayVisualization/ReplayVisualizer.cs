@@ -138,7 +138,7 @@ namespace UIDev
             ImGui.GetWindowDrawList().AddCircleFilled(center, 3, color);
             if (ClickedAt(center, 3))
             {
-                MoveTo(timestamp);
+                MoveToForced(timestamp);
             }
         }
 
