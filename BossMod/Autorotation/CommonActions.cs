@@ -70,16 +70,15 @@ namespace BossMod
 
         public unsafe float ActionCooldown(ActionID action)
         {
-            var type = (FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type;
-            var id = action.ID;
-            var recast = _actionManager->GetRecastGroupDetail(_actionManager->GetRecastGroup((int)action.Type, action.ID));
+            var recastGroup = _actionManager->GetRecastGroup((int)action.Type, action.ID);
+            var recast = _actionManager->GetRecastGroupDetail(recastGroup);
             if (recast != null)
             {
                 return recast->Total - recast->Elapsed;
             }
             else
             {
-                Service.Log($"Failed to retrieve recast for {action}");
+                Service.Log($"Failed to retrieve recast for {action} (group={recastGroup})");
                 return 0;
             }
         }
