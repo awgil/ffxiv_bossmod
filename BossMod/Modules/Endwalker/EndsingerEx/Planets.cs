@@ -91,11 +91,17 @@ namespace BossMod.Endwalker.EndsingerEx
                     break;
                 case AID.RubistellarCollision:
                 case AID.FatalismRubistallarCollisionAOE:
-                    _planetsFiery.RemoveAt(0);
+                    if (_planetsFiery.Count > 0)
+                        _planetsFiery.RemoveAt(0);
+                    else
+                        module.ReportError(this, "Unexpected fiery cast, no casters available");
                     break;
                 case AID.CaerustellarCollision:
                 case AID.FatalismCaerustallarCollisionAOE:
-                    _planetsAzure.RemoveAt(0);
+                    if (_planetsAzure.Count > 0)
+                        _planetsAzure.RemoveAt(0);
+                    else
+                        module.ReportError(this, "Unexpected azure cast, no casters available");
                     break;
             }
         }

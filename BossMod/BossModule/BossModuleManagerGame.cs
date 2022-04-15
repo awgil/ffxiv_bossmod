@@ -44,6 +44,13 @@ namespace BossMod
                 if (WindowConfig.Lock)
                     _mainWindow.Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
             }
+        }
+
+        private void SetDrawnModule(BossModule? m)
+        {
+            _drawnModule = m;
+            if (_mainWindow != null)
+                _mainWindow.Title = m != null ? $"Boss module ({m.GetType().Name})" : "Bosses with modules nearby";
 
             // create or destroy plan window if needed
             bool showPlanWindow = WindowConfig.EnableTimerWindow && _drawnModule?.PlanExecution != null;
@@ -68,13 +75,6 @@ namespace BossMod
                 if (WindowConfig.Lock)
                     _planWindow.Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
             }
-        }
-
-        private void SetDrawnModule(BossModule? m)
-        {
-            _drawnModule = m;
-            if (_mainWindow != null)
-                _mainWindow.Title = m != null ? $"Boss module ({m.GetType().Name})" : "Bosses with modules nearby";
         }
 
         private void DrawMainWindow()

@@ -8,6 +8,7 @@ namespace BossMod.Endwalker.P3S
     using static BossModule;
 
     // state related to large bird tethers
+    // TODO: simplify and make more robust, e.g. in case something goes wrong and bird dies without tether update
     class BirdTether : Component
     {
         public int NumFinishedChains { get; private set; } = 0;

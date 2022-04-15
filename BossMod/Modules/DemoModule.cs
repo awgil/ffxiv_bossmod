@@ -1,4 +1,6 @@
-﻿namespace BossMod
+﻿using System.Numerics;
+
+namespace BossMod
 {
     public class DemoModule : BossModule
     {
@@ -8,6 +10,8 @@
             {
                 hints.Add("Hint", false);
                 hints.Add("Risk");
+                if (movementHints != null)
+                    movementHints.Add(actor.Position, actor.Position + new Vector3(10, 0, 10), module.Arena.ColorDanger);
             }
 
             public override void AddGlobalHints(BossModule module, GlobalHints hints)

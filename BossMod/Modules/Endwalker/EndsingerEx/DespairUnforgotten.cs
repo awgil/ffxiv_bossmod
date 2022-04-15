@@ -1,25 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BossMod.Endwalker.EndsingerEx
+﻿namespace BossMod.Endwalker.EndsingerEx
 {
     class DespairUnforgotten : BossModule.Component
     {
         private enum State { None, Donut, Spread, Flare, Stack }
 
         public bool Done { get; private set; }
-        private State[] _states = new State[PartyState.MaxSize * 3];
+        private State[] _states = new State[PartyState.MaxSize * 4];
         private int[] _doneCasts = new int[PartyState.MaxSize];
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             // TODO: improve
-            if (_doneCasts[slot] > 2)
+            if (_doneCasts[slot] > 3)
                 return;
-            switch (_states[slot * 3 + _doneCasts[slot]])
+            switch (_states[slot * 4 + _doneCasts[slot]])
             {
                 case State.Donut:
                 case State.Stack:
@@ -39,11 +33,10 @@ namespace BossMod.Endwalker.EndsingerEx
 
         public override void OnStatusGain(BossModule module, Actor actor, int index)
         {
-            var s = actor.Statuses[index];
-            switch ((SID)s.ID)
+            switch ((SID)actor.Statuses[index].ID)
             {
                 case SID.RewindDespair:
-                    int rings = s.Extra switch
+                    int rings = actor.Statuses[index].Extra switch
                     {
                         0x17C => 1,
                         0x17D => 2,
@@ -52,13 +45,13 @@ namespace BossMod.Endwalker.EndsingerEx
                     };
                     if (rings == 0)
                     {
-                        module.ReportError(this, $"Unexpected extra {s.Extra:X} for rewind status");
+                        module.ReportError(this, $"Unexpected extra {actor.Statuses[index].Extra:X} for rewind status");
                         break;
                     }
 
                     int slot = module.WorldState.Party.FindSlot(actor.InstanceID);
                     if (slot >= 0)
-                        _doneCasts[slot] -= rings;
+                        _states[slot * 4 + 3] = _states[slot * 4 + 3 - rings];
                     break;
                 case SID.EchoesOfNausea:
                     ModifyState(module, actor, State.Donut);
@@ -75,32 +68,17 @@ namespace BossMod.Endwalker.EndsingerEx
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnStatusLose(BossModule module, Actor actor, int index)
         {
-            if (!actor.CastInfo!.IsSpell())
-                return;
-            switch ((AID)actor.CastInfo.Action.ID)
+            switch ((SID)actor.Statuses[index].ID)
             {
-                case AID.WaveOfNauseaDespair:
-                case AID.Befoulment:
-                case AID.NoFuture:
-                case AID.Benevolence:
-                    {
-                        int slot = module.WorldState.Party.FindSlot(actor.CastInfo.TargetID);
-                        if (slot >= 0)
-                            ++_doneCasts[slot];
-                    }
-                    break;
-                case AID.FatalismWaveOfNauseaDespair:
-                case AID.FatalismBefoulment:
-                case AID.FatalismNoFuture:
-                case AID.FatalismBenevolence:
-                    {
-                        int slot = module.WorldState.Party.FindSlot(actor.CastInfo.TargetID);
-                        if (slot >= 0)
-                            _doneCasts[slot] = 3;
-                        Done = true;
-                    }
+                case SID.EchoesOfNausea:
+                case SID.EchoesOfBefoulment:
+                case SID.EchoesOfFuture:
+                case SID.EchoesOfBenevolence:
+                    int slot = module.WorldState.Party.FindSlot(actor.InstanceID);
+                    if (slot >= 0)
+                        Done |= ++_doneCasts[slot] > 3;
                     break;
             }
         }
@@ -115,7 +93,7 @@ namespace BossMod.Endwalker.EndsingerEx
                     module.ReportError(this, $"Unexpected state change after {_doneCasts[slot]} casts");
                     return;
                 }
-                _states[slot * 3 + _doneCasts[slot]] = state;
+                _states[slot * 4 + _doneCasts[slot]] = state;
             }
         }
     }

@@ -12,7 +12,7 @@ namespace BossMod
         private class ActorEvents
         {
             public List<CastEvent>? Casts;
-            public ActorTetherInfo? TetherUpdate;
+            public List<ActorTetherInfo>? TetherUpdates;
             public uint? IconUpdate;
         }
 
@@ -146,7 +146,7 @@ namespace BossMod
 
             foreach (var (id, events) in _actorEvents)
             {
-                Service.Log($"[WorldState] Actor events for unknown entity {id:X}:{(events.Casts != null ? " casts" : "")}{(events.TetherUpdate != null ? " tether" : "")}{(events.IconUpdate != null ? " icon" : "")}");
+                Service.Log($"[WorldState] Actor events for unknown entity {id:X}:{(events.Casts != null ? " casts" : "")}{(events.TetherUpdates != null ? " tethers" : "")}{(events.IconUpdate != null ? " icon" : "")}");
             }
             _actorEvents.Clear();
         }
@@ -215,8 +215,9 @@ namespace BossMod
                 if (ev.Casts != null)
                     foreach (var c in ev.Casts)
                         Events.DispatchCast(c);
-                if (ev.TetherUpdate != null)
-                    Actors.UpdateTether(actor, ev.TetherUpdate.Value);
+                if (ev.TetherUpdates != null)
+                    foreach (var t in ev.TetherUpdates)
+                        Actors.UpdateTether(actor, t);
                 if (ev.IconUpdate != null)
                     Events.DispatchIcon((actor.InstanceID, ev.IconUpdate.Value));
 
@@ -243,17 +244,17 @@ namespace BossMod
         private void OnNetworkActorControlTether(object? sender, (uint actorID, uint targetID, uint tetherID) args)
         {
             var ev = _actorEvents.GetOrAdd(args.actorID);
-            if (ev.TetherUpdate != null)
-                Service.Log($"[WorldState] Multiple tether updates for a single actor {args.actorID:X} per frame: {ev.TetherUpdate.Value.ID} @ {ev.TetherUpdate.Value.Target:X} -> {args.tetherID} @ {args.targetID:X}");
-            ev.TetherUpdate = new ActorTetherInfo { Target = args.targetID, ID = args.tetherID };
+            if (ev.TetherUpdates == null)
+                ev.TetherUpdates = new();
+            ev.TetherUpdates.Add(new ActorTetherInfo { Target = args.targetID, ID = args.tetherID });
         }
 
         private void OnNetworkActorControlTetherCancel(object? sender, uint actorID)
         {
             var ev = _actorEvents.GetOrAdd(actorID);
-            if (ev.TetherUpdate != null)
-                Service.Log($"[WorldState] Multiple tether updates for a single actor {actorID:X} per frame: {ev.TetherUpdate.Value.ID} @ {ev.TetherUpdate.Value.Target:X} -> none");
-            ev.TetherUpdate = new();
+            if (ev.TetherUpdates == null)
+                ev.TetherUpdates = new();
+            ev.TetherUpdates.Add(new());
         }
 
         private void OnNetworkEnvControl(object? sender, (uint featureID, byte index, uint state) args)
