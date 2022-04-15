@@ -37,7 +37,7 @@ namespace BossMod
             _commandManager = commandManager;
             _commandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
-            _network = new(generalCfg);
+            _network = new(generalCfg, dalamud.ConfigDirectory);
             _ws = new(_network);
             _debugLogger = new(_ws, generalCfg, dalamud.ConfigDirectory);
             _bossmod = new(_ws, _config);

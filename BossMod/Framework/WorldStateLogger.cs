@@ -9,14 +9,13 @@ namespace BossMod
     {
         private WorldState _ws;
         private GeneralConfig _config;
-        private DirectoryInfo _logDir;
-        private StreamWriter? _logger = null;
+        private Logger _logger;
 
         public WorldStateLogger(WorldState ws, GeneralConfig config, DirectoryInfo logDir)
         {
             _ws = ws;
             _config = config;
-            _logDir = logDir;
+            _logger = new("World", logDir);
 
             _config.Modified += ApplyConfig;
         }
@@ -37,22 +36,15 @@ namespace BossMod
 
         private void Subscribe()
         {
-            if (_logger == null)
+            if (!_logger.Active)
             {
-                try
+                if (!_logger.Activate(3))
                 {
-                    _logDir.Create();
-                    _logger = new StreamWriter($"{_logDir.FullName}/World_{DateTime.Now:yyyy_MM_dd_HH_mm_ss}.log");
-                }
-                catch (IOException e)
-                {
-                    Service.Log($"Failed to create directory for log: {e}");
                     _config.DumpWorldStateEvents = false;
                     return;
                 }
 
                 // log initial state
-                Log("VER ", 3);
                 ZoneChange(null, _ws.CurrentZone);
                 foreach (var actor in _ws.Actors)
                 {
@@ -112,7 +104,7 @@ namespace BossMod
 
         private void Unsubscribe()
         {
-            if (_logger != null)
+            if (_logger.Active)
             {
                 _ws.CurrentZoneChanged -= ZoneChange;
                 _ws.Waymarks.Changed -= WaymarkChanged;
@@ -140,15 +132,13 @@ namespace BossMod
                 _ws.Events.Cast -= EventCast;
                 _ws.Events.EnvControl -= EventEnvControl;
 
-                _logger.Dispose();
-                _logger = null;
+                _logger.Deactivate();
             }
         }
 
         private void Log(string type, object msg)
         {
-            if (_logger != null)
-                _logger.WriteLine($"{_ws.CurrentTime:O}|{type}|{msg}");
+            _logger.Log(_ws.CurrentTime, type, msg);
         }
 
         private string Vec3(Vector3 v)
