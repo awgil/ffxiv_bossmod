@@ -88,6 +88,13 @@ namespace BossMod
             return ActionCooldown(ActionID.MakeSpell(spell));
         }
 
+        public unsafe float PotionCooldown()
+        {
+            // note: potions have recast group 58; however, for some reason periodically GetRecastGroup for them returns -1...
+            var recast = _actionManager->GetRecastGroupDetail(58);
+            return recast->Total - recast->Elapsed;
+        }
+
         public unsafe bool HaveItemInInventory(uint id)
         {
             return FFXIVClientStructs.FFXIV.Client.Game.InventoryManager.Instance()->GetInventoryItemCount(id % 1000000, id >= 1000000, false, false) > 0;
@@ -199,7 +206,7 @@ namespace BossMod
             // TODO: also check damage-taken debuffs on target
 
             s.SprintCD = ActionCooldown(CommonRotation.IDSprint);
-            s.PotionCD = ActionCooldown(potion);
+            s.PotionCD = PotionCooldown();
         }
 
         // fill common strategy properties
