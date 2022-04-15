@@ -28,7 +28,7 @@ namespace BossMod
 
         public void Draw()
         {
-            ImGui.Text($"Current zone: {_ws.CurrentZone}, pos = {Utils.Vec3String(Service.ClientState.LocalPlayer?.Position ?? new Vector3())}");
+            ImGui.TextUnformatted($"Current zone: {_ws.CurrentZone}, pos = {Utils.Vec3String(Service.ClientState.LocalPlayer?.Position ?? new Vector3())}");
             if (ImGui.Button("Perform full dump"))
             {
                 DebugObjects.DumpObjectTable();
@@ -94,7 +94,7 @@ namespace BossMod
                         foreach (var status in chara.StatusList)
                         {
                             var src = status.SourceObject ? Utils.ObjectString(status.SourceObject!) : "none";
-                            ImGui.Text($"{status.StatusId} '{status.GameData.Name}': param={status.Param}, stacks={status.StackCount}, time={status.RemainingTime:f2}, source={src}");
+                            ImGui.TextUnformatted($"{status.StatusId} '{status.GameData.Name}': param={status.Param}, stacks={status.StackCount}, time={status.RemainingTime:f2}, source={src}");
                         }
                     }
                     ImGui.TreePop();
@@ -118,12 +118,12 @@ namespace BossMod
                     continue;
 
                 ImGui.TableNextRow();
-                ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(elem.InstanceID));
-                ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(elem.CastInfo.TargetID));
-                ImGui.TableNextColumn(); ImGui.Text(elem.CastInfo.Action.ToString());
-                ImGui.TableNextColumn(); ImGui.Text(Utils.CastTimeString(elem.CastInfo, _ws.CurrentTime));
-                ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(elem.CastInfo.Location));
-                ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(elem.Position));
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectString(elem.InstanceID));
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectString(elem.CastInfo.TargetID));
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(elem.CastInfo.Action.ToString());
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.CastTimeString(elem.CastInfo, _ws.CurrentTime));
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.Vec3String(elem.CastInfo.Location));
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.Vec3String(elem.Position));
             }
             ImGui.EndTable();
         }
@@ -139,7 +139,7 @@ namespace BossMod
             DrawTarget("GPose target", ts->GPoseTarget, selfPos, angle);
             DrawTarget("Mouseover", ts->MouseOverTarget, selfPos, angle);
             DrawTarget("Focus", ts->FocusTarget, selfPos, angle);
-            ImGui.Text($"UI Mouseover: {(Mouseover.Instance?.Object != null ? Utils.ObjectString(Mouseover.Instance.Object) : "<null>")}");
+            ImGui.TextUnformatted($"UI Mouseover: {(Mouseover.Instance?.Object != null ? Utils.ObjectString(Mouseover.Instance.Object) : "<null>")}");
         }
 
         private unsafe void DrawTarget(string kind, FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* obj, Vector3 selfPos, float refAngle)
@@ -150,7 +150,7 @@ namespace BossMod
             var dist = (obj->Position - selfPos).Length();
             var angle = GeometryUtils.DirectionFromVec3(obj->Position - selfPos) - refAngle;
             var visHalf = MathF.Asin(obj->HitboxRadius / dist);
-            ImGui.Text($"{kind}: {Utils.ObjectString(obj->ObjectID)}, hb={obj->HitboxRadius} ({Utils.RadianString(visHalf)}), dist={dist}, angle={Utils.RadianString(angle)} ({Utils.RadianString(Math.Max(0, Math.Abs(angle) - visHalf))})");
+            ImGui.TextUnformatted($"{kind}: {Utils.ObjectString(obj->ObjectID)}, hb={obj->HitboxRadius} ({Utils.RadianString(visHalf)}), dist={dist}, angle={Utils.RadianString(angle)} ({Utils.RadianString(Math.Max(0, Math.Abs(angle) - visHalf))})");
         }
     }
 }

@@ -106,7 +106,7 @@ namespace BossMod
             foreach (var v in _watchedRenderObjects)
             {
                 ImGui.TableNextRow();
-                ImGui.TableNextColumn(); ImGui.Text($"0x{v.Key:X}");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"0x{v.Key:X}");
                 ImGui.TableNextColumn(); DrawMods(v.Value);
             }
             ImGui.EndTable();
@@ -211,22 +211,21 @@ namespace BossMod
 
         private void DrawMods(WatchedRenderObject w)
         {
-            var cn = ImGui.ColorConvertU32ToFloat4(0xff808080);
-            var cm = ImGui.ColorConvertU32ToFloat4(0xff0000ff);
             int start = 0;
             var sb = new StringBuilder();
             foreach ((var end, var nextStart) in w.Modifications)
             {
-                DrawHexString(w, ref start, end, cn, sb);
-                DrawHexString(w, ref start, nextStart, cm, sb);
+                DrawHexString(w, ref start, end, 0xff808080, sb);
+                DrawHexString(w, ref start, nextStart, 0xff0000ff, sb);
             }
             sb.Clear();
-            DrawHexString(w, ref start, w.Data.Count, cn, sb);
+            DrawHexString(w, ref start, w.Data.Count, 0xff808080, sb);
         }
 
-        private void DrawHexString(WatchedRenderObject w, ref int start, int end, Vector4 color, StringBuilder sb)
+        private void DrawHexString(WatchedRenderObject w, ref int start, int end, uint color, StringBuilder sb)
         {
             sb.Clear();
+            ImGui.PushStyleColor(ImGuiCol.Text, color);
             while (start < end)
             {
                 if (sb.Length > 0)
@@ -235,12 +234,13 @@ namespace BossMod
 
                 if ((start % 16) == 0)
                 {
-                    ImGui.TextColored(color, sb.ToString());
+                    ImGui.TextUnformatted(sb.ToString());
                     sb.Clear();
                 }
             }
-            ImGui.TextColored(color, sb.ToString());
+            ImGui.TextUnformatted(sb.ToString());
             ImGui.SameLine();
+            ImGui.PopStyleColor();
         }
 
         public unsafe void DrawMatrices()
@@ -254,42 +254,42 @@ namespace BossMod
             ImGui.TableHeadersRow();
 
             ImGui.TableNextRow();
-            ImGui.TableNextColumn(); ImGui.Text("VP");
+            ImGui.TableNextColumn(); ImGui.TextUnformatted("VP");
             ImGui.TableNextColumn(); DrawMatrix(Camera.Instance.ViewProj);
 
             ImGui.TableNextRow();
-            ImGui.TableNextColumn(); ImGui.Text("P");
+            ImGui.TableNextColumn(); ImGui.TextUnformatted("P");
             ImGui.TableNextColumn(); DrawMatrix(Camera.Instance.Proj);
 
             ImGui.TableNextRow();
-            ImGui.TableNextColumn(); ImGui.Text("V");
+            ImGui.TableNextColumn(); ImGui.TextUnformatted("V");
             ImGui.TableNextColumn(); DrawMatrix(Camera.Instance.View);
 
             ImGui.TableNextRow();
-            ImGui.TableNextColumn(); ImGui.Text("Camera Altitude");
-            ImGui.TableNextColumn(); ImGui.Text(Utils.RadianString(Camera.Instance.CameraAltitude));
+            ImGui.TableNextColumn(); ImGui.TextUnformatted("Camera Altitude");
+            ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.RadianString(Camera.Instance.CameraAltitude));
 
             ImGui.TableNextRow();
-            ImGui.TableNextColumn(); ImGui.Text("Camera Azimuth");
-            ImGui.TableNextColumn(); ImGui.Text(Utils.RadianString(Camera.Instance.CameraAzimuth));
+            ImGui.TableNextColumn(); ImGui.TextUnformatted("Camera Azimuth");
+            ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.RadianString(Camera.Instance.CameraAzimuth));
 
             ImGui.TableNextRow();
-            ImGui.TableNextColumn(); ImGui.Text("W");
+            ImGui.TableNextColumn(); ImGui.TextUnformatted("W");
             ImGui.TableNextColumn(); DrawMatrix(Camera.Instance.CameraWorld);
 
             ImGui.TableNextRow();
-            ImGui.TableNextColumn(); ImGui.Text("Viewport size");
-            ImGui.TableNextColumn(); ImGui.Text($"{Camera.Instance.ViewportSize.X:f6} {Camera.Instance.ViewportSize.Y:f6}");
+            ImGui.TableNextColumn(); ImGui.TextUnformatted("Viewport size");
+            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{Camera.Instance.ViewportSize.X:f6} {Camera.Instance.ViewportSize.Y:f6}");
 
             ImGui.EndTable();
         }
 
         private void DrawMatrix(SharpDX.Matrix mtx)
         {
-            ImGui.Text($"{mtx[0]:f6} {mtx[1]:f6} {mtx[2]:f6} {mtx[3]:f6}");
-            ImGui.Text($"{mtx[4]:f6} {mtx[5]:f6} {mtx[6]:f6} {mtx[7]:f6}");
-            ImGui.Text($"{mtx[8]:f6} {mtx[9]:f6} {mtx[10]:f6} {mtx[11]:f6}");
-            ImGui.Text($"{mtx[12]:f6} {mtx[13]:f6} {mtx[14]:f6} {mtx[15]:f6}");
+            ImGui.TextUnformatted($"{mtx[0]:f6} {mtx[1]:f6} {mtx[2]:f6} {mtx[3]:f6}");
+            ImGui.TextUnformatted($"{mtx[4]:f6} {mtx[5]:f6} {mtx[6]:f6} {mtx[7]:f6}");
+            ImGui.TextUnformatted($"{mtx[8]:f6} {mtx[9]:f6} {mtx[10]:f6} {mtx[11]:f6}");
+            ImGui.TextUnformatted($"{mtx[12]:f6} {mtx[13]:f6} {mtx[14]:f6} {mtx[15]:f6}");
         }
 
         public static unsafe FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* FindSceneRoot()

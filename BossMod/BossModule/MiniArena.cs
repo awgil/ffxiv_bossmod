@@ -371,6 +371,24 @@ namespace BossMod
             }
         }
 
+        public Vector3 ClampToBounds(Vector3 position)
+        {
+            var offset = position - WorldCenter;
+            if (IsCircle)
+            {
+                if (offset.LengthSquared() > WorldHalfSize * WorldHalfSize)
+                    offset *= WorldHalfSize * offset.Length();
+            }
+            else
+            {
+                if (Math.Abs(offset.X) > WorldHalfSize)
+                    offset *= WorldHalfSize / Math.Abs(offset.X);
+                if (Math.Abs(offset.Z) > WorldHalfSize)
+                    offset *= WorldHalfSize / Math.Abs(offset.Z);
+            }
+            return WorldCenter + offset;
+        }
+
         private void ClipAndFillConvex(IEnumerable<Vector2> poly, uint color)
         {
             var drawlist = ImGui.GetWindowDrawList();

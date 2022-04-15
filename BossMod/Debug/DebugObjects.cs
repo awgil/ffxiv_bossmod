@@ -40,17 +40,17 @@ namespace BossMod
                 var battleChara = obj as BattleChara;
                 var internalObj = Utils.GameObjectInternal(obj);
                 ImGui.TableNextRow();
-                ImGui.TableNextColumn(); ImGui.Text($"{idx}");
-                ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(obj));
-                ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectKindString(obj));
-                ImGui.TableNextColumn(); ImGui.Text(character != null ? $"{character.ClassJob.Id} ({(Class)character.ClassJob.Id})" : "---");
-                ImGui.TableNextColumn(); ImGui.Text($"{obj.OwnerId:X}");
-                ImGui.TableNextColumn(); ImGui.Text($"{character?.StatusFlags}");
-                ImGui.TableNextColumn(); ImGui.Text(Utils.Vec3String(obj.Position));
-                ImGui.TableNextColumn(); ImGui.Text(Utils.RadianString(obj.Rotation));
-                ImGui.TableNextColumn(); ImGui.Text(battleChara != null ? $"{battleChara.CurrentCastTime:f2}/{battleChara.TotalCastTime:f2}" : "---");
-                ImGui.TableNextColumn(); ImGui.Text($"{internalObj->RenderFlags:X}");
-                ImGui.TableNextColumn(); ImGui.Text($"0x{(IntPtr)internalObj->DrawObject:X}");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{idx}");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectString(obj));
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectKindString(obj));
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(character != null ? $"{character.ClassJob.Id} ({(Class)character.ClassJob.Id})" : "---");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{obj.OwnerId:X}");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{character?.StatusFlags}");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.Vec3String(obj.Position));
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.RadianString(obj.Rotation));
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(battleChara != null ? $"{battleChara.CurrentCastTime:f2}/{battleChara.TotalCastTime:f2}" : "---");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{internalObj->RenderFlags:X}");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"0x{(IntPtr)internalObj->DrawObject:X}");
             }
             ImGui.EndTable();
         }

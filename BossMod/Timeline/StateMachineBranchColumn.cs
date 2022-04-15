@@ -30,7 +30,7 @@ namespace BossMod
                 res = true;
             }
             ImGui.SameLine();
-            ImGui.Text($"Current branch: {Branch + 1}/{Tree.NumBranches}");
+            ImGui.TextUnformatted($"Current branch: {Branch + 1}/{Tree.NumBranches}");
             ImGui.SameLine();
             if (ImGui.Button(">") && Branch < Tree.NumBranches - 1)
             {

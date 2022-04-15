@@ -384,58 +384,61 @@ namespace UIDev
         private void DrawActionRow(ActionID action, bool isGCD, Mistake mistake, float t, WARRotation.State state, WARRotation.Strategy strategy)
         {
             ImGui.TableNextRow();
-            ImGui.TableNextColumn(); ImGui.Text($"{t:f1}");
+            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{t:f1}");
 
-            var name = WARRotation.ActionShortString(action);
-            ImGui.TableNextColumn(); ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(state.RaidBuffsLeft > 0 ? 0xff00ff00 : 0xffffffff), isGCD ? $"{name}" : $"** {name}");
-            ImGui.TableNextColumn(); ImGui.Text($"{MistakeString(mistake)}");
+            ImGui.TableNextColumn();
+            ImGui.PushStyleColor(ImGuiCol.Text, state.RaidBuffsLeft > 0 ? 0xff00ff00 : 0xffffffff);
+            ImGui.TextUnformatted($"{(isGCD ? "" : "** ")}{WARRotation.ActionShortString(action)}");
+            ImGui.PopStyleColor();
 
-            ImGui.TableNextColumn(); ImGui.Text($"{state.Gauge:f0}");
-            ImGui.TableNextColumn(); ImGui.Text($"{state.SurgingTempestLeft:f1}");
+            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{MistakeString(mistake)}");
+
+            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{state.Gauge:f0}");
+            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{state.SurgingTempestLeft:f1}");
 
             ImGui.TableNextColumn();
             if (state.InnerReleaseStacks > 0)
-                ImGui.Text($"{state.InnerReleaseStacks} stacks, {state.InnerReleaseLeft:f1} left");
+                ImGui.TextUnformatted($"{state.InnerReleaseStacks} stacks, {state.InnerReleaseLeft:f1} left");
             else if (state.InnerReleaseCD > 0)
-                ImGui.Text($"{state.InnerReleaseCD:f1} cd");
+                ImGui.TextUnformatted($"{state.InnerReleaseCD:f1} cd");
             else
-                ImGui.Text($"{state.InnerReleaseCD:f1} delay");
+                ImGui.TextUnformatted($"{state.InnerReleaseCD:f1} delay");
 
             ImGui.TableNextColumn();
             if (state.InfuriateCD > 60)
-                ImGui.Text($"0, {(state.InfuriateCD - 60):f1} cd");
+                ImGui.TextUnformatted($"0, {(state.InfuriateCD - 60):f1} cd");
             else if (state.InfuriateCD > 0)
-                ImGui.Text($"1, {state.InfuriateCD:f1} cd");
+                ImGui.TextUnformatted($"1, {state.InfuriateCD:f1} cd");
             else
-                ImGui.Text($"2, {state.InfuriateCD:f1} delay");
+                ImGui.TextUnformatted($"2, {state.InfuriateCD:f1} delay");
 
             ImGui.TableNextColumn();
             if (state.NascentChaosLeft > 0)
-                ImGui.Text($"{state.NascentChaosLeft:f1}");
+                ImGui.TextUnformatted($"{state.NascentChaosLeft:f1}");
 
             ImGui.TableNextColumn();
             if (state.PrimalRendLeft > 0)
-                ImGui.Text($"{state.PrimalRendLeft:f1}");
+                ImGui.TextUnformatted($"{state.PrimalRendLeft:f1}");
 
             ImGui.TableNextColumn();
             if (state.UpheavalCD > 0)
-                ImGui.Text($"{state.UpheavalCD:f1} cd");
+                ImGui.TextUnformatted($"{state.UpheavalCD:f1} cd");
             else
-                ImGui.Text($"{state.UpheavalCD:f1} delay");
+                ImGui.TextUnformatted($"{state.UpheavalCD:f1} delay");
 
             ImGui.TableNextColumn();
             if (state.OnslaughtCD > 60)
-                ImGui.Text($"0, {(state.OnslaughtCD - 60):f1} cd");
+                ImGui.TextUnformatted($"0, {(state.OnslaughtCD - 60):f1} cd");
             else if (state.OnslaughtCD > 30)
-                ImGui.Text($"1, {(state.OnslaughtCD - 30):f1} cd");
+                ImGui.TextUnformatted($"1, {(state.OnslaughtCD - 30):f1} cd");
             else if (state.OnslaughtCD > 0)
-                ImGui.Text($"2, {state.OnslaughtCD:f1} cd");
+                ImGui.TextUnformatted($"2, {state.OnslaughtCD:f1} cd");
             else
-                ImGui.Text($"3, {state.OnslaughtCD:f1} delay");
+                ImGui.TextUnformatted($"3, {state.OnslaughtCD:f1} delay");
 
             ImGui.TableNextColumn();
             if (state.ComboTimeLeft > 0)
-                ImGui.Text($"{state.ComboLastMove} ({state.ComboTimeLeft:f1} left)");
+                ImGui.TextUnformatted($"{state.ComboLastMove} ({state.ComboTimeLeft:f1} left)");
         }
 
         private bool IncrementOvercap(ref float tracker, float value, float min, float max)

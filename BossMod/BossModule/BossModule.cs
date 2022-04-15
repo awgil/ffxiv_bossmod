@@ -266,12 +266,13 @@ namespace BossMod
         private void DrawGlobalHints()
         {
             var hints = CalculateGlobalHints();
-            var hintColor = ImGui.ColorConvertU32ToFloat4(0xffffff00);
+            ImGui.PushStyleColor(ImGuiCol.Text, 0xffffff00);
             foreach (var hint in hints)
             {
-                ImGui.TextColored(hintColor, hint);
+                ImGui.TextUnformatted(hint);
                 ImGui.SameLine();
             }
+            ImGui.PopStyleColor();
             ImGui.NewLine();
         }
 
@@ -282,11 +283,11 @@ namespace BossMod
                 return;
 
             var hints = CalculateHintsForRaidMember(pcSlot, pc, movementHints);
-            var riskColor = ImGui.ColorConvertU32ToFloat4(Arena.ColorDanger);
-            var safeColor = ImGui.ColorConvertU32ToFloat4(Arena.ColorSafe);
             foreach ((var hint, bool risk) in hints)
             {
-                ImGui.TextColored(risk ? riskColor : safeColor, hint);
+                ImGui.PushStyleColor(ImGuiCol.Text, risk ? Arena.ColorDanger : Arena.ColorSafe);
+                ImGui.TextUnformatted(hint);
+                ImGui.PopStyleColor();
                 ImGui.SameLine();
             }
             ImGui.NewLine();

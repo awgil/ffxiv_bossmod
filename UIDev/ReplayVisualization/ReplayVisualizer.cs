@@ -42,17 +42,17 @@ namespace UIDev
 
             DrawControlRow();
             DrawTimelineRow();
-            ImGui.Text($"Num loaded modules: {_mgr.LoadedModules.Count}, num active modules: {_mgr.ActiveModules.Count}, active module: {_mgr.ActiveModule?.GetType()}");
+            ImGui.TextUnformatted($"Num loaded modules: {_mgr.LoadedModules.Count}, num active modules: {_mgr.ActiveModules.Count}, active module: {_mgr.ActiveModule?.GetType()}");
             ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
             if (_mgr.ActiveModule != null)
             {
                 _mgr.ActiveModule.Draw(_azimuth / 180 * MathF.PI, _povSlot, null);
 
-                ImGui.Text($"Downtime in: {_mgr.ActiveModule.PlanExecution?.EstimateTimeToNextDowntime(_mgr.ActiveModule.StateMachine):f2}, Positioning in: {_mgr.ActiveModule.PlanExecution?.EstimateTimeToNextPositioning(_mgr.ActiveModule.StateMachine):f2}, Components:");
+                ImGui.TextUnformatted($"Downtime in: {_mgr.ActiveModule.PlanExecution?.EstimateTimeToNextDowntime(_mgr.ActiveModule.StateMachine):f2}, Positioning in: {_mgr.ActiveModule.PlanExecution?.EstimateTimeToNextPositioning(_mgr.ActiveModule.StateMachine):f2}, Components:");
                 foreach (var comp in _mgr.ActiveModule.Components)
                 {
                     ImGui.SameLine();
-                    ImGui.Text(comp.GetType().Name);
+                    ImGui.TextUnformatted(comp.GetType().Name);
                 }
 
                 if (ImGui.CollapsingHeader("Plan execution"))
@@ -81,7 +81,7 @@ namespace UIDev
 
         private void DrawControlRow()
         {
-            ImGui.Text($"{_player.WorldState.CurrentTime:O}");
+            ImGui.TextUnformatted($"{_player.WorldState.CurrentTime:O}");
             ImGui.SameLine();
             if (ImGui.Button("<<<"))
                 _playSpeed = -10;
@@ -155,10 +155,10 @@ namespace UIDev
             ImGui.TableNextColumn();
             if (actor.IsDead)
             {
-                ImGui.Text("(Dead)");
+                ImGui.TextUnformatted("(Dead)");
                 ImGui.SameLine();
             }
-            ImGui.Text(actor.Name);
+            ImGui.TextUnformatted(actor.Name);
 
             ImGui.TableNextColumn();
             if (actor.HPMax > 0)
@@ -169,7 +169,7 @@ namespace UIDev
 
             ImGui.TableNextColumn();
             if (actor.CastInfo != null)
-                ImGui.Text($"{actor.CastInfo.Action}: {Utils.CastTimeString(actor.CastInfo, _player.WorldState.CurrentTime)}");
+                ImGui.TextUnformatted($"{actor.CastInfo.Action}: {Utils.CastTimeString(actor.CastInfo, _player.WorldState.CurrentTime)}");
 
             ImGui.TableNextColumn();
             foreach (var s in actor.Statuses.Where(s => s.ID != 0))
@@ -177,7 +177,7 @@ namespace UIDev
                 var src = _player.WorldState.Actors.Find(s.SourceID);
                 if (src?.Type == ActorType.Player || src?.Type == ActorType.Pet)
                     continue;
-                ImGui.Text($"{Utils.StatusString(s.ID)} ({s.Extra}): {Utils.StatusTimeString(s.ExpireAt, _player.WorldState.CurrentTime)}");
+                ImGui.TextUnformatted($"{Utils.StatusString(s.ID)} ({s.Extra}): {Utils.StatusTimeString(s.ExpireAt, _player.WorldState.CurrentTime)}");
                 ImGui.SameLine();
             }
         }
@@ -186,9 +186,6 @@ namespace UIDev
         {
             if (!ImGui.CollapsingHeader("Party"))
                 return;
-
-            var riskColor = ImGui.ColorConvertU32ToFloat4(0xff00ffff);
-            var safeColor = ImGui.ColorConvertU32ToFloat4(0xff00ff00);
 
             ImGui.BeginTable("party", 10, ImGuiTableFlags.Resizable);
             ImGui.TableSetupColumn("POV", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 25);
@@ -214,7 +211,7 @@ namespace UIDev
                     _povSlot = slot;
 
                 ImGui.TableNextColumn();
-                ImGui.Text(player.Class.ToString());
+                ImGui.TextUnformatted(player.Class.ToString());
 
                 DrawCommonColumns(player);
 
@@ -224,7 +221,9 @@ namespace UIDev
                     var hints = _mgr.ActiveModule.CalculateHintsForRaidMember(slot, player);
                     foreach ((var hint, bool risk) in hints)
                     {
-                        ImGui.TextColored(risk ? riskColor : safeColor, hint);
+                        ImGui.PushStyleColor(ImGuiCol.Text, risk ? 0xff00ffff : 0xff00ff00);
+                        ImGui.TextUnformatted(hint);
+                        ImGui.PopStyleColor();
                         ImGui.SameLine();
                     }
                 }

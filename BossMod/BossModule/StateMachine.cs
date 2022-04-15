@@ -85,16 +85,16 @@ namespace BossMod
         public void Draw()
         {
             (var activeName, var next) = BuildComplexStateNameAndDuration(ActiveState, TimeSinceTransition, true);
-            ImGui.Text($"Cur: {activeName}");
+            ImGui.TextUnformatted($"Cur: {activeName}");
 
             var future = BuildStateChain(next, " ---> ");
             if (future.Length == 0)
             {
-                ImGui.Text("");
+                ImGui.TextUnformatted("");
             }
             else
             {
-                ImGui.Text($"Then: {future}");
+                ImGui.TextUnformatted($"Then: {future}");
             }
         }
 

@@ -26,7 +26,7 @@ namespace BossMod
         {
             foreach (var vk in Service.KeyState.GetValidVirtualKeys())
             {
-                ImGui.Text($"{vk} ({(int)vk}): internal code={_convertVirtualKey((int)vk)}, state={_getKeyRef((int)vk)}");
+                ImGui.TextUnformatted($"{vk} ({(int)vk}): internal code={_convertVirtualKey((int)vk)}, state={_getKeyRef((int)vk)}");
             }
         }
     }

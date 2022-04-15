@@ -37,7 +37,7 @@ namespace UIDev
 
         public void Draw()
         {
-            ImGui.Text($"{_replays.Count} logs found");
+            ImGui.TextUnformatted($"{_replays.Count} logs found");
 
             foreach (var n in _tree.Node("Unknown action effects"))
             {

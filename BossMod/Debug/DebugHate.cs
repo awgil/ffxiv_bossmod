@@ -73,9 +73,9 @@ namespace BossMod
             foreach (var h in hate->HateSpan)
             {
                 ImGui.TableNextRow();
-                ImGui.TableNextColumn(); ImGui.Text($"{h.ObjectId:X}");
-                ImGui.TableNextColumn(); ImGui.Text(Utils.ObjectString(h.ObjectId));
-                ImGui.TableNextColumn(); ImGui.Text($"{h.Enmity}");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{h.ObjectId:X}");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectString(h.ObjectId));
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{h.Enmity}");
             }
             ImGui.EndTable();
 
@@ -90,9 +90,9 @@ namespace BossMod
             {
                 var h = ((HaterInfo*)hater->HaterArray) + i;
                 ImGui.TableNextRow();
-                ImGui.TableNextColumn(); ImGui.Text($"{h->ObjectId:X}");
-                ImGui.TableNextColumn(); ImGui.Text(MemoryHelper.ReadSeString((IntPtr)h, 64).ToString());
-                ImGui.TableNextColumn(); ImGui.Text($"{h->Enmity}");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{h->ObjectId:X}");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(MemoryHelper.ReadSeString((IntPtr)h, 64).ToString());
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{h->Enmity}");
             }
             ImGui.EndTable();
         }

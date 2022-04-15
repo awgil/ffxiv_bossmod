@@ -93,16 +93,23 @@ namespace BossMod
                 var name = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(action.ID)?.Name.ToString() ?? "(unknown)";
                 if (nextTransition == null)
                 {
-                    ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(0x80808080), name);
+                    ImGui.PushStyleColor(ImGuiCol.Text, 0x80808080);
+                    ImGui.TextUnformatted(name);
+                    ImGui.PopStyleColor();
+
                 }
                 else if (windowActive)
                 {
-                    ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(0xff00ffff), $"{name}: use now! ({nextTransition.Value - t:f1}s left)");
+                    ImGui.PushStyleColor(ImGuiCol.Text, 0xff00ffff);
+                    ImGui.TextUnformatted($"{name}: use now! ({nextTransition.Value - t:f1}s left)");
+                    ImGui.PopStyleColor();
                 }
                 else
                 {
                     var left = nextTransition.Value - t;
-                    ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(left < cd ? 0xffffffff : 0x80808080), $"{name}: in {left:f1}s");
+                    ImGui.PushStyleColor(ImGuiCol.Text, left < cd ? 0xffffffff : 0x80808080);
+                    ImGui.TextUnformatted($"{name}: in {left:f1}s");
+                    ImGui.PopStyleColor();
                 }
             }
         }

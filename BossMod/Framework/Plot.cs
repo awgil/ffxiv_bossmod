@@ -109,7 +109,7 @@ namespace BossMod
             {
                 ImGui.BeginTooltip();
                 foreach (var s in _tooltips)
-                    ImGui.Text(s);
+                    ImGui.TextUnformatted(s);
                 ImGui.EndTooltip();
             }
         }
