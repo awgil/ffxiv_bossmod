@@ -1,6 +1,7 @@
 replay encounter analysis:
 - tether & debuff passing range
 - pull range
+- OID/AID/SID/TethID/IcID detection
 
 network:
 - hook send/recv (a-la xivalexander)

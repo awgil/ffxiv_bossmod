@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
         private Actor? _geocrush;
 
         private static AOEShapeCone _aoeMistralSong = new(20, MathF.PI * 5 / 12);
-        private static AOEShapeDonut _aoeEOTS = new(15, 25); // TODO: check inner range
+        private static AOEShapeDonut _aoeEOTS = new(13, 25); // TODO: check inner range
         private static AOEShapeCircle _aoeGeocrush = new(18); // TODO: check falloff
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
