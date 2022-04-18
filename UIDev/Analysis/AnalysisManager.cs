@@ -8,63 +8,83 @@ namespace UIDev
 {
     class AnalysisManager : IDisposable
     {
+        private class Lazy<T>
+        {
+            private Func<T> _init;
+            private T? _impl;
+
+            public Lazy(Func<T> init)
+            {
+                _init = init;
+            }
+
+            public T Get()
+            {
+                if (_impl == null)
+                    _impl = _init();
+                return _impl;
+            }
+        }
+
         private class Global
         {
-            private List<Replay> _replays;
-            private Analysis.UnknownActionEffects? _unkEffects;
+            private Lazy<Analysis.UnknownActionEffects> _unkEffects;
 
             public Global(List<Replay> replays)
             {
-                _replays = replays;
+                _unkEffects = new(() => new(replays));
             }
 
             public void Draw(Tree tree)
             {
                 foreach (var n in tree.Node("Unknown action effects"))
-                {
-                    if (_unkEffects == null)
-                        _unkEffects = new(_replays);
-                    _unkEffects.Draw(tree);
-                }
+                    _unkEffects.Get().Draw(tree);
             }
         }
 
         private class PerEncounter
         {
-            private List<Replay> _replays;
-            private uint _oid;
-            private Analysis.StateTransitionTimings? _transitionTimings;
-            private Analysis.AbilityInfo? _abilityInfo;
-            private Analysis.ArenaBounds? _arenaBounds;
+            private Lazy<Analysis.StateTransitionTimings> _transitionTimings;
+            private Lazy<Analysis.ParticipantInfo> _participantInfo;
+            private Lazy<Analysis.AbilityInfo> _abilityInfo;
+            private Lazy<Analysis.StatusInfo> _statusInfo;
+            private Lazy<Analysis.IconInfo> _iconInfo;
+            private Lazy<Analysis.TetherInfo> _tetherInfo;
+            private Lazy<Analysis.ArenaBounds> _arenaBounds;
 
             public PerEncounter(List<Replay> replays, uint oid)
             {
-                _replays = replays;
-                _oid = oid;
+                _transitionTimings = new(() => new(replays, oid));
+                _participantInfo = new(() => new(replays, oid));
+                _abilityInfo = new(() => new(replays, oid));
+                _statusInfo = new(() => new(replays, oid));
+                _iconInfo = new(() => new(replays, oid));
+                _tetherInfo = new(() => new(replays, oid));
+                _arenaBounds = new(() => new(replays, oid));
             }
 
             public void Draw(Tree tree)
             {
                 foreach (var n in tree.Node("State transition timings"))
-                {
-                    if (_transitionTimings == null)
-                        _transitionTimings = new(_replays, _oid);
-                    _transitionTimings.Draw(tree);
-                }
+                    _transitionTimings.Get().Draw(tree);
 
-                foreach (var n in tree.Node("Ability info"))
-                {
-                    if (_abilityInfo == null)
-                        _abilityInfo = new(_replays, _oid);
-                    _abilityInfo.Draw(tree);
-                }
+                foreach (var n in tree.Node("Participant info", false, () => _participantInfo.Get().DrawContextMenu()))
+                    _participantInfo.Get().Draw(tree);
+
+                foreach (var n in tree.Node("Ability info", false, () => _abilityInfo.Get().DrawContextMenu()))
+                    _abilityInfo.Get().Draw(tree);
+
+                foreach (var n in tree.Node("Status info", false, () => _statusInfo.Get().DrawContextMenu()))
+                    _statusInfo.Get().Draw(tree);
+
+                foreach (var n in tree.Node("Icon info", false, () => _iconInfo.Get().DrawContextMenu()))
+                    _iconInfo.Get().Draw(tree);
+
+                foreach (var n in tree.Node("Tether info", false, () => _tetherInfo.Get().DrawContextMenu()))
+                    _tetherInfo.Get().Draw(tree);
 
                 foreach (var n in tree.Node("Arena bounds"))
-                {
-                    if (_arenaBounds == null)
-                        _arenaBounds = new(_replays, _oid);
-                    _arenaBounds.Draw(tree);
-                }
+                    _arenaBounds.Get().Draw(tree);
             }
         }
 
@@ -106,12 +126,9 @@ namespace UIDev
             {
                 _global.Draw(_tree);
             }
-            foreach (var n in _tree.Node("Per-encounter analysis"))
+            foreach (var n in _tree.Nodes(_perEncounter, kv => ($"Encounter analysis for {kv.Key:X} ({ModuleRegistry.TypeForOID(kv.Key)?.Name})", false)))
             {
-                foreach (var e in _tree.Nodes(_perEncounter, kv => ($"{kv.Key:X} ({ModuleRegistry.TypeForOID(kv.Key)?.Name})", false)))
-                {
-                    e.Value.Draw(_tree);
-                }
+                n.Value.Draw(_tree);
             }
         }
     }

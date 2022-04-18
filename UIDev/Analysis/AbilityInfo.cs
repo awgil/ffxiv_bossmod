@@ -1,8 +1,10 @@
 ﻿using BossMod;
+using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 
 namespace UIDev.Analysis
 {
@@ -137,8 +139,8 @@ namespace UIDev.Analysis
         {
             foreach (var (aid, data) in tree.Nodes(_data, kv => ($"{kv.Key} ({_aidType?.GetEnumName(kv.Key.ID)})", false)))
             {
-                tree.LeafNode($"Caster IDs: {string.Join(", ", data.CasterOIDs.Select(oid => $"${oid:X} ({_oidType?.GetEnumName(oid)})"))}");
-                tree.LeafNode($"Target IDs: {string.Join(", ", data.TargetOIDs.Select(oid => $"${oid:X} ({_oidType?.GetEnumName(oid)})"))}");
+                tree.LeafNode($"Caster IDs: {OIDListString(data.CasterOIDs)}");
+                tree.LeafNode($"Target IDs: {OIDListString(data.TargetOIDs)}");
                 tree.LeafNode($"Targets:{(data.SeenTargetSelf ? " self" : "")}{(data.SeenTargetOtherEnemy ? " enemy" : "")}{(data.SeenTargetPlayer ? " player" : "")}{(data.SeenTargetLocation ? " location" : "")}{(data.SeenAOE ? " aoe" : "")}");
                 tree.LeafNode($"Cast time: {data.CastTime:f1}");
                 foreach (var an in tree.Node("Cone analysis"))
@@ -162,9 +164,57 @@ namespace UIDev.Analysis
             }
         }
 
+        public void DrawContextMenu()
+        {
+            if (ImGui.MenuItem("Generate enum for boss module"))
+            {
+                var sb = new StringBuilder("public enum AID : uint\n{");
+                foreach (var (aid, data) in _data)
+                {
+                    string name = aid.Type != ActionType.Spell ? $"// {aid}" : _aidType?.GetEnumName(aid.ID) ?? $"_Gen_{(Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(aid.ID)?.Name.ToString().Replace(' ', '_') ?? $"Ability_{aid.ID}")}";
+                    sb.Append($"\n    {name} = {aid.ID}, // {OIDListString(data.CasterOIDs)}->");
+
+                    var tarSB = new StringBuilder();
+                    if (data.SeenTargetSelf)
+                        tarSB.Append("self");
+                    if (data.SeenTargetPlayer)
+                    {
+                        if (tarSB.Length > 0)
+                            tarSB.Append('/');
+                        tarSB.Append(data.SeenAOE ? "players" : "player");
+                    }
+                    if (data.SeenTargetLocation)
+                    {
+                        if (tarSB.Length > 0)
+                            tarSB.Append('/');
+                        tarSB.Append("location");
+                    }
+                    if (data.SeenTargetOtherEnemy)
+                    {
+                        if (tarSB.Length > 0)
+                            tarSB.Append('/');
+                        tarSB.Append(OIDListString(data.TargetOIDs.Where(oid => oid != 0)));
+                    }
+                    if (tarSB.Length == 0)
+                        tarSB.Append("none");
+
+                    sb.Append(tarSB);
+                    sb.Append($", {(data.CastTime > 0 ? $"{data.CastTime:f1}s" : "no")} cast");
+                }
+                sb.Append("\n};\n");
+                ImGui.SetClipboardText(sb.ToString());
+            }
+        }
+
         private static IEnumerable<Replay.Participant> AlivePlayersAt(Replay r, DateTime t)
         {
             return r.Participants.Where(p => p.Type is ActorType.Player or ActorType.Chocobo && p.Existence.Contains(t) && !p.DeadAt(t));
+        }
+
+        private string OIDListString(IEnumerable<uint> oids)
+        {
+            var s = string.Join('/', oids.Select(oid => oid == 0 ? "player" : _oidType?.GetEnumName(oid) ?? $"{oid:X}"));
+            return s.Length > 0 ? s : "none";
         }
     }
 }

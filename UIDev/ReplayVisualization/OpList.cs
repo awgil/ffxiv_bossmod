@@ -1,5 +1,4 @@
 ﻿using BossMod;
-using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,18 +30,11 @@ namespace UIDev
 
             foreach (var node in _nodes)
             {
-                bool? activated = null;
-                foreach (var n in tree.Node($"{(node.Timestamp - reference).TotalSeconds:f3}: {node.Text}", node.Children == null))
+                foreach (var n in tree.Node($"{(node.Timestamp - reference).TotalSeconds:f3}: {node.Text}", node.Children == null, null, () => _scrollTo(node.Timestamp)))
                 {
-                    activated = ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left);
                     if (node.Children != null)
                         node.Children(tree);
                 }
-
-                if (activated == null)
-                    activated = ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left);
-                if (activated.Value)
-                    _scrollTo(node.Timestamp);
             }
         }
 
