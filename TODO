@@ -10,6 +10,7 @@ network:
 
 boss modules:
 - draw actors by framework (components should return color+prio)
+- high-level phases (e.g. for ultima weapon)
 - p3s - review, searing breeze component
 
 autorotation:
@@ -43,7 +44,6 @@ misc:
 - reconsider worldstate->bossmodule event subscription model (tedious to manually subscribe/unsubsribe and forward to components...)
 - fail log?
 - determine exact mechanism for cooldown reset (on instance enter and on wipe)
-- data driven boss modules?.. would enable sequence autorecord and live editing - or is it covered by replay analysis?
 - draw target max-melee and boss positioning hints?..
 - action not learned = GetActionStatus -> 573 (this is rowid of LogMessage "action not yet learned") => can be used to disable non-learned spells
 - assignments and sharing (webservice?)
