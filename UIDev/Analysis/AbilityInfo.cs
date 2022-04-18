@@ -85,56 +85,79 @@ namespace UIDev.Analysis
         class ActionData
         {
             public List<(Replay, Replay.Action)> Instances = new();
+            public HashSet<uint> CasterOIDs = new();
+            public HashSet<uint> TargetOIDs = new();
+            public bool SeenTargetSelf;
+            public bool SeenTargetOtherEnemy;
+            public bool SeenTargetPlayer;
+            public bool SeenTargetLocation;
+            public bool SeenAOE;
+            public float CastTime;
             public ConeAnalysis? ConeAnalysis;
             public DamageFalloffAnalysis? DamageFalloffAnalysisDist;
             public DamageFalloffAnalysis? DamageFalloffAnalysisMinCoord;
         }
 
-        private Tree _tree;
-        private Dictionary<uint, Dictionary<ActionID, ActionData>> _data = new(); // [encounter-oid][aid]
+        private Type? _oidType;
+        private Type? _aidType;
+        private Dictionary<ActionID, ActionData> _data = new();
 
-        public AbilityInfo(List<Replay> replays, Tree tree)
+        public AbilityInfo(List<Replay> replays, uint oid)
         {
-            _tree = tree;
+            var moduleType = ModuleRegistry.TypeForOID(oid);
+            _oidType = moduleType?.Module.GetType($"{moduleType.Namespace}.OID");
+            _aidType = moduleType?.Module.GetType($"{moduleType.Namespace}.AID");
             foreach (var replay in replays)
             {
-                foreach (var enc in replay.Encounters)
+                foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
                 {
                     foreach (var action in replay.EncounterActions(enc).Where(a => !(a.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)))
                     {
-                        _data.GetOrAdd(enc.OID).GetOrAdd(action.ID).Instances.Add((replay, action));
+                        var data = _data.GetOrAdd(action.ID);
+                        if (action.Source != null)
+                            data.CasterOIDs.Add(action.Source.OID);
+                        if (action.MainTarget != null)
+                            data.TargetOIDs.Add(action.MainTarget.OID);
+                        data.SeenTargetSelf |= action.Source == action.MainTarget;
+                        data.SeenTargetOtherEnemy |= action.MainTarget != action.Source && action.MainTarget?.Type == ActorType.Enemy;
+                        data.SeenTargetPlayer |= action.MainTarget?.Type == ActorType.Player;
+                        data.SeenTargetLocation |= action.MainTarget == null;
+                        data.SeenAOE |= action.Targets.Count > 1;
+
+                        var cast = action.Source?.Casts.Find(c => c.ID == action.ID && Math.Abs((c.Time.End - action.Timestamp).TotalSeconds) < 1);
+                        data.CastTime = cast?.ExpectedCastTime + 0.3f ?? 0;
+
+                        data.Instances.Add((replay, action));
                     }
                 }
             }
         }
 
-        public void Draw()
+        public void Draw(Tree tree)
         {
-            foreach (var (encOID, perEnc) in _tree.Nodes(_data, kv => ($"{kv.Key:X} ({ModuleRegistry.TypeForOID(kv.Key)?.Name})", false)))
+            foreach (var (aid, data) in tree.Nodes(_data, kv => ($"{kv.Key} ({_aidType?.GetEnumName(kv.Key.ID)})", false)))
             {
-                var moduleType = ModuleRegistry.TypeForOID(encOID);
-                var oidType = moduleType?.Module.GetType($"{moduleType.Namespace}.OID");
-                var aidType = moduleType?.Module.GetType($"{moduleType.Namespace}.AID");
-                foreach (var (aid, data) in _tree.Nodes(perEnc, kv => ($"{kv.Key} ({aidType?.GetEnumName(kv.Key.ID)})", false)))
+                tree.LeafNode($"Caster IDs: {string.Join(", ", data.CasterOIDs.Select(oid => $"${oid:X} ({_oidType?.GetEnumName(oid)})"))}");
+                tree.LeafNode($"Target IDs: {string.Join(", ", data.TargetOIDs.Select(oid => $"${oid:X} ({_oidType?.GetEnumName(oid)})"))}");
+                tree.LeafNode($"Targets:{(data.SeenTargetSelf ? " self" : "")}{(data.SeenTargetOtherEnemy ? " enemy" : "")}{(data.SeenTargetPlayer ? " player" : "")}{(data.SeenTargetLocation ? " location" : "")}{(data.SeenAOE ? " aoe" : "")}");
+                tree.LeafNode($"Cast time: {data.CastTime:f1}");
+                foreach (var an in tree.Node("Cone analysis"))
                 {
-                    foreach (var an in _tree.Node("Cone analysis"))
-                    {
-                        if (data.ConeAnalysis == null)
-                            data.ConeAnalysis = new(data.Instances);
-                        data.ConeAnalysis.Draw();
-                    }
-                    foreach (var an in _tree.Node("Damage falloff analysis (by distance)"))
-                    {
-                        if (data.DamageFalloffAnalysisDist == null)
-                            data.DamageFalloffAnalysisDist = new(data.Instances, false);
-                        data.DamageFalloffAnalysisDist.Draw();
-                    }
-                    foreach (var an in _tree.Node("Damage falloff analysis (by max coord)"))
-                    {
-                        if (data.DamageFalloffAnalysisMinCoord == null)
-                            data.DamageFalloffAnalysisMinCoord = new(data.Instances, true);
-                        data.DamageFalloffAnalysisMinCoord.Draw();
-                    }
+                    if (data.ConeAnalysis == null)
+                        data.ConeAnalysis = new(data.Instances);
+                    data.ConeAnalysis.Draw();
+                }
+                foreach (var an in tree.Node("Damage falloff analysis (by distance)"))
+                {
+                    if (data.DamageFalloffAnalysisDist == null)
+                        data.DamageFalloffAnalysisDist = new(data.Instances, false);
+                    data.DamageFalloffAnalysisDist.Draw();
+                }
+                foreach (var an in tree.Node("Damage falloff analysis (by max coord)"))
+                {
+                    if (data.DamageFalloffAnalysisMinCoord == null)
+                        data.DamageFalloffAnalysisMinCoord = new(data.Instances, true);
+                    data.DamageFalloffAnalysisMinCoord.Draw();
                 }
             }
         }

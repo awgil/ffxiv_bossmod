@@ -33,9 +33,15 @@ namespace UIDev.Analysis
 
         class StateMetrics
         {
-            public string Name = "";
+            public string Name;
             public double ExpectedTime;
-            public SortedDictionary<int, TransitionMetrics> Transitions = new();
+            public SortedDictionary<uint, TransitionMetrics> Transitions = new();
+
+            public StateMetrics(string name, double expectedTime)
+            {
+                Name = name;
+                ExpectedTime = expectedTime;
+            }
         }
 
         class EncounterError
@@ -54,71 +60,6 @@ namespace UIDev.Analysis
             }
         }
 
-        class EncounterMetrics
-        {
-            public List<StateMetrics> Metrics;
-            public List<EncounterError> Errors = new();
-
-            public EncounterMetrics(ActiveModuleState referenceState)
-            {
-                Metrics = new(referenceState.StateMap.Count + 1);
-                Metrics.Add(new() { Name = "(null)" });
-                for (int i = 0; i < referenceState.StateMap.Count; ++i)
-                    Metrics.Add(new());
-
-                foreach (var (state, index) in referenceState.StateMap)
-                {
-                    var m = Metrics[index];
-                    m.Name = $"{state.ID:X} '{state.Name}' ({state.Comment})";
-                    m.ExpectedTime = Math.Round(state.Duration, 1);
-                }
-            }
-
-            public void RecordTransition(int from, int to, TransitionMetric metric)
-            {
-                Metrics[from].Transitions.GetOrAdd(to).Instances.Add(metric);
-            }
-        }
-
-        class ActiveModuleState
-        {
-            public Replay Replay;
-            public StateMachine.State? CurState;
-            public DateTime StateEnter;
-            public Dictionary<StateMachine.State, int> StateMap = new();
-            public EncounterMetrics? Metrics;
-
-            public ActiveModuleState(Replay replay, BossModule m)
-            {
-                Replay = replay;
-                if (m.InitialState != null)
-                    EnumerateStates(m.InitialState, 1);
-            }
-
-            public void Transition(StateMachine.State? state, DateTime time)
-            {
-                var stateIndex = CurState != null ? StateMap[CurState] : 0;
-                var destIndex = state != null ? StateMap[state] : 0;
-                Metrics?.RecordTransition(stateIndex, destIndex, new((time - StateEnter).TotalSeconds, Replay, time));
-                CurState = state;
-                StateEnter = time;
-            }
-
-            private int EnumerateStates(StateMachine.State state, int index)
-            {
-                StateMap[state] = index++;
-
-                if (state.Next != null)
-                    index = EnumerateStates(state.Next, index);
-
-                if (state.PotentialSuccessors != null)
-                    foreach (var s in state.PotentialSuccessors.Where(s => s != state.Next))
-                        index = EnumerateStates(s, index);
-
-                return index;
-            }
-        }
-
         class BossModuleManagerWrapper : BossModuleManager
         {
             private StateTransitionTimings _self;
@@ -133,104 +74,112 @@ namespace UIDev.Analysis
 
             public override void HandleError(BossModule module, BossModule.Component? comp, string message)
             {
-                _self._metrics[module.PrimaryActor.OID].Errors.Add(new(_replay, module.WorldState.CurrentTime, comp?.GetType(), message));
+                _self._errors.Add(new(_replay, module.WorldState.CurrentTime, comp?.GetType(), message));
             }
         }
 
-        private Tree _tree;
-        private Dictionary<uint, EncounterMetrics> _metrics = new(); // key = OID
+        private SortedDictionary<uint, StateMetrics> _metrics = new();
+        private List<EncounterError> _errors = new();
 
-        public StateTransitionTimings(List<Replay> replays, Tree tree)
+        public StateTransitionTimings(List<Replay> replays, uint oid)
         {
-            _tree = tree;
-
-            foreach (var replay in replays.Where(r => r.Encounters.Count > 0))
+            foreach (var replay in replays)
             {
                 ReplayPlayer player = new(replay);
-                BossModuleManagerWrapper mgr = new(this, replay, player.WorldState);
-                Dictionary<BossModule, ActiveModuleState> states = new();
-                while (player.TickForward())
+                foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
                 {
-                    mgr.Update();
+                    if (player.WorldState.CurrentTime > enc.Time.Start)
+                        player.Reset();
+                    player.AdvanceTo(enc.Time.Start, () => { });
 
-                    foreach (var m in mgr.ActiveModules)
+                    var bmm = new BossModuleManagerWrapper(this, replay, player.WorldState);
+                    var m = bmm.ActiveModules.FirstOrDefault(m => m.PrimaryActor.InstanceID == enc.InstanceID);
+                    if (m == null)
+                        continue;
+
+                    StateMachine.State? prevState = m.StateMachine.ActiveState;
+                    DateTime prevStateEnter = player.WorldState.CurrentTime;
+                    while (player.TickForward() && player.WorldState.CurrentTime <= enc.Time.End)
                     {
-                        var s = states.GetValueOrDefault(m);
-                        if (s == null)
-                        {
-                            states[m] = s = new(replay, m);
-                            s.Metrics = _metrics.GetValueOrDefault(m.PrimaryActor.OID);
-                            if (s.Metrics == null)
-                            {
-                                _metrics[m.PrimaryActor.OID] = s.Metrics = new(s);
-                            }
-                        }
+                        m.Update();
+                        if (m.StateMachine.ActiveState == null)
+                            break;
 
-                        if (s.CurState != m.StateMachine.ActiveState)
+                        if (prevState != m.StateMachine.ActiveState)
                         {
-                            s.Transition(m.StateMachine.ActiveState, player.WorldState.CurrentTime);
+                            if (prevState != null)
+                            {
+                                RecordTransition(replay, prevState, prevStateEnter, m.StateMachine.ActiveState, player.WorldState.CurrentTime);
+                            }
+
+                            prevState = m.StateMachine.ActiveState;
+                            prevStateEnter = player.WorldState.CurrentTime;
                         }
                     }
                 }
             }
 
-            foreach (var (_, metrics) in _metrics)
+            foreach (var (_, state) in _metrics)
             {
-                foreach (var state in metrics.Metrics)
+                foreach (var (_, trans) in state.Transitions)
                 {
-                    foreach (var (_, trans) in state.Transitions)
+                    trans.Instances.Sort((l, r) => l.Duration.CompareTo(r.Duration));
+                    trans.MinTime = trans.Instances.First().Duration;
+                    trans.MaxTime = trans.Instances.Last().Duration;
+                    double sum = 0, sumSq = 0;
+                    foreach (var inst in trans.Instances)
                     {
-                        trans.Instances.Sort((l, r) => l.Duration.CompareTo(r.Duration));
-                        trans.MinTime = trans.Instances.First().Duration;
-                        trans.MaxTime = trans.Instances.Last().Duration;
-                        double sum = 0, sumSq = 0;
-                        foreach (var inst in trans.Instances)
-                        {
-                            sum += inst.Duration;
-                            sumSq += inst.Duration * inst.Duration;
-                        }
-                        trans.AvgTime = sum / trans.Instances.Count;
-                        trans.StdDev = trans.Instances.Count > 0 ? Math.Sqrt((sumSq - sum * sum / trans.Instances.Count) / (trans.Instances.Count - 1)) : 0;
+                        sum += inst.Duration;
+                        sumSq += inst.Duration * inst.Duration;
                     }
+                    trans.AvgTime = sum / trans.Instances.Count;
+                    trans.StdDev = trans.Instances.Count > 0 ? Math.Sqrt((sumSq - sum * sum / trans.Instances.Count) / (trans.Instances.Count - 1)) : 0;
                 }
             }
         }
 
-        public void Draw()
+        public void Draw(Tree tree)
         {
-            foreach (var (oid, metrics) in _tree.Nodes(_metrics, kv => ($"{kv.Key:X} ({ModuleRegistry.TypeForOID(kv.Key)?.Name})", false)))
+            foreach (var n in tree.Node("Errors", _errors.Count == 0))
             {
-                var moduleType = ModuleRegistry.TypeForOID(oid);
-                foreach (var n in _tree.Node("Errors", metrics.Errors.Count == 0))
-                {
-                    _tree.LeafNodes(metrics.Errors, error => $"{error.Replay.Path} @ {error.Timestamp:O} [{error.CompType}] {error.Message}");
-                }
+                tree.LeafNodes(_errors, error => $"{error.Replay.Path} @ {error.Timestamp:O} [{error.CompType}] {error.Message}");
+            }
 
-                foreach (var from in metrics.Metrics.Skip(1))
+            foreach (var from in _metrics.Values)
+            {
+                foreach (var (toID, m) in from.Transitions)
                 {
-                    foreach (var (toIndex, m) in from.Transitions)
+                    //bool warn = from.ExpectedTime < Math.Round(m.MinTime, 1) || from.ExpectedTime > Math.Round(m.MaxTime, 1);
+                    bool warn = Math.Abs(from.ExpectedTime - m.AvgTime) > Math.Ceiling(m.StdDev * 10) / 10;
+                    ImGui.PushStyleColor(ImGuiCol.Text, warn ? 0xff00ffff : 0xffffffff);
+                    foreach (var tn in tree.Node($"{from.Name} -> {_metrics[toID].Name}: avg={m.AvgTime:f2}-{from.ExpectedTime:f2}={m.AvgTime - from.ExpectedTime:f2} +- {m.StdDev:f2}, [{m.MinTime:f2}, {m.MaxTime:f2}] range, {m.Instances.Count} seen"))
                     {
-                        if (toIndex != 0)
+                        foreach (var inst in m.Instances)
                         {
-                            var to = metrics.Metrics[toIndex];
-                            //bool warn = from.ExpectedTime < Math.Round(m.MinTime, 1) || from.ExpectedTime > Math.Round(m.MaxTime, 1);
-                            bool warn = Math.Abs(from.ExpectedTime - m.AvgTime) > Math.Ceiling(m.StdDev * 10) / 10;
+                            warn = Math.Abs(inst.Duration - m.AvgTime) > m.StdDev;
                             ImGui.PushStyleColor(ImGuiCol.Text, warn ? 0xff00ffff : 0xffffffff);
-                            foreach (var tn in _tree.Node($"{from.Name} -> {to.Name}: avg={m.AvgTime:f2}-{from.ExpectedTime:f2}={m.AvgTime - from.ExpectedTime:f2} +- {m.StdDev:f2}, [{m.MinTime:f2}, {m.MaxTime:f2}] range, {m.Instances.Count} seen"))
-                            {
-                                foreach (var inst in m.Instances)
-                                {
-                                    warn = Math.Abs(inst.Duration - m.AvgTime) > m.StdDev;
-                                    ImGui.PushStyleColor(ImGuiCol.Text, warn ? 0xff00ffff : 0xffffffff);
-                                    _tree.LeafNode($"{inst.Duration:f2}: {inst.Replay.Path} @ {inst.Time:O}");
-                                    ImGui.PopStyleColor();
-                                }
-                            }
+                            tree.LeafNode($"{inst.Duration:f2}: {inst.Replay.Path} @ {inst.Time:O}");
                             ImGui.PopStyleColor();
                         }
                     }
+                    ImGui.PopStyleColor();
                 }
             }
+        }
+
+        private void RecordTransition(Replay replay, StateMachine.State prev, DateTime prevEnter, StateMachine.State cur, DateTime curEnter)
+        {
+            var m = MetricsForState(prev);
+            MetricsForState(cur); // ensure state entry exists, even if there are no transitions from it
+            m.Transitions.GetOrAdd(cur.ID).Instances.Add(new TransitionMetric((curEnter - prevEnter).TotalSeconds, replay, curEnter));
+        }
+
+        private StateMetrics MetricsForState(StateMachine.State s)
+        {
+            var m = _metrics.GetValueOrDefault(s.ID);
+            if (m == null)
+                m = _metrics[s.ID] = new StateMetrics($"{s.ID:X} '{s.Name}' ({s.Comment})", Math.Round(s.Duration, 1));
+            return m;
         }
     }
 }

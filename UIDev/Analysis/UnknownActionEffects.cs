@@ -1,5 +1,4 @@
 ﻿using BossMod;
-using ImGuiNET;
 using System.Collections.Generic;
 
 namespace UIDev.Analysis
@@ -22,13 +21,10 @@ namespace UIDev.Analysis
             }
         }
 
-        private Tree _tree;
         private SortedDictionary<string, Dictionary<ActionID, List<Entry>>> _unknownActionEffects = new();
 
-        public UnknownActionEffects(List<Replay> replays, Tree tree)
+        public UnknownActionEffects(List<Replay> replays)
         {
-            _tree = tree;
-
             foreach (var replay in replays)
             {
                 foreach (var action in replay.Actions)
@@ -49,13 +45,13 @@ namespace UIDev.Analysis
             }
         }
 
-        public void Draw()
+        public void Draw(Tree tree)
         {
-            foreach (var (type, actions) in _tree.Nodes(_unknownActionEffects, kv => ($"{kv.Key} ({kv.Value.Count} actions)", false)))
+            foreach (var (type, actions) in tree.Nodes(_unknownActionEffects, kv => ($"{kv.Key} ({kv.Value.Count} actions)", false)))
             {
-                foreach (var (action, entries) in _tree.Nodes(actions, kv => ($"{kv.Key} ({kv.Value.Count} entries)", false)))
+                foreach (var (action, entries) in tree.Nodes(actions, kv => ($"{kv.Key} ({kv.Value.Count} entries)", false)))
                 {
-                    _tree.LeafNodes(entries, entry => $"{ReplayUtils.ActionEffectString(entry.Effect)}: {entry.Replay.Path} {entry.Action.Timestamp:O} {ReplayUtils.ParticipantPosRotString(entry.Action.Source, entry.Action.Timestamp)} -> {ReplayUtils.ParticipantString(entry.Action.MainTarget)} {Utils.Vec3String(entry.Action.TargetPos)} @ {ReplayUtils.ParticipantPosRotString(entry.Target.Target, entry.Action.Timestamp)}");
+                    tree.LeafNodes(entries, entry => $"{ReplayUtils.ActionEffectString(entry.Effect)}: {entry.Replay.Path} {entry.Action.Timestamp:O} {ReplayUtils.ParticipantPosRotString(entry.Action.Source, entry.Action.Timestamp)} -> {ReplayUtils.ParticipantString(entry.Action.MainTarget)} {Utils.Vec3String(entry.Action.TargetPos)} @ {ReplayUtils.ParticipantPosRotString(entry.Target.Target, entry.Action.Timestamp)}");
                 }
             }
         }
