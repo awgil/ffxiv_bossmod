@@ -88,7 +88,7 @@
             int slot = module.WorldState.Party.FindSlot(actor.InstanceID);
             if (slot >= 0)
             {
-                if (_doneCasts[slot] > 2)
+                if (_doneCasts[slot] > 3)
                 {
                     module.ReportError(this, $"Unexpected state change after {_doneCasts[slot]} casts");
                     return;

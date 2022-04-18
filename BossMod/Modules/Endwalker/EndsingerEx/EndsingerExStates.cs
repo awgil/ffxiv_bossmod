@@ -169,7 +169,7 @@
             Elenchos(id + 0x200, 6.2f);
             Cast(id + 0x300, AID.DespairUnforgotten, 5.2f, 3, "Despair 3");
             Cast(id + 0x400, AID.TheologicalFatalism, 11.2f, 3, "Rewind");
-            ComponentCondition<DespairUnforgotten>(id + 0x500, 10.2f, comp => comp.Done, "Despair resolve")
+            ComponentCondition<DespairUnforgotten>(id + 0x500, 10.1f, comp => comp.Done, "Despair resolve")
                 .DeactivateOnExit<DespairUnforgotten>();
         }
 
