@@ -64,7 +64,7 @@ namespace BossMod
             else if (s.Downtime.Transition == null)
                 return 10000; // this is a fork and we don't know where we'll go - assume there will be no downtime ever...
             else
-                return s.Downtime.Transition.Value.EstimatedTime - sm!.TimeSinceTransition;
+                return s.Downtime.Transition.Value.EstimatedTime - sm!.TimeSinceTransitionClamped;
         }
 
         public float EstimateTimeToNextPositioning(StateMachine? sm)
@@ -75,14 +75,14 @@ namespace BossMod
             else if (s.Positioning.Transition == null)
                 return 10000; // no known positionings going forward
             else
-                return s.Positioning.Transition.Value.EstimatedTime - sm!.TimeSinceTransition;
+                return s.Positioning.Transition.Value.EstimatedTime - sm!.TimeSinceTransitionClamped;
         }
 
         public void Draw(StateMachine? sm)
         {
             var db = Plan != null ? AbilityDefinitions.Classes[Plan.Class] : null;
             var s = FindStateData(sm?.ActiveState);
-            var t = sm?.TimeSinceTransition ?? 0;
+            var t = sm?.TimeSinceTransitionClamped ?? 0;
             foreach (var (action, ability) in s.Abilities)
             {
                 float cd = db?.Abilities.GetValueOrDefault(action)?.Cooldown ?? 0;

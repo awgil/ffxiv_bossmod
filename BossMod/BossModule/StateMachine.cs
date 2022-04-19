@@ -44,6 +44,7 @@ namespace BossMod
         private DateTime _curTime;
         private DateTime _lastTransition;
         public float TimeSinceTransition => (float)(_curTime - _lastTransition).TotalSeconds;
+        public float TimeSinceTransitionClamped => MathF.Min(TimeSinceTransition, ActiveState?.Duration ?? 0);
 
         private State? _activeState = null;
         public State? ActiveState

@@ -147,7 +147,7 @@ namespace BossMod
                     var plan = stateData?.Abilities.GetValueOrDefault(action);
                     if (plan != null)
                     {
-                        var progress = Autorot.Bossmods.ActiveModule!.StateMachine.TimeSinceTransition;
+                        var progress = Autorot.Bossmods.ActiveModule!.StateMachine.TimeSinceTransitionClamped;
                         var activeWindow = plan.ActivationWindows.FindIndex(w => w.Start <= progress && w.End > progress);
                         if (activeWindow != -1)
                         {

@@ -78,6 +78,15 @@ namespace UIDev
                 }
             }
 
+            var boss = filter?.Participants[filter.OID].Find(p => p.InstanceID == filter.InstanceID);
+            if (boss != null)
+            {
+                foreach (var n in _tree.Node("Boss casts", boss.Casts.Count == 0))
+                {
+                    DrawCasts(boss.Casts, reference, aidType);
+                }
+            }
+
             bool haveActions = actions.Any();
             Func<Replay.Action, bool> actionIsCrap = a => a.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo;
             foreach (var n in _tree.Node("Interesting actions", !haveActions))

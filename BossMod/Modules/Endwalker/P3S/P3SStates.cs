@@ -205,7 +205,7 @@ namespace BossMod.Endwalker.P3S
             var birds = Module.Enemies(OID.SunbirdLarge);
             Condition(id, delay, () => birds.Any(x => x.IsTargetable), "Large birds", 10000)
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
-            ComponentCondition<BirdTether>(id + 0x1000, 18.2f, comp => comp.NumFinishedChains == 4, "", 10000)
+            ComponentCondition<BirdTether>(id + 0x1000, 18.2f, comp => comp.NumFinishedChains == 4 || birds.All(x => x.IsDead), "", 10000)
                 .ActivateOnEnter<BirdTether>() // note that first tethers appear ~5s after this
                 .DeactivateOnExit<BirdTether>();
             Condition(id + 0x2000, 36.8f, () => birds.All(x => x.IsDead), "Large birds enrage", 10000) // enrage is ~55sec after spawn

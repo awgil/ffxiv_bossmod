@@ -26,7 +26,7 @@ namespace BossMod
             _timeline.CurrentTime = null;
             if (_col.ControlledSM?.ActiveState != null)
             {
-                var dt = MathF.Max(0, _col.ControlledSM.ActiveState.Duration - _col.ControlledSM.TimeSinceTransition);
+                var dt = _col.ControlledSM.ActiveState.Duration - _col.ControlledSM.TimeSinceTransitionClamped;
                 var activeNode = _col.Tree.Nodes[_col.ControlledSM.ActiveState.ID];
                 _timeline.CurrentTime = activeNode.Time - dt;
             }

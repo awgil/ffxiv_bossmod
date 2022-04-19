@@ -118,7 +118,7 @@ namespace UIDev
 
         private string ActorString(uint instanceID, DateTime timestamp)
         {
-            return ReplayUtils.ParticipantString(FindParticipant(instanceID, timestamp));
+            return ReplayUtils.ParticipantPosRotString(FindParticipant(instanceID, timestamp), timestamp);
         }
 
         private string CastString(uint instanceID, DateTime timestamp)
