@@ -27,29 +27,29 @@ namespace UIDev
                 foreach (var no in _tree.Node("Raw ops"))
                 {
                     if (_opListRaw == null)
-                        _opListRaw = new(_replay, _replay.Ops, _scrollTo);
+                        _opListRaw = new(_replay, null, _replay.Ops, _scrollTo);
                     _opListRaw.Draw(_tree, _replay.Ops.First().Timestamp);
                 }
 
-                DrawContents(null);
+                DrawContents(null, null);
             }
             foreach (var e in _tree.Nodes(_replay.Encounters, e => ($"{ModuleRegistry.TypeForOID(e.OID)}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}", false)))
             {
+                var moduleType = ModuleRegistry.TypeForOID(e.OID);
                 foreach (var n in _tree.Node("Raw ops"))
                 {
                     if (!_opListsFiltered.ContainsKey(e))
-                        _opListsFiltered[e] = new(_replay, _replay.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), _scrollTo);
+                        _opListsFiltered[e] = new(_replay, moduleType, _replay.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), _scrollTo);
                     _opListsFiltered[e].Draw(_tree, e.Time.Start);
                 }
 
-                DrawContents(e);
+                DrawContents(e, moduleType);
                 DrawPlayerActions(e);
             }
         }
 
-        private void DrawContents(Replay.Encounter? filter)
+        private void DrawContents(Replay.Encounter? filter, Type? moduleType)
         {
-            var moduleType = filter != null ? ModuleRegistry.TypeForOID(filter.OID) : null;
             var oidType = moduleType?.Module.GetType($"{moduleType.Namespace}.OID");
             var aidType = moduleType?.Module.GetType($"{moduleType.Namespace}.AID");
             var sidType = moduleType?.Module.GetType($"{moduleType.Namespace}.SID");

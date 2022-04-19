@@ -11,13 +11,14 @@ namespace UIDev
         private Action<DateTime> _scrollTo;
         private List<(DateTime Timestamp, string Text, Action<Tree>? Children)> _nodes = new();
 
-        public OpList(Replay r, IEnumerable<ReplayOps.Operation> ops, Action<DateTime> scrollTo)
+        public OpList(Replay r, Type? moduleType, IEnumerable<ReplayOps.Operation> ops, Action<DateTime> scrollTo)
         {
             _replay = r;
             _scrollTo = scrollTo;
+            var aidType = moduleType?.Module.GetType($"{moduleType.Namespace}.AID");
             foreach (var op in ops.Where(FilterOp))
             {
-                _nodes.Add((op.Timestamp, OpName(op), OpChildren(op)));
+                _nodes.Add((op.Timestamp, OpName(op, aidType), OpChildren(op)));
             }
         }
 
@@ -77,7 +78,7 @@ namespace UIDev
             };
         }
 
-        private string OpName(ReplayOps.Operation o)
+        private string OpName(ReplayOps.Operation o, Type? aidType)
         {
             return o switch
             {
@@ -87,11 +88,11 @@ namespace UIDev
                 ReplayOps.OpActorClassChange op => $"Actor class change: {ActorString(op.InstanceID, op.Timestamp)} -> {op.Class}",
                 ReplayOps.OpActorTargetable op => $"{(op.Value ? "Targetable" : "Untargetable")}: {ActorString(op.InstanceID, op.Timestamp)}",
                 ReplayOps.OpActorDead op => $"{(op.Value ? "Die" : "Resurrect")}: {ActorString(op.InstanceID, op.Timestamp)}",
-                ReplayOps.OpActorCast op => $"Cast {(op.Value != null ? "started" : "ended")}: {CastString(op.InstanceID, op.Timestamp)}",
+                ReplayOps.OpActorCast op => $"Cast {(op.Value != null ? "started" : "ended")}: {CastString(op.InstanceID, op.Timestamp, aidType)}",
                 ReplayOps.OpActorTether op => $"Tether: {ActorString(op.InstanceID, op.Timestamp)} {op.Value.ID} @ {ActorString(op.Value.Target, op.Timestamp)}",
                 ReplayOps.OpActorStatus op => $"Status {(op.Value.ID != 0 ? "gain" : "lose")}: {StatusString(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0)}",
                 ReplayOps.OpEventIcon op => $"Icon: {ActorString(op.InstanceID, op.Timestamp)} -> {op.IconID}",
-                ReplayOps.OpEventCast op => $"Cast event: {ActorString(op.Value.CasterID, op.Timestamp)}: {op.Value.Action} @ {ActorString(op.Value.MainTargetID, op.Timestamp)} ({op.Value.Targets.Count} targets affected)",
+                ReplayOps.OpEventCast op => $"Cast event: {ActorString(op.Value.CasterID, op.Timestamp)}: {op.Value.Action} ({aidType?.GetEnumName(op.Value.Action.ID)}) @ {ActorString(op.Value.MainTargetID, op.Timestamp)} ({op.Value.Targets.Count} targets affected)",
                 _ => o.ToString() ?? o.GetType().Name
             };
         }
@@ -121,17 +122,17 @@ namespace UIDev
             return ReplayUtils.ParticipantPosRotString(FindParticipant(instanceID, timestamp), timestamp);
         }
 
-        private string CastString(uint instanceID, DateTime timestamp)
+        private string CastString(uint instanceID, DateTime timestamp, Type? aidType)
         {
             var p = FindParticipant(instanceID, timestamp);
             var c = p?.Casts.Find(c => c.Time.Contains(timestamp))!;
-            return $"{ReplayUtils.ParticipantString(p)}: {c.ID}, {c.ExpectedCastTime:f2}s ({c.Time} actual) @ {ReplayUtils.ParticipantString(c.Target)} {Utils.Vec3String(c.Location)}";
+            return $"{ReplayUtils.ParticipantPosRotString(p, timestamp)}: {c.ID} ({aidType?.GetEnumName(c.ID.ID)}), {c.ExpectedCastTime:f2}s ({c.Time} actual) @ {ReplayUtils.ParticipantString(c.Target)} {Utils.Vec3String(c.Location)}";
         }
 
         private string StatusString(uint instanceID, int index, DateTime timestamp, bool gain)
         {
             var s = FindStatus(instanceID, index, timestamp, gain)!;
-            return $"{ReplayUtils.ParticipantString(s.Target)}: {Utils.StatusString(s!.ID)} ({s.StartingExtra:X}), {s.InitialDuration:f2}s / {s.Time}, from {ReplayUtils.ParticipantString(s.Source)}";
+            return $"{ReplayUtils.ParticipantPosRotString(s.Target, timestamp)}: {Utils.StatusString(s!.ID)} ({s.StartingExtra:X}), {s.InitialDuration:f2}s / {s.Time}, from {ReplayUtils.ParticipantPosRotString(s.Source, timestamp)}";
         }
     }
 }
