@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace BossMod
 {
@@ -155,6 +157,33 @@ namespace BossMod
         public void SetEndPointFromCastLocation(Actor caster)
         {
             SetEndPoint(caster.CastInfo?.Location ?? new(), caster.Position, caster.Rotation);
+        }
+    }
+
+    public class AOEShapeMulti : AOEShape
+    {
+        public List<AOEShape> Shapes;
+
+        public AOEShapeMulti(IEnumerable<AOEShape> shapes)
+        {
+            Shapes = new(shapes);
+        }
+
+        public override bool Check(Vector3 position, Vector3 origin, float rotation)
+        {
+            return Shapes.Any(s => s.Check(position, origin, rotation));
+        }
+
+        public override void Draw(MiniArena arena, Vector3 origin, float rotation)
+        {
+            foreach (var s in Shapes)
+                s.Draw(arena, origin, rotation);
+        }
+
+        public override void Outline(MiniArena arena, Vector3 origin, float rotation)
+        {
+            foreach (var s in Shapes)
+                s.Outline(arena, origin, rotation);
         }
     }
 }

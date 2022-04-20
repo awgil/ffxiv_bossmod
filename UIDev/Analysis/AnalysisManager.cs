@@ -95,24 +95,28 @@ namespace UIDev
 
         public AnalysisManager(string rootPath)
         {
-            _global = new(_replays);
             try
             {
                 var di = new DirectoryInfo(rootPath);
                 foreach (var fi in di.EnumerateFiles("World_*.log", new EnumerationOptions { RecurseSubdirectories = true }))
                 {
                     Service.Log($"Parsing {fi.FullName}...");
-                    var replay = ReplayParserLog.Parse(fi.FullName);
-                    _replays.Add(replay);
-                    foreach (var e in replay.Encounters)
-                        if (!_perEncounter.ContainsKey(e.OID))
-                            _perEncounter[e.OID] = new(_replays, e.OID);
+                    _replays.Add(ReplayParserLog.Parse(fi.FullName));
                 }
             }
             catch (Exception e)
             {
                 Service.Log($"Failed to read {rootPath}: {e}");
             }
+            _global = new(_replays);
+            InitEncounters();
+        }
+
+        public AnalysisManager(Replay replay)
+        {
+            _replays.Add(replay);
+            _global = new(_replays);
+            InitEncounters();
         }
 
         public void Dispose()
@@ -130,6 +134,14 @@ namespace UIDev
             {
                 n.Value.Draw(_tree);
             }
+        }
+
+        private void InitEncounters()
+        {
+            foreach (var replay in _replays)
+                foreach (var e in replay.Encounters)
+                    if (!_perEncounter.ContainsKey(e.OID))
+                        _perEncounter[e.OID] = new(_replays, e.OID);
         }
     }
 }

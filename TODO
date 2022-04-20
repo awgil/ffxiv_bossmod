@@ -12,6 +12,7 @@ boss modules:
 - draw actors by framework (components should return color+prio)
 - high-level phases (e.g. for ultima weapon)
 - p3s - review, searing breeze component
+- generalize components as much as possible
 
 autorotation:
 - opener support

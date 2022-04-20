@@ -19,6 +19,7 @@ namespace UIDev
         private int _povSlot = PartyState.PlayerSlot;
         private bool _showConfig = false;
         private EventList _events;
+        private AnalysisManager _analysis;
 
         public ReplayVisualizer(Replay data)
         {
@@ -28,6 +29,7 @@ namespace UIDev
             _last = data.Ops.Last().Timestamp;
             _player.AdvanceTo(_first, _mgr.Update);
             _events = new(data, MoveToForced);
+            _analysis = new(data);
         }
 
         public void Dispose()
@@ -77,6 +79,8 @@ namespace UIDev
 
             if (ImGui.CollapsingHeader("Events"))
                 _events.Draw();
+            if (ImGui.CollapsingHeader("Analysis"))
+                _analysis.Draw();
         }
 
         private void DrawControlRow()

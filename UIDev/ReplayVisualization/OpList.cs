@@ -56,6 +56,8 @@ namespace UIDev
                 return false; // don't care about statuses applied by players
             if (s.Target?.Type is ActorType.Pet)
                 return false; // don't care about statuses applied to pets
+            if (s.ID is 43 or 44 or 418)
+                return false; // don't care about resurrect-related statuses
             return true;
         }
 

@@ -3,7 +3,7 @@
     // state related to demigod double mechanic (shared tankbuster)
     class DemigodDouble : CommonComponents.SharedTankbuster
     {
-        public DemigodDouble() : base(6) { }
+        public DemigodDouble() : base(ActionID.MakeSpell(AID.DemigodDouble), 6) { }
     }
 
     // state related to heart stake mechanic (dual hit tankbuster with bleed)

@@ -36,7 +36,7 @@
         BrokenShardsE = 29147, // Helper->location, 14.7s cast, visual (large comet hit location on E side, before it is split)
         BrokenShardsW = 29152, // Helper->location, 14.7s cast, visual (large comet hit location on W side, before it is split)
         BrokenShardsVisual = 28855, // Helper->self, no cast, visual (show aoe cicles where comet shards hit)
-        BrokenShardsAOE = 29149, // Helper->self, no cast, range 20 aoe
+        BrokenShardsAOE = 29149, // Helper->self, no cast, range 20 aoe with ~10 falloff
 
         RhalgrsBeacon = 28842, // Boss->self, 9.3s cast, visual
         RhalgrsBeaconKnockback = 28856, // Helper->self, 10.0s cast, knockback 50

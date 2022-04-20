@@ -3,7 +3,7 @@
     // state related to mousa scorn mechanic (shared tankbuster)
     class MousaScorn : CommonComponents.SharedTankbuster
     {
-        public MousaScorn() : base(4) { }
+        public MousaScorn() : base(ActionID.MakeSpell(AID.MousaScorn), 4) { }
     }
 
     // cast counter for pre-intermission AOE

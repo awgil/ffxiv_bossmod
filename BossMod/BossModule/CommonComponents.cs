@@ -26,25 +26,56 @@ namespace BossMod
             }
         }
 
-        // generic 'shared tankbuster' component that shows radius around boss target
-        // TODO: consider showing invuln/stack/gtfo hints...
+        // generic 'shared tankbuster' component that shows radius around cast target; assumes only 1 concurrent cast is active
         public class SharedTankbuster : BossModule.Component
         {
             private float _radius;
+            private ActionID _watchedAction;
+            private Actor? _target;
 
-            public SharedTankbuster(float radius)
+            public SharedTankbuster(ActionID aid, float radius)
             {
                 _radius = radius;
+                _watchedAction = aid;
+            }
+
+            public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+            {
+                if (_target == null)
+                    return;
+                if (_target == actor)
+                {
+                    hints.Add("Stack with other tanks or press invuln!");
+                }
+                else if (actor.Role == Role.Tank)
+                {
+                    hints.Add("Stack with tank!", !GeometryUtils.PointInCircle(actor.Position - _target.Position, _radius));
+                }
+                else
+                {
+                    hints.Add("GTFO from tank!", GeometryUtils.PointInCircle(actor.Position - _target.Position, _radius));
+                }
             }
 
             public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
             {
-                var target = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
-                if (target != null)
+                if (_target != null)
                 {
-                    arena.Actor(target, arena.ColorPlayerGeneric);
-                    arena.AddCircle(target.Position, _radius, arena.ColorDanger);
+                    arena.Actor(_target, arena.ColorDanger);
+                    arena.AddCircle(_target.Position, _radius, arena.ColorDanger);
                 }
+            }
+
+            public override void OnCastStarted(BossModule module, Actor actor)
+            {
+                if (actor.CastInfo!.Action == _watchedAction)
+                    _target = module.WorldState.Actors.Find(actor.CastInfo.TargetID);
+            }
+
+            public override void OnCastFinished(BossModule module, Actor actor)
+            {
+                if (actor.CastInfo!.Action == _watchedAction)
+                    _target = null;
             }
         }
 
@@ -83,6 +114,55 @@ namespace BossMod
                 {
                     // draw target next to which pc is to stack
                     arena.Actor(Target, arena.ColorDanger);
+                }
+            }
+        }
+
+        // generic 'spread from target' component that shows circles around actors that are target of a specific cast
+        public class SpreadFromCastTargets : BossModule.Component
+        {
+            private float _spreadRadius;
+            private ActionID _watchedAction;
+            private List<(Actor Caster, Actor Target)> _active = new();
+
+            public SpreadFromCastTargets(ActionID aid, float spreadRadius)
+            {
+                _spreadRadius = spreadRadius;
+                _watchedAction = aid;
+            }
+
+            public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+            {
+                if (_active.Any(e => e.Target != actor && GeometryUtils.PointInCircle(e.Target.Position - actor.Position, _spreadRadius)))
+                    hints.Add("GTFO from aoe target!");
+            }
+
+            public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+            {
+                foreach (var e in _active)
+                {
+                    arena.Actor(e.Target, arena.ColorDanger);
+                    arena.AddCircle(e.Target.Position, _spreadRadius, arena.ColorDanger);
+                }
+            }
+
+            public override void OnCastStarted(BossModule module, Actor actor)
+            {
+                if (actor.CastInfo!.Action == _watchedAction)
+                {
+                    var target = module.WorldState.Actors.Find(actor.CastInfo.TargetID);
+                    if (target != null)
+                    {
+                        _active.Add((actor, target));
+                    }
+                }
+            }
+
+            public override void OnCastFinished(BossModule module, Actor actor)
+            {
+                if (actor.CastInfo!.Action == _watchedAction)
+                {
+                    _active.RemoveAll(e => e.Caster == actor);
                 }
             }
         }
@@ -128,6 +208,50 @@ namespace BossMod
                 {
                     _casters.Remove(actor);
                     Done = _casters.Count == 0;
+                }
+            }
+        }
+
+        // generic component that shows user-defined shape for any number of active casters with self-targeted casts
+        public class SelfTargetedAOE : BossModule.Component
+        {
+            private ActionID _watchedAction;
+            private AOEShape _shape;
+            private int _maxCasts;
+            private List<Actor> _casters = new();
+
+            public SelfTargetedAOE(ActionID aid, AOEShape shape, int maxCasts = int.MaxValue)
+            {
+                _watchedAction = aid;
+                _shape = shape;
+                _maxCasts = maxCasts;
+            }
+
+            public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+            {
+                if (_casters.Take(_maxCasts).Any(c => _shape.Check(actor.Position, c)))
+                    hints.Add("GTFO from aoe!");
+            }
+
+            public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+            {
+                foreach (var c in _casters.Take(_maxCasts))
+                    _shape.Draw(arena, c);
+            }
+
+            public override void OnCastStarted(BossModule module, Actor actor)
+            {
+                if (actor.CastInfo!.Action == _watchedAction)
+                {
+                    _casters.Add(actor);
+                }
+            }
+
+            public override void OnCastFinished(BossModule module, Actor actor)
+            {
+                if (actor.CastInfo!.Action == _watchedAction)
+                {
+                    _casters.Remove(actor);
                 }
             }
         }

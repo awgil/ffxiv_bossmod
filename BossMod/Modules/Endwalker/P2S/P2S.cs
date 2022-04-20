@@ -2,7 +2,7 @@
 {
     class DoubledImpact : CommonComponents.SharedTankbuster
     {
-        public DoubledImpact() : base(6) { }
+        public DoubledImpact() : base(ActionID.MakeSpell(AID.DoubledImpact), 6) { }
     }
 
     class SewageEruption : CommonComponents.Puddles

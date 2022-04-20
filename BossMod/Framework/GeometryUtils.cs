@@ -157,6 +157,16 @@ namespace BossMod
         }
 
         // zone checking
+        public static bool PointInTri(Vector3 p, Vector3 v1, Vector3 v2, Vector3 v3)
+        {
+            var s = (v2.X - v1.X) * (p.Z - v1.Z) - (v2.Z - v1.Z) * (p.X - v1.X);
+            var t = (v3.X - v2.X) * (p.Z - v2.Z) - (v3.Z - v2.Z) * (p.X - v2.X);
+            if ((s < 0) != (t < 0) && s != 0 && t != 0)
+                return false;
+            var d = (v1.X - v3.X) * (p.Z - v3.Z) - (v1.Z - v3.Z) * (p.X - v3.X);
+            return d == 0 || (d < 0) == (s + t <= 0);
+        }
+
         public static bool PointInRect(Vector3 offsetFromOrigin, Vector3 direction, float lenFront, float lenBack, float halfWidth)
         {
             var normal = new Vector3(-direction.Z, 0, direction.X);
