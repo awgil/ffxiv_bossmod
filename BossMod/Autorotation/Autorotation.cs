@@ -48,7 +48,7 @@ namespace BossMod
         private InputOverride _inputOverride = new();
         private DateTime _inputPendingUnblock;
 
-        private delegate bool UseActionDelegate(ulong self, ActionType actionType, uint actionID, uint targetID, uint a4, uint a5, uint a6, ulong a7);
+        private delegate bool UseActionDelegate(ulong self, ActionType actionType, uint actionID, ulong targetID, uint a4, uint a5, uint a6, ulong a7);
         private Hook<UseActionDelegate> _useActionHook;
         private unsafe float* _comboTimeLeft = null;
         private unsafe uint* _comboLastMove = null;
@@ -296,7 +296,7 @@ namespace BossMod
                 Service.Log($"[AR] {message}");
         }
 
-        private unsafe bool UseActionDetour(ulong self, ActionType actionType, uint actionID, uint targetID, uint a4, uint a5, uint a6, ulong a7)
+        private unsafe bool UseActionDetour(ulong self, ActionType actionType, uint actionID, ulong targetID, uint a4, uint a5, uint a6, ulong a7)
         {
             // when spamming e.g. HS, every click (~0.2 sec) this function is called; aid=HS, a4=a5=a6=a7==0, returns True
             // ~0.3s before GCD/animlock end, it starts returning False - probably meaning "next action is already queued"?
@@ -306,7 +306,7 @@ namespace BossMod
             var action = new ActionID(actionType, actionID);
             if (_classActions != null)
             {
-                (action, targetID) = _classActions.ReplaceActionAndTarget(action, targetID);
+                (action, targetID) = _classActions.ReplaceActionAndTarget(action, (uint)targetID);
                 if (a4 == 0 && action.Type == ActionType.Item)
                     a4 = 65535;
             }
@@ -331,7 +331,7 @@ namespace BossMod
                 // hack to cast ground-targeted immediately
                 var am = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
                 if (_config.GTMode == AutorotationConfig.GroundTargetingMode.AtTarget)
-                    *(long*)((IntPtr)am + 0x98) = targetID;
+                    *(ulong*)((IntPtr)am + 0x98) = targetID;
                 *(byte*)((IntPtr)am + 0xB8) = 1;
             }
 
