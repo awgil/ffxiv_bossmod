@@ -2,6 +2,7 @@
   "Author": "veyn",
   "Name": "Boss Mod",
   "InternalName": "BossMod",
+  "Punchline": "Don't fail at raid mechanics anymore",
   "Description": "A bunch of utilities to simplify bosses. ***very early alpha, use at your own risk***",
   "ApplicableVersion": "any",
   "RepoUrl": "https://github.com/awgil/ffxiv_bossmod"
