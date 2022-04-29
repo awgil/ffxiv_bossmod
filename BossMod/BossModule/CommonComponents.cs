@@ -301,5 +301,41 @@ namespace BossMod
                     _shape.Draw(arena, module.PrimaryActor);
             }
         }
+
+        // generic interrupt hint component
+        public class Interruptible : BossModule.Component
+        {
+            private ActionID _watchedAction;
+            private List<Actor> _casters = new();
+
+            public Interruptible(ActionID aid)
+            {
+                _watchedAction = aid;
+            }
+
+            public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+            {
+                if (_casters.Count > 0)
+                {
+                    hints.Add("Interrupt!");
+                }
+            }
+
+            public override void OnCastStarted(BossModule module, Actor actor)
+            {
+                if (actor.CastInfo!.Action == _watchedAction)
+                {
+                    _casters.Add(actor);
+                }
+            }
+
+            public override void OnCastFinished(BossModule module, Actor actor)
+            {
+                if (actor.CastInfo!.Action == _watchedAction)
+                {
+                    _casters.Remove(actor);
+                }
+            }
+        }
     }
 }

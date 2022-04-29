@@ -206,8 +206,8 @@ namespace BossMod
             return ConditionFork(id, expected, cond, () => select(Module.FindComponent<T>()!), dispatch, name);
         }
 
-        // create a state triggered by expected cast start by a primary actor; unexpected casts still trigger a transition, but log error
-        public State CastStart<AID>(uint id, AID aid, float delay, string name = "")
+        // create a state triggered by expected cast start by arbitrary actor; unexpected casts still trigger a transition, but log error
+        public State ActorCastStart<AID>(uint id, Func<Actor?> actorAcc, AID aid, float delay, string name = "")
             where AID : Enum
         {
             var state = Simple(id, delay, name);
@@ -215,14 +215,39 @@ namespace BossMod
             state.Raw.Comment = $"Cast start: {aid}";
             state.Raw.Update = _ =>
             {
-                var castInfo = Module.PrimaryActor.CastInfo;
+                var castInfo = actorAcc()?.CastInfo;
                 if (castInfo == null)
                     return null;
                 if (castInfo.Action != expected)
                     Module.ReportError(null, $"State {id:X}: unexpected cast start: got {castInfo.Action}, expected {expected}");
                 return state.Raw.Next;
             };
-            state.SetHint(StateMachine.StateHint.BossCastStart);
+            return state;
+        }
+
+        // create a state triggered by expected cast start by a primary actor; unexpected casts still trigger a transition, but log error
+        public State CastStart<AID>(uint id, AID aid, float delay, string name = "")
+            where AID : Enum
+        {
+            return ActorCastStart(id, () => Module.PrimaryActor, aid, delay, name)
+                .SetHint(StateMachine.StateHint.BossCastStart);
+        }
+
+        // create a state triggered by one of a set of expected casts by arbitrary actor; unexpected casts still trigger a transition, but log error
+        public State ActorCastStartMulti<AID>(uint id, Func<Actor?> actorAcc, IEnumerable<AID> aids, float delay, string name = "")
+            where AID : Enum
+        {
+            var state = Simple(id, delay, name);
+            state.Raw.Comment = $"Cast start: [{string.Join(", ", aids)}]";
+            state.Raw.Update = _ =>
+            {
+                var castInfo = actorAcc()?.CastInfo;
+                if (castInfo == null)
+                    return null;
+                if (!aids.Any(aid => castInfo.IsSpell(aid)))
+                    Module.ReportError(null, $"State {id:X}: unexpected cast start: got {castInfo.Action}");
+                return state.Raw.Next;
+            };
             return state;
         }
 
@@ -230,19 +255,8 @@ namespace BossMod
         public State CastStartMulti<AID>(uint id, IEnumerable<AID> aids, float delay, string name = "")
             where AID : Enum
         {
-            var state = Simple(id, delay, name);
-            state.Raw.Comment = $"Cast start: [{string.Join(", ", aids)}]";
-            state.Raw.Update = _ =>
-            {
-                var castInfo = Module.PrimaryActor.CastInfo;
-                if (castInfo == null)
-                    return null;
-                if (!aids.Any(aid => castInfo.IsSpell(aid)))
-                    Module.ReportError(null, $"State {id:X}: unexpected cast start: got {castInfo.Action}");
-                return state.Raw.Next;
-            };
-            state.SetHint(StateMachine.StateHint.BossCastStart);
-            return state;
+            return ActorCastStartMulti(id, () => Module.PrimaryActor, aids, delay, name)
+                .SetHint(StateMachine.StateHint.BossCastStart);
         }
 
         // create a state triggered by one of a set of expected casts by a primary actor, each of which forking to a separate subsequence
@@ -250,19 +264,32 @@ namespace BossMod
         public State CastStartFork<AID>(uint id, Dictionary<AID, Action> dispatch, float delay, string name = "")
              where AID : Enum
         {
-            var state = ConditionFork(id, delay, () => Module.PrimaryActor.CastInfo != null, () => (AID)(object)(Module.PrimaryActor.CastInfo!.IsSpell() ? Module.PrimaryActor.CastInfo.Action.ID : 0), dispatch, name);
-            state.SetHint(StateMachine.StateHint.BossCastStart);
+            return ConditionFork(id, delay, () => Module.PrimaryActor.CastInfo != null, () => (AID)(object)(Module.PrimaryActor.CastInfo!.IsSpell() ? Module.PrimaryActor.CastInfo.Action.ID : 0), dispatch, name)
+                .SetHint(StateMachine.StateHint.BossCastStart);
+        }
+
+        // create a state triggered by cast end by arbitrary actor
+        public State ActorCastEnd(uint id, Func<Actor?> actorAcc, float castTime, string name = "")
+        {
+            var state = Simple(id, castTime, name);
+            state.Raw.Comment = "Cast end";
+            state.Raw.Update = _ => actorAcc()?.CastInfo == null ? state.Raw.Next : null;
             return state;
         }
 
         // create a state triggered by cast end by a primary actor
         public State CastEnd(uint id, float castTime, string name = "")
         {
-            var state = Simple(id, castTime, name);
-            state.Raw.Comment = "Cast end";
-            state.Raw.Update = _ => Module.PrimaryActor.CastInfo == null ? state.Raw.Next : null;
-            state.SetHint(StateMachine.StateHint.BossCastEnd);
-            return state;
+            return ActorCastEnd(id, () => Module.PrimaryActor, castTime, name)
+                .SetHint(StateMachine.StateHint.BossCastEnd);
+        }
+
+        // create a chain of states: ActorCastStart -> ActorCastEnd; second state uses id+1
+        public State ActorCast<AID>(uint id, Func<Actor?> actorAcc, AID aid, float delay, float castTime, string name = "")
+            where AID : Enum
+        {
+            ActorCastStart(id, actorAcc, aid, delay, "");
+            return ActorCastEnd(id + 1, actorAcc, castTime, name);
         }
 
         // create a chain of states: CastStart -> CastEnd; second state uses id+1
@@ -273,6 +300,14 @@ namespace BossMod
             return CastEnd(id + 1, castTime, name);
         }
 
+        // create a chain of states: ActorCastStartMulti -> ActorCastEnd; second state uses id+1
+        public State ActorCastMulti<AID>(uint id, Func<Actor?> actorAcc, IEnumerable<AID> aids, float delay, float castTime, string name = "")
+            where AID : Enum
+        {
+            ActorCastStartMulti(id, actorAcc, aids, delay, "");
+            return ActorCastEnd(id + 1, actorAcc, castTime, name);
+        }
+
         // create a chain of states: CastStartMulti -> CastEnd; second state uses id+1
         public State CastMulti<AID>(uint id, IEnumerable<AID> aids, float delay, float castTime, string name = "")
             where AID : Enum
@@ -281,14 +316,20 @@ namespace BossMod
             return CastEnd(id + 1, castTime, name);
         }
 
-        // create a state triggered by a primary actor becoming (un)targetable; automatically sets downtime begin/end flag
-        public State Targetable(uint id, bool targetable, float delay, string name = "", float checkDelay = 0)
+        // create a state triggered by arbitrary actor becoming (un)targetable
+        public State ActorTargetable(uint id, Func<Actor?> actorAcc, bool targetable, float delay, string name = "", float checkDelay = 0)
         {
             var state = Simple(id, delay, name);
             state.Raw.Comment = targetable ? "Targetable" : "Untargetable";
-            state.Raw.Update = timeSinceTransition => timeSinceTransition >= checkDelay && Module.PrimaryActor.IsTargetable == targetable ? state.Raw.Next : null;
-            state.SetHint(targetable ? StateMachine.StateHint.DowntimeEnd : StateMachine.StateHint.DowntimeStart);
+            state.Raw.Update = timeSinceTransition => timeSinceTransition >= checkDelay && actorAcc()?.IsTargetable == targetable ? state.Raw.Next : null;
             return state;
+        }
+
+        // create a state triggered by a primary actor becoming (un)targetable; automatically sets downtime begin/end flag
+        public State Targetable(uint id, bool targetable, float delay, string name = "", float checkDelay = 0)
+        {
+            return ActorTargetable(id, () => Module.PrimaryActor, targetable, delay, name, checkDelay)
+                .SetHint(targetable ? StateMachine.StateHint.DowntimeEnd : StateMachine.StateHint.DowntimeStart);
         }
     }
 }

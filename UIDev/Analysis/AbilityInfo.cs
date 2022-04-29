@@ -143,6 +143,16 @@ namespace UIDev.Analysis
                 tree.LeafNode($"Target IDs: {OIDListString(data.TargetOIDs)}");
                 tree.LeafNode($"Targets:{(data.SeenTargetSelf ? " self" : "")}{(data.SeenTargetOtherEnemy ? " enemy" : "")}{(data.SeenTargetPlayer ? " player" : "")}{(data.SeenTargetLocation ? " location" : "")}{(data.SeenAOE ? " aoe" : "")}");
                 tree.LeafNode($"Cast time: {data.CastTime:f1}");
+                foreach (var n in tree.Node("Instances"))
+                {
+                    foreach (var an in tree.Nodes(data.Instances, a => ($"{a.Item1.Path} @ {a.Item2.Timestamp:O}: {ReplayUtils.ParticipantPosRotString(a.Item2.Source, a.Item2.Timestamp)} -> {ReplayUtils.ParticipantString(a.Item2.MainTarget)} {Utils.Vec3String(a.Item2.TargetPos)} ({a.Item2.Targets.Count} affected)", a.Item2.Targets.Count == 0)))
+                    {
+                        foreach (var tn in tree.Nodes(an.Item2.Targets, t => (ReplayUtils.ParticipantPosRotString(t.Target, an.Item2.Timestamp), false)))
+                        {
+                            tree.LeafNodes(tn.Effects, ReplayUtils.ActionEffectString);
+                        }
+                    }
+                }
                 foreach (var an in tree.Node("Cone analysis"))
                 {
                     if (data.ConeAnalysis == null)
