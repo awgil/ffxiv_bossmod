@@ -1,10 +1,11 @@
 ﻿using System.Linq;
+using System.Numerics;
 
 namespace BossMod.Endwalker.Ultimate.DSW1
 {
     class Heavensflame : CommonComponents.CastCounter
     {
-        private IconID[] _playerIcons = new IconID[PartyState.MaxSize];
+        private int[] _playerIcons = new int[PartyState.MaxSize]; // 0 = unassigned, 1 = circle/red, 2 = triangle/green, 3 = cross/blue, 4 = square/purple - matching waypoint colors...
         private Actor? _knockbackSource;
         private bool _active;
 
@@ -34,6 +35,12 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             int partner = FindPartner(pcSlot);
+            if (_playerIcons[pcSlot] != 0)
+            {
+                DrawPreferredLocation(module, (Waymark)((int)Waymark.A + (_playerIcons[pcSlot] - 1)));
+                DrawPreferredLocation(module, (Waymark)((int)Waymark.N1 + (_playerIcons[pcSlot] - 1)));
+            }
+
             if (partner >= 0)
             {
                 arena.Actor(module.Raid[partner], arena.ColorPlayerInteresting);
@@ -60,8 +67,8 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
         public override void OnUntethered(BossModule module, Actor actor)
         {
-            SetIcon(module, actor.InstanceID, IconID.None);
-            SetIcon(module, actor.Tether.Target, IconID.None);
+            SetIcon(module, actor.InstanceID, 0);
+            SetIcon(module, actor.Tether.Target, 0);
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)
@@ -83,10 +90,19 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
         public override void OnEventIcon(BossModule module, uint actorID, uint iconID)
         {
-            SetIcon(module, actorID, (IconID)iconID);
+            int icon = (IconID)iconID switch
+            {
+                IconID.HeavensflameCircle => 1,
+                IconID.HeavensflameTriangle => 2,
+                IconID.HeavensflameCross => 3,
+                IconID.HeavensflameSquare => 4,
+                _ => 0
+            };
+            if (icon != 0)
+                SetIcon(module, actorID, icon);
         }
 
-        private void SetIcon(BossModule module, uint actorID, IconID icon)
+        private void SetIcon(BossModule module, uint actorID, int icon)
         {
             var slot = module.Raid.FindSlot(actorID);
             if (slot >= 0)
@@ -95,12 +111,23 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
         private int FindPartner(int slot)
         {
-            if (_playerIcons[slot] == IconID.None)
+            if (_playerIcons[slot] == 0)
                 return -1;
             for (int i = 0; i < _playerIcons.Length; ++i)
                 if (i != slot && _playerIcons[i] == _playerIcons[slot])
                     return i;
             return -1;
+        }
+
+        private void DrawPreferredLocation(BossModule module, Waymark wm)
+        {
+            var pos = module.WorldState.Waymarks[wm];
+            if (pos != null)
+            {
+                var dir = Vector3.Normalize(pos.Value - module.Arena.WorldCenter);
+                var adjPos = module.Arena.ClampToBounds(module.Arena.WorldCenter + 50 * dir);
+                module.Arena.AddLine(module.Arena.WorldCenter, adjPos, module.Arena.ColorSafe);
+            }
         }
     }
 }
