@@ -6,7 +6,7 @@
             : base(manager, primary, true)
         {
             Arena.IsCircle = true;
-            InitStates(new P3SStates(this).Initial);
+            InitStates(new P3SStates(this).Build());
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

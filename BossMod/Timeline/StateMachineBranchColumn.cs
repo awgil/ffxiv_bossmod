@@ -1,43 +1,32 @@
-﻿using ImGuiNET;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod
 {
     public class StateMachineBranchColumn : StateMachineColumn
     {
-        public int Branch = 0;
+        private List<int> _phaseBranches;
 
-        public StateMachineBranchColumn(Timeline timeline, StateMachineTree tree)
+        public StateMachineBranchColumn(Timeline timeline, StateMachineTree tree, List<int> phaseBranches)
             : base(timeline, tree)
         {
-            SingleBranchMode = true;
+            _phaseBranches = phaseBranches;
+        }
+
+        public override void Update()
+        {
+            Width = PixelsPerBranch;
         }
 
         public override void Draw()
         {
-            foreach (var node in Tree.BranchNodes(Branch))
+            foreach (var (phase, branch) in Tree.Phases.Zip(_phaseBranches))
             {
-                DrawNode(node);
+                foreach (var node in phase.BranchNodes(branch).TakeWhile(node => node.Time < phase.Duration))
+                {
+                    DrawNode(node, true);
+                }
             }
-        }
-
-        // returns whether branch was changed
-        public bool DrawControls()
-        {
-            bool res = false;
-            if (ImGui.Button("<") && Branch > 0)
-            {
-                --Branch;
-                res = true;
-            }
-            ImGui.SameLine();
-            ImGui.TextUnformatted($"Current branch: {Branch + 1}/{Tree.NumBranches}");
-            ImGui.SameLine();
-            if (ImGui.Button(">") && Branch < Tree.NumBranches - 1)
-            {
-                ++Branch;
-                res = true;
-            }
-            return res;
         }
     }
 }

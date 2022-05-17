@@ -10,19 +10,16 @@
             ControlledSM = controlledSM;
         }
 
+        public override void Update()
+        {
+            Width = Tree.TotalBranches * PixelsPerBranch;
+        }
+
         public override void Draw()
         {
             foreach (var node in Tree.Nodes.Values)
             {
-                DrawNode(node, node.State == ControlledSM?.ActiveState ? ControlledSM.TimeSinceTransition : null);
-            }
-        }
-
-        protected override void OnNodeActivated(StateMachineTree.Node node)
-        {
-            if (ControlledSM != null)
-            {
-                ControlledSM.ActiveState = node.State;
+                DrawNode(node, false, node.State == ControlledSM?.ActiveState ? ControlledSM.TimeSinceTransition : null);
             }
         }
     }

@@ -97,12 +97,12 @@ namespace UIDev.Analysis
                     if (m == null)
                         continue;
 
-                    StateMachine.State? prevState = m.StateMachine.ActiveState;
+                    StateMachine.State? prevState = m.StateMachine?.ActiveState;
                     DateTime prevStateEnter = player.WorldState.CurrentTime;
                     while (player.TickForward() && player.WorldState.CurrentTime <= enc.Time.End)
                     {
                         m.Update();
-                        if (m.StateMachine.ActiveState == null)
+                        if (m.StateMachine?.ActiveState == null)
                             break;
 
                         if (prevState != m.StateMachine.ActiveState)

@@ -4,25 +4,30 @@
     {
         public P4S2States(BossModule module) : base(module)
         {
-            SearingStream(0x00000000, 10.1f);
-            AkanthaiAct1(0x00010000, 10.2f);
-            FarNearSight(0x00020000, 1);
+            DeathPhase(0, SinglePhase);
+        }
 
-            AkanthaiAct2(0x00100000, 7.1f);
+        private void SinglePhase(uint id)
+        {
+            SearingStream(id, 10.1f);
+            AkanthaiAct1(id + 0x010000, 10.2f);
+            FarNearSight(id + 0x020000, 1);
 
-            AkanthaiAct3(0x00200000, 8.2f);
-            FarNearSight(0x00210000, 4.1f);
-            HeartStake(0x00220000, 9.2f);
+            AkanthaiAct2(id + 0x100000, 7.1f);
 
-            AkanthaiAct4(0x00300000, 4.2f);
-            SearingStream(0x00310000, 9.3f);
+            AkanthaiAct3(id + 0x200000, 8.2f);
+            FarNearSight(id + 0x210000, 4.1f);
+            HeartStake(id + 0x220000, 9.2f);
 
-            AkanthaiAct5(0x00400000, 4.2f);
-            SearingStream(0x00410000, 7.2f);
-            DemigodDouble(0x00420000, 4.2f);
+            AkanthaiAct4(id + 0x300000, 4.2f);
+            SearingStream(id + 0x310000, 9.3f);
 
-            AkanthaiAct6(0x00500000, 8.2f);
-            Cast(0x00510000, AID.Enrage, 4.8f, 10, "Enrage");
+            AkanthaiAct5(id + 0x400000, 4.2f);
+            SearingStream(id + 0x410000, 7.2f);
+            DemigodDouble(id + 0x420000, 4.2f);
+
+            AkanthaiAct6(id + 0x500000, 8.2f);
+            Cast(id + 0x510000, AID.Enrage, 4.8f, 10, "Enrage");
         }
 
         private State SearingStream(uint id, float delay)

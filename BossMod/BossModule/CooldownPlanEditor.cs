@@ -1,36 +1,37 @@
 ﻿using ImGuiNET;
 using System;
+using System.Linq;
 
 namespace BossMod
 {
     public class CooldownPlanEditor
     {
+        private CooldownPlan _plan;
         private Action _onModified;
         private Timeline _timeline = new();
         private StateMachineBranchColumn _colStates;
         private CooldownPlannerColumns _planner;
         private bool _modified = false;
 
-        public CooldownPlanEditor(CooldownPlan plan, StateMachineTree stateTree, Action onModified, int initialBranch = 0)
+        public CooldownPlanEditor(CooldownPlan plan, StateMachine sm, Action onModified)
         {
+            _plan = plan;
             _onModified = onModified;
-            _timeline.MaxTime = stateTree.MaxTime;
 
-            _colStates = _timeline.AddColumn(new StateMachineBranchColumn(_timeline, stateTree));
-            _colStates.Branch = initialBranch;
+            var tree = new StateMachineTree(sm);
+            var phaseBranches = Enumerable.Repeat(0, tree.Phases.Count).ToList();
+            _colStates = _timeline.AddColumn(new StateMachineBranchColumn(_timeline, tree, phaseBranches));
+            _planner = new(plan, OnPlanModified, _timeline, tree, phaseBranches);
 
-            _planner = new(plan, () => _modified = true, _timeline, stateTree, initialBranch);
+            _timeline.MaxTime = tree.TotalMaxTime;
         }
 
         public void Draw()
         {
-            if (_colStates.DrawControls())
-                _planner.SelectBranch(_colStates.Branch);
-            ImGui.SameLine();
             if (ImGui.Button(_modified ? "Save" : "No changes") && _modified)
                 Save();
             ImGui.SameLine();
-            _planner.DrawControls();
+            _planner.DrawControls(true);
 
             _timeline.Draw();
         }
@@ -40,6 +41,12 @@ namespace BossMod
             _planner.UpdateEditedPlan();
             _onModified();
             _modified = false;
+        }
+
+        private void OnPlanModified()
+        {
+            _timeline.MaxTime = _colStates.Tree.TotalMaxTime;
+            _modified = true;
         }
     }
 }

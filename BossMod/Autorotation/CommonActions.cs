@@ -141,13 +141,13 @@ namespace BossMod
             var cooldownPlan = Autorot.Bossmods.ActiveModule?.PlanExecution;
             if (cooldownPlan != null)
             {
-                var stateData = cooldownPlan.FindStateData(Autorot.Bossmods.ActiveModule?.StateMachine.ActiveState);
+                var stateData = cooldownPlan.FindStateData(Autorot.Bossmods.ActiveModule?.StateMachine?.ActiveState);
                 foreach (var (action, entry) in _sq.Entries)
                 {
                     var plan = stateData?.Abilities.GetValueOrDefault(action);
                     if (plan != null)
                     {
-                        var progress = Autorot.Bossmods.ActiveModule!.StateMachine.TimeSinceTransitionClamped;
+                        var progress = Autorot.Bossmods.ActiveModule!.StateMachine!.TimeSinceTransitionClamped;
                         var activeWindow = plan.ActivationWindows.FindIndex(w => w.Start <= progress && w.End > progress);
                         if (activeWindow != -1)
                         {

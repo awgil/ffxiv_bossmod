@@ -143,6 +143,18 @@ namespace UIDev.Analysis
                 tree.LeafNode($"Target IDs: {OIDListString(data.TargetOIDs)}");
                 tree.LeafNode($"Targets:{(data.SeenTargetSelf ? " self" : "")}{(data.SeenTargetOtherEnemy ? " enemy" : "")}{(data.SeenTargetPlayer ? " player" : "")}{(data.SeenTargetLocation ? " location" : "")}{(data.SeenAOE ? " aoe" : "")}");
                 tree.LeafNode($"Cast time: {data.CastTime:f1}");
+                if (aid.Type == ActionType.Spell)
+                {
+                    foreach (var n in tree.Node("Lumina data"))
+                    {
+                        var row = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(aid.ID);
+                        tree.LeafNode($"Cast time: {row?.Cast100ms * 0.1f}");
+                        tree.LeafNode($"Target range: {row?.Range}");
+                        tree.LeafNode($"Effect shape: {row?.CastType}");
+                        tree.LeafNode($"Effect range: {row?.EffectRange}");
+                        tree.LeafNode($"Effect width: {row?.XAxisModifier}");
+                    }
+                }
                 foreach (var n in tree.Node("Instances"))
                 {
                     foreach (var an in tree.Nodes(data.Instances, a => ($"{a.Item1.Path} @ {a.Item2.Timestamp:O}: {ReplayUtils.ParticipantPosRotString(a.Item2.Source, a.Item2.Timestamp)} -> {ReplayUtils.ParticipantString(a.Item2.MainTarget)} {Utils.Vec3String(a.Item2.TargetPos)} ({a.Item2.Targets.Count} affected)", a.Item2.Targets.Count == 0)))

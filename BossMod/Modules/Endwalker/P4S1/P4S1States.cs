@@ -4,25 +4,30 @@
     {
         public P4S1States(BossModule module) : base(module)
         {
-            Decollation(0x00000000, 9.3f);
-            BloodrakeBelone(0x00010000, 4.2f);
-            Decollation(0x00020000, 3.4f);
-            ElegantEvisceration(0x00030000, 4.2f);
+            DeathPhase(0, SinglePhase);
+        }
 
-            Pinax(0x00100000, 11.3f, true);
-            ElegantEvisceration(0x00110000, 4.1f);
+        private void SinglePhase(uint id)
+        {
+            Decollation(id, 9.3f);
+            BloodrakeBelone(id + 0x010000, 4.2f);
+            Decollation(id + 0x020000, 3.4f);
+            ElegantEvisceration(id + 0x030000, 4.2f);
 
-            VengefulElementalBelone(0x00200000, 4.2f);
+            Pinax(id + 0x100000, 11.3f, true);
+            ElegantEvisceration(id + 0x110000, 4.1f);
 
-            BeloneCoils(0x00300000, 8.2f);
-            Decollation(0x00310000, 3.4f);
-            ElegantEvisceration(0x00320000, 4.2f);
+            VengefulElementalBelone(id + 0x200000, 4.2f);
 
-            Pinax(0x00400000, 11.3f, false);
-            Decollation(0x00410000, 0); // note: cast starts ~0.2s before pinax resolve, whatever...
-            Decollation(0x00420000, 4.2f);
-            Decollation(0x00430000, 4.2f);
-            Targetable(0x00440000, false, 10, "Enrage"); // checkpoint is triggered by boss becoming untargetable...
+            BeloneCoils(id + 0x300000, 8.2f);
+            Decollation(id + 0x310000, 3.4f);
+            ElegantEvisceration(id + 0x320000, 4.2f);
+
+            Pinax(id + 0x400000, 11.3f, false);
+            Decollation(id + 0x410000, 0); // note: cast starts ~0.2s before pinax resolve, whatever...
+            Decollation(id + 0x420000, 4.2f);
+            Decollation(id + 0x430000, 4.2f);
+            Targetable(id + 0x440000, false, 10, "Enrage"); // checkpoint is triggered by boss becoming untargetable...
         }
 
         private void Decollation(uint id, float delay)

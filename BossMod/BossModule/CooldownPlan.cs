@@ -25,6 +25,7 @@ namespace BossMod
 
         public Class Class;
         public string Name;
+        public StateMachineTimings Timings = new();
         public Dictionary<uint, List<AbilityUse>> PlanAbilities = new();
 
         public CooldownPlan(Class @class, string name)
@@ -39,6 +40,7 @@ namespace BossMod
         public CooldownPlan Clone()
         {
             var res = new CooldownPlan(Class, Name);
+            res.Timings = Timings.Clone();
             foreach (var (k, vRes) in res.PlanAbilities)
                 foreach (var vSrc in PlanAbilities[k])
                     vRes.Add(vSrc.Clone());

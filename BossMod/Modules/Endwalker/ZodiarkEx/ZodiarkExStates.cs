@@ -6,35 +6,40 @@ namespace BossMod.Endwalker.ZodiarkEx
     {
         public ZodiarkExStates(BossModule module) : base(module)
         {
-            Cast(0x00000000, AID.Kokytos, 6.1f, 4, "Kokytos");
-            Paradeigma1(0x00010000, 7.2f);
-            Ania(0x00020000, 2.7f);
-            Exoterikos1(0x00030000, 4.1f);
-            Paradeigma2(0x00040000, 9.2f);
-            Phobos(0x00050000, 7.2f);
-            Paradeigma3(0x00060000, 7.2f);
-            Ania(0x00070000, 3);
-            Paradeigma4(0x00080000, 3.2f);
+            DeathPhase(0, SinglePhase);
+        }
 
-            Intermission(0x00100000, 9.5f);
-            AstralEclipse(0x00110000, 6.1f, true);
+        private void SinglePhase(uint id)
+        {
+            Cast(id, AID.Kokytos, 6.1f, 4, "Kokytos");
+            Paradeigma1(id + 0x010000, 7.2f);
+            Ania(id + 0x020000, 2.7f);
+            Exoterikos1(id + 0x030000, 4.1f);
+            Paradeigma2(id + 0x040000, 9.2f);
+            Phobos(id + 0x050000, 7.2f);
+            Paradeigma3(id + 0x060000, 7.2f);
+            Ania(id + 0x070000, 3);
+            Paradeigma4(id + 0x080000, 3.2f);
 
-            Paradeigma5(0x00200000, 10.1f);
-            Ania(0x00210000, 9);
-            Exoterikos4(0x00220000, 6.2f);
-            Paradeigma6(0x00230000, 10.2f);
-            TrimorphosExoterikos(0x00240000, 0.6f, true);
-            AstralEclipse(0x00250000, 8.5f, false);
+            Intermission(id + 0x100000, 9.5f);
+            AstralEclipse(id + 0x110000, 6.1f, true);
 
-            Ania(0x00300000, 7.2f);
-            Paradeigma7(0x00310000, 6.2f);
-            Exoterikos6(0x00320000, 2.5f);
-            Paradeigma8(0x00330000, 5.1f);
-            Phobos(0x00340000, 4.9f);
-            TrimorphosExoterikos(0x00350000, 10.2f, false);
-            Styx(0x00360000, 3.2f, 9);
-            Paradeigma9(0x00370000, 0.4f);
-            Cast(0x00380000, AID.Enrage, 3.5f, 8, "Enrage");
+            Paradeigma5(id + 0x200000, 10.1f);
+            Ania(id + 0x210000, 9);
+            Exoterikos4(id + 0x220000, 6.2f);
+            Paradeigma6(id + 0x230000, 10.2f);
+            TrimorphosExoterikos(id + 0x240000, 0.6f, true);
+            AstralEclipse(id + 0x250000, 8.5f, false);
+
+            Ania(id + 0x300000, 7.2f);
+            Paradeigma7(id + 0x310000, 6.2f);
+            Exoterikos6(id + 0x320000, 2.5f);
+            Paradeigma8(id + 0x330000, 5.1f);
+            Phobos(id + 0x340000, 4.9f);
+            TrimorphosExoterikos(id + 0x350000, 10.2f, false);
+            Styx(id + 0x360000, 3.2f, 9);
+            Paradeigma9(id + 0x370000, 0.4f);
+            Cast(id + 0x380000, AID.Enrage, 3.5f, 8, "Enrage");
         }
 
         private void Ania(uint id, float delay)

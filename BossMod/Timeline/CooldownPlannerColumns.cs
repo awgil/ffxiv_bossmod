@@ -12,24 +12,27 @@ namespace BossMod
         private CooldownPlan _plan;
         private Action _onModified;
         private StateMachineTree _tree;
+        private List<int> _phaseBranches;
         private string _name = "";
+        private StateMachineTimings _timings = new();
         private Dictionary<ActionID, ActionUseColumn> _columns = new();
+        private int _selectedPhase = 0;
 
         private float _trackWidth = 80;
 
-        public CooldownPlannerColumns(CooldownPlan plan, Action onModified, Timeline timeline, StateMachineTree tree, int initialBranch)
+        public CooldownPlannerColumns(CooldownPlan plan, Action onModified, Timeline timeline, StateMachineTree tree, List<int> phaseBranches)
         {
             _plan = plan;
             _onModified = onModified;
             _tree = tree;
+            _phaseBranches = phaseBranches;
             foreach (var (aid, info) in AbilityDefinitions.Classes[plan.Class].Abilities)
             {
                 if (!info.IsPlannable)
                     continue;
-                var col = _columns[aid] = timeline.AddColumn(new ActionUseColumn(timeline, tree));
+                var col = _columns[aid] = timeline.AddColumn(new ActionUseColumn(timeline, tree, phaseBranches));
                 col.Width = _trackWidth;
                 col.Name = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(aid.ID)?.Name.ToString() ?? "(unknown)";
-                col.SelectedBranch = initialBranch;
                 col.Editable = true;
                 col.NotifyModified = onModified;
                 col.EffectDuration = info.EffectDuration;
@@ -44,13 +47,7 @@ namespace BossMod
             _columns.GetValueOrDefault(aid)?.Events.Add(ev);
         }
 
-        public void SelectBranch(int branch)
-        {
-            foreach (var c in _columns.Values)
-                c.SelectedBranch = branch;
-        }
-
-        public void DrawControls()
+        public void DrawControls(bool allowEditTimings)
         {
             if (ImGui.Button("Export to clipboard"))
                 ExportToClipboard();
@@ -61,12 +58,46 @@ namespace BossMod
             ImGui.SetNextItemWidth(100);
             if (ImGui.InputText("Name", ref _name, 255))
                 _onModified();
+
+            if (ImGui.Button("<##Phase") && _selectedPhase > 0)
+                --_selectedPhase;
+            ImGui.SameLine();
+            ImGui.TextUnformatted($"Current phase: {_selectedPhase + 1}/{_tree.Phases.Count}");
+            ImGui.SameLine();
+            if (ImGui.Button(">##Phase") && _selectedPhase < _tree.Phases.Count - 1)
+                ++_selectedPhase;
+
+            var selPhase = _tree.Phases[_selectedPhase];
+            ImGui.SameLine();
+            if (allowEditTimings)
+            {
+                if (ImGui.SliderFloat(selPhase.Name, ref selPhase.Duration, 0, selPhase.MaxTime))
+                {
+                    _timings.PhaseDurations[_selectedPhase] = selPhase.Duration;
+                    _tree.ApplyTimings(_timings);
+                    _onModified();
+                }
+            }
+            else
+            {
+                ImGui.TextUnformatted($"{selPhase.Name}: {selPhase.Duration:f2}s");
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button("<##Branch") && _phaseBranches[_selectedPhase] > 0)
+                --_phaseBranches[_selectedPhase];
+            ImGui.SameLine();
+            ImGui.TextUnformatted($"Current branch: {_phaseBranches[_selectedPhase] + 1}/{selPhase.StartingNode.NumBranches}");
+            ImGui.SameLine();
+            if (ImGui.Button(">##Branch") && _phaseBranches[_selectedPhase] < selPhase.StartingNode.NumBranches - 1)
+                ++_phaseBranches[_selectedPhase];
         }
 
         public void UpdateEditedPlan()
         {
             var plan = BuildPlan();
             _plan.Name = plan.Name;
+            _plan.Timings = plan.Timings;
             _plan.PlanAbilities = plan.PlanAbilities;
         }
 
@@ -99,6 +130,12 @@ namespace BossMod
         private void ExtractPlanData(CooldownPlan plan)
         {
             _name = plan.Name;
+            _tree.ApplyTimings(plan.Timings);
+
+            _timings = new();
+            foreach (var p in _tree.Phases)
+                _timings.PhaseDurations.Add(p.Duration);
+
             foreach (var (aid, col) in _columns)
             {
                 col.Entries.Clear();
@@ -110,7 +147,7 @@ namespace BossMod
                 {
                     var state = _tree.Nodes.GetValueOrDefault(e.StateID);
                     if (state != null)
-                        col.Entries.Add(new() { AttachNode = state, WindowStart = (state.Predecessor?.Time ?? 0) + e.TimeSinceActivation, WindowLength = e.WindowLength, Duration = col.EffectDuration, Cooldown = col.Cooldown, Name = col.Name });
+                        col.Entries.Add(new(state, e.TimeSinceActivation, e.WindowLength, col.EffectDuration, col.Cooldown, col.Name));
                 }
             }
         }
@@ -118,12 +155,13 @@ namespace BossMod
         private CooldownPlan BuildPlan()
         {
             var res = new CooldownPlan(_plan.Class, _name);
+            res.Timings = _timings.Clone();
             foreach (var (aid, col) in _columns)
             {
                 var list = res.PlanAbilities[aid.Raw];
                 foreach (var e in col.Entries.Where(e => e.AttachNode != null))
                 {
-                    list.Add(new(e.AttachNode!.State.ID, e.WindowStart - (e.AttachNode!.Predecessor?.Time ?? 0), e.WindowLength));
+                    list.Add(new(e.AttachNode!.State.ID, e.WindowStartDelay, e.WindowLength));
                 }
             }
             return res;

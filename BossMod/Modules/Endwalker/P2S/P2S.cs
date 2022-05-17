@@ -15,7 +15,7 @@
         public P2S(BossModuleManager manager, Actor primary)
             : base(manager, primary, true)
         {
-            InitStates(new P2SStates(this).Initial);
+            InitStates(new P2SStates(this).Build());
         }
 
         protected override void ResetModule()

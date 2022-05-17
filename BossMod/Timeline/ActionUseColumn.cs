@@ -10,21 +10,45 @@ namespace BossMod
     {
         public class Event
         {
-            public StateMachineTree.Node? AttachNode; // used only for determining per-branch visibility
-            public float Timestamp; // seconds since start
-            public string Name = "";
+            public StateMachineTree.Node AttachNode;
+            public float Delay; // from node's predecessor time
+            public string Name;
             public List<string> TooltipExtra = new();
             public uint Color;
+
+            public Event(StateMachineTree.Node attachNode, float delay, string name, uint color)
+            {
+                AttachNode = attachNode;
+                Delay = delay;
+                Name = name;
+                Color = color;
+            }
+
+            public float TimeSincePhaseStart() => (AttachNode.Predecessor?.Time ?? 0) + Delay;
+            public float TimeSinceGlobalStart(StateMachineTree tree) => tree.Phases[AttachNode.PhaseID].StartTime + TimeSincePhaseStart();
         }
 
         public class Entry
         {
-            public StateMachineTree.Node? AttachNode; // used only for determining per-branch visibility
-            public float WindowStart;
+            public StateMachineTree.Node AttachNode;
+            public float WindowStartDelay; // from node's predecessor time
             public float WindowLength;
             public float Duration;
             public float Cooldown;
-            public string Name = "";
+            public string Name;
+
+            public Entry(StateMachineTree.Node attachNode, float windowStartDelay, float windowLength, float duration, float cooldown, string name)
+            {
+                AttachNode = attachNode;
+                WindowStartDelay = windowStartDelay;
+                WindowLength = windowLength;
+                Duration = duration;
+                Cooldown = cooldown;
+                Name = name;
+            }
+
+            public float WindowStartSincePhaseStart() => (AttachNode.Predecessor?.Time ?? 0) + WindowStartDelay;
+            public float WindowStartSinceGlobalStart(StateMachineTree tree) => tree.Phases[AttachNode.PhaseID].StartTime + WindowStartSincePhaseStart();
         }
 
         private class EditState
@@ -39,7 +63,6 @@ namespace BossMod
             }
         }
 
-        public int SelectedBranch = 0;
         public bool Editable = false;
         public Action NotifyModified = () => { };
         public float EffectDuration = 0;
@@ -47,6 +70,7 @@ namespace BossMod
         public List<Event> Events = new();
         public List<Entry> Entries = new();
         private StateMachineTree _tree;
+        private List<int> _phaseBranches;
         private EditState? _edit = null;
 
         private float _trackHalfWidth = 5;
@@ -57,10 +81,11 @@ namespace BossMod
         private uint _colEffect = 0x8000ff00;
         private uint _colWindow = 0x8000ffff;
 
-        public ActionUseColumn(Timeline timeline, StateMachineTree tree)
+        public ActionUseColumn(Timeline timeline, StateMachineTree tree, List<int> phaseBranches)
             : base(timeline)
         {
             _tree = tree;
+            _phaseBranches = phaseBranches;
         }
 
         public override void Draw()
@@ -80,12 +105,17 @@ namespace BossMod
             bool selectEntryToEdit = dragInProgress && _edit == null;
             Entry? toDelete = null;
 
-            foreach (var e in Entries.Where(e => _tree.BranchNodes(SelectedBranch).Contains(e.AttachNode)))
+            foreach (var e in Entries)
             {
-                var yWindowStart = Timeline.TimeToScreenCoord(e.WindowStart);
-                var yWindowEnd = Timeline.TimeToScreenCoord(e.WindowStart + e.WindowLength);
-                var yEffectEnd = Timeline.TimeToScreenCoord(e.WindowStart + e.Duration);
-                var yCooldownEnd = Timeline.TimeToScreenCoord(e.WindowStart + e.WindowLength + e.Cooldown);
+                int branchID = _tree.Phases[e.AttachNode.PhaseID].StartingNode.BranchID + _phaseBranches[e.AttachNode.PhaseID];
+                if (branchID < e.AttachNode.BranchID || branchID >= e.AttachNode.BranchID + e.AttachNode.NumBranches)
+                    continue; // node is invisible with current branch selection
+
+                float windowStart = e.WindowStartSinceGlobalStart(_tree);
+                var yWindowStart = Timeline.TimeToScreenCoord(windowStart);
+                var yWindowEnd = Timeline.TimeToScreenCoord(windowStart + e.WindowLength);
+                var yEffectEnd = Timeline.TimeToScreenCoord(windowStart + e.Duration);
+                var yCooldownEnd = Timeline.TimeToScreenCoord(windowStart + e.WindowLength + e.Cooldown);
 
                 drawlist.AddRectFilled(new(trackMin.X, yWindowStart), new(trackMax.X, yWindowEnd), _colWindow);
                 if (yEffectEnd > yWindowEnd)
@@ -111,8 +141,8 @@ namespace BossMod
             if (selectEntryToEdit && _edit == null)
             {
                 // create new entry
-                var t = Timeline.ScreenCoordToTime(lclickPos.Y);
-                var newUse = new Entry() { AttachNode = _tree.TimeToBranchNode(SelectedBranch, t), WindowStart = t, Duration = EffectDuration, Cooldown = Cooldown, Name = Name };
+                var (node, delay) = AbsoluteTimeToNodeAndDelay(Timeline.ScreenCoordToTime(lclickPos.Y));
+                var newUse = new Entry(node, delay, 0, EffectDuration, Cooldown, Name);
                 Entries.Add(newUse);
                 _edit = new(newUse, true);
             }
@@ -122,17 +152,23 @@ namespace BossMod
                 if (dragInProgress)
                 {
                     HighlightEntry(_edit.Element);
+                    var dt = Timeline.ScreenDeltaToTimeDelta(ImGui.GetIO().MouseDelta.Y);
                     if (_edit.EditingEnd)
-                        _edit.Element.WindowLength += Timeline.ScreenDeltaToTimeDelta(ImGui.GetIO().MouseDelta.Y);
+                    {
+                        _edit.Element.WindowLength += dt;
+                    }
                     else
-                        _edit.Element.WindowStart += Timeline.ScreenDeltaToTimeDelta(ImGui.GetIO().MouseDelta.Y);
+                    {
+                        float windowStart = _edit.Element.WindowStartSinceGlobalStart(_tree);
+                        windowStart += dt;
+                        (_edit.Element.AttachNode, _edit.Element.WindowStartDelay) = AbsoluteTimeToNodeAndDelay(windowStart);
+                    }
                 }
                 else
                 {
                     // finish edit
-                    _edit.Element.WindowStart = Math.Clamp(MathF.Round(_edit.Element.WindowStart, 1), 0, _tree.MaxTime);
-                    _edit.Element.AttachNode = _tree.TimeToBranchNode(SelectedBranch, _edit.Element.WindowStart);
-                    _edit.Element.WindowLength = Math.Clamp(MathF.Round(_edit.Element.WindowLength, 1), 0, _tree.MaxTime - _edit.Element.WindowStart);
+                    _edit.Element.WindowStartDelay = Math.Max(MathF.Round(_edit.Element.WindowStartDelay, 1), 0);
+                    _edit.Element.WindowLength = Math.Max(MathF.Round(_edit.Element.WindowLength, 1), 0);
                     _edit = null;
                     NotifyModified!();
                 }
@@ -144,42 +180,60 @@ namespace BossMod
                 NotifyModified!();
             }
 
-            foreach (var e in Events.Where(e => _tree.BranchNodes(SelectedBranch).Contains(e.AttachNode)))
+            foreach (var e in Events)
             {
-                var screenPos = Timeline.ColumnCoordsToScreenCoords(Width / 2, e.Timestamp);
+                int branchID = _tree.Phases[e.AttachNode.PhaseID].StartingNode.BranchID + _phaseBranches[e.AttachNode.PhaseID];
+                if (branchID < e.AttachNode.BranchID || branchID >= e.AttachNode.BranchID + e.AttachNode.NumBranches)
+                    continue; // node is invisible with current branch selection
+
+                var t = e.TimeSinceGlobalStart(_tree);
+                var screenPos = Timeline.ColumnCoordsToScreenCoords(Width / 2, t);
                 ImGui.GetWindowDrawList().AddCircleFilled(screenPos, _eventRadius, e.Color);
                 if (ImGui.IsMouseHoveringRect(screenPos - new Vector2(_eventRadius), screenPos + new Vector2(_eventRadius)))
                 {
                     Timeline.AddTooltip(EventTooltip(e));
-                    Timeline.HighlightTime(e.Timestamp);
+                    Timeline.HighlightTime(t);
                 }
             }
+        }
+
+        public (StateMachineTree.Node, float) AbsoluteTimeToNodeAndDelay(float t)
+        {
+            int phaseIndex = _tree.FindPhaseAtTime(t);
+            var phase = _tree.Phases[phaseIndex];
+            t -= phase.StartTime;
+            var node = phase.TimeToBranchNode(_phaseBranches[phaseIndex], t);
+            return (node, t - (node.Predecessor?.Time ?? 0));
         }
 
         private static bool PointInRect(Vector2 point, Vector2 min, Vector2 max) => point.X >= min.X && point.X <= max.X && point.Y >= min.Y && point.Y <= max.Y;
 
         private void HighlightEntry(Entry e)
         {
-            Timeline.HighlightTime(e.WindowStart);
-            Timeline.HighlightTime(e.WindowStart + e.WindowLength);
-            Timeline.HighlightTime(e.WindowStart + e.Duration);
+            var windowStart = e.WindowStartSinceGlobalStart(_tree);
+            Timeline.HighlightTime(windowStart);
+            Timeline.HighlightTime(windowStart + e.WindowLength);
+            Timeline.HighlightTime(windowStart + e.Duration);
         }
 
         private List<string> EntryTooltip(Entry e)
         {
             List<string> res = new();
             res.Add($"Action: {e.Name}");
-            res.Add($"Press at: {e.WindowStart:f1}s");
+            res.Add($"Press at: {e.WindowStartSinceGlobalStart(_tree):f1}s ({e.WindowStartSincePhaseStart():f1}s since phase start, {e.WindowStartDelay:f1}s after state start)");
+            if (e.AttachNode.Predecessor != null)
+                res.Add($"Attached: {e.WindowStartDelay:f1}s after {e.AttachNode.Predecessor.State.ID:X} '{e.AttachNode.Predecessor.State.Name}' ({e.AttachNode.Predecessor.State.Comment})");
+            else
+                res.Add($"Attached: {e.WindowStartDelay:f1}s after pull");
+            res.Add($"Next state: {e.AttachNode.State.Duration - e.WindowStartDelay:f1}s before {e.AttachNode.State.ID:X} '{e.AttachNode.State.Name}' ({e.AttachNode.State.Comment})");
             res.Add($"Window: {e.WindowLength:f1}s");
-            if (e != _edit?.Element && e.AttachNode != null)
-                res.Add($"Attached: {e.AttachNode.Time - e.WindowStart:f1}s before {e.AttachNode.State.ID:X} '{e.AttachNode.State.Name}' ({e.AttachNode.State.Comment})");
             return res;
         }
 
         private List<string> EventTooltip(Event e)
         {
             List<string> res = new();
-            res.Add($"{e.Timestamp:f1}: {e.Name}");
+            res.Add($"{e.TimeSinceGlobalStart(_tree):f1}: {e.Name}");
             res.AddRange(e.TooltipExtra);
             return res;
         }

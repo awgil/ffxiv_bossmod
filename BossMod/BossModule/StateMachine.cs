@@ -1,12 +1,15 @@
 ﻿using ImGuiNET;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace BossMod
 {
     // a lot of boss fights can be modeled as state machines
     // by far the most common state has a single transition to a neighbouring state, and by far the most common transition is spell cast/finish by boss
+    // some bosses have multiple "phases"; when phase condition is triggered, initial state of the next phase is activated
+    // typical phase condition is boss reaching specific hp %
     public class StateMachine
     {
         [Flags]
@@ -32,7 +35,7 @@ namespace BossMod
             public uint ID = 0;
             public string Comment = "";
             public List<Action> Enter = new(); // callbacks executed when state is activated
-            public List<Action> Exit = new(); // callbacks executed when state is deactivated; note that this can happen unexpectedly, e.g. due to external reset
+            public List<Action> Exit = new(); // callbacks executed when state is deactivated; note that this can happen unexpectedly, e.g. due to external reset or phase change
             public Func<float, State?>? Update = null; // callback executed every frame when state is active; should return target state for transition or null to remain in current state; argument = time since activation
 
             // fields below are used for visualization, autorotations, etc.
@@ -41,51 +44,77 @@ namespace BossMod
             public StateHint EndHint = StateHint.None; // special flags for state end
         }
 
+        public class Phase
+        {
+            public State InitialState;
+            public string Name;
+            public float ExpectedDuration; // if >= 0, this is 'expected' phase duration (for use by CD planner etc); <0 means 'calculate from state tree max time'
+            public List<Action> Enter = new(); // callbacks executed when phase is activated
+            public List<Action> Exit = new(); // callbacks executed when phase is deactivated; note that this can happen unexpectedly, e.g. due to external reset
+            public Func<bool>? Update; // callback executed every frame when phase is active; should return whether transition to next phase should happen
+
+            public Phase(State initialState, string name, float expectedDuration = -1)
+            {
+                InitialState = initialState;
+                Name = name;
+                ExpectedDuration = expectedDuration;
+            }
+        }
+
+        public List<Phase> Phases { get; private init; }
+
         private DateTime _curTime;
+        private DateTime _phaseEnter;
         private DateTime _lastTransition;
+        public float TimeSincePhaseEnter => (float)(_curTime - _phaseEnter).TotalSeconds;
         public float TimeSinceTransition => (float)(_curTime - _lastTransition).TotalSeconds;
         public float TimeSinceTransitionClamped => MathF.Min(TimeSinceTransition, ActiveState?.Duration ?? 0);
 
-        private State? _activeState = null;
-        public State? ActiveState
+        public int ActivePhaseIndex { get; private set; } = -1;
+        public Phase? ActivePhase => Phases.ElementAtOrDefault(ActivePhaseIndex);
+        public State? ActiveState { get; private set; }
+
+        public StateMachine(List<Phase> phases)
         {
-            get => _activeState;
-            set
-            {
-                if (_activeState != null)
-                {
-                    foreach (var cb in _activeState.Exit)
-                        cb();
-                }
+            Phases = phases;
+        }
 
-                _activeState = value;
+        public void Start(DateTime now)
+        {
+            _curTime = now;
+            if (Phases.Count > 0)
+                TransitionToPhase(0);
+        }
 
-                if (_activeState != null)
-                {
-                    foreach (var cb in _activeState.Enter)
-                        cb();
-                }
-
-                _lastTransition = _curTime;
-            }
+        public void Reset()
+        {
+            TransitionToPhase(-1);
         }
 
         public void Update(DateTime now)
         {
             _curTime = now;
+            while (ActivePhase != null)
+            {
+                bool transition = ActivePhase.Update?.Invoke() ?? false;
+                if (!transition)
+                    break;
+                Service.Log($"[StateMachine] Phase transition from {ActivePhaseIndex} '{ActivePhase.Name}', time={TimeSincePhaseEnter:f2}");
+                TransitionToPhase(ActivePhaseIndex + 1);
+            }
             while (ActiveState != null)
             {
                 var transition = ActiveState.Update?.Invoke(TimeSinceTransition);
                 if (transition == null)
                     break;
-                Service.Log($"[StateMachine] Transition from {ActiveState.ID:X} '{ActiveState.Name}' to {transition.ID:X} '{transition.Name}', overdue={TimeSinceTransition:f2}-{ActiveState.Duration:f2}={TimeSinceTransition - ActiveState.Duration:f2}");
-                ActiveState = transition;
+                Service.Log($"[StateMachine] State transition from {ActiveState.ID:X} '{ActiveState.Name}' to {transition.ID:X} '{transition.Name}', overdue={TimeSinceTransition:f2}-{ActiveState.Duration:f2}={TimeSinceTransition - ActiveState.Duration:f2}");
+                TransitionToState(transition);
             }
         }
 
         public void Draw()
         {
-            (var activeName, var next) = BuildComplexStateNameAndDuration(ActiveState, TimeSinceTransition, true);
+            (var activeName, var next) = ActiveState != null ? BuildComplexStateNameAndDuration(ActiveState, TimeSinceTransition, true) : ("Inactive", null);
             ImGui.TextUnformatted($"Cur: {activeName}");
 
             var future = BuildStateChain(next, " ---> ");
@@ -118,11 +147,8 @@ namespace BossMod
             return res.ToString();
         }
 
-        private (string, State?) BuildComplexStateNameAndDuration(State? start, float timeActive, bool writeTime)
+        private (string, State?) BuildComplexStateNameAndDuration(State start, float timeActive, bool writeTime)
         {
-            if (start == null)
-                return ("Inactive", null);
-
             var res = new StringBuilder(start.Name);
             var timeLeft = MathF.Max(0, start.Duration - timeActive);
             if (writeTime && res.Length > 0)
@@ -157,6 +183,40 @@ namespace BossMod
             }
 
             return (res.ToString(), start.Next);
+        }
+
+        private void TransitionToPhase(int nextIndex)
+        {
+            if (ActivePhase != null)
+            {
+                TransitionToState(null);
+                foreach (var cb in ActivePhase.Exit)
+                    cb();
+            }
+
+            ActivePhaseIndex = nextIndex;
+            _phaseEnter = _curTime;
+
+            if (ActivePhase != null)
+            {
+                foreach (var cb in ActivePhase.Enter)
+                    cb();
+                TransitionToState(ActivePhase.InitialState);
+            }
+        }
+
+        private void TransitionToState(State? nextState)
+        {
+            if (ActiveState != null)
+                foreach (var cb in ActiveState.Exit)
+                    cb();
+
+            ActiveState = nextState;
+            _lastTransition = _curTime;
+
+            if (ActiveState != null)
+                foreach (var cb in ActiveState.Enter)
+                    cb();
         }
     }
 }

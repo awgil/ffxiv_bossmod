@@ -9,16 +9,14 @@
             Arena.WorldHalfSize = 25;
 
             var sb = new StateMachineBuilder(this);
-            var s = sb.Simple(0, 600, "Fight")
+            var s = sb.TrivialPhase()
                 .ActivateOnEnter<ByregotStrike>()
                 .ActivateOnEnter<Hammers>()
                 .ActivateOnEnter<Reproduce>()
                 .DeactivateOnExit<ByregotStrike>()
                 .DeactivateOnExit<Hammers>()
                 .DeactivateOnExit<Reproduce>();
-            s.Raw.Update = _ => PrimaryActor.IsDead ? s.Raw.Next : null;
-            sb.Simple(1, 0, "???");
-            InitStates(sb.Initial);
+            InitStates(sb.Build());
             //InitStates(new A1ByregotStates(this).Initial);
         }
 

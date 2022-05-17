@@ -32,7 +32,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             GrinnauxList = Enemies(OID.SerGrinnaux);
             CharibertList = Enemies(OID.SerCharibert);
             Arena.WorldHalfSize = 22;
-            InitStates(new DSW1States(this).Initial);
+            InitStates(new DSW1States(this).Build());
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

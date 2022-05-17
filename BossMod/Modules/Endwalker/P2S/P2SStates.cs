@@ -4,47 +4,52 @@
     {
         public P2SStates(BossModule module) : base(module)
         {
-            MurkyDepths(0x00000000, 10.2f);
-            DoubledImpact(0x00010000, 5.2f);
+            DeathPhase(0, SinglePhase);
+        }
+
+        private void SinglePhase(uint id)
+        {
+            MurkyDepths(id, 10.2f);
+            DoubledImpact(id + 0x010000, 5.2f);
 
             // deluge 1
-            SewageDeluge(0x00100000, 7.8f);
-            Cataract(0x00110000, 15);
-            Coherence(0x00120000, 8.1f);
-            MurkyDepths(0x00130000, 8.2f);
-            OminousBubblingShockwave(0x00140000, 3.7f);
-            AvariceCataract(0x00150000, 10.9f);
+            SewageDeluge(id + 0x100000, 7.8f);
+            Cataract(id + 0x110000, 15);
+            Coherence(id + 0x120000, 8.1f);
+            MurkyDepths(id + 0x130000, 8.2f);
+            OminousBubblingShockwave(id + 0x140000, 3.7f);
+            AvariceCataract(id + 0x150000, 10.9f);
             // note: deluge 1 ends here...
 
-            Flow1(0x00200000, 8.6f);
-            DoubledImpact(0x00210000, 8.2f);
-            MurkyDepths(0x00220000, 5.2f);
+            Flow1(id + 0x200000, 8.6f);
+            DoubledImpact(id + 0x210000, 8.2f);
+            MurkyDepths(id + 0x220000, 5.2f);
 
             // deluge 2
-            SewageDeluge(0x00300000, 11.7f);
-            Shockwave(0x00310000, 9.6f);
-            KampeosHarma(0x00320000, 4.4f);
-            DoubledImpact(0x00330000, 10);
-            MurkyDepths(0x00340000, 4.2f);
-            Flow2(0x00350000, 8.6f);
-            Cataract(0x00360000, 0.7f);
+            SewageDeluge(id + 0x300000, 11.7f);
+            Shockwave(id + 0x310000, 9.6f);
+            KampeosHarma(id + 0x320000, 4.4f);
+            DoubledImpact(id + 0x330000, 10);
+            MurkyDepths(id + 0x340000, 4.2f);
+            Flow2(id + 0x350000, 8.6f);
+            Cataract(id + 0x360000, 0.7f);
             // note: deluge 2 ends here...
 
-            AvariceDissociationCataract(0x00400000, 15.2f);
-            DissociationEruptionFloodCoherence(0x00410000, 9.8f);
-            DoubledImpact(0x00420000, 7.2f);
-            MurkyDepths(0x00430000, 3.2f);
+            AvariceDissociationCataract(id + 0x400000, 15.2f);
+            DissociationEruptionFloodCoherence(id + 0x410000, 9.8f);
+            DoubledImpact(id + 0x420000, 7.2f);
+            MurkyDepths(id + 0x430000, 3.2f);
 
             // deluge 3
-            SewageDeluge(0x00500000, 12.8f);
-            Flow3(0x00510000, 11.7f);
-            DissociationEruption(0x00520000, 6.9f);
-            OminousBubblingShockwave(0x00530000, 0.8f);
-            DoubledImpact(0x00540000, 5.4f);
-            MurkyDepths(0x00550000, 7.2f);
-            MurkyDepths(0x00560000, 6.2f);
+            SewageDeluge(id + 0x500000, 12.8f);
+            Flow3(id + 0x510000, 11.7f);
+            DissociationEruption(id + 0x520000, 6.9f);
+            OminousBubblingShockwave(id + 0x530000, 0.8f);
+            DoubledImpact(id + 0x540000, 5.4f);
+            MurkyDepths(id + 0x550000, 7.2f);
+            MurkyDepths(id + 0x560000, 6.2f);
 
-            Cast(0x00600000, AID.Enrage, 5.3f, 10, "Enrage");
+            Cast(id + 0x600000, AID.Enrage, 5.3f, 10, "Enrage");
         }
 
         private void MurkyDepths(uint id, float delay)

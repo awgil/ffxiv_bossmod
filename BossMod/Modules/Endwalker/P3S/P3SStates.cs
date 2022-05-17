@@ -8,39 +8,44 @@ namespace BossMod.Endwalker.P3S
     {
         public P3SStates(BossModule module) : base(module)
         {
-            ScorchedExaltation(0x00000000, 8.1f);
-            HeatOfCondemnation(0x00010000, 3.2f);
-            FireplumeCinderwing(0x00020000, 5.1f);
-            DarkenedFire(0x00030000, 8.2f);
-            HeatOfCondemnation(0x00040000, 6.6f);
-            ScorchedExaltation(0x00050000, 2.1f);
-            DevouringBrandFireplumeBreezeCinderwing(0x00060000, 7.2f);
-            HeatOfCondemnation(0x00070000, 3.2f);
+            DeathPhase(0, SinglePhase);
+        }
 
-            FlyAwayBirds(0x00100000, 2.1f);
+        private void SinglePhase(uint id)
+        {
+            ScorchedExaltation(id, 8.1f);
+            HeatOfCondemnation(id + 0x010000, 3.2f);
+            FireplumeCinderwing(id + 0x020000, 5.1f);
+            DarkenedFire(id + 0x030000, 8.2f);
+            HeatOfCondemnation(id + 0x040000, 6.6f);
+            ScorchedExaltation(id + 0x050000, 2.1f);
+            DevouringBrandFireplumeBreezeCinderwing(id + 0x060000, 7.2f);
+            HeatOfCondemnation(id + 0x070000, 3.2f);
 
-            DeadRebirth(0x00200000, 9.2f);
-            HeatOfCondemnation(0x00210000, 9.2f);
-            FledglingFlight(0x00220000, 7.1f);
-            GloryplumeMulti(0x00230000, 8);
-            FountainOfFire(0x00240000, 12.1f);
+            FlyAwayBirds(id + 0x100000, 2.1f);
 
-            ScorchedExaltation(0x00300000, 2.1f);
-            ScorchedExaltation(0x00310000, 2.1f);
-            HeatOfCondemnation(0x00320000, 5.2f);
-            FirestormsOfAsphodelos(0x00330000, 8.6f);
-            ConesAshplume(0x00340000, 3.2f);
-            ConesStorms(0x00350000, 2.1f);
-            DarkblazeTwister(0x00360000, 2.2f);
-            ScorchedExaltation(0x00370000, 2.1f);
-            DeathToll(0x00380000, 7.2f);
+            DeadRebirth(id + 0x200000, 9.2f);
+            HeatOfCondemnation(id + 0x210000, 9.2f);
+            FledglingFlight(id + 0x220000, 7.1f);
+            GloryplumeMulti(id + 0x230000, 8);
+            FountainOfFire(id + 0x240000, 12.1f);
 
-            GloryplumeSingle(0x00400000, 7.3f);
-            FlyAwayNoBirds(0x00410000, 3);
-            DevouringBrandFireplumeBreezeCinderwing(0x00420000, 5.1f);
-            ScorchedExaltation(0x00430000, 6.2f);
-            ScorchedExaltation(0x00440000, 2.2f);
-            Cast(0x00450000, AID.FinalExaltation, 2.1f, 10, "Enrage");
+            ScorchedExaltation(id + 0x300000, 2.1f);
+            ScorchedExaltation(id + 0x310000, 2.1f);
+            HeatOfCondemnation(id + 0x320000, 5.2f);
+            FirestormsOfAsphodelos(id + 0x330000, 8.6f);
+            ConesAshplume(id + 0x340000, 3.2f);
+            ConesStorms(id + 0x350000, 2.1f);
+            DarkblazeTwister(id + 0x360000, 2.2f);
+            ScorchedExaltation(id + 0x370000, 2.1f);
+            DeathToll(id + 0x380000, 7.2f);
+
+            GloryplumeSingle(id + 0x400000, 7.3f);
+            FlyAwayNoBirds(id + 0x410000, 3);
+            DevouringBrandFireplumeBreezeCinderwing(id + 0x420000, 5.1f);
+            ScorchedExaltation(id + 0x430000, 6.2f);
+            ScorchedExaltation(id + 0x440000, 2.2f);
+            Cast(id + 0x450000, AID.FinalExaltation, 2.1f, 10, "Enrage");
         }
 
         private void ScorchedExaltation(uint id, float delay)

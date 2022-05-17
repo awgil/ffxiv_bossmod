@@ -15,15 +15,10 @@
         protected void BuildStateMachine<T>() where T : Component, new()
         {
             var sb = new StateMachineBuilder(this);
-
-            var s = sb.Simple(0, 0, "Fight")
+            sb.TrivialPhase()
                 .ActivateOnEnter<T>()
                 .DeactivateOnExit<T>();
-            s.Raw.Update = _ => PrimaryActor.IsDead ? s.Raw.Next : null;
-
-            sb.Simple(1, 0, "???");
-
-            InitStates(sb.Initial);
+            InitStates(sb.Build());
         }
 
         protected override void UpdateModule()

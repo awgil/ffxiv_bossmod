@@ -1,8 +1,6 @@
-﻿using ImGuiNET;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace BossMod
 {
@@ -130,7 +128,6 @@ namespace BossMod
 
             foreach (var m in _activeModules)
             {
-                m.StateMachine.ActiveState = null;
                 m.Reset();
             }
             _activeModules.Clear();
@@ -186,9 +183,7 @@ namespace BossMod
             if (!_activeModules.Contains(m))
             {
                 Service.Log($"[BMM] Activating boss module '{m.GetType()}' for actor {m.PrimaryActor.InstanceID:X} ({m.PrimaryActor.OID:X}) '{m.PrimaryActor.Name}'");
-                m.Reset();
-                m.Update(); // we need this update to ensure state-machine's current time is initialized
-                m.StateMachine.ActiveState = m.InitialState;
+                m.Start();
                 _activeModules.Add(m);
                 _configOrModulesUpdated = true;
                 return true;
@@ -201,7 +196,6 @@ namespace BossMod
             if (_activeModules.Remove(m))
             {
                 Service.Log($"[BMM] Deactivating boss module '{m.GetType()}' for actor {m.PrimaryActor.InstanceID:X} ({m.PrimaryActor.OID:X}) '{m.PrimaryActor.Name}'");
-                m.StateMachine.ActiveState = null;
                 m.Reset();
                 _configOrModulesUpdated = true;
                 return true;

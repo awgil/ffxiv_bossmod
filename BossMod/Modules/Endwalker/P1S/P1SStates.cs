@@ -7,33 +7,38 @@ namespace BossMod.Endwalker.P1S
     {
         public P1SStates(BossModule module) : base(module)
         {
-            HeavyHand(0x00000000, 8.2f);
-            AetherialShackles(0x00010000, 6, false);
-            GaolerFlail(0x00020000, 4.6f);
-            Knockback(0x00030000, 5.7f);
-            GaolerFlail(0x00040000, 3.3f);
-            WarderWrath(0x00050000, 5.6f);
-            IntemperancePhase(0x00060000, 11.2f, true);
-            Knockback(0x00070000, 5.4f);
+            DeathPhase(0, SinglePhase);
+        }
 
-            ShiningCells(0x00100000, 9.3f);
-            Aetherflail(0x00110000, 8);
-            Knockback(0x00120000, 7.7f);
-            Aetherflail(0x00130000, 3);
-            ShacklesOfTime(0x00140000, 4.6f, false);
-            SlamShut(0x00150000, 1.6f);
+        private void SinglePhase(uint id)
+        {
+            HeavyHand(id, 8.2f);
+            AetherialShackles(id + 0x010000, 6, false);
+            GaolerFlail(id + 0x020000, 4.6f);
+            Knockback(id + 0x030000, 5.7f);
+            GaolerFlail(id + 0x040000, 3.3f);
+            WarderWrath(id + 0x050000, 5.6f);
+            IntemperancePhase(id + 0x060000, 11.2f, true);
+            Knockback(id + 0x070000, 5.4f);
 
-            FourfoldShackles(0x00200000, 12.8f);
-            WarderWrath(0x00210000, 5.4f);
-            IntemperancePhase(0x00220000, 11.2f, false);
-            WarderWrath(0x00230000, 3.7f);
+            ShiningCells(id + 0x100000, 9.3f);
+            Aetherflail(id + 0x110000, 8);
+            Knockback(id + 0x120000, 7.7f);
+            Aetherflail(id + 0x130000, 3);
+            ShacklesOfTime(id + 0x140000, 4.6f, false);
+            SlamShut(id + 0x150000, 1.6f);
 
-            ShiningCells(0x00300000, 11.2f);
+            FourfoldShackles(id + 0x200000, 12.8f);
+            WarderWrath(id + 0x210000, 5.4f);
+            IntemperancePhase(id + 0x220000, 11.2f, false);
+            WarderWrath(id + 0x230000, 3.7f);
 
-            Dictionary<AID, Action> fork = new();
-            fork[AID.AetherialShackles] = Fork1;
-            fork[AID.ShacklesOfTime] = Fork2;
-            CastStartFork(0x00310000, fork, 6.2f, "Shackles+Aetherchains -or- ShacklesOfTime+Knockback"); // first branch delay = 7.8
+            ShiningCells(id + 0x300000, 11.2f);
+
+            Dictionary<AID, (uint seqID, Action<uint> buildState)> fork = new();
+            fork[AID.AetherialShackles] = (1, Fork1);
+            fork[AID.ShacklesOfTime] = (2, Fork2);
+            CastStartFork(id + 0x310000, fork, 6.2f, "Shackles+Aetherchains -or- ShacklesOfTime+Knockback"); // first branch delay = 7.8
         }
 
         // if delay is >0, build cast-start + cast-end states, otherwise build only cast-end state (used for first cast after fork)
@@ -205,22 +210,22 @@ namespace BossMod.Endwalker.P1S
             s.Raw.Exit.Add(() => Module.Arena.IsCircle = false);
         }
 
-        private void Fork1()
+        private void Fork1(uint id)
         {
-            AetherialShackles(0x01000000, 0, true);
-            WarderWrath(0x01010000, 5.2f);
-            ShacklesOfTime(0x01020000, 7.2f, true);
-            WarderWrath(0x01030000, 5.9f);
-            ForkMerge(0x01040000, 9);
+            AetherialShackles(id, 0, true);
+            WarderWrath(id + 0x10000, 5.2f);
+            ShacklesOfTime(id + 0x20000, 7.2f, true);
+            WarderWrath(id + 0x30000, 5.9f);
+            ForkMerge(id + 0x40000, 9);
         }
 
-        private void Fork2()
+        private void Fork2(uint id)
         {
-            ShacklesOfTime(0x02000000, 0, true);
-            WarderWrath(0x02010000, 3.9f);
-            AetherialShackles(0x02020000, 9, true);
-            WarderWrath(0x02030000, 7.2f);
-            ForkMerge(0x02040000, 8.8f);
+            ShacklesOfTime(id, 0, true);
+            WarderWrath(id + 0x10000, 3.9f);
+            AetherialShackles(id + 0x20000, 9, true);
+            WarderWrath(id + 0x30000, 7.2f);
+            ForkMerge(id + 0x40000, 8.8f);
         }
 
         // there are two possible orderings for last mechanics of the fight

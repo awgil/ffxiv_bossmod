@@ -30,12 +30,12 @@
 
             // TODO: reconsider...
             var states = new StateMachineBuilder(this);
-            states.Simple(0, 600, "Enrage")
+            states.TrivialPhase(600)
                 .ActivateOnEnter<Phases>()
                 .ActivateOnEnter<Mechanics>()
                 .ActivateOnEnter<Garuda>()
                 .ActivateOnEnter<TitanIfrit>();
-            InitStates(states.Initial);
+            InitStates(states.Build());
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

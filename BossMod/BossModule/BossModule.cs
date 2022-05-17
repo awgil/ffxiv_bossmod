@@ -12,8 +12,7 @@ namespace BossMod
         public BossModuleManager Manager { get; init; }
         public Actor PrimaryActor { get; init; }
         public MiniArena Arena { get; init; }
-        public StateMachine StateMachine { get; init; } = new();
-        public StateMachine.State? InitialState { get; private set; } = null;
+        public StateMachine? StateMachine { get; private set; }
         public ConfigNode? Config;
         public CooldownPlanExecution? PlanExecution = null;
 
@@ -162,19 +161,27 @@ namespace BossMod
             }
         }
 
-        protected void InitStates(StateMachine.State? initial)
+        protected void InitStates(StateMachine? sm)
         {
-            InitialState = initial;
+            StateMachine = sm;
             RebuildPlan();
         }
 
         public void RebuildPlan()
         {
-            PlanExecution = new(InitialState, Manager.CooldownPlanManager.SelectedPlan(PrimaryActor.OID, Raid.Player()?.Class ?? Class.None));
+            if (StateMachine != null)
+                PlanExecution = new(StateMachine, Manager.CooldownPlanManager.SelectedPlan(PrimaryActor.OID, Raid.Player()?.Class ?? Class.None));
         }
 
-        public virtual void Reset()
+        public void Start()
         {
+            Reset();
+            StateMachine?.Start(WorldState.CurrentTime);
+        }
+
+        public void Reset()
+        {
+            StateMachine?.Reset();
             _components.Clear();
             ResetModule();
 
@@ -182,9 +189,9 @@ namespace BossMod
                 Manager.RaidCooldowns.Clear();
         }
 
-        public virtual void Update()
+        public void Update()
         {
-            StateMachine.Update(WorldState.CurrentTime);
+            StateMachine?.Update(WorldState.CurrentTime);
             UpdateModule();
             foreach (var comp in _components)
                 comp.Update(this);
@@ -193,7 +200,7 @@ namespace BossMod
         public virtual void Draw(float cameraAzimuth, int pcSlot, MovementHints? pcMovementHints)
         {
             if (Manager.WindowConfig.ShowMechanicTimers)
-                StateMachine.Draw();
+                StateMachine?.Draw();
 
             if (Manager.WindowConfig.ShowGlobalHints)
                 DrawGlobalHints();

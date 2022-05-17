@@ -12,7 +12,6 @@ namespace BossMod
         public bool DrawUnnamedNodes = true;
         public bool DrawTankbusterNodesOnly = false;
         public bool DrawRaidwideNodesOnly = false;
-        protected bool SingleBranchMode = false;
 
         private float _nodeHOffset = 10;
         private float _nodeRadius = 5;
@@ -23,16 +22,13 @@ namespace BossMod
             Tree = tree;
         }
 
-        public override void Update()
+        protected void DrawNode(StateMachineTree.Node node, bool singleColumn, float? progress = null)
         {
-            Width = (SingleBranchMode ? 1 : Tree.NumBranches) * PixelsPerBranch;
-        }
+            var phaseStart = Tree.Phases[node.PhaseID].StartTime;
 
-        protected void DrawNode(StateMachineTree.Node node, float? progress = null)
-        {
             var drawlist = ImGui.GetWindowDrawList();
-            var nodeScreenPos = NodeScreenPos(node);
-            var predScreenPos = NodeScreenPos(node.Predecessor);
+            var nodeScreenPos = NodeScreenPos(node, singleColumn, phaseStart);
+            var predScreenPos = NodeScreenPos(node.Predecessor, singleColumn, phaseStart);
             var connection = nodeScreenPos - predScreenPos;
 
             // draw connection from predecessor
@@ -81,21 +77,14 @@ namespace BossMod
                 if (ImGui.IsMouseHoveringRect(nodeScreenPos - new Vector2(_nodeRadius), nodeScreenPos + new Vector2(_nodeRadius)))
                 {
                     Timeline.AddTooltip(NodeTooltip(node));
-
-                    if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
-                    {
-                        OnNodeActivated(node);
-                    }
                 }
             }
         }
 
-        protected virtual void OnNodeActivated(StateMachineTree.Node node) { }
-
-        private Vector2 NodeScreenPos(StateMachineTree.Node? node)
+        private Vector2 NodeScreenPos(StateMachineTree.Node? node, bool singleColumn, float phaseStart)
         {
-            var (branch, time) = node != null ? (SingleBranchMode ? 0 : node.BranchID, node.Time) : (0, 0);
-            return Timeline.ColumnCoordsToScreenCoords(_nodeHOffset + branch * PixelsPerBranch, time);
+            var (branch, time) = node != null ? (singleColumn ? 0 : node.BranchID, node.Time) : (0, 0);
+            return Timeline.ColumnCoordsToScreenCoords(_nodeHOffset + branch * PixelsPerBranch, phaseStart + time);
         }
 
         private List<string> NodeTooltip(StateMachineTree.Node n)
@@ -103,6 +92,7 @@ namespace BossMod
             List<string> res = new();
             res.Add($"State: {n.State.ID:X} '{n.State.Name}'");
             res.Add($"Comment: {n.State.Comment}");
+            res.Add($"Phase: {n.PhaseID} '{Tree.Phases[n.PhaseID].Name}'");
             res.Add($"Time: {n.Time:f1} ({n.State.Duration:f1} from prev)");
             res.Add($"Flags: {n.State.EndHint}");
             return res;

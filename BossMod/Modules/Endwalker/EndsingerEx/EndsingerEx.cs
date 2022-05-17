@@ -34,7 +34,7 @@
             : base(manager, primary, true)
         {
             Arena.IsCircle = true;
-            InitStates(new EndsingerExStates(this).Initial);
+            InitStates(new EndsingerExStates(this).Build());
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

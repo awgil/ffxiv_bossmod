@@ -33,7 +33,7 @@ namespace BossMod
             DisplayOrder = 4;
         }
 
-        public void DrawSelectionUI(uint encounterOID, Class curClass, StateMachine.State? initial)
+        public void DrawSelectionUI(uint encounterOID, Class curClass, StateMachine sm)
         {
             if (!AbilityDefinitions.Classes.ContainsKey(curClass))
                 return; // class is not supported
@@ -66,7 +66,7 @@ namespace BossMod
                     plans.SelectedIndex = plans.Available.Count - 1;
                     NotifyModified();
                 }
-                StartPlanEditor(plans.Available[plans.SelectedIndex], initial);
+                StartPlanEditor(plans.Available[plans.SelectedIndex], sm);
             }
         }
 
@@ -81,7 +81,7 @@ namespace BossMod
                     {
                         if (ImGui.Button($"Edit {plans.Available[i].Name}##{e}/{c}/{i}"))
                         {
-                            StartPlanEditor(plans.Available[i], CreateStateForOID(e));
+                            StartPlanEditor(plans.Available[i], CreateStateMachineForOID(e));
                         }
                         ImGui.SameLine();
                         if (ImGui.Button($"Copy##{e}/{c}/{i}"))
@@ -90,7 +90,7 @@ namespace BossMod
                             plan.Name += " Copy";
                             plans.Available.Add(plan);
                             NotifyModified();
-                            StartPlanEditor(plan, CreateStateForOID(e));
+                            StartPlanEditor(plan, CreateStateMachineForOID(e));
                         }
                         ImGui.SameLine();
                         if (ImGui.Button($"Delete##{e}/{c}/{i}"))
@@ -109,23 +109,25 @@ namespace BossMod
                         var plan = new CooldownPlan(c, $"New {plans.Available.Count}");
                         plans.Available.Add(plan);
                         NotifyModified();
-                        StartPlanEditor(plan, CreateStateForOID(e));
+                        StartPlanEditor(plan, CreateStateMachineForOID(e));
                     }
                 }
             }
         }
 
-        private void StartPlanEditor(CooldownPlan plan, StateMachine.State? initial)
+        private void StartPlanEditor(CooldownPlan plan, StateMachine? sm)
         {
-            var editor = new CooldownPlanEditor(plan, new(initial), NotifyModified, new());
+            if (sm == null)
+                return;
+            var editor = new CooldownPlanEditor(plan, sm, NotifyModified);
             var w = WindowManager.CreateWindow($"Cooldown planner", editor.Draw, () => { }, () => true);
             w.SizeHint = new(600, 600);
             w.MinSize = new(100, 100);
         }
 
-        private static StateMachine.State? CreateStateForOID(uint oid)
+        private static StateMachine? CreateStateMachineForOID(uint oid)
         {
-            return ModuleRegistry.CreateModule(oid, new(new(), new()), new(0, oid, "", ActorType.None, Class.None, new(), 0, 0, 0, false, 0))?.InitialState;
+            return ModuleRegistry.CreateModule(oid, new(new(), new()), new(0, oid, "", ActorType.None, Class.None, new(), 0, 0, 0, false, 0))?.StateMachine;
         }
     }
 }

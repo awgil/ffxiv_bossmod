@@ -48,7 +48,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             Arena.WorldHalfSize = 30;
 
             var sb = new StateMachineBuilder(this);
-            var s = sb.Simple(0, 600, "Fight")
+            var s = sb.TrivialPhase()
                 .ActivateOnEnter<WardensWarmth>()
                 .ActivateOnEnter<SolarWingsL>()
                 .ActivateOnEnter<SolarWingsR>()
@@ -71,9 +71,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
                 .DeactivateOnExit<WildfireWard>()
                 .DeactivateOnExit<Sunbeam>()
                 .DeactivateOnExit<SublimeSunset>();
-            s.Raw.Update = _ => PrimaryActor.IsDead ? s.Raw.Next : null;
-            sb.Simple(1, 0, "???");
-            InitStates(sb.Initial);
+            InitStates(sb.Build());
             //InitStates(new A3AzeymaStates(this).Initial);
         }
 

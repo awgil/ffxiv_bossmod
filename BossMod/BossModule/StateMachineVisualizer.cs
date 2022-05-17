@@ -1,5 +1,4 @@
 ﻿using ImGuiNET;
-using System;
 
 namespace BossMod
 {
@@ -8,10 +7,10 @@ namespace BossMod
         private Timeline _timeline = new();
         private StateMachineTreeColumn _col;
 
-        public StateMachineVisualizer(StateMachine.State? initial, StateMachine? sm)
+        public StateMachineVisualizer(StateMachine sm)
         {
-            _col = _timeline.AddColumn(new StateMachineTreeColumn(_timeline, new(initial), sm));
-            _timeline.MaxTime = _col.Tree.MaxTime;
+            _col = _timeline.AddColumn(new StateMachineTreeColumn(_timeline, new(sm), sm));
+            _timeline.MaxTime = _col.Tree.TotalMaxTime;
         }
 
         public void Draw()

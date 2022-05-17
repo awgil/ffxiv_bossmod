@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod
 {
-    // tree describing states and transitions
+    // tree describing all phases, states and transitions
     public class StateMachineTree
     {
         public class Node
         {
-            public float Time;
+            public float Time; // time from phase start to state transition, assuming all states last exactly for expected duration
+            public int PhaseID;
             public int BranchID;
+            public int NumBranches; // how many branches are reachable from this node
             public bool InGroup;
             public bool BossIsCasting;
             public bool IsDowntime;
@@ -21,9 +21,10 @@ namespace BossMod
             public Node? Predecessor;
             public List<Node> Successors = new();
 
-            internal Node(float t, int branchID, StateMachine.State state, Node? pred)
+            internal Node(float t, int phaseID, int branchID, StateMachine.State state, Node? pred)
             {
                 Time = t;
+                PhaseID = phaseID;
                 BranchID = branchID;
                 if (pred == null)
                 {
@@ -43,54 +44,113 @@ namespace BossMod
             }
         }
 
-        private Dictionary<uint, Node> _nodes = new();
-        public IReadOnlyDictionary<uint, Node> Nodes => _nodes;
-
-        public Node? StartingNode { get; private set; }
-        public float MaxTime { get; private set; }
-        public int NumBranches { get; private set; }
-
-        public StateMachineTree(StateMachine.State? initial)
+        public class Phase
         {
-            if (initial != null)
-                (StartingNode, MaxTime, NumBranches) = LayoutNodeAndSuccessors(0, 0, initial, null);
-        }
+            public string Name;
+            public Node StartingNode;
+            public float StartTime; // time from pull to phase start
+            public float MaxTime; // max state machine duration
+            public float Duration; // expected duration
 
-        // return sequential list of nodes belonging to the single branch
-        public IEnumerable<Node> BranchNodes(int branchID)
-        {
-            if (StartingNode == null)
-                yield break;
-
-            yield return StartingNode;
-            var n = StartingNode;
-            while (n.Successors.Count > 0)
+            internal Phase(StateMachine.Phase phase, Node startingNode, float maxTime)
             {
-                int nextIndex = n.Successors.FindIndex(n => n.BranchID > branchID);
-                if (nextIndex == -1)
-                    nextIndex = n.Successors.Count;
-                n = n.Successors[nextIndex - 1];
-                yield return n;
+                Name = phase.Name;
+                StartingNode = startingNode;
+                MaxTime = maxTime;
+                Duration = phase.ExpectedDuration >= 0 ? phase.ExpectedDuration : maxTime;
+            }
+
+            // return sequential list of nodes belonging to the single branch
+            public IEnumerable<Node> BranchNodes(int branchOffset)
+            {
+                if (branchOffset < 0 || branchOffset >= StartingNode.NumBranches)
+                    yield break;
+
+                yield return StartingNode;
+                var n = StartingNode;
+                while (n.Successors.Count > 0)
+                {
+                    int nextIndex = n.Successors.FindIndex(n => n.BranchID > StartingNode.BranchID + branchOffset);
+                    if (nextIndex == -1)
+                        nextIndex = n.Successors.Count;
+                    n = n.Successors[nextIndex - 1];
+                    yield return n;
+                }
+            }
+
+            public Node TimeToBranchNode(int branchOffset, float t)
+            {
+                Node? last = null;
+                foreach (var n in BranchNodes(branchOffset))
+                {
+                    if (n.Time >= t)
+                        return n;
+                    last = n;
+                }
+                return last!;
             }
         }
 
-        public Node? TimeToBranchNode(int branchID, float t)
+        private Dictionary<uint, Node> _nodes = new();
+        public IReadOnlyDictionary<uint, Node> Nodes => _nodes;
+
+        private List<Phase> _phases = new();
+        public IReadOnlyList<Phase> Phases => _phases;
+
+        public int TotalBranches { get; private set; }
+        public float TotalMaxTime { get; private set; }
+
+        public StateMachineTree(StateMachine sm)
         {
-            return BranchNodes(branchID).FirstOrDefault(n => n.Time >= t);
+            for (int i = 0; i < sm.Phases.Count; ++i)
+            {
+                var (startingNode, maxTime) = LayoutNodeAndSuccessors(0, i, TotalBranches, sm.Phases[i].InitialState, null);
+                _phases.Add(new(sm.Phases[i], startingNode, maxTime));
+                TotalBranches += startingNode.NumBranches;
+                TotalMaxTime = Math.Max(TotalMaxTime, maxTime);
+            }
         }
 
-        private (Node, float, int) LayoutNodeAndSuccessors(float t, int branchID, StateMachine.State state, Node? pred)
+        public void ApplyTimings(StateMachineTimings? timings)
         {
-            var node = _nodes[state.ID] = new Node(t + state.Duration, branchID, state, pred);
+            if (Phases.Count == 0)
+                return;
+
+            if (timings != null)
+                foreach (var (p, t) in Phases.Zip(timings.PhaseDurations))
+                    p.Duration = Math.Min(t, p.MaxTime);
+
+            for (int i = 1; i < Phases.Count; ++i)
+                Phases[i].StartTime = Phases[i - 1].StartTime + Phases[i - 1].Duration;
+
+            var lastPhase = Phases.Last();
+            TotalMaxTime = lastPhase.StartTime + lastPhase.Duration;
+        }
+
+        // find phase index that corresponds to specified time; assumes ApplyTimings was called before
+        public int FindPhaseAtTime(float t)
+        {
+            int next = _phases.FindIndex(p => p.StartTime > t);
+            return next switch
+            {
+                < 0 => _phases.Count - 1,
+                0 => 0,
+                _ => next - 1
+            };
+        }
+
+        private (Node, float) LayoutNodeAndSuccessors(float t, int phaseID, int branchID, StateMachine.State state, Node? pred)
+        {
+            var node = _nodes[state.ID] = new Node(t + state.Duration, phaseID, branchID, state, pred);
             float succDuration = 0;
 
             // first layout default state, if any
             if (state.Next != null)
             {
-                (var succ, var dur, var nextBranch) = LayoutNodeAndSuccessors(t + state.Duration, branchID, state.Next, node);
+                var (succ, dur) = LayoutNodeAndSuccessors(t + state.Duration, phaseID, branchID, state.Next, node);
                 node.Successors.Add(succ);
                 succDuration = dur;
-                branchID = nextBranch;
+                node.NumBranches += succ.NumBranches;
             }
 
             // now layout extra successors, if any
@@ -101,19 +161,19 @@ namespace BossMod
                     if (state.Next == s)
                         continue; // this is already processed
 
-                    (var succ, var dur, var nextBranch) = LayoutNodeAndSuccessors(t + state.Duration, branchID, s, node);
+                    var (succ, dur) = LayoutNodeAndSuccessors(t + state.Duration, phaseID, branchID + node.NumBranches, s, node);
                     node.Successors.Add(succ);
                     succDuration = Math.Max(succDuration, dur);
-                    branchID = nextBranch;
+                    node.NumBranches += succ.NumBranches;
                 }
             }
 
             if (state.Next == null && state.PotentialSuccessors == null)
             {
-                branchID++; // leaf
+                node.NumBranches++; // leaf
             }
 
-            return (node, state.Duration + succDuration, branchID);
+            return (node, state.Duration + succDuration);
         }
     }
 }

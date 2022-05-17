@@ -4,36 +4,41 @@
     {
         public EndsingerExStates(BossModule module) : base(module)
         {
-            ElegeiaUnforgotten(0x00000000, 6.2f);
-            ElegeiaUnforgotten(0x00010000, 9.9f, false);
-            KatasterismoiGripElenchos(0x00020000, 10.9f);
-            Telos(0x00030000, 4.1f);
-            Hubris(0x00040000, 5.1f);
+            DeathPhase(0, SinglePhase);
+        }
 
-            ElegeiaUnforgotten(0x00100000, 6.2f);
-            Eironeia(0x00110000, 8.9f);
-            ElegeiaFatalism(0x00120000, 4.1f);
+        private void SinglePhase(uint id)
+        {
+            ElegeiaUnforgotten(id, 6.2f);
+            ElegeiaUnforgotten(id + 0x10000, 9.9f, false);
+            KatasterismoiGripElenchos(id + 0x20000, 10.9f);
+            Telos(id + 0x30000, 4.1f);
+            Hubris(id + 0x40000, 5.1f);
 
-            TwinsongAporrhoia(0x00200000, 6.2f);
-            Hubris(0x00210000, 4.2f);
-            DespairUnforgotten(0x00220000, 6.2f);
-            Telomania(0x00230000, 2);
-            EndsongAporrhoia(0x00240000, 11);
-            Telos(0x00250000, 4.2f);
-            Hubris(0x00260000, 5.2f);
+            ElegeiaUnforgotten(id + 0x100000, 6.2f);
+            Eironeia(id + 0x110000, 8.9f);
+            ElegeiaFatalism(id + 0x120000, 4.1f);
 
-            ElegeiaUnforgotten(0x00300000, 8.3f);
-            Eironeia(0x00310000, 8.9f);
-            ElegeiaDoubleFatalism(0x00320000, 2.1f, false);
+            TwinsongAporrhoia(id + 0x200000, 6.2f);
+            Hubris(id + 0x210000, 4.2f);
+            DespairUnforgotten(id + 0x220000, 6.2f);
+            Telomania(id + 0x230000, 2);
+            EndsongAporrhoia(id + 0x240000, 11);
+            Telos(id + 0x250000, 4.2f);
+            Hubris(id + 0x260000, 5.2f);
 
-            Telomania(0x00400000, 4.1f);
-            TwinsongAporrhoia(0x00410000, 10.9f);
-            Hubris(0x00420000, 4.2f);
-            EndsongAporrhoia(0x00430000, 6.2f);
-            Telos(0x00440000, 4.2f);
-            ElegeiaDoubleFatalism(0x00450000, 10.2f, true);
+            ElegeiaUnforgotten(id + 0x300000, 8.3f);
+            Eironeia(id + 0x310000, 8.9f);
+            ElegeiaDoubleFatalism(id + 0x320000, 2.1f, false);
 
-            Enrage(0x00500000, 9.3f);
+            Telomania(id + 0x400000, 4.1f);
+            TwinsongAporrhoia(id + 0x410000, 10.9f);
+            Hubris(id + 0x420000, 4.2f);
+            EndsongAporrhoia(id + 0x430000, 6.2f);
+            Telos(id + 0x440000, 4.2f);
+            ElegeiaDoubleFatalism(id + 0x450000, 10.2f, true);
+
+            Enrage(id + 0x500000, 9.3f);
         }
 
         private State Telos(uint id, float delay)

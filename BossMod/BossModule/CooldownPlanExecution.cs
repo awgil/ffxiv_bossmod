@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod
 {
@@ -34,19 +32,30 @@ namespace BossMod
             public StateFlag Downtime;
             public StateFlag Positioning;
             public Dictionary<ActionID, PerAbility> Abilities = new();
+
+            internal PerState(CooldownPlan? plan)
+            {
+                if (plan != null)
+                    foreach (var (k, uses) in plan.PlanAbilities)
+                        Abilities[new(k)] = new();
+            }
         }
 
         public CooldownPlan? Plan;
-        public PerState Pull = new();
+        public PerState Pull;
         public Dictionary<uint, PerState> States = new();
 
-        public CooldownPlanExecution(StateMachine.State? initial, CooldownPlan? plan)
+        public CooldownPlanExecution(StateMachine sm, CooldownPlan? plan)
         {
             Plan = plan;
-            if (initial != null)
+            Pull = new(plan);
+
+            var tree = new StateMachineTree(sm);
+            tree.ApplyTimings(plan?.Timings);
+
+            if (tree.Phases.Count > 0)
             {
-                var s = ProcessState(initial, null, null, plan);
-                UpdateTransitions(Pull, s, initial.ID, 0);
+                ProcessState(tree, tree.Phases[0].StartingNode, Pull, 0, plan);
             }
         }
 
@@ -78,11 +87,11 @@ namespace BossMod
                 return s.Positioning.Transition.Value.EstimatedTime - sm!.TimeSinceTransitionClamped;
         }
 
-        public void Draw(StateMachine? sm)
+        public void Draw(StateMachine sm)
         {
             var db = Plan != null ? AbilityDefinitions.Classes[Plan.Class] : null;
-            var s = FindStateData(sm?.ActiveState);
-            var t = sm?.TimeSinceTransitionClamped ?? 0;
+            var s = FindStateData(sm.ActiveState);
+            var t = sm.TimeSinceTransitionClamped;
             foreach (var (action, ability) in s.Abilities)
             {
                 float cd = db?.Abilities.GetValueOrDefault(action)?.Cooldown ?? 0;
@@ -114,35 +123,28 @@ namespace BossMod
             }
         }
 
-        private PerState ProcessState(StateMachine.State curState, PerState? prev, StateMachine.State? prevState, CooldownPlan? plan)
+        private PerState ProcessState(StateMachineTree tree, StateMachineTree.Node curState, PerState prev, float prevDuration, CooldownPlan? plan)
         {
-            var s = States[curState.ID] = new PerState();
-
-            if (prev != null)
-            {
-                var edgeHint = prevState!.EndHint;
-                s.Downtime.Active = (prev.Downtime.Active || edgeHint.HasFlag(StateMachine.StateHint.DowntimeStart)) && !edgeHint.HasFlag(StateMachine.StateHint.DowntimeEnd);
-                s.Positioning.Active = (prev.Positioning.Active || edgeHint.HasFlag(StateMachine.StateHint.PositioningStart)) && !edgeHint.HasFlag(StateMachine.StateHint.PositioningEnd);
-            }
+            var s = States[curState.State.ID] = new PerState(Plan);
+            s.Downtime.Active = curState.IsDowntime;
+            s.Positioning.Active = curState.IsPositioning;
 
             if (plan != null)
             {
                 foreach (var (k, uses) in plan.PlanAbilities)
                 {
-                    var curAbility = s.Abilities[new(k)] = new();
-                    if (prev != null)
+                    var curAbility = s.Abilities[new(k)];
+
+                    var prevWindows = prev.Abilities[new(k)].ActivationWindows;
+                    if (prevWindows.Count > 0)
                     {
-                        var prevWindows = prev.Abilities[new(k)].ActivationWindows;
-                        if (prevWindows.Count > 0)
-                        {
-                            var last = prevWindows.Last();
-                            var overlap = last.End - prevState!.Duration;
-                            if (overlap > 0)
-                                curAbility.ActivationWindows.Add((0, overlap));
-                        }
+                        var last = prevWindows.Last();
+                        var overlap = last.End - prevDuration;
+                        if (overlap > 0)
+                            curAbility.ActivationWindows.Add((0, overlap));
                     }
 
-                    foreach (var use in uses.Where(use => use.StateID == curState.ID))
+                    foreach (var use in uses.Where(use => use.StateID == curState.State.ID))
                     {
                         curAbility.ActivationWindows.Add((use.TimeSinceActivation, use.TimeSinceActivation + use.WindowLength));
                     }
@@ -162,25 +164,29 @@ namespace BossMod
                 }
             }
 
-            if (curState.Next != null)
+            var phaseLeft = tree.Phases[curState.PhaseID].Duration - curState.Time - curState.State.Duration;
+            if (phaseLeft > 0 && curState.Successors.Count > 0)
             {
-                var next = ProcessState(curState.Next, s, curState, plan);
-                UpdateTransitions(s, next, curState.Next.ID, curState.Duration);
-            }
-
-            if (curState.PotentialSuccessors != null)
-            {
-                foreach (var succ in curState.PotentialSuccessors.Where(s => s != curState.Next))
+                // transition to next state of the same phase
+                foreach (var succ in curState.Successors)
                 {
-                    ProcessState(succ, s, curState, plan);
+                    ProcessState(tree, succ, s, curState.State.Duration, plan);
                 }
             }
-
-            if (curState.Next == null && (curState.PotentialSuccessors?.Length ?? 0) == 0 && !s.Downtime.Active)
+            else if (curState.PhaseID + 1 < tree.Phases.Count)
             {
-                // assume downtime starts after last state (enrage)
-                s.Downtime.Transition = new() { EstimatedTime = curState.Duration };
+                // transition to next phase
+                ProcessState(tree, tree.Phases[curState.PhaseID + 1].StartingNode, s, curState.State.Duration + phaseLeft, plan);
             }
+            else
+            {
+                // transition to enrage
+                if (!s.Downtime.Active)
+                    s.Downtime.Transition = new() { EstimatedTime = curState.State.Duration + phaseLeft };
+            }
+
+            // update transition info from prev to this
+            UpdateTransitions(prev, s, curState.State.ID, prevDuration);
 
             return s;
         }

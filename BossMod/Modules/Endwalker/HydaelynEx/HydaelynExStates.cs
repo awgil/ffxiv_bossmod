@@ -8,17 +8,22 @@ namespace BossMod.Endwalker.HydaelynEx
     {
         public HydaelynExStates(BossModule module) : base(module)
         {
-            HerosRadiance(0x00000000, 10.2f);
-            ShiningSaber(0x00010000, 5.2f);
-            CrystallizeSwitchWeapon(0x00020000, 5.5f, false);
-            ForkByWeapon(0x00030000, 8, ForkFirstStaff, ForkFirstChakram);
+            DeathPhase(0, SinglePhase);
         }
 
-        void ForkByWeapon(uint id, uint secondOffset, Action<uint> forkStaff, Action<uint> forkChakram)
+        private void SinglePhase(uint id)
         {
-            Dictionary<WeaponTracker.Stance, Action> dispatch = new();
-            dispatch[WeaponTracker.Stance.Staff] = () => forkStaff((id & 0xFF000000) + (1 << 24));
-            dispatch[WeaponTracker.Stance.Chakram] = () => forkChakram((id & 0xFF000000) + (secondOffset << 24));
+            HerosRadiance(id, 10.2f);
+            ShiningSaber(id + 0x10000, 5.2f);
+            CrystallizeSwitchWeapon(id + 0x20000, 5.5f, false);
+            ForkByWeapon(id + 0x30000, 8, ForkFirstStaff, ForkFirstChakram);
+        }
+
+        private void ForkByWeapon(uint id, uint secondOffset, Action<uint> forkStaff, Action<uint> forkChakram)
+        {
+            Dictionary<WeaponTracker.Stance, (uint seqID, Action<uint> buildState)> dispatch = new();
+            dispatch[WeaponTracker.Stance.Staff] = ((id >> 24) + 1, forkStaff);
+            dispatch[WeaponTracker.Stance.Chakram] = ((id >> 24) + secondOffset, forkChakram);
             ComponentConditionFork<WeaponTracker, WeaponTracker.Stance>(id, 0, _ => true, comp => comp.CurStance, dispatch);
         }
 

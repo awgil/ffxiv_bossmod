@@ -10,9 +10,11 @@ network:
 
 boss modules:
 - draw actors by framework (components should return color+prio)
-- high-level phases (e.g. for ultima weapon)
 - p3s - review, searing breeze component
+- aglaia revise, implement phases
+- ultima weapon - implement phases
 - generalize components as much as possible
+- fail log
 
 autorotation:
 - opener support
@@ -31,19 +33,19 @@ cooldown planner:
 - select columns to show (concrete actions, categories)
 - plan tankswaps
 - plan raid cooldowns (think about ui and storage for that...)
-- build state-id => metrics (delay-to-planned action, delay-to-positioning/downtime) map instead of doing calculations every frame
 - show hp, ...
+- bug: initial cd plan selected, but not active, on module activate
 
 world rendering:
 - danger zones (modify action vfx?)
 - arrows
 
 misc:
+- bug: fix clipping/triangulation bugs
+- refactor config nodes
 - memory show/watch utility
 - clip circles to arena bounds...
-- fix clipping/triangulation bugs
 - reconsider worldstate->bossmodule event subscription model (tedious to manually subscribe/unsubsribe and forward to components...)
-- fail log?
 - determine exact mechanism for cooldown reset (on instance enter and on wipe)
 - draw target max-melee and boss positioning hints?..
 - action not learned = GetActionStatus -> 573 (this is rowid of LogMessage "action not yet learned") => can be used to disable non-learned spells

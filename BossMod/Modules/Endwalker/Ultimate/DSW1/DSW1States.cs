@@ -13,19 +13,23 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public DSW1States(DSW1 module) : base(module)
         {
             _module = module;
+            DeathPhase(0, SinglePhase);
+        }
 
-            HoliestOfHoly(0x00000000, 5.2f);
-            Heavensblaze(0x00010000, 8.1f);
-            HyperdimensionalSlash(0x00020000, 10.4f);
-            ShiningBlade(0x00030000, 3.9f);
-            HoliestHallowing(0x00040000, 2.8f);
-            Heavensflame(0x00050000, 4.9f);
-            HoliestHallowing(0x00060000, 1.7f);
-            EmptyFullDimension(0x00070000, 4.1f);
-            HoliestHallowing(0x00080000, 5.2f);
-            HoliestOfHoly(0x00090000, 5.1f);
+        private void SinglePhase(uint id)
+        {
+            HoliestOfHoly(id, 5.2f);
+            Heavensblaze(id + 0x10000, 8.1f);
+            HyperdimensionalSlash(id + 0x20000, 10.4f);
+            ShiningBlade(id + 0x30000, 3.9f);
+            HoliestHallowing(id + 0x40000, 2.8f);
+            Heavensflame(id + 0x50000, 4.9f);
+            HoliestHallowing(id + 0x60000, 1.7f);
+            EmptyFullDimension(id + 0x70000, 4.1f);
+            HoliestHallowing(id + 0x80000, 5.2f);
+            HoliestOfHoly(id + 0x90000, 5.1f);
 
-            ActorCast(0x000A0000, _module.SerAdelphel, AID.BrightbladesSteel, 2.2f, 3, "Enrage");
+            ActorCast(id + 0xA0000, _module.SerAdelphel, AID.BrightbladesSteel, 2.2f, 3, "Enrage");
         }
 
         private State HoliestOfHoly(uint id, float delay)

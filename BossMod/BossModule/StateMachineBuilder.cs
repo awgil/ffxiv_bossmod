@@ -1,21 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod
 {
     // utility for building state machines for boss modules
     // conventions for id:
     // - high word (mask 0xFFFF0000) is used for high level groups - states sharing high word are grouped together
-    // - high byte (mask 0xFF000000) is used for independent subsequences (e.g. forks) - states sharing high byte belong to same subsequence
+    // - high byte (mask 0xFF000000) is used for independent subsequences (e.g. forks and phases) - states sharing high byte belong to same subsequence
     // - fourth nibble (mask 0x0000F0000) is used for independent large-scale mechanics that are still parts of the same logical group (typically having single name)
     // - first nibble (mask 0x0000000F) is used for smallest possible states (e.g. cast-start + cast-end)
     // - second and third nibble can be used by modules needing more hierarchy levels
     // this is all done to provide ids that are relatively stable across refactorings (these are used e.g. for cooldown planning)
     public class StateMachineBuilder
     {
+        // wrapper that simplifies building phases
+        public class Phase
+        {
+            public StateMachine.Phase Raw { get; private init; }
+            private BossModule _module;
+
+            public Phase(StateMachine.Phase raw, BossModule module)
+            {
+                Raw = raw;
+                _module = module;
+            }
+
+            public Phase ActivateOnEnter<C>(bool condition = true) where C : BossModule.Component, new()
+            {
+                if (condition)
+                    Raw.Enter.Add(_module.ActivateComponent<C>);
+                return this;
+            }
+
+            public Phase DeactivateOnExit<C>(bool condition = true) where C : BossModule.Component, new()
+            {
+                if (condition)
+                    Raw.Exit.Add(_module.DeactivateComponent<C>);
+                return this;
+            }
+        }
+
         // wrapper that simplifies building states
         public class State
         {
@@ -57,19 +82,57 @@ namespace BossMod
             }
         }
 
-        public StateMachine.State? Initial { get; private set; } = null;
         protected BossModule Module;
+        private List<StateMachine.Phase> _phases = new();
+        private StateMachine.State? _curInitial;
         private StateMachine.State? _lastState;
-        private Dictionary<uint, StateMachine.State> _states;
+        private Dictionary<uint, StateMachine.State> _states = new();
 
         public StateMachineBuilder(BossModule module)
         {
             Module = module;
-            _states = new();
+        }
+
+        public StateMachine Build()
+        {
+            return new(_phases);
+        }
+
+        // create a simple phase; buildState is called to fill out phase states, argument is seqID << 24
+        public Phase SimplePhase(uint seqID, Action<uint> buildState, string name, float dur = -1)
+        {
+            if (_curInitial != null)
+                throw new Exception($"Trying to create phase '{name}' while inside another phase");
+            buildState(seqID << 24);
+            if (_curInitial == null)
+                throw new Exception($"Phase '{name}' has no states");
+            _phases.Add(new(_curInitial, name, dur));
+            _curInitial = _lastState = null;
+            return new(_phases.Last(), Module);
+        }
+
+        // create a phase triggered by primary actor's hp reaching specific threshold
+        public Phase HPPercentPhase(uint seqID, Action<uint> buildState, string name, float hpThreshold, float dur)
+        {
+            var phase = SimplePhase(seqID, buildState, name, dur);
+            phase.Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HPCur < Module.PrimaryActor.HPMax * hpThreshold;
+            return phase;
+        }
+
+        // create a phase for typical single-phase fight (triggered by primary actor dying)
+        public Phase DeathPhase(uint seqID, Action<uint> buildState)
+        {
+            return HPPercentPhase(seqID, buildState, "Boss death", 0, -1);
+        }
+
+        // create a single-state phase; useful for modules with trivial state machines
+        public Phase TrivialPhase(float enrage = 10000)
+        {
+            return DeathPhase(0, id => { SimpleState(id, enrage, "Enrage"); });
         }
 
         // create a simple state without any actions
-        public State Simple(uint id, float duration, string name)
+        public State SimpleState(uint id, float duration, string name)
         {
             if (_states.ContainsKey(id))
                 throw new Exception($"Duplicate state id {id}");
@@ -81,9 +144,9 @@ namespace BossMod
                 if ((_lastState.ID & 0xFFFF0000) == (id & 0xFFFF0000))
                     _lastState.EndHint |= StateMachine.StateHint.GroupWithNext;
             }
-            else if (Initial == null)
+            else if (_curInitial == null)
             {
-                Initial = state;
+                _curInitial = state;
             }
             else
             {
@@ -97,7 +160,7 @@ namespace BossMod
         // create a state triggered by timeout
         public State Timeout(uint id, float duration, string name = "")
         {
-            var state = Simple(id, duration, name);
+            var state = SimpleState(id, duration, name);
             state.Raw.Comment = "Timeout";
             state.Raw.Update = timeSinceTransition => timeSinceTransition >= state.Raw.Duration ? state.Raw.Next : null;
             return state;
@@ -106,7 +169,7 @@ namespace BossMod
         // create a state triggered by custom condition, or if it doesn't happen, by timeout
         public State Condition(uint id, float expected, Func<bool> condition, string name = "", float maxOverdue = 1, float checkDelay = 0)
         {
-            var state = Simple(id, expected, name);
+            var state = SimpleState(id, expected, name);
             state.Raw.Comment = "Generic condition";
             state.Raw.Update = timeSinceTransition =>
             {
@@ -126,12 +189,12 @@ namespace BossMod
         }
 
         // create a fork state that checks passed condition; when it returns non-null, next state is one built by corresponding action in dispatch map
-        public State ConditionFork<Key>(uint id, float expected, Func<bool> condition, Func<Key> select, Dictionary<Key, Action> dispatch, string name = "")
+        public State ConditionFork<Key>(uint id, float expected, Func<bool> condition, Func<Key> select, Dictionary<Key, (uint seqID, Action<uint> buildState)> dispatch, string name = "")
             where Key : notnull
         {
             Dictionary<Key, StateMachine.State?> stateDispatch = new();
 
-            var state = Simple(id, expected, name);
+            var state = SimpleState(id, expected, name);
             state.Raw.Comment = $"Fork: [{string.Join(", ", dispatch.Keys)}]";
             state.Raw.Update = _ =>
             {
@@ -145,14 +208,14 @@ namespace BossMod
                 return fork;
             };
 
-            var prevInit = Initial;
+            var prevInit = _curInitial;
             foreach (var (key, action) in dispatch)
             {
-                _lastState = Initial = null;
-                action();
-                stateDispatch[key] = Initial;
+                _lastState = _curInitial = null;
+                action.buildState(action.seqID << 24);
+                stateDispatch[key] = _curInitial;
             }
-            Initial = prevInit;
+            _curInitial = prevInit;
             _lastState = null;
 
             state.Raw.PotentialSuccessors = stateDispatch.Values.OfType<StateMachine.State>().Distinct().ToArray();
@@ -162,7 +225,7 @@ namespace BossMod
         // create a state triggered by component condition (or timeout if it never happens); if component is not present, error is logged and transition is triggered immediately
         public State ComponentCondition<T>(uint id, float expected, Func<T, bool> condition, string name = "", float maxOverdue = 1, float checkDelay = 0) where T : BossModule.Component
         {
-            var state = Simple(id, expected, name);
+            var state = SimpleState(id, expected, name);
             state.Raw.Comment = $"Condition on {typeof(T).Name}";
             state.Raw.Update = (timeSinceTransition) =>
             {
@@ -189,7 +252,7 @@ namespace BossMod
         }
 
         // create a fork state triggered by component condition
-        public State ComponentConditionFork<T, Key>(uint id, float expected, Func<T, bool> condition, Func<T, Key> select, Dictionary<Key, Action> dispatch, string name = "")
+        public State ComponentConditionFork<T, Key>(uint id, float expected, Func<T, bool> condition, Func<T, Key> select, Dictionary<Key, (uint seqID, Action<uint> buildState)> dispatch, string name = "")
             where T : BossModule.Component
             where Key : notnull
         {
@@ -210,7 +273,7 @@ namespace BossMod
         public State ActorCastStart<AID>(uint id, Func<Actor?> actorAcc, AID aid, float delay, string name = "")
             where AID : Enum
         {
-            var state = Simple(id, delay, name);
+            var state = SimpleState(id, delay, name);
             var expected = ActionID.MakeSpell(aid);
             state.Raw.Comment = $"Cast start: {aid}";
             state.Raw.Update = _ =>
@@ -237,7 +300,7 @@ namespace BossMod
         public State ActorCastStartMulti<AID>(uint id, Func<Actor?> actorAcc, IEnumerable<AID> aids, float delay, string name = "")
             where AID : Enum
         {
-            var state = Simple(id, delay, name);
+            var state = SimpleState(id, delay, name);
             state.Raw.Comment = $"Cast start: [{string.Join(", ", aids)}]";
             state.Raw.Update = _ =>
             {
@@ -261,7 +324,7 @@ namespace BossMod
 
         // create a state triggered by one of a set of expected casts by a primary actor, each of which forking to a separate subsequence
         // values in map are actions building state chains corresponding to each fork
-        public State CastStartFork<AID>(uint id, Dictionary<AID, Action> dispatch, float delay, string name = "")
+        public State CastStartFork<AID>(uint id, Dictionary<AID, (uint seqID, Action<uint> buildState)> dispatch, float delay, string name = "")
              where AID : Enum
         {
             return ConditionFork(id, delay, () => Module.PrimaryActor.CastInfo != null, () => (AID)(object)(Module.PrimaryActor.CastInfo!.IsSpell() ? Module.PrimaryActor.CastInfo.Action.ID : 0), dispatch, name)
@@ -271,7 +334,7 @@ namespace BossMod
         // create a state triggered by cast end by arbitrary actor
         public State ActorCastEnd(uint id, Func<Actor?> actorAcc, float castTime, string name = "")
         {
-            var state = Simple(id, castTime, name);
+            var state = SimpleState(id, castTime, name);
             state.Raw.Comment = "Cast end";
             state.Raw.Update = _ => actorAcc()?.CastInfo == null ? state.Raw.Next : null;
             return state;
@@ -319,7 +382,7 @@ namespace BossMod
         // create a state triggered by arbitrary actor becoming (un)targetable
         public State ActorTargetable(uint id, Func<Actor?> actorAcc, bool targetable, float delay, string name = "", float checkDelay = 0)
         {
-            var state = Simple(id, delay, name);
+            var state = SimpleState(id, delay, name);
             state.Raw.Comment = targetable ? "Targetable" : "Untargetable";
             state.Raw.Update = timeSinceTransition => timeSinceTransition >= checkDelay && actorAcc()?.IsTargetable == targetable ? state.Raw.Next : null;
             return state;

@@ -57,17 +57,17 @@ namespace UIDev
                     ImGui.TextUnformatted(comp.GetType().Name);
                 }
 
-                if (ImGui.CollapsingHeader("Plan execution"))
+                if (ImGui.CollapsingHeader("Plan execution") && _mgr.ActiveModule.StateMachine != null)
                 {
                     if (ImGui.Button("Show timeline"))
                     {
-                        var timeline = new StateMachineVisualizer(_mgr.ActiveModule.InitialState, _mgr.ActiveModule.StateMachine);
+                        var timeline = new StateMachineVisualizer(_mgr.ActiveModule.StateMachine);
                         var w = WindowManager.CreateWindow($"{_mgr.ActiveModule.GetType().Name} timeline", timeline.Draw, () => { }, () => true);
                         w.SizeHint = new(600, 600);
                         w.MinSize = new(100, 100);
                     }
                     ImGui.SameLine();
-                    _mgr.CooldownPlanManager.DrawSelectionUI(_mgr.ActiveModule.PrimaryActor.OID, _mgr.ActiveModule.Raid[_povSlot]?.Class ?? Class.None, _mgr.ActiveModule.InitialState);
+                    _mgr.CooldownPlanManager.DrawSelectionUI(_mgr.ActiveModule.PrimaryActor.OID, _mgr.ActiveModule.Raid[_povSlot]?.Class ?? Class.None, _mgr.ActiveModule.StateMachine);
 
                     _mgr.ActiveModule.PlanExecution?.Draw(_mgr.ActiveModule.StateMachine);
                 }

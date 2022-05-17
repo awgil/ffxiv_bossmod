@@ -21,41 +21,59 @@ namespace UIDev
             player.AdvanceTo(enc.Time.Start, () => { });
             var bmm = new BossModuleManager(player.WorldState, new());
             var m = bmm.ActiveModules.FirstOrDefault(m => m.PrimaryActor.InstanceID == enc.InstanceID);
-            StateMachine.State? prevState = m?.StateMachine.ActiveState;
-            DateTime prevStateEnter = player.WorldState.CurrentTime;
-            if (m != null)
-            {
-                while (player.TickForward() && player.WorldState.CurrentTime <= enc.Time.End)
-                {
-                    m.Update();
-                    if (m.StateMachine.ActiveState == null)
-                        break;
+            if (m?.StateMachine == null)
+                throw new Exception($"Encounter state machine not available");
 
-                    if (prevState != m.StateMachine.ActiveState)
+            var curPhase = m.StateMachine.ActivePhase;
+            var curState = m.StateMachine.ActiveState;
+            DateTime curPhaseEnter = player.WorldState.CurrentTime;
+            DateTime curStateEnter = player.WorldState.CurrentTime;
+            List<StateMachine.State?> lastStates = new();
+            while (player.TickForward() && player.WorldState.CurrentTime <= enc.Time.End)
+            {
+                m.Update();
+
+                if (curPhase != m.StateMachine.ActivePhase)
+                {
+                    if (curPhase != null)
                     {
-                        if (prevState != null)
-                            prevState.Duration = (float)(player.WorldState.CurrentTime - prevStateEnter).TotalSeconds;
-                        prevState = m.StateMachine.ActiveState;
-                        prevStateEnter = player.WorldState.CurrentTime;
+                        curPhase.ExpectedDuration = (float)(player.WorldState.CurrentTime - curPhaseEnter).TotalSeconds;
+                        lastStates.Add(curState);
                     }
+                    curPhase = m.StateMachine.ActivePhase;
+                    curState = null;
+                    curPhaseEnter = player.WorldState.CurrentTime;
                 }
+
+                if (curState != m.StateMachine.ActiveState)
+                {
+                    if (curState != null)
+                        curState.Duration = (float)(player.WorldState.CurrentTime - curStateEnter).TotalSeconds;
+                    curState = m.StateMachine.ActiveState;
+                    curStateEnter = player.WorldState.CurrentTime;
+                }
+
+                if (curState == null)
+                    break;
             }
 
-            var stateTree = new StateMachineTree(m?.InitialState);
-            int curBranch = prevState != null ? (stateTree.Nodes.GetValueOrDefault(prevState.ID)?.BranchID ?? 0) : 0;
+            var stateTree = new StateMachineTree(m.StateMachine);
+            var phaseBranches = Enumerable.Repeat(0, stateTree.Phases.Count).ToList();
+            for (int i = 0; i < lastStates.Count; ++i)
+                if (lastStates[i] != null)
+                    phaseBranches[i] = stateTree.Nodes[lastStates[i]!.ID].BranchID - stateTree.Phases[i].StartingNode.BranchID;
 
-            _timeline.MaxTime = stateTree.MaxTime;
+            stateTree.ApplyTimings(null);
+            _timeline.MaxTime = stateTree.TotalMaxTime;
 
-            _colBoss = _timeline.AddColumn(new ActionUseColumn(_timeline, stateTree));
+            _colBoss = _timeline.AddColumn(new ActionUseColumn(_timeline, stateTree, phaseBranches));
             _colBoss.Width = 10;
-            _colBoss.SelectedBranch = curBranch;
 
-            _colStates = _timeline.AddColumn(new StateMachineBranchColumn(_timeline, stateTree));
-            _colStates.Branch = curBranch;
+            _colStates = _timeline.AddColumn(new StateMachineBranchColumn(_timeline, stateTree, phaseBranches));
 
-            _planner = new(new(pcClass, ""), () => { }, _timeline, stateTree, curBranch);
+            _planner = new(new(pcClass, ""), () => _timeline.MaxTime = stateTree.TotalMaxTime, _timeline, stateTree, phaseBranches);
             if (pc != null)
-                _casts = new(_timeline, pcClass, stateTree, curBranch);
+                _casts = new(_timeline, pcClass, stateTree, phaseBranches);
 
             foreach (var a in replay.EncounterActions(enc))
             {
@@ -68,20 +86,14 @@ namespace UIDev
 
         public void Draw()
         {
-            if (_colStates.DrawControls())
-                SyncBranch();
-            ImGui.SameLine();
-            _planner.DrawControls();
-
+            _planner.DrawControls(true);
             _timeline.Draw();
         }
 
         private void AddEvent(Replay.Encounter enc, Replay.Action a, bool isPlayer)
         {
-            var ev = new ActionUseColumn.Event();
-            ev.Timestamp = (float)(a.Timestamp - enc.Time.Start).TotalSeconds;
-            ev.AttachNode = _colStates.Tree.TimeToBranchNode(_colStates.Branch, ev.Timestamp);
-            ev.Name = $"{a.ID} {ReplayUtils.ParticipantString(a.Source)} -> {ReplayUtils.ParticipantString(a.MainTarget)}";
+            var (node, delay) = _colBoss.AbsoluteTimeToNodeAndDelay((float)(a.Timestamp - enc.Time.Start).TotalSeconds);
+            var ev = new ActionUseColumn.Event(node, delay, $"{a.ID} {ReplayUtils.ParticipantString(a.Source)} -> {ReplayUtils.ParticipantString(a.MainTarget)}", 0);
 
             bool damage = false;
             foreach (var t in a.Targets)
@@ -106,13 +118,6 @@ namespace UIDev
             {
                 _colBoss.Events.Add(ev);
             }
-        }
-
-        private void SyncBranch()
-        {
-            _colBoss.SelectedBranch = _colStates.Branch;
-            _planner.SelectBranch(_colStates.Branch);
-            _casts?.SelectBranch(_colStates.Branch);
         }
     }
 }
