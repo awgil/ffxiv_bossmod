@@ -2,16 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod
 {
     public class GeometryUtils
     {
-        public static List<List<Vector2>> ClipPolygonToPolygon(IEnumerable<Vector2> pts, IEnumerable<Vector2> clipPoly)
+        public static List<Vector2> ClipAndTriangulate(IEnumerable<Vector2> pts, IEnumerable<Vector2> clipPoly)
         {
-            // use Clipper library (Vatti algorithm)
+            // use Clipper library (Vatti algorithm) for clipping and Earcut.net library (earcutting) for triangulating
             ClipperLib.Clipper c = new(ClipperLib.Clipper.ioStrictlySimple);
             List<ClipperLib.IntPoint> ipts = new();
 
@@ -26,65 +24,40 @@ namespace BossMod
             ClipperLib.PolyTree solution = new();
             c.Execute(ClipperLib.ClipType.ctIntersection, solution);
 
-            List<List<Vector2>> polys = new();
-            AddPolysWithHoles(polys, solution);
-            return polys;
+            List<Vector2> triangulation = new();
+            Triangulate(triangulation, solution);
+            return triangulation;
         }
 
-        private static void AddPolysWithHoles(List<List<Vector2>> result, ClipperLib.PolyNode node)
+        private static void Triangulate(List<Vector2> result, ClipperLib.PolyNode node)
         {
-            Func<ClipperLib.IntPoint, Vector2> cvtPt = (ipt) => new Vector2(ipt.X / 1000.0f, ipt.Y / 1000.0f);
-            Func<ClipperLib.IntPoint, ClipperLib.IntPoint, long> intDist = (a, b) => {
-                ClipperLib.IntPoint d = new(a.X - b.X, a.Y - b.Y);
-                return d.X * d.X + d.Y * d.Y;
-            };
             foreach (var outer in node.Childs)
             {
                 if (outer.Contour.Count == 0 || outer.IsOpen)
                     continue;
 
-                // TODO: this is not good...
-                List<(int, int)> connPoints = new();
-                for (int iHole = 0; iHole < outer.ChildCount; ++iHole)
+                List<double> pts = new();
+                List<int> holes = new();
+
+                AddClipperPoly(pts, outer.Contour);
+                foreach (var hole in outer.Childs.Where(h => h.Contour.Count > 0))
                 {
-                    var hole = outer.Childs[iHole];
-                    if (hole.Contour.Count == 0)
-                        continue;
-
-                    int closestOuter = 0;
-                    long closestDist = intDist(hole.Contour[0], outer.Contour[0]);
-                    for (int iTest = 0; iTest < outer.Contour.Count; ++iTest)
-                    {
-                        long dist = intDist(hole.Contour[0], outer.Contour[iTest]);
-                        if (dist < closestDist)
-                        {
-                            closestOuter = iTest;
-                            closestDist = dist;
-                        }
-                    }
-
-                    connPoints.Add(new(iHole, closestOuter));
+                    holes.Add(pts.Count / 2);
+                    AddClipperPoly(pts, hole.Contour);
                 }
-                connPoints.Sort((l, r) => l.Item2.CompareTo(r.Item2));
 
-                List<Vector2> poly = new();
-                int iNextConn = 0;
-                for (int iOuter = 0; iOuter < outer.Contour.Count; ++iOuter)
-                {
-                    poly.Add(cvtPt(outer.Contour[iOuter]));
-                    if (iNextConn < connPoints.Count && connPoints[iNextConn].Item2 == iOuter)
-                    {
-                        var hole = outer.Childs[connPoints[iNextConn++].Item1];
-                        foreach (var p in hole.Contour)
-                            poly.Add(cvtPt(p));
-                        poly.Add(cvtPt(hole.Contour[0]));
-                        poly.Add(cvtPt(outer.Contour[iOuter]));
-                    }
-                }
-                result.Add(poly);
+                var tess = EarcutNet.Earcut.Tessellate(pts, holes);
+                foreach (int v in tess)
+                    result.Add(new((float)pts[2 * v], (float)pts[2 * v + 1]));
+            }
+        }
 
-                foreach (var hole in outer.Childs)
-                    AddPolysWithHoles(result, hole);
+        private static void AddClipperPoly(List<double> output, List<ClipperLib.IntPoint> pts)
+        {
+            foreach (var p in pts)
+            {
+                output.Add(p.X / 1000.0f);
+                output.Add(p.Y / 1000.0f);
             }
         }
 

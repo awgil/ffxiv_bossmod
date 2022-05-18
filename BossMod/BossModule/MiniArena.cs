@@ -250,13 +250,13 @@ namespace BossMod
                 tesselated.Add(GeometryUtils.PolarToCartesian(centerScreen, outerRadiusScreen, angleStart + (float)i / (float)outerSegments * angleLength));
             }
 
-            ClipAndFillConcave(tesselated, color);
+            ClipAndFill(tesselated, color);
         }
 
         public void ZoneCircle(Vector3 center, float radius, uint color)
         {
             var poly = GeometryUtils.BuildTesselatedCircle(WorldPositionToScreenPosition(center), radius / WorldHalfSize * ScreenHalfSize);
-            ClipAndFillConvex(poly, color);
+            ClipAndFill(poly, color);
         }
 
         public void ZoneDonut(Vector3 center, float innerRadius, float outerRadius, uint color)
@@ -267,7 +267,7 @@ namespace BossMod
         public void ZoneTri(Vector3 a, Vector3 b, Vector3 c, uint color)
         {
             var tri = new Vector2[] { WorldPositionToScreenPosition(a), WorldPositionToScreenPosition(b), WorldPositionToScreenPosition(c) };
-            ClipAndFillConvex(tri, color);
+            ClipAndFill(tri, color);
         }
 
         public void ZoneIsoscelesTri(Vector3 apex, Vector3 height, Vector3 halfBase, uint color)
@@ -285,7 +285,7 @@ namespace BossMod
         public void ZoneQuad(Vector3 a, Vector3 b, Vector3 c, Vector3 d, uint color)
         {
             var quad = new Vector2[] { WorldPositionToScreenPosition(a), WorldPositionToScreenPosition(b), WorldPositionToScreenPosition(c), WorldPositionToScreenPosition(d) };
-            ClipAndFillConvex(quad, color);
+            ClipAndFill(quad, color);
         }
 
         public void ZoneQuad(Vector3 origin, Vector3 direction, float lenFront, float lenBack, float halfWidth, uint color)
@@ -389,136 +389,16 @@ namespace BossMod
             return WorldCenter + offset;
         }
 
-        private void ClipAndFillConvex(IEnumerable<Vector2> poly, uint color)
+        private void ClipAndFill(IEnumerable<Vector2> poly, uint color)
         {
             var drawlist = ImGui.GetWindowDrawList();
             var restoreFlags = drawlist.Flags;
             drawlist.Flags &= ~ImDrawListFlags.AntiAliasedFill;
 
-            var clippedPolys = GeometryUtils.ClipPolygonToPolygon(poly, _clipPolygon);
-            foreach (var clipped in clippedPolys)
-            {
-                foreach (var p in clipped)
-                    drawlist.PathLineToMergeDuplicate(p);
-                drawlist.PathFillConvex(color);
-            }
+            var tri = GeometryUtils.ClipAndTriangulate(poly, _clipPolygon);
+            for (int i = 0; i < tri.Count; i += 3)
+                drawlist.AddTriangleFilled(tri[i], tri[i + 1], tri[i + 2], color);
 
-            drawlist.Flags = restoreFlags;
-        }
-
-        private void ClipAndFillConcave(IEnumerable<Vector2> poly, uint color)
-        {
-            var clippedPolys = GeometryUtils.ClipPolygonToPolygon(poly, _clipPolygon);
-            var drawlist = ImGui.GetWindowDrawList();
-            var restoreFlags = drawlist.Flags;
-            drawlist.Flags &= ~ImDrawListFlags.AntiAliasedFill;
-            foreach (var clipped in clippedPolys)
-            {
-                if (clipped.Count < 3)
-                    continue;
-
-                // simple ear-clipping algorithm, TODO consider optimizing
-                Func<int, (Vector2, Vector2, Vector2)> getTri = (int index) =>
-                {
-                    var prev = clipped[index == 0 ? clipped.Count - 1 : index - 1];
-                    var curr = clipped[index];
-                    var next = clipped[index == clipped.Count - 1 ? 0 : index + 1];
-                    return (prev, curr, next);
-                };
-                Func<int, bool> isVertexConvex = (int index) =>
-                {
-                    (var prev, var curr, var next) = getTri(index);
-                    var pc = curr - prev;
-                    var cn = next - curr;
-                    var normal = new Vector2(-pc.Y, pc.X);
-                    return Vector2.Dot(cn, normal) > 0;
-                };
-
-                List<bool> vertexIsConvex = new();
-                int lastConcave = -1;
-                for (int i = 0; i < clipped.Count; ++i)
-                {
-                    bool isConvex = isVertexConvex(i);
-                    vertexIsConvex.Add(isConvex);
-                    if (!isConvex)
-                        lastConcave = i;
-                }
-
-                if (lastConcave < 0)
-                {
-                    // this is a convex polygon, use simple algorithm
-                    var dl = ImGui.GetWindowDrawList();
-                    foreach (var p in clipped)
-                        dl.PathLineTo(p);
-                    dl.PathFillConvex(color);
-                    continue;
-                }
-
-                Func<int, bool> isVertexEar = (int index) =>
-                {
-                    if (!vertexIsConvex[index])
-                        return false; // concave vertex can't be an ear
-
-                    (var prev, var curr, var next) = getTri(index);
-                    var e1 = curr - prev;
-                    var e2 = next - curr;
-                    var e3 = prev - next;
-                    var n1 = new Vector2(-e1.Y, e1.X);
-                    var n2 = new Vector2(-e2.Y, e2.X);
-                    var n3 = new Vector2(-e3.Y, e3.X);
-                    Func<int, bool> concaveVertexInTriangle = (int i) =>
-                    {
-                        if (vertexIsConvex[i])
-                            return false; // don't care about convex vertices here
-                        var d1 = Vector2.Dot(clipped[i] - prev, n1);
-                        var d2 = Vector2.Dot(clipped[i] - curr, n2);
-                        var d3 = Vector2.Dot(clipped[i] - next, n3);
-                        return d1 >= 0 && d2 >= 0 && d3 >= 0;
-                    };
-
-                    for (int i = index + 2, iEnd = index == 0 ? clipped.Count - 1 : clipped.Count; i < iEnd; ++i)
-                        if (concaveVertexInTriangle(i))
-                            return false;
-                    for (int i = (index == clipped.Count - 1) ? 1 : 0; i < index - 1; ++i)
-                        if (concaveVertexInTriangle(i))
-                            return false;
-                    return true;
-                };
-
-                int searchStart = lastConcave != clipped.Count - 1 ? lastConcave + 1 : 0; // optimization: avoid restarting search from the beginning after clipping each ear
-                while (clipped.Count >= 3)
-                {
-                    // find and clip next ear - skip next concave vertices
-                    int earIndex = searchStart;
-                    for (; earIndex < clipped.Count; ++earIndex)
-                        if (isVertexEar(earIndex))
-                            break;
-                    if (earIndex == clipped.Count)
-                    {
-                        for (earIndex = 0; earIndex < searchStart; ++earIndex)
-                            if (isVertexEar(earIndex))
-                                break;
-                        // we are guaranteed to find an ear, there's a theorem about that
-                        // if we fail, that's probably because we have only degenerate stuff left and floating-point imprecision affects us
-                        if (earIndex == searchStart)
-                            break;
-                    }
-
-                    (var prev, var curr, var next) = getTri(earIndex);
-                    drawlist.AddTriangleFilled(prev, curr, next, color);
-
-                    clipped.RemoveAt(earIndex);
-                    vertexIsConvex.RemoveAt(earIndex);
-
-                    // recalculate convexity for neighbouring edges
-                    int neighbour = earIndex != 0 ? earIndex - 1 : clipped.Count - 1;
-                    vertexIsConvex[neighbour] = isVertexConvex(neighbour);
-                    neighbour = earIndex != clipped.Count ? earIndex : 0;
-                    vertexIsConvex[neighbour] = isVertexConvex(neighbour);
-
-                    searchStart = earIndex != clipped.Count ? earIndex : 0;
-                }
-            }
             drawlist.Flags = restoreFlags;
         }
     }

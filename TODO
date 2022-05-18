@@ -41,7 +41,6 @@ world rendering:
 - arrows
 
 misc:
-- bug: fix clipping/triangulation bugs
 - refactor config nodes
 - memory show/watch utility
 - clip circles to arena bounds...
