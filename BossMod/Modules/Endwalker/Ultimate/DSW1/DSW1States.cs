@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BossMod.Endwalker.Ultimate.DSW1
+﻿namespace BossMod.Endwalker.Ultimate.DSW1
 {
     class DSW1States : StateMachineBuilder
     {
@@ -28,8 +22,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             EmptyFullDimension(id + 0x70000, 4.1f);
             HoliestHallowing(id + 0x80000, 5.2f);
             HoliestOfHoly(id + 0x90000, 5.1f);
-
-            ActorCast(id + 0xA0000, _module.SerAdelphel, AID.BrightbladesSteel, 2.2f, 3, "Enrage");
+            AdelphelGrinnauxEnrage(id + 0xA0000, 2.2f);
         }
 
         private State HoliestOfHoly(uint id, float delay)
@@ -92,6 +85,28 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             ActorCastEnd(id + 0x10, _module.SerGrinnaux, 2, "Donut/circle") // holiest-of-holy overlap
                 .DeactivateOnExit<EmptyDimension>()
                 .DeactivateOnExit<FullDimension>();
+        }
+
+        private void AdelphelGrinnauxEnrage(uint id, float delay)
+        {
+            // if timeout is reached, both start their cast, otherwise as soon as any dies, remaining starts the cast
+            var castStart = SimpleState(id, delay, "");
+            castStart.Raw.Comment = $"Adelphel/Grinnaux enrage start";
+            castStart.Raw.Update = _ =>
+            {
+                bool adelphelCast = _module.SerAdelphel()?.CastInfo?.IsSpell(AID.BrightbladesSteel) ?? false;
+                bool grinnauxCast = _module.SerGrinnaux()?.CastInfo?.IsSpell(AID.TheBullsSteel) ?? false;
+                return adelphelCast || grinnauxCast ? castStart.Raw.Next : null;
+            };
+
+            var castEnd = SimpleState(id + 1, 3, "Adelphel/Grinnaux Enrage");
+            castEnd.Raw.Comment = "Adelphel/Grinnaux enrage end";
+            castEnd.Raw.Update = _ =>
+            {
+                bool adelphelDone = _module.SerAdelphel()?.CastInfo == null;
+                bool grinnauxDone = _module.SerGrinnaux()?.CastInfo == null;
+                return adelphelDone && grinnauxDone ? castEnd.Raw.Next : null;
+            };
         }
     }
 }
