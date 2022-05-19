@@ -23,6 +23,7 @@
             HoliestHallowing(id + 0x80000, 5.2f);
             HoliestOfHoly(id + 0x90000, 5.1f);
             AdelphelGrinnauxEnrage(id + 0xA0000, 2.2f);
+            // TODO: pure heart...
         }
 
         private State HoliestOfHoly(uint id, float delay)

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#pragma warning disable CS8625, 8604, 8603, 8600, 8601, 8602, 8618
+
 namespace EarcutNet
 {
     public class Earcut

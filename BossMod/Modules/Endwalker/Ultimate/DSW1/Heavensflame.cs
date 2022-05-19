@@ -124,9 +124,10 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             var pos = module.WorldState.Waymarks[wm];
             if (pos != null)
             {
-                var dir = Vector3.Normalize(pos.Value - module.Arena.WorldCenter);
-                var adjPos = module.Arena.ClampToBounds(module.Arena.WorldCenter + 50 * dir);
-                module.Arena.AddLine(module.Arena.WorldCenter, adjPos, module.Arena.ColorSafe);
+                module.Arena.AddCircle(pos.Value, 2, module.Arena.ColorSafe);
+                //var dir = Vector3.Normalize(pos.Value - _knockbackSource.Position);
+                //var adjPos = module.Arena.ClampToBounds(_knockbackSource.Position + 50 * dir);
+                //module.Arena.AddLine(module.Arena.WorldCenter, adjPos, module.Arena.ColorSafe);
             }
         }
     }

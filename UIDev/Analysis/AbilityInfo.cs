@@ -148,7 +148,7 @@ namespace UIDev.Analysis
                     foreach (var n in tree.Node("Lumina data"))
                     {
                         var row = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(aid.ID);
-                        tree.LeafNode($"Cast time: {row?.Cast100ms * 0.1f}");
+                        tree.LeafNode($"Cast time: {row?.Cast100ms * 0.1f:f1}");
                         tree.LeafNode($"Target range: {row?.Range}");
                         tree.LeafNode($"Effect shape: {row?.CastType}");
                         tree.LeafNode($"Effect range: {row?.EffectRange}");

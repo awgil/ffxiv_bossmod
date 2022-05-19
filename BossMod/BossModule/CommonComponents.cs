@@ -9,20 +9,17 @@ namespace BossMod
         public class CastCounter : BossModule.Component
         {
             public int NumCasts { get; private set; } = 0;
-
-            private ActionID _watchedCastID;
+            protected ActionID WatchedAction { get; private set; }
 
             public CastCounter(ActionID aid)
             {
-                _watchedCastID = aid;
+                WatchedAction = aid;
             }
 
             public override void OnEventCast(BossModule module, CastEvent info)
             {
-                if (info.Action == _watchedCastID)
-                {
+                if (info.Action == WatchedAction)
                     ++NumCasts;
-                }
             }
         }
 
@@ -213,16 +210,14 @@ namespace BossMod
         }
 
         // generic component that shows user-defined shape for any number of active casters with self-targeted casts
-        public class SelfTargetedAOE : BossModule.Component
+        public class SelfTargetedAOE : CastCounter
         {
-            private ActionID _watchedAction;
             private AOEShape _shape;
             private int _maxCasts;
             private List<Actor> _casters = new();
 
-            public SelfTargetedAOE(ActionID aid, AOEShape shape, int maxCasts = int.MaxValue)
+            public SelfTargetedAOE(ActionID aid, AOEShape shape, int maxCasts = int.MaxValue) : base(aid)
             {
-                _watchedAction = aid;
                 _shape = shape;
                 _maxCasts = maxCasts;
             }
@@ -241,18 +236,14 @@ namespace BossMod
 
             public override void OnCastStarted(BossModule module, Actor actor)
             {
-                if (actor.CastInfo!.Action == _watchedAction)
-                {
+                if (actor.CastInfo!.Action == WatchedAction)
                     _casters.Add(actor);
-                }
             }
 
             public override void OnCastFinished(BossModule module, Actor actor)
             {
-                if (actor.CastInfo!.Action == _watchedAction)
-                {
+                if (actor.CastInfo!.Action == WatchedAction)
                     _casters.Remove(actor);
-                }
             }
         }
 
