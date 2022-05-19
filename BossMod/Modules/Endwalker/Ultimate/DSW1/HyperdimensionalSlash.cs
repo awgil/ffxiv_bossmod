@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace BossMod.Endwalker.Ultimate.DSW1
@@ -7,7 +8,8 @@ namespace BossMod.Endwalker.Ultimate.DSW1
     class HyperdimensionalSlash : BossModule.Component
     {
         public int NumCasts { get; private set; }
-        private List<Actor> _targets = new();
+        private List<Actor> _laserTargets = new();
+        private float _coneDir;
         private List<(Vector3 Pos, Actor? Source)> _tears = new();
         private ulong _riskyTears;
 
@@ -20,7 +22,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             _tears.Clear();
             foreach (var tear in module.Enemies(OID.AetherialTear))
                 _tears.Add((tear.Position, null));
-            foreach (var target in _targets)
+            foreach (var target in _laserTargets)
                 _tears.Add((TearPosition(module, target), target));
 
             _riskyTears = 0;
@@ -35,11 +37,14 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                     }
                 }
             }
+
+            var coneTarget = module.Raid.WithoutSlot().MinBy(a => (a.Position - module.Arena.WorldCenter).LengthSquared());
+            _coneDir = coneTarget != null ? GeometryUtils.DirectionFromVec3(coneTarget.Position - module.Arena.WorldCenter) : 0;
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (_targets.Count == 0)
+            if (_laserTargets.Count == 0)
                 return;
 
             int tearIndex = _tears.FindIndex(t => t.Source == actor);
@@ -52,45 +57,26 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                     hints.Add("Stay closer to center!");
             }
 
-            // make sure actor is not clipped by any lasers and either not hit by cone (if is target of a laser) or is hit by a cone (otherwise) regardless of target choice
-            bool clippingLasers = false, clippingCones = false, awayFromCones = false;
-            foreach (var p in module.Raid.WithoutSlot().Exclude(actor))
-            {
-                var dir = GeometryUtils.DirectionFromVec3(p.Position - module.Arena.WorldCenter);
-                if (_targets.Contains(p))
-                {
-                    clippingLasers |= _aoeLaser.Check(actor.Position, module.Arena.WorldCenter, dir);
-                }
-                else
-                {
-                    bool clipping = _aoeCone.Check(actor.Position, module.Arena.WorldCenter, dir);
-                    clippingCones |= clipping;
-                    awayFromCones |= !clipping;
-                }
-            }
-
-            if (clippingLasers)
+            // make sure actor is not clipped by any lasers
+            if (_laserTargets.Exclude(actor).Any(target => _aoeLaser.Check(actor.Position, module.Arena.WorldCenter, GeometryUtils.DirectionFromVec3(target.Position - module.Arena.WorldCenter))))
                 hints.Add("GTFO from laser aoe!");
 
-            if (tearIndex >= 0 && clippingCones)
+            // make sure actor is either not hit by cone (if is target of a laser) or is hit by a cone (otherwise)
+            bool hitByCone = _aoeCone.Check(actor.Position, module.Arena.WorldCenter, _coneDir);
+            if (tearIndex >= 0 && hitByCone)
                 hints.Add("GTFO from cone aoe!");
-            else if (tearIndex < 0 && awayFromCones)
+            else if (tearIndex < 0 && !hitByCone)
                 hints.Add("Stack with others!");
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_targets.Count == 0)
+            if (_laserTargets.Count == 0)
                 return;
 
-            foreach (var p in module.Raid.WithoutSlot())
-            {
-                var dir = GeometryUtils.DirectionFromVec3(p.Position - arena.WorldCenter);
-                if (_targets.Contains(p))
-                    _aoeLaser.Draw(arena, arena.WorldCenter, dir);
-                else
-                    _aoeCone.Draw(arena, arena.WorldCenter, dir);
-            }
+            foreach (var t in _laserTargets)
+                _aoeLaser.Draw(arena, arena.WorldCenter, GeometryUtils.DirectionFromVec3(t.Position - arena.WorldCenter));
+            _aoeCone.Draw(arena, arena.WorldCenter, _coneDir);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -98,7 +84,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             for (int i = 0; i < _tears.Count; ++i)
                 arena.AddCircle(_tears[i].Pos, _linkRadius, BitVector.IsVector64BitSet(_riskyTears, i) ? arena.ColorDanger : arena.ColorSafe);
 
-            if (_targets.Contains(pc))
+            if (_laserTargets.Contains(pc))
                 arena.AddLine(arena.WorldCenter, TearPosition(module, pc), arena.ColorDanger);
         }
 
@@ -106,7 +92,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         {
             if (info.IsSpell(AID.HyperdimensionalSlashAOERest))
             {
-                _targets.Clear();
+                _laserTargets.Clear();
                 ++NumCasts;
             }
         }
@@ -117,7 +103,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             {
                 var actor = module.WorldState.Actors.Find(actorID);
                 if (actor != null)
-                    _targets.Add(actor);
+                    _laserTargets.Add(actor);
             }
         }
 
