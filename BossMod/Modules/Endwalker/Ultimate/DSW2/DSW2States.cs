@@ -20,13 +20,16 @@
 
         private void P2AscalonMercyMight(uint id, float delay)
         {
-            Cast(id, AID.AscalonsMercyConcealed, delay, 3);
+            CastStart(id, AID.AscalonsMercyConcealed, delay);
+            CastEnd(id + 1, 3)
+                .SetHint(StateMachine.StateHint.PositioningStart);
             ComponentCondition<P2AscalonMercy>(id + 2, 1.5f, comp => comp.NumCasts > 0, "Dropped cones")
                 .ActivateOnEnter<P2AscalonMercy>()
                 .DeactivateOnExit<P2AscalonMercy>();
             ComponentCondition<P2AscalonMight>(id + 0x1000, 5.2f, comp => comp.NumCasts > 2, "3x tankbuster cones")
                 .ActivateOnEnter<P2AscalonMight>()
-                .DeactivateOnExit<P2AscalonMight>();
+                .DeactivateOnExit<P2AscalonMight>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void P2StrengthOfTheWard(uint id, float delay)
