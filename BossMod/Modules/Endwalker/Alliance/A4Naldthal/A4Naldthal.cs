@@ -53,7 +53,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
             Arena.WorldHalfSize = 25;
 
             var sb = new StateMachineBuilder(this);
-            var s = sb.TrivialPhase()
+            sb.TrivialPhase()
                 .ActivateOnEnter<GoldenTenet>()
                 .ActivateOnEnter<StygianTenet>()
                 .ActivateOnEnter<FlamesOfTheDead>()
@@ -65,19 +65,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
                 .ActivateOnEnter<HellOfFireBack>()
                 .ActivateOnEnter<WaywardSoul>()
                 .ActivateOnEnter<FortuneFlux>()
-                .ActivateOnEnter<Twingaze>()
-                .DeactivateOnExit<GoldenTenet>()
-                .DeactivateOnExit<StygianTenet>()
-                .DeactivateOnExit<FlamesOfTheDead>()
-                .DeactivateOnExit<LivingHeat>()
-                .DeactivateOnExit<HeavensTrial>()
-                .DeactivateOnExit<DeepestPit>()
-                .DeactivateOnExit<OnceAboveEverBelow>()
-                .DeactivateOnExit<HellOfFireFront>()
-                .DeactivateOnExit<HellOfFireBack>()
-                .DeactivateOnExit<WaywardSoul>()
-                .DeactivateOnExit<FortuneFlux>()
-                .DeactivateOnExit<Twingaze>();
+                .ActivateOnEnter<Twingaze>();
             InitStates(sb.Build());
             //InitStates(new A4NaldthalStates(this).Initial);
         }

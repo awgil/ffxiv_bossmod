@@ -17,10 +17,11 @@ namespace UIDev
 
         public PlayerActions(Replay replay, Replay.Encounter enc, Class pcClass, Replay.Participant? pc = null)
         {
+            // TODO: we should be able to reuse state data from encounter instead of re-running whole simulation...
             ReplayPlayer player = new(replay);
             player.AdvanceTo(enc.Time.Start, () => { });
             var bmm = new BossModuleManager(player.WorldState, new());
-            var m = bmm.ActiveModules.FirstOrDefault(m => m.PrimaryActor.InstanceID == enc.InstanceID);
+            var m = bmm.LoadedModules.FirstOrDefault(m => m.PrimaryActor.InstanceID == enc.InstanceID);
             if (m?.StateMachine == null)
                 throw new Exception($"Encounter state machine not available");
 

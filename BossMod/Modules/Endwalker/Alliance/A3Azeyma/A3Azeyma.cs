@@ -48,7 +48,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             Arena.WorldHalfSize = 30;
 
             var sb = new StateMachineBuilder(this);
-            var s = sb.TrivialPhase()
+            sb.TrivialPhase()
                 .ActivateOnEnter<WardensWarmth>()
                 .ActivateOnEnter<SolarWingsL>()
                 .ActivateOnEnter<SolarWingsR>()
@@ -59,18 +59,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
                 .ActivateOnEnter<DancingFlame>()
                 .ActivateOnEnter<WildfireWard>()
                 .ActivateOnEnter<Sunbeam>()
-                .ActivateOnEnter<SublimeSunset>()
-                .DeactivateOnExit<WardensWarmth>()
-                .DeactivateOnExit<SolarWingsL>()
-                .DeactivateOnExit<SolarWingsR>()
-                .DeactivateOnExit<SolarFlair>()
-                .DeactivateOnExit<SolarFans>()
-                .DeactivateOnExit<FleetingSpark>()
-                .DeactivateOnExit<SolarFold>()
-                .DeactivateOnExit<DancingFlame>()
-                .DeactivateOnExit<WildfireWard>()
-                .DeactivateOnExit<Sunbeam>()
-                .DeactivateOnExit<SublimeSunset>();
+                .ActivateOnEnter<SublimeSunset>();
             InitStates(sb.Build());
             //InitStates(new A3AzeymaStates(this).Initial);
         }

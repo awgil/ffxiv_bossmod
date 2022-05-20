@@ -44,7 +44,7 @@ namespace UIDev
 
             DrawControlRow();
             DrawTimelineRow();
-            ImGui.TextUnformatted($"Num loaded modules: {_mgr.LoadedModules.Count}, num active modules: {_mgr.ActiveModules.Count}, active module: {_mgr.ActiveModule?.GetType()}");
+            ImGui.TextUnformatted($"Num loaded modules: {_mgr.LoadedModules.Count}, num active modules: {_mgr.LoadedModules.Count(m => m.StateMachine?.ActiveState != null)}, active module: {_mgr.ActiveModule?.GetType()}");
             ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
             if (_mgr.ActiveModule != null)
             {

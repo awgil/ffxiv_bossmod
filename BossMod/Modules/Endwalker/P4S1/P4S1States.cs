@@ -4,7 +4,8 @@
     {
         public P4S1States(BossModule module) : base(module)
         {
-            DeathPhase(0, SinglePhase);
+            SimplePhase(0, SinglePhase, "P1")
+                .Raw.Update = () => module.PrimaryActor.IsDestroyed || !module.PrimaryActor.IsTargetable;
         }
 
         private void SinglePhase(uint id)

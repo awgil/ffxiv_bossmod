@@ -18,11 +18,6 @@
             InitStates(new P2SStates(this).Build());
         }
 
-        protected override void ResetModule()
-        {
-            ActivateComponent<SewageDeluge>();
-        }
-
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, Arena.ColorEnemy);

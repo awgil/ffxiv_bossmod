@@ -52,7 +52,7 @@ namespace BossMod.Endwalker.Alliance.A2Rhalgr
             Arena.WorldHalfSize = 30;
 
             var sb = new StateMachineBuilder(this);
-            var s = sb.TrivialPhase()
+            sb.TrivialPhase()
                 .ActivateOnEnter<DestructiveBolt>()
                 .ActivateOnEnter<StrikingMeteor>()
                 .ActivateOnEnter<LightningStorm>()
@@ -61,16 +61,7 @@ namespace BossMod.Endwalker.Alliance.A2Rhalgr
                 .ActivateOnEnter<BrokenWorld>()
                 .ActivateOnEnter<BrokenShards>()
                 .ActivateOnEnter<BronzeLightning>()
-                .ActivateOnEnter<RhalgrBeacon>()
-                .DeactivateOnExit<DestructiveBolt>()
-                .DeactivateOnExit<StrikingMeteor>()
-                .DeactivateOnExit<LightningStorm>()
-                .DeactivateOnExit<HandOfTheDestroyerWrath>()
-                .DeactivateOnExit<HandOfTheDestroyerJudgment>()
-                .DeactivateOnExit<BrokenWorld>()
-                .DeactivateOnExit<BrokenShards>()
-                .DeactivateOnExit<BronzeLightning>()
-                .DeactivateOnExit<RhalgrBeacon>();
+                .ActivateOnEnter<RhalgrBeacon>();
             InitStates(sb.Build());
             //InitStates(new A2RhalgrStates(this).Initial);
         }

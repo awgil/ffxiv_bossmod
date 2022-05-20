@@ -127,6 +127,11 @@ namespace BossMod
             return _components.OfType<T>().FirstOrDefault();
         }
 
+        public void ClearComponents()
+        {
+            _components.Clear();
+        }
+
         public BossModule(BossModuleManager manager, Actor primary, bool resetCooldownsOnReset)
         {
             Manager = manager;
@@ -160,6 +165,12 @@ namespace BossMod
         {
             if (disposing)
             {
+                StateMachine?.Reset();
+                ClearComponents();
+
+                if (_resetRaidCooldowns)
+                    Manager.RaidCooldowns.Clear();
+
                 WorldState.Actors.Added -= OnActorCreated;
                 WorldState.Actors.Removed -= OnActorDestroyed;
                 WorldState.Actors.CastStarted -= OnActorCastStarted;
@@ -175,7 +186,7 @@ namespace BossMod
             }
         }
 
-        protected void InitStates(StateMachine? sm)
+        protected void InitStates(StateMachine sm)
         {
             StateMachine = sm;
             RebuildPlan();
@@ -187,28 +198,23 @@ namespace BossMod
                 PlanExecution = new(StateMachine, Manager.CooldownPlanManager.SelectedPlan(PrimaryActor.OID, Raid.Player()?.Class ?? Class.None));
         }
 
-        public void Start()
-        {
-            Reset();
-            StateMachine?.Start(WorldState.CurrentTime);
-        }
-
-        public void Reset()
-        {
-            StateMachine?.Reset();
-            _components.Clear();
-            ResetModule();
-
-            if (_resetRaidCooldowns)
-                Manager.RaidCooldowns.Clear();
-        }
-
         public void Update()
         {
-            StateMachine?.Update(WorldState.CurrentTime);
-            UpdateModule();
-            foreach (var comp in _components)
-                comp.Update(this);
+            if (StateMachine == null)
+                return;
+
+            if (StateMachine.ActivePhaseIndex < 0 && CheckPull())
+                StateMachine.Start(WorldState.CurrentTime);
+
+            if (StateMachine.ActiveState != null)
+                StateMachine.Update(WorldState.CurrentTime);
+
+            if (StateMachine.ActiveState != null)
+            {
+                UpdateModule();
+                foreach (var comp in _components)
+                    comp.Update(this);
+            }
         }
 
         public virtual void Draw(float cameraAzimuth, int pcSlot, MovementHints? pcMovementHints)
@@ -278,7 +284,10 @@ namespace BossMod
             Manager.HandleError(this, comp, message);
         }
 
-        protected virtual void ResetModule() { }
+        // called during update if module is not yet active, should return true if it is to be activated
+        // default implementation activates if primary target is both targetable and in combat
+        protected virtual bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat; }
+
         protected virtual void UpdateModule() { }
         protected virtual void DrawArenaBackground(int pcSlot, Actor pc) { } // before modules background
         protected virtual void DrawArenaForegroundPre(int pcSlot, Actor pc) { } // after border, before modules foreground

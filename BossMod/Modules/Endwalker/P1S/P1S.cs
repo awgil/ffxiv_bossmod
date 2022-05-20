@@ -13,11 +13,6 @@ namespace BossMod.Endwalker.P1S
             InitStates(new P1SStates(this).Build());
         }
 
-        protected override void ResetModule()
-        {
-            Arena.IsCircle = false; // reset could happen during cells
-        }
-
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
             if (Arena.IsCircle)

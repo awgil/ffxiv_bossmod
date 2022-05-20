@@ -27,11 +27,6 @@
             InitStates(new HydaelynExStates(this).Build());
         }
 
-        protected override void ResetModule()
-        {
-            ActivateComponent<WeaponTracker>();
-        }
-
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, Arena.ColorEnemy);

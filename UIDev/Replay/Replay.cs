@@ -105,12 +105,32 @@ namespace UIDev
             public DateTime Timestamp;
         }
 
+        public class EncounterState
+        {
+            public uint ID;
+            public string Name = "";
+            public string Comment = "";
+            public float ExpectedDuration;
+            public DateTime Exit;
+
+            public string FullName => $"{ID:X} '{Name}' ({Comment})";
+        }
+
+        public class EncounterError
+        {
+            public DateTime Timestamp;
+            public Type? CompType;
+            public string Message = "";
+        }
+
         public class Encounter
         {
             public uint InstanceID;
             public uint OID;
-            public TimeRange Time = new();
             public ushort Zone;
+            public TimeRange Time = new(); // pull to deactivation
+            public List<EncounterState> States = new();
+            public List<EncounterError> Errors = new();
             public Dictionary<uint, List<Participant>> Participants = new(); // key = oid
             public List<(Participant, Class)> PartyMembers = new();
             public int FirstAction;

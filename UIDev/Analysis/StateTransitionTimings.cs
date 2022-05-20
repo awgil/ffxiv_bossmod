@@ -44,77 +44,35 @@ namespace UIDev.Analysis
             }
         }
 
-        class EncounterError
-        {
-            public Replay Replay;
-            public DateTime Timestamp;
-            public Type? CompType;
-            public string Message;
-
-            public EncounterError(Replay replay, DateTime timestamp, Type? compType, string message)
-            {
-                Replay = replay;
-                Timestamp = timestamp;
-                CompType = compType;
-                Message = message;
-            }
-        }
-
-        class BossModuleManagerWrapper : BossModuleManager
-        {
-            private StateTransitionTimings _self;
-            private Replay _replay;
-
-            public BossModuleManagerWrapper(StateTransitionTimings self, Replay replay, WorldState ws)
-                : base(ws, new())
-            {
-                _self = self;
-                _replay = replay;
-            }
-
-            public override void HandleError(BossModule module, BossModule.Component? comp, string message)
-            {
-                _self._errors.Add(new(_replay, module.WorldState.CurrentTime, comp?.GetType(), message));
-            }
-        }
-
         private SortedDictionary<uint, StateMetrics> _metrics = new();
-        private List<EncounterError> _errors = new();
+        private List<(Replay, Replay.EncounterError)> _errors = new();
 
         public StateTransitionTimings(List<Replay> replays, uint oid)
         {
             foreach (var replay in replays)
             {
-                ReplayPlayer player = new(replay);
                 foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
                 {
-                    if (player.WorldState.CurrentTime > enc.Time.Start)
-                        player.Reset();
-                    player.AdvanceTo(enc.Time.Start, () => { });
-
-                    var bmm = new BossModuleManagerWrapper(this, replay, player.WorldState);
-                    var m = bmm.ActiveModules.FirstOrDefault(m => m.PrimaryActor.InstanceID == enc.InstanceID);
-                    if (m == null)
-                        continue;
-
-                    StateMachine.State? prevState = m.StateMachine?.ActiveState;
-                    DateTime prevStateEnter = player.WorldState.CurrentTime;
-                    while (player.TickForward() && player.WorldState.CurrentTime <= enc.Time.End)
+                    foreach (var s in enc.States)
                     {
-                        m.Update();
-                        if (m.StateMachine?.ActiveState == null)
-                            break;
-
-                        if (prevState != m.StateMachine.ActiveState)
+                        if (!_metrics.ContainsKey(s.ID))
                         {
-                            if (prevState != null)
-                            {
-                                RecordTransition(replay, prevState, prevStateEnter, m.StateMachine.ActiveState, player.WorldState.CurrentTime);
-                            }
-
-                            prevState = m.StateMachine.ActiveState;
-                            prevStateEnter = player.WorldState.CurrentTime;
+                            _metrics[s.ID] = new StateMetrics(s.FullName, Math.Round(s.ExpectedDuration, 1));
                         }
+                    }
+
+                    var enter = enc.Time.Start;
+                    for (int i = 0; i < enc.States.Count - 1; ++i)
+                    {
+                        var from = enc.States[i];
+                        var to = enc.States[i + 1];
+                        _metrics[from.ID].Transitions.GetOrAdd(to.ID).Instances.Add(new TransitionMetric((from.Exit - enter).TotalSeconds, replay, enter));
+                        enter = from.Exit;
+                    }
+
+                    foreach (var e in enc.Errors)
+                    {
+                        _errors.Add((replay, e));
                     }
                 }
             }
@@ -142,7 +100,7 @@ namespace UIDev.Analysis
         {
             foreach (var n in tree.Node("Errors", _errors.Count == 0))
             {
-                tree.LeafNodes(_errors, error => $"{error.Replay.Path} @ {error.Timestamp:O} [{error.CompType}] {error.Message}");
+                tree.LeafNodes(_errors, error => $"{error.Item1.Path} @ {error.Item2.Timestamp:O} [{error.Item2.CompType}] {error.Item2.Message}");
             }
 
             foreach (var from in _metrics.Values)
@@ -163,21 +121,6 @@ namespace UIDev.Analysis
                     }
                 }
             }
-        }
-
-        private void RecordTransition(Replay replay, StateMachine.State prev, DateTime prevEnter, StateMachine.State cur, DateTime curEnter)
-        {
-            var m = MetricsForState(prev);
-            MetricsForState(cur); // ensure state entry exists, even if there are no transitions from it
-            m.Transitions.GetOrAdd(cur.ID).Instances.Add(new TransitionMetric((curEnter - prevEnter).TotalSeconds, replay, curEnter));
-        }
-
-        private StateMetrics MetricsForState(StateMachine.State s)
-        {
-            var m = _metrics.GetValueOrDefault(s.ID);
-            if (m == null)
-                m = _metrics[s.ID] = new StateMetrics($"{s.ID:X} '{s.Name}' ({s.Comment})", Math.Round(s.Duration, 1));
-            return m;
         }
     }
 }

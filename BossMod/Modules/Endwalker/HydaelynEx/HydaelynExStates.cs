@@ -8,7 +8,8 @@ namespace BossMod.Endwalker.HydaelynEx
     {
         public HydaelynExStates(BossModule module) : base(module)
         {
-            DeathPhase(0, SinglePhase);
+            DeathPhase(0, SinglePhase)
+                .ActivateOnEnter<WeaponTracker>();
         }
 
         private void SinglePhase(uint id)

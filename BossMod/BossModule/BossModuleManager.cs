@@ -6,7 +6,6 @@ namespace BossMod
 {
     // base class that creates and manages instances of proper boss modules in response to world state changes
     // derived class should perform rendering as appropriate
-    // note: currently boss module is activated whenever primary actor is both *in combat* and *targetable* and deactivated when it leaves combat; TODO rethink... (consider P4S1)
     public class BossModuleManager : IDisposable
     {
         public WorldState WorldState { get; init; }
@@ -17,12 +16,25 @@ namespace BossMod
 
         private bool _running = false;
         private bool _configOrModulesUpdated = false;
-        private Dictionary<uint, BossModule> _loadedModules = new(); // key = primary actor instance ID
-        private List<BossModule> _activeModules = new();
+        private bool _activeModuleOverridden = false;
 
-        public BossModule? ActiveModule => _activeModules.FirstOrDefault();
-        public IReadOnlyCollection<BossModule> ActiveModules => _activeModules;
-        public IReadOnlyCollection<BossModule> LoadedModules => _loadedModules.Values;
+        private List<BossModule> _loadedModules = new();
+        public IReadOnlyList<BossModule> LoadedModules => _loadedModules;
+
+        // drawn module among loaded modules; this can be changed explicitly if needed
+        // usually we don't have multiple concurrently active modules, since this prevents meaningful cd planning, raid cooldown tracking, etc.
+        // but it can theoretically happen e.g. around checkpoints and in typically trivial outdoor content
+        // TODO: reconsider...
+        private BossModule? _activeModule;
+        public BossModule? ActiveModule
+        {
+            get => _activeModule;
+            protected set {
+                _activeModule = value;
+                _configOrModulesUpdated = true;
+                _activeModuleOverridden = true;
+            }
+        }
 
         public BossModuleManager(WorldState ws, ConfigNode settings)
         {
@@ -63,27 +75,67 @@ namespace BossMod
             if (!_running)
                 return;
 
+            // update all loaded modules, handle activation/deactivation
+            int bestPriority = 0;
+            BossModule? bestModule = null;
+            bool anyModuleActivated = false;
+            for (int i = 0; i < _loadedModules.Count; ++i)
+            {
+                var m = _loadedModules[i];
+                bool wasActive = m.StateMachine?.ActiveState != null;
+                bool isActive;
+                try
+                {
+                    m.Update();
+                    isActive = m.StateMachine?.ActiveState != null;
+                }
+                catch (Exception ex)
+                {
+                    Service.Log($"Boss module {m.GetType()} crashed: {ex}");
+                    wasActive = true; // force unload if exception happened before activation
+                    isActive = false;
+                }
+
+                // unload module either if it became deactivated or its primary actor disappeared without ever activating
+                if (!isActive && (wasActive || m.PrimaryActor.IsDestroyed))
+                {
+                    UnloadModule(i--);
+                    continue;
+                }
+
+                // module remains loaded
+                int priority = ModuleDisplayPriority(m);
+                if (priority > bestPriority)
+                {
+                    bestPriority = priority;
+                    bestModule = m;
+                }
+
+                if (!wasActive && isActive)
+                {
+                    Service.Log($"[BMM] Boss module '{m.GetType()}' for actor {m.PrimaryActor.InstanceID:X} ({m.PrimaryActor.OID:X}) '{m.PrimaryActor.Name}' activated");
+                    anyModuleActivated |= true;
+                }
+            }
+
+            if (bestPriority > ModuleDisplayPriority(_activeModule) && (anyModuleActivated || !_activeModuleOverridden))
+            {
+                _activeModule = bestModule;
+                _configOrModulesUpdated = true;
+                _activeModuleOverridden = false;
+            }
+
             if (_configOrModulesUpdated)
             {
                 RefreshConfigOrModules();
                 _configOrModulesUpdated = false;
             }
-
-            try
-            {
-                foreach (var m in _activeModules)
-                    m.Update();
-            }
-            catch (Exception ex)
-            {
-                Service.Log($"Boss module crashed: {ex}");
-                WindowConfig.Enable = false;
-                Shutdown();
-            }
         }
 
         public virtual void HandleError(BossModule module, BossModule.Component? comp, string message) { }
         protected virtual void RefreshConfigOrModules() { }
+        protected virtual void OnModuleLoaded(BossModule module) { Service.Log($"[BMM] Boss module '{module.GetType()}' for actor {module.PrimaryActor.InstanceID:X} ({module.PrimaryActor.OID:X}) '{module.PrimaryActor.Name}' loaded"); }
+        protected virtual void OnModuleUnloaded(BossModule module) { Service.Log($"[BMM] Boss module '{module.GetType()}' for actor {module.PrimaryActor.InstanceID:X} unloaded"); }
 
         private void Startup()
         {
@@ -92,24 +144,13 @@ namespace BossMod
 
             Service.Log("[BMM] Starting up...");
             _running = true;
-            WorldState.Actors.Added += ActorAdded;
-            WorldState.Actors.Removed += ActorRemoved;
-            WorldState.Actors.InCombatChanged += EnterExitCombat;
-            WorldState.Actors.IsTargetableChanged += TargetableChanged;
 
             if (WindowConfig.ShowDemo)
-            {
-                LoadDemo();
-            }
+                _loadedModules.Add(CreateDemoModule());
 
+            WorldState.Actors.Added += ActorAdded;
             foreach (var a in WorldState.Actors)
-            {
-                var m = LoadModule(a);
-                if (m != null && a.InCombat && a.IsTargetable)
-                {
-                    ActivateModule(m);
-                }
-            }
+                ActorAdded(null, a);
 
             _configOrModulesUpdated = true;
         }
@@ -122,17 +163,9 @@ namespace BossMod
             Service.Log("[BMM] Shutting down...");
             _running = false;
             WorldState.Actors.Added -= ActorAdded;
-            WorldState.Actors.Removed -= ActorRemoved;
-            WorldState.Actors.InCombatChanged -= EnterExitCombat;
-            WorldState.Actors.IsTargetableChanged -= TargetableChanged;
 
-            foreach (var m in _activeModules)
-            {
-                m.Reset();
-            }
-            _activeModules.Clear();
-
-            foreach (var m in _loadedModules.Values)
+            _activeModule = null;
+            foreach (var m in _loadedModules)
                 m.Dispose();
             _loadedModules.Clear();
 
@@ -140,99 +173,55 @@ namespace BossMod
             _configOrModulesUpdated = false;
         }
 
-        private bool LoadDemo()
+        private void LoadModule(BossModule m)
         {
-            if (_running && !_loadedModules.ContainsKey(0))
+            if (m.StateMachine == null)
             {
-                _loadedModules[0] = new DemoModule(this, new(0, 0, "", ActorType.None, Class.None, new(), 0, 0, 0, false, 0));
-                _configOrModulesUpdated = true;
-                return true;
+                Service.Log($"[BMM] Failed to load boss module '{m.GetType()}', since it didn't initialize state machine - make sure InitStates is called in constructor");
+                return;
             }
-            return false;
-        }
-
-        private BossModule? LoadModule(Actor actor)
-        {
-            var m = ModuleRegistry.CreateModule(actor.OID, this, actor);
-            if (m != null)
-            {
-                Service.Log($"[BMM] Loading boss module '{m.GetType()}' for actor {actor.InstanceID:X} ({actor.OID:X}) '{actor.Name}'");
-                _loadedModules[actor.InstanceID] = m;
-                _configOrModulesUpdated = true;
-            }
-            return m;
-        }
-
-        public bool UnloadModule(uint instanceID)
-        {
-            var m = _loadedModules.GetValueOrDefault(instanceID);
-            if (m == null)
-                return false;
-
-            DeactivateModule(m);
-
-            Service.Log($"[BMM] Unloading boss module '{m.GetType()}' for actor {instanceID:X}");
-            m.Dispose();
-            _loadedModules.Remove(instanceID);
+            _loadedModules.Add(m);
             _configOrModulesUpdated = true;
-            return true;
+            OnModuleLoaded(m);
         }
 
-        public bool ActivateModule(BossModule m)
+        private void UnloadModule(int index)
         {
-            if (!_activeModules.Contains(m))
+            var m = _loadedModules[index];
+            OnModuleUnloaded(m);
+            if (_activeModule == m)
             {
-                Service.Log($"[BMM] Activating boss module '{m.GetType()}' for actor {m.PrimaryActor.InstanceID:X} ({m.PrimaryActor.OID:X}) '{m.PrimaryActor.Name}'");
-                m.Start();
-                _activeModules.Add(m);
-                _configOrModulesUpdated = true;
-                return true;
+                _activeModule = null;
+                _activeModuleOverridden = false;
             }
-            return false;
+            m.Dispose();
+            _loadedModules.RemoveAt(index);
+            _configOrModulesUpdated = true;
         }
 
-        public bool DeactivateModule(BossModule m)
+        private int ModuleDisplayPriority(BossModule? m)
         {
-            if (_activeModules.Remove(m))
-            {
-                Service.Log($"[BMM] Deactivating boss module '{m.GetType()}' for actor {m.PrimaryActor.InstanceID:X} ({m.PrimaryActor.OID:X}) '{m.PrimaryActor.Name}'");
-                m.Reset();
-                _configOrModulesUpdated = true;
-                return true;
-            }
-            return false;
+            if (m == null)
+                return 0;
+            if (m.StateMachine?.ActiveState != null)
+                return 3;
+            if (!m.PrimaryActor.IsDestroyed && !m.PrimaryActor.IsDead && m.PrimaryActor.IsTargetable)
+                return 2;
+            return 1;
+        }
+
+        private BossModule CreateDemoModule()
+        {
+            return new DemoModule(this, new(0, 0, "", ActorType.None, Class.None, new(), 0, 0, 0, false, 0));
         }
 
         private void ActorAdded(object? sender, Actor actor)
         {
-            LoadModule(actor);
-        }
-
-        private void ActorRemoved(object? sender, Actor actor)
-        {
-            UnloadModule(actor.InstanceID);
-        }
-
-        private void EnterExitCombat(object? sender, Actor actor)
-        {
-            var m = _loadedModules.GetValueOrDefault(actor.InstanceID);
-            if (m == null)
-                return;
-
-            if (!actor.InCombat)
-                DeactivateModule(m);
-            else if (actor.IsTargetable)
-                ActivateModule(m);
-        }
-
-        private void TargetableChanged(object? sender, Actor actor)
-        {
-            var m = _loadedModules.GetValueOrDefault(actor.InstanceID);
-            if (m == null)
-                return;
-
-            if (actor.InCombat && actor.IsTargetable)
-                ActivateModule(m);
+            var m = ModuleRegistry.CreateModule(actor.OID, this, actor);
+            if (m != null)
+            {
+                LoadModule(m);
+            }
         }
 
         private void ConfigChanged(object? sender, EventArgs args)
@@ -242,17 +231,18 @@ namespace BossMod
             else
                 Shutdown();
 
-            if (WindowConfig.ShowDemo)
-                LoadDemo();
+            int demoIndex = _loadedModules.FindIndex(m => m is DemoModule);
+            if (WindowConfig.ShowDemo && demoIndex < 0)
+                LoadModule(CreateDemoModule());
             else
-                UnloadModule(0);
+                UnloadModule(demoIndex);
 
             _configOrModulesUpdated = true;
         }
 
         private void PlanChanged(object? sender, EventArgs args)
         {
-            foreach (var m in _loadedModules.Values)
+            foreach (var m in _loadedModules)
                 m.RebuildPlan();
             _configOrModulesUpdated = true;
         }

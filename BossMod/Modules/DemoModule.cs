@@ -33,7 +33,10 @@ namespace BossMod
         public DemoModule(BossModuleManager manager, Actor primary)
             : base(manager, primary, false)
         {
-            InitStates(null);
+            var smb = new StateMachineBuilder(this);
+            smb.TrivialPhase();
+            InitStates(smb.Build());
+
             ActivateComponent<DemoComponent>();
         }
     }

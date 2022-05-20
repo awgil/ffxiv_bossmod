@@ -26,17 +26,11 @@ namespace BossMod
                 _module = module;
             }
 
+            // note that there is no "deactivate on exit", since phase change clears all components automatically
             public Phase ActivateOnEnter<C>(bool condition = true) where C : BossModule.Component, new()
             {
                 if (condition)
                     Raw.Enter.Add(_module.ActivateComponent<C>);
-                return this;
-            }
-
-            public Phase DeactivateOnExit<C>(bool condition = true) where C : BossModule.Component, new()
-            {
-                if (condition)
-                    Raw.Exit.Add(_module.DeactivateComponent<C>);
                 return this;
             }
         }
@@ -99,6 +93,7 @@ namespace BossMod
         }
 
         // create a simple phase; buildState is called to fill out phase states, argument is seqID << 24
+        // note that on exit, all components are removed, since generally phase transition can happen at any time
         public Phase SimplePhase(uint seqID, Action<uint> buildState, string name, float dur = -1)
         {
             if (_curInitial != null)
@@ -106,9 +101,11 @@ namespace BossMod
             buildState(seqID << 24);
             if (_curInitial == null)
                 throw new Exception($"Phase '{name}' has no states");
-            _phases.Add(new(_curInitial, name, dur));
+            var phase = new StateMachine.Phase(_curInitial, name, dur);
+            phase.Exit.Add(Module.ClearComponents);
+            _phases.Add(phase);
             _curInitial = _lastState = null;
-            return new(_phases.Last(), Module);
+            return new(phase, Module);
         }
 
         // create a phase triggered by primary actor's hp reaching specific threshold

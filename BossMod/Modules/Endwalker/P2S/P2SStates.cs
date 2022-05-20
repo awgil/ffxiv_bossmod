@@ -4,7 +4,8 @@
     {
         public P2SStates(BossModule module) : base(module)
         {
-            DeathPhase(0, SinglePhase);
+            DeathPhase(0, SinglePhase)
+                .ActivateOnEnter<SewageDeluge>();
         }
 
         private void SinglePhase(uint id)

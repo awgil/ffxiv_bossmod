@@ -12,7 +12,6 @@ namespace BossMod
     {
         private WindowManager.Window? _mainWindow;
         private WindowManager.Window? _planWindow;
-        private BossModule? _drawnModule;
 
         public BossModuleManagerGame(WorldState ws, ConfigNode settings)
             : base(ws, settings)
@@ -35,25 +34,18 @@ namespace BossMod
             }
 
             // update main window properties
-            SetDrawnModule(ActiveModule ?? (LoadedModules.Count == 1 ? LoadedModules.SingleOrDefault() : null));
             if (_mainWindow != null)
             {
+                _mainWindow.Title = ActiveModule != null ? $"Boss module ({ActiveModule.GetType().Name})" : "Loaded boss modules";
                 _mainWindow.Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
                 if (WindowConfig.TrishaMode)
                     _mainWindow.Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
                 if (WindowConfig.Lock)
                     _mainWindow.Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
             }
-        }
-
-        private void SetDrawnModule(BossModule? m)
-        {
-            _drawnModule = m;
-            if (_mainWindow != null)
-                _mainWindow.Title = m != null ? $"Boss module ({m.GetType().Name})" : "Bosses with modules nearby";
 
             // create or destroy plan window if needed
-            bool showPlanWindow = WindowConfig.EnableTimerWindow && _drawnModule?.PlanExecution != null;
+            bool showPlanWindow = WindowConfig.EnableTimerWindow && ActiveModule?.PlanExecution != null;
             if (_planWindow != null && !showPlanWindow)
             {
                 Service.Log("[BMM] Closing plan window");
@@ -79,18 +71,18 @@ namespace BossMod
 
         private void DrawMainWindow()
         {
-            if (_drawnModule != null)
+            if (ActiveModule != null)
             {
                 try
                 {
                     BossModule.MovementHints? movementHints = WindowConfig.ShowWorldArrows ? new() : null;
-                    _drawnModule.Draw(WindowConfig.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, PartyState.PlayerSlot, movementHints);
+                    ActiveModule.Draw(WindowConfig.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, PartyState.PlayerSlot, movementHints);
                     DrawMovementHints(movementHints);
                 }
                 catch (Exception ex)
                 {
-                    Service.Log($"Boss module crashed: {ex}");
-                    SetDrawnModule(null);
+                    Service.Log($"Boss module draw crashed: {ex}");
+                    ActiveModule = null;
                 }
             }
             else
@@ -100,7 +92,7 @@ namespace BossMod
                     var oidType = m.GetType().Module.GetType($"{m.GetType().Namespace}.OID");
                     var oidName = oidType?.GetEnumName(m.PrimaryActor.OID);
                     if (ImGui.Button($"{m.GetType()} ({m.PrimaryActor.InstanceID:X} '{m.PrimaryActor.Name}' {oidName})"))
-                        SetDrawnModule(m);
+                        ActiveModule = m;
                 }
             }
         }
@@ -153,11 +145,11 @@ namespace BossMod
 
         private bool MainWindowClosedByUser()
         {
-            if (_drawnModule != null)
+            if (ActiveModule != null)
             {
                 // show module list instead of boss module
                 Service.Log("[BMM] Bossmod window closed by user, showing module list instead...");
-                SetDrawnModule(null);
+                ActiveModule = null;
                 return false;
             }
             else
@@ -170,20 +162,20 @@ namespace BossMod
 
         private void DrawPlanWindow()
         {
-            if (_drawnModule?.StateMachine == null || _drawnModule.PlanExecution == null)
+            if (ActiveModule?.StateMachine == null || ActiveModule.PlanExecution == null)
                 return;
 
             if (ImGui.Button("Show timeline"))
             {
-                var timeline = new StateMachineVisualizer(_drawnModule.StateMachine);
-                var w = WindowManager.CreateWindow($"{_drawnModule.GetType().Name} timeline", timeline.Draw, () => { }, () => true);
+                var timeline = new StateMachineVisualizer(ActiveModule.StateMachine);
+                var w = WindowManager.CreateWindow($"{ActiveModule.GetType().Name} timeline", timeline.Draw, () => { }, () => true);
                 w.SizeHint = new(600, 600);
                 w.MinSize = new(100, 100);
             }
             ImGui.SameLine();
-            CooldownPlanManager.DrawSelectionUI(_drawnModule.PrimaryActor.OID, _drawnModule.Raid.Player()?.Class ?? Class.None, _drawnModule.StateMachine);
+            CooldownPlanManager.DrawSelectionUI(ActiveModule.PrimaryActor.OID, ActiveModule.Raid.Player()?.Class ?? Class.None, ActiveModule.StateMachine);
 
-            _drawnModule.PlanExecution.Draw(_drawnModule.StateMachine);
+            ActiveModule.PlanExecution.Draw(ActiveModule.StateMachine);
         }
 
         private void PlanWindowClosed()

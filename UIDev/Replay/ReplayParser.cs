@@ -8,18 +8,69 @@ namespace UIDev
 {
     public class ReplayParser
     {
+        class LoadedModuleData
+        {
+            public BossModule Module;
+            public Replay.Encounter Encounter;
+            public StateMachine.State? ActiveState;
+
+            public LoadedModuleData(BossModule module, Replay.Encounter enc)
+            {
+                Module = module;
+                Encounter = enc;
+            }
+        }
+
+        class BossModuleManagerWrapper : BossModuleManager
+        {
+            private ReplayParser _self;
+
+            public BossModuleManagerWrapper(ReplayParser self) : base(self._ws, new()) { _self = self; }
+
+            public override void HandleError(BossModule module, BossModule.Component? comp, string message)
+            {
+                _self._modules[module.PrimaryActor.InstanceID].Encounter.Errors.Add(new() { Timestamp = _self._ws.CurrentTime, CompType = comp?.GetType(), Message = message });
+            }
+
+            protected override void OnModuleLoaded(BossModule module)
+            {
+                var enc = new Replay.Encounter()
+                {
+                    InstanceID = module.PrimaryActor.InstanceID,
+                    OID = module.PrimaryActor.OID,
+                    Zone = _self._ws.CurrentZone,
+                    FirstAction = _self._res.Actions.Count,
+                    FirstStatus = _self._res.Statuses.Count,
+                    FirstTether = _self._res.Tethers.Count,
+                    FirstIcon = _self._res.Icons.Count,
+                    FirstEnvControl = _self._res.EnvControls.Count
+                };
+                _self._modules[module.PrimaryActor.InstanceID] = new(module, enc);
+            }
+
+            protected override void OnModuleUnloaded(BossModule module)
+            {
+                var data = _self._modules[module.PrimaryActor.InstanceID];
+                if (data.ActiveState != null)
+                    data.Encounter.States.Add(new() { ID = data.ActiveState.ID, Name = data.ActiveState.Name, Comment = data.ActiveState.Comment, ExpectedDuration = data.ActiveState.Duration, Exit = _self._ws.CurrentTime });
+                data.Encounter.Time.End = _self._ws.CurrentTime;
+                _self._modules.Remove(module.PrimaryActor.InstanceID);
+            }
+        }
+
         protected Replay _res = new();
         protected WorldState _ws = new();
-        private Dictionary<uint, Replay.Encounter> _encounters = new();
+        private BossModuleManagerWrapper _mgr;
+        private Dictionary<uint, LoadedModuleData> _modules = new();
         private Dictionary<uint, Replay.Participant> _participants = new();
         private Dictionary<(uint, int), Replay.Status> _statuses = new();
         private Dictionary<uint, Replay.Tether> _tethers = new();
 
         protected ReplayParser()
         {
+            _mgr = new(this);
             _ws.Actors.Added += ActorAdded;
             _ws.Actors.Removed += ActorRemoved;
-            _ws.Actors.InCombatChanged += ActorCombat;
             _ws.Actors.IsTargetableChanged += ActorTargetable;
             _ws.Actors.IsDeadChanged += ActorDead;
             _ws.Actors.Moved += ActorMoved;
@@ -38,7 +89,8 @@ namespace UIDev
 
         protected void AddOp(DateTime timestamp, ReplayOps.Operation op)
         {
-            _ws.CurrentTime = op.Timestamp = timestamp;
+            AdvanceWorldTime(timestamp);
+            op.Timestamp = timestamp;
             op.Redo(_ws);
             _res.Ops.Add(op);
         }
@@ -59,9 +111,11 @@ namespace UIDev
             //}
 
             _res.Path = path;
-            foreach (var enc in _encounters.Values)
+            foreach (var enc in _modules.Values)
             {
-                enc.Time.End = _ws.CurrentTime;
+                if (enc.ActiveState != null)
+                    enc.Encounter.States.Add(new() { ID = enc.ActiveState.ID, Name = enc.ActiveState.Name, Comment = enc.ActiveState.Comment, ExpectedDuration = enc.ActiveState.Duration, Exit = _ws.CurrentTime });
+                enc.Encounter.Time.End = _ws.CurrentTime;
             }
             foreach (var p in _participants.Values)
             {
@@ -87,42 +141,33 @@ namespace UIDev
             return _res;
         }
 
-        private void StartEncounter(Actor actor)
+        private void AdvanceWorldTime(DateTime timestamp)
         {
-            if (_encounters.ContainsKey(actor.InstanceID))
-                return;
-
-            var m = ModuleRegistry.TypeForOID(actor.OID);
-            if (m == null)
-                return;
-
-            var e = _encounters[actor.InstanceID] = new()
+            if (_ws.CurrentTime != timestamp && _ws.CurrentTime != new DateTime())
             {
-                InstanceID = actor.InstanceID,
-                OID = actor.OID,
-                Time = new(_ws.CurrentTime),
-                Zone = _ws.CurrentZone,
-                FirstAction = _res.Actions.Count,
-                FirstStatus = _res.Statuses.Count,
-                FirstTether = _res.Tethers.Count,
-                FirstIcon = _res.Icons.Count,
-                FirstEnvControl = _res.EnvControls.Count
-            };
-            foreach (var p in _participants.Values)
-                e.Participants.GetOrAdd(p.OID).Add(p);
-            foreach (var p in _ws.Party.WithoutSlot(true))
-                e.PartyMembers.Add((_participants[p.InstanceID], p.Class));
-            _res.Encounters.Add(e);
-        }
-
-        private void FinishEncounter(Actor actor)
-        {
-            var e = _encounters.GetValueOrDefault(actor.InstanceID);
-            if (e == null)
-                return;
-
-            e.Time.End = _ws.CurrentTime;
-            _encounters.Remove(actor.InstanceID);
+                _mgr.Update();
+                foreach (var m in _modules.Values)
+                {
+                    if (m.Module.StateMachine?.ActiveState != m.ActiveState)
+                    {
+                        if (m.ActiveState == null)
+                        {
+                            m.Encounter.Time.Start = _ws.CurrentTime;
+                            foreach (var p in _participants.Values)
+                                m.Encounter.Participants.GetOrAdd(p.OID).Add(p);
+                            foreach (var p in _ws.Party.WithoutSlot(true))
+                                m.Encounter.PartyMembers.Add((_participants[p.InstanceID], p.Class));
+                            _res.Encounters.Add(m.Encounter);
+                        }
+                        else
+                        {
+                            m.Encounter.States.Add(new() { ID = m.ActiveState.ID, Name = m.ActiveState.Name, Comment = m.ActiveState.Comment, ExpectedDuration = m.ActiveState.Duration, Exit = _ws.CurrentTime });
+                        }
+                        m.ActiveState = m.Module.StateMachine?.ActiveState;
+                    }
+                }
+            }
+            _ws.CurrentTime = timestamp;
         }
 
         private void ActorAdded(object? sender, Actor actor)
@@ -133,8 +178,9 @@ namespace UIDev
             p.PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
             p.HPHistory.Add(_ws.CurrentTime, (actor.HPCur, actor.HPMax));
             _res.Participants.Add(p);
-            foreach (var e in _encounters.Values)
-                e.Participants.GetOrAdd(p.OID).Add(p);
+            foreach (var e in _modules.Values)
+                if (e.Encounter != null)
+                    e.Encounter.Participants.GetOrAdd(p.OID).Add(p);
         }
 
         private void ActorRemoved(object? sender, Actor actor)
@@ -146,19 +192,9 @@ namespace UIDev
             _participants.Remove(actor.InstanceID);
         }
 
-        private void ActorCombat(object? sender, Actor actor)
-        {
-            if (!actor.InCombat)
-                FinishEncounter(actor);
-            else if (actor.IsTargetable)
-                StartEncounter(actor);
-        }
-
         private void ActorTargetable(object? sender, Actor actor)
         {
             _participants[actor.InstanceID].TargetableHistory.Add(_ws.CurrentTime, actor.IsTargetable);
-            if (actor.InCombat && actor.IsTargetable)
-                StartEncounter(actor);
         }
 
         private void ActorDead(object? sender, Actor actor)

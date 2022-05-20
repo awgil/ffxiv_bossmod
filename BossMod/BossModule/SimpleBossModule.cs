@@ -16,8 +16,7 @@
         {
             var sb = new StateMachineBuilder(this);
             sb.TrivialPhase()
-                .ActivateOnEnter<T>()
-                .DeactivateOnExit<T>();
+                .ActivateOnEnter<T>();
             InitStates(sb.Build());
         }
 

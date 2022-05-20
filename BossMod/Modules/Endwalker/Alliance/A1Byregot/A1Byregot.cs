@@ -9,13 +9,10 @@
             Arena.WorldHalfSize = 25;
 
             var sb = new StateMachineBuilder(this);
-            var s = sb.TrivialPhase()
+            sb.TrivialPhase()
                 .ActivateOnEnter<ByregotStrike>()
                 .ActivateOnEnter<Hammers>()
-                .ActivateOnEnter<Reproduce>()
-                .DeactivateOnExit<ByregotStrike>()
-                .DeactivateOnExit<Hammers>()
-                .DeactivateOnExit<Reproduce>();
+                .ActivateOnEnter<Reproduce>();
             InitStates(sb.Build());
             //InitStates(new A1ByregotStates(this).Initial);
         }

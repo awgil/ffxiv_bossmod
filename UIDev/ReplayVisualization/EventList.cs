@@ -44,6 +44,7 @@ namespace UIDev
                 }
 
                 DrawContents(e, moduleType);
+                DrawEncounterDetails(e, TimePrinter(e.Time.Start));
                 DrawPlayerActions(e);
             }
         }
@@ -207,6 +208,23 @@ namespace UIDev
             _tree.LeafNodes(statuses, s => StatusString(s, tp, sidType));
         }
 
+        private void DrawEncounterDetails(Replay.Encounter enc, Func<DateTime, string> tp)
+        {
+            foreach (var n in _tree.Node("State transitions"))
+            {
+                var enter = enc.Time.Start;
+                foreach (var s in _tree.Nodes(enc.States, s => new($"{s.FullName:X}: {tp(enter)} - {tp(s.Exit)} = {new Replay.TimeRange(enter, s.Exit)} (expected {s.ExpectedDuration:f1})", true)))
+                {
+                    enter = s.Exit;
+                }
+            }
+
+            foreach (var n in _tree.Node("Errors"))
+            {
+                _tree.LeafNodes(enc.Errors, error => $"{tp(error.Timestamp)} [{error.CompType}] {error.Message}");
+            }
+        }
+
         private Func<DateTime, string> TimePrinter(DateTime start)
         {
             return t => new Replay.TimeRange(start, t).ToString();
@@ -222,7 +240,7 @@ namespace UIDev
 
         private void DrawPlayerActions(Replay.Encounter enc)
         {
-            foreach (var n in _tree.Node("Player actions timeline", false))
+            foreach (var n in _tree.Node("Player actions timeline"))
             {
                 foreach (var c in AbilityDefinitions.Classes.Keys)
                 {
