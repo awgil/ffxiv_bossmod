@@ -73,9 +73,9 @@ namespace BossMod
         protected override void DrawContents()
         {
             Tree tree = new();
-            foreach (var (e, eEntries) in tree.Nodes(Plans, kv => (ModuleRegistry.TypeForOID(kv.Key)?.Name ?? $"{kv.Key:X}", false)))
+            foreach (var (e, eEntries) in tree.Nodes(Plans, kv => new(ModuleRegistry.TypeForOID(kv.Key)?.Name ?? $"{kv.Key:X}")))
             {
-                foreach (var (c, plans) in tree.Nodes(eEntries, kv => (kv.Key.ToString(), false)))
+                foreach (var (c, plans) in tree.Nodes(eEntries, kv => new(kv.Key.ToString())))
                 {
                     for (int i = 0; i < plans.Available.Count; ++i)
                     {

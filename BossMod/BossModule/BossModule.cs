@@ -6,7 +6,21 @@ using System.Numerics;
 
 namespace BossMod
 {
+    // attribute that specifies object ID for the boss module's "primary" actor - for each such actor we create corresponding boss module
+    // by default, module activates (transitions to phase 0) whenever "primary" actor becomes both targetable and in combat (this is how we detect 'pull') - though this can be overridden if needed
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    public class PrimaryActorOIDAttribute : Attribute
+    {
+        public uint OID { get; private init; }
+
+        public PrimaryActorOIDAttribute(uint oid)
+        {
+            OID = oid;
+        }
+    }
+
     // base for boss modules - provides all the common features, so that look is standardized
+    // TODO: it should not require or know anything about manager...
     public class BossModule : IDisposable
     {
         public BossModuleManager Manager { get; init; }

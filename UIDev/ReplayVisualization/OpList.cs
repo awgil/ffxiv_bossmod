@@ -31,7 +31,7 @@ namespace UIDev
 
             foreach (var node in _nodes)
             {
-                foreach (var n in tree.Node($"{(node.Timestamp - reference).TotalSeconds:f3}: {node.Text}", node.Children == null, null, () => _scrollTo(node.Timestamp)))
+                foreach (var n in tree.Node($"{(node.Timestamp - reference).TotalSeconds:f3}: {node.Text}", node.Children == null, 0xffffffff, null, () => _scrollTo(node.Timestamp)))
                 {
                     if (node.Children != null)
                         node.Children(tree);
@@ -110,7 +110,7 @@ namespace UIDev
 
         private void DrawEventCast(Tree tree, ReplayOps.OpEventCast op)
         {
-            foreach (var t in tree.Nodes(op.Value.Targets, t => (ActorString(t.ID, op.Timestamp), false)))
+            foreach (var t in tree.Nodes(op.Value.Targets, t => new(ActorString(t.ID, op.Timestamp))))
             {
                 tree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
             }

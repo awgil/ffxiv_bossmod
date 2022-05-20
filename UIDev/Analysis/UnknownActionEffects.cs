@@ -47,9 +47,9 @@ namespace UIDev.Analysis
 
         public void Draw(Tree tree)
         {
-            foreach (var (type, actions) in tree.Nodes(_unknownActionEffects, kv => ($"{kv.Key} ({kv.Value.Count} actions)", false)))
+            foreach (var (type, actions) in tree.Nodes(_unknownActionEffects, kv => new($"{kv.Key} ({kv.Value.Count} actions)")))
             {
-                foreach (var (action, entries) in tree.Nodes(actions, kv => ($"{kv.Key} ({kv.Value.Count} entries)", false)))
+                foreach (var (action, entries) in tree.Nodes(actions, kv => new($"{kv.Key} ({kv.Value.Count} entries)")))
                 {
                     tree.LeafNodes(entries, entry => $"{ReplayUtils.ActionEffectString(entry.Effect)}: {entry.Replay.Path} {entry.Action.Timestamp:O} {ReplayUtils.ParticipantPosRotString(entry.Action.Source, entry.Action.Timestamp)} -> {ReplayUtils.ParticipantString(entry.Action.MainTarget)} {Utils.Vec3String(entry.Action.TargetPos)} @ {ReplayUtils.ParticipantPosRotString(entry.Target.Target, entry.Action.Timestamp)}");
                 }

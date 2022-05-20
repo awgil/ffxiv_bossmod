@@ -68,19 +68,19 @@ namespace UIDev
                 foreach (var n in tree.Node("State transition timings"))
                     _transitionTimings.Get().Draw(tree);
 
-                foreach (var n in tree.Node("Participant info", false, () => _participantInfo.Get().DrawContextMenu()))
+                foreach (var n in tree.Node("Participant info", false, 0xffffffff, () => _participantInfo.Get().DrawContextMenu()))
                     _participantInfo.Get().Draw(tree);
 
-                foreach (var n in tree.Node("Ability info", false, () => _abilityInfo.Get().DrawContextMenu()))
+                foreach (var n in tree.Node("Ability info", false, 0xffffffff, () => _abilityInfo.Get().DrawContextMenu()))
                     _abilityInfo.Get().Draw(tree);
 
-                foreach (var n in tree.Node("Status info", false, () => _statusInfo.Get().DrawContextMenu()))
+                foreach (var n in tree.Node("Status info", false, 0xffffffff, () => _statusInfo.Get().DrawContextMenu()))
                     _statusInfo.Get().Draw(tree);
 
-                foreach (var n in tree.Node("Icon info", false, () => _iconInfo.Get().DrawContextMenu()))
+                foreach (var n in tree.Node("Icon info", false, 0xffffffff, () => _iconInfo.Get().DrawContextMenu()))
                     _iconInfo.Get().Draw(tree);
 
-                foreach (var n in tree.Node("Tether info", false, () => _tetherInfo.Get().DrawContextMenu()))
+                foreach (var n in tree.Node("Tether info", false, 0xffffffff, () => _tetherInfo.Get().DrawContextMenu()))
                     _tetherInfo.Get().Draw(tree);
 
                 foreach (var n in tree.Node("Arena bounds"))
@@ -130,7 +130,7 @@ namespace UIDev
             {
                 _global.Draw(_tree);
             }
-            foreach (var n in _tree.Nodes(_perEncounter, kv => ($"Encounter analysis for {kv.Key:X} ({ModuleRegistry.TypeForOID(kv.Key)?.Name})", false)))
+            foreach (var n in _tree.Nodes(_perEncounter, kv => new($"Encounter analysis for {kv.Key:X} ({ModuleRegistry.TypeForOID(kv.Key)?.Name})")))
             {
                 n.Value.Draw(_tree);
             }

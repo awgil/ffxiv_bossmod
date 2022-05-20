@@ -137,7 +137,12 @@ namespace UIDev.Analysis
 
         public void Draw(Tree tree)
         {
-            foreach (var (aid, data) in tree.Nodes(_data, kv => ($"{kv.Key} ({_aidType?.GetEnumName(kv.Key.ID)})", false)))
+            Func<KeyValuePair<ActionID, ActionData>, Tree.NodeProperties> map = kv =>
+            {
+                var name = kv.Key.Type == ActionType.Spell ? _aidType?.GetEnumName(kv.Key.ID) : null;
+                return new($"{kv.Key:X} ({name})", false, name == null ? 0xff00ffff : 0xffffffff);
+            };
+            foreach (var (aid, data) in tree.Nodes(_data, map))
             {
                 tree.LeafNode($"Caster IDs: {OIDListString(data.CasterOIDs)}");
                 tree.LeafNode($"Target IDs: {OIDListString(data.TargetOIDs)}");
@@ -157,9 +162,9 @@ namespace UIDev.Analysis
                 }
                 foreach (var n in tree.Node("Instances"))
                 {
-                    foreach (var an in tree.Nodes(data.Instances, a => ($"{a.Item1.Path} @ {a.Item2.Timestamp:O}: {ReplayUtils.ParticipantPosRotString(a.Item2.Source, a.Item2.Timestamp)} -> {ReplayUtils.ParticipantString(a.Item2.MainTarget)} {Utils.Vec3String(a.Item2.TargetPos)} ({a.Item2.Targets.Count} affected)", a.Item2.Targets.Count == 0)))
+                    foreach (var an in tree.Nodes(data.Instances, a => new($"{a.Item1.Path} @ {a.Item2.Timestamp:O}: {ReplayUtils.ParticipantPosRotString(a.Item2.Source, a.Item2.Timestamp)} -> {ReplayUtils.ParticipantString(a.Item2.MainTarget)} {Utils.Vec3String(a.Item2.TargetPos)} ({a.Item2.Targets.Count} affected)", a.Item2.Targets.Count == 0)))
                     {
-                        foreach (var tn in tree.Nodes(an.Item2.Targets, t => (ReplayUtils.ParticipantPosRotString(t.Target, an.Item2.Timestamp), false)))
+                        foreach (var tn in tree.Nodes(an.Item2.Targets, t => new(ReplayUtils.ParticipantPosRotString(t.Target, an.Item2.Timestamp))))
                         {
                             tree.LeafNodes(tn.Effects, ReplayUtils.ActionEffectString);
                         }

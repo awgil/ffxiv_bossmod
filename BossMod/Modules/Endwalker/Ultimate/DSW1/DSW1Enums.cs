@@ -2,9 +2,9 @@
 {
     public enum OID : uint
     {
-        Boss = 0x3139, // Ser Adelphel, initial main target
+        SerAdelphel = 0x3139, // x1, initial main target
         SerGrinnaux = 0x313A, // x1, initial main target
-        SerCharibert = 0x313B, // x1, untargetable
+        SerCharibert = 0x313B, // x1, initially untargetable
         SerZephirin = 0x3130, // x1, does nothing?..
         Helper = 0x233C, // x24
         AetherialTear = 0x330F, // spawn during fight by Hyperdimensional Slash
@@ -16,13 +16,13 @@
         AutoAttackAdelphel = 28531,
         AutoAttackGrinnaux = 28532,
         Teleport = 25321, // SerGrinnaux->location, no cast
-        HoliestOfHoly = 25300, // Boss->self, 4.0s cast, raidwide
+        HoliestOfHoly = 25300, // SerAdelphel->self, 4.0s cast, raidwide
 
         EmptyDimension = 25306, // SerGrinnaux->self, 5.0s cast, range 6-70 donut
         FullDimension = 25307, // SerGrinnaux->self, 5.0s cast, range 6 aoe
-        HolyShieldBash = 25297, // Boss->tethered player, no cast, half-width 4 rect tankbuster
+        HolyShieldBash = 25297, // SerAdelphel->tethered player, no cast, half-width 4 rect tankbuster
         HolyShieldBashVisual = 25579, // Helper->self, no cast
-        HolyBladedanceVisual = 25298, // Boss->self, no cast
+        HolyBladedanceVisual = 25298, // SerAdelphel->self, no cast
         HolyBladedanceAOE = 25299, // Helper->self, no cast, range 16 90-degree cone aoe (follows tankbuster, 6 hits)
         Heavensblaze = 25309, // SerCharibert->players, 5.0s cast, range 4 shared aoe
 
@@ -34,17 +34,17 @@
         DimensionalPurgation = 25305, // AetherialTear->self, no cast, aoe if two tears are too close to each other?
 
         FaithUnmoving = 25308, // SerGrinnaux->self, 4.0s cast, knockback 16
-        ShiningBlade = 25294, // Boss->location, no cast, half-width 3 rect (?) charge
+        ShiningBlade = 25294, // SerAdelphel->location, no cast, half-width 3 rect (?) charge
         BrightFlare = 25295, // Brightsphere->self, 1.0s cast, range 9 aoe
-        Execution = 25301, // Boss->location, no cast, range 5 aoe around tank
+        Execution = 25301, // SerAdelphel->location, no cast, range 5 aoe around tank
 
-        HoliestHallowing = 25296, // Boss->SerGrinnaux, 4.0s cast, heal (interruptible)
+        HoliestHallowing = 25296, // SerAdelphel->SerGrinnaux, 4.0s cast, heal (interruptible)
 
         Heavensflame = 25310, // SerCharibert->self, 7.0s cast, visual
         HeavensflameAOE = 25311, // Helper->players, no cast, range 10 aoe around everyone
         HolyChain = 25312, // Helper->self, no cast, hit if player's tether is not broken by Heavensflame cast end
 
-        BrightbladesSteel = 25292, // Boss->self, 3.0s cast, enrage (heal + invuln + damage-up)
+        BrightbladesSteel = 25292, // SerAdelphel->self, 3.0s cast, enrage (heal + invuln + damage-up)
         TheBullsSteel = 25293, // SerGrinnaux->self, 3.0s cast, enrage (heal + invuln + damage-up)
     };
 

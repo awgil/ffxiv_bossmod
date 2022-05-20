@@ -83,7 +83,12 @@ namespace UIDev.Analysis
 
         public void Draw(Tree tree)
         {
-            foreach (var (oid, data) in tree.Nodes(_data, kv => ($"{kv.Key:X} ({_oidType?.GetEnumName(kv.Key)})", false)))
+            Func<KeyValuePair<uint, ParticipantData>, Tree.NodeProperties> map = kv =>
+            {
+                var name = _oidType?.GetEnumName(kv.Key);
+                return new($"{kv.Key:X} ({_oidType?.GetEnumName(kv.Key)})", false, name == null ? 0xff00ffff : 0xffffffff);
+            };
+            foreach (var (oid, data) in tree.Nodes(_data, map))
             {
                 tree.LeafNode($"Type: {(data.Type != ActorType.None ? data.Type.ToString() : "mixed!")}");
                 tree.LeafNode($"Name: {data.Name}");
@@ -96,7 +101,7 @@ namespace UIDev.Analysis
         {
             if (ImGui.MenuItem("Generate enum for boss module"))
             {
-                var sb = new StringBuilder($"public enum OID : uint\n{{\n    Boss = 0x{_encOID:X},");
+                var sb = new StringBuilder($"public enum OID : uint\n{{");
                 foreach (var (oid, data) in _data)
                 {
                     sb.Append($"\n    {_oidType?.GetEnumName(oid) ?? $"_Gen_{(data.Name.Length > 0 ? data.Name.Replace(' ', '_') : $"Actor_{oid:X}")}"} = 0x{oid:X}, // x{data.SpawnedPreFight}");

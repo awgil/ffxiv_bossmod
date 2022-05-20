@@ -39,7 +39,12 @@ namespace UIDev.Analysis
 
         public void Draw(Tree tree)
         {
-            foreach (var (tid, data) in tree.Nodes(_data, kv => ($"{kv.Key} ({_iidType?.GetEnumName(kv.Key)})", false)))
+            Func<KeyValuePair<uint, IconData>, Tree.NodeProperties> map = kv =>
+            {
+                var name = _iidType?.GetEnumName(kv.Key);
+                return new($"{kv.Key} ({name})", false, name == null ? 0xff00ffff : 0xffffffff);
+            };
+            foreach (var (tid, data) in tree.Nodes(_data, map))
             {
                 tree.LeafNode($"Target IDs: {OIDListString(data.TargetOIDs)}");
             }

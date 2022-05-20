@@ -9,7 +9,7 @@ namespace UIDev
     class EventList
     {
         private Replay _replay;
-        Action<DateTime> _scrollTo;
+        private Action<DateTime> _scrollTo;
         private Tree _tree = new();
         private OpList? _opListRaw;
         private Dictionary<Replay.Encounter, OpList> _opListsFiltered = new();
@@ -33,7 +33,7 @@ namespace UIDev
 
                 DrawContents(null, null);
             }
-            foreach (var e in _tree.Nodes(_replay.Encounters, e => ($"{ModuleRegistry.TypeForOID(e.OID)}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}", false)))
+            foreach (var e in _tree.Nodes(_replay.Encounters, e => new($"{ModuleRegistry.TypeForOID(e.OID)}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}")))
             {
                 var moduleType = ModuleRegistry.TypeForOID(e.OID);
                 foreach (var n in _tree.Node("Raw ops"))
@@ -71,7 +71,7 @@ namespace UIDev
                 }
                 else
                 {
-                    foreach (var (oid, list) in _tree.Nodes(filter.Participants, kv => ($"{kv.Key:X} '{oidType?.GetEnumName(kv.Key)}' ({kv.Value.Count} objects)", false)))
+                    foreach (var (oid, list) in _tree.Nodes(filter.Participants, kv => new($"{kv.Key:X} '{oidType?.GetEnumName(kv.Key)}' ({kv.Value.Count} objects)")))
                     {
                         DrawParticipants(list, actions, statuses, tp, reference, filter, aidType, sidType);
                     }
@@ -127,7 +127,7 @@ namespace UIDev
 
         private void DrawParticipants(IEnumerable<Replay.Participant> list, IEnumerable<Replay.Action> actions, IEnumerable<Replay.Status> statuses, Func<DateTime, string> tp, DateTime reference, Replay.Encounter? filter, Type? aidType, Type? sidType)
         {
-            foreach (var p in _tree.Nodes(list, p => ($"{ReplayUtils.ParticipantString(p)}: spawn at {tp(p.Existence.Start)}, despawn at {tp(p.Existence.End)}", p.Casts.Count == 0 && !p.HasAnyActions && !p.HasAnyStatuses && !p.IsTargetOfAnyActions && p.TargetableHistory.Count == 0)))
+            foreach (var p in _tree.Nodes(list, p => new($"{ReplayUtils.ParticipantString(p)}: spawn at {tp(p.Existence.Start)}, despawn at {tp(p.Existence.End)}", p.Casts.Count == 0 && !p.HasAnyActions && !p.HasAnyStatuses && !p.IsTargetOfAnyActions && p.TargetableHistory.Count == 0)))
             {
                 if (p.Casts.Count > 0)
                 {
@@ -175,7 +175,7 @@ namespace UIDev
         private void DrawCasts(IEnumerable<Replay.Cast> list, DateTime reference, Type? aidType)
         {
             var prev = reference;
-            foreach (var c in _tree.Nodes(list, c => (CastString(c, reference, prev, aidType), true)))
+            foreach (var c in _tree.Nodes(list, c => new(CastString(c, reference, prev, aidType), true)))
             {
                 prev = c.Time.End;
             }
@@ -188,9 +188,9 @@ namespace UIDev
 
         private void DrawActions(IEnumerable<Replay.Action> list, Func<DateTime, string> tp, Type? aidType)
         {
-            foreach (var a in _tree.Nodes(list, a => (ActionString(a, tp, aidType), a.Targets.Count == 0)))
+            foreach (var a in _tree.Nodes(list, a => new(ActionString(a, tp, aidType), a.Targets.Count == 0)))
             {
-                foreach (var t in _tree.Nodes(a.Targets, t => (ReplayUtils.ParticipantPosRotString(t.Target, a.Timestamp), false)))
+                foreach (var t in _tree.Nodes(a.Targets, t => new(ReplayUtils.ParticipantPosRotString(t.Target, a.Timestamp))))
                 {
                     _tree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
                 }

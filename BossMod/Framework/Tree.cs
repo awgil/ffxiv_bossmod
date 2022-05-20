@@ -6,13 +6,27 @@ namespace BossMod
 {
     public class Tree
     {
+        public struct NodeProperties
+        {
+            public string Text;
+            public bool Leaf;
+            public uint Color;
+
+            public NodeProperties(string text, bool leaf = false, uint color = 0xffffffff)
+            {
+                Text = text;
+                Leaf = leaf;
+                Color = color;
+            }
+        }
+
         private uint _selectedID;
 
         // contains 0 elements (if node is closed) or single null (if node is opened)
         // expected usage is 'foreach (_ in Node(...)) { draw subnodes... }'
-        public IEnumerable<object?> Node(string text, bool leaf = false, Action? contextMenu = null, Action? doubleClick = null)
+        public IEnumerable<object?> Node(string text, bool leaf = false, uint color = 0xffffffff, Action? contextMenu = null, Action? doubleClick = null)
         {
-            if (RawNode(text, leaf, contextMenu, doubleClick))
+            if (RawNode(text, leaf, color, contextMenu, doubleClick))
             {
                 yield return null;
                 ImGui.TreePop();
@@ -21,12 +35,12 @@ namespace BossMod
         }
 
         // draw a node for each element in collection
-        public IEnumerable<T> Nodes<T>(IEnumerable<T> collection, Func<T, (string Text, bool Leaf)> map, Action<T>? contextMenu = null, Action<T>? doubleClick = null)
+        public IEnumerable<T> Nodes<T>(IEnumerable<T> collection, Func<T, NodeProperties> map, Action<T>? contextMenu = null, Action<T>? doubleClick = null)
         {
             foreach (var t in collection)
             {
-                (string text, bool leaf) = map(t);
-                if (RawNode(text, leaf, contextMenu != null ? () => contextMenu(t) : null, doubleClick != null ? () => doubleClick(t) : null))
+                var props = map(t);
+                if (RawNode(props.Text, props.Leaf, props.Color, contextMenu != null ? () => contextMenu(t) : null, doubleClick != null ? () => doubleClick(t) : null))
                 {
                     yield return t;
                     ImGui.TreePop();
@@ -35,9 +49,9 @@ namespace BossMod
             }
         }
 
-        public void LeafNode(string text, Action? contextMenu = null, Action? doubleClick = null)
+        public void LeafNode(string text, uint color = 0xffffffff, Action? contextMenu = null, Action? doubleClick = null)
         {
-            if (RawNode(text, true, contextMenu, doubleClick))
+            if (RawNode(text, true, color, contextMenu, doubleClick))
                 ImGui.TreePop();
             ImGui.PopID();
         }
@@ -47,14 +61,14 @@ namespace BossMod
         {
             foreach (var t in collection)
             {
-                if (RawNode(map(t), true, contextMenu != null ? () => contextMenu(t) : null, doubleClick != null ? () => doubleClick(t) : null))
+                if (RawNode(map(t), true, 0xffffffff, contextMenu != null ? () => contextMenu(t) : null, doubleClick != null ? () => doubleClick(t) : null))
                     ImGui.TreePop();
                 ImGui.PopID();
             }
         }
 
         // handle selection & id scopes
-        private bool RawNode(string text, bool leaf, Action? contextMenu, Action? doubleClick)
+        private bool RawNode(string text, bool leaf, uint color, Action? contextMenu, Action? doubleClick)
         {
             var id = ImGui.GetID(text);
             var flags = ImGuiTreeNodeFlags.None;
@@ -64,7 +78,9 @@ namespace BossMod
                 flags |= ImGuiTreeNodeFlags.Leaf;
 
             ImGui.PushID((int)id);
+            ImGui.PushStyleColor(ImGuiCol.Text, color);
             bool open = ImGui.TreeNodeEx(text, flags);
+            ImGui.PopStyleColor();
             if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
                 _selectedID = id;
             if (doubleClick != null && ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))

@@ -147,22 +147,20 @@ namespace UIDev.Analysis
 
             foreach (var from in _metrics.Values)
             {
-                foreach (var (toID, m) in from.Transitions)
+                Func<KeyValuePair<uint, TransitionMetrics>, Tree.NodeProperties> map = kv =>
                 {
+                    string name = $"{from.Name} -> {_metrics[kv.Key].Name}: avg={kv.Value.AvgTime:f2}-{from.ExpectedTime:f2}={kv.Value.AvgTime - from.ExpectedTime:f2} +- {kv.Value.StdDev:f2}, [{kv.Value.MinTime:f2}, {kv.Value.MaxTime:f2}] range, {kv.Value.Instances.Count} seen";
                     //bool warn = from.ExpectedTime < Math.Round(m.MinTime, 1) || from.ExpectedTime > Math.Round(m.MaxTime, 1);
-                    bool warn = Math.Abs(from.ExpectedTime - m.AvgTime) > Math.Ceiling(m.StdDev * 10) / 10;
-                    ImGui.PushStyleColor(ImGuiCol.Text, warn ? 0xff00ffff : 0xffffffff);
-                    foreach (var tn in tree.Node($"{from.Name} -> {_metrics[toID].Name}: avg={m.AvgTime:f2}-{from.ExpectedTime:f2}={m.AvgTime - from.ExpectedTime:f2} +- {m.StdDev:f2}, [{m.MinTime:f2}, {m.MaxTime:f2}] range, {m.Instances.Count} seen"))
+                    bool warn = Math.Abs(from.ExpectedTime - kv.Value.AvgTime) > Math.Ceiling(kv.Value.StdDev * 10) / 10;
+                    return new(name, false, warn ? 0xff00ffff : 0xffffffff);
+                };
+                foreach (var (toID, m) in tree.Nodes(from.Transitions, map))
+                {
+                    foreach (var inst in m.Instances)
                     {
-                        foreach (var inst in m.Instances)
-                        {
-                            warn = Math.Abs(inst.Duration - m.AvgTime) > m.StdDev;
-                            ImGui.PushStyleColor(ImGuiCol.Text, warn ? 0xff00ffff : 0xffffffff);
-                            tree.LeafNode($"{inst.Duration:f2}: {inst.Replay.Path} @ {inst.Time:O}");
-                            ImGui.PopStyleColor();
-                        }
+                        bool warn = Math.Abs(inst.Duration - m.AvgTime) > m.StdDev;
+                        tree.LeafNode($"{inst.Duration:f2}: {inst.Replay.Path} @ {inst.Time:O}", warn ? 0xff00ffff : 0xffffffff);
                     }
-                    ImGui.PopStyleColor();
                 }
             }
         }

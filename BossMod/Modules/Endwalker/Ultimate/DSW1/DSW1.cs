@@ -18,6 +18,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public HoliestHallowing() : base(ActionID.MakeSpell(AID.HoliestHallowing)) { }
     }
 
+    [PrimaryActorOID((uint)OID.SerAdelphel)]
     public class DSW1 : BossModule
     {
         private List<Actor> GrinnauxList;

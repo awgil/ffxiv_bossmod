@@ -44,7 +44,12 @@ namespace UIDev.Analysis
 
         public void Draw(Tree tree)
         {
-            foreach (var (sid, data) in tree.Nodes(_data, kv => ($"{Utils.StatusString(kv.Key)} ({_sidType?.GetEnumName(kv.Key)})", false)))
+            Func<KeyValuePair<uint, StatusData>, Tree.NodeProperties> map = kv =>
+            {
+                var name = _sidType?.GetEnumName(kv.Key);
+                return new($"{Utils.StatusString(kv.Key)} ({name})", false, name == null ? 0xff00ffff : 0xffffffff);
+            };
+            foreach (var (sid, data) in tree.Nodes(_data, map))
             {
                 tree.LeafNode($"Source IDs: {OIDListString(data.SourceOIDs)}");
                 tree.LeafNode($"Target IDs: {OIDListString(data.TargetOIDs)}");

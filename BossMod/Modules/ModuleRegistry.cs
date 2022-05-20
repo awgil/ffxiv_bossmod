@@ -26,12 +26,12 @@ namespace BossMod
             var baseType = typeof(BossModule);
             foreach (var t in GetAllTypes().Where(baseType.IsAssignableFrom))
             {
-                var oidType = t?.Module.GetType($"{t.Namespace}.OID");
-                if (oidType == null || !oidType.IsEnum)
+                uint primaryOID = GetPrimaryActorOID(t!);
+                if (primaryOID == 0)
                     continue;
-                object? oid;
-                if (Enum.TryParse(oidType, "Boss", out oid))
-                    _modules[(uint)oid!] = t!;
+                if (_modules.ContainsKey(primaryOID))
+                    throw new Exception($"Two boss modules have same primary actor OID: {t!.Name} and {_modules[primaryOID].Name}");
+                _modules[primaryOID] = t!;
             }
         }
 
@@ -50,6 +50,26 @@ namespace BossMod
         public static BossModule? CreateModule(uint oid, BossModuleManager manager, Actor primary)
         {
             return CreateModule(TypeForOID(oid), manager, primary);
+        }
+
+        private static uint GetPrimaryActorOID(Type module)
+        {
+            // first try to use explicit attribute
+            var oidAttr = Attribute.GetCustomAttribute(module, typeof(PrimaryActorOIDAttribute)) as PrimaryActorOIDAttribute;
+            if (oidAttr != null)
+                return oidAttr.OID;
+
+            // if not available, search for "Boss" OID enum
+            var oidType = module.Module.GetType($"{module.Namespace}.OID");
+            if (oidType != null && oidType.IsEnum)
+            {
+                object? oid;
+                if (Enum.TryParse(oidType, "Boss", out oid))
+                    return (uint)oid!;
+            }
+
+            // nothing found...
+            return 0;
         }
     }
 }
