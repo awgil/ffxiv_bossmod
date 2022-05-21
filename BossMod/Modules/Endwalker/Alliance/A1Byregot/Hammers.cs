@@ -129,6 +129,8 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
             else if (index == 79 && state == 0x00080004)
             {
                 _curState = State.Inactive;
+                Array.Fill(_lineOffset, 0);
+                Array.Fill(_lineMovement, 0);
             }
         }
 
