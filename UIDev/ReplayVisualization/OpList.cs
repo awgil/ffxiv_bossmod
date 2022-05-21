@@ -39,7 +39,7 @@ namespace UIDev
             }
         }
 
-        private bool FilterInterestingActor(uint instanceID, DateTime timestamp, bool allowPlayers)
+        private bool FilterInterestingActor(ulong instanceID, DateTime timestamp, bool allowPlayers)
         {
             var p = _replay.Participants.Find(p => p.InstanceID == instanceID && p.Existence.Contains(timestamp))!;
             if (p.Type is ActorType.Pet or ActorType.Chocobo or ActorType.Area)
@@ -49,7 +49,7 @@ namespace UIDev
             return true;
         }
 
-        private bool FilterInterestingStatus(uint instanceID, int index, DateTime timestamp, bool gain)
+        private bool FilterInterestingStatus(ulong instanceID, int index, DateTime timestamp, bool gain)
         {
             var s = FindStatus(instanceID, index, timestamp, gain)!;
             if (s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
@@ -116,22 +116,22 @@ namespace UIDev
             }
         }
 
-        private Replay.Participant? FindParticipant(uint instanceID, DateTime timestamp) => _replay.Participants.Find(p => p.InstanceID == instanceID && p.Existence.Contains(timestamp));
-        private Replay.Status? FindStatus(uint instanceID, int index, DateTime timestamp, bool gain) => _replay.Statuses.Find(s => s.Target?.InstanceID == instanceID && s.Index == index && (gain ? s.Time.Start : s.Time.End) == timestamp);
+        private Replay.Participant? FindParticipant(ulong instanceID, DateTime timestamp) => _replay.Participants.Find(p => p.InstanceID == instanceID && p.Existence.Contains(timestamp));
+        private Replay.Status? FindStatus(ulong instanceID, int index, DateTime timestamp, bool gain) => _replay.Statuses.Find(s => s.Target?.InstanceID == instanceID && s.Index == index && (gain ? s.Time.Start : s.Time.End) == timestamp);
 
-        private string ActorString(uint instanceID, DateTime timestamp)
+        private string ActorString(ulong instanceID, DateTime timestamp)
         {
             return ReplayUtils.ParticipantPosRotString(FindParticipant(instanceID, timestamp), timestamp);
         }
 
-        private string CastString(uint instanceID, DateTime timestamp, Type? aidType)
+        private string CastString(ulong instanceID, DateTime timestamp, Type? aidType)
         {
             var p = FindParticipant(instanceID, timestamp);
             var c = p?.Casts.Find(c => c.Time.Contains(timestamp))!;
             return $"{ReplayUtils.ParticipantPosRotString(p, timestamp)}: {c.ID} ({aidType?.GetEnumName(c.ID.ID)}), {c.ExpectedCastTime:f2}s ({c.Time} actual) @ {ReplayUtils.ParticipantString(c.Target)} {Utils.Vec3String(c.Location)}";
         }
 
-        private string StatusString(uint instanceID, int index, DateTime timestamp, bool gain)
+        private string StatusString(ulong instanceID, int index, DateTime timestamp, bool gain)
         {
             var s = FindStatus(instanceID, index, timestamp, gain)!;
             return $"{ReplayUtils.ParticipantPosRotString(s.Target, timestamp)}: {Utils.StatusString(s!.ID)} ({s.StartingExtra:X}), {s.InitialDuration:f2}s / {s.Time}, from {ReplayUtils.ParticipantPosRotString(s.Source, timestamp)}";

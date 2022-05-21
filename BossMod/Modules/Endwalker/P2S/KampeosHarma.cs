@@ -33,7 +33,7 @@ namespace BossMod.Endwalker.P2S
                 arena.AddCircle(pos.Value, 1, arena.ColorSafe);
         }
 
-        public override void OnEventIcon(BossModule module, uint actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
         {
             if (iconID >= 145 && iconID <= 152)
             {

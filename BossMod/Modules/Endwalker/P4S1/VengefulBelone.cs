@@ -9,14 +9,14 @@ namespace BossMod.Endwalker.P4S1
     // state related to vengeful belone mechanic
     class VengefulBelone : Component
     {
-        private Dictionary<uint, Role> _orbTargets = new();
+        private Dictionary<ulong, Role> _orbTargets = new();
         private int _orbsExploded = 0;
         private int[] _playerRuinCount = new int[8];
         private Role[] _playerActingRole = new Role[8];
 
         private static float _burstRadius = 8;
 
-        private Role OrbTarget(uint instanceID) => _orbTargets.GetValueOrDefault(instanceID, Role.None);
+        private Role OrbTarget(ulong instanceID) => _orbTargets.GetValueOrDefault(instanceID, Role.None);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

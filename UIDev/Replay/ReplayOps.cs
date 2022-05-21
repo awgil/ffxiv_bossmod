@@ -61,7 +61,7 @@ namespace UIDev
 
         public class OpActorCreate : Operation
         {
-            public uint InstanceID;
+            public ulong InstanceID;
             public uint OID;
             public string Name = "";
             public ActorType Type;
@@ -71,7 +71,7 @@ namespace UIDev
             public uint HPCur;
             public uint HPMax;
             public bool IsTargetable;
-            public uint OwnerID;
+            public ulong OwnerID;
 
             public override void Redo(WorldState ws)
             {
@@ -91,7 +91,7 @@ namespace UIDev
 
         public class OpActorDestroy : Operation
         {
-            public uint InstanceID;
+            public ulong InstanceID;
             private uint OID;
             private string Name = "";
             private ActorType Type;
@@ -101,7 +101,7 @@ namespace UIDev
             private uint HPCur;
             private uint HPMax;
             private bool IsTargetable;
-            private uint OwnerID;
+            private ulong OwnerID;
 
             public override void Redo(WorldState ws)
             {
@@ -132,7 +132,7 @@ namespace UIDev
 
         public class OpActorRename : Operation
         {
-            public uint InstanceID;
+            public ulong InstanceID;
             public string Name = "";
             private string _prev = "";
 
@@ -163,7 +163,7 @@ namespace UIDev
 
         public class OpActorClassChange : Operation
         {
-            public uint InstanceID;
+            public ulong InstanceID;
             public Class Class;
             private Class _prevClass;
 
@@ -194,7 +194,7 @@ namespace UIDev
 
         public class OpActorMove : Operation
         {
-            public uint InstanceID;
+            public ulong InstanceID;
             public Vector4 PosRot;
             private Vector4 _prevPosRot;
 
@@ -225,7 +225,7 @@ namespace UIDev
 
         public class OpActorHP : Operation
         {
-            public uint InstanceID;
+            public ulong InstanceID;
             public uint Cur;
             public uint Max;
             private uint _prevCur;
@@ -259,7 +259,7 @@ namespace UIDev
 
         public class OpActorTargetable : Operation
         {
-            public uint InstanceID;
+            public ulong InstanceID;
             public bool Value;
             private bool _prev;
 
@@ -290,7 +290,7 @@ namespace UIDev
 
         public class OpActorDead : Operation
         {
-            public uint InstanceID;
+            public ulong InstanceID;
             public bool Value;
             private bool _prev;
 
@@ -321,7 +321,7 @@ namespace UIDev
 
         public class OpActorCombat : Operation
         {
-            public uint InstanceID;
+            public ulong InstanceID;
             public bool Value;
             private bool _prev;
 
@@ -352,9 +352,9 @@ namespace UIDev
 
         public class OpActorTarget : Operation
         {
-            public uint InstanceID;
-            public uint Value;
-            private uint _prev;
+            public ulong InstanceID;
+            public ulong Value;
+            private ulong _prev;
 
             public override void Redo(WorldState ws)
             {
@@ -383,7 +383,7 @@ namespace UIDev
 
         public class OpActorCast : Operation
         {
-            public uint InstanceID;
+            public ulong InstanceID;
             public ActorCastInfo? Value;
             private ActorCastInfo? _prev;
 
@@ -414,7 +414,7 @@ namespace UIDev
 
         public class OpActorTether : Operation
         {
-            public uint InstanceID;
+            public ulong InstanceID;
             public ActorTetherInfo Value;
             private ActorTetherInfo _prev;
 
@@ -445,7 +445,7 @@ namespace UIDev
 
         public class OpActorStatus : Operation
         {
-            public uint InstanceID;
+            public ulong InstanceID;
             public int Index;
             public ActorStatus Value;
             private ActorStatus _prev;
@@ -478,7 +478,7 @@ namespace UIDev
         public class OpPartyJoin : Operation
         {
             public ulong ContentID;
-            public uint InstanceID;
+            public ulong InstanceID;
             private int _slot;
 
             public override void Redo(WorldState ws)
@@ -500,7 +500,7 @@ namespace UIDev
         public class OpPartyLeave : Operation
         {
             public ulong ContentID;
-            public uint InstanceID;
+            public ulong InstanceID;
 
             public override void Redo(WorldState ws)
             {
@@ -522,8 +522,8 @@ namespace UIDev
         public class OpPartyAssign : Operation
         {
             public ulong ContentID;
-            public uint InstanceID;
-            private uint _prevID;
+            public ulong InstanceID;
+            private ulong _prevID;
 
             public override void Redo(WorldState ws)
             {
@@ -546,7 +546,7 @@ namespace UIDev
 
         public class OpEventIcon : Operation
         {
-            public uint InstanceID;
+            public ulong InstanceID;
             public uint IconID;
 
             public override void Redo(WorldState ws)

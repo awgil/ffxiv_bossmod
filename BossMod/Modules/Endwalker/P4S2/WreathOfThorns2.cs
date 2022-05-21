@@ -145,7 +145,7 @@ namespace BossMod.Endwalker.P4S2
                 CurState = State.Done;
         }
 
-        public override void OnEventIcon(BossModule module, uint actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
         {
             var slot = module.Raid.FindSlot(actorID);
             if (slot == -1)

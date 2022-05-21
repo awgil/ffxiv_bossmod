@@ -97,8 +97,7 @@ namespace BossMod
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public unsafe struct Server_ActionEffectHeader
         {
-            public uint animationTargetId;  // who the animation targets
-            public uint unknown;
+            public ulong animationTargetId;  // who the animation targets
             public uint actionId; // what the casting player casts, shown in battle log / ui
             public uint globalEffectCounter;
             public float animationLockTime;
@@ -123,7 +122,7 @@ namespace BossMod
             public fixed ulong Effects[8]; // ActionEffect[8]
             public ushort padding3;
             public uint padding4;
-            public fixed ulong TargetID[1]; // dissector calls hi-word "effect flags"
+            public fixed ulong TargetID[1];
             public uint padding5;
         }
 
@@ -189,7 +188,7 @@ namespace BossMod
             public ushort ActionID;
             public ActionType SkillType;
             public byte Unknown;
-            public uint Unknown1; // also action ID; dissector calls it ItemId - matches actionId of ActionEffectHeader
+            public uint Unknown1; // also action ID; dissector calls it ItemId - matches actionId of ActionEffectHeader - e.g. when using KeyItem, action is generic 'KeyItem 1', Unknown1 is actual item id, probably similar for stuff like mounts etc.
             public float CastTime;
             public uint TargetID;
             public float Rotation; // in radians
@@ -510,8 +509,7 @@ namespace BossMod
             public ushort Sequence;
             public ushort u2;
             public uint u3;
-            public uint TargetID;
-            public uint u4;
+            public ulong TargetID;
             public ushort ItemSourceSlot;
             public ushort ItemSourceContainer;
             public uint u5;

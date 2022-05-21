@@ -61,10 +61,10 @@ namespace UIDev
         protected Replay _res = new();
         protected WorldState _ws = new();
         private BossModuleManagerWrapper _mgr;
-        private Dictionary<uint, LoadedModuleData> _modules = new();
-        private Dictionary<uint, Replay.Participant> _participants = new();
-        private Dictionary<(uint, int), Replay.Status> _statuses = new();
-        private Dictionary<uint, Replay.Tether> _tethers = new();
+        private Dictionary<ulong, LoadedModuleData> _modules = new();
+        private Dictionary<ulong, Replay.Participant> _participants = new();
+        private Dictionary<(ulong, int), Replay.Status> _statuses = new();
+        private Dictionary<ulong, Replay.Tether> _tethers = new();
 
         protected ReplayParser()
         {
@@ -263,7 +263,7 @@ namespace UIDev
             StatusGain(sender, (args.actor, args.index));
         }
 
-        private void EventIcon(object? sender, (uint actorID, uint iconID) args)
+        private void EventIcon(object? sender, (ulong actorID, uint iconID) args)
         {
             _res.Icons.Add(new() { ID = args.iconID, Target = _participants.GetValueOrDefault(args.actorID), Timestamp = _ws.CurrentTime });
         }

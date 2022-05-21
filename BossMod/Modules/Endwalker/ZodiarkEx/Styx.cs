@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.ZodiarkEx
     {
         public Styx() : base(ActionID.MakeSpell(AID.StyxAOE), 5) { }
 
-        public override void OnEventIcon(BossModule module, uint actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
         {
             if (iconID == (uint)IconID.Styx)
             {

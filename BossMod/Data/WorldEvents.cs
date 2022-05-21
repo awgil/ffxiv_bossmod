@@ -7,12 +7,12 @@ namespace BossMod
     {
         public struct Target
         {
-            public uint ID;
+            public ulong ID;
             public ActionEffects Effects;
         }
 
-        public uint CasterID;
-        public uint MainTargetID; // note that actual affected targets could be completely different
+        public ulong CasterID;
+        public ulong MainTargetID; // note that actual affected targets could be completely different
         public ActionID Action;
         public float AnimationLockTime;
         public uint MaxTargets;
@@ -26,8 +26,8 @@ namespace BossMod
     // dispatcher for instant world events; part of the world state structure
     public class WorldEvents
     {
-        public event EventHandler<(uint actorID, uint iconID)>? Icon; // TODO: this should really be an actor field, but I have no idea what triggers icon clear...
-        public void DispatchIcon((uint actorID, uint iconID) args)
+        public event EventHandler<(ulong actorID, uint iconID)>? Icon; // TODO: this should really be an actor field, but I have no idea what triggers icon clear...
+        public void DispatchIcon((ulong actorID, uint iconID) args)
         {
             Icon?.Invoke(this, args);
         }

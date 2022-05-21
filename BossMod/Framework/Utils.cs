@@ -13,9 +13,9 @@ namespace BossMod
             return $"{obj.DataId:X} '{obj.Name}' <{obj.ObjectId:X}>";
         }
 
-        public static string ObjectString(uint id)
+        public static string ObjectString(ulong id)
         {
-            var obj = Service.ObjectTable.SearchById(id);
+            var obj = (id >> 32) == 0 ? Service.ObjectTable.SearchById((uint)id) : null;
             return obj != null ? ObjectString(obj) : $"(not found) <{id:X}>";
         }
 

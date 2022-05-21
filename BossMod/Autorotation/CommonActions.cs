@@ -10,8 +10,8 @@ namespace BossMod
         // all relevant target IDs used for smart target selection
         protected struct Targets
         {
-            public uint MainTarget;
-            public uint MouseoverTarget;
+            public ulong MainTarget;
+            public ulong MouseoverTarget;
         }
 
         // 'smart oGCD queueing': when using auto-rotation, pressing manual ogcds is slightly problematic:
@@ -161,7 +161,7 @@ namespace BossMod
             _sq.Active = state.GCD > 0 || state.AnimationLock > 0;
         }
 
-        public (ActionID, uint) ReplaceActionAndTarget(ActionID actionID, uint targetID)
+        public (ActionID, ulong) ReplaceActionAndTarget(ActionID actionID, ulong targetID)
         {
             var targets = new Targets() { MainTarget = targetID, MouseoverTarget = Mouseover.Instance?.Object?.ObjectId ?? 0 };
             if (Autorot.Config.SmartCooldownQueueing && _sq.Active)
@@ -181,7 +181,7 @@ namespace BossMod
 
         abstract protected void OnCastSucceeded(ActionID actionID);
         abstract protected CommonRotation.State OnUpdate();
-        abstract protected (ActionID, uint) DoReplaceActionAndTarget(ActionID actionID, Targets targets);
+        abstract protected (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets);
         abstract public void DrawOverlay();
 
         // fill common state properties

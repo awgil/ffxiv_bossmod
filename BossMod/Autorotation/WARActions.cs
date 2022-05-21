@@ -176,7 +176,7 @@ namespace BossMod
             return _state;
         }
 
-        protected override (ActionID, uint) DoReplaceActionAndTarget(ActionID actionID, Targets targets)
+        protected override (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets)
         {
             if (actionID.Type == ActionType.Spell)
             {
@@ -191,7 +191,7 @@ namespace BossMod
                     _ => actionID
                 };
             }
-            uint targetID = actionID.Type == ActionType.Spell ? (WARRotation.AID)actionID.ID switch
+            ulong targetID = actionID.Type == ActionType.Spell ? (WARRotation.AID)actionID.ID switch
             {
                 WARRotation.AID.NascentFlash or WARRotation.AID.Shirk => SmartTargetNascentFlashShirk(actionID, targets),
                 WARRotation.AID.Holmgang => _config.HolmgangSelf ? Service.ClientState.LocalPlayer?.ObjectId ?? targets.MainTarget : targets.MainTarget,
@@ -276,7 +276,7 @@ namespace BossMod
         }
 
         // shirk/nascent flash smart targeting: target if friendly > mouseover if friendly > other tank
-        private uint SmartTargetNascentFlashShirk(ActionID action, Targets targets)
+        private ulong SmartTargetNascentFlashShirk(ActionID action, Targets targets)
         {
             targets = SmartQueueTarget(action, targets);
             var target = SmartTargetFriendly(targets, _config.SmartNascentFlashShirkTarget);

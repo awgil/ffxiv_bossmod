@@ -7,7 +7,7 @@ namespace BossMod
     public class RaidCooldowns : IDisposable
     {
         private WorldState _ws;
-        private Dictionary<(uint, ActionID), DateTime> _damageCooldowns = new(); // TODO: this should be improved - determine available cooldowns by class?..
+        private Dictionary<(ulong, ActionID), DateTime> _damageCooldowns = new(); // TODO: this should be improved - determine available cooldowns by class?..
 
         public RaidCooldowns(WorldState ws)
         {
@@ -64,7 +64,7 @@ namespace BossMod
             return MathF.Max(0, (float)(firstAvailable - now).TotalSeconds);
         }
 
-        private bool UpdateDamageCooldown(uint casterID, ActionID action, float duration, float cooldown)
+        private bool UpdateDamageCooldown(ulong casterID, ActionID action, float duration, float cooldown)
         {
             int slot = _ws.Party.FindSlot(casterID);
             if (slot < 0)

@@ -181,7 +181,7 @@ namespace BossMod
             }
         }
 
-        private void OnNetworkActionCastStart(object? sender, (uint actorID, ActionID action, float castTime, uint targetID) args)
+        private void OnNetworkActionCastStart(object? sender, (ulong actorID, ActionID action, float castTime, ulong targetID) args)
         {
             if (args.actorID != Service.ClientState.LocalPlayer?.ObjectId)
                 return; // not a player cast
@@ -225,7 +225,7 @@ namespace BossMod
             _inputOverride.UnblockMovement();
         }
 
-        private void OnNetworkActionCancel(object? sender, (uint actorID, uint actionID) args)
+        private void OnNetworkActionCancel(object? sender, (ulong actorID, uint actionID) args)
         {
             if (args.actorID != Service.ClientState.LocalPlayer?.ObjectId)
                 return; // non-player-initiated
@@ -254,7 +254,7 @@ namespace BossMod
             _inputPendingUnblock = DateTime.Now.AddSeconds(0.2f);
         }
 
-        private void OnNetworkActionReject(object? sender, (uint actorID, uint actionID, uint sourceSequence) args)
+        private void OnNetworkActionReject(object? sender, (ulong actorID, uint actionID, uint sourceSequence) args)
         {
             int index = args.sourceSequence != 0
                 ? _pendingActions.FindIndex(a => a.Sequence == args.sourceSequence)
@@ -306,7 +306,7 @@ namespace BossMod
             var action = new ActionID(actionType, actionID);
             if (_classActions != null)
             {
-                (action, targetID) = _classActions.ReplaceActionAndTarget(action, (uint)targetID);
+                (action, targetID) = _classActions.ReplaceActionAndTarget(action, targetID);
                 if (a4 == 0 && action.Type == ActionType.Item)
                     a4 = 65535;
             }

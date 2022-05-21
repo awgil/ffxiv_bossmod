@@ -183,7 +183,7 @@ namespace BossMod.Endwalker.P4S2
                 ++_doneTowers;
         }
 
-        public override void OnEventIcon(BossModule module, uint actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
         {
             var slot = module.Raid.FindSlot(actorID);
             if (slot >= 0)

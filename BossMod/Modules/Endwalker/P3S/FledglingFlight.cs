@@ -96,7 +96,7 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        public override void OnEventIcon(BossModule module, uint actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
         {
             if (iconID >= 296 && iconID <= 299)
             {

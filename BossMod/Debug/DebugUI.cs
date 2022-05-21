@@ -85,7 +85,7 @@ namespace BossMod
         {
             foreach (var elem in _ws.Actors)
             {
-                var obj = Service.ObjectTable.SearchById(elem.InstanceID);
+                var obj = (elem.InstanceID >> 32) == 0 ? Service.ObjectTable.SearchById((uint)elem.InstanceID) : null;
                 if (ImGui.TreeNode(Utils.ObjectString(obj!)))
                 {
                     var chara = obj as BattleChara;

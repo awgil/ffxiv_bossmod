@@ -17,9 +17,9 @@ namespace BossMod
         }
 
         private Network _network;
-        private Dictionary<uint, float[]> _prevStatusDurations = new();
+        private Dictionary<ulong, float[]> _prevStatusDurations = new();
         private List<(uint featureID, byte index, uint state)> _envControls = new();
-        private Dictionary<uint, ActorEvents> _actorEvents = new();
+        private Dictionary<ulong, ActorEvents> _actorEvents = new();
 
         public WorldStateGame(Network network)
         {
@@ -60,7 +60,7 @@ namespace BossMod
 
         private void UpdateActors()
         {
-            Dictionary<uint, GameObject> seenIDs = new();
+            Dictionary<ulong, GameObject> seenIDs = new();
             foreach (var obj in Service.ObjectTable)
                 if (obj.ObjectId != GameObject.InvalidGameObjectId)
                     seenIDs.Add(obj.ObjectId, obj);
@@ -182,7 +182,7 @@ namespace BossMod
                 return;
             }
 
-            Dictionary<ulong, uint> seenIDs = new();
+            Dictionary<ulong, ulong> seenIDs = new();
             foreach (var obj in Service.PartyList)
                 seenIDs[(ulong)obj.ContentId] = SanitizedObjectID(obj.ObjectId);
 
@@ -190,7 +190,7 @@ namespace BossMod
                 if (Party.ContentIDs[i] != 0 && !seenIDs.ContainsKey(Party.ContentIDs[i]))
                     Party.Remove(i);
 
-            foreach ((ulong contentID, uint actorID) in seenIDs)
+            foreach ((ulong contentID, ulong actorID) in seenIDs)
             {
                 int slot = Party.ContentIDs.IndexOf(contentID);
                 if (slot != -1)
@@ -205,7 +205,7 @@ namespace BossMod
         }
 
         private ushort StatusExtra(Dalamud.Game.ClientState.Statuses.Status s) => (ushort)((s.Param << 8) | s.StackCount);
-        private uint SanitizedObjectID(uint raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;
+        private ulong SanitizedObjectID(uint raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;
 
         private void DispatchActorEvents(Actor actor)
         {
@@ -233,7 +233,7 @@ namespace BossMod
             ev.Casts.Add(info);
         }
 
-        private void OnNetworkActorControlTargetIcon(object? sender, (uint actorID, uint iconID) args)
+        private void OnNetworkActorControlTargetIcon(object? sender, (ulong actorID, uint iconID) args)
         {
             var ev = _actorEvents.GetOrAdd(args.actorID);
             if (ev.IconUpdate != null)
@@ -241,7 +241,7 @@ namespace BossMod
             ev.IconUpdate = args.iconID;
         }
 
-        private void OnNetworkActorControlTether(object? sender, (uint actorID, uint targetID, uint tetherID) args)
+        private void OnNetworkActorControlTether(object? sender, (ulong actorID, ulong targetID, uint tetherID) args)
         {
             var ev = _actorEvents.GetOrAdd(args.actorID);
             if (ev.TetherUpdates == null)
@@ -249,7 +249,7 @@ namespace BossMod
             ev.TetherUpdates.Add(new ActorTetherInfo { Target = args.targetID, ID = args.tetherID });
         }
 
-        private void OnNetworkActorControlTetherCancel(object? sender, uint actorID)
+        private void OnNetworkActorControlTetherCancel(object? sender, ulong actorID)
         {
             var ev = _actorEvents.GetOrAdd(actorID);
             if (ev.TetherUpdates == null)

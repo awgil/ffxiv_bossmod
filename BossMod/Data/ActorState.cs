@@ -8,15 +8,15 @@ namespace BossMod
     // a set of existing actors in world; part of the world state structure
     public class ActorState : IEnumerable<Actor>
     {
-        private Dictionary<uint, Actor> _actors = new();
+        private Dictionary<ulong, Actor> _actors = new();
 
         public IEnumerator<Actor> GetEnumerator() => _actors.Values.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => _actors.Values.GetEnumerator();
 
-        public Actor? Find(uint instanceID) => instanceID != 0 ? _actors.GetValueOrDefault(instanceID) : null;
+        public Actor? Find(ulong instanceID) => instanceID != 0 ? _actors.GetValueOrDefault(instanceID) : null;
 
         public event EventHandler<Actor>? Added;
-        public Actor Add(uint instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, uint hpCur = 0, uint hpMax = 0, bool targetable = true, uint ownerID = 0)
+        public Actor Add(ulong instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, uint hpCur = 0, uint hpMax = 0, bool targetable = true, ulong ownerID = 0)
         {
             var act = _actors[instanceID] = new Actor(instanceID, oid, name, type, classID, posRot, hitboxRadius, hpCur, hpMax, targetable, ownerID);
             Added?.Invoke(this, act);
@@ -24,7 +24,7 @@ namespace BossMod
         }
 
         public event EventHandler<Actor>? Removed;
-        public void Remove(uint instanceID)
+        public void Remove(ulong instanceID)
         {
             var actor = Find(instanceID);
             if (actor == null)
@@ -116,8 +116,8 @@ namespace BossMod
             }
         }
 
-        public event EventHandler<(Actor, uint)>? TargetChanged; // actor already contains new target, old is passed as extra arg
-        public void ChangeTarget(Actor act, uint newTarget)
+        public event EventHandler<(Actor, ulong)>? TargetChanged; // actor already contains new target, old is passed as extra arg
+        public void ChangeTarget(Actor act, ulong newTarget)
         {
             if (act.TargetID != newTarget)
             {

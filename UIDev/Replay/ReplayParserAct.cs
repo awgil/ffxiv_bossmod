@@ -42,7 +42,7 @@ namespace UIDev
             }
         }
 
-        private uint _inCombatWith = 0;
+        private ulong _inCombatWith = 0;
         private int _networkDelta = 0;
         private ulong _lastPlayerContentID = 0;
 
@@ -68,7 +68,7 @@ namespace UIDev
                 case 21: ParseActionEffect(timestamp, payload, false); break;
                 case 22: ParseActionEffect(timestamp, payload, true); break;
                 case 23: ParseCancelAction(timestamp, payload); break;
-                case 24: AddMove(timestamp, uint.Parse(payload[2], NumberStyles.HexNumber), payload, 13); break;
+                case 24: AddMove(timestamp, ulong.Parse(payload[2], NumberStyles.HexNumber), payload, 13); break;
                 case 25: ParseDeath(timestamp, payload); break;
                 case 26: ParseStatusAdd(timestamp, payload); break;
                 case 27: ParseTargetIcon(timestamp, payload); break;
@@ -76,13 +76,13 @@ namespace UIDev
                 case 30: ParseStatusRemove(timestamp, payload); break;
                 case 34: ParseNameToggle(timestamp, payload); break;
                 case 35: ParseTether(timestamp, payload); break;
-                case 37: AddMove(timestamp, uint.Parse(payload[2], NumberStyles.HexNumber), payload, 11); break;
-                case 38: AddMove(timestamp, uint.Parse(payload[2], NumberStyles.HexNumber), payload, 11); break;
-                case 39: AddMove(timestamp, uint.Parse(payload[2], NumberStyles.HexNumber), payload, 10); break;
+                case 37: AddMove(timestamp, ulong.Parse(payload[2], NumberStyles.HexNumber), payload, 11); break;
+                case 38: AddMove(timestamp, ulong.Parse(payload[2], NumberStyles.HexNumber), payload, 11); break;
+                case 39: AddMove(timestamp, ulong.Parse(payload[2], NumberStyles.HexNumber), payload, 10); break;
             };
         }
 
-        private void AddMove(DateTime timestamp, uint id, string[] payload, int startPos)
+        private void AddMove(DateTime timestamp, ulong id, string[] payload, int startPos)
         {
             var actor = _ws.Actors.Find(id);
             if (actor == null)
@@ -138,20 +138,21 @@ namespace UIDev
         {
             // do nothing, this is always followed by player-add it seems...
             //OpPlayerIDChange res = new();
-            //res.Value = uint.Parse(payload[2], NumberStyles.HexNumber);
+            //res.Value = ulong.Parse(payload[2], NumberStyles.HexNumber);
             //AddOp(timestamp, res);
         }
 
         private void ParseAddCombatant(DateTime timestamp, string[] payload)
         {
             OpActorCreate res = new();
-            res.InstanceID = uint.Parse(payload[2], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(payload[2], NumberStyles.HexNumber);
             res.OID = uint.Parse(payload[10]);
             res.Name = payload[3];
+            res.OwnerID = ulong.Parse(payload[6], NumberStyles.HexNumber);
 
             if ((res.InstanceID & 0xF0000000u) == 0x10000000u)
                 res.Type = ActorType.Player;
-            else if (uint.Parse(payload[6], NumberStyles.HexNumber) != 0) // owner id
+            else if (res.OwnerID != 0)
                 res.Type = ActorType.Pet;
             else
                 res.Type = ActorType.Enemy;
@@ -212,7 +213,7 @@ namespace UIDev
         private void ParseRemoveCombatant(DateTime timestamp, string[] payload)
         {
             OpActorDestroy res = new();
-            res.InstanceID = uint.Parse(payload[2], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(payload[2], NumberStyles.HexNumber);
             AddMove(timestamp, res.InstanceID, payload, 17);
             AddOp(timestamp, res);
 
@@ -239,9 +240,9 @@ namespace UIDev
         private void ParsePartyList(DateTime timestamp, string[] payload)
         {
             int size = int.Parse(payload[2]);
-            HashSet<uint> party = new();
+            HashSet<ulong> party = new();
             for (int i = 0; i < size; ++i)
-                party.Add(uint.Parse(payload[3 + i], NumberStyles.HexNumber));
+                party.Add(ulong.Parse(payload[3 + i], NumberStyles.HexNumber));
 
             for (int i = PartyState.MaxSize - 1; i >= 0; ++i)
             {
@@ -255,7 +256,7 @@ namespace UIDev
                 }
             }
 
-            foreach (uint instanceID in party)
+            foreach (ulong instanceID in party)
             {
                 if (_ws.Party.FindSlot(instanceID) == -1)
                 {
@@ -270,10 +271,10 @@ namespace UIDev
         private void ParseStartsCasting(DateTime timestamp, string[] payload)
         {
             OpActorCast res = new();
-            res.InstanceID = uint.Parse(payload[2], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(payload[2], NumberStyles.HexNumber);
             res.Value = new();
             res.Value.Action = new(ActionType.Spell, uint.Parse(payload[4], NumberStyles.HexNumber));
-            res.Value.TargetID = uint.Parse(payload[6], NumberStyles.HexNumber);
+            res.Value.TargetID = ulong.Parse(payload[6], NumberStyles.HexNumber);
             res.Value.TotalTime = float.Parse(payload[8]);
             res.Value.FinishAt = DateTime.Parse(payload[1]).AddSeconds(res.Value.TotalTime);
             AddMove(timestamp, res.InstanceID, payload, 9);
@@ -301,16 +302,16 @@ namespace UIDev
                 aid = (uint)((int)aid - _networkDelta);
 
             OpEventCast res = new();
-            res.Value.CasterID = uint.Parse(payload[2], NumberStyles.HexNumber);
+            res.Value.CasterID = ulong.Parse(payload[2], NumberStyles.HexNumber);
             res.Value.Action = new(atype, aid);
-            res.Value.MainTargetID = uint.Parse(payload[6], NumberStyles.HexNumber);
+            res.Value.MainTargetID = ulong.Parse(payload[6], NumberStyles.HexNumber);
             res.Value.MaxTargets = uint.Parse(payload[46]);
             res.Value.SourceSequence = uint.Parse(payload[44], NumberStyles.HexNumber);
 
             // merge aoe targets
             if (isAOE)
             {
-                var targetIndex = uint.Parse(payload[45]);
+                var targetIndex = ulong.Parse(payload[45]);
                 if (targetIndex > 0)
                 {
                     var prev = _res.Ops.LastOrDefault() as OpEventCast;
@@ -383,26 +384,26 @@ namespace UIDev
         private void ParseCancelAction(DateTime timestamp, string[] payload)
         {
             OpActorCast res = new();
-            res.InstanceID = uint.Parse(payload[2], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(payload[2], NumberStyles.HexNumber);
             AddOp(timestamp, res);
         }
 
         private void ParseDeath(DateTime timestamp, string[] payload)
         {
             OpActorDead res = new();
-            res.InstanceID = uint.Parse(payload[2], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(payload[2], NumberStyles.HexNumber);
             res.Value = true;
             AddOp(timestamp, res);
         }
 
         private void ParseStatusAdd(DateTime timestamp, string[] payload)
         {
-            var actor = _ws.Actors.Find(uint.Parse(payload[7], NumberStyles.HexNumber));
+            var actor = _ws.Actors.Find(ulong.Parse(payload[7], NumberStyles.HexNumber));
             if (actor == null)
                 return;
 
             var id = uint.Parse(payload[2], NumberStyles.HexNumber);
-            var source = uint.Parse(payload[5], NumberStyles.HexNumber);
+            var source = ulong.Parse(payload[5], NumberStyles.HexNumber);
             var index = Array.FindIndex(actor.Statuses, x => x.ID == id && x.SourceID == source);
             if (index == -1)
                 index = Array.FindIndex(actor.Statuses, x => x.ID == 0); // new buff
@@ -429,7 +430,7 @@ namespace UIDev
         private void ParseTargetIcon(DateTime timestamp, string[] payload)
         {
             OpEventIcon res = new();
-            res.InstanceID = uint.Parse(payload[2], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(payload[2], NumberStyles.HexNumber);
             res.IconID = (uint)((int)uint.Parse(payload[6], NumberStyles.HexNumber) - _networkDelta);
             AddOp(timestamp, res);
         }
@@ -445,18 +446,18 @@ namespace UIDev
 
         private void ParseStatusRemove(DateTime timestamp, string[] payload)
         {
-            var actor = _ws.Actors.Find(uint.Parse(payload[7], NumberStyles.HexNumber));
+            var actor = _ws.Actors.Find(ulong.Parse(payload[7], NumberStyles.HexNumber));
             if (actor == null)
                 return;
 
             var id = uint.Parse(payload[2], NumberStyles.HexNumber);
-            var source = uint.Parse(payload[5], NumberStyles.HexNumber);
+            var source = ulong.Parse(payload[5], NumberStyles.HexNumber);
             var index = Array.FindIndex(actor.Statuses, x => x.ID == id && x.SourceID == source);
             if (index == -1)
                 return;
 
             OpActorStatus res = new();
-            res.InstanceID = uint.Parse(payload[7], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(payload[7], NumberStyles.HexNumber);
             res.Index = index;
             AddOp(timestamp, res);
         }
@@ -464,7 +465,7 @@ namespace UIDev
         private void ParseNameToggle(DateTime timestamp, string[] payload)
         {
             OpActorTargetable res = new();
-            res.InstanceID = uint.Parse(payload[2], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(payload[2], NumberStyles.HexNumber);
             res.Value = byte.Parse(payload[6], NumberStyles.HexNumber) != 0;
             AddOp(timestamp, res);
         }
@@ -472,8 +473,8 @@ namespace UIDev
         private void ParseTether(DateTime timestamp, string[] payload)
         {
             OpActorTether res = new();
-            res.InstanceID = uint.Parse(payload[2], NumberStyles.HexNumber);
-            res.Value.Target = uint.Parse(payload[4], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(payload[2], NumberStyles.HexNumber);
+            res.Value.Target = ulong.Parse(payload[4], NumberStyles.HexNumber);
             res.Value.ID = uint.Parse(payload[8], NumberStyles.HexNumber);
             AddOp(timestamp, res);
         }

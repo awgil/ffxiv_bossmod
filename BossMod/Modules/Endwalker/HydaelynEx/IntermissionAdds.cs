@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.HydaelynEx
     // component for intermission adds (crystals & echoes)
     class IntermissionAdds : Component
     {
-        private HashSet<uint> _activeCrystals = new();
+        private HashSet<ulong> _activeCrystals = new();
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {

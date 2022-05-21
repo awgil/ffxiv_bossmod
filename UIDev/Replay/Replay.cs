@@ -45,7 +45,7 @@ namespace UIDev
 
         public class Participant
         {
-            public uint InstanceID;
+            public ulong InstanceID;
             public uint OID;
             public ActorType Type;
             public string Name = "";
@@ -125,7 +125,7 @@ namespace UIDev
 
         public class Encounter
         {
-            public uint InstanceID;
+            public ulong InstanceID;
             public uint OID;
             public ushort Zone;
             public TimeRange Time = new(); // pull to deactivation

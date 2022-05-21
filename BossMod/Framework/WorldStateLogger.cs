@@ -151,7 +151,7 @@ namespace BossMod
             return $"{actor.InstanceID:X8}/{actor.OID:X}/{actor.Name}/{actor.Type}/{Vec3(actor.Position)}/{Utils.RadianString(actor.Rotation)}";
         }
 
-        private string Actor(uint instanceID)
+        private string Actor(ulong instanceID)
         {
             var actor = (instanceID != 0 && instanceID != Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId) ? _ws.Actors.Find(instanceID) : null;
             return actor != null ? Actor(actor) : $"{instanceID:X8}";
@@ -215,7 +215,7 @@ namespace BossMod
             Log(actor.InCombat ? "COM+" : "COM-", Actor(actor));
         }
 
-        private void ActorTargetChanged(object? sender, (Actor actor, uint prev) arg)
+        private void ActorTargetChanged(object? sender, (Actor actor, ulong prev) arg)
         {
             Log("TARG", $"{Actor(arg.actor)}|{Actor(arg.actor.TargetID)}");
         }
@@ -258,22 +258,22 @@ namespace BossMod
             Log("STA!", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Extra:X4}|{Utils.StatusTimeString(s.ExpireAt, _ws.CurrentTime)}|{Actor(s.SourceID)}");
         }
 
-        private void PartyJoined(object? sender, (int slot, ulong contentID, uint actorID) arg)
+        private void PartyJoined(object? sender, (int slot, ulong contentID, ulong actorID) arg)
         {
             Log("PAR+", $"{arg.slot}|{arg.contentID:X}|{arg.actorID:X8}");
         }
 
-        private void PartyLeft(object? sender, (int slot, ulong contentID, uint actorID) arg)
+        private void PartyLeft(object? sender, (int slot, ulong contentID, ulong actorID) arg)
         {
             Log("PAR-", $"{arg.slot}|{arg.contentID:X}|{arg.actorID:X8}");
         }
 
-        private void PartyReassigned(object? sender, (int slot, ulong contentID, uint actorID) arg)
+        private void PartyReassigned(object? sender, (int slot, ulong contentID, ulong actorID) arg)
         {
             Log("PAR!", $"{arg.slot}|{arg.contentID:X}|{arg.actorID:X8}");
         }
 
-        private void EventIcon(object? sender, (uint actorID, uint iconID) arg)
+        private void EventIcon(object? sender, (ulong actorID, uint iconID) arg)
         {
             Log("ICON", $"{Actor(arg.actorID)}|{arg.iconID}");
         }

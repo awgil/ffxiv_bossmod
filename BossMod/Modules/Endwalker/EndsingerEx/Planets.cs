@@ -106,7 +106,7 @@ namespace BossMod.Endwalker.EndsingerEx
             }
         }
 
-        private void AddPlanet(BossModule module, uint casterID, bool azure, bool firstOfPair)
+        private void AddPlanet(BossModule module, ulong casterID, bool azure, bool firstOfPair)
         {
             var caster = module.WorldState.Actors.Find(casterID);
             if (caster != null)

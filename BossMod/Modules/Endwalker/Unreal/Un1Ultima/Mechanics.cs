@@ -12,10 +12,10 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
     {
         private int[] _tankStacks = new int[PartyState.MaxSize];
 
-        private HashSet<uint> _orbsSharedExploded = new();
+        private HashSet<ulong> _orbsSharedExploded = new();
         // TODO: think how to associate kiters with orbs
-        private HashSet<uint> _orbsKitedExploded = new();
-        private List<uint> _orbKiters = new();
+        private HashSet<ulong> _orbsKitedExploded = new();
+        private List<ulong> _orbKiters = new();
 
         private float? _magitekOffset;
 

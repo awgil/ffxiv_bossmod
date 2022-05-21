@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.P3S
     // state related to sunshadow tethers during fountain of fire mechanics
     class SunshadowTether : Component
     {
-        private HashSet<uint> _chargedSunshadows = new();
+        private HashSet<ulong> _chargedSunshadows = new();
         private ulong _playersInAOE = 0;
 
         private static float _chargeHalfWidth = 3;
@@ -21,7 +21,7 @@ namespace BossMod.Endwalker.P3S
             _playersInAOE = 0;
             foreach (var bird in ActiveBirds(module))
             {
-                uint targetID = BirdTarget(bird);
+                ulong targetID = BirdTarget(bird);
                 var target = targetID != 0 ? module.WorldState.Actors.Find(targetID) : null;
                 if (target != null && target.Position != bird.Position)
                 {
@@ -41,7 +41,7 @@ namespace BossMod.Endwalker.P3S
         {
             foreach (var bird in ActiveBirds(module))
             {
-                uint birdTarget = BirdTarget(bird);
+                ulong birdTarget = BirdTarget(bird);
                 if (birdTarget == actor.InstanceID && bird.Tether.ID != (uint)TetherID.LargeBirdFar)
                 {
                     hints.Add("Too close!");
@@ -58,7 +58,7 @@ namespace BossMod.Endwalker.P3S
         {
             foreach (var bird in ActiveBirds(module))
             {
-                uint targetID = BirdTarget(bird);
+                ulong targetID = BirdTarget(bird);
                 var target = (targetID != 0 && targetID != pc.InstanceID) ? module.WorldState.Actors.Find(targetID) : null;
                 if (target != null && target.Position != bird.Position)
                 {
@@ -92,7 +92,7 @@ namespace BossMod.Endwalker.P3S
                 _chargedSunshadows.Add(info.CasterID);
         }
 
-        private uint BirdTarget(Actor bird)
+        private ulong BirdTarget(Actor bird)
         {
             // we don't get tether messages when birds spawn, so use target as a fallback
             // TODO: investigate this... we do get actor-control 503 before spawn, maybe this is related somehow...

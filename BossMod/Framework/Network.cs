@@ -12,17 +12,17 @@ namespace BossMod
         public struct PendingAction
         {
             public ActionID Action;
-            public uint TargetID;
+            public ulong TargetID;
             public uint Sequence;
         }
 
         public event EventHandler<CastEvent>? EventActionEffect;
-        public event EventHandler<(uint actorID, ActionID action, float castTime, uint targetID)>? EventActorCast;
-        public event EventHandler<(uint actorID, uint actionID)>? EventActorControlCancelCast;
-        public event EventHandler<(uint actorID, uint iconID)>? EventActorControlTargetIcon;
-        public event EventHandler<(uint actorID, uint targetID, uint tetherID)>? EventActorControlTether;
-        public event EventHandler<uint>? EventActorControlTetherCancel;
-        public event EventHandler<(uint actorID, uint actionID, uint sourceSequence)>? EventActorControlSelfActionRejected;
+        public event EventHandler<(ulong actorID, ActionID action, float castTime, ulong targetID)>? EventActorCast;
+        public event EventHandler<(ulong actorID, uint actionID)>? EventActorControlCancelCast;
+        public event EventHandler<(ulong actorID, uint iconID)>? EventActorControlTargetIcon;
+        public event EventHandler<(ulong actorID, ulong targetID, uint tetherID)>? EventActorControlTether;
+        public event EventHandler<ulong>? EventActorControlTetherCancel;
+        public event EventHandler<(ulong actorID, uint actionID, uint sourceSequence)>? EventActorControlSelfActionRejected;
         public event EventHandler<(uint featureID, byte index, uint state)>? EventEnvControl;
         public event EventHandler<(Waymark waymark, Vector3? pos)>? EventWaymark;
         public event EventHandler<PendingAction>? EventActionRequest;
@@ -134,7 +134,7 @@ namespace BossMod
 
         private unsafe void HandleActionEffect1(Protocol.Server_ActionEffect1* p, uint actorID)
         {
-            HandleActionEffect(actorID, & p->Header, (ActionEffect*)p->Effects, p->TargetID, 1);
+            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 1);
         }
 
         private unsafe void HandleActionEffect8(Protocol.Server_ActionEffect8* p, uint actorID)
@@ -182,7 +182,7 @@ namespace BossMod
             var targets = Math.Min(header->NumTargets, maxTargets);
             for (int i = 0; i < targets; ++i)
             {
-                uint targetID = (uint)targetIDs[i];
+                ulong targetID = targetIDs[i];
                 if (targetID != 0)
                 {
                     var target = new CastEvent.Target();
@@ -269,7 +269,7 @@ namespace BossMod
                 case Protocol.Opcode.ActionRequest:
                     {
                         var p = (Protocol.Client_ActionRequest*)dataPtr;
-                        Service.Log($"[Network] - AID={new ActionID(p->Type, p->ActionID)}, target={Utils.ObjectString(p->TargetID)}, seq={p->Sequence}, itemsrc={p->ItemSourceContainer}:{p->ItemSourceSlot}, u={p->u0:X2} {p->u1:X4} {p->u2:X4} {p->u3:X8} {p->u4:X8} {p->u5:X8}");
+                        Service.Log($"[Network] - AID={new ActionID(p->Type, p->ActionID)}, target={Utils.ObjectString(p->TargetID)}, seq={p->Sequence}, itemsrc={p->ItemSourceContainer}:{p->ItemSourceSlot}, u={p->u0:X2} {p->u1:X4} {p->u2:X4} {p->u3:X8} {p->u5:X8}");
                         break;
                     }
                 case Protocol.Opcode.ActionRequestGroundTargeted:
@@ -448,7 +448,7 @@ namespace BossMod
                         switch (p->category)
                         {
                             case Protocol.Server_ActorControlCategory.CancelCast: // note: some successful boss casts have this message on completion, seen param1=param4=0, param2=1; param1 is related to cast time?..
-                                Service.Log($"[Network] -- cancelled {new ActionID(ActionType.Spell, p->param3)}, interrupted={p->param4 == 1}");
+                                Service.Log($"[Network] -- cancelled {new ActionID((ActionType)p->param2, p->param3)}, interrupted={p->param4 == 1}");
                                 break;
                             case Protocol.Server_ActorControlCategory.GainEffect: // gain status effect, seen param2=param3=param4=0
                                 Service.Log($"[Network] -- gained {Utils.StatusString(p->param1)}");
@@ -530,15 +530,15 @@ namespace BossMod
             // rotation: 0 -> -180, 65535 -> +180
             float rot = (data->rotation / 65535.0f * 360.0f) - 180.0f;
             uint aid = (uint)(data->actionId - _unkDelta);
-            Service.Log($"[Network] - AID={new ActionID(data->actionType, aid)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, seq={data->SourceSequence}, cntr={data->globalEffectCounter}, rot={rot:f0}, var={data->variation}, flags={flags1:X8} {flags2:X4}, someTarget={Utils.ObjectString(data->SomeTargetID)}, u={data->unknown:X8} {data->unknown20:X2} {data->padding21:X4}");
+            Service.Log($"[Network] - AID={new ActionID(data->actionType, aid)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, seq={data->SourceSequence}, cntr={data->globalEffectCounter}, rot={rot:f0}, var={data->variation}, flags={flags1:X8} {flags2:X4}, someTarget={Utils.ObjectString(data->SomeTargetID)}, u={data->unknown20:X2} {data->padding21:X4}");
             var targets = Math.Min(data->NumTargets, maxTargets);
             for (int i = 0; i < targets; ++i)
             {
-                uint targetId = (uint)targetIDs[i];
+                ulong targetId = targetIDs[i];
                 if (targetId == 0)
                     continue;
 
-                Service.Log($"[Network] -- target {i} == {Utils.ObjectString(targetId)}, hiword = {targetIDs[i] >> 32:X8}");
+                Service.Log($"[Network] -- target {i} == {Utils.ObjectString(targetId)}");
                 for (int j = 0; j < 8; ++j)
                 {
                     ActionEffect* eff = effects + (i * 8) + j;

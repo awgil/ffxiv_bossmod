@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.P4S2
     // state related to act 5 (finale) wreath of thorns
     class WreathOfThorns5 : Component
     {
-        private List<uint> _playersOrder = new();
+        private List<ulong> _playersOrder = new();
         private List<Actor> _towersOrder = new();
         private int _castsDone = 0;
 

@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
 {
     class SolarFlair : BossModule.Component
     {
-        private Dictionary<uint, Vector3?> _sunstorms = new(); // null = cast finished, otherwise expected position
+        private Dictionary<ulong, Vector3?> _sunstorms = new(); // null = cast finished, otherwise expected position
 
         private static float _kickDistance = 18;
         private static AOEShapeCircle _aoe = new(15);

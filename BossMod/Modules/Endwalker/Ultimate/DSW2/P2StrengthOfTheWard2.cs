@@ -197,7 +197,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void OnEventIcon(BossModule module, uint actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
         {
             if ((IconID)iconID == IconID.SkywardLeap)
             {

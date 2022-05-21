@@ -29,7 +29,7 @@ namespace BossMod
     public class ActorCastInfo
     {
         public ActionID Action;
-        public uint TargetID;
+        public ulong TargetID;
         public Vector3 Location;
         public float TotalTime;
         public DateTime FinishAt;
@@ -41,21 +41,21 @@ namespace BossMod
     // note on tethers - it is N:1 type of relation, actor can be tethered to 0 or 1 actors, but can itself have multiple actors tethering themselves to itself
     public struct ActorTetherInfo
     {
-        public uint Target; // instance id
+        public ulong Target; // instance id
         public uint ID;
     }
 
     public struct ActorStatus
     {
         public uint ID;
-        public uint SourceID;
+        public ulong SourceID;
         public ushort Extra;
         public DateTime ExpireAt;
     }
 
     public class Actor
     {
-        public uint InstanceID; // 'uuid'
+        public ulong InstanceID; // 'uuid'
         public uint OID;
         public string Name;
         public ActorType Type;
@@ -68,8 +68,8 @@ namespace BossMod
         public bool IsTargetable;
         public bool IsDead;
         public bool InCombat;
-        public uint OwnerID; // uuid of owner, for pets and similar
-        public uint TargetID;
+        public ulong OwnerID; // uuid of owner, for pets and similar
+        public ulong TargetID;
         public ActorCastInfo? CastInfo;
         public ActorTetherInfo Tether = new();
         public ActorStatus[] Statuses = new ActorStatus[30]; // empty slots have ID=0
@@ -78,7 +78,7 @@ namespace BossMod
         public Vector3 Position => PosRot.XYZ();
         public float Rotation => PosRot.W;
 
-        public Actor(uint instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius, uint hpCur, uint hpMax, bool targetable, uint ownerID)
+        public Actor(ulong instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius, uint hpCur, uint hpMax, bool targetable, ulong ownerID)
         {
             InstanceID = instanceID;
             OID = oid;
@@ -99,13 +99,13 @@ namespace BossMod
             return i >= 0 ? Statuses[i] : null;
         }
 
-        public ActorStatus? FindStatus(uint sid, uint source)
+        public ActorStatus? FindStatus(uint sid, ulong source)
         {
             var i = Array.FindIndex(Statuses, x => x.ID == sid && x.SourceID == source);
             return i >= 0 ? Statuses[i] : null;
         }
 
         public ActorStatus? FindStatus<SID>(SID sid) where SID : Enum => FindStatus((uint)(object)sid);
-        public ActorStatus? FindStatus<SID>(SID sid, uint source) where SID : Enum => FindStatus((uint)(object)sid, source);
+        public ActorStatus? FindStatus<SID>(SID sid, ulong source) where SID : Enum => FindStatus((uint)(object)sid, source);
     }
 }

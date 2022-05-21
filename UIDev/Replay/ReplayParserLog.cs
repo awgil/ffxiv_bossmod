@@ -45,7 +45,7 @@ namespace UIDev
 
         private int _version = 0;
         private ulong _lastFakeContentID = 0; // pc will always have id=1
-        private uint _playerID = 0;
+        private ulong _playerID = 0;
 
         private void ParseLine(string[] payload)
         {
@@ -143,7 +143,7 @@ namespace UIDev
         {
             var parts = payload[2].Split('/');
             OpActorCreate res = new();
-            res.InstanceID = uint.Parse(parts[0], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber);
             res.OID = uint.Parse(parts[1], NumberStyles.HexNumber);
             res.Name = parts[2];
             res.Type = Enum.Parse<ActorType>(parts[3]);
@@ -195,7 +195,7 @@ namespace UIDev
         {
             var parts = payload[2].Split('/');
             OpActorRename res = new();
-            res.InstanceID = uint.Parse(parts[0], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber);
             res.Name = parts[2];
             AddOp(timestamp, res);
         }
@@ -212,7 +212,7 @@ namespace UIDev
         {
             var parts = payload[2].Split('/');
             OpActorMove res = new();
-            res.InstanceID = uint.Parse(parts[0], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber);
             res.PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]) * MathF.PI / 180);
             AddOp(timestamp, res);
         }
@@ -307,7 +307,7 @@ namespace UIDev
         {
             OpPartyJoin res = new();
             res.ContentID = ulong.Parse(payload[3], NumberStyles.HexNumber);
-            res.InstanceID = uint.Parse(payload[4], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(payload[4], NumberStyles.HexNumber);
             AddOp(timestamp, res);
         }
 
@@ -315,7 +315,7 @@ namespace UIDev
         {
             OpPartyLeave res = new();
             res.ContentID = ulong.Parse(payload[3], NumberStyles.HexNumber);
-            res.InstanceID = uint.Parse(payload[4], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(payload[4], NumberStyles.HexNumber);
             AddOp(timestamp, res);
         }
 
@@ -323,7 +323,7 @@ namespace UIDev
         {
             OpPartyAssign res = new();
             res.ContentID = ulong.Parse(payload[3], NumberStyles.HexNumber);
-            res.InstanceID = uint.Parse(payload[4], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(payload[4], NumberStyles.HexNumber);
             AddOp(timestamp, res);
         }
 
@@ -386,10 +386,10 @@ namespace UIDev
             return new(float.Parse(parts[0]), float.Parse(parts[1]), float.Parse(parts[2]));
         }
 
-        private static uint ActorID(string actor)
+        private static ulong ActorID(string actor)
         {
             var sep = actor.IndexOf('/');
-            return uint.Parse(sep >= 0 ? actor.AsSpan(0, sep) : actor.AsSpan(), NumberStyles.HexNumber);
+            return ulong.Parse(sep >= 0 ? actor.AsSpan(0, sep) : actor.AsSpan(), NumberStyles.HexNumber);
         }
 
         private static (uint, uint) CurMax(string repr)

@@ -17,11 +17,11 @@ namespace BossMod
 
         private ActorState _actorState;
         private ulong[] _contentIDs = new ulong[MaxSize]; // empty slots contain 0's
-        private uint[] _actorIDs = new uint[MaxSize];
+        private ulong[] _actorIDs = new ulong[MaxSize];
         private Actor?[] _actors = new Actor?[MaxSize];
 
         public ReadOnlySpan<ulong> ContentIDs => _contentIDs;
-        public ReadOnlySpan<uint> ActorIDs => _actorIDs;
+        public ReadOnlySpan<ulong> ActorIDs => _actorIDs;
         public ReadOnlyCollection<Actor?> Members => Array.AsReadOnly(_actors);
 
         public Actor? this[int slot] => (slot >= 0 && slot < _actors.Length) ? _actors[slot] : null; // bounds-checking accessor
@@ -72,16 +72,16 @@ namespace BossMod
         }
 
         // find a slot index containing specified player (by instance ID); returns -1 if not found
-        public int FindSlot(uint instanceID)
+        public int FindSlot(ulong instanceID)
         {
             return instanceID != 0 ? Array.IndexOf(_actorIDs, instanceID) : -1;
         }
 
-        public event EventHandler<(int, ulong, uint)>? Joined;
-        public event EventHandler<(int, ulong, uint)>? Left;
-        public event EventHandler<(int, ulong, uint)>? Reassigned; // actor representation changed for same player (usually to/from null)
+        public event EventHandler<(int, ulong, ulong)>? Joined;
+        public event EventHandler<(int, ulong, ulong)>? Left;
+        public event EventHandler<(int, ulong, ulong)>? Reassigned; // actor representation changed for same player (usually to/from null)
 
-        public int Add(ulong contentID, uint instanceID, bool isPlayer)
+        public int Add(ulong contentID, ulong instanceID, bool isPlayer)
         {
             int slot = Array.IndexOf(_contentIDs, 0ul);
             if (slot == -1)
@@ -118,7 +118,7 @@ namespace BossMod
             }
         }
 
-        public void AssignActor(int slot, ulong contentID, uint instanceID)
+        public void AssignActor(int slot, ulong contentID, ulong instanceID)
         {
             if (_contentIDs[slot] != contentID || contentID == 0)
             {

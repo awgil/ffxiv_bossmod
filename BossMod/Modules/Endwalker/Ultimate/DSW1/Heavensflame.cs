@@ -88,7 +88,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
         }
 
-        public override void OnEventIcon(BossModule module, uint actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
         {
             int icon = (IconID)iconID switch
             {
@@ -102,7 +102,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 SetIcon(module, actorID, icon);
         }
 
-        private void SetIcon(BossModule module, uint actorID, int icon)
+        private void SetIcon(BossModule module, ulong actorID, int icon)
         {
             var slot = module.Raid.FindSlot(actorID);
             if (slot >= 0)

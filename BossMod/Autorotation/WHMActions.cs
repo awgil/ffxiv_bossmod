@@ -91,7 +91,7 @@ namespace BossMod
             return _state;
         }
 
-        protected override (ActionID, uint) DoReplaceActionAndTarget(ActionID actionID, Targets targets)
+        protected override (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets)
         {
             if (actionID.Type == ActionType.Spell)
             {
@@ -105,7 +105,7 @@ namespace BossMod
                     _ => actionID
                 };
             }
-            uint targetID = actionID.Type == ActionType.Spell ? (WHMRotation.AID)actionID.ID switch
+            ulong targetID = actionID.Type == ActionType.Spell ? (WHMRotation.AID)actionID.ID switch
             {
                 WHMRotation.AID.Cure1 or WHMRotation.AID.Cure2 or WHMRotation.AID.Regen or WHMRotation.AID.AfflatusSolace or WHMRotation.AID.Raise or WHMRotation.AID.Esuna or WHMRotation.AID.Rescue => SmartTargetSTFriendly(actionID, targets, false),
                 WHMRotation.AID.DivineBenison or WHMRotation.AID.Tetragrammaton or WHMRotation.AID.Benediction or WHMRotation.AID.Aquaveil => SmartTargetSTFriendly(actionID, targets, true),
@@ -220,7 +220,7 @@ namespace BossMod
             return WHMRotation.AID.Raise;
         }
 
-        private uint SmartTargetSTFriendly(ActionID action, Targets targets, bool smartQueued)
+        private ulong SmartTargetSTFriendly(ActionID action, Targets targets, bool smartQueued)
         {
             if (smartQueued)
                 targets = SmartQueueTarget(action, targets);
@@ -240,7 +240,7 @@ namespace BossMod
             return targets.MainTarget; // TODO: self-target is probably not what we want...
         }
 
-        private uint SmartTargetCure3(Targets targets)
+        private ulong SmartTargetCure3(Targets targets)
         {
             var target = SmartTargetFriendly(targets, _config.MouseoverFriendly);
             if (target != null)
@@ -255,7 +255,7 @@ namespace BossMod
         }
 
         // select best target for cure3, such that most people are hit
-        private (uint, int) SmartCure3Target()
+        private (ulong, int) SmartCure3Target()
         {
             var playerPos = Service.ClientState.LocalPlayer?.Position ?? new();
             return LivePartyMembers().Select(o => (o.ObjectId, GeometryUtils.PointInCircle(o.Position - playerPos, 30) ? CountAOEHealTargets(6, o.Position) : -1)).MaxBy(oc => oc.Item2);

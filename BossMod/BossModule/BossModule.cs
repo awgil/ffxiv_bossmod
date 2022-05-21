@@ -87,7 +87,7 @@ namespace BossMod
             public virtual void OnCastStarted(BossModule module, Actor actor) { }
             public virtual void OnCastFinished(BossModule module, Actor actor) { }
             public virtual void OnEventCast(BossModule module, CastEvent info) { }
-            public virtual void OnEventIcon(BossModule module, uint actorID, uint iconID) { }
+            public virtual void OnEventIcon(BossModule module, ulong actorID, uint iconID) { }
             public virtual void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state) { }
         }
         private List<Component> _components = new();
@@ -399,7 +399,7 @@ namespace BossMod
                 comp.OnStatusChange(this, arg.actor, arg.index);
         }
 
-        private void OnEventIcon(object? sender, (uint actorID, uint iconID) arg)
+        private void OnEventIcon(object? sender, (ulong actorID, uint iconID) arg)
         {
             foreach (var comp in _components)
                 comp.OnEventIcon(this, arg.actorID, arg.iconID);
