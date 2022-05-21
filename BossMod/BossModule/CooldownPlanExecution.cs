@@ -164,7 +164,7 @@ namespace BossMod
                 }
             }
 
-            var phaseLeft = tree.Phases[curState.PhaseID].Duration - curState.Time - curState.State.Duration;
+            var phaseLeft = tree.Phases[curState.PhaseID].Duration - curState.Time;
             if (phaseLeft > 0 && curState.Successors.Count > 0)
             {
                 // transition to next state of the same phase

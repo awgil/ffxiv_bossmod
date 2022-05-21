@@ -40,6 +40,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         {
             Arena.Actor(SerAdelphel(), Arena.ColorEnemy);
             Arena.Actor(SerGrinnaux(), Arena.ColorEnemy);
+            Arena.Actor(SerCharibert(), Arena.ColorEnemy);
             Arena.Actor(pc, Arena.ColorPC);
         }
     }

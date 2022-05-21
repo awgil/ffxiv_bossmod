@@ -7,23 +7,45 @@
         public DSW1States(DSW1 module) : base(module)
         {
             _module = module;
-            DeathPhase(0, SinglePhase);
+            SimplePhase(0, MainPhase, "Main")
+                .Raw.Update = () => ActorKilled(_module.SerAdelphel()) && ActorKilled(_module.SerGrinnaux());
+            SimplePhase(1, PureHeartPhase, "Pure Heart")
+                .Raw.Update = () => ActorKilled(_module.SerCharibert());
         }
 
-        private void SinglePhase(uint id)
+        private bool ActorKilled(Actor? actor)
+        {
+            return actor == null || actor.IsDestroyed || actor.HPCur < actor.HPMax && !actor.IsTargetable;
+        }
+
+        private void MainPhase(uint id)
         {
             HoliestOfHoly(id, 5.2f);
-            Heavensblaze(id + 0x10000, 8.1f);
+            Heavensblaze(id + 0x10000, 8.2f);
             HyperdimensionalSlash(id + 0x20000, 10.4f);
             ShiningBlade(id + 0x30000, 3.9f);
-            HoliestHallowing(id + 0x40000, 2.8f);
+            HoliestHallowing(id + 0x40000, 2.7f);
             Heavensflame(id + 0x50000, 4.9f);
-            HoliestHallowing(id + 0x60000, 1.7f);
+            HoliestHallowing(id + 0x60000, 1.6f);
             EmptyFullDimension(id + 0x70000, 4.1f);
-            HoliestHallowing(id + 0x80000, 5.2f);
-            HoliestOfHoly(id + 0x90000, 5.1f);
+            HoliestHallowing(id + 0x80000, 5.1f);
+            HoliestOfHoly(id + 0x90000, 5);
             AdelphelGrinnauxEnrage(id + 0xA0000, 2.2f);
-            // TODO: pure heart...
+        }
+
+        private void PureHeartPhase(uint id)
+        {
+            // TODO: do we care about shockwaves?..
+            ActorTargetable(id, _module.SerCharibert, false, 0);
+            ActorTargetable(id + 1, _module.SerCharibert, true, 4, "Appear");
+            ActorCastStart(id + 2, _module.SerCharibert, AID.PureOfHeart, 0.1f)
+                .ActivateOnEnter<PureOfHeart>();
+            ComponentCondition<PureOfHeart>(id + 0x10, 15.4f, comp => comp.NumCasts > 0, "Cone 1");
+            ComponentCondition<PureOfHeart>(id + 0x20, 5, comp => comp.NumCasts > 2, "Cone 2");
+            ComponentCondition<PureOfHeart>(id + 0x30, 5, comp => comp.NumCasts > 4, "Cone 3");
+            ComponentCondition<PureOfHeart>(id + 0x40, 5, comp => comp.NumCasts > 6, "Cone 4");
+            ActorCastEnd(id + 0x50, _module.SerCharibert, 5, "Raidwide");
+            ActorTargetable(id + 0x60, _module.SerCharibert, false, 2.1f, "Disappear");
         }
 
         private State HoliestOfHoly(uint id, float delay)
@@ -38,7 +60,7 @@
                 .ActivateOnEnter<EmptyDimension>()
                 .ActivateOnEnter<Heavensblaze>()
                 .DeactivateOnExit<EmptyDimension>();
-            ActorCast(id + 0x10, _module.SerCharibert, AID.Heavensblaze, 0, 5, "Tankbuster + Stack")
+            ActorCast(id + 0x10, _module.SerCharibert, AID.Heavensblaze, 0.1f, 5, "Tankbuster + Stack")
                 .DeactivateOnExit<Heavensblaze>();
         }
 
@@ -55,7 +77,7 @@
         {
             ActorCast(id, _module.SerGrinnaux, AID.FaithUnmoving, delay, 4, "Knockback")
                 .ActivateOnEnter<ShiningBlade>();
-            ActorCastEnd(id + 2, _module.SerAdelphel, 1, "Raidwide")
+            ActorCastEnd(id + 2, _module.SerAdelphel, 1.1f, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide); // holiest-of-holy overlap
             ComponentCondition<ShiningBlade>(id + 0x10, 8.5f, comp => comp.Done, "Resolve")
                 .DeactivateOnExit<ShiningBlade>();
@@ -64,9 +86,12 @@
         private void HoliestHallowing(uint id, float delay)
         {
             ActorCastStart(id, _module.SerAdelphel, AID.HoliestHallowing, delay);
-            Timeout(id + 1, 4, "Heal") // note: we use timeout instead of cast-end, since cast-end happens whenever anyone presses interrupt...
+
+            var castEnd = SimpleState(id + 1, 4, "Heal") // note: we use custom state instead of cast-end, since cast-end happens whenever anyone presses interrupt - and if not interrupted, spell finish can be slightly delayed
                 .ActivateOnEnter<HoliestHallowing>()
                 .DeactivateOnExit<HoliestHallowing>();
+            castEnd.Raw.Comment = "Interruptible cast end";
+            castEnd.Raw.Update = timeSinceTransition => _module.SerAdelphel()?.CastInfo == null && timeSinceTransition >= castEnd.Raw.Duration ? castEnd.Raw.Next : null;
         }
 
         private void Heavensflame(uint id, float delay)

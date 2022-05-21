@@ -4,8 +4,8 @@
     {
         Boss = 0x313C, // king thordan - p2
         SerZephirin = 0x3130, // x1 - ??
-        SerAdelphel = 0x3139, // x1 - ??
-        SerGrinnaux = 0x313A, // x1 - ??
+        SerAdelphel = 0x3139, // x1 - p1, p2
+        SerGrinnaux = 0x313A, // x1 - p1, p2
         SerCharibert = 0x313B, // x1 - ??
         SerJanlenoux = 0x3158, // x1 - p2
         SerVellguine = 0x3159, // x1 - p2
@@ -38,6 +38,23 @@
         HeavyImpactHit2 = 25559, // Helper->self, no cast, range 6-12 donut
         HeavyImpactHit3 = 25560, // Helper->self, no cast, range 12-18 donut
         HeavyImpactHit4 = 25561, // Helper->self, no cast, range 18-24 donut
+        HeavyImpactHit5 = 25562, // Helper->self, no cast, range 24-30 donut
+
+        DragonsRage = 25550, // Boss->self, 4.7s cast, visual
+        DragonsRageAOE = 25551, // Helper->players, no cast, range 8 shared aoe
+        DimensionalCollapse = 25563, // SerGrinnaux->self, 8.0s cast, visual (growing void zones)
+        DimensionalCollapseAOE = 25564, // Helper->location, 9.0s cast, range 10 aoe
+        SkywardLeap = 25565, // SerIgnasse/SerVellguine/SerPaulecrain->player, no cast, range 24 aoe on player with blue mark
+        Conviction = 25566, // SerHermenost->self, 8.2s cast, visual towers
+        ConvictionAOE = 25567, // Helper->location, 11.0s cast, range 3 aoe, soaked towers
+        EternalConviction = 25568, // Helper->self, no cast, raidwide from unsoaked towers
+        HolyShieldBash = 25297, // SerJanlenoux/SerAdelphel->tethered player, no cast, width 8 rect tankbuster
+        HolyShieldBashAOE = 25579, // Helper->self, no cast, range 6 ??-degree cone, ??
+        HolyBladedanceVisual = 25298, // SerJanlenoux/SerAdelphel->self, no cast, visual
+        HolyBladedanceAOE = 25299, // Helper->self, no cast, range 16 90-degree cone aoe (follows tankbuster, multiple hits)
+
+        AncientQuaga = 25542, // Boss->self, 6.0s cast, raidwide
+        HeavenlyHeel = 25543, // Boss->player, 4.0s cast, tankbuster forcing tankswap
     };
 
     public enum SID : uint
@@ -48,10 +65,12 @@
     public enum TetherID : uint
     {
         None = 0,
+        HolyShieldBash = 84, // SerJanlenoux/SerAdelphel->player
     }
 
     public enum IconID : uint
     {
         None = 0,
+        SkywardLeap = 330, // player
     }
 }

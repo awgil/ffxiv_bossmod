@@ -9,6 +9,7 @@
         Helper = 0x233C, // x24
         AetherialTear = 0x330F, // spawn during fight by Hyperdimensional Slash
         Brightsphere = 0x330E, // spawn during fight by Shining Blade
+        SpearOfTheFury = 0x2E22, // spawn during fight (pure-of-heart)
     };
 
     public enum AID : uint
@@ -46,11 +47,21 @@
 
         BrightbladesSteel = 25292, // SerAdelphel->self, 3.0s cast, enrage (heal + invuln + damage-up)
         TheBullsSteel = 25293, // SerGrinnaux->self, 3.0s cast, enrage (heal + invuln + damage-up)
+
+        PlanarPrison = 25313, // SerGrinnaux->self, no cast, ??? (applies small damage and knockback to whole raid right before pure-of-heart phase?..)
+        PlanarPrison2 = 25580, // Helper->self, no cast, ??? (cast extremely often and does nothing, some sort of fail mechanic?)
+        SpearOfTheFury = 25314, // SerZephirin->self, 10.0s cast, ??? (hits haurchefant??)
+        BrightwingedFlight = 25366, // SerAdelphel->self, no cast, ??? (applies two buffs on ser charibert)
+        PureOfHeart = 25316, // SerCharibert->self, 35.5s cast, raidwide, damage depends on caster hp %?
+        Shockwave = 25315, // SpearOfTheFury->self, no cast, raidwide, 7 casts every ~1.1s
+        Brightwing = 25369, // Helper->self, no cast, range 18 ?-degree cone, baited on 2 closest targets
+        Skyblind = 25370, // Helper->location, 2.5s cast, range 3 puddle
     };
 
     public enum SID : uint
     {
         None = 0,
+        Skyblind = 2661, // Helper->player, after baiting cones
     }
 
     public enum TetherID : uint

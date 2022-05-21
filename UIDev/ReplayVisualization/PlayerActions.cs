@@ -87,7 +87,7 @@ namespace UIDev
 
         public void Draw()
         {
-            _planner.DrawControls(true);
+            _planner.DrawControls();
             _timeline.Draw();
         }
 

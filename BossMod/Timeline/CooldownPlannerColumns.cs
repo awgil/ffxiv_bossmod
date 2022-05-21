@@ -47,7 +47,7 @@ namespace BossMod
             _columns.GetValueOrDefault(aid)?.Events.Add(ev);
         }
 
-        public void DrawControls(bool allowEditTimings)
+        public void DrawControls()
         {
             if (ImGui.Button("Export to clipboard"))
                 ExportToClipboard();
@@ -69,18 +69,11 @@ namespace BossMod
 
             var selPhase = _tree.Phases[_selectedPhase];
             ImGui.SameLine();
-            if (allowEditTimings)
+            if (ImGui.SliderFloat("###phase-duration", ref selPhase.Duration, 0, selPhase.MaxTime, $"{selPhase.Name}: %.1f"))
             {
-                if (ImGui.SliderFloat(selPhase.Name, ref selPhase.Duration, 0, selPhase.MaxTime))
-                {
-                    _timings.PhaseDurations[_selectedPhase] = selPhase.Duration;
-                    _tree.ApplyTimings(_timings);
-                    _onModified();
-                }
-            }
-            else
-            {
-                ImGui.TextUnformatted($"{selPhase.Name}: {selPhase.Duration:f2}s");
+                _timings.PhaseDurations[_selectedPhase] = selPhase.Duration;
+                _tree.ApplyTimings(_timings);
+                _onModified();
             }
 
             ImGui.SameLine();

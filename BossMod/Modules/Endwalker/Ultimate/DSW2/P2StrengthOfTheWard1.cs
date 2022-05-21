@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
-    class P2StrengthOfTheWard : BossModule.Component
+    // first part of the mechanic - charges + spread + rings
+    class P2StrengthOfTheWard1 : BossModule.Component
     {
         public int NumImpactHits { get; private set; }
         private bool _lightningStormsDone;
@@ -24,7 +22,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (!_chargesDone && (InChargeAOE(module, actor, OID.SerVellguine) || InChargeAOE(module, actor, OID.SerPaulecrain) || InChargeAOE(module, actor, OID.SerIgnasse)))
                 hints.Add("GTFO from charge aoe!");
 
-            if (NumImpactHits < 4)
+            if (NumImpactHits < 5)
             {
                 var source = module.Enemies(OID.SerGuerrique).FirstOrDefault();
                 if (source != null && !GeometryUtils.PointInCircle(actor.Position - source.Position, NumImpactHits * _impactRadiusIncrement) && GeometryUtils.PointInCircle(actor.Position - source.Position, (NumImpactHits + 1) * _impactRadiusIncrement))
@@ -41,7 +39,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 DrawCharge(module, OID.SerIgnasse);
             }
 
-            if (NumImpactHits < 4)
+            if (NumImpactHits < 5)
             {
                 var source = module.Enemies(OID.SerGuerrique).FirstOrDefault();
                 if (source != null)
@@ -77,6 +75,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 case AID.HeavyImpactHit2:
                 case AID.HeavyImpactHit3:
                 case AID.HeavyImpactHit4:
+                case AID.HeavyImpactHit5:
                     ++NumImpactHits;
                     break;
             }

@@ -31,7 +31,7 @@ namespace BossMod
             if (ImGui.Button(_modified ? "Save" : "No changes") && _modified)
                 Save();
             ImGui.SameLine();
-            _planner.DrawControls(true);
+            _planner.DrawControls();
 
             _timeline.Draw();
         }

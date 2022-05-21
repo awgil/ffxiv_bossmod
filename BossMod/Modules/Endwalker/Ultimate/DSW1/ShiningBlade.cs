@@ -5,10 +5,10 @@ using System.Numerics;
 namespace BossMod.Endwalker.Ultimate.DSW1
 {
     // includes knockback + charges
-    // TODO: show hint for execution
     class ShiningBlade : BossModule.Component
     {
         private Actor? _knockbackSource;
+        private Actor? _executionTarget;
         private List<Vector3> _flares = new(); // [0] = initial boss offset from center, [2] = first charge offset, [5] = second charge offset, [7] = third charge offset, [10] = fourth charge offset == [0]
         private int _doneFlares;
         private int _doneCharges;
@@ -18,6 +18,13 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         private static AOEShapeCircle _aoeTear = new(9); // TODO: verify
         private static AOEShapeCircle _aoeFlare = new(9);
         private static float _knockbackDistance = 16;
+        private static float _executionRadius = 5;
+
+        public override void Init(BossModule module)
+        {
+            var execCaster = ((DSW1)module).SerAdelphel();
+            _executionTarget = module.WorldState.Actors.Find(execCaster?.TargetID ?? 0);
+        }
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
@@ -36,6 +43,20 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 if (_flares.Skip(_doneFlares).Take(7).Any(o => _aoeFlare.Check(actor.Position, module.Arena.WorldCenter + o, 0)))
                     hints.Add("GTFO from explosion!");
             }
+
+            if (_doneCharges > 0 && _executionTarget != null)
+            {
+                if (_executionTarget == actor)
+                {
+                    if (module.Raid.WithoutSlot().InRadiusExcluding(_executionTarget, _executionRadius).Any())
+                        hints.Add("GTFO from raid!");
+                }
+                else
+                {
+                    if (GeometryUtils.PointInCircle(actor.Position - _executionTarget.Position, _executionRadius))
+                        hints.Add("GTFO from tank!");
+                }
+            }
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -53,6 +74,12 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _knockbackSource, _knockbackDistance);
                 arena.Actor(adjPos, 0, arena.ColorDanger);
                 arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
+            }
+
+            if (_doneCharges > 0 && _executionTarget != null)
+            {
+                arena.Actor(_executionTarget, arena.ColorDanger);
+                arena.AddCircle(_executionTarget.Position, _executionRadius, arena.ColorDanger);
             }
         }
 
@@ -91,6 +118,10 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                     AddShortFlares(-endOffset, -startOffset);
                     AddLongFlares(-startOffset, startOffset);
                 }
+            }
+            if (info.IsSpell(AID.Execution))
+            {
+                _executionTarget = null;
             }
         }
 

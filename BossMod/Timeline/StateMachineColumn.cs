@@ -27,8 +27,8 @@ namespace BossMod
             var phaseStart = Tree.Phases[node.PhaseID].StartTime;
 
             var drawlist = ImGui.GetWindowDrawList();
-            var nodeScreenPos = NodeScreenPos(node, singleColumn, phaseStart);
-            var predScreenPos = NodeScreenPos(node.Predecessor, singleColumn, phaseStart);
+            var nodeScreenPos = NodeScreenPos(node, node.BranchID, singleColumn, phaseStart);
+            var predScreenPos = NodeScreenPos(node.Predecessor, node.BranchID, singleColumn, phaseStart);
             var connection = nodeScreenPos - predScreenPos;
 
             // draw connection from predecessor
@@ -81,9 +81,10 @@ namespace BossMod
             }
         }
 
-        private Vector2 NodeScreenPos(StateMachineTree.Node? node, bool singleColumn, float phaseStart)
+        private Vector2 NodeScreenPos(StateMachineTree.Node? node, int fallbackBranch, bool singleColumn, float phaseStart)
         {
-            var (branch, time) = node != null ? (singleColumn ? 0 : node.BranchID, node.Time) : (0, 0);
+            int branch = singleColumn ? 0 : (node?.BranchID ?? fallbackBranch);
+            float time = node?.Time ?? 0;
             return Timeline.ColumnCoordsToScreenCoords(_nodeHOffset + branch * PixelsPerBranch, phaseStart + time);
         }
 
