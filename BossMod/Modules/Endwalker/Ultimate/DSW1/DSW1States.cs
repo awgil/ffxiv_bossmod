@@ -24,11 +24,11 @@
             Heavensblaze(id + 0x10000, 8.2f);
             HyperdimensionalSlash(id + 0x20000, 10.4f);
             ShiningBlade(id + 0x30000, 3.9f);
-            HoliestHallowing(id + 0x40000, 2.7f);
+            HoliestHallowing(id + 0x40000, 2.7f, true);
             Heavensflame(id + 0x50000, 4.9f);
-            HoliestHallowing(id + 0x60000, 1.6f);
+            HoliestHallowing(id + 0x60000, 1.6f, true);
             EmptyFullDimension(id + 0x70000, 4.1f);
-            HoliestHallowing(id + 0x80000, 5.1f);
+            HoliestHallowing(id + 0x80000, 5.1f, false);
             HoliestOfHoly(id + 0x90000, 5);
             AdelphelGrinnauxEnrage(id + 0xA0000, 2.2f);
         }
@@ -56,26 +56,34 @@
 
         private void Heavensblaze(uint id, float delay)
         {
-            ActorCast(id, _module.SerGrinnaux, AID.EmptyDimension, delay, 5, "Donut")
+            ActorCastStart(id, _module.SerGrinnaux, AID.EmptyDimension, delay)
+                .SetHint(StateMachine.StateHint.PositioningStart);
+            ActorCastEnd(id + 1, _module.SerGrinnaux, 5, "Donut")
                 .ActivateOnEnter<EmptyDimension>()
                 .ActivateOnEnter<Heavensblaze>()
                 .DeactivateOnExit<EmptyDimension>();
             ActorCast(id + 0x10, _module.SerCharibert, AID.Heavensblaze, 0.1f, 5, "Tankbuster + Stack")
-                .DeactivateOnExit<Heavensblaze>();
+                .DeactivateOnExit<Heavensblaze>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void HyperdimensionalSlash(uint id, float delay)
         {
             ActorCastStart(id, _module.SerGrinnaux, AID.HyperdimensionalSlash, delay)
-                .ActivateOnEnter<HyperdimensionalSlash>(); // icons appear just before cast start
+                .ActivateOnEnter<HyperdimensionalSlash>() // icons appear just before cast start
+                .SetHint(StateMachine.StateHint.PositioningStart);
             ActorCastEnd(id + 1, _module.SerGrinnaux, 5);
             ComponentCondition<HyperdimensionalSlash>(id + 2, 8.2f, comp => comp.NumCasts >= 2, "Slash")
-                .DeactivateOnExit<HyperdimensionalSlash>();
+                .DeactivateOnExit<HyperdimensionalSlash>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
+        // leaves positioning hint at the end, since tanks need to move bosses after this stage
         private void ShiningBlade(uint id, float delay)
         {
-            ActorCast(id, _module.SerGrinnaux, AID.FaithUnmoving, delay, 4, "Knockback")
+            ActorCastStart(id, _module.SerGrinnaux, AID.FaithUnmoving, delay)
+                .SetHint(StateMachine.StateHint.PositioningStart);
+            ActorCastEnd(id + 1, _module.SerGrinnaux, 4, "Knockback")
                 .ActivateOnEnter<ShiningBlade>();
             ActorCastEnd(id + 2, _module.SerAdelphel, 1.1f, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide); // holiest-of-holy overlap
@@ -83,21 +91,25 @@
                 .DeactivateOnExit<ShiningBlade>();
         }
 
-        private void HoliestHallowing(uint id, float delay)
+        // this often happens when pos flag is set
+        private void HoliestHallowing(uint id, float delay, bool clearPosFlag)
         {
             ActorCastStart(id, _module.SerAdelphel, AID.HoliestHallowing, delay);
 
             var castEnd = SimpleState(id + 1, 4, "Heal") // note: we use custom state instead of cast-end, since cast-end happens whenever anyone presses interrupt - and if not interrupted, spell finish can be slightly delayed
                 .ActivateOnEnter<HoliestHallowing>()
-                .DeactivateOnExit<HoliestHallowing>();
+                .DeactivateOnExit<HoliestHallowing>()
+                .SetHint(StateMachine.StateHint.PositioningEnd, clearPosFlag);
             castEnd.Raw.Comment = "Interruptible cast end";
             castEnd.Raw.Update = timeSinceTransition => _module.SerAdelphel()?.CastInfo == null && timeSinceTransition >= castEnd.Raw.Duration ? castEnd.Raw.Next : null;
         }
 
+        // leaves positioning hint at the end, since tanks need to move bosses after this stage
         private void Heavensflame(uint id, float delay)
         {
             ActorCastStart(id, _module.SerCharibert, AID.Heavensflame, delay)
-                .ActivateOnEnter<Heavensflame>(); // icons appear just before cast start
+                .ActivateOnEnter<Heavensflame>() // icons appear just before cast start
+                .SetHint(StateMachine.StateHint.PositioningStart);
             ActorCastEnd(id + 1, _module.SerCharibert, 7);
             ComponentCondition<Heavensflame>(id + 2, 0.6f, comp => comp.NumCasts > 0, "Heavensflame")
                 .DeactivateOnExit<Heavensflame>();
@@ -107,10 +119,12 @@
         {
             HoliestOfHoly(id, delay)
                 .ActivateOnEnter<EmptyDimension>()
-                .ActivateOnEnter<FullDimension>();
+                .ActivateOnEnter<FullDimension>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
             ActorCastEnd(id + 0x10, _module.SerGrinnaux, 2, "Donut/circle") // holiest-of-holy overlap
                 .DeactivateOnExit<EmptyDimension>()
-                .DeactivateOnExit<FullDimension>();
+                .DeactivateOnExit<FullDimension>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void AdelphelGrinnauxEnrage(uint id, float delay)
