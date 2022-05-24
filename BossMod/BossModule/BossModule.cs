@@ -194,8 +194,13 @@ namespace BossMod
 
         public void RebuildPlan()
         {
-            if (StateMachine != null)
-                PlanExecution = new(StateMachine, Manager.CooldownPlanManager.SelectedPlan(PrimaryActor.OID, Raid.Player()?.Class ?? Class.None));
+            if (StateMachine == null)
+                return;
+
+            var cls = Raid.Player()?.Class ?? Class.None;
+            var plan = Manager.CooldownPlanManager.SelectedPlan(PrimaryActor.OID, cls);
+            Service.Log($"[BM] Selected plan for '{GetType()}' {cls}: '{(plan?.Name ?? "<none>")}'");
+            PlanExecution = new(StateMachine, plan);
         }
 
         public void Update()

@@ -118,8 +118,10 @@ namespace BossMod
                 }
             }
 
-            if (bestPriority > ModuleDisplayPriority(_activeModule) && (anyModuleActivated || !_activeModuleOverridden))
+            var curPriority = ModuleDisplayPriority(_activeModule);
+            if (bestPriority > curPriority && (anyModuleActivated || !_activeModuleOverridden))
             {
+                Service.Log($"[BMM] Active module change: from {_activeModule?.GetType()} (prio {curPriority}, manual-override={_activeModuleOverridden}) to {bestModule?.GetType()} (prio {bestPriority})");
                 _activeModule = bestModule;
                 _configOrModulesUpdated = true;
                 _activeModuleOverridden = false;
@@ -234,7 +236,7 @@ namespace BossMod
             int demoIndex = _loadedModules.FindIndex(m => m is DemoModule);
             if (WindowConfig.ShowDemo && demoIndex < 0)
                 LoadModule(CreateDemoModule());
-            else
+            else if (!WindowConfig.ShowDemo && demoIndex >= 0)
                 UnloadModule(demoIndex);
 
             _configOrModulesUpdated = true;
