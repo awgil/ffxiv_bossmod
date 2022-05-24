@@ -58,7 +58,7 @@ namespace BossMod
             {
                 case ActionType.Spell:
                     {
-                        var actionData = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(ID);
+                        var actionData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(ID);
                         string name = actionData?.Name ?? "<not found>";
                         return $"{Type} {ID} '{name}'";
                     }
@@ -67,7 +67,7 @@ namespace BossMod
                         // see Dalamud.Game.Text.SeStringHandling.Payloads.GetAdjustedId
                         // TODO: id > 500000 is "collectible", >2000000 is "event" ??
                         bool isHQ = ID > 1000000;
-                        var itemData = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Item>()?.GetRow(ID % 1000000);
+                        var itemData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Item>(ID % 1000000);
                         string name = itemData?.Name ?? "<not found>";
                         return $"{Type} {ID} '{name}'{(isHQ ? " (HQ)" : "")}";
                     }
@@ -80,7 +80,7 @@ namespace BossMod
         {
             return Type switch
             {
-                ActionType.Spell => (Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(ID)?.Cast100ms ?? 0) > 0,
+                ActionType.Spell => (Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(ID)?.Cast100ms ?? 0) > 0,
                 _ => false
             };
         }
@@ -89,7 +89,7 @@ namespace BossMod
         {
             return Type switch
             {
-                ActionType.Spell => Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(ID)?.TargetArea ?? false,
+                ActionType.Spell => Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(ID)?.TargetArea ?? false,
                 _ => false
             };
         }

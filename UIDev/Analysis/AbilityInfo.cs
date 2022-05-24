@@ -152,7 +152,7 @@ namespace UIDev.Analysis
                 {
                     foreach (var n in tree.Node("Lumina data"))
                     {
-                        var row = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(aid.ID);
+                        var row = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID);
                         tree.LeafNode($"Cast time: {row?.Cast100ms * 0.1f:f1}");
                         tree.LeafNode($"Target range: {row?.Range}");
                         tree.LeafNode($"Effect shape: {row?.CastType}");
@@ -198,7 +198,7 @@ namespace UIDev.Analysis
                 var sb = new StringBuilder("public enum AID : uint\n{");
                 foreach (var (aid, data) in _data)
                 {
-                    string name = aid.Type != ActionType.Spell ? $"// {aid}" : _aidType?.GetEnumName(aid.ID) ?? $"_Gen_{(Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(aid.ID)?.Name.ToString().Replace(' ', '_') ?? $"Ability_{aid.ID}")}";
+                    string name = aid.Type != ActionType.Spell ? $"// {aid}" : _aidType?.GetEnumName(aid.ID) ?? $"_Gen_{(Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID)?.Name.ToString().Replace(' ', '_') ?? $"Ability_{aid.ID}")}";
                     sb.Append($"\n    {name} = {aid.ID}, // {OIDListString(data.CasterOIDs)}->");
 
                     var tarSB = new StringBuilder();

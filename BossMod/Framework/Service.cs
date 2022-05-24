@@ -34,6 +34,7 @@ namespace BossMod
         }
 
         public static Lumina.GameData? LuminaGameData = null;
+        public static T? LuminaRow<T>(uint row) where T : Lumina.Excel.ExcelRow => LuminaGameData?.GetExcelSheet<T>(Lumina.Data.Language.English)?.GetRow(row);
 
         //public static SharpDX.Direct3D11.Device? Device = null;
     }

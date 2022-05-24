@@ -99,7 +99,7 @@ namespace BossMod
                 bool windowActive = nextWindow != -1 && t >= ability.ActivationWindows[nextWindow].Start;
                 float? nextTransition = windowActive ? ability.ActivationWindows[nextWindow].End : nextWindow != -1 ? ability.ActivationWindows[nextWindow].Start : ability.NextActivation?.EstimatedTime;
 
-                var name = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(action.ID)?.Name.ToString() ?? "(unknown)";
+                var name = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(action.ID)?.Name.ToString() ?? "(unknown)";
                 if (nextTransition == null)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, 0x80808080);

@@ -32,7 +32,7 @@ namespace BossMod
                     continue;
                 var col = _columns[aid] = timeline.AddColumn(new ActionUseColumn(timeline, tree, phaseBranches));
                 col.Width = _trackWidth;
-                col.Name = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(aid.ID)?.Name.ToString() ?? "(unknown)";
+                col.Name = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID)?.Name.ToString() ?? "(unknown)";
                 col.Editable = true;
                 col.NotifyModified = onModified;
                 col.EffectDuration = info.EffectDuration;

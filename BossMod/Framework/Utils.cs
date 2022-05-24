@@ -53,7 +53,7 @@ namespace BossMod
 
         public static string StatusString(uint statusID)
         {
-            var statusData = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Status>()?.GetRow(statusID);
+            var statusData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(statusID);
             string name = statusData?.Name ?? "<not found>";
             return $"{statusID} '{name}'";
         }
@@ -65,7 +65,7 @@ namespace BossMod
 
         public static string KnockbackString(uint knockbackID)
         {
-            var kbData = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Knockback>()?.GetRow(knockbackID);
+            var kbData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Knockback>(knockbackID);
             string details = kbData != null ? $"distance={kbData.Distance}" : "not found";
             return $"{knockbackID} ({details})";
         }
