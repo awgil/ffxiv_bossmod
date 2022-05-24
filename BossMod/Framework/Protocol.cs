@@ -79,6 +79,7 @@ namespace BossMod
 
             // below are opcodes i've reversed myself...
             EnvironmentControl = 0x0196, // updated - size=16, look for a bunch of messages starting with 0x8003759F after P1N intemperance cast...
+            UpdateRecastTimes = 0x023C, // payload = 80 floats 'elapsed' + 80 floats 'total'
             ActionRequest = 0x00B9, // just begin casting return...
             ActionRequestGroundTargeted = 0x01AC, // XIVAlexander
             // old - 0x1fd == EventObjSpawn? for stuff like exit points, etc.
@@ -497,6 +498,13 @@ namespace BossMod
             public byte u0; // padding?
             public ushort u1; // padding?
             public uint u2; // padding?
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public unsafe struct Server_UpdateRecastTimes
+        {
+            public fixed float Elapsed[80];
+            public fixed float Total[80];
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]

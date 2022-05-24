@@ -522,6 +522,12 @@ namespace BossMod
                         Service.Log($"[Network] - {p->FeatureID:X8}.{p->Index:X2}: {p->State:X8}, u={p->u0:X2} {p->u1:X4} {p->u2:X8}");
                         break;
                     }
+                case Protocol.Opcode.UpdateRecastTimes:
+                    {
+                        var p = (Protocol.Server_UpdateRecastTimes*)dataPtr;
+                        Service.Log($"[Network] - {p->Elapsed[0]:f1}/{p->Total[0]:f1}, ..., {p->Elapsed[21]:f1}/{p->Total[21]:f1}");
+                        break;
+                    }
             }
         }
 
