@@ -19,6 +19,7 @@ namespace BossMod
         [PluginService] public static ClientState ClientState { get; private set; }
         [PluginService] public static ObjectTable ObjectTable { get; private set; }
         [PluginService] public static PartyList PartyList { get; private set; }
+        [PluginService] public static ChatGui ChatGui { get; private set; }
         [PluginService] public static GameGui GameGui { get; private set; }
         [PluginService] public static SigScanner SigScanner { get; private set; }
         [PluginService] public static JobGauges JobGauges { get; private set; }

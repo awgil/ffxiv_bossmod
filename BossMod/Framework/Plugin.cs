@@ -71,6 +71,11 @@ namespace BossMod
                 case "d":
                     OpenDebugUI();
                     break;
+                case "cfg":
+                    var output = Service.Config.ConsoleCommand(new ArraySegment<string>(split, 1, split.Length - 1));
+                    foreach (var msg in output)
+                        Service.ChatGui.Print(msg);
+                    break;
             }
         }
 

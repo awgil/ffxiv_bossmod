@@ -1,6 +1,3 @@
-refactor configs
-- toggle/save console command
-
 boss modules:
 - draw actors by framework (components should return color+prio)
 - generalize components as much as possible

@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace BossMod
@@ -90,11 +91,107 @@ namespace BossMod
             }
         }
 
-        private static JsonSerializer BuildSerializer()
+        public static JsonSerializer BuildSerializer()
         {
             var res = new JsonSerializer();
             res.Converters.Add(new StringEnumConverter());
             return res;
+        }
+
+        public List<string> ConsoleCommand(IReadOnlyList<string> args)
+        {
+            List<string> result = new();
+            if (args.Count == 0)
+            {
+                result.Add("Usage: /vbm cfg <config-type> <field> <value>");
+                result.Add("Both config-type and field can be shortened. Valid config-types:");
+                foreach (var t in _nodes.Keys)
+                    result.Add($"- {t.Name}");
+            }
+            else
+            {
+                List<ConfigNode> matchingNodes = new();
+                foreach (var (t, n) in _nodes)
+                    if (t.Name.Contains(args[0], StringComparison.CurrentCultureIgnoreCase))
+                        matchingNodes.Add(n);
+                if (matchingNodes.Count == 0)
+                {
+                    result.Add("Config type not found. Valid types:");
+                    foreach (var t in _nodes.Keys)
+                        result.Add($"- {t.Name}");
+                }
+                else if (matchingNodes.Count > 1)
+                {
+                    result.Add("Ambiguous config type, pass longer pattern. Matches:");
+                    foreach (var n in matchingNodes)
+                        result.Add($"- {n.GetType().Name}");
+                }
+                else if (args.Count == 1)
+                {
+                    result.Add("Usage: /vbm cfg <config-type> <field> <value>");
+                    result.Add($"Valid fields for {matchingNodes[0].GetType().Name}:");
+                    foreach (var f in matchingNodes[0].GetType().GetFields().Where(f => f.GetCustomAttribute<PropertyDisplayAttribute>() != null))
+                        result.Add($"- {f.Name}");
+                }
+                else
+                {
+                    var fields = matchingNodes[0].GetType().GetFields().Where(f => f.GetCustomAttribute<PropertyDisplayAttribute>() != null);
+                    List<FieldInfo> matchingFields = new();
+                    foreach (var f in fields)
+                        if (f.Name.Contains(args[1], StringComparison.CurrentCultureIgnoreCase))
+                            matchingFields.Add(f);
+                    if (matchingFields.Count == 0)
+                    {
+                        result.Add("Field not found. Valid fields:");
+                        foreach (var f in fields)
+                            result.Add($"- {f.Name}");
+                    }
+                    else if (matchingFields.Count > 1)
+                    {
+                        result.Add("Ambiguous field name, pass longer pattern. Matches:");
+                        foreach (var f in matchingFields)
+                            result.Add($"- {f.Name}");
+                    }
+                    else if (args.Count == 2)
+                    {
+                        result.Add("Usage: /vbm cfg <config-type> <field> <value>");
+                        result.Add($"Type of {matchingNodes[0].GetType().Name}.{matchingFields[0].Name} is {matchingFields[0].FieldType.Name}");
+                    }
+                    else
+                    {
+                        try
+                        {
+                            var val = FromConsoleString(args[2], matchingFields[0].FieldType);
+                            if (val == null)
+                            {
+                                result.Add($"Failed to convert '{args[2]}' to {matchingFields[0].FieldType}");
+                            }
+                            else
+                            {
+                                matchingFields[0].SetValue(matchingNodes[0], val);
+                                matchingNodes[0].NotifyModified();
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            result.Add($"Failed to set {matchingNodes[0].GetType().Name}.{matchingFields[0].Name} to {args[2]}: {e}");
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        private object? FromConsoleString(string str, Type t)
+        {
+            if (t == typeof(bool))
+                return bool.Parse(str);
+            else if (t == typeof(float))
+                return float.Parse(str);
+            else if (t.IsAssignableTo(typeof(Enum)))
+                return Enum.Parse(t, str);
+            else
+                return null;
         }
 
         private static JObject ConvertConfig(JObject payload, int version)
