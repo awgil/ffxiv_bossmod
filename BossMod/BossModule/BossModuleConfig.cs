@@ -2,6 +2,7 @@
 
 namespace BossMod
 {
+    [ConfigDisplay(Name = "Boss module window settings", Order = 1)]
     public class BossModuleConfig : ConfigNode
     {
         public float ArenaScale = 1;
@@ -19,13 +20,7 @@ namespace BossMod
         public bool ShowDemo = false;
         public bool EnableTimerWindow = false;
 
-        public BossModuleConfig()
-        {
-            DisplayName = "Boss module window settings";
-            DisplayOrder = 1;
-        }
-
-        protected override void DrawContents()
+        public override void DrawContents(Tree tree)
         {
             if (ImGui.DragFloat("Arena scale factor", ref ArenaScale, 0.1f, 0.1f, 10, "%.1f", ImGuiSliderFlags.Logarithmic))
                 NotifyModified();

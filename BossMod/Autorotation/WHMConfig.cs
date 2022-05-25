@@ -1,5 +1,6 @@
 ﻿namespace BossMod
 {
+    [ConfigDisplay(Parent = typeof(AutorotationConfig))]
     class WHMConfig : ConfigNode
     {
         public bool FullRotation = true;
@@ -8,7 +9,7 @@
         public bool SmartCure3Target = true;
         public bool NeverOvercapBloodLilies = false;
 
-        protected override void DrawContents()
+        public override void DrawContents(Tree tree)
         {
             DrawProperty(ref FullRotation, "Execute optimal rotations on Glare (ST damage), Holy (AOE damage), Cure1 (ST heal) and Medica1 (AOE heal)");
             DrawProperty(ref SwiftFreeRaise, "When trying to cast raise, apply swiftcast and thin air automatically, if possible");

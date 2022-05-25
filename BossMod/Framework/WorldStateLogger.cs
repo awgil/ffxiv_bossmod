@@ -11,10 +11,10 @@ namespace BossMod
         private GeneralConfig _config;
         private Logger _logger;
 
-        public WorldStateLogger(WorldState ws, GeneralConfig config, DirectoryInfo logDir)
+        public WorldStateLogger(WorldState ws, DirectoryInfo logDir)
         {
             _ws = ws;
-            _config = config;
+            _config = Service.Config.Get<GeneralConfig>();
             _logger = new("World", logDir);
 
             _config.Modified += ApplyConfig;

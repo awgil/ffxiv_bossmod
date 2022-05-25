@@ -25,7 +25,7 @@ namespace UIDev
         {
             private ReplayParser _self;
 
-            public BossModuleManagerWrapper(ReplayParser self) : base(self._ws, new()) { _self = self; }
+            public BossModuleManagerWrapper(ReplayParser self) : base(self._ws) { _self = self; }
 
             public override void HandleError(BossModule module, BossModule.Component? comp, string message)
             {

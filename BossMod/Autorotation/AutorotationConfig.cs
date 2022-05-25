@@ -1,5 +1,6 @@
 ﻿namespace BossMod
 {
+    [ConfigDisplay(Name = "Autorotation settings (experimental!)", Order = 3)]
     class AutorotationConfig : ConfigNode
     {
         public enum GroundTargetingMode { Manual, AtCursor, AtTarget }
@@ -13,13 +14,7 @@
         public CommonRotation.Strategy.PotionUse PotionUse = CommonRotation.Strategy.PotionUse.Manual;
         public GroundTargetingMode GTMode = GroundTargetingMode.AtCursor;
 
-        public AutorotationConfig()
-        {
-            DisplayName = "Autorotation settings (experimental!)";
-            DisplayOrder = 3;
-        }
-
-        protected override void DrawContents()
+        public override void DrawContents(Tree tree)
         {
             DrawProperty(ref Enabled, "Enable autorotation");
             DrawProperty(ref Logging, "Log messages");

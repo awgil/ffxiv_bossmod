@@ -21,7 +21,7 @@ namespace BossMod
         public WHMActions(Autorotation autorot)
             : base(autorot)
         {
-            _config = autorot.Config.Get<WHMConfig>();
+            _config = Service.Config.Get<WHMConfig>();
             _state = BuildState();
             _strategy = new();
 

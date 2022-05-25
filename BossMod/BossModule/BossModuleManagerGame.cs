@@ -13,8 +13,8 @@ namespace BossMod
         private WindowManager.Window? _mainWindow;
         private WindowManager.Window? _planWindow;
 
-        public BossModuleManagerGame(WorldState ws, ConfigNode settings)
-            : base(ws, settings)
+        public BossModuleManagerGame(WorldState ws)
+            : base(ws)
         {
         }
 

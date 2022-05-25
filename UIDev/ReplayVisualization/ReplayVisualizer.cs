@@ -17,14 +17,13 @@ namespace UIDev
         private float _playSpeed = 0;
         private float _azimuth;
         private int _povSlot = PartyState.PlayerSlot;
-        private bool _showConfig = false;
         private EventList _events;
         private AnalysisManager _analysis;
 
         public ReplayVisualizer(Replay data)
         {
             _player = new(data);
-            _mgr = new(_player.WorldState, new());
+            _mgr = new(_player.WorldState);
             _first = data.Ops.First().Timestamp;
             _last = data.Ops.Last().Timestamp;
             _player.AdvanceTo(_first, _mgr.Update);
@@ -107,14 +106,6 @@ namespace UIDev
             ImGui.SameLine();
             if (ImGui.Button(">>>"))
                 _playSpeed = 10;
-
-            ImGui.SameLine();
-            ImGui.Checkbox("Show config", ref _showConfig);
-            if (_showConfig)
-            {
-                _mgr.WindowConfig.Draw();
-                _mgr.EncounterConfig.Draw();
-            }
         }
 
         private void DrawTimelineRow()
@@ -320,7 +311,7 @@ namespace UIDev
             else if(t < _player.WorldState.CurrentTime)
             {
                 _player.Reset();
-                _mgr = new(_player.WorldState, new());
+                _mgr = new(_player.WorldState);
                 _player.AdvanceTo(t, _mgr.Update);
             }
         }

@@ -1,5 +1,6 @@
 ﻿namespace BossMod
 {
+    [ConfigDisplay(Parent = typeof(AutorotationConfig))]
     class WARConfig : ConfigNode
     {
         public bool FullRotation = true;
@@ -8,7 +9,7 @@
         public bool SmartNascentFlashShirkTarget = true;
         public bool HolmgangSelf = true;
 
-        protected override void DrawContents()
+        public override void DrawContents(Tree tree)
         {
             DrawProperty(ref FullRotation, "Execute optimal single-target rotation on Heavy Swing and AOE rotation on Overpower");
             DrawProperty(ref STCombos, "Execute preceeding actions for single-target combos (Maim, Storm Eye, Storm Path)");

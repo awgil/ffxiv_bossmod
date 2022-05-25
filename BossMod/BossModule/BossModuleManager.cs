@@ -10,7 +10,6 @@ namespace BossMod
     {
         public WorldState WorldState { get; init; }
         public BossModuleConfig WindowConfig { get; init; }
-        public ModuleConfig EncounterConfig { get; init; }
         public CooldownPlanManager CooldownPlanManager { get; init; }
         public RaidCooldowns RaidCooldowns { get; init; }
 
@@ -36,12 +35,11 @@ namespace BossMod
             }
         }
 
-        public BossModuleManager(WorldState ws, ConfigNode settings)
+        public BossModuleManager(WorldState ws)
         {
             WorldState = ws;
-            WindowConfig = settings.Get<BossModuleConfig>();
-            EncounterConfig = settings.Get<ModuleConfig>();
-            CooldownPlanManager = settings.Get<CooldownPlanManager>();
+            WindowConfig = Service.Config.Get<BossModuleConfig>();
+            CooldownPlanManager = Service.Config.Get<CooldownPlanManager>();
             RaidCooldowns = new(ws);
 
             WindowConfig.Modified += ConfigChanged;

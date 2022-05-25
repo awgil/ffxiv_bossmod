@@ -33,16 +33,14 @@ namespace BossMod
             Service.Config.LoadFromFile(dalamud.ConfigFile);
             Service.Config.Modified += (_, _) => Service.Config.SaveToFile(dalamud.ConfigFile);
 
-            var generalCfg = Service.Config.Get<GeneralConfig>();
-
             _commandManager = commandManager;
             _commandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
-            _network = new(generalCfg, dalamud.ConfigDirectory);
+            _network = new(dalamud.ConfigDirectory);
             _ws = new(_network);
-            _debugLogger = new(_ws, generalCfg, dalamud.ConfigDirectory);
-            _bossmod = new(_ws, Service.Config);
-            _autorotation = new(_network, Service.Config, _bossmod);
+            _debugLogger = new(_ws, dalamud.ConfigDirectory);
+            _bossmod = new(_ws);
+            _autorotation = new(_network, _bossmod);
 
             dalamud.UiBuilder.Draw += DrawUI;
             dalamud.UiBuilder.OpenConfigUi += OpenConfigUI;
@@ -78,7 +76,8 @@ namespace BossMod
 
         private void OpenConfigUI()
         {
-            var w = WindowManager.CreateWindow("Boss mod config", Service.Config.Draw, () => { }, () => true);
+            var ui = new ConfigUI(Service.Config);
+            var w = WindowManager.CreateWindow("Boss mod config", ui.Draw, () => { }, () => true);
             w.SizeHint = new Vector2(300, 300);
         }
 

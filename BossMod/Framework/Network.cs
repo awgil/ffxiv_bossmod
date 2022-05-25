@@ -36,9 +36,9 @@ namespace BossMod
         // we have one simple way of detecting them - by looking at casts, since they contain both offset id and real ('animation') id
         private int _unkDelta = 0;
 
-        public Network(GeneralConfig config, DirectoryInfo logDir)
+        public Network(DirectoryInfo logDir)
         {
-            _config = config;
+            _config = Service.Config.Get<GeneralConfig>();
             //_logger = new("Network", logDir);
             _config.Modified += ApplyConfig;
             Service.GameNetwork.NetworkMessage += HandleMessage;

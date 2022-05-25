@@ -20,7 +20,7 @@ namespace UIDev
             // TODO: we should be able to reuse state data from encounter instead of re-running whole simulation...
             ReplayPlayer player = new(replay);
             player.AdvanceTo(enc.Time.Start, () => { });
-            var bmm = new BossModuleManager(player.WorldState, new());
+            var bmm = new BossModuleManager(player.WorldState);
             var m = bmm.LoadedModules.FirstOrDefault(m => m.PrimaryActor.InstanceID == enc.InstanceID);
             if (m?.StateMachine == null)
                 throw new Exception($"Encounter state machine not available");
@@ -72,6 +72,7 @@ namespace UIDev
 
             _colStates = _timeline.AddColumn(new StateMachineBranchColumn(_timeline, stateTree, phaseBranches));
 
+            // TODO: use cooldown plan selector...
             _planner = new(new(pcClass, ""), () => _timeline.MaxTime = stateTree.TotalMaxTime, _timeline, stateTree, phaseBranches);
             if (pc != null)
                 _casts = new(_timeline, pcClass, stateTree, phaseBranches);

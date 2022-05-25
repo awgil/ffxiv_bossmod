@@ -16,7 +16,7 @@ namespace BossMod
         public WARActions(Autorotation autorot)
             : base(autorot)
         {
-            _config = autorot.Config.Get<WARConfig>();
+            _config = Service.Config.Get<WARConfig>();
             _state = BuildState();
             _strategy = new()
             {

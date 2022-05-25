@@ -63,10 +63,10 @@ namespace BossMod
         public unsafe uint ComboLastMove => *_comboLastMove;
         public bool Moving => _inputOverride.IsMoving();
 
-        public unsafe Autorotation(Network network, ConfigNode settings, BossModuleManager bossmods)
+        public unsafe Autorotation(Network network, BossModuleManager bossmods)
         {
             _network = network;
-            _config = settings.Get<AutorotationConfig>();
+            _config = Service.Config.Get<AutorotationConfig>();
             _bossmods = bossmods;
 
             _network.EventActionRequest += OnNetworkActionRequest;

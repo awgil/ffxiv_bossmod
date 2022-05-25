@@ -5,6 +5,7 @@ using System.Linq;
 
 namespace BossMod
 {
+    [ConfigDisplay(Name = "Cooldown Plans", Order = 4)]
     public class CooldownPlanManager : ConfigNode
     {
         public class PlanList
@@ -28,9 +29,6 @@ namespace BossMod
                 foreach (var c in AbilityDefinitions.Classes.Keys)
                     p[c] = new();
             }
-
-            DisplayName = "Cooldown Plans";
-            DisplayOrder = 4;
         }
 
         public void DrawSelectionUI(uint encounterOID, Class curClass, StateMachine sm)
@@ -70,9 +68,8 @@ namespace BossMod
             }
         }
 
-        protected override void DrawContents()
+        public override void DrawContents(Tree tree)
         {
-            Tree tree = new();
             foreach (var (e, eEntries) in tree.Nodes(Plans, kv => new(ModuleRegistry.TypeForOID(kv.Key)?.Name ?? $"{kv.Key:X}")))
             {
                 foreach (var (c, plans) in tree.Nodes(eEntries, kv => new(kv.Key.ToString())))
@@ -127,7 +124,7 @@ namespace BossMod
 
         private static StateMachine? CreateStateMachineForOID(uint oid)
         {
-            return ModuleRegistry.CreateModule(oid, new(new(), new()), new(0, oid, "", ActorType.None, Class.None, new(), 0, 0, 0, false, 0))?.StateMachine;
+            return ModuleRegistry.CreateModule(oid, new(new()), new(0, oid, "", ActorType.None, Class.None, new(), 0, 0, 0, false, 0))?.StateMachine;
         }
     }
 }
