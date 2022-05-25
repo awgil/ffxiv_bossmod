@@ -1,7 +1,5 @@
 refactor configs
-- enum display names
 - toggle/save console command
-- boss module configs + cooldown plans => 'presets'?..
 
 boss modules:
 - draw actors by framework (components should return color+prio)
@@ -11,6 +9,7 @@ boss modules:
 - p3s - review, searing breeze component
 - aglaia revise, implement phases, better support for alliance raids
 - ultima weapon - implement phases
+- boss module config presets/profiles
 
 autorotation:
 - opener support

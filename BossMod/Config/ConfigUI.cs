@@ -35,7 +35,7 @@ namespace BossMod
 
             foreach (var (t, n) in nodes)
             {
-                var props = Attribute.GetCustomAttribute(t, typeof(ConfigDisplayAttribute)) as ConfigDisplayAttribute;
+                var props = t.GetCustomAttribute<ConfigDisplayAttribute>();
                 n.Name = props?.Name ?? GenerateNodeName(t);
                 n.Order = props?.Order ?? 0;
                 if (props?.Parent != null)
@@ -71,7 +71,7 @@ namespace BossMod
                 // draw standard properties
                 foreach (var field in n.Node.GetType().GetFields())
                 {
-                    var props = Attribute.GetCustomAttribute(field, typeof(PropertyDisplayAttribute)) as PropertyDisplayAttribute;
+                    var props = field.GetCustomAttribute<PropertyDisplayAttribute>();
                     if (props == null)
                         continue;
 
@@ -92,6 +92,12 @@ namespace BossMod
             }
         }
 
+        private string EnumString(Enum v)
+        {
+            var name = v.ToString();
+            return v.GetType().GetField(name)?.GetCustomAttribute<PropertyDisplayAttribute>()?.Label ?? name;
+        }
+
         private bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, bool v)
         {
             if (ImGui.Checkbox(props.Label, ref v))
@@ -105,11 +111,11 @@ namespace BossMod
         private bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, Enum v)
         {
             ImGui.SetNextItemWidth(200);
-            if (ImGui.BeginCombo(props.Label, v.ToString()))
+            if (ImGui.BeginCombo(props.Label, EnumString(v)))
             {
                 foreach (var opt in Enum.GetValues(v.GetType()))
                 {
-                    if (ImGui.Selectable(opt.ToString(), opt.Equals(v)))
+                    if (ImGui.Selectable(EnumString((Enum)opt), opt.Equals(v)))
                     {
                         member.SetValue(node, opt);
                         node.NotifyModified();
@@ -122,7 +128,7 @@ namespace BossMod
 
         private bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, float v)
         {
-            var slider = Attribute.GetCustomAttribute(member, typeof(PropertySliderAttribute)) as PropertySliderAttribute;
+            var slider = member.GetCustomAttribute<PropertySliderAttribute>();
             if (slider != null)
             {
                 var flags = ImGuiSliderFlags.None;

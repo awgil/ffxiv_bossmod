@@ -24,7 +24,17 @@
         [PropertyDisplay("Potion use strategy")]
         public CommonRotation.Strategy.PotionUse PotionUse = CommonRotation.Strategy.PotionUse.Manual;
 
-        public enum GroundTargetingMode { Manual, AtCursor, AtTarget }
+        public enum GroundTargetingMode
+        {
+            [PropertyDisplay("Manually select position by extra click (normal game behaviour)")]
+            Manual,
+
+            [PropertyDisplay("Cast at current mouse position")]
+            AtCursor,
+
+            [PropertyDisplay("Cast at selected target's position")]
+            AtTarget
+        }
         [PropertyDisplay("Target selection for ground-targeted abilities")]
         public GroundTargetingMode GTMode = GroundTargetingMode.AtCursor;
     }

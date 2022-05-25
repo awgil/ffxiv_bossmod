@@ -14,7 +14,7 @@ namespace BossMod
         public Type? Parent;
     }
 
-    // attribute that specifies how config node field is shown in the UI
+    // attribute that specifies how config node field or enumeration value is shown in the UI
     [AttributeUsage(AttributeTargets.Field)]
     public class PropertyDisplayAttribute : Attribute
     {

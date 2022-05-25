@@ -41,7 +41,7 @@ namespace BossMod
         private static uint GetPrimaryActorOID(Type module)
         {
             // first try to use explicit attribute
-            var oidAttr = Attribute.GetCustomAttribute(module, typeof(PrimaryActorOIDAttribute)) as PrimaryActorOIDAttribute;
+            var oidAttr = module.GetCustomAttribute<PrimaryActorOIDAttribute>();
             if (oidAttr != null)
                 return oidAttr.OID;
 
