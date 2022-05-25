@@ -1,10 +1,17 @@
+refactor configs
+- storage = type->instance map
+- ui = runtime tree
+- toggle/save console command
+- refactor config usage (no explicit args? use in uidev? cooldown plan editor?)
+- boss module configs + cooldown plans => 'presets'?..
+
 boss modules:
 - draw actors by framework (components should return color+prio)
 - generalize components as much as possible
 - fail log
 - use vec2 on arena
 - p3s - review, searing breeze component
-- aglaia revise, implement phases
+- aglaia revise, implement phases, better support for alliance raids
 - ultima weapon - implement phases
 
 autorotation:

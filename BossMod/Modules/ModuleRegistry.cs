@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace BossMod
@@ -9,22 +8,9 @@ namespace BossMod
     {
         private static Dictionary<uint, Type> _modules = new();
 
-        private static IEnumerable<Type?> GetAllTypes()
-        {
-            try
-            {
-                return Assembly.GetExecutingAssembly().DefinedTypes;
-            }
-            catch (ReflectionTypeLoadException e)
-            {
-                return e.Types;
-            }
-        }
-
         static ModuleRegistry()
         {
-            var baseType = typeof(BossModule);
-            foreach (var t in GetAllTypes().Where(baseType.IsAssignableFrom))
+            foreach (var t in Utils.GetDerivedTypes<BossModule>(Assembly.GetExecutingAssembly()))
             {
                 uint primaryOID = GetPrimaryActorOID(t!);
                 if (primaryOID == 0)

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 
 namespace BossMod
 {
@@ -206,6 +207,26 @@ namespace BossMod
                 }
             }
             return first;
+        }
+
+        // get all types defined in specified assembly
+        public static IEnumerable<Type?> GetAllTypes(Assembly asm)
+        {
+            try
+            {
+                return asm.DefinedTypes;
+            }
+            catch (ReflectionTypeLoadException e)
+            {
+                return e.Types;
+            }
+        }
+
+        // get all types derived from specified type in specified assembly
+        public static IEnumerable<Type> GetDerivedTypes<Base>(Assembly asm)
+        {
+            var b = typeof(Base);
+            return GetAllTypes(asm).Where(t => t?.IsSubclassOf(b) ?? false).Select(t => t!);
         }
     }
 }

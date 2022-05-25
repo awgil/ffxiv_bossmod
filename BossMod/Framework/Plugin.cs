@@ -11,7 +11,6 @@ namespace BossMod
     {
         public string Name => "Boss Mod";
 
-        private ConfigRoot _config;
         private CommandManager _commandManager { get; init; }
 
         private Network _network;
@@ -31,8 +30,10 @@ namespace BossMod
             Camera.Instance = new();
             Mouseover.Instance = new();
 
-            _config = ConfigRoot.ReadConfig(dalamud);
-            var generalCfg = _config.Get<GeneralConfig>();
+            Service.Config.LoadFromFile(dalamud.ConfigFile);
+            Service.Config.Modified += (_, _) => Service.Config.SaveToFile(dalamud.ConfigFile);
+
+            var generalCfg = Service.Config.Get<GeneralConfig>();
 
             _commandManager = commandManager;
             _commandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
@@ -40,8 +41,8 @@ namespace BossMod
             _network = new(generalCfg, dalamud.ConfigDirectory);
             _ws = new(_network);
             _debugLogger = new(_ws, generalCfg, dalamud.ConfigDirectory);
-            _bossmod = new(_ws, _config);
-            _autorotation = new(_network, _config, _bossmod);
+            _bossmod = new(_ws, Service.Config);
+            _autorotation = new(_network, Service.Config, _bossmod);
 
             dalamud.UiBuilder.Draw += DrawUI;
             dalamud.UiBuilder.OpenConfigUi += OpenConfigUI;
@@ -77,7 +78,7 @@ namespace BossMod
 
         private void OpenConfigUI()
         {
-            var w = WindowManager.CreateWindow("Boss mod config", _config.Draw, () => { }, () => true);
+            var w = WindowManager.CreateWindow("Boss mod config", Service.Config.Draw, () => { }, () => true);
             w.SizeHint = new Vector2(300, 300);
         }
 

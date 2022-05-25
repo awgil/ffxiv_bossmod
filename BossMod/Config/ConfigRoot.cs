@@ -1,40 +1,44 @@
-﻿using Dalamud.Configuration;
-using Dalamud.Plugin;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
+using System.IO;
 
 namespace BossMod
 {
-    class ConfigRoot : ConfigNode
+    public class ConfigRoot : ConfigNode
     {
-        private class Serialized : IPluginConfiguration
+        public void LoadFromFile(FileInfo file)
         {
-            public int Version { get; set; } = 1;
-            public JObject? Payload;
-        }
-
-        private DalamudPluginInterface? _dalamud;
-
-        public static ConfigRoot ReadConfig(DalamudPluginInterface dalamud)
-        {
-            ConfigRoot? obj = null;
-            var serialized = dalamud.GetPluginConfig() as Serialized;
-            if (serialized?.Payload != null)
-                obj = DeserializeNode(serialized.Payload, typeof(ConfigRoot), serialized.Version) as ConfigRoot;
-            if (obj == null)
-                obj = new();
-            obj._dalamud = dalamud;
-            return obj;
-        }
-
-        public ConfigRoot()
-        {
-            Modified += (_, _) =>
+            Clear();
+            try
             {
-                Serialized serialized = new();
-                serialized.Payload = SerializeNode(this);
-                _dalamud?.SavePluginConfig(serialized);
-            };
+                var contents = File.ReadAllText(file.FullName);
+                var json = JObject.Parse(contents);
+                var version = (int?)json["Version"] ?? 0;
+                var payload = (JObject?)json["Payload"];
+                if (payload != null)
+                {
+                    DeserializeChildren(this, payload, version);
+                }
+            }
+            catch (Exception e)
+            {
+                Service.Log($"Failed to load config from {file.FullName}: {e}");
+            }
+        }
+
+        public void SaveToFile(FileInfo file)
+        {
+            try
+            {
+                JObject j = new();
+                j.Add("Version", 1);
+                j.Add("Payload", SerializeNode(this));
+                File.WriteAllText(file.FullName, j.ToString());
+            }
+            catch (Exception e)
+            {
+                Service.Log($"Failed to save config to {file.FullName}: {e}");
+            }
         }
 
         private JObject SerializeNode(ConfigNode n)
@@ -48,35 +52,33 @@ namespace BossMod
             return j;
         }
 
-        private static ConfigNode? DeserializeNode(JObject j, Type type, int version)
+        private static void DeserializeChildren(ConfigNode node, JObject json, int version)
         {
-            var deserialized = j.ToObject(type) as ConfigNode;
-            if (version == 0 && type == typeof(BossModuleConfig))
-                return deserialized; // children of this node are moved...
+            if (version == 0 && node is BossModuleConfig)
+                return; // children of this node are moved...
 
-            if (deserialized != null)
+            var children = json["__children__"] as JObject;
+            if (children == null)
+                return;
+
+            foreach ((var childTypeName, var jChild) in children)
             {
-                var children = j["__children__"] as JObject;
-                if (children != null)
-                {
-                    foreach ((var childTypeName, var jChild) in children)
-                    {
-                        var jChildObj = jChild as JObject;
-                        if (jChildObj == null)
-                            continue;
+                var jChildObj = jChild as JObject;
+                if (jChildObj == null)
+                    continue;
 
-                        var realTypeName = version == 0 ? jChildObj["__type__"]?.ToString() : childTypeName;
-                        var childType = realTypeName != null ? Type.GetType(realTypeName) : null;
-                        if (childType == null)
-                            continue;
+                var realTypeName = version == 0 ? jChildObj["__type__"]?.ToString() : childTypeName;
+                var childType = realTypeName != null ? Type.GetType(realTypeName) : null;
+                if (childType == null)
+                    continue;
 
-                        var child = DeserializeNode(jChildObj, childType, version);
-                        if (child != null)
-                            deserialized.AddChild(child);
-                    }
-                }
+                var child = jChildObj.ToObject(childType) as ConfigNode;
+                if (child == null)
+                    continue;
+
+                node.AddChild(child);
+                DeserializeChildren(child, jChildObj, version);
             }
-            return deserialized;
         }
     }
 }

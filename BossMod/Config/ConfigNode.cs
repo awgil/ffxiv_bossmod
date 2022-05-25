@@ -31,6 +31,11 @@ namespace BossMod
             return child;
         }
 
+        protected void Clear()
+        {
+            _children.Clear();
+        }
+
         // draw this node and all children
         public void Draw()
         {
