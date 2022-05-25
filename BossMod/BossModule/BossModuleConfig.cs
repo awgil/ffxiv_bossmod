@@ -5,38 +5,47 @@ namespace BossMod
     [ConfigDisplay(Name = "Boss module window settings", Order = 1)]
     public class BossModuleConfig : ConfigNode
     {
+        [PropertyDisplay("Arena scale factor")]
+        [PropertySlider(0.1f, 10, Speed = 0.1f, Logarithmic = true)]
         public float ArenaScale = 1;
-        public bool Enable = true;
-        public bool Lock = false;
-        public bool RotateArena = true;
-        public bool ShowCardinals = false;
-        public bool ShowWaymarks = false;
-        public bool ShowMechanicTimers = true;
-        public bool ShowGlobalHints = true;
-        public bool ShowPlayerHints = true;
-        public bool TrishaMode = false;
-        public bool OpaqueArenaBackground = false;
-        public bool ShowWorldArrows = false;
-        public bool ShowDemo = false;
-        public bool EnableTimerWindow = false;
 
-        public override void DrawContents(Tree tree)
-        {
-            if (ImGui.DragFloat("Arena scale factor", ref ArenaScale, 0.1f, 0.1f, 10, "%.1f", ImGuiSliderFlags.Logarithmic))
-                NotifyModified();
-            DrawProperty(ref Enable, "Enable boss modules");
-            DrawProperty(ref Lock, "Lock movement and mouse interaction");
-            DrawProperty(ref RotateArena, "Rotate map to match camera orientation");
-            DrawProperty(ref ShowCardinals, "Show cardinal direction names");
-            DrawProperty(ref ShowWaymarks, "Show waymarks on radar");
-            DrawProperty(ref ShowMechanicTimers, "Show mechanics sequence and timers");
-            DrawProperty(ref ShowGlobalHints, "Show raidwide hints");
-            DrawProperty(ref ShowPlayerHints, "Show warnings and hints for player");
-            DrawProperty(ref TrishaMode, "Trisha mode: show radar without window");
-            DrawProperty(ref OpaqueArenaBackground, "Add opaque background to the arena");
-            DrawProperty(ref ShowWorldArrows, "Show movement hints in world");
-            DrawProperty(ref ShowDemo, "Show boss module demo out of instances (useful for configuring windows)");
-            DrawProperty(ref EnableTimerWindow, "Show window with cooldown plan timers");
-        }
+        [PropertyDisplay("Enable boss modules")]
+        public bool Enable = true;
+
+        [PropertyDisplay("Lock movement and mouse interaction")]
+        public bool Lock = false;
+
+        [PropertyDisplay("Rotate map to match camera orientation")]
+        public bool RotateArena = true;
+
+        [PropertyDisplay("Show cardinal direction names")]
+        public bool ShowCardinals = false;
+
+        [PropertyDisplay("Show waymarks on radar")]
+        public bool ShowWaymarks = false;
+
+        [PropertyDisplay("Show mechanics sequence and timers")]
+        public bool ShowMechanicTimers = true;
+
+        [PropertyDisplay("Show raidwide hints")]
+        public bool ShowGlobalHints = true;
+
+        [PropertyDisplay("Show warnings and hints for player")]
+        public bool ShowPlayerHints = true;
+
+        [PropertyDisplay("Trisha mode: show radar without window")]
+        public bool TrishaMode = false;
+
+        [PropertyDisplay("Add opaque background to the arena")]
+        public bool OpaqueArenaBackground = false;
+
+        [PropertyDisplay("Show movement hints in world")]
+        public bool ShowWorldArrows = false;
+
+        [PropertyDisplay("Show boss module demo out of instances (useful for configuring windows)")]
+        public bool ShowDemo = false;
+
+        [PropertyDisplay("Show window with cooldown plan timers")]
+        public bool EnableTimerWindow = false;
     }
 }

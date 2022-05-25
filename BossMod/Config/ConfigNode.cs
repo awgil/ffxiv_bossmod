@@ -1,4 +1,6 @@
 ﻿using ImGuiNET;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 
 namespace BossMod
@@ -10,6 +12,34 @@ namespace BossMod
         public string? Name;
         public int Order;
         public Type? Parent;
+    }
+
+    // attribute that specifies how config node field is shown in the UI
+    [AttributeUsage(AttributeTargets.Field)]
+    public class PropertyDisplayAttribute : Attribute
+    {
+        public string Label;
+
+        public PropertyDisplayAttribute(string label)
+        {
+            Label = label;
+        }
+    }
+
+    // attribute that specifies slider should be used for displaying property
+    [AttributeUsage(AttributeTargets.Field)]
+    public class PropertySliderAttribute : Attribute
+    {
+        public float Speed = 1;
+        public float Min;
+        public float Max;
+        public bool Logarithmic;
+
+        public PropertySliderAttribute(float min, float max)
+        {
+            Min = min;
+            Max = max;
+        }
     }
 
     // base class for configuration nodes
@@ -25,31 +55,31 @@ namespace BossMod
             Modified?.Invoke(this, EventArgs.Empty);
         }
 
-        // draw actual node contents; at very least leaves should override this to draw something useful
-        public virtual void DrawContents(Tree tree) { }
+        // draw custom contents; override this for complex config nodes
+        public virtual void DrawCustom(Tree tree) { }
 
-        // draw common property types
-        protected void DrawProperty(ref bool v, string label)
+        // deserialize fields from json; default implementation should work fine for most cases
+        public virtual void Deserialize(JObject j, JsonSerializer ser)
         {
-            if (ImGui.Checkbox(label, ref v))
-                NotifyModified();
+            var t = GetType();
+            foreach (var (f, data) in j)
+            {
+                var field = t.GetField(f);
+                if (field == null)
+                    continue;
+
+                var value = data?.ToObject(field.FieldType, ser);
+                if (value == null)
+                    continue;
+
+                field.SetValue(this, value);
+            }
         }
 
-        protected void DrawProperty<E>(ref E v, string label) where E : struct, Enum
+        // serialize node to json; default implementation should work fine for most cases
+        public virtual JObject Serialize(JsonSerializer ser)
         {
-            ImGui.SetNextItemWidth(100);
-            if (ImGui.BeginCombo(label, v.ToString()))
-            {
-                foreach (var opt in Enum.GetValues<E>())
-                {
-                    if (ImGui.Selectable(opt.ToString(), opt.Equals(v)))
-                    {
-                        v = opt;
-                        NotifyModified();
-                    }
-                }
-                ImGui.EndCombo();
-            }
+            return JObject.FromObject(this, ser);
         }
     }
 }

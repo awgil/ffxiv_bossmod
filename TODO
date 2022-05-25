@@ -1,6 +1,5 @@
 refactor configs
-- custom (de)serialization
-- auto draw properties / enums
+- enum display names
 - toggle/save console command
 - boss module configs + cooldown plans => 'presets'?..
 

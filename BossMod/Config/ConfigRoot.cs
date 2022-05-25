@@ -51,21 +51,10 @@ namespace BossMod
                     {
                         var type = Type.GetType(t);
                         var node = type != null ? _nodes.GetValueOrDefault(type) : null;
-                        var fields = j as JObject;
-                        if (node == null || fields == null)
-                            continue;
-
-                        foreach (var (f, data) in fields)
+                        var jObj = j as JObject;
+                        if (node != null && jObj != null)
                         {
-                            var field = type!.GetField(f);
-                            if (field == null)
-                                continue;
-
-                            var value = data?.ToObject(field.FieldType, ser);
-                            if (value == null)
-                                continue;
-
-                            field.SetValue(node, value);
+                            node.Deserialize(jObj, ser);
                         }
                     }
                 }
@@ -83,11 +72,17 @@ namespace BossMod
                 var ser = BuildSerializer();
                 JObject payload = new();
                 foreach (var (t, n) in _nodes)
-                    payload.Add(t.FullName!, JObject.FromObject(n, ser));
-                JObject j = new();
-                j.Add("Version", 2);
-                j.Add("Payload", payload);
-                File.WriteAllText(file.FullName, j.ToString());
+                {
+                    var jNode = n.Serialize(ser);
+                    if (jNode.Count > 0)
+                    {
+                        payload.Add(t.FullName!, jNode);
+                    }
+                }
+                JObject jContents = new();
+                jContents.Add("Version", 2);
+                jContents.Add("Payload", payload);
+                File.WriteAllText(file.FullName, jContents.ToString());
             }
             catch (Exception e)
             {

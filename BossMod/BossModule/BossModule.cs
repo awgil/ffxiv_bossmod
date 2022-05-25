@@ -27,7 +27,6 @@ namespace BossMod
         public Actor PrimaryActor { get; init; }
         public MiniArena Arena { get; init; }
         public StateMachine? StateMachine { get; private set; }
-        public ConfigNode? Config;
         public CooldownPlanExecution? PlanExecution = null;
 
         public WorldState WorldState => Manager.WorldState;

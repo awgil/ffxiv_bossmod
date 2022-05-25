@@ -3,15 +3,13 @@
     [ConfigDisplay(Name = "General settings", Order = 0)]
     public class GeneralConfig : ConfigNode
     {
+        [PropertyDisplay("Dump world state events")]
         public bool DumpWorldStateEvents = false;
-        public bool DumpServerPackets = false;
-        public bool DumpClientPackets = false;
 
-        public override void DrawContents(Tree tree)
-        {
-            DrawProperty(ref DumpWorldStateEvents, "Dump world state events");
-            DrawProperty(ref DumpServerPackets, "Dump server packets");
-            DrawProperty(ref DumpClientPackets, "Dump client packets");
-        }
+        [PropertyDisplay("Dump server packets")]
+        public bool DumpServerPackets = false;
+
+        [PropertyDisplay("Dump client packets")]
+        public bool DumpClientPackets = false;
     }
 }

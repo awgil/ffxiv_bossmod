@@ -1,5 +1,8 @@
-﻿using System;
+﻿using ImGuiNET;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace BossMod
 {
@@ -65,9 +68,81 @@ namespace BossMod
         {
             foreach (var n in _tree.Nodes(nodes, n => new(n.Name)))
             {
-                n.Node.DrawContents(_tree);
+                // draw standard properties
+                foreach (var field in n.Node.GetType().GetFields())
+                {
+                    var props = Attribute.GetCustomAttribute(field, typeof(PropertyDisplayAttribute)) as PropertyDisplayAttribute;
+                    if (props == null)
+                        continue;
+
+                    _ = field.GetValue(n.Node) switch
+                    {
+                        bool v => DrawProperty(props, n.Node, field, v),
+                        Enum v => DrawProperty(props, n.Node, field, v),
+                        float v => DrawProperty(props, n.Node, field, v),
+                        _ => false
+                    };
+                }
+
+                // draw custom stuff
+                n.Node.DrawCustom(_tree);
+
+                // draw subnodes
                 DrawNodes(n.Children);
             }
+        }
+
+        private bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, bool v)
+        {
+            if (ImGui.Checkbox(props.Label, ref v))
+            {
+                member.SetValue(node, v);
+                node.NotifyModified();
+            }
+            return true;
+        }
+
+        private bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, Enum v)
+        {
+            ImGui.SetNextItemWidth(200);
+            if (ImGui.BeginCombo(props.Label, v.ToString()))
+            {
+                foreach (var opt in Enum.GetValues(v.GetType()))
+                {
+                    if (ImGui.Selectable(opt.ToString(), opt.Equals(v)))
+                    {
+                        member.SetValue(node, opt);
+                        node.NotifyModified();
+                    }
+                }
+                ImGui.EndCombo();
+            }
+            return true;
+        }
+
+        private bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, float v)
+        {
+            var slider = Attribute.GetCustomAttribute(member, typeof(PropertySliderAttribute)) as PropertySliderAttribute;
+            if (slider != null)
+            {
+                var flags = ImGuiSliderFlags.None;
+                if (slider.Logarithmic)
+                    flags |= ImGuiSliderFlags.Logarithmic;
+                if (ImGui.DragFloat(props.Label, ref v, slider.Speed, slider.Min, slider.Max, "%.1f", flags))
+                {
+                    member.SetValue(node, v);
+                    node.NotifyModified();
+                }
+            }
+            else
+            {
+                if (ImGui.InputFloat(props.Label, ref v))
+                {
+                    member.SetValue(node, v);
+                    node.NotifyModified();
+                }
+            }
+            return true;
         }
     }
 }

@@ -5,11 +5,7 @@
     {
         public enum Corner { NW, NE, SE, SW }
 
+        [PropertyDisplay("Intemperance: corner that swaps with N on asymmetrical pattern")]
         public Corner IntemperanceAsymmetricalSwapCorner = Corner.NW;
-
-        public override void DrawContents(Tree tree)
-        {
-            DrawProperty(ref IntemperanceAsymmetricalSwapCorner, "Intemperance: corner that swaps with N on asymmetrical pattern");
-        }
     }
 }

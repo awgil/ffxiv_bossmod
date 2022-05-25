@@ -1,6 +1,5 @@
 ﻿using BossMod;
-using System;
-using System.Collections.Generic;
+using ImGuiNET;
 
 namespace UIDev
 {
@@ -21,5 +20,7 @@ namespace UIDev
         {
             _ui.Draw();
         }
+
+        public ImGuiWindowFlags WindowFlags() => ImGuiWindowFlags.None;
     }
 }

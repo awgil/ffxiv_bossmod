@@ -190,7 +190,7 @@ namespace BossMod.Endwalker.P1S
 
         private int SwapCorner(BossModule module)
         {
-            return 2 * (int)((module.Config as P1SConfig)?.IntemperanceAsymmetricalSwapCorner ?? P1SConfig.Corner.NW);
+            return 2 * (int)Service.Config.Get<P1SConfig>().IntemperanceAsymmetricalSwapCorner;
         }
 
         private Vector3 PosCenter(BossModule module, int pos)

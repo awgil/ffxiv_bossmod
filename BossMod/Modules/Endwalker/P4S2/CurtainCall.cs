@@ -56,7 +56,7 @@ namespace BossMod.Endwalker.P4S2
                 if (slot >= 0)
                 {
                     _playerOrder[slot] = 2 * (int)((actor.Statuses[index].ExpireAt - module.WorldState.CurrentTime).TotalSeconds / 10); // 2/4/6/8
-                    bool ddFirst = (module.Config as P4S2Config)?.CurtainCallDDFirst ?? false;
+                    bool ddFirst = Service.Config.Get<P4S2Config>().CurtainCallDDFirst;
                     if (ddFirst != actor.Role is Role.Tank or Role.Healer)
                         --_playerOrder[slot];
                     _playersInBreakOrder = null;

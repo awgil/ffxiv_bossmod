@@ -68,7 +68,7 @@ namespace BossMod
             }
         }
 
-        public override void DrawContents(Tree tree)
+        public override void DrawCustom(Tree tree)
         {
             foreach (var (e, eEntries) in tree.Nodes(Plans, kv => new(ModuleRegistry.TypeForOID(kv.Key)?.Name ?? $"{kv.Key:X}")))
             {
