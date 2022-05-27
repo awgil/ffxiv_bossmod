@@ -16,7 +16,6 @@ namespace UIDev
             SurgingTempestOvercap = 1 << 2,
             InnerReleaseDelayed = 1 << 3,
             InnerReleaseExpired = 1 << 4,
-            InnerReleaseWasted = 1 << 5, // charge wasted on anything other than FC
             PrimalRendExpired = 1 << 6,
             NascentChaosExpired = 1 << 7,
             NascentChaosOverwrite = 1 << 8,
@@ -33,7 +32,8 @@ namespace UIDev
         public int Duration = 260;
         public bool AOERotation = false;
         public bool KeepOnslaughtCharge = false;
-        public float BuffWindowOffset = 7.5f;
+        public bool StartWithTomahawk = true;
+        public float BuffWindowOffset = 7.8f;
         public float BuffWindowDuration = 20;
         public float BuffWindowFreq = 120;
         public CommonRotation.Strategy.PotionUse PotionUse = CommonRotation.Strategy.PotionUse.DelayUntilRaidBuffs;
@@ -43,6 +43,7 @@ namespace UIDev
             ImGui.InputInt("Sim duration (GCDs)", ref Duration);
             ImGui.Checkbox("Keep onslaught charge", ref KeepOnslaughtCharge);
             ImGui.Checkbox("AOE rotation", ref AOERotation);
+            ImGui.Checkbox("Start with tomahawk", ref StartWithTomahawk);
             ImGui.SliderFloat("Buff window offset", ref BuffWindowOffset, 0, 60);
             ImGui.SliderFloat("Buff window duration", ref BuffWindowDuration, 1, 30);
             ImGui.SliderFloat("Buff window frequency", ref BuffWindowFreq, 30, 120);
@@ -108,7 +109,7 @@ namespace UIDev
                 var nextBuffCycleIndex = MathF.Ceiling((t - BuffWindowOffset) / BuffWindowFreq);
                 strategy.RaidBuffsIn = t < BuffWindowOffset ? 0 : (BuffWindowOffset + nextBuffCycleIndex * BuffWindowFreq - t);
 
-                var action = WARRotation.GetNextBestAction(state, strategy, AOERotation);
+                var action = t == 0 && state.GCD == 0 && StartWithTomahawk && state.UnlockedTomahawk ? ActionID.MakeSpell(WARRotation.AID.Tomahawk) : WARRotation.GetNextBestAction(state, strategy, AOERotation);
                 (var mistake, var ogcd) = Cast(state, action, ref t);
                 DrawActionRow(action, !ogcd, mistake, t, state, strategy);
             }
@@ -369,6 +370,12 @@ namespace UIDev
                         if (state.SurgingTempestLeft > 0)
                             res |= GainSurgingTempest(state, 10);
                         break;
+                    case WARRotation.AID.Tomahawk:
+                        res |= CheckValid(state.UnlockedTomahawk);
+                        res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
+                        res |= AdjustCD(ref state.GCD, 2.5f, 2.5f);
+                        res |= UseIRCharge(state, false, 0);
+                        break;
                     default:
                         throw new Exception($"Unexpected action {aid}");
                 }
@@ -482,18 +489,15 @@ namespace UIDev
 
         private Mistake UseIRCharge(WARRotation.State state, bool isFC, int gaugeCost)
         {
-            if (!state.UnlockedInnerRelease || state.InnerReleaseStacks <= 0)
+            if (!isFC || !state.UnlockedInnerRelease || state.InnerReleaseStacks <= 0)
                 state.Gauge -= gaugeCost;
 
-            Mistake mistake = Mistake.None;
-            if (state.InnerReleaseStacks > 0)
+            if (state.InnerReleaseStacks > 0 && (isFC || !state.UnlockedInnerRelease))
             {
-                if (!isFC)
-                    mistake |= Mistake.InnerReleaseWasted;
                 if (--state.InnerReleaseStacks == 0)
                     state.InnerReleaseLeft = 0;
             }
-            return mistake;
+            return Mistake.None;
         }
 
         private bool ComboAdvance(WARRotation.State state, ref Mistake mistake, WARRotation.AID prev, WARRotation.AID next)

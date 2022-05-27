@@ -11,12 +11,10 @@ boss modules:
 autorotation:
 - opener support
 - war
--- 6.1 adjustments
--- low-level rotation - improve berserk delay logic, berserk buff id
+-- low-level rotation - improve berserk delay logic
 -- automatic bloodwhetting?
 -- charge planning
 -- offensive CD planning/delay
--- potion use (first, second)
 - whm:
 -- 6.1 adjustments
 -- planner

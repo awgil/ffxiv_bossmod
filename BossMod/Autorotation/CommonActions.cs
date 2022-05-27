@@ -102,7 +102,7 @@ namespace BossMod
 
         public float StatusDuration(float dur)
         {
-            // note: when buff is applied, it has large negative duration, and it is updated to correct one ~0.6sec later
+            // note: when buff is applied, it has large negative duration, and it is updated to correct one ~0.6sec later (by EffectResult message)
             return MathF.Abs(dur);
         }
 

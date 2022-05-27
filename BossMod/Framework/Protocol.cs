@@ -18,7 +18,7 @@ namespace BossMod
             ActionEffect24 = 0x03A0,
             ActionEffect32 = 0x0168,
             ActorCast = 0x03DF,
-            EffectResult = 0xF30B,
+            EffectResult = 0x012A,
             EffectResultBasic = 0xF3A3,
             ActorControl = 0x024B, // look at toggle weapon
             ActorControlSelf = 0x0334, // look at cooldown

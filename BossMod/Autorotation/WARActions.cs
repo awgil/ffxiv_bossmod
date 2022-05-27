@@ -51,22 +51,16 @@ namespace BossMod
                     case WARRotation.AID.HeavySwing:
                         if (_state.ComboLastMove == WARRotation.AID.HeavySwing || _state.ComboLastMove == WARRotation.AID.Maim)
                             comment += $", mistake=wrong-combo({_state.ComboLastMove})";
-                        if (_state.InnerReleaseStacks > 0)
-                            comment += $", mistake=wasted-ir-stack";
                         break;
                     case WARRotation.AID.Maim:
                         if (_state.ComboLastMove != WARRotation.AID.HeavySwing)
                             comment += $", mistake=wrong-combo({_state.ComboLastMove})";
-                        if (_state.InnerReleaseStacks > 0)
-                            comment += $", mistake=wasted-ir-stack";
                         if (_state.Gauge > 90)
                             comment += $", mistake=overcap-gauge";
                         break;
                     case WARRotation.AID.StormPath:
                         if (_state.ComboLastMove != WARRotation.AID.Maim)
                             comment += $", mistake=wrong-combo({_state.ComboLastMove})";
-                        if (_state.InnerReleaseStacks > 0)
-                            comment += $", mistake=wasted-ir-stack";
                         if (_state.Gauge > 80)
                             comment += $", mistake=overcap-gauge";
                         if (_state.SurgingTempestLeft <= 0)
@@ -75,8 +69,6 @@ namespace BossMod
                     case WARRotation.AID.StormEye:
                         if (_state.ComboLastMove != WARRotation.AID.Maim)
                             comment += $", mistake=wrong-combo({_state.ComboLastMove})";
-                        if (_state.InnerReleaseStacks > 0)
-                            comment += $", mistake=wasted-ir-stack";
                         if (_state.Gauge > 90)
                             comment += $", mistake=overcap-gauge";
                         if (_state.SurgingTempestLeft > 30)
@@ -90,8 +82,6 @@ namespace BossMod
                             comment += $", mistake=no-st";
                         break;
                     case WARRotation.AID.InnerChaos:
-                        if (_state.InnerReleaseStacks > 0)
-                            comment += $", mistake=wasted-ir-stack";
                         if (_state.InfuriateCD < 5)
                             comment += $", mistake=overcap-infuriate";
                         if (_state.SurgingTempestLeft <= 0)
@@ -100,14 +90,10 @@ namespace BossMod
                     case WARRotation.AID.Overpower:
                         if (_state.ComboLastMove == WARRotation.AID.Overpower)
                             comment += $", mistake=wrong-combo({_state.ComboLastMove})";
-                        if (_state.InnerReleaseStacks > 0)
-                            comment += $", mistake=wasted-ir-stack";
                         break;
                     case WARRotation.AID.MythrilTempest:
                         if (_state.ComboLastMove != WARRotation.AID.Overpower)
                             comment += $", mistake=wrong-combo({_state.ComboLastMove})";
-                        if (_state.InnerReleaseStacks > 0)
-                            comment += $", mistake=wasted-ir-stack";
                         if (_state.Gauge > 80)
                             comment += $", mistake=overcap-gauge";
                         break;
@@ -116,8 +102,6 @@ namespace BossMod
                             comment += $", mistake=overcap-gauge";
                         if (_state.NascentChaosLeft > 0)
                             comment += $", mistake=overwrite-nc";
-                        if (_state.InnerReleaseStacks > 0)
-                            comment += $", mistake=infuriate-under-ir";
                         break;
                     case WARRotation.AID.Onslaught:
                         // note: onslaught without ST is not really a mistake...
@@ -127,16 +111,10 @@ namespace BossMod
                             comment += $", mistake=no-st";
                         break;
                     case WARRotation.AID.InnerRelease:
-                        if (_state.SurgingTempestLeft <= 0)
-                            comment += $", mistake=no-st";
-                        if (_state.NascentChaosLeft > 0)
-                            comment += $", mistake=ir-under-nc";
                         if (_state.SurgingTempestLeft > 50)
                             comment += $", mistake=overcap-st";
                         break;
                     case WARRotation.AID.Tomahawk:
-                        if (_state.InnerReleaseStacks > 0)
-                            comment += $", mistake=wasted-ir-stack";
                         break;
                 }
             }
@@ -227,6 +205,7 @@ namespace BossMod
                         case WARRotation.SID.NascentChaos:
                             s.NascentChaosLeft = StatusDuration(status.RemainingTime);
                             break;
+                        case WARRotation.SID.Berserk:
                         case WARRotation.SID.InnerRelease:
                             s.InnerReleaseLeft = StatusDuration(status.RemainingTime);
                             s.InnerReleaseStacks = status.StackCount;
