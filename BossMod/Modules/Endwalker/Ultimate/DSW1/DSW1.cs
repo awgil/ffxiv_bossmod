@@ -21,19 +21,27 @@ namespace BossMod.Endwalker.Ultimate.DSW1
     [PrimaryActorOID((uint)OID.SerAdelphel)]
     public class DSW1 : BossModule
     {
-        private List<Actor> GrinnauxList;
-        private List<Actor> CharibertList;
+        private Actor? _grinnaux;
+        private Actor? _charibert;
         public Actor? SerAdelphel() => PrimaryActor;
-        public Actor? SerGrinnaux() => GrinnauxList.FirstOrDefault();
-        public Actor? SerCharibert() => CharibertList.FirstOrDefault();
+        public Actor? SerGrinnaux() => _grinnaux;
+        public Actor? SerCharibert() => _charibert;
 
         public DSW1(BossModuleManager manager, Actor primary)
             : base(manager, primary, true)
         {
-            GrinnauxList = Enemies(OID.SerGrinnaux);
-            CharibertList = Enemies(OID.SerCharibert);
             Arena.WorldHalfSize = 22;
             InitStates(new DSW1States(this).Build());
+        }
+
+        protected override void UpdateModule()
+        {
+            // TODO: this is an ugly hack, think how multi-actor fights can be implemented without it...
+            // the problem is that on wipe, any actor can be deleted and recreated in the same frame
+            if (_grinnaux == null)
+                _grinnaux = Enemies(OID.SerGrinnaux).FirstOrDefault();
+            if (_charibert == null)
+                _charibert = Enemies(OID.SerCharibert).FirstOrDefault();
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

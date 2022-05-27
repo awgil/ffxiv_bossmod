@@ -11,6 +11,7 @@ boss modules:
 autorotation:
 - opener support
 - war
+-- simulate gauge changes (message can arrive few frames after ActionEffect...)
 -- low-level rotation - improve berserk delay logic
 -- automatic bloodwhetting?
 -- charge planning
@@ -44,7 +45,6 @@ network:
 - allow injecting custom client messages in next sent bundle (or just create new bundle?..)
 
 misc:
-- refactor config nodes
 - memory show/watch utility
 - clip circles to arena bounds...
 - reconsider worldstate->bossmodule event subscription model (tedious to manually subscribe/unsubsribe and forward to components...)

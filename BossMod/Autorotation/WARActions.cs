@@ -12,6 +12,7 @@ namespace BossMod
         private WARRotation.Strategy _strategy;
         private ActionID _nextBestSTAction = ActionID.MakeSpell(WARRotation.AID.HeavySwing);
         private ActionID _nextBestAOEAction = ActionID.MakeSpell(WARRotation.AID.Overpower);
+        private bool _justCast;
 
         public WARActions(Autorotation autorot)
             : base(autorot)
@@ -119,6 +120,7 @@ namespace BossMod
                 }
             }
             Log($"Cast {actionID}, next-best={_nextBestSTAction}/{_nextBestAOEAction}{comment} [{_state}]");
+            _justCast = true;
         }
 
         protected override CommonRotation.State OnUpdate()
@@ -150,7 +152,15 @@ namespace BossMod
                 Log($"Next-best changed: ST={_nextBestSTAction}->{nextBestST}, AOE={_nextBestAOEAction}->{nextBestAOE} [{_state}]");
                 _nextBestSTAction = nextBestST;
                 _nextBestAOEAction = nextBestAOE;
+                _justCast = false;
             }
+
+            if (_justCast)
+            {
+                Log($"First update after cast [{_state}]");
+                _justCast = false;
+            }
+
             return _state;
         }
 
