@@ -26,10 +26,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public bool GazeDone { get; private set; }
         public int NumSeverCasts { get; private set; }
+        private DSW2Config _config;
         private Vector3? _eyePosition;
         private float? _severStartDir;
-        private Actor?[] _severTargets = { null, null };
+        private int[] _severTargetSlots = { -1, -1 };
         private ChargeInfo?[] _charges = { null, null };
+        private ulong _assignedGroupEast;
+        private ulong _actualGroupEast;
 
         private static float _severRadius = 6;
         private static float _chargeHalfWidth = 3;
@@ -42,6 +45,26 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private static float _eyeOffsetV = _eyeOuterR - _eyeOuterV;
         private static float _eyeHalfAngle = MathF.Asin(_eyeOuterH / _eyeOuterR);
 
+        public P2SanctityOfTheWard1()
+        {
+            _config = Service.Config.Get<DSW2Config>();
+        }
+
+        public override void Init(BossModule module)
+        {
+            var assignments = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(module.WorldState.Party);
+            if (_config.P2SanctityGroups.Validate() && assignments.Length == _config.P2SanctityGroups.Assignments.Length)
+            {
+                for (int i = 0; i < assignments.Length; ++i)
+                {
+                    if (_config.P2SanctityGroups.Assignments[i] != 0)
+                    {
+                        BitVector.SetVector64Bit(ref _assignedGroupEast, assignments[i]);
+                    }
+                }
+            }
+        }
+
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (_eyePosition != null)
@@ -53,7 +76,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
             if (NumSeverCasts < 4)
             {
-                if (_severTargets.Contains(actor))
+                if (_severTargetSlots.Contains(slot))
                 {
                     // TODO: check 'far enough'?
                     if (module.Raid.WithoutSlot().InRadiusExcluding(actor, _severRadius).Count() < 3)
@@ -61,7 +84,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 }
                 else
                 {
-                    if (!_severTargets.Any(s => s == null || GeometryUtils.PointInCircle(s.Position - actor.Position, _severRadius)))
+                    if (!_severTargetSlots.Select(slot => module.Raid[slot]).Any(s => s == null || GeometryUtils.PointInCircle(s.Position - actor.Position, _severRadius)))
                         hints.Add("Stack in fours!");
                 }
             }
@@ -70,6 +93,28 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 hints.Add("GTFO from charge!");
             if (ImminentSpheres().Any(s => GeometryUtils.PointInCircle(actor.Position - s, _brightflareRadius)))
                 hints.Add("GTFO from sphere!");
+        }
+
+        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        {
+            if (_assignedGroupEast == 0)
+            {
+                hints.Add("Group assignments not configured");
+            }
+            else if (_actualGroupEast != 0)
+            {
+                var swapped = _assignedGroupEast ^ _actualGroupEast;
+                BitVector.ClearVector64Bit(ref swapped, _severTargetSlots[0]);
+                BitVector.ClearVector64Bit(ref swapped, _severTargetSlots[1]);
+                if (swapped == 0)
+                {
+                    hints.Add("Swap: none");
+                }
+                else
+                {
+                    hints.Add($"Swap: {string.Join(", ", module.Raid.WithSlot(true).IncludedInMask(swapped).Select(ip => $"{ip.Item2.Role} ({ip.Item2.Name})"))}");
+                }
+            }
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -91,32 +136,41 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (NumSeverCasts < 4)
             {
                 var source = module.Enemies(OID.SerZephirin).FirstOrDefault();
-                arena.Actor(source, arena.ColorDanger);
+                arena.Actor(source, arena.ColorEnemy);
 
-                var target = _severTargets[NumSeverCasts % 2];
+                var target = module.Raid[_severTargetSlots[NumSeverCasts % 2]];
                 if (source != null && target != null)
                     arena.AddLine(source.Position, target.Position, arena.ColorDanger);
 
-                foreach (var p in module.Raid.WithoutSlot())
+                foreach (var (slot, player) in module.Raid.WithSlot())
                 {
-                    if (_severTargets.Contains(p))
+                    if (_severTargetSlots.Contains(slot))
                     {
-                        arena.Actor(p, arena.ColorPlayerInteresting);
-                        arena.AddCircle(p.Position, _severRadius, arena.ColorDanger);
+                        arena.Actor(player, arena.ColorPlayerInteresting);
+                        arena.AddCircle(player.Position, _severRadius, arena.ColorDanger);
                     }
                     else
                     {
-                        arena.Actor(p, arena.ColorPlayerGeneric);
+                        arena.Actor(player, arena.ColorPlayerGeneric);
                     }
                 }
             }
 
-            // TODO: select safe spot based on some configurable condition...
+            foreach (var c in _charges)
+            {
+                if (c != null && c.Positions.Count > 1)
+                {
+                    arena.Actor(c.Source, arena.ColorEnemy);
+                }
+            }
+
             if (_severStartDir != null && _charges[0] != null && _charges[1] != null && _charges[0]!.Clockwise == _charges[1]!.Clockwise)
             {
                 var dir = _severStartDir.Value + (_charges[0]!.Clockwise ? -1 : 1) * MathF.PI / 8;
-                DrawSafeSpot(arena, dir);
-                DrawSafeSpot(arena, dir + MathF.PI);
+                if (_actualGroupEast == 0 || dir > 0 == BitVector.IsVector64BitSet(_actualGroupEast, pcSlot))
+                    DrawSafeSpot(arena, dir);
+                if (_actualGroupEast == 0 || dir < 0 == BitVector.IsVector64BitSet(_actualGroupEast, pcSlot))
+                    DrawSafeSpot(arena, dir + MathF.PI);
             }
         }
 
@@ -154,11 +208,11 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             switch ((IconID)iconID)
             {
                 case IconID.SacredSever1:
-                    _severTargets[0] = module.WorldState.Actors.Find(actorID);
+                    _severTargetSlots[0] = module.Raid.FindSlot(actorID);
                     InitChargesAndSafeSpots(module);
                     break;
                 case IconID.SacredSever2:
-                    _severTargets[1] = module.WorldState.Actors.Find(actorID);
+                    _severTargetSlots[1] = module.Raid.FindSlot(actorID);
                     InitChargesAndSafeSpots(module);
                     break;
             }
@@ -207,6 +261,52 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 _charges[0] = BuildChargeInfo(module, OID.SerAdelphel);
             if (_charges[1] == null)
                 _charges[1] = BuildChargeInfo(module, OID.SerJanlenoux);
+
+            if (_severTargetSlots[0] >= 0 && _severTargetSlots[1] >= 0 && _assignedGroupEast != 0 && _severStartDir != null)
+            {
+                bool firstTargetGoesEast = _severStartDir.Value < 0;
+                bool secondTargetGoesEast = !firstTargetGoesEast;
+
+                _actualGroupEast = _assignedGroupEast;
+                if (_config.P2SanctitySwapRole == Role.None)
+                {
+                    AssignmentSwapWithRolePartner(module, 0, firstTargetGoesEast);
+                    AssignmentSwapWithRolePartner(module, 1, secondTargetGoesEast);
+                }
+                else
+                {
+                    AssignmentReassignIfNeeded(0, firstTargetGoesEast);
+                    AssignmentReassignIfNeeded(1, secondTargetGoesEast);
+                    if (BitOperations.PopCount(_actualGroupEast) != 4)
+                    {
+                        // to balance, unmarked player of designated role should swap
+                        var (swapSlot, swapper) = module.Raid.WithSlot(true).FirstOrDefault(sa => sa.Item1 != _severTargetSlots[0] && sa.Item1 != _severTargetSlots[1] && sa.Item2.Role == _config.P2SanctitySwapRole);
+                        if (swapper != null)
+                            BitVector.ToggleVector64Bit(ref _actualGroupEast, swapSlot);
+                    }
+                }
+            }
+        }
+
+        private void AssignmentReassignIfNeeded(int order, bool shouldGoEast)
+        {
+            int slot = _severTargetSlots[order];
+            if (shouldGoEast == BitVector.IsVector64BitSet(_actualGroupEast, slot))
+                return; // target is already assigned to correct position, no need to swap
+            BitVector.ToggleVector64Bit(ref _actualGroupEast, slot);
+        }
+
+        private void AssignmentSwapWithRolePartner(BossModule module, int order, bool shouldGoEast)
+        {
+            int slot = _severTargetSlots[order];
+            if (shouldGoEast == BitVector.IsVector64BitSet(_actualGroupEast, slot))
+                return; // target is already assigned to correct position, no need to swap
+            var role = module.Raid[slot]?.Role ?? Role.None;
+            var (partnerSlot, partner) = module.Raid.WithSlot(true).Exclude(slot).FirstOrDefault(sa => sa.Item2.Role == role);
+            if (partner == null)
+                return;
+            BitVector.ToggleVector64Bit(ref _actualGroupEast, slot);
+            BitVector.ToggleVector64Bit(ref _actualGroupEast, partnerSlot);
         }
 
         private ChargeInfo? BuildChargeInfo(BossModule module, OID oid)

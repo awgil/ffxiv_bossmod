@@ -11,7 +11,7 @@ namespace UIDev
 
         public ConfigTest()
         {
-            _ui = new(Service.Config);
+            _ui = new(Service.Config, new());
         }
 
         public void Dispose()

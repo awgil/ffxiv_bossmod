@@ -24,9 +24,14 @@ namespace BossMod
 
         private List<UINode> _roots = new();
         private Tree _tree = new();
+        private ConfigRoot _root;
+        private WorldState _ws;
 
-        public ConfigUI(ConfigRoot config)
+        public ConfigUI(ConfigRoot config, WorldState ws)
         {
+            _root = config;
+            _ws = ws;
+
             Dictionary<Type, UINode> nodes = new();
             foreach (var n in config.Nodes)
             {
@@ -80,12 +85,13 @@ namespace BossMod
                         bool v => DrawProperty(props, n.Node, field, v),
                         Enum v => DrawProperty(props, n.Node, field, v),
                         float v => DrawProperty(props, n.Node, field, v),
+                        GroupAssignment v => DrawProperty(props, n.Node, field, v),
                         _ => false
                     };
                 }
 
                 // draw custom stuff
-                n.Node.DrawCustom(_tree);
+                n.Node.DrawCustom(_tree, _ws);
 
                 // draw subnodes
                 DrawNodes(n.Children);
@@ -146,6 +152,54 @@ namespace BossMod
                 {
                     member.SetValue(node, v);
                     node.NotifyModified();
+                }
+            }
+            return true;
+        }
+
+        private bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, GroupAssignment v)
+        {
+            var group = member.GetCustomAttribute<GroupDetailsAttribute>();
+            if (group == null)
+                return false;
+
+            foreach (var tn in _tree.Node(props.Label, false, v.Validate() ? 0xffffffff : 0xff00ffff))
+            {
+                var assignments = _root.Get<PartyRolesConfig>().SlotsPerAssignment(_ws.Party);
+                if (ImGui.BeginTable("table", group.Names.Length + 2, ImGuiTableFlags.SizingFixedFit))
+                {
+                    foreach (var n in group.Names)
+                        ImGui.TableSetupColumn(n);
+                    ImGui.TableSetupColumn("----");
+                    ImGui.TableSetupColumn("Name");
+                    ImGui.TableHeadersRow();
+                    for (int r = 0; r < (int)PartyRolesConfig.Role.Unassigned; ++r)
+                    {
+                        var cur = v.Assignments[r];
+                        ImGui.TableNextRow();
+                        for (int c = 0; c < group.Names.Length; ++c)
+                        {
+                            ImGui.TableNextColumn();
+                            if (ImGui.RadioButton($"###{r}:{c}", cur == c))
+                            {
+                                v.Assignments[r] = c;
+                                node.NotifyModified();
+                            }
+                        }
+                        ImGui.TableNextColumn();
+                        if (ImGui.RadioButton($"###{r}:---", cur < 0 || cur >= group.Names.Length))
+                        {
+                            v.Assignments[r] = -1;
+                            node.NotifyModified();
+                        }
+
+                        string name = ((PartyRolesConfig.Role)r).ToString();
+                        if (assignments.Length > 0)
+                            name += $" ({_ws.Party[assignments[r]]!.Name})";
+                        ImGui.TableNextColumn();
+                        ImGui.TextUnformatted(name);
+                    }
+                    ImGui.EndTable();
                 }
             }
             return true;

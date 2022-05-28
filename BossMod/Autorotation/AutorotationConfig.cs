@@ -1,6 +1,6 @@
 ﻿namespace BossMod
 {
-    [ConfigDisplay(Name = "Autorotation settings (experimental!)", Order = 3)]
+    [ConfigDisplay(Name = "Autorotation settings (experimental!)", Order = 4)]
     class AutorotationConfig : ConfigNode
     {
         [PropertyDisplay("Enable autorotation")]

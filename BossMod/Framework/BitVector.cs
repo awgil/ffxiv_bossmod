@@ -33,12 +33,17 @@
 
         public static void SetVector64Bit(ref ulong vector, int i)
         {
-            vector |= (byte)(1ul << i);
+            vector |= (1ul << i);
         }
 
         public static void ClearVector64Bit(ref ulong vector, int i)
         {
-            vector &= (byte)~(1ul << i);
+            vector &= ~(1ul << i);
+        }
+
+        public static void ToggleVector64Bit(ref ulong vector, int i)
+        {
+            vector ^= (1ul << i);
         }
 
         public static void ModifyVector64Bit(ref ulong vector, int i, bool v)

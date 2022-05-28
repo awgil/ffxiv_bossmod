@@ -81,7 +81,7 @@ namespace BossMod
 
         private void OpenConfigUI()
         {
-            var ui = new ConfigUI(Service.Config);
+            var ui = new ConfigUI(Service.Config, _ws);
             var w = WindowManager.CreateWindow("Boss mod config", ui.Draw, () => { }, () => true);
             w.SizeHint = new Vector2(300, 300);
         }

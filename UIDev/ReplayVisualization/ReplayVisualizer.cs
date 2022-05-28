@@ -17,6 +17,8 @@ namespace UIDev
         private float _playSpeed = 0;
         private float _azimuth;
         private int _povSlot = PartyState.PlayerSlot;
+        private ConfigUI _config;
+        private bool _showConfig;
         private EventList _events;
         private AnalysisManager _analysis;
 
@@ -27,6 +29,7 @@ namespace UIDev
             _first = data.Ops.First().Timestamp;
             _last = data.Ops.Last().Timestamp;
             _player.AdvanceTo(_first, _mgr.Update);
+            _config = new(Service.Config, _player.WorldState);
             _events = new(data, MoveToForced);
             _analysis = new(data);
         }
@@ -106,6 +109,13 @@ namespace UIDev
             ImGui.SameLine();
             if (ImGui.Button(">>>"))
                 _playSpeed = 10;
+
+            ImGui.SameLine();
+            ImGui.Checkbox("Show config", ref _showConfig);
+            if (_showConfig)
+            {
+                _config.Draw();
+            }
         }
 
         private void DrawTimelineRow()

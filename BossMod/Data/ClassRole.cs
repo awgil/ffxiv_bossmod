@@ -56,9 +56,9 @@ namespace BossMod
     {
         None = 0,
         Tank = 1,
-        Melee = 2,
-        Ranged = 3,
-        Healer = 4,
+        Healer = 2,
+        Melee = 3,
+        Ranged = 4,
     }
 
     public static class ClassRole
