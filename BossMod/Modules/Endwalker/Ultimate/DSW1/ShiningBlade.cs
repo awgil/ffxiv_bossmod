@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -7,6 +8,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
     // includes knockback + charges
     class ShiningBlade : BossModule.Component
     {
+        private Actor? _serAdelphel; // casts charges and execution
         private Actor? _knockbackSource;
         private Actor? _executionTarget;
         private List<Vector3> _flares = new(); // [0] = initial boss offset from center, [2] = first charge offset, [5] = second charge offset, [7] = third charge offset, [10] = fourth charge offset == [0]
@@ -22,8 +24,33 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
         public override void Init(BossModule module)
         {
-            var execCaster = ((DSW1)module).SerAdelphel();
-            _executionTarget = module.WorldState.Actors.Find(execCaster?.TargetID ?? 0);
+            _serAdelphel = module.Enemies(OID.SerAdelphel).FirstOrDefault();
+            _executionTarget = module.WorldState.Actors.Find(_serAdelphel?.TargetID ?? 0);
+        }
+
+        public override void Update(BossModule module)
+        {
+            if (_serAdelphel == null)
+                return;
+            if (_flares.Count == 0)
+            {
+                // add first flare as soon as boss teleports to border
+                var bossOffset = _serAdelphel.Position - module.Arena.WorldCenter;
+                if (Utils.AlmostEqual(bossOffset.LengthSquared(), module.Arena.WorldHalfSize * module.Arena.WorldHalfSize, 1))
+                {
+                    _flares.Add(bossOffset);
+                }
+            }
+            if (_flares.Count == 1 && Utils.AlmostEqual(MathF.Abs(_serAdelphel.Rotation) % (MathF.PI / 2), MathF.PI / 4, 0.1f))
+            {
+                // add remaining flares as soon as boss rotates
+                var startOffset = _flares[0];
+                var endOffset = startOffset + GeometryUtils.DirectionToVec3(_serAdelphel.Rotation) * 31.113f; // 22 * sqrt(2)
+                AddShortFlares(startOffset, endOffset);
+                AddLongFlares(endOffset, -endOffset);
+                AddShortFlares(-endOffset, -startOffset);
+                AddLongFlares(-startOffset, startOffset);
+            }
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
@@ -88,7 +115,6 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             if (actor.CastInfo!.IsSpell(AID.FaithUnmoving))
             {
                 _knockbackSource = actor;
-                _flares.Add(module.PrimaryActor.Position - module.Arena.WorldCenter); // note: this assumes Ser Adelphel is primary...
             }
         }
 
@@ -106,22 +132,16 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
         public override void OnEventCast(BossModule module, CastEvent info)
         {
-            if (info.IsSpell(AID.ShiningBlade) && info.CasterID == module.PrimaryActor.InstanceID)
+            if (!info.IsSpell())
+                return;
+            switch ((AID)info.Action.ID)
             {
-                ++_doneCharges;
-                if (_flares.Count == 1)
-                {
-                    var startOffset = module.PrimaryActor.Position - module.Arena.WorldCenter;
-                    var endOffset = startOffset + GeometryUtils.DirectionToVec3(module.PrimaryActor.Rotation) * 31.113f; // 22 * sqrt(2)
-                    AddShortFlares(startOffset, endOffset);
-                    AddLongFlares(endOffset, -endOffset);
-                    AddShortFlares(-endOffset, -startOffset);
-                    AddLongFlares(-startOffset, startOffset);
-                }
-            }
-            if (info.IsSpell(AID.Execution))
-            {
-                _executionTarget = null;
+                case AID.ShiningBlade:
+                    ++_doneCharges;
+                    break;
+                case AID.Execution:
+                    _executionTarget = null;
+                    break;
             }
         }
 

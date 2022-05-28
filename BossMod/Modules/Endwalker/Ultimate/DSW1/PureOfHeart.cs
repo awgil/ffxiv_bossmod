@@ -19,7 +19,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
         public override void Init(BossModule module)
         {
-            _boss = ((DSW1)module).SerCharibert();
+            _boss = module.Enemies(OID.SerCharibert).FirstOrDefault();
         }
 
         public override void Update(BossModule module)

@@ -301,6 +301,13 @@ namespace BossMod
             ZoneQuad(origin, GeometryUtils.DirectionToVec3(direction), lenFront, lenBack, halfWidth, color);
         }
 
+        public void ZoneQuad(Vector3 start, Vector3 end, float halfWidth, uint color)
+        {
+            Vector3 dir = Vector3.Normalize(end - start);
+            Vector3 side = halfWidth * new Vector3(-dir.Z, 0, dir.X);
+            ZoneQuad(start + side, start - side, end - side, end + side, color);
+        }
+
         public void ZoneRect(Vector3 tl, Vector3 br, uint color)
         {
             ZoneQuad(tl, new Vector3(br.X, 0, tl.Z), br, new Vector3(tl.X, 0, br.Z), color);

@@ -5,7 +5,7 @@ using System.Numerics;
 
 namespace BossMod
 {
-    public class GeometryUtils
+    public static class GeometryUtils
     {
         public static List<Vector2> ClipAndTriangulate(IEnumerable<Vector2> pts, IEnumerable<Vector2> clipPoly)
         {
@@ -151,6 +151,12 @@ namespace BossMod
         public static bool PointInRect(Vector3 offsetFromOrigin, float direction, float lenFront, float lenBack, float halfWidth)
         {
             return PointInRect(offsetFromOrigin, DirectionToVec3(direction), lenFront, lenBack, halfWidth);
+        }
+
+        public static bool PointInRect(Vector3 offsetFromOrigin, Vector3 startToEnd, float halfWidth)
+        {
+            var len = startToEnd.Length();
+            return PointInRect(offsetFromOrigin, startToEnd / len, len, 0, halfWidth);
         }
 
         public static bool PointInCircle(Vector3 offsetFromOrigin, float radius)

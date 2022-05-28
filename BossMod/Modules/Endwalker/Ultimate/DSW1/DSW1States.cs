@@ -82,12 +82,12 @@
         private void ShiningBlade(uint id, float delay)
         {
             ActorCastStart(id, _module.SerGrinnaux, AID.FaithUnmoving, delay)
+                .ActivateOnEnter<ShiningBlade>()
                 .SetHint(StateMachine.StateHint.PositioningStart);
-            ActorCastEnd(id + 1, _module.SerGrinnaux, 4, "Knockback")
-                .ActivateOnEnter<ShiningBlade>();
+            ActorCastEnd(id + 1, _module.SerGrinnaux, 4, "Knockback");
             ActorCastEnd(id + 2, _module.SerAdelphel, 1.1f, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide); // holiest-of-holy overlap
-            ComponentCondition<ShiningBlade>(id + 0x10, 8.5f, comp => comp.Done, "Resolve")
+            ComponentCondition<ShiningBlade>(id + 0x10, 8.5f, comp => comp.Done, "Charges")
                 .DeactivateOnExit<ShiningBlade>();
         }
 

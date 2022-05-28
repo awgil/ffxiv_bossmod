@@ -15,7 +15,8 @@
             P2AscalonMercyMight(id, 8.4f);
             P2StrengthOfTheWard(id + 0x10000, 7);
             P2AncientQuaga(id + 0x20000, 0.1f);
-            P2HeavenlyHeel(id + 0x30000, 6.2f);
+            P2HeavenlyHeelAscalonMight(id + 0x30000, 6.2f);
+            P2SanctityOfTheWard(id + 0x40000, 7);
 
             SimpleState(id + 0xF0000, 100, "???");
         }
@@ -64,10 +65,24 @@
                 .SetHint(StateMachine.StateHint.Raidwide);
         }
 
-        private void P2HeavenlyHeel(uint id, float delay)
+        private void P2HeavenlyHeelAscalonMight(uint id, float delay)
         {
             Cast(id, AID.HeavenlyHeel, delay, 4, "Tankbuster")
                 .SetHint(StateMachine.StateHint.Tankbuster);
+            ComponentCondition<P2AscalonMight>(id + 0x1000, 6.5f, comp => comp.NumCasts > 2, "3x tankbuster cones")
+                .ActivateOnEnter<P2AscalonMight>()
+                .DeactivateOnExit<P2AscalonMight>();
+        }
+
+        private void P2SanctityOfTheWard(uint id, float delay)
+        {
+            Cast(id, AID.SanctityofTheWard, delay, 4);
+            Targetable(id + 0x10, false, 3, "Trio 2");
+            CastStart(id + 0x20, AID.DragonsGaze, 5.6f)
+                .ActivateOnEnter<P2SanctityOfTheWard1>();
+            CastEnd(id + 0x21, 4);
+            ComponentCondition<P2SanctityOfTheWard1>(id + 0x30, 1.1f, comp => comp.GazeDone, "Gazes + First charge");
+            ComponentCondition<P2SanctityOfTheWard1>(id + 0x40, 5, comp => comp.NumSeverCasts >= 4, "Last charge");
         }
     }
 }

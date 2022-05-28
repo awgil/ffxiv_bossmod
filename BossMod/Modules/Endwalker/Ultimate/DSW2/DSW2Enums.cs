@@ -17,6 +17,7 @@
         SerNoudenet = 0x315F, // x1 - p2
         //_Gen_Actor_3316 = 0x3316, // x1
         Helper = 0x233C, // x24
+        Brightsphere = 0x330E, // spawn during fight by Shining Blade
     };
 
     public enum AID : uint
@@ -55,6 +56,14 @@
 
         AncientQuaga = 25542, // Boss->self, 6.0s cast, raidwide
         HeavenlyHeel = 25543, // Boss->player, 4.0s cast, tankbuster forcing tankswap
+
+        SanctityofTheWard = 25569, // Boss->self, 4.0s cast, visual
+        DragonsGaze = 25552, // Boss->self, 4.0s cast, visual
+        DragonsGazeAOE = 25553, // Helper->self, no cast, face away from caster
+        DragonsGlory = 25554, // Helper->self, no cast, face away from caster
+        ShiningBlade = 25570, // SerAdelphel/SerJanlenoux->location, no cast, half-width 3 rect (?) charge
+        SacredSever = 25571, // SerZephirin->players, no cast, range 6 shared aoe
+        BrightFlare = 25295, // Brightsphere->self, 1.0s cast, range 9 aoe
     };
 
     public enum SID : uint
@@ -71,6 +80,8 @@
     public enum IconID : uint
     {
         None = 0,
+        SacredSever1 = 50, // player
+        SacredSever2 = 51, // player
         SkywardLeap = 330, // player
     }
 }
