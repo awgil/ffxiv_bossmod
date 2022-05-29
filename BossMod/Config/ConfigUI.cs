@@ -195,7 +195,7 @@ namespace BossMod
 
                         string name = ((PartyRolesConfig.Role)r).ToString();
                         if (assignments.Length > 0)
-                            name += $" ({_ws.Party[assignments[r]]!.Name})";
+                            name += $" ({_ws.Party[assignments[r]]?.Name})";
                         ImGui.TableNextColumn();
                         ImGui.TextUnformatted(name);
                     }

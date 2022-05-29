@@ -26,6 +26,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public bool GazeDone { get; private set; }
         public int NumSeverCasts { get; private set; }
+        public int NumFlareCasts { get; private set; }
         private DSW2Config _config;
         private Vector3? _eyePosition;
         private float? _severStartDir;
@@ -93,6 +94,19 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 hints.Add("GTFO from charge!");
             if (ImminentSpheres().Any(s => GeometryUtils.PointInCircle(actor.Position - s, _brightflareRadius)))
                 hints.Add("GTFO from sphere!");
+
+            if (movementHints != null && _actualGroupEast != 0)
+            {
+                var from = actor.Position;
+                var color = module.Arena.ColorSafe;
+                foreach (var safespot in MovementHintOffsets(slot))
+                {
+                    var to = module.Arena.WorldCenter + safespot;
+                    movementHints.Add(from, to, color);
+                    from = to;
+                    color = module.Arena.ColorDanger;
+                }
+            }
         }
 
         public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
@@ -110,10 +124,19 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 {
                     hints.Add("Swap: none");
                 }
+                else if (_config.P2SanctitySwapRole == Role.None)
+                {
+                    hints.Add($"Swap: {string.Join(", ", module.Raid.WithSlot(true).IncludedInMask(swapped).Select(ip => ip.Item2.Role.ToString()))}");
+                }
                 else
                 {
-                    hints.Add($"Swap: {string.Join(", ", module.Raid.WithSlot(true).IncludedInMask(swapped).Select(ip => $"{ip.Item2.Role} ({ip.Item2.Name})"))}");
+                    hints.Add($"Swap: {module.Raid.WithSlot(true).IncludedInMask(swapped).FirstOrDefault().Item2?.Name}");
                 }
+            }
+
+            if (_charges[0] != null)
+            {
+                hints.Add($"Move: {(_charges[0]!.Clockwise ? "clockwise" : "counterclockwise")}");
             }
         }
 
@@ -164,13 +187,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 }
             }
 
-            if (_severStartDir != null && _charges[0] != null && _charges[1] != null && _charges[0]!.Clockwise == _charges[1]!.Clockwise)
+            foreach (var safespot in MovementHintOffsets(pcSlot))
             {
-                var dir = _severStartDir.Value + (_charges[0]!.Clockwise ? -1 : 1) * MathF.PI / 8;
-                if (_actualGroupEast == 0 || dir > 0 == BitVector.IsVector64BitSet(_actualGroupEast, pcSlot))
-                    DrawSafeSpot(arena, dir);
-                if (_actualGroupEast == 0 || dir < 0 == BitVector.IsVector64BitSet(_actualGroupEast, pcSlot))
-                    DrawSafeSpot(arena, dir + MathF.PI);
+                arena.AddCircle(arena.WorldCenter + safespot, 2, arena.ColorSafe);
+                if (_actualGroupEast == 0)
+                    arena.AddCircle(arena.WorldCenter - safespot, 2, arena.ColorSafe); // if there are no valid assignments, draw spots for both groups
+                break; // only draw immediate safespot here
             }
         }
 
@@ -199,6 +221,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                         foreach (var c in _charges)
                             if (c != null)
                                 c.Spheres.RemoveAll(s => Utils.AlmostEqual(s, sphere.Position, 3));
+                    ++NumFlareCasts;
                     break;
             }
         }
@@ -241,11 +264,6 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             dl.PathArcTo(eyeCenter + new Vector2(0, _eyeOffsetV), _eyeOuterR, -MathF.PI / 2 + _eyeHalfAngle, -MathF.PI / 2 - _eyeHalfAngle);
             dl.PathFillConvex(arena.ColorEnemy);
             dl.AddCircleFilled(eyeCenter, _eyeInnerR, arena.ColorBorder);
-        }
-
-        private void DrawSafeSpot(MiniArena arena, float dir)
-        {
-            arena.AddCircle(arena.WorldCenter + 20 * GeometryUtils.DirectionToVec3(dir), 2, arena.ColorSafe);
         }
 
         private void InitChargesAndSafeSpots(BossModule module)
@@ -364,6 +382,31 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     continue;
                 foreach (var s in c.Spheres.Take(6))
                     yield return s;
+            }
+        }
+
+        private Vector3 SafeSpotOffset(int slot, float dir)
+        {
+            if (dir < 0 == BitVector.IsVector64BitSet(_actualGroupEast, slot))
+                dir += MathF.PI;
+            return 20 * GeometryUtils.DirectionToVec3(dir);
+        }
+
+        private IEnumerable<Vector3> MovementHintOffsets(int slot)
+        {
+            if (_severStartDir != null && _charges[0] != null && _charges[1] != null && _charges[0]!.Clockwise == _charges[1]!.Clockwise)
+            {
+                // second safe spot could be either 3rd or 5th explosion
+                float severDirEast = _severStartDir.Value;
+                if (severDirEast < 0)
+                    severDirEast += MathF.PI;
+                bool severDiagonalSE = severDirEast < MathF.PI / 2;
+                bool moveIntoThird = severDiagonalSE == _charges[0]!.Clockwise;
+                float moveOffset = _charges[0]!.Clockwise ? -1 : 1;
+                if (_charges[0]!.Spheres.Count > (moveIntoThird ? 6 : 4))
+                    yield return SafeSpotOffset(slot, _severStartDir.Value + moveOffset * (moveIntoThird ? MathF.PI / 12 : MathF.PI / 15.4f));
+                if (_charges[0]!.Spheres.Count > 0)
+                    yield return SafeSpotOffset(slot, _severStartDir.Value + moveOffset * MathF.PI / 5.4f);
             }
         }
     }

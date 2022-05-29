@@ -18,6 +18,7 @@
         //_Gen_Actor_3316 = 0x3316, // x1
         Helper = 0x233C, // x24
         Brightsphere = 0x330E, // spawn during fight by Shining Blade
+        HolyComet = 0x312F, // spawn during fight by Holy Comet
     };
 
     public enum AID : uint
@@ -46,8 +47,8 @@
         DimensionalCollapse = 25563, // SerGrinnaux->self, 8.0s cast, visual (growing void zones)
         DimensionalCollapseAOE = 25564, // Helper->location, 9.0s cast, range 10 aoe
         SkywardLeap = 25565, // SerIgnasse/SerVellguine/SerPaulecrain->player, no cast, range 24 aoe on player with blue mark
-        Conviction = 25566, // SerHermenost->self, 8.2s cast, visual towers
-        ConvictionAOE = 25567, // Helper->location, 11.0s cast, range 3 aoe, soaked towers
+        Conviction1 = 25566, // SerHermenost->self, 8.2s cast, visual towers
+        Conviction1AOE = 25567, // Helper->location, 11.0s cast, range 3 aoe, soaked towers
         EternalConviction = 25568, // Helper->self, no cast, raidwide from unsoaked towers
         HolyShieldBash = 25297, // SerJanlenoux/SerAdelphel->tethered player, no cast, width 8 rect tankbuster
         HolyShieldBashAOE = 25579, // Helper->self, no cast, range 6 ??-degree cone, ??
@@ -64,6 +65,17 @@
         ShiningBlade = 25570, // SerAdelphel/SerJanlenoux->location, no cast, half-width 3 rect (?) charge
         SacredSever = 25571, // SerZephirin->players, no cast, range 6 shared aoe
         BrightFlare = 25295, // Brightsphere->self, 1.0s cast, range 9 aoe
+
+        HiemalStorm = 25574, // SerHaumeric->self, 7.0s cast, visual
+        HiemalStormAOE = 25575, // Helper->players, no cast, range 7 aoe, baited at 4 dd or tanks/healers
+        HeavensStake = 28590, // SerCharibert->self, 7.0s cast, visual
+        HeavensStakeAOE = 28591, // Helper->location, 7.5s cast, range 7 aoe (at four intercardinals)
+        HeavensStakeDonut = 28592, // Helper->self, 7.5s cast, range ?-30 donut aoe
+        Conviction2 = 29563, // SerHermenost->self, 9.2s cast, visual
+        Conviction2AOE = 29564, // Helper->location, 12.0s cast, range 3 aoe, soaked towers
+        HolyComet = 25576, // SerNoudenet->self, 12.0s cast, visual
+        HolyCometAOE = 25577, // HolyComet->self, no cast, range 20 ???
+        HolyImpact = 25578, // HolyComet->self, no cast, raidwide on comet drop
     };
 
     public enum SID : uint
@@ -83,5 +95,6 @@
         SacredSever1 = 50, // player
         SacredSever2 = 51, // player
         SkywardLeap = 330, // player
+        Prey = 285, // player
     }
 }

@@ -156,7 +156,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 case AID.DimensionalCollapseAOE:
                     _voidzones.Add(actor);
                     break;
-                case AID.ConvictionAOE:
+                case AID.Conviction1AOE:
                     _towers.Add(actor);
                     break;
             }
@@ -171,7 +171,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 case AID.DimensionalCollapseAOE:
                     _voidzones.Remove(actor);
                     break;
-                case AID.ConvictionAOE:
+                case AID.Conviction1AOE:
                     _towers.Remove(actor);
                     TowersDone = true;
                     break;

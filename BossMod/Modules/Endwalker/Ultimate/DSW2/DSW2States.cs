@@ -81,8 +81,11 @@
             CastStart(id + 0x20, AID.DragonsGaze, 5.6f)
                 .ActivateOnEnter<P2SanctityOfTheWard1>();
             CastEnd(id + 0x21, 4);
-            ComponentCondition<P2SanctityOfTheWard1>(id + 0x30, 1.1f, comp => comp.GazeDone, "Gazes + First charge");
-            ComponentCondition<P2SanctityOfTheWard1>(id + 0x40, 5, comp => comp.NumSeverCasts >= 4, "Last charge");
+            ComponentCondition<P2SanctityOfTheWard1>(id + 0x30, 1.1f, comp => comp.GazeDone, "Gazes");
+            ComponentCondition<P2SanctityOfTheWard1>(id + 0x40, 6, comp => comp.NumFlareCasts >= 18, "Charges")
+                .DeactivateOnExit<P2SanctityOfTheWard1>();
+            SimpleState(id + 0x100, 5, "?")
+                .ActivateOnEnter<P2SanctityOfTheWard2>();
         }
     }
 }
