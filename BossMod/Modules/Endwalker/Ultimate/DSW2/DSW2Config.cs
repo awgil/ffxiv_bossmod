@@ -4,8 +4,11 @@
     public class DSW2Config : ConfigNode
     {
         [PropertyDisplay("P2 Sanctity of the Ward: group assignments")]
-        [GroupDetails(new string[]{ "West", "East" })]
+        [GroupDetails(new string[]{ "West/Across", "East/Behind" })]
         public GroupAssignmentLightParties P2SanctityGroups = DefaultGroupAssignment.LightParties<GroupAssignmentLightParties>();
+
+        [PropertyDisplay("P2 Sanctity of the Ward: groups relative to DRK (across/behind) rather than absolute (west/east)")]
+        public bool P2SanctityRelative = false;
 
         [PropertyDisplay("P2 Sanctity of the Ward: role responsible for balancing groups (if not set, swap with role partner instead)")]
         public Role P2SanctitySwapRole;

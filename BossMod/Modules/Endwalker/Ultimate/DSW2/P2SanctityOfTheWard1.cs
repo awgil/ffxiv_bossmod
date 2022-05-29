@@ -60,6 +60,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 {
                     if (_config.P2SanctityGroups.Assignments[i] != 0)
                     {
+                        // note that this will be inverted later, if needed for relative positioning
                         BitVector.SetVector64Bit(ref _assignedGroupEast, assignments[i]);
                     }
                 }
@@ -282,6 +283,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
             if (_severTargetSlots[0] >= 0 && _severTargetSlots[1] >= 0 && _assignedGroupEast != 0 && _severStartDir != null)
             {
+                if (_config.P2SanctityRelative && _severStartDir.Value < 0)
+                {
+                    // swap groups for relative assignment if needed
+                    _assignedGroupEast ^= 0xff;
+                }
+
                 bool firstTargetGoesEast = _severStartDir.Value < 0;
                 bool secondTargetGoesEast = !firstTargetGoesEast;
 
