@@ -20,12 +20,24 @@ namespace BossMod
     {
         public int[] Assignments = new int[(int)PartyRolesConfig.Role.Unassigned]; // role -> group id
 
+        public int this[PartyRolesConfig.Role r]
+        {
+            get => Assignments[(int)r];
+            set => Assignments[(int)r] = value;
+        }
+
         public virtual bool Validate() => true;
     }
 
     // assignments to two light parties with THMR split
     public class GroupAssignmentLightParties : GroupAssignment
     {
+        public GroupAssignmentLightParties()
+        {
+            this[PartyRolesConfig.Role.MT] = this[PartyRolesConfig.Role.H1] = this[PartyRolesConfig.Role.M1] = this[PartyRolesConfig.Role.R1] = 0;
+            this[PartyRolesConfig.Role.OT] = this[PartyRolesConfig.Role.H2] = this[PartyRolesConfig.Role.M2] = this[PartyRolesConfig.Role.R2] = 1;
+        }
+
         public override bool Validate()
         {
             for (int i = 0; i < (int)PartyRolesConfig.Role.Unassigned; i += 2)
@@ -35,15 +47,30 @@ namespace BossMod
         }
     }
 
-    // utilities for building default group assignments
-    public static class DefaultGroupAssignment
+    // assignments to four tank/healer+DD pairs
+    public class GroupAssignmentDDSupportPairs : GroupAssignment
     {
-        public static T LightParties<T>() where T : GroupAssignment, new()
+        public GroupAssignmentDDSupportPairs()
         {
-            T res = new();
-            res.Assignments[(int)PartyRolesConfig.Role.MT] = res.Assignments[(int)PartyRolesConfig.Role.H1] = res.Assignments[(int)PartyRolesConfig.Role.M1] = res.Assignments[(int)PartyRolesConfig.Role.R1] = 0;
-            res.Assignments[(int)PartyRolesConfig.Role.OT] = res.Assignments[(int)PartyRolesConfig.Role.H2] = res.Assignments[(int)PartyRolesConfig.Role.M2] = res.Assignments[(int)PartyRolesConfig.Role.R2] = 1;
-            return res;
+            this[PartyRolesConfig.Role.MT] = this[PartyRolesConfig.Role.R1] = 0;
+            this[PartyRolesConfig.Role.H1] = this[PartyRolesConfig.Role.M1] = 1;
+            this[PartyRolesConfig.Role.OT] = this[PartyRolesConfig.Role.R2] = 2;
+            this[PartyRolesConfig.Role.H2] = this[PartyRolesConfig.Role.M2] = 3;
+        }
+
+        public override bool Validate()
+        {
+            ulong mask = 0; // bits 0-3 - support for group N, bits 4-7 - dd for group (N-4)
+            Action<int, int> addToMask = (group, offset) =>
+            {
+                if (group is >= 0 and < 4)
+                    BitVector.SetVector64Bit(ref mask, group + offset);
+            };
+            for (int i = 0; i < 4; ++i)
+                addToMask(Assignments[i], 0);
+            for (int i = 4; i < 8; ++i)
+                addToMask(Assignments[i], 4);
+            return mask == 0xff;
         }
     }
 }

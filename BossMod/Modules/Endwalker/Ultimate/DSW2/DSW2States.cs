@@ -85,6 +85,8 @@
             ComponentCondition<P2SanctityOfTheWard1>(id + 0x40, 6, comp => comp.NumFlareCasts >= 18, "Charges")
                 .DeactivateOnExit<P2SanctityOfTheWard1>();
             SimpleState(id + 0x100, 5, "?")
+                .ActivateOnEnter<P2SanctityOfTheWard2HeavensStakeCircles>()
+                .ActivateOnEnter<P2SanctityOfTheWard2HeavensStakeDonut>()
                 .ActivateOnEnter<P2SanctityOfTheWard2>();
         }
     }

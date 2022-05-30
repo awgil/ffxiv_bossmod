@@ -173,29 +173,29 @@ namespace BossMod
                     ImGui.TableSetupColumn("----");
                     ImGui.TableSetupColumn("Name");
                     ImGui.TableHeadersRow();
-                    for (int r = 0; r < (int)PartyRolesConfig.Role.Unassigned; ++r)
+                    for (int i = 0; i < (int)PartyRolesConfig.Role.Unassigned; ++i)
                     {
-                        var cur = v.Assignments[r];
+                        var r = (PartyRolesConfig.Role)i;
                         ImGui.TableNextRow();
                         for (int c = 0; c < group.Names.Length; ++c)
                         {
                             ImGui.TableNextColumn();
-                            if (ImGui.RadioButton($"###{r}:{c}", cur == c))
+                            if (ImGui.RadioButton($"###{r}:{c}", v[r] == c))
                             {
-                                v.Assignments[r] = c;
+                                v[r] = c;
                                 node.NotifyModified();
                             }
                         }
                         ImGui.TableNextColumn();
-                        if (ImGui.RadioButton($"###{r}:---", cur < 0 || cur >= group.Names.Length))
+                        if (ImGui.RadioButton($"###{r}:---", v[r] < 0 || v[r] >= group.Names.Length))
                         {
-                            v.Assignments[r] = -1;
+                            v[r] = -1;
                             node.NotifyModified();
                         }
 
-                        string name = ((PartyRolesConfig.Role)r).ToString();
+                        string name = r.ToString();
                         if (assignments.Length > 0)
-                            name += $" ({_ws.Party[assignments[r]]?.Name})";
+                            name += $" ({_ws.Party[assignments[i]]?.Name})";
                         ImGui.TableNextColumn();
                         ImGui.TextUnformatted(name);
                     }

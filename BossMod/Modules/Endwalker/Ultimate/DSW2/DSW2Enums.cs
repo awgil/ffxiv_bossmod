@@ -70,7 +70,7 @@
         HiemalStormAOE = 25575, // Helper->players, no cast, range 7 aoe, baited at 4 dd or tanks/healers
         HeavensStake = 28590, // SerCharibert->self, 7.0s cast, visual
         HeavensStakeAOE = 28591, // Helper->location, 7.5s cast, range 7 aoe (at four intercardinals)
-        HeavensStakeDonut = 28592, // Helper->self, 7.5s cast, range ?-30 donut aoe
+        HeavensStakeDonut = 28592, // Helper->self, 7.5s cast, range 15?-30 donut aoe
         Conviction2 = 29563, // SerHermenost->self, 9.2s cast, visual
         Conviction2AOE = 29564, // Helper->location, 12.0s cast, range 3 aoe, soaked towers
         HolyComet = 25576, // SerNoudenet->self, 12.0s cast, visual
