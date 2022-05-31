@@ -188,7 +188,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 {
                     int swapQ1 = slot1Swaps ? preyQ1 : preyQ2;
                     int swapQ2 = _preyGoEW ? 0 : 1;
-                    if (!BitVector.IsVector64BitSet(_preyTargets, swapQ2))
+                    if (!BitVector.IsVector64BitSet(_preyTargets, preySlotsPerQuadrant[swapQ2]))
                         swapQ2 += 2;
                     _assignedQuadrants[preySlotsPerQuadrant[swapQ1]] = swapQ2;
                     _assignedQuadrants[preySlotsPerQuadrant[swapQ2]] = swapQ1;
