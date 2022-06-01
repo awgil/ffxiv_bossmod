@@ -17,36 +17,49 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P2SanctityOfTheWard2HeavensStakeDonut() : base(ActionID.MakeSpell(AID.HeavensStakeDonut), new AOEShapeDonut(15, 30)) { }
     }
 
+    // this component is about first tower assignments, depending on initial assignments, tower positions and prey markers
+    // identifiers used by this component:
+    // - quadrant: N=0, E=1, S=2, W=3
+    // - towers: [0,11] are outer towers in CW order, starting from '11 o'clock' (CCW tower of N quadrant); [12,15] are inner towers in CCW order, starting from NE (NE-SE-SW-NW)
+    //   so, inner towers for quadrant k are [3*k, 3*k+2]; neighbouring inner are 12+k & 12+(k+3)%4
+    // outer tower preference:
+    // - CW & !CCW or CCW & !CW - select only or CW (CCW) one of the two
+    // - !CW & !CCW - select cardinal only (2-1-2-1 assignment for prey role), TODO
+    // - CW & CCW - select non-cardinal only (for non-prey role only), TODO
     class P2SanctityOfTheWard2 : BossModule.Component
     {
-        private struct QuadrantAssignments
+        struct PlayerData
         {
-            private int _mask; // bits 2*i & 2*i+1 = quadrant index for player in slot i
+            public bool HavePrey;
+            public int AssignedQuadrant;
+            public ulong AssignedTowers; // note: typically we have only 1 assigned tower, but in some cases two players can have two towers assigned to them, since we can't determine reliable priority
+        }
 
-            public int this[int slot]
-            {
-                get => (_mask >> (2 * slot)) & 3;
-                set
-                {
-                    int offset = 2 * slot;
-                    _mask &= ~(3 << offset);
-                    _mask |= (value << offset);
-                }
-            }
+        struct QuadrantData
+        {
+            public int PreySlot;
+            public int NonPreySlot;
+        }
+
+        struct TowerData
+        {
+            public Actor? Actor; // null if tower is inactive
+            public ulong AssignedPlayers;
         }
 
         public bool StormDone { get; private set; }
         public int TowersDone { get; private set; }
         private DSW2Config _config;
-        private List<Actor> _towers = new();
-        private ulong _preyTargets;
-        private ulong _activeTowersMask; // index: bits 0-1 are tower type (00 = 'inner', 01 = 'outer CCW', 10 = 'outer cardinal', 11 = 'outer CW'), bits 2-3 are quadrant index (for inner: NW-NE-SE-SW, for outer: N-E-S-W)
+        private PlayerData[] _players = new PlayerData[PartyState.MaxSize];
+        private QuadrantData[] _quadrants = new QuadrantData[4];
+        private TowerData[] _towers = new TowerData[16];
+        private int _activeTowers;
+        private int _assignedPreys;
         private bool _preyOnTH;
+        //private bool _preyGoCW;
         private bool _preyGoCCW;
         private bool _preyGoEW;
-        private QuadrantAssignments _assignedQuadrants;
         private string _preySwap = "none";
-        private ulong _assignedTowers; // [i * 8 + j] = whether tower j is assigned to player in slot i
 
         private static float _towerRadius = 3;
         private static float _stormRadius = 7;
@@ -59,57 +72,60 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
+            if (_activeTowers != 8)
+                return;
+
             if (movementHints != null)
             {
                 var from = actor.Position;
                 var color = module.Arena.ColorSafe;
                 if (!StormDone)
                 {
-                    var stormPos = StormPlacementPosition(module, _assignedQuadrants[slot]);
+                    var stormPos = StormPlacementPosition(module, _players[slot].AssignedQuadrant);
                     movementHints.Add(from, stormPos, color);
                     from = stormPos;
                     color = module.Arena.ColorDanger;
                 }
-                if (_towers.Count == 8 && TowersDone < 8)
+
+                foreach (var tower in _towers)
                 {
-                    var assignments = BitVector.ExtractVectorFromMatrix8x8(_assignedTowers, slot);
-                    for (int i = 0; i < _towers.Count; ++i)
-                        if (BitVector.IsVector8BitSet(assignments, i))
-                            movementHints.Add(from, _towers[i].CastInfo!.Location, color);
+                    if (tower.Actor?.CastInfo != null && BitVector.IsVector64BitSet(tower.AssignedPlayers, slot))
+                    {
+                        movementHints.Add(from, tower.Actor.CastInfo.Location, color);
+                    }
                 }
             }
         }
 
         public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
-            if (_activeTowersMask != 0 && TowersDone < 8)
+            if (_activeTowers == 8)
             {
-                //hints.Add($"Prey: {(_preyOnTH ? "T/H" : "DD")} {(_preyGoEW ? "E/W" : "N/S")} {(_preyGoCCW ? "counterclockwise" : "clockwise")}");
+                //hints.Add($"Prey: {(_preyOnTH ? "T/H" : "DD")}, swap {_preySwap}, {(_preyGoCCW ? "counterclockwise" : _preyGoCW ? "clockwise" : "cardinal")}");
                 hints.Add($"Prey: {(_preyOnTH ? "T/H" : "DD")}, swap {_preySwap}, {(_preyGoCCW ? "counterclockwise" : "clockwise")}");
             }
         }
 
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-        }
-
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.AddLine(module.Arena.WorldNW, module.Arena.WorldSE, arena.ColorBorder);
-            arena.AddLine(module.Arena.WorldNE, module.Arena.WorldSW, arena.ColorBorder);
+            if (_activeTowers != 8)
+                return;
 
-            foreach (var (slot, player) in module.Raid.WithSlot())
-                arena.Actor(player, BitVector.IsVector64BitSet(_preyTargets, slot) ? arena.ColorDanger : arena.ColorPlayerGeneric);
+            float diag = arena.WorldHalfSize / 1.414214f;
+            arena.AddLine(arena.WorldCenter + new Vector3(diag, 0,  diag), arena.WorldCenter - new Vector3(diag, 0,  diag), arena.ColorBorder);
+            arena.AddLine(arena.WorldCenter + new Vector3(diag, 0, -diag), arena.WorldCenter - new Vector3(diag, 0, -diag), arena.ColorBorder);
 
-            if (_towers.Count == 8 && TowersDone < 8)
+            foreach (var (slot, player) in module.Raid.WithSlot().Exclude(pc))
+                arena.Actor(player, _players[slot].HavePrey ? arena.ColorDanger : arena.ColorPlayerGeneric);
+
+            foreach (var tower in _towers)
             {
-                var assignments = BitVector.ExtractVectorFromMatrix8x8(_assignedTowers, pcSlot);
-                for (int i = 0; i < _towers.Count; ++i)
+                if (tower.Actor?.CastInfo != null)
                 {
-                    if (BitVector.IsVector8BitSet(assignments, i))
-                        arena.AddCircle(_towers[i].CastInfo!.Location, _towerRadius, arena.ColorSafe, 2);
+                    if (BitVector.IsVector64BitSet(tower.AssignedPlayers, pcSlot))
+                        arena.AddCircle(tower.Actor.CastInfo.Location, _towerRadius, arena.ColorSafe, 2);
                     else
-                        arena.AddCircle(_towers[i].CastInfo!.Location, _towerRadius, arena.ColorDanger, 1);
+                        arena.AddCircle(tower.Actor.CastInfo.Location, _towerRadius, arena.ColorDanger, 1);
                 }
             }
 
@@ -119,27 +135,21 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void OnCastStarted(BossModule module, Actor actor)
         {
-            if (!actor.CastInfo!.IsSpell())
-                return;
-            switch ((AID)actor.CastInfo.Action.ID)
+            if (actor.CastInfo!.IsSpell(AID.Conviction2AOE))
             {
-                case AID.Conviction2AOE:
-                    _towers.Add(actor);
-                    InitAssignments(module);
-                    break;
+                int id = ClassifyTower(module, actor);
+                _towers[id].Actor = actor;
+                ++_activeTowers;
+                InitAssignments(module);
             }
         }
 
         public override void OnCastFinished(BossModule module, Actor actor)
         {
-            if (!actor.CastInfo!.IsSpell())
-                return;
-            switch ((AID)actor.CastInfo.Action.ID)
+            if (actor.CastInfo!.IsSpell(AID.Conviction2AOE))
             {
-                case AID.Conviction2AOE:
-                    _towers.Remove(actor);
-                    ++TowersDone;
-                    break;
+                --_activeTowers;
+                ++TowersDone;
             }
         }
 
@@ -157,22 +167,55 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 if (slot >= 0)
                 {
                     _preyOnTH = module.Raid[slot]!.Role is Role.Tank or Role.Healer;
-                    BitVector.SetVector64Bit(ref _preyTargets, slot);
+                    _players[slot].HavePrey = true;
+                    ++_assignedPreys;
                 }
                 InitAssignments(module);
             }
         }
 
+        private int ClassifyTower(BossModule module, Actor tower)
+        {
+            var offset = tower.Position - module.Arena.WorldCenter;
+            var dir = GeometryUtils.DirectionFromVec3(offset);
+            if (offset.LengthSquared() < 7 * 7)
+            {
+                // inner tower: intercardinal, ~6m from center
+                return 12 + (dir > 0 ? (dir > MathF.PI / 2 ? 0 : 1) : (dir < -MathF.PI / 2 ? 3 : 2));
+            }
+            else
+            {
+                // outer tower: ~18m from center, at cardinal or +- 30 degrees
+                return (7 - (int)MathF.Round(dir / MathF.PI * 6)) % 12;
+            }
+        }
+
         private void InitAssignments(BossModule module)
         {
-            if (_towers.Count != 8 || BitOperations.PopCount(_preyTargets) != 2)
+            if (_activeTowers != 8 || _assignedPreys != 2)
                 return; // not ready yet...
 
-            foreach (var tower in _towers)
-            {
-                BitVector.SetVector64Bit(ref _activeTowersMask, ClassifyTower(module, tower));
-            }
+            // prey position assignment - can be done even if we don't have valid group assignments
+            InitPreyPositions(module);
 
+            // the rest is only done if we have proper group assignments
+            // assign cardinal bait positions: start with assigned groups
+            if (InitQuadrantAssignments(module))
+            {
+                // swap prey role to desired cardinals
+                InitQuadrantSwaps(module);
+
+                // now assign towers to players
+                InitTowers(module);
+            }
+            else
+            {
+                _preySwap = "unconfigured";
+            }
+        }
+
+        private void InitPreyPositions(BossModule module)
+        {
             _preyGoEW = _config.P2Sanctity2PreferEWPrey;
             int scoreCW = ScoreForAssignment(_preyGoEW, false);
             int scoreCCW = ScoreForAssignment(_preyGoEW, true);
@@ -183,140 +226,131 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 scoreCCW = ScoreForAssignment(_preyGoEW, true);
             }
             _preyGoCCW = scoreCCW > scoreCW;
+        }
 
-            // the rest is only done if we have proper group assignments
-            var assignments = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(module.WorldState.Party);
-            if (_config.P2Sanctity2Pairs.Validate() && assignments.Length == _config.P2Sanctity2Pairs.Assignments.Length)
+        private bool InitQuadrantAssignments(BossModule module)
+        {
+            bool validAssignments = false;
+            foreach (var (slot, group) in _config.P2Sanctity2Pairs.Resolve(module.Raid))
             {
-                // assign cardinal bait positions: start with assigned groups, swap prey role to desired cardinals
-                for (int i = 0; i < assignments.Length; ++i)
+                validAssignments = true;
+                int quadrant = group;
+                if ((quadrant & 1) != 0) // W=1, E=3
+                    quadrant ^= 2; // ... is swapped in assignments and in component (because I want sane defaults match my static assignments ...)
+
+                _players[slot].AssignedQuadrant = quadrant;
+
+                bool isTH = module.Raid[slot]!.Role is Role.Tank or Role.Healer;
+                if (isTH == _preyOnTH)
+                    _quadrants[quadrant].PreySlot = slot;
+                else
+                    _quadrants[quadrant].NonPreySlot = slot;
+            }
+            return validAssignments;
+        }
+
+        private void InitQuadrantSwaps(BossModule module)
+        {
+            int preyQ1 = _preyGoEW ? 1 : 0;
+            int preyQ2 = preyQ1 + 2;
+            bool slot1Swaps = !_players[_quadrants[preyQ1].PreySlot].HavePrey;
+            bool slot2Swaps = !_players[_quadrants[preyQ2].PreySlot].HavePrey;
+            if (slot1Swaps && slot2Swaps)
+            {
+                // both prey markers at wrong cardinals
+                if (_config.P2Sanctity2SwapCCW != _preyGoEW)
                 {
-                    var quardant = _config.P2Sanctity2Pairs.Assignments[i];
-                    if ((quardant & 1) != 0) // W=1, E=3
-                        quardant ^= 2; // ... is swapped in assignments and in component (because I want sane defaults match my static assignments ...)
-                    _assignedQuadrants[assignments[i]] = quardant;
+                    // CCW + N/S, preys are at E/W -> W swaps with S, E with N
+                    // CW + E/W, preys are at N/S -> N swaps with E, S with W
+                    SwapPreyQuadrants(0, 1);
+                    SwapPreyQuadrants(2, 3);
+                }
+                else
+                {
+                    // CW + N/S, preys are at E/W -> W swaps with N, E with S
+                    // CCW + E/W, preys are at N/S -> N swaps with W, S with E
+                    SwapPreyQuadrants(0, 3);
+                    SwapPreyQuadrants(1, 2);
+                }
+                _preySwap = "both";
+            }
+            else if (slot1Swaps || slot2Swaps)
+            {
+                int swapQ1 = slot1Swaps ? preyQ1 : preyQ2;
+                int swapQ2 = _preyGoEW ? 0 : 1;
+                if (!_players[_quadrants[swapQ2].PreySlot].HavePrey)
+                    swapQ2 += 2;
+                SwapPreyQuadrants(swapQ1, swapQ2);
+                _preySwap = $"{WaymarkForQuadrant(module, swapQ1)}/{WaymarkForQuadrant(module, swapQ2)}";
+            }
+            else
+            {
+                _preySwap = "none";
+            }
+        }
+
+        private void InitTowers(BossModule module)
+        {
+            // assign outer towers
+            for (int q = 0; q < _quadrants.Length; ++q)
+            {
+                // first (or only) - to prey role
+                var t1 = SelectOuterTower(q, _preyGoCCW);
+                AssignTower(_quadrants[q].PreySlot, t1);
+
+                // if there is second one, assign to non-prey role
+                var t2 = SelectOuterTower(q, !_preyGoCCW);
+                if (t2 != t1)
+                {
+                    AssignTower(_quadrants[q].NonPreySlot, t2);
+                }
+            }
+
+            // now assign remaining inner towers, as long as it can be done non-ambiguously
+            while (true)
+            {
+                int unambiguousInnerTower = -1;
+                int unambiguousQuadrant = -1;
+                for (int q = 0; q < _quadrants.Length; ++q)
+                {
+                    if (_players[_quadrants[q].NonPreySlot].AssignedTowers != 0)
+                        continue;
+
+                    int potential = FindUnassignedUnambiguousInnerTower(q);
+                    if (potential == -1)
+                        continue; // this quadrant has 2 or 0 unassigned inner towers
+
+                    if (unambiguousInnerTower == -1)
+                    {
+                        // new potential assignment
+                        unambiguousInnerTower = potential;
+                        unambiguousQuadrant = q;
+                    }
+                    else if (unambiguousInnerTower == potential)
+                    {
+                        // we have two quadrants that have 1 common inner tower, this is a bad pattern...
+                        unambiguousInnerTower = -1;
+                        break;
+                    }
+                    // else: ignore this tower on this iteration...
                 }
 
-                int[] preySlotsPerQuadrant = FindSlotsForRole(module, true);
-                int preyQ1 = _preyGoEW ? 1 : 0;
-                int preyQ2 = preyQ1 + 2;
-                bool slot1Swaps = !BitVector.IsVector64BitSet(_preyTargets, preySlotsPerQuadrant[preyQ1]);
-                bool slot2Swaps = !BitVector.IsVector64BitSet(_preyTargets, preySlotsPerQuadrant[preyQ2]);
-                if (slot1Swaps && slot2Swaps)
+                if (unambiguousInnerTower != -1)
+                    AssignTower(_quadrants[unambiguousQuadrant].NonPreySlot, unambiguousInnerTower);
+                else
+                    break;
+            }
+
+            // if we still have unassigned towers, assign each of them to each remaining player
+            var ambiguousQuadrants = _quadrants.Where(q => _players[q.NonPreySlot].AssignedTowers == 0).ToArray();
+            for (int t = 12; t < _towers.Length; ++t)
+            {
+                if (_towers[t].Actor != null && _towers[t].AssignedPlayers == 0)
                 {
-                    // both prey markers at wrong cardinals
-                    if (_config.P2Sanctity2SwapCCW != _preyGoEW)
+                    foreach (var q in ambiguousQuadrants)
                     {
-                        // CCW + N/S, preys are at E/W -> W swaps with S, E with N
-                        // CW + E/W, preys are at N/S -> N swaps with E, S with W
-                        _assignedQuadrants[preySlotsPerQuadrant[0]] = 1;
-                        _assignedQuadrants[preySlotsPerQuadrant[1]] = 0;
-                        _assignedQuadrants[preySlotsPerQuadrant[2]] = 3;
-                        _assignedQuadrants[preySlotsPerQuadrant[3]] = 2;
+                        AssignTower(q.NonPreySlot, t);
                     }
-                    else
-                    {
-                        // CW + N/S, preys are at E/W -> W swaps with N, E with S
-                        // CCW + E/W, preys are at N/S -> N swaps with W, S with E
-                        _assignedQuadrants[preySlotsPerQuadrant[0]] = 3;
-                        _assignedQuadrants[preySlotsPerQuadrant[1]] = 2;
-                        _assignedQuadrants[preySlotsPerQuadrant[2]] = 1;
-                        _assignedQuadrants[preySlotsPerQuadrant[3]] = 0;
-                    }
-                    _preySwap = "both";
-                }
-                else if (slot1Swaps || slot2Swaps)
-                {
-                    int swapQ1 = slot1Swaps ? preyQ1 : preyQ2;
-                    int swapQ2 = _preyGoEW ? 0 : 1;
-                    if (!BitVector.IsVector64BitSet(_preyTargets, preySlotsPerQuadrant[swapQ2]))
-                        swapQ2 += 2;
-                    _assignedQuadrants[preySlotsPerQuadrant[swapQ1]] = swapQ2;
-                    _assignedQuadrants[preySlotsPerQuadrant[swapQ2]] = swapQ1;
-                    _preySwap = $"{WaymarkForQuadrant(module, swapQ1)}/{WaymarkForQuadrant(module, swapQ2)}";
-                }
-
-                // assign towers to prey role
-                var unassignedTowers = _activeTowersMask;
-                foreach (int preySlot in preySlotsPerQuadrant)
-                {
-                    int quadrant = _assignedQuadrants[preySlot];
-                    int tower = SelectOuterTower(quadrant, _preyGoCCW);
-                    AssignTower(module, preySlot, tower);
-                    BitVector.ClearVector64Bit(ref unassignedTowers, tower);
-                }
-
-                // assign towers to non-prey roles: first assign two outer towers
-                var nonPreySlotsPerQuadrant = FindSlotsForRole(module, false);
-                int numInnerTowers = 0;
-                for (int i = 0; i < nonPreySlotsPerQuadrant.Length; ++i)
-                {
-                    int slot = nonPreySlotsPerQuadrant[i];
-                    int tower = SelectOuterTower(i, !_preyGoCCW);
-                    if (BitVector.IsVector64BitSet(unassignedTowers, tower))
-                    {
-                        AssignTower(module, slot, tower);
-                        BitVector.ClearVector64Bit(ref unassignedTowers, tower);
-                        nonPreySlotsPerQuadrant[i] = -1;
-                    }
-                    else
-                    {
-                        ++numInnerTowers;
-                    }
-                }
-
-                // assign inner towers, if it can be done non-ambiguously
-                bool tryAssignInner = numInnerTowers > 0;
-                while (tryAssignInner)
-                {
-                    tryAssignInner = false;
-
-                    int unambiguousInnerTower = -1;
-                    int unambiguousQuadrant = -1;
-                    for (int i = 0; i < nonPreySlotsPerQuadrant.Length; ++i)
-                    {
-                        int slot = nonPreySlotsPerQuadrant[i];
-                        if (slot == -1)
-                            continue;
-
-                        int potential = FindUnassignedUnambiguousInnerTower(unassignedTowers, i);
-                        if (potential == -1)
-                            continue; // this quadrant has 2 or 0 unassigned inner towers
-
-                        if (unambiguousInnerTower == -1)
-                        {
-                            // new potential assignment
-                            unambiguousInnerTower = potential;
-                            unambiguousQuadrant = i;
-                        }
-                        else if (unambiguousInnerTower == potential)
-                        {
-                            // we have two quadrants that have 1 common inner tower, this is a bad pattern...
-                            unambiguousInnerTower = -1;
-                            break; 
-                        }
-                        // else: ignore this tower on this iteration...
-                    }
-
-                    if (unambiguousInnerTower != -1)
-                    {
-                        AssignTower(module, nonPreySlotsPerQuadrant[unambiguousQuadrant], unambiguousInnerTower);
-                        BitVector.ClearVector64Bit(ref unassignedTowers, unambiguousInnerTower);
-                        nonPreySlotsPerQuadrant[unambiguousQuadrant] = -1;
-                        --numInnerTowers;
-                        tryAssignInner = true; // try assigning more towers on next iteration...
-                    }
-                }
-
-                // if we still have unassigned towers, assign each of them to each remaining player
-                while (unassignedTowers != 0)
-                {
-                    int nextAmbiguousTower = BitOperations.TrailingZeroCount(unassignedTowers);
-                    module.ReportError(this, $"Failed to assign inner tower {nextAmbiguousTower}");
-                    foreach (int slot in nonPreySlotsPerQuadrant)
-                        if (slot != -1)
-                            AssignTower(module, slot, nextAmbiguousTower);
-                    BitVector.ClearVector64Bit(ref unassignedTowers, nextAmbiguousTower);
                 }
             }
         }
@@ -324,8 +358,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         // 'score' depends on angle between preys: 0 for 120, 1 for 150, 2 for 180
         private int ScoreForAssignment(bool ew, bool ccw)
         {
-            float dir1 = DirectionForOuterTower(ew ? 1 : 0, ccw);
-            float dir2 = DirectionForOuterTower(ew ? 3 : 2, ccw);
+            float dir1 = DirectionForOuterTower(SelectOuterTower(ew ? 1 : 0, ccw));
+            float dir2 = DirectionForOuterTower(SelectOuterTower(ew ? 3 : 2, ccw));
             return MathF.Cos(dir1 - dir2) switch
             {
                 < -0.9f => 2,
@@ -334,72 +368,55 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             };
         }
 
-        private int ClassifyTower(BossModule module, Actor tower)
+        private int SelectOuterTower(int quadrant, bool ccw)
         {
-            var offset = tower.Position - module.Arena.WorldCenter;
-            var dir = GeometryUtils.DirectionFromVec3(offset);
-            int index;
-            if (offset.LengthSquared() < 7 * 7)
+            int begin = 3 * quadrant, end = begin + 3;
+            if (ccw)
             {
-                // inner tower: intercardinal, ~6m from center
-                index = dir > 0 ? (dir > MathF.PI / 2 ? 1 : 2) : (dir < -MathF.PI / 2 ? 0 : 3);
-                index <<= 2;
+                for (int i = begin; i < end; ++i)
+                    if (_towers[i].Actor != null)
+                        return i;
             }
             else
             {
-                // outer tower: ~18m from center, at cardinal or +- 30 degrees
-                index = (7 - (int)MathF.Round(dir / MathF.PI * 6)) % 12;
-                index = ((index / 3) << 2) | ((index % 3) + 1);
+                for (int i = end - 1; i >= begin; --i)
+                    if (_towers[i].Actor != null)
+                        return i;
             }
-            return index;
+            return -1;
         }
 
-        private int SelectOuterTower(int quadrant, bool ccw)
+        private float DirectionForOuterTower(int tower)
         {
-            ulong relevantTowers = 0b1110ul << (quadrant * 4);
-            ulong outerTowersMask = _activeTowersMask & relevantTowers;
-            return ccw ? BitOperations.TrailingZeroCount(outerTowersMask) : 63 - BitOperations.LeadingZeroCount(outerTowersMask);
+            return (7 - tower) * MathF.PI / 6;
         }
 
-        private float DirectionForOuterTower(int quadrant, bool ccw)
+        private void SwapPreyQuadrants(int q1, int q2)
         {
-            int tower = SelectOuterTower(quadrant, ccw);
-            float dir = MathF.PI - quadrant * MathF.PI / 2;
-            int idx = tower - quadrant * 4 - 2;
-            return dir + idx * MathF.PI / 6;
+            int s1 = _quadrants[q1].PreySlot;
+            int s2 = _quadrants[q2].PreySlot;
+            _quadrants[q1].PreySlot = s2;
+            _quadrants[q2].PreySlot = s1;
+            _players[s1].AssignedQuadrant = q2;
+            _players[s2].AssignedQuadrant = q1;
         }
 
-        private int[] FindSlotsForRole(BossModule module, bool preyRole)
+        private int FindUnassignedUnambiguousInnerTower(int quadrant)
         {
-            int[] slots = { -1, -1, -1, -1 };
-            foreach (var (slot, player) in module.Raid.WithSlot(true))
-            {
-                bool isTH = player.Role is Role.Tank or Role.Healer;
-                bool isPrey = isTH == _preyOnTH;
-                if (isPrey == preyRole)
-                    slots[_assignedQuadrants[slot]] = slot;
-            }
-            return slots;
-        }
-
-        private int FindUnassignedUnambiguousInnerTower(ulong available, int quadrant)
-        {
-            int candidate1 = quadrant;
-            int candidate2 = (quadrant + 1) & 3;
-            int index1 = candidate1 << 2;
-            int index2 = candidate2 << 2;
-            bool available1 = BitVector.IsVector64BitSet(available, index1);
-            bool available2 = BitVector.IsVector64BitSet(available, index2);
+            int candidate1 = 12 + quadrant;
+            int candidate2 = 12 + ((quadrant + 3) & 3);
+            bool available1 = _towers[candidate1].Actor != null && _towers[candidate1].AssignedPlayers == 0;
+            bool available2 = _towers[candidate2].Actor != null && _towers[candidate2].AssignedPlayers == 0;
             if (available1 == available2)
                 return -1;
             else
-                return available1 ? index1 : index2;
+                return available1 ? candidate1 : candidate2;
         }
 
-        private void AssignTower(BossModule module, int slot, int tower)
+        private void AssignTower(int slot, int tower)
         {
-            int towerIndex = _towers.FindIndex(t => ClassifyTower(module, t) == tower);
-            BitVector.SetMatrix8x8Bit(ref _assignedTowers, slot, towerIndex, true);
+            BitVector.SetVector64Bit(ref _players[slot].AssignedTowers, tower);
+            BitVector.SetVector64Bit(ref _towers[tower].AssignedPlayers, slot);
         }
 
         private Vector3 StormPlacementPosition(BossModule module, int quadrant)

@@ -79,9 +79,11 @@
             Cast(id, AID.SanctityofTheWard, delay, 4);
             Targetable(id + 0x10, false, 3, "Trio 2");
             CastStart(id + 0x20, AID.DragonsGaze, 5.6f)
+                .ActivateOnEnter<P2SanctityOfTheWard1Gaze>()
                 .ActivateOnEnter<P2SanctityOfTheWard1>();
             CastEnd(id + 0x21, 4);
-            ComponentCondition<P2SanctityOfTheWard1>(id + 0x30, 1.1f, comp => comp.GazeDone, "Gazes");
+            ComponentCondition<P2SanctityOfTheWard1Gaze>(id + 0x30, 1.1f, comp => comp.NumCasts > 0, "Gazes")
+                .DeactivateOnExit<P2SanctityOfTheWard1Gaze>();
             ComponentCondition<P2SanctityOfTheWard1>(id + 0x40, 6, comp => comp.NumFlareCasts >= 18, "Charges")
                 .DeactivateOnExit<P2SanctityOfTheWard1>();
             SimpleState(id + 0x100, 5, "?")

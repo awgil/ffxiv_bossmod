@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace BossMod
 {
@@ -27,6 +28,37 @@ namespace BossMod
         }
 
         public virtual bool Validate() => true;
+
+        // if these role->group assignments are valid and passed actor->role assignments are valid for passed raid, enumerate slot/group pairs
+        // if anything is invalid, enumerable is empty
+        public IEnumerable<(int slot, int group)> Resolve(PartyState party, PartyRolesConfig actorAssignments)
+        {
+            if (Validate())
+            {
+                var roleToSlot = actorAssignments.SlotsPerAssignment(party);
+                if (roleToSlot.Length == Assignments.Length)
+                {
+                    for (int role = 0; role < Assignments.Length; ++role)
+                    {
+                        yield return (roleToSlot[role], Assignments[role]);
+                    }
+                }
+            }
+        }
+
+        // build slot mask for members of specified group; returns 0 if resolve fails
+        public byte BuildGroupMask(int group, PartyState party, PartyRolesConfig actorAssignments)
+        {
+            byte mask = 0;
+            foreach (var (slot, g) in Resolve(party, actorAssignments))
+                if (g == group)
+                    BitVector.SetVector8Bit(ref mask, slot);
+            return mask;
+        }
+
+        // shortcuts using global config
+        public IEnumerable<(int slot, int group)> Resolve(PartyState party) => Resolve(party, Service.Config.Get<PartyRolesConfig>());
+        public byte BuildGroupMask(int group, PartyState party) => BuildGroupMask(group, party, Service.Config.Get<PartyRolesConfig>());
     }
 
     // assignments to two light parties with THMR split
