@@ -35,6 +35,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
+        public bool StormDone { get; private set; }
+        public int TowersDone { get; private set; }
         private DSW2Config _config;
         private List<Actor> _towers = new();
         private ulong _preyTargets;
@@ -43,9 +45,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private bool _preyGoCCW;
         private bool _preyGoEW;
         private QuadrantAssignments _assignedQuadrants;
+        private string _preySwap = "none";
         private ulong _assignedTowers; // [i * 8 + j] = whether tower j is assigned to player in slot i
 
         private static float _towerRadius = 3;
+        private static float _stormRadius = 7;
+        private static float _stormPlacementOffset = 9;
 
         public P2SanctityOfTheWard2()
         {
@@ -54,13 +59,33 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
+            if (movementHints != null)
+            {
+                var from = actor.Position;
+                var color = module.Arena.ColorSafe;
+                if (!StormDone)
+                {
+                    var stormPos = StormPlacementPosition(module, _assignedQuadrants[slot]);
+                    movementHints.Add(from, stormPos, color);
+                    from = stormPos;
+                    color = module.Arena.ColorDanger;
+                }
+                if (_towers.Count == 8 && TowersDone < 8)
+                {
+                    var assignments = BitVector.ExtractVectorFromMatrix8x8(_assignedTowers, slot);
+                    for (int i = 0; i < _towers.Count; ++i)
+                        if (BitVector.IsVector8BitSet(assignments, i))
+                            movementHints.Add(from, _towers[i].CastInfo!.Location, color);
+                }
+            }
         }
 
         public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
-            if (_activeTowersMask != 0)
+            if (_activeTowersMask != 0 && TowersDone < 8)
             {
-                hints.Add($"Prey: {(_preyOnTH ? "T/H" : "DD")} {(_preyGoEW ? "E/W" : "N/S")} {(_preyGoCCW ? "counterclockwise" : "clockwise")}");
+                //hints.Add($"Prey: {(_preyOnTH ? "T/H" : "DD")} {(_preyGoEW ? "E/W" : "N/S")} {(_preyGoCCW ? "counterclockwise" : "clockwise")}");
+                hints.Add($"Prey: {(_preyOnTH ? "T/H" : "DD")}, swap {_preySwap}, {(_preyGoCCW ? "counterclockwise" : "clockwise")}");
             }
         }
 
@@ -76,7 +101,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             foreach (var (slot, player) in module.Raid.WithSlot())
                 arena.Actor(player, BitVector.IsVector64BitSet(_preyTargets, slot) ? arena.ColorDanger : arena.ColorPlayerGeneric);
 
-            if (_towers.Count == 8)
+            if (_towers.Count == 8 && TowersDone < 8)
             {
                 var assignments = BitVector.ExtractVectorFromMatrix8x8(_assignedTowers, pcSlot);
                 for (int i = 0; i < _towers.Count; ++i)
@@ -87,6 +112,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                         arena.AddCircle(_towers[i].CastInfo!.Location, _towerRadius, arena.ColorDanger, 1);
                 }
             }
+
+            if (!StormDone)
+                arena.AddCircle(pc.Position, _stormRadius, arena.ColorDanger);
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)
@@ -110,8 +138,15 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 case AID.Conviction2AOE:
                     _towers.Remove(actor);
+                    ++TowersDone;
                     break;
             }
+        }
+
+        public override void OnEventCast(BossModule module, CastEvent info)
+        {
+            if (info.IsSpell(AID.HiemalStormAOE))
+                StormDone = true;
         }
 
         public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
@@ -141,8 +176,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             _preyGoEW = _config.P2Sanctity2PreferEWPrey;
             int scoreCW = ScoreForAssignment(_preyGoEW, false);
             int scoreCCW = ScoreForAssignment(_preyGoEW, true);
+            if (scoreCW == 0 && scoreCCW == 0) // TODO: if allowed by config...
+            {
+                _preyGoEW = !_preyGoEW;
+                scoreCW = ScoreForAssignment(_preyGoEW, false);
+                scoreCCW = ScoreForAssignment(_preyGoEW, true);
+            }
             _preyGoCCW = scoreCCW > scoreCW;
-            // TODO: swap if best score == 0 and allowed by config...
 
             // the rest is only done if we have proper group assignments
             var assignments = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(module.WorldState.Party);
@@ -183,6 +223,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                         _assignedQuadrants[preySlotsPerQuadrant[2]] = 1;
                         _assignedQuadrants[preySlotsPerQuadrant[3]] = 0;
                     }
+                    _preySwap = "both";
                 }
                 else if (slot1Swaps || slot2Swaps)
                 {
@@ -192,6 +233,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                         swapQ2 += 2;
                     _assignedQuadrants[preySlotsPerQuadrant[swapQ1]] = swapQ2;
                     _assignedQuadrants[preySlotsPerQuadrant[swapQ2]] = swapQ1;
+                    _preySwap = $"{WaymarkForQuadrant(module, swapQ1)}/{WaymarkForQuadrant(module, swapQ2)}";
                 }
 
                 // assign towers to prey role
@@ -358,6 +400,33 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             int towerIndex = _towers.FindIndex(t => ClassifyTower(module, t) == tower);
             BitVector.SetMatrix8x8Bit(ref _assignedTowers, slot, towerIndex, true);
+        }
+
+        private Vector3 StormPlacementPosition(BossModule module, int quadrant)
+        {
+            float dir = MathF.PI - quadrant * MathF.PI / 2;
+            return module.Arena.WorldCenter + _stormPlacementOffset * GeometryUtils.DirectionToVec3(dir);
+        }
+
+        private string WaymarkForQuadrant(BossModule module, int quadrant)
+        {
+            var pos = StormPlacementPosition(module, quadrant);
+
+            Waymark closest = Waymark.Count;
+            float closestD = float.MaxValue;
+
+            for (int i = 0; i < (int)Waymark.Count; ++i)
+            {
+                var w = (Waymark)i;
+                var p = module.WorldState.Waymarks[w];
+                float d = p != null ? (pos - p.Value).LengthSquared() : float.MaxValue;
+                if (d < closestD)
+                {
+                    closest = w;
+                    closestD = d;
+                }
+            }
+            return closest < Waymark.Count ? closest.ToString() : "-";
         }
     }
 }
