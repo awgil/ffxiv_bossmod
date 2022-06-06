@@ -25,6 +25,7 @@
     {
         AutoAttack = 25531, // Boss->mt, no cast, range 10 ?-degree cone
         Teleport = 25540, // Boss->location, no cast
+        Reappear = 25532, // Boss->self, no cast
 
         AscalonsMercyConcealed = 25544, // Boss->self, 3.0s cast, visual
         AscalonsMercyConcealedAOE = 25545, // Helper->self, 1.5s cast, range 50 30-degree (?) cone
@@ -74,8 +75,14 @@
         Conviction2 = 29563, // SerHermenost->self, 9.2s cast, visual
         Conviction2AOE = 29564, // Helper->location, 12.0s cast, range 3 aoe, soaked towers
         HolyComet = 25576, // SerNoudenet->self, 12.0s cast, visual
-        HolyCometAOE = 25577, // HolyComet->self, no cast, range 20 ???
-        HolyImpact = 25578, // HolyComet->self, no cast, raidwide on comet drop
+        HolyCometAOE = 25577, // HolyComet->self, no cast, range 20 aoe on comet drop
+        HolyImpact = 25578, // HolyComet->self, no cast, raidwide on comet fail
+        FaithUnmoving = 25308, // SerGrinnaux->self, 4.0s cast, knockback 16
+        Conviction3 = 28650, // SerHermenost->self, 8.2s cast, visual
+        Conviction3AOE = 28651, // Helper->location, 11.0s cast, range 3 aoe, soaked towers
+
+        UltimateEnd = 25533, // Boss->self, no cast, visual
+        UltimateEndAOE = 25534, // Helper->self, no cast, raidwide
     };
 
     public enum SID : uint

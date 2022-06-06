@@ -17,15 +17,17 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P2SanctityOfTheWard2HeavensStakeDonut() : base(ActionID.MakeSpell(AID.HeavensStakeDonut), new AOEShapeDonut(15, 30)) { }
     }
 
-    // this component is about first tower assignments, depending on initial assignments, tower positions and prey markers
+    class P2SanctityOfTheWard2Knockback : CommonComponents.KnockbackFromCaster
+    {
+        public P2SanctityOfTheWard2Knockback() : base(ActionID.MakeSpell(AID.FaithUnmoving), 16) { }
+    }
+
+    // this component is about tower assignments, depending on initial assignments, tower positions and prey markers
     // identifiers used by this component:
     // - quadrant: N=0, E=1, S=2, W=3
     // - towers: [0,11] are outer towers in CW order, starting from '11 o'clock' (CCW tower of N quadrant); [12,15] are inner towers in CCW order, starting from NE (NE-SE-SW-NW)
     //   so, inner towers for quadrant k are [3*k, 3*k+2]; neighbouring inner are 12+k & 12+(k+3)%4
-    // outer tower preference:
-    // - CW & !CCW or CCW & !CW - select only or CW (CCW) one of the two
-    // - !CW & !CCW - select cardinal only (2-1-2-1 assignment for prey role), TODO
-    // - CW & CCW - select non-cardinal only (for non-prey role only), TODO
+    // TODO: assignments for second towers...
     class P2SanctityOfTheWard2 : BossModule.Component
     {
         struct PlayerData
@@ -48,22 +50,23 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         }
 
         public bool StormDone { get; private set; }
-        public int TowersDone { get; private set; }
+        public int Towers1Done { get; private set; }
+        public int Towers2Done { get; private set; }
         private DSW2Config _config;
         private PlayerData[] _players = new PlayerData[PartyState.MaxSize];
         private QuadrantData[] _quadrants = new QuadrantData[4];
         private TowerData[] _towers = new TowerData[16];
-        private int _activeTowers;
+        private int _activeTowers1;
         private int _assignedPreys;
         private bool _preyOnTH;
-        //private bool _preyGoCW;
         private bool _preyGoCCW;
         private bool _preyGoEW;
         private string _preySwap = "none";
+        private List<Actor> _towers2 = new();
 
         private static float _towerRadius = 3;
         private static float _stormRadius = 7;
-        private static float _stormPlacementOffset = 9;
+        private static float _stormPlacementOffset = 10;
 
         public P2SanctityOfTheWard2()
         {
@@ -72,7 +75,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (_activeTowers != 8)
+            if (_activeTowers1 != 8)
                 return;
 
             if (movementHints != null)
@@ -99,57 +102,74 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
-            if (_activeTowers == 8)
+            if (_activeTowers1 == 8)
             {
-                //hints.Add($"Prey: {(_preyOnTH ? "T/H" : "DD")}, swap {_preySwap}, {(_preyGoCCW ? "counterclockwise" : _preyGoCW ? "clockwise" : "cardinal")}");
                 hints.Add($"Prey: {(_preyOnTH ? "T/H" : "DD")}, swap {_preySwap}, {(_preyGoCCW ? "counterclockwise" : "clockwise")}");
             }
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_activeTowers != 8)
-                return;
-
-            float diag = arena.WorldHalfSize / 1.414214f;
-            arena.AddLine(arena.WorldCenter + new Vector3(diag, 0,  diag), arena.WorldCenter - new Vector3(diag, 0,  diag), arena.ColorBorder);
-            arena.AddLine(arena.WorldCenter + new Vector3(diag, 0, -diag), arena.WorldCenter - new Vector3(diag, 0, -diag), arena.ColorBorder);
-
             foreach (var (slot, player) in module.Raid.WithSlot().Exclude(pc))
                 arena.Actor(player, _players[slot].HavePrey ? arena.ColorDanger : arena.ColorPlayerGeneric);
 
-            foreach (var tower in _towers)
+            if (_activeTowers1 == 8)
             {
-                if (tower.Actor?.CastInfo != null)
+                float diag = arena.WorldHalfSize / 1.414214f;
+                arena.AddLine(arena.WorldCenter + new Vector3(diag, 0, diag), arena.WorldCenter - new Vector3(diag, 0, diag), arena.ColorBorder);
+                arena.AddLine(arena.WorldCenter + new Vector3(diag, 0, -diag), arena.WorldCenter - new Vector3(diag, 0, -diag), arena.ColorBorder);
+
+                foreach (var tower in _towers)
                 {
-                    if (BitVector.IsVector64BitSet(tower.AssignedPlayers, pcSlot))
-                        arena.AddCircle(tower.Actor.CastInfo.Location, _towerRadius, arena.ColorSafe, 2);
-                    else
-                        arena.AddCircle(tower.Actor.CastInfo.Location, _towerRadius, arena.ColorDanger, 1);
+                    if (tower.Actor?.CastInfo != null)
+                    {
+                        if (BitVector.IsVector64BitSet(tower.AssignedPlayers, pcSlot))
+                            arena.AddCircle(tower.Actor.CastInfo.Location, _towerRadius, arena.ColorSafe, 2);
+                        else
+                            arena.AddCircle(tower.Actor.CastInfo.Location, _towerRadius, arena.ColorDanger, 1);
+                    }
                 }
+
+                if (!StormDone)
+                    arena.AddCircle(pc.Position, _stormRadius, arena.ColorDanger);
             }
 
-            if (!StormDone)
-                arena.AddCircle(pc.Position, _stormRadius, arena.ColorDanger);
+            foreach (var tower in _towers2)
+                arena.AddCircle(tower.CastInfo!.Location, _towerRadius, arena.ColorSafe);
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)
         {
-            if (actor.CastInfo!.IsSpell(AID.Conviction2AOE))
+            if (!actor.CastInfo!.IsSpell())
+                return;
+            switch ((AID)actor.CastInfo.Action.ID)
             {
-                int id = ClassifyTower(module, actor);
-                _towers[id].Actor = actor;
-                ++_activeTowers;
-                InitAssignments(module);
+                case AID.Conviction2AOE:
+                    int id = ClassifyTower(module, actor);
+                    _towers[id].Actor = actor;
+                    ++_activeTowers1;
+                    InitAssignments(module);
+                    break;
+                case AID.Conviction3AOE:
+                    _towers2.Add(actor);
+                    break;
             }
         }
 
         public override void OnCastFinished(BossModule module, Actor actor)
         {
-            if (actor.CastInfo!.IsSpell(AID.Conviction2AOE))
+            if (!actor.CastInfo!.IsSpell())
+                return;
+            switch ((AID)actor.CastInfo.Action.ID)
             {
-                --_activeTowers;
-                ++TowersDone;
+                case AID.Conviction2AOE:
+                    --_activeTowers1;
+                    ++Towers1Done;
+                    break;
+                case AID.Conviction3AOE:
+                    _towers2.Remove(actor);
+                    ++Towers2Done;
+                    break;
             }
         }
 
@@ -192,7 +212,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private void InitAssignments(BossModule module)
         {
-            if (_activeTowers != 8 || _assignedPreys != 2)
+            if (_activeTowers1 != 8 || _assignedPreys != 2)
                 return; // not ready yet...
 
             // prey position assignment - can be done even if we don't have valid group assignments

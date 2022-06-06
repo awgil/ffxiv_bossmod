@@ -17,6 +17,7 @@
             P2AncientQuaga(id + 0x20000, 0.1f);
             P2HeavenlyHeelAscalonMight(id + 0x30000, 6.2f);
             P2SanctityOfTheWard(id + 0x40000, 7);
+            P2UltimateEnd(id + 0x50000, 13.5f);
 
             SimpleState(id + 0xF0000, 100, "???");
         }
@@ -84,12 +85,29 @@
             CastEnd(id + 0x21, 4);
             ComponentCondition<P2SanctityOfTheWard1Gaze>(id + 0x30, 1.1f, comp => comp.NumCasts > 0, "Gazes")
                 .DeactivateOnExit<P2SanctityOfTheWard1Gaze>();
-            ComponentCondition<P2SanctityOfTheWard1>(id + 0x40, 6, comp => comp.NumFlareCasts >= 18, "Charges")
+            ComponentCondition<P2SanctityOfTheWard1>(id + 0x40, 6.1f, comp => comp.NumFlareCasts >= 18, "Charges")
                 .DeactivateOnExit<P2SanctityOfTheWard1>();
-            SimpleState(id + 0x100, 5, "?")
+            ComponentCondition<P2SanctityOfTheWard2>(id + 0x100, 11.8f, comp => comp.StormDone)
                 .ActivateOnEnter<P2SanctityOfTheWard2HeavensStakeCircles>()
                 .ActivateOnEnter<P2SanctityOfTheWard2HeavensStakeDonut>()
-                .ActivateOnEnter<P2SanctityOfTheWard2>();
+                .ActivateOnEnter<P2SanctityOfTheWard2>()
+                .DeactivateOnExit<P2SanctityOfTheWard2HeavensStakeCircles>()
+                .DeactivateOnExit<P2SanctityOfTheWard2HeavensStakeDonut>();
+            ComponentCondition<P2SanctityOfTheWard2>(id + 0x110, 4.2f, comp => comp.Towers1Done > 0, "Towers 1");
+            ComponentCondition<P2SanctityOfTheWard2Knockback>(id + 0x120, 10.3f, comp => comp.NumCasts > 0, "Knockback")
+                .ActivateOnEnter<P2SanctityOfTheWard2Knockback>()
+                .DeactivateOnExit<P2SanctityOfTheWard2Knockback>();
+            ComponentCondition<P2SanctityOfTheWard2>(id + 0x130, 3, comp => comp.Towers2Done > 0, "Towers 2")
+                .DeactivateOnExit<P2SanctityOfTheWard2>();
+            Targetable(id + 0x200, true, 4.5f, "Reappear");
+        }
+
+        private void P2UltimateEnd(uint id, float delay)
+        {
+            ComponentCondition<P2UltimateEnd>(id, delay, comp => comp.NumCasts > 0, "Raidwide")
+                .ActivateOnEnter<P2UltimateEnd>()
+                .DeactivateOnExit<P2UltimateEnd>()
+                .SetHint(StateMachine.StateHint.Raidwide);
         }
     }
 }

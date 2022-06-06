@@ -247,6 +247,51 @@ namespace BossMod
             }
         }
 
+        // generic knockback from caster component (TODO: detect knockback immunity)
+        public class KnockbackFromCaster : CastCounter
+        {
+            private float _distance;
+            private Actor? _caster;
+
+            public KnockbackFromCaster(ActionID aid, float distance)
+                : base(aid)
+            {
+                _distance = distance;
+            }
+
+            public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+            {
+                if (_caster != null)
+                {
+                    var adjPos = BossModule.AdjustPositionForKnockback(actor.Position, _caster, _distance);
+                    if (!module.Arena.InBounds(adjPos))
+                        hints.Add("About to be knocked into wall!");
+                }
+            }
+
+            public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+            {
+                if (_caster != null)
+                {
+                    var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _caster, _distance);
+                    arena.Actor(adjPos, 0, arena.ColorDanger);
+                    arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
+                }
+            }
+
+            public override void OnCastStarted(BossModule module, Actor actor)
+            {
+                if (actor.CastInfo!.Action == WatchedAction)
+                    _caster = actor;
+            }
+
+            public override void OnCastFinished(BossModule module, Actor actor)
+            {
+                if (_caster == actor)
+                    _caster = null;
+            }
+        }
+
         // generic component that is 'active' during specific primary target's cast
         // useful for simple bosses - outdoor, dungeons, etc.
         public class CastHint : BossModule.Component
