@@ -228,7 +228,7 @@ namespace BossMod
 
                 s.InfuriateCD = SpellCooldown(WARRotation.AID.Infuriate);
                 s.UpheavalCD = SpellCooldown(WARRotation.AID.Upheaval);
-                s.InnerReleaseCD = SpellCooldown(WARRotation.AID.InnerRelease);
+                s.InnerReleaseCD = SpellCooldown(s.UnlockedInnerRelease ? WARRotation.AID.InnerRelease : WARRotation.AID.Berserk); // note: technically berserk and IR don't share CD, and with level sync you can have both...
                 s.OnslaughtCD = SpellCooldown(WARRotation.AID.Onslaught);
                 s.RampartCD = SpellCooldown(WARRotation.AID.Rampart);
                 s.VengeanceCD = SpellCooldown(WARRotation.AID.Vengeance);

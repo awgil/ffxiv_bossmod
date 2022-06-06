@@ -323,6 +323,9 @@ namespace BossMod
         {
             // we spend resources either under raid buffs or if another raid buff window will cover at least 4 GCDs of the fight
             bool spendGauge = state.RaidBuffsLeft > state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10;
+            if (!state.UnlockedInnerRelease)
+                spendGauge &= state.InnerReleaseCD > 5; // TODO: improve...
+
             float primalRendWindow = MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);
             var nextFCAction = state.NascentChaosLeft > state.GCD ? (state.UnlockedInnerChaos && !aoe ? AID.InnerChaos : AID.ChaoticCyclone)
                 : (aoe && state.UnlockedSteelCyclone) ? (state.UnlockedDecimate ? AID.Decimate : AID.SteelCyclone)
@@ -407,7 +410,7 @@ namespace BossMod
             // ok at this point, we just want to spend gauge - either because we're using greedy strategy, or something prevented us from casting combo
             if (primalRendWindow > state.GCD)
                 return AID.PrimalRend;
-            if (state.Gauge >= 50 || state.InnerReleaseStacks > 0)
+            if (state.Gauge >= 50 || state.InnerReleaseStacks > 0 && state.UnlockedInnerRelease)
                 return nextFCAction;
 
             // TODO: reconsider min time left...
@@ -426,7 +429,7 @@ namespace BossMod
                     availableGauge += 50;
                 return state.ComboLastMove switch
                 {
-                    AID.Maim => availableGauge < 80,
+                    AID.Maim => availableGauge < 80, // TODO: this isn't a very good check, improve...
                     _ => availableGauge < 150
                 };
             }
