@@ -25,7 +25,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             var actorForward = GeometryUtils.DirectionToVec3(actor.Rotation);
-            if (EyePositions(module).Any(eye => Vector3.Dot(eye - actor.Position, actorForward) >= 0))
+            if (EyePositions(module).Any(eye => Vector3.Dot(Vector3.Normalize(eye - actor.Position), actorForward) >= 0.707107)) // 45-degree
                 hints.Add("Turn away from gaze!");
         }
 

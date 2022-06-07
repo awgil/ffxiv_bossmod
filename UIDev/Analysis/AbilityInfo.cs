@@ -84,6 +84,45 @@ namespace UIDev.Analysis
             }
         }
 
+        class GazeAnalysis
+        {
+            private Plot _plot = new();
+            private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Angle, bool Hit)> _points = new();
+
+            public GazeAnalysis(List<(Replay, Replay.Action)> infos)
+            {
+                _plot.DataMin = new(-180, 0);
+                _plot.DataMax = new(180, 2);
+                _plot.TickAdvance = new(45, 1);
+                foreach (var (r, a) in infos)
+                {
+                    var src = a.Source?.PosRotAt(a.Timestamp).XYZ() ?? new();
+                    foreach (var target in a.Targets)
+                    {
+                        if (target.Target == null)
+                            continue;
+                        var posRot = target.Target.PosRotAt(a.Timestamp);
+                        var toSource = GeometryUtils.DirectionFromVec3(src - posRot.XYZ());
+                        var angle = toSource - posRot.W;
+                        if (angle > MathF.PI)
+                            angle -= 2 * MathF.PI;
+                        if (angle < -MathF.PI)
+                            angle += 2 * MathF.PI;
+                        bool hit = !target.Effects.All(eff => eff.Type is ActionEffectType.Miss or ActionEffectType.StartActionCombo);
+                        _points.Add((r, a, target.Target, angle / MathF.PI * 180, hit));
+                    }
+                }
+            }
+
+            public void Draw()
+            {
+                _plot.Begin();
+                foreach (var i in _points)
+                    _plot.Point(new(i.Angle, 1), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.Name} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
+                _plot.End();
+            }
+        }
+
         class ActionData
         {
             public List<(Replay, Replay.Action)> Instances = new();
@@ -98,6 +137,7 @@ namespace UIDev.Analysis
             public ConeAnalysis? ConeAnalysis;
             public DamageFalloffAnalysis? DamageFalloffAnalysisDist;
             public DamageFalloffAnalysis? DamageFalloffAnalysisMinCoord;
+            public GazeAnalysis? GazeAnalysis;
         }
 
         private Type? _oidType;
@@ -187,6 +227,12 @@ namespace UIDev.Analysis
                     if (data.DamageFalloffAnalysisMinCoord == null)
                         data.DamageFalloffAnalysisMinCoord = new(data.Instances, true);
                     data.DamageFalloffAnalysisMinCoord.Draw();
+                }
+                foreach (var an in tree.Node("Gaze analysis"))
+                {
+                    if (data.GazeAnalysis == null)
+                        data.GazeAnalysis = new(data.Instances);
+                    data.GazeAnalysis.Draw();
                 }
             }
         }
