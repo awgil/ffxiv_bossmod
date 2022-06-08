@@ -51,7 +51,7 @@ namespace BossMod
             return res;
         }
 
-        public override void DrawCustom(Tree tree, WorldState ws)
+        public override void DrawCustom(UITree tree, WorldState ws)
         {
             if (ImGui.BeginTable("tab2", 10, ImGuiTableFlags.SizingFixedFit))
             {

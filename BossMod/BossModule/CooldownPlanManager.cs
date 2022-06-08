@@ -68,7 +68,7 @@ namespace BossMod
             }
         }
 
-        public override void DrawCustom(Tree tree, WorldState ws)
+        public override void DrawCustom(UITree tree, WorldState ws)
         {
             foreach (var (e, eEntries) in tree.Nodes(Plans, kv => new(ModuleRegistry.TypeForOID(kv.Key)?.Name ?? $"{kv.Key:X}")))
             {

@@ -6,7 +6,7 @@ using System.Numerics;
 namespace BossMod
 {
     // utility for drawing 2d plots
-    public class Plot
+    public class UIPlot
     {
         public float PointRadius = 2;
         public Vector2 Margin = new(40, 20);

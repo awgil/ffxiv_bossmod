@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace BossMod
 {
-    public class Tree
+    public class UITree
     {
         public struct NodeProperties
         {

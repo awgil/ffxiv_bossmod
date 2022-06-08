@@ -40,9 +40,9 @@ namespace UIDev.Analysis
             }
         }
 
-        public void Draw(Tree tree)
+        public void Draw(UITree tree)
         {
-            Func<KeyValuePair<uint, TetherData>, Tree.NodeProperties> map = kv =>
+            Func<KeyValuePair<uint, TetherData>, UITree.NodeProperties> map = kv =>
             {
                 var name = _tidType?.GetEnumName(kv.Key);
                 return new($"{kv.Key} ({name})", false, name == null ? 0xff00ffff : 0xffffffff);

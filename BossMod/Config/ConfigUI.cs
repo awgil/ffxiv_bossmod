@@ -23,7 +23,7 @@ namespace BossMod
         }
 
         private List<UINode> _roots = new();
-        private Tree _tree = new();
+        private UITree _tree = new();
         private ConfigRoot _root;
         private WorldState _ws;
 

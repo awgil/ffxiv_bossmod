@@ -12,7 +12,7 @@ namespace UIDev.Analysis
     {
         class ConeAnalysis
         {
-            private Plot _plot = new();
+            private UIPlot _plot = new();
             private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Angle, float Range, bool Hit)> _points = new();
 
             public ConeAnalysis(List<(Replay, Replay.Action)> infos)
@@ -52,7 +52,7 @@ namespace UIDev.Analysis
 
         class DamageFalloffAnalysis
         {
-            private Plot _plot = new();
+            private UIPlot _plot = new();
             private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Range, int Damage)> _points = new();
 
             public DamageFalloffAnalysis(List<(Replay, Replay.Action)> infos, bool useMaxComp)
@@ -86,7 +86,7 @@ namespace UIDev.Analysis
 
         class GazeAnalysis
         {
-            private Plot _plot = new();
+            private UIPlot _plot = new();
             private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Angle, bool Hit)> _points = new();
 
             public GazeAnalysis(List<(Replay, Replay.Action)> infos)
@@ -175,9 +175,9 @@ namespace UIDev.Analysis
             }
         }
 
-        public void Draw(Tree tree)
+        public void Draw(UITree tree)
         {
-            Func<KeyValuePair<ActionID, ActionData>, Tree.NodeProperties> map = kv =>
+            Func<KeyValuePair<ActionID, ActionData>, UITree.NodeProperties> map = kv =>
             {
                 var name = kv.Key.Type == ActionType.Spell ? _aidType?.GetEnumName(kv.Key.ID) : null;
                 return new($"{kv.Key:X} ({name})", false, name == null ? 0xff00ffff : 0xffffffff);

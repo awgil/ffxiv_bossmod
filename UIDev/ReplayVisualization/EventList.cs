@@ -10,7 +10,7 @@ namespace UIDev
     {
         private Replay _replay;
         private Action<DateTime> _scrollTo;
-        private Tree _tree = new();
+        private UITree _tree = new();
         private OpList? _opListRaw;
         private Dictionary<Replay.Encounter, OpList> _opListsFiltered = new();
 

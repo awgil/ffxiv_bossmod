@@ -96,7 +96,7 @@ namespace UIDev.Analysis
             }
         }
 
-        public void Draw(Tree tree)
+        public void Draw(UITree tree)
         {
             foreach (var n in tree.Node("Errors", _errors.Count == 0))
             {
@@ -105,7 +105,7 @@ namespace UIDev.Analysis
 
             foreach (var from in _metrics.Values)
             {
-                Func<KeyValuePair<uint, TransitionMetrics>, Tree.NodeProperties> map = kv =>
+                Func<KeyValuePair<uint, TransitionMetrics>, UITree.NodeProperties> map = kv =>
                 {
                     string name = $"{from.Name} -> {_metrics[kv.Key].Name}: avg={kv.Value.AvgTime:f2}-{from.ExpectedTime:f2}={kv.Value.AvgTime - from.ExpectedTime:f2} +- {kv.Value.StdDev:f2}, [{kv.Value.MinTime:f2}, {kv.Value.MaxTime:f2}] range, {kv.Value.Instances.Count} seen";
                     //bool warn = from.ExpectedTime < Math.Round(m.MinTime, 1) || from.ExpectedTime > Math.Round(m.MaxTime, 1);

@@ -45,7 +45,7 @@ namespace UIDev.Analysis
             }
         }
 
-        public void Draw(Tree tree)
+        public void Draw(UITree tree)
         {
             foreach (var (type, actions) in tree.Nodes(_unknownActionEffects, kv => new($"{kv.Key} ({kv.Value.Count} actions)")))
             {

@@ -9,7 +9,7 @@ namespace UIDev
     {
         private Replay _replay;
         private Action<DateTime> _scrollTo;
-        private List<(DateTime Timestamp, string Text, Action<Tree>? Children)> _nodes = new();
+        private List<(DateTime Timestamp, string Text, Action<UITree>? Children)> _nodes = new();
 
         public OpList(Replay r, Type? moduleType, IEnumerable<ReplayOps.Operation> ops, Action<DateTime> scrollTo)
         {
@@ -22,7 +22,7 @@ namespace UIDev
             }
         }
 
-        public void Draw(Tree tree, DateTime reference)
+        public void Draw(UITree tree, DateTime reference)
         {
             //foreach (var n in _tree.Node("Settings"))
             //{
@@ -99,7 +99,7 @@ namespace UIDev
             };
         }
 
-        private Action<Tree>? OpChildren(ReplayOps.Operation o)
+        private Action<UITree>? OpChildren(ReplayOps.Operation o)
         {
             return o switch
             {
@@ -108,7 +108,7 @@ namespace UIDev
             };
         }
 
-        private void DrawEventCast(Tree tree, ReplayOps.OpEventCast op)
+        private void DrawEventCast(UITree tree, ReplayOps.OpEventCast op)
         {
             foreach (var t in tree.Nodes(op.Value.Targets, t => new(ActorString(t.ID, op.Timestamp))))
             {

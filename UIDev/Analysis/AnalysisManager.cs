@@ -35,7 +35,7 @@ namespace UIDev
                 _unkEffects = new(() => new(replays));
             }
 
-            public void Draw(Tree tree)
+            public void Draw(UITree tree)
             {
                 foreach (var n in tree.Node("Unknown action effects"))
                     _unkEffects.Get().Draw(tree);
@@ -63,7 +63,7 @@ namespace UIDev
                 _arenaBounds = new(() => new(replays, oid));
             }
 
-            public void Draw(Tree tree)
+            public void Draw(UITree tree)
             {
                 foreach (var n in tree.Node("State transition timings"))
                     _transitionTimings.Get().Draw(tree);
@@ -91,7 +91,7 @@ namespace UIDev
         private List<Replay> _replays = new();
         private Global _global;
         private Dictionary<uint, PerEncounter> _perEncounter = new(); // key = encounter OID
-        private Tree _tree = new();
+        private UITree _tree = new();
 
         public AnalysisManager(string rootPath)
         {

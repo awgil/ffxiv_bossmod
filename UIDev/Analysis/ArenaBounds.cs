@@ -9,7 +9,7 @@ namespace UIDev.Analysis
     class ArenaBounds
     {
         private List<(Replay, Replay.Participant, DateTime, Vector3, uint)> _points = new();
-        private Plot _plot = new();
+        private UIPlot _plot = new();
 
         public ArenaBounds(List<Replay> replays, uint oid)
         {
@@ -51,7 +51,7 @@ namespace UIDev.Analysis
             }
         }
 
-        public void Draw(Tree tree)
+        public void Draw(UITree tree)
         {
             _plot.Begin();
             foreach (var (replay, participant, time, pos, color) in _points)

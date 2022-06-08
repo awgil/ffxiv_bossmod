@@ -37,9 +37,9 @@ namespace UIDev.Analysis
             }
         }
 
-        public void Draw(Tree tree)
+        public void Draw(UITree tree)
         {
-            Func<KeyValuePair<uint, IconData>, Tree.NodeProperties> map = kv =>
+            Func<KeyValuePair<uint, IconData>, UITree.NodeProperties> map = kv =>
             {
                 var name = _iidType?.GetEnumName(kv.Key);
                 return new($"{kv.Key} ({name})", false, name == null ? 0xff00ffff : 0xffffffff);

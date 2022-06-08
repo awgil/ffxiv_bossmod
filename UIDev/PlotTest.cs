@@ -7,7 +7,7 @@ namespace UIDev
 {
     class PlotTest : ITest
     {
-        private Plot _plot = new();
+        private UIPlot _plot = new();
 
         public PlotTest()
         {

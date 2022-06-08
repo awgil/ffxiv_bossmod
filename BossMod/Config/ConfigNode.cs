@@ -56,7 +56,7 @@ namespace BossMod
         }
 
         // draw custom contents; override this for complex config nodes
-        public virtual void DrawCustom(Tree tree, WorldState ws) { }
+        public virtual void DrawCustom(UITree tree, WorldState ws) { }
 
         // deserialize fields from json; default implementation should work fine for most cases
         public virtual void Deserialize(JObject j, JsonSerializer ser)

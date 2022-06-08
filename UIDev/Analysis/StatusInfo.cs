@@ -42,9 +42,9 @@ namespace UIDev.Analysis
             }
         }
 
-        public void Draw(Tree tree)
+        public void Draw(UITree tree)
         {
-            Func<KeyValuePair<uint, StatusData>, Tree.NodeProperties> map = kv =>
+            Func<KeyValuePair<uint, StatusData>, UITree.NodeProperties> map = kv =>
             {
                 var name = _sidType?.GetEnumName(kv.Key);
                 return new($"{Utils.StatusString(kv.Key)} ({name})", false, name == null ? 0xff00ffff : 0xffffffff);
