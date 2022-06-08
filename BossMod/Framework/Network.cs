@@ -23,6 +23,7 @@ namespace BossMod
         public event EventHandler<(ulong actorID, ulong targetID, uint tetherID)>? EventActorControlTether;
         public event EventHandler<ulong>? EventActorControlTetherCancel;
         public event EventHandler<(ulong actorID, uint actionID, uint sourceSequence)>? EventActorControlSelfActionRejected;
+        public event EventHandler<(uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4)>? EventActorControlSelfDirectorUpdate;
         public event EventHandler<(uint featureID, byte index, uint state)>? EventEnvControl;
         public event EventHandler<(Waymark waymark, Vector3? pos)>? EventWaymark;
         public event EventHandler<PendingAction>? EventActionRequest;
@@ -226,6 +227,9 @@ namespace BossMod
             {
                 case Protocol.Server_ActorControlCategory.ActionRejected:
                     EventActorControlSelfActionRejected?.Invoke(this, (actorID, p->param3, p->param6));
+                    break;
+                case Protocol.Server_ActorControlCategory.DirectorUpdate:
+                    EventActorControlSelfDirectorUpdate?.Invoke(this, (p->param1, p->param2, p->param3, p->param4, p->param5, p->param6));
                     break;
             }
         }

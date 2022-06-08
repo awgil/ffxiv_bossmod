@@ -38,6 +38,12 @@ namespace BossMod
             Cast?.Invoke(this, info);
         }
 
+        public event EventHandler<(uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4)>? DirectorUpdate;
+        public void DispatchDirectorUpdate((uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4) args)
+        {
+            DirectorUpdate?.Invoke(this, args);
+        }
+
         public event EventHandler<(uint featureID, byte index, uint state)>? EnvControl;
         public void DispatchEnvControl((uint featureID, byte index, uint state) args)
         {

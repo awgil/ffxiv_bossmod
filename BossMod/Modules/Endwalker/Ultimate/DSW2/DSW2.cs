@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     public class DSW2 : BossModule
     {
         public DSW2(BossModuleManager manager, Actor primary)
-            : base(manager, primary, true)
+            : base(manager, primary)
         {
             Arena.WorldHalfSize = 22;
             Arena.IsCircle = true;

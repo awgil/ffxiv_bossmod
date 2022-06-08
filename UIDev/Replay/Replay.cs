@@ -97,6 +97,17 @@ namespace UIDev
             public DateTime Timestamp;
         }
 
+        public class DirectorUpdate
+        {
+            public uint DirectorID;
+            public uint UpdateID;
+            public uint Param1;
+            public uint Param2;
+            public uint Param3;
+            public uint Param4;
+            public DateTime Timestamp;
+        }
+
         public class EnvControl
         {
             public uint Feature;
@@ -137,6 +148,7 @@ namespace UIDev
             public int FirstStatus;
             public int FirstTether;
             public int FirstIcon;
+            public int FirstDirectorUpdate;
             public int FirstEnvControl;
         }
 
@@ -147,6 +159,7 @@ namespace UIDev
         public List<Status> Statuses = new();
         public List<Tether> Tethers = new();
         public List<Icon> Icons = new();
+        public List<DirectorUpdate> DirectorUpdates = new();
         public List<EnvControl> EnvControls = new();
         public List<Encounter> Encounters = new();
 
@@ -154,6 +167,7 @@ namespace UIDev
         public IEnumerable<Status> EncounterStatuses(Encounter e) => Statuses.Skip(e.FirstStatus).TakeWhile(s => s.Time.Start <= e.Time.End);
         public IEnumerable<Tether> EncounterTethers(Encounter e) => Tethers.Skip(e.FirstTether).TakeWhile(t => t.Time.Start <= e.Time.End);
         public IEnumerable<Icon> EncounterIcons(Encounter e) => Icons.Skip(e.FirstIcon).TakeWhile(i => i.Timestamp <= e.Time.End);
+        public IEnumerable<DirectorUpdate> EncounterDirectorUpdates(Encounter e) => DirectorUpdates.Skip(e.FirstDirectorUpdate).TakeWhile(du => du.Timestamp <= e.Time.End);
         public IEnumerable<EnvControl> EncounterEnvControls(Encounter e) => EnvControls.Skip(e.FirstEnvControl).TakeWhile(ec => ec.Timestamp <= e.Time.End);
     }
 }

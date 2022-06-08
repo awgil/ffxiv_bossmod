@@ -3,7 +3,7 @@
     public class A1Byregot : BossModule
     {
         public A1Byregot(BossModuleManager manager, Actor primary)
-            : base(manager, primary, true)
+            : base(manager, primary)
         {
             Arena.WorldCenter = new(0, 20, 700);
             Arena.WorldHalfSize = 25;

@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.P1S
         public static float InnerCircleRadius { get; } = 12; // this determines in/out flails and cells boundary
 
         public P1S(BossModuleManager manager, Actor primary)
-            : base(manager, primary, true)
+            : base(manager, primary)
         {
             InitStates(new P1SStates(this).Build());
         }

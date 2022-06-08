@@ -20,7 +20,7 @@
         public static float WreathTowerRadius = 4;
 
         public P4S2(BossModuleManager manager, Actor primary)
-            : base(manager, primary, true)
+            : base(manager, primary)
         {
             Arena.IsCircle = true;
             InitStates(new P4S2States(this).Build());

@@ -98,6 +98,7 @@ namespace BossMod
                 _ws.Party.Reassigned += PartyReassigned;
                 _ws.Events.Icon += EventIcon;
                 _ws.Events.Cast += EventCast;
+                _ws.Events.DirectorUpdate += EventDirectorUpdate;
                 _ws.Events.EnvControl += EventEnvControl;
             }
         }
@@ -130,6 +131,7 @@ namespace BossMod
                 _ws.Party.Reassigned -= PartyReassigned;
                 _ws.Events.Icon -= EventIcon;
                 _ws.Events.Cast -= EventCast;
+                _ws.Events.DirectorUpdate -= EventDirectorUpdate;
                 _ws.Events.EnvControl -= EventEnvControl;
 
                 _logger.Deactivate();
@@ -289,6 +291,11 @@ namespace BossMod
                         sb.Append($"!{t.Effects[i]:X16}");
             }
             Log("CST!", sb.ToString());
+        }
+
+        private void EventDirectorUpdate(object? sender, (uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4) arg)
+        {
+            Log("DIRU", $"{arg.directorID:X8}|{arg.updateID:X8}|{arg.p1:X8}|{arg.p2:X8}|{arg.p3:X8}|{arg.p4:X8}");
         }
 
         private void EventEnvControl(object? sender, (uint featureID, byte index, uint state) arg)

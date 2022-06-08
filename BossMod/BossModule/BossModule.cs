@@ -32,9 +32,6 @@ namespace BossMod
         public WorldState WorldState => Manager.WorldState;
         public PartyState Raid => WorldState.Party;
 
-        // should raid cooldowns be reset on wipe? TODO: consider improving this logic (raid cooldowns are also reset on instance enter, and are not reset on kill...)
-        public bool ResetCooldownsOnWipe { get; init; }
-
         // per-oid enemy lists; filled on first request
         private Dictionary<uint, List<Actor>> _relevantEnemies = new(); // key = actor OID
         public IReadOnlyDictionary<uint, List<Actor>> RelevantEnemies => _relevantEnemies;
@@ -132,12 +129,11 @@ namespace BossMod
             _components.Clear();
         }
 
-        public BossModule(BossModuleManager manager, Actor primary, bool resetCooldownsOnWipe)
+        public BossModule(BossModuleManager manager, Actor primary)
         {
             Manager = manager;
             PrimaryActor = primary;
             Arena = new(Manager.WindowConfig);
-            ResetCooldownsOnWipe = resetCooldownsOnWipe;
 
             WorldState.Actors.Added += OnActorCreated;
             WorldState.Actors.Removed += OnActorDestroyed;

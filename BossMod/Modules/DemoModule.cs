@@ -31,7 +31,7 @@ namespace BossMod
         }
 
         public DemoModule(BossModuleManager manager, Actor primary)
-            : base(manager, primary, false)
+            : base(manager, primary)
         {
             var smb = new StateMachineBuilder(this);
             smb.TrivialPhase();

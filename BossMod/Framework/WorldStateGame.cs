@@ -19,6 +19,7 @@ namespace BossMod
         private Network _network;
         private Dictionary<ulong, float[]> _prevStatusDurations = new();
         private List<(uint featureID, byte index, uint state)> _envControls = new();
+        private List<(uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4)> _directorUpdates = new();
         private Dictionary<ulong, ActorEvents> _actorEvents = new();
 
         public WorldStateGame(Network network)
@@ -28,6 +29,7 @@ namespace BossMod
             _network.EventActorControlTargetIcon += OnNetworkActorControlTargetIcon;
             _network.EventActorControlTether += OnNetworkActorControlTether;
             _network.EventActorControlTetherCancel += OnNetworkActorControlTetherCancel;
+            _network.EventActorControlSelfDirectorUpdate += OnNetworkActorControlSelfDirectorUpdate;
             _network.EventEnvControl += OnNetworkEnvControl;
             _network.EventWaymark += OnNetworkWaymark;
         }
@@ -38,6 +40,7 @@ namespace BossMod
             _network.EventActorControlTargetIcon -= OnNetworkActorControlTargetIcon;
             _network.EventActorControlTether -= OnNetworkActorControlTether;
             _network.EventActorControlTetherCancel -= OnNetworkActorControlTetherCancel;
+            _network.EventActorControlSelfDirectorUpdate -= OnNetworkActorControlSelfDirectorUpdate;
             _network.EventEnvControl -= OnNetworkEnvControl;
             _network.EventWaymark -= OnNetworkWaymark;
         }
@@ -53,6 +56,10 @@ namespace BossMod
 
         private void DispatchEnvControls()
         {
+            foreach (var arg in _directorUpdates)
+                Events.DispatchDirectorUpdate(arg);
+            _directorUpdates.Clear();
+
             foreach (var arg in _envControls)
                 Events.DispatchEnvControl(arg);
             _envControls.Clear();
@@ -255,6 +262,11 @@ namespace BossMod
             if (ev.TetherUpdates == null)
                 ev.TetherUpdates = new();
             ev.TetherUpdates.Add(new());
+        }
+
+        private void OnNetworkActorControlSelfDirectorUpdate(object? sender, (uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4) args)
+        {
+            _directorUpdates.Add(args);
         }
 
         private void OnNetworkEnvControl(object? sender, (uint featureID, byte index, uint state) args)

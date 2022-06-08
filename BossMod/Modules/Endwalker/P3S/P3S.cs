@@ -3,7 +3,7 @@
     public class P3S : BossModule
     {
         public P3S(BossModuleManager manager, Actor primary)
-            : base(manager, primary, true)
+            : base(manager, primary)
         {
             Arena.IsCircle = true;
             InitStates(new P3SStates(this).Build());

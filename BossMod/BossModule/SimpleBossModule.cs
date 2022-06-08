@@ -5,7 +5,7 @@
     public class SimpleBossModule : BossModule
     {
         public SimpleBossModule(BossModuleManager manager, Actor primary)
-            : base(manager, primary, false)
+            : base(manager, primary)
         {
             Arena.IsCircle = true;
             Arena.WorldHalfSize = 30;

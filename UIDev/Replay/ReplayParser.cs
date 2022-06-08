@@ -43,6 +43,7 @@ namespace UIDev
                     FirstStatus = _self._res.Statuses.Count,
                     FirstTether = _self._res.Tethers.Count,
                     FirstIcon = _self._res.Icons.Count,
+                    FirstDirectorUpdate = _self._res.DirectorUpdates.Count,
                     FirstEnvControl = _self._res.EnvControls.Count
                 };
                 _self._modules[module.PrimaryActor.InstanceID] = new(module, enc);
@@ -84,6 +85,7 @@ namespace UIDev
             _ws.Actors.StatusChange += StatusChange;
             _ws.Events.Icon += EventIcon;
             _ws.Events.Cast += EventCast;
+            _ws.Events.DirectorUpdate += EventDirectorUpdate;
             _ws.Events.EnvControl += EventEnvControl;
         }
 
@@ -299,6 +301,11 @@ namespace UIDev
             }
             p.HasAnyActions = true;
             _res.Actions.Add(a);
+        }
+
+        private void EventDirectorUpdate(object? sender, (uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4) args)
+        {
+            _res.DirectorUpdates.Add(new() { DirectorID = args.directorID, UpdateID = args.updateID, Param1 = args.p1, Param2 = args.p2, Param3 = args.p3, Param4 = args.p4, Timestamp = _ws.CurrentTime });
         }
 
         private void EventEnvControl(object? sender, (uint feature, byte index, uint state) args)

@@ -21,7 +21,7 @@
     public class HydaelynEx : BossModule
     {
         public HydaelynEx(BossModuleManager manager, Actor primary)
-            : base(manager, primary, true)
+            : base(manager, primary)
         {
             Arena.IsCircle = true;
             InitStates(new HydaelynExStates(this).Build());

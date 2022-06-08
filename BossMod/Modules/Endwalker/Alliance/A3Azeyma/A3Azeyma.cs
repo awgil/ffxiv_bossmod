@@ -41,7 +41,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
     public class A3Azeyma : BossModule
     {
         public A3Azeyma(BossModuleManager manager, Actor primary)
-            : base(manager, primary, true)
+            : base(manager, primary)
         {
             Arena.IsCircle = true;
             Arena.WorldCenter = new(-750, -932, -750);

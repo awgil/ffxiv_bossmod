@@ -77,7 +77,6 @@ namespace BossMod
             int bestPriority = 0;
             BossModule? bestModule = null;
             bool anyModuleActivated = false;
-            bool resetRaidCooldowns = false;
             for (int i = 0; i < _loadedModules.Count; ++i)
             {
                 var m = _loadedModules[i];
@@ -94,9 +93,6 @@ namespace BossMod
                     wasActive = true; // force unload if exception happened before activation
                     isActive = false;
                 }
-
-                // TODO: cooldowns should not reset on kill...
-                resetRaidCooldowns |= m.ResetCooldownsOnWipe && !isActive && wasActive;
 
                 // unload module either if it became deactivated or its primary actor disappeared without ever activating
                 if (!isActive && (wasActive || m.PrimaryActor.IsDestroyed))
@@ -133,11 +129,6 @@ namespace BossMod
             {
                 RefreshConfigOrModules();
                 _configOrModulesUpdated = false;
-            }
-
-            if (resetRaidCooldowns)
-            {
-                RaidCooldowns.Clear();
             }
         }
 

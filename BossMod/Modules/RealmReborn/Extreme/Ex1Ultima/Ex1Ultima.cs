@@ -3,7 +3,7 @@
     public class Ex1Ultima : BossModule
     {
         public Ex1Ultima(BossModuleManager manager, Actor primary)
-            : base(manager, primary, true)
+            : base(manager, primary)
         {
             Arena.WorldCenter = new();
             Arena.IsCircle = true;

@@ -14,7 +14,7 @@
     public class ZodiarkEx : BossModule
     {
         public ZodiarkEx(BossModuleManager manager, Actor primary)
-            : base(manager, primary, true)
+            : base(manager, primary)
         {
             InitStates(new ZodiarkExStates(this).Build());
         }

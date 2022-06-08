@@ -46,7 +46,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
     public class A4Naldthal : BossModule
     {
         public A4Naldthal(BossModuleManager manager, Actor primary)
-            : base(manager, primary, true)
+            : base(manager, primary)
         {
             Arena.IsCircle = true;
             Arena.WorldCenter = new(750, -932, -750);

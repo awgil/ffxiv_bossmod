@@ -28,7 +28,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public Actor? SerCharibert() => _charibert;
 
         public DSW1(BossModuleManager manager, Actor primary)
-            : base(manager, primary, true)
+            : base(manager, primary)
         {
             Arena.WorldHalfSize = 22;
             InitStates(new DSW1States(this).Build());

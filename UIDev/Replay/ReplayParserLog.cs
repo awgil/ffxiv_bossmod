@@ -83,6 +83,7 @@ namespace UIDev
                 case "PAR!": ParsePartyAssign(timestamp, payload); break;
                 case "ICON": ParseEventIcon(timestamp, payload); break;
                 case "CST!": ParseEventCast(timestamp, payload); break;
+                case "DIRU": ParseEventDirectorUpdate(timestamp, payload); break;
                 case "ENVC": ParseEventEnvControl(timestamp, payload); break;
             }
         }
@@ -352,6 +353,18 @@ namespace UIDev
                     target.Effects[j - 1] = ulong.Parse(parts[j], NumberStyles.HexNumber);
                 res.Value.Targets.Add(target);
             }
+            AddOp(timestamp, res);
+        }
+
+        private void ParseEventDirectorUpdate(DateTime timestamp, string[] payload)
+        {
+            OpEventDirectorUpdate res = new();
+            res.DirectorID = uint.Parse(payload[2], NumberStyles.HexNumber);
+            res.UpdateID = uint.Parse(payload[3], NumberStyles.HexNumber);
+            res.Param1 = uint.Parse(payload[4], NumberStyles.HexNumber);
+            res.Param2 = uint.Parse(payload[5], NumberStyles.HexNumber);
+            res.Param3 = uint.Parse(payload[6], NumberStyles.HexNumber);
+            res.Param4 = uint.Parse(payload[7], NumberStyles.HexNumber);
             AddOp(timestamp, res);
         }
 

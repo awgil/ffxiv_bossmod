@@ -583,6 +583,30 @@ namespace UIDev
             }
         }
 
+        public class OpEventDirectorUpdate : Operation
+        {
+            public uint DirectorID;
+            public uint UpdateID;
+            public uint Param1;
+            public uint Param2;
+            public uint Param3;
+            public uint Param4;
+
+            public override void Redo(WorldState ws)
+            {
+                ws.Events.DispatchDirectorUpdate((DirectorID, UpdateID, Param1, Param2, Param3, Param4));
+            }
+
+            public override void Undo(WorldState ws)
+            {
+            }
+
+            public override string ToString()
+            {
+                return $"DirectorUpdate: {DirectorID:X8}.{UpdateID:X8} = {Param1:X8} {Param2:X8} {Param3:X8} {Param4:X8}";
+            }
+        }
+
         public class OpEventEnvControl : Operation
         {
             public uint FeatureID;

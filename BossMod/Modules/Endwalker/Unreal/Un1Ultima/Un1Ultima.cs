@@ -23,7 +23,7 @@
     public class Un1Ultima : BossModule
     {
         public Un1Ultima(BossModuleManager manager, Actor primary)
-            : base(manager, primary, true)
+            : base(manager, primary)
         {
             Arena.WorldCenter = new();
             Arena.IsCircle = true;
