@@ -34,7 +34,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             public bool HavePrey;
             public int AssignedQuadrant;
-            public ulong AssignedTowers; // note: typically we have only 1 assigned tower, but in some cases two players can have two towers assigned to them, since we can't determine reliable priority
+            public BitMask AssignedTowers; // note: typically we have only 1 assigned tower, but in some cases two players can have two towers assigned to them, since we can't determine reliable priority
         }
 
         struct QuadrantData
@@ -46,7 +46,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         struct TowerData
         {
             public Actor? Actor; // null if tower is inactive
-            public ulong AssignedPlayers;
+            public BitMask AssignedPlayers;
         }
 
         public bool StormDone { get; private set; }
@@ -92,7 +92,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
                 foreach (var tower in _towers)
                 {
-                    if (tower.Actor?.CastInfo != null && BitVector.IsVector64BitSet(tower.AssignedPlayers, slot))
+                    if (tower.Actor?.CastInfo != null && tower.AssignedPlayers[slot])
                     {
                         movementHints.Add(from, tower.Actor.CastInfo.Location, color);
                     }
@@ -123,7 +123,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 {
                     if (tower.Actor?.CastInfo != null)
                     {
-                        if (BitVector.IsVector64BitSet(tower.AssignedPlayers, pcSlot))
+                        if (tower.AssignedPlayers[pcSlot])
                             arena.AddCircle(tower.Actor.CastInfo.Location, _towerRadius, arena.ColorSafe, 2);
                         else
                             arena.AddCircle(tower.Actor.CastInfo.Location, _towerRadius, arena.ColorDanger, 1);
@@ -333,7 +333,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 int unambiguousQuadrant = -1;
                 for (int q = 0; q < _quadrants.Length; ++q)
                 {
-                    if (_players[_quadrants[q].NonPreySlot].AssignedTowers != 0)
+                    if (_players[_quadrants[q].NonPreySlot].AssignedTowers.Any())
                         continue;
 
                     int potential = FindUnassignedUnambiguousInnerTower(q);
@@ -362,10 +362,10 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
 
             // if we still have unassigned towers, assign each of them to each remaining player
-            var ambiguousQuadrants = _quadrants.Where(q => _players[q.NonPreySlot].AssignedTowers == 0).ToArray();
+            var ambiguousQuadrants = _quadrants.Where(q => _players[q.NonPreySlot].AssignedTowers.None()).ToArray();
             for (int t = 12; t < _towers.Length; ++t)
             {
-                if (_towers[t].Actor != null && _towers[t].AssignedPlayers == 0)
+                if (_towers[t].Actor != null && _towers[t].AssignedPlayers.None())
                 {
                     foreach (var q in ambiguousQuadrants)
                     {
@@ -425,8 +425,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             int candidate1 = 12 + quadrant;
             int candidate2 = 12 + ((quadrant + 3) & 3);
-            bool available1 = _towers[candidate1].Actor != null && _towers[candidate1].AssignedPlayers == 0;
-            bool available2 = _towers[candidate2].Actor != null && _towers[candidate2].AssignedPlayers == 0;
+            bool available1 = _towers[candidate1].Actor != null && _towers[candidate1].AssignedPlayers.None();
+            bool available2 = _towers[candidate2].Actor != null && _towers[candidate2].AssignedPlayers.None();
             if (available1 == available2)
                 return -1;
             else
@@ -435,8 +435,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private void AssignTower(int slot, int tower)
         {
-            BitVector.SetVector64Bit(ref _players[slot].AssignedTowers, tower);
-            BitVector.SetVector64Bit(ref _towers[tower].AssignedPlayers, slot);
+            _players[slot].AssignedTowers.Set(tower);
+            _towers[tower].AssignedPlayers.Set(slot);
         }
 
         private Vector3 StormPlacementPosition(BossModule module, int quadrant)

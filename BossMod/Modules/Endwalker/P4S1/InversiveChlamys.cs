@@ -9,13 +9,13 @@ namespace BossMod.Endwalker.P4S1
     class InversiveChlamys : Component
     {
         private bool _assigned = false;
-        private ulong _tetherForbidden = 0;
-        private ulong _tetherTargets = 0;
-        private ulong _tetherInAOE = 0;
+        private BitMask _tetherForbidden;
+        private BitMask _tetherTargets;
+        private BitMask _tetherInAOE;
 
         private static float _aoeRange = 5;
 
-        public bool TethersActive => _tetherTargets != 0;
+        public bool TethersActive => _tetherTargets.Any();
 
         public override void Update(BossModule module)
         {
@@ -36,30 +36,30 @@ namespace BossMod.Endwalker.P4S1
                 }
             }
 
-            _tetherTargets = _tetherInAOE = 0;
-            if (_tetherForbidden == 0)
+            _tetherTargets = _tetherInAOE = new();
+            if (_tetherForbidden.None())
                 return;
 
             foreach ((int i, var player) in module.Raid.WithSlot().Tethered(TetherID.Chlamys))
             {
-                BitVector.SetVector64Bit(ref _tetherTargets, i);
+                _tetherTargets.Set(i);
                 _tetherInAOE |= module.Raid.WithSlot().InRadiusExcluding(player, _aoeRange).Mask();
             }
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_tetherForbidden == 0)
+            if (_tetherForbidden.None())
                 return;
 
-            if (!BitVector.IsVector64BitSet(_tetherForbidden, slot))
+            if (!_tetherForbidden[slot])
             {
                 // we should be grabbing tethers
-                if (_tetherTargets == 0)
+                if (_tetherTargets.None())
                 {
                     hints.Add("Tethers: prepare to intercept", false);
                 }
-                else if (!BitVector.IsVector64BitSet(_tetherTargets, slot))
+                else if (!_tetherTargets[slot])
                 {
                     hints.Add("Tethers: intercept!");
                 }
@@ -75,15 +75,15 @@ namespace BossMod.Endwalker.P4S1
             else
             {
                 // we should be passing tethers
-                if (_tetherTargets == 0)
+                if (_tetherTargets.None())
                 {
                     hints.Add("Tethers: prepare to pass", false);
                 }
-                else if (BitVector.IsVector64BitSet(_tetherTargets, slot))
+                else if (_tetherTargets[slot])
                 {
                     hints.Add("Tethers: pass!");
                 }
-                else if (BitVector.IsVector64BitSet(_tetherInAOE, slot))
+                else if (_tetherInAOE[slot])
                 {
                     hints.Add("Tethers: GTFO from aoe!");
                 }
@@ -105,14 +105,14 @@ namespace BossMod.Endwalker.P4S1
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_tetherTargets == 0)
+            if (_tetherTargets.None())
                 return;
 
-            ulong failingPlayers = _tetherForbidden & _tetherTargets;
+            var failingPlayers = _tetherForbidden & _tetherTargets;
             foreach ((int i, var player) in module.Raid.WithSlot())
             {
-                bool failing = BitVector.IsVector64BitSet(failingPlayers, i);
-                bool inAOE = BitVector.IsVector64BitSet(_tetherInAOE, i);
+                bool failing = failingPlayers[i];
+                bool inAOE = _tetherInAOE[i];
                 arena.Actor(player, failing ? arena.ColorDanger : (inAOE ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric));
 
                 if (player.Tether.ID == (uint)TetherID.Chlamys)

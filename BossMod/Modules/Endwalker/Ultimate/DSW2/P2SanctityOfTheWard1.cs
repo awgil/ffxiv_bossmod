@@ -85,7 +85,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private ChargeInfo?[] _charges = { null, null };
         private bool _chargeCW;
         private bool _chargeEarly;
-        private ulong _groupEast; // 0 until initialized
+        private BitMask _groupEast; // 0 until initialized
         private string _groupSwapHints = "";
 
         private static float _severRadius = 6;
@@ -119,7 +119,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (ImminentSpheres().Any(s => GeometryUtils.PointInCircle(actor.Position - s, _brightflareRadius)))
                 hints.Add("GTFO from sphere!");
 
-            if (movementHints != null && _groupEast != 0)
+            if (movementHints != null && _groupEast.Any())
             {
                 var from = actor.Position;
                 var color = module.Arena.ColorSafe;
@@ -181,7 +181,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             foreach (var safespot in MovementHintOffsets(pcSlot))
             {
                 arena.AddCircle(arena.WorldCenter + safespot, 2, arena.ColorSafe);
-                if (_groupEast == 0)
+                if (_groupEast.None())
                     arena.AddCircle(arena.WorldCenter - safespot, 2, arena.ColorSafe); // if there are no valid assignments, draw spots for both groups
                 break; // only draw immediate safespot here
             }
@@ -236,7 +236,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (_severStartDir != 0)
             {
                 _groupEast = _config.P2SanctityGroups.BuildGroupMask(1, module.Raid);
-                if (_groupEast == 0)
+                if (_groupEast.None())
                 {
                     _groupSwapHints = "unconfigured";
                 }
@@ -245,7 +245,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     if (_config.P2SanctityRelative && _severStartDir < 0)
                     {
                         // swap groups for relative assignment if needed
-                        _groupEast ^= 0xff;
+                        _groupEast.Raw ^= 0xff;
                     }
 
                     if (_config.P2SanctitySwapRole == Role.None)
@@ -257,13 +257,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     {
                         AssignmentReassignIfNeeded(0, _severStartDir < 0);
                         AssignmentReassignIfNeeded(1, _severStartDir > 0);
-                        if (BitOperations.PopCount(_groupEast) != 4)
+                        if (_groupEast.NumSetBits() != 4)
                         {
                             // to balance, unmarked player of designated role should swap
                             var (swapSlot, swapper) = module.Raid.WithSlot(true).FirstOrDefault(sa => sa.Item1 != _severTargetSlots[0] && sa.Item1 != _severTargetSlots[1] && sa.Item2.Role == _config.P2SanctitySwapRole);
                             if (swapper != null)
                             {
-                                BitVector.ToggleVector64Bit(ref _groupEast, swapSlot);
+                                _groupEast.Toggle(swapSlot);
                                 _groupSwapHints = swapper.Name;
                             }
                         }
@@ -296,23 +296,23 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private void AssignmentReassignIfNeeded(int order, bool shouldGoEast)
         {
             int slot = _severTargetSlots[order];
-            if (shouldGoEast == BitVector.IsVector64BitSet(_groupEast, slot))
+            if (shouldGoEast == _groupEast[slot])
                 return; // target is already assigned to correct position, no need to swap
-            BitVector.ToggleVector64Bit(ref _groupEast, slot);
+            _groupEast.Toggle(slot);
         }
 
         private void AssignmentSwapWithRolePartner(BossModule module, int order, bool shouldGoEast)
         {
             int slot = _severTargetSlots[order];
-            if (shouldGoEast == BitVector.IsVector64BitSet(_groupEast, slot))
+            if (shouldGoEast == _groupEast[slot])
                 return; // target is already assigned to correct position, no need to swap
             var role = module.Raid[slot]?.Role ?? Role.None;
             var (partnerSlot, partner) = module.Raid.WithSlot(true).Exclude(slot).FirstOrDefault(sa => sa.Item2.Role == role);
             if (partner == null)
                 return;
 
-            BitVector.ToggleVector64Bit(ref _groupEast, slot);
-            BitVector.ToggleVector64Bit(ref _groupEast, partnerSlot);
+            _groupEast.Toggle(slot);
+            _groupEast.Toggle(partnerSlot);
 
             if (_groupSwapHints.Length > 0)
                 _groupSwapHints += ", ";
@@ -381,7 +381,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private Vector3 SafeSpotOffset(int slot, float dirOffset)
         {
             float dir = _severStartDir + (_chargeCW ? -1 : 1) * dirOffset;
-            if (dir < 0 == BitVector.IsVector64BitSet(_groupEast, slot))
+            if (dir < 0 == _groupEast[slot])
                 dir += MathF.PI;
             return 20 * GeometryUtils.DirectionToVec3(dir);
         }

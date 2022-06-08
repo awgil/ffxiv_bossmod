@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public bool ChargeDone { get; private set; }
         public bool RageDone { get; private set; }
         public bool TowersDone { get; private set; }
-        private ulong _playersWithIcons;
+        private BitMask _playersWithIcons;
         private float _dirToBoss;
         private List<Actor> _chargeSources = new();
         private List<Actor> _voidzones = new();
@@ -41,7 +41,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 hints.Add($"GTFO from voidzone aoe!");
 
             bool isTank = actor.Role == Role.Tank;
-            bool isLeapTarget = BitVector.IsVector64BitSet(_playersWithIcons, slot);
+            bool isLeapTarget = _playersWithIcons[slot];
             if (!LeapsDone)
             {
                 if (isLeapTarget && module.Raid.WithoutSlot().InRadiusExcluding(actor, _leapRadius).Any())
@@ -102,7 +102,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            bool pcIsLeapTarget = BitVector.IsVector64BitSet(_playersWithIcons, pcSlot);
+            bool pcIsLeapTarget = _playersWithIcons[pcSlot];
             foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
             {
                 arena.Actor(player, pcIsLeapTarget ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
@@ -201,9 +201,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             if ((IconID)iconID == IconID.SkywardLeap)
             {
-                var slot = module.Raid.FindSlot(actorID);
-                if (slot >= 0)
-                    BitVector.SetVector64Bit(ref _playersWithIcons, slot);
+                _playersWithIcons.Set(module.Raid.FindSlot(actorID));
             }
         }
 

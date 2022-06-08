@@ -13,14 +13,14 @@ namespace BossMod.Endwalker.P3S
     {
         public int NumFinishedChains { get; private set; } = 0;
         private (Actor?, Actor?, int)[] _chains = new (Actor?, Actor?, int)[4]; // actor1, actor2, num-charges
-        private ulong _playersInAOE = 0;
+        private BitMask _playersInAOE;
 
         private static float _chargeHalfWidth = 3;
         private static float _chargeMinSafeDistance = 30;
 
         public override void Update(BossModule module)
         {
-            _playersInAOE = 0;
+            _playersInAOE.Reset();
             var birdsLarge = module.Enemies(OID.SunbirdLarge);
             for (int i = 0; i < Math.Min(birdsLarge.Count, _chains.Length); ++i)
             {
@@ -58,7 +58,7 @@ namespace BossMod.Endwalker.P3S
                     {
                         if (GeometryUtils.PointInRect(player.Position - bird.Position, fromTo, len, 0, _chargeHalfWidth))
                         {
-                            BitVector.SetVector64Bit(ref _playersInAOE, j);
+                            _playersInAOE.Set(j);
                         }
                     }
                 }
@@ -85,7 +85,7 @@ namespace BossMod.Endwalker.P3S
                 }
             }
 
-            if (BitVector.IsVector64BitSet(_playersInAOE, slot))
+            if (_playersInAOE[slot])
             {
                 hints.Add("GTFO from charge zone!");
             }
@@ -117,7 +117,7 @@ namespace BossMod.Endwalker.P3S
             foreach (var bird in birdsLarge)
                 arena.Actor(bird, arena.ColorEnemy);
             foreach ((int i, var player) in module.Raid.WithSlot())
-                arena.Actor(player, BitVector.IsVector64BitSet(_playersInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                arena.Actor(player, _playersInAOE[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
             // draw chains containing player
             foreach ((var bird, (var p1, var p2, int numCharges)) in birdsLarge.Zip(_chains))

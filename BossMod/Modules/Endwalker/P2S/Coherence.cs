@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.P2S
         private Actor? _tetherTarget;
         private Actor? _rayTarget;
         private AOEShapeRect _rayShape = new(50, 3);
-        private ulong _inRay = 0;
+        private BitMask _inRay;
 
         private static float _aoeRadius = 10; // not sure about this - actual range is 60, but it has some sort of falloff? i have very few data points < 15
 
@@ -27,7 +27,7 @@ namespace BossMod.Endwalker.P2S
                 _tetherTarget = module.WorldState.Actors.Find(head.Tether.Target);
             }
 
-            _inRay = 0;
+            _inRay.Reset();
             _rayTarget = module.Raid.WithoutSlot().Exclude(_tetherTarget).MinBy(a => (a.Position - module.PrimaryActor.Position).LengthSquared());
             if (_rayTarget != null)
             {
@@ -55,7 +55,7 @@ namespace BossMod.Endwalker.P2S
                 {
                     hints.Add("Go behind tank!");
                 }
-                else if (BitOperations.PopCount(_inRay) < 7)
+                else if (_inRay.NumSetBits() < 7)
                 {
                     hints.Add("Make sure ray hits everyone!");
                 }
@@ -66,7 +66,7 @@ namespace BossMod.Endwalker.P2S
                 {
                     hints.Add("Go in front of raid!");
                 }
-                else if (!BitVector.IsVector64BitSet(_inRay, slot))
+                else if (!_inRay[slot])
                 {
                     hints.Add("Go behind tank!");
                 }
@@ -97,7 +97,7 @@ namespace BossMod.Endwalker.P2S
                 }
                 else if (player != _tetherTarget)
                 {
-                    arena.Actor(player, BitVector.IsVector64BitSet(_inRay, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(player, _inRay[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
                 }
             }
         }

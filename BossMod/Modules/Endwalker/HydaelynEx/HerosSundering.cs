@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.HydaelynEx
     class HerosSundering : Component
     {
         private Actor? _target;
-        private ulong _otherHit;
+        private BitMask _otherHit;
 
         private static AOEShapeCone _aoeShape = new(40, MathF.PI / 4);
 
@@ -21,7 +21,7 @@ namespace BossMod.Endwalker.HydaelynEx
 
         public override void Update(BossModule module)
         {
-            _otherHit = 0;
+            _otherHit.Reset();
             if (_target != null)
             {
                 var dir = GeometryUtils.DirectionFromVec3(_target.Position - module.PrimaryActor.Position);
@@ -36,12 +36,12 @@ namespace BossMod.Endwalker.HydaelynEx
 
             if (actor == _target)
             {
-                if (_otherHit != 0)
+                if (_otherHit.Any())
                     hints.Add("Turn boss away from raid!");
             }
             else
             {
-                if (BitVector.IsVector64BitSet(_otherHit, slot))
+                if (_otherHit[slot])
                     hints.Add("GTFO from tankbuster aoe!");
             }
         }
@@ -57,7 +57,7 @@ namespace BossMod.Endwalker.HydaelynEx
             if (pc == _target)
             {
                 foreach (var (slot, player) in module.Raid.WithSlot().Exclude(_target))
-                    arena.Actor(player, BitVector.IsVector64BitSet(_otherHit, slot) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(player, _otherHit[slot] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
             else
             {

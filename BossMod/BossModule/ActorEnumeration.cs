@@ -11,11 +11,11 @@ namespace BossMod
     public static class ActorEnumeration
     {
         // build a mask with set bits corresponding to slots in range
-        public static ulong Mask(this IEnumerable<(int, Actor)> range)
+        public static BitMask Mask(this IEnumerable<(int, Actor)> range)
         {
-            ulong mask = 0;
+            BitMask mask = new();
             foreach ((var i, _) in range)
-                BitVector.SetVector64Bit(ref mask, i);
+                mask.Set(i);
             return mask;
         }
 
@@ -47,15 +47,15 @@ namespace BossMod
         }
 
         // select actors that have their corresponding bit in mask set
-        public static IEnumerable<(int, Actor)> IncludedInMask(this IEnumerable<(int, Actor)> range, ulong mask)
+        public static IEnumerable<(int, Actor)> IncludedInMask(this IEnumerable<(int, Actor)> range, BitMask mask)
         {
-            return range.WhereSlot(i => BitVector.IsVector64BitSet(mask, i));
+            return range.WhereSlot(i => mask[i]);
         }
 
         // select actors that have their corresponding bit in mask cleared
-        public static IEnumerable<(int, Actor)> ExcludedFromMask(this IEnumerable<(int, Actor)> range, ulong mask)
+        public static IEnumerable<(int, Actor)> ExcludedFromMask(this IEnumerable<(int, Actor)> range, BitMask mask)
         {
-            return range.WhereSlot(i => !BitVector.IsVector64BitSet(mask, i));
+            return range.WhereSlot(i => !mask[i]);
         }
 
         // select actors in specified radius from specified point

@@ -10,8 +10,8 @@ namespace BossMod.Endwalker.P4S2
         public enum State { Near, Far, Done }
 
         public State CurState { get; private set; }
-        private ulong _targets = 0;
-        private ulong _inAOE = 0;
+        private BitMask _targets;
+        private BitMask _inAOE;
 
         private static float _aoeRadius = 5;
 
@@ -29,29 +29,29 @@ namespace BossMod.Endwalker.P4S2
 
         public override void Update(BossModule module)
         {
-            _targets = _inAOE = 0;
+            _targets = _inAOE = new();
             if (CurState == State.Done)
                 return;
 
             var playersByRange = module.Raid.WithSlot().SortedByRange(module.PrimaryActor.Position);
             foreach ((int i, var player) in CurState == State.Near ? playersByRange.Take(2) : playersByRange.TakeLast(2))
             {
-                BitVector.SetVector64Bit(ref _targets, i);
+                _targets.Set(i);
                 _inAOE |= module.Raid.WithSlot().InRadiusExcluding(player, _aoeRadius).Mask();
             }
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_targets == 0)
+            if (_targets.None())
                 return;
 
-            bool isTarget = BitVector.IsVector64BitSet(_targets, slot);
+            bool isTarget = _targets[slot];
             bool shouldBeTarget = actor.Role == Role.Tank;
             bool isFailing = isTarget != shouldBeTarget;
             bool shouldBeNear = CurState == State.Near ? shouldBeTarget : !shouldBeTarget;
             hints.Add(shouldBeNear ? "Stay near boss" : "Stay on max melee", isFailing);
-            if (BitVector.IsVector64BitSet(_inAOE, slot))
+            if (_inAOE[slot])
             {
                 hints.Add("GTFO from tanks!");
             }
@@ -59,19 +59,19 @@ namespace BossMod.Endwalker.P4S2
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_targets == 0)
+            if (_targets.None())
                 return;
 
             foreach ((int i, var player) in module.Raid.WithSlot())
             {
-                if (BitVector.IsVector64BitSet(_targets, i))
+                if (_targets[i])
                 {
                     arena.Actor(player, arena.ColorDanger);
                     arena.AddCircle(player.Position, _aoeRadius, arena.ColorDanger);
                 }
                 else
                 {
-                    arena.Actor(player, BitVector.IsVector64BitSet(_inAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(player, _inAOE[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
                 }
             }
         }

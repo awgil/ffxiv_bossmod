@@ -19,8 +19,8 @@ namespace BossMod.Endwalker.P4S2
         private AOEShapeCone _coneAOE = new(50, MathF.PI / 4); // not sure about half-width...
         private List<Actor> _relevantHelpers = new(); // 4 towers -> knockback -> 4 towers
         private Actor? _jumpTarget = null; // either predicted (if jump is imminent) or last actual (if cones are imminent)
-        private ulong _coneTargets = 0;
-        private ulong _playersInAOE = 0;
+        private BitMask _coneTargets;
+        private BitMask _playersInAOE;
 
         private IEnumerable<Actor> _rangedTowers => _relevantHelpers.Take(4);
         private IEnumerable<Actor> _knockbackThorn => _relevantHelpers.Skip(4).Take(1);
@@ -30,17 +30,17 @@ namespace BossMod.Endwalker.P4S2
 
         public override void Update(BossModule module)
         {
-            _coneTargets = _playersInAOE = 0;
+            _coneTargets = _playersInAOE = new();
             if (NumCones == NumJumps)
             {
                 _jumpTarget = module.Raid.WithoutSlot().SortedByRange(module.PrimaryActor.Position).LastOrDefault();
-                _playersInAOE = _jumpTarget != null ? module.Raid.WithSlot().InRadiusExcluding(_jumpTarget, _jumpAOERadius).Mask() : 0;
+                _playersInAOE = _jumpTarget != null ? module.Raid.WithSlot().InRadiusExcluding(_jumpTarget, _jumpAOERadius).Mask() : new();
             }
             else
             {
                 foreach ((int i, var player) in module.Raid.WithSlot().SortedByRange(module.PrimaryActor.Position).Take(3))
                 {
-                    BitVector.SetVector64Bit(ref _coneTargets, i);
+                    _coneTargets.Set(i);
                     if (player.Position != module.PrimaryActor.Position)
                     {
                         var direction = Vector3.Normalize(player.Position - module.PrimaryActor.Position);
@@ -69,15 +69,15 @@ namespace BossMod.Endwalker.P4S2
                 }
             }
 
-            if (BitVector.IsVector64BitSet(_playersInAOE, slot))
+            if (_playersInAOE[slot])
             {
                 hints.Add("GTFO from aoe!");
             }
-            if (NumCones == NumJumps && actor == _jumpTarget && _playersInAOE != 0)
+            if (NumCones == NumJumps && actor == _jumpTarget && _playersInAOE.Any())
             {
                 hints.Add("GTFO from raid!");
             }
-            if (NumCones != NumJumps && actor == _jumpTarget && BitVector.IsVector64BitSet(_coneTargets, slot))
+            if (NumCones != NumJumps && actor == _jumpTarget && _coneTargets[slot])
             {
                 hints.Add("GTFO from boss!");
             }
@@ -85,7 +85,7 @@ namespace BossMod.Endwalker.P4S2
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_coneTargets != 0)
+            if (_coneTargets.Any())
             {
                 foreach ((_, var player) in module.Raid.WithSlot().IncludedInMask(_coneTargets))
                 {
@@ -97,7 +97,7 @@ namespace BossMod.Endwalker.P4S2
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach ((int i, var player) in module.Raid.WithSlot())
-                arena.Actor(player, BitVector.IsVector64BitSet(_playersInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                arena.Actor(player, _playersInAOE[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
             if (CurState != State.Done)
             {

@@ -13,15 +13,15 @@ namespace BossMod.Endwalker.P3S
         private AOEShapeCone _windsAOE = new(50, MathF.PI / 6);
         private AOEShapeCircle _beaconAOE = new(6);
         private List<Actor> _twisterTargets = new();
-        private ulong _tetherTargets = 0;
-        private ulong _bossTargets = 0;
-        private ulong _closeToTetherTarget = 0;
-        private ulong _hitByMultipleAOEs = 0;
+        private BitMask _tetherTargets;
+        private BitMask _bossTargets;
+        private BitMask _closeToTetherTarget;
+        private BitMask _hitByMultipleAOEs;
 
         public override void Update(BossModule module)
         {
             _twisterTargets.Clear();
-            _tetherTargets = _bossTargets = _closeToTetherTarget = _hitByMultipleAOEs = 0;
+            _tetherTargets = _bossTargets = _closeToTetherTarget = _hitByMultipleAOEs = new();
 
             // we determine failing players, trying to take two reasonable tactics in account:
             // either two tanks immune and soak everything, or each player is hit by one mechanic
@@ -30,19 +30,19 @@ namespace BossMod.Endwalker.P3S
 
             foreach ((int i, var player) in module.Raid.WithSlot(true).WhereActor(x => x.Tether.Target == module.PrimaryActor.InstanceID))
             {
-                BitVector.SetVector64Bit(ref _tetherTargets, i);
+                _tetherTargets.Set(i);
 
                 ++aoesPerPlayer[i];
                 foreach ((int j, var other) in module.Raid.WithSlot().InRadiusExcluding(player, _beaconAOE.Radius))
                 {
                     ++aoesPerPlayer[j];
-                    BitVector.SetVector64Bit(ref _closeToTetherTarget, j);
+                    _closeToTetherTarget.Set(j);
                 }
             }
 
             foreach ((int i, var player) in module.Raid.WithSlot().SortedByRange(module.PrimaryActor.Position).Take(3))
             {
-                BitVector.SetVector64Bit(ref _bossTargets, i);
+                _bossTargets.Set(i);
                 foreach ((int j, var other) in FindPlayersInWinds(module, module.PrimaryActor, player))
                 {
                     ++aoesPerPlayer[j];
@@ -64,36 +64,34 @@ namespace BossMod.Endwalker.P3S
 
             for (int i = 0; i < aoesPerPlayer.Length; ++i)
                 if (aoesPerPlayer[i] > 1)
-                    BitVector.SetVector64Bit(ref _hitByMultipleAOEs, i);
+                    _hitByMultipleAOEs.Set(i);
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            bool tethered = BitVector.IsVector64BitSet(_tetherTargets, slot);
-            bool hitByMultipleAOEs = BitVector.IsVector64BitSet(_hitByMultipleAOEs, slot);
             if (actor.Role == Role.Tank)
             {
-                if (!tethered)
+                if (!_tetherTargets[slot])
                 {
                     hints.Add("Intercept tether!");
                 }
-                if (hitByMultipleAOEs)
+                if (_hitByMultipleAOEs[slot])
                 {
                     hints.Add("Press invul!");
                 }
             }
             else
             {
-                if (tethered)
+                if (_tetherTargets[slot])
                 {
                     hints.Add("Pass the tether!");
                 }
-                if (hitByMultipleAOEs)
+                if (_hitByMultipleAOEs[slot])
                 {
                     hints.Add("GTFO from aoes!");
                 }
             }
-            if (BitVector.IsVector64BitSet(_closeToTetherTarget, slot))
+            if (_closeToTetherTarget[slot])
             {
                 hints.Add("GTFO from tether!");
             }
@@ -103,11 +101,11 @@ namespace BossMod.Endwalker.P3S
         {
             foreach ((int i, var player) in module.Raid.WithSlot())
             {
-                if (BitVector.IsVector64BitSet(_tetherTargets, i))
+                if (_tetherTargets[i])
                 {
                     _beaconAOE.Draw(arena, player);
                 }
-                if (BitVector.IsVector64BitSet(_bossTargets, i) && player.Position != module.PrimaryActor.Position)
+                if (_bossTargets[i] && player.Position != module.PrimaryActor.Position)
                 {
                     _windsAOE.Draw(arena, module.PrimaryActor.Position, GeometryUtils.DirectionFromVec3(player.Position - module.PrimaryActor.Position));
                 }
@@ -128,11 +126,11 @@ namespace BossMod.Endwalker.P3S
 
             foreach ((int i, var player) in module.Raid.WithSlot())
             {
-                bool tethered = BitVector.IsVector64BitSet(_tetherTargets, i);
+                bool tethered = _tetherTargets[i];
                 if (tethered)
                     arena.AddLine(module.PrimaryActor.Position, player.Position, player.Role == Role.Tank ? arena.ColorSafe : arena.ColorDanger);
-                bool active = tethered || BitVector.IsVector64BitSet(_bossTargets, i) || _twisterTargets.Contains(player);
-                bool failing = BitVector.IsVector64BitSet(_hitByMultipleAOEs | _closeToTetherTarget, i);
+                bool active = tethered || _bossTargets[i] || _twisterTargets.Contains(player);
+                bool failing = (_hitByMultipleAOEs | _closeToTetherTarget)[i];
                 arena.Actor(player, active ? arena.ColorDanger : (failing ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric));
             }
         }

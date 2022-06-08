@@ -47,18 +47,18 @@ namespace BossMod
         }
 
         // build slot mask for members of specified group; returns 0 if resolve fails
-        public byte BuildGroupMask(int group, PartyState party, PartyRolesConfig actorAssignments)
+        public BitMask BuildGroupMask(int group, PartyState party, PartyRolesConfig actorAssignments)
         {
-            byte mask = 0;
+            BitMask mask = new();
             foreach (var (slot, g) in Resolve(party, actorAssignments))
                 if (g == group)
-                    BitVector.SetVector8Bit(ref mask, slot);
+                    mask.Set(slot);
             return mask;
         }
 
         // shortcuts using global config
         public IEnumerable<(int slot, int group)> Resolve(PartyState party) => Resolve(party, Service.Config.Get<PartyRolesConfig>());
-        public byte BuildGroupMask(int group, PartyState party) => BuildGroupMask(group, party, Service.Config.Get<PartyRolesConfig>());
+        public BitMask BuildGroupMask(int group, PartyState party) => BuildGroupMask(group, party, Service.Config.Get<PartyRolesConfig>());
     }
 
     // assignments to two light parties with THMR split
@@ -92,17 +92,17 @@ namespace BossMod
 
         public override bool Validate()
         {
-            ulong mask = 0; // bits 0-3 - support for group N, bits 4-7 - dd for group (N-4)
+            BitMask mask = new(); // bits 0-3 - support for group N, bits 4-7 - dd for group (N-4)
             Action<int, int> addToMask = (group, offset) =>
             {
                 if (group is >= 0 and < 4)
-                    BitVector.SetVector64Bit(ref mask, group + offset);
+                    mask.Set(group + offset);
             };
             for (int i = 0; i < 4; ++i)
                 addToMask(Assignments[i], 0);
             for (int i = 4; i < 8; ++i)
                 addToMask(Assignments[i], 4);
-            return mask == 0xff;
+            return mask.Raw == 0xff;
         }
     }
 }

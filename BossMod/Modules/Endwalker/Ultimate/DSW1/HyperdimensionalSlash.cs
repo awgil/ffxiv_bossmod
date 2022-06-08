@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         private List<Actor> _laserTargets = new();
         private float _coneDir;
         private List<(Vector3 Pos, Actor? Source)> _tears = new();
-        private ulong _riskyTears;
+        private BitMask _riskyTears;
 
         private static float _linkRadius = 9; // TODO: verify
         private static AOEShapeRect _aoeLaser = new(70, 4);
@@ -25,15 +25,15 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             foreach (var target in _laserTargets)
                 _tears.Add((TearPosition(module, target), target));
 
-            _riskyTears = 0;
+            _riskyTears.Reset();
             for (int i = 0; i < _tears.Count; ++i)
             {
                 for (int j = i + 1; j < _tears.Count; ++j)
                 {
                     if (GeometryUtils.PointInCircle(_tears[i].Pos - _tears[j].Pos, _linkRadius))
                     {
-                        BitVector.SetVector64Bit(ref _riskyTears, i);
-                        BitVector.SetVector64Bit(ref _riskyTears, j);
+                        _riskyTears.Set(i);
+                        _riskyTears.Set(j);
                     }
                 }
             }
@@ -51,7 +51,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             if (tearIndex >= 0)
             {
                 // make sure actor's tear placement is good
-                if (BitVector.IsVector64BitSet(_riskyTears, tearIndex))
+                if (_riskyTears[tearIndex])
                     hints.Add("Aim away from other tears!");
                 if (GeometryUtils.PointInCircle(actor.Position - _tears[tearIndex].Pos, _linkRadius))
                     hints.Add("Stay closer to center!");
@@ -82,7 +82,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             for (int i = 0; i < _tears.Count; ++i)
-                arena.AddCircle(_tears[i].Pos, _linkRadius, BitVector.IsVector64BitSet(_riskyTears, i) ? arena.ColorDanger : arena.ColorSafe);
+                arena.AddCircle(_tears[i].Pos, _linkRadius, _riskyTears[i] ? arena.ColorDanger : arena.ColorSafe);
 
             if (_laserTargets.Contains(pc))
                 arena.AddLine(arena.WorldCenter, TearPosition(module, pc), arena.ColorDanger);

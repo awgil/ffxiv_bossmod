@@ -5,7 +5,7 @@ namespace BossMod.Endwalker.P2S
     // note: if activated together with ChannelingFlow, it does not target next flow arrows
     class TaintedFlood : CommonComponents.CastCounter
     {
-        private ulong _ignoredTargets;
+        private BitMask _ignoredTargets;
 
         private static float _radius = 6;
 
@@ -25,7 +25,7 @@ namespace BossMod.Endwalker.P2S
             if (NumCasts > 0)
                 return;
 
-            if (BitVector.IsVector64BitSet(_ignoredTargets, slot))
+            if (_ignoredTargets[slot])
             {
                 // player is not a target of flood, so just make sure he is not clipped by others
                 if (module.Raid.WithSlot().ExcludedFromMask(_ignoredTargets).InRadius(actor.Position, _radius).Any())
@@ -44,7 +44,7 @@ namespace BossMod.Endwalker.P2S
             if (NumCasts > 0)
                 return;
 
-            if (BitVector.IsVector64BitSet(_ignoredTargets, pcSlot))
+            if (_ignoredTargets[pcSlot])
             {
                 foreach ((_, var actor) in module.Raid.WithSlot().ExcludedFromMask(_ignoredTargets))
                 {

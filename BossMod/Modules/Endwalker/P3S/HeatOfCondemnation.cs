@@ -7,8 +7,8 @@ namespace BossMod.Endwalker.P3S
     // state related to heat of condemnation tethers
     class HeatOfCondemnation : CommonComponents.CastCounter
     {
-        private ulong _tetherTargets = 0;
-        private ulong _inAnyAOE = 0; // players hit by aoe, excluding selves
+        private BitMask _tetherTargets;
+        private BitMask _inAnyAOE; // players hit by aoe, excluding selves
 
         private static float _aoeRange = 6;
 
@@ -16,10 +16,10 @@ namespace BossMod.Endwalker.P3S
 
         public override void Update(BossModule module)
         {
-            _tetherTargets = _inAnyAOE = 0;
+            _tetherTargets = _inAnyAOE = new();
             foreach ((int i, var player) in module.Raid.WithSlot().Tethered(TetherID.HeatOfCondemnation))
             {
-                BitVector.SetVector64Bit(ref _tetherTargets, i);
+                _tetherTargets.Set(i);
                 _inAnyAOE |= module.Raid.WithSlot().InRadiusExcluding(player, _aoeRange).Mask();
             }
         }
@@ -28,7 +28,7 @@ namespace BossMod.Endwalker.P3S
         {
             if (actor.Role == Role.Tank)
             {
-                if (_tetherTargets != 0 && actor.Tether.ID != (uint)TetherID.HeatOfCondemnation)
+                if (_tetherTargets.Any() && actor.Tether.ID != (uint)TetherID.HeatOfCondemnation)
                 {
                     hints.Add("Grab the tether!");
                 }
@@ -43,7 +43,7 @@ namespace BossMod.Endwalker.P3S
                 {
                     hints.Add("Hit by tankbuster");
                 }
-                if (BitVector.IsVector64BitSet(_inAnyAOE, slot))
+                if (_inAnyAOE[slot])
                 {
                     hints.Add("GTFO from aoe!");
                 }
@@ -63,7 +63,7 @@ namespace BossMod.Endwalker.P3S
                 }
                 else if (pc.Role == Role.Tank)
                 {
-                    arena.Actor(player, BitVector.IsVector64BitSet(_inAnyAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(player, _inAnyAOE[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
                 }
             }
         }

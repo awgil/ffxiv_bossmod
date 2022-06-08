@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.P3S
     class SunshadowTether : Component
     {
         private HashSet<ulong> _chargedSunshadows = new();
-        private ulong _playersInAOE = 0;
+        private BitMask _playersInAOE;
 
         private static float _chargeHalfWidth = 3;
 
@@ -18,7 +18,7 @@ namespace BossMod.Endwalker.P3S
 
         public override void Update(BossModule module)
         {
-            _playersInAOE = 0;
+            _playersInAOE.Reset();
             foreach (var bird in ActiveBirds(module))
             {
                 ulong targetID = BirdTarget(bird);
@@ -30,7 +30,7 @@ namespace BossMod.Endwalker.P3S
                     {
                         if (GeometryUtils.PointInRect(player.Position - bird.Position, dir, 50, 0, _chargeHalfWidth))
                         {
-                            BitVector.SetVector64Bit(ref _playersInAOE, i);
+                            _playersInAOE.Set(i);
                         }
                     }
                 }
@@ -48,7 +48,7 @@ namespace BossMod.Endwalker.P3S
                 }
             }
 
-            if (BitVector.IsVector64BitSet(_playersInAOE, slot))
+            if (_playersInAOE[slot])
             {
                 hints.Add("GTFO from charge zone!");
             }
@@ -75,7 +75,7 @@ namespace BossMod.Endwalker.P3S
 
             // draw all players
             foreach ((int i, var player) in module.Raid.WithSlot())
-                arena.Actor(player, BitVector.IsVector64BitSet(_playersInAOE, i) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                arena.Actor(player, _playersInAOE[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
 
             // draw my tether
             var myBird = module.Enemies(OID.Sunshadow).Find(bird => BirdTarget(bird) == pc.InstanceID);

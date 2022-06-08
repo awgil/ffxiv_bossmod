@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.P3S
     class BirdDistance : Component
     {
         private OID _watchedBirdsID;
-        private ulong _birdsAtRisk = 0; // mask
+        private BitMask _birdsAtRisk;
 
         private static float _radius = 13;
 
@@ -23,14 +23,14 @@ namespace BossMod.Endwalker.P3S
 
         public override void Update(BossModule module)
         {
-            _birdsAtRisk = 0;
+            _birdsAtRisk.Reset();
             var watchedBirds = module.Enemies(_watchedBirdsID);
             for (int i = 0; i < watchedBirds.Count; ++i)
             {
                 var bird = watchedBirds[i];
                 if (!bird.IsDead && watchedBirds.Where(other => other.IsDead).InRadius(bird.Position, _radius).Any())
                 {
-                    BitVector.SetVector64Bit(ref _birdsAtRisk, i);
+                    _birdsAtRisk.Set(i);
                 }
             }
         }
@@ -41,7 +41,7 @@ namespace BossMod.Endwalker.P3S
             for (int i = 0; i < watchedBirds.Count; ++i)
             {
                 var bird = watchedBirds[i];
-                if (!bird.IsDead && bird.TargetID == actor.InstanceID && BitVector.IsVector64BitSet(_birdsAtRisk, i))
+                if (!bird.IsDead && bird.TargetID == actor.InstanceID && _birdsAtRisk[i])
                 {
                     hints.Add("Drag bird away!");
                     return;
@@ -62,7 +62,7 @@ namespace BossMod.Endwalker.P3S
                 }
                 else if (bird.TargetID == pc.InstanceID)
                 {
-                    arena.Actor(bird, BitVector.IsVector64BitSet(_birdsAtRisk, i) ? arena.ColorEnemy : arena.ColorPlayerGeneric);
+                    arena.Actor(bird, _birdsAtRisk[i] ? arena.ColorEnemy : arena.ColorPlayerGeneric);
                 }
             }
         }

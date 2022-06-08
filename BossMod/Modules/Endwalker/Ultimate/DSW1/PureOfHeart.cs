@@ -9,8 +9,8 @@ namespace BossMod.Endwalker.Ultimate.DSW1
     {
         private List<Actor> _skyblindCasters = new();
         private Actor? _boss;
-        private ulong _skyblindPlayers;
-        private ulong _coneTargets;
+        private BitMask _skyblindPlayers;
+        private BitMask _coneTargets;
 
         private static AOEShapeCone _brightwingAOE = new(18, MathF.PI / 12); // TODO: verify angle
         private static float _skyblindRadius = 3;
@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
         public override void Update(BossModule module)
         {
-            _coneTargets = _boss != null && NumCasts < 8 ? module.Raid.WithSlot().SortedByRange(_boss.Position).Take(2).Mask() : 0;
+            _coneTargets = _boss != null && NumCasts < 8 ? module.Raid.WithSlot().SortedByRange(_boss.Position).Take(2).Mask() : new();
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
@@ -32,7 +32,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             if (_boss == null)
                 return;
 
-            if (BitVector.IsVector64BitSet(_coneTargets, slot))
+            if (_coneTargets[slot])
             {
                 var dir = GeometryUtils.DirectionFromVec3(actor.Position - _boss.Position);
                 if (module.Raid.WithoutSlot().Exclude(actor).Any(p => _brightwingAOE.Check(p.Position, _boss.Position, dir)))
@@ -44,7 +44,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                     hints.Add("GTFO from cone!");
             }
 
-            if (BitVector.IsVector64BitSet(_skyblindPlayers, slot) && module.Raid.WithSlot().ExcludedFromMask(_skyblindPlayers).InRadius(actor.Position, _skyblindRadius).Any())
+            if (_skyblindPlayers[slot] && module.Raid.WithSlot().ExcludedFromMask(_skyblindPlayers).InRadius(actor.Position, _skyblindRadius).Any())
                 hints.Add("GTFO from raid!");
 
             if (_skyblindCasters.Any(c => GeometryUtils.PointInCircle(actor.Position - c.CastInfo!.Location, _skyblindRadius)))
@@ -71,14 +71,14 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         {
             foreach (var (slot, player) in module.Raid.WithSlot())
             {
-                if (BitVector.IsVector64BitSet(_skyblindPlayers, slot))
+                if (_skyblindPlayers[slot])
                 {
                     arena.Actor(player, arena.ColorDanger);
                     arena.AddCircle(player.Position, _skyblindRadius, arena.ColorDanger);
                 }
                 else
                 {
-                    arena.Actor(player, BitVector.IsVector64BitSet(_coneTargets, slot) ? arena.ColorDanger : arena.ColorPlayerGeneric);
+                    arena.Actor(player, _coneTargets[slot] ? arena.ColorDanger : arena.ColorPlayerGeneric);
                 }
             }
         }
@@ -87,9 +87,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         {
             if ((SID)actor.Statuses[index].ID == SID.Skyblind)
             {
-                int slot = module.Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0)
-                    BitVector.SetVector64Bit(ref _skyblindPlayers, slot);
+                _skyblindPlayers.Set(module.Raid.FindSlot(actor.InstanceID));
             }
         }
 
@@ -97,9 +95,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         {
             if ((SID)actor.Statuses[index].ID == SID.Skyblind)
             {
-                int slot = module.Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0)
-                    BitVector.ClearVector64Bit(ref _skyblindPlayers, slot);
+                _skyblindPlayers.Clear(module.Raid.FindSlot(actor.InstanceID));
             }
         }
 

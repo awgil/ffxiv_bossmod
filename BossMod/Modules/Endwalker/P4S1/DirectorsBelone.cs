@@ -9,9 +9,9 @@ namespace BossMod.Endwalker.P4S1
     class DirectorsBelone : Component
     {
         private bool _assigned = false;
-        private ulong _debuffForbidden = 0;
-        private ulong _debuffTargets = 0;
-        private ulong _debuffImmune = 0;
+        private BitMask _debuffForbidden;
+        private BitMask _debuffTargets;
+        private BitMask _debuffImmune;
 
         private static float _debuffPassRange = 3; // not sure about this...
 
@@ -37,23 +37,23 @@ namespace BossMod.Endwalker.P4S1
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_debuffForbidden == 0)
+            if (_debuffForbidden.None())
                 return;
 
-            if (!BitVector.IsVector64BitSet(_debuffForbidden, slot))
+            if (!_debuffForbidden[slot])
             {
                 // we should be grabbing debuff
-                if (_debuffTargets == 0)
+                if (_debuffTargets.None())
                 {
                     // debuffs not assigned yet => spread and prepare to grab
                     bool stacked = module.Raid.WithoutSlot().InRadiusExcluding(actor, _debuffPassRange).Any();
                     hints.Add("Debuffs: spread and prepare to handle!", stacked);
                 }
-                else if (BitVector.IsVector64BitSet(_debuffImmune, slot))
+                else if (_debuffImmune[slot])
                 {
                     hints.Add("Debuffs: failed to handle");
                 }
-                else if (BitVector.IsVector64BitSet(_debuffTargets, slot))
+                else if (_debuffTargets[slot])
                 {
                     hints.Add("Debuffs: OK", false);
                 }
@@ -65,12 +65,12 @@ namespace BossMod.Endwalker.P4S1
             else
             {
                 // we should be passing debuff
-                if (_debuffTargets == 0)
+                if (_debuffTargets.None())
                 {
                     bool badStack = module.Raid.WithSlot().Exclude(slot).IncludedInMask(_debuffForbidden).OutOfRadius(actor.Position, _debuffPassRange).Any();
                     hints.Add("Debuffs: stack and prepare to pass!", badStack);
                 }
-                else if (BitVector.IsVector64BitSet(_debuffTargets, slot))
+                else if (_debuffTargets[slot])
                 {
                     hints.Add("Debuffs: pass!");
                 }
@@ -92,14 +92,13 @@ namespace BossMod.Endwalker.P4S1
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_debuffTargets == 0)
+            if (_debuffTargets.None())
                 return;
 
-            ulong failingPlayers = _debuffForbidden & _debuffTargets;
+            var failingPlayers = _debuffForbidden & _debuffTargets;
             foreach ((int i, var player) in module.Raid.WithSlot())
             {
-                bool failing = BitVector.IsVector64BitSet(failingPlayers, i);
-                arena.Actor(player, failing ? arena.ColorDanger : arena.ColorPlayerGeneric);
+                arena.Actor(player, failingPlayers[i] ? arena.ColorDanger : arena.ColorPlayerGeneric);
             }
         }
 
@@ -108,10 +107,10 @@ namespace BossMod.Endwalker.P4S1
             switch ((SID)actor.Statuses[index].ID)
             {
                 case SID.RoleCall:
-                    ModifyDebuff(module, actor, ref _debuffTargets, true);
+                    _debuffTargets[module.Raid.FindSlot(actor.InstanceID)] = true;
                     break;
                 case SID.Miscast:
-                    ModifyDebuff(module, actor, ref _debuffImmune, true);
+                    _debuffImmune[module.Raid.FindSlot(actor.InstanceID)] = true;
                     break;
             }
         }
@@ -121,10 +120,10 @@ namespace BossMod.Endwalker.P4S1
             switch ((SID)actor.Statuses[index].ID)
             {
                 case SID.RoleCall:
-                    ModifyDebuff(module, actor, ref _debuffTargets, false);
+                    _debuffTargets[module.Raid.FindSlot(actor.InstanceID)] = false;
                     break;
                 case SID.Miscast:
-                    ModifyDebuff(module, actor, ref _debuffImmune, false);
+                    _debuffImmune[module.Raid.FindSlot(actor.InstanceID)] = false;
                     break;
             }
         }
@@ -132,14 +131,7 @@ namespace BossMod.Endwalker.P4S1
         public override void OnEventCast(BossModule module, CastEvent info)
         {
             if (info.IsSpell(AID.CursedCasting1) || info.IsSpell(AID.CursedCasting2))
-                _debuffForbidden = 0;
-        }
-
-        private void ModifyDebuff(BossModule module, Actor actor, ref ulong vector, bool active)
-        {
-            int slot = module.Raid.FindSlot(actor.InstanceID);
-            if (slot >= 0)
-                BitVector.ModifyVector64Bit(ref vector, slot, active);
+                _debuffForbidden.Reset();
         }
     }
 }
