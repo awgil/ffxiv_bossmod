@@ -20,9 +20,10 @@
         [PropertyDisplay("P2 Sanctity of the Ward (meteors): prefer E/W for prey rather than N/S")]
         public bool P2Sanctity2PreferEWPrey = false;
 
-        // TODO: swap E/W <-> N/S if preferred position has bad towers?
-
         [PropertyDisplay("P2 Sanctity of the Ward (meteors): swap CCW (rather than CW) when both soakers are on wrong cardinals")]
         public bool P2Sanctity2SwapCCW = false;
+
+        [PropertyDisplay("P2 Sanctity of the Ward (meteors): take CW (rather than CCW) intercardinal as non-prey role for second towers")]
+        public bool P2Sanctity2NonPreyTowerCW = false;
     }
 }

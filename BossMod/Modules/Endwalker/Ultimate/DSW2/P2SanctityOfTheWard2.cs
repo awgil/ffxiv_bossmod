@@ -25,16 +25,17 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     // this component is about tower assignments, depending on initial assignments, tower positions and prey markers
     // identifiers used by this component:
     // - quadrant: N=0, E=1, S=2, W=3
-    // - towers: [0,11] are outer towers in CW order, starting from '11 o'clock' (CCW tower of N quadrant); [12,15] are inner towers in CCW order, starting from NE (NE-SE-SW-NW)
+    // - towers 1: [0,11] are outer towers in CW order, starting from '11 o'clock' (CCW tower of N quadrant); [12,15] are inner towers in CCW order, starting from NE (NE-SE-SW-NW)
     //   so, inner towers for quadrant k are [3*k, 3*k+2]; neighbouring inner are 12+k & 12+(k+3)%4
-    // TODO: assignments for second towers...
+    // - towers 2: [0,7] - CW order, starting from N
     class P2SanctityOfTheWard2 : BossModule.Component
     {
         struct PlayerData
         {
             public bool HavePrey;
             public int AssignedQuadrant;
-            public BitMask AssignedTowers; // note: typically we have only 1 assigned tower, but in some cases two players can have two towers assigned to them, since we can't determine reliable priority
+            public BitMask AssignedTowers1; // note: typically we have only 1 assigned tower, but in some cases two players can have two towers assigned to them, since we can't determine reliable priority
+            public int AssignedTower2;
         }
 
         struct QuadrantData
@@ -43,7 +44,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             public int NonPreySlot;
         }
 
-        struct TowerData
+        struct Tower1Data
         {
             public Actor? Actor; // null if tower is inactive
             public BitMask AssignedPlayers;
@@ -55,14 +56,14 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private DSW2Config _config;
         private PlayerData[] _players = new PlayerData[PartyState.MaxSize];
         private QuadrantData[] _quadrants = new QuadrantData[4];
-        private TowerData[] _towers = new TowerData[16];
+        private Tower1Data[] _towers1 = new Tower1Data[16];
+        private Actor?[] _towers2 = new Actor?[8];
         private int _activeTowers1;
         private int _assignedPreys;
         private bool _preyOnTH;
         private bool _preyGoCCW;
         private bool _preyGoEW;
         private string _preySwap = "none";
-        private List<Actor> _towers2 = new();
 
         private static float _towerRadius = 3;
         private static float _stormRadius = 7;
@@ -71,6 +72,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P2SanctityOfTheWard2()
         {
             _config = Service.Config.Get<DSW2Config>();
+            for (int i = 0; i < _players.Length; ++i)
+                _players[i] = new() { AssignedQuadrant = -1, AssignedTower2 = -1 };
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
@@ -78,7 +81,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (_activeTowers1 != 8)
                 return;
 
-            if (movementHints != null)
+            if (movementHints != null && _players[slot].AssignedQuadrant >= 0)
             {
                 var from = actor.Position;
                 var color = module.Arena.ColorSafe;
@@ -90,7 +93,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     color = module.Arena.ColorDanger;
                 }
 
-                foreach (var tower in _towers)
+                foreach (var tower in _towers1)
                 {
                     if (tower.Actor?.CastInfo != null && tower.AssignedPlayers[slot])
                     {
@@ -119,7 +122,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 arena.AddLine(arena.WorldCenter + new Vector3(diag, 0, diag), arena.WorldCenter - new Vector3(diag, 0, diag), arena.ColorBorder);
                 arena.AddLine(arena.WorldCenter + new Vector3(diag, 0, -diag), arena.WorldCenter - new Vector3(diag, 0, -diag), arena.ColorBorder);
 
-                foreach (var tower in _towers)
+                foreach (var tower in _towers1)
                 {
                     if (tower.Actor?.CastInfo != null)
                     {
@@ -134,8 +137,17 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     arena.AddCircle(pc.Position, _stormRadius, arena.ColorDanger);
             }
 
-            foreach (var tower in _towers2)
-                arena.AddCircle(tower.CastInfo!.Location, _towerRadius, arena.ColorSafe);
+            for (int i = 0; i < _towers2.Length; ++i)
+            {
+                var tower = _towers2[i];
+                if (tower?.CastInfo != null)
+                {
+                    if (_players[pcSlot].AssignedTower2 == i)
+                        arena.AddCircle(tower.CastInfo.Location, _towerRadius, arena.ColorSafe, 2);
+                    else
+                        arena.AddCircle(tower.CastInfo.Location, _towerRadius, arena.ColorDanger, 1);
+                }
+            }
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)
@@ -145,13 +157,14 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             switch ((AID)actor.CastInfo.Action.ID)
             {
                 case AID.Conviction2AOE:
-                    int id = ClassifyTower(module, actor);
-                    _towers[id].Actor = actor;
+                    int id1 = ClassifyTower1(module, actor);
+                    _towers1[id1].Actor = actor;
                     ++_activeTowers1;
                     InitAssignments(module);
                     break;
                 case AID.Conviction3AOE:
-                    _towers2.Add(actor);
+                    int id2 = ClassifyTower2(module, actor);
+                    _towers2[id2] = actor;
                     break;
             }
         }
@@ -167,7 +180,6 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     ++Towers1Done;
                     break;
                 case AID.Conviction3AOE:
-                    _towers2.Remove(actor);
                     ++Towers2Done;
                     break;
             }
@@ -194,7 +206,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        private int ClassifyTower(BossModule module, Actor tower)
+        private int ClassifyTower1(BossModule module, Actor tower)
         {
             var offset = tower.Position - module.Arena.WorldCenter;
             var dir = GeometryUtils.DirectionFromVec3(offset);
@@ -208,6 +220,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 // outer tower: ~18m from center, at cardinal or +- 30 degrees
                 return (7 - (int)MathF.Round(dir / MathF.PI * 6)) % 12;
             }
+        }
+
+        private int ClassifyTower2(BossModule module, Actor tower)
+        {
+            var offset = tower.Position - module.Arena.WorldCenter;
+            var dir = GeometryUtils.DirectionFromVec3(offset);
+            return (4 - (int)MathF.Round(dir / MathF.PI * 4)) % 8;
         }
 
         private void InitAssignments(BossModule module)
@@ -226,7 +245,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 InitQuadrantSwaps(module);
 
                 // now assign towers to players
-                InitTowers(module);
+                InitTowers1(module);
+                InitTowers2(module);
             }
             else
             {
@@ -309,7 +329,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        private void InitTowers(BossModule module)
+        private void InitTowers1(BossModule module)
         {
             // assign outer towers
             for (int q = 0; q < _quadrants.Length; ++q)
@@ -333,7 +353,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 int unambiguousQuadrant = -1;
                 for (int q = 0; q < _quadrants.Length; ++q)
                 {
-                    if (_players[_quadrants[q].NonPreySlot].AssignedTowers.Any())
+                    if (_players[_quadrants[q].NonPreySlot].AssignedTowers1.Any())
                         continue;
 
                     int potential = FindUnassignedUnambiguousInnerTower(q);
@@ -362,16 +382,26 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
 
             // if we still have unassigned towers, assign each of them to each remaining player
-            var ambiguousQuadrants = _quadrants.Where(q => _players[q.NonPreySlot].AssignedTowers.None()).ToArray();
-            for (int t = 12; t < _towers.Length; ++t)
+            var ambiguousQuadrants = _quadrants.Where(q => _players[q.NonPreySlot].AssignedTowers1.None()).ToArray();
+            for (int t = 12; t < _towers1.Length; ++t)
             {
-                if (_towers[t].Actor != null && _towers[t].AssignedPlayers.None())
+                if (_towers1[t].Actor != null && _towers1[t].AssignedPlayers.None())
                 {
                     foreach (var q in ambiguousQuadrants)
                     {
                         AssignTower(q.NonPreySlot, t);
                     }
                 }
+            }
+        }
+
+        private void InitTowers2(BossModule module)
+        {
+            for (int q = 0; q < _quadrants.Length; ++q)
+            {
+                var quadrant = _quadrants[q];
+                _players[quadrant.PreySlot].AssignedTower2 = _players[quadrant.PreySlot].HavePrey ? (2 * q + 4) % 8 : (2 * q);
+                _players[quadrant.NonPreySlot].AssignedTower2 = _config.P2Sanctity2NonPreyTowerCW ? (2 * q + 1) : (2 * q + 7) % 8;
             }
         }
 
@@ -394,13 +424,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (ccw)
             {
                 for (int i = begin; i < end; ++i)
-                    if (_towers[i].Actor != null)
+                    if (_towers1[i].Actor != null)
                         return i;
             }
             else
             {
                 for (int i = end - 1; i >= begin; --i)
-                    if (_towers[i].Actor != null)
+                    if (_towers1[i].Actor != null)
                         return i;
             }
             return -1;
@@ -425,8 +455,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             int candidate1 = 12 + quadrant;
             int candidate2 = 12 + ((quadrant + 3) & 3);
-            bool available1 = _towers[candidate1].Actor != null && _towers[candidate1].AssignedPlayers.None();
-            bool available2 = _towers[candidate2].Actor != null && _towers[candidate2].AssignedPlayers.None();
+            bool available1 = _towers1[candidate1].Actor != null && _towers1[candidate1].AssignedPlayers.None();
+            bool available2 = _towers1[candidate2].Actor != null && _towers1[candidate2].AssignedPlayers.None();
             if (available1 == available2)
                 return -1;
             else
@@ -435,8 +465,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private void AssignTower(int slot, int tower)
         {
-            _players[slot].AssignedTowers.Set(tower);
-            _towers[tower].AssignedPlayers.Set(slot);
+            _players[slot].AssignedTowers1.Set(tower);
+            _towers1[tower].AssignedPlayers.Set(slot);
         }
 
         private Vector3 StormPlacementPosition(BossModule module, int quadrant)

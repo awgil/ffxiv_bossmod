@@ -7,7 +7,10 @@
         public DSW2States(DSW2 module) : base(module)
         {
             _module = module;
-            DeathPhase(1, Phase2Thordan); // TODO: auto-attack cleave component
+            SimplePhase(1, Phase2Thordan, "P2: Thordan") // TODO: auto-attack cleave component
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead;
+            SimplePhase(2, Phase3Nidhogg, "P3: Nidhogg")
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed && (_module.BossP3()?.IsDestroyed ?? true);
         }
 
         private void Phase2Thordan(uint id)
@@ -18,7 +21,14 @@
             P2HeavenlyHeelAscalonMight(id + 0x30000, 6.2f);
             P2SanctityOfTheWard(id + 0x40000, 7);
             P2UltimateEnd(id + 0x50000, 13.5f);
+            P2BroadSwing(id + 0x60000, 9.5f);
+            P2BroadSwing(id + 0x70000, 2.6f);
+            P2AethericBurst(id + 0x80000, 2.4f);
+        }
 
+        private void Phase3Nidhogg(uint id)
+        {
+            P3FinalChorus(id);
             SimpleState(id + 0xF0000, 100, "???");
         }
 
@@ -87,7 +97,7 @@
                 .DeactivateOnExit<P2SanctityOfTheWard1Gaze>();
             ComponentCondition<P2SanctityOfTheWard1>(id + 0x40, 6.1f, comp => comp.NumFlareCasts >= 18, "Charges")
                 .DeactivateOnExit<P2SanctityOfTheWard1>();
-            ComponentCondition<P2SanctityOfTheWard2>(id + 0x100, 11.8f, comp => comp.StormDone)
+            ComponentCondition<P2SanctityOfTheWard2>(id + 0x100, 11.8f, comp => comp.StormDone, "Storms")
                 .ActivateOnEnter<P2SanctityOfTheWard2HeavensStakeCircles>()
                 .ActivateOnEnter<P2SanctityOfTheWard2HeavensStakeDonut>()
                 .ActivateOnEnter<P2SanctityOfTheWard2>()
@@ -108,6 +118,27 @@
                 .ActivateOnEnter<P2UltimateEnd>()
                 .DeactivateOnExit<P2UltimateEnd>()
                 .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P2BroadSwing(uint id, float delay)
+        {
+            CastMulti(id, new AID[] { AID.BroadSwingLR, AID.BroadSwingRL }, delay, 3)
+                .ActivateOnEnter<P2BroadSwing>();
+            ComponentCondition<P2BroadSwing>(id + 2, 2.8f, comp => comp.NumCasts >= 3, "Swings")
+                .DeactivateOnExit<P2BroadSwing>();
+        }
+
+        private void P2AethericBurst(uint id, float delay)
+        {
+            Cast(id, AID.AethericBurst, delay, 6, "Enrage");
+        }
+
+        private void P3FinalChorus(uint id)
+        {
+            Timeout(id, 0)
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ActorTargetable(id + 1, _module.BossP3, true, 9.2f)
+                .SetHint(StateMachine.StateHint.DowntimeEnd | StateMachine.StateHint.Raidwide); // final chorus raidwide happens together with boss becoming targetable
         }
     }
 }

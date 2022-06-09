@@ -123,6 +123,36 @@ namespace UIDev.Analysis
             }
         }
 
+        class CasterLinkAnalysis
+        {
+            private List<(Replay Replay, Replay.Action Action, float MinDistance)> _points = new();
+
+            public CasterLinkAnalysis(List<(Replay, Replay.Action)> infos)
+            {
+                foreach (var (r, a) in infos)
+                {
+                    if (a.Source == null)
+                        continue;
+                    var pos = a.Source.PosRotAt(a.Timestamp).XYZ();
+
+                    float minDistance = float.MaxValue;
+                    foreach (var other in r.Participants.Where(p => p != a.Source && p.OID == a.Source.OID && p.Existence.Contains(a.Timestamp)))
+                    {
+                        var otherPos = other.PosRotAt(a.Timestamp).XYZ();
+                        minDistance = MathF.Min(minDistance, (otherPos - pos).Length());
+                    }
+
+                    _points.Add((r, a, minDistance));
+                }
+                _points.Sort((l, r) => r.MinDistance.CompareTo(l.MinDistance));
+            }
+
+            public void Draw(UITree tree)
+            {
+                tree.LeafNodes(_points, p => $"{p.MinDistance:f3}: {p.Replay.Path} @ {p.Action.Timestamp:O}");
+            }
+        }
+
         class ActionData
         {
             public List<(Replay, Replay.Action)> Instances = new();
@@ -138,6 +168,7 @@ namespace UIDev.Analysis
             public DamageFalloffAnalysis? DamageFalloffAnalysisDist;
             public DamageFalloffAnalysis? DamageFalloffAnalysisMinCoord;
             public GazeAnalysis? GazeAnalysis;
+            public CasterLinkAnalysis? CasterLinkAnalysis;
         }
 
         private Type? _oidType;
@@ -233,6 +264,12 @@ namespace UIDev.Analysis
                     if (data.GazeAnalysis == null)
                         data.GazeAnalysis = new(data.Instances);
                     data.GazeAnalysis.Draw();
+                }
+                foreach (var an in tree.Node("Caster link analysis"))
+                {
+                    if (data.CasterLinkAnalysis == null)
+                        data.CasterLinkAnalysis = new(data.Instances);
+                    data.CasterLinkAnalysis.Draw(tree);
                 }
             }
         }

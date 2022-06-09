@@ -15,12 +15,24 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
     public class DSW2 : BossModule
     {
+        private Actor? _bossP3;
+        public Actor? BossP2() => PrimaryActor;
+        public Actor? BossP3() => _bossP3;
+
         public DSW2(BossModuleManager manager, Actor primary)
             : base(manager, primary)
         {
             Arena.WorldHalfSize = 22;
             Arena.IsCircle = true;
             InitStates(new DSW2States(this).Build());
+        }
+
+        protected override void UpdateModule()
+        {
+            // TODO: this is an ugly hack, think how multi-actor fights can be implemented without it...
+            // the problem is that on wipe, any actor can be deleted and recreated in the same frame
+            if (_bossP3 == null && StateMachine?.ActivePhaseIndex == 1)
+                _bossP3 = Enemies(OID.BossP3).FirstOrDefault();
         }
 
         protected override void DrawArenaForegroundPre(int pcSlot, Actor pc)
@@ -41,7 +53,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, Arena.ColorEnemy);
+            if (!PrimaryActor.IsDestroyed)
+                Arena.Actor(PrimaryActor, Arena.ColorEnemy);
+            Arena.Actor(_bossP3, Arena.ColorEnemy);
             //Arena.AddLine(PrimaryActor.Position, PrimaryActor.Position + GeometryUtils.DirectionToVec3(PrimaryActor.Rotation) * 5, Arena.ColorEnemy);
             Arena.Actor(pc, Arena.ColorPC);
         }

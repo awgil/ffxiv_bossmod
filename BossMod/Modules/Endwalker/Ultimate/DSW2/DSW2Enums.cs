@@ -19,6 +19,10 @@
         Helper = 0x233C, // x24
         Brightsphere = 0x330E, // spawn during fight by Shining Blade
         HolyComet = 0x312F, // spawn during fight by Holy Comet
+
+        BossP3 = 0x313D, // nidhogg - p3
+        UnkNidhogg = 0x313E, // x8 - p3
+        // 34FB (x3), 34FC (x3), 34FD, 34FE, 34FF, 3500 (x3) 3501, 3502 - wtf is this shit, spawn together with nidhogg and attack each other with 870's for 5 dmg...
     };
 
     public enum AID : uint
@@ -26,6 +30,7 @@
         AutoAttack = 25531, // Boss->mt, no cast, range 10 ?-degree cone
         Teleport = 25540, // Boss->location, no cast
         Reappear = 25532, // Boss->self, no cast
+        WalkTo = 25535, // Boss->location, no cast
 
         AscalonsMercyConcealed = 25544, // Boss->self, 3.0s cast, visual
         AscalonsMercyConcealedAOE = 25545, // Helper->self, 1.5s cast, range 50 30-degree (?) cone
@@ -76,13 +81,18 @@
         Conviction2AOE = 29564, // Helper->location, 12.0s cast, range 3 aoe, soaked towers
         HolyComet = 25576, // SerNoudenet->self, 12.0s cast, visual
         HolyCometAOE = 25577, // HolyComet->self, no cast, range 20 aoe on comet drop
-        HolyImpact = 25578, // HolyComet->self, no cast, raidwide on comet fail
+        HolyImpact = 25578, // HolyComet->self, no cast, raidwide on comet fail (link range ~5)
         FaithUnmoving = 25308, // SerGrinnaux->self, 4.0s cast, knockback 16
         Conviction3 = 28650, // SerHermenost->self, 8.2s cast, visual
         Conviction3AOE = 28651, // Helper->location, 11.0s cast, range 3 aoe, soaked towers
 
         UltimateEnd = 25533, // Boss->self, no cast, visual
         UltimateEndAOE = 25534, // Helper->self, no cast, raidwide
+
+        BroadSwingRL = 25536, // Boss->self, 3.0s cast, visual
+        BroadSwingLR = 25537, // Boss->self, 3.0s cast, visual
+        BroadSwingAOE = 25538, // Helper->self, no cast, range 40 120-degree cone
+        AethericBurst = 25539, // Boss->self, 6.0s cast, enrage
     };
 
     public enum SID : uint
