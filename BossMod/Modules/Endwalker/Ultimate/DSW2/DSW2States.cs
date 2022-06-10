@@ -29,6 +29,7 @@
         private void Phase3Nidhogg(uint id)
         {
             P3FinalChorus(id);
+            P3DiveFromGrace(id + 0x10000, 13.2f);
             SimpleState(id + 0xF0000, 100, "???");
         }
 
@@ -137,8 +138,27 @@
         {
             Timeout(id, 0)
                 .SetHint(StateMachine.StateHint.DowntimeStart);
-            ActorTargetable(id + 1, _module.BossP3, true, 9.2f)
+            ActorTargetable(id + 1, _module.BossP3, true, 9.2f, "Raidwide")
                 .SetHint(StateMachine.StateHint.DowntimeEnd | StateMachine.StateHint.Raidwide); // final chorus raidwide happens together with boss becoming targetable
+        }
+
+        private void P3DiveFromGrace(uint id, float delay)
+        {
+            ActorCastStart(id, _module.BossP3, AID.DiveFromGrace, delay)
+                .SetHint(StateMachine.StateHint.BossCastStart);
+            ActorCastEnd(id + 1, _module.BossP3, 5, "Dive start")
+                .ActivateOnEnter<P3DiveFromGrace>()
+                .SetHint(StateMachine.StateHint.BossCastEnd);
+
+            ActorCastStartMulti(id + 0x10, _module.BossP3, new AID[] { AID.GnashAndLash, AID.LashAndGnash }, 2.1f)
+                .SetHint(StateMachine.StateHint.BossCastStart);
+            ActorCastEnd(id + 0x11, _module.BossP3, 7.6f, "Stack + Dive 1")
+                .SetHint(StateMachine.StateHint.BossCastEnd | StateMachine.StateHint.Raidwide);
+
+            ComponentCondition<P3DiveFromGrace>(id + 0x20, 3.7f, comp => comp.WheelsDone >= 1, "In/out 1");
+            ComponentCondition<P3DiveFromGrace>(id + 0x30, 3.1f, comp => comp.WheelsDone >= 2, "Towers 1 + In/out 2");
+            ComponentCondition<P3DiveFromGrace>(id + 0x40, 2.5f, comp => comp.BaitsStarted >= 3);
+            ComponentCondition<P3DiveFromGrace>(id + 0x50, 0.8f, comp => comp.DivesDone >= 5, "Dive 2");
         }
     }
 }

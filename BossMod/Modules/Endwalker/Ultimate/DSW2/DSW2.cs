@@ -13,6 +13,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P2UltimateEnd() : base(ActionID.MakeSpell(AID.UltimateEndAOE)) { }
     }
 
+    [PrimaryActorOID((uint)OID.BossP2)]
     public class DSW2 : BossModule
     {
         private Actor? _bossP3;

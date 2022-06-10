@@ -2,7 +2,7 @@
 {
     public enum OID : uint
     {
-        Boss = 0x313C, // king thordan - p2
+        BossP2 = 0x313C, // king thordan - p2
         SerZephirin = 0x3130, // x1 - ??
         SerAdelphel = 0x3139, // x1 - p1, p2
         SerGrinnaux = 0x313A, // x1 - p1, p2
@@ -21,24 +21,25 @@
         HolyComet = 0x312F, // spawn during fight by Holy Comet
 
         BossP3 = 0x313D, // nidhogg - p3
-        UnkNidhogg = 0x313E, // x8 - p3
+        NidhoggDrake = 0x313E, // x8 - p3
         // 34FB (x3), 34FC (x3), 34FD, 34FE, 34FF, 3500 (x3) 3501, 3502 - wtf is this shit, spawn together with nidhogg and attack each other with 870's for 5 dmg...
     };
 
     public enum AID : uint
     {
-        AutoAttack = 25531, // Boss->mt, no cast, range 10 ?-degree cone
-        Teleport = 25540, // Boss->location, no cast
-        Reappear = 25532, // Boss->self, no cast
-        WalkTo = 25535, // Boss->location, no cast
+        // phase 2
+        AutoAttackP2 = 25531, // BossP2->mt, no cast, range 10 ?-degree cone
+        Teleport = 25540, // BossP2->location, no cast
+        Reappear = 25532, // BossP2->self, no cast
+        WalkTo = 25535, // BossP2->location, no cast
 
-        AscalonsMercyConcealed = 25544, // Boss->self, 3.0s cast, visual
+        AscalonsMercyConcealed = 25544, // BossP2->self, 3.0s cast, visual
         AscalonsMercyConcealedAOE = 25545, // Helper->self, 1.5s cast, range 50 30-degree (?) cone
-        AscalonsMight = 25541, // Boss->self, no cast, range 50 60-degree (?) cone tankbuster
+        AscalonsMight = 25541, // BossP2->self, no cast, range 50 60-degree (?) cone tankbuster
 
-        KnightsOfTheRound = 25581, // Boss->self, no cast, visual
-        StrengthOfTheWard = 25555, // Boss->self, 4.0s cast, visual
-        LightningStorm = 25548, // Boss->self, 5.7s cast, visual
+        KnightsOfTheRound = 25581, // BossP2->self, no cast, visual
+        StrengthOfTheWard = 25555, // BossP2->self, 4.0s cast, visual
+        LightningStorm = 25548, // BossP2->self, 5.7s cast, visual
         LightningStormAOE = 25549, // Helper->player, no cast, range 5 aoe
         SpiralThrust = 25556, // SerIgnasse/SerVellguine/SerPaulecrain->self, 6.0s cast, range 52 width 16 rect aoe
         HeavyImpact = 25557, // SerGuerrique->self, 4.3s cast, visual
@@ -48,7 +49,7 @@
         HeavyImpactHit4 = 25561, // Helper->self, no cast, range 18-24 donut
         HeavyImpactHit5 = 25562, // Helper->self, no cast, range 24-30 donut
 
-        DragonsRage = 25550, // Boss->self, 4.7s cast, visual
+        DragonsRage = 25550, // BossP2->self, 4.7s cast, visual
         DragonsRageAOE = 25551, // Helper->players, no cast, range 8 shared aoe
         DimensionalCollapse = 25563, // SerGrinnaux->self, 8.0s cast, visual (growing void zones)
         DimensionalCollapseAOE = 25564, // Helper->location, 9.0s cast, range 10 aoe
@@ -61,11 +62,11 @@
         HolyBladedanceVisual = 25298, // SerJanlenoux/SerAdelphel->self, no cast, visual
         HolyBladedanceAOE = 25299, // Helper->self, no cast, range 16 90-degree cone aoe (follows tankbuster, multiple hits)
 
-        AncientQuaga = 25542, // Boss->self, 6.0s cast, raidwide
-        HeavenlyHeel = 25543, // Boss->player, 4.0s cast, tankbuster forcing tankswap
+        AncientQuaga = 25542, // BossP2->self, 6.0s cast, raidwide
+        HeavenlyHeel = 25543, // BossP2->player, 4.0s cast, tankbuster forcing tankswap
 
-        SanctityofTheWard = 25569, // Boss->self, 4.0s cast, visual
-        DragonsGaze = 25552, // Boss->self, 4.0s cast, visual
+        SanctityofTheWard = 25569, // BossP2->self, 4.0s cast, visual
+        DragonsGaze = 25552, // BossP2->self, 4.0s cast, visual
         DragonsGazeAOE = 25553, // Helper->self, no cast, face away from caster
         DragonsGlory = 25554, // Helper->self, no cast, face away from caster
         ShiningBlade = 25570, // SerAdelphel/SerJanlenoux->location, no cast, half-width 3 rect (?) charge
@@ -86,18 +87,42 @@
         Conviction3 = 28650, // SerHermenost->self, 8.2s cast, visual
         Conviction3AOE = 28651, // Helper->location, 11.0s cast, range 3 aoe, soaked towers
 
-        UltimateEnd = 25533, // Boss->self, no cast, visual
+        UltimateEnd = 25533, // BossP2->self, no cast, visual
         UltimateEndAOE = 25534, // Helper->self, no cast, raidwide
 
-        BroadSwingRL = 25536, // Boss->self, 3.0s cast, visual
-        BroadSwingLR = 25537, // Boss->self, 3.0s cast, visual
+        BroadSwingRL = 25536, // BossP2->self, 3.0s cast, visual
+        BroadSwingLR = 25537, // BossP2->self, 3.0s cast, visual
         BroadSwingAOE = 25538, // Helper->self, no cast, range 40 120-degree cone
-        AethericBurst = 25539, // Boss->self, 6.0s cast, enrage
+        AethericBurst = 25539, // BossP2->self, 6.0s cast, enrage
+
+        // phase 3
+        FinalChorus = 26376, // BossP3->self, no cast, visual
+        FinalChorusAOE = 26377, // Helper->self, no cast, raidwide
+        AutoAttackP3 = 26416, // BossP3->player, no cast, range 60 half-width width 3 rect aoe
+
+        DiveFromGrace = 26381, // BossP3->self, 5.0s cast, visual
+        GnashAndLash = 26386, // BossP3->self, 7.6s cast, visual
+        LashAndGnash = 26387, // BossP3->self, 7.6s cast, visual
+        EyeOfTheTyrant = 26388, // BossP3->player, no cast, range 6 shared aoe
+        GnashingWheel = 26389, // BossP3->self, no cast, range 8 aoe
+        LashingWheel = 26390, // BossP3->self, no cast, range 8-40 donut aoe
+        DarkHighJump = 26382, // NidhoggDrake->players, no cast, range 5 aoe
+        DarkSpineshatterDive = 26383, // NidhoggDrake->player, no cast, range 5 aoe
+        DarkElusiveJump = 26384, // NidhoggDrake->player, no cast, range 5 aoe
+        DarkdragonDive = 26385, // NidhoggDrake->self, 2.5s cast
+        DarkdragonDiveFail = 26395, // Helper->self, no cast, raidwide if tower is not soaked
+        Geirskogul = 26378, // TODO
     };
 
     public enum SID : uint
     {
         None = 0,
+        Jump1 = 3004, // 'First in Line'
+        Jump2 = 3005, // 'Second in Line'
+        Jump3 = 3006, // 'Third in Line'
+        JumpCenter = 2755, // 'High Jump Target'
+        JumpForward = 2756, // 'Spineshatter Dive Target'
+        JumpBackward = 2757, // 'Elusive Jump Target'
     }
 
     public enum TetherID : uint
@@ -113,5 +138,8 @@
         SacredSever2 = 51, // player
         SkywardLeap = 330, // player
         Prey = 285, // player
+        Jump1 = 319, // player
+        Jump2 = 320, // player
+        Jump3 = 321, // player
     }
 }
