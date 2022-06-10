@@ -63,11 +63,14 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private bool _preyOnTH;
         private bool _preyGoCCW;
         private bool _preyGoEW;
+        private int _preyScore;
+        private int _preyLimitedRangeQuadrant = -1; // if score is < 2, index of quadrant that has less than 180 degrees of distance to place comets
         private string _preySwap = "none";
 
         private static float _towerRadius = 3;
         private static float _stormRadius = 7;
         private static float _stormPlacementOffset = 10;
+        private static float _cometLinkRange = 5;
 
         public P2SanctityOfTheWard2()
         {
@@ -78,8 +81,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (_activeTowers1 != 8)
+            if (_activeTowers1 != 8 || _assignedPreys != 2)
                 return;
+
+            if (_players[slot].HavePrey && _players[slot].AssignedQuadrant == _preyLimitedRangeQuadrant)
+            {
+                hints.Add("Limited range", false);
+            }
 
             if (movementHints != null && _players[slot].AssignedQuadrant >= 0)
             {
@@ -105,9 +113,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
-            if (_activeTowers1 == 8)
+            if (_activeTowers1 == 8 && _assignedPreys == 2)
             {
-                hints.Add($"Prey: {(_preyOnTH ? "T/H" : "DD")}, swap {_preySwap}, {(_preyGoCCW ? "counterclockwise" : "clockwise")}");
+                hints.Add($"Prey: {(_preyOnTH ? "T/H" : "DD")}, swap {_preySwap}, {(_preyGoCCW ? "counterclockwise" : "clockwise")} ({_preyScore * 30 + 120} degrees)");
             }
         }
 
@@ -146,6 +154,15 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                         arena.AddCircle(tower.CastInfo.Location, _towerRadius, arena.ColorSafe, 2);
                     else
                         arena.AddCircle(tower.CastInfo.Location, _towerRadius, arena.ColorDanger, 1);
+                }
+            }
+
+            if (_players[pcSlot].HavePrey)
+            {
+                foreach (var comet in module.Enemies(OID.HolyComet))
+                {
+                    arena.Actor(comet, arena.ColorObject);
+                    arena.AddCircle(comet.Position, _cometLinkRange, arena.ColorObject);
                 }
             }
         }
@@ -257,15 +274,17 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private void InitPreyPositions(BossModule module)
         {
             _preyGoEW = _config.P2Sanctity2PreferEWPrey;
-            int scoreCW = ScoreForAssignment(_preyGoEW, false);
-            int scoreCCW = ScoreForAssignment(_preyGoEW, true);
+            var (scoreCW, qCW) = ScoreForAssignment(_preyGoEW, false);
+            var (scoreCCW, qCCW) = ScoreForAssignment(_preyGoEW, true);
             if (scoreCW == 0 && scoreCCW == 0) // TODO: if allowed by config...
             {
                 _preyGoEW = !_preyGoEW;
-                scoreCW = ScoreForAssignment(_preyGoEW, false);
-                scoreCCW = ScoreForAssignment(_preyGoEW, true);
+                (scoreCW, qCW) = ScoreForAssignment(_preyGoEW, false);
+                (scoreCCW, qCCW) = ScoreForAssignment(_preyGoEW, true);
             }
             _preyGoCCW = scoreCCW > scoreCW;
+            _preyLimitedRangeQuadrant = _preyGoCCW ? qCCW : qCW;
+            _preyScore = Math.Max(scoreCCW, scoreCW);
         }
 
         private bool InitQuadrantAssignments(BossModule module)
@@ -406,15 +425,21 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         }
 
         // 'score' depends on angle between preys: 0 for 120, 1 for 150, 2 for 180
-        private int ScoreForAssignment(bool ew, bool ccw)
+        // 'limited quadrant' is -1 if angle is 180, otherwise it is index of the quadrant that has shorter movement range
+        private (int, int) ScoreForAssignment(bool ew, bool ccw)
         {
-            float dir1 = DirectionForOuterTower(SelectOuterTower(ew ? 1 : 0, ccw));
-            float dir2 = DirectionForOuterTower(SelectOuterTower(ew ? 3 : 2, ccw));
-            return MathF.Cos(dir1 - dir2) switch
+            int q1 = ew ? 1 : 0;
+            int q2 = q1 + 2;
+            int t1 = SelectOuterTower(q1, ccw);
+            int t2 = SelectOuterTower(q2, ccw);
+            return (t2 - t1) switch
             {
-                < -0.9f => 2,
-                < -0.6f => 1,
-                _ => 0
+                4 => (0, ccw ? q2 : q1),
+                5 => (1, ccw ? q2 : q1),
+                6 => (2, -1),
+                7 => (1, ccw ? q1 : q2),
+                8 => (0, ccw ? q1 : q2),
+                _ => (2, -1) // that's an error, really...
             };
         }
 
@@ -434,11 +459,6 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                         return i;
             }
             return -1;
-        }
-
-        private float DirectionForOuterTower(int tower)
-        {
-            return (7 - tower) * MathF.PI / 6;
         }
 
         private void SwapPreyQuadrants(int q1, int q2)

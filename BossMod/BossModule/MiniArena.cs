@@ -46,6 +46,7 @@ namespace BossMod
         public uint ColorSafe = 0xff00ff00;
         public uint ColorPC = 0xff00ff00;
         public uint ColorEnemy = 0xff0000ff;
+        public uint ColorObject = 0xff0080ff;
         public uint ColorPlayerInteresting = 0xffc0c0c0;
         public uint ColorPlayerGeneric = 0xff808080;
         public uint ColorVulnerable = 0xffff00ff;
