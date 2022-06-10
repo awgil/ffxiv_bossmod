@@ -24,8 +24,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            var actorForward = GeometryUtils.DirectionToVec3(actor.Rotation);
-            if (EyePositions(module).Any(eye => Vector3.Dot(Vector3.Normalize(eye - actor.Position), actorForward) >= 0.707107)) // 45-degree
+            if (EyePositions(module).Any(eye => HitByEye(actor, eye)))
                 hints.Add("Turn away from gaze!");
         }
 
@@ -38,7 +37,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 var dl = ImGui.GetWindowDrawList();
                 dl.PathArcTo(eyeCenter - new Vector2(0, _eyeOffsetV), _eyeOuterR,  MathF.PI / 2 + _eyeHalfAngle,  MathF.PI / 2 - _eyeHalfAngle);
                 dl.PathArcTo(eyeCenter + new Vector2(0, _eyeOffsetV), _eyeOuterR, -MathF.PI / 2 + _eyeHalfAngle, -MathF.PI / 2 - _eyeHalfAngle);
-                dl.PathFillConvex(arena.ColorEnemy);
+                dl.PathFillConvex(HitByEye(pc, eye) ? arena.ColorEnemy : arena.ColorPC);
                 dl.AddCircleFilled(eyeCenter, _eyeInnerR, arena.ColorBorder);
             }
         }
@@ -50,6 +49,11 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 _eyePosition = module.Arena.WorldCenter + 40 * GeometryUtils.DirectionToVec3(MathF.PI - index * MathF.PI / 4);
             }
+        }
+
+        private bool HitByEye(Actor actor, Vector3 eye)
+        {
+            return Vector3.Dot(Vector3.Normalize(eye - actor.Position), GeometryUtils.DirectionToVec3(actor.Rotation)) >= 0.707107f; // 45-degree
         }
 
         private IEnumerable<Vector3> EyePositions(BossModule module)
