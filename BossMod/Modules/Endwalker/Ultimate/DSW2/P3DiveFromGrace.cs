@@ -6,14 +6,39 @@ using System.Threading.Tasks;
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
-    // role ID is [0,8] == 3 * order + dir, where order is [0,2], dir is [0, 2] (0 for backward, 1 for high, 2 for forward); 4 is not used
     class P3DiveFromGrace : BossModule.Component
     {
-        public int WheelsDone { get; private set; }
-        public int BaitsStarted { get; private set; }
-        public int DivesDone { get; private set; }
+        // current 'state' is next event that will happen
+        // note that some mechanics happen with slight delay (~0.1-0.2s) - we merge them together to protect against potential reordering
+        public enum State
+        {
+            AssignOrder,
+            AssignDirection,
+            Jump1Stack1,
+            InOut1,
+            Towers1InOut2,
+            Bait1,
+            Jump2,
+            Towers2,
+            Bait2,
+            Jump3Stack2,
+            InOut3,
+            Towers3InOut4,
+            Bait3,
+            Resolve,
+            Done
+        }
+
+        private struct PlayerState
+        {
+            public int JumpOrder; // 0 if unassigned, otherwise [1,3]
+            public int JumpDirection; // -1 for backward, +1 for forward
+        }
+
+        public State NextEvent { get; private set; }
+        private int _wheelsDone;
         private Actor? _boss;
-        private int[] _playerRoles = new int[8];
+        private PlayerState[] _playerStates = new PlayerState[PartyState.MaxSize];
         private AOEShape? _nextAOE;
 
         private static AOEShapeCircle _aoeGnash = new(8);
@@ -24,9 +49,60 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             _boss = module.Enemies(OID.BossP3).FirstOrDefault();
         }
 
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        {
+            switch (_playerStates[slot].JumpOrder)
+            {
+                case 1:
+                    if (NextEvent <= State.Jump1Stack1)
+                        hints.Add("Bait jump -> return to raid, avoid in/out", false);
+                    else if (NextEvent <= State.Jump2)
+                        hints.Add("Wait for second (sides) or third (center) jump -> soak tower", false);
+                    else if (NextEvent <= State.Towers2)
+                        hints.Add("Side: soak tower; Center: wait for third jump", false);
+                    else if (NextEvent <= State.Bait2)
+                        hints.Add("Side: bait -> return to raid; Center: wait for third jump", false);
+                    else if (NextEvent <= State.Jump3Stack2)
+                        hints.Add("Center: wait for third jump -> soak tower", false);
+                    else if (NextEvent <= State.Towers3InOut4)
+                        hints.Add("Center: avoid in/out, soak tower", false);
+                    else if (NextEvent <= State.Bait3)
+                        hints.Add("Center: bait", false);
+                    break;
+                case 2:
+                    if (NextEvent <= State.Towers1InOut2)
+                        hints.Add("Wait, avoid in/out", false);
+                    else if (NextEvent <= State.Jump2)
+                        hints.Add("Bait jump", false);
+                    else if (NextEvent <= State.Jump3Stack2)
+                        hints.Add("Wait for third jump", false);
+                    else if (NextEvent <= State.Towers3InOut4)
+                        hints.Add("Avoid in/out, soak tower", false);
+                    else if (NextEvent <= State.Bait3)
+                        hints.Add("Bait", false);
+                    break;
+                case 3:
+                    if (NextEvent <= State.Jump1Stack1)
+                        hints.Add("Wait for first jump -> soak tower", false);
+                    else if (NextEvent <= State.Towers1InOut2)
+                        hints.Add("Avoid in/out, soak tower", false);
+                    else if (NextEvent <= State.Bait1)
+                        hints.Add("Bait", false);
+                    else if (NextEvent <= State.Jump3Stack2)
+                        hints.Add("Bait jump", false);
+                    break;
+            }
+        }
+
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             _nextAOE?.Draw(arena, _boss);
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
+                arena.Actor(player, arena.ColorPlayerGeneric);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, int index)
@@ -34,22 +110,22 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             switch ((SID)actor.Statuses[index].ID)
             {
                 case SID.Jump1:
-                    AssignJumpOrder(module, actor, 0);
-                    break;
-                case SID.Jump2:
                     AssignJumpOrder(module, actor, 1);
                     break;
-                case SID.Jump3:
+                case SID.Jump2:
                     AssignJumpOrder(module, actor, 2);
                     break;
+                case SID.Jump3:
+                    AssignJumpOrder(module, actor, 3);
+                    break;
                 case SID.JumpBackward:
-                    AssignJumpDirection(module, actor, 0);
+                    AssignJumpDirection(module, actor, -1);
                     break;
                 case SID.JumpCenter:
-                    AssignJumpDirection(module, actor, 1);
+                    AssignJumpDirection(module, actor, 0);
                     break;
                 case SID.JumpForward:
-                    AssignJumpDirection(module, actor, 2);
+                    AssignJumpDirection(module, actor, +1);
                     break;
             }
         }
@@ -67,7 +143,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     _nextAOE = _aoeLash;
                     break;
                 case AID.Geirskogul:
-                    ++BaitsStarted;
+                    if (NextEvent is State.Bait1 or State.Bait2 or State.Bait3)
+                        ++NextEvent;
+                    break;
+                case AID.DarkdragonDive:
+                    if (NextEvent is State.Towers2)
+                        ++NextEvent;
                     break;
             }
         }
@@ -80,13 +161,20 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 case AID.GnashingWheel:
                 case AID.LashingWheel:
-                    ++WheelsDone;
-                    _nextAOE = (WheelsDone & 1) == 0 ? null : (_nextAOE == _aoeGnash ? _aoeLash : _aoeGnash);
+                    ++_wheelsDone;
+                    _nextAOE = (_wheelsDone & 1) == 0 ? null : (_nextAOE == _aoeGnash ? _aoeLash : _aoeGnash);
+                    if (NextEvent is State.InOut1 or State.Towers1InOut2 or State.InOut3 or State.Towers3InOut4)
+                        ++NextEvent;
                     break;
                 case AID.DarkHighJump:
                 case AID.DarkSpineshatterDive:
                 case AID.DarkElusiveJump:
-                    ++DivesDone;
+                    if (NextEvent is State.Jump1Stack1 or State.Jump2 or State.Jump3Stack2)
+                        ++NextEvent;
+                    break;
+                case AID.Geirskogul:
+                    if (NextEvent is State.Resolve)
+                        ++NextEvent;
                     break;
             }
         }
@@ -95,14 +183,18 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             int slot = module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
-                _playerRoles[slot] = 3 * order;
+                _playerStates[slot].JumpOrder = order;
+            if (NextEvent is State.AssignOrder)
+                ++NextEvent;
         }
 
         private void AssignJumpDirection(BossModule module, Actor actor, int direction)
         {
             int slot = module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
-                _playerRoles[slot] += direction;
+                _playerStates[slot].JumpDirection = direction;
+            if (NextEvent is State.AssignDirection)
+                ++NextEvent;
         }
     }
 }

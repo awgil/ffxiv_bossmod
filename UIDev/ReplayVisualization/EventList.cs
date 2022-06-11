@@ -24,7 +24,7 @@ namespace UIDev
         {
             foreach (var n in _tree.Node("Full data"))
             {
-                foreach (var no in _tree.Node("Raw ops"))
+                foreach (var no in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(_opListRaw)))
                 {
                     if (_opListRaw == null)
                         _opListRaw = new(_replay, null, _replay.Ops, _scrollTo);
@@ -36,7 +36,7 @@ namespace UIDev
             foreach (var e in _tree.Nodes(_replay.Encounters, e => new($"{ModuleRegistry.TypeForOID(e.OID)}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}")))
             {
                 var moduleType = ModuleRegistry.TypeForOID(e.OID);
-                foreach (var n in _tree.Node("Raw ops"))
+                foreach (var n in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(_opListsFiltered.GetValueOrDefault(e))))
                 {
                     if (!_opListsFiltered.ContainsKey(e))
                         _opListsFiltered[e] = new(_replay, moduleType, _replay.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), _scrollTo);
@@ -257,6 +257,14 @@ namespace UIDev
                         }
                     }
                 }
+            }
+        }
+
+        private void OpListContextMenu(OpList? list)
+        {
+            if (ImGui.MenuItem("Clear filters"))
+            {
+                list?.ClearFilters();
             }
         }
     }

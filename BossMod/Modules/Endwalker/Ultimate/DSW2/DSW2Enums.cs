@@ -109,9 +109,9 @@
         DarkHighJump = 26382, // NidhoggDrake->players, no cast, range 5 aoe
         DarkSpineshatterDive = 26383, // NidhoggDrake->player, no cast, range 5 aoe
         DarkElusiveJump = 26384, // NidhoggDrake->player, no cast, range 5 aoe
-        DarkdragonDive = 26385, // NidhoggDrake->self, 2.5s cast
+        DarkdragonDive = 26385, // NidhoggDrake->self, 2.5s cast, range 5 tower aoe
         DarkdragonDiveFail = 26395, // Helper->self, no cast, raidwide if tower is not soaked
-        Geirskogul = 26378, // TODO
+        Geirskogul = 26378, // NidhoggDrake->self, 4.5s cast, range 62 width 8 baited rect aoe
     };
 
     public enum SID : uint

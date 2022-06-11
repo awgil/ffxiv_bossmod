@@ -29,7 +29,7 @@
         private void Phase3Nidhogg(uint id)
         {
             P3FinalChorus(id);
-            P3DiveFromGrace(id + 0x10000, 13.2f);
+            P3Dives(id + 0x10000, 13.2f);
             SimpleState(id + 0xF0000, 100, "???");
         }
 
@@ -142,7 +142,7 @@
                 .SetHint(StateMachine.StateHint.DowntimeEnd | StateMachine.StateHint.Raidwide); // final chorus raidwide happens together with boss becoming targetable
         }
 
-        private void P3DiveFromGrace(uint id, float delay)
+        private void P3Dives(uint id, float delay)
         {
             ActorCastStart(id, _module.BossP3, AID.DiveFromGrace, delay)
                 .SetHint(StateMachine.StateHint.BossCastStart);
@@ -152,13 +152,23 @@
 
             ActorCastStartMulti(id + 0x10, _module.BossP3, new AID[] { AID.GnashAndLash, AID.LashAndGnash }, 2.1f)
                 .SetHint(StateMachine.StateHint.BossCastStart);
-            ActorCastEnd(id + 0x11, _module.BossP3, 7.6f, "Stack + Dive 1")
+            ActorCastEnd(id + 0x11, _module.BossP3, 7.6f, "Stack + Jump 1")
                 .SetHint(StateMachine.StateHint.BossCastEnd | StateMachine.StateHint.Raidwide);
 
-            ComponentCondition<P3DiveFromGrace>(id + 0x20, 3.7f, comp => comp.WheelsDone >= 1, "In/out 1");
-            ComponentCondition<P3DiveFromGrace>(id + 0x30, 3.1f, comp => comp.WheelsDone >= 2, "Towers 1 + In/out 2");
-            ComponentCondition<P3DiveFromGrace>(id + 0x40, 2.5f, comp => comp.BaitsStarted >= 3);
-            ComponentCondition<P3DiveFromGrace>(id + 0x50, 0.8f, comp => comp.DivesDone >= 5, "Dive 2");
+            ComponentCondition<P3DiveFromGrace>(id + 0x20, 3.7f, comp => comp.NextEvent > P3DiveFromGrace.State.InOut1, "In/out 1");
+            ComponentCondition<P3DiveFromGrace>(id + 0x30, 3.1f, comp => comp.NextEvent > P3DiveFromGrace.State.Towers1InOut2, "Towers 1 + In/out 2");
+            ComponentCondition<P3DiveFromGrace>(id + 0x40, 2.5f, comp => comp.NextEvent > P3DiveFromGrace.State.Bait1);
+            ComponentCondition<P3DiveFromGrace>(id + 0x50, 0.8f, comp => comp.NextEvent > P3DiveFromGrace.State.Jump2, "Jump 2");
+            // somewhere here second L&G starts, and 3's go to their positions...
+            ComponentCondition<P3DiveFromGrace>(id + 0x60, 7f, comp => comp.NextEvent > P3DiveFromGrace.State.Towers2, "Towers 2");
+            ComponentCondition<P3DiveFromGrace>(id + 0x70, 3f, comp => comp.NextEvent > P3DiveFromGrace.State.Bait2);
+            ComponentCondition<P3DiveFromGrace>(id + 0x80, 4f, comp => comp.NextEvent > P3DiveFromGrace.State.Jump3Stack2, "Stack + Jump 3") // L&G2 cast end
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ComponentCondition<P3DiveFromGrace>(id + 0x90, 4f, comp => comp.NextEvent > P3DiveFromGrace.State.InOut3, "In/out 3");
+            ComponentCondition<P3DiveFromGrace>(id + 0xA0, 4f, comp => comp.NextEvent > P3DiveFromGrace.State.Towers3InOut4, "Towers 3 + In/out 4");
+            ComponentCondition<P3DiveFromGrace>(id + 0xB0, 3f, comp => comp.NextEvent > P3DiveFromGrace.State.Bait3);
+            ComponentCondition<P3DiveFromGrace>(id + 0xC0, 3f, comp => comp.NextEvent > P3DiveFromGrace.State.Resolve, "Dive resolve")
+                .DeactivateOnExit<P3DiveFromGrace>();
         }
     }
 }

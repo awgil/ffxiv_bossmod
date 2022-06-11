@@ -182,6 +182,8 @@ namespace UIDev
                 var src = _player.WorldState.Actors.Find(s.SourceID);
                 if (src?.Type == ActorType.Player || src?.Type == ActorType.Pet)
                     continue;
+                if (s.ID is 360 or 362 or 364 or 365 or 413 or 902)
+                    continue; // skip FC buff
                 ImGui.TextUnformatted($"{Utils.StatusString(s.ID)} ({s.Extra}): {Utils.StatusTimeString(s.ExpireAt, _player.WorldState.CurrentTime)}");
                 ImGui.SameLine();
             }
