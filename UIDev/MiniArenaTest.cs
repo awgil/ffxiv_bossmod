@@ -18,7 +18,7 @@ namespace UIDev
         private Vector3 _playerPos = new(100, 0, 90);
         private Vector3 _conePos = new(100, 0, 80);
         private Vector2 _coneRadius = new(0, 100);
-        private Vector2 _coneAngles = new(24, 322);
+        private Vector2 _coneAngles = new(185, 161);
 
         public void Dispose()
         {
