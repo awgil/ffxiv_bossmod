@@ -27,6 +27,8 @@ namespace BossMod
         private float _cameraCosAzimuth = 1;
         private Clip2D _clipper = new();
 
+        private float WorldApproxError => CurveApprox.ScreenError / ScreenHalfSize * WorldHalfSize;
+
         // useful points
         public Vector3 WorldN  => WorldCenter + new Vector3(             0, 0, -WorldHalfSize);
         public Vector3 WorldNE => WorldCenter + new Vector3(+WorldHalfSize, 0, -WorldHalfSize);
@@ -75,11 +77,11 @@ namespace BossMod
 
             if (IsCircle)
             {
-                _clipper.SetClipPoly(CurveApprox.Circle(ScreenCenter, ScreenHalfSize));
+                _clipper.SetClipPoly(CurveApprox.Circle(WorldCenter.XZ(), WorldHalfSize, WorldApproxError));
             }
             else
             {
-                _clipper.SetClipPoly(new[] { WorldPositionToScreenPosition(WorldNW), WorldPositionToScreenPosition(WorldNE), WorldPositionToScreenPosition(WorldSE), WorldPositionToScreenPosition(WorldSW) });
+                _clipper.SetClipPoly(new[] { WorldNW.XZ(), WorldNE.XZ(), WorldSE.XZ(), WorldSW.XZ() });
             }
 
             var wmin = ImGui.GetWindowPos();
@@ -96,9 +98,11 @@ namespace BossMod
 
         // if you are 100% sure your primitive does not need clipping, you can use drawlist api directly
         // this helper allows converting world-space coords to screen-space ones
-        public Vector2 WorldPositionToScreenPosition(Vector3 world)
+        public Vector2 WorldPositionToScreenPosition(Vector3 world) => WorldPositionToScreenPosition(world.XZ());
+
+        public Vector2 WorldPositionToScreenPosition(Vector2 worldXZ)
         {
-            return ScreenCenter + WorldOffsetToScreenOffset(world - WorldCenter);
+            return ScreenCenter + WorldOffsetToScreenOffset(worldXZ - WorldCenter.XZ());
             //var viewPos = SharpDX.Vector3.Transform(new SharpDX.Vector3(worldOffset.X, 0, worldOffset.Z), CameraView);
             //return ScreenHalfSize * new Vector2(viewPos.X / viewPos.Z, viewPos.Y / viewPos.Z);
             //return ScreenHalfSize * new Vector2(viewPos.X, viewPos.Y) / WorldHalfSize;
@@ -112,9 +116,9 @@ namespace BossMod
             return new(x, y);
         }
 
-        private Vector2 WorldOffsetToScreenOffset(Vector3 worldOffset)
+        private Vector2 WorldOffsetToScreenOffset(Vector2 worldOffset)
         {
-            return ScreenHalfSize *  RotatedCoords(new(worldOffset.X, worldOffset.Z)) / WorldHalfSize;
+            return ScreenHalfSize *  RotatedCoords(worldOffset) / WorldHalfSize;
         }
 
         // unclipped primitive rendering that accept world-space positions; thin convenience wrappers around drawlist api
@@ -192,39 +196,33 @@ namespace BossMod
             if (innerRadius >= outerRadius || innerRadius < 0 || halfAngle <= 0)
                 return;
 
-            var centerScreen = WorldPositionToScreenPosition(center);
-            float innerRadiusScreen = innerRadius / WorldHalfSize * ScreenHalfSize;
-            float outerRadiusScreen = outerRadius / WorldHalfSize * ScreenHalfSize;
-            centerDirection -= _cameraAzimuth;
-
             bool fullCircle = halfAngle >= MathF.PI;
             bool donut = innerRadius > 0;
             var points = (donut, fullCircle) switch
             {
-                (false, false) => CurveApprox.CircleSector(centerScreen, outerRadiusScreen, centerDirection - halfAngle, centerDirection + halfAngle),
-                (false, true) => CurveApprox.Circle(centerScreen, outerRadiusScreen),
-                (true, false) => CurveApprox.DonutSector(centerScreen, innerRadiusScreen, outerRadiusScreen, centerDirection - halfAngle, centerDirection + halfAngle),
-                (true, true) => CurveApprox.DonutSector(centerScreen, innerRadiusScreen, outerRadiusScreen, 0, 2 * MathF.PI),
+                (false, false) => CurveApprox.CircleSector(center.XZ(), outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, WorldApproxError),
+                (false, true) => CurveApprox.Circle(center.XZ(), outerRadius, WorldApproxError),
+                (true, false) => CurveApprox.DonutSector(center.XZ(), innerRadius, outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, WorldApproxError),
+                (true, true) => CurveApprox.DonutSector(center.XZ(), innerRadius, outerRadius, 0, 2 * MathF.PI, WorldApproxError),
             };
             ClipAndFill(points, color);
         }
 
         public void ZoneCircle(Vector3 center, float radius, uint color)
         {
-            ClipAndFill(CurveApprox.Circle(WorldPositionToScreenPosition(center), radius / WorldHalfSize * ScreenHalfSize), color);
+            ClipAndFill(CurveApprox.Circle(center.XZ(), radius, WorldApproxError), color);
         }
 
         public void ZoneDonut(Vector3 center, float innerRadius, float outerRadius, uint color)
         {
             if (innerRadius >= outerRadius || innerRadius < 0)
                 return;
-            ClipAndFill(CurveApprox.DonutSector(WorldPositionToScreenPosition(center), innerRadius / WorldHalfSize * ScreenHalfSize, outerRadius / WorldHalfSize * ScreenHalfSize, 0, 2 * MathF.PI), color);
+            ClipAndFill(CurveApprox.DonutSector(center.XZ(), innerRadius, outerRadius, 0, 2 * MathF.PI, WorldApproxError), color);
         }
 
         public void ZoneTri(Vector3 a, Vector3 b, Vector3 c, uint color)
         {
-            var tri = new[] { WorldPositionToScreenPosition(a), WorldPositionToScreenPosition(b), WorldPositionToScreenPosition(c) };
-            ClipAndFill(tri, color);
+            ClipAndFill(new[] { a.XZ(), b.XZ(), c.XZ() }, color);
         }
 
         public void ZoneIsoscelesTri(Vector3 apex, Vector3 height, Vector3 halfBase, uint color)
@@ -241,8 +239,7 @@ namespace BossMod
 
         public void ZoneQuad(Vector3 a, Vector3 b, Vector3 c, Vector3 d, uint color)
         {
-            var quad = new[] { WorldPositionToScreenPosition(a), WorldPositionToScreenPosition(b), WorldPositionToScreenPosition(c), WorldPositionToScreenPosition(d) };
-            ClipAndFill(quad, color);
+            ClipAndFill(new[] { a.XZ(), b.XZ(), c.XZ(), d.XZ() }, color);
         }
 
         public void ZoneQuad(Vector3 origin, Vector3 direction, float lenFront, float lenBack, float halfWidth, uint color)
@@ -361,7 +358,7 @@ namespace BossMod
 
             var tri = _clipper.ClipAndTriangulate(poly);
             for (int i = 0; i < tri.Count; i += 3)
-                drawlist.AddTriangleFilled(tri[i], tri[i + 1], tri[i + 2], color);
+                drawlist.AddTriangleFilled(WorldPositionToScreenPosition(tri[i]), WorldPositionToScreenPosition(tri[i + 1]), WorldPositionToScreenPosition(tri[i + 2]), color);
 
             drawlist.Flags = restoreFlags;
         }
