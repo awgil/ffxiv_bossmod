@@ -28,43 +28,6 @@ namespace BossMod
             return true;
         }
 
-        // note: startAngle assumed to be in [-pi, pi), length in (0, pi]
-        public static List<Vector2> BuildTesselatedConvexCone(Vector2 center, float radius, float startAngle, float length)
-        {
-            List<Vector2> tesselated = new();
-            if (length < MathF.PI)
-                tesselated.Add(center);
-            int tessNumSegments = CalculateTesselationSegments(radius, length);
-            for (int i = 0; i <= tessNumSegments; ++i) // note: include last point
-                tesselated.Add(PolarToCartesian(center, radius, startAngle + (float)i / (float)tessNumSegments * length));
-            return tesselated;
-        }
-
-        public static List<Vector2> BuildTesselatedCircle(Vector2 center, float radius)
-        {
-            List<Vector2> tesselated = new();
-            int tessNumSegments = CalculateTesselationSegments(radius, 2 * MathF.PI);
-            for (int i = 0; i < tessNumSegments; ++i) // note: do not include last point
-                tesselated.Add(PolarToCartesian(center, radius, (float)i / (float)tessNumSegments * 2 * MathF.PI));
-            return tesselated;
-        }
-
-        public static int CalculateTesselationSegments(float radius, float angularLength)
-        {
-            // select max angle such that tesselation error is smaller than desired
-            // error = R * (1 - cos(phi/2)) => cos(phi/2) = 1 - error/R ~= 1 - (phi/2)^2 / 2 => phi ~= sqrt(8*error/R)
-            float tessAngle = MathF.Sqrt(2f / radius); //MathF.Acos(1 - MathF.Min(0.3f / radius, 1));
-            int tessNumSegments = (int)MathF.Ceiling(angularLength / tessAngle);
-            tessNumSegments = ((tessNumSegments + 1) / 2) * 2; // round up to even for symmetry
-            return Math.Clamp(tessNumSegments, 4, 512);
-        }
-
-        // phi=0 corresponds to (r, 0), then phi increases counterclockwise - so phi=pi/2 corresponds to (0, -r)
-        public static Vector2 PolarToCartesian(Vector2 center, float r, float phi)
-        {
-            return center + r * new Vector2(MathF.Cos(phi), -MathF.Sin(phi));
-        }
-
         public static Vector3 DirectionToVec3(float direction)
         {
             return new(MathF.Sin(direction), 0, MathF.Cos(direction));

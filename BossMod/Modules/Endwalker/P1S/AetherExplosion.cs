@@ -45,8 +45,8 @@ namespace BossMod.Endwalker.P1S
             float start = _explodingCells == Cell.Blue ? 0 : MathF.PI / 4;
             for (int i = 0; i < 4; ++i)
             {
-                arena.ZoneCone(arena.WorldCenter, 0, P1S.InnerCircleRadius, start, start + MathF.PI / 4, arena.ColorAOE);
-                arena.ZoneCone(arena.WorldCenter, P1S.InnerCircleRadius, arena.WorldHalfSize, start + MathF.PI / 4, start + MathF.PI / 2, arena.ColorAOE);
+                arena.ZoneCone(arena.WorldCenter, 0, P1S.InnerCircleRadius, start + MathF.PI / 8, MathF.PI / 8, arena.ColorAOE);
+                arena.ZoneCone(arena.WorldCenter, P1S.InnerCircleRadius, arena.WorldHalfSize, start + MathF.PI * 3 / 8, MathF.PI / 8, arena.ColorAOE);
                 start += MathF.PI / 2;
             }
         }

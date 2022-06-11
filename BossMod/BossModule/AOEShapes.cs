@@ -49,7 +49,7 @@ namespace BossMod
 
         public override void Draw(MiniArena arena, Vector3 origin, float rotation)
         {
-            arena.ZoneCone(origin, 0, Radius, rotation + DirectionOffset - HalfAngle, rotation + DirectionOffset + HalfAngle, arena.ColorAOE);
+            arena.ZoneCone(origin, 0, Radius, rotation + DirectionOffset, HalfAngle, arena.ColorAOE);
         }
 
         public override void Outline(MiniArena arena, Vector3 origin, float rotation)

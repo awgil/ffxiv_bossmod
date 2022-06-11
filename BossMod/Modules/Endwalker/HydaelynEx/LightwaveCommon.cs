@@ -47,7 +47,7 @@ namespace BossMod.Endwalker.HydaelynEx
             var dist = toBlock.Length();
             var center = GeometryUtils.DirectionFromVec3(toBlock);
             var halfAngle = MathF.Asin(_losRadius / dist);
-            arena.ZoneCone(origin, dist, 40, center - halfAngle, center + halfAngle, arena.ColorSafeFromAOE);
+            arena.ZoneCone(origin, dist, 40, center, halfAngle, arena.ColorSafeFromAOE);
         }
     }
 }

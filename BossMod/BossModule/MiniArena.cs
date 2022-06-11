@@ -75,7 +75,7 @@ namespace BossMod
 
             if (IsCircle)
             {
-                _clipper.SetClipPoly(GeometryUtils.BuildTesselatedCircle(ScreenCenter, ScreenHalfSize));
+                _clipper.SetClipPoly(CurveApprox.Circle(ScreenCenter, ScreenHalfSize));
             }
             else
             {
@@ -186,83 +186,44 @@ namespace BossMod
         }
 
         // draw zones - these are filled primitives clipped to various borders
-        public void ZoneCone(Vector3 center, float innerRadius, float outerRadius, float angleStart, float angleEnd, uint color)
+        public void ZoneCone(Vector3 center, float innerRadius, float outerRadius, float centerDirection, float halfAngle, uint color)
         {
             // TODO: think of a better way to do that (analytical clipping?)
-            if (innerRadius >= outerRadius || innerRadius < 0)
+            if (innerRadius >= outerRadius || innerRadius < 0 || halfAngle <= 0)
                 return;
-            if (angleStart == angleEnd)
-                return;
-            if (angleStart > angleEnd)
-            {
-                var tmp = angleEnd;
-                angleEnd = angleStart;
-                angleStart = tmp;
-            }
-
-            var angleLength = angleEnd - angleStart;
-            bool fullCircle = angleLength >= 2 * MathF.PI;
-            if (fullCircle)
-                angleLength = 2 * MathF.PI;
-
-            if (innerRadius == 0 && fullCircle)
-            {
-                ZoneCircle(center, outerRadius, color);
-                return;
-            }
-
-            // convert angles to screen coords and normalize
-            angleStart -= _cameraAzimuth + MathF.PI / 2;
-            angleStart %= 2 * MathF.PI;
-            if (angleStart < -MathF.PI)
-                angleStart += 2 * MathF.PI;
-            else if (angleStart > MathF.PI)
-                angleStart -= 2 * MathF.PI;
-            // at this point, angleStart is in [-pi, pi) and angleLength is in (0, 2pi]
 
             var centerScreen = WorldPositionToScreenPosition(center);
             float innerRadiusScreen = innerRadius / WorldHalfSize * ScreenHalfSize;
             float outerRadiusScreen = outerRadius / WorldHalfSize * ScreenHalfSize;
+            centerDirection -= _cameraAzimuth;
 
-            int innerSegments = innerRadiusScreen > 0 ? GeometryUtils.CalculateTesselationSegments(innerRadiusScreen, angleLength) : 0;
-            int outerSegments = GeometryUtils.CalculateTesselationSegments(outerRadiusScreen, angleLength);
-
-            List<Vector2> tesselated = new();
-            if (innerSegments == 0)
+            bool fullCircle = halfAngle >= MathF.PI;
+            bool donut = innerRadius > 0;
+            var points = (donut, fullCircle) switch
             {
-                tesselated.Add(centerScreen);
-            }
-            else
-            {
-                for (int i = 0; i < innerSegments; ++i)
-                {
-                    tesselated.Add(GeometryUtils.PolarToCartesian(centerScreen, innerRadiusScreen, angleStart + (float)i / (float)innerSegments * angleLength));
-                }
-                tesselated.Add(GeometryUtils.PolarToCartesian(centerScreen, innerRadiusScreen, angleStart + (fullCircle ? 0 : angleLength)));
-            }
-            tesselated.Add(GeometryUtils.PolarToCartesian(centerScreen, outerRadiusScreen, angleStart + (fullCircle ? 0 : angleLength)));
-            for (int i = outerSegments - 1; i >= 0; --i)
-            {
-                tesselated.Add(GeometryUtils.PolarToCartesian(centerScreen, outerRadiusScreen, angleStart + (float)i / (float)outerSegments * angleLength));
-            }
-
-            ClipAndFill(tesselated, color);
+                (false, false) => CurveApprox.CircleSector(centerScreen, outerRadiusScreen, centerDirection - halfAngle, centerDirection + halfAngle),
+                (false, true) => CurveApprox.Circle(centerScreen, outerRadiusScreen),
+                (true, false) => CurveApprox.DonutSector(centerScreen, innerRadiusScreen, outerRadiusScreen, centerDirection - halfAngle, centerDirection + halfAngle),
+                (true, true) => CurveApprox.DonutSector(centerScreen, innerRadiusScreen, outerRadiusScreen, 0, 2 * MathF.PI),
+            };
+            ClipAndFill(points, color);
         }
 
         public void ZoneCircle(Vector3 center, float radius, uint color)
         {
-            var poly = GeometryUtils.BuildTesselatedCircle(WorldPositionToScreenPosition(center), radius / WorldHalfSize * ScreenHalfSize);
-            ClipAndFill(poly, color);
+            ClipAndFill(CurveApprox.Circle(WorldPositionToScreenPosition(center), radius / WorldHalfSize * ScreenHalfSize), color);
         }
 
         public void ZoneDonut(Vector3 center, float innerRadius, float outerRadius, uint color)
         {
-            ZoneCone(center, innerRadius, outerRadius, 0, 2 * MathF.PI, color);
+            if (innerRadius >= outerRadius || innerRadius < 0)
+                return;
+            ClipAndFill(CurveApprox.DonutSector(WorldPositionToScreenPosition(center), innerRadius / WorldHalfSize * ScreenHalfSize, outerRadius / WorldHalfSize * ScreenHalfSize, 0, 2 * MathF.PI), color);
         }
 
         public void ZoneTri(Vector3 a, Vector3 b, Vector3 c, uint color)
         {
-            var tri = new Vector2[] { WorldPositionToScreenPosition(a), WorldPositionToScreenPosition(b), WorldPositionToScreenPosition(c) };
+            var tri = new[] { WorldPositionToScreenPosition(a), WorldPositionToScreenPosition(b), WorldPositionToScreenPosition(c) };
             ClipAndFill(tri, color);
         }
 
@@ -280,7 +241,7 @@ namespace BossMod
 
         public void ZoneQuad(Vector3 a, Vector3 b, Vector3 c, Vector3 d, uint color)
         {
-            var quad = new Vector2[] { WorldPositionToScreenPosition(a), WorldPositionToScreenPosition(b), WorldPositionToScreenPosition(c), WorldPositionToScreenPosition(d) };
+            var quad = new[] { WorldPositionToScreenPosition(a), WorldPositionToScreenPosition(b), WorldPositionToScreenPosition(c), WorldPositionToScreenPosition(d) };
             ClipAndFill(quad, color);
         }
 

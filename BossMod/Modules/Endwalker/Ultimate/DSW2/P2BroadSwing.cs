@@ -77,7 +77,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private void DrawZone(MiniArena arena, Actor caster, int order, uint color)
         {
             var dir = caster.Rotation + AngleOffset(order);
-            arena.ZoneCone(caster.Position, 0, _aoe.Radius, dir - _aoe.HalfAngle, dir + _aoe.HalfAngle, color);
+            arena.ZoneCone(caster.Position, 0, _aoe.Radius, dir, _aoe.HalfAngle, color);
         }
     }
 }
