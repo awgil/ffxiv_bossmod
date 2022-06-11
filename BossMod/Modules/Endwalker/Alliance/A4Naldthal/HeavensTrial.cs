@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
         private List<(Actor Caster, Actor Target)> _cones = new();
 
         private static float _stackRadius = 6;
-        private static AOEShapeCone _coneShape = new(60, MathF.PI / 12);
+        private static AOEShapeCone _coneShape = new(60, Angle.Radians(MathF.PI / 12));
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
@@ -18,7 +18,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
             {
                 hints.Add("Stack!", !GeometryUtils.PointInCircle(actor.Position - _stackTarget.Position, _stackRadius));
             }
-            if (_cones.Any(cone => actor != cone.Target && _coneShape.Check(actor.Position, cone.Caster.Position, GeometryUtils.DirectionFromVec3(cone.Target.Position - cone.Caster.Position))))
+            if (_cones.Any(cone => actor != cone.Target && _coneShape.Check(actor.Position, cone.Caster.Position, Angle.FromDirection(cone.Target.Position - cone.Caster.Position))))
             {
                 hints.Add("GTFO from cone!");
             }
@@ -27,7 +27,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var cone in _cones)
-                _coneShape.Draw(arena, cone.Caster.Position, GeometryUtils.DirectionFromVec3(cone.Target.Position - cone.Caster.Position));
+                _coneShape.Draw(arena, cone.Caster.Position, Angle.FromDirection(cone.Target.Position - cone.Caster.Position));
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

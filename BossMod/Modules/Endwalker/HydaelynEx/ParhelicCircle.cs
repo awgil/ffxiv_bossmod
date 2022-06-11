@@ -29,29 +29,29 @@ namespace BossMod.Endwalker.HydaelynEx
                 {
                     var c = module.Arena.WorldCenter;
                     _positions.Add(c);
-                    _positions.Add(c + _triRadius * GeometryUtils.DirectionToVec3(tri.Rotation + MathF.PI / 3));
-                    _positions.Add(c + _triRadius * GeometryUtils.DirectionToVec3(tri.Rotation + MathF.PI));
-                    _positions.Add(c + _triRadius * GeometryUtils.DirectionToVec3(tri.Rotation - MathF.PI / 3));
-                    _positions.Add(c + _hexRadius * GeometryUtils.DirectionToVec3(hex.Rotation));
-                    _positions.Add(c + _hexRadius * GeometryUtils.DirectionToVec3(hex.Rotation + MathF.PI / 3));
-                    _positions.Add(c + _hexRadius * GeometryUtils.DirectionToVec3(hex.Rotation + 2 * MathF.PI / 3));
-                    _positions.Add(c + _hexRadius * GeometryUtils.DirectionToVec3(hex.Rotation + MathF.PI));
-                    _positions.Add(c + _hexRadius * GeometryUtils.DirectionToVec3(hex.Rotation - 2 * MathF.PI / 3));
-                    _positions.Add(c + _hexRadius * GeometryUtils.DirectionToVec3(hex.Rotation - MathF.PI / 3));
+                    _positions.Add(c + _triRadius * (tri.Rotation + Angle.Radians(MathF.PI / 3)).ToDirection());
+                    _positions.Add(c + _triRadius * (tri.Rotation + Angle.Radians(MathF.PI)).ToDirection());
+                    _positions.Add(c + _triRadius * (tri.Rotation - Angle.Radians(MathF.PI / 3)).ToDirection());
+                    _positions.Add(c + _hexRadius *  hex.Rotation.ToDirection());
+                    _positions.Add(c + _hexRadius * (hex.Rotation + Angle.Radians(MathF.PI / 3)).ToDirection());
+                    _positions.Add(c + _hexRadius * (hex.Rotation + Angle.Radians(2 * MathF.PI / 3)).ToDirection());
+                    _positions.Add(c + _hexRadius * (hex.Rotation + Angle.Radians(MathF.PI)).ToDirection());
+                    _positions.Add(c + _hexRadius * (hex.Rotation - Angle.Radians(2 * MathF.PI / 3)).ToDirection());
+                    _positions.Add(c + _hexRadius * (hex.Rotation - Angle.Radians(MathF.PI / 3)).ToDirection());
                 }
             }
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_positions.Any(p => _aoeShape.Check(actor.Position, p, 0)))
+            if (_positions.Any(p => _aoeShape.Check(actor.Position, p, new())))
                 hints.Add("GTFO from aoe!");
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var p in _positions)
-                _aoeShape.Draw(arena, p, 0);
+                _aoeShape.Draw(arena, p, new());
         }
     }
 }

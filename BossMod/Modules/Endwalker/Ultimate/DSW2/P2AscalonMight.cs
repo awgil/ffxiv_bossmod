@@ -4,7 +4,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 {
     class P2AscalonMight : CommonComponents.CastCounter
     {
-        private static AOEShapeCone _aoe = new(50, MathF.PI / 6);
+        private static AOEShapeCone _aoe = new(50, Angle.Radians(MathF.PI / 6));
 
         public P2AscalonMight() : base(ActionID.MakeSpell(AID.AscalonsMight)) { }
 

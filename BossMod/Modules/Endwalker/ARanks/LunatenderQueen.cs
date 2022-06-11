@@ -31,9 +31,9 @@ namespace BossMod.Endwalker.ARanks.LunatenderQueen
         {
             if (ActiveAOE(module)?.Check(actor.Position, module.PrimaryActor) ?? false)
                 hints.Add("GTFO from aoe!");
-            if ((module.PrimaryActor.CastInfo?.IsSpell(AID.AvertYourEyes) ?? false) && Vector3.Dot(GeometryUtils.DirectionToVec3(actor.Rotation), module.PrimaryActor.Position - actor.Position) > 0)
+            if ((module.PrimaryActor.CastInfo?.IsSpell(AID.AvertYourEyes) ?? false) && Vector3.Dot(actor.Rotation.ToDirection(), module.PrimaryActor.Position - actor.Position) > 0)
                 hints.Add("Look away from boss!");
-            if ((module.PrimaryActor.CastInfo?.IsSpell(AID.AvertYourEyesInverted) ?? false) && Vector3.Dot(GeometryUtils.DirectionToVec3(actor.Rotation), module.PrimaryActor.Position - actor.Position) < 0)
+            if ((module.PrimaryActor.CastInfo?.IsSpell(AID.AvertYourEyesInverted) ?? false) && Vector3.Dot(actor.Rotation.ToDirection(), module.PrimaryActor.Position - actor.Position) < 0)
                 hints.Add("Look at the boss!");
         }
 

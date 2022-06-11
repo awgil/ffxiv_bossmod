@@ -132,7 +132,7 @@ namespace BossMod
         {
             var selfPos = Service.ClientState.LocalPlayer?.Position ?? new();
             var targPos = Service.ClientState.LocalPlayer?.TargetObject?.Position ?? new();
-            var angle = GeometryUtils.DirectionFromVec3(targPos - selfPos);
+            var angle = Angle.FromDirection(targPos - selfPos);
             var ts = FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance();
             DrawTarget("Target", ts->Target, selfPos, angle);
             DrawTarget("Soft target", ts->SoftTarget, selfPos, angle);
@@ -142,15 +142,15 @@ namespace BossMod
             ImGui.TextUnformatted($"UI Mouseover: {(Mouseover.Instance?.Object != null ? Utils.ObjectString(Mouseover.Instance.Object) : "<null>")}");
         }
 
-        private unsafe void DrawTarget(string kind, FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* obj, Vector3 selfPos, float refAngle)
+        private unsafe void DrawTarget(string kind, FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* obj, Vector3 selfPos, Angle refAngle)
         {
             if (obj == null)
                 return;
 
             var dist = (obj->Position - selfPos).Length();
-            var angle = GeometryUtils.DirectionFromVec3(obj->Position - selfPos) - refAngle;
-            var visHalf = MathF.Asin(obj->HitboxRadius / dist);
-            ImGui.TextUnformatted($"{kind}: {Utils.ObjectString(obj->ObjectID)}, hb={obj->HitboxRadius} ({Utils.RadianString(visHalf)}), dist={dist}, angle={Utils.RadianString(angle)} ({Utils.RadianString(Math.Max(0, Math.Abs(angle) - visHalf))})");
+            var angle = Angle.FromDirection(obj->Position - selfPos) - refAngle;
+            var visHalf = Angle.Asin(obj->HitboxRadius / dist);
+            ImGui.TextUnformatted($"{kind}: {Utils.ObjectString(obj->ObjectID)}, hb={obj->HitboxRadius} ({visHalf}), dist={dist}, angle={angle} ({Angle.Radians(Math.Max(0, angle.Abs().Rad - visHalf.Rad))})");
         }
     }
 }

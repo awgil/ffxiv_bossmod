@@ -35,7 +35,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             if (adjPos != pc.Position)
             {
                 arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
-                arena.Actor(adjPos, 0, arena.ColorDanger);
+                arena.Actor(adjPos, new(), arena.ColorDanger);
             }
         }
 
@@ -63,7 +63,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             if (glimpse == null)
                 return actor.Position;
 
-            var dir = GeometryUtils.DirectionToVec3(glimpse.Rotation);
+            var dir = glimpse.Rotation.ToDirection();
             var normal = new Vector3(dir.Z, 0, -dir.X);
             return actor.Position + normal * _knockbackDistance;
         }

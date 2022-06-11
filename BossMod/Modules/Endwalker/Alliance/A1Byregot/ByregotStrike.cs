@@ -6,10 +6,10 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
     {
         private Actor? _jumpCaster;
         private Actor? _knockbackCaster;
-        private float? _coneRotation;
+        private Angle? _coneRotation;
 
         private static AOEShapeCircle _aoeJump = new(8);
-        private static AOEShapeCone _aoeCone = new(90, MathF.PI / 12);
+        private static AOEShapeCone _aoeCone = new(90, Angle.Radians(MathF.PI / 12));
         private static float _knockbackDistance = 18;
 
         public bool Done => _knockbackCaster == null;
@@ -22,7 +22,7 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (_jumpCaster != null && _aoeJump.Check(actor.Position, _jumpCaster.CastInfo!.Location, 0))
+            if (_jumpCaster != null && _aoeJump.Check(actor.Position, _jumpCaster.CastInfo!.Location, new()))
             {
                 hints.Add("GTFO from aoe!");
             }
@@ -30,9 +30,9 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
             if (_coneRotation != null && _knockbackCaster != null)
             {
                 if (_aoeCone.Check(actor.Position, _knockbackCaster.Position, _coneRotation.Value) ||
-                    _aoeCone.Check(actor.Position, _knockbackCaster.Position, _coneRotation.Value + MathF.PI / 2) ||
-                    _aoeCone.Check(actor.Position, _knockbackCaster.Position, _coneRotation.Value + MathF.PI) ||
-                    _aoeCone.Check(actor.Position, _knockbackCaster.Position, _coneRotation.Value - MathF.PI / 2))
+                    _aoeCone.Check(actor.Position, _knockbackCaster.Position, _coneRotation.Value + Angle.Radians(MathF.PI / 2)) ||
+                    _aoeCone.Check(actor.Position, _knockbackCaster.Position, _coneRotation.Value + Angle.Radians(MathF.PI)) ||
+                    _aoeCone.Check(actor.Position, _knockbackCaster.Position, _coneRotation.Value - Angle.Radians(MathF.PI / 2)))
                 {
                     hints.Add("GTFO from cones!");
                 }
@@ -52,15 +52,15 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
         {
             if (_jumpCaster != null)
             {
-                _aoeJump.Draw(arena, _jumpCaster.CastInfo!.Location, 0);
+                _aoeJump.Draw(arena, _jumpCaster.CastInfo!.Location, new());
             }
 
             if (_coneRotation != null && _knockbackCaster != null)
             {
                 _aoeCone.Draw(arena, _knockbackCaster.Position, _coneRotation.Value);
-                _aoeCone.Draw(arena, _knockbackCaster.Position, _coneRotation.Value + MathF.PI / 2);
-                _aoeCone.Draw(arena, _knockbackCaster.Position, _coneRotation.Value + MathF.PI);
-                _aoeCone.Draw(arena, _knockbackCaster.Position, _coneRotation.Value - MathF.PI / 2);
+                _aoeCone.Draw(arena, _knockbackCaster.Position, _coneRotation.Value + Angle.Radians(MathF.PI / 2));
+                _aoeCone.Draw(arena, _knockbackCaster.Position, _coneRotation.Value + Angle.Radians(MathF.PI));
+                _aoeCone.Draw(arena, _knockbackCaster.Position, _coneRotation.Value - Angle.Radians(MathF.PI / 2));
             }
         }
 
@@ -72,7 +72,7 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
                 if (adjPos != pc.Position)
                 {
                     arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
-                    arena.Actor(adjPos, 0, arena.ColorDanger);
+                    arena.Actor(adjPos, new(), arena.ColorDanger);
                 }
             }
         }

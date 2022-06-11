@@ -34,7 +34,7 @@ namespace BossMod.Endwalker.Alliance.A2Rhalgr
 
     class BronzeLightning : CommonComponents.SelfTargetedAOE
     {
-        public BronzeLightning() : base(ActionID.MakeSpell(AID.BronzeLightning), new AOEShapeCone(50, MathF.PI / 8), 4) { }
+        public BronzeLightning() : base(ActionID.MakeSpell(AID.BronzeLightning), new AOEShapeCone(50, Angle.Radians(MathF.PI / 8)), 4) { }
     }
 
     // TODO: show knockback hints, lightning hints, etc... need to draw complex arena shape though

@@ -153,11 +153,11 @@ namespace UIDev
         private void DrawCommonColumns(Actor actor)
         {
             var pos = actor.Position;
-            var rot = actor.Rotation / MathF.PI * 180;
+            var rot = actor.Rotation.Deg;
             ImGui.TableNextColumn(); ImGui.DragFloat("###X", ref pos.X, 0.25f, 80, 120);
             ImGui.TableNextColumn(); ImGui.DragFloat("###Z", ref pos.Z, 0.25f, 80, 120);
             ImGui.TableNextColumn(); ImGui.DragFloat("###Rot", ref rot, 1, -180, 180);
-            _player.WorldState.Actors.Move(actor, new(pos, rot / 180 * MathF.PI));
+            _player.WorldState.Actors.Move(actor, new(pos, Angle.Degrees(rot).Rad));
 
             ImGui.TableNextColumn();
             if (actor.IsDead)

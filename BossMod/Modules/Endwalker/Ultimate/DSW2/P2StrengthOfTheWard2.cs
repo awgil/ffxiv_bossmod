@@ -13,7 +13,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public bool RageDone { get; private set; }
         public bool TowersDone { get; private set; }
         private BitMask _playersWithIcons;
-        private float _dirToBoss;
+        private Angle _dirToBoss;
         private List<Actor> _chargeSources = new();
         private List<Actor> _voidzones = new();
         private List<Actor> _towers = new();
@@ -32,12 +32,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             Vector3 offset = new();
             foreach (var s in _chargeSources)
                 offset += s.Position - module.Arena.WorldCenter;
-            _dirToBoss = GeometryUtils.DirectionFromVec3(offset) + MathF.PI;
+            _dirToBoss = Angle.FromDirection(offset) + Angle.Radians(MathF.PI);
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (_voidzones.Any(v => _voidzoneAOE.Check(actor.Position, v.CastInfo!.Location, 0)))
+            if (_voidzones.Any(v => _voidzoneAOE.Check(actor.Position, v.CastInfo!.Location, new())))
                 hints.Add($"GTFO from voidzone aoe!");
 
             bool isTank = actor.Role == Role.Tank;
@@ -84,7 +84,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             foreach (var v in _voidzones)
             {
-                _voidzoneAOE.Draw(arena, v.CastInfo!.Location, 0);
+                _voidzoneAOE.Draw(arena, v.CastInfo!.Location, new());
             }
 
             foreach (var source in _chargeSources)
@@ -110,9 +110,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
             if (pcIsLeapTarget && !LeapsDone)
             {
-                DrawSafeSpot(arena, _dirToBoss + MathF.PI / 2);
-                DrawSafeSpot(arena, _dirToBoss + MathF.PI);
-                DrawSafeSpot(arena, _dirToBoss - MathF.PI / 2);
+                DrawSafeSpot(arena, _dirToBoss + Angle.Radians(MathF.PI / 2));
+                DrawSafeSpot(arena, _dirToBoss + Angle.Radians(MathF.PI));
+                DrawSafeSpot(arena, _dirToBoss - Angle.Radians(MathF.PI / 2));
             }
             if (!pcIsLeapTarget && !RageDone)
             {
@@ -229,9 +229,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             return false;
         }
 
-        private void DrawSafeSpot(MiniArena arena, float dir)
+        private void DrawSafeSpot(MiniArena arena, Angle dir)
         {
-            arena.AddCircle(arena.WorldCenter + 20 * GeometryUtils.DirectionToVec3(dir), 2, arena.ColorSafe);
+            arena.AddCircle(arena.WorldCenter + 20 * dir.ToDirection(), 2, arena.ColorSafe);
         }
     }
 }

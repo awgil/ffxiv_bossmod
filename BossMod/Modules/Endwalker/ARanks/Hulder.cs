@@ -19,7 +19,7 @@ namespace BossMod.Endwalker.ARanks.Hulder
 
     public class Mechanics : BossModule.Component
     {
-        private AOEShapeCone _layOfMislaidMemory = new(30, MathF.PI / 3);
+        private AOEShapeCone _layOfMislaidMemory = new(30, Angle.Radians(MathF.PI / 3));
         private AOEShapeRect _tempestuousWrath = new(0, 4);
         private AOEShapeDonut _rottingElegy = new(5, 50);
 

@@ -28,9 +28,9 @@ namespace BossMod.Endwalker.ZodiarkEx
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (RotatedBirds(module).Any(b => _birdAOE.Check(actor.Position, b, 0)) || RotatedBehemoths(module).Any(b => _behemothAOE.Check(actor.Position, b, 0)))
+            if (RotatedBirds(module).Any(b => _birdAOE.Check(actor.Position, b, new())) || RotatedBehemoths(module).Any(b => _behemothAOE.Check(actor.Position, b, new())))
                 hints.Add("GTFO from bird/behemoth aoe!");
-            if (RotatedSnakes(module).Any(s => _snakeAOE.Check(actor.Position, new(s.X, s.Y, s.Z), s.W)))
+            if (RotatedSnakes(module).Any(s => _snakeAOE.Check(actor.Position, new(s.X, s.Y, s.Z), Angle.Radians(s.W))))
                 hints.Add("GTFO from snake aoe!");
             if (_fireLine.Any(c => InFireAOE(module, c, actor.Position)))
                 hints.Add("GTFO from fire aoe!");
@@ -39,11 +39,11 @@ namespace BossMod.Endwalker.ZodiarkEx
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var b in RotatedBirds(module))
-                _birdAOE.Draw(arena, b, 0);
+                _birdAOE.Draw(arena, b, new());
             foreach (var b in RotatedBehemoths(module))
-                _behemothAOE.Draw(arena, b, 0);
+                _behemothAOE.Draw(arena, b, new());
             foreach (var s in RotatedSnakes(module))
-                _snakeAOE.Draw(arena, new(s.X, s.Y, s.Z), s.W);
+                _snakeAOE.Draw(arena, new(s.X, s.Y, s.Z), new(s.W));
             foreach (var c in _fireLine)
                 arena.ZoneTri(module.Arena.WorldCenter + c, RotatedPosition(module, c), arena.WorldCenter, arena.ColorAOE);
         }
@@ -164,7 +164,7 @@ namespace BossMod.Endwalker.ZodiarkEx
             var p2 = RotatedPosition(module, corner);
             var pMid = (p1 + p2) / 2;
             var dirMid = Vector3.Normalize(pMid - module.Arena.WorldCenter);
-            return GeometryUtils.PointInCone(pos - module.Arena.WorldCenter, dirMid, MathF.PI / 4);
+            return GeometryUtils.PointInCone(pos - module.Arena.WorldCenter, dirMid, Angle.Radians(MathF.PI / 4));
         }
     }
 }

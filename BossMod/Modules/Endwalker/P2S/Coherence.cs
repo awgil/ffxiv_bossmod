@@ -31,8 +31,8 @@ namespace BossMod.Endwalker.P2S
             _rayTarget = module.Raid.WithoutSlot().Exclude(_tetherTarget).MinBy(a => (a.Position - module.PrimaryActor.Position).LengthSquared());
             if (_rayTarget != null)
             {
-                _rayShape.DirectionOffset = GeometryUtils.DirectionFromVec3(_rayTarget.Position - module.PrimaryActor.Position);
-                _inRay = module.Raid.WithSlot().InShape(_rayShape, module.PrimaryActor.Position, 0).Mask();
+                _rayShape.DirectionOffset = Angle.FromDirection(_rayTarget.Position - module.PrimaryActor.Position);
+                _inRay = module.Raid.WithSlot().InShape(_rayShape, module.PrimaryActor.Position, new()).Mask();
             }
         }
 
@@ -76,7 +76,7 @@ namespace BossMod.Endwalker.P2S
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_rayTarget != null)
-                _rayShape.Draw(arena, module.PrimaryActor.Position, 0);
+                _rayShape.Draw(arena, module.PrimaryActor.Position, new());
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

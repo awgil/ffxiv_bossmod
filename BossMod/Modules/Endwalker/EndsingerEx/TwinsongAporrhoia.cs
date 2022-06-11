@@ -8,10 +8,10 @@ namespace BossMod.Endwalker.EndsingerEx
 
         private int _castsDone;
         private bool _ringsAssigned;
-        private float _centerStartingRotation;
+        private Angle _centerStartingRotation;
         private (Actor? Actor, int Rings)[] _heads = new (Actor?, int)[(int)HeadID.Count];
 
-        private static AOEShapeCone _aoeCenter = new(20, MathF.PI / 2);
+        private static AOEShapeCone _aoeCenter = new(20, Angle.Radians(MathF.PI / 2));
         private static AOEShapeCircle _aoeDanger = new(15);
         private static AOEShapeDonut _aoeSafe = new(5, 15);
 
@@ -25,7 +25,7 @@ namespace BossMod.Endwalker.EndsingerEx
             var center = _heads[(int)HeadID.Center];
             if (center.Actor != null)
             {
-                float rot = _centerStartingRotation - (_castsDone - center.Rings) * MathF.PI / 2;
+                Angle rot = _centerStartingRotation - (_castsDone - center.Rings) * Angle.Radians(MathF.PI / 2);
                 inAOE = _aoeCenter.Check(actor.Position, center.Actor.Position, rot);
             }
 
@@ -52,7 +52,7 @@ namespace BossMod.Endwalker.EndsingerEx
             var center = _heads[(int)HeadID.Center];
             if (center.Actor != null)
             {
-                float rot = _centerStartingRotation - (_castsDone - center.Rings) * MathF.PI / 2;
+                Angle rot = _centerStartingRotation - (_castsDone - center.Rings) * Angle.Radians(MathF.PI / 2);
                 _aoeCenter.Draw(arena, center.Actor.Position, rot);
             }
 

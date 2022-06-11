@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.P4S2
         public State CurState { get; private set; } = State.RangedTowers;
         public int NumJumps { get; private set; } = 0;
         public int NumCones { get; private set; } = 0;
-        private AOEShapeCone _coneAOE = new(50, MathF.PI / 4); // not sure about half-width...
+        private AOEShapeCone _coneAOE = new(50, Angle.Radians(MathF.PI / 4)); // not sure about half-width...
         private List<Actor> _relevantHelpers = new(); // 4 towers -> knockback -> 4 towers
         private Actor? _jumpTarget = null; // either predicted (if jump is imminent) or last actual (if cones are imminent)
         private BitMask _coneTargets;
@@ -89,7 +89,7 @@ namespace BossMod.Endwalker.P4S2
             {
                 foreach ((_, var player) in module.Raid.WithSlot().IncludedInMask(_coneTargets))
                 {
-                    _coneAOE.Draw(arena, module.PrimaryActor.Position, GeometryUtils.DirectionFromVec3(player.Position - module.PrimaryActor.Position));
+                    _coneAOE.Draw(arena, module.PrimaryActor.Position, Angle.FromDirection(player.Position - module.PrimaryActor.Position));
                 }
             }
         }

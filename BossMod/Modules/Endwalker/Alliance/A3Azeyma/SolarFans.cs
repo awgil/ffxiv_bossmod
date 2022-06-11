@@ -38,8 +38,8 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             {
                 foreach (var flame in module.Enemies(OID.WardensFlame))
                 {
-                    var dir = GeometryUtils.DirectionFromVec3(flame.Position - arena.WorldCenter) + MathF.PI / 4;
-                    arena.ZoneCone(arena.WorldCenter, _flightRadiusInner, _flightRadiusOuter, dir, MathF.PI / 4, arena.ColorAOE);
+                    var dir = Angle.FromDirection(flame.Position - arena.WorldCenter) + Angle.Radians(MathF.PI / 4);
+                    arena.ZoneCone(arena.WorldCenter, _flightRadiusInner, _flightRadiusOuter, dir, Angle.Radians(MathF.PI / 4), arena.ColorAOE);
                 }
             }
 
@@ -86,7 +86,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
         private bool ActorInRhythmAOE(Vector3 center, Actor flame, Actor player)
         {
             var playerOffet = player.Position - center;
-            return !GeometryUtils.PointInCircle(playerOffet, _flightRadiusInner) && GeometryUtils.PointInCone(playerOffet, GeometryUtils.DirectionFromVec3(flame.Position - center) + MathF.PI / 4, MathF.PI / 4);
+            return !GeometryUtils.PointInCircle(playerOffet, _flightRadiusInner) && GeometryUtils.PointInCone(playerOffet, Angle.FromDirection(flame.Position - center) + Angle.Radians(MathF.PI / 4), Angle.Radians(MathF.PI / 4));
         }
     }
 }

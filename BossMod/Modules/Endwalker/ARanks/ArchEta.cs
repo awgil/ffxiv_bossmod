@@ -22,7 +22,7 @@ namespace BossMod.Endwalker.ARanks.ArchEta
     {
         private AOEShapeCircle _heavyStomp = new(17);
         private AOEShapeRect _energyWave = new(40, 7);
-        private AOEShapeCone _tailSwipe = new(25, MathF.PI / 4, MathF.PI);
+        private AOEShapeCone _tailSwipe = new(25, Angle.Radians(MathF.PI / 4), Angle.Radians(MathF.PI));
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {

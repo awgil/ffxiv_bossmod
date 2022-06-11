@@ -9,13 +9,13 @@ namespace BossMod.Endwalker.Ultimate.DSW1
     {
         public int NumCasts { get; private set; }
         private List<Actor> _laserTargets = new();
-        private float _coneDir;
+        private Angle _coneDir;
         private List<(Vector3 Pos, Actor? Source)> _tears = new();
         private BitMask _riskyTears;
 
         private static float _linkRadius = 9; // TODO: verify
         private static AOEShapeRect _aoeLaser = new(70, 4);
-        private static AOEShapeCone _aoeCone = new(40, MathF.PI / 3);
+        private static AOEShapeCone _aoeCone = new(40, Angle.Radians(MathF.PI / 3));
 
         public override void Update(BossModule module)
         {
@@ -39,7 +39,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
 
             var coneTarget = module.Raid.WithoutSlot().MinBy(a => (a.Position - module.Arena.WorldCenter).LengthSquared());
-            _coneDir = coneTarget != null ? GeometryUtils.DirectionFromVec3(coneTarget.Position - module.Arena.WorldCenter) : 0;
+            _coneDir = coneTarget != null ? Angle.FromDirection(coneTarget.Position - module.Arena.WorldCenter) : new();
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
@@ -58,7 +58,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
 
             // make sure actor is not clipped by any lasers
-            if (_laserTargets.Exclude(actor).Any(target => _aoeLaser.Check(actor.Position, module.Arena.WorldCenter, GeometryUtils.DirectionFromVec3(target.Position - module.Arena.WorldCenter))))
+            if (_laserTargets.Exclude(actor).Any(target => _aoeLaser.Check(actor.Position, module.Arena.WorldCenter, Angle.FromDirection(target.Position - module.Arena.WorldCenter))))
                 hints.Add("GTFO from laser aoe!");
 
             // make sure actor is either not hit by cone (if is target of a laser) or is hit by a cone (otherwise)
@@ -75,7 +75,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 return;
 
             foreach (var t in _laserTargets)
-                _aoeLaser.Draw(arena, arena.WorldCenter, GeometryUtils.DirectionFromVec3(t.Position - arena.WorldCenter));
+                _aoeLaser.Draw(arena, arena.WorldCenter, Angle.FromDirection(t.Position - arena.WorldCenter));
             _aoeCone.Draw(arena, arena.WorldCenter, _coneDir);
         }
 

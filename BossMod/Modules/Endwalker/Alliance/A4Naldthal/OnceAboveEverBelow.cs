@@ -29,14 +29,14 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (ActiveAOEs().Any(c => _aoe.Check(actor.Position, c, 0)))
+            if (ActiveAOEs().Any(c => _aoe.Check(actor.Position, c, new())))
                 hints.Add("GTFO from aoe!");
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var c in ActiveAOEs())
-                _aoe.Draw(arena, c, 0);
+                _aoe.Draw(arena, c, new());
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)
@@ -74,7 +74,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
                 var caster = module.WorldState.Actors.Find(info.CasterID);
                 if (caster != null)
                 {
-                    var dir = GeometryUtils.DirectionToVec3(caster.Rotation);
+                    var dir = caster.Rotation.ToDirection();
                     var normal = new Vector3(dir.Z, 0, -dir.X);
                     var inst = _active.Find(i => Vector3.Dot(i.Dir, dir) > 0.9f && MathF.Abs(Vector3.Dot(caster.Position - i.Start, normal)) < 1);
                     if (inst != null)

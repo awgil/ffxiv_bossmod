@@ -26,16 +26,6 @@ namespace BossMod
             return true;
         }
 
-        public static Vector3 DirectionToVec3(float direction)
-        {
-            return new(MathF.Sin(direction), 0, MathF.Cos(direction));
-        }
-
-        public static float DirectionFromVec3(Vector3 direction)
-        {
-            return MathF.Atan2(direction.X, direction.Z);
-        }
-
         // zone checking
         public static bool PointInTri(Vector3 p, Vector3 v1, Vector3 v2, Vector3 v3)
         {
@@ -55,9 +45,9 @@ namespace BossMod
             return dotDir >= -lenBack && dotDir <= lenFront && MathF.Abs(dotNormal) <= halfWidth;
         }
 
-        public static bool PointInRect(Vector3 offsetFromOrigin, float direction, float lenFront, float lenBack, float halfWidth)
+        public static bool PointInRect(Vector3 offsetFromOrigin, Angle direction, float lenFront, float lenBack, float halfWidth)
         {
-            return PointInRect(offsetFromOrigin, DirectionToVec3(direction), lenFront, lenBack, halfWidth);
+            return PointInRect(offsetFromOrigin, direction.ToDirection(), lenFront, lenBack, halfWidth);
         }
 
         public static bool PointInRect(Vector3 offsetFromOrigin, Vector3 startToEnd, float halfWidth)
@@ -71,14 +61,14 @@ namespace BossMod
             return offsetFromOrigin.LengthSquared() <= radius * radius;
         }
 
-        public static bool PointInCone(Vector3 offsetFromOrigin, Vector3 direction, float halfAngle)
+        public static bool PointInCone(Vector3 offsetFromOrigin, Vector3 direction, Angle halfAngle)
         {
-            return Vector3.Dot(Vector3.Normalize(offsetFromOrigin), direction) >= MathF.Cos(halfAngle);
+            return Vector3.Dot(Vector3.Normalize(offsetFromOrigin), direction) >= halfAngle.Cos();
         }
 
-        public static bool PointInCone(Vector3 offsetFromOrigin, float direction, float halfAngle)
+        public static bool PointInCone(Vector3 offsetFromOrigin, Angle direction, Angle halfAngle)
         {
-            return PointInCone(offsetFromOrigin, DirectionToVec3(direction), halfAngle);
+            return PointInCone(offsetFromOrigin, direction.ToDirection(), halfAngle);
         }
     }
 }

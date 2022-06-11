@@ -17,10 +17,10 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
         private HashSet<ulong> _orbsKitedExploded = new();
         private List<ulong> _orbKiters = new();
 
-        private float? _magitekOffset;
+        private Angle? _magitekOffset;
 
         private static AOEShapeCircle _aoeCleave = new(2);
-        private static AOEShapeCone _aoeDiffractive = new(12, MathF.PI / 3);
+        private static AOEShapeCone _aoeDiffractive = new(12, Angle.Radians(MathF.PI / 3));
         private static AOEShapeRect _aoeAssaultCannon = new(45, 1);
         private static AOEShapeRect _aoeMagitekRay = new(40, 3);
         //private static float _homingLasersRange = 4;
@@ -53,7 +53,7 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
             }
 
             var mt = module.WorldState.Party[mtSlot];
-            if (slot != mtSlot && mt != null && (_aoeCleave.Check(actor.Position, mt) || _aoeDiffractive.Check(actor.Position, module.PrimaryActor.Position, GeometryUtils.DirectionFromVec3(mt.Position - module.PrimaryActor.Position))))
+            if (slot != mtSlot && mt != null && (_aoeCleave.Check(actor.Position, mt) || _aoeDiffractive.Check(actor.Position, module.PrimaryActor.Position, Angle.FromDirection(mt.Position - module.PrimaryActor.Position))))
             {
                 hints.Add("GTFO from tank!");
             }
@@ -160,7 +160,7 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
                 return;
             if (_magitekOffset != null)
                 module.ReportError(this, "Several concurrent magitek rays");
-            _magitekOffset = ray;
+            _magitekOffset = Angle.Radians(ray.Value);
         }
 
         public override void OnCastFinished(BossModule module, Actor actor)

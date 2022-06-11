@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
         {
             if (actor.CastInfo!.IsSpell(AID.HauteAirFlare))
             {
-                _active.Add(actor.Position + 40 * GeometryUtils.DirectionToVec3(actor.Rotation));
+                _active.Add(actor.Position + 40 * actor.Rotation.ToDirection());
             }
         }
 

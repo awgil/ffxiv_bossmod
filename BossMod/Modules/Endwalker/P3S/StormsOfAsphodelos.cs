@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.P3S
     // state related to storms of asphodelos mechanics
     class StormsOfAsphodelos : Component
     {
-        private AOEShapeCone _windsAOE = new(50, MathF.PI / 6);
+        private AOEShapeCone _windsAOE = new(50, Angle.Radians(MathF.PI / 6));
         private AOEShapeCircle _beaconAOE = new(6);
         private List<Actor> _twisterTargets = new();
         private BitMask _tetherTargets;
@@ -107,13 +107,13 @@ namespace BossMod.Endwalker.P3S
                 }
                 if (_bossTargets[i] && player.Position != module.PrimaryActor.Position)
                 {
-                    _windsAOE.Draw(arena, module.PrimaryActor.Position, GeometryUtils.DirectionFromVec3(player.Position - module.PrimaryActor.Position));
+                    _windsAOE.Draw(arena, module.PrimaryActor.Position, Angle.FromDirection(player.Position - module.PrimaryActor.Position));
                 }
             }
 
             foreach (var (twister, target) in module.Enemies(OID.DarkblazeTwister).Zip(_twisterTargets))
             {
-                _windsAOE.Draw(arena, twister.Position, GeometryUtils.DirectionFromVec3(target.Position - twister.Position));
+                _windsAOE.Draw(arena, twister.Position, Angle.FromDirection(target.Position - twister.Position));
             }
         }
 
@@ -137,7 +137,7 @@ namespace BossMod.Endwalker.P3S
 
         private IEnumerable<(int, Actor)> FindPlayersInWinds(BossModule module, Actor origin, Actor target)
         {
-            return module.Raid.WithSlot().InShape(_windsAOE, origin.Position, GeometryUtils.DirectionFromVec3(target.Position - origin.Position));
+            return module.Raid.WithSlot().InShape(_windsAOE, origin.Position, Angle.FromDirection(target.Position - origin.Position));
         }
     }
 }

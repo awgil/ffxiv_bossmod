@@ -23,9 +23,9 @@ namespace BossMod.Endwalker.HydaelynEx
 
             bool inAOE = CurStance switch
             {
-                Stance.Sword => _aoeSword.Check(actor.Position, module.PrimaryActor.Position, 0) || _aoeSword.Check(actor.Position, module.PrimaryActor.Position, MathF.PI / 2),
-                Stance.Staff => _aoeStaff.Check(actor.Position, module.PrimaryActor.Position, 0),
-                Stance.Chakram => _aoeChakram.Check(actor.Position, module.PrimaryActor.Position, 0),
+                Stance.Sword => _aoeSword.Check(actor.Position, module.PrimaryActor.Position, new()) || _aoeSword.Check(actor.Position, module.PrimaryActor.Position, Angle.Radians(MathF.PI / 2)),
+                Stance.Staff => _aoeStaff.Check(actor.Position, module.PrimaryActor.Position, new()),
+                Stance.Chakram => _aoeChakram.Check(actor.Position, module.PrimaryActor.Position, new()),
                 _ => false
             };
             if (inAOE)
@@ -40,14 +40,14 @@ namespace BossMod.Endwalker.HydaelynEx
             switch (CurStance)
             {
                 case Stance.Sword:
-                    _aoeSword.Draw(arena, module.PrimaryActor.Position, 0);
-                    _aoeSword.Draw(arena, module.PrimaryActor.Position, MathF.PI / 2);
+                    _aoeSword.Draw(arena, module.PrimaryActor.Position, new());
+                    _aoeSword.Draw(arena, module.PrimaryActor.Position, Angle.Radians(MathF.PI / 2));
                     break;
                 case Stance.Staff:
-                    _aoeStaff.Draw(arena, module.PrimaryActor.Position, 0);
+                    _aoeStaff.Draw(arena, module.PrimaryActor.Position, new());
                     break;
                 case Stance.Chakram:
-                    _aoeChakram.Draw(arena, module.PrimaryActor.Position, 0);
+                    _aoeChakram.Draw(arena, module.PrimaryActor.Position, new());
                     break;
             }
         }

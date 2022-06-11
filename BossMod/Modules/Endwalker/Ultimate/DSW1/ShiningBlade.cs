@@ -41,11 +41,11 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                     _flares.Add(bossOffset);
                 }
             }
-            if (_flares.Count == 1 && Utils.AlmostEqual(MathF.Abs(_serAdelphel.Rotation) % (MathF.PI / 2), MathF.PI / 4, 0.1f))
+            if (_flares.Count == 1 && Utils.AlmostEqual(_serAdelphel.Rotation.Abs().Rad % (MathF.PI / 2), MathF.PI / 4, 0.1f))
             {
                 // add remaining flares as soon as boss rotates
                 var startOffset = _flares[0];
-                var endOffset = startOffset + GeometryUtils.DirectionToVec3(_serAdelphel.Rotation) * 31.113f; // 22 * sqrt(2)
+                var endOffset = startOffset + _serAdelphel.Rotation.ToDirection() * 31.113f; // 22 * sqrt(2)
                 AddShortFlares(startOffset, endOffset);
                 AddLongFlares(endOffset, -endOffset);
                 AddShortFlares(-endOffset, -startOffset);
@@ -67,7 +67,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
             else
             {
-                if (_flares.Skip(_doneFlares).Take(7).Any(o => _aoeFlare.Check(actor.Position, module.Arena.WorldCenter + o, 0)))
+                if (_flares.Skip(_doneFlares).Take(7).Any(o => _aoeFlare.Check(actor.Position, module.Arena.WorldCenter + o, new())))
                     hints.Add("GTFO from explosion!");
             }
 
@@ -91,7 +91,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             foreach (var p in module.Enemies(OID.AetherialTear))
                 _aoeTear.Draw(arena, p);
             foreach (var o in _flares.Skip(_doneFlares).Take(7))
-                _aoeFlare.Draw(arena, arena.WorldCenter + o, 0);
+                _aoeFlare.Draw(arena, arena.WorldCenter + o, new());
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -99,7 +99,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             if (_knockbackSource != null)
             {
                 var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _knockbackSource, _knockbackDistance);
-                arena.Actor(adjPos, 0, arena.ColorDanger);
+                arena.Actor(adjPos, new(), arena.ColorDanger);
                 arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
             }
 

@@ -197,23 +197,23 @@ namespace BossMod.Endwalker.P4S2
                 order.Add(source);
         }
 
-        private Vector3 RotateCW(BossModule module, Vector3 pos, float angle, float radius)
+        private Vector3 RotateCW(BossModule module, Vector3 pos, Angle angle, float radius)
         {
-            float dir = GeometryUtils.DirectionFromVec3(pos - module.Arena.WorldCenter) - angle;
-            return module.Arena.WorldCenter + radius * GeometryUtils.DirectionToVec3(dir);
+            var dir = Angle.FromDirection(pos - module.Arena.WorldCenter) - angle;
+            return module.Arena.WorldCenter + radius * dir.ToDirection();
         }
 
         private Vector3 DetermineWaterSafeSpot(BossModule module, Actor source)
         {
             bool ccw = Service.Config.Get<P4S2Config>().Act4WaterBreakCCW;
-            float dir = (ccw ? -3 : 3) * MathF.PI / 4;
+            Angle dir = (ccw ? -3 : 3) * Angle.Radians(MathF.PI / 4);
             return RotateCW(module, source.Position, dir, 18);
         }
 
         private Actor? DetermineTowerToSoak(BossModule module, Actor source)
         {
             bool ccw = Service.Config.Get<P4S2Config>().Act4DarkSoakCCW;
-            var pos = RotateCW(module, source.Position, (ccw ? -1 : 1) * MathF.PI / 4, 18);
+            var pos = RotateCW(module, source.Position, (ccw ? -1 : 1) * Angle.Radians(MathF.PI / 4), 18);
             return _playerTetherSource.Where(x => x != null && GeometryUtils.PointInCircle(x.Position - pos, 4)).FirstOrDefault();
         }
 

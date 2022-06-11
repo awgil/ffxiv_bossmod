@@ -23,7 +23,7 @@ namespace UIDev.Analysis
                 foreach (var (r, a) in infos)
                 {
                     var origin = a.TargetPos;
-                    var dir = GeometryUtils.DirectionToVec3(a.Source?.PosRotAt(a.Timestamp).W ?? 0);
+                    var dir = Angle.Radians(a.Source?.PosRotAt(a.Timestamp).W ?? 0).ToDirection();
                     var left = new Vector3(dir.Z, 0, -dir.X);
                     foreach (var target in AlivePlayersAt(r, a.Timestamp))
                     {
@@ -87,7 +87,7 @@ namespace UIDev.Analysis
         class GazeAnalysis
         {
             private UIPlot _plot = new();
-            private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Angle, bool Hit)> _points = new();
+            private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, Angle Angle, bool Hit)> _points = new();
 
             public GazeAnalysis(List<(Replay, Replay.Action)> infos)
             {
@@ -102,14 +102,14 @@ namespace UIDev.Analysis
                         if (target.Target == null)
                             continue;
                         var posRot = target.Target.PosRotAt(a.Timestamp);
-                        var toSource = GeometryUtils.DirectionFromVec3(src - posRot.XYZ());
-                        var angle = toSource - posRot.W;
-                        if (angle > MathF.PI)
-                            angle -= 2 * MathF.PI;
-                        if (angle < -MathF.PI)
-                            angle += 2 * MathF.PI;
+                        var toSource = Angle.FromDirection(src - posRot.XYZ());
+                        var angle = toSource - Angle.Radians(posRot.W);
+                        if (angle.Rad > MathF.PI)
+                            angle.Rad -= 2 * MathF.PI;
+                        if (angle.Rad < -MathF.PI)
+                            angle.Rad += 2 * MathF.PI;
                         bool hit = !target.Effects.All(eff => eff.Type is ActionEffectType.Miss or ActionEffectType.StartActionCombo);
-                        _points.Add((r, a, target.Target, angle / MathF.PI * 180, hit));
+                        _points.Add((r, a, target.Target, angle, hit));
                     }
                 }
             }
@@ -118,7 +118,7 @@ namespace UIDev.Analysis
             {
                 _plot.Begin();
                 foreach (var i in _points)
-                    _plot.Point(new(i.Angle, 1), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.Name} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
+                    _plot.Point(new(i.Angle.Deg, 1), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.Name} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
                 _plot.End();
             }
         }

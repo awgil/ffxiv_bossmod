@@ -36,11 +36,6 @@ namespace BossMod
         public static bool AlmostEqual(float a, float b, float eps) => MathF.Abs(a - b) <= eps;
         public static bool AlmostEqual(Vector3 a, Vector3 b, float eps) => (a - b).LengthSquared() <= eps * eps;
 
-        public static string RadianString(float rad)
-        {
-            return $"{(rad / Math.PI * 180):f0}";
-        }
-
         public static string Vec3String(Vector3 pos)
         {
             return $"[{pos.X:f2}, {pos.Y:f2}, {pos.Z:f2}]";
@@ -53,7 +48,7 @@ namespace BossMod
 
         public static string PosRotString(Vector4 posRot)
         {
-            return $"[{posRot.X:f2}, {posRot.Y:f2}, {posRot.Z:f2}, {RadianString(posRot.W)}]";
+            return $"[{posRot.X:f2}, {posRot.Y:f2}, {posRot.Z:f2}, {Angle.Radians(posRot.W)}]";
         }
 
         public static string StatusString(uint statusID)

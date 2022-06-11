@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.HydaelynEx
         private Actor? _target;
         private BitMask _otherHit;
 
-        private static AOEShapeCone _aoeShape = new(40, MathF.PI / 4);
+        private static AOEShapeCone _aoeShape = new(40, Angle.Radians(MathF.PI / 4));
 
         public override void Init(BossModule module)
         {
@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.HydaelynEx
             _otherHit.Reset();
             if (_target != null)
             {
-                var dir = GeometryUtils.DirectionFromVec3(_target.Position - module.PrimaryActor.Position);
+                var dir = Angle.FromDirection(_target.Position - module.PrimaryActor.Position);
                 _otherHit = module.Raid.WithSlot().Exclude(_target).InShape(_aoeShape, module.PrimaryActor.Position, dir).Mask();
             }
         }
@@ -49,7 +49,7 @@ namespace BossMod.Endwalker.HydaelynEx
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_target != null)
-                _aoeShape.Draw(arena, module.PrimaryActor.Position, GeometryUtils.DirectionFromVec3(_target.Position - module.PrimaryActor.Position));
+                _aoeShape.Draw(arena, module.PrimaryActor.Position, Angle.FromDirection(_target.Position - module.PrimaryActor.Position));
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

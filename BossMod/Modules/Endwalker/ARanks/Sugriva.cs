@@ -28,7 +28,7 @@ namespace BossMod.Endwalker.ARanks.Sugriva
         private AOEShapeDonut _spark = new(14, 24);
         private AOEShapeCircle _scytheTail = new(17);
         private AOEShapeCircle _rockThrow = new(6);
-        private AOEShapeCone _butcherRip = new(8, MathF.PI / 4); // TODO: verify angle, too little data points so far...
+        private AOEShapeCone _butcherRip = new(8, Angle.Radians(MathF.PI / 4)); // TODO: verify angle, too little data points so far...
         private Actor? _rockThrowTarget;
         private int _numSecondaryRockThrows;
 

@@ -36,8 +36,8 @@ namespace BossMod.Endwalker.HydaelynEx
             if (dist > toCheck.Length())
                 return false;
 
-            var center = GeometryUtils.DirectionFromVec3(toBlock);
-            var halfAngle = MathF.Asin(_losRadius / dist);
+            var center = Angle.FromDirection(toBlock);
+            var halfAngle = Angle.Asin(_losRadius / dist);
             return GeometryUtils.PointInCone(toCheck, center, halfAngle);
         }
 
@@ -45,8 +45,8 @@ namespace BossMod.Endwalker.HydaelynEx
         {
             var toBlock = blocking - origin;
             var dist = toBlock.Length();
-            var center = GeometryUtils.DirectionFromVec3(toBlock);
-            var halfAngle = MathF.Asin(_losRadius / dist);
+            var center = Angle.FromDirection(toBlock);
+            var halfAngle = Angle.Asin(_losRadius / dist);
             arena.ZoneCone(origin, dist, 40, center, halfAngle, arena.ColorSafeFromAOE);
         }
     }

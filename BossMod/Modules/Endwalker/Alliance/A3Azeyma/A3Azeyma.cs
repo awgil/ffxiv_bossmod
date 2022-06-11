@@ -9,17 +9,17 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
 
     class SolarWingsL : CommonComponents.SelfTargetedAOE
     {
-        public SolarWingsL() : base(ActionID.MakeSpell(AID.SolarWingsL), new AOEShapeCone(30, 3 * MathF.PI / 8, MathF.PI / 2)) { }
+        public SolarWingsL() : base(ActionID.MakeSpell(AID.SolarWingsL), new AOEShapeCone(30, Angle.Radians(3 * MathF.PI / 8), Angle.Radians(MathF.PI / 2))) { }
     }
 
     class SolarWingsR : CommonComponents.SelfTargetedAOE
     {
-        public SolarWingsR() : base(ActionID.MakeSpell(AID.SolarWingsR), new AOEShapeCone(30, 3 * MathF.PI / 8, -MathF.PI / 2)) { }
+        public SolarWingsR() : base(ActionID.MakeSpell(AID.SolarWingsR), new AOEShapeCone(30, Angle.Radians(3 * MathF.PI / 8), Angle.Radians(-MathF.PI / 2))) { }
     }
 
     class FleetingSpark : CommonComponents.SelfTargetedAOE
     {
-        public FleetingSpark() : base(ActionID.MakeSpell(AID.FleetingSpark), new AOEShapeCone(60, 3 * MathF.PI / 4)) { }
+        public FleetingSpark() : base(ActionID.MakeSpell(AID.FleetingSpark), new AOEShapeCone(60, Angle.Radians(3 * MathF.PI / 4))) { }
     }
 
     class SolarFold : CommonComponents.SelfTargetedAOE

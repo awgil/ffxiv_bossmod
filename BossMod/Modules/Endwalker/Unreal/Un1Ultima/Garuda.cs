@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
         private Actor? _eots;
         private Actor? _geocrush;
 
-        private static AOEShapeCone _aoeMistralSong = new(20, MathF.PI * 5 / 12);
+        private static AOEShapeCone _aoeMistralSong = new(20, Angle.Radians(MathF.PI * 5 / 12));
         private static AOEShapeDonut _aoeEOTS = new(13, 25); // TODO: check inner range
         private static AOEShapeCircle _aoeGeocrush = new(18); // TODO: check falloff
 
@@ -42,7 +42,7 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
             if (adjPos != pc.Position)
             {
                 arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
-                arena.Actor(adjPos, 0, arena.ColorDanger);
+                arena.Actor(adjPos, new(), arena.ColorDanger);
             }
         }
 

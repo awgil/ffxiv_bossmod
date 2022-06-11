@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.Alliance.A2Rhalgr
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (_targetLocations != null && _targetLocations.Any(l => _aoe.Check(actor.Position, l, 0)))
+            if (_targetLocations != null && _targetLocations.Any(l => _aoe.Check(actor.Position, l, new())))
                 hints.Add("GTFO from aoe!");
         }
 
@@ -23,7 +23,7 @@ namespace BossMod.Endwalker.Alliance.A2Rhalgr
         {
             if (_targetLocations != null)
                 foreach (var l in _targetLocations)
-                    _aoe.Draw(arena, l, 0);
+                    _aoe.Draw(arena, l, new());
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)

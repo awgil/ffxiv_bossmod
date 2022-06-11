@@ -22,7 +22,7 @@ namespace BossMod
 
         // these are set at the beginning of each draw
         public Vector2 ScreenCenter { get; private set; } = new();
-        private float _cameraAzimuth = 0;
+        private float _cameraAzimuth;
         private float _cameraSinAzimuth = 0;
         private float _cameraCosAzimuth = 1;
         private Clip2D _clipper = new();
@@ -157,13 +157,13 @@ namespace BossMod
             ImGui.GetWindowDrawList().AddCircleFilled(WorldPositionToScreenPosition(center), radius / WorldHalfSize * ScreenHalfSize, color);
         }
 
-        public void AddCone(Vector3 center, float radius, float centerDirection, float halfAngle, uint color, float thickness = 1)
+        public void AddCone(Vector3 center, float radius, Angle centerDirection, Angle halfAngle, uint color, float thickness = 1)
         {
             var sCenter = WorldPositionToScreenPosition(center);
-            float sDir = centerDirection - MathF.PI / 2 + _cameraAzimuth;
+            float sDir = centerDirection.Rad - MathF.PI / 2 + _cameraAzimuth;
             var drawlist = ImGui.GetWindowDrawList();
             drawlist.PathLineTo(sCenter);
-            drawlist.PathArcTo(sCenter, radius / WorldHalfSize * ScreenHalfSize, sDir - halfAngle, sDir + halfAngle);
+            drawlist.PathArcTo(sCenter, radius / WorldHalfSize * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
             drawlist.PathStroke(color, ImDrawFlags.Closed, thickness);
         }
 
@@ -190,20 +190,20 @@ namespace BossMod
         }
 
         // draw zones - these are filled primitives clipped to various borders
-        public void ZoneCone(Vector3 center, float innerRadius, float outerRadius, float centerDirection, float halfAngle, uint color)
+        public void ZoneCone(Vector3 center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color)
         {
             // TODO: think of a better way to do that (analytical clipping?)
-            if (innerRadius >= outerRadius || innerRadius < 0 || halfAngle <= 0)
+            if (innerRadius >= outerRadius || innerRadius < 0 || halfAngle.Rad <= 0)
                 return;
 
-            bool fullCircle = halfAngle >= MathF.PI;
+            bool fullCircle = halfAngle.Rad >= MathF.PI;
             bool donut = innerRadius > 0;
             var points = (donut, fullCircle) switch
             {
                 (false, false) => CurveApprox.CircleSector(center.XZ(), outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, WorldApproxError),
                 (false, true) => CurveApprox.Circle(center.XZ(), outerRadius, WorldApproxError),
                 (true, false) => CurveApprox.DonutSector(center.XZ(), innerRadius, outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, WorldApproxError),
-                (true, true) => CurveApprox.DonutSector(center.XZ(), innerRadius, outerRadius, 0, 2 * MathF.PI, WorldApproxError),
+                (true, true) => CurveApprox.DonutSector(center.XZ(), innerRadius, outerRadius, Angle.Radians(0), Angle.Radians(2 * MathF.PI), WorldApproxError),
             };
             ClipAndFill(points, color);
         }
@@ -217,7 +217,7 @@ namespace BossMod
         {
             if (innerRadius >= outerRadius || innerRadius < 0)
                 return;
-            ClipAndFill(CurveApprox.DonutSector(center.XZ(), innerRadius, outerRadius, 0, 2 * MathF.PI, WorldApproxError), color);
+            ClipAndFill(CurveApprox.DonutSector(center.XZ(), innerRadius, outerRadius, Angle.Radians(0), Angle.Radians(2 * MathF.PI), WorldApproxError), color);
         }
 
         public void ZoneTri(Vector3 a, Vector3 b, Vector3 c, uint color)
@@ -230,11 +230,11 @@ namespace BossMod
             ZoneTri(apex, apex + height + halfBase, apex + height - halfBase, color);
         }
 
-        public void ZoneIsoscelesTri(Vector3 apex, float direction, float halfAngle, float height, uint color)
+        public void ZoneIsoscelesTri(Vector3 apex, Angle direction, Angle halfAngle, float height, uint color)
         {
-            Vector3 dir = GeometryUtils.DirectionToVec3(direction);
+            Vector3 dir = direction.ToDirection();
             Vector3 normal = new(-dir.Z, 0, dir.X);
-            ZoneIsoscelesTri(apex, height * dir, height * MathF.Tan(halfAngle) * normal, color);
+            ZoneIsoscelesTri(apex, height * dir, height * halfAngle.Tan() * normal, color);
         }
 
         public void ZoneQuad(Vector3 a, Vector3 b, Vector3 c, Vector3 d, uint color)
@@ -250,9 +250,9 @@ namespace BossMod
             ZoneQuad(front + side, front - side, back - side, back + side, color);
         }
 
-        public void ZoneQuad(Vector3 origin, float direction, float lenFront, float lenBack, float halfWidth, uint color)
+        public void ZoneQuad(Vector3 origin, Angle direction, float lenFront, float lenBack, float halfWidth, uint color)
         {
-            ZoneQuad(origin, GeometryUtils.DirectionToVec3(direction), lenFront, lenBack, halfWidth, color);
+            ZoneQuad(origin, direction.ToDirection(), lenFront, lenBack, halfWidth, color);
         }
 
         public void ZoneQuad(Vector3 start, Vector3 end, float halfWidth, uint color)
@@ -298,11 +298,11 @@ namespace BossMod
         }
 
         // draw actor representation
-        public void Actor(Vector3 position, float rotation, uint color)
+        public void Actor(Vector3 position, Angle rotation, uint color)
         {
             if (InBounds(position))
             {
-                var dir = GeometryUtils.DirectionToVec3(rotation);
+                var dir = rotation.ToDirection();
                 var normal = new Vector3(-dir.Z, 0, dir.X);
                 AddTriangleFilled(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, color);
             }
@@ -338,7 +338,7 @@ namespace BossMod
             if (IsCircle)
             {
                 if (offset.LengthSquared() > WorldHalfSize * WorldHalfSize)
-                    offset *= WorldHalfSize * offset.Length();
+                    offset *= WorldHalfSize / offset.Length();
             }
             else
             {

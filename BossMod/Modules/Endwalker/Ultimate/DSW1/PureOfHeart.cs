@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         private BitMask _skyblindPlayers;
         private BitMask _coneTargets;
 
-        private static AOEShapeCone _brightwingAOE = new(18, MathF.PI / 12); // TODO: verify angle
+        private static AOEShapeCone _brightwingAOE = new(18, Angle.Radians(MathF.PI / 12)); // TODO: verify angle
         private static float _skyblindRadius = 3;
 
         public PureOfHeart() : base(ActionID.MakeSpell(AID.Brightwing)) { }
@@ -34,13 +34,13 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
             if (_coneTargets[slot])
             {
-                var dir = GeometryUtils.DirectionFromVec3(actor.Position - _boss.Position);
+                var dir = Angle.FromDirection(actor.Position - _boss.Position);
                 if (module.Raid.WithoutSlot().Exclude(actor).Any(p => _brightwingAOE.Check(p.Position, _boss.Position, dir)))
                     hints.Add("Aim cone away from others!");
             }
             else
             {
-                if (module.Raid.WithSlot().IncludedInMask(_coneTargets).Any(sa => _brightwingAOE.Check(actor.Position, _boss.Position, GeometryUtils.DirectionFromVec3(sa.Item2.Position - _boss.Position))))
+                if (module.Raid.WithSlot().IncludedInMask(_coneTargets).Any(sa => _brightwingAOE.Check(actor.Position, _boss.Position, Angle.FromDirection(sa.Item2.Position - _boss.Position))))
                     hints.Add("GTFO from cone!");
             }
 
@@ -57,7 +57,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             {
                 foreach (var (_, p) in module.Raid.WithSlot().IncludedInMask(_coneTargets))
                 {
-                    _brightwingAOE.Draw(arena, _boss.Position, GeometryUtils.DirectionFromVec3(p.Position - _boss.Position));
+                    _brightwingAOE.Draw(arena, _boss.Position, Angle.FromDirection(p.Position - _boss.Position));
                 }
             }
 

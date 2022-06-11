@@ -267,11 +267,11 @@ namespace BossMod
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); ImGui.TextUnformatted("Camera Altitude");
-            ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.RadianString(Camera.Instance.CameraAltitude));
+            ImGui.TableNextColumn(); ImGui.TextUnformatted(Angle.Radians(Camera.Instance.CameraAltitude).ToString());
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); ImGui.TextUnformatted("Camera Azimuth");
-            ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.RadianString(Camera.Instance.CameraAzimuth));
+            ImGui.TableNextColumn(); ImGui.TextUnformatted(Angle.Radians(Camera.Instance.CameraAzimuth).ToString());
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); ImGui.TextUnformatted("W");

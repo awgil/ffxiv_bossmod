@@ -47,13 +47,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             // seen indices: 2 = E, 5 = SW, 6 = W => inferring 0=N, 1=NE, ... cw order
             if (featureID == 0x8003759A && state == 0x00020001 && index <= 7)
             {
-                _eyePosition = module.Arena.WorldCenter + 40 * GeometryUtils.DirectionToVec3(MathF.PI - index * MathF.PI / 4);
+                _eyePosition = module.Arena.WorldCenter + 40 * Angle.Radians(MathF.PI - index * MathF.PI / 4).ToDirection();
             }
         }
 
         private bool HitByEye(Actor actor, Vector3 eye)
         {
-            return Vector3.Dot(Vector3.Normalize(eye - actor.Position), GeometryUtils.DirectionToVec3(actor.Rotation)) >= 0.707107f; // 45-degree
+            return Vector3.Dot(Vector3.Normalize(eye - actor.Position), actor.Rotation.ToDirection()) >= 0.707107f; // 45-degree
         }
 
         private IEnumerable<Vector3> EyePositions(BossModule module)
@@ -84,7 +84,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public int NumSeverCasts { get; private set; }
         public int NumFlareCasts { get; private set; }
         private DSW2Config _config;
-        private float _severStartDir;
+        private Angle _severStartDir;
         private int[] _severTargetSlots = { -1, -1 };
         private ChargeInfo?[] _charges = { null, null };
         private bool _chargeCW;
@@ -236,8 +236,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 return; // wait for other event...
 
             var severSource = module.Enemies(OID.SerZephirin).FirstOrDefault();
-            _severStartDir = severSource != null ? GeometryUtils.DirectionFromVec3(severSource.Position - module.Arena.WorldCenter) : 0;
-            if (_severStartDir != 0)
+            _severStartDir = severSource != null ? Angle.FromDirection(severSource.Position - module.Arena.WorldCenter) : new();
+            if (_severStartDir.Rad != 0)
             {
                 _groupEast = _config.P2SanctityGroups.BuildGroupMask(1, module.Raid);
                 if (_groupEast.None())
@@ -246,7 +246,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 }
                 else
                 {
-                    if (_config.P2SanctityRelative && _severStartDir < 0)
+                    if (_config.P2SanctityRelative && _severStartDir.Rad < 0)
                     {
                         // swap groups for relative assignment if needed
                         _groupEast.Raw ^= 0xff;
@@ -254,13 +254,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
                     if (_config.P2SanctitySwapRole == Role.None)
                     {
-                        AssignmentSwapWithRolePartner(module, 0, _severStartDir < 0);
-                        AssignmentSwapWithRolePartner(module, 1, _severStartDir > 0);
+                        AssignmentSwapWithRolePartner(module, 0, _severStartDir.Rad < 0);
+                        AssignmentSwapWithRolePartner(module, 1, _severStartDir.Rad > 0);
                     }
                     else
                     {
-                        AssignmentReassignIfNeeded(0, _severStartDir < 0);
-                        AssignmentReassignIfNeeded(1, _severStartDir > 0);
+                        AssignmentReassignIfNeeded(0, _severStartDir.Rad < 0);
+                        AssignmentReassignIfNeeded(1, _severStartDir.Rad > 0);
                         if (_groupEast.NumSetBits() != 4)
                         {
                             // to balance, unmarked player of designated role should swap
@@ -289,10 +289,10 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 _chargeCW = cw1;
                 // second safe spot could be either 3rd or 5th explosion
-                float severDirEast = _severStartDir;
-                if (severDirEast < 0)
-                    severDirEast += MathF.PI;
-                bool severDiagonalSE = severDirEast < MathF.PI / 2;
+                var severDirEast = _severStartDir;
+                if (severDirEast.Rad < 0)
+                    severDirEast += Angle.Radians(MathF.PI);
+                bool severDiagonalSE = severDirEast.Rad < MathF.PI / 2;
                 _chargeEarly = severDiagonalSE == cw1;
             }
         }
@@ -336,14 +336,14 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 return (null, false);
 
             bool right = actor.Position.X > module.Arena.WorldCenter.X;
-            bool facingSouth = Utils.AlmostEqual(actor.Rotation, 0, 0.1f);
+            bool facingSouth = Utils.AlmostEqual(actor.Rotation.Rad, 0, 0.1f);
             bool cw = right == facingSouth;
             var res = new ChargeInfo(actor);
-            float firstPointDir = actor.Rotation;
-            float angleBetweenPoints = (cw ? -1 : 1) * 5 * MathF.PI / 8;
+            var firstPointDir = actor.Rotation;
+            var angleBetweenPoints = (cw ? -1 : 1) * Angle.Radians(5 * MathF.PI / 8);
 
             res.Positions.Add(actor.Position);
-            Action<float> addPosition = dir => res.Positions.Add(module.Arena.WorldCenter + 21 * GeometryUtils.DirectionToVec3(dir));
+            Action<Angle> addPosition = dir => res.Positions.Add(module.Arena.WorldCenter + 21 * dir.ToDirection());
             addPosition(firstPointDir);
             addPosition(firstPointDir + angleBetweenPoints);
             addPosition(firstPointDir + angleBetweenPoints * 2);
@@ -382,23 +382,23 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        private Vector3 SafeSpotOffset(int slot, float dirOffset)
+        private Vector3 SafeSpotOffset(int slot, Angle dirOffset)
         {
-            float dir = _severStartDir + (_chargeCW ? -1 : 1) * dirOffset;
-            if (dir < 0 == _groupEast[slot])
-                dir += MathF.PI;
-            return 20 * GeometryUtils.DirectionToVec3(dir);
+            var dir = _severStartDir + (_chargeCW ? -1 : 1) * dirOffset;
+            if (dir.Rad < 0 == _groupEast[slot])
+                dir += Angle.Radians(MathF.PI);
+            return 20 * dir.ToDirection();
         }
 
         private IEnumerable<Vector3> MovementHintOffsets(int slot)
         {
-            if (_severStartDir != 0 && _charges[0] != null && _charges[1] != null)
+            if (_severStartDir.Rad != 0 && _charges[0] != null && _charges[1] != null)
             {
                 // second safe spot could be either 3rd or 5th explosion
                 if (_charges[0]!.Spheres.Count > (_chargeEarly ? 6 : 4))
-                    yield return SafeSpotOffset(slot, _chargeEarly ? MathF.PI / 12 : MathF.PI / 15.4f);
+                    yield return SafeSpotOffset(slot, Angle.Radians(_chargeEarly ? MathF.PI / 12 : MathF.PI / 15.4f));
                 if (_charges[0]!.Spheres.Count > 0)
-                    yield return SafeSpotOffset(slot, MathF.PI / 5.4f);
+                    yield return SafeSpotOffset(slot, Angle.Radians(MathF.PI / 5.4f));
             }
         }
     }

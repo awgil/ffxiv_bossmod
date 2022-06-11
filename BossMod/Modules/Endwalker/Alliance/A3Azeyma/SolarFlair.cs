@@ -16,14 +16,14 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (ActiveSunstorms(module).Any(s => _aoe.Check(actor.Position, s, 0)))
+            if (ActiveSunstorms(module).Any(s => _aoe.Check(actor.Position, s, new())))
                 hints.Add("GTFO from aoe!");
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var s in ActiveSunstorms(module))
-                _aoe.Draw(arena, s, 0);
+                _aoe.Draw(arena, s, new());
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)
@@ -33,7 +33,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
                 var closestSunstorm = module.Enemies(OID.Sunstorm).MinBy(s => (s.Position - actor.Position).LengthSquared());
                 if (closestSunstorm != null)
                 {
-                    _sunstorms[closestSunstorm.InstanceID] = closestSunstorm.Position + _kickDistance * GeometryUtils.DirectionToVec3(actor.Rotation);
+                    _sunstorms[closestSunstorm.InstanceID] = closestSunstorm.Position + _kickDistance * actor.Rotation.ToDirection();
                 }
             }
         }

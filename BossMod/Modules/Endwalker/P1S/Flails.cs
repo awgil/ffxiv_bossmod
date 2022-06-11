@@ -14,8 +14,8 @@ namespace BossMod.Endwalker.P1S
         private bool _detectSecond;
         private bool _showSecond;
 
-        private static AOEShape _aoeLeft = new AOEShapeCone(60, 3 * MathF.PI / 4, MathF.PI / 2);
-        private static AOEShape _aoeRight = new AOEShapeCone(60, 3 * MathF.PI / 4, -MathF.PI / 2);
+        private static AOEShape _aoeLeft = new AOEShapeCone(60, Angle.Radians(3 * MathF.PI / 4), Angle.Radians(MathF.PI / 2));
+        private static AOEShape _aoeRight = new AOEShapeCone(60, Angle.Radians(3 * MathF.PI / 4), Angle.Radians(-MathF.PI / 2));
         private static AOEShape _aoeInner = new AOEShapeCircle(P1S.InnerCircleRadius);
         private static AOEShape _aoeOuter = new AOEShapeDonut(P1S.InnerCircleRadius, 60);
 

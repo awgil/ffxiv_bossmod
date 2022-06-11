@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.ZodiarkEx
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             int nextPattern = _patterns.SkipWhile(p => p == 0).FirstOrDefault();
-            if (PatternSpots(module, nextPattern).Any(p => _aoe.Check(actor.Position, p, 0)))
+            if (PatternSpots(module, nextPattern).Any(p => _aoe.Check(actor.Position, p, new())))
                 hints.Add("GTFO from explosion!");
 
             if (movementHints != null)
@@ -36,7 +36,7 @@ namespace BossMod.Endwalker.ZodiarkEx
         {
             int nextPattern = _patterns.SkipWhile(p => p == 0).FirstOrDefault();
             foreach (var p in PatternSpots(module, nextPattern))
-                _aoe.Draw(arena, p, 0);
+                _aoe.Draw(arena, p, new());
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

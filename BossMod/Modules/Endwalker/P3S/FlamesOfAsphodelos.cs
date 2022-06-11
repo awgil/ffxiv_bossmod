@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.P3S
     // state related to flames of asphodelos mechanic
     class FlamesOfAsphodelos : Component
     {
-        private float?[] _directions = new float?[3];
+        private Angle?[] _directions = new Angle?[3];
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
@@ -72,22 +72,22 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        private void DrawZone(MiniArena arena, float? dir, uint color)
+        private void DrawZone(MiniArena arena, Angle? dir, uint color)
         {
             if (dir != null)
             {
-                arena.ZoneIsoscelesTri(arena.WorldCenter, dir.Value, MathF.PI / 6, 50, color);
-                arena.ZoneIsoscelesTri(arena.WorldCenter, dir.Value + MathF.PI, MathF.PI / 6, 50, color);
+                arena.ZoneIsoscelesTri(arena.WorldCenter, dir.Value, Angle.Radians(MathF.PI / 6), 50, color);
+                arena.ZoneIsoscelesTri(arena.WorldCenter, dir.Value + Angle.Radians(MathF.PI), Angle.Radians(MathF.PI / 6), 50, color);
             }
         }
 
-        private bool InAOE(BossModule module, float? dir, Vector3 pos)
+        private bool InAOE(BossModule module, Angle? dir, Vector3 pos)
         {
             if (dir == null)
                 return false;
 
             var toPos = Vector3.Normalize(pos - module.Arena.WorldCenter);
-            var toDir = GeometryUtils.DirectionToVec3(dir.Value);
+            var toDir = dir.Value.ToDirection();
             return MathF.Abs(Vector3.Dot(toPos, toDir)) >= MathF.Cos(MathF.PI / 6);
         }
     }

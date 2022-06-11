@@ -7,17 +7,17 @@ namespace BossMod.Endwalker.P3S
     // state related to cinderwing
     class Cinderwing : Component
     {
-        private AOEShapeCone _aoe = new(60, MathF.PI / 2);
+        private AOEShapeCone _aoe = new(60, Angle.Radians(MathF.PI / 2));
 
         public override void Init(BossModule module)
         {
             _aoe.DirectionOffset = (AID)(module.PrimaryActor.CastInfo?.Action.ID ?? 0) switch
             {
-                AID.RightCinderwing => -MathF.PI / 2,
-                AID.LeftCinderwing => MathF.PI / 2,
-                _ => 0
+                AID.RightCinderwing => Angle.Radians(-MathF.PI / 2),
+                AID.LeftCinderwing => Angle.Radians(MathF.PI / 2),
+                _ => new()
             };
-            if (_aoe.DirectionOffset == 0)
+            if (_aoe.DirectionOffset.Rad == 0)
                 module.ReportError(this, $"Failed to initialize cinderwing; unexpected boss cast {module.PrimaryActor.CastInfo?.Action}");
         }
 

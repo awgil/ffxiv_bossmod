@@ -13,7 +13,7 @@ namespace BossMod.Endwalker.EndsingerEx
         private List<Vector3> _planetsFiery = new();
         private List<Vector3> _planetsAzure = new();
 
-        private static AOEShapeCone _aoeHead = new(20, MathF.PI / 2);
+        private static AOEShapeCone _aoeHead = new(20, Angle.Radians(MathF.PI / 2));
         private static AOEShapeCircle _aoePlanet = new(30);
         private static float _knockbackDistance = 25;
         private static float _planetOffset = 19.8f; // == 14 * sqrt(2)
@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.EndsingerEx
             {
                 hints.Add("GTFO from head aoe!");
             }
-            if (_planetsFiery.Count > 0 && _aoePlanet.Check(actor.Position, _planetsFiery[0], 0))
+            if (_planetsFiery.Count > 0 && _aoePlanet.Check(actor.Position, _planetsFiery[0], new()))
             {
                 hints.Add("GTFO from planet aoe!");
             }
@@ -43,7 +43,7 @@ namespace BossMod.Endwalker.EndsingerEx
             _aoeHead.Draw(arena, _head);
             if (_planetsFiery.Count > 0)
             {
-                _aoePlanet.Draw(arena, _planetsFiery[0], 0);
+                _aoePlanet.Draw(arena, _planetsFiery[0], new());
             }
         }
 
@@ -53,7 +53,7 @@ namespace BossMod.Endwalker.EndsingerEx
             {
                 var offsetLocation = AdjustPositionForKnockback(pc.Position, _planetsAzure[0], _knockbackDistance);
                 arena.AddLine(pc.Position, offsetLocation, arena.ColorDanger);
-                arena.Actor(offsetLocation, 0, arena.ColorDanger);
+                arena.Actor(offsetLocation, new(), arena.ColorDanger);
             }
         }
 
@@ -111,7 +111,7 @@ namespace BossMod.Endwalker.EndsingerEx
             var caster = module.WorldState.Actors.Find(casterID);
             if (caster != null)
             {
-                var origin = module.Arena.WorldCenter + _planetOffset * GeometryUtils.DirectionToVec3(caster.Rotation);
+                var origin = module.Arena.WorldCenter + _planetOffset * caster.Rotation.ToDirection();
                 var planets = azure ? _planetsAzure : _planetsFiery;
                 int index = firstOfPair ? 0 : planets.Count;
                 planets.Insert(index, origin);

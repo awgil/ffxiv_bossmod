@@ -12,11 +12,11 @@ namespace BossMod.Endwalker.P3S
     {
         public bool PlacementDone { get; private set; } = false;
         public bool CastsDone { get; private set; } = false;
-        private List<(Actor, float)> _sources = new(); // actor + rotation
+        private List<(Actor, Angle)> _sources = new(); // actor + rotation
         private int[] _playerDeathTollStacks = new int[8];
         private int[] _playerAOECount = new int[8];
 
-        private static float _coneHalfAngle = MathF.PI / 4;
+        private static Angle _coneHalfAngle = Angle.Radians(MathF.PI / 4);
         private static float _eyePlacementOffset = 10;
 
         public override void Update(BossModule module)
@@ -117,7 +117,7 @@ namespace BossMod.Endwalker.P3S
                         299 => MathF.PI, // N
                         _ => 0
                     };
-                    _sources.Add((actor, dir));
+                    _sources.Add((actor, Angle.Radians(dir)));
                 }
             }
         }
@@ -127,11 +127,11 @@ namespace BossMod.Endwalker.P3S
             if (PlacementDone)
                 return null;
 
-            (var src, float rot) = _sources.Find(srcRot => srcRot.Item1 == player);
+            (var src, Angle rot) = _sources.Find(srcRot => srcRot.Item1 == player);
             if (src == null)
                 return null;
 
-            var offset = GeometryUtils.DirectionToVec3(rot) * _eyePlacementOffset;
+            var offset = rot.ToDirection() * _eyePlacementOffset;
             return _playerDeathTollStacks[slot] > 0 ? module.Arena.WorldCenter - offset : module.Arena.WorldCenter + offset;
         }
     }

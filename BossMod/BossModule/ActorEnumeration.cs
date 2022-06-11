@@ -102,12 +102,12 @@ namespace BossMod
             return range.WhereActor(actor => shape.Check(actor.Position, origin));
         }
 
-        public static IEnumerable<Actor> InShape(this IEnumerable<Actor> range, AOEShape shape, Vector3 origin, float rotation)
+        public static IEnumerable<Actor> InShape(this IEnumerable<Actor> range, AOEShape shape, Vector3 origin, Angle rotation)
         {
             return range.Where(actor => shape.Check(actor.Position, origin, rotation));
         }
 
-        public static IEnumerable<(int, Actor)> InShape(this IEnumerable<(int, Actor)> range, AOEShape shape, Vector3 origin, float rotation)
+        public static IEnumerable<(int, Actor)> InShape(this IEnumerable<(int, Actor)> range, AOEShape shape, Vector3 origin, Angle rotation)
         {
             return range.WhereActor(actor => shape.Check(actor.Position, origin, rotation));
         }

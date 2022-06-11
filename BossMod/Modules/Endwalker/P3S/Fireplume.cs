@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.P3S
     class Fireplume : Component
     {
         private Vector3? _singlePos = null;
-        private float _multiStartingDirection;
+        private Angle _multiStartingDirection;
         private int _multiStartedCasts = 0;
         private int _multiFinishedCasts = 0;
 
@@ -27,9 +27,9 @@ namespace BossMod.Endwalker.P3S
             if (_multiStartedCasts > _multiFinishedCasts)
             {
                 if (_multiFinishedCasts > 0 && GeometryUtils.PointInCircle(actor.Position - module.Arena.WorldCenter, _multiRadius) ||
-                    _multiFinishedCasts < 8 && InPair(module, _multiStartingDirection + MathF.PI / 4, actor) ||
-                    _multiFinishedCasts < 6 && InPair(module, _multiStartingDirection - MathF.PI / 2, actor) ||
-                    _multiFinishedCasts < 4 && InPair(module, _multiStartingDirection - MathF.PI / 4, actor) ||
+                    _multiFinishedCasts < 8 && InPair(module, _multiStartingDirection + Angle.Radians(MathF.PI / 4), actor) ||
+                    _multiFinishedCasts < 6 && InPair(module, _multiStartingDirection - Angle.Radians(MathF.PI / 2), actor) ||
+                    _multiFinishedCasts < 4 && InPair(module, _multiStartingDirection - Angle.Radians(MathF.PI / 4), actor) ||
                     _multiFinishedCasts < 2 && InPair(module, _multiStartingDirection, actor))
                 {
                     hints.Add("GTFO from plume!");
@@ -51,11 +51,11 @@ namespace BossMod.Endwalker.P3S
 
                 // don't draw more than two next pairs
                 if (_multiFinishedCasts < 8)
-                    DrawPair(arena, _multiStartingDirection + MathF.PI / 4, _multiStartedCasts > 6 && _multiFinishedCasts >= 4);
+                    DrawPair(arena, _multiStartingDirection + Angle.Radians(MathF.PI / 4), _multiStartedCasts > 6 && _multiFinishedCasts >= 4);
                 if (_multiFinishedCasts < 6)
-                    DrawPair(arena, _multiStartingDirection - MathF.PI / 2, _multiStartedCasts > 4 && _multiFinishedCasts >= 2);
+                    DrawPair(arena, _multiStartingDirection - Angle.Radians(MathF.PI / 2), _multiStartedCasts > 4 && _multiFinishedCasts >= 2);
                 if (_multiFinishedCasts < 4)
-                    DrawPair(arena, _multiStartingDirection - MathF.PI / 4, _multiStartedCasts > 2);
+                    DrawPair(arena, _multiStartingDirection - Angle.Radians(MathF.PI / 4), _multiStartedCasts > 2);
                 if (_multiFinishedCasts < 2)
                     DrawPair(arena, _multiStartingDirection, true);
             }
@@ -74,7 +74,7 @@ namespace BossMod.Endwalker.P3S
                 case AID.ExperimentalFireplumeMultiAOE:
                 case AID.ExperimentalGloryplumeMultiAOE:
                     if (_multiStartedCasts++ == 0)
-                        _multiStartingDirection = GeometryUtils.DirectionFromVec3(actor.Position - module.Arena.WorldCenter);
+                        _multiStartingDirection = Angle.FromDirection(actor.Position - module.Arena.WorldCenter);
                     break;
             }
         }
@@ -96,16 +96,16 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        private bool InPair(BossModule module, float direction, Actor actor)
+        private bool InPair(BossModule module, Angle direction, Actor actor)
         {
-            var offset = _multiPairOffset * GeometryUtils.DirectionToVec3(direction);
+            var offset = _multiPairOffset * direction.ToDirection();
             return GeometryUtils.PointInCircle(actor.Position - module.Arena.WorldCenter - offset, _multiRadius)
                 || GeometryUtils.PointInCircle(actor.Position - module.Arena.WorldCenter + offset, _multiRadius);
         }
 
-        private void DrawPair(MiniArena arena, float direction, bool imminent)
+        private void DrawPair(MiniArena arena, Angle direction, bool imminent)
         {
-            var offset = _multiPairOffset * GeometryUtils.DirectionToVec3(direction);
+            var offset = _multiPairOffset * direction.ToDirection();
             arena.ZoneCircle(arena.WorldCenter + offset, _multiRadius, imminent ? arena.ColorDanger : arena.ColorAOE);
             arena.ZoneCircle(arena.WorldCenter - offset, _multiRadius, imminent ? arena.ColorDanger : arena.ColorAOE);
         }

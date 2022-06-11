@@ -5,7 +5,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 {
     class P2AscalonMercy : CommonComponents.SelfTargetedAOE
     {
-        public P2AscalonMercy() : base(ActionID.MakeSpell(AID.AscalonsMercyConcealedAOE), new AOEShapeCone(50, MathF.PI / 12)) { }
+        public P2AscalonMercy() : base(ActionID.MakeSpell(AID.AscalonsMercyConcealedAOE), new AOEShapeCone(50, Angle.Radians(MathF.PI / 12))) { }
     }
 
     class P2UltimateEnd : CommonComponents.CastCounter

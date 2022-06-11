@@ -226,24 +226,24 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private int ClassifyTower1(BossModule module, Actor tower)
         {
             var offset = tower.Position - module.Arena.WorldCenter;
-            var dir = GeometryUtils.DirectionFromVec3(offset);
+            var dir = Angle.FromDirection(offset);
             if (offset.LengthSquared() < 7 * 7)
             {
                 // inner tower: intercardinal, ~6m from center
-                return 12 + (dir > 0 ? (dir > MathF.PI / 2 ? 0 : 1) : (dir < -MathF.PI / 2 ? 3 : 2));
+                return 12 + (dir.Rad > 0 ? (dir.Rad > MathF.PI / 2 ? 0 : 1) : (dir.Rad < -MathF.PI / 2 ? 3 : 2));
             }
             else
             {
                 // outer tower: ~18m from center, at cardinal or +- 30 degrees
-                return (7 - (int)MathF.Round(dir / MathF.PI * 6)) % 12;
+                return (7 - (int)MathF.Round(dir.Rad / MathF.PI * 6)) % 12;
             }
         }
 
         private int ClassifyTower2(BossModule module, Actor tower)
         {
             var offset = tower.Position - module.Arena.WorldCenter;
-            var dir = GeometryUtils.DirectionFromVec3(offset);
-            return (4 - (int)MathF.Round(dir / MathF.PI * 4)) % 8;
+            var dir = Angle.FromDirection(offset);
+            return (4 - (int)MathF.Round(dir.Rad / MathF.PI * 4)) % 8;
         }
 
         private void InitAssignments(BossModule module)
@@ -491,8 +491,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private Vector3 StormPlacementPosition(BossModule module, int quadrant)
         {
-            float dir = MathF.PI - quadrant * MathF.PI / 2;
-            return module.Arena.WorldCenter + _stormPlacementOffset * GeometryUtils.DirectionToVec3(dir);
+            var dir = Angle.Radians(MathF.PI - quadrant * MathF.PI / 2);
+            return module.Arena.WorldCenter + _stormPlacementOffset * dir.ToDirection();
         }
 
         private string WaymarkForQuadrant(BossModule module, int quadrant)

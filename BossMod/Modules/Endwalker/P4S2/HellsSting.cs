@@ -11,8 +11,8 @@ namespace BossMod.Endwalker.P4S2
     {
         public int NumCasts { get; private set; } = 0;
 
-        private AOEShapeCone _cone = new(50, MathF.PI / 12);
-        private List<float> _directions = new();
+        private AOEShapeCone _cone = new(50, Angle.Radians(MathF.PI / 12));
+        private List<Angle> _directions = new();
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
@@ -45,9 +45,9 @@ namespace BossMod.Endwalker.P4S2
                 ++NumCasts;
         }
 
-        private IEnumerable<float> ConeDirections()
+        private IEnumerable<Angle> ConeDirections()
         {
-            return NumCasts < _directions.Count ? _directions : _directions.Select(x => x + MathF.PI / 8);
+            return NumCasts < _directions.Count ? _directions : _directions.Select(x => x + Angle.Radians(MathF.PI / 8));
         }
     }
 }

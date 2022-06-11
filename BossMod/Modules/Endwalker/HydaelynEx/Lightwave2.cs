@@ -18,7 +18,7 @@ namespace BossMod.Endwalker.HydaelynEx
         private static Vector3 _crystalTR = new(110, 0,  92);
         private static Vector3 _crystalBL = new( 90, 0, 110);
         private static Vector3 _crystalBR = new(110, 0, 110);
-        private static AOEShapeCone _gloryAOE = new(40, MathF.PI / 2);
+        private static AOEShapeCone _gloryAOE = new(40, Angle.Radians(MathF.PI / 2));
 
         public override void Update(BossModule module)
         {
@@ -35,8 +35,8 @@ namespace BossMod.Endwalker.HydaelynEx
                 hints.Add("GTFO from glory aoe!");
 
             (bool inWave, bool inSafeCone) = NumCasts < 4
-                ? (WaveAOE.Check(actor.Position, Wave1Pos(), 0) || WaveAOE.Check(actor.Position, Wave2Pos(), 0), InSafeCone(NextSideCrystal(), _crystalCenter, actor.Position))
-                : (WaveAOE.Check(actor.Position, Wave3Pos(), 0), _safeCrystal != Vector3.Zero ? InSafeCone(_crystalCenter, _safeCrystal, actor.Position) : true);
+                ? (WaveAOE.Check(actor.Position, Wave1Pos(), new()) || WaveAOE.Check(actor.Position, Wave2Pos(), new()), InSafeCone(NextSideCrystal(), _crystalCenter, actor.Position))
+                : (WaveAOE.Check(actor.Position, Wave3Pos(), new()), _safeCrystal != Vector3.Zero ? InSafeCone(_crystalCenter, _safeCrystal, actor.Position) : true);
 
             if (inWave)
                 hints.Add("GTFO from wave!");
@@ -51,13 +51,13 @@ namespace BossMod.Endwalker.HydaelynEx
 
             if (NumCasts < 4)
             {
-                WaveAOE.Draw(arena, Wave1Pos(), 0);
-                WaveAOE.Draw(arena, Wave2Pos(), 0);
+                WaveAOE.Draw(arena, Wave1Pos(), new());
+                WaveAOE.Draw(arena, Wave2Pos(), new());
                 DrawSafeCone(arena, NextSideCrystal(), _crystalCenter);
             }
             else
             {
-                WaveAOE.Draw(arena, Wave3Pos(), 0);
+                WaveAOE.Draw(arena, Wave3Pos(), new());
                 if (_safeCrystal != Vector3.Zero)
                 {
                     DrawSafeCone(arena, _crystalCenter, _safeCrystal);

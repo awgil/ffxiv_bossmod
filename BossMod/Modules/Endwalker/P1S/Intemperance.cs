@@ -65,7 +65,7 @@ namespace BossMod.Endwalker.P1S
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_delimiterCenters.Any(c => _delimiterAOE.Check(actor.Position, new(c.X, c.Y, c.Z), c.W)))
+            if (_delimiterCenters.Any(c => _delimiterAOE.Check(actor.Position, new(c.X, c.Y, c.Z), new(c.W))))
             {
                 hints.Add("GTFO from delimiter!");
             }
@@ -99,7 +99,7 @@ namespace BossMod.Endwalker.P1S
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var c in _delimiterCenters)
-                _delimiterAOE.Draw(arena, new(c.X, c.Y, c.Z), c.W);
+                _delimiterAOE.Draw(arena, new(c.X, c.Y, c.Z), new(c.W));
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

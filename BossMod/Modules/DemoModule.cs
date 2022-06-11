@@ -26,7 +26,7 @@ namespace BossMod
 
             public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
             {
-                arena.Actor(arena.WorldCenter, 0, arena.ColorPC);
+                arena.Actor(arena.WorldCenter, new(), arena.ColorPC);
             }
         }
 
