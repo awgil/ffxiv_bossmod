@@ -7,60 +7,6 @@ namespace BossMod
 {
     public static class GeometryUtils
     {
-        public static List<Vector2> ClipAndTriangulate(IEnumerable<Vector2> pts, IEnumerable<Vector2> clipPoly)
-        {
-            // use Clipper library (Vatti algorithm) for clipping and Earcut.net library (earcutting) for triangulating
-            ClipperLib.Clipper c = new(ClipperLib.Clipper.ioStrictlySimple);
-            List<ClipperLib.IntPoint> ipts = new();
-
-            foreach (var p in clipPoly)
-                ipts.Add(new(p.X * 1000, p.Y * 1000));
-            c.AddPath(ipts, ClipperLib.PolyType.ptClip, true);
-            ipts.Clear();
-            foreach (var p in pts)
-                ipts.Add(new(p.X * 1000, p.Y * 1000));
-            c.AddPath(ipts, ClipperLib.PolyType.ptSubject, true);
-
-            ClipperLib.PolyTree solution = new();
-            c.Execute(ClipperLib.ClipType.ctIntersection, solution);
-
-            List<Vector2> triangulation = new();
-            Triangulate(triangulation, solution);
-            return triangulation;
-        }
-
-        private static void Triangulate(List<Vector2> result, ClipperLib.PolyNode node)
-        {
-            foreach (var outer in node.Childs)
-            {
-                if (outer.Contour.Count == 0 || outer.IsOpen)
-                    continue;
-
-                List<double> pts = new();
-                List<int> holes = new();
-
-                AddClipperPoly(pts, outer.Contour);
-                foreach (var hole in outer.Childs.Where(h => h.Contour.Count > 0))
-                {
-                    holes.Add(pts.Count / 2);
-                    AddClipperPoly(pts, hole.Contour);
-                }
-
-                var tess = EarcutNet.Earcut.Tessellate(pts, holes);
-                foreach (int v in tess)
-                    result.Add(new((float)pts[2 * v], (float)pts[2 * v + 1]));
-            }
-        }
-
-        private static void AddClipperPoly(List<double> output, List<ClipperLib.IntPoint> pts)
-        {
-            foreach (var p in pts)
-            {
-                output.Add(p.X / 1000.0f);
-                output.Add(p.Y / 1000.0f);
-            }
-        }
-
         public static bool ClipLineToNearPlane(ref SharpDX.Vector3 a, ref SharpDX.Vector3 b, SharpDX.Matrix viewProj)
         {
             var n = viewProj.Column3; // near plane

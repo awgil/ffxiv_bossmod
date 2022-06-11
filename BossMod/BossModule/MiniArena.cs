@@ -25,7 +25,7 @@ namespace BossMod
         private float _cameraAzimuth = 0;
         private float _cameraSinAzimuth = 0;
         private float _cameraCosAzimuth = 1;
-        private List<Vector2> _clipPolygon = new();
+        private Clip2D _clipper = new();
 
         // useful points
         public Vector3 WorldN  => WorldCenter + new Vector3(             0, 0, -WorldHalfSize);
@@ -75,16 +75,11 @@ namespace BossMod
 
             if (IsCircle)
             {
-                _clipPolygon = GeometryUtils.BuildTesselatedCircle(ScreenCenter, ScreenHalfSize);
-                _clipPolygon.Reverse();
+                _clipper.SetClipPoly(GeometryUtils.BuildTesselatedCircle(ScreenCenter, ScreenHalfSize));
             }
             else
             {
-                _clipPolygon.Clear();
-                _clipPolygon.Add(WorldPositionToScreenPosition(WorldNW));
-                _clipPolygon.Add(WorldPositionToScreenPosition(WorldNE));
-                _clipPolygon.Add(WorldPositionToScreenPosition(WorldSE));
-                _clipPolygon.Add(WorldPositionToScreenPosition(WorldSW));
+                _clipper.SetClipPoly(new[] { WorldPositionToScreenPosition(WorldNW), WorldPositionToScreenPosition(WorldNE), WorldPositionToScreenPosition(WorldSE), WorldPositionToScreenPosition(WorldSW) });
             }
 
             var wmin = ImGui.GetWindowPos();
@@ -403,7 +398,7 @@ namespace BossMod
             var restoreFlags = drawlist.Flags;
             drawlist.Flags &= ~ImDrawListFlags.AntiAliasedFill;
 
-            var tri = GeometryUtils.ClipAndTriangulate(poly, _clipPolygon);
+            var tri = _clipper.ClipAndTriangulate(poly);
             for (int i = 0; i < tri.Count; i += 3)
                 drawlist.AddTriangleFilled(tri[i], tri[i + 1], tri[i + 2], color);
 
