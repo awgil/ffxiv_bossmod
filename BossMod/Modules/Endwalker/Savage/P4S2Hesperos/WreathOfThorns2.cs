@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P4S2Hesperos
 {
-    using static BossModule;
-
     // state related to act 2 wreath of thorns
     // note: there should be four tethered helpers on activation
     // note: we assume that (1) dark targets soak all towers, (2) first fire to be broken is tank-healer pair (since their debuff is slightly shorter)
-    class WreathOfThorns2 : Component
+    class WreathOfThorns2 : BossModule.Component
     {
         public enum State { DarkDesign, FirstSet, SecondSet, Done }
 
@@ -26,7 +23,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
 
         private static float _fireExplosionRadius = 6;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             bool isTowerSoaker = actor == _darkTH.Item1 || actor == _darkTH.Item2;
             if (CurState == State.DarkDesign)

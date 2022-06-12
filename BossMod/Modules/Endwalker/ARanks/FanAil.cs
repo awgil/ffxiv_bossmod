@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.ARanks.FanAil
+﻿namespace BossMod.Endwalker.ARanks.FanAil
 {
     public enum OID : uint
     {

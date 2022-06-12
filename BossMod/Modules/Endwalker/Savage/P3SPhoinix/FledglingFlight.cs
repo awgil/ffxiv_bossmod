@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
-    using static BossModule;
-
     // state related to fledgling flight & death toll mechanics
-    class FledglingFlight : Component
+    class FledglingFlight : BossModule.Component
     {
         public bool PlacementDone { get; private set; } = false;
         public bool CastsDone { get; private set; } = false;
@@ -31,7 +27,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (_sources.Count == 0)
                 return;

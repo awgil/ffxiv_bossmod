@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Alliance.A3Azeyma
+﻿namespace BossMod.Endwalker.Alliance.A3Azeyma
 {
     class WardensWarmth : CommonComponents.SpreadFromCastTargets
     {

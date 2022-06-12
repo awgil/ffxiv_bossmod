@@ -1,12 +1,9 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P2SHippokampos
 {
-    using static BossModule;
-
     // state related to cataract mechanic
-    class Cataract : Component
+    class Cataract : BossModule.Component
     {
         private AOEShapeRect _aoeBoss = new(50, 7.5f, 50);
         private AOEShapeRect _aoeHead = new(50, 50);
@@ -17,7 +14,7 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
                 _aoeHead.DirectionOffset = 180.Degrees();
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (_aoeBoss.Check(actor.Position, module.PrimaryActor) || _aoeHead.Check(actor.Position, module.Enemies(OID.CataractHead).FirstOrDefault()))
                 hints.Add("GTFO from cataract!");

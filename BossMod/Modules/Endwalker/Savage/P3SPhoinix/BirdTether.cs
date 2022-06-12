@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
-    using static BossModule;
-
     // state related to large bird tethers
     // TODO: simplify and make more robust, e.g. in case something goes wrong and bird dies without tether update
-    class BirdTether : Component
+    class BirdTether : BossModule.Component
     {
         public int NumFinishedChains { get; private set; } = 0;
         private (Actor?, Actor?, int)[] _chains = new (Actor?, Actor?, int)[4]; // actor1, actor2, num-charges
@@ -65,7 +61,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             var birdsLarge = module.Enemies(OID.SunbirdLarge);
             foreach ((var bird, (var p1, var p2, int numCharges)) in birdsLarge.Zip(_chains))

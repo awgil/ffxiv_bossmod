@@ -2,7 +2,6 @@
 using Dalamud.Utility;
 using ImGuiNET;
 using System;
-using System.Linq;
 using System.Numerics;
 
 namespace BossMod

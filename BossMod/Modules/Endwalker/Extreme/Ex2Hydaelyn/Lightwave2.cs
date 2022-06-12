@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Numerics;
 
 namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
-    using static BossModule;
-
     // component for second lightwave (3 waves, 5 crystals) + hero's glory mechanics
     class Lightwave2 : LightwaveCommon
     {
@@ -29,7 +25,7 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if ((module.PrimaryActor.CastInfo?.IsSpell(AID.HerosGlory) ?? false) && _gloryAOE.Check(actor.Position, module.PrimaryActor))
                 hints.Add("GTFO from glory aoe!");

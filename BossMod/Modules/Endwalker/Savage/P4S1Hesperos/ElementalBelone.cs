@@ -4,10 +4,8 @@ using System.Numerics;
 
 namespace BossMod.Endwalker.Savage.P4S1Hesperos
 {
-    using static BossModule;
-
     // state related to elemental belone mechanic (3 of 4 corners exploding)
-    class ElementalBelone : Component
+    class ElementalBelone : BossModule.Component
     {
         public bool Visible = false;
         private SettingTheScene.Element _safeElement;
@@ -23,7 +21,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             _safeElement = assignments.FindElement(safeCorner);
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (_imminentExplodingCorners.Where(p => actor.Position.InRect(p, new WDir(1, 0), 10, 10, 10)).Any())
             {
@@ -31,7 +29,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             }
         }
 
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
             hints.Add($"Safe square: {_safeElement}");
         }

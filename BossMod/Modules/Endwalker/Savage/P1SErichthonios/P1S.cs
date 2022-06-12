@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace BossMod.Endwalker.Savage.P1SErichthonios
+﻿namespace BossMod.Endwalker.Savage.P1SErichthonios
 {
     public class P1S : BossModule
     {

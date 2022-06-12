@@ -3,10 +3,8 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P4S2Hesperos
 {
-    using static BossModule;
-
     // state related to act 5 (finale) wreath of thorns
-    class WreathOfThorns5 : Component
+    class WreathOfThorns5 : BossModule.Component
     {
         private List<ulong> _playersOrder = new();
         private List<Actor> _towersOrder = new();
@@ -14,7 +12,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
 
         private static float _impulseAOERadius = 5;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             int order = _playersOrder.IndexOf(actor.InstanceID);
             if (order >= 0)
@@ -33,7 +31,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
             hints.Add($"Order: {string.Join(" -> ", _playersOrder.Skip(_castsDone).Select(id => module.WorldState.Actors.Find(id)?.Name ?? "???"))}");
         }

@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
-    using static BossModule;
-
     // state related to flames of asphodelos mechanic
-    class FlamesOfAsphodelos : Component
+    class FlamesOfAsphodelos : BossModule.Component
     {
         private Angle?[] _directions = new Angle?[3];
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (InAOE(module, _directions[1], actor.Position) || InAOE(module, _directions[0] != null ? _directions[0] : _directions[2], actor.Position))
             {

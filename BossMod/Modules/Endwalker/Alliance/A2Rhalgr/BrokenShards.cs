@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Alliance.A2Rhalgr
 {

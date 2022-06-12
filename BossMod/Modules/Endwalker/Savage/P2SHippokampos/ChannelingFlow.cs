@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Savage.P2SHippokampos
 {
-    using static BossModule;
-
     // state related to channeling [over]flow mechanics
-    class ChannelingFlow : Component
+    class ChannelingFlow : BossModule.Component
     {
         public int NumStunned { get; private set; }
         private (WDir, DateTime)[] _arrows = new (WDir, DateTime)[PartyState.MaxSize];
@@ -21,7 +18,7 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
             return dir != new WDir() && (expire - module.WorldState.CurrentTime).TotalSeconds < 13;
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             Actor? partner = null;
             if (SlotActive(module, slot))

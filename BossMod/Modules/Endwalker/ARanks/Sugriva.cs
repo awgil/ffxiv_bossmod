@@ -1,7 +1,4 @@
-﻿using System;
-using System.Numerics;
-
-namespace BossMod.Endwalker.ARanks.Sugriva
+﻿namespace BossMod.Endwalker.ARanks.Sugriva
 {
     public enum OID : uint
     {

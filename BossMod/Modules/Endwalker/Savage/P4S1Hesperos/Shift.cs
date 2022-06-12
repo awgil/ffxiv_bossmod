@@ -1,11 +1,7 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Savage.P4S1Hesperos
+﻿namespace BossMod.Endwalker.Savage.P4S1Hesperos
 {
-    using static BossModule;
-
     // state related to shift mechanics
-    class Shift : Component
+    class Shift : BossModule.Component
     {
         private AOEShapeCone _swordAOE = new(50, 60.Degrees());
         private Actor? _swordCaster;
@@ -13,13 +9,13 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
 
         private static float _knockbackRange = 30;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (_swordAOE.Check(actor.Position, _swordCaster))
             {
                 hints.Add("GTFO from sword!");
             }
-            else if (_cloakCaster != null && !module.Bounds.Contains(AdjustPositionForKnockback(actor.Position, _cloakCaster, _knockbackRange)))
+            else if (_cloakCaster != null && !module.Bounds.Contains(BossModule.AdjustPositionForKnockback(actor.Position, _cloakCaster, _knockbackRange)))
             {
                 hints.Add("About to be knocked into wall!");
             }
@@ -36,7 +32,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             {
                 arena.AddCircle(_cloakCaster.Position, 5, ArenaColor.Safe);
 
-                var adjPos = AdjustPositionForKnockback(pc.Position, _cloakCaster, _knockbackRange);
+                var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _cloakCaster, _knockbackRange);
                 if (adjPos != pc.Position)
                 {
                     arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);

@@ -2,8 +2,6 @@
 
 namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
-    using static BossModule;
-
     // state related to heat of condemnation tethers
     class HeatOfCondemnation : CommonComponents.CastCounter
     {
@@ -24,7 +22,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (actor.Role == Role.Tank)
             {

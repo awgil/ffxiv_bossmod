@@ -1,11 +1,7 @@
-﻿using System.Numerics;
-
-namespace BossMod.Endwalker.Savage.P2SHippokampos
+﻿namespace BossMod.Endwalker.Savage.P2SHippokampos
 {
-    using static BossModule;
-
     // state related to sewage deluge mechanic
-    class SewageDeluge : Component
+    class SewageDeluge : BossModule.Component
     {
         public enum Corner { None, NW, NE, SW, SE };
 

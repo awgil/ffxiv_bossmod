@@ -1,12 +1,9 @@
 ﻿using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Savage.P4S1Hesperos
 {
-    using static BossModule;
-
     // state related to pinax mechanics
-    class Pinax : Component
+    class Pinax : BossModule.Component
     {
         private enum Order { Unknown, LUWU, WULU, LFWA, LAWF, WFLA, WALF }
 
@@ -22,7 +19,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
         private static float _knockbackRadius = 13;
         private static float _lightingSafeDistance = 16; // linear falloff until 16, then constant (not sure whether it is true distance-based or max-coord-based)
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (_acid != null)
             {
@@ -46,7 +43,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
                 {
                     hints.Add("GTFO from water square!");
                 }
-                if (!module.Bounds.Contains(AdjustPositionForKnockback(actor.Position, module.Bounds.Center, _knockbackRadius)))
+                if (!module.Bounds.Contains(BossModule.AdjustPositionForKnockback(actor.Position, module.Bounds.Center, _knockbackRadius)))
                 {
                     hints.Add("About to be knocked into wall!");
                 }
@@ -61,7 +58,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             }
         }
 
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
             string order = _order switch
             {
@@ -122,7 +119,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             }
             if (_water != null)
             {
-                var adjPos = AdjustPositionForKnockback(pc.Position, module.Bounds.Center, _knockbackRadius);
+                var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, module.Bounds.Center, _knockbackRadius);
                 if (adjPos != pc.Position)
                 {
                     arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);

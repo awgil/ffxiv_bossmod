@@ -1,14 +1,13 @@
-﻿namespace BossMod.Endwalker.Savage.P2SHippokampos
-{
-    using System.Linq;
-    using static BossModule;
+﻿using System.Linq;
 
+namespace BossMod.Endwalker.Savage.P2SHippokampos
+{
     // state related to dissociation mechanic
-    class Dissociation : Component
+    class Dissociation : BossModule.Component
     {
         private AOEShapeRect? _shape = new(50, 10);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             var head = module.Enemies(OID.DissociatedHead).FirstOrDefault();
             if (_shape == null || head == null || module.Bounds.Contains(head.Position))

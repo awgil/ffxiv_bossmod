@@ -1,12 +1,9 @@
 ﻿using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
-    using static BossModule;
-
     // state related to trail of condemnation mechanic
-    class TrailOfCondemnation : Component
+    class TrailOfCondemnation : BossModule.Component
     {
         public bool Done { get; private set; } = false;
         private bool _isCenter;
@@ -20,7 +17,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             _isCenter = module.PrimaryActor.CastInfo?.IsSpell(AID.TrailOfCondemnationCenter) ?? false;
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (module.PrimaryActor.Position == module.Bounds.Center)
                 return;

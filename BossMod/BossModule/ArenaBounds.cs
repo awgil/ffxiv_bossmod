@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod
 {
@@ -46,7 +42,8 @@ namespace BossMod
         protected abstract IEnumerable<WPos> BuildClipPoly();
 
         public abstract bool Contains(WPos p);
-        public abstract WPos ClampToBounds(WPos position);
+        public abstract WDir ClampToBounds(WDir offset, float scale = 1);
+        public WPos ClampToBounds(WPos position) => Center + ClampToBounds(position - Center);
 
         // functions for clipping various shapes to bounds
         public List<(WPos, WPos, WPos)> ClipAndTriangulateCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle)
@@ -124,12 +121,12 @@ namespace BossMod
         protected override IEnumerable<WPos> BuildClipPoly() => CurveApprox.Circle(Center, HalfSize, MaxApproxError);
         public override bool Contains(WPos position) => position.InCircle(Center, HalfSize);
 
-        public override WPos ClampToBounds(WPos position)
+        public override WDir ClampToBounds(WDir offset, float scale)
         {
-            var offset = position - Center;
-            if (offset.LengthSq() > HalfSize * HalfSize)
-                offset *= HalfSize / offset.Length();
-            return Center + offset;
+            var r = HalfSize * scale;
+            if (offset.LengthSq() > r * r)
+                offset *= r / offset.Length();
+            return offset;
         }
     }
 
@@ -147,14 +144,14 @@ namespace BossMod
 
         public override bool Contains(WPos position) => WPos.AlmostEqual(position, Center, HalfSize);
 
-        public override WPos ClampToBounds(WPos position)
+        public override WDir ClampToBounds(WDir offset, float scale)
         {
-            var offset = position - Center;
-            if (Math.Abs(offset.X) > HalfSize)
-                offset *= HalfSize / Math.Abs(offset.X);
-            if (Math.Abs(offset.Z) > HalfSize)
-                offset *= HalfSize / Math.Abs(offset.Z);
-            return Center + offset;
+            var wh = HalfSize * scale;
+            if (Math.Abs(offset.X) > wh)
+                offset *= wh / Math.Abs(offset.X);
+            if (Math.Abs(offset.Z) > wh)
+                offset *= wh / Math.Abs(offset.Z);
+            return offset;
         }
     }
 }

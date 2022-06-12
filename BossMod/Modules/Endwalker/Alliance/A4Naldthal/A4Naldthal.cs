@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Alliance.A4Naldthal
+﻿namespace BossMod.Endwalker.Alliance.A4Naldthal
 {
     class GoldenTenet : CommonComponents.SharedTankbuster
     {

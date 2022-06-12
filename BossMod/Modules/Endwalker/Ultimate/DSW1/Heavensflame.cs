@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Ultimate.DSW1
 {

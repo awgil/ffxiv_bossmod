@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Savage.P1SErichthonios
 {
-    using static BossModule;
-
     // state related to aether explosion mechanics, done as part of aetherflails, aetherchain and shackles of time abilities
-    class AetherExplosion : Component
+    class AetherExplosion : BossModule.Component
     {
         private enum Cell { None, Red, Blue }
 
@@ -23,7 +20,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
                 _explodingCells = CellFromOffset(_memberWithSOT.Position - module.Bounds.Center);
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (actor != _memberWithSOT && _explodingCells != Cell.None && _explodingCells == CellFromOffset(actor.Position - module.Bounds.Center))
             {

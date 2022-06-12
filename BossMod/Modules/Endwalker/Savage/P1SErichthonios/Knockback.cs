@@ -1,13 +1,10 @@
 ﻿using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Savage.P1SErichthonios
 {
-    using static BossModule;
-
     // state related to knockback + aoe mechanic
     // TODO: i'm not quite happy with implementation, consider revising...
-    class Knockback : Component
+    class Knockback : BossModule.Component
     {
         public bool AOEDone { get; private set; } = false;
         private bool _isFlare = false; // true -> purge aka flare (stay away from MT), false -> grace aka holy (stack to MT)
@@ -34,12 +31,12 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
                 _knockbackPos = _knockbackTarget.Position;
                 if (module.PrimaryActor.CastInfo != null)
                 {
-                    _knockbackPos = AdjustPositionForKnockback(_knockbackPos, module.PrimaryActor, _kbDistance);
+                    _knockbackPos = BossModule.AdjustPositionForKnockback(_knockbackPos, module.PrimaryActor, _kbDistance);
                 }
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (module.PrimaryActor.CastInfo != null && actor == _knockbackTarget && !module.Bounds.Contains(_knockbackPos))
             {

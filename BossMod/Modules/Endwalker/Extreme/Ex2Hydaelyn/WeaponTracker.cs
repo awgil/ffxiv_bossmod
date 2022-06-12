@@ -1,12 +1,8 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
+﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
-    using static BossModule;
-
     // component tracking boss weapon/stance switches; also draws imminent aoe after each switch
     // note: we could rely on invisible buff 2273 to select weapon (n/a for sword, 1B4 for staff, 1B5 for chakram), it appears slightly earlier than 'official' buff
-    class WeaponTracker : Component
+    class WeaponTracker : BossModule.Component
     {
         public enum Stance { None, Sword, Staff, Chakram }
         public Stance CurStance { get; private set; }
@@ -16,7 +12,7 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
         private static AOEShapeCircle _aoeStaff = new(10);
         private static AOEShapeDonut _aoeChakram = new(5, 40);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (!AOEImminent)
                 return;

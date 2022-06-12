@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Collections.Generic;
 
 namespace BossMod.Endwalker.Extreme.Ex3Endsigner
 {
-    using static BossModule;
-
     // used both for single planets (elegeia) and successions (fatalism)
-    class Planets : Component
+    class Planets : BossModule.Component
     {
         private Actor? _head;
         private List<WPos> _planetsFiery = new();
@@ -18,7 +14,7 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
         private static float _knockbackDistance = 25;
         private static float _planetOffset = 19.8f; // == 14 * sqrt(2)
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (_aoeHead.Check(actor.Position, _head))
             {
@@ -30,7 +26,7 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
             }
             if (_planetsAzure.Count > 0)
             {
-                var offsetLocation = AdjustPositionForKnockback(actor.Position, _planetsAzure[0], _knockbackDistance);
+                var offsetLocation = BossModule.AdjustPositionForKnockback(actor.Position, _planetsAzure[0], _knockbackDistance);
                 if (!module.Bounds.Contains(offsetLocation))
                 {
                     hints.Add("About to be knocked into wall!");
@@ -51,7 +47,7 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
         {
             if (_planetsAzure.Count > 0)
             {
-                var offsetLocation = AdjustPositionForKnockback(pc.Position, _planetsAzure[0], _knockbackDistance);
+                var offsetLocation = BossModule.AdjustPositionForKnockback(pc.Position, _planetsAzure[0], _knockbackDistance);
                 arena.AddLine(pc.Position, offsetLocation, ArenaColor.Danger);
                 arena.Actor(offsetLocation, pc.Rotation, ArenaColor.Danger);
             }

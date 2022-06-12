@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
-    using static BossModule;
-
     // component for third lightwave (safe zone)
     class Lightwave3 : LightwaveCommon
     {
@@ -22,7 +18,7 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (Waves.Count == 0)
                 return;

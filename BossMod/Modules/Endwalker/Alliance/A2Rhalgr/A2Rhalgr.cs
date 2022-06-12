@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Alliance.A2Rhalgr
+﻿namespace BossMod.Endwalker.Alliance.A2Rhalgr
 {
     class DestructiveBolt : CommonComponents.SpreadFromCastTargets
     {

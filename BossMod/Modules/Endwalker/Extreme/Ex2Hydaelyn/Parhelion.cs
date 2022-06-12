@@ -1,19 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
-    using static BossModule;
-
-    class Parhelion : Component
+    class Parhelion : BossModule.Component
     {
         private List<Actor> _completedParhelions = new();
         private bool _subparhelions;
 
         private static AOEShapeRect _beacon = new(45, 3);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (ActiveParhelions(module).Any(p => _beacon.Check(actor.Position, p)))
                 hints.Add("GTFO from aoe!");

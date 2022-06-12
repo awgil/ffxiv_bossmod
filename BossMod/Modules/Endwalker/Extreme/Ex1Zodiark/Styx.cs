@@ -1,9 +1,5 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Extreme.Ex1Zodiark
+﻿namespace BossMod.Endwalker.Extreme.Ex1Zodiark
 {
-    using static BossModule;
-
     class Styx : CommonComponents.FullPartyStack
     {
         public Styx() : base(ActionID.MakeSpell(AID.StyxAOE), 5) { }

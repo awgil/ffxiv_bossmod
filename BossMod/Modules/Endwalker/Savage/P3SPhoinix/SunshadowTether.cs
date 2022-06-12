@@ -1,13 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
-    using static BossModule;
-
     // state related to sunshadow tethers during fountain of fire mechanics
-    class SunshadowTether : Component
+    class SunshadowTether : BossModule.Component
     {
         private HashSet<ulong> _chargedSunshadows = new();
         private BitMask _playersInAOE;
@@ -37,7 +34,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             foreach (var bird in ActiveBirds(module))
             {

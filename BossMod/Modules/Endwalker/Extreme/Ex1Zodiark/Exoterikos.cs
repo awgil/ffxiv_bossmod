@@ -4,10 +4,8 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Extreme.Ex1Zodiark
 {
-    using static BossModule;
-
     // state related to exoterikos, trimorphos exoterikos and triple esoteric ray mechanics
-    class Exoterikos : Component
+    class Exoterikos : BossModule.Component
     {
         private List<(Actor, AOEShape)> _sources= new();
 
@@ -17,7 +15,7 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
 
         public bool Done => _sources.Count == 0;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (ActiveSources(module).Any(actShape => actShape.Item2.Check(actor.Position, actShape.Item1)))
                 hints.Add("GTFO from exo aoe!");

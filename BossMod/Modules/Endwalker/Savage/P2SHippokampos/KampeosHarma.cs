@@ -1,9 +1,5 @@
-﻿using System.Numerics;
-
-namespace BossMod.Endwalker.Savage.P2SHippokampos
+﻿namespace BossMod.Endwalker.Savage.P2SHippokampos
 {
-    using static BossModule;
-
     // state related to kampeos harma mechanic
     // note that it relies on waymarks to determine safe spots...
     class KampeosHarma : CommonComponents.CastCounter
@@ -13,7 +9,7 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
 
         public KampeosHarma() : base(ActionID.MakeSpell(AID.KampeosHarmaChargeBoss)) { }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             var safePos = GetSafeZone(module, slot);
             if (safePos != null && !actor.Position.InCircle(safePos.Value, 2))

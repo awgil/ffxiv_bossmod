@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
-    using static BossModule;
-
     // state related to darkblaze twister mechanics
-    class DarkblazeTwister : Component
+    class DarkblazeTwister : BossModule.Component
     {
         private static float _knockbackRange = 17;
         private static float _aoeInnerRadius = 5;
@@ -18,9 +14,9 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
         public IEnumerable<Actor> BurningTwisters(BossModule module) => module.Enemies(OID.DarkblazeTwister).Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false);
         public Actor? DarkTwister(BossModule module) => module.Enemies(OID.DarkblazeTwister).Find(twister => twister.CastInfo?.IsSpell(AID.DarkTwister) ?? false);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            var adjPos = AdjustPositionForKnockback(actor.Position, DarkTwister(module), _knockbackRange);
+            var adjPos = BossModule.AdjustPositionForKnockback(actor.Position, DarkTwister(module), _knockbackRange);
             if (actor.Position != adjPos && !module.Bounds.Contains(adjPos))
             {
                 hints.Add("About to be knocked back into wall!");
@@ -51,7 +47,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             if (darkTwister == null)
                 return;
 
-            var adjPos = AdjustPositionForKnockback(pc.Position, darkTwister, _knockbackRange);
+            var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, darkTwister, _knockbackRange);
             if (adjPos != pc.Position)
             {
                 arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);

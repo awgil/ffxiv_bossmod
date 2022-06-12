@@ -1,7 +1,4 @@
-﻿using System;
-using System.Numerics;
-
-namespace BossMod.Endwalker.ARanks.MoussePrincess
+﻿namespace BossMod.Endwalker.ARanks.MoussePrincess
 {
     public enum OID : uint
     {

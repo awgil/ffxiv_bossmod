@@ -1,11 +1,6 @@
-﻿using System;
-using System.Linq;
-
-namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
+﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
-    using static BossModule;
-
-    class HerosSundering : Component
+    class HerosSundering : BossModule.Component
     {
         private Actor? _target;
         private BitMask _otherHit;
@@ -29,7 +24,7 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (_target == null)
                 return;

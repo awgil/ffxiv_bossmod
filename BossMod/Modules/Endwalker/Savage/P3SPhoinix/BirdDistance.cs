@@ -1,15 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
-    using static BossModule;
-
     // bird distance utility
     // when small birds die and large birds appear, they cast 26328, and if it hits any other large bird, they buff
     // when large birds die and sparkfledgeds appear, they cast 26329, and if it hits any other sparkfledged, they wipe the raid or something
     // so we show range helper for dead birds
-    class BirdDistance : Component
+    class BirdDistance : BossModule.Component
     {
         private OID _watchedBirdsID;
         private BitMask _birdsAtRisk;
@@ -35,7 +32,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             var watchedBirds = module.Enemies(_watchedBirdsID);
             for (int i = 0; i < watchedBirds.Count; ++i)

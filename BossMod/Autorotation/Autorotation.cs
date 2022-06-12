@@ -1,5 +1,4 @@
 ﻿using Dalamud;
-using Dalamud.Game.ClientState.Keys;
 using Dalamud.Hooking;
 using ImGuiNET;
 using System;

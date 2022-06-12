@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.ARanks.ArchEta
+﻿namespace BossMod.Endwalker.ARanks.ArchEta
 {
     public enum OID : uint
     {

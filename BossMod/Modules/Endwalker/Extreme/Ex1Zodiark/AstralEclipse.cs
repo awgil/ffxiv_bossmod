@@ -4,13 +4,11 @@ using System.Numerics;
 
 namespace BossMod.Endwalker.Extreme.Ex1Zodiark
 {
-    using static BossModule;
-
     // state related to astral eclipse mechanic
     // 'pattern' is a mask containing explosion spots; index is 4 bits, with low 2 bits describing world X position and 2 high bits describing world Z position
     // so NE corner (X=+1, Z=-1) corresponds to index 0b0010 = 2; S corner (X=0, Z=+1) corresponds to index 0b1001 = 9 and so on (0b11 index is unused)
     // 'completed' or 'not started' is represented as fully safe (all 0) mask, 'unknown' pattern is represented as fully dangerous (all 1) mask
-    class AstralEclipse : Component
+    class AstralEclipse : BossModule.Component
     {
         private int[] _patterns = new int[3]; // W -> S -> E
 
@@ -21,7 +19,7 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
         private static Vector3[] _basisX = new Vector3[3] { -Vector3.UnitZ, -Vector3.UnitX, Vector3.UnitZ };
         private static Vector3[] _basisY = new Vector3[3] { -Vector3.UnitX,  Vector3.UnitZ, Vector3.UnitX };
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             int nextPattern = _patterns.SkipWhile(p => p == 0).FirstOrDefault();
             if (PatternSpots(module, nextPattern).Any(p => _aoe.Check(actor.Position, p)))

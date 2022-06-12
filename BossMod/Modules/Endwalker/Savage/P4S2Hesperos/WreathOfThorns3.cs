@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Savage.P4S2Hesperos
 {
-    using static BossModule;
-
     // state related to act 3 wreath of thorns
     // note: there should be four tethered helpers on activation
-    class WreathOfThorns3 : Component
+    class WreathOfThorns3 : BossModule.Component
     {
         public enum State { RangedTowers, Knockback, MeleeTowers, Done }
 
@@ -50,7 +46,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (CurState != State.Done)
             {

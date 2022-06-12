@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Ultimate.DSW2
+﻿namespace BossMod.Endwalker.Ultimate.DSW2
 {
     class P2BroadSwing : CommonComponents.CastCounter
     {

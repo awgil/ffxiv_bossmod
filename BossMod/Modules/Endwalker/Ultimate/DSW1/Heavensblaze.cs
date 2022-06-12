@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Ultimate.DSW1
+﻿namespace BossMod.Endwalker.Ultimate.DSW1
 {
     // 'heavensblaze' (full party stack except tank) + 'holy shield bash' / 'holy bladedance' (stun + aoe tankbuster)
     class Heavensblaze : BossModule.Component

@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+﻿using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
-    using static BossModule;
-
     // state related to brightened fire mechanic
     // this helper relies on waymarks 1-4, and assumes they don't change during fight - this is of course quite an assumption, but whatever...
     class BrightenedFire : CommonComponents.CastCounter
@@ -17,7 +12,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
 
         public BrightenedFire() : base(ActionID.MakeSpell(AID.BrightenedFireAOE)) { }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (_playerOrder[slot] <= NumCasts)
                 return;

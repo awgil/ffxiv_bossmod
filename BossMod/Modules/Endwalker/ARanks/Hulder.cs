@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.ARanks.Hulder
+﻿namespace BossMod.Endwalker.ARanks.Hulder
 {
     public enum OID : uint
     {

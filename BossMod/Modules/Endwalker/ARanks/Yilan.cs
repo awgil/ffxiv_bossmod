@@ -1,7 +1,4 @@
-﻿using System;
-using System.Numerics;
-
-namespace BossMod.Endwalker.ARanks.Yilan
+﻿namespace BossMod.Endwalker.ARanks.Yilan
 {
     public enum OID : uint
     {

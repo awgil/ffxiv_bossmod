@@ -1,6 +1,5 @@
 ﻿using ImGuiNET;
 using ImGuiScene;
-using System.Numerics;
 using BossMod;
 using System;
 using System.Diagnostics;

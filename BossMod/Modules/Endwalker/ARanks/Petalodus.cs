@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.ARanks.Petalodus
+﻿namespace BossMod.Endwalker.ARanks.Petalodus
 {
     public enum OID : uint
     {

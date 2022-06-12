@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace BossMod
+﻿namespace BossMod
 {
     public class DemoModule : BossModule
     {

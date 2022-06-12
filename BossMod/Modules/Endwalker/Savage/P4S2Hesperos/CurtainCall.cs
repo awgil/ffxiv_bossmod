@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P4S2Hesperos
 {
-    using static BossModule;
-
     // state related to curtain call mechanic
-    class CurtainCall : Component
+    class CurtainCall : BossModule.Component
     {
         private int[] _playerOrder = new int[8];
         private List<Actor>? _playersInBreakOrder;
@@ -21,7 +18,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (_playerOrder[slot] > _numCasts)
             {
@@ -30,7 +27,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
             if (_playersInBreakOrder != null)
                 hints.Add($"Order: {string.Join(" -> ", _playersInBreakOrder.Skip(_numCasts).Select(a => OrderTextForPlayer(module, a)))}");

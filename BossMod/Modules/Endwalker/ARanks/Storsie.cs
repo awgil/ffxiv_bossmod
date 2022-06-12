@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.ARanks.Storsie
+﻿namespace BossMod.Endwalker.ARanks.Storsie
 {
     public enum OID : uint
     {

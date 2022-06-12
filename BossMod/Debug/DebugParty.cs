@@ -1,6 +1,4 @@
-﻿using Dalamud.Game.ClientState.Party;
-using ImGuiNET;
-using System;
+﻿using ImGuiNET;
 
 namespace BossMod
 {

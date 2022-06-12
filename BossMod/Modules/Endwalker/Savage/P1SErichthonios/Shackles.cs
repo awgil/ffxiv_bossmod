@@ -1,12 +1,9 @@
 ﻿using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Savage.P1SErichthonios
 {
-    using static BossModule;
-
     // state related to normal and fourfold shackles
-    class Shackles : Component
+    class Shackles : BossModule.Component
     {
         public int NumExpiredDebuffs { get; private set; } = 0;
         private bool _active = false;
@@ -66,7 +63,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (_blueTetherMatrix[slot].Any() && _redTetherMatrix[slot].Any())
             {

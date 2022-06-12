@@ -1,13 +1,9 @@
-﻿using ImGuiNET;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Savage.P1SErichthonios
 {
-    using static BossModule;
-
     // we have two cube patterns (symmetrical and asymmetrical) and two explosion orders, which gives us three movement patterns (symmetrical, asymmetrical top-bottom and asymmetrical bottom-top)
     // each pattern has four distinct kinds of squares that have identical cubes (N, S, E/W and intercardinals); one of the intercardinals should do special movement to swap with N for asymmetrical patterns
     // we use player's position during first explosion to assign their square (and don't try to handle fuckups)
@@ -16,7 +12,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
     // E/W positions: symmetrical = move to center for second explosion, then return; asymmetrical = move to S for second explosion, then return
     // normal corners: symmetrical = move to S for second explosion, then return; asymmetrical = move to center for second explosion, then return
     // designated corner: symmetrical = same as normal corner; asymmetrical = move to N or S for second explosion, move to N for last explosion
-    class Intemperance : Component
+    class Intemperance : BossModule.Component
     {
         public enum State { Unknown, TopToBottom, BottomToTop }
         public enum Pattern { Unknown, Symmetrical, Asymmetrical }
@@ -63,7 +59,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (_delimiterCenters.Any(c => _delimiterAOE.Check(actor.Position, c.Item1, c.Item2)))
             {
@@ -91,7 +87,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
                     movementHints.Add(from, to, color);
         }
 
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
         {
             hints.Add($"Order: {_curState}, pattern: {_pattern}.");
         }

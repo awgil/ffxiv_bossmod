@@ -1,10 +1,7 @@
 ﻿using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Savage.P2SHippokampos
 {
-    using static BossModule;
-
     // state related to coherence mechanic
     // TODO: i'm not 100% sure how exactly it selects target for aoe ray, I assume it is closest player except tether target?..
     class Coherence : CommonComponents.CastCounter
@@ -36,7 +33,7 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (actor == _tetherTarget)
             {

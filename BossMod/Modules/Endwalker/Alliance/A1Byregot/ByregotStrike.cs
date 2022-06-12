@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Alliance.A1Byregot
+﻿namespace BossMod.Endwalker.Alliance.A1Byregot
 {
     class ByregotStrike : BossModule.Component
     {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Numerics;
-
-namespace BossMod.Endwalker.ARanks.Minerva
+﻿namespace BossMod.Endwalker.ARanks.Minerva
 {
     public enum OID : uint
     {

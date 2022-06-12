@@ -1,12 +1,7 @@
-﻿using System;
-using System.Numerics;
-
-namespace BossMod.Endwalker.Savage.P3SPhoinix
+﻿namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
-    using static BossModule;
-
     // state related to 'single' and 'multi' fireplumes (normal or parts of gloryplume)
-    class Fireplume : Component
+    class Fireplume : BossModule.Component
     {
         private WPos? _singlePos = null;
         private Angle _multiStartingDirection;
@@ -17,7 +12,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
         private static float _multiRadius = 10;
         private static float _multiPairOffset = 15;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (_singlePos != null && actor.Position.InCircle(_singlePos.Value, _singleRadius))
             {

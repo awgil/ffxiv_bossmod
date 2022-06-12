@@ -1,7 +1,4 @@
 ﻿using BossMod;
-using ImGuiNET;
-using System;
-using System.Linq;
 
 namespace UIDev
 {

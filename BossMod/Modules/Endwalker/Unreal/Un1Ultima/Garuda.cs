@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Unreal.Un1Ultima
+﻿namespace BossMod.Endwalker.Unreal.Un1Ultima
 {
     class Garuda : BossModule.Component
     {
