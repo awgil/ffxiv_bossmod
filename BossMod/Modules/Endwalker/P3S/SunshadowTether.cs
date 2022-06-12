@@ -63,7 +63,7 @@ namespace BossMod.Endwalker.P3S
                 if (target != null && target.Position != bird.Position)
                 {
                     var dir = (target.Position - bird.Position).Normalized();
-                    arena.ZoneQuad(bird.Position, dir, 50, 0, _chargeHalfWidth, arena.ColorAOE);
+                    arena.ZoneRect(bird.Position, dir, 50, 0, _chargeHalfWidth, arena.ColorAOE);
                 }
             }
         }

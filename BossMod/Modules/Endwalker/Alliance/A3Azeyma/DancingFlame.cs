@@ -17,7 +17,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var z in ActiveZones(module))
-                arena.ZoneRect(z.Center - z.HalfSize, z.Center + z.HalfSize, arena.ColorAOE);
+                arena.ZoneRect(z.Center, new WDir(1, 0), z.HalfSize.X, z.HalfSize.X, z.HalfSize.Z, arena.ColorAOE);
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)
@@ -38,8 +38,8 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
         {
             if (_active.Count == 0)
                 yield break;
-            yield return (module.Arena.WorldCenter, new(2.5f, 30));
-            yield return (module.Arena.WorldCenter, new(30, 2.5f));
+            yield return (module.Bounds.Center, new(2.5f, 30));
+            yield return (module.Bounds.Center, new(30, 2.5f));
             foreach (var c in _active)
                 yield return (c, new(15, 15));
         }

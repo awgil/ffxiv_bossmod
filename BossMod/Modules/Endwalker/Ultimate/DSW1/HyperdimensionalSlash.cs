@@ -38,8 +38,8 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 }
             }
 
-            var coneTarget = module.Raid.WithoutSlot().MinBy(a => (a.Position - module.Arena.WorldCenter).LengthSq());
-            _coneDir = coneTarget != null ? Angle.FromDirection(coneTarget.Position - module.Arena.WorldCenter) : new();
+            var coneTarget = module.Raid.WithoutSlot().MinBy(a => (a.Position - module.Bounds.Center).LengthSq());
+            _coneDir = coneTarget != null ? Angle.FromDirection(coneTarget.Position - module.Bounds.Center) : new();
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
@@ -58,11 +58,11 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
 
             // make sure actor is not clipped by any lasers
-            if (_laserTargets.Exclude(actor).Any(target => _aoeLaser.Check(actor.Position, module.Arena.WorldCenter, Angle.FromDirection(target.Position - module.Arena.WorldCenter))))
+            if (_laserTargets.Exclude(actor).Any(target => _aoeLaser.Check(actor.Position, module.Bounds.Center, Angle.FromDirection(target.Position - module.Bounds.Center))))
                 hints.Add("GTFO from laser aoe!");
 
             // make sure actor is either not hit by cone (if is target of a laser) or is hit by a cone (otherwise)
-            bool hitByCone = _aoeCone.Check(actor.Position, module.Arena.WorldCenter, _coneDir);
+            bool hitByCone = _aoeCone.Check(actor.Position, module.Bounds.Center, _coneDir);
             if (tearIndex >= 0 && hitByCone)
                 hints.Add("GTFO from cone aoe!");
             else if (tearIndex < 0 && !hitByCone)
@@ -75,8 +75,8 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 return;
 
             foreach (var t in _laserTargets)
-                _aoeLaser.Draw(arena, arena.WorldCenter, Angle.FromDirection(t.Position - arena.WorldCenter));
-            _aoeCone.Draw(arena, arena.WorldCenter, _coneDir);
+                _aoeLaser.Draw(arena, module.Bounds.Center, Angle.FromDirection(t.Position - module.Bounds.Center));
+            _aoeCone.Draw(arena, module.Bounds.Center, _coneDir);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -85,7 +85,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 arena.AddCircle(_tears[i].Pos, _linkRadius, _riskyTears[i] ? arena.ColorDanger : arena.ColorSafe);
 
             if (_laserTargets.Contains(pc))
-                arena.AddLine(arena.WorldCenter, TearPosition(module, pc), arena.ColorDanger);
+                arena.AddLine(module.Bounds.Center, TearPosition(module, pc), arena.ColorDanger);
         }
 
         public override void OnEventCast(BossModule module, CastEvent info)
@@ -109,7 +109,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
         private WPos TearPosition(BossModule module, Actor target)
         {
-            return module.Arena.ClampToBounds(module.Arena.WorldCenter + 50 * (target.Position - module.Arena.WorldCenter).Normalized());
+            return module.Bounds.ClampToBounds(module.Bounds.Center + 50 * (target.Position - module.Bounds.Center).Normalized());
         }
     }
 }

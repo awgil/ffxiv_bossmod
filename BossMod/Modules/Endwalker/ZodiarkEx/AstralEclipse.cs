@@ -80,7 +80,7 @@ namespace BossMod.Endwalker.ZodiarkEx
                 for (int z = -1; z <= 1; ++z)
                     for (int x = -1; x <= 1; ++x)
                         if ((pattern & (1 << ((z + 1) * 4 + (x + 1)))) != 0)
-                            yield return module.Arena.WorldCenter + _centerOffset * new WDir(x, z);
+                            yield return module.Bounds.Center + _centerOffset * new WDir(x, z);
         }
 
         private IEnumerable<(WPos, WPos)> MovementHints(BossModule module, WPos startingPosition)

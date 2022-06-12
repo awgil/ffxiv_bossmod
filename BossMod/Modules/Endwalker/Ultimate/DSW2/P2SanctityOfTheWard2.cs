@@ -126,9 +126,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
             if (_activeTowers1 == 8)
             {
-                float diag = arena.WorldHalfSize / 1.414214f;
-                arena.AddLine(arena.WorldCenter + new WDir(diag,  diag), arena.WorldCenter - new WDir(diag,  diag), arena.ColorBorder);
-                arena.AddLine(arena.WorldCenter + new WDir(diag, -diag), arena.WorldCenter - new WDir(diag, -diag), arena.ColorBorder);
+                float diag = module.Bounds.HalfSize / 1.414214f;
+                arena.AddLine(module.Bounds.Center + new WDir(diag,  diag), module.Bounds.Center - new WDir(diag,  diag), arena.ColorBorder);
+                arena.AddLine(module.Bounds.Center + new WDir(diag, -diag), module.Bounds.Center - new WDir(diag, -diag), arena.ColorBorder);
 
                 foreach (var tower in _towers1)
                 {
@@ -225,7 +225,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private int ClassifyTower1(BossModule module, Actor tower)
         {
-            var offset = tower.Position - module.Arena.WorldCenter;
+            var offset = tower.Position - module.Bounds.Center;
             var dir = Angle.FromDirection(offset);
             if (offset.LengthSq() < 7 * 7)
             {
@@ -241,7 +241,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private int ClassifyTower2(BossModule module, Actor tower)
         {
-            var offset = tower.Position - module.Arena.WorldCenter;
+            var offset = tower.Position - module.Bounds.Center;
             var dir = Angle.FromDirection(offset);
             return (4 - (int)MathF.Round(dir.Rad / MathF.PI * 4)) % 8;
         }
@@ -492,7 +492,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private WPos StormPlacementPosition(BossModule module, int quadrant)
         {
             var dir = (180 - quadrant * 90).Degrees();
-            return module.Arena.WorldCenter + _stormPlacementOffset * dir.ToDirection();
+            return module.Bounds.Center + _stormPlacementOffset * dir.ToDirection();
         }
 
         private string WaymarkForQuadrant(BossModule module, int quadrant)

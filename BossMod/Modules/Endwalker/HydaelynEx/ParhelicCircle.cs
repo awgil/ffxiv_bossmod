@@ -27,7 +27,7 @@ namespace BossMod.Endwalker.HydaelynEx
                 var tri = module.Enemies(OID.RefulgenceTriangle).FirstOrDefault();
                 if (hex != null && tri != null)
                 {
-                    var c = module.Arena.WorldCenter;
+                    var c = module.Bounds.Center;
                     _positions.Add(c);
                     _positions.Add(c + _triRadius * (tri.Rotation + 60.Degrees()).ToDirection());
                     _positions.Add(c + _triRadius * (tri.Rotation + 180.Degrees()).ToDirection());

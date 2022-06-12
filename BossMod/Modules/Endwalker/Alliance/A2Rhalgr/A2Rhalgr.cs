@@ -46,11 +46,8 @@ namespace BossMod.Endwalker.Alliance.A2Rhalgr
     public class A2Rhalgr : BossModule
     {
         public A2Rhalgr(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+            : base(manager, primary, new ArenaBoundsSquare(new(-15, 275), 30)) // note: arena has a really complex shape...
         {
-            Arena.WorldCenter = new(-15, 275); // arena has a really complex shape...
-            Arena.WorldHalfSize = 30;
-
             var sb = new StateMachineBuilder(this);
             sb.TrivialPhase()
                 .ActivateOnEnter<DestructiveBolt>()

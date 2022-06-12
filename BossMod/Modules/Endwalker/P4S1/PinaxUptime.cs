@@ -18,7 +18,7 @@ namespace BossMod.Endwalker.P4S1
             if (doubleOffset == new WDir())
                 return;
 
-            arena.AddCircle(arena.WorldCenter + 9 * doubleOffset, 2, arena.ColorSafe);
+            arena.AddCircle(module.Bounds.Center + 9 * doubleOffset, 2, arena.ColorSafe);
         }
     }
 }

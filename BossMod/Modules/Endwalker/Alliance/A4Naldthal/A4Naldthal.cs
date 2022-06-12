@@ -46,12 +46,8 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
     public class A4Naldthal : BossModule
     {
         public A4Naldthal(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+            : base(manager, primary, new ArenaBoundsCircle(new(750, -750), 25))
         {
-            Arena.IsCircle = true;
-            Arena.WorldCenter = new(750, -750);
-            Arena.WorldHalfSize = 25;
-
             var sb = new StateMachineBuilder(this);
             sb.TrivialPhase()
                 .ActivateOnEnter<GoldenTenet>()

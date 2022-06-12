@@ -3,11 +3,8 @@
     public class Ex1Ultima : BossModule
     {
         public Ex1Ultima(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+            : base(manager, primary, new ArenaBoundsCircle(new(0, 0), 20))
         {
-            Arena.WorldCenter = new();
-            Arena.IsCircle = true;
-
             // TODO: reconsider...
             var states = new StateMachineBuilder(this);
             states.TrivialPhase(600);

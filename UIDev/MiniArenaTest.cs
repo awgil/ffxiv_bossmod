@@ -8,10 +8,11 @@ namespace UIDev
 {
     class MiniArenaTest : ITest
     {
-        private MiniArena _arena = new(new());
+        private MiniArena _arena = new(new(), new ArenaBoundsSquare(new(100, 100), 20));
+        private bool _arenaIsCircle = false;
         private float _azimuth = -72;
         private float _altitude = 90;
-        //private bool _lineEnabled;
+        private bool _lineEnabled;
         private bool _coneEnabled = true;
         private List<Vector3> _shapeVertices = new();
         private Vector4 _lineEnds = new(90, 90, 110, 110);
@@ -28,12 +29,17 @@ namespace UIDev
         {
             ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, +180);
             ImGui.DragFloat("Camera altitude", ref _altitude, 1, -90, +90);
-            ImGui.Checkbox("Circle shape", ref _arena.IsCircle);
+            if (ImGui.Checkbox("Circle shape", ref _arenaIsCircle))
+            {
+                _arena.Bounds = _arenaIsCircle ? new ArenaBoundsCircle(_arena.Bounds.Center, _arena.Bounds.HalfSize) : new ArenaBoundsSquare(_arena.Bounds.Center, _arena.Bounds.HalfSize);
+            }
 
             _arena.Begin((float)(Math.PI * _azimuth / 180));
             if (_coneEnabled)
                 _arena.ZoneCone(new(_conePos), _coneRadius.X, _coneRadius.Y, _coneAngles.X.Degrees(), _coneAngles.Y.Degrees(), _arena.ColorSafe);
             _arena.Border();
+            if (_lineEnabled)
+                _arena.AddLine(new(_lineEnds.X, _lineEnds.Y), new(_lineEnds.Z, _lineEnds.W), 0xffff0000);
             _arena.Actor(new(_playerPos), new(), 0xff00ff00);
             _arena.End();
 
@@ -71,17 +77,9 @@ namespace UIDev
             //    _arena.PathStroke(true, 0xff808080, 2);
             //}
 
-            //ImGui.Checkbox("Draw line", ref _lineEnabled);
-            //if (_lineEnabled)
-            //{
-            //    ImGui.DragFloat4("Endpoints", ref _lineEnds);
-            //    var a = new Vector3(_lineEnds.X, 0, _lineEnds.Y);
-            //    var b = new Vector3(_lineEnds.Z, 0, _lineEnds.W);
-            //    var clipped = _circle
-            //        ? MiniArena.ClipLineToCircle(ref a, ref b, _arena.WorldCenter, _arena.WorldHalfSize)
-            //        : MiniArena.ClipLineToRect(ref a, ref b, _arena.WorldNW, _arena.WorldSE);
-            //    _arena.AddLine(a, b, 0xffff0000);
-            //}
+            ImGui.Checkbox("Draw line", ref _lineEnabled);
+            if (_lineEnabled)
+                ImGui.DragFloat4("Endpoints", ref _lineEnds);
         }
     }
 }

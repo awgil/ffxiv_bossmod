@@ -96,7 +96,7 @@ namespace BossMod
         }
 
         public override bool Check(WPos position, WPos origin, Angle rotation) => position.InRect(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth);
-        public override void Draw(MiniArena arena, WPos origin, Angle rotation) => arena.ZoneQuad(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth, arena.ColorAOE);
+        public override void Draw(MiniArena arena, WPos origin, Angle rotation) => arena.ZoneRect(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth, arena.ColorAOE);
         public override void Outline(MiniArena arena, WPos origin, Angle rotation)
         {
             var direction = (rotation + DirectionOffset).ToDirection();

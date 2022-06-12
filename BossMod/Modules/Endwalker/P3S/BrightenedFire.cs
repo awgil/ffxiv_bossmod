@@ -69,7 +69,7 @@ namespace BossMod.Endwalker.P3S
             // TODO: consider how this can be improved...
             var markID = (Waymark)((int)Waymark.N1 + (order - 1) % 4);
             var wm = module.WorldState.Waymarks[markID];
-            return wm != null ? new(wm.Value.XZ()) : module.Arena.WorldCenter;
+            return wm != null ? new(wm.Value.XZ()) : module.Bounds.Center;
         }
     }
 }

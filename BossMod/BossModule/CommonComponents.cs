@@ -264,7 +264,7 @@ namespace BossMod
                 if (_caster != null)
                 {
                     var adjPos = BossModule.AdjustPositionForKnockback(actor.Position, _caster, _distance);
-                    if (!module.Arena.InBounds(adjPos))
+                    if (!module.Bounds.Contains(adjPos))
                         hints.Add("About to be knocked into wall!");
                 }
             }

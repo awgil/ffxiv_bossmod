@@ -21,7 +21,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 return;
 
             var actorAdjPos = BossModule.AdjustPositionForKnockback(actor.Position, _knockbackSource, _knockbackDistance);
-            if (_knockbackSource != null && !module.Arena.InBounds(actorAdjPos))
+            if (_knockbackSource != null && !module.Bounds.Contains(actorAdjPos))
                 hints.Add("About to be knocked into wall!");
 
             if (module.Raid.WithoutSlot().Exclude(actor).Any(p => BossModule.AdjustPositionForKnockback(p.Position, _knockbackSource, _knockbackDistance).InCircle(actorAdjPos, _aoeRadius)))
@@ -127,7 +127,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 module.Arena.AddCircle(new(pos.Value.XZ()), 2, module.Arena.ColorSafe);
                 //var dir = Vector3.Normalize(pos.Value - _knockbackSource.Position);
                 //var adjPos = module.Arena.ClampToBounds(_knockbackSource.Position + 50 * dir);
-                //module.Arena.AddLine(module.Arena.WorldCenter, adjPos, module.Arena.ColorSafe);
+                //module.Arena.AddLine(module.Bounds.Center, adjPos, module.Arena.ColorSafe);
             }
         }
     }

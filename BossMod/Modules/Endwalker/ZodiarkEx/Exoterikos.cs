@@ -72,7 +72,7 @@ namespace BossMod.Endwalker.ZodiarkEx
             DateTime lastRay = new(); // we only show first rays, otherwise triple rays would cover whole arena and be useless
             foreach (var (actor, shape) in _sources)
             {
-                if (shape == _aoeSquare && MathF.Abs(actor.Position.X - module.Arena.WorldCenter.X) > 10)
+                if (shape == _aoeSquare && MathF.Abs(actor.Position.X - module.Bounds.Center.X) > 10)
                 {
                     if (hadSideSquare)
                         continue;

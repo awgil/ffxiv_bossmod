@@ -211,8 +211,8 @@ namespace BossMod.Endwalker.P1S
 
             var w1 = new WPos(way1.Value.XZ());
             var w2 = new WPos(way2.Value.XZ());
-            var d1 = (w1 - module.Arena.WorldCenter).LengthSq();
-            var d2 = (w2 - module.Arena.WorldCenter).LengthSq();
+            var d1 = (w1 - module.Bounds.Center).LengthSq();
+            var d2 = (w2 - module.Bounds.Center).LengthSq();
             bool use1 = far ? d1 > d2 : d1 < d2;
             int slot = module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)

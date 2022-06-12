@@ -59,7 +59,7 @@ namespace BossMod.Endwalker.P2S
         {
             foreach (var (player, dir) in ActiveArrows(module))
             {
-                arena.ZoneQuad(player.Position, dir, 50, 0, _typhoonHalfWidth, arena.ColorAOE);
+                arena.ZoneRect(player.Position, dir, 50, 0, _typhoonHalfWidth, arena.ColorAOE);
             }
         }
 

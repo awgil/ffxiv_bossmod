@@ -11,7 +11,7 @@
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var head = module.Enemies(OID.DissociatedHead).FirstOrDefault();
-            if (_shape == null || head == null || module.Arena.InBounds(head.Position))
+            if (_shape == null || head == null || module.Bounds.Contains(head.Position))
                 return; // inactive or head not teleported yet
 
             if (_shape.Check(actor.Position, head))
@@ -23,7 +23,7 @@
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             var head = module.Enemies(OID.DissociatedHead).FirstOrDefault();
-            if (_shape == null || head == null || module.Arena.InBounds(head.Position))
+            if (_shape == null || head == null || module.Bounds.Contains(head.Position))
                 return; // inactive or head not teleported yet
 
             _shape.Draw(arena, head);

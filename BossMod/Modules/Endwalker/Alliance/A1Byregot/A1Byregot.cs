@@ -3,11 +3,8 @@
     public class A1Byregot : BossModule
     {
         public A1Byregot(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+            : base(manager, primary, new ArenaBoundsSquare(new(0, 700), 25))
         {
-            Arena.WorldCenter = new(0, 700);
-            Arena.WorldHalfSize = 25;
-
             var sb = new StateMachineBuilder(this);
             sb.TrivialPhase()
                 .ActivateOnEnter<ByregotStrike>()

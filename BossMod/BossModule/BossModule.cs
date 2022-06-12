@@ -31,6 +31,7 @@ namespace BossMod
 
         public WorldState WorldState => Manager.WorldState;
         public PartyState Raid => WorldState.Party;
+        public ArenaBounds Bounds => Arena.Bounds;
 
         // per-oid enemy lists; filled on first request
         private Dictionary<uint, List<Actor>> _relevantEnemies = new(); // key = actor OID
@@ -129,11 +130,11 @@ namespace BossMod
             _components.Clear();
         }
 
-        public BossModule(BossModuleManager manager, Actor primary)
+        public BossModule(BossModuleManager manager, Actor primary, ArenaBounds bounds)
         {
             Manager = manager;
             PrimaryActor = primary;
-            Arena = new(Manager.WindowConfig);
+            Arena = new(Manager.WindowConfig, bounds);
 
             WorldState.Actors.Added += OnActorCreated;
             WorldState.Actors.Removed += OnActorDestroyed;

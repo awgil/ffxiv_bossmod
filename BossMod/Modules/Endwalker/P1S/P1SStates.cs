@@ -200,14 +200,14 @@ namespace BossMod.Endwalker.P1S
         {
             var s = Cast(id, AID.ShiningCells, delay, 7, "Cells")
                 .SetHint(StateMachine.StateHint.Raidwide);
-            s.Raw.Exit.Add(() => Module.Arena.IsCircle = true);
+            s.Raw.Exit.Add(() => Module.Arena.Bounds = new ArenaBoundsCircle(Module.Arena.Bounds.Center, Module.Arena.Bounds.HalfSize));
         }
 
         private void SlamShut(uint id, float delay)
         {
             var s = Cast(id, AID.SlamShut, delay, 7, "SlamShut")
                 .SetHint(StateMachine.StateHint.Raidwide);
-            s.Raw.Exit.Add(() => Module.Arena.IsCircle = false);
+            s.Raw.Exit.Add(() => Module.Arena.Bounds = new ArenaBoundsSquare(Module.Arena.Bounds.Center, Module.Arena.Bounds.HalfSize));
         }
 
         private void Fork1(uint id)

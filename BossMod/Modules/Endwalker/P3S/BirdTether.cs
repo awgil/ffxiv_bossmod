@@ -105,7 +105,7 @@ namespace BossMod.Endwalker.P3S
                 {
                     var fromTo = nextTarget.Position - bird.Position;
                     float len = fromTo.Length();
-                    arena.ZoneQuad(bird.Position, fromTo / len, len, 0, _chargeHalfWidth, arena.ColorAOE);
+                    arena.ZoneRect(bird.Position, fromTo / len, len, 0, _chargeHalfWidth, arena.ColorAOE);
                 }
             }
         }
@@ -136,9 +136,9 @@ namespace BossMod.Endwalker.P3S
                             arena.AddLine(pc.Position, p2.Position, (pc.Tether.ID == (uint)TetherID.LargeBirdFar) ? arena.ColorSafe : arena.ColorDanger);
                         }
 
-                        if (bird.Position != arena.WorldCenter)
+                        if (bird.Position != module.Bounds.Center)
                         {
-                            var safespot = bird.Position + (arena.WorldCenter - bird.Position).Normalized() * _chargeMinSafeDistance;
+                            var safespot = bird.Position + (module.Bounds.Center - bird.Position).Normalized() * _chargeMinSafeDistance;
                             arena.AddCircle(safespot, 1, arena.ColorSafe);
                         }
                     }
@@ -158,9 +158,9 @@ namespace BossMod.Endwalker.P3S
                     {
                         arena.AddLine(bird.Position, pc.Position, (p1.Tether.ID == (uint)TetherID.LargeBirdFar) ? arena.ColorSafe : arena.ColorDanger);
 
-                        if (bird.Position != arena.WorldCenter)
+                        if (bird.Position != module.Bounds.Center)
                         {
-                            var safespot = bird.Position + (arena.WorldCenter - bird.Position).Normalized() * _chargeMinSafeDistance;
+                            var safespot = bird.Position + (module.Bounds.Center - bird.Position).Normalized() * _chargeMinSafeDistance;
                             arena.AddCircle(safespot, 1, arena.ColorSafe);
                         }
                     }

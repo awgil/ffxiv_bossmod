@@ -31,7 +31,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
             WDir offset = new();
             foreach (var s in _chargeSources)
-                offset += s.Position - module.Arena.WorldCenter;
+                offset += s.Position - module.Bounds.Center;
             _dirToBoss = Angle.FromDirection(offset) + 180.Degrees();
         }
 
@@ -92,10 +92,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 var target = module.WorldState.Actors.Find(source.Tether.Target);
                 if (target != null)
                 {
-                    var dir = target.Position - source.Position;
-                    var len = dir.Length();
-                    dir /= len;
-                    arena.ZoneQuad(source.Position, dir, len, 0, _chargeHalfWidth, arena.ColorAOE);
+                    arena.ZoneRect(source.Position, target.Position, _chargeHalfWidth, arena.ColorAOE);
                 }
             }
         }
@@ -226,7 +223,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private void DrawSafeSpot(MiniArena arena, Angle dir)
         {
-            arena.AddCircle(arena.WorldCenter + 20 * dir.ToDirection(), 2, arena.ColorSafe);
+            arena.AddCircle(arena.Bounds.Center + 20 * dir.ToDirection(), 2, arena.ColorSafe);
         }
     }
 }

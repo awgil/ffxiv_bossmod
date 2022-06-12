@@ -20,12 +20,12 @@ namespace BossMod.Endwalker.P1S
         public override void Update(BossModule module)
         {
             if (_memberWithSOT != null)
-                _explodingCells = CellFromOffset(_memberWithSOT.Position - module.Arena.WorldCenter);
+                _explodingCells = CellFromOffset(_memberWithSOT.Position - module.Bounds.Center);
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (actor != _memberWithSOT && _explodingCells != Cell.None && _explodingCells == CellFromOffset(actor.Position - module.Arena.WorldCenter))
+            if (actor != _memberWithSOT && _explodingCells != Cell.None && _explodingCells == CellFromOffset(actor.Position - module.Bounds.Center))
             {
                 hints.Add("Hit by aether explosion!");
             }
@@ -36,7 +36,7 @@ namespace BossMod.Endwalker.P1S
             if (_explodingCells == Cell.None || pc == _memberWithSOT)
                 return; // nothing to draw
 
-            if (!module.Arena.IsCircle)
+            if (module.Bounds is not ArenaBoundsCircle)
             {
                 module.ReportError(this, "Trying to draw aether AOE when cells mode is not active...");
                 return;
@@ -45,8 +45,8 @@ namespace BossMod.Endwalker.P1S
             var start = _explodingCells == Cell.Blue ? 0.Degrees() : 45.Degrees();
             for (int i = 0; i < 4; ++i)
             {
-                arena.ZoneCone(arena.WorldCenter, 0, P1S.InnerCircleRadius, start + 22.5f.Degrees(), 22.5f.Degrees(), arena.ColorAOE);
-                arena.ZoneCone(arena.WorldCenter, P1S.InnerCircleRadius, arena.WorldHalfSize, start + 67.5f.Degrees(), 22.5f.Degrees(), arena.ColorAOE);
+                arena.ZoneCone(module.Bounds.Center, 0, P1S.InnerCircleRadius, start + 22.5f.Degrees(), 22.5f.Degrees(), arena.ColorAOE);
+                arena.ZoneCone(module.Bounds.Center, P1S.InnerCircleRadius, module.Bounds.HalfSize, start + 67.5f.Degrees(), 22.5f.Degrees(), arena.ColorAOE);
                 start += 90.Degrees();
             }
         }

@@ -43,7 +43,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
         {
             if (actor.CastInfo!.IsSpell(AID.EverfireFirst) || actor.CastInfo!.IsSpell(AID.OnceBurnedFirst))
             {
-                WDir dir = MathF.Abs(actor.Position.X - module.Arena.WorldCenter.X) < 1 ? new(1, 0) : new(0, 1);
+                WDir dir = MathF.Abs(actor.Position.X - module.Bounds.Center.X) < 1 ? new(1, 0) : new(0, 1);
                 _active.Add(new(actor.Position, dir));
                 _active.Add(new(actor.Position, -dir));
             }

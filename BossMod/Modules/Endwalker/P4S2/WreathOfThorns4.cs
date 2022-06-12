@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.P4S2
                 // build order for dark explosion; TODO: this is quite hacky right now, and probably should be configurable
                 // current logic assumes we break N or NW tether first, and then move clockwise
                 _darkOrder = new();
-                var c = module.Arena.WorldCenter;
+                var c = module.Bounds.Center;
                 AddAOETargetToOrder(_darkOrder, p => p.Z < c.Z && p.X <= c.X);
                 AddAOETargetToOrder(_darkOrder, p => p.X > c.X && p.Z <= c.Z);
                 AddAOETargetToOrder(_darkOrder, p => p.Z > c.Z && p.X >= c.X);
@@ -199,8 +199,8 @@ namespace BossMod.Endwalker.P4S2
 
         private WPos RotateCW(BossModule module, WPos pos, Angle angle, float radius)
         {
-            var dir = Angle.FromDirection(pos - module.Arena.WorldCenter) - angle;
-            return module.Arena.WorldCenter + radius * dir.ToDirection();
+            var dir = Angle.FromDirection(pos - module.Bounds.Center) - angle;
+            return module.Bounds.Center + radius * dir.ToDirection();
         }
 
         private WPos DetermineWaterSafeSpot(BossModule module, Actor source)

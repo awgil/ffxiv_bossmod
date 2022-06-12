@@ -76,8 +76,8 @@ namespace BossMod.Endwalker.P3S
         {
             if (dir != null)
             {
-                arena.ZoneIsoscelesTri(arena.WorldCenter, dir.Value, 30.Degrees(), 50, color);
-                arena.ZoneIsoscelesTri(arena.WorldCenter, dir.Value + 180.Degrees(), 30.Degrees(), 50, color);
+                arena.ZoneIsoscelesTri(arena.Bounds.Center, dir.Value, 30.Degrees(), 50, color);
+                arena.ZoneIsoscelesTri(arena.Bounds.Center, dir.Value + 180.Degrees(), 30.Degrees(), 50, color);
             }
         }
 
@@ -86,7 +86,7 @@ namespace BossMod.Endwalker.P3S
             if (dir == null)
                 return false;
 
-            var toPos = (pos - module.Arena.WorldCenter).Normalized();
+            var toPos = (pos - module.Bounds.Center).Normalized();
             return MathF.Abs(dir.Value.ToDirection().Dot(toPos)) >= MathF.Cos(MathF.PI / 6);
         }
     }

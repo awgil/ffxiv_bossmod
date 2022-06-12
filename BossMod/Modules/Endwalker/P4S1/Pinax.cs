@@ -46,7 +46,7 @@ namespace BossMod.Endwalker.P4S1
                 {
                     hints.Add("GTFO from water square!");
                 }
-                if (!module.Arena.InBounds(AdjustPositionForKnockback(actor.Position, module.Arena.WorldCenter, _knockbackRadius)))
+                if (!module.Bounds.Contains(AdjustPositionForKnockback(actor.Position, module.Bounds.Center, _knockbackRadius)))
                 {
                     hints.Add("About to be knocked into wall!");
                 }
@@ -57,7 +57,7 @@ namespace BossMod.Endwalker.P4S1
                 {
                     hints.Add("GTFO from lighting square!");
                 }
-                hints.Add("GTFO from center!", actor.Position.InRect(module.Arena.WorldCenter, new WDir(1, 0), _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance));
+                hints.Add("GTFO from center!", actor.Position.InRect(module.Bounds.Center, new WDir(1, 0), _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance));
             }
         }
 
@@ -80,20 +80,20 @@ namespace BossMod.Endwalker.P4S1
         {
             if (_acid != null)
             {
-                arena.ZoneQuad(_acid.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
+                arena.ZoneRect(_acid.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
             }
             if (_fire != null)
             {
-                arena.ZoneQuad(_fire.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
+                arena.ZoneRect(_fire.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
             }
             if (_water != null)
             {
-                arena.ZoneQuad(_water.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
+                arena.ZoneRect(_water.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
             }
             if (_lighting != null)
             {
-                arena.ZoneQuad(_lighting.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
-                arena.ZoneQuad(arena.WorldCenter, new WDir(1, 0), _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance, arena.ColorAOE);
+                arena.ZoneRect(_lighting.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
+                arena.ZoneRect(module.Bounds.Center, new WDir(1, 0), _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance, arena.ColorAOE);
             }
         }
 
@@ -122,7 +122,7 @@ namespace BossMod.Endwalker.P4S1
             }
             if (_water != null)
             {
-                var adjPos = AdjustPositionForKnockback(pc.Position, module.Arena.WorldCenter, _knockbackRadius);
+                var adjPos = AdjustPositionForKnockback(pc.Position, module.Bounds.Center, _knockbackRadius);
                 if (adjPos != pc.Position)
                 {
                     arena.AddLine(pc.Position, adjPos, arena.ColorDanger);

@@ -35,8 +35,8 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             if (_flares.Count == 0)
             {
                 // add first flare as soon as boss teleports to border
-                var bossOffset = _serAdelphel.Position - module.Arena.WorldCenter;
-                if (Utils.AlmostEqual(bossOffset.LengthSq(), module.Arena.WorldHalfSize * module.Arena.WorldHalfSize, 1))
+                var bossOffset = _serAdelphel.Position - module.Bounds.Center;
+                if (Utils.AlmostEqual(bossOffset.LengthSq(), module.Bounds.HalfSize * module.Bounds.HalfSize, 1))
                 {
                     _flares.Add(bossOffset);
                 }
@@ -58,16 +58,16 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             if (_knockbackSource != null)
             {
                 var adjPos = BossModule.AdjustPositionForKnockback(actor.Position, _knockbackSource, _knockbackDistance);
-                if (!module.Arena.InBounds(adjPos))
+                if (!module.Bounds.Contains(adjPos))
                     hints.Add("About to be knocked into wall!");
                 if (module.Enemies(OID.AetherialTear).InRadius(adjPos, _aoeTear.Radius).Any())
                     hints.Add("About to be knocked into tear!");
-                if (_flares[0].Dot(adjPos - module.Arena.WorldCenter) >= 0)
+                if (_flares[0].Dot(adjPos - module.Bounds.Center) >= 0)
                     hints.Add("Aim away from boss!");
             }
             else
             {
-                if (_flares.Skip(_doneFlares).Take(7).Any(o => _aoeFlare.Check(actor.Position, module.Arena.WorldCenter + o, new())))
+                if (_flares.Skip(_doneFlares).Take(7).Any(o => _aoeFlare.Check(actor.Position, module.Bounds.Center + o, new())))
                     hints.Add("GTFO from explosion!");
             }
 
@@ -91,7 +91,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             foreach (var p in module.Enemies(OID.AetherialTear))
                 _aoeTear.Draw(arena, p);
             foreach (var o in _flares.Skip(_doneFlares).Take(7))
-                _aoeFlare.Draw(arena, arena.WorldCenter + o, new());
+                _aoeFlare.Draw(arena, module.Bounds.Center + o, new());
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

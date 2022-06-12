@@ -13,7 +13,7 @@
     public class P2S : BossModule
     {
         public P2S(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+            : base(manager, primary, new ArenaBoundsSquare(new(100, 100), 20))
         {
             InitStates(new P2SStates(this).Build());
         }

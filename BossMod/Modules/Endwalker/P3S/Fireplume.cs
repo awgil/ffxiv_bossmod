@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.P3S
 
             if (_multiStartedCasts > _multiFinishedCasts)
             {
-                if (_multiFinishedCasts > 0 && actor.Position.InCircle(module.Arena.WorldCenter, _multiRadius) ||
+                if (_multiFinishedCasts > 0 && actor.Position.InCircle(module.Bounds.Center, _multiRadius) ||
                     _multiFinishedCasts < 8 && InPair(module, _multiStartingDirection + 45.Degrees(), actor) ||
                     _multiFinishedCasts < 6 && InPair(module, _multiStartingDirection - 90.Degrees(), actor) ||
                     _multiFinishedCasts < 4 && InPair(module, _multiStartingDirection - 45.Degrees(), actor) ||
@@ -47,7 +47,7 @@ namespace BossMod.Endwalker.P3S
             if (_multiStartedCasts > _multiFinishedCasts)
             {
                 if (_multiFinishedCasts > 0) // don't draw center aoe before first explosion, it's confusing - but start drawing it immediately after first explosion, to simplify positioning
-                    arena.ZoneCircle(arena.WorldCenter, _multiRadius, _multiFinishedCasts >= 6 ? arena.ColorDanger : arena.ColorAOE);
+                    arena.ZoneCircle(module.Bounds.Center, _multiRadius, _multiFinishedCasts >= 6 ? arena.ColorDanger : arena.ColorAOE);
 
                 // don't draw more than two next pairs
                 if (_multiFinishedCasts < 8)
@@ -74,7 +74,7 @@ namespace BossMod.Endwalker.P3S
                 case AID.ExperimentalFireplumeMultiAOE:
                 case AID.ExperimentalGloryplumeMultiAOE:
                     if (_multiStartedCasts++ == 0)
-                        _multiStartingDirection = Angle.FromDirection(actor.Position - module.Arena.WorldCenter);
+                        _multiStartingDirection = Angle.FromDirection(actor.Position - module.Bounds.Center);
                     break;
             }
         }
@@ -99,15 +99,15 @@ namespace BossMod.Endwalker.P3S
         private bool InPair(BossModule module, Angle direction, Actor actor)
         {
             var offset = _multiPairOffset * direction.ToDirection();
-            return actor.Position.InCircle(module.Arena.WorldCenter - offset, _multiRadius)
-                || actor.Position.InCircle(module.Arena.WorldCenter + offset, _multiRadius);
+            return actor.Position.InCircle(module.Bounds.Center - offset, _multiRadius)
+                || actor.Position.InCircle(module.Bounds.Center + offset, _multiRadius);
         }
 
         private void DrawPair(MiniArena arena, Angle direction, bool imminent)
         {
             var offset = _multiPairOffset * direction.ToDirection();
-            arena.ZoneCircle(arena.WorldCenter + offset, _multiRadius, imminent ? arena.ColorDanger : arena.ColorAOE);
-            arena.ZoneCircle(arena.WorldCenter - offset, _multiRadius, imminent ? arena.ColorDanger : arena.ColorAOE);
+            arena.ZoneCircle(arena.Bounds.Center + offset, _multiRadius, imminent ? arena.ColorDanger : arena.ColorAOE);
+            arena.ZoneCircle(arena.Bounds.Center - offset, _multiRadius, imminent ? arena.ColorDanger : arena.ColorAOE);
         }
     }
 }

@@ -22,13 +22,13 @@ namespace BossMod.Endwalker.P3S
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (module.PrimaryActor.Position == module.Arena.WorldCenter)
+            if (module.PrimaryActor.Position == module.Bounds.Center)
                 return;
 
-            var dir = (module.Arena.WorldCenter - module.PrimaryActor.Position).Normalized();
+            var dir = (module.Bounds.Center - module.PrimaryActor.Position).Normalized();
             if (_isCenter)
             {
-                if (actor.Position.InRect(module.PrimaryActor.Position, dir, 2 * module.Arena.WorldHalfSize, 0, _halfWidth))
+                if (actor.Position.InRect(module.PrimaryActor.Position, dir, 2 * module.Bounds.HalfSize, 0, _halfWidth))
                 {
                     hints.Add("GTFO from aoe!");
                 }
@@ -40,8 +40,8 @@ namespace BossMod.Endwalker.P3S
             else
             {
                 var offset = _sidesOffset * dir.OrthoR();
-                if (actor.Position.InRect(module.PrimaryActor.Position + offset, dir, 2 * module.Arena.WorldHalfSize, 0, _halfWidth) ||
-                    actor.Position.InRect(module.PrimaryActor.Position - offset, dir, 2 * module.Arena.WorldHalfSize, 0, _halfWidth))
+                if (actor.Position.InRect(module.PrimaryActor.Position + offset, dir, 2 * module.Bounds.HalfSize, 0, _halfWidth) ||
+                    actor.Position.InRect(module.PrimaryActor.Position - offset, dir, 2 * module.Bounds.HalfSize, 0, _halfWidth))
                 {
                     hints.Add("GTFO from aoe!");
                 }
@@ -66,19 +66,19 @@ namespace BossMod.Endwalker.P3S
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (module.PrimaryActor.Position == arena.WorldCenter)
+            if (module.PrimaryActor.Position == module.Bounds.Center)
                 return;
 
-            var dir = (arena.WorldCenter - module.PrimaryActor.Position).Normalized();
+            var dir = (module.Bounds.Center - module.PrimaryActor.Position).Normalized();
             if (_isCenter)
             {
-                arena.ZoneQuad(module.PrimaryActor.Position, dir, 2 * arena.WorldHalfSize, 0, _halfWidth, arena.ColorAOE);
+                arena.ZoneRect(module.PrimaryActor.Position, dir, 2 * module.Bounds.HalfSize, 0, _halfWidth, arena.ColorAOE);
             }
             else
             {
                 var offset = _sidesOffset * dir.OrthoR();
-                arena.ZoneQuad(module.PrimaryActor.Position + offset, dir, 2 * arena.WorldHalfSize, 0, _halfWidth, arena.ColorAOE);
-                arena.ZoneQuad(module.PrimaryActor.Position - offset, dir, 2 * arena.WorldHalfSize, 0, _halfWidth, arena.ColorAOE);
+                arena.ZoneRect(module.PrimaryActor.Position + offset, dir, 2 * module.Bounds.HalfSize, 0, _halfWidth, arena.ColorAOE);
+                arena.ZoneRect(module.PrimaryActor.Position - offset, dir, 2 * module.Bounds.HalfSize, 0, _halfWidth, arena.ColorAOE);
             }
         }
 

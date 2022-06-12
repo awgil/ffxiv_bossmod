@@ -22,7 +22,7 @@ namespace BossMod
 
         // return polygon points approximating full circle; implicitly closed path - last point is not included
         // winding: points are in CCW order
-        public static IEnumerable<Vector2> Circle(Vector2 center, float radius, float maxError)
+        public static IEnumerable<WPos> Circle(WPos center, float radius, float maxError)
         {
             int numSegments = CalculateCircleSegments(radius, (2 * MathF.PI).Radians(), maxError);
             var angle = (2 * MathF.PI / numSegments).Radians();
@@ -32,7 +32,7 @@ namespace BossMod
 
         // return polygon points approximating circle arc; both start and end points are included
         // winding: points are either in CCW order (if length is positive) or CW order (if length is negative)
-        public static IEnumerable<Vector2> CircleArc(Vector2 center, float radius, Angle angleStart, Angle angleEnd, float maxError)
+        public static IEnumerable<WPos> CircleArc(WPos center, float radius, Angle angleStart, Angle angleEnd, float maxError)
         {
             var length = angleEnd - angleStart;
             int numSegments = CalculateCircleSegments(radius, length.Abs(), maxError);
@@ -42,7 +42,7 @@ namespace BossMod
         }
 
         // return polygon points approximating circle sector; implicitly closed path - center + arc
-        public static IEnumerable<Vector2> CircleSector(Vector2 center, float radius, Angle angleStart, Angle angleEnd, float maxError)
+        public static IEnumerable<WPos> CircleSector(WPos center, float radius, Angle angleStart, Angle angleEnd, float maxError)
         {
             yield return center;
             foreach (var v in CircleArc(center, radius, angleStart, angleEnd, maxError))
@@ -50,7 +50,7 @@ namespace BossMod
         }
 
         // return polygon points approximating donut sector; implicitly closed path - outer arc + inner arc
-        public static IEnumerable<Vector2> DonutSector(Vector2 center, float innerRadius, float outerRadius, Angle angleStart, Angle angleEnd, float maxError)
+        public static IEnumerable<WPos> DonutSector(WPos center, float innerRadius, float outerRadius, Angle angleStart, Angle angleEnd, float maxError)
         {
             foreach (var v in CircleArc(center, outerRadius, angleStart, angleEnd, maxError))
                 yield return v;
@@ -59,9 +59,9 @@ namespace BossMod
         }
 
         // for angles, we use standard FF convention: 0 is 'south'/down/(0, -r), and then increases clockwise
-        private static Vector2 PolarToCartesian(Vector2 center, float r, Angle phi)
+        private static WPos PolarToCartesian(WPos center, float r, Angle phi)
         {
-            return center + r * phi.ToDirection().ToVec2();
+            return center + r * phi.ToDirection();
         }
     }
 }

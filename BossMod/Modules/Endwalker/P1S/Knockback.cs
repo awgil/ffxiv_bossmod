@@ -41,7 +41,7 @@ namespace BossMod.Endwalker.P1S
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (module.PrimaryActor.CastInfo != null && actor == _knockbackTarget && !module.Arena.InBounds(_knockbackPos))
+            if (module.PrimaryActor.CastInfo != null && actor == _knockbackTarget && !module.Bounds.Contains(_knockbackPos))
             {
                 hints.Add("About to be knocked into wall!");
             }

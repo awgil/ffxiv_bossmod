@@ -64,7 +64,7 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
                 }
 
                 _active[index].Next += _advance;
-                if (_active[index].Next.X < module.Arena.WorldW.X)
+                if (_active[index].Next.X < module.Bounds.Center.X - module.Bounds.HalfSize)
                     _active.RemoveAt(index);
             }
         }
@@ -75,7 +75,7 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
             var center = e.Next;
             while (limit > 0)
             {
-                if (center.X < module.Arena.WorldW.X)
+                if (center.X < module.Bounds.Center.X - module.Bounds.HalfSize)
                     yield break;
                 yield return center;
                 center += _advance;

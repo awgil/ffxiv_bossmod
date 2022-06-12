@@ -41,12 +41,8 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
     public class A3Azeyma : BossModule
     {
         public A3Azeyma(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+            : base(manager, primary, new ArenaBoundsCircle(new(-750, -750), 30))
         {
-            Arena.IsCircle = true;
-            Arena.WorldCenter = new(-750, -750);
-            Arena.WorldHalfSize = 30;
-
             var sb = new StateMachineBuilder(this);
             sb.TrivialPhase()
                 .ActivateOnEnter<WardensWarmth>()

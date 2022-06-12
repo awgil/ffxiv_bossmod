@@ -83,7 +83,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private bool IsKnightInChargePosition(BossModule module, Actor? knight)
         {
-            return knight != null && MathF.Abs((knight.Position - module.Arena.WorldCenter).LengthSq() - 23 * 23) < 5;
+            return knight != null && MathF.Abs((knight.Position - module.Bounds.Center).LengthSq() - 23 * 23) < 5;
         }
 
         private bool InChargeAOE(BossModule module, Actor player, OID knightID)

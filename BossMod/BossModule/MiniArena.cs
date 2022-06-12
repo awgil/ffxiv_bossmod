@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace BossMod
@@ -13,10 +14,8 @@ namespace BossMod
     public class MiniArena
     {
         public BossModuleConfig Config { get; init; }
+        public ArenaBounds Bounds;
 
-        public bool IsCircle = false;
-        public WPos WorldCenter = new(100, 100);
-        public float WorldHalfSize = 20;
         public float ScreenHalfSize => 150 * Config.ArenaScale;
         public float ScreenMarginSize => 20 * Config.ArenaScale;
 
@@ -25,19 +24,6 @@ namespace BossMod
         private float _cameraAzimuth;
         private float _cameraSinAzimuth = 0;
         private float _cameraCosAzimuth = 1;
-        private Clip2D _clipper = new();
-
-        private float WorldApproxError => CurveApprox.ScreenError / ScreenHalfSize * WorldHalfSize;
-
-        // useful points
-        public WPos WorldN  => WorldCenter + new WDir(             0, -WorldHalfSize);
-        public WPos WorldNE => WorldCenter + new WDir(+WorldHalfSize, -WorldHalfSize);
-        public WPos WorldE  => WorldCenter + new WDir(+WorldHalfSize, 0);
-        public WPos WorldSE => WorldCenter + new WDir(+WorldHalfSize, +WorldHalfSize);
-        public WPos WorldS  => WorldCenter + new WDir(             0, +WorldHalfSize);
-        public WPos WorldSW => WorldCenter + new WDir(-WorldHalfSize, +WorldHalfSize);
-        public WPos WorldW  => WorldCenter + new WDir(-WorldHalfSize, 0);
-        public WPos WorldNW => WorldCenter + new WDir(-WorldHalfSize, -WorldHalfSize);
 
         // common color constants (ABGR)
         public uint ColorBackground = 0xc00f0f0f;
@@ -53,14 +39,22 @@ namespace BossMod
         public uint ColorPlayerGeneric = 0xff808080;
         public uint ColorVulnerable = 0xffff00ff;
 
-        public MiniArena(BossModuleConfig config)
+        public MiniArena(BossModuleConfig config, ArenaBounds bounds)
         {
             Config = config;
+            Bounds = bounds;
         }
 
         // prepare for drawing - set up internal state, clip rect etc.
         public void Begin(float cameraAzimuthRadians)
         {
+            var centerOffset = new Vector2(ScreenMarginSize + 1.5f * ScreenHalfSize);
+            var fullSize = 2 * centerOffset;
+            var cursor = ImGui.GetCursorScreenPos();
+            ImGui.Dummy(fullSize);
+
+            Bounds.ScreenHalfSize = ScreenHalfSize;
+            ScreenCenter = cursor + centerOffset;
             _cameraAzimuth = cameraAzimuthRadians;
             _cameraSinAzimuth = MathF.Sin(cameraAzimuthRadians);
             _cameraCosAzimuth = MathF.Cos(cameraAzimuthRadians);
@@ -69,38 +63,22 @@ namespace BossMod
             //camWorld.M44 = 1;
             //CameraView = SharpDX.Matrix.Invert(camWorld);
 
-            var centerOffset = new Vector2(ScreenMarginSize + 1.5f * ScreenHalfSize);
-            var fullSize = 2 * centerOffset;
-            var cursor = ImGui.GetCursorScreenPos();
-            ImGui.Dummy(fullSize);
-            ScreenCenter = cursor + centerOffset;
-
-            if (IsCircle)
-            {
-                _clipper.SetClipPoly(CurveApprox.Circle(WorldCenter.ToVec2(), WorldHalfSize, WorldApproxError));
-            }
-            else
-            {
-                _clipper.SetClipPoly(new[] { WorldNW.ToVec2(), WorldNE.ToVec2(), WorldSE.ToVec2(), WorldSW.ToVec2() });
-            }
-
             var wmin = ImGui.GetWindowPos();
             var wmax = wmin + ImGui.GetWindowSize();
             ImGui.GetWindowDrawList().PushClipRect(Vector2.Max(cursor, wmin), Vector2.Min(cursor + fullSize, wmax));
             if (Config.OpaqueArenaBackground)
             {
-                if (IsCircle)
-                    ZoneCircle(WorldCenter, WorldHalfSize, ColorBackground);
-                else
-                    ZoneQuad(WorldNW, WorldNE, WorldSE, WorldSW, ColorBackground);
+                foreach (var p in Bounds.ClipPoly)
+                    PathLineTo(p);
+                PathFillConvex(ColorBackground);
             }
         }
 
         // if you are 100% sure your primitive does not need clipping, you can use drawlist api directly
         // this helper allows converting world-space coords to screen-space ones
-        public Vector2 WorldPositionToScreenPosition(WPos worldXZ)
+        public Vector2 WorldPositionToScreenPosition(WPos p)
         {
-            return ScreenCenter + WorldOffsetToScreenOffset(worldXZ - WorldCenter);
+            return ScreenCenter + WorldOffsetToScreenOffset(p - Bounds.Center);
             //var viewPos = SharpDX.Vector3.Transform(new SharpDX.Vector3(worldOffset.X, 0, worldOffset.Z), CameraView);
             //return ScreenHalfSize * new Vector2(viewPos.X / viewPos.Z, viewPos.Y / viewPos.Z);
             //return ScreenHalfSize * new Vector2(viewPos.X, viewPos.Y) / WorldHalfSize;
@@ -116,7 +94,7 @@ namespace BossMod
 
         private Vector2 WorldOffsetToScreenOffset(WDir worldOffset)
         {
-            return ScreenHalfSize *  RotatedCoords(worldOffset.ToVec2()) / WorldHalfSize;
+            return ScreenHalfSize * RotatedCoords(worldOffset.ToVec2()) / Bounds.HalfSize;
         }
 
         // unclipped primitive rendering that accept world-space positions; thin convenience wrappers around drawlist api
@@ -147,12 +125,12 @@ namespace BossMod
 
         public void AddCircle(WPos center, float radius, uint color, float thickness = 1)
         {
-            ImGui.GetWindowDrawList().AddCircle(WorldPositionToScreenPosition(center), radius / WorldHalfSize * ScreenHalfSize, color, 0, thickness);
+            ImGui.GetWindowDrawList().AddCircle(WorldPositionToScreenPosition(center), radius / Bounds.HalfSize * ScreenHalfSize, color, 0, thickness);
         }
 
         public void AddCircleFilled(WPos center, float radius, uint color)
         {
-            ImGui.GetWindowDrawList().AddCircleFilled(WorldPositionToScreenPosition(center), radius / WorldHalfSize * ScreenHalfSize, color);
+            ImGui.GetWindowDrawList().AddCircleFilled(WorldPositionToScreenPosition(center), radius / Bounds.HalfSize * ScreenHalfSize, color);
         }
 
         public void AddCone(WPos center, float radius, Angle centerDirection, Angle halfAngle, uint color, float thickness = 1)
@@ -161,7 +139,7 @@ namespace BossMod
             float sDir = centerDirection.Rad - MathF.PI / 2 + _cameraAzimuth;
             var drawlist = ImGui.GetWindowDrawList();
             drawlist.PathLineTo(sCenter);
-            drawlist.PathArcTo(sCenter, radius / WorldHalfSize * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
+            drawlist.PathArcTo(sCenter, radius / Bounds.HalfSize * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
             drawlist.PathStroke(color, ImDrawFlags.Closed, thickness);
         }
 
@@ -174,7 +152,7 @@ namespace BossMod
         // adds a bunch of points corresponding to arc - if path is non empty, this adds an edge from last point to first arc point
         public void PathArcTo(WPos center, float radius, float amin, float amax)
         {
-            ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / WorldHalfSize * ScreenHalfSize, amin - MathF.PI / 2 + _cameraAzimuth, amax - MathF.PI / 2 + _cameraAzimuth);
+            ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / Bounds.HalfSize * ScreenHalfSize, amin - MathF.PI / 2 + _cameraAzimuth, amax - MathF.PI / 2 + _cameraAzimuth);
         }
 
         public void PathStroke(bool closed, uint color, float thickness = 1)
@@ -187,83 +165,27 @@ namespace BossMod
             ImGui.GetWindowDrawList().PathFillConvex(color);
         }
 
+        // draw clipped & triangulated zone
+        public void Zone(List<(WPos, WPos, WPos)> triangulation, uint color)
+        {
+            var drawlist = ImGui.GetWindowDrawList();
+            var restoreFlags = drawlist.Flags;
+            drawlist.Flags &= ~ImDrawListFlags.AntiAliasedFill;
+            foreach (var (p1, p2, p3) in triangulation)
+                drawlist.AddTriangleFilled(WorldPositionToScreenPosition(p1), WorldPositionToScreenPosition(p2), WorldPositionToScreenPosition(p3), color);
+            drawlist.Flags = restoreFlags;
+        }
+
         // draw zones - these are filled primitives clipped to various borders
-        public void ZoneCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color)
-        {
-            // TODO: think of a better way to do that (analytical clipping?)
-            if (innerRadius >= outerRadius || innerRadius < 0 || halfAngle.Rad <= 0)
-                return;
-
-            bool fullCircle = halfAngle.Rad >= MathF.PI;
-            bool donut = innerRadius > 0;
-            var points = (donut, fullCircle) switch
-            {
-                (false, false) => CurveApprox.CircleSector(center.ToVec2(), outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, WorldApproxError),
-                (false, true) => CurveApprox.Circle(center.ToVec2(), outerRadius, WorldApproxError),
-                (true, false) => CurveApprox.DonutSector(center.ToVec2(), innerRadius, outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, WorldApproxError),
-                (true, true) => CurveApprox.DonutSector(center.ToVec2(), innerRadius, outerRadius, 0.0f.Radians(), (2 * MathF.PI).Radians(), WorldApproxError),
-            };
-            ClipAndFill(points, color);
-        }
-
-        public void ZoneCircle(WPos center, float radius, uint color)
-        {
-            ClipAndFill(CurveApprox.Circle(center.ToVec2(), radius, WorldApproxError), color);
-        }
-
-        public void ZoneDonut(WPos center, float innerRadius, float outerRadius, uint color)
-        {
-            if (innerRadius >= outerRadius || innerRadius < 0)
-                return;
-            ClipAndFill(CurveApprox.DonutSector(center.ToVec2(), innerRadius, outerRadius, 0.0f.Radians(), (2 * MathF.PI).Radians(), WorldApproxError), color);
-        }
-
-        public void ZoneTri(WPos a, WPos b, WPos c, uint color)
-        {
-            ClipAndFill(new[] { a.ToVec2(), b.ToVec2(), c.ToVec2() }, color);
-        }
-
-        public void ZoneIsoscelesTri(WPos apex, WDir height, WDir halfBase, uint color)
-        {
-            ZoneTri(apex, apex + height + halfBase, apex + height - halfBase, color);
-        }
-
-        public void ZoneIsoscelesTri(WPos apex, Angle direction, Angle halfAngle, float height, uint color)
-        {
-            var dir = direction.ToDirection();
-            var normal = dir.OrthoL();
-            ZoneIsoscelesTri(apex, height * dir, height * halfAngle.Tan() * normal, color);
-        }
-
-        public void ZoneQuad(WPos a, WPos b, WPos c, WPos d, uint color)
-        {
-            ClipAndFill(new[] { a.ToVec2(), b.ToVec2(), c.ToVec2(), d.ToVec2() }, color);
-        }
-
-        public void ZoneQuad(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, uint color)
-        {
-            var side = halfWidth * direction.OrthoR();
-            var front = origin + lenFront * direction;
-            var back = origin - lenBack * direction;
-            ZoneQuad(front + side, front - side, back - side, back + side, color);
-        }
-
-        public void ZoneQuad(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth, uint color)
-        {
-            ZoneQuad(origin, direction.ToDirection(), lenFront, lenBack, halfWidth, color);
-        }
-
-        public void ZoneQuad(WPos start, WPos end, float halfWidth, uint color)
-        {
-            var dir = (end - start).Normalized();
-            var side = halfWidth * dir.OrthoR();
-            ZoneQuad(start + side, start - side, end - side, end + side, color);
-        }
-
-        public void ZoneRect(WPos tl, WPos br, uint color)
-        {
-            ZoneQuad(tl, new(br.X, tl.Z), br, new(tl.X, br.Z), color);
-        }
+        public void ZoneCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color) => Zone(Bounds.ClipAndTriangulateCone(center, innerRadius, outerRadius, centerDirection, halfAngle), color);
+        public void ZoneCircle(WPos center, float radius, uint color) => Zone(Bounds.ClipAndTriangulateCircle(center, radius), color);
+        public void ZoneDonut(WPos center, float innerRadius, float outerRadius, uint color) => Zone(Bounds.ClipAndTriangulateDonut(center, innerRadius, outerRadius), color);
+        public void ZoneTri(WPos a, WPos b, WPos c, uint color) => Zone(Bounds.ClipAndTriangulateTri(a, b, c), color);
+        public void ZoneIsoscelesTri(WPos apex, WDir height, WDir halfBase, uint color) => Zone(Bounds.ClipAndTriangulateIsoscelesTri(apex, height, halfBase), color);
+        public void ZoneIsoscelesTri(WPos apex, Angle direction, Angle halfAngle, float height, uint color) => Zone(Bounds.ClipAndTriangulateIsoscelesTri(apex, direction, halfAngle, height), color);
+        public void ZoneRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, uint color) => Zone(Bounds.ClipAndTriangulateRect(origin, direction, lenFront, lenBack, halfWidth), color);
+        public void ZoneRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth, uint color) => Zone(Bounds.ClipAndTriangulateRect(origin, direction, lenFront, lenBack, halfWidth), color);
+        public void ZoneRect(WPos start, WPos end, float halfWidth, uint color) => Zone(Bounds.ClipAndTriangulateRect(start, end, halfWidth), color);
 
         public void TextScreen(Vector2 center, string text, uint color, float fontSize = 17)
         {
@@ -280,10 +202,9 @@ namespace BossMod
         // draw arena border
         public void Border()
         {
-            if (IsCircle)
-                AddCircle(WorldCenter, WorldHalfSize, ColorBorder, 2);
-            else
-                AddQuad(WorldNW, WorldNE, WorldSE, WorldSW, ColorBorder, 2);
+            foreach (var p in Bounds.ClipPoly)
+                PathLineTo(p);
+            PathStroke(true, ColorBorder, 2);
 
             if (Config.ShowCardinals)
             {
@@ -298,11 +219,16 @@ namespace BossMod
         // draw actor representation
         public void Actor(WPos position, Angle rotation, uint color)
         {
-            if (InBounds(position))
+            var dir = rotation.ToDirection();
+            var normal = dir.OrthoR();
+            if (Bounds.Contains(position))
             {
-                var dir = rotation.ToDirection();
-                var normal = dir.OrthoR();
                 AddTriangleFilled(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, color);
+            }
+            else
+            {
+                position = Bounds.ClampToBounds(position);
+                AddTriangle(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, color);
             }
         }
 
@@ -315,50 +241,6 @@ namespace BossMod
         public void End()
         {
             ImGui.GetWindowDrawList().PopClipRect();
-        }
-
-        public bool InBounds(WPos position)
-        {
-            if (IsCircle)
-            {
-                return position.InCircle(WorldCenter, WorldHalfSize);
-            }
-            else
-            {
-                var offset = position - WorldCenter;
-                return Math.Abs(offset.X) <= WorldHalfSize && Math.Abs(offset.Z) <= WorldHalfSize;
-            }
-        }
-
-        public WPos ClampToBounds(WPos position)
-        {
-            var offset = position - WorldCenter;
-            if (IsCircle)
-            {
-                if (offset.LengthSq() > WorldHalfSize * WorldHalfSize)
-                    offset *= WorldHalfSize / offset.Length();
-            }
-            else
-            {
-                if (Math.Abs(offset.X) > WorldHalfSize)
-                    offset *= WorldHalfSize / Math.Abs(offset.X);
-                if (Math.Abs(offset.Z) > WorldHalfSize)
-                    offset *= WorldHalfSize / Math.Abs(offset.Z);
-            }
-            return WorldCenter + offset;
-        }
-
-        private void ClipAndFill(IEnumerable<Vector2> poly, uint color)
-        {
-            var drawlist = ImGui.GetWindowDrawList();
-            var restoreFlags = drawlist.Flags;
-            drawlist.Flags &= ~ImDrawListFlags.AntiAliasedFill;
-
-            var tri = _clipper.ClipAndTriangulate(poly);
-            for (int i = 0; i < tri.Count; i += 3)
-                drawlist.AddTriangleFilled(WorldPositionToScreenPosition(new(tri[i])), WorldPositionToScreenPosition(new(tri[i + 1])), WorldPositionToScreenPosition(new(tri[i + 2])), color);
-
-            drawlist.Flags = restoreFlags;
         }
     }
 }

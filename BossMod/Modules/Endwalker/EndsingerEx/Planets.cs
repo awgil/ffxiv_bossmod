@@ -31,7 +31,7 @@ namespace BossMod.Endwalker.EndsingerEx
             if (_planetsAzure.Count > 0)
             {
                 var offsetLocation = AdjustPositionForKnockback(actor.Position, _planetsAzure[0], _knockbackDistance);
-                if (!module.Arena.InBounds(offsetLocation))
+                if (!module.Bounds.Contains(offsetLocation))
                 {
                     hints.Add("About to be knocked into wall!");
                 }
@@ -111,7 +111,7 @@ namespace BossMod.Endwalker.EndsingerEx
             var caster = module.WorldState.Actors.Find(casterID);
             if (caster != null)
             {
-                var origin = module.Arena.WorldCenter + _planetOffset * caster.Rotation.ToDirection();
+                var origin = module.Bounds.Center + _planetOffset * caster.Rotation.ToDirection();
                 var planets = azure ? _planetsAzure : _planetsFiery;
                 int index = firstOfPair ? 0 : planets.Count;
                 planets.Insert(index, origin);

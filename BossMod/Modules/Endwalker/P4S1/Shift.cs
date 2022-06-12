@@ -19,7 +19,7 @@ namespace BossMod.Endwalker.P4S1
             {
                 hints.Add("GTFO from sword!");
             }
-            else if (_cloakCaster != null && !module.Arena.InBounds(AdjustPositionForKnockback(actor.Position, _cloakCaster, _knockbackRange)))
+            else if (_cloakCaster != null && !module.Bounds.Contains(AdjustPositionForKnockback(actor.Position, _cloakCaster, _knockbackRange)))
             {
                 hints.Add("About to be knocked into wall!");
             }

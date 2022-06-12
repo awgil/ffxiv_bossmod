@@ -17,7 +17,7 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
         {
             if (_aoeMistralSong != null)
             {
-                var adjPos = _vulcanBurstImminent ? module.Arena.ClampToBounds(BossModule.AdjustPositionForKnockback(actor.Position, _mistralSong, 30)) : actor.Position;
+                var adjPos = _vulcanBurstImminent ? module.Bounds.ClampToBounds(BossModule.AdjustPositionForKnockback(actor.Position, _mistralSong, 30)) : actor.Position;
                 if (_aoeMistralSong.Check(adjPos, _mistralSong))
                     hints.Add("GTFO from aoe!");
             }
@@ -38,11 +38,11 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            var adjPos = _vulcanBurstImminent ? arena.ClampToBounds(BossModule.AdjustPositionForKnockback(pc.Position, _mistralSong, 30)) : pc.Position;
+            var adjPos = _vulcanBurstImminent ? arena.Bounds.ClampToBounds(BossModule.AdjustPositionForKnockback(pc.Position, _mistralSong, 30)) : pc.Position;
             if (adjPos != pc.Position)
             {
                 arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
-                arena.Actor(adjPos, new(), arena.ColorDanger);
+                arena.Actor(adjPos, 0.Degrees(), arena.ColorDanger);
             }
         }
 

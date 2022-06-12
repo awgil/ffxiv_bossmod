@@ -45,13 +45,13 @@ namespace BossMod.Endwalker.ZodiarkEx
             foreach (var s in RotatedSnakes(module))
                 _snakeAOE.Draw(arena, s.Item1, s.Item2);
             foreach (var c in _fireLine)
-                arena.ZoneTri(module.Arena.WorldCenter + c, RotatedPosition(module, c), arena.WorldCenter, arena.ColorAOE);
+                arena.ZoneTri(module.Bounds.Center + c, RotatedPosition(module, c), module.Bounds.Center, arena.ColorAOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_fireLine.Count == 2)
-                arena.AddLine(module.Arena.WorldCenter + _fireLine[0], module.Arena.WorldCenter + _fireLine[1], arena.ColorDanger);
+                arena.AddLine(module.Bounds.Center + _fireLine[0], module.Bounds.Center + _fireLine[1], arena.ColorDanger);
         }
 
         public override void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state)
@@ -76,12 +76,12 @@ namespace BossMod.Endwalker.ZodiarkEx
                 switch (state)
                 {
                     case 0x00020001:
-                        _fireLine.Add(new(+module.Arena.WorldHalfSize, -module.Arena.WorldHalfSize));
-                        _fireLine.Add(new(-module.Arena.WorldHalfSize, +module.Arena.WorldHalfSize));
+                        _fireLine.Add(new(+module.Bounds.HalfSize, -module.Bounds.HalfSize));
+                        _fireLine.Add(new(-module.Bounds.HalfSize, +module.Bounds.HalfSize));
                         break;
                     case 0x00400020:
-                        _fireLine.Add(new(-module.Arena.WorldHalfSize, -module.Arena.WorldHalfSize));
-                        _fireLine.Add(new(+module.Arena.WorldHalfSize, +module.Arena.WorldHalfSize));
+                        _fireLine.Add(new(-module.Bounds.HalfSize, -module.Bounds.HalfSize));
+                        _fireLine.Add(new(+module.Bounds.HalfSize, +module.Bounds.HalfSize));
                         break;
                 }
             }
@@ -138,9 +138,9 @@ namespace BossMod.Endwalker.ZodiarkEx
         {
             return _flow switch
             {
-                FlowDirection.CW  => module.Arena.WorldCenter + offset.OrthoR(),
-                FlowDirection.CCW => module.Arena.WorldCenter + offset.OrthoL(),
-                _ => module.Arena.WorldCenter + offset
+                FlowDirection.CW  => module.Bounds.Center + offset.OrthoR(),
+                FlowDirection.CCW => module.Bounds.Center + offset.OrthoL(),
+                _ => module.Bounds.Center + offset
             };
         }
 
@@ -148,9 +148,9 @@ namespace BossMod.Endwalker.ZodiarkEx
         {
             return _flow switch
             {
-                FlowDirection.CW  => (module.Arena.WorldCenter + posRot.Item1.OrthoR(), posRot.Item2 - 90.Degrees()),
-                FlowDirection.CCW => (module.Arena.WorldCenter + posRot.Item1.OrthoL(), posRot.Item2 + 90.Degrees()),
-                _ => (module.Arena.WorldCenter + posRot.Item1, posRot.Item2)
+                FlowDirection.CW  => (module.Bounds.Center + posRot.Item1.OrthoR(), posRot.Item2 - 90.Degrees()),
+                FlowDirection.CCW => (module.Bounds.Center + posRot.Item1.OrthoL(), posRot.Item2 + 90.Degrees()),
+                _ => (module.Bounds.Center + posRot.Item1, posRot.Item2)
             };
         }
 
@@ -160,11 +160,11 @@ namespace BossMod.Endwalker.ZodiarkEx
 
         private bool InFireAOE(BossModule module, WDir corner, WPos pos)
         {
-            var p1 = module.Arena.WorldCenter + corner;
+            var p1 = module.Bounds.Center + corner;
             var p2 = RotatedPosition(module, corner);
             var pMid = WPos.Lerp(p1, p2, 0.5f);
-            var dirMid = (pMid - module.Arena.WorldCenter).Normalized();
-            return pos.InCone(module.Arena.WorldCenter, dirMid, 45.Degrees());
+            var dirMid = (pMid - module.Bounds.Center).Normalized();
+            return pos.InCone(module.Bounds.Center, dirMid, 45.Degrees());
         }
     }
 }

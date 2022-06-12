@@ -5,10 +5,8 @@
     public class SimpleBossModule : BossModule
     {
         public SimpleBossModule(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+            : base(manager, primary, new ArenaBoundsCircle(primary.Position, 30))
         {
-            Arena.IsCircle = true;
-            Arena.WorldHalfSize = 30;
         }
 
         // build a simple state machine, with first state activating provided component
@@ -23,8 +21,8 @@
         protected override void UpdateModule()
         {
             var pc = WorldState.Party.Player();
-            if (pc != null)
-                Arena.WorldCenter = pc.Position;
+            if (pc != null && Bounds.Center != pc.Position)
+                Arena.Bounds = new ArenaBoundsCircle(pc.Position, 30);
         }
 
         protected override void DrawArenaForegroundPre(int pcSlot, Actor pc)

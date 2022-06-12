@@ -33,9 +33,9 @@ namespace BossMod.Endwalker.P4S1
 
         public Corner FromPos(BossModule module, WPos pos)
         {
-            return pos.X > module.Arena.WorldCenter.X
-                ? (pos.Z > module.Arena.WorldCenter.Z ? Corner.SE : Corner.NE)
-                : (pos.Z > module.Arena.WorldCenter.Z ? Corner.SW : Corner.NW);
+            return pos.X > module.Bounds.Center.X
+                ? (pos.Z > module.Bounds.Center.Z ? Corner.SE : Corner.NE)
+                : (pos.Z > module.Bounds.Center.Z ? Corner.SW : Corner.NW);
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)

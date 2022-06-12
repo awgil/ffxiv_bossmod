@@ -21,7 +21,7 @@ namespace BossMod.Endwalker.P3S
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var adjPos = AdjustPositionForKnockback(actor.Position, DarkTwister(module), _knockbackRange);
-            if (actor.Position != adjPos && !module.Arena.InBounds(adjPos))
+            if (actor.Position != adjPos && !module.Bounds.Contains(adjPos))
             {
                 hints.Add("About to be knocked back into wall!");
             }

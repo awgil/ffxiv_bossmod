@@ -20,7 +20,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (_start.Any(e => e.Item2.Check(actor.Position, e.Item1)) ||
-                _rhythmActive && module.Enemies(OID.WardensFlame).Any(flame => ActorInRhythmAOE(module.Arena.WorldCenter, flame, actor)) ||
+                _rhythmActive && module.Enemies(OID.WardensFlame).Any(flame => ActorInRhythmAOE(module.Bounds.Center, flame, actor)) ||
                 _finish.Any(e => _aoeFinish.Check(actor.Position, e)))
             {
                 hints.Add("GTFO from aoe!");
@@ -38,8 +38,8 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             {
                 foreach (var flame in module.Enemies(OID.WardensFlame))
                 {
-                    var dir = Angle.FromDirection(flame.Position - arena.WorldCenter) + 45.Degrees();
-                    arena.ZoneCone(arena.WorldCenter, _flightRadiusInner, _flightRadiusOuter, dir, 45.Degrees(), arena.ColorAOE);
+                    var dir = Angle.FromDirection(flame.Position - module.Bounds.Center) + 45.Degrees();
+                    arena.ZoneCone(module.Bounds.Center, _flightRadiusInner, _flightRadiusOuter, dir, 45.Degrees(), arena.ColorAOE);
                 }
             }
 

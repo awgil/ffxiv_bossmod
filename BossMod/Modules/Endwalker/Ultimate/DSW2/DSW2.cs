@@ -21,10 +21,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public Actor? BossP3() => _bossP3;
 
         public DSW2(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+            : base(manager, primary, new ArenaBoundsCircle(new(100, 100), 22))
         {
-            Arena.WorldHalfSize = 22;
-            Arena.IsCircle = true;
             InitStates(new DSW2States(this).Build());
         }
 

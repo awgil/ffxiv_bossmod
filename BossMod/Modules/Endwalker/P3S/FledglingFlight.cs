@@ -132,7 +132,7 @@ namespace BossMod.Endwalker.P3S
                 return null;
 
             var offset = rot.ToDirection() * _eyePlacementOffset;
-            return _playerDeathTollStacks[slot] > 0 ? module.Arena.WorldCenter - offset : module.Arena.WorldCenter + offset;
+            return _playerDeathTollStacks[slot] > 0 ? module.Bounds.Center - offset : module.Bounds.Center + offset;
         }
     }
 }

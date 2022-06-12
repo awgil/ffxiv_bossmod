@@ -41,7 +41,7 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
             if (_knockbackCaster != null)
             {
                 var adjPos = BossModule.AdjustPositionForKnockback(actor.Position, _knockbackCaster, _knockbackDistance);
-                if (!module.Arena.InBounds(adjPos))
+                if (!module.Bounds.Contains(adjPos))
                 {
                     hints.Add("About to be knocked into wall!");
                 }

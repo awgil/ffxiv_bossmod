@@ -37,7 +37,7 @@ namespace BossMod.Endwalker.P2S
         {
             if (iconID >= 145 && iconID <= 152)
             {
-                _startingOffset = module.PrimaryActor.Position - module.Arena.WorldCenter;
+                _startingOffset = module.PrimaryActor.Position - module.Bounds.Center;
 
                 int slot = module.Raid.FindSlot(actorID);
                 if (slot >= 0)
@@ -50,13 +50,13 @@ namespace BossMod.Endwalker.P2S
             switch (slot >= 0 ? _playerOrder[slot] : 0)
             {
                 case 1: // sq 1 - opposite corner, hide after first charge
-                    return module.Arena.WorldCenter + (NumCasts < 1 ? -1.2f : -1.4f) * _startingOffset;
+                    return module.Bounds.Center + (NumCasts < 1 ? -1.2f : -1.4f) * _startingOffset;
                 case 2: // sq 2 - same corner, hide after second charge
-                    return module.Arena.WorldCenter + (NumCasts < 2 ? +1.2f : +1.4f) * _startingOffset;
+                    return module.Bounds.Center + (NumCasts < 2 ? +1.2f : +1.4f) * _startingOffset;
                 case 3: // sq 3 - opposite corner, hide before first charge
-                    return module.Arena.WorldCenter + (NumCasts < 1 ? -1.4f : -1.2f) * _startingOffset;
+                    return module.Bounds.Center + (NumCasts < 1 ? -1.4f : -1.2f) * _startingOffset;
                 case 4: // sq 4 - same corner, hide before second charge
-                    return module.Arena.WorldCenter + (NumCasts < 2 ? +1.4f : +1.2f) * _startingOffset;
+                    return module.Bounds.Center + (NumCasts < 2 ? +1.4f : +1.2f) * _startingOffset;
                 case 5: // tri 1 - waymark 1
                     var wm1 = module.WorldState.Waymarks[Waymark.N1];
                     return wm1 != null ? new(wm1.Value.XZ()) : null;

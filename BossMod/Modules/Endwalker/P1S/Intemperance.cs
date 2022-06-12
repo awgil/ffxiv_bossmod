@@ -174,7 +174,7 @@ namespace BossMod.Endwalker.P1S
 
         private int PositionFromCoords(BossModule module, WPos coords)
         {
-            return (coords - module.Arena.WorldCenter) switch
+            return (coords - module.Bounds.Center) switch
             {
                 { X: < -7, Z: < -7 } => 0,
                 { X: > +7, Z: < -7 } => 2,
@@ -195,7 +195,7 @@ namespace BossMod.Endwalker.P1S
 
         private WPos PosCenter(BossModule module, int pos)
         {
-            return module.Arena.WorldCenter + 14 * _offsets[pos];
+            return module.Bounds.Center + 14 * _offsets[pos];
         }
 
         private int Position2(BossModule module, int pos1)

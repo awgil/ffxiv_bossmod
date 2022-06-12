@@ -32,7 +32,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             foreach (var eye in EyePositions(module))
             {
-                var dir = (eye - arena.WorldCenter).Normalized();
+                var dir = (eye - module.Bounds.Center).Normalized();
                 var eyeCenter = arena.ScreenCenter + arena.RotatedCoords(dir.ToVec2()) * (arena.ScreenHalfSize + arena.ScreenMarginSize / 2);
                 var dl = ImGui.GetWindowDrawList();
                 dl.PathArcTo(eyeCenter - new Vector2(0, _eyeOffsetV), _eyeOuterR,  MathF.PI / 2 + _eyeHalfAngle,  MathF.PI / 2 - _eyeHalfAngle);
@@ -47,7 +47,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             // seen indices: 2 = E, 5 = SW, 6 = W => inferring 0=N, 1=NE, ... cw order
             if (featureID == 0x8003759A && state == 0x00020001 && index <= 7)
             {
-                _eyePosition = module.Arena.WorldCenter + 40 * (180 - index * 45).Degrees().ToDirection();
+                _eyePosition = module.Bounds.Center + 40 * (180 - index * 45).Degrees().ToDirection();
             }
         }
 
@@ -129,7 +129,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 var color = module.Arena.ColorSafe;
                 foreach (var safespot in MovementHintOffsets(slot))
                 {
-                    var to = module.Arena.WorldCenter + safespot;
+                    var to = module.Bounds.Center + safespot;
                     movementHints.Add(from, to, color);
                     from = to;
                     color = module.Arena.ColorDanger;
@@ -148,7 +148,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var (from, to) in ImminentCharges())
-                arena.ZoneQuad(from, to, _chargeHalfWidth, arena.ColorAOE);
+                arena.ZoneRect(from, to, _chargeHalfWidth, arena.ColorAOE);
             foreach (var sphere in ImminentSpheres())
                 arena.ZoneCircle(sphere, _brightflareRadius, arena.ColorAOE);
         }
@@ -184,9 +184,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
             foreach (var safespot in MovementHintOffsets(pcSlot))
             {
-                arena.AddCircle(arena.WorldCenter + safespot, 2, arena.ColorSafe);
+                arena.AddCircle(module.Bounds.Center + safespot, 2, arena.ColorSafe);
                 if (_groupEast.None())
-                    arena.AddCircle(arena.WorldCenter - safespot, 2, arena.ColorSafe); // if there are no valid assignments, draw spots for both groups
+                    arena.AddCircle(module.Bounds.Center - safespot, 2, arena.ColorSafe); // if there are no valid assignments, draw spots for both groups
                 break; // only draw immediate safespot here
             }
         }
@@ -236,7 +236,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 return; // wait for other event...
 
             var severSource = module.Enemies(OID.SerZephirin).FirstOrDefault();
-            _severStartDir = severSource != null ? Angle.FromDirection(severSource.Position - module.Arena.WorldCenter) : new();
+            _severStartDir = severSource != null ? Angle.FromDirection(severSource.Position - module.Bounds.Center) : new();
             if (_severStartDir.Rad != 0)
             {
                 _groupEast = _config.P2SanctityGroups.BuildGroupMask(1, module.Raid);
@@ -330,12 +330,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 return (null, false);
 
             // so far I've only seen both enemies starting at (+-5, 0)
-            if (!Utils.AlmostEqual(actor.Position.Z, module.Arena.WorldCenter.Z, 1))
+            if (!Utils.AlmostEqual(actor.Position.Z, module.Bounds.Center.Z, 1))
                 return (null, false);
-            if (!Utils.AlmostEqual(MathF.Abs(actor.Position.X - module.Arena.WorldCenter.X), 5, 1))
+            if (!Utils.AlmostEqual(MathF.Abs(actor.Position.X - module.Bounds.Center.X), 5, 1))
                 return (null, false);
 
-            bool right = actor.Position.X > module.Arena.WorldCenter.X;
+            bool right = actor.Position.X > module.Bounds.Center.X;
             bool facingSouth = Utils.AlmostEqual(actor.Rotation.Rad, 0, 0.1f);
             bool cw = right == facingSouth;
             var res = new ChargeInfo(actor);
@@ -343,7 +343,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             var angleBetweenPoints = (cw ? -1 : 1) * 112.5f.Degrees();
 
             res.Positions.Add(actor.Position);
-            Action<Angle> addPosition = dir => res.Positions.Add(module.Arena.WorldCenter + 21 * dir.ToDirection());
+            Action<Angle> addPosition = dir => res.Positions.Add(module.Bounds.Center + 21 * dir.ToDirection());
             addPosition(firstPointDir);
             addPosition(firstPointDir + angleBetweenPoints);
             addPosition(firstPointDir + angleBetweenPoints * 2);
