@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.P3S
         private int[] _playerDeathTollStacks = new int[8];
         private int[] _playerAOECount = new int[8];
 
-        private static Angle _coneHalfAngle = Angle.Radians(MathF.PI / 4);
+        private static Angle _coneHalfAngle = 45.Degrees();
         private static float _eyePlacementOffset = 10;
 
         public override void Update(BossModule module)
@@ -109,15 +109,15 @@ namespace BossMod.Endwalker.P3S
                 var actor = module.WorldState.Actors.Find(actorID);
                 if (actor != null)
                 {
-                    float dir = iconID switch
+                    var dir = iconID switch
                     {
-                        296 => MathF.PI / 2, // E
-                        297 => 3 * MathF.PI / 2, // W
-                        298 => 0, // S
-                        299 => MathF.PI, // N
-                        _ => 0
+                        296 => 90.Degrees(), // E
+                        297 => 270.Degrees(), // W
+                        298 => 0.Degrees(), // S
+                        299 => 180.Degrees(), // N
+                        _ => 0.Degrees()
                     };
-                    _sources.Add((actor, Angle.Radians(dir)));
+                    _sources.Add((actor, dir));
                 }
             }
         }

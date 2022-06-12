@@ -27,7 +27,7 @@ namespace BossMod.Endwalker.ARanks.Storsie
         private enum AspectType { None, Earth, Wind, Lightning }
 
         private AspectType _imminentAspect;
-        private AOEShapeCone _earthenAugur = new(30, Angle.Radians(3 * MathF.PI / 4));
+        private AOEShapeCone _earthenAugur = new(30, 135.Degrees());
         private AOEShapeDonut _whorlstorm = new(10, 40);
         private AOEShapeCircle _defibrillate = new(22);
 

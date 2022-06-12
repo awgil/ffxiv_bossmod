@@ -47,7 +47,7 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"{obj.OwnerId:X}");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"{character?.StatusFlags}");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.Vec3String(obj.Position));
-                ImGui.TableNextColumn(); ImGui.TextUnformatted(Angle.Radians(obj.Rotation).ToString());
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(obj.Rotation.Radians().ToString());
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(battleChara != null ? $"{battleChara.CurrentCastTime:f2}/{battleChara.TotalCastTime:f2}" : "---");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"{internalObj->RenderFlags:X}");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"0x{(IntPtr)internalObj->DrawObject:X}");
@@ -61,7 +61,7 @@ namespace BossMod
             foreach (var obj in Service.ObjectTable)
             {
                 var internalObj = Utils.GameObjectInternal(obj);
-                res.Append($"\nobj {Utils.ObjectString(obj)}, kind={Utils.ObjectKindString(obj)}, pos={Utils.Vec3String(obj.Position)}, rot={Angle.Radians(obj.Rotation)}, renderFlags={internalObj->RenderFlags}, vfxScale={internalObj->VfxScale}, targetable={internalObj->GetIsTargetable()}, drawPtr=0x{(IntPtr)internalObj->DrawObject:X}");
+                res.Append($"\nobj {Utils.ObjectString(obj)}, kind={Utils.ObjectKindString(obj)}, pos={Utils.Vec3String(obj.Position)}, rot={obj.Rotation.Radians()}, renderFlags={internalObj->RenderFlags}, vfxScale={internalObj->VfxScale}, targetable={internalObj->GetIsTargetable()}, drawPtr=0x{(IntPtr)internalObj->DrawObject:X}");
                 if (internalObj->DrawObject != null)
                 {
                     res.Append($", drawPos={Utils.Vec3String(internalObj->DrawObject->Object.Position)}, drawScale={Utils.Vec3String(internalObj->DrawObject->Object.Scale)}");

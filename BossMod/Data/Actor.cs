@@ -78,7 +78,7 @@ namespace BossMod
 
         public Role Role => Class.GetRole();
         public WPos Position => new(PosRot.X, PosRot.Z);
-        public Angle Rotation => Angle.Radians(PosRot.W);
+        public Angle Rotation => PosRot.W.Radians();
 
         public Actor(ulong instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius, uint hpCur, uint hpMax, bool targetable, ulong ownerID)
         {

@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         private BitMask _skyblindPlayers;
         private BitMask _coneTargets;
 
-        private static AOEShapeCone _brightwingAOE = new(18, Angle.Radians(MathF.PI / 12)); // TODO: verify angle
+        private static AOEShapeCone _brightwingAOE = new(18, 15.Degrees()); // TODO: verify angle
         private static float _skyblindRadius = 3;
 
         public PureOfHeart() : base(ActionID.MakeSpell(AID.Brightwing)) { }

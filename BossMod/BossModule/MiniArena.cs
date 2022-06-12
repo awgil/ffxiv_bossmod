@@ -201,7 +201,7 @@ namespace BossMod
                 (false, false) => CurveApprox.CircleSector(center.ToVec2(), outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, WorldApproxError),
                 (false, true) => CurveApprox.Circle(center.ToVec2(), outerRadius, WorldApproxError),
                 (true, false) => CurveApprox.DonutSector(center.ToVec2(), innerRadius, outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, WorldApproxError),
-                (true, true) => CurveApprox.DonutSector(center.ToVec2(), innerRadius, outerRadius, Angle.Radians(0), Angle.Radians(2 * MathF.PI), WorldApproxError),
+                (true, true) => CurveApprox.DonutSector(center.ToVec2(), innerRadius, outerRadius, 0.0f.Radians(), (2 * MathF.PI).Radians(), WorldApproxError),
             };
             ClipAndFill(points, color);
         }
@@ -215,7 +215,7 @@ namespace BossMod
         {
             if (innerRadius >= outerRadius || innerRadius < 0)
                 return;
-            ClipAndFill(CurveApprox.DonutSector(center.ToVec2(), innerRadius, outerRadius, Angle.Radians(0), Angle.Radians(2 * MathF.PI), WorldApproxError), color);
+            ClipAndFill(CurveApprox.DonutSector(center.ToVec2(), innerRadius, outerRadius, 0.0f.Radians(), (2 * MathF.PI).Radians(), WorldApproxError), color);
         }
 
         public void ZoneTri(WPos a, WPos b, WPos c, uint color)

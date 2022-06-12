@@ -18,7 +18,7 @@ namespace BossMod.Endwalker.HydaelynEx
         private static WPos _crystalTR = new(110,  92);
         private static WPos _crystalBL = new( 90, 110);
         private static WPos _crystalBR = new(110, 110);
-        private static AOEShapeCone _gloryAOE = new(40, Angle.Radians(MathF.PI / 2));
+        private static AOEShapeCone _gloryAOE = new(40, 90.Degrees());
 
         public override void Update(BossModule module)
         {

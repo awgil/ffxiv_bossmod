@@ -47,7 +47,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             // seen indices: 2 = E, 5 = SW, 6 = W => inferring 0=N, 1=NE, ... cw order
             if (featureID == 0x8003759A && state == 0x00020001 && index <= 7)
             {
-                _eyePosition = module.Arena.WorldCenter + 40 * Angle.Radians(MathF.PI - index * MathF.PI / 4).ToDirection();
+                _eyePosition = module.Arena.WorldCenter + 40 * (180 - index * 45).Degrees().ToDirection();
             }
         }
 
@@ -291,7 +291,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 // second safe spot could be either 3rd or 5th explosion
                 var severDirEast = _severStartDir;
                 if (severDirEast.Rad < 0)
-                    severDirEast += Angle.Radians(MathF.PI);
+                    severDirEast += 180.Degrees();
                 bool severDiagonalSE = severDirEast.Rad < MathF.PI / 2;
                 _chargeEarly = severDiagonalSE == cw1;
             }
@@ -340,7 +340,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             bool cw = right == facingSouth;
             var res = new ChargeInfo(actor);
             var firstPointDir = actor.Rotation;
-            var angleBetweenPoints = (cw ? -1 : 1) * Angle.Radians(5 * MathF.PI / 8);
+            var angleBetweenPoints = (cw ? -1 : 1) * 112.5f.Degrees();
 
             res.Positions.Add(actor.Position);
             Action<Angle> addPosition = dir => res.Positions.Add(module.Arena.WorldCenter + 21 * dir.ToDirection());
@@ -386,7 +386,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             var dir = _severStartDir + (_chargeCW ? -1 : 1) * dirOffset;
             if (dir.Rad < 0 == _groupEast[slot])
-                dir += Angle.Radians(MathF.PI);
+                dir += 180.Degrees();
             return 20 * dir.ToDirection();
         }
 
@@ -396,9 +396,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 // second safe spot could be either 3rd or 5th explosion
                 if (_charges[0]!.Spheres.Count > (_chargeEarly ? 6 : 4))
-                    yield return SafeSpotOffset(slot, Angle.Radians(_chargeEarly ? MathF.PI / 12 : MathF.PI / 15.4f));
+                    yield return SafeSpotOffset(slot, _chargeEarly ? 15.Degrees() : 11.7f.Degrees());
                 if (_charges[0]!.Spheres.Count > 0)
-                    yield return SafeSpotOffset(slot, Angle.Radians(MathF.PI / 5.4f));
+                    yield return SafeSpotOffset(slot, 33.3f.Degrees());
             }
         }
     }

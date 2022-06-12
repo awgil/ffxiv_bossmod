@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.P2S
         public override void Init(BossModule module)
         {
             if (module.PrimaryActor.CastInfo?.IsSpell(AID.WingedCataract) ?? false)
-                _aoeHead.DirectionOffset = Angle.Radians(MathF.PI);
+                _aoeHead.DirectionOffset = 180.Degrees();
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)

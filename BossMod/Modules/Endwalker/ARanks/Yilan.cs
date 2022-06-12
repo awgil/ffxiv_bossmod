@@ -31,7 +31,7 @@ namespace BossMod.Endwalker.ARanks.Yilan
     {
         private AOEShapeCircle _miniLight = new(18);
         private AOEShapeCircle _bogBomb = new(6);
-        private AOEShapeCone _brackishRain = new(10, Angle.Radians(MathF.PI / 4));
+        private AOEShapeCone _brackishRain = new(10, 45.Degrees());
 
         private static float _marchDistance = 12;
 
@@ -69,14 +69,14 @@ namespace BossMod.Endwalker.ARanks.Yilan
             var marchDirection = MarchDirection(pc);
             if (marchDirection != SID.None)
             {
-                float dir = marchDirection switch
+                var dir = marchDirection switch
                 {
-                    SID.AboutFace => MathF.PI,
-                    SID.LeftFace => MathF.PI / 2,
-                    SID.RightFace => -MathF.PI / 2,
-                    _ => 0
+                    SID.AboutFace => 180.Degrees(),
+                    SID.LeftFace => 90.Degrees(),
+                    SID.RightFace => -90.Degrees(),
+                    _ => 0.Degrees()
                 };
-                var target = pc.Position + _marchDistance * (pc.Rotation + Angle.Radians(dir)).ToDirection();
+                var target = pc.Position + _marchDistance * (pc.Rotation + dir).ToDirection();
                 arena.AddLine(pc.Position, target, arena.ColorDanger);
                 arena.Actor(target, pc.Rotation, arena.ColorDanger);
             }

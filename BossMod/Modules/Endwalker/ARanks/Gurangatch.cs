@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
 
     public class Mechanics : BossModule.Component
     {
-        private AOEShapeCone _slammer = new(30, Angle.Radians(MathF.PI / 2));
+        private AOEShapeCone _slammer = new(30, 90.Degrees());
         private int _remainingSlams = 0;
         private Angle _slamDir;
         private Angle _slamDirIncrement;
@@ -40,12 +40,12 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
                 case AID.LeftHammerSlammer:
                 case AID.OctupleSlammerLCW:
                 case AID.OctupleSlammerLCCW:
-                    _slamDir = module.PrimaryActor.Rotation + Angle.Radians(MathF.PI / 2);
+                    _slamDir = module.PrimaryActor.Rotation + 90.Degrees();
                     break;
                 case AID.RightHammerSlammer:
                 case AID.OctupleSlammerRCW:
                 case AID.OctupleSlammerRCCW:
-                    _slamDir = module.PrimaryActor.Rotation - Angle.Radians(MathF.PI / 2);
+                    _slamDir = module.PrimaryActor.Rotation - 90.Degrees();
                     break;
             }
         }
@@ -77,7 +77,7 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
 
             _slammer.Draw(arena, module.PrimaryActor.Position, _slamDir);
             if (_slamDirIncrement.Rad != MathF.PI)
-                arena.ZoneCone(module.PrimaryActor.Position, 0, _slammer.Radius, _slamDir - _slamDirIncrement * 3 / 2, Angle.Radians(MathF.PI / 4), arena.ColorSafeFromAOE);
+                arena.ZoneCone(module.PrimaryActor.Position, 0, _slammer.Radius, _slamDir - _slamDirIncrement * 3 / 2, 45.Degrees(), arena.ColorSafeFromAOE);
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)
@@ -88,27 +88,27 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
             {
                 case AID.LeftHammerSlammer:
                     _remainingSlams = 2;
-                    _slamDirIncrement = Angle.Radians(MathF.PI);
+                    _slamDirIncrement = 180.Degrees();
                     break;
                 case AID.RightHammerSlammer:
                     _remainingSlams = 2;
-                    _slamDirIncrement = Angle.Radians(MathF.PI);
+                    _slamDirIncrement = 180.Degrees();
                     break;
                 case AID.OctupleSlammerLCW:
                     _remainingSlams = 8;
-                    _slamDirIncrement = Angle.Radians(MathF.PI / 2);
+                    _slamDirIncrement = 90.Degrees();
                     break;
                 case AID.OctupleSlammerRCW:
                     _remainingSlams = 8;
-                    _slamDirIncrement = Angle.Radians(MathF.PI / 2);
+                    _slamDirIncrement = 90.Degrees();
                     break;
                 case AID.OctupleSlammerLCCW:
                     _remainingSlams = 8;
-                    _slamDirIncrement = -Angle.Radians(MathF.PI / 2);
+                    _slamDirIncrement = -90.Degrees();
                     break;
                 case AID.OctupleSlammerRCCW:
                     _remainingSlams = 8;
-                    _slamDirIncrement = -Angle.Radians(MathF.PI / 2);
+                    _slamDirIncrement = -90.Degrees();
                     break;
             }
         }

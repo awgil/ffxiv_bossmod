@@ -29,15 +29,15 @@ namespace BossMod.Endwalker.HydaelynEx
                 {
                     var c = module.Arena.WorldCenter;
                     _positions.Add(c);
-                    _positions.Add(c + _triRadius * (tri.Rotation + Angle.Radians(MathF.PI / 3)).ToDirection());
-                    _positions.Add(c + _triRadius * (tri.Rotation + Angle.Radians(MathF.PI)).ToDirection());
-                    _positions.Add(c + _triRadius * (tri.Rotation - Angle.Radians(MathF.PI / 3)).ToDirection());
+                    _positions.Add(c + _triRadius * (tri.Rotation + 60.Degrees()).ToDirection());
+                    _positions.Add(c + _triRadius * (tri.Rotation + 180.Degrees()).ToDirection());
+                    _positions.Add(c + _triRadius * (tri.Rotation - 60.Degrees()).ToDirection());
                     _positions.Add(c + _hexRadius *  hex.Rotation.ToDirection());
-                    _positions.Add(c + _hexRadius * (hex.Rotation + Angle.Radians(MathF.PI / 3)).ToDirection());
-                    _positions.Add(c + _hexRadius * (hex.Rotation + Angle.Radians(2 * MathF.PI / 3)).ToDirection());
-                    _positions.Add(c + _hexRadius * (hex.Rotation + Angle.Radians(MathF.PI)).ToDirection());
-                    _positions.Add(c + _hexRadius * (hex.Rotation - Angle.Radians(2 * MathF.PI / 3)).ToDirection());
-                    _positions.Add(c + _hexRadius * (hex.Rotation - Angle.Radians(MathF.PI / 3)).ToDirection());
+                    _positions.Add(c + _hexRadius * (hex.Rotation + 60.Degrees()).ToDirection());
+                    _positions.Add(c + _hexRadius * (hex.Rotation + 120.Degrees()).ToDirection());
+                    _positions.Add(c + _hexRadius * (hex.Rotation + 180.Degrees()).ToDirection());
+                    _positions.Add(c + _hexRadius * (hex.Rotation - 120.Degrees()).ToDirection());
+                    _positions.Add(c + _hexRadius * (hex.Rotation - 60.Degrees()).ToDirection());
                 }
             }
         }

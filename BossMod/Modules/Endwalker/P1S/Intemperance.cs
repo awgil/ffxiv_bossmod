@@ -30,7 +30,7 @@ namespace BossMod.Endwalker.P1S
         private int[]? _playerAssignment; // cell index assigned to player, null if not assigned yet
 
         private static AOEShapeRect _delimiterAOE = new(20, 1, 20);
-        private static (WPos, Angle)[] _delimiterCenters = { (new(93, 100), Angle.Radians(0)), (new(107, 100), Angle.Radians(0)), (new(100, 93), Angle.Radians(MathF.PI / 2)), (new(100, 107), Angle.Radians(MathF.PI / 2)) };
+        private static (WPos, Angle)[] _delimiterCenters = { (new(93, 100), 0.Degrees()), (new(107, 100), 0.Degrees()), (new(100, 93), 90.Degrees()), (new(100, 107), 90.Degrees()) };
 
         private static Cube[] _patternSymm = {
             Cube.R, Cube.P, Cube.R,

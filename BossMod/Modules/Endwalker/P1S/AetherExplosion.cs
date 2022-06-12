@@ -42,12 +42,12 @@ namespace BossMod.Endwalker.P1S
                 return;
             }
 
-            var start = Angle.Radians(_explodingCells == Cell.Blue ? 0 : MathF.PI / 4);
+            var start = _explodingCells == Cell.Blue ? 0.Degrees() : 45.Degrees();
             for (int i = 0; i < 4; ++i)
             {
-                arena.ZoneCone(arena.WorldCenter, 0, P1S.InnerCircleRadius, start + Angle.Radians(MathF.PI / 8), Angle.Radians(MathF.PI / 8), arena.ColorAOE);
-                arena.ZoneCone(arena.WorldCenter, P1S.InnerCircleRadius, arena.WorldHalfSize, start + Angle.Radians(MathF.PI * 3 / 8), Angle.Radians(MathF.PI / 8), arena.ColorAOE);
-                start += Angle.Radians(MathF.PI / 2);
+                arena.ZoneCone(arena.WorldCenter, 0, P1S.InnerCircleRadius, start + 22.5f.Degrees(), 22.5f.Degrees(), arena.ColorAOE);
+                arena.ZoneCone(arena.WorldCenter, P1S.InnerCircleRadius, arena.WorldHalfSize, start + 67.5f.Degrees(), 22.5f.Degrees(), arena.ColorAOE);
+                start += 90.Degrees();
             }
         }
 
@@ -101,7 +101,7 @@ namespace BossMod.Endwalker.P1S
 
         private static Cell CellFromOffset(WDir offsetFromCenter)
         {
-            var phi = Angle.FromDirection(offsetFromCenter) + Angle.Radians(MathF.PI);
+            var phi = Angle.FromDirection(offsetFromCenter) + 180.Degrees();
             int coneIndex = (int)(4 * phi.Rad / MathF.PI); // phi / (pi/4); range [0, 8]
             bool oddCone = (coneIndex & 1) != 0;
             bool outerCone =  offsetFromCenter.LengthSq() > P1S.InnerCircleRadius * P1S.InnerCircleRadius;

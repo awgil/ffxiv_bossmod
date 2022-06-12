@@ -157,7 +157,7 @@ namespace UIDev
             ImGui.TableNextColumn(); ImGui.DragFloat("###X", ref pos.X, 0.25f, 80, 120);
             ImGui.TableNextColumn(); ImGui.DragFloat("###Z", ref pos.Z, 0.25f, 80, 120);
             ImGui.TableNextColumn(); ImGui.DragFloat("###Rot", ref rot, 1, -180, 180);
-            _player.WorldState.Actors.Move(actor, new(pos.X, actor.PosRot.Y, pos.Z, Angle.Degrees(rot).Rad));
+            _player.WorldState.Actors.Move(actor, new(pos.X, actor.PosRot.Y, pos.Z, rot.Degrees().Rad));
 
             ImGui.TableNextColumn();
             if (actor.IsDead)

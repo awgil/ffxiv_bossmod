@@ -23,7 +23,7 @@ namespace UIDev.Analysis
                 foreach (var (r, a) in infos)
                 {
                     var origin = new WPos(a.TargetPos.XZ());
-                    var dir = Angle.Radians(a.Source?.PosRotAt(a.Timestamp).W ?? 0).ToDirection();
+                    var dir = (a.Source?.PosRotAt(a.Timestamp).W ?? 0).Radians().ToDirection();
                     var left = dir.OrthoL();
                     foreach (var target in AlivePlayersAt(r, a.Timestamp))
                     {
@@ -105,7 +105,7 @@ namespace UIDev.Analysis
                             continue;
                         var posRot = target.Target.PosRotAt(a.Timestamp);
                         var toSource = Angle.FromDirection(src - new WPos(posRot.XZ()));
-                        var angle = toSource - Angle.Radians(posRot.W);
+                        var angle = toSource - posRot.W.Radians();
                         if (angle.Rad > MathF.PI)
                             angle.Rad -= 2 * MathF.PI;
                         if (angle.Rad < -MathF.PI)

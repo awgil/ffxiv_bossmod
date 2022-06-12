@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private Actor? _caster;
         private bool _lr;
 
-        private static AOEShapeCone _aoe = new(40, Angle.Radians(MathF.PI / 3));
+        private static AOEShapeCone _aoe = new(40, 60.Degrees());
 
         public P2BroadSwing() : base(ActionID.MakeSpell(AID.BroadSwingAOE)) { }
 
@@ -67,11 +67,11 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             var dir = order switch
             {
-                0 => -MathF.PI / 3,
-                1 => +MathF.PI / 3,
-                _ => MathF.PI
+                0 => -60.Degrees(),
+                1 =>  60.Degrees(),
+                _ => 180.Degrees()
             };
-            return Angle.Radians(_lr ? -dir : dir);
+            return _lr ? -dir : dir;
         }
 
         private void DrawZone(MiniArena arena, Actor caster, int order, uint color)

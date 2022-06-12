@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
         private static float _linkRadius = 9; // TODO: verify
         private static AOEShapeRect _aoeLaser = new(70, 4);
-        private static AOEShapeCone _aoeCone = new(40, Angle.Radians(MathF.PI / 3));
+        private static AOEShapeCone _aoeCone = new(40, 60.Degrees());
 
         public override void Update(BossModule module)
         {

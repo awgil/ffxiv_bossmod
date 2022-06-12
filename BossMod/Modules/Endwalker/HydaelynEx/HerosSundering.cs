@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.HydaelynEx
         private Actor? _target;
         private BitMask _otherHit;
 
-        private static AOEShapeCone _aoeShape = new(40, Angle.Radians(MathF.PI / 4));
+        private static AOEShapeCone _aoeShape = new(40, 45.Degrees());
 
         public override void Init(BossModule module)
         {

@@ -21,7 +21,7 @@ namespace BossMod.Endwalker.ARanks.FanAil
 
     public class Mechanics : BossModule.Component
     {
-        private AOEShapeCone _plummet = new(8, Angle.Radians(MathF.PI / 4));
+        private AOEShapeCone _plummet = new(8, 45.Degrees());
         private AOEShapeRect _divebomb = new(30, 5.5f);
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)

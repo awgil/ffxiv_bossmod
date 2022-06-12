@@ -206,14 +206,14 @@ namespace BossMod.Endwalker.P4S2
         private WPos DetermineWaterSafeSpot(BossModule module, Actor source)
         {
             bool ccw = Service.Config.Get<P4S2Config>().Act4WaterBreakCCW;
-            Angle dir = (ccw ? -3 : 3) * Angle.Radians(MathF.PI / 4);
+            Angle dir = (ccw ? -3 : 3) * 45.Degrees();
             return RotateCW(module, source.Position, dir, 18);
         }
 
         private Actor? DetermineTowerToSoak(BossModule module, Actor source)
         {
             bool ccw = Service.Config.Get<P4S2Config>().Act4DarkSoakCCW;
-            var pos = RotateCW(module, source.Position, (ccw ? -1 : 1) * Angle.Radians(MathF.PI / 4), 18);
+            var pos = RotateCW(module, source.Position, (ccw ? -1 : 1) * 45.Degrees(), 18);
             return _playerTetherSource.Where(x => x != null && x.Position.InCircle(pos, 4)).FirstOrDefault();
         }
 

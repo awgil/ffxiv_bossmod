@@ -24,8 +24,8 @@ namespace BossMod
         // winding: points are in CCW order
         public static IEnumerable<Vector2> Circle(Vector2 center, float radius, float maxError)
         {
-            int numSegments = CalculateCircleSegments(radius, Angle.Radians(2 * MathF.PI), maxError);
-            var angle = Angle.Radians(2 * MathF.PI / numSegments);
+            int numSegments = CalculateCircleSegments(radius, (2 * MathF.PI).Radians(), maxError);
+            var angle = (2 * MathF.PI / numSegments).Radians();
             for (int i = 0; i < numSegments; ++i) // note: do not include last point
                 yield return PolarToCartesian(center, radius, i * angle);
         }

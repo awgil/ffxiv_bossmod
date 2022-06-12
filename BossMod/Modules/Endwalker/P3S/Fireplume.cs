@@ -27,9 +27,9 @@ namespace BossMod.Endwalker.P3S
             if (_multiStartedCasts > _multiFinishedCasts)
             {
                 if (_multiFinishedCasts > 0 && actor.Position.InCircle(module.Arena.WorldCenter, _multiRadius) ||
-                    _multiFinishedCasts < 8 && InPair(module, _multiStartingDirection + Angle.Radians(MathF.PI / 4), actor) ||
-                    _multiFinishedCasts < 6 && InPair(module, _multiStartingDirection - Angle.Radians(MathF.PI / 2), actor) ||
-                    _multiFinishedCasts < 4 && InPair(module, _multiStartingDirection - Angle.Radians(MathF.PI / 4), actor) ||
+                    _multiFinishedCasts < 8 && InPair(module, _multiStartingDirection + 45.Degrees(), actor) ||
+                    _multiFinishedCasts < 6 && InPair(module, _multiStartingDirection - 90.Degrees(), actor) ||
+                    _multiFinishedCasts < 4 && InPair(module, _multiStartingDirection - 45.Degrees(), actor) ||
                     _multiFinishedCasts < 2 && InPair(module, _multiStartingDirection, actor))
                 {
                     hints.Add("GTFO from plume!");
@@ -51,11 +51,11 @@ namespace BossMod.Endwalker.P3S
 
                 // don't draw more than two next pairs
                 if (_multiFinishedCasts < 8)
-                    DrawPair(arena, _multiStartingDirection + Angle.Radians(MathF.PI / 4), _multiStartedCasts > 6 && _multiFinishedCasts >= 4);
+                    DrawPair(arena, _multiStartingDirection + 45.Degrees(), _multiStartedCasts > 6 && _multiFinishedCasts >= 4);
                 if (_multiFinishedCasts < 6)
-                    DrawPair(arena, _multiStartingDirection - Angle.Radians(MathF.PI / 2), _multiStartedCasts > 4 && _multiFinishedCasts >= 2);
+                    DrawPair(arena, _multiStartingDirection - 90.Degrees(), _multiStartedCasts > 4 && _multiFinishedCasts >= 2);
                 if (_multiFinishedCasts < 4)
-                    DrawPair(arena, _multiStartingDirection - Angle.Radians(MathF.PI / 4), _multiStartedCasts > 2);
+                    DrawPair(arena, _multiStartingDirection - 45.Degrees(), _multiStartedCasts > 2);
                 if (_multiFinishedCasts < 2)
                     DrawPair(arena, _multiStartingDirection, true);
             }

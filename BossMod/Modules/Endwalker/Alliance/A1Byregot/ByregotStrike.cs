@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
         private Angle? _coneRotation;
 
         private static AOEShapeCircle _aoeJump = new(8);
-        private static AOEShapeCone _aoeCone = new(90, Angle.Radians(MathF.PI / 12));
+        private static AOEShapeCone _aoeCone = new(90, 15.Degrees());
         private static float _knockbackDistance = 18;
 
         public bool Done => _knockbackCaster == null;
@@ -30,9 +30,9 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
             if (_coneRotation != null && _knockbackCaster != null)
             {
                 if (_aoeCone.Check(actor.Position, _knockbackCaster.Position, _coneRotation.Value) ||
-                    _aoeCone.Check(actor.Position, _knockbackCaster.Position, _coneRotation.Value + Angle.Radians(MathF.PI / 2)) ||
-                    _aoeCone.Check(actor.Position, _knockbackCaster.Position, _coneRotation.Value + Angle.Radians(MathF.PI)) ||
-                    _aoeCone.Check(actor.Position, _knockbackCaster.Position, _coneRotation.Value - Angle.Radians(MathF.PI / 2)))
+                    _aoeCone.Check(actor.Position, _knockbackCaster.Position, _coneRotation.Value + 90.Degrees()) ||
+                    _aoeCone.Check(actor.Position, _knockbackCaster.Position, _coneRotation.Value + 180.Degrees()) ||
+                    _aoeCone.Check(actor.Position, _knockbackCaster.Position, _coneRotation.Value - 90.Degrees()))
                 {
                     hints.Add("GTFO from cones!");
                 }
@@ -58,9 +58,9 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
             if (_coneRotation != null && _knockbackCaster != null)
             {
                 _aoeCone.Draw(arena, _knockbackCaster.Position, _coneRotation.Value);
-                _aoeCone.Draw(arena, _knockbackCaster.Position, _coneRotation.Value + Angle.Radians(MathF.PI / 2));
-                _aoeCone.Draw(arena, _knockbackCaster.Position, _coneRotation.Value + Angle.Radians(MathF.PI));
-                _aoeCone.Draw(arena, _knockbackCaster.Position, _coneRotation.Value - Angle.Radians(MathF.PI / 2));
+                _aoeCone.Draw(arena, _knockbackCaster.Position, _coneRotation.Value + 90.Degrees());
+                _aoeCone.Draw(arena, _knockbackCaster.Position, _coneRotation.Value + 180.Degrees());
+                _aoeCone.Draw(arena, _knockbackCaster.Position, _coneRotation.Value - 90.Degrees());
             }
         }
 

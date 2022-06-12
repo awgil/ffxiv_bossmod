@@ -24,12 +24,12 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
 
     class HellOfFireFront : CommonComponents.SelfTargetedAOE
     {
-        public HellOfFireFront() : base(ActionID.MakeSpell(AID.HellOfFireFrontAOE), new AOEShapeCone(60, Angle.Radians(MathF.PI / 2))) { }
+        public HellOfFireFront() : base(ActionID.MakeSpell(AID.HellOfFireFrontAOE), new AOEShapeCone(60, 90.Degrees())) { }
     }
 
     class HellOfFireBack : CommonComponents.SelfTargetedAOE
     {
-        public HellOfFireBack() : base(ActionID.MakeSpell(AID.HellOfFireBackAOE), new AOEShapeCone(60, Angle.Radians(MathF.PI / 2))) { }
+        public HellOfFireBack() : base(ActionID.MakeSpell(AID.HellOfFireBackAOE), new AOEShapeCone(60, 90.Degrees())) { }
     }
 
     class WaywardSoul : CommonComponents.SelfTargetedAOE
@@ -39,7 +39,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
 
     class Twingaze : CommonComponents.SelfTargetedAOE
     {
-        public Twingaze() : base(ActionID.MakeSpell(AID.Twingaze), new AOEShapeCone(60, Angle.Radians(MathF.PI / 12))) { }
+        public Twingaze() : base(ActionID.MakeSpell(AID.Twingaze), new AOEShapeCone(60, 15.Degrees())) { }
     }
 
     // TODO: balancing counter, magmatic spell raid stack

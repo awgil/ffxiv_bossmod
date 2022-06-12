@@ -491,7 +491,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private WPos StormPlacementPosition(BossModule module, int quadrant)
         {
-            var dir = Angle.Radians(MathF.PI - quadrant * MathF.PI / 2);
+            var dir = (180 - quadrant * 90).Degrees();
             return module.Arena.WorldCenter + _stormPlacementOffset * dir.ToDirection();
         }
 

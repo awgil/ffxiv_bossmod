@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.P3S
     // state related to storms of asphodelos mechanics
     class StormsOfAsphodelos : Component
     {
-        private AOEShapeCone _windsAOE = new(50, Angle.Radians(MathF.PI / 6));
+        private AOEShapeCone _windsAOE = new(50, 30.Degrees());
         private AOEShapeCircle _beaconAOE = new(6);
         private List<Actor> _twisterTargets = new();
         private BitMask _tetherTargets;

@@ -32,7 +32,7 @@ namespace UIDev
 
             _arena.Begin((float)(Math.PI * _azimuth / 180));
             if (_coneEnabled)
-                _arena.ZoneCone(new(_conePos), _coneRadius.X, _coneRadius.Y, Angle.Degrees(_coneAngles.X), Angle.Degrees(_coneAngles.Y), _arena.ColorSafe);
+                _arena.ZoneCone(new(_conePos), _coneRadius.X, _coneRadius.Y, _coneAngles.X.Degrees(), _coneAngles.Y.Degrees(), _arena.ColorSafe);
             _arena.Border();
             _arena.Actor(new(_playerPos), new(), 0xff00ff00);
             _arena.End();

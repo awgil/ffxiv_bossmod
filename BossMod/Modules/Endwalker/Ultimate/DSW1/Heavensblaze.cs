@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         private Actor? _danceTarget;
         private Actor? _blazeTarget;
 
-        private static AOEShapeCone _danceAOE = new(16, Angle.Radians(MathF.PI / 4));
+        private static AOEShapeCone _danceAOE = new(16, 45.Degrees());
         private static float _blazeRadius = 4;
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)

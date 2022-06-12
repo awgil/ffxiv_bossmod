@@ -20,7 +20,7 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
         private Angle? _magitekOffset;
 
         private static AOEShapeCircle _aoeCleave = new(2);
-        private static AOEShapeCone _aoeDiffractive = new(12, Angle.Radians(MathF.PI / 3));
+        private static AOEShapeCone _aoeDiffractive = new(12, 60.Degrees());
         private static AOEShapeRect _aoeAssaultCannon = new(45, 1);
         private static AOEShapeRect _aoeMagitekRay = new(40, 3);
         //private static float _homingLasersRange = 4;
@@ -149,18 +149,18 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
         {
             if (!actor.CastInfo!.IsSpell())
                 return;
-            float? ray = (AID)actor.CastInfo.Action.ID switch
+            Angle? ray = (AID)actor.CastInfo.Action.ID switch
             {
-                AID.MagitekRayCenter => 0,
-                AID.MagitekRayLeft => MathF.PI / 4,
-                AID.MagitekRayRight => -MathF.PI / 4,
+                AID.MagitekRayCenter => 0.Degrees(),
+                AID.MagitekRayLeft => 45.Degrees(),
+                AID.MagitekRayRight => -45.Degrees(),
                 _ => null
             };
             if (ray == null)
                 return;
             if (_magitekOffset != null)
                 module.ReportError(this, "Several concurrent magitek rays");
-            _magitekOffset = Angle.Radians(ray.Value);
+            _magitekOffset = ray.Value;
         }
 
         public override void OnCastFinished(BossModule module, Actor actor)

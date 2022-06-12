@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.P4S1
     // state related to shift mechanics
     class Shift : Component
     {
-        private AOEShapeCone _swordAOE = new(50, Angle.Radians(MathF.PI / 3));
+        private AOEShapeCone _swordAOE = new(50, 60.Degrees());
         private Actor? _swordCaster;
         private Actor? _cloakCaster;
 

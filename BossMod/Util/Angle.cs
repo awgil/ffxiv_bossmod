@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Numerics;
 
 namespace BossMod
 {
@@ -14,8 +13,6 @@ namespace BossMod
         public float Deg => Rad * RadToDeg;
 
         public Angle(float radians = 0) { Rad = radians; }
-        public static Angle Radians(float radians) => new(radians);
-        public static Angle Degrees(float degrees) => new(degrees * DegToRad);
 
         public static Angle FromDirection(WDir dir) => new(MathF.Atan2(dir.X, dir.Z));
         public WDir ToDirection() => new(Sin(), Cos());
@@ -38,5 +35,12 @@ namespace BossMod
         public override bool Equals(object? obj) =>  obj is Angle && this == (Angle)obj;
         public override int GetHashCode() => Rad.GetHashCode();
         public override string ToString() => Deg.ToString("f0");
+    }
+
+    public static class AngleExtensions
+    {
+        public static Angle Radians(this float radians) => new(radians);
+        public static Angle Degrees(this float degrees) => new(degrees * Angle.DegToRad);
+        public static Angle Degrees(this int degrees) => new(degrees * Angle.DegToRad);
     }
 }

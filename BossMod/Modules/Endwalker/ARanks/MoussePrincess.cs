@@ -30,7 +30,7 @@ namespace BossMod.Endwalker.ARanks.MoussePrincess
     public class Mechanics : BossModule.Component
     {
         private Angle? _threnodyDirection = null;
-        private AOEShapeCone _princessThrenody = new(40, Angle.Radians(MathF.PI / 3));
+        private AOEShapeCone _princessThrenody = new(40, 60.Degrees());
         private AOEShapeCircle _amorphicFlail = new(9);
         private AOEShapeCircle _princessCacophony = new(12);
 
@@ -101,10 +101,10 @@ namespace BossMod.Endwalker.ARanks.MoussePrincess
             {
                 switch ((SID)s.ID)
                 {
-                    case SID.RightwardWhimsy: return Angle.Radians(-MathF.PI / 2);
-                    case SID.LeftwardWhimsy: return Angle.Radians(MathF.PI / 2);
-                    case SID.BackwardWhimsy: return Angle.Radians(MathF.PI);
-                    case SID.ForwardWhimsy: return Angle.Radians(0);
+                    case SID.RightwardWhimsy: return -90.Degrees();
+                    case SID.LeftwardWhimsy: return 90.Degrees();
+                    case SID.BackwardWhimsy: return 180.Degrees();
+                    case SID.ForwardWhimsy: return 0.Degrees();
                 }
             }
             return new();

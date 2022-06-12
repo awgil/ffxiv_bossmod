@@ -23,7 +23,7 @@ namespace BossMod.Endwalker.HydaelynEx
 
             bool inAOE = CurStance switch
             {
-                Stance.Sword => _aoeSword.Check(actor.Position, module.PrimaryActor.Position, new()) || _aoeSword.Check(actor.Position, module.PrimaryActor.Position, Angle.Radians(MathF.PI / 2)),
+                Stance.Sword => _aoeSword.Check(actor.Position, module.PrimaryActor.Position, new()) || _aoeSword.Check(actor.Position, module.PrimaryActor.Position, 90.Degrees()),
                 Stance.Staff => _aoeStaff.Check(actor.Position, module.PrimaryActor.Position, new()),
                 Stance.Chakram => _aoeChakram.Check(actor.Position, module.PrimaryActor.Position, new()),
                 _ => false
@@ -41,7 +41,7 @@ namespace BossMod.Endwalker.HydaelynEx
             {
                 case Stance.Sword:
                     _aoeSword.Draw(arena, module.PrimaryActor.Position, new());
-                    _aoeSword.Draw(arena, module.PrimaryActor.Position, Angle.Radians(MathF.PI / 2));
+                    _aoeSword.Draw(arena, module.PrimaryActor.Position, 90.Degrees());
                     break;
                 case Stance.Staff:
                     _aoeStaff.Draw(arena, module.PrimaryActor.Position, new());

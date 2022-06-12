@@ -49,7 +49,7 @@ namespace BossMod
 
         public static string PosRotString(Vector4 posRot)
         {
-            return $"[{posRot.X:f2}, {posRot.Y:f2}, {posRot.Z:f2}, {Angle.Radians(posRot.W)}]";
+            return $"[{posRot.X:f2}, {posRot.Y:f2}, {posRot.Z:f2}, {posRot.W.Radians()}]";
         }
 
         public static string StatusString(uint statusID)

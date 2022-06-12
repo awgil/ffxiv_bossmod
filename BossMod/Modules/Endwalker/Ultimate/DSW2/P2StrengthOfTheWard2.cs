@@ -32,7 +32,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             WDir offset = new();
             foreach (var s in _chargeSources)
                 offset += s.Position - module.Arena.WorldCenter;
-            _dirToBoss = Angle.FromDirection(offset) + Angle.Radians(MathF.PI);
+            _dirToBoss = Angle.FromDirection(offset) + 180.Degrees();
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
@@ -110,9 +110,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
             if (pcIsLeapTarget && !LeapsDone)
             {
-                DrawSafeSpot(arena, _dirToBoss + Angle.Radians(MathF.PI / 2));
-                DrawSafeSpot(arena, _dirToBoss + Angle.Radians(MathF.PI));
-                DrawSafeSpot(arena, _dirToBoss - Angle.Radians(MathF.PI / 2));
+                DrawSafeSpot(arena, _dirToBoss + 90.Degrees());
+                DrawSafeSpot(arena, _dirToBoss + 180.Degrees());
+                DrawSafeSpot(arena, _dirToBoss - 90.Degrees());
             }
             if (!pcIsLeapTarget && !RageDone)
             {

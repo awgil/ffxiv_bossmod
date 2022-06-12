@@ -95,36 +95,36 @@ namespace BossMod.Endwalker.ZodiarkEx
                     case 11: _behemoths.Add(new(-_birdBehemothOffset, +_birdBehemothOffset)); break;
                     case 12: _behemoths.Add(new(+_birdBehemothOffset, +_birdBehemothOffset)); break;
                     case 13:
-                        _snakes.Add((new(-_snakeFarOffset,  -_snakeOrthoOffset), Angle.Radians(0)));
-                        _snakes.Add((new(+_snakeNearOffset, -_snakeOrthoOffset), Angle.Radians(0)));
+                        _snakes.Add((new(-_snakeFarOffset,  -_snakeOrthoOffset), 0.Degrees()));
+                        _snakes.Add((new(+_snakeNearOffset, -_snakeOrthoOffset), 0.Degrees()));
                         break;
                     case 14:
-                        _snakes.Add((new(-_snakeNearOffset, -_snakeOrthoOffset), Angle.Radians(0)));
-                        _snakes.Add((new(+_snakeFarOffset,  -_snakeOrthoOffset), Angle.Radians(0)));
+                        _snakes.Add((new(-_snakeNearOffset, -_snakeOrthoOffset), 0.Degrees()));
+                        _snakes.Add((new(+_snakeFarOffset,  -_snakeOrthoOffset), 0.Degrees()));
                         break;
                     case 15:
-                        _snakes.Add((new(-_snakeFarOffset,   _snakeOrthoOffset), Angle.Radians(MathF.PI)));
-                        _snakes.Add((new(+_snakeNearOffset,  _snakeOrthoOffset), Angle.Radians(MathF.PI)));
+                        _snakes.Add((new(-_snakeFarOffset,   _snakeOrthoOffset), 180.Degrees()));
+                        _snakes.Add((new(+_snakeNearOffset,  _snakeOrthoOffset), 180.Degrees()));
                         break;
                     case 16:
-                        _snakes.Add((new(-_snakeNearOffset,  _snakeOrthoOffset), Angle.Radians(MathF.PI)));
-                        _snakes.Add((new(+_snakeFarOffset,   _snakeOrthoOffset), Angle.Radians(MathF.PI)));
+                        _snakes.Add((new(-_snakeNearOffset,  _snakeOrthoOffset), 180.Degrees()));
+                        _snakes.Add((new(+_snakeFarOffset,   _snakeOrthoOffset), 180.Degrees()));
                         break;
                     case 17:
-                        _snakes.Add((new(-_snakeOrthoOffset, -_snakeFarOffset),  Angle.Radians(MathF.PI / 2)));
-                        _snakes.Add((new(-_snakeOrthoOffset, +_snakeNearOffset), Angle.Radians(MathF.PI / 2)));
+                        _snakes.Add((new(-_snakeOrthoOffset, -_snakeFarOffset),  90.Degrees()));
+                        _snakes.Add((new(-_snakeOrthoOffset, +_snakeNearOffset), 90.Degrees()));
                         break;
                     case 18:
-                        _snakes.Add((new(-_snakeOrthoOffset, -_snakeNearOffset), Angle.Radians(MathF.PI / 2)));
-                        _snakes.Add((new(-_snakeOrthoOffset, +_snakeFarOffset),  Angle.Radians(MathF.PI / 2)));
+                        _snakes.Add((new(-_snakeOrthoOffset, -_snakeNearOffset), 90.Degrees()));
+                        _snakes.Add((new(-_snakeOrthoOffset, +_snakeFarOffset),  90.Degrees()));
                         break;
                     case 19:
-                        _snakes.Add((new( _snakeOrthoOffset, -_snakeFarOffset),  Angle.Radians(-MathF.PI / 2)));
-                        _snakes.Add((new( _snakeOrthoOffset, +_snakeNearOffset), Angle.Radians(-MathF.PI / 2)));
+                        _snakes.Add((new( _snakeOrthoOffset, -_snakeFarOffset),  -90.Degrees()));
+                        _snakes.Add((new( _snakeOrthoOffset, +_snakeNearOffset), -90.Degrees()));
                         break;
                     case 20:
-                        _snakes.Add((new( _snakeOrthoOffset, -_snakeNearOffset), Angle.Radians(-MathF.PI / 2)));
-                        _snakes.Add((new( _snakeOrthoOffset, +_snakeFarOffset),  Angle.Radians(-MathF.PI / 2)));
+                        _snakes.Add((new( _snakeOrthoOffset, -_snakeNearOffset), -90.Degrees()));
+                        _snakes.Add((new( _snakeOrthoOffset, +_snakeFarOffset),  -90.Degrees()));
                         break;
                     case 21: _birds.Add(new(-_birdBehemothOffset, -_birdBehemothOffset)); break;
                     case 22: _birds.Add(new(+_birdBehemothOffset, -_birdBehemothOffset)); break;
@@ -148,8 +148,8 @@ namespace BossMod.Endwalker.ZodiarkEx
         {
             return _flow switch
             {
-                FlowDirection.CW  => (module.Arena.WorldCenter + posRot.Item1.OrthoR(), posRot.Item2 - Angle.Radians(MathF.PI / 2)),
-                FlowDirection.CCW => (module.Arena.WorldCenter + posRot.Item1.OrthoL(), posRot.Item2 + Angle.Radians(MathF.PI / 2)),
+                FlowDirection.CW  => (module.Arena.WorldCenter + posRot.Item1.OrthoR(), posRot.Item2 - 90.Degrees()),
+                FlowDirection.CCW => (module.Arena.WorldCenter + posRot.Item1.OrthoL(), posRot.Item2 + 90.Degrees()),
                 _ => (module.Arena.WorldCenter + posRot.Item1, posRot.Item2)
             };
         }
@@ -164,7 +164,7 @@ namespace BossMod.Endwalker.ZodiarkEx
             var p2 = RotatedPosition(module, corner);
             var pMid = WPos.Lerp(p1, p2, 0.5f);
             var dirMid = (pMid - module.Arena.WorldCenter).Normalized();
-            return pos.InCone(module.Arena.WorldCenter, dirMid, Angle.Radians(MathF.PI / 4));
+            return pos.InCone(module.Arena.WorldCenter, dirMid, 45.Degrees());
         }
     }
 }

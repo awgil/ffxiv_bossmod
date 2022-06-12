@@ -13,7 +13,7 @@ namespace BossMod.Endwalker.EndsingerEx
         private List<WPos> _planetsFiery = new();
         private List<WPos> _planetsAzure = new();
 
-        private static AOEShapeCone _aoeHead = new(20, Angle.Radians(MathF.PI / 2));
+        private static AOEShapeCone _aoeHead = new(20, 90.Degrees());
         private static AOEShapeCircle _aoePlanet = new(30);
         private static float _knockbackDistance = 25;
         private static float _planetOffset = 19.8f; // == 14 * sqrt(2)

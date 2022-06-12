@@ -76,8 +76,8 @@ namespace BossMod.Endwalker.P3S
         {
             if (dir != null)
             {
-                arena.ZoneIsoscelesTri(arena.WorldCenter, dir.Value, Angle.Radians(MathF.PI / 6), 50, color);
-                arena.ZoneIsoscelesTri(arena.WorldCenter, dir.Value + Angle.Radians(MathF.PI), Angle.Radians(MathF.PI / 6), 50, color);
+                arena.ZoneIsoscelesTri(arena.WorldCenter, dir.Value, 30.Degrees(), 50, color);
+                arena.ZoneIsoscelesTri(arena.WorldCenter, dir.Value + 180.Degrees(), 30.Degrees(), 50, color);
             }
         }
 

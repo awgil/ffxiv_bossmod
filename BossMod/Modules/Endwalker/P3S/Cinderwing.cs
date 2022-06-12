@@ -7,14 +7,14 @@ namespace BossMod.Endwalker.P3S
     // state related to cinderwing
     class Cinderwing : Component
     {
-        private AOEShapeCone _aoe = new(60, Angle.Radians(MathF.PI / 2));
+        private AOEShapeCone _aoe = new(60, 90.Degrees());
 
         public override void Init(BossModule module)
         {
             _aoe.DirectionOffset = (AID)(module.PrimaryActor.CastInfo?.Action.ID ?? 0) switch
             {
-                AID.RightCinderwing => Angle.Radians(-MathF.PI / 2),
-                AID.LeftCinderwing => Angle.Radians(MathF.PI / 2),
+                AID.RightCinderwing => -90.Degrees(),
+                AID.LeftCinderwing => 90.Degrees(),
                 _ => new()
             };
             if (_aoe.DirectionOffset.Rad == 0)
