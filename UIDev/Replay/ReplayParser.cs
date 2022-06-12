@@ -218,7 +218,7 @@ namespace UIDev
         {
             var c = actor.CastInfo!;
             var target = _participants.GetValueOrDefault(c.TargetID);
-            _participants[actor.InstanceID].Casts.Add(new() { ID = c.Action, ExpectedCastTime = c.TotalTime, Time = new(_ws.CurrentTime), Target = target, Location = c.TargetID == 0 ? c.Location : (_ws.Actors.Find(c.TargetID)?.Position ?? new()) });
+            _participants[actor.InstanceID].Casts.Add(new() { ID = c.Action, ExpectedCastTime = c.TotalTime, Time = new(_ws.CurrentTime), Target = target, Location = c.TargetID == 0 ? c.Location : (_ws.Actors.Find(c.TargetID)?.PosRot.XYZ() ?? new()) });
         }
 
         private void CastFinish(object? sender, Actor actor)
@@ -284,11 +284,11 @@ namespace UIDev
 
             Vector3 targetPos = new();
             if (tgtActor != null)
-                targetPos = tgtActor.Position;
+                targetPos = tgtActor.PosRot.XYZ();
             else if (srcActor?.CastInfo != null)
                 targetPos = srcActor.CastInfo.Location;
             else if (info.Targets.Count > 0)
-                targetPos = _ws.Actors.Find(info.Targets[0].ID)?.Position ?? new();
+                targetPos = _ws.Actors.Find(info.Targets[0].ID)?.PosRot.XYZ() ?? new();
 
             var a = new Replay.Action() { ID = info.Action, Timestamp = _ws.CurrentTime, Source = p,
                 MainTarget = _participants.GetValueOrDefault(info.MainTargetID), TargetPos = targetPos };

@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
         {
             if (_stackTarget != null && _stackTarget != actor && !_cones.Any(c => c.Target == actor))
             {
-                hints.Add("Stack!", !GeometryUtils.PointInCircle(actor.Position - _stackTarget.Position, _stackRadius));
+                hints.Add("Stack!", !actor.Position.InCircle(_stackTarget.Position, _stackRadius));
             }
             if (_cones.Any(cone => actor != cone.Target && _coneShape.Check(actor.Position, cone.Caster.Position, Angle.FromDirection(cone.Target.Position - cone.Caster.Position))))
             {

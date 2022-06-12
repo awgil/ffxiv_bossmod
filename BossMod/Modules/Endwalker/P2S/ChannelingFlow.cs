@@ -11,14 +11,14 @@ namespace BossMod.Endwalker.P2S
     class ChannelingFlow : Component
     {
         public int NumStunned { get; private set; }
-        private (Vector3, DateTime)[] _arrows = new (Vector3, DateTime)[PartyState.MaxSize];
+        private (WDir, DateTime)[] _arrows = new (WDir, DateTime)[PartyState.MaxSize];
 
         private static float _typhoonHalfWidth = 2.5f;
 
         public bool SlotActive(BossModule module, int slot)
         {
             var (dir, expire) = _arrows[slot];
-            return dir != Vector3.Zero && (expire - module.WorldState.CurrentTime).TotalSeconds < 13;
+            return dir != new WDir() && (expire - module.WorldState.CurrentTime).TotalSeconds < 13;
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
@@ -33,7 +33,7 @@ namespace BossMod.Endwalker.P2S
                 {
                     if (_arrows[otherSlot].Item1 == partnerDir)
                     {
-                        minDistance = MathF.Min(minDistance, Vector3.Dot(actor.Position - otherActor.Position, partnerDir));
+                        minDistance = MathF.Min(minDistance, partnerDir.Dot(actor.Position - otherActor.Position));
                         ++numPartners;
                         partner = otherActor;
                     }
@@ -51,7 +51,7 @@ namespace BossMod.Endwalker.P2S
                     hints.Add("Too close to partner!");
             }
 
-            if (ActiveArrows(module).Any(pd => pd.Item1 != actor && pd.Item1 != partner && GeometryUtils.PointInRect(actor.Position - pd.Item1.Position, pd.Item2, 50, 0, _typhoonHalfWidth)))
+            if (ActiveArrows(module).Any(pd => pd.Item1 != actor && pd.Item1 != partner && actor.Position.InRect(pd.Item1.Position, pd.Item2, 50, 0, _typhoonHalfWidth)))
                 hints.Add("GTFO from imminent flow!");
         }
 
@@ -68,16 +68,16 @@ namespace BossMod.Endwalker.P2S
             switch ((SID)actor.Statuses[index].ID)
             {
                 case SID.MarkFlowN:
-                    SetArrow(module, actor, -Vector3.UnitZ, actor.Statuses[index].ExpireAt);
+                    SetArrow(module, actor, new(0, -1), actor.Statuses[index].ExpireAt);
                     break;
                 case SID.MarkFlowS:
-                    SetArrow(module, actor,  Vector3.UnitZ, actor.Statuses[index].ExpireAt);
+                    SetArrow(module, actor, new(0,  1), actor.Statuses[index].ExpireAt);
                     break;
                 case SID.MarkFlowW:
-                    SetArrow(module, actor, -Vector3.UnitX, actor.Statuses[index].ExpireAt);
+                    SetArrow(module, actor, new(-1, 0), actor.Statuses[index].ExpireAt);
                     break;
                 case SID.MarkFlowE:
-                    SetArrow(module, actor,  Vector3.UnitX, actor.Statuses[index].ExpireAt);
+                    SetArrow(module, actor, new( 1, 0), actor.Statuses[index].ExpireAt);
                     break;
                 case SID.Stun:
                     ++NumStunned;
@@ -93,7 +93,7 @@ namespace BossMod.Endwalker.P2S
                 case SID.MarkFlowS:
                 case SID.MarkFlowW:
                 case SID.MarkFlowE:
-                    SetArrow(module, actor, Vector3.Zero, new());
+                    SetArrow(module, actor, new(), new());
                     break;
                 case SID.Stun:
                     --NumStunned;
@@ -101,21 +101,21 @@ namespace BossMod.Endwalker.P2S
             }
         }
 
-        private void SetArrow(BossModule module, Actor actor, Vector3 dir, DateTime expire)
+        private void SetArrow(BossModule module, Actor actor, WDir dir, DateTime expire)
         {
             var slot = module.WorldState.Party.FindSlot(actor.InstanceID);
             if (slot >= 0)
                 _arrows[slot] = (dir, expire);
         }
 
-        private IEnumerable<(Actor, Vector3)> ActiveArrows(BossModule module)
+        private IEnumerable<(Actor, WDir)> ActiveArrows(BossModule module)
         {
             return module.Raid.WithSlot().WhereSlot(slot => SlotActive(module, slot)).Select(ia => (ia.Item2, _arrows[ia.Item1].Item1));
         }
 
         private IEnumerable<(int, Actor)> ActorsHitBy(BossModule module, int slot, Actor actor)
         {
-            return module.Raid.WithSlot().Exclude(slot).WhereActor(a => GeometryUtils.PointInRect(a.Position - actor.Position, _arrows[slot].Item1, 50, 0, _typhoonHalfWidth));
+            return module.Raid.WithSlot().Exclude(slot).WhereActor(a => a.Position.InRect(actor.Position, _arrows[slot].Item1, 50, 0, _typhoonHalfWidth));
         }
     }
 }

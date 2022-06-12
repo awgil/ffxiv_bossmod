@@ -6,11 +6,11 @@ namespace BossMod
 {
     public abstract class AOEShape
     {
-        public abstract bool Check(Vector3 position, Vector3 origin, Angle rotation);
-        public abstract void Draw(MiniArena arena, Vector3 origin, Angle rotation);
-        public abstract void Outline(MiniArena arena, Vector3 origin, Angle rotation);
+        public abstract bool Check(WPos position, WPos origin, Angle rotation);
+        public abstract void Draw(MiniArena arena, WPos origin, Angle rotation);
+        public abstract void Outline(MiniArena arena, WPos origin, Angle rotation);
 
-        public bool Check(Vector3 position, Actor? origin)
+        public bool Check(WPos position, Actor? origin)
         {
             return origin != null ? Check(position, origin.Position, origin.Rotation) : false;
         }
@@ -41,21 +41,9 @@ namespace BossMod
             HalfAngle = halfAngle;
         }
 
-        public override bool Check(Vector3 position, Vector3 origin, Angle rotation)
-        {
-            var off = position - origin;
-            return GeometryUtils.PointInCircle(off, Radius) && GeometryUtils.PointInCone(off, rotation + DirectionOffset, HalfAngle);
-        }
-
-        public override void Draw(MiniArena arena, Vector3 origin, Angle rotation)
-        {
-            arena.ZoneCone(origin, 0, Radius, rotation + DirectionOffset, HalfAngle, arena.ColorAOE);
-        }
-
-        public override void Outline(MiniArena arena, Vector3 origin, Angle rotation)
-        {
-            arena.AddCone(origin, Radius, rotation + DirectionOffset, HalfAngle, arena.ColorDanger);
-        }
+        public override bool Check(WPos position, WPos origin, Angle rotation) => position.InCircleCone(origin, Radius, rotation + DirectionOffset, HalfAngle);
+        public override void Draw(MiniArena arena, WPos origin, Angle rotation) => arena.ZoneCone(origin, 0, Radius, rotation + DirectionOffset, HalfAngle, arena.ColorAOE);
+        public override void Outline(MiniArena arena, WPos origin, Angle rotation) => arena.AddCone(origin, Radius, rotation + DirectionOffset, HalfAngle, arena.ColorDanger);
     }
 
     public class AOEShapeCircle : AOEShape
@@ -67,20 +55,9 @@ namespace BossMod
             Radius = radius;
         }
 
-        public override bool Check(Vector3 position, Vector3 origin, Angle rotation)
-        {
-            return GeometryUtils.PointInCircle(position - origin, Radius);
-        }
-
-        public override void Draw(MiniArena arena, Vector3 origin, Angle rotation)
-        {
-            arena.ZoneCircle(origin, Radius, arena.ColorAOE);
-        }
-
-        public override void Outline(MiniArena arena, Vector3 origin, Angle rotation)
-        {
-            arena.AddCircle(origin, Radius, arena.ColorDanger);
-        }
+        public override bool Check(WPos position, WPos origin, Angle rotation) => position.InCircle(origin, Radius);
+        public override void Draw(MiniArena arena, WPos origin, Angle rotation) => arena.ZoneCircle(origin, Radius, arena.ColorAOE);
+        public override void Outline(MiniArena arena, WPos origin, Angle rotation) => arena.AddCircle(origin, Radius, arena.ColorDanger);
     }
 
     public class AOEShapeDonut : AOEShape
@@ -94,18 +71,9 @@ namespace BossMod
             OuterRadius = outerRadius;
         }
 
-        public override bool Check(Vector3 position, Vector3 origin, Angle rotation)
-        {
-            var off = position - origin;
-            return GeometryUtils.PointInCircle(off, OuterRadius) && !GeometryUtils.PointInCircle(off, InnerRadius);
-        }
-
-        public override void Draw(MiniArena arena, Vector3 origin, Angle rotation)
-        {
-            arena.ZoneDonut(origin, InnerRadius, OuterRadius, arena.ColorAOE);
-        }
-
-        public override void Outline(MiniArena arena, Vector3 origin, Angle rotation)
+        public override bool Check(WPos position, WPos origin, Angle rotation) => position.InDonut(origin, InnerRadius, OuterRadius);
+        public override void Draw(MiniArena arena, WPos origin, Angle rotation) => arena.ZoneDonut(origin, InnerRadius, OuterRadius, arena.ColorAOE);
+        public override void Outline(MiniArena arena, WPos origin, Angle rotation)
         {
             arena.AddCircle(origin, InnerRadius, arena.ColorDanger);
             arena.AddCircle(origin, OuterRadius, arena.ColorDanger);
@@ -127,26 +95,18 @@ namespace BossMod
             DirectionOffset = directionOffset;
         }
 
-        public override bool Check(Vector3 position, Vector3 origin, Angle rotation)
+        public override bool Check(WPos position, WPos origin, Angle rotation) => position.InRect(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth);
+        public override void Draw(MiniArena arena, WPos origin, Angle rotation) => arena.ZoneQuad(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth, arena.ColorAOE);
+        public override void Outline(MiniArena arena, WPos origin, Angle rotation)
         {
-            return GeometryUtils.PointInRect(position - origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth);
-        }
-
-        public override void Draw(MiniArena arena, Vector3 origin, Angle rotation)
-        {
-            arena.ZoneQuad(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth, arena.ColorAOE);
-        }
-
-        public override void Outline(MiniArena arena, Vector3 origin, Angle rotation)
-        {
-            Vector3 direction = (rotation + DirectionOffset).ToDirection();
-            Vector3 side = HalfWidth * new Vector3(-direction.Z, 0, direction.X);
-            Vector3 front = origin + LengthFront * direction;
-            Vector3 back = origin - LengthBack * direction;
+            var direction = (rotation + DirectionOffset).ToDirection();
+            var side = HalfWidth * direction.OrthoR();
+            var front = origin + LengthFront * direction;
+            var back = origin - LengthBack * direction;
             arena.AddQuad(front + side, front - side, back - side, back + side, arena.ColorDanger);
         }
 
-        public void SetEndPoint(Vector3 endpoint, Vector3 origin, Angle rotation)
+        public void SetEndPoint(WPos endpoint, WPos origin, Angle rotation)
         {
             // this is a bit of a hack, but whatever...
             var dir = endpoint - origin;
@@ -156,7 +116,8 @@ namespace BossMod
 
         public void SetEndPointFromCastLocation(Actor caster)
         {
-            SetEndPoint(caster.CastInfo?.Location ?? new(), caster.Position, caster.Rotation);
+            if (caster.CastInfo != null)
+                SetEndPoint(caster.CastInfo.LocXZ, caster.Position, caster.Rotation);
         }
     }
 
@@ -169,18 +130,18 @@ namespace BossMod
             Shapes = new(shapes);
         }
 
-        public override bool Check(Vector3 position, Vector3 origin, Angle rotation)
+        public override bool Check(WPos position, WPos origin, Angle rotation)
         {
             return Shapes.Any(s => s.Check(position, origin, rotation));
         }
 
-        public override void Draw(MiniArena arena, Vector3 origin, Angle rotation)
+        public override void Draw(MiniArena arena, WPos origin, Angle rotation)
         {
             foreach (var s in Shapes)
                 s.Draw(arena, origin, rotation);
         }
 
-        public override void Outline(MiniArena arena, Vector3 origin, Angle rotation)
+        public override void Outline(MiniArena arena, WPos origin, Angle rotation)
         {
             foreach (var s in Shapes)
                 s.Outline(arena, origin, rotation);

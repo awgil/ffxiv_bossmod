@@ -77,7 +77,7 @@ namespace BossMod
                 {
                     BossModule.MovementHints? movementHints = WindowConfig.ShowWorldArrows ? new() : null;
                     ActiveModule.Draw(WindowConfig.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, PartyState.PlayerSlot, movementHints);
-                    DrawMovementHints(movementHints);
+                    DrawMovementHints(movementHints, WorldState.Party.Player()?.PosRot.Y ?? 0);
                 }
                 catch (Exception ex)
                 {
@@ -97,7 +97,7 @@ namespace BossMod
             }
         }
 
-        private void DrawMovementHints(BossModule.MovementHints? arrows)
+        private void DrawMovementHints(BossModule.MovementHints? arrows, float y)
         {
             if (arrows == null || arrows.Count == 0 || Camera.Instance == null)
                 return;
@@ -110,12 +110,14 @@ namespace BossMod
 
             foreach ((var start, var end, uint color) in arrows)
             {
-                DrawWorldLine(start, end, color, Camera.Instance);
-                var dir = Vector3.Normalize(end - start);
-                var arrowStart = end - 0.4f * dir;
+                Vector3 start3 = new(start.X, y, start.Z);
+                Vector3 end3 = new(end.X, y, end.Z);
+                DrawWorldLine(start3, end3, color, Camera.Instance);
+                var dir = Vector3.Normalize(end3 - start3);
+                var arrowStart = end3 - 0.4f * dir;
                 var offset = 0.07f * Vector3.Normalize(Vector3.Cross(Vector3.UnitY, dir));
-                DrawWorldLine(arrowStart + offset, end, color, Camera.Instance);
-                DrawWorldLine(arrowStart - offset, end, color, Camera.Instance);
+                DrawWorldLine(arrowStart + offset, end3, color, Camera.Instance);
+                DrawWorldLine(arrowStart - offset, end3, color, Camera.Instance);
             }
 
             ImGui.End();

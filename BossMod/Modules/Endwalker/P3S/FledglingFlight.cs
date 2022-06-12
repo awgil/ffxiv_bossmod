@@ -27,7 +27,7 @@ namespace BossMod.Endwalker.P3S
             foreach ((int i, var player) in module.Raid.WithSlot())
             {
                 _playerDeathTollStacks[i] = player.FindStatus((uint)SID.DeathsToll)?.Extra ?? 0; // TODO: use status events here...
-                _playerAOECount[i] = _sources.Where(srcRot => GeometryUtils.PointInCone(player.Position - srcRot.Item1.Position, srcRot.Item2, _coneHalfAngle)).Count();
+                _playerAOECount[i] = _sources.Where(srcRot => player.Position.InCone(srcRot.Item1.Position, srcRot.Item2, _coneHalfAngle)).Count();
             }
         }
 
@@ -37,7 +37,7 @@ namespace BossMod.Endwalker.P3S
                 return;
 
             var eyePos = GetEyePlacementPosition(module, slot, actor);
-            if (eyePos != null && !GeometryUtils.PointInCircle(actor.Position - eyePos.Value, 5))
+            if (eyePos != null && !actor.Position.InCircle(eyePos.Value, 5))
             {
                 hints.Add("Get closer to eye placement position!");
             }
@@ -122,7 +122,7 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        private Vector3? GetEyePlacementPosition(BossModule module, int slot, Actor player)
+        private WPos? GetEyePlacementPosition(BossModule module, int slot, Actor player)
         {
             if (PlacementDone)
                 return null;

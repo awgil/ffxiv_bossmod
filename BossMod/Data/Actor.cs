@@ -34,6 +34,8 @@ namespace BossMod
         public float TotalTime;
         public DateTime FinishAt;
 
+        public WPos LocXZ => new(Location.XZ());
+
         public bool IsSpell() => Action.Type == ActionType.Spell;
         public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);
     }
@@ -75,7 +77,7 @@ namespace BossMod
         public ActorStatus[] Statuses = new ActorStatus[30]; // empty slots have ID=0
 
         public Role Role => Class.GetRole();
-        public Vector3 Position => PosRot.XYZ();
+        public WPos Position => new(PosRot.X, PosRot.Z);
         public Angle Rotation => Angle.Radians(PosRot.W);
 
         public Actor(ulong instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius, uint hpCur, uint hpMax, bool targetable, ulong ownerID)

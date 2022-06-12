@@ -28,8 +28,7 @@ namespace BossMod.Endwalker.P3S
 
             foreach (var twister in BurningTwisters(module))
             {
-                var offset = adjPos - twister.Position;
-                if (GeometryUtils.PointInCircle(offset, _aoeInnerRadius) || GeometryUtils.PointInCircle(offset, _aoeOuterRadius) && !GeometryUtils.PointInCircle(offset, _aoeMiddleRadius))
+                if (adjPos.InCircle(twister.Position, _aoeInnerRadius) || adjPos.InDonut(twister.Position, _aoeMiddleRadius, _aoeOuterRadius))
                 {
                     hints.Add("GTFO from aoe!");
                     break;

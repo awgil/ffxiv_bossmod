@@ -50,7 +50,7 @@ namespace BossMod.Endwalker.P4S2
                 }
                 else if (curFirePair.Item1 != null && !isTowerSoaker)
                 {
-                    bool nearFire = GeometryUtils.PointInCircle(actor.Position - curFirePair.Item1!.Position, _fireExplosionRadius) || GeometryUtils.PointInCircle(actor.Position - curFirePair.Item2!.Position, _fireExplosionRadius);
+                    bool nearFire = actor.Position.InCircle(curFirePair.Item1!.Position, _fireExplosionRadius) || actor.Position.InCircle(curFirePair.Item2!.Position, _fireExplosionRadius);
                     hints.Add("Stack with breaking tether!", !nearFire);
                 }
 

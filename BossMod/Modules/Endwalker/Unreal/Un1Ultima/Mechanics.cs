@@ -59,7 +59,7 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
             }
 
             // TODO: reconsider whether we really care about spread for vents/lasers...
-            //if (actor.Role is Role.Healer or Role.Ranged && GeometryUtils.PointInCircle(actor.Position - module.PrimaryActor.Position, _ceruleumVentRange))
+            //if (actor.Role is Role.Healer or Role.Ranged && GeometryUtils.InCircle(actor.Position - module.PrimaryActor.Position, _ceruleumVentRange))
             //{
             //    hints.Add("Move from boss");
             //}

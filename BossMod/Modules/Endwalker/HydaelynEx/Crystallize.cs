@@ -82,12 +82,12 @@ namespace BossMod.Endwalker.HydaelynEx
                 case Element.Earth:
                     arena.AddCircle(pc.Position, _earthRadius, arena.ColorSafe);
                     foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                        arena.Actor(player, GeometryUtils.PointInCircle(player.Position - pc.Position, _earthRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                        arena.Actor(player, player.Position.InCircle(pc.Position, _earthRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
                     break;
                 case Element.Ice:
                     arena.AddCircle(pc.Position, _iceRadius, arena.ColorDanger);
                     foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                        arena.Actor(player, GeometryUtils.PointInCircle(player.Position - pc.Position, _iceRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                        arena.Actor(player, player.Position.InCircle(pc.Position, _iceRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
                     break;
             }
         }

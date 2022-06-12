@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.HydaelynEx
         {
             var pcRole = EffectiveRole(actor);
             var pcDir = Angle.FromDirection(actor.Position - module.PrimaryActor.Position);
-            if (module.Raid.WithoutSlot().Any(a => EffectiveRole(a) != pcRole && GeometryUtils.PointInCone(a.Position - module.PrimaryActor.Position, pcDir, _coneHalfAngle)))
+            if (module.Raid.WithoutSlot().Any(a => EffectiveRole(a) != pcRole && a.Position.InCone(module.PrimaryActor.Position, pcDir, _coneHalfAngle)))
                 hints.Add("Spread by roles!");
         }
 
@@ -25,7 +25,7 @@ namespace BossMod.Endwalker.HydaelynEx
             var pcRole = EffectiveRole(pc);
             var pcDir = Angle.FromDirection(pc.Position - module.PrimaryActor.Position);
             foreach (var actor in module.Raid.WithoutSlot().Where(a => EffectiveRole(a) != pcRole))
-                arena.Actor(actor, GeometryUtils.PointInCone(actor.Position - module.PrimaryActor.Position, pcDir, _coneHalfAngle) ? arena.ColorDanger : arena.ColorPlayerGeneric);
+                arena.Actor(actor, actor.Position.InCone(module.PrimaryActor.Position, pcDir, _coneHalfAngle) ? arena.ColorDanger : arena.ColorPlayerGeneric);
         }
 
         private Role EffectiveRole(Actor a) =>  a.Role == Role.Ranged ? Role.Melee : a.Role;

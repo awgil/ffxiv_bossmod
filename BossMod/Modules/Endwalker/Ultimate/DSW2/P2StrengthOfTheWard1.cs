@@ -25,7 +25,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (NumImpactHits < 5)
             {
                 var source = module.Enemies(OID.SerGuerrique).FirstOrDefault();
-                if (source != null && !GeometryUtils.PointInCircle(actor.Position - source.Position, NumImpactHits * _impactRadiusIncrement) && GeometryUtils.PointInCircle(actor.Position - source.Position, (NumImpactHits + 1) * _impactRadiusIncrement))
+                if (source != null && actor.Position.InDonut(source.Position, NumImpactHits * _impactRadiusIncrement, (NumImpactHits + 1) * _impactRadiusIncrement))
                     hints.Add("GTFO from aoe!");
             }
         }
@@ -55,7 +55,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 arena.AddCircle(pc.Position, _lightningStormRadius, arena.ColorDanger);
                 foreach (var actor in module.Raid.WithoutSlot().Exclude(pc))
-                    arena.Actor(actor, GeometryUtils.PointInCircle(actor.Position - pc.Position, _lightningStormRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(actor, actor.Position.InCircle(pc.Position, _lightningStormRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
         }
 
@@ -83,7 +83,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private bool IsKnightInChargePosition(BossModule module, Actor? knight)
         {
-            return knight != null && MathF.Abs((knight.Position - module.Arena.WorldCenter).LengthSquared() - 23 * 23) < 5;
+            return knight != null && MathF.Abs((knight.Position - module.Arena.WorldCenter).LengthSq() - 23 * 23) < 5;
         }
 
         private bool InChargeAOE(BossModule module, Actor player, OID knightID)

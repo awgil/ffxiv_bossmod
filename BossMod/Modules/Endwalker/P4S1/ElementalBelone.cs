@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.P4S1
     {
         public bool Visible = false;
         private SettingTheScene.Element _safeElement;
-        private List<Vector3> _imminentExplodingCorners = new();
+        private List<WPos> _imminentExplodingCorners = new();
 
         public override void Init(BossModule module)
         {
@@ -25,7 +25,7 @@ namespace BossMod.Endwalker.P4S1
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_imminentExplodingCorners.Where(p => GeometryUtils.PointInRect(actor.Position - p, Vector3.UnitX, 10, 10, 10)).Any())
+            if (_imminentExplodingCorners.Where(p => actor.Position.InRect(p, new WDir(1, 0), 10, 10, 10)).Any())
             {
                 hints.Add($"GTFO from exploding square");
             }
@@ -45,12 +45,12 @@ namespace BossMod.Endwalker.P4S1
                 if (safeCorner != SettingTheScene.Corner.Unknown)
                 {
                     var p = module.Arena.WorldCenter + 10 * assignments.Direction(safeCorner);
-                    arena.ZoneQuad(p, Vector3.UnitX, 10, 10, 10, arena.ColorSafeFromAOE);
+                    arena.ZoneQuad(p, new WDir(1, 0), 10, 10, 10, arena.ColorSafeFromAOE);
                 }
             }
             foreach (var p in _imminentExplodingCorners)
             {
-                arena.ZoneQuad(p, Vector3.UnitX, 10, 10, 10, arena.ColorAOE);
+                arena.ZoneQuad(p, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
             }
         }
 

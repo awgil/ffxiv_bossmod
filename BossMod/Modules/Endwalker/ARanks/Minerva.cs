@@ -29,7 +29,7 @@ namespace BossMod.Endwalker.ARanks.Minerva
         private AOEShapeDonut _ballisticMissileDonut = new(6, 20);
         private AOEShape? _activeBallisticMissile;
         private Actor? _activeBallisticMissileTarget;
-        private Vector3 _activeBallisticMissileLocation = new();
+        private WPos _activeBallisticMissileLocation = new();
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
@@ -76,7 +76,7 @@ namespace BossMod.Endwalker.ARanks.Minerva
                     break;
                 case AID.BallisticMissileCircle:
                 case AID.BallisticMissileDonut:
-                    _activeBallisticMissileLocation = actor.CastInfo.Location;
+                    _activeBallisticMissileLocation = actor.CastInfo.LocXZ;
                     break;
             }
         }

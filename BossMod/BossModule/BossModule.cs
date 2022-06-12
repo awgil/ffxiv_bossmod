@@ -56,9 +56,9 @@ namespace BossMod
         }
 
         // list of actor-specific "movement hints" (arrow start/end pos + color)
-        public class MovementHints : List<(Vector3, Vector3, uint)>
+        public class MovementHints : List<(WPos, WPos, uint)>
         {
-            public void Add(Vector3 from, Vector3 to, uint color) => base.Add((from, to, color));
+            public void Add(WPos from, WPos to, uint color) => base.Add((from, to, color));
         }
 
         // list of global hints
@@ -266,12 +266,12 @@ namespace BossMod
         }
 
         // TODO: move to some better place...
-        public static Vector3 AdjustPositionForKnockback(Vector3 pos, Vector3 origin, float distance)
+        public static WPos AdjustPositionForKnockback(WPos pos, WPos origin, float distance)
         {
-            return pos != origin ? pos + distance * Vector3.Normalize(pos - origin) : pos;
+            return pos != origin ? pos + distance * (pos - origin).Normalized() : pos;
         }
 
-        public static Vector3 AdjustPositionForKnockback(Vector3 pos, Actor? source, float distance)
+        public static WPos AdjustPositionForKnockback(WPos pos, Actor? source, float distance)
         {
             return source != null ? AdjustPositionForKnockback(pos, source.Position, distance) : pos;
         }
@@ -337,7 +337,7 @@ namespace BossMod
         {
             if (pos != null)
             {
-                Arena.TextWorld(pos.Value, text, color, 22);
+                Arena.TextWorld(new(pos.Value.XZ()), text, color, 22);
             }
         }
 

@@ -18,7 +18,7 @@ namespace BossMod.Endwalker.P1S
         private BitMatrix _redTetherMatrix; // bit (8*i+j) is set if there is a tether from j to i; bit [i,i] is always set
         private BitMatrix _blueExplosionMatrix;
         private BitMatrix _redExplosionMatrix; // bit (8*i+j) is set if player i is inside explosion of player j; bit [i,i] is never set
-        private Vector3[] _preferredPositions = new Vector3[8];
+        private WPos[] _preferredPositions = new WPos[8];
 
         private static float _blueExplosionRadius = 4;
         private static float _redExplosionRadius = 8;
@@ -77,7 +77,7 @@ namespace BossMod.Endwalker.P1S
                 hints.Add("GTFO from explosion!");
             }
 
-            if (movementHints != null && _preferredPositions[slot] != Vector3.Zero)
+            if (movementHints != null && _preferredPositions[slot] != new WPos())
             {
                 movementHints.Add(actor.Position, _preferredPositions[slot], module.Arena.ColorSafe);
             }
@@ -117,7 +117,7 @@ namespace BossMod.Endwalker.P1S
                 arena.AddCircle(pc.Position, _redExplosionRadius, arena.ColorDanger);
 
             // draw assigned spot, if any
-            if (_preferredPositions[pcSlot] != Vector3.Zero)
+            if (_preferredPositions[pcSlot] != new WPos())
                 arena.AddCircle(_preferredPositions[pcSlot], 2, arena.ColorSafe);
 
         }
@@ -209,12 +209,14 @@ namespace BossMod.Endwalker.P1S
             if (way1 == null || way2 == null)
                 return;
 
-            var d1 = (way1.Value - module.Arena.WorldCenter).LengthSquared();
-            var d2 = (way2.Value - module.Arena.WorldCenter).LengthSquared();
+            var w1 = new WPos(way1.Value.XZ());
+            var w2 = new WPos(way2.Value.XZ());
+            var d1 = (w1 - module.Arena.WorldCenter).LengthSq();
+            var d2 = (w2 - module.Arena.WorldCenter).LengthSq();
             bool use1 = far ? d1 > d2 : d1 < d2;
             int slot = module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
-                _preferredPositions[slot] = use1 ? way1.Value : way2.Value;
+                _preferredPositions[slot] = use1 ? w1 : w2;
         }
     }
 }

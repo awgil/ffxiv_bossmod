@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     // eyes mechanics are quite standalone...
     class P2SanctityOfTheWard1Gaze : CommonComponents.CastCounter
     {
-        private Vector3? _eyePosition;
+        private WPos? _eyePosition;
 
         private static float _eyeOuterH = 10;
         private static float _eyeOuterV = 6;
@@ -32,8 +32,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             foreach (var eye in EyePositions(module))
             {
-                var dir = Vector3.Normalize(eye - arena.WorldCenter);
-                var eyeCenter = arena.ScreenCenter + arena.RotatedCoords(dir.XZ()) * (arena.ScreenHalfSize + arena.ScreenMarginSize / 2);
+                var dir = (eye - arena.WorldCenter).Normalized();
+                var eyeCenter = arena.ScreenCenter + arena.RotatedCoords(dir.ToVec2()) * (arena.ScreenHalfSize + arena.ScreenMarginSize / 2);
                 var dl = ImGui.GetWindowDrawList();
                 dl.PathArcTo(eyeCenter - new Vector2(0, _eyeOffsetV), _eyeOuterR,  MathF.PI / 2 + _eyeHalfAngle,  MathF.PI / 2 - _eyeHalfAngle);
                 dl.PathArcTo(eyeCenter + new Vector2(0, _eyeOffsetV), _eyeOuterR, -MathF.PI / 2 + _eyeHalfAngle, -MathF.PI / 2 - _eyeHalfAngle);
@@ -51,12 +51,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        private bool HitByEye(Actor actor, Vector3 eye)
+        private bool HitByEye(Actor actor, WPos eye)
         {
-            return Vector3.Dot(Vector3.Normalize(eye - actor.Position), actor.Rotation.ToDirection()) >= 0.707107f; // 45-degree
+            return actor.Rotation.ToDirection().Dot((eye - actor.Position).Normalized()) >= 0.707107f; // 45-degree
         }
 
-        private IEnumerable<Vector3> EyePositions(BossModule module)
+        private IEnumerable<WPos> EyePositions(BossModule module)
         {
             if (_eyePosition != null && NumCasts == 0)
             {
@@ -72,8 +72,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         class ChargeInfo
         {
             public Actor Source;
-            public List<Vector3> Positions = new();
-            public List<Vector3> Spheres = new();
+            public List<WPos> Positions = new();
+            public List<WPos> Spheres = new();
 
             public ChargeInfo(Actor source)
             {
@@ -113,14 +113,14 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 }
                 else
                 {
-                    if (!_severTargetSlots.Select(slot => module.Raid[slot]).Any(s => s == null || GeometryUtils.PointInCircle(s.Position - actor.Position, _severRadius)))
+                    if (!_severTargetSlots.Select(slot => module.Raid[slot]).Any(s => s == null || s.Position.InCircle(actor.Position, _severRadius)))
                         hints.Add("Stack in fours!");
                 }
             }
 
-            if (ImminentCharges().Any(fromTo => GeometryUtils.PointInRect(actor.Position - fromTo.Item1, fromTo.Item2 - fromTo.Item1, _chargeHalfWidth)))
+            if (ImminentCharges().Any(fromTo => actor.Position.InRect(fromTo.Item1, fromTo.Item2 - fromTo.Item1, _chargeHalfWidth)))
                 hints.Add("GTFO from charge!");
-            if (ImminentSpheres().Any(s => GeometryUtils.PointInCircle(actor.Position - s, _brightflareRadius)))
+            if (ImminentSpheres().Any(s => actor.Position.InCircle(s, _brightflareRadius)))
                 hints.Add("GTFO from sphere!");
 
             if (movementHints != null && _groupEast.Any())
@@ -209,7 +209,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     var sphere = module.WorldState.Actors.Find(info.CasterID);
                     if (sphere != null)
                         foreach (var c in _charges)
-                            c?.Spheres.RemoveAll(s => Utils.AlmostEqual(s, sphere.Position, 3));
+                            c?.Spheres.RemoveAll(s => s.AlmostEqual(sphere.Position, 2));
                     ++NumFlareCasts;
                     break;
             }
@@ -349,18 +349,18 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             addPosition(firstPointDir + angleBetweenPoints * 2);
 
             res.Spheres.Add(res.Positions[0]);
-            res.Spheres.Add((res.Positions[0] + res.Positions[1]) / 2);
+            res.Spheres.Add(WPos.Lerp(res.Positions[0], res.Positions[1], 0.5f));
             res.Spheres.Add(res.Positions[1]);
-            res.Spheres.Add((res.Positions[1] * 2 + res.Positions[2]) / 3);
-            res.Spheres.Add((res.Positions[1] + res.Positions[2] * 2) / 3);
+            res.Spheres.Add(WPos.Lerp(res.Positions[1], res.Positions[2], 1.0f / 3));
+            res.Spheres.Add(WPos.Lerp(res.Positions[1], res.Positions[2], 2.0f / 3));
             res.Spheres.Add(res.Positions[2]);
-            res.Spheres.Add((res.Positions[2] * 2 + res.Positions[3]) / 3);
-            res.Spheres.Add((res.Positions[2] + res.Positions[3] * 2) / 3);
+            res.Spheres.Add(WPos.Lerp(res.Positions[2], res.Positions[3], 1.0f / 3));
+            res.Spheres.Add(WPos.Lerp(res.Positions[2], res.Positions[3], 2.0f / 3));
             res.Spheres.Add(res.Positions[3]);
             return (res, cw);
         }
 
-        private IEnumerable<(Vector3, Vector3)> ImminentCharges()
+        private IEnumerable<(WPos, WPos)> ImminentCharges()
         {
             foreach (var c in _charges)
             {
@@ -371,7 +371,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        private IEnumerable<Vector3> ImminentSpheres()
+        private IEnumerable<WPos> ImminentSpheres()
         {
             foreach (var c in _charges)
             {
@@ -382,7 +382,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        private Vector3 SafeSpotOffset(int slot, Angle dirOffset)
+        private WDir SafeSpotOffset(int slot, Angle dirOffset)
         {
             var dir = _severStartDir + (_chargeCW ? -1 : 1) * dirOffset;
             if (dir.Rad < 0 == _groupEast[slot])
@@ -390,7 +390,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             return 20 * dir.ToDirection();
         }
 
-        private IEnumerable<Vector3> MovementHintOffsets(int slot)
+        private IEnumerable<WDir> MovementHintOffsets(int slot)
         {
             if (_severStartDir.Rad != 0 && _charges[0] != null && _charges[1] != null)
             {

@@ -13,7 +13,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (_casters.Any(c => GeometryUtils.PointInCircle(actor.Position - c.CastInfo!.Location, _radius)))
+            if (_casters.Any(c => actor.Position.InCircle(c.CastInfo!.LocXZ, _radius)))
             {
                 hints.Add("GTFO from puddle!");
             }
@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var c in _casters)
-                arena.ZoneCircle(c.CastInfo!.Location, _radius, arena.ColorDanger);
+                arena.ZoneCircle(c.CastInfo!.LocXZ, _radius, arena.ColorDanger);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

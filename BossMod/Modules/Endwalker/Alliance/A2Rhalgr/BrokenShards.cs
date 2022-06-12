@@ -7,10 +7,10 @@ namespace BossMod.Endwalker.Alliance.A2Rhalgr
     // this is not an official mechanic name - it refers to broken world + hand of the destroyer combo, which creates multiple small aoes
     class BrokenShards : BossModule.Component
     {
-        private Vector3[]? _targetLocations;
+        private WPos[]? _targetLocations;
 
-        private static Vector3[] _eastLocations = { new(-30.0f, 475, 266.9f), new(-46.5f, 475, 269.6f), new(-26.2f, 475, 292.9f), new(-2.8f, 475, 283.5f), new(-37.4f, 475, 283.7f), new(1.6f, 475, 271.5f), new(-18.8f, 475, 278.8f), new(-12.3f, 475, 298.3f), new(-34.1f, 475, 250.5f) };
-        private static Vector3[] _westLocations = { new(-6.9f, 475, 268.0f), new(-0.2f, 475, 285.0f), new(-25.6f, 475, 298.5f), new(-34.2f, 475, 283.5f), new(-11.6f, 475, 293.5f), new(-46.1f, 475, 270.5f), new(-18.1f, 475, 279.0f), new(-40.3f, 475, 290.5f), new(-2.1f, 475, 252.0f) };
+        private static WPos[] _eastLocations = { new(-30.0f, 266.9f), new(-46.5f, 269.6f), new(-26.2f, 292.9f), new(-2.8f, 283.5f), new(-37.4f, 283.7f), new(1.6f, 271.5f), new(-18.8f, 278.8f), new(-12.3f, 298.3f), new(-34.1f, 250.5f) };
+        private static WPos[] _westLocations = { new(-6.9f, 268.0f), new(-0.2f, 285.0f), new(-25.6f, 298.5f), new(-34.2f, 283.5f), new(-11.6f, 293.5f), new(-46.1f, 270.5f), new(-18.1f, 279.0f), new(-40.3f, 290.5f), new(-2.1f, 252.0f) };
         private static AOEShapeCircle _aoe = new(20);
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
@@ -45,13 +45,11 @@ namespace BossMod.Endwalker.Alliance.A2Rhalgr
             if (info.IsSpell(AID.BrokenShardsAOE))
             {
                 var caster = module.WorldState.Actors.Find(info.CasterID);
-                if (caster != null && !Array.Exists(_eastLocations, p => PositionAlmostEqual(p, caster.Position)) && Array.Exists(_westLocations, p => PositionAlmostEqual(p, caster.Position)))
+                if (caster != null && !Array.Exists(_eastLocations, p => p.AlmostEqual(caster.Position, 0.1f)) && Array.Exists(_westLocations, p => p.AlmostEqual(caster.Position, 0.1f)))
                 {
-                    module.ReportError(this, $"Unexpected shard position: {Utils.Vec3String(caster.Position)}");
+                    module.ReportError(this, $"Unexpected shard position: {caster.Position}");
                 }
             }
         }
-
-        private bool PositionAlmostEqual(Vector3 l, Vector3 r) => Math.Abs(l.X - r.X) < 0.1f && Math.Abs(l.Z - r.Z) < 0.1f;
     }
 }

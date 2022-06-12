@@ -23,7 +23,7 @@ namespace BossMod.Endwalker.P4S2
 
                 if (order >= _castsDone && order < _towersOrder.Count)
                 {
-                    hints.Add("Soak tower!", !GeometryUtils.PointInCircle(actor.Position - _towersOrder[order].Position, P4S2.WreathTowerRadius));
+                    hints.Add("Soak tower!", !actor.Position.InCircle(_towersOrder[order].Position, P4S2.WreathTowerRadius));
                 }
             }
 
@@ -54,7 +54,7 @@ namespace BossMod.Endwalker.P4S2
             {
                 arena.AddCircle(pc.Position, _impulseAOERadius, arena.ColorDanger);
                 foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                    arena.Actor(player, GeometryUtils.PointInCircle(player.Position - pc.Position, _impulseAOERadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(player, player.Position.InCircle(pc.Position, _impulseAOERadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
         }
 

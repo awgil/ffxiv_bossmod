@@ -49,7 +49,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
             : base(manager, primary)
         {
             Arena.IsCircle = true;
-            Arena.WorldCenter = new(750, -932, -750);
+            Arena.WorldCenter = new(750, -750);
             Arena.WorldHalfSize = 25;
 
             var sb = new StateMachineBuilder(this);

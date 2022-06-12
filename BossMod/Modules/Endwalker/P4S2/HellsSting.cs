@@ -19,8 +19,7 @@ namespace BossMod.Endwalker.P4S2
             if (NumCasts >= _directions.Count * 2)
                 return;
 
-            var offset = actor.Position - module.PrimaryActor.Position;
-            if (ConeDirections().Any(x => GeometryUtils.PointInCone(offset, x, _cone.HalfAngle)))
+            if (ConeDirections().Any(x => actor.Position.InCone(module.PrimaryActor.Position, x, _cone.HalfAngle)))
                 hints.Add("GTFO from cone!");
         }
 

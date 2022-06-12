@@ -17,10 +17,8 @@ namespace BossMod
         public static Angle Radians(float radians) => new(radians);
         public static Angle Degrees(float degrees) => new(degrees * DegToRad);
 
-        // TODO: use vec2 globally...
-        public static Angle FromDirection(Vector2 dir) => new(MathF.Atan2(dir.X, dir.Y));
-        public static Angle FromDirection(Vector3 dir) => new(MathF.Atan2(dir.X, dir.Z));
-        public Vector3 ToDirection() => new(Sin(), 0, Cos());
+        public static Angle FromDirection(WDir dir) => new(MathF.Atan2(dir.X, dir.Z));
+        public WDir ToDirection() => new(Sin(), Cos());
 
         public static Angle operator +(Angle a, Angle b) => new(a.Rad + b.Rad);
         public static Angle operator -(Angle a, Angle b) => new(a.Rad - b.Rad);

@@ -19,7 +19,7 @@ namespace BossMod.Endwalker.P2S
         private static float _connectInner = _offsetCorner - _connectHalfWidth;
         private static float _connectOuter = _offsetCorner + _connectHalfWidth;
 
-        private static Vector3[] _corners = { new(), new(-1, 0, -1), new(1, 0, -1), new(-1, 0, 1), new Vector3(1, 0, 1) };
+        private static WDir[] _corners = { new(), new(-1, -1), new(1, -1), new(-1, 1), new(1, 1) };
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
@@ -27,63 +27,63 @@ namespace BossMod.Endwalker.P2S
                 return;
 
             // central area + H additionals
-            arena.ZoneQuad(arena.WorldCenter, Vector3.UnitX, _connectInner, _connectInner, _cornerInner, arena.ColorAOE);
+            arena.ZoneQuad(arena.WorldCenter, new WDir( 1, 0), _connectInner, _connectInner, _cornerInner, arena.ColorAOE);
             // central V additionals
-            arena.ZoneQuad(arena.WorldCenter, Vector3.UnitZ, _connectInner, -_cornerInner, _cornerInner, arena.ColorAOE);
-            arena.ZoneQuad(arena.WorldCenter, -Vector3.UnitZ, _connectInner, -_cornerInner, _cornerInner, arena.ColorAOE);
+            arena.ZoneQuad(arena.WorldCenter, new WDir(0,  1), _connectInner, -_cornerInner, _cornerInner, arena.ColorAOE);
+            arena.ZoneQuad(arena.WorldCenter, new WDir(0, -1), _connectInner, -_cornerInner, _cornerInner, arena.ColorAOE);
             // outer additionals
-            arena.ZoneQuad(arena.WorldCenter, Vector3.UnitX, _cornerOuter, -_connectOuter, _cornerInner, arena.ColorAOE);
-            arena.ZoneQuad(arena.WorldCenter, -Vector3.UnitX, _cornerOuter, -_connectOuter, _cornerInner, arena.ColorAOE);
-            arena.ZoneQuad(arena.WorldCenter, Vector3.UnitZ, _cornerOuter, -_connectOuter, _cornerInner, arena.ColorAOE);
-            arena.ZoneQuad(arena.WorldCenter, -Vector3.UnitZ, _cornerOuter, -_connectOuter, _cornerInner, arena.ColorAOE);
+            arena.ZoneQuad(arena.WorldCenter, new WDir( 1, 0), _cornerOuter, -_connectOuter, _cornerInner, arena.ColorAOE);
+            arena.ZoneQuad(arena.WorldCenter, new WDir(-1, 0), _cornerOuter, -_connectOuter, _cornerInner, arena.ColorAOE);
+            arena.ZoneQuad(arena.WorldCenter, new WDir(0,  1), _cornerOuter, -_connectOuter, _cornerInner, arena.ColorAOE);
+            arena.ZoneQuad(arena.WorldCenter, new WDir(0, -1), _cornerOuter, -_connectOuter, _cornerInner, arena.ColorAOE);
             // outer area
-            arena.ZoneQuad(arena.WorldCenter, Vector3.UnitX, arena.WorldHalfSize, -_cornerOuter, arena.WorldHalfSize, arena.ColorAOE);
-            arena.ZoneQuad(arena.WorldCenter, -Vector3.UnitX, arena.WorldHalfSize, -_cornerOuter, arena.WorldHalfSize, arena.ColorAOE);
-            arena.ZoneQuad(arena.WorldCenter, Vector3.UnitZ, arena.WorldHalfSize, -_cornerOuter, _cornerOuter, arena.ColorAOE);
-            arena.ZoneQuad(arena.WorldCenter, -Vector3.UnitZ, arena.WorldHalfSize, -_cornerOuter, _cornerOuter, arena.ColorAOE);
+            arena.ZoneQuad(arena.WorldCenter, new WDir( 1, 0), arena.WorldHalfSize, -_cornerOuter, arena.WorldHalfSize, arena.ColorAOE);
+            arena.ZoneQuad(arena.WorldCenter, new WDir(-1, 0), arena.WorldHalfSize, -_cornerOuter, arena.WorldHalfSize, arena.ColorAOE);
+            arena.ZoneQuad(arena.WorldCenter, new WDir(0,  1), arena.WorldHalfSize, -_cornerOuter, _cornerOuter, arena.ColorAOE);
+            arena.ZoneQuad(arena.WorldCenter, new WDir(0, -1), arena.WorldHalfSize, -_cornerOuter, _cornerOuter, arena.ColorAOE);
 
             var corner = arena.WorldCenter + _corners[(int)_blockedCorner] * _offsetCorner;
-            arena.ZoneQuad(corner, Vector3.UnitX, _cornerHalfSize, _cornerHalfSize, _cornerHalfSize, arena.ColorAOE);
+            arena.ZoneQuad(corner, new WDir(1, 0), _cornerHalfSize, _cornerHalfSize, _cornerHalfSize, arena.ColorAOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             // inner border
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_cornerInner, 0, -_cornerInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_cornerInner, 0, -_connectInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_cornerInner, 0, -_connectInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_cornerInner, 0, -_cornerInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_connectInner, 0, -_cornerInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_connectInner, 0, +_cornerInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_cornerInner, 0, +_cornerInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_cornerInner, 0, +_connectInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_cornerInner, 0, +_connectInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_cornerInner, 0, +_cornerInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_connectInner, 0, +_cornerInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_connectInner, 0, -_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_cornerInner, -_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_cornerInner, -_connectInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_cornerInner, -_connectInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_cornerInner, -_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_connectInner, -_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_connectInner, +_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_cornerInner, +_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_cornerInner, +_connectInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_cornerInner, +_connectInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_cornerInner, +_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_connectInner, +_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_connectInner, -_cornerInner));
             arena.PathStroke(true, arena.ColorBorder);
 
             // outer border
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_cornerOuter, 0, -_cornerOuter));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_cornerInner, 0, -_cornerOuter));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_cornerInner, 0, -_connectOuter));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_cornerInner, 0, -_connectOuter));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_cornerInner, 0, -_cornerOuter));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_cornerOuter, 0, -_cornerOuter));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_cornerOuter, 0, -_cornerInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_connectOuter, 0, -_cornerInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_connectOuter, 0, +_cornerInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_cornerOuter, 0, +_cornerInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_cornerOuter, 0, +_cornerOuter));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_cornerInner, 0, +_cornerOuter));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(+_cornerInner, 0, +_connectOuter));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_cornerInner, 0, +_connectOuter));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_cornerInner, 0, +_cornerOuter));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_cornerOuter, 0, +_cornerOuter));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_cornerOuter, 0, +_cornerInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_connectOuter, 0, +_cornerInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_connectOuter, 0, -_cornerInner));
-            arena.PathLineTo(arena.WorldCenter + new Vector3(-_cornerOuter, 0, -_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_cornerOuter, -_cornerOuter));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_cornerInner, -_cornerOuter));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_cornerInner, -_connectOuter));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_cornerInner, -_connectOuter));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_cornerInner, -_cornerOuter));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_cornerOuter, -_cornerOuter));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_cornerOuter, -_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_connectOuter, -_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_connectOuter, +_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_cornerOuter, +_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_cornerOuter, +_cornerOuter));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_cornerInner, +_cornerOuter));
+            arena.PathLineTo(arena.WorldCenter + new WDir(+_cornerInner, +_connectOuter));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_cornerInner, +_connectOuter));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_cornerInner, +_cornerOuter));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_cornerOuter, +_cornerOuter));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_cornerOuter, +_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_connectOuter, +_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_connectOuter, -_cornerInner));
+            arena.PathLineTo(arena.WorldCenter + new WDir(-_cornerOuter, -_cornerInner));
             arena.PathStroke(true, arena.ColorBorder);
         }
 

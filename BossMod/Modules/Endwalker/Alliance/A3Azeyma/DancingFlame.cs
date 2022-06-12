@@ -6,11 +6,11 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
 {
     class DancingFlame : BossModule.Component
     {
-        private List<Vector3> _active = new();
+        private List<WPos> _active = new();
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (ActiveZones(module).Any(z => GeometryUtils.PointInRect(actor.Position - z.Center, Vector3.UnitX, z.HalfSize.X, z.HalfSize.X, z.HalfSize.Z)))
+            if (ActiveZones(module).Any(z => actor.Position.InRect(z.Center, new WDir(1, 0), z.HalfSize.X, z.HalfSize.X, z.HalfSize.Z)))
                 hints.Add("GTFO from aoe!");
         }
 
@@ -34,14 +34,14 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
                 _active.Clear();
         }
 
-        private IEnumerable<(Vector3 Center, Vector3 HalfSize)> ActiveZones(BossModule module)
+        private IEnumerable<(WPos Center, WDir HalfSize)> ActiveZones(BossModule module)
         {
             if (_active.Count == 0)
                 yield break;
-            yield return (module.Arena.WorldCenter, new(2.5f, 0, 30));
-            yield return (module.Arena.WorldCenter, new(30, 0, 2.5f));
+            yield return (module.Arena.WorldCenter, new(2.5f, 30));
+            yield return (module.Arena.WorldCenter, new(30, 2.5f));
             foreach (var c in _active)
-                yield return (c, new(15, 0, 15));
+                yield return (c, new(15, 15));
         }
     }
 }

@@ -10,8 +10,8 @@ namespace BossMod.Endwalker.EndsingerEx
     class Planets : Component
     {
         private Actor? _head;
-        private List<Vector3> _planetsFiery = new();
-        private List<Vector3> _planetsAzure = new();
+        private List<WPos> _planetsFiery = new();
+        private List<WPos> _planetsAzure = new();
 
         private static AOEShapeCone _aoeHead = new(20, Angle.Radians(MathF.PI / 2));
         private static AOEShapeCircle _aoePlanet = new(30);

@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.P3S
     // state related to 'single' and 'multi' fireplumes (normal or parts of gloryplume)
     class Fireplume : Component
     {
-        private Vector3? _singlePos = null;
+        private WPos? _singlePos = null;
         private Angle _multiStartingDirection;
         private int _multiStartedCasts = 0;
         private int _multiFinishedCasts = 0;
@@ -19,14 +19,14 @@ namespace BossMod.Endwalker.P3S
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_singlePos != null && GeometryUtils.PointInCircle(actor.Position - _singlePos.Value, _singleRadius))
+            if (_singlePos != null && actor.Position.InCircle(_singlePos.Value, _singleRadius))
             {
                 hints.Add("GTFO from plume!");
             }
 
             if (_multiStartedCasts > _multiFinishedCasts)
             {
-                if (_multiFinishedCasts > 0 && GeometryUtils.PointInCircle(actor.Position - module.Arena.WorldCenter, _multiRadius) ||
+                if (_multiFinishedCasts > 0 && actor.Position.InCircle(module.Arena.WorldCenter, _multiRadius) ||
                     _multiFinishedCasts < 8 && InPair(module, _multiStartingDirection + Angle.Radians(MathF.PI / 4), actor) ||
                     _multiFinishedCasts < 6 && InPair(module, _multiStartingDirection - Angle.Radians(MathF.PI / 2), actor) ||
                     _multiFinishedCasts < 4 && InPair(module, _multiStartingDirection - Angle.Radians(MathF.PI / 4), actor) ||
@@ -99,8 +99,8 @@ namespace BossMod.Endwalker.P3S
         private bool InPair(BossModule module, Angle direction, Actor actor)
         {
             var offset = _multiPairOffset * direction.ToDirection();
-            return GeometryUtils.PointInCircle(actor.Position - module.Arena.WorldCenter - offset, _multiRadius)
-                || GeometryUtils.PointInCircle(actor.Position - module.Arena.WorldCenter + offset, _multiRadius);
+            return actor.Position.InCircle(module.Arena.WorldCenter - offset, _multiRadius)
+                || actor.Position.InCircle(module.Arena.WorldCenter + offset, _multiRadius);
         }
 
         private void DrawPair(MiniArena arena, Angle direction, bool imminent)

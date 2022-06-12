@@ -150,7 +150,7 @@ namespace BossMod
 
         private string Actor(Actor actor)
         {
-            return $"{actor.InstanceID:X8}/{actor.OID:X}/{actor.Name}/{actor.Type}/{Vec3(actor.Position)}/{actor.Rotation}";
+            return $"{actor.InstanceID:X8}/{actor.OID:X}/{actor.Name}/{actor.Type}/{Vec3(actor.PosRot.XYZ())}/{actor.Rotation}";
         }
 
         private string Actor(ulong instanceID)

@@ -123,7 +123,7 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(elem.CastInfo.Action.ToString());
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.CastTimeString(elem.CastInfo, _ws.CurrentTime));
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.Vec3String(elem.CastInfo.Location));
-                ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.Vec3String(elem.Position));
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(elem.Position.ToString());
             }
             ImGui.EndTable();
         }
@@ -132,7 +132,7 @@ namespace BossMod
         {
             var selfPos = Service.ClientState.LocalPlayer?.Position ?? new();
             var targPos = Service.ClientState.LocalPlayer?.TargetObject?.Position ?? new();
-            var angle = Angle.FromDirection(targPos - selfPos);
+            var angle = Angle.FromDirection(new((targPos - selfPos).XZ()));
             var ts = FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance();
             DrawTarget("Target", ts->Target, selfPos, angle);
             DrawTarget("Soft target", ts->SoftTarget, selfPos, angle);
@@ -148,7 +148,7 @@ namespace BossMod
                 return;
 
             var dist = (obj->Position - selfPos).Length();
-            var angle = Angle.FromDirection(obj->Position - selfPos) - refAngle;
+            var angle = Angle.FromDirection(new((obj->Position - selfPos).XZ())) - refAngle;
             var visHalf = Angle.Asin(obj->HitboxRadius / dist);
             ImGui.TextUnformatted($"{kind}: {Utils.ObjectString(obj->ObjectID)}, hb={obj->HitboxRadius} ({visHalf}), dist={dist}, angle={angle} ({Angle.Radians(Math.Max(0, angle.Abs().Rad - visHalf.Rad))})");
         }

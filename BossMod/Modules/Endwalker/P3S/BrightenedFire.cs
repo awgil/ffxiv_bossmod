@@ -23,7 +23,7 @@ namespace BossMod.Endwalker.P3S
                 return;
 
             var pos = PositionForOrder(module, _playerOrder[slot]);
-            if (!GeometryUtils.PointInCircle(actor.Position - pos, 5))
+            if (!actor.Position.InCircle(pos, 5))
             {
                 hints.Add($"Get to correct position {_playerOrder[slot]}!");
             }
@@ -64,11 +64,12 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        private Vector3 PositionForOrder(BossModule module, int order)
+        private WPos PositionForOrder(BossModule module, int order)
         {
             // TODO: consider how this can be improved...
             var markID = (Waymark)((int)Waymark.N1 + (order - 1) % 4);
-            return module.WorldState.Waymarks[markID] ?? module.Arena.WorldCenter;
+            var wm = module.WorldState.Waymarks[markID];
+            return wm != null ? new(wm.Value.XZ()) : module.Arena.WorldCenter;
         }
     }
 }

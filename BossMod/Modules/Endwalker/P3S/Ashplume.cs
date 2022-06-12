@@ -78,8 +78,7 @@ namespace BossMod.Endwalker.P3S
             float aoeRadius = CurState == State.Stack ? _stackRadius : _spreadRadius;
             foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
             {
-                bool inRange = GeometryUtils.PointInCircle(player.Position - pc.Position, aoeRadius);
-                arena.Actor(player, inRange ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                arena.Actor(player, player.Position.InCircle(pc.Position, aoeRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
 
             // draw circle around pc

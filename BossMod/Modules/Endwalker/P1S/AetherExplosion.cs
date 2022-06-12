@@ -99,12 +99,12 @@ namespace BossMod.Endwalker.P1S
             }
         }
 
-        private static Cell CellFromOffset(Vector3 offsetFromCenter)
+        private static Cell CellFromOffset(WDir offsetFromCenter)
         {
             var phi = Angle.FromDirection(offsetFromCenter) + Angle.Radians(MathF.PI);
             int coneIndex = (int)(4 * phi.Rad / MathF.PI); // phi / (pi/4); range [0, 8]
             bool oddCone = (coneIndex & 1) != 0;
-            bool outerCone = !GeometryUtils.PointInCircle(offsetFromCenter, P1S.InnerCircleRadius);
+            bool outerCone =  offsetFromCenter.LengthSq() > P1S.InnerCircleRadius * P1S.InnerCircleRadius;
             return (oddCone == outerCone) ? Cell.Blue : Cell.Red; // outer odd = inner even = blue
         }
     }

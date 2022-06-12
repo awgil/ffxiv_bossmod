@@ -74,24 +74,24 @@ namespace BossMod.Endwalker.ZodiarkEx
             return 0x777 & ~BuildMask(seq, safe1) & ~BuildMask(seq, safe2);
         }
 
-        private IEnumerable<Vector3> PatternSpots(BossModule module, int pattern)
+        private IEnumerable<WPos> PatternSpots(BossModule module, int pattern)
         {
             if (pattern != 0)
                 for (int z = -1; z <= 1; ++z)
                     for (int x = -1; x <= 1; ++x)
                         if ((pattern & (1 << ((z + 1) * 4 + (x + 1)))) != 0)
-                            yield return module.Arena.WorldCenter + _centerOffset * new Vector3(x, 0, z);
+                            yield return module.Arena.WorldCenter + _centerOffset * new WDir(x, z);
         }
 
-        private IEnumerable<(Vector3, Vector3)> MovementHints(BossModule module, Vector3 startingPosition)
+        private IEnumerable<(WPos, WPos)> MovementHints(BossModule module, WPos startingPosition)
         {
-            Vector3 prev = startingPosition;
+            WPos prev = startingPosition;
             foreach (var p in _patterns.Where(p => p != 0))
             {
                 if (p == 0xFFFF)
                     break;
 
-                var next = PatternSpots(module, ~p).MinBy(pos => (pos - prev).LengthSquared() + (pos - module.PrimaryActor.Position).LengthSquared() * 0.2f); // slightly penalize far positions...
+                var next = PatternSpots(module, ~p).MinBy(pos => (pos - prev).LengthSq() + (pos - module.PrimaryActor.Position).LengthSq() * 0.2f); // slightly penalize far positions...
                 yield return (prev, next);
                 prev = next;
             }

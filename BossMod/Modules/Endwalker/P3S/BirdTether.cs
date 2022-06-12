@@ -56,7 +56,7 @@ namespace BossMod.Endwalker.P3S
                     fromTo /= len;
                     foreach ((int j, var player) in module.Raid.WithSlot().Exclude(nextTarget))
                     {
-                        if (GeometryUtils.PointInRect(player.Position - bird.Position, fromTo, len, 0, _chargeHalfWidth))
+                        if (player.Position.InRect(bird.Position, fromTo, len, 0, _chargeHalfWidth))
                         {
                             _playersInAOE.Set(j);
                         }
@@ -138,7 +138,7 @@ namespace BossMod.Endwalker.P3S
 
                         if (bird.Position != arena.WorldCenter)
                         {
-                            var safespot = bird.Position + Vector3.Normalize(arena.WorldCenter - bird.Position) * _chargeMinSafeDistance;
+                            var safespot = bird.Position + (arena.WorldCenter - bird.Position).Normalized() * _chargeMinSafeDistance;
                             arena.AddCircle(safespot, 1, arena.ColorSafe);
                         }
                     }
@@ -160,7 +160,7 @@ namespace BossMod.Endwalker.P3S
 
                         if (bird.Position != arena.WorldCenter)
                         {
-                            var safespot = bird.Position + Vector3.Normalize(arena.WorldCenter - bird.Position) * _chargeMinSafeDistance;
+                            var safespot = bird.Position + (arena.WorldCenter - bird.Position).Normalized() * _chargeMinSafeDistance;
                             arena.AddCircle(safespot, 1, arena.ColorSafe);
                         }
                     }

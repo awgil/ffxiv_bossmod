@@ -82,7 +82,7 @@ namespace BossMod.Endwalker.ARanks.MoussePrincess
                 _threnodyDirection = null;
         }
 
-        private (AOEShape?, Vector3) ActiveAOE(BossModule module, Actor pc)
+        private (AOEShape?, WPos) ActiveAOE(BossModule module, Actor pc)
         {
             if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return (null, new());
@@ -90,7 +90,7 @@ namespace BossMod.Endwalker.ARanks.MoussePrincess
             return (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.AmorphicFlail => (_amorphicFlail, module.PrimaryActor.Position),
-                AID.PrincessCacophony => (_princessCacophony, module.PrimaryActor.CastInfo.Location),
+                AID.PrincessCacophony => (_princessCacophony, module.PrimaryActor.CastInfo.LocXZ),
                 _ => (null, new())
             };
         }

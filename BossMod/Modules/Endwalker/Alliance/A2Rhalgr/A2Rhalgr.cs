@@ -48,7 +48,7 @@ namespace BossMod.Endwalker.Alliance.A2Rhalgr
         public A2Rhalgr(BossModuleManager manager, Actor primary)
             : base(manager, primary)
         {
-            Arena.WorldCenter = new(-15, 20, 275); // arena has a really complex shape...
+            Arena.WorldCenter = new(-15, 275); // arena has a really complex shape...
             Arena.WorldHalfSize = 30;
 
             var sb = new StateMachineBuilder(this);
@@ -68,23 +68,23 @@ namespace BossMod.Endwalker.Alliance.A2Rhalgr
 
         protected override void DrawArenaForegroundPre(int pcSlot, Actor pc)
         {
-            Arena.PathLineTo(new(2.5f, 0, 245));
-            Arena.PathLineTo(new(2.6f, 0, 275));
-            Arena.PathLineTo(new(7.3f, 0, 295));
-            Arena.PathLineTo(new(3, 0, 297));
-            Arena.PathLineTo(new(-1, 0, 286));
-            Arena.PathLineTo(new(-6.5f, 0, 288));
-            Arena.PathLineTo(new(-6.5f, 0, 305));
-            Arena.PathLineTo(new(-13, 0, 305));
-            Arena.PathLineTo(new(-13, 0, 288));
-            Arena.PathLineTo(new(-21.5f, 0, 288));
-            Arena.PathLineTo(new(-21.5f, 0, 305));
-            Arena.PathLineTo(new(-28, 0, 305));
-            Arena.PathLineTo(new(-28, 0, 283));
-            Arena.PathLineTo(new(-42, 0, 300));
-            Arena.PathLineTo(new(-45.5f, 0, 297));
-            Arena.PathLineTo(new(-34, 0, 271.5f));
-            Arena.PathLineTo(new(-37, 0, 245));
+            Arena.PathLineTo(new(2.5f, 245));
+            Arena.PathLineTo(new(2.6f, 275));
+            Arena.PathLineTo(new(7.3f, 295));
+            Arena.PathLineTo(new(3, 297));
+            Arena.PathLineTo(new(-1, 286));
+            Arena.PathLineTo(new(-6.5f, 288));
+            Arena.PathLineTo(new(-6.5f, 305));
+            Arena.PathLineTo(new(-13, 305));
+            Arena.PathLineTo(new(-13, 288));
+            Arena.PathLineTo(new(-21.5f, 288));
+            Arena.PathLineTo(new(-21.5f, 305));
+            Arena.PathLineTo(new(-28, 305));
+            Arena.PathLineTo(new(-28, 283));
+            Arena.PathLineTo(new(-42, 300));
+            Arena.PathLineTo(new(-45.5f, 297));
+            Arena.PathLineTo(new(-34, 271.5f));
+            Arena.PathLineTo(new(-37, 245));
             Arena.PathStroke(true, Arena.ColorBorder);
 
             foreach (var p in WorldState.Actors)

@@ -73,7 +73,7 @@ namespace BossMod.Endwalker.ARanks.Sugriva
                 {
                     arena.Actor(target, arena.ColorDanger);
                     arena.AddCircle(target.Position, _twisterRadius, arena.ColorDanger);
-                    if (GeometryUtils.PointInCircle(pc.Position - target.Position, _twisterRadius))
+                    if (pc.Position.InCircle(target.Position, _twisterRadius))
                     {
                         var kbPos = BossModule.AdjustPositionForKnockback(pc.Position, target, _twisterKnockback);
                         if (kbPos != pc.Position)
@@ -108,7 +108,7 @@ namespace BossMod.Endwalker.ARanks.Sugriva
             }
         }
 
-        private (AOEShape?, Vector3) ActiveAOE(BossModule module)
+        private (AOEShape?, WPos) ActiveAOE(BossModule module)
         {
             if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return (null, new());
@@ -117,7 +117,7 @@ namespace BossMod.Endwalker.ARanks.Sugriva
             {
                 AID.Spark => (_spark, module.PrimaryActor.Position),
                 AID.ScytheTail => (_scytheTail, module.PrimaryActor.Position),
-                AID.RockThrowFirst or AID.RockThrowRest => (_rockThrow, module.PrimaryActor.CastInfo.Location),
+                AID.RockThrowFirst or AID.RockThrowRest => (_rockThrow, module.PrimaryActor.CastInfo.LocXZ),
                 AID.Butcher or AID.Rip => (_butcherRip, module.PrimaryActor.Position),
                 _ => (null, new())
             };

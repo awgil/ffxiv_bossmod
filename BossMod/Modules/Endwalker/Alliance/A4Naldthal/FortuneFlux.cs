@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
         {
             if (_casters.Count == 0)
                 return;
-            var knockback = _casters.Values.FirstOrDefault(i => i.Knockback).Caster?.CastInfo?.Location;
+            var knockback = _casters.Values.FirstOrDefault(i => i.Knockback).Caster?.CastInfo?.LocXZ;
             var adjPos = knockback != null ? BossModule.AdjustPositionForKnockback(actor.Position, knockback.Value, _knockbackDistance) : actor.Position;
             if (!module.Arena.InBounds(adjPos))
             {
@@ -35,7 +35,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            var source = _casters.Values.FirstOrDefault(i => i.Knockback).Caster?.CastInfo?.Location;
+            var source = _casters.Values.FirstOrDefault(i => i.Knockback).Caster?.CastInfo?.LocXZ;
             if (source != null)
             {
                 var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, source.Value, _knockbackDistance);

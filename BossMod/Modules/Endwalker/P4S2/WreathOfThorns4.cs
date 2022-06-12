@@ -80,7 +80,7 @@ namespace BossMod.Endwalker.P4S2
                     {
                         hints.Add("Break tether!");
                     }
-                    if (GeometryUtils.PointInCircle(actor.Position - nextAOE.Position, P4S2.WreathAOERadius))
+                    if (actor.Position.InCircle(nextAOE.Position, P4S2.WreathAOERadius))
                     {
                         hints.Add("GTFO from AOE!");
                     }
@@ -190,20 +190,20 @@ namespace BossMod.Endwalker.P4S2
                 _playerIcons[slot] = (IconID)iconID;
         }
 
-        private void AddAOETargetToOrder(List<Actor> order, Predicate<Vector3> sourcePred)
+        private void AddAOETargetToOrder(List<Actor> order, Predicate<WPos> sourcePred)
         {
             var source = _playerTetherSource.Zip(_playerIcons).Where(si => si.Item2 == IconID.AkanthaiDark && si.Item1 != null && sourcePred(si.Item1.Position)).FirstOrDefault().Item1;
             if (source != null)
                 order.Add(source);
         }
 
-        private Vector3 RotateCW(BossModule module, Vector3 pos, Angle angle, float radius)
+        private WPos RotateCW(BossModule module, WPos pos, Angle angle, float radius)
         {
             var dir = Angle.FromDirection(pos - module.Arena.WorldCenter) - angle;
             return module.Arena.WorldCenter + radius * dir.ToDirection();
         }
 
-        private Vector3 DetermineWaterSafeSpot(BossModule module, Actor source)
+        private WPos DetermineWaterSafeSpot(BossModule module, Actor source)
         {
             bool ccw = Service.Config.Get<P4S2Config>().Act4WaterBreakCCW;
             Angle dir = (ccw ? -3 : 3) * Angle.Radians(MathF.PI / 4);
@@ -214,7 +214,7 @@ namespace BossMod.Endwalker.P4S2
         {
             bool ccw = Service.Config.Get<P4S2Config>().Act4DarkSoakCCW;
             var pos = RotateCW(module, source.Position, (ccw ? -1 : 1) * Angle.Radians(MathF.PI / 4), 18);
-            return _playerTetherSource.Where(x => x != null && GeometryUtils.PointInCircle(x.Position - pos, 4)).FirstOrDefault();
+            return _playerTetherSource.Where(x => x != null && x.Position.InCircle(pos, 4)).FirstOrDefault();
         }
 
         private Actor? NextAOE()

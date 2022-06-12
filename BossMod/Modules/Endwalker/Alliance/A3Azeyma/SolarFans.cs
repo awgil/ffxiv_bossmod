@@ -83,10 +83,9 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             }
         }
 
-        private bool ActorInRhythmAOE(Vector3 center, Actor flame, Actor player)
+        private bool ActorInRhythmAOE(WPos center, Actor flame, Actor player)
         {
-            var playerOffet = player.Position - center;
-            return !GeometryUtils.PointInCircle(playerOffet, _flightRadiusInner) && GeometryUtils.PointInCone(playerOffet, Angle.FromDirection(flame.Position - center) + Angle.Radians(MathF.PI / 4), Angle.Radians(MathF.PI / 4));
+            return !player.Position.InCircle(center, _flightRadiusInner) && player.Position.InCone(center, Angle.FromDirection(flame.Position - center) + Angle.Radians(MathF.PI / 4), Angle.Radians(MathF.PI / 4));
         }
     }
 }

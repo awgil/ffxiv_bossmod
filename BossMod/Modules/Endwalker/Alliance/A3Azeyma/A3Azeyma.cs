@@ -44,7 +44,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             : base(manager, primary)
         {
             Arena.IsCircle = true;
-            Arena.WorldCenter = new(-750, -932, -750);
+            Arena.WorldCenter = new(-750, -750);
             Arena.WorldHalfSize = 30;
 
             var sb = new StateMachineBuilder(this);

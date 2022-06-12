@@ -19,19 +19,19 @@ namespace BossMod.Endwalker.P4S1
             return (Element)Array.IndexOf(_assignments, corner);
         }
 
-        public Vector3 Direction(Corner corner)
+        public WDir Direction(Corner corner)
         {
             return corner switch
             {
-                Corner.NE => new( 1, 0, -1),
-                Corner.SE => new( 1, 0,  1),
-                Corner.SW => new(-1, 0,  1),
-                Corner.NW => new(-1, 0, -1),
-                _ => Vector3.Zero
+                Corner.NE => new( 1, -1),
+                Corner.SE => new( 1,  1),
+                Corner.SW => new(-1,  1),
+                Corner.NW => new(-1, -1),
+                _ => new()
             };
         }
 
-        public Corner FromPos(BossModule module, Vector3 pos)
+        public Corner FromPos(BossModule module, WPos pos)
         {
             return pos.X > module.Arena.WorldCenter.X
                 ? (pos.Z > module.Arena.WorldCenter.Z ? Corner.SE : Corner.NE)
@@ -94,7 +94,7 @@ namespace BossMod.Endwalker.P4S1
             }
         }
 
-        private void AssignFromCast(BossModule module, Element elem, Vector3 pos)
+        private void AssignFromCast(BossModule module, Element elem, WPos pos)
         {
             var corner = FromPos(module, pos);
             var prev = Assignment(elem);

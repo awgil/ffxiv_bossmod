@@ -46,11 +46,11 @@ namespace BossMod
                 }
                 else if (actor.Role == Role.Tank)
                 {
-                    hints.Add("Stack with tank!", !GeometryUtils.PointInCircle(actor.Position - _target.Position, _radius));
+                    hints.Add("Stack with tank!", !actor.Position.InCircle(_target.Position, _radius));
                 }
                 else
                 {
-                    hints.Add("GTFO from tank!", GeometryUtils.PointInCircle(actor.Position - _target.Position, _radius));
+                    hints.Add("GTFO from tank!", actor.Position.InCircle(_target.Position, _radius));
                 }
             }
 
@@ -91,7 +91,7 @@ namespace BossMod
 
             public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
             {
-                if (Target != null && Target != actor && !GeometryUtils.PointInCircle(actor.Position - Target.Position, StackRadius))
+                if (Target != null && Target != actor && !actor.Position.InCircle(Target.Position, StackRadius))
                     hints.Add("Stack!");
             }
 
@@ -105,7 +105,7 @@ namespace BossMod
                 {
                     // draw other players to simplify stacking
                     foreach (var a in module.Raid.WithoutSlot().Exclude(pc))
-                        arena.Actor(a, GeometryUtils.PointInCircle(a.Position - Target.Position, StackRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                        arena.Actor(a, a.Position.InCircle(Target.Position, StackRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
                 }
                 else
                 {
@@ -130,7 +130,7 @@ namespace BossMod
 
             public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
             {
-                if (_active.Any(e => e.Target != actor && GeometryUtils.PointInCircle(e.Target.Position - actor.Position, _spreadRadius)))
+                if (_active.Any(e => e.Target != actor && e.Target.Position.InCircle(actor.Position, _spreadRadius)))
                     hints.Add("GTFO from aoe target!");
             }
 
@@ -180,14 +180,14 @@ namespace BossMod
 
             public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
             {
-                if (_casters.Any(c => _aoe.Check(actor.Position, c.CastInfo!.Location, new())))
+                if (_casters.Any(c => _aoe.Check(actor.Position, c.CastInfo!.LocXZ, new())))
                     hints.Add("GTFO from puddle!");
             }
 
             public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
             {
                 foreach (var c in _casters)
-                    _aoe.Draw(arena, c.CastInfo!.Location, new());
+                    _aoe.Draw(arena, c.CastInfo!.LocXZ, new());
             }
 
             public override void OnCastStarted(BossModule module, Actor actor)

@@ -28,7 +28,7 @@ namespace BossMod.Endwalker.P2S
             }
 
             _inRay.Reset();
-            _rayTarget = module.Raid.WithoutSlot().Exclude(_tetherTarget).MinBy(a => (a.Position - module.PrimaryActor.Position).LengthSquared());
+            _rayTarget = module.Raid.WithoutSlot().Exclude(_tetherTarget).MinBy(a => (a.Position - module.PrimaryActor.Position).LengthSq());
             if (_rayTarget != null)
             {
                 _rayShape.DirectionOffset = Angle.FromDirection(_rayTarget.Position - module.PrimaryActor.Position);

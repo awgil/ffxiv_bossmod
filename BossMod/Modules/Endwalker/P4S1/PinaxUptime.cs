@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.P4S1
             // draw position between lighting and fire squares
             var assignments = module.FindComponent<SettingTheScene>()!;
             var doubleOffset = assignments.Direction(assignments.Assignment(SettingTheScene.Element.Fire)) + assignments.Direction(assignments.Assignment(SettingTheScene.Element.Lightning));
-            if (doubleOffset == Vector3.Zero)
+            if (doubleOffset == new WDir())
                 return;
 
             arena.AddCircle(arena.WorldCenter + 9 * doubleOffset, 2, arena.ColorSafe);

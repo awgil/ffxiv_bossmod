@@ -251,14 +251,16 @@ namespace BossMod
 
         private int CountAOEHealTargets(float radius, Vector3 center)
         {
-            return LivePartyMembers().Count(o => o.CurrentHp < o.MaxHp && GeometryUtils.PointInCircle(o.Position - center, radius));
+            var rsq = radius * radius;
+            return LivePartyMembers().Count(o => o.CurrentHp < o.MaxHp && (o.Position - center).LengthSquared() <= rsq);
         }
 
         // select best target for cure3, such that most people are hit
         private (ulong, int) SmartCure3Target()
         {
             var playerPos = Service.ClientState.LocalPlayer?.Position ?? new();
-            return LivePartyMembers().Select(o => (o.ObjectId, GeometryUtils.PointInCircle(o.Position - playerPos, 30) ? CountAOEHealTargets(6, o.Position) : -1)).MaxBy(oc => oc.Item2);
+            var rsq = 30 * 30;
+            return LivePartyMembers().Select(o => (o.ObjectId, (o.Position - playerPos).LengthSquared() <= rsq ? CountAOEHealTargets(6, o.Position) : -1)).MaxBy(oc => oc.Item2);
         }
 
         // TODO: we could use worldstate here if it had HP...
@@ -292,7 +294,7 @@ namespace BossMod
         private bool AllowAssize()
         {
             var playerPos = Service.ClientState.LocalPlayer?.Position ?? new();
-            return Service.ObjectTable.Any(o => o.ObjectKind == ObjectKind.BattleNpc && (BattleNpcSubKind)o.SubKind == BattleNpcSubKind.Enemy && Utils.GameObjectIsTargetable(o) && GeometryUtils.PointInCircle(o.Position - playerPos, 15 + o.HitboxRadius));
+            return Service.ObjectTable.Any(o => o.ObjectKind == ObjectKind.BattleNpc && (BattleNpcSubKind)o.SubKind == BattleNpcSubKind.Enemy && Utils.GameObjectIsTargetable(o) && (o.Position - playerPos).LengthSquared() <= (15 + o.HitboxRadius) * (15 + o.HitboxRadius));
         }
 
         // check whether potential divine benison target doesn't already have it applied

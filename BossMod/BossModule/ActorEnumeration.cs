@@ -59,25 +59,25 @@ namespace BossMod
         }
 
         // select actors in specified radius from specified point
-        public static IEnumerable<Actor> InRadius(this IEnumerable<Actor> range, Vector3 origin, float radius)
+        public static IEnumerable<Actor> InRadius(this IEnumerable<Actor> range, WPos origin, float radius)
         {
-            return range.Where(actor => GeometryUtils.PointInCircle(actor.Position - origin, radius));
+            return range.Where(actor => actor.Position.InCircle(origin, radius));
         }
 
-        public static IEnumerable<(int, Actor)> InRadius(this IEnumerable<(int, Actor)> range, Vector3 origin, float radius)
+        public static IEnumerable<(int, Actor)> InRadius(this IEnumerable<(int, Actor)> range, WPos origin, float radius)
         {
-            return range.WhereActor(actor => GeometryUtils.PointInCircle(actor.Position - origin, radius));
+            return range.WhereActor(actor => actor.Position.InCircle(origin, radius));
         }
 
         // select actors outside specified radius from specified point
-        public static IEnumerable<Actor> OutOfRadius(this IEnumerable<Actor> range, Vector3 origin, float radius)
+        public static IEnumerable<Actor> OutOfRadius(this IEnumerable<Actor> range, WPos origin, float radius)
         {
-            return range.Where(actor => !GeometryUtils.PointInCircle(actor.Position - origin, radius));
+            return range.Where(actor => !actor.Position.InCircle(origin, radius));
         }
 
-        public static IEnumerable<(int, Actor)> OutOfRadius(this IEnumerable<(int, Actor)> range, Vector3 origin, float radius)
+        public static IEnumerable<(int, Actor)> OutOfRadius(this IEnumerable<(int, Actor)> range, WPos origin, float radius)
         {
-            return range.WhereActor(actor => !GeometryUtils.PointInCircle(actor.Position - origin, radius));
+            return range.WhereActor(actor => !actor.Position.InCircle(origin, radius));
         }
 
         // select actors in specified radius from specified actor, excluding actor itself
@@ -102,12 +102,12 @@ namespace BossMod
             return range.WhereActor(actor => shape.Check(actor.Position, origin));
         }
 
-        public static IEnumerable<Actor> InShape(this IEnumerable<Actor> range, AOEShape shape, Vector3 origin, Angle rotation)
+        public static IEnumerable<Actor> InShape(this IEnumerable<Actor> range, AOEShape shape, WPos origin, Angle rotation)
         {
             return range.Where(actor => shape.Check(actor.Position, origin, rotation));
         }
 
-        public static IEnumerable<(int, Actor)> InShape(this IEnumerable<(int, Actor)> range, AOEShape shape, Vector3 origin, Angle rotation)
+        public static IEnumerable<(int, Actor)> InShape(this IEnumerable<(int, Actor)> range, AOEShape shape, WPos origin, Angle rotation)
         {
             return range.WhereActor(actor => shape.Check(actor.Position, origin, rotation));
         }
@@ -126,18 +126,18 @@ namespace BossMod
         }
 
         // sort range by distance from point
-        public static IEnumerable<Actor> SortedByRange(this IEnumerable<Actor> range, Vector3 origin)
+        public static IEnumerable<Actor> SortedByRange(this IEnumerable<Actor> range, WPos origin)
         {
             return range
-                .Select(actor => (actor, (actor.Position - origin).LengthSquared()))
+                .Select(actor => (actor, (actor.Position - origin).LengthSq()))
                 .OrderBy(actorDist => actorDist.Item2)
                 .Select(actorDist => actorDist.Item1);
         }
 
-        public static IEnumerable<(int, Actor)> SortedByRange(this IEnumerable<(int, Actor)> range, Vector3 origin)
+        public static IEnumerable<(int, Actor)> SortedByRange(this IEnumerable<(int, Actor)> range, WPos origin)
         {
             return range
-                .Select(indexPlayer => (indexPlayer.Item1, indexPlayer.Item2, (indexPlayer.Item2.Position - origin).LengthSquared()))
+                .Select(indexPlayer => (indexPlayer.Item1, indexPlayer.Item2, (indexPlayer.Item2.Position - origin).LengthSq()))
                 .OrderBy(indexPlayerDist => indexPlayerDist.Item3)
                 .Select(indexPlayerDist => (indexPlayerDist.Item1, indexPlayerDist.Item2));
         }

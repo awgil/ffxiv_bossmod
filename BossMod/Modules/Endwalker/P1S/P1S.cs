@@ -21,8 +21,8 @@ namespace BossMod.Endwalker.P1S
                 Arena.AddCircle(Arena.WorldCenter, InnerCircleRadius, Arena.ColorBorder);
                 Arena.AddLine(Arena.WorldE, Arena.WorldW, Arena.ColorBorder);
                 Arena.AddLine(Arena.WorldN, Arena.WorldS, Arena.ColorBorder);
-                Arena.AddLine(Arena.WorldCenter + new Vector3(diag, 0, diag), Arena.WorldCenter - new Vector3(diag, 0, diag), Arena.ColorBorder);
-                Arena.AddLine(Arena.WorldCenter + new Vector3(diag, 0, -diag), Arena.WorldCenter - new Vector3(diag, 0, -diag), Arena.ColorBorder);
+                Arena.AddLine(Arena.WorldCenter + new WDir(diag,  diag), Arena.WorldCenter - new WDir(diag,  diag), Arena.ColorBorder);
+                Arena.AddLine(Arena.WorldCenter + new WDir(diag, -diag), Arena.WorldCenter - new WDir(diag, -diag), Arena.ColorBorder);
             }
 
             Arena.Actor(PrimaryActor, Arena.ColorEnemy);

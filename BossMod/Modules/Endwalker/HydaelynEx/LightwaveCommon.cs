@@ -28,7 +28,7 @@ namespace BossMod.Endwalker.HydaelynEx
             }
         }
 
-        protected bool InSafeCone(Vector3 origin, Vector3 blocking, Vector3 position)
+        protected bool InSafeCone(WPos origin, WPos blocking, WPos position)
         {
             var toBlock = blocking - origin;
             var toCheck = position - origin;
@@ -38,10 +38,10 @@ namespace BossMod.Endwalker.HydaelynEx
 
             var center = Angle.FromDirection(toBlock);
             var halfAngle = Angle.Asin(_losRadius / dist);
-            return GeometryUtils.PointInCone(toCheck, center, halfAngle);
+            return position.InCone(origin, center, halfAngle);
         }
 
-        protected void DrawSafeCone(MiniArena arena, Vector3 origin, Vector3 blocking)
+        protected void DrawSafeCone(MiniArena arena, WPos origin, WPos blocking)
         {
             var toBlock = blocking - origin;
             var dist = toBlock.Length();

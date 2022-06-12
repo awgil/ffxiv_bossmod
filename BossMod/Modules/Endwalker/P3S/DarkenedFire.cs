@@ -17,9 +17,8 @@ namespace BossMod.Endwalker.P3S
             int numInRange = 0;
             foreach (var player in module.Raid.WithoutSlot().Where(player => CanBothBeTargets(player, actor)))
             {
-                var distance = player.Position - actor.Position;
-                haveTooClose |= GeometryUtils.PointInCircle(distance, _minRange);
-                if (GeometryUtils.PointInCircle(distance, _maxRange))
+                haveTooClose |= player.Position.InCircle(actor.Position, _minRange);
+                if (player.Position.InCircle(actor.Position, _maxRange))
                     ++numInRange;
             }
 
@@ -39,9 +38,8 @@ namespace BossMod.Endwalker.P3S
             bool healerOrTank = pc.Role == Role.Tank || pc.Role == Role.Healer;
             foreach (var player in module.Raid.WithoutSlot().Where(player => CanBothBeTargets(player, pc)))
             {
-                var distance = player.Position - pc.Position;
-                bool tooClose = GeometryUtils.PointInCircle(distance, _minRange);
-                bool inRange = GeometryUtils.PointInCircle(distance, _maxRange);
+                bool tooClose = player.Position.InCircle(pc.Position, _minRange);
+                bool inRange = player.Position.InCircle(pc.Position, _maxRange);
                 arena.Actor(player, tooClose ? arena.ColorDanger : (inRange ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric));
             }
 

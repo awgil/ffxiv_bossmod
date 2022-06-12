@@ -5,7 +5,6 @@ boss modules:
 - draw actors by framework (components should return color+prio)
 - generalize components as much as possible
 - fail log
-- use vec2 on arena
 - p3s - review, searing breeze component
 - aglaia revise, implement phases, better support for alliance raids
 - ultima weapon - implement phases

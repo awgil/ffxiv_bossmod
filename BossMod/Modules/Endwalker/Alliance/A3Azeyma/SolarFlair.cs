@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
 {
     class SolarFlair : BossModule.Component
     {
-        private Dictionary<ulong, Vector3?> _sunstorms = new(); // null = cast finished, otherwise expected position
+        private Dictionary<ulong, WPos?> _sunstorms = new(); // null = cast finished, otherwise expected position
 
         private static float _kickDistance = 18;
         private static AOEShapeCircle _aoe = new(15);
@@ -30,7 +30,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
         {
             if (actor.CastInfo!.IsSpell(AID.HauteAirWings))
             {
-                var closestSunstorm = module.Enemies(OID.Sunstorm).MinBy(s => (s.Position - actor.Position).LengthSquared());
+                var closestSunstorm = module.Enemies(OID.Sunstorm).MinBy(s => (s.Position - actor.Position).LengthSq());
                 if (closestSunstorm != null)
                 {
                     _sunstorms[closestSunstorm.InstanceID] = closestSunstorm.Position + _kickDistance * actor.Rotation.ToDirection();
@@ -44,7 +44,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
                 _sunstorms[actor.InstanceID] = null;
         }
 
-        private IEnumerable<Vector3> ActiveSunstorms(BossModule module)
+        private IEnumerable<WPos> ActiveSunstorms(BossModule module)
         {
             foreach (var s in module.Enemies(OID.Sunstorm))
             {

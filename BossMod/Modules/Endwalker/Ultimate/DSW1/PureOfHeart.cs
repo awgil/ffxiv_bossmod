@@ -47,7 +47,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             if (_skyblindPlayers[slot] && module.Raid.WithSlot().ExcludedFromMask(_skyblindPlayers).InRadius(actor.Position, _skyblindRadius).Any())
                 hints.Add("GTFO from raid!");
 
-            if (_skyblindCasters.Any(c => GeometryUtils.PointInCircle(actor.Position - c.CastInfo!.Location, _skyblindRadius)))
+            if (_skyblindCasters.Any(c => actor.Position.InCircle(c.CastInfo!.LocXZ, _skyblindRadius)))
                 hints.Add("GTFO from puddle!");
         }
 
@@ -63,7 +63,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
             foreach (var c in _skyblindCasters)
             {
-                arena.ZoneCircle(c.CastInfo!.Location, _skyblindRadius, arena.ColorAOE);
+                arena.ZoneCircle(c.CastInfo!.LocXZ, _skyblindRadius, arena.ColorAOE);
             }
         }
 

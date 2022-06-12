@@ -61,7 +61,7 @@ namespace BossMod
         // for angles, we use standard FF convention: 0 is 'south'/down/(0, -r), and then increases clockwise
         private static Vector2 PolarToCartesian(Vector2 center, float r, Angle phi)
         {
-            return center + r * phi.ToDirection().XZ();
+            return center + r * phi.ToDirection().ToVec2();
         }
     }
 }

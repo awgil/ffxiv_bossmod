@@ -22,18 +22,18 @@ namespace UIDev.Analysis
                 _plot.TickAdvance = new(45, 5);
                 foreach (var (r, a) in infos)
                 {
-                    var origin = a.TargetPos;
+                    var origin = new WPos(a.TargetPos.XZ());
                     var dir = Angle.Radians(a.Source?.PosRotAt(a.Timestamp).W ?? 0).ToDirection();
-                    var left = new Vector3(dir.Z, 0, -dir.X);
+                    var left = dir.OrthoL();
                     foreach (var target in AlivePlayersAt(r, a.Timestamp))
                     {
                         // TODO: take target hitbox size into account...
-                        var pos = target.PosRotAt(a.Timestamp).XYZ();
+                        var pos = new WPos(target.PosRotAt(a.Timestamp).XZ());
                         var toTarget = pos - origin;
                         var dist = toTarget.Length();
                         toTarget /= dist;
-                        var angle = MathF.Acos(Vector3.Dot(toTarget, dir));
-                        if (Vector3.Dot(toTarget, left) < 0)
+                        var angle = MathF.Acos(toTarget.Dot(dir));
+                        if (toTarget.Dot(left) < 0)
                             angle = -angle;
                         bool hit = a.Targets.Any(t => t.Target?.InstanceID == target.InstanceID);
                         _points.Add((r, a, target, angle / MathF.PI * 180, dist, hit));
@@ -96,13 +96,15 @@ namespace UIDev.Analysis
                 _plot.TickAdvance = new(45, 1);
                 foreach (var (r, a) in infos)
                 {
-                    var src = a.Source?.PosRotAt(a.Timestamp).XYZ() ?? new();
+                    if (a.Source == null)
+                        continue;
+                    var src = new WPos(a.Source.PosRotAt(a.Timestamp).XZ());
                     foreach (var target in a.Targets)
                     {
                         if (target.Target == null)
                             continue;
                         var posRot = target.Target.PosRotAt(a.Timestamp);
-                        var toSource = Angle.FromDirection(src - posRot.XYZ());
+                        var toSource = Angle.FromDirection(src - new WPos(posRot.XZ()));
                         var angle = toSource - Angle.Radians(posRot.W);
                         if (angle.Rad > MathF.PI)
                             angle.Rad -= 2 * MathF.PI;

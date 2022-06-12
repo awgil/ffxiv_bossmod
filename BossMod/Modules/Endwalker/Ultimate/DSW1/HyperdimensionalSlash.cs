@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public int NumCasts { get; private set; }
         private List<Actor> _laserTargets = new();
         private Angle _coneDir;
-        private List<(Vector3 Pos, Actor? Source)> _tears = new();
+        private List<(WPos Pos, Actor? Source)> _tears = new();
         private BitMask _riskyTears;
 
         private static float _linkRadius = 9; // TODO: verify
@@ -30,7 +30,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             {
                 for (int j = i + 1; j < _tears.Count; ++j)
                 {
-                    if (GeometryUtils.PointInCircle(_tears[i].Pos - _tears[j].Pos, _linkRadius))
+                    if (_tears[i].Pos.InCircle(_tears[j].Pos, _linkRadius))
                     {
                         _riskyTears.Set(i);
                         _riskyTears.Set(j);
@@ -38,7 +38,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 }
             }
 
-            var coneTarget = module.Raid.WithoutSlot().MinBy(a => (a.Position - module.Arena.WorldCenter).LengthSquared());
+            var coneTarget = module.Raid.WithoutSlot().MinBy(a => (a.Position - module.Arena.WorldCenter).LengthSq());
             _coneDir = coneTarget != null ? Angle.FromDirection(coneTarget.Position - module.Arena.WorldCenter) : new();
         }
 
@@ -53,7 +53,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 // make sure actor's tear placement is good
                 if (_riskyTears[tearIndex])
                     hints.Add("Aim away from other tears!");
-                if (GeometryUtils.PointInCircle(actor.Position - _tears[tearIndex].Pos, _linkRadius))
+                if (actor.Position.InCircle(_tears[tearIndex].Pos, _linkRadius))
                     hints.Add("Stay closer to center!");
             }
 
@@ -107,9 +107,9 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
         }
 
-        private Vector3 TearPosition(BossModule module, Actor target)
+        private WPos TearPosition(BossModule module, Actor target)
         {
-            return module.Arena.ClampToBounds(module.Arena.WorldCenter + 50 * Vector3.Normalize(target.Position - module.Arena.WorldCenter));
+            return module.Arena.ClampToBounds(module.Arena.WorldCenter + 50 * (target.Position - module.Arena.WorldCenter).Normalized());
         }
     }
 }

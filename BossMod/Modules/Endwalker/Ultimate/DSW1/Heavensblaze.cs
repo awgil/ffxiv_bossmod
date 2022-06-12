@@ -21,7 +21,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 if (actor == _danceTarget)
                     return;
 
-                if (actor != _blazeTarget && !GeometryUtils.PointInCircle(actor.Position - _blazeTarget.Position, _blazeRadius))
+                if (actor != _blazeTarget && !actor.Position.InCircle(_blazeTarget.Position, _blazeRadius))
                     hints.Add("Stack!");
 
                 // don't bother adding hints for dance aoe, you're probably dead if you get there anyway...
@@ -46,7 +46,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             if (_blazeTarget != null)
             {
                 foreach (var p in module.Raid.WithoutSlot())
-                    arena.Actor(p, p == _danceTarget || p == _blazeTarget ? arena.ColorDanger : GeometryUtils.PointInCircle(p.Position - _blazeTarget.Position, _blazeRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(p, p == _danceTarget || p == _blazeTarget ? arena.ColorDanger : p.Position.InCircle(_blazeTarget.Position, _blazeRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
                 arena.AddCircle(_blazeTarget.Position, _blazeRadius, arena.ColorSafe);
             }
             else if (_danceSource != null && _danceTarget != null)

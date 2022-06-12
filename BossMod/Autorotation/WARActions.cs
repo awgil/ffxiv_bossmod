@@ -289,7 +289,7 @@ namespace BossMod
         private bool AllowReprisal()
         {
             var playerPos = Service.ClientState.LocalPlayer?.Position ?? new();
-            return Service.ObjectTable.Any(o => o.ObjectKind == ObjectKind.BattleNpc && (BattleNpcSubKind)o.SubKind == BattleNpcSubKind.Enemy && Utils.GameObjectIsTargetable(o) && GeometryUtils.PointInCircle(o.Position - playerPos, 5 + o.HitboxRadius));
+            return Service.ObjectTable.Any(o => o.ObjectKind == ObjectKind.BattleNpc && (BattleNpcSubKind)o.SubKind == BattleNpcSubKind.Enemy && Utils.GameObjectIsTargetable(o) && (o.Position - playerPos).LengthSquared() <= (5 + o.HitboxRadius) * (5 + o.HitboxRadius));
         }
     }
 }

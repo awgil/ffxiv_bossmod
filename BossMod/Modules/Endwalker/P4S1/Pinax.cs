@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.P4S1
         {
             if (_acid != null)
             {
-                if (GeometryUtils.PointInRect(actor.Position - _acid.Position, Vector3.UnitX, 10, 10, 10))
+                if (actor.Position.InRect(_acid.Position, new WDir(1, 0), 10, 10, 10))
                 {
                     hints.Add("GTFO from acid square!");
                 }
@@ -34,7 +34,7 @@ namespace BossMod.Endwalker.P4S1
             }
             if (_fire != null)
             {
-                if (GeometryUtils.PointInRect(actor.Position - _fire.Position, Vector3.UnitX, 10, 10, 10))
+                if (actor.Position.InRect(_fire.Position, new WDir(1, 0), 10, 10, 10))
                 {
                     hints.Add("GTFO from fire square!");
                 }
@@ -42,7 +42,7 @@ namespace BossMod.Endwalker.P4S1
             }
             if (_water != null)
             {
-                if (GeometryUtils.PointInRect(actor.Position - _water.Position, Vector3.UnitX, 10, 10, 10))
+                if (actor.Position.InRect(_water.Position, new WDir(1, 0), 10, 10, 10))
                 {
                     hints.Add("GTFO from water square!");
                 }
@@ -53,11 +53,11 @@ namespace BossMod.Endwalker.P4S1
             }
             if (_lighting != null)
             {
-                if (GeometryUtils.PointInRect(actor.Position - _lighting.Position, Vector3.UnitX, 10, 10, 10))
+                if (actor.Position.InRect(_lighting.Position, new WDir(1, 0), 10, 10, 10))
                 {
                     hints.Add("GTFO from lighting square!");
                 }
-                hints.Add("GTFO from center!", GeometryUtils.PointInRect(actor.Position - module.Arena.WorldCenter, Vector3.UnitX, _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance));
+                hints.Add("GTFO from center!", actor.Position.InRect(module.Arena.WorldCenter, new WDir(1, 0), _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance));
             }
         }
 
@@ -80,20 +80,20 @@ namespace BossMod.Endwalker.P4S1
         {
             if (_acid != null)
             {
-                arena.ZoneQuad(_acid.Position, Vector3.UnitX, 10, 10, 10, arena.ColorAOE);
+                arena.ZoneQuad(_acid.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
             }
             if (_fire != null)
             {
-                arena.ZoneQuad(_fire.Position, Vector3.UnitX, 10, 10, 10, arena.ColorAOE);
+                arena.ZoneQuad(_fire.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
             }
             if (_water != null)
             {
-                arena.ZoneQuad(_water.Position, Vector3.UnitX, 10, 10, 10, arena.ColorAOE);
+                arena.ZoneQuad(_water.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
             }
             if (_lighting != null)
             {
-                arena.ZoneQuad(_lighting.Position, Vector3.UnitX, 10, 10, 10, arena.ColorAOE);
-                arena.ZoneQuad(arena.WorldCenter, Vector3.UnitX, _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance, arena.ColorAOE);
+                arena.ZoneQuad(_lighting.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
+                arena.ZoneQuad(arena.WorldCenter, new WDir(1, 0), _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance, arena.ColorAOE);
             }
         }
 
@@ -103,7 +103,7 @@ namespace BossMod.Endwalker.P4S1
             {
                 arena.AddCircle(pc.Position, _acidAOERadius, arena.ColorDanger);
                 foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                    arena.Actor(player, GeometryUtils.PointInCircle(player.Position - pc.Position, _acidAOERadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(player, player.Position.InCircle(pc.Position, _acidAOERadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
             if (_fire != null)
             {

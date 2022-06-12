@@ -24,11 +24,11 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             if (_knockbackSource != null && !module.Arena.InBounds(actorAdjPos))
                 hints.Add("About to be knocked into wall!");
 
-            if (module.Raid.WithoutSlot().Exclude(actor).Any(p => GeometryUtils.PointInCircle(BossModule.AdjustPositionForKnockback(p.Position, _knockbackSource, _knockbackDistance) - actorAdjPos, _aoeRadius)))
+            if (module.Raid.WithoutSlot().Exclude(actor).Any(p => BossModule.AdjustPositionForKnockback(p.Position, _knockbackSource, _knockbackDistance).InCircle(actorAdjPos, _aoeRadius)))
                 hints.Add("Spread!");
 
             int partner = FindPartner(slot);
-            if (partner >= 0 && GeometryUtils.PointInCircle(BossModule.AdjustPositionForKnockback(module.Raid[partner]!.Position, _knockbackSource, _knockbackDistance) - actorAdjPos, _tetherBreakDistance))
+            if (partner >= 0 && BossModule.AdjustPositionForKnockback(module.Raid[partner]!.Position, _knockbackSource, _knockbackDistance).InCircle(actorAdjPos, _tetherBreakDistance))
                 hints.Add("Aim to break tether!");
         }
 
@@ -124,7 +124,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             var pos = module.WorldState.Waymarks[wm];
             if (pos != null)
             {
-                module.Arena.AddCircle(pos.Value, 2, module.Arena.ColorSafe);
+                module.Arena.AddCircle(new(pos.Value.XZ()), 2, module.Arena.ColorSafe);
                 //var dir = Vector3.Normalize(pos.Value - _knockbackSource.Position);
                 //var adjPos = module.Arena.ClampToBounds(_knockbackSource.Position + 50 * dir);
                 //module.Arena.AddLine(module.Arena.WorldCenter, adjPos, module.Arena.ColorSafe);

@@ -11,10 +11,10 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
     {
         private class Entry
         {
-            public Vector3 Next;
+            public WPos Next;
             public bool Fast;
 
-            public Entry(Vector3 next, bool fast)
+            public Entry(WPos next, bool fast)
             {
                 Next = next;
                 Fast = fast;
@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
         private List<Entry> _active = new();
 
         private static AOEShapeCircle _aoe = new(7);
-        private static Vector3 _advance = new(-8.5f, 0, 0);
+        private static WDir _advance = new(-8.5f, 0);
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
@@ -69,7 +69,7 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
             }
         }
 
-        private IEnumerable<Vector3> ImminentAOEs(BossModule module, Entry e)
+        private IEnumerable<WPos> ImminentAOEs(BossModule module, Entry e)
         {
             int limit = e.Fast ? 5 : 2;
             var center = e.Next;

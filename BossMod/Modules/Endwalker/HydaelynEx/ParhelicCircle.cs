@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.HydaelynEx
 
     class ParhelicCircle : CommonComponents.CastCounter
     {
-        private List<Vector3> _positions = new();
+        private List<WPos> _positions = new();
 
         private static float _triRadius = 8;
         private static float _hexRadius = 17;

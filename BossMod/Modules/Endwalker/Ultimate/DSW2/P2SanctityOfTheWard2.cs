@@ -105,7 +105,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 {
                     if (tower.Actor?.CastInfo != null && tower.AssignedPlayers[slot])
                     {
-                        movementHints.Add(from, tower.Actor.CastInfo.Location, color);
+                        movementHints.Add(from, tower.Actor.CastInfo.LocXZ, color);
                     }
                 }
             }
@@ -127,17 +127,17 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (_activeTowers1 == 8)
             {
                 float diag = arena.WorldHalfSize / 1.414214f;
-                arena.AddLine(arena.WorldCenter + new Vector3(diag, 0, diag), arena.WorldCenter - new Vector3(diag, 0, diag), arena.ColorBorder);
-                arena.AddLine(arena.WorldCenter + new Vector3(diag, 0, -diag), arena.WorldCenter - new Vector3(diag, 0, -diag), arena.ColorBorder);
+                arena.AddLine(arena.WorldCenter + new WDir(diag,  diag), arena.WorldCenter - new WDir(diag,  diag), arena.ColorBorder);
+                arena.AddLine(arena.WorldCenter + new WDir(diag, -diag), arena.WorldCenter - new WDir(diag, -diag), arena.ColorBorder);
 
                 foreach (var tower in _towers1)
                 {
                     if (tower.Actor?.CastInfo != null)
                     {
                         if (tower.AssignedPlayers[pcSlot])
-                            arena.AddCircle(tower.Actor.CastInfo.Location, _towerRadius, arena.ColorSafe, 2);
+                            arena.AddCircle(tower.Actor.CastInfo.LocXZ, _towerRadius, arena.ColorSafe, 2);
                         else
-                            arena.AddCircle(tower.Actor.CastInfo.Location, _towerRadius, arena.ColorDanger, 1);
+                            arena.AddCircle(tower.Actor.CastInfo.LocXZ, _towerRadius, arena.ColorDanger, 1);
                     }
                 }
 
@@ -151,9 +151,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 if (tower?.CastInfo != null)
                 {
                     if (_players[pcSlot].AssignedTower2 == i)
-                        arena.AddCircle(tower.CastInfo.Location, _towerRadius, arena.ColorSafe, 2);
+                        arena.AddCircle(tower.CastInfo.LocXZ, _towerRadius, arena.ColorSafe, 2);
                     else
-                        arena.AddCircle(tower.CastInfo.Location, _towerRadius, arena.ColorDanger, 1);
+                        arena.AddCircle(tower.CastInfo.LocXZ, _towerRadius, arena.ColorDanger, 1);
                 }
             }
 
@@ -227,7 +227,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             var offset = tower.Position - module.Arena.WorldCenter;
             var dir = Angle.FromDirection(offset);
-            if (offset.LengthSquared() < 7 * 7)
+            if (offset.LengthSq() < 7 * 7)
             {
                 // inner tower: intercardinal, ~6m from center
                 return 12 + (dir.Rad > 0 ? (dir.Rad > MathF.PI / 2 ? 0 : 1) : (dir.Rad < -MathF.PI / 2 ? 3 : 2));
@@ -489,7 +489,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             _towers1[tower].AssignedPlayers.Set(slot);
         }
 
-        private Vector3 StormPlacementPosition(BossModule module, int quadrant)
+        private WPos StormPlacementPosition(BossModule module, int quadrant)
         {
             var dir = Angle.Radians(MathF.PI - quadrant * MathF.PI / 2);
             return module.Arena.WorldCenter + _stormPlacementOffset * dir.ToDirection();
@@ -506,7 +506,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 var w = (Waymark)i;
                 var p = module.WorldState.Waymarks[w];
-                float d = p != null ? (pos - p.Value).LengthSquared() : float.MaxValue;
+                float d = p != null ? (pos - new WPos(p.Value.XZ())).LengthSq() : float.MaxValue;
                 if (d < closestD)
                 {
                     closest = w;

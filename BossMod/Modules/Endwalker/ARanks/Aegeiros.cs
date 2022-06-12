@@ -73,7 +73,7 @@ namespace BossMod.Endwalker.ARanks.Aegeiros
                 _showRimestorm = false;
         }
 
-        private (AOEShape?, Vector3) ActiveAOE(BossModule module, Actor pc)
+        private (AOEShape?, WPos) ActiveAOE(BossModule module, Actor pc)
         {
             if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return (null, new());
@@ -81,7 +81,7 @@ namespace BossMod.Endwalker.ARanks.Aegeiros
             return (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.Leafstorm => (_leafstorm, module.PrimaryActor.Position),
-                AID.Snowball => (_snowball, module.PrimaryActor.CastInfo.Location),
+                AID.Snowball => (_snowball, module.PrimaryActor.CastInfo.LocXZ),
                 AID.BackhandBlow => (_backhandBlow, module.PrimaryActor.Position),
                 _ => (null, new())
             };

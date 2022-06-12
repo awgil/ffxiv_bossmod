@@ -9,17 +9,17 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
         private bool _active;
         private List<Actor> _glimpse = new();
 
-        private static Vector3[] _tri = { new(-750, 0, -762), new(-760.392f, 0, -744), new(-739.608f, 0, -744) };
+        private static WPos[] _tri = { new(-750, -762), new(-760.392f, -744), new(-739.608f, -744) };
         private static float _knockbackDistance = 15;
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
             if (!_active)
                 return;
-            if (!GeometryUtils.PointInTri(actor.Position, _tri[0], _tri[1], _tri[2]))
+            if (!actor.Position.InTri(_tri[0], _tri[1], _tri[2]))
                 hints.Add("Go to safe zone!");
             var adjPos = AdjustedPosition(actor);
-            if (adjPos != actor.Position && !GeometryUtils.PointInTri(adjPos, _tri[0], _tri[1], _tri[2]))
+            if (adjPos != actor.Position && !adjPos.InTri(_tri[0], _tri[1], _tri[2]))
                 hints.Add("About to be knocked into fire!");
         }
 
@@ -57,14 +57,14 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             }
         }
 
-        private Vector3 AdjustedPosition(Actor actor)
+        private WPos AdjustedPosition(Actor actor)
         {
             var glimpse = _glimpse.FirstOrDefault();
             if (glimpse == null)
                 return actor.Position;
 
             var dir = glimpse.Rotation.ToDirection();
-            var normal = new Vector3(dir.Z, 0, -dir.X);
+            var normal = dir.OrthoL();
             return actor.Position + normal * _knockbackDistance;
         }
     }

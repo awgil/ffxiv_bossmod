@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         private Actor? _serAdelphel; // casts charges and execution
         private Actor? _knockbackSource;
         private Actor? _executionTarget;
-        private List<Vector3> _flares = new(); // [0] = initial boss offset from center, [2] = first charge offset, [5] = second charge offset, [7] = third charge offset, [10] = fourth charge offset == [0]
+        private List<WDir> _flares = new(); // [0] = initial boss offset from center, [2] = first charge offset, [5] = second charge offset, [7] = third charge offset, [10] = fourth charge offset == [0]
         private int _doneFlares;
         private int _doneCharges;
 
@@ -36,7 +36,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             {
                 // add first flare as soon as boss teleports to border
                 var bossOffset = _serAdelphel.Position - module.Arena.WorldCenter;
-                if (Utils.AlmostEqual(bossOffset.LengthSquared(), module.Arena.WorldHalfSize * module.Arena.WorldHalfSize, 1))
+                if (Utils.AlmostEqual(bossOffset.LengthSq(), module.Arena.WorldHalfSize * module.Arena.WorldHalfSize, 1))
                 {
                     _flares.Add(bossOffset);
                 }
@@ -62,7 +62,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                     hints.Add("About to be knocked into wall!");
                 if (module.Enemies(OID.AetherialTear).InRadius(adjPos, _aoeTear.Radius).Any())
                     hints.Add("About to be knocked into tear!");
-                if (Vector3.Dot(adjPos - module.Arena.WorldCenter, _flares[0]) >= 0)
+                if (_flares[0].Dot(adjPos - module.Arena.WorldCenter) >= 0)
                     hints.Add("Aim away from boss!");
             }
             else
@@ -80,7 +80,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 }
                 else
                 {
-                    if (GeometryUtils.PointInCircle(actor.Position - _executionTarget.Position, _executionRadius))
+                    if (actor.Position.InCircle(_executionTarget.Position, _executionRadius))
                         hints.Add("GTFO from tank!");
                 }
             }
@@ -145,13 +145,13 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
         }
 
-        private void AddShortFlares(Vector3 startOffset, Vector3 endOffset)
+        private void AddShortFlares(WDir startOffset, WDir endOffset)
         {
             _flares.Add((startOffset + endOffset) / 2);
             _flares.Add(endOffset);
         }
 
-        private void AddLongFlares(Vector3 startOffset, Vector3 endOffset)
+        private void AddLongFlares(WDir startOffset, WDir endOffset)
         {
             var frac = 7.5f / 22;
             _flares.Add(startOffset * frac);

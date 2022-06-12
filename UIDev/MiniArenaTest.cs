@@ -15,8 +15,8 @@ namespace UIDev
         private bool _coneEnabled = true;
         private List<Vector3> _shapeVertices = new();
         private Vector4 _lineEnds = new(90, 90, 110, 110);
-        private Vector3 _playerPos = new(100, 0, 90);
-        private Vector3 _conePos = new(100, 0, 80);
+        private Vector2 _playerPos = new(100, 90);
+        private Vector2 _conePos = new(100, 80);
         private Vector2 _coneRadius = new(0, 100);
         private Vector2 _coneAngles = new(185, 161);
 
@@ -32,17 +32,17 @@ namespace UIDev
 
             _arena.Begin((float)(Math.PI * _azimuth / 180));
             if (_coneEnabled)
-                _arena.ZoneCone(_conePos, _coneRadius.X, _coneRadius.Y, Angle.Degrees(_coneAngles.X), Angle.Degrees(_coneAngles.Y), _arena.ColorSafe);
+                _arena.ZoneCone(new(_conePos), _coneRadius.X, _coneRadius.Y, Angle.Degrees(_coneAngles.X), Angle.Degrees(_coneAngles.Y), _arena.ColorSafe);
             _arena.Border();
-            _arena.Actor(_playerPos, new(), 0xff00ff00);
+            _arena.Actor(new(_playerPos), new(), 0xff00ff00);
             _arena.End();
 
             // arena config
-            ImGui.DragFloat3("Player pos", ref _playerPos);
+            ImGui.DragFloat2("Player pos", ref _playerPos);
             ImGui.Checkbox("Draw cone", ref _coneEnabled);
             if (_coneEnabled)
             {
-                ImGui.DragFloat3("Center", ref _conePos);
+                ImGui.DragFloat2("Center", ref _conePos);
                 ImGui.DragFloat2("Radius", ref _coneRadius, 1, 0);
                 ImGui.DragFloat2("Angles", ref _coneAngles);
             }

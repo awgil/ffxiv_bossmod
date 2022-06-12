@@ -11,10 +11,10 @@ namespace BossMod.Endwalker.HydaelynEx
     // first we wait until we find two helpers with Z=70 - these are our lightwaves
     class Lightwave1 : LightwaveCommon
     {
-        private Vector3 _safeCrystal;
-        private Vector3 _firstHitCrystal;
-        private Vector3 _secondHitCrystal;
-        private Vector3 _thirdHitCrystal;
+        private WPos _safeCrystal;
+        private WPos _firstHitCrystal;
+        private WPos _secondHitCrystal;
+        private WPos _thirdHitCrystal;
 
         public override void Update(BossModule module)
         {
@@ -29,10 +29,10 @@ namespace BossMod.Endwalker.HydaelynEx
                 if (Waves.Count > 0)
                 {
                     bool leftWave = Waves.Any(w => w.Position.X < 90);
-                    _safeCrystal = new(leftWave ? 110 : 90, 0, 92);
-                    _firstHitCrystal = new(100, 0, 86);
-                    _secondHitCrystal = new(leftWave ? 90 : 110, 0, 92);
-                    _thirdHitCrystal = new(100, 0, 116);
+                    _safeCrystal = new(leftWave ? 110 : 90, 92);
+                    _firstHitCrystal = new(100, 86);
+                    _secondHitCrystal = new(leftWave ? 90 : 110, 92);
+                    _thirdHitCrystal = new(100, 116);
                 }
             }
         }

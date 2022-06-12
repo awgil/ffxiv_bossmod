@@ -29,7 +29,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             _chargeSources.AddRange(module.Enemies(OID.SerAdelphel));
             _chargeSources.AddRange(module.Enemies(OID.SerJanlenoux));
 
-            Vector3 offset = new();
+            WDir offset = new();
             foreach (var s in _chargeSources)
                 offset += s.Position - module.Arena.WorldCenter;
             _dirToBoss = Angle.FromDirection(offset) + Angle.Radians(MathF.PI);
@@ -37,7 +37,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (_voidzones.Any(v => _voidzoneAOE.Check(actor.Position, v.CastInfo!.Location, new())))
+            if (_voidzones.Any(v => _voidzoneAOE.Check(actor.Position, v.CastInfo!.LocXZ, new())))
                 hints.Add($"GTFO from voidzone aoe!");
 
             bool isTank = actor.Role == Role.Tank;
@@ -84,7 +84,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             foreach (var v in _voidzones)
             {
-                _voidzoneAOE.Draw(arena, v.CastInfo!.Location, new());
+                _voidzoneAOE.Draw(arena, v.CastInfo!.LocXZ, new());
             }
 
             foreach (var source in _chargeSources)
@@ -142,7 +142,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 foreach (var t in _towers)
                 {
-                    arena.AddCircle(t.CastInfo!.Location, _towerRadius, arena.ColorSafe);
+                    arena.AddCircle(t.CastInfo!.LocXZ, _towerRadius, arena.ColorSafe);
                 }
             }
         }
@@ -210,7 +210,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             var dir = target.Position - source.Position;
             var len = dir.Length();
             dir /= len;
-            return module.Raid.WithoutSlot().Any(p => p.Role != Role.Tank && GeometryUtils.PointInRect(p.Position - source.Position, dir, len, 0, _chargeHalfWidth));
+            return module.Raid.WithoutSlot().Any(p => p.Role != Role.Tank && p.Position.InRect(source.Position, dir, len, 0, _chargeHalfWidth));
         }
 
         private bool IsInChargeAOE(BossModule module, Actor player)
@@ -218,12 +218,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             foreach (var source in _chargeSources)
             {
                 var target = module.WorldState.Actors.Find(source.Tether.Target);
-                if (target == null)
-                    continue;
-                var dir = target.Position - source.Position;
-                var len = dir.Length();
-                dir /= len;
-                if (GeometryUtils.PointInRect(player.Position - source.Position, dir, len, 0, _chargeHalfWidth))
+                if (target != null && player.Position.InRect(source.Position, target.Position - source.Position, _chargeHalfWidth))
                     return true;
             }
             return false;

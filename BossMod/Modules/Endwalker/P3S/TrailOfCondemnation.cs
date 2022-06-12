@@ -25,10 +25,10 @@ namespace BossMod.Endwalker.P3S
             if (module.PrimaryActor.Position == module.Arena.WorldCenter)
                 return;
 
-            var dir = Vector3.Normalize(module.Arena.WorldCenter - module.PrimaryActor.Position);
+            var dir = (module.Arena.WorldCenter - module.PrimaryActor.Position).Normalized();
             if (_isCenter)
             {
-                if (GeometryUtils.PointInRect(actor.Position - module.PrimaryActor.Position, dir, 2 * module.Arena.WorldHalfSize, 0, _halfWidth))
+                if (actor.Position.InRect(module.PrimaryActor.Position, dir, 2 * module.Arena.WorldHalfSize, 0, _halfWidth))
                 {
                     hints.Add("GTFO from aoe!");
                 }
@@ -39,9 +39,9 @@ namespace BossMod.Endwalker.P3S
             }
             else
             {
-                var offset = _sidesOffset * new Vector3(-dir.Z, 0, dir.X);
-                if (GeometryUtils.PointInRect(actor.Position - module.PrimaryActor.Position + offset, dir, 2 * module.Arena.WorldHalfSize, 0, _halfWidth) ||
-                    GeometryUtils.PointInRect(actor.Position - module.PrimaryActor.Position - offset, dir, 2 * module.Arena.WorldHalfSize, 0, _halfWidth))
+                var offset = _sidesOffset * dir.OrthoR();
+                if (actor.Position.InRect(module.PrimaryActor.Position + offset, dir, 2 * module.Arena.WorldHalfSize, 0, _halfWidth) ||
+                    actor.Position.InRect(module.PrimaryActor.Position - offset, dir, 2 * module.Arena.WorldHalfSize, 0, _halfWidth))
                 {
                     hints.Add("GTFO from aoe!");
                 }
@@ -69,14 +69,14 @@ namespace BossMod.Endwalker.P3S
             if (module.PrimaryActor.Position == arena.WorldCenter)
                 return;
 
-            var dir = Vector3.Normalize(arena.WorldCenter - module.PrimaryActor.Position);
+            var dir = (arena.WorldCenter - module.PrimaryActor.Position).Normalized();
             if (_isCenter)
             {
                 arena.ZoneQuad(module.PrimaryActor.Position, dir, 2 * arena.WorldHalfSize, 0, _halfWidth, arena.ColorAOE);
             }
             else
             {
-                var offset = _sidesOffset * new Vector3(-dir.Z, 0, dir.X);
+                var offset = _sidesOffset * dir.OrthoR();
                 arena.ZoneQuad(module.PrimaryActor.Position + offset, dir, 2 * arena.WorldHalfSize, 0, _halfWidth, arena.ColorAOE);
                 arena.ZoneQuad(module.PrimaryActor.Position - offset, dir, 2 * arena.WorldHalfSize, 0, _halfWidth, arena.ColorAOE);
             }
@@ -87,7 +87,7 @@ namespace BossMod.Endwalker.P3S
             // draw all raid members, to simplify positioning
             foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
             {
-                bool inRange = GeometryUtils.PointInCircle(player.Position - pc.Position, _aoeRadius);
+                bool inRange = player.Position.InCircle(pc.Position, _aoeRadius);
                 arena.Actor(player, inRange ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
 

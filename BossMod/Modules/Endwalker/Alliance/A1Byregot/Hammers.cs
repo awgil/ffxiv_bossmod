@@ -40,12 +40,12 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
             if (_curState == State.Inactive)
                 return;
 
-            Vector3 cellHalfSize = new(5, 0, 5);
+            WDir cellHalfSize = new(5, 5);
             for (int z = -2; z <= 2; ++z)
             {
                 for (int x = -2; x <= 2; ++x)
                 {
-                    var cellCenter = arena.WorldCenter + new Vector3(x, 0, z) * 10;
+                    var cellCenter = arena.WorldCenter + new WDir(x, z) * 10;
                     if (CellDangerous(x, z, true))
                         arena.ZoneRect(cellCenter - cellHalfSize, cellCenter + cellHalfSize, arena.ColorAOE);
                     else if (CellDangerous(x, z, false))
@@ -62,14 +62,14 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
             if (_curState == State.Inactive)
                 return;
 
-            arena.AddLine(arena.WorldCenter + new Vector3(-15, 0, -25), arena.WorldCenter + new Vector3(-15, 0, +25), arena.ColorBorder);
-            arena.AddLine(arena.WorldCenter + new Vector3( -5, 0, -25), arena.WorldCenter + new Vector3( -5, 0, +25), arena.ColorBorder);
-            arena.AddLine(arena.WorldCenter + new Vector3( +5, 0, -25), arena.WorldCenter + new Vector3( +5, 0, +25), arena.ColorBorder);
-            arena.AddLine(arena.WorldCenter + new Vector3(+15, 0, -25), arena.WorldCenter + new Vector3(+15, 0, +25), arena.ColorBorder);
-            arena.AddLine(arena.WorldCenter + new Vector3(-25, 0, -15), arena.WorldCenter + new Vector3(+25, 0, -15), arena.ColorBorder);
-            arena.AddLine(arena.WorldCenter + new Vector3(-25, 0,  -5), arena.WorldCenter + new Vector3(+25, 0,  -5), arena.ColorBorder);
-            arena.AddLine(arena.WorldCenter + new Vector3(-25, 0,  +5), arena.WorldCenter + new Vector3(+25, 0,  +5), arena.ColorBorder);
-            arena.AddLine(arena.WorldCenter + new Vector3(-25, 0, +15), arena.WorldCenter + new Vector3(+25, 0, +15), arena.ColorBorder);
+            arena.AddLine(arena.WorldCenter + new WDir(-15, -25), arena.WorldCenter + new WDir(-15, +25), arena.ColorBorder);
+            arena.AddLine(arena.WorldCenter + new WDir( -5, -25), arena.WorldCenter + new WDir( -5, +25), arena.ColorBorder);
+            arena.AddLine(arena.WorldCenter + new WDir( +5, -25), arena.WorldCenter + new WDir( +5, +25), arena.ColorBorder);
+            arena.AddLine(arena.WorldCenter + new WDir(+15, -25), arena.WorldCenter + new WDir(+15, +25), arena.ColorBorder);
+            arena.AddLine(arena.WorldCenter + new WDir(-25, -15), arena.WorldCenter + new WDir(+25, -15), arena.ColorBorder);
+            arena.AddLine(arena.WorldCenter + new WDir(-25,  -5), arena.WorldCenter + new WDir(+25,  -5), arena.ColorBorder);
+            arena.AddLine(arena.WorldCenter + new WDir(-25,  +5), arena.WorldCenter + new WDir(+25,  +5), arena.ColorBorder);
+            arena.AddLine(arena.WorldCenter + new WDir(-25, +15), arena.WorldCenter + new WDir(+25, +15), arena.ColorBorder);
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)

@@ -43,8 +43,8 @@ namespace BossMod.Endwalker.P4S2
                     _coneTargets.Set(i);
                     if (player.Position != module.PrimaryActor.Position)
                     {
-                        var direction = Vector3.Normalize(player.Position - module.PrimaryActor.Position);
-                        _playersInAOE |= module.Raid.WithSlot().Exclude(i).WhereActor(p => GeometryUtils.PointInCone(p.Position - module.PrimaryActor.Position, direction, _coneAOE.HalfAngle)).Mask();
+                        var direction = (player.Position - module.PrimaryActor.Position).Normalized();
+                        _playersInAOE |= module.Raid.WithSlot().Exclude(i).WhereActor(p => p.Position.InCone(module.PrimaryActor.Position, direction, _coneAOE.HalfAngle)).Mask();
                     }
                 }
             }

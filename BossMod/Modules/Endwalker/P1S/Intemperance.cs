@@ -30,7 +30,7 @@ namespace BossMod.Endwalker.P1S
         private int[]? _playerAssignment; // cell index assigned to player, null if not assigned yet
 
         private static AOEShapeRect _delimiterAOE = new(20, 1, 20);
-        private static Vector4[] _delimiterCenters = { new(93, 0, 100, 0), new(107, 0, 100, 0), new(100, 0, 93, MathF.PI / 2), new(100, 0, 107, MathF.PI / 2) };
+        private static (WPos, Angle)[] _delimiterCenters = { (new(93, 100), Angle.Radians(0)), (new(107, 100), Angle.Radians(0)), (new(100, 93), Angle.Radians(MathF.PI / 2)), (new(100, 107), Angle.Radians(MathF.PI / 2)) };
 
         private static Cube[] _patternSymm = {
             Cube.R, Cube.P, Cube.R,
@@ -52,7 +52,7 @@ namespace BossMod.Endwalker.P1S
             Cube.B, Cube.P, Cube.R,
             Cube.R, Cube.P, Cube.R,
         };
-        private static Vector2[] _offsets = { new(-1, -1), new(0, -1), new(1, -1), new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(0, 0) };
+        private static WDir[] _offsets = { new(-1, -1), new(0, -1), new(1, -1), new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(0, 0) };
 
         public override void Update(BossModule module)
         {
@@ -65,7 +65,7 @@ namespace BossMod.Endwalker.P1S
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_delimiterCenters.Any(c => _delimiterAOE.Check(actor.Position, new(c.X, c.Y, c.Z), new(c.W))))
+            if (_delimiterCenters.Any(c => _delimiterAOE.Check(actor.Position, c.Item1, c.Item2)))
             {
                 hints.Add("GTFO from delimiter!");
             }
@@ -99,7 +99,7 @@ namespace BossMod.Endwalker.P1S
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var c in _delimiterCenters)
-                _delimiterAOE.Draw(arena, new(c.X, c.Y, c.Z), new(c.W));
+                _delimiterAOE.Draw(arena, c.Item1, c.Item2);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -172,7 +172,7 @@ namespace BossMod.Endwalker.P1S
             }
         }
 
-        private int PositionFromCoords(BossModule module, Vector3 coords)
+        private int PositionFromCoords(BossModule module, WPos coords)
         {
             return (coords - module.Arena.WorldCenter) switch
             {
@@ -193,10 +193,9 @@ namespace BossMod.Endwalker.P1S
             return 2 * (int)Service.Config.Get<P1SConfig>().IntemperanceAsymmetricalSwapCorner;
         }
 
-        private Vector3 PosCenter(BossModule module, int pos)
+        private WPos PosCenter(BossModule module, int pos)
         {
-            var off = 14 * _offsets[pos];
-            return module.Arena.WorldCenter + new Vector3(off.X, 0, off.Y);
+            return module.Arena.WorldCenter + 14 * _offsets[pos];
         }
 
         private int Position2(BossModule module, int pos1)
@@ -238,7 +237,7 @@ namespace BossMod.Endwalker.P1S
                 return pos1; // others return to initial spot
         }
 
-        private IEnumerable<(Vector3, Vector3, uint)> MovementHints(BossModule module, Vector3 startingPosition, int assignment)
+        private IEnumerable<(WPos, WPos, uint)> MovementHints(BossModule module, WPos startingPosition, int assignment)
         {
             switch (NumExplosions)
             {

@@ -25,10 +25,10 @@ namespace BossMod.Endwalker.P3S
                 var target = targetID != 0 ? module.WorldState.Actors.Find(targetID) : null;
                 if (target != null && target.Position != bird.Position)
                 {
-                    var dir = Vector3.Normalize(target.Position - bird.Position);
+                    var dir = (target.Position - bird.Position).Normalized();
                     foreach ((int i, var player) in module.Raid.WithSlot().Exclude(target))
                     {
-                        if (GeometryUtils.PointInRect(player.Position - bird.Position, dir, 50, 0, _chargeHalfWidth))
+                        if (player.Position.InRect(bird.Position, dir, 50, 0, _chargeHalfWidth))
                         {
                             _playersInAOE.Set(i);
                         }
@@ -62,7 +62,7 @@ namespace BossMod.Endwalker.P3S
                 var target = (targetID != 0 && targetID != pc.InstanceID) ? module.WorldState.Actors.Find(targetID) : null;
                 if (target != null && target.Position != bird.Position)
                 {
-                    var dir = Vector3.Normalize(target.Position - bird.Position);
+                    var dir = (target.Position - bird.Position).Normalized();
                     arena.ZoneQuad(bird.Position, dir, 50, 0, _chargeHalfWidth, arena.ColorAOE);
                 }
             }

@@ -27,7 +27,7 @@ namespace BossMod.Endwalker.ZodiarkEx
             }
             else
             {
-                if (GeometryUtils.PointInCircle(actor.Position - _target.Position, _aoeRadius))
+                if (actor.Position.InCircle(_target.Position, _aoeRadius))
                     hints.Add("GTFO from tank!");
                 if (actor.Role == Role.Tank && module.PrimaryActor.TargetID != actor.InstanceID)
                     hints.Add("Taunt!");
@@ -43,7 +43,7 @@ namespace BossMod.Endwalker.ZodiarkEx
             if (pc == _target)
             {
                 foreach (var a in module.Raid.WithoutSlot().Exclude(pc))
-                    arena.Actor(a, GeometryUtils.PointInCircle(a.Position - _target.Position, _aoeRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(a, a.Position.InCircle(_target.Position, _aoeRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
             else
             {

@@ -11,7 +11,7 @@ namespace BossMod
                 hints.Add("Hint", false);
                 hints.Add("Risk");
                 if (movementHints != null)
-                    movementHints.Add(actor.Position, actor.Position + new Vector3(10, 0, 10), module.Arena.ColorDanger);
+                    movementHints.Add(actor.Position, actor.Position + new WDir(10, 10), module.Arena.ColorDanger);
             }
 
             public override void AddGlobalHints(BossModule module, GlobalHints hints)

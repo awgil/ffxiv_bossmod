@@ -56,7 +56,7 @@ namespace BossMod.Endwalker.P2S
             {
                 arena.AddCircle(pc.Position, _radius, arena.ColorDanger);
                 foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                    arena.Actor(player, GeometryUtils.PointInCircle(player.Position - pc.Position, _radius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(player, player.Position.InCircle(pc.Position, _radius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
         }
     }

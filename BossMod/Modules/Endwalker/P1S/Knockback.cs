@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.P1S
         public bool AOEDone { get; private set; } = false;
         private bool _isFlare = false; // true -> purge aka flare (stay away from MT), false -> grace aka holy (stack to MT)
         private Actor? _knockbackTarget = null;
-        private Vector3 _knockbackPos = new();
+        private WPos _knockbackPos = new();
 
         private static float _kbDistance = 15;
         private static float _flareRange = 24; // max range is 50, but it has distance falloff - linear up to ~24, then constant ~3k
@@ -53,7 +53,7 @@ namespace BossMod.Endwalker.P1S
                 if (RaidShouldStack(actor))
                 {
                     // check that raid is stacked on actor, except for vulnerable target (note that raid never stacks if knockback target is actor, since he is current aoe target)
-                    if (_knockbackTarget != null && GeometryUtils.PointInCircle(actor.Position - _knockbackPos, aoeRange))
+                    if (_knockbackTarget != null && actor.Position.InCircle(_knockbackPos, aoeRange))
                     {
                         hints.Add("GTFO from co-tank!");
                     }
@@ -85,7 +85,7 @@ namespace BossMod.Endwalker.P1S
                 if (RaidShouldStack(target) && actor != _knockbackTarget)
                 {
                     // check that actor is stacked with tank
-                    if (!GeometryUtils.PointInCircle(actor.Position - target.Position, aoeRange))
+                    if (!actor.Position.InCircle(target.Position, aoeRange))
                     {
                         hints.Add("Stack with target!");
                     }
@@ -94,7 +94,7 @@ namespace BossMod.Endwalker.P1S
                 {
                     // check that actor stays away from tank
                     var pos = actor == _knockbackTarget ? _knockbackPos : actor.Position;
-                    if (GeometryUtils.PointInCircle(pos - target.Position, aoeRange))
+                    if (pos.InCircle(target.Position, aoeRange))
                     {
                         hints.Add("GTFO from target!");
                     }
@@ -120,7 +120,7 @@ namespace BossMod.Endwalker.P1S
             {
                 // there will be AOE around me, draw all players to help with positioning - note that we use position adjusted for knockback
                 foreach (var player in module.Raid.WithoutSlot())
-                    arena.Actor(player, GeometryUtils.PointInCircle(player.Position - targetPos, aoeRange) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(player, player.Position.InCircle(targetPos, aoeRange) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
             }
             else
             {

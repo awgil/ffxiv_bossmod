@@ -10,11 +10,11 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
     {
         private class Instance
         {
-            public Vector3 Start;
-            public Vector3 Dir;
+            public WPos Start;
+            public WDir Dir;
             public int Casts;
 
-            public Instance(Vector3 start, Vector3 dir)
+            public Instance(WPos start, WDir dir)
             {
                 Start = start;
                 Dir = dir;
@@ -43,7 +43,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
         {
             if (actor.CastInfo!.IsSpell(AID.EverfireFirst) || actor.CastInfo!.IsSpell(AID.OnceBurnedFirst))
             {
-                Vector3 dir = MathF.Abs(actor.Position.X - module.Arena.WorldCenter.X) < 1 ? Vector3.UnitX : Vector3.UnitZ;
+                WDir dir = MathF.Abs(actor.Position.X - module.Arena.WorldCenter.X) < 1 ? new(1, 0) : new(0, 1);
                 _active.Add(new(actor.Position, dir));
                 _active.Add(new(actor.Position, -dir));
             }
@@ -75,8 +75,8 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
                 if (caster != null)
                 {
                     var dir = caster.Rotation.ToDirection();
-                    var normal = new Vector3(dir.Z, 0, -dir.X);
-                    var inst = _active.Find(i => Vector3.Dot(i.Dir, dir) > 0.9f && MathF.Abs(Vector3.Dot(caster.Position - i.Start, normal)) < 1);
+                    var normal = dir.OrthoL();
+                    var inst = _active.Find(i => WDir.Dot(i.Dir, dir) > 0.9f && MathF.Abs(WDir.Dot(caster.Position - i.Start, normal)) < 1);
                     if (inst != null)
                     {
                         ++inst.Casts;
@@ -85,7 +85,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
             }
         }
 
-        private IEnumerable<Vector3> ActiveAOEs()
+        private IEnumerable<WPos> ActiveAOEs()
         {
             foreach (var inst in _active)
             {

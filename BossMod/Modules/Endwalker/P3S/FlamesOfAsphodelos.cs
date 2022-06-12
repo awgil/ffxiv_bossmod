@@ -81,14 +81,13 @@ namespace BossMod.Endwalker.P3S
             }
         }
 
-        private bool InAOE(BossModule module, Angle? dir, Vector3 pos)
+        private bool InAOE(BossModule module, Angle? dir, WPos pos)
         {
             if (dir == null)
                 return false;
 
-            var toPos = Vector3.Normalize(pos - module.Arena.WorldCenter);
-            var toDir = dir.Value.ToDirection();
-            return MathF.Abs(Vector3.Dot(toPos, toDir)) >= MathF.Cos(MathF.PI / 6);
+            var toPos = (pos - module.Arena.WorldCenter).Normalized();
+            return MathF.Abs(dir.Value.ToDirection().Dot(toPos)) >= MathF.Cos(MathF.PI / 6);
         }
     }
 }

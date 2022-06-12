@@ -82,7 +82,7 @@ namespace BossMod.Endwalker.ARanks.Yilan
             }
         }
 
-        private (AOEShape?, Vector3) ActiveAOE(BossModule module, Actor pc)
+        private (AOEShape?, WPos) ActiveAOE(BossModule module, Actor pc)
         {
             if (MarchDirection(pc) != SID.None)
                 return (_miniLight, module.PrimaryActor.Position);
@@ -93,7 +93,7 @@ namespace BossMod.Endwalker.ARanks.Yilan
             return (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.MiniLight => (_miniLight, module.PrimaryActor.Position),
-                AID.BogBomb => (_bogBomb, module.PrimaryActor.CastInfo.Location),
+                AID.BogBomb => (_bogBomb, module.PrimaryActor.CastInfo.LocXZ),
                 AID.BrackishRain => (_brackishRain, module.PrimaryActor.Position),
                 _ => (null, new())
             };
