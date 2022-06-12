@@ -16,14 +16,14 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (_activeLocationTargetedAOEs.Any(e => e.Item2.Check(actor.Position, e.Item1.CastInfo!.LocXZ, new())) || _crimsonCyclone.Any(a => _aoeCrimsonCyclone.Check(actor.Position, a)))
+            if (_activeLocationTargetedAOEs.Any(e => e.Item2.Check(actor.Position, e.Item1.CastInfo!.LocXZ)) || _crimsonCyclone.Any(a => _aoeCrimsonCyclone.Check(actor.Position, a)))
                 hints.Add("GTFO from aoe!");
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var (a, aoe) in _activeLocationTargetedAOEs)
-                aoe.Draw(arena, a.CastInfo!.LocXZ, new());
+                aoe.Draw(arena, a.CastInfo!.LocXZ);
             foreach (var a in _crimsonCyclone)
                 _aoeCrimsonCyclone.Draw(arena, a);
         }

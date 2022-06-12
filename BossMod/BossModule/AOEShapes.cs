@@ -55,9 +55,9 @@ namespace BossMod
             Radius = radius;
         }
 
-        public override bool Check(WPos position, WPos origin, Angle rotation) => position.InCircle(origin, Radius);
-        public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE) => arena.ZoneCircle(origin, Radius, color);
-        public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger) => arena.AddCircle(origin, Radius, color);
+        public override bool Check(WPos position, WPos origin, Angle rotation = new()) => position.InCircle(origin, Radius);
+        public override void Draw(MiniArena arena, WPos origin, Angle rotation = new(), uint color = ArenaColor.AOE) => arena.ZoneCircle(origin, Radius, color);
+        public override void Outline(MiniArena arena, WPos origin, Angle rotation = new(), uint color = ArenaColor.Danger) => arena.AddCircle(origin, Radius, color);
     }
 
     public class AOEShapeDonut : AOEShape
@@ -71,9 +71,9 @@ namespace BossMod
             OuterRadius = outerRadius;
         }
 
-        public override bool Check(WPos position, WPos origin, Angle rotation) => position.InDonut(origin, InnerRadius, OuterRadius);
-        public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE) => arena.ZoneDonut(origin, InnerRadius, OuterRadius, color);
-        public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger)
+        public override bool Check(WPos position, WPos origin, Angle rotation = new()) => position.InDonut(origin, InnerRadius, OuterRadius);
+        public override void Draw(MiniArena arena, WPos origin, Angle rotation = new(), uint color = ArenaColor.AOE) => arena.ZoneDonut(origin, InnerRadius, OuterRadius, color);
+        public override void Outline(MiniArena arena, WPos origin, Angle rotation = new(), uint color = ArenaColor.Danger)
         {
             arena.AddCircle(origin, InnerRadius, color);
             arena.AddCircle(origin, OuterRadius, color);

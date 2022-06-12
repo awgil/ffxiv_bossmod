@@ -236,7 +236,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 return; // wait for other event...
 
             var severSource = module.Enemies(OID.SerZephirin).FirstOrDefault();
-            _severStartDir = severSource != null ? Angle.FromDirection(severSource.Position - module.Bounds.Center) : new();
+            _severStartDir = severSource != null ? Angle.FromDirection(severSource.Position - module.Bounds.Center) : 0.Degrees();
             if (_severStartDir.Rad != 0)
             {
                 _groupEast = _config.P2SanctityGroups.BuildGroupMask(1, module.Raid);

@@ -22,7 +22,7 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (_jumpCaster != null && _aoeJump.Check(actor.Position, _jumpCaster.CastInfo!.LocXZ, new()))
+            if (_jumpCaster != null && _aoeJump.Check(actor.Position, _jumpCaster.CastInfo!.LocXZ))
             {
                 hints.Add("GTFO from aoe!");
             }
@@ -52,7 +52,7 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
         {
             if (_jumpCaster != null)
             {
-                _aoeJump.Draw(arena, _jumpCaster.CastInfo!.LocXZ, new());
+                _aoeJump.Draw(arena, _jumpCaster.CastInfo!.LocXZ);
             }
 
             if (_coneRotation != null && _knockbackCaster != null)
@@ -72,7 +72,7 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
                 if (adjPos != pc.Position)
                 {
                     arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
-                    arena.Actor(adjPos, new(), ArenaColor.Danger);
+                    arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
                 }
             }
         }

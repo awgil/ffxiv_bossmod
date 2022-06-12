@@ -39,7 +39,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
 
             var coneTarget = module.Raid.WithoutSlot().MinBy(a => (a.Position - module.Bounds.Center).LengthSq());
-            _coneDir = coneTarget != null ? Angle.FromDirection(coneTarget.Position - module.Bounds.Center) : new();
+            _coneDir = coneTarget != null ? Angle.FromDirection(coneTarget.Position - module.Bounds.Center) : 0.Degrees();
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)

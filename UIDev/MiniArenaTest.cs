@@ -40,7 +40,7 @@ namespace UIDev
             _arena.Border();
             if (_lineEnabled)
                 _arena.AddLine(new(_lineEnds.X, _lineEnds.Y), new(_lineEnds.Z, _lineEnds.W), 0xffff0000);
-            _arena.Actor(new(_playerPos), new(), 0xff00ff00);
+            _arena.Actor(new(_playerPos), 0.Degrees(), 0xff00ff00);
             _arena.End();
 
             // arena config

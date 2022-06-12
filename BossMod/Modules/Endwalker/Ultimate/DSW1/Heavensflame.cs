@@ -53,7 +53,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             if (_knockbackSource != null)
             {
                 var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _knockbackSource, _knockbackDistance);
-                arena.Actor(adjPos, new(), ArenaColor.Danger);
+                arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
                 arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
             }
 

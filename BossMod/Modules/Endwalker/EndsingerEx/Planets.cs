@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.EndsingerEx
             {
                 hints.Add("GTFO from head aoe!");
             }
-            if (_planetsFiery.Count > 0 && _aoePlanet.Check(actor.Position, _planetsFiery[0], new()))
+            if (_planetsFiery.Count > 0 && _aoePlanet.Check(actor.Position, _planetsFiery[0]))
             {
                 hints.Add("GTFO from planet aoe!");
             }
@@ -43,7 +43,7 @@ namespace BossMod.Endwalker.EndsingerEx
             _aoeHead.Draw(arena, _head);
             if (_planetsFiery.Count > 0)
             {
-                _aoePlanet.Draw(arena, _planetsFiery[0], new());
+                _aoePlanet.Draw(arena, _planetsFiery[0]);
             }
         }
 
@@ -53,7 +53,7 @@ namespace BossMod.Endwalker.EndsingerEx
             {
                 var offsetLocation = AdjustPositionForKnockback(pc.Position, _planetsAzure[0], _knockbackDistance);
                 arena.AddLine(pc.Position, offsetLocation, ArenaColor.Danger);
-                arena.Actor(offsetLocation, new(), ArenaColor.Danger);
+                arena.Actor(offsetLocation, pc.Rotation, ArenaColor.Danger);
             }
         }
 

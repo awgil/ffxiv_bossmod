@@ -67,7 +67,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
             else
             {
-                if (_flares.Skip(_doneFlares).Take(7).Any(o => _aoeFlare.Check(actor.Position, module.Bounds.Center + o, new())))
+                if (_flares.Skip(_doneFlares).Take(7).Any(o => _aoeFlare.Check(actor.Position, module.Bounds.Center + o)))
                     hints.Add("GTFO from explosion!");
             }
 
@@ -91,7 +91,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             foreach (var p in module.Enemies(OID.AetherialTear))
                 _aoeTear.Draw(arena, p);
             foreach (var o in _flares.Skip(_doneFlares).Take(7))
-                _aoeFlare.Draw(arena, module.Bounds.Center + o, new());
+                _aoeFlare.Draw(arena, module.Bounds.Center + o);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -99,7 +99,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             if (_knockbackSource != null)
             {
                 var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _knockbackSource, _knockbackDistance);
-                arena.Actor(adjPos, new(), ArenaColor.Danger);
+                arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
                 arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
             }
 

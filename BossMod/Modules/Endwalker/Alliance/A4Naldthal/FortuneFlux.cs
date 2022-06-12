@@ -39,7 +39,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
             if (source != null)
             {
                 var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, source.Value, _knockbackDistance);
-                arena.Actor(adjPos, new(), ArenaColor.Danger);
+                arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
                 arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
             }
         }

@@ -35,7 +35,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             if (adjPos != pc.Position)
             {
                 arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
-                arena.Actor(adjPos, new(), ArenaColor.Danger);
+                arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
             }
         }
 

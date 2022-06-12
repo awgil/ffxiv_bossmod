@@ -29,14 +29,14 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (ActiveAOEs().Any(c => _aoe.Check(actor.Position, c, new())))
+            if (ActiveAOEs().Any(c => _aoe.Check(actor.Position, c)))
                 hints.Add("GTFO from aoe!");
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var c in ActiveAOEs())
-                _aoe.Draw(arena, c, new());
+                _aoe.Draw(arena, c);
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)

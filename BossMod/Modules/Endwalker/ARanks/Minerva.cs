@@ -33,7 +33,7 @@ namespace BossMod.Endwalker.ARanks.Minerva
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (_activeBallisticMissile?.Check(actor.Position, _activeBallisticMissileTarget?.Position ?? _activeBallisticMissileLocation, new()) ?? false)
+            if (_activeBallisticMissile?.Check(actor.Position, _activeBallisticMissileTarget?.Position ?? _activeBallisticMissileLocation, 0.Degrees()) ?? false)
                 hints.Add("GTFO from aoe!");
         }
 
@@ -57,7 +57,7 @@ namespace BossMod.Endwalker.ARanks.Minerva
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            _activeBallisticMissile?.Draw(arena, _activeBallisticMissileTarget?.Position ?? _activeBallisticMissileLocation, new());
+            _activeBallisticMissile?.Draw(arena, _activeBallisticMissileTarget?.Position ?? _activeBallisticMissileLocation, 0.Degrees());
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)

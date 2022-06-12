@@ -180,14 +180,14 @@ namespace BossMod
 
             public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
             {
-                if (_casters.Any(c => _aoe.Check(actor.Position, c.CastInfo!.LocXZ, new())))
+                if (_casters.Any(c => _aoe.Check(actor.Position, c.CastInfo!.LocXZ)))
                     hints.Add("GTFO from puddle!");
             }
 
             public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
             {
                 foreach (var c in _casters)
-                    _aoe.Draw(arena, c.CastInfo!.LocXZ, new());
+                    _aoe.Draw(arena, c.CastInfo!.LocXZ);
             }
 
             public override void OnCastStarted(BossModule module, Actor actor)
@@ -274,7 +274,7 @@ namespace BossMod
                 if (_caster != null)
                 {
                     var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _caster, _distance);
-                    arena.Actor(adjPos, new(), ArenaColor.Danger);
+                    arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
                     arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
                 }
             }

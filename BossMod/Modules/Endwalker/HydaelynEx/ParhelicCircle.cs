@@ -44,14 +44,14 @@ namespace BossMod.Endwalker.HydaelynEx
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_positions.Any(p => _aoeShape.Check(actor.Position, p, new())))
+            if (_positions.Any(p => _aoeShape.Check(actor.Position, p)))
                 hints.Add("GTFO from aoe!");
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var p in _positions)
-                _aoeShape.Draw(arena, p, new());
+                _aoeShape.Draw(arena, p);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.P3S
             {
                 AID.RightCinderwing => -90.Degrees(),
                 AID.LeftCinderwing => 90.Degrees(),
-                _ => new()
+                _ => 0.Degrees()
             };
             if (_aoe.DirectionOffset.Rad == 0)
                 module.ReportError(this, $"Failed to initialize cinderwing; unexpected boss cast {module.PrimaryActor.CastInfo?.Action}");

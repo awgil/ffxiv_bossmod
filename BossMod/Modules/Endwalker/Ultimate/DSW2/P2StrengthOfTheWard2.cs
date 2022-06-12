@@ -37,7 +37,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {
-            if (_voidzones.Any(v => _voidzoneAOE.Check(actor.Position, v.CastInfo!.LocXZ, new())))
+            if (_voidzones.Any(v => _voidzoneAOE.Check(actor.Position, v.CastInfo!.LocXZ)))
                 hints.Add($"GTFO from voidzone aoe!");
 
             bool isTank = actor.Role == Role.Tank;
@@ -84,7 +84,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             foreach (var v in _voidzones)
             {
-                _voidzoneAOE.Draw(arena, v.CastInfo!.LocXZ, new());
+                _voidzoneAOE.Draw(arena, v.CastInfo!.LocXZ);
             }
 
             foreach (var source in _chargeSources)

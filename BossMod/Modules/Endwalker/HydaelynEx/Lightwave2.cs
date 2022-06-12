@@ -35,8 +35,8 @@ namespace BossMod.Endwalker.HydaelynEx
                 hints.Add("GTFO from glory aoe!");
 
             (bool inWave, bool inSafeCone) = NumCasts < 4
-                ? (WaveAOE.Check(actor.Position, Wave1Pos(), new()) || WaveAOE.Check(actor.Position, Wave2Pos(), new()), InSafeCone(NextSideCrystal(), _crystalCenter, actor.Position))
-                : (WaveAOE.Check(actor.Position, Wave3Pos(), new()), _safeCrystal != new WPos() ? InSafeCone(_crystalCenter, _safeCrystal, actor.Position) : true);
+                ? (WaveAOE.Check(actor.Position, Wave1Pos(), 0.Degrees()) || WaveAOE.Check(actor.Position, Wave2Pos(), 0.Degrees()), InSafeCone(NextSideCrystal(), _crystalCenter, actor.Position))
+                : (WaveAOE.Check(actor.Position, Wave3Pos(), 0.Degrees()), _safeCrystal != new WPos() ? InSafeCone(_crystalCenter, _safeCrystal, actor.Position) : true);
 
             if (inWave)
                 hints.Add("GTFO from wave!");
@@ -51,13 +51,13 @@ namespace BossMod.Endwalker.HydaelynEx
 
             if (NumCasts < 4)
             {
-                WaveAOE.Draw(arena, Wave1Pos(), new());
-                WaveAOE.Draw(arena, Wave2Pos(), new());
+                WaveAOE.Draw(arena, Wave1Pos(), 0.Degrees());
+                WaveAOE.Draw(arena, Wave2Pos(), 0.Degrees());
                 DrawSafeCone(arena, NextSideCrystal(), _crystalCenter);
             }
             else
             {
-                WaveAOE.Draw(arena, Wave3Pos(), new());
+                WaveAOE.Draw(arena, Wave3Pos(), 0.Degrees());
                 if (_safeCrystal != new WPos())
                 {
                     DrawSafeCone(arena, _crystalCenter, _safeCrystal);

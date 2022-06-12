@@ -28,7 +28,7 @@ namespace BossMod.Endwalker.ZodiarkEx
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (RotatedBirds(module).Any(b => _birdAOE.Check(actor.Position, b, new())) || RotatedBehemoths(module).Any(b => _behemothAOE.Check(actor.Position, b, new())))
+            if (RotatedBirds(module).Any(b => _birdAOE.Check(actor.Position, b)) || RotatedBehemoths(module).Any(b => _behemothAOE.Check(actor.Position, b)))
                 hints.Add("GTFO from bird/behemoth aoe!");
             if (RotatedSnakes(module).Any(s => _snakeAOE.Check(actor.Position, s.Item1, s.Item2)))
                 hints.Add("GTFO from snake aoe!");
@@ -39,9 +39,9 @@ namespace BossMod.Endwalker.ZodiarkEx
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var b in RotatedBirds(module))
-                _birdAOE.Draw(arena, b, new());
+                _birdAOE.Draw(arena, b);
             foreach (var b in RotatedBehemoths(module))
-                _behemothAOE.Draw(arena, b, new());
+                _behemothAOE.Draw(arena, b);
             foreach (var s in RotatedSnakes(module))
                 _snakeAOE.Draw(arena, s.Item1, s.Item2);
             foreach (var c in _fireLine)
