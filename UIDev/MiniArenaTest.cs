@@ -36,7 +36,7 @@ namespace UIDev
 
             _arena.Begin((float)(Math.PI * _azimuth / 180));
             if (_coneEnabled)
-                _arena.ZoneCone(new(_conePos), _coneRadius.X, _coneRadius.Y, _coneAngles.X.Degrees(), _coneAngles.Y.Degrees(), _arena.ColorSafe);
+                _arena.ZoneCone(new(_conePos), _coneRadius.X, _coneRadius.Y, _coneAngles.X.Degrees(), _coneAngles.Y.Degrees(), ArenaColor.Safe);
             _arena.Border();
             if (_lineEnabled)
                 _arena.AddLine(new(_lineEnds.X, _lineEnds.Y), new(_lineEnds.Z, _lineEnds.W), 0xffff0000);

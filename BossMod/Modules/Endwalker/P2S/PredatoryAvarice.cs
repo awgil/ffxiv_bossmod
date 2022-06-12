@@ -78,20 +78,20 @@ namespace BossMod.Endwalker.P2S
                 if (_playersWithTides[i])
                 {
                     // tides are always drawn
-                    arena.AddCircle(actor.Position, _tidesRadius, arena.ColorDanger);
-                    arena.Actor(actor, arena.ColorDanger);
+                    arena.AddCircle(actor.Position, _tidesRadius, ArenaColor.Danger);
+                    arena.Actor(actor, ArenaColor.Danger);
                 }
                 else if (_playersWithDepths[i] && !pcHasTides)
                 {
                     // depths are drawn only if pc has no tides - otherwise it is to be considered a generic player
-                    arena.AddCircle(actor.Position, _tidesRadius, arena.ColorSafe);
-                    arena.Actor(actor, arena.ColorDanger);
+                    arena.AddCircle(actor.Position, _tidesRadius, ArenaColor.Safe);
+                    arena.Actor(actor, ArenaColor.Danger);
                 }
                 else if (pcHasTides || pcHasDepths)
                 {
                     // other players are only drawn if pc has some debuff
                     bool playerInteresting = pcHasTides ? _playersInTides[i] : _playersInDepths[i];
-                    arena.Actor(actor.Position, actor.Rotation, playerInteresting ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(actor.Position, actor.Rotation, playerInteresting ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
                 }
             }
         }

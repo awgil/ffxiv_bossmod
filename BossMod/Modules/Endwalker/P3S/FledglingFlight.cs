@@ -59,18 +59,18 @@ namespace BossMod.Endwalker.P3S
 
             // draw all players
             foreach ((int i, var player) in module.Raid.WithSlot())
-                arena.Actor(player, _playerAOECount[i] != _playerDeathTollStacks[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                arena.Actor(player, _playerAOECount[i] != _playerDeathTollStacks[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
 
             var eyePos = GetEyePlacementPosition(module, pcSlot, pc);
             if (eyePos != null)
-                arena.AddCircle(eyePos.Value, 1, arena.ColorSafe);
+                arena.AddCircle(eyePos.Value, 1, ArenaColor.Safe);
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach ((var source, var dir) in _sources)
             {
-                arena.ZoneIsoscelesTri(source.Position, dir, _coneHalfAngle, 50, arena.ColorAOE);
+                arena.ZoneIsoscelesTri(source.Position, dir, _coneHalfAngle, 50, ArenaColor.AOE);
             }
         }
 

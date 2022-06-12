@@ -44,7 +44,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 var source = module.Enemies(OID.SerGuerrique).FirstOrDefault();
                 if (source != null)
                 {
-                    arena.ZoneDonut(source.Position, NumImpactHits * _impactRadiusIncrement, (NumImpactHits + 1) * _impactRadiusIncrement, arena.ColorAOE);
+                    arena.ZoneDonut(source.Position, NumImpactHits * _impactRadiusIncrement, (NumImpactHits + 1) * _impactRadiusIncrement, ArenaColor.AOE);
                 }
             }
         }
@@ -53,9 +53,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             if (!_lightningStormsDone)
             {
-                arena.AddCircle(pc.Position, _lightningStormRadius, arena.ColorDanger);
+                arena.AddCircle(pc.Position, _lightningStormRadius, ArenaColor.Danger);
                 foreach (var actor in module.Raid.WithoutSlot().Exclude(pc))
-                    arena.Actor(actor, actor.Position.InCircle(pc.Position, _lightningStormRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(actor, actor.Position.InCircle(pc.Position, _lightningStormRadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
             }
         }
 

@@ -92,7 +92,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 var target = module.WorldState.Actors.Find(source.Tether.Target);
                 if (target != null)
                 {
-                    arena.ZoneRect(source.Position, target.Position, _chargeHalfWidth, arena.ColorAOE);
+                    arena.ZoneRect(source.Position, target.Position, _chargeHalfWidth, ArenaColor.AOE);
                 }
             }
         }
@@ -102,7 +102,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             bool pcIsLeapTarget = _playersWithIcons[pcSlot];
             foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
             {
-                arena.Actor(player, pcIsLeapTarget ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                arena.Actor(player, pcIsLeapTarget ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
             }
 
             if (pcIsLeapTarget && !LeapsDone)
@@ -115,31 +115,31 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 DrawSafeSpot(arena, _dirToBoss);
                 // draw stack radius around player
-                arena.AddCircle(pc.Position, _rageRadius, arena.ColorSafe);
+                arena.AddCircle(pc.Position, _rageRadius, ArenaColor.Safe);
             }
 
             if (!LeapsDone)
             {
                 foreach (var (_, player) in module.Raid.WithSlot().IncludedInMask(_playersWithIcons))
                 {
-                    arena.AddCircle(player.Position, _leapRadius, arena.ColorDanger);
+                    arena.AddCircle(player.Position, _leapRadius, ArenaColor.Danger);
                 }
             }
 
             // draw tethers
             foreach (var source in _chargeSources)
             {
-                module.Arena.Actor(source, module.Arena.ColorDanger);
+                module.Arena.Actor(source, ArenaColor.Danger);
                 var target = module.WorldState.Actors.Find(source.Tether.Target);
                 if (target != null)
-                    module.Arena.AddLine(source.Position, target.Position, module.Arena.ColorDanger);
+                    module.Arena.AddLine(source.Position, target.Position, ArenaColor.Danger);
             }
 
             if (LeapsDone && ChargeDone)
             {
                 foreach (var t in _towers)
                 {
-                    arena.AddCircle(t.CastInfo!.LocXZ, _towerRadius, arena.ColorSafe);
+                    arena.AddCircle(t.CastInfo!.LocXZ, _towerRadius, ArenaColor.Safe);
                 }
             }
         }
@@ -223,7 +223,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private void DrawSafeSpot(MiniArena arena, Angle dir)
         {
-            arena.AddCircle(arena.Bounds.Center + 20 * dir.ToDirection(), 2, arena.ColorSafe);
+            arena.AddCircle(arena.Bounds.Center + 20 * dir.ToDirection(), 2, ArenaColor.Safe);
         }
     }
 }

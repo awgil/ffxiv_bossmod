@@ -23,12 +23,12 @@ namespace BossMod.Endwalker.P2S
             {
                 if (player.Role == Role.Healer)
                 {
-                    arena.Actor(player, arena.ColorDanger);
-                    arena.AddCircle(player.Position, _radius, arena.ColorDanger);
+                    arena.Actor(player, ArenaColor.Danger);
+                    arena.AddCircle(player.Position, _radius, ArenaColor.Danger);
                 }
                 else
                 {
-                    arena.Actor(player, arena.ColorPlayerGeneric);
+                    arena.Actor(player, ArenaColor.PlayerGeneric);
                 }
             }
         }

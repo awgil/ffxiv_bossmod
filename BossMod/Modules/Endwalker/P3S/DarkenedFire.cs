@@ -40,12 +40,12 @@ namespace BossMod.Endwalker.P3S
             {
                 bool tooClose = player.Position.InCircle(pc.Position, _minRange);
                 bool inRange = player.Position.InCircle(pc.Position, _maxRange);
-                arena.Actor(player, tooClose ? arena.ColorDanger : (inRange ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric));
+                arena.Actor(player, tooClose ? ArenaColor.Danger : (inRange ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric));
             }
 
             // draw circles around pc
-            arena.AddCircle(pc.Position, _minRange, arena.ColorDanger);
-            arena.AddCircle(pc.Position, _maxRange, arena.ColorSafe);
+            arena.AddCircle(pc.Position, _minRange, ArenaColor.Danger);
+            arena.AddCircle(pc.Position, _maxRange, ArenaColor.Safe);
         }
 
         private bool CanBothBeTargets(Actor one, Actor two)

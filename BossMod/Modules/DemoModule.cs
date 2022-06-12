@@ -11,7 +11,7 @@ namespace BossMod
                 hints.Add("Hint", false);
                 hints.Add("Risk");
                 if (movementHints != null)
-                    movementHints.Add(actor.Position, actor.Position + new WDir(10, 10), module.Arena.ColorDanger);
+                    movementHints.Add(actor.Position, actor.Position + new WDir(10, 10), ArenaColor.Danger);
             }
 
             public override void AddGlobalHints(BossModule module, GlobalHints hints)
@@ -21,12 +21,12 @@ namespace BossMod
 
             public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
             {
-                arena.ZoneCircle(module.Bounds.Center, 10, arena.ColorAOE);
+                arena.ZoneCircle(module.Bounds.Center, 10, ArenaColor.AOE);
             }
 
             public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
             {
-                arena.Actor(module.Bounds.Center, 0.Degrees(), arena.ColorPC);
+                arena.Actor(module.Bounds.Center, 0.Degrees(), ArenaColor.PC);
             }
         }
 

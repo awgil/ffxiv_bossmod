@@ -57,13 +57,13 @@ namespace BossMod.Endwalker.P3S
             {
                 if (player.Tether.ID == (uint)TetherID.HeatOfCondemnation)
                 {
-                    arena.AddLine(player.Position, module.PrimaryActor.Position, player.Role == Role.Tank ? arena.ColorSafe : arena.ColorDanger);
-                    arena.Actor(player, arena.ColorDanger);
-                    arena.AddCircle(player.Position, _aoeRange, arena.ColorDanger);
+                    arena.AddLine(player.Position, module.PrimaryActor.Position, player.Role == Role.Tank ? ArenaColor.Safe : ArenaColor.Danger);
+                    arena.Actor(player, ArenaColor.Danger);
+                    arena.AddCircle(player.Position, _aoeRange, ArenaColor.Danger);
                 }
                 else if (pc.Role == Role.Tank)
                 {
-                    arena.Actor(player, _inAnyAOE[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(player, _inAnyAOE[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
                 }
             }
         }

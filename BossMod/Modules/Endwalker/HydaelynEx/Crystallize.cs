@@ -70,24 +70,24 @@ namespace BossMod.Endwalker.HydaelynEx
                     {
                         if (player.Role == Role.Healer)
                         {
-                            arena.Actor(player, arena.ColorDanger);
-                            arena.AddCircle(player.Position, _waterRadius, arena.ColorSafe);
+                            arena.Actor(player, ArenaColor.Danger);
+                            arena.AddCircle(player.Position, _waterRadius, ArenaColor.Safe);
                         }
                         else
                         {
-                            arena.Actor(player, arena.ColorPlayerGeneric);
+                            arena.Actor(player, ArenaColor.PlayerGeneric);
                         }
                     }
                     break;
                 case Element.Earth:
-                    arena.AddCircle(pc.Position, _earthRadius, arena.ColorSafe);
+                    arena.AddCircle(pc.Position, _earthRadius, ArenaColor.Safe);
                     foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                        arena.Actor(player, player.Position.InCircle(pc.Position, _earthRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                        arena.Actor(player, player.Position.InCircle(pc.Position, _earthRadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
                     break;
                 case Element.Ice:
-                    arena.AddCircle(pc.Position, _iceRadius, arena.ColorDanger);
+                    arena.AddCircle(pc.Position, _iceRadius, ArenaColor.Danger);
                     foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                        arena.Actor(player, player.Position.InCircle(pc.Position, _iceRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                        arena.Actor(player, player.Position.InCircle(pc.Position, _iceRadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
                     break;
             }
         }

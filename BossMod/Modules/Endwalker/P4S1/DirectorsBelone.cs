@@ -98,7 +98,7 @@ namespace BossMod.Endwalker.P4S1
             var failingPlayers = _debuffForbidden & _debuffTargets;
             foreach ((int i, var player) in module.Raid.WithSlot())
             {
-                arena.Actor(player, failingPlayers[i] ? arena.ColorDanger : arena.ColorPlayerGeneric);
+                arena.Actor(player, failingPlayers[i] ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
             }
         }
 

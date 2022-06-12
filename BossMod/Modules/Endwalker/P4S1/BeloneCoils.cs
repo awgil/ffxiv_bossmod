@@ -49,7 +49,7 @@ namespace BossMod.Endwalker.P4S1
             bool validSoaker = IsValidSoaker(pc);
             foreach (var tower in _activeTowers)
             {
-                arena.AddCircle(tower.Position, _towerRadius, validSoaker ? arena.ColorSafe : arena.ColorDanger);
+                arena.AddCircle(tower.Position, _towerRadius, validSoaker ? ArenaColor.Safe : ArenaColor.Danger);
             }
         }
 

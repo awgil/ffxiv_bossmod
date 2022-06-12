@@ -37,8 +37,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 var dl = ImGui.GetWindowDrawList();
                 dl.PathArcTo(eyeCenter - new Vector2(0, _eyeOffsetV), _eyeOuterR,  MathF.PI / 2 + _eyeHalfAngle,  MathF.PI / 2 - _eyeHalfAngle);
                 dl.PathArcTo(eyeCenter + new Vector2(0, _eyeOffsetV), _eyeOuterR, -MathF.PI / 2 + _eyeHalfAngle, -MathF.PI / 2 - _eyeHalfAngle);
-                dl.PathFillConvex(HitByEye(pc, eye) ? arena.ColorEnemy : arena.ColorPC);
-                dl.AddCircleFilled(eyeCenter, _eyeInnerR, arena.ColorBorder);
+                dl.PathFillConvex(HitByEye(pc, eye) ? ArenaColor.Enemy : ArenaColor.PC);
+                dl.AddCircleFilled(eyeCenter, _eyeInnerR, ArenaColor.Border);
             }
         }
 
@@ -126,13 +126,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (movementHints != null && _groupEast.Any())
             {
                 var from = actor.Position;
-                var color = module.Arena.ColorSafe;
+                var color = ArenaColor.Safe;
                 foreach (var safespot in MovementHintOffsets(slot))
                 {
                     var to = module.Bounds.Center + safespot;
                     movementHints.Add(from, to, color);
                     from = to;
-                    color = module.Arena.ColorDanger;
+                    color = ArenaColor.Danger;
                 }
             }
         }
@@ -148,9 +148,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var (from, to) in ImminentCharges())
-                arena.ZoneRect(from, to, _chargeHalfWidth, arena.ColorAOE);
+                arena.ZoneRect(from, to, _chargeHalfWidth, ArenaColor.AOE);
             foreach (var sphere in ImminentSpheres())
-                arena.ZoneCircle(sphere, _brightflareRadius, arena.ColorAOE);
+                arena.ZoneCircle(sphere, _brightflareRadius, ArenaColor.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -158,35 +158,35 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (NumSeverCasts < 4)
             {
                 var source = module.Enemies(OID.SerZephirin).FirstOrDefault();
-                arena.Actor(source, arena.ColorEnemy);
+                arena.Actor(source, ArenaColor.Enemy);
 
                 var target = module.Raid[_severTargetSlots[NumSeverCasts % 2]];
                 if (source != null && target != null)
-                    arena.AddLine(source.Position, target.Position, arena.ColorDanger);
+                    arena.AddLine(source.Position, target.Position, ArenaColor.Danger);
 
                 foreach (var (slot, player) in module.Raid.WithSlot())
                 {
                     if (_severTargetSlots.Contains(slot))
                     {
-                        arena.Actor(player, arena.ColorPlayerInteresting);
-                        arena.AddCircle(player.Position, _severRadius, arena.ColorDanger);
+                        arena.Actor(player, ArenaColor.PlayerInteresting);
+                        arena.AddCircle(player.Position, _severRadius, ArenaColor.Danger);
                     }
                     else
                     {
-                        arena.Actor(player, arena.ColorPlayerGeneric);
+                        arena.Actor(player, ArenaColor.PlayerGeneric);
                     }
                 }
             }
 
             foreach (var c in _charges)
                 if (c?.Positions.Count > 1)
-                    arena.Actor(c.Source, arena.ColorEnemy);
+                    arena.Actor(c.Source, ArenaColor.Enemy);
 
             foreach (var safespot in MovementHintOffsets(pcSlot))
             {
-                arena.AddCircle(module.Bounds.Center + safespot, 2, arena.ColorSafe);
+                arena.AddCircle(module.Bounds.Center + safespot, 2, ArenaColor.Safe);
                 if (_groupEast.None())
-                    arena.AddCircle(module.Bounds.Center - safespot, 2, arena.ColorSafe); // if there are no valid assignments, draw spots for both groups
+                    arena.AddCircle(module.Bounds.Center - safespot, 2, ArenaColor.Safe); // if there are no valid assignments, draw spots for both groups
                 break; // only draw immediate safespot here
             }
         }

@@ -40,12 +40,12 @@ namespace BossMod.Endwalker.P4S2
         {
             // draw other players
             foreach ((int slot, var player) in module.Raid.WithSlot().Exclude(pc))
-                arena.Actor(player, _playerOrder[slot] == _numCasts + 1 ? arena.ColorDanger : arena.ColorPlayerGeneric);
+                arena.Actor(player, _playerOrder[slot] == _numCasts + 1 ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
 
             // tether
             var tetherTarget = pc.Tether.Target != 0 ? module.WorldState.Actors.Find(pc.Tether.Target) : null;
             if (tetherTarget != null)
-                arena.AddLine(pc.Position, tetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? arena.ColorDanger : arena.ColorSafe);
+                arena.AddLine(pc.Position, tetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? ArenaColor.Danger : ArenaColor.Safe);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, int index)

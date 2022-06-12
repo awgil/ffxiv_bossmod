@@ -25,20 +25,6 @@ namespace BossMod
         private float _cameraSinAzimuth = 0;
         private float _cameraCosAzimuth = 1;
 
-        // common color constants (ABGR)
-        public uint ColorBackground = 0xc00f0f0f;
-        public uint ColorBorder = 0xffffffff;
-        public uint ColorAOE = 0x80008080;
-        public uint ColorSafeFromAOE = 0x80008000;
-        public uint ColorDanger = 0xff00ffff;
-        public uint ColorSafe = 0xff00ff00;
-        public uint ColorPC = 0xff00ff00;
-        public uint ColorEnemy = 0xff0000ff;
-        public uint ColorObject = 0xff0080ff;
-        public uint ColorPlayerInteresting = 0xffc0c0c0;
-        public uint ColorPlayerGeneric = 0xff808080;
-        public uint ColorVulnerable = 0xffff00ff;
-
         public MiniArena(BossModuleConfig config, ArenaBounds bounds)
         {
             Config = config;
@@ -70,7 +56,7 @@ namespace BossMod
             {
                 foreach (var p in Bounds.ClipPoly)
                     PathLineTo(p);
-                PathFillConvex(ColorBackground);
+                PathFillConvex(ArenaColor.Background);
             }
         }
 
@@ -204,15 +190,15 @@ namespace BossMod
         {
             foreach (var p in Bounds.ClipPoly)
                 PathLineTo(p);
-            PathStroke(true, ColorBorder, 2);
+            PathStroke(true, ArenaColor.Border, 2);
 
             if (Config.ShowCardinals)
             {
                 var offCenter = ScreenHalfSize + 10;
-                TextScreen(ScreenCenter + RotatedCoords(new(0, -offCenter)), "N", ColorBorder);
-                TextScreen(ScreenCenter + RotatedCoords(new(0,  offCenter)), "S", ColorBorder);
-                TextScreen(ScreenCenter + RotatedCoords(new( offCenter, 0)), "E", ColorBorder);
-                TextScreen(ScreenCenter + RotatedCoords(new(-offCenter, 0)), "W", ColorBorder);
+                TextScreen(ScreenCenter + RotatedCoords(new(0, -offCenter)), "N", ArenaColor.Border);
+                TextScreen(ScreenCenter + RotatedCoords(new(0,  offCenter)), "S", ArenaColor.Border);
+                TextScreen(ScreenCenter + RotatedCoords(new( offCenter, 0)), "E", ArenaColor.Border);
+                TextScreen(ScreenCenter + RotatedCoords(new(-offCenter, 0)), "W", ArenaColor.Border);
             }
         }
 

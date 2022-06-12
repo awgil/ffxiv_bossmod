@@ -27,23 +27,23 @@ namespace BossMod.Endwalker.P2S
                 return;
 
             // central area + H additionals
-            arena.ZoneRect(module.Bounds.Center, new WDir( 1, 0), _connectInner, _connectInner, _cornerInner, arena.ColorAOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir( 1, 0), _connectInner, _connectInner, _cornerInner, ArenaColor.AOE);
             // central V additionals
-            arena.ZoneRect(module.Bounds.Center, new WDir(0,  1), _connectInner, -_cornerInner, _cornerInner, arena.ColorAOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(0, -1), _connectInner, -_cornerInner, _cornerInner, arena.ColorAOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(0,  1), _connectInner, -_cornerInner, _cornerInner, ArenaColor.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(0, -1), _connectInner, -_cornerInner, _cornerInner, ArenaColor.AOE);
             // outer additionals
-            arena.ZoneRect(module.Bounds.Center, new WDir( 1, 0), _cornerOuter, -_connectOuter, _cornerInner, arena.ColorAOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(-1, 0), _cornerOuter, -_connectOuter, _cornerInner, arena.ColorAOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(0,  1), _cornerOuter, -_connectOuter, _cornerInner, arena.ColorAOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(0, -1), _cornerOuter, -_connectOuter, _cornerInner, arena.ColorAOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir( 1, 0), _cornerOuter, -_connectOuter, _cornerInner, ArenaColor.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(-1, 0), _cornerOuter, -_connectOuter, _cornerInner, ArenaColor.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(0,  1), _cornerOuter, -_connectOuter, _cornerInner, ArenaColor.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(0, -1), _cornerOuter, -_connectOuter, _cornerInner, ArenaColor.AOE);
             // outer area
-            arena.ZoneRect(module.Bounds.Center, new WDir( 1, 0), module.Bounds.HalfSize, -_cornerOuter, module.Bounds.HalfSize, arena.ColorAOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(-1, 0), module.Bounds.HalfSize, -_cornerOuter, module.Bounds.HalfSize, arena.ColorAOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(0,  1), module.Bounds.HalfSize, -_cornerOuter, _cornerOuter, arena.ColorAOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(0, -1), module.Bounds.HalfSize, -_cornerOuter, _cornerOuter, arena.ColorAOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir( 1, 0), module.Bounds.HalfSize, -_cornerOuter, module.Bounds.HalfSize, ArenaColor.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(-1, 0), module.Bounds.HalfSize, -_cornerOuter, module.Bounds.HalfSize, ArenaColor.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(0,  1), module.Bounds.HalfSize, -_cornerOuter, _cornerOuter, ArenaColor.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(0, -1), module.Bounds.HalfSize, -_cornerOuter, _cornerOuter, ArenaColor.AOE);
 
             var corner = module.Bounds.Center + _corners[(int)_blockedCorner] * _offsetCorner;
-            arena.ZoneRect(corner, new WDir(1, 0), _cornerHalfSize, _cornerHalfSize, _cornerHalfSize, arena.ColorAOE);
+            arena.ZoneRect(corner, new WDir(1, 0), _cornerHalfSize, _cornerHalfSize, _cornerHalfSize, ArenaColor.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -61,7 +61,7 @@ namespace BossMod.Endwalker.P2S
             arena.PathLineTo(module.Bounds.Center + new WDir(-_cornerInner, +_cornerInner));
             arena.PathLineTo(module.Bounds.Center + new WDir(-_connectInner, +_cornerInner));
             arena.PathLineTo(module.Bounds.Center + new WDir(-_connectInner, -_cornerInner));
-            arena.PathStroke(true, arena.ColorBorder);
+            arena.PathStroke(true, ArenaColor.Border);
 
             // outer border
             arena.PathLineTo(module.Bounds.Center + new WDir(-_cornerOuter, -_cornerOuter));
@@ -84,7 +84,7 @@ namespace BossMod.Endwalker.P2S
             arena.PathLineTo(module.Bounds.Center + new WDir(-_connectOuter, +_cornerInner));
             arena.PathLineTo(module.Bounds.Center + new WDir(-_connectOuter, -_cornerInner));
             arena.PathLineTo(module.Bounds.Center + new WDir(-_cornerOuter, -_cornerInner));
-            arena.PathStroke(true, arena.ColorBorder);
+            arena.PathStroke(true, ArenaColor.Border);
         }
 
         public override void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state)

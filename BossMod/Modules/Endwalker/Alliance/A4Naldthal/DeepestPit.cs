@@ -26,15 +26,15 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var c in _casters)
-                arena.ZoneCircle(c.CastInfo!.LocXZ, _radius, arena.ColorDanger);
+                arena.ZoneCircle(c.CastInfo!.LocXZ, _radius, ArenaColor.Danger);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             //foreach (var t in _targets)
             //{
-            //    arena.Actor(t, arena.ColorDanger);
-            //    arena.AddCircle(t.Position, _radius, arena.ColorDanger);
+            //    arena.Actor(t, ArenaColor.Danger);
+            //    arena.AddCircle(t.Position, _radius, ArenaColor.Danger);
             //}
         }
 

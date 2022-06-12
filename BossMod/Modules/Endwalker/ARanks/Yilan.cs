@@ -77,8 +77,8 @@ namespace BossMod.Endwalker.ARanks.Yilan
                     _ => 0.Degrees()
                 };
                 var target = pc.Position + _marchDistance * (pc.Rotation + dir).ToDirection();
-                arena.AddLine(pc.Position, target, arena.ColorDanger);
-                arena.Actor(target, pc.Rotation, arena.ColorDanger);
+                arena.AddLine(pc.Position, target, ArenaColor.Danger);
+                arena.Actor(target, pc.Rotation, ArenaColor.Danger);
             }
         }
 

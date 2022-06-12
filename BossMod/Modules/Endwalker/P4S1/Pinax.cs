@@ -80,20 +80,20 @@ namespace BossMod.Endwalker.P4S1
         {
             if (_acid != null)
             {
-                arena.ZoneRect(_acid.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
+                arena.ZoneRect(_acid.Position, new WDir(1, 0), 10, 10, 10, ArenaColor.AOE);
             }
             if (_fire != null)
             {
-                arena.ZoneRect(_fire.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
+                arena.ZoneRect(_fire.Position, new WDir(1, 0), 10, 10, 10, ArenaColor.AOE);
             }
             if (_water != null)
             {
-                arena.ZoneRect(_water.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
+                arena.ZoneRect(_water.Position, new WDir(1, 0), 10, 10, 10, ArenaColor.AOE);
             }
             if (_lighting != null)
             {
-                arena.ZoneRect(_lighting.Position, new WDir(1, 0), 10, 10, 10, arena.ColorAOE);
-                arena.ZoneRect(module.Bounds.Center, new WDir(1, 0), _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance, arena.ColorAOE);
+                arena.ZoneRect(_lighting.Position, new WDir(1, 0), 10, 10, 10, ArenaColor.AOE);
+                arena.ZoneRect(module.Bounds.Center, new WDir(1, 0), _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance, ArenaColor.AOE);
             }
         }
 
@@ -101,9 +101,9 @@ namespace BossMod.Endwalker.P4S1
         {
             if (_acid != null)
             {
-                arena.AddCircle(pc.Position, _acidAOERadius, arena.ColorDanger);
+                arena.AddCircle(pc.Position, _acidAOERadius, ArenaColor.Danger);
                 foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                    arena.Actor(player, player.Position.InCircle(pc.Position, _acidAOERadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(player, player.Position.InCircle(pc.Position, _acidAOERadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
             }
             if (_fire != null)
             {
@@ -111,12 +111,12 @@ namespace BossMod.Endwalker.P4S1
                 {
                     if (player.Role == Role.Healer)
                     {
-                        arena.Actor(player, arena.ColorDanger);
-                        arena.AddCircle(player.Position, _fireAOERadius, arena.ColorDanger);
+                        arena.Actor(player, ArenaColor.Danger);
+                        arena.AddCircle(player.Position, _fireAOERadius, ArenaColor.Danger);
                     }
                     else
                     {
-                        arena.Actor(player, arena.ColorPlayerGeneric);
+                        arena.Actor(player, ArenaColor.PlayerGeneric);
                     }
                 }
             }
@@ -125,8 +125,8 @@ namespace BossMod.Endwalker.P4S1
                 var adjPos = AdjustPositionForKnockback(pc.Position, module.Bounds.Center, _knockbackRadius);
                 if (adjPos != pc.Position)
                 {
-                    arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
-                    arena.Actor(adjPos, pc.Rotation, arena.ColorDanger);
+                    arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
+                    arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
                 }
             }
         }

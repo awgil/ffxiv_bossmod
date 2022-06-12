@@ -33,15 +33,15 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             switch (NumCasts)
             {
                 case 0:
-                    DrawZone(arena, _caster, 0, arena.ColorDanger);
-                    DrawZone(arena, _caster, 1, arena.ColorAOE);
+                    DrawZone(arena, _caster, 0, ArenaColor.Danger);
+                    DrawZone(arena, _caster, 1, ArenaColor.AOE);
                     break;
                 case 1:
-                    DrawZone(arena, _caster, 1, arena.ColorDanger);
-                    DrawZone(arena, _caster, 2, arena.ColorAOE);
+                    DrawZone(arena, _caster, 1, ArenaColor.Danger);
+                    DrawZone(arena, _caster, 2, ArenaColor.AOE);
                     break;
                 case 2:
-                    DrawZone(arena, _caster, 2, arena.ColorDanger);
+                    DrawZone(arena, _caster, 2, ArenaColor.Danger);
                     break;
             }
         }

@@ -103,7 +103,7 @@ namespace BossMod.Endwalker.P4S2
                 return;
             var nextAOE = NextAOE();
             if (nextAOE != null)
-                arena.ZoneCircle(nextAOE.Position, P4S2.WreathAOERadius, arena.ColorAOE);
+                arena.ZoneCircle(nextAOE.Position, P4S2.WreathAOERadius, ArenaColor.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -113,7 +113,7 @@ namespace BossMod.Endwalker.P4S2
             {
                 var icon = _playerIcons[slot];
                 bool nextBreaking = _doneTowers < 4 ? icon == IconID.AkanthaiWater : (icon == IconID.AkanthaiDark && NextAOE()?.Tether.Target == player.InstanceID);
-                arena.Actor(player, nextBreaking ? arena.ColorDanger : arena.ColorPlayerGeneric);
+                arena.Actor(player, nextBreaking ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
             }
 
             // tether
@@ -129,8 +129,8 @@ namespace BossMod.Endwalker.P4S2
                 if (pcIcon == IconID.AkanthaiWater)
                 {
                     // if player has blue => show AOE radius around him and single safe spot
-                    arena.AddCircle(pc.Position, _waterExplosionRange, arena.ColorDanger);
-                    arena.AddCircle(DetermineWaterSafeSpot(module, pcTetherSource), 1, arena.ColorSafe);
+                    arena.AddCircle(pc.Position, _waterExplosionRange, ArenaColor.Danger);
+                    arena.AddCircle(DetermineWaterSafeSpot(module, pcTetherSource), 1, ArenaColor.Safe);
                 }
                 else
                 {
@@ -139,13 +139,13 @@ namespace BossMod.Endwalker.P4S2
                     {
                         if (icon == IconID.AkanthaiWater && player != null)
                         {
-                            arena.AddCircle(player.Position, _waterExplosionRange, arena.ColorDanger);
+                            arena.AddCircle(player.Position, _waterExplosionRange, ArenaColor.Danger);
                         }
                     }
                     var tower = DetermineTowerToSoak(module, pcTetherSource);
                     if (tower != null)
                     {
-                        arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, arena.ColorSafe);
+                        arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, ArenaColor.Safe);
                     }
                 }
             }

@@ -100,30 +100,30 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
         {
             var mt = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
             foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                arena.Actor(player, _orbKiters.Contains(player.InstanceID) ? arena.ColorDanger : player == mt ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                arena.Actor(player, _orbKiters.Contains(player.InstanceID) ? ArenaColor.Danger : player == mt ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
             if (mt != null)
-                arena.AddCircle(mt.Position, _aoeCleave.Radius, arena.ColorDanger);
+                arena.AddCircle(mt.Position, _aoeCleave.Radius, ArenaColor.Danger);
 
             //if (pc.Role is Role.Healer or Role.Ranged)
-            //    arena.AddCircle(module.PrimaryActor.Position, _ceruleumVentRange, arena.ColorDanger);
+            //    arena.AddCircle(module.PrimaryActor.Position, _ceruleumVentRange, ArenaColor.Danger);
 
             foreach (var orb in module.Enemies(OID.Ultimaplasm).Where(orb => !_orbsSharedExploded.Contains(orb.InstanceID)))
             {
                 // TODO: line between paired orbs
-                arena.Actor(orb, arena.ColorDanger);
-                arena.AddCircle(orb.Position, _orbSharedRange, arena.ColorSafe);
+                arena.Actor(orb, ArenaColor.Danger);
+                arena.AddCircle(orb.Position, _orbSharedRange, ArenaColor.Safe);
             }
 
             foreach (var orb in module.Enemies(OID.Aetheroplasm).Where(orb => !_orbsKitedExploded.Contains(orb.InstanceID)))
             {
                 // TODO: line from corresponding target
-                arena.Actor(orb, arena.ColorDanger);
-                arena.AddCircle(orb.Position, _orbFixateRange, arena.ColorDanger);
+                arena.Actor(orb, ArenaColor.Danger);
+                arena.AddCircle(orb.Position, _orbFixateRange, ArenaColor.Danger);
             }
 
             foreach (var bit in module.Enemies(OID.MagitekBit).Where(bit => !bit.IsDead))
             {
-                arena.Actor(bit, arena.ColorDanger);
+                arena.Actor(bit, ArenaColor.Danger);
             }
         }
 

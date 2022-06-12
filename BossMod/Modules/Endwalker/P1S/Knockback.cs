@@ -106,8 +106,8 @@ namespace BossMod.Endwalker.P1S
         {
             if (module.PrimaryActor.CastInfo != null && pc == _knockbackTarget && pc.Position != _knockbackPos)
             {
-                arena.AddLine(pc.Position, _knockbackPos, arena.ColorDanger);
-                arena.Actor(_knockbackPos, pc.Rotation, arena.ColorDanger);
+                arena.AddLine(pc.Position, _knockbackPos, ArenaColor.Danger);
+                arena.Actor(_knockbackPos, pc.Rotation, ArenaColor.Danger);
             }
 
             var target = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
@@ -120,18 +120,18 @@ namespace BossMod.Endwalker.P1S
             {
                 // there will be AOE around me, draw all players to help with positioning - note that we use position adjusted for knockback
                 foreach (var player in module.Raid.WithoutSlot())
-                    arena.Actor(player, player.Position.InCircle(targetPos, aoeRange) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(player, player.Position.InCircle(targetPos, aoeRange) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
             }
             else
             {
                 // draw AOE source
                 arena.Actor(targetPos, target.Rotation, _colorAOETarget);
             }
-            arena.AddCircle(targetPos, aoeRange, arena.ColorDanger);
+            arena.AddCircle(targetPos, aoeRange, ArenaColor.Danger);
 
             // draw vulnerable target
             if (_knockbackTarget != pc && _knockbackTarget != target)
-                arena.Actor(_knockbackTarget, arena.ColorVulnerable);
+                arena.Actor(_knockbackTarget, ArenaColor.Vulnerable);
         }
 
         public override void OnEventCast(BossModule module, CastEvent info)

@@ -72,13 +72,13 @@ namespace BossMod.Endwalker.P3S
             var dir = (module.Bounds.Center - module.PrimaryActor.Position).Normalized();
             if (_isCenter)
             {
-                arena.ZoneRect(module.PrimaryActor.Position, dir, 2 * module.Bounds.HalfSize, 0, _halfWidth, arena.ColorAOE);
+                arena.ZoneRect(module.PrimaryActor.Position, dir, 2 * module.Bounds.HalfSize, 0, _halfWidth, ArenaColor.AOE);
             }
             else
             {
                 var offset = _sidesOffset * dir.OrthoR();
-                arena.ZoneRect(module.PrimaryActor.Position + offset, dir, 2 * module.Bounds.HalfSize, 0, _halfWidth, arena.ColorAOE);
-                arena.ZoneRect(module.PrimaryActor.Position - offset, dir, 2 * module.Bounds.HalfSize, 0, _halfWidth, arena.ColorAOE);
+                arena.ZoneRect(module.PrimaryActor.Position + offset, dir, 2 * module.Bounds.HalfSize, 0, _halfWidth, ArenaColor.AOE);
+                arena.ZoneRect(module.PrimaryActor.Position - offset, dir, 2 * module.Bounds.HalfSize, 0, _halfWidth, ArenaColor.AOE);
             }
         }
 
@@ -88,11 +88,11 @@ namespace BossMod.Endwalker.P3S
             foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
             {
                 bool inRange = player.Position.InCircle(pc.Position, _aoeRadius);
-                arena.Actor(player, inRange ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                arena.Actor(player, inRange ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
             }
 
             // draw circle around pc
-            arena.AddCircle(pc.Position, _aoeRadius, arena.ColorDanger);
+            arena.AddCircle(pc.Position, _aoeRadius, ArenaColor.Danger);
         }
 
         public override void OnEventCast(BossModule module, CastEvent info)

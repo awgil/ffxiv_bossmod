@@ -13,7 +13,7 @@ namespace BossMod.Endwalker.HydaelynEx
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var echo in module.Enemies(OID.Echo).Where(e => e.IsTargetable && !e.IsDead))
-                arena.Actor(echo, arena.ColorEnemy);
+                arena.Actor(echo, ArenaColor.Enemy);
 
             // note that there are two crystals per position, one targetable and one not - untargetable one can be tethered to second echo
             foreach (var crystal in module.Enemies(OID.CrystalOfLight))
@@ -21,12 +21,12 @@ namespace BossMod.Endwalker.HydaelynEx
                 if (crystal.IsTargetable && !crystal.IsDead)
                 {
                     bool isActive = _activeCrystals.Contains(crystal.InstanceID);
-                    arena.Actor(crystal, isActive ? arena.ColorDanger : arena.ColorPlayerGeneric);
+                    arena.Actor(crystal, isActive ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
                 }
 
                 var tether = module.WorldState.Actors.Find(crystal.Tether.Target);
                 if (tether != null)
-                    arena.AddLine(crystal.Position, tether.Position, arena.ColorDanger);
+                    arena.AddLine(crystal.Position, tether.Position, ArenaColor.Danger);
             }
         }
 

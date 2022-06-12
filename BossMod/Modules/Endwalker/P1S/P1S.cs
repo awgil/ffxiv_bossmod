@@ -18,15 +18,15 @@ namespace BossMod.Endwalker.P1S
             {
                 // cells mode
                 float diag = Bounds.HalfSize / 1.414214f;
-                Arena.AddCircle(Bounds.Center, InnerCircleRadius, Arena.ColorBorder);
-                Arena.AddLine(Bounds.Center + new WDir(Bounds.HalfSize, 0), Bounds.Center - new WDir(Bounds.HalfSize, 0), Arena.ColorBorder);
-                Arena.AddLine(Bounds.Center + new WDir(0, Bounds.HalfSize), Bounds.Center - new WDir(0, Bounds.HalfSize), Arena.ColorBorder);
-                Arena.AddLine(Bounds.Center + new WDir(diag,  diag), Bounds.Center - new WDir(diag,  diag), Arena.ColorBorder);
-                Arena.AddLine(Bounds.Center + new WDir(diag, -diag), Bounds.Center - new WDir(diag, -diag), Arena.ColorBorder);
+                Arena.AddCircle(Bounds.Center, InnerCircleRadius, ArenaColor.Border);
+                Arena.AddLine(Bounds.Center + new WDir(Bounds.HalfSize, 0), Bounds.Center - new WDir(Bounds.HalfSize, 0), ArenaColor.Border);
+                Arena.AddLine(Bounds.Center + new WDir(0, Bounds.HalfSize), Bounds.Center - new WDir(0, Bounds.HalfSize), ArenaColor.Border);
+                Arena.AddLine(Bounds.Center + new WDir(diag,  diag), Bounds.Center - new WDir(diag,  diag), ArenaColor.Border);
+                Arena.AddLine(Bounds.Center + new WDir(diag, -diag), Bounds.Center - new WDir(diag, -diag), ArenaColor.Border);
             }
 
-            Arena.Actor(PrimaryActor, Arena.ColorEnemy);
-            Arena.Actor(pc, Arena.ColorPC);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(pc, ArenaColor.PC);
         }
     }
 }

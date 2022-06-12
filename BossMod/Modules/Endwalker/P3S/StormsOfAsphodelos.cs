@@ -121,17 +121,17 @@ namespace BossMod.Endwalker.P3S
         {
             foreach (var twister in module.Enemies(OID.DarkblazeTwister))
             {
-                arena.Actor(twister, arena.ColorEnemy);
+                arena.Actor(twister, ArenaColor.Enemy);
             }
 
             foreach ((int i, var player) in module.Raid.WithSlot())
             {
                 bool tethered = _tetherTargets[i];
                 if (tethered)
-                    arena.AddLine(module.PrimaryActor.Position, player.Position, player.Role == Role.Tank ? arena.ColorSafe : arena.ColorDanger);
+                    arena.AddLine(module.PrimaryActor.Position, player.Position, player.Role == Role.Tank ? ArenaColor.Safe : ArenaColor.Danger);
                 bool active = tethered || _bossTargets[i] || _twisterTargets.Contains(player);
                 bool failing = (_hitByMultipleAOEs | _closeToTetherTarget)[i];
-                arena.Actor(player, active ? arena.ColorDanger : (failing ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric));
+                arena.Actor(player, active ? ArenaColor.Danger : (failing ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric));
             }
         }
 

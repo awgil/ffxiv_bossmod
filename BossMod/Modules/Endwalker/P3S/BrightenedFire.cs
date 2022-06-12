@@ -41,17 +41,17 @@ namespace BossMod.Endwalker.P3S
                 return;
 
             var pos = PositionForOrder(module, _playerOrder[pcSlot]);
-            arena.AddCircle(pos, 1, arena.ColorSafe);
+            arena.AddCircle(pos, 1, ArenaColor.Safe);
 
             // draw all adds
             int addIndex = 0;
             foreach (var fire in module.Enemies(OID.DarkenedFire).SortedByRange(pos))
             {
-                arena.Actor(fire, addIndex++ < 2 ? arena.ColorDanger : arena.ColorPlayerGeneric);
+                arena.Actor(fire, addIndex++ < 2 ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
             }
 
             // draw range circle
-            arena.AddCircle(pc.Position, _aoeRange, arena.ColorDanger);
+            arena.AddCircle(pc.Position, _aoeRange, ArenaColor.Danger);
         }
 
         public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)

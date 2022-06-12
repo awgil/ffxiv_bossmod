@@ -45,8 +45,8 @@ namespace BossMod.Endwalker.P1S
             var start = _explodingCells == Cell.Blue ? 0.Degrees() : 45.Degrees();
             for (int i = 0; i < 4; ++i)
             {
-                arena.ZoneCone(module.Bounds.Center, 0, P1S.InnerCircleRadius, start + 22.5f.Degrees(), 22.5f.Degrees(), arena.ColorAOE);
-                arena.ZoneCone(module.Bounds.Center, P1S.InnerCircleRadius, module.Bounds.HalfSize, start + 67.5f.Degrees(), 22.5f.Degrees(), arena.ColorAOE);
+                arena.ZoneCone(module.Bounds.Center, 0, P1S.InnerCircleRadius, start + 22.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
+                arena.ZoneCone(module.Bounds.Center, P1S.InnerCircleRadius, module.Bounds.HalfSize, start + 67.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
                 start += 90.Degrees();
             }
         }

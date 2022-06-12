@@ -21,9 +21,9 @@ namespace BossMod.Endwalker.P3S
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.ZoneRect(module.Bounds.Center, new WDir(1,  0), module.Bounds.HalfSize, module.Bounds.HalfSize, _halfWidth, arena.ColorAOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(0,  1), module.Bounds.HalfSize, -_halfWidth, _halfWidth, arena.ColorAOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(0, -1), module.Bounds.HalfSize, -_halfWidth, _halfWidth, arena.ColorAOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(1,  0), module.Bounds.HalfSize, module.Bounds.HalfSize, _halfWidth, ArenaColor.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(0,  1), module.Bounds.HalfSize, -_halfWidth, _halfWidth, ArenaColor.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(0, -1), module.Bounds.HalfSize, -_halfWidth, _halfWidth, ArenaColor.AOE);
         }
     }
 }

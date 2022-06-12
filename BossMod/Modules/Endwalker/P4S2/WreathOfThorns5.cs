@@ -42,19 +42,19 @@ namespace BossMod.Endwalker.P4S2
         {
             int order = _playersOrder.IndexOf(pc.InstanceID);
             if (order >= _castsDone && order < _towersOrder.Count)
-                arena.AddCircle(_towersOrder[order].Position, P4S2.WreathTowerRadius, arena.ColorSafe);
+                arena.AddCircle(_towersOrder[order].Position, P4S2.WreathTowerRadius, ArenaColor.Safe);
 
             var pcTetherTarget = pc.Tether.Target != 0 ? module.WorldState.Actors.Find(pc.Tether.Target) : null;
             if (pcTetherTarget != null)
             {
-                arena.AddLine(pc.Position, pcTetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? arena.ColorDanger : arena.ColorSafe);
+                arena.AddLine(pc.Position, pcTetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? ArenaColor.Danger : ArenaColor.Safe);
             }
 
             if (_playersOrder.Count < 8)
             {
-                arena.AddCircle(pc.Position, _impulseAOERadius, arena.ColorDanger);
+                arena.AddCircle(pc.Position, _impulseAOERadius, ArenaColor.Danger);
                 foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                    arena.Actor(player, player.Position.InCircle(pc.Position, _impulseAOERadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(player, player.Position.InCircle(pc.Position, _impulseAOERadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
             }
         }
 

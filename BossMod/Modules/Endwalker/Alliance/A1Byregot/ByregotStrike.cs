@@ -71,8 +71,8 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
                 var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _knockbackCaster, _knockbackDistance);
                 if (adjPos != pc.Position)
                 {
-                    arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
-                    arena.Actor(adjPos, new(), arena.ColorDanger);
+                    arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
+                    arena.Actor(adjPos, new(), ArenaColor.Danger);
                 }
             }
         }

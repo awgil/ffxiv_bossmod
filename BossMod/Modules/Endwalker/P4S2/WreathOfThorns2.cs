@@ -82,14 +82,14 @@ namespace BossMod.Endwalker.P4S2
                 return;
 
             foreach (var aoe in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsAOE))
-                arena.ZoneCircle(aoe.Position, P4S2.WreathAOERadius, arena.ColorAOE);
+                arena.ZoneCircle(aoe.Position, P4S2.WreathAOERadius, ArenaColor.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             // draw players
             foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                arena.Actor(player, arena.ColorPlayerGeneric);
+                arena.Actor(player, ArenaColor.PlayerGeneric);
 
             // draw pc's tether
             var pcPartner = pc.Tether.Target != 0
@@ -109,7 +109,7 @@ namespace BossMod.Endwalker.P4S2
             bool isTowerSoaker = pc == _darkTH.Item1 || pc == _darkTH.Item2;
             if (isTowerSoaker && CurState != State.Done)
                 foreach (var tower in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsTower))
-                    arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, CurState == State.DarkDesign ?  arena.ColorDanger : arena.ColorSafe);
+                    arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, CurState == State.DarkDesign ?  ArenaColor.Danger : ArenaColor.Safe);
 
             // draw circles around next imminent fire explosion
             if (CurState != State.DarkDesign)
@@ -117,8 +117,8 @@ namespace BossMod.Endwalker.P4S2
                 var curFirePair = (_fireTH.Item1 != null && _fireTH.Item1.Tether.ID != 0) ? _fireTH : ((_fireDD.Item1 != null && _fireDD.Item1.Tether.ID != 0) ? _fireDD : (null, null));
                 if (curFirePair.Item1 != null)
                 {
-                    arena.AddCircle(curFirePair.Item1!.Position, _fireExplosionRadius, isTowerSoaker ? arena.ColorDanger : arena.ColorSafe);
-                    arena.AddCircle(curFirePair.Item2!.Position, _fireExplosionRadius, isTowerSoaker ? arena.ColorDanger : arena.ColorSafe);
+                    arena.AddCircle(curFirePair.Item1!.Position, _fireExplosionRadius, isTowerSoaker ? ArenaColor.Danger : ArenaColor.Safe);
+                    arena.AddCircle(curFirePair.Item2!.Position, _fireExplosionRadius, isTowerSoaker ? ArenaColor.Danger : ArenaColor.Safe);
                 }
             }
         }

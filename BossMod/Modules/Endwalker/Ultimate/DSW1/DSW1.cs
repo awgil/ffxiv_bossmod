@@ -45,10 +45,10 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
-            Arena.Actor(SerAdelphel(), Arena.ColorEnemy);
-            Arena.Actor(SerGrinnaux(), Arena.ColorEnemy);
-            Arena.Actor(SerCharibert(), Arena.ColorEnemy);
-            Arena.Actor(pc, Arena.ColorPC);
+            Arena.Actor(SerAdelphel(), ArenaColor.Enemy);
+            Arena.Actor(SerGrinnaux(), ArenaColor.Enemy);
+            Arena.Actor(SerCharibert(), ArenaColor.Enemy);
+            Arena.Actor(pc, ArenaColor.PC);
         }
     }
 }

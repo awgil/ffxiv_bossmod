@@ -39,7 +39,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
                 foreach (var flame in module.Enemies(OID.WardensFlame))
                 {
                     var dir = Angle.FromDirection(flame.Position - module.Bounds.Center) + 45.Degrees();
-                    arena.ZoneCone(module.Bounds.Center, _flightRadiusInner, _flightRadiusOuter, dir, 45.Degrees(), arena.ColorAOE);
+                    arena.ZoneCone(module.Bounds.Center, _flightRadiusInner, _flightRadiusOuter, dir, 45.Degrees(), ArenaColor.AOE);
                 }
             }
 

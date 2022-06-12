@@ -58,11 +58,11 @@ namespace BossMod.Endwalker.P3S
                 var bird = watchedBirds[i];
                 if (bird.IsDead)
                 {
-                    arena.AddCircle(bird.Position, _radius, arena.ColorDanger);
+                    arena.AddCircle(bird.Position, _radius, ArenaColor.Danger);
                 }
                 else if (bird.TargetID == pc.InstanceID)
                 {
-                    arena.Actor(bird, _birdsAtRisk[i] ? arena.ColorEnemy : arena.ColorPlayerGeneric);
+                    arena.Actor(bird, _birdsAtRisk[i] ? ArenaColor.Enemy : ArenaColor.PlayerGeneric);
                 }
             }
         }

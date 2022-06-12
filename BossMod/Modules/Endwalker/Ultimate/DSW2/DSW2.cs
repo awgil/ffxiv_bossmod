@@ -53,10 +53,10 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
             if (!PrimaryActor.IsDestroyed)
-                Arena.Actor(PrimaryActor, Arena.ColorEnemy);
-            Arena.Actor(_bossP3, Arena.ColorEnemy);
-            //Arena.AddLine(PrimaryActor.Position, PrimaryActor.Position + GeometryUtils.DirectionToVec3(PrimaryActor.Rotation) * 5, Arena.ColorEnemy);
-            Arena.Actor(pc, Arena.ColorPC);
+                Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(_bossP3, ArenaColor.Enemy);
+            //Arena.AddLine(PrimaryActor.Position, PrimaryActor.Position + GeometryUtils.DirectionToVec3(PrimaryActor.Rotation) * 5, ArenaColor.Enemy);
+            Arena.Actor(pc, ArenaColor.PC);
         }
     }
 }

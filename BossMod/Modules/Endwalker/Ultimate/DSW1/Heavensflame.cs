@@ -43,8 +43,8 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
             if (partner >= 0)
             {
-                arena.Actor(module.Raid[partner], arena.ColorPlayerInteresting);
-                arena.AddLine(pc.Position, module.Raid[partner]!.Position, arena.ColorSafe);
+                arena.Actor(module.Raid[partner], ArenaColor.PlayerInteresting);
+                arena.AddLine(pc.Position, module.Raid[partner]!.Position, ArenaColor.Safe);
             }
 
             if (!_active)
@@ -53,15 +53,15 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             if (_knockbackSource != null)
             {
                 var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _knockbackSource, _knockbackDistance);
-                arena.Actor(adjPos, new(), arena.ColorDanger);
-                arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
+                arena.Actor(adjPos, new(), ArenaColor.Danger);
+                arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
             }
 
             foreach (var (slot, player) in module.Raid.WithSlot().Exclude(pc))
             {
                 if (slot != partner)
-                    arena.Actor(player, arena.ColorPlayerGeneric);
-                arena.AddCircle(BossModule.AdjustPositionForKnockback(player.Position, _knockbackSource, _knockbackDistance), _aoeRadius, arena.ColorDanger);
+                    arena.Actor(player, ArenaColor.PlayerGeneric);
+                arena.AddCircle(BossModule.AdjustPositionForKnockback(player.Position, _knockbackSource, _knockbackDistance), _aoeRadius, ArenaColor.Danger);
             }
         }
 
@@ -124,10 +124,10 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             var pos = module.WorldState.Waymarks[wm];
             if (pos != null)
             {
-                module.Arena.AddCircle(new(pos.Value.XZ()), 2, module.Arena.ColorSafe);
+                module.Arena.AddCircle(new(pos.Value.XZ()), 2, ArenaColor.Safe);
                 //var dir = Vector3.Normalize(pos.Value - _knockbackSource.Position);
                 //var adjPos = module.Arena.ClampToBounds(_knockbackSource.Position + 50 * dir);
-                //module.Arena.AddLine(module.Bounds.Center, adjPos, module.Arena.ColorSafe);
+                //module.Arena.AddLine(module.Bounds.Center, adjPos, ArenaColor.Safe);
             }
         }
     }

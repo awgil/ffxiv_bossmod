@@ -314,7 +314,7 @@ namespace BossMod
             var hints = CalculateHintsForRaidMember(pcSlot, pc, movementHints);
             foreach ((var hint, bool risk) in hints)
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, risk ? Arena.ColorDanger : Arena.ColorSafe);
+                ImGui.PushStyleColor(ImGuiCol.Text, risk ? ArenaColor.Danger : ArenaColor.Safe);
                 ImGui.TextUnformatted(hint);
                 ImGui.PopStyleColor();
                 ImGui.SameLine();

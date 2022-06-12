@@ -82,17 +82,17 @@ namespace BossMod.Endwalker.Alliance.A2Rhalgr
             Arena.PathLineTo(new(-45.5f, 297));
             Arena.PathLineTo(new(-34, 271.5f));
             Arena.PathLineTo(new(-37, 245));
-            Arena.PathStroke(true, Arena.ColorBorder);
+            Arena.PathStroke(true, ArenaColor.Border);
 
             foreach (var p in WorldState.Actors)
                 if (p.Type == ActorType.Player && !p.IsDead)
-                    Arena.Actor(p, Arena.ColorPlayerGeneric);
+                    Arena.Actor(p, ArenaColor.PlayerGeneric);
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, Arena.ColorEnemy);
-            Arena.Actor(pc, Arena.ColorPC);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(pc, ArenaColor.PC);
         }
     }
 }

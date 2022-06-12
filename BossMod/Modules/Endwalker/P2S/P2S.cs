@@ -20,8 +20,8 @@
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, Arena.ColorEnemy);
-            Arena.Actor(pc, Arena.ColorPC);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(pc, ArenaColor.PC);
         }
     }
 }

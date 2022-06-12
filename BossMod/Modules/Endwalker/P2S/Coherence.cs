@@ -87,17 +87,17 @@ namespace BossMod.Endwalker.P2S
             {
                 if (head?.Tether.Target == player.InstanceID)
                 {
-                    arena.AddLine(player.Position, module.PrimaryActor.Position, arena.ColorDanger);
-                    arena.Actor(player, arena.ColorDanger);
-                    arena.AddCircle(player.Position, _aoeRadius, arena.ColorDanger);
+                    arena.AddLine(player.Position, module.PrimaryActor.Position, ArenaColor.Danger);
+                    arena.Actor(player, ArenaColor.Danger);
+                    arena.AddCircle(player.Position, _aoeRadius, ArenaColor.Danger);
                 }
                 else if (player == _rayTarget)
                 {
-                    arena.Actor(player, arena.ColorDanger);
+                    arena.Actor(player, ArenaColor.Danger);
                 }
                 else if (player != _tetherTarget)
                 {
-                    arena.Actor(player, _inRay[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(player, _inRay[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
                 }
             }
         }

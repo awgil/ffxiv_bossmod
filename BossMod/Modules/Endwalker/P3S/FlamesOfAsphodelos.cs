@@ -22,17 +22,17 @@ namespace BossMod.Endwalker.P3S
         {
             if (_directions[0] != null)
             {
-                DrawZone(arena, _directions[0], arena.ColorDanger);
-                DrawZone(arena, _directions[1], arena.ColorAOE);
+                DrawZone(arena, _directions[0], ArenaColor.Danger);
+                DrawZone(arena, _directions[1], ArenaColor.AOE);
             }
             else if (_directions[1] != null)
             {
-                DrawZone(arena, _directions[1], arena.ColorDanger);
-                DrawZone(arena, _directions[2], arena.ColorAOE);
+                DrawZone(arena, _directions[1], ArenaColor.Danger);
+                DrawZone(arena, _directions[2], ArenaColor.AOE);
             }
             else
             {
-                DrawZone(arena, _directions[2], arena.ColorDanger);
+                DrawZone(arena, _directions[2], ArenaColor.Danger);
             }
         }
 

@@ -66,12 +66,12 @@ namespace BossMod.Endwalker.P4S2
             {
                 if (_targets[i])
                 {
-                    arena.Actor(player, arena.ColorDanger);
-                    arena.AddCircle(player.Position, _aoeRadius, arena.ColorDanger);
+                    arena.Actor(player, ArenaColor.Danger);
+                    arena.AddCircle(player.Position, _aoeRadius, ArenaColor.Danger);
                 }
                 else
                 {
-                    arena.Actor(player, _inAOE[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(player, _inAOE[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
                 }
             }
         }

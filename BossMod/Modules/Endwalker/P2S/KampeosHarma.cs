@@ -21,7 +21,7 @@ namespace BossMod.Endwalker.P2S
                 hints.Add("Go to safe zone!");
                 if (movementHints != null)
                 {
-                    movementHints.Add(actor.Position, safePos.Value, module.Arena.ColorDanger);
+                    movementHints.Add(actor.Position, safePos.Value, ArenaColor.Danger);
                 }
             }
         }
@@ -30,7 +30,7 @@ namespace BossMod.Endwalker.P2S
         {
             var pos = GetSafeZone(module, pcSlot);
             if (pos != null)
-                arena.AddCircle(pos.Value, 1, arena.ColorSafe);
+                arena.AddCircle(pos.Value, 1, ArenaColor.Safe);
         }
 
         public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)

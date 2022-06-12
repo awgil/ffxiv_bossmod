@@ -52,8 +52,8 @@ namespace BossMod.Endwalker.EndsingerEx
             if (_planetsAzure.Count > 0)
             {
                 var offsetLocation = AdjustPositionForKnockback(pc.Position, _planetsAzure[0], _knockbackDistance);
-                arena.AddLine(pc.Position, offsetLocation, arena.ColorDanger);
-                arena.Actor(offsetLocation, new(), arena.ColorDanger);
+                arena.AddLine(pc.Position, offsetLocation, ArenaColor.Danger);
+                arena.Actor(offsetLocation, new(), ArenaColor.Danger);
             }
         }
 

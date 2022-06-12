@@ -77,7 +77,7 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
 
             _slammer.Draw(arena, module.PrimaryActor.Position, _slamDir);
             if (_slamDirIncrement.Rad != MathF.PI)
-                arena.ZoneCone(module.PrimaryActor.Position, 0, _slammer.Radius, _slamDir - _slamDirIncrement * 3 / 2, 45.Degrees(), arena.ColorSafeFromAOE);
+                arena.ZoneCone(module.PrimaryActor.Position, 0, _slammer.Radius, _slamDir - _slamDirIncrement * 3 / 2, 45.Degrees(), ArenaColor.SafeFromAOE);
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)

@@ -243,11 +243,11 @@ namespace BossMod.Endwalker.P1S
             {
                 case 1:
                     var mid = PosCenter(module, Position2(module, assignment));
-                    yield return (mid, PosCenter(module, Position3(module, assignment)), module.Arena.ColorDanger);
-                    yield return (startingPosition, mid, module.Arena.ColorSafe);
+                    yield return (mid, PosCenter(module, Position3(module, assignment)), ArenaColor.Danger);
+                    yield return (startingPosition, mid, ArenaColor.Safe);
                     break;
                 case 2:
-                    yield return (startingPosition, PosCenter(module, Position3(module, assignment)), module.Arena.ColorSafe);
+                    yield return (startingPosition, PosCenter(module, Position3(module, assignment)), ArenaColor.Safe);
                     break;
             }
         }

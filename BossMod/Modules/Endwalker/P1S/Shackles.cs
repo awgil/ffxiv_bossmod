@@ -79,7 +79,7 @@ namespace BossMod.Endwalker.P1S
 
             if (movementHints != null && _preferredPositions[slot] != new WPos())
             {
-                movementHints.Add(actor.Position, _preferredPositions[slot], module.Arena.ColorSafe);
+                movementHints.Add(actor.Position, _preferredPositions[slot], ArenaColor.Safe);
             }
         }
 
@@ -102,9 +102,9 @@ namespace BossMod.Endwalker.P1S
 
                 // draw explosion circles that hit me
                 if (_blueExplosionMatrix[pcSlot, i])
-                    arena.AddCircle(actor.Position, _blueExplosionRadius, arena.ColorDanger);
+                    arena.AddCircle(actor.Position, _blueExplosionRadius, ArenaColor.Danger);
                 if (_redExplosionMatrix[pcSlot, i])
-                    arena.AddCircle(actor.Position, _redExplosionRadius, arena.ColorDanger);
+                    arena.AddCircle(actor.Position, _redExplosionRadius, ArenaColor.Danger);
 
                 drawBlueAroundMe |= _blueExplosionMatrix[i, pcSlot];
                 drawRedAroundMe |= _redExplosionMatrix[i, pcSlot];
@@ -112,13 +112,13 @@ namespace BossMod.Endwalker.P1S
 
             // draw explosion circles if I hit anyone
             if (drawBlueAroundMe)
-                arena.AddCircle(pc.Position, _blueExplosionRadius, arena.ColorDanger);
+                arena.AddCircle(pc.Position, _blueExplosionRadius, ArenaColor.Danger);
             if (drawRedAroundMe)
-                arena.AddCircle(pc.Position, _redExplosionRadius, arena.ColorDanger);
+                arena.AddCircle(pc.Position, _redExplosionRadius, ArenaColor.Danger);
 
             // draw assigned spot, if any
             if (_preferredPositions[pcSlot] != new WPos())
-                arena.AddCircle(_preferredPositions[pcSlot], 2, arena.ColorSafe);
+                arena.AddCircle(_preferredPositions[pcSlot], 2, ArenaColor.Safe);
 
         }
 

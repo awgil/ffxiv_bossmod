@@ -58,8 +58,8 @@ namespace BossMod
             {
                 if (_target != null)
                 {
-                    arena.Actor(_target, arena.ColorDanger);
-                    arena.AddCircle(_target.Position, _radius, arena.ColorDanger);
+                    arena.Actor(_target, ArenaColor.Danger);
+                    arena.AddCircle(_target.Position, _radius, ArenaColor.Danger);
                 }
             }
 
@@ -100,17 +100,17 @@ namespace BossMod
                 if (Target == null)
                     return;
 
-                arena.AddCircle(Target.Position, StackRadius, arena.ColorDanger);
+                arena.AddCircle(Target.Position, StackRadius, ArenaColor.Danger);
                 if (Target == pc)
                 {
                     // draw other players to simplify stacking
                     foreach (var a in module.Raid.WithoutSlot().Exclude(pc))
-                        arena.Actor(a, a.Position.InCircle(Target.Position, StackRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                        arena.Actor(a, a.Position.InCircle(Target.Position, StackRadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
                 }
                 else
                 {
                     // draw target next to which pc is to stack
-                    arena.Actor(Target, arena.ColorDanger);
+                    arena.Actor(Target, ArenaColor.Danger);
                 }
             }
         }
@@ -138,8 +138,8 @@ namespace BossMod
             {
                 foreach (var e in _active)
                 {
-                    arena.Actor(e.Target, arena.ColorDanger);
-                    arena.AddCircle(e.Target.Position, _spreadRadius, arena.ColorDanger);
+                    arena.Actor(e.Target, ArenaColor.Danger);
+                    arena.AddCircle(e.Target.Position, _spreadRadius, ArenaColor.Danger);
                 }
             }
 
@@ -274,8 +274,8 @@ namespace BossMod
                 if (_caster != null)
                 {
                     var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _caster, _distance);
-                    arena.Actor(adjPos, new(), arena.ColorDanger);
-                    arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
+                    arena.Actor(adjPos, new(), ArenaColor.Danger);
+                    arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
                 }
             }
 

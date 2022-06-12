@@ -34,8 +34,8 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
         {
             if (_stackTarget != null)
             {
-                arena.Actor(_stackTarget, arena.ColorDanger);
-                arena.AddCircle(_stackTarget.Position, _stackRadius, arena.ColorSafe);
+                arena.Actor(_stackTarget, ArenaColor.Danger);
+                arena.AddCircle(_stackTarget.Position, _stackRadius, ArenaColor.Safe);
             }
         }
 

@@ -64,13 +64,13 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
         {
             foreach (var p in WorldState.Actors)
                 if (p.Type == ActorType.Player && !p.IsDead)
-                    Arena.Actor(p, Arena.ColorPlayerGeneric);
+                    Arena.Actor(p, ArenaColor.PlayerGeneric);
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, Arena.ColorEnemy);
-            Arena.Actor(pc, Arena.ColorPC);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(pc, ArenaColor.PC);
         }
     }
 }

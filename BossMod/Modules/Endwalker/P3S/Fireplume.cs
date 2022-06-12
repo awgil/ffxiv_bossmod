@@ -41,13 +41,13 @@ namespace BossMod.Endwalker.P3S
         {
             if (_singlePos != null)
             {
-                arena.ZoneCircle(_singlePos.Value, _singleRadius, arena.ColorAOE);
+                arena.ZoneCircle(_singlePos.Value, _singleRadius, ArenaColor.AOE);
             }
 
             if (_multiStartedCasts > _multiFinishedCasts)
             {
                 if (_multiFinishedCasts > 0) // don't draw center aoe before first explosion, it's confusing - but start drawing it immediately after first explosion, to simplify positioning
-                    arena.ZoneCircle(module.Bounds.Center, _multiRadius, _multiFinishedCasts >= 6 ? arena.ColorDanger : arena.ColorAOE);
+                    arena.ZoneCircle(module.Bounds.Center, _multiRadius, _multiFinishedCasts >= 6 ? ArenaColor.Danger : ArenaColor.AOE);
 
                 // don't draw more than two next pairs
                 if (_multiFinishedCasts < 8)
@@ -106,8 +106,8 @@ namespace BossMod.Endwalker.P3S
         private void DrawPair(MiniArena arena, Angle direction, bool imminent)
         {
             var offset = _multiPairOffset * direction.ToDirection();
-            arena.ZoneCircle(arena.Bounds.Center + offset, _multiRadius, imminent ? arena.ColorDanger : arena.ColorAOE);
-            arena.ZoneCircle(arena.Bounds.Center - offset, _multiRadius, imminent ? arena.ColorDanger : arena.ColorAOE);
+            arena.ZoneCircle(arena.Bounds.Center + offset, _multiRadius, imminent ? ArenaColor.Danger : ArenaColor.AOE);
+            arena.ZoneCircle(arena.Bounds.Center - offset, _multiRadius, imminent ? ArenaColor.Danger : ArenaColor.AOE);
         }
     }
 }

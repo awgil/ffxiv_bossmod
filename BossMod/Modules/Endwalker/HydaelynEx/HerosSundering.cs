@@ -57,11 +57,11 @@ namespace BossMod.Endwalker.HydaelynEx
             if (pc == _target)
             {
                 foreach (var (slot, player) in module.Raid.WithSlot().Exclude(_target))
-                    arena.Actor(player, _otherHit[slot] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                    arena.Actor(player, _otherHit[slot] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
             }
             else
             {
-                arena.Actor(_target, arena.ColorDanger);
+                arena.Actor(_target, ArenaColor.Danger);
             }
         }
     }

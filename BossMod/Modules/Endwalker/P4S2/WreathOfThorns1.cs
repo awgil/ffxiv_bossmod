@@ -54,7 +54,7 @@ namespace BossMod.Endwalker.P4S2
         {
             if (CurState == State.FirstAOEs || CurState == State.LastAOEs)
                 foreach (var aoe in CurState == State.FirstAOEs ? _firstAOEs : _lastAOEs)
-                    arena.ZoneCircle(aoe.Position, P4S2.WreathAOERadius, arena.ColorAOE);
+                    arena.ZoneCircle(aoe.Position, P4S2.WreathAOERadius, ArenaColor.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -62,9 +62,9 @@ namespace BossMod.Endwalker.P4S2
             if (CurState == State.Towers)
             {
                 foreach (var tower in _towers)
-                    arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, arena.ColorSafe);
+                    arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, ArenaColor.Safe);
                 foreach (var player in module.Raid.WithoutSlot())
-                    arena.Actor(player, arena.ColorPlayerGeneric);
+                    arena.Actor(player, ArenaColor.PlayerGeneric);
             }
         }
 

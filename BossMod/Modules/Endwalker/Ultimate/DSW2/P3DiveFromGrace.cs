@@ -102,7 +102,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                arena.Actor(player, arena.ColorPlayerGeneric);
+                arena.Actor(player, ArenaColor.PlayerGeneric);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, int index)

@@ -78,11 +78,11 @@ namespace BossMod.Endwalker.P3S
             float aoeRadius = CurState == State.Stack ? _stackRadius : _spreadRadius;
             foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
             {
-                arena.Actor(player, player.Position.InCircle(pc.Position, aoeRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                arena.Actor(player, player.Position.InCircle(pc.Position, aoeRadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
             }
 
             // draw circle around pc
-            arena.AddCircle(pc.Position, aoeRadius, arena.ColorDanger);
+            arena.AddCircle(pc.Position, aoeRadius, ArenaColor.Danger);
         }
 
         public override void OnEventCast(BossModule module, CastEvent info)

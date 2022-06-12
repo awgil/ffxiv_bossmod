@@ -34,13 +34,13 @@ namespace BossMod.Endwalker.P4S1
         {
             if (_cloakCaster != null)
             {
-                arena.AddCircle(_cloakCaster.Position, 5, arena.ColorSafe);
+                arena.AddCircle(_cloakCaster.Position, 5, ArenaColor.Safe);
 
                 var adjPos = AdjustPositionForKnockback(pc.Position, _cloakCaster, _knockbackRange);
                 if (adjPos != pc.Position)
                 {
-                    arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
-                    arena.Actor(adjPos, pc.Rotation, arena.ColorDanger);
+                    arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
+                    arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
                 }
             }
         }

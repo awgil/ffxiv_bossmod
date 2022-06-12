@@ -113,12 +113,12 @@ namespace BossMod.Endwalker.P4S1
             {
                 bool failing = failingPlayers[i];
                 bool inAOE = _tetherInAOE[i];
-                arena.Actor(player, failing ? arena.ColorDanger : (inAOE ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric));
+                arena.Actor(player, failing ? ArenaColor.Danger : (inAOE ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric));
 
                 if (player.Tether.ID == (uint)TetherID.Chlamys)
                 {
-                    arena.AddLine(player.Position, module.PrimaryActor.Position, failing ? arena.ColorDanger : arena.ColorSafe);
-                    arena.AddCircle(player.Position, _aoeRange, arena.ColorDanger);
+                    arena.AddLine(player.Position, module.PrimaryActor.Position, failing ? ArenaColor.Danger : ArenaColor.Safe);
+                    arena.AddCircle(player.Position, _aoeRange, ArenaColor.Danger);
                 }
             }
         }

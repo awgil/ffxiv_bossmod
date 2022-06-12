@@ -99,14 +99,14 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             if (_knockbackSource != null)
             {
                 var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _knockbackSource, _knockbackDistance);
-                arena.Actor(adjPos, new(), arena.ColorDanger);
-                arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
+                arena.Actor(adjPos, new(), ArenaColor.Danger);
+                arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
             }
 
             if (_doneCharges > 0 && _executionTarget != null)
             {
-                arena.Actor(_executionTarget, arena.ColorDanger);
-                arena.AddCircle(_executionTarget.Position, _executionRadius, arena.ColorDanger);
+                arena.Actor(_executionTarget, ArenaColor.Danger);
+                arena.AddCircle(_executionTarget.Position, _executionRadius, ArenaColor.Danger);
             }
         }
 

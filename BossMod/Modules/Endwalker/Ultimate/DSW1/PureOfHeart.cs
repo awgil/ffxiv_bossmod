@@ -63,7 +63,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
             foreach (var c in _skyblindCasters)
             {
-                arena.ZoneCircle(c.CastInfo!.LocXZ, _skyblindRadius, arena.ColorAOE);
+                arena.ZoneCircle(c.CastInfo!.LocXZ, _skyblindRadius, ArenaColor.AOE);
             }
         }
 
@@ -73,12 +73,12 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             {
                 if (_skyblindPlayers[slot])
                 {
-                    arena.Actor(player, arena.ColorDanger);
-                    arena.AddCircle(player.Position, _skyblindRadius, arena.ColorDanger);
+                    arena.Actor(player, ArenaColor.Danger);
+                    arena.AddCircle(player.Position, _skyblindRadius, ArenaColor.Danger);
                 }
                 else
                 {
-                    arena.Actor(player, _coneTargets[slot] ? arena.ColorDanger : arena.ColorPlayerGeneric);
+                    arena.Actor(player, _coneTargets[slot] ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
                 }
             }
         }

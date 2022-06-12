@@ -71,15 +71,15 @@ namespace BossMod.Endwalker.ARanks.Sugriva
                 var target = module.WorldState.Actors.Find(module.PrimaryActor.CastInfo!.TargetID);
                 if (target != null)
                 {
-                    arena.Actor(target, arena.ColorDanger);
-                    arena.AddCircle(target.Position, _twisterRadius, arena.ColorDanger);
+                    arena.Actor(target, ArenaColor.Danger);
+                    arena.AddCircle(target.Position, _twisterRadius, ArenaColor.Danger);
                     if (pc.Position.InCircle(target.Position, _twisterRadius))
                     {
                         var kbPos = BossModule.AdjustPositionForKnockback(pc.Position, target, _twisterKnockback);
                         if (kbPos != pc.Position)
                         {
-                            arena.AddLine(pc.Position, kbPos, arena.ColorDanger);
-                            arena.Actor(kbPos, pc.Rotation, arena.ColorDanger);
+                            arena.AddLine(pc.Position, kbPos, ArenaColor.Danger);
+                            arena.Actor(kbPos, pc.Rotation, ArenaColor.Danger);
                         }
                     }
                 }
@@ -87,8 +87,8 @@ namespace BossMod.Endwalker.ARanks.Sugriva
 
             if (_rockThrowTarget != null)
             {
-                arena.Actor(_rockThrowTarget, arena.ColorDanger);
-                arena.AddCircle(_rockThrowTarget.Position, _rockThrow.Radius, arena.ColorDanger);
+                arena.Actor(_rockThrowTarget, ArenaColor.Danger);
+                arena.AddCircle(_rockThrowTarget.Position, _rockThrow.Radius, ArenaColor.Danger);
             }
         }
 

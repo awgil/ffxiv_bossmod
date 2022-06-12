@@ -92,13 +92,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (movementHints != null && _players[slot].AssignedQuadrant >= 0)
             {
                 var from = actor.Position;
-                var color = module.Arena.ColorSafe;
+                var color = ArenaColor.Safe;
                 if (!StormDone)
                 {
                     var stormPos = StormPlacementPosition(module, _players[slot].AssignedQuadrant);
                     movementHints.Add(from, stormPos, color);
                     from = stormPos;
-                    color = module.Arena.ColorDanger;
+                    color = ArenaColor.Danger;
                 }
 
                 foreach (var tower in _towers1)
@@ -122,27 +122,27 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var (slot, player) in module.Raid.WithSlot().Exclude(pc))
-                arena.Actor(player, _players[slot].HavePrey ? arena.ColorDanger : arena.ColorPlayerGeneric);
+                arena.Actor(player, _players[slot].HavePrey ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
 
             if (_activeTowers1 == 8)
             {
                 float diag = module.Bounds.HalfSize / 1.414214f;
-                arena.AddLine(module.Bounds.Center + new WDir(diag,  diag), module.Bounds.Center - new WDir(diag,  diag), arena.ColorBorder);
-                arena.AddLine(module.Bounds.Center + new WDir(diag, -diag), module.Bounds.Center - new WDir(diag, -diag), arena.ColorBorder);
+                arena.AddLine(module.Bounds.Center + new WDir(diag,  diag), module.Bounds.Center - new WDir(diag,  diag), ArenaColor.Border);
+                arena.AddLine(module.Bounds.Center + new WDir(diag, -diag), module.Bounds.Center - new WDir(diag, -diag), ArenaColor.Border);
 
                 foreach (var tower in _towers1)
                 {
                     if (tower.Actor?.CastInfo != null)
                     {
                         if (tower.AssignedPlayers[pcSlot])
-                            arena.AddCircle(tower.Actor.CastInfo.LocXZ, _towerRadius, arena.ColorSafe, 2);
+                            arena.AddCircle(tower.Actor.CastInfo.LocXZ, _towerRadius, ArenaColor.Safe, 2);
                         else
-                            arena.AddCircle(tower.Actor.CastInfo.LocXZ, _towerRadius, arena.ColorDanger, 1);
+                            arena.AddCircle(tower.Actor.CastInfo.LocXZ, _towerRadius, ArenaColor.Danger, 1);
                     }
                 }
 
                 if (!StormDone)
-                    arena.AddCircle(pc.Position, _stormRadius, arena.ColorDanger);
+                    arena.AddCircle(pc.Position, _stormRadius, ArenaColor.Danger);
             }
 
             for (int i = 0; i < _towers2.Length; ++i)
@@ -151,9 +151,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 if (tower?.CastInfo != null)
                 {
                     if (_players[pcSlot].AssignedTower2 == i)
-                        arena.AddCircle(tower.CastInfo.LocXZ, _towerRadius, arena.ColorSafe, 2);
+                        arena.AddCircle(tower.CastInfo.LocXZ, _towerRadius, ArenaColor.Safe, 2);
                     else
-                        arena.AddCircle(tower.CastInfo.LocXZ, _towerRadius, arena.ColorDanger, 1);
+                        arena.AddCircle(tower.CastInfo.LocXZ, _towerRadius, ArenaColor.Danger, 1);
                 }
             }
 
@@ -161,8 +161,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 foreach (var comet in module.Enemies(OID.HolyComet))
                 {
-                    arena.Actor(comet, arena.ColorObject);
-                    arena.AddCircle(comet.Position, _cometLinkRange, arena.ColorObject);
+                    arena.Actor(comet, ArenaColor.Object);
+                    arena.AddCircle(comet.Position, _cometLinkRange, ArenaColor.Object);
                 }
             }
         }

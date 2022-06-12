@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_active)
-                arena.ZoneTri(_tri[0], _tri[1], _tri[2], arena.ColorSafeFromAOE);
+                arena.ZoneTri(_tri[0], _tri[1], _tri[2], ArenaColor.SafeFromAOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -34,8 +34,8 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             var adjPos = AdjustedPosition(pc);
             if (adjPos != pc.Position)
             {
-                arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
-                arena.Actor(adjPos, new(), arena.ColorDanger);
+                arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
+                arena.Actor(adjPos, new(), ArenaColor.Danger);
             }
         }
 

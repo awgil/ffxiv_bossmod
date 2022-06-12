@@ -41,8 +41,8 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
             var adjPos = _vulcanBurstImminent ? arena.Bounds.ClampToBounds(BossModule.AdjustPositionForKnockback(pc.Position, _mistralSong, 30)) : pc.Position;
             if (adjPos != pc.Position)
             {
-                arena.AddLine(pc.Position, adjPos, arena.ColorDanger);
-                arena.Actor(adjPos, 0.Degrees(), arena.ColorDanger);
+                arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
+                arena.Actor(adjPos, 0.Degrees(), ArenaColor.Danger);
             }
         }
 

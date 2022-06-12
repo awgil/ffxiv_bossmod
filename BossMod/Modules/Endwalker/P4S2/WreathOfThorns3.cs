@@ -97,24 +97,24 @@ namespace BossMod.Endwalker.P4S2
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach ((int i, var player) in module.Raid.WithSlot())
-                arena.Actor(player, _playersInAOE[i] ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
+                arena.Actor(player, _playersInAOE[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
 
             if (CurState != State.Done)
             {
                 foreach (var tower in (CurState == State.RangedTowers ? _rangedTowers : _meleeTowers))
-                    arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, arena.ColorSafe);
+                    arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, ArenaColor.Safe);
             }
 
             if (NumCones != NumJumps)
             {
                 foreach ((_, var player) in module.Raid.WithSlot().IncludedInMask(_coneTargets))
-                    arena.Actor(player, arena.ColorDanger);
-                arena.Actor(_jumpTarget, arena.ColorVulnerable);
+                    arena.Actor(player, ArenaColor.Danger);
+                arena.Actor(_jumpTarget, ArenaColor.Vulnerable);
             }
             else if (_jumpTarget != null)
             {
-                arena.Actor(_jumpTarget, arena.ColorDanger);
-                arena.AddCircle(_jumpTarget.Position, _jumpAOERadius, arena.ColorDanger);
+                arena.Actor(_jumpTarget, ArenaColor.Danger);
+                arena.AddCircle(_jumpTarget.Position, _jumpAOERadius, ArenaColor.Danger);
             }
         }
 

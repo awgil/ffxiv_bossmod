@@ -46,14 +46,14 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             if (_blazeTarget != null)
             {
                 foreach (var p in module.Raid.WithoutSlot())
-                    arena.Actor(p, p == _danceTarget || p == _blazeTarget ? arena.ColorDanger : p.Position.InCircle(_blazeTarget.Position, _blazeRadius) ? arena.ColorPlayerInteresting : arena.ColorPlayerGeneric);
-                arena.AddCircle(_blazeTarget.Position, _blazeRadius, arena.ColorSafe);
+                    arena.Actor(p, p == _danceTarget || p == _blazeTarget ? ArenaColor.Danger : p.Position.InCircle(_blazeTarget.Position, _blazeRadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                arena.AddCircle(_blazeTarget.Position, _blazeRadius, ArenaColor.Safe);
             }
             else if (_danceSource != null && _danceTarget != null)
             {
                 foreach (var p in module.Raid.WithoutSlot())
-                    arena.Actor(p, p == _danceTarget ? arena.ColorDanger : arena.ColorPlayerGeneric);
-                arena.AddLine(_danceSource.Position, _danceTarget.Position, arena.ColorDanger);
+                    arena.Actor(p, p == _danceTarget ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
+                arena.AddLine(_danceSource.Position, _danceTarget.Position, ArenaColor.Danger);
             }
         }
 
