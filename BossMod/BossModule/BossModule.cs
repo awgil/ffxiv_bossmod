@@ -69,10 +69,21 @@ namespace BossMod
         // individual components should be activated and deactivated when needed (typically by state machine transitions)
         public class Component
         {
+            // a set of player priorities; if there are several active components, non-player party member is drawn using color provided by component that returned highest priority (or default color for this priority)
+            public enum PlayerPriority
+            {
+                Irrelevant, // player is completely irrelevant to any mechanics done by PC; it might be even not drawn at all, depending on configuration
+                Normal, // player is drawn (it might be important to PC for proper positioning, e.g. so that it is not clipped by other mechanic), but is currently not particularly important
+                Interesting, // player is drawn, and it is somewhat interesting for PC (e.g. it might currently be at risk of being clipped by PC's mechanic)
+                Danger, // player is a source of danger to the player: might be risking failing a mechanic that would wipe a raid, or might be baiting nasty AOE, etc.
+                Critical, // tracking this player's position is extremely important
+            }
+
             public virtual void Init(BossModule module) { } // called at activation
             public virtual void Update(BossModule module) { } // called every frame - it is a good place to update any cached values
             public virtual void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) { } // gather any relevant pieces of advice for specified raid member
             public virtual void AddGlobalHints(BossModule module, GlobalHints hints) { } // gather any relevant pieces of advice for whole raid
+            public virtual PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => PlayerPriority.Irrelevant; // determine how particular party member should be drawn; if custom color is left untouched, standard color is selected
             public virtual void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { } // called at the beginning of arena draw, good place to draw aoe zones
             public virtual void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { } // called after arena background and borders are drawn, good place to draw actors, tethers, etc.
 
@@ -238,16 +249,27 @@ namespace BossMod
             if (pc == null)
                 return;
 
+            // draw background
             DrawArenaBackground(pcSlot, pc);
             foreach (var comp in _components)
                 comp.DrawArenaBackground(this, pcSlot, pc, Arena);
+
+            // draw borders
             Arena.Border();
             if (Manager.WindowConfig.ShowWaymarks)
                 DrawWaymarks();
+
+            // draw non-player alive party members
+            DrawPartyMembers(pcSlot, pc);
+
+            // draw foreground
             DrawArenaForegroundPre(pcSlot, pc);
             foreach (var comp in _components)
                 comp.DrawArenaForeground(this, pcSlot, pc, Arena);
             DrawArenaForegroundPost(pcSlot, pc);
+
+            // draw player
+            Arena.Actor(pc, ArenaColor.PC);
         }
 
         public TextHints CalculateHintsForRaidMember(int slot, Actor actor, MovementHints? movementHints = null)
@@ -339,6 +361,40 @@ namespace BossMod
             if (pos != null)
             {
                 Arena.TextWorld(new(pos.Value.XZ()), text, color, 22);
+            }
+        }
+
+        private void DrawPartyMembers(int pcSlot, Actor pc)
+        {
+            foreach (var (slot, player) in Raid.WithSlot().Exclude(pcSlot))
+            {
+                Component.PlayerPriority highestPrio = Component.PlayerPriority.Irrelevant;
+                uint color = 0;
+                foreach (var comp in _components)
+                {
+                    uint curCustomColor = 0;
+                    var curPrio = comp.CalcPriority(this, pcSlot, pc, slot, player, ref curCustomColor);
+                    if (curPrio > highestPrio)
+                    {
+                        highestPrio = curPrio;
+                        color = curCustomColor;
+                    }
+                }
+
+                if (highestPrio == Component.PlayerPriority.Irrelevant && !Manager.WindowConfig.ShowIrrelevantPlayers)
+                    continue;
+
+                if (color == 0)
+                {
+                    color = highestPrio switch
+                    {
+                        Component.PlayerPriority.Interesting => ArenaColor.PlayerInteresting,
+                        Component.PlayerPriority.Danger => ArenaColor.Danger,
+                        Component.PlayerPriority.Critical => ArenaColor.Vulnerable, // TODO: select some better color...
+                        _ => ArenaColor.PlayerGeneric
+                    };
+                }
+                Arena.Actor(player, color);
             }
         }
 

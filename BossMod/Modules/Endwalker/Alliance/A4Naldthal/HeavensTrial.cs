@@ -23,6 +23,11 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
             }
         }
 
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        {
+            return player == _stackTarget ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
+        }
+
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var cone in _cones)
@@ -33,7 +38,6 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
         {
             if (_stackTarget != null)
             {
-                arena.Actor(_stackTarget, ArenaColor.Danger);
                 arena.AddCircle(_stackTarget.Position, _stackRadius, ArenaColor.Safe);
             }
         }

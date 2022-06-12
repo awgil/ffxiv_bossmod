@@ -2,7 +2,6 @@ boss modules:
 - dsw2
 -- p2 sanctity 2: aoes during second set of towers
 -- p3
-- draw actors by framework (components should return color+prio)
 - generalize components as much as possible
 - fail log
 - wipe should not fast forward all phases

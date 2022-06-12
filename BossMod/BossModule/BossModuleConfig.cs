@@ -45,5 +45,8 @@
 
         [PropertyDisplay("Show window with cooldown plan timers")]
         public bool EnableTimerWindow = false;
+
+        [PropertyDisplay("Always show all alive party members")]
+        public bool ShowIrrelevantPlayers = false;
     }
 }

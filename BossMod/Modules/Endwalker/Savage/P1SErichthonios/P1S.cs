@@ -24,7 +24,6 @@
             }
 
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actor(pc, ArenaColor.PC);
         }
     }
 }

@@ -38,7 +38,6 @@
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actor(pc, ArenaColor.PC);
         }
     }
 }

@@ -55,6 +55,15 @@
                 hints.Add(hint);
         }
 
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        {
+            if ((module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false) && module.PrimaryActor.CastInfo!.TargetID == player.InstanceID)
+                return PlayerPriority.Interesting;
+            if (player == _rockThrowTarget)
+                return PlayerPriority.Interesting;
+            return PlayerPriority.Irrelevant;
+        }
+
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             var (aoe, pos) = ActiveAOE(module);
@@ -68,7 +77,6 @@
                 var target = module.WorldState.Actors.Find(module.PrimaryActor.CastInfo!.TargetID);
                 if (target != null)
                 {
-                    arena.Actor(target, ArenaColor.Danger);
                     arena.AddCircle(target.Position, _twisterRadius, ArenaColor.Danger);
                     if (pc.Position.InCircle(target.Position, _twisterRadius))
                     {
@@ -84,7 +92,6 @@
 
             if (_rockThrowTarget != null)
             {
-                arena.Actor(_rockThrowTarget, ArenaColor.Danger);
                 arena.AddCircle(_rockThrowTarget.Position, _rockThrow.Radius, ArenaColor.Danger);
             }
         }

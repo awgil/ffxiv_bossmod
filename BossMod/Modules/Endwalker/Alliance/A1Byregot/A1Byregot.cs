@@ -14,17 +14,9 @@
             //InitStates(new A1ByregotStates(this).Initial);
         }
 
-        protected override void DrawArenaForegroundPre(int pcSlot, Actor pc)
-        {
-            foreach (var p in WorldState.Actors)
-                if (p.Type == ActorType.Player && !p.IsDead)
-                    Arena.Actor(p, ArenaColor.PlayerGeneric);
-        }
-
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actor(pc, ArenaColor.PC);
         }
     }
 }

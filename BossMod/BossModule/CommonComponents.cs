@@ -54,13 +54,15 @@ namespace BossMod
                 }
             }
 
+            public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+            {
+                return _target == player ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
+            }
+
             public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
             {
                 if (_target != null)
-                {
-                    arena.Actor(_target, ArenaColor.Danger);
                     arena.AddCircle(_target.Position, _radius, ArenaColor.Danger);
-                }
             }
 
             public override void OnCastStarted(BossModule module, Actor actor)
@@ -95,23 +97,28 @@ namespace BossMod
                     hints.Add("Stack!");
             }
 
-            public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+            public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
             {
                 if (Target == null)
-                    return;
-
-                arena.AddCircle(Target.Position, StackRadius, ArenaColor.Danger);
-                if (Target == pc)
                 {
-                    // draw other players to simplify stacking
-                    foreach (var a in module.Raid.WithoutSlot().Exclude(pc))
-                        arena.Actor(a, a.Position.InCircle(Target.Position, StackRadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                    return PlayerPriority.Irrelevant;
+                }
+                else if (Target == pc)
+                {
+                    // other players are somewhat interesting to simplify stacking
+                    return player.Position.InCircle(pc.Position, StackRadius) ? PlayerPriority.Normal : PlayerPriority.Interesting;
                 }
                 else
                 {
                     // draw target next to which pc is to stack
-                    arena.Actor(Target, ArenaColor.Danger);
+                    return Target == player ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
                 }
+            }
+
+            public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+            {
+                if (Target != null)
+                    arena.AddCircle(Target.Position, StackRadius, ArenaColor.Danger);
             }
         }
 
@@ -134,11 +141,15 @@ namespace BossMod
                     hints.Add("GTFO from aoe target!");
             }
 
+            public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+            {
+                return _active.Any(ct => ct.Target == player) ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
+            }
+
             public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
             {
                 foreach (var e in _active)
                 {
-                    arena.Actor(e.Target, ArenaColor.Danger);
                     arena.AddCircle(e.Target.Position, _spreadRadius, ArenaColor.Danger);
                 }
             }

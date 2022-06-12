@@ -81,16 +81,11 @@
             Arena.PathLineTo(new(-34, 271.5f));
             Arena.PathLineTo(new(-37, 245));
             Arena.PathStroke(true, ArenaColor.Border);
-
-            foreach (var p in WorldState.Actors)
-                if (p.Type == ActorType.Player && !p.IsDead)
-                    Arena.Actor(p, ArenaColor.PlayerGeneric);
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actor(pc, ArenaColor.PC);
         }
     }
 }

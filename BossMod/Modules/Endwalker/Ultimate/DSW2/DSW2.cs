@@ -55,7 +55,6 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             Arena.Actor(_bossP3, ArenaColor.Enemy);
             //Arena.AddLine(PrimaryActor.Position, PrimaryActor.Position + GeometryUtils.DirectionToVec3(PrimaryActor.Rotation) * 5, ArenaColor.Enemy);
-            Arena.Actor(pc, ArenaColor.PC);
         }
     }
 }
