@@ -11,6 +11,8 @@ namespace BossMod
 {
     public class ConfigRoot
     {
+        private const int _version = 3;
+
         public event EventHandler? Modified;
         private Dictionary<Type, ConfigNode> _nodes = new();
 
@@ -81,7 +83,7 @@ namespace BossMod
                     }
                 }
                 JObject jContents = new();
-                jContents.Add("Version", 2);
+                jContents.Add("Version", _version);
                 jContents.Add("Payload", payload);
                 File.WriteAllText(file.FullName, jContents.ToString());
             }
@@ -202,6 +204,22 @@ namespace BossMod
             {
                 JObject newPayload = new();
                 ConvertV1GatherChildren(newPayload, payload, version == 0);
+                payload = newPayload;
+            }
+            // v3: modified namespaces for old modules
+            if (version < 3)
+            {
+                JObject newPayload = new();
+                foreach (var (k, v) in payload)
+                {
+                    var newKey = k switch
+                    {
+                        "BossMod.Endwalker.P1S.P1SConfig" => "BossMod.Endwalker.Savage.P1SErichthonios.P1SConfig",
+                        "BossMod.Endwalker.P4S2.P4S2Config" => "BossMod.Endwalker.Savage.P4S2Hesperos.P4S2Config",
+                        _ => k
+                    };
+                    newPayload[newKey] = v;
+                }
                 payload = newPayload;
             }
             return payload;
