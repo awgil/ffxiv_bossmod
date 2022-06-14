@@ -32,7 +32,7 @@
                 .ActivateOnEnter<Mechanics>()
                 .ActivateOnEnter<Garuda>()
                 .ActivateOnEnter<TitanIfrit>();
-            InitStates(states.Build());
+            StateMachine = states.Build();
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

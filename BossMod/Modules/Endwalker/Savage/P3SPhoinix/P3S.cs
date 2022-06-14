@@ -5,7 +5,7 @@
         public P3S(BossModuleManager manager, Actor primary)
             : base(manager, primary, new ArenaBoundsCircle(new(100, 100), 20))
         {
-            InitStates(new P3SStates(this).Build());
+            StateMachine = new P3SStates(this).Build();
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

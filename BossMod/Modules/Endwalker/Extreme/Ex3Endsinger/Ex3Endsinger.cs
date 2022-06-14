@@ -33,7 +33,7 @@
         public Ex3Endsinger(BossModuleManager manager, Actor primary)
             : base(manager, primary, new ArenaBoundsCircle(new(100, 100), 20))
         {
-            InitStates(new Ex3EndsingerStates(this).Build());
+            StateMachine = new Ex3EndsingerStates(this).Build();
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

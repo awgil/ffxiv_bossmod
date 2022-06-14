@@ -15,7 +15,7 @@
             var sb = new StateMachineBuilder(this);
             sb.TrivialPhase()
                 .ActivateOnEnter<T>();
-            InitStates(sb.Build());
+            StateMachine = sb.Build();
         }
 
         protected override void UpdateModule()

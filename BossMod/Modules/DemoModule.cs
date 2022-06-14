@@ -33,7 +33,7 @@
         {
             var smb = new StateMachineBuilder(this);
             smb.TrivialPhase();
-            InitStates(smb.Build());
+            StateMachine = smb.Build();
 
             ActivateComponent<DemoComponent>();
         }

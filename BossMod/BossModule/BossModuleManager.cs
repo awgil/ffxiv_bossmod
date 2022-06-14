@@ -176,7 +176,7 @@ namespace BossMod
         {
             if (m.StateMachine == null)
             {
-                Service.Log($"[BMM] Failed to load boss module '{m.GetType()}', since it didn't initialize state machine - make sure InitStates is called in constructor");
+                Service.Log($"[BMM] Failed to load boss module '{m.GetType()}', since it didn't initialize state machine - make sure it is done by constructor");
                 return;
             }
             _loadedModules.Add(m);
@@ -241,8 +241,6 @@ namespace BossMod
 
         private void PlanChanged(object? sender, EventArgs args)
         {
-            foreach (var m in _loadedModules)
-                m.RebuildPlan();
             _configOrModulesUpdated = true;
         }
     }

@@ -54,8 +54,8 @@
                 .ActivateOnEnter<WildfireWard>()
                 .ActivateOnEnter<Sunbeam>()
                 .ActivateOnEnter<SublimeSunset>();
-            InitStates(sb.Build());
-            //InitStates(new A3AzeymaStates(this).Initial);
+            StateMachine = sb.Build();
+            //StateMachine = new A3AzeymaStates(this).Initial;
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

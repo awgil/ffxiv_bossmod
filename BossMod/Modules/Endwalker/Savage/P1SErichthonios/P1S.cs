@@ -7,7 +7,7 @@
         public P1S(BossModuleManager manager, Actor primary)
             : base(manager, primary, new ArenaBoundsSquare(new(100, 100), 20))
         {
-            InitStates(new P1SStates(this).Build());
+            StateMachine = new P1SStates(this).Build();
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

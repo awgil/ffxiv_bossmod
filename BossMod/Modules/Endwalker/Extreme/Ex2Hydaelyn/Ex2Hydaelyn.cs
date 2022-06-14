@@ -23,7 +23,7 @@
         public Ex2Hydaelyn(BossModuleManager manager, Actor primary)
             : base(manager, primary, new ArenaBoundsCircle(new(100, 100), 20))
         {
-            InitStates(new Ex2HydaelynStates(this).Build());
+            StateMachine = new Ex2HydaelynStates(this).Build();
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

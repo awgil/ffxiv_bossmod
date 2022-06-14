@@ -26,7 +26,7 @@ namespace BossMod
         public BossModuleManager Manager { get; init; }
         public Actor PrimaryActor { get; init; }
         public MiniArena Arena { get; init; }
-        public StateMachine? StateMachine { get; private set; }
+        public StateMachine? StateMachine { get; protected set; }
         public CooldownPlanExecution? PlanExecution = null;
 
         public WorldState WorldState => Manager.WorldState;
@@ -191,27 +191,19 @@ namespace BossMod
             }
         }
 
-        protected void InitStates(StateMachine sm)
-        {
-            StateMachine = sm;
-            RebuildPlan();
-        }
-
-        public void RebuildPlan()
-        {
-            if (StateMachine == null)
-                return;
-
-            var cls = Raid.Player()?.Class ?? Class.None;
-            var plan = Manager.CooldownPlanManager.SelectedPlan(PrimaryActor.OID, cls);
-            Service.Log($"[BM] Selected plan for '{GetType()}' {cls}: '{(plan?.Name ?? "<none>")}'");
-            PlanExecution = new(StateMachine, plan);
-        }
-
         public void Update()
         {
             if (StateMachine == null)
                 return;
+
+            // update cooldown plan if needed
+            var cls = Raid.Player()?.Class ?? Class.None;
+            var plan = Manager.CooldownPlanManager.SelectedPlan(PrimaryActor.OID, cls);
+            if (PlanExecution == null || PlanExecution?.Plan != plan)
+            {
+                Service.Log($"[BM] Selected plan for '{GetType()}' ({PrimaryActor.InstanceID:X}) for {cls}: '{(plan?.Name ?? "<none>")}'");
+                PlanExecution = new(StateMachine, plan);
+            }
 
             if (StateMachine.ActivePhaseIndex < 0 && CheckPull())
                 StateMachine.Start(WorldState.CurrentTime);

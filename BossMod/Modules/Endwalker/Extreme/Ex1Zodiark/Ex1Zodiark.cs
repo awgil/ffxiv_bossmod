@@ -16,7 +16,7 @@
         public Ex1Zodiark(BossModuleManager manager, Actor primary)
             : base(manager, primary, new ArenaBoundsSquare(new(100, 100), 20))
         {
-            InitStates(new Ex1ZodiarkStates(this).Build());
+            StateMachine = new Ex1ZodiarkStates(this).Build();
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

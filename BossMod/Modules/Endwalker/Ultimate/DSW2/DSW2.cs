@@ -22,7 +22,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public DSW2(BossModuleManager manager, Actor primary)
             : base(manager, primary, new ArenaBoundsCircle(new(100, 100), 22))
         {
-            InitStates(new DSW2States(this).Build());
+            StateMachine = new DSW2States(this).Build();
         }
 
         protected override void UpdateModule()

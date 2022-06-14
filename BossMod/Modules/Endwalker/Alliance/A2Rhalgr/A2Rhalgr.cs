@@ -57,8 +57,8 @@
                 .ActivateOnEnter<BrokenShards>()
                 .ActivateOnEnter<BronzeLightning>()
                 .ActivateOnEnter<RhalgrBeacon>();
-            InitStates(sb.Build());
-            //InitStates(new A2RhalgrStates(this).Initial);
+            StateMachine = sb.Build();
+            //StateMachine = new A2RhalgrStates(this).Initial;
         }
 
         protected override void DrawArenaForegroundPre(int pcSlot, Actor pc)

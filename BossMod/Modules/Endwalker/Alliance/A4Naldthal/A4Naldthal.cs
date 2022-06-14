@@ -60,8 +60,8 @@
                 .ActivateOnEnter<WaywardSoul>()
                 .ActivateOnEnter<FortuneFlux>()
                 .ActivateOnEnter<Twingaze>();
-            InitStates(sb.Build());
-            //InitStates(new A4NaldthalStates(this).Initial);
+            StateMachine = sb.Build();
+            //StateMachine = new A4NaldthalStates(this).Initial;
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

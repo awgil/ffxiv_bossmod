@@ -30,7 +30,6 @@ cooldown planner:
 - plan raid cooldowns (think about ui and storage for that...)
 - show hp, ...
 - proper cooldown plan selector in PlayerActions
-- bug: initial cd plan selected, but not active, on module activate
 
 world rendering:
 - danger zones (modify action vfx?)

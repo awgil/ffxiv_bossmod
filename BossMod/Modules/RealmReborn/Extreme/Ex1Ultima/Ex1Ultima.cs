@@ -8,7 +8,7 @@
             // TODO: reconsider...
             var states = new StateMachineBuilder(this);
             states.TrivialPhase(600);
-            InitStates(states.Build());
+            StateMachine = states.Build();
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

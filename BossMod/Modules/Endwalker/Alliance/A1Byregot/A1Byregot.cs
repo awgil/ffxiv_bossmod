@@ -10,8 +10,8 @@
                 .ActivateOnEnter<ByregotStrike>()
                 .ActivateOnEnter<Hammers>()
                 .ActivateOnEnter<Reproduce>();
-            InitStates(sb.Build());
-            //InitStates(new A1ByregotStates(this).Initial);
+            StateMachine = sb.Build();
+            //StateMachine = new A1ByregotStates(this).Initial;
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)

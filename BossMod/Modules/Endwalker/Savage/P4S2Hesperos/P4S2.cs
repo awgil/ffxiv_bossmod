@@ -22,7 +22,7 @@
         public P4S2(BossModuleManager manager, Actor primary)
             : base(manager, primary, new ArenaBoundsCircle(new(100, 100), 20))
         {
-            InitStates(new P4S2States(this).Build());
+            StateMachine = new P4S2States(this).Build();
         }
 
         protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
