@@ -475,72 +475,29 @@ namespace UIDev
             }
         }
 
-        public class OpPartyJoin : Operation
+        public class OpPartyModify : Operation
         {
+            public int Slot;
             public ulong ContentID;
             public ulong InstanceID;
-            private int _slot;
+            private ulong _prevContentID;
+            private ulong _prevInstanceID;
 
             public override void Redo(WorldState ws)
             {
-                _slot = ws.Party.Add(ContentID, InstanceID, ws.Party.ContentIDs[0] == 0);
+                _prevContentID = Slot < ws.Party.ContentIDs.Length ? ws.Party.ContentIDs[Slot] : 0;
+                _prevInstanceID = ws.Party.ActorIDs[Slot];
+                ws.Party.Modify(Slot, ContentID, InstanceID);
             }
 
             public override void Undo(WorldState ws)
             {
-                ws.Party.Remove(_slot);
+                ws.Party.Modify(Slot, _prevContentID, _prevInstanceID);
             }
 
             public override string ToString()
             {
-                return $"Party join: {ContentID:X} {InstanceID:X}";
-            }
-        }
-
-        public class OpPartyLeave : Operation
-        {
-            public ulong ContentID;
-            public ulong InstanceID;
-
-            public override void Redo(WorldState ws)
-            {
-                var slot = ws.Party.ContentIDs.IndexOf(ContentID);
-                ws.Party.Remove(slot);
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                ws.Party.Add(ContentID, InstanceID, ws.Party.ContentIDs[0] == 0);
-            }
-
-            public override string ToString()
-            {
-                return $"Party leave: {ContentID:X} {InstanceID:X}";
-            }
-        }
-
-        public class OpPartyAssign : Operation
-        {
-            public ulong ContentID;
-            public ulong InstanceID;
-            private ulong _prevID;
-
-            public override void Redo(WorldState ws)
-            {
-                var slot = ws.Party.ContentIDs.IndexOf(ContentID);
-                _prevID = ws.Party.ActorIDs[slot];
-                ws.Party.AssignActor(slot, ContentID, InstanceID);
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                var slot = ws.Party.ContentIDs.IndexOf(ContentID);
-                ws.Party.AssignActor(slot, ContentID, _prevID);
-            }
-
-            public override string ToString()
-            {
-                return $"Party assign: {ContentID:X} {InstanceID:X}";
+                return $"Party modify: #{Slot} {ContentID:X}:{InstanceID:X}";
             }
         }
 

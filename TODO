@@ -6,7 +6,7 @@ boss modules:
 - fail log
 - wipe should not fast forward all phases
 - p3s - review, searing breeze component
-- aglaia revise, implement phases, better support for alliance raids
+- aglaia revise, implement phases
 - ultima weapon - implement phases
 - boss module config presets/profiles
 

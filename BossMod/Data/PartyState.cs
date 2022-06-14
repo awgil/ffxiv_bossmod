@@ -4,21 +4,22 @@ using System.Collections.ObjectModel;
 
 namespace BossMod
 {
-    // state of the party that player is part of; part of the world state structure
-    // does not include alliance members
+    // state of the party/alliance that player is part of; part of the world state structure
     // solo player is considered to be in party of size 1
     // after joining the party, member's slot never changes until leaving the party; this means that there could be intermediate gaps
     // note that player could be in party without having actor in world (e.g. if he is in different zone)
     // if player does not exist in world, party is always empty; otherwise player is always in slot 0
+    // in alliance, two 'other' groups use slots 8-15 and 16-23; alliance members don't have content-ID, but always have actor-ID
     public class PartyState
     {
         public static int PlayerSlot { get; } = 0;
-        public static int MaxSize { get; } = 8;
+        public static int MaxPartySize { get; } = 8;
+        public static int MaxAllianceSize { get; } = 24;
 
         private ActorState _actorState;
-        private ulong[] _contentIDs = new ulong[MaxSize]; // empty slots contain 0's
-        private ulong[] _actorIDs = new ulong[MaxSize];
-        private Actor?[] _actors = new Actor?[MaxSize];
+        private ulong[] _contentIDs = new ulong[MaxPartySize]; // non-alliance slots: empty slots contain 0's, alliance slots: n/a (FF always reports 0)
+        private ulong[] _actorIDs = new ulong[MaxAllianceSize]; // non-alliance slots: empty slots or slots corresponding to players not in world contain 0's, alliance slots: empty slots contains 0's
+        private Actor?[] _actors = new Actor?[MaxAllianceSize];
 
         public ReadOnlySpan<ulong> ContentIDs => _contentIDs;
         public ReadOnlySpan<ulong> ActorIDs => _actorIDs;
@@ -72,64 +73,33 @@ namespace BossMod
         }
 
         // find a slot index containing specified player (by instance ID); returns -1 if not found
-        public int FindSlot(ulong instanceID)
-        {
-            return instanceID != 0 ? Array.IndexOf(_actorIDs, instanceID) : -1;
-        }
+        public int FindSlot(ulong instanceID) => instanceID != 0 ? Array.IndexOf(_actorIDs, instanceID) : -1;
 
-        public event EventHandler<(int, ulong, ulong)>? Joined;
-        public event EventHandler<(int, ulong, ulong)>? Left;
-        public event EventHandler<(int, ulong, ulong)>? Reassigned; // actor representation changed for same player (usually to/from null)
+        public event EventHandler<(int slot, ulong contentID, ulong instanceID, ulong prevContentID, ulong prevInstanceID)>? Modified;
 
-        public int Add(ulong contentID, ulong instanceID, bool isPlayer)
+        public void Modify(int slot, ulong contentID, ulong instanceID)
         {
-            int slot = Array.IndexOf(_contentIDs, 0ul);
-            if (slot == -1)
+            if (slot < 0 || slot >= MaxAllianceSize)
             {
-                Service.Log($"[PartyState] Too many raid members: {_actors.Length} already exist; skipping new member {contentID:X}");
+                Service.Log($"[PartyState] Out-of-bounds slot {slot}");
+                return;
             }
-            else if (isPlayer != (slot == 0))
+            if (slot >= MaxPartySize && contentID != 0)
             {
-                Service.Log($"[PartyState] Unexpected is-player={isPlayer}, slot={slot}");
-                slot = -1;
+                Service.Log($"[PartyState] Unexpected non-zero content ID {contentID:X}:{instanceID:X} for alliance slot #{slot}");
+                return;
             }
-            else
-            {
+
+            var prevContentID = slot < MaxPartySize ? _contentIDs[slot] : 0;
+            var prevInstanceID = _actorIDs[slot];
+            if (contentID == prevContentID && instanceID == prevInstanceID)
+                return; // nothing to do
+
+            if (slot < MaxPartySize)
                 _contentIDs[slot] = contentID;
-                _actorIDs[slot] = instanceID;
-                _actors[slot] = _actorState.Find(instanceID);
-                Joined?.Invoke(this, (slot, contentID, instanceID));
-            }
-            return slot;
-        }
-
-        public void Remove(int slot)
-        {
-            if (slot == -1 || _contentIDs[slot] == 0)
-            {
-                Service.Log($"[PartyState] Trying to remove non-existent member from slot {slot}");
-            }
-            else
-            {
-                Left?.Invoke(this, (slot, _contentIDs[slot], _actorIDs[slot]));
-                _contentIDs[slot] = 0;
-                _actorIDs[slot] = 0;
-                _actors[slot] = null;
-            }
-        }
-
-        public void AssignActor(int slot, ulong contentID, ulong instanceID)
-        {
-            if (_contentIDs[slot] != contentID || contentID == 0)
-            {
-                Service.Log($"[PartyState] Trying to assign actor to non-existent or incorrect slot #{slot}: contains {_contentIDs[slot]:X}, got {contentID:X}");
-            }
-            else if (_actorIDs[slot] != instanceID)
-            {
-                _actorIDs[slot] = instanceID;
-                _actors[slot] = _actorState.Find(instanceID);
-                Reassigned?.Invoke(this, (slot, contentID, instanceID));
-            }
+            _actorIDs[slot] = instanceID;
+            _actors[slot] = _actorState.Find(instanceID);
+            Modified?.Invoke(this, (slot, contentID, instanceID, prevContentID, prevInstanceID));
         }
     }
 }

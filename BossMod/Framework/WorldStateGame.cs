@@ -17,6 +17,7 @@ namespace BossMod
         }
 
         private Network _network;
+        private PartyAlliance _alliance = new();
         private Dictionary<ulong, float[]> _prevStatusDurations = new();
         private List<(uint featureID, byte index, uint state)> _envControls = new();
         private List<(uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4)> _directorUpdates = new();
@@ -158,56 +159,49 @@ namespace BossMod
             _actorEvents.Clear();
         }
 
-        private void UpdateParty()
+        private unsafe void UpdateParty()
         {
-            if (Service.ClientState.LocalContentId != Party.ContentIDs[PartyState.PlayerSlot])
+            // update player slot
+            Party.Modify(PartyState.PlayerSlot, Service.ClientState.LocalContentId, Service.ClientState.LocalPlayer?.ObjectId ?? 0);
+
+            // update normal party slots: first update/remove existing members, then add new ones
+            for (int i = PartyState.PlayerSlot + 1; i < PartyState.MaxPartySize; ++i)
             {
-                // player content ID has changed - so clear any old party state
-                // remove old player last
-                for (int i = Party.ContentIDs.Length - 1; i >= 0; --i)
-                    if (Party.ContentIDs[i] != 0)
-                        Party.Remove(i);
+                var contentID = Party.ContentIDs[i];
+                if (contentID == 0)
+                    continue; // skip empty slots
 
-                // if player is now available, add as first element
-                if (Service.ClientState.LocalContentId != 0)
-                {
-                    var playerSlot = Party.Add(Service.ClientState.LocalContentId, Service.ClientState.LocalPlayer?.ObjectId ?? 0, true);
-                    if (playerSlot != PartyState.PlayerSlot)
-                    {
-                        Service.Log($"[WorldState] Player was added to wrong slot {playerSlot}");
-                    }
-                }
-            }
-
-            if (Service.ClientState.LocalContentId == 0)
-                return; // player not in world, party is empty
-
-            if (Service.PartyList.Length == 0)
-            {
-                // solo - just update player actor
-                Party.AssignActor(PartyState.PlayerSlot, Service.ClientState.LocalContentId, Service.ClientState.LocalPlayer?.ObjectId ?? 0);
-                return;
-            }
-
-            Dictionary<ulong, ulong> seenIDs = new();
-            foreach (var obj in Service.PartyList)
-                seenIDs[(ulong)obj.ContentId] = SanitizedObjectID(obj.ObjectId);
-
-            for (int i = 1; i < Party.ContentIDs.Length; ++i)
-                if (Party.ContentIDs[i] != 0 && !seenIDs.ContainsKey(Party.ContentIDs[i]))
-                    Party.Remove(i);
-
-            foreach ((ulong contentID, ulong actorID) in seenIDs)
-            {
-                int slot = Party.ContentIDs.IndexOf(contentID);
-                if (slot != -1)
-                {
-                    Party.AssignActor(slot, contentID, actorID);
-                }
+                var member = _alliance.FindPartyMember(contentID);
+                if (member == null)
+                    Party.Modify(i, 0, 0);
                 else
+                    Party.Modify(i, contentID, member->ObjectID);
+            }
+            for (int i = 0; i < _alliance.NumPartyMembers; ++i)
+            {
+                var member = _alliance.PartyMember(i);
+                if (member == null)
+                    continue;
+
+                var contentID = (ulong)member->ContentID;
+                if (Party.ContentIDs.IndexOf(contentID) != -1)
+                    continue; // already added, updated in previous loop
+
+                var freeSlot = Party.ContentIDs.Slice(1).IndexOf(0ul);
+                if (freeSlot == -1)
                 {
-                    Party.Add(contentID, actorID, false);
+                    Service.Log($"[WorldState] Failed to find empty slot for party member {contentID:X}:{member->ObjectID:X}");
+                    continue;
                 }
+
+                Party.Modify(freeSlot + 1, contentID, member->ObjectID);
+            }
+
+            // update alliance members
+            for (int i = PartyState.MaxPartySize; i < PartyState.MaxAllianceSize; ++i)
+            {
+                var member = _alliance.IsAlliance && !_alliance.IsSmallGroupAlliance ? _alliance.AllianceMember(i - PartyState.MaxPartySize) : null;
+                Party.Modify(i, 0, member != null ? member->ObjectID : 0);
             }
         }
 

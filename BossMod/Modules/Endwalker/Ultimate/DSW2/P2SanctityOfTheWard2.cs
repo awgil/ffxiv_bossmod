@@ -50,7 +50,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public int Towers1Done { get; private set; }
         public int Towers2Done { get; private set; }
         private DSW2Config _config;
-        private PlayerData[] _players = new PlayerData[PartyState.MaxSize];
+        private PlayerData[] _players = new PlayerData[PartyState.MaxPartySize];
         private QuadrantData[] _quadrants = new QuadrantData[4];
         private Tower1Data[] _towers1 = new Tower1Data[16];
         private Actor?[] _towers2 = new Actor?[8];

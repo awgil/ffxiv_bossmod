@@ -12,16 +12,14 @@ namespace BossMod
         public RaidCooldowns(WorldState ws)
         {
             _ws = ws;
-            _ws.Party.Left += HandlePartyUpdate;
-            _ws.Party.Reassigned += HandlePartyUpdate;
+            _ws.Party.Modified += HandlePartyUpdate;
             _ws.Events.Cast += HandleCast;
             _ws.Events.DirectorUpdate += HandleDirectorUpdate;
         }
 
         public void Dispose()
         {
-            _ws.Party.Left -= HandlePartyUpdate;
-            _ws.Party.Reassigned -= HandlePartyUpdate;
+            _ws.Party.Modified -= HandlePartyUpdate;
             _ws.Events.Cast -= HandleCast;
             _ws.Events.DirectorUpdate -= HandleDirectorUpdate;
         }
@@ -40,7 +38,7 @@ namespace BossMod
             return MathF.Max(0, (float)(firstAvailable - now).TotalSeconds);
         }
 
-        private void HandlePartyUpdate(object? sender, (int slot, ulong contentID, ulong instanceID) args)
+        private void HandlePartyUpdate(object? sender, (int slot, ulong contentID, ulong instanceID, ulong prevContentID, ulong prevInstanceID) args)
         {
             _damageCooldowns.RemoveAll(e => e.Slot == args.slot);
         }
@@ -72,7 +70,7 @@ namespace BossMod
         private bool UpdateDamageCooldown(ulong casterID, ActionID action, float duration, float cooldown)
         {
             int slot = _ws.Party.FindSlot(casterID);
-            if (slot < 0)
+            if (slot < 0 || slot >= PartyState.MaxPartySize) // ignore cooldowns from other alliance parties
                 return false;
 
             var availableAt = _ws.CurrentTime.AddSeconds(cooldown);

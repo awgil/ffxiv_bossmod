@@ -22,7 +22,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             // we determine failing players, trying to take two reasonable tactics in account:
             // either two tanks immune and soak everything, or each player is hit by one mechanic
             // for now, we consider tether target to be a "tank"
-            int[] aoesPerPlayer = new int[PartyState.MaxSize];
+            int[] aoesPerPlayer = new int[PartyState.MaxPartySize];
 
             foreach ((int i, var player) in module.Raid.WithSlot(true).WhereActor(x => x.Tether.Target == module.PrimaryActor.InstanceID))
             {

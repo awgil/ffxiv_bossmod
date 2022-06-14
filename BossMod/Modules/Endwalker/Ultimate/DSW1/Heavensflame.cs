@@ -4,7 +4,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 {
     class Heavensflame : CommonComponents.CastCounter
     {
-        private int[] _playerIcons = new int[PartyState.MaxSize]; // 0 = unassigned, 1 = circle/red, 2 = triangle/green, 3 = cross/blue, 4 = square/purple - matching waypoint colors...
+        private int[] _playerIcons = new int[PartyState.MaxPartySize]; // 0 = unassigned, 1 = circle/red, 2 = triangle/green, 3 = cross/blue, 4 = square/purple - matching waypoint colors...
         private Actor? _knockbackSource;
         private bool _active;
 

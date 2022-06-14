@@ -38,7 +38,7 @@ namespace BossMod
         {
             if (!_logger.Active)
             {
-                if (!_logger.Activate(3))
+                if (!_logger.Activate(4))
                 {
                     _config.DumpWorldStateEvents = false;
                     return;
@@ -63,9 +63,13 @@ namespace BossMod
                         if (actor.Statuses[i].ID != 0)
                             ActorStatusGain(null, (actor, i));
                 }
-                for (int i = 0; i < _ws.Party.ContentIDs.Length; ++i)
-                    if (_ws.Party.ContentIDs[i] != 0)
-                        PartyJoined(null, (i, _ws.Party.ContentIDs[i], _ws.Party.ActorIDs[i]));
+                for (int i = 0; i < PartyState.MaxAllianceSize; ++i)
+                {
+                    var contentID = i < PartyState.MaxPartySize ? _ws.Party.ContentIDs[i] : 0;
+                    var actorID = _ws.Party.ActorIDs[i];
+                    if (contentID != 0 || actorID != 0)
+                        PartyModified(null, (i, contentID, actorID, 0, 0));
+                }
                 for (var i = Waymark.A; i < Waymark.Count; ++i)
                 {
                     var w = _ws.Waymarks[i];
@@ -93,9 +97,7 @@ namespace BossMod
                 _ws.Actors.StatusGain += ActorStatusGain;
                 _ws.Actors.StatusLose += ActorStatusLose;
                 _ws.Actors.StatusChange += ActorStatusChange;
-                _ws.Party.Joined += PartyJoined;
-                _ws.Party.Left += PartyLeft;
-                _ws.Party.Reassigned += PartyReassigned;
+                _ws.Party.Modified += PartyModified;
                 _ws.Events.Icon += EventIcon;
                 _ws.Events.Cast += EventCast;
                 _ws.Events.DirectorUpdate += EventDirectorUpdate;
@@ -126,9 +128,7 @@ namespace BossMod
                 _ws.Actors.StatusGain -= ActorStatusGain;
                 _ws.Actors.StatusLose -= ActorStatusLose;
                 _ws.Actors.StatusChange -= ActorStatusChange;
-                _ws.Party.Joined -= PartyJoined;
-                _ws.Party.Left -= PartyLeft;
-                _ws.Party.Reassigned -= PartyReassigned;
+                _ws.Party.Modified -= PartyModified;
                 _ws.Events.Icon -= EventIcon;
                 _ws.Events.Cast -= EventCast;
                 _ws.Events.DirectorUpdate -= EventDirectorUpdate;
@@ -260,19 +260,9 @@ namespace BossMod
             Log("STA!", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Extra:X4}|{Utils.StatusTimeString(s.ExpireAt, _ws.CurrentTime)}|{Actor(s.SourceID)}");
         }
 
-        private void PartyJoined(object? sender, (int slot, ulong contentID, ulong actorID) arg)
+        private void PartyModified(object? sender, (int slot, ulong contentID, ulong actorID, ulong prevContentID, ulong prevActorID) arg)
         {
-            Log("PAR+", $"{arg.slot}|{arg.contentID:X}|{arg.actorID:X8}");
-        }
-
-        private void PartyLeft(object? sender, (int slot, ulong contentID, ulong actorID) arg)
-        {
-            Log("PAR-", $"{arg.slot}|{arg.contentID:X}|{arg.actorID:X8}");
-        }
-
-        private void PartyReassigned(object? sender, (int slot, ulong contentID, ulong actorID) arg)
-        {
-            Log("PAR!", $"{arg.slot}|{arg.contentID:X}|{arg.actorID:X8}");
+            Log("PAR ", $"{arg.slot}|{arg.contentID:X}|{arg.actorID:X8}|{arg.prevContentID:X}|{arg.prevActorID:X8}");
         }
 
         private void EventIcon(object? sender, (ulong actorID, uint iconID) arg)

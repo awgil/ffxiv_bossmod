@@ -34,7 +34,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public State NextEvent { get; private set; }
         private int _wheelsDone;
         private Actor? _boss;
-        private PlayerState[] _playerStates = new PlayerState[PartyState.MaxSize];
+        private PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
         private AOEShape? _nextAOE;
 
         private static AOEShapeCircle _aoeGnash = new(8);

@@ -41,8 +41,6 @@ namespace UIDev
         }
 
         private int _version = 0;
-        private ulong _lastFakeContentID = 0; // pc will always have id=1
-        private ulong _playerID = 0;
 
         private void ParseLine(string[] payload)
         {
@@ -51,8 +49,6 @@ namespace UIDev
             {
                 case "VER ": ParseVersion(timestamp, payload); break;
                 case "ZONE": ParseZoneChange(timestamp, payload); break;
-                case "PCOM": ParseEnterExitCombat(timestamp, payload); break;
-                case "PID ": ParsePlayerIDChange(timestamp, payload); break;
                 case "WAY+": ParseWaymarkChange(timestamp, payload, true); break;
                 case "WAY-": ParseWaymarkChange(timestamp, payload, false); break;
                 case "ACT+": ParseActorCreate(timestamp, payload); break;
@@ -75,9 +71,10 @@ namespace UIDev
                 case "STA+": ParseActorStatus(timestamp, payload, true); break;
                 case "STA-": ParseActorStatus(timestamp, payload, false); break;
                 case "STA!": ParseActorStatus(timestamp, payload, true); break;
-                case "PAR+": ParsePartyJoin(timestamp, payload); break;
-                case "PAR-": ParsePartyLeave(timestamp, payload); break;
-                case "PAR!": ParsePartyAssign(timestamp, payload); break;
+                case "PAR ": ParsePartyModify(timestamp, payload); break;
+                case "PAR+": ParsePartyJoin(timestamp, payload); break; // legacy (up to v3)
+                case "PAR-": ParsePartyLeave(timestamp, payload); break; // legacy (up to v3)
+                case "PAR!": ParsePartyAssign(timestamp, payload); break; // legacy (up to v3)
                 case "ICON": ParseEventIcon(timestamp, payload); break;
                 case "CST!": ParseEventCast(timestamp, payload); break;
                 case "DIRU": ParseEventDirectorUpdate(timestamp, payload); break;
@@ -88,6 +85,8 @@ namespace UIDev
         private void ParseVersion(DateTime timestamp, string[] payload)
         {
             _version = int.Parse(payload[2]);
+            if (_version < 2)
+                throw new Exception($"Version {_version} is too old and is no longer supported, sorry");
         }
 
         private void ParseZoneChange(DateTime timestamp, string[] payload)
@@ -95,37 +94,6 @@ namespace UIDev
             OpZoneChange res = new();
             res.Zone = ushort.Parse(payload[2]);
             AddOp(timestamp, res);
-        }
-
-        private void ParseEnterExitCombat(DateTime timestamp, string[] payload)
-        {
-            bool value = bool.Parse(payload[2]);
-            foreach (var act in _ws.Actors.Where(a => a.IsTargetable))
-            {
-                OpActorCombat op = new();
-                op.InstanceID = act.InstanceID;
-                op.Value = value;
-                AddOp(timestamp, op);
-            }
-        }
-
-        private void ParsePlayerIDChange(DateTime timestamp, string[] payload)
-        {
-            for (int i = PartyState.MaxSize - 1; i >= 0; --i)
-            {
-                if (_ws.Party.ContentIDs[i] != 0)
-                {
-                    OpPartyLeave opLeave = new();
-                    opLeave.ContentID = _ws.Party.ContentIDs[i];
-                    opLeave.InstanceID = _ws.Party.Members[i]?.InstanceID ?? 0;
-                    AddOp(timestamp, opLeave);
-                }
-            }
-            _lastFakeContentID = 0;
-
-            _playerID = ActorID(payload[2]);
-            if (_ws.Actors.Find(_playerID) != null)
-                BuildV0Party(timestamp);
         }
 
         private void ParseWaymarkChange(DateTime timestamp, string[] payload, bool set)
@@ -152,40 +120,12 @@ namespace UIDev
             res.OwnerID = payload.Length > 6 ? ActorID(payload[6]) : 0;
             (res.HPCur, res.HPMax) = payload.Length > 7 ? CurMax(payload[7]) : (0, 0);
             AddOp(timestamp, res);
-
-            if (_version == 0 && res.Type == ActorType.Player)
-            {
-                if (res.InstanceID == _playerID)
-                {
-                    BuildV0Party(timestamp);
-                }
-                else
-                {
-                    OpPartyJoin join = new();
-                    join.ContentID = ++_lastFakeContentID;
-                    join.InstanceID = res.InstanceID;
-                    AddOp(timestamp, join);
-                }
-            }
         }
 
         private void ParseActorDestroy(DateTime timestamp, string[] payload)
         {
-            var instanceID = ActorID(payload[2]);
-            if (_version == 0 && _playerID != 0)
-            {
-                var slot = _ws.Party.FindSlot(instanceID);
-                if (slot >= 0)
-                {
-                    OpPartyLeave leave = new();
-                    leave.ContentID = _ws.Party.ContentIDs[slot];
-                    leave.InstanceID = instanceID;
-                    AddOp(timestamp, leave);
-                }
-            }
-
             OpActorDestroy res = new();
-            res.InstanceID = instanceID;
+            res.InstanceID = ActorID(payload[2]);
             AddOp(timestamp, res);
         }
 
@@ -301,9 +241,19 @@ namespace UIDev
             AddOp(timestamp, res);
         }
 
+        private void ParsePartyModify(DateTime timestamp, string[] payload)
+        {
+            OpPartyModify res = new();
+            res.Slot = int.Parse(payload[2]);
+            res.ContentID = ulong.Parse(payload[3], NumberStyles.HexNumber);
+            res.InstanceID = ulong.Parse(payload[4], NumberStyles.HexNumber);
+            AddOp(timestamp, res);
+        }
+
         private void ParsePartyJoin(DateTime timestamp, string[] payload)
         {
-            OpPartyJoin res = new();
+            OpPartyModify res = new();
+            res.Slot = int.Parse(payload[2]);
             res.ContentID = ulong.Parse(payload[3], NumberStyles.HexNumber);
             res.InstanceID = ulong.Parse(payload[4], NumberStyles.HexNumber);
             AddOp(timestamp, res);
@@ -311,15 +261,15 @@ namespace UIDev
 
         private void ParsePartyLeave(DateTime timestamp, string[] payload)
         {
-            OpPartyLeave res = new();
-            res.ContentID = ulong.Parse(payload[3], NumberStyles.HexNumber);
-            res.InstanceID = ulong.Parse(payload[4], NumberStyles.HexNumber);
+            OpPartyModify res = new();
+            res.Slot = int.Parse(payload[2]);
             AddOp(timestamp, res);
         }
 
         private void ParsePartyAssign(DateTime timestamp, string[] payload)
         {
-            OpPartyAssign res = new();
+            OpPartyModify res = new();
+            res.Slot = int.Parse(payload[2]);
             res.ContentID = ulong.Parse(payload[3], NumberStyles.HexNumber);
             res.InstanceID = ulong.Parse(payload[4], NumberStyles.HexNumber);
             AddOp(timestamp, res);
@@ -372,22 +322,6 @@ namespace UIDev
             res.Index = byte.Parse(payload[3], NumberStyles.HexNumber);
             res.State = uint.Parse(payload[4], NumberStyles.HexNumber);
             AddOp(timestamp, res);
-        }
-
-        private void BuildV0Party(DateTime timestamp)
-        {
-            OpPartyJoin pcJoin = new();
-            pcJoin.ContentID = ++_lastFakeContentID;
-            pcJoin.InstanceID = _playerID;
-            AddOp(timestamp, pcJoin);
-
-            foreach (var player in _ws.Actors.Where(a => a.Type == ActorType.Player && a.InstanceID != _playerID))
-            {
-                OpPartyJoin otherJoin = new();
-                otherJoin.ContentID = ++_lastFakeContentID;
-                otherJoin.InstanceID = player.InstanceID;
-                AddOp(timestamp, otherJoin);
-            }
         }
 
         private static Vector3 Vec3(string repr)

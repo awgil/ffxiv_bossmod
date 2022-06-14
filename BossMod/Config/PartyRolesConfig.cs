@@ -18,9 +18,9 @@ namespace BossMod
         public Role[] AssignmentsPerSlot(PartyState party)
         {
             int[] counts = new int[(int)Role.Unassigned];
-            Role[] res = new Role[PartyState.MaxSize];
+            Role[] res = new Role[PartyState.MaxPartySize];
             Array.Fill(res, Role.Unassigned);
-            for (int i = 0; i < PartyState.MaxSize; ++i)
+            for (int i = 0; i < PartyState.MaxPartySize; ++i)
             {
                 var r = this[party.ContentIDs[i]];
                 if (r == Role.Unassigned)
@@ -36,13 +36,13 @@ namespace BossMod
         public int[] SlotsPerAssignment(PartyState party)
         {
             int[] res = new int[(int)Role.Unassigned];
-            Array.Fill(res, PartyState.MaxSize);
-            for (int i = 0; i < PartyState.MaxSize; ++i)
+            Array.Fill(res, PartyState.MaxPartySize);
+            for (int i = 0; i < PartyState.MaxPartySize; ++i)
             {
                 var r = this[party.ContentIDs[i]];
                 if (r == Role.Unassigned)
                     return new int[0];
-                if (res[(int)r] != PartyState.MaxSize)
+                if (res[(int)r] != PartyState.MaxPartySize)
                     return new int[0];
                 res[(int)r] = i;
             }
@@ -59,7 +59,7 @@ namespace BossMod
                 ImGui.TableHeadersRow();
 
                 List<(ulong, string, BossMod.Role, Role)> party = new();
-                for (int i = 0; i < PartyState.MaxSize; ++i)
+                for (int i = 0; i < PartyState.MaxPartySize; ++i)
                 {
                     var m = ws.Party.Members[i];
                     if (m != null)

@@ -109,13 +109,12 @@ namespace UIDev
 
         private void ParseTerritory(DateTime timestamp, string[] payload)
         {
-            for (int i = PartyState.MaxSize - 1; i >= 0; ++i)
+            for (int i = PartyState.MaxPartySize - 1; i >= 0; ++i)
             {
                 if (_ws.Party.ContentIDs[i] != 0)
                 {
-                    OpPartyLeave op = new();
-                    op.ContentID = _ws.Party.ContentIDs[i];
-                    op.InstanceID = _ws.Party.Members[i]?.InstanceID ?? 0;
+                    OpPartyModify op = new();
+                    op.Slot = i;
                     AddOp(timestamp, op);
                 }
             }
@@ -168,7 +167,7 @@ namespace UIDev
 
                 if (res.Type == ActorType.Player && _lastPlayerContentID == 0)
                 {
-                    OpPartyJoin opJoin = new();
+                    OpPartyModify opJoin = new();
                     opJoin.ContentID = ++_lastPlayerContentID;
                     opJoin.InstanceID = res.InstanceID;
                     AddOp(timestamp, res);
@@ -230,9 +229,8 @@ namespace UIDev
             var slot = _ws.Party.FindSlot(res.InstanceID);
             if (slot >= 0)
             {
-                OpPartyLeave opLeave = new();
-                opLeave.ContentID = _ws.Party.ContentIDs[slot];
-                opLeave.InstanceID = res.InstanceID;
+                OpPartyModify opLeave = new();
+                opLeave.Slot = slot;
                 AddOp(timestamp, opLeave);
             }
         }
@@ -244,23 +242,24 @@ namespace UIDev
             for (int i = 0; i < size; ++i)
                 party.Add(ulong.Parse(payload[3 + i], NumberStyles.HexNumber));
 
-            for (int i = PartyState.MaxSize - 1; i >= 0; ++i)
+            for (int i = PartyState.MaxPartySize - 1; i >= 0; ++i)
             {
                 var m = _ws.Party.Members[i];
                 if (m != null && !party.Contains(m.InstanceID))
                 {
-                    OpPartyLeave op = new();
-                    op.ContentID = _ws.Party.ContentIDs[i];
-                    op.InstanceID = m.InstanceID;
+                    OpPartyModify op = new();
+                    op.Slot = i;
                     AddOp(timestamp, op);
                 }
             }
 
-            foreach (ulong instanceID in party)
+            foreach (ulong instanceID in party.Where(instanceID => _ws.Party.FindSlot(instanceID) == -1))
             {
-                if (_ws.Party.FindSlot(instanceID) == -1)
+                int freeSlot = _ws.Party.ActorIDs.IndexOf(0ul);
+                if (freeSlot >= 0)
                 {
-                    OpPartyJoin op = new();
+                    OpPartyModify op = new();
+                    op.Slot = freeSlot;
                     op.ContentID = ++_lastPlayerContentID;
                     op.InstanceID = instanceID;
                     AddOp(timestamp, op);

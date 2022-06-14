@@ -5,8 +5,8 @@
         private enum State { None, Donut, Spread, Flare, Stack }
 
         public bool Done { get; private set; }
-        private State[] _states = new State[PartyState.MaxSize * 4];
-        private int[] _doneCasts = new int[PartyState.MaxSize];
+        private State[] _states = new State[PartyState.MaxPartySize * 4];
+        private int[] _doneCasts = new int[PartyState.MaxPartySize];
 
         public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
         {

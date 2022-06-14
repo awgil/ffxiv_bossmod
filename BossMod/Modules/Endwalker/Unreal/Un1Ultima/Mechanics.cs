@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
     // TODO: consider splitting into multiple components, at least for mechanics that start in later phases...
     class Mechanics : BossModule.Component
     {
-        private int[] _tankStacks = new int[PartyState.MaxSize];
+        private int[] _tankStacks = new int[PartyState.MaxPartySize];
 
         private HashSet<ulong> _orbsSharedExploded = new();
         // TODO: think how to associate kiters with orbs

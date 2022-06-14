@@ -47,9 +47,13 @@ namespace BossMod
             {
                 DrawCastingEnemiesList();
             }
-            if (ImGui.CollapsingHeader("Party"))
+            if (ImGui.CollapsingHeader("Party (dalamud)"))
             {
-                _debugParty.DrawParty();
+                _debugParty.DrawPartyDalamud();
+            }
+            if (ImGui.CollapsingHeader("Party (custom)"))
+            {
+                _debugParty.DrawPartyCustom();
             }
             if (ImGui.CollapsingHeader("Graphics scene"))
             {

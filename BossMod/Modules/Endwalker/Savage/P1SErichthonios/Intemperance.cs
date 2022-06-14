@@ -123,7 +123,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
                 if (NumExplosions++ == 0 && _pattern != Pattern.Unknown && _curState != State.Unknown)
                 {
                     // on first explosion, assign players to cubes
-                    _playerAssignment = new int[PartyState.MaxSize];
+                    _playerAssignment = new int[PartyState.MaxPartySize];
                     int occupiedMask = 0;
                     foreach (var (slot, player) in module.Raid.WithSlot(true))
                     {
