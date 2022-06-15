@@ -4,7 +4,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Savage.P4S2Hesperos
 {
     // state related to curtain call mechanic
-    class CurtainCall : BossModule.Component
+    class CurtainCall : BossComponent
     {
         private int[] _playerOrder = new int[8];
         private List<Actor>? _playersInBreakOrder;
@@ -18,7 +18,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_playerOrder[slot] > _numCasts)
             {
@@ -27,7 +27,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (_playersInBreakOrder != null)
                 hints.Add($"Order: {string.Join(" -> ", _playersInBreakOrder.Skip(_numCasts).Select(a => OrderTextForPlayer(module, a)))}");

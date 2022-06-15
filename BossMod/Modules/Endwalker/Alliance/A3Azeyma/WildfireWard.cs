@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Alliance.A3Azeyma
 {
-    class WildfireWard : BossModule.Component
+    class WildfireWard : BossComponent
     {
         private bool _active;
         private List<Actor> _glimpse = new();
@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
         private static WPos[] _tri = { new(-750, -762), new(-760.392f, -744), new(-739.608f, -744) };
         private static float _knockbackDistance = 15;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (!_active)
                 return;

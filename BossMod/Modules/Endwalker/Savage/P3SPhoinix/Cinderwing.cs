@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
     // state related to cinderwing
-    class Cinderwing : BossModule.Component
+    class Cinderwing : BossComponent
     {
         private AOEShapeCone _aoe = new(60, 90.Degrees());
 
@@ -17,7 +17,7 @@
                 module.ReportError(this, $"Failed to initialize cinderwing; unexpected boss cast {module.PrimaryActor.CastInfo?.Action}");
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_aoe.Check(actor.Position, module.PrimaryActor))
                 hints.Add("GTFO from wing!");

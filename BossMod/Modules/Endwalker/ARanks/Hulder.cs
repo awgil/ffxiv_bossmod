@@ -15,7 +15,7 @@
         StormOfColor = 27078,
     }
 
-    public class Mechanics : BossModule.Component
+    public class Mechanics : BossComponent
     {
         private AOEShapeCone _layOfMislaidMemory = new(30, 60.Degrees());
         private AOEShapeRect _tempestuousWrath = new(0, 4);
@@ -29,13 +29,13 @@
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (ActiveAOE(module)?.Check(actor.Position, module.PrimaryActor) ?? false)
                 hints.Add("GTFO from aoe!");
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return;

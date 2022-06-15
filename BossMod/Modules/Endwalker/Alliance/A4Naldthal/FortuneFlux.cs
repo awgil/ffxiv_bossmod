@@ -4,14 +4,14 @@ using System.Linq;
 namespace BossMod.Endwalker.Alliance.A4Naldthal
 {
     // TODO: we can detect earlier (FiredUp cast + tether)
-    class FortuneFlux : BossModule.Component
+    class FortuneFlux : BossComponent
     {
         private SortedList<int, (Actor Caster, bool Knockback)> _casters = new();
 
         private static float _knockbackDistance = 30;
         private static AOEShapeCircle _aoeShape = new(20);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_casters.Count == 0)
                 return;

@@ -4,7 +4,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
 {
     // state related to knockback + aoe mechanic
     // TODO: i'm not quite happy with implementation, consider revising...
-    class Knockback : BossModule.Component
+    class Knockback : BossComponent
     {
         public bool AOEDone { get; private set; } = false;
         private bool _isFlare = false; // true -> purge aka flare (stay away from MT), false -> grace aka holy (stack to MT)
@@ -36,7 +36,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (module.PrimaryActor.CastInfo != null && actor == _knockbackTarget && !module.Bounds.Contains(_knockbackPos))
             {

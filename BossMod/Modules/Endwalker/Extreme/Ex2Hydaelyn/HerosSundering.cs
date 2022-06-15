@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
-    class HerosSundering : BossModule.Component
+    class HerosSundering : BossComponent
     {
         private Actor? _target;
         private BitMask _otherHit;
@@ -24,7 +24,7 @@
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_target == null)
                 return;

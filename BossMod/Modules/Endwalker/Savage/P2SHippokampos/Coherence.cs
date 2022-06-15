@@ -33,7 +33,7 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (actor == _tetherTarget)
             {

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex3Endsigner
 {
-    class DespairUnforgotten : BossModule.Component
+    class DespairUnforgotten : BossComponent
     {
         private enum State { None, Donut, Spread, Flare, Stack }
 
@@ -8,7 +8,7 @@
         private State[] _states = new State[PartyState.MaxPartySize * 4];
         private int[] _doneCasts = new int[PartyState.MaxPartySize];
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             // TODO: improve
             if (_doneCasts[slot] > 3)

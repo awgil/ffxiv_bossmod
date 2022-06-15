@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P1SErichthonios
 {
     // state related to [aether]flails mechanics
-    class Flails : BossModule.Component
+    class Flails : BossComponent
     {
         public int NumCasts { get; private set; } = 0;
         private AOEShape? _first;
@@ -63,7 +63,7 @@
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_first?.Check(actor.Position, module.PrimaryActor) ?? false)
                 hints.Add("Hit by first flail!");

@@ -2,7 +2,7 @@
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
-    class P3DiveFromGrace : BossModule.Component
+    class P3DiveFromGrace : BossComponent
     {
         // current 'state' is next event that will happen
         // note that some mechanics happen with slight delay (~0.1-0.2s) - we merge them together to protect against potential reordering
@@ -45,7 +45,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             _boss = module.Enemies(OID.BossP3).FirstOrDefault();
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             switch (_playerStates[slot].JumpOrder)
             {

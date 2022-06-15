@@ -14,18 +14,18 @@
         AncientBlizzard = 27069,
     }
 
-    public class Mechanics : BossModule.Component
+    public class Mechanics : BossComponent
     {
         private AOEShapeCircle _tidalGuillotine = new(13);
         private AOEShapeCone _ancientBlizzard = new(40, 22.5f.Degrees());
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (ActiveAOE(module)?.Check(actor.Position, module.PrimaryActor) ?? false)
                 hints.Add("GTFO from aoe!");
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return;

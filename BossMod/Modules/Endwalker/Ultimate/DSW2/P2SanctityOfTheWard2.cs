@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     // - towers 1: [0,11] are outer towers in CW order, starting from '11 o'clock' (CCW tower of N quadrant); [12,15] are inner towers in CCW order, starting from NE (NE-SE-SW-NW)
     //   so, inner towers for quadrant k are [3*k, 3*k+2]; neighbouring inner are 12+k & 12+(k+3)%4
     // - towers 2: [0,7] - CW order, starting from N
-    class P2SanctityOfTheWard2 : BossModule.Component
+    class P2SanctityOfTheWard2 : BossComponent
     {
         struct PlayerData
         {
@@ -75,7 +75,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 _players[i] = new() { AssignedQuadrant = -1, AssignedTower2 = -1 };
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_activeTowers1 != 8 || _assignedPreys != 2)
                 return;
@@ -107,7 +107,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (_activeTowers1 == 8 && _assignedPreys == 2)
             {

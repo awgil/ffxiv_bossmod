@@ -5,7 +5,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Savage.P4S2Hesperos
 {
     // state related to act 4 wreath of thorns
-    class WreathOfThorns4 : BossModule.Component
+    class WreathOfThorns4 : BossComponent
     {
         public bool ReadyToBreak;
         private IconID[] _playerIcons = new IconID[8];
@@ -47,7 +47,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (!ReadyToBreak)
                 return;
@@ -85,7 +85,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (_darkOrder != null && _activeTethers > 0)
             {

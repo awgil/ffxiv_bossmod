@@ -3,13 +3,13 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Extreme.Ex3Endsigner
 {
-    class Endsong : BossModule.Component
+    class Endsong : BossComponent
     {
         private List<Actor> _active = new();
 
         private static AOEShapeCircle _aoe = new(15);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_active.Any(a => _aoe.Check(actor.Position, a)))
                 hints.Add("GTFO from aoe!");

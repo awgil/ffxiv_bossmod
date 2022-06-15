@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex1Zodiark
 {
     // state related to algedon mechanic
-    class Algedon : BossModule.Component
+    class Algedon : BossComponent
     {
         private Actor? _caster;
 
@@ -9,7 +9,7 @@
 
         public bool Done => _caster == null;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_shape.Check(actor.Position, _caster))
                 hints.Add("GTFO from diagonal aoe!");

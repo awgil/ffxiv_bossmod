@@ -3,7 +3,7 @@
 namespace BossMod.Endwalker.Savage.P4S1Hesperos
 {
     // component detecting corner assignments for 'setting the scene'; it is used by other components to show various warnings
-    class SettingTheScene : BossModule.Component
+    class SettingTheScene : BossComponent
     {
         public enum Corner { Unknown, NE, SE, SW, NW }
         public enum Element { Fire, Lightning, Acid, Water }

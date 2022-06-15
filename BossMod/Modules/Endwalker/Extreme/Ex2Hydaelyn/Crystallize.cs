@@ -2,7 +2,7 @@
 
 namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
-    class Crystallize : BossModule.Component
+    class Crystallize : BossComponent
     {
         public enum Element { None, Water, Earth, Ice }
         public Element CurElement { get; private set; }
@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
                 module.ReportError(this, $"Unexpected boss cast {module.PrimaryActor.CastInfo?.Action.ID ?? 0}");
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             switch (CurElement)
             {
@@ -46,7 +46,7 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
             }
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             string hint = CurElement switch
             {

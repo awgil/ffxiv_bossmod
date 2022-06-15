@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
 
         public OminousBubbling() : base(ActionID.MakeSpell(AID.OminousBubblingAOE)) { }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             int healersInRange = module.Raid.WithoutSlot().Where(a => a.Role == Role.Healer).InRadius(actor.Position, _radius).Count();
             if (healersInRange > 1)

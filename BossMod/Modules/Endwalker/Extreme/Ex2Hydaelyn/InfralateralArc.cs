@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 
         public InfralateralArc() : base(ActionID.MakeSpell(AID.InfralateralArcAOE)) { }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var pcRole = EffectiveRole(actor);
             var pcDir = Angle.FromDirection(actor.Position - module.PrimaryActor.Position);

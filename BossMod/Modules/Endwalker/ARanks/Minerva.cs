@@ -20,7 +20,7 @@
         BallisticMissileDonutWarning = 27518,
     }
 
-    public class Mechanics : BossModule.Component
+    public class Mechanics : BossComponent
     {
         private AOEShapeCircle _ballisticMissileCircle = new(6);
         private AOEShapeDonut _ballisticMissileDonut = new(6, 20);
@@ -28,13 +28,13 @@
         private Actor? _activeBallisticMissileTarget;
         private WPos _activeBallisticMissileLocation = new();
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_activeBallisticMissile?.Check(actor.Position, _activeBallisticMissileTarget?.Position ?? _activeBallisticMissileLocation, 0.Degrees()) ?? false)
                 hints.Add("GTFO from aoe!");
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return;

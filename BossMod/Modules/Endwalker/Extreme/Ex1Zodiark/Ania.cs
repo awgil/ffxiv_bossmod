@@ -3,7 +3,7 @@
 namespace BossMod.Endwalker.Extreme.Ex1Zodiark
 {
     // state related to ania mechanic
-    class Ania : BossModule.Component
+    class Ania : BossComponent
     {
         private Actor? _target;
 
@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
 
         public bool Done => _target == null;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_target == null)
                 return;

@@ -9,7 +9,7 @@
 
         public P2BroadSwing() : base(ActionID.MakeSpell(AID.BroadSwingAOE)) { }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_caster == null)
                 return;

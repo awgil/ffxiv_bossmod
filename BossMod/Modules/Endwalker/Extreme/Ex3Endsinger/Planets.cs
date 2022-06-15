@@ -3,7 +3,7 @@
 namespace BossMod.Endwalker.Extreme.Ex3Endsigner
 {
     // used both for single planets (elegeia) and successions (fatalism)
-    class Planets : BossModule.Component
+    class Planets : BossComponent
     {
         private Actor? _head;
         private List<WPos> _planetsFiery = new();
@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
         private static float _knockbackDistance = 25;
         private static float _planetOffset = 19.8f; // == 14 * sqrt(2)
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_aoeHead.Check(actor.Position, _head))
             {

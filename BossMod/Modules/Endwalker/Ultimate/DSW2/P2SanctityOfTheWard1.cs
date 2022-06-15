@@ -20,7 +20,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public P2SanctityOfTheWard1Gaze() : base(ActionID.MakeSpell(AID.DragonsGazeAOE)) { }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (EyePositions(module).Any(eye => HitByEye(actor, eye)))
                 hints.Add("Turn away from gaze!");
@@ -65,7 +65,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     }
 
     // 'sever' (between 1/2 markers with shared damage), 'charge' (aka shining blade) + 'flare' (cw/ccw leaving exploding orbs)
-    class P2SanctityOfTheWard1 : BossModule.Component
+    class P2SanctityOfTheWard1 : BossComponent
     {
         class ChargeInfo
         {
@@ -99,7 +99,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             _config = Service.Config.Get<DSW2Config>();
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (NumSeverCasts < 4)
             {
@@ -135,7 +135,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (_groupSwapHints.Length > 0)
                 hints.Add($"Swap: {_groupSwapHints}");

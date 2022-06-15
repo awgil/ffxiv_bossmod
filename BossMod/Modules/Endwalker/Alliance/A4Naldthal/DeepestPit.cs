@@ -4,14 +4,14 @@ using System.Linq;
 namespace BossMod.Endwalker.Alliance.A4Naldthal
 {
     // TODO: we can use icon to determine targets much earlier, but how to clear them if they turn out to be fake?
-    class DeepestPit : BossModule.Component
+    class DeepestPit : BossComponent
     {
         //private List<Actor> _targets = new();
         private List<Actor> _casters = new();
 
         private static float _radius = 6;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_casters.Any(c => actor.Position.InCircle(c.CastInfo!.LocXZ, _radius)))
             {

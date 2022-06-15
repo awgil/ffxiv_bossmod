@@ -4,7 +4,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
     // first part of the mechanic - charges + spread + rings
-    class P2StrengthOfTheWard1 : BossModule.Component
+    class P2StrengthOfTheWard1 : BossComponent
     {
         public int NumImpactHits { get; private set; }
         private bool _lightningStormsDone;
@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private static float _lightningStormRadius = 5;
         private static AOEShapeRect _spiralThrustAOE = new(52, 8);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (!_lightningStormsDone && module.Raid.WithoutSlot().InRadiusExcluding(actor, _lightningStormRadius).Any())
                 hints.Add("Spread!");

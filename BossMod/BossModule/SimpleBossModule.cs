@@ -10,7 +10,7 @@
         }
 
         // build a simple state machine, with first state activating provided component
-        protected void BuildStateMachine<T>() where T : Component, new()
+        protected void BuildStateMachine<T>() where T : BossComponent, new()
         {
             var sb = new StateMachineBuilder(this);
             sb.TrivialPhase()

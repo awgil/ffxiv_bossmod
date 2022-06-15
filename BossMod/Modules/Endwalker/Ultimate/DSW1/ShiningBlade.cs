@@ -5,7 +5,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Ultimate.DSW1
 {
     // includes knockback + charges
-    class ShiningBlade : BossModule.Component
+    class ShiningBlade : BossComponent
     {
         private Actor? _serAdelphel; // casts charges and execution
         private Actor? _knockbackSource;
@@ -52,7 +52,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_knockbackSource != null)
             {

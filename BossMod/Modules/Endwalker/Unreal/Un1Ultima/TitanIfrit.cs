@@ -4,7 +4,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Unreal.Un1Ultima
 {
     // both phases use radiant plumes
-    class TitanIfrit : BossModule.Component
+    class TitanIfrit : BossComponent
     {
         private List<(Actor, AOEShapeCircle)> _activeLocationTargetedAOEs = new();
         private List<Actor> _crimsonCyclone = new();
@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
         private static AOEShapeCircle _aoeEruption = new(8);
         private static AOEShapeRect _aoeCrimsonCyclone = new(38, 6);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_activeLocationTargetedAOEs.Any(e => e.Item2.Check(actor.Position, e.Item1.CastInfo!.LocXZ)) || _crimsonCyclone.Any(a => _aoeCrimsonCyclone.Check(actor.Position, a)))
                 hints.Add("GTFO from aoe!");

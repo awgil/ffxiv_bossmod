@@ -50,96 +50,12 @@ namespace BossMod
             return entry;
         }
 
-        // list of actor-specific hints (string + whether this is a "risk" type of hint)
-        public class TextHints : List<(string, bool)>
-        {
-            public void Add(string text, bool isRisk = true) => base.Add((text, isRisk));
-        }
-
-        // list of actor-specific "movement hints" (arrow start/end pos + color)
-        public class MovementHints : List<(WPos, WPos, uint)>
-        {
-            public void Add(WPos from, WPos to, uint color) => base.Add((from, to, color));
-        }
-
-        // list of global hints
-        public class GlobalHints : List<string> { }
-
-        // different encounter mechanics can be split into independent components
-        // individual components should be activated and deactivated when needed (typically by state machine transitions)
-        public class Component
-        {
-            // a set of player priorities; if there are several active components, non-player party member is drawn using color provided by component that returned highest priority (or default color for this priority)
-            public enum PlayerPriority
-            {
-                Irrelevant, // player is completely irrelevant to any mechanics done by PC; it might be even not drawn at all, depending on configuration
-                Normal, // player is drawn (it might be important to PC for proper positioning, e.g. so that it is not clipped by other mechanic), but is currently not particularly important
-                Interesting, // player is drawn, and it is somewhat interesting for PC (e.g. it might currently be at risk of being clipped by PC's mechanic)
-                Danger, // player is a source of danger to the player: might be risking failing a mechanic that would wipe a raid, or might be baiting nasty AOE, etc.
-                Critical, // tracking this player's position is extremely important
-            }
-
-            public virtual void Init(BossModule module) { } // called at activation
-            public virtual void Update(BossModule module) { } // called every frame - it is a good place to update any cached values
-            public virtual void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) { } // gather any relevant pieces of advice for specified raid member
-            public virtual void AddGlobalHints(BossModule module, GlobalHints hints) { } // gather any relevant pieces of advice for whole raid
-            public virtual PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => PlayerPriority.Irrelevant; // determine how particular party member should be drawn; if custom color is left untouched, standard color is selected
-            public virtual void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { } // called at the beginning of arena draw, good place to draw aoe zones
-            public virtual void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { } // called after arena background and borders are drawn, good place to draw actors, tethers, etc.
-
-            // world state event handlers
-            public virtual void OnStatusGain(BossModule module, Actor actor, int index) { }
-            public virtual void OnStatusLose(BossModule module, Actor actor, int index) { }
-            public virtual void OnStatusChange(BossModule module, Actor actor, int index) { }
-            public virtual void OnTethered(BossModule module, Actor actor) { }
-            public virtual void OnUntethered(BossModule module, Actor actor) { }
-            public virtual void OnCastStarted(BossModule module, Actor actor) { }
-            public virtual void OnCastFinished(BossModule module, Actor actor) { }
-            public virtual void OnEventCast(BossModule module, CastEvent info) { }
-            public virtual void OnEventIcon(BossModule module, ulong actorID, uint iconID) { }
-            public virtual void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state) { }
-        }
-        private List<Component> _components = new();
-        public IReadOnlyList<Component> Components => _components;
-
-        public void ActivateComponent<T>() where T : Component, new()
-        {
-            if (FindComponent<T>() != null)
-            {
-                Service.Log($"[BossModule] Activating a component of type {typeof(T)} when another of the same type is already active; old one is deactivated automatically");
-                DeactivateComponent<T>();
-            }
-            T comp = new();
-            _components.Add(comp);
-            comp.Init(this);
-            foreach (var actor in WorldState.Actors)
-            {
-                if (actor.CastInfo != null)
-                    comp.OnCastStarted(this, actor);
-                if (actor.Tether.ID != 0)
-                    comp.OnTethered(this, actor);
-                for (int i = 0; i < actor.Statuses.Length; ++i)
-                    if (actor.Statuses[i].ID != 0)
-                        comp.OnStatusGain(this, actor, i);
-            }
-        }
-
-        public void DeactivateComponent<T>() where T : Component
-        {
-            int count = _components.RemoveAll(x => x is T);
-            if (count == 0)
-                Service.Log($"[BossModule] Could not find a component of type {typeof(T)} to deactivate");
-        }
-
-        public T? FindComponent<T>() where T : Component
-        {
-            return _components.OfType<T>().FirstOrDefault();
-        }
-
-        public void ClearComponents()
-        {
-            _components.Clear();
-        }
+        private BossComponent _rootComp = new();
+        public IReadOnlyList<BossComponent> Components => _rootComp.Subcomponents;
+        public void ActivateComponent<T>() where T : BossComponent, new() => _rootComp.AddAndInitSubcomponent<T>(this);
+        public void DeactivateComponent<T>() where T : BossComponent => _rootComp.RemoveSubcomponent<T>();
+        public T? FindComponent<T>() where T : BossComponent => _rootComp.FindSubcomponent<T>();
+        public void ClearComponents() => _rootComp.RemoveAllSubcomponents();
 
         public BossModule(BossModuleManager manager, Actor primary, ArenaBounds bounds)
         {
@@ -214,12 +130,11 @@ namespace BossMod
             if (StateMachine.ActiveState != null)
             {
                 UpdateModule();
-                foreach (var comp in _components)
-                    comp.Update(this);
+                _rootComp.UpdateRec(this);
             }
         }
 
-        public virtual void Draw(float cameraAzimuth, int pcSlot, MovementHints? pcMovementHints)
+        public virtual void Draw(float cameraAzimuth, int pcSlot, BossComponent.MovementHints? pcMovementHints)
         {
             if (Manager.WindowConfig.ShowMechanicTimers)
                 StateMachine?.Draw();
@@ -243,8 +158,7 @@ namespace BossMod
 
             // draw background
             DrawArenaBackground(pcSlot, pc);
-            foreach (var comp in _components)
-                comp.DrawArenaBackground(this, pcSlot, pc, Arena);
+            _rootComp.DrawArenaBackgroundRec(this, pcSlot, pc, Arena);
 
             // draw borders
             Arena.Border();
@@ -256,27 +170,24 @@ namespace BossMod
 
             // draw foreground
             DrawArenaForegroundPre(pcSlot, pc);
-            foreach (var comp in _components)
-                comp.DrawArenaForeground(this, pcSlot, pc, Arena);
+            _rootComp.DrawArenaForegroundRec(this, pcSlot, pc, Arena);
             DrawArenaForegroundPost(pcSlot, pc);
 
             // draw player
             Arena.Actor(pc, ArenaColor.PC);
         }
 
-        public TextHints CalculateHintsForRaidMember(int slot, Actor actor, MovementHints? movementHints = null)
+        public BossComponent.TextHints CalculateHintsForRaidMember(int slot, Actor actor, BossComponent.MovementHints? movementHints = null)
         {
-            TextHints hints = new();
-            foreach (var comp in _components)
-                comp.AddHints(this, slot, actor, hints, movementHints);
+            BossComponent.TextHints hints = new();
+            _rootComp.AddHintsRec(this, slot, actor, hints, movementHints);
             return hints;
         }
 
-        public GlobalHints CalculateGlobalHints()
+        public BossComponent.GlobalHints CalculateGlobalHints()
         {
-            GlobalHints hints = new();
-            foreach (var comp in _components)
-                comp.AddGlobalHints(this, hints);
+            BossComponent.GlobalHints hints = new();
+            _rootComp.AddGlobalHintsRec(this, hints);
             return hints;
         }
 
@@ -291,7 +202,7 @@ namespace BossMod
             return source != null ? AdjustPositionForKnockback(pos, source.Position, distance) : pos;
         }
 
-        public void ReportError(Component? comp, string message)
+        public void ReportError(BossComponent? comp, string message)
         {
             Service.Log($"[ModuleError] [{this.GetType().Name}] [{comp?.GetType().Name}] {message}");
             Manager.HandleError(this, comp, message);
@@ -319,7 +230,7 @@ namespace BossMod
             ImGui.NewLine();
         }
 
-        private void DrawHintForPlayer(int pcSlot, MovementHints? movementHints)
+        private void DrawHintForPlayer(int pcSlot, BossComponent.MovementHints? movementHints)
         {
             var pc = Raid[pcSlot];
             if (pc == null)
@@ -360,29 +271,17 @@ namespace BossMod
         {
             foreach (var (slot, player) in Raid.WithSlot().Exclude(pcSlot))
             {
-                Component.PlayerPriority highestPrio = Component.PlayerPriority.Irrelevant;
-                uint color = 0;
-                foreach (var comp in _components)
-                {
-                    uint curCustomColor = 0;
-                    var curPrio = comp.CalcPriority(this, pcSlot, pc, slot, player, ref curCustomColor);
-                    if (curPrio > highestPrio)
-                    {
-                        highestPrio = curPrio;
-                        color = curCustomColor;
-                    }
-                }
-
-                if (highestPrio == Component.PlayerPriority.Irrelevant && !Manager.WindowConfig.ShowIrrelevantPlayers)
+                var (prio, color) = _rootComp.CalcPriorityRec(this, pcSlot, pc, slot, player);
+                if (prio == BossComponent.PlayerPriority.Irrelevant && !Manager.WindowConfig.ShowIrrelevantPlayers)
                     continue;
 
                 if (color == 0)
                 {
-                    color = highestPrio switch
+                    color = prio switch
                     {
-                        Component.PlayerPriority.Interesting => ArenaColor.PlayerInteresting,
-                        Component.PlayerPriority.Danger => ArenaColor.Danger,
-                        Component.PlayerPriority.Critical => ArenaColor.Vulnerable, // TODO: select some better color...
+                        BossComponent.PlayerPriority.Interesting => ArenaColor.PlayerInteresting,
+                        BossComponent.PlayerPriority.Danger => ArenaColor.Danger,
+                        BossComponent.PlayerPriority.Critical => ArenaColor.Vulnerable, // TODO: select some better color...
                         _ => ArenaColor.PlayerGeneric
                     };
                 }
@@ -406,62 +305,52 @@ namespace BossMod
 
         private void OnActorCastStarted(object? sender, Actor actor)
         {
-            foreach (var comp in _components)
-                comp.OnCastStarted(this, actor);
+            _rootComp.OnCastStarted(this, actor);
         }
 
         private void OnActorCastFinished(object? sender, Actor actor)
         {
-            foreach (var comp in _components)
-                comp.OnCastFinished(this, actor);
+            _rootComp.OnCastFinished(this, actor);
         }
 
         private void OnActorTethered(object? sender, Actor actor)
         {
-            foreach (var comp in _components)
-                comp.OnTethered(this, actor);
+            _rootComp.OnTethered(this, actor);
         }
 
         private void OnActorUntethered(object? sender, Actor actor)
         {
-            foreach (var comp in _components)
-                comp.OnUntethered(this, actor);
+            _rootComp.OnUntethered(this, actor);
         }
 
         private void OnActorStatusGain(object? sender, (Actor actor, int index) arg)
         {
-            foreach (var comp in _components)
-                comp.OnStatusGain(this, arg.actor, arg.index);
+            _rootComp.OnStatusGain(this, arg.actor, arg.index);
         }
 
         private void OnActorStatusLose(object? sender, (Actor actor, int index) arg)
         {
-            foreach (var comp in _components)
-                comp.OnStatusLose(this, arg.actor, arg.index);
+            _rootComp.OnStatusLose(this, arg.actor, arg.index);
         }
 
         private void OnActorStatusChange(object? sender, (Actor actor, int index, ushort prevExtra, DateTime prevExpire) arg)
         {
-            foreach (var comp in _components)
-                comp.OnStatusChange(this, arg.actor, arg.index);
+            _rootComp.OnStatusChange(this, arg.actor, arg.index);
         }
 
         private void OnEventIcon(object? sender, (ulong actorID, uint iconID) arg)
         {
-            foreach (var comp in _components)
-                comp.OnEventIcon(this, arg.actorID, arg.iconID);
+            _rootComp.OnEventIcon(this, arg.actorID, arg.iconID);
         }
 
         private void OnEventCast(object? sender, CastEvent info)
         {
-            foreach (var comp in _components)
-                comp.OnEventCast(this, info);
+            _rootComp.OnEventCast(this, info);
         }
 
         private void OnEventEnvControl(object? sender, (uint featureID, byte index, uint state) arg)
         {
-            foreach (var comp in _components)
-                comp.OnEventEnvControl(this, arg.featureID, arg.index, arg.state);
+            _rootComp.OnEventEnvControl(this, arg.featureID, arg.index, arg.state);
         }
     }
 }

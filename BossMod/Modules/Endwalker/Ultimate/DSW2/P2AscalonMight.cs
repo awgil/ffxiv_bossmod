@@ -6,7 +6,7 @@
 
         public P2AscalonMight() : base(ActionID.MakeSpell(AID.AscalonsMight)) { }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (module.PrimaryActor.TargetID != actor.InstanceID && _aoe.Check(actor.Position, module.PrimaryActor))
                 hints.Add("GTFO from cleave!");

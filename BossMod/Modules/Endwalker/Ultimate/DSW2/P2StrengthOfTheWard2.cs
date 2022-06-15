@@ -4,7 +4,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
     // second part of the mechanic - icons spread / rest stack, voidzones, charge to tethers, towers
-    class P2StrengthOfTheWard2 : BossModule.Component
+    class P2StrengthOfTheWard2 : BossComponent
     {
         public bool LeapsDone { get; private set; }
         public bool ChargeDone { get; private set; }
@@ -33,7 +33,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             _dirToBoss = Angle.FromDirection(offset) + 180.Degrees();
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_voidzones.Any(v => _voidzoneAOE.Check(actor.Position, v.CastInfo!.LocXZ)))
                 hints.Add($"GTFO from voidzone aoe!");

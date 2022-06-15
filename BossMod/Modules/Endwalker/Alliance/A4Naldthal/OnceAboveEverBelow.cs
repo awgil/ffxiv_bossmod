@@ -5,7 +5,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Alliance.A4Naldthal
 {
     // TODO: refactor, it's quite hacky...
-    class OnceAboveEverBelow : BossModule.Component
+    class OnceAboveEverBelow : BossComponent
     {
         private class Instance
         {
@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
         private static float _advance = 6;
         private static AOEShapeCircle _aoe = new(6);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (ActiveAOEs().Any(c => _aoe.Check(actor.Position, c)))
                 hints.Add("GTFO from aoe!");

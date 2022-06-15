@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P4S1Hesperos
 {
     // component showing where to drag boss for max pinax uptime
-    class PinaxUptime : BossModule.Component
+    class PinaxUptime : BossComponent
     {
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {

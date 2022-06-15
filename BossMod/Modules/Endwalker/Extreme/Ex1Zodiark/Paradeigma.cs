@@ -4,7 +4,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Extreme.Ex1Zodiark
 {
     // state related to paradeigma and astral flow mechanics
-    class Paradeigma : BossModule.Component
+    class Paradeigma : BossComponent
     {
         public enum FlowDirection { None, CW, CCW };
 
@@ -22,7 +22,7 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
         private static AOEShapeCircle _behemothAOE = new(15);
         private static AOEShapeRect _snakeAOE = new(42, 5.5f);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (RotatedBirds(module).Any(b => _birdAOE.Check(actor.Position, b)) || RotatedBehemoths(module).Any(b => _behemothAOE.Check(actor.Position, b)))
                 hints.Add("GTFO from bird/behemoth aoe!");

@@ -74,7 +74,7 @@ namespace BossMod
             {
                 try
                 {
-                    BossModule.MovementHints? movementHints = WindowConfig.ShowWorldArrows ? new() : null;
+                    BossComponent.MovementHints? movementHints = WindowConfig.ShowWorldArrows ? new() : null;
                     ActiveModule.Draw(WindowConfig.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, PartyState.PlayerSlot, movementHints);
                     DrawMovementHints(movementHints, WorldState.Party.Player()?.PosRot.Y ?? 0);
                 }
@@ -96,7 +96,7 @@ namespace BossMod
             }
         }
 
-        private void DrawMovementHints(BossModule.MovementHints? arrows, float y)
+        private void DrawMovementHints(BossComponent.MovementHints? arrows, float y)
         {
             if (arrows == null || arrows.Count == 0 || Camera.Instance == null)
                 return;

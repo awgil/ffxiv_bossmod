@@ -4,12 +4,12 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
     // state relared to darkened fire add placement mechanic
     // adds should be neither too close (or they insta explode and wipe raid) nor too far (or during brightened fire someone wouldn't be able to hit two adds)
-    class DarkenedFire : BossModule.Component
+    class DarkenedFire : BossComponent
     {
         private static float _minRange = 11; // note: on one of our pulls adds at (94.14, 105.55) and (94.21, 94.69) (distance=10.860) linked and wiped us
         private static float _maxRange = 13; // brigthened fire aoe radius is 7, so this is x2 minus some room for positioning
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             bool haveTooClose = false;
             int numInRange = 0;

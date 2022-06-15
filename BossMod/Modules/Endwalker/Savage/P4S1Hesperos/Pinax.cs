@@ -3,7 +3,7 @@
 namespace BossMod.Endwalker.Savage.P4S1Hesperos
 {
     // state related to pinax mechanics
-    class Pinax : BossModule.Component
+    class Pinax : BossComponent
     {
         private enum Order { Unknown, LUWU, WULU, LFWA, LAWF, WFLA, WALF }
 
@@ -19,7 +19,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
         private static float _knockbackRadius = 13;
         private static float _lightingSafeDistance = 16; // linear falloff until 16, then constant (not sure whether it is true distance-based or max-coord-based)
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_acid != null)
             {
@@ -58,7 +58,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             }
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             string order = _order switch
             {

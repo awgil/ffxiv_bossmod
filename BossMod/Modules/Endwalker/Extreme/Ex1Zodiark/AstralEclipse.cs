@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
     // 'pattern' is a mask containing explosion spots; index is 4 bits, with low 2 bits describing world X position and 2 high bits describing world Z position
     // so NE corner (X=+1, Z=-1) corresponds to index 0b0010 = 2; S corner (X=0, Z=+1) corresponds to index 0b1001 = 9 and so on (0b11 index is unused)
     // 'completed' or 'not started' is represented as fully safe (all 0) mask, 'unknown' pattern is represented as fully dangerous (all 1) mask
-    class AstralEclipse : BossModule.Component
+    class AstralEclipse : BossComponent
     {
         private int[] _patterns = new int[3]; // W -> S -> E
 
@@ -19,14 +19,14 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
         private static Vector3[] _basisX = new Vector3[3] { -Vector3.UnitZ, -Vector3.UnitX, Vector3.UnitZ };
         private static Vector3[] _basisY = new Vector3[3] { -Vector3.UnitX,  Vector3.UnitZ, Vector3.UnitX };
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             int nextPattern = _patterns.SkipWhile(p => p == 0).FirstOrDefault();
             if (PatternSpots(module, nextPattern).Any(p => _aoe.Check(actor.Position, p)))
                 hints.Add("GTFO from explosion!");
 
             if (movementHints != null)
-                foreach (var (from, to) in MovementHints(module, actor.Position))
+                foreach (var (from, to) in EnumMovementHints(module, actor.Position))
                     movementHints.Add(from, to, ArenaColor.Safe);
         }
 
@@ -39,7 +39,7 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var (from, to) in MovementHints(module, pc.Position))
+            foreach (var (from, to) in EnumMovementHints(module, pc.Position))
                 arena.AddLine(from, to, ArenaColor.Safe);
         }
 
@@ -81,7 +81,7 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
                             yield return module.Bounds.Center + _centerOffset * new WDir(x, z);
         }
 
-        private IEnumerable<(WPos, WPos)> MovementHints(BossModule module, WPos startingPosition)
+        private IEnumerable<(WPos, WPos)> EnumMovementHints(BossModule module, WPos startingPosition)
         {
             WPos prev = startingPosition;
             foreach (var p in _patterns.Where(p => p != 0))

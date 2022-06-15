@@ -4,14 +4,14 @@ using System.Linq;
 namespace BossMod.Endwalker.Savage.P4S2Hesperos
 {
     // state related to hell's sting mechanic (part of curtain call sequence)
-    class HellsSting : BossModule.Component
+    class HellsSting : BossComponent
     {
         public int NumCasts { get; private set; } = 0;
 
         private AOEShapeCone _cone = new(50, 15.Degrees());
         private List<Angle> _directions = new();
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (NumCasts >= _directions.Count * 2)
                 return;

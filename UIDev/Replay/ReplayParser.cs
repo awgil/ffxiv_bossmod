@@ -27,7 +27,7 @@ namespace UIDev
 
             public BossModuleManagerWrapper(ReplayParser self) : base(self._ws) { _self = self; }
 
-            public override void HandleError(BossModule module, BossModule.Component? comp, string message)
+            public override void HandleError(BossModule module, BossComponent? comp, string message)
             {
                 _self._modules[module.PrimaryActor.InstanceID].Encounter.Errors.Add(new() { Timestamp = _self._ws.CurrentTime, CompType = comp?.GetType(), Message = message });
             }

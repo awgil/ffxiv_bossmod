@@ -3,7 +3,7 @@
 namespace BossMod.Endwalker.Savage.P4S2Hesperos
 {
     // state related to nearsight & farsight mechanics
-    class NearFarSight : BossModule.Component
+    class NearFarSight : BossComponent
     {
         public enum State { Near, Far, Done }
 
@@ -39,7 +39,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_targets.None())
                 return;

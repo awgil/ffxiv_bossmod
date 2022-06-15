@@ -15,7 +15,7 @@
         BackhandBlow = 27712,
     }
 
-    public class Mechanics : BossModule.Component
+    public class Mechanics : BossComponent
     {
         private bool _showRimestorm;
         private AOEShapeCircle _leafstorm = new(10);
@@ -23,7 +23,7 @@
         private AOEShapeCircle _snowball = new(8);
         private AOEShapeCone _backhandBlow = new(12, 60.Degrees(), 180.Degrees());
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             bool inAOE = _showRimestorm && _rimestorm.Check(actor.Position, module.PrimaryActor);
             if (!inAOE)
@@ -35,7 +35,7 @@
                 hints.Add("GTFO from aoe!");
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return;

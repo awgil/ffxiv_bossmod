@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW1
 {
     // 'heavensblaze' (full party stack except tank) + 'holy shield bash' / 'holy bladedance' (stun + aoe tankbuster)
-    class Heavensblaze : BossModule.Component
+    class Heavensblaze : BossComponent
     {
         private Actor? _danceSource;
         private Actor? _danceTarget;
@@ -10,7 +10,7 @@
         private static AOEShapeCone _danceAOE = new(16, 45.Degrees());
         private static float _blazeRadius = 4;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_blazeTarget != null)
             {

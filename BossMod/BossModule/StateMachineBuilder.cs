@@ -27,7 +27,7 @@ namespace BossMod
             }
 
             // note that there is no "deactivate on exit", since phase change clears all components automatically
-            public Phase ActivateOnEnter<C>(bool condition = true) where C : BossModule.Component, new()
+            public Phase ActivateOnEnter<C>(bool condition = true) where C : BossComponent, new()
             {
                 if (condition)
                     Raw.Enter.Add(_module.ActivateComponent<C>);
@@ -47,14 +47,14 @@ namespace BossMod
                 _module = module;
             }
 
-            public State ActivateOnEnter<C>(bool condition = true) where C : BossModule.Component, new()
+            public State ActivateOnEnter<C>(bool condition = true) where C : BossComponent, new()
             {
                 if (condition)
                     Raw.Enter.Add(_module.ActivateComponent<C>);
                 return this;
             }
 
-            public State DeactivateOnExit<C>(bool condition = true) where C : BossModule.Component, new()
+            public State DeactivateOnExit<C>(bool condition = true) where C : BossComponent, new()
             {
                 if (condition)
                     Raw.Exit.Add(_module.DeactivateComponent<C>);
@@ -220,7 +220,7 @@ namespace BossMod
         }
 
         // create a state triggered by component condition (or timeout if it never happens); if component is not present, error is logged and transition is triggered immediately
-        public State ComponentCondition<T>(uint id, float expected, Func<T, bool> condition, string name = "", float maxOverdue = 1, float checkDelay = 0) where T : BossModule.Component
+        public State ComponentCondition<T>(uint id, float expected, Func<T, bool> condition, string name = "", float maxOverdue = 1, float checkDelay = 0) where T : BossComponent
         {
             var state = SimpleState(id, expected, name);
             state.Raw.Comment = $"Condition on {typeof(T).Name}";
@@ -250,7 +250,7 @@ namespace BossMod
 
         // create a fork state triggered by component condition
         public State ComponentConditionFork<T, Key>(uint id, float expected, Func<T, bool> condition, Func<T, Key> select, Dictionary<Key, (uint seqID, Action<uint> buildState)> dispatch, string name = "")
-            where T : BossModule.Component
+            where T : BossComponent
             where Key : notnull
         {
             Func<bool> cond = () =>

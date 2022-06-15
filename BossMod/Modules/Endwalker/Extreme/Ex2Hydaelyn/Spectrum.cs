@@ -6,7 +6,7 @@
 
         public Spectrum() : base(ActionID.MakeSpell(AID.BrightSpectrum)) { }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             int tanksInRange = 0, nonTanksInRange = 0;
             foreach (var other in module.Raid.WithoutSlot().InRadiusExcluding(actor, _radius))

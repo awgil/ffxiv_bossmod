@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Alliance.A3Azeyma
 {
-    class SolarFans : BossModule.Component
+    class SolarFans : BossComponent
     {
         private List<(Actor, AOEShapeRect)> _start = new();
         private bool _rhythmActive;
@@ -13,7 +13,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
         private static float _flightRadiusOuter = 30;
         private static AOEShapeCircle _aoeFinish = new(25);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_start.Any(e => e.Item2.Check(actor.Position, e.Item1)) ||
                 _rhythmActive && module.Enemies(OID.WardensFlame).Any(flame => ActorInRhythmAOE(module.Bounds.Center, flame, actor)) ||

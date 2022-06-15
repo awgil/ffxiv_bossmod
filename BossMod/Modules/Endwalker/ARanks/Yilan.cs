@@ -24,7 +24,7 @@
         RightFace = 1961,
     }
 
-    public class Mechanics : BossModule.Component
+    public class Mechanics : BossComponent
     {
         private AOEShapeCircle _miniLight = new(18);
         private AOEShapeCircle _bogBomb = new(6);
@@ -32,14 +32,14 @@
 
         private static float _marchDistance = 12;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var (aoe, pos) = ActiveAOE(module, actor);
             if (aoe?.Check(actor.Position, pos, module.PrimaryActor.Rotation) ?? false)
                 hints.Add("GTFO from aoe!");
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return;

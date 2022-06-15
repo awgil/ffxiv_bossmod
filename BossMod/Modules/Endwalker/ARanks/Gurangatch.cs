@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
         OctupleSlammerRCCW = 27522,
     }
 
-    public class Mechanics : BossModule.Component
+    public class Mechanics : BossComponent
     {
         private AOEShapeCone _slammer = new(30, 90.Degrees());
         private int _remainingSlams = 0;
@@ -50,13 +50,13 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_remainingSlams > 0 && _slammer.Check(actor.Position, module.PrimaryActor.Position, _slamDir))
                 hints.Add("GTFO from aoe!");
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return;

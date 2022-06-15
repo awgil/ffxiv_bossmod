@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
         public Heavensflame() : base(ActionID.MakeSpell(AID.HeavensflameAOE)) { }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (!_active)
                 return;

@@ -3,11 +3,11 @@
 namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
     // state related to devouring brand mechanic
-    class DevouringBrand : BossModule.Component
+    class DevouringBrand : BossComponent
     {
         private static float _halfWidth = 5;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var offset = actor.Position - module.Bounds.Center;
             if (MathF.Abs(offset.X) <= _halfWidth || MathF.Abs(offset.Z) <= _halfWidth)

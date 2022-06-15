@@ -5,7 +5,7 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
 {
     // common mechanics that are used for entire fight
     // TODO: consider splitting into multiple components, at least for mechanics that start in later phases...
-    class Mechanics : BossModule.Component
+    class Mechanics : BossComponent
     {
         private int[] _tankStacks = new int[PartyState.MaxPartySize];
 
@@ -32,7 +32,7 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
                 _orbKiters.Clear();
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var mtSlot = module.WorldState.Party.FindSlot(module.PrimaryActor.TargetID);
             if (actor.Role == Role.Tank)

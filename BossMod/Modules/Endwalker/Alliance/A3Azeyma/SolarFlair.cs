@@ -3,14 +3,14 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Alliance.A3Azeyma
 {
-    class SolarFlair : BossModule.Component
+    class SolarFlair : BossComponent
     {
         private Dictionary<ulong, WPos?> _sunstorms = new(); // null = cast finished, otherwise expected position
 
         private static float _kickDistance = 18;
         private static AOEShapeCircle _aoe = new(15);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (ActiveSunstorms(module).Any(s => _aoe.Check(actor.Position, s)))
                 hints.Add("GTFO from aoe!");

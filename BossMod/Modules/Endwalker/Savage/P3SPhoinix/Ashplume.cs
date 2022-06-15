@@ -5,7 +5,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
     // state related to ashplumes (normal or parts of gloryplume)
     // normal ashplume is boss cast (with different IDs depending on stack/spread) + instant aoe some time later
     // gloryplume is one instant cast with animation only soon after boss cast + instant aoe some time later
-    class Ashplume : BossModule.Component
+    class Ashplume : BossComponent
     {
         public enum State { UnknownGlory, Stack, Spread, Done }
 
@@ -27,7 +27,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
                 module.ReportError(this, $"Failed to initialize ashplume component, unexpected cast {module.PrimaryActor.CastInfo?.Action}");
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (CurState == State.Stack)
             {
@@ -59,7 +59,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             }
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (CurState == State.Stack)
                 hints.Add("Stack!");

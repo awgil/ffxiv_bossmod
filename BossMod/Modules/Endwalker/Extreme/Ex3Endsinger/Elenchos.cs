@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Extreme.Ex3Endsigner
 {
-    class Elenchos : BossModule.Component
+    class Elenchos : BossComponent
     {
         private Actor? _center;
         private List<Actor> _sides = new();
@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
         private static AOEShapeRect _aoeCenter = new(40, 7);
         private static AOEShapeRect _aoeSides = new(40, 6.5f, 40);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_aoeCenter.Check(actor.Position, _center) || _sides.Any(s => _aoeSides.Check(actor.Position, s)))
                 hints.Add("GTFO from aoe!");

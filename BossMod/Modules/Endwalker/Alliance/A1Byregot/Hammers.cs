@@ -2,7 +2,7 @@
 
 namespace BossMod.Endwalker.Alliance.A1Byregot
 {
-    class Hammers : BossModule.Component
+    class Hammers : BossComponent
     {
         private enum State { Inactive, SidesAboutToBeDestroyed, Active }
 
@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
         private static AOEShapeRect _aoeLevinforge = new(50, 5);
         private static AOEShapeRect _aoeSpire = new(50, 15);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_curState == State.Inactive)
                 return;

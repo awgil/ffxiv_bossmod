@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un1Ultima
 {
-    class Garuda : BossModule.Component
+    class Garuda : BossComponent
     {
         private bool _vulcanBurstImminent;
         private Actor? _mistralSong;
@@ -11,7 +11,7 @@
         private static AOEShapeDonut _aoeEOTS = new(13, 25); // TODO: check inner range
         private static AOEShapeCircle _aoeGeocrush = new(18); // TODO: check falloff
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_aoeMistralSong != null)
             {

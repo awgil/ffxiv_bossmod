@@ -4,7 +4,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Savage.P4S1Hesperos
 {
     // state related to vengeful belone mechanic
-    class VengefulBelone : BossModule.Component
+    class VengefulBelone : BossComponent
     {
         private Dictionary<ulong, Role> _orbTargets = new();
         private int _orbsExploded = 0;
@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
 
         private Role OrbTarget(ulong instanceID) => _orbTargets.GetValueOrDefault(instanceID, Role.None);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_orbTargets.Count == 0 || _orbsExploded == _orbTargets.Count)
                 return; // inactive

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A1Byregot
 {
-    class ByregotStrike : BossModule.Component
+    class ByregotStrike : BossComponent
     {
         private Actor? _jumpCaster;
         private Actor? _knockbackCaster;
@@ -18,7 +18,7 @@
                 _coneRotation = _jumpCaster.Rotation;
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_jumpCaster != null && _aoeJump.Check(actor.Position, _jumpCaster.CastInfo!.LocXZ))
             {

@@ -4,7 +4,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
     // state related to darkblaze twister mechanics
-    class DarkblazeTwister : BossModule.Component
+    class DarkblazeTwister : BossComponent
     {
         private static float _knockbackRange = 17;
         private static float _aoeInnerRadius = 5;
@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
         public IEnumerable<Actor> BurningTwisters(BossModule module) => module.Enemies(OID.DarkblazeTwister).Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false);
         public Actor? DarkTwister(BossModule module) => module.Enemies(OID.DarkblazeTwister).Find(twister => twister.CastInfo?.IsSpell(AID.DarkTwister) ?? false);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var adjPos = BossModule.AdjustPositionForKnockback(actor.Position, DarkTwister(module), _knockbackRange);
             if (actor.Position != adjPos && !module.Bounds.Contains(adjPos))

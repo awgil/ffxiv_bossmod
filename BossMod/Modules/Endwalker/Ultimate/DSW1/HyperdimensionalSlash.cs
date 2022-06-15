@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.DSW1
 {
-    class HyperdimensionalSlash : BossModule.Component
+    class HyperdimensionalSlash : BossComponent
     {
         public int NumCasts { get; private set; }
         private List<Actor> _laserTargets = new();
@@ -40,7 +40,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             _coneDir = coneTarget != null ? Angle.FromDirection(coneTarget.Position - module.Bounds.Center) : 0.Degrees();
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_laserTargets.Count == 0)
                 return;

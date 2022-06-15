@@ -4,7 +4,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Extreme.Ex1Zodiark
 {
     // state related to adikia mechanic
-    class Adikia : BossModule.Component
+    class Adikia : BossComponent
     {
         private List<Actor> _casters = new();
 
@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
 
         public bool Done => _casters.Count == 0;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_casters.Any(c => _shape.Check(actor.Position, c)))
                 hints.Add("GTFO from side smash aoe!");

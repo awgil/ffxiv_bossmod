@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
     // state related to 'single' and 'multi' fireplumes (normal or parts of gloryplume)
-    class Fireplume : BossModule.Component
+    class Fireplume : BossComponent
     {
         private WPos? _singlePos = null;
         private Angle _multiStartingDirection;
@@ -12,7 +12,7 @@
         private static float _multiRadius = 10;
         private static float _multiPairOffset = 15;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_singlePos != null && actor.Position.InCircle(_singlePos.Value, _singleRadius))
             {

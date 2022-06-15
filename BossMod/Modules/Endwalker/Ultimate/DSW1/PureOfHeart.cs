@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             _coneTargets = _boss != null && NumCasts < 8 ? module.Raid.WithSlot().SortedByRange(_boss.Position).Take(2).Mask() : new();
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_boss == null)
                 return;

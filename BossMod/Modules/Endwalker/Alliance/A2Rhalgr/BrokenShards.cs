@@ -4,7 +4,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Alliance.A2Rhalgr
 {
     // this is not an official mechanic name - it refers to broken world + hand of the destroyer combo, which creates multiple small aoes
-    class BrokenShards : BossModule.Component
+    class BrokenShards : BossComponent
     {
         private WPos[]? _targetLocations;
 
@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Alliance.A2Rhalgr
         private static WPos[] _westLocations = { new(-6.9f, 268.0f), new(-0.2f, 285.0f), new(-25.6f, 298.5f), new(-34.2f, 283.5f), new(-11.6f, 293.5f), new(-46.1f, 270.5f), new(-18.1f, 279.0f), new(-40.3f, 290.5f), new(-2.1f, 252.0f) };
         private static AOEShapeCircle _aoe = new(20);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_targetLocations != null && _targetLocations.Any(l => _aoe.Check(actor.Position, l)))
                 hints.Add("GTFO from aoe!");

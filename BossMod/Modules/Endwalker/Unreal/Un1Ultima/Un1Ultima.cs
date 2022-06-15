@@ -1,9 +1,9 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un1Ultima
 {
     // TODO: consider how phase changes could be detected and create different states for them?..
-    class Phases : BossModule.Component
+    class Phases : BossComponent
     {
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             var hint = ((float)module.PrimaryActor.HPCur / module.PrimaryActor.HPMax) switch
             {

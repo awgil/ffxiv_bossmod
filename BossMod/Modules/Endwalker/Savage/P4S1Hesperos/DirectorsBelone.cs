@@ -4,7 +4,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
 {
     // state related to director's belone (debuffs) mechanic
     // note that forbidden targets are selected either from bloodrake tethers (first instance of mechanic) or from tower types (second instance of mechanic)
-    class DirectorsBelone : BossModule.Component
+    class DirectorsBelone : BossComponent
     {
         private bool _assigned = false;
         private BitMask _debuffForbidden;
@@ -33,7 +33,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_debuffForbidden.None())
                 return;
@@ -79,7 +79,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             }
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             var forbidden = module.Raid.WithSlot(true).IncludedInMask(_debuffForbidden).FirstOrDefault().Item2;
             if (forbidden != null)

@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P2SHippokampos
 {
     // state related to sewage deluge mechanic
-    class SewageDeluge : BossModule.Component
+    class SewageDeluge : BossComponent
     {
         public enum Corner { None, NW, NE, SW, SE };
 

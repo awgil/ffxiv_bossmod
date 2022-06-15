@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
     // E/W positions: symmetrical = move to center for second explosion, then return; asymmetrical = move to S for second explosion, then return
     // normal corners: symmetrical = move to S for second explosion, then return; asymmetrical = move to center for second explosion, then return
     // designated corner: symmetrical = same as normal corner; asymmetrical = move to N or S for second explosion, move to N for last explosion
-    class Intemperance : BossModule.Component
+    class Intemperance : BossComponent
     {
         public enum State { Unknown, TopToBottom, BottomToTop }
         public enum Pattern { Unknown, Symmetrical, Asymmetrical }
@@ -59,7 +59,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_delimiterCenters.Any(c => _delimiterAOE.Check(actor.Position, c.Item1, c.Item2)))
             {
@@ -83,11 +83,11 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
             }
 
             if (movementHints != null && _playerAssignment != null)
-                foreach (var (from, to, color) in MovementHints(module, actor.Position, _playerAssignment[slot]))
+                foreach (var (from, to, color) in EnumMovementHints(module, actor.Position, _playerAssignment[slot]))
                     movementHints.Add(from, to, color);
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             hints.Add($"Order: {_curState}, pattern: {_pattern}.");
         }
@@ -101,7 +101,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_playerAssignment != null)
-                foreach (var (from, to, color) in MovementHints(module, pc.Position, _playerAssignment[pcSlot]))
+                foreach (var (from, to, color) in EnumMovementHints(module, pc.Position, _playerAssignment[pcSlot]))
                     arena.AddLine(from, to, color);
         }
 
@@ -233,7 +233,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
                 return pos1; // others return to initial spot
         }
 
-        private IEnumerable<(WPos, WPos, uint)> MovementHints(BossModule module, WPos startingPosition, int assignment)
+        private IEnumerable<(WPos, WPos, uint)> EnumMovementHints(BossModule module, WPos startingPosition, int assignment)
         {
             switch (NumExplosions)
             {

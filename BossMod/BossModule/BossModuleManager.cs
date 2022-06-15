@@ -131,7 +131,7 @@ namespace BossMod
             }
         }
 
-        public virtual void HandleError(BossModule module, BossModule.Component? comp, string message) { }
+        public virtual void HandleError(BossModule module, BossComponent? comp, string message) { }
         protected virtual void RefreshConfigOrModules() { }
         protected virtual void OnModuleLoaded(BossModule module) { Service.Log($"[BMM] Boss module '{module.GetType()}' for actor {module.PrimaryActor.InstanceID:X} ({module.PrimaryActor.OID:X}) '{module.PrimaryActor.Name}' loaded"); }
         protected virtual void OnModuleUnloaded(BossModule module) { Service.Log($"[BMM] Boss module '{module.GetType()}' for actor {module.PrimaryActor.InstanceID:X} unloaded"); }

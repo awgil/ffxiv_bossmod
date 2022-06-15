@@ -5,7 +5,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
 {
     // state related to act 3 wreath of thorns
     // note: there should be four tethered helpers on activation
-    class WreathOfThorns3 : BossModule.Component
+    class WreathOfThorns3 : BossComponent
     {
         public enum State { RangedTowers, Knockback, MeleeTowers, Done }
 
@@ -46,7 +46,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (CurState != State.Done)
             {

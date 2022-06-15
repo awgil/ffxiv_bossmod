@@ -4,7 +4,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
     // component for intermission adds (crystals & echoes)
-    class IntermissionAdds : BossModule.Component
+    class IntermissionAdds : BossComponent
     {
         private HashSet<ulong> _activeCrystals = new();
 

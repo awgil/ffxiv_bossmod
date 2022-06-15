@@ -3,11 +3,11 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Alliance.A3Azeyma
 {
-    class DancingFlame : BossModule.Component
+    class DancingFlame : BossComponent
     {
         private List<WPos> _active = new();
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (ActiveZones(module).Any(z => actor.Position.InRect(z.Center, new WDir(1, 0), z.HalfSize.X, z.HalfSize.X, z.HalfSize.Z)))
                 hints.Add("GTFO from aoe!");

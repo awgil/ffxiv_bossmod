@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Alliance.A1Byregot
 {
-    class Reproduce : BossModule.Component
+    class Reproduce : BossComponent
     {
         private class Entry
         {
@@ -23,7 +23,7 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
         private static AOEShapeCircle _aoe = new(7);
         private static WDir _advance = new(-8.5f, 0);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_active.Any(e => ImminentAOEs(module, e).Any(c => _aoe.Check(actor.Position, c))))
             {

@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P4S1Hesperos
 {
     // state related to shift mechanics
-    class Shift : BossModule.Component
+    class Shift : BossComponent
     {
         private AOEShapeCone _swordAOE = new(50, 60.Degrees());
         private Actor? _swordCaster;
@@ -9,7 +9,7 @@
 
         private static float _knockbackRange = 30;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_swordAOE.Check(actor.Position, _swordCaster))
             {

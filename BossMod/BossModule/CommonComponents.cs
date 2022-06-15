@@ -6,7 +6,7 @@ namespace BossMod
     public static class CommonComponents
     {
         // generic component that counts specified casts
-        public class CastCounter : BossModule.Component
+        public class CastCounter : BossComponent
         {
             public int NumCasts { get; private set; } = 0;
             protected ActionID WatchedAction { get; private set; }
@@ -24,7 +24,7 @@ namespace BossMod
         }
 
         // generic 'shared tankbuster' component that shows radius around cast target; assumes only 1 concurrent cast is active
-        public class SharedTankbuster : BossModule.Component
+        public class SharedTankbuster : BossComponent
         {
             private float _radius;
             private ActionID _watchedAction;
@@ -36,7 +36,7 @@ namespace BossMod
                 _watchedAction = aid;
             }
 
-            public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+            public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (_target == null)
                     return;
@@ -91,7 +91,7 @@ namespace BossMod
                 StackRadius = stackRadius;
             }
 
-            public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+            public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (Target != null && Target != actor && !actor.Position.InCircle(Target.Position, StackRadius))
                     hints.Add("Stack!");
@@ -123,7 +123,7 @@ namespace BossMod
         }
 
         // generic 'spread from target' component that shows circles around actors that are target of a specific cast
-        public class SpreadFromCastTargets : BossModule.Component
+        public class SpreadFromCastTargets : BossComponent
         {
             private float _spreadRadius;
             private ActionID _watchedAction;
@@ -135,7 +135,7 @@ namespace BossMod
                 _watchedAction = aid;
             }
 
-            public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+            public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (_active.Any(e => e.Target != actor && e.Target.Position.InCircle(actor.Position, _spreadRadius)))
                     hints.Add("GTFO from aoe target!");
@@ -176,7 +176,7 @@ namespace BossMod
         }
 
         // generic 'puddles' component that shows circle aoes for casters that target specific location
-        public class Puddles : BossModule.Component
+        public class Puddles : BossComponent
         {
             public bool Done { get; private set; } // set when currently there are no casters, but at least 1 cast was started before
             private ActionID _watchedAction;
@@ -189,7 +189,7 @@ namespace BossMod
                 _aoe = new(radius);
             }
 
-            public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+            public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (_casters.Any(c => _aoe.Check(actor.Position, c.CastInfo!.LocXZ)))
                     hints.Add("GTFO from puddle!");
@@ -233,7 +233,7 @@ namespace BossMod
                 _maxCasts = maxCasts;
             }
 
-            public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+            public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (_casters.Take(_maxCasts).Any(c => _shape.Check(actor.Position, c)))
                     hints.Add("GTFO from aoe!");
@@ -270,7 +270,7 @@ namespace BossMod
                 _distance = distance;
             }
 
-            public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+            public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (_caster != null)
                 {
@@ -305,7 +305,7 @@ namespace BossMod
 
         // generic component that is 'active' during specific primary target's cast
         // useful for simple bosses - outdoor, dungeons, etc.
-        public class CastHint : BossModule.Component
+        public class CastHint : BossComponent
         {
             protected ActionID _action;
             protected string _hint;
@@ -318,7 +318,7 @@ namespace BossMod
 
             public bool Active(BossModule module) => module.PrimaryActor.CastInfo?.Action == _action;
 
-            public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+            public override void AddGlobalHints(BossModule module, GlobalHints hints)
             {
                 if (Active(module))
                     hints.Add(_hint);
@@ -336,7 +336,7 @@ namespace BossMod
                 _shape = shape;
             }
 
-            public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+            public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
             {
                 if (Active(module) && _shape.Check(actor.Position, module.PrimaryActor))
                     hints.Add("GTFO from aoe!");
@@ -350,7 +350,7 @@ namespace BossMod
         }
 
         // generic interrupt hint component
-        public class Interruptible : BossModule.Component
+        public class Interruptible : BossComponent
         {
             private ActionID _watchedAction;
             private List<Actor> _casters = new();
@@ -360,7 +360,7 @@ namespace BossMod
                 _watchedAction = aid;
             }
 
-            public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+            public override void AddGlobalHints(BossModule module, GlobalHints hints)
             {
                 if (_casters.Count > 0)
                 {

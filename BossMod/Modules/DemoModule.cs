@@ -2,7 +2,7 @@
 {
     public class DemoModule : BossModule
     {
-        private class DemoComponent : Component
+        private class DemoComponent : BossComponent
         {
             public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
             {

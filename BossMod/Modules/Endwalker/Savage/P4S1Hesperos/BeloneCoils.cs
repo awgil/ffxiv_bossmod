@@ -4,7 +4,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Savage.P4S1Hesperos
 {
     // state related to belone coils mechanic (role towers)
-    class BeloneCoils : BossModule.Component
+    class BeloneCoils : BossComponent
     {
         public enum Soaker { Unknown, TankOrHealer, DamageDealer }
 
@@ -23,7 +23,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             };
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (ActiveSoakers == Soaker.Unknown)
                 return;

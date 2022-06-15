@@ -20,7 +20,7 @@
         ApplyPrey = 27229,
     }
 
-    public class Mechanics : BossModule.Component
+    public class Mechanics : BossComponent
     {
         private AOEShapeDonut _spark = new(14, 24);
         private AOEShapeCircle _scytheTail = new(17);
@@ -32,14 +32,14 @@
         private static float _twisterRadius = 8;
         private static float _twisterKnockback = 20;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var (aoe, pos) = ActiveAOE(module);
             if (aoe?.Check(actor.Position, pos, module.PrimaryActor.Rotation) ?? false)
                 hints.Add("GTFO from aoe!");
         }
 
-        public override void AddGlobalHints(BossModule module, BossModule.GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
                 return;

@@ -5,7 +5,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
 {
     // state related to act 1 wreath of thorns
     // note: there should be two tethered helpers for aoes on activation
-    class WreathOfThorns1 : BossModule.Component
+    class WreathOfThorns1 : BossComponent
     {
         public enum State { FirstAOEs, Towers, LastAOEs, Done }
 
@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
         private IEnumerable<Actor> _towers => _relevantHelpers.Skip(2).Take(8);
         private IEnumerable<Actor> _lastAOEs => _relevantHelpers.Skip(10);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             switch (CurState)
             {

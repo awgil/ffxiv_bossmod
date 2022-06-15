@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Alliance.A4Naldthal
 {
-    class HeavensTrial : BossModule.Component
+    class HeavensTrial : BossComponent
     {
         private Actor? _stackTarget;
         private List<(Actor Caster, Actor Target)> _cones = new();
@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
         private static float _stackRadius = 6;
         private static AOEShapeCone _coneShape = new(60, 15.Degrees());
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_stackTarget != null && _stackTarget != actor && !_cones.Any(c => c.Target == actor))
             {

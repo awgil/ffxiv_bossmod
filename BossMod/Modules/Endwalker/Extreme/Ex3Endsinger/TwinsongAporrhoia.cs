@@ -2,7 +2,7 @@
 
 namespace BossMod.Endwalker.Extreme.Ex3Endsigner
 {
-    class TwinsongAporrhoia : BossModule.Component
+    class TwinsongAporrhoia : BossComponent
     {
         private enum HeadID { Center, Danger1, Danger2, Safe1, Safe2, Count };
 
@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
         private static AOEShapeCircle _aoeDanger = new(15);
         private static AOEShapeDonut _aoeSafe = new(5, 15);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_castsDone >= 3 && !_ringsAssigned)
                 return;

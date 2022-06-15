@@ -3,7 +3,7 @@
 namespace BossMod.Endwalker.Savage.P2SHippokampos
 {
     // state related to predatory avarice mechanic
-    class PredatoryAvarice : BossModule.Component
+    class PredatoryAvarice : BossComponent
     {
         private BitMask _playersWithTides;
         private BitMask _playersWithDepths;
@@ -34,7 +34,7 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (!Active)
                 return;

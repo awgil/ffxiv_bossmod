@@ -9,7 +9,7 @@
 
         public KampeosHarma() : base(ActionID.MakeSpell(AID.KampeosHarmaChargeBoss)) { }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var safePos = GetSafeZone(module, slot);
             if (safePos != null && !actor.Position.InCircle(safePos.Value, 2))

@@ -4,7 +4,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
     // state related to fledgling flight & death toll mechanics
-    class FledglingFlight : BossModule.Component
+    class FledglingFlight : BossComponent
     {
         public bool PlacementDone { get; private set; } = false;
         public bool CastsDone { get; private set; } = false;
@@ -27,7 +27,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             }
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_sources.Count == 0)
                 return;

@@ -4,7 +4,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
     // state related to storms of asphodelos mechanics
-    class StormsOfAsphodelos : BossModule.Component
+    class StormsOfAsphodelos : BossComponent
     {
         private AOEShapeCone _windsAOE = new(50, 30.Degrees());
         private AOEShapeCircle _beaconAOE = new(6);
@@ -63,7 +63,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
                     _hitByMultipleAOEs.Set(i);
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, BossModule.TextHints hints, BossModule.MovementHints? movementHints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (actor.Role == Role.Tank)
             {
