@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.Network;
+using Dalamud.Hooking;
 using System;
 using System.IO;
 using System.Numerics;
@@ -30,25 +31,42 @@ namespace BossMod
         private GeneralConfig _config;
         //private Logger _logger;
 
+        private unsafe delegate void ProcessZonePacketDownDelegate(void* a, uint targetId, void* dataPtr);
+        private Hook<ProcessZonePacketDownDelegate> _processZonePacketDownHook;
+
+        private unsafe delegate byte ProcessZonePacketUpDelegate(void* a1, void* dataPtr, void* a3, byte a4);
+        private Hook<ProcessZonePacketUpDelegate> _processZonePacketUpHook;
+
         // this is a mega weird thing - apparently some IDs sent over network have some extra delta added to them (e.g. action ids, icon ids, etc.)
         // they change on relogs or zone changes or something...
         // we have one simple way of detecting them - by looking at casts, since they contain both offset id and real ('animation') id
         private int _unkDelta = 0;
 
-        public Network(DirectoryInfo logDir)
+        public unsafe Network(DirectoryInfo logDir)
         {
             _config = Service.Config.Get<GeneralConfig>();
-            //_logger = new("Network", logDir);
             _config.Modified += ApplyConfig;
-            Service.GameNetwork.NetworkMessage += HandleMessage;
+            //_logger = new("Network", logDir);
+
+            // this is lifted from dalamud - for some reason they stopped dispatching client messages :(
+            //Service.GameNetwork.NetworkMessage += HandleMessage;
+            var processZonePacketDownAddress = Service.SigScanner.ScanText("48 89 5C 24 ?? 56 48 83 EC 50 8B F2");
+            _processZonePacketDownHook = new(processZonePacketDownAddress, ProcessZonePacketDownDetour);
+            _processZonePacketDownHook.Enable();
+
+            var processZonePacketUpAddress = Service.SigScanner.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 41 56 41 57 48 83 EC 70 8B 81 ?? ?? ?? ??");
+            _processZonePacketUpHook = new(processZonePacketUpAddress, ProcessZonePacketUpDetour);
+            _processZonePacketUpHook.Enable();
         }
 
         public void Dispose()
         {
             _config.Modified -= ApplyConfig;
-            Service.GameNetwork.NetworkMessage -= HandleMessage;
-
             //_logger.Deactivate();
+
+            //Service.GameNetwork.NetworkMessage -= HandleMessage;
+            _processZonePacketDownHook.Dispose();
+            _processZonePacketUpHook.Dispose();
         }
 
         private void ApplyConfig(object? sender, EventArgs args)
@@ -62,6 +80,18 @@ namespace BossMod
             //{
             //    _logger.Deactivate();
             //}
+        }
+
+        private unsafe void ProcessZonePacketDownDetour(void* self, uint targetId, void* dataPtr)
+        {
+            HandleMessage((IntPtr)dataPtr + sizeof(Protocol.Server_IPCHeader), ((Protocol.Server_IPCHeader*)dataPtr)->MessageType, 0, targetId, NetworkMessageDirection.ZoneDown);
+            _processZonePacketDownHook.Original(self, targetId, dataPtr);
+        }
+
+        private unsafe byte ProcessZonePacketUpDetour(void* self, void* dataPtr, void* a3, byte a4)
+        {
+            HandleMessage((IntPtr)dataPtr + 0x20, Utils.ReadField<ushort>(dataPtr, 0), 0, 0, NetworkMessageDirection.ZoneUp);
+            return _processZonePacketUpHook.Original(self, dataPtr, a3, a4);
         }
 
         private unsafe void HandleMessage(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
