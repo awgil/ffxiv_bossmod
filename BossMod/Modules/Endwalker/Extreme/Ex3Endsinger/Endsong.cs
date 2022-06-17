@@ -9,6 +9,14 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
 
         private static AOEShapeCircle _aoe = new(15);
 
+        public Endsong()
+        {
+            Tether(TetherID.EndsongFirst, (_, source, _) => _active.Add(source));
+            Tether(TetherID.EndsongNext, (_, source, _) => _active.Add(source));
+            Untether(TetherID.EndsongFirst, (_, source, _) => _active.Remove(source));
+            Untether(TetherID.EndsongNext, (_, source, _) => _active.Remove(source));
+        }
+
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_active.Any(a => _aoe.Check(actor.Position, a)))
@@ -19,17 +27,6 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
         {
             foreach (var a in _active)
                 _aoe.Draw(arena, a);
-        }
-
-        public override void OnTethered(BossModule module, Actor actor)
-        {
-            if ((TetherID)actor.Tether.ID is TetherID.EndsongFirst or TetherID.EndsongNext)
-                _active.Add(actor);
-        }
-
-        public override void OnUntethered(BossModule module, Actor actor)
-        {
-            _active.Remove(actor);
         }
     }
 }

@@ -62,6 +62,12 @@
         TenebrousGrasp = 2832,
     }
 
+    public enum TetherID : uint
+    {
+        ExoTri = 164, // Boss->ExoTri
+        ExoSquare = 171, // Boss->ExoSquare
+    };
+
     public enum IconID : uint
     {
         Styx = 316,

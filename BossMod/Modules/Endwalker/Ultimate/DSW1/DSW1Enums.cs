@@ -67,6 +67,8 @@
     public enum TetherID : uint
     {
         None = 0,
+        HolyBladedance = 84, // SerAdelphel->player
+        Heavensflame = 9, // player->player
     }
 
     public enum IconID : uint

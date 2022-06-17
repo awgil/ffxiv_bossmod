@@ -12,6 +12,11 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
 
         private static float _impulseAOERadius = 5;
 
+        public WreathOfThorns5()
+        {
+            Tether(TetherID.WreathOfThorns, HandleTether);
+        }
+
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             int order = _playersOrder.IndexOf(actor.InstanceID);
@@ -42,7 +47,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             if (order >= _castsDone && order < _towersOrder.Count)
                 arena.AddCircle(_towersOrder[order].Position, P4S2.WreathTowerRadius, ArenaColor.Safe);
 
-            var pcTetherTarget = pc.Tether.Target != 0 ? module.WorldState.Actors.Find(pc.Tether.Target) : null;
+            var pcTetherTarget = module.WorldState.Actors.Find(pc.Tether.Target);
             if (pcTetherTarget != null)
             {
                 arena.AddLine(pc.Position, pcTetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? ArenaColor.Danger : ArenaColor.Safe);
@@ -56,10 +61,10 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void OnTethered(BossModule module, Actor actor)
+        private void HandleTether(BossModule module, Actor source, Actor target)
         {
-            if (actor.OID == (uint)OID.Helper)
-                _towersOrder.Add(actor);
+            if (source.OID == (uint)OID.Helper)
+                _towersOrder.Add(source);
         }
 
         public override void OnEventCast(BossModule module, CastEvent info)

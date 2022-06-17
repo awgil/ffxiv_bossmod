@@ -47,7 +47,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 arena.Actor(player, _playerOrder[slot] == _numCasts + 1 ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
 
             // tether
-            var tetherTarget = pc.Tether.Target != 0 ? module.WorldState.Actors.Find(pc.Tether.Target) : null;
+            var tetherTarget = module.WorldState.Actors.Find(pc.Tether.Target);
             if (tetherTarget != null)
                 arena.AddLine(pc.Position, tetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? ArenaColor.Danger : ArenaColor.Safe);
         }

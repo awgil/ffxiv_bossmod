@@ -24,6 +24,11 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
 
         private static float _jumpAOERadius = 10;
 
+        public WreathOfThorns3()
+        {
+            Tether(TetherID.WreathOfThorns, (_, source, _) => _relevantHelpers.Add(source));
+        }
+
         public override void Update(BossModule module)
         {
             _coneTargets = _playersInAOE = new();
@@ -112,12 +117,6 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 arena.Actor(_jumpTarget, ArenaColor.Danger);
                 arena.AddCircle(_jumpTarget.Position, _jumpAOERadius, ArenaColor.Danger);
             }
-        }
-
-        public override void OnTethered(BossModule module, Actor actor)
-        {
-            if (actor.OID == (uint)OID.Helper && actor.Tether.ID == (uint)TetherID.WreathOfThorns)
-                _relevantHelpers.Add(actor);
         }
 
         public override void OnCastFinished(BossModule module, Actor actor)

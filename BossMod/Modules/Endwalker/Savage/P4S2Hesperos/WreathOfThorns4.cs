@@ -16,6 +16,14 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
 
         private static float _waterExplosionRange = 10;
 
+        public WreathOfThorns4()
+        {
+            Tether(TetherID.WreathOfThorns, HandleTether);
+            Tether(TetherID.WreathOfThornsPairsClose, HandleTether);
+            Untether(TetherID.WreathOfThorns, HandleUntether);
+            Untether(TetherID.WreathOfThornsPairsClose, HandleUntether);
+        }
+
         public override void Update(BossModule module)
         {
             if (_darkOrder == null && _activeTethers == 8)
@@ -148,24 +156,24 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void OnTethered(BossModule module, Actor actor)
+        private void HandleTether(BossModule module, Actor source, Actor target)
         {
-            if (actor.OID == (uint)OID.Helper)
+            if (source.OID == (uint)OID.Helper)
             {
-                var slot = module.Raid.FindSlot(actor.Tether.Target);
+                var slot = module.Raid.FindSlot(source.Tether.Target);
                 if (slot >= 0)
                 {
-                    _playerTetherSource[slot] = actor;
+                    _playerTetherSource[slot] = source;
                     ++_activeTethers;
                 }
             }
         }
 
-        public override void OnUntethered(BossModule module, Actor actor)
+        private void HandleUntether(BossModule module, Actor source, Actor target)
         {
-            if (actor.OID == (uint)OID.Helper)
+            if (source.OID == (uint)OID.Helper)
             {
-                var slot = module.Raid.FindSlot(actor.Tether.Target);
+                var slot = module.Raid.FindSlot(source.Tether.Target);
                 if (slot >= 0)
                 {
                     _playerTetherSource[slot] = null;

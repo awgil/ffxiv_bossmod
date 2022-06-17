@@ -16,6 +16,11 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
         private IEnumerable<Actor> _towers => _relevantHelpers.Skip(2).Take(8);
         private IEnumerable<Actor> _lastAOEs => _relevantHelpers.Skip(10);
 
+        public WreathOfThorns1()
+        {
+            Tether(TetherID.WreathOfThorns, (_, source, _) => _relevantHelpers.Add(source));
+        }
+
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             switch (CurState)
@@ -64,12 +69,6 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 foreach (var player in module.Raid.WithoutSlot())
                     arena.Actor(player, ArenaColor.PlayerGeneric);
             }
-        }
-
-        public override void OnTethered(BossModule module, Actor actor)
-        {
-            if (actor.OID == (uint)OID.Helper && actor.Tether.ID == (uint)TetherID.WreathOfThorns)
-                _relevantHelpers.Add(actor);
         }
 
         public override void OnCastFinished(BossModule module, Actor actor)

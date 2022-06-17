@@ -315,12 +315,16 @@ namespace BossMod
 
         private void OnActorTethered(object? sender, Actor actor)
         {
-            _rootComp.OnTethered(this, actor);
+            var target = WorldState.Actors.Find(actor.Tether.Target);
+            if (target != null)
+                _rootComp.HandleTethered(this, actor, target);
         }
 
         private void OnActorUntethered(object? sender, Actor actor)
         {
-            _rootComp.OnUntethered(this, actor);
+            var target = WorldState.Actors.Find(actor.Tether.Target);
+            if (target != null)
+                _rootComp.HandleUntethered(this, actor, target);
         }
 
         private void OnActorStatusGain(object? sender, (Actor actor, int index) arg)

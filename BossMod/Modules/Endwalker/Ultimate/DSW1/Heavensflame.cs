@@ -12,7 +12,14 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         private static float _aoeRadius = 10;
         private static float _tetherBreakDistance = 32; // TODO: verify...
 
-        public Heavensflame() : base(ActionID.MakeSpell(AID.HeavensflameAOE)) { }
+        public Heavensflame()
+            : base(ActionID.MakeSpell(AID.HeavensflameAOE))
+        {
+            Untether(TetherID.Heavensflame, (module, source, target) => {
+                SetIcon(module, source.InstanceID, 0);
+                SetIcon(module, target.InstanceID, 0);
+            });
+        }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
@@ -62,12 +69,6 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                     arena.Actor(player, ArenaColor.PlayerGeneric);
                 arena.AddCircle(BossModule.AdjustPositionForKnockback(player.Position, _knockbackSource, _knockbackDistance), _aoeRadius, ArenaColor.Danger);
             }
-        }
-
-        public override void OnUntethered(BossModule module, Actor actor)
-        {
-            SetIcon(module, actor.InstanceID, 0);
-            SetIcon(module, actor.Tether.Target, 0);
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)

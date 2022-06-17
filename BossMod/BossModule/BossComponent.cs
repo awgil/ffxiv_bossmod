@@ -96,6 +96,12 @@ namespace BossMod
         private Dictionary<uint, Action<BossModule, Actor>> _enemyStatusLose = new(); // status id -> (actor)
         protected void EnemyStatusLose<SID>(SID sid, Action<BossModule, Actor> callback) where SID : Enum => _enemyStatusLose[(uint)(object)sid] = callback;
 
+        private Dictionary<uint, Action<BossModule, Actor, Actor>> _tether = new(); // tether id -> (source, target)
+        protected void Tether<TID>(TID tid, Action<BossModule, Actor, Actor> callback) where TID : Enum => _tether[(uint)(object)tid] = callback;
+
+        private Dictionary<uint, Action<BossModule, Actor, Actor>> _untether = new(); // tether id -> (source, target)
+        protected void Untether<TID>(TID tid, Action<BossModule, Actor, Actor> callback) where TID : Enum => _untether[(uint)(object)tid] = callback;
+
         // this API is for private use or use by BossModule
         private void InitRec(BossModule module)
         {
@@ -105,23 +111,36 @@ namespace BossMod
             Init(module);
 
             // execute callbacks for existing state
-            foreach (var (slot, actor) in module.Raid.WithSlot(true))
+            if (_partyStatusUpdate.Count > 0)
             {
-                if (actor.Tether.ID != 0)
-                    OnTethered(module, actor);
-
-                foreach (var s in actor.Statuses.Where(s => s.ID != 0))
-                    _partyStatusUpdate.GetValueOrDefault(s.ID)?.Invoke(module, slot, actor, s.SourceID, s.Extra, s.ExpireAt);
+                foreach (var (slot, actor) in module.Raid.WithSlot(true))
+                {
+                    foreach (var s in actor.Statuses.Where(s => s.ID != 0))
+                        _partyStatusUpdate.GetValueOrDefault(s.ID)?.Invoke(module, slot, actor, s.SourceID, s.Extra, s.ExpireAt);
+                }
             }
+            if (_enemyStatusUpdate.Count > 0)
+            {
+                foreach (var actor in module.WorldState.Actors.Where(a => a.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo))
+                {
+                    foreach (var s in actor.Statuses.Where(s => s.ID != 0))
+                        _enemyStatusUpdate.GetValueOrDefault(s.ID)?.Invoke(module, actor, s.SourceID, s.Extra, s.ExpireAt);
+                }
+            }
+            if (_tether.Count > 0)
+            {
+                foreach (var actor in module.WorldState.Actors.Where(a => a.Tether.ID != 0))
+                {
+                    var target = module.WorldState.Actors.Find(actor.Tether.Target);
+                    if (target != null)
+                        _tether.GetValueOrDefault(actor.Tether.ID)?.Invoke(module, actor, target);
+                }
+            }
+
             foreach (var actor in module.WorldState.Actors.Where(a => a.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo))
             {
                 if (actor.CastInfo != null)
                     OnCastStarted(module, actor);
-                if (actor.Tether.ID != 0)
-                    OnTethered(module, actor);
-
-                foreach (var s in actor.Statuses.Where(s => s.ID != 0))
-                    _enemyStatusUpdate.GetValueOrDefault(s.ID)?.Invoke(module, actor, s.SourceID, s.Extra, s.ExpireAt);
             }
         }
 
@@ -206,19 +225,21 @@ namespace BossMod
             _enemyStatusLose.GetValueOrDefault(actor.Statuses[index].ID)?.Invoke(module, actor);
         }
 
+        public void HandleTethered(BossModule module, Actor source, Actor target)
+        {
+            foreach (var s in _subcomponents)
+                s.HandleTethered(module, source, target);
+            _tether.GetValueOrDefault(source.Tether.ID)?.Invoke(module, source, target);
+        }
+
+        public void HandleUntethered(BossModule module, Actor source, Actor target)
+        {
+            foreach (var s in _subcomponents)
+                s.HandleUntethered(module, source, target);
+            _untether.GetValueOrDefault(source.Tether.ID)?.Invoke(module, source, target);
+        }
+
         // "old-style" world state event handlers; note that they are kept virtual, since old components override them directly - TODO remove that after refactoring is complete
-        public virtual void OnTethered(BossModule module, Actor actor)
-        {
-            foreach (var s in _subcomponents)
-                s.OnTethered(module, actor);
-        }
-
-        public virtual void OnUntethered(BossModule module, Actor actor)
-        {
-            foreach (var s in _subcomponents)
-                s.OnUntethered(module, actor);
-        }
-
         public virtual void OnCastStarted(BossModule module, Actor actor)
         {
             foreach (var s in _subcomponents)
