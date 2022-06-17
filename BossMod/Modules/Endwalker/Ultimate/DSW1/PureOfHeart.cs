@@ -14,7 +14,12 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         private static AOEShapeCone _brightwingAOE = new(18, 15.Degrees()); // TODO: verify angle
         private static float _skyblindRadius = 3;
 
-        public PureOfHeart() : base(ActionID.MakeSpell(AID.Brightwing)) { }
+        public PureOfHeart()
+            : base(ActionID.MakeSpell(AID.Brightwing))
+        {
+            PartyStatusUpdate(SID.Skyblind, (_, slot, _, _, _, _) => _skyblindPlayers.Set(slot));
+            PartyStatusLose(SID.Skyblind, (_, slot, _) => _skyblindPlayers.Clear(slot));
+        }
 
         public override void Init(BossModule module)
         {
@@ -79,22 +84,6 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 {
                     arena.Actor(player, _coneTargets[slot] ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
                 }
-            }
-        }
-
-        public override void OnStatusGain(BossModule module, Actor actor, int index)
-        {
-            if ((SID)actor.Statuses[index].ID == SID.Skyblind)
-            {
-                _skyblindPlayers.Set(module.Raid.FindSlot(actor.InstanceID));
-            }
-        }
-
-        public override void OnStatusLose(BossModule module, Actor actor, int index)
-        {
-            if ((SID)actor.Statuses[index].ID == SID.Skyblind)
-            {
-                _skyblindPlayers.Clear(module.Raid.FindSlot(actor.InstanceID));
             }
         }
 

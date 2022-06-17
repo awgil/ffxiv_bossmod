@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod
@@ -33,9 +34,6 @@ namespace BossMod
             Critical, // tracking this player's position is extremely important
         }
 
-        private List<BossComponent> _subcomponents = new();
-        public IReadOnlyList<BossComponent> Subcomponents => _subcomponents;
-
         public virtual void Init(BossModule module) { } // called at activation
         public virtual void Update(BossModule module) { } // called every frame - it is a good place to update any cached values
         public virtual void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) { } // gather any relevant pieces of advice for specified raid member
@@ -45,6 +43,9 @@ namespace BossMod
         public virtual void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { } // called after arena background and borders are drawn, good place to draw actors, tethers, etc.
 
         // subcomponent management
+        private List<BossComponent> _subcomponents = new();
+        public IReadOnlyList<BossComponent> Subcomponents => _subcomponents;
+
         // note: use AddSubcomponent when adding things in constructor (i.e. pre Init call) and AddAndInitSubcomponent when adding things dynamically post init
         public T AddSubcomponent<T>() where T : BossComponent, new()
         {
@@ -82,6 +83,19 @@ namespace BossMod
             return _subcomponents.OfType<T>().FirstOrDefault();
         }
 
+        // registration for events
+        private Dictionary<uint, Action<BossModule, int, Actor, ulong, ushort, DateTime>> _partyStatusUpdate = new(); // status id -> (slot, actor, sourceID, extra, expire-at)
+        protected void PartyStatusUpdate<SID>(SID sid, Action<BossModule, int, Actor, ulong, ushort, DateTime> callback) where SID : Enum => _partyStatusUpdate[(uint)(object)sid] = callback;
+
+        private Dictionary<uint, Action<BossModule, Actor, ulong, ushort, DateTime>> _enemyStatusUpdate = new(); // status id -> (actor, sourceID, extra, expire-at)
+        protected void EnemyStatusUpdate<SID>(SID sid, Action<BossModule, Actor, ulong, ushort, DateTime> callback) where SID : Enum => _enemyStatusUpdate[(uint)(object)sid] = callback;
+
+        private Dictionary<uint, Action<BossModule, int, Actor>> _partyStatusLose = new(); // status id -> (slot, actor)
+        protected void PartyStatusLose<SID>(SID sid, Action<BossModule, int, Actor> callback) where SID : Enum => _partyStatusLose[(uint)(object)sid] = callback;
+
+        private Dictionary<uint, Action<BossModule, Actor>> _enemyStatusLose = new(); // status id -> (actor)
+        protected void EnemyStatusLose<SID>(SID sid, Action<BossModule, Actor> callback) where SID : Enum => _enemyStatusLose[(uint)(object)sid] = callback;
+
         // this API is for private use or use by BossModule
         private void InitRec(BossModule module)
         {
@@ -89,15 +103,25 @@ namespace BossMod
                 s.InitRec(module);
 
             Init(module);
-            foreach (var actor in module.WorldState.Actors)
+
+            // execute callbacks for existing state
+            foreach (var (slot, actor) in module.Raid.WithSlot(true))
+            {
+                if (actor.Tether.ID != 0)
+                    OnTethered(module, actor);
+
+                foreach (var s in actor.Statuses.Where(s => s.ID != 0))
+                    _partyStatusUpdate.GetValueOrDefault(s.ID)?.Invoke(module, slot, actor, s.SourceID, s.Extra, s.ExpireAt);
+            }
+            foreach (var actor in module.WorldState.Actors.Where(a => a.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo))
             {
                 if (actor.CastInfo != null)
                     OnCastStarted(module, actor);
                 if (actor.Tether.ID != 0)
                     OnTethered(module, actor);
-                for (int i = 0; i < actor.Statuses.Length; ++i)
-                    if (actor.Statuses[i].ID != 0)
-                        OnStatusGain(module, actor, i);
+
+                foreach (var s in actor.Statuses.Where(s => s.ID != 0))
+                    _enemyStatusUpdate.GetValueOrDefault(s.ID)?.Invoke(module, actor, s.SourceID, s.Extra, s.ExpireAt);
             }
         }
 
@@ -152,25 +176,37 @@ namespace BossMod
             DrawArenaForeground(module, pcSlot, pc, arena);
         }
 
+        public void HandlePartyStatusUpdate(BossModule module, int slot, Actor actor, int index)
+        {
+            foreach (var s in _subcomponents)
+                s.HandlePartyStatusUpdate(module, slot, actor, index);
+            var status = actor.Statuses[index];
+            _partyStatusUpdate.GetValueOrDefault(status.ID)?.Invoke(module, slot, actor, status.SourceID, status.Extra, status.ExpireAt);
+        }
+
+        public void HandleEnemyStatusUpdate(BossModule module, Actor actor, int index)
+        {
+            foreach (var s in _subcomponents)
+                s.HandleEnemyStatusUpdate(module, actor, index);
+            var status = actor.Statuses[index];
+            _enemyStatusUpdate.GetValueOrDefault(status.ID)?.Invoke(module, actor, status.SourceID, status.Extra, status.ExpireAt);
+        }
+
+        public void HandlePartyStatusLose(BossModule module, int slot, Actor actor, int index)
+        {
+            foreach (var s in _subcomponents)
+                s.HandlePartyStatusLose(module, slot, actor, index);
+            _partyStatusLose.GetValueOrDefault(actor.Statuses[index].ID)?.Invoke(module, slot, actor);
+        }
+
+        public void HandleEnemyStatusLose(BossModule module, Actor actor, int index)
+        {
+            foreach (var s in _subcomponents)
+                s.HandleEnemyStatusLose(module, actor, index);
+            _enemyStatusLose.GetValueOrDefault(actor.Statuses[index].ID)?.Invoke(module, actor);
+        }
+
         // "old-style" world state event handlers; note that they are kept virtual, since old components override them directly - TODO remove that after refactoring is complete
-        public virtual void OnStatusGain(BossModule module, Actor actor, int index)
-        {
-            foreach (var s in _subcomponents)
-                s.OnStatusGain(module, actor, index);
-        }
-
-        public virtual void OnStatusLose(BossModule module, Actor actor, int index)
-        {
-            foreach (var s in _subcomponents)
-                s.OnStatusLose(module, actor, index);
-        }
-
-        public virtual void OnStatusChange(BossModule module, Actor actor, int index)
-        {
-            foreach (var s in _subcomponents)
-                s.OnStatusChange(module, actor, index);
-        }
-
         public virtual void OnTethered(BossModule module, Actor actor)
         {
             foreach (var s in _subcomponents)

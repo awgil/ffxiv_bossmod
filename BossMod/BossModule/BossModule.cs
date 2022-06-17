@@ -325,17 +325,44 @@ namespace BossMod
 
         private void OnActorStatusGain(object? sender, (Actor actor, int index) arg)
         {
-            _rootComp.OnStatusGain(this, arg.actor, arg.index);
+            if (arg.actor.Type == ActorType.Player)
+            {
+                int slot = Raid.FindSlot(arg.actor.InstanceID);
+                if (slot >= 0)
+                    _rootComp.HandlePartyStatusUpdate(this, slot, arg.actor, arg.index);
+            }
+            else if (arg.actor.Type is not ActorType.Pet and not ActorType.Chocobo)
+            {
+                _rootComp.HandleEnemyStatusUpdate(this, arg.actor, arg.index);
+            }
         }
 
         private void OnActorStatusLose(object? sender, (Actor actor, int index) arg)
         {
-            _rootComp.OnStatusLose(this, arg.actor, arg.index);
+            if (arg.actor.Type == ActorType.Player)
+            {
+                int slot = Raid.FindSlot(arg.actor.InstanceID);
+                if (slot >= 0)
+                    _rootComp.HandlePartyStatusLose(this, slot, arg.actor, arg.index);
+            }
+            else if (arg.actor.Type is not ActorType.Pet and not ActorType.Chocobo)
+            {
+                _rootComp.HandleEnemyStatusLose(this, arg.actor, arg.index);
+            }
         }
 
         private void OnActorStatusChange(object? sender, (Actor actor, int index, ushort prevExtra, DateTime prevExpire) arg)
         {
-            _rootComp.OnStatusChange(this, arg.actor, arg.index);
+            if (arg.actor.Type == ActorType.Player)
+            {
+                int slot = Raid.FindSlot(arg.actor.InstanceID);
+                if (slot >= 0)
+                    _rootComp.HandlePartyStatusUpdate(this, slot, arg.actor, arg.index);
+            }
+            else if (arg.actor.Type is not ActorType.Pet and not ActorType.Chocobo)
+            {
+                _rootComp.HandleEnemyStatusUpdate(this, arg.actor, arg.index);
+            }
         }
 
         private void OnEventIcon(object? sender, (ulong actorID, uint iconID) arg)

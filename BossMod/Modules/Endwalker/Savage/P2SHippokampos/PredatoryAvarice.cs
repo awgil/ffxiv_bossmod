@@ -15,6 +15,15 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
 
         public bool Active => (_playersWithTides | _playersWithDepths).Any();
 
+        public PredatoryAvarice()
+        {
+            PartyStatusUpdate(SID.MarkOfTides, (_, slot, _, _, _, _) => _playersWithTides.Set(slot));
+            PartyStatusLose(SID.MarkOfTides, (_, slot, _) => _playersWithTides.Clear(slot));
+
+            PartyStatusUpdate(SID.MarkOfDepths, (_, slot, _, _, _, _) => _playersWithDepths.Set(slot));
+            PartyStatusLose(SID.MarkOfDepths, (_, slot, _) => _playersWithDepths.Clear(slot));
+        }
+
         public override void Update(BossModule module)
         {
             _playersInTides = _playersInDepths = new();
@@ -90,32 +99,6 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
                     bool playerInteresting = pcHasTides ? _playersInTides[i] : _playersInDepths[i];
                     arena.Actor(actor.Position, actor.Rotation, playerInteresting ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
                 }
-            }
-        }
-
-        public override void OnStatusGain(BossModule module, Actor actor, int index)
-        {
-            switch ((SID)actor.Statuses[index].ID)
-            {
-                case SID.MarkOfTides:
-                    _playersWithTides[module.Raid.FindSlot(actor.InstanceID)] = true;
-                    break;
-                case SID.MarkOfDepths:
-                    _playersWithDepths[module.Raid.FindSlot(actor.InstanceID)] = true;
-                    break;
-            }
-        }
-
-        public override void OnStatusLose(BossModule module, Actor actor, int index)
-        {
-            switch ((SID)actor.Statuses[index].ID)
-            {
-                case SID.MarkOfTides:
-                    _playersWithTides[module.Raid.FindSlot(actor.InstanceID)] = false;
-                    break;
-                case SID.MarkOfDepths:
-                    _playersWithDepths[module.Raid.FindSlot(actor.InstanceID)] = false;
-                    break;
             }
         }
     }

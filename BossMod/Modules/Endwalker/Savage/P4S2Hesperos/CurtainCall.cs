@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P4S2Hesperos
@@ -9,6 +10,12 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
         private int[] _playerOrder = new int[8];
         private List<Actor>? _playersInBreakOrder;
         private int _numCasts = 0;
+
+        public CurtainCall()
+        {
+            PartyStatusUpdate(SID.Thornpricked, ThornprickedUpdate);
+            PartyStatusLose(SID.Thornpricked, (_, _, _) => ++_numCasts);
+        }
 
         public override void Update(BossModule module)
         {
@@ -45,26 +52,13 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 arena.AddLine(pc.Position, tetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? ArenaColor.Danger : ArenaColor.Safe);
         }
 
-        public override void OnStatusGain(BossModule module, Actor actor, int index)
+        private void ThornprickedUpdate(BossModule module, int slot, Actor actor, ulong sourceID, ushort extra, DateTime expireAt)
         {
-            if (actor.Statuses[index].ID == (uint)SID.Thornpricked)
-            {
-                int slot = module.Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0)
-                {
-                    _playerOrder[slot] = 2 * (int)((actor.Statuses[index].ExpireAt - module.WorldState.CurrentTime).TotalSeconds / 10); // 2/4/6/8
-                    bool ddFirst = Service.Config.Get<P4S2Config>().CurtainCallDDFirst;
-                    if (ddFirst != actor.Role is Role.Tank or Role.Healer)
-                        --_playerOrder[slot];
-                    _playersInBreakOrder = null;
-                }
-            }
-        }
-
-        public override void OnStatusLose(BossModule module, Actor actor, int index)
-        {
-            if (actor.Statuses[index].ID == (uint)SID.Thornpricked)
-                ++_numCasts;
+            _playerOrder[slot] = 2 * (int)((expireAt - module.WorldState.CurrentTime).TotalSeconds / 10); // 2/4/6/8
+            bool ddFirst = Service.Config.Get<P4S2Config>().CurtainCallDDFirst;
+            if (ddFirst != actor.Role is Role.Tank or Role.Healer)
+                --_playerOrder[slot];
+            _playersInBreakOrder = null;
         }
 
         private string OrderTextForPlayer(BossModule module, Actor player)

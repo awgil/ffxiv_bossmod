@@ -14,6 +14,13 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
 
         public bool SOTActive => _memberWithSOT != null;
 
+        public AetherExplosion()
+        {
+            EnemyStatusUpdate(SID.AetherExplosion, AetherExplosionUpdate);
+            PartyStatusUpdate(SID.ShacklesOfTime, ShacklesOfTimeUpdate);
+            PartyStatusLose(SID.ShacklesOfTime, ShacklesOfTimeLose);
+        }
+
         public override void Update(BossModule module)
         {
             if (_memberWithSOT != null)
@@ -54,46 +61,37 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
                 arena.Actor(_memberWithSOT, _colorSOTActor);
         }
 
-        public override void OnStatusGain(BossModule module, Actor actor, int index)
+        private void AetherExplosionUpdate(BossModule module, Actor actor, ulong sourceID, ushort extra, DateTime expireAt)
         {
-            switch ((SID)actor.Statuses[index].ID)
+            // we rely on parameter of an invisible status on boss to detect red/blue
+            _explodingCells = extra switch
             {
-                case SID.AetherExplosion:
-                    // we rely on parameter of an invisible status on boss to detect red/blue
-                    _explodingCells = actor.Statuses[index].Extra switch
-                    {
-                        0x14C => Cell.Red,
-                        0x14D => Cell.Blue,
-                        _ => Cell.None
-                    };
-                    if (_explodingCells == Cell.None)
-                        module.ReportError(this, $"Unexpected aether explosion param {actor.Statuses[index].Extra:X2}");
-                    if (_memberWithSOT != null)
-                    {
-                        module.ReportError(this, "Unexpected forced explosion while SOT is active");
-                        _memberWithSOT = null;
-                    }
-                    break;
-
-                case SID.ShacklesOfTime:
-                    if (_memberWithSOT != null)
-                        module.ReportError(this, "Unexpected ShacklesOfTime: another is already active!");
-                    _memberWithSOT = actor;
-                    _explodingCells = Cell.None;
-                    break;
+                0x14C => Cell.Red,
+                0x14D => Cell.Blue,
+                _ => Cell.None
+            };
+            if (_explodingCells == Cell.None)
+                module.ReportError(this, $"Unexpected aether explosion param {extra:X2}");
+            if (_memberWithSOT != null)
+            {
+                module.ReportError(this, "Unexpected forced explosion while SOT is active");
+                _memberWithSOT = null;
             }
         }
 
-        public override void OnStatusLose(BossModule module, Actor actor, int index)
+        private void ShacklesOfTimeUpdate(BossModule module, int slot, Actor actor, ulong sourceID, ushort extra, DateTime expireAt)
         {
-            switch ((SID)actor.Statuses[index].ID)
-            {
-                case SID.ShacklesOfTime:
-                    if (_memberWithSOT == actor)
-                        _memberWithSOT = null;
-                    _explodingCells = Cell.None;
-                    break;
-            }
+            if (_memberWithSOT != null)
+                module.ReportError(this, "Unexpected ShacklesOfTime: another is already active!");
+            _memberWithSOT = actor;
+            _explodingCells = Cell.None;
+        }
+
+        private void ShacklesOfTimeLose(BossModule module, int slot, Actor actor)
+        {
+            if (_memberWithSOT == actor)
+                _memberWithSOT = null;
+            _explodingCells = Cell.None;
         }
 
         private static Cell CellFromOffset(WDir offsetFromCenter)

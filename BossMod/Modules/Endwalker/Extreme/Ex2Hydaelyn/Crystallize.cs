@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
@@ -10,6 +11,11 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
         private static float _waterRadius = 6;
         private static float _earthRadius = 6;
         private static float _iceRadius = 5;
+
+        public Crystallize()
+        {
+            EnemyStatusUpdate(SID.CrystallizeElement, OnCrystallizeElementStatusGain);
+        }
 
         public override void Init(BossModule module)
         {
@@ -91,12 +97,12 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
         }
 
         // note: this is pure validation, we currently rely on crystallize cast id to determine element...
-        public override void OnStatusGain(BossModule module, Actor actor, int index)
+        private void OnCrystallizeElementStatusGain(BossModule module, Actor actor, ulong sourceID, ushort extra, DateTime expireAt)
         {
-            if (actor != module.PrimaryActor || (SID)actor.Statuses[index].ID != SID.CrystallizeElement)
+            if (actor != module.PrimaryActor)
                 return;
 
-            var element = actor.Statuses[index].Extra switch
+            var element = extra switch
             {
                 0x151 => Element.Water,
                 0x152 => Element.Earth,
@@ -104,7 +110,7 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
                 _ => Element.None
             };
             if (element == Element.None || element != CurElement)
-                module.ReportError(this, $"Unexpected extra of element buff: {actor.Statuses[index].Extra:X4}, cur element {CurElement}");
+                module.ReportError(this, $"Unexpected extra of element buff: {extra:X4}, cur element {CurElement}");
         }
 
         public override void OnEventCast(BossModule module, CastEvent info)
