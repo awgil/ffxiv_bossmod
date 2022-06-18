@@ -3,8 +3,14 @@
   "Name": "Boss Mod",
   "InternalName": "BossMod",
   "Punchline": "Don't fail at raid mechanics anymore",
-  "Description": "A bunch of utilities to simplify bosses. ***very early alpha, use at your own risk***",
+  "Description": "A bunch of utilities to simplify bosses. Currently supports endwalker content. ***very early alpha, use at your own risk***",
   "ApplicableVersion": "any",
   "RepoUrl": "https://github.com/awgil/ffxiv_bossmod",
-  "IconUrl": "https://raw.githubusercontent.com/awgil/ffxiv_bossmod/f4efcb5dc279d21ee16185d5a9f2d09a3a2bc58b/Data/icon.png"
+  "IconUrl": "https://raw.githubusercontent.com/awgil/ffxiv_bossmod/f4efcb5dc279d21ee16185d5a9f2d09a3a2bc58b/Data/icon.png",
+  "ImageUrls": [
+    "https://raw.githubusercontent.com/awgil/ffxiv_bossmod/master/Data/image1.png",
+    "https://raw.githubusercontent.com/awgil/ffxiv_bossmod/master/Data/image2.png",
+    "https://raw.githubusercontent.com/awgil/ffxiv_bossmod/master/Data/image3.png",
+    "https://raw.githubusercontent.com/awgil/ffxiv_bossmod/master/Data/image4.png"
+  ]
 }
