@@ -5,5 +5,6 @@
   "Punchline": "Don't fail at raid mechanics anymore",
   "Description": "A bunch of utilities to simplify bosses. ***very early alpha, use at your own risk***",
   "ApplicableVersion": "any",
-  "RepoUrl": "https://github.com/awgil/ffxiv_bossmod"
+  "RepoUrl": "https://github.com/awgil/ffxiv_bossmod",
+  "IconUrl": "https://raw.githubusercontent.com/awgil/ffxiv_bossmod/f4efcb5dc279d21ee16185d5a9f2d09a3a2bc58b/Data/icon.png"
 }
