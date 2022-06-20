@@ -15,13 +15,6 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
 
         public bool Done => _sources.Count == 0;
 
-        public Exoterikos()
-        {
-            // tethers appear much earlier than cast start, but not for all sigils
-            Tether(TetherID.ExoTri, ReactToTether);
-            Tether(TetherID.ExoSquare, ReactToTether);
-        }
-
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (ActiveSources(module).Any(actShape => actShape.Item2.Check(actor.Position, actShape.Item1)))
@@ -34,8 +27,13 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
                 shape.Draw(arena, src);
         }
 
-        private void ReactToTether(BossModule module, Actor source, Actor target)
+        public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
+            // tethers appear much earlier than cast start, but not for all sigils
+            var target = module.WorldState.Actors.Find(tether.Target);
+            if (source != module.PrimaryActor || target == null)
+                return;
+
             var shape = ShapeForSigil(target);
             if (shape != null)
                 _sources.Add((target, shape));

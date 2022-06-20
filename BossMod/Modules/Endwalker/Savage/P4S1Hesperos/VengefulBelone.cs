@@ -15,21 +15,6 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
 
         private Role OrbTarget(ulong instanceID) => _orbTargets.GetValueOrDefault(instanceID, Role.None);
 
-        public VengefulBelone()
-        {
-            EnemyStatusUpdate(SID.OrbRole, (_, actor, _, extra, _) => _orbTargets[actor.InstanceID] = OrbRoleFromStatusParam(extra));
-
-            PartyStatusUpdate(SID.ThriceComeRuin, (_, slot, _, _, extra, _) => _playerRuinCount[slot] = extra);
-            PartyStatusLose(SID.ThriceComeRuin, (_, slot, _) => _playerRuinCount[slot] = 0);
-
-            PartyStatusUpdate(SID.ActingDPS, (_, slot, _, _, _, _) => _playerActingRole[slot] = Role.Melee);
-            PartyStatusUpdate(SID.ActingHealer, (_, slot, _, _, _, _) => _playerActingRole[slot] = Role.Healer);
-            PartyStatusUpdate(SID.ActingTank, (_, slot, _, _, _, _) => _playerActingRole[slot] = Role.Tank);
-            PartyStatusLose(SID.ActingDPS, (_, slot, _) => _playerActingRole[slot] = Role.None);
-            PartyStatusLose(SID.ActingHealer, (_, slot, _) => _playerActingRole[slot] = Role.None);
-            PartyStatusLose(SID.ActingTank, (_, slot, _) => _playerActingRole[slot] = Role.None);
-        }
-
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_orbTargets.Count == 0 || _orbsExploded == _orbTargets.Count)
@@ -98,6 +83,43 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             }
         }
 
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+            switch ((SID)status.ID)
+            {
+                case SID.OrbRole:
+                    _orbTargets[actor.InstanceID] = OrbRoleFromStatusParam(status.Extra);
+                    break;
+                case SID.ThriceComeRuin:
+                    ModifyRuinStacks(module, actor, status.Extra);
+                    break;
+                case SID.ActingDPS:
+                    ModifyActingRole(module, actor, Role.Melee);
+                    break;
+                case SID.ActingHealer:
+                    ModifyActingRole(module, actor, Role.Healer);
+                    break;
+                case SID.ActingTank:
+                    ModifyActingRole(module, actor, Role.Tank);
+                    break;
+            }
+        }
+
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+        {
+            switch ((SID)status.ID)
+            {
+                case SID.ThriceComeRuin:
+                    ModifyRuinStacks(module, actor, 0);
+                    break;
+                case SID.ActingDPS:
+                case SID.ActingHealer:
+                case SID.ActingTank:
+                    ModifyActingRole(module, actor, Role.None);
+                    break;
+            }
+        }
+
         public override void OnEventCast(BossModule module, CastEvent info)
         {
             if (info.IsSpell(AID.BeloneBurstsAOETank) || info.IsSpell(AID.BeloneBurstsAOEHealer) || info.IsSpell(AID.BeloneBurstsAOEDPS))
@@ -130,6 +152,20 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
 
             var playerRole = player.Role == Role.Ranged ? Role.Melee : player.Role;
             return orbRole == playerRole;
+        }
+
+        private void ModifyRuinStacks(BossModule module, Actor actor, ushort count)
+        {
+            int slot = module.Raid.FindSlot(actor.InstanceID);
+            if (slot >= 0)
+                _playerRuinCount[slot] = count;
+        }
+
+        private void ModifyActingRole(BossModule module, Actor actor, Role role)
+        {
+            int slot = module.Raid.FindSlot(actor.InstanceID);
+            if (slot >= 0)
+                _playerActingRole[slot] = role;
         }
     }
 }

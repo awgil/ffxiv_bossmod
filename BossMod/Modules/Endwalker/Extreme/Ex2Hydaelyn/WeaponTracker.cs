@@ -12,13 +12,6 @@
         private static AOEShapeCircle _aoeStaff = new(10);
         private static AOEShapeDonut _aoeChakram = new(5, 40);
 
-        public WeaponTracker()
-        {
-            EnemyStatusUpdate(SID.HerosMantle, (module, actor, _, _, _) => EnterStance(module, actor, Stance.Sword));
-            EnemyStatusUpdate(SID.MagosMantle, (module, actor, _, _, _) => EnterStance(module, actor, Stance.Staff));
-            EnemyStatusUpdate(SID.MousaMantle, (module, actor, _, _, _) => EnterStance(module, actor, Stance.Chakram));
-        }
-
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (!AOEImminent)
@@ -55,13 +48,24 @@
             }
         }
 
-        private void EnterStance(BossModule module, Actor actor, Stance stance)
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-            if (actor == module.PrimaryActor && CurStance != stance)
+            if (actor != module.PrimaryActor)
+                return;
+
+            var newStance = (SID)status.ID switch
             {
-                AOEImminent = CurStance != Stance.None;
-                CurStance = stance;
-            }
+                SID.HerosMantle => Stance.Sword,
+                SID.MagosMantle => Stance.Staff,
+                SID.MousaMantle => Stance.Chakram,
+                _ => Stance.None
+            };
+
+            if (newStance == Stance.None || newStance == CurStance)
+                return;
+
+            AOEImminent = CurStance != Stance.None;
+            CurStance = newStance;
         }
 
         public override void OnEventCast(BossModule module, CastEvent info)

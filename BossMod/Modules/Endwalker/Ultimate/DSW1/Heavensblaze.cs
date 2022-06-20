@@ -10,11 +10,6 @@
         private static AOEShapeCone _danceAOE = new(16, 45.Degrees());
         private static float _blazeRadius = 4;
 
-        public Heavensblaze()
-        {
-            Tether(TetherID.HolyBladedance, (_, source, target) => { _danceSource = source; _danceTarget = target; });
-        }
-
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_blazeTarget != null)
@@ -57,6 +52,15 @@
                 foreach (var p in module.Raid.WithoutSlot())
                     arena.Actor(p, p == _danceTarget ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
                 arena.AddLine(_danceSource.Position, _danceTarget.Position, ArenaColor.Danger);
+            }
+        }
+
+        public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+        {
+            if (tether.ID == (uint)TetherID.HolyBladedance)
+            {
+                _danceSource = source;
+                _danceTarget = module.WorldState.Actors.Find(tether.Target);
             }
         }
 

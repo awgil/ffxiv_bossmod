@@ -11,12 +11,6 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
         private List<Actor>? _playersInBreakOrder;
         private int _numCasts = 0;
 
-        public CurtainCall()
-        {
-            PartyStatusUpdate(SID.Thornpricked, ThornprickedUpdate);
-            PartyStatusLose(SID.Thornpricked, (_, _, _) => ++_numCasts);
-        }
-
         public override void Update(BossModule module)
         {
             if (_playersInBreakOrder == null)
@@ -52,13 +46,26 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 arena.AddLine(pc.Position, tetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? ArenaColor.Danger : ArenaColor.Safe);
         }
 
-        private void ThornprickedUpdate(BossModule module, int slot, Actor actor, ulong sourceID, ushort extra, DateTime expireAt)
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-            _playerOrder[slot] = 2 * (int)((expireAt - module.WorldState.CurrentTime).TotalSeconds / 10); // 2/4/6/8
-            bool ddFirst = Service.Config.Get<P4S2Config>().CurtainCallDDFirst;
-            if (ddFirst != actor.Role is Role.Tank or Role.Healer)
-                --_playerOrder[slot];
-            _playersInBreakOrder = null;
+            if ((SID)status.ID == SID.Thornpricked)
+            {
+                int slot = module.Raid.FindSlot(actor.InstanceID);
+                if (slot >= 0)
+                {
+                    _playerOrder[slot] = 2 * (int)((status.ExpireAt - module.WorldState.CurrentTime).TotalSeconds / 10); // 2/4/6/8
+                    bool ddFirst = Service.Config.Get<P4S2Config>().CurtainCallDDFirst;
+                    if (ddFirst != actor.Role is Role.Tank or Role.Healer)
+                        --_playerOrder[slot];
+                    _playersInBreakOrder = null;
+                }
+            }
+        }
+
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+        {
+            if ((SID)status.ID == SID.Thornpricked)
+                ++_numCasts;
         }
 
         private string OrderTextForPlayer(BossModule module, Actor player)

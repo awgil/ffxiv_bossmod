@@ -14,13 +14,6 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
 
         public bool SOTActive => _memberWithSOT != null;
 
-        public AetherExplosion()
-        {
-            EnemyStatusUpdate(SID.AetherExplosion, AetherExplosionUpdate);
-            PartyStatusUpdate(SID.ShacklesOfTime, ShacklesOfTimeUpdate);
-            PartyStatusLose(SID.ShacklesOfTime, ShacklesOfTimeLose);
-        }
-
         public override void Update(BossModule module)
         {
             if (_memberWithSOT != null)
@@ -61,37 +54,46 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
                 arena.Actor(_memberWithSOT, _colorSOTActor);
         }
 
-        private void AetherExplosionUpdate(BossModule module, Actor actor, ulong sourceID, ushort extra, DateTime expireAt)
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-            // we rely on parameter of an invisible status on boss to detect red/blue
-            _explodingCells = extra switch
+            switch ((SID)status.ID)
             {
-                0x14C => Cell.Red,
-                0x14D => Cell.Blue,
-                _ => Cell.None
-            };
-            if (_explodingCells == Cell.None)
-                module.ReportError(this, $"Unexpected aether explosion param {extra:X2}");
-            if (_memberWithSOT != null)
-            {
-                module.ReportError(this, "Unexpected forced explosion while SOT is active");
-                _memberWithSOT = null;
+                case SID.AetherExplosion:
+                    // we rely on parameter of an invisible status on boss to detect red/blue
+                    _explodingCells = status.Extra switch
+                    {
+                        0x14C => Cell.Red,
+                        0x14D => Cell.Blue,
+                        _ => Cell.None
+                    };
+                    if (_explodingCells == Cell.None)
+                        module.ReportError(this, $"Unexpected aether explosion param {status.Extra:X2}");
+                    if (_memberWithSOT != null)
+                    {
+                        module.ReportError(this, "Unexpected forced explosion while SOT is active");
+                        _memberWithSOT = null;
+                    }
+                    break;
+
+                case SID.ShacklesOfTime:
+                    if (_memberWithSOT != null)
+                        module.ReportError(this, "Unexpected ShacklesOfTime: another is already active!");
+                    _memberWithSOT = actor;
+                    _explodingCells = Cell.None;
+                    break;
             }
         }
 
-        private void ShacklesOfTimeUpdate(BossModule module, int slot, Actor actor, ulong sourceID, ushort extra, DateTime expireAt)
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
         {
-            if (_memberWithSOT != null)
-                module.ReportError(this, "Unexpected ShacklesOfTime: another is already active!");
-            _memberWithSOT = actor;
-            _explodingCells = Cell.None;
-        }
-
-        private void ShacklesOfTimeLose(BossModule module, int slot, Actor actor)
-        {
-            if (_memberWithSOT == actor)
-                _memberWithSOT = null;
-            _explodingCells = Cell.None;
+            switch ((SID)status.ID)
+            {
+                case SID.ShacklesOfTime:
+                    if (_memberWithSOT == actor)
+                        _memberWithSOT = null;
+                    _explodingCells = Cell.None;
+                    break;
+            }
         }
 
         private static Cell CellFromOffset(WDir offsetFromCenter)

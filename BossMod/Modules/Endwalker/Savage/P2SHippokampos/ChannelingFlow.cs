@@ -12,21 +12,6 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
 
         private static float _typhoonHalfWidth = 2.5f;
 
-        public ChannelingFlow()
-        {
-            PartyStatusUpdate(SID.MarkFlowN, (_, slot, _, _, _, expire) => _arrows[slot] = (new(0, -1), expire));
-            PartyStatusUpdate(SID.MarkFlowS, (_, slot, _, _, _, expire) => _arrows[slot] = (new(0, +1), expire));
-            PartyStatusUpdate(SID.MarkFlowW, (_, slot, _, _, _, expire) => _arrows[slot] = (new(-1, 0), expire));
-            PartyStatusUpdate(SID.MarkFlowE, (_, slot, _, _, _, expire) => _arrows[slot] = (new(+1, 0), expire));
-            PartyStatusLose(SID.MarkFlowN, (_, slot, _) => _arrows[slot] = (new(), new()));
-            PartyStatusLose(SID.MarkFlowS, (_, slot, _) => _arrows[slot] = (new(), new()));
-            PartyStatusLose(SID.MarkFlowW, (_, slot, _) => _arrows[slot] = (new(), new()));
-            PartyStatusLose(SID.MarkFlowE, (_, slot, _) => _arrows[slot] = (new(), new()));
-
-            PartyStatusUpdate(SID.Stun, (_, _, _, _, _, _) => ++NumStunned);
-            PartyStatusLose(SID.Stun, (_, _, _) => --NumStunned);
-        }
-
         public bool SlotActive(BossModule module, int slot)
         {
             var (dir, expire) = _arrows[slot];
@@ -73,6 +58,51 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
             {
                 arena.ZoneRect(player.Position, dir, 50, 0, _typhoonHalfWidth, ArenaColor.AOE);
             }
+        }
+
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+            switch ((SID)status.ID)
+            {
+                case SID.MarkFlowN:
+                    SetArrow(module, actor, new(0, -1), status.ExpireAt);
+                    break;
+                case SID.MarkFlowS:
+                    SetArrow(module, actor, new(0, +1), status.ExpireAt);
+                    break;
+                case SID.MarkFlowW:
+                    SetArrow(module, actor, new(-1, 0), status.ExpireAt);
+                    break;
+                case SID.MarkFlowE:
+                    SetArrow(module, actor, new(+1, 0), status.ExpireAt);
+                    break;
+                case SID.Stun:
+                    ++NumStunned;
+                    break;
+            }
+        }
+
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+        {
+            switch ((SID)status.ID)
+            {
+                case SID.MarkFlowN:
+                case SID.MarkFlowS:
+                case SID.MarkFlowW:
+                case SID.MarkFlowE:
+                    SetArrow(module, actor, new(), new());
+                    break;
+                case SID.Stun:
+                    --NumStunned;
+                    break;
+            }
+        }
+
+        private void SetArrow(BossModule module, Actor actor, WDir dir, DateTime expire)
+        {
+            var slot = module.WorldState.Party.FindSlot(actor.InstanceID);
+            if (slot >= 0)
+                _arrows[slot] = (dir, expire);
         }
 
         private IEnumerable<(Actor, WDir)> ActiveArrows(BossModule module)

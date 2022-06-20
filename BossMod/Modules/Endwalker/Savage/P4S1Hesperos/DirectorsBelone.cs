@@ -13,15 +13,6 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
 
         private static float _debuffPassRange = 3; // not sure about this...
 
-        public DirectorsBelone()
-        {
-            PartyStatusUpdate(SID.RoleCall, (_, slot, _, _, _, _) => _debuffTargets.Set(slot));
-            PartyStatusLose(SID.RoleCall, (_, slot, _) => _debuffTargets.Clear(slot));
-
-            PartyStatusUpdate(SID.Miscast, (_, slot, _, _, _, _) => _debuffImmune.Set(slot));
-            PartyStatusLose(SID.Miscast, (_, slot, _) => _debuffImmune.Clear(slot));
-        }
-
         public override void Update(BossModule module)
         {
             if (!_assigned)
@@ -106,6 +97,32 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             foreach ((int i, var player) in module.Raid.WithSlot())
             {
                 arena.Actor(player, failingPlayers[i] ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
+            }
+        }
+
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+            switch ((SID)status.ID)
+            {
+                case SID.RoleCall:
+                    _debuffTargets.Set(module.Raid.FindSlot(actor.InstanceID));
+                    break;
+                case SID.Miscast:
+                    _debuffImmune.Set(module.Raid.FindSlot(actor.InstanceID));
+                    break;
+            }
+        }
+
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+        {
+            switch ((SID)status.ID)
+            {
+                case SID.RoleCall:
+                    _debuffTargets.Clear(module.Raid.FindSlot(actor.InstanceID));
+                    break;
+                case SID.Miscast:
+                    _debuffImmune.Clear(module.Raid.FindSlot(actor.InstanceID));
+                    break;
             }
         }
 

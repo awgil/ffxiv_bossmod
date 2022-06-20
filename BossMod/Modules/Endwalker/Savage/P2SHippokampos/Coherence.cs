@@ -13,15 +13,10 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
 
         private static float _aoeRadius = 10; // not sure about this - actual range is 60, but it has some sort of falloff? i have very few data points < 15
 
-        public Coherence()
-            : base(ActionID.MakeSpell(AID.CoherenceRay))
-        {
-            Tether(TetherID.Coherence, (_, _, target) => _tetherTarget = target);
-        }
+        public Coherence() : base(ActionID.MakeSpell(AID.CoherenceRay)) { }
 
         public override void Update(BossModule module)
         {
-            // if tether is still active, update tether target
             _inRay.Reset();
             _rayTarget = module.Raid.WithoutSlot().Exclude(_tetherTarget).MinBy(a => (a.Position - module.PrimaryActor.Position).LengthSq());
             if (_rayTarget != null)
@@ -95,6 +90,12 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
                     arena.Actor(player, _inRay[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
                 }
             }
+        }
+
+        public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+        {
+            if ((TetherID)tether.ID == TetherID.Coherence)
+                _tetherTarget = module.WorldState.Actors.Find(tether.Target);
         }
     }
 }

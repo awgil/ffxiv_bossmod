@@ -68,16 +68,6 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private static float _spotOffset = 7f;
         private static float _stepToBait = 1.2f;
 
-        public P3DiveFromGrace()
-        {
-            PartyStatusUpdate(SID.Jump1, (module, slot, _, _, _, _) => AssignJumpOrder(module, slot, 1));
-            PartyStatusUpdate(SID.Jump2, (module, slot, _, _, _, _) => AssignJumpOrder(module, slot, 2));
-            PartyStatusUpdate(SID.Jump3, (module, slot, _, _, _, _) => AssignJumpOrder(module, slot, 3));
-            PartyStatusUpdate(SID.JumpBackward, (module, slot, _, _, _, _) => AssignJumpDirection(module, slot, -1));
-            PartyStatusUpdate(SID.JumpCenter, (module, slot, _, _, _, _) => AssignJumpDirection(module, slot, 0));
-            PartyStatusUpdate(SID.JumpForward, (module, slot, _, _, _, _) => AssignJumpDirection(module, slot, +1));
-        }
-
         public override void Init(BossModule module)
         {
             _boss = module.Enemies(OID.BossP3).FirstOrDefault();
@@ -129,6 +119,31 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 arena.AddCircle(t, _towerRadius, ArenaColor.Danger);
             foreach (var t in _castingTowers)
                 arena.AddCircle(t.Position, _towerRadius, ArenaColor.Danger);
+        }
+
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+            switch ((SID)status.ID)
+            {
+                case SID.Jump1:
+                    AssignJumpOrder(module, actor, 1);
+                    break;
+                case SID.Jump2:
+                    AssignJumpOrder(module, actor, 2);
+                    break;
+                case SID.Jump3:
+                    AssignJumpOrder(module, actor, 3);
+                    break;
+                case SID.JumpBackward:
+                    AssignJumpDirection(module, actor, -1);
+                    break;
+                case SID.JumpCenter:
+                    AssignJumpDirection(module, actor, 0);
+                    break;
+                case SID.JumpForward:
+                    AssignJumpDirection(module, actor, +1);
+                    break;
+            }
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)
@@ -207,21 +222,29 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        private void AssignJumpOrder(BossModule module, int slot, int order)
+        private void AssignJumpOrder(BossModule module, Actor actor, int order)
         {
-            _playerStates[slot].JumpOrder = order;
-            _orderState[order - 1].PlayerSlots.Add(slot);
+            int slot = module.Raid.FindSlot(actor.InstanceID);
+            if (slot >= 0)
+            {
+                _playerStates[slot].JumpOrder = order;
+                _orderState[order - 1].PlayerSlots.Add(slot);
+            }
             if (NextEvent == State.AssignOrder && ++_eventProgress == 8)
             {
                 AdvanceState(module);
             }
         }
 
-        private void AssignJumpDirection(BossModule module, int slot, int direction)
+        private void AssignJumpDirection(BossModule module, Actor actor, int direction)
         {
-            _playerStates[slot].JumpDirection = direction;
-            if (direction != 0)
-                _orderState[_playerStates[slot].JumpOrder - 1].HaveDirections = true;
+            int slot = module.Raid.FindSlot(actor.InstanceID);
+            if (slot >= 0)
+            {
+                _playerStates[slot].JumpDirection = direction;
+                if (direction != 0)
+                    _orderState[_playerStates[slot].JumpOrder - 1].HaveDirections = true;
+            }
             if (NextEvent == State.AssignDirection && ++_eventProgress == 8)
             {
                 InitAssignments(module);

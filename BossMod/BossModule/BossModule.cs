@@ -315,58 +315,27 @@ namespace BossMod
 
         private void OnActorTethered(object? sender, Actor actor)
         {
-            var target = WorldState.Actors.Find(actor.Tether.Target);
-            if (target != null)
-                _rootComp.HandleTethered(this, actor, target);
+            _rootComp.OnTethered(this, actor, actor.Tether);
         }
 
         private void OnActorUntethered(object? sender, Actor actor)
         {
-            var target = WorldState.Actors.Find(actor.Tether.Target);
-            if (target != null)
-                _rootComp.HandleUntethered(this, actor, target);
+            _rootComp.OnUntethered(this, actor, actor.Tether);
         }
 
         private void OnActorStatusGain(object? sender, (Actor actor, int index) arg)
         {
-            if (arg.actor.Type == ActorType.Player)
-            {
-                int slot = Raid.FindSlot(arg.actor.InstanceID);
-                if (slot >= 0)
-                    _rootComp.HandlePartyStatusUpdate(this, slot, arg.actor, arg.index);
-            }
-            else if (arg.actor.Type is not ActorType.Pet and not ActorType.Chocobo)
-            {
-                _rootComp.HandleEnemyStatusUpdate(this, arg.actor, arg.index);
-            }
+            _rootComp.OnStatusGain(this, arg.actor, arg.actor.Statuses[arg.index]);
         }
 
         private void OnActorStatusLose(object? sender, (Actor actor, int index) arg)
         {
-            if (arg.actor.Type == ActorType.Player)
-            {
-                int slot = Raid.FindSlot(arg.actor.InstanceID);
-                if (slot >= 0)
-                    _rootComp.HandlePartyStatusLose(this, slot, arg.actor, arg.index);
-            }
-            else if (arg.actor.Type is not ActorType.Pet and not ActorType.Chocobo)
-            {
-                _rootComp.HandleEnemyStatusLose(this, arg.actor, arg.index);
-            }
+            _rootComp.OnStatusLose(this, arg.actor, arg.actor.Statuses[arg.index]);
         }
 
         private void OnActorStatusChange(object? sender, (Actor actor, int index, ushort prevExtra, DateTime prevExpire) arg)
         {
-            if (arg.actor.Type == ActorType.Player)
-            {
-                int slot = Raid.FindSlot(arg.actor.InstanceID);
-                if (slot >= 0)
-                    _rootComp.HandlePartyStatusUpdate(this, slot, arg.actor, arg.index);
-            }
-            else if (arg.actor.Type is not ActorType.Pet and not ActorType.Chocobo)
-            {
-                _rootComp.HandleEnemyStatusUpdate(this, arg.actor, arg.index);
-            }
+            _rootComp.OnStatusGain(this, arg.actor, arg.actor.Statuses[arg.index]);
         }
 
         private void OnEventIcon(object? sender, (ulong actorID, uint iconID) arg)

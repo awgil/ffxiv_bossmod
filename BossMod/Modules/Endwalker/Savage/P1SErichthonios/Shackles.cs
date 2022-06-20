@@ -21,35 +21,6 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
         private static float _redExplosionRadius = 8;
         private static uint TetherColor(bool blue, bool red) => blue ? (red ? 0xff00ffff : 0xffff0080) : (red ? 0xff8080ff : 0xff808080);
 
-        public Shackles()
-        {
-            PartyStatusUpdate(SID.ShacklesOfCompanionship0, (_, slot, _, _, _, _) => _debuffsBlueFuture.Set(slot));
-            PartyStatusUpdate(SID.ShacklesOfCompanionship1, (module, slot, _, _, _, _) => { _debuffsBlueFuture.Set(slot); AssignOrder(module, slot, 0, false); });
-            PartyStatusUpdate(SID.ShacklesOfCompanionship2, (module, slot, _, _, _, _) => { _debuffsBlueFuture.Set(slot); AssignOrder(module, slot, 1, false); });
-            PartyStatusUpdate(SID.ShacklesOfCompanionship3, (module, slot, _, _, _, _) => { _debuffsBlueFuture.Set(slot); AssignOrder(module, slot, 2, false); });
-            PartyStatusUpdate(SID.ShacklesOfCompanionship4, (module, slot, _, _, _, _) => { _debuffsBlueFuture.Set(slot); AssignOrder(module, slot, 3, false); });
-            PartyStatusUpdate(SID.ShacklesOfLoneliness0, (_, slot, _, _, _, _) => _debuffsRedFuture.Set(slot));
-            PartyStatusUpdate(SID.ShacklesOfLoneliness1, (module, slot, _, _, _, _) => { _debuffsRedFuture.Set(slot); AssignOrder(module, slot, 0, true); });
-            PartyStatusUpdate(SID.ShacklesOfLoneliness2, (module, slot, _, _, _, _) => { _debuffsRedFuture.Set(slot); AssignOrder(module, slot, 1, true); });
-            PartyStatusUpdate(SID.ShacklesOfLoneliness3, (module, slot, _, _, _, _) => { _debuffsRedFuture.Set(slot); AssignOrder(module, slot, 2, true); });
-            PartyStatusUpdate(SID.ShacklesOfLoneliness4, (module, slot, _, _, _, _) => { _debuffsRedFuture.Set(slot); AssignOrder(module, slot, 3, true); });
-            PartyStatusLose(SID.ShacklesOfCompanionship0, (_, slot, _) => _debuffsBlueFuture.Clear(slot));
-            PartyStatusLose(SID.ShacklesOfCompanionship1, (_, slot, _) => _debuffsBlueFuture.Clear(slot));
-            PartyStatusLose(SID.ShacklesOfCompanionship2, (_, slot, _) => _debuffsBlueFuture.Clear(slot));
-            PartyStatusLose(SID.ShacklesOfCompanionship3, (_, slot, _) => _debuffsBlueFuture.Clear(slot));
-            PartyStatusLose(SID.ShacklesOfCompanionship4, (_, slot, _) => _debuffsBlueFuture.Clear(slot));
-            PartyStatusLose(SID.ShacklesOfLoneliness0, (_, slot, _) => _debuffsRedFuture.Clear(slot));
-            PartyStatusLose(SID.ShacklesOfLoneliness1, (_, slot, _) => _debuffsRedFuture.Clear(slot));
-            PartyStatusLose(SID.ShacklesOfLoneliness2, (_, slot, _) => _debuffsRedFuture.Clear(slot));
-            PartyStatusLose(SID.ShacklesOfLoneliness3, (_, slot, _) => _debuffsRedFuture.Clear(slot));
-            PartyStatusLose(SID.ShacklesOfLoneliness4, (_, slot, _) => _debuffsRedFuture.Clear(slot));
-
-            PartyStatusUpdate(SID.InescapableCompanionship, (_, slot, _, _, _, _) => _debuffsBlueImminent.Set(slot));
-            PartyStatusUpdate(SID.InescapableLoneliness, (_, slot, _, _, _, _) => _debuffsRedImminent.Set(slot));
-            PartyStatusLose(SID.InescapableCompanionship, (_, slot, _) => { _debuffsBlueImminent.Clear(slot); ++NumExpiredDebuffs; });
-            PartyStatusLose(SID.InescapableLoneliness, (_, slot, _) => { _debuffsRedImminent.Clear(slot); ++NumExpiredDebuffs; });
-        }
-
         public override void Update(BossModule module)
         {
             _blueTetherMatrix = _redTetherMatrix = _blueExplosionMatrix = _redExplosionMatrix = new();
@@ -148,7 +119,87 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
 
         }
 
-        private void AssignOrder(BossModule module, int slot, int order, bool far)
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+            switch ((SID)status.ID)
+            {
+                case SID.ShacklesOfCompanionship0:
+                    _debuffsBlueFuture.Set(module.Raid.FindSlot(actor.InstanceID));
+                    break;
+                case SID.ShacklesOfCompanionship1:
+                    _debuffsBlueFuture.Set(module.Raid.FindSlot(actor.InstanceID));
+                    AssignOrder(module, actor, 0, false);
+                    break;
+                case SID.ShacklesOfCompanionship2:
+                    _debuffsBlueFuture.Set(module.Raid.FindSlot(actor.InstanceID));
+                    AssignOrder(module, actor, 1, false);
+                    break;
+                case SID.ShacklesOfCompanionship3:
+                    _debuffsBlueFuture.Set(module.Raid.FindSlot(actor.InstanceID));
+                    AssignOrder(module, actor, 2, false);
+                    break;
+                case SID.ShacklesOfCompanionship4:
+                    _debuffsBlueFuture.Set(module.Raid.FindSlot(actor.InstanceID));
+                    AssignOrder(module, actor, 3, false);
+                    break;
+                case SID.ShacklesOfLoneliness0:
+                    _debuffsRedFuture.Set(module.Raid.FindSlot(actor.InstanceID));
+                    break;
+                case SID.ShacklesOfLoneliness1:
+                    _debuffsRedFuture.Set(module.Raid.FindSlot(actor.InstanceID));
+                    AssignOrder(module, actor, 0, true);
+                    break;
+                case SID.ShacklesOfLoneliness2:
+                    _debuffsRedFuture.Set(module.Raid.FindSlot(actor.InstanceID));
+                    AssignOrder(module, actor, 1, true);
+                    break;
+                case SID.ShacklesOfLoneliness3:
+                    _debuffsRedFuture.Set(module.Raid.FindSlot(actor.InstanceID));
+                    AssignOrder(module, actor, 2, true);
+                    break;
+                case SID.ShacklesOfLoneliness4:
+                    _debuffsRedFuture.Set(module.Raid.FindSlot(actor.InstanceID));
+                    AssignOrder(module, actor, 3, true);
+                    break;
+                case SID.InescapableCompanionship:
+                    _debuffsBlueImminent.Set(module.Raid.FindSlot(actor.InstanceID));
+                    break;
+                case SID.InescapableLoneliness:
+                    _debuffsRedImminent.Set(module.Raid.FindSlot(actor.InstanceID));
+                    break;
+            }
+        }
+
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+        {
+            switch ((SID)status.ID)
+            {
+                case SID.ShacklesOfCompanionship0:
+                case SID.ShacklesOfCompanionship1:
+                case SID.ShacklesOfCompanionship2:
+                case SID.ShacklesOfCompanionship3:
+                case SID.ShacklesOfCompanionship4:
+                    _debuffsBlueFuture.Clear(module.Raid.FindSlot(actor.InstanceID));
+                    break;
+                case SID.ShacklesOfLoneliness0:
+                case SID.ShacklesOfLoneliness1:
+                case SID.ShacklesOfLoneliness2:
+                case SID.ShacklesOfLoneliness3:
+                case SID.ShacklesOfLoneliness4:
+                    _debuffsRedFuture.Clear(module.Raid.FindSlot(actor.InstanceID));
+                    break;
+                case SID.InescapableCompanionship:
+                    _debuffsBlueImminent.Clear(module.Raid.FindSlot(actor.InstanceID));
+                    ++NumExpiredDebuffs;
+                    break;
+                case SID.InescapableLoneliness:
+                    _debuffsRedImminent.Clear(module.Raid.FindSlot(actor.InstanceID));
+                    ++NumExpiredDebuffs;
+                    break;
+            }
+        }
+
+        private void AssignOrder(BossModule module, Actor actor, int order, bool far)
         {
             var way1 = module.WorldState.Waymarks[(Waymark)((int)Waymark.A + order)];
             var way2 = module.WorldState.Waymarks[(Waymark)((int)Waymark.N1 + order)];
@@ -160,7 +211,9 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
             var d1 = (w1 - module.Bounds.Center).LengthSq();
             var d2 = (w2 - module.Bounds.Center).LengthSq();
             bool use1 = far ? d1 > d2 : d1 < d2;
-            _preferredPositions[slot] = use1 ? w1 : w2;
+            int slot = module.Raid.FindSlot(actor.InstanceID);
+            if (slot >= 0)
+                _preferredPositions[slot] = use1 ? w1 : w2;
         }
     }
 }

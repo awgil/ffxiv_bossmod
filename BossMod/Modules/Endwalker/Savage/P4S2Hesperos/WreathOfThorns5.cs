@@ -12,11 +12,6 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
 
         private static float _impulseAOERadius = 5;
 
-        public WreathOfThorns5()
-        {
-            Tether(TetherID.WreathOfThorns, HandleTether);
-        }
-
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             int order = _playersOrder.IndexOf(actor.InstanceID);
@@ -61,7 +56,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        private void HandleTether(BossModule module, Actor source, Actor target)
+        public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
             if (source.OID == (uint)OID.Helper)
                 _towersOrder.Add(source);

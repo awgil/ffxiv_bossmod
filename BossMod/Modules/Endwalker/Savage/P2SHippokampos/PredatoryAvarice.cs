@@ -15,15 +15,6 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
 
         public bool Active => (_playersWithTides | _playersWithDepths).Any();
 
-        public PredatoryAvarice()
-        {
-            PartyStatusUpdate(SID.MarkOfTides, (_, slot, _, _, _, _) => _playersWithTides.Set(slot));
-            PartyStatusLose(SID.MarkOfTides, (_, slot, _) => _playersWithTides.Clear(slot));
-
-            PartyStatusUpdate(SID.MarkOfDepths, (_, slot, _, _, _, _) => _playersWithDepths.Set(slot));
-            PartyStatusLose(SID.MarkOfDepths, (_, slot, _) => _playersWithDepths.Clear(slot));
-        }
-
         public override void Update(BossModule module)
         {
             _playersInTides = _playersInDepths = new();
@@ -99,6 +90,32 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
                     bool playerInteresting = pcHasTides ? _playersInTides[i] : _playersInDepths[i];
                     arena.Actor(actor.Position, actor.Rotation, playerInteresting ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
                 }
+            }
+        }
+
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+            switch ((SID)status.ID)
+            {
+                case SID.MarkOfTides:
+                    _playersWithTides.Set(module.Raid.FindSlot(actor.InstanceID));
+                    break;
+                case SID.MarkOfDepths:
+                    _playersWithDepths.Set(module.Raid.FindSlot(actor.InstanceID));
+                    break;
+            }
+        }
+
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+        {
+            switch ((SID)status.ID)
+            {
+                case SID.MarkOfTides:
+                    _playersWithTides.Clear(module.Raid.FindSlot(actor.InstanceID));
+                    break;
+                case SID.MarkOfDepths:
+                    _playersWithDepths.Clear(module.Raid.FindSlot(actor.InstanceID));
+                    break;
             }
         }
     }

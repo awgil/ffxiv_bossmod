@@ -23,12 +23,6 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
 
         private static float _fireExplosionRadius = 6;
 
-        public WreathOfThorns2()
-        {
-            Tether(TetherID.WreathOfThorns, AssignTether);
-            Tether(TetherID.WreathOfThornsPairsClose, AssignTether);
-        }
-
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             bool isTowerSoaker = actor == _darkTH.Item1 || actor == _darkTH.Item2;
@@ -126,9 +120,9 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        private void AssignTether(BossModule module, Actor source, Actor target)
+        public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
-            if (source.OID == (uint)OID.Helper && source.Tether.ID == (uint)TetherID.WreathOfThorns)
+            if (source.OID == (uint)OID.Helper && tether.ID == (uint)TetherID.WreathOfThorns)
             {
                 _relevantHelpers.Add(source);
             }

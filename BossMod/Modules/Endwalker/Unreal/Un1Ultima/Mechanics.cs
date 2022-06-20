@@ -25,12 +25,6 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
         private static float _orbSharedRange = 8;
         private static float _orbFixateRange = 6;
 
-        public Mechanics()
-        {
-            PartyStatusUpdate(SID.ViscousAetheroplasm, (_, slot, _, _, extra, _) => _tankStacks[slot] = extra);
-            PartyStatusLose(SID.ViscousAetheroplasm, (_, slot, _) => _tankStacks[slot] = 0);
-        }
-
         public override void Update(BossModule module)
         {
             // TODO: this is bad, we need to find a way to associate orb to kiter...
@@ -130,6 +124,18 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
             }
         }
 
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+            if ((SID)status.ID == SID.ViscousAetheroplasm)
+                SetTankStacks(module, actor, status.Extra);
+        }
+
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+        {
+            if ((SID)status.ID == SID.ViscousAetheroplasm)
+                SetTankStacks(module, actor, 0);
+        }
+
         public override void OnCastStarted(BossModule module, Actor actor)
         {
             if (!actor.CastInfo!.IsSpell())
@@ -170,6 +176,13 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
                     _orbKiters.Add(info.MainTargetID);
                     break;
             }
+        }
+
+        private void SetTankStacks(BossModule module, Actor actor, int stacks)
+        {
+            int slot = module.Raid.FindSlot(actor.InstanceID);
+            if (slot >= 0)
+                _tankStacks[slot] = stacks;
         }
     }
 }

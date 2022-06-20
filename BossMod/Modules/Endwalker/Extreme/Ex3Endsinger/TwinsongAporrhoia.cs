@@ -15,11 +15,6 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
         private static AOEShapeCircle _aoeDanger = new(15);
         private static AOEShapeDonut _aoeSafe = new(5, 15);
 
-        public TwinsongAporrhoia()
-        {
-            EnemyStatusUpdate(SID.RewindTwinsong, UpdateStatus);
-        }
-
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_castsDone >= 3 && !_ringsAssigned)
@@ -73,30 +68,33 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
             }
         }
 
-        private void UpdateStatus(BossModule module, Actor actor, ulong sourceID, ushort extra, DateTime expireAt)
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-            int rings = extra switch
+            if ((SID)status.ID == SID.RewindTwinsong)
             {
-                0x178 => 1,
-                0x179 => 2,
-                0x17A => 3,
-                _ => 0,
-            };
-            if (rings == 0)
-            {
-                module.ReportError(this, $"Unexpected extra {extra:X} for rewind status");
-                return;
-            }
+                int rings = status.Extra switch
+                {
+                    0x178 => 1,
+                    0x179 => 2,
+                    0x17A => 3,
+                    _ => 0,
+                };
+                if (rings == 0)
+                {
+                    module.ReportError(this, $"Unexpected extra {status.Extra:X} for rewind status");
+                    return;
+                }
 
-            int slot = Array.FindIndex(_heads, ar => ar.Actor == actor);
-            if (slot == -1)
-            {
-                module.ReportError(this, $"Unexpected actor for rewind status");
-                return;
-            }
+                int slot = Array.FindIndex(_heads, ar => ar.Actor == actor);
+                if (slot == -1)
+                {
+                    module.ReportError(this, $"Unexpected actor for rewind status");
+                    return;
+                }
 
-            _heads[slot].Rings = rings;
-            _ringsAssigned = true;
+                _heads[slot].Rings = rings;
+                _ringsAssigned = true;
+            }
         }
 
         public override void OnCastStarted(BossModule module, Actor actor)

@@ -10,19 +10,6 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
         private State[] _states = new State[PartyState.MaxPartySize * 4];
         private int[] _doneCasts = new int[PartyState.MaxPartySize];
 
-        public DespairUnforgotten()
-        {
-            PartyStatusUpdate(SID.RewindDespair, UpdateRewindStatus);
-            PartyStatusUpdate(SID.EchoesOfNausea, (module, slot, _, _, _, _) => UpdateEchoesStatus(module, slot, State.Donut));
-            PartyStatusUpdate(SID.EchoesOfBefoulment, (module, slot, _, _, _, _) => UpdateEchoesStatus(module, slot, State.Spread));
-            PartyStatusUpdate(SID.EchoesOfFuture, (module, slot, _, _, _, _) => UpdateEchoesStatus(module, slot, State.Flare));
-            PartyStatusUpdate(SID.EchoesOfBenevolence, (module, slot, _, _, _, _) => UpdateEchoesStatus(module, slot, State.Stack));
-            PartyStatusLose(SID.EchoesOfNausea, LoseEchoesStatus);
-            PartyStatusLose(SID.EchoesOfBefoulment, LoseEchoesStatus);
-            PartyStatusLose(SID.EchoesOfFuture, LoseEchoesStatus);
-            PartyStatusLose(SID.EchoesOfBenevolence, LoseEchoesStatus);
-        }
-
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             // TODO: improve
@@ -46,32 +33,68 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
             // TODO: think what to draw here...
         }
 
-        private void UpdateRewindStatus(BossModule module, int slot, Actor actor, ulong sourceID, ushort extra, DateTime expireAt)
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-            int rings = extra switch
+            switch ((SID)status.ID)
             {
-                0x17C => 1,
-                0x17D => 2,
-                0x17E => 3,
-                _ => 0,
-            };
-            if (rings == 0)
-                module.ReportError(this, $"Unexpected extra {extra:X} for rewind status");
-            else
-                _states[slot * 4 + 3] = _states[slot * 4 + 3 - rings];
+                case SID.RewindDespair:
+                    int rings = status.Extra switch
+                    {
+                        0x17C => 1,
+                        0x17D => 2,
+                        0x17E => 3,
+                        _ => 0,
+                    };
+                    if (rings == 0)
+                    {
+                        module.ReportError(this, $"Unexpected extra {status.Extra:X} for rewind status");
+                        break;
+                    }
+
+                    int slot = module.Raid.FindSlot(actor.InstanceID);
+                    if (slot >= 0)
+                        _states[slot * 4 + 3] = _states[slot * 4 + 3 - rings];
+                    break;
+                case SID.EchoesOfNausea:
+                    ModifyState(module, actor, State.Donut);
+                    break;
+                case SID.EchoesOfBefoulment:
+                    ModifyState(module, actor, State.Spread);
+                    break;
+                case SID.EchoesOfFuture:
+                    ModifyState(module, actor, State.Flare);
+                    break;
+                case SID.EchoesOfBenevolence:
+                    ModifyState(module, actor, State.Stack);
+                    break;
+            }
         }
 
-        private void UpdateEchoesStatus(BossModule module, int slot, State state)
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
         {
-            if (_doneCasts[slot] > 3)
-                module.ReportError(this, $"Unexpected state change after {_doneCasts[slot]} casts");
-            else
-                _states[slot * 4 + _doneCasts[slot]] = state;
+            switch ((SID)status.ID)
+            {
+                case SID.EchoesOfNausea:
+                case SID.EchoesOfBefoulment:
+                case SID.EchoesOfFuture:
+                case SID.EchoesOfBenevolence:
+                    int slot = module.WorldState.Party.FindSlot(actor.InstanceID);
+                    if (slot >= 0)
+                        Done |= ++_doneCasts[slot] > 3;
+                    break;
+            }
         }
 
-        private void LoseEchoesStatus(BossModule module, int slot, Actor actor)
+        private void ModifyState(BossModule module, Actor actor, State state)
         {
-            Done |= ++_doneCasts[slot] > 3;
+            int slot = module.Raid.FindSlot(actor.InstanceID);
+            if (slot >= 0)
+            {
+                if (_doneCasts[slot] > 3)
+                    module.ReportError(this, $"Unexpected state change after {_doneCasts[slot]} casts");
+                else
+                    _states[slot * 4 + _doneCasts[slot]] = state;
+            }
         }
     }
 }
