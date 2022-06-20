@@ -54,18 +54,18 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
                 _stackTarget = null;
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.IsSpell(AID.HeavensTrialConeStart))
+            switch ((AID)spell.Action.ID)
             {
-                var caster = module.WorldState.Actors.Find(info.CasterID);
-                var target = module.WorldState.Actors.Find(info.MainTargetID);
-                if (caster != null && target != null)
-                    _cones.Add((caster, target));
-            }
-            else if (info.IsSpell(AID.HeavensTrialSmelting))
-            {
-                _cones.RemoveAll(i => i.Caster.InstanceID == info.CasterID);
+                case AID.HeavensTrialConeStart:
+                    var target = module.WorldState.Actors.Find(spell.MainTargetID);
+                    if (target != null)
+                        _cones.Add((caster, target));
+                    break;
+                case AID.HeavensTrialSmelting:
+                    _cones.RemoveAll(i => i.Caster.InstanceID == spell.CasterID);
+                    break;
             }
         }
     }

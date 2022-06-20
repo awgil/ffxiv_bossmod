@@ -119,9 +119,9 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
                 _curState = state;
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.IsSpell(AID.PainfulFlux)) // this is convenient to rely on, since exactly 1 cast happens right after every explosion
+            if ((AID)spell.Action.ID == AID.PainfulFlux) // this is convenient to rely on, since exactly 1 cast happens right after every explosion
             {
                 if (NumExplosions++ == 0 && _pattern != Pattern.Unknown && _curState != State.Unknown)
                 {

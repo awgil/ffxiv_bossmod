@@ -43,12 +43,11 @@ namespace BossMod.Endwalker.Alliance.A2Rhalgr
                 _targetLocations = null;
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.IsSpell(AID.BrokenShardsAOE))
+            if ((AID)spell.Action.ID == AID.BrokenShardsAOE)
             {
-                var caster = module.WorldState.Actors.Find(info.CasterID);
-                if (caster != null && !Array.Exists(_eastLocations, p => p.AlmostEqual(caster.Position, 0.1f)) && Array.Exists(_westLocations, p => p.AlmostEqual(caster.Position, 0.1f)))
+                if (!Array.Exists(_eastLocations, p => p.AlmostEqual(caster.Position, 0.1f)) && !Array.Exists(_westLocations, p => p.AlmostEqual(caster.Position, 0.1f)))
                 {
                     module.ReportError(this, $"Unexpected shard position: {caster.Position}");
                 }

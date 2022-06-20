@@ -62,12 +62,17 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 _towersOrder.Add(source);
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.IsSpell(AID.FleetingImpulseAOE))
-                _playersOrder.Add(info.MainTargetID);
-            else if (info.IsSpell(AID.AkanthaiExplodeTower))
-                ++_castsDone;
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.FleetingImpulseAOE:
+                    _playersOrder.Add(spell.MainTargetID);
+                    break;
+                case AID.AkanthaiExplodeTower:
+                    ++_castsDone;
+                    break;
+            }
         }
     }
 }

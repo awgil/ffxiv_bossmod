@@ -96,16 +96,16 @@
             }
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.CasterID != module.PrimaryActor.InstanceID)
+            if (caster != module.PrimaryActor)
                 return;
 
-            if (info.IsSpell(AID.ApplyPrey))
+            if ((AID)spell.Action.ID == AID.ApplyPrey)
             {
-                _rockThrowTarget = module.WorldState.Actors.Find(info.MainTargetID);
+                _rockThrowTarget = module.WorldState.Actors.Find(spell.MainTargetID);
             }
-            else if (info.IsSpell(AID.RockThrowRest) && ++_numSecondaryRockThrows == 2)
+            else if ((AID)spell.Action.ID == AID.RockThrowRest && ++_numSecondaryRockThrows == 2)
             {
                 _rockThrowTarget = null;
                 _numSecondaryRockThrows = 0;

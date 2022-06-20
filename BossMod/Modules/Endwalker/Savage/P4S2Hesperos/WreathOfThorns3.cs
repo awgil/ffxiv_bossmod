@@ -130,16 +130,18 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 CurState = State.Done;
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.IsSpell(AID.KothornosKickJump))
+            switch ((AID)spell.Action.ID)
             {
-                ++NumJumps;
-                _jumpTarget = module.WorldState.Actors.Find(info.MainTargetID);
-            }
-            else if (info.IsSpell(AID.KothornosQuake1) || info.IsSpell(AID.KothornosQuake2))
-            {
-                ++NumCones;
+                case AID.KothornosKickJump:
+                    ++NumJumps;
+                    _jumpTarget = module.WorldState.Actors.Find(spell.MainTargetID);
+                    break;
+                case AID.KothornosQuake1:
+                case AID.KothornosQuake2:
+                    ++NumCones;
+                    break;
             }
         }
     }

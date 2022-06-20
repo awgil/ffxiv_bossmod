@@ -83,10 +83,10 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             }
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.IsSpell(AID.Fireglide))
-                _chargedSunshadows.Add(info.CasterID);
+            if ((AID)spell.Action.ID == AID.Fireglide)
+                _chargedSunshadows.Add(spell.CasterID);
         }
 
         private ulong BirdTarget(Actor bird)

@@ -126,9 +126,9 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             }
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.IsSpell(AID.CursedCasting1) || info.IsSpell(AID.CursedCasting2))
+            if ((AID)spell.Action.ID is AID.CursedCasting1 or AID.CursedCasting2)
                 _debuffForbidden.Reset();
         }
     }

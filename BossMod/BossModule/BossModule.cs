@@ -410,8 +410,13 @@ namespace BossMod
 
         private void OnEventCast(object? sender, CastEvent info)
         {
-            foreach (var comp in _components)
-                comp.OnEventCast(this, info);
+            if (info.IsSpell())
+            {
+                var caster = WorldState.Actors.Find(info.CasterID);
+                if (caster != null && (caster.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo))
+                    foreach (var comp in _components)
+                        comp.OnEventCast(this, caster, info);
+            }
         }
 
         private void OnEventEnvControl(object? sender, (uint featureID, byte index, uint state) arg)

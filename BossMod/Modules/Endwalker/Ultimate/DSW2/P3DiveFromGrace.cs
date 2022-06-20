@@ -183,11 +183,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (!info.IsSpell())
-                return;
-            switch ((AID)info.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.GnashingWheel:
                 case AID.LashingWheel:
@@ -197,17 +195,17 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                         AdvanceState(module);
                     break;
                 case AID.DarkHighJump:
-                    AddPredictedTower(module, info.MainTargetID, 0);
+                    AddPredictedTower(module, spell.MainTargetID, 0);
                     if (NextEvent is State.Jump1Stack1 or State.Jump2 or State.Jump3Stack2)
                         AdvanceState(module);
                     break;
                 case AID.DarkSpineshatterDive:
-                    AddPredictedTower(module, info.MainTargetID, 1);
+                    AddPredictedTower(module, spell.MainTargetID, 1);
                     if (NextEvent is State.Jump1Stack1 or State.Jump2 or State.Jump3Stack2)
                         AdvanceState(module);
                     break;
                 case AID.DarkElusiveJump:
-                    AddPredictedTower(module, info.MainTargetID, -1);
+                    AddPredictedTower(module, spell.MainTargetID, -1);
                     if (NextEvent is State.Jump1Stack1 or State.Jump2 or State.Jump3Stack2)
                         AdvanceState(module);
                     break;

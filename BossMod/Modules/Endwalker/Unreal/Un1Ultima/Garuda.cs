@@ -78,9 +78,9 @@
             }
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.IsSpell(AID.VulcanBurst))
+            if ((AID)spell.Action.ID == AID.VulcanBurst)
                 _vulcanBurstImminent = false;
         }
     }

@@ -108,12 +108,12 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
                 module.ReportError(this, $"Unexpected extra of element buff: {status.Extra:X4}, cur element {CurElement}");
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (CurElement == Element.None || !info.IsSpell())
+            if (CurElement == Element.None)
                 return;
 
-            var element = (AID)info.Action.ID switch
+            var element = (AID)spell.Action.ID switch
             {
                 AID.CrystallineWater => Element.Water,
                 AID.CrystallineStone => Element.Earth,
@@ -125,7 +125,7 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
                 return;
 
             if (element != CurElement)
-                module.ReportError(this, $"Unexpected element cast: got {(AID)info.Action.ID}, expected {CurElement}");
+                module.ReportError(this, $"Unexpected element cast: got {spell.Action}, expected {CurElement}");
             CurElement = Element.None;
         }
     }

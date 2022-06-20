@@ -59,9 +59,9 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
             }
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (_active.Count > 0 && info!.IsSpell(AID.EverfireRest) || info!.IsSpell(AID.OnceBurnedRest))
+            if (_active.Count > 0 && (AID)spell.Action.ID == AID.EverfireRest || (AID)spell.Action.ID == AID.OnceBurnedRest)
             {
                 if (++_restCount > 24)
                 {
@@ -70,16 +70,12 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
                     return;
                 }
 
-                var caster = module.WorldState.Actors.Find(info.CasterID);
-                if (caster != null)
+                var dir = caster.Rotation.ToDirection();
+                var normal = dir.OrthoL();
+                var inst = _active.Find(i => WDir.Dot(i.Dir, dir) > 0.9f && MathF.Abs(WDir.Dot(caster.Position - i.Start, normal)) < 1);
+                if (inst != null)
                 {
-                    var dir = caster.Rotation.ToDirection();
-                    var normal = dir.OrthoL();
-                    var inst = _active.Find(i => WDir.Dot(i.Dir, dir) > 0.9f && MathF.Abs(WDir.Dot(caster.Position - i.Start, normal)) < 1);
-                    if (inst != null)
-                    {
-                        ++inst.Casts;
-                    }
+                    ++inst.Casts;
                 }
             }
         }

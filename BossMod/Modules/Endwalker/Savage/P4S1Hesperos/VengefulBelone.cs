@@ -120,11 +120,11 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             }
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.IsSpell(AID.BeloneBurstsAOETank) || info.IsSpell(AID.BeloneBurstsAOEHealer) || info.IsSpell(AID.BeloneBurstsAOEDPS))
+            if ((AID)spell.Action.ID is AID.BeloneBurstsAOETank or AID.BeloneBurstsAOEHealer or AID.BeloneBurstsAOEDPS)
             {
-                _orbTargets[info.CasterID] = Role.None;
+                _orbTargets[spell.CasterID] = Role.None;
                 ++_orbsExploded;
             }
         }

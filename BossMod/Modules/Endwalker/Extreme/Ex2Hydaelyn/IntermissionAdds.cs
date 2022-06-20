@@ -28,10 +28,10 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
             }
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.IsSpell(AID.IncreaseConviction))
-                _activeCrystals.Add(info.CasterID);
+            if ((AID)spell.Action.ID == AID.IncreaseConviction)
+                _activeCrystals.Add(spell.CasterID);
         }
     }
 }

@@ -189,25 +189,21 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (!info.IsSpell())
-                return;
-            switch ((AID)info.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.SacredSever:
                     ++NumSeverCasts;
                     break;
                 case AID.ShiningBlade:
-                    var charge = Array.Find(_charges, c => c?.Source.InstanceID == info.CasterID);
+                    var charge = Array.Find(_charges, c => c?.Source == caster);
                     if (charge?.Positions.Count > 0)
                         charge.Positions.RemoveAt(0);
                     break;
                 case AID.BrightFlare:
-                    var sphere = module.WorldState.Actors.Find(info.CasterID);
-                    if (sphere != null)
-                        foreach (var c in _charges)
-                            c?.Spheres.RemoveAll(s => s.AlmostEqual(sphere.Position, 2));
+                    foreach (var c in _charges)
+                        c?.Spheres.RemoveAll(s => s.AlmostEqual(caster.Position, 2));
                     ++NumFlareCasts;
                     break;
             }

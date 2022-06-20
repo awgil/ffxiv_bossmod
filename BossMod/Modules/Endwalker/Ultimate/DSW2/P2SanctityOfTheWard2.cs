@@ -194,9 +194,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.IsSpell(AID.HiemalStormAOE))
+            if ((AID)spell.Action.ID == AID.HiemalStormAOE)
                 StormDone = true;
         }
 

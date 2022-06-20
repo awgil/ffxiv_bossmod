@@ -86,9 +86,9 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 arena.AddLine(module.Bounds.Center, TearPosition(module, pc), ArenaColor.Danger);
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.IsSpell(AID.HyperdimensionalSlashAOERest))
+            if ((AID)spell.Action.ID == AID.HyperdimensionalSlashAOERest)
             {
                 _laserTargets.Clear();
                 ++NumCasts;

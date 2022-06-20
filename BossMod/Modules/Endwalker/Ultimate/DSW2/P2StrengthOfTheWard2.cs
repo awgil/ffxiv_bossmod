@@ -169,17 +169,15 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (!info.IsSpell())
-                return;
-            switch ((AID)info.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.SkywardLeap:
                     LeapsDone = true;
                     break;
                 case AID.HolyShieldBash:
-                    _chargeSources.RemoveAll(a => a.InstanceID == info.CasterID);
+                    _chargeSources.Remove(caster);
                     ChargeDone = true;
                     break;
                 case AID.DragonsRageAOE:

@@ -22,20 +22,17 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
                 _beacon.Draw(arena, p);
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.IsSpell(AID.BeaconParhelion))
+            switch ((AID)spell.Action.ID)
             {
-                var caster = module.WorldState.Actors.Find(info.CasterID);
-                if (caster != null)
-                {
+                case AID.BeaconParhelion:
                     _completedParhelions.Add(caster);
                     _subparhelions = _completedParhelions.Count >= 15;
-                }
-            }
-            else if (info.IsSpell(AID.BeaconSubparhelion))
-            {
-                _completedParhelions.RemoveAll(p => p.InstanceID == info.CasterID);
+                    break;
+                case AID.BeaconSubparhelion:
+                    _completedParhelions.Remove(caster);
+                    break;
             }
         }
 

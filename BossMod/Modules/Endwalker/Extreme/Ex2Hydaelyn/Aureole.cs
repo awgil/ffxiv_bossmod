@@ -23,9 +23,9 @@
             _aoe.Draw(arena, module.PrimaryActor.Position, module.PrimaryActor.Rotation + 180.Degrees());
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.IsSpell() && (AID)info.Action.ID is AID.Aureole1AOE or AID.Aureole2AOE or AID.LateralAureole1AOE or AID.LateralAureole2AOE)
+            if ((AID)spell.Action.ID is AID.Aureole1AOE or AID.Aureole2AOE or AID.LateralAureole1AOE or AID.LateralAureole2AOE)
                 Done = true;
         }
     }

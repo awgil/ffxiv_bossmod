@@ -13,14 +13,12 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 
         public LightwaveCommon() : base(ActionID.MakeSpell(AID.LightOfTheCrystal)) { }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            base.OnEventCast(module, info);
-            if (info.IsSpell(AID.RayOfLight) && !Waves.Any(w => w.InstanceID == info.CasterID))
+            base.OnEventCast(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.RayOfLight && !Waves.Contains(caster))
             {
-                var wave = module.WorldState.Actors.Find(info.CasterID);
-                if (wave != null)
-                    Waves.Add(wave);
+                Waves.Add(caster);
             }
         }
 

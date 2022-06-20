@@ -74,9 +74,9 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (info.IsSpell(AID.NearsightAOE) || info.IsSpell(AID.FarsightAOE))
+            if ((AID)spell.Action.ID is AID.NearsightAOE or AID.FarsightAOE)
                 CurState = State.Done;
         }
     }

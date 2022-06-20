@@ -132,11 +132,9 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (!info.IsSpell())
-                return;
-            switch ((AID)info.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.ShiningBlade:
                     ++_doneCharges;

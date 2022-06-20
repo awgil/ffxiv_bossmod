@@ -16,9 +16,9 @@ namespace BossMod
                 WatchedAction = aid;
             }
 
-            public override void OnEventCast(BossModule module, CastEvent info)
+            public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
             {
-                if (info.Action == WatchedAction)
+                if (spell.Action == WatchedAction)
                     ++NumCasts;
             }
         }

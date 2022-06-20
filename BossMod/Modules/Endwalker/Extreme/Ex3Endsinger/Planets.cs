@@ -65,25 +65,23 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
                 _head = null;
         }
 
-        public override void OnEventCast(BossModule module, CastEvent info)
+        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
         {
-            if (!info.IsSpell())
-                return;
-            switch ((AID)info.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.FatalismFieryStar1:
-                    AddPlanet(module, info.CasterID, false, true);
+                    AddPlanet(module, caster, false, true);
                     break;
                 case AID.FatalismFieryStar2:
                 case AID.FieryStarVisual:
-                    AddPlanet(module, info.CasterID, false, false);
+                    AddPlanet(module, caster, false, false);
                     break;
                 case AID.FatalismAzureStar1:
-                    AddPlanet(module, info.CasterID, true, true);
+                    AddPlanet(module, caster, true, true);
                     break;
                 case AID.FatalismAzureStar2:
                 case AID.AzureStarVisual:
-                    AddPlanet(module, info.CasterID, true, false);
+                    AddPlanet(module, caster, true, false);
                     break;
                 case AID.RubistellarCollision:
                 case AID.FatalismRubistallarCollisionAOE:
@@ -102,16 +100,12 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
             }
         }
 
-        private void AddPlanet(BossModule module, ulong casterID, bool azure, bool firstOfPair)
+        private void AddPlanet(BossModule module, Actor caster, bool azure, bool firstOfPair)
         {
-            var caster = module.WorldState.Actors.Find(casterID);
-            if (caster != null)
-            {
-                var origin = module.Bounds.Center + _planetOffset * caster.Rotation.ToDirection();
-                var planets = azure ? _planetsAzure : _planetsFiery;
-                int index = firstOfPair ? 0 : planets.Count;
-                planets.Insert(index, origin);
-            }
+            var origin = module.Bounds.Center + _planetOffset * caster.Rotation.ToDirection();
+            var planets = azure ? _planetsAzure : _planetsFiery;
+            int index = firstOfPair ? 0 : planets.Count;
+            planets.Insert(index, origin);
         }
     }
 }
