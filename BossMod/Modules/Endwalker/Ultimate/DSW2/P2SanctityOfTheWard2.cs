@@ -313,17 +313,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (slot1Swaps && slot2Swaps)
             {
                 // both prey markers at wrong cardinals
-                if (_config.P2Sanctity2SwapCCW != _preyGoEW)
+                if (_config.P2Sanctity2SwapBothNE)
                 {
-                    // CCW + N/S, preys are at E/W -> W swaps with S, E with N
-                    // CW + E/W, preys are at N/S -> N swaps with E, S with W
                     SwapPreyQuadrants(0, 1);
                     SwapPreyQuadrants(2, 3);
                 }
                 else
                 {
-                    // CW + N/S, preys are at E/W -> W swaps with N, E with S
-                    // CCW + E/W, preys are at N/S -> N swaps with W, S with E
                     SwapPreyQuadrants(0, 3);
                     SwapPreyQuadrants(1, 2);
                 }
