@@ -80,9 +80,9 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
                 arena.ZoneCone(module.PrimaryActor.Position, 0, _slammer.Radius, _slamDir - _slamDirIncrement * 3 / 2, 45.Degrees(), ArenaColor.SafeFromAOE);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (actor != module.PrimaryActor)
+            if (caster != module.PrimaryActor)
                 return;
             switch ((AID)spell.Action.ID)
             {
@@ -113,9 +113,9 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (actor != module.PrimaryActor)
+            if (caster != module.PrimaryActor)
                 return;
             switch ((AID)spell.Action.ID)
             {

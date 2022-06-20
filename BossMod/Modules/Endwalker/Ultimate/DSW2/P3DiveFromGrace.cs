@@ -146,7 +146,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {
@@ -157,28 +157,28 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     _nextAOE = _aoeLash;
                     break;
                 case AID.Geirskogul:
-                    _castingGeirskoguls.Add(actor);
+                    _castingGeirskoguls.Add(caster);
                     if (NextEvent is State.Bait1 or State.Bait2 or State.Bait3)
                         AdvanceState(module);
                     break;
                 case AID.DarkdragonDive:
                     _predictedTowers.Clear();
-                    _castingTowers.Add(actor);
+                    _castingTowers.Add(caster);
                     if (NextEvent is State.Towers2)
                         AdvanceState(module);
                     break;
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {
                 case AID.Geirskogul:
-                    _castingGeirskoguls.Remove(actor);
+                    _castingGeirskoguls.Remove(caster);
                     break;
                 case AID.DarkdragonDive:
-                    _castingTowers.Remove(actor);
+                    _castingTowers.Remove(caster);
                     break;
             }
         }

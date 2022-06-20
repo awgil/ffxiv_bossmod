@@ -136,7 +136,7 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
                 SetTankStacks(module, actor, 0);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             Angle? ray = (AID)spell.Action.ID switch
             {
@@ -152,7 +152,7 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
             _magitekOffset = ray.Value;
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.MagitekRayCenter or AID.MagitekRayLeft or AID.MagitekRayRight)
                 _magitekOffset = null;

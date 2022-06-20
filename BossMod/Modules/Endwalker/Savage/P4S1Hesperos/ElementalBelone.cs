@@ -52,7 +52,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {
@@ -60,7 +60,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
                 case AID.PeriaktoiDangerLava:
                 case AID.PeriaktoiDangerWell:
                 case AID.PeriaktoiDangerLevinstrike:
-                    _imminentExplodingCorners.Add(actor.Position);
+                    _imminentExplodingCorners.Add(caster.Position);
                     break;
             }
         }

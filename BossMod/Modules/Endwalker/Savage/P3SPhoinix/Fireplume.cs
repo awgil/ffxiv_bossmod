@@ -56,23 +56,23 @@
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {
                 case AID.ExperimentalFireplumeSingleAOE:
                 case AID.ExperimentalGloryplumeSingleAOE:
-                    _singlePos = actor.Position;
+                    _singlePos = caster.Position;
                     break;
                 case AID.ExperimentalFireplumeMultiAOE:
                 case AID.ExperimentalGloryplumeMultiAOE:
                     if (_multiStartedCasts++ == 0)
-                        _multiStartingDirection = Angle.FromDirection(actor.Position - module.Bounds.Center);
+                        _multiStartingDirection = Angle.FromDirection(caster.Position - module.Bounds.Center);
                     break;
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {

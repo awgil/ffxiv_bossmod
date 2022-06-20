@@ -33,23 +33,23 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {
                 case AID.FlamesOfAsphodelosAOE1:
-                    _directions[0] = actor.Rotation;
+                    _directions[0] = caster.Rotation;
                     break;
                 case AID.FlamesOfAsphodelosAOE2:
-                    _directions[1] = actor.Rotation;
+                    _directions[1] = caster.Rotation;
                     break;
                 case AID.FlamesOfAsphodelosAOE3:
-                    _directions[2] = actor.Rotation;
+                    _directions[2] = caster.Rotation;
                     break;
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {

@@ -132,7 +132,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (CurState == State.DarkDesign && (AID)spell.Action.ID == AID.DarkDesign)
                 CurState = State.FirstSet;

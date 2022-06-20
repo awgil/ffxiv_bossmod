@@ -44,16 +44,16 @@
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {
                 case AID.BroadSwingRL:
-                    _caster = actor;
+                    _caster = caster;
                     _lr = false;
                     break;
                 case AID.BroadSwingLR:
-                    _caster = actor;
+                    _caster = caster;
                     _lr = true;
                     break;
             }

@@ -53,15 +53,15 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.DiairesisElegeia)
-                _head = actor;
+                _head = caster;
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (_head == actor)
+            if (_head == caster)
                 _head = null;
         }
 

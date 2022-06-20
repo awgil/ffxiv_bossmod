@@ -105,9 +105,9 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
                     arena.AddLine(from, to, color);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (actor != module.PrimaryActor)
+            if (caster != module.PrimaryActor)
                 return;
             var state = (AID)spell.Action.ID switch
             {

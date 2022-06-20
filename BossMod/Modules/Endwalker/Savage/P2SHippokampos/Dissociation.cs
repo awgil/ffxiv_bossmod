@@ -28,9 +28,9 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
             _shape.Draw(arena, head);
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (actor.OID == (uint)OID.DissociatedHead && (AID)spell.Action.ID == AID.DissociationAOE)
+            if (caster.OID == (uint)OID.DissociatedHead && (AID)spell.Action.ID == AID.DissociationAOE)
                 _shape = null;
         }
     }

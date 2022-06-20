@@ -70,7 +70,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.AshenEye)
             {
@@ -79,15 +79,15 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
                     PlacementDone = true;
                     _sources.Clear();
                 }
-                _sources.Add((actor, actor.Rotation));
+                _sources.Add((caster, caster.Rotation));
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.AshenEye)
             {
-                _sources.RemoveAll(x => x.Item1 == actor);
+                _sources.RemoveAll(x => x.Item1 == caster);
                 CastsDone = _sources.Count == 0;
             }
         }

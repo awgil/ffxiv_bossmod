@@ -56,9 +56,9 @@
             ActiveAOE()?.Draw(arena, module.PrimaryActor);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (actor != module.PrimaryActor)
+            if (caster != module.PrimaryActor)
                 return;
             switch ((AID)spell.Action.ID)
             {
@@ -68,9 +68,9 @@
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (actor != module.PrimaryActor)
+            if (caster != module.PrimaryActor)
                 return;
             switch ((AID)spell.Action.ID)
             {

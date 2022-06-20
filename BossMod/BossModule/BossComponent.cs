@@ -44,10 +44,10 @@ namespace BossMod
         // world state event handlers
         public virtual void OnStatusGain(BossModule module, Actor actor, ActorStatus status) { } // note: also called for status-change events; if component needs to distinguish between lose+gain and change, it can use the fact that 'lose' is not called for change
         public virtual void OnStatusLose(BossModule module, Actor actor, ActorStatus status) { }
-        public virtual void OnTethered(BossModule module, Actor actor, ActorTetherInfo tether) { }
-        public virtual void OnUntethered(BossModule module, Actor actor, ActorTetherInfo tether) { }
-        public virtual void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell) { } // note: action is always a spell; not called for player spells
-        public virtual void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell) { } // note: action is always a spell; not called for player spells
+        public virtual void OnTethered(BossModule module, Actor source, ActorTetherInfo tether) { }
+        public virtual void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether) { }
+        public virtual void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell) { } // note: action is always a spell; not called for player spells
+        public virtual void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell) { } // note: action is always a spell; not called for player spells
         public virtual void OnEventCast(BossModule module, CastEvent info) { }
         public virtual void OnEventIcon(BossModule module, ulong actorID, uint iconID) { }
         public virtual void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state) { }

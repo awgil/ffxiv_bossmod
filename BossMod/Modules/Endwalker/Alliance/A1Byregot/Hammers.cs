@@ -67,7 +67,7 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
             arena.AddLine(module.Bounds.Center + new WDir(-25, +15), module.Bounds.Center + new WDir(+25, +15), ArenaColor.Border);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {
@@ -75,15 +75,15 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
                     _curState = State.SidesAboutToBeDestroyed;
                     break;
                 case AID.Levinforge:
-                    _levinforge = actor;
+                    _levinforge = caster;
                     break;
                 case AID.ByregotSpire:
-                    _spire = actor;
+                    _spire = caster;
                     break;
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {

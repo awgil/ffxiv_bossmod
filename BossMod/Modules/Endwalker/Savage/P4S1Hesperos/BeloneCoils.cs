@@ -51,20 +51,20 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.BeloneCoilsDPS or AID.BeloneCoilsTH)
             {
-                _activeTowers.Add(actor);
+                _activeTowers.Add(caster);
                 ActiveSoakers = (AID)spell.Action.ID == AID.BeloneCoilsDPS ? Soaker.DamageDealer : Soaker.TankOrHealer;
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.BeloneCoilsDPS or AID.BeloneCoilsTH)
             {
-                _activeTowers.Remove(actor);
+                _activeTowers.Remove(caster);
                 if (_activeTowers.Count == 0)
                     ActiveSoakers = Soaker.Unknown;
             }

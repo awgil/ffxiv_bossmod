@@ -24,16 +24,16 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
                 _shape.Draw(arena, c);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.AdikiaL or AID.AdikiaR)
-                _casters.Add(actor);
+                _casters.Add(caster);
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.AdikiaL or AID.AdikiaR)
-                _casters.Remove(actor);
+                _casters.Remove(caster);
         }
     }
 }

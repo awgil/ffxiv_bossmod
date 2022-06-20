@@ -64,7 +64,7 @@
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Heavensblaze)
                 _blazeTarget = module.WorldState.Actors.Find(spell.TargetID);

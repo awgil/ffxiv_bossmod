@@ -22,22 +22,22 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
                 _aoe.Draw(arena, s);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.HauteAirWings)
             {
-                var closestSunstorm = module.Enemies(OID.Sunstorm).MinBy(s => (s.Position - actor.Position).LengthSq());
+                var closestSunstorm = module.Enemies(OID.Sunstorm).MinBy(s => (s.Position - caster.Position).LengthSq());
                 if (closestSunstorm != null)
                 {
-                    _sunstorms[closestSunstorm.InstanceID] = closestSunstorm.Position + _kickDistance * actor.Rotation.ToDirection();
+                    _sunstorms[closestSunstorm.InstanceID] = closestSunstorm.Position + _kickDistance * caster.Rotation.ToDirection();
                 }
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.SolarFlair)
-                _sunstorms[actor.InstanceID] = null;
+                _sunstorms[caster.InstanceID] = null;
         }
 
         private IEnumerable<WPos> ActiveSunstorms(BossModule module)

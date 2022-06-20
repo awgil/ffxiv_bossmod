@@ -67,15 +67,15 @@
             aoe?.Draw(arena, pos, module.PrimaryActor.Rotation);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (actor == module.PrimaryActor && (AID)spell.Action.ID == AID.PrincessThrenodyPrepare)
+            if (caster == module.PrimaryActor && (AID)spell.Action.ID == AID.PrincessThrenodyPrepare)
                 _threnodyDirection = module.PrimaryActor.Rotation + ThrenodyDirection(module);
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (actor == module.PrimaryActor && (AID)spell.Action.ID == AID.PrincessThrenodyResolve)
+            if (caster == module.PrimaryActor && (AID)spell.Action.ID == AID.PrincessThrenodyResolve)
                 _threnodyDirection = null;
         }
 

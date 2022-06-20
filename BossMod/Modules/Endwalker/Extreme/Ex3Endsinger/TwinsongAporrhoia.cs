@@ -97,33 +97,33 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {
                 case AID.DiairesisTwinsong:
                     if (_heads[(int)HeadID.Center].Actor == null)
                     {
-                        _heads[(int)HeadID.Center] = (actor, 0);
-                        _centerStartingRotation = actor.Rotation;
+                        _heads[(int)HeadID.Center] = (caster, 0);
+                        _centerStartingRotation = caster.Rotation;
                     }
                     break;
                 case AID.NecroticFluid:
                     if (_heads[(int)HeadID.Danger1].Actor == null)
-                        _heads[(int)HeadID.Danger1] = (actor, 0);
+                        _heads[(int)HeadID.Danger1] = (caster, 0);
                     else if (_heads[(int)HeadID.Danger2].Actor == null)
-                        _heads[(int)HeadID.Danger2] = (actor, 0);
+                        _heads[(int)HeadID.Danger2] = (caster, 0);
                     break;
                 case AID.WaveOfNausea:
                     if (_heads[(int)HeadID.Safe1].Actor == null)
-                        _heads[(int)HeadID.Safe1] = (actor, 0);
+                        _heads[(int)HeadID.Safe1] = (caster, 0);
                     else if (_heads[(int)HeadID.Safe2].Actor == null)
-                        _heads[(int)HeadID.Safe2] = (actor, 0);
+                        _heads[(int)HeadID.Safe2] = (caster, 0);
                     break;
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {

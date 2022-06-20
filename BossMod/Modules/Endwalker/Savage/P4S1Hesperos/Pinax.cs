@@ -128,38 +128,38 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {
                 case AID.PinaxAcid:
-                    _acid = actor;
+                    _acid = caster;
                     if (_order == Order.WULU)
                         _order = Order.WALF;
                     else if (_order == Order.LUWU)
                         _order = Order.LAWF;
                     break;
                 case AID.PinaxLava:
-                    _fire = actor;
+                    _fire = caster;
                     if (_order == Order.WULU)
                         _order = Order.WFLA;
                     else if (_order == Order.LUWU)
                         _order = Order.LFWA;
                     break;
                 case AID.PinaxWell:
-                    _water = actor;
+                    _water = caster;
                     if (_order == Order.Unknown)
                         _order = Order.WULU;
                     break;
                 case AID.PinaxLevinstrike:
-                    _lighting = actor;
+                    _lighting = caster;
                     if (_order == Order.Unknown)
                         _order = Order.LUWU;
                     break;
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {

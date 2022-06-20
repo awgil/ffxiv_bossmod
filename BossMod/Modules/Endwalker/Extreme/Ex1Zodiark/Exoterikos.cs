@@ -39,16 +39,16 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
                 _sources.Add((target, shape));
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            var shape = ShapeForSigil(actor);
-            if (shape != null && !_sources.Any(actShape => actShape.Item1 == actor))
-                _sources.Add((actor, shape));
+            var shape = ShapeForSigil(caster);
+            if (shape != null && !_sources.Any(actShape => actShape.Item1 == caster))
+                _sources.Add((caster, shape));
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            _sources.RemoveAll(actShape => actShape.Item1 == actor);
+            _sources.RemoveAll(actShape => actShape.Item1 == caster);
         }
 
         private AOEShape? ShapeForSigil(Actor sigil)

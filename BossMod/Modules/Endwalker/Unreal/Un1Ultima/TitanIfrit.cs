@@ -28,36 +28,36 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
                 _aoeCrimsonCyclone.Draw(arena, a);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {
                 case AID.RadiantPlume:
-                    _activeLocationTargetedAOEs.Add((actor, _aoeRadiantPlume));
+                    _activeLocationTargetedAOEs.Add((caster, _aoeRadiantPlume));
                     break;
                 case AID.WeightOfTheLand:
-                    _activeLocationTargetedAOEs.Add((actor, _aoeWeightOfLand));
+                    _activeLocationTargetedAOEs.Add((caster, _aoeWeightOfLand));
                     break;
                 case AID.Eruption:
-                    _activeLocationTargetedAOEs.Add((actor, _aoeEruption));
+                    _activeLocationTargetedAOEs.Add((caster, _aoeEruption));
                     break;
                 case AID.CrimsonCyclone:
-                    _crimsonCyclone.Add(actor);
+                    _crimsonCyclone.Add(caster);
                     break;
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {
                 case AID.RadiantPlume:
                 case AID.WeightOfTheLand:
                 case AID.Eruption:
-                    _activeLocationTargetedAOEs.RemoveAll(e => e.Item1 == actor);
+                    _activeLocationTargetedAOEs.RemoveAll(e => e.Item1 == caster);
                     break;
                 case AID.CrimsonCyclone:
-                    _crimsonCyclone.Remove(actor);
+                    _crimsonCyclone.Remove(caster);
                     break;
             }
         }

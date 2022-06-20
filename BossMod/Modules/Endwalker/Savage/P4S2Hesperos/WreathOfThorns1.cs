@@ -66,13 +66,13 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void OnTethered(BossModule module, Actor actor, ActorTetherInfo tether)
+        public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
-            if (actor.OID == (uint)OID.Helper && tether.ID == (uint)TetherID.WreathOfThorns)
-                _relevantHelpers.Add(actor);
+            if (source.OID == (uint)OID.Helper && tether.ID == (uint)TetherID.WreathOfThorns)
+                _relevantHelpers.Add(source);
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (CurState == State.FirstAOEs && (AID)spell.Action.ID == AID.AkanthaiExplodeAOE)
                 CurState = State.Towers;

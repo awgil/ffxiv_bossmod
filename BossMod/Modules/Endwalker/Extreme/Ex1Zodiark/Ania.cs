@@ -49,13 +49,13 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.AniaAOE)
                 _target = module.WorldState.Actors.Find(spell.TargetID);
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.AniaAOE)
                 _target = null;

@@ -21,15 +21,15 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
                 _aoe.Draw(arena, a);
         }
 
-        public override void OnTethered(BossModule module, Actor actor, ActorTetherInfo tether)
+        public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
             if ((TetherID)tether.ID is TetherID.EndsongFirst or TetherID.EndsongNext)
-                _active.Add(actor);
+                _active.Add(source);
         }
 
-        public override void OnUntethered(BossModule module, Actor actor, ActorTetherInfo tether)
+        public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
-            _active.Remove(actor);
+            _active.Remove(source);
         }
     }
 }

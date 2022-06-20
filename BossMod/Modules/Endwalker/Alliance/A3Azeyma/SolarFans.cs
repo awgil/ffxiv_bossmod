@@ -45,32 +45,32 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {
                 case AID.SolarFansAOE:
                     AOEShapeRect shape = new(0, 5);
-                    shape.SetEndPointFromCastLocation(actor);
-                    _start.Add((actor, shape));
+                    shape.SetEndPointFromCastLocation(caster);
+                    _start.Add((caster, shape));
                     break;
                 case AID.RadiantFlourish:
                     _rhythmActive = false;
-                    _finish.Add(actor);
+                    _finish.Add(caster);
                     break;
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {
                 case AID.SolarFansAOE:
-                    _start.RemoveAll(e => e.Item1 == actor);
+                    _start.RemoveAll(e => e.Item1 == caster);
                     _rhythmActive = true;
                     break;
                 case AID.RadiantFlourish:
-                    _finish.Remove(actor);
+                    _finish.Remove(caster);
                     break;
             }
         }

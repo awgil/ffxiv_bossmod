@@ -44,7 +44,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             var (order, knockback) = (AID)spell.Action.ID switch
             {
@@ -57,10 +57,10 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
                 _ => (0, false)
             };
             if (order != 0)
-                _casters[order] = (actor, knockback);
+                _casters[order] = (caster, knockback);
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             int order = (AID)spell.Action.ID switch
             {
