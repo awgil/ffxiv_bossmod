@@ -70,18 +70,18 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             SetIcon(module, tether.Target, 0);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.FaithUnmoving))
+            if ((AID)spell.Action.ID == AID.FaithUnmoving)
             {
                 _knockbackSource = actor;
                 _active = true;
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.FaithUnmoving))
+            if ((AID)spell.Action.ID == AID.FaithUnmoving)
             {
                 _knockbackSource = null;
             }

@@ -39,14 +39,14 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
                 _sources.Add((target, shape));
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
             var shape = ShapeForSigil(actor);
             if (shape != null && !_sources.Any(actShape => actShape.Item1 == actor))
                 _sources.Add((actor, shape));
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
             _sources.RemoveAll(actShape => actShape.Item1 == actor);
         }

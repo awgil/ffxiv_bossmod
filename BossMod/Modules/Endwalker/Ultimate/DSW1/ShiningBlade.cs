@@ -109,23 +109,26 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.FaithUnmoving))
+            switch ((AID)spell.Action.ID)
             {
-                _knockbackSource = actor;
+                case AID.FaithUnmoving:
+                    _knockbackSource = actor;
+                    break;
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.FaithUnmoving))
+            switch ((AID)spell.Action.ID)
             {
-                _knockbackSource = null;
-            }
-            else if (actor.CastInfo.IsSpell(AID.BrightFlare))
-            {
-                ++_doneFlares;
+                case AID.FaithUnmoving:
+                    _knockbackSource = null;
+                    break;
+                case AID.BrightFlare:
+                    ++_doneFlares;
+                    break;
             }
         }
 

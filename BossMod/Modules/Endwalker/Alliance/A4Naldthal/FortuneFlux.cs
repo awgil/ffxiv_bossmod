@@ -44,11 +44,9 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (!actor.CastInfo!.IsSpell())
-                return;
-            var (order, knockback) = (AID)actor.CastInfo.Action.ID switch
+            var (order, knockback) = (AID)spell.Action.ID switch
             {
                 AID.FortuneFluxKnockback1 => (1, true),
                 AID.FortuneFluxKnockback2 => (2, true),
@@ -62,11 +60,9 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
                 _casters[order] = (actor, knockback);
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (!actor.CastInfo!.IsSpell())
-                return;
-            int order = (AID)actor.CastInfo.Action.ID switch
+            int order = (AID)spell.Action.ID switch
             {
                 AID.FortuneFluxKnockback1 => 1,
                 AID.FortuneFluxKnockback2 => 2,

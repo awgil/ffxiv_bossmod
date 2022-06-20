@@ -24,20 +24,30 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
                 _aoeSides.Draw(arena, s);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.ElenchosCenter))
-                _center = actor;
-            else if (actor.CastInfo!.IsSpell(AID.ElenchosSidesAOE))
-                _sides.Add(actor);
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.ElenchosCenter:
+                    _center = actor;
+                    break;
+                case AID.ElenchosSidesAOE:
+                    _sides.Add(actor);
+                    break;
+            }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (_center == actor)
-                _center = null;
-            else
-                _sides.Remove(actor);
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.ElenchosCenter:
+                    _center = null;
+                    break;
+                case AID.ElenchosSidesAOE:
+                    _sides.Remove(actor);
+                    break;
+            }
         }
     }
 }

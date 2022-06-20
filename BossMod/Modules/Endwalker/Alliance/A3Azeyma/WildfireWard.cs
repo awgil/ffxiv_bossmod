@@ -38,17 +38,22 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.WildfireWard))
-                _active = true;
-            else if (actor.CastInfo!.IsSpell(AID.IlluminatingGlimpse))
-                _glimpse.Add(actor);
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.WildfireWard:
+                    _active = true;
+                    break;
+                case AID.IlluminatingGlimpse:
+                    _glimpse.Add(actor);
+                    break;
+            }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.IlluminatingGlimpse))
+            if ((AID)spell.Action.ID == AID.IlluminatingGlimpse)
             {
                 _glimpse.Remove(actor);
                 if (_glimpse.Count == 0)

@@ -132,13 +132,13 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (CurState == State.DarkDesign && actor.CastInfo!.IsSpell(AID.DarkDesign))
+            if (CurState == State.DarkDesign && (AID)spell.Action.ID == AID.DarkDesign)
                 CurState = State.FirstSet;
-            else if (CurState == State.FirstSet && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeAOE) && ++_numAOECasts >= 2)
+            else if (CurState == State.FirstSet && (AID)spell.Action.ID == AID.AkanthaiExplodeAOE && ++_numAOECasts >= 2)
                 CurState = State.SecondSet;
-            else if (CurState == State.SecondSet && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeAOE) && ++_numAOECasts >= 4)
+            else if (CurState == State.SecondSet && (AID)spell.Action.ID == AID.AkanthaiExplodeAOE && ++_numAOECasts >= 4)
                 CurState = State.Done;
         }
 

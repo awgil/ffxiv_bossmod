@@ -20,15 +20,15 @@
             _shape.Draw(arena, _caster);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.AlgedonAOE))
+            if ((AID)spell.Action.ID == AID.AlgedonAOE)
                 _caster = actor;
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.AlgedonAOE))
+            if ((AID)spell.Action.ID == AID.AlgedonAOE)
                 _caster = null;
         }
     }

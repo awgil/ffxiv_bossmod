@@ -35,12 +35,10 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
                 : (pos.Z > module.Bounds.Center.Z ? Corner.SW : Corner.NW);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
             // this is a fallback in case env-control assignment doesn't work for some reason...
-            if (!actor.CastInfo!.IsSpell())
-                return;
-            switch ((AID)actor.CastInfo!.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.PinaxAcid:
                     AssignFromCast(module, Element.Acid, actor.Position);

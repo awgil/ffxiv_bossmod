@@ -105,15 +105,18 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
                     arena.AddLine(from, to, color);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
             if (actor != module.PrimaryActor)
                 return;
-
-            if (actor.CastInfo!.IsSpell(AID.IntemperateTormentUp))
-                _curState = State.BottomToTop;
-            else if (actor.CastInfo!.IsSpell(AID.IntemperateTormentDown))
-                _curState = State.TopToBottom;
+            var state = (AID)spell.Action.ID switch
+            {
+                AID.IntemperateTormentUp => State.BottomToTop,
+                AID.IntemperateTormentDown => State.TopToBottom,
+                _ => State.Unknown
+            };
+            if (state != State.Unknown)
+                _curState = state;
         }
 
         public override void OnEventCast(BossModule module, CastEvent info)

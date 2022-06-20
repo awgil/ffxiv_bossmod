@@ -56,11 +56,11 @@
             ActiveAOE()?.Draw(arena, module.PrimaryActor);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor != module.PrimaryActor || !actor.CastInfo!.IsSpell())
+            if (actor != module.PrimaryActor)
                 return;
-            switch ((AID)actor.CastInfo!.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.AspectEarth: _imminentAspect = AspectType.Earth; break;
                 case AID.AspectWind: _imminentAspect = AspectType.Wind; break;
@@ -68,11 +68,11 @@
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor != module.PrimaryActor || !actor.CastInfo!.IsSpell())
+            if (actor != module.PrimaryActor)
                 return;
-            switch ((AID)actor.CastInfo!.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.Whorlstorm:
                 case AID.Defibrillate:

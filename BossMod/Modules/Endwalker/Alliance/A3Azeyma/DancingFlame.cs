@@ -19,9 +19,9 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
                 arena.ZoneRect(z.Center, new WDir(1, 0), z.HalfSize.X, z.HalfSize.X, z.HalfSize.Z, ArenaColor.AOE);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.HauteAirFlare))
+            if ((AID)spell.Action.ID == AID.HauteAirFlare)
             {
                 _active.Add(actor.Position + 40 * actor.Rotation.ToDirection());
             }

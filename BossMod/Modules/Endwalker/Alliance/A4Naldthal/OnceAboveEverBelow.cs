@@ -38,9 +38,9 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
                 _aoe.Draw(arena, c);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.EverfireFirst) || actor.CastInfo!.IsSpell(AID.OnceBurnedFirst))
+            if ((AID)spell.Action.ID is AID.EverfireFirst or AID.OnceBurnedFirst)
             {
                 WDir dir = MathF.Abs(actor.Position.X - module.Bounds.Center.X) < 1 ? new(1, 0) : new(0, 1);
                 _active.Add(new(actor.Position, dir));
@@ -48,9 +48,9 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.EverfireFirst) || actor.CastInfo!.IsSpell(AID.OnceBurnedFirst))
+            if ((AID)spell.Action.ID is AID.EverfireFirst or AID.OnceBurnedFirst)
             {
                 foreach (var inst in _active.Where(i => i.Start == actor.Position))
                 {

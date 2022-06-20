@@ -42,15 +42,15 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.HeavensTrialAOE))
-                _stackTarget = module.WorldState.Actors.Find(actor.CastInfo.TargetID);
+            if ((AID)spell.Action.ID == AID.HeavensTrialAOE)
+                _stackTarget = module.WorldState.Actors.Find(spell.TargetID);
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.HeavensTrialAOE))
+            if ((AID)spell.Action.ID == AID.HeavensTrialAOE)
                 _stackTarget = null;
         }
 

@@ -58,15 +58,15 @@
             aoe?.Draw(arena, pos, module.PrimaryActor.Rotation);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor == module.PrimaryActor && actor.CastInfo!.IsSpell(AID.Leafstorm))
+            if (actor == module.PrimaryActor && (AID)spell.Action.ID == AID.Leafstorm)
                 _showRimestorm = true;
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor == module.PrimaryActor && actor.CastInfo!.IsSpell(AID.Rimestorm))
+            if (actor == module.PrimaryActor && (AID)spell.Action.ID == AID.Rimestorm)
                 _showRimestorm = false;
         }
 

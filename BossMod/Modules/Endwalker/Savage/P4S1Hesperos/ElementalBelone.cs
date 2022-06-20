@@ -52,11 +52,9 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (!actor.CastInfo!.IsSpell())
-                return;
-            switch ((AID)actor.CastInfo!.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.PeriaktoiDangerAcid:
                 case AID.PeriaktoiDangerLava:

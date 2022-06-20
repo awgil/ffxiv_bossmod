@@ -57,32 +57,32 @@
             _activeBallisticMissile?.Draw(arena, _activeBallisticMissileTarget?.Position ?? _activeBallisticMissileLocation, 0.Degrees());
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor != module.PrimaryActor || !actor.CastInfo!.IsSpell())
+            if (actor != module.PrimaryActor)
                 return;
-            switch ((AID)actor.CastInfo.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.BallisticMissileCircleWarning:
                     _activeBallisticMissile = _ballisticMissileCircle;
-                    _activeBallisticMissileTarget = module.WorldState.Actors.Find(actor.CastInfo.TargetID);
+                    _activeBallisticMissileTarget = module.WorldState.Actors.Find(spell.TargetID);
                     break;
                 case AID.BallisticMissileDonutWarning:
                     _activeBallisticMissile = _ballisticMissileDonut;
-                    _activeBallisticMissileTarget = module.WorldState.Actors.Find(actor.CastInfo.TargetID);
+                    _activeBallisticMissileTarget = module.WorldState.Actors.Find(spell.TargetID);
                     break;
                 case AID.BallisticMissileCircle:
                 case AID.BallisticMissileDonut:
-                    _activeBallisticMissileLocation = actor.CastInfo.LocXZ;
+                    _activeBallisticMissileLocation = spell.LocXZ;
                     break;
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor != module.PrimaryActor || !actor.CastInfo!.IsSpell())
+            if (actor != module.PrimaryActor)
                 return;
-            switch ((AID)actor.CastInfo.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.BallisticMissileCircleWarning:
                 case AID.BallisticMissileDonutWarning:

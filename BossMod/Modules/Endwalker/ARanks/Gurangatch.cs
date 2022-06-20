@@ -80,11 +80,11 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
                 arena.ZoneCone(module.PrimaryActor.Position, 0, _slammer.Radius, _slamDir - _slamDirIncrement * 3 / 2, 45.Degrees(), ArenaColor.SafeFromAOE);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor != module.PrimaryActor || !actor.CastInfo!.IsSpell())
+            if (actor != module.PrimaryActor)
                 return;
-            switch ((AID)actor.CastInfo.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.LeftHammerSlammer:
                     _remainingSlams = 2;
@@ -113,11 +113,11 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor != module.PrimaryActor || !actor.CastInfo!.IsSpell())
+            if (actor != module.PrimaryActor)
                 return;
-            switch ((AID)actor.CastInfo.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.LeftHammerSlammer:
                 case AID.RightHammerSlammer:

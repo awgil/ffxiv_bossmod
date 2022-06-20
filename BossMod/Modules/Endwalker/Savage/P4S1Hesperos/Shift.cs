@@ -41,20 +41,30 @@
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.ShiftingStrikeCloak))
-                _cloakCaster = actor;
-            else if (actor.CastInfo!.IsSpell(AID.ShiftingStrikeSword))
-                _swordCaster = actor;
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.ShiftingStrikeCloak:
+                    _cloakCaster = actor;
+                    break;
+                case AID.ShiftingStrikeSword:
+                    _swordCaster = actor;
+                    break;
+            }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.ShiftingStrikeCloak))
-                _cloakCaster = null;
-            else if (actor.CastInfo!.IsSpell(AID.ShiftingStrikeSword))
-                _swordCaster = null;
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.ShiftingStrikeCloak:
+                    _cloakCaster = null;
+                    break;
+                case AID.ShiftingStrikeSword:
+                    _swordCaster = null;
+                    break;
+            }
         }
     }
 }

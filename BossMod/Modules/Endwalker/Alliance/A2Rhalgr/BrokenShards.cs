@@ -25,17 +25,21 @@ namespace BossMod.Endwalker.Alliance.A2Rhalgr
                     _aoe.Draw(arena, l);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.BrokenShardsE))
-                _targetLocations = _eastLocations;
-            else if (actor.CastInfo!.IsSpell(AID.BrokenShardsW))
-                _targetLocations = _westLocations;
+            var locs = (AID)spell.Action.ID switch
+            {
+                AID.BrokenShardsE => _eastLocations,
+                AID.BrokenShardsW => _westLocations,
+                _ => null
+            };
+            if (locs != null)
+                _targetLocations = locs;
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell() && (AID)actor.CastInfo.Action.ID is AID.BrokenShardsE or AID.BrokenShardsW)
+            if ((AID)spell.Action.ID is AID.BrokenShardsE or AID.BrokenShardsW)
                 _targetLocations = null;
         }
 

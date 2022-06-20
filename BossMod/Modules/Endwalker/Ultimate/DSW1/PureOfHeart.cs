@@ -98,15 +98,15 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.Skyblind))
+            if ((AID)spell.Action.ID == AID.Skyblind)
                 _skyblindCasters.Add(actor);
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.Skyblind))
+            if ((AID)spell.Action.ID == AID.Skyblind)
                 _skyblindCasters.Remove(actor);
         }
     }

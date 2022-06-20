@@ -64,10 +64,10 @@
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.Heavensblaze))
-                _blazeTarget = module.WorldState.Actors.Find(actor.CastInfo.TargetID);
+            if ((AID)spell.Action.ID == AID.Heavensblaze)
+                _blazeTarget = module.WorldState.Actors.Find(spell.TargetID);
         }
     }
 }

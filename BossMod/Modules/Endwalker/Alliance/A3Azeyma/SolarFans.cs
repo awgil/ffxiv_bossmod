@@ -45,11 +45,9 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (!actor.CastInfo!.IsSpell())
-                return;
-            switch ((AID)actor.CastInfo.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.SolarFansAOE:
                     AOEShapeRect shape = new(0, 5);
@@ -63,11 +61,9 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (!actor.CastInfo!.IsSpell())
-                return;
-            switch ((AID)actor.CastInfo.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.SolarFansAOE:
                     _start.RemoveAll(e => e.Item1 == actor);

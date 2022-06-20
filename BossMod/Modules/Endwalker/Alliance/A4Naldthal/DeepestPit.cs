@@ -38,17 +38,17 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
             //}
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.DeepestPitFirst) || actor.CastInfo!.IsSpell(AID.DeepestPitRest))
+            if ((AID)spell.Action.ID is AID.DeepestPitFirst or AID.DeepestPitRest)
             {
                 _casters.Add(actor);
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.DeepestPitFirst) || actor.CastInfo!.IsSpell(AID.DeepestPitRest))
+            if ((AID)spell.Action.ID is AID.DeepestPitFirst or AID.DeepestPitRest)
             {
                 _casters.Remove(actor);
                 //if (_casters.Count == 0)

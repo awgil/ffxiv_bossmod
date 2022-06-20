@@ -72,13 +72,13 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 _relevantHelpers.Add(actor);
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (CurState == State.FirstAOEs && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeAOE))
+            if (CurState == State.FirstAOEs && (AID)spell.Action.ID == AID.AkanthaiExplodeAOE)
                 CurState = State.Towers;
-            else if (CurState == State.Towers && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeTower))
+            else if (CurState == State.Towers && (AID)spell.Action.ID == AID.AkanthaiExplodeTower)
                 CurState = State.LastAOEs;
-            else if (CurState == State.LastAOEs && actor.CastInfo!.IsSpell(AID.AkanthaiExplodeAOE))
+            else if (CurState == State.LastAOEs && (AID)spell.Action.ID == AID.AkanthaiExplodeAOE)
                 CurState = State.Done;
         }
     }

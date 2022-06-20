@@ -67,11 +67,9 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
             arena.AddLine(module.Bounds.Center + new WDir(-25, +15), module.Bounds.Center + new WDir(+25, +15), ArenaColor.Border);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (!actor.CastInfo!.IsSpell())
-                return;
-            switch ((AID)actor.CastInfo.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.DestroySideTiles:
                     _curState = State.SidesAboutToBeDestroyed;
@@ -85,14 +83,20 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.DestroySideTiles))
-                _curState = State.Active;
-            if (_levinforge == actor)
-                _levinforge = null;
-            if (_spire == actor)
-                _spire = null;
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.DestroySideTiles:
+                    _curState = State.Active;
+                    break;
+                case AID.Levinforge:
+                    _levinforge = null;
+                    break;
+                case AID.ByregotSpire:
+                    _spire = null;
+                    break;
+            }
         }
 
         public override void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state)

@@ -174,9 +174,9 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.AkanthaiExplodeTower))
+            if ((AID)spell.Action.ID == AID.AkanthaiExplodeTower)
                 ++_doneTowers;
         }
 

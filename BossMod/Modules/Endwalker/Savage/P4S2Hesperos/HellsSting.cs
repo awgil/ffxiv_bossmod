@@ -29,15 +29,15 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 _cone.Draw(arena, module.PrimaryActor.Position, dir);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.HellsStingAOE1))
+            if ((AID)spell.Action.ID == AID.HellsStingAOE1)
                 _directions.Add(actor.Rotation);
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.HellsStingAOE1) || actor.CastInfo!.IsSpell(AID.HellsStingAOE2))
+            if ((AID)spell.Action.ID is AID.HellsStingAOE1 or AID.HellsStingAOE2)
                 ++NumCasts;
         }
 

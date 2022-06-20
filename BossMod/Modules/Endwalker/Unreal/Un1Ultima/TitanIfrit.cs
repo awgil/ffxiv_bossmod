@@ -28,11 +28,9 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
                 _aoeCrimsonCyclone.Draw(arena, a);
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (!actor.CastInfo!.IsSpell())
-                return;
-            switch ((AID)actor.CastInfo.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.RadiantPlume:
                     _activeLocationTargetedAOEs.Add((actor, _aoeRadiantPlume));
@@ -49,11 +47,9 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (!actor.CastInfo!.IsSpell())
-                return;
-            switch ((AID)actor.CastInfo.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.RadiantPlume:
                 case AID.WeightOfTheLand:

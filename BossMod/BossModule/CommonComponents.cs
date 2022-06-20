@@ -65,15 +65,15 @@ namespace BossMod
                     arena.AddCircle(_target.Position, _radius, ArenaColor.Danger);
             }
 
-            public override void OnCastStarted(BossModule module, Actor actor)
+            public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
             {
-                if (actor.CastInfo!.Action == _watchedAction)
-                    _target = module.WorldState.Actors.Find(actor.CastInfo.TargetID);
+                if (spell.Action == _watchedAction)
+                    _target = module.WorldState.Actors.Find(spell.TargetID);
             }
 
-            public override void OnCastFinished(BossModule module, Actor actor)
+            public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
             {
-                if (actor.CastInfo!.Action == _watchedAction)
+                if (spell.Action == _watchedAction)
                     _target = null;
             }
         }
@@ -154,11 +154,11 @@ namespace BossMod
                 }
             }
 
-            public override void OnCastStarted(BossModule module, Actor actor)
+            public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
             {
-                if (actor.CastInfo!.Action == _watchedAction)
+                if (spell.Action == _watchedAction)
                 {
-                    var target = module.WorldState.Actors.Find(actor.CastInfo.TargetID);
+                    var target = module.WorldState.Actors.Find(spell.TargetID);
                     if (target != null)
                     {
                         _active.Add((actor, target));
@@ -166,9 +166,9 @@ namespace BossMod
                 }
             }
 
-            public override void OnCastFinished(BossModule module, Actor actor)
+            public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
             {
-                if (actor.CastInfo!.Action == _watchedAction)
+                if (spell.Action == _watchedAction)
                 {
                     _active.RemoveAll(e => e.Caster == actor);
                 }
@@ -201,18 +201,18 @@ namespace BossMod
                     _aoe.Draw(arena, c.CastInfo!.LocXZ);
             }
 
-            public override void OnCastStarted(BossModule module, Actor actor)
+            public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
             {
-                if (actor.CastInfo!.Action == _watchedAction)
+                if (spell.Action == _watchedAction)
                 {
                     _casters.Add(actor);
                     Done = false;
                 }
             }
 
-            public override void OnCastFinished(BossModule module, Actor actor)
+            public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
             {
-                if (actor.CastInfo!.Action == _watchedAction)
+                if (spell.Action == _watchedAction)
                 {
                     _casters.Remove(actor);
                     Done = _casters.Count == 0;
@@ -245,15 +245,15 @@ namespace BossMod
                     _shape.Draw(arena, c);
             }
 
-            public override void OnCastStarted(BossModule module, Actor actor)
+            public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
             {
-                if (actor.CastInfo!.Action == WatchedAction)
+                if (spell.Action == WatchedAction)
                     _casters.Add(actor);
             }
 
-            public override void OnCastFinished(BossModule module, Actor actor)
+            public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
             {
-                if (actor.CastInfo!.Action == WatchedAction)
+                if (spell.Action == WatchedAction)
                     _casters.Remove(actor);
             }
         }
@@ -290,13 +290,13 @@ namespace BossMod
                 }
             }
 
-            public override void OnCastStarted(BossModule module, Actor actor)
+            public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
             {
-                if (actor.CastInfo!.Action == WatchedAction)
+                if (spell.Action == WatchedAction)
                     _caster = actor;
             }
 
-            public override void OnCastFinished(BossModule module, Actor actor)
+            public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
             {
                 if (_caster == actor)
                     _caster = null;
@@ -368,17 +368,17 @@ namespace BossMod
                 }
             }
 
-            public override void OnCastStarted(BossModule module, Actor actor)
+            public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
             {
-                if (actor.CastInfo!.Action == _watchedAction)
+                if (spell.Action == _watchedAction)
                 {
                     _casters.Add(actor);
                 }
             }
 
-            public override void OnCastFinished(BossModule module, Actor actor)
+            public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
             {
-                if (actor.CastInfo!.Action == _watchedAction)
+                if (spell.Action == _watchedAction)
                 {
                     _casters.Remove(actor);
                 }

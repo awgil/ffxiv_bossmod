@@ -97,11 +97,9 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (!actor.CastInfo!.IsSpell())
-                return;
-            switch ((AID)actor.CastInfo.Action.ID)
+            switch ((AID)spell.Action.ID)
             {
                 case AID.DiairesisTwinsong:
                     if (_heads[(int)HeadID.Center].Actor == null)
@@ -125,12 +123,17 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor actor)
+        public override void OnCastFinished(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell(AID.AporrhoiaUnforgotten))
-                ++_castsDone;
-            else if (actor.CastInfo!.IsSpell(AID.FatalismDiairesis))
-                _ringsAssigned = false;
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.AporrhoiaUnforgotten:
+                    ++_castsDone;
+                    break;
+                case AID.FatalismDiairesis:
+                    _ringsAssigned = false;
+                    break;
+            }
         }
     }
 }

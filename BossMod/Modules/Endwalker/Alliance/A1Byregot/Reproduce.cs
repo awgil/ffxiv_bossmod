@@ -42,10 +42,10 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor actor, ActorCastInfo spell)
         {
-            if (actor.CastInfo!.IsSpell() && (AID)actor.CastInfo.Action.ID is AID.CloudToGroundFast or AID.CloudToGroundSlow)
-                _active.Add(new(actor.Position, (AID)actor.CastInfo.Action.ID == AID.CloudToGroundFast));
+            if ((AID)spell.Action.ID is AID.CloudToGroundFast or AID.CloudToGroundSlow)
+                _active.Add(new(actor.Position, (AID)spell.Action.ID == AID.CloudToGroundFast));
         }
 
         public override void OnEventCast(BossModule module, CastEvent info)
