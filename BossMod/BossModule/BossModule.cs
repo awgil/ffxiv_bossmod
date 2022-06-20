@@ -50,12 +50,45 @@ namespace BossMod
             return entry;
         }
 
-        private BossComponent _rootComp = new();
-        public IReadOnlyList<BossComponent> Components => _rootComp.Subcomponents;
-        public void ActivateComponent<T>() where T : BossComponent, new() => _rootComp.AddAndInitSubcomponent<T>(this);
-        public void DeactivateComponent<T>() where T : BossComponent => _rootComp.RemoveSubcomponent<T>();
-        public T? FindComponent<T>() where T : BossComponent => _rootComp.FindSubcomponent<T>();
-        public void ClearComponents() => _rootComp.RemoveAllSubcomponents();
+        // component management: at most one component of any given type can be active at any time
+        private List<BossComponent> _components = new();
+        public IReadOnlyList<BossComponent> Components => _components;
+        public T? FindComponent<T>() where T : BossComponent => _components.OfType<T>().FirstOrDefault();
+
+        public void ActivateComponent<T>() where T : BossComponent, new()
+        {
+            if (FindComponent<T>() != null)
+            {
+                Service.Log($"[BossModule] Activating a component of type {typeof(T)} when another of the same type is already active; old one is deactivated automatically");
+                DeactivateComponent<T>();
+            }
+            T comp = new();
+            _components.Add(comp);
+
+            // execute init customization point
+            comp.Init(this);
+
+            // execute callbacks for existing state
+            foreach (var actor in WorldState.Actors)
+            {
+                if (actor.CastInfo != null)
+                    comp.OnCastStarted(this, actor);
+                if (actor.Tether.ID != 0)
+                    comp.OnTethered(this, actor, actor.Tether);
+                for (int i = 0; i < actor.Statuses.Length; ++i)
+                    if (actor.Statuses[i].ID != 0)
+                        comp.OnStatusGain(this, actor, actor.Statuses[i]);
+            }
+        }
+
+        public void DeactivateComponent<T>() where T : BossComponent
+        {
+            int count = _components.RemoveAll(x => x is T);
+            if (count == 0)
+                Service.Log($"[BossModule] Could not find a component of type {typeof(T)} to deactivate");
+        }
+
+        public void ClearComponents() => _components.Clear();
 
         public BossModule(BossModuleManager manager, Actor primary, ArenaBounds bounds)
         {
@@ -130,7 +163,8 @@ namespace BossMod
             if (StateMachine.ActiveState != null)
             {
                 UpdateModule();
-                _rootComp.UpdateRec(this);
+                foreach (var comp in _components)
+                    comp.Update(this);
             }
         }
 
@@ -158,7 +192,8 @@ namespace BossMod
 
             // draw background
             DrawArenaBackground(pcSlot, pc);
-            _rootComp.DrawArenaBackgroundRec(this, pcSlot, pc, Arena);
+            foreach (var comp in _components)
+                comp.DrawArenaBackground(this, pcSlot, pc, Arena);
 
             // draw borders
             Arena.Border();
@@ -170,7 +205,8 @@ namespace BossMod
 
             // draw foreground
             DrawArenaForegroundPre(pcSlot, pc);
-            _rootComp.DrawArenaForegroundRec(this, pcSlot, pc, Arena);
+            foreach (var comp in _components)
+                comp.DrawArenaForeground(this, pcSlot, pc, Arena);
             DrawArenaForegroundPost(pcSlot, pc);
 
             // draw player
@@ -180,14 +216,16 @@ namespace BossMod
         public BossComponent.TextHints CalculateHintsForRaidMember(int slot, Actor actor, BossComponent.MovementHints? movementHints = null)
         {
             BossComponent.TextHints hints = new();
-            _rootComp.AddHintsRec(this, slot, actor, hints, movementHints);
+            foreach (var comp in _components)
+                comp.AddHints(this, slot, actor, hints, movementHints);
             return hints;
         }
 
         public BossComponent.GlobalHints CalculateGlobalHints()
         {
             BossComponent.GlobalHints hints = new();
-            _rootComp.AddGlobalHintsRec(this, hints);
+            foreach (var comp in _components)
+                comp.AddGlobalHints(this, hints);
             return hints;
         }
 
@@ -271,7 +309,7 @@ namespace BossMod
         {
             foreach (var (slot, player) in Raid.WithSlot().Exclude(pcSlot))
             {
-                var (prio, color) = _rootComp.CalcPriorityRec(this, pcSlot, pc, slot, player);
+                var (prio, color) = CalculateHighestPriority(pcSlot, pc, slot, player);
                 if (prio == BossComponent.PlayerPriority.Irrelevant && !Manager.WindowConfig.ShowIrrelevantPlayers)
                     continue;
 
@@ -287,6 +325,23 @@ namespace BossMod
                 }
                 Arena.Actor(player, color);
             }
+        }
+
+        private (BossComponent.PlayerPriority, uint) CalculateHighestPriority(int pcSlot, Actor pc, int playerSlot, Actor player)
+        {
+            uint color = 0;
+            var highestPrio = BossComponent.PlayerPriority.Irrelevant;
+            foreach (var s in _components)
+            {
+                uint subColor = 0;
+                var subPrio = s.CalcPriority(this, pcSlot, pc, playerSlot, player, ref subColor);
+                if (subPrio > highestPrio)
+                {
+                    highestPrio = subPrio;
+                    color = subColor;
+                }
+            }
+            return (highestPrio, color);
         }
 
         private void OnActorCreated(object? sender, Actor actor)
@@ -305,52 +360,62 @@ namespace BossMod
 
         private void OnActorCastStarted(object? sender, Actor actor)
         {
-            _rootComp.OnCastStarted(this, actor);
+            foreach (var comp in _components)
+                comp.OnCastStarted(this, actor);
         }
 
         private void OnActorCastFinished(object? sender, Actor actor)
         {
-            _rootComp.OnCastFinished(this, actor);
+            foreach (var comp in _components)
+                comp.OnCastFinished(this, actor);
         }
 
         private void OnActorTethered(object? sender, Actor actor)
         {
-            _rootComp.OnTethered(this, actor, actor.Tether);
+            foreach (var comp in _components)
+                comp.OnTethered(this, actor, actor.Tether);
         }
 
         private void OnActorUntethered(object? sender, Actor actor)
         {
-            _rootComp.OnUntethered(this, actor, actor.Tether);
+            foreach (var comp in _components)
+                comp.OnUntethered(this, actor, actor.Tether);
         }
 
         private void OnActorStatusGain(object? sender, (Actor actor, int index) arg)
         {
-            _rootComp.OnStatusGain(this, arg.actor, arg.actor.Statuses[arg.index]);
+            foreach (var comp in _components)
+                comp.OnStatusGain(this, arg.actor, arg.actor.Statuses[arg.index]);
         }
 
         private void OnActorStatusLose(object? sender, (Actor actor, int index) arg)
         {
-            _rootComp.OnStatusLose(this, arg.actor, arg.actor.Statuses[arg.index]);
+            foreach (var comp in _components)
+                comp.OnStatusLose(this, arg.actor, arg.actor.Statuses[arg.index]);
         }
 
         private void OnActorStatusChange(object? sender, (Actor actor, int index, ushort prevExtra, DateTime prevExpire) arg)
         {
-            _rootComp.OnStatusGain(this, arg.actor, arg.actor.Statuses[arg.index]);
+            foreach (var comp in _components)
+                comp.OnStatusGain(this, arg.actor, arg.actor.Statuses[arg.index]);
         }
 
         private void OnEventIcon(object? sender, (ulong actorID, uint iconID) arg)
         {
-            _rootComp.OnEventIcon(this, arg.actorID, arg.iconID);
+            foreach (var comp in _components)
+                comp.OnEventIcon(this, arg.actorID, arg.iconID);
         }
 
         private void OnEventCast(object? sender, CastEvent info)
         {
-            _rootComp.OnEventCast(this, info);
+            foreach (var comp in _components)
+                comp.OnEventCast(this, info);
         }
 
         private void OnEventEnvControl(object? sender, (uint featureID, byte index, uint state) arg)
         {
-            _rootComp.OnEventEnvControl(this, arg.featureID, arg.index, arg.state);
+            foreach (var comp in _components)
+                comp.OnEventEnvControl(this, arg.featureID, arg.index, arg.state);
         }
     }
 }
