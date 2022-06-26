@@ -164,8 +164,6 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 case AID.DarkdragonDive:
                     _predictedTowers.Clear();
                     _castingTowers.Add(caster);
-                    if (NextEvent is State.Towers2)
-                        AdvanceState(module);
                     break;
             }
         }
@@ -179,6 +177,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     break;
                 case AID.DarkdragonDive:
                     _castingTowers.Remove(caster);
+                    if (NextEvent is State.Towers2)
+                        AdvanceState(module);
                     break;
             }
         }

@@ -16,13 +16,13 @@
         private void Phase2Thordan(uint id)
         {
             P2AscalonMercyMight(id, 8.4f);
-            P2StrengthOfTheWard(id + 0x10000, 7);
+            P2StrengthOfTheWard(id + 0x10000, 7.1f);
             P2AncientQuaga(id + 0x20000, 0.1f);
             P2HeavenlyHeelAscalonMight(id + 0x30000, 6.2f);
-            P2SanctityOfTheWard(id + 0x40000, 7);
+            P2SanctityOfTheWard(id + 0x40000, 7.1f);
             P2UltimateEnd(id + 0x50000, 13.5f);
             P2BroadSwing(id + 0x60000, 9.5f);
-            P2BroadSwing(id + 0x70000, 2.6f);
+            P2BroadSwing(id + 0x70000, 2.7f);
             P2AethericBurst(id + 0x80000, 2.4f);
         }
 
@@ -30,6 +30,7 @@
         {
             P3FinalChorus(id);
             P3Dives(id + 0x10000, 13.2f);
+            P3Drachenlance(id + 0x20000, 1.9f);
             SimpleState(id + 0xF0000, 100, "???");
         }
 
@@ -41,7 +42,7 @@
             ComponentCondition<P2AscalonMercy>(id + 2, 1.6f, comp => comp.NumCasts > 0, "Dropped cones")
                 .ActivateOnEnter<P2AscalonMercy>()
                 .DeactivateOnExit<P2AscalonMercy>();
-            ComponentCondition<P2AscalonMight>(id + 0x1000, 5, comp => comp.NumCasts > 2, "3x tankbuster cones")
+            ComponentCondition<P2AscalonMight>(id + 0x1000, 4.9f, comp => comp.NumCasts > 2, "3x tankbuster cones")
                 .ActivateOnEnter<P2AscalonMight>()
                 .DeactivateOnExit<P2AscalonMight>()
                 .SetHint(StateMachine.StateHint.PositioningEnd);
@@ -89,7 +90,7 @@
         private void P2SanctityOfTheWard(uint id, float delay)
         {
             Cast(id, AID.SanctityofTheWard, delay, 4);
-            Targetable(id + 0x10, false, 3, "Trio 2");
+            Targetable(id + 0x10, false, 3.1f, "Trio 2");
             CastStart(id + 0x20, AID.DragonsGaze, 5.6f)
                 .ActivateOnEnter<P2SanctityOfTheWard1Gaze>()
                 .ActivateOnEnter<P2SanctityOfTheWard1>();
@@ -98,14 +99,14 @@
                 .DeactivateOnExit<P2SanctityOfTheWard1Gaze>();
             ComponentCondition<P2SanctityOfTheWard1>(id + 0x40, 6.1f, comp => comp.NumFlareCasts >= 18, "Charges")
                 .DeactivateOnExit<P2SanctityOfTheWard1>();
-            ComponentCondition<P2SanctityOfTheWard2>(id + 0x100, 11.8f, comp => comp.StormDone, "Storms")
+            ComponentCondition<P2SanctityOfTheWard2>(id + 0x100, 11.9f, comp => comp.StormDone, "Storms")
                 .ActivateOnEnter<P2SanctityOfTheWard2HeavensStakeCircles>()
                 .ActivateOnEnter<P2SanctityOfTheWard2HeavensStakeDonut>()
                 .ActivateOnEnter<P2SanctityOfTheWard2>()
                 .DeactivateOnExit<P2SanctityOfTheWard2HeavensStakeCircles>()
                 .DeactivateOnExit<P2SanctityOfTheWard2HeavensStakeDonut>();
             ComponentCondition<P2SanctityOfTheWard2>(id + 0x110, 4.2f, comp => comp.Towers1Done > 0, "Towers 1");
-            ComponentCondition<P2SanctityOfTheWard2Knockback>(id + 0x120, 10.3f, comp => comp.NumCasts > 0, "Knockback")
+            ComponentCondition<P2SanctityOfTheWard2Knockback>(id + 0x120, 10.4f, comp => comp.NumCasts > 0, "Knockback")
                 .ActivateOnEnter<P2SanctityOfTheWard2Knockback>()
                 .DeactivateOnExit<P2SanctityOfTheWard2Knockback>();
             ComponentCondition<P2SanctityOfTheWard2>(id + 0x130, 3, comp => comp.Towers2Done > 0, "Towers 2")
@@ -144,31 +145,33 @@
 
         private void P3Dives(uint id, float delay)
         {
-            ActorCastStart(id, _module.BossP3, AID.DiveFromGrace, delay)
-                .SetHint(StateMachine.StateHint.BossCastStart);
-            ActorCastEnd(id + 1, _module.BossP3, 5, "Dive start")
-                .ActivateOnEnter<P3DiveFromGrace>()
-                .SetHint(StateMachine.StateHint.BossCastEnd);
+            ActorCast(id, _module.BossP3, AID.DiveFromGrace, delay, 5, true, "Dive start")
+                .ActivateOnEnter<P3DiveFromGrace>();
 
-            ActorCastStartMulti(id + 0x10, _module.BossP3, new AID[] { AID.GnashAndLash, AID.LashAndGnash }, 2.1f)
-                .SetHint(StateMachine.StateHint.BossCastStart);
-            ActorCastEnd(id + 0x11, _module.BossP3, 7.6f, "Stack + Jump 1")
-                .SetHint(StateMachine.StateHint.BossCastEnd | StateMachine.StateHint.Raidwide);
+            ActorCastMulti(id + 0x10, _module.BossP3, new AID[] { AID.GnashAndLash, AID.LashAndGnash }, 2.1f, 7.6f, true, "Stack + Jump 1")
+                .SetHint(StateMachine.StateHint.Raidwide);
 
             ComponentCondition<P3DiveFromGrace>(id + 0x20, 3.7f, comp => comp.NextEvent > P3DiveFromGrace.State.InOut1, "In/out 1");
             ComponentCondition<P3DiveFromGrace>(id + 0x30, 3.1f, comp => comp.NextEvent > P3DiveFromGrace.State.Towers1InOut2, "Towers 1 + In/out 2");
             ComponentCondition<P3DiveFromGrace>(id + 0x40, 2.5f, comp => comp.NextEvent > P3DiveFromGrace.State.Bait1);
             ComponentCondition<P3DiveFromGrace>(id + 0x50, 0.8f, comp => comp.NextEvent > P3DiveFromGrace.State.Jump2, "Jump 2");
-            // somewhere here second L&G starts, and 3's go to their positions...
-            ComponentCondition<P3DiveFromGrace>(id + 0x60, 7f, comp => comp.NextEvent > P3DiveFromGrace.State.Towers2, "Towers 2");
-            ComponentCondition<P3DiveFromGrace>(id + 0x70, 3f, comp => comp.NextEvent > P3DiveFromGrace.State.Bait2);
-            ComponentCondition<P3DiveFromGrace>(id + 0x80, 4f, comp => comp.NextEvent > P3DiveFromGrace.State.Jump3Stack2, "Stack + Jump 3") // L&G2 cast end
+            ActorCastStartMulti(id + 0x58, _module.BossP3, new AID[] { AID.GnashAndLash, AID.LashAndGnash }, 3.8f, true);
+            ComponentCondition<P3DiveFromGrace>(id + 0x60, 2.8f, comp => comp.NextEvent > P3DiveFromGrace.State.Towers2, "Towers 2");
+            ComponentCondition<P3DiveFromGrace>(id + 0x70, 2.6f, comp => comp.NextEvent > P3DiveFromGrace.State.Bait2);
+            ComponentCondition<P3DiveFromGrace>(id + 0x80, 1.8f, comp => comp.NextEvent > P3DiveFromGrace.State.Jump3Stack2, "Stack + Jump 3");
+            ActorCastEnd(id + 0x88, _module.BossP3, 0.4f, true)
                 .SetHint(StateMachine.StateHint.Raidwide);
-            ComponentCondition<P3DiveFromGrace>(id + 0x90, 4f, comp => comp.NextEvent > P3DiveFromGrace.State.InOut3, "In/out 3");
-            ComponentCondition<P3DiveFromGrace>(id + 0xA0, 4f, comp => comp.NextEvent > P3DiveFromGrace.State.Towers3InOut4, "Towers 3 + In/out 4");
-            ComponentCondition<P3DiveFromGrace>(id + 0xB0, 3f, comp => comp.NextEvent > P3DiveFromGrace.State.Bait3);
-            ComponentCondition<P3DiveFromGrace>(id + 0xC0, 3f, comp => comp.NextEvent > P3DiveFromGrace.State.Resolve, "Dive resolve")
+            ComponentCondition<P3DiveFromGrace>(id + 0x90, 3.7f, comp => comp.NextEvent > P3DiveFromGrace.State.InOut3, "In/out 3");
+            ComponentCondition<P3DiveFromGrace>(id + 0xA0, 3.1f, comp => comp.NextEvent > P3DiveFromGrace.State.Towers3InOut4, "Towers 3 + In/out 4");
+            ComponentCondition<P3DiveFromGrace>(id + 0xB0, 2.0f, comp => comp.NextEvent > P3DiveFromGrace.State.Bait3);
+            ComponentCondition<P3DiveFromGrace>(id + 0xC0, 4.5f, comp => comp.NextEvent > P3DiveFromGrace.State.Resolve, "Dive resolve")
                 .DeactivateOnExit<P3DiveFromGrace>();
+        }
+
+        private void P3Drachenlance(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP3, AID.Drachenlance, delay, 2.9f, true);
+            // TODO: +0.6s - aoe, component...
         }
     }
 }

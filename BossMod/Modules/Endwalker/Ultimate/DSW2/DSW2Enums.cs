@@ -112,6 +112,9 @@
         DarkdragonDive = 26385, // NidhoggDrake->self, 2.5s cast, range 5 tower aoe
         DarkdragonDiveFail = 26395, // Helper->self, no cast, raidwide if tower is not soaked
         Geirskogul = 26378, // NidhoggDrake->self, 4.5s cast, range 62 width 8 baited rect aoe
+
+        Drachenlance = 26379, // BossP3->self, 2.9s cast, visual
+        DrachenlanceAOE = 26380, // Helper->self, 3.5s cast, range 13 90-degree cone
     };
 
     public enum SID : uint

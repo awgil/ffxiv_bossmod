@@ -38,19 +38,19 @@
             // TODO: do we care about shockwaves?..
             ActorTargetable(id, _module.SerCharibert, false, 0);
             ActorTargetable(id + 1, _module.SerCharibert, true, 4, "Appear");
-            ActorCastStart(id + 2, _module.SerCharibert, AID.PureOfHeart, 0.1f)
+            ActorCastStart(id + 2, _module.SerCharibert, AID.PureOfHeart, 0.1f, true)
                 .ActivateOnEnter<PureOfHeart>();
             ComponentCondition<PureOfHeart>(id + 0x10, 15.4f, comp => comp.NumCasts > 0, "Cone 1");
             ComponentCondition<PureOfHeart>(id + 0x20, 5, comp => comp.NumCasts > 2, "Cone 2");
             ComponentCondition<PureOfHeart>(id + 0x30, 5, comp => comp.NumCasts > 4, "Cone 3");
             ComponentCondition<PureOfHeart>(id + 0x40, 5, comp => comp.NumCasts > 6, "Cone 4");
-            ActorCastEnd(id + 0x50, _module.SerCharibert, 5, "Raidwide");
+            ActorCastEnd(id + 0x50, _module.SerCharibert, 5, true, "Raidwide");
             ActorTargetable(id + 0x60, _module.SerCharibert, false, 2.1f, "Disappear");
         }
 
         private State HoliestOfHoly(uint id, float delay)
         {
-            return ActorCast(id, _module.SerAdelphel, AID.HoliestOfHoly, delay, 4, "Raidwide")
+            return ActorCast(id, _module.SerAdelphel, AID.HoliestOfHoly, delay, 4, false, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide);
         }
 
@@ -58,11 +58,11 @@
         {
             ActorCastStart(id, _module.SerGrinnaux, AID.EmptyDimension, delay)
                 .SetHint(StateMachine.StateHint.PositioningStart);
-            ActorCastEnd(id + 1, _module.SerGrinnaux, 5, "Donut")
+            ActorCastEnd(id + 1, _module.SerGrinnaux, 5, false, "Donut")
                 .ActivateOnEnter<EmptyDimension>()
                 .ActivateOnEnter<Heavensblaze>()
                 .DeactivateOnExit<EmptyDimension>();
-            ActorCast(id + 0x10, _module.SerCharibert, AID.Heavensblaze, 0.1f, 5, "Tankbuster + Stack")
+            ActorCast(id + 0x10, _module.SerCharibert, AID.Heavensblaze, 0.1f, 5, false, "Tankbuster + Stack")
                 .DeactivateOnExit<Heavensblaze>()
                 .SetHint(StateMachine.StateHint.PositioningEnd);
         }
@@ -84,8 +84,8 @@
             ActorCastStart(id, _module.SerGrinnaux, AID.FaithUnmoving, delay)
                 .ActivateOnEnter<ShiningBlade>()
                 .SetHint(StateMachine.StateHint.PositioningStart);
-            ActorCastEnd(id + 1, _module.SerGrinnaux, 4, "Knockback");
-            ActorCastEnd(id + 2, _module.SerAdelphel, 1.1f, "Raidwide")
+            ActorCastEnd(id + 1, _module.SerGrinnaux, 4, false, "Knockback");
+            ActorCastEnd(id + 2, _module.SerAdelphel, 1.1f, false, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide); // holiest-of-holy overlap
             ComponentCondition<ShiningBlade>(id + 0x10, 8.5f, comp => comp.Done, "Charges")
                 .DeactivateOnExit<ShiningBlade>();
@@ -121,7 +121,7 @@
                 .ActivateOnEnter<EmptyDimension>()
                 .ActivateOnEnter<FullDimension>()
                 .SetHint(StateMachine.StateHint.PositioningStart);
-            ActorCastEnd(id + 0x10, _module.SerGrinnaux, 2, "Donut/circle") // holiest-of-holy overlap
+            ActorCastEnd(id + 0x10, _module.SerGrinnaux, 2, false, "Donut/circle") // holiest-of-holy overlap
                 .DeactivateOnExit<EmptyDimension>()
                 .DeactivateOnExit<FullDimension>()
                 .SetHint(StateMachine.StateHint.PositioningEnd);
