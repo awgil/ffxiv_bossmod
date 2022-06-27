@@ -30,7 +30,7 @@ namespace UIDev
             _last = data.Ops.Last().Timestamp;
             _player.AdvanceTo(_first, _mgr.Update);
             _config = new(Service.Config, _player.WorldState);
-            _events = new(data, MoveToForced);
+            _events = new(data, MoveTo);
             _analysis = new(data);
         }
 
@@ -41,7 +41,8 @@ namespace UIDev
         public void Draw()
         {
             var curFrame = DateTime.Now;
-            MoveTo(_player.WorldState.CurrentTime + (curFrame - _prevFrame) * _playSpeed);
+            if (_playSpeed > 0)
+                MoveTo(_player.WorldState.CurrentTime + (curFrame - _prevFrame) * _playSpeed);
             _prevFrame = curFrame;
 
             DrawControlRow();
@@ -92,13 +93,13 @@ namespace UIDev
             ImGui.TextUnformatted($"{_player.WorldState.CurrentTime:O}");
             ImGui.SameLine();
             if (ImGui.Button("<<<"))
-                _playSpeed = -10;
+                Rewind(20);
             ImGui.SameLine();
             if (ImGui.Button("<<"))
-                _playSpeed = -1;
+                Rewind(5);
             ImGui.SameLine();
             if (ImGui.Button("<"))
-                _playSpeed = -0.2f;
+                Rewind(1);
             ImGui.SameLine();
             if (ImGui.Button("||"))
                 _playSpeed = _playSpeed == 0 ? 1 : 0;
@@ -135,6 +136,17 @@ namespace UIDev
                 DrawCheckpoint(e.Time.Start, 0xff00ff00, cursor, w);
                 DrawCheckpoint(e.Time.End, 0xff0000ff, cursor, w);
             }
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left) || ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+            {
+                var pos = ImGui.GetMousePos();
+                if (Math.Abs(pos.Y - cursor.Y) <= 3)
+                {
+                    var t = _first + (pos.X - cursor.X) / w * (_last - _first);
+                    var margin = (_last - _first).TotalSeconds * 3 / w;
+                    var enc = _player.Replay.Encounters.Find(e => Math.Abs((t - e.Time.Start).TotalSeconds) <= margin);
+                    MoveTo(enc?.Time.Start ?? t);
+                }
+            }
             ImGui.Dummy(new(w, 8));
         }
 
@@ -143,10 +155,6 @@ namespace UIDev
             var off = (float)((timestamp - _first) / (_last - _first));
             var center = cursor + new Vector2(w * off, 0);
             ImGui.GetWindowDrawList().AddCircleFilled(center, 3, color);
-            if (ClickedAt(center, 3))
-            {
-                MoveToForced(timestamp);
-            }
         }
 
         // x, z, rot, name, hp, cast, statuses
@@ -312,30 +320,16 @@ namespace UIDev
             }
             else if (t < _player.WorldState.CurrentTime)
             {
-                _player.ReverseTo(t, _mgr.Update);
-            }
-        }
-
-        private void MoveToForced(DateTime t)
-        {
-            if (t > _player.WorldState.CurrentTime)
-            {
-                _player.AdvanceTo(t, _mgr.Update);
-            }
-            else if(t < _player.WorldState.CurrentTime)
-            {
                 _player.Reset();
                 _mgr = new(_player.WorldState);
                 _player.AdvanceTo(t, _mgr.Update);
             }
         }
 
-        private bool ClickedAt(Vector2 centerPos, float halfSize)
+        private void Rewind(float seconds)
         {
-            if (!ImGui.IsMouseClicked(ImGuiMouseButton.Left) && !ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
-                return false;
-            var pos = ImGui.GetMousePos();
-            return pos.X >= centerPos.X - halfSize && pos.X <= centerPos.X + halfSize && pos.Y >= centerPos.Y - halfSize && pos.Y <= centerPos.Y + halfSize;
+            _playSpeed = 0;
+            MoveTo(_player.WorldState.CurrentTime.AddSeconds(-seconds));
         }
     }
 }

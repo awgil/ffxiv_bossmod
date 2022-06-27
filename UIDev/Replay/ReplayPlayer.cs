@@ -34,20 +34,6 @@ namespace UIDev
             return true;
         }
 
-        // undo last group of operations that share timestamp; returns false if we've reached the beginning
-        public bool TickBackward()
-        {
-            if (_nextOp == 0)
-                return false;
-
-            do
-            {
-                Replay.Ops[--_nextOp].Undo(WorldState);
-            } while (Replay.Ops[_nextOp].Timestamp == WorldState.CurrentTime && _nextOp > 0);
-            WorldState.CurrentTime = _nextOp > 0 ? Replay.Ops[_nextOp - 1].Timestamp : new();
-            return true;
-        }
-
         // execute actions to advance current time to specific timestamp
         public bool AdvanceTo(DateTime timestamp, Action update)
         {
@@ -61,27 +47,6 @@ namespace UIDev
             }
 
             if (WorldState.CurrentTime < timestamp)
-            {
-                WorldState.CurrentTime = timestamp;
-                update();
-            }
-
-            return true;
-        }
-
-        // undo actions to specific timestamp
-        public bool ReverseTo(DateTime timestamp, Action update)
-        {
-            if (timestamp >= WorldState.CurrentTime)
-                return false;
-
-            while (_nextOp > 0 && Replay.Ops[_nextOp - 1].Timestamp > timestamp)
-            {
-                TickBackward();
-                update();
-            }
-
-            if (WorldState.CurrentTime > timestamp)
             {
                 WorldState.CurrentTime = timestamp;
                 update();

@@ -11,23 +11,15 @@ namespace UIDev
             public DateTime Timestamp;
 
             public abstract void Redo(WorldState ws);
-            public abstract void Undo(WorldState ws);
         }
 
         public class OpZoneChange : Operation
         {
             public ushort Zone;
-            private ushort _prev;
 
             public override void Redo(WorldState ws)
             {
-                _prev = ws.CurrentZone;
                 ws.CurrentZone = Zone;
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                ws.CurrentZone = _prev;
             }
 
             public override string ToString()
@@ -40,17 +32,10 @@ namespace UIDev
         {
             public Waymark ID;
             public Vector3? Pos;
-            private Vector3? _prev;
 
             public override void Redo(WorldState ws)
             {
-                _prev = ws.Waymarks[ID];
                 ws.Waymarks[ID] = Pos;
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                ws.Waymarks[ID] = _prev;
             }
 
             public override string ToString()
@@ -78,11 +63,6 @@ namespace UIDev
                 ws.Actors.Add(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, HPCur, HPMax, IsTargetable, OwnerID);
             }
 
-            public override void Undo(WorldState ws)
-            {
-                ws.Actors.Remove(InstanceID);
-            }
-
             public override string ToString()
             {
                 return $"Actor create: {InstanceID:X} {OID:X} '{Name}' {Type} {Class} {Utils.PosRotString(PosRot)} r={HitboxRadius} hp={HPCur}/{HPMax} targetable={IsTargetable} owner={OwnerID:X}";
@@ -92,36 +72,10 @@ namespace UIDev
         public class OpActorDestroy : Operation
         {
             public ulong InstanceID;
-            private uint OID;
-            private string Name = "";
-            private ActorType Type;
-            private Class Class;
-            private Vector4 PosRot;
-            private float HitboxRadius;
-            private uint HPCur;
-            private uint HPMax;
-            private bool IsTargetable;
-            private ulong OwnerID;
 
             public override void Redo(WorldState ws)
             {
-                var actor = ws.Actors.Find(InstanceID);
-                OID = actor?.OID ?? 0;
-                Name = actor?.Name ?? "";
-                Type = actor?.Type ?? ActorType.None;
-                Class = actor?.Class ?? Class.None;
-                PosRot = actor?.PosRot ?? new();
-                HitboxRadius = actor?.HitboxRadius ?? 0;
-                HPCur = actor?.HPCur ?? 0;
-                HPMax = actor?.HPMax ?? 0;
-                IsTargetable = actor?.IsTargetable ?? false;
-                OwnerID = actor?.OwnerID ?? 0;
                 ws.Actors.Remove(InstanceID);
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                ws.Actors.Add(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, HPCur, HPMax, IsTargetable, OwnerID);
             }
 
             public override string ToString()
@@ -134,24 +88,13 @@ namespace UIDev
         {
             public ulong InstanceID;
             public string Name = "";
-            private string _prev = "";
 
             public override void Redo(WorldState ws)
             {
                 var actor = ws.Actors.Find(InstanceID);
                 if (actor != null)
                 {
-                    _prev = actor.Name;
                     ws.Actors.Rename(actor, Name);
-                }
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                var actor = ws.Actors.Find(InstanceID);
-                if (actor != null)
-                {
-                    ws.Actors.Rename(actor, _prev);
                 }
             }
 
@@ -165,24 +108,13 @@ namespace UIDev
         {
             public ulong InstanceID;
             public Class Class;
-            private Class _prevClass;
 
             public override void Redo(WorldState ws)
             {
                 var actor = ws.Actors.Find(InstanceID);
                 if (actor != null)
                 {
-                    _prevClass = actor.Class;
                     ws.Actors.ChangeClass(actor, Class);
-                }
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                var actor = ws.Actors.Find(InstanceID);
-                if (actor != null)
-                {
-                    ws.Actors.ChangeClass(actor, _prevClass);
                 }
             }
 
@@ -196,24 +128,13 @@ namespace UIDev
         {
             public ulong InstanceID;
             public Vector4 PosRot;
-            private Vector4 _prevPosRot;
 
             public override void Redo(WorldState ws)
             {
                 var actor = ws.Actors.Find(InstanceID);
                 if (actor != null)
                 {
-                    _prevPosRot = actor.PosRot;
                     ws.Actors.Move(actor, PosRot);
-                }
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                var actor = ws.Actors.Find(InstanceID);
-                if (actor != null)
-                {
-                    ws.Actors.Move(actor, _prevPosRot);
                 }
             }
 
@@ -228,26 +149,13 @@ namespace UIDev
             public ulong InstanceID;
             public uint Cur;
             public uint Max;
-            private uint _prevCur;
-            private uint _prevMax;
 
             public override void Redo(WorldState ws)
             {
                 var actor = ws.Actors.Find(InstanceID);
                 if (actor != null)
                 {
-                    _prevCur = actor.HPCur;
-                    _prevMax = actor.HPMax;
                     ws.Actors.UpdateHP(actor, Cur, Max);
-                }
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                var actor = ws.Actors.Find(InstanceID);
-                if (actor != null)
-                {
-                    ws.Actors.UpdateHP(actor, _prevCur, _prevMax);
                 }
             }
 
@@ -261,24 +169,13 @@ namespace UIDev
         {
             public ulong InstanceID;
             public bool Value;
-            private bool _prev;
 
             public override void Redo(WorldState ws)
             {
                 var actor = ws.Actors.Find(InstanceID);
                 if (actor != null)
                 {
-                    _prev = actor.IsTargetable;
                     ws.Actors.ChangeIsTargetable(actor, Value);
-                }
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                var actor = ws.Actors.Find(InstanceID);
-                if (actor != null)
-                {
-                    ws.Actors.ChangeIsTargetable(actor, _prev);
                 }
             }
 
@@ -292,24 +189,13 @@ namespace UIDev
         {
             public ulong InstanceID;
             public bool Value;
-            private bool _prev;
 
             public override void Redo(WorldState ws)
             {
                 var actor = ws.Actors.Find(InstanceID);
                 if (actor != null)
                 {
-                    _prev = actor.IsDead;
                     ws.Actors.ChangeIsDead(actor, Value);
-                }
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                var actor = ws.Actors.Find(InstanceID);
-                if (actor != null)
-                {
-                    ws.Actors.ChangeIsDead(actor, _prev);
                 }
             }
 
@@ -323,24 +209,13 @@ namespace UIDev
         {
             public ulong InstanceID;
             public bool Value;
-            private bool _prev;
 
             public override void Redo(WorldState ws)
             {
                 var actor = ws.Actors.Find(InstanceID);
                 if (actor != null)
                 {
-                    _prev = actor.InCombat;
                     ws.Actors.ChangeInCombat(actor, Value);
-                }
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                var actor = ws.Actors.Find(InstanceID);
-                if (actor != null)
-                {
-                    ws.Actors.ChangeInCombat(actor, _prev);
                 }
             }
 
@@ -354,24 +229,13 @@ namespace UIDev
         {
             public ulong InstanceID;
             public ulong Value;
-            private ulong _prev;
 
             public override void Redo(WorldState ws)
             {
                 var actor = ws.Actors.Find(InstanceID);
                 if (actor != null)
                 {
-                    _prev = actor.TargetID;
                     ws.Actors.ChangeTarget(actor, Value);
-                }
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                var actor = ws.Actors.Find(InstanceID);
-                if (actor != null)
-                {
-                    ws.Actors.ChangeTarget(actor, _prev);
                 }
             }
 
@@ -385,24 +249,13 @@ namespace UIDev
         {
             public ulong InstanceID;
             public ActorCastInfo? Value;
-            private ActorCastInfo? _prev;
 
             public override void Redo(WorldState ws)
             {
                 var actor = ws.Actors.Find(InstanceID);
                 if (actor != null)
                 {
-                    _prev = actor.CastInfo;
                     ws.Actors.UpdateCastInfo(actor, Value);
-                }
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                var actor = ws.Actors.Find(InstanceID);
-                if (actor != null)
-                {
-                    ws.Actors.UpdateCastInfo(actor, _prev);
                 }
             }
 
@@ -416,24 +269,13 @@ namespace UIDev
         {
             public ulong InstanceID;
             public ActorTetherInfo Value;
-            private ActorTetherInfo _prev;
 
             public override void Redo(WorldState ws)
             {
                 var actor = ws.Actors.Find(InstanceID);
                 if (actor != null)
                 {
-                    _prev = actor.Tether;
                     ws.Actors.UpdateTether(actor, Value);
-                }
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                var actor = ws.Actors.Find(InstanceID);
-                if (actor != null)
-                {
-                    ws.Actors.UpdateTether(actor, _prev);
                 }
             }
 
@@ -448,24 +290,13 @@ namespace UIDev
             public ulong InstanceID;
             public int Index;
             public ActorStatus Value;
-            private ActorStatus _prev;
 
             public override void Redo(WorldState ws)
             {
                 var actor = ws.Actors.Find(InstanceID);
                 if (actor != null)
                 {
-                    _prev = actor.Statuses[Index];
                     ws.Actors.UpdateStatus(actor, Index, Value);
-                }
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                var actor = ws.Actors.Find(InstanceID);
-                if (actor != null)
-                {
-                    ws.Actors.UpdateStatus(actor, Index, _prev);
                 }
             }
 
@@ -480,19 +311,10 @@ namespace UIDev
             public int Slot;
             public ulong ContentID;
             public ulong InstanceID;
-            private ulong _prevContentID;
-            private ulong _prevInstanceID;
 
             public override void Redo(WorldState ws)
             {
-                _prevContentID = Slot < ws.Party.ContentIDs.Length ? ws.Party.ContentIDs[Slot] : 0;
-                _prevInstanceID = ws.Party.ActorIDs[Slot];
                 ws.Party.Modify(Slot, ContentID, InstanceID);
-            }
-
-            public override void Undo(WorldState ws)
-            {
-                ws.Party.Modify(Slot, _prevContentID, _prevInstanceID);
             }
 
             public override string ToString()
@@ -511,10 +333,6 @@ namespace UIDev
                 ws.Events.DispatchIcon((InstanceID, IconID));
             }
 
-            public override void Undo(WorldState ws)
-            {
-            }
-
             public override string ToString()
             {
                 return $"Icon: {InstanceID:X} -> {IconID}";
@@ -528,10 +346,6 @@ namespace UIDev
             public override void Redo(WorldState ws)
             {
                 ws.Events.DispatchCast(Value);
-            }
-
-            public override void Undo(WorldState ws)
-            {
             }
 
             public override string ToString()
@@ -554,10 +368,6 @@ namespace UIDev
                 ws.Events.DispatchDirectorUpdate((DirectorID, UpdateID, Param1, Param2, Param3, Param4));
             }
 
-            public override void Undo(WorldState ws)
-            {
-            }
-
             public override string ToString()
             {
                 return $"DirectorUpdate: {DirectorID:X8}.{UpdateID:X8} = {Param1:X8} {Param2:X8} {Param3:X8} {Param4:X8}";
@@ -573,10 +383,6 @@ namespace UIDev
             public override void Redo(WorldState ws)
             {
                 ws.Events.DispatchEnvControl((FeatureID, Index, State));
-            }
-
-            public override void Undo(WorldState ws)
-            {
             }
 
             public override string ToString()
