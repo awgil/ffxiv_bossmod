@@ -18,6 +18,7 @@ namespace BossMod
         private WorldStateLogger _debugLogger;
         private BossModuleManagerGame _bossmod;
         private Autorotation _autorotation;
+        private TimeSpan _prevUpdateTime;
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface dalamud,
@@ -95,12 +96,16 @@ namespace BossMod
 
         private void DrawUI()
         {
+            var tsStart = DateTime.Now;
+
             Camera.Instance?.Update();
-            _ws.Update();
+            _ws.Update(_prevUpdateTime);
             _bossmod.Update();
             _autorotation.Update();
 
             WindowManager.DrawAll();
+
+            _prevUpdateTime = DateTime.Now - tsStart;
         }
     }
 }

@@ -87,6 +87,7 @@ namespace UIDev
         {
             return o switch
             {
+                WorldState.OpFrameStart => false,
                 ActorState.OpCreate op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpDestroy op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpMove => false,

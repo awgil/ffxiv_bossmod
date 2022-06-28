@@ -96,7 +96,7 @@ namespace UIDev
 
         private void ParseFrameStart(string[] payload)
         {
-            AddOp(new WorldState.OpFrameStart() { NewTimestamp = DateTime.Parse(payload[0]) });
+            AddOp(new WorldState.OpFrameStart() { NewTimestamp = DateTime.Parse(payload[0]), PrevUpdateTime = TimeSpan.FromMilliseconds(double.Parse(payload[2])) });
         }
 
         private void ParseZoneChange(string[] payload)

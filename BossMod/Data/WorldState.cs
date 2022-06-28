@@ -66,6 +66,7 @@ namespace BossMod
         public class OpFrameStart : Operation
         {
             public DateTime NewTimestamp;
+            public TimeSpan PrevUpdateTime;
 
             protected override void Exec(WorldState ws)
             {
@@ -73,7 +74,7 @@ namespace BossMod
                 ws.FrameStarted?.Invoke(ws, this);
             }
 
-            public override string Str(WorldState? ws) => $"FRAM";
+            public override string Str(WorldState? ws) => $"FRAM|{PrevUpdateTime.TotalMilliseconds:f3}";
         }
 
         public event EventHandler<OpZoneChange>? CurrentZoneChanged;

@@ -37,9 +37,9 @@ namespace BossMod
             _network.EventWaymark -= OnNetworkWaymark;
         }
 
-        public void Update()
+        public void Update(TimeSpan prevFramePerf)
         {
-            Execute(new OpFrameStart() { NewTimestamp = DateTime.Now });
+            Execute(new OpFrameStart() { NewTimestamp = DateTime.Now, PrevUpdateTime = prevFramePerf });
             if (CurrentZone != Service.ClientState.TerritoryType)
             {
                 Execute(new OpZoneChange() { Zone = Service.ClientState.TerritoryType });
@@ -156,7 +156,7 @@ namespace BossMod
                     // note: self-cast buffs with duration X will have duration -X until EffectResult (~0.6s later); see autorotation for more details
                     ActorStatus curStatus = new();
                     var s = chara.StatusList[i];
-                    if (s != null)
+                    if (s != null && s.StatusId != 0)
                     {
                         var dur = Math.Min(Math.Abs(s.RemainingTime), 100000);
                         curStatus.ID = s.StatusId;
