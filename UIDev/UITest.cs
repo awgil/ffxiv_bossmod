@@ -82,16 +82,16 @@ namespace UIDev
                     WindowManager.CreateWindow($"Native log: {_path}", visu.Draw, visu.Dispose, () => true);
                 }
             }
-            ImGui.SameLine();
-            if (ImGui.Button("Open ACT log..."))
-            {
-                var data = ReplayParserAct.Parse(_path, 0);
-                if (data.Ops.Count > 0)
-                {
-                    var visu = new ReplayVisualizer(data);
-                    WindowManager.CreateWindow($"ACT log: {_path}", visu.Draw, visu.Dispose, () => true);
-                }
-            }
+            //ImGui.SameLine();
+            //if (ImGui.Button("Open ACT log..."))
+            //{
+            //    var data = ReplayParserAct.Parse(_path, 0);
+            //    if (data.Ops.Count > 0)
+            //    {
+            //        var visu = new ReplayVisualizer(data);
+            //        WindowManager.CreateWindow($"ACT log: {_path}", visu.Draw, visu.Dispose, () => true);
+            //    }
+            //}
             ImGui.SameLine();
             if (ImGui.Button("Analyze all logs..."))
             {

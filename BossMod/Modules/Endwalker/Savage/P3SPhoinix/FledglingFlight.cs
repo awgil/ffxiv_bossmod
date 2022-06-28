@@ -92,7 +92,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             }
         }
 
-        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID >= 296 && iconID <= 299)
             {
@@ -102,19 +102,15 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
                     return;
                 }
 
-                var actor = module.WorldState.Actors.Find(actorID);
-                if (actor != null)
+                var dir = iconID switch
                 {
-                    var dir = iconID switch
-                    {
-                        296 => 90.Degrees(), // E
-                        297 => 270.Degrees(), // W
-                        298 => 0.Degrees(), // S
-                        299 => 180.Degrees(), // N
-                        _ => 0.Degrees()
-                    };
-                    _sources.Add((actor, dir));
-                }
+                    296 => 90.Degrees(), // E
+                    297 => 270.Degrees(), // W
+                    298 => 0.Degrees(), // S
+                    299 => 180.Degrees(), // N
+                    _ => 0.Degrees()
+                };
+                _sources.Add((actor, dir));
             }
         }
 

@@ -16,7 +16,6 @@ namespace BossMod
         public static int MaxPartySize { get; } = 8;
         public static int MaxAllianceSize { get; } = 24;
 
-        private ActorState _actorState;
         private ulong[] _contentIDs = new ulong[MaxPartySize]; // non-alliance slots: empty slots contain 0's, alliance slots: n/a (FF always reports 0)
         private ulong[] _actorIDs = new ulong[MaxAllianceSize]; // non-alliance slots: empty slots or slots corresponding to players not in world contain 0's, alliance slots: empty slots contains 0's
         private Actor?[] _actors = new Actor?[MaxAllianceSize];
@@ -30,7 +29,6 @@ namespace BossMod
 
         public PartyState(ActorState actorState)
         {
-            _actorState = actorState;
             actorState.Added += (_, actor) =>
             {
                 var slot = FindSlot(actor.InstanceID);
@@ -75,31 +73,42 @@ namespace BossMod
         // find a slot index containing specified player (by instance ID); returns -1 if not found
         public int FindSlot(ulong instanceID) => instanceID != 0 ? Array.IndexOf(_actorIDs, instanceID) : -1;
 
-        public event EventHandler<(int slot, ulong contentID, ulong instanceID, ulong prevContentID, ulong prevInstanceID)>? Modified;
-
-        public void Modify(int slot, ulong contentID, ulong instanceID)
+        public IEnumerable<WorldState.Operation> CompareToInitial()
         {
-            if (slot < 0 || slot >= MaxAllianceSize)
+            for (int i = 0; i < MaxAllianceSize; ++i)
+                if (i < MaxPartySize && _contentIDs[i] != 0 || _actorIDs[i] != 0)
+                    yield return new OpModify() { Slot = i, ContentID = i < MaxPartySize ? _contentIDs[i] : 0, InstanceID = _actorIDs[i] };
+        }
+
+        // implementation of operations
+        public event EventHandler<OpModify>? Modified;
+        public class OpModify : WorldState.Operation
+        {
+            public int Slot;
+            public ulong ContentID;
+            public ulong InstanceID;
+
+            protected override void Exec(WorldState ws)
             {
-                Service.Log($"[PartyState] Out-of-bounds slot {slot}");
-                return;
-            }
-            if (slot >= MaxPartySize && contentID != 0)
-            {
-                Service.Log($"[PartyState] Unexpected non-zero content ID {contentID:X}:{instanceID:X} for alliance slot #{slot}");
-                return;
+                if (Slot < 0 || Slot >= MaxAllianceSize)
+                {
+                    Service.Log($"[PartyState] Out-of-bounds slot {Slot}");
+                    return;
+                }
+                if (Slot >= MaxPartySize && ContentID != 0)
+                {
+                    Service.Log($"[PartyState] Unexpected non-zero content ID {ContentID:X}:{InstanceID:X} for alliance slot #{Slot}");
+                    return;
+                }
+
+                if (Slot < MaxPartySize)
+                    ws.Party._contentIDs[Slot] = ContentID;
+                ws.Party._actorIDs[Slot] = InstanceID;
+                ws.Party._actors[Slot] = ws.Actors.Find(InstanceID);
+                ws.Party.Modified?.Invoke(ws, this);
             }
 
-            var prevContentID = slot < MaxPartySize ? _contentIDs[slot] : 0;
-            var prevInstanceID = _actorIDs[slot];
-            if (contentID == prevContentID && instanceID == prevInstanceID)
-                return; // nothing to do
-
-            if (slot < MaxPartySize)
-                _contentIDs[slot] = contentID;
-            _actorIDs[slot] = instanceID;
-            _actors[slot] = _actorState.Find(instanceID);
-            Modified?.Invoke(this, (slot, contentID, instanceID, prevContentID, prevInstanceID));
+            public override string Str(WorldState? ws) => $"PAR |{Slot}|{ContentID:X}|{InstanceID:X8}";
         }
     }
 }

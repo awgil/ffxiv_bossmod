@@ -119,7 +119,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
                 _curState = state;
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.PainfulFlux) // this is convenient to rely on, since exactly 1 cast happens right after every explosion
             {
@@ -143,10 +143,10 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
             }
         }
 
-        public override void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
         {
             // we get the following env-control messages:
-            // 1. ~2.8s after 26142 cast, we get 25 EnvControl messages with featureID 800375A0
+            // 1. ~2.8s after 26142 cast, we get 25 EnvControl messages with directorID 800375A0
             // 2. first 24 correspond to cubes, in groups of three (bottom->top), in order: NW N NE E SE S SW W
             //    the last one (index 26) can be ignored, probably corresponds to oneshot border
             //    state corresponds to cube type (00020001 for red, 00800040 for blue, 20001000 for purple)
@@ -154,7 +154,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
             //    and symmetrical pattern is: RPR BRB RPR RPB RPR BBB RPR RPB
             // 3. on each explosion, we get 8 191s, with type 00080004 for exploded red, 04000004 for exploded blue, 08000004 for exploded purple
             // 4. 3 sec before second & third explosion, we get 8 191s, with type 00200020 for preparing red, 02000200 for preparing blue, 80008000 for preparing purple
-            if (featureID == 0x800375A0 && index < 24)
+            if (directorID == 0x800375A0 && index < 24)
             {
                 var cube = state switch
                 {

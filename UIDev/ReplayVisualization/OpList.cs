@@ -10,14 +10,14 @@ namespace UIDev
     {
         private Replay _replay;
         private Type? _moduleType;
-        private IEnumerable<ReplayOps.Operation> _ops;
+        private IEnumerable<WorldState.Operation> _ops;
         private Action<DateTime> _scrollTo;
         private List<(DateTime Timestamp, string Text, Action<UITree>? Children, Action? ContextMenu)> _nodes = new();
         private HashSet<ActionID> _filteredActions = new();
         private HashSet<uint> _filteredStatuses = new();
         private bool _nodesUpToDate;
 
-        public OpList(Replay r, Type? moduleType, IEnumerable<ReplayOps.Operation> ops, Action<DateTime> scrollTo)
+        public OpList(Replay r, Type? moduleType, IEnumerable<WorldState.Operation> ops, Action<DateTime> scrollTo)
         {
             _replay = r;
             _scrollTo = scrollTo;
@@ -83,54 +83,54 @@ namespace UIDev
             return true;
         }
 
-        private bool FilterOp(ReplayOps.Operation o)
+        private bool FilterOp(WorldState.Operation o)
         {
             return o switch
             {
-                ReplayOps.OpActorCreate op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
-                ReplayOps.OpActorDestroy op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
-                ReplayOps.OpActorMove => false,
-                ReplayOps.OpActorHP => false,
-                ReplayOps.OpActorTargetable op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
-                ReplayOps.OpActorDead op => FilterInterestingActor(op.InstanceID, op.Timestamp, true),
-                ReplayOps.OpActorCombat => false,
-                ReplayOps.OpActorTarget => false, // reconsider...
-                ReplayOps.OpActorCast op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(FindCast(FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null)!.ID),
-                ReplayOps.OpActorStatus op => FilterInterestingStatus(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0),
-                ReplayOps.OpEventCast op => FilterInterestingActor(op.Value.CasterID, op.Timestamp, false) && !_filteredActions.Contains(op.Value.Action),
+                ActorState.OpCreate op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
+                ActorState.OpDestroy op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
+                ActorState.OpMove => false,
+                ActorState.OpHP => false,
+                ActorState.OpTargetable op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
+                ActorState.OpDead op => FilterInterestingActor(op.InstanceID, op.Timestamp, true),
+                ActorState.OpCombat => false,
+                ActorState.OpTarget => false, // reconsider...
+                ActorState.OpCastInfo op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(FindCast(FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null)!.ID),
+                ActorState.OpCastEvent op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(op.Value.Action),
+                ActorState.OpStatus op => FilterInterestingStatus(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0),
                 _ => true
             };
         }
 
-        private string OpName(ReplayOps.Operation o, Type? aidType)
+        private string OpName(WorldState.Operation o, Type? aidType)
         {
             return o switch
             {
-                ReplayOps.OpActorCreate op => $"Actor create: {ActorString(op.InstanceID, op.Timestamp)}",
-                ReplayOps.OpActorDestroy op => $"Actor destroy: {ActorString(op.InstanceID, op.Timestamp)}",
-                ReplayOps.OpActorRename op => $"Actor rename: {ActorString(op.InstanceID, op.Timestamp)} -> {op.Name}",
-                ReplayOps.OpActorClassChange op => $"Actor class change: {ActorString(op.InstanceID, op.Timestamp)} -> {op.Class}",
-                ReplayOps.OpActorTargetable op => $"{(op.Value ? "Targetable" : "Untargetable")}: {ActorString(op.InstanceID, op.Timestamp)}",
-                ReplayOps.OpActorDead op => $"{(op.Value ? "Die" : "Resurrect")}: {ActorString(op.InstanceID, op.Timestamp)}",
-                ReplayOps.OpActorCast op => $"Cast {(op.Value != null ? "started" : "ended")}: {CastString(op.InstanceID, op.Timestamp, aidType, op.Value != null)}",
-                ReplayOps.OpActorTether op => $"Tether: {ActorString(op.InstanceID, op.Timestamp)} {op.Value.ID} @ {ActorString(op.Value.Target, op.Timestamp)}",
-                ReplayOps.OpActorStatus op => $"Status {(op.Value.ID != 0 ? "gain" : "lose")}: {StatusString(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0)}",
-                ReplayOps.OpEventIcon op => $"Icon: {ActorString(op.InstanceID, op.Timestamp)} -> {op.IconID}",
-                ReplayOps.OpEventCast op => $"Cast event: {ActorString(op.Value.CasterID, op.Timestamp)}: {op.Value.Action} ({aidType?.GetEnumName(op.Value.Action.ID)}) @ {ActorString(op.Value.MainTargetID, op.Timestamp)} ({op.Value.Targets.Count} targets affected)",
+                ActorState.OpCreate op => $"Actor create: {ActorString(op.InstanceID, op.Timestamp)}",
+                ActorState.OpDestroy op => $"Actor destroy: {ActorString(op.InstanceID, op.Timestamp)}",
+                ActorState.OpRename op => $"Actor rename: {ActorString(op.InstanceID, op.Timestamp)} -> {op.Name}",
+                ActorState.OpClassChange op => $"Actor class change: {ActorString(op.InstanceID, op.Timestamp)} -> {op.Class}",
+                ActorState.OpTargetable op => $"{(op.Value ? "Targetable" : "Untargetable")}: {ActorString(op.InstanceID, op.Timestamp)}",
+                ActorState.OpDead op => $"{(op.Value ? "Die" : "Resurrect")}: {ActorString(op.InstanceID, op.Timestamp)}",
+                ActorState.OpTether op => $"Tether: {ActorString(op.InstanceID, op.Timestamp)} {op.Value.ID} @ {ActorString(op.Value.Target, op.Timestamp)}",
+                ActorState.OpCastInfo op => $"Cast {(op.Value != null ? "started" : "ended")}: {CastString(op.InstanceID, op.Timestamp, aidType, op.Value != null)}",
+                ActorState.OpCastEvent op => $"Cast event: {ActorString(op.InstanceID, op.Timestamp)}: {op.Value.Action} ({aidType?.GetEnumName(op.Value.Action.ID)}) @ {ActorString(op.Value.MainTargetID, op.Timestamp)} ({op.Value.Targets.Count} targets affected)",
+                ActorState.OpStatus op => $"Status {(op.Value.ID != 0 ? "gain" : "lose")}: {StatusString(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0)}",
+                ActorState.OpIcon op => $"Icon: {ActorString(op.InstanceID, op.Timestamp)} -> {op.IconID}",
                 _ => o.ToString() ?? o.GetType().Name
             };
         }
 
-        private Action<UITree>? OpChildren(ReplayOps.Operation o)
+        private Action<UITree>? OpChildren(WorldState.Operation o)
         {
             return o switch
             {
-                ReplayOps.OpEventCast op => op.Value.Targets.Count != 0 ? tree => DrawEventCast(tree, op) : null,
+                ActorState.OpCastEvent op => op.Value.Targets.Count != 0 ? tree => DrawEventCast(tree, op) : null,
                 _ => null
             };
         }
 
-        private void DrawEventCast(UITree tree, ReplayOps.OpEventCast op)
+        private void DrawEventCast(UITree tree, ActorState.OpCastEvent op)
         {
             foreach (var t in tree.Nodes(op.Value.Targets, t => new(ActorString(t.ID, op.Timestamp))))
             {
@@ -138,18 +138,18 @@ namespace UIDev
             }
         }
 
-        private Action? OpContextMenu(ReplayOps.Operation o)
+        private Action? OpContextMenu(WorldState.Operation o)
         {
             return o switch
             {
-                ReplayOps.OpActorStatus op => () => ContextMenuActorStatus(op),
-                ReplayOps.OpActorCast op => () => ContextMenuActorCast(op),
-                ReplayOps.OpEventCast op => () => ContextMenuEventCast(op),
+                ActorState.OpStatus op => () => ContextMenuActorStatus(op),
+                ActorState.OpCastInfo op => () => ContextMenuActorCast(op),
+                ActorState.OpCastEvent op => () => ContextMenuEventCast(op),
                 _ => null,
             };
         }
 
-        private void ContextMenuActorStatus(ReplayOps.OpActorStatus op)
+        private void ContextMenuActorStatus(ActorState.OpStatus op)
         {
             var s = FindStatus(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0)!;
             if (ImGui.MenuItem($"Filter out {Utils.StatusString(s.ID)}"))
@@ -159,7 +159,7 @@ namespace UIDev
             }
         }
 
-        private void ContextMenuActorCast(ReplayOps.OpActorCast op)
+        private void ContextMenuActorCast(ActorState.OpCastInfo op)
         {
             var id = FindCast(FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null)!.ID;
             if (ImGui.MenuItem($"Filter out {id}"))
@@ -169,7 +169,7 @@ namespace UIDev
             }
         }
 
-        private void ContextMenuEventCast(ReplayOps.OpEventCast op)
+        private void ContextMenuEventCast(ActorState.OpCastEvent op)
         {
             if (ImGui.MenuItem($"Filter out {op.Value.Action}"))
             {

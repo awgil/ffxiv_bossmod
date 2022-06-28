@@ -29,7 +29,7 @@ namespace BossMod
                 _logDir.Create();
                 var now = DateTime.Now;
                 _logger = new StreamWriter($"{_logDir.FullName}/{_prefix}_{now:yyyy_MM_dd_HH_mm_ss}.log");
-                Log(now, "VER ", version);
+                Log(now, $"VER |{version}");
                 return true;
             }
             catch (IOException e)
@@ -45,10 +45,10 @@ namespace BossMod
             _logger = null;
         }
 
-        public void Log(DateTime timestamp, string type, object payload)
+        public void Log(DateTime timestamp, string message)
         {
             if (_logger != null)
-                _logger.WriteLine($"{timestamp:O}|{type}|{payload}");
+                _logger.WriteLine($"{timestamp:O}|{message}");
         }
     }
 }

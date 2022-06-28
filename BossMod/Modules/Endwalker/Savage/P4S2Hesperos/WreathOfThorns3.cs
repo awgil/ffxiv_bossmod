@@ -130,7 +130,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 CurState = State.Done;
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             switch ((AID)spell.Action.ID)
             {

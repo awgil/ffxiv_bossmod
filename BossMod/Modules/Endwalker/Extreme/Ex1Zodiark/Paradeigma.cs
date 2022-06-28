@@ -50,9 +50,9 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
                 arena.AddLine(module.Bounds.Center + _fireLine[0], module.Bounds.Center + _fireLine[1], ArenaColor.Danger);
         }
 
-        public override void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
         {
-            if (featureID != 0x80034E71)
+            if (directorID != 0x80034E71)
                 return;
 
             // notable env controls that we don't care too much about:

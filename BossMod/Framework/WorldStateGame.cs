@@ -9,19 +9,10 @@ namespace BossMod
     // world state that is updated to correspond to game state
     class WorldStateGame : WorldState, IDisposable
     {
-        private class ActorEvents
-        {
-            public List<CastEvent>? Casts;
-            public List<ActorTetherInfo>? TetherUpdates;
-            public uint? IconUpdate;
-        }
-
         private Network _network;
         private PartyAlliance _alliance = new();
-        private Dictionary<ulong, float[]> _prevStatusDurations = new();
-        private List<(uint featureID, byte index, uint state)> _envControls = new();
-        private List<(uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4)> _directorUpdates = new();
-        private Dictionary<ulong, ActorEvents> _actorEvents = new();
+        private List<Operation> _globalOps = new();
+        private Dictionary<ulong, List<Operation>> _actorOps = new();
 
         public WorldStateGame(Network network)
         {
@@ -48,22 +39,20 @@ namespace BossMod
 
         public void Update()
         {
-            CurrentTime = DateTime.Now;
-            CurrentZone = Service.ClientState.TerritoryType;
-            DispatchEnvControls();
+            Execute(new OpFrameStart() { NewTimestamp = DateTime.Now });
+            if (CurrentZone != Service.ClientState.TerritoryType)
+            {
+                Execute(new OpZoneChange() { Zone = Service.ClientState.TerritoryType });
+            }
+
+            foreach (var op in _globalOps)
+            {
+                Execute(op);
+            }
+            _globalOps.Clear();
+
             UpdateActors();
             UpdateParty();
-        }
-
-        private void DispatchEnvControls()
-        {
-            foreach (var arg in _directorUpdates)
-                Events.DispatchDirectorUpdate(arg);
-            _directorUpdates.Clear();
-
-            foreach (var arg in _envControls)
-                Events.DispatchEnvControl(arg);
-            _envControls.Clear();
         }
 
         private void UpdateActors()
@@ -71,7 +60,7 @@ namespace BossMod
             Dictionary<ulong, GameObject> seenIDs = new();
             foreach (var obj in Service.ObjectTable)
                 if (obj.ObjectId != GameObject.InvalidGameObjectId)
-                    seenIDs.Add(obj.ObjectId, obj);
+                    seenIDs[obj.ObjectId] = obj;
 
             List<Actor> delActors = new();
             foreach (var e in Actors)
@@ -79,90 +68,143 @@ namespace BossMod
                     delActors.Add(e);
 
             foreach (var actor in delActors)
-            {
-                DispatchActorEvents(actor);
-                Actors.Remove(actor.InstanceID);
-                _prevStatusDurations.Remove(actor.InstanceID);
-            }
+                RemoveActor(actor);
 
             foreach ((_, var obj) in seenIDs)
+                UpdateActor(obj);
+
+            foreach (var (id, ops) in _actorOps)
+                Service.Log($"[WorldState] {ops.Count} actor events for unknown entity {id:X}");
+            _actorOps.Clear();
+        }
+
+        private void RemoveActor(Actor actor)
+        {
+            DispatchActorEvents(actor.InstanceID);
+            Execute(new ActorState.OpDestroy() { InstanceID = actor.InstanceID });
+        }
+
+        private void UpdateActor(GameObject obj)
+        {
+            var character = obj as Character;
+            var name = obj.Name.TextValue;
+            var classID = (Class)(character?.ClassJob.Id ?? 0);
+            var posRot = new Vector4(obj.Position, obj.Rotation);
+            var curHP = character?.CurrentHp ?? 0;
+            var maxHP = character?.MaxHp ?? 0;
+            var targetable = Utils.GameObjectIsTargetable(obj);
+            var isDead = Utils.GameObjectIsDead(obj);
+            var inCombat = character?.StatusFlags.HasFlag(StatusFlags.InCombat) ?? false;
+            var target = SanitizedObjectID(obj.TargetObjectId);
+
+            var act = Actors.Find(obj.ObjectId);
+            if (act == null)
             {
-                var character = obj as Character;
-                var classID = (Class)(character?.ClassJob.Id ?? 0);
-                var curHP = character?.CurrentHp ?? 0;
-                var maxHP = character?.MaxHp ?? 0;
+                Execute(new ActorState.OpCreate() {
+                    InstanceID = obj.ObjectId,
+                    OID = obj.DataId,
+                    Name = name,
+                    Type = (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind),
+                    Class = classID,
+                    PosRot = posRot,
+                    HPCur = curHP,
+                    HPMax = maxHP,
+                    IsTargetable = targetable,
+                    OwnerID = SanitizedObjectID(obj.OwnerId)
+                });
+                act = Actors.Find(obj.ObjectId)!;
+            }
+            else
+            {
+                if (act.Name != name)
+                    Execute(new ActorState.OpRename() { InstanceID = act.InstanceID, Name = name });
+                if (act.Class != classID)
+                    Execute(new ActorState.OpClassChange() { InstanceID = act.InstanceID, Class = classID });
+                if (act.PosRot != posRot)
+                    Execute(new ActorState.OpMove() { InstanceID = act.InstanceID, PosRot = posRot });
+                if (act.HPCur != curHP || act.HPMax != maxHP)
+                    Execute(new ActorState.OpHP() { InstanceID = act.InstanceID, Cur = curHP, Max = maxHP });
+                if (act.IsTargetable != targetable)
+                    Execute(new ActorState.OpTargetable() { InstanceID = act.InstanceID, Value = targetable });
+            }
 
-                var act = Actors.Find(obj.ObjectId);
-                if (act == null)
-                {
-                    act = Actors.Add(obj.ObjectId, obj.DataId, obj.Name.TextValue, (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind), classID, new(obj.Position, obj.Rotation), obj.HitboxRadius, curHP, maxHP, Utils.GameObjectIsTargetable(obj), SanitizedObjectID(obj.OwnerId));
-                    _prevStatusDurations[obj.ObjectId] = new float[30];
-                }
-                else
-                {
-                    Actors.ChangeClass(act, classID);
-                    Actors.Rename(act, obj.Name.TextValue);
-                    Actors.Move(act, new(obj.Position, obj.Rotation));
-                    Actors.UpdateHP(act, curHP, maxHP);
-                    Actors.ChangeIsTargetable(act, Utils.GameObjectIsTargetable(obj));
-                }
-                Actors.ChangeTarget(act, SanitizedObjectID(obj.TargetObjectId));
-                Actors.ChangeIsDead(act, Utils.GameObjectIsDead(obj));
-                Actors.ChangeInCombat(act, character?.StatusFlags.HasFlag(StatusFlags.InCombat) ?? false);
-                DispatchActorEvents(act);
+            if (act.IsDead != isDead)
+                Execute(new ActorState.OpDead() { InstanceID = act.InstanceID, Value = isDead });
+            if (act.InCombat != inCombat)
+                Execute(new ActorState.OpCombat() { InstanceID = act.InstanceID, Value = inCombat });
+            if (act.TargetID != target)
+                Execute(new ActorState.OpTarget() { InstanceID = act.InstanceID, Value = target });
+            DispatchActorEvents(act.InstanceID);
 
-                var chara = obj as BattleChara;
-                if (chara != null)
-                {
-                    ActorCastInfo? curCast = chara.IsCasting
-                        ? new ActorCastInfo
-                        {
-                            Action = new((ActionType)chara.CastActionType, chara.CastActionId),
-                            TargetID = SanitizedObjectID(chara.CastTargetObjectId),
-                            Location = Utils.BattleCharaCastLocation(chara),
-                            TotalTime = chara.TotalCastTime,
-                            FinishAt = CurrentTime.AddSeconds(Math.Clamp(chara.TotalCastTime - chara.CurrentCastTime, 0, 100000))
-                        } : null;
-                    Actors.UpdateCastInfo(act, curCast);
-
-                    var prevDurations = _prevStatusDurations[obj.ObjectId];
-                    for (int i = 0; i < chara.StatusList.Length; ++i)
+            var chara = obj as BattleChara;
+            if (chara != null)
+            {
+                ActorCastInfo? curCast = chara.IsCasting
+                    ? new ActorCastInfo
                     {
-                        // note: some statuses have non-zero remaining time but never tick down (e.g. FC buffs); currently we ignore that fact, to avoid log spam...
-                        // note: RemainingTime is not monotonously decreasing (I assume because it is really calculated by game and frametime fluctuates...), we ignore 'slight' duration increases (<1 sec)
-                        // note: sometimes (Ocean Fishing) remaining-time is weird (I assume too large?) and causes exception in AddSeconds - so we just clamp it to some reasonable range
-                        var s = chara.StatusList[i];
-                        var dur = Math.Clamp(s?.RemainingTime ?? 0, 0, 100000);
-                        var srcID = SanitizedObjectID(s?.SourceID ?? 0);
-                        if (s == null)
-                        {
-                            Actors.UpdateStatus(act, i, new());
-                        }
-                        else if (s.StatusId != act.Statuses[i].ID || srcID != act.Statuses[i].SourceID || StatusExtra(s) != act.Statuses[i].Extra || dur > prevDurations[i] + 1)
-                        {
-                            ActorStatus status = new();
-                            status.ID = s.StatusId;
-                            status.SourceID = srcID;
-                            status.Extra = StatusExtra(s);
-                            status.ExpireAt = CurrentTime.AddSeconds(dur);
-                            Actors.UpdateStatus(act, i, status);
-                        }
-                        prevDurations[i] = dur;
+                        Action = new((ActionType)chara.CastActionType, chara.CastActionId),
+                        TargetID = SanitizedObjectID(chara.CastTargetObjectId),
+                        Location = Utils.BattleCharaCastLocation(chara),
+                        TotalTime = chara.TotalCastTime,
+                        FinishAt = CurrentTime.AddSeconds(Math.Clamp(chara.TotalCastTime - chara.CurrentCastTime, 0, 100000))
+                    } : null;
+                UpdateActorCastInfo(act, curCast);
+
+                for (int i = 0; i < chara.StatusList.Length; ++i)
+                {
+                    // note: sometimes (Ocean Fishing) remaining-time is weird (I assume too large?) and causes exception in AddSeconds - so we just clamp it to some reasonable range
+                    // note: self-cast buffs with duration X will have duration -X until EffectResult (~0.6s later); see autorotation for more details
+                    ActorStatus curStatus = new();
+                    var s = chara.StatusList[i];
+                    if (s != null)
+                    {
+                        var dur = Math.Min(Math.Abs(s.RemainingTime), 100000);
+                        curStatus.ID = s.StatusId;
+                        curStatus.SourceID = SanitizedObjectID(s.SourceID);
+                        curStatus.Extra = StatusExtra(s);
+                        curStatus.ExpireAt = CurrentTime.AddSeconds(dur);
                     }
+                    UpdateActorStatus(act, i, curStatus);
                 }
             }
+        }
 
-            foreach (var (id, events) in _actorEvents)
+        private void UpdateActorCastInfo(Actor act, ActorCastInfo? cast)
+        {
+            if (cast == null && act.CastInfo == null)
+                return; // was not casting and is not casting
+
+            if (cast != null && act.CastInfo != null && cast.Action == act.CastInfo.Action && cast.TargetID == act.CastInfo.TargetID)
             {
-                Service.Log($"[WorldState] Actor events for unknown entity {id:X}:{(events.Casts != null ? " casts" : "")}{(events.TetherUpdates != null ? " tethers" : "")}{(events.IconUpdate != null ? " icon" : "")}");
+                // continuing casting same spell
+                act.CastInfo.TotalTime = cast.TotalTime;
+                act.CastInfo.FinishAt = cast.FinishAt;
+                return;
             }
-            _actorEvents.Clear();
+
+            // update cast info
+            Execute(new ActorState.OpCastInfo() { InstanceID = act.InstanceID, Value = cast });
+        }
+
+        private void UpdateActorStatus(Actor act, int index, ActorStatus value)
+        {
+            // note: some statuses have non-zero remaining time but never tick down (e.g. FC buffs); currently we ignore that fact, to avoid log spam...
+            // note: RemainingTime is not monotonously decreasing (I assume because it is really calculated by game and frametime fluctuates...), we ignore 'slight' duration increases (<1 sec)
+            var prev = act.Statuses[index];
+            if (prev.ID == value.ID && prev.SourceID == value.SourceID && prev.Extra == value.Extra && (value.ExpireAt - prev.ExpireAt).TotalSeconds <= 1)
+            {
+                act.Statuses[index].ExpireAt = value.ExpireAt;
+                return;
+            }
+
+            // update status info
+            Execute(new ActorState.OpStatus() { InstanceID = act.InstanceID, Index = index, Value = value });
         }
 
         private unsafe void UpdateParty()
         {
             // update player slot
-            Party.Modify(PartyState.PlayerSlot, Service.ClientState.LocalContentId, Service.ClientState.LocalPlayer?.ObjectId ?? 0);
+            UpdatePartySlot(PartyState.PlayerSlot, Service.ClientState.LocalContentId, Service.ClientState.LocalPlayer?.ObjectId ?? 0);
 
             // update normal party slots: first update/remove existing members, then add new ones
             for (int i = PartyState.PlayerSlot + 1; i < PartyState.MaxPartySize; ++i)
@@ -173,9 +215,9 @@ namespace BossMod
 
                 var member = _alliance.FindPartyMember(contentID);
                 if (member == null)
-                    Party.Modify(i, 0, 0);
+                    UpdatePartySlot(i, 0, 0);
                 else
-                    Party.Modify(i, contentID, member->ObjectID);
+                    UpdatePartySlot(i, contentID, member->ObjectID);
             }
             for (int i = 0; i < _alliance.NumPartyMembers; ++i)
             {
@@ -194,80 +236,70 @@ namespace BossMod
                     continue;
                 }
 
-                Party.Modify(freeSlot + 1, contentID, member->ObjectID);
+                UpdatePartySlot(freeSlot + 1, contentID, member->ObjectID);
             }
 
             // update alliance members
             for (int i = PartyState.MaxPartySize; i < PartyState.MaxAllianceSize; ++i)
             {
                 var member = _alliance.IsAlliance && !_alliance.IsSmallGroupAlliance ? _alliance.AllianceMember(i - PartyState.MaxPartySize) : null;
-                Party.Modify(i, 0, member != null ? member->ObjectID : 0);
+                UpdatePartySlot(i, 0, member != null ? member->ObjectID : 0);
             }
+        }
+
+        private void UpdatePartySlot(int slot, ulong contentID, ulong instanceID)
+        {
+            if (contentID != (slot < PartyState.MaxPartySize ? Party.ContentIDs[slot] : 0) || instanceID != Party.ActorIDs[slot])
+                Execute(new PartyState.OpModify() { Slot = slot, ContentID = contentID, InstanceID = instanceID });
         }
 
         private ushort StatusExtra(Dalamud.Game.ClientState.Statuses.Status s) => (ushort)((s.Param << 8) | s.StackCount);
         private ulong SanitizedObjectID(uint raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;
 
-        private void DispatchActorEvents(Actor actor)
+        private void DispatchActorEvents(ulong instanceID)
         {
-            var ev = _actorEvents.GetValueOrDefault(actor.InstanceID);
-            if (ev != null)
-            {
-                if (ev.Casts != null)
-                    foreach (var c in ev.Casts)
-                        Events.DispatchCast(c);
-                if (ev.TetherUpdates != null)
-                    foreach (var t in ev.TetherUpdates)
-                        Actors.UpdateTether(actor, t);
-                if (ev.IconUpdate != null)
-                    Events.DispatchIcon((actor.InstanceID, ev.IconUpdate.Value));
+            var ops = _actorOps.GetValueOrDefault(instanceID);
+            if (ops == null)
+                return;
 
-                _actorEvents.Remove(actor.InstanceID);
-            }
+            foreach (var op in ops)
+                Execute(op);
+            _actorOps.Remove(instanceID);
         }
 
-        private void OnNetworkActionEffect(object? sender, CastEvent info)
+        private void OnNetworkActionEffect(object? sender, (ulong actorID, ActorCastEvent cast) args)
         {
-            var ev = _actorEvents.GetOrAdd(info.CasterID);
-            if (ev.Casts == null)
-                ev.Casts = new();
-            ev.Casts.Add(info);
+            _actorOps.GetOrAdd(args.actorID).Add(new ActorState.OpCastEvent() { InstanceID = args.actorID, Value = args.cast });
         }
 
         private void OnNetworkActorControlTargetIcon(object? sender, (ulong actorID, uint iconID) args)
         {
-            var ev = _actorEvents.GetOrAdd(args.actorID);
-            if (ev.IconUpdate != null)
-                Service.Log($"[WorldState] Multiple icon updates for a single actor {args.actorID:X} per frame: {ev.IconUpdate.Value} -> {args.iconID}");
-            ev.IconUpdate = args.iconID;
+            _actorOps.GetOrAdd(args.actorID).Add(new ActorState.OpIcon() { InstanceID = args.actorID, IconID = args.iconID });
         }
 
         private void OnNetworkActorControlTether(object? sender, (ulong actorID, ulong targetID, uint tetherID) args)
         {
-            var ev = _actorEvents.GetOrAdd(args.actorID);
-            if (ev.TetherUpdates == null)
-                ev.TetherUpdates = new();
-            ev.TetherUpdates.Add(new ActorTetherInfo { Target = args.targetID, ID = args.tetherID });
+            _actorOps.GetOrAdd(args.actorID).Add(new ActorState.OpTether() { InstanceID = args.actorID, Value = new() { ID = args.tetherID, Target = args.targetID } });
         }
 
         private void OnNetworkActorControlTetherCancel(object? sender, ulong actorID)
         {
-            var ev = _actorEvents.GetOrAdd(actorID);
-            if (ev.TetherUpdates == null)
-                ev.TetherUpdates = new();
-            ev.TetherUpdates.Add(new());
+            _actorOps.GetOrAdd(actorID).Add(new ActorState.OpTether() { InstanceID = actorID, Value = new() });
         }
 
         private void OnNetworkActorControlSelfDirectorUpdate(object? sender, (uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4) args)
         {
-            _directorUpdates.Add(args);
+            _globalOps.Add(new OpDirectorUpdate() { DirectorID = args.directorID, UpdateID = args.updateID, Param1 = args.p1, Param2 = args.p2, Param3 = args.p3, Param4 = args.p4 });
         }
 
-        private void OnNetworkEnvControl(object? sender, (uint featureID, byte index, uint state) args)
+        private void OnNetworkEnvControl(object? sender, (uint directorID, byte index, uint state) args)
         {
-            _envControls.Add(args);
+            _globalOps.Add(new OpEnvControl() { DirectorID = args.directorID, Index = args.index, State = args.state });
         }
 
-        private void OnNetworkWaymark(object? sender, (Waymark waymark, Vector3? pos) args) => Waymarks[args.waymark] = args.pos;
+        private void OnNetworkWaymark(object? sender, (Waymark waymark, Vector3? pos) args)
+        {
+            _globalOps.Add(new WaymarkState.OpWaymarkChange() { ID = args.waymark, Pos = args.pos });
+        }
     }
 }

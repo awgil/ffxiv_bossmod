@@ -180,9 +180,9 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 ++_doneTowers;
         }
 
-        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
-            var slot = module.Raid.FindSlot(actorID);
+            var slot = module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
                 _playerIcons[slot] = (IconID)iconID;
         }

@@ -38,70 +38,18 @@ namespace BossMod
         {
             if (!_logger.Active)
             {
-                if (!_logger.Activate(4))
+                if (!_logger.Activate(5))
                 {
                     _config.DumpWorldStateEvents = false;
                     return;
                 }
 
                 // log initial state
-                ZoneChange(null, _ws.CurrentZone);
-                foreach (var actor in _ws.Actors)
-                {
-                    ActorCreated(null, actor);
-                    if (actor.IsDead)
-                        ActorIsDeadChanged(null, actor);
-                    if (actor.InCombat)
-                        ActorInCombatChanged(null, actor);
-                    if (actor.TargetID != 0)
-                        ActorTargetChanged(null, (actor, 0));
-                    if (actor.CastInfo != null)
-                        ActorCastStarted(null, actor);
-                    if (actor.Tether.ID != 0)
-                        ActorTethered(null, actor);
-                    for (int i = 0; i < actor.Statuses.Length; ++i)
-                        if (actor.Statuses[i].ID != 0)
-                            ActorStatusGain(null, (actor, i));
-                }
-                for (int i = 0; i < PartyState.MaxAllianceSize; ++i)
-                {
-                    var contentID = i < PartyState.MaxPartySize ? _ws.Party.ContentIDs[i] : 0;
-                    var actorID = _ws.Party.ActorIDs[i];
-                    if (contentID != 0 || actorID != 0)
-                        PartyModified(null, (i, contentID, actorID, 0, 0));
-                }
-                for (var i = Waymark.A; i < Waymark.Count; ++i)
-                {
-                    var w = _ws.Waymarks[i];
-                    if (w != null)
-                        WaymarkChanged(null, (i, w));
-                }
+                foreach (var op in _ws.CompareToInitial())
+                    LogModification(null, op);
 
                 // log changes
-                _ws.CurrentZoneChanged += ZoneChange;
-                _ws.Waymarks.Changed += WaymarkChanged;
-                _ws.Actors.Added += ActorCreated;
-                _ws.Actors.Removed += ActorDestroyed;
-                _ws.Actors.Renamed += ActorRenamed;
-                _ws.Actors.ClassChanged += ActorClassChanged;
-                _ws.Actors.Moved += ActorMoved;
-                _ws.Actors.HPChanged += ActorHPChanged;
-                _ws.Actors.IsTargetableChanged += ActorIsTargetableChanged;
-                _ws.Actors.IsDeadChanged += ActorIsDeadChanged;
-                _ws.Actors.InCombatChanged += ActorInCombatChanged;
-                _ws.Actors.TargetChanged += ActorTargetChanged;
-                _ws.Actors.CastStarted += ActorCastStarted;
-                _ws.Actors.CastFinished += ActorCastFinished;
-                _ws.Actors.Tethered += ActorTethered;
-                _ws.Actors.Untethered += ActorUntethered;
-                _ws.Actors.StatusGain += ActorStatusGain;
-                _ws.Actors.StatusLose += ActorStatusLose;
-                _ws.Actors.StatusChange += ActorStatusChange;
-                _ws.Party.Modified += PartyModified;
-                _ws.Events.Icon += EventIcon;
-                _ws.Events.Cast += EventCast;
-                _ws.Events.DirectorUpdate += EventDirectorUpdate;
-                _ws.Events.EnvControl += EventEnvControl;
+                _ws.Modified += LogModification;
             }
         }
 
@@ -109,188 +57,14 @@ namespace BossMod
         {
             if (_logger.Active)
             {
-                _ws.CurrentZoneChanged -= ZoneChange;
-                _ws.Waymarks.Changed -= WaymarkChanged;
-                _ws.Actors.Added -= ActorCreated;
-                _ws.Actors.Removed -= ActorDestroyed;
-                _ws.Actors.Renamed -= ActorRenamed;
-                _ws.Actors.ClassChanged -= ActorClassChanged;
-                _ws.Actors.Moved -= ActorMoved;
-                _ws.Actors.HPChanged -= ActorHPChanged;
-                _ws.Actors.IsTargetableChanged -= ActorIsTargetableChanged;
-                _ws.Actors.IsDeadChanged -= ActorIsDeadChanged;
-                _ws.Actors.InCombatChanged -= ActorInCombatChanged;
-                _ws.Actors.TargetChanged -= ActorTargetChanged;
-                _ws.Actors.CastStarted -= ActorCastStarted;
-                _ws.Actors.CastFinished -= ActorCastFinished;
-                _ws.Actors.Tethered -= ActorTethered;
-                _ws.Actors.Untethered -= ActorUntethered;
-                _ws.Actors.StatusGain -= ActorStatusGain;
-                _ws.Actors.StatusLose -= ActorStatusLose;
-                _ws.Actors.StatusChange -= ActorStatusChange;
-                _ws.Party.Modified -= PartyModified;
-                _ws.Events.Icon -= EventIcon;
-                _ws.Events.Cast -= EventCast;
-                _ws.Events.DirectorUpdate -= EventDirectorUpdate;
-                _ws.Events.EnvControl -= EventEnvControl;
-
+                _ws.Modified -= LogModification;
                 _logger.Deactivate();
             }
         }
 
-        private void Log(string type, object msg)
+        private void LogModification(object? sender, WorldState.Operation op)
         {
-            _logger.Log(_ws.CurrentTime, type, msg);
-        }
-
-        private string Vec3(Vector3 v)
-        {
-            return $"{v.X:f3}/{v.Y:f3}/{v.Z:f3}";
-        }
-
-        private string Actor(Actor actor)
-        {
-            return $"{actor.InstanceID:X8}/{actor.OID:X}/{actor.Name}/{actor.Type}/{Vec3(actor.PosRot.XYZ())}/{actor.Rotation}";
-        }
-
-        private string Actor(ulong instanceID)
-        {
-            var actor = (instanceID != 0 && instanceID != Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId) ? _ws.Actors.Find(instanceID) : null;
-            return actor != null ? Actor(actor) : $"{instanceID:X8}";
-        }
-
-        private void ZoneChange(object? sender, ushort zone)
-        {
-            Log("ZONE", zone);
-        }
-
-        private void WaymarkChanged(object? sender, (Waymark i, Vector3? value) arg)
-        {
-            if (arg.value != null)
-                Log("WAY+", $"{arg.i}|{Vec3(arg.value.Value)}");
-            else
-                Log("WAY-", arg.i);
-        }
-
-        private void ActorCreated(object? sender, Actor actor)
-        {
-            Log("ACT+", $"{Actor(actor)}|{actor.Class}|{actor.IsTargetable}|{actor.HitboxRadius:f3}|{Actor(actor.OwnerID)}|{actor.HPCur}/{actor.HPMax}");
-        }
-
-        private void ActorDestroyed(object? sender, Actor actor)
-        {
-            Log("ACT-", Actor(actor));
-        }
-
-        private void ActorRenamed(object? sender, (Actor actor, string oldName) arg)
-        {
-            Log("NAME", $"{Actor(arg.actor)}|{arg.oldName}");
-        }
-
-        private void ActorClassChanged(object? sender, (Actor actor, Class prevClass) arg)
-        {
-            Log("CLSR", $"{Actor(arg.actor)}|{arg.prevClass}|{arg.actor.Class}");
-        }
-
-        private void ActorMoved(object? sender, (Actor actor, Vector4 prevPosRot) arg)
-        {
-            Log("MOVE", Actor(arg.actor));
-        }
-
-        private void ActorHPChanged(object? sender, (Actor actor, uint prevCur, uint prevMax) arg)
-        {
-            Log("HP  ", $"{Actor(arg.actor)}|{arg.actor.HPCur}/{arg.actor.HPMax}");
-        }
-
-        private void ActorIsTargetableChanged(object? sender, Actor actor)
-        {
-            Log(actor.IsTargetable ? "ATG+" : "ATG-", Actor(actor));
-        }
-
-        private void ActorIsDeadChanged(object? sender, Actor actor)
-        {
-            Log(actor.IsDead ? "DIE+" : "DIE-", Actor(actor));
-        }
-
-        private void ActorInCombatChanged(object? sender, Actor actor)
-        {
-            Log(actor.InCombat ? "COM+" : "COM-", Actor(actor));
-        }
-
-        private void ActorTargetChanged(object? sender, (Actor actor, ulong prev) arg)
-        {
-            Log("TARG", $"{Actor(arg.actor)}|{Actor(arg.actor.TargetID)}");
-        }
-
-        private void ActorCastStarted(object? sender, Actor actor)
-        {
-            Log("CST+", $"{Actor(actor)}|{actor.CastInfo!.Action}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString(actor.CastInfo!, _ws.CurrentTime)}");
-        }
-
-        private void ActorCastFinished(object? sender, Actor actor)
-        {
-            Log("CST-", $"{Actor(actor)}|{actor.CastInfo!.Action}|{Actor(actor.CastInfo!.TargetID)}|{Vec3(actor.CastInfo!.Location)}|{Utils.CastTimeString(actor.CastInfo!, _ws.CurrentTime)}");
-        }
-
-        private void ActorTethered(object? sender, Actor actor)
-        {
-            Log("TET+", $"{Actor(actor)}|{actor.Tether.ID}|{Actor(actor.Tether.Target)}");
-        }
-
-        private void ActorUntethered(object? sender, Actor actor)
-        {
-            Log("TET-", $"{Actor(actor)}|{actor.Tether.ID}|{Actor(actor.Tether.Target)}");
-        }
-
-        private void ActorStatusGain(object? sender, (Actor actor, int index) arg)
-        {
-            var s = arg.actor.Statuses[arg.index];
-            Log("STA+", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Extra:X4}|{Utils.StatusTimeString(s.ExpireAt, _ws.CurrentTime)}|{Actor(s.SourceID)}");
-        }
-
-        private void ActorStatusLose(object? sender, (Actor actor, int index) arg)
-        {
-            var s = arg.actor.Statuses[arg.index];
-            Log("STA-", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Extra:X4}|{Utils.StatusTimeString(s.ExpireAt, _ws.CurrentTime)}|{Actor(s.SourceID)}");
-        }
-
-        private void ActorStatusChange(object? sender, (Actor actor, int index, ushort prevExtra, DateTime prevExpire) arg)
-        {
-            var s = arg.actor.Statuses[arg.index];
-            Log("STA!", $"{Actor(arg.actor)}|{arg.index}|{Utils.StatusString(s.ID)}|{s.Extra:X4}|{Utils.StatusTimeString(s.ExpireAt, _ws.CurrentTime)}|{Actor(s.SourceID)}");
-        }
-
-        private void PartyModified(object? sender, (int slot, ulong contentID, ulong actorID, ulong prevContentID, ulong prevActorID) arg)
-        {
-            Log("PAR ", $"{arg.slot}|{arg.contentID:X}|{arg.actorID:X8}|{arg.prevContentID:X}|{arg.prevActorID:X8}");
-        }
-
-        private void EventIcon(object? sender, (ulong actorID, uint iconID) arg)
-        {
-            Log("ICON", $"{Actor(arg.actorID)}|{arg.iconID}");
-        }
-
-        private void EventCast(object? sender, CastEvent info)
-        {
-            var sb = new StringBuilder($"{Actor(info.CasterID)}|{info.Action}|{Actor(info.MainTargetID)}|{info.AnimationLockTime:f2}|{info.MaxTargets}");
-            foreach (var t in info.Targets)
-            {
-                sb.Append($"|{Actor(t.ID)}");
-                for (int i = 0; i < 8; ++i)
-                    if (t.Effects[i] != 0)
-                        sb.Append($"!{t.Effects[i]:X16}");
-            }
-            Log("CST!", sb.ToString());
-        }
-
-        private void EventDirectorUpdate(object? sender, (uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4) arg)
-        {
-            Log("DIRU", $"{arg.directorID:X8}|{arg.updateID:X8}|{arg.p1:X8}|{arg.p2:X8}|{arg.p3:X8}|{arg.p4:X8}");
-        }
-
-        private void EventEnvControl(object? sender, (uint featureID, byte index, uint state) arg)
-        {
-            Log("ENVC", $"{arg.featureID:X8}|{arg.index:X2}|{arg.state:X8}");
+            _logger.Log(_ws.CurrentTime, op.Str(_ws));
         }
     }
 }

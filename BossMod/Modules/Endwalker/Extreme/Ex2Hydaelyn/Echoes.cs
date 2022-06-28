@@ -4,11 +4,11 @@
     {
         public Echoes() : base(ActionID.MakeSpell(AID.EchoesAOE), 6) { }
 
-        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Echoes)
             {
-                Target = module.WorldState.Actors.Find(actorID);
+                Target = actor;
             }
         }
     }

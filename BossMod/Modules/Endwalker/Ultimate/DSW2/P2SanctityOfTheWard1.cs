@@ -40,10 +40,10 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
         {
             // seen indices: 2 = E, 5 = SW, 6 = W => inferring 0=N, 1=NE, ... cw order
-            if (featureID == 0x8003759A && state == 0x00020001 && index <= 7)
+            if (directorID == 0x8003759A && state == 0x00020001 && index <= 7)
             {
                 _eyePosition = module.Bounds.Center + 40 * (180 - index * 45).Degrees().ToDirection();
             }
@@ -189,7 +189,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             switch ((AID)spell.Action.ID)
             {
@@ -209,16 +209,16 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             switch ((IconID)iconID)
             {
                 case IconID.SacredSever1:
-                    _severTargetSlots[0] = module.Raid.FindSlot(actorID);
+                    _severTargetSlots[0] = module.Raid.FindSlot(actor.InstanceID);
                     InitChargesAndSafeSpots(module);
                     break;
                 case IconID.SacredSever2:
-                    _severTargetSlots[1] = module.Raid.FindSlot(actorID);
+                    _severTargetSlots[1] = module.Raid.FindSlot(actor.InstanceID);
                     InitChargesAndSafeSpots(module);
                     break;
             }

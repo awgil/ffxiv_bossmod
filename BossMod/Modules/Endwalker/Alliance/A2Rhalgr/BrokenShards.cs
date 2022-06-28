@@ -43,7 +43,7 @@ namespace BossMod.Endwalker.Alliance.A2Rhalgr
                 _targetLocations = null;
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.BrokenShardsAOE)
             {

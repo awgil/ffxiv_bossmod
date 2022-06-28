@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Text;
 
 namespace BossMod
 {
@@ -15,196 +16,321 @@ namespace BossMod
 
         public Actor? Find(ulong instanceID) => instanceID != 0 ? _actors.GetValueOrDefault(instanceID) : null;
 
-        public event EventHandler<Actor>? Added;
-        public Actor Add(ulong instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, uint hpCur = 0, uint hpMax = 0, bool targetable = true, ulong ownerID = 0)
+        // all actor-related operations have instance ID to which they are applied
+        // in addition to worldstate's modification event, extra event with actor pointer is dispatched for all actor events
+        public abstract class Operation : WorldState.Operation
         {
-            var act = _actors[instanceID] = new Actor(instanceID, oid, name, type, classID, posRot, hitboxRadius, hpCur, hpMax, targetable, ownerID);
-            Added?.Invoke(this, act);
-            return act;
+            public ulong InstanceID;
+
+            protected abstract void ExecActor(WorldState ws, Actor actor);
+            protected override void Exec(WorldState ws) => ExecActor(ws, ws.Actors._actors[InstanceID]);
+
+            protected static string StrActor(WorldState? ws, ulong instanceID)
+            {
+                var actor = ws?.Actors.Find(instanceID);
+                return actor != null ? $"{actor.InstanceID:X8}/{actor.OID:X}/{actor.Name}/{actor.Type}/{StrVec3(actor.PosRot.XYZ())}/{actor.Rotation}" : $"{instanceID:X8}";
+            }
+        }
+
+        public IEnumerable<Operation> CompareToInitial()
+        {
+            foreach (var act in this)
+            {
+                yield return new OpCreate() { InstanceID = act.InstanceID, OID = act.OID, Name = act.Name, Type = act.Type, Class = act.Class, PosRot = act.PosRot, HitboxRadius = act.HitboxRadius, HPCur = act.HPCur, HPMax = act.HPMax, IsTargetable = act.IsTargetable, OwnerID = act.OwnerID };
+                if (act.IsDead)
+                    yield return new OpDead() { InstanceID = act.InstanceID, Value = true };
+                if (act.InCombat)
+                    yield return new OpCombat() { InstanceID = act.InstanceID, Value = true };
+                if (act.TargetID != 0)
+                    yield return new OpTarget() { InstanceID = act.InstanceID, Value = act.TargetID };
+                if (act.Tether.Target != 0)
+                    yield return new OpTether() { InstanceID = act.InstanceID, Value = act.Tether };
+                if (act.CastInfo != null)
+                    yield return new OpCastInfo() { InstanceID = act.InstanceID, Value = act.CastInfo };
+                for (int i = 0; i < act.Statuses.Length; ++i)
+                    if (act.Statuses[i].ID != 0)
+                        yield return new OpStatus() { InstanceID = act.InstanceID, Index = i, Value = act.Statuses[i] };
+            }
+        }
+
+        // implementation of operations
+        public event EventHandler<Actor>? Added;
+        public class OpCreate : Operation
+        {
+            public uint OID;
+            public string Name = "";
+            public ActorType Type;
+            public Class Class;
+            public Vector4 PosRot;
+            public float HitboxRadius;
+            public uint HPCur;
+            public uint HPMax;
+            public bool IsTargetable;
+            public ulong OwnerID;
+
+            protected override void ExecActor(WorldState ws, Actor actor) { }
+            protected override void Exec(WorldState ws)
+            {
+                var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, HPCur, HPMax, IsTargetable, OwnerID);
+                ws.Actors.Added?.Invoke(ws, actor);
+            }
+
+            public override string Str(WorldState? ws) => $"ACT+|{StrActor(ws, InstanceID)}|{Class}|{IsTargetable}|{HitboxRadius:f3}|{StrActor(ws, OwnerID)}|{HPCur}/{HPMax}";
         }
 
         public event EventHandler<Actor>? Removed;
-        public void Remove(ulong instanceID)
+        public class OpDestroy : Operation
         {
-            var actor = Find(instanceID);
-            if (actor == null)
-                return; // nothing to remove
+            protected override void ExecActor(WorldState ws, Actor actor)
+            {
+                actor.IsDestroyed = true;
+                if (actor.InCombat) // exit combat
+                {
+                    actor.InCombat = false;
+                    ws.Actors.InCombatChanged?.Invoke(ws, actor);
+                }
+                if (actor.Tether.Target != 0) // untether
+                {
+                    ws.Actors.Untethered?.Invoke(ws, actor);
+                    actor.Tether = new();
+                }
+                if (actor.CastInfo != null) // stop casting
+                {
+                    ws.Actors.CastFinished?.Invoke(ws, actor);
+                    actor.CastInfo = null;
+                }
+                for (int i = 0; i < actor.Statuses.Length; ++i)
+                {
+                    if (actor.Statuses[i].ID != 0) // clear statuses
+                    {
+                        ws.Actors.StatusLose?.Invoke(ws, (actor, i));
+                        actor.Statuses[i] = new();
+                    }
+                }
+                ws.Actors.Removed?.Invoke(ws, actor);
+                ws.Actors._actors.Remove(InstanceID);
+            }
 
-            actor.IsDestroyed = true;
-            ChangeInCombat(actor, false); // exit combat
-            UpdateCastInfo(actor, null); // stop casting
-            UpdateTether(actor, new()); // untether
-            for (int i = 0; i < actor.Statuses.Length; ++i)
-                UpdateStatus(actor, i, new()); // clear statuses
-            Removed?.Invoke(this, actor);
-            _actors.Remove(instanceID);
+            public override string Str(WorldState? ws) => $"ACT-|{InstanceID:X8}";
         }
 
-        public event EventHandler<(Actor, string)>? Renamed; // actor already has new name, old is passed as extra arg
-        public void Rename(Actor act, string newName)
+        public event EventHandler<Actor>? Renamed;
+        public class OpRename : Operation
         {
-            if (act.Name != newName)
+            public string Name = "";
+
+            protected override void ExecActor(WorldState ws, Actor actor)
             {
-                var prevName = act.Name;
-                act.Name = newName;
-                Renamed?.Invoke(this, (act, prevName));
+                actor.Name = Name;
+                ws.Actors.Renamed?.Invoke(ws, actor);
             }
+
+            public override string Str(WorldState? ws) => $"NAME|{StrActor(ws, InstanceID)}";
         }
 
-        public event EventHandler<(Actor, Class)>? ClassChanged; // actor already has new class, old is passed as extra args
-        public void ChangeClass(Actor act, Class newClass)
+        public event EventHandler<Actor>? ClassChanged;
+        public class OpClassChange : Operation
         {
-            if (act.Class != newClass)
+            public Class Class;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
             {
-                var prevClass = act.Class;
-                act.Class = newClass;
-                ClassChanged?.Invoke(this, (act, prevClass));
+                actor.Class = Class;
+                ws.Actors.ClassChanged?.Invoke(ws, actor);
             }
+
+            public override string Str(WorldState? ws) => $"CLSR|{StrActor(ws, InstanceID)}|?|{Class}"; // TODO: remove legacy entry here...
         }
 
-        public event EventHandler<(Actor, Vector4)>? Moved; // actor already contains new position/rotation, old is passed as extra args
-        public void Move(Actor act, Vector4 newPosRot)
+        public event EventHandler<Actor>? Moved;
+        public class OpMove : Operation
         {
-            if (act.PosRot != newPosRot)
+            public Vector4 PosRot;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
             {
-                var prevPosRot = act.PosRot;
-                act.PosRot = newPosRot;
-                Moved?.Invoke(this, (act, prevPosRot));
+                actor.PosRot = PosRot;
+                ws.Actors.Moved?.Invoke(ws, actor);
             }
+
+            public override string Str(WorldState? ws) => $"MOVE|{StrActor(ws, InstanceID)}";
         }
 
-        public event EventHandler<(Actor, uint, uint)>? HPChanged; // actor already contains new cur/max hp, old are passed as extra args
-        public void UpdateHP(Actor act, uint cur, uint max)
+        public event EventHandler<Actor>? HPChanged;
+        public class OpHP : Operation
         {
-            if (act.HPCur != cur || act.HPMax != max)
+            public uint Cur;
+            public uint Max;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
             {
-                var prevCur = act.HPCur;
-                var prevMax = act.HPMax;
-                act.HPCur = cur;
-                act.HPMax = max;
-                HPChanged?.Invoke(this, (act, prevCur, prevMax));
+                actor.HPCur = Cur;
+                actor.HPMax = Max;
+                ws.Actors.HPChanged?.Invoke(ws, actor);
             }
+
+            public override string Str(WorldState? ws) => $"HP  |{StrActor(ws, InstanceID)}|{Cur}/{Max}";
         }
 
-        public event EventHandler<Actor>? IsTargetableChanged; // actor contains new state, old is inverted
-        public void ChangeIsTargetable(Actor act, bool newTargetable)
+        public event EventHandler<Actor>? IsTargetableChanged;
+        public class OpTargetable : Operation
         {
-            if (act.IsTargetable != newTargetable)
+            public bool Value;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
             {
-                act.IsTargetable = newTargetable;
-                IsTargetableChanged?.Invoke(this, act);
+                actor.IsTargetable = Value;
+                ws.Actors.IsTargetableChanged?.Invoke(ws, actor);
             }
+
+            public override string Str(WorldState? ws) => $"{(Value ? "ATG+" : "ATG-")}|{StrActor(ws, InstanceID)}";
         }
 
-        public event EventHandler<Actor>? IsDeadChanged; // actor contains new state, old is inverted
-        public void ChangeIsDead(Actor act, bool newDead)
+        public event EventHandler<Actor>? IsDeadChanged;
+        public class OpDead : Operation
         {
-            if (act.IsDead != newDead)
+            public bool Value;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
             {
-                act.IsDead = newDead;
-                IsDeadChanged?.Invoke(this, act);
+                actor.IsDead = Value;
+                ws.Actors.IsDeadChanged?.Invoke(ws, actor);
             }
+
+            public override string Str(WorldState? ws) => $"{(Value ? "DIE+" : "DIE-")}|{StrActor(ws, InstanceID)}";
         }
 
-        public event EventHandler<Actor>? InCombatChanged; // actor contains new state, old is inverted
-        public void ChangeInCombat(Actor act, bool newValue)
+        public event EventHandler<Actor>? InCombatChanged;
+        public class OpCombat : Operation
         {
-            if (act.InCombat != newValue)
+            public bool Value;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
             {
-                act.InCombat = newValue;
-                InCombatChanged?.Invoke(this, act);
+                actor.InCombat = Value;
+                ws.Actors.InCombatChanged?.Invoke(ws, actor);
             }
+
+            public override string Str(WorldState? ws) => $"{(Value ? "COM+" : "COM-")}|{StrActor(ws, InstanceID)}";
         }
 
-        public event EventHandler<(Actor, ulong)>? TargetChanged; // actor already contains new target, old is passed as extra arg
-        public void ChangeTarget(Actor act, ulong newTarget)
+        public event EventHandler<Actor>? TargetChanged;
+        public class OpTarget : Operation
         {
-            if (act.TargetID != newTarget)
+            public ulong Value;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
             {
-                var prevTarget = act.TargetID;
-                act.TargetID = newTarget;
-                TargetChanged?.Invoke(this, (act, prevTarget));
+                actor.TargetID = Value;
+                ws.Actors.TargetChanged?.Invoke(ws, actor);
             }
+
+            public override string Str(WorldState? ws) => $"TARG|{StrActor(ws, InstanceID)}|{StrActor(ws, Value)}";
+        }
+
+        // note: this is currently based on network events rather than per-frame state inspection
+        public event EventHandler<Actor>? Tethered;
+        public event EventHandler<Actor>? Untethered; // note that actor structure still contains previous tether info when this is invoked; invoked if actor disappears without untethering
+        public class OpTether : Operation
+        {
+            public ActorTetherInfo Value;
+            public ActorTetherInfo PrevValue { get; private set; }
+
+            protected override void ExecActor(WorldState ws, Actor actor)
+            {
+                PrevValue = actor.Tether;
+                if (PrevValue.Target != 0)
+                    ws.Actors.Untethered?.Invoke(ws, actor);
+                actor.Tether = Value;
+                if (Value.Target != 0)
+                    ws.Actors.Tethered?.Invoke(ws, actor);
+            }
+
+            public override string Str(WorldState? ws) => $"TETH|{StrActor(ws, InstanceID)}|{Value.ID}|{StrActor(ws, Value.Target)}";
         }
 
         public event EventHandler<Actor>? CastStarted;
         public event EventHandler<Actor>? CastFinished; // note that actor structure still contains cast details when this is invoked; invoked if actor disappears without finishing cast
-        public void UpdateCastInfo(Actor act, ActorCastInfo? cast)
+        public class OpCastInfo : Operation
         {
-            if (cast == null && act.CastInfo == null)
-                return; // was not casting and is not casting
+            public ActorCastInfo? Value;
+            public ActorCastInfo? PrevValue { get; private set; }
 
-            if (cast != null && act.CastInfo != null && cast.Action == act.CastInfo.Action && cast.TargetID == act.CastInfo.TargetID)
+            protected override void ExecActor(WorldState ws, Actor actor)
             {
-                // continuing casting same spell
-                act.CastInfo.TotalTime = cast.TotalTime;
-                act.CastInfo.FinishAt = cast.FinishAt;
-                return;
+                PrevValue = actor.CastInfo;
+                if (PrevValue != null)
+                    ws.Actors.CastFinished?.Invoke(ws, actor);
+                actor.CastInfo = Value;
+                if (Value != null)
+                    ws.Actors.CastStarted?.Invoke(ws, actor);
             }
 
-            if (act.CastInfo != null)
+            public override string Str(WorldState? ws) => Value != null
+                ? $"CST+|{StrActor(ws, InstanceID)}|{Value.Action}|{StrActor(ws, Value.TargetID)}|{StrVec3(Value.Location)}|{Utils.CastTimeString(Value, ws?.CurrentTime ?? new())}"
+                : $"CST-|{StrActor(ws, InstanceID)}";
+        }
+
+        // note: this is inherently an event, it can't be accessed from actor fields
+        public event EventHandler<(Actor, ActorCastEvent)>? CastEvent;
+        public class OpCastEvent : Operation
+        {
+            public ActorCastEvent Value = new();
+
+            protected override void ExecActor(WorldState ws, Actor actor)
             {
-                // finish previous cast
-                CastFinished?.Invoke(this, act);
+                ws.Actors.CastEvent?.Invoke(ws, (actor, Value));
             }
-            act.CastInfo = cast;
-            if (act.CastInfo != null)
+
+            public override string Str(WorldState? ws)
             {
-                // start new cast
-                CastStarted?.Invoke(this, act);
+                var sb = new StringBuilder($"CST!|{StrActor(ws, InstanceID)}|{Value.Action}|{StrActor(ws, Value.MainTargetID)}|{Value.AnimationLockTime:f2}|{Value.MaxTargets}");
+                foreach (var t in Value.Targets)
+                {
+                    sb.Append($"|{StrActor(ws, t.ID)}");
+                    for (int i = 0; i < 8; ++i)
+                        if (t.Effects[i] != 0)
+                            sb.Append($"!{t.Effects[i]:X16}");
+                }
+                return sb.ToString();
             }
         }
 
-        public event EventHandler<Actor>? Tethered;
-        public event EventHandler<Actor>? Untethered; // note that actor structure still contains previous tether info when this is invoked; invoked if actor disappears without untethering
-        public void UpdateTether(Actor act, ActorTetherInfo tether)
-        {
-            if (act.Tether.Target == tether.Target && act.Tether.ID == tether.ID)
-                return; // nothing changes
-
-            if (act.Tether.Target != 0)
-            {
-                Untethered?.Invoke(this, act);
-            }
-            act.Tether = tether;
-            if (act.Tether.Target != 0)
-            {
-                Tethered?.Invoke(this, act);
-            }
-        }
-
-        // argument = actor + status index
-        public event EventHandler<(Actor, int)>? StatusGain;
+        public event EventHandler<(Actor, int)>? StatusGain; // called when status appears -or- when extra or expiration time is changed
         public event EventHandler<(Actor, int)>? StatusLose; // note that status structure still contains details when this is invoked; invoked if actor disappears
-        public event EventHandler<(Actor, int, ushort, DateTime)>? StatusChange; // invoked when extra or expiration time is changed; status contains new values, old are passed as extra args
-        public void UpdateStatus(Actor act, int index, ActorStatus value)
+        public class OpStatus : Operation
         {
-            if (act.Statuses[index].ID == value.ID && act.Statuses[index].SourceID == value.SourceID)
+            public int Index;
+            public ActorStatus Value;
+            public ActorStatus PrevValue { get; private set; }
+
+            protected override void ExecActor(WorldState ws, Actor actor)
             {
-                // status was and still is active; just update details
-                if (value.ID != 0 && (act.Statuses[index].Extra != value.Extra || act.Statuses[index].ExpireAt != value.ExpireAt))
-                {
-                    var prevExtra = act.Statuses[index].Extra;
-                    var prevExpire = act.Statuses[index].ExpireAt;
-                    act.Statuses[index].Extra = value.Extra;
-                    act.Statuses[index].ExpireAt = value.ExpireAt;
-                    StatusChange?.Invoke(this, (act, index, prevExtra, prevExpire));
-                }
+                PrevValue = actor.Statuses[Index];
+                if (PrevValue.ID != 0 && (PrevValue.ID != Value.ID || PrevValue.SourceID != Value.SourceID))
+                    ws.Actors.StatusLose?.Invoke(ws, (actor, Index));
+                actor.Statuses[Index] = Value;
+                if (Value.ID != 0)
+                    ws.Actors.StatusGain?.Invoke(ws, (actor, Index));
             }
-            else
+
+            public override string Str(WorldState? ws) => Value.ID != 0
+                ? $"STA+|{StrActor(ws, InstanceID)}|{Index}|{Utils.StatusString(Value.ID)}|{Value.Extra:X4}|{Utils.StatusTimeString(Value.ExpireAt, ws?.CurrentTime ?? new())}|{StrActor(ws, Value.SourceID)}"
+                : $"STA-|{StrActor(ws, InstanceID)}|{Index}";
+        }
+
+        // TODO: this should really be an actor field, but I have no idea what triggers icon clear...
+        public event EventHandler<(Actor, uint)>? IconAppeared;
+        public class OpIcon : Operation
+        {
+            public uint IconID;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
             {
-                if (act.Statuses[index].ID != 0)
-                {
-                    // remove previous status
-                    StatusLose?.Invoke(this, (act, index));
-                }
-                act.Statuses[index] = value;
-                if (act.Statuses[index].ID != 0)
-                {
-                    // apply new status
-                    StatusGain?.Invoke(this, (act, index));
-                }
+                ws.Actors.IconAppeared?.Invoke(ws, (actor, IconID));
             }
+
+            public override string Str(WorldState? ws) => $"ICON|{StrActor(ws, InstanceID)}|{IconID}";
         }
     }
 }

@@ -28,31 +28,21 @@ namespace UIDev
             if (_nextOp == Replay.Ops.Count)
                 return false;
 
-            WorldState.CurrentTime = Replay.Ops[_nextOp].Timestamp;
-            while (_nextOp < Replay.Ops.Count && Replay.Ops[_nextOp].Timestamp == WorldState.CurrentTime)
-                Replay.Ops[_nextOp++].Redo(WorldState);
+            var ts = Replay.Ops[_nextOp].Timestamp;
+            while (_nextOp < Replay.Ops.Count && Replay.Ops[_nextOp].Timestamp == ts)
+                WorldState.Execute(Replay.Ops[_nextOp++]);
             return true;
         }
 
         // execute actions to advance current time to specific timestamp
-        public bool AdvanceTo(DateTime timestamp, Action update)
+        // after this call, next-op points to first operation with timestamp *greater* than what was passed, and world's current time is *less than or equal* to what was passed
+        public void AdvanceTo(DateTime timestamp, Action update)
         {
-            if (timestamp <= WorldState.CurrentTime)
-                return false;
-
             while (_nextOp < Replay.Ops.Count && Replay.Ops[_nextOp].Timestamp <= timestamp)
             {
                 TickForward();
                 update();
             }
-
-            if (WorldState.CurrentTime < timestamp)
-            {
-                WorldState.CurrentTime = timestamp;
-                update();
-            }
-
-            return true;
         }
     }
 }

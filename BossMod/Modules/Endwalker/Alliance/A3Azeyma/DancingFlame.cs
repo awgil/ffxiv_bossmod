@@ -27,9 +27,9 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
             }
         }
 
-        public override void OnEventEnvControl(BossModule module, uint featureID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
         {
-            if (featureID == 0x800375A3 && index == 27 && state == 0x00080004)
+            if (directorID == 0x800375A3 && index == 27 && state == 0x00080004)
                 _active.Clear();
         }
 

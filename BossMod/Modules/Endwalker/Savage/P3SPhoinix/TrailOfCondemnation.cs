@@ -92,7 +92,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             arena.AddCircle(pc.Position, _aoeRadius, ArenaColor.Danger);
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID is AID.FlareOfCondemnation or AID.SparksOfCondemnation)
                 Done = true;

@@ -96,7 +96,7 @@
             }
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if (caster != module.PrimaryActor)
                 return;

@@ -65,7 +65,7 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
                 _head = null;
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             switch ((AID)spell.Action.ID)
             {

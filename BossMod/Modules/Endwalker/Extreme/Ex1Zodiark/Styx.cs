@@ -4,11 +4,11 @@
     {
         public Styx() : base(ActionID.MakeSpell(AID.StyxAOE), 5) { }
 
-        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Styx)
             {
-                Target = module.WorldState.Actors.Find(actorID);
+                Target = actor;
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace BossMod
@@ -13,19 +14,33 @@ namespace BossMod
     {
         private Vector3?[] _positions = new Vector3?[8]; // null if unset
 
-        public event EventHandler<(Waymark, Vector3?)>? Changed;
-
         public Vector3? this[Waymark wm]
         {
             get => _positions[(int)wm];
-            set
+            private set => _positions[(int)wm] = value;
+        }
+
+        public IEnumerable<WorldState.Operation> CompareToInitial()
+        {
+            for (int i = 0; i < _positions.Length; ++i)
+                if (_positions[i] != null)
+                    yield return new OpWaymarkChange() { ID = (Waymark)i, Pos = _positions[i] };
+        }
+
+        // implementation of operations
+        public event EventHandler<OpWaymarkChange>? Changed;
+        public class OpWaymarkChange : WorldState.Operation
+        {
+            public Waymark ID;
+            public Vector3? Pos;
+
+            protected override void Exec(WorldState ws)
             {
-                if (_positions[(int)wm] != value)
-                {
-                    _positions[(int)wm] = value;
-                    Changed?.Invoke(this, (wm, value));
-                }
+                ws.Waymarks[ID] = Pos;
+                ws.Waymarks.Changed?.Invoke(ws, this);
             }
+
+            public override string Str(WorldState? ws) => Pos != null ? $"WAY+|{ID}|{StrVec3(Pos.Value)}" : $"WAY-|{ID}";
         }
     }
 }

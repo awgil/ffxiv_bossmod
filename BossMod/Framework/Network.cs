@@ -15,7 +15,7 @@ namespace BossMod
             public uint Sequence;
         }
 
-        public event EventHandler<CastEvent>? EventActionEffect;
+        public event EventHandler<(ulong actorID, ActorCastEvent cast)>? EventActionEffect;
         public event EventHandler<(ulong actorID, ActionID action, float castTime, ulong targetID)>? EventActorCast;
         public event EventHandler<(ulong actorID, uint actionID)>? EventActorControlCancelCast;
         public event EventHandler<(ulong actorID, uint iconID)>? EventActorControlTargetIcon;
@@ -23,7 +23,7 @@ namespace BossMod
         public event EventHandler<ulong>? EventActorControlTetherCancel;
         public event EventHandler<(ulong actorID, uint actionID, uint sourceSequence)>? EventActorControlSelfActionRejected;
         public event EventHandler<(uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4)>? EventActorControlSelfDirectorUpdate;
-        public event EventHandler<(uint featureID, byte index, uint state)>? EventEnvControl;
+        public event EventHandler<(uint directorID, byte index, uint state)>? EventEnvControl;
         public event EventHandler<(Waymark waymark, Vector3? pos)>? EventWaymark;
         public event EventHandler<PendingAction>? EventActionRequest;
         public event EventHandler<PendingAction>? EventActionRequestGT;
@@ -198,11 +198,10 @@ namespace BossMod
                 }
             }
 
-            var info = new CastEvent
+            var info = new ActorCastEvent
             {
-                CasterID = casterID,
-                MainTargetID = header->animationTargetId,
                 Action = new(header->actionType, (uint)(header->actionId - _unkDelta)), // note: see _unkDelta comment
+                MainTargetID = header->animationTargetId,
                 AnimationLockTime = header->animationLockTime,
                 MaxTargets = maxTargets,
                 SourceSequence = header->SourceSequence
@@ -214,7 +213,7 @@ namespace BossMod
                 ulong targetID = targetIDs[i];
                 if (targetID != 0)
                 {
-                    var target = new CastEvent.Target();
+                    var target = new ActorCastEvent.Target();
                     target.ID = targetID;
                     for (int j = 0; j < 8; ++j)
                         target.Effects[j] = *(ulong*)(effects + (i * 8) + j);
@@ -222,7 +221,7 @@ namespace BossMod
                 }
             }
 
-            EventActionEffect?.Invoke(this, info);
+            EventActionEffect?.Invoke(this, (casterID, info));
         }
 
         private unsafe void HandleActorCast(Protocol.Server_ActorCast* p, uint actorID)

@@ -110,7 +110,7 @@ namespace UIDev
 
         public class EnvControl
         {
-            public uint Feature;
+            public uint DirectorID;
             public byte Index;
             public uint State;
             public DateTime Timestamp;
@@ -153,7 +153,7 @@ namespace UIDev
         }
 
         public string Path = "";
-        public List<ReplayOps.Operation> Ops = new();
+        public List<WorldState.Operation> Ops = new();
         public List<Participant> Participants = new();
         public List<Action> Actions = new();
         public List<Status> Statuses = new();

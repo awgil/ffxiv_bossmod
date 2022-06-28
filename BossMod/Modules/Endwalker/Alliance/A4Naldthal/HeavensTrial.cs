@@ -54,7 +54,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
                 _stackTarget = null;
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             switch ((AID)spell.Action.ID)
             {
@@ -64,7 +64,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
                         _cones.Add((caster, target));
                     break;
                 case AID.HeavensTrialSmelting:
-                    _cones.RemoveAll(i => i.Caster.InstanceID == spell.CasterID);
+                    _cones.RemoveAll(i => i.Caster.InstanceID == caster.InstanceID);
                     break;
             }
         }

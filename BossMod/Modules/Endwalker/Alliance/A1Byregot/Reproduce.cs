@@ -48,14 +48,14 @@ namespace BossMod.Endwalker.Alliance.A1Byregot
                 _active.Add(new(caster.Position, (AID)spell.Action.ID == AID.CloudToGroundFast));
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID is AID.CloudToGroundFast or AID.CloudToGroundSlow or AID.CloudToGroundFastAOE or AID.CloudToGroundSlowAOE)
             {
                 int index = _active.FindIndex(item => MathF.Abs(item.Next.Z - caster.Position.Z) < 1);
                 if (index == -1)
                 {
-                    module.ReportError(this, $"Failed to find entry for {spell.CasterID:X}");
+                    module.ReportError(this, $"Failed to find entry for {caster.InstanceID:X}");
                     return;
                 }
 

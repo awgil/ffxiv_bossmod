@@ -194,20 +194,20 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.HiemalStormAOE)
                 StormDone = true;
         }
 
-        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Prey)
             {
-                int slot = module.Raid.FindSlot(actorID);
+                int slot = module.Raid.FindSlot(actor.InstanceID);
                 if (slot >= 0)
                 {
-                    _preyOnTH = module.Raid[slot]!.Role is Role.Tank or Role.Healer;
+                    _preyOnTH = actor.Role is Role.Tank or Role.Healer;
                     _players[slot].HavePrey = true;
                     ++_assignedPreys;
                 }

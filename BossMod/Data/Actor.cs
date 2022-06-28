@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace BossMod
@@ -35,6 +36,25 @@ namespace BossMod
         public DateTime FinishAt;
 
         public WPos LocXZ => new(Location.XZ());
+
+        public bool IsSpell() => Action.Type == ActionType.Spell;
+        public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);
+    }
+
+    public class ActorCastEvent
+    {
+        public struct Target
+        {
+            public ulong ID;
+            public ActionEffects Effects;
+        }
+
+        public ActionID Action;
+        public ulong MainTargetID; // note that actual affected targets could be completely different
+        public float AnimationLockTime;
+        public uint MaxTargets;
+        public List<Target> Targets = new();
+        public uint SourceSequence;
 
         public bool IsSpell() => Action.Type == ActionType.Spell;
         public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);
@@ -80,7 +100,7 @@ namespace BossMod
         public WPos Position => new(PosRot.X, PosRot.Z);
         public Angle Rotation => PosRot.W.Radians();
 
-        public Actor(ulong instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius, uint hpCur, uint hpMax, bool targetable, ulong ownerID)
+        public Actor(ulong instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, uint hpCur = 0, uint hpMax = 0, bool targetable = true, ulong ownerID = 0)
         {
             InstanceID = instanceID;
             OID = oid;

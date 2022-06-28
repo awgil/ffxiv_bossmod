@@ -87,7 +87,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
         }
 
-        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             int icon = (IconID)iconID switch
             {
@@ -98,7 +98,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 _ => 0
             };
             if (icon != 0)
-                SetIcon(module, actorID, icon);
+                SetIcon(module, actor.InstanceID, icon);
         }
 
         private void SetIcon(BossModule module, ulong actorID, int icon)

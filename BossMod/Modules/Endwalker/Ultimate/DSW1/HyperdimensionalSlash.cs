@@ -86,7 +86,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 arena.AddLine(module.Bounds.Center, TearPosition(module, pc), ArenaColor.Danger);
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.HyperdimensionalSlashAOERest)
             {
@@ -95,13 +95,11 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
         }
 
-        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if ((IconID)iconID == IconID.HyperdimensionalSlash)
             {
-                var actor = module.WorldState.Actors.Find(actorID);
-                if (actor != null)
-                    _laserTargets.Add(actor);
+                _laserTargets.Add(actor);
             }
         }
 

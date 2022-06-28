@@ -29,13 +29,13 @@
                 arena.AddCircle(pos.Value, 1, ArenaColor.Safe);
         }
 
-        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID >= 145 && iconID <= 152)
             {
                 _startingOffset = module.PrimaryActor.Position - module.Bounds.Center;
 
-                int slot = module.Raid.FindSlot(actorID);
+                int slot = module.Raid.FindSlot(actor.InstanceID);
                 if (slot >= 0)
                     _playerOrder[slot] = (int)(iconID - 144);
             }

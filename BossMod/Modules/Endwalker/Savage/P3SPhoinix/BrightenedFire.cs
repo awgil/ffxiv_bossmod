@@ -49,11 +49,11 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             arena.AddCircle(pc.Position, _aoeRange, ArenaColor.Danger);
         }
 
-        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID >= 268 && iconID <= 275)
             {
-                int slot = module.Raid.FindSlot(actorID);
+                int slot = module.Raid.FindSlot(actor.InstanceID);
                 if (slot >= 0)
                     _playerOrder[slot] = (int)iconID - 267;
             }

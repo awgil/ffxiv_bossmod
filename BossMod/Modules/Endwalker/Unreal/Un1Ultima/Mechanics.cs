@@ -158,15 +158,15 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
                 _magitekOffset = null;
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             switch ((AID)spell.Action.ID)
             {
                 case AID.AetheroplasmBoom:
-                    _orbsSharedExploded.Add(spell.CasterID);
+                    _orbsSharedExploded.Add(caster.InstanceID);
                     break;
                 case AID.AetheroplasmFixated:
-                    _orbsKitedExploded.Add(spell.CasterID);
+                    _orbsKitedExploded.Add(caster.InstanceID);
                     break;
                 case AID.OrbFixate:
                     _orbKiters.Add(spell.MainTargetID);

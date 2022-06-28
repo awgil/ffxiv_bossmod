@@ -189,13 +189,13 @@ namespace BossMod
             _animLockEnd = _animLockEnd.AddSeconds(args.castTime - 0.4f);
         }
 
-        private void OnNetworkActionEffect(object? sender, CastEvent action)
+        private void OnNetworkActionEffect(object? sender, (ulong actorID, ActorCastEvent cast) args)
         {
-            if (action.SourceSequence == 0 || action.CasterID != Service.ClientState.LocalPlayer?.ObjectId)
+            if (args.cast.SourceSequence == 0 || args.actorID != Service.ClientState.LocalPlayer?.ObjectId)
                 return; // non-player-initiated
 
-            var pa = new Network.PendingAction() { Action = action.Action, TargetID = action.MainTargetID, Sequence = action.SourceSequence };
-            int index = _pendingActions.FindIndex(a => a.Sequence == action.SourceSequence);
+            var pa = new Network.PendingAction() { Action = args.cast.Action, TargetID = args.cast.MainTargetID, Sequence = args.cast.SourceSequence };
+            int index = _pendingActions.FindIndex(a => a.Sequence == args.cast.SourceSequence);
             if (index == -1)
             {
                 Log($"Unexpected action-effect ({PendingActionString(pa)}): currently {_pendingActions.Count} are pending", true);
@@ -207,18 +207,18 @@ namespace BossMod
                 Log($"Unexpected action-effect ({PendingActionString(pa)}): index={index}, first={PendingActionString(_pendingActions[0])}, count={_pendingActions.Count}", true);
                 _pendingActions.RemoveRange(0, index);
             }
-            if (_pendingActions[0].Action != action.Action)
+            if (_pendingActions[0].Action != args.cast.Action)
             {
                 Log($"Request/response action mismatch: requested {PendingActionString(_pendingActions[0])}, got {PendingActionString(pa)}", true);
                 _pendingActions[0] = pa;
             }
-            Log($"-+ {PendingActionString(pa)}, lock={action.AnimationLockTime:f3}");
+            Log($"-+ {PendingActionString(pa)}, lock={args.cast.AnimationLockTime:f3}");
             _firstPendingJustCompleted = true;
 
             var now = DateTime.Now;
             var delay = (float)(now.AddSeconds(0.5) - _animLockEnd).TotalSeconds; // TODO: this isn't correct for casted spells...
             _animLockDelay = delay * (1 - _animLockDelaySmoothing) + _animLockDelay * _animLockDelaySmoothing;
-            _animLockEnd = now.AddSeconds(action.AnimationLockTime);
+            _animLockEnd = now.AddSeconds(args.cast.AnimationLockTime);
 
             // unblock input unconditionally on successful cast (I assume there are no instances where we need to immediately start next GCD?)
             _inputOverride.UnblockMovement();

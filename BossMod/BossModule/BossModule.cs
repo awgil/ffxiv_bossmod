@@ -104,10 +104,9 @@ namespace BossMod
             WorldState.Actors.Untethered += OnActorUntethered;
             WorldState.Actors.StatusGain += OnActorStatusGain;
             WorldState.Actors.StatusLose += OnActorStatusLose;
-            WorldState.Actors.StatusChange += OnActorStatusChange;
-            WorldState.Events.Icon += OnEventIcon;
-            WorldState.Events.Cast += OnEventCast;
-            WorldState.Events.EnvControl += OnEventEnvControl;
+            WorldState.Actors.IconAppeared += OnActorIcon;
+            WorldState.Actors.CastEvent += OnActorCastEvent;
+            WorldState.EnvControl += OnEnvControl;
             foreach (var v in WorldState.Actors)
                 OnActorCreated(null, v);
         }
@@ -133,10 +132,9 @@ namespace BossMod
                 WorldState.Actors.Untethered -= OnActorUntethered;
                 WorldState.Actors.StatusGain -= OnActorStatusGain;
                 WorldState.Actors.StatusLose -= OnActorStatusLose;
-                WorldState.Actors.StatusChange -= OnActorStatusChange;
-                WorldState.Events.Icon -= OnEventIcon;
-                WorldState.Events.Cast -= OnEventCast;
-                WorldState.Events.EnvControl -= OnEventEnvControl;
+                WorldState.Actors.IconAppeared -= OnActorIcon;
+                WorldState.Actors.CastEvent -= OnActorCastEvent;
+                WorldState.EnvControl -= OnEnvControl;
             }
         }
 
@@ -346,16 +344,12 @@ namespace BossMod
 
         private void OnActorCreated(object? sender, Actor actor)
         {
-            var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
-            if (relevant != null)
-                relevant.Add(actor);
+            _relevantEnemies.GetValueOrDefault(actor.OID)?.Add(actor);
         }
 
         private void OnActorDestroyed(object? sender, Actor actor)
         {
-            var relevant = _relevantEnemies.GetValueOrDefault(actor.OID);
-            if (relevant != null)
-                relevant.Remove(actor);
+            _relevantEnemies.GetValueOrDefault(actor.OID)?.Remove(actor);
         }
 
         private void OnActorCastStarted(object? sender, Actor actor)
@@ -396,33 +390,23 @@ namespace BossMod
                 comp.OnStatusLose(this, arg.actor, arg.actor.Statuses[arg.index]);
         }
 
-        private void OnActorStatusChange(object? sender, (Actor actor, int index, ushort prevExtra, DateTime prevExpire) arg)
+        private void OnActorIcon(object? sender, (Actor actor, uint iconID) arg)
         {
             foreach (var comp in _components)
-                comp.OnStatusGain(this, arg.actor, arg.actor.Statuses[arg.index]);
+                comp.OnEventIcon(this, arg.actor, arg.iconID);
         }
 
-        private void OnEventIcon(object? sender, (ulong actorID, uint iconID) arg)
+        private void OnActorCastEvent(object? sender, (Actor actor, ActorCastEvent cast) arg)
+        {
+            if ((arg.actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && arg.cast.IsSpell())
+                foreach (var comp in _components)
+                    comp.OnEventCast(this, arg.actor, arg.cast);
+        }
+
+        private void OnEnvControl(object? sender, WorldState.OpEnvControl op)
         {
             foreach (var comp in _components)
-                comp.OnEventIcon(this, arg.actorID, arg.iconID);
-        }
-
-        private void OnEventCast(object? sender, CastEvent info)
-        {
-            if (info.IsSpell())
-            {
-                var caster = WorldState.Actors.Find(info.CasterID);
-                if (caster != null && (caster.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo))
-                    foreach (var comp in _components)
-                        comp.OnEventCast(this, caster, info);
-            }
-        }
-
-        private void OnEventEnvControl(object? sender, (uint featureID, byte index, uint state) arg)
-        {
-            foreach (var comp in _components)
-                comp.OnEventEnvControl(this, arg.featureID, arg.index, arg.state);
+                comp.OnEventEnvControl(this, op.DirectorID, op.Index, op.State);
         }
     }
 }

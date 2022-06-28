@@ -59,7 +59,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
             }
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if (_active.Count > 0 && (AID)spell.Action.ID == AID.EverfireRest || (AID)spell.Action.ID == AID.OnceBurnedRest)
             {

@@ -169,7 +169,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             switch ((AID)spell.Action.ID)
             {
@@ -186,11 +186,11 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if ((IconID)iconID == IconID.SkywardLeap)
             {
-                _playersWithIcons.Set(module.Raid.FindSlot(actorID));
+                _playersWithIcons.Set(module.Raid.FindSlot(actor.InstanceID));
             }
         }
 

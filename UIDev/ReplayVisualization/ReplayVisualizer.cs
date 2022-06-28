@@ -13,6 +13,7 @@ namespace UIDev
         private BossModuleManager _mgr;
         private DateTime _first;
         private DateTime _last;
+        private DateTime _curTime; // note that is could fall between frames
         private DateTime _prevFrame;
         private float _playSpeed = 0;
         private float _azimuth;
@@ -26,7 +27,7 @@ namespace UIDev
         {
             _player = new(data);
             _mgr = new(_player.WorldState);
-            _first = data.Ops.First().Timestamp;
+            _curTime = _first = data.Ops.First().Timestamp;
             _last = data.Ops.Last().Timestamp;
             _player.AdvanceTo(_first, _mgr.Update);
             _config = new(Service.Config, _player.WorldState);
@@ -42,7 +43,7 @@ namespace UIDev
         {
             var curFrame = DateTime.Now;
             if (_playSpeed > 0)
-                MoveTo(_player.WorldState.CurrentTime + (curFrame - _prevFrame) * _playSpeed);
+                MoveTo(_curTime + (curFrame - _prevFrame) * _playSpeed);
             _prevFrame = curFrame;
 
             DrawControlRow();
@@ -90,7 +91,7 @@ namespace UIDev
 
         private void DrawControlRow()
         {
-            ImGui.TextUnformatted($"{_player.WorldState.CurrentTime:O}");
+            ImGui.TextUnformatted($"{_curTime:O}");
             ImGui.SameLine();
             if (ImGui.Button("<<<"))
                 Rewind(20);
@@ -129,7 +130,7 @@ namespace UIDev
             cursor.Y += 4;
             dl.AddLine(cursor, cursor + new Vector2(w, 0), 0xff00ffff);
 
-            var curp = cursor + new Vector2(w * (float)((_player.WorldState.CurrentTime - _first) / (_last - _first)), 0);
+            var curp = cursor + new Vector2(w * (float)((_curTime - _first) / (_last - _first)), 0);
             dl.AddTriangleFilled(curp, curp + new Vector2(3, 5), curp + new Vector2(-3, 5), 0xff00ffff);
             foreach (var e in _player.Replay.Encounters)
             {
@@ -162,10 +163,12 @@ namespace UIDev
         {
             var pos = actor.Position;
             var rot = actor.Rotation.Deg;
-            ImGui.TableNextColumn(); ImGui.DragFloat("###X", ref pos.X, 0.25f, 80, 120);
-            ImGui.TableNextColumn(); ImGui.DragFloat("###Z", ref pos.Z, 0.25f, 80, 120);
-            ImGui.TableNextColumn(); ImGui.DragFloat("###Rot", ref rot, 1, -180, 180);
-            _player.WorldState.Actors.Move(actor, new(pos.X, actor.PosRot.Y, pos.Z, rot.Degrees().Rad));
+            bool modified = false;
+            ImGui.TableNextColumn(); modified |= ImGui.DragFloat("###X", ref pos.X, 0.25f, 80, 120);
+            ImGui.TableNextColumn(); modified |= ImGui.DragFloat("###Z", ref pos.Z, 0.25f, 80, 120);
+            ImGui.TableNextColumn(); modified |= ImGui.DragFloat("###Rot", ref rot, 1, -180, 180);
+            if (modified)
+                actor.PosRot = new(pos.X, actor.PosRot.Y, pos.Z, rot.Degrees().Rad);
 
             ImGui.TableNextColumn();
             if (actor.IsDead)
@@ -314,22 +317,19 @@ namespace UIDev
 
         private void MoveTo(DateTime t)
         {
-            if (t > _player.WorldState.CurrentTime)
-            {
-                _player.AdvanceTo(t, _mgr.Update);
-            }
-            else if (t < _player.WorldState.CurrentTime)
+            if (t < _player.WorldState.CurrentTime)
             {
                 _player.Reset();
                 _mgr = new(_player.WorldState);
-                _player.AdvanceTo(t, _mgr.Update);
             }
+            _player.AdvanceTo(t, _mgr.Update);
+            _curTime = t;
         }
 
         private void Rewind(float seconds)
         {
             _playSpeed = 0;
-            MoveTo(_player.WorldState.CurrentTime.AddSeconds(-seconds));
+            MoveTo(_curTime.AddSeconds(-seconds));
         }
     }
 }

@@ -82,18 +82,17 @@ namespace UIDev
             _ws.Actors.Untethered += TetherRemove;
             _ws.Actors.StatusGain += StatusGain;
             _ws.Actors.StatusLose += StatusLose;
-            _ws.Actors.StatusChange += StatusChange;
-            _ws.Events.Icon += EventIcon;
-            _ws.Events.Cast += EventCast;
-            _ws.Events.DirectorUpdate += EventDirectorUpdate;
-            _ws.Events.EnvControl += EventEnvControl;
+            _ws.Actors.IconAppeared += EventIcon;
+            _ws.Actors.CastEvent += EventCast;
+            _ws.DirectorUpdate += EventDirectorUpdate;
+            _ws.EnvControl += EventEnvControl;
         }
 
-        protected void AddOp(DateTime timestamp, ReplayOps.Operation op)
+        protected void AddOp(WorldState.Operation op)
         {
-            AdvanceWorldTime(timestamp);
-            op.Timestamp = timestamp;
-            op.Redo(_ws);
+            if (op is WorldState.OpFrameStart && _res.Ops.Count > 0)
+                FinishFrame();
+            _ws.Execute(op);
             _res.Ops.Add(op);
         }
 
@@ -112,6 +111,7 @@ namespace UIDev
             //    }
             //}
 
+            FinishFrame();
             _res.Path = path;
             foreach (var enc in _modules.Values)
             {
@@ -121,16 +121,7 @@ namespace UIDev
             }
             foreach (var p in _participants.Values)
             {
-                p.Existence.End = _ws.CurrentTime;
-                if (p.Casts.LastOrDefault()?.Time.End == new DateTime())
-                    p.Casts.Last().Time.End = _ws.CurrentTime;
-                if (p.TargetableHistory.LastOrDefault().Value)
-                {
-                    if (p.TargetableHistory.Last().Key < _ws.CurrentTime)
-                        p.TargetableHistory.Add(_ws.CurrentTime, false);
-                    else
-                        p.TargetableHistory.RemoveAt(p.TargetableHistory.Count - 1);
-                }
+                FinalizeParticipant(p);
             }
             foreach (var s in _statuses.Values)
             {
@@ -143,33 +134,43 @@ namespace UIDev
             return _res;
         }
 
-        private void AdvanceWorldTime(DateTime timestamp)
+        private void FinishFrame()
         {
-            if (_ws.CurrentTime != timestamp && _ws.CurrentTime != new DateTime())
+            _mgr.Update();
+            foreach (var m in _modules.Values)
             {
-                _mgr.Update();
-                foreach (var m in _modules.Values)
+                if (m.Module.StateMachine?.ActiveState != m.ActiveState)
                 {
-                    if (m.Module.StateMachine?.ActiveState != m.ActiveState)
+                    if (m.ActiveState == null)
                     {
-                        if (m.ActiveState == null)
-                        {
-                            m.Encounter.Time.Start = _ws.CurrentTime;
-                            foreach (var p in _participants.Values)
-                                m.Encounter.Participants.GetOrAdd(p.OID).Add(p);
-                            foreach (var p in _ws.Party.WithoutSlot(true))
-                                m.Encounter.PartyMembers.Add((_participants[p.InstanceID], p.Class));
-                            _res.Encounters.Add(m.Encounter);
-                        }
-                        else
-                        {
-                            m.Encounter.States.Add(new() { ID = m.ActiveState.ID, Name = m.ActiveState.Name, Comment = m.ActiveState.Comment, ExpectedDuration = m.ActiveState.Duration, Exit = _ws.CurrentTime });
-                        }
-                        m.ActiveState = m.Module.StateMachine?.ActiveState;
+                        m.Encounter.Time.Start = _ws.CurrentTime;
+                        foreach (var p in _participants.Values)
+                            m.Encounter.Participants.GetOrAdd(p.OID).Add(p);
+                        foreach (var p in _ws.Party.WithoutSlot(true))
+                            m.Encounter.PartyMembers.Add((_participants[p.InstanceID], p.Class));
+                        _res.Encounters.Add(m.Encounter);
                     }
+                    else
+                    {
+                        m.Encounter.States.Add(new() { ID = m.ActiveState.ID, Name = m.ActiveState.Name, Comment = m.ActiveState.Comment, ExpectedDuration = m.ActiveState.Duration, Exit = _ws.CurrentTime });
+                    }
+                    m.ActiveState = m.Module.StateMachine?.ActiveState;
                 }
             }
-            _ws.CurrentTime = timestamp;
+        }
+
+        private void FinalizeParticipant(Replay.Participant p)
+        {
+            p.Existence.End = _ws.CurrentTime;
+            if (p.Casts.LastOrDefault()?.Time.End == new DateTime())
+                p.Casts.Last().Time.End = _ws.CurrentTime;
+            if (p.TargetableHistory.LastOrDefault().Value)
+            {
+                if (p.TargetableHistory.Last().Key < _ws.CurrentTime)
+                    p.TargetableHistory.Add(_ws.CurrentTime, false);
+                else
+                    p.TargetableHistory.RemoveAt(p.TargetableHistory.Count - 1);
+            }
         }
 
         private void ActorAdded(object? sender, Actor actor)
@@ -187,10 +188,7 @@ namespace UIDev
 
         private void ActorRemoved(object? sender, Actor actor)
         {
-            var p = _participants[actor.InstanceID];
-            p.Existence.End = _ws.CurrentTime;
-            if (actor.IsTargetable)
-                p.TargetableHistory.Add(_ws.CurrentTime, false);
+            FinalizeParticipant(_participants[actor.InstanceID]);
             _participants.Remove(actor.InstanceID);
         }
 
@@ -204,14 +202,14 @@ namespace UIDev
             _participants[actor.InstanceID].DeadHistory.Add(_ws.CurrentTime, actor.IsDead);
         }
 
-        private void ActorMoved(object? sender, (Actor actor, Vector4 prevPosRot) args)
+        private void ActorMoved(object? sender, Actor actor)
         {
-            _participants[args.actor.InstanceID].PosRotHistory.Add(_ws.CurrentTime, args.actor.PosRot);
+            _participants[actor.InstanceID].PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
         }
 
-        private void ActorHP(object? sender, (Actor actor, uint prevCur, uint prevMax) args)
+        private void ActorHP(object? sender, Actor actor)
         {
-            _participants[args.actor.InstanceID].HPHistory.Add(_ws.CurrentTime, (args.actor.HPCur, args.actor.HPMax));
+            _participants[actor.InstanceID].HPHistory.Add(_ws.CurrentTime, (actor.HPCur, actor.HPMax));
         }
 
         private void CastStart(object? sender, Actor actor)
@@ -240,59 +238,61 @@ namespace UIDev
 
         private void StatusGain(object? sender, (Actor actor, int index) args)
         {
-            var p = _participants[args.actor.InstanceID];
+            var r = _statuses.GetValueOrDefault((args.actor.InstanceID, args.index));
+            if (r != null)
+                r.Time.End = _ws.CurrentTime;
+
             var s = args.actor.Statuses[args.index];
+            var tgt = _participants[args.actor.InstanceID];
             var src = _participants.GetValueOrDefault(s.SourceID);
-            var r = _statuses[(args.actor.InstanceID, args.index)] = new() { ID = s.ID, Index = args.index, Target = p, Source = src, InitialDuration = (float)(s.ExpireAt - _ws.CurrentTime).TotalSeconds, Time = new(_ws.CurrentTime), StartingExtra = s.Extra };
-            p.HasAnyStatuses = true;
+            r = _statuses[(args.actor.InstanceID, args.index)] = new() { ID = s.ID, Index = args.index, Target = tgt, Source = src, InitialDuration = (float)(s.ExpireAt - _ws.CurrentTime).TotalSeconds, Time = new(_ws.CurrentTime), StartingExtra = s.Extra };
+            tgt.HasAnyStatuses = true;
             _res.Statuses.Add(r);
         }
 
         private void StatusLose(object? sender, (Actor actor, int index) args)
         {
-            var s = args.actor.Statuses[args.index];
             var r = _statuses.GetValueOrDefault((args.actor.InstanceID, args.index));
             if (r == null)
                 return;
-
             r.Time.End = _ws.CurrentTime;
             _statuses.Remove((args.actor.InstanceID, args.index));
         }
 
-        private void StatusChange(object? sender, (Actor actor, int index, ushort, DateTime) args)
+        private void EventIcon(object? sender, (Actor actor, uint iconID) args)
         {
-            StatusLose(sender, (args.actor, args.index));
-            StatusGain(sender, (args.actor, args.index));
+            _res.Icons.Add(new() { ID = args.iconID, Target = _participants.GetValueOrDefault(args.actor.InstanceID), Timestamp = _ws.CurrentTime });
         }
 
-        private void EventIcon(object? sender, (ulong actorID, uint iconID) args)
+        private void EventCast(object? sender, (Actor actor, ActorCastEvent cast) args)
         {
-            _res.Icons.Add(new() { ID = args.iconID, Target = _participants.GetValueOrDefault(args.actorID), Timestamp = _ws.CurrentTime });
-        }
-
-        private void EventCast(object? sender, CastEvent info)
-        {
-            var p = _participants.GetValueOrDefault(info.CasterID);
+            var p = _participants.GetValueOrDefault(args.actor.InstanceID);
             if (p == null)
             {
-                Service.Log($"Skipping {info.Action} cast from unknown actor {info.CasterID:X}");
+                Service.Log($"Skipping {args.cast.Action} cast from unknown actor {args.actor.InstanceID:X}");
                 return;
             }
 
-            var srcActor = _ws.Actors.Find(info.CasterID);
-            var tgtActor = _ws.Actors.Find(info.MainTargetID);
+            var srcActor = _ws.Actors.Find(args.actor.InstanceID);
+            var tgtActor = _ws.Actors.Find(args.cast.MainTargetID);
 
             Vector3 targetPos = new();
             if (tgtActor != null)
                 targetPos = tgtActor.PosRot.XYZ();
             else if (srcActor?.CastInfo != null)
                 targetPos = srcActor.CastInfo.Location;
-            else if (info.Targets.Count > 0)
-                targetPos = _ws.Actors.Find(info.Targets[0].ID)?.PosRot.XYZ() ?? new();
+            else if (args.cast.Targets.Count > 0)
+                targetPos = _ws.Actors.Find(args.cast.Targets[0].ID)?.PosRot.XYZ() ?? new();
 
-            var a = new Replay.Action() { ID = info.Action, Timestamp = _ws.CurrentTime, Source = p,
-                MainTarget = _participants.GetValueOrDefault(info.MainTargetID), TargetPos = targetPos };
-            foreach (var t in info.Targets)
+            var a = new Replay.Action()
+            {
+                ID = args.cast.Action,
+                Timestamp = _ws.CurrentTime,
+                Source = p,
+                MainTarget = _participants.GetValueOrDefault(args.cast.MainTargetID),
+                TargetPos = targetPos
+            };
+            foreach (var t in args.cast.Targets)
             {
                 var target = _participants.GetValueOrDefault(t.ID);
                 if (target != null)
@@ -303,14 +303,14 @@ namespace UIDev
             _res.Actions.Add(a);
         }
 
-        private void EventDirectorUpdate(object? sender, (uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4) args)
+        private void EventDirectorUpdate(object? sender, WorldState.OpDirectorUpdate op)
         {
-            _res.DirectorUpdates.Add(new() { DirectorID = args.directorID, UpdateID = args.updateID, Param1 = args.p1, Param2 = args.p2, Param3 = args.p3, Param4 = args.p4, Timestamp = _ws.CurrentTime });
+            _res.DirectorUpdates.Add(new() { DirectorID = op.DirectorID, UpdateID = op.UpdateID, Param1 = op.Param1, Param2 = op.Param2, Param3 = op.Param3, Param4 = op.Param4, Timestamp = _ws.CurrentTime });
         }
 
-        private void EventEnvControl(object? sender, (uint feature, byte index, uint state) args)
+        private void EventEnvControl(object? sender, WorldState.OpEnvControl op)
         {
-            _res.EnvControls.Add(new() { Feature = args.feature, Index = args.index, State = args.state, Timestamp = _ws.CurrentTime });
+            _res.EnvControls.Add(new() { DirectorID = op.DirectorID, Index = op.Index, State = op.State, Timestamp = _ws.CurrentTime });
         }
     }
 }

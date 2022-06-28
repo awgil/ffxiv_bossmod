@@ -108,7 +108,7 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
                 module.ReportError(this, $"Unexpected extra of element buff: {status.Extra:X4}, cur element {CurElement}");
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, CastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if (CurElement == Element.None)
                 return;

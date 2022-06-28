@@ -142,14 +142,14 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 CurState = State.Done;
         }
 
-        public override void OnEventIcon(BossModule module, ulong actorID, uint iconID)
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
-            var slot = module.Raid.FindSlot(actorID);
+            var slot = module.Raid.FindSlot(actor.InstanceID);
             if (slot == -1)
                 return;
 
             _playerIcons[slot] = (IconID)iconID;
-            PlayerTetherOrIconAssigned(module, slot, module.Raid[slot]!);
+            PlayerTetherOrIconAssigned(module, slot, actor);
         }
 
         private void PlayerTetherOrIconAssigned(BossModule module, int slot, Actor actor)
