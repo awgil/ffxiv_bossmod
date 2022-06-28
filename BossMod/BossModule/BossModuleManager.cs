@@ -211,7 +211,7 @@ namespace BossMod
 
         private BossModule CreateDemoModule()
         {
-            return new DemoModule(this, new(0, 0, "", ActorType.None, Class.None, new(), 0, 0, 0, false, 0));
+            return new DemoModule(this, new(0, 0, "", ActorType.None, Class.None, new()));
         }
 
         private void ActorAdded(object? sender, Actor actor)

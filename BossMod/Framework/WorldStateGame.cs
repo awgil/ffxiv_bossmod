@@ -90,8 +90,13 @@ namespace BossMod
             var name = obj.Name.TextValue;
             var classID = (Class)(character?.ClassJob.Id ?? 0);
             var posRot = new Vector4(obj.Position, obj.Rotation);
-            var curHP = character?.CurrentHp ?? 0;
-            var maxHP = character?.MaxHp ?? 0;
+            var hp = new ActorHP();
+            if (character != null)
+            {
+                hp.Cur = character.CurrentHp;
+                hp.Max = character.MaxHp;
+                hp.Shield = (uint)(Utils.CharacterShieldValue(character) * 0.01f * hp.Max);
+            }
             var targetable = Utils.GameObjectIsTargetable(obj);
             var isDead = Utils.GameObjectIsDead(obj);
             var inCombat = character?.StatusFlags.HasFlag(StatusFlags.InCombat) ?? false;
@@ -107,8 +112,7 @@ namespace BossMod
                     Type = (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind),
                     Class = classID,
                     PosRot = posRot,
-                    HPCur = curHP,
-                    HPMax = maxHP,
+                    HP = hp,
                     IsTargetable = targetable,
                     OwnerID = SanitizedObjectID(obj.OwnerId)
                 });
@@ -122,8 +126,8 @@ namespace BossMod
                     Execute(new ActorState.OpClassChange() { InstanceID = act.InstanceID, Class = classID });
                 if (act.PosRot != posRot)
                     Execute(new ActorState.OpMove() { InstanceID = act.InstanceID, PosRot = posRot });
-                if (act.HPCur != curHP || act.HPMax != maxHP)
-                    Execute(new ActorState.OpHP() { InstanceID = act.InstanceID, Cur = curHP, Max = maxHP });
+                if (act.HP.Cur != hp.Cur || act.HP.Max != hp.Max || act.HP.Shield != hp.Shield)
+                    Execute(new ActorState.OpHP() { InstanceID = act.InstanceID, Value = hp });
                 if (act.IsTargetable != targetable)
                     Execute(new ActorState.OpTargetable() { InstanceID = act.InstanceID, Value = targetable });
             }

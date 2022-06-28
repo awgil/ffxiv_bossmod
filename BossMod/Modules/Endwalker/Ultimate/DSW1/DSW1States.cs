@@ -15,7 +15,7 @@
 
         private bool ActorKilled(Actor? actor)
         {
-            return actor == null || actor.IsDestroyed || actor.HPCur < actor.HPMax && !actor.IsTargetable;
+            return actor == null || actor.IsDestroyed || actor.HP.Cur < actor.HP.Max && !actor.IsTargetable;
         }
 
         private void MainPhase(uint id)

@@ -30,13 +30,14 @@ namespace BossMod
                 var actor = ws?.Actors.Find(instanceID);
                 return actor != null ? $"{actor.InstanceID:X8}/{actor.OID:X}/{actor.Name}/{actor.Type}/{StrVec3(actor.PosRot.XYZ())}/{actor.Rotation}" : $"{instanceID:X8}";
             }
+            protected static string StrHP(ActorHP hp) => $"{hp.Cur}/{hp.Max}/{hp.Shield}";
         }
 
         public IEnumerable<Operation> CompareToInitial()
         {
             foreach (var act in this)
             {
-                yield return new OpCreate() { InstanceID = act.InstanceID, OID = act.OID, Name = act.Name, Type = act.Type, Class = act.Class, PosRot = act.PosRot, HitboxRadius = act.HitboxRadius, HPCur = act.HPCur, HPMax = act.HPMax, IsTargetable = act.IsTargetable, OwnerID = act.OwnerID };
+                yield return new OpCreate() { InstanceID = act.InstanceID, OID = act.OID, Name = act.Name, Type = act.Type, Class = act.Class, PosRot = act.PosRot, HitboxRadius = act.HitboxRadius, HP = act.HP, IsTargetable = act.IsTargetable, OwnerID = act.OwnerID };
                 if (act.IsDead)
                     yield return new OpDead() { InstanceID = act.InstanceID, Value = true };
                 if (act.InCombat)
@@ -63,19 +64,18 @@ namespace BossMod
             public Class Class;
             public Vector4 PosRot;
             public float HitboxRadius;
-            public uint HPCur;
-            public uint HPMax;
+            public ActorHP HP;
             public bool IsTargetable;
             public ulong OwnerID;
 
             protected override void ExecActor(WorldState ws, Actor actor) { }
             protected override void Exec(WorldState ws)
             {
-                var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, HPCur, HPMax, IsTargetable, OwnerID);
+                var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, HP, IsTargetable, OwnerID);
                 ws.Actors.Added?.Invoke(ws, actor);
             }
 
-            public override string Str(WorldState? ws) => $"ACT+|{StrActor(ws, InstanceID)}|{Class}|{IsTargetable}|{HitboxRadius:f3}|{StrActor(ws, OwnerID)}|{HPCur}/{HPMax}";
+            public override string Str(WorldState? ws) => $"ACT+|{StrActor(ws, InstanceID)}|{Class}|{IsTargetable}|{HitboxRadius:f3}|{StrActor(ws, OwnerID)}|{StrHP(HP)}";
         }
 
         public event EventHandler<Actor>? Removed;
@@ -159,17 +159,15 @@ namespace BossMod
         public event EventHandler<Actor>? HPChanged;
         public class OpHP : Operation
         {
-            public uint Cur;
-            public uint Max;
+            public ActorHP Value;
 
             protected override void ExecActor(WorldState ws, Actor actor)
             {
-                actor.HPCur = Cur;
-                actor.HPMax = Max;
+                actor.HP = Value;
                 ws.Actors.HPChanged?.Invoke(ws, actor);
             }
 
-            public override string Str(WorldState? ws) => $"HP  |{StrActor(ws, InstanceID)}|{Cur}/{Max}";
+            public override string Str(WorldState? ws) => $"HP  |{StrActor(ws, InstanceID)}|{StrHP(Value)}";
         }
 
         public event EventHandler<Actor>? IsTargetableChanged;

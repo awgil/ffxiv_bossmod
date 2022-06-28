@@ -86,30 +86,14 @@ namespace BossMod
             return *(T*)((IntPtr)address + offset);
         }
 
-        public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* GameObjectInternal(GameObject? obj)
-        {
-            return (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)obj?.Address;
-        }
+        public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* GameObjectInternal(GameObject? obj) => obj != null ? (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)obj.Address : null;
+        public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Character.Character* CharacterInternal(Character? chr) => chr != null ? (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)chr.Address : null;
+        public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* BattleCharaInternal(BattleChara? chara) => chara != null ? (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)chara.Address : null;
 
-        public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* BattleCharaInternal(BattleChara? chara)
-        {
-            return (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)chara?.Address;
-        }
-
-        public static unsafe bool GameObjectIsDead(GameObject obj)
-        {
-            return GameObjectInternal(obj)->IsDead();
-        }
-
-        public static unsafe bool GameObjectIsTargetable(GameObject obj)
-        {
-            return GameObjectInternal(obj)->GetIsTargetable();
-        }
-
-        public static unsafe Vector3 BattleCharaCastLocation(BattleChara chara)
-        {
-            return BattleCharaInternal(chara)->SpellCastInfo.CastLocation;
-        }
+        public static unsafe bool GameObjectIsDead(GameObject obj) => GameObjectInternal(obj)->IsDead();
+        public static unsafe bool GameObjectIsTargetable(GameObject obj) => GameObjectInternal(obj)->GetIsTargetable();
+        public static unsafe byte CharacterShieldValue(Character chr) => CharacterInternal(chr)->ShieldValue; // % of max hp
+        public static unsafe Vector3 BattleCharaCastLocation(BattleChara chara) => BattleCharaInternal(chara)->SpellCastInfo.CastLocation;
 
         public static unsafe ulong SceneObjectFlags(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o)
         {

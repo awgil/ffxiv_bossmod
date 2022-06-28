@@ -179,10 +179,10 @@ namespace UIDev
             ImGui.TextUnformatted(actor.Name);
 
             ImGui.TableNextColumn();
-            if (actor.HPMax > 0)
+            if (actor.HP.Max > 0)
             {
-                float frac = (float)actor.HPCur / actor.HPMax;
-                ImGui.ProgressBar(frac, new(ImGui.GetColumnWidth(), 0), $"{frac * 100:f1}% ({actor.HPCur} / {actor.HPMax})");
+                float frac = Math.Min((float)(actor.HP.Cur + actor.HP.Shield) / actor.HP.Max, 1);
+                ImGui.ProgressBar(frac, new(ImGui.GetColumnWidth(), 0), $"{frac * 100:f1}% ({actor.HP.Cur} + {actor.HP.Shield} / {actor.HP.Max})");
             }
 
             ImGui.TableNextColumn();

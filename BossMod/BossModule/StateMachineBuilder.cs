@@ -112,7 +112,7 @@ namespace BossMod
         public Phase HPPercentPhase(uint seqID, Action<uint> buildState, string name, float hpThreshold, float dur)
         {
             var phase = SimplePhase(seqID, buildState, name, dur);
-            phase.Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HPCur < Module.PrimaryActor.HPMax * hpThreshold;
+            phase.Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HP.Cur < Module.PrimaryActor.HP.Max * hpThreshold;
             return phase;
         }
 

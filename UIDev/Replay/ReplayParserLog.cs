@@ -138,7 +138,7 @@ namespace UIDev
         private void ParseActorCreate(string[] payload)
         {
             var parts = payload[2].Split('/');
-            var (hpCur, hpMax) = payload.Length > 7 ? CurMax(payload[7]) : (0, 0);
+            var hp = payload.Length > 7 ? ActorHP(payload[7]) : new();
             AddOp(new ActorState.OpCreate()
             {
                 InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber),
@@ -148,8 +148,7 @@ namespace UIDev
                 Class = Enum.Parse<Class>(payload[3]),
                 PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]).Degrees().Rad),
                 HitboxRadius = float.Parse(payload[5]),
-                HPCur = hpCur,
-                HPMax = hpMax,
+                HP = hp,
                 IsTargetable = bool.Parse(payload[4]),
                 OwnerID = payload.Length > 6 ? ActorID(payload[6]) : 0,
             });
@@ -179,8 +178,8 @@ namespace UIDev
 
         private void ParseActorHP(string[] payload)
         {
-            var (hpCur, hpMax) = CurMax(payload[3]);
-            AddOp(new ActorState.OpHP() { InstanceID = ActorID(payload[2]), Cur = hpCur, Max = hpMax });
+            var hp = ActorHP(payload[3]);
+            AddOp(new ActorState.OpHP() { InstanceID = ActorID(payload[2]), Value = hp });
         }
 
         private void ParseActorTargetable(string[] payload, bool targetable)
@@ -319,10 +318,10 @@ namespace UIDev
             return ulong.Parse(sep >= 0 ? actor.AsSpan(0, sep) : actor.AsSpan(), NumberStyles.HexNumber);
         }
 
-        private static (uint, uint) CurMax(string repr)
+        private static ActorHP ActorHP(string repr)
         {
             var parts = repr.Split('/');
-            return (uint.Parse(parts[0]), uint.Parse(parts[1]));
+            return new() { Cur = uint.Parse(parts[0]), Max = uint.Parse(parts[1]), Shield = parts.Length > 2 ? uint.Parse(parts[2]) : 0 };
         }
 
         private static ActionID Action(string repr)

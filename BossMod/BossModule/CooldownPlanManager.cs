@@ -123,7 +123,7 @@ namespace BossMod
 
         private static StateMachine? CreateStateMachineForOID(uint oid)
         {
-            return ModuleRegistry.CreateModule(oid, new(new()), new(0, oid, "", ActorType.None, Class.None, new(), 0, 0, 0, false, 0))?.StateMachine;
+            return ModuleRegistry.CreateModule(oid, new(new()), new(0, oid, "", ActorType.None, Class.None, new()))?.StateMachine;
         }
     }
 }

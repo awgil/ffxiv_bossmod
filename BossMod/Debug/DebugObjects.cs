@@ -14,12 +14,13 @@ namespace BossMod
             ImGui.Checkbox("Show players, minions and mounts", ref _showCrap);
 
             int i = 0;
-            ImGui.BeginTable("objects", 11);
+            ImGui.BeginTable("objects", 12, ImGuiTableFlags.Resizable);
             ImGui.TableSetupColumn("Index");
             ImGui.TableSetupColumn("Actor");
             ImGui.TableSetupColumn("Kind/Subkind");
             ImGui.TableSetupColumn("Class");
             ImGui.TableSetupColumn("OwnerID");
+            ImGui.TableSetupColumn("HP");
             ImGui.TableSetupColumn("Flags");
             ImGui.TableSetupColumn("Position");
             ImGui.TableSetupColumn("Rotation");
@@ -39,12 +40,14 @@ namespace BossMod
                 var character = obj as Character;
                 var battleChara = obj as BattleChara;
                 var internalObj = Utils.GameObjectInternal(obj);
+                var internalChara = Utils.BattleCharaInternal(battleChara);
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"{idx}");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectString(obj));
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectKindString(obj));
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(character != null ? $"{character.ClassJob.Id} ({(Class)character.ClassJob.Id})" : "---");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"{obj.OwnerId:X}");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(character != null ? $"{character.CurrentHp}/{character.MaxHp} ({(character != null ? Utils.CharacterShieldValue(character) : 0)})" : "---");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"{character?.StatusFlags}");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.Vec3String(obj.Position));
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(obj.Rotation.Radians().ToString());

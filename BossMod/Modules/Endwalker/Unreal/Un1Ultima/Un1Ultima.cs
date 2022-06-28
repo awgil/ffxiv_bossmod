@@ -5,7 +5,7 @@
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            var hint = ((float)module.PrimaryActor.HPCur / module.PrimaryActor.HPMax) switch
+            var hint = ((float)module.PrimaryActor.HP.Cur / module.PrimaryActor.HP.Max) switch
             {
                 > 0.8f => "Garuda -> 80% Titan",
                 > 0.65f => "Titan -> 65% Ifrit",

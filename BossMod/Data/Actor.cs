@@ -60,6 +60,13 @@ namespace BossMod
         public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);
     }
 
+    public struct ActorHP
+    {
+        public uint Cur;
+        public uint Max;
+        public uint Shield;
+    }
+
     // note on tethers - it is N:1 type of relation, actor can be tethered to 0 or 1 actors, but can itself have multiple actors tethering themselves to itself
     public struct ActorTetherInfo
     {
@@ -84,8 +91,7 @@ namespace BossMod
         public Class Class;
         public Vector4 PosRot = new(); // W = rotation: 0 = pointing S, pi/2 = pointing E, pi = pointing N, -pi/2 = pointing W
         public float HitboxRadius;
-        public uint HPCur;
-        public uint HPMax;
+        public ActorHP HP;
         public bool IsDestroyed; // set to true when actor is removed from world; object might still be alive because of other references
         public bool IsTargetable;
         public bool IsDead;
@@ -100,7 +106,7 @@ namespace BossMod
         public WPos Position => new(PosRot.X, PosRot.Z);
         public Angle Rotation => PosRot.W.Radians();
 
-        public Actor(ulong instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, uint hpCur = 0, uint hpMax = 0, bool targetable = true, ulong ownerID = 0)
+        public Actor(ulong instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), bool targetable = true, ulong ownerID = 0)
         {
             InstanceID = instanceID;
             OID = oid;
@@ -109,8 +115,7 @@ namespace BossMod
             Class = classID;
             PosRot = posRot;
             HitboxRadius = hitboxRadius;
-            HPCur = hpCur;
-            HPMax = hpMax;
+            HP = hp;
             IsTargetable = targetable;
             OwnerID = ownerID;
         }

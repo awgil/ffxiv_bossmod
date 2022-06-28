@@ -179,7 +179,7 @@ namespace UIDev
             if (actor.IsTargetable)
                 p.TargetableHistory.Add(_ws.CurrentTime, true);
             p.PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
-            p.HPHistory.Add(_ws.CurrentTime, (actor.HPCur, actor.HPMax));
+            p.HPHistory.Add(_ws.CurrentTime, actor.HP);
             _res.Participants.Add(p);
             foreach (var e in _modules.Values)
                 if (e.Encounter != null)
@@ -209,7 +209,7 @@ namespace UIDev
 
         private void ActorHP(object? sender, Actor actor)
         {
-            _participants[actor.InstanceID].HPHistory.Add(_ws.CurrentTime, (actor.HPCur, actor.HPMax));
+            _participants[actor.InstanceID].HPHistory.Add(_ws.CurrentTime, actor.HP);
         }
 
         private void CastStart(object? sender, Actor actor)
