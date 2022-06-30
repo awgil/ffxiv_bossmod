@@ -24,10 +24,5 @@
             if (pc != null && Bounds.Center != pc.Position)
                 Arena.Bounds = new ArenaBoundsCircle(pc.Position, 30);
         }
-
-        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        }
     }
 }

@@ -22,10 +22,5 @@
         {
             StateMachine = new Ex1ZodiarkStates(this).Build();
         }
-
-        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        }
     }
 }

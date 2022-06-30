@@ -46,7 +46,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 _charibert = Enemies(OID.SerCharibert).FirstOrDefault();
         }
 
-        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
+        protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             Arena.Actor(SerAdelphel(), ArenaColor.Enemy);
             Arena.Actor(SerGrinnaux(), ArenaColor.Enemy);

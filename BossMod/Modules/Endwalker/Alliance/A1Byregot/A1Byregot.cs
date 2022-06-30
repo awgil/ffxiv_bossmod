@@ -13,10 +13,5 @@
             StateMachine = sb.Build();
             //StateMachine = new A1ByregotStates(this).Initial;
         }
-
-        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        }
     }
 }

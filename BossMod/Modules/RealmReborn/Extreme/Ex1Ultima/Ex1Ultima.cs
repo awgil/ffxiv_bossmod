@@ -10,10 +10,5 @@
             states.TrivialPhase(600);
             StateMachine = states.Build();
         }
-
-        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        }
     }
 }

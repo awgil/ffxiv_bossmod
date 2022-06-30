@@ -29,10 +29,5 @@
         {
             StateMachine = new Ex2HydaelynStates(this).Build();
         }
-
-        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        }
     }
 }

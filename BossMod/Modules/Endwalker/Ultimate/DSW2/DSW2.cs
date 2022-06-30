@@ -34,7 +34,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 _bossP3 = Enemies(OID.BossP3).FirstOrDefault();
         }
 
-        protected override void DrawArenaForegroundPre(int pcSlot, Actor pc)
+        protected override void DrawArenaForeground(int pcSlot, Actor pc)
         {
             //Arena.Actor(Enemies(OID.SerJanlenoux).FirstOrDefault(), 0xffffffff);
             //Arena.Actor(Enemies(OID.SerVellguine).FirstOrDefault(), 0xff0000ff);
@@ -50,7 +50,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             //Arena.Actor(Enemies(OID.SerCharibert).FirstOrDefault(), 0xff80ffff);
         }
 
-        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
+        protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             if (!PrimaryActor.IsDestroyed)
                 Arena.Actor(PrimaryActor, ArenaColor.Enemy);

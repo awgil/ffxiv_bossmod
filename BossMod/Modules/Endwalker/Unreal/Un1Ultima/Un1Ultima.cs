@@ -34,10 +34,5 @@
                 .ActivateOnEnter<TitanIfrit>();
             StateMachine = states.Build();
         }
-
-        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        }
     }
 }

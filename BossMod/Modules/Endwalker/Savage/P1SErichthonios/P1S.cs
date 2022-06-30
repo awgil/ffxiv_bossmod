@@ -11,7 +11,7 @@
             StateMachine = new P1SStates(this).Build();
         }
 
-        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
+        protected override void DrawArenaForeground(int pcSlot, Actor pc)
         {
             if (Bounds is ArenaBoundsCircle)
             {
@@ -23,8 +23,6 @@
                 Arena.AddLine(Bounds.Center + new WDir(diag,  diag), Bounds.Center - new WDir(diag,  diag), ArenaColor.Border);
                 Arena.AddLine(Bounds.Center + new WDir(diag, -diag), Bounds.Center - new WDir(diag, -diag), ArenaColor.Border);
             }
-
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         }
     }
 }

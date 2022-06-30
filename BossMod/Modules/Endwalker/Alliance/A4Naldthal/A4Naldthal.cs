@@ -63,10 +63,5 @@
             StateMachine = sb.Build();
             //StateMachine = new A4NaldthalStates(this).Initial;
         }
-
-        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        }
     }
 }

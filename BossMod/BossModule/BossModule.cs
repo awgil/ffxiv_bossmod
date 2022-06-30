@@ -219,12 +219,12 @@ namespace BossMod
             DrawPartyMembers(pcSlot, pc);
 
             // draw foreground
-            DrawArenaForegroundPre(pcSlot, pc);
+            DrawArenaForeground(pcSlot, pc);
             foreach (var comp in _components)
                 comp.DrawArenaForeground(this, pcSlot, pc, Arena);
-            DrawArenaForegroundPost(pcSlot, pc);
 
-            // draw player
+            // draw enemies & player
+            DrawEnemies(pcSlot, pc);
             Arena.Actor(pc, ArenaColor.PC);
         }
 
@@ -267,8 +267,13 @@ namespace BossMod
 
         protected virtual void UpdateModule() { }
         protected virtual void DrawArenaBackground(int pcSlot, Actor pc) { } // before modules background
-        protected virtual void DrawArenaForegroundPre(int pcSlot, Actor pc) { } // after border, before modules foreground
-        protected virtual void DrawArenaForegroundPost(int pcSlot, Actor pc) { } // after modules foreground
+        protected virtual void DrawArenaForeground(int pcSlot, Actor pc) { } // after border, before modules foreground
+
+        // called at the very end to draw important enemies, default implementation draws primary actor
+        protected virtual void DrawEnemies(int pcSlot, Actor pc)
+        {
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        }
 
         private void DrawGlobalHints(BossComponent.GlobalHints hints)
         {

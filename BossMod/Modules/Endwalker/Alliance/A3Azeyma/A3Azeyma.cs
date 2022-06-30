@@ -57,10 +57,5 @@
             StateMachine = sb.Build();
             //StateMachine = new A3AzeymaStates(this).Initial;
         }
-
-        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        }
     }
 }

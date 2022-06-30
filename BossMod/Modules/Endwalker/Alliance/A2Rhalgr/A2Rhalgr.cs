@@ -61,7 +61,7 @@
             //StateMachine = new A2RhalgrStates(this).Initial;
         }
 
-        protected override void DrawArenaForegroundPre(int pcSlot, Actor pc)
+        protected override void DrawArenaForeground(int pcSlot, Actor pc)
         {
             Arena.PathLineTo(new(2.5f, 245));
             Arena.PathLineTo(new(2.6f, 275));
@@ -81,11 +81,6 @@
             Arena.PathLineTo(new(-34, 271.5f));
             Arena.PathLineTo(new(-37, 245));
             Arena.PathStroke(true, ArenaColor.Border);
-        }
-
-        protected override void DrawArenaForegroundPost(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         }
     }
 }
