@@ -13,6 +13,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     }
 
     [PrimaryActorOID((uint)OID.BossP2)]
+    [CooldownPlanning(typeof(DSW2Config))]
     public class DSW2 : BossModule
     {
         private Actor? _bossP3;

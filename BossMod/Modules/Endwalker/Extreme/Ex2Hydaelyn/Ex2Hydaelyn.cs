@@ -18,6 +18,10 @@
         public Exodus() : base(ActionID.MakeSpell(AID.Exodus)) { }
     }
 
+    [ConfigDisplay(Order = 0x020, Parent = typeof(EndwalkerConfig))]
+    public class Ex2HydaelynConfig : CooldownPlanningConfigNode { }
+
+    [CooldownPlanning(typeof(Ex2HydaelynConfig))]
     public class Ex2Hydaelyn : BossModule
     {
         public Ex2Hydaelyn(BossModuleManager manager, Actor primary)

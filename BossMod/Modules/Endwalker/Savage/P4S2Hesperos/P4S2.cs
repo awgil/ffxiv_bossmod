@@ -13,6 +13,7 @@
         public HeartStake() : base(ActionID.MakeSpell(AID.HeartStakeSecond)) { }
     }
 
+    [CooldownPlanning(typeof(P4S2Config))]
     public class P4S2 : BossModule
     {
         // common wreath of thorns constants

@@ -1,12 +1,26 @@
 ﻿using ImGuiNET;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod
 {
-    [ConfigDisplay(Name = "Cooldown Plans", Order = 5)]
-    public class CooldownPlanManager : ConfigNode
+    // attribute that associates config type to boss module type
+    // if not set, boss module won't support cooldown planning
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    public class CooldownPlanningAttribute : Attribute
     {
+        public Type ConfigType { get; private init; }
+
+        public CooldownPlanningAttribute(Type configType)
+        {
+            ConfigType = configType;
+        }
+    }
+
+    // base class for encounter configurations that support cooldown planning
+    public abstract class CooldownPlanningConfigNode : ConfigNode
+    {
+        // per-class list of plans
         public class PlanList
         {
             public List<CooldownPlan> Available = new();
@@ -15,27 +29,22 @@ namespace BossMod
             public CooldownPlan? Selected() => SelectedIndex >= 0 ? Available[SelectedIndex] : null;
         }
 
-        public Dictionary<uint, Dictionary<Class, PlanList>> Plans = new(); // [encounter-oid][class]
+        public Dictionary<Class, PlanList> CooldownPlans = new();
 
-        public CooldownPlan? SelectedPlan(uint encounterOID, Class curClass) => Plans.GetValueOrDefault(encounterOID)?.GetValueOrDefault(curClass)?.Selected();
+        public CooldownPlan? SelectedPlan(Class c) => CooldownPlans.GetValueOrDefault(c)?.Selected();
 
-        public CooldownPlanManager()
+        public CooldownPlanningConfigNode()
         {
-            var simple = typeof(SimpleBossModule);
-            foreach (var (oid, t) in ModuleRegistry.RegisteredModules.Where(kv => !kv.Value.IsAssignableTo(simple)))
-            {
-                var p = Plans[oid] = new();
-                foreach (var c in AbilityDefinitions.Classes.Keys)
-                    p[c] = new();
-            }
+            foreach (var c in AbilityDefinitions.Classes.Keys)
+                CooldownPlans[c] = new();
         }
 
-        public void DrawSelectionUI(uint encounterOID, Class curClass, StateMachine sm)
+        public void DrawSelectionUI(Class c, StateMachine sm)
         {
-            if (!AbilityDefinitions.Classes.ContainsKey(curClass))
+            if (!AbilityDefinitions.Classes.ContainsKey(c))
                 return; // class is not supported
 
-            var plans = Plans.GetOrAdd(encounterOID).GetOrAdd(curClass);
+            var plans = CooldownPlans.GetOrAdd(c);
             ImGui.SetNextItemWidth(100);
             if (ImGui.BeginCombo("Cooldown plan", plans.Selected()?.Name ?? "none"))
             {
@@ -59,7 +68,7 @@ namespace BossMod
             {
                 if (plans.SelectedIndex < 0)
                 {
-                    plans.Available.Add(new(curClass, $"New {plans.Available.Count + 1}"));
+                    plans.Available.Add(new(c, $"New {plans.Available.Count + 1}"));
                     plans.SelectedIndex = plans.Available.Count - 1;
                     NotifyModified();
                 }
@@ -69,27 +78,28 @@ namespace BossMod
 
         public override void DrawCustom(UITree tree, WorldState ws)
         {
-            foreach (var (e, eEntries) in tree.Nodes(Plans, kv => new(ModuleRegistry.TypeForOID(kv.Key)?.Name ?? $"{kv.Key:X}")))
+            foreach (var _ in tree.Node("Cooldown plans"))
             {
-                foreach (var (c, plans) in tree.Nodes(eEntries, kv => new(kv.Key.ToString())))
+                foreach (var (c, plans) in CooldownPlans)
                 {
                     for (int i = 0; i < plans.Available.Count; ++i)
                     {
-                        if (ImGui.Button($"Edit {plans.Available[i].Name}##{e}/{c}/{i}"))
+                        ImGui.PushID($"{c}/{i}");
+                        if (ImGui.Button($"Edit"))
                         {
-                            StartPlanEditor(plans.Available[i], CreateStateMachineForOID(e));
+                            StartPlanEditor(plans.Available[i], CreateStateMachine());
                         }
                         ImGui.SameLine();
-                        if (ImGui.Button($"Copy##{e}/{c}/{i}"))
+                        if (ImGui.Button($"Copy"))
                         {
                             var plan = plans.Available[i].Clone();
                             plan.Name += " Copy";
                             plans.Available.Add(plan);
                             NotifyModified();
-                            StartPlanEditor(plan, CreateStateMachineForOID(e));
+                            StartPlanEditor(plan, CreateStateMachine());
                         }
                         ImGui.SameLine();
-                        if (ImGui.Button($"Delete##{e}/{c}/{i}"))
+                        if (ImGui.Button($"Delete"))
                         {
                             if (plans.SelectedIndex == i)
                                 plans.SelectedIndex = -1;
@@ -99,13 +109,26 @@ namespace BossMod
                             --i;
                             NotifyModified();
                         }
+                        ImGui.SameLine();
+                        bool selected = plans.SelectedIndex == i;
+                        if (ImGui.Checkbox($"{c} '{plans.Available[i].Name}'", ref selected))
+                        {
+                            plans.SelectedIndex = selected ? i : -1;
+                            NotifyModified();
+                        }
+                        ImGui.PopID();
                     }
-                    if (ImGui.Button($"Add new...##{e}/{c}"))
+                }
+                ImGui.TextUnformatted("Add new plan:");
+                foreach (var (c, plans) in CooldownPlans)
+                {
+                    ImGui.SameLine();
+                    if (ImGui.Button(c.ToString()))
                     {
                         var plan = new CooldownPlan(c, $"New {plans.Available.Count}");
                         plans.Available.Add(plan);
                         NotifyModified();
-                        StartPlanEditor(plan, CreateStateMachineForOID(e));
+                        StartPlanEditor(plan, CreateStateMachine());
                     }
                 }
             }
@@ -121,9 +144,9 @@ namespace BossMod
             w.MinSize = new(100, 100);
         }
 
-        private static StateMachine? CreateStateMachineForOID(uint oid)
+        private StateMachine? CreateStateMachine()
         {
-            return ModuleRegistry.CreateModule(oid, new(new()), new(0, oid, "", ActorType.None, Class.None, new()))?.StateMachine;
+            return ModuleRegistry.CreateModuleForConfigPlanning(GetType())?.StateMachine;
         }
     }
 }

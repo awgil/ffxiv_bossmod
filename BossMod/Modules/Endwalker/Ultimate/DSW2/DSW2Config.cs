@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW2
 {
     [ConfigDisplay(Order = 0x201, Parent = typeof(EndwalkerConfig))]
-    public class DSW2Config : ConfigNode
+    public class DSW2Config : CooldownPlanningConfigNode
     {
         [PropertyDisplay("P2 Sanctity of the Ward (charges): group assignments")]
         [GroupDetails(new string[]{ "West/Across", "East/Behind" })]

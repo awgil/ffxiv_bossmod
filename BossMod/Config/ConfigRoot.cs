@@ -11,7 +11,7 @@ namespace BossMod
 {
     public class ConfigRoot
     {
-        private const int _version = 3;
+        private const int _version = 4;
 
         public event EventHandler? Modified;
         private Dictionary<Type, ConfigNode> _nodes = new();
@@ -20,7 +20,7 @@ namespace BossMod
 
         public ConfigRoot()
         {
-            foreach (var t in Utils.GetDerivedTypes<ConfigNode>(Assembly.GetExecutingAssembly()))
+            foreach (var t in Utils.GetDerivedTypes<ConfigNode>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract))
             {
                 var inst = Activator.CreateInstance(t) as ConfigNode;
                 if (inst == null)
@@ -33,10 +33,8 @@ namespace BossMod
             }
         }
 
-        public T Get<T>() where T : ConfigNode
-        {
-            return (T)_nodes[typeof(T)];
-        }
+        public T Get<T>() where T : ConfigNode => (T)_nodes[typeof(T)];
+        public T Get<T>(Type derived) where T : ConfigNode => (T)_nodes[derived];
 
         public void LoadFromFile(FileInfo file)
         {
@@ -221,6 +219,28 @@ namespace BossMod
                     newPayload[newKey] = v;
                 }
                 payload = newPayload;
+            }
+            // v4: cooldown plans moved to encounter configs
+            if (version < 4)
+            {
+                var plans = payload["BossMod.CooldownPlanManager"]?["Plans"] as JObject;
+                if (plans != null)
+                {
+                    foreach (var (k, planData) in plans)
+                    {
+                        var oid = uint.Parse(k);
+                        var module = ModuleRegistry.TypeForOID(oid);
+                        var config = module != null ? ModuleRegistry.PlanConfigType(module) : null;
+                        if (config?.FullName == null)
+                            continue;
+
+                        var node = payload[config.FullName] as JObject;
+                        if (node == null)
+                            payload[config.FullName] = node = new JObject();
+                        node["CooldownPlans"] = planData;
+                    }
+                }
+                payload.Remove("BossMod.CooldownPlanManager");
             }
             return payload;
         }

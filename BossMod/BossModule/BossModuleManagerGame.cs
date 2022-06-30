@@ -44,7 +44,7 @@ namespace BossMod
             }
 
             // create or destroy plan window if needed
-            bool showPlanWindow = WindowConfig.EnableTimerWindow && ActiveModule?.PlanExecution != null;
+            bool showPlanWindow = WindowConfig.EnableTimerWindow && ActiveModule?.PlanConfig != null;
             if (_planWindow != null && !showPlanWindow)
             {
                 Service.Log("[BMM] Closing plan window");
@@ -195,7 +195,7 @@ namespace BossMod
                 w.MinSize = new(100, 100);
             }
             ImGui.SameLine();
-            CooldownPlanManager.DrawSelectionUI(ActiveModule.PrimaryActor.OID, ActiveModule.Raid.Player()?.Class ?? Class.None, ActiveModule.StateMachine);
+            ActiveModule.PlanConfig?.DrawSelectionUI(ActiveModule.Raid.Player()?.Class ?? Class.None, ActiveModule.StateMachine);
 
             ActiveModule.PlanExecution.Draw(ActiveModule.StateMachine);
         }

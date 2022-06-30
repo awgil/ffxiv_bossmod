@@ -73,7 +73,7 @@ namespace UIDev
                         w.MinSize = new(100, 100);
                     }
                     ImGui.SameLine();
-                    _mgr.CooldownPlanManager.DrawSelectionUI(_mgr.ActiveModule.PrimaryActor.OID, _mgr.ActiveModule.Raid[_povSlot]?.Class ?? Class.None, _mgr.ActiveModule.StateMachine);
+                    _mgr.ActiveModule.PlanConfig?.DrawSelectionUI(_mgr.ActiveModule.Raid[_povSlot]?.Class ?? Class.None, _mgr.ActiveModule.StateMachine);
 
                     _mgr.ActiveModule.PlanExecution?.Draw(_mgr.ActiveModule.StateMachine);
                 }

@@ -9,7 +9,6 @@ namespace BossMod
     {
         public WorldState WorldState { get; init; }
         public BossModuleConfig WindowConfig { get; init; }
-        public CooldownPlanManager CooldownPlanManager { get; init; }
         public RaidCooldowns RaidCooldowns { get; init; }
 
         private bool _running = false;
@@ -38,11 +37,9 @@ namespace BossMod
         {
             WorldState = ws;
             WindowConfig = Service.Config.Get<BossModuleConfig>();
-            CooldownPlanManager = Service.Config.Get<CooldownPlanManager>();
             RaidCooldowns = new(ws);
 
             WindowConfig.Modified += ConfigChanged;
-            CooldownPlanManager.Modified += PlanChanged;
 
             if (WindowConfig.Enable)
             {
@@ -62,7 +59,6 @@ namespace BossMod
             {
                 Shutdown();
                 WindowConfig.Modified -= ConfigChanged;
-                CooldownPlanManager.Modified -= PlanChanged;
                 RaidCooldowns.Dispose();
             }
         }
@@ -216,7 +212,7 @@ namespace BossMod
 
         private void ActorAdded(object? sender, Actor actor)
         {
-            var m = ModuleRegistry.CreateModule(actor.OID, this, actor);
+            var m = ModuleRegistry.CreateModuleForActor(this, actor);
             if (m != null)
             {
                 LoadModule(m);
@@ -236,11 +232,6 @@ namespace BossMod
             else if (!WindowConfig.ShowDemo && demoIndex >= 0)
                 UnloadModule(demoIndex);
 
-            _configOrModulesUpdated = true;
-        }
-
-        private void PlanChanged(object? sender, EventArgs args)
-        {
             _configOrModulesUpdated = true;
         }
     }

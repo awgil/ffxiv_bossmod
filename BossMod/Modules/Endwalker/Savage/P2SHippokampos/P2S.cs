@@ -10,6 +10,10 @@
         public SewageEruption() : base(ActionID.MakeSpell(AID.SewageEruptionAOE), 6) { }
     }
 
+    [ConfigDisplay(Order = 0x120, Parent = typeof(EndwalkerConfig))]
+    public class P2SConfig : CooldownPlanningConfigNode { }
+
+    [CooldownPlanning(typeof(P2SConfig))]
     public class P2S : BossModule
     {
         public P2S(BossModuleManager manager, Actor primary)

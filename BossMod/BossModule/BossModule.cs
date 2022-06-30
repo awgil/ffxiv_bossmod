@@ -27,6 +27,7 @@ namespace BossMod
         public Actor PrimaryActor { get; init; }
         public MiniArena Arena { get; init; }
         public StateMachine? StateMachine { get; protected set; }
+        public CooldownPlanningConfigNode? PlanConfig { get; init; }
         public CooldownPlanExecution? PlanExecution = null;
 
         public WorldState WorldState => Manager.WorldState;
@@ -96,6 +97,13 @@ namespace BossMod
             PrimaryActor = primary;
             Arena = new(Manager.WindowConfig, bounds);
 
+            var planType = ModuleRegistry.PlanConfigType(GetType());
+            if (planType != null)
+            {
+                PlanConfig = Service.Config.Get<CooldownPlanningConfigNode>(planType);
+                PlanConfig.Modified += OnPlanModified;
+            }
+
             WorldState.Actors.Added += OnActorCreated;
             WorldState.Actors.Removed += OnActorDestroyed;
             WorldState.Actors.CastStarted += OnActorCastStarted;
@@ -124,6 +132,9 @@ namespace BossMod
                 StateMachine?.Reset();
                 ClearComponents();
 
+                if (PlanConfig != null)
+                    PlanConfig.Modified -= OnPlanModified;
+
                 WorldState.Actors.Added -= OnActorCreated;
                 WorldState.Actors.Removed -= OnActorDestroyed;
                 WorldState.Actors.CastStarted -= OnActorCastStarted;
@@ -145,7 +156,7 @@ namespace BossMod
 
             // update cooldown plan if needed
             var cls = Raid.Player()?.Class ?? Class.None;
-            var plan = Manager.CooldownPlanManager.SelectedPlan(PrimaryActor.OID, cls);
+            var plan = PlanConfig?.SelectedPlan(cls);
             if (PlanExecution == null || PlanExecution?.Plan != plan)
             {
                 Service.Log($"[BM] Selected plan for '{GetType()}' ({PrimaryActor.InstanceID:X}) for {cls}: '{(plan?.Name ?? "<none>")}'");
@@ -340,6 +351,12 @@ namespace BossMod
                 }
             }
             return (highestPrio, color);
+        }
+
+        private void OnPlanModified(object? sender, EventArgs args)
+        {
+            Service.Log($"[BM] Detected plan modification for '{GetType()}', resetting execution");
+            PlanExecution = null;
         }
 
         private void OnActorCreated(object? sender, Actor actor)

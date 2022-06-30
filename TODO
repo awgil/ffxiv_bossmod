@@ -1,5 +1,6 @@
 boss modules:
 - dsw2
+-- p2 blue markers: better risk detection
 -- p2 sanctity 2: aoes during second set of towers
 -- p3
 - generalize components as much as possible

@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P1SErichthonios
 {
     [ConfigDisplay(Order = 0x110, Parent = typeof(EndwalkerConfig))]
-    public class P1SConfig : ConfigNode
+    public class P1SConfig : CooldownPlanningConfigNode
     {
         public enum Corner { NW, NE, SE, SW }
 

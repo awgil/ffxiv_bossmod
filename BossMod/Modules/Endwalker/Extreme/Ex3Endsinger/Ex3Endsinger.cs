@@ -28,6 +28,10 @@
         public Eironeia() : base(ActionID.MakeSpell(AID.EironeiaAOE)) { }
     }
 
+    [ConfigDisplay(Order = 0x030, Parent = typeof(EndwalkerConfig))]
+    public class Ex3EndsingerConfig : CooldownPlanningConfigNode { }
+
+    [CooldownPlanning(typeof(Ex3EndsingerConfig))]
     public class Ex3Endsinger : BossModule
     {
         public Ex3Endsinger(BossModuleManager manager, Actor primary)

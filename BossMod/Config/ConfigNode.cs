@@ -42,7 +42,7 @@ namespace BossMod
     }
 
     // base class for configuration nodes
-    public class ConfigNode
+    public abstract class ConfigNode
     {
         public event EventHandler? Modified;
 

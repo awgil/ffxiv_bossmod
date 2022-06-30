@@ -17,7 +17,11 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public HoliestHallowing() : base(ActionID.MakeSpell(AID.HoliestHallowing)) { }
     }
 
+    [ConfigDisplay(Order = 0x200, Parent = typeof(EndwalkerConfig))]
+    public class DSW1Config : CooldownPlanningConfigNode { }
+
     [PrimaryActorOID((uint)OID.SerAdelphel)]
+    [CooldownPlanning(typeof(DSW1Config))]
     public class DSW1 : BossModule
     {
         private Actor? _grinnaux;
