@@ -185,20 +185,22 @@ namespace BossMod
 
         // high level utilities
         // draw arena border
-        public void Border()
+        public void Border(uint color)
         {
             foreach (var p in Bounds.ClipPoly)
                 PathLineTo(p);
-            PathStroke(true, ArenaColor.Border, 2);
+            PathStroke(true, color, 2);
+        }
 
-            if (Config.ShowCardinals)
-            {
-                var offCenter = ScreenHalfSize + 10;
-                TextScreen(ScreenCenter + RotatedCoords(new(0, -offCenter)), "N", ArenaColor.Border);
-                TextScreen(ScreenCenter + RotatedCoords(new(0,  offCenter)), "S", ArenaColor.Border);
-                TextScreen(ScreenCenter + RotatedCoords(new( offCenter, 0)), "E", ArenaColor.Border);
-                TextScreen(ScreenCenter + RotatedCoords(new(-offCenter, 0)), "W", ArenaColor.Border);
-            }
+        public void CardinalNames()
+        {
+            var offCenter = ScreenHalfSize + 10;
+            var offS = RotatedCoords(new(0, offCenter));
+            var offE = RotatedCoords(new(offCenter, 0));
+            TextScreen(ScreenCenter - offS, "N", ArenaColor.Border);
+            TextScreen(ScreenCenter + offS, "S", ArenaColor.Border);
+            TextScreen(ScreenCenter + offE, "E", ArenaColor.Border);
+            TextScreen(ScreenCenter - offE, "W", ArenaColor.Border);
         }
 
         // draw actor representation

@@ -16,6 +16,12 @@
         [PropertyDisplay("Rotate map to match camera orientation")]
         public bool RotateArena = true;
 
+        [PropertyDisplay("Show arena border")]
+        public bool ShowBorder = true;
+
+        [PropertyDisplay("Change arena border color if player is at risk")]
+        public bool ShowBorderRisk = true;
+
         [PropertyDisplay("Show cardinal direction names")]
         public bool ShowCardinals = false;
 

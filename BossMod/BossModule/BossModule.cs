@@ -181,33 +181,37 @@ namespace BossMod
 
         public virtual void Draw(float cameraAzimuth, int pcSlot, BossComponent.MovementHints? pcMovementHints)
         {
-            if (WindowConfig.ShowMechanicTimers)
-                StateMachine?.Draw();
-
-            if (WindowConfig.ShowGlobalHints)
-                DrawGlobalHints();
-
-            if (WindowConfig.ShowPlayerHints)
-                DrawHintForPlayer(pcSlot, pcMovementHints);
-
-            Arena.Begin(cameraAzimuth);
-            DrawArena(pcSlot);
-            Arena.End();
-        }
-
-        public virtual void DrawArena(int pcSlot)
-        {
             var pc = Raid[pcSlot];
             if (pc == null)
                 return;
 
+            if (WindowConfig.ShowMechanicTimers)
+                StateMachine?.Draw();
+
+            if (WindowConfig.ShowGlobalHints)
+                DrawGlobalHints(CalculateGlobalHints());
+
+            var pcHints = CalculateHintsForRaidMember(pcSlot, pc, pcMovementHints);
+            if (WindowConfig.ShowPlayerHints)
+                DrawPlayerHints(pcHints);
+
+            Arena.Begin(cameraAzimuth);
+            DrawArena(pcSlot, pc, pcHints.Any(h => h.Item2));
+            Arena.End();
+        }
+
+        public virtual void DrawArena(int pcSlot, Actor pc, bool haveRisks)
+        {
             // draw background
             DrawArenaBackground(pcSlot, pc);
             foreach (var comp in _components)
                 comp.DrawArenaBackground(this, pcSlot, pc, Arena);
 
             // draw borders
-            Arena.Border();
+            if (WindowConfig.ShowBorder)
+                Arena.Border(haveRisks && WindowConfig.ShowBorderRisk ? ArenaColor.Enemy : ArenaColor.Border);
+            if (WindowConfig.ShowCardinals)
+                Arena.CardinalNames();
             if (WindowConfig.ShowWaymarks)
                 DrawWaymarks();
 
@@ -266,9 +270,8 @@ namespace BossMod
         protected virtual void DrawArenaForegroundPre(int pcSlot, Actor pc) { } // after border, before modules foreground
         protected virtual void DrawArenaForegroundPost(int pcSlot, Actor pc) { } // after modules foreground
 
-        private void DrawGlobalHints()
+        private void DrawGlobalHints(BossComponent.GlobalHints hints)
         {
-            var hints = CalculateGlobalHints();
             ImGui.PushStyleColor(ImGuiCol.Text, 0xffffff00);
             foreach (var hint in hints)
             {
@@ -279,13 +282,8 @@ namespace BossMod
             ImGui.NewLine();
         }
 
-        private void DrawHintForPlayer(int pcSlot, BossComponent.MovementHints? movementHints)
+        private void DrawPlayerHints(BossComponent.TextHints hints)
         {
-            var pc = Raid[pcSlot];
-            if (pc == null)
-                return;
-
-            var hints = CalculateHintsForRaidMember(pcSlot, pc, movementHints);
             foreach ((var hint, bool risk) in hints)
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, risk ? ArenaColor.Danger : ArenaColor.Safe);
