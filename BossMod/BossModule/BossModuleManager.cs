@@ -8,8 +8,8 @@ namespace BossMod
     public class BossModuleManager : IDisposable
     {
         public WorldState WorldState { get; init; }
-        public BossModuleConfig WindowConfig { get; init; }
         public RaidCooldowns RaidCooldowns { get; init; }
+        protected BossModuleConfig WindowConfig { get; init; }
 
         private bool _running = false;
         private bool _configOrModulesUpdated = false;
@@ -127,7 +127,6 @@ namespace BossMod
             }
         }
 
-        public virtual void HandleError(BossModule module, BossComponent? comp, string message) { }
         protected virtual void RefreshConfigOrModules() { }
         protected virtual void OnModuleLoaded(BossModule module) { Service.Log($"[BMM] Boss module '{module.GetType()}' for actor {module.PrimaryActor.InstanceID:X} ({module.PrimaryActor.OID:X}) '{module.PrimaryActor.Name}' loaded"); }
         protected virtual void OnModuleUnloaded(BossModule module) { Service.Log($"[BMM] Boss module '{module.GetType()}' for actor {module.PrimaryActor.InstanceID:X} unloaded"); }
@@ -207,12 +206,12 @@ namespace BossMod
 
         private BossModule CreateDemoModule()
         {
-            return new DemoModule(this, new(0, 0, "", ActorType.None, Class.None, new()));
+            return new DemoModule(WorldState, new(0, 0, "", ActorType.None, Class.None, new()));
         }
 
         private void ActorAdded(object? sender, Actor actor)
         {
-            var m = ModuleRegistry.CreateModuleForActor(this, actor);
+            var m = ModuleRegistry.CreateModuleForActor(WorldState, actor);
             if (m != null)
             {
                 LoadModule(m);

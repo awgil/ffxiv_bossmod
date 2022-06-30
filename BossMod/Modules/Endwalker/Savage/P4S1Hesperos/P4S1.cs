@@ -13,8 +13,8 @@
     [CooldownPlanning(typeof(P4S1Config))]
     public class P4S1 : BossModule
     {
-        public P4S1(BossModuleManager manager, Actor primary)
-            : base(manager, primary, new ArenaBoundsSquare(new(100, 100), 20))
+        public P4S1(WorldState ws, Actor primary)
+            : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20))
         {
             StateMachine = new P4S1States(this).Build();
         }

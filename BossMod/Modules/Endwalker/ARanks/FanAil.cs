@@ -65,8 +65,8 @@
 
     public class FanAil : SimpleBossModule
     {
-        public FanAil(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+        public FanAil(WorldState ws, Actor primary)
+            : base(ws, primary)
         {
             BuildStateMachine<Mechanics>();
         }

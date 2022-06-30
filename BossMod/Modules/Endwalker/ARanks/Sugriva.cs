@@ -130,8 +130,8 @@
 
     public class Sugriva : SimpleBossModule
     {
-        public Sugriva(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+        public Sugriva(WorldState ws, Actor primary)
+            : base(ws, primary)
         {
             BuildStateMachine<Mechanics>();
         }

@@ -2,8 +2,8 @@
 {
     public class A1Byregot : BossModule
     {
-        public A1Byregot(BossModuleManager manager, Actor primary)
-            : base(manager, primary, new ArenaBoundsSquare(new(0, 700), 25))
+        public A1Byregot(WorldState ws, Actor primary)
+            : base(ws, primary, new ArenaBoundsSquare(new(0, 700), 25))
         {
             var sb = new StateMachineBuilder(this);
             sb.TrivialPhase()

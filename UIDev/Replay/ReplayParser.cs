@@ -27,11 +27,6 @@ namespace UIDev
 
             public BossModuleManagerWrapper(ReplayParser self) : base(self._ws) { _self = self; }
 
-            public override void HandleError(BossModule module, BossComponent? comp, string message)
-            {
-                _self._modules[module.PrimaryActor.InstanceID].Encounter.Errors.Add(new() { Timestamp = _self._ws.CurrentTime, CompType = comp?.GetType(), Message = message });
-            }
-
             protected override void OnModuleLoaded(BossModule module)
             {
                 var enc = new Replay.Encounter()
@@ -47,6 +42,7 @@ namespace UIDev
                     FirstEnvControl = _self._res.EnvControls.Count
                 };
                 _self._modules[module.PrimaryActor.InstanceID] = new(module, enc);
+                module.Error += OnError;
             }
 
             protected override void OnModuleUnloaded(BossModule module)
@@ -56,6 +52,13 @@ namespace UIDev
                     data.Encounter.States.Add(new() { ID = data.ActiveState.ID, Name = data.ActiveState.Name, Comment = data.ActiveState.Comment, ExpectedDuration = data.ActiveState.Duration, Exit = _self._ws.CurrentTime });
                 data.Encounter.Time.End = _self._ws.CurrentTime;
                 _self._modules.Remove(module.PrimaryActor.InstanceID);
+                module.Error -= OnError;
+            }
+
+            private void OnError(object? sender, (BossComponent? comp, string message) args)
+            {
+                var module = (BossModule)sender!;
+                _self._modules[module.PrimaryActor.InstanceID].Encounter.Errors.Add(new() { Timestamp = _self._ws.CurrentTime, CompType = args.comp?.GetType(), Message = args.message });
             }
         }
 

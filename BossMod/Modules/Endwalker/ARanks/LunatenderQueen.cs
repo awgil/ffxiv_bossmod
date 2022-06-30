@@ -73,8 +73,8 @@
 
     public class LunatenderQueen : SimpleBossModule
     {
-        public LunatenderQueen(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+        public LunatenderQueen(WorldState ws, Actor primary)
+            : base(ws, primary)
         {
             BuildStateMachine<Mechanics>();
         }

@@ -87,8 +87,8 @@
 
     public class Aegeiros : SimpleBossModule
     {
-        public Aegeiros(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+        public Aegeiros(WorldState ws, Actor primary)
+            : base(ws, primary)
         {
             BuildStateMachine<Mechanics>();
         }

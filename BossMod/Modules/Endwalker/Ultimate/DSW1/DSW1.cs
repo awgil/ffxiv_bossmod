@@ -30,8 +30,8 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public Actor? SerGrinnaux() => _grinnaux;
         public Actor? SerCharibert() => _charibert;
 
-        public DSW1(BossModuleManager manager, Actor primary)
-            : base(manager, primary, new ArenaBoundsSquare(new(100, 100), 22))
+        public DSW1(WorldState ws, Actor primary)
+            : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 22))
         {
             StateMachine = new DSW1States(this).Build();
         }

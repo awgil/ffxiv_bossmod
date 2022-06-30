@@ -110,8 +110,8 @@
 
     public class MoussePrincess : SimpleBossModule
     {
-        public MoussePrincess(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+        public MoussePrincess(WorldState ws, Actor primary)
+            : base(ws, primary)
         {
             BuildStateMachine<Mechanics>();
         }

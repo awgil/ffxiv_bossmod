@@ -66,8 +66,8 @@
 
     public class ArchEta : SimpleBossModule
     {
-        public ArchEta(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+        public ArchEta(WorldState ws, Actor primary)
+            : base(ws, primary)
         {
             BuildStateMachine<Mechanics>();
         }

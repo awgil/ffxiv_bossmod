@@ -6,8 +6,8 @@
     [CooldownPlanning(typeof(P3SConfig))]
     public class P3S : BossModule
     {
-        public P3S(BossModuleManager manager, Actor primary)
-            : base(manager, primary, new ArenaBoundsCircle(new(100, 100), 20))
+        public P3S(WorldState ws, Actor primary)
+            : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
         {
             StateMachine = new P3SStates(this).Build();
         }

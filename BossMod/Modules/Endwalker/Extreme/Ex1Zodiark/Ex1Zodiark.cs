@@ -17,8 +17,8 @@
     [CooldownPlanning(typeof(Ex1ZodiarkConfig))]
     public class Ex1Zodiark : BossModule
     {
-        public Ex1Zodiark(BossModuleManager manager, Actor primary)
-            : base(manager, primary, new ArenaBoundsSquare(new(100, 100), 20))
+        public Ex1Zodiark(WorldState ws, Actor primary)
+            : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20))
         {
             StateMachine = new Ex1ZodiarkStates(this).Build();
         }

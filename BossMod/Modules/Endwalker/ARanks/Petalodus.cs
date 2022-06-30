@@ -62,8 +62,8 @@
 
     public class Petalodus : SimpleBossModule
     {
-        public Petalodus(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+        public Petalodus(WorldState ws, Actor primary)
+            : base(ws, primary)
         {
             BuildStateMachine<Mechanics>();
         }

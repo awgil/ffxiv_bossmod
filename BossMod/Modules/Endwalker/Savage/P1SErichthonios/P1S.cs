@@ -5,8 +5,8 @@
     {
         public static float InnerCircleRadius { get; } = 12; // this determines in/out flails and cells boundary
 
-        public P1S(BossModuleManager manager, Actor primary)
-            : base(manager, primary, new ArenaBoundsSquare(new(100, 100), 20))
+        public P1S(WorldState ws, Actor primary)
+            : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20))
         {
             StateMachine = new P1SStates(this).Build();
         }

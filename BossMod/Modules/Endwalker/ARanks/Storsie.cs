@@ -96,8 +96,8 @@
 
     public class Storsie : SimpleBossModule
     {
-        public Storsie(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+        public Storsie(WorldState ws, Actor primary)
+            : base(ws, primary)
         {
             BuildStateMachine<Mechanics>();
         }

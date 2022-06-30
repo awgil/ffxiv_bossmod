@@ -138,8 +138,8 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
 
     public class Gurangatch : SimpleBossModule
     {
-        public Gurangatch(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+        public Gurangatch(WorldState ws, Actor primary)
+            : base(ws, primary)
         {
             BuildStateMachine<Mechanics>();
         }

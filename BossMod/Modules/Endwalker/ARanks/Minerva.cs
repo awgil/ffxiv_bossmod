@@ -99,8 +99,8 @@
 
     public class Minerva : SimpleBossModule
     {
-        public Minerva(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+        public Minerva(WorldState ws, Actor primary)
+            : base(ws, primary)
         {
             BuildStateMachine<Mechanics>();
         }

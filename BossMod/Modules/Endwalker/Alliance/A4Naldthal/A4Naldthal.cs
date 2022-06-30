@@ -43,8 +43,8 @@
     // TODO: balancing counter, magmatic spell raid stack
     public class A4Naldthal : BossModule
     {
-        public A4Naldthal(BossModuleManager manager, Actor primary)
-            : base(manager, primary, new ArenaBoundsCircle(new(750, -750), 25))
+        public A4Naldthal(WorldState ws, Actor primary)
+            : base(ws, primary, new ArenaBoundsCircle(new(750, -750), 25))
         {
             var sb = new StateMachineBuilder(this);
             sb.TrivialPhase()

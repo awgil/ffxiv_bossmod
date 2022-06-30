@@ -73,8 +73,8 @@
 
     public class Hulder : SimpleBossModule
     {
-        public Hulder(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+        public Hulder(WorldState ws, Actor primary)
+            : base(ws, primary)
         {
             BuildStateMachine<Mechanics>();
         }

@@ -38,21 +38,21 @@ namespace BossMod
         public static Type? TypeForOID(uint oid) => _modules.GetValueOrDefault(oid);
         public static Type? TypeForConfig(Type cfg) => _plannableModules.GetValueOrDefault(cfg);
 
-        public static BossModule? CreateModule(Type? type, BossModuleManager manager, Actor primary)
+        public static BossModule? CreateModule(Type? type, WorldState ws, Actor primary)
         {
-            return type != null ? (BossModule?)Activator.CreateInstance(type, manager, primary) : null;
+            return type != null ? (BossModule?)Activator.CreateInstance(type, ws, primary) : null;
         }
 
-        public static BossModule? CreateModuleForActor(BossModuleManager manager, Actor primary)
+        public static BossModule? CreateModuleForActor(WorldState ws, Actor primary)
         {
-            return CreateModule(TypeForOID(primary.OID), manager, primary);
+            return CreateModule(TypeForOID(primary.OID), ws, primary);
         }
 
         // TODO: this is a hack...
         public static BossModule? CreateModuleForConfigPlanning(Type cfg)
         {
             var t = TypeForConfig(cfg);
-            return t != null ? CreateModule(t, new(new()), new(0, 0, "", ActorType.None, Class.None, new())) : null;
+            return t != null ? CreateModule(t, new(), new(0, 0, "", ActorType.None, Class.None, new())) : null;
         }
 
         public static Type? PlanConfigType(Type module)

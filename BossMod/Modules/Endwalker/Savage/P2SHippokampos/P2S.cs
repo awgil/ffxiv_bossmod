@@ -16,8 +16,8 @@
     [CooldownPlanning(typeof(P2SConfig))]
     public class P2S : BossModule
     {
-        public P2S(BossModuleManager manager, Actor primary)
-            : base(manager, primary, new ArenaBoundsSquare(new(100, 100), 20))
+        public P2S(WorldState ws, Actor primary)
+            : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20))
         {
             StateMachine = new P2SStates(this).Build();
         }

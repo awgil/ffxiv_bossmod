@@ -20,8 +20,8 @@
         public static float WreathAOERadius = 20;
         public static float WreathTowerRadius = 4;
 
-        public P4S2(BossModuleManager manager, Actor primary)
-            : base(manager, primary, new ArenaBoundsCircle(new(100, 100), 20))
+        public P4S2(WorldState ws, Actor primary)
+            : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
         {
             StateMachine = new P4S2States(this).Build();
         }

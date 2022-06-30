@@ -107,8 +107,8 @@
 
     public class Yilan : SimpleBossModule
     {
-        public Yilan(BossModuleManager manager, Actor primary)
-            : base(manager, primary)
+        public Yilan(WorldState ws, Actor primary)
+            : base(ws, primary)
         {
             BuildStateMachine<Mechanics>();
         }

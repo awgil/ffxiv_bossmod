@@ -20,8 +20,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public Actor? BossP2() => PrimaryActor;
         public Actor? BossP3() => _bossP3;
 
-        public DSW2(BossModuleManager manager, Actor primary)
-            : base(manager, primary, new ArenaBoundsCircle(new(100, 100), 22))
+        public DSW2(WorldState ws, Actor primary)
+            : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 22))
         {
             StateMachine = new DSW2States(this).Build();
         }

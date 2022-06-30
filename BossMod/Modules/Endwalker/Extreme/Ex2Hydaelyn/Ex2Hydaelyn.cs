@@ -24,8 +24,8 @@
     [CooldownPlanning(typeof(Ex2HydaelynConfig))]
     public class Ex2Hydaelyn : BossModule
     {
-        public Ex2Hydaelyn(BossModuleManager manager, Actor primary)
-            : base(manager, primary, new ArenaBoundsCircle(new(100, 100), 20))
+        public Ex2Hydaelyn(WorldState ws, Actor primary)
+            : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
         {
             StateMachine = new Ex2HydaelynStates(this).Build();
         }

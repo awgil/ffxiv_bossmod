@@ -43,8 +43,8 @@
 
     public class A2Rhalgr : BossModule
     {
-        public A2Rhalgr(BossModuleManager manager, Actor primary)
-            : base(manager, primary, new ArenaBoundsSquare(new(-15, 275), 30)) // note: arena has a really complex shape...
+        public A2Rhalgr(WorldState ws, Actor primary)
+            : base(ws, primary, new ArenaBoundsSquare(new(-15, 275), 30)) // note: arena has a really complex shape...
         {
             var sb = new StateMachineBuilder(this);
             sb.TrivialPhase()

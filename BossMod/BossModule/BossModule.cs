@@ -20,17 +20,18 @@ namespace BossMod
     }
 
     // base for boss modules - provides all the common features, so that look is standardized
-    // TODO: it should not require or know anything about manager...
     public class BossModule : IDisposable
     {
-        public BossModuleManager Manager { get; init; }
+        public WorldState WorldState { get; init; }
         public Actor PrimaryActor { get; init; }
+        public BossModuleConfig WindowConfig { get; init; }
         public MiniArena Arena { get; init; }
         public StateMachine? StateMachine { get; protected set; }
         public CooldownPlanningConfigNode? PlanConfig { get; init; }
         public CooldownPlanExecution? PlanExecution = null;
 
-        public WorldState WorldState => Manager.WorldState;
+        public event EventHandler<(BossComponent?, string)>? Error;
+
         public PartyState Raid => WorldState.Party;
         public ArenaBounds Bounds => Arena.Bounds;
 
@@ -91,11 +92,12 @@ namespace BossMod
 
         public void ClearComponents() => _components.Clear();
 
-        public BossModule(BossModuleManager manager, Actor primary, ArenaBounds bounds)
+        public BossModule(WorldState ws, Actor primary, ArenaBounds bounds)
         {
-            Manager = manager;
+            WorldState = ws;
             PrimaryActor = primary;
-            Arena = new(Manager.WindowConfig, bounds);
+            WindowConfig = Service.Config.Get<BossModuleConfig>();
+            Arena = new(WindowConfig, bounds);
 
             var planType = ModuleRegistry.PlanConfigType(GetType());
             if (planType != null)
@@ -179,13 +181,13 @@ namespace BossMod
 
         public virtual void Draw(float cameraAzimuth, int pcSlot, BossComponent.MovementHints? pcMovementHints)
         {
-            if (Manager.WindowConfig.ShowMechanicTimers)
+            if (WindowConfig.ShowMechanicTimers)
                 StateMachine?.Draw();
 
-            if (Manager.WindowConfig.ShowGlobalHints)
+            if (WindowConfig.ShowGlobalHints)
                 DrawGlobalHints();
 
-            if (Manager.WindowConfig.ShowPlayerHints)
+            if (WindowConfig.ShowPlayerHints)
                 DrawHintForPlayer(pcSlot, pcMovementHints);
 
             Arena.Begin(cameraAzimuth);
@@ -206,7 +208,7 @@ namespace BossMod
 
             // draw borders
             Arena.Border();
-            if (Manager.WindowConfig.ShowWaymarks)
+            if (WindowConfig.ShowWaymarks)
                 DrawWaymarks();
 
             // draw non-player alive party members
@@ -252,7 +254,7 @@ namespace BossMod
         public void ReportError(BossComponent? comp, string message)
         {
             Service.Log($"[ModuleError] [{this.GetType().Name}] [{comp?.GetType().Name}] {message}");
-            Manager.HandleError(this, comp, message);
+            Error?.Invoke(this, (comp, message));
         }
 
         // called during update if module is not yet active, should return true if it is to be activated
@@ -319,7 +321,7 @@ namespace BossMod
             foreach (var (slot, player) in Raid.WithSlot().Exclude(pcSlot))
             {
                 var (prio, color) = CalculateHighestPriority(pcSlot, pc, slot, player);
-                if (prio == BossComponent.PlayerPriority.Irrelevant && !Manager.WindowConfig.ShowIrrelevantPlayers)
+                if (prio == BossComponent.PlayerPriority.Irrelevant && !WindowConfig.ShowIrrelevantPlayers)
                     continue;
 
                 if (color == 0)

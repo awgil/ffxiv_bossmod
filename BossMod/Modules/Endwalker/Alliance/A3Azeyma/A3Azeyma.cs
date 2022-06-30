@@ -38,8 +38,8 @@
     // TODO: FarFlungFire mechanic - sometimes (on first cast?) we get visual & stack marker, but no aoe...
     public class A3Azeyma : BossModule
     {
-        public A3Azeyma(BossModuleManager manager, Actor primary)
-            : base(manager, primary, new ArenaBoundsCircle(new(-750, -750), 30))
+        public A3Azeyma(WorldState ws, Actor primary)
+            : base(ws, primary, new ArenaBoundsCircle(new(-750, -750), 30))
         {
             var sb = new StateMachineBuilder(this);
             sb.TrivialPhase()

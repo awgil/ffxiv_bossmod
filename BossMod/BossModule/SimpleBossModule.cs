@@ -4,8 +4,8 @@
     // these (1) always center map around PC, (2) don't reset cooldowns on wipes, (3) provide single default simple state (assuming that they are purely reactive)
     public class SimpleBossModule : BossModule
     {
-        public SimpleBossModule(BossModuleManager manager, Actor primary)
-            : base(manager, primary, new ArenaBoundsCircle(primary.Position, 30))
+        public SimpleBossModule(WorldState ws, Actor primary)
+            : base(ws, primary, new ArenaBoundsCircle(primary.Position, 30))
         {
         }
 
