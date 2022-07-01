@@ -73,20 +73,23 @@ namespace BossMod
             Service.Log("Movement block ended");
         }
 
+        public void ForcePress(VirtualKey vk) => _getKeyRef((int)vk) = 3;
+        public void ForceRelease(VirtualKey vk) => _getKeyRef((int)vk) = 0;
+
         private void Block(VirtualKey vk)
         {
-            _getKeyRef((int)vk) = 0;
+            ForceRelease(vk);
         }
 
         private void Unblock(VirtualKey vk)
         {
-            if (Pressed(vk))
+            if (ReallyPressed(vk))
             {
-                _getKeyRef((int)vk) = 1;
+                ForcePress(vk);
             }
         }
 
-        private bool Pressed(VirtualKey vk)
+        private bool ReallyPressed(VirtualKey vk)
         {
             return (GetKeyState((int)vk) & 0x8000) == 0x8000;
         }

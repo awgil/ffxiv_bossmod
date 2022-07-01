@@ -44,7 +44,7 @@ namespace BossMod
         private float _animLockDelay = 0.1f; // smoothed delay between client request and response
         private float _animLockDelaySmoothing = 0.8f; // TODO tweak
 
-        private InputOverride _inputOverride = new();
+        private InputOverride _inputOverride;
         private DateTime _inputPendingUnblock;
 
         private delegate bool UseActionDelegate(ulong self, ActionType actionType, uint actionID, ulong targetID, uint a4, uint a5, uint a6, ulong a7);
@@ -62,11 +62,12 @@ namespace BossMod
         public unsafe uint ComboLastMove => *_comboLastMove;
         public bool Moving => _inputOverride.IsMoving();
 
-        public unsafe Autorotation(Network network, BossModuleManager bossmods)
+        public unsafe Autorotation(Network network, BossModuleManager bossmods, InputOverride inputOverride)
         {
             _network = network;
             _config = Service.Config.Get<AutorotationConfig>();
             _bossmods = bossmods;
+            _inputOverride = inputOverride;
 
             _network.EventActionRequest += OnNetworkActionRequest;
             _network.EventActionRequestGT += OnNetworkActionRequest;
@@ -89,8 +90,6 @@ namespace BossMod
 
         public void Dispose()
         {
-            _inputOverride.Dispose();
-
             _network.EventActionRequest -= OnNetworkActionRequest;
             _network.EventActionRequestGT -= OnNetworkActionRequest;
             _network.EventActorCast -= OnNetworkActionCastStart;

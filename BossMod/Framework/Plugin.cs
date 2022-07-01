@@ -17,6 +17,7 @@ namespace BossMod
         private WorldStateGame _ws;
         private WorldStateLogger _debugLogger;
         private BossModuleManagerGame _bossmod;
+        private InputOverride _inputOverride;
         private Autorotation _autorotation;
         private TimeSpan _prevUpdateTime;
 
@@ -41,7 +42,8 @@ namespace BossMod
             _ws = new(_network);
             _debugLogger = new(_ws, dalamud.ConfigDirectory);
             _bossmod = new(_ws);
-            _autorotation = new(_network, _bossmod);
+            _inputOverride = new();
+            _autorotation = new(_network, _bossmod, _inputOverride);
 
             dalamud.UiBuilder.Draw += DrawUI;
             dalamud.UiBuilder.OpenConfigUi += OpenConfigUI;
@@ -54,6 +56,7 @@ namespace BossMod
             _bossmod.Dispose();
             _network.Dispose();
             _autorotation.Dispose();
+            _inputOverride.Dispose();
             _commandManager.RemoveHandler("/vbm");
         }
 
@@ -89,7 +92,7 @@ namespace BossMod
 
         private void OpenDebugUI()
         {
-            var ui = new DebugUI(_ws, _autorotation);
+            var ui = new DebugUI(_ws, _autorotation, _inputOverride);
             var w = WindowManager.CreateWindow("Boss mod debug UI", ui.Draw, ui.Dispose, () => true);
             w.SizeHint = new Vector2(300, 200);
         }

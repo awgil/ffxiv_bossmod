@@ -14,12 +14,13 @@ namespace BossMod
         private DebugGraphics _debugGraphics = new();
         private DebugAction _debugAction = new();
         private DebugHate _debugHate = new();
-        private DebugInput _debugInput = new();
+        private DebugInput _debugInput;
 
-        public DebugUI(WorldState ws, Autorotation autorot)
+        public DebugUI(WorldState ws, Autorotation autorot, InputOverride inputOverride)
         {
             _ws = ws;
             _autorot = autorot;
+            _debugInput = new(inputOverride);
         }
 
         public void Dispose()
