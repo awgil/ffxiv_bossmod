@@ -105,12 +105,16 @@
         }
     }
 
+    public class YilanStates : StateMachineBuilder
+    {
+        public YilanStates(BossModule module) : base(module)
+        {
+            TrivialPhase().ActivateOnEnter<Mechanics>();
+        }
+    }
+
     public class Yilan : SimpleBossModule
     {
-        public Yilan(WorldState ws, Actor primary)
-            : base(ws, primary)
-        {
-            BuildStateMachine<Mechanics>();
-        }
+        public Yilan(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 }

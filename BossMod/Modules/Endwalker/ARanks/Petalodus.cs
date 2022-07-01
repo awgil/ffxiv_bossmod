@@ -60,12 +60,16 @@
         }
     }
 
+    public class PetalodusStates : StateMachineBuilder
+    {
+        public PetalodusStates(BossModule module) : base(module)
+        {
+            TrivialPhase().ActivateOnEnter<Mechanics>();
+        }
+    }
+
     public class Petalodus : SimpleBossModule
     {
-        public Petalodus(WorldState ws, Actor primary)
-            : base(ws, primary)
-        {
-            BuildStateMachine<Mechanics>();
-        }
+        public Petalodus(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 }

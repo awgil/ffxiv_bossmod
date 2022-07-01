@@ -97,12 +97,16 @@
         }
     }
 
+    public class MinervaStates : StateMachineBuilder
+    {
+        public MinervaStates(BossModule module) : base(module)
+        {
+            TrivialPhase().ActivateOnEnter<Mechanics>();
+        }
+    }
+
     public class Minerva : SimpleBossModule
     {
-        public Minerva(WorldState ws, Actor primary)
-            : base(ws, primary)
-        {
-            BuildStateMachine<Mechanics>();
-        }
+        public Minerva(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 }

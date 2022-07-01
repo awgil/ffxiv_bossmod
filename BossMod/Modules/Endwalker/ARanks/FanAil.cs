@@ -63,12 +63,16 @@
         }
     }
 
+    public class FanAilStates : StateMachineBuilder
+    {
+        public FanAilStates(BossModule module) : base(module)
+        {
+            TrivialPhase().ActivateOnEnter<Mechanics>();
+        }
+    }
+
     public class FanAil : SimpleBossModule
     {
-        public FanAil(WorldState ws, Actor primary)
-            : base(ws, primary)
-        {
-            BuildStateMachine<Mechanics>();
-        }
+        public FanAil(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 }

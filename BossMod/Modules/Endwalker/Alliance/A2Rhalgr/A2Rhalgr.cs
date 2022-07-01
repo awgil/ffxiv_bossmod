@@ -41,13 +41,12 @@
         public RhalgrBeacon() : base(ActionID.MakeSpell(AID.RhalgrsBeaconAOE), new AOEShapeCircle(10)) { }
     }
 
-    public class A2Rhalgr : BossModule
+    public class A2RhalgrStates : StateMachineBuilder
     {
-        public A2Rhalgr(WorldState ws, Actor primary)
-            : base(ws, primary, new ArenaBoundsSquare(new(-15, 275), 30)) // note: arena has a really complex shape...
+        public A2RhalgrStates(BossModule module) : base(module)
         {
-            var sb = new StateMachineBuilder(this);
-            sb.TrivialPhase()
+            // TODO: reconsider
+            TrivialPhase()
                 .ActivateOnEnter<DestructiveBolt>()
                 .ActivateOnEnter<StrikingMeteor>()
                 .ActivateOnEnter<LightningStorm>()
@@ -57,8 +56,13 @@
                 .ActivateOnEnter<BrokenShards>()
                 .ActivateOnEnter<BronzeLightning>()
                 .ActivateOnEnter<RhalgrBeacon>();
-            StateMachine = sb.Build();
-            //StateMachine = new A2RhalgrStates(this).Initial;
+        }
+    }
+
+    public class A2Rhalgr : BossModule
+    {
+        public A2Rhalgr(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-15, 275), 30)) // note: arena has a really complex shape...
+        {
         }
 
         protected override void DrawArenaForeground(int pcSlot, Actor pc)

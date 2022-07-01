@@ -178,9 +178,9 @@ namespace UIDev.Analysis
 
         public AbilityInfo(List<Replay> replays, uint oid)
         {
-            var moduleType = ModuleRegistry.TypeForOID(oid);
-            _oidType = moduleType?.Module.GetType($"{moduleType.Namespace}.OID");
-            _aidType = moduleType?.Module.GetType($"{moduleType.Namespace}.AID");
+            var moduleInfo = ModuleRegistry.FindByOID(oid);
+            _oidType = moduleInfo?.ObjectIDType;
+            _aidType = moduleInfo?.ActionIDType;
             foreach (var replay in replays)
             {
                 foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))

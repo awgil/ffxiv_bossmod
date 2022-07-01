@@ -31,13 +31,8 @@
     [ConfigDisplay(Order = 0x030, Parent = typeof(EndwalkerConfig))]
     public class Ex3EndsingerConfig : CooldownPlanningConfigNode { }
 
-    [CooldownPlanning(typeof(Ex3EndsingerConfig))]
     public class Ex3Endsinger : BossModule
     {
-        public Ex3Endsinger(WorldState ws, Actor primary)
-            : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
-        {
-            StateMachine = new Ex3EndsingerStates(this).Build();
-        }
+        public Ex3Endsinger(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
     }
 }

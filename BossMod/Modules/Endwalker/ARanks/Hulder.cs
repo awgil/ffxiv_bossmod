@@ -71,12 +71,16 @@
         }
     }
 
+    public class HulderStates : StateMachineBuilder
+    {
+        public HulderStates(BossModule module) : base(module)
+        {
+            TrivialPhase().ActivateOnEnter<Mechanics>();
+        }
+    }
+
     public class Hulder : SimpleBossModule
     {
-        public Hulder(WorldState ws, Actor primary)
-            : base(ws, primary)
-        {
-            BuildStateMachine<Mechanics>();
-        }
+        public Hulder(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 }

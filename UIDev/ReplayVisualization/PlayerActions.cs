@@ -21,8 +21,8 @@ namespace UIDev
             player.AdvanceTo(enc.Time.Start, () => { });
             var bmm = new BossModuleManager(player.WorldState);
             var m = bmm.LoadedModules.FirstOrDefault(m => m.PrimaryActor.InstanceID == enc.InstanceID);
-            if (m?.StateMachine == null)
-                throw new Exception($"Encounter state machine not available");
+            if (m == null)
+                throw new Exception($"Encounter module not available");
 
             var curPhase = m.StateMachine.ActivePhase;
             var curState = m.StateMachine.ActiveState;

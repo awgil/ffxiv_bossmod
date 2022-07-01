@@ -20,8 +20,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
     [ConfigDisplay(Order = 0x200, Parent = typeof(EndwalkerConfig))]
     public class DSW1Config : CooldownPlanningConfigNode { }
 
-    [PrimaryActorOID((uint)OID.SerAdelphel)]
-    [CooldownPlanning(typeof(DSW1Config))]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SerAdelphel)]
     public class DSW1 : BossModule
     {
         private Actor? _grinnaux;
@@ -30,11 +29,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public Actor? SerGrinnaux() => _grinnaux;
         public Actor? SerCharibert() => _charibert;
 
-        public DSW1(WorldState ws, Actor primary)
-            : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 22))
-        {
-            StateMachine = new DSW1States(this).Build();
-        }
+        public DSW1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 22)) { }
 
         protected override void UpdateModule()
         {

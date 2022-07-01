@@ -21,13 +21,8 @@
     [ConfigDisplay(Order = 0x020, Parent = typeof(EndwalkerConfig))]
     public class Ex2HydaelynConfig : CooldownPlanningConfigNode { }
 
-    [CooldownPlanning(typeof(Ex2HydaelynConfig))]
     public class Ex2Hydaelyn : BossModule
     {
-        public Ex2Hydaelyn(WorldState ws, Actor primary)
-            : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
-        {
-            StateMachine = new Ex2HydaelynStates(this).Build();
-        }
+        public Ex2Hydaelyn(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
     }
 }

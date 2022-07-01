@@ -22,9 +22,9 @@ namespace UIDev.Analysis
 
         public StatusInfo(List<Replay> replays, uint oid)
         {
-            var moduleType = ModuleRegistry.TypeForOID(oid);
-            _oidType = moduleType?.Module.GetType($"{moduleType.Namespace}.OID");
-            _sidType = moduleType?.Module.GetType($"{moduleType.Namespace}.SID");
+            var moduleInfo = ModuleRegistry.FindByOID(oid);
+            _oidType = moduleInfo?.ObjectIDType;
+            _sidType = moduleInfo?.StatusIDType;
             foreach (var replay in replays)
             {
                 foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))

@@ -20,19 +20,21 @@
         }
     }
 
-    public class Un1Ultima : BossModule
+    public class Un1UltimaStates : StateMachineBuilder
     {
-        public Un1Ultima(WorldState ws, Actor primary)
-            : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 20))
+        public Un1UltimaStates(BossModule module) : base(module)
         {
-            // TODO: reconsider...
-            var states = new StateMachineBuilder(this);
-            states.TrivialPhase(600)
+            // TODO: reconsider
+            TrivialPhase(600)
                 .ActivateOnEnter<Phases>()
                 .ActivateOnEnter<Mechanics>()
                 .ActivateOnEnter<Garuda>()
                 .ActivateOnEnter<TitanIfrit>();
-            StateMachine = states.Build();
         }
+    }
+
+    public class Un1Ultima : BossModule
+    {
+        public Un1Ultima(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 20)) { }
     }
 }

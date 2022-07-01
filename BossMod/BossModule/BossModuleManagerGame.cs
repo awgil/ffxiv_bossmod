@@ -88,7 +88,7 @@ namespace BossMod
             {
                 foreach (var m in LoadedModules)
                 {
-                    var oidType = m.GetType().Module.GetType($"{m.GetType().Namespace}.OID");
+                    var oidType = ModuleRegistry.FindByOID(m.PrimaryActor.OID)?.ObjectIDType;
                     var oidName = oidType?.GetEnumName(m.PrimaryActor.OID);
                     if (ImGui.Button($"{m.GetType()} ({m.PrimaryActor.InstanceID:X} '{m.PrimaryActor.Name}' {oidName})"))
                         ActiveModule = m;
@@ -184,7 +184,7 @@ namespace BossMod
 
         private void DrawPlanWindow()
         {
-            if (ActiveModule?.StateMachine == null || ActiveModule.PlanExecution == null)
+            if (ActiveModule?.PlanExecution == null)
                 return;
 
             if (ImGui.Button("Show timeline"))

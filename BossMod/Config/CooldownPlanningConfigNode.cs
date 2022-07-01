@@ -4,19 +4,6 @@ using System.Collections.Generic;
 
 namespace BossMod
 {
-    // attribute that associates config type to boss module type
-    // if not set, boss module won't support cooldown planning
-    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    public class CooldownPlanningAttribute : Attribute
-    {
-        public Type ConfigType { get; private init; }
-
-        public CooldownPlanningAttribute(Type configType)
-        {
-            ConfigType = configType;
-        }
-    }
-
     // base class for encounter configurations that support cooldown planning
     public abstract class CooldownPlanningConfigNode : ConfigNode
     {

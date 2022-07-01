@@ -20,9 +20,9 @@ namespace UIDev.Analysis
 
         public IconInfo(List<Replay> replays, uint oid)
         {
-            var moduleType = ModuleRegistry.TypeForOID(oid);
-            _oidType = moduleType?.Module.GetType($"{moduleType.Namespace}.OID");
-            _iidType = moduleType?.Module.GetType($"{moduleType.Namespace}.IconID");
+            var moduleInfo = ModuleRegistry.FindByOID(oid);
+            _oidType = moduleInfo?.ObjectIDType;
+            _iidType = moduleInfo?.IconIDType;
             foreach (var replay in replays)
             {
                 foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))

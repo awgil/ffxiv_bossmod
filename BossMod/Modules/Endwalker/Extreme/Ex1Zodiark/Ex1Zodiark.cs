@@ -14,13 +14,8 @@
     [ConfigDisplay(Order = 0x010, Parent = typeof(EndwalkerConfig))]
     public class Ex1ZodiarkConfig : CooldownPlanningConfigNode { }
 
-    [CooldownPlanning(typeof(Ex1ZodiarkConfig))]
     public class Ex1Zodiark : BossModule
     {
-        public Ex1Zodiark(WorldState ws, Actor primary)
-            : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20))
-        {
-            StateMachine = new Ex1ZodiarkStates(this).Build();
-        }
+        public Ex1Zodiark(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }
     }
 }

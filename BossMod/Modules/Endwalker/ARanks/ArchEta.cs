@@ -64,12 +64,16 @@
         }
     }
 
+    public class ArchEtaStates : StateMachineBuilder
+    {
+        public ArchEtaStates(BossModule module) : base(module)
+        {
+            TrivialPhase().ActivateOnEnter<Mechanics>();
+        }
+    }
+
     public class ArchEta : SimpleBossModule
     {
-        public ArchEta(WorldState ws, Actor primary)
-            : base(ws, primary)
-        {
-            BuildStateMachine<Mechanics>();
-        }
+        public ArchEta(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 }

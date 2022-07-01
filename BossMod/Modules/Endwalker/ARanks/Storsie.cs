@@ -94,12 +94,16 @@
         }
     }
 
+    public class StorsieStates : StateMachineBuilder
+    {
+        public StorsieStates(BossModule module) : base(module)
+        {
+            TrivialPhase().ActivateOnEnter<Mechanics>();
+        }
+    }
+
     public class Storsie : SimpleBossModule
     {
-        public Storsie(WorldState ws, Actor primary)
-            : base(ws, primary)
-        {
-            BuildStateMachine<Mechanics>();
-        }
+        public Storsie(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 }

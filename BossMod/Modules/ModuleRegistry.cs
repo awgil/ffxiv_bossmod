@@ -1,42 +1,122 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace BossMod
 {
     public static class ModuleRegistry
     {
-        private static Dictionary<uint, Type> _modules = new(); // [primary-actor-oid] = module type
-        private static Dictionary<Type, Type> _plannableModules = new(); // [config-type] = module type (contains only modules that support cooldown planning)
-
-        static ModuleRegistry()
+        public class Info
         {
-            foreach (var t in Utils.GetDerivedTypes<BossModule>(Assembly.GetExecutingAssembly()))
+            public Type ModuleType;
+            public Type StatesType;
+            public Type? ConfigType;
+            public Type ObjectIDType;
+            public Type? ActionIDType;
+            public Type? StatusIDType;
+            public Type? TetherIDType;
+            public Type? IconIDType;
+            public uint PrimaryActorOID;
+
+            public bool CooldownPlanningSupported => ConfigType?.IsSubclassOf(typeof(CooldownPlanningConfigNode)) ?? false;
+
+            public static Info? Build(Type module)
             {
-                uint primaryOID = GetPrimaryActorOID(t!);
-                if (primaryOID == 0)
-                    continue;
+                var infoAttr = module.GetCustomAttribute<ModuleInfoAttribute>();
+                var statesType = infoAttr?.StatesType ?? module.Module.GetType($"{module.FullName}States");
+                var configType = infoAttr?.ConfigType ?? module.Module.GetType($"{module.FullName}Config");
+                var oidType = infoAttr?.ObjectIDType ?? module.Module.GetType($"{module.Namespace}.OID");
+                var aidType = infoAttr?.ActionIDType ?? module.Module.GetType($"{module.Namespace}.AID");
+                var sidType = infoAttr?.StatusIDType ?? module.Module.GetType($"{module.Namespace}.SID");
+                var tidType = infoAttr?.TetherIDType ?? module.Module.GetType($"{module.Namespace}.TetherID");
+                var iidType = infoAttr?.IconIDType ?? module.Module.GetType($"{module.Namespace}.IconID");
 
-                if (_modules.ContainsKey(primaryOID))
-                    throw new Exception($"Two boss modules have same primary actor OID: {t.Name} and {_modules[primaryOID].Name}");
-                _modules[primaryOID] = t;
-
-                var configType = PlanConfigType(t);
-                if (configType != null)
+                if (statesType == null || !statesType.IsSubclassOf(typeof(StateMachineBuilder)) || statesType.GetConstructor(new[] { module }) == null)
                 {
-                    if (!configType.IsSubclassOf(typeof(CooldownPlanningConfigNode)))
-                        throw new Exception($"ModuleConfig should specify config type derived from CooldownPlanningConfigNode");
-                    if (_plannableModules.ContainsKey(configType))
-                        throw new Exception($"Two boss modules have same config type: {t.Name} and {_plannableModules[configType].Name}");
-                    _plannableModules[configType] = t;
+                    Service.Log($"[ModuleRegistry] Module {module.Name} has incorrect associated states type: it should be derived from StateMachineBuilder and have a constructor accepting module");
+                    return null;
                 }
+
+                if (configType != null && !configType.IsSubclassOf(typeof(ConfigNode)))
+                {
+                    Service.Log($"[ModuleRegistry] Module {module.Name} has incorrect associated config type: it should be derived from ConfigNode");
+                    configType = null;
+                }
+
+                if (oidType == null || !oidType.IsEnum)
+                {
+                    Service.Log($"[ModuleRegistry] Module {module.Name} has incorrect associated object ID type: it should be an enum");
+                    return null;
+                }
+
+                if (aidType != null && !aidType.IsEnum)
+                {
+                    Service.Log($"[ModuleRegistry] Module {module.Name} has incorrect associated action ID type: it should be an enum");
+                    aidType = null;
+                }
+
+                if (sidType != null && !sidType.IsEnum)
+                {
+                    Service.Log($"[ModuleRegistry] Module {module.Name} has incorrect associated status ID type: it should be an enum");
+                    sidType = null;
+                }
+
+                if (tidType != null && !tidType.IsEnum)
+                {
+                    Service.Log($"[ModuleRegistry] Module {module.Name} has incorrect associated tether ID type: it should be an enum");
+                    tidType = null;
+                }
+
+                if (iidType != null && !iidType.IsEnum)
+                {
+                    Service.Log($"[ModuleRegistry] Module {module.Name} has incorrect associated icon ID type: it should be an enum");
+                    iidType = null;
+                }
+
+                uint primaryOID = infoAttr?.PrimaryActorOID ?? 0;
+                if (primaryOID == 0)
+                {
+                    object? oid;
+                    if (Enum.TryParse(oidType, "Boss", out oid))
+                        primaryOID = (uint)oid!;
+                }
+                if (primaryOID == 0)
+                {
+                    Service.Log($"[ModuleRegistry] Module {module.Name} has no associated primary actor OID: either specify one explicitly or ensure OID enum has Boss entry");
+                    return null;
+                }
+
+                return new Info(module, statesType, oidType) { ConfigType = configType, ActionIDType = aidType, StatusIDType = sidType, TetherIDType = tidType, IconIDType = iidType, PrimaryActorOID = primaryOID };
+            }
+
+            private Info(Type moduleType, Type statesType, Type objectIDType)
+            {
+                ModuleType = moduleType;
+                StatesType = statesType;
+                ObjectIDType = objectIDType;
             }
         }
 
-        public static IReadOnlyDictionary<uint, Type> RegisteredModules => _modules;
+        private static Dictionary<uint, Info> _modules = new(); // [primary-actor-oid] = module type
 
-        public static Type? TypeForOID(uint oid) => _modules.GetValueOrDefault(oid);
-        public static Type? TypeForConfig(Type cfg) => _plannableModules.GetValueOrDefault(cfg);
+        static ModuleRegistry()
+        {
+            foreach (var t in Utils.GetDerivedTypes<BossModule>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract && t != typeof(DemoModule)))
+            {
+                var info = Info.Build(t);
+                if (info == null)
+                    continue;
+
+                if (_modules.ContainsKey(info.PrimaryActorOID))
+                    throw new Exception($"Two boss modules have same primary actor OID: {t.Name} and {_modules[info.PrimaryActorOID].ModuleType.Name}");
+                _modules[info.PrimaryActorOID] = info;
+            }
+        }
+
+        public static IReadOnlyDictionary<uint, Info> RegisteredModules => _modules;
+
+        public static Info? FindByOID(uint oid) => _modules.GetValueOrDefault(oid);
 
         public static BossModule? CreateModule(Type? type, WorldState ws, Actor primary)
         {
@@ -45,40 +125,16 @@ namespace BossMod
 
         public static BossModule? CreateModuleForActor(WorldState ws, Actor primary)
         {
-            return CreateModule(TypeForOID(primary.OID), ws, primary);
+            return CreateModule(FindByOID(primary.OID)?.ModuleType, ws, primary);
         }
 
         // TODO: this is a hack...
         public static BossModule? CreateModuleForConfigPlanning(Type cfg)
         {
-            var t = TypeForConfig(cfg);
-            return t != null ? CreateModule(t, new(), new(0, 0, "", ActorType.None, Class.None, new())) : null;
-        }
-
-        public static Type? PlanConfigType(Type module)
-        {
-            var attr = module.GetCustomAttribute<CooldownPlanningAttribute>();
-            return attr?.ConfigType;
-        }
-
-        private static uint GetPrimaryActorOID(Type module)
-        {
-            // first try to use explicit attribute
-            var oidAttr = module.GetCustomAttribute<PrimaryActorOIDAttribute>();
-            if (oidAttr != null)
-                return oidAttr.OID;
-
-            // if not available, search for "Boss" OID enum
-            var oidType = module.Module.GetType($"{module.Namespace}.OID");
-            if (oidType != null && oidType.IsEnum)
-            {
-                object? oid;
-                if (Enum.TryParse(oidType, "Boss", out oid))
-                    return (uint)oid!;
-            }
-
-            // nothing found...
-            return 0;
+            foreach (var i in _modules.Values)
+                if (i.ConfigType == cfg)
+                    return CreateModule(i.ModuleType, new(), new(0, i.PrimaryActorOID, "", ActorType.None, Class.None, new()));
+            return null;
         }
     }
 }

@@ -35,14 +35,12 @@
         public SublimeSunset() : base(ActionID.MakeSpell(AID.SublimeSunsetAOE), 40) { } // TODO: check falloff
     }
 
-    // TODO: FarFlungFire mechanic - sometimes (on first cast?) we get visual & stack marker, but no aoe...
-    public class A3Azeyma : BossModule
+    public class A3AzeymaStates : StateMachineBuilder
     {
-        public A3Azeyma(WorldState ws, Actor primary)
-            : base(ws, primary, new ArenaBoundsCircle(new(-750, -750), 30))
+        public A3AzeymaStates(BossModule module) : base(module)
         {
-            var sb = new StateMachineBuilder(this);
-            sb.TrivialPhase()
+            // TODO: reconsider
+            TrivialPhase()
                 .ActivateOnEnter<WardensWarmth>()
                 .ActivateOnEnter<SolarWingsL>()
                 .ActivateOnEnter<SolarWingsR>()
@@ -54,8 +52,12 @@
                 .ActivateOnEnter<WildfireWard>()
                 .ActivateOnEnter<Sunbeam>()
                 .ActivateOnEnter<SublimeSunset>();
-            StateMachine = sb.Build();
-            //StateMachine = new A3AzeymaStates(this).Initial;
         }
+    }
+
+    // TODO: FarFlungFire mechanic - sometimes (on first cast?) we get visual & stack marker, but no aoe...
+    public class A3Azeyma : BossModule
+    {
+        public A3Azeyma(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-750, -750), 30)) { }
     }
 }

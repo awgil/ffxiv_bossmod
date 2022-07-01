@@ -48,7 +48,7 @@ namespace UIDev
 
             DrawControlRow();
             DrawTimelineRow();
-            ImGui.TextUnformatted($"Num loaded modules: {_mgr.LoadedModules.Count}, num active modules: {_mgr.LoadedModules.Count(m => m.StateMachine?.ActiveState != null)}, active module: {_mgr.ActiveModule?.GetType()}");
+            ImGui.TextUnformatted($"Num loaded modules: {_mgr.LoadedModules.Count}, num active modules: {_mgr.LoadedModules.Count(m => m.StateMachine.ActiveState != null)}, active module: {_mgr.ActiveModule?.GetType()}");
             ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
             if (_mgr.ActiveModule != null)
             {
@@ -63,7 +63,7 @@ namespace UIDev
                     ImGui.TextUnformatted(comp.GetType().Name);
                 }
 
-                if (ImGui.CollapsingHeader("Plan execution") && _mgr.ActiveModule.StateMachine != null)
+                if (ImGui.CollapsingHeader("Plan execution"))
                 {
                     if (ImGui.Button("Show timeline"))
                     {
@@ -267,8 +267,8 @@ namespace UIDev
 
         private void DrawEnemyTable(uint oid, ICollection<Actor> actors)
         {
-            var oidType = _mgr.ActiveModule != null ? _mgr.ActiveModule.GetType().Module.GetType($"{_mgr.ActiveModule.GetType().Namespace}.OID") : null;
-            var oidName = oidType?.GetEnumName(oid);
+            var moduleInfo = _mgr.ActiveModule != null ? ModuleRegistry.FindByOID(_mgr.ActiveModule.PrimaryActor.OID) : null;
+            var oidName = moduleInfo?.ObjectIDType.GetEnumName(oid);
             if (!ImGui.CollapsingHeader($"Enemy {oid:X} {oidName ?? ""}") || actors.Count == 0)
                 return;
 

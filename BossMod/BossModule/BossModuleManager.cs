@@ -75,12 +75,12 @@ namespace BossMod
             for (int i = 0; i < _loadedModules.Count; ++i)
             {
                 var m = _loadedModules[i];
-                bool wasActive = m.StateMachine?.ActiveState != null;
+                bool wasActive = m.StateMachine.ActiveState != null;
                 bool isActive;
                 try
                 {
                     m.Update();
-                    isActive = m.StateMachine?.ActiveState != null;
+                    isActive = m.StateMachine.ActiveState != null;
                 }
                 catch (Exception ex)
                 {
@@ -169,11 +169,6 @@ namespace BossMod
 
         private void LoadModule(BossModule m)
         {
-            if (m.StateMachine == null)
-            {
-                Service.Log($"[BMM] Failed to load boss module '{m.GetType()}', since it didn't initialize state machine - make sure it is done by constructor");
-                return;
-            }
             _loadedModules.Add(m);
             _configOrModulesUpdated = true;
             OnModuleLoaded(m);
@@ -197,7 +192,7 @@ namespace BossMod
         {
             if (m == null)
                 return 0;
-            if (m.StateMachine?.ActiveState != null)
+            if (m.StateMachine.ActiveState != null)
                 return 3;
             if (!m.PrimaryActor.IsDestroyed && !m.PrimaryActor.IsDead && m.PrimaryActor.IsTargetable)
                 return 2;

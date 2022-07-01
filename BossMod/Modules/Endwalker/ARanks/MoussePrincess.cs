@@ -108,12 +108,16 @@
         }
     }
 
+    public class MoussePrincessStates : StateMachineBuilder
+    {
+        public MoussePrincessStates(BossModule module) : base(module)
+        {
+            TrivialPhase().ActivateOnEnter<Mechanics>();
+        }
+    }
+
     public class MoussePrincess : SimpleBossModule
     {
-        public MoussePrincess(WorldState ws, Actor primary)
-            : base(ws, primary)
-        {
-            BuildStateMachine<Mechanics>();
-        }
+        public MoussePrincess(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 }

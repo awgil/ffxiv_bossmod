@@ -33,29 +33,29 @@ namespace UIDev
 
                 DrawContents(null, null);
             }
-            foreach (var e in _tree.Nodes(_replay.Encounters, e => new($"{ModuleRegistry.TypeForOID(e.OID)}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}")))
+            foreach (var e in _tree.Nodes(_replay.Encounters, e => new($"{ModuleRegistry.FindByOID(e.OID)?.ModuleType.Name}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}")))
             {
-                var moduleType = ModuleRegistry.TypeForOID(e.OID);
+                var moduleInfo = ModuleRegistry.FindByOID(e.OID);
                 foreach (var n in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(_opListsFiltered.GetValueOrDefault(e))))
                 {
                     if (!_opListsFiltered.ContainsKey(e))
-                        _opListsFiltered[e] = new(_replay, moduleType, _replay.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), _scrollTo);
+                        _opListsFiltered[e] = new(_replay, moduleInfo, _replay.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), _scrollTo);
                     _opListsFiltered[e].Draw(_tree, e.Time.Start);
                 }
 
-                DrawContents(e, moduleType);
+                DrawContents(e, moduleInfo);
                 DrawEncounterDetails(e, TimePrinter(e.Time.Start));
                 DrawPlayerActions(e);
             }
         }
 
-        private void DrawContents(Replay.Encounter? filter, Type? moduleType)
+        private void DrawContents(Replay.Encounter? filter, ModuleRegistry.Info? moduleInfo)
         {
-            var oidType = moduleType?.Module.GetType($"{moduleType.Namespace}.OID");
-            var aidType = moduleType?.Module.GetType($"{moduleType.Namespace}.AID");
-            var sidType = moduleType?.Module.GetType($"{moduleType.Namespace}.SID");
-            var iidType = moduleType?.Module.GetType($"{moduleType.Namespace}.IconID");
-            var tidType = moduleType?.Module.GetType($"{moduleType.Namespace}.TetherID");
+            var oidType = moduleInfo?.ObjectIDType;
+            var aidType = moduleInfo?.ActionIDType;
+            var sidType = moduleInfo?.StatusIDType;
+            var tidType = moduleInfo?.TetherIDType;
+            var iidType = moduleInfo?.IconIDType;
             var reference = filter?.Time.Start ?? _replay.Ops.First().Timestamp;
             var tp = TimePrinter(reference);
             var actions = filter != null ? _replay.EncounterActions(filter) : _replay.Actions;

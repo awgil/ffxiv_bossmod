@@ -128,12 +128,16 @@
         }
     }
 
+    public class SugrivaStates : StateMachineBuilder
+    {
+        public SugrivaStates(BossModule module) : base(module)
+        {
+            TrivialPhase().ActivateOnEnter<Mechanics>();
+        }
+    }
+
     public class Sugriva : SimpleBossModule
     {
-        public Sugriva(WorldState ws, Actor primary)
-            : base(ws, primary)
-        {
-            BuildStateMachine<Mechanics>();
-        }
+        public Sugriva(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 }

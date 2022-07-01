@@ -1,15 +1,10 @@
 ﻿namespace BossMod.Endwalker.Savage.P1SErichthonios
 {
-    [CooldownPlanning(typeof(P1SConfig))]
     public class P1S : BossModule
     {
         public static float InnerCircleRadius { get; } = 12; // this determines in/out flails and cells boundary
 
-        public P1S(WorldState ws, Actor primary)
-            : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20))
-        {
-            StateMachine = new P1SStates(this).Build();
-        }
+        public P1S(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }
 
         protected override void DrawArenaForeground(int pcSlot, Actor pc)
         {

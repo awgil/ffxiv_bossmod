@@ -32,8 +32,8 @@ namespace UIDev.Analysis
         public ParticipantInfo(List<Replay> replays, uint oid)
         {
             _encOID = oid;
-            var moduleType = ModuleRegistry.TypeForOID(oid);
-            _oidType = moduleType?.Module.GetType($"{moduleType.Namespace}.OID");
+            var moduleInfo = ModuleRegistry.FindByOID(oid);
+            _oidType = moduleInfo?.ObjectIDType;
             foreach (var replay in replays)
             {
                 foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))

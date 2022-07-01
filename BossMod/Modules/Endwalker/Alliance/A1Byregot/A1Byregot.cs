@@ -1,17 +1,19 @@
 ﻿namespace BossMod.Endwalker.Alliance.A1Byregot
 {
-    public class A1Byregot : BossModule
+    public class A1ByregotStates : StateMachineBuilder
     {
-        public A1Byregot(WorldState ws, Actor primary)
-            : base(ws, primary, new ArenaBoundsSquare(new(0, 700), 25))
+        public A1ByregotStates(BossModule module) : base(module)
         {
-            var sb = new StateMachineBuilder(this);
-            sb.TrivialPhase()
+            // TODO: reconsider
+            TrivialPhase()
                 .ActivateOnEnter<ByregotStrike>()
                 .ActivateOnEnter<Hammers>()
                 .ActivateOnEnter<Reproduce>();
-            StateMachine = sb.Build();
-            //StateMachine = new A1ByregotStates(this).Initial;
         }
+    }
+
+    public class A1Byregot : BossModule
+    {
+        public A1Byregot(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(0, 700), 25)) { }
     }
 }

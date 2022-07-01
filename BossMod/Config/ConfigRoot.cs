@@ -229,8 +229,8 @@ namespace BossMod
                     foreach (var (k, planData) in plans)
                     {
                         var oid = uint.Parse(k);
-                        var module = ModuleRegistry.TypeForOID(oid);
-                        var config = module != null ? ModuleRegistry.PlanConfigType(module) : null;
+                        var info = ModuleRegistry.FindByOID(oid);
+                        var config = (info?.CooldownPlanningSupported ?? false) ? info.ConfigType : null;
                         if (config?.FullName == null)
                             continue;
 

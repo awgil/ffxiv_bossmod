@@ -136,12 +136,16 @@ namespace BossMod.Endwalker.ARanks.Gurangatch
         }
     }
 
+    public class GurangatchStates : StateMachineBuilder
+    {
+        public GurangatchStates(BossModule module) : base(module)
+        {
+            TrivialPhase().ActivateOnEnter<Mechanics>();
+        }
+    }
+
     public class Gurangatch : SimpleBossModule
     {
-        public Gurangatch(WorldState ws, Actor primary)
-            : base(ws, primary)
-        {
-            BuildStateMachine<Mechanics>();
-        }
+        public Gurangatch(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 }

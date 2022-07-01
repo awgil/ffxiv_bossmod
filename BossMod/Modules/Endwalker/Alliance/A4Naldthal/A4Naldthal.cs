@@ -40,14 +40,12 @@
         public Twingaze() : base(ActionID.MakeSpell(AID.Twingaze), new AOEShapeCone(60, 15.Degrees())) { }
     }
 
-    // TODO: balancing counter, magmatic spell raid stack
-    public class A4Naldthal : BossModule
+    public class A4NaldthalStates : StateMachineBuilder
     {
-        public A4Naldthal(WorldState ws, Actor primary)
-            : base(ws, primary, new ArenaBoundsCircle(new(750, -750), 25))
+        public A4NaldthalStates(BossModule module) : base(module)
         {
-            var sb = new StateMachineBuilder(this);
-            sb.TrivialPhase()
+            // TODO: reconsider
+            TrivialPhase()
                 .ActivateOnEnter<GoldenTenet>()
                 .ActivateOnEnter<StygianTenet>()
                 .ActivateOnEnter<FlamesOfTheDead>()
@@ -60,8 +58,12 @@
                 .ActivateOnEnter<WaywardSoul>()
                 .ActivateOnEnter<FortuneFlux>()
                 .ActivateOnEnter<Twingaze>();
-            StateMachine = sb.Build();
-            //StateMachine = new A4NaldthalStates(this).Initial;
         }
+    }
+
+    // TODO: balancing counter, magmatic spell raid stack
+    public class A4Naldthal : BossModule
+    {
+        public A4Naldthal(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(750, -750), 25)) { }
     }
 }

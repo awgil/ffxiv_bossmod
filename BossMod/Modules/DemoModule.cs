@@ -31,10 +31,6 @@
         public DemoModule(WorldState ws, Actor primary)
             : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20))
         {
-            var smb = new StateMachineBuilder(this);
-            smb.TrivialPhase();
-            StateMachine = smb.Build();
-
             ActivateComponent<DemoComponent>();
         }
     }

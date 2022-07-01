@@ -130,7 +130,7 @@ namespace UIDev
             {
                 _global.Draw(_tree);
             }
-            foreach (var n in _tree.Nodes(_perEncounter, kv => new($"Encounter analysis for {kv.Key:X} ({ModuleRegistry.TypeForOID(kv.Key)?.Name})")))
+            foreach (var n in _tree.Nodes(_perEncounter, kv => new($"Encounter analysis for {kv.Key:X} ({ModuleRegistry.FindByOID(kv.Key)?.ModuleType.Name})")))
             {
                 n.Value.Draw(_tree);
             }

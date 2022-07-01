@@ -12,25 +12,20 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P2UltimateEnd() : base(ActionID.MakeSpell(AID.UltimateEndAOE)) { }
     }
 
-    [PrimaryActorOID((uint)OID.BossP2)]
-    [CooldownPlanning(typeof(DSW2Config))]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.BossP2)]
     public class DSW2 : BossModule
     {
         private Actor? _bossP3;
         public Actor? BossP2() => PrimaryActor;
         public Actor? BossP3() => _bossP3;
 
-        public DSW2(WorldState ws, Actor primary)
-            : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 22))
-        {
-            StateMachine = new DSW2States(this).Build();
-        }
+        public DSW2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 22)) { }
 
         protected override void UpdateModule()
         {
             // TODO: this is an ugly hack, think how multi-actor fights can be implemented without it...
             // the problem is that on wipe, any actor can be deleted and recreated in the same frame
-            if (_bossP3 == null && StateMachine?.ActivePhaseIndex == 1)
+            if (_bossP3 == null && StateMachine.ActivePhaseIndex == 1)
                 _bossP3 = Enemies(OID.BossP3).FirstOrDefault();
         }
 

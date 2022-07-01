@@ -71,12 +71,16 @@
         }
     }
 
+    public class LunatenderQueenStates : StateMachineBuilder
+    {
+        public LunatenderQueenStates(BossModule module) : base(module)
+        {
+            TrivialPhase().ActivateOnEnter<Mechanics>();
+        }
+    }
+
     public class LunatenderQueen : SimpleBossModule
     {
-        public LunatenderQueen(WorldState ws, Actor primary)
-            : base(ws, primary)
-        {
-            BuildStateMachine<Mechanics>();
-        }
+        public LunatenderQueen(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 }

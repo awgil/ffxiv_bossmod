@@ -6,27 +6,29 @@ using System.Numerics;
 
 namespace BossMod
 {
-    // attribute that specifies object ID for the boss module's "primary" actor - for each such actor we create corresponding boss module
-    // by default, module activates (transitions to phase 0) whenever "primary" actor becomes both targetable and in combat (this is how we detect 'pull') - though this can be overridden if needed
+    // attribute that allows customizing boss module's metadata; it is optional, each field has some defaults that are fine in most cases
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    public class PrimaryActorOIDAttribute : Attribute
+    public class ModuleInfoAttribute : Attribute
     {
-        public uint OID { get; private init; }
-
-        public PrimaryActorOIDAttribute(uint oid)
-        {
-            OID = oid;
-        }
+        public Type? StatesType; // default: ns.xxxStates
+        public Type? ConfigType; // default: ns.xxxConfig
+        public Type? ObjectIDType; // default: ns.OID
+        public Type? ActionIDType; // default: ns.AID
+        public Type? StatusIDType; // default: ns.SID
+        public Type? TetherIDType; // default: ns.TetherID
+        public Type? IconIDType; // default: ns.IconID
+        public uint PrimaryActorOID; // default: OID.Boss
     }
 
     // base for boss modules - provides all the common features, so that look is standardized
-    public class BossModule : IDisposable
+    // by default, module activates (transitions to phase 0) whenever "primary" actor becomes both targetable and in combat (this is how we detect 'pull') - though this can be overridden if needed
+    public abstract class BossModule : IDisposable
     {
         public WorldState WorldState { get; init; }
         public Actor PrimaryActor { get; init; }
         public BossModuleConfig WindowConfig { get; init; }
         public MiniArena Arena { get; init; }
-        public StateMachine? StateMachine { get; protected set; }
+        public StateMachine StateMachine { get; private init; }
         public CooldownPlanningConfigNode? PlanConfig { get; init; }
         public CooldownPlanExecution? PlanExecution = null;
 
@@ -99,10 +101,11 @@ namespace BossMod
             WindowConfig = Service.Config.Get<BossModuleConfig>();
             Arena = new(WindowConfig, bounds);
 
-            var planType = ModuleRegistry.PlanConfigType(GetType());
-            if (planType != null)
+            var info = ModuleRegistry.FindByOID(primary.OID);
+            StateMachine = info?.StatesType != null ? ((StateMachineBuilder)Activator.CreateInstance(info.StatesType, this)!).Build() : new(new());
+            if (info?.CooldownPlanningSupported ?? false)
             {
-                PlanConfig = Service.Config.Get<CooldownPlanningConfigNode>(planType);
+                PlanConfig = Service.Config.Get<CooldownPlanningConfigNode>(info.ConfigType!);
                 PlanConfig.Modified += OnPlanModified;
             }
 
@@ -131,7 +134,7 @@ namespace BossMod
         {
             if (disposing)
             {
-                StateMachine?.Reset();
+                StateMachine.Reset();
                 ClearComponents();
 
                 if (PlanConfig != null)
@@ -153,9 +156,6 @@ namespace BossMod
 
         public void Update()
         {
-            if (StateMachine == null)
-                return;
-
             // update cooldown plan if needed
             var cls = Raid.Player()?.Class ?? Class.None;
             var plan = PlanConfig?.SelectedPlan(cls);
@@ -186,7 +186,7 @@ namespace BossMod
                 return;
 
             if (WindowConfig.ShowMechanicTimers)
-                StateMachine?.Draw();
+                StateMachine.Draw();
 
             if (WindowConfig.ShowGlobalHints)
                 DrawGlobalHints(CalculateGlobalHints());

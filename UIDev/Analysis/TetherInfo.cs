@@ -21,9 +21,9 @@ namespace UIDev.Analysis
 
         public TetherInfo(List<Replay> replays, uint oid)
         {
-            var moduleType = ModuleRegistry.TypeForOID(oid);
-            _oidType = moduleType?.Module.GetType($"{moduleType.Namespace}.OID");
-            _tidType = moduleType?.Module.GetType($"{moduleType.Namespace}.TetherID");
+            var moduleInfo = ModuleRegistry.FindByOID(oid);
+            _oidType = moduleInfo?.ObjectIDType;
+            _tidType = moduleInfo?.TetherIDType;
             foreach (var replay in replays)
             {
                 foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))

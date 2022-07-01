@@ -85,12 +85,16 @@
         }
     }
 
+    public class AegeirosStates : StateMachineBuilder
+    {
+        public AegeirosStates(BossModule module) : base(module)
+        {
+            TrivialPhase().ActivateOnEnter<Mechanics>();
+        }
+    }
+
     public class Aegeiros : SimpleBossModule
     {
-        public Aegeiros(WorldState ws, Actor primary)
-            : base(ws, primary)
-        {
-            BuildStateMachine<Mechanics>();
-        }
+        public Aegeiros(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 }

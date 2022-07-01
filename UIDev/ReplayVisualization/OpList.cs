@@ -9,7 +9,7 @@ namespace UIDev
     class OpList
     {
         private Replay _replay;
-        private Type? _moduleType;
+        private ModuleRegistry.Info? _moduleInfo;
         private IEnumerable<WorldState.Operation> _ops;
         private Action<DateTime> _scrollTo;
         private List<(DateTime Timestamp, string Text, Action<UITree>? Children, Action? ContextMenu)> _nodes = new();
@@ -17,11 +17,11 @@ namespace UIDev
         private HashSet<uint> _filteredStatuses = new();
         private bool _nodesUpToDate;
 
-        public OpList(Replay r, Type? moduleType, IEnumerable<WorldState.Operation> ops, Action<DateTime> scrollTo)
+        public OpList(Replay r, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldState.Operation> ops, Action<DateTime> scrollTo)
         {
             _replay = r;
             _scrollTo = scrollTo;
-            _moduleType = moduleType;
+            _moduleInfo = moduleInfo;
             _ops = ops;
         }
 
@@ -34,7 +34,7 @@ namespace UIDev
 
             if (!_nodesUpToDate)
             {
-                var aidType = _moduleType?.Module.GetType($"{_moduleType.Namespace}.AID");
+                var aidType = _moduleInfo?.ActionIDType;
                 _nodes.Clear();
                 foreach (var op in _ops.Where(FilterOp))
                 {
