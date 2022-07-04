@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.Command;
+using Dalamud.Interface;
 using Dalamud.IoC;
 using Dalamud.Logging;
 using Dalamud.Plugin;
@@ -19,6 +20,7 @@ namespace BossMod
         private BossModuleManagerGame _bossmod;
         private InputOverride _inputOverride;
         private Autorotation _autorotation;
+        private AI.AIManager _ai;
         private TimeSpan _prevUpdateTime;
 
         public Plugin(
@@ -44,6 +46,7 @@ namespace BossMod
             _bossmod = new(_ws);
             _inputOverride = new();
             _autorotation = new(_network, _bossmod, _inputOverride);
+            _ai = new(_ws, _inputOverride);
 
             dalamud.UiBuilder.Draw += DrawUI;
             dalamud.UiBuilder.OpenConfigUi += OpenConfigUI;
@@ -55,6 +58,7 @@ namespace BossMod
             _debugLogger.Dispose();
             _bossmod.Dispose();
             _network.Dispose();
+            _ai.Dispose();
             _autorotation.Dispose();
             _inputOverride.Dispose();
             _commandManager.RemoveHandler("/vbm");
@@ -105,6 +109,7 @@ namespace BossMod
             _ws.Update(_prevUpdateTime);
             _bossmod.Update();
             _autorotation.Update();
+            _ai.Update();
 
             WindowManager.DrawAll();
 
