@@ -31,6 +31,7 @@ namespace BossMod
             Service.LogHandler = (string msg) => PluginLog.Log(msg);
             Service.LuminaGameData = Service.DataManager.GameData;
             //Service.Device = pluginInterface.UiBuilder.Device;
+            MultiboxUnlock.Exec();
             Camera.Instance = new();
             Mouseover.Instance = new();
 
