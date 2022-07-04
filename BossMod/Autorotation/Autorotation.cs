@@ -56,6 +56,7 @@ namespace BossMod
 
         public AutorotationConfig Config => _config;
         public BossModuleManager Bossmods => _bossmods;
+        public CommonActions? ClassActions => _classActions;
         public float AnimLock => MathF.Max((float)(_animLockEnd - DateTime.Now).TotalSeconds, 0);
         public float AnimLockDelay => _animLockDelay;
         public unsafe float ComboTimeLeft => *_comboTimeLeft;
@@ -110,6 +111,7 @@ namespace BossMod
                 {
                     Class.WAR => typeof(WARActions),
                     Class.WHM => typeof(WHMActions),
+                    Class.GLA or Class.PLD => Service.ClientState.LocalPlayer?.Level < 26 ? typeof(PLDActions) : null,
                     _ => null
                 };
             }

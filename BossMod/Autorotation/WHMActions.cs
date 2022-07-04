@@ -19,7 +19,7 @@ namespace BossMod
         private ActionID _nextBestAOEHealAction = ActionID.MakeSpell(WHMRotation.AID.Medica1);
 
         public WHMActions(Autorotation autorot)
-            : base(autorot)
+            : base(autorot, ActionID.MakeSpell(WHMRotation.AID.Stone1))
         {
             _config = Service.Config.Get<WHMConfig>();
             _state = BuildState();
@@ -127,7 +127,7 @@ namespace BossMod
         private WHMRotation.State BuildState()
         {
             WHMRotation.State s = new();
-            FillCommonState(s, WHMRotation.AID.Stone1, WHMRotation.IDStatPotion);
+            FillCommonState(s, WHMRotation.IDStatPotion);
 
             var player = Service.ClientState.LocalPlayer;
             if (player != null)

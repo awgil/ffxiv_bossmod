@@ -1,5 +1,4 @@
-﻿using Dalamud.Game.ClientState.Party;
-using Dalamud.Game.Text;
+﻿using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using ImGuiNET;
@@ -18,12 +17,14 @@ namespace BossMod.AI
         private int _masterSlot = PartyState.PlayerSlot; // non-zero means corresponding player is master
         private Navigation _navi;
         private UseAction _useAction = new();
+        private Autorotation _autorot;
 
-        public AIManager(WorldState ws, InputOverride inputOverride)
+        public AIManager(WorldState ws, InputOverride inputOverride, Autorotation autorot)
         {
             _ws = ws;
             _config = Service.Config.Get<AIConfig>();
             _navi = new(inputOverride);
+            _autorot = autorot;
             Service.ChatGui.ChatMessage += OnChatMessage;
         }
 
@@ -102,7 +103,7 @@ namespace BossMod.AI
         {
             SwitchToIdle();
             _masterSlot = masterSlot;
-            _behStack.Add(new BehaviourFollow(_ws, _navi, _useAction));
+            _behStack.Add(new BehaviourFollow(_ws, _navi, _useAction, _autorot));
         }
 
         private int FindPartyMemberSlotFromSender(SeString sender)

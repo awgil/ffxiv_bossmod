@@ -47,7 +47,7 @@ namespace BossMod
             _bossmod = new(_ws);
             _inputOverride = new();
             _autorotation = new(_network, _bossmod, _inputOverride);
-            _ai = new(_ws, _inputOverride);
+            _ai = new(_ws, _inputOverride, _autorotation);
 
             dalamud.UiBuilder.Draw += DrawUI;
             dalamud.UiBuilder.OpenConfigUi += OpenConfigUI;

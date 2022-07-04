@@ -58,12 +58,14 @@ namespace BossMod
             public Dictionary<ActionID, Entry> Entries = new(); // key = smart-queueable action, value = expiration timestamp + target
         }
 
+        public ActionID BaseAbility { get; init; } // GCD ability acquired at level 1, that is used as a base for single target rotations
         protected Autorotation Autorot;
         private SmartQueue _sq = new();
         private unsafe FFXIVClientStructs.FFXIV.Client.Game.ActionManager* _actionManager = null;
 
-        protected unsafe CommonActions(Autorotation autorot)
+        protected unsafe CommonActions(Autorotation autorot, ActionID baseAbility)
         {
+            BaseAbility = baseAbility;
             Autorot = autorot;
             _actionManager = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
         }
@@ -185,7 +187,7 @@ namespace BossMod
         abstract public void DrawOverlay();
 
         // fill common state properties
-        protected void FillCommonState<AID>(CommonRotation.State s, AID gcdSpell, ActionID potion) where AID : Enum
+        protected void FillCommonState(CommonRotation.State s, ActionID potion)
         {
             if (Service.ClientState.LocalPlayer == null)
                 return;
@@ -193,7 +195,7 @@ namespace BossMod
             s.Level = Service.ClientState.LocalPlayer.Level;
             s.CurMP = Service.ClientState.LocalPlayer.CurrentMp;
             s.Moving = Autorot.Moving;
-            s.GCD = SpellCooldown(gcdSpell);
+            s.GCD = ActionCooldown(BaseAbility);
             s.AnimationLock = Autorot.AnimLock;
             s.AnimationLockDelay = Autorot.AnimLockDelay;
             s.ComboTimeLeft = Autorot.ComboTimeLeft;

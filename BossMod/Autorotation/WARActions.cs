@@ -15,7 +15,7 @@ namespace BossMod
         private bool _justCast;
 
         public WARActions(Autorotation autorot)
-            : base(autorot)
+            : base(autorot, ActionID.MakeSpell(WARRotation.AID.HeavySwing))
         {
             _config = Service.Config.Get<WARConfig>();
             _state = BuildState();
@@ -200,7 +200,7 @@ namespace BossMod
         private WARRotation.State BuildState()
         {
             WARRotation.State s = new();
-            FillCommonState(s, WARRotation.AID.HeavySwing, WARRotation.IDStatPotion);
+            FillCommonState(s, WARRotation.IDStatPotion);
             if (Service.ClientState.LocalPlayer != null)
             {
                 s.Gauge = Service.JobGauges.Get<WARGauge>().BeastGauge;

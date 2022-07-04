@@ -10,12 +10,14 @@ namespace BossMod.AI
         private WorldState _ws;
         private Navigation _navi;
         private UseAction _useAction;
+        private Autorotation _autorot;
 
-        public BehaviourFollow(WorldState ws, Navigation navi, UseAction useAction)
+        public BehaviourFollow(WorldState ws, Navigation navi, UseAction useAction, Autorotation autorot)
         {
             _ws = ws;
             _navi = navi;
             _useAction = useAction;
+            _autorot = autorot;
         }
 
         public override bool Execute(Actor master)
@@ -114,13 +116,8 @@ namespace BossMod.AI
         // TODO: this needs huge improvement...
         private ActionID SelectAttackAction(Actor player)
         {
-            return player.Class switch
-            {
-                Class.THM => new(ActionType.Spell, 141), // fire
-                Class.PGL => new(ActionType.Spell, 53), // bootshine
-                Class.GLA => new(ActionType.Spell, 9), // fast blade
-                _ => new()
-            };
+            // TODO: aoe if profitable...
+            return _autorot.ClassActions?.BaseAbility ?? new();
         }
     }
 }
