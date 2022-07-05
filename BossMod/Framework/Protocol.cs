@@ -12,17 +12,17 @@ namespace BossMod
             StatusEffectList2 = 0xF31E,
             StatusEffectList3 = 0xF357,
             BossStatusEffectList = 0xF11A,
-            ActionEffect1 = 0x014C, // Machina calls it AbilityN, size=124
-            ActionEffect8 = 0x00F4, // size=636
-            ActionEffect16 = 0x02B0,
-            ActionEffect24 = 0x02F9,
-            ActionEffect32 = 0x015B,
-            ActorCast = 0x0347,
+            ActionEffect1 = 0x00EE, // Machina calls it AbilityN, size=124
+            ActionEffect8 = 0x03AA, // size=636
+            ActionEffect16 = 0xE2B0,
+            ActionEffect24 = 0xE2F9,
+            ActionEffect32 = 0xE15B,
+            ActorCast = 0x03C2,
             EffectResult = 0xF12A,
             EffectResultBasic = 0xF3A3,
-            ActorControl = 0x0286, // look at toggle weapon
-            ActorControlSelf = 0x0308, // look at cooldown
-            ActorControlTarget = 0x0070, // look at target change
+            ActorControl = 0x036E, // look at toggle weapon
+            ActorControlSelf = 0x02F0, // look at cooldown
+            ActorControlTarget = 0xF3A5, // look at target change
             UpdateHpMpTp = 0xF231,
             PlayerSpawn = 0xF336,
             NpcSpawn = 0xF26D,
@@ -30,8 +30,8 @@ namespace BossMod
             ActorMove = 0xF132,
             ActorSetPos = 0xF1D9,
             ActorGauge = 0xF1C2,
-            PresetWaymark = 0x03AC, // FFXIVOpcodes calls this PlaceFieldMarkerPreset
-            Waymark = 0x02FE, // FFXIVOpcodes calls this PlaceFieldMarker
+            PresetWaymark = 0x024F, // FFXIVOpcodes calls this PlaceFieldMarkerPreset
+            Waymark = 0x01C1, // FFXIVOpcodes calls this PlaceFieldMarker
             SystemLogMessage = 0xF1D4, // FFXIVOpcodes calls this SomeDirectorUnk4
 
             // opcodes from FFXIVOpcodes
@@ -78,10 +78,10 @@ namespace BossMod
             Logout = 0xF295,
 
             // below are opcodes i've reversed myself...
-            EnvironmentControl = 0x02E0, // updated - size=16, look for a bunch of messages starting with 0x8003759F after P1N intemperance cast...
+            EnvironmentControl = 0x027B, // updated - size=16, look for a bunch of messages starting with 0x8003759F after P1N intemperance cast...
             UpdateRecastTimes = 0xF23C, // payload = 80 floats 'elapsed' + 80 floats 'total'
-            ActionRequest = 0x01D8, // just begin casting return...
-            ActionRequestGroundTargeted = 0x0095, // XIVAlexander
+            ActionRequest = 0x0344, // just begin casting return...
+            ActionRequestGroundTargeted = 0x018D, // XIVAlexander
             // old - 0x1fd == EventObjSpawn? for stuff like exit points, etc.
         }
 
