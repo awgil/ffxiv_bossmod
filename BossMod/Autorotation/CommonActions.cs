@@ -1,5 +1,4 @@
-﻿using Dalamud.Game.ClientState.Objects.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -102,10 +101,9 @@ namespace BossMod
             return FFXIVClientStructs.FFXIV.Client.Game.InventoryManager.Instance()->GetInventoryItemCount(id % 1000000, id >= 1000000, false, false) > 0;
         }
 
-        public float StatusDuration(float dur)
+        public float StatusDuration(DateTime expireAt)
         {
-            // note: when buff is applied, it has large negative duration, and it is updated to correct one ~0.6sec later (by EffectResult message)
-            return MathF.Abs(dur);
+            return Math.Max((float)(expireAt - Autorot.WorldState.CurrentTime).TotalSeconds, 0.0f);
         }
 
         // check whether specified status is a damage buff
@@ -153,7 +151,7 @@ namespace BossMod
                         var activeWindow = plan.ActivationWindows.FindIndex(w => w.Start <= progress && w.End > progress);
                         if (activeWindow != -1)
                         {
-                            entry.ActivatePlanned(Autorot.Bossmods.WorldState.CurrentTime, plan.ActivationWindows[activeWindow].End - progress);
+                            entry.ActivatePlanned(Autorot.WorldState.CurrentTime, plan.ActivationWindows[activeWindow].End - progress);
                         }
                     }
                 }
@@ -172,7 +170,7 @@ namespace BossMod
                 if (e != null)
                 {
                     Log($"Smart-queueing {actionID} @ {targetID:X}");
-                    e.ActivateManual(Autorot.Bossmods.WorldState.CurrentTime, targets);
+                    e.ActivateManual(Autorot.WorldState.CurrentTime, targets);
                     (actionID, targets) = _sq.Replacement;
                 }
             }
@@ -187,13 +185,11 @@ namespace BossMod
         abstract public void DrawOverlay();
 
         // fill common state properties
-        protected void FillCommonState(CommonRotation.State s, ActionID potion)
+        protected void FillCommonState(CommonRotation.State s, Actor player, ActionID potion)
         {
-            if (Service.ClientState.LocalPlayer == null)
-                return;
-
-            s.Level = Service.ClientState.LocalPlayer.Level;
-            s.CurMP = Service.ClientState.LocalPlayer.CurrentMp;
+            var pc = Service.ClientState.LocalPlayer;
+            s.Level = pc?.Level ?? 0;
+            s.CurMP = pc?.CurrentMp ?? 0;
             s.Moving = Autorot.Moving;
             s.GCD = ActionCooldown(BaseAbility);
             s.AnimationLock = Autorot.AnimLock;
@@ -201,9 +197,9 @@ namespace BossMod
             s.ComboTimeLeft = Autorot.ComboTimeLeft;
             s.ComboLastAction = Autorot.ComboLastMove;
 
-            foreach (var status in Service.ClientState.LocalPlayer.StatusList.Where(s => IsDamageBuff(s.StatusId)))
+            foreach (var status in player.Statuses.Where(s => IsDamageBuff(s.ID)))
             {
-                s.RaidBuffsLeft = MathF.Max(s.RaidBuffsLeft, StatusDuration(status.RemainingTime));
+                s.RaidBuffsLeft = MathF.Max(s.RaidBuffsLeft, StatusDuration(status.ExpireAt));
             }
             // TODO: also check damage-taken debuffs on target
 
@@ -214,12 +210,9 @@ namespace BossMod
         // fill common strategy properties
         protected void FillCommonStrategy(CommonRotation.Strategy strategy, ActionID potion)
         {
-            if (Service.ClientState.LocalPlayer == null)
-                return;
-
-            strategy.Prepull = !Service.ClientState.LocalPlayer.StatusFlags.HasFlag(StatusFlags.InCombat);
+            strategy.Prepull = !Autorot.WorldState.Party.Player()?.InCombat ?? false;
             strategy.FightEndIn = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextDowntime(Autorot.Bossmods.ActiveModule?.StateMachine) ?? 0;
-            strategy.RaidBuffsIn = Autorot.Bossmods.ActiveModule?.PlanConfig != null ? Autorot.Bossmods.RaidCooldowns.NextDamageBuffIn(Autorot.Bossmods.WorldState.CurrentTime) : 10000; // assumption: if there is no planning support for encounter (meaning it's something trivial, like outdoor boss), don't expect any cooldowns
+            strategy.RaidBuffsIn = Autorot.Bossmods.ActiveModule?.PlanConfig != null ? Autorot.Bossmods.RaidCooldowns.NextDamageBuffIn(Autorot.WorldState.CurrentTime) : 10000; // assumption: if there is no planning support for encounter (meaning it's something trivial, like outdoor boss), don't expect any cooldowns
             strategy.PositionLockIn = Autorot.Config.EnableMovement ? (Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextPositioning(Autorot.Bossmods.ActiveModule?.StateMachine) ?? 10000) : 0;
             strategy.Potion = SmartQueueActive(potion) ? CommonRotation.Strategy.PotionUse.Immediate : Autorot.Config.PotionUse;
             if (strategy.Potion != CommonRotation.Strategy.PotionUse.Manual && !HaveItemInInventory(potion.ID)) // don't try to use potions if player doesn't have any
@@ -232,14 +225,14 @@ namespace BossMod
         protected void SmartQueueRegisterSpell<AID>(AID spell) where AID : Enum => SmartQueueRegister(ActionID.MakeSpell(spell));
 
         // check whether smart-queueable action is queued
-        protected bool SmartQueueActive(ActionID action) => _sq.Entries.GetValueOrDefault(action)?.Active(Autorot.Bossmods.WorldState.CurrentTime) ?? false;
+        protected bool SmartQueueActive(ActionID action) => _sq.Entries.GetValueOrDefault(action)?.Active(Autorot.WorldState.CurrentTime) ?? false;
         protected bool SmartQueueActiveSpell<AID>(AID spell) where AID : Enum => SmartQueueActive(ActionID.MakeSpell(spell));
 
         // get smart-queue target, if available; otherwise (if smart-queue is inactive or if it was planned without specific target) return fallback (current targets)
         protected Targets SmartQueueTarget(ActionID action, Targets fallback)
         {
             var e = _sq.Entries.GetValueOrDefault(action);
-            return e != null && e.Active(Autorot.Bossmods.WorldState.CurrentTime) && e.Targets != null ? e.Targets.Value : fallback;
+            return e != null && e.Active(Autorot.WorldState.CurrentTime) && e.Targets != null ? e.Targets.Value : fallback;
         }
         protected Targets SmartQueueTargetSpell<AID>(AID spell, Targets fallback) where AID : Enum => SmartQueueTarget(ActionID.MakeSpell(spell), fallback);
 
@@ -249,17 +242,38 @@ namespace BossMod
         // smart targeting utility: return target (if friendly) or mouseover (if friendly and allowed) or null (otherwise)
         protected Actor? SmartTargetFriendly(Targets targets, bool allowMouseover)
         {
-            var target = Autorot.Bossmods.WorldState.Actors.Find(targets.MainTarget);
+            var target = Autorot.WorldState.Actors.Find(targets.MainTarget);
             if (target?.Type is ActorType.Player or ActorType.Chocobo)
                 return target;
 
             if (allowMouseover)
             {
-                target = Autorot.Bossmods.WorldState.Actors.Find(targets.MouseoverTarget);
+                target = Autorot.WorldState.Actors.Find(targets.MouseoverTarget);
                 if (target?.Type is ActorType.Player or ActorType.Chocobo)
                     return target;
             }
 
+            return null;
+        }
+
+        // smart targeting utility: return target (if friendly) or mouseover (if friendly and allowed) or other tank (if available and allowed) or null (otherwise)
+        protected Actor? SmartTargetCoTank(ActionID action, Targets targets, bool allow)
+        {
+            targets = SmartQueueTarget(action, targets);
+            var target = SmartTargetFriendly(targets, allow);
+            if (target != null)
+                return target;
+
+            if (allow)
+            {
+                target = Autorot.WorldState.Party.WithoutSlot().Exclude(Autorot.WorldState.Party.Player()).FirstOrDefault(a => a.Role == Role.Tank);
+                if (target != null)
+                    return target;
+            }
+
+            // can't find good target, deactivate smart-queue entry to prevent silly spam
+            Log($"Smart-target failed, removing from queue");
+            SmartQueueDeactivate(action);
             return null;
         }
 

@@ -1,10 +1,7 @@
 ﻿using Dalamud.Game.ClientState.JobGauge.Types;
-using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
 using ImGuiNET;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace BossMod
 {
@@ -51,7 +48,7 @@ namespace BossMod
 
             FillCommonStrategy(_strategy, WHMRotation.IDStatPotion);
 
-            var player = Service.ClientState.LocalPlayer;
+            var player = Autorot.WorldState.Party.Player();
             if (player != null)
             {
                 _strategy.NumAssizeMedica1Targets = CountAOEHealTargets(15, player.Position);
@@ -127,48 +124,47 @@ namespace BossMod
         private WHMRotation.State BuildState()
         {
             WHMRotation.State s = new();
-            FillCommonState(s, WHMRotation.IDStatPotion);
-
-            var player = Service.ClientState.LocalPlayer;
+            var player = Autorot.WorldState.Party.Player();
             if (player != null)
             {
+                FillCommonState(s, player, WHMRotation.IDStatPotion);
                 var gauge = Service.JobGauges.Get<WHMGauge>();
                 s.NormalLilies = gauge.Lily;
                 s.BloodLilies = gauge.BloodLily;
                 s.NextLilyIn = 30 - gauge.LilyTimer * 0.001f;
 
-                foreach (var status in player.StatusList)
+                foreach (var status in player.Statuses)
                 {
-                    switch ((WHMRotation.SID)status.StatusId)
+                    switch ((WHMRotation.SID)status.ID)
                     {
                         case WHMRotation.SID.Swiftcast:
-                            s.SwiftcastLeft = StatusDuration(status.RemainingTime);
+                            s.SwiftcastLeft = StatusDuration(status.ExpireAt);
                             break;
                         case WHMRotation.SID.ThinAir:
-                            s.ThinAirLeft = StatusDuration(status.RemainingTime);
+                            s.ThinAirLeft = StatusDuration(status.ExpireAt);
                             break;
                         case WHMRotation.SID.Freecure:
-                            s.FreecureLeft = StatusDuration(status.RemainingTime);
+                            s.FreecureLeft = StatusDuration(status.ExpireAt);
                             break;
                         case WHMRotation.SID.Medica2:
-                            if (status.SourceID == player.ObjectId)
-                                s.MedicaLeft = StatusDuration(status.RemainingTime);
+                            if (status.SourceID == player.InstanceID)
+                                s.MedicaLeft = StatusDuration(status.ExpireAt);
                             break;
                     }
                 }
 
-                var target = player.TargetObject as BattleChara;
+                var target = Autorot.WorldState.Actors.Find(player.TargetID);
                 if (target != null)
                 {
-                    foreach (var status in target.StatusList)
+                    foreach (var status in target.Statuses)
                     {
-                        switch ((WHMRotation.SID)status.StatusId)
+                        switch ((WHMRotation.SID)status.ID)
                         {
                             case WHMRotation.SID.Aero1:
                             case WHMRotation.SID.Aero2:
                             case WHMRotation.SID.Dia:
-                                if (status.SourceID == player.ObjectId)
-                                    s.TargetDiaLeft = StatusDuration(status.RemainingTime);
+                                if (status.SourceID == player.InstanceID)
+                                    s.TargetDiaLeft = StatusDuration(status.ExpireAt);
                                 break;
                         }
                     }
@@ -195,7 +191,7 @@ namespace BossMod
         private void LogStateChange(WHMRotation.State prev, WHMRotation.State curr)
         {
             // do nothing if not in combat
-            if (Service.ClientState.LocalPlayer == null || !Service.ClientState.LocalPlayer.StatusFlags.HasFlag(StatusFlags.InCombat))
+            if (!(Autorot.WorldState.Party.Player()?.InCombat ?? false))
                 return;
 
             // detect expired buffs
@@ -249,52 +245,31 @@ namespace BossMod
             return _config.SmartCure3Target ? SmartCure3Target().Item1 : targets.MainTarget;
         }
 
-        private int CountAOEHealTargets(float radius, Vector3 center)
+        private int CountAOEHealTargets(float radius, WPos center)
         {
             var rsq = radius * radius;
-            return LivePartyMembers().Count(o => o.CurrentHp < o.MaxHp && (o.Position - center).LengthSquared() <= rsq);
+            return Autorot.WorldState.Party.WithoutSlot().Count(o => o.HP.Cur < o.HP.Max && (o.Position - center).LengthSq() <= rsq);
         }
 
         // select best target for cure3, such that most people are hit
         private (ulong, int) SmartCure3Target()
         {
-            var playerPos = Service.ClientState.LocalPlayer?.Position ?? new();
+            var playerPos = Autorot.WorldState.Party.Player()?.Position ?? new();
             var rsq = 30 * 30;
-            return LivePartyMembers().Select(o => (o.ObjectId, (o.Position - playerPos).LengthSquared() <= rsq ? CountAOEHealTargets(6, o.Position) : -1)).MaxBy(oc => oc.Item2);
-        }
-
-        // TODO: we could use worldstate here if it had HP...
-        private IEnumerable<Character> LivePartyMembers()
-        {
-            if (Service.PartyList.Length > 0)
-            {
-                foreach (var p in Service.PartyList)
-                {
-                    var o = p.GameObject as Character;
-                    if (o != null && !Utils.GameObjectIsDead(o))
-                        yield return o;
-                }
-            }
-            else
-            {
-                var o = Service.ClientState.LocalPlayer as Character;
-                if (o != null && !Utils.GameObjectIsDead(o))
-                    yield return o;
-            }
+            return Autorot.WorldState.Party.WithoutSlot().Select(o => (o.InstanceID, (o.Position - playerPos).LengthSq() <= rsq ? CountAOEHealTargets(6, o.Position) : -1)).MaxBy(oc => oc.Item2);
         }
 
         // check whether player's target is hostile
         private bool TargetIsEnemy()
         {
-            var target = Service.ClientState.LocalPlayer?.TargetObject;
-            return target != null && target.ObjectKind == ObjectKind.BattleNpc && (BattleNpcSubKind)target.SubKind == BattleNpcSubKind.Enemy;
+            var target = Autorot.WorldState.Actors.Find(Autorot.WorldState.Party.Player()?.TargetID ?? 0);
+            return target?.Type == ActorType.Enemy;
         }
 
         // check whether any targetable enemies are in assize range
         private bool AllowAssize()
         {
-            var playerPos = Service.ClientState.LocalPlayer?.Position ?? new();
-            return Service.ObjectTable.Any(o => o.ObjectKind == ObjectKind.BattleNpc && (BattleNpcSubKind)o.SubKind == BattleNpcSubKind.Enemy && Utils.GameObjectIsTargetable(o) && (o.Position - playerPos).LengthSquared() <= (15 + o.HitboxRadius) * (15 + o.HitboxRadius));
+            return Autorot.PotentialTargetsInRangeFromPlayer(15).Any();
         }
 
         // check whether potential divine benison target doesn't already have it applied
@@ -302,7 +277,7 @@ namespace BossMod
         {
             var targets = SmartQueueTargetSpell(WHMRotation.AID.DivineBenison, new());
             var target = SmartTargetFriendly(targets, _config.MouseoverFriendly);
-            return target != null && target.FindStatus(WHMRotation.SID.DivineBenison, Service.ClientState.LocalPlayer?.ObjectId ?? 0) == null;
+            return target != null && target.FindStatus(WHMRotation.SID.DivineBenison, Autorot.WorldState.Party.Player()?.InstanceID ?? 0) == null;
         }
     }
 }

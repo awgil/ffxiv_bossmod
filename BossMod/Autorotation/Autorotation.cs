@@ -3,6 +3,7 @@ using Dalamud.Hooking;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod
 {
@@ -56,12 +57,15 @@ namespace BossMod
 
         public AutorotationConfig Config => _config;
         public BossModuleManager Bossmods => _bossmods;
+        public WorldState WorldState => _bossmods.WorldState;
         public CommonActions? ClassActions => _classActions;
+        public List<Actor> PotentialTargets = new();
         public float AnimLock => MathF.Max((float)(_animLockEnd - DateTime.Now).TotalSeconds, 0);
         public float AnimLockDelay => _animLockDelay;
         public unsafe float ComboTimeLeft => *_comboTimeLeft;
         public unsafe uint ComboLastMove => *_comboLastMove;
         public bool Moving => _inputOverride.IsMoving();
+        public bool DisableReplacement = false; // used when action selection is done by AI, so that replacement doesn't interfere
 
         public unsafe Autorotation(Network network, BossModuleManager bossmods, InputOverride inputOverride)
         {
@@ -107,7 +111,7 @@ namespace BossMod
             Type? classType = null;
             if (_config.Enabled)
             {
-                classType = (Class)(Service.ClientState.LocalPlayer?.ClassJob.Id ?? 0) switch
+                classType = (WorldState.Party.Player()?.Class ?? Class.None) switch
                 {
                     Class.WAR => typeof(WARActions),
                     Class.WHM => typeof(WHMActions),
@@ -121,8 +125,11 @@ namespace BossMod
                 _classActions = classType != null ? (CommonActions?)Activator.CreateInstance(classType, this) : null;
             }
 
+            PotentialTargets.Clear();
             if (_classActions != null)
             {
+                PotentialTargets.AddRange(WorldState.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsDead));
+
                 if (_firstPendingJustCompleted)
                 {
                     _classActions.CastSucceeded(_pendingActions[0].Action);
@@ -162,6 +169,17 @@ namespace BossMod
             }
         }
 
+        public IEnumerable<Actor> PotentialTargetsInRange(WPos center, float radius)
+        {
+            return PotentialTargets.Where(a => (a.Position - center).LengthSq() < (a.HitboxRadius + radius) * (a.HitboxRadius + radius));
+        }
+
+        public IEnumerable<Actor> PotentialTargetsInRangeFromPlayer(float radius)
+        {
+            var player = WorldState.Party.Player();
+            return player != null ? PotentialTargetsInRange(player.Position, radius) : Enumerable.Empty<Actor>();
+        }
+
         private void OnNetworkActionRequest(object? sender, Network.PendingAction action)
         {
             if (_pendingActions.Count > 0)
@@ -183,7 +201,7 @@ namespace BossMod
 
         private void OnNetworkActionCastStart(object? sender, (ulong actorID, ActionID action, float castTime, ulong targetID) args)
         {
-            if (args.actorID != Service.ClientState.LocalPlayer?.ObjectId)
+            if (args.actorID != WorldState.Party.Player()?.InstanceID)
                 return; // not a player cast
 
             // update animation lock end for casted spells: it is 0.1 after cast end instead of 0.5 after request
@@ -192,7 +210,7 @@ namespace BossMod
 
         private void OnNetworkActionEffect(object? sender, (ulong actorID, ActorCastEvent cast) args)
         {
-            if (args.cast.SourceSequence == 0 || args.actorID != Service.ClientState.LocalPlayer?.ObjectId)
+            if (args.cast.SourceSequence == 0 || args.actorID != WorldState.Party.Player()?.InstanceID)
                 return; // non-player-initiated
 
             var pa = new Network.PendingAction() { Action = args.cast.Action, TargetID = args.cast.MainTargetID, Sequence = args.cast.SourceSequence };
@@ -227,7 +245,7 @@ namespace BossMod
 
         private void OnNetworkActionCancel(object? sender, (ulong actorID, uint actionID) args)
         {
-            if (args.actorID != Service.ClientState.LocalPlayer?.ObjectId)
+            if (args.actorID != WorldState.Party.Player()?.InstanceID)
                 return; // non-player-initiated
 
             int index = _pendingActions.FindIndex(a => a.Action.ID == args.actionID);
@@ -304,7 +322,7 @@ namespace BossMod
             // a5==1 means "forced"?
             // a4==0 for spells, 65535 for item used from hotbar, some value (e.g. 6) for item used from inventory; it is the same as a4 in UseActionLocation
             var action = new ActionID(actionType, actionID);
-            if (_classActions != null)
+            if (_classActions != null && !DisableReplacement)
             {
                 (action, targetID) = _classActions.ReplaceActionAndTarget(action, targetID);
                 if (a4 == 0 && action.Type == ActionType.Item)

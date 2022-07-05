@@ -1,6 +1,4 @@
-﻿using Dalamud.Game.ClientState.JobGauge.Types;
-using Dalamud.Game.ClientState.Objects.Enums;
-using ImGuiNET;
+﻿using ImGuiNET;
 using System.Linq;
 
 namespace BossMod
@@ -74,7 +72,7 @@ namespace BossMod
             }
             ulong targetID = actionID.Type == ActionType.Spell ? (PLDRotation.AID)actionID.ID switch
             {
-                PLDRotation.AID.Shirk => SmartTargetShirk(actionID, targets),
+                PLDRotation.AID.Shirk => SmartTargetCoTank(actionID, targets, _config.SmartShirkTarget)?.InstanceID ?? targets.MainTarget,
                 _ => targets.MainTarget
             } : targets.MainTarget;
             return (actionID, targetID);
@@ -92,12 +90,13 @@ namespace BossMod
         private PLDRotation.State BuildState()
         {
             PLDRotation.State s = new();
-            FillCommonState(s, PLDRotation.IDStatPotion);
-            if (Service.ClientState.LocalPlayer != null)
+            var player = Autorot.WorldState.Party.Player();
+            if (player != null)
             {
+                FillCommonState(s, player, PLDRotation.IDStatPotion);
                 //s.Gauge = Service.JobGauges.Get<PLDGauge>().OathGauge;
 
-                //foreach (var status in Service.ClientState.LocalPlayer.StatusList)
+                //foreach (var status in player.StatusList)
                 //{
                 //    switch ((PLDRotation.SID)status.StatusId)
                 //    {
@@ -120,7 +119,7 @@ namespace BossMod
         private void LogStateChange(PLDRotation.State prev, PLDRotation.State curr)
         {
             // do nothing if not in combat
-            if (Service.ClientState.LocalPlayer == null || !Service.ClientState.LocalPlayer.StatusFlags.HasFlag(StatusFlags.InCombat))
+            if (!(Autorot.WorldState.Party.Player()?.InCombat ?? false))
                 return;
 
             // detect expired buffs
@@ -128,32 +127,10 @@ namespace BossMod
                 Log($"Expired combo [{curr}]");
         }
 
-        // shirk smart targeting: target if friendly > mouseover if friendly > other tank
-        private ulong SmartTargetShirk(ActionID action, Targets targets)
-        {
-            targets = SmartQueueTarget(action, targets);
-            var target = SmartTargetFriendly(targets, _config.SmartShirkTarget);
-            if (target != null)
-                return target.InstanceID;
-
-            if (_config.SmartShirkTarget)
-            {
-                target = Autorot.Bossmods.WorldState.Party.WithoutSlot().FirstOrDefault(a => a.InstanceID != Service.ClientState.LocalPlayer?.ObjectId && a.Role == Role.Tank);
-                if (target != null)
-                    return target.InstanceID;
-            }
-
-            // can't find good target, deactivate smart-queue entry to prevent silly spam
-            Log($"Smart-target failed, removing from queue");
-            SmartQueueDeactivate(action);
-            return targets.MainTarget;
-        }
-
         // check whether any targetable enemies are in reprisal range (TODO: consider checking only target?..)
         private bool AllowReprisal()
         {
-            var playerPos = Service.ClientState.LocalPlayer?.Position ?? new();
-            return Service.ObjectTable.Any(o => o.ObjectKind == ObjectKind.BattleNpc && (BattleNpcSubKind)o.SubKind == BattleNpcSubKind.Enemy && Utils.GameObjectIsTargetable(o) && (o.Position - playerPos).LengthSquared() <= (5 + o.HitboxRadius) * (5 + o.HitboxRadius));
+            return Autorot.PotentialTargetsInRangeFromPlayer(5).Any();
         }
     }
 }

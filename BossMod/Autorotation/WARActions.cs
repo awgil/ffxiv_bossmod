@@ -1,5 +1,4 @@
 ﻿using Dalamud.Game.ClientState.JobGauge.Types;
-using Dalamud.Game.ClientState.Objects.Enums;
 using ImGuiNET;
 using System.Linq;
 
@@ -181,8 +180,8 @@ namespace BossMod
             }
             ulong targetID = actionID.Type == ActionType.Spell ? (WARRotation.AID)actionID.ID switch
             {
-                WARRotation.AID.NascentFlash or WARRotation.AID.Shirk => SmartTargetNascentFlashShirk(actionID, targets),
-                WARRotation.AID.Holmgang => _config.HolmgangSelf ? Service.ClientState.LocalPlayer?.ObjectId ?? targets.MainTarget : targets.MainTarget,
+                WARRotation.AID.NascentFlash or WARRotation.AID.Shirk => SmartTargetCoTank(actionID, targets, _config.SmartNascentFlashShirkTarget)?.InstanceID ?? targets.MainTarget,
+                WARRotation.AID.Holmgang => _config.HolmgangSelf ? Autorot.WorldState.Party.Player()?.InstanceID ?? targets.MainTarget : targets.MainTarget,
                 _ => targets.MainTarget
             } : targets.MainTarget;
             return (actionID, targetID);
@@ -200,28 +199,29 @@ namespace BossMod
         private WARRotation.State BuildState()
         {
             WARRotation.State s = new();
-            FillCommonState(s, WARRotation.IDStatPotion);
-            if (Service.ClientState.LocalPlayer != null)
+            var player = Autorot.WorldState.Party.Player();
+            if (player != null)
             {
+                FillCommonState(s, player, WARRotation.IDStatPotion);
                 s.Gauge = Service.JobGauges.Get<WARGauge>().BeastGauge;
 
-                foreach (var status in Service.ClientState.LocalPlayer.StatusList)
+                foreach (var status in player.Statuses)
                 {
-                    switch ((WARRotation.SID)status.StatusId)
+                    switch ((WARRotation.SID)status.ID)
                     {
                         case WARRotation.SID.SurgingTempest:
-                            s.SurgingTempestLeft = StatusDuration(status.RemainingTime);
+                            s.SurgingTempestLeft = StatusDuration(status.ExpireAt);
                             break;
                         case WARRotation.SID.NascentChaos:
-                            s.NascentChaosLeft = StatusDuration(status.RemainingTime);
+                            s.NascentChaosLeft = StatusDuration(status.ExpireAt);
                             break;
                         case WARRotation.SID.Berserk:
                         case WARRotation.SID.InnerRelease:
-                            s.InnerReleaseLeft = StatusDuration(status.RemainingTime);
-                            s.InnerReleaseStacks = status.StackCount;
+                            s.InnerReleaseLeft = StatusDuration(status.ExpireAt);
+                            s.InnerReleaseStacks = status.Extra & 0xFF;
                             break;
                         case WARRotation.SID.PrimalRend:
-                            s.PrimalRendLeft = StatusDuration(status.RemainingTime);
+                            s.PrimalRendLeft = StatusDuration(status.ExpireAt);
                             break;
                     }
                 }
@@ -248,7 +248,7 @@ namespace BossMod
         private void LogStateChange(WARRotation.State prev, WARRotation.State curr)
         {
             // do nothing if not in combat
-            if (Service.ClientState.LocalPlayer == null || !Service.ClientState.LocalPlayer.StatusFlags.HasFlag(StatusFlags.InCombat))
+            if (!(Autorot.WorldState.Party.Player()?.InCombat ?? false))
                 return;
 
             // detect expired buffs
@@ -264,32 +264,10 @@ namespace BossMod
                 Log($"Expired combo [{curr}]");
         }
 
-        // shirk/nascent flash smart targeting: target if friendly > mouseover if friendly > other tank
-        private ulong SmartTargetNascentFlashShirk(ActionID action, Targets targets)
-        {
-            targets = SmartQueueTarget(action, targets);
-            var target = SmartTargetFriendly(targets, _config.SmartNascentFlashShirkTarget);
-            if (target != null)
-                return target.InstanceID;
-
-            if (_config.SmartNascentFlashShirkTarget)
-            {
-                target = Autorot.Bossmods.WorldState.Party.WithoutSlot().FirstOrDefault(a => a.InstanceID != Service.ClientState.LocalPlayer?.ObjectId && a.Role == Role.Tank);
-                if (target != null)
-                    return target.InstanceID;
-            }
-
-            // can't find good target, deactivate smart-queue entry to prevent silly spam
-            Log($"Smart-target failed, removing from queue");
-            SmartQueueDeactivate(action);
-            return targets.MainTarget;
-        }
-
         // check whether any targetable enemies are in reprisal range (TODO: consider checking only target?..)
         private bool AllowReprisal()
         {
-            var playerPos = Service.ClientState.LocalPlayer?.Position ?? new();
-            return Service.ObjectTable.Any(o => o.ObjectKind == ObjectKind.BattleNpc && (BattleNpcSubKind)o.SubKind == BattleNpcSubKind.Enemy && Utils.GameObjectIsTargetable(o) && (o.Position - playerPos).LengthSquared() <= (5 + o.HitboxRadius) * (5 + o.HitboxRadius));
+            return Autorot.PotentialTargetsInRangeFromPlayer(5).Any();
         }
     }
 }
