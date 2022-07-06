@@ -6,6 +6,16 @@ namespace BossMod
 {
     abstract class CommonActions
     {
+        // result of determining best 'AI' behaviour
+        public struct AIResult
+        {
+            public ActionID Action;
+            public Actor Target;
+            //public WPos? TargetPos; // for ground-targeted
+            public float ReadyIn; // cooldown / animation lock
+            public WPos PositionHint; // position where player should aim to be
+        }
+
         // all relevant target IDs used for smart target selection
         protected struct Targets
         {
@@ -182,6 +192,7 @@ namespace BossMod
         abstract protected void OnCastSucceeded(ActionID actionID);
         abstract protected CommonRotation.State OnUpdate();
         abstract protected (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets);
+        abstract public AIResult CalculateBestAction(Actor player, Actor primaryTarget);
         abstract public void DrawOverlay();
 
         // fill common state properties

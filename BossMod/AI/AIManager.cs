@@ -39,6 +39,7 @@ namespace BossMod.AI
             if (_ws.Party.ContentIDs[_masterSlot] == 0)
                 _masterSlot = PartyState.PlayerSlot;
 
+            _autorot.DisableReplacement = _config.Enabled;
             if (_config.Enabled)
             {
                 var master = _ws.Party[_masterSlot];
@@ -82,12 +83,8 @@ namespace BossMod.AI
             if (ImGui.Button("Follow leader"))
             {
                 var leader = Service.PartyList[(int)Service.PartyList.PartyLeaderIndex];
-                if (leader != null)
-                {
-                    int leaderSlot = _ws.Party.ContentIDs.IndexOf((ulong)leader.ContentId);
-                    if (leaderSlot >= 0)
-                        SwitchToFollow(leaderSlot);
-                }
+                int leaderSlot = leader != null ? _ws.Party.ContentIDs.IndexOf((ulong)leader.ContentId) : -1;
+                SwitchToFollow(leaderSlot >= 0 ? leaderSlot : PartyState.PlayerSlot);
             }
         }
 

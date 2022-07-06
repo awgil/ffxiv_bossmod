@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using System;
 using System.Linq;
 
 namespace BossMod
@@ -76,6 +77,20 @@ namespace BossMod
                 _ => targets.MainTarget
             } : targets.MainTarget;
             return (actionID, targetID);
+        }
+
+        public override AIResult CalculateBestAction(Actor player, Actor primaryTarget)
+        {
+            // TODO: not all our aoe moves are radius 5 point-blank...
+            bool useAOE = _state.UnlockedTotalEclipse && Autorot.PotentialTargetsInRangeFromPlayer(5).Count() > 1;
+            var action = useAOE ? _nextBestAOEAction : _nextBestSTAction;
+            // TODO: if not currently standing in clump, but there is a clump nearby - move closer to it...
+            var posHint = player.Position;
+            var toTarget = primaryTarget.Position - player.Position;
+            var dist = toTarget.Length();
+            if (dist > 3 + player.HitboxRadius + primaryTarget.HitboxRadius)
+                posHint = primaryTarget.Position - toTarget / dist * (2.5f + player.HitboxRadius + primaryTarget.HitboxRadius);
+            return new() { Action = action, Target = primaryTarget, ReadyIn = Math.Max(ActionCooldown(action), _state.AnimationLock), PositionHint = posHint };
         }
 
         public override void DrawOverlay()

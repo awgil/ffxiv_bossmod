@@ -53,21 +53,25 @@ namespace BossMod.AI
             if (assistTarget != null)
             {
                 // in combat => assist
-                var action = SelectAttackAction(self);
-                if (action)
+                var action = _autorot.ClassActions?.CalculateBestAction(self, assistTarget) ?? new();
+                if (action.Action)
                 {
-                    float range = _useAction.Range(action);
-                    var toTarget = assistTarget.Position - self.Position;
-                    if (toTarget.LengthSq() > range * range)
+                    bool allowMovement = true;
+                    if (action.ReadyIn < 0.2f)
                     {
-                        _navi.TargetPos = assistTarget.Position;
-                        _navi.TargetRot = toTarget.Normalized();
+                        _useAction.Execute(action.Action, action.Target.InstanceID);
+                        allowMovement = action.Action.Type == ActionType.Spell ? (Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(action.Action.ID)?.Cast100ms ?? 0) == 0 : true;
+                    }
+
+                    if (allowMovement)
+                    {
+                        _navi.TargetPos = action.PositionHint;
+                        _navi.TargetRot = (action.PositionHint - self.Position).Normalized();
                     }
                     else
                     {
                         _navi.TargetPos = null;
                         _navi.TargetRot = null;
-                        _useAction.Execute(action, assistTarget.InstanceID);
                     }
                     return true;
                 }
@@ -111,13 +115,6 @@ namespace BossMod.AI
                 _navi.TargetRot = null;
             }
             return true;
-        }
-
-        // TODO: this needs huge improvement...
-        private ActionID SelectAttackAction(Actor player)
-        {
-            // TODO: aoe if profitable...
-            return _autorot.ClassActions?.BaseAbility ?? new();
         }
     }
 }

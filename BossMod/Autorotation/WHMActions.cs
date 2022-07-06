@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.ClientState.JobGauge.Types;
 using Dalamud.Game.ClientState.Objects.Types;
 using ImGuiNET;
+using System;
 using System.Linq;
 
 namespace BossMod
@@ -110,6 +111,12 @@ namespace BossMod
                 _ => targets.MainTarget
             } : targets.MainTarget;
             return (actionID, targetID);
+        }
+
+        public override AIResult CalculateBestAction(Actor player, Actor primaryTarget)
+        {
+            // TODO: proper implementation...
+            return new() { Action = _nextBestSTDamageAction, Target = primaryTarget, ReadyIn = Math.Max(_state.AnimationLock, _state.GCD), PositionHint = player.Position };
         }
 
         public override void DrawOverlay()
