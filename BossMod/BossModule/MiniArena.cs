@@ -174,8 +174,8 @@ namespace BossMod
 
         public void TextScreen(Vector2 center, string text, uint color, float fontSize = 17)
         {
-            var size = ImGui.CalcTextSize(text);
-            ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontSize, center - size / 2, color, text);
+            var size = ImGui.CalcTextSize(text) * Config.ArenaScale;
+            ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontSize * Config.ArenaScale, center - size / 2, color, text);
         }
 
         public void TextWorld(WPos center, string text, uint color, float fontSize = 17)
@@ -194,7 +194,7 @@ namespace BossMod
 
         public void CardinalNames()
         {
-            var offCenter = ScreenHalfSize + 10;
+            var offCenter = ScreenHalfSize + ScreenMarginSize / 2;
             var offS = RotatedCoords(new(0, offCenter));
             var offE = RotatedCoords(new(offCenter, 0));
             TextScreen(ScreenCenter - offS, "N", ArenaColor.Border);
