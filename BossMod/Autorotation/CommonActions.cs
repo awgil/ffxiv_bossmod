@@ -6,6 +6,8 @@ namespace BossMod
 {
     abstract class CommonActions
     {
+        public enum Positional { Any, Flank, Rear }
+
         // result of determining best 'AI' behaviour
         public struct AIResult
         {
@@ -13,7 +15,8 @@ namespace BossMod
             public Actor Target;
             //public WPos? TargetPos; // for ground-targeted
             public float ReadyIn; // cooldown / animation lock
-            public WPos PositionHint; // position where player should aim to be
+            //public WPos PositionHint; // position where player should aim to be
+            public Positional Positional;
         }
 
         // all relevant target IDs used for smart target selection
@@ -139,10 +142,10 @@ namespace BossMod
             };
         }
 
-        public void CastSucceeded(ActionID actionID)
+        public void CastSucceeded(ActionID actionID, ulong targetID)
         {
             SmartQueueDeactivate(actionID);
-            OnCastSucceeded(actionID);
+            OnCastSucceeded(actionID, targetID);
         }
 
         public void Update()
@@ -189,7 +192,7 @@ namespace BossMod
             return DoReplaceActionAndTarget(actionID, targets);
         }
 
-        abstract protected void OnCastSucceeded(ActionID actionID);
+        abstract protected void OnCastSucceeded(ActionID actionID, ulong targetID);
         abstract protected CommonRotation.State OnUpdate();
         abstract protected (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets);
         abstract public AIResult CalculateBestAction(Actor player, Actor primaryTarget);

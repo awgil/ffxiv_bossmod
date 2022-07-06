@@ -42,7 +42,7 @@ namespace BossMod
             SmartQueueRegister(WARRotation.IDStatPotion);
         }
 
-        protected override void OnCastSucceeded(ActionID actionID)
+        protected override void OnCastSucceeded(ActionID actionID, ulong targetID)
         {
             string comment = "";
             if (actionID.Type == ActionType.Spell)
@@ -119,7 +119,7 @@ namespace BossMod
                         break;
                 }
             }
-            Log($"Cast {actionID}, next-best={_nextBestSTAction}/{_nextBestAOEAction}{comment} [{_state}]");
+            Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction}{comment} [{_state}]");
             _justCast = true;
         }
 
@@ -191,7 +191,7 @@ namespace BossMod
         public override AIResult CalculateBestAction(Actor player, Actor primaryTarget)
         {
             // TODO: proper implementation...
-            return new() { Action = _nextBestSTAction, Target = primaryTarget, ReadyIn = Math.Max(_state.AnimationLock, _state.GCD), PositionHint = player.Position };
+            return new() { Action = _nextBestSTAction, Target = primaryTarget, ReadyIn = Math.Max(_state.AnimationLock, _state.GCD) };
         }
 
         public override void DrawOverlay()

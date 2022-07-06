@@ -112,6 +112,7 @@ namespace BossMod
                     Type = (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind),
                     Class = classID,
                     PosRot = posRot,
+                    HitboxRadius = obj.HitboxRadius,
                     HP = hp,
                     IsTargetable = targetable,
                     OwnerID = SanitizedObjectID(obj.OwnerId)
@@ -126,6 +127,8 @@ namespace BossMod
                     Execute(new ActorState.OpClassChange() { InstanceID = act.InstanceID, Class = classID });
                 if (act.PosRot != posRot)
                     Execute(new ActorState.OpMove() { InstanceID = act.InstanceID, PosRot = posRot });
+                if (act.HitboxRadius != obj.HitboxRadius)
+                    Execute(new ActorState.OpSizeChange() { InstanceID = act.InstanceID, HitboxRadius = obj.HitboxRadius });
                 if (act.HP.Cur != hp.Cur || act.HP.Max != hp.Max || act.HP.Shield != hp.Shield)
                     Execute(new ActorState.OpHP() { InstanceID = act.InstanceID, Value = hp });
                 if (act.IsTargetable != targetable)

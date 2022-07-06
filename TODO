@@ -11,6 +11,10 @@ boss modules:
 - ultima weapon - implement phases
 - boss module config presets/profiles
 
+ai:
+- better split with autorotation (core + 'override action on keypress' mode + 'full ai' mode)
+- speculative status application, gauge changes, etc.
+
 autorotation:
 - opener support
 - war

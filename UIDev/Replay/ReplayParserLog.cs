@@ -62,6 +62,7 @@ namespace UIDev
                 case "NAME": ParseActorRename(payload); break;
                 case "CLSR": ParseActorClassChange(payload); break;
                 case "MOVE": ParseActorMove(payload); break;
+                case "ACSZ": ParseActorSizeChange(payload); break;
                 case "HP  ": ParseActorHP(payload); break;
                 case "ATG+": ParseActorTargetable(payload, true); break;
                 case "ATG-": ParseActorTargetable(payload, false); break;
@@ -174,6 +175,11 @@ namespace UIDev
         {
             var parts = payload[2].Split('/');
             AddOp(new ActorState.OpMove() { InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber), PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]).Degrees().Rad) });
+        }
+
+        private void ParseActorSizeChange(string[] payload)
+        {
+            AddOp(new ActorState.OpSizeChange() { InstanceID = ActorID(payload[2]), HitboxRadius = float.Parse(payload[3]) });
         }
 
         private void ParseActorHP(string[] payload)

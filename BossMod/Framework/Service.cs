@@ -27,6 +27,7 @@ namespace BossMod
         [PluginService] public static GameNetwork GameNetwork { get; private set; }
         [PluginService] public static KeyState KeyState { get; private set; }
         [PluginService] public static Condition Condition { get; private set; }
+        [PluginService] public static TargetManager TargetManager { get; private set; }
 #pragma warning restore CS8618
 
         public static Action<string>? LogHandler = null;

@@ -28,9 +28,9 @@ namespace BossMod
             SmartQueueRegister(PLDRotation.IDStatPotion);
         }
 
-        protected override void OnCastSucceeded(ActionID actionID)
+        protected override void OnCastSucceeded(ActionID actionID, ulong targetID)
         {
-            Log($"Cast {actionID}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
+            Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
         protected override CommonRotation.State OnUpdate()
@@ -82,15 +82,9 @@ namespace BossMod
         public override AIResult CalculateBestAction(Actor player, Actor primaryTarget)
         {
             // TODO: not all our aoe moves are radius 5 point-blank...
-            bool useAOE = _state.UnlockedTotalEclipse && Autorot.PotentialTargetsInRangeFromPlayer(5).Count() > 1;
+            bool useAOE = _state.UnlockedTotalEclipse && Autorot.PotentialTargetsInRangeFromPlayer(5).Count() > 2;
             var action = useAOE ? _nextBestAOEAction : _nextBestSTAction;
-            // TODO: if not currently standing in clump, but there is a clump nearby - move closer to it...
-            var posHint = player.Position;
-            var toTarget = primaryTarget.Position - player.Position;
-            var dist = toTarget.Length();
-            if (dist > 3 + player.HitboxRadius + primaryTarget.HitboxRadius)
-                posHint = primaryTarget.Position - toTarget / dist * (2.5f + player.HitboxRadius + primaryTarget.HitboxRadius);
-            return new() { Action = action, Target = primaryTarget, ReadyIn = Math.Max(ActionCooldown(action), _state.AnimationLock), PositionHint = posHint };
+            return new() { Action = action, Target = primaryTarget, ReadyIn = Math.Max(ActionCooldown(action), _state.AnimationLock) };
         }
 
         public override void DrawOverlay()
@@ -111,15 +105,15 @@ namespace BossMod
                 FillCommonState(s, player, PLDRotation.IDStatPotion);
                 //s.Gauge = Service.JobGauges.Get<PLDGauge>().OathGauge;
 
-                //foreach (var status in player.StatusList)
-                //{
-                //    switch ((PLDRotation.SID)status.StatusId)
-                //    {
-                //        case PLDRotation.SID.FightOrFlight:
-                //            s.FightOrFlightLeft = StatusDuration(status.RemainingTime);
-                //            break;
-                //    }
-                //}
+                foreach (var status in player.Statuses)
+                {
+                    switch ((PLDRotation.SID)status.ID)
+                    {
+                        case PLDRotation.SID.FightOrFlight:
+                            s.FightOrFlightLeft = StatusDuration(status.ExpireAt);
+                            break;
+                    }
+                }
 
                 s.FightOrFlightCD = SpellCooldown(PLDRotation.AID.FightOrFlight);
                 s.RampartCD = SpellCooldown(PLDRotation.AID.Rampart);

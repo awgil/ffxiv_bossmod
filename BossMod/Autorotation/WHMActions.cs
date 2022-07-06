@@ -1,5 +1,4 @@
 ﻿using Dalamud.Game.ClientState.JobGauge.Types;
-using Dalamud.Game.ClientState.Objects.Types;
 using ImGuiNET;
 using System;
 using System.Linq;
@@ -33,12 +32,12 @@ namespace BossMod
             SmartQueueRegisterSpell(WHMRotation.AID.Aquaveil);
             SmartQueueRegisterSpell(WHMRotation.AID.Surecast);
             SmartQueueRegister(CommonRotation.IDSprint);
-            //SmartQueueRegister(WHMRotation.IDStatPotion);
+            SmartQueueRegister(WHMRotation.IDStatPotion);
         }
 
-        protected override void OnCastSucceeded(ActionID actionID)
+        protected override void OnCastSucceeded(ActionID actionID, ulong targetID)
         {
-            Log($"Cast {actionID}, next-best={_nextBestSTDamageAction}/{_nextBestAOEDamageAction}/{_nextBestSTHealAction}/{_nextBestAOEHealAction} [{_state}]");
+            Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTDamageAction}/{_nextBestAOEDamageAction}/{_nextBestSTHealAction}/{_nextBestAOEHealAction} [{_state}]");
         }
 
         protected override CommonRotation.State OnUpdate()
@@ -116,7 +115,7 @@ namespace BossMod
         public override AIResult CalculateBestAction(Actor player, Actor primaryTarget)
         {
             // TODO: proper implementation...
-            return new() { Action = _nextBestSTDamageAction, Target = primaryTarget, ReadyIn = Math.Max(_state.AnimationLock, _state.GCD), PositionHint = player.Position };
+            return new() { Action = _nextBestSTDamageAction, Target = primaryTarget, ReadyIn = Math.Max(_state.AnimationLock, _state.GCD) };
         }
 
         public override void DrawOverlay()

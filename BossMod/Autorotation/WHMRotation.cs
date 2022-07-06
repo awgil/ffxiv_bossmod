@@ -37,7 +37,7 @@ namespace BossMod
             Cure3 = 131,
             AfflatusRapture = 16534,
 
-            // oGCDs,
+            // oGCDs
             Assize = 3571,
             Asylum = 3569,
             DivineBenison = 7432,

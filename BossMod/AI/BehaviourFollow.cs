@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Party;
+using System;
 
 namespace BossMod.AI
 {
@@ -47,6 +48,10 @@ namespace BossMod.AI
                 if (masterTarget?.Type == ActorType.Enemy)
                 {
                     assistTarget = masterTarget;
+
+                    // TODO: reconsider (this is currently done to ensure 'state' is calculated for correct target...)
+                    if (Service.TargetManager.Target?.ObjectId != masterTarget.InstanceID)
+                        Service.TargetManager.SetTarget(Service.ObjectTable.SearchById((uint)masterTarget.InstanceID));
                 }
             }
 
@@ -56,23 +61,27 @@ namespace BossMod.AI
                 var action = _autorot.ClassActions?.CalculateBestAction(self, assistTarget) ?? new();
                 if (action.Action)
                 {
-                    bool allowMovement = true;
+                    // TODO: improve movement logic; currently we always attempt to move to melee range, this is good for classes that have point-blank aoes
+                    bool moveCloser = true;
                     if (action.ReadyIn < 0.2f)
                     {
                         _useAction.Execute(action.Action, action.Target.InstanceID);
-                        allowMovement = action.Action.Type == ActionType.Spell ? (Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(action.Action.ID)?.Cast100ms ?? 0) == 0 : true;
+                        moveCloser = action.Action.Type == ActionType.Spell ? (Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(action.Action.ID)?.Cast100ms ?? 0) == 0 : true;
                     }
 
-                    if (allowMovement)
+                    _navi.TargetPos = null;
+                    if (moveCloser)
                     {
-                        _navi.TargetPos = action.PositionHint;
-                        _navi.TargetRot = (action.PositionHint - self.Position).Normalized();
+                        // max melee is 3 + src.hitbox + target.hitbox, max range is -0.5 that to allow for some navigation errors
+                        var maxMelee = 3 + self.HitboxRadius + action.Target.HitboxRadius;
+                        _navi.TargetPos = action.Positional switch
+                        {
+                            CommonActions.Positional.Flank => MoveToFlank(self, action.Target, maxMelee, 0.5f),
+                            CommonActions.Positional.Rear => MoveToRear(self, action.Target, maxMelee, 0.5f),
+                            _ => MoveToMelee(self, action.Target, maxMelee, 0.5f)
+                        };
                     }
-                    else
-                    {
-                        _navi.TargetPos = null;
-                        _navi.TargetRot = null;
-                    }
+                    _navi.TargetRot = _navi.TargetPos != null ? (_navi.TargetPos.Value - self.Position).Normalized() : null;
                     return true;
                 }
             }
@@ -115,6 +124,82 @@ namespace BossMod.AI
                 _navi.TargetRot = null;
             }
             return true;
+        }
+
+        private static WPos? MoveToFlank(Actor player, Actor target, float maxRange, float safetyThreshold)
+        {
+            var maxRangeSafe = maxRange - safetyThreshold;
+            var toPlayer = player.Position - target.Position;
+            var distance = toPlayer.Length();
+            toPlayer /= distance;
+            var targetDir = target.Rotation.ToDirection();
+            var cosAngle = targetDir.Dot(toPlayer);
+            if (Math.Abs(cosAngle) > 0.707106f)
+            {
+                // not on flank
+                bool goToLeft = targetDir.OrthoL().Dot(toPlayer) > 0;
+                bool isInFront = cosAngle > 0;
+                var segOrigin = target.Position + (goToLeft ? 1.4142f : -1.4142f) * safetyThreshold * targetDir.OrthoL();
+                var segDir = (target.Rotation + (goToLeft ? 1 : -1) * (isInFront ? 45 : 135).Degrees()).ToDirection();
+                // law of cosines, a = sqrt(2) * thr, gamma = 135 degrees, c = maxRange => c^ = a^2 + b^2 - 2abcos(gamma) = 2*thr^2 + b^2 + 4b*thr = (b+2*thr)^2 - 2*thr^2 => b = sqrt(c^2 + 2*thr^2) - 2*thr
+                var segMax = MathF.Sqrt(maxRangeSafe * maxRangeSafe + 2 * safetyThreshold * safetyThreshold) - 2 * safetyThreshold;
+                var segProj = Math.Clamp((player.Position - segOrigin).Dot(segDir), 0, segMax);
+                return segOrigin + segProj * segDir;
+            }
+            else if (distance > maxRange)
+            {
+                // on flank, but too far
+                return target.Position + toPlayer * maxRangeSafe;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private static WPos? MoveToRear(Actor player, Actor target, float maxRange, float safetyThreshold)
+        {
+            var maxRangeSafe = maxRange - safetyThreshold;
+            var toPlayer = player.Position - target.Position;
+            var distance = toPlayer.Length();
+            toPlayer /= distance;
+            var targetDir = target.Rotation.ToDirection();
+            var cosAngle = targetDir.Dot(toPlayer);
+            if (cosAngle > -0.707107f)
+            {
+                // not on rear
+                bool goToLeft = targetDir.OrthoL().Dot(toPlayer) > 0;
+                var segOrigin = target.Position - 1.4142f * safetyThreshold * targetDir;
+                var segDir = (target.Rotation + (goToLeft ? 1 : -1) * 135.Degrees()).ToDirection();
+                // law of cosines, a = sqrt(2) * thr, gamma = 135 degrees, c = maxRange => c^ = a^2 + b^2 - 2abcos(gamma) = 2*thr^2 + b^2 + 4b*thr = (b+2*thr)^2 - 2*thr^2 => b = sqrt(c^2 + 2*thr^2) - 2*thr
+                var segMax = MathF.Sqrt(maxRangeSafe * maxRangeSafe + 2 * safetyThreshold * safetyThreshold) - 2 * safetyThreshold;
+                var segProj = Math.Clamp((player.Position - segOrigin).Dot(segDir), 0, segMax);
+                return segOrigin + segProj * segDir;
+            }
+            else if (distance > maxRange)
+            {
+                // on rear, but too far
+                return target.Position + toPlayer * maxRangeSafe;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private static WPos? MoveToMelee(Actor player, Actor target, float maxRange, float safetyThreshold)
+        {
+            var maxRangeSafe = maxRange - safetyThreshold;
+            var toPlayer = player.Position - target.Position;
+            var distance = toPlayer.Length();
+            if (distance > maxRange)
+            {
+                return target.Position + toPlayer / distance * maxRangeSafe;
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

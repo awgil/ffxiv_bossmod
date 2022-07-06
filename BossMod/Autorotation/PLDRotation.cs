@@ -64,6 +64,7 @@ namespace BossMod
         public enum SID : uint
         {
             None = 0,
+            FightOrFlight = 76,
         }
 
         // full state needed for determining next action
@@ -109,14 +110,11 @@ namespace BossMod
 
             public override string ToString()
             {
-                return $"RB={RaidBuffsLeft:f1}, FF={FightOrFlightLeft:f1}, FFCD={FightOrFlightCD:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+                return $"RB={RaidBuffsLeft:f1}, FF={FightOrFlightLeft:f1}/{FightOrFlightCD:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
             }
         }
 
         // strategy configuration
-        // many strategy decisions are represented as "need-something-in" counters; 0 means "use asap", >0 means "do not use unless value is larger than cooldown" (so 'infinity' means 'free to use')
-        // for planning, we typically use "windows" (as in, some CD has to be pressed from this point and up to this point);
-        // before "min point" counter is >0, between "min point" and "max point" it is == 0, after "max point" we switch to next planned action (assuming if we've missed the window, CD is no longer needed)
         public class Strategy : CommonRotation.Strategy
         {
             // cooldowns

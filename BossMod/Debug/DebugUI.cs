@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using ImGuiNET;
 using System;
+using System.Linq;
 using System.Numerics;
 
 namespace BossMod
@@ -145,6 +146,13 @@ namespace BossMod
             DrawTarget("Mouseover", ts->MouseOverTarget, selfPos, angle);
             DrawTarget("Focus", ts->FocusTarget, selfPos, angle);
             ImGui.TextUnformatted($"UI Mouseover: {(Mouseover.Instance?.Object != null ? Utils.ObjectString(Mouseover.Instance.Object) : "<null>")}");
+
+            if (ImGui.Button("Target closest enemy"))
+            {
+                var closest = Service.ObjectTable.Where(o => o.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.BattleNpc && o.SubKind == 5).MinBy(o => (o.Position - selfPos).LengthSquared());
+                if (closest != null)
+                    Service.TargetManager.SetTarget(closest);
+            }
         }
 
         private unsafe void DrawTarget(string kind, FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* obj, Vector3 selfPos, Angle refAngle)

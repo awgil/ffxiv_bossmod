@@ -156,6 +156,20 @@ namespace BossMod
             public override string Str(WorldState? ws) => $"MOVE|{StrActor(ws, InstanceID)}";
         }
 
+        public event EventHandler<Actor>? SizeChanged;
+        public class OpSizeChange : Operation
+        {
+            public float HitboxRadius;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
+            {
+                actor.HitboxRadius = HitboxRadius;
+                ws.Actors.SizeChanged?.Invoke(ws, actor);
+            }
+
+            public override string Str(WorldState? ws) => $"ACSZ|{StrActor(ws, InstanceID)}|{HitboxRadius:f3}";
+        }
+
         public event EventHandler<Actor>? HPChanged;
         public class OpHP : Operation
         {

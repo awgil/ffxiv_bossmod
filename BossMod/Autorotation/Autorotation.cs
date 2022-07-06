@@ -116,6 +116,8 @@ namespace BossMod
                     Class.WAR => typeof(WARActions),
                     Class.WHM => typeof(WHMActions),
                     Class.GLA or Class.PLD => Service.ClientState.LocalPlayer?.Level < 26 ? typeof(PLDActions) : null,
+                    Class.THM or Class.BLM => Service.ClientState.LocalPlayer?.Level < 18 ? typeof(BLMActions) : null,
+                    Class.PGL or Class.MNK => Service.ClientState.LocalPlayer?.Level < 18 ? typeof(MNKActions) : null,
                     _ => null
                 };
             }
@@ -132,7 +134,7 @@ namespace BossMod
 
                 if (_firstPendingJustCompleted)
                 {
-                    _classActions.CastSucceeded(_pendingActions[0].Action);
+                    _classActions.CastSucceeded(_pendingActions[0].Action, _pendingActions[0].TargetID);
                 }
 
                 if (_pendingActions.Count == 0)
@@ -171,7 +173,7 @@ namespace BossMod
 
         public IEnumerable<Actor> PotentialTargetsInRange(WPos center, float radius)
         {
-            return PotentialTargets.Where(a => (a.Position - center).LengthSq() < (a.HitboxRadius + radius) * (a.HitboxRadius + radius));
+            return PotentialTargets.Where(a => (a.Position - center).LengthSq() <= (a.HitboxRadius + radius) * (a.HitboxRadius + radius));
         }
 
         public IEnumerable<Actor> PotentialTargetsInRangeFromPlayer(float radius)
