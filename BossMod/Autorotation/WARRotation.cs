@@ -110,6 +110,8 @@ namespace BossMod
             public float ArmsLengthCD; // 120 max, 0 if ready
             public float ProvokeCD; // 30 max, 0 if ready
             public float ShirkCD; // 120 max, 0 if ready
+            public float LowBlowCD; // 25 max, 0 if ready
+            public float InterjectCD; // 30 max, 0 if ready
 
             public AID ComboLastMove => (AID)ComboLastAction;
 
@@ -183,6 +185,8 @@ namespace BossMod
             public bool ExecuteArmsLength;
             public bool ExecuteProvoke;
             public bool ExecuteShirk;
+            public bool ExecuteLowBlow;
+            public bool ExecuteInterject;
 
             public override string ToString()
             {
@@ -211,6 +215,10 @@ namespace BossMod
                     sb.Append(" Bloodwhetting");
                 if (ExecuteNascentFlash)
                     sb.Append(" NascentFlash");
+                if (ExecuteLowBlow)
+                    sb.Append(" LowBlow");
+                if (ExecuteInterject)
+                    sb.Append(" Interject");
                 if (ExecuteSprint)
                     sb.Append(" Sprint");
                 return sb.ToString();
@@ -480,6 +488,10 @@ namespace BossMod
                 return ActionID.MakeSpell(state.UnlockedBloodwhetting ? AID.Bloodwhetting : AID.RawIntuition);
             if (strategy.ExecuteNascentFlash && state.UnlockedNascentFlash && state.CanWeave(state.BloodwhettingCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.NascentFlash);
+            if (strategy.ExecuteLowBlow && state.UnlockedLowBlow && state.CanWeave(state.LowBlowCD, 0.6f, windowEnd))
+                return ActionID.MakeSpell(AID.LowBlow);
+            if (strategy.ExecuteInterject && state.UnlockedInterject && state.CanWeave(state.InterjectCD, 0.6f, windowEnd))
+                return ActionID.MakeSpell(AID.Interject);
             if (strategy.ExecuteSprint && state.CanWeave(state.SprintCD, 0.6f, windowEnd))
                 return CommonRotation.IDSprint;
 

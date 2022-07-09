@@ -14,7 +14,6 @@ namespace BossMod
             public ActionID Action;
             public Actor Target;
             //public WPos? TargetPos; // for ground-targeted
-            public float ReadyIn; // cooldown / animation lock
             //public WPos PositionHint; // position where player should aim to be
             public Positional Positional;
         }
@@ -170,8 +169,12 @@ namespace BossMod
                 }
             }
 
-            var state = OnUpdate();
-            _sq.Active = state.GCD > 0 || state.AnimationLock > 0;
+            var player = Autorot.WorldState.Party.Player();
+            if (player != null)
+            {
+                var state = OnUpdate(player);
+                _sq.Active = state.GCD > 0 || state.AnimationLock > 0;
+            }
         }
 
         public (ActionID, ulong) ReplaceActionAndTarget(ActionID actionID, ulong targetID)
@@ -193,9 +196,9 @@ namespace BossMod
         }
 
         abstract protected void OnCastSucceeded(ActionID actionID, ulong targetID);
-        abstract protected CommonRotation.State OnUpdate();
+        abstract protected CommonRotation.State OnUpdate(Actor player);
         abstract protected (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets);
-        abstract public AIResult CalculateBestAction(Actor player, Actor primaryTarget);
+        abstract public AIResult CalculateBestAction(Actor player, Actor? primaryTarget);
         abstract public void DrawOverlay();
 
         // fill common state properties

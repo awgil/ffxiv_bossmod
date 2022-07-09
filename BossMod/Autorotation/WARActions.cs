@@ -18,7 +18,8 @@ namespace BossMod
             : base(autorot, ActionID.MakeSpell(WARRotation.AID.HeavySwing))
         {
             _config = Service.Config.Get<WARConfig>();
-            _state = BuildState();
+            var player = autorot.WorldState.Party.Player();
+            _state = player != null ? BuildState(player) : new();
             _strategy = new()
             {
                 FirstChargeIn = 0.01f, // by default, always preserve 1 onslaught charge
@@ -38,6 +39,8 @@ namespace BossMod
             SmartQueueRegisterSpell(WARRotation.AID.ArmsLength);
             SmartQueueRegisterSpell(WARRotation.AID.Provoke);
             SmartQueueRegisterSpell(WARRotation.AID.Shirk);
+            SmartQueueRegisterSpell(WARRotation.AID.LowBlow);
+            SmartQueueRegisterSpell(WARRotation.AID.Interject);
             SmartQueueRegister(CommonRotation.IDSprint);
             SmartQueueRegister(WARRotation.IDStatPotion);
         }
@@ -123,9 +126,9 @@ namespace BossMod
             _justCast = true;
         }
 
-        protected override CommonRotation.State OnUpdate()
+        protected override CommonRotation.State OnUpdate(Actor player)
         {
-            var currState = BuildState();
+            var currState = BuildState(player);
             LogStateChange(_state, currState);
             _state = currState;
 
@@ -136,7 +139,7 @@ namespace BossMod
             _strategy.ExecuteVengeance = SmartQueueActiveSpell(WARRotation.AID.Vengeance);
             _strategy.ExecuteThrillOfBattle = SmartQueueActiveSpell(WARRotation.AID.ThrillOfBattle);
             _strategy.ExecuteHolmgang = SmartQueueActiveSpell(WARRotation.AID.Holmgang);
-            _strategy.ExecuteEquilibrium = SmartQueueActiveSpell(WARRotation.AID.Equilibrium) && Service.ClientState.LocalPlayer?.CurrentHp < Service.ClientState.LocalPlayer?.MaxHp;
+            _strategy.ExecuteEquilibrium = SmartQueueActiveSpell(WARRotation.AID.Equilibrium) && player.HP.Cur < player.HP.Max;
             _strategy.ExecuteReprisal = SmartQueueActiveSpell(WARRotation.AID.Reprisal) && AllowReprisal();
             _strategy.ExecuteShakeItOff = SmartQueueActiveSpell(WARRotation.AID.ShakeItOff); // TODO: check that raid is in range?...
             _strategy.ExecuteBloodwhetting = SmartQueueActiveSpell(WARRotation.AID.RawIntuition) || SmartQueueActiveSpell(WARRotation.AID.Bloodwhetting); // TODO: consider auto-use?..
@@ -144,6 +147,8 @@ namespace BossMod
             _strategy.ExecuteArmsLength = SmartQueueActiveSpell(WARRotation.AID.ArmsLength);
             _strategy.ExecuteProvoke = SmartQueueActiveSpell(WARRotation.AID.Provoke); // TODO: check that not MT already
             _strategy.ExecuteShirk = SmartQueueActiveSpell(WARRotation.AID.Shirk); // TODO: check that hate is close to MT...
+            _strategy.ExecuteLowBlow = SmartQueueActiveSpell(WARRotation.AID.LowBlow);
+            _strategy.ExecuteInterject = SmartQueueActiveSpell(WARRotation.AID.Interject) && AllowInterject();
 
             var nextBestST = _config.FullRotation ? WARRotation.GetNextBestAction(_state, _strategy, false) : ActionID.MakeSpell(WARRotation.AID.HeavySwing);
             var nextBestAOE = _config.FullRotation ? WARRotation.GetNextBestAction(_state, _strategy, true) : ActionID.MakeSpell(WARRotation.AID.Overpower);
@@ -188,10 +193,12 @@ namespace BossMod
             return (actionID, targetID);
         }
 
-        public override AIResult CalculateBestAction(Actor player, Actor primaryTarget)
+        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget)
         {
+            if (primaryTarget == null)
+                return new();
             // TODO: proper implementation...
-            return new() { Action = _nextBestSTAction, Target = primaryTarget, ReadyIn = Math.Max(_state.AnimationLock, _state.GCD) };
+            return new() { Action = _nextBestSTAction, Target = primaryTarget };
         }
 
         public override void DrawOverlay()
@@ -203,52 +210,51 @@ namespace BossMod
             ImGui.TextUnformatted($"GCD={_state.GCD:f3}, AnimLock={_state.AnimationLock:f3}+{_state.AnimationLockDelay:f3}");
         }
 
-        private WARRotation.State BuildState()
+        private WARRotation.State BuildState(Actor player)
         {
             WARRotation.State s = new();
-            var player = Autorot.WorldState.Party.Player();
-            if (player != null)
+            FillCommonState(s, player, WARRotation.IDStatPotion);
+
+            s.Gauge = Service.JobGauges.Get<WARGauge>().BeastGauge;
+
+            foreach (var status in player.Statuses)
             {
-                FillCommonState(s, player, WARRotation.IDStatPotion);
-                s.Gauge = Service.JobGauges.Get<WARGauge>().BeastGauge;
-
-                foreach (var status in player.Statuses)
+                switch ((WARRotation.SID)status.ID)
                 {
-                    switch ((WARRotation.SID)status.ID)
-                    {
-                        case WARRotation.SID.SurgingTempest:
-                            s.SurgingTempestLeft = StatusDuration(status.ExpireAt);
-                            break;
-                        case WARRotation.SID.NascentChaos:
-                            s.NascentChaosLeft = StatusDuration(status.ExpireAt);
-                            break;
-                        case WARRotation.SID.Berserk:
-                        case WARRotation.SID.InnerRelease:
-                            s.InnerReleaseLeft = StatusDuration(status.ExpireAt);
-                            s.InnerReleaseStacks = status.Extra & 0xFF;
-                            break;
-                        case WARRotation.SID.PrimalRend:
-                            s.PrimalRendLeft = StatusDuration(status.ExpireAt);
-                            break;
-                    }
+                    case WARRotation.SID.SurgingTempest:
+                        s.SurgingTempestLeft = StatusDuration(status.ExpireAt);
+                        break;
+                    case WARRotation.SID.NascentChaos:
+                        s.NascentChaosLeft = StatusDuration(status.ExpireAt);
+                        break;
+                    case WARRotation.SID.Berserk:
+                    case WARRotation.SID.InnerRelease:
+                        s.InnerReleaseLeft = StatusDuration(status.ExpireAt);
+                        s.InnerReleaseStacks = status.Extra & 0xFF;
+                        break;
+                    case WARRotation.SID.PrimalRend:
+                        s.PrimalRendLeft = StatusDuration(status.ExpireAt);
+                        break;
                 }
-
-                s.InfuriateCD = SpellCooldown(WARRotation.AID.Infuriate);
-                s.UpheavalCD = SpellCooldown(WARRotation.AID.Upheaval);
-                s.InnerReleaseCD = SpellCooldown(s.UnlockedInnerRelease ? WARRotation.AID.InnerRelease : WARRotation.AID.Berserk); // note: technically berserk and IR don't share CD, and with level sync you can have both...
-                s.OnslaughtCD = SpellCooldown(WARRotation.AID.Onslaught);
-                s.RampartCD = SpellCooldown(WARRotation.AID.Rampart);
-                s.VengeanceCD = SpellCooldown(WARRotation.AID.Vengeance);
-                s.ThrillOfBattleCD = SpellCooldown(WARRotation.AID.ThrillOfBattle);
-                s.HolmgangCD = SpellCooldown(WARRotation.AID.Holmgang);
-                s.EquilibriumCD = SpellCooldown(WARRotation.AID.Equilibrium);
-                s.ReprisalCD = SpellCooldown(WARRotation.AID.Reprisal);
-                s.ShakeItOffCD = SpellCooldown(WARRotation.AID.ShakeItOff);
-                s.BloodwhettingCD = SpellCooldown(WARRotation.AID.Bloodwhetting);
-                s.ArmsLengthCD = SpellCooldown(WARRotation.AID.ArmsLength);
-                s.ProvokeCD = SpellCooldown(WARRotation.AID.Provoke);
-                s.ShirkCD = SpellCooldown(WARRotation.AID.Shirk);
             }
+
+            s.InfuriateCD = SpellCooldown(WARRotation.AID.Infuriate);
+            s.UpheavalCD = SpellCooldown(WARRotation.AID.Upheaval);
+            s.InnerReleaseCD = SpellCooldown(s.UnlockedInnerRelease ? WARRotation.AID.InnerRelease : WARRotation.AID.Berserk); // note: technically berserk and IR don't share CD, and with level sync you can have both...
+            s.OnslaughtCD = SpellCooldown(WARRotation.AID.Onslaught);
+            s.RampartCD = SpellCooldown(WARRotation.AID.Rampart);
+            s.VengeanceCD = SpellCooldown(WARRotation.AID.Vengeance);
+            s.ThrillOfBattleCD = SpellCooldown(WARRotation.AID.ThrillOfBattle);
+            s.HolmgangCD = SpellCooldown(WARRotation.AID.Holmgang);
+            s.EquilibriumCD = SpellCooldown(WARRotation.AID.Equilibrium);
+            s.ReprisalCD = SpellCooldown(WARRotation.AID.Reprisal);
+            s.ShakeItOffCD = SpellCooldown(WARRotation.AID.ShakeItOff);
+            s.BloodwhettingCD = SpellCooldown(WARRotation.AID.Bloodwhetting);
+            s.ArmsLengthCD = SpellCooldown(WARRotation.AID.ArmsLength);
+            s.ProvokeCD = SpellCooldown(WARRotation.AID.Provoke);
+            s.ShirkCD = SpellCooldown(WARRotation.AID.Shirk);
+            s.LowBlowCD = SpellCooldown(WARRotation.AID.LowBlow);
+            s.InterjectCD = SpellCooldown(WARRotation.AID.Interject);
             return s;
         }
 
@@ -275,6 +281,11 @@ namespace BossMod
         private bool AllowReprisal()
         {
             return Autorot.PotentialTargetsInRangeFromPlayer(5).Any();
+        }
+
+        private bool AllowInterject()
+        {
+            return Autorot.WorldState.Actors.Find(Autorot.WorldState.Party.Player()?.TargetID ?? 0)?.CastInfo?.Interruptible ?? false;
         }
     }
 }

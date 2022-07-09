@@ -69,8 +69,11 @@ namespace BossMod
         {
             public int ElementalLevel; // -3 (umbral ice 3) to +3 (astral fire 3)
             public float ElementalLeft; // 0 if elemental level is 0, otherwise buff duration, max 15
-            public float TransposeCD; // 5 max, 0 if ready
             public float TargetThunderLeft;
+            public float TransposeCD; // 5 max, 0 if ready
+            public float AddleCD; // 90 max, 0 if ready
+            public float SwiftcastCD; // 60 max, 0 if ready
+            public float LucidDreamingCD; // 60 max, 0 if ready
 
             // per-level ability unlocks (TODO: consider abilities unlocked by quests - they could be unavailable despite level being high enough)
             public bool UnlockedFire1 => Level >= 2;
@@ -101,7 +104,7 @@ namespace BossMod
 
             public override string ToString()
             {
-                return $"RB={RaidBuffsLeft:f1}, Elem={ElementalLevel}/{ElementalLeft:f1}, Thunder={TargetThunderLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+                return $"RB={RaidBuffsLeft:f1}, Elem={ElementalLevel}/{ElementalLeft:f1}, Thunder={TargetThunderLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}, moving={Moving}";
             }
         }
 
@@ -111,12 +114,15 @@ namespace BossMod
             // cooldowns
             public bool ExecuteSwiftcast;
             public bool ExecuteSurecast;
+            public bool ExecuteAddle;
 
             public override string ToString()
             {
                 var sb = new StringBuilder("SmartQueue:");
                 if (ExecuteSurecast)
                     sb.Append(" Surecast");
+                if (ExecuteAddle)
+                    sb.Append(" Addle");
                 if (ExecuteSwiftcast)
                     sb.Append(" Swiftcast");
                 if (ExecuteSprint)
@@ -135,11 +141,25 @@ namespace BossMod
             };
         }
 
+        public static ActionID GetNextBestMovingAction(State state, Strategy strategy, bool aoe)
+        {
+            // TODO: not sure about this...
+            if (!state.CanSingleWeave && state.UnlockedScathe && state.CurMP >= 800)
+                return ActionID.MakeSpell(AID.Scathe);
+
+            if (state.UnlockedTranspose && state.TransposeCD <= state.AnimationLock && (state.ElementalLevel < 0 && state.CurMP >= 9600 || state.ElementalLevel > 0 && state.CurMP < 2800))
+                return ActionID.MakeSpell(AID.Transpose);
+
+            return new();
+        }
+
         public static ActionID GetNextBestAction(State state, Strategy strategy, bool aoe)
         {
             // TODO: consider ogcd weaving for blm...
             if (strategy.ExecuteSurecast && state.UnlockedSurecast)
                 return ActionID.MakeSpell(AID.Surecast);
+            if (strategy.ExecuteAddle && state.UnlockedAddle)
+                return ActionID.MakeSpell(AID.Addle);
             if (strategy.ExecuteSwiftcast && state.UnlockedSwiftcast)
                 return ActionID.MakeSpell(AID.Swiftcast);
             if (strategy.ExecuteSprint)
@@ -147,41 +167,20 @@ namespace BossMod
 
             if (aoe && state.UnlockedBlizzard2)
             {
-                // TODO: this works until ~L18
-                return ActionID.MakeSpell(AID.Blizzard2);
+                // TODO: this works until ~L40
+                if (state.UnlockedThunder2 && state.TargetThunderLeft <= state.GCD)
+                    return ActionID.MakeSpell(AID.Thunder2);
+
+                return state.UnlockedFire2 ? TransposeRotation(state, AID.Blizzard2, 800, AID.Fire2, 1500) : ActionID.MakeSpell(AID.Blizzard2);
             }
             else
             {
-                if (!state.UnlockedFire1)
-                    return ActionID.MakeSpell(AID.Blizzard1); // L1 'rotation'
-
-                // TODO: this works until ~L15?..
+                // TODO: this works until ~L35
                 // 1. thunder (TODO: tweak threshold so that we don't overwrite or miss ticks...)
                 if (state.UnlockedThunder1 && state.TargetThunderLeft <= state.GCD)
                     return ActionID.MakeSpell(AID.Thunder1);
 
-                if (state.ElementalLevel < 0)
-                {
-                    // continue blizzard1 spam until full mana, then swap to fire
-                    // TODO: take mana ticks into account, if it happens before GCD
-                    if (state.CurMP < 9600)
-                        return ActionID.MakeSpell(AID.Blizzard1);
-                    else
-                        return ActionID.MakeSpell(state.UnlockedTranspose ? AID.Transpose : AID.Fire1);
-                }
-                else if (state.ElementalLevel > 0)
-                {
-                    // continue fire1 spam until oom, then swap to ice
-                    if (state.CurMP >= 1900) // 1900 == fire1 * 2 + blizzard1 * 0.75
-                        return ActionID.MakeSpell(AID.Fire1);
-                    else
-                        return ActionID.MakeSpell(state.UnlockedTranspose ? AID.Transpose : AID.Blizzard1);
-                }
-                else
-                {
-                    // dropped buff => fire if have some mana (TODO: better limit), blizzard otherwise
-                    return ActionID.MakeSpell(state.CurMP < 2800 ? AID.Blizzard1 : AID.Fire1);
-                }
+                return state.UnlockedFire1 ? TransposeRotation(state, AID.Blizzard1, 400, AID.Fire1, 800) : ActionID.MakeSpell(AID.Blizzard1);
             }
         }
 
@@ -189,6 +188,32 @@ namespace BossMod
         public static string ActionShortString(ActionID action)
         {
             return action == CommonRotation.IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
+        }
+
+        private static ActionID TransposeRotation(State state, AID iceSpell, int iceCost, AID fireSpell, int fireCost)
+        {
+            if (state.ElementalLevel < 0)
+            {
+                // continue blizzard1 spam until full mana, then swap to fire
+                // TODO: take mana ticks into account, if it happens before GCD
+                if (state.CurMP < 10000 - iceCost)
+                    return ActionID.MakeSpell(iceSpell);
+                else
+                    return ActionID.MakeSpell(state.UnlockedTranspose ? AID.Transpose : fireSpell);
+            }
+            else if (state.ElementalLevel > 0)
+            {
+                // continue fire1 spam until oom, then swap to ice
+                if (state.CurMP >= fireCost * 2 + iceCost * 3 / 4)
+                    return ActionID.MakeSpell(fireSpell);
+                else
+                    return ActionID.MakeSpell(state.UnlockedTranspose ? AID.Transpose : iceSpell);
+            }
+            else
+            {
+                // dropped buff => fire if have some mana (TODO: better limit), blizzard otherwise
+                return ActionID.MakeSpell(state.CurMP < fireCost * 3 + iceCost * 3 / 4 ? iceSpell : fireSpell);
+            }
         }
     }
 }

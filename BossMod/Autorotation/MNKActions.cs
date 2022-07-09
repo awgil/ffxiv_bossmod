@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Game.ClientState.JobGauge.Types;
+using ImGuiNET;
 using System;
 using System.Linq;
 
@@ -16,10 +17,14 @@ namespace BossMod
             : base(autorot, ActionID.MakeSpell(MNKRotation.AID.Bootshine))
         {
             _config = Service.Config.Get<MNKConfig>();
-            _state = BuildState();
+            var player = autorot.WorldState.Party.Player();
+            _state = player != null ? BuildState(player) : new();
             _strategy = new();
 
             SmartQueueRegisterSpell(MNKRotation.AID.ArmsLength);
+            SmartQueueRegisterSpell(MNKRotation.AID.SecondWind);
+            SmartQueueRegisterSpell(MNKRotation.AID.Bloodbath);
+            SmartQueueRegisterSpell(MNKRotation.AID.LegSweep);
             SmartQueueRegister(CommonRotation.IDSprint);
             SmartQueueRegister(MNKRotation.IDStatPotion);
         }
@@ -29,9 +34,9 @@ namespace BossMod
             Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate()
+        protected override CommonRotation.State OnUpdate(Actor player)
         {
-            var currState = BuildState();
+            var currState = BuildState(player);
             LogStateChange(_state, currState);
             _state = currState;
 
@@ -39,6 +44,9 @@ namespace BossMod
 
             // cooldown execution
             _strategy.ExecuteArmsLength = SmartQueueActiveSpell(MNKRotation.AID.ArmsLength);
+            _strategy.ExecuteSecondWind = SmartQueueActiveSpell(MNKRotation.AID.SecondWind) && player.HP.Cur < player.HP.Max;
+            _strategy.ExecuteBloodbath = SmartQueueActiveSpell(MNKRotation.AID.Bloodbath);
+            _strategy.ExecuteLegSweep = SmartQueueActiveSpell(MNKRotation.AID.LegSweep);
 
             var nextBestST = _config.FullRotation ? MNKRotation.GetNextBestAction(_state, _strategy, false) : ActionID.MakeSpell(MNKRotation.AID.Bootshine);
             var nextBestAOE = _config.FullRotation ? MNKRotation.GetNextBestAction(_state, _strategy, true) : ActionID.MakeSpell(MNKRotation.AID.ArmOfTheDestroyer);
@@ -69,12 +77,23 @@ namespace BossMod
             return (actionID, targetID);
         }
 
-        public override AIResult CalculateBestAction(Actor player, Actor primaryTarget)
+        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget)
         {
-            // TODO: not all our aoe moves are radius 5 point-blank...
-            bool useAOE = _state.UnlockedArmOfTheDestroyer && Autorot.PotentialTargetsInRangeFromPlayer(5).Count() > 2;
-            var action = useAOE ? _nextBestAOEAction : _nextBestSTAction;
-            return new() { Action = action, Target = primaryTarget, ReadyIn = Math.Max(ActionCooldown(action), _state.AnimationLock), Positional = Positional.Flank };
+            if (_strategy.Prepull && _state.UnlockedMeditation && _state.Chakra < 5)
+            {
+                return new() { Action = ActionID.MakeSpell(MNKRotation.AID.Meditation), Target = player };
+            }
+            else if (primaryTarget != null)
+            {
+                // TODO: not all our aoe moves are radius 5 point-blank...
+                bool useAOE = _state.UnlockedArmOfTheDestroyer && Autorot.PotentialTargetsInRangeFromPlayer(5).Count() > 2;
+                var action = useAOE ? _nextBestAOEAction : _nextBestSTAction;
+                return new() { Action = action, Target = primaryTarget, Positional = Positional.Flank };
+            }
+            else
+            {
+                return new();
+            }
         }
 
         public override void DrawOverlay()
@@ -86,36 +105,39 @@ namespace BossMod
             ImGui.TextUnformatted($"GCD={_state.GCD:f3}, AnimLock={_state.AnimationLock:f3}+{_state.AnimationLockDelay:f3}");
         }
 
-        private MNKRotation.State BuildState()
+        private MNKRotation.State BuildState(Actor player)
         {
             MNKRotation.State s = new();
-            var player = Autorot.WorldState.Party.Player();
-            if (player != null)
+            FillCommonState(s, player, MNKRotation.IDStatPotion);
+
+            s.Chakra = Service.JobGauges.Get<MNKGauge>().Chakra;
+
+            foreach (var status in player.Statuses)
             {
-                FillCommonState(s, player, MNKRotation.IDStatPotion);
-                //s.Gauge = Service.JobGauges.Get<MNKGauge>().OathGauge;
-
-                foreach (var status in player.Statuses)
+                switch ((MNKRotation.SID)status.ID)
                 {
-                    switch ((MNKRotation.SID)status.ID)
-                    {
-                        case MNKRotation.SID.OpoOpoForm:
-                            s.Form = MNKRotation.Form.OpoOpo;
-                            s.FormLeft = StatusDuration(status.ExpireAt);
-                            break;
-                        case MNKRotation.SID.RaptorForm:
-                            s.Form = MNKRotation.Form.Raptor;
-                            s.FormLeft = StatusDuration(status.ExpireAt);
-                            break;
-                        case MNKRotation.SID.CoeurlForm:
-                            s.Form = MNKRotation.Form.Coeurl;
-                            s.FormLeft = StatusDuration(status.ExpireAt);
-                            break;
-                    }
+                    case MNKRotation.SID.OpoOpoForm:
+                        s.Form = MNKRotation.Form.OpoOpo;
+                        s.FormLeft = StatusDuration(status.ExpireAt);
+                        break;
+                    case MNKRotation.SID.RaptorForm:
+                        s.Form = MNKRotation.Form.Raptor;
+                        s.FormLeft = StatusDuration(status.ExpireAt);
+                        break;
+                    case MNKRotation.SID.CoeurlForm:
+                        s.Form = MNKRotation.Form.Coeurl;
+                        s.FormLeft = StatusDuration(status.ExpireAt);
+                        break;
+                    case MNKRotation.SID.DisciplinedFist:
+                        s.DisciplinedFistLeft = StatusDuration(status.ExpireAt);
+                        break;
                 }
-
-                s.ArmsLengthCD = SpellCooldown(MNKRotation.AID.ArmsLength);
             }
+
+            s.ArmsLengthCD = SpellCooldown(MNKRotation.AID.ArmsLength);
+            s.SecondWindCD = SpellCooldown(MNKRotation.AID.SecondWind);
+            s.BloodbathCD = SpellCooldown(MNKRotation.AID.Bloodbath);
+            s.LegSweepCD = SpellCooldown(MNKRotation.AID.LegSweep);
             return s;
         }
 

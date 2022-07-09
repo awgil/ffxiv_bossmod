@@ -34,6 +34,8 @@ namespace BossMod
         public Vector3 Location;
         public float TotalTime;
         public DateTime FinishAt;
+        public bool Interruptible;
+        public bool EventHappened;
 
         public WPos LocXZ => new(Location.XZ());
 

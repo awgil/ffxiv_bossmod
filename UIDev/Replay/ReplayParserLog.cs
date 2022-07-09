@@ -227,6 +227,7 @@ namespace UIDev
                     Location = Vec3(payload[5]),
                     TotalTime = totalTime,
                     FinishAt = DateTime.Parse(payload[0]).AddSeconds(totalTime - float.Parse(parts[0])),
+                    Interruptible = payload.Length > 7 ? bool.Parse(payload[7]) : false,
                 };
             }
             AddOp(new ActorState.OpCastInfo() { InstanceID = ActorID(payload[2]), Value = value });

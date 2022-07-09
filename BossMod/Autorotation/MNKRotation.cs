@@ -33,7 +33,6 @@ namespace BossMod
             PhantomRush = 25769,
 
             // oGCDs
-            Meditation = 3546,
             SteelPeak = 25761,
             ForbiddenChakra = 3547,
             HowlingFist = 25763,
@@ -54,6 +53,7 @@ namespace BossMod
             ArmsLength = 7548,
 
             // misc
+            Meditation = 3546,
             TrueNorth = 7546,
             Thunderclap = 25762,
             FormShift = 4262,
@@ -68,6 +68,7 @@ namespace BossMod
             OpoOpoForm = 107,
             RaptorForm = 108,
             CoeurlForm = 109,
+            DisciplinedFist = 3001,
         }
 
         public enum Form { None, OpoOpo, Raptor, Coeurl }
@@ -75,9 +76,14 @@ namespace BossMod
         // full state needed for determining next action
         public class State : CommonRotation.State
         {
+            public int Chakra; // 0-5
             public Form Form;
             public float FormLeft; // 0 if no form, 30 max
+            public float DisciplinedFistLeft; // 15 max
             public float ArmsLengthCD; // 120 max, 0 if ready
+            public float SecondWindCD;
+            public float BloodbathCD;
+            public float LegSweepCD;
 
             // per-level ability unlocks (TODO: consider abilities unlocked by quests - they could be unavailable despite level being high enough)
             public bool UnlockedTrueStrike => Level >= 4;
@@ -107,7 +113,7 @@ namespace BossMod
 
             public override string ToString()
             {
-                return $"RB={RaidBuffsLeft:f1}, Form={Form}/{FormLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+                return $"RB={RaidBuffsLeft:f1}, Chakra={Chakra}, Form={Form}/{FormLeft:f1}, DFist={DisciplinedFistLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
             }
         }
 
@@ -116,12 +122,21 @@ namespace BossMod
         {
             // cooldowns
             public bool ExecuteArmsLength;
+            public bool ExecuteSecondWind;
+            public bool ExecuteBloodbath;
+            public bool ExecuteLegSweep;
 
             public override string ToString()
             {
                 var sb = new StringBuilder("SmartQueue:");
                 if (ExecuteArmsLength)
                     sb.Append(" ArmsLength");
+                if (ExecuteSecondWind)
+                    sb.Append(" SecondWind");
+                if (ExecuteBloodbath)
+                    sb.Append(" Bloodbath");
+                if (ExecuteLegSweep)
+                    sb.Append(" LegSweep");
                 if (ExecuteSprint)
                     sb.Append(" Sprint");
                 return sb.ToString();
@@ -141,7 +156,7 @@ namespace BossMod
                 return state.Form switch
                 {
                     Form.Coeurl => AID.SnapPunch,
-                    Form.Raptor => AID.TrueStrike,
+                    Form.Raptor => state.UnlockedTwinSnakes && state.DisciplinedFistLeft < 7 ? AID.TwinSnakes : AID.TrueStrike, // TODO: better threshold for debuff reapplication
                     _ => AID.Bootshine
                 };
             }
@@ -152,8 +167,18 @@ namespace BossMod
             // 1. use cooldowns if requested in rough priority order
             if (strategy.ExecuteArmsLength && state.UnlockedArmsLength && state.CanWeave(state.ArmsLengthCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.ArmsLength);
+            if (strategy.ExecuteSecondWind && state.UnlockedSecondWind && state.CanWeave(state.SecondWindCD, 0.6f, windowEnd))
+                return ActionID.MakeSpell(AID.SecondWind);
+            if (strategy.ExecuteBloodbath && state.UnlockedBloodbath && state.CanWeave(state.BloodbathCD, 0.6f, windowEnd))
+                return ActionID.MakeSpell(AID.Bloodbath);
+            if (strategy.ExecuteLegSweep && state.UnlockedLegSweep && state.CanWeave(state.LegSweepCD, 0.6f, windowEnd))
+                return ActionID.MakeSpell(AID.LegSweep);
             if (strategy.ExecuteSprint && state.CanWeave(state.SprintCD, 0.6f, windowEnd))
                 return CommonRotation.IDSprint;
+
+            // 2. steel peek, if have chakra
+            if (state.UnlockedSteelPeak && state.Chakra == 5)
+                return ActionID.MakeSpell(AID.SteelPeak);
 
             // no suitable oGCDs...
             return new();

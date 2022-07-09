@@ -39,7 +39,7 @@ namespace BossMod.AI
             if (_ws.Party.ContentIDs[_masterSlot] == 0)
                 _masterSlot = PartyState.PlayerSlot;
 
-            _autorot.DisableReplacement = _config.Enabled;
+            _autorot.DisableReplacement = _config.Enabled && _behStack.Count > 0;
             if (_config.Enabled)
             {
                 var master = _ws.Party[_masterSlot];

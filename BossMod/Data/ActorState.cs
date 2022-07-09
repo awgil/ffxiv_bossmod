@@ -279,7 +279,7 @@ namespace BossMod
             }
 
             public override string Str(WorldState? ws) => Value != null
-                ? $"CST+|{StrActor(ws, InstanceID)}|{Value.Action}|{StrActor(ws, Value.TargetID)}|{StrVec3(Value.Location)}|{Utils.CastTimeString(Value, ws?.CurrentTime ?? new())}"
+                ? $"CST+|{StrActor(ws, InstanceID)}|{Value.Action}|{StrActor(ws, Value.TargetID)}|{StrVec3(Value.Location)}|{Utils.CastTimeString(Value, ws?.CurrentTime ?? new())}|{Value.Interruptible}"
                 : $"CST-|{StrActor(ws, InstanceID)}";
         }
 
@@ -291,6 +291,8 @@ namespace BossMod
 
             protected override void ExecActor(WorldState ws, Actor actor)
             {
+                if (actor.CastInfo?.Action == Value.Action)
+                    actor.CastInfo.EventHappened = true;
                 ws.Actors.CastEvent?.Invoke(ws, (actor, Value));
             }
 

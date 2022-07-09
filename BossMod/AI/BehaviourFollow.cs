@@ -31,7 +31,7 @@ namespace BossMod.AI
                 return true;
             }
 
-            if (self.CastInfo != null)
+            if (self.CastInfo != null && !self.CastInfo.EventHappened)
             {
                 // don't interrupt cast...
                 _navi.TargetPos = null;
@@ -40,6 +40,8 @@ namespace BossMod.AI
             }
 
             // TODO: in-aoe check => gtfo
+            // TODO: auto queue cooldowns
+
             Actor? assistTarget = null;
             if (master.InCombat)
             {
@@ -50,40 +52,39 @@ namespace BossMod.AI
                     assistTarget = masterTarget;
 
                     // TODO: reconsider (this is currently done to ensure 'state' is calculated for correct target...)
-                    if (Service.TargetManager.Target?.ObjectId != masterTarget.InstanceID)
+                    if (master != self && Service.TargetManager.Target?.ObjectId != masterTarget.InstanceID)
                         Service.TargetManager.SetTarget(Service.ObjectTable.SearchById((uint)masterTarget.InstanceID));
                 }
             }
 
-            if (assistTarget != null)
+            // in combat => assist
+            var action = _autorot.ClassActions?.CalculateBestAction(self, assistTarget) ?? new();
+            if (action.Action)
             {
-                // in combat => assist
-                var action = _autorot.ClassActions?.CalculateBestAction(self, assistTarget) ?? new();
-                if (action.Action)
+                // TODO: improve movement logic; currently we always attempt to move to melee range, this is good for classes that have point-blank aoes
+                bool moveCloser = true;
+                var readyIn = Math.Max(_useAction.Cooldown(action.Action), _autorot.AnimLock);
+                if (readyIn < 0.1f)
                 {
-                    // TODO: improve movement logic; currently we always attempt to move to melee range, this is good for classes that have point-blank aoes
-                    bool moveCloser = true;
-                    if (action.ReadyIn < 0.2f)
-                    {
-                        _useAction.Execute(action.Action, action.Target.InstanceID);
-                        moveCloser = action.Action.Type == ActionType.Spell ? (Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(action.Action.ID)?.Cast100ms ?? 0) == 0 : true;
-                    }
-
-                    _navi.TargetPos = null;
-                    if (moveCloser)
-                    {
-                        // max melee is 3 + src.hitbox + target.hitbox, max range is -0.5 that to allow for some navigation errors
-                        var maxMelee = 3 + self.HitboxRadius + action.Target.HitboxRadius;
-                        _navi.TargetPos = action.Positional switch
-                        {
-                            CommonActions.Positional.Flank => MoveToFlank(self, action.Target, maxMelee, 0.5f),
-                            CommonActions.Positional.Rear => MoveToRear(self, action.Target, maxMelee, 0.5f),
-                            _ => MoveToMelee(self, action.Target, maxMelee, 0.5f)
-                        };
-                    }
-                    _navi.TargetRot = _navi.TargetPos != null ? (_navi.TargetPos.Value - self.Position).Normalized() : null;
-                    return true;
+                    _useAction.Execute(action.Action, action.Target.InstanceID);
+                    moveCloser = !action.Action.IsCasted();
                 }
+
+                _navi.TargetPos = null;
+                if (moveCloser && action.Target.InstanceID != self.InstanceID)
+                {
+                    // max melee is 3 + src.hitbox + target.hitbox, max range is -0.5 that to allow for some navigation errors
+                    // note: if target-of-target is self, don't try flanking, it's probably impossible...
+                    var maxMelee = 3 + self.HitboxRadius + action.Target.HitboxRadius;
+                    _navi.TargetPos = action.Target.TargetID != self.InstanceID ? action.Positional switch
+                    {
+                        CommonActions.Positional.Flank => MoveToFlank(self, action.Target, maxMelee, 0.5f),
+                        CommonActions.Positional.Rear => MoveToRear(self, action.Target, maxMelee, 0.5f),
+                        _ => MoveToMelee(self, action.Target, maxMelee, 0.5f)
+                    } : MoveToMelee(self, action.Target, maxMelee, 0.5f);
+                }
+                _navi.TargetRot = _navi.TargetPos != null ? (_navi.TargetPos.Value - self.Position).Normalized() : null;
+                return true;
             }
 
             if (master != self)

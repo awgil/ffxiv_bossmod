@@ -16,7 +16,8 @@ namespace BossMod
             : base(autorot, ActionID.MakeSpell(PLDRotation.AID.FastBlade))
         {
             _config = Service.Config.Get<PLDConfig>();
-            _state = BuildState();
+            var player = autorot.WorldState.Party.Player();
+            _state = player != null ? BuildState(player) : new();
             _strategy = new();
 
             SmartQueueRegisterSpell(PLDRotation.AID.Rampart);
@@ -24,6 +25,8 @@ namespace BossMod
             SmartQueueRegisterSpell(PLDRotation.AID.ArmsLength);
             SmartQueueRegisterSpell(PLDRotation.AID.Provoke);
             SmartQueueRegisterSpell(PLDRotation.AID.Shirk);
+            SmartQueueRegisterSpell(PLDRotation.AID.LowBlow);
+            SmartQueueRegisterSpell(PLDRotation.AID.Interject);
             SmartQueueRegister(CommonRotation.IDSprint);
             SmartQueueRegister(PLDRotation.IDStatPotion);
         }
@@ -33,9 +36,9 @@ namespace BossMod
             Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate()
+        protected override CommonRotation.State OnUpdate(Actor player)
         {
-            var currState = BuildState();
+            var currState = BuildState(player);
             LogStateChange(_state, currState);
             _state = currState;
 
@@ -47,6 +50,8 @@ namespace BossMod
             _strategy.ExecuteArmsLength = SmartQueueActiveSpell(PLDRotation.AID.ArmsLength);
             _strategy.ExecuteProvoke = SmartQueueActiveSpell(PLDRotation.AID.Provoke); // TODO: check that not MT already
             _strategy.ExecuteShirk = SmartQueueActiveSpell(PLDRotation.AID.Shirk); // TODO: check that hate is close to MT...
+            _strategy.ExecuteLowBlow = SmartQueueActiveSpell(PLDRotation.AID.LowBlow);
+            _strategy.ExecuteInterject = SmartQueueActiveSpell(PLDRotation.AID.Interject) && AllowInterject();
 
             var nextBestST = _config.FullRotation ? PLDRotation.GetNextBestAction(_state, _strategy, false) : ActionID.MakeSpell(PLDRotation.AID.FastBlade);
             var nextBestAOE = _config.FullRotation ? PLDRotation.GetNextBestAction(_state, _strategy, true) : ActionID.MakeSpell(PLDRotation.AID.TotalEclipse);
@@ -79,12 +84,14 @@ namespace BossMod
             return (actionID, targetID);
         }
 
-        public override AIResult CalculateBestAction(Actor player, Actor primaryTarget)
+        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget)
         {
+            if (primaryTarget == null)
+                return new();
             // TODO: not all our aoe moves are radius 5 point-blank...
             bool useAOE = _state.UnlockedTotalEclipse && Autorot.PotentialTargetsInRangeFromPlayer(5).Count() > 2;
             var action = useAOE ? _nextBestAOEAction : _nextBestSTAction;
-            return new() { Action = action, Target = primaryTarget, ReadyIn = Math.Max(ActionCooldown(action), _state.AnimationLock) };
+            return new() { Action = action, Target = primaryTarget };
         }
 
         public override void DrawOverlay()
@@ -96,32 +103,31 @@ namespace BossMod
             ImGui.TextUnformatted($"GCD={_state.GCD:f3}, AnimLock={_state.AnimationLock:f3}+{_state.AnimationLockDelay:f3}");
         }
 
-        private PLDRotation.State BuildState()
+        private PLDRotation.State BuildState(Actor player)
         {
             PLDRotation.State s = new();
-            var player = Autorot.WorldState.Party.Player();
-            if (player != null)
+            FillCommonState(s, player, PLDRotation.IDStatPotion);
+
+            //s.Gauge = Service.JobGauges.Get<PLDGauge>().OathGauge;
+
+            foreach (var status in player.Statuses)
             {
-                FillCommonState(s, player, PLDRotation.IDStatPotion);
-                //s.Gauge = Service.JobGauges.Get<PLDGauge>().OathGauge;
-
-                foreach (var status in player.Statuses)
+                switch ((PLDRotation.SID)status.ID)
                 {
-                    switch ((PLDRotation.SID)status.ID)
-                    {
-                        case PLDRotation.SID.FightOrFlight:
-                            s.FightOrFlightLeft = StatusDuration(status.ExpireAt);
-                            break;
-                    }
+                    case PLDRotation.SID.FightOrFlight:
+                        s.FightOrFlightLeft = StatusDuration(status.ExpireAt);
+                        break;
                 }
-
-                s.FightOrFlightCD = SpellCooldown(PLDRotation.AID.FightOrFlight);
-                s.RampartCD = SpellCooldown(PLDRotation.AID.Rampart);
-                s.ReprisalCD = SpellCooldown(PLDRotation.AID.Reprisal);
-                s.ArmsLengthCD = SpellCooldown(PLDRotation.AID.ArmsLength);
-                s.ProvokeCD = SpellCooldown(PLDRotation.AID.Provoke);
-                s.ShirkCD = SpellCooldown(PLDRotation.AID.Shirk);
             }
+
+            s.FightOrFlightCD = SpellCooldown(PLDRotation.AID.FightOrFlight);
+            s.RampartCD = SpellCooldown(PLDRotation.AID.Rampart);
+            s.ReprisalCD = SpellCooldown(PLDRotation.AID.Reprisal);
+            s.ArmsLengthCD = SpellCooldown(PLDRotation.AID.ArmsLength);
+            s.ProvokeCD = SpellCooldown(PLDRotation.AID.Provoke);
+            s.ShirkCD = SpellCooldown(PLDRotation.AID.Shirk);
+            s.LowBlowCD = SpellCooldown(PLDRotation.AID.LowBlow);
+            s.InterjectCD = SpellCooldown(PLDRotation.AID.Interject);
             return s;
         }
 
@@ -140,6 +146,11 @@ namespace BossMod
         private bool AllowReprisal()
         {
             return Autorot.PotentialTargetsInRangeFromPlayer(5).Any();
+        }
+
+        private bool AllowInterject()
+        {
+            return Autorot.WorldState.Actors.Find(Autorot.WorldState.Party.Player()?.TargetID ?? 0)?.CastInfo?.Interruptible ?? false;
         }
     }
 }
