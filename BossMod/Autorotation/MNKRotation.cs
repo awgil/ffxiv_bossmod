@@ -81,9 +81,9 @@ namespace BossMod
             public float FormLeft; // 0 if no form, 30 max
             public float DisciplinedFistLeft; // 15 max
             public float ArmsLengthCD; // 120 max, 0 if ready
-            public float SecondWindCD;
-            public float BloodbathCD;
-            public float LegSweepCD;
+            public float SecondWindCD; // 120 max, 0 if ready
+            public float BloodbathCD; // 90 max, 0 if ready
+            public float LegSweepCD; // 40 max, 0 if ready
 
             // per-level ability unlocks (TODO: consider abilities unlocked by quests - they could be unavailable despite level being high enough)
             public bool UnlockedTrueStrike => Level >= 4;
@@ -95,7 +95,7 @@ namespace BossMod
             public bool UnlockedMeditation => Level >= 15; // quest-locked
             public bool UnlockedTwinSnakes => Level >= 18;
             public bool UnlockedFeint => Level >= 22;
-            public bool UnlockedArmOfTheDestroyer=> Level >= 26;
+            public bool UnlockedArmOfTheDestroyer => Level >= 26;
             public bool UnlockedDemolish => Level >= 30; // quest-locked
             public bool UnlockedRockbreaker => Level >= 30; // quest-locked
             public bool UnlockedArmsLength => Level >= 32;
@@ -109,7 +109,17 @@ namespace BossMod
             public bool UnlockedFormShift => Level >= 52; // quest-locked
             public bool UnlockedForbiddenChakra => Level >= 54; // quest-locked
             public bool UnlockedMasterfulBlitz => Level >= 60; // quest-locked
-            // TODO: L62+
+            public bool UnlockedRiddleOfEarth => Level >= 64;
+            public bool UnlockedRiddleOfFire => Level >= 68;
+            public bool UnlockedBrotherhood => Level >= 70; // quest-locked
+            public bool UnlockedRiddleOfWind => Level >= 72;
+            public bool UnlockedEnlightenment => Level >= 74; // level 74 also gives passive, gives chakra when crit
+            public bool UnlockedAnatman => Level >= 78;
+            public bool UnlockedSixSidedStar => Level >= 80;
+            public bool UnlockedShadowOfTheDestroyer => Level >= 82;
+            public bool UnlockedRisingPhoenix => Level >= 86;
+            public bool UnlockedEnhancedBrotherhood => Level >= 88; // passive, gives chakra for each GCD under Brotherhood buff
+            public bool UnlockedPhantomRush => Level >= 90;
 
             public override string ToString()
             {
