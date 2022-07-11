@@ -1,6 +1,5 @@
 ﻿using Dalamud.Game.ClientState.JobGauge.Types;
 using ImGuiNET;
-using System;
 using System.Linq;
 
 namespace BossMod
@@ -108,7 +107,7 @@ namespace BossMod
         {
             if (primaryTarget == null)
                 return new();
-            // TODO: proper implementation...
+            // TODO: this kinda works until L45...
             return new() { Action = _nextBestSTDamageAction, Target = primaryTarget };
         }
 

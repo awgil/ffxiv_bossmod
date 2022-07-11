@@ -117,6 +117,7 @@ namespace BossMod
             public bool UnlockedAnatman => Level >= 78;
             public bool UnlockedSixSidedStar => Level >= 80;
             public bool UnlockedShadowOfTheDestroyer => Level >= 82;
+            public bool UnlockedEnhancedThunderclap => Level >= 84; // passive, third charge for Thunderclap
             public bool UnlockedRisingPhoenix => Level >= 86;
             public bool UnlockedEnhancedBrotherhood => Level >= 88; // passive, gives chakra for each GCD under Brotherhood buff
             public bool UnlockedPhantomRush => Level >= 90;

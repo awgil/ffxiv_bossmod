@@ -164,7 +164,12 @@ namespace BossMod
             }
             else
             {
-                return state.UnlockedRiotBlade && state.ComboLastMove == AID.FastBlade ? AID.RiotBlade : AID.FastBlade;
+                if (state.UnlockedRageOfHalone && state.ComboLastMove == AID.RiotBlade)
+                    return AID.RageOfHalone;
+                else if (state.UnlockedRiotBlade && state.ComboLastMove == AID.FastBlade)
+                    return AID.RiotBlade;
+                else
+                    return AID.FastBlade;
             }
         }
 
