@@ -65,8 +65,9 @@ namespace BossMod
             {
                 actionID = (MNKRotation.AID)actionID.ID switch
                 {
-                    MNKRotation.AID.Bootshine => _config.FullRotation ? _nextBestSTAction : actionID,
-                    MNKRotation.AID.ArmOfTheDestroyer => _config.FullRotation ? _nextBestAOEAction : actionID,
+                    MNKRotation.AID.Bootshine => _config.FullRotation && _state.Level < 30 ? _nextBestSTAction : actionID,
+                    MNKRotation.AID.ArmOfTheDestroyer => _config.FullRotation && _state.Level < 30 ? _nextBestAOEAction : actionID,
+                    MNKRotation.AID.FourPointFury => _config.AOECombos ? ActionID.MakeSpell(MNKRotation.GetNextAOEComboAction(_state)) : actionID,
                     _ => actionID
                 };
             }

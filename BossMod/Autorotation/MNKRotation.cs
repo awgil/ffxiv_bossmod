@@ -154,6 +154,19 @@ namespace BossMod
             }
         }
 
+        public static AID GetNextAOEComboAction(State state)
+        {
+            if (!state.UnlockedRockbreaker)
+                return AID.ArmOfTheDestroyer;
+
+            return state.Form switch
+            {
+                Form.Coeurl => AID.Rockbreaker,
+                Form.Raptor => state.UnlockedFourPointFury ? AID.FourPointFury : AID.TwinSnakes,
+                _ => state.UnlockedShadowOfTheDestroyer ? AID.ShadowOfTheDestroyer : AID.ArmOfTheDestroyer,
+            };
+        }
+
         public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
         {
             if (aoe && state.UnlockedArmOfTheDestroyer)
