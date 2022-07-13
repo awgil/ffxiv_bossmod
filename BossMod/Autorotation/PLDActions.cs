@@ -12,12 +12,11 @@ namespace BossMod
         private ActionID _nextBestSTAction = ActionID.MakeSpell(PLDRotation.AID.FastBlade);
         private ActionID _nextBestAOEAction = ActionID.MakeSpell(PLDRotation.AID.TotalEclipse);
 
-        public PLDActions(Autorotation autorot)
-            : base(autorot, ActionID.MakeSpell(PLDRotation.AID.FastBlade))
+        public PLDActions(Autorotation autorot, Actor player)
+            : base(autorot, player, ActionID.MakeSpell(PLDRotation.AID.FastBlade))
         {
             _config = Service.Config.Get<PLDConfig>();
-            var player = autorot.WorldState.Party.Player();
-            _state = player != null ? BuildState(player) : new();
+            _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
             _strategy = new();
 
             SmartQueueRegisterSpell(PLDRotation.AID.Rampart);
@@ -36,9 +35,9 @@ namespace BossMod
             Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate(Actor player)
+        protected override CommonRotation.State OnUpdate(Actor? target)
         {
-            var currState = BuildState(player);
+            var currState = BuildState(target);
             LogStateChange(_state, currState);
             _state = currState;
 
@@ -51,7 +50,7 @@ namespace BossMod
             _strategy.ExecuteProvoke = SmartQueueActiveSpell(PLDRotation.AID.Provoke); // TODO: check that not MT already
             _strategy.ExecuteShirk = SmartQueueActiveSpell(PLDRotation.AID.Shirk); // TODO: check that hate is close to MT...
             _strategy.ExecuteLowBlow = SmartQueueActiveSpell(PLDRotation.AID.LowBlow);
-            _strategy.ExecuteInterject = SmartQueueActiveSpell(PLDRotation.AID.Interject) && AllowInterject();
+            _strategy.ExecuteInterject = SmartQueueActiveSpell(PLDRotation.AID.Interject) && AllowInterject(target);
 
             var nextBestST = _config.FullRotation ? PLDRotation.GetNextBestAction(_state, _strategy, false) : ActionID.MakeSpell(PLDRotation.AID.FastBlade);
             var nextBestAOE = _config.FullRotation ? PLDRotation.GetNextBestAction(_state, _strategy, true) : ActionID.MakeSpell(PLDRotation.AID.TotalEclipse);
@@ -86,7 +85,7 @@ namespace BossMod
 
         public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget)
         {
-            if (primaryTarget == null)
+            if (primaryTarget?.Type != ActorType.Enemy)
                 return new();
             // TODO: not all our aoe moves are radius 5 point-blank...
             bool useAOE = _state.UnlockedTotalEclipse && Autorot.PotentialTargetsInRangeFromPlayer(5).Count() > 2;
@@ -103,14 +102,14 @@ namespace BossMod
             ImGui.TextUnformatted($"GCD={_state.GCD:f3}, AnimLock={_state.AnimationLock:f3}+{_state.AnimationLockDelay:f3}");
         }
 
-        private PLDRotation.State BuildState(Actor player)
+        private PLDRotation.State BuildState(Actor? target)
         {
             PLDRotation.State s = new();
-            FillCommonState(s, player, PLDRotation.IDStatPotion);
+            FillCommonState(s, target, PLDRotation.IDStatPotion);
 
             //s.Gauge = Service.JobGauges.Get<PLDGauge>().OathGauge;
 
-            foreach (var status in player.Statuses)
+            foreach (var status in Player.Statuses)
             {
                 switch ((PLDRotation.SID)status.ID)
                 {
@@ -134,7 +133,7 @@ namespace BossMod
         private void LogStateChange(PLDRotation.State prev, PLDRotation.State curr)
         {
             // do nothing if not in combat
-            if (!(Autorot.WorldState.Party.Player()?.InCombat ?? false))
+            if (!Player.InCombat)
                 return;
 
             // detect expired buffs
@@ -148,9 +147,9 @@ namespace BossMod
             return Autorot.PotentialTargetsInRangeFromPlayer(5).Any();
         }
 
-        private bool AllowInterject()
+        private bool AllowInterject(Actor? target)
         {
-            return Autorot.WorldState.Actors.Find(Autorot.WorldState.Party.Player()?.TargetID ?? 0)?.CastInfo?.Interruptible ?? false;
+            return target?.CastInfo?.Interruptible ?? false;
         }
     }
 }

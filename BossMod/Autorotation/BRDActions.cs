@@ -15,12 +15,11 @@ namespace BossMod
         private ActionID _nextBestSTAction = ActionID.MakeSpell(BRDRotation.AID.HeavyShot);
         private ActionID _nextBestAOEAction = ActionID.MakeSpell(BRDRotation.AID.QuickNock);
 
-        public BRDActions(Autorotation autorot)
-            : base(autorot, ActionID.MakeSpell(BRDRotation.AID.HeavyShot))
+        public BRDActions(Autorotation autorot, Actor player)
+            : base(autorot, player, ActionID.MakeSpell(BRDRotation.AID.HeavyShot))
         {
             _config = Service.Config.Get<BRDConfig>();
-            var player = autorot.WorldState.Party.Player();
-            _state = player != null ? BuildState(player) : new();
+            _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
             _strategy = new();
 
             SmartQueueRegisterSpell(BRDRotation.AID.ArmsLength);
@@ -35,9 +34,9 @@ namespace BossMod
             Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate(Actor player)
+        protected override CommonRotation.State OnUpdate(Actor? target)
         {
-            var currState = BuildState(player);
+            var currState = BuildState(target);
             LogStateChange(_state, currState);
             _state = currState;
 
@@ -45,7 +44,7 @@ namespace BossMod
 
             // cooldown execution
             _strategy.ExecuteArmsLength = SmartQueueActiveSpell(BRDRotation.AID.ArmsLength);
-            _strategy.ExecuteSecondWind = SmartQueueActiveSpell(BRDRotation.AID.SecondWind) && player.HP.Cur < player.HP.Max;
+            _strategy.ExecuteSecondWind = SmartQueueActiveSpell(BRDRotation.AID.SecondWind) && Player.HP.Cur < Player.HP.Max;
             _strategy.ExecuteHeadGraze = SmartQueueActiveSpell(BRDRotation.AID.HeadGraze);
 
             var nextBestST = _config.FullRotation ? BRDRotation.GetNextBestAction(_state, _strategy, false) : ActionID.MakeSpell(BRDRotation.AID.HeavyShot);
@@ -83,7 +82,7 @@ namespace BossMod
             {
                 return new() { Action = ActionID.MakeSpell(BRDRotation.AID.Peloton), Target = player };
             }
-            else if (primaryTarget != null)
+            else if (primaryTarget?.Type == ActorType.Enemy)
             {
                 // TODO: proper implementation, cone etc...
                 bool useAOE = _state.UnlockedQuickNock && Autorot.PotentialTargetsInRange(primaryTarget.Position, 5).Count() > 1;
@@ -105,14 +104,14 @@ namespace BossMod
             ImGui.TextUnformatted($"GCD={_state.GCD:f3}, AnimLock={_state.AnimationLock:f3}+{_state.AnimationLockDelay:f3}");
         }
 
-        private BRDRotation.State BuildState(Actor player)
+        private BRDRotation.State BuildState(Actor? target)
         {
             BRDRotation.State s = new();
-            FillCommonState(s, player, BRDRotation.IDStatPotion);
+            FillCommonState(s, target, BRDRotation.IDStatPotion);
 
             //s.Chakra = Service.JobGauges.Get<BRDGauge>().Chakra;
 
-            foreach (var status in player.Statuses)
+            foreach (var status in Player.Statuses)
             {
                 switch ((BRDRotation.SID)status.ID)
                 {
@@ -128,7 +127,6 @@ namespace BossMod
                 }
             }
 
-            var target = Autorot.WorldState.Actors.Find(player.TargetID);
             if (target != null)
             {
                 foreach (var status in target.Statuses)
@@ -137,18 +135,20 @@ namespace BossMod
                     {
                         case BRDRotation.SID.VenomousBite:
                         case BRDRotation.SID.CausticBite:
-                            if (status.SourceID == player.InstanceID)
+                            if (status.SourceID == Player.InstanceID)
                                 s.TargetVenomousLeft = StatusDuration(status.ExpireAt);
                             break;
                         case BRDRotation.SID.Windbite:
                         case BRDRotation.SID.Stormbite:
-                            if (status.SourceID == player.InstanceID)
+                            if (status.SourceID == Player.InstanceID)
                                 s.TargetWindbiteLeft = StatusDuration(status.ExpireAt);
                             break;
                     }
                 }
             }
 
+            s.RagingStrikesCD = SpellCooldown(BRDRotation.AID.RagingStrikes);
+            s.BloodletterCD = SpellCooldown(BRDRotation.AID.Bloodletter);
             s.ArmsLengthCD = SpellCooldown(BRDRotation.AID.ArmsLength);
             s.SecondWindCD = SpellCooldown(BRDRotation.AID.SecondWind);
             s.HeadGrazeCD = SpellCooldown(BRDRotation.AID.HeadGraze);
@@ -159,7 +159,7 @@ namespace BossMod
         private void LogStateChange(BRDRotation.State prev, BRDRotation.State curr)
         {
             // do nothing if not in combat
-            if (!(Autorot.WorldState.Party.Player()?.InCombat ?? false))
+            if (!Player.InCombat)
                 return;
 
             // detect expired buffs

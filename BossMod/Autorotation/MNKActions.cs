@@ -13,12 +13,11 @@ namespace BossMod
         private ActionID _nextBestSTAction = ActionID.MakeSpell(MNKRotation.AID.Bootshine);
         private ActionID _nextBestAOEAction = ActionID.MakeSpell(MNKRotation.AID.ArmOfTheDestroyer);
 
-        public MNKActions(Autorotation autorot)
-            : base(autorot, ActionID.MakeSpell(MNKRotation.AID.Bootshine))
+        public MNKActions(Autorotation autorot, Actor player)
+            : base(autorot, player, ActionID.MakeSpell(MNKRotation.AID.Bootshine))
         {
             _config = Service.Config.Get<MNKConfig>();
-            var player = autorot.WorldState.Party.Player();
-            _state = player != null ? BuildState(player) : new();
+            _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
             _strategy = new();
 
             SmartQueueRegisterSpell(MNKRotation.AID.ArmsLength);
@@ -34,9 +33,9 @@ namespace BossMod
             Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate(Actor player)
+        protected override CommonRotation.State OnUpdate(Actor? target)
         {
-            var currState = BuildState(player);
+            var currState = BuildState(target);
             LogStateChange(_state, currState);
             _state = currState;
 
@@ -44,7 +43,7 @@ namespace BossMod
 
             // cooldown execution
             _strategy.ExecuteArmsLength = SmartQueueActiveSpell(MNKRotation.AID.ArmsLength);
-            _strategy.ExecuteSecondWind = SmartQueueActiveSpell(MNKRotation.AID.SecondWind) && player.HP.Cur < player.HP.Max;
+            _strategy.ExecuteSecondWind = SmartQueueActiveSpell(MNKRotation.AID.SecondWind) && Player.HP.Cur < Player.HP.Max;
             _strategy.ExecuteBloodbath = SmartQueueActiveSpell(MNKRotation.AID.Bloodbath);
             _strategy.ExecuteLegSweep = SmartQueueActiveSpell(MNKRotation.AID.LegSweep);
 
@@ -84,7 +83,7 @@ namespace BossMod
             {
                 return new() { Action = ActionID.MakeSpell(MNKRotation.AID.Meditation), Target = player };
             }
-            else if (primaryTarget != null)
+            else if (primaryTarget?.Type == ActorType.Enemy)
             {
                 // TODO: not all our aoe moves are radius 5 point-blank...
                 bool useAOE = _state.UnlockedArmOfTheDestroyer && Autorot.PotentialTargetsInRangeFromPlayer(5).Count() > 2;
@@ -106,14 +105,14 @@ namespace BossMod
             ImGui.TextUnformatted($"GCD={_state.GCD:f3}, AnimLock={_state.AnimationLock:f3}+{_state.AnimationLockDelay:f3}");
         }
 
-        private MNKRotation.State BuildState(Actor player)
+        private MNKRotation.State BuildState(Actor? target)
         {
             MNKRotation.State s = new();
-            FillCommonState(s, player, MNKRotation.IDStatPotion);
+            FillCommonState(s, target, MNKRotation.IDStatPotion);
 
             s.Chakra = Service.JobGauges.Get<MNKGauge>().Chakra;
 
-            foreach (var status in player.Statuses)
+            foreach (var status in Player.Statuses)
             {
                 switch ((MNKRotation.SID)status.ID)
                 {
@@ -145,7 +144,7 @@ namespace BossMod
         private void LogStateChange(MNKRotation.State prev, MNKRotation.State curr)
         {
             // do nothing if not in combat
-            if (!(Autorot.WorldState.Party.Player()?.InCombat ?? false))
+            if (!Player.InCombat)
                 return;
 
             // detect expired buffs

@@ -21,7 +21,7 @@ namespace BossMod
         {
             _ws = ws;
             _autorot = autorot;
-            _debugInput = new(inputOverride);
+            _debugInput = new(inputOverride, autorot);
         }
 
         public void Dispose()

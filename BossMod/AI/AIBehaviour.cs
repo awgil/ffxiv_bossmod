@@ -1,130 +1,133 @@
-﻿using Dalamud.Game.ClientState.Objects.Enums;
-using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.ClientState.Party;
+﻿using ImGuiNET;
 using System;
+using System.Linq;
 
 namespace BossMod.AI
 {
     // constantly follow master
-    class BehaviourFollow : Behaviour
+    class AIBehaviour
     {
         private WorldState _ws;
-        private Navigation _navi;
-        private UseAction _useAction;
         private Autorotation _autorot;
+        private AIController _ctrl;
 
-        public BehaviourFollow(WorldState ws, Navigation navi, UseAction useAction, Autorotation autorot)
+        public AIBehaviour(WorldState ws, AIController ctrl, Autorotation autorot)
         {
             _ws = ws;
-            _navi = navi;
-            _useAction = useAction;
             _autorot = autorot;
+            _ctrl = ctrl;
         }
 
-        public override bool Execute(Actor master)
+        public Actor? UpdateTargeting(Actor player, Actor master)
         {
-            var self = _ws.Party.Player();
-            if (self == null)
-            {
-                _navi.TargetPos = null;
-                _navi.TargetRot = null;
-                return true;
-            }
+            if (!master.InCombat)
+                return null; // master not in combat => just follow
 
-            if (self.CastInfo != null && !self.CastInfo.EventHappened)
-            {
-                // don't interrupt cast...
-                _navi.TargetPos = null;
-                _navi.TargetRot = null;
-                return true;
-            }
+            var masterTarget = _ws.Actors.Find(master.TargetID);
+            if (masterTarget?.Type != ActorType.Enemy)
+                return null; // master has no target or targets non-enemy => just follow
 
-            // TODO: in-aoe check => gtfo
-            // TODO: auto queue cooldowns
+            // TODO: check potential targets, if anyone is casting - queue interrupt or stun (unless planned), otherwise gtfo from aoe
+            // TODO: mitigates/self heals, unless planned, if low hp
 
-            Actor? assistTarget = null;
-            if (master.InCombat)
+            // TODO: target or party heals, if possible and not planned, esuna etc.
+            if (player.Role == Role.Healer)
             {
-                // attack master's target
-                var masterTarget = _ws.Actors.Find(master.TargetID);
-                if (masterTarget?.Type == ActorType.Enemy)
+                Actor? healTarget = null;
+                float healPrio = 0;
+                foreach (var p in _ws.Party.WithoutSlot(true))
                 {
-                    assistTarget = masterTarget;
-
-                    // TODO: reconsider (this is currently done to ensure 'state' is calculated for correct target...)
-                    if (master != self && Service.TargetManager.Target?.ObjectId != masterTarget.InstanceID)
-                        Service.TargetManager.SetTarget(Service.ObjectTable.SearchById((uint)masterTarget.InstanceID));
+                    // TODO: esuna check
+                    if (p.IsDead)
+                    {
+                        if (healPrio == 0)
+                            healTarget = p; // raise is lowest prio
+                    }
+                    else if (p.HP.Cur < p.HP.Max * 0.8f)
+                    {
+                        var prio = 1 - (float)p.HP.Cur / p.HP.Max;
+                        if (prio > healPrio)
+                        {
+                            healTarget = p;
+                            healPrio = prio;
+                        }
+                    }
                 }
+
+                if (healTarget != null)
+                    return healTarget;
             }
 
-            // in combat => assist
-            var action = _autorot.ClassActions?.CalculateBestAction(self, assistTarget) ?? new();
-            if (action.Action)
+            // assist master
+            return masterTarget;
+        }
+
+        public void Execute(Actor player, Actor master, Actor? primaryTarget)
+        {
+            var action = _autorot.ClassActions?.CalculateBestAction(player, primaryTarget) ?? new();
+            _ctrl.PlannedAction = action.Action;
+            _ctrl.PlannedActionTarget = action.Target?.InstanceID ?? 0;
+            if (action.Action && action.Target != null)
             {
                 // TODO: improve movement logic; currently we always attempt to move to melee range, this is good for classes that have point-blank aoes
-                bool moveCloser = true;
-                var readyIn = Math.Max(_useAction.Cooldown(action.Action), _autorot.AnimLock);
-                if (readyIn < 0.1f)
-                {
-                    _useAction.Execute(action.Action, action.Target.InstanceID);
-                    moveCloser = !action.Action.IsCasted();
-                }
-
-                _navi.TargetPos = null;
-                if (moveCloser && action.Target.InstanceID != self.InstanceID)
+                _ctrl.NaviTargetPos = null;
+                if (action.Target.InstanceID != player.InstanceID)
                 {
                     // max melee is 3 + src.hitbox + target.hitbox, max range is -0.5 that to allow for some navigation errors
-                    // note: if target-of-target is self, don't try flanking, it's probably impossible...
-                    var maxMelee = 3 + self.HitboxRadius + action.Target.HitboxRadius;
-                    _navi.TargetPos = action.Target.TargetID != self.InstanceID ? action.Positional switch
+                    // note: if target-of-target is player, don't try flanking, it's probably impossible...
+                    var maxMelee = 3 + player.HitboxRadius + action.Target.HitboxRadius;
+                    _ctrl.NaviTargetPos = action.Target.TargetID != player.InstanceID ? action.Positional switch
                     {
-                        CommonActions.Positional.Flank => MoveToFlank(self, action.Target, maxMelee, 0.5f),
-                        CommonActions.Positional.Rear => MoveToRear(self, action.Target, maxMelee, 0.5f),
-                        _ => MoveToMelee(self, action.Target, maxMelee, 0.5f)
-                    } : MoveToMelee(self, action.Target, maxMelee, 0.5f);
+                        CommonActions.Positional.Flank => MoveToFlank(player, action.Target, maxMelee, 0.5f),
+                        CommonActions.Positional.Rear => MoveToRear(player, action.Target, maxMelee, 0.5f),
+                        _ => MoveToMelee(player, action.Target, maxMelee, 0.5f)
+                    } : MoveToMelee(player, action.Target, maxMelee, 0.5f);
                 }
-                _navi.TargetRot = _navi.TargetPos != null ? (_navi.TargetPos.Value - self.Position).Normalized() : null;
-                return true;
+                _ctrl.NaviTargetRot = _ctrl.NaviTargetPos != null ? (_ctrl.NaviTargetPos.Value - player.Position).Normalized() : null;
+                return;
             }
 
-            if (master != self)
+            // we're here if there is no planned action...
+            if (master != player)
             {
-                // out of combat => follow master, if any
+                // follow master, if any
                 var targetPos = master.Position;
-                var selfPos = self.Position;
-                var toTarget = targetPos - selfPos;
+                var playerPos = player.Position;
+                var toTarget = targetPos - playerPos;
                 if (toTarget.LengthSq() > 4)
                 {
-                    _navi.TargetPos = targetPos;
-                    _navi.TargetRot = toTarget.Normalized();
+                    _ctrl.NaviTargetPos = targetPos;
+                    _ctrl.NaviTargetRot = toTarget.Normalized();
                 }
                 else
                 {
-                    _navi.TargetPos = null;
-                    _navi.TargetRot = null;
+                    _ctrl.NaviTargetPos = null;
+                    _ctrl.NaviTargetRot = null;
                 }
 
                 // sprint
-                if (toTarget.LengthSq() > 400 && !self.InCombat)
+                if (toTarget.LengthSq() > 400 && !player.InCombat)
                 {
-                    var sprint = new ActionID(ActionType.Spell, 3);
-                    if (_useAction.Cooldown(sprint) < 0.5f)
-                        _useAction.Execute(sprint, self.InstanceID);
+                    _ctrl.PlannedAction = new ActionID(ActionType.Spell, 3);
+                    _ctrl.PlannedActionTarget = player.InstanceID;
                 }
 
-                //var cameraFacing = _navi.CameraFacing;
-                //var dot = cameraFacing.Dot(_navi.TargetRot.Value);
+                //var cameraFacing = _ctrl.CameraFacing;
+                //var dot = cameraFacing.Dot(_ctrl.TargetRot.Value);
                 //if (dot < -0.707107f)
-                //    _navi.TargetRot = -_navi.TargetRot.Value;
+                //    _ctrl.TargetRot = -_ctrl.TargetRot.Value;
                 //else if (dot < 0.707107f)
-                //    _navi.TargetRot = cameraFacing.OrthoL().Dot(_navi.TargetRot.Value) > 0 ? _navi.TargetRot.Value.OrthoR() : _navi.TargetRot.Value.OrthoL();
+                //    _ctrl.TargetRot = cameraFacing.OrthoL().Dot(_ctrl.TargetRot.Value) > 0 ? _ctrl.TargetRot.Value.OrthoR() : _ctrl.TargetRot.Value.OrthoL();
             }
             else
             {
-                _navi.TargetPos = null;
-                _navi.TargetRot = null;
+                _ctrl.NaviTargetPos = null;
+                _ctrl.NaviTargetRot = null;
             }
-            return true;
+        }
+
+        public void DrawDebug()
+        {
         }
 
         private static WPos? MoveToFlank(Actor player, Actor target, float maxRange, float safetyThreshold)

@@ -106,34 +106,38 @@ namespace BossMod
             SafeMemory.WriteBytes(_gtQueuePatch, new byte[] { 0x74 });
         }
 
-        public void Update()
+        public void UpdatePotentialTargets()
         {
+            PotentialTargets.Clear();
+            PotentialTargets.AddRange(WorldState.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsDead));
+        }
+
+        public void Update(Actor? target)
+        {
+            var player = WorldState.Party.Player();
             Type? classType = null;
-            if (_config.Enabled)
+            if (_config.Enabled && player != null)
             {
-                classType = (WorldState.Party.Player()?.Class ?? Class.None) switch
+                classType = player.Class switch
                 {
                     Class.WAR => typeof(WARActions),
-                    Class.CNJ or Class.WHM => typeof(WHMActions),
                     Class.GLA or Class.PLD => Service.ClientState.LocalPlayer?.Level < 30 ? typeof(PLDActions) : null,
-                    Class.THM or Class.BLM => Service.ClientState.LocalPlayer?.Level < 30 ? typeof(BLMActions) : null,
+                    Class.CNJ or Class.WHM => typeof(WHMActions),
                     Class.PGL or Class.MNK => typeof(MNKActions),
                     Class.LNC or Class.DRG => Service.ClientState.LocalPlayer?.Level < 30 ? typeof(DRGActions) : null,
                     Class.BRD or Class.ARC => Service.ClientState.LocalPlayer?.Level < 30 ? typeof(BRDActions) : null,
+                    Class.THM or Class.BLM => Service.ClientState.LocalPlayer?.Level < 30 ? typeof(BLMActions) : null,
                     _ => null
                 };
             }
 
-            if (_classActions?.GetType() != classType)
+            if (_classActions?.GetType() != classType || _classActions?.Player != player)
             {
-                _classActions = classType != null ? (CommonActions?)Activator.CreateInstance(classType, this) : null;
+                _classActions = classType != null ? (CommonActions?)Activator.CreateInstance(classType, this, player) : null;
             }
 
-            PotentialTargets.Clear();
             if (_classActions != null)
             {
-                PotentialTargets.AddRange(WorldState.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsDead));
-
                 if (_firstPendingJustCompleted)
                 {
                     _classActions.CastSucceeded(_pendingActions[0].Action, _pendingActions[0].TargetID);
@@ -141,7 +145,7 @@ namespace BossMod
 
                 if (_pendingActions.Count == 0)
                 {
-                    _classActions.Update();
+                    _classActions.Update(target);
                 }
             }
 

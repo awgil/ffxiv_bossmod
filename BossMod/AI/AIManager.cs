@@ -3,7 +3,6 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using ImGuiNET;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.AI
@@ -11,20 +10,19 @@ namespace BossMod.AI
     class AIManager : IDisposable
     {
         private WorldState _ws;
-        private AIConfig _config;
-        private WindowManager.Window? _ui;
-        private List<Behaviour> _behStack = new();
-        private int _masterSlot = PartyState.PlayerSlot; // non-zero means corresponding player is master
-        private Navigation _navi;
-        private UseAction _useAction = new();
         private Autorotation _autorot;
+        private AIController _controller;
+        private AIConfig _config;
+        private int _masterSlot = PartyState.PlayerSlot; // non-zero means corresponding player is master
+        private AIBehaviour? _beh;
+        private WindowManager.Window? _ui;
 
         public AIManager(WorldState ws, InputOverride inputOverride, Autorotation autorot)
         {
             _ws = ws;
-            _config = Service.Config.Get<AIConfig>();
-            _navi = new(inputOverride);
             _autorot = autorot;
+            _controller = new(inputOverride, autorot);
+            _config = Service.Config.Get<AIConfig>();
             Service.ChatGui.ChatMessage += OnChatMessage;
         }
 
@@ -34,31 +32,45 @@ namespace BossMod.AI
             Service.ChatGui.ChatMessage -= OnChatMessage;
         }
 
-        public void Update()
+        // called before autorotation update, should return effective target (player's normal target, unless overridden)
+        public Actor? UpdateBeforeRotation()
         {
             if (_ws.Party.ContentIDs[_masterSlot] == 0)
-                _masterSlot = PartyState.PlayerSlot;
-
-            _autorot.DisableReplacement = _config.Enabled && _behStack.Count > 0;
-            if (_config.Enabled)
-            {
-                var master = _ws.Party[_masterSlot];
-                if (master != null && _behStack.Count > 0)
-                {
-                    if (!_behStack.Last().Execute(master))
-                    {
-                        _behStack.RemoveAt(_behStack.Count - 1);
-                    }
-                }
-
-                _navi.Update();
-            }
-            else if (_behStack.Count > 0)
-            {
                 SwitchToIdle();
+
+            if (!_config.Enabled && _beh != null)
+                SwitchToIdle();
+
+            if (_beh != null)
+            {
+                var player = _ws.Party.Player();
+                var master = _ws.Party[_masterSlot];
+                if (player != null && master != null)
+                {
+                    var aiTarget = _beh.UpdateTargeting(player, master);
+                    if (aiTarget != null)
+                        return aiTarget;
+                }
             }
 
-            bool showUI = _config.Enabled && Service.ClientState.LocalPlayer != null;
+            return _ws.Actors.Find(_ws.Party.Player()?.TargetID ?? 0);
+        }
+
+        public void UpdateAfterRotation(Actor? primaryTarget)
+        {
+            var player = _ws.Party.Player();
+            var master = _ws.Party[_masterSlot];
+            if (_beh != null && player != null && master != null)
+            {
+                _beh.Execute(player, master, primaryTarget);
+            }
+            else
+            {
+                _controller.Clear();
+            }
+            _controller.Update(player);
+
+            bool showUI = _config.Enabled && player != null;
             if (showUI && _ui == null)
             {
                 _ui = WindowManager.CreateWindow("AI", DrawOverlay, () => { }, () => true);
@@ -75,8 +87,9 @@ namespace BossMod.AI
 
         private void DrawOverlay()
         {
-            ImGui.TextUnformatted($"AI stack size: {_behStack.Count}, master={_ws.Party[_masterSlot]?.Name}");
-            ImGui.TextUnformatted($"Current behaviour: {_behStack.LastOrDefault()}");
+            ImGui.TextUnformatted($"AI: {(_beh != null ? "on" : "off")}, master={_ws.Party[_masterSlot]?.Name}");
+            ImGui.TextUnformatted($"Navi={_controller.NaviTargetPos}, action={_controller.PlannedAction}");
+            _beh?.DrawDebug();
             if (ImGui.Button("Reset"))
                 SwitchToIdle();
             ImGui.SameLine();
@@ -90,17 +103,16 @@ namespace BossMod.AI
 
         private void SwitchToIdle()
         {
-            _behStack.Clear();
+            _beh = null;
             _masterSlot = PartyState.PlayerSlot;
-            _navi.TargetPos = null;
-            _navi.TargetRot = null;
+            _controller.Clear();
         }
 
         private void SwitchToFollow(int masterSlot)
         {
             SwitchToIdle();
             _masterSlot = masterSlot;
-            _behStack.Add(new BehaviourFollow(_ws, _navi, _useAction, _autorot));
+            _beh = new AIBehaviour(_ws, _controller, _autorot);
         }
 
         private int FindPartyMemberSlotFromSender(SeString sender)

@@ -109,8 +109,12 @@ namespace BossMod
             Camera.Instance?.Update();
             _ws.Update(_prevUpdateTime);
             _bossmod.Update();
-            _autorotation.Update();
-            _ai.Update();
+
+            // TODO: ai and autorotation are currently somewhat tightly coupled, unfortunately
+            _autorotation.UpdatePotentialTargets();
+            var target = _ai.UpdateBeforeRotation();
+            _autorotation.Update(target);
+            _ai.UpdateAfterRotation(target);
 
             WindowManager.DrawAll();
 

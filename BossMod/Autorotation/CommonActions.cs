@@ -12,7 +12,7 @@ namespace BossMod
         public struct AIResult
         {
             public ActionID Action;
-            public Actor Target;
+            public Actor? Target;
             //public WPos? TargetPos; // for ground-targeted
             //public WPos PositionHint; // position where player should aim to be
             public Positional Positional;
@@ -70,13 +70,15 @@ namespace BossMod
         }
 
         public ActionID BaseAbility { get; init; } // GCD ability acquired at level 1, that is used as a base for single target rotations
+        public Actor Player { get; init; }
         protected Autorotation Autorot;
         private SmartQueue _sq = new();
         private unsafe FFXIVClientStructs.FFXIV.Client.Game.ActionManager* _actionManager = null;
 
-        protected unsafe CommonActions(Autorotation autorot, ActionID baseAbility)
+        protected unsafe CommonActions(Autorotation autorot, Actor player, ActionID baseAbility)
         {
             BaseAbility = baseAbility;
+            Player = player;
             Autorot = autorot;
             _actionManager = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
         }
@@ -147,7 +149,7 @@ namespace BossMod
             OnCastSucceeded(actionID, targetID);
         }
 
-        public void Update()
+        public void Update(Actor? target)
         {
             // cooldown planning
             var cooldownPlan = Autorot.Bossmods.ActiveModule?.PlanExecution;
@@ -169,12 +171,8 @@ namespace BossMod
                 }
             }
 
-            var player = Autorot.WorldState.Party.Player();
-            if (player != null)
-            {
-                var state = OnUpdate(player);
-                _sq.Active = state.GCD > 0 || state.AnimationLock > 0;
-            }
+            var state = OnUpdate(target);
+            _sq.Active = state.GCD > 0 || state.AnimationLock > 0;
         }
 
         public (ActionID, ulong) ReplaceActionAndTarget(ActionID actionID, ulong targetID)
@@ -196,13 +194,13 @@ namespace BossMod
         }
 
         abstract protected void OnCastSucceeded(ActionID actionID, ulong targetID);
-        abstract protected CommonRotation.State OnUpdate(Actor player);
+        abstract protected CommonRotation.State OnUpdate(Actor? target);
         abstract protected (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets);
         abstract public AIResult CalculateBestAction(Actor player, Actor? primaryTarget);
         abstract public void DrawOverlay();
 
         // fill common state properties
-        protected void FillCommonState(CommonRotation.State s, Actor player, ActionID potion)
+        protected void FillCommonState(CommonRotation.State s, Actor? target, ActionID potion)
         {
             var pc = Service.ClientState.LocalPlayer;
             s.Level = pc?.Level ?? 0;
@@ -214,7 +212,7 @@ namespace BossMod
             s.ComboTimeLeft = Autorot.ComboTimeLeft;
             s.ComboLastAction = Autorot.ComboLastMove;
 
-            foreach (var status in player.Statuses.Where(s => IsDamageBuff(s.ID)))
+            foreach (var status in Player.Statuses.Where(s => IsDamageBuff(s.ID)))
             {
                 s.RaidBuffsLeft = MathF.Max(s.RaidBuffsLeft, StatusDuration(status.ExpireAt));
             }
@@ -227,7 +225,7 @@ namespace BossMod
         // fill common strategy properties
         protected void FillCommonStrategy(CommonRotation.Strategy strategy, ActionID potion)
         {
-            strategy.Prepull = !Autorot.WorldState.Party.Player()?.InCombat ?? false;
+            strategy.Prepull = !Player.InCombat;
             strategy.FightEndIn = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextDowntime(Autorot.Bossmods.ActiveModule?.StateMachine) ?? 0;
             strategy.RaidBuffsIn = Autorot.Bossmods.ActiveModule?.PlanConfig != null ? Autorot.Bossmods.RaidCooldowns.NextDamageBuffIn(Autorot.WorldState.CurrentTime) : 10000; // assumption: if there is no planning support for encounter (meaning it's something trivial, like outdoor boss), don't expect any cooldowns
             strategy.PositionLockIn = Autorot.Config.EnableMovement ? (Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextPositioning(Autorot.Bossmods.ActiveModule?.StateMachine) ?? 10000) : 0;
@@ -283,7 +281,7 @@ namespace BossMod
 
             if (allow)
             {
-                target = Autorot.WorldState.Party.WithoutSlot().Exclude(Autorot.WorldState.Party.Player()).FirstOrDefault(a => a.Role == Role.Tank);
+                target = Autorot.WorldState.Party.WithoutSlot().Exclude(Player).FirstOrDefault(a => a.Role == Role.Tank);
                 if (target != null)
                     return target;
             }

@@ -157,7 +157,7 @@ namespace BossMod
                     return AID.VenomousBite;
 
                 // 2. straight shot if possible
-                if (state.StraightShotLeft >= state.GCD)
+                if (state.StraightShotLeft > state.GCD)
                     return AID.StraightShot;
 
                 // 3. heavy shot

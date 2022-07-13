@@ -15,12 +15,11 @@ namespace BossMod
         private ActionID _nextBestSTAction = ActionID.MakeSpell(DRGRotation.AID.TrueThrust);
         private ActionID _nextBestAOEAction = ActionID.MakeSpell(DRGRotation.AID.DoomSpike);
 
-        public DRGActions(Autorotation autorot)
-            : base(autorot, ActionID.MakeSpell(DRGRotation.AID.TrueThrust))
+        public DRGActions(Autorotation autorot, Actor player)
+            : base(autorot, player, ActionID.MakeSpell(DRGRotation.AID.TrueThrust))
         {
             _config = Service.Config.Get<DRGConfig>();
-            var player = autorot.WorldState.Party.Player();
-            _state = player != null ? BuildState(player) : new();
+            _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
             _strategy = new();
 
             SmartQueueRegisterSpell(DRGRotation.AID.ArmsLength);
@@ -36,9 +35,9 @@ namespace BossMod
             Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate(Actor player)
+        protected override CommonRotation.State OnUpdate(Actor? target)
         {
-            var currState = BuildState(player);
+            var currState = BuildState(target);
             LogStateChange(_state, currState);
             _state = currState;
 
@@ -46,7 +45,7 @@ namespace BossMod
 
             // cooldown execution
             _strategy.ExecuteArmsLength = SmartQueueActiveSpell(DRGRotation.AID.ArmsLength);
-            _strategy.ExecuteSecondWind = SmartQueueActiveSpell(DRGRotation.AID.SecondWind) && player.HP.Cur < player.HP.Max;
+            _strategy.ExecuteSecondWind = SmartQueueActiveSpell(DRGRotation.AID.SecondWind) && Player.HP.Cur < Player.HP.Max;
             _strategy.ExecuteBloodbath = SmartQueueActiveSpell(DRGRotation.AID.Bloodbath);
             _strategy.ExecuteLegSweep = SmartQueueActiveSpell(DRGRotation.AID.LegSweep);
 
@@ -81,7 +80,7 @@ namespace BossMod
 
         public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget)
         {
-            if (primaryTarget == null)
+            if (primaryTarget?.Type != ActorType.Enemy)
                 return new();
 
             // TODO: aoe...
@@ -99,10 +98,10 @@ namespace BossMod
             ImGui.TextUnformatted($"GCD={_state.GCD:f3}, AnimLock={_state.AnimationLock:f3}+{_state.AnimationLockDelay:f3}");
         }
 
-        private DRGRotation.State BuildState(Actor player)
+        private DRGRotation.State BuildState(Actor? target)
         {
             DRGRotation.State s = new();
-            FillCommonState(s, player, DRGRotation.IDStatPotion);
+            FillCommonState(s, target, DRGRotation.IDStatPotion);
 
             //s.Chakra = Service.JobGauges.Get<DRGGauge>().Chakra;
 
@@ -138,7 +137,7 @@ namespace BossMod
         private void LogStateChange(DRGRotation.State prev, DRGRotation.State curr)
         {
             // do nothing if not in combat
-            if (!(Autorot.WorldState.Party.Player()?.InCombat ?? false))
+            if (!Player.InCombat)
                 return;
 
             // detect expired buffs

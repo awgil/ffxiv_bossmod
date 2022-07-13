@@ -19,7 +19,7 @@ namespace BossMod
             ImGui.TableSetupColumn("Actor");
             ImGui.TableSetupColumn("Kind/Subkind");
             ImGui.TableSetupColumn("Class");
-            ImGui.TableSetupColumn("OwnerID");
+            ImGui.TableSetupColumn("OwnerID/LocalID");
             ImGui.TableSetupColumn("HP");
             ImGui.TableSetupColumn("Flags");
             ImGui.TableSetupColumn("Position");
@@ -46,7 +46,7 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectString(obj));
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectKindString(obj));
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(character != null ? $"{character.ClassJob.Id} ({(Class)character.ClassJob.Id})" : "---");
-                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{obj.OwnerId:X}");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{obj.OwnerId:X} / {Utils.ReadField<uint>(internalObj, 0x78):X}");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(character != null ? $"{character.CurrentHp}/{character.MaxHp} ({(character != null ? Utils.CharacterShieldValue(character) : 0)})" : "---");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"{character?.StatusFlags}");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.Vec3String(obj.Position));

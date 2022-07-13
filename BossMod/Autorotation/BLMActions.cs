@@ -17,12 +17,11 @@ namespace BossMod
         private DateTime _lastThunderSpeculation;
         private ulong _lastThunderTarget;
 
-        public BLMActions(Autorotation autorot)
-            : base(autorot, ActionID.MakeSpell(BLMRotation.AID.Blizzard1))
+        public BLMActions(Autorotation autorot, Actor player)
+            : base(autorot, player, ActionID.MakeSpell(BLMRotation.AID.Blizzard1))
         {
             _config = Service.Config.Get<BLMConfig>();
-            var player = autorot.WorldState.Party.Player();
-            _state = player != null ? BuildState(player) : new();
+            _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
             _strategy = new();
 
             SmartQueueRegisterSpell(BLMRotation.AID.Swiftcast);
@@ -43,9 +42,9 @@ namespace BossMod
             }
         }
 
-        protected override CommonRotation.State OnUpdate(Actor player)
+        protected override CommonRotation.State OnUpdate(Actor? target)
         {
-            var currState = BuildState(player);
+            var currState = BuildState(target);
             LogStateChange(_state, currState);
             _state = currState;
 
@@ -87,7 +86,7 @@ namespace BossMod
 
         public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget)
         {
-            if (primaryTarget == null)
+            if (primaryTarget?.Type != ActorType.Enemy)
                 return new();
 
             // TODO: proper implementation...
@@ -105,10 +104,10 @@ namespace BossMod
             ImGui.TextUnformatted($"GCD={_state.GCD:f3}, AnimLock={_state.AnimationLock:f3}+{_state.AnimationLockDelay:f3}");
         }
 
-        private BLMRotation.State BuildState(Actor player)
+        private BLMRotation.State BuildState(Actor? target)
         {
             BLMRotation.State s = new();
-            FillCommonState(s, player, BLMRotation.IDStatPotion);
+            FillCommonState(s, target, BLMRotation.IDStatPotion);
 
             var gauge = Service.JobGauges.Get<BLMGauge>();
             s.ElementalLevel = gauge.InAstralFire ? gauge.AstralFireStacks : -gauge.UmbralIceStacks;
@@ -134,7 +133,6 @@ namespace BossMod
             //    }
             //}
 
-            var target = Autorot.WorldState.Actors.Find(player.TargetID);
             if (target != null)
             {
                 foreach (var status in target.Statuses)
@@ -142,13 +140,13 @@ namespace BossMod
                     switch ((BLMRotation.SID)status.ID)
                     {
                         case BLMRotation.SID.Thunder1:
-                            if (status.SourceID == player.InstanceID)
+                            if (status.SourceID == Player.InstanceID)
                                 s.TargetThunderLeft = StatusDuration(status.ExpireAt);
                             break;
                     }
                 }
             }
-            if (s.TargetThunderLeft == 0 && _lastThunderSpeculation > Autorot.WorldState.CurrentTime && _lastThunderTarget == player.TargetID)
+            if (s.TargetThunderLeft == 0 && _lastThunderSpeculation > Autorot.WorldState.CurrentTime && _lastThunderTarget == target?.InstanceID)
             {
                 s.TargetThunderLeft = 21;
             }
@@ -160,7 +158,7 @@ namespace BossMod
         private void LogStateChange(BLMRotation.State prev, BLMRotation.State curr)
         {
             // do nothing if not in combat
-            if (!(Autorot.WorldState.Party.Player()?.InCombat ?? false))
+            if (!Player.InCombat)
                 return;
 
             //if (prev.Moving != curr.Moving)

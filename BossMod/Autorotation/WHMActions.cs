@@ -14,12 +14,11 @@ namespace BossMod
         private ActionID _nextBestSTHealAction = ActionID.MakeSpell(WHMRotation.AID.Cure1);
         private ActionID _nextBestAOEHealAction = ActionID.MakeSpell(WHMRotation.AID.Medica1);
 
-        public WHMActions(Autorotation autorot)
-            : base(autorot, ActionID.MakeSpell(WHMRotation.AID.Stone1))
+        public WHMActions(Autorotation autorot, Actor player)
+            : base(autorot, player, ActionID.MakeSpell(WHMRotation.AID.Stone1))
         {
             _config = Service.Config.Get<WHMConfig>();
-            var player = autorot.WorldState.Party.Player();
-            _state = player != null ? BuildState(player) : new();
+            _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
             _strategy = new();
 
             SmartQueueRegisterSpell(WHMRotation.AID.Asylum);
@@ -40,22 +39,22 @@ namespace BossMod
             Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTDamageAction}/{_nextBestAOEDamageAction}/{_nextBestSTHealAction}/{_nextBestAOEHealAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate(Actor player)
+        protected override CommonRotation.State OnUpdate(Actor? target)
         {
-            var currState = BuildState(player);
+            var currState = BuildState(target);
             LogStateChange(_state, currState);
             _state = currState;
 
             FillCommonStrategy(_strategy, WHMRotation.IDStatPotion);
-            _strategy.NumAssizeMedica1Targets = CountAOEHealTargets(15, player.Position);
-            _strategy.NumRaptureMedica2Targets = CountAOEHealTargets(20, player.Position);
+            _strategy.NumAssizeMedica1Targets = CountAOEHealTargets(15, Player.Position);
+            _strategy.NumRaptureMedica2Targets = CountAOEHealTargets(20, Player.Position);
             _strategy.NumCure3Targets = SmartCure3Target().Item2;
             _strategy.EnableAssize = AllowAssize(); // note: should be plannable...
-            _strategy.AllowReplacingHealWithMisery = _config.NeverOvercapBloodLilies && TargetIsEnemy(player);
+            _strategy.AllowReplacingHealWithMisery = _config.NeverOvercapBloodLilies && target?.Type == ActorType.Enemy;
 
             // cooldown execution
             _strategy.ExecuteAsylum = SmartQueueActiveSpell(WHMRotation.AID.Asylum);
-            _strategy.ExecuteDivineBenison = SmartQueueActiveSpell(WHMRotation.AID.DivineBenison) && AllowDivineBenison();
+            _strategy.ExecuteDivineBenison = SmartQueueActiveSpell(WHMRotation.AID.DivineBenison) && AllowDivineBenison(target);
             _strategy.ExecuteTetragrammaton = SmartQueueActiveSpell(WHMRotation.AID.Tetragrammaton);
             _strategy.ExecuteBenediction = SmartQueueActiveSpell(WHMRotation.AID.Benediction);
             _strategy.ExecuteLiturgyOfTheBell = SmartQueueActiveSpell(WHMRotation.AID.LiturgyOfTheBell);
@@ -107,8 +106,22 @@ namespace BossMod
         {
             if (primaryTarget == null)
                 return new();
-            // TODO: this kinda works until L45...
-            return new() { Action = _nextBestSTDamageAction, Target = primaryTarget };
+
+            if (primaryTarget.Type == ActorType.Enemy)
+            {
+                // TODO: this kinda works until L45...
+                return new() { Action = _nextBestSTDamageAction, Target = primaryTarget };
+            }
+            else if (primaryTarget.IsDead)
+            {
+                return new() { Action = ActionID.MakeSpell(SmartRaiseAction()), Target = primaryTarget };
+            }
+            else
+            {
+                // TODO: this aoe/st heal selection is not very good...
+                var action = _strategy.NumAssizeMedica1Targets > 2 || _strategy.NumRaptureMedica2Targets > 2 || _strategy.NumCure3Targets > 2 ? _nextBestAOEHealAction : _nextBestSTHealAction;
+                return new() { Action = action, Target = primaryTarget };
+            }
         }
 
         public override void DrawOverlay()
@@ -120,17 +133,17 @@ namespace BossMod
             ImGui.TextUnformatted($"GCD={_state.GCD:f3}, AnimLock={_state.AnimationLock:f3}+{_state.AnimationLockDelay:f3}");
         }
 
-        private WHMRotation.State BuildState(Actor player)
+        private WHMRotation.State BuildState(Actor? target)
         {
             WHMRotation.State s = new();
-            FillCommonState(s, player, WHMRotation.IDStatPotion);
+            FillCommonState(s, target, WHMRotation.IDStatPotion);
 
             var gauge = Service.JobGauges.Get<WHMGauge>();
             s.NormalLilies = gauge.Lily;
             s.BloodLilies = gauge.BloodLily;
             s.NextLilyIn = 30 - gauge.LilyTimer * 0.001f;
 
-            foreach (var status in player.Statuses)
+            foreach (var status in Player.Statuses)
             {
                 switch ((WHMRotation.SID)status.ID)
                 {
@@ -144,13 +157,12 @@ namespace BossMod
                         s.FreecureLeft = StatusDuration(status.ExpireAt);
                         break;
                     case WHMRotation.SID.Medica2:
-                        if (status.SourceID == player.InstanceID)
+                        if (status.SourceID == Player.InstanceID)
                             s.MedicaLeft = StatusDuration(status.ExpireAt);
                         break;
                 }
             }
 
-            var target = Autorot.WorldState.Actors.Find(player.TargetID);
             if (target != null)
             {
                 foreach (var status in target.Statuses)
@@ -160,7 +172,7 @@ namespace BossMod
                         case WHMRotation.SID.Aero1:
                         case WHMRotation.SID.Aero2:
                         case WHMRotation.SID.Dia:
-                            if (status.SourceID == player.InstanceID)
+                            if (status.SourceID == Player.InstanceID)
                                 s.TargetDiaLeft = StatusDuration(status.ExpireAt);
                             break;
                     }
@@ -187,7 +199,7 @@ namespace BossMod
         private void LogStateChange(WHMRotation.State prev, WHMRotation.State curr)
         {
             // do nothing if not in combat
-            if (!(Autorot.WorldState.Party.Player()?.InCombat ?? false))
+            if (!Player.InCombat)
                 return;
 
             // detect expired buffs
@@ -250,15 +262,8 @@ namespace BossMod
         // select best target for cure3, such that most people are hit
         private (ulong, int) SmartCure3Target()
         {
-            var playerPos = Autorot.WorldState.Party.Player()?.Position ?? new();
             var rsq = 30 * 30;
-            return Autorot.WorldState.Party.WithoutSlot().Select(o => (o.InstanceID, (o.Position - playerPos).LengthSq() <= rsq ? CountAOEHealTargets(6, o.Position) : -1)).MaxBy(oc => oc.Item2);
-        }
-
-        // check whether player's target is hostile
-        private bool TargetIsEnemy(Actor player)
-        {
-            return Autorot.WorldState.Actors.Find(player.TargetID)?.Type == ActorType.Enemy;
+            return Autorot.WorldState.Party.WithoutSlot().Select(o => (o.InstanceID, (o.Position - Player.Position).LengthSq() <= rsq ? CountAOEHealTargets(6, o.Position) : -1)).MaxBy(oc => oc.Item2);
         }
 
         // check whether any targetable enemies are in assize range
@@ -268,11 +273,11 @@ namespace BossMod
         }
 
         // check whether potential divine benison target doesn't already have it applied
-        private bool AllowDivineBenison()
+        private bool AllowDivineBenison(Actor? target)
         {
-            var targets = SmartQueueTargetSpell(WHMRotation.AID.DivineBenison, new());
-            var target = SmartTargetFriendly(targets, _config.MouseoverFriendly);
-            return target != null && target.FindStatus(WHMRotation.SID.DivineBenison, Autorot.WorldState.Party.Player()?.InstanceID ?? 0) == null;
+            var targets = SmartQueueTargetSpell(WHMRotation.AID.DivineBenison, new() { MainTarget = target?.InstanceID ?? 0 });
+            var adjTarget = SmartTargetFriendly(targets, _config.MouseoverFriendly);
+            return adjTarget != null && adjTarget.FindStatus(WHMRotation.SID.DivineBenison, Player.InstanceID) == null;
         }
     }
 }

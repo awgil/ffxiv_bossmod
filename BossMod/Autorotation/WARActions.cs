@@ -14,12 +14,11 @@ namespace BossMod
         private ActionID _nextBestAOEAction = ActionID.MakeSpell(WARRotation.AID.Overpower);
         private bool _justCast;
 
-        public WARActions(Autorotation autorot)
-            : base(autorot, ActionID.MakeSpell(WARRotation.AID.HeavySwing))
+        public WARActions(Autorotation autorot, Actor player)
+            : base(autorot, player, ActionID.MakeSpell(WARRotation.AID.HeavySwing))
         {
             _config = Service.Config.Get<WARConfig>();
-            var player = autorot.WorldState.Party.Player();
-            _state = player != null ? BuildState(player) : new();
+            _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
             _strategy = new()
             {
                 FirstChargeIn = 0.01f, // by default, always preserve 1 onslaught charge
@@ -126,9 +125,9 @@ namespace BossMod
             _justCast = true;
         }
 
-        protected override CommonRotation.State OnUpdate(Actor player)
+        protected override CommonRotation.State OnUpdate(Actor? target)
         {
-            var currState = BuildState(player);
+            var currState = BuildState(target);
             LogStateChange(_state, currState);
             _state = currState;
 
@@ -139,7 +138,7 @@ namespace BossMod
             _strategy.ExecuteVengeance = SmartQueueActiveSpell(WARRotation.AID.Vengeance);
             _strategy.ExecuteThrillOfBattle = SmartQueueActiveSpell(WARRotation.AID.ThrillOfBattle);
             _strategy.ExecuteHolmgang = SmartQueueActiveSpell(WARRotation.AID.Holmgang);
-            _strategy.ExecuteEquilibrium = SmartQueueActiveSpell(WARRotation.AID.Equilibrium) && player.HP.Cur < player.HP.Max;
+            _strategy.ExecuteEquilibrium = SmartQueueActiveSpell(WARRotation.AID.Equilibrium) && Player.HP.Cur < Player.HP.Max;
             _strategy.ExecuteReprisal = SmartQueueActiveSpell(WARRotation.AID.Reprisal) && AllowReprisal();
             _strategy.ExecuteShakeItOff = SmartQueueActiveSpell(WARRotation.AID.ShakeItOff); // TODO: check that raid is in range?...
             _strategy.ExecuteBloodwhetting = SmartQueueActiveSpell(WARRotation.AID.RawIntuition) || SmartQueueActiveSpell(WARRotation.AID.Bloodwhetting); // TODO: consider auto-use?..
@@ -148,7 +147,7 @@ namespace BossMod
             _strategy.ExecuteProvoke = SmartQueueActiveSpell(WARRotation.AID.Provoke); // TODO: check that not MT already
             _strategy.ExecuteShirk = SmartQueueActiveSpell(WARRotation.AID.Shirk); // TODO: check that hate is close to MT...
             _strategy.ExecuteLowBlow = SmartQueueActiveSpell(WARRotation.AID.LowBlow);
-            _strategy.ExecuteInterject = SmartQueueActiveSpell(WARRotation.AID.Interject) && AllowInterject();
+            _strategy.ExecuteInterject = SmartQueueActiveSpell(WARRotation.AID.Interject) && AllowInterject(target);
 
             var nextBestST = _config.FullRotation ? WARRotation.GetNextBestAction(_state, _strategy, false) : ActionID.MakeSpell(WARRotation.AID.HeavySwing);
             var nextBestAOE = _config.FullRotation ? WARRotation.GetNextBestAction(_state, _strategy, true) : ActionID.MakeSpell(WARRotation.AID.Overpower);
@@ -187,7 +186,7 @@ namespace BossMod
             ulong targetID = actionID.Type == ActionType.Spell ? (WARRotation.AID)actionID.ID switch
             {
                 WARRotation.AID.NascentFlash or WARRotation.AID.Shirk => SmartTargetCoTank(actionID, targets, _config.SmartNascentFlashShirkTarget)?.InstanceID ?? targets.MainTarget,
-                WARRotation.AID.Holmgang => _config.HolmgangSelf ? Autorot.WorldState.Party.Player()?.InstanceID ?? targets.MainTarget : targets.MainTarget,
+                WARRotation.AID.Holmgang => _config.HolmgangSelf ? Player.InstanceID : targets.MainTarget,
                 _ => targets.MainTarget
             } : targets.MainTarget;
             return (actionID, targetID);
@@ -195,7 +194,7 @@ namespace BossMod
 
         public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget)
         {
-            if (primaryTarget == null)
+            if (primaryTarget?.Type != ActorType.Enemy)
                 return new();
             // TODO: proper implementation...
             return new() { Action = _nextBestSTAction, Target = primaryTarget };
@@ -210,14 +209,14 @@ namespace BossMod
             ImGui.TextUnformatted($"GCD={_state.GCD:f3}, AnimLock={_state.AnimationLock:f3}+{_state.AnimationLockDelay:f3}");
         }
 
-        private WARRotation.State BuildState(Actor player)
+        private WARRotation.State BuildState(Actor? target)
         {
             WARRotation.State s = new();
-            FillCommonState(s, player, WARRotation.IDStatPotion);
+            FillCommonState(s, target, WARRotation.IDStatPotion);
 
             s.Gauge = Service.JobGauges.Get<WARGauge>().BeastGauge;
 
-            foreach (var status in player.Statuses)
+            foreach (var status in Player.Statuses)
             {
                 switch ((WARRotation.SID)status.ID)
                 {
@@ -261,7 +260,7 @@ namespace BossMod
         private void LogStateChange(WARRotation.State prev, WARRotation.State curr)
         {
             // do nothing if not in combat
-            if (!(Autorot.WorldState.Party.Player()?.InCombat ?? false))
+            if (!Player.InCombat)
                 return;
 
             // detect expired buffs
@@ -283,9 +282,9 @@ namespace BossMod
             return Autorot.PotentialTargetsInRangeFromPlayer(5).Any();
         }
 
-        private bool AllowInterject()
+        private bool AllowInterject(Actor? target)
         {
-            return Autorot.WorldState.Actors.Find(Autorot.WorldState.Party.Player()?.TargetID ?? 0)?.CastInfo?.Interruptible ?? false;
+            return target?.CastInfo?.Interruptible ?? false;
         }
     }
 }
