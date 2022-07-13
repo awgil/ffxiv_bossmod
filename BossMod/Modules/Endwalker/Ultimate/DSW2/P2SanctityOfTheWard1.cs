@@ -246,10 +246,11 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                         _groupEast.Raw ^= 0xff;
                     }
 
+                    var effRoles = Service.Config.Get<PartyRolesConfig>().EffectiveRolePerSlot(module.Raid);
                     if (_config.P2SanctitySwapRole == Role.None)
                     {
-                        AssignmentSwapWithRolePartner(module, 0, _severStartDir.Rad < 0);
-                        AssignmentSwapWithRolePartner(module, 1, _severStartDir.Rad > 0);
+                        AssignmentSwapWithRolePartner(module, effRoles, 0, _severStartDir.Rad < 0);
+                        AssignmentSwapWithRolePartner(module, effRoles, 1, _severStartDir.Rad > 0);
                     }
                     else
                     {
@@ -258,7 +259,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                         if (_groupEast.NumSetBits() != 4)
                         {
                             // to balance, unmarked player of designated role should swap
-                            var (swapSlot, swapper) = module.Raid.WithSlot(true).FirstOrDefault(sa => sa.Item1 != _severTargetSlots[0] && sa.Item1 != _severTargetSlots[1] && sa.Item2.Role == _config.P2SanctitySwapRole);
+                            var (swapSlot, swapper) = module.Raid.WithSlot(true).FirstOrDefault(sa => sa.Item1 != _severTargetSlots[0] && sa.Item1 != _severTargetSlots[1] && effRoles[sa.Item1] == _config.P2SanctitySwapRole);
                             if (swapper != null)
                             {
                                 _groupEast.Toggle(swapSlot);
@@ -299,13 +300,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             _groupEast.Toggle(slot);
         }
 
-        private void AssignmentSwapWithRolePartner(BossModule module, int order, bool shouldGoEast)
+        private void AssignmentSwapWithRolePartner(BossModule module, Role[] effRoles, int order, bool shouldGoEast)
         {
             int slot = _severTargetSlots[order];
             if (shouldGoEast == _groupEast[slot])
                 return; // target is already assigned to correct position, no need to swap
-            var role = module.Raid[slot]?.Role ?? Role.None;
-            var (partnerSlot, partner) = module.Raid.WithSlot(true).Exclude(slot).FirstOrDefault(sa => sa.Item2.Role == role);
+            var role = effRoles[slot];
+            var (partnerSlot, partner) = module.Raid.WithSlot(true).Exclude(slot).FirstOrDefault(sa => effRoles[sa.Item1] == role);
             if (partner == null)
                 return;
 

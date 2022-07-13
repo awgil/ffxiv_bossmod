@@ -49,6 +49,24 @@ namespace BossMod
             return res;
         }
 
+        // return array of effective roles per party slot
+        public BossMod.Role[] EffectiveRolePerSlot(PartyState party)
+        {
+            var res = new BossMod.Role[PartyState.MaxPartySize];
+            for (int i = 0; i < PartyState.MaxPartySize; ++i)
+            {
+                res[i] = this[party.ContentIDs[i]] switch
+                {
+                    Role.MT or Role.OT => BossMod.Role.Tank,
+                    Role.H1 or Role.H2 => BossMod.Role.Healer,
+                    Role.M1 or Role.M2 => BossMod.Role.Melee,
+                    Role.R1 or Role.R2 => BossMod.Role.Ranged,
+                    _ => party[i]?.Role ?? BossMod.Role.None
+                };
+            }
+            return res;
+        }
+
         public override void DrawCustom(UITree tree, WorldState ws)
         {
             if (ImGui.BeginTable("tab2", 10, ImGuiTableFlags.SizingFixedFit))
