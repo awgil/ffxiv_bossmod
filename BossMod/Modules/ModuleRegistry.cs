@@ -12,7 +12,7 @@ namespace BossMod
             public Type ModuleType;
             public Type StatesType;
             public Type? ConfigType;
-            public Type ObjectIDType;
+            public Type? ObjectIDType;
             public Type? ActionIDType;
             public Type? StatusIDType;
             public Type? TetherIDType;
@@ -44,10 +44,10 @@ namespace BossMod
                     configType = null;
                 }
 
-                if (oidType == null || !oidType.IsEnum)
+                if (oidType != null && !oidType.IsEnum)
                 {
                     Service.Log($"[ModuleRegistry] Module {module.Name} has incorrect associated object ID type: it should be an enum");
-                    return null;
+                    oidType = null;
                 }
 
                 if (aidType != null && !aidType.IsEnum)
@@ -75,7 +75,7 @@ namespace BossMod
                 }
 
                 uint primaryOID = infoAttr?.PrimaryActorOID ?? 0;
-                if (primaryOID == 0)
+                if (primaryOID == 0 && oidType != null)
                 {
                     object? oid;
                     if (Enum.TryParse(oidType, "Boss", out oid))
@@ -87,14 +87,13 @@ namespace BossMod
                     return null;
                 }
 
-                return new Info(module, statesType, oidType) { ConfigType = configType, ActionIDType = aidType, StatusIDType = sidType, TetherIDType = tidType, IconIDType = iidType, PrimaryActorOID = primaryOID };
+                return new Info(module, statesType) { ConfigType = configType, ObjectIDType = oidType, ActionIDType = aidType, StatusIDType = sidType, TetherIDType = tidType, IconIDType = iidType, PrimaryActorOID = primaryOID };
             }
 
-            private Info(Type moduleType, Type statesType, Type objectIDType)
+            private Info(Type moduleType, Type statesType)
             {
                 ModuleType = moduleType;
                 StatesType = statesType;
-                ObjectIDType = objectIDType;
             }
         }
 

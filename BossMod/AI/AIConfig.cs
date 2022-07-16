@@ -5,5 +5,8 @@
     {
         [PropertyDisplay("Enable AI")]
         public bool Enabled = false;
+
+        [PropertyDisplay("Broadcast keypresses to other windows")]
+        public bool BroadcastToSlaves = false;
     }
 }

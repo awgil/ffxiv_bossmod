@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.Text;
+﻿using Dalamud.Game.ClientState.Keys;
+using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using ImGuiNET;
@@ -13,6 +14,7 @@ namespace BossMod.AI
         private Autorotation _autorot;
         private AIController _controller;
         private AIConfig _config;
+        private Broadcast _broadcast = new();
         private int _masterSlot = PartyState.PlayerSlot; // non-zero means corresponding player is master
         private AIBehaviour? _beh;
         private WindowManager.Window? _ui;
@@ -83,6 +85,9 @@ namespace BossMod.AI
                 WindowManager.CloseWindow(_ui);
                 _ui = null;
             }
+
+            if (_config.BroadcastToSlaves)
+                _broadcast.Update();
         }
 
         private void DrawOverlay()
@@ -103,7 +108,9 @@ namespace BossMod.AI
 
         private void SwitchToIdle()
         {
+            _beh?.Dispose();
             _beh = null;
+
             _masterSlot = PartyState.PlayerSlot;
             _controller.Clear();
         }

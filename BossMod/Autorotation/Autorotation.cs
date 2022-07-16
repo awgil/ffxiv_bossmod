@@ -109,7 +109,7 @@ namespace BossMod
         public void UpdatePotentialTargets()
         {
             PotentialTargets.Clear();
-            PotentialTargets.AddRange(WorldState.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsDead));
+            PotentialTargets.AddRange(WorldState.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead && a.InCombat));
         }
 
         public void Update(Actor? target)

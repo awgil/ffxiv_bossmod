@@ -99,6 +99,12 @@ namespace BossMod.AI
             Service.TargetManager.SetTarget(Service.ObjectTable.SearchById((uint)actorID));
         }
 
+        public void SetFocusTarget(ulong actorID)
+        {
+            if (Service.TargetManager.FocusTarget?.ObjectId != actorID)
+                Service.TargetManager.SetFocusTarget(Service.ObjectTable.SearchById((uint)actorID));
+        }
+
         public unsafe void Update(Actor? player)
         {
             if (player == null || InCutscene)

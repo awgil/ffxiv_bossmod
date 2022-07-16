@@ -116,11 +116,15 @@ namespace BossMod
             {
                 return new() { Action = ActionID.MakeSpell(SmartRaiseAction()), Target = primaryTarget };
             }
-            else
+            else if (primaryTarget.InCombat)
             {
                 // TODO: this aoe/st heal selection is not very good...
                 var action = _strategy.NumAssizeMedica1Targets > 2 || _strategy.NumRaptureMedica2Targets > 2 || _strategy.NumCure3Targets > 2 ? _nextBestAOEHealAction : _nextBestSTHealAction;
                 return new() { Action = action, Target = primaryTarget };
+            }
+            else
+            {
+                return new();
             }
         }
 

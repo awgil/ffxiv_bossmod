@@ -80,7 +80,7 @@ namespace BossMod
             public float TargetVenomousLeft;
             public float TargetWindbiteLeft;
             public float RagingStrikesCD;
-            public float BloodletterCD; // 30 max, >15 if 0 charges ready, >0 if 1 charge ready, ==0 if 2 charges ready
+            public float BloodletterCD; // 45 max, >30 if 0 charges ready, >15 if 1 charge ready, >0 if 2 charges ready, ==0 if 3 charges are ready
             public float ArmsLengthCD; // 120 max, 0 if ready
             public float SecondWindCD;
             public float HeadGrazeCD;
@@ -180,7 +180,7 @@ namespace BossMod
             // TODO: this should be improved... correct for low levels
             if (state.UnlockedRagingStrikes && state.CanWeave(state.RagingStrikesCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.RagingStrikes);
-            if (state.UnlockedBloodletter && state.CanWeave(state.BloodletterCD - 15, 0.6f, windowEnd))
+            if (state.UnlockedBloodletter && state.CanWeave(state.BloodletterCD - 30, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Bloodletter);
 
             // no suitable oGCDs...

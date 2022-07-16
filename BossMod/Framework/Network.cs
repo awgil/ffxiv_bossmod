@@ -314,124 +314,6 @@ namespace BossMod
 
         private unsafe void DumpServerMessage(IntPtr dataPtr, ushort opCode, uint targetActorId)
         {
-            //int packetSize = opCode switch
-            //{
-            //    0x2BC => 0x278,
-            //    0x12F => 0x280,
-            //    0x20A => 0x3F0,
-            //    0x2FD => 0x8,
-            //    0x11D => 0x40,
-            //    0x242 => 0x8,
-            //    0x2C1 => 0x70,
-            //    0x233 => 0x18,
-            //    0x308 => 0x8,
-            //    0x366 => 0x10,
-            //    0x130 => 0x8,
-            //    0x13A => 0x10,
-            //    0x21B => 0x78,
-            //    0x30E => 0x278,
-            //    0x153 => 0x4B8,
-            //    0xE1 => 0x6F8,
-            //    0x356 => 0x938,
-            //    0x6F => 0x20,
-            //    0x2E7 => 0x18,
-            //    0x399 => 0x20,
-            //    0x28F => 0x20,
-            //    0x344 => 0x18,
-            //    0xAD => 0x88,
-            //    0x144 => 0x108,
-            //    0x3AE => 0x10,
-            //    0xE2 => 0x18,
-            //    0x35C => 0x30,
-            //    0x257 => 0x40,
-            //    0x296 => 0x18,
-            //    0x246 => 0x20,
-            //    0x8D => 0x18,
-            //    0x2CA => 0x10,
-            //    0x87 => 0x20,
-            //    0x23A => 0x18,
-            //    0x2C9 => 0x10,
-            //    0x1CA => 0x18,
-            //    0x357 => 0x168,
-            //    0x2F8 => 0x8,
-            //    0x287 => 0xDD8,
-            //    0x3DD => 0x348,
-            //    0x36B => 0x418,
-            //    0x94 => 0x8,
-            //    0x31D => 0x180,
-            //    0x31E => 0x180,
-            //    0x395 => 0x180,
-            //    0x11A => 0x2E8,
-            //    0xC6 => 0x40,
-            //    0x391 => 0x80,
-            //    0x83 => 0xA0,
-            //    0x1CF => 0x70,
-            //    0x75 => 0x68,
-            //    0x15D => 0x10,
-            //    0x1BE => 0x10,
-            //    0x27D => 0x8,
-            //    0x88 => 0x18,
-            //    0x89 => 0x48,
-            //    0x2A2 => 0x108,
-            //    0x11C => 0x10,
-            //    0x2E6 => 0x40,
-            //    0x343 => 0x8,
-            //    0x19D => 0x20,
-            //    0x3D0 => 0x128,
-            //    0xD9 => 0xC30,
-            //    0x3C5 => 0x50,
-            //    0x282 => 0x20,
-            //    0x228 => 0xC0,
-            //    0x24B => 0x10,
-            //    0x1CB => 0x10,
-            //    0x2E2 => 0x10,
-            //    0x1E8 => 0x40,
-            //    0x314 => 0x30,
-            //    0x19B => 0x28,
-            //    0x1E7 => 0x60,
-            //    0xF3 => 0x28,
-            //    0x131 => 0xA0,
-            //    0x17B => 0x40,
-            //    0x17F => 0x418,
-            //    0x256 => 0x120,
-            //    0x2DB => 0x30,
-            //    0x337 => 0x220,
-            //    0x369 => 0x60,
-            //    0x35D => 0x30,
-            //    0xA0 => 0x40,
-            //    0x93 => 0x28,
-            //    0x3E0 => 0x30,
-            //    0x31A => 0x48,
-            //    0x237 => 0x38,
-            //    0x3C6 => 0x20,
-            //    0x368 => 0x90,
-            //    0x279 => 0x50,
-            //    0x200 => 0x30,
-            //    0x191 => 0x18,
-            //    0x30B => 0x60,
-            //    0x2AD => 0x168,
-            //    0x136 => 0x2C8,
-            //    0xAA => 0x588,
-            //    0x1A8 => 0x408,
-            //    0xBC => 0x108,
-            //    0xA5 => 0x208,
-            //    0x2F2 => 0x88,
-            //    0x3A3 => 0x18,
-            //    0x2F5 => 0x48,
-            //    _ => 0,
-            //};
-            //var sb = new StringBuilder($"{opCode:X4}|{targetActorId:X8}|");
-            //var payload = (ulong*)dataPtr;
-            //if (packetSize == 0)
-            //{
-            //    sb.Append($"{*payload:X16}...");
-            //}
-            //else
-            //{
-            //    for (int i = 0; i < packetSize / 8; ++i)
-            //        sb.Append($"{payload[i]:X16}");
-            //}
-            //_logger.Log(DateTime.Now, packetSize == 0 ? "SRVU" : "SRV ", sb.ToString());
             var header = (Protocol.Server_IPCHeader*)(dataPtr - 0x10);
             Service.Log($"[Network] Server message {(Protocol.Opcode)opCode} -> {Utils.ObjectString(targetActorId)} (seq={header->Epoch}): {*(ulong*)dataPtr:X16}...");
             switch ((Protocol.Opcode)opCode)
@@ -469,7 +351,7 @@ namespace BossMod
                 case Protocol.Opcode.ActorCast:
                     {
                         var p = (Protocol.Server_ActorCast*)dataPtr;
-                        Service.Log($"[Network] - AID={new ActionID(p->SkillType, p->ActionID)}, target={Utils.ObjectString(p->TargetID)}, time={p->CastTime:f2}, rot={p->Rotation:f2}, x={p->PosX}, y={p->PosY}, z={p->PosZ}, u={p->Unknown:X2}, u1={new ActionID(ActionType.Spell, p->Unknown1)}, u2={Utils.ObjectString(p->Unknown2)}, u3={p->Unknown3:X4}");
+                        Service.Log($"[Network] - AID={new ActionID(p->SkillType, p->ActionID)}, target={Utils.ObjectString(p->TargetID)}, time={p->CastTime:f2}, rot={p->Rotation:f3}, x={p->PosX}, y={p->PosY}, z={p->PosZ}, u={p->Unknown:X2}, u1={new ActionID(ActionType.Spell, p->Unknown1)}, u2={Utils.ObjectString(p->Unknown2)}, u3={p->Unknown3:X4}");
                         break;
                     }
                 case Protocol.Opcode.ActorControl:

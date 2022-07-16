@@ -12,27 +12,85 @@ namespace BossMod
         private const float _scale = 1000;
         private const float _invScale = 1 / _scale;
 
-        private Clipper _clipper = new(Clipper.ioStrictlySimple);
+        private Clipper _clipper;
         private List<IntPoint> _clipPoly = new();
 
         public IEnumerable<WPos> ClipPoly
         {
-            get => ConvertPoints(_clipPoly);
-            set => _clipPoly = ConvertPoints(value).ToList();
+            get => _clipPoly.Select(ConvertPoint);
+            set => _clipPoly = value.Select(ConvertPoint).ToList();
+        }
+
+        public Clip2D(bool strictlySimple = true)
+        {
+            _clipper = new(strictlySimple ? Clipper.ioStrictlySimple : 0);
         }
 
         public List<(WPos, WPos, WPos)> ClipAndTriangulate(IEnumerable<WPos> pts)
         {
             _clipper.Clear();
             _clipper.AddPath(_clipPoly, PolyType.ptClip, true);
-            _clipper.AddPath(ConvertPoints(pts).ToList(), PolyType.ptSubject, true);
+            _clipper.AddPath(pts.Select(ConvertPoint).ToList(), PolyType.ptSubject, true);
 
             PolyTree solution = new();
             _clipper.Execute(ClipType.ctIntersection, solution, PolyFillType.pftEvenOdd);
+            return Triangulate(solution);
+        }
 
+        public PolyTree Union(IEnumerable<IEnumerable<WPos>> polys)
+        {
+            PolyTree solution = new();
+            foreach (var pts in polys)
+            {
+                _clipper.Clear();
+                _clipper.AddPaths(Clipper.PolyTreeToPaths(solution), PolyType.ptClip, true);
+                _clipper.AddPath(pts.Select(ConvertPoint).ToList(), PolyType.ptSubject, true);
+                _clipper.Execute(ClipType.ctUnion, solution, PolyFillType.pftEvenOdd);
+            }
+            return solution;
+        }
+
+        public PolyTree Difference(IEnumerable<WPos> poly, PolyTree remove)
+        {
+            _clipper.Clear();
+            _clipper.AddPaths(Clipper.PolyTreeToPaths(remove), PolyType.ptClip, true);
+            _clipper.AddPath(poly.Select(ConvertPoint).ToList(), PolyType.ptSubject, true);
+            PolyTree solution = new();
+            _clipper.Execute(ClipType.ctDifference, solution, PolyFillType.pftEvenOdd);
+            return solution;
+        }
+
+        public static List<(WPos, WPos, WPos)> Triangulate(PolyTree solution)
+        {
             List<(WPos, WPos, WPos)> triangulation = new();
             Triangulate(triangulation, solution);
             return triangulation;
+        }
+
+        // returns root node (which is 'hole') if point is outside any 'root' polys
+        public static PolyNode FindNodeContainingPoint(PolyTree solution, WPos point)
+        {
+            var pt = ConvertPoint(point);
+            PolyNode node = solution;
+            while (true)
+            {
+                var child = node.Childs.Find(o => !o.IsOpen && o.Contour.Count > 0 && Clipper.PointInPolygon(pt, o.Contour) != 0);
+                if (child == null)
+                    return node;
+                node = child;
+            }
+        }
+
+        public static IEnumerable<(WPos, WPos)> Contour(PolyNode n)
+        {
+            if (n.Contour.Count == 0)
+                yield break;
+            var prev = ConvertPoint(n.Contour.Last());
+            foreach (var next in n.Contour.Select(ConvertPoint))
+            {
+                yield return (prev, next);
+                prev = next;
+            }
         }
 
         private static void Triangulate(List<(WPos, WPos, WPos)> result, PolyNode node)
@@ -57,7 +115,7 @@ namespace BossMod
 
         private static void AddClipperPoly(List<double> output, List<IntPoint> pts)
         {
-            foreach (var p in ConvertPoints(pts))
+            foreach (var p in pts.Select(ConvertPoint))
             {
                 output.Add(p.X);
                 output.Add(p.Z);
@@ -71,7 +129,7 @@ namespace BossMod
             return new(x, z);
         }
 
-        private static IEnumerable<IntPoint> ConvertPoints(IEnumerable<WPos> pts) => pts.Select(v => new IntPoint(v.X * _scale, v.Z * _scale));
-        private static IEnumerable<WPos> ConvertPoints(IEnumerable<IntPoint> pts) => pts.Select(v => new WPos(v.X * _invScale, v.Y * _invScale));
+        private static IntPoint ConvertPoint(WPos pt) => new(pt.X * _scale, pt.Z * _scale);
+        private static WPos ConvertPoint(IntPoint pt) => new(pt.X * _invScale, pt.Y * _invScale);
     }
 }

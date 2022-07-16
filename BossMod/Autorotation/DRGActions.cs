@@ -105,28 +105,17 @@ namespace BossMod
 
             //s.Chakra = Service.JobGauges.Get<DRGGauge>().Chakra;
 
-            //foreach (var status in player.Statuses)
-            //{
-            //    switch ((DRGRotation.SID)status.ID)
-            //    {
-            //        case DRGRotation.SID.OpoOpoForm:
-            //            s.Form = DRGRotation.Form.OpoOpo;
-            //            s.FormLeft = StatusDuration(status.ExpireAt);
-            //            break;
-            //        case DRGRotation.SID.RaptorForm:
-            //            s.Form = DRGRotation.Form.Raptor;
-            //            s.FormLeft = StatusDuration(status.ExpireAt);
-            //            break;
-            //        case DRGRotation.SID.CoeurlForm:
-            //            s.Form = DRGRotation.Form.Coeurl;
-            //            s.FormLeft = StatusDuration(status.ExpireAt);
-            //            break;
-            //        case DRGRotation.SID.DisciplinedFist:
-            //            s.DisciplinedFistLeft = StatusDuration(status.ExpireAt);
-            //            break;
-            //    }
-            //}
+            foreach (var status in Player.Statuses)
+            {
+                switch ((DRGRotation.SID)status.ID)
+                {
+                    case DRGRotation.SID.PowerSurge:
+                        s.PowerSurgeLeft = StatusDuration(status.ExpireAt);
+                        break;
+                }
+            }
 
+            s.LifeSurgeCD = SpellCooldown(DRGRotation.AID.LifeSurge);
             s.ArmsLengthCD = SpellCooldown(DRGRotation.AID.ArmsLength);
             s.SecondWindCD = SpellCooldown(DRGRotation.AID.SecondWind);
             s.BloodbathCD = SpellCooldown(DRGRotation.AID.Bloodbath);

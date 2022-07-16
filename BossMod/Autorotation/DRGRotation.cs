@@ -59,12 +59,15 @@ namespace BossMod
 
         public enum SID : uint
         {
+            PowerSurge = 2720,
             None = 0,
         }
 
         // full state needed for determining next action
         public class State : CommonRotation.State
         {
+            public float PowerSurgeLeft; // 30 max
+            public float LifeSurgeCD; // 45 max, 0 if ready
             public float ArmsLengthCD; // 120 max, 0 if ready
             public float SecondWindCD;
             public float BloodbathCD;
@@ -99,7 +102,7 @@ namespace BossMod
 
             public override string ToString()
             {
-                return $"RB={RaidBuffsLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+                return $"RB={RaidBuffsLeft:f1}, PS={PowerSurgeLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
             }
         }
 
@@ -131,8 +134,12 @@ namespace BossMod
 
         public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
         {
-            // TODO: this is correct until L18
-            return state.UnlockedVorpalThrust && state.ComboLastMove == AID.TrueThrust ? AID.VorpalThrust : AID.TrueThrust;
+            // TODO: this is correct until L26
+            return state.ComboLastMove switch
+            {
+                AID.TrueThrust => state.UnlockedDisembowel && state.PowerSurgeLeft < state.GCD + 5 ? AID.Disembowel : state.UnlockedVorpalThrust ? AID.VorpalThrust : AID.TrueThrust, // TODO: better threshold (probably depends on combo length?)
+                _ => AID.TrueThrust
+            };
         }
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float windowEnd, bool aoe)
@@ -149,8 +156,9 @@ namespace BossMod
             if (strategy.ExecuteSprint && state.CanWeave(state.SprintCD, 0.6f, windowEnd))
                 return CommonRotation.IDSprint;
 
-            //if (state.UnlockedLifeSurge && state.Chakra == 5)
-            //    return ActionID.MakeSpell(AID.SteelPeak);
+            // 2. life surge on most damaging gcd (TODO: reconsider condition, it's valid until L26...)
+            if (state.UnlockedLifeSurge && state.CanWeave(state.LifeSurgeCD, 0.6f, windowEnd) && state.ComboLastMove == AID.TrueThrust && (!state.UnlockedDisembowel || state.PowerSurgeLeft >= state.GCD + 5))
+                return ActionID.MakeSpell(AID.LifeSurge);
 
             // no suitable oGCDs...
             return new();

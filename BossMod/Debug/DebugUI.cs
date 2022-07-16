@@ -17,16 +17,19 @@ namespace BossMod
         private DebugAction _debugAction = new();
         private DebugHate _debugHate = new();
         private DebugInput _debugInput;
+        private DebugAI _debugAI;
 
         public DebugUI(WorldState ws, Autorotation autorot, InputOverride inputOverride)
         {
             _ws = ws;
             _autorot = autorot;
             _debugInput = new(inputOverride, autorot);
+            _debugAI = new(ws, autorot);
         }
 
         public void Dispose()
         {
+            _debugAI.Dispose();
         }
 
         public void Draw()
@@ -61,6 +64,10 @@ namespace BossMod
             if (ImGui.CollapsingHeader("Party (custom)"))
             {
                 _debugParty.DrawPartyCustom();
+            }
+            if (ImGui.CollapsingHeader("AI"))
+            {
+                _debugAI.Draw();
             }
             if (ImGui.CollapsingHeader("Graphics scene"))
             {

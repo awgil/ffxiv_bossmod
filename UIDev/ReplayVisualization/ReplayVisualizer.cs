@@ -268,7 +268,7 @@ namespace UIDev
         private void DrawEnemyTable(uint oid, ICollection<Actor> actors)
         {
             var moduleInfo = _mgr.ActiveModule != null ? ModuleRegistry.FindByOID(_mgr.ActiveModule.PrimaryActor.OID) : null;
-            var oidName = moduleInfo?.ObjectIDType.GetEnumName(oid);
+            var oidName = moduleInfo?.ObjectIDType?.GetEnumName(oid);
             if (!ImGui.CollapsingHeader($"Enemy {oid:X} {oidName ?? ""}") || actors.Count == 0)
                 return;
 
