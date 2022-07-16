@@ -49,7 +49,7 @@ namespace BossMod
                 if (type != FFXIVClientStructs.FFXIV.Client.Game.ActionType.None)
                 {
                     //ImGui.TextUnformatted($"Cost: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionCost(type, hover.ActionID, 0, 0, 0, 0)}");
-                    ImGui.TextUnformatted($"Status: {mgr->GetActionStatus(type, hover.ActionID)}");
+                    ImGui.TextUnformatted($"Status: {mgr->GetActionStatus(type, hover.ActionID, Service.ClientState.LocalPlayer?.TargetObjectId ?? 0xE0000000, 1, 1)}");
                     ImGui.TextUnformatted($"Adjusted recast: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetAdjustedRecastTime(type, hover.ActionID):f2}");
                     ImGui.TextUnformatted($"Adjusted cast: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetAdjustedCastTime(type, hover.ActionID):f2}");
                     ImGui.TextUnformatted($"Recast: {mgr->GetRecastTime(type, hover.ActionID):f2}");

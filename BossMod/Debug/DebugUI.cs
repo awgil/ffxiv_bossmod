@@ -3,6 +3,7 @@ using ImGuiNET;
 using System;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace BossMod
 {
@@ -40,6 +41,10 @@ namespace BossMod
             if (ImGui.CollapsingHeader("Full object list"))
             {
                 _debugObjects.DrawObjectTable();
+            }
+            if (ImGui.CollapsingHeader("UI object list"))
+            {
+                _debugObjects.DrawUIObjects();
             }
             if (ImGui.CollapsingHeader("Statuses"))
             {

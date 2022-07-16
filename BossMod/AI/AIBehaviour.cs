@@ -66,7 +66,7 @@ namespace BossMod.AI
         {
             var action = _autorot.ClassActions?.CalculateBestAction(player, primaryTarget) ?? new();
             _ctrl.PlannedAction = action.Action;
-            _ctrl.PlannedActionTarget = action.Target?.InstanceID ?? 0;
+            _ctrl.PlannedActionTarget = action.Target;
             if (action.Action && action.Target != null)
             {
                 // TODO: improve movement logic; currently we always attempt to move to melee range, this is good for classes that have point-blank aoes
@@ -109,7 +109,7 @@ namespace BossMod.AI
                 if (toTarget.LengthSq() > 400 && !player.InCombat)
                 {
                     _ctrl.PlannedAction = new ActionID(ActionType.Spell, 3);
-                    _ctrl.PlannedActionTarget = player.InstanceID;
+                    _ctrl.PlannedActionTarget = player;
                 }
 
                 //var cameraFacing = _ctrl.CameraFacing;

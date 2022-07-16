@@ -66,6 +66,7 @@ namespace UIDev
                 case "HP  ": ParseActorHP(payload); break;
                 case "ATG+": ParseActorTargetable(payload, true); break;
                 case "ATG-": ParseActorTargetable(payload, false); break;
+                case "ALLY": ParseActorAlly(payload); break;
                 case "DIE+": ParseActorDead(payload, true); break;
                 case "DIE-": ParseActorDead(payload, false); break;
                 case "COM+": ParseActorCombat(payload, true); break;
@@ -151,6 +152,7 @@ namespace UIDev
                 HitboxRadius = float.Parse(payload[5]),
                 HP = hp,
                 IsTargetable = bool.Parse(payload[4]),
+                IsAlly = payload.Length > 8 ? bool.Parse(payload[8]) : false,
                 OwnerID = payload.Length > 6 ? ActorID(payload[6]) : 0,
             });
         }
@@ -191,6 +193,11 @@ namespace UIDev
         private void ParseActorTargetable(string[] payload, bool targetable)
         {
             AddOp(new ActorState.OpTargetable() { InstanceID = ActorID(payload[2]), Value = targetable });
+        }
+
+        private void ParseActorAlly(string[] payload)
+        {
+            AddOp(new ActorState.OpDead() { InstanceID = ActorID(payload[2]), Value = bool.Parse(payload[3]) });
         }
 
         private void ParseActorDead(string[] payload, bool dead)

@@ -86,7 +86,7 @@ namespace BossMod
             _comboLastMove = (uint*)(comboPtr + 0x4);
 
             var useActionAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 64 B1 01");
-            _useActionHook = new(useActionAddress, new UseActionDelegate(UseActionDetour));
+            _useActionHook = Hook<UseActionDelegate>.FromAddress(useActionAddress, UseActionDetour);
             _useActionHook.Enable();
 
             _gtQueuePatch = Service.SigScanner.ScanModule("74 24 41 81 FE F5 0D 00 00");

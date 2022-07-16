@@ -98,6 +98,7 @@ namespace BossMod
                 hp.Shield = (uint)(Utils.CharacterShieldValue(character) * 0.01f * hp.Max);
             }
             var targetable = Utils.GameObjectIsTargetable(obj);
+            var friendly = Utils.GameObjectIsFriendly(obj);
             var isDead = Utils.GameObjectIsDead(obj);
             var inCombat = character?.StatusFlags.HasFlag(StatusFlags.InCombat) ?? false;
             var target = SanitizedObjectID(obj.TargetObjectId);
@@ -115,6 +116,7 @@ namespace BossMod
                     HitboxRadius = obj.HitboxRadius,
                     HP = hp,
                     IsTargetable = targetable,
+                    IsAlly = friendly,
                     OwnerID = SanitizedObjectID(obj.OwnerId)
                 });
                 act = Actors.Find(obj.ObjectId)!;
@@ -133,6 +135,8 @@ namespace BossMod
                     Execute(new ActorState.OpHP() { InstanceID = act.InstanceID, Value = hp });
                 if (act.IsTargetable != targetable)
                     Execute(new ActorState.OpTargetable() { InstanceID = act.InstanceID, Value = targetable });
+                if (act.IsAlly != friendly)
+                    Execute(new ActorState.OpAlly() { InstanceID = act.InstanceID, Value = friendly });
             }
 
             if (act.IsDead != isDead)

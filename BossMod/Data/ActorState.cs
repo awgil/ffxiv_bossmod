@@ -37,7 +37,7 @@ namespace BossMod
         {
             foreach (var act in this)
             {
-                yield return new OpCreate() { InstanceID = act.InstanceID, OID = act.OID, Name = act.Name, Type = act.Type, Class = act.Class, PosRot = act.PosRot, HitboxRadius = act.HitboxRadius, HP = act.HP, IsTargetable = act.IsTargetable, OwnerID = act.OwnerID };
+                yield return new OpCreate() { InstanceID = act.InstanceID, OID = act.OID, Name = act.Name, Type = act.Type, Class = act.Class, PosRot = act.PosRot, HitboxRadius = act.HitboxRadius, HP = act.HP, IsTargetable = act.IsTargetable, IsAlly = act.IsAlly, OwnerID = act.OwnerID };
                 if (act.IsDead)
                     yield return new OpDead() { InstanceID = act.InstanceID, Value = true };
                 if (act.InCombat)
@@ -66,16 +66,17 @@ namespace BossMod
             public float HitboxRadius;
             public ActorHP HP;
             public bool IsTargetable;
+            public bool IsAlly;
             public ulong OwnerID;
 
             protected override void ExecActor(WorldState ws, Actor actor) { }
             protected override void Exec(WorldState ws)
             {
-                var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, HP, IsTargetable, OwnerID);
+                var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, HP, IsTargetable, IsAlly, OwnerID);
                 ws.Actors.Added?.Invoke(ws, actor);
             }
 
-            public override string Str(WorldState? ws) => $"ACT+|{StrActor(ws, InstanceID)}|{Class}|{IsTargetable}|{HitboxRadius:f3}|{StrActor(ws, OwnerID)}|{StrHP(HP)}";
+            public override string Str(WorldState? ws) => $"ACT+|{StrActor(ws, InstanceID)}|{Class}|{IsTargetable}|{HitboxRadius:f3}|{StrActor(ws, OwnerID)}|{StrHP(HP)}|{IsAlly}";
         }
 
         public event EventHandler<Actor>? Removed;
@@ -196,6 +197,20 @@ namespace BossMod
             }
 
             public override string Str(WorldState? ws) => $"{(Value ? "ATG+" : "ATG-")}|{StrActor(ws, InstanceID)}";
+        }
+
+        public event EventHandler<Actor>? IsAllyChanged;
+        public class OpAlly : Operation
+        {
+            public bool Value;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
+            {
+                actor.IsAlly = Value;
+                ws.Actors.IsAllyChanged?.Invoke(ws, actor);
+            }
+
+            public override string Str(WorldState? ws) => $"ALLY|{StrActor(ws, InstanceID)}|{Value}";
         }
 
         public event EventHandler<Actor>? IsDeadChanged;

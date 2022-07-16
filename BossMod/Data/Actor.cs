@@ -96,6 +96,7 @@ namespace BossMod
         public ActorHP HP;
         public bool IsDestroyed; // set to true when actor is removed from world; object might still be alive because of other references
         public bool IsTargetable;
+        public bool IsAlly;
         public bool IsDead;
         public bool InCombat;
         public ulong OwnerID; // uuid of owner, for pets and similar
@@ -108,7 +109,7 @@ namespace BossMod
         public WPos Position => new(PosRot.X, PosRot.Z);
         public Angle Rotation => PosRot.W.Radians();
 
-        public Actor(ulong instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), bool targetable = true, ulong ownerID = 0)
+        public Actor(ulong instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), bool targetable = true, bool ally = false, ulong ownerID = 0)
         {
             InstanceID = instanceID;
             OID = oid;
@@ -119,6 +120,7 @@ namespace BossMod
             HitboxRadius = hitboxRadius;
             HP = hp;
             IsTargetable = targetable;
+            IsAlly = ally;
             OwnerID = ownerID;
         }
 

@@ -51,7 +51,7 @@ namespace BossMod.AI
         public WPos? NaviTargetPos;
         public WDir? NaviTargetRot;
         public ActionID PlannedAction;
-        public ulong PlannedActionTarget;
+        public Actor? PlannedActionTarget;
         public bool AllowInterruptingCastByMovement;
         public DateTime LastUsedActionTimestamp { get; private set; }
 
@@ -90,7 +90,7 @@ namespace BossMod.AI
             NaviTargetPos = null;
             NaviTargetRot = null;
             PlannedAction = new();
-            PlannedActionTarget = 0;
+            PlannedActionTarget = null;
             AllowInterruptingCastByMovement = false;
         }
 
@@ -109,14 +109,14 @@ namespace BossMod.AI
                 return;
             }
 
-            bool actionReady = PlannedAction && Math.Max(Cooldown(PlannedAction), _autorot.AnimLock) < 0.1f;
+            bool actionReady = PlannedAction && Math.Max(Cooldown(PlannedAction), _autorot.AnimLock) < 0.1f && PlannedActionTarget != null && (PlannedActionTarget.Position - player.Position).Length() <= Range(PlannedAction) + player.HitboxRadius + PlannedActionTarget.HitboxRadius;
             UpdateNavigation(player, actionReady);
 
             var now = DateTime.Now;
             if (actionReady && (now - LastUsedActionTimestamp).TotalMilliseconds > 100)
             {
                 _autorot.DisableReplacement = true;
-                _actionManager->UseAction((FFXIVClientStructs.FFXIV.Client.Game.ActionType)PlannedAction.Type, PlannedAction.ID, (long)PlannedActionTarget);
+                _actionManager->UseAction((FFXIVClientStructs.FFXIV.Client.Game.ActionType)PlannedAction.Type, PlannedAction.ID, (long)(PlannedActionTarget?.InstanceID ?? 0));
                 _autorot.DisableReplacement = false;
                 LastUsedActionTimestamp = now;
             }

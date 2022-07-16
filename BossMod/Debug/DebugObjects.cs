@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Memory;
 using ImGuiNET;
 using System;
 using System.Text;
@@ -14,7 +15,7 @@ namespace BossMod
             ImGui.Checkbox("Show players, minions and mounts", ref _showCrap);
 
             int i = 0;
-            ImGui.BeginTable("objects", 12, ImGuiTableFlags.Resizable);
+            ImGui.BeginTable("objects", 13, ImGuiTableFlags.Resizable);
             ImGui.TableSetupColumn("Index");
             ImGui.TableSetupColumn("Actor");
             ImGui.TableSetupColumn("Kind/Subkind");
@@ -22,6 +23,7 @@ namespace BossMod
             ImGui.TableSetupColumn("OwnerID/LocalID");
             ImGui.TableSetupColumn("HP");
             ImGui.TableSetupColumn("Flags");
+            ImGui.TableSetupColumn("Friendly?");
             ImGui.TableSetupColumn("Position");
             ImGui.TableSetupColumn("Rotation");
             ImGui.TableSetupColumn("Cast");
@@ -42,18 +44,39 @@ namespace BossMod
                 var internalObj = Utils.GameObjectInternal(obj);
                 var internalChara = Utils.BattleCharaInternal(battleChara);
                 ImGui.TableNextRow();
-                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{idx}");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{idx} ({internalObj->ObjectIndex})");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectString(obj));
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectKindString(obj));
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(character != null ? $"{character.ClassJob.Id} ({(Class)character.ClassJob.Id})" : "---");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"{obj.OwnerId:X} / {Utils.ReadField<uint>(internalObj, 0x78):X}");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(character != null ? $"{character.CurrentHp}/{character.MaxHp} ({(character != null ? Utils.CharacterShieldValue(character) : 0)})" : "---");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"{character?.StatusFlags}");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{Utils.GameObjectIsFriendly(obj)}");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.Vec3String(obj.Position));
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(obj.Rotation.Radians().ToString());
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(battleChara != null ? $"{battleChara.CurrentCastTime:f2}/{battleChara.TotalCastTime:f2}" : "---");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"{internalObj->RenderFlags:X}");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"0x{(IntPtr)internalObj->DrawObject:X}");
+            }
+            ImGui.EndTable();
+        }
+
+        public unsafe void DrawUIObjects()
+        {
+            var module = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->UIModule->GetUI3DModule();
+            var objs = (FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.ObjectInfo*)module->ObjectInfoArray;
+            ImGui.BeginTable("uiobj", 3, ImGuiTableFlags.Resizable);
+            ImGui.TableSetupColumn("Index");
+            ImGui.TableSetupColumn("GameObj");
+            ImGui.TableSetupColumn("NamePlateKind");
+            ImGui.TableHeadersRow();
+            for (int i = 0; i < 426; ++i)
+            {
+                var o = objs[i].GameObject;
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{i}: {(ulong)o:X}");
+                ImGui.TableNextColumn(); if (o != null) ImGui.TextUnformatted($"{o->DataID:X} '{MemoryHelper.ReadSeString((IntPtr)o->Name, 64)}' <{o->ObjectID:X}>");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{objs[i].NamePlateObjectKind}");
             }
             ImGui.EndTable();
         }
