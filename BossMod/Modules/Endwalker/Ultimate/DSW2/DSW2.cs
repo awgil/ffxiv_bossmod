@@ -12,6 +12,11 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P2UltimateEnd() : base(ActionID.MakeSpell(AID.UltimateEndAOE)) { }
     }
 
+    class P3Drachenlance : CommonComponents.SelfTargetedAOE
+    {
+        public P3Drachenlance() : base(ActionID.MakeSpell(AID.DrachenlanceAOE), new AOEShapeCone(13, 45.Degrees())) { }
+    }
+
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP2)]
     public class DSW2 : BossModule
     {

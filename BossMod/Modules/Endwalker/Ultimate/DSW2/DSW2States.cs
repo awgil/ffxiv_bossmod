@@ -170,8 +170,10 @@
 
         private void P3Drachenlance(uint id, float delay)
         {
-            ActorCast(id, _module.BossP3, AID.Drachenlance, delay, 2.9f, true);
-            // TODO: +0.6s - aoe, component...
+            ActorCast(id, _module.BossP3, AID.Drachenlance, delay, 2.9f, true)
+                .ActivateOnEnter<P3Drachenlance>();
+            ComponentCondition<P3Drachenlance>(id + 2, 0.6f, comp => comp.NumCasts > 0, "Cleave")
+                .DeactivateOnExit<P3Drachenlance>();
         }
     }
 }

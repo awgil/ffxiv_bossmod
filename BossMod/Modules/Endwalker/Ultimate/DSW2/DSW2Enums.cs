@@ -52,7 +52,7 @@
         DragonsRage = 25550, // BossP2->self, 4.7s cast, visual
         DragonsRageAOE = 25551, // Helper->players, no cast, range 8 shared aoe
         DimensionalCollapse = 25563, // SerGrinnaux->self, 8.0s cast, visual (growing void zones)
-        DimensionalCollapseAOE = 25564, // Helper->location, 9.0s cast, range 10 aoe
+        DimensionalCollapseAOE = 25564, // Helper->location, 9.0s cast, range 9 aoe
         SkywardLeap = 25565, // SerIgnasse/SerVellguine/SerPaulecrain->player, no cast, range 24 aoe on player with blue mark
         Conviction1 = 25566, // SerHermenost->self, 8.2s cast, visual towers
         Conviction1AOE = 25567, // Helper->location, 11.0s cast, range 3 aoe, soaked towers

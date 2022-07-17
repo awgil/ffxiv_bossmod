@@ -20,7 +20,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private static float _chargeHalfWidth = 4;
         private static float _rageRadius = 8;
         private static float _towerRadius = 3;
-        private static AOEShapeCircle _voidzoneAOE = new(10);
+        private static AOEShapeCircle _voidzoneAOE = new(9);
 
         public override void Init(BossModule module)
         {
@@ -50,7 +50,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
             if (!RageDone && !isLeapTarget)
             {
-                hints.Add("Stack", module.Raid.WithSlot().ExcludedFromMask(_playersWithIcons).OutOfRadius(actor.Position, _rageRadius).Any());
+                hints.Add("Stack", module.Raid.WithSlot().ExcludedFromMask(_playersWithIcons).OutOfRadius(actor.Position, _rageRadius).Any(a => !isTank || a.Item2.Role != Role.Tank));
             }
 
             if (LeapsDone && RageDone && _towers.Count > 0 && !isTank)
