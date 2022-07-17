@@ -74,7 +74,7 @@ namespace BossMod.AI
             // keep master in focus
             _ctrl.SetFocusTarget(master.InstanceID);
 
-            var action = _passive ? _autorot.ClassActions?.CalculateBestAction(player, primaryTarget) ?? new() : new();
+            var action = _passive ? new() : _autorot.ClassActions?.CalculateBestAction(player, primaryTarget) ?? new();
             var selfTargeted = IsSelfTargeted(action.Action);
             _ctrl.PlannedAction = action.Action;
             _ctrl.PlannedActionTarget = selfTargeted ? player : action.Target;

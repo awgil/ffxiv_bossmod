@@ -101,7 +101,7 @@ namespace BossMod.AI
             if (_desiredDirty)
             {
                 _desiredDirty = false;
-                DesiredZone = _desiredTargetPos != null && _desiredMaxRange > 0 ? _clipper.Difference(DesiredContour(_desiredTargetPos.Value), ForbiddenZone) : new();
+                DesiredZone = _desiredTargetPos != null && _desiredMaxRange > 0 ? _clipper.Difference(DesiredContour(_desiredTargetPos.Value, 0.5f), ForbiddenZone) : new();
             }
 
             if (cachedDirty)
@@ -143,21 +143,25 @@ namespace BossMod.AI
         private IEnumerable<IEnumerable<WPos>> ActiveAOEs()
         {
             foreach (var s in _states.Values.Where(s => s.IncludedInResult))
-            {
-                yield return s.Shape.Contour(s.Origin, s.CasterRot ?? 0.Degrees());
-            }
+                foreach (var c in s.Shape.Contour(s.Origin, s.CasterRot ?? 0.Degrees(), 1, 0.5f))
+                    yield return c;
         }
 
-        private IEnumerable<WPos> DesiredContour(WPos center)
+        private IEnumerable<IEnumerable<WPos>> DesiredContour(WPos center, float tolerance)
         {
             switch (_desiredPositional)
             {
                 case CommonActions.Positional.Flank:
-                    return CurveApprox.CircleSector(center, _desiredMaxRange, _desiredTargetRot + 45.Degrees(), _desiredTargetRot + 135.Degrees(), 1).Concat(CurveApprox.CircleSector(center, _desiredMaxRange, _desiredTargetRot - 45.Degrees(), _desiredTargetRot - 135.Degrees(), 1));
+                    var left = _desiredTargetRot.ToDirection().OrthoL();
+                    yield return CurveApprox.CircleSector(center + tolerance * 1.4142f * left, _desiredMaxRange - tolerance * 2.4142f, _desiredTargetRot + 45.Degrees(), _desiredTargetRot + 135.Degrees(), 1);
+                    yield return CurveApprox.CircleSector(center - tolerance * 1.4142f * left, _desiredMaxRange - tolerance * 2.4142f, _desiredTargetRot - 45.Degrees(), _desiredTargetRot - 135.Degrees(), 1);
+                    break;
                 case CommonActions.Positional.Rear:
-                    return CurveApprox.CircleSector(center, _desiredMaxRange, _desiredTargetRot + 135.Degrees(), _desiredTargetRot + 225.Degrees(), 1);
+                    yield return CurveApprox.CircleSector(center - tolerance * 1.4142f * _desiredTargetRot.ToDirection(), _desiredMaxRange - tolerance * 2.4142f, _desiredTargetRot + 135.Degrees(), _desiredTargetRot + 225.Degrees(), 1);
+                    break;
                 default:
-                    return CurveApprox.Circle(center, _desiredMaxRange, 1);
+                    yield return CurveApprox.Circle(center, _desiredMaxRange - 0.5f, 1);
+                    break;
             }
         }
 
@@ -218,15 +222,20 @@ namespace BossMod.AI
 
         private void OnCastStarted(object? sender, Actor actor)
         {
+            if (actor.Type != ActorType.Enemy || actor.IsAlly)
+                return;
             var data = actor.CastInfo!.IsSpell() ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(actor.CastInfo.Action.ID) : null;
             if (data == null || data.CastType == 1)
                 return;
             AOEShape? shape = data.CastType switch
             {
-                2 or 5 or 7 => new AOEShapeCircle(data.EffectRange),
-                3 or 13 => new AOEShapeCone(data.EffectRange, DetermineConeAngle(data) * 0.5f),
-                4 or 12 => new AOEShapeRect(data.EffectRange + 2, (data.XAxisModifier + 1) * 0.5f, 1),
-                10 => new AOEShapeDonut(actor.HitboxRadius, data.EffectRange), // TODO: find a way to determine inner radius
+                //2 or 7 => new AOEShapeCircle(data.EffectRange),
+                3 => new AOEShapeCone(data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data) * 0.5f),
+                4 => new AOEShapeRect(data.EffectRange + actor.HitboxRadius, data.XAxisModifier * 0.5f),
+                5 => new AOEShapeCircle(data.EffectRange + actor.HitboxRadius),
+                //10 => new AOEShapeDonut(actor.HitboxRadius, data.EffectRange), // TODO: find a way to determine inner radius
+                //12 => new AOEShapeRect(data.EffectRange, data.XAxisModifier * 0.5f),
+                //13 => new AOEShapeCone(data.EffectRange, DetermineConeAngle(data) * 0.5f),
                 _ => null
             };
             if (shape == null)

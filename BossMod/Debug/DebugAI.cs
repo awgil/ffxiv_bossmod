@@ -96,19 +96,19 @@ namespace BossMod
                 case 2:
                 case 5:
                 case 7:
-                    return $"circle {origin} {data.EffectRange}";
+                    return $"circle-{data.CastType} {origin} {data.EffectRange}";
                 case 3:
                 case 13:
-                    return $"cone {(DetectConeAngle(data)?.ToString() ?? "???")} {origin} {a.Rotation} {data.EffectRange}";
+                    return $"cone-{data.CastType} {(DetectConeAngle(data)?.ToString() ?? "???")} {origin} {a.Rotation} {data.EffectRange}";
                 case 4:
                 case 12:
-                    return $"rect {origin} {a.Rotation} {data.EffectRange} {data.XAxisModifier}";
+                    return $"rect-{data.CastType} {origin} {a.Rotation} {data.EffectRange} {data.XAxisModifier}";
                 case 8:
-                    return $"charge {a.Position} -> {origin} x {data.XAxisModifier}";
+                    return $"charge-{data.CastType} {a.Position} -> {origin} x {data.XAxisModifier}";
                 case 10:
-                    return $"donut {origin} ???-{data.EffectRange}";
+                    return $"donut-{data.CastType} {origin} ???-{data.EffectRange}";
                 default:
-                    return $"unknown {origin} {a.Rotation} {data.EffectRange} {data.XAxisModifier}";
+                    return $"unknown-{data.CastType} {origin} {a.Rotation} {data.EffectRange} {data.XAxisModifier}";
             }
         }
 

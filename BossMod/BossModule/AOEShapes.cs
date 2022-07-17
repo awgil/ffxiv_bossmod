@@ -8,7 +8,7 @@ namespace BossMod
         public abstract bool Check(WPos position, WPos origin, Angle rotation);
         public abstract void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE);
         public abstract void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger);
-        public abstract IEnumerable<WPos> Contour(WPos origin, Angle rotation, float maxError = 1);
+        public abstract IEnumerable<IEnumerable<WPos>> Contour(WPos origin, Angle rotation, float offset = 0, float maxError = 1); // positive offset increases area, negative decreases
 
         public bool Check(WPos position, Actor? origin)
         {
@@ -44,7 +44,12 @@ namespace BossMod
         public override bool Check(WPos position, WPos origin, Angle rotation) => position.InCircleCone(origin, Radius, rotation + DirectionOffset, HalfAngle);
         public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE) => arena.ZoneCone(origin, 0, Radius, rotation + DirectionOffset, HalfAngle, color);
         public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger) => arena.AddCone(origin, Radius, rotation + DirectionOffset, HalfAngle, color);
-        public override IEnumerable<WPos> Contour(WPos origin, Angle rotation, float maxError) => CurveApprox.CircleSector(origin, Radius + maxError, rotation + DirectionOffset - HalfAngle, rotation + DirectionOffset + HalfAngle, maxError);
+        public override IEnumerable<IEnumerable<WPos>> Contour(WPos origin, Angle rotation, float offset, float maxError)
+        {
+            var centerOffset = offset == 0 ? 0 : offset / HalfAngle.Sin();
+            var rot = rotation + DirectionOffset;
+            yield return CurveApprox.CircleSector(origin - centerOffset * rot.ToDirection(), Radius + centerOffset + offset, rot - HalfAngle, rot + HalfAngle, maxError);
+        }
     }
 
     public class AOEShapeCircle : AOEShape
@@ -59,7 +64,10 @@ namespace BossMod
         public override bool Check(WPos position, WPos origin, Angle rotation = new()) => position.InCircle(origin, Radius);
         public override void Draw(MiniArena arena, WPos origin, Angle rotation = new(), uint color = ArenaColor.AOE) => arena.ZoneCircle(origin, Radius, color);
         public override void Outline(MiniArena arena, WPos origin, Angle rotation = new(), uint color = ArenaColor.Danger) => arena.AddCircle(origin, Radius, color);
-        public override IEnumerable<WPos> Contour(WPos origin, Angle rotation, float maxError) => CurveApprox.Circle(origin, Radius + maxError, maxError);
+        public override IEnumerable<IEnumerable<WPos>> Contour(WPos origin, Angle rotation, float offset, float maxError)
+        {
+            yield return CurveApprox.Circle(origin, Radius + offset, maxError);
+        }
     }
 
     public class AOEShapeDonut : AOEShape
@@ -80,7 +88,11 @@ namespace BossMod
             arena.AddCircle(origin, InnerRadius, color);
             arena.AddCircle(origin, OuterRadius, color);
         }
-        public override IEnumerable<WPos> Contour(WPos origin, Angle rotation, float maxError) => CurveApprox.DonutSector(origin, InnerRadius - maxError, OuterRadius + maxError, 0.Degrees(), 360.Degrees(), maxError);
+        public override IEnumerable<IEnumerable<WPos>> Contour(WPos origin, Angle rotation, float offset, float maxError)
+        {
+            yield return CurveApprox.Circle(origin, OuterRadius + offset, maxError);
+            yield return CurveApprox.Circle(origin, InnerRadius - offset, maxError);
+        }
     }
 
     public class AOEShapeRect : AOEShape
@@ -108,16 +120,13 @@ namespace BossMod
             var back = origin - LengthBack * direction;
             arena.AddQuad(front + side, front - side, back - side, back + side, color);
         }
-        public override IEnumerable<WPos> Contour(WPos origin, Angle rotation, float maxError)
+        public override IEnumerable<IEnumerable<WPos>> Contour(WPos origin, Angle rotation, float offset, float maxError)
         {
             var direction = (rotation + DirectionOffset).ToDirection();
-            var side = HalfWidth * direction.OrthoR();
-            var front = origin + LengthFront * direction;
-            var back = origin - LengthBack * direction;
-            yield return front + side;
-            yield return front - side;
-            yield return back - side;
-            yield return back + side;
+            var side = (HalfWidth + offset) * direction.OrthoR();
+            var front = origin + (LengthFront + offset) * direction;
+            var back = origin - (LengthBack + offset) * direction;
+            yield return new[] { front + side, front - side, back - side, back + side };
         }
 
         public void SetEndPoint(WPos endpoint, WPos origin, Angle rotation)
@@ -161,6 +170,11 @@ namespace BossMod
                 s.Outline(arena, origin, rotation, color);
         }
 
-        public override IEnumerable<WPos> Contour(WPos origin, Angle rotation, float maxError) => Enumerable.Empty<WPos>(); // TODO: implement
+        public override IEnumerable<IEnumerable<WPos>> Contour(WPos origin, Angle rotation, float offset, float maxError)
+        {
+            foreach (var s in Shapes)
+                foreach (var c in s.Contour(origin, rotation, offset, maxError))
+                    yield return c;
+        }
     }
 }

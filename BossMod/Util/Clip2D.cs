@@ -50,11 +50,12 @@ namespace BossMod
             return solution;
         }
 
-        public PolyTree Difference(IEnumerable<WPos> poly, PolyTree remove)
+        public PolyTree Difference(IEnumerable<IEnumerable<WPos>> polys, PolyTree remove)
         {
             _clipper.Clear();
             _clipper.AddPaths(Clipper.PolyTreeToPaths(remove), PolyType.ptClip, true);
-            _clipper.AddPath(poly.Select(ConvertPoint).ToList(), PolyType.ptSubject, true);
+            foreach (var poly in polys)
+                _clipper.AddPath(poly.Select(ConvertPoint).ToList(), PolyType.ptSubject, true);
             PolyTree solution = new();
             _clipper.Execute(ClipType.ctDifference, solution, PolyFillType.pftEvenOdd);
             return solution;
