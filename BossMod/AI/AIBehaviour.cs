@@ -39,17 +39,16 @@ namespace BossMod.AI
             // TODO: mitigates/self heals, unless planned, if low hp
 
             // TODO: target or party heals, if possible and not planned, esuna etc.
-            if (player.Role == Role.Healer)
+            if (player.Class == Class.ACN || player.Role == Role.Healer)
             {
                 Actor? healTarget = null;
                 float healPrio = 0;
                 foreach (var p in _ws.Party.WithoutSlot(true))
                 {
-                    // TODO: esuna check
-                    if (p.IsDead)
+                    if (p.IsDead || p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)))
                     {
                         if (healPrio == 0)
-                            healTarget = p; // raise is lowest prio
+                            healTarget = p; // raise/esuna is lowest prio
                     }
                     else if (p.HP.Cur < p.HP.Max * 0.8f)
                     {

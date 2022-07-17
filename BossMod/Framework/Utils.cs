@@ -60,6 +60,12 @@ namespace BossMod
             return $"{statusID} '{name}'";
         }
 
+        public static bool StatusIsRemovable(uint statusID)
+        {
+            var statusData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(statusID);
+            return statusData?.CanDispel ?? false;
+        }
+
         public static string StatusTimeString(DateTime expireAt, DateTime now)
         {
             return $"{Math.Max(0, (expireAt - now).TotalSeconds):f3}";

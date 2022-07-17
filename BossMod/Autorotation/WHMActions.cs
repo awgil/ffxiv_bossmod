@@ -116,6 +116,10 @@ namespace BossMod
             {
                 return new() { Action = ActionID.MakeSpell(SmartRaiseAction()), Target = primaryTarget };
             }
+            else if (primaryTarget.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)))
+            {
+                return new() { Action = ActionID.MakeSpell(WHMRotation.AID.Esuna), Target = primaryTarget };
+            }
             else if (primaryTarget.InCombat)
             {
                 // TODO: this aoe/st heal selection is not very good...

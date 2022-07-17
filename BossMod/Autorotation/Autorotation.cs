@@ -127,6 +127,7 @@ namespace BossMod
                     Class.LNC or Class.DRG => Service.ClientState.LocalPlayer?.Level < 30 ? typeof(DRGActions) : null,
                     Class.BRD or Class.ARC => Service.ClientState.LocalPlayer?.Level < 30 ? typeof(BRDActions) : null,
                     Class.THM or Class.BLM => Service.ClientState.LocalPlayer?.Level < 30 ? typeof(BLMActions) : null,
+                    Class.ACN or Class.SMN => Service.ClientState.LocalPlayer?.Level < 30 ? typeof(SMNActions) : null,
                     _ => null
                 };
             }
