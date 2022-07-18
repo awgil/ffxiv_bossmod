@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.Command;
+﻿using Dalamud.Game;
+using Dalamud.Game.Command;
 using Dalamud.Interface;
 using Dalamud.IoC;
 using Dalamud.Logging;
@@ -21,6 +22,7 @@ namespace BossMod
         private InputOverride _inputOverride;
         private Autorotation _autorotation;
         private AI.AIManager _ai;
+        private AI.Broadcast _broadcast = new();
         private TimeSpan _prevUpdateTime;
 
         public Plugin(
@@ -49,6 +51,7 @@ namespace BossMod
             _autorotation = new(_network, _bossmod, _inputOverride);
             _ai = new(_ws, _inputOverride, _autorotation);
 
+            Service.Framework.Update += Update;
             dalamud.UiBuilder.Draw += DrawUI;
             dalamud.UiBuilder.OpenConfigUi += OpenConfigUI;
         }
@@ -63,6 +66,7 @@ namespace BossMod
             _autorotation.Dispose();
             _inputOverride.Dispose();
             _commandManager.RemoveHandler("/vbm");
+            Service.Framework.Update -= Update;
         }
 
         private void OnCommand(string cmd, string args)
@@ -100,6 +104,11 @@ namespace BossMod
             var ui = new DebugUI(_ws, _autorotation, _inputOverride);
             var w = WindowManager.CreateWindow("Boss mod debug UI", ui.Draw, ui.Dispose, () => true);
             w.SizeHint = new Vector2(300, 200);
+        }
+
+        private void Update(Framework fwk)
+        {
+            _broadcast.Update();
         }
 
         private void DrawUI()

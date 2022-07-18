@@ -2,16 +2,17 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace BossMod.AI
 {
     class Broadcast
     {
+        private AIConfig _config;
         private List<(VirtualKey, bool)> _broadcasts = new();
 
         public Broadcast()
         {
+            _config = Service.Config.Get<AIConfig>();
             _broadcasts.Add((VirtualKey.F10, false)); // target focus
             _broadcasts.Add((VirtualKey.T, false)); // target target's target
             _broadcasts.Add((VirtualKey.SPACE, false)); // jump
@@ -24,6 +25,9 @@ namespace BossMod.AI
 
         public void Update()
         {
+            if (!_config.BroadcastToSlaves)
+                return;
+
             for (int i = 0; i < _broadcasts.Count; ++i)
             {
                 var vk = _broadcasts[i].Item1;
