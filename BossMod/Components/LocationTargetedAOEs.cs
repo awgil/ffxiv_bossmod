@@ -21,6 +21,12 @@ namespace BossMod.Components
                 hints.Add("GTFO from puddle!");
         }
 
+        public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
+        {
+            foreach (var c in _casters)
+                zone.ForbidZone(Shape, c.CastInfo!.LocXZ, new());
+        }
+
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var c in _casters)

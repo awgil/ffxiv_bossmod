@@ -26,17 +26,6 @@ namespace BossMod
             _clipper = new(strictlySimple ? Clipper.ioStrictlySimple : 0);
         }
 
-        public List<(WPos, WPos, WPos)> ClipAndTriangulate(IEnumerable<WPos> pts)
-        {
-            _clipper.Clear();
-            _clipper.AddPath(_clipPoly, PolyType.ptClip, true);
-            _clipper.AddPath(pts.Select(ConvertPoint).ToList(), PolyType.ptSubject, true);
-
-            PolyTree solution = new();
-            _clipper.Execute(ClipType.ctIntersection, solution, PolyFillType.pftEvenOdd);
-            return Triangulate(solution);
-        }
-
         public PolyTree Union(IEnumerable<IEnumerable<WPos>> polys)
         {
             PolyTree solution = new();
@@ -50,15 +39,46 @@ namespace BossMod
             return solution;
         }
 
-        public PolyTree Difference(IEnumerable<IEnumerable<WPos>> polys, PolyTree remove)
+        public PolyTree Difference(PolyTree starting, IEnumerable<IEnumerable<WPos>> remove)
         {
             _clipper.Clear();
-            _clipper.AddPaths(Clipper.PolyTreeToPaths(remove), PolyType.ptClip, true);
-            foreach (var poly in polys)
-                _clipper.AddPath(poly.Select(ConvertPoint).ToList(), PolyType.ptSubject, true);
+            _clipper.AddPaths(Clipper.PolyTreeToPaths(starting), PolyType.ptSubject, true);
+            foreach (var p in remove)
+                _clipper.AddPath(p.Select(ConvertPoint).ToList(), PolyType.ptClip, true);
             PolyTree solution = new();
             _clipper.Execute(ClipType.ctDifference, solution, PolyFillType.pftEvenOdd);
             return solution;
+        }
+
+        public PolyTree Difference(IEnumerable<WPos> starting, PolyTree remove)
+        {
+            _clipper.Clear();
+            _clipper.AddPath(starting.Select(ConvertPoint).ToList(), PolyType.ptSubject, true);
+            _clipper.AddPaths(Clipper.PolyTreeToPaths(remove), PolyType.ptClip, true);
+            PolyTree solution = new();
+            _clipper.Execute(ClipType.ctDifference, solution, PolyFillType.pftEvenOdd);
+            return solution;
+        }
+
+        public PolyTree Intersect(PolyTree subj, PolyTree clip)
+        {
+            _clipper.Clear();
+            _clipper.AddPaths(Clipper.PolyTreeToPaths(subj), PolyType.ptSubject, true);
+            _clipper.AddPaths(Clipper.PolyTreeToPaths(clip), PolyType.ptClip, true);
+            PolyTree solution = new();
+            _clipper.Execute(ClipType.ctIntersection, solution, PolyFillType.pftEvenOdd);
+            return solution;
+        }
+
+        public List<(WPos, WPos, WPos)> ClipAndTriangulate(IEnumerable<WPos> pts)
+        {
+            _clipper.Clear();
+            _clipper.AddPath(_clipPoly, PolyType.ptClip, true);
+            _clipper.AddPath(pts.Select(ConvertPoint).ToList(), PolyType.ptSubject, true);
+
+            PolyTree solution = new();
+            _clipper.Execute(ClipType.ctIntersection, solution, PolyFillType.pftEvenOdd);
+            return Triangulate(solution);
         }
 
         public static List<(WPos, WPos, WPos)> Triangulate(PolyTree solution)

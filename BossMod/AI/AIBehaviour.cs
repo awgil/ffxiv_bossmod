@@ -7,18 +7,16 @@ namespace BossMod.AI
     // constantly follow master
     class AIBehaviour : IDisposable
     {
-        private WorldState _ws;
         private Autorotation _autorot;
         private AIController _ctrl;
         private AvoidAOE _avoidAOE;
         private bool _passive;
 
-        public AIBehaviour(WorldState ws, AIController ctrl, Autorotation autorot)
+        public AIBehaviour(AIController ctrl, Autorotation autorot)
         {
-            _ws = ws;
             _autorot = autorot;
             _ctrl = ctrl;
-            _avoidAOE = new(ws);
+            _avoidAOE = new(autorot.Bossmods);
         }
 
         public void Dispose()
@@ -31,7 +29,7 @@ namespace BossMod.AI
             if (!master.InCombat)
                 return null; // master not in combat => just follow
 
-            var masterTarget = _ws.Actors.Find(master.TargetID);
+            var masterTarget = _autorot.WorldState.Actors.Find(master.TargetID);
             if (masterTarget?.Type != ActorType.Enemy)
                 return null; // master has no target or targets non-enemy => just follow
 
@@ -43,7 +41,7 @@ namespace BossMod.AI
             {
                 Actor? healTarget = null;
                 float healPrio = 0;
-                foreach (var p in _ws.Party.WithoutSlot(true))
+                foreach (var p in _autorot.WorldState.Party.WithoutSlot(true))
                 {
                     if (p.IsDead || p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)))
                     {
@@ -87,7 +85,7 @@ namespace BossMod.AI
                 _avoidAOE.SetDesired(action.Target?.Position, action.Target?.Rotation ?? new(), _ctrl.Range(action.Action) + player.HitboxRadius + action.Target?.HitboxRadius ?? 0, positional);
             }
 
-            var dest = _avoidAOE.Update(player.Position);
+            var dest = _avoidAOE.Update(player);
             //if (action.Action && action.Target != null)
             //{
             //    // TODO: improve movement logic; currently we always attempt to move to melee range, this is good for classes that have point-blank aoes

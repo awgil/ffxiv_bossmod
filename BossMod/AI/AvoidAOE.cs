@@ -4,44 +4,14 @@ using System.Linq;
 
 namespace BossMod.AI
 {
-    // utility that calculates forbidden zone (union of pending aoes) based on actor casts
-    class AvoidAOE : IDisposable
+    // utility that determines active aoes automatically based on actor casts
+    // this is used e.g. in outdoor or on trash, where we have no active bossmodules
+    public class AutoAOEs : IDisposable
     {
-        private class ActorState
-        {
-            public Actor Actor;
-            public AOEShape Shape;
-            public WPos Origin;
-            // this bs is needed only because caster can rotate for some time after cast start...
-            public Angle? CasterRot;
-            public int NumFramesUnmoving;
-
-            public bool IncludedInResult => CasterRot == null || NumFramesUnmoving >= 2;
-
-            public ActorState(Actor a, AOEShape shape, WPos origin)
-            {
-                Actor = a;
-                Shape = shape;
-                Origin = origin;
-                CasterRot = shape is AOEShapeCone || shape is AOEShapeRect ? a.Rotation : null;
-            }
-        }
-
-        public ClipperLib.PolyTree ForbiddenZone { get; private set; } = new();
-        public ClipperLib.PolyTree DesiredZone { get; private set; } = new();
         private WorldState _ws;
-        private Clip2D _clipper = new();
-        private Dictionary<ulong, ActorState> _states = new();
-        private bool _forbiddenDirty;
-        private bool _desiredDirty;
-        private WPos? _desiredTargetPos;
-        private Angle _desiredTargetRot;
-        private float _desiredMaxRange;
-        private CommonActions.Positional _desiredPositional;
-        private WPos _prevPos;
-        private WPos? _cachedResult;
+        private Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape)> _activeAOEs = new();
 
-        public AvoidAOE(WorldState ws)
+        public AutoAOEs(WorldState ws)
         {
             _ws = ws;
             _ws.Actors.CastStarted += OnCastStarted;
@@ -54,6 +24,89 @@ namespace BossMod.AI
             _ws.Actors.CastFinished -= OnCastFinished;
         }
 
+        public SafeZone CalculateSafeZone(WPos playerPos)
+        {
+            var zone = new SafeZone(playerPos);
+            foreach (var aoe in _activeAOEs.Values)
+                zone.ForbidZone(aoe.Shape, aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ, aoe.Caster.Rotation);
+            return zone;
+        }
+
+        private void OnCastStarted(object? sender, Actor actor)
+        {
+            if (actor.Type != ActorType.Enemy || actor.IsAlly)
+                return;
+            var data = actor.CastInfo!.IsSpell() ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(actor.CastInfo.Action.ID) : null;
+            if (data == null || data.CastType == 1)
+                return;
+            AOEShape? shape = data.CastType switch
+            {
+                //2 or 7 => new AOEShapeCircle(data.EffectRange),
+                3 => new AOEShapeCone(data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data) * 0.5f),
+                4 => new AOEShapeRect(data.EffectRange + actor.HitboxRadius, data.XAxisModifier * 0.5f),
+                5 => new AOEShapeCircle(data.EffectRange + actor.HitboxRadius),
+                //10 => new AOEShapeDonut(actor.HitboxRadius, data.EffectRange), // TODO: find a way to determine inner radius (omen examples: 28762 - 4/40 - gl_sircle_4004bp1)
+                //12 => new AOEShapeRect(data.EffectRange, data.XAxisModifier * 0.5f),
+                //13 => new AOEShapeCone(data.EffectRange, DetermineConeAngle(data) * 0.5f),
+                _ => null
+            };
+            if (shape == null)
+            {
+                Service.Log($"[AutoAOEs] Unknown cast type {data.CastType} for {actor.CastInfo.Action}");
+                return;
+            }
+            var target = _ws.Actors.Find(actor.CastInfo.TargetID);
+            _activeAOEs[actor.InstanceID] = (actor, target, shape);
+        }
+
+        private void OnCastFinished(object? sender, Actor actor)
+        {
+            _activeAOEs.Remove(actor.InstanceID);
+        }
+
+        private Angle DetermineConeAngle(Lumina.Excel.GeneratedSheets.Action data)
+        {
+            var omen = data.Omen.Value;
+            if (omen == null)
+            {
+                Service.Log($"[AvoidAOE] No omen data for {data.RowId} '{data.Name}'...");
+                return 180.Degrees();
+            }
+            var path = omen.Path.ToString();
+            var pos = path.IndexOf("fan");
+            if (pos < 0 || pos + 6 > path.Length)
+            {
+                Service.Log($"[AvoidAOE] Can't determine angle from omen ({path}/{omen.PathAlly}) for {data.RowId} '{data.Name}'...");
+                return 180.Degrees();
+            }
+            return int.Parse(path.Substring(pos + 3, 3)).Degrees();
+        }
+    }
+
+    // utility that calculates forbidden zone (union of pending aoes) based on actor casts
+    class AvoidAOE : IDisposable
+    {
+        public ClipperLib.PolyTree SafeZone { get; private set; } = new();
+        public ClipperLib.PolyTree DesiredZone { get; private set; } = new();
+        private BossModuleManager _bmm;
+        private AutoAOEs _autoAOEs;
+        private WPos? _desiredTargetPos;
+        private Angle _desiredTargetRot;
+        private float _desiredMaxRange;
+        private CommonActions.Positional _desiredPositional;
+        private WPos? _prevResult;
+
+        public AvoidAOE(BossModuleManager bmm)
+        {
+            _bmm = bmm;
+            _autoAOEs = new(bmm.WorldState);
+        }
+
+        public void Dispose()
+        {
+            _autoAOEs.Dispose();
+        }
+
         public void SetDesired(WPos? targetPosition, Angle targetRotation, float maxRange, CommonActions.Positional positional = CommonActions.Positional.Any)
         {
             if (_desiredTargetPos == targetPosition && _desiredTargetRot == targetRotation && _desiredMaxRange == maxRange && _desiredPositional == positional)
@@ -62,89 +115,49 @@ namespace BossMod.AI
             _desiredTargetRot = targetRotation;
             _desiredMaxRange = maxRange;
             _desiredPositional = positional;
-            _desiredDirty = true;
+            DesiredZone = targetPosition != null ? new Clip2D().Union(DesiredContour(targetPosition.Value, 0.5f)) : new();
         }
 
-        public WPos? Update(WPos currentPosition)
+        public WPos? Update(Actor player)
         {
-            // check for rotated casters (this is cancer)
-            foreach (var s in _states.Values)
+            // update forbidden zone
+            var z = _bmm.ActiveModule != null ? _bmm.ActiveModule.CalculateSafeZone(PartyState.PlayerSlot, player) : _autoAOEs.CalculateSafeZone(player.Position);
+            SafeZone = z.Result;
+            if (SafeZone.ChildCount > 0)
             {
-                if (s.CasterRot == null)
-                    continue;
-
-                var curRot = s.Actor.Rotation;
-                if (curRot == s.CasterRot.Value)
-                {
-                    var wasIncluded = s.IncludedInResult;
-                    ++s.NumFramesUnmoving;
-                    _forbiddenDirty |= !wasIncluded && s.IncludedInResult;
-                }
-                else
-                {
-                    _forbiddenDirty |= s.IncludedInResult;
-                    s.CasterRot = curRot;
-                    s.NumFramesUnmoving = 0;
-                }
-            }
-
-            // recalculate forbidden zone, if needed
-            if (_forbiddenDirty)
-            {
-                _forbiddenDirty = false;
-                _desiredDirty = true;
-                ForbiddenZone = _clipper.Union(ActiveAOEs());
-            }
-
-            // recalculate desired zone, if needed
-            bool cachedDirty = _desiredDirty || _prevPos != currentPosition;
-            if (_desiredDirty)
-            {
-                _desiredDirty = false;
-                DesiredZone = _desiredTargetPos != null && _desiredMaxRange > 0 ? _clipper.Difference(DesiredContour(_desiredTargetPos.Value, 0.5f), ForbiddenZone) : new();
-            }
-
-            if (cachedDirty)
-            {
-                _prevPos = currentPosition;
-                // check whether current position is good, and if not, return closest safespot
                 if (DesiredZone.ChildCount > 0)
                 {
-                    var desiredNode = Clip2D.FindNodeContainingPoint(DesiredZone, currentPosition);
-                    if (!desiredNode.IsHole)
+                    var optimal = new Clip2D().Intersect(SafeZone, DesiredZone);
+                    if (optimal.ChildCount > 0)
                     {
-                        // we're inside desired zone now
-                        _cachedResult = null;
+                        return SelectPointInZone(optimal, player.Position);
                     }
-                    else if (_cachedResult == null || Clip2D.FindNodeContainingPoint(DesiredZone, _cachedResult.Value).IsHole)
-                    {
-                        _cachedResult = FindClosestPointToNode(currentPosition, desiredNode);
-                    }
-                    // else: cached result is available and is in desired zone, continue moving there
                 }
-                else
-                {
-                    var forbiddenNode = Clip2D.FindNodeContainingPoint(ForbiddenZone, currentPosition);
-                    if (forbiddenNode.IsHole)
-                    {
-                        // we're outside forbidden zone now
-                        _cachedResult = null;
-                    }
-                    else if (_cachedResult == null || !Clip2D.FindNodeContainingPoint(ForbiddenZone, _cachedResult.Value).IsHole)
-                    {
-                        _cachedResult = FindClosestPointToNode(currentPosition, forbiddenNode);
-                    }
-                    // else: cached result is available and is outside forbidden zone, continue moving there
-                }
+                // desired zone is either empty or does not intersect safe zone - select any point in safe zone
+                return SelectPointInZone(SafeZone, player.Position);
             }
-            return _cachedResult;
+            else
+            {
+                // safe zone is empty - nothing to do but try to stay in desired zone...
+                return DesiredZone.ChildCount > 0 ? SelectPointInZone(DesiredZone, player.Position) : null;
+            }
         }
 
-        private IEnumerable<IEnumerable<WPos>> ActiveAOEs()
+        private WPos? SelectPointInZone(ClipperLib.PolyTree zone, WPos currentPosition)
         {
-            foreach (var s in _states.Values.Where(s => s.IncludedInResult))
-                foreach (var c in s.Shape.Contour(s.Origin, s.CasterRot ?? 0.Degrees(), 1, 0.5f))
-                    yield return c;
+            var curNode = Clip2D.FindNodeContainingPoint(zone, currentPosition);
+            if (!curNode.IsHole)
+            {
+                // we're in zone already, clear destination
+                _prevResult = null;
+            }
+            else if (_prevResult == null || Clip2D.FindNodeContainingPoint(zone, _prevResult.Value).IsHole)
+            {
+                // we need to select new destination for movement
+                _prevResult = FindClosestPointToNode(currentPosition, curNode);
+            }
+            // else: previously selected destination is still good
+            return _prevResult;
         }
 
         private IEnumerable<IEnumerable<WPos>> DesiredContour(WPos center, float tolerance)
@@ -202,59 +215,6 @@ namespace BossMod.AI
             return (best, bestDistSq);
         }
 
-        private Angle DetermineConeAngle(Lumina.Excel.GeneratedSheets.Action data)
-        {
-            var omen = data.Omen.Value;
-            if (omen == null)
-            {
-                Service.Log($"[AvoidAOE] No omen data for {data.RowId} '{data.Name}'...");
-                return 180.Degrees();
-            }
-            var path = omen.Path.ToString();
-            var pos = path.IndexOf("fan");
-            if (pos < 0 || pos + 6 > path.Length)
-            {
-                Service.Log($"[AvoidAOE] Can't determine angle from omen ({path}/{omen.PathAlly}) for {data.RowId} '{data.Name}'...");
-                return 180.Degrees();
-            }
-            return int.Parse(path.Substring(pos + 3, 3)).Degrees();
-        }
 
-        private void OnCastStarted(object? sender, Actor actor)
-        {
-            if (actor.Type != ActorType.Enemy || actor.IsAlly)
-                return;
-            var data = actor.CastInfo!.IsSpell() ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(actor.CastInfo.Action.ID) : null;
-            if (data == null || data.CastType == 1)
-                return;
-            AOEShape? shape = data.CastType switch
-            {
-                //2 or 7 => new AOEShapeCircle(data.EffectRange),
-                3 => new AOEShapeCone(data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data) * 0.5f),
-                4 => new AOEShapeRect(data.EffectRange + actor.HitboxRadius, data.XAxisModifier * 0.5f),
-                5 => new AOEShapeCircle(data.EffectRange + actor.HitboxRadius),
-                //10 => new AOEShapeDonut(actor.HitboxRadius, data.EffectRange), // TODO: find a way to determine inner radius (omen examples: 28762 - 4/40 - gl_sircle_4004bp1)
-                //12 => new AOEShapeRect(data.EffectRange, data.XAxisModifier * 0.5f),
-                //13 => new AOEShapeCone(data.EffectRange, DetermineConeAngle(data) * 0.5f),
-                _ => null
-            };
-            if (shape == null)
-            {
-                Service.Log($"[AvoidAOE] Unknown cast type {data.CastType} for {actor.CastInfo.Action}");
-                return;
-            }
-            var target = _ws.Actors.Find(actor.CastInfo.TargetID)?.Position ?? actor.CastInfo.LocXZ;
-            var s = _states[actor.InstanceID] = new(actor, shape, target);
-            _forbiddenDirty |= s.IncludedInResult;
-        }
-
-        private void OnCastFinished(object? sender, Actor actor)
-        {
-            var s = _states.GetValueOrDefault(actor.InstanceID);
-            if (s == null)
-                return;
-            _forbiddenDirty |= s.IncludedInResult;
-            _states.Remove(actor.InstanceID);
-        }
     }
 }

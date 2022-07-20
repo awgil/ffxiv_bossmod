@@ -10,6 +10,7 @@ namespace BossMod.Components
         public int MaxCasts { get; private init; } // used for staggered aoes, when showing all active would be pointless
         private List<Actor> _casters = new();
         public IReadOnlyList<Actor> Casters => _casters;
+        public IEnumerable<Actor> ActiveCasters => _casters.Take(MaxCasts);
 
         public SelfTargetedAOEs(ActionID aid, AOEShape shape, int maxCasts = int.MaxValue) : base(aid)
         {
@@ -19,13 +20,19 @@ namespace BossMod.Components
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_casters.Take(MaxCasts).Any(c => Shape.Check(actor.Position, c)))
+            if (ActiveCasters.Any(c => Shape.Check(actor.Position, c)))
                 hints.Add("GTFO from aoe!");
+        }
+
+        public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
+        {
+            foreach (var c in ActiveCasters)
+                zone.ForbidZone(Shape, c.Position, c.Rotation);
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var c in _casters.Take(MaxCasts))
+            foreach (var c in ActiveCasters)
                 Shape.Draw(arena, c);
         }
 

@@ -10,7 +10,6 @@ namespace BossMod.AI
 {
     class AIManager : IDisposable
     {
-        private WorldState _ws;
         private Autorotation _autorot;
         private AIController _controller;
         private AIConfig _config;
@@ -18,9 +17,8 @@ namespace BossMod.AI
         private AIBehaviour? _beh;
         private WindowManager.Window? _ui;
 
-        public AIManager(WorldState ws, InputOverride inputOverride, Autorotation autorot)
+        public AIManager(InputOverride inputOverride, Autorotation autorot)
         {
-            _ws = ws;
             _autorot = autorot;
             _controller = new(inputOverride, autorot);
             _config = Service.Config.Get<AIConfig>();
@@ -36,7 +34,7 @@ namespace BossMod.AI
         // called before autorotation update, should return effective target (player's normal target, unless overridden)
         public Actor? UpdateBeforeRotation()
         {
-            if (_ws.Party.ContentIDs[_masterSlot] == 0)
+            if (_autorot.WorldState.Party.ContentIDs[_masterSlot] == 0)
                 SwitchToIdle();
 
             if (!_config.Enabled && _beh != null)
@@ -44,8 +42,8 @@ namespace BossMod.AI
 
             if (_beh != null)
             {
-                var player = _ws.Party.Player();
-                var master = _ws.Party[_masterSlot];
+                var player = _autorot.WorldState.Party.Player();
+                var master = _autorot.WorldState.Party[_masterSlot];
                 if (player != null && master != null)
                 {
                     var aiTarget = _beh.UpdateTargeting(player, master);
@@ -54,13 +52,13 @@ namespace BossMod.AI
                 }
             }
 
-            return _ws.Actors.Find(_ws.Party.Player()?.TargetID ?? 0);
+            return _autorot.WorldState.Actors.Find(_autorot.WorldState.Party.Player()?.TargetID ?? 0);
         }
 
         public void UpdateAfterRotation(Actor? primaryTarget)
         {
-            var player = _ws.Party.Player();
-            var master = _ws.Party[_masterSlot];
+            var player = _autorot.WorldState.Party.Player();
+            var master = _autorot.WorldState.Party[_masterSlot];
             if (_beh != null && player != null && master != null)
             {
                 _beh.Execute(player, master, primaryTarget);
@@ -88,7 +86,7 @@ namespace BossMod.AI
 
         private void DrawOverlay()
         {
-            ImGui.TextUnformatted($"AI: {(_beh != null ? "on" : "off")}, master={_ws.Party[_masterSlot]?.Name}");
+            ImGui.TextUnformatted($"AI: {(_beh != null ? "on" : "off")}, master={_autorot.WorldState.Party[_masterSlot]?.Name}");
             ImGui.TextUnformatted($"Navi={_controller.NaviTargetPos}, action={_controller.PlannedAction}");
             _beh?.DrawDebug();
             if (ImGui.Button("Reset"))
@@ -97,7 +95,7 @@ namespace BossMod.AI
             if (ImGui.Button("Follow leader"))
             {
                 var leader = Service.PartyList[(int)Service.PartyList.PartyLeaderIndex];
-                int leaderSlot = leader != null ? _ws.Party.ContentIDs.IndexOf((ulong)leader.ContentId) : -1;
+                int leaderSlot = leader != null ? _autorot.WorldState.Party.ContentIDs.IndexOf((ulong)leader.ContentId) : -1;
                 SwitchToFollow(leaderSlot >= 0 ? leaderSlot : PartyState.PlayerSlot);
             }
         }
@@ -115,7 +113,7 @@ namespace BossMod.AI
         {
             SwitchToIdle();
             _masterSlot = masterSlot;
-            _beh = new AIBehaviour(_ws, _controller, _autorot);
+            _beh = new AIBehaviour(_controller, _autorot);
         }
 
         private int FindPartyMemberSlotFromSender(SeString sender)
@@ -126,7 +124,7 @@ namespace BossMod.AI
             var pm = Service.PartyList.FirstOrDefault(pm => pm.Name.TextValue == source.PlayerName && pm.World.Id == source.World.RowId);
             if (pm == null)
                 return -1;
-            return _ws.Party.ContentIDs.IndexOf((ulong)pm.ContentId);
+            return _autorot.WorldState.Party.ContentIDs.IndexOf((ulong)pm.ContentId);
         }
 
         private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)

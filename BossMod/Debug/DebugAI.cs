@@ -1,26 +1,21 @@
 ﻿using ImGuiNET;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod
 {
     class DebugAI : IDisposable
     {
-        private WorldState _ws;
         private Autorotation _autorot;
         private MiniArena _arena = new(new(), new ArenaBoundsCircle(new(), 10));
         private AI.AvoidAOE _avoid;
+        private float _arenaRadius = 10;
         private float _desiredRange = 5;
         private CommonActions.Positional _desiredPositional = CommonActions.Positional.Any;
 
-        public DebugAI(WorldState ws, Autorotation autorot)
+        public DebugAI(Autorotation autorot)
         {
-            _ws = ws;
             _autorot = autorot;
-            _avoid = new(ws);
+            _avoid = new(autorot.Bossmods);
         }
 
         public void Dispose()
@@ -30,6 +25,7 @@ namespace BossMod
 
         public void Draw()
         {
+            ImGui.SliderFloat("Radius", ref _arenaRadius, 5, 50);
             ImGui.SliderFloat("Max range", ref _desiredRange, 0, 25);
             ImGui.SameLine();
             if (ImGui.RadioButton("Any", _desiredPositional == CommonActions.Positional.Any))
@@ -41,16 +37,17 @@ namespace BossMod
             if (ImGui.RadioButton("Rear", _desiredPositional == CommonActions.Positional.Rear))
                 _desiredPositional = CommonActions.Positional.Rear;
 
-            var player = _ws.Party.Player();
+            var player = _autorot.WorldState.Party.Player();
             var playerPos = player?.Position ?? new();
-            var target = _ws.Actors.Find(player?.TargetID ?? 0);
+            var target = _autorot.WorldState.Actors.Find(player?.TargetID ?? 0);
             _avoid.SetDesired(target?.Position, target?.Rotation ?? new(), _desiredRange, _desiredPositional);
-            var safe = _avoid.Update(playerPos);
-            ImGui.TextUnformatted($"Safespot: {safe}");
+            var safe = player != null ? _avoid.Update(player) : null;
+            ImGui.TextUnformatted($"Safespot: {safe} ({_avoid.SafeZone.ChildCount})");
 
-            _arena.Bounds = new ArenaBoundsCircle(playerPos, 10);
+            _arena.Bounds = new ArenaBoundsCircle(playerPos, _arenaRadius);
+            var forbiddenZone = new Clip2D().Difference(SafeZone.DefaultBounds(playerPos), _avoid.SafeZone);
             _arena.Begin(Camera.Instance?.CameraAzimuth ?? 0);
-            _arena.Zone(Clip2D.Triangulate(_avoid.ForbiddenZone), ArenaColor.AOE);
+            _arena.Zone(Clip2D.Triangulate(forbiddenZone), ArenaColor.AOE);
             _arena.Zone(Clip2D.Triangulate(_avoid.DesiredZone), ArenaColor.SafeFromAOE);
             _arena.Actor(player, ArenaColor.PC);
             _arena.Actor(target, ArenaColor.Enemy);
@@ -86,7 +83,7 @@ namespace BossMod
             var data = a.CastInfo.IsSpell() ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(a.CastInfo.Action.ID) : null;
             if (data == null)
                 return $"unknown";
-            var origin = _ws.Actors.Find(a.CastInfo.TargetID)?.Position ?? a.CastInfo.LocXZ;
+            var origin = _autorot.WorldState.Actors.Find(a.CastInfo.TargetID)?.Position ?? a.CastInfo.LocXZ;
             switch (data.CastType)
             {
                 case 0:

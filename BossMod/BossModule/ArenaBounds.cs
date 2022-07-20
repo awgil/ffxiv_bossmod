@@ -39,8 +39,7 @@ namespace BossMod
             HalfSize = halfSize;
         }
 
-        protected abstract IEnumerable<WPos> BuildClipPoly();
-
+        public abstract IEnumerable<WPos> BuildClipPoly(float offset = 0); // positive offset increases area, negative decreases
         public abstract bool Contains(WPos p);
         public abstract WDir ClampToBounds(WDir offset, float scale = 1);
         public WPos ClampToBounds(WPos position) => Center + ClampToBounds(position - Center);
@@ -118,7 +117,7 @@ namespace BossMod
     {
         public ArenaBoundsCircle(WPos center, float radius) : base(center, radius) { }
 
-        protected override IEnumerable<WPos> BuildClipPoly() => CurveApprox.Circle(Center, HalfSize, MaxApproxError);
+        public override IEnumerable<WPos> BuildClipPoly(float offset) => CurveApprox.Circle(Center, HalfSize + offset, MaxApproxError);
         public override bool Contains(WPos position) => position.InCircle(Center, HalfSize);
 
         public override WDir ClampToBounds(WDir offset, float scale)
@@ -134,12 +133,13 @@ namespace BossMod
     {
         public ArenaBoundsSquare(WPos center, float halfWidth) : base(center, halfWidth) { }
 
-        protected override IEnumerable<WPos> BuildClipPoly()
+        public override IEnumerable<WPos> BuildClipPoly(float offset)
         {
-            yield return Center + new WDir( HalfSize, -HalfSize);
-            yield return Center + new WDir( HalfSize,  HalfSize);
-            yield return Center + new WDir(-HalfSize,  HalfSize);
-            yield return Center + new WDir(-HalfSize, -HalfSize);
+            var s = HalfSize + offset;
+            yield return Center + new WDir( s, -s);
+            yield return Center + new WDir( s,  s);
+            yield return Center + new WDir(-s,  s);
+            yield return Center + new WDir(-s, -s);
         }
 
         public override bool Contains(WPos position) => WPos.AlmostEqual(position, Center, HalfSize);

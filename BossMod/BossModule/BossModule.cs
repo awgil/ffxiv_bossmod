@@ -244,6 +244,14 @@ namespace BossMod
             return hints;
         }
 
+        public SafeZone CalculateSafeZone(int slot, Actor actor)
+        {
+            SafeZone zone = new(Bounds);
+            foreach (var comp in _components)
+                comp.UpdateSafeZone(this, slot, actor, zone);
+            return zone;
+        }
+
         // TODO: move to some better place...
         public static WPos AdjustPositionForKnockback(WPos pos, WPos origin, float distance)
         {
