@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
-    class ParhelicCircle : CommonComponents.CastCounter
+    class ParhelicCircle : Components.CastCounter
     {
         private List<WPos> _positions = new();
 

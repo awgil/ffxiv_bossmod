@@ -1,29 +1,29 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex3Endsigner
 {
     // raidwide is slightly delayed
-    class Elegeia : CommonComponents.CastCounter
+    class Elegeia : Components.CastCounter
     {
         public Elegeia() : base(ActionID.MakeSpell(AID.Elegeia)) { }
     }
 
-    class Telomania : CommonComponents.CastCounter
+    class Telomania : Components.CastCounter
     {
         public Telomania() : base(ActionID.MakeSpell(AID.TelomaniaLast)) { }
     }
 
-    class UltimateFate : CommonComponents.CastCounter
+    class UltimateFate : Components.CastCounter
     {
         public UltimateFate() : base(ActionID.MakeSpell(AID.EnrageAOE)) { }
     }
 
     // TODO: proper tankbuster component...
-    class Hubris : CommonComponents.CastCounter
+    class Hubris : Components.CastCounter
     {
         public Hubris() : base(ActionID.MakeSpell(AID.HubrisAOE)) { }
     }
 
     // TODO: proper stacks component
-    class Eironeia : CommonComponents.CastCounter
+    class Eironeia : Components.CastCounter
     {
         public Eironeia() : base(ActionID.MakeSpell(AID.EironeiaAOE)) { }
     }

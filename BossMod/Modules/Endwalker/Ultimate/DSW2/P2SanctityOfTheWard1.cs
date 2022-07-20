@@ -7,7 +7,7 @@ using System.Numerics;
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
     // eyes mechanics are quite standalone...
-    class P2SanctityOfTheWard1Gaze : CommonComponents.CastCounter
+    class P2SanctityOfTheWard1Gaze : Components.CastCounter
     {
         private WPos? _eyePosition;
 

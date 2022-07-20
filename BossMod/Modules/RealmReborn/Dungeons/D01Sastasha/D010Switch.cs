@@ -1,11 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 
-namespace BossMod.RealmReborn.Dungeons.D01Sastasha
+namespace BossMod.RealmReborn.Dungeons.D01Sastasha.D010Switch
 {
+    public enum OID : uint
+    {
+        Blue = 0x1E8554,
+        Red = 0x1E8A8C,
+        Green = 0x1E8A8D,
+    }
+
     class SwitchHint : BossComponent
     {
         private string _hint = "";
@@ -14,18 +17,9 @@ namespace BossMod.RealmReborn.Dungeons.D01Sastasha
         {
             if (_hint.Length == 0)
             {
-                foreach (var a in module.WorldState.Actors.Where(a => a.IsTargetable))
-                {
-                    _hint = a.OID switch
-                    {
-                        0x1E8554 => "blue",
-                        0x1E8A8D => "green",
-                        0x1E8A8C => "red",
-                        _ => ""
-                    };
-                    if (_hint.Length > 0)
-                        break;
-                }
+                var a = module.WorldState.Actors.FirstOrDefault(a => a.IsTargetable && (OID)a.OID is OID.Blue or OID.Red or OID.Green);
+                if (a != null)
+                    _hint = ((OID)a.OID).ToString();
             }
             hints.Add($"Correct switch: {_hint}");
         }
@@ -39,7 +33,7 @@ namespace BossMod.RealmReborn.Dungeons.D01Sastasha
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = 0x1E8554)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.Blue)]
     public class D010Switch : BossModule
     {
         public D010Switch(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(primary.Position, 20))

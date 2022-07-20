@@ -1,12 +1,12 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex1Zodiark
 {
     // simple component tracking raidwide cast at the end of intermission
-    public class Apomnemoneumata : CommonComponents.CastCounter
+    public class Apomnemoneumata : Components.CastCounter
     {
         public Apomnemoneumata() : base(ActionID.MakeSpell(AID.ApomnemoneumataNormal)) { }
     }
 
-    public class Phlegethon : CommonComponents.Puddles
+    public class Phlegethon : Components.LocationTargetedAOEs
     {
         public Phlegethon() : base(ActionID.MakeSpell(AID.PhlegetonAOE), 5) { }
     }

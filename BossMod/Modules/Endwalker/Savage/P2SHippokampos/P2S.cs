@@ -5,7 +5,7 @@
         public DoubledImpact() : base(ActionID.MakeSpell(AID.DoubledImpact), 6) { }
     }
 
-    class SewageEruption : CommonComponents.Puddles
+    class SewageEruption : Components.LocationTargetedAOEs
     {
         public SewageEruption() : base(ActionID.MakeSpell(AID.SewageEruptionAOE), 6) { }
     }

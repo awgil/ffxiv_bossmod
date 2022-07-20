@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW2
 {
-    class P2AscalonMight : CommonComponents.CastCounter
+    class P2AscalonMight : Components.CastCounter
     {
         private static AOEShapeCone _aoe = new(50, 30.Degrees());
 

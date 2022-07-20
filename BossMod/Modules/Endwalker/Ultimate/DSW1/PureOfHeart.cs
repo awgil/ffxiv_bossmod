@@ -4,7 +4,7 @@ using System.Linq;
 namespace BossMod.Endwalker.Ultimate.DSW1
 {
     // counts cone casts; do we also care about shockwaves?..
-    class PureOfHeart : CommonComponents.CastCounter
+    class PureOfHeart : Components.CastCounter
     {
         private List<Actor> _skyblindCasters = new();
         private Actor? _boss;

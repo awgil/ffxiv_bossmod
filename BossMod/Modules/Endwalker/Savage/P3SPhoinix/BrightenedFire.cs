@@ -4,7 +4,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
     // state related to brightened fire mechanic
     // this helper relies on waymarks 1-4, and assumes they don't change during fight - this is of course quite an assumption, but whatever...
-    class BrightenedFire : CommonComponents.CastCounter
+    class BrightenedFire : Components.CastCounter
     {
         private int[] _playerOrder = new int[8]; // 0 if unknown, 1-8 otherwise
 

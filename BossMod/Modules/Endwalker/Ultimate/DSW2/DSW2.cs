@@ -2,17 +2,17 @@
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
-    class P2AscalonMercy : CommonComponents.SelfTargetedAOE
+    class P2AscalonMercy : Components.SelfTargetedAOEs
     {
         public P2AscalonMercy() : base(ActionID.MakeSpell(AID.AscalonsMercyConcealedAOE), new AOEShapeCone(50, 15.Degrees())) { }
     }
 
-    class P2UltimateEnd : CommonComponents.CastCounter
+    class P2UltimateEnd : Components.CastCounter
     {
         public P2UltimateEnd() : base(ActionID.MakeSpell(AID.UltimateEndAOE)) { }
     }
 
-    class P3Drachenlance : CommonComponents.SelfTargetedAOE
+    class P3Drachenlance : Components.SelfTargetedAOEs
     {
         public P3Drachenlance() : base(ActionID.MakeSpell(AID.DrachenlanceAOE), new AOEShapeCone(13, 45.Degrees())) { }
     }

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW2
 {
-    class P2BroadSwing : CommonComponents.CastCounter
+    class P2BroadSwing : Components.CastCounter
     {
         private Actor? _caster;
         private bool _lr;

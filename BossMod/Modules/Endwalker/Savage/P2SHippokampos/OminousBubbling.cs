@@ -2,7 +2,7 @@
 
 namespace BossMod.Endwalker.Savage.P2SHippokampos
 {
-    class OminousBubbling : CommonComponents.CastCounter
+    class OminousBubbling : Components.CastCounter
     {
         private static float _radius = 6;
 

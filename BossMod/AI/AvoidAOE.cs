@@ -233,7 +233,7 @@ namespace BossMod.AI
                 3 => new AOEShapeCone(data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data) * 0.5f),
                 4 => new AOEShapeRect(data.EffectRange + actor.HitboxRadius, data.XAxisModifier * 0.5f),
                 5 => new AOEShapeCircle(data.EffectRange + actor.HitboxRadius),
-                //10 => new AOEShapeDonut(actor.HitboxRadius, data.EffectRange), // TODO: find a way to determine inner radius
+                //10 => new AOEShapeDonut(actor.HitboxRadius, data.EffectRange), // TODO: find a way to determine inner radius (omen examples: 28762 - 4/40 - gl_sircle_4004bp1)
                 //12 => new AOEShapeRect(data.EffectRange, data.XAxisModifier * 0.5f),
                 //13 => new AOEShapeCone(data.EffectRange, DetermineConeAngle(data) * 0.5f),
                 _ => null

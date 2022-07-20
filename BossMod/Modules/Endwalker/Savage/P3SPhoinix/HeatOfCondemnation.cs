@@ -3,7 +3,7 @@
 namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
     // state related to heat of condemnation tethers
-    class HeatOfCondemnation : CommonComponents.CastCounter
+    class HeatOfCondemnation : Components.CastCounter
     {
         private BitMask _tetherTargets;
         private BitMask _inAnyAOE; // players hit by aoe, excluding selves

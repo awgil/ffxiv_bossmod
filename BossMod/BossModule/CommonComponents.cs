@@ -3,26 +3,9 @@ using System.Linq;
 
 namespace BossMod
 {
+    // legacy, these components should be reviewed and moved into Components dir/ns
     public static class CommonComponents
     {
-        // generic component that counts specified casts
-        public class CastCounter : BossComponent
-        {
-            public int NumCasts { get; private set; } = 0;
-            protected ActionID WatchedAction { get; private set; }
-
-            public CastCounter(ActionID aid)
-            {
-                WatchedAction = aid;
-            }
-
-            public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-            {
-                if (spell.Action == WatchedAction)
-                    ++NumCasts;
-            }
-        }
-
         // generic 'shared tankbuster' component that shows radius around cast target; assumes only 1 concurrent cast is active
         public class SharedTankbuster : BossComponent
         {
@@ -80,7 +63,7 @@ namespace BossMod
 
         // generic 'stack to target' component that shows radius around specific actor; derived class should set actor as needed
         // it is also a cast counter
-        public class FullPartyStack : CastCounter
+        public class FullPartyStack : Components.CastCounter
         {
             protected float StackRadius;
             protected Actor? Target;
@@ -175,91 +158,8 @@ namespace BossMod
             }
         }
 
-        // generic 'puddles' component that shows circle aoes for casters that target specific location
-        public class Puddles : BossComponent
-        {
-            public bool Done { get; private set; } // set when currently there are no casters, but at least 1 cast was started before
-            private ActionID _watchedAction;
-            private AOEShapeCircle _aoe;
-            private List<Actor> _casters = new();
-
-            public Puddles(ActionID aid, float radius)
-            {
-                _watchedAction = aid;
-                _aoe = new(radius);
-            }
-
-            public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-            {
-                if (_casters.Any(c => _aoe.Check(actor.Position, c.CastInfo!.LocXZ)))
-                    hints.Add("GTFO from puddle!");
-            }
-
-            public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-            {
-                foreach (var c in _casters)
-                    _aoe.Draw(arena, c.CastInfo!.LocXZ);
-            }
-
-            public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-            {
-                if (spell.Action == _watchedAction)
-                {
-                    _casters.Add(caster);
-                    Done = false;
-                }
-            }
-
-            public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-            {
-                if (spell.Action == _watchedAction)
-                {
-                    _casters.Remove(caster);
-                    Done = _casters.Count == 0;
-                }
-            }
-        }
-
-        // generic component that shows user-defined shape for any number of active casters with self-targeted casts
-        public class SelfTargetedAOE : CastCounter
-        {
-            private AOEShape _shape;
-            private int _maxCasts;
-            private List<Actor> _casters = new();
-
-            public SelfTargetedAOE(ActionID aid, AOEShape shape, int maxCasts = int.MaxValue) : base(aid)
-            {
-                _shape = shape;
-                _maxCasts = maxCasts;
-            }
-
-            public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-            {
-                if (_casters.Take(_maxCasts).Any(c => _shape.Check(actor.Position, c)))
-                    hints.Add("GTFO from aoe!");
-            }
-
-            public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-            {
-                foreach (var c in _casters.Take(_maxCasts))
-                    _shape.Draw(arena, c);
-            }
-
-            public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-            {
-                if (spell.Action == WatchedAction)
-                    _casters.Add(caster);
-            }
-
-            public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-            {
-                if (spell.Action == WatchedAction)
-                    _casters.Remove(caster);
-            }
-        }
-
         // generic knockback from caster component (TODO: detect knockback immunity)
-        public class KnockbackFromCaster : CastCounter
+        public class KnockbackFromCaster : Components.CastCounter
         {
             private float _distance;
             private Actor? _caster;
@@ -300,52 +200,6 @@ namespace BossMod
             {
                 if (_caster == caster)
                     _caster = null;
-            }
-        }
-
-        // generic component that is 'active' during specific primary target's cast
-        // useful for simple bosses - outdoor, dungeons, etc.
-        public class CastHint : BossComponent
-        {
-            protected ActionID _action;
-            protected string _hint;
-
-            public CastHint(ActionID action, string hint)
-            {
-                _action = action;
-                _hint = hint;
-            }
-
-            public bool Active(BossModule module) => module.PrimaryActor.CastInfo?.Action == _action;
-
-            public override void AddGlobalHints(BossModule module, GlobalHints hints)
-            {
-                if (Active(module))
-                    hints.Add(_hint);
-            }
-        }
-
-        // generic avoidable aoe
-        public class CastHintAvoidable : CastHint
-        {
-            protected AOEShape _shape;
-
-            public CastHintAvoidable(ActionID action, AOEShape shape)
-                : base(action, "Avoidable AOE")
-            {
-                _shape = shape;
-            }
-
-            public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-            {
-                if (Active(module) && _shape.Check(actor.Position, module.PrimaryActor))
-                    hints.Add("GTFO from aoe!");
-            }
-
-            public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-            {
-                if (Active(module))
-                    _shape.Draw(arena, module.PrimaryActor);
             }
         }
 

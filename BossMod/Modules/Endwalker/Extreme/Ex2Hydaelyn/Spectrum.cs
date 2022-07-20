@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
-    class Spectrum : CommonComponents.CastCounter
+    class Spectrum : Components.CastCounter
     {
         private static float _radius = 5;
 

@@ -3,12 +3,12 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
-    class P2SanctityOfTheWard2HeavensStakeCircles : CommonComponents.Puddles
+    class P2SanctityOfTheWard2HeavensStakeCircles : Components.LocationTargetedAOEs
     {
         public P2SanctityOfTheWard2HeavensStakeCircles() : base(ActionID.MakeSpell(AID.HeavensStakeAOE), 7) { }
     }
 
-    class P2SanctityOfTheWard2HeavensStakeDonut : CommonComponents.SelfTargetedAOE
+    class P2SanctityOfTheWard2HeavensStakeDonut : Components.SelfTargetedAOEs
     {
         public P2SanctityOfTheWard2HeavensStakeDonut() : base(ActionID.MakeSpell(AID.HeavensStakeDonut), new AOEShapeDonut(15, 30)) { }
     }

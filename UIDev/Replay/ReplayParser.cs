@@ -185,7 +185,7 @@ namespace UIDev
             p.HPHistory.Add(_ws.CurrentTime, actor.HP);
             _res.Participants.Add(p);
             foreach (var e in _modules.Values)
-                if (e.Encounter != null)
+                if (e.ActiveState != null)
                     e.Encounter.Participants.GetOrAdd(p.OID).Add(p);
         }
 

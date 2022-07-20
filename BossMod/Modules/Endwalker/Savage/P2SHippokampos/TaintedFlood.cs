@@ -3,7 +3,7 @@
 namespace BossMod.Endwalker.Savage.P2SHippokampos
 {
     // note: if activated together with ChannelingFlow, it does not target next flow arrows
-    class TaintedFlood : CommonComponents.CastCounter
+    class TaintedFlood : Components.CastCounter
     {
         private BitMask _ignoredTargets;
 

@@ -2,7 +2,7 @@
 {
     // state related to elegant evisceration mechanic (dual hit tankbuster)
     // TODO: consider showing some tank swap / invul hint...
-    public class ElegantEvisceration : CommonComponents.CastCounter
+    public class ElegantEvisceration : Components.CastCounter
     {
         public ElegantEvisceration() : base(ActionID.MakeSpell(AID.ElegantEviscerationSecond)) { }
     }

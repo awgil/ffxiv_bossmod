@@ -5,32 +5,32 @@
         public WardensWarmth() : base(ActionID.MakeSpell(AID.WardensWarmthAOE), 6) { }
     }
 
-    class SolarWingsL : CommonComponents.SelfTargetedAOE
+    class SolarWingsL : Components.SelfTargetedAOEs
     {
         public SolarWingsL() : base(ActionID.MakeSpell(AID.SolarWingsL), new AOEShapeCone(30, 67.5f.Degrees(), 90.Degrees())) { }
     }
 
-    class SolarWingsR : CommonComponents.SelfTargetedAOE
+    class SolarWingsR : Components.SelfTargetedAOEs
     {
         public SolarWingsR() : base(ActionID.MakeSpell(AID.SolarWingsR), new AOEShapeCone(30, 67.5f.Degrees(), -90.Degrees())) { }
     }
 
-    class FleetingSpark : CommonComponents.SelfTargetedAOE
+    class FleetingSpark : Components.SelfTargetedAOEs
     {
         public FleetingSpark() : base(ActionID.MakeSpell(AID.FleetingSpark), new AOEShapeCone(60, 135.Degrees())) { }
     }
 
-    class SolarFold : CommonComponents.SelfTargetedAOE
+    class SolarFold : Components.SelfTargetedAOEs
     {
         public SolarFold() : base(ActionID.MakeSpell(AID.SolarFoldAOE), new AOEShapeMulti(new AOEShape[] { new AOEShapeRect(30, 5, 30), new AOEShapeRect(5, 30, 5) })) { }
     }
 
-    class Sunbeam : CommonComponents.SelfTargetedAOE
+    class Sunbeam : Components.SelfTargetedAOEs
     {
         public Sunbeam() : base(ActionID.MakeSpell(AID.Sunbeam), new AOEShapeCircle(9), 14) { }
     }
 
-    class SublimeSunset : CommonComponents.Puddles
+    class SublimeSunset : Components.LocationTargetedAOEs
     {
         public SublimeSunset() : base(ActionID.MakeSpell(AID.SublimeSunsetAOE), 40) { } // TODO: check falloff
     }

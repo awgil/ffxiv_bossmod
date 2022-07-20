@@ -2,12 +2,12 @@
 
 namespace BossMod.Endwalker.Ultimate.DSW1
 {
-    class EmptyDimension : CommonComponents.SelfTargetedAOE
+    class EmptyDimension : Components.SelfTargetedAOEs
     {
         public EmptyDimension() : base(ActionID.MakeSpell(AID.EmptyDimension), new AOEShapeDonut(6, 70)) {}
     }
 
-    class FullDimension : CommonComponents.SelfTargetedAOE
+    class FullDimension : Components.SelfTargetedAOEs
     {
         public FullDimension() : base(ActionID.MakeSpell(AID.FullDimension), new AOEShapeCircle(6)) { }
     }

@@ -4,7 +4,7 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
 {
     // state related to coherence mechanic
     // TODO: i'm not 100% sure how exactly it selects target for aoe ray, I assume it is closest player except tether target?..
-    class Coherence : CommonComponents.CastCounter
+    class Coherence : Components.CastCounter
     {
         private Actor? _tetherTarget;
         private Actor? _rayTarget;

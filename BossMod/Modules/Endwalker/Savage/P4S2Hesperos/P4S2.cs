@@ -8,7 +8,7 @@
 
     // state related to heart stake mechanic (dual hit tankbuster with bleed)
     // TODO: consider showing some tank swap / invul hint...
-    class HeartStake : CommonComponents.CastCounter
+    class HeartStake : Components.CastCounter
     {
         public HeartStake() : base(ActionID.MakeSpell(AID.HeartStakeSecond)) { }
     }

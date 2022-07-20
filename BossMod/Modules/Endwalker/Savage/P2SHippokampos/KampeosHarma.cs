@@ -2,7 +2,7 @@
 {
     // state related to kampeos harma mechanic
     // note that it relies on waymarks to determine safe spots...
-    class KampeosHarma : CommonComponents.CastCounter
+    class KampeosHarma : Components.CastCounter
     {
         private WDir _startingOffset;
         private int[] _playerOrder = new int[8]; // 0 if unknown, then sq1 sq2 sq3 sq4 tri1 tri2 tri3 tri4

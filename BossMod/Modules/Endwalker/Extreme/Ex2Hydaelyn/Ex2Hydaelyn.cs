@@ -7,13 +7,13 @@
     }
 
     // cast counter for pre-intermission AOE
-    class PureCrystal : CommonComponents.CastCounter
+    class PureCrystal : Components.CastCounter
     {
         public PureCrystal() : base(ActionID.MakeSpell(AID.PureCrystal)) { }
     }
 
     // cast counter for post-intermission AOE
-    class Exodus : CommonComponents.CastCounter
+    class Exodus : Components.CastCounter
     {
         public Exodus() : base(ActionID.MakeSpell(AID.Exodus)) { }
     }

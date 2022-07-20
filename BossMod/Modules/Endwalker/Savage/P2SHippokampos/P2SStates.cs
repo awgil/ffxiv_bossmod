@@ -166,7 +166,7 @@
             Dissociation(id, delay);
             SewageEruption(id + 0x1000, 8.3f)
                 .SetHint(StateMachine.StateHint.PositioningStart);
-            ComponentCondition<SewageEruption>(id + 0x2000, 7.6f, comp => comp.Done, "Resolve")
+            ComponentCondition<SewageEruption>(id + 0x2000, 7.6f, comp => comp.Casters.Count == 0 && comp.NumCasts > 0, "Resolve")
                 .DeactivateOnExit<Dissociation>() // resolve happens at the same time as the first set of eruptions
                 .DeactivateOnExit<SewageEruption>()
                 .SetHint(StateMachine.StateHint.PositioningEnd);
