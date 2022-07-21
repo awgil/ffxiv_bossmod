@@ -331,9 +331,10 @@ namespace BossMod
             // a5==1 means "forced"?
             // a4==0 for spells, 65535 for item used from hotbar, some value (e.g. 6) for item used from inventory; it is the same as a4 in UseActionLocation
             var action = new ActionID(actionType, actionID);
+            //Service.Log($"UA: {action} @ {targetID:X}: {a4} {a5} {a6} {a7}");
             if (_classActions != null && !DisableReplacement)
             {
-                (action, targetID) = _classActions.ReplaceActionAndTarget(action, targetID);
+                (action, targetID) = _classActions.ReplaceActionAndTarget(action, targetID, a5 != 0);
                 if (a4 == 0 && action.Type == ActionType.Item)
                     a4 = 65535;
             }

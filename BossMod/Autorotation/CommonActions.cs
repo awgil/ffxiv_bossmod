@@ -175,20 +175,23 @@ namespace BossMod
             _sq.Active = state.GCD > 0 || state.AnimationLock > 0;
         }
 
-        public (ActionID, ulong) ReplaceActionAndTarget(ActionID actionID, ulong targetID)
+        public (ActionID, ulong) ReplaceActionAndTarget(ActionID actionID, ulong targetID, bool forced)
         {
             var targets = new Targets() { MainTarget = targetID, MouseoverTarget = Mouseover.Instance?.Object?.ObjectId ?? 0 };
-            if (Autorot.Config.SmartCooldownQueueing && _sq.Active)
+            if (!forced)
             {
-                var e = _sq.Entries.GetValueOrDefault(actionID);
-                if (e != null)
+                if (Autorot.Config.SmartCooldownQueueing && _sq.Active)
                 {
-                    Log($"Smart-queueing {actionID} @ {targetID:X}");
-                    e.ActivateManual(Autorot.WorldState.CurrentTime, targets);
-                    (actionID, targets) = _sq.Replacement;
+                    var e = _sq.Entries.GetValueOrDefault(actionID);
+                    if (e != null)
+                    {
+                        Log($"Smart-queueing {actionID} @ {targets.MainTarget:X} / {targets.MouseoverTarget:X}");
+                        e.ActivateManual(Autorot.WorldState.CurrentTime, targets);
+                        (actionID, targets) = _sq.Replacement;
+                    }
                 }
+                _sq.Replacement = (actionID, targets); // if we're not smart-queueing, update replacement to last action
             }
-            _sq.Replacement = (actionID, targets); // if we're not smart-queueing, update replacement to last action
 
             return DoReplaceActionAndTarget(actionID, targets);
         }
@@ -269,6 +272,20 @@ namespace BossMod
             }
 
             return null;
+        }
+
+        // smart targeting utility: return mouseover (if hostile and allowed) or target (otherwise)
+        protected Actor? SmartTargetHostile(ActionID action, Targets targets, bool allowMouseover)
+        {
+            targets = SmartQueueTarget(action, targets);
+            if (allowMouseover)
+            {
+                var target = Autorot.WorldState.Actors.Find(targets.MouseoverTarget);
+                if (target?.Type == ActorType.Enemy && !target.IsAlly)
+                    return target;
+            }
+
+            return Autorot.WorldState.Actors.Find(targets.MainTarget);
         }
 
         // smart targeting utility: return target (if friendly) or mouseover (if friendly and allowed) or other tank (if available and allowed) or null (otherwise)

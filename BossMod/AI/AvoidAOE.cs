@@ -121,7 +121,7 @@ namespace BossMod.AI
         public WPos? Update(Actor player)
         {
             // update forbidden zone
-            var z = _bmm.ActiveModule != null ? _bmm.ActiveModule.CalculateSafeZone(PartyState.PlayerSlot, player) : _autoAOEs.CalculateSafeZone(player.Position);
+            var z = _bmm.ActiveModule?.StateMachine.ActiveState != null ? _bmm.ActiveModule.CalculateSafeZone(PartyState.PlayerSlot, player) : _autoAOEs.CalculateSafeZone(player.Position);
             SafeZone = z.Result;
             if (SafeZone.ChildCount > 0)
             {

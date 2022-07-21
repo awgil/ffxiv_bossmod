@@ -78,6 +78,7 @@ namespace BossMod
             ulong targetID = actionID.Type == ActionType.Spell ? (PLDRotation.AID)actionID.ID switch
             {
                 PLDRotation.AID.Shirk => SmartTargetCoTank(actionID, targets, _config.SmartShirkTarget)?.InstanceID ?? targets.MainTarget,
+                PLDRotation.AID.Provoke => SmartTargetHostile(actionID, targets, _config.ProvokeMouseover)?.InstanceID ?? targets.MainTarget,
                 _ => targets.MainTarget
             } : targets.MainTarget;
             return (actionID, targetID);

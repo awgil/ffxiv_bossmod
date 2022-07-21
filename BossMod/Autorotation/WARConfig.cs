@@ -15,6 +15,9 @@
         [PropertyDisplay("Smart targeting for Shirk and Nascent Flash (target if friendly, otherwise mouseover if friendly, otherwise offtank if available)")]
         public bool SmartNascentFlashShirkTarget = true;
 
+        [PropertyDisplay("Use provoke on mouseover, if available and hostile")]
+        public bool ProvokeMouseover = true;
+
         [PropertyDisplay("Use self for holmgang target")]
         public bool HolmgangSelf = true;
     }

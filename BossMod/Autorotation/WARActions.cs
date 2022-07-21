@@ -186,6 +186,7 @@ namespace BossMod
             ulong targetID = actionID.Type == ActionType.Spell ? (WARRotation.AID)actionID.ID switch
             {
                 WARRotation.AID.NascentFlash or WARRotation.AID.Shirk => SmartTargetCoTank(actionID, targets, _config.SmartNascentFlashShirkTarget)?.InstanceID ?? targets.MainTarget,
+                WARRotation.AID.Provoke => SmartTargetHostile(actionID, targets, _config.ProvokeMouseover)?.InstanceID ?? targets.MainTarget,
                 WARRotation.AID.Holmgang => _config.HolmgangSelf ? Player.InstanceID : targets.MainTarget,
                 _ => targets.MainTarget
             } : targets.MainTarget;
