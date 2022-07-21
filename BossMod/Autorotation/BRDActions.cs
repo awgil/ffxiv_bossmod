@@ -78,7 +78,7 @@ namespace BossMod
 
         public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget)
         {
-            if (_strategy.Prepull && _state.UnlockedPeloton && _state.PelotonCD == 0 && _state.PelotonLeft == 0)
+            if (_strategy.Prepull && _state.UnlockedPeloton && _state.PelotonCD == 0 && _state.PelotonLeft == 0 && _state.Moving)
             {
                 return new() { Action = ActionID.MakeSpell(BRDRotation.AID.Peloton), Target = player };
             }
@@ -123,6 +123,9 @@ namespace BossMod
                         break;
                     case BRDRotation.SID.Barrage:
                         s.BarrageLeft = StatusDuration(status.ExpireAt);
+                        break;
+                    case BRDRotation.SID.Peloton:
+                        s.PelotonLeft = StatusDuration(status.ExpireAt);
                         break;
                 }
             }

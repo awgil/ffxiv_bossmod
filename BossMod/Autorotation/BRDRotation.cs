@@ -66,6 +66,7 @@ namespace BossMod
             Windbite = 129,
             RagingStrikes = 125,
             Barrage = 128,
+            Peloton = 1199,
             CausticBite = 1200,
             Stormbite = 1201,
         }
