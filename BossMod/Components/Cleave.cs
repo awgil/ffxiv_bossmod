@@ -15,6 +15,7 @@ namespace BossMod.Components
         public Cleave(ActionID aid, AOEShape shape, uint enemyOID = 0) : base(aid)
         {
             Shape = shape;
+            EnemyOID = enemyOID;
         }
 
         public override void Init(BossModule module)

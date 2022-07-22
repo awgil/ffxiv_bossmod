@@ -13,6 +13,21 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public P1FluidStrike() : base(ActionID.MakeSpell(AID.FluidSwing), new AOEShapeCone(11.5f, 45.Degrees()), (uint)OID.LiquidHand) { }
     }
 
+    class P1Sluice : Components.LocationTargetedAOEs
+    {
+        public P1Sluice() : base(ActionID.MakeSpell(AID.Sluice), 5) { }
+    }
+
+    class P1Splash : Components.CastCounter
+    {
+        public P1Splash() : base(ActionID.MakeSpell(AID.Splash)) { }
+    }
+
+    class P1Drainage : Components.TankbusterTether
+    {
+        public P1Drainage() : base(ActionID.MakeSpell(AID.Drainage), (uint)TetherID.Drainage, 6) { }
+    }
+
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1)]
     public class TEA : BossModule
     {

@@ -261,7 +261,10 @@ namespace UIDev
             DrawEnemyTable(_mgr.ActiveModule.PrimaryActor.OID, new Actor[] { _mgr.ActiveModule.PrimaryActor });
             foreach ((var oid, var list) in _mgr.ActiveModule.RelevantEnemies)
             {
-                DrawEnemyTable(oid, list);
+                if (oid != _mgr.ActiveModule.PrimaryActor.OID)
+                {
+                    DrawEnemyTable(oid, list);
+                }
             }
         }
 

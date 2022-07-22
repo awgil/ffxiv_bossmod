@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.Alliance.A3Azeyma
         {
             if ((AID)spell.Action.ID == AID.HauteAirWings)
             {
-                var closestSunstorm = module.Enemies(OID.Sunstorm).MinBy(s => (s.Position - caster.Position).LengthSq());
+                var closestSunstorm = module.Enemies(OID.Sunstorm).Closest(caster.Position);
                 if (closestSunstorm != null)
                 {
                     _sunstorms[closestSunstorm.InstanceID] = closestSunstorm.Position + _kickDistance * caster.Rotation.ToDirection();

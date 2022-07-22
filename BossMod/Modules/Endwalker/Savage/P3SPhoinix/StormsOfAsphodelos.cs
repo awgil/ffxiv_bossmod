@@ -47,7 +47,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
 
             foreach (var twister in module.Enemies(OID.DarkblazeTwister))
             {
-                var target = module.Raid.WithoutSlot().MinBy(a => (a.Position - twister.Position).LengthSq());
+                var target = module.Raid.WithoutSlot().Closest(twister.Position);
                 if (target == null)
                     continue; // there are no alive players - target list will be left empty
 

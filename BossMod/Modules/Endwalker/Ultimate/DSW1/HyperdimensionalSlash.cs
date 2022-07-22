@@ -36,7 +36,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 }
             }
 
-            var coneTarget = module.Raid.WithoutSlot().MinBy(a => (a.Position - module.Bounds.Center).LengthSq());
+            var coneTarget = module.Raid.WithoutSlot().Closest(module.Bounds.Center);
             _coneDir = coneTarget != null ? Angle.FromDirection(coneTarget.Position - module.Bounds.Center) : 0.Degrees();
         }
 

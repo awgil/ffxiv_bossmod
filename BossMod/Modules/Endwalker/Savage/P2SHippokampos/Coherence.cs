@@ -18,7 +18,7 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
         public override void Update(BossModule module)
         {
             _inRay.Reset();
-            _rayTarget = module.Raid.WithoutSlot().Exclude(_tetherTarget).MinBy(a => (a.Position - module.PrimaryActor.Position).LengthSq());
+            _rayTarget = module.Raid.WithoutSlot().Exclude(_tetherTarget).Closest(module.PrimaryActor.Position);
             if (_rayTarget != null)
             {
                 _rayShape.DirectionOffset = Angle.FromDirection(_rayTarget.Position - module.PrimaryActor.Position);

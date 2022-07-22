@@ -138,5 +138,8 @@ namespace BossMod
                 .OrderBy(indexPlayerDist => indexPlayerDist.Item3)
                 .Select(indexPlayerDist => (indexPlayerDist.Item1, indexPlayerDist.Item2));
         }
+
+        // find closest actor to point
+        public static Actor? Closest(this IEnumerable<Actor> range, WPos origin) => range.MinBy(a => (a.Position - origin).LengthSq());
     }
 }

@@ -2,8 +2,10 @@
 
 namespace BossMod.Shadowbringers.Ultimate.TEA
 {
-    class P1HPDiffCheck : BossComponent
+    class P1HandOfPain : Components.CastCounter
     {
+        public P1HandOfPain() : base(ActionID.MakeSpell(AID.HandOfPain)) { }
+
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             var boss = module.Enemies(OID.BossP1).FirstOrDefault();

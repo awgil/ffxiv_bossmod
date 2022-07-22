@@ -35,17 +35,17 @@
         HandOfPrayer = 18475, // LiquidHand->self, no cast, raidwide (damage depends on distance to boss)
         HandOfParting = 18476, // LiquidHand->self, no cast, raidwide (damage depends on distance to boss)
         HandOfPain = 18477, // LiquidHand->self, 3.0s cast, raidwide (huge damage if hp diff is large)
-        ProteanWave1Vis = 18869, // Helper->self, 3.0s cast, range 40 30-degree cone (visible/avoidable, baited to closest)
-        ProteanWave1Invis = 18870, // Helper->self, no cast, range 40 30-degree cone (invisible/unavoidable, baited to closest)
+        ProteanWaveTornadoVis = 18869, // Helper->self, 3.0s cast, range 40 30-degree cone (visible/avoidable, baited to closest)
+        ProteanWaveTornadoInvis = 18870, // Helper->self, no cast, range 40 30-degree cone (invisible/unavoidable, baited to closest)
         Exhaust = 18462, // JagdDoll->self, no cast, range 8.8 aoe
         ReducibleComplexity = 18464, // JagdDoll->self, no cast, raidwide on feeding (huge damage if >25%)
         ReducibleComplexityFail = 18465, // JagdDoll->self, no cast, insta kill
         Pressurize = 18473, // LiquidRage->self, no cast, spawns embolus
         Outburst = 18474, // Embolus->self, no cast, raidwide if touched
-        ProteanWave2VisBoss = 18466, // BossP1->self, 3.0s cast, range 40 30-degree cone
-        ProteanWave2VisHelper = 18468, // Helper->self, 3.0s cast, range 40 30-degree cone
-        ProteanWave2InvisBoss = 18467, // BossP1->self, no cast, range 40 30-degree cone (not baited - "shadow" wave)
-        ProteanWave2InvisHelper = 18469, // Helper->self, no cast, range 40 30-degree cone (baited to 4 closest)
+        ProteanWaveLiquidVisBoss = 18466, // BossP1->self, 3.0s cast, range 40 30-degree cone
+        ProteanWaveLiquidVisHelper = 18468, // Helper->self, 3.0s cast, range 40 30-degree cone
+        ProteanWaveLiquidInvisBoss = 18467, // BossP1->self, no cast, range 40 30-degree cone (not baited - "shadow" wave)
+        ProteanWaveLiquidInvisHelper = 18469, // Helper->self, no cast, range 40 30-degree cone (baited to 4 closest)
         Sluice = 18865, // Helper->location, 3.0s cast, range 5 puddle (baited to 4 farthest)
         Splash = 18866, // BossP1->self, no cast, raidwide - 6 hits in succession
         Drainage = 18471, // LiquidRage->players, no cast, range 6 aoe tankbuster on tethered target
@@ -61,6 +61,7 @@
     public enum TetherID : uint
     {
         None = 0,
+        Drainage = 3, // LiquidRage->player
     }
 
     public enum IconID : uint
