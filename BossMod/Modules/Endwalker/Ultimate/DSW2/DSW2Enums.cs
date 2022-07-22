@@ -115,6 +115,12 @@
 
         Drachenlance = 26379, // BossP3->self, 2.9s cast, visual
         DrachenlanceAOE = 26380, // Helper->self, 3.5s cast, range 13 90-degree cone
+
+        DarkdragonDive1 = 26391,// NidhoggDrake->self, 2.5s cast, range 5 tower aoe, should be soaked by 1 person
+        DarkdragonDive2 = 26392,// NidhoggDrake->self, 2.5s cast, range 5 tower aoe, should be soaked by 2 persons
+        DarkdragonDive3 = 26393,// NidhoggDrake->self, 2.5s cast, range 5 tower aoe, should be soaked by 3 persons
+        DarkdragonDive4 = 26394,// NidhoggDrake->self, 2.5s cast, range 5 tower aoe, should be soaked by 4 persons
+        SoulTether = 26396, // BossP3/NidhoggDrake->player, no cast, range 5 aoe tankbuster on tether targets
     };
 
     public enum SID : uint

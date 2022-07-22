@@ -58,11 +58,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private AOEShape? _nextAOE;
         private List<WPos> _predictedTowers = new();
         private List<Actor> _castingTowers = new();
-        private List<Actor> _castingGeirskoguls = new();
 
         private static AOEShapeCircle _aoeGnash = new(8);
         private static AOEShapeDonut _aoeLash = new(8, 40);
-        private static AOEShapeRect _aoeGeirskogul = new(62, 4);
         private static float _towerRadius = 5;
         private static float _towerOffset = 14;
         private static float _spotOffset = 7f;
@@ -90,8 +88,6 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             _nextAOE?.Draw(arena, _boss);
-            foreach (var c in _castingGeirskoguls)
-                _aoeGeirskogul.Draw(arena, c);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -157,7 +153,6 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     _nextAOE = _aoeLash;
                     break;
                 case AID.Geirskogul:
-                    _castingGeirskoguls.Add(caster);
                     if (NextEvent is State.Bait1 or State.Bait2 or State.Bait3)
                         AdvanceState(module);
                     break;
@@ -172,9 +167,6 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             switch ((AID)spell.Action.ID)
             {
-                case AID.Geirskogul:
-                    _castingGeirskoguls.Remove(caster);
-                    break;
                 case AID.DarkdragonDive:
                     _castingTowers.Remove(caster);
                     if (NextEvent is State.Towers2)

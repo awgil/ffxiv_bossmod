@@ -105,4 +105,28 @@ namespace BossMod
             return mask.Raw == 0xff;
         }
     }
+
+    // assignments to 8 unique roles
+    public class GroupAssignmentUnique : GroupAssignment
+    {
+        public GroupAssignmentUnique()
+        {
+            this[PartyRolesConfig.Role.MT] = 0;
+            this[PartyRolesConfig.Role.M1] = 1;
+            this[PartyRolesConfig.Role.OT] = 2;
+            this[PartyRolesConfig.Role.M2] = 3;
+            this[PartyRolesConfig.Role.R1] = 4;
+            this[PartyRolesConfig.Role.H1] = 5;
+            this[PartyRolesConfig.Role.R2] = 6;
+            this[PartyRolesConfig.Role.H2] = 7;
+        }
+
+        public override bool Validate()
+        {
+            BitMask mask = new();
+            for (int i = 0; i < 8; ++i)
+                mask.Set(Assignments[i]);
+            return mask.Raw == 0xff;
+        }
+    }
 }

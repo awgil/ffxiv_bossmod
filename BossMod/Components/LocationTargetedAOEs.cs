@@ -24,7 +24,7 @@ namespace BossMod.Components
         public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
         {
             foreach (var c in _casters)
-                zone.ForbidZone(Shape, c.CastInfo!.LocXZ, new());
+                zone.ForbidZone(Shape, c.CastInfo!.LocXZ, new(), c.CastInfo!.FinishAt);
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

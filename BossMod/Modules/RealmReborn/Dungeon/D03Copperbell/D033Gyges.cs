@@ -1,4 +1,4 @@
-﻿namespace BossMod.RealmReborn.Dungeons.D03Copperbell.D033Gyges
+﻿namespace BossMod.RealmReborn.Dungeon.D03Copperbell.D033Gyges
 {
     public enum OID : uint
     {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod
@@ -17,11 +18,11 @@ namespace BossMod
         public SafeZone(ArenaBounds bounds) : this(bounds.BuildClipPoly(-1)) { }
         public SafeZone(WPos center) : this(DefaultBounds(center)) { }
 
-        public void ForbidZone(IEnumerable<IEnumerable<WPos>> bounds)
+        public void ForbidZone(IEnumerable<IEnumerable<WPos>> bounds, DateTime activateAt, float activeDurationS = 0)
         {
             Result = _clipper.Difference(Result, bounds);
         }
-        public void ForbidZone(AOEShape shape, WPos origin, Angle rot) => ForbidZone(shape.Contour(origin, rot, 1, 0.5f));
+        public void ForbidZone(AOEShape shape, WPos origin, Angle rot, DateTime activateAt, float activeDurationS = 0) => ForbidZone(shape.Contour(origin, rot, 1, 0.5f), activateAt, activeDurationS);
 
         //public void RestrictToZone(IEnumerable<IEnumerable<WPos>> bounds)
         //{

@@ -40,19 +40,19 @@ namespace BossMod
         // per-oid enemy lists; filled on first request
         private Dictionary<uint, List<Actor>> _relevantEnemies = new(); // key = actor OID
         public IReadOnlyDictionary<uint, List<Actor>> RelevantEnemies => _relevantEnemies;
-        public List<Actor> Enemies<OID>(OID oid) where OID : Enum
+        public List<Actor> Enemies(uint oid)
         {
-            var castOID = (uint)(object)oid;
-            var entry = _relevantEnemies.GetValueOrDefault(castOID);
+            var entry = _relevantEnemies.GetValueOrDefault(oid);
             if (entry == null)
             {
                 entry = new();
-                foreach (var actor in WorldState.Actors.Where(actor => actor.OID == castOID))
+                foreach (var actor in WorldState.Actors.Where(actor => actor.OID == oid))
                     entry.Add(actor);
-                _relevantEnemies[castOID] = entry;
+                _relevantEnemies[oid] = entry;
             }
             return entry;
         }
+        public List<Actor> Enemies<OID>(OID oid) where OID : Enum => Enemies((uint)(object)oid);
 
         // component management: at most one component of any given type can be active at any time
         private List<BossComponent> _components = new();

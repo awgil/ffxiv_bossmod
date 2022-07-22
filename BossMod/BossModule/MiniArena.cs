@@ -121,7 +121,7 @@ namespace BossMod
         public void AddCone(WPos center, float radius, Angle centerDirection, Angle halfAngle, uint color, float thickness = 1)
         {
             var sCenter = WorldPositionToScreenPosition(center);
-            float sDir = centerDirection.Rad - MathF.PI / 2 + _cameraAzimuth;
+            float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth;
             var drawlist = ImGui.GetWindowDrawList();
             drawlist.PathLineTo(sCenter);
             drawlist.PathArcTo(sCenter, radius / Bounds.HalfSize * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
@@ -137,7 +137,7 @@ namespace BossMod
         // adds a bunch of points corresponding to arc - if path is non empty, this adds an edge from last point to first arc point
         public void PathArcTo(WPos center, float radius, float amin, float amax)
         {
-            ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / Bounds.HalfSize * ScreenHalfSize, amin - MathF.PI / 2 + _cameraAzimuth, amax - MathF.PI / 2 + _cameraAzimuth);
+            ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / Bounds.HalfSize * ScreenHalfSize, MathF.PI / 2 - amin + _cameraAzimuth, MathF.PI / 2 - amax + _cameraAzimuth);
         }
 
         public void PathStroke(bool closed, uint color, float thickness = 1)

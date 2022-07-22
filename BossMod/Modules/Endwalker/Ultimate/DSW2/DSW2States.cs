@@ -31,7 +31,9 @@
             P3FinalChorus(id);
             P3Dives(id + 0x10000, 13.2f);
             P3Drachenlance(id + 0x20000, 1.9f);
-            SimpleState(id + 0xF0000, 100, "???");
+            P3SoulTether(id + 0x30000, 1.4f);
+            SimpleState(id + 0xF0000, 100, "???")
+                .ActivateOnEnter<P3Drachenlance>();
         }
 
         private void P2AscalonMercyMight(uint id, float delay)
@@ -146,7 +148,8 @@
         private void P3Dives(uint id, float delay)
         {
             ActorCast(id, _module.BossP3, AID.DiveFromGrace, delay, 5, true, "Dive start")
-                .ActivateOnEnter<P3DiveFromGrace>();
+                .ActivateOnEnter<P3DiveFromGrace>()
+                .ActivateOnEnter<P3Geirskogul>();
 
             ActorCastMulti(id + 0x10, _module.BossP3, new AID[] { AID.GnashAndLash, AID.LashAndGnash }, 2.1f, 7.6f, true, "Stack + Jump 1")
                 .SetHint(StateMachine.StateHint.Raidwide);
@@ -165,7 +168,8 @@
             ComponentCondition<P3DiveFromGrace>(id + 0xA0, 3.1f, comp => comp.NextEvent > P3DiveFromGrace.State.Towers3InOut4, "Towers 3 + In/out 4");
             ComponentCondition<P3DiveFromGrace>(id + 0xB0, 2.0f, comp => comp.NextEvent > P3DiveFromGrace.State.Bait3);
             ComponentCondition<P3DiveFromGrace>(id + 0xC0, 4.5f, comp => comp.NextEvent > P3DiveFromGrace.State.Resolve, "Dive resolve")
-                .DeactivateOnExit<P3DiveFromGrace>();
+                .DeactivateOnExit<P3DiveFromGrace>()
+                .DeactivateOnExit<P3Geirskogul>();
         }
 
         private void P3Drachenlance(uint id, float delay)
@@ -174,6 +178,19 @@
                 .ActivateOnEnter<P3Drachenlance>();
             ComponentCondition<P3Drachenlance>(id + 2, 0.6f, comp => comp.NumCasts > 0, "Cleave")
                 .DeactivateOnExit<P3Drachenlance>();
+        }
+
+        private void P3SoulTether(uint id, float delay)
+        {
+            ComponentCondition<P3DarkdragonDiveCounter>(id, delay, comp => comp.Active)
+                .ActivateOnEnter<P3DarkdragonDiveCounter>();
+            ComponentCondition<P3DarkdragonDiveCounter>(id + 1, 5, comp => !comp.Active, "Towers")
+                .DeactivateOnExit<P3DarkdragonDiveCounter>();
+            ComponentCondition<P3SoulTether>(id + 0x10, 7, comp => comp.NumCasts > 0, "Tethers")
+                .ActivateOnEnter<P3SoulTether>()
+                .ActivateOnEnter<P3Geirskogul>()
+                .DeactivateOnExit<P3SoulTether>()
+                .DeactivateOnExit<P3Geirskogul>();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace BossMod.RealmReborn.Dungeons.D03Copperbell.D032IchorousIre
+﻿namespace BossMod.RealmReborn.Dungeon.D03Copperbell.D032IchorousIre
 {
     public enum OID : uint
     {

@@ -25,5 +25,12 @@
 
         [PropertyDisplay("P2 Sanctity of the Ward (meteors): take CW (rather than CCW) intercardinal as non-prey role for second towers")]
         public bool P2Sanctity2NonPreyTowerCW = false;
+
+        [PropertyDisplay("P3 four towers with counters: assignments")]
+        [GroupDetails(new string[] { "NW Flex", "NE Flex", "SE Flex", "SW Flex", "NW Stay", "NE Stay", "SE Stay", "SW Stay" })]
+        public GroupAssignmentUnique P3DarkdragonDiveCounterGroups = new();
+
+        [PropertyDisplay("P3 four towers with counters: prefer flexing to CCW tower (rather than to CW)")]
+        public bool P3DarkdragonDiveCounterPreferCCWFlex = false;
     }
 }

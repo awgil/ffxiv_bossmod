@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace BossMod.RealmReborn.Dungeons.D01Sastasha.D010Switch
+namespace BossMod.RealmReborn.Dungeon.D01Sastasha.D010Switch
 {
     public enum OID : uint
     {

@@ -12,9 +12,19 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P2UltimateEnd() : base(ActionID.MakeSpell(AID.UltimateEndAOE)) { }
     }
 
+    class P3Geirskogul : Components.SelfTargetedAOEs
+    {
+        public P3Geirskogul() : base(ActionID.MakeSpell(AID.Geirskogul), new AOEShapeRect(62, 4)) { }
+    }
+
     class P3Drachenlance : Components.SelfTargetedAOEs
     {
         public P3Drachenlance() : base(ActionID.MakeSpell(AID.DrachenlanceAOE), new AOEShapeCone(13, 45.Degrees())) { }
+    }
+
+    class P3SoulTether : Components.TankbusterTether
+    {
+        public P3SoulTether() : base(ActionID.MakeSpell(AID.SoulTether), (uint)TetherID.HolyShieldBash, 5) { }
     }
 
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP2)]

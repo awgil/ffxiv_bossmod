@@ -28,7 +28,7 @@ namespace BossMod.AI
         {
             var zone = new SafeZone(playerPos);
             foreach (var aoe in _activeAOEs.Values)
-                zone.ForbidZone(aoe.Shape, aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ, aoe.Caster.Rotation);
+                zone.ForbidZone(aoe.Shape, aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ, aoe.Caster.Rotation, aoe.Caster.CastInfo!.FinishAt);
             return zone;
         }
 
@@ -41,10 +41,11 @@ namespace BossMod.AI
                 return;
             AOEShape? shape = data.CastType switch
             {
-                //2 or 7 => new AOEShapeCircle(data.EffectRange),
+                2 => new AOEShapeCircle(data.EffectRange), // used for some point-blank aoes (TODO check whether it includes hitbox...) and enemy location-targeted (does not add hitbox)
                 3 => new AOEShapeCone(data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data) * 0.5f),
                 4 => new AOEShapeRect(data.EffectRange + actor.HitboxRadius, data.XAxisModifier * 0.5f),
                 5 => new AOEShapeCircle(data.EffectRange + actor.HitboxRadius),
+                //7 => new AOEShapeCircle(data.EffectRange), - used for player ground-targeted circles a-la asylum
                 //10 => new AOEShapeDonut(actor.HitboxRadius, data.EffectRange), // TODO: find a way to determine inner radius (omen examples: 28762 - 4/40 - gl_sircle_4004bp1)
                 //12 => new AOEShapeRect(data.EffectRange, data.XAxisModifier * 0.5f),
                 //13 => new AOEShapeCone(data.EffectRange, DetermineConeAngle(data) * 0.5f),
