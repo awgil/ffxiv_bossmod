@@ -15,6 +15,7 @@ namespace BossMod.AI
             _config = Service.Config.Get<AIConfig>();
             _broadcasts.Add((VirtualKey.F10, false)); // target focus
             _broadcasts.Add((VirtualKey.T, false)); // target target's target
+            _broadcasts.Add((VirtualKey.G, false)); // mount
             _broadcasts.Add((VirtualKey.SPACE, false)); // jump
             _broadcasts.Add((VirtualKey.NUMPAD0, false)); // interact
             _broadcasts.Add((VirtualKey.NUMPAD2, false)); // menu navigation
