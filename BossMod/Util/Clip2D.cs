@@ -26,6 +26,16 @@ namespace BossMod
             _clipper = new(strictlySimple ? Clipper.ioStrictlySimple : 0);
         }
 
+        public PolyTree Simplify(IEnumerable<IEnumerable<WPos>> poly)
+        {
+            _clipper.Clear();
+            foreach (var p in poly)
+                _clipper.AddPath(p.Select(ConvertPoint).ToList(), PolyType.ptSubject, true);
+            PolyTree solution = new();
+            _clipper.Execute(ClipType.ctUnion, solution, PolyFillType.pftEvenOdd);
+            return solution;
+        }
+
         public PolyTree Union(IEnumerable<IEnumerable<WPos>> polys)
         {
             PolyTree solution = new();
