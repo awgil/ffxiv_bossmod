@@ -33,7 +33,7 @@ namespace BossMod
             Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate(Actor? target)
+        protected override CommonRotation.State OnUpdate(Actor? target, bool moving)
         {
             var currState = BuildState(target);
             LogStateChange(_state, currState);
@@ -64,8 +64,8 @@ namespace BossMod
             {
                 actionID = (MNKRotation.AID)actionID.ID switch
                 {
-                    MNKRotation.AID.Bootshine => _config.FullRotation && _state.Level < 30 ? _nextBestSTAction : actionID,
-                    MNKRotation.AID.ArmOfTheDestroyer => _config.FullRotation && _state.Level < 30 ? _nextBestAOEAction : actionID,
+                    MNKRotation.AID.Bootshine => _config.FullRotation && _state.Level < 40 ? _nextBestSTAction : actionID,
+                    MNKRotation.AID.ArmOfTheDestroyer => _config.FullRotation && _state.Level < 40 ? _nextBestAOEAction : actionID,
                     MNKRotation.AID.FourPointFury => _config.AOECombos ? ActionID.MakeSpell(MNKRotation.GetNextAOEComboAction(_state)) : actionID,
                     _ => actionID
                 };
@@ -77,7 +77,7 @@ namespace BossMod
             return (actionID, targetID);
         }
 
-        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget)
+        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget, bool moving)
         {
             if (_strategy.Prepull && _state.UnlockedMeditation && _state.Chakra < 5)
             {

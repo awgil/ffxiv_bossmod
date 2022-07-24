@@ -11,6 +11,11 @@ namespace BossMod.AI
         private AIController _ctrl;
         private AvoidAOE _avoidAOE;
         private bool _passive;
+        private bool _autoTarget;
+        private bool _instantCastsOnly;
+        private WPos _masterPrevPos;
+        private WPos _masterMovementStart;
+        private DateTime _masterLastMoved;
 
         public AIBehaviour(AIController ctrl, Autorotation autorot)
         {
@@ -26,6 +31,37 @@ namespace BossMod.AI
 
         public Actor? UpdateTargeting(Actor player, Actor master)
         {
+            if (_autoTarget)
+            {
+                return TargetingSelectBest(player);
+            }
+            else
+            {
+                return TargetingAssistMaster(player, master);
+            }
+        }
+
+        private Actor? TargetingSelectBest(Actor player)
+        {
+            var healTarget = TargetingHeal(player);
+            if (healTarget != null)
+                return healTarget;
+
+            var selectedTarget = _autorot.WorldState.Actors.Find(player.TargetID);
+            if (selectedTarget?.Type == ActorType.Enemy)
+                return selectedTarget;
+
+            // choose min-hp targets among those targeting me first
+            var bestAttacker = _autorot.PotentialTargets.Where(t => t.TargetID == player.InstanceID).MinBy(t => t.HP.Cur);
+            if (bestAttacker != null)
+                return bestAttacker;
+
+            // otherwise (if no one is attacking me), choose min-hp target (TODO: also consider distance?..)
+            return _autorot.PotentialTargets.MinBy(t => t.HP.Cur);
+        }
+
+        private Actor? TargetingAssistMaster(Actor player, Actor master)
+        {
             if (!master.InCombat)
                 return null; // master not in combat => just follow
 
@@ -36,43 +72,72 @@ namespace BossMod.AI
             // TODO: check potential targets, if anyone is casting - queue interrupt or stun (unless planned), otherwise gtfo from aoe
             // TODO: mitigates/self heals, unless planned, if low hp
 
-            // TODO: target or party heals, if possible and not planned, esuna etc.
-            if (player.Class == Class.ACN || player.Role == Role.Healer)
-            {
-                Actor? healTarget = null;
-                float healPrio = 0;
-                foreach (var p in _autorot.WorldState.Party.WithoutSlot(true))
-                {
-                    if (p.IsDead || p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)))
-                    {
-                        if (healPrio == 0)
-                            healTarget = p; // raise/esuna is lowest prio
-                    }
-                    else if (p.HP.Cur < p.HP.Max * 0.8f)
-                    {
-                        var prio = 1 - (float)p.HP.Cur / p.HP.Max;
-                        if (prio > healPrio)
-                        {
-                            healTarget = p;
-                            healPrio = prio;
-                        }
-                    }
-                }
-
-                if (healTarget != null)
-                    return healTarget;
-            }
+            var healTarget = TargetingHeal(player);
+            if (healTarget != null)
+                return healTarget;
 
             // assist master
             return masterTarget;
         }
 
+        private Actor? TargetingHeal(Actor player)
+        {
+            if (player.Class != Class.ACN && player.Role != Role.Healer)
+                return null;
+
+            Actor? healTarget = null;
+            float healPrio = 0;
+            foreach (var p in _autorot.WorldState.Party.WithoutSlot(true))
+            {
+                if (p.IsDead || p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)))
+                {
+                    if (healPrio == 0)
+                        healTarget = p; // raise/esuna is lowest prio
+                }
+                else if (p.HP.Cur < p.HP.Max * 0.8f)
+                {
+                    var prio = 1 - (float)p.HP.Cur / p.HP.Max;
+                    if (prio > healPrio)
+                    {
+                        healTarget = p;
+                        healPrio = prio;
+                    }
+                }
+            }
+            return healTarget;
+        }
+
         public void Execute(Actor player, Actor master, Actor? primaryTarget)
         {
             // keep master in focus
-            _ctrl.SetFocusTarget(master.InstanceID);
+            bool masterChanged = Service.TargetManager.FocusTarget?.ObjectId != master.InstanceID;
+            if (masterChanged)
+            {
+                _ctrl.SetFocusTarget(master.InstanceID);
+                _masterPrevPos = _masterMovementStart = master.Position;
+                _masterLastMoved = new();
+            }
 
-            var action = _passive ? new() : _autorot.ClassActions?.CalculateBestAction(player, primaryTarget) ?? new();
+            // keep track of master movement
+            // idea is that if master is moving forward (e.g. running in outdoor or pulling trashpacks in dungeon), we want to closely follow and not stop to cast
+            bool masterIsMoving = true;
+            if (master.Position != _masterPrevPos)
+            {
+                _masterLastMoved = _autorot.WorldState.CurrentTime;
+                _masterPrevPos = master.Position;
+            }
+            else if ((_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 0.5f)
+            {
+                // master has stopped, consider previous movement finished
+                _masterMovementStart = _masterPrevPos;
+                masterIsMoving = false;
+            }
+            // else: don't consider master to have stopped moving unless he's standing still for some small time
+
+            _instantCastsOnly = masterIsMoving && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (_masterPrevPos - _masterMovementStart).LengthSq() > 100
+                || _ctrl.NaviTargetPos != null && (_ctrl.NaviTargetPos.Value - player.Position).LengthSq() > 1;
+
+            var action = _passive ? new() : _autorot.ClassActions?.CalculateBestAction(player, primaryTarget, _instantCastsOnly) ?? new();
             var selfTargeted = IsSelfTargeted(action.Action);
             _ctrl.PlannedAction = action.Action;
             _ctrl.PlannedActionTarget = selfTargeted ? player : action.Target;
@@ -140,6 +205,8 @@ namespace BossMod.AI
         public void DrawDebug()
         {
             ImGui.Checkbox("Passively follow", ref _passive);
+            ImGui.Checkbox("Auto select target", ref _autoTarget);
+            ImGui.TextUnformatted($"Only-instant={_instantCastsOnly}, master standing for {(_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds:f1}");
         }
 
         //private static WPos? MoveToFlank(Actor player, Actor target, float maxRange, float safetyThreshold)

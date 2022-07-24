@@ -34,7 +34,7 @@ namespace BossMod
             Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate(Actor? target)
+        protected override CommonRotation.State OnUpdate(Actor? target, bool moving)
         {
             var currState = BuildState(target);
             LogStateChange(_state, currState);
@@ -76,9 +76,9 @@ namespace BossMod
             return (actionID, targetID);
         }
 
-        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget)
+        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget, bool moving)
         {
-            if (_strategy.Prepull && _state.UnlockedPeloton && _state.PelotonCD == 0 && _state.PelotonLeft == 0 && _state.Moving)
+            if (_strategy.Prepull && _state.UnlockedPeloton && _state.PelotonCD == 0 && _state.PelotonLeft == 0 && moving)
             {
                 return new() { Action = ActionID.MakeSpell(BRDRotation.AID.Peloton), Target = player };
             }

@@ -125,7 +125,7 @@ namespace BossMod
             _justCast = true;
         }
 
-        protected override CommonRotation.State OnUpdate(Actor? target)
+        protected override CommonRotation.State OnUpdate(Actor? target, bool moving)
         {
             var currState = BuildState(target);
             LogStateChange(_state, currState);
@@ -193,7 +193,7 @@ namespace BossMod
             return (actionID, targetID);
         }
 
-        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget)
+        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget, bool moving)
         {
             if (primaryTarget?.Type != ActorType.Enemy)
                 return new();

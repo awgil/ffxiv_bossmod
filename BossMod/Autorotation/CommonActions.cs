@@ -149,7 +149,7 @@ namespace BossMod
             OnCastSucceeded(actionID, targetID);
         }
 
-        public void Update(Actor? target)
+        public void Update(Actor? target, bool moving)
         {
             // cooldown planning
             var cooldownPlan = Autorot.Bossmods.ActiveModule?.PlanExecution;
@@ -171,7 +171,7 @@ namespace BossMod
                 }
             }
 
-            var state = OnUpdate(target);
+            var state = OnUpdate(target, moving);
             _sq.Active = state.GCD > 0 || state.AnimationLock > 0;
         }
 
@@ -197,9 +197,9 @@ namespace BossMod
         }
 
         abstract protected void OnCastSucceeded(ActionID actionID, ulong targetID);
-        abstract protected CommonRotation.State OnUpdate(Actor? target);
+        abstract protected CommonRotation.State OnUpdate(Actor? target, bool moving);
         abstract protected (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets);
-        abstract public AIResult CalculateBestAction(Actor player, Actor? primaryTarget);
+        abstract public AIResult CalculateBestAction(Actor player, Actor? primaryTarget, bool moving);
         abstract public void DrawOverlay();
 
         // fill common state properties
@@ -208,7 +208,6 @@ namespace BossMod
             var pc = Service.ClientState.LocalPlayer;
             s.Level = pc?.Level ?? 0;
             s.CurMP = pc?.CurrentMp ?? 0;
-            s.Moving = Autorot.Moving;
             s.GCD = ActionCooldown(BaseAbility);
             s.AnimationLock = Autorot.AnimLock;
             s.AnimationLockDelay = Autorot.AnimLockDelay;

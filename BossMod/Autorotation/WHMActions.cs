@@ -39,7 +39,7 @@ namespace BossMod
             Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTDamageAction}/{_nextBestAOEDamageAction}/{_nextBestSTHealAction}/{_nextBestAOEHealAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate(Actor? target)
+        protected override CommonRotation.State OnUpdate(Actor? target, bool moving)
         {
             var currState = BuildState(target);
             LogStateChange(_state, currState);
@@ -63,10 +63,10 @@ namespace BossMod
             _strategy.ExecuteAquaveil = SmartQueueActiveSpell(WHMRotation.AID.Aquaveil);
             _strategy.ExecuteSurecast = SmartQueueActiveSpell(WHMRotation.AID.Surecast);
 
-            var nextBestSTDamage = _config.FullRotation ? WHMRotation.GetNextBestAction(_state, _strategy, false, false) : ActionID.MakeSpell(WHMRotation.AID.Stone1);
-            var nextBestAOEDamage = _config.FullRotation ? WHMRotation.GetNextBestAction(_state, _strategy, true, false) : ActionID.MakeSpell(WHMRotation.AID.Holy1);
-            var nextBestSTHeal = _config.FullRotation ? WHMRotation.GetNextBestAction(_state, _strategy, false, true) : ActionID.MakeSpell(WHMRotation.AID.Cure1);
-            var nextBestAOEHeal = _config.FullRotation ? WHMRotation.GetNextBestAction(_state, _strategy, true, true) : ActionID.MakeSpell(WHMRotation.AID.Medica1);
+            var nextBestSTDamage = _config.FullRotation ? WHMRotation.GetNextBestAction(_state, _strategy, false, false, moving) : ActionID.MakeSpell(WHMRotation.AID.Stone1);
+            var nextBestAOEDamage = _config.FullRotation ? WHMRotation.GetNextBestAction(_state, _strategy, true, false, moving) : ActionID.MakeSpell(WHMRotation.AID.Holy1);
+            var nextBestSTHeal = _config.FullRotation ? WHMRotation.GetNextBestAction(_state, _strategy, false, true, moving) : ActionID.MakeSpell(WHMRotation.AID.Cure1);
+            var nextBestAOEHeal = _config.FullRotation ? WHMRotation.GetNextBestAction(_state, _strategy, true, true, moving) : ActionID.MakeSpell(WHMRotation.AID.Medica1);
             if (_nextBestSTDamageAction != nextBestSTDamage || _nextBestAOEDamageAction != nextBestAOEDamage || _nextBestSTHealAction != nextBestSTHeal || _nextBestAOEHealAction != nextBestAOEHeal)
             {
                 Log($"Next-best changed: STd={_nextBestSTDamageAction}->{nextBestSTDamage}, AOEd={_nextBestAOEDamageAction}->{nextBestAOEDamage}, STh={_nextBestSTHealAction}->{nextBestSTHeal}, AOEh={_nextBestAOEHealAction}->{nextBestAOEHeal} [{_state}]");
@@ -102,7 +102,7 @@ namespace BossMod
             return (actionID, targetID);
         }
 
-        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget)
+        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget, bool moving)
         {
             if (primaryTarget == null)
                 return new();
@@ -110,21 +110,21 @@ namespace BossMod
             if (primaryTarget.Type == ActorType.Enemy)
             {
                 // TODO: this kinda works until L45...
-                return new() { Action = _nextBestSTDamageAction, Target = primaryTarget };
+                return new() { Action = WHMRotation.GetNextBestAction(_state, _strategy, false, false, moving), Target = primaryTarget };
             }
-            else if (primaryTarget.IsDead)
+            else if (!moving && primaryTarget.IsDead)
             {
                 return new() { Action = ActionID.MakeSpell(SmartRaiseAction()), Target = primaryTarget };
             }
-            else if (primaryTarget.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)))
-            {
-                return new() { Action = ActionID.MakeSpell(WHMRotation.AID.Esuna), Target = primaryTarget };
-            }
-            else if (primaryTarget.InCombat)
+            else if (primaryTarget.InCombat && primaryTarget.HP.Cur < 0.9f * primaryTarget.HP.Max)
             {
                 // TODO: this aoe/st heal selection is not very good...
                 var action = _strategy.NumAssizeMedica1Targets > 2 || _strategy.NumRaptureMedica2Targets > 2 || _strategy.NumCure3Targets > 2 ? _nextBestAOEHealAction : _nextBestSTHealAction;
                 return new() { Action = action, Target = primaryTarget };
+            }
+            else if (!moving && primaryTarget.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)))
+            {
+                return new() { Action = ActionID.MakeSpell(WHMRotation.AID.Esuna), Target = primaryTarget };
             }
             else
             {

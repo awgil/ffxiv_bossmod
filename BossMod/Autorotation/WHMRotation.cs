@@ -153,7 +153,7 @@ namespace BossMod
 
             public override string ToString()
             {
-                return $"g={NormalLilies}/{BloodLilies}/{NextLilyIn:f1}, MP={CurMP}, moving={Moving}, RB={RaidBuffsLeft:f1}, Dia={TargetDiaLeft:f1}, Medica={MedicaLeft:f1}, Swiftcast={SwiftcastLeft:f1}, TA={ThinAirLeft:f1}, Freecure={FreecureLeft:f1}, AssizeCD={AssizeCD:f1}, PoMCD={PresenceOfMindCD:f1}, LDCD={LucidDreamingCD:f1}, TACD={ThinAirCD:f1}, PlenCD={PlenaryIndulgenceCD:f1}, AsylumCD={AsylumCD:f1}, BeniCD={DivineBenisonCD:f1}, TetraCD={TetragrammatonCD:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+                return $"g={NormalLilies}/{BloodLilies}/{NextLilyIn:f1}, MP={CurMP}, RB={RaidBuffsLeft:f1}, Dia={TargetDiaLeft:f1}, Medica={MedicaLeft:f1}, Swiftcast={SwiftcastLeft:f1}, TA={ThinAirLeft:f1}, Freecure={FreecureLeft:f1}, AssizeCD={AssizeCD:f1}, PoMCD={PresenceOfMindCD:f1}, LDCD={LucidDreamingCD:f1}, TACD={ThinAirCD:f1}, PlenCD={PlenaryIndulgenceCD:f1}, AsylumCD={AsylumCD:f1}, BeniCD={DivineBenisonCD:f1}, TetraCD={TetragrammatonCD:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
             }
         }
 
@@ -256,7 +256,7 @@ namespace BossMod
             return new();
         }
 
-        public static AID GetNextBestSTDamageGCD(State state, Strategy strategy)
+        public static AID GetNextBestSTDamageGCD(State state, Strategy strategy, bool moving)
         {
             // 0. just use glare before pull
             if (strategy.Prepull)
@@ -267,7 +267,7 @@ namespace BossMod
                 return state.BestDia;
 
             // 2. glare, if not moving or if under swiftcast
-            if (!state.Moving || state.SwiftcastLeft > state.GCD)
+            if (!moving || state.SwiftcastLeft > state.GCD)
                 return state.BestGlare;
 
             // 3. afflatus misery
@@ -275,16 +275,16 @@ namespace BossMod
                 return AID.AfflatusMisery;
 
             // 4. slidecast glare (TODO: consider early dia refresh if GCD is zero...)
-            return state.BestGlare;
+            return moving ? state.BestDia : state.BestGlare;
         }
 
-        public static AID GetNextBestAOEDamageGCD(State state, Strategy strategy)
+        public static AID GetNextBestAOEDamageGCD(State state, Strategy strategy, bool moving)
         {
             // misery > holy
             return state.BloodLilies >= 3 ? AID.AfflatusMisery : state.BestHoly;
         }
 
-        public static AID GetNextBestSTHealGCD(State state, Strategy strategy)
+        public static AID GetNextBestSTHealGCD(State state, Strategy strategy, bool moving)
         {
             // 1. cure 2, if free
             if (state.UnlockedCure2 && (state.FreecureLeft > state.GCD || state.ThinAirLeft > state.GCD))
@@ -302,7 +302,7 @@ namespace BossMod
             return AID.Cure1;
         }
 
-        public static AID GetNextBestAOEHealGCD(State state, Strategy strategy)
+        public static AID GetNextBestAOEHealGCD(State state, Strategy strategy, bool moving)
         {
             // 1. afflatus rapture, if possible  (replace with misery if needed)
             bool canCastRapture = state.UnlockedAfflatusRapture && state.NormalLiliesOnNextGCD > 0;
@@ -323,7 +323,7 @@ namespace BossMod
                 return AID.Medica1;
 
             // 5. fallback: overheal medica 2 for hot (e.g. during downtime)
-            if (canCastMedica2 && !state.Moving && state.MedicaLeft <= state.GCD + 5)
+            if (canCastMedica2 && !moving && state.MedicaLeft <= state.GCD + 5)
                 return AID.Medica2;
 
             // 6. fallback: overheal rapture, unless capped on blood lilies
@@ -334,14 +334,14 @@ namespace BossMod
             return canCastMedica2 ? AID.Medica2 : AID.Medica1;
         }
 
-        public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe, bool heal)
+        public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe, bool heal, bool moving)
         {
             return heal
-                ? (aoe ? GetNextBestAOEHealGCD(state, strategy) : GetNextBestSTHealGCD(state, strategy))
-                : (aoe ? GetNextBestAOEDamageGCD(state, strategy) : GetNextBestSTDamageGCD(state, strategy));
+                ? (aoe ? GetNextBestAOEHealGCD(state, strategy, moving) : GetNextBestSTHealGCD(state, strategy, moving))
+                : (aoe ? GetNextBestAOEDamageGCD(state, strategy, moving) : GetNextBestSTDamageGCD(state, strategy, moving));
         }
 
-        public static ActionID GetNextBestAction(State state, Strategy strategy, bool aoe, bool heal)
+        public static ActionID GetNextBestAction(State state, Strategy strategy, bool aoe, bool heal, bool moving)
         {
             ActionID res = new();
             if (state.CanDoubleWeave) // first ogcd slot
@@ -349,7 +349,7 @@ namespace BossMod
             if (!res && state.CanSingleWeave) // second/only ogcd slot
                 res = GetNextBestOGCD(state, strategy, state.GCD, aoe, heal);
             if (!res) // gcd
-                res = ActionID.MakeSpell(GetNextBestGCD(state, strategy, aoe, heal));
+                res = ActionID.MakeSpell(GetNextBestGCD(state, strategy, aoe, heal, moving));
             return res;
         }
 

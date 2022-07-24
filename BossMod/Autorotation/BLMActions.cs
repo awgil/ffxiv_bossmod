@@ -42,7 +42,7 @@ namespace BossMod
             }
         }
 
-        protected override CommonRotation.State OnUpdate(Actor? target)
+        protected override CommonRotation.State OnUpdate(Actor? target, bool moving)
         {
             var currState = BuildState(target);
             LogStateChange(_state, currState);
@@ -55,8 +55,8 @@ namespace BossMod
             _strategy.ExecuteSurecast = SmartQueueActiveSpell(BLMRotation.AID.Surecast);
             _strategy.ExecuteAddle = SmartQueueActiveSpell(BLMRotation.AID.Addle);
 
-            var nextBestST = _config.FullRotation ? BLMRotation.GetNextBestAction(_state, _strategy, false) : ActionID.MakeSpell(BLMRotation.AID.Blizzard1);
-            var nextBestAOE = _config.FullRotation ? BLMRotation.GetNextBestAction(_state, _strategy, true) : ActionID.MakeSpell(BLMRotation.AID.Blizzard2);
+            var nextBestST = _config.FullRotation ? BLMRotation.GetNextBestAction(_state, _strategy, false, moving) : ActionID.MakeSpell(BLMRotation.AID.Blizzard1);
+            var nextBestAOE = _config.FullRotation ? BLMRotation.GetNextBestAction(_state, _strategy, true, moving) : ActionID.MakeSpell(BLMRotation.AID.Blizzard2);
             if (_nextBestSTAction != nextBestST || _nextBestAOEAction != nextBestAOE)
             {
                 Log($"Next-best changed: ST={_nextBestSTAction}->{nextBestST}, AOE={_nextBestAOEAction}->{nextBestAOE} [{_state}]");
@@ -84,15 +84,14 @@ namespace BossMod
             return (actionID, targetID);
         }
 
-        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget)
+        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget, bool moving)
         {
             if (primaryTarget?.Type != ActorType.Enemy)
                 return new();
 
             // TODO: proper implementation...
             bool useAOE = _state.UnlockedBlizzard2 && Autorot.PotentialTargetsInRange(primaryTarget.Position, 5).Count() > 2;
-            var action = /*_state.Moving ? BLMRotation.GetNextBestMovingAction(_state, _strategy, useAOE) :*/ useAOE ? _nextBestAOEAction : _nextBestSTAction;
-            return action ? new() { Action = action, Target = primaryTarget } : new();
+            return new() { Action = BLMRotation.GetNextBestAction(_state, _strategy, useAOE, moving), Target = primaryTarget };
         }
 
         public override void DrawOverlay()

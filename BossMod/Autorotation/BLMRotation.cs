@@ -104,7 +104,7 @@ namespace BossMod
 
             public override string ToString()
             {
-                return $"RB={RaidBuffsLeft:f1}, Elem={ElementalLevel}/{ElementalLeft:f1}, Thunder={TargetThunderLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}, moving={Moving}";
+                return $"RB={RaidBuffsLeft:f1}, Elem={ElementalLevel}/{ElementalLeft:f1}, Thunder={TargetThunderLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
             }
         }
 
@@ -141,19 +141,7 @@ namespace BossMod
             };
         }
 
-        public static ActionID GetNextBestMovingAction(State state, Strategy strategy, bool aoe)
-        {
-            // TODO: not sure about this...
-            if (!state.CanSingleWeave && state.UnlockedScathe && state.CurMP >= 800)
-                return ActionID.MakeSpell(AID.Scathe);
-
-            if (state.UnlockedTranspose && state.TransposeCD <= state.AnimationLock && (state.ElementalLevel < 0 && state.CurMP >= 9600 || state.ElementalLevel > 0 && state.CurMP < 2800))
-                return ActionID.MakeSpell(AID.Transpose);
-
-            return new();
-        }
-
-        public static ActionID GetNextBestAction(State state, Strategy strategy, bool aoe)
+        public static ActionID GetNextBestAction(State state, Strategy strategy, bool aoe, bool moving)
         {
             // TODO: consider ogcd weaving for blm...
             if (strategy.ExecuteSurecast && state.UnlockedSurecast)
@@ -164,6 +152,18 @@ namespace BossMod
                 return ActionID.MakeSpell(AID.Swiftcast);
             if (strategy.ExecuteSprint)
                 return CommonRotation.IDSprint;
+
+            if (moving)
+            {
+                // TODO: not sure about this...
+                if (!state.CanSingleWeave && state.UnlockedScathe && state.CurMP >= 800)
+                    return ActionID.MakeSpell(AID.Scathe);
+
+                if (state.UnlockedTranspose && state.TransposeCD <= state.AnimationLock && (state.ElementalLevel < 0 && state.CurMP >= 9600 || state.ElementalLevel > 0 && state.CurMP < 2800))
+                    return ActionID.MakeSpell(AID.Transpose);
+
+                return new();
+            }
 
             if (aoe && state.UnlockedBlizzard2)
             {

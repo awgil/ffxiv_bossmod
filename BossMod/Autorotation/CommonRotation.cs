@@ -11,7 +11,6 @@ namespace BossMod
         {
             public int Level;
             public uint CurMP; // 10000 max
-            public bool Moving;
             public float GCD; // 2.5 max (decreased by SkS), 0 if not on gcd
             public float AnimationLock; // typical actions have 0.6 delay, but some (notably primal rend and potion) are >1
             public float AnimationLockDelay; // average time between action request and confirmation; this is added to effective animation lock for actions

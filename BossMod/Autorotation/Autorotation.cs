@@ -64,7 +64,6 @@ namespace BossMod
         public float AnimLockDelay => _animLockDelay;
         public unsafe float ComboTimeLeft => *_comboTimeLeft;
         public unsafe uint ComboLastMove => *_comboLastMove;
-        public bool Moving => _inputOverride.IsMoving();
         public bool DisableReplacement = false; // used when action selection is done by AI, so that replacement doesn't interfere
 
         public unsafe Autorotation(Network network, BossModuleManager bossmods, InputOverride inputOverride)
@@ -121,13 +120,13 @@ namespace BossMod
                 classType = player.Class switch
                 {
                     Class.WAR => typeof(WARActions),
-                    Class.GLA or Class.PLD => Service.ClientState.LocalPlayer?.Level < 30 ? typeof(PLDActions) : null,
+                    Class.GLA or Class.PLD => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(PLDActions) : null,
                     Class.CNJ or Class.WHM => typeof(WHMActions),
                     Class.PGL or Class.MNK => typeof(MNKActions),
-                    Class.LNC or Class.DRG => Service.ClientState.LocalPlayer?.Level < 30 ? typeof(DRGActions) : null,
-                    Class.BRD or Class.ARC => Service.ClientState.LocalPlayer?.Level < 30 ? typeof(BRDActions) : null,
-                    Class.THM or Class.BLM => Service.ClientState.LocalPlayer?.Level < 30 ? typeof(BLMActions) : null,
-                    Class.ACN or Class.SMN => Service.ClientState.LocalPlayer?.Level < 30 ? typeof(SMNActions) : null,
+                    Class.LNC or Class.DRG => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(DRGActions) : null,
+                    Class.BRD or Class.ARC => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(BRDActions) : null,
+                    Class.THM or Class.BLM => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(BLMActions) : null,
+                    Class.ACN or Class.SMN => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(SMNActions) : null,
                     _ => null
                 };
             }
@@ -146,7 +145,8 @@ namespace BossMod
 
                 if (_pendingActions.Count == 0)
                 {
-                    _classActions.Update(target);
+                    bool moving = _inputOverride.IsMoving(); // TODO: reconsider
+                    _classActions.Update(target, moving);
                 }
             }
 

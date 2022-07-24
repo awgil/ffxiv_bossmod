@@ -173,7 +173,7 @@ namespace BossMod
 
             public override string ToString()
             {
-                return $"RB={RaidBuffsLeft:f1}, Att={Attunement}/{AttunementStacks}/{AttunementLeft:f1}, SummLock={SummonLockLeft:f1}, IfritR={IfritReady}, TitanR={TitanReady}, GarudaR={GarudaReady}, Aetherflow={AetherflowStacks}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}, moving={Moving}";
+                return $"RB={RaidBuffsLeft:f1}, Att={Attunement}/{AttunementStacks}/{AttunementLeft:f1}, SummLock={SummonLockLeft:f1}, IfritR={IfritReady}, TitanR={TitanReady}, GarudaR={GarudaReady}, Aetherflow={AetherflowStacks}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
             }
         }
 
@@ -227,7 +227,7 @@ namespace BossMod
             return new();
         }
 
-        public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
+        public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe, bool moving)
         {
             // make sure pet is summoned
             if (!state.PetSummoned && state.UnlockedSummonCarbuncle)
@@ -276,7 +276,7 @@ namespace BossMod
             return state.UnlockedRuin2 ? AID.Ruin2 : AID.Ruin1;
         }
 
-        public static ActionID GetNextBestAction(State state, Strategy strategy, bool aoe)
+        public static ActionID GetNextBestAction(State state, Strategy strategy, bool aoe, bool moving)
         {
             ActionID res = new();
             if (state.CanDoubleWeave) // first ogcd slot
@@ -284,7 +284,7 @@ namespace BossMod
             if (!res && state.CanSingleWeave) // second/only ogcd slot
                 res = GetNextBestOGCD(state, strategy, state.GCD, aoe);
             if (!res) // gcd
-                res = ActionID.MakeSpell(GetNextBestGCD(state, strategy, aoe));
+                res = ActionID.MakeSpell(GetNextBestGCD(state, strategy, aoe, moving));
             return res;
         }
 

@@ -36,7 +36,7 @@ namespace BossMod
             Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate(Actor? target)
+        protected override CommonRotation.State OnUpdate(Actor? target, bool moving)
         {
             var currState = BuildState(target);
             LogStateChange(_state, currState);
@@ -50,8 +50,8 @@ namespace BossMod
             _strategy.ExecuteSurecast = SmartQueueActiveSpell(SMNRotation.AID.Surecast);
             _strategy.ExecuteAddle = SmartQueueActiveSpell(SMNRotation.AID.Addle);
 
-            var nextBestST = _config.FullRotation ? SMNRotation.GetNextBestAction(_state, _strategy, false) : ActionID.MakeSpell(SMNRotation.AID.Ruin1);
-            var nextBestAOE = _config.FullRotation ? SMNRotation.GetNextBestAction(_state, _strategy, true) : ActionID.MakeSpell(SMNRotation.AID.Outburst);
+            var nextBestST = _config.FullRotation ? SMNRotation.GetNextBestAction(_state, _strategy, false, moving) : ActionID.MakeSpell(SMNRotation.AID.Ruin1);
+            var nextBestAOE = _config.FullRotation ? SMNRotation.GetNextBestAction(_state, _strategy, true, moving) : ActionID.MakeSpell(SMNRotation.AID.Outburst);
             if (_nextBestSTAction != nextBestST || _nextBestAOEAction != nextBestAOE)
             {
                 Log($"Next-best changed: ST={_nextBestSTAction}->{nextBestST}, AOE={_nextBestAOEAction}->{nextBestAOE} [{_state}]");
@@ -79,7 +79,7 @@ namespace BossMod
             return (actionID, targetID);
         }
 
-        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget)
+        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget, bool moving)
         {
             if (_strategy.Prepull && _state.UnlockedSummonCarbuncle && !_state.PetSummoned)
             {
@@ -93,10 +93,10 @@ namespace BossMod
             {
                 // TODO: proper implementation...
                 bool useAOE = _state.UnlockedOutburst && Autorot.PotentialTargetsInRange(primaryTarget.Position, 5).Count() > 2;
-                var action = /*_state.Moving ? SMNRotation.GetNextBestMovingAction(_state, _strategy, useAOE) :*/ useAOE ? _nextBestAOEAction : _nextBestSTAction;
+                var action = SMNRotation.GetNextBestAction(_state, _strategy, useAOE, moving);
                 return action ? new() { Action = action, Target = primaryTarget } : new();
             }
-            else if (primaryTarget.IsDead)
+            else if (!moving && primaryTarget.IsDead)
             {
                 return new() { Action = ActionID.MakeSpell(SmartResurrectAction()), Target = primaryTarget };
             }
