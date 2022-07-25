@@ -50,6 +50,7 @@
         Splash = 18866, // BossP1->self, no cast, raidwide - 6 hits in succession
         Drainage = 18471, // LiquidRage->players, no cast, range 6 aoe tankbuster on tethered target
         LiquidGaol = 18472, // LiquidRage->self, no cast, ??? (related to throttle debuffs)
+        Enrage = 18867, // BossP1->self, 4.0s cast
     };
 
     public enum SID : uint
