@@ -102,6 +102,7 @@ namespace BossMod
             var isDead = Utils.GameObjectIsDead(obj);
             var inCombat = character?.StatusFlags.HasFlag(StatusFlags.InCombat) ?? false;
             var target = SanitizedObjectID(obj.TargetObjectId);
+            var modelState = character != null ? Utils.CharacterModelState(character) : (byte)0; // TODO: consider this (reading memory) vs network (actor control 63)
 
             var act = Actors.Find(obj.ObjectId);
             if (act == null)
@@ -143,6 +144,8 @@ namespace BossMod
                 Execute(new ActorState.OpDead() { InstanceID = act.InstanceID, Value = isDead });
             if (act.InCombat != inCombat)
                 Execute(new ActorState.OpCombat() { InstanceID = act.InstanceID, Value = inCombat });
+            if (act.ModelState != modelState)
+                Execute(new ActorState.OpModelState() { InstanceID = act.InstanceID, Value = modelState });
             if (act.TargetID != target)
                 Execute(new ActorState.OpTarget() { InstanceID = act.InstanceID, Value = target });
             DispatchActorEvents(act.InstanceID);

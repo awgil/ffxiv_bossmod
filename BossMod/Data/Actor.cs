@@ -99,6 +99,7 @@ namespace BossMod
         public bool IsAlly;
         public bool IsDead;
         public bool InCombat;
+        public byte ModelState;
         public ulong OwnerID; // uuid of owner, for pets and similar
         public ulong TargetID;
         public ActorCastInfo? CastInfo;

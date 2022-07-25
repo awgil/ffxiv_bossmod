@@ -241,6 +241,20 @@ namespace BossMod
             public override string Str(WorldState? ws) => $"{(Value ? "COM+" : "COM-")}|{StrActor(ws, InstanceID)}";
         }
 
+        public event EventHandler<Actor>? ModelStateChanged;
+        public class OpModelState : Operation
+        {
+            public byte Value;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
+            {
+                actor.ModelState = Value;
+                ws.Actors.ModelStateChanged?.Invoke(ws, actor);
+            }
+
+            public override string Str(WorldState? ws) => $"MDLS|{StrActor(ws, InstanceID)}|{Value}";
+        }
+
         public event EventHandler<Actor>? TargetChanged;
         public class OpTarget : Operation
         {

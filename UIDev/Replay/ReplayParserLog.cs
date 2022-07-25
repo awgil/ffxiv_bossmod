@@ -71,6 +71,7 @@ namespace UIDev
                 case "DIE-": ParseActorDead(payload, false); break;
                 case "COM+": ParseActorCombat(payload, true); break;
                 case "COM-": ParseActorCombat(payload, false); break;
+                case "MDLS": ParseActorModelState(payload); break;
                 case "TARG": ParseActorTarget(payload); break;
                 case "TETH": ParseActorTether(payload, true); break;
                 case "TET+": ParseActorTether(payload, true); break; // legacy (up to v4)
@@ -208,6 +209,11 @@ namespace UIDev
         private void ParseActorCombat(string[] payload, bool value)
         {
             AddOp(new ActorState.OpCombat() { InstanceID = ActorID(payload[2]), Value = value });
+        }
+
+        private void ParseActorModelState(string[] payload)
+        {
+            AddOp(new ActorState.OpModelState() { InstanceID = ActorID(payload[2]), Value = byte.Parse(payload[3]) });
         }
 
         private void ParseActorTarget(string[] payload)
