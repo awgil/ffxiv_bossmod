@@ -32,9 +32,10 @@ namespace BossMod
             _debugAI.Dispose();
         }
 
-        public void Draw()
+        public unsafe void Draw()
         {
-            ImGui.TextUnformatted($"Current zone: {_ws.CurrentZone}, pos = {Utils.Vec3String(Service.ClientState.LocalPlayer?.Position ?? new Vector3())}");
+            var player = Service.ClientState.LocalPlayer;
+            ImGui.TextUnformatted($"Current zone: {_ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
             if (ImGui.Button("Perform full dump"))
             {
                 DebugObjects.DumpObjectTable();
