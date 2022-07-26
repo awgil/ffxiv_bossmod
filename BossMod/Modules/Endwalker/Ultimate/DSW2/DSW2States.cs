@@ -9,7 +9,7 @@
             _module = module;
             SimplePhase(1, Phase2Thordan, "P2: Thordan") // TODO: auto-attack cleave component
                 .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead;
-            SimplePhase(2, Phase3Nidhogg, "P3: Nidhogg")
+            SimplePhase(2, Phase3Nidhogg, "P3: Nidhogg") // TODO: auto-attack cleave component
                 .Raw.Update = () => Module.PrimaryActor.IsDestroyed && (_module.BossP3()?.IsDestroyed ?? true);
         }
 
@@ -32,8 +32,8 @@
             P3Dives(id + 0x10000, 13.2f);
             P3Drachenlance(id + 0x20000, 1.9f);
             P3SoulTether(id + 0x30000, 1.4f);
-            SimpleState(id + 0xF0000, 100, "???")
-                .ActivateOnEnter<P3Drachenlance>();
+            P3Drachenlance(id + 0x40000, 20.9f);
+            P3RevengeOfTheHorde(id + 0x50000, 1.4f);
         }
 
         private void P2AscalonMercyMight(uint id, float delay)
@@ -180,7 +180,7 @@
         {
             ActorCast(id, _module.BossP3, AID.Drachenlance, delay, 2.9f, true)
                 .ActivateOnEnter<P3Drachenlance>();
-            ComponentCondition<P3Drachenlance>(id + 2, 0.6f, comp => comp.NumCasts > 0, "Cleave")
+            ComponentCondition<P3Drachenlance>(id + 2, 0.7f, comp => comp.NumCasts > 0, "Cleave")
                 .DeactivateOnExit<P3Drachenlance>();
         }
 
@@ -195,6 +195,11 @@
                 .ActivateOnEnter<P3Geirskogul>()
                 .DeactivateOnExit<P3SoulTether>()
                 .DeactivateOnExit<P3Geirskogul>();
+        }
+
+        private void P3RevengeOfTheHorde(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP3, AID.RevengeOfTheHorde, delay, 11, true, "Enrage");
         }
     }
 }

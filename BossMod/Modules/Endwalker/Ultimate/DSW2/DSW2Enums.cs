@@ -121,6 +121,7 @@
         DarkdragonDive3 = 26393,// NidhoggDrake->self, 2.5s cast, range 5 tower aoe, should be soaked by 3 persons
         DarkdragonDive4 = 26394,// NidhoggDrake->self, 2.5s cast, range 5 tower aoe, should be soaked by 4 persons
         SoulTether = 26396, // BossP3/NidhoggDrake->player, no cast, range 5 aoe tankbuster on tether targets
+        RevengeOfTheHorde = 29750, // BossP3->self, 11.0s cast, enrage
     };
 
     public enum SID : uint
