@@ -21,7 +21,7 @@
             P2HeavenlyHeelAscalonMight(id + 0x30000, 6.2f);
             P2SanctityOfTheWard(id + 0x40000, 7.1f);
             P2UltimateEnd(id + 0x50000, 13.5f);
-            P2BroadSwing(id + 0x60000, 9.5f);
+            P2BroadSwing(id + 0x60000, 6.0f);
             P2BroadSwing(id + 0x70000, 2.7f);
             P2AethericBurst(id + 0x80000, 2.4f);
         }
@@ -122,6 +122,10 @@
                 .ActivateOnEnter<P2UltimateEnd>()
                 .DeactivateOnExit<P2UltimateEnd>()
                 .SetHint(StateMachine.StateHint.Raidwide);
+            ComponentCondition<P2Discomposed>(id + 1, 3.5f, comp => comp.Applied, "Vulnerable")
+                .ActivateOnEnter<P2Discomposed>()
+                .DeactivateOnExit<P2Discomposed>()
+                .SetHint(StateMachine.StateHint.VulnerableStart);
         }
 
         private void P2BroadSwing(uint id, float delay)

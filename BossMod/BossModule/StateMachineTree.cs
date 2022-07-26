@@ -17,6 +17,7 @@ namespace BossMod
             public bool BossIsCasting;
             public bool IsDowntime;
             public bool IsPositioning;
+            public bool IsVulnerable;
             public StateMachine.State State;
             public Node? Predecessor;
             public List<Node> Successors = new();
@@ -29,7 +30,7 @@ namespace BossMod
                 if (pred == null)
                 {
                     InGroup = true;
-                    BossIsCasting = IsDowntime = IsPositioning = false;
+                    BossIsCasting = IsDowntime = IsPositioning = IsVulnerable = false;
                 }
                 else
                 {
@@ -38,6 +39,7 @@ namespace BossMod
                     BossIsCasting = (pred.BossIsCasting || predEndHint.HasFlag(StateMachine.StateHint.BossCastStart)) && !predEndHint.HasFlag(StateMachine.StateHint.BossCastEnd);
                     IsDowntime = (pred.IsDowntime || predEndHint.HasFlag(StateMachine.StateHint.DowntimeStart)) && !predEndHint.HasFlag(StateMachine.StateHint.DowntimeEnd);
                     IsPositioning = (pred.IsPositioning || predEndHint.HasFlag(StateMachine.StateHint.PositioningStart)) && !predEndHint.HasFlag(StateMachine.StateHint.PositioningEnd);
+                    IsVulnerable = (pred.IsVulnerable || predEndHint.HasFlag(StateMachine.StateHint.VulnerableStart)) && !predEndHint.HasFlag(StateMachine.StateHint.VulnerableEnd);
                 }
                 State = state;
                 Predecessor = pred;

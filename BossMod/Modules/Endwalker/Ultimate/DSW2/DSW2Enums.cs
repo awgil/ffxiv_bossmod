@@ -126,6 +126,7 @@
     public enum SID : uint
     {
         None = 0,
+        Discomposed = 2733,
         Jump1 = 3004, // 'First in Line'
         Jump2 = 3005, // 'Second in Line'
         Jump3 = 3006, // 'Third in Line'

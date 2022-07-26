@@ -30,6 +30,7 @@ namespace BossMod
         {
             public StateFlag Downtime;
             public StateFlag Positioning;
+            public StateFlag Vulnerable;
             public Dictionary<ActionID, PerAbility> Abilities = new();
 
             internal PerState(CooldownPlan? plan)
@@ -86,6 +87,17 @@ namespace BossMod
                 return s.Positioning.Transition.Value.EstimatedTime - sm!.TimeSinceTransitionClamped;
         }
 
+        public float EstimateTimeToNextVulnerable(StateMachine? sm)
+        {
+            var s = FindStateData(sm?.ActiveState);
+            if (s.Vulnerable.Active)
+                return 0;
+            else if (s.Vulnerable.Transition == null)
+                return 10000; // no known vulnerabilities going forward
+            else
+                return s.Vulnerable.Transition.Value.EstimatedTime - sm!.TimeSinceTransitionClamped;
+        }
+
         public void Draw(StateMachine sm)
         {
             var db = Plan != null ? AbilityDefinitions.Classes[Plan.Class] : null;
@@ -127,6 +139,7 @@ namespace BossMod
             var s = States[curState.State.ID] = new PerState(Plan);
             s.Downtime.Active = curState.IsDowntime;
             s.Positioning.Active = curState.IsPositioning;
+            s.Vulnerable.Active = curState.IsVulnerable;
 
             if (plan != null)
             {
@@ -194,6 +207,7 @@ namespace BossMod
         {
             UpdateFlagTransition(ref s.Downtime, next.Downtime, nextID, curDuration);
             UpdateFlagTransition(ref s.Positioning, next.Positioning, nextID, curDuration);
+            UpdateFlagTransition(ref s.Vulnerable, next.Vulnerable, nextID, curDuration);
 
             foreach (var (aid, nextAbility) in next.Abilities)
             {

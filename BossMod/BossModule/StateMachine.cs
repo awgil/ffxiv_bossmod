@@ -26,6 +26,8 @@ namespace BossMod
             DowntimeEnd = 1 << 7, // at state end downtime ends
             PositioningStart = 1 << 8, // at state end a phase with movement or precise positioning requirements starts - we should be careful with charges etc.
             PositioningEnd = 1 << 9, // at state end positioning requirements are relaxed
+            VulnerableStart = 1 << 10, // at state end some target becomes vulnerable and takes extra damage
+            VulnerableEnd = 1 << 11, // at state end vulnerability phase ends
         }
 
         public class State

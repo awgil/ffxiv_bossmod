@@ -56,7 +56,7 @@ namespace UIDev
                 _mgr.ActiveModule.Draw(_azimuth / 180 * MathF.PI, _povSlot, null);
                 var drawTimerPost = DateTime.Now;
 
-                ImGui.TextUnformatted($"Draw time: {(drawTimerPost - drawTimerPre).TotalMilliseconds:f3}ms, Downtime in: {_mgr.ActiveModule.PlanExecution?.EstimateTimeToNextDowntime(_mgr.ActiveModule.StateMachine):f2}, Positioning in: {_mgr.ActiveModule.PlanExecution?.EstimateTimeToNextPositioning(_mgr.ActiveModule.StateMachine):f2}, Components:");
+                ImGui.TextUnformatted($"Draw time: {(drawTimerPost - drawTimerPre).TotalMilliseconds:f3}ms, Downtime in: {_mgr.ActiveModule.PlanExecution?.EstimateTimeToNextDowntime(_mgr.ActiveModule.StateMachine):f2}, Positioning in: {_mgr.ActiveModule.PlanExecution?.EstimateTimeToNextPositioning(_mgr.ActiveModule.StateMachine):f2}, Vuln in: {_mgr.ActiveModule.PlanExecution?.EstimateTimeToNextVulnerable(_mgr.ActiveModule.StateMachine):f2}, Components:");
                 foreach (var comp in _mgr.ActiveModule.Components)
                 {
                     ImGui.SameLine();
