@@ -98,7 +98,7 @@ namespace BossMod
             public float InnerReleaseCD; // 60 max, 0 if ready
             public float InfuriateCD; // 120 max, >60 if 0 stacks ready, >0 if 1 stack ready, ==0 if 2 stacks ready
             public float UpheavalCD; // 30 max, 0 if ready
-            public float OnslaughtCD; // 90 max, >60 if 0 stacks ready, >30 if 1 stack ready, >0 if 2 stacks ready, ==0 if 3 stacks ready
+            public float OnslaughtCD; // 90 max, >60 if 0 stacks ready, >30 if 1 stack ready, >0 if 2 stacks ready, ==0 if 3 stacks ready; without enhanced onslaught, using first charge sets CD to 60, and <=30 means two charges available
             public float RampartCD; // 90 max, 0 if ready
             public float VengeanceCD; // 120 max, 0 if ready
             public float ThrillOfBattleCD; // 90 max, 0 if ready
@@ -589,19 +589,22 @@ namespace BossMod
             }
 
             // 7. onslaught, if surging tempest up and not forbidden
-            if (state.UnlockedOnslaught && state.CanWeave(state.OnslaughtCD - (state.UnlockedEnhancedOnslaught ? 60 : 30), 0.6f, windowEnd) && strategy.PositionLockIn > state.AnimationLock && state.SurgingTempestLeft > state.AnimationLock)
+            if (state.UnlockedOnslaught && state.CanWeave(state.OnslaughtCD - 60, 0.6f, windowEnd) && strategy.PositionLockIn > state.AnimationLock && state.SurgingTempestLeft > state.AnimationLock)
             {
-                if (state.OnslaughtCD < state.GCD + 2.5)
+                float chargeCapIn = state.OnslaughtCD - (state.UnlockedEnhancedOnslaught ? 0 : 30);
+                if (chargeCapIn < state.GCD + 2.5)
                     return ActionID.MakeSpell(AID.Onslaught); // onslaught now, otherwise we risk overcapping charges
 
                 if (strategy.FirstChargeIn <= 0)
                     return ActionID.MakeSpell(AID.Onslaught); // onslaught now, since strategy asks for it
 
                 // check whether using onslaught now won't prevent us from using it when strategy demands
-                bool safeToUseOnslaught = state.UnlockedEnhancedOnslaught ? (state.OnslaughtCD <= strategy.FirstChargeIn + 30 && state.OnslaughtCD <= strategy.SecondChargeIn) : (state.OnslaughtCD <= strategy.FirstChargeIn);
+                // first charge: if we use charge now, CD will become curr+30; after dt, it will then become curr+30-dt; if we want to charge there, we need it to be <= 60 ==> it's safe to charge if curr+30-dt <= 60 => curr <= dt+30
+                // second charge: if we use charge now, CD will become curr+30; after dt (and using 'first' charge inside this dt) it will then become curr+60-dt; condition for second charge is then curr+60-dt <= 60 => curr <= dt
+                bool safeToUseOnslaught = state.OnslaughtCD <= strategy.FirstChargeIn + 30 && state.OnslaughtCD <= strategy.SecondChargeIn;
 
                 // use onslaught now if it's safe and we're either spending gauge or won't be able to delay it until next buff window anyway
-                if (safeToUseOnslaught && (spendGauge || state.OnslaughtCD <= strategy.RaidBuffsIn))
+                if (safeToUseOnslaught && (spendGauge || chargeCapIn <= strategy.RaidBuffsIn))
                     return ActionID.MakeSpell(AID.Onslaught);
             }
 

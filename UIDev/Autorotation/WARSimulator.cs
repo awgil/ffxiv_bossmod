@@ -346,8 +346,8 @@ namespace UIDev
                     case WARRotation.AID.Onslaught:
                         isOGCD = true;
                         res |= CheckValid(state.UnlockedOnslaught);
-                        res |= AdvanceTime(state, ref t, 0.6f, state.OnslaughtCD - (state.UnlockedEnhancedOnslaught ? 60 : 30));
-                        res |= AdjustCD(ref state.OnslaughtCD, 30, state.UnlockedEnhancedOnslaught ? 90 : 60);
+                        res |= AdvanceTime(state, ref t, 0.6f, state.OnslaughtCD - 60);
+                        res |= AdjustCD(ref state.OnslaughtCD, 30, 90, state.UnlockedEnhancedOnslaught ? 0 : 30);
                         break;
                     case WARRotation.AID.Upheaval:
                     case WARRotation.AID.Orogeny:
@@ -463,9 +463,9 @@ namespace UIDev
             return valid ? Mistake.None : Mistake.InvalidMove;
         }
 
-        private Mistake AdjustCD(ref float tracker, float useCD, float maxCD)
+        private Mistake AdjustCD(ref float tracker, float useCD, float maxCD, float minCD = 0)
         {
-            return IncrementOvercap(ref tracker, useCD, 0, maxCD) ? Mistake.InvalidMove : Mistake.None;
+            return IncrementOvercap(ref tracker, useCD, minCD, maxCD) ? Mistake.InvalidMove : Mistake.None;
         }
 
         private Mistake GainGauge(WARRotation.State state, int value)
