@@ -67,6 +67,8 @@ namespace BossMod
         {
             public DateTime NewTimestamp;
             public TimeSpan PrevUpdateTime;
+            public long FrameTimeMS;
+            public ulong GaugePayload;
 
             protected override void Exec(WorldState ws)
             {
@@ -74,7 +76,7 @@ namespace BossMod
                 ws.FrameStarted?.Invoke(ws, this);
             }
 
-            public override string Str(WorldState? ws) => $"FRAM|{PrevUpdateTime.TotalMilliseconds:f3}";
+            public override string Str(WorldState? ws) => $"FRAM|{PrevUpdateTime.TotalMilliseconds:f3}|{FrameTimeMS}|{GaugePayload:X16}";
         }
 
         public event EventHandler<OpZoneChange>? CurrentZoneChanged;

@@ -18,7 +18,6 @@ namespace UIDev
 
         private SimpleImGuiScene? _scene;
         private List<Type> _testTypes = new();
-        private DateTime _startTime = DateTime.Now;
         private string _path = "";
         private string _configPath = "";
 

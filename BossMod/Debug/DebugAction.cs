@@ -31,14 +31,32 @@ namespace BossMod
                 var rotationType = mnemonic != null ? Type.GetType($"BossMod.{mnemonic}Rotation")?.GetNestedType("AID") : null;
                 ImGui.TextUnformatted($"Hover action: {hover.ActionKind} {hover.ActionID} (base={hover.BaseActionID}) ({mnemonic}: {rotationType?.GetEnumName(hover.ActionID)})");
 
-                var (name, type) = hover.ActionKind switch
+                Lumina.Text.SeString? name = null;
+                FFXIVClientStructs.FFXIV.Client.Game.ActionType type = FFXIVClientStructs.FFXIV.Client.Game.ActionType.None;
+                uint unlockLink = 0;
+                if (hover.ActionKind == HoverActionKind.Action)
                 {
-                    HoverActionKind.Action => (Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(hover.ActionID)?.Name, FFXIVClientStructs.FFXIV.Client.Game.ActionType.Spell),
-                    HoverActionKind.GeneralAction => (Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.GeneralAction>()?.GetRow(hover.ActionID)?.Name, FFXIVClientStructs.FFXIV.Client.Game.ActionType.General),
-                    _ => (null, FFXIVClientStructs.FFXIV.Client.Game.ActionType.None)
-                };
-                ImGui.TextUnformatted($"Name: {name}");
+                    var data = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(hover.ActionID);
+                    name = data?.Name;
+                    type = FFXIVClientStructs.FFXIV.Client.Game.ActionType.Spell;
+                    unlockLink = data?.UnlockLink ?? 0;
+                }
+                else if (hover.ActionKind == HoverActionKind.GeneralAction)
+                {
+                    var data = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.GeneralAction>()?.GetRow(hover.ActionID);
+                    name = data?.Name;
+                    type = FFXIVClientStructs.FFXIV.Client.Game.ActionType.General;
+                    unlockLink = data?.UnlockLink ?? 0;
+                }
+                else if (hover.ActionKind == HoverActionKind.Trait)
+                {
+                    var data = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Trait>()?.GetRow(hover.ActionID);
+                    name = data?.Name;
+                    unlockLink = data?.Quest.Row ?? 0;
+                }
 
+                ImGui.TextUnformatted($"Name: {name}");
+                ImGui.TextUnformatted($"Unlock: {unlockLink} ({Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Quest>()?.GetRow(unlockLink)?.Name}) = {FFXIVClientStructs.FFXIV.Client.Game.QuestManager.IsQuestComplete(unlockLink)}");
                 if (hover.ActionKind == HoverActionKind.Action)
                 {
                     ImGui.TextUnformatted($"Range: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionRange(hover.ActionID)}");

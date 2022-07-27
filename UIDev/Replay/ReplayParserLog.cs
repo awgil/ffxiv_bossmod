@@ -99,7 +99,12 @@ namespace UIDev
 
         private void ParseFrameStart(string[] payload)
         {
-            AddOp(new WorldState.OpFrameStart() { NewTimestamp = DateTime.Parse(payload[0]), PrevUpdateTime = TimeSpan.FromMilliseconds(double.Parse(payload[2])) });
+            AddOp(new WorldState.OpFrameStart() {
+                NewTimestamp = DateTime.Parse(payload[0]),
+                PrevUpdateTime = TimeSpan.FromMilliseconds(double.Parse(payload[2])),
+                FrameTimeMS = payload.Length > 3 ? long.Parse(payload[3]) : 0,
+                GaugePayload = payload.Length > 4 ? ulong.Parse(payload[4], NumberStyles.HexNumber) : 0,
+            });
         }
 
         private void ParseZoneChange(string[] payload)

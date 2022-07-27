@@ -393,7 +393,7 @@ namespace BossMod
                 case Protocol.Opcode.ActorGauge:
                     {
                         var p = (Protocol.Server_ActorGauge*)dataPtr;
-                        Service.Log($"[Network] - params={p->param1:X8} {p->param2:X8} {p->param3:X8} {p->param4:X8}");
+                        Service.Log($"[Network] - {p->ClassJobID} = {p->Payload:X16}, u={p->u5:X2} {p->u6:X4} {p->u8:X16}");
                         break;
                     }
                 case Protocol.Opcode.EffectResult:

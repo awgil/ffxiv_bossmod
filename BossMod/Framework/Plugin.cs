@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
 using Dalamud.Interface;
 using Dalamud.IoC;
@@ -51,7 +52,7 @@ namespace BossMod
             _autorotation = new(_network, _bossmod, _inputOverride);
             _ai = new(_inputOverride, _autorotation);
 
-            Service.Framework.Update += Update;
+            dalamud.UiBuilder.DisableAutomaticUiHide = true;
             dalamud.UiBuilder.Draw += DrawUI;
             dalamud.UiBuilder.OpenConfigUi += OpenConfigUI;
         }
@@ -66,7 +67,6 @@ namespace BossMod
             _autorotation.Dispose();
             _inputOverride.Dispose();
             _commandManager.RemoveHandler("/vbm");
-            Service.Framework.Update -= Update;
         }
 
         private void OnCommand(string cmd, string args)
@@ -106,11 +106,6 @@ namespace BossMod
             w.SizeHint = new Vector2(300, 200);
         }
 
-        private void Update(Framework fwk)
-        {
-            _broadcast.Update();
-        }
-
         private void DrawUI()
         {
             var tsStart = DateTime.Now;
@@ -125,7 +120,11 @@ namespace BossMod
             _autorotation.Update(target);
             _ai.UpdateAfterRotation(target);
 
-            WindowManager.DrawAll();
+            _broadcast.Update();
+
+            bool uiHidden = Service.GameGui.GameUiHidden || Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.WatchingCutscene];
+            if (!uiHidden)
+                WindowManager.DrawAll();
 
             _prevUpdateTime = DateTime.Now - tsStart;
         }

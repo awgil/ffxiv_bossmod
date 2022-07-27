@@ -424,10 +424,11 @@ namespace BossMod
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct Server_ActorGauge
         {
-            public uint param1; // first byte is classjobid
-            public uint param2;
-            public uint param3;
-            public uint param4;
+            public Class ClassJobID;
+            public ulong Payload;
+            public byte u5;
+            public ushort u6;
+            public ulong u8;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]

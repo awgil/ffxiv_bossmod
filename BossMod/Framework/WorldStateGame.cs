@@ -39,7 +39,7 @@ namespace BossMod
 
         public void Update(TimeSpan prevFramePerf)
         {
-            Execute(new OpFrameStart() { NewTimestamp = DateTime.Now, PrevUpdateTime = prevFramePerf });
+            Execute(new OpFrameStart() { NewTimestamp = DateTime.Now, PrevUpdateTime = prevFramePerf, FrameTimeMS = PreviousFrameDurationMS(), GaugePayload = GaugeData() });
             if (CurrentZone != Service.ClientState.TerritoryType)
             {
                 Execute(new OpZoneChange() { Zone = Service.ClientState.TerritoryType });
@@ -280,6 +280,13 @@ namespace BossMod
             foreach (var op in ops)
                 Execute(op);
             _actorOps.Remove(instanceID);
+        }
+
+        private unsafe long PreviousFrameDurationMS() => Utils.ReadField<long>(FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance(), 0x16D0);
+        private unsafe ulong GaugeData()
+        {
+            var curGauge = FFXIVClientStructs.FFXIV.Client.Game.JobGaugeManager.Instance()->CurrentGauge;
+            return curGauge != null ? Utils.ReadField<ulong>(curGauge, 8) : 0;
         }
 
         private void OnNetworkActionEffect(object? sender, (ulong actorID, ActorCastEvent cast) args)
