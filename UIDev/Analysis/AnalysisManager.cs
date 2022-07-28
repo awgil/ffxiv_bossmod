@@ -51,6 +51,7 @@ namespace UIDev
             private Lazy<Analysis.IconInfo> _iconInfo;
             private Lazy<Analysis.TetherInfo> _tetherInfo;
             private Lazy<Analysis.ArenaBounds> _arenaBounds;
+            private Lazy<Analysis.TEAHandOfPartingPrayerRange>? _teaHandOfPartingPrayer;
 
             public PerEncounter(List<Replay> replays, uint oid)
             {
@@ -61,6 +62,8 @@ namespace UIDev
                 _iconInfo = new(() => new(replays, oid));
                 _tetherInfo = new(() => new(replays, oid));
                 _arenaBounds = new(() => new(replays, oid));
+                if (oid == (uint)BossMod.Shadowbringers.Ultimate.TEA.OID.BossP1)
+                    _teaHandOfPartingPrayer = new(() => new(replays, oid));
             }
 
             public void Draw(UITree tree)
@@ -85,6 +88,10 @@ namespace UIDev
 
                 foreach (var n in tree.Node("Arena bounds"))
                     _arenaBounds.Get().Draw(tree);
+
+                if (_teaHandOfPartingPrayer != null)
+                    foreach (var n in tree.Node("TEA: hand of prayer/parting analysis"))
+                        _teaHandOfPartingPrayer.Get().Draw(tree);
             }
         }
 

@@ -15,7 +15,7 @@
         {
             P1FluidSwing(id, 10.2f);
             P1Cascade(id + 0x10000, 4.1f);
-            P1HandsProteansDollsCleaves(id + 0x20000, 14.2f);
+            P1HandsProteansDollsCleaves(id + 0x20000, 11.1f);
             P1ProteansBoss(id + 0x30000, 10.2f);
             P1SplashDrainageCascade(id + 0x40000, 6.1f);
             P1Throttle(id + 0x50000, 4.6f);
@@ -47,14 +47,14 @@
 
         private void P1HandsProteansDollsCleaves(uint id, float delay)
         {
-            // TODO: hand of prayer/hand of parting check - detect...
-            ComponentCondition<P1ProteanWaveTornadoVis>(id + 1, delay, comp => comp.Casters.Count > 0)
+            Condition(id, delay, () => (_module.LiquidHand()?.ModelState ?? 0) != 0, "Hand of parting/prayer bait");
+            ComponentCondition<P1ProteanWaveTornadoVis>(id + 1, 3.1f, comp => comp.Casters.Count > 0)
+                .ActivateOnEnter<P1HandOfPartingPrayer>()
                 .ActivateOnEnter<P1ProteanWaveTornadoVis>()
                 .ActivateOnEnter<P1ProteanWaveTornado>();
             ComponentCondition<P1JagdDolls>(id + 2, 1, comp => comp.Active)
                 .ActivateOnEnter<P1JagdDolls>();
-            ComponentCondition<P1HandOfPartingPrayer>(id + 3, 1, comp => comp.Resolved, "Hand of parting/prayer")
-                .ActivateOnEnter<P1HandOfPartingPrayer>()
+            ComponentCondition<P1HandOfPartingPrayer>(id + 3, 1, comp => comp.Resolved, "Resolve")
                 .DeactivateOnExit<P1HandOfPartingPrayer>();
             ComponentCondition<P1ProteanWaveTornadoVis>(id + 0x10, 1, comp => comp.Casters.Count == 0)
                 .ActivateOnEnter<P1FluidStrike>()
@@ -146,8 +146,8 @@
                 .DeactivateOnExit<P1ProteanWaveTornado>();
             // +3.9s: pressurize
             // +4.5s: embolus spawn
-            // somewhere between: hand of prayer/hand of parting check
-            ComponentCondition<P1HandOfPartingPrayer>(id + 0x41, 9, comp => comp.Resolved, "Hand of parting/prayer")
+            Condition(id + 0x40, 3.9f, () => (_module.LiquidHand()?.ModelState ?? 0) != 0, "Hand of parting/prayer bait");
+            ComponentCondition<P1HandOfPartingPrayer>(id + 0x41, 5.1f, comp => comp.Resolved, "Resolve")
                 .ActivateOnEnter<P1HandOfPartingPrayer>()
                 .DeactivateOnExit<P1HandOfPartingPrayer>();
         }
