@@ -7,18 +7,29 @@ namespace BossMod
         public static ActionID IDAutoAttack = new(ActionType.Spell, 7);
         public static ActionID IDSprint = new(ActionType.General, 4);
 
-        public class State
+        public static int SprintCDGroup = 55;
+        public static int GCDGroup = 57;
+        public static int PotionCDGroup = 58;
+        public static int SpellCDGroup<AID>(AID spell) where AID : Enum
+        {
+            var cg = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>((uint)(object)spell)?.CooldownGroup ?? 0;
+            return cg is > 0 and <= 80 ? cg - 1 : -1;
+        }
+
+        public class PlayerState
         {
             public int Level;
             public uint CurMP; // 10000 max
-            public float GCD; // 2.5 max (decreased by SkS), 0 if not on gcd
             public float AnimationLock; // typical actions have 0.6 delay, but some (notably primal rend and potion) are >1
             public float AnimationLockDelay; // average time between action request and confirmation; this is added to effective animation lock for actions
             public float ComboTimeLeft; // 0 if not in combo, max 30
             public uint ComboLastAction;
             public float RaidBuffsLeft; // 0 if no damage-up status is up, otherwise it is time left on longest
-            public float SprintCD; // 60 max, 0 if ready
-            public float PotionCD; // variable max, 0 if ready
+            public float[] Cooldowns = new float[80];
+
+            public float GCD => Cooldowns[GCDGroup]; // 2.5 max (decreased by SkS), 0 if not on gcd
+            public float SprintCD => Cooldowns[SprintCDGroup]; // 60 max, 0 if ready
+            public float PotionCD => Cooldowns[PotionCDGroup]; // variable max, 0 if ready
 
             public float OGCDDelay => 0.1f; // TODO: consider returning AnimationLockDelay instead...
             public float OGCDSlotLength => 0.6f + OGCDDelay; // most actions have 0.6 anim lock delay, which allows double-weaving oGCDs between GCDs

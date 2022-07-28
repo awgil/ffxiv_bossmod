@@ -18,7 +18,7 @@ namespace BossMod
         private ulong _lastThunderTarget;
 
         public BLMActions(Autorotation autorot, Actor player)
-            : base(autorot, player, ActionID.MakeSpell(BLMRotation.AID.Blizzard1))
+            : base(autorot, player)
         {
             _config = Service.Config.Get<BLMConfig>();
             _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
@@ -42,7 +42,7 @@ namespace BossMod
             }
         }
 
-        protected override CommonRotation.State OnUpdate(Actor? target, bool moving)
+        protected override CommonRotation.PlayerState OnUpdate(Actor? target, bool moving)
         {
             var currState = BuildState(target);
             LogStateChange(_state, currState);
@@ -106,7 +106,7 @@ namespace BossMod
         private BLMRotation.State BuildState(Actor? target)
         {
             BLMRotation.State s = new();
-            FillCommonState(s, target, BLMRotation.IDStatPotion);
+            FillCommonPlayerState(s, target, BLMRotation.IDStatPotion);
 
             var gauge = Service.JobGauges.Get<BLMGauge>();
             s.ElementalLevel = gauge.InAstralFire ? gauge.AstralFireStacks : -gauge.UmbralIceStacks;
@@ -150,7 +150,6 @@ namespace BossMod
                 s.TargetThunderLeft = 21;
             }
 
-            s.TransposeCD = SpellCooldown(BLMRotation.AID.Transpose);
             return s;
         }
 

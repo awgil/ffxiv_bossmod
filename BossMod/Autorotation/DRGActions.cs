@@ -16,7 +16,7 @@ namespace BossMod
         private ActionID _nextBestAOEAction = ActionID.MakeSpell(DRGRotation.AID.DoomSpike);
 
         public DRGActions(Autorotation autorot, Actor player)
-            : base(autorot, player, ActionID.MakeSpell(DRGRotation.AID.TrueThrust))
+            : base(autorot, player)
         {
             _config = Service.Config.Get<DRGConfig>();
             _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
@@ -35,7 +35,7 @@ namespace BossMod
             Log($"Cast {ev.Action} @ {ev.MainTargetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate(Actor? target, bool moving)
+        protected override CommonRotation.PlayerState OnUpdate(Actor? target, bool moving)
         {
             var currState = BuildState(target);
             LogStateChange(_state, currState);
@@ -101,7 +101,7 @@ namespace BossMod
         private DRGRotation.State BuildState(Actor? target)
         {
             DRGRotation.State s = new();
-            FillCommonState(s, target, DRGRotation.IDStatPotion);
+            FillCommonPlayerState(s, target, DRGRotation.IDStatPotion);
 
             //s.Chakra = Service.JobGauges.Get<DRGGauge>().Chakra;
 
@@ -115,11 +115,6 @@ namespace BossMod
                 }
             }
 
-            s.LifeSurgeCD = SpellCooldown(DRGRotation.AID.LifeSurge);
-            s.ArmsLengthCD = SpellCooldown(DRGRotation.AID.ArmsLength);
-            s.SecondWindCD = SpellCooldown(DRGRotation.AID.SecondWind);
-            s.BloodbathCD = SpellCooldown(DRGRotation.AID.Bloodbath);
-            s.LegSweepCD = SpellCooldown(DRGRotation.AID.LegSweep);
             return s;
         }
 

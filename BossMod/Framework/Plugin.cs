@@ -38,6 +38,7 @@ namespace BossMod
             Camera.Instance = new();
             Mouseover.Instance = new();
 
+            Service.Config.Initialize();
             Service.Config.LoadFromFile(dalamud.ConfigFile);
             Service.Config.Modified += (_, _) => Service.Config.SaveToFile(dalamud.ConfigFile);
 

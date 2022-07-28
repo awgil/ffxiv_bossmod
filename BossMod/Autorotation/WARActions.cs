@@ -15,7 +15,7 @@ namespace BossMod
         private bool _justCast;
 
         public WARActions(Autorotation autorot, Actor player)
-            : base(autorot, player, ActionID.MakeSpell(WARRotation.AID.HeavySwing))
+            : base(autorot, player)
         {
             _config = Service.Config.Get<WARConfig>();
             _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
@@ -125,7 +125,7 @@ namespace BossMod
             _justCast = true;
         }
 
-        protected override CommonRotation.State OnUpdate(Actor? target, bool moving)
+        protected override CommonRotation.PlayerState OnUpdate(Actor? target, bool moving)
         {
             var currState = BuildState(target);
             LogStateChange(_state, currState);
@@ -213,7 +213,7 @@ namespace BossMod
         private WARRotation.State BuildState(Actor? target)
         {
             WARRotation.State s = new();
-            FillCommonState(s, target, WARRotation.IDStatPotion);
+            FillCommonPlayerState(s, target, WARRotation.IDStatPotion);
 
             s.Gauge = Service.JobGauges.Get<WARGauge>().BeastGauge;
 
@@ -238,23 +238,6 @@ namespace BossMod
                 }
             }
 
-            s.InfuriateCD = SpellCooldown(WARRotation.AID.Infuriate);
-            s.UpheavalCD = SpellCooldown(WARRotation.AID.Upheaval);
-            s.InnerReleaseCD = SpellCooldown(s.UnlockedInnerRelease ? WARRotation.AID.InnerRelease : WARRotation.AID.Berserk); // note: technically berserk and IR don't share CD, and with level sync you can have both...
-            s.OnslaughtCD = SpellCooldown(WARRotation.AID.Onslaught);
-            s.RampartCD = SpellCooldown(WARRotation.AID.Rampart);
-            s.VengeanceCD = SpellCooldown(WARRotation.AID.Vengeance);
-            s.ThrillOfBattleCD = SpellCooldown(WARRotation.AID.ThrillOfBattle);
-            s.HolmgangCD = SpellCooldown(WARRotation.AID.Holmgang);
-            s.EquilibriumCD = SpellCooldown(WARRotation.AID.Equilibrium);
-            s.ReprisalCD = SpellCooldown(WARRotation.AID.Reprisal);
-            s.ShakeItOffCD = SpellCooldown(WARRotation.AID.ShakeItOff);
-            s.BloodwhettingCD = SpellCooldown(WARRotation.AID.Bloodwhetting);
-            s.ArmsLengthCD = SpellCooldown(WARRotation.AID.ArmsLength);
-            s.ProvokeCD = SpellCooldown(WARRotation.AID.Provoke);
-            s.ShirkCD = SpellCooldown(WARRotation.AID.Shirk);
-            s.LowBlowCD = SpellCooldown(WARRotation.AID.LowBlow);
-            s.InterjectCD = SpellCooldown(WARRotation.AID.Interject);
             return s;
         }
 

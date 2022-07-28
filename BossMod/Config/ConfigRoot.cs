@@ -18,7 +18,7 @@ namespace BossMod
 
         public IEnumerable<ConfigNode> Nodes => _nodes.Values;
 
-        public ConfigRoot()
+        public void Initialize()
         {
             foreach (var t in Utils.GetDerivedTypes<ConfigNode>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract))
             {

@@ -69,45 +69,16 @@ namespace BossMod
             public Dictionary<ActionID, Entry> Entries = new(); // key = smart-queueable action, value = expiration timestamp + target
         }
 
-        public ActionID BaseAbility { get; init; } // GCD ability acquired at level 1, that is used as a base for single target rotations
         public Actor Player { get; init; }
         protected Autorotation Autorot;
         private SmartQueue _sq = new();
         private unsafe FFXIVClientStructs.FFXIV.Client.Game.ActionManager* _actionManager = null;
 
-        protected unsafe CommonActions(Autorotation autorot, Actor player, ActionID baseAbility)
+        protected unsafe CommonActions(Autorotation autorot, Actor player)
         {
-            BaseAbility = baseAbility;
             Player = player;
             Autorot = autorot;
             _actionManager = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
-        }
-
-        public unsafe float ActionCooldown(ActionID action)
-        {
-            var recastGroup = _actionManager->GetRecastGroup((int)action.Type, action.ID);
-            var recast = _actionManager->GetRecastGroupDetail(recastGroup);
-            if (recast != null)
-            {
-                return recast->Total - recast->Elapsed;
-            }
-            else
-            {
-                Service.Log($"Failed to retrieve recast for {action} (group={recastGroup})");
-                return 0;
-            }
-        }
-
-        public float SpellCooldown<AID>(AID spell) where AID : Enum
-        {
-            return ActionCooldown(ActionID.MakeSpell(spell));
-        }
-
-        public unsafe float PotionCooldown()
-        {
-            // note: potions have recast group 58; however, for some reason periodically GetRecastGroup for them returns -1...
-            var recast = _actionManager->GetRecastGroupDetail(58);
-            return recast->Total - recast->Elapsed;
         }
 
         public unsafe bool HaveItemInInventory(uint id)
@@ -197,18 +168,17 @@ namespace BossMod
         }
 
         abstract protected void OnCastSucceeded(ActorCastEvent ev);
-        abstract protected CommonRotation.State OnUpdate(Actor? target, bool moving);
+        abstract protected CommonRotation.PlayerState OnUpdate(Actor? target, bool moving);
         abstract protected (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets);
         abstract public AIResult CalculateBestAction(Actor player, Actor? primaryTarget, bool moving);
         abstract public void DrawOverlay();
 
         // fill common state properties
-        protected void FillCommonState(CommonRotation.State s, Actor? target, ActionID potion)
+        protected unsafe void FillCommonPlayerState(CommonRotation.PlayerState s, Actor? target, ActionID potion)
         {
             var pc = Service.ClientState.LocalPlayer;
             s.Level = pc?.Level ?? 0;
             s.CurMP = pc?.CurrentMp ?? 0;
-            s.GCD = ActionCooldown(BaseAbility);
             s.AnimationLock = Autorot.AnimLock;
             s.AnimationLockDelay = Autorot.AnimLockDelay;
             s.ComboTimeLeft = Autorot.ComboTimeLeft;
@@ -220,8 +190,12 @@ namespace BossMod
             }
             // TODO: also check damage-taken debuffs on target
 
-            s.SprintCD = ActionCooldown(CommonRotation.IDSprint);
-            s.PotionCD = PotionCooldown();
+            var rg = _actionManager->GetRecastGroupDetail(0);
+            for (int i = 0; i < 80; ++i)
+            {
+                s.Cooldowns[i] = rg->Total - rg->Elapsed;
+                ++rg;
+            }
         }
 
         // fill common strategy properties

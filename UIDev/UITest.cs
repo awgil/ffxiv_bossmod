@@ -26,8 +26,9 @@ namespace UIDev
             _configPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "pluginConfigs", "BossMod.json");
 
             Service.LogHandler = (string msg) => Debug.WriteLine(msg);
-            Service.Config.LoadFromFile(new(_configPath));
             Service.LuminaGameData = new(FindGameDataPath());
+            Service.Config.Initialize();
+            Service.Config.LoadFromFile(new(_configPath));
             //Service.Device = (SharpDX.Direct3D11.Device?)scene.Renderer.GetType().GetField("_device", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(scene.Renderer);
 
             // scene is a little different from what you have access to in dalamud

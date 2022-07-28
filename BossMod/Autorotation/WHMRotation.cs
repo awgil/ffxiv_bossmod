@@ -76,8 +76,23 @@ namespace BossMod
             Dia = 1871,
         }
 
+        public static int AssizeCDGroup = CommonRotation.SpellCDGroup(AID.Assize);
+        public static int AsylumCDGroup = CommonRotation.SpellCDGroup(AID.Asylum);
+        public static int DivineBenisonCDGroup = CommonRotation.SpellCDGroup(AID.DivineBenison);
+        public static int TetragrammatonCDGroup = CommonRotation.SpellCDGroup(AID.Tetragrammaton);
+        public static int BenedictionCDGroup = CommonRotation.SpellCDGroup(AID.Benediction);
+        public static int LiturgyOfTheBellCDGroup = CommonRotation.SpellCDGroup(AID.LiturgyOfTheBell);
+        public static int SwiftcastCDGroup = CommonRotation.SpellCDGroup(AID.Swiftcast);
+        public static int LucidDreamingCDGroup = CommonRotation.SpellCDGroup(AID.LucidDreaming);
+        public static int PresenceOfMindCDGroup = CommonRotation.SpellCDGroup(AID.PresenceOfMind);
+        public static int ThinAirCDGroup = CommonRotation.SpellCDGroup(AID.ThinAir);
+        public static int PlenaryIndulgenceCDGroup = CommonRotation.SpellCDGroup(AID.PlenaryIndulgence);
+        public static int TemperanceCDGroup = CommonRotation.SpellCDGroup(AID.Temperance);
+        public static int AquaveilCDGroup = CommonRotation.SpellCDGroup(AID.Aquaveil);
+        public static int SurecastCDGroup = CommonRotation.SpellCDGroup(AID.Surecast);
+
         // full state needed for determining next action
-        public class State : CommonRotation.State
+        public class State : CommonRotation.PlayerState
         {
             public int NormalLilies;
             public int BloodLilies;
@@ -87,20 +102,21 @@ namespace BossMod
             public float FreecureLeft; // 0 if buff not up, max 15
             public float MedicaLeft; // 0 if hot not up, max 15
             public float TargetDiaLeft; // 0 if debuff not up, max 30
-            public float AssizeCD; // 45 max, 0 if ready
-            public float AsylumCD; // 90 max, 0 if ready
-            public float DivineBenisonCD; // 60 max, >30 if 0 stacks ready, >0 if 1 stack ready, ==0 if 2 stacks ready
-            public float TetragrammatonCD; // 60 max, 0 if ready
-            public float BenedictionCD; // 180 max, 0 if ready
-            public float LiturgyOfTheBellCD; // 180 max, 0 if ready
-            public float SwiftcastCD; // 60 max, 0 if ready
-            public float LucidDreamingCD; // 60 max, 0 if ready
-            public float PresenceOfMindCD; // 120 max, 0 if ready
-            public float ThinAirCD; // 120 max, >60 if 0 stacks ready, >0 if 1 stack ready, ==0 if 2 stacks ready
-            public float PlenaryIndulgenceCD; // 60 max, 0 if ready
-            public float TemperanceCD; // 120 max, 0 if ready
-            public float AquaveilCD; // 60 max, 0 if ready
-            public float SurecastCD; // 120 max, 0 if ready
+
+            public float AssizeCD => Cooldowns[AssizeCDGroup]; // 45 max, 0 if ready
+            public float AsylumCD => Cooldowns[AsylumCDGroup]; // 90 max, 0 if ready
+            public float DivineBenisonCD => Cooldowns[DivineBenisonCDGroup]; // 60 max, >30 if 0 stacks ready, >0 if 1 stack ready, ==0 if 2 stacks ready
+            public float TetragrammatonCD => Cooldowns[TetragrammatonCDGroup]; // 60 max, 0 if ready
+            public float BenedictionCD => Cooldowns[BenedictionCDGroup]; // 180 max, 0 if ready
+            public float LiturgyOfTheBellCD => Cooldowns[LiturgyOfTheBellCDGroup]; // 180 max, 0 if ready
+            public float SwiftcastCD => Cooldowns[SwiftcastCDGroup]; // 60 max, 0 if ready
+            public float LucidDreamingCD => Cooldowns[LucidDreamingCDGroup]; // 60 max, 0 if ready
+            public float PresenceOfMindCD => Cooldowns[PresenceOfMindCDGroup]; // 120 max, 0 if ready
+            public float ThinAirCD => Cooldowns[ThinAirCDGroup]; // 120 max, >60 if 0 stacks ready, >0 if 1 stack ready, ==0 if 2 stacks ready
+            public float PlenaryIndulgenceCD => Cooldowns[PlenaryIndulgenceCDGroup]; // 60 max, 0 if ready
+            public float TemperanceCD => Cooldowns[TemperanceCDGroup]; // 120 max, 0 if ready
+            public float AquaveilCD => Cooldowns[AquaveilCDGroup]; // 60 max, 0 if ready
+            public float SurecastCD => Cooldowns[SurecastCDGroup]; // 120 max, 0 if ready
 
             // per-level ability unlocks (TODO: consider abilities unlocked by quests - they could be unavailable despite level being high enough)
             public bool UnlockedCure1 => Level >= 2;

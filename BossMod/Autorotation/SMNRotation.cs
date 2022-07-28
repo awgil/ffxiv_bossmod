@@ -125,8 +125,16 @@ namespace BossMod
 
         public enum Attunement { None, Ifrit, Titan, Garuda }
 
+        public static int AetherchargeCDGroup = CommonRotation.SpellCDGroup(AID.Aethercharge);
+        public static int EnergyDrainCDGroup = CommonRotation.SpellCDGroup(AID.EnergyDrain);
+        public static int RadiantAegisCDGroup = CommonRotation.SpellCDGroup(AID.RadiantAegis);
+        public static int AddleCDGroup = CommonRotation.SpellCDGroup(AID.Addle);
+        public static int SwiftcastCDGroup = CommonRotation.SpellCDGroup(AID.Swiftcast);
+        public static int SurecastCDGroup = CommonRotation.SpellCDGroup(AID.Surecast);
+        public static int LucidDreamingCDGroup = CommonRotation.SpellCDGroup(AID.LucidDreaming);
+
         // full state needed for determining next action
-        public class State : CommonRotation.State
+        public class State : CommonRotation.PlayerState
         {
             public bool PetSummoned;
             public bool IfritReady;
@@ -138,13 +146,14 @@ namespace BossMod
             public float SummonLockLeft;
             public int AetherflowStacks; // 0-2
             public float SwiftcastLeft; // 0 if buff not up, max 10
-            public float AetherchargeCD; // 60 max, 0 if ready
-            public float EnergyDrainCD; // 60 max, 0 if ready
-            public float RadiantAegisCD;
-            public float AddleCD; // 90 max, 0 if ready
-            public float SwiftcastCD; // 60 max, 0 if ready
-            public float SurecastCD; // 120 max, 0 if ready
-            public float LucidDreamingCD; // 60 max, 0 if ready
+
+            public float AetherchargeCD => Cooldowns[AetherchargeCDGroup]; // 60 max, 0 if ready
+            public float EnergyDrainCD => Cooldowns[EnergyDrainCDGroup]; // 60 max, 0 if ready
+            public float RadiantAegisCD => Cooldowns[RadiantAegisCDGroup];
+            public float AddleCD => Cooldowns[AddleCDGroup]; // 90 max, 0 if ready
+            public float SwiftcastCD => Cooldowns[SwiftcastCDGroup]; // 60 max, 0 if ready
+            public float SurecastCD => Cooldowns[SurecastCDGroup]; // 120 max, 0 if ready
+            public float LucidDreamingCD => Cooldowns[LucidDreamingCDGroup]; // 60 max, 0 if ready
 
             // per-level ability unlocks (TODO: consider abilities unlocked by quests - they could be unavailable despite level being high enough)
             public bool UnlockedSummonCarbuncle => Level >= 2; // includes radiant aegis

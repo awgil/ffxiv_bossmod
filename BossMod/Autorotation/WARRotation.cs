@@ -86,8 +86,27 @@ namespace BossMod
             Defiance = 91, // applied by Defiance, tank stance
         }
 
+        public static int BerserkCDGroup = CommonRotation.SpellCDGroup(AID.Berserk);
+        public static int InnerReleaseCDGroup = CommonRotation.SpellCDGroup(AID.InnerRelease);
+        public static int InfuriateCDGroup = CommonRotation.SpellCDGroup(AID.Infuriate);
+        public static int UpheavalCDGroup = CommonRotation.SpellCDGroup(AID.Upheaval);
+        public static int OnslaughtCDGroup = CommonRotation.SpellCDGroup(AID.Onslaught);
+        public static int RampartCDGroup = CommonRotation.SpellCDGroup(AID.Rampart);
+        public static int VengeanceCDGroup = CommonRotation.SpellCDGroup(AID.Vengeance);
+        public static int ThrillOfBattleCDGroup = CommonRotation.SpellCDGroup(AID.ThrillOfBattle);
+        public static int HolmgangCDGroup = CommonRotation.SpellCDGroup(AID.Holmgang);
+        public static int EquilibriumCDGroup = CommonRotation.SpellCDGroup(AID.Equilibrium);
+        public static int ReprisalCDGroup = CommonRotation.SpellCDGroup(AID.Reprisal);
+        public static int ShakeItOffCDGroup = CommonRotation.SpellCDGroup(AID.ShakeItOff);
+        public static int BloodwhettingCDGroup = CommonRotation.SpellCDGroup(AID.Bloodwhetting);
+        public static int ArmsLengthCDGroup = CommonRotation.SpellCDGroup(AID.ArmsLength);
+        public static int ProvokeCDGroup = CommonRotation.SpellCDGroup(AID.Provoke);
+        public static int ShirkCDGroup = CommonRotation.SpellCDGroup(AID.Shirk);
+        public static int LowBlowCDGroup = CommonRotation.SpellCDGroup(AID.LowBlow);
+        public static int InterjectCDGroup = CommonRotation.SpellCDGroup(AID.Interject);
+
         // full state needed for determining next action
-        public class State : CommonRotation.State
+        public class State : CommonRotation.PlayerState
         {
             public int Gauge; // 0 to 100
             public float SurgingTempestLeft; // 0 if buff not up, max 60
@@ -95,23 +114,25 @@ namespace BossMod
             public float PrimalRendLeft; // 0 if buff not up, max 30
             public float InnerReleaseLeft; // 0 if buff not up, max 15
             public int InnerReleaseStacks; // 0 if buff not up, max 3
-            public float InnerReleaseCD; // 60 max, 0 if ready
-            public float InfuriateCD; // 120 max, >60 if 0 stacks ready, >0 if 1 stack ready, ==0 if 2 stacks ready
-            public float UpheavalCD; // 30 max, 0 if ready
-            public float OnslaughtCD; // 90 max, >60 if 0 stacks ready, >30 if 1 stack ready, >0 if 2 stacks ready, ==0 if 3 stacks ready; without enhanced onslaught, using first charge sets CD to 60, and <=30 means two charges available
-            public float RampartCD; // 90 max, 0 if ready
-            public float VengeanceCD; // 120 max, 0 if ready
-            public float ThrillOfBattleCD; // 90 max, 0 if ready
-            public float HolmgangCD; // 240 max, 0 if ready
-            public float EquilibriumCD; // 60 max, 0 if ready
-            public float ReprisalCD; // 60 max, 0 if ready
-            public float ShakeItOffCD; // 90 max, 0 if ready
-            public float BloodwhettingCD; // 25 max, 0 if ready (also applies to nascent flash)
-            public float ArmsLengthCD; // 120 max, 0 if ready
-            public float ProvokeCD; // 30 max, 0 if ready
-            public float ShirkCD; // 120 max, 0 if ready
-            public float LowBlowCD; // 25 max, 0 if ready
-            public float InterjectCD; // 30 max, 0 if ready
+
+            public float BerserkCD => Cooldowns[BerserkCDGroup]; // 60 max, 0 if ready
+            public float InnerReleaseCD => Cooldowns[InnerReleaseCDGroup]; // 60 max, 0 if ready
+            public float InfuriateCD => Cooldowns[InfuriateCDGroup]; // 120 max, >60 if 0 stacks ready, >0 if 1 stack ready, ==0 if 2 stacks ready
+            public float UpheavalCD => Cooldowns[UpheavalCDGroup]; // 30 max, 0 if ready
+            public float OnslaughtCD => Cooldowns[OnslaughtCDGroup]; // 90 max, >60 if 0 stacks ready, >30 if 1 stack ready, >0 if 2 stacks ready, ==0 if 3 stacks ready; without enhanced onslaught, using first charge sets CD to 60, and <=30 means two charges available
+            public float RampartCD => Cooldowns[RampartCDGroup]; // 90 max, 0 if ready
+            public float VengeanceCD => Cooldowns[VengeanceCDGroup]; // 120 max, 0 if ready
+            public float ThrillOfBattleCD => Cooldowns[ThrillOfBattleCDGroup]; // 90 max, 0 if ready
+            public float HolmgangCD => Cooldowns[HolmgangCDGroup]; // 240 max, 0 if ready
+            public float EquilibriumCD => Cooldowns[EquilibriumCDGroup]; // 60 max, 0 if ready
+            public float ReprisalCD => Cooldowns[ReprisalCDGroup]; // 60 max, 0 if ready
+            public float ShakeItOffCD => Cooldowns[ShakeItOffCDGroup]; // 90 max, 0 if ready
+            public float BloodwhettingCD => Cooldowns[BloodwhettingCDGroup]; // 25 max, 0 if ready (also applies to nascent flash)
+            public float ArmsLengthCD => Cooldowns[ArmsLengthCDGroup]; // 120 max, 0 if ready
+            public float ProvokeCD => Cooldowns[ProvokeCDGroup]; // 30 max, 0 if ready
+            public float ShirkCD => Cooldowns[ShirkCDGroup]; // 120 max, 0 if ready
+            public float LowBlowCD => Cooldowns[LowBlowCDGroup]; // 25 max, 0 if ready
+            public float InterjectCD => Cooldowns[InterjectCDGroup]; // 30 max, 0 if ready
 
             public AID ComboLastMove => (AID)ComboLastAction;
 
@@ -157,7 +178,7 @@ namespace BossMod
 
             public override string ToString()
             {
-                return $"g={Gauge}, RB={RaidBuffsLeft:f1}, ST={SurgingTempestLeft:f1}, NC={NascentChaosLeft:f1}, PR={PrimalRendLeft:f1}, IR={InnerReleaseStacks}/{InnerReleaseLeft:f1}, IRCD={InnerReleaseCD:f1}, InfCD={InfuriateCD:f1}, UphCD={UpheavalCD:f1}, OnsCD={OnslaughtCD:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+                return $"g={Gauge}, RB={RaidBuffsLeft:f1}, ST={SurgingTempestLeft:f1}, NC={NascentChaosLeft:f1}, PR={PrimalRendLeft:f1}, IR={InnerReleaseStacks}/{InnerReleaseLeft:f1}, IRCD={BerserkCD:f1}/{InnerReleaseCD:f1}, InfCD={InfuriateCD:f1}, UphCD={UpheavalCD:f1}, OnsCD={OnslaughtCD:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
             }
         }
 
@@ -329,10 +350,12 @@ namespace BossMod
 
         public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
         {
+            var irCD = state.UnlockedInnerRelease ? state.InnerReleaseCD : state.BerserkCD;
+
             // we spend resources either under raid buffs or if another raid buff window will cover at least 4 GCDs of the fight
             bool spendGauge = state.RaidBuffsLeft > state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10;
             if (!state.UnlockedInnerRelease)
-                spendGauge &= state.InnerReleaseCD > 5; // TODO: improve...
+                spendGauge &= irCD > 5; // TODO: improve...
 
             float primalRendWindow = MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);
             var nextFCAction = state.NascentChaosLeft > state.GCD ? (state.UnlockedInnerChaos && !aoe ? AID.InnerChaos : AID.ChaoticCyclone)
@@ -398,7 +421,7 @@ namespace BossMod
 
             // 5. if we have >50 gauge, IR is imminent, and not spending gauge now will cause us to overcap infuriate, spend gauge asap
             // 30 seconds is for FC + IR + 3xFC - this is 4 gcds (10 sec) and 4 FCs (another 20 sec)
-            if (state.Gauge > 50 && state.UnlockedInfuriate && state.InfuriateCD <= gcdDelay + 30 && state.InnerReleaseCD < secondGCDIn)
+            if (state.Gauge > 50 && state.UnlockedInfuriate && state.InfuriateCD <= gcdDelay + 30 && irCD < secondGCDIn)
                 return nextFCAction;
 
             // 6. if there is no chance we can delay PR until next raid buffs, just cast it now
@@ -409,7 +432,7 @@ namespace BossMod
             if (!spendGauge)
             {
                 // we want to delay spending gauge unless doing so will cause us problems later
-                var maxSTToAvoidOvercap = 20 + Math.Clamp(state.InnerReleaseCD, 0, 10);
+                var maxSTToAvoidOvercap = 20 + Math.Clamp(irCD, 0, 10);
                 var nextCombo = GetNextUnlockedComboAction(state, maxSTToAvoidOvercap, aoe);
                 if (state.Gauge + GaugeGainedFromAction(state, nextCombo) <= 100)
                     return nextCombo;
@@ -463,6 +486,8 @@ namespace BossMod
         // window-end is either GCD or GCD - time-for-second-ogcd; we are allowed to use ogcds only if their animation lock would complete before window-end
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float windowEnd, bool aoe)
         {
+            var irCD = state.UnlockedInnerRelease ? state.InnerReleaseCD : state.BerserkCD;
+
             // 1. use cooldowns if requested in rough priority order
             if (strategy.ExecuteProvoke && state.UnlockedProvoke && state.CanWeave(state.ProvokeCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Provoke);
@@ -507,13 +532,13 @@ namespace BossMod
                 if (strategy.Potion != Strategy.PotionUse.Immediate && state.SurgingTempestLeft > 0)
                 {
                     // if we're delaying potion, make sure it covers IR (note: if IR is already up, it is too late...)
-                    allowPotion &= state.InnerReleaseCD < 15; // note: absolute max is 10, since we need 4 GCDs to fully consume IR
+                    allowPotion &= irCD < 15; // note: absolute max is 10, since we need 4 GCDs to fully consume IR
                     if (strategy.Potion == Strategy.PotionUse.DelayUntilRaidBuffs)
                     {
                         // further delay potion until raidbuffs are up or imminent
                         // we can't really control whether raidbuffs cover IR window, so skip potion only if we're sure raidbuffs might be up for next IR window
                         // we assume that typical average raidbuff window is 20 sec, so raidbuffs will cover next window if they will start in ~(time to next IR - buff duration) ~= (IRCD + 60 - 20)
-                        allowPotion &= state.RaidBuffsLeft > 0 || strategy.RaidBuffsIn < state.InnerReleaseCD + 40;
+                        allowPotion &= state.RaidBuffsLeft > 0 || strategy.RaidBuffsIn < irCD + 40;
                     }
                 }
 
@@ -524,7 +549,7 @@ namespace BossMod
             // 3. inner release, if surging tempest up
             // TODO: early IR option: technically we can use right after heavy swing, we'll use maim->SE->IC->3xFC
             // if not unlocked yet, use berserk instead, but only if we have enough gauge
-            if (state.UnlockedBerserk && state.CanWeave(state.InnerReleaseCD, 0.6f, windowEnd) && (state.SurgingTempestLeft > state.GCD + 5 || !state.UnlockedStormEye))
+            if (state.UnlockedBerserk && state.CanWeave(irCD, 0.6f, windowEnd) && (state.SurgingTempestLeft > state.GCD + 5 || !state.UnlockedStormEye))
             {
                 if (state.UnlockedInnerRelease)
                     return ActionID.MakeSpell(AID.InnerRelease);
@@ -568,7 +593,7 @@ namespace BossMod
                     int gaugeCap = state.ComboLastMove == AID.None ? 50 : (state.ComboLastMove == AID.HeavySwing ? 40 : 30);
                     if (state.Gauge > gaugeCap)
                         maxInfuriateCD += 7.5f;
-                    bool irImminent = state.InnerReleaseCD < state.GCD + 2.5;
+                    bool irImminent = irCD < state.GCD + 2.5;
                     maxInfuriateCD += (irImminent ? 3 : state.InnerReleaseStacks) * 7.5f;
                     if (state.InfuriateCD <= maxInfuriateCD)
                         return ActionID.MakeSpell(AID.Infuriate);

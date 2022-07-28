@@ -71,8 +71,30 @@ namespace BossMod
             Stormbite = 1201,
         }
 
+        public static int BloodletterCDGroup = CommonRotation.SpellCDGroup(AID.Bloodletter); // shares with RainOfDeath
+        public static int PitchPerfectCDGroup = CommonRotation.SpellCDGroup(AID.PitchPerfect);
+        public static int EmpyrealArrowCDGroup = CommonRotation.SpellCDGroup(AID.EmpyrealArrow);
+        public static int SidewinderCDGroup = CommonRotation.SpellCDGroup(AID.Sidewinder);
+        public static int RagingStrikesCDGroup = CommonRotation.SpellCDGroup(AID.RagingStrikes);
+        public static int BarrageCDGroup = CommonRotation.SpellCDGroup(AID.Barrage);
+        public static int MagesBalladCDGroup = CommonRotation.SpellCDGroup(AID.MagesBallad);
+        public static int ArmysPaeonCDGroup = CommonRotation.SpellCDGroup(AID.ArmysPaeon);
+        public static int WanderersMinuetCDGroup = CommonRotation.SpellCDGroup(AID.WanderersMinuet);
+        public static int BattleVoiceCDGroup = CommonRotation.SpellCDGroup(AID.BattleVoice);
+        public static int RadiantFinaleCDGroup = CommonRotation.SpellCDGroup(AID.RadiantFinale);
+        public static int SecondWindCDGroup = CommonRotation.SpellCDGroup(AID.SecondWind);
+        public static int TroubadourCDGroup = CommonRotation.SpellCDGroup(AID.Troubadour);
+        public static int NaturesMinneCDGroup = CommonRotation.SpellCDGroup(AID.NaturesMinne);
+        public static int ArmsLengthCDGroup = CommonRotation.SpellCDGroup(AID.ArmsLength);
+        public static int PelotonCDGroup = CommonRotation.SpellCDGroup(AID.Peloton);
+        public static int LegGrazeCDGroup = CommonRotation.SpellCDGroup(AID.LegGraze);
+        public static int FootGrazeCDGroup = CommonRotation.SpellCDGroup(AID.FootGraze);
+        public static int HeadGrazeCDGroup = CommonRotation.SpellCDGroup(AID.HeadGraze);
+        public static int RepellingShotCDGroup = CommonRotation.SpellCDGroup(AID.RepellingShot);
+        public static int WardensPaeanCDGroup = CommonRotation.SpellCDGroup(AID.WardensPaean);
+
         // full state needed for determining next action
-        public class State : CommonRotation.State
+        public class State : CommonRotation.PlayerState
         {
             public float StraightShotLeft;
             public float RagingStrikesLeft;
@@ -80,12 +102,28 @@ namespace BossMod
             public float PelotonLeft; // 30 max
             public float TargetVenomousLeft;
             public float TargetWindbiteLeft;
-            public float RagingStrikesCD;
-            public float BloodletterCD; // 45 max, >30 if 0 charges ready, >15 if 1 charge ready, >0 if 2 charges ready, ==0 if 3 charges are ready
-            public float ArmsLengthCD; // 120 max, 0 if ready
-            public float SecondWindCD;
-            public float HeadGrazeCD;
-            public float PelotonCD;
+
+            public float BloodletterCD => Cooldowns[BloodletterCDGroup]; // 45 max, >30 if 0 charges ready, >15 if 1 charge ready, >0 if 2 charges ready, ==0 if 3 charges are ready
+            public float PitchPerfectCD => Cooldowns[PitchPerfectCDGroup];
+            public float EmpyrealArrowCD => Cooldowns[EmpyrealArrowCDGroup];
+            public float SidewinderCD => Cooldowns[SidewinderCDGroup];
+            public float RagingStrikesCD => Cooldowns[RagingStrikesCDGroup];
+            public float BarrageCD => Cooldowns[BarrageCDGroup];
+            public float MagesBalladCD => Cooldowns[MagesBalladCDGroup];
+            public float ArmysPaeonCD => Cooldowns[ArmysPaeonCDGroup];
+            public float WanderersMinuetCD => Cooldowns[WanderersMinuetCDGroup];
+            public float BattleVoiceCD => Cooldowns[BattleVoiceCDGroup];
+            public float RadiantFinaleCD => Cooldowns[RadiantFinaleCDGroup];
+            public float SecondWindCD => Cooldowns[SecondWindCDGroup];
+            public float TroubadourCD => Cooldowns[TroubadourCDGroup];
+            public float NaturesMinneCD => Cooldowns[NaturesMinneCDGroup];
+            public float ArmsLengthCD => Cooldowns[ArmsLengthCDGroup]; // 120 max, 0 if ready
+            public float PelotonCD => Cooldowns[PelotonCDGroup];
+            public float LegGrazeCD => Cooldowns[LegGrazeCDGroup];
+            public float FootGrazeCD => Cooldowns[FootGrazeCDGroup];
+            public float HeadGrazeCD => Cooldowns[HeadGrazeCDGroup];
+            public float RepellingShotCD => Cooldowns[RepellingShotCDGroup];
+            public float WardensPaeanCD => Cooldowns[WardensPaeanCDGroup];
 
             // per-level ability unlocks (TODO: consider abilities unlocked by quests - they could be unavailable despite level being high enough)
             public bool UnlockedStraightShot => Level >= 2;

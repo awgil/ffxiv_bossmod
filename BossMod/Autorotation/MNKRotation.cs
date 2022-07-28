@@ -73,17 +73,23 @@ namespace BossMod
 
         public enum Form { None, OpoOpo, Raptor, Coeurl }
 
+        public static int ArmsLengthCDGroup = CommonRotation.SpellCDGroup(AID.ArmsLength);
+        public static int SecondWindCDGroup = CommonRotation.SpellCDGroup(AID.SecondWind);
+        public static int BloodbathCDGroup = CommonRotation.SpellCDGroup(AID.Bloodbath);
+        public static int LegSweepCDGroup = CommonRotation.SpellCDGroup(AID.LegSweep);
+
         // full state needed for determining next action
-        public class State : CommonRotation.State
+        public class State : CommonRotation.PlayerState
         {
             public int Chakra; // 0-5
             public Form Form;
             public float FormLeft; // 0 if no form, 30 max
             public float DisciplinedFistLeft; // 15 max
-            public float ArmsLengthCD; // 120 max, 0 if ready
-            public float SecondWindCD; // 120 max, 0 if ready
-            public float BloodbathCD; // 90 max, 0 if ready
-            public float LegSweepCD; // 40 max, 0 if ready
+
+            public float ArmsLengthCD => Cooldowns[ArmsLengthCDGroup]; // 120 max, 0 if ready
+            public float SecondWindCD => Cooldowns[SecondWindCDGroup]; // 120 max, 0 if ready
+            public float BloodbathCD => Cooldowns[BloodbathCDGroup]; // 90 max, 0 if ready
+            public float LegSweepCD => Cooldowns[LegSweepCDGroup]; // 40 max, 0 if ready
 
             // per-level ability unlocks (TODO: consider abilities unlocked by quests - they could be unavailable despite level being high enough)
             public bool UnlockedTrueStrike => Level >= 4;

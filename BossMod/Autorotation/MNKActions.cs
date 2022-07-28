@@ -14,7 +14,7 @@ namespace BossMod
         private ActionID _nextBestAOEAction = ActionID.MakeSpell(MNKRotation.AID.ArmOfTheDestroyer);
 
         public MNKActions(Autorotation autorot, Actor player)
-            : base(autorot, player, ActionID.MakeSpell(MNKRotation.AID.Bootshine))
+            : base(autorot, player)
         {
             _config = Service.Config.Get<MNKConfig>();
             _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
@@ -33,7 +33,7 @@ namespace BossMod
             Log($"Cast {ev.Action} @ {ev.MainTargetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate(Actor? target, bool moving)
+        protected override CommonRotation.PlayerState OnUpdate(Actor? target, bool moving)
         {
             var currState = BuildState(target);
             LogStateChange(_state, currState);
@@ -108,7 +108,7 @@ namespace BossMod
         private MNKRotation.State BuildState(Actor? target)
         {
             MNKRotation.State s = new();
-            FillCommonState(s, target, MNKRotation.IDStatPotion);
+            FillCommonPlayerState(s, target, MNKRotation.IDStatPotion);
 
             s.Chakra = Service.JobGauges.Get<MNKGauge>().Chakra;
 
@@ -134,10 +134,6 @@ namespace BossMod
                 }
             }
 
-            s.ArmsLengthCD = SpellCooldown(MNKRotation.AID.ArmsLength);
-            s.SecondWindCD = SpellCooldown(MNKRotation.AID.SecondWind);
-            s.BloodbathCD = SpellCooldown(MNKRotation.AID.Bloodbath);
-            s.LegSweepCD = SpellCooldown(MNKRotation.AID.LegSweep);
             return s;
         }
 

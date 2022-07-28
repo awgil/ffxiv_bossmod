@@ -16,7 +16,7 @@ namespace BossMod
         private ActionID _nextBestAOEAction = ActionID.MakeSpell(BRDRotation.AID.QuickNock);
 
         public BRDActions(Autorotation autorot, Actor player)
-            : base(autorot, player, ActionID.MakeSpell(BRDRotation.AID.HeavyShot))
+            : base(autorot, player)
         {
             _config = Service.Config.Get<BRDConfig>();
             _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
@@ -34,7 +34,7 @@ namespace BossMod
             Log($"Cast {ev.Action} @ {ev.MainTargetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate(Actor? target, bool moving)
+        protected override CommonRotation.PlayerState OnUpdate(Actor? target, bool moving)
         {
             var currState = BuildState(target);
             LogStateChange(_state, currState);
@@ -107,7 +107,7 @@ namespace BossMod
         private BRDRotation.State BuildState(Actor? target)
         {
             BRDRotation.State s = new();
-            FillCommonState(s, target, BRDRotation.IDStatPotion);
+            FillCommonPlayerState(s, target, BRDRotation.IDStatPotion);
 
             //s.Chakra = Service.JobGauges.Get<BRDGauge>().Chakra;
 
@@ -150,12 +150,6 @@ namespace BossMod
                 }
             }
 
-            s.RagingStrikesCD = SpellCooldown(BRDRotation.AID.RagingStrikes);
-            s.BloodletterCD = SpellCooldown(BRDRotation.AID.Bloodletter);
-            s.ArmsLengthCD = SpellCooldown(BRDRotation.AID.ArmsLength);
-            s.SecondWindCD = SpellCooldown(BRDRotation.AID.SecondWind);
-            s.HeadGrazeCD = SpellCooldown(BRDRotation.AID.HeadGraze);
-            s.PelotonCD = SpellCooldown(BRDRotation.AID.Peloton);
             return s;
         }
 

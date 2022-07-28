@@ -17,7 +17,7 @@ namespace BossMod
         private ActionID _nextBestAOEAction = ActionID.MakeSpell(SMNRotation.AID.Outburst);
 
         public SMNActions(Autorotation autorot, Actor player)
-            : base(autorot, player, ActionID.MakeSpell(SMNRotation.AID.Ruin1))
+            : base(autorot, player)
         {
             _config = Service.Config.Get<SMNConfig>();
             _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
@@ -36,7 +36,7 @@ namespace BossMod
             Log($"Cast {ev.Action} @ {ev.MainTargetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate(Actor? target, bool moving)
+        protected override CommonRotation.PlayerState OnUpdate(Actor? target, bool moving)
         {
             var currState = BuildState(target);
             LogStateChange(_state, currState);
@@ -123,7 +123,7 @@ namespace BossMod
         private SMNRotation.State BuildState(Actor? target)
         {
             SMNRotation.State s = new();
-            FillCommonState(s, target, SMNRotation.IDStatPotion);
+            FillCommonPlayerState(s, target, SMNRotation.IDStatPotion);
 
             s.PetSummoned = Autorot.WorldState.Actors.Any(a => a.Type == ActorType.Pet && a.OwnerID == Player.InstanceID);
 
@@ -161,13 +161,6 @@ namespace BossMod
             //    }
             //}
 
-            s.AetherchargeCD = SpellCooldown(SMNRotation.AID.Aethercharge);
-            s.EnergyDrainCD = SpellCooldown(SMNRotation.AID.EnergyDrain);
-            s.RadiantAegisCD = SpellCooldown(SMNRotation.AID.RadiantAegis);
-            s.AddleCD = SpellCooldown(SMNRotation.AID.Addle);
-            s.SwiftcastCD = SpellCooldown(SMNRotation.AID.Swiftcast);
-            s.SurecastCD = SpellCooldown(SMNRotation.AID.Surecast);
-            s.LucidDreamingCD = SpellCooldown(SMNRotation.AID.LucidDreaming);
             return s;
         }
 

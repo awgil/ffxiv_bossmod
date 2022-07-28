@@ -67,18 +67,28 @@ namespace BossMod
             FightOrFlight = 76,
         }
 
+        public static int FightOrFlightCDGroup = CommonRotation.SpellCDGroup(AID.FightOrFlight);
+        public static int RampartCDGroup = CommonRotation.SpellCDGroup(AID.Rampart);
+        public static int ReprisalCDGroup = CommonRotation.SpellCDGroup(AID.Reprisal);
+        public static int ArmsLengthCDGroup = CommonRotation.SpellCDGroup(AID.ArmsLength);
+        public static int ProvokeCDGroup = CommonRotation.SpellCDGroup(AID.Provoke);
+        public static int ShirkCDGroup = CommonRotation.SpellCDGroup(AID.Shirk);
+        public static int LowBlowCDGroup = CommonRotation.SpellCDGroup(AID.LowBlow);
+        public static int InterjectCDGroup = CommonRotation.SpellCDGroup(AID.Interject);
+
         // full state needed for determining next action
-        public class State : CommonRotation.State
+        public class State : CommonRotation.PlayerState
         {
             public float FightOrFlightLeft; // 0 if buff not up, max 25
-            public float FightOrFlightCD; // 60 max, 0 if ready
-            public float RampartCD; // 90 max, 0 if ready
-            public float ReprisalCD; // 60 max, 0 if ready
-            public float ArmsLengthCD; // 120 max, 0 if ready
-            public float ProvokeCD; // 30 max, 0 if ready
-            public float ShirkCD; // 120 max, 0 if ready
-            public float LowBlowCD; // 25 max, 0 if ready
-            public float InterjectCD; // 30 max, 0 if ready
+
+            public float FightOrFlightCD => Cooldowns[FightOrFlightCDGroup]; // 60 max, 0 if ready
+            public float RampartCD => Cooldowns[RampartCDGroup]; // 90 max, 0 if ready
+            public float ReprisalCD => Cooldowns[ReprisalCDGroup]; // 60 max, 0 if ready
+            public float ArmsLengthCD => Cooldowns[ArmsLengthCDGroup]; // 120 max, 0 if ready
+            public float ProvokeCD => Cooldowns[ProvokeCDGroup]; // 30 max, 0 if ready
+            public float ShirkCD => Cooldowns[ShirkCDGroup]; // 120 max, 0 if ready
+            public float LowBlowCD => Cooldowns[LowBlowCDGroup]; // 25 max, 0 if ready
+            public float InterjectCD => Cooldowns[InterjectCDGroup]; // 30 max, 0 if ready
 
             public AID ComboLastMove => (AID)ComboLastAction;
 

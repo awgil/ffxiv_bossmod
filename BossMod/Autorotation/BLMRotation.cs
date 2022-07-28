@@ -64,16 +64,22 @@ namespace BossMod
             Thunder1 = 161,
         }
 
+        public static int TransposeCDGroup = CommonRotation.SpellCDGroup(AID.Transpose);
+        public static int SwiftcastCDGroup = CommonRotation.SpellCDGroup(AID.Swiftcast);
+        public static int AddleCDGroup = CommonRotation.SpellCDGroup(AID.Addle);
+        public static int LucidDreamingCDGroup = CommonRotation.SpellCDGroup(AID.LucidDreaming);
+
         // full state needed for determining next action
-        public class State : CommonRotation.State
+        public class State : CommonRotation.PlayerState
         {
             public int ElementalLevel; // -3 (umbral ice 3) to +3 (astral fire 3)
             public float ElementalLeft; // 0 if elemental level is 0, otherwise buff duration, max 15
             public float TargetThunderLeft;
-            public float TransposeCD; // 5 max, 0 if ready
-            public float AddleCD; // 90 max, 0 if ready
-            public float SwiftcastCD; // 60 max, 0 if ready
-            public float LucidDreamingCD; // 60 max, 0 if ready
+
+            public float TransposeCD => Cooldowns[TransposeCDGroup]; // 5 max, 0 if ready
+            public float AddleCD => Cooldowns[AddleCDGroup]; // 90 max, 0 if ready
+            public float SwiftcastCD => Cooldowns[SwiftcastCDGroup]; // 60 max, 0 if ready
+            public float LucidDreamingCD => Cooldowns[LucidDreamingCDGroup]; // 60 max, 0 if ready
 
             // per-level ability unlocks (TODO: consider abilities unlocked by quests - they could be unavailable despite level being high enough)
             public bool UnlockedFire1 => Level >= 2;

@@ -13,7 +13,7 @@ namespace BossMod
         private ActionID _nextBestAOEAction = ActionID.MakeSpell(PLDRotation.AID.TotalEclipse);
 
         public PLDActions(Autorotation autorot, Actor player)
-            : base(autorot, player, ActionID.MakeSpell(PLDRotation.AID.FastBlade))
+            : base(autorot, player)
         {
             _config = Service.Config.Get<PLDConfig>();
             _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
@@ -35,7 +35,7 @@ namespace BossMod
             Log($"Cast {ev.Action} @ {ev.MainTargetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate(Actor? target, bool moving)
+        protected override CommonRotation.PlayerState OnUpdate(Actor? target, bool moving)
         {
             var currState = BuildState(target);
             LogStateChange(_state, currState);
@@ -106,7 +106,7 @@ namespace BossMod
         private PLDRotation.State BuildState(Actor? target)
         {
             PLDRotation.State s = new();
-            FillCommonState(s, target, PLDRotation.IDStatPotion);
+            FillCommonPlayerState(s, target, PLDRotation.IDStatPotion);
 
             //s.Gauge = Service.JobGauges.Get<PLDGauge>().OathGauge;
 
@@ -120,14 +120,6 @@ namespace BossMod
                 }
             }
 
-            s.FightOrFlightCD = SpellCooldown(PLDRotation.AID.FightOrFlight);
-            s.RampartCD = SpellCooldown(PLDRotation.AID.Rampart);
-            s.ReprisalCD = SpellCooldown(PLDRotation.AID.Reprisal);
-            s.ArmsLengthCD = SpellCooldown(PLDRotation.AID.ArmsLength);
-            s.ProvokeCD = SpellCooldown(PLDRotation.AID.Provoke);
-            s.ShirkCD = SpellCooldown(PLDRotation.AID.Shirk);
-            s.LowBlowCD = SpellCooldown(PLDRotation.AID.LowBlow);
-            s.InterjectCD = SpellCooldown(PLDRotation.AID.Interject);
             return s;
         }
 

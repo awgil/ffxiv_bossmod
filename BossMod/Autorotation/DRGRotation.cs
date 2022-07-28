@@ -63,15 +63,22 @@ namespace BossMod
             None = 0,
         }
 
+        public static int LifeSurgeCDGroup = CommonRotation.SpellCDGroup(AID.LifeSurge);
+        public static int ArmsLengthCDGroup = CommonRotation.SpellCDGroup(AID.ArmsLength);
+        public static int SecondWindCDGroup = CommonRotation.SpellCDGroup(AID.SecondWind);
+        public static int BloodbathCDGroup = CommonRotation.SpellCDGroup(AID.Bloodbath);
+        public static int LegSweepCDGroup = CommonRotation.SpellCDGroup(AID.LegSweep);
+
         // full state needed for determining next action
-        public class State : CommonRotation.State
+        public class State : CommonRotation.PlayerState
         {
             public float PowerSurgeLeft; // 30 max
-            public float LifeSurgeCD; // 45 max, 0 if ready
-            public float ArmsLengthCD; // 120 max, 0 if ready
-            public float SecondWindCD;
-            public float BloodbathCD;
-            public float LegSweepCD;
+
+            public float LifeSurgeCD => Cooldowns[LifeSurgeCDGroup]; // 45 max, 0 if ready
+            public float ArmsLengthCD => Cooldowns[ArmsLengthCDGroup]; // 120 max, 0 if ready
+            public float SecondWindCD => Cooldowns[SecondWindCDGroup];
+            public float BloodbathCD => Cooldowns[BloodbathCDGroup];
+            public float LegSweepCD => Cooldowns[LegSweepCDGroup];
 
             public AID ComboLastMove => (AID)ComboLastAction;
 

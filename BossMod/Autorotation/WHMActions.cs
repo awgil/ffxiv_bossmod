@@ -15,7 +15,7 @@ namespace BossMod
         private ActionID _nextBestAOEHealAction = ActionID.MakeSpell(WHMRotation.AID.Medica1);
 
         public WHMActions(Autorotation autorot, Actor player)
-            : base(autorot, player, ActionID.MakeSpell(WHMRotation.AID.Stone1))
+            : base(autorot, player)
         {
             _config = Service.Config.Get<WHMConfig>();
             _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
@@ -39,7 +39,7 @@ namespace BossMod
             Log($"Cast {ev.Action} @ {ev.MainTargetID:X}, next-best={_nextBestSTDamageAction}/{_nextBestAOEDamageAction}/{_nextBestSTHealAction}/{_nextBestAOEHealAction} [{_state}]");
         }
 
-        protected override CommonRotation.State OnUpdate(Actor? target, bool moving)
+        protected override CommonRotation.PlayerState OnUpdate(Actor? target, bool moving)
         {
             var currState = BuildState(target);
             LogStateChange(_state, currState);
@@ -144,7 +144,7 @@ namespace BossMod
         private WHMRotation.State BuildState(Actor? target)
         {
             WHMRotation.State s = new();
-            FillCommonState(s, target, WHMRotation.IDStatPotion);
+            FillCommonPlayerState(s, target, WHMRotation.IDStatPotion);
 
             var gauge = Service.JobGauges.Get<WHMGauge>();
             s.NormalLilies = gauge.Lily;
@@ -187,20 +187,6 @@ namespace BossMod
                 }
             }
 
-            s.AssizeCD = SpellCooldown(WHMRotation.AID.Assize);
-            s.AsylumCD = SpellCooldown(WHMRotation.AID.Asylum);
-            s.DivineBenisonCD = SpellCooldown(WHMRotation.AID.DivineBenison);
-            s.TetragrammatonCD = SpellCooldown(WHMRotation.AID.Tetragrammaton);
-            s.BenedictionCD = SpellCooldown(WHMRotation.AID.Benediction);
-            s.LiturgyOfTheBellCD = SpellCooldown(WHMRotation.AID.LiturgyOfTheBell);
-            s.SwiftcastCD = SpellCooldown(WHMRotation.AID.Swiftcast);
-            s.LucidDreamingCD = SpellCooldown(WHMRotation.AID.LucidDreaming);
-            s.PresenceOfMindCD = SpellCooldown(WHMRotation.AID.PresenceOfMind);
-            s.ThinAirCD = SpellCooldown(WHMRotation.AID.ThinAir);
-            s.PlenaryIndulgenceCD = SpellCooldown(WHMRotation.AID.PlenaryIndulgence);
-            s.TemperanceCD = SpellCooldown(WHMRotation.AID.Temperance);
-            s.AquaveilCD = SpellCooldown(WHMRotation.AID.Aquaveil);
-            s.SurecastCD = SpellCooldown(WHMRotation.AID.Surecast);
             return s;
         }
 
