@@ -1,6 +1,5 @@
 ﻿namespace BossMod
 {
-    using static Class;
     public enum Class : byte
     {
         None = 0,
@@ -60,12 +59,12 @@
         public static Role GetRole(this Class cls)
         {
             return cls switch {
-                GLA or PLD or MRD or WAR or DRK or GNB => Role.Tank,
-                LNC or DRG or PGL or MNK or ROG or NIN or SAM or RPR => Role.Melee,
-                ARC or BRD or MCH or DNC => Role.Ranged,
-                THM or BLM or ACN or SMN or RDM => Role.Ranged,
-                BLU => Role.Ranged,
-                SCH or CNJ or WHM or AST or SGE => Role.Healer,
+                Class.GLA or Class.PLD or Class.MRD or Class.WAR or Class.DRK or Class.GNB => Role.Tank,
+                Class.LNC or Class.DRG or Class.PGL or Class.MNK or Class.ROG or Class.NIN or Class.SAM or Class.RPR => Role.Melee,
+                Class.ARC or Class.BRD or Class.MCH or Class.DNC => Role.Ranged,
+                Class.THM or Class.BLM or Class.ACN or Class.SMN or Class.RDM => Role.Ranged,
+                Class.BLU => Role.Ranged,
+                Class.SCH or Class.CNJ or Class.WHM or Class.AST or Class.SGE => Role.Healer,
                 _ => Role.None
             };
         }

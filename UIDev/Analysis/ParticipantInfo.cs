@@ -103,7 +103,7 @@ namespace UIDev.Analysis
                 var sb = new StringBuilder($"public enum OID : uint\n{{");
                 foreach (var (oid, data) in _data)
                 {
-                    sb.Append($"\n    {_oidType?.GetEnumName(oid) ?? $"_Gen_{(data.Name.Length > 0 ? data.Name.Replace(' ', '_') : $"Actor_{oid:X}")}"} = 0x{oid:X}, // x{data.SpawnedPreFight}");
+                    sb.Append($"\n    {_oidType?.GetEnumName(oid) ?? $"_Gen_{Utils.StringToIdentifier(data.Name.Length > 0 ? data.Name : $"Actor{oid:X}")}"} = 0x{oid:X}, // x{data.SpawnedPreFight}");
                     if (data.Type != ActorType.Enemy)
                     {
                         sb.Append(data.Type == ActorType.None ? ", mixed types" : $", {data.Type} type");

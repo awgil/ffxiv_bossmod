@@ -119,7 +119,7 @@ namespace BossMod
             {
                 classType = player.Class switch
                 {
-                    Class.WAR => typeof(WARActions),
+                    Class.WAR => typeof(WAR.Actions),
                     Class.GLA or Class.PLD => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(PLDActions) : null,
                     Class.CNJ or Class.WHM => typeof(WHMActions),
                     Class.PGL or Class.MNK => typeof(MNKActions),

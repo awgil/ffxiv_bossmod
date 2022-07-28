@@ -18,6 +18,7 @@ namespace BossMod
         private DebugHate _debugHate = new();
         private DebugInput _debugInput;
         private DebugAI _debugAI;
+        private DebugClassDefinitions _debugClassDefinitions;
 
         public DebugUI(WorldState ws, Autorotation autorot, InputOverride inputOverride)
         {
@@ -25,11 +26,13 @@ namespace BossMod
             _autorot = autorot;
             _debugInput = new(inputOverride, autorot);
             _debugAI = new(autorot);
+            _debugClassDefinitions = new(ws);
         }
 
         public void Dispose()
         {
             _debugAI.Dispose();
+            _debugClassDefinitions.Dispose();
         }
 
         public unsafe void Draw()
@@ -97,6 +100,10 @@ namespace BossMod
             if (ImGui.CollapsingHeader("Input"))
             {
                 _debugInput.Draw();
+            }
+            if (ImGui.CollapsingHeader("Class definitions"))
+            {
+                _debugClassDefinitions.Draw((Class)(player?.ClassJob.Id ?? 0));
             }
         }
 

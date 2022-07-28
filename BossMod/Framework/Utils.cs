@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -223,6 +224,16 @@ namespace BossMod
         {
             var b = typeof(Base);
             return GetAllTypes(asm).Where(t => t?.IsSubclassOf(b) ?? false).Select(t => t!);
+        }
+
+        // generate valid identifier name from human-readable string
+        public static string StringToIdentifier(string v)
+        {
+            v = v.Replace("'", null);
+            v = v.Replace('-', ' ');
+            v = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(v);
+            v = v.Replace(" ", null);
+            return v;
         }
     }
 }

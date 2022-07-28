@@ -64,8 +64,8 @@ namespace UIDev.Analysis
                 var sb = new StringBuilder("public enum SID : uint\n{");
                 foreach (var (sid, data) in _data)
                 {
-                    string name = _sidType?.GetEnumName(sid) ?? $"_Gen_{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(sid)?.Name.ToString() ?? $"Status_{sid}"}";
-                    sb.Append($"\n    {name.Replace(' ', '_')} = {sid}, // {OIDListString(data.SourceOIDs)}->{OIDListString(data.TargetOIDs)}");
+                    string name = _sidType?.GetEnumName(sid) ?? $"_Gen_{Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(sid)?.Name.ToString() ?? $"Status{sid}")}";
+                    sb.Append($"\n    {name} = {sid}, // {OIDListString(data.SourceOIDs)}->{OIDListString(data.TargetOIDs)}");
 
                     var extras = string.Join('/', data.Extras.Select(extra => $"0x{extra:X}"));
                     if (extras.Length > 0)

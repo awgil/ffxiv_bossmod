@@ -6,6 +6,11 @@ namespace BossMod
     {
         public static ActionID IDAutoAttack = new(ActionType.Spell, 7);
         public static ActionID IDSprint = new(ActionType.General, 4);
+        public static ActionID IDPotionStr = new(ActionType.Item, 1036109); // hq grade 6 tincture of strength
+        public static ActionID IDPotionDex = new(ActionType.Item, 1036110); // hq grade 6 tincture of dexterity
+        public static ActionID IDPotionVit = new(ActionType.Item, 1036111); // hq grade 6 tincture of vitality
+        public static ActionID IDPotionInt = new(ActionType.Item, 1036112); // hq grade 6 tincture of intelligence
+        public static ActionID IDPotionMnd = new(ActionType.Item, 1036113); // hq grade 6 tincture of mind
 
         public static int SprintCDGroup = 55;
         public static int GCDGroup = 57;
@@ -28,8 +33,9 @@ namespace BossMod
             public float[] Cooldowns = new float[80];
 
             public float GCD => Cooldowns[GCDGroup]; // 2.5 max (decreased by SkS), 0 if not on gcd
-            public float SprintCD => Cooldowns[SprintCDGroup]; // 60 max, 0 if ready
-            public float PotionCD => Cooldowns[PotionCDGroup]; // variable max, 0 if ready
+            public float SprintCD => Cooldowns[SprintCDGroup]; // 60.0 max
+            public float PotionCD => Cooldowns[PotionCDGroup]; // variable max
+            public float CD<CDGroup>(CDGroup group) where CDGroup : Enum => Cooldowns[(int)(object)group];
 
             public float OGCDDelay => 0.1f; // TODO: consider returning AnimationLockDelay instead...
             public float OGCDSlotLength => 0.6f + OGCDDelay; // most actions have 0.6 anim lock delay, which allows double-weaving oGCDs between GCDs
@@ -40,6 +46,7 @@ namespace BossMod
             // check whether weaving ogcd with specified remaining cooldown and lock time, so that we won't be locked by specific window-end
             // window-end is typically either GCD (for second/only ogcd slot) or DoubleWeaveWindowEnd (for first ogcd slot)
             public bool CanWeave(float cooldown, float actionLock, float windowEnd) => MathF.Max(cooldown, 0) + actionLock + OGCDDelay <= windowEnd;
+            public bool CanWeave<CDGroup>(CDGroup group, float actionLock, float windowEnd) where CDGroup : Enum => CanWeave(CD(group), actionLock, windowEnd);
         }
 
         public class Strategy

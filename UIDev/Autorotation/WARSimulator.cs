@@ -1,4 +1,5 @@
 ﻿using BossMod;
+using BossMod.WAR;
 using ImGuiNET;
 using System;
 
@@ -27,7 +28,7 @@ namespace UIDev
             GCDExpired = 1 << 15,
         }
 
-        public WARRotation.State InitialState = new() { Level = 90, AnimationLockDelay = 0.1f };
+        public Rotation.State InitialState = new() { Level = 90, AnimationLockDelay = 0.1f };
         public int Duration = 260;
         public bool AOERotation = false;
         public bool KeepOnslaughtCharge = false;
@@ -69,11 +70,11 @@ namespace UIDev
                 }
                 else
                 {
-                    ImGui.SliderFloat("Inner Release cd", ref InitialState.Cooldowns[InitialState.UnlockedInnerRelease ? WARRotation.InnerReleaseCDGroup : WARRotation.BerserkCDGroup], 0, 60);
+                    ImGui.SliderFloat("Inner Release cd", ref InitialState.Cooldowns[(int)(InitialState.UnlockedInnerRelease ? CDGroup.InnerRelease : CDGroup.Berserk)], 0, 60);
                 }
-                ImGui.SliderFloat("Infuriate cd", ref InitialState.Cooldowns[WARRotation.InfuriateCDGroup], 0, 120);
-                ImGui.SliderFloat("Upheaval cd", ref InitialState.Cooldowns[WARRotation.UpheavalCDGroup], 0, 30);
-                ImGui.SliderFloat("Onslaught cd", ref InitialState.Cooldowns[WARRotation.OnslaughtCDGroup], 0, 90);
+                ImGui.SliderFloat("Infuriate cd", ref InitialState.Cooldowns[(int)CDGroup.Infuriate], 0, 120);
+                ImGui.SliderFloat("Upheaval cd", ref InitialState.Cooldowns[(int)CDGroup.Upheaval], 0, 30);
+                ImGui.SliderFloat("Onslaught cd", ref InitialState.Cooldowns[(int)CDGroup.Onslaught], 0, 90);
             }
 
             ImGui.BeginTable("sim", 12);
@@ -91,13 +92,13 @@ namespace UIDev
             ImGui.TableSetupColumn("Combo", ImGuiTableColumnFlags.WidthFixed, 150);
             ImGui.TableHeadersRow();
 
-            var strategy = new WARRotation.Strategy();
+            var strategy = new Rotation.Strategy();
             strategy.PositionLockIn = 10000;
             strategy.FirstChargeIn = KeepOnslaughtCharge ? 0.1f : 10000;
             strategy.SecondChargeIn = 10000;
             strategy.Potion = PotionUse;
 
-            var state = new WARRotation.State();
+            var state = new Rotation.State();
             foreach (var f in state.GetType().GetFields())
                 f.SetValue(state, f.GetValue(InitialState));
             state.Cooldowns = new float[80];
@@ -109,7 +110,7 @@ namespace UIDev
                 var nextBuffCycleIndex = MathF.Ceiling((t - BuffWindowOffset) / BuffWindowFreq);
                 strategy.RaidBuffsIn = t < BuffWindowOffset ? 0 : (BuffWindowOffset + nextBuffCycleIndex * BuffWindowFreq - t);
 
-                var action = t == 0 && state.GCD == 0 && StartWithTomahawk && state.UnlockedTomahawk ? ActionID.MakeSpell(WARRotation.AID.Tomahawk) : WARRotation.GetNextBestAction(state, strategy, AOERotation);
+                var action = t == 0 && state.GCD == 0 && StartWithTomahawk && state.UnlockedTomahawk ? ActionID.MakeSpell(AID.Tomahawk) : Rotation.GetNextBestAction(state, strategy, AOERotation);
                 (var mistake, var ogcd) = Cast(state, action, ref t);
                 DrawActionRow(action, !ogcd, mistake, t, state, strategy);
             }
@@ -126,7 +127,7 @@ namespace UIDev
         {
         }
 
-        public Mistake AdvanceTime(WARRotation.State state, ref float t, float newAnimLock, float cooldown)
+        public Mistake AdvanceTime(Rotation.State state, ref float t, float newAnimLock, float cooldown)
         {
             var dt = MathF.Max(state.AnimationLock, cooldown);
             t += dt;
@@ -177,19 +178,19 @@ namespace UIDev
                 state.InnerReleaseStacks = 0;
             }
 
-            if (state.UnlockedBerserk && state.InnerReleaseCD < -2.5f)
+            if (state.UnlockedBerserk && state.CD(CDGroup.InnerRelease) < -2.5f)
                 res |= Mistake.InnerReleaseDelayed;
-            if (state.UnlockedUpheaval && state.UpheavalCD < -2.5f)
+            if (state.UnlockedUpheaval && state.CD(CDGroup.Upheaval) < -2.5f)
                 res |= Mistake.UpheavalDelayed;
-            if (state.UnlockedOnslaught && state.OnslaughtCD < -2.5f)
+            if (state.UnlockedOnslaught && state.CD(CDGroup.Onslaught) < -2.5f)
                 res |= Mistake.OnslaughtDelayed;
-            if (state.UnlockedInfuriate && state.InfuriateCD < -2.5f)
+            if (state.UnlockedInfuriate && state.CD(CDGroup.Infuriate) < -2.5f)
                 res |= Mistake.InfuriateDelayed;
 
             return res;
         }
 
-        public (Mistake, bool) Cast(WARRotation.State state, ActionID action, ref float t)
+        public (Mistake, bool) Cast(Rotation.State state, ActionID action, ref float t)
         {
             var res = Mistake.None;
             bool isOGCD = false;
@@ -199,7 +200,7 @@ namespace UIDev
                 res |= AdvanceTime(state, ref t, 0.6f, state.SprintCD);
                 res |= AdjustCD(state, CommonRotation.SprintCDGroup, 60, 60);
             }
-            else if (action == WARRotation.IDStatPotion)
+            else if (action == CommonRotation.IDPotionStr)
             {
                 isOGCD = true;
                 res |= AdvanceTime(state, ref t, 1.1f, state.PotionCD);
@@ -207,63 +208,63 @@ namespace UIDev
             }
             else
             {
-                var aid = (WARRotation.AID)action.ID;
+                var aid = (AID)action.ID;
                 switch (aid)
                 {
-                    case WARRotation.AID.HeavySwing:
+                    case AID.HeavySwing:
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
                         res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
                         res |= UseIRCharge(state, false, 0);
                         if (state.UnlockedMaim)
-                            ComboAdvance(state, ref res, WARRotation.AID.None, WARRotation.AID.HeavySwing);
+                            ComboAdvance(state, ref res, AID.None, AID.HeavySwing);
                         break;
-                    case WARRotation.AID.Maim:
+                    case AID.Maim:
                         res |= CheckValid(state.UnlockedMaim);
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
                         res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
                         res |= UseIRCharge(state, false, 0);
-                        if (ComboAdvance(state, ref res, WARRotation.AID.HeavySwing, state.UnlockedStormPath ? WARRotation.AID.Maim : WARRotation.AID.None))
+                        if (ComboAdvance(state, ref res, AID.HeavySwing, state.UnlockedStormPath ? AID.Maim : AID.None))
                         {
                             res |= GainGauge(state, 10);
                         }
                         break;
-                    case WARRotation.AID.StormPath:
+                    case AID.StormPath:
                         res |= CheckValid(state.UnlockedStormPath);
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
                         res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
                         res |= UseIRCharge(state, false, 0);
-                        if (ComboAdvance(state, ref res, WARRotation.AID.Maim, WARRotation.AID.None))
+                        if (ComboAdvance(state, ref res, AID.Maim, AID.None))
                         {
                             res |= GainGauge(state, 20);
                         }
                         break;
-                    case WARRotation.AID.StormEye:
+                    case AID.StormEye:
                         res |= CheckValid(state.UnlockedStormEye);
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
                         res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
                         res |= UseIRCharge(state, false, 0);
-                        if (ComboAdvance(state, ref res, WARRotation.AID.Maim, WARRotation.AID.None))
+                        if (ComboAdvance(state, ref res, AID.Maim, AID.None))
                         {
                             res |= GainGauge(state, 10);
                             res |= GainSurgingTempest(state, 30);
                         }
                         break;
-                    case WARRotation.AID.InnerBeast:
-                    case WARRotation.AID.FellCleave:
-                        res |= CheckValid(aid == WARRotation.AID.FellCleave ? state.UnlockedFellCleave : state.UnlockedInnerBeast);
+                    case AID.InnerBeast:
+                    case AID.FellCleave:
+                        res |= CheckValid(aid == AID.FellCleave ? state.UnlockedFellCleave : state.UnlockedInnerBeast);
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
                         res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
                         res |= CheckValid(state.NascentChaosLeft <= 0);
                         res |= CheckValid(state.InnerReleaseStacks > 0 || state.Gauge >= 50);
                         res |= UseIRCharge(state, true, 50);
-                        if (state.UnlockedEnhancedInfuriate && (state.Cooldowns[WARRotation.InfuriateCDGroup] -= 5) <= 0)
+                        if (state.UnlockedEnhancedInfuriate && (state.Cooldowns[(int)CDGroup.Infuriate] -= 5) <= 0)
                         {
                             res |= Mistake.InfuriateDelayed;
                         }
                         break;
-                    case WARRotation.AID.InnerChaos:
-                    case WARRotation.AID.ChaoticCyclone:
-                        res |= CheckValid(aid == WARRotation.AID.InnerChaos ? state.UnlockedInnerChaos : state.UnlockedChaoticCyclone);
+                    case AID.InnerChaos:
+                    case AID.ChaoticCyclone:
+                        res |= CheckValid(aid == AID.InnerChaos ? state.UnlockedInnerChaos : state.UnlockedChaoticCyclone);
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
                         res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
                         res |= CheckValid(state.NascentChaosLeft > 0);
@@ -271,56 +272,56 @@ namespace UIDev
                         res |= UseIRCharge(state, false, 50);
                         state.NascentChaosLeft = 0;
                         // TODO: verify this...
-                        if (state.UnlockedEnhancedInfuriate && (state.Cooldowns[WARRotation.InfuriateCDGroup] -= 5) <= 0)
+                        if (state.UnlockedEnhancedInfuriate && (state.Cooldowns[(int)CDGroup.Infuriate] -= 5) <= 0)
                         {
                             res |= Mistake.InfuriateDelayed;
                         }
                         break;
-                    case WARRotation.AID.PrimalRend:
+                    case AID.PrimalRend:
                         res |= CheckValid(state.UnlockedPrimalRend);
                         res |= AdvanceTime(state, ref t, 1.15f, state.GCD);
                         res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
                         res |= CheckValid(state.PrimalRendLeft > 0);
                         state.PrimalRendLeft = 0;
                         break;
-                    case WARRotation.AID.Overpower:
+                    case AID.Overpower:
                         res |= CheckValid(state.UnlockedOverpower);
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
                         res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
                         res |= UseIRCharge(state, false, 0);
                         if (state.UnlockedMythrilTempest)
-                            ComboAdvance(state, ref res, WARRotation.AID.None, WARRotation.AID.Overpower);
+                            ComboAdvance(state, ref res, AID.None, AID.Overpower);
                         break;
-                    case WARRotation.AID.MythrilTempest:
+                    case AID.MythrilTempest:
                         res |= CheckValid(state.UnlockedMythrilTempest);
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
                         res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
                         res |= UseIRCharge(state, false, 0);
-                        if (ComboAdvance(state, ref res, WARRotation.AID.Overpower, WARRotation.AID.None))
+                        if (ComboAdvance(state, ref res, AID.Overpower, AID.None))
                         {
                             if (state.UnlockedMasteringTheBeast)
                                 res |= GainGauge(state, 20);
                             res |= GainSurgingTempest(state, 30);
                         }
                         break;
-                    case WARRotation.AID.SteelCyclone:
-                    case WARRotation.AID.Decimate:
-                        res |= CheckValid(aid == WARRotation.AID.Decimate ? state.UnlockedDecimate : state.UnlockedSteelCyclone);
+                    case AID.SteelCyclone:
+                    case AID.Decimate:
+                        res |= CheckValid(aid == AID.Decimate ? state.UnlockedDecimate : state.UnlockedSteelCyclone);
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
                         res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
                         res |= CheckValid(state.NascentChaosLeft <= 0);
                         res |= CheckValid(state.InnerReleaseStacks > 0 || state.Gauge >= 50);
                         res |= UseIRCharge(state, true, 50);
-                        if (state.UnlockedEnhancedInfuriate && (state.Cooldowns[WARRotation.InfuriateCDGroup] -= 5) <= 0)
+                        if (state.UnlockedEnhancedInfuriate && (state.Cooldowns[(int)CDGroup.Infuriate] -= 5) <= 0)
                         {
                             res |= Mistake.InfuriateDelayed;
                         }
                         break;
-                    case WARRotation.AID.Infuriate:
+                    case AID.Infuriate:
                         isOGCD = true;
                         res |= CheckValid(state.UnlockedInfuriate);
-                        res |= AdvanceTime(state, ref t, 0.6f, state.InfuriateCD - 60);
-                        res |= AdjustCD(state, WARRotation.InfuriateCDGroup, 60, 120);
+                        res |= AdvanceTime(state, ref t, 0.6f, state.CD(CDGroup.Infuriate) - 60);
+                        res |= AdjustCD(state, (int)CDGroup.Infuriate, 60, 120);
                         res |= GainGauge(state, 50);
                         if (state.NascentChaosLeft > 0)
                         {
@@ -331,25 +332,25 @@ namespace UIDev
                             state.NascentChaosLeft = 30;
                         }
                         break;
-                    case WARRotation.AID.Onslaught:
+                    case AID.Onslaught:
                         isOGCD = true;
                         res |= CheckValid(state.UnlockedOnslaught);
-                        res |= AdvanceTime(state, ref t, 0.6f, state.OnslaughtCD - 60);
-                        res |= AdjustCD(state, WARRotation.OnslaughtCDGroup, 30, 90, state.UnlockedEnhancedOnslaught ? 0 : 30);
+                        res |= AdvanceTime(state, ref t, 0.6f, state.CD(CDGroup.Onslaught) - 60);
+                        res |= AdjustCD(state, (int)CDGroup.Onslaught, 30, 90, state.UnlockedEnhancedOnslaught ? 0 : 30);
                         break;
-                    case WARRotation.AID.Upheaval:
-                    case WARRotation.AID.Orogeny:
+                    case AID.Upheaval:
+                    case AID.Orogeny:
                         isOGCD = true;
-                        res |= CheckValid(aid == WARRotation.AID.Orogeny ? state.UnlockedOrogeny : state.UnlockedUpheaval);
-                        res |= AdvanceTime(state, ref t, 0.6f, state.UpheavalCD);
-                        res |= AdjustCD(state, WARRotation.UpheavalCDGroup, 30, 30);
+                        res |= CheckValid(aid == AID.Orogeny ? state.UnlockedOrogeny : state.UnlockedUpheaval);
+                        res |= AdvanceTime(state, ref t, 0.6f, state.CD(CDGroup.Upheaval));
+                        res |= AdjustCD(state, (int)CDGroup.Upheaval, 30, 30);
                         break;
-                    case WARRotation.AID.Berserk:
-                    case WARRotation.AID.InnerRelease:
+                    case AID.Berserk:
+                    case AID.InnerRelease:
                         isOGCD = true;
-                        res |= CheckValid(aid == WARRotation.AID.InnerRelease ? state.UnlockedInnerRelease : state.UnlockedBerserk);
-                        res |= AdvanceTime(state, ref t, 0.6f, state.InnerReleaseCD);
-                        res |= AdjustCD(state, WARRotation.InnerReleaseCDGroup, 60, 60);
+                        res |= CheckValid(aid == AID.InnerRelease ? state.UnlockedInnerRelease : state.UnlockedBerserk);
+                        res |= AdvanceTime(state, ref t, 0.6f, state.CD(aid == AID.InnerRelease ? CDGroup.InnerRelease : CDGroup.Berserk));
+                        res |= AdjustCD(state, (int)CDGroup.InnerRelease, 60, 60);
                         state.InnerReleaseLeft = 15;
                         state.InnerReleaseStacks = 3;
                         if (state.UnlockedPrimalRend)
@@ -357,7 +358,7 @@ namespace UIDev
                         if (state.SurgingTempestLeft > 0)
                             res |= GainSurgingTempest(state, 10);
                         break;
-                    case WARRotation.AID.Tomahawk:
+                    case AID.Tomahawk:
                         res |= CheckValid(state.UnlockedTomahawk);
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
                         res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
@@ -375,14 +376,14 @@ namespace UIDev
             return mistake == Mistake.None ? "" : mistake.ToString();
         }
 
-        private void DrawActionRow(ActionID action, bool isGCD, Mistake mistake, float t, WARRotation.State state, WARRotation.Strategy strategy)
+        private void DrawActionRow(ActionID action, bool isGCD, Mistake mistake, float t, Rotation.State state, Rotation.Strategy strategy)
         {
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); ImGui.TextUnformatted($"{t:f1}");
 
             ImGui.TableNextColumn();
             ImGui.PushStyleColor(ImGuiCol.Text, state.RaidBuffsLeft > 0 ? 0xff00ff00 : 0xffffffff);
-            ImGui.TextUnformatted($"{(isGCD ? "" : "** ")}{WARRotation.ActionShortString(action)}");
+            ImGui.TextUnformatted($"{(isGCD ? "" : "** ")}{Rotation.ActionShortString(action)}");
             ImGui.PopStyleColor();
 
             ImGui.TableNextColumn(); ImGui.TextUnformatted($"{MistakeString(mistake)}");
@@ -393,18 +394,18 @@ namespace UIDev
             ImGui.TableNextColumn();
             if (state.InnerReleaseStacks > 0)
                 ImGui.TextUnformatted($"{state.InnerReleaseStacks} stacks, {state.InnerReleaseLeft:f1} left");
-            else if (state.InnerReleaseCD > 0)
-                ImGui.TextUnformatted($"{state.InnerReleaseCD:f1} cd");
+            else if (state.CD(state.UnlockedInnerRelease ? CDGroup.InnerRelease : CDGroup.Berserk) > 0)
+                ImGui.TextUnformatted($"{state.CD(state.UnlockedInnerRelease ? CDGroup.InnerRelease : CDGroup.Berserk):f1} cd");
             else
-                ImGui.TextUnformatted($"{state.InnerReleaseCD:f1} delay");
+                ImGui.TextUnformatted($"{state.CD(state.UnlockedInnerRelease ? CDGroup.InnerRelease : CDGroup.Berserk):f1} delay");
 
             ImGui.TableNextColumn();
-            if (state.InfuriateCD > 60)
-                ImGui.TextUnformatted($"0, {(state.InfuriateCD - 60):f1} cd");
-            else if (state.InfuriateCD > 0)
-                ImGui.TextUnformatted($"1, {state.InfuriateCD:f1} cd");
+            if (state.CD(CDGroup.Infuriate) > 60)
+                ImGui.TextUnformatted($"0, {(state.CD(CDGroup.Infuriate) - 60):f1} cd");
+            else if (state.CD(CDGroup.Infuriate) > 0)
+                ImGui.TextUnformatted($"1, {state.CD(CDGroup.Infuriate):f1} cd");
             else
-                ImGui.TextUnformatted($"2, {state.InfuriateCD:f1} delay");
+                ImGui.TextUnformatted($"2, {state.CD(CDGroup.Infuriate):f1} delay");
 
             ImGui.TableNextColumn();
             if (state.NascentChaosLeft > 0)
@@ -415,20 +416,20 @@ namespace UIDev
                 ImGui.TextUnformatted($"{state.PrimalRendLeft:f1}");
 
             ImGui.TableNextColumn();
-            if (state.UpheavalCD > 0)
-                ImGui.TextUnformatted($"{state.UpheavalCD:f1} cd");
+            if (state.CD(CDGroup.Upheaval) > 0)
+                ImGui.TextUnformatted($"{state.CD(CDGroup.Upheaval):f1} cd");
             else
-                ImGui.TextUnformatted($"{state.UpheavalCD:f1} delay");
+                ImGui.TextUnformatted($"{state.CD(CDGroup.Upheaval):f1} delay");
 
             ImGui.TableNextColumn();
-            if (state.OnslaughtCD > 60)
-                ImGui.TextUnformatted($"0, {(state.OnslaughtCD - 60):f1} cd");
-            else if (state.OnslaughtCD > 30)
-                ImGui.TextUnformatted($"1, {(state.OnslaughtCD - 30):f1} cd");
-            else if (state.OnslaughtCD > 0)
-                ImGui.TextUnformatted($"2, {state.OnslaughtCD:f1} cd");
+            if (state.CD(CDGroup.Onslaught) > 60)
+                ImGui.TextUnformatted($"0, {(state.CD(CDGroup.Onslaught) - 60):f1} cd");
+            else if (state.CD(CDGroup.Onslaught) > 30)
+                ImGui.TextUnformatted($"1, {(state.CD(CDGroup.Onslaught) - 30):f1} cd");
+            else if (state.CD(CDGroup.Onslaught) > 0)
+                ImGui.TextUnformatted($"2, {state.CD(CDGroup.Onslaught):f1} cd");
             else
-                ImGui.TextUnformatted($"3, {state.OnslaughtCD:f1} delay");
+                ImGui.TextUnformatted($"3, {state.CD(CDGroup.Onslaught):f1} delay");
 
             ImGui.TableNextColumn();
             if (state.ComboTimeLeft > 0)
@@ -451,12 +452,12 @@ namespace UIDev
             return valid ? Mistake.None : Mistake.InvalidMove;
         }
 
-        private Mistake AdjustCD(WARRotation.State state, int cooldownGroup, float useCD, float maxCD, float minCD = 0)
+        private Mistake AdjustCD(Rotation.State state, int cooldownGroup, float useCD, float maxCD, float minCD = 0)
         {
             return IncrementOvercap(ref state.Cooldowns[cooldownGroup], useCD, minCD, maxCD) ? Mistake.InvalidMove : Mistake.None;
         }
 
-        private Mistake GainGauge(WARRotation.State state, int value)
+        private Mistake GainGauge(Rotation.State state, int value)
         {
             if (!state.UnlockedInnerBeast)
                 return Mistake.None;
@@ -469,12 +470,12 @@ namespace UIDev
             return Mistake.None;
         }
 
-        private Mistake GainSurgingTempest(WARRotation.State state, float value)
+        private Mistake GainSurgingTempest(Rotation.State state, float value)
         {
             return IncrementOvercap(ref state.SurgingTempestLeft, value, 0, 60) ? Mistake.SurgingTempestOvercap : Mistake.None;
         }
 
-        private Mistake UseIRCharge(WARRotation.State state, bool isFC, int gaugeCost)
+        private Mistake UseIRCharge(Rotation.State state, bool isFC, int gaugeCost)
         {
             if (!isFC || !state.UnlockedInnerRelease || state.InnerReleaseStacks <= 0)
                 state.Gauge -= gaugeCost;
@@ -487,12 +488,12 @@ namespace UIDev
             return Mistake.None;
         }
 
-        private bool ComboAdvance(WARRotation.State state, ref Mistake mistake, WARRotation.AID prev, WARRotation.AID next)
+        private bool ComboAdvance(Rotation.State state, ref Mistake mistake, AID prev, AID next)
         {
             if (state.ComboLastMove != prev)
             {
                 mistake |= Mistake.ComboWrongMove;
-                if (prev == WARRotation.AID.None)
+                if (prev == AID.None)
                 {
                     // restart combo chain anyway
                     state.ComboLastAction = (uint)next;
@@ -508,7 +509,7 @@ namespace UIDev
             else
             {
                 state.ComboLastAction = (uint)next;
-                state.ComboTimeLeft = next != WARRotation.AID.None ? 30 : 0;
+                state.ComboTimeLeft = next != AID.None ? 30 : 0;
                 return true;
             }
         }

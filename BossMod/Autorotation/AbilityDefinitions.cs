@@ -73,7 +73,7 @@ namespace BossMod
 
         static AbilityDefinitions()
         {
-            Classes[BossMod.Class.WAR] = WARRotation.BuildDefinitions();
+            Classes[BossMod.Class.WAR] = WAR.Rotation.BuildDefinitions();
         }
     }
 }

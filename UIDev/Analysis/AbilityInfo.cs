@@ -283,7 +283,7 @@ namespace UIDev.Analysis
                 var sb = new StringBuilder("public enum AID : uint\n{");
                 foreach (var (aid, data) in _data)
                 {
-                    string name = aid.Type != ActionType.Spell ? $"// {aid}" : _aidType?.GetEnumName(aid.ID) ?? $"_Gen_{(Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID)?.Name.ToString().Replace(' ', '_').Replace('\'', '_') ?? $"Ability_{aid.ID}")}";
+                    string name = aid.Type != ActionType.Spell ? $"// {aid}" : _aidType?.GetEnumName(aid.ID) ?? $"_Gen_{Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID)?.Name ?? $"Ability{aid.ID}")}";
                     sb.Append($"\n    {name} = {aid.ID}, // {OIDListString(data.CasterOIDs)}->");
 
                     var tarSB = new StringBuilder();
