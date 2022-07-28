@@ -29,9 +29,9 @@ namespace BossMod
             SmartQueueRegister(BRDRotation.IDStatPotion);
         }
 
-        protected override void OnCastSucceeded(ActionID actionID, ulong targetID)
+        protected override void OnCastSucceeded(ActorCastEvent ev)
         {
-            Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
+            Log($"Cast {ev.Action} @ {ev.MainTargetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
         }
 
         protected override CommonRotation.State OnUpdate(Actor? target, bool moving)

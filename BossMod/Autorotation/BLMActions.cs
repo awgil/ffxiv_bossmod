@@ -31,14 +31,14 @@ namespace BossMod
             //SmartQueueRegister(BLMRotation.IDStatPotion);
         }
 
-        protected override void OnCastSucceeded(ActionID actionID, ulong targetID)
+        protected override void OnCastSucceeded(ActorCastEvent ev)
         {
-            Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
+            Log($"Cast {ev.Action} @ {ev.MainTargetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
             // hack
-            if (actionID.Type == ActionType.Spell && (BLMRotation.AID)actionID.ID is BLMRotation.AID.Thunder1)
+            if (ev.Action.Type == ActionType.Spell && (BLMRotation.AID)ev.Action.ID is BLMRotation.AID.Thunder1)
             {
                 _lastThunderSpeculation = Autorot.WorldState.CurrentTime.AddMilliseconds(1000);
-                _lastThunderTarget = targetID;
+                _lastThunderTarget = ev.MainTargetID;
             }
         }
 

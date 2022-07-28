@@ -44,12 +44,12 @@ namespace BossMod
             SmartQueueRegister(WARRotation.IDStatPotion);
         }
 
-        protected override void OnCastSucceeded(ActionID actionID, ulong targetID)
+        protected override void OnCastSucceeded(ActorCastEvent ev)
         {
             string comment = "";
-            if (actionID.Type == ActionType.Spell)
+            if (ev.Action.Type == ActionType.Spell)
             {
-                switch ((WARRotation.AID)actionID.ID)
+                switch ((WARRotation.AID)ev.Action.ID)
                 {
                     case WARRotation.AID.HeavySwing:
                         if (_state.ComboLastMove == WARRotation.AID.HeavySwing || _state.ComboLastMove == WARRotation.AID.Maim)
@@ -121,7 +121,7 @@ namespace BossMod
                         break;
                 }
             }
-            Log($"Cast {actionID} @ {targetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction}{comment} [{_state}]");
+            Log($"Cast {ev.Action} @ {ev.MainTargetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction}{comment} [{_state}]");
             _justCast = true;
         }
 

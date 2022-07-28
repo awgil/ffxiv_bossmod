@@ -143,10 +143,10 @@ namespace BossMod
             };
         }
 
-        public void CastSucceeded(ActionID actionID, ulong targetID)
+        public void CastSucceeded(ActorCastEvent ev)
         {
-            SmartQueueDeactivate(actionID);
-            OnCastSucceeded(actionID, targetID);
+            SmartQueueDeactivate(ev.Action);
+            OnCastSucceeded(ev);
         }
 
         public void Update(Actor? target, bool moving)
@@ -196,7 +196,7 @@ namespace BossMod
             return DoReplaceActionAndTarget(actionID, targets);
         }
 
-        abstract protected void OnCastSucceeded(ActionID actionID, ulong targetID);
+        abstract protected void OnCastSucceeded(ActorCastEvent ev);
         abstract protected CommonRotation.State OnUpdate(Actor? target, bool moving);
         abstract protected (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets);
         abstract public AIResult CalculateBestAction(Actor player, Actor? primaryTarget, bool moving);

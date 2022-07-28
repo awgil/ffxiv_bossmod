@@ -40,7 +40,7 @@ namespace BossMod
         private CommonActions? _classActions;
 
         private List<Network.PendingAction> _pendingActions = new();
-        private bool _firstPendingJustCompleted = false;
+        private ActorCastEvent? _completedCast = null;
         private DateTime _animLockEnd;
         private float _animLockDelay = 0.1f; // smoothed delay between client request and response
         private float _animLockDelaySmoothing = 0.8f; // TODO tweak
@@ -138,23 +138,18 @@ namespace BossMod
 
             if (_classActions != null)
             {
-                if (_firstPendingJustCompleted)
+                if (_completedCast != null)
                 {
-                    _classActions.CastSucceeded(_pendingActions[0].Action, _pendingActions[0].TargetID);
+                    _classActions.CastSucceeded(_completedCast);
                 }
-
-                if (_pendingActions.Count == 0)
+                else if (_pendingActions.Count == 0)
                 {
                     bool moving = _inputOverride.IsMoving(); // TODO: reconsider
                     _classActions.Update(target, moving);
                 }
             }
 
-            if (_firstPendingJustCompleted)
-            {
-                _pendingActions.RemoveAt(0);
-                _firstPendingJustCompleted = false;
-            }
+            _completedCast = null;
 
             // unblock 'speculative' movement locks
             if (_inputPendingUnblock != new DateTime() && _inputPendingUnblock < DateTime.Now)
@@ -228,20 +223,18 @@ namespace BossMod
             {
                 Log($"Unexpected action-effect ({PendingActionString(pa)}): currently {_pendingActions.Count} are pending", true);
                 _pendingActions.Clear();
-                _pendingActions.Add(pa);
             }
             else if (index > 0)
             {
                 Log($"Unexpected action-effect ({PendingActionString(pa)}): index={index}, first={PendingActionString(_pendingActions[0])}, count={_pendingActions.Count}", true);
-                _pendingActions.RemoveRange(0, index);
             }
-            if (_pendingActions[0].Action != args.cast.Action)
+            else if (_pendingActions[0].Action != args.cast.Action)
             {
                 Log($"Request/response action mismatch: requested {PendingActionString(_pendingActions[0])}, got {PendingActionString(pa)}", true);
-                _pendingActions[0] = pa;
             }
+            _pendingActions.RemoveRange(0, index + 1);
             Log($"-+ {PendingActionString(pa)}, lock={args.cast.AnimationLockTime:f3}");
-            _firstPendingJustCompleted = true;
+            _completedCast = args.cast;
 
             var now = DateTime.Now;
             var delay = (float)(now.AddSeconds(0.5) - _animLockEnd).TotalSeconds; // TODO: this isn't correct for casted spells...
@@ -268,10 +261,9 @@ namespace BossMod
                 if (index > 0)
                 {
                     Log($"Unexpected action-cancel ({PendingActionString(_pendingActions[index])}): index={index}, first={PendingActionString(_pendingActions[0])}, count={_pendingActions.Count}", true);
-                    _pendingActions.RemoveRange(0, index);
                 }
-                Log($"-- {PendingActionString(_pendingActions[0])}");
-                _pendingActions.RemoveAt(0);
+                Log($"-- {PendingActionString(_pendingActions[index])}");
+                _pendingActions.RemoveRange(0, index + 1);
             }
 
             // clear animation lock (TODO: or should it be set to 0.1? I think if you spam cast while running, next cast will start <0.1s after interrupt...)
@@ -296,14 +288,13 @@ namespace BossMod
                 if (index > 0)
                 {
                     Log($"Unexpected action-reject ({PendingActionString(_pendingActions[index])}): index={index}, first={PendingActionString(_pendingActions[0])}, count={_pendingActions.Count}", true);
-                    _pendingActions.RemoveRange(0, index);
                 }
-                if (_pendingActions[0].Action.ID != args.actionID)
+                if (_pendingActions[index].Action.ID != args.actionID)
                 {
-                    Log($"Request/reject action mismatch: requested {PendingActionString(_pendingActions[0])}, got {args.actionID}", true);
+                    Log($"Request/reject action mismatch: requested {PendingActionString(_pendingActions[index])}, got {args.actionID}", true);
                 }
-                Log($"!! {PendingActionString(_pendingActions[0])}");
-                _pendingActions.RemoveAt(0);
+                Log($"!! {PendingActionString(_pendingActions[index])}");
+                _pendingActions.RemoveRange(0, index + 1);
             }
 
             // TODO: should we clear animation lock here?..
