@@ -23,7 +23,7 @@ namespace BossMod
         private InputOverride _inputOverride;
         private Autorotation _autorotation;
         private AI.AIManager _ai;
-        private AI.Broadcast _broadcast = new();
+        private AI.Broadcast _broadcast;
         private TimeSpan _prevUpdateTime;
 
         public Plugin(
@@ -52,6 +52,7 @@ namespace BossMod
             _inputOverride = new();
             _autorotation = new(_network, _bossmod, _inputOverride);
             _ai = new(_inputOverride, _autorotation);
+            _broadcast = new();
 
             dalamud.UiBuilder.DisableAutomaticUiHide = true;
             dalamud.UiBuilder.Draw += DrawUI;
