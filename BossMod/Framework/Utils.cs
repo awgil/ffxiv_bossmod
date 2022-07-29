@@ -94,6 +94,11 @@ namespace BossMod
             return *(T*)((IntPtr)address + offset);
         }
 
+        public static unsafe void WriteField<T>(void* address, int offset, T value) where T : unmanaged
+        {
+            *(T*)((IntPtr)address + offset) = value;
+        }
+
         private unsafe delegate byte GameObjectIsFriendlyDelegate(FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* obj);
         private static GameObjectIsFriendlyDelegate GameObjectIsFriendlyFunc = Marshal.GetDelegateForFunctionPointer<GameObjectIsFriendlyDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 33 C9 84 C0 0F 95 C1 8D 41 03"));
 

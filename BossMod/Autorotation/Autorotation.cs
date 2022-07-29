@@ -48,7 +48,7 @@ namespace BossMod
         private InputOverride _inputOverride;
         private DateTime _inputPendingUnblock;
 
-        private delegate bool UseActionDelegate(ulong self, ActionType actionType, uint actionID, ulong targetID, uint a4, uint a5, uint a6, ulong a7);
+        private unsafe delegate bool UseActionDelegate(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptIsGroundTargeted);
         private Hook<UseActionDelegate> _useActionHook;
         private unsafe float* _comboTimeLeft = null;
         private unsafe uint* _comboLastMove = null;
@@ -113,6 +113,15 @@ namespace BossMod
 
         public void Update(Actor? target)
         {
+            //unsafe
+            //{
+            //    var alock = Utils.ReadField<float>(FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance(), 8);
+            //    if (alock > 0)
+            //    {
+            //        Service.Log($"alock: {alock:f3}/{AnimLock:f3}");
+            //    }
+            //}
+
             var player = WorldState.Party.Player();
             Type? classType = null;
             if (_config.Enabled && player != null)
@@ -314,27 +323,27 @@ namespace BossMod
                 Service.Log($"[AR] {message}");
         }
 
-        private unsafe bool UseActionDetour(ulong self, ActionType actionType, uint actionID, ulong targetID, uint a4, uint a5, uint a6, ulong a7)
+        private unsafe bool UseActionDetour(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptIsGroundTargeted)
         {
             // when spamming e.g. HS, every click (~0.2 sec) this function is called; aid=HS, a4=a5=a6=a7==0, returns True
-            // ~0.3s before GCD/animlock end, it starts returning False - probably meaning "next action is already queued"?
-            // right when GCD ends, it is called internally (by queue mechanism I assume) with aid=adjusted-id, a5=1, a4=a6=a7==0, returns True
-            // a5==1 means "forced"?
-            // a4==0 for spells, 65535 for item used from hotbar, some value (e.g. 6) for item used from inventory; it is the same as a4 in UseActionLocation
+            // 0.5s before CD end, action becomes queued (this function returns True); while anything is queued, further calls return False
+            // callType is 0 for normal calls, 1 if called by queue mechanism, 2 if ???, 3 if combo (in such case comboRouteID is ActionComboRoute row id)
+            // right when GCD ends, it is called internally by queue mechanism with aid=adjusted-id, a5=1, a4=a6=a7==0, returns True
+            // itemLocation==0 for spells, 65535 for item used from hotbar, some value (bagID<<8 | slotID) for item used from inventory; it is the same as a4 in UseActionLocation
             var action = new ActionID(actionType, actionID);
             //Service.Log($"UA: {action} @ {targetID:X}: {a4} {a5} {a6} {a7}");
             if (_classActions != null && !DisableReplacement)
             {
-                (action, targetID) = _classActions.ReplaceActionAndTarget(action, targetID, a5 != 0);
-                if (a4 == 0 && action.Type == ActionType.Item)
-                    a4 = 65535;
+                (action, targetID) = _classActions.ReplaceActionAndTarget(action, targetID, callType != 0);
+                if (itemLocation == 0 && action.Type == ActionType.Item)
+                    itemLocation = 65535;
             }
 
             // if we're spamming casted action, we have to block movement a bit before cast starts, otherwise it would be interrupted
             // if we block movement now, we might or might not get actual action request when GCD ends; if we do, we'll extend lock until cast ends, otherwise (e.g. if we got out of range) we'll remove lock after slight delay
             if (_config.PreventMovingWhileCasting && !_inputOverride.IsBlocked() && action.IsCasted())
             {
-                var gcd = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance()->GetRecastGroupDetail(57);
+                var gcd = self->GetRecastGroupDetail(CommonRotation.GCDGroup);
                 var gcdLeft = gcd->Total - gcd->Elapsed;
                 if (gcdLeft < 0.3f)
                 {
@@ -343,15 +352,17 @@ namespace BossMod
                 }
             }
 
-            bool ret = _useActionHook.Original(self, action.Type, action.ID, targetID, a4, a5, a6, a7);
+            bool isGroundTargeted = false;
+            bool ret = _useActionHook.Original(self, action.Type, action.ID, targetID, itemLocation, callType, comboRouteID, &isGroundTargeted);
+            if (outOptIsGroundTargeted != null)
+                *outOptIsGroundTargeted = isGroundTargeted;
 
-            if (_config.GTMode != AutorotationConfig.GroundTargetingMode.Manual && action.IsGroundTargeted())
+            if (_config.GTMode != AutorotationConfig.GroundTargetingMode.Manual && isGroundTargeted)
             {
                 // hack to cast ground-targeted immediately
-                var am = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
                 if (_config.GTMode == AutorotationConfig.GroundTargetingMode.AtTarget)
-                    *(ulong*)((IntPtr)am + 0x98) = targetID;
-                *(byte*)((IntPtr)am + 0xB8) = 1;
+                    Utils.WriteField(self, 0x98, targetID);
+                Utils.WriteField(self, 0xB8, (byte)1);
             }
 
             return ret;
