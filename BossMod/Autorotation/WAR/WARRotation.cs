@@ -18,46 +18,6 @@ namespace BossMod.WAR
             public AID ComboLastMove => (AID)ComboLastAction;
             //public float InnerReleaseCD => CD(UnlockedInnerRelease ? CDGroup.InnerRelease : CDGroup.Berserk); // note: technically berserk and IR don't share CD, and with level sync you can have both...
 
-            // per-level ability unlocks (TODO: consider abilities unlocked by quests - they could be unavailable despite level being high enough)
-            public bool UnlockedMaim => Level >= 4;
-            public bool UnlockedBerserk => Level >= 6;
-            public bool UnlockedRampart => Level >= 8;
-            public bool UnlockedOverpower => Level >= 10;
-            public bool UnlockedDefiance => Level >= 10;
-            public bool UnlockedLowBlow => Level >= 12;
-            public bool UnlockedProvoke => Level >= 15;
-            public bool UnlockedTomahawk => Level >= 15; // quest-locked
-            public bool UnlockedInterject => Level >= 18;
-            public bool UnlockedReprisal => Level >= 22;
-            public bool UnlockedStormPath => Level >= 26;
-            public bool UnlockedThrillOfBattle => Level >= 30; // quest-locked
-            public bool UnlockedArmsLength => Level >= 32;
-            public bool UnlockedInnerBeast => Level >= 35; // quest-locked
-            public bool UnlockedVengeance => Level >= 38;
-            public bool UnlockedMythrilTempest => Level >= 40; // quest-locked
-            public bool UnlockedHolmgang => Level >= 42;
-            public bool UnlockedSteelCyclone => Level >= 45; // quest-locked
-            public bool UnlockedShirk => Level >= 48;
-            public bool UnlockedStormEye => Level >= 50;
-            public bool UnlockedInfuriate => Level >= 50; // quest-locked
-            public bool UnlockedFellCleave => Level >= 54; // quest-locked
-            public bool UnlockedRawIntuition => Level >= 56; // quest-locked
-            public bool UnlockedEquilibrium => Level >= 58; // quest-locked
-            public bool UnlockedDecimate => Level >= 60; // quest-locked
-            public bool UnlockedOnslaught => Level >= 62;
-            public bool UnlockedUpheaval => Level >= 64;
-            public bool UnlockedEnhancedInfuriate => Level >= 66; // passive, gauge spenders reduce infCD by 5
-            public bool UnlockedShakeItOff => Level >= 68;
-            public bool UnlockedInnerRelease => Level >= 70; // quest-locked
-            public bool UnlockedChaoticCyclone => Level >= 72;
-            public bool UnlockedMasteringTheBeast => Level >= 74; // passive, mythril tempest gives gauge
-            public bool UnlockedNascentFlash => Level >= 76;
-            public bool UnlockedInnerChaos => Level >= 80;
-            public bool UnlockedBloodwhetting => Level >= 82;
-            public bool UnlockedOrogeny => Level >= 86;
-            public bool UnlockedEnhancedOnslaught => Level >= 88; // passive, gives third charge to onslaught
-            public bool UnlockedPrimalRend => Level >= 90;
-
             public override string ToString()
             {
                 return $"g={Gauge}, RB={RaidBuffsLeft:f1}, ST={SurgingTempestLeft:f1}, NC={NascentChaosLeft:f1}, PR={PrimalRendLeft:f1}, IR={InnerReleaseStacks}/{InnerReleaseLeft:f1}, IRCD={CD(CDGroup.Berserk):f1}/{CD(CDGroup.InnerRelease):f1}, InfCD={CD(CDGroup.Infuriate):f1}, UphCD={CD(CDGroup.Upheaval):f1}, OnsCD={CD(CDGroup.Onslaught):f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
@@ -176,7 +136,7 @@ namespace BossMod.WAR
             {
                 AID.Maim or AID.StormEye => 10,
                 AID.StormPath => 20,
-                AID.MythrilTempest => state.UnlockedMasteringTheBeast ? 20 : 0,
+                AID.MythrilTempest => state.Unlocked(MinLevel.MasteringTheBeast) ? 20 : 0,
                 _ => 0
             };
         }
@@ -213,18 +173,18 @@ namespace BossMod.WAR
 
         public static AID GetNextUnlockedComboAction(State state, float minBuffToRefresh, bool aoe)
         {
-            if (aoe && state.UnlockedOverpower)
+            if (aoe && state.Unlocked(MinLevel.Overpower))
             {
                 // for AOE rotation, assume dropping ST combo is fine
-                return state.UnlockedMythrilTempest && state.ComboLastMove == AID.Overpower ? AID.MythrilTempest : AID.Overpower;
+                return state.Unlocked(MinLevel.MythrilTempest) && state.ComboLastMove == AID.Overpower ? AID.MythrilTempest : AID.Overpower;
             }
             else
             {
                 // for ST rotation, assume dropping AOE combo is fine (HS is 200 pot vs MT 100, is 20 gauge + 30 sec ST worth it?..)
                 return state.ComboLastMove switch
                 {
-                    AID.Maim => state.UnlockedStormPath ? (state.UnlockedStormEye && state.SurgingTempestLeft < minBuffToRefresh ? AID.StormEye : AID.StormPath) : AID.HeavySwing,
-                    AID.HeavySwing => state.UnlockedMaim ? AID.Maim : AID.HeavySwing,
+                    AID.Maim => state.Unlocked(MinLevel.StormPath) ? (state.Unlocked(MinLevel.StormEye) && state.SurgingTempestLeft < minBuffToRefresh ? AID.StormEye : AID.StormPath) : AID.HeavySwing,
+                    AID.HeavySwing => state.Unlocked(MinLevel.Maim) ? AID.Maim : AID.HeavySwing,
                     _ => AID.HeavySwing
                 };
             }
@@ -232,17 +192,17 @@ namespace BossMod.WAR
 
         public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
         {
-            var irCD = state.CD(state.UnlockedInnerRelease ? CDGroup.InnerRelease : CDGroup.Berserk);
+            var irCD = state.CD(state.Unlocked(MinLevel.InnerRelease) ? CDGroup.InnerRelease : CDGroup.Berserk);
 
             // we spend resources either under raid buffs or if another raid buff window will cover at least 4 GCDs of the fight
             bool spendGauge = state.RaidBuffsLeft > state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10;
-            if (!state.UnlockedInnerRelease)
+            if (!state.Unlocked(MinLevel.InnerRelease))
                 spendGauge &= irCD > 5; // TODO: improve...
 
             float primalRendWindow = MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);
-            var nextFCAction = state.NascentChaosLeft > state.GCD ? (state.UnlockedInnerChaos && !aoe ? AID.InnerChaos : AID.ChaoticCyclone)
-                : (aoe && state.UnlockedSteelCyclone) ? (state.UnlockedDecimate ? AID.Decimate : AID.SteelCyclone)
-                : (state.UnlockedFellCleave ? AID.FellCleave : AID.InnerBeast);
+            var nextFCAction = state.NascentChaosLeft > state.GCD ? (state.Unlocked(MinLevel.InnerChaos) && !aoe ? AID.InnerChaos : AID.ChaoticCyclone)
+                : (aoe && state.Unlocked(MinLevel.SteelCyclone)) ? (state.Unlocked(MinLevel.Decimate) ? AID.Decimate : AID.SteelCyclone)
+                : (state.Unlocked(MinLevel.FellCleave) ? AID.FellCleave : AID.InnerBeast);
 
             // 1. if it is the last CD possible for PR/NC, don't waste them
             float gcdDelay = state.GCD + (strategy.Aggressive ? 0 : 2.5f);
@@ -258,7 +218,7 @@ namespace BossMod.WAR
             // 2. if IR/berserk is up, don't waste charges
             if (state.InnerReleaseStacks > 0)
             {
-                if (state.UnlockedInnerRelease)
+                if (state.Unlocked(MinLevel.InnerRelease))
                 {
                     // only consider not casting FC action if delaying won't cost IR stack
                     int fcCastsLeft = state.InnerReleaseStacks;
@@ -276,7 +236,7 @@ namespace BossMod.WAR
                         return nextFCAction;
 
                 }
-                else if (state.Gauge >= 50 && (state.UnlockedFellCleave || state.ComboLastMove != AID.Maim || aoe && state.UnlockedSteelCyclone))
+                else if (state.Gauge >= 50 && (state.Unlocked(MinLevel.FellCleave) || state.ComboLastMove != AID.Maim || aoe && state.Unlocked(MinLevel.SteelCyclone)))
                 {
                     // single-target: FC > SE/ST > IB > Maim > HS
                     // aoe: Decimate > SC > Combo
@@ -288,22 +248,22 @@ namespace BossMod.WAR
             // TODO: what if we have really high gauge and low ST? is it worth it to delay ST application to avoid overcapping gauge?
             if (!aoe)
             {
-                if (state.UnlockedStormEye && state.SurgingTempestLeft <= state.GCD + 2.5f * (GetSTComboLength(state.ComboLastMove) - 1))
+                if (state.Unlocked(MinLevel.StormEye) && state.SurgingTempestLeft <= state.GCD + 2.5f * (GetSTComboLength(state.ComboLastMove) - 1))
                     return GetNextSTComboAction(state.ComboLastMove, AID.StormEye);
             }
             else
             {
-                if (state.UnlockedMasteringTheBeast && state.SurgingTempestLeft <= state.GCD + (state.ComboLastMove != AID.Overpower ? 2.5f : 0))
+                if (state.Unlocked(MinLevel.MasteringTheBeast) && state.SurgingTempestLeft <= state.GCD + (state.ComboLastMove != AID.Overpower ? 2.5f : 0))
                     return GetNextAOEComboAction(state.ComboLastMove);
             }
 
             // 4. if we're delaying Infuriate due to gauge, cast FC asap (7.5 for FC)
-            if (state.Gauge > 50 && state.UnlockedInfuriate && state.CD(CDGroup.Infuriate) <= gcdDelay + 7.5)
+            if (state.Gauge > 50 && state.Unlocked(MinLevel.Infuriate) && state.CD(CDGroup.Infuriate) <= gcdDelay + 7.5)
                 return nextFCAction;
 
             // 5. if we have >50 gauge, IR is imminent, and not spending gauge now will cause us to overcap infuriate, spend gauge asap
             // 30 seconds is for FC + IR + 3xFC - this is 4 gcds (10 sec) and 4 FCs (another 20 sec)
-            if (state.Gauge > 50 && state.UnlockedInfuriate && state.CD(CDGroup.Infuriate) <= gcdDelay + 30 && irCD < secondGCDIn)
+            if (state.Gauge > 50 && state.Unlocked(MinLevel.Infuriate) && state.CD(CDGroup.Infuriate) <= gcdDelay + 30 && irCD < secondGCDIn)
                 return nextFCAction;
 
             // 6. if there is no chance we can delay PR until next raid buffs, just cast it now
@@ -323,7 +283,7 @@ namespace BossMod.WAR
             // ok at this point, we just want to spend gauge - either because we're using greedy strategy, or something prevented us from casting combo
             if (primalRendWindow > state.GCD)
                 return AID.PrimalRend;
-            if (state.Gauge >= 50 || state.InnerReleaseStacks > 0 && state.UnlockedInnerRelease)
+            if (state.Gauge >= 50 || state.InnerReleaseStacks > 0 && state.Unlocked(MinLevel.InnerRelease))
                 return nextFCAction;
 
             // TODO: reconsider min time left...
@@ -334,7 +294,7 @@ namespace BossMod.WAR
         // this is relevant only until we unlock IR
         public static bool DelayBerserk(State state)
         {
-            if (state.UnlockedInfuriate)
+            if (state.Unlocked(MinLevel.Infuriate))
             {
                 // we really want to cast SP + 2xIB or 3xIB under berserk; check whether we'll have infuriate before third GCD
                 var availableGauge = state.Gauge;
@@ -346,7 +306,7 @@ namespace BossMod.WAR
                     _ => availableGauge < 150
                 };
             }
-            else if (state.UnlockedInnerBeast)
+            else if (state.Unlocked(MinLevel.InnerBeast))
             {
                 // pre level 50 we ideally want to cast SP + 2xIB under berserk (we need to have 80+ gauge for that)
                 // however, we are also content with casting Maim + SP + IB (we need to have 20+ gauge for that; but if we have 70+, it is better to delay for 1 GCD)
@@ -368,36 +328,36 @@ namespace BossMod.WAR
         // window-end is either GCD or GCD - time-for-second-ogcd; we are allowed to use ogcds only if their animation lock would complete before window-end
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float windowEnd, bool aoe)
         {
-            var irCD = state.CD(state.UnlockedInnerRelease ? CDGroup.InnerRelease : CDGroup.Berserk);
+            var irCD = state.CD(state.Unlocked(MinLevel.InnerRelease) ? CDGroup.InnerRelease : CDGroup.Berserk);
 
             // 1. use cooldowns if requested in rough priority order
-            if (strategy.ExecuteProvoke && state.UnlockedProvoke && state.CanWeave(CDGroup.Provoke, 0.6f, windowEnd))
+            if (strategy.ExecuteProvoke && state.Unlocked(MinLevel.Provoke) && state.CanWeave(CDGroup.Provoke, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Provoke);
-            if (strategy.ExecuteShirk && state.UnlockedShirk && state.CanWeave(CDGroup.Shirk, 0.6f, windowEnd))
+            if (strategy.ExecuteShirk && state.Unlocked(MinLevel.Shirk) && state.CanWeave(CDGroup.Shirk, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Shirk);
-            if (strategy.ExecuteHolmgang && state.UnlockedHolmgang && state.CanWeave(CDGroup.Holmgang, 0.6f, windowEnd))
+            if (strategy.ExecuteHolmgang && state.Unlocked(MinLevel.Holmgang) && state.CanWeave(CDGroup.Holmgang, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Holmgang);
-            if (strategy.ExecuteArmsLength && state.UnlockedArmsLength && state.CanWeave(CDGroup.ArmsLength, 0.6f, windowEnd))
+            if (strategy.ExecuteArmsLength && state.Unlocked(MinLevel.ArmsLength) && state.CanWeave(CDGroup.ArmsLength, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.ArmsLength);
-            if (strategy.ExecuteShakeItOff && state.UnlockedShakeItOff && state.CanWeave(CDGroup.ShakeItOff, 0.6f, windowEnd)) // prefer to use SOI before buffs
+            if (strategy.ExecuteShakeItOff && state.Unlocked(MinLevel.ShakeItOff) && state.CanWeave(CDGroup.ShakeItOff, 0.6f, windowEnd)) // prefer to use SOI before buffs
                 return ActionID.MakeSpell(AID.ShakeItOff);
-            if (strategy.ExecuteVengeance && state.UnlockedVengeance && state.CanWeave(CDGroup.Vengeance, 0.6f, windowEnd))
+            if (strategy.ExecuteVengeance && state.Unlocked(MinLevel.Vengeance) && state.CanWeave(CDGroup.Vengeance, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Vengeance);
-            if (strategy.ExecuteRampart && state.UnlockedRampart && state.CanWeave(CDGroup.Rampart, 0.6f, windowEnd))
+            if (strategy.ExecuteRampart && state.Unlocked(MinLevel.Rampart) && state.CanWeave(CDGroup.Rampart, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Rampart);
-            if (strategy.ExecuteThrillOfBattle && state.UnlockedThrillOfBattle && state.CanWeave(CDGroup.ThrillOfBattle, 0.6f, windowEnd))
+            if (strategy.ExecuteThrillOfBattle && state.Unlocked(MinLevel.ThrillOfBattle) && state.CanWeave(CDGroup.ThrillOfBattle, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.ThrillOfBattle);
-            if (strategy.ExecuteEquilibrium && state.UnlockedEquilibrium && state.CanWeave(CDGroup.Equilibrium, 0.6f, windowEnd)) // prefer to use equilibrium after thrill for extra healing
+            if (strategy.ExecuteEquilibrium && state.Unlocked(MinLevel.Equilibrium) && state.CanWeave(CDGroup.Equilibrium, 0.6f, windowEnd)) // prefer to use equilibrium after thrill for extra healing
                 return ActionID.MakeSpell(AID.Equilibrium);
-            if (strategy.ExecuteReprisal && state.UnlockedReprisal && state.CanWeave(CDGroup.Reprisal, 0.6f, windowEnd))
+            if (strategy.ExecuteReprisal && state.Unlocked(MinLevel.Reprisal) && state.CanWeave(CDGroup.Reprisal, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Reprisal);
-            if (strategy.ExecuteBloodwhetting && state.UnlockedRawIntuition && state.CanWeave(CDGroup.Bloodwhetting, 0.6f, windowEnd))
-                return ActionID.MakeSpell(state.UnlockedBloodwhetting ? AID.Bloodwhetting : AID.RawIntuition);
-            if (strategy.ExecuteNascentFlash && state.UnlockedNascentFlash && state.CanWeave(CDGroup.Bloodwhetting, 0.6f, windowEnd))
+            if (strategy.ExecuteBloodwhetting && state.Unlocked(MinLevel.RawIntuition) && state.CanWeave(CDGroup.Bloodwhetting, 0.6f, windowEnd))
+                return ActionID.MakeSpell(state.Unlocked(MinLevel.Bloodwhetting) ? AID.Bloodwhetting : AID.RawIntuition);
+            if (strategy.ExecuteNascentFlash && state.Unlocked(MinLevel.NascentFlash) && state.CanWeave(CDGroup.Bloodwhetting, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.NascentFlash);
-            if (strategy.ExecuteLowBlow && state.UnlockedLowBlow && state.CanWeave(CDGroup.LowBlow, 0.6f, windowEnd))
+            if (strategy.ExecuteLowBlow && state.Unlocked(MinLevel.LowBlow) && state.CanWeave(CDGroup.LowBlow, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.LowBlow);
-            if (strategy.ExecuteInterject && state.UnlockedInterject && state.CanWeave(CDGroup.Interject, 0.6f, windowEnd))
+            if (strategy.ExecuteInterject && state.Unlocked(MinLevel.Interject) && state.CanWeave(CDGroup.Interject, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Interject);
             if (strategy.ExecuteSprint && state.CanWeave(state.SprintCD, 0.6f, windowEnd))
                 return CommonRotation.IDSprint;
@@ -431,9 +391,9 @@ namespace BossMod.WAR
             // 3. inner release, if surging tempest up
             // TODO: early IR option: technically we can use right after heavy swing, we'll use maim->SE->IC->3xFC
             // if not unlocked yet, use berserk instead, but only if we have enough gauge
-            if (state.UnlockedBerserk && state.CanWeave(irCD, 0.6f, windowEnd) && (state.SurgingTempestLeft > state.GCD + 5 || !state.UnlockedStormEye))
+            if (state.Unlocked(MinLevel.Berserk) && state.CanWeave(irCD, 0.6f, windowEnd) && (state.SurgingTempestLeft > state.GCD + 5 || !state.Unlocked(MinLevel.StormEye)))
             {
-                if (state.UnlockedInnerRelease)
+                if (state.Unlocked(MinLevel.InnerRelease))
                     return ActionID.MakeSpell(AID.InnerRelease);
                 else if (aoe || !DelayBerserk(state))
                     return ActionID.MakeSpell(AID.Berserk);
@@ -442,14 +402,14 @@ namespace BossMod.WAR
             // 4. upheaval, if surging tempest up and not forbidden
             // TODO: delay for 1 GCD during opener...
             // TODO: reconsider priority compared to IR
-            if (state.UnlockedUpheaval && state.CanWeave(CDGroup.Upheaval, 0.6f, windowEnd) && state.SurgingTempestLeft > MathF.Max(state.CD(CDGroup.Upheaval), 0) && strategy.EnableUpheaval)
-                return ActionID.MakeSpell(aoe && state.UnlockedOrogeny ? AID.Orogeny : AID.Upheaval);
+            if (state.Unlocked(MinLevel.Upheaval) && state.CanWeave(CDGroup.Upheaval, 0.6f, windowEnd) && state.SurgingTempestLeft > MathF.Max(state.CD(CDGroup.Upheaval), 0) && strategy.EnableUpheaval)
+                return ActionID.MakeSpell(aoe && state.Unlocked(MinLevel.Orogeny) ? AID.Orogeny : AID.Upheaval);
 
             // 5. infuriate, if not forbidden and not delayed
             bool spendGauge = state.RaidBuffsLeft >= state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10;
-            bool infuriateAvailable = state.UnlockedInfuriate && state.CanWeave(state.CD(CDGroup.Infuriate) - 60, 0.6f, windowEnd); // note: for second stack, this will be true if casting it won't delay our next gcd
+            bool infuriateAvailable = state.Unlocked(MinLevel.Infuriate) && state.CanWeave(state.CD(CDGroup.Infuriate) - 60, 0.6f, windowEnd); // note: for second stack, this will be true if casting it won't delay our next gcd
             infuriateAvailable &= state.Gauge <= 50; // never cast infuriate if doing so would overcap gauge
-            if (state.UnlockedChaoticCyclone)
+            if (state.Unlocked(MinLevel.ChaoticCyclone))
             {
                 // if we have NC, we should not cast infuriate if IR is about to expire or if we haven't spent NC yet
                 infuriateAvailable &= state.InnerReleaseLeft <= state.GCD || state.InnerReleaseLeft > state.GCD + 2.5f * state.InnerReleaseStacks; // never cast infuriate if it will cause us to lose IR stacks
@@ -458,7 +418,7 @@ namespace BossMod.WAR
             if (infuriateAvailable)
             {
                 // different logic before IR and after IR
-                if (state.UnlockedInnerRelease)
+                if (state.Unlocked(MinLevel.InnerRelease))
                 {
                     // with IR, main purpose of infuriate is to generate gauge to burn in spend mode
                     if (spendGauge)
@@ -496,9 +456,9 @@ namespace BossMod.WAR
             }
 
             // 7. onslaught, if surging tempest up and not forbidden
-            if (state.UnlockedOnslaught && state.CanWeave(state.CD(CDGroup.Onslaught) - 60, 0.6f, windowEnd) && strategy.PositionLockIn > state.AnimationLock && state.SurgingTempestLeft > state.AnimationLock)
+            if (state.Unlocked(MinLevel.Onslaught) && state.CanWeave(state.CD(CDGroup.Onslaught) - 60, 0.6f, windowEnd) && strategy.PositionLockIn > state.AnimationLock && state.SurgingTempestLeft > state.AnimationLock)
             {
-                float chargeCapIn = state.CD(CDGroup.Onslaught) - (state.UnlockedEnhancedOnslaught ? 0 : 30);
+                float chargeCapIn = state.CD(CDGroup.Onslaught) - (state.Unlocked(MinLevel.EnhancedOnslaught) ? 0 : 30);
                 if (chargeCapIn < state.GCD + 2.5)
                     return ActionID.MakeSpell(AID.Onslaught); // onslaught now, otherwise we risk overcapping charges
 

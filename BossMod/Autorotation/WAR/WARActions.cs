@@ -8,6 +8,7 @@ namespace BossMod.WAR
     class Actions : CommonActions
     {
         private WARConfig _config;
+        private QuestLockCheck _lock;
         private Rotation.State _state;
         private Rotation.Strategy _strategy;
         private ActionID _nextBestSTAction = ActionID.MakeSpell(AID.HeavySwing);
@@ -18,6 +19,7 @@ namespace BossMod.WAR
             : base(autorot, player)
         {
             _config = Service.Config.Get<WARConfig>();
+            _lock = new(QuestLock.QuestsPerLevel);
             _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
             _strategy = new()
             {
@@ -214,6 +216,7 @@ namespace BossMod.WAR
         {
             Rotation.State s = new();
             FillCommonPlayerState(s, target, CommonRotation.IDPotionStr);
+            s.Level = _lock.AdjustLevel(s.Level);
 
             s.Gauge = Service.JobGauges.Get<WARGauge>().BeastGauge;
 

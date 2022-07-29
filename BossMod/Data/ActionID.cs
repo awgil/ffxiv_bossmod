@@ -38,6 +38,25 @@ namespace BossMod
         public static bool operator !=(ActionID l, ActionID r) => l.Raw != r.Raw;
         public static implicit operator bool(ActionID x) => x.Raw != 0;
 
+        public string Name()
+        {
+            switch (Type)
+            {
+                case ActionType.Spell:
+                        return Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(ID)?.Name ?? "<not found>";
+                case ActionType.Item:
+                    {
+                        // see Dalamud.Game.Text.SeStringHandling.Payloads.GetAdjustedId
+                        // TODO: id > 500000 is "collectible", >2000000 is "event" ??
+                        bool isHQ = ID > 1000000;
+                        string name = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Item>(ID % 1000000)?.Name ?? "<not found>";
+                        return $"{name}{(isHQ ? " (HQ)" : "")}";
+                    }
+                default:
+                    return "";
+            }
+        }
+
         public override bool Equals(object? obj)
         {
             return obj is ActionID && this == (ActionID)obj;
@@ -50,26 +69,7 @@ namespace BossMod
 
         public override string ToString()
         {
-            switch (Type)
-            {
-                case ActionType.Spell:
-                    {
-                        var actionData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(ID);
-                        string name = actionData?.Name ?? "<not found>";
-                        return $"{Type} {ID} '{name}'";
-                    }
-                case ActionType.Item:
-                    {
-                        // see Dalamud.Game.Text.SeStringHandling.Payloads.GetAdjustedId
-                        // TODO: id > 500000 is "collectible", >2000000 is "event" ??
-                        bool isHQ = ID > 1000000;
-                        var itemData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Item>(ID % 1000000);
-                        string name = itemData?.Name ?? "<not found>";
-                        return $"{Type} {ID} '{name}'{(isHQ ? " (HQ)" : "")}";
-                    }
-                default:
-                    return $"{Type} {ID}";
-            }
+            return $"{Type} {ID} '{Name()}'";
         }
 
         public bool IsCasted()

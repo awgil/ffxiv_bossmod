@@ -43,6 +43,8 @@ namespace BossMod
             public bool CanDoubleWeave => AnimationLock + OGCDSlotLength <= DoubleWeaveWindowEnd; // is it still possible to double-weave without delaying GCD?
             public bool CanSingleWeave => AnimationLock + OGCDSlotLength <= GCD; // is it still possible to single-weave without delaying GCD?
 
+            public bool Unlocked<MinLevel>(MinLevel lvl) where MinLevel : Enum => Level >= (int)(object)lvl;
+
             // check whether weaving ogcd with specified remaining cooldown and lock time, so that we won't be locked by specific window-end
             // window-end is typically either GCD (for second/only ogcd slot) or DoubleWeaveWindowEnd (for first ogcd slot)
             public bool CanWeave(float cooldown, float actionLock, float windowEnd) => MathF.Max(cooldown, 0) + actionLock + OGCDDelay <= windowEnd;
