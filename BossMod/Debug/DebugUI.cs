@@ -103,7 +103,7 @@ namespace BossMod
             }
             if (ImGui.CollapsingHeader("Class definitions"))
             {
-                _debugClassDefinitions.Draw((Class)(player?.ClassJob.Id ?? 0));
+                _debugClassDefinitions.Draw();
             }
         }
 

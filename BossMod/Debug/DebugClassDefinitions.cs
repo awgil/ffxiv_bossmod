@@ -10,6 +10,7 @@ namespace BossMod
     {
         private class StatusData
         {
+            public HashSet<Class> Classes = new();
             public HashSet<uint> Actions = new();
             public bool OnSource;
             public bool OnTarget;
@@ -18,14 +19,41 @@ namespace BossMod
             public string AppliedToString() => OnSource ? (OnTarget ? "self/target" : "self") : "target";
         }
 
+        private class ClassData
+        {
+            public Type? AIDType;
+            public Type? CDGType;
+            public Type? SIDType;
+            public List<Lumina.Excel.GeneratedSheets.Action> Actions = new();
+            public List<Lumina.Excel.GeneratedSheets.Trait> Traits = new();
+            public SortedDictionary<int, List<Lumina.Excel.GeneratedSheets.Action>> CooldownGroups = new();
+
+            public ClassData(Class c)
+            {
+                AIDType = Type.GetType($"BossMod.{c}.AID");
+                CDGType = Type.GetType($"BossMod.{c}.CDGroup");
+                SIDType = Type.GetType($"BossMod.{c}.SID");
+
+                var cp = typeof(Lumina.Excel.GeneratedSheets.ClassJobCategory).GetProperty(c.ToString());
+                Func<Lumina.Excel.GeneratedSheets.Action, bool> actionIsInteresting = a => !a.IsPvP && a.ClassJobLevel > 0 && (cp?.GetValue(a.ClassJobCategory.Value) as bool? ?? false);
+                Actions = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(actionIsInteresting).ToList() ?? new();
+                Actions.Sort((l, r) => l.ClassJobLevel.CompareTo(r.ClassJobLevel));
+
+                Func<Lumina.Excel.GeneratedSheets.Trait, bool> traitIsInteresting = t => (cp?.GetValue(t.ClassJobCategory.Value) as bool? ?? false);
+                Traits = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Trait>()?.Where(traitIsInteresting).ToList() ?? new();
+                Traits.Sort((l, r) => l.Level.CompareTo(r.Level));
+
+                foreach (var action in Actions)
+                {
+                    var cg = action.CooldownGroup - 1;
+                    if (cg is >= 0 and < 80)
+                        CooldownGroups.GetOrAdd(cg).Add(action);
+                }
+            }
+        }
+
         private WorldState _ws;
-        private Class _curClass;
-        private Type? _aidType;
-        private Type? _cdgType;
-        private Type? _sidType;
-        private List<Lumina.Excel.GeneratedSheets.Action> _actions = new();
-        private List<Lumina.Excel.GeneratedSheets.Trait> _traits = new();
-        private SortedDictionary<int, List<Lumina.Excel.GeneratedSheets.Action>> _cooldownGroups = new();
+        private ClassData?[] _classes = new ClassData?[41];
         private Dictionary<uint, float> _seenActionLocks = new();
         private Dictionary<uint, StatusData> _seenStatuses = new();
         private UITree _tree = new();
@@ -41,87 +69,72 @@ namespace BossMod
             _ws.Actors.CastEvent -= OnCast;
         }
 
-        public unsafe void Draw(Class c)
+        public unsafe void Draw()
         {
-            if (_curClass != c)
-            {
-                _curClass = c;
-                Reinit(c);
-            }
+            var player = _ws.Party.Player();
+            if (player == null)
+                return;
 
-            foreach (var n in _tree.Node("Actions", contextMenu: ActionsContextMenu))
+            for (int i = 1; i < _classes.Length; ++i)
             {
-                foreach (var action in _tree.Nodes(_actions, ActionNode))
+                var c = (Class)i;
+                foreach (var cn in _tree.Node(c.ToString(), false, c == player.Class ? 0xff00ff00 : 0xffffffff))
                 {
-                    _tree.LeafNode($"Unlock: {UnlockString(action.ClassJobLevel, action.UnlockLink)}");
-                    _tree.LeafNode($"Cast time: {CastTimeString(action)}");
-                    _tree.LeafNode($"Cooldown: {CooldownString(action)}");
-                    _tree.LeafNode($"Range: {action.Range} ({FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionRange(action.RowId)})");
-                    _tree.LeafNode($"Type: {CastTypeString(action.CastType)} {action.EffectRange}/{action.XAxisModifier}");
-                    _tree.LeafNode($"Omen: {action.Omen.Value?.Path}/{action.Omen.Value?.PathAlly}");
-                    _tree.LeafNode($"Targets: {TargetsString(action)}");
-                    _tree.LeafNode($"Animation lock: {AnimLockString(new ActionID(ActionType.Spell, action.RowId))}");
-                }
-            }
+                    var data = _classes[i];
+                    if (data == null)
+                        data = _classes[i] = new(c);
 
-            foreach (var n in _tree.Node("Traits"))
-            {
-                _tree.LeafNodes(_traits, t => $"{t.RowId} '{t.Name}': {UnlockString(t.Level, t.Quest.Row)}");
-            }
+                    foreach (var n in _tree.Node("Actions", contextMenu: () => ActionsContextMenu(data)))
+                    {
+                        foreach (var action in _tree.Nodes(data.Actions, a => ActionNode(data, a)))
+                        {
+                            _tree.LeafNode($"Unlock: {UnlockString(action.ClassJobLevel, action.UnlockLink)}");
+                            _tree.LeafNode($"Cast time: {CastTimeString(action)}");
+                            _tree.LeafNode($"Cooldown: {CooldownString(action)}");
+                            _tree.LeafNode($"Range: {action.Range} ({FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionRange(action.RowId)})");
+                            _tree.LeafNode($"Type: {CastTypeString(action.CastType)} {action.EffectRange}/{action.XAxisModifier}");
+                            _tree.LeafNode($"Omen: {action.Omen.Value?.Path}/{action.Omen.Value?.PathAlly}");
+                            _tree.LeafNode($"Targets: {TargetsString(action)}");
+                            _tree.LeafNode($"Animation lock: {AnimLockString(new ActionID(ActionType.Spell, action.RowId))}");
+                        }
+                    }
 
-            foreach (var n in _tree.Node("Cooldown groups", contextMenu: CDGroupsContextMenu))
-            {
-                foreach (var (cg, actions) in _cooldownGroups)
-                {
-                    var cdgName = _cdgType?.GetEnumName(cg);
-                    _tree.LeafNode($"{cg} ({cdgName}): {string.Join(", ", actions.Select(a => a.Name))}", cdgName != null || cg == CommonRotation.GCDGroup ? 0xffffffff : 0xff0000ff);
-                }
-            }
+                    foreach (var n in _tree.Node("Traits"))
+                    {
+                        _tree.LeafNodes(data.Traits, t => $"{t.RowId} '{t.Name}': {UnlockString(t.Level, t.Quest.Row)}");
+                    }
 
-            foreach (var n in _tree.Node("Seen statuses", contextMenu: StatusesContextMenu))
-            {
-                foreach (var sn in _tree.Nodes(_seenStatuses, idData => new(Utils.StatusString(idData.Key), false, _sidType?.GetEnumName(idData.Key) != null ? 0xffffffff : 0xff0000ff)))
-                {
-                    _tree.LeafNode($"Applied by: {sn.Value.AppliedByString()}");
-                    _tree.LeafNode($"Applied to: {sn.Value.AppliedToString()}");
+                    foreach (var n in _tree.Node("Cooldown groups", contextMenu: () => CDGroupsContextMenu(data)))
+                    {
+                        foreach (var (cg, actions) in data.CooldownGroups)
+                        {
+                            var cdgName = data.CDGType?.GetEnumName(cg);
+                            _tree.LeafNode($"{cg} ({cdgName}): {string.Join(", ", actions.Select(a => a.Name))}", cdgName != null || cg == CommonRotation.GCDGroup ? 0xffffffff : 0xff0000ff);
+                        }
+                    }
+
+                    foreach (var n in _tree.Node("Seen statuses", contextMenu: () => StatusesContextMenu(data)))
+                    {
+                        foreach (var sn in _tree.Nodes(_seenStatuses.Where(kv => kv.Value.Classes.Contains(c)), idData => new(Utils.StatusString(idData.Key), false, data.SIDType?.GetEnumName(idData.Key) != null ? 0xffffffff : 0xff0000ff)))
+                        {
+                            _tree.LeafNode($"Applied by: {sn.Value.AppliedByString()}");
+                            _tree.LeafNode($"Applied to: {sn.Value.AppliedToString()}");
+                        }
+                    }
                 }
             }
         }
 
-        private void Reinit(Class c)
-        {
-            _aidType = Type.GetType($"BossMod.{c}.AID");
-            _cdgType = Type.GetType($"BossMod.{c}.CDGroup");
-            _sidType = Type.GetType($"BossMod.{c}.SID");
-
-            var cp = typeof(Lumina.Excel.GeneratedSheets.ClassJobCategory).GetProperty(c.ToString());
-            Func<Lumina.Excel.GeneratedSheets.Action, bool> actionIsInteresting = a => !a.IsPvP && a.ClassJobLevel > 0 && (cp?.GetValue(a.ClassJobCategory.Value) as bool? ?? false);
-            _actions = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(actionIsInteresting).ToList() ?? new();
-            _actions.Sort((l, r) => l.ClassJobLevel.CompareTo(r.ClassJobLevel));
-
-            Func<Lumina.Excel.GeneratedSheets.Trait, bool> traitIsInteresting = t => (cp?.GetValue(t.ClassJobCategory.Value) as bool? ?? false);
-            _traits = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Trait>()?.Where(traitIsInteresting).ToList() ?? new();
-            _traits.Sort((l, r) => l.Level.CompareTo(r.Level));
-
-            _cooldownGroups.Clear();
-            foreach (var action in _actions)
-            {
-                var cg = action.CooldownGroup - 1;
-                if (cg is >= 0 and < 80)
-                    _cooldownGroups.GetOrAdd(cg).Add(action);
-            }
-        }
-
-        private void ActionsContextMenu()
+        private void ActionsContextMenu(ClassData cd)
         {
             if (ImGui.MenuItem("Generate AID enum"))
             {
                 var sb = new StringBuilder("public enum AID : uint\n{\n    None = 0,\n\n    // GCDs");
-                foreach (var action in _actions.Where(a => a.CooldownGroup - 1 == CommonRotation.GCDGroup))
-                    sb.Append($"\n    {ActionEnumString(action)}");
+                foreach (var action in cd.Actions.Where(a => a.CooldownGroup - 1 == CommonRotation.GCDGroup))
+                    sb.Append($"\n    {ActionEnumString(cd, action)}");
                 sb.Append("\n\n    // oGCDs");
-                foreach (var action in _actions.Where(a => a.CooldownGroup - 1 != CommonRotation.GCDGroup))
-                    sb.Append($"\n    {ActionEnumString(action)}");
+                foreach (var action in cd.Actions.Where(a => a.CooldownGroup - 1 != CommonRotation.GCDGroup))
+                    sb.Append($"\n    {ActionEnumString(cd, action)}");
                 sb.Append("\n}\n");
                 ImGui.SetClipboardText(sb.ToString());
             }
@@ -130,9 +143,9 @@ namespace BossMod
             {
                 List<(int, uint)> questLocks = new();
                 var sb = new StringBuilder("public enum MinLevel : int\n{\n    // actions");
-                foreach (var action in _actions.Where(a => a.ClassJobLevel > 1))
+                foreach (var action in cd.Actions.Where(a => a.ClassJobLevel > 1))
                 {
-                    var aidEnum = _aidType?.GetEnumName(action.RowId) ?? Utils.StringToIdentifier(action.Name);
+                    var aidEnum = cd.AIDType?.GetEnumName(action.RowId) ?? Utils.StringToIdentifier(action.Name);
                     sb.Append($"\n    {aidEnum} = {action.ClassJobLevel},");
                     if (action.UnlockLink != 0)
                     {
@@ -141,7 +154,7 @@ namespace BossMod
                     }
                 }
                 sb.Append("\n\n    // traits");
-                foreach (var trait in _traits.Where(t => t.Level > 1))
+                foreach (var trait in cd.Traits.Where(t => t.Level > 1))
                 {
                     sb.Append($"\n    {Utils.StringToIdentifier(trait.Name)} = {trait.Level},");
                     if (trait.Quest.Row != 0)
@@ -161,12 +174,12 @@ namespace BossMod
             }
         }
 
-        private void CDGroupsContextMenu()
+        private void CDGroupsContextMenu(ClassData cd)
         {
             if (ImGui.MenuItem("Generate CDGroup enum"))
             {
                 var sb = new StringBuilder("public enum CDGroup : int\n{");
-                foreach (var (cg, actions) in _cooldownGroups)
+                foreach (var (cg, actions) in cd.CooldownGroups)
                 {
                     if (cg == CommonRotation.GCDGroup)
                         continue;
@@ -181,7 +194,7 @@ namespace BossMod
                             commonMaxCharges = null;
                     }
 
-                    var cdgName = _cdgType?.GetEnumName(cg) ?? Utils.StringToIdentifier(actions.First().Name);
+                    var cdgName = cd.CDGType?.GetEnumName(cg) ?? Utils.StringToIdentifier(actions.First().Name);
                     sb.Append($"\n    {cdgName} = {cg}, // ");
 
                     if (commonRecast == null || commonMaxCharges == null)
@@ -199,14 +212,14 @@ namespace BossMod
             }
         }
 
-        private void StatusesContextMenu()
+        private void StatusesContextMenu(ClassData cd)
         {
             if (ImGui.MenuItem("Generate SID enum"))
             {
                 var sb = new StringBuilder("public enum SID : uint\n{\n    None = 0,");
                 foreach (var (id, data) in _seenStatuses)
                 {
-                    var name = _sidType?.GetEnumName(id) ?? Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(id)?.Name ?? $"Status{id}");
+                    var name = cd.SIDType?.GetEnumName(id) ?? Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(id)?.Name ?? $"Status{id}");
                     sb.Append($"\n    {name} = {id}, // applied by {data.AppliedByString()} to {data.AppliedToString()}");
                 }
                 sb.Append("\n}\n");
@@ -214,16 +227,16 @@ namespace BossMod
             }
         }
 
-        private UITree.NodeProperties ActionNode(Lumina.Excel.GeneratedSheets.Action action)
+        private UITree.NodeProperties ActionNode(ClassData cd, Lumina.Excel.GeneratedSheets.Action action)
         {
-            var aidEnum = _aidType?.GetEnumName(action.RowId);
+            var aidEnum = cd.AIDType?.GetEnumName(action.RowId);
             var name = $"{action.RowId} '{action.Name}' ({aidEnum}): L{action.ClassJobLevel}";
             return new(name, false, aidEnum == null ? 0xff0000ff : _seenActionLocks.ContainsKey(new ActionID(ActionType.Spell, action.RowId).Raw) ? 0xffffffff : 0xff00ffff);
         }
 
-        private string ActionEnumString(Lumina.Excel.GeneratedSheets.Action action)
+        private string ActionEnumString(ClassData cd, Lumina.Excel.GeneratedSheets.Action action)
         {
-            var aidEnum = _aidType?.GetEnumName(action.RowId) ?? Utils.StringToIdentifier(action.Name);
+            var aidEnum = cd.AIDType?.GetEnumName(action.RowId) ?? Utils.StringToIdentifier(action.Name);
             var sb = new StringBuilder($"{aidEnum} = {action.RowId}, // L{action.ClassJobLevel}, {CastTimeString(action)}");
             if (action.CooldownGroup - 1 != CommonRotation.GCDGroup)
                 sb.Append($", {CooldownString(action)}");
