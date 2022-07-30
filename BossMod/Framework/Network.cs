@@ -300,13 +300,13 @@ namespace BossMod
                 case Protocol.Opcode.ActionRequest:
                     {
                         var p = (Protocol.Client_ActionRequest*)dataPtr;
-                        Service.Log($"[Network] - AID={new ActionID(p->Type, p->ActionID)}, target={Utils.ObjectString(p->TargetID)}, seq={p->Sequence}, itemsrc={p->ItemSourceContainer}:{p->ItemSourceSlot}, u={p->u0:X2} {p->u1:X4} {p->u2:X4} {p->u3:X8} {p->u5:X8}");
+                        Service.Log($"[Network] - AID={new ActionID(p->Type, p->ActionID)}, proc={p->ActionProcState}, target={Utils.ObjectString(p->TargetID)}, seq={p->Sequence}, itemsrc={p->ItemSourceContainer}:{p->ItemSourceSlot}, casterrot={(p->IntCasterRot * 2 * MathF.PI / 65535 - MathF.PI).Radians()}, dirtotarget={(p->IntDirToTarget * 2 * MathF.PI / 65535 - MathF.PI).Radians()}, u={p->u1:X4} {p->u3:X4} {p->u4:X8} {p->u5:X16}");
                         break;
                     }
                 case Protocol.Opcode.ActionRequestGroundTargeted:
                     {
                         var p = (Protocol.Client_ActionRequestGroundTargeted*)dataPtr;
-                        Service.Log($"[Network] - AID={new ActionID(p->Type, p->ActionID)}, seq={p->Sequence}, u={p->u0:X2} {p->u1:X4} {p->u2:X4} {p->u3:X8} {p->u4:X8} {p->u5:X8} {p->u6:X8} {p->u7:X8}");
+                        Service.Log($"[Network] - AID={new ActionID(p->Type, p->ActionID)}, proc={p->ActionProcState}, target={Utils.Vec3String(new(p->LocX, p->LocY, p->LocZ))}, seq={p->Sequence}, casterrot={(p->IntCasterRot * 2 * MathF.PI / 65535 - MathF.PI).Radians()}, dirtotarget={(p->IntDirToTarget * 2 * MathF.PI / 65535 - MathF.PI).Radians()}, u={p->u1:X4} {p->u3:X4} {p->u4:X8} {p->u5:X16}");
                         break;
                     }
             }

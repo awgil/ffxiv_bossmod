@@ -83,7 +83,7 @@ namespace BossMod
             EnvironmentControl = 0x007B, // updated - size=16, look for a bunch of messages starting with 0x8003759F after P1N intemperance cast...
             UpdateRecastTimes = 0xF23C, // payload = 80 floats 'elapsed' + 80 floats 'total'
             ActionRequest = 0x0088, // just begin casting return...
-            ActionRequestGroundTargeted = 0xD18D, // XIVAlexander
+            ActionRequestGroundTargeted = 0x0159, // XIVAlexander
             // old - 0x1fd == EventObjSpawn? for stuff like exit points, etc.
         }
 
@@ -514,33 +514,37 @@ namespace BossMod
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public unsafe struct Client_ActionRequest
         {
-            public byte u0;
+            public byte ActionProcState; // see ActionManager.GetAdjustedCastTime implementation, last optional arg
             public ActionType Type;
             public ushort u1;
             public uint ActionID;
             public ushort Sequence;
-            public ushort u2;
-            public uint u3;
+            public ushort IntCasterRot; // 0 = N, increases CCW, 0xFFFF = 2pi
+            public ushort IntDirToTarget; // 0 = N, increases CCW, 0xFFFF = 2pi
+            public ushort u3;
             public ulong TargetID;
             public ushort ItemSourceSlot;
             public ushort ItemSourceContainer;
-            public uint u5;
+            public uint u4;
+            public ulong u5;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public unsafe struct Client_ActionRequestGroundTargeted
         {
-            public byte u0;
+            public byte ActionProcState; // see ActionManager.GetAdjustedCastTime implementation, last optional arg
             public ActionType Type;
             public ushort u1;
             public uint ActionID;
             public ushort Sequence;
-            public ushort u2;
-            public uint u3;
+            public ushort IntCasterRot; // 0 = N, increases CCW, 0xFFFF = 2pi
+            public ushort IntDirToTarget; // 0 = N, increases CCW, 0xFFFF = 2pi
+            public ushort u3;
+            public float LocX;
+            public float LocY;
+            public float LocZ;
             public uint u4;
-            public uint u5;
-            public uint u6;
-            public uint u7;
+            public ulong u5;
         }
     }
 }
