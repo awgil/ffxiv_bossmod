@@ -327,7 +327,7 @@ namespace BossMod
         {
             // when spamming e.g. HS, every click (~0.2 sec) this function is called; aid=HS, a4=a5=a6=a7==0, returns True
             // 0.5s before CD end, action becomes queued (this function returns True); while anything is queued, further calls return False
-            // callType is 0 for normal calls, 1 if called by queue mechanism, 2 if ???, 3 if combo (in such case comboRouteID is ActionComboRoute row id)
+            // callType is 0 for normal calls, 1 if called by queue mechanism, 2 if called from macro, 3 if combo (in such case comboRouteID is ActionComboRoute row id)
             // right when GCD ends, it is called internally by queue mechanism with aid=adjusted-id, a5=1, a4=a6=a7==0, returns True
             // itemLocation==0 for spells, 65535 for item used from hotbar, some value (bagID<<8 | slotID) for item used from inventory; it is the same as a4 in UseActionLocation
             var action = new ActionID(actionType, actionID);

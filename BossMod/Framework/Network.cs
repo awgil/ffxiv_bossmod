@@ -396,6 +396,12 @@ namespace BossMod
                         Service.Log($"[Network] - {p->ClassJobID} = {p->Payload:X16}, u={p->u5:X2} {p->u6:X4} {p->u8:X16}");
                         break;
                     }
+                //case Protocol.Opcode.ActorMove:
+                //    {
+                //        var p = (Protocol.Server_ActorMove*)dataPtr;
+                //        Service.Log($"[Network] - [{p->X}, {p->Y}, {p->Z}], rot={p->Rotation}/{p->HeadRotation}/{p->UnknownRotation}, anim={p->AnimationType}/{p->AnimationState}/{p->AnimationSpeed}, u={p->Unknown:X8}");
+                //        break;
+                //    }
                 case Protocol.Opcode.EffectResult:
                     {
                         var p = (Protocol.Server_EffectResult*)dataPtr;

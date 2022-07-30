@@ -39,6 +39,8 @@ namespace BossMod
         {
             var player = Service.ClientState.LocalPlayer;
             ImGui.TextUnformatted($"Current zone: {_ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
+            ImGui.TextUnformatted($"AM: 0x{(ulong)FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance():X}");
+
             if (ImGui.Button("Perform full dump"))
             {
                 DebugObjects.DumpObjectTable();
@@ -156,6 +158,9 @@ namespace BossMod
 
         private unsafe void DrawTargets()
         {
+            var cursorPos = Utils.GetWorldPosUnderCursor();
+            ImGui.TextUnformatted($"World pos under cursor: {(cursorPos == null ? "n/a" : Utils.Vec3String(cursorPos.Value))}");
+
             var selfPos = Service.ClientState.LocalPlayer?.Position ?? new();
             var targPos = Service.ClientState.LocalPlayer?.TargetObject?.Position ?? new();
             var angle = Angle.FromDirection(new((targPos - selfPos).XZ()));
