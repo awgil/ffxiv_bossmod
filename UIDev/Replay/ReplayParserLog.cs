@@ -259,8 +259,9 @@ namespace UIDev
                 MainTargetID = ActorID(payload[4]),
                 AnimationLockTime = float.Parse(payload[5]),
                 MaxTargets = uint.Parse(payload[6]),
+                TargetPos = _version >= 6 ? Vec3(payload[7]) : new(),
             };
-            for (int i = 7; i < payload.Length; ++i)
+            for (int i = _version >= 6 ? 8 : 7; i < payload.Length; ++i)
             {
                 var parts = payload[i].Split('!');
                 ActorCastEvent.Target target = new();

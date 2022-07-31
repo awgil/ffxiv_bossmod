@@ -163,30 +163,30 @@ namespace BossMod
 
         private unsafe void HandleActionEffect1(Protocol.Server_ActionEffect1* p, uint actorID)
         {
-            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 1);
+            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 1, new());
         }
 
         private unsafe void HandleActionEffect8(Protocol.Server_ActionEffect8* p, uint actorID)
         {
-            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 8);
+            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 8, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ));
         }
 
         private unsafe void HandleActionEffect16(Protocol.Server_ActionEffect16* p, uint actorID)
         {
-            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 16);
+            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 16, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ));
         }
 
         private unsafe void HandleActionEffect24(Protocol.Server_ActionEffect24* p, uint actorID)
         {
-            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 24);
+            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 24, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ));
         }
 
         private unsafe void HandleActionEffect32(Protocol.Server_ActionEffect32* p, uint actorID)
         {
-            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 32);
+            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 32, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ));
         }
 
-        private unsafe void HandleActionEffect(uint casterID, Protocol.Server_ActionEffectHeader* header, ActionEffect* effects, ulong* targetIDs, uint maxTargets)
+        private unsafe void HandleActionEffect(uint casterID, Protocol.Server_ActionEffectHeader* header, ActionEffect* effects, ulong* targetIDs, uint maxTargets, Vector3 targetPos)
         {
             if (header->actionType == ActionType.Spell)
             {
@@ -204,6 +204,7 @@ namespace BossMod
                 MainTargetID = header->animationTargetId,
                 AnimationLockTime = header->animationLockTime,
                 MaxTargets = maxTargets,
+                TargetPos = targetPos,
                 SourceSequence = header->SourceSequence
             };
 
@@ -321,31 +322,31 @@ namespace BossMod
                 case Protocol.Opcode.ActionEffect1:
                     {
                         var p = (Protocol.Server_ActionEffect1*)dataPtr;
-                        DumpActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 1, 0, 0);
+                        DumpActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 1, new());
                         break;
                     }
                 case Protocol.Opcode.ActionEffect8:
                     {
                         var p = (Protocol.Server_ActionEffect8*)dataPtr;
-                        DumpActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 8, p->effectflags1, p->effectflags2);
+                        DumpActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 8, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ));
                         break;
                     }
                 case Protocol.Opcode.ActionEffect16:
                     {
                         var p = (Protocol.Server_ActionEffect16*)dataPtr;
-                        DumpActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 16, p->effectflags1, p->effectflags2);
+                        DumpActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 16, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ));
                         break;
                     }
                 case Protocol.Opcode.ActionEffect24:
                     {
                         var p = (Protocol.Server_ActionEffect24*)dataPtr;
-                        DumpActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 24, p->effectflags1, p->effectflags2);
+                        DumpActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 24, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ));
                         break;
                     }
                 case Protocol.Opcode.ActionEffect32:
                     {
                         var p = (Protocol.Server_ActionEffect32*)dataPtr;
-                        DumpActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 32, p->effectflags1, p->effectflags2);
+                        DumpActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 32, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ));
                         break;
                     }
                 case Protocol.Opcode.ActorCast:
@@ -450,12 +451,12 @@ namespace BossMod
             }
         }
 
-        private unsafe void DumpActionEffect(Protocol.Server_ActionEffectHeader* data, ActionEffect* effects, ulong* targetIDs, uint maxTargets, uint flags1, ushort flags2)
+        private unsafe void DumpActionEffect(Protocol.Server_ActionEffectHeader* data, ActionEffect* effects, ulong* targetIDs, uint maxTargets, Vector3 targetPos)
         {
             // rotation: 0 -> -180, 65535 -> +180
             float rot = (data->rotation / 65535.0f * 360.0f) - 180.0f;
             uint aid = (uint)(data->actionId - _unkDelta);
-            Service.Log($"[Network] - AID={new ActionID(data->actionType, aid)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, seq={data->SourceSequence}, cntr={data->globalEffectCounter}, rot={rot:f0}, var={data->variation}, flags={flags1:X8} {flags2:X4}, someTarget={Utils.ObjectString(data->SomeTargetID)}, u={data->unknown20:X2} {data->padding21:X4}");
+            Service.Log($"[Network] - AID={new ActionID(data->actionType, aid)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, seq={data->SourceSequence}, cntr={data->globalEffectCounter}, rot={rot:f0}, pos={Utils.Vec3String(targetPos)}, var={data->variation}, someTarget={Utils.ObjectString(data->SomeTargetID)}, u={data->unknown20:X2} {data->padding21:X4}");
             var targets = Math.Min(data->NumTargets, maxTargets);
             for (int i = 0; i < targets; ++i)
             {
@@ -473,6 +474,14 @@ namespace BossMod
                     Service.Log($"[Network] --- effect {j} == {eff->Type}, params={eff->Param0:X2} {eff->Param1:X2} {eff->Param2:X2} {eff->Param3:X2} {eff->Param4:X2} {eff->Value:X4}");
                 }
             }
+        }
+
+        private static Vector3 IntToFloatCoords(ushort x, ushort y, ushort z)
+        {
+            float fx = x * (2000.0f / 65535) - 1000;
+            float fy = y * (2000.0f / 65535) - 1000;
+            float fz = z * (2000.0f / 65535) - 1000;
+            return new(fx, fy, fz);
         }
     }
 }

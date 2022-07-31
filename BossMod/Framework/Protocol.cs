@@ -137,8 +137,9 @@ namespace BossMod
             public ushort padding3;
             public uint padding4;
             public fixed ulong TargetID[8];
-            public uint effectflags1;
-            public ushort effectflags2;
+            public ushort TargetX; // floatCoord = ((intCoord * 3.0518043) * 0.0099999998) - 1000.0 (0 => -1000, 65535 => +1000)
+            public ushort TargetY;
+            public ushort TargetZ;
             public ushort padding5;
             public uint padding6;
         }
@@ -151,8 +152,9 @@ namespace BossMod
             public ushort padding3;
             public uint padding4;
             public fixed ulong TargetID[16];
-            public uint effectflags1;
-            public ushort effectflags2;
+            public ushort TargetX; // floatCoord = ((intCoord * 3.0518043) * 0.0099999998) - 1000.0 (0 => -1000, 65535 => +1000)
+            public ushort TargetY;
+            public ushort TargetZ;
             public ushort padding5;
             public uint padding6;
         }
@@ -165,8 +167,9 @@ namespace BossMod
             public ushort padding3;
             public uint padding4;
             public fixed ulong TargetID[24];
-            public uint effectflags1;
-            public ushort effectflags2;
+            public ushort TargetX; // floatCoord = ((intCoord * 3.0518043) * 0.0099999998) - 1000.0 (0 => -1000, 65535 => +1000)
+            public ushort TargetY;
+            public ushort TargetZ;
             public ushort padding5;
             public uint padding6;
         }
@@ -179,8 +182,9 @@ namespace BossMod
             public ushort padding3;
             public uint padding4;
             public fixed ulong TargetID[32];
-            public uint effectflags1;
-            public ushort effectflags2;
+            public ushort TargetX; // floatCoord = ((intCoord * 3.0518043) * 0.0099999998) - 1000.0 (0 => -1000, 65535 => +1000)
+            public ushort TargetY;
+            public ushort TargetZ;
             public ushort padding5;
             public uint padding6;
         }

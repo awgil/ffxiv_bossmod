@@ -280,7 +280,9 @@ namespace UIDev
             var tgtActor = _ws.Actors.Find(args.cast.MainTargetID);
 
             Vector3 targetPos = new();
-            if (tgtActor != null)
+            if (args.cast.TargetPos != targetPos)
+                targetPos = args.cast.TargetPos;
+            else if (tgtActor != null)
                 targetPos = tgtActor.PosRot.XYZ();
             else if (srcActor?.CastInfo != null)
                 targetPos = srcActor.CastInfo.Location;

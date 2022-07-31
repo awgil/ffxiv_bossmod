@@ -56,6 +56,7 @@ namespace BossMod
         public float AnimationLockTime;
         public uint MaxTargets;
         public List<Target> Targets = new();
+        public Vector3 TargetPos;
         public uint SourceSequence;
 
         public bool IsSpell() => Action.Type == ActionType.Spell;
