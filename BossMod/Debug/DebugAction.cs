@@ -8,6 +8,16 @@ namespace BossMod
     {
         private int _customAction = 0;
 
+        public void DrawActionManagerEx()
+        {
+            var am = ActionManagerEx.Instance!;
+            ImGui.TextUnformatted($"Anim lock: {am.AnimationLock:f3}");
+            ImGui.TextUnformatted($"Cast: {am.CastAction} / {am.CastSpell}, progress={am.CastTimeElapsed:f3}/{am.CastTimeTotal:f3}, target={am.CastTargetID:X}/{Utils.Vec3String(am.CastTargetPos)}");
+            ImGui.TextUnformatted($"Combo: {new ActionID(ActionType.Spell, am.ComboLastMove)}, {am.ComboTimeLeft:f3}");
+            ImGui.TextUnformatted($"Queue: {(am.QueueActive ? "active" : "inactive")}, {am.QueueAction} @ {am.QueueTargetID:X} [{am.QueueCallType}], combo={am.QueueComboRouteID}");
+            ImGui.TextUnformatted($"GT: {am.GTAction} / {am.GTSpell}, arg={am.GTUnkArg}, obj={am.GTUnkObj:X}, a0={am.GT_uA0:X2}, b8={am.GT_uB8:X2}, bc={am.GT_uBC:X}");
+        }
+
         public unsafe void DrawActionData()
         {
             ImGui.InputInt("Action to show details for", ref _customAction);

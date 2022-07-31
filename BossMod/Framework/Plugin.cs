@@ -37,6 +37,7 @@ namespace BossMod
             MultiboxUnlock.Exec();
             Camera.Instance = new();
             Mouseover.Instance = new();
+            ActionManagerEx.Instance = new();
 
             Service.Config.Initialize();
             Service.Config.LoadFromFile(dalamud.ConfigFile);
@@ -68,6 +69,8 @@ namespace BossMod
             _ai.Dispose();
             _autorotation.Dispose();
             _inputOverride.Dispose();
+            Mouseover.Instance?.Dispose();
+            ActionManagerEx.Instance?.Dispose();
             _commandManager.RemoveHandler("/vbm");
         }
 

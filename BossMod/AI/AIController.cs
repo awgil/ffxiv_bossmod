@@ -115,7 +115,7 @@ namespace BossMod.AI
                 return;
             }
 
-            bool actionReady = PlannedAction && Math.Max(Cooldown(PlannedAction), _autorot.AnimLock) < 0.1f && PlannedActionTarget != null && (PlannedActionTarget.Position - player.Position).Length() <= Range(PlannedAction) + player.HitboxRadius + PlannedActionTarget.HitboxRadius;
+            bool actionReady = PlannedAction && Math.Max(Cooldown(PlannedAction), ActionManagerEx.Instance!.AnimationLock) < 0.1f && PlannedActionTarget != null && (PlannedActionTarget.Position - player.Position).Length() <= Range(PlannedAction) + player.HitboxRadius + PlannedActionTarget.HitboxRadius;
             UpdateNavigation(player, actionReady);
 
             var now = DateTime.Now;

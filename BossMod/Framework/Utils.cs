@@ -102,9 +102,6 @@ namespace BossMod
         private unsafe delegate byte GameObjectIsFriendlyDelegate(FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* obj);
         private static GameObjectIsFriendlyDelegate GameObjectIsFriendlyFunc = Marshal.GetDelegateForFunctionPointer<GameObjectIsFriendlyDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 33 C9 84 C0 0F 95 C1 8D 41 03"));
 
-        private unsafe delegate bool ActionManagerGetGroundTargetPositionDelegate(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, Vector3* outPos);
-        private static ActionManagerGetGroundTargetPositionDelegate ActionManagerGetGroundTargetPositionFunc = Marshal.GetDelegateForFunctionPointer<ActionManagerGetGroundTargetPositionDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 44 8B 84 24 80 00 00 00 33 C0"));
-
         public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* GameObjectInternal(GameObject? obj) => obj != null ? (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)obj.Address : null;
         public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Character.Character* CharacterInternal(Character? chr) => chr != null ? (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)chr.Address : null;
         public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* BattleCharaInternal(BattleChara? chara) => chara != null ? (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)chara.Address : null;
@@ -115,12 +112,6 @@ namespace BossMod
         public static unsafe byte CharacterShieldValue(Character chr) => CharacterInternal(chr)->ShieldValue; // % of max hp
         public static unsafe byte CharacterModelState(Character chr) => ReadField<byte>(CharacterInternal(chr), 0x1AC6);
         public static unsafe Vector3 BattleCharaCastLocation(BattleChara chara) => BattleCharaInternal(chara)->SpellCastInfo.CastLocation;
-
-        public static unsafe Vector3? GetWorldPosUnderCursor()
-        {
-            Vector3 res = new();
-            return ActionManagerGetGroundTargetPositionFunc(FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance(), &res) ? res : null;
-        }
 
         public static unsafe ulong SceneObjectFlags(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o)
         {

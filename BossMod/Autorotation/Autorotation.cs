@@ -41,29 +41,18 @@ namespace BossMod
 
         private List<Network.PendingAction> _pendingActions = new();
         private ActorCastEvent? _completedCast = null;
-        private DateTime _animLockEnd;
-        private float _animLockDelay = 0.1f; // smoothed delay between client request and response
-        private float _animLockDelaySmoothing = 0.8f; // TODO tweak
 
         private InputOverride _inputOverride;
         private DateTime _inputPendingUnblock;
 
-        private unsafe delegate bool UseActionDelegate(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptIsGroundTargeted);
+        private unsafe delegate bool UseActionDelegate(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted);
         private Hook<UseActionDelegate> _useActionHook;
-        private unsafe float* _comboTimeLeft = null;
-        private unsafe uint* _comboLastMove = null;
-
-        private IntPtr _gtQueuePatch;
 
         public AutorotationConfig Config => _config;
         public BossModuleManager Bossmods => _bossmods;
         public WorldState WorldState => _bossmods.WorldState;
         public CommonActions? ClassActions => _classActions;
         public List<Actor> PotentialTargets = new();
-        public float AnimLock => MathF.Max((float)(_animLockEnd - DateTime.Now).TotalSeconds, 0);
-        public float AnimLockDelay => _animLockDelay;
-        public unsafe float ComboTimeLeft => *_comboTimeLeft;
-        public unsafe uint ComboLastMove => *_comboLastMove;
         public bool DisableReplacement = false; // used when action selection is done by AI, so that replacement doesn't interfere
 
         public unsafe Autorotation(Network network, BossModuleManager bossmods, InputOverride inputOverride)
@@ -75,34 +64,24 @@ namespace BossMod
 
             _network.EventActionRequest += OnNetworkActionRequest;
             _network.EventActionRequestGT += OnNetworkActionRequest;
-            _network.EventActorCast += OnNetworkActionCastStart;
             _network.EventActionEffect += OnNetworkActionEffect;
             _network.EventActorControlCancelCast += OnNetworkActionCancel;
             _network.EventActorControlSelfActionRejected += OnNetworkActionReject;
 
-            IntPtr comboPtr = Service.SigScanner.GetStaticAddressFromSig("E8 ?? ?? ?? ?? 80 7E 21 00", 0x19E);
-            _comboTimeLeft = (float*)comboPtr;
-            _comboLastMove = (uint*)(comboPtr + 0x4);
-
             var useActionAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 64 B1 01");
             _useActionHook = Hook<UseActionDelegate>.FromAddress(useActionAddress, UseActionDetour);
             _useActionHook.Enable();
-
-            _gtQueuePatch = Service.SigScanner.ScanModule("74 24 41 81 FE F5 0D 00 00");
-            SafeMemory.WriteBytes(_gtQueuePatch, new byte[] { 0xEB });
         }
 
         public void Dispose()
         {
             _network.EventActionRequest -= OnNetworkActionRequest;
             _network.EventActionRequestGT -= OnNetworkActionRequest;
-            _network.EventActorCast -= OnNetworkActionCastStart;
             _network.EventActionEffect -= OnNetworkActionEffect;
             _network.EventActorControlCancelCast -= OnNetworkActionCancel;
             _network.EventActorControlSelfActionRejected -= OnNetworkActionReject;
 
             _useActionHook.Dispose();
-            SafeMemory.WriteBytes(_gtQueuePatch, new byte[] { 0x74 });
         }
 
         public void UpdatePotentialTargets()
@@ -113,15 +92,6 @@ namespace BossMod
 
         public void Update(Actor? target)
         {
-            //unsafe
-            //{
-            //    var alock = Utils.ReadField<float>(FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance(), 8);
-            //    if (alock > 0)
-            //    {
-            //        Service.Log($"alock: {alock:f3}/{AnimLock:f3}");
-            //    }
-            //}
-
             var player = WorldState.Party.Player();
             Type? classType = null;
             if (_config.Enabled && player != null)
@@ -201,7 +171,6 @@ namespace BossMod
             }
             Log($"++ {PendingActionString(action)}");
             _pendingActions.Add(action);
-            _animLockEnd = DateTime.Now.AddSeconds(0.5); // note: for casted spells, it is actually 0.1 after cast end - we update it if we receive cast-start message
 
             if (_inputPendingUnblock > DateTime.Now)
             {
@@ -210,15 +179,6 @@ namespace BossMod
                     _inputOverride.UnblockMovement();
                 _inputPendingUnblock = new();
             }
-        }
-
-        private void OnNetworkActionCastStart(object? sender, (ulong actorID, ActionID action, float castTime, ulong targetID) args)
-        {
-            if (args.actorID != WorldState.Party.Player()?.InstanceID)
-                return; // not a player cast
-
-            // update animation lock end for casted spells: it is 0.1 after cast end instead of 0.5 after request
-            _animLockEnd = _animLockEnd.AddSeconds(args.castTime - 0.4f);
         }
 
         private void OnNetworkActionEffect(object? sender, (ulong actorID, ActorCastEvent cast) args)
@@ -245,11 +205,6 @@ namespace BossMod
             Log($"-+ {PendingActionString(pa)}, lock={args.cast.AnimationLockTime:f3}");
             _completedCast = args.cast;
 
-            var now = DateTime.Now;
-            var delay = (float)(now.AddSeconds(0.5) - _animLockEnd).TotalSeconds; // TODO: this isn't correct for casted spells...
-            _animLockDelay = delay * (1 - _animLockDelaySmoothing) + _animLockDelay * _animLockDelaySmoothing;
-            _animLockEnd = now.AddSeconds(args.cast.AnimationLockTime);
-
             // unblock input unconditionally on successful cast (I assume there are no instances where we need to immediately start next GCD?)
             _inputOverride.UnblockMovement();
         }
@@ -274,9 +229,6 @@ namespace BossMod
                 Log($"-- {PendingActionString(_pendingActions[index])}");
                 _pendingActions.RemoveRange(0, index + 1);
             }
-
-            // clear animation lock (TODO: or should it be set to 0.1? I think if you spam cast while running, next cast will start <0.1s after interrupt...)
-            _animLockEnd = new();
 
             // keep movement locked for a slight duration after interrupted cast, in case player restarts it
             _inputPendingUnblock = DateTime.Now.AddSeconds(0.2f);
@@ -306,8 +258,6 @@ namespace BossMod
                 _pendingActions.RemoveRange(0, index + 1);
             }
 
-            // TODO: should we clear animation lock here?..
-
             // unblock input unconditionally on reject (TODO: investigate more why it can happen)
             _inputOverride.UnblockMovement();
         }
@@ -323,7 +273,7 @@ namespace BossMod
                 Service.Log($"[AR] {message}");
         }
 
-        private unsafe bool UseActionDetour(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptIsGroundTargeted)
+        private unsafe bool UseActionDetour(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
         {
             // when spamming e.g. HS, every click (~0.2 sec) this function is called; aid=HS, a4=a5=a6=a7==0, returns True
             // 0.5s before CD end, action becomes queued (this function returns True); while anything is queued, further calls return False
@@ -352,12 +302,12 @@ namespace BossMod
                 }
             }
 
-            bool isGroundTargeted = false;
-            bool ret = _useActionHook.Original(self, action.Type, action.ID, targetID, itemLocation, callType, comboRouteID, &isGroundTargeted);
-            if (outOptIsGroundTargeted != null)
-                *outOptIsGroundTargeted = isGroundTargeted;
+            bool gtModeStarted = false;
+            bool ret = _useActionHook.Original(self, action.Type, action.ID, targetID, itemLocation, callType, comboRouteID, &gtModeStarted);
+            if (outOptGTModeStarted != null)
+                *outOptGTModeStarted = gtModeStarted;
 
-            if (_config.GTMode != AutorotationConfig.GroundTargetingMode.Manual && isGroundTargeted)
+            if (_config.GTMode != AutorotationConfig.GroundTargetingMode.Manual && gtModeStarted)
             {
                 // hack to cast ground-targeted immediately
                 if (_config.GTMode == AutorotationConfig.GroundTargetingMode.AtTarget)

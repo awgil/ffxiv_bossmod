@@ -176,13 +176,14 @@ namespace BossMod
         // fill common state properties
         protected unsafe void FillCommonPlayerState(CommonRotation.PlayerState s, Actor? target, ActionID potion)
         {
+            var am = ActionManagerEx.Instance!;
             var pc = Service.ClientState.LocalPlayer;
             s.Level = pc?.Level ?? 0;
             s.CurMP = pc?.CurrentMp ?? 0;
-            s.AnimationLock = Autorot.AnimLock;
-            s.AnimationLockDelay = Autorot.AnimLockDelay;
-            s.ComboTimeLeft = Autorot.ComboTimeLeft;
-            s.ComboLastAction = Autorot.ComboLastMove;
+            s.AnimationLock = am.AnimationLock;
+            s.AnimationLockDelay = am.AnimationLockDelayAverage;
+            s.ComboTimeLeft = am.ComboTimeLeft;
+            s.ComboLastAction = am.ComboLastMove;
 
             foreach (var status in Player.Statuses.Where(s => IsDamageBuff(s.ID)))
             {
