@@ -78,7 +78,7 @@ namespace BossMod
         }
 
         // note: any returned action is immediately popped off the queue - we assume caller will execute it
-        public (ActionID Action, ulong Target, bool Emergency) Pop(float animLockDelay)
+        public (ActionID Action, ulong Target, bool Emergency) Pop(float animLock, float animLockDelay)
         {
             // first remove all expired entries (and if 'emergency' entry is popped, oh well)
             if (_emergencyMode && _queue[0].ExpireAt < _ws.CurrentTime)
@@ -92,7 +92,7 @@ namespace BossMod
             {
                 // in emergency mode, return emergency action if off cd or nothing (and a flag that caller will use to skip looking for lower-priority actions)
                 var e = _queue[0];
-                if (_cooldowns[e.CooldownGroup] <= e.AvailableAtCooldown)
+                if (MathF.Max(_cooldowns[e.CooldownGroup] - e.AvailableAtCooldown, animLock) <= Autorotation.EnqueueWindow)
                 {
                     // pop off emergency action
                     Service.Log($"[MAO] Executing emergency action {e.Action} @ {e.TargetID:X}");
@@ -109,7 +109,7 @@ namespace BossMod
 
             // look for first action that is off cooldown, using which won't delay next gcd
             float gcd = _cooldowns[CommonDefinitions.GCDGroup];
-            var index = _queue.FindIndex(e => _cooldowns[e.CooldownGroup] <= e.AvailableAtCooldown && (e.CooldownGroup == CommonDefinitions.GCDGroup || e.AnimLock + animLockDelay < gcd) && (e.Condition == null || e.Condition()));
+            var index = _queue.FindIndex(e => CanExecuteAction(e, animLock, animLockDelay));
             if (index >= 0)
             {
                 var e = _queue[index];
@@ -120,6 +120,14 @@ namespace BossMod
 
             // nothing found
             return (new(), 0, false);
+        }
+
+        private bool CanExecuteAction(Entry e, float animLock, float animLockDelay)
+        {
+            var canExecuteIn = MathF.Max(_cooldowns[e.CooldownGroup] - e.AvailableAtCooldown, animLock);
+            return canExecuteIn <= Autorotation.EnqueueWindow
+                && (e.CooldownGroup == CommonDefinitions.GCDGroup || canExecuteIn + e.AnimLock + animLockDelay < _cooldowns[CommonDefinitions.GCDGroup])
+                && (e.Condition == null || e.Condition());
         }
     }
 }

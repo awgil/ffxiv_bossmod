@@ -33,6 +33,10 @@ namespace BossMod
     // 3. when there are pending actions, we don't update internal state, leaving same next-best recommendation
     class Autorotation : IDisposable
     {
+        // to remove 1-frame delays and execute next actions at earliest moment, we decide on the next action up to this time before animlock/cooldown end
+        // increasing this will remove delays for even lower framerate, at the expense of not accounting for state changes over this window
+        public const float EnqueueWindow = 0.05f;
+
         private Network _network;
         private AutorotationConfig _config;
         private BossModuleManager _bossmods;
@@ -94,7 +98,6 @@ namespace BossMod
         {
             var am = ActionManagerEx.Instance!;
             am.AnimationLockDelayMax = _config.RemoveAnimationLockDelay ? 0 : float.MaxValue;
-            am.GetCooldowns(Cooldowns);
 
             var player = WorldState.Party.Player();
             Type? classType = null;
@@ -147,16 +150,7 @@ namespace BossMod
             }
 
             // execute any automatic action if possible
-            if (am.AnimationLock == 0 && am.CastTimeRemaining == 0 && _classActions != null)
-            {
-                bool moving = _inputOverride.IsMoving(); // TODO: reconsider
-                var animLockDelay = MathF.Min(MathF.Min(am.AnimationLockDelayMax, am.AnimationLockDelayAverage), 0.1f);
-                var (action, targetID) = _classActions.CalculateNextAction(target, moving, animLockDelay);
-                if (action)
-                {
-
-                }
-            }
+            TryExecuteActions(target);
         }
 
         public IEnumerable<Actor> PotentialTargetsInRange(WPos center, float radius)
@@ -280,6 +274,48 @@ namespace BossMod
                 Service.Log($"[AR] {message}");
         }
 
+        private unsafe bool TryExecuteActions(Actor? target)
+        {
+            if (_classActions == null)
+                return false; // disabled
+
+            var am = ActionManagerEx.Instance!;
+            var effLock = am.AnimationLock + am.CastTimeRemaining;
+            if (effLock >= EnqueueWindow)
+                return false; // casting/under animation lock, do nothing for now - we'll retry on future update anyway
+
+            // update cooldowns, so that correct decision can be made
+            am.GetCooldowns(Cooldowns);
+
+            bool moving = _inputOverride.IsMoving(); // TODO: reconsider
+            var animLockDelay = MathF.Min(MathF.Min(am.AnimationLockDelayMax, am.AnimationLockDelayAverage), 0.1f);
+            var (action, targetID) = _classActions.CalculateNextAction(target, moving, effLock, animLockDelay);
+            if (!action)
+                return false; // nothing to use...
+
+            return UseActionWithGTStrategy(action, targetID, action.Type == ActionType.Item ? 65535u : 0u, 0, 0, null);
+        }
+
+        private unsafe bool UseActionWithGTStrategy(ActionID action, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
+        {
+            var amr = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
+
+            bool gtModeStarted = false;
+            bool result = _useActionHook.Original(amr, action.Type, action.ID, targetID, itemLocation, 0, 0, &gtModeStarted);
+            if (outOptGTModeStarted != null)
+                *outOptGTModeStarted = gtModeStarted;
+
+            if (_config.GTMode != AutorotationConfig.GroundTargetingMode.Manual && gtModeStarted)
+            {
+                // hack to cast ground-targeted immediately
+                if (_config.GTMode == AutorotationConfig.GroundTargetingMode.AtTarget)
+                    Utils.WriteField(amr, 0x98, targetID);
+                Utils.WriteField(amr, 0xB8, (byte)1);
+            }
+
+            return result;
+        }
+
         private unsafe bool UseActionDetour(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
         {
             // when spamming e.g. HS, every click (~0.2 sec) this function is called; aid=HS, a4=a5=a6=a7==0, returns True
@@ -289,13 +325,17 @@ namespace BossMod
             // itemLocation==0 for spells, 65535 for item used from hotbar, some value (bagID<<8 | slotID) for item used from inventory; it is the same as a4 in UseActionLocation
             var action = new ActionID(actionType, actionID);
             //Service.Log($"UA: {action} @ {targetID:X}: {a4} {a5} {a6} {a7}");
-            if (_classActions != null && !DisableReplacement)
+
+            var supportedAction = callType != 0 ? _classActions?.SupportedActions.GetValueOrDefault(action) : null;
+            if (supportedAction == null)
             {
-                (action, targetID) = _classActions.ReplaceActionAndTarget(action, targetID, callType != 0);
-                if (itemLocation == 0 && action.Type == ActionType.Item)
-                    itemLocation = 65535;
+                // unsupported action or non-standard action - pass to hooked function
+                return UseActionWithGTStrategy(action, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
             }
 
+            // TODO: execute callback in supportedAction - it will either update autorotation strategy or modify action/target and enqueue to manual queue
+
+            // TODO: this is really a hack at this point...
             // if we're spamming casted action, we have to block movement a bit before cast starts, otherwise it would be interrupted
             // if we block movement now, we might or might not get actual action request when GCD ends; if we do, we'll extend lock until cast ends, otherwise (e.g. if we got out of range) we'll remove lock after slight delay
             if (_config.PreventMovingWhileCasting && !_inputOverride.IsBlocked() && action.IsCasted())
@@ -309,20 +349,7 @@ namespace BossMod
                 }
             }
 
-            bool gtModeStarted = false;
-            bool ret = _useActionHook.Original(self, action.Type, action.ID, targetID, itemLocation, callType, comboRouteID, &gtModeStarted);
-            if (outOptGTModeStarted != null)
-                *outOptGTModeStarted = gtModeStarted;
-
-            if (_config.GTMode != AutorotationConfig.GroundTargetingMode.Manual && gtModeStarted)
-            {
-                // hack to cast ground-targeted immediately
-                if (_config.GTMode == AutorotationConfig.GroundTargetingMode.AtTarget)
-                    Utils.WriteField(self, 0x98, targetID);
-                Utils.WriteField(self, 0xB8, (byte)1);
-            }
-
-            return ret;
+            return TryExecuteActions(WorldState.Actors.Find(targetID));
         }
     }
 }

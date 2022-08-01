@@ -18,7 +18,7 @@ namespace BossMod
             public Positional Positional;
         }
 
-        private class SupportedAction
+        public class SupportedAction
         {
             public ActionDefinition Definition;
             public Func<bool>? Condition;
@@ -30,8 +30,8 @@ namespace BossMod
         }
 
         public Actor Player { get; init; }
+        public Dictionary<ActionID, SupportedAction> SupportedActions { get; init; } = new();
         protected Autorotation Autorot;
-        private Dictionary<ActionID, SupportedAction> _supportedActions = new();
         private ManualActionOverride _mq;
 
         protected unsafe CommonActions(Autorotation autorot, Actor player, Dictionary<ActionID, ActionDefinition> supportedActions)
@@ -39,7 +39,7 @@ namespace BossMod
             Player = player;
             Autorot = autorot;
             foreach (var (aid, def) in supportedActions)
-                _supportedActions[aid] = new(def);
+                SupportedActions[aid] = new(def);
             _mq = new(autorot.Cooldowns, autorot.WorldState);
         }
 
@@ -76,17 +76,10 @@ namespace BossMod
             };
         }
 
-        public (ActionID, ulong) CalculateNextAction(Actor? target, bool moving, float animLockDelay)
+        public (ActionID, ulong) CalculateNextAction(Actor? target, bool moving, float animLock, float animLockDelay)
         {
-            //var am = ActionManagerEx.Instance!;
-            //if ()
-            //{
-            //    // we're under animation lock or are casting - just do nothing for now
-            //    return (new(), 0);
-            //}
-
             // see if there is any action from manual queue that is to be executed
-            var mqAction = _mq.Pop(animLockDelay);
+            var mqAction = _mq.Pop(animLock, animLockDelay);
             if (mqAction.Action)
             {
                 return (mqAction.Action, mqAction.Target);
@@ -103,7 +96,7 @@ namespace BossMod
             {
                 // TODO: support non-self targeting
                 // TODO: support custom conditions in planner
-                var (cpAction, cpTimeLeft) = cooldownPlan.ActiveActions(Autorot.Bossmods.ActiveModule!.StateMachine).Where(x => CanExecutePlannedAction(x.Action, animLockDelay)).MinBy(x => x.TimeLeft);
+                var (cpAction, cpTimeLeft) = cooldownPlan.ActiveActions(Autorot.Bossmods.ActiveModule!.StateMachine).Where(x => CanExecutePlannedAction(x.Action, animLock, animLockDelay)).MinBy(x => x.TimeLeft);
                 if (cpAction)
                 {
                     return (cpAction, Player.InstanceID);
@@ -111,7 +104,7 @@ namespace BossMod
             }
 
             // finally, let module determine best action
-            return CalculateNextAutomaticAction(target, moving);
+            return CalculateNextAutomaticAction(target, moving, animLock, animLockDelay);
         }
 
         public (ActionID, ulong) ReplaceActionAndTarget(ActionID actionID, ulong targetID, bool forced)
@@ -135,7 +128,7 @@ namespace BossMod
             return DoReplaceActionAndTarget(actionID, targets);
         }
 
-        abstract protected (ActionID, ulong) CalculateNextAutomaticAction(Actor? target, bool moving);
+        abstract protected (ActionID, ulong) CalculateNextAutomaticAction(Actor? target, bool moving, float animLock, float animLockDelay);
 
         abstract protected (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets);
         abstract public AIResult CalculateBestAction(Actor player, Actor? primaryTarget, bool moving);
@@ -253,11 +246,12 @@ namespace BossMod
                 Service.Log($"[AR] [{GetType().Name}] {message}");
         }
 
-        private bool CanExecutePlannedAction(ActionID action, float animLockDelay)
+        private bool CanExecutePlannedAction(ActionID action, float animLock, float animLockDelay)
         {
-            var data = _supportedActions[action];
-            return Autorot.Cooldowns[data.Definition.CooldownGroup] <= data.Definition.CooldownAtFirstCharge
-                && (data.Definition.CooldownGroup == CommonDefinitions.GCDGroup || data.Definition.AnimationLock + animLockDelay < Autorot.Cooldowns[CommonDefinitions.GCDGroup])
+            var data = SupportedActions[action];
+            var canExecuteIn = MathF.Max(Autorot.Cooldowns[data.Definition.CooldownGroup] - data.Definition.CooldownAtFirstCharge, animLock);
+            return canExecuteIn <= Autorotation.EnqueueWindow
+                && (data.Definition.CooldownGroup == CommonDefinitions.GCDGroup || canExecuteIn + data.Definition.AnimationLock + animLockDelay < Autorot.Cooldowns[CommonDefinitions.GCDGroup])
                 && (data.Condition == null || data.Condition());
         }
     }
