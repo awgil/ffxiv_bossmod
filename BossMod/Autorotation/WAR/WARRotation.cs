@@ -88,48 +88,6 @@ namespace BossMod.WAR
             }
         }
 
-        public static AbilityDefinitions.Class BuildDefinitions()
-        {
-            var res = CommonRotation.BuildCommonDefinitions();
-            res.AddGCDSpell(AID.HeavySwing);
-            res.AddGCDSpell(AID.Maim);
-            res.AddGCDSpell(AID.StormPath);
-            res.AddGCDSpell(AID.StormEye);
-            res.AddGCDSpell(AID.InnerBeast);
-            res.AddGCDSpell(AID.FellCleave);
-            res.AddGCDSpell(AID.InnerChaos);
-            res.AddGCDSpell(AID.PrimalRend).AnimLock = 1.15f;
-            res.AddGCDSpell(AID.Overpower);
-            res.AddGCDSpell(AID.MythrilTempest);
-            res.AddGCDSpell(AID.SteelCyclone);
-            res.AddGCDSpell(AID.Decimate);
-            res.AddGCDSpell(AID.ChaoticCyclone);
-            res.AddCooldownTrackAndSpell(AID.Infuriate, 60, 30).Charges = 2;
-            res.AddCooldownTrackAndSpell(AID.Onslaught, 30).Charges = 3;
-            res.AddSharedCooldownSpells(new AID[] { AID.Upheaval, AID.Orogeny }, "Upheaval", 30);
-            res.AddSharedCooldownSpells(new AID[] { AID.Berserk, AID.InnerRelease }, "IR", 60, 15);
-            res.AddCooldownTrackAndSpell(AID.Rampart, 90, 20, AbilityDefinitions.Ability.Category.SelfMitigation);
-            res.AddCooldownTrackAndSpell(AID.Vengeance, 120, 15, AbilityDefinitions.Ability.Category.SelfMitigation);
-            res.AddCooldownTrackAndSpell(AID.ThrillOfBattle, 90, 10, AbilityDefinitions.Ability.Category.SelfMitigation);
-            res.AddCooldownTrackAndSpell(AID.Holmgang, 240, 10, AbilityDefinitions.Ability.Category.SelfMitigation);
-            res.AddCooldownTrackAndSpell(AID.Equilibrium, 60, 0, AbilityDefinitions.Ability.Category.SelfMitigation);
-            res.AddCooldownTrackAndSpell(AID.Reprisal, 60, 10, AbilityDefinitions.Ability.Category.RaidMitigation);
-            res.AddCooldownTrackAndSpell(AID.ShakeItOff, 90, 15, AbilityDefinitions.Ability.Category.RaidMitigation);
-            int bloodwhettingTrack = res.AddTrack(AbilityDefinitions.Track.Category.SharedCooldown, "Bloodwhetting");
-            res.AddSpell(AID.RawIntuition, bloodwhettingTrack, 25, 6);
-            res.AddSpell(AID.NascentFlash, bloodwhettingTrack, 25, 4);
-            res.AddSpell(AID.Bloodwhetting, bloodwhettingTrack, 25, 4, AbilityDefinitions.Ability.Category.SelfMitigation);
-            res.AddCooldownTrackAndSpell(AID.ArmsLength, 120, 6, AbilityDefinitions.Ability.Category.SelfMitigation);
-            res.AddGCDSpell(AID.Tomahawk);
-            res.AddCooldownTrackAndSpell(AID.Defiance, 10);
-            res.AddCooldownTrackAndSpell(AID.Provoke, 30);
-            res.AddCooldownTrackAndSpell(AID.Shirk, 120);
-            res.AddCooldownTrackAndSpell(AID.LowBlow, 25);
-            res.AddCooldownTrackAndSpell(AID.Interject, 30);
-            res.Abilities[CommonRotation.IDPotionStr] = new() { CooldownTrack = res.AddTrack(AbilityDefinitions.Track.Category.SharedCooldown, "Potion"), AnimLock = 1.1f, Cooldown = 270, EffectDuration = 30 };
-            return res;
-        }
-
         public static int GaugeGainedFromAction(State state, AID action)
         {
             return action switch
@@ -360,7 +318,7 @@ namespace BossMod.WAR
             if (strategy.ExecuteInterject && state.Unlocked(MinLevel.Interject) && state.CanWeave(CDGroup.Interject, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Interject);
             if (strategy.ExecuteSprint && state.CanWeave(state.SprintCD, 0.6f, windowEnd))
-                return CommonRotation.IDSprint;
+                return CommonDefinitions.IDSprint;
 
             // 2. potion, if required by strategy, and not too early in opener (TODO: reconsider priority)
             // TODO: reconsider potion use during opener (delayed IR prefers after maim, early IR prefers after storm eye, to cover third IC on 13th GCD)
@@ -385,7 +343,7 @@ namespace BossMod.WAR
                 }
 
                 if (allowPotion)
-                    return CommonRotation.IDPotionStr;
+                    return CommonDefinitions.IDPotionStr;
             }
 
             // 3. inner release, if surging tempest up
@@ -494,7 +452,7 @@ namespace BossMod.WAR
         // short string for supported action
         public static string ActionShortString(ActionID action)
         {
-            return action == CommonRotation.IDSprint ? "Sprint" : action.Type == ActionType.Item ? "StatPotion" : ((AID)action.ID).ToString();
+            return action == CommonDefinitions.IDSprint ? "Sprint" : action.Type == ActionType.Item ? "StatPotion" : ((AID)action.ID).ToString();
         }
     }
 }

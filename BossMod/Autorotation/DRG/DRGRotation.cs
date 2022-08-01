@@ -161,7 +161,7 @@ namespace BossMod
             if (strategy.ExecuteLegSweep && state.UnlockedLegSweep && state.CanWeave(state.LegSweepCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.LegSweep);
             if (strategy.ExecuteSprint && state.CanWeave(state.SprintCD, 0.6f, windowEnd))
-                return CommonRotation.IDSprint;
+                return CommonDefinitions.IDSprint;
 
             // 2. life surge on most damaging gcd (TODO: reconsider condition, it's valid until L26...)
             if (state.UnlockedLifeSurge && state.CanWeave(state.LifeSurgeCD, 0.6f, windowEnd) && state.ComboLastMove == AID.TrueThrust && (!state.UnlockedDisembowel || state.PowerSurgeLeft >= state.GCD + 5))
@@ -186,7 +186,7 @@ namespace BossMod
         // short string for supported action
         public static string ActionShortString(ActionID action)
         {
-            return action == CommonRotation.IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
+            return action == CommonDefinitions.IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
         }
     }
 }

@@ -147,7 +147,7 @@ namespace UIDev
             if (state.GCD < 0)
             {
                 res |= Mistake.GCDExpired;
-                state.Cooldowns[CommonRotation.GCDGroup] = 0;
+                state.Cooldowns[CommonDefinitions.GCDGroup] = 0;
             }
 
             if (state.ComboTimeLeft > 0 && (state.ComboTimeLeft -= dt) <= 0)
@@ -194,17 +194,17 @@ namespace UIDev
         {
             var res = Mistake.None;
             bool isOGCD = false;
-            if (action == CommonRotation.IDSprint)
+            if (action == CommonDefinitions.IDSprint)
             {
                 isOGCD = true;
                 res |= AdvanceTime(state, ref t, 0.6f, state.SprintCD);
-                res |= AdjustCD(state, CommonRotation.SprintCDGroup, 60, 60);
+                res |= AdjustCD(state, CommonDefinitions.SprintCDGroup, 60, 60);
             }
-            else if (action == CommonRotation.IDPotionStr)
+            else if (action == CommonDefinitions.IDPotionStr)
             {
                 isOGCD = true;
                 res |= AdvanceTime(state, ref t, 1.1f, state.PotionCD);
-                res |= AdjustCD(state, CommonRotation.PotionCDGroup, 270, 270);
+                res |= AdjustCD(state, CommonDefinitions.PotionCDGroup, 270, 270);
             }
             else
             {
@@ -213,7 +213,7 @@ namespace UIDev
                 {
                     case AID.HeavySwing:
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
-                        res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
+                        res |= AdjustCD(state, CommonDefinitions.GCDGroup, 2.5f, 2.5f);
                         res |= UseIRCharge(state, false, 0);
                         if (state.Unlocked(MinLevel.Maim))
                             ComboAdvance(state, ref res, AID.None, AID.HeavySwing);
@@ -221,7 +221,7 @@ namespace UIDev
                     case AID.Maim:
                         res |= CheckValid(state.Unlocked(MinLevel.Maim));
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
-                        res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
+                        res |= AdjustCD(state, CommonDefinitions.GCDGroup, 2.5f, 2.5f);
                         res |= UseIRCharge(state, false, 0);
                         if (ComboAdvance(state, ref res, AID.HeavySwing, state.Unlocked(MinLevel.StormPath) ? AID.Maim : AID.None))
                         {
@@ -231,7 +231,7 @@ namespace UIDev
                     case AID.StormPath:
                         res |= CheckValid(state.Unlocked(MinLevel.StormPath));
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
-                        res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
+                        res |= AdjustCD(state, CommonDefinitions.GCDGroup, 2.5f, 2.5f);
                         res |= UseIRCharge(state, false, 0);
                         if (ComboAdvance(state, ref res, AID.Maim, AID.None))
                         {
@@ -241,7 +241,7 @@ namespace UIDev
                     case AID.StormEye:
                         res |= CheckValid(state.Unlocked(MinLevel.StormEye));
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
-                        res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
+                        res |= AdjustCD(state, CommonDefinitions.GCDGroup, 2.5f, 2.5f);
                         res |= UseIRCharge(state, false, 0);
                         if (ComboAdvance(state, ref res, AID.Maim, AID.None))
                         {
@@ -253,7 +253,7 @@ namespace UIDev
                     case AID.FellCleave:
                         res |= CheckValid(aid == AID.FellCleave ? state.Unlocked(MinLevel.FellCleave) : state.Unlocked(MinLevel.InnerBeast));
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
-                        res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
+                        res |= AdjustCD(state, CommonDefinitions.GCDGroup, 2.5f, 2.5f);
                         res |= CheckValid(state.NascentChaosLeft <= 0);
                         res |= CheckValid(state.InnerReleaseStacks > 0 || state.Gauge >= 50);
                         res |= UseIRCharge(state, true, 50);
@@ -266,7 +266,7 @@ namespace UIDev
                     case AID.ChaoticCyclone:
                         res |= CheckValid(aid == AID.InnerChaos ? state.Unlocked(MinLevel.InnerChaos) : state.Unlocked(MinLevel.ChaoticCyclone));
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
-                        res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
+                        res |= AdjustCD(state, CommonDefinitions.GCDGroup, 2.5f, 2.5f);
                         res |= CheckValid(state.NascentChaosLeft > 0);
                         res |= CheckValid(state.InnerReleaseStacks > 0 || state.Gauge >= 50);
                         res |= UseIRCharge(state, false, 50);
@@ -280,14 +280,14 @@ namespace UIDev
                     case AID.PrimalRend:
                         res |= CheckValid(state.Unlocked(MinLevel.PrimalRend));
                         res |= AdvanceTime(state, ref t, 1.15f, state.GCD);
-                        res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
+                        res |= AdjustCD(state, CommonDefinitions.GCDGroup, 2.5f, 2.5f);
                         res |= CheckValid(state.PrimalRendLeft > 0);
                         state.PrimalRendLeft = 0;
                         break;
                     case AID.Overpower:
                         res |= CheckValid(state.Unlocked(MinLevel.Overpower));
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
-                        res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
+                        res |= AdjustCD(state, CommonDefinitions.GCDGroup, 2.5f, 2.5f);
                         res |= UseIRCharge(state, false, 0);
                         if (state.Unlocked(MinLevel.MythrilTempest))
                             ComboAdvance(state, ref res, AID.None, AID.Overpower);
@@ -295,7 +295,7 @@ namespace UIDev
                     case AID.MythrilTempest:
                         res |= CheckValid(state.Unlocked(MinLevel.MythrilTempest));
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
-                        res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
+                        res |= AdjustCD(state, CommonDefinitions.GCDGroup, 2.5f, 2.5f);
                         res |= UseIRCharge(state, false, 0);
                         if (ComboAdvance(state, ref res, AID.Overpower, AID.None))
                         {
@@ -308,7 +308,7 @@ namespace UIDev
                     case AID.Decimate:
                         res |= CheckValid(aid == AID.Decimate ? state.Unlocked(MinLevel.Decimate) : state.Unlocked(MinLevel.SteelCyclone));
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
-                        res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
+                        res |= AdjustCD(state, CommonDefinitions.GCDGroup, 2.5f, 2.5f);
                         res |= CheckValid(state.NascentChaosLeft <= 0);
                         res |= CheckValid(state.InnerReleaseStacks > 0 || state.Gauge >= 50);
                         res |= UseIRCharge(state, true, 50);
@@ -361,7 +361,7 @@ namespace UIDev
                     case AID.Tomahawk:
                         res |= CheckValid(state.Unlocked(MinLevel.Tomahawk));
                         res |= AdvanceTime(state, ref t, 0.6f, state.GCD);
-                        res |= AdjustCD(state, CommonRotation.GCDGroup, 2.5f, 2.5f);
+                        res |= AdjustCD(state, CommonDefinitions.GCDGroup, 2.5f, 2.5f);
                         res |= UseIRCharge(state, false, 0);
                         break;
                     default:

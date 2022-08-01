@@ -5,10 +5,10 @@
     // since quest can't be 'uncompleted', we keep track of first uncompleted quest and only check it
     class QuestLockCheck
     {
-        private (int Level, uint QuestID)[] _unlockData;
+        private QuestLockEntry[] _unlockData;
         private int _firstUncompletedIndex = 0;
 
-        public QuestLockCheck((int Level, uint QuestID)[] unlockData)
+        public QuestLockCheck(QuestLockEntry[] unlockData)
         {
             _unlockData = unlockData;
         }

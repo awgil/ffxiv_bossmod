@@ -214,7 +214,7 @@ namespace BossMod
             if (strategy.ExecuteHeadGraze && state.UnlockedHeadGraze && state.CanWeave(state.HeadGrazeCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.HeadGraze);
             if (strategy.ExecuteSprint && state.CanWeave(state.SprintCD, 0.6f, windowEnd))
-                return CommonRotation.IDSprint;
+                return CommonDefinitions.IDSprint;
 
             // TODO: this should be improved... correct for low levels
             if (state.UnlockedRagingStrikes && state.CanWeave(state.RagingStrikesCD, 0.6f, windowEnd))
@@ -241,7 +241,7 @@ namespace BossMod
         // short string for supported action
         public static string ActionShortString(ActionID action)
         {
-            return action == CommonRotation.IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
+            return action == CommonDefinitions.IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
         }
     }
 }

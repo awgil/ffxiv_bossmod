@@ -204,7 +204,7 @@ namespace BossMod
             if (strategy.ExecuteLegSweep && state.UnlockedLegSweep && state.CanWeave(state.LegSweepCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.LegSweep);
             if (strategy.ExecuteSprint && state.CanWeave(state.SprintCD, 0.6f, windowEnd))
-                return CommonRotation.IDSprint;
+                return CommonDefinitions.IDSprint;
 
             // 2. steel peek, if have chakra
             if (state.UnlockedSteelPeak && state.Chakra == 5)
@@ -229,7 +229,7 @@ namespace BossMod
         // short string for supported action
         public static string ActionShortString(ActionID action)
         {
-            return action == CommonRotation.IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
+            return action == CommonDefinitions.IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
         }
     }
 }

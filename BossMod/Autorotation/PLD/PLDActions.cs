@@ -26,7 +26,7 @@ namespace BossMod
             SmartQueueRegisterSpell(PLDRotation.AID.Shirk);
             SmartQueueRegisterSpell(PLDRotation.AID.LowBlow);
             SmartQueueRegisterSpell(PLDRotation.AID.Interject);
-            SmartQueueRegister(CommonRotation.IDSprint);
+            SmartQueueRegister(CommonDefinitions.IDSprint);
             SmartQueueRegister(PLDRotation.IDStatPotion);
         }
 

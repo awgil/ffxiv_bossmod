@@ -211,7 +211,7 @@ namespace BossMod
             strategy.Potion = SmartQueueActive(potion) ? CommonRotation.Strategy.PotionUse.Immediate : Autorot.Config.PotionUse;
             if (strategy.Potion != CommonRotation.Strategy.PotionUse.Manual && !HaveItemInInventory(potion.ID)) // don't try to use potions if player doesn't have any
                 strategy.Potion = CommonRotation.Strategy.PotionUse.Manual;
-            strategy.ExecuteSprint = SmartQueueActive(CommonRotation.IDSprint);
+            strategy.ExecuteSprint = SmartQueueActive(CommonDefinitions.IDSprint);
         }
 
         // register new smart-queueable action

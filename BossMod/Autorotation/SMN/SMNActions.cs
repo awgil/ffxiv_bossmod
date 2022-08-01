@@ -27,7 +27,7 @@ namespace BossMod
             SmartQueueRegisterSpell(SMNRotation.AID.Swiftcast);
             SmartQueueRegisterSpell(SMNRotation.AID.Surecast);
             SmartQueueRegisterSpell(SMNRotation.AID.Addle);
-            SmartQueueRegister(CommonRotation.IDSprint);
+            SmartQueueRegister(CommonDefinitions.IDSprint);
             //SmartQueueRegister(SMNRotation.IDStatPotion);
         }
 

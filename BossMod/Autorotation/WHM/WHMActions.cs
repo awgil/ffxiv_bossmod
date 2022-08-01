@@ -30,7 +30,7 @@ namespace BossMod
             SmartQueueRegisterSpell(WHMRotation.AID.Temperance);
             SmartQueueRegisterSpell(WHMRotation.AID.Aquaveil);
             SmartQueueRegisterSpell(WHMRotation.AID.Surecast);
-            SmartQueueRegister(CommonRotation.IDSprint);
+            SmartQueueRegister(CommonDefinitions.IDSprint);
             SmartQueueRegister(WHMRotation.IDStatPotion);
         }
 

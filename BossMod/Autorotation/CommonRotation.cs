@@ -4,17 +4,6 @@ namespace BossMod
 {
     public static class CommonRotation
     {
-        public static ActionID IDAutoAttack = new(ActionType.Spell, 7);
-        public static ActionID IDSprint = new(ActionType.General, 4);
-        public static ActionID IDPotionStr = new(ActionType.Item, 1036109); // hq grade 6 tincture of strength
-        public static ActionID IDPotionDex = new(ActionType.Item, 1036110); // hq grade 6 tincture of dexterity
-        public static ActionID IDPotionVit = new(ActionType.Item, 1036111); // hq grade 6 tincture of vitality
-        public static ActionID IDPotionInt = new(ActionType.Item, 1036112); // hq grade 6 tincture of intelligence
-        public static ActionID IDPotionMnd = new(ActionType.Item, 1036113); // hq grade 6 tincture of mind
-
-        public static int SprintCDGroup = 55;
-        public static int GCDGroup = 57;
-        public static int PotionCDGroup = 58;
         public static int SpellCDGroup<AID>(AID spell) where AID : Enum
         {
             var cg = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>((uint)(object)spell)?.CooldownGroup ?? 0;
@@ -32,9 +21,9 @@ namespace BossMod
             public float RaidBuffsLeft; // 0 if no damage-up status is up, otherwise it is time left on longest
             public float[] Cooldowns = new float[80];
 
-            public float GCD => Cooldowns[GCDGroup]; // 2.5 max (decreased by SkS), 0 if not on gcd
-            public float SprintCD => Cooldowns[SprintCDGroup]; // 60.0 max
-            public float PotionCD => Cooldowns[PotionCDGroup]; // variable max
+            public float GCD => Cooldowns[CommonDefinitions.GCDGroup]; // 2.5 max (decreased by SkS), 0 if not on gcd
+            public float SprintCD => Cooldowns[CommonDefinitions.SprintCDGroup]; // 60.0 max
+            public float PotionCD => Cooldowns[CommonDefinitions.PotionCDGroup]; // variable max
             public float CD<CDGroup>(CDGroup group) where CDGroup : Enum => Cooldowns[(int)(object)group];
 
             public float OGCDDelay => 0.1f; // TODO: consider returning AnimationLockDelay instead...
@@ -61,14 +50,6 @@ namespace BossMod
             public float PositionLockIn; // time left to use moving abilities (Primal Rend and Onslaught) - we won't use them if it is ==0; setting this to 2.5f will make us use PR asap
             public PotionUse Potion; // strategy for automatic potion use
             public bool ExecuteSprint;
-        }
-
-        public static AbilityDefinitions.Class BuildCommonDefinitions()
-        {
-            AbilityDefinitions.Class res = new();
-            int sprintTrack = res.AddTrack(AbilityDefinitions.Track.Category.SharedCooldown, "Sprint");
-            res.Abilities[IDSprint] = new() { CooldownTrack = sprintTrack, Cooldown = 60, EffectDuration = 10 };
-            return res;
         }
     }
 }

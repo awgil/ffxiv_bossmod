@@ -34,7 +34,7 @@ namespace BossMod
 
         public void AddEvent(ActionID aid, ActionUseColumn.Event ev)
         {
-            if (aid == CommonRotation.IDAutoAttack)
+            if (aid == CommonDefinitions.IDAutoAttack)
             {
                 _autoAttacks.Events.Add(ev);
             }

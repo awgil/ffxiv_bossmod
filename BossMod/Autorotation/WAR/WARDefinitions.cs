@@ -1,4 +1,6 @@
-﻿namespace BossMod.WAR
+﻿using System.Collections.Generic;
+
+namespace BossMod.WAR
 {
     public enum AID : uint
     {
@@ -118,21 +120,63 @@
         PrimalRend = 90,
     }
 
-    public static class QuestLock
+    public static class Definitions
     {
-        public static (int Level, uint QuestID)[] QuestsPerLevel = {
-            (15, 65852),
-            (30, 65855),
-            (35, 66586),
-            (40, 66587),
-            (45, 66589),
-            (50, 66590),
-            (54, 66124),
-            (56, 66132),
-            (58, 66134),
-            (60, 66137),
-            (70, 68440),
+        public static QuestLockEntry[] QuestsPerLevel = {
+            new(15, 65852),
+            new(30, 65855),
+            new(35, 66586),
+            new(40, 66587),
+            new(45, 66589),
+            new(50, 66590),
+            new(54, 66124),
+            new(56, 66132),
+            new(58, 66134),
+            new(60, 66137),
+            new(70, 68440),
         };
+
+        public static Dictionary<ActionID, ActionDefinition> SupportedActions;
+        static Definitions()
+        {
+            SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
+            SupportedActions.GCD(AID.HeavySwing);
+            SupportedActions.GCD(AID.Maim);
+            SupportedActions.GCD(AID.StormPath);
+            SupportedActions.GCD(AID.StormEye);
+            SupportedActions.GCD(AID.InnerBeast);
+            SupportedActions.GCD(AID.FellCleave);
+            SupportedActions.GCD(AID.InnerChaos);
+            SupportedActions.GCD(AID.PrimalRend, 1.15f);
+            SupportedActions.GCD(AID.Overpower);
+            SupportedActions.GCD(AID.MythrilTempest);
+            SupportedActions.GCD(AID.SteelCyclone);
+            SupportedActions.GCD(AID.Decimate);
+            SupportedActions.GCD(AID.ChaoticCyclone);
+            SupportedActions.OGCDWithCharges(AID.Infuriate, CDGroup.Infuriate, 60.0f, 2).SetPlanningProperties(30);
+            SupportedActions.OGCDWithCharges(AID.Onslaught, CDGroup.Onslaught, 30.0f, 3);
+            SupportedActions.OGCD(AID.Upheaval, CDGroup.Upheaval, 30.0f);
+            SupportedActions.OGCD(AID.Orogeny, CDGroup.Upheaval, 30.0f);
+            SupportedActions.OGCD(AID.Berserk, CDGroup.Berserk, 60.0f).SetPlanningProperties(15);
+            SupportedActions.OGCD(AID.InnerRelease, CDGroup.InnerRelease, 60.0f).SetPlanningProperties(15);
+            SupportedActions.OGCD(AID.Rampart, CDGroup.Rampart, 90.0f).SetPlanningProperties(20, ActionCategory.SelfMitigation);
+            SupportedActions.OGCD(AID.Vengeance, CDGroup.Vengeance, 120.0f).SetPlanningProperties(15, ActionCategory.SelfMitigation);
+            SupportedActions.OGCD(AID.ThrillOfBattle, CDGroup.ThrillOfBattle, 90.0f).SetPlanningProperties(10, ActionCategory.SelfMitigation);
+            SupportedActions.OGCD(AID.Holmgang, CDGroup.Holmgang, 240.0f).SetPlanningProperties(10, ActionCategory.SelfMitigation);
+            SupportedActions.OGCD(AID.Equilibrium, CDGroup.Equilibrium, 60.0f).SetPlanningProperties(0, ActionCategory.SelfMitigation);
+            SupportedActions.OGCD(AID.Reprisal, CDGroup.Reprisal, 60.0f).SetPlanningProperties(10, ActionCategory.RaidMitigation);
+            SupportedActions.OGCD(AID.ShakeItOff, CDGroup.ShakeItOff, 90.0f).SetPlanningProperties(15, ActionCategory.RaidMitigation);
+            SupportedActions.OGCD(AID.RawIntuition, CDGroup.Bloodwhetting, 25.0f).SetPlanningProperties(4);
+            SupportedActions.OGCD(AID.NascentFlash, CDGroup.Bloodwhetting, 25.0f).SetPlanningProperties(4);
+            SupportedActions.OGCD(AID.Bloodwhetting, CDGroup.Bloodwhetting, 25.0f).SetPlanningProperties(4, ActionCategory.SelfMitigation);
+            SupportedActions.OGCD(AID.ArmsLength, CDGroup.ArmsLength, 120.0f).SetPlanningProperties(6, ActionCategory.SelfMitigation);
+            SupportedActions.GCD(AID.Tomahawk);
+            SupportedActions.OGCD(AID.Defiance, CDGroup.Defiance, 3.0f);
+            SupportedActions.OGCD(AID.Provoke, CDGroup.Provoke, 30.0f);
+            SupportedActions.OGCD(AID.Shirk, CDGroup.Shirk, 120.0f);
+            SupportedActions.OGCD(AID.LowBlow, CDGroup.LowBlow, 25.0f);
+            SupportedActions.OGCD(AID.Interject, CDGroup.Interject, 30.0f);
+        }
     }
 
     public enum SID : uint

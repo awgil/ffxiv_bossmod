@@ -19,7 +19,7 @@ namespace BossMod.WAR
             : base(autorot, player)
         {
             _config = Service.Config.Get<WARConfig>();
-            _lock = new(QuestLock.QuestsPerLevel);
+            _lock = new(Definitions.QuestsPerLevel);
             _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
             _strategy = new()
             {
@@ -42,8 +42,8 @@ namespace BossMod.WAR
             SmartQueueRegisterSpell(AID.Shirk);
             SmartQueueRegisterSpell(AID.LowBlow);
             SmartQueueRegisterSpell(AID.Interject);
-            SmartQueueRegister(CommonRotation.IDSprint);
-            SmartQueueRegister(CommonRotation.IDPotionStr);
+            SmartQueueRegister(CommonDefinitions.IDSprint);
+            SmartQueueRegister(CommonDefinitions.IDPotionStr);
         }
 
         protected override void OnCastSucceeded(ActorCastEvent ev)
@@ -133,7 +133,7 @@ namespace BossMod.WAR
             LogStateChange(_state, currState);
             _state = currState;
 
-            FillCommonStrategy(_strategy, CommonRotation.IDPotionStr);
+            FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
 
             // cooldown execution
             _strategy.ExecuteRampart = SmartQueueActiveSpell(AID.Rampart);
@@ -215,7 +215,7 @@ namespace BossMod.WAR
         private Rotation.State BuildState(Actor? target)
         {
             Rotation.State s = new();
-            FillCommonPlayerState(s, target, CommonRotation.IDPotionStr);
+            FillCommonPlayerState(s, target, CommonDefinitions.IDPotionStr);
             s.Level = _lock.AdjustLevel(s.Level);
 
             s.Gauge = Service.JobGauges.Get<WARGauge>().BeastGauge;

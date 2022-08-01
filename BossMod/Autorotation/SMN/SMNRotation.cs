@@ -224,7 +224,7 @@ namespace BossMod
             if (strategy.ExecuteSwiftcast && state.UnlockedSwiftcast && state.CanWeave(state.SwiftcastCD, 0.6f, windowEnd))
                 return ActionID.MakeSpell(AID.Swiftcast);
             if (strategy.ExecuteSprint && state.CanWeave(state.SprintCD, 0.6f, windowEnd))
-                return CommonRotation.IDSprint;
+                return CommonDefinitions.IDSprint;
 
             // TODO: reconsider priorities, this kinda works at low level
             if (state.UnlockedEnergyDrain && state.AetherflowStacks == 0 && state.CanWeave(state.EnergyDrainCD, 0.6f, windowEnd))
@@ -300,7 +300,7 @@ namespace BossMod
         // short string for supported action
         public static string ActionShortString(ActionID action)
         {
-            return action == CommonRotation.IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
+            return action == CommonDefinitions.IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
         }
     }
 }

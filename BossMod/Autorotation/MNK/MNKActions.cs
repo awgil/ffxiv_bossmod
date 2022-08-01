@@ -24,7 +24,7 @@ namespace BossMod
             SmartQueueRegisterSpell(MNKRotation.AID.SecondWind);
             SmartQueueRegisterSpell(MNKRotation.AID.Bloodbath);
             SmartQueueRegisterSpell(MNKRotation.AID.LegSweep);
-            SmartQueueRegister(CommonRotation.IDSprint);
+            SmartQueueRegister(CommonDefinitions.IDSprint);
             SmartQueueRegister(MNKRotation.IDStatPotion);
         }
 

@@ -295,7 +295,7 @@ namespace BossMod
             // if we block movement now, we might or might not get actual action request when GCD ends; if we do, we'll extend lock until cast ends, otherwise (e.g. if we got out of range) we'll remove lock after slight delay
             if (_config.PreventMovingWhileCasting && !_inputOverride.IsBlocked() && action.IsCasted())
             {
-                var gcd = self->GetRecastGroupDetail(CommonRotation.GCDGroup);
+                var gcd = self->GetRecastGroupDetail(CommonDefinitions.GCDGroup);
                 var gcdLeft = gcd->Total - gcd->Elapsed;
                 if (gcdLeft < 0.3f)
                 {

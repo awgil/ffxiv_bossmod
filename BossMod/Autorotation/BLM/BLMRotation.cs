@@ -157,7 +157,7 @@ namespace BossMod
             if (strategy.ExecuteSwiftcast && state.UnlockedSwiftcast)
                 return ActionID.MakeSpell(AID.Swiftcast);
             if (strategy.ExecuteSprint)
-                return CommonRotation.IDSprint;
+                return CommonDefinitions.IDSprint;
 
             if (moving)
             {
@@ -193,7 +193,7 @@ namespace BossMod
         // short string for supported action
         public static string ActionShortString(ActionID action)
         {
-            return action == CommonRotation.IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
+            return action == CommonDefinitions.IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
         }
 
         private static ActionID TransposeRotation(State state, AID iceSpell, int iceCost, AID fireSpell, int fireCost)

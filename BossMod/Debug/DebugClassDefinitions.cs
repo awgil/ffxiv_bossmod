@@ -109,7 +109,7 @@ namespace BossMod
                         foreach (var (cg, actions) in data.CooldownGroups)
                         {
                             var cdgName = data.CDGType?.GetEnumName(cg);
-                            _tree.LeafNode($"{cg} ({cdgName}): {string.Join(", ", actions.Select(a => a.Name))}", cdgName != null || cg == CommonRotation.GCDGroup ? 0xffffffff : 0xff0000ff);
+                            _tree.LeafNode($"{cg} ({cdgName}): {string.Join(", ", actions.Select(a => a.Name))}", cdgName != null || cg == CommonDefinitions.GCDGroup ? 0xffffffff : 0xff0000ff);
                         }
                     }
 
@@ -130,46 +130,76 @@ namespace BossMod
             if (ImGui.MenuItem("Generate AID enum"))
             {
                 var sb = new StringBuilder("public enum AID : uint\n{\n    None = 0,\n\n    // GCDs");
-                foreach (var action in cd.Actions.Where(a => a.CooldownGroup - 1 == CommonRotation.GCDGroup))
+                foreach (var action in cd.Actions.Where(a => a.CooldownGroup - 1 == CommonDefinitions.GCDGroup))
                     sb.Append($"\n    {ActionEnumString(cd, action)}");
                 sb.Append("\n\n    // oGCDs");
-                foreach (var action in cd.Actions.Where(a => a.CooldownGroup - 1 != CommonRotation.GCDGroup))
+                foreach (var action in cd.Actions.Where(a => a.CooldownGroup - 1 != CommonDefinitions.GCDGroup))
                     sb.Append($"\n    {ActionEnumString(cd, action)}");
                 sb.Append("\n}\n");
                 ImGui.SetClipboardText(sb.ToString());
             }
 
-            if (ImGui.MenuItem("Generate MinLevel enum & quest-lock structure"))
+            if (ImGui.MenuItem("Build defitions"))
             {
-                List<(int, uint)> questLocks = new();
+                var sb = new StringBuilder();
+                foreach (var action in cd.Actions)
+                {
+                    var aidEnum = cd.AIDType?.GetEnumName(action.RowId) ?? Utils.StringToIdentifier(action.Name);
+                    float animLock = _seenActionLocks.GetValueOrDefault(new ActionID(ActionType.Spell, action.RowId).Raw, 0.6f);
+                    var animLockStr = animLock == 0.6f ? "" : $", {animLock:f3}f";
+                    var cg = action.CooldownGroup - 1;
+                    if (cg == CommonDefinitions.GCDGroup)
+                    {
+                        sb.Append($"SupportedActions.GCD(AID.{aidEnum}{animLockStr});\n");
+                    }
+                    else
+                    {
+                        var cdgName = cd.CDGType?.GetEnumName(cg) ?? Utils.StringToIdentifier(action.Name);
+                        var firstArgsStr = $"AID.{aidEnum}, CDGroup.{cdgName}, {action.Recast100ms * 0.1f:f1}f";
+                        var charges = MaxChargesAtCap(action.RowId);
+                        if (charges <= 1)
+                            sb.Append($"SupportedActions.OGCD({firstArgsStr}{animLockStr});\n");
+                        else
+                            sb.Append($"SupportedActions.OGCDWithCharges({firstArgsStr}, {charges}{animLockStr});\n");
+                    }
+                }
+                ImGui.SetClipboardText(sb.ToString());
+            }
+
+            if (ImGui.MenuItem("Generate MinLevel enum"))
+            {
                 var sb = new StringBuilder("public enum MinLevel : int\n{\n    // actions");
                 foreach (var action in cd.Actions.Where(a => a.ClassJobLevel > 1))
                 {
                     var aidEnum = cd.AIDType?.GetEnumName(action.RowId) ?? Utils.StringToIdentifier(action.Name);
                     sb.Append($"\n    {aidEnum} = {action.ClassJobLevel},");
                     if (action.UnlockLink != 0)
-                    {
-                        questLocks.Add((action.ClassJobLevel, action.UnlockLink));
                         sb.Append($" // {UnlockLinkString(action.UnlockLink)}");
-                    }
                 }
                 sb.Append("\n\n    // traits");
                 foreach (var trait in cd.Traits.Where(t => t.Level > 1))
                 {
                     sb.Append($"\n    {Utils.StringToIdentifier(trait.Name)} = {trait.Level},");
                     if (trait.Quest.Row != 0)
-                    {
-                        questLocks.Add((trait.Level, trait.Quest.Row));
                         sb.Append($" // {UnlockLinkString(trait.Quest.Row)}");
-                    }
                 }
-                questLocks.Sort();
-                sb.Append("\n}\n\npublic static class QuestLock\n{\n    public static (int Level, uint QuestID)[] QuestsPerLevel = {");
-                for (int i = 0; i < questLocks.Count; ++i)
-                    if (i  == 0 || questLocks[i - 1] != questLocks[i])
-                        sb.Append($"\n        ({questLocks[i].Item1}, {questLocks[i].Item2}),");
-                sb.Append("\n    };\n}\n");
+                sb.Append("\n}\n");
+                ImGui.SetClipboardText(sb.ToString());
+            }
 
+            if (ImGui.MenuItem("Generate quest lock definitions"))
+            {
+                List<(int, uint)> questLocks = new();
+                foreach (var action in cd.Actions.Where(a => a.UnlockLink != 0))
+                    questLocks.Add((action.ClassJobLevel, action.UnlockLink));
+                foreach (var trait in cd.Traits.Where(t => t.Quest.Row != 0))
+                    questLocks.Add((trait.Level, trait.Quest.Row));
+                questLocks.Sort();
+                var sb = new StringBuilder("public static QuestLockEntry[] QuestsPerLevel = {");
+                for (int i = 0; i < questLocks.Count; ++i)
+                    if (i == 0 || questLocks[i - 1] != questLocks[i])
+                        sb.Append($"\n    new({questLocks[i].Item1}, {questLocks[i].Item2}),");
+                sb.Append("\n};\n");
                 ImGui.SetClipboardText(sb.ToString());
             }
         }
@@ -181,7 +211,7 @@ namespace BossMod
                 var sb = new StringBuilder("public enum CDGroup : int\n{");
                 foreach (var (cg, actions) in cd.CooldownGroups)
                 {
-                    if (cg == CommonRotation.GCDGroup)
+                    if (cg == CommonDefinitions.GCDGroup)
                         continue;
 
                     ushort? commonRecast = actions.First().Recast100ms;
@@ -238,7 +268,7 @@ namespace BossMod
         {
             var aidEnum = cd.AIDType?.GetEnumName(action.RowId) ?? Utils.StringToIdentifier(action.Name);
             var sb = new StringBuilder($"{aidEnum} = {action.RowId}, // L{action.ClassJobLevel}, {CastTimeString(action)}");
-            if (action.CooldownGroup - 1 != CommonRotation.GCDGroup)
+            if (action.CooldownGroup - 1 != CommonDefinitions.GCDGroup)
                 sb.Append($", {CooldownString(action)}");
             sb.Append($", range {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionRange(action.RowId)}, {CastTypeString(action.CastType)} {action.EffectRange}/{action.XAxisModifier}, targets={TargetsString(action)}, animLock={AnimLockString(new ActionID(ActionType.Spell, action.RowId))}");
             return sb.ToString();
@@ -265,7 +295,7 @@ namespace BossMod
         private string CooldownString(Lumina.Excel.GeneratedSheets.Action action)
         {
             var cg = action.CooldownGroup - 1;
-            var res = cg == CommonRotation.GCDGroup ? "GCD" : $"{action.Recast100ms * 0.1f:f1}s CD (group {cg})";
+            var res = cg == CommonDefinitions.GCDGroup ? "GCD" : $"{action.Recast100ms * 0.1f:f1}s CD (group {cg})";
             var charges = MaxChargesAtCap(action.RowId);
             if (charges > 1)
                 res += $" ({charges} charges)";
