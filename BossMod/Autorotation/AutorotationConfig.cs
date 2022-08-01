@@ -21,6 +21,9 @@
         [PropertyDisplay("Prevent movement while casting")]
         public bool PreventMovingWhileCasting = false;
 
+        [PropertyDisplay("Remove extra lag-induced animation lock from instant casts (a-la xivalex)")]
+        public bool RemoveAnimationLockDelay = false;
+
         [PropertyDisplay("Potion use strategy")]
         public CommonRotation.Strategy.PotionUse PotionUse = CommonRotation.Strategy.PotionUse.Manual;
 

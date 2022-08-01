@@ -92,6 +92,8 @@ namespace BossMod
 
         public void Update(Actor? target)
         {
+            ActionManagerEx.Instance!.AnimationLockDelayMax = _config.RemoveAnimationLockDelay ? 0 : float.MaxValue;
+
             var player = WorldState.Party.Player();
             Type? classType = null;
             if (_config.Enabled && player != null)
