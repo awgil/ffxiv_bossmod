@@ -23,35 +23,20 @@ namespace BossMod
             public float AvailableAtCooldown;
             public Func<bool>? Condition;
             public DateTime ExpireAt;
-            public bool RequestSent;
         }
 
         private float[] _cooldowns; // assumed to be updated by external code
-        private DateTime _now;
+        private WorldState _ws; // used to read current time
         private List<Entry> _queue = new();
         private bool _emergencyMode = false;
 
-        public ManualActionOverride(float[] cooldowns, DateTime now)
+        public ManualActionOverride(float[] cooldowns, WorldState ws)
         {
             _cooldowns = cooldowns;
-            _now = now;
+            _ws = ws;
         }
 
-        public void Update(DateTime now)
-        {
-            _now = now;
-            if (_emergencyMode && _queue[0].ExpireAt < now)
-                _emergencyMode = false;
-
-            _queue.RemoveAll(e => {
-                bool expired = e.ExpireAt < _now;
-                if (expired && !e.RequestSent)
-                    Service.Log($"[MAO] Request {e.Action} @ {e.TargetID:X} expired");
-                return expired;
-            });
-        }
-
-        public void Queue(ActionID action, ulong target, float animLock, int cooldownGroup, float availableAtCooldown, Func<bool>? condition)
+        public void Push(ActionID action, ulong target, float animLock, int cooldownGroup, float availableAtCooldown, Func<bool>? condition)
         {
             bool isGCD = cooldownGroup == CommonDefinitions.GCDGroup;
             float expire = isGCD ? 1.0f : 3.0f;
@@ -61,7 +46,7 @@ namespace BossMod
                 return;
             }
 
-            var expireAt = _now.AddSeconds(expire);
+            var expireAt = _ws.CurrentTime.AddSeconds(expire);
             var index = _queue.FindIndex(e => e.CooldownGroup == cooldownGroup);
             if (index < 0)
             {
@@ -76,11 +61,6 @@ namespace BossMod
                 Service.Log($"[MAO] Replacing queued {e.Action} with {action} @ {target:X}");
                 _queue.RemoveAt(index);
                 _queue.Add(new() { Action = action, TargetID = target, AnimLock = animLock, CooldownGroup = cooldownGroup, AvailableAtCooldown = availableAtCooldown, Condition = condition, ExpireAt = expireAt });
-            }
-            else if (e.RequestSent)
-            {
-                // we're spamming an action, and request was sent recently - just ignore
-                Service.Log($"[MAO] Ignoring {e.Action}, since it was cast recently");
             }
             else if (isGCD)
             {
@@ -97,32 +77,49 @@ namespace BossMod
             }
         }
 
-        public void NotifyRequestSent(ActionID action, ulong target)
+        // note: any returned action is immediately popped off the queue - we assume caller will execute it
+        public (ActionID Action, ulong Target, bool Emergency) Pop(float animLockDelay)
         {
-            var index = _queue.FindIndex(e => e.Action == action);
-            if (index < 0)
-                return; // don't care, we didn't queue it
+            // first remove all expired entries (and if 'emergency' entry is popped, oh well)
+            if (_emergencyMode && _queue[0].ExpireAt < _ws.CurrentTime)
+            {
+                Service.Log($"[MAO] Emergency {_queue[0].Action} expired");
+                _emergencyMode = false;
+            }
+            _queue.RemoveAll(e => e.ExpireAt < _ws.CurrentTime);
 
-            var e = _queue[index];
-            Service.Log($"[MAO] Request sent for {action} @ {target:X}{(target == e.TargetID ? "" : $" instead of planned {e.TargetID:X} !!")}");
-            e.RequestSent = true;
-            e.ExpireAt = _now.AddSeconds(0.5f); // don't re-queue for some small time, if user is spamming
-        }
-
-        // since we're considering next action every frame anyway, we don't bother checking under animation lock - thus we assume that this function is called when current lock is zero
-        public (ActionID, ulong) GetAction(float animLockDelay)
-        {
             if (_emergencyMode)
-                return (_queue[0].Action, _queue[0].TargetID);
+            {
+                // in emergency mode, return emergency action if off cd or nothing (and a flag that caller will use to skip looking for lower-priority actions)
+                var e = _queue[0];
+                if (_cooldowns[e.CooldownGroup] <= e.AvailableAtCooldown)
+                {
+                    // pop off emergency action
+                    Service.Log($"[MAO] Executing emergency action {e.Action} @ {e.TargetID:X}");
+                    _queue.RemoveAt(0);
+                    _emergencyMode = false;
+                    return (e.Action, e.TargetID, true);
+                }
+                else
+                {
+                    // emergency action is not ready yet, return nothing and keep emergency mode active
+                    return (new(), 0, true);
+                }
+            }
 
             // look for first action that is off cooldown, using which won't delay next gcd
             float gcd = _cooldowns[CommonDefinitions.GCDGroup];
-            var index = _queue.FindIndex(e => !e.RequestSent && _cooldowns[e.CooldownGroup] <= e.AvailableAtCooldown && (e.CooldownGroup == CommonDefinitions.GCDGroup || e.AnimLock + animLockDelay < gcd));
+            var index = _queue.FindIndex(e => _cooldowns[e.CooldownGroup] <= e.AvailableAtCooldown && (e.CooldownGroup == CommonDefinitions.GCDGroup || e.AnimLock + animLockDelay < gcd) && (e.Condition == null || e.Condition()));
             if (index >= 0)
-                return (_queue[index].Action, _queue[index].TargetID);
+            {
+                var e = _queue[index];
+                Service.Log($"[MAO] Executing queued action {e.Action} @ {e.TargetID:X}");
+                _queue.RemoveAt(index);
+                return (e.Action, e.TargetID, false);
+            }
 
             // nothing found
-            return (new(), 0);
+            return (new(), 0, false);
         }
     }
 }

@@ -14,6 +14,7 @@ namespace BossMod
     class ActionManagerEx : IDisposable
     {
         public static ActionManagerEx? Instance;
+        public const int NumCooldownGroups = 80;
 
         public float AnimationLockDelaySmoothing = 0.8f; // TODO tweak
         public float AnimationLockDelayAverage { get; private set; } = 0.1f; // smoothed delay between client request and server response
@@ -116,6 +117,16 @@ namespace BossMod
         {
             Vector3 res = new();
             return _getGroundTargetPositionFunc(_inst, &res) ? res : null;
+        }
+
+        public unsafe void GetCooldowns(float[] cooldowns)
+        {
+            var rg = _inst->GetRecastGroupDetail(0);
+            for (int i = 0; i < NumCooldownGroups; ++i)
+            {
+                cooldowns[i] = rg->Total - rg->Elapsed;
+                ++rg;
+            }
         }
 
         private unsafe bool UseActionLocationDetour(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation)

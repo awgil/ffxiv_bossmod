@@ -18,67 +18,29 @@ namespace BossMod
             public Positional Positional;
         }
 
-        // all relevant target IDs used for smart target selection
-        protected struct Targets
+        private class SupportedAction
         {
-            public ulong MainTarget;
-            public ulong MouseoverTarget;
-        }
+            public ActionDefinition Definition;
+            public Func<bool>? Condition;
 
-        // 'smart oGCD queueing': when using auto-rotation, pressing manual ogcds is slightly problematic:
-        // 1. it might delay next GCD, which is bad for damage
-        // 2. it might require awkward spamming, otherwise returning to spamming rotation button might override it with rotational ogcd
-        // smart queue solves it: if we press supported oGCD action while under gcd or animation lock, we 'queue' it and return fallback action, which is then passed to normal replace function
-        // replace function should then choose best replacement, taking active smart queue entries into account
-        // when activated, smart queue accepts an argument specifying its validity time; default value corresponds to manual presses, planned values provide custom activation windows
-        // validity time for manual presses is needed to limit the effect of e.g. misclick while ability has long cooldown
-        protected class SmartQueue
-        {
-            public class Entry
+            public SupportedAction(ActionDefinition definition)
             {
-                public DateTime Expire;
-                public Targets? Targets; // null for planned activation
-
-                public bool Active(DateTime now) => now < Expire;
-
-                public void ActivateManual(DateTime now, Targets targets)
-                {
-                    var newExpire = now.AddSeconds(3);
-                    if (newExpire > Expire)
-                        Expire = newExpire;
-                    Targets = targets;
-                }
-
-                public void ActivatePlanned(DateTime now, float window)
-                {
-                    var newExpire = now.AddSeconds(window);
-                    if (newExpire > Expire)
-                        Expire = newExpire;
-                    // don't touch targets, if they were manually requested
-                }
-
-                public void Deactivate()
-                {
-                    Expire = new();
-                    Targets = null;
-                }
+                Definition = definition;
             }
-
-            public bool Active; // if active, actions are queued and replacement is returned; otherwise smart-queue is transparent
-            public (ActionID, Targets) Replacement; // action + target that will be returned instead of smart-queued action
-            public Dictionary<ActionID, Entry> Entries = new(); // key = smart-queueable action, value = expiration timestamp + target
         }
 
         public Actor Player { get; init; }
         protected Autorotation Autorot;
-        private SmartQueue _sq = new();
-        private unsafe FFXIVClientStructs.FFXIV.Client.Game.ActionManager* _actionManager = null;
+        private Dictionary<ActionID, SupportedAction> _supportedActions = new();
+        private ManualActionOverride _mq;
 
-        protected unsafe CommonActions(Autorotation autorot, Actor player)
+        protected unsafe CommonActions(Autorotation autorot, Actor player, Dictionary<ActionID, ActionDefinition> supportedActions)
         {
             Player = player;
             Autorot = autorot;
-            _actionManager = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
+            foreach (var (aid, def) in supportedActions)
+                _supportedActions[aid] = new(def);
+            _mq = new(autorot.Cooldowns, autorot.WorldState);
         }
 
         public unsafe bool HaveItemInInventory(uint id)
@@ -114,36 +76,42 @@ namespace BossMod
             };
         }
 
-        public void CastSucceeded(ActorCastEvent ev)
+        public (ActionID, ulong) CalculateNextAction(Actor? target, bool moving, float animLockDelay)
         {
-            SmartQueueDeactivate(ev.Action);
-            OnCastSucceeded(ev);
-        }
+            //var am = ActionManagerEx.Instance!;
+            //if ()
+            //{
+            //    // we're under animation lock or are casting - just do nothing for now
+            //    return (new(), 0);
+            //}
 
-        public void Update(Actor? target, bool moving)
-        {
-            // cooldown planning
+            // see if there is any action from manual queue that is to be executed
+            var mqAction = _mq.Pop(animLockDelay);
+            if (mqAction.Action)
+            {
+                return (mqAction.Action, mqAction.Target);
+            }
+            if (mqAction.Emergency)
+            {
+                // we are waiting for emergency action to come off cooldown, do nothing for now
+                return (new(), 0);
+            }
+
+            // see if there is anything from cooldown plan to be executed
             var cooldownPlan = Autorot.Bossmods.ActiveModule?.PlanExecution;
             if (cooldownPlan != null)
             {
-                var stateData = cooldownPlan.FindStateData(Autorot.Bossmods.ActiveModule?.StateMachine.ActiveState);
-                foreach (var (action, entry) in _sq.Entries)
+                // TODO: support non-self targeting
+                // TODO: support custom conditions in planner
+                var (cpAction, cpTimeLeft) = cooldownPlan.ActiveActions(Autorot.Bossmods.ActiveModule!.StateMachine).Where(x => CanExecutePlannedAction(x.Action, animLockDelay)).MinBy(x => x.TimeLeft);
+                if (cpAction)
                 {
-                    var plan = stateData?.Abilities.GetValueOrDefault(action);
-                    if (plan != null)
-                    {
-                        var progress = Autorot.Bossmods.ActiveModule!.StateMachine.TimeSinceTransitionClamped;
-                        var activeWindow = plan.ActivationWindows.FindIndex(w => w.Start <= progress && w.End > progress);
-                        if (activeWindow != -1)
-                        {
-                            entry.ActivatePlanned(Autorot.WorldState.CurrentTime, plan.ActivationWindows[activeWindow].End - progress);
-                        }
-                    }
+                    return (cpAction, Player.InstanceID);
                 }
             }
 
-            var state = OnUpdate(target, moving);
-            _sq.Active = state.GCD > 0 || state.AnimationLock > 0;
+            // finally, let module determine best action
+            return CalculateNextAutomaticAction(target, moving);
         }
 
         public (ActionID, ulong) ReplaceActionAndTarget(ActionID actionID, ulong targetID, bool forced)
@@ -167,8 +135,8 @@ namespace BossMod
             return DoReplaceActionAndTarget(actionID, targets);
         }
 
-        abstract protected void OnCastSucceeded(ActorCastEvent ev);
-        abstract protected CommonRotation.PlayerState OnUpdate(Actor? target, bool moving);
+        abstract protected (ActionID, ulong) CalculateNextAutomaticAction(Actor? target, bool moving);
+
         abstract protected (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets);
         abstract public AIResult CalculateBestAction(Actor player, Actor? primaryTarget, bool moving);
         abstract public void DrawOverlay();
@@ -191,12 +159,6 @@ namespace BossMod
             }
             // TODO: also check damage-taken debuffs on target
 
-            var rg = _actionManager->GetRecastGroupDetail(0);
-            for (int i = 0; i < 80; ++i)
-            {
-                s.Cooldowns[i] = rg->Total - rg->Elapsed;
-                ++rg;
-            }
         }
 
         // fill common strategy properties
@@ -289,6 +251,14 @@ namespace BossMod
         {
             if (Autorot.Config.Logging)
                 Service.Log($"[AR] [{GetType().Name}] {message}");
+        }
+
+        private bool CanExecutePlannedAction(ActionID action, float animLockDelay)
+        {
+            var data = _supportedActions[action];
+            return Autorot.Cooldowns[data.Definition.CooldownGroup] <= data.Definition.CooldownAtFirstCharge
+                && (data.Definition.CooldownGroup == CommonDefinitions.GCDGroup || data.Definition.AnimationLock + animLockDelay < Autorot.Cooldowns[CommonDefinitions.GCDGroup])
+                && (data.Condition == null || data.Condition());
         }
     }
 }

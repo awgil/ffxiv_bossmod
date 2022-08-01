@@ -53,7 +53,7 @@ namespace BossMod
         public WorldState WorldState => _bossmods.WorldState;
         public CommonActions? ClassActions => _classActions;
         public List<Actor> PotentialTargets = new();
-        public bool DisableReplacement = false; // used when action selection is done by AI, so that replacement doesn't interfere
+        public float[] Cooldowns = new float[ActionManagerEx.NumCooldownGroups];
 
         public unsafe Autorotation(Network network, BossModuleManager bossmods, InputOverride inputOverride)
         {
@@ -92,7 +92,9 @@ namespace BossMod
 
         public void Update(Actor? target)
         {
-            ActionManagerEx.Instance!.AnimationLockDelayMax = _config.RemoveAnimationLockDelay ? 0 : float.MaxValue;
+            var am = ActionManagerEx.Instance!;
+            am.AnimationLockDelayMax = _config.RemoveAnimationLockDelay ? 0 : float.MaxValue;
+            am.GetCooldowns(Cooldowns);
 
             var player = WorldState.Party.Player();
             Type? classType = null;
@@ -117,20 +119,11 @@ namespace BossMod
                 _classActions = classType != null ? (CommonActions?)Activator.CreateInstance(classType, this, player) : null;
             }
 
-            if (_classActions != null)
+            if (_completedCast != null)
             {
-                if (_completedCast != null)
-                {
-                    _classActions.CastSucceeded(_completedCast);
-                }
-                else if (_pendingActions.Count == 0)
-                {
-                    bool moving = _inputOverride.IsMoving(); // TODO: reconsider
-                    _classActions.Update(target, moving);
-                }
+                //_classActions?.NotifyCast(); ???
+                _completedCast = null;
             }
-
-            _completedCast = null;
 
             // unblock 'speculative' movement locks
             if (_inputPendingUnblock != new DateTime() && _inputPendingUnblock < DateTime.Now)
@@ -151,6 +144,18 @@ namespace BossMod
             {
                 WindowManager.CloseWindow(_ui);
                 _ui = null;
+            }
+
+            // execute any automatic action if possible
+            if (am.AnimationLock == 0 && am.CastTimeRemaining == 0 && _classActions != null)
+            {
+                bool moving = _inputOverride.IsMoving(); // TODO: reconsider
+                var animLockDelay = MathF.Min(MathF.Min(am.AnimationLockDelayMax, am.AnimationLockDelayAverage), 0.1f);
+                var (action, targetID) = _classActions.CalculateNextAction(target, moving, animLockDelay);
+                if (action)
+                {
+
+                }
             }
         }
 

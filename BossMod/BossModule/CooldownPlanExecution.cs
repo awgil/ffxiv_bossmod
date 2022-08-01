@@ -22,8 +22,16 @@ namespace BossMod
 
         public class PerAbility
         {
+            public ActionID ID;
+            public ActionDefinition Definition;
             public List<(float Start, float End)> ActivationWindows = new();
             public NextEvent? NextActivation = null;
+
+            public PerAbility(ActionID id, ActionDefinition definition)
+            {
+                ID = id;
+                Definition = definition;
+            }
         }
 
         public class PerState
@@ -31,13 +39,19 @@ namespace BossMod
             public StateFlag Downtime;
             public StateFlag Positioning;
             public StateFlag Vulnerable;
-            public Dictionary<ActionID, PerAbility> Abilities = new();
+            public List<PerAbility> Abilities = new();
 
             internal PerState(CooldownPlan? plan)
             {
-                if (plan != null)
-                    foreach (var (k, uses) in plan.PlanAbilities)
-                        Abilities[new(k)] = new();
+                if (plan == null)
+                    return;
+
+                var classData = AbilityDefinitions.Classes[plan.Class];
+                foreach (var (k, uses) in plan.PlanAbilities)
+                {
+                    var action = new ActionID(k);
+                    Abilities.Add(new(action, classData.Abilities[action].Definition));
+                }
             }
         }
 
@@ -55,7 +69,7 @@ namespace BossMod
 
             if (tree.Phases.Count > 0)
             {
-                ProcessState(tree, tree.Phases[0].StartingNode, Pull, 0, plan);
+                ProcessState(tree, tree.Phases[0].StartingNode, Pull, 0);
             }
         }
 
@@ -98,19 +112,33 @@ namespace BossMod
                 return s.Vulnerable.Transition.Value.EstimatedTime - sm!.TimeSinceTransitionClamped;
         }
 
+        public IEnumerable<(ActionID Action, float TimeLeft)> ActiveActions(StateMachine sm)
+        {
+            var progress = sm.TimeSinceTransitionClamped;
+            var stateData = FindStateData(sm.ActiveState);
+            foreach (var plan in stateData.Abilities)
+            {
+                var activeWindow = plan.ActivationWindows.FindIndex(w => w.Start <= progress && w.End > progress);
+                if (activeWindow != -1)
+                {
+                    yield return (plan.ID, plan.ActivationWindows[activeWindow].End - progress);
+                }
+            }
+        }
+
         public void Draw(StateMachine sm)
         {
             var db = Plan != null ? AbilityDefinitions.Classes[Plan.Class] : null;
             var s = FindStateData(sm.ActiveState);
             var t = sm.TimeSinceTransitionClamped;
-            foreach (var (action, ability) in s.Abilities)
+            foreach (var ability in s.Abilities)
             {
-                float cd = db?.Abilities.GetValueOrDefault(action)?.Cooldown ?? 0;
+                var cd = ability.Definition.Cooldown;
                 int nextWindow = ability.ActivationWindows.FindIndex(w => w.End > t);
                 bool windowActive = nextWindow != -1 && t >= ability.ActivationWindows[nextWindow].Start;
                 float? nextTransition = windowActive ? ability.ActivationWindows[nextWindow].End : nextWindow != -1 ? ability.ActivationWindows[nextWindow].Start : ability.NextActivation?.EstimatedTime;
 
-                var name = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(action.ID)?.Name.ToString() ?? "(unknown)";
+                var name = ability.ID.Name();
                 if (nextTransition == null)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, 0x80808080);
@@ -134,23 +162,21 @@ namespace BossMod
             }
         }
 
-        private PerState ProcessState(StateMachineTree tree, StateMachineTree.Node curState, PerState prev, float prevDuration, CooldownPlan? plan)
+        private PerState ProcessState(StateMachineTree tree, StateMachineTree.Node curState, PerState prev, float prevDuration)
         {
             var s = States[curState.State.ID] = new PerState(Plan);
             s.Downtime.Active = curState.IsDowntime;
             s.Positioning.Active = curState.IsPositioning;
             s.Vulnerable.Active = curState.IsVulnerable;
 
-            if (plan != null)
+            if (Plan != null)
             {
-                foreach (var (k, uses) in plan.PlanAbilities)
+                foreach (var (curAbility, prevAbility) in s.Abilities.Zip(prev.Abilities))
                 {
-                    var curAbility = s.Abilities[new(k)];
-
-                    var prevWindows = prev.Abilities[new(k)].ActivationWindows;
-                    if (prevWindows.Count > 0)
+                    var uses = Plan.PlanAbilities[curAbility.ID.Raw];
+                    if (prevAbility.ActivationWindows.Count > 0)
                     {
-                        var last = prevWindows.Last();
+                        var last = prevAbility.ActivationWindows.Last();
                         var overlap = last.End - prevDuration;
                         if (overlap > 0)
                             curAbility.ActivationWindows.Add((0, overlap));
@@ -182,13 +208,13 @@ namespace BossMod
                 // transition to next state of the same phase
                 foreach (var succ in curState.Successors)
                 {
-                    ProcessState(tree, succ, s, curState.State.Duration, plan);
+                    ProcessState(tree, succ, s, curState.State.Duration);
                 }
             }
             else if (curState.PhaseID + 1 < tree.Phases.Count)
             {
                 // transition to next phase
-                ProcessState(tree, tree.Phases[curState.PhaseID + 1].StartingNode, s, curState.State.Duration + phaseLeft, plan);
+                ProcessState(tree, tree.Phases[curState.PhaseID + 1].StartingNode, s, curState.State.Duration + phaseLeft);
             }
             else
             {
@@ -209,16 +235,15 @@ namespace BossMod
             UpdateFlagTransition(ref s.Positioning, next.Positioning, nextID, curDuration);
             UpdateFlagTransition(ref s.Vulnerable, next.Vulnerable, nextID, curDuration);
 
-            foreach (var (aid, nextAbility) in next.Abilities)
+            foreach (var (nextAbility, curAbility) in next.Abilities.Zip(s.Abilities))
             {
-                var curAbilities = s.Abilities.GetOrAdd(aid);
                 if (nextAbility.ActivationWindows.Count > 0)
                 {
-                    curAbilities.NextActivation = new() { StateID = nextID, EstimatedTime = curDuration + nextAbility.ActivationWindows.First().Start };
+                    curAbility.NextActivation = new() { StateID = nextID, EstimatedTime = curDuration + nextAbility.ActivationWindows.First().Start };
                 }
                 else if (nextAbility.NextActivation != null)
                 {
-                    curAbilities.NextActivation = new() { StateID = nextAbility.NextActivation.Value.StateID, EstimatedTime = curDuration + nextAbility.NextActivation.Value.EstimatedTime };
+                    curAbility.NextActivation = new() { StateID = nextAbility.NextActivation.Value.StateID, EstimatedTime = curDuration + nextAbility.NextActivation.Value.EstimatedTime };
                 }
             }
         }

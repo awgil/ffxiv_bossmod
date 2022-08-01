@@ -18,15 +18,16 @@ namespace BossMod
         public class Ability
         {
             public int CooldownTrack = 0;
-            public float CastTime = 0;
-            public float AnimLock = 0.6f;
-            public int Charges = 1;
-            public float Cooldown = 0; // cooldown for a single charge, for multi-charge abilities; 0 for gcd abilities
-            public float EffectDuration;
-            public ActionCategory Category; // category for planning, none if ability is non-plannable
+            public ActionDefinition Definition;
 
-            public bool IsGCD => Cooldown == 0;
-            public bool IsPlannable => Category != ActionCategory.None;
+            public bool IsGCD => Definition.CooldownGroup == CommonDefinitions.GCDGroup;
+            public bool IsPlannable => Definition.Category != ActionCategory.None;
+
+            public Ability(int track, ActionDefinition definition)
+            {
+                CooldownTrack = track;
+                Definition = definition;
+            }
         }
 
         public class Class
@@ -44,7 +45,7 @@ namespace BossMod
                         AddTrack(Track.Category.SharedCooldown, data.CooldownGroup, cdgType.GetEnumName(data.CooldownGroup) ?? $"Group {data.CooldownGroup}");
 
                     var track = _cooldownGroupToTrackIndex[data.CooldownGroup];
-                    Abilities[action] = new() { CooldownTrack = track, AnimLock = data.AnimationLock, Charges = data.MaxChargesAtCap, Cooldown = data.Cooldown, EffectDuration = data.EffectDuration, Category = data.Category };
+                    Abilities[action] = new(track, data);
                 }
             }
 
