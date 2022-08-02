@@ -28,7 +28,7 @@ namespace UIDev
             GCDExpired = 1 << 15,
         }
 
-        public Rotation.State InitialState = new() { Level = 90, AnimationLockDelay = 0.1f };
+        public Rotation.State InitialState = new(new float[80]) { Level = 90, AnimationLockDelay = 0.1f };
         public int Duration = 260;
         public bool AOERotation = false;
         public bool KeepOnslaughtCharge = false;
@@ -98,7 +98,7 @@ namespace UIDev
             strategy.SecondChargeIn = 10000;
             strategy.Potion = PotionUse;
 
-            var state = new Rotation.State();
+            var state = new Rotation.State(new float[0]);
             foreach (var f in state.GetType().GetFields())
                 f.SetValue(state, f.GetValue(InitialState));
             state.Cooldowns = new float[80];

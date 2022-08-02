@@ -18,6 +18,8 @@ namespace BossMod.WAR
             public AID ComboLastMove => (AID)ComboLastAction;
             //public float InnerReleaseCD => CD(UnlockedInnerRelease ? CDGroup.InnerRelease : CDGroup.Berserk); // note: technically berserk and IR don't share CD, and with level sync you can have both...
 
+            public State(float[] cooldowns) : base(cooldowns) { }
+
             public override string ToString()
             {
                 return $"g={Gauge}, RB={RaidBuffsLeft:f1}, ST={SurgingTempestLeft:f1}, NC={NascentChaosLeft:f1}, PR={PrimalRendLeft:f1}, IR={InnerReleaseStacks}/{InnerReleaseLeft:f1}, IRCD={CD(CDGroup.Berserk):f1}/{CD(CDGroup.InnerRelease):f1}, InfCD={CD(CDGroup.Infuriate):f1}, UphCD={CD(CDGroup.Upheaval):f1}, OnsCD={CD(CDGroup.Onslaught):f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
@@ -34,58 +36,6 @@ namespace BossMod.WAR
             public float SecondChargeIn; // when do we need to use two onslaught charges in a short amount of time
             public bool EnableUpheaval = true; // if true, enable using upheaval when needed; setting to false is useful during opener before first party buffs
             public bool Aggressive; // if true, we use buffs and stuff at last possible moment; otherwise we make sure to keep at least 1 GCD safety net
-            // 'execute' flags: if true, we execute corresponding action in next free ogcd slot (potentially delaying a bit to avoid losing damage)
-            // we assume the logic setting the flag ensures the action isn't wasted (e.g. equilibrium at full hp, reprisal out of range of any enemies, SIO out of range of full raid, etc.)
-            public bool ExecuteRampart;
-            public bool ExecuteVengeance; // note: it has some minor offensive value, but we prefer letting plan the usage explicitly for that
-            public bool ExecuteThrillOfBattle;
-            public bool ExecuteHolmgang;
-            public bool ExecuteEquilibrium;
-            public bool ExecuteReprisal;
-            public bool ExecuteShakeItOff;
-            public bool ExecuteBloodwhetting;
-            public bool ExecuteNascentFlash;
-            public bool ExecuteArmsLength;
-            public bool ExecuteProvoke;
-            public bool ExecuteShirk;
-            public bool ExecuteLowBlow;
-            public bool ExecuteInterject;
-
-            public override string ToString()
-            {
-                var sb = new StringBuilder("SmartQueue:");
-                if (ExecuteProvoke)
-                    sb.Append(" Provoke");
-                if (ExecuteShirk)
-                    sb.Append(" Shirk");
-                if (ExecuteHolmgang)
-                    sb.Append(" Holmgang");
-                if (ExecuteArmsLength)
-                    sb.Append(" ArmsLength");
-                if (ExecuteShakeItOff)
-                    sb.Append(" ShakeItOff");
-                if (ExecuteVengeance)
-                    sb.Append(" Vengeance");
-                if (ExecuteRampart)
-                    sb.Append(" Rampart");
-                if (ExecuteThrillOfBattle)
-                    sb.Append(" ThrillOfBattle");
-                if (ExecuteEquilibrium)
-                    sb.Append(" Equilibrium");
-                if (ExecuteReprisal)
-                    sb.Append(" Reprisal");
-                if (ExecuteBloodwhetting)
-                    sb.Append(" Bloodwhetting");
-                if (ExecuteNascentFlash)
-                    sb.Append(" NascentFlash");
-                if (ExecuteLowBlow)
-                    sb.Append(" LowBlow");
-                if (ExecuteInterject)
-                    sb.Append(" Interject");
-                if (ExecuteSprint)
-                    sb.Append(" Sprint");
-                return sb.ToString();
-            }
         }
 
         public static int GaugeGainedFromAction(State state, AID action)
@@ -287,38 +237,6 @@ namespace BossMod.WAR
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float windowEnd, bool aoe)
         {
             var irCD = state.CD(state.Unlocked(MinLevel.InnerRelease) ? CDGroup.InnerRelease : CDGroup.Berserk);
-
-            // 1. use cooldowns if requested in rough priority order
-            if (strategy.ExecuteProvoke && state.Unlocked(MinLevel.Provoke) && state.CanWeave(CDGroup.Provoke, 0.6f, windowEnd))
-                return ActionID.MakeSpell(AID.Provoke);
-            if (strategy.ExecuteShirk && state.Unlocked(MinLevel.Shirk) && state.CanWeave(CDGroup.Shirk, 0.6f, windowEnd))
-                return ActionID.MakeSpell(AID.Shirk);
-            if (strategy.ExecuteHolmgang && state.Unlocked(MinLevel.Holmgang) && state.CanWeave(CDGroup.Holmgang, 0.6f, windowEnd))
-                return ActionID.MakeSpell(AID.Holmgang);
-            if (strategy.ExecuteArmsLength && state.Unlocked(MinLevel.ArmsLength) && state.CanWeave(CDGroup.ArmsLength, 0.6f, windowEnd))
-                return ActionID.MakeSpell(AID.ArmsLength);
-            if (strategy.ExecuteShakeItOff && state.Unlocked(MinLevel.ShakeItOff) && state.CanWeave(CDGroup.ShakeItOff, 0.6f, windowEnd)) // prefer to use SOI before buffs
-                return ActionID.MakeSpell(AID.ShakeItOff);
-            if (strategy.ExecuteVengeance && state.Unlocked(MinLevel.Vengeance) && state.CanWeave(CDGroup.Vengeance, 0.6f, windowEnd))
-                return ActionID.MakeSpell(AID.Vengeance);
-            if (strategy.ExecuteRampart && state.Unlocked(MinLevel.Rampart) && state.CanWeave(CDGroup.Rampart, 0.6f, windowEnd))
-                return ActionID.MakeSpell(AID.Rampart);
-            if (strategy.ExecuteThrillOfBattle && state.Unlocked(MinLevel.ThrillOfBattle) && state.CanWeave(CDGroup.ThrillOfBattle, 0.6f, windowEnd))
-                return ActionID.MakeSpell(AID.ThrillOfBattle);
-            if (strategy.ExecuteEquilibrium && state.Unlocked(MinLevel.Equilibrium) && state.CanWeave(CDGroup.Equilibrium, 0.6f, windowEnd)) // prefer to use equilibrium after thrill for extra healing
-                return ActionID.MakeSpell(AID.Equilibrium);
-            if (strategy.ExecuteReprisal && state.Unlocked(MinLevel.Reprisal) && state.CanWeave(CDGroup.Reprisal, 0.6f, windowEnd))
-                return ActionID.MakeSpell(AID.Reprisal);
-            if (strategy.ExecuteBloodwhetting && state.Unlocked(MinLevel.RawIntuition) && state.CanWeave(CDGroup.Bloodwhetting, 0.6f, windowEnd))
-                return ActionID.MakeSpell(state.Unlocked(MinLevel.Bloodwhetting) ? AID.Bloodwhetting : AID.RawIntuition);
-            if (strategy.ExecuteNascentFlash && state.Unlocked(MinLevel.NascentFlash) && state.CanWeave(CDGroup.Bloodwhetting, 0.6f, windowEnd))
-                return ActionID.MakeSpell(AID.NascentFlash);
-            if (strategy.ExecuteLowBlow && state.Unlocked(MinLevel.LowBlow) && state.CanWeave(CDGroup.LowBlow, 0.6f, windowEnd))
-                return ActionID.MakeSpell(AID.LowBlow);
-            if (strategy.ExecuteInterject && state.Unlocked(MinLevel.Interject) && state.CanWeave(CDGroup.Interject, 0.6f, windowEnd))
-                return ActionID.MakeSpell(AID.Interject);
-            if (strategy.ExecuteSprint && state.CanWeave(state.SprintCD, 0.6f, windowEnd))
-                return CommonDefinitions.IDSprint;
 
             // 2. potion, if required by strategy, and not too early in opener (TODO: reconsider priority)
             // TODO: reconsider potion use during opener (delayed IR prefers after maim, early IR prefers after storm eye, to cover third IC on 13th GCD)

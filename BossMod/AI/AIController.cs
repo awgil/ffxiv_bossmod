@@ -96,7 +96,8 @@ namespace BossMod.AI
 
         public void SetTarget(ulong actorID)
         {
-            Service.TargetManager.SetTarget(Service.ObjectTable.SearchById((uint)actorID));
+            if (Service.TargetManager.Target?.ObjectId != actorID)
+                Service.TargetManager.SetTarget(Service.ObjectTable.SearchById((uint)actorID));
         }
 
         public void SetFocusTarget(ulong actorID)
@@ -121,9 +122,9 @@ namespace BossMod.AI
             var now = DateTime.Now;
             if (actionReady && (now - LastUsedActionTimestamp).TotalMilliseconds > 100)
             {
-                _autorot.DisableReplacement = true;
-                _actionManager->UseAction((FFXIVClientStructs.FFXIV.Client.Game.ActionType)PlannedAction.Type, PlannedAction.ID, (long)(PlannedActionTarget?.InstanceID ?? 0));
-                _autorot.DisableReplacement = false;
+                //_autorot.DisableReplacement = true;
+                //_actionManager->UseAction((FFXIVClientStructs.FFXIV.Client.Game.ActionType)PlannedAction.Type, PlannedAction.ID, (long)(PlannedActionTarget?.InstanceID ?? 0));
+                //_autorot.DisableReplacement = false;
                 LastUsedActionTimestamp = now;
             }
         }

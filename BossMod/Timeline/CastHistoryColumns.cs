@@ -45,14 +45,14 @@ namespace BossMod
                     ev.Color = 0xff0000ff;
 
                 _animLock.Events.Add(ev);
-                _animLock.Entries.Add(new(ev.AttachNode, ev.Delay, 0, 0, def?.AnimLock ?? 0.6f, aid.ToString()));
+                _animLock.Entries.Add(new(ev.AttachNode, ev.Delay, 0, 0, def?.Definition.AnimationLock ?? 0.6f, aid.ToString()));
 
                 if (def != null)
                 {
                     var col = _columns[def.CooldownTrack];
                     col.Events.Add(ev);
-                    if (def.Cooldown > 0)
-                        col.Entries.Add(new(ev.AttachNode, ev.Delay, 0, def.EffectDuration, def.Cooldown, aid.ToString()));
+                    if (def.Definition.Cooldown > 0)
+                        col.Entries.Add(new(ev.AttachNode, ev.Delay, 0, def.Definition.EffectDuration, def.Definition.Cooldown, aid.ToString()));
                 }
             }
         }

@@ -32,7 +32,7 @@ namespace BossMod.AI
         }
 
         // called before autorotation update, should return effective target (player's normal target, unless overridden)
-        public Actor? UpdateBeforeRotation()
+        public void UpdateBeforeRotation()
         {
             if (_autorot.WorldState.Party.ContentIDs[_masterSlot] == 0)
                 SwitchToIdle();
@@ -48,20 +48,19 @@ namespace BossMod.AI
                 {
                     var aiTarget = _beh.UpdateTargeting(player, master);
                     if (aiTarget != null)
-                        return aiTarget;
+                        _controller.SetTarget(aiTarget.InstanceID);
                 }
             }
-
-            return _autorot.WorldState.Actors.Find(_autorot.WorldState.Party.Player()?.TargetID ?? 0);
         }
 
-        public void UpdateAfterRotation(Actor? primaryTarget)
+        public void UpdateAfterRotation()
         {
             var player = _autorot.WorldState.Party.Player();
             var master = _autorot.WorldState.Party[_masterSlot];
+            var target = _autorot.WorldState.Actors.Find(player?.TargetID ?? 0);
             if (_beh != null && player != null && master != null)
             {
-                _beh.Execute(player, master, primaryTarget);
+                _beh.Execute(player, master, target);
             }
             else
             {

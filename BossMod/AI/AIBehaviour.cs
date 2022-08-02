@@ -137,18 +137,18 @@ namespace BossMod.AI
             _instantCastsOnly = masterIsMoving && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (_masterPrevPos - _masterMovementStart).LengthSq() > 100
                 || _ctrl.NaviTargetPos != null && (_ctrl.NaviTargetPos.Value - player.Position).LengthSq() > 1;
 
-            var action = _passive ? new() : _autorot.ClassActions?.CalculateBestAction(player, primaryTarget, _instantCastsOnly) ?? new();
-            var selfTargeted = IsSelfTargeted(action.Action);
-            _ctrl.PlannedAction = action.Action;
-            _ctrl.PlannedActionTarget = selfTargeted ? player : action.Target;
-            if (!selfTargeted)
-            {
-                // note: if target-of-target is player, don't try flanking, it's probably impossible... - unless target is currently casting
-                var positional = action.Positional;
-                if (action.Target != null && action.Target.TargetID == player.InstanceID && action.Target.CastInfo == null)
-                    positional = CommonActions.Positional.Any;
-                _avoidAOE.SetDesired(action.Target?.Position, action.Target?.Rotation ?? new(), _ctrl.Range(action.Action) + player.HitboxRadius + action.Target?.HitboxRadius ?? 0, positional);
-            }
+            //var action = _passive ? new() : _autorot.ClassActions?.CalculateBestAction(player, primaryTarget, _instantCastsOnly) ?? new();
+            //var selfTargeted = IsSelfTargeted(action.Action);
+            //_ctrl.PlannedAction = action.Action;
+            //_ctrl.PlannedActionTarget = selfTargeted ? player : action.Target;
+            //if (!selfTargeted)
+            //{
+            //    // note: if target-of-target is player, don't try flanking, it's probably impossible... - unless target is currently casting
+            //    var positional = action.Positional;
+            //    if (action.Target != null && action.Target.TargetID == player.InstanceID && action.Target.CastInfo == null)
+            //        positional = CommonActions.Positional.Any;
+            //    _avoidAOE.SetDesired(action.Target?.Position, action.Target?.Rotation ?? new(), _ctrl.Range(action.Action) + player.HitboxRadius + action.Target?.HitboxRadius ?? 0, positional);
+            //}
 
             var dest = _avoidAOE.Update(player);
             //if (action.Action && action.Target != null)
@@ -171,7 +171,7 @@ namespace BossMod.AI
             //    return;
             //}
 
-            if (dest == null && !action.Action && master != player)
+            if (dest == null && /*!action.Action &&*/ master != player)
             {
                 // if there is no planned action and no aoe avoidance, just follow master...
                 var targetPos = master.Position;

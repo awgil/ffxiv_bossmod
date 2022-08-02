@@ -1,4 +1,5 @@
 ﻿using Dalamud;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using ImGuiNET;
 using System;
@@ -33,10 +34,6 @@ namespace BossMod
     // 3. when there are pending actions, we don't update internal state, leaving same next-best recommendation
     class Autorotation : IDisposable
     {
-        // to remove 1-frame delays and execute next actions at earliest moment, we decide on the next action up to this time before animlock/cooldown end
-        // increasing this will remove delays for even lower framerate, at the expense of not accounting for state changes over this window
-        public const float EnqueueWindow = 0.05f;
-
         private Network _network;
         private AutorotationConfig _config;
         private BossModuleManager _bossmods;
@@ -66,6 +63,7 @@ namespace BossMod
             _bossmods = bossmods;
             _inputOverride = inputOverride;
 
+            ActionManagerEx.Instance!.PostUpdate += OnActionManagerUpdate;
             _network.EventActionRequest += OnNetworkActionRequest;
             _network.EventActionRequestGT += OnNetworkActionRequest;
             _network.EventActionEffect += OnNetworkActionEffect;
@@ -79,6 +77,7 @@ namespace BossMod
 
         public void Dispose()
         {
+            ActionManagerEx.Instance!.PostUpdate -= OnActionManagerUpdate;
             _network.EventActionRequest -= OnNetworkActionRequest;
             _network.EventActionRequestGT -= OnNetworkActionRequest;
             _network.EventActionEffect -= OnNetworkActionEffect;
@@ -86,6 +85,7 @@ namespace BossMod
             _network.EventActorControlSelfActionRejected -= OnNetworkActionReject;
 
             _useActionHook.Dispose();
+            _classActions?.Dispose();
         }
 
         public void UpdatePotentialTargets()
@@ -94,10 +94,9 @@ namespace BossMod
             PotentialTargets.AddRange(WorldState.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead && a.InCombat));
         }
 
-        public void Update(Actor? target)
+        public void Update()
         {
-            var am = ActionManagerEx.Instance!;
-            am.AnimationLockDelayMax = _config.RemoveAnimationLockDelay ? 0 : float.MaxValue;
+            ActionManagerEx.Instance!.AnimationLockDelayMax = _config.RemoveAnimationLockDelay ? 0 : float.MaxValue;
 
             var player = WorldState.Party.Player();
             Type? classType = null;
@@ -119,6 +118,7 @@ namespace BossMod
 
             if (_classActions?.GetType() != classType || _classActions?.Player != player)
             {
+                _classActions?.Dispose();
                 _classActions = classType != null ? (CommonActions?)Activator.CreateInstance(classType, this, player) : null;
             }
 
@@ -148,9 +148,6 @@ namespace BossMod
                 WindowManager.CloseWindow(_ui);
                 _ui = null;
             }
-
-            // execute any automatic action if possible
-            TryExecuteActions(target);
         }
 
         public IEnumerable<Actor> PotentialTargetsInRange(WPos center, float radius)
@@ -162,6 +159,29 @@ namespace BossMod
         {
             var player = WorldState.Party.Player();
             return player != null ? PotentialTargetsInRange(player.Position, radius) : Enumerable.Empty<Actor>();
+        }
+
+        private void OnActionManagerUpdate(object? sender, EventArgs args)
+        {
+            if (_classActions == null)
+                return; // disabled
+
+            var am = ActionManagerEx.Instance!;
+            if (am.AnimationLock != 0 || am.CastTimeRemaining != 0)
+                return; // casting/under animation lock, do nothing for now - we'll retry on future update anyway
+
+            // update cooldowns, so that correct decision can be made
+            am.GetCooldowns(Cooldowns);
+
+            bool moving = _inputOverride.IsMoving(); // TODO: reconsider
+            var animLockDelay = MathF.Min(MathF.Min(am.AnimationLockDelayMax, am.AnimationLockDelayAverage), 0.1f);
+            var next = _classActions.CalculateNextAction(0, moving, animLockDelay);
+            if (!next.Action)
+                return; // nothing to use...
+
+            var targetID = next.TargetID != 0 ? next.TargetID : GameObject.InvalidGameObjectId;
+            var res = am.UseActionRaw(next.Action, targetID, next.TargetPos, next.Action.Type == ActionType.Item ? 65535u : 0);
+            Log($"Auto-execute {next.Source} action {next.Action} @ {targetID:X} {Utils.Vec3String(next.TargetPos)} => {res}");
         }
 
         private void OnNetworkActionRequest(object? sender, Network.PendingAction action)
@@ -274,48 +294,6 @@ namespace BossMod
                 Service.Log($"[AR] {message}");
         }
 
-        private unsafe bool TryExecuteActions(Actor? target)
-        {
-            if (_classActions == null)
-                return false; // disabled
-
-            var am = ActionManagerEx.Instance!;
-            var effLock = am.AnimationLock + am.CastTimeRemaining;
-            if (effLock >= EnqueueWindow)
-                return false; // casting/under animation lock, do nothing for now - we'll retry on future update anyway
-
-            // update cooldowns, so that correct decision can be made
-            am.GetCooldowns(Cooldowns);
-
-            bool moving = _inputOverride.IsMoving(); // TODO: reconsider
-            var animLockDelay = MathF.Min(MathF.Min(am.AnimationLockDelayMax, am.AnimationLockDelayAverage), 0.1f);
-            var (action, targetID) = _classActions.CalculateNextAction(target, moving, effLock, animLockDelay);
-            if (!action)
-                return false; // nothing to use...
-
-            return UseActionWithGTStrategy(action, targetID, action.Type == ActionType.Item ? 65535u : 0u, 0, 0, null);
-        }
-
-        private unsafe bool UseActionWithGTStrategy(ActionID action, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
-        {
-            var amr = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
-
-            bool gtModeStarted = false;
-            bool result = _useActionHook.Original(amr, action.Type, action.ID, targetID, itemLocation, 0, 0, &gtModeStarted);
-            if (outOptGTModeStarted != null)
-                *outOptGTModeStarted = gtModeStarted;
-
-            if (_config.GTMode != AutorotationConfig.GroundTargetingMode.Manual && gtModeStarted)
-            {
-                // hack to cast ground-targeted immediately
-                if (_config.GTMode == AutorotationConfig.GroundTargetingMode.AtTarget)
-                    Utils.WriteField(amr, 0x98, targetID);
-                Utils.WriteField(amr, 0xB8, (byte)1);
-            }
-
-            return result;
-        }
-
         private unsafe bool UseActionDetour(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
         {
             // when spamming e.g. HS, every click (~0.2 sec) this function is called; aid=HS, a4=a5=a6=a7==0, returns True
@@ -326,14 +304,11 @@ namespace BossMod
             var action = new ActionID(actionType, actionID);
             //Service.Log($"UA: {action} @ {targetID:X}: {a4} {a5} {a6} {a7}");
 
-            var supportedAction = callType != 0 ? _classActions?.SupportedActions.GetValueOrDefault(action) : null;
-            if (supportedAction == null)
+            if (callType != 0 || _classActions == null || !_classActions.HandleUserActionRequest(action, targetID, _config.GTMode))
             {
-                // unsupported action or non-standard action - pass to hooked function
-                return UseActionWithGTStrategy(action, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
+                // unsupported action - pass to hooked function
+                return _useActionHook.Original(self, actionType, actionID, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
             }
-
-            // TODO: execute callback in supportedAction - it will either update autorotation strategy or modify action/target and enqueue to manual queue
 
             // TODO: this is really a hack at this point...
             // if we're spamming casted action, we have to block movement a bit before cast starts, otherwise it would be interrupted
@@ -349,7 +324,7 @@ namespace BossMod
                 }
             }
 
-            return TryExecuteActions(WorldState.Actors.Find(targetID));
+            return false;
         }
     }
 }

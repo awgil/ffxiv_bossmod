@@ -36,8 +36,13 @@ namespace BossMod
 
             // check whether weaving ogcd with specified remaining cooldown and lock time, so that we won't be locked by specific window-end
             // window-end is typically either GCD (for second/only ogcd slot) or DoubleWeaveWindowEnd (for first ogcd slot)
-            public bool CanWeave(float cooldown, float actionLock, float windowEnd) => MathF.Max(cooldown, 0) + actionLock + OGCDDelay <= windowEnd;
+            public bool CanWeave(float cooldown, float actionLock, float windowEnd) => MathF.Max(cooldown, AnimationLock) + actionLock + OGCDDelay <= windowEnd;
             public bool CanWeave<CDGroup>(CDGroup group, float actionLock, float windowEnd) where CDGroup : Enum => CanWeave(CD(group), actionLock, windowEnd);
+
+            public PlayerState(float[] cooldowns)
+            {
+                Cooldowns = cooldowns;
+            }
         }
 
         public class Strategy
@@ -49,7 +54,6 @@ namespace BossMod
             public float RaidBuffsIn; // estimate time when new raidbuff window starts (if it is smaller than FightEndIn, we try to conserve resources)
             public float PositionLockIn; // time left to use moving abilities (Primal Rend and Onslaught) - we won't use them if it is ==0; setting this to 2.5f will make us use PR asap
             public PotionUse Potion; // strategy for automatic potion use
-            public bool ExecuteSprint;
         }
     }
 }

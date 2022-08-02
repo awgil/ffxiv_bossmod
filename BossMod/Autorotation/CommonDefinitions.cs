@@ -47,6 +47,24 @@ namespace BossMod
         }
     }
 
+    // a set of common flags used by class modules to select next-best action
+    [Flags]
+    public enum AutoAction : uint
+    {
+        None = 0, // do not execute any automatic actions
+
+        GCDDamage = 1 << 0, // execute best damaging move on next GCD (exclusive with HealGCD)
+        GCDHeal = 1 << 1, // execute best healing move on next GCD
+
+        OGCDDamage = 1 << 2, // allow executing damage oGCDs
+        OGCDHeal = 1 << 3, // allow executing heal oGCDs (if both this and damage are set, prioritize heals)
+
+        AOEDamage = 1 << 4, // prioritize aoe damage (max total potency) over max potency to main target
+        AOEHeal = 1 << 5, // prioritize aoe heal (max total hp restored) over main target heals
+
+        NoCast = 1 << 6, // disallow non-instant casts
+    }
+
     public static class CommonDefinitions
     {
         public static ActionID IDAutoAttack = new(ActionType.Spell, 7);

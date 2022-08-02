@@ -35,8 +35,8 @@ namespace BossMod
                 col.Name = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID)?.Name.ToString() ?? "(unknown)";
                 col.Editable = true;
                 col.NotifyModified = onModified;
-                col.EffectDuration = info.EffectDuration;
-                col.Cooldown = info.Cooldown;
+                col.EffectDuration = info.Definition.EffectDuration;
+                col.Cooldown = info.Definition.Cooldown;
             }
 
             ExtractPlanData(plan);

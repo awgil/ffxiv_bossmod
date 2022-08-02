@@ -1,45 +1,62 @@
-﻿using System;
+﻿using Dalamud.Game.ClientState.Objects.Types;
+using ImGuiNET;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace BossMod
 {
-    abstract class CommonActions
+    abstract class CommonActions : IDisposable
     {
         public enum Positional { Any, Flank, Rear }
+        public enum ActionSource { Automatic, Planned, Manual, ManualEmergency }
 
-        // result of determining best 'AI' behaviour
-        public struct AIResult
+        public struct NextAction
         {
             public ActionID Action;
-            public Actor? Target;
-            //public WPos? TargetPos; // for ground-targeted
-            //public WPos PositionHint; // position where player should aim to be
-            public Positional Positional;
+            public ulong TargetID;
+            public Vector3 TargetPos;
+            public ActionSource Source;
         }
 
         public class SupportedAction
         {
             public ActionDefinition Definition;
-            public Func<bool>? Condition;
+            public bool IsGT;
+            public Func<ulong, bool>? Condition;
+            public AutoAction PlaceholderForStrategy; // if set, attempting to execute this action would instead initiate auto-strategy
+            public Func<ActionID>? TransformAction;
+            public Func<ulong, ulong>? TransformTarget;
 
-            public SupportedAction(ActionDefinition definition)
+            public bool Allowed(ulong targetID) => Condition == null || Condition(targetID);
+
+            public SupportedAction(ActionDefinition definition, bool isGT)
             {
                 Definition = definition;
+                IsGT = isGT;
             }
         }
 
         public Actor Player { get; init; }
         public Dictionary<ActionID, SupportedAction> SupportedActions { get; init; } = new();
+        public Positional PreferredPosition { get; protected set; } // implementation can update this as needed
         protected Autorotation Autorot;
+        protected bool AllowGCDDelay; // implementation can set this flag if desired
+        private QuestLockCheck _lock;
         private ManualActionOverride _mq;
+        private AutoAction _autoStrategy;
+        private DateTime _autoStrategyExpire;
 
-        protected unsafe CommonActions(Autorotation autorot, Actor player, Dictionary<ActionID, ActionDefinition> supportedActions)
+        public SupportedAction SupportedSpell<AID>(AID aid) where AID : Enum => SupportedActions[ActionID.MakeSpell(aid)];
+
+        protected unsafe CommonActions(Autorotation autorot, Actor player, QuestLockEntry[] unlockData, Dictionary<ActionID, ActionDefinition> supportedActions)
         {
             Player = player;
             Autorot = autorot;
             foreach (var (aid, def) in supportedActions)
-                SupportedActions[aid] = new(def);
+                SupportedActions[aid] = new(def, aid.IsGroundTargeted());
+            _lock = new(unlockData);
             _mq = new(autorot.Cooldowns, autorot.WorldState);
         }
 
@@ -76,18 +93,72 @@ namespace BossMod
             };
         }
 
-        public (ActionID, ulong) CalculateNextAction(Actor? target, bool moving, float animLock, float animLockDelay)
+        public void UpdateAutoStrategy(AutoAction strategy)
+        {
+            _autoStrategy = strategy;
+            _autoStrategyExpire = Autorot.WorldState.CurrentTime.AddSeconds(1.0f);
+        }
+
+        public bool HandleUserActionRequest(ActionID action, ulong targetID, AutorotationConfig.GroundTargetingMode gtMode)
+        {
+            var supportedAction = SupportedActions.GetValueOrDefault(action);
+            if (supportedAction == null)
+                return false;
+
+            if (supportedAction.TransformAction != null)
+            {
+                var adjAction = supportedAction.TransformAction();
+                if (adjAction != action)
+                {
+                    action = adjAction;
+                    supportedAction = SupportedActions[adjAction];
+                }
+            }
+
+            if (supportedAction.PlaceholderForStrategy != AutoAction.None)
+            {
+                UpdateAutoStrategy(supportedAction.PlaceholderForStrategy);
+                return true;
+            }
+
+            // this is a manual action
+            if (supportedAction.IsGT)
+            {
+                if (gtMode == AutorotationConfig.GroundTargetingMode.Manual)
+                    return false;
+
+                if (gtMode == AutorotationConfig.GroundTargetingMode.AtCursor)
+                {
+                    var pos = ActionManagerEx.Instance!.GetWorldPosUnderCursor();
+                    if (pos == null)
+                        return false; // same as manual...
+                    _mq.Push(action, 0, pos.Value, supportedAction.Definition, supportedAction.Condition);
+                    return true;
+                }
+            }
+
+            if (supportedAction.TransformTarget != null)
+            {
+                targetID = supportedAction.TransformTarget(targetID);
+            }
+            _mq.Push(action, targetID, new(), supportedAction.Definition, supportedAction.Condition);
+            return true;
+        }
+
+        // delay is 0 if we're getting an action to use, otherwise it can be larger (e.g. if we're showing next-action hint during animation lock)
+        public NextAction CalculateNextAction(float effAnimLock, bool moving, float animLockDelay)
         {
             // see if there is any action from manual queue that is to be executed
-            var mqAction = _mq.Pop(animLock, animLockDelay);
+            bool allowGCDDelay = AllowGCDDelay || _autoStrategy == AutoAction.None;
+            var mqAction = _mq.Peek(effAnimLock, animLockDelay, allowGCDDelay);
             if (mqAction.Action)
             {
-                return (mqAction.Action, mqAction.Target);
+                return new() { Action = mqAction.Action, TargetID = mqAction.TargetID, TargetPos = mqAction.TargetPos, Source = mqAction.Emergency ? ActionSource.ManualEmergency : ActionSource.Manual };
             }
             if (mqAction.Emergency)
             {
                 // we are waiting for emergency action to come off cooldown, do nothing for now
-                return (new(), 0);
+                return new() { Source = ActionSource.ManualEmergency };
             }
 
             // see if there is anything from cooldown plan to be executed
@@ -96,53 +167,65 @@ namespace BossMod
             {
                 // TODO: support non-self targeting
                 // TODO: support custom conditions in planner
-                var (cpAction, cpTimeLeft) = cooldownPlan.ActiveActions(Autorot.Bossmods.ActiveModule!.StateMachine).Where(x => CanExecutePlannedAction(x.Action, animLock, animLockDelay)).MinBy(x => x.TimeLeft);
+                var planTargetID = Player.InstanceID;
+                var (cpAction, cpTimeLeft) = cooldownPlan.ActiveActions(Autorot.Bossmods.ActiveModule!.StateMachine).Where(x => CanExecutePlannedAction(x.Action, planTargetID, effAnimLock, animLockDelay, allowGCDDelay)).MinBy(x => x.TimeLeft);
                 if (cpAction)
                 {
-                    return (cpAction, Player.InstanceID);
+                    return new() { Action = cpAction, TargetID = planTargetID, Source = ActionSource.Planned };
                 }
             }
 
-            // finally, let module determine best action
-            return CalculateNextAutomaticAction(target, moving, animLock, animLockDelay);
-        }
-
-        public (ActionID, ulong) ReplaceActionAndTarget(ActionID actionID, ulong targetID, bool forced)
-        {
-            var targets = new Targets() { MainTarget = targetID, MouseoverTarget = Mouseover.Instance?.Object?.ObjectId ?? 0 };
-            if (!forced)
+            // let module determine best action according to current strategy
+            if (_autoStrategy != AutoAction.None && _autoStrategyExpire < Autorot.WorldState.CurrentTime)
             {
-                if (Autorot.Config.SmartCooldownQueueing && _sq.Active)
-                {
-                    var e = _sq.Entries.GetValueOrDefault(actionID);
-                    if (e != null)
-                    {
-                        Log($"Smart-queueing {actionID} @ {targets.MainTarget:X} / {targets.MouseoverTarget:X}");
-                        e.ActivateManual(Autorot.WorldState.CurrentTime, targets);
-                        (actionID, targets) = _sq.Replacement;
-                    }
-                }
-                _sq.Replacement = (actionID, targets); // if we're not smart-queueing, update replacement to last action
+                Service.Log("[CA] Strategy expired");
+                _autoStrategy = AutoAction.None;
             }
+            if (_autoStrategy == AutoAction.None)
+                return new(); // nothing to do...
 
-            return DoReplaceActionAndTarget(actionID, targets);
+            // TODO: reconsider...
+            var autoAction = CalculateNextAutomaticAction(_autoStrategy, GetCurrentTargetID(), effAnimLock, moving, animLockDelay);
+            if (!autoAction.Action)
+                return new();
+
+            var data = SupportedActions[autoAction.Action];
+            bool ready = Autorot.Cooldowns[data.Definition.CooldownGroup] - effAnimLock <= data.Definition.CooldownAtFirstCharge;
+            return ready ? autoAction : new();
         }
 
-        abstract protected (ActionID, ulong) CalculateNextAutomaticAction(Actor? target, bool moving, float animLock, float animLockDelay);
+        public void NotifyActionExecuted(ActionID action, ulong target)
+        {
+            _mq.Pop(action);
+        }
 
-        abstract protected (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets);
-        abstract public AIResult CalculateBestAction(Actor player, Actor? primaryTarget, bool moving);
-        abstract public void DrawOverlay();
+        public void DrawOverlay()
+        {
+            var am = ActionManagerEx.Instance!;
+            var effLock = am.AnimationLock + am.CastTimeRemaining;
+            var animLockDelay = MathF.Min(MathF.Min(am.AnimationLockDelayMax, am.AnimationLockDelayAverage), 0.1f);
+            var next = CalculateNextAction(effLock, false, animLockDelay);
+            ImGui.TextUnformatted($"Next: {next.Action} ({next.Source})");
+            if (_autoStrategy != AutoAction.None)
+                ImGui.TextUnformatted($"Next auto: {CalculateNextAutomaticAction(_autoStrategy, GetCurrentTargetID(), effLock, false, animLockDelay).Action}");
+            //ImGui.TextUnformatted(_strategy.ToString());
+            //ImGui.TextUnformatted($"Raidbuffs: {_state.RaidBuffsLeft:f2}s left, next in {_strategy.RaidBuffsIn:f2}s");
+            //ImGui.TextUnformatted($"Downtime: {_strategy.FightEndIn:f2}s, pos-lock: {_strategy.PositionLockIn:f2}");
+            ImGui.TextUnformatted($"GCD={Autorot.Cooldowns[CommonDefinitions.GCDGroup]:f3}, AnimLock={am.AnimationLock + am.CastTimeRemaining:f3}+{animLockDelay:f3}");
+        }
+
+        public abstract void Dispose();
+        public abstract NextAction CalculateNextAutomaticAction(AutoAction strategy, ulong primaryTargetID, float effAnimLock, bool moving, float animLockDelay);
 
         // fill common state properties
-        protected unsafe void FillCommonPlayerState(CommonRotation.PlayerState s, Actor? target, ActionID potion)
+        protected unsafe void FillCommonPlayerState(CommonRotation.PlayerState s, float effAnimLock, float animLockDelay)
         {
             var am = ActionManagerEx.Instance!;
             var pc = Service.ClientState.LocalPlayer;
-            s.Level = pc?.Level ?? 0;
+            s.Level = _lock.AdjustLevel(pc?.Level ?? 0);
             s.CurMP = pc?.CurrentMp ?? 0;
-            s.AnimationLock = am.AnimationLock;
-            s.AnimationLockDelay = am.AnimationLockDelayAverage;
+            s.AnimationLock = effAnimLock;
+            s.AnimationLockDelay = animLockDelay;
             s.ComboTimeLeft = am.ComboTimeLeft;
             s.ComboLastAction = am.ComboLastMove;
 
@@ -151,7 +234,6 @@ namespace BossMod
                 s.RaidBuffsLeft = MathF.Max(s.RaidBuffsLeft, StatusDuration(status.ExpireAt));
             }
             // TODO: also check damage-taken debuffs on target
-
         }
 
         // fill common strategy properties
@@ -163,81 +245,42 @@ namespace BossMod
             if (Autorot.Bossmods.ActiveModule?.PlanConfig != null) // assumption: if there is no planning support for encounter (meaning it's something trivial, like outdoor boss), don't expect any cooldowns
                 strategy.RaidBuffsIn = Math.Min(strategy.RaidBuffsIn, Autorot.Bossmods.RaidCooldowns.NextDamageBuffIn(Autorot.WorldState.CurrentTime));
             strategy.PositionLockIn = Autorot.Config.EnableMovement ? (Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextPositioning(Autorot.Bossmods.ActiveModule?.StateMachine) ?? 10000) : 0;
-            strategy.Potion = SmartQueueActive(potion) ? CommonRotation.Strategy.PotionUse.Immediate : Autorot.Config.PotionUse;
+            strategy.Potion = Autorot.Config.PotionUse;
             if (strategy.Potion != CommonRotation.Strategy.PotionUse.Manual && !HaveItemInInventory(potion.ID)) // don't try to use potions if player doesn't have any
                 strategy.Potion = CommonRotation.Strategy.PotionUse.Manual;
-            strategy.ExecuteSprint = SmartQueueActive(CommonDefinitions.IDSprint);
         }
 
-        // register new smart-queueable action
-        protected void SmartQueueRegister(ActionID action) => _sq.Entries[action] = new();
-        protected void SmartQueueRegisterSpell<AID>(AID spell) where AID : Enum => SmartQueueRegister(ActionID.MakeSpell(spell));
-
-        // check whether smart-queueable action is queued
-        protected bool SmartQueueActive(ActionID action) => _sq.Entries.GetValueOrDefault(action)?.Active(Autorot.WorldState.CurrentTime) ?? false;
-        protected bool SmartQueueActiveSpell<AID>(AID spell) where AID : Enum => SmartQueueActive(ActionID.MakeSpell(spell));
-
-        // get smart-queue target, if available; otherwise (if smart-queue is inactive or if it was planned without specific target) return fallback (current targets)
-        protected Targets SmartQueueTarget(ActionID action, Targets fallback)
+        // smart targeting utility: return target (if friendly) or mouseover (if friendly) or null (otherwise)
+        protected ulong SmartTargetFriendly(ulong primaryTarget)
         {
-            var e = _sq.Entries.GetValueOrDefault(action);
-            return e != null && e.Active(Autorot.WorldState.CurrentTime) && e.Targets != null ? e.Targets.Value : fallback;
-        }
-        protected Targets SmartQueueTargetSpell<AID>(AID spell, Targets fallback) where AID : Enum => SmartQueueTarget(ActionID.MakeSpell(spell), fallback);
-
-        // deactivate smart-queue entry
-        protected void SmartQueueDeactivate(ActionID action) => _sq.Entries.GetValueOrDefault(action)?.Deactivate();
-
-        // smart targeting utility: return target (if friendly) or mouseover (if friendly and allowed) or null (otherwise)
-        protected Actor? SmartTargetFriendly(Targets targets, bool allowMouseover)
-        {
-            var target = Autorot.WorldState.Actors.Find(targets.MainTarget);
+            var target = Autorot.WorldState.Actors.Find(primaryTarget);
             if (target?.Type is ActorType.Player or ActorType.Chocobo)
-                return target;
+                return primaryTarget;
 
-            if (allowMouseover)
-            {
-                target = Autorot.WorldState.Actors.Find(targets.MouseoverTarget);
-                if (target?.Type is ActorType.Player or ActorType.Chocobo)
-                    return target;
-            }
+            target = Autorot.WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
+            if (target?.Type is ActorType.Player or ActorType.Chocobo)
+                return target.InstanceID;
 
-            return null;
+            return 0;
         }
 
         // smart targeting utility: return mouseover (if hostile and allowed) or target (otherwise)
-        protected Actor? SmartTargetHostile(ActionID action, Targets targets, bool allowMouseover)
+        protected ulong SmartTargetHostile(ulong primaryTarget)
         {
-            targets = SmartQueueTarget(action, targets);
-            if (allowMouseover)
-            {
-                var target = Autorot.WorldState.Actors.Find(targets.MouseoverTarget);
-                if (target?.Type == ActorType.Enemy && !target.IsAlly)
-                    return target;
-            }
+            var target = Autorot.WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
+            if (target?.Type == ActorType.Enemy && !target.IsAlly)
+                return target.InstanceID;
 
-            return Autorot.WorldState.Actors.Find(targets.MainTarget);
+            return primaryTarget;
         }
 
-        // smart targeting utility: return target (if friendly) or mouseover (if friendly and allowed) or other tank (if available and allowed) or null (otherwise)
-        protected Actor? SmartTargetCoTank(ActionID action, Targets targets, bool allow)
+        // smart targeting utility: return target (if friendly) or mouseover (if friendly) or other tank (if available) or null (otherwise)
+        protected ulong SmartTargetCoTank(ulong primaryTarget)
         {
-            targets = SmartQueueTarget(action, targets);
-            var target = SmartTargetFriendly(targets, allow);
-            if (target != null)
+            var target = SmartTargetFriendly(primaryTarget);
+            if (target != 0)
                 return target;
-
-            if (allow)
-            {
-                target = Autorot.WorldState.Party.WithoutSlot().Exclude(Player).FirstOrDefault(a => a.Role == Role.Tank);
-                if (target != null)
-                    return target;
-            }
-
-            // can't find good target, deactivate smart-queue entry to prevent silly spam
-            Log($"Smart-target failed, removing from queue");
-            SmartQueueDeactivate(action);
-            return null;
+            return Autorot.WorldState.Party.WithoutSlot().Exclude(Player).FirstOrDefault(a => a.Role == Role.Tank)?.InstanceID ?? 0;
         }
 
         protected void Log(string message)
@@ -246,13 +289,30 @@ namespace BossMod
                 Service.Log($"[AR] [{GetType().Name}] {message}");
         }
 
-        private bool CanExecutePlannedAction(ActionID action, float animLock, float animLockDelay)
+        private unsafe ulong GetCurrentTargetID()
+        {
+            // this emulates TargetSystem.GetCurrentTargetID, however it correctly preserves bit in high dword (TODO consider just fixing stuff...)
+            var targetSystem = FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance();
+            if (targetSystem->SoftTarget != null)
+                return (ulong)(long)targetSystem->SoftTarget->GetObjectID();
+            if (targetSystem->Target != null)
+                return (ulong)(long)targetSystem->Target->GetObjectID();
+            return GameObject.InvalidGameObjectId;
+        }
+
+        private bool CanExecutePlannedAction(ActionID action, ulong targetID, float delay, float animLockDelay, bool allowGCDDelay)
         {
             var data = SupportedActions[action];
-            var canExecuteIn = MathF.Max(Autorot.Cooldowns[data.Definition.CooldownGroup] - data.Definition.CooldownAtFirstCharge, animLock);
-            return canExecuteIn <= Autorotation.EnqueueWindow
-                && (data.Definition.CooldownGroup == CommonDefinitions.GCDGroup || canExecuteIn + data.Definition.AnimationLock + animLockDelay < Autorot.Cooldowns[CommonDefinitions.GCDGroup])
-                && (data.Condition == null || data.Condition());
+            var gcd = Autorot.Cooldowns[CommonDefinitions.GCDGroup] - delay;
+            if (data.Definition.CooldownGroup == CommonDefinitions.GCDGroup)
+            {
+                // TODO: how exactly should we support planned GCDs?..
+                return gcd <= 0 && data.Allowed(targetID);
+            }
+            else
+            {
+                return (allowGCDDelay || data.Definition.AnimationLock + animLockDelay <= gcd) && data.Allowed(targetID);
+            }
         }
     }
 }

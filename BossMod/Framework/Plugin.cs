@@ -121,9 +121,9 @@ namespace BossMod
 
             // TODO: ai and autorotation are currently somewhat tightly coupled, unfortunately
             _autorotation.UpdatePotentialTargets();
-            var target = _ai.UpdateBeforeRotation();
-            _autorotation.Update(target);
-            _ai.UpdateAfterRotation(target);
+            _ai.UpdateBeforeRotation();
+            _autorotation.Update();
+            _ai.UpdateAfterRotation();
 
             _broadcast.Update();
 

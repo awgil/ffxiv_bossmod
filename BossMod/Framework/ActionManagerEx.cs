@@ -1,4 +1,5 @@
 ﻿using Dalamud;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using System;
@@ -54,12 +55,17 @@ namespace BossMod
         public unsafe byte GT_uB8 => Utils.ReadField<byte>(_inst, 0xB8);
         public unsafe uint GT_uBC => Utils.ReadField<byte>(_inst, 0xBC);
 
+        public event EventHandler? PostUpdate;
+
         private unsafe ActionManager* _inst;
         private float _lastReqInitialAnimLock;
         private ushort _lastReqSequence;
 
         private unsafe delegate bool GetGroundTargetPositionDelegate(ActionManager* self, Vector3* outPos);
         private GetGroundTargetPositionDelegate _getGroundTargetPositionFunc;
+
+        private unsafe delegate void UpdateDelegate(ActionManager* self);
+        private Hook<UpdateDelegate> _updateHook;
 
         private unsafe delegate bool UseActionLocationDelegate(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation);
         private Hook<UseActionLocationDelegate> _useActionLocationHook;
@@ -91,6 +97,11 @@ namespace BossMod
             Service.Log($"[AMEx] GetGroundTargetPosition address = 0x{getGroundTargetPositionAddress:X}");
             _getGroundTargetPositionFunc = Marshal.GetDelegateForFunctionPointer<GetGroundTargetPositionDelegate>(getGroundTargetPositionAddress);
 
+            var updateAddress = Service.SigScanner.ScanText("48 8B C4 48 89 58 20 57 48 81 EC 90 00 00 00 48 8B 3D ?? ?? ?? ?? 48 8B D9 48 85 FF 0F 84 ?? ?? ?? ?? 48 89 68 08 48 8B CF 48 89 70 10 4C 89 70 18 0F 29 70 E8 44 0F 29 48 B8 44 0F 29 50 A8");
+            Service.Log($"[AMEx] Update address = 0x{updateAddress:X}");
+            _updateHook = Hook<UpdateDelegate>.FromAddress(updateAddress, UpdateDetour);
+            _updateHook.Enable();
+
             var useActionLocationAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 3C 01 0F 85 ?? ?? ?? ?? EB 46");
             Service.Log($"[AMEx] UseActionLocation address = 0x{useActionLocationAddress:X}");
             _useActionLocationHook = Hook<UseActionLocationDelegate>.FromAddress(useActionLocationAddress, UseActionLocationDetour);
@@ -111,6 +122,7 @@ namespace BossMod
             AllowGTQueueing = false;
             _processActionEffectPacketHook.Dispose();
             _useActionLocationHook.Dispose();
+            _updateHook.Dispose();
         }
 
         public unsafe Vector3? GetWorldPosUnderCursor()
@@ -132,6 +144,18 @@ namespace BossMod
         public unsafe bool UseAction(ActionID action, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
         {
             return _inst->UseAction((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, (long)targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
+        }
+
+        // skips queueing etc
+        public unsafe bool UseActionRaw(ActionID action, ulong targetID = GameObject.InvalidGameObjectId, Vector3 targetPos = new(), uint itemLocation = 0)
+        {
+            return UseActionLocationDetour(_inst, action.Type, action.ID, targetID, &targetPos, itemLocation);
+        }
+
+        private unsafe void UpdateDetour(ActionManager* self)
+        {
+            _updateHook.Original(self);
+            PostUpdate?.Invoke(this, EventArgs.Empty);
         }
 
         private unsafe bool UseActionLocationDetour(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation)
