@@ -95,6 +95,8 @@ namespace BossMod
 
         public void UpdateAutoStrategy(AutoAction strategy)
         {
+            if (_autoStrategy != strategy)
+                Service.Log($"[ARCA] Strategy set to {strategy}");
             _autoStrategy = strategy;
             _autoStrategyExpire = Autorot.WorldState.CurrentTime.AddSeconds(1.0f);
         }
@@ -178,7 +180,7 @@ namespace BossMod
             // let module determine best action according to current strategy
             if (_autoStrategy != AutoAction.None && _autoStrategyExpire < Autorot.WorldState.CurrentTime)
             {
-                Service.Log("[CA] Strategy expired");
+                Service.Log("[ARCA] Strategy expired");
                 _autoStrategy = AutoAction.None;
             }
             if (_autoStrategy == AutoAction.None)

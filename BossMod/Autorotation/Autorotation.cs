@@ -180,8 +180,9 @@ namespace BossMod
                 return; // nothing to use...
 
             var targetID = next.TargetID != 0 ? next.TargetID : GameObject.InvalidGameObjectId;
-            var res = am.UseActionRaw(next.Action, targetID, next.TargetPos, next.Action.Type == ActionType.Item ? 65535u : 0);
-            Log($"Auto-execute {next.Source} action {next.Action} @ {targetID:X} {Utils.Vec3String(next.TargetPos)} => {res}");
+            var status = am.GetActionStatus(next.Action, targetID);
+            var res = status == 0 ? am.UseActionRaw(next.Action, targetID, next.TargetPos, next.Action.Type == ActionType.Item ? 65535u : 0) : false;
+            Log($"Auto-execute {next.Source} action {next.Action} @ {targetID:X} {Utils.Vec3String(next.TargetPos)} => {res} {status}");
         }
 
         private void OnNetworkActionRequest(object? sender, Network.PendingAction action)

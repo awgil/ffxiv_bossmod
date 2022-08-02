@@ -141,6 +141,11 @@ namespace BossMod
             }
         }
 
+        public unsafe uint GetActionStatus(ActionID action, ulong target, bool a4 = true, bool a5 = true)
+        {
+            return _inst->GetActionStatus((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, (long)target, a4 ? 1u : 0, a5 ? 1u : 0);
+        }
+
         public unsafe bool UseAction(ActionID action, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
         {
             return _inst->UseAction((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, (long)targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
