@@ -38,6 +38,22 @@ namespace BossMod.WAR
             public bool Aggressive; // if true, we use buffs and stuff at last possible moment; otherwise we make sure to keep at least 1 GCD safety net
         }
 
+        // standard action replacements
+        public static AID GetFCAction(State state)
+        {
+            // TODO: consider what happens at L72-79, when we already have Chaotic Cyclone, but no IC...
+            return state.NascentChaosLeft > state.GCD && state.Unlocked(MinLevel.InnerChaos) ? AID.InnerChaos
+                : state.Unlocked(MinLevel.FellCleave) ? AID.FellCleave
+                : AID.InnerBeast;
+        }
+
+        public static AID GetDecimateAction(State state)
+        {
+            return state.NascentChaosLeft > state.GCD ? AID.ChaoticCyclone
+                : state.Unlocked(MinLevel.Decimate) ? AID.Decimate
+                : AID.SteelCyclone;
+        }
+
         public static int GaugeGainedFromAction(State state, AID action)
         {
             return action switch

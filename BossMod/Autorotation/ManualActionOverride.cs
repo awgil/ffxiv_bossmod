@@ -15,18 +15,39 @@ namespace BossMod
     // - trying to queue an oGCD action while it is already queued (double tapping) activates 'emergency mode': all preceeding queued actions are removed and this action is returned even if it would delay GCD
     class ManualActionOverride
     {
-        class Entry
+        public class Entry
         {
             public ActionID Action;
-            public ulong TargetID;
+            public Actor? Target;
             public Vector3 TargetPos;
-            public float AnimLock;
-            public int CooldownGroup;
-            public float AvailableAtCooldown;
-            public Func<ulong, bool>? Condition;
+            public ActionDefinition Definition;
+            public Func<Actor?, bool>? Condition;
             public DateTime ExpireAt;
 
-            public bool Allowed => Condition == null || Condition(TargetID);
+            public Entry(ActionID action, Actor? target, Vector3 targetPos, ActionDefinition definition, Func<Actor?, bool>? condition, DateTime expireAt)
+            {
+                Action = action;
+                Target = target;
+                TargetPos = targetPos;
+                Definition = definition;
+                Condition = condition;
+                ExpireAt = expireAt;
+            }
+
+            public bool Allowed(Actor player)
+            {
+                if (Definition.Range > 0)
+                {
+                    var to = Target?.Position ?? new WPos(TargetPos.X, TargetPos.Z);
+                    var distSq = (to - player.Position).LengthSq();
+                    var effRange = Definition.Range + player.HitboxRadius + (Target?.HitboxRadius ?? 0);
+                    if (distSq > effRange * effRange)
+                        return false;
+                }
+                return Condition == null || Condition(Target);
+            }
+
+            public bool Expired(DateTime now) => ExpireAt < now || (Target?.IsDestroyed ?? false);
         }
 
         private float[] _cooldowns; // assumed to be updated by external code
@@ -40,31 +61,41 @@ namespace BossMod
             _ws = ws;
         }
 
-        public void Push(ActionID action, ulong targetID, Vector3 targetPos, ActionDefinition def, Func<ulong, bool>? condition)
+        public void RemoveExpired()
+        {
+            if (_emergencyMode && _queue[0].Expired(_ws.CurrentTime))
+            {
+                Service.Log($"[MAO] Emergency {_queue[0].Action} expired");
+                _emergencyMode = false;
+            }
+            _queue.RemoveAll(CheckExpired);
+        }
+
+        public void Push(ActionID action, Actor? target, Vector3 targetPos, ActionDefinition def, Func<Actor?, bool>? condition)
         {
             bool isGCD = def.CooldownGroup == CommonDefinitions.GCDGroup;
             float expire = isGCD ? 1.0f : 3.0f;
             if (_cooldowns[def.CooldownGroup] - expire > def.CooldownAtFirstCharge)
             {
-                Service.Log($"[MAO] Ignoring {action} @ {targetID:X}, since it will expire before coming off cooldown");
+                Service.Log($"[MAO] Ignoring {action} @ {target}, since it will expire before coming off cooldown");
                 return;
             }
 
             var expireAt = _ws.CurrentTime.AddSeconds(expire);
-            var index = _queue.FindIndex(e => e.CooldownGroup == def.CooldownGroup);
+            var index = _queue.FindIndex(e => e.Definition.CooldownGroup == def.CooldownGroup);
             if (index < 0)
             {
-                Service.Log($"[MAO] Queueing {action} @ {targetID:X}");
-                _queue.Add(new() { Action = action, TargetID = targetID, TargetPos = targetPos, AnimLock = def.AnimationLock, CooldownGroup = def.CooldownGroup, AvailableAtCooldown = def.CooldownAtFirstCharge, Condition = condition, ExpireAt = expireAt });
+                Service.Log($"[MAO] Queueing {action} @ {target}");
+                _queue.Add(new(action, target, targetPos, def, condition, expireAt));
                 return;
             }
 
             var e = _queue[index];
-            if (e.Action != action || e.TargetID != targetID)
+            if (e.Action != action || e.Target != target)
             {
-                Service.Log($"[MAO] Replacing queued {e.Action} with {action} @ {targetID:X}");
+                Service.Log($"[MAO] Replacing queued {e.Action} with {action} @ {target}");
                 _queue.RemoveAt(index);
-                _queue.Add(new() { Action = action, TargetID = targetID, TargetPos = targetPos, AnimLock = def.AnimationLock, CooldownGroup = def.CooldownGroup, AvailableAtCooldown = def.CooldownAtFirstCharge, Condition = condition, ExpireAt = expireAt });
+                _queue.Add(new(action, target, targetPos, def, condition, expireAt));
             }
             else if (isGCD)
             {
@@ -76,31 +107,8 @@ namespace BossMod
                 Service.Log($"[MAO] Entering emergency mode for {e.Action}");
                 // spamming oGCD - enter emergency mode
                 _queue.Clear();
-                _queue.Add(new() { Action = action, TargetID = targetID, TargetPos = targetPos, AnimLock = def.AnimationLock, CooldownGroup = def.CooldownGroup, AvailableAtCooldown = def.CooldownAtFirstCharge, Condition = condition, ExpireAt = expireAt });
+                _queue.Add(new(action, target, targetPos, def, condition, expireAt));
                 _emergencyMode = true;
-            }
-        }
-
-        // note: this will remove expired entries
-        public (ActionID Action, ulong TargetID, Vector3 TargetPos, bool Emergency) Peek(float delay, float animLockDelay, bool allowGCDDelay)
-        {
-            // first remove all expired entries (and if 'emergency' entry is popped, oh well)
-            if (_emergencyMode && _queue[0].ExpireAt < _ws.CurrentTime)
-            {
-                Service.Log($"[MAO] Emergency {_queue[0].Action} expired");
-                _emergencyMode = false;
-            }
-            _queue.RemoveAll(CheckExpired);
-
-            var index = FindIndex(delay, animLockDelay, allowGCDDelay);
-            if (index >= 0)
-            {
-                var e = _queue[index];
-                return (e.Action, e.TargetID, e.TargetPos, _emergencyMode);
-            }
-            else
-            {
-                return (new(), 0, new(), _emergencyMode);
             }
         }
 
@@ -117,42 +125,38 @@ namespace BossMod
                 _emergencyMode = false;
         }
 
-        private int FindIndex(float delay, float animLockDelay, bool allowGCDDelay)
+        // note: this does not check condition/range, assume in emergency mode user knows what he's doing
+        public Entry? PeekEmergency() => _emergencyMode ? _queue[0] : null;
+
+        public Entry? PeekGCD()
         {
-            if (_emergencyMode)
-            {
-                // in emergency mode, return emergency action if off cd or nothing (and a flag that caller will use to skip looking for lower-priority actions)
-                var e = _queue[0];
-                return (_cooldowns[e.CooldownGroup] - delay <= e.AvailableAtCooldown) ? 0 : -1;
-            }
+            var player = _ws.Party.Player();
+            if (_emergencyMode || player == null)
+                return null;
+            var e = _queue.Find(e => e.Definition.CooldownGroup == CommonDefinitions.GCDGroup);
+            return e != null && e.Allowed(player) ? e : null;
+        }
 
-            // if off gcd, prioritize gcd always
-            var gcd = _cooldowns[CommonDefinitions.GCDGroup] - delay;
-            if (gcd <= 0)
-            {
-                var gcdIndex = _queue.FindIndex(e => e.CooldownGroup == CommonDefinitions.GCDGroup && e.Allowed);
-                if (gcdIndex >= 0)
-                    return gcdIndex;
-            }
+        // deadline is typically gcd minus anim-lock-delay
+        public Entry? PeekOGCD(float effAnimLock, float deadline)
+        {
+            var player = _ws.Party.Player();
+            return !_emergencyMode && player != null ? _queue.Find(e => CheckOGCD(e, player, effAnimLock, deadline)) : null;
+        }
 
-            // look for available oGCD
-            var maxOGCDAnimLock = allowGCDDelay ? float.MaxValue : gcd - animLockDelay;
-            if (maxOGCDAnimLock > 0)
-            {
-                var ogcdIndex = _queue.FindIndex(e => e.CooldownGroup != CommonDefinitions.GCDGroup && e.AnimLock <= maxOGCDAnimLock && (_cooldowns[e.CooldownGroup] - delay <= e.AvailableAtCooldown) && e.Allowed);
-                if (ogcdIndex >= 0)
-                    return ogcdIndex;
-            }
-
-            // nothing found
-            return -1;
+        private bool CheckOGCD(Entry e, Actor player, float effAnimLock, float deadline)
+        {
+            return e.Definition.CooldownGroup != CommonDefinitions.GCDGroup
+                && _cooldowns[e.Definition.CooldownGroup] - effAnimLock <= e.Definition.CooldownAtFirstCharge
+                && effAnimLock + e.Definition.AnimationLock <= deadline
+                && e.Allowed(player);
         }
 
         private bool CheckExpired(Entry e)
         {
-            if (e.ExpireAt < _ws.CurrentTime)
+            if (e.Expired(_ws.CurrentTime))
             {
-                Service.Log($"[MAO] Action {e.Action} @ {e.TargetID:X} expired");
+                Service.Log($"[MAO] Action {e.Action} @ {e.Target} expired");
                 return true;
             }
             return false;

@@ -10,31 +10,51 @@ namespace BossMod
     abstract class CommonActions : IDisposable
     {
         public enum Positional { Any, Flank, Rear }
-        public enum ActionSource { Automatic, Planned, Manual, ManualEmergency }
+        public enum ActionSource { Automatic, Planned, Manual, Emergency }
 
         public struct NextAction
         {
             public ActionID Action;
-            public ulong TargetID;
+            public Actor? Target;
             public Vector3 TargetPos;
+            public ActionDefinition Definition;
             public ActionSource Source;
+
+            public NextAction(ActionID action, Actor? target, Vector3 targetPos, ActionDefinition definition, ActionSource source)
+            {
+                Action = action;
+                Target = target;
+                TargetPos = targetPos;
+                Definition = definition;
+                Source = source;
+            }
         }
 
         public class SupportedAction
         {
             public ActionDefinition Definition;
             public bool IsGT;
-            public Func<ulong, bool>? Condition;
+            public Func<Actor?, bool>? Condition;
             public AutoAction PlaceholderForStrategy; // if set, attempting to execute this action would instead initiate auto-strategy
             public Func<ActionID>? TransformAction;
-            public Func<ulong, ulong>? TransformTarget;
-
-            public bool Allowed(ulong targetID) => Condition == null || Condition(targetID);
+            public Func<Actor?, Actor?>? TransformTarget;
 
             public SupportedAction(ActionDefinition definition, bool isGT)
             {
                 Definition = definition;
                 IsGT = isGT;
+            }
+
+            public bool Allowed(Actor player, Actor target)
+            {
+                if (Definition.Range > 0 && player != target)
+                {
+                    var distSq = (target.Position - player.Position).LengthSq();
+                    var effRange = Definition.Range + player.HitboxRadius + target.HitboxRadius;
+                    if (distSq > effRange * effRange)
+                        return false;
+                }
+                return Condition == null || Condition(target);
             }
         }
 
@@ -42,11 +62,10 @@ namespace BossMod
         public Dictionary<ActionID, SupportedAction> SupportedActions { get; init; } = new();
         public Positional PreferredPosition { get; protected set; } // implementation can update this as needed
         protected Autorotation Autorot;
-        protected bool AllowGCDDelay; // implementation can set this flag if desired
+        protected AutoAction AutoStrategy { get; private set; }
+        private DateTime _autoStrategyExpire;
         private QuestLockCheck _lock;
         private ManualActionOverride _mq;
-        private AutoAction _autoStrategy;
-        private DateTime _autoStrategyExpire;
 
         public SupportedAction SupportedSpell<AID>(AID aid) where AID : Enum => SupportedActions[ActionID.MakeSpell(aid)];
 
@@ -58,6 +77,24 @@ namespace BossMod
                 SupportedActions[aid] = new(def, aid.IsGroundTargeted());
             _lock = new(unlockData);
             _mq = new(autorot.Cooldowns, autorot.WorldState);
+        }
+
+        // this is called after worldstate update
+        public void UpdateExpiration()
+        {
+            _mq.RemoveExpired();
+            if (AutoStrategy != AutoAction.None && _autoStrategyExpire < Autorot.WorldState.CurrentTime)
+            {
+                Log("Strategy expired");
+                AutoStrategy = AutoAction.None;
+            }
+        }
+
+        // this is called from actionmanager's post-update callback
+        public void UpdateAutoState()
+        {
+            if (AutoStrategy != AutoAction.None)
+                UpdateInternalState(AutoStrategy);
         }
 
         public unsafe bool HaveItemInInventory(uint id)
@@ -95,13 +132,13 @@ namespace BossMod
 
         public void UpdateAutoStrategy(AutoAction strategy)
         {
-            if (_autoStrategy != strategy)
-                Service.Log($"[ARCA] Strategy set to {strategy}");
-            _autoStrategy = strategy;
-            _autoStrategyExpire = Autorot.WorldState.CurrentTime.AddSeconds(1.0f);
+            if (AutoStrategy != strategy)
+                Log($"Strategy set to {strategy}");
+            AutoStrategy = strategy;
+            _autoStrategyExpire = Autorot.WorldState.CurrentTime.AddSeconds(0.5f);
         }
 
-        public bool HandleUserActionRequest(ActionID action, ulong targetID, AutorotationConfig.GroundTargetingMode gtMode)
+        public bool HandleUserActionRequest(ActionID action, Actor? target, AutorotationConfig.GroundTargetingMode gtMode)
         {
             var supportedAction = SupportedActions.GetValueOrDefault(action);
             if (supportedAction == null)
@@ -134,34 +171,36 @@ namespace BossMod
                     var pos = ActionManagerEx.Instance!.GetWorldPosUnderCursor();
                     if (pos == null)
                         return false; // same as manual...
-                    _mq.Push(action, 0, pos.Value, supportedAction.Definition, supportedAction.Condition);
+                    _mq.Push(action, null, pos.Value, supportedAction.Definition, supportedAction.Condition);
                     return true;
                 }
             }
 
             if (supportedAction.TransformTarget != null)
             {
-                targetID = supportedAction.TransformTarget(targetID);
+                target = supportedAction.TransformTarget(target);
             }
-            _mq.Push(action, targetID, new(), supportedAction.Definition, supportedAction.Condition);
+            _mq.Push(action, target, new(), supportedAction.Definition, supportedAction.Condition);
             return true;
         }
 
-        // delay is 0 if we're getting an action to use, otherwise it can be larger (e.g. if we're showing next-action hint during animation lock)
-        public NextAction CalculateNextAction(float effAnimLock, bool moving, float animLockDelay)
+        // effective animation lock is 0 if we're getting an action to use, otherwise it can be larger (e.g. if we're showing next-action hint during animation lock)
+        public NextAction CalculateNextAction()
         {
-            // see if there is any action from manual queue that is to be executed
-            bool allowGCDDelay = AllowGCDDelay || _autoStrategy == AutoAction.None;
-            var mqAction = _mq.Peek(effAnimLock, animLockDelay, allowGCDDelay);
-            if (mqAction.Action)
-            {
-                return new() { Action = mqAction.Action, TargetID = mqAction.TargetID, TargetPos = mqAction.TargetPos, Source = mqAction.Emergency ? ActionSource.ManualEmergency : ActionSource.Manual };
-            }
-            if (mqAction.Emergency)
-            {
-                // we are waiting for emergency action to come off cooldown, do nothing for now
-                return new() { Source = ActionSource.ManualEmergency };
-            }
+            // check emergency mode
+            var mqEmergency = _mq.PeekEmergency();
+            if (mqEmergency != null)
+                return new(mqEmergency.Action, mqEmergency.Target, mqEmergency.TargetPos, mqEmergency.Definition, ActionSource.Emergency);
+
+            // see if we have any GCD (queued or automatic)
+            var mqGCD = _mq.PeekGCD();
+            var nextGCD = mqGCD != null ? new NextAction(mqGCD.Action, mqGCD.Target, mqGCD.TargetPos, mqGCD.Definition, ActionSource.Manual) : AutoStrategy != AutoAction.None ? CalculateAutomaticGCD() : new();
+            float ogcdDeadline = nextGCD.Action ? Autorot.Cooldowns[CommonDefinitions.GCDGroup] - Autorot.AnimLockDelay : float.MaxValue;
+
+            // search for any oGCDs that we can execute without delaying GCD
+            var mqOGCD = _mq.PeekOGCD(Autorot.EffAnimLock, ogcdDeadline);
+            if (mqOGCD != null)
+                return new(mqOGCD.Action, mqOGCD.Target, mqOGCD.TargetPos, mqOGCD.Definition, ActionSource.Manual);
 
             // see if there is anything from cooldown plan to be executed
             var cooldownPlan = Autorot.Bossmods.ActiveModule?.PlanExecution;
@@ -169,65 +208,50 @@ namespace BossMod
             {
                 // TODO: support non-self targeting
                 // TODO: support custom conditions in planner
-                var planTargetID = Player.InstanceID;
-                var (cpAction, cpTimeLeft) = cooldownPlan.ActiveActions(Autorot.Bossmods.ActiveModule!.StateMachine).Where(x => CanExecutePlannedAction(x.Action, planTargetID, effAnimLock, animLockDelay, allowGCDDelay)).MinBy(x => x.TimeLeft);
-                if (cpAction)
-                {
-                    return new() { Action = cpAction, TargetID = planTargetID, Source = ActionSource.Planned };
-                }
+                var planTarget = Player;
+                var cpAction = cooldownPlan.ActiveActions(Autorot.Bossmods.ActiveModule!.StateMachine).Where(x => CanExecutePlannedAction(x.Action, planTarget, x.Definition, Autorot.EffAnimLock, ogcdDeadline)).MinBy(x => x.TimeLeft);
+                if (cpAction.Action)
+                    return new(cpAction.Action, planTarget, new(), cpAction.Definition, ActionSource.Planned);
             }
 
-            // let module determine best action according to current strategy
-            if (_autoStrategy != AutoAction.None && _autoStrategyExpire < Autorot.WorldState.CurrentTime)
-            {
-                Service.Log("[ARCA] Strategy expired");
-                _autoStrategy = AutoAction.None;
-            }
-            if (_autoStrategy == AutoAction.None)
-                return new(); // nothing to do...
-
-            // TODO: reconsider...
-            var autoAction = CalculateNextAutomaticAction(_autoStrategy, GetCurrentTargetID(), effAnimLock, moving, animLockDelay);
-            if (!autoAction.Action)
-                return new();
-
-            var data = SupportedActions[autoAction.Action];
-            bool ready = Autorot.Cooldowns[data.Definition.CooldownGroup] - effAnimLock <= data.Definition.CooldownAtFirstCharge;
-            return ready ? autoAction : new();
+            // note: we intentionally don't check that automatic oGCD really does not clip GCD - we provide utilities that allow module checking that, but also allow overriding if needed
+            var nextOGCD = AutoStrategy != AutoAction.None ? CalculateAutomaticOGCD(ogcdDeadline) : new();
+            return nextOGCD.Action ? nextOGCD : nextGCD;
         }
 
-        public void NotifyActionExecuted(ActionID action, ulong target)
+        public void NotifyActionExecuted(ActionID action, Actor? target)
         {
             _mq.Pop(action);
+            OnActionExecuted(action, target);
         }
 
-        public void DrawOverlay()
+        public void NotifyActionSucceeded(ActorCastEvent ev)
         {
-            var am = ActionManagerEx.Instance!;
-            var effLock = am.AnimationLock + am.CastTimeRemaining;
-            var animLockDelay = MathF.Min(MathF.Min(am.AnimationLockDelayMax, am.AnimationLockDelayAverage), 0.1f);
-            var next = CalculateNextAction(effLock, false, animLockDelay);
-            ImGui.TextUnformatted($"Next: {next.Action} ({next.Source})");
-            if (_autoStrategy != AutoAction.None)
-                ImGui.TextUnformatted($"Next auto: {CalculateNextAutomaticAction(_autoStrategy, GetCurrentTargetID(), effLock, false, animLockDelay).Action}");
-            //ImGui.TextUnformatted(_strategy.ToString());
-            //ImGui.TextUnformatted($"Raidbuffs: {_state.RaidBuffsLeft:f2}s left, next in {_strategy.RaidBuffsIn:f2}s");
-            //ImGui.TextUnformatted($"Downtime: {_strategy.FightEndIn:f2}s, pos-lock: {_strategy.PositionLockIn:f2}");
-            ImGui.TextUnformatted($"GCD={Autorot.Cooldowns[CommonDefinitions.GCDGroup]:f3}, AnimLock={am.AnimationLock + am.CastTimeRemaining:f3}+{animLockDelay:f3}");
+            OnActionSucceeded(ev);
         }
 
         public abstract void Dispose();
-        public abstract NextAction CalculateNextAutomaticAction(AutoAction strategy, ulong primaryTargetID, float effAnimLock, bool moving, float animLockDelay);
+        protected abstract void UpdateInternalState(AutoAction strategy);
+        protected abstract NextAction CalculateAutomaticGCD();
+        protected abstract NextAction CalculateAutomaticOGCD(float deadline);
+        protected abstract void OnActionExecuted(ActionID action, Actor? target);
+        protected abstract void OnActionSucceeded(ActorCastEvent ev);
+
+        protected NextAction MakeResult(ActionID action, Actor target)
+        {
+            var data = SupportedActions[action];
+            return data.Allowed(Player, target) ? new(action, target, new(), data.Definition, ActionSource.Automatic) : new();
+        }
 
         // fill common state properties
-        protected unsafe void FillCommonPlayerState(CommonRotation.PlayerState s, float effAnimLock, float animLockDelay)
+        protected unsafe void FillCommonPlayerState(CommonRotation.PlayerState s)
         {
             var am = ActionManagerEx.Instance!;
             var pc = Service.ClientState.LocalPlayer;
             s.Level = _lock.AdjustLevel(pc?.Level ?? 0);
             s.CurMP = pc?.CurrentMp ?? 0;
-            s.AnimationLock = effAnimLock;
-            s.AnimationLockDelay = animLockDelay;
+            s.AnimationLock = Autorot.EffAnimLock;
+            s.AnimationLockDelay = Autorot.AnimLockDelay;
             s.ComboTimeLeft = am.ComboTimeLeft;
             s.ComboLastAction = am.ComboLastMove;
 
@@ -253,36 +277,32 @@ namespace BossMod
         }
 
         // smart targeting utility: return target (if friendly) or mouseover (if friendly) or null (otherwise)
-        protected ulong SmartTargetFriendly(ulong primaryTarget)
+        protected Actor? SmartTargetFriendly(Actor? primaryTarget)
         {
-            var target = Autorot.WorldState.Actors.Find(primaryTarget);
-            if (target?.Type is ActorType.Player or ActorType.Chocobo)
+            if (primaryTarget?.Type is ActorType.Player or ActorType.Chocobo)
                 return primaryTarget;
 
-            target = Autorot.WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
-            if (target?.Type is ActorType.Player or ActorType.Chocobo)
-                return target.InstanceID;
+            var mouseoverTarget = Autorot.WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
+            if (mouseoverTarget?.Type is ActorType.Player or ActorType.Chocobo)
+                return mouseoverTarget;
 
-            return 0;
+            return null;
         }
 
         // smart targeting utility: return mouseover (if hostile and allowed) or target (otherwise)
-        protected ulong SmartTargetHostile(ulong primaryTarget)
+        protected Actor? SmartTargetHostile(Actor? primaryTarget)
         {
-            var target = Autorot.WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
-            if (target?.Type == ActorType.Enemy && !target.IsAlly)
-                return target.InstanceID;
+            var mouseoverTarget = Autorot.WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
+            if (mouseoverTarget?.Type == ActorType.Enemy && !mouseoverTarget.IsAlly)
+                return mouseoverTarget;
 
             return primaryTarget;
         }
 
         // smart targeting utility: return target (if friendly) or mouseover (if friendly) or other tank (if available) or null (otherwise)
-        protected ulong SmartTargetCoTank(ulong primaryTarget)
+        protected Actor? SmartTargetCoTank(Actor? primaryTarget)
         {
-            var target = SmartTargetFriendly(primaryTarget);
-            if (target != 0)
-                return target;
-            return Autorot.WorldState.Party.WithoutSlot().Exclude(Player).FirstOrDefault(a => a.Role == Role.Tank)?.InstanceID ?? 0;
+            return SmartTargetFriendly(primaryTarget) ?? Autorot.WorldState.Party.WithoutSlot().Exclude(Player).FirstOrDefault(a => a.Role == Role.Tank);
         }
 
         protected void Log(string message)
@@ -291,30 +311,13 @@ namespace BossMod
                 Service.Log($"[AR] [{GetType().Name}] {message}");
         }
 
-        private unsafe ulong GetCurrentTargetID()
+        private bool CanExecutePlannedAction(ActionID action, Actor target, ActionDefinition definition, float effAnimLock, float deadline)
         {
-            // this emulates TargetSystem.GetCurrentTargetID, however it correctly preserves bit in high dword (TODO consider just fixing stuff...)
-            var targetSystem = FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance();
-            if (targetSystem->SoftTarget != null)
-                return (ulong)(long)targetSystem->SoftTarget->GetObjectID();
-            if (targetSystem->Target != null)
-                return (ulong)(long)targetSystem->Target->GetObjectID();
-            return GameObject.InvalidGameObjectId;
-        }
-
-        private bool CanExecutePlannedAction(ActionID action, ulong targetID, float delay, float animLockDelay, bool allowGCDDelay)
-        {
-            var data = SupportedActions[action];
-            var gcd = Autorot.Cooldowns[CommonDefinitions.GCDGroup] - delay;
-            if (data.Definition.CooldownGroup == CommonDefinitions.GCDGroup)
-            {
-                // TODO: how exactly should we support planned GCDs?..
-                return gcd <= 0 && data.Allowed(targetID);
-            }
-            else
-            {
-                return (allowGCDDelay || data.Definition.AnimationLock + animLockDelay <= gcd) && data.Allowed(targetID);
-            }
+            // TODO: planned GCDs?..
+            return definition.CooldownGroup != CommonDefinitions.GCDGroup
+                && Autorot.Cooldowns[definition.CooldownGroup] - effAnimLock <= definition.CooldownAtFirstCharge
+                && effAnimLock + definition.AnimationLock <= deadline
+                && SupportedActions[action].Allowed(Player, target);
         }
     }
 }

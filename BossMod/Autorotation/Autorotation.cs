@@ -53,8 +53,13 @@ namespace BossMod
         public BossModuleManager Bossmods => _bossmods;
         public WorldState WorldState => _bossmods.WorldState;
         public CommonActions? ClassActions => _classActions;
-        public List<Actor> PotentialTargets = new();
         public float[] Cooldowns = new float[ActionManagerEx.NumCooldownGroups];
+
+        public Actor? PrimaryTarget;
+        public List<Actor> PotentialTargets = new();
+        public bool Moving => _inputOverride.IsMoving(); // TODO: reconsider
+        public float EffAnimLock => ActionManagerEx.Instance!.AnimationLock + ActionManagerEx.Instance!.CastTimeRemaining;
+        public float AnimLockDelay => MathF.Min(MathF.Min(ActionManagerEx.Instance!.AnimationLockDelayMax, ActionManagerEx.Instance!.AnimationLockDelayAverage), 0.1f);
 
         public unsafe Autorotation(Network network, BossModuleManager bossmods, InputOverride inputOverride)
         {
@@ -90,6 +95,7 @@ namespace BossMod
 
         public void UpdatePotentialTargets()
         {
+            PrimaryTarget = WorldState.Actors.Find(GetCurrentTargetID());
             PotentialTargets.Clear();
             PotentialTargets.AddRange(WorldState.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead && a.InCombat));
         }
@@ -121,10 +127,11 @@ namespace BossMod
                 _classActions?.Dispose();
                 _classActions = classType != null ? (CommonActions?)Activator.CreateInstance(classType, this, player) : null;
             }
+            _classActions?.UpdateExpiration();
 
             if (_completedCast != null)
             {
-                //_classActions?.NotifyCast(); ???
+                _classActions?.NotifyActionSucceeded(_completedCast);
                 _completedCast = null;
             }
 
@@ -138,7 +145,7 @@ namespace BossMod
             bool showUI = _classActions != null && _config.ShowUI;
             if (showUI && _ui == null)
             {
-                _ui = WindowManager.CreateWindow("Autorotation", () => _classActions?.DrawOverlay(), () => { }, () => true);
+                _ui = WindowManager.CreateWindow("Autorotation", DrawOverlay, () => { }, () => true);
                 _ui.SizeHint = new(100, 100);
                 _ui.MinSize = new(100, 100);
                 _ui.Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
@@ -161,28 +168,57 @@ namespace BossMod
             return player != null ? PotentialTargetsInRange(player.Position, radius) : Enumerable.Empty<Actor>();
         }
 
+        private unsafe ulong GetCurrentTargetID()
+        {
+            // this emulates TargetSystem.GetCurrentTargetID, however it correctly preserves bit in high dword (TODO consider just fixing stuff...)
+            var targetSystem = FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance();
+            if (targetSystem->SoftTarget != null)
+                return (ulong)(long)targetSystem->SoftTarget->GetObjectID();
+            if (targetSystem->Target != null)
+                return (ulong)(long)targetSystem->Target->GetObjectID();
+            return 0;
+        }
+
+        private void DrawOverlay()
+        {
+            if (_classActions == null)
+                return;
+            var next = _classActions.CalculateNextAction();
+            ImGui.TextUnformatted($"Next: {next.Action} ({next.Source})");
+            //ImGui.TextUnformatted(_strategy.ToString());
+            //ImGui.TextUnformatted($"Raidbuffs: {_state.RaidBuffsLeft:f2}s left, next in {_strategy.RaidBuffsIn:f2}s");
+            //ImGui.TextUnformatted($"Downtime: {_strategy.FightEndIn:f2}s, pos-lock: {_strategy.PositionLockIn:f2}");
+            ImGui.TextUnformatted($"GCD={Cooldowns[CommonDefinitions.GCDGroup]:f3}, AnimLock={EffAnimLock:f3}+{AnimLockDelay:f3}");
+        }
+
         private void OnActionManagerUpdate(object? sender, EventArgs args)
         {
             if (_classActions == null)
                 return; // disabled
 
+            // update cooldowns and , so that correct decision can be made
             var am = ActionManagerEx.Instance!;
-            if (am.AnimationLock != 0 || am.CastTimeRemaining != 0)
-                return; // casting/under animation lock, do nothing for now - we'll retry on future update anyway
-
-            // update cooldowns, so that correct decision can be made
             am.GetCooldowns(Cooldowns);
+            _classActions.UpdateAutoState();
 
-            bool moving = _inputOverride.IsMoving(); // TODO: reconsider
-            var animLockDelay = MathF.Min(MathF.Min(am.AnimationLockDelayMax, am.AnimationLockDelayAverage), 0.1f);
-            var next = _classActions.CalculateNextAction(0, moving, animLockDelay);
-            if (!next.Action)
-                return; // nothing to use...
+            if (EffAnimLock > 0)
+                return; // casting/under animation lock - do nothing for now, we'll retry on future update anyway
 
-            var targetID = next.TargetID != 0 ? next.TargetID : GameObject.InvalidGameObjectId;
+            var next = _classActions.CalculateNextAction();
+            if (!next.Action || Cooldowns[next.Definition.CooldownGroup] > next.Definition.CooldownAtFirstCharge)
+                return; // nothing to use, or action is still on cooldown
+
+            var targetID = next.Target?.InstanceID ?? GameObject.InvalidGameObjectId;
             var status = am.GetActionStatus(next.Action, targetID);
-            var res = status == 0 ? am.UseActionRaw(next.Action, targetID, next.TargetPos, next.Action.Type == ActionType.Item ? 65535u : 0) : false;
-            Log($"Auto-execute {next.Source} action {next.Action} @ {targetID:X} {Utils.Vec3String(next.TargetPos)} => {res} {status}");
+            if (status != 0)
+            {
+                Log($"Can't execute {next.Source} action {next.Action} @ {targetID:X}: status {status} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.LogMessage>(status)?.Text}'");
+                return;
+            }
+
+            var res = am.UseActionRaw(next.Action, targetID, next.TargetPos, next.Action.Type == ActionType.Item ? 65535u : 0);
+            Log($"Auto-execute {next.Source} action {next.Action} @ {targetID:X} {Utils.Vec3String(next.TargetPos)} => {res}");
+            _classActions.NotifyActionExecuted(next.Action, next.Target);
         }
 
         private void OnNetworkActionRequest(object? sender, Network.PendingAction action)
@@ -305,7 +341,7 @@ namespace BossMod
             var action = new ActionID(actionType, actionID);
             //Service.Log($"UA: {action} @ {targetID:X}: {a4} {a5} {a6} {a7}");
 
-            if (callType != 0 || _classActions == null || !_classActions.HandleUserActionRequest(action, targetID, _config.GTMode))
+            if (callType != 0 || _classActions == null || !_classActions.HandleUserActionRequest(action, WorldState.Actors.Find(targetID), _config.GTMode))
             {
                 // unsupported action - pass to hooked function
                 return _useActionHook.Original(self, actionType, actionID, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);

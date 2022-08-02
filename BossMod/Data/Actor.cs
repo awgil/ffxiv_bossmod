@@ -140,5 +140,7 @@ namespace BossMod
 
         public ActorStatus? FindStatus<SID>(SID sid) where SID : Enum => FindStatus((uint)(object)sid);
         public ActorStatus? FindStatus<SID>(SID sid, ulong source) where SID : Enum => FindStatus((uint)(object)sid, source);
+
+        public override string ToString() => $"{OID:X} '{Name}' <{InstanceID:X}>";
     }
 }

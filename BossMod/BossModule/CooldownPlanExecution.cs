@@ -112,7 +112,7 @@ namespace BossMod
                 return s.Vulnerable.Transition.Value.EstimatedTime - sm!.TimeSinceTransitionClamped;
         }
 
-        public IEnumerable<(ActionID Action, float TimeLeft)> ActiveActions(StateMachine sm)
+        public IEnumerable<(ActionID Action, ActionDefinition Definition, float TimeLeft)> ActiveActions(StateMachine sm)
         {
             var progress = sm.TimeSinceTransitionClamped;
             var stateData = FindStateData(sm.ActiveState);
@@ -121,7 +121,7 @@ namespace BossMod
                 var activeWindow = plan.ActivationWindows.FindIndex(w => w.Start <= progress && w.End > progress);
                 if (activeWindow != -1)
                 {
-                    yield return (plan.ID, plan.ActivationWindows[activeWindow].End - progress);
+                    yield return (plan.ID, plan.Definition, plan.ActivationWindows[activeWindow].End - progress);
                 }
             }
         }

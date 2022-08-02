@@ -26,7 +26,7 @@ namespace BossMod
             public float PotionCD => Cooldowns[CommonDefinitions.PotionCDGroup]; // variable max
             public float CD<CDGroup>(CDGroup group) where CDGroup : Enum => Cooldowns[(int)(object)group];
 
-            public float OGCDDelay => 0.1f; // TODO: consider returning AnimationLockDelay instead...
+            public float OGCDDelay => AnimationLockDelay;
             public float OGCDSlotLength => 0.6f + OGCDDelay; // most actions have 0.6 anim lock delay, which allows double-weaving oGCDs between GCDs
             public float DoubleWeaveWindowEnd => GCD - OGCDSlotLength; // amount of time left until last possible moment to weave second oGCD
             public bool CanDoubleWeave => AnimationLock + OGCDSlotLength <= DoubleWeaveWindowEnd; // is it still possible to double-weave without delaying GCD?

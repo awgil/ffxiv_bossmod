@@ -7,6 +7,7 @@ namespace BossMod.WAR
     class Actions : CommonActions
     {
         private WARConfig _config;
+        private bool _aoe;
         private Rotation.State _state;
         private Rotation.Strategy _strategy;
 
@@ -22,8 +23,8 @@ namespace BossMod.WAR
             };
 
             SupportedSpell(AID.Equilibrium).Condition = _ => Player.HP.Cur < Player.HP.Max;
-            SupportedSpell(AID.Reprisal).Condition = _ => AllowReprisal();
-            SupportedSpell(AID.Interject).Condition = AllowInterject;
+            SupportedSpell(AID.Reprisal).Condition = _ => Autorot.PotentialTargetsInRangeFromPlayer(5).Any(); // TODO: consider checking only target?..
+            SupportedSpell(AID.Interject).Condition = target => target?.CastInfo?.Interruptible ?? false;
             // TODO: SIO - check that raid is in range?..
             // TODO: Provoke - check that not already MT?
             // TODO: Shirk - check that hate is close to MT?..
@@ -37,16 +38,48 @@ namespace BossMod.WAR
             _config.Modified -= OnConfigModified;
         }
 
-        public override NextAction CalculateNextAutomaticAction(AutoAction strategy, ulong primaryTargetID, float effAnimLock, bool moving, float animLockDelay)
+        protected override void UpdateInternalState(AutoAction strategy)
         {
-            UpdatePlayerState(effAnimLock, animLockDelay);
+            _aoe = (AutoStrategy & AutoAction.AOEDamage) != 0; // TODO: take potential targets in account instead...
+            UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
-            return new() { Action = Rotation.GetNextBestAction(_state, _strategy, (strategy & AutoAction.AOEDamage) != 0), TargetID = primaryTargetID };
         }
 
-        private void UpdatePlayerState(float effAnimLock, float animLockDelay)
+        protected override NextAction CalculateAutomaticGCD()
         {
-            FillCommonPlayerState(_state, effAnimLock, animLockDelay);
+            if (Autorot.PrimaryTarget == null)
+                return new();
+            var aid = Rotation.GetNextBestGCD(_state, _strategy, _aoe);
+            return MakeResult(ActionID.MakeSpell(aid), Autorot.PrimaryTarget);
+        }
+
+        protected override NextAction CalculateAutomaticOGCD(float deadline)
+        {
+            if (Autorot.PrimaryTarget == null)
+                return new();
+
+            // TODO: refactor... at very least replace window-end with deadline (difference is how lock-delay is accounted)
+            ActionID res = new();
+            if (_state.CanDoubleWeave) // first ogcd slot
+                res = Rotation.GetNextBestOGCD(_state, _strategy, _state.DoubleWeaveWindowEnd, _aoe);
+            if (!res && _state.CanSingleWeave) // second/only ogcd slot
+                res = Rotation.GetNextBestOGCD(_state, _strategy, _state.GCD, _aoe);
+            return res ? MakeResult(res, Autorot.PrimaryTarget) : new();
+        }
+
+        protected override void OnActionExecuted(ActionID action, Actor? target)
+        {
+            Log($"Executed {action} @ {target} [{_state}]");
+        }
+
+        protected override void OnActionSucceeded(ActorCastEvent ev)
+        {
+            Log($"Succeeded {ev.Action} @ {ev.MainTargetID:X} [{_state}]");
+        }
+
+        private void UpdatePlayerState()
+        {
+            FillCommonPlayerState(_state);
 
             _state.Gauge = Service.JobGauges.Get<WARGauge>().BeastGauge;
 
@@ -76,29 +109,40 @@ namespace BossMod.WAR
 
         private void OnConfigModified(object? sender, EventArgs args)
         {
+            // IB/FC/IC is a single button, as is SteelCyclone/Decimate/ChaoticCyclone, as is Berserk/IR, as is RawIntuition/Bloodwhetting
+            SupportedSpell(AID.InnerBeast).TransformAction = SupportedSpell(AID.FellCleave).TransformAction = SupportedSpell(AID.InnerChaos).TransformAction = () => ActionID.MakeSpell(Rotation.GetFCAction(_state));
+            SupportedSpell(AID.SteelCyclone).TransformAction = SupportedSpell(AID.Decimate).TransformAction = SupportedSpell(AID.ChaoticCyclone).TransformAction = () => ActionID.MakeSpell(Rotation.GetDecimateAction(_state));
+            SupportedSpell(AID.Berserk).TransformAction = SupportedSpell(AID.Berserk).TransformAction = () => ActionID.MakeSpell(_state.Unlocked(MinLevel.InnerRelease) ? AID.InnerRelease : AID.Berserk);
+            SupportedSpell(AID.RawIntuition).TransformAction = SupportedSpell(AID.Bloodwhetting).TransformAction = () => ActionID.MakeSpell(_state.Unlocked(MinLevel.Bloodwhetting) ? AID.Bloodwhetting : AID.RawIntuition);
+
+            // self-targeted spells
+            SupportedSpell(AID.Overpower).TransformTarget = SupportedSpell(AID.MythrilTempest).TransformTarget
+                = SupportedSpell(AID.SteelCyclone).TransformTarget = SupportedSpell(AID.Decimate).TransformTarget = SupportedSpell(AID.ChaoticCyclone).TransformTarget
+                = SupportedSpell(AID.Infuriate).TransformTarget = SupportedSpell(AID.Orogeny).TransformTarget
+                = SupportedSpell(AID.Berserk).TransformTarget = SupportedSpell(AID.InnerRelease).TransformTarget
+                = SupportedSpell(AID.Rampart).TransformTarget = SupportedSpell(AID.Vengeance).TransformTarget = SupportedSpell(AID.ThrillOfBattle).TransformTarget
+                = SupportedSpell(AID.Equilibrium).TransformTarget = SupportedSpell(AID.Reprisal).TransformTarget = SupportedSpell(AID.ShakeItOff).TransformTarget
+                = SupportedSpell(AID.RawIntuition).TransformTarget = SupportedSpell(AID.Bloodwhetting).TransformTarget
+                = SupportedSpell(AID.ArmsLength).TransformTarget = SupportedSpell(AID.Defiance).TransformTarget
+                = _ => Player;
+
+            // placeholders
             SupportedSpell(AID.HeavySwing).PlaceholderForStrategy = _config.FullRotation ? AutoAction.GCDDamage | AutoAction.OGCDDamage : AutoAction.None;
             SupportedSpell(AID.Overpower).PlaceholderForStrategy = _config.FullRotation ? AutoAction.GCDDamage | AutoAction.OGCDDamage | AutoAction.AOEDamage : AutoAction.None;
+
+            // combo replacement
             SupportedSpell(AID.Maim).TransformAction = _config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextMaimComboAction(ComboLastMove)) : null;
             SupportedSpell(AID.StormEye).TransformAction = _config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextSTComboAction(ComboLastMove, AID.StormEye)) : null;
             SupportedSpell(AID.StormPath).TransformAction = _config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextSTComboAction(ComboLastMove, AID.StormPath)) : null;
             SupportedSpell(AID.MythrilTempest).TransformAction = _config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextAOEComboAction(ComboLastMove)) : null;
+
+            // smart targets
             SupportedSpell(AID.NascentFlash).TransformTarget = _config.SmartNascentFlashShirkTarget ? SmartTargetCoTank : null;
             SupportedSpell(AID.Shirk).TransformTarget = _config.SmartNascentFlashShirkTarget ? SmartTargetCoTank : null;
-            SupportedSpell(AID.Provoke).TransformTarget = _config.ProvokeMouseover ? SmartTargetHostile : null;
-            SupportedSpell(AID.Holmgang).TransformTarget = _config.HolmgangSelf ? _ => Player.InstanceID : null;
+            SupportedSpell(AID.Provoke).TransformTarget = _config.ProvokeMouseover ? SmartTargetHostile : null; // TODO: also interject/low-blow
+            SupportedSpell(AID.Holmgang).TransformTarget = _config.HolmgangSelf ? _ => Player : null; // TODO: otherwise smarttarget hostile or self...
         }
 
         private AID ComboLastMove => (AID)ActionManagerEx.Instance!.ComboLastMove;
-
-        // check whether any targetable enemies are in reprisal range (TODO: consider checking only target?..)
-        private bool AllowReprisal()
-        {
-            return Autorot.PotentialTargetsInRangeFromPlayer(5).Any();
-        }
-
-        private bool AllowInterject(ulong targetID)
-        {
-            return Autorot.WorldState.Actors.Find(targetID)?.CastInfo?.Interruptible ?? false;
-        }
     }
 }
