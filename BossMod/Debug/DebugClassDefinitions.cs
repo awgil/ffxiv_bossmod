@@ -150,12 +150,12 @@ namespace BossMod
                     var cg = action.CooldownGroup - 1;
                     if (cg == CommonDefinitions.GCDGroup)
                     {
-                        sb.Append($"SupportedActions.GCD(AID.{aidEnum}{animLockStr});\n");
+                        sb.Append($"SupportedActions.GCD(AID.{aidEnum}, {action.Range}{animLockStr});\n");
                     }
                     else
                     {
                         var cdgName = cd.CDGType?.GetEnumName(cg) ?? Utils.StringToIdentifier(action.Name);
-                        var firstArgsStr = $"AID.{aidEnum}, CDGroup.{cdgName}, {action.Recast100ms * 0.1f:f1}f";
+                        var firstArgsStr = $"AID.{aidEnum}, {action.Range}, CDGroup.{cdgName}, {action.Recast100ms * 0.1f:f1}f";
                         var charges = MaxChargesAtCap(action.RowId);
                         if (charges <= 1)
                             sb.Append($"SupportedActions.OGCD({firstArgsStr}{animLockStr});\n");

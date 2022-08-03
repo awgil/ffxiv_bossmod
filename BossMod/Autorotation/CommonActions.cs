@@ -135,7 +135,7 @@ namespace BossMod
             if (AutoStrategy != strategy)
                 Log($"Strategy set to {strategy}");
             AutoStrategy = strategy;
-            _autoStrategyExpire = Autorot.WorldState.CurrentTime.AddSeconds(0.5f);
+            _autoStrategyExpire = Autorot.WorldState.CurrentTime.AddSeconds(1.0f);
         }
 
         public bool HandleUserActionRequest(ActionID action, Actor? target, AutorotationConfig.GroundTargetingMode gtMode)
@@ -308,7 +308,7 @@ namespace BossMod
         protected void Log(string message)
         {
             if (Autorot.Config.Logging)
-                Service.Log($"[AR] [{GetType().Name}] {message}");
+                Service.Log($"[AR] [{GetType()}] {message}");
         }
 
         private bool CanExecutePlannedAction(ActionID action, Actor target, ActionDefinition definition, float effAnimLock, float deadline)
