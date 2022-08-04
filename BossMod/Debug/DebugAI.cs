@@ -40,7 +40,10 @@ namespace BossMod
             var player = _autorot.WorldState.Party.Player();
             var playerPos = player?.Position ?? new();
             var target = _autorot.WorldState.Actors.Find(player?.TargetID ?? 0);
-            _avoid.SetDesired(target?.Position, target?.Rotation ?? new(), _desiredRange, _desiredPositional);
+            if (target != null)
+                _avoid.SetDesired(target.Position, target.Rotation, _desiredRange, _desiredPositional);
+            else
+                _avoid.ClearDesired();
             var safe = player != null ? _avoid.Update(player) : null;
             ImGui.TextUnformatted($"Safespot: {safe} ({_avoid.SafeZone.ChildCount})");
 

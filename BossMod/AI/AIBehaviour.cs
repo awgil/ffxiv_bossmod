@@ -29,16 +29,12 @@ namespace BossMod.AI
             _avoidAOE.Dispose();
         }
 
-        public Actor? UpdateTargeting(Actor player, Actor master)
+        public Actor? Execute(Actor player, Actor master)
         {
-            if (_autoTarget)
-            {
-                return TargetingSelectBest(player);
-            }
-            else
-            {
-                return TargetingAssistMaster(player, master);
-            }
+            var primaryTarget = _autoTarget ? TargetingSelectBest(player) : TargetingAssistMaster(player, master);
+            UpdateState(player, master);
+            UpdateControl(player, master, primaryTarget);
+            return primaryTarget;
         }
 
         private Actor? TargetingSelectBest(Actor player)
@@ -87,12 +83,12 @@ namespace BossMod.AI
 
             Actor? healTarget = null;
             float healPrio = 0;
-            foreach (var p in _autorot.WorldState.Party.WithoutSlot(true))
+            foreach (var p in _autorot.WorldState.Party.WithoutSlot(false))
             {
-                if (p.IsDead || p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)))
+                if (p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)))
                 {
                     if (healPrio == 0)
-                        healTarget = p; // raise/esuna is lowest prio
+                        healTarget = p; // esuna is lowest prio
                 }
                 else if (p.HP.Cur < p.HP.Max * 0.8f)
                 {
@@ -107,7 +103,7 @@ namespace BossMod.AI
             return healTarget;
         }
 
-        public void Execute(Actor player, Actor master, Actor? primaryTarget)
+        private void UpdateState(Actor player, Actor master)
         {
             // keep master in focus
             bool masterChanged = Service.TargetManager.FocusTarget?.ObjectId != master.InstanceID;
@@ -136,42 +132,34 @@ namespace BossMod.AI
 
             _instantCastsOnly = masterIsMoving && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (_masterPrevPos - _masterMovementStart).LengthSq() > 100
                 || _ctrl.NaviTargetPos != null && (_ctrl.NaviTargetPos.Value - player.Position).LengthSq() > 1;
+        }
 
-            //var action = _passive ? new() : _autorot.ClassActions?.CalculateBestAction(player, primaryTarget, _instantCastsOnly) ?? new();
-            //var selfTargeted = IsSelfTargeted(action.Action);
-            //_ctrl.PlannedAction = action.Action;
-            //_ctrl.PlannedActionTarget = selfTargeted ? player : action.Target;
-            //if (!selfTargeted)
-            //{
-            //    // note: if target-of-target is player, don't try flanking, it's probably impossible... - unless target is currently casting
-            //    var positional = action.Positional;
-            //    if (action.Target != null && action.Target.TargetID == player.InstanceID && action.Target.CastInfo == null)
-            //        positional = CommonActions.Positional.Any;
-            //    _avoidAOE.SetDesired(action.Target?.Position, action.Target?.Rotation ?? new(), _ctrl.Range(action.Action) + player.HitboxRadius + action.Target?.HitboxRadius ?? 0, positional);
-            //}
+        private void UpdateControl(Actor player, Actor master, Actor? primaryTarget)
+        {
+            var strategy = AutoAction.None;
+            if (_autorot.ClassActions != null && !_passive && primaryTarget != null && !_ctrl.InCutscene)
+            {
+                strategy = primaryTarget.Type == ActorType.Player
+                    ? AutoAction.GCDHeal | AutoAction.OGCDHeal | AutoAction.AOEHeal
+                    : AutoAction.GCDDamage | AutoAction.OGCDDamage | AutoAction.AOEDamage;
+                if (_instantCastsOnly)
+                    strategy |= AutoAction.NoCast;
 
+                // note: that there is a 1-frame delay if target and/or strategy changes - we don't really care?..
+                // note: if target-of-target is player, don't try flanking, it's probably impossible... - unless target is currently casting
+                var positional = _autorot.ClassActions.PreferredPosition;
+                if (primaryTarget.TargetID == player.InstanceID && primaryTarget.CastInfo == null)
+                    positional = CommonActions.Positional.Any;
+                _avoidAOE.SetDesired(primaryTarget.Position, primaryTarget.Rotation, _autorot.ClassActions.PreferredRange + player.HitboxRadius + primaryTarget.HitboxRadius, positional);
+            }
+            else
+            {
+                _avoidAOE.ClearDesired();
+            }
+
+            _autorot.ClassActions?.UpdateAutoStrategy(strategy);
             var dest = _avoidAOE.Update(player);
-            //if (action.Action && action.Target != null)
-            //{
-            //    // TODO: improve movement logic; currently we always attempt to move to melee range, this is good for classes that have point-blank aoes
-            //    _ctrl.NaviTargetPos = null;
-            //    if (action.Target.InstanceID != player.InstanceID)
-            //    {
-            //        // max melee is 3 + src.hitbox + target.hitbox, max range is -0.5 that to allow for some navigation errors
-            //        // note: if target-of-target is player, don't try flanking, it's probably impossible...
-            //        var maxMelee = 3 + player.HitboxRadius + action.Target.HitboxRadius;
-            //        _ctrl.NaviTargetPos = action.Target.TargetID != player.InstanceID ? action.Positional switch
-            //        {
-            //            CommonActions.Positional.Flank => MoveToFlank(player, action.Target, maxMelee, 0.5f),
-            //            CommonActions.Positional.Rear => MoveToRear(player, action.Target, maxMelee, 0.5f),
-            //            _ => MoveToMelee(player, action.Target, maxMelee, 0.5f)
-            //        } : MoveToMelee(player, action.Target, maxMelee, 0.5f);
-            //    }
-            //    _ctrl.NaviTargetRot = _ctrl.NaviTargetPos != null ? (_ctrl.NaviTargetPos.Value - player.Position).Normalized() : null;
-            //    return;
-            //}
-
-            if (dest == null && /*!action.Action &&*/ master != player)
+            if (dest == null && strategy == AutoAction.None && master != player)
             {
                 // if there is no planned action and no aoe avoidance, just follow master...
                 var targetPos = master.Position;
@@ -185,8 +173,7 @@ namespace BossMod.AI
                 // sprint
                 if (toTarget.LengthSq() > 400 && !player.InCombat)
                 {
-                    _ctrl.PlannedAction = new ActionID(ActionType.Spell, 3);
-                    _ctrl.PlannedActionTarget = player;
+                    _autorot.ClassActions?.HandleUserActionRequest(CommonDefinitions.IDSprint, player);
                 }
 
                 //var cameraFacing = _ctrl.CameraFacing;
@@ -207,92 +194,6 @@ namespace BossMod.AI
             ImGui.Checkbox("Passively follow", ref _passive);
             ImGui.Checkbox("Auto select target", ref _autoTarget);
             ImGui.TextUnformatted($"Only-instant={_instantCastsOnly}, master standing for {(_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds:f1}");
-        }
-
-        //private static WPos? MoveToFlank(Actor player, Actor target, float maxRange, float safetyThreshold)
-        //{
-        //    var maxRangeSafe = maxRange - safetyThreshold;
-        //    var toPlayer = player.Position - target.Position;
-        //    var distance = toPlayer.Length();
-        //    toPlayer /= distance;
-        //    var targetDir = target.Rotation.ToDirection();
-        //    var cosAngle = targetDir.Dot(toPlayer);
-        //    if (Math.Abs(cosAngle) > 0.707106f)
-        //    {
-        //        // not on flank
-        //        bool goToLeft = targetDir.OrthoL().Dot(toPlayer) > 0;
-        //        bool isInFront = cosAngle > 0;
-        //        var segOrigin = target.Position + (goToLeft ? 1.4142f : -1.4142f) * safetyThreshold * targetDir.OrthoL();
-        //        var segDir = (target.Rotation + (goToLeft ? 1 : -1) * (isInFront ? 45 : 135).Degrees()).ToDirection();
-        //        // law of cosines, a = sqrt(2) * thr, gamma = 135 degrees, c = maxRange => c^ = a^2 + b^2 - 2abcos(gamma) = 2*thr^2 + b^2 + 4b*thr = (b+2*thr)^2 - 2*thr^2 => b = sqrt(c^2 + 2*thr^2) - 2*thr
-        //        var segMax = MathF.Sqrt(maxRangeSafe * maxRangeSafe + 2 * safetyThreshold * safetyThreshold) - 2 * safetyThreshold;
-        //        var segProj = Math.Clamp((player.Position - segOrigin).Dot(segDir), 0, segMax);
-        //        return segOrigin + segProj * segDir;
-        //    }
-        //    else if (distance > maxRange)
-        //    {
-        //        // on flank, but too far
-        //        return target.Position + toPlayer * maxRangeSafe;
-        //    }
-        //    else
-        //    {
-        //        return null;
-        //    }
-        //}
-
-        //private static WPos? MoveToRear(Actor player, Actor target, float maxRange, float safetyThreshold)
-        //{
-        //    var maxRangeSafe = maxRange - safetyThreshold;
-        //    var toPlayer = player.Position - target.Position;
-        //    var distance = toPlayer.Length();
-        //    toPlayer /= distance;
-        //    var targetDir = target.Rotation.ToDirection();
-        //    var cosAngle = targetDir.Dot(toPlayer);
-        //    if (cosAngle > -0.707107f)
-        //    {
-        //        // not on rear
-        //        bool goToLeft = targetDir.OrthoL().Dot(toPlayer) > 0;
-        //        var segOrigin = target.Position - 1.4142f * safetyThreshold * targetDir;
-        //        var segDir = (target.Rotation + (goToLeft ? 1 : -1) * 135.Degrees()).ToDirection();
-        //        // law of cosines, a = sqrt(2) * thr, gamma = 135 degrees, c = maxRange => c^ = a^2 + b^2 - 2abcos(gamma) = 2*thr^2 + b^2 + 4b*thr = (b+2*thr)^2 - 2*thr^2 => b = sqrt(c^2 + 2*thr^2) - 2*thr
-        //        var segMax = MathF.Sqrt(maxRangeSafe * maxRangeSafe + 2 * safetyThreshold * safetyThreshold) - 2 * safetyThreshold;
-        //        var segProj = Math.Clamp((player.Position - segOrigin).Dot(segDir), 0, segMax);
-        //        return segOrigin + segProj * segDir;
-        //    }
-        //    else if (distance > maxRange)
-        //    {
-        //        // on rear, but too far
-        //        return target.Position + toPlayer * maxRangeSafe;
-        //    }
-        //    else
-        //    {
-        //        return null;
-        //    }
-        //}
-
-        //private static WPos? MoveToMelee(Actor player, Actor target, float maxRange, float safetyThreshold)
-        //{
-        //    var maxRangeSafe = maxRange - safetyThreshold;
-        //    var toPlayer = player.Position - target.Position;
-        //    var distance = toPlayer.Length();
-        //    if (distance > maxRange)
-        //    {
-        //        return target.Position + toPlayer / distance * maxRangeSafe;
-        //    }
-        //    else
-        //    {
-        //        return null;
-        //    }
-        //}
-
-        private bool IsSelfTargeted(ActionID action)
-        {
-            if (!action)
-                return false;
-            if (action.Type != ActionType.Spell)
-                return true;
-            var data = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(action.ID);
-            return data != null && !data.CanTargetFriendly && !data.CanTargetHostile && !data.CanTargetParty;
         }
     }
 }

@@ -24,7 +24,7 @@ namespace BossMod
         {
             _ws = ws;
             _autorot = autorot;
-            _debugInput = new(inputOverride, autorot);
+            _debugInput = new(inputOverride, ws);
             _debugAI = new(autorot);
             _debugClassDefinitions = new(ws);
         }

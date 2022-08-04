@@ -20,7 +20,7 @@ namespace BossMod.AI
         public AIManager(InputOverride inputOverride, Autorotation autorot)
         {
             _autorot = autorot;
-            _controller = new(inputOverride, autorot);
+            _controller = new(inputOverride);
             _config = Service.Config.Get<AIConfig>();
             Service.ChatGui.ChatMessage += OnChatMessage;
         }
@@ -31,8 +31,7 @@ namespace BossMod.AI
             Service.ChatGui.ChatMessage -= OnChatMessage;
         }
 
-        // called before autorotation update, should return effective target (player's normal target, unless overridden)
-        public void UpdateBeforeRotation()
+        public void Update()
         {
             if (_autorot.WorldState.Party.ContentIDs[_masterSlot] == 0)
                 SwitchToIdle();
@@ -40,27 +39,13 @@ namespace BossMod.AI
             if (!_config.Enabled && _beh != null)
                 SwitchToIdle();
 
-            if (_beh != null)
-            {
-                var player = _autorot.WorldState.Party.Player();
-                var master = _autorot.WorldState.Party[_masterSlot];
-                if (player != null && master != null)
-                {
-                    var aiTarget = _beh.UpdateTargeting(player, master);
-                    if (aiTarget != null)
-                        _controller.SetTarget(aiTarget.InstanceID);
-                }
-            }
-        }
-
-        public void UpdateAfterRotation()
-        {
             var player = _autorot.WorldState.Party.Player();
             var master = _autorot.WorldState.Party[_masterSlot];
-            var target = _autorot.WorldState.Actors.Find(player?.TargetID ?? 0);
             if (_beh != null && player != null && master != null)
             {
-                _beh.Execute(player, master, target);
+                var target = _beh.Execute(player, master);
+                if (target != null)
+                    _controller.SetTarget(target.InstanceID);
             }
             else
             {
@@ -86,7 +71,7 @@ namespace BossMod.AI
         private void DrawOverlay()
         {
             ImGui.TextUnformatted($"AI: {(_beh != null ? "on" : "off")}, master={_autorot.WorldState.Party[_masterSlot]?.Name}");
-            ImGui.TextUnformatted($"Navi={_controller.NaviTargetPos}, action={_controller.PlannedAction}");
+            ImGui.TextUnformatted($"Navi={_controller.NaviTargetPos}");
             _beh?.DrawDebug();
             if (ImGui.Button("Reset"))
                 SwitchToIdle();

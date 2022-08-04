@@ -93,18 +93,15 @@ namespace BossMod
             _classActions?.Dispose();
         }
 
-        public void UpdatePotentialTargets()
-        {
-            PrimaryTarget = WorldState.Actors.Find(GetCurrentTargetID());
-            PotentialTargets.Clear();
-            PotentialTargets.AddRange(WorldState.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead && a.InCombat));
-        }
-
         public void Update()
         {
             ActionManagerEx.Instance!.AnimationLockDelayMax = _config.RemoveAnimationLockDelay ? 0 : float.MaxValue;
 
             var player = WorldState.Party.Player();
+            PrimaryTarget = WorldState.Actors.Find(player?.TargetID ?? 0);
+            PotentialTargets.Clear();
+            PotentialTargets.AddRange(WorldState.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead && a.InCombat));
+
             Type? classType = null;
             if (_config.Enabled && player != null)
             {
@@ -127,7 +124,8 @@ namespace BossMod
                 _classActions?.Dispose();
                 _classActions = classType != null ? (CommonActions?)Activator.CreateInstance(classType, this, player) : null;
             }
-            _classActions?.UpdateExpiration();
+
+            _classActions?.UpdateMainTick();
 
             if (_completedCast != null)
             {
@@ -168,17 +166,6 @@ namespace BossMod
             return player != null ? PotentialTargetsInRange(player.Position, radius) : Enumerable.Empty<Actor>();
         }
 
-        private unsafe ulong GetCurrentTargetID()
-        {
-            // this emulates TargetSystem.GetCurrentTargetID, however it correctly preserves bit in high dword (TODO consider just fixing stuff...)
-            var targetSystem = FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance();
-            if (targetSystem->SoftTarget != null)
-                return (ulong)(long)targetSystem->SoftTarget->GetObjectID();
-            if (targetSystem->Target != null)
-                return (ulong)(long)targetSystem->Target->GetObjectID();
-            return 0;
-        }
-
         private void DrawOverlay()
         {
             if (_classActions == null)
@@ -196,10 +183,10 @@ namespace BossMod
             if (_classActions == null)
                 return; // disabled
 
-            // update cooldowns and , so that correct decision can be made
+            // update cooldowns and autorotation implementation state, so that correct decision can be made
             var am = ActionManagerEx.Instance!;
             am.GetCooldowns(Cooldowns);
-            _classActions.UpdateAutoState();
+            _classActions.UpdateAMTick();
 
             if (EffAnimLock > 0)
                 return; // casting/under animation lock - do nothing for now, we'll retry on future update anyway
@@ -341,7 +328,7 @@ namespace BossMod
             var action = new ActionID(actionType, actionID);
             //Service.Log($"UA: {action} @ {targetID:X}: {a4} {a5} {a6} {a7}");
 
-            if (callType != 0 || _classActions == null || !_classActions.HandleUserActionRequest(action, WorldState.Actors.Find(targetID), _config.GTMode))
+            if (callType != 0 || _classActions == null || !_classActions.HandleUserActionRequest(action, WorldState.Actors.Find(targetID)))
             {
                 // unsupported action - pass to hooked function
                 return _useActionHook.Original(self, actionType, actionID, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);

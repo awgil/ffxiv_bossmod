@@ -108,7 +108,7 @@ namespace BossMod.AI
             _autoAOEs.Dispose();
         }
 
-        public void SetDesired(WPos? targetPosition, Angle targetRotation, float maxRange, CommonActions.Positional positional = CommonActions.Positional.Any)
+        public void SetDesired(WPos targetPosition, Angle targetRotation, float maxRange, CommonActions.Positional positional = CommonActions.Positional.Any)
         {
             if (_desiredTargetPos == targetPosition && _desiredTargetRot == targetRotation && _desiredMaxRange == maxRange && _desiredPositional == positional)
                 return;
@@ -116,7 +116,18 @@ namespace BossMod.AI
             _desiredTargetRot = targetRotation;
             _desiredMaxRange = maxRange;
             _desiredPositional = positional;
-            DesiredZone = targetPosition != null ? new Clip2D().Union(DesiredContour(targetPosition.Value, 0.5f)) : new();
+            DesiredZone = new Clip2D().Union(DesiredContour(targetPosition, 0.5f));
+        }
+
+        public void ClearDesired()
+        {
+            if (_desiredTargetPos == null)
+                return;
+            _desiredTargetPos = null;
+            _desiredTargetRot = new();
+            _desiredMaxRange = 0;
+            _desiredPositional = CommonActions.Positional.Any;
+            DesiredZone = new();
         }
 
         public WPos? Update(Actor player)

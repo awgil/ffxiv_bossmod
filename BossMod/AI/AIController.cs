@@ -50,47 +50,26 @@ namespace BossMod.AI
 
         public WPos? NaviTargetPos;
         public WDir? NaviTargetRot;
-        public ActionID PlannedAction;
-        public Actor? PlannedActionTarget;
         public bool AllowInterruptingCastByMovement;
-        public DateTime LastUsedActionTimestamp { get; private set; }
 
-        private Autorotation _autorot;
         private NaviAxis _axisForward;
         private NaviAxis _axisStrafe;
         private NaviAxis _axisRotate;
-        private unsafe FFXIVClientStructs.FFXIV.Client.Game.ActionManager* _actionManager = null;
 
         public bool InCutscene => Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78];
         public WDir CameraFacing => ((Camera.Instance?.CameraAzimuth ?? 0).Radians() + 180.Degrees()).ToDirection();
 
-        public unsafe AIController(InputOverride input, Autorotation autorot)
+        public unsafe AIController(InputOverride input)
         {
-            _autorot = autorot;
             _axisForward = new(input, VirtualKey.W, VirtualKey.S);
             _axisStrafe = new(input, VirtualKey.D, VirtualKey.A);
             _axisRotate = new(input, VirtualKey.LEFT, VirtualKey.RIGHT);
-            _actionManager = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
-        }
-
-        public unsafe float Cooldown(ActionID action)
-        {
-            var recastGroup = _actionManager->GetRecastGroup((int)action.Type, action.ID);
-            var recast = _actionManager->GetRecastGroupDetail(recastGroup);
-            return recast != null ? recast->Total - recast->Elapsed : 0;
-        }
-
-        public unsafe float Range(ActionID action)
-        {
-            return action.Type == ActionType.Spell ? FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionRange(action.ID) : 0;
         }
 
         public void Clear()
         {
             NaviTargetPos = null;
             NaviTargetRot = null;
-            PlannedAction = new();
-            PlannedActionTarget = null;
             AllowInterruptingCastByMovement = false;
         }
 
@@ -116,21 +95,6 @@ namespace BossMod.AI
                 return;
             }
 
-            bool actionReady = PlannedAction && Math.Max(Cooldown(PlannedAction), ActionManagerEx.Instance!.AnimationLock) < 0.1f && PlannedActionTarget != null && (PlannedActionTarget.Position - player.Position).Length() <= Range(PlannedAction) + player.HitboxRadius + PlannedActionTarget.HitboxRadius;
-            UpdateNavigation(player, actionReady);
-
-            var now = DateTime.Now;
-            if (actionReady && (now - LastUsedActionTimestamp).TotalMilliseconds > 100)
-            {
-                //_autorot.DisableReplacement = true;
-                //_actionManager->UseAction((FFXIVClientStructs.FFXIV.Client.Game.ActionType)PlannedAction.Type, PlannedAction.ID, (long)(PlannedActionTarget?.InstanceID ?? 0));
-                //_autorot.DisableReplacement = false;
-                LastUsedActionTimestamp = now;
-            }
-        }
-
-        private void UpdateNavigation(Actor player, bool actionReady)
-        {
             var cameraFacing = CameraFacing;
             if (NaviTargetRot != null && NaviTargetRot.Value.Dot(cameraFacing) < 0.996f) // ~5 degrees
             {
@@ -141,7 +105,7 @@ namespace BossMod.AI
                 _axisRotate.CurDirection = 0;
             }
 
-            bool forbidMovement = !AllowInterruptingCastByMovement && (actionReady && PlannedAction.IsCasted() || player.CastInfo != null && !player.CastInfo.EventHappened);
+            bool forbidMovement = !AllowInterruptingCastByMovement && player.CastInfo != null && !player.CastInfo.EventHappened;
             if (NaviTargetPos != null && !forbidMovement && (NaviTargetPos.Value - player.Position).LengthSq() > 0.04f)
             {
                 var delta = NaviTargetPos.Value - player.Position;

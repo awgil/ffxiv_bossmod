@@ -1,6 +1,4 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
-using ImGuiNET;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -61,6 +59,7 @@ namespace BossMod
         public Actor Player { get; init; }
         public Dictionary<ActionID, SupportedAction> SupportedActions { get; init; } = new();
         public Positional PreferredPosition { get; protected set; } // implementation can update this as needed
+        public float PreferredRange { get; protected set; } = 3; // implementation can update this as needed
         protected Autorotation Autorot;
         protected AutoAction AutoStrategy { get; private set; }
         private DateTime _autoStrategyExpire;
@@ -80,7 +79,7 @@ namespace BossMod
         }
 
         // this is called after worldstate update
-        public void UpdateExpiration()
+        public void UpdateMainTick()
         {
             _mq.RemoveExpired();
             if (AutoStrategy != AutoAction.None && _autoStrategyExpire < Autorot.WorldState.CurrentTime)
@@ -91,7 +90,7 @@ namespace BossMod
         }
 
         // this is called from actionmanager's post-update callback
-        public void UpdateAutoState()
+        public void UpdateAMTick()
         {
             if (AutoStrategy != AutoAction.None)
                 UpdateInternalState(AutoStrategy);
@@ -138,7 +137,7 @@ namespace BossMod
             _autoStrategyExpire = Autorot.WorldState.CurrentTime.AddSeconds(1.0f);
         }
 
-        public bool HandleUserActionRequest(ActionID action, Actor? target, AutorotationConfig.GroundTargetingMode gtMode)
+        public bool HandleUserActionRequest(ActionID action, Actor? target)
         {
             var supportedAction = SupportedActions.GetValueOrDefault(action);
             if (supportedAction == null)
@@ -163,10 +162,10 @@ namespace BossMod
             // this is a manual action
             if (supportedAction.IsGT)
             {
-                if (gtMode == AutorotationConfig.GroundTargetingMode.Manual)
+                if (Autorot.Config.GTMode == AutorotationConfig.GroundTargetingMode.Manual)
                     return false;
 
-                if (gtMode == AutorotationConfig.GroundTargetingMode.AtCursor)
+                if (Autorot.Config.GTMode == AutorotationConfig.GroundTargetingMode.AtCursor)
                 {
                     var pos = ActionManagerEx.Instance!.GetWorldPosUnderCursor();
                     if (pos == null)

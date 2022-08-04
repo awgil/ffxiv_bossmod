@@ -139,7 +139,7 @@ namespace UIDev
                     }
                 }
             }
-            return "";
+            return "D:\\installed\\SquareEnix\\FINAL FANTASY XIV - A Realm Reborn\\game\\sqpack";
         }
     }
 }

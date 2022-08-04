@@ -29,6 +29,7 @@ namespace BossMod
         public BossModuleConfig WindowConfig { get; init; }
         public MiniArena Arena { get; init; }
         public StateMachine StateMachine { get; private init; }
+        // TODO: this should be moved outside...
         public CooldownPlanningConfigNode? PlanConfig { get; init; }
         public CooldownPlanExecution? PlanExecution = null;
 

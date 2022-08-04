@@ -118,13 +118,8 @@ namespace BossMod
             Camera.Instance?.Update();
             _ws.Update(_prevUpdateTime);
             _bossmod.Update();
-
-            // TODO: ai and autorotation are currently somewhat tightly coupled, unfortunately
-            _autorotation.UpdatePotentialTargets();
-            _ai.UpdateBeforeRotation();
             _autorotation.Update();
-            _ai.UpdateAfterRotation();
-
+            _ai.Update();
             _broadcast.Update();
 
             bool uiHidden = Service.GameGui.GameUiHidden || Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.WatchingCutscene];
