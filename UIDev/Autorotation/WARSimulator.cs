@@ -376,6 +376,11 @@ namespace UIDev
             return mistake == Mistake.None ? "" : mistake.ToString();
         }
 
+        public string ActionString(ActionID action)
+        {
+            return action == CommonDefinitions.IDSprint ? "Sprint" : action.Type == ActionType.Item ? "StatPotion" : ((AID)action.ID).ToString();
+        }
+
         private void DrawActionRow(ActionID action, bool isGCD, Mistake mistake, float t, Rotation.State state, Rotation.Strategy strategy)
         {
             ImGui.TableNextRow();
@@ -383,7 +388,7 @@ namespace UIDev
 
             ImGui.TableNextColumn();
             ImGui.PushStyleColor(ImGuiCol.Text, state.RaidBuffsLeft > 0 ? 0xff00ff00 : 0xffffffff);
-            ImGui.TextUnformatted($"{(isGCD ? "" : "** ")}{Rotation.ActionShortString(action)}");
+            ImGui.TextUnformatted($"{(isGCD ? "" : "** ")}{ActionString(action)}");
             ImGui.PopStyleColor();
 
             ImGui.TableNextColumn(); ImGui.TextUnformatted($"{MistakeString(mistake)}");

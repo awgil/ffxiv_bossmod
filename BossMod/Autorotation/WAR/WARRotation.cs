@@ -382,11 +382,5 @@ namespace BossMod.WAR
                 res = ActionID.MakeSpell(GetNextBestGCD(state, strategy, aoe));
             return res;
         }
-
-        // short string for supported action
-        public static string ActionShortString(ActionID action)
-        {
-            return action == CommonDefinitions.IDSprint ? "Sprint" : action.Type == ActionType.Item ? "StatPotion" : ((AID)action.ID).ToString();
-        }
     }
 }
