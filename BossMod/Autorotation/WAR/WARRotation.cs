@@ -28,8 +28,6 @@ namespace BossMod.WAR
 
         // strategy configuration
         // many strategy decisions are represented as "need-something-in" counters; 0 means "use asap", >0 means "do not use unless value is larger than cooldown" (so 'infinity' means 'free to use')
-        // for planning, we typically use "windows" (as in, some CD has to be pressed from this point and up to this point);
-        // before "min point" counter is >0, between "min point" and "max point" it is == 0, after "max point" we switch to next planned action (assuming if we've missed the window, CD is no longer needed)
         public class Strategy : CommonRotation.Strategy
         {
             public float FirstChargeIn; // when do we need to use onslaught charge (0 means 'use asap if out of melee range', >0 means that we'll try to make sure 1 charge is available in this time)

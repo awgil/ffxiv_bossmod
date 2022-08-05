@@ -4,63 +4,6 @@
 //{
 //    public static class PLDRotation
 //    {
-//        public enum AID : uint
-//        {
-//            None = 0,
-
-//            // single target GCDs
-//            FastBlade = 9,
-//            RiotBlade = 15,
-//            RageOfHalone = 21,
-//            GoringBlade = 3538,
-//            RoyalAuthority = 3539,
-//            HolySpirit = 7384,
-//            Atonement = 16460,
-//            Confiteor = 16459,
-//            Expiacion = 25747,
-//            BladeOfFaith = 25748,
-//            BladeOfTruth = 25749,
-//            BladeOfValor = 25750,
-
-//            // aoe GCDs
-//            TotalEclipse = 7381,
-//            Prominence = 16457,
-//            HolyCircle = 16458,
-
-//            // oGCDs
-//            SpiritsWithin = 29,
-//            CircleOfScorn = 23,
-//            Intervene = 16461,
-
-//            // offsensive CDs
-//            FightOrFlight = 20,
-//            Requiescat = 7383,
-
-//            // defensive CDs
-//            Rampart = 7531,
-//            Sheltron = 3542,
-//            Sentinel = 17,
-//            Cover = 27,
-//            HolySheltron = 25746,
-//            HallowedGround = 30,
-//            Reprisal = 7535,
-//            PassageOfArms = 7385,
-//            DivineVeil = 3540,
-//            Intervention = 7382,
-//            ArmsLength = 7548,
-
-//            // misc
-//            Clemency = 3541,
-//            ShieldBash = 16,
-//            ShieldLob = 24,
-//            IronWill = 28,
-//            Provoke = 7533,
-//            Shirk = 7537,
-//            LowBlow = 7540,
-//            Interject = 7538,
-//        }
-//        public static ActionID IDStatPotion = new(ActionType.Item, 1036109); // hq grade 6 tincture of strength
-
 //        public enum SID : uint
 //        {
 //            None = 0,
@@ -221,12 +164,6 @@
 //            if (!res) // gcd
 //                res = ActionID.MakeSpell(GetNextBestGCD(state, strategy, aoe));
 //            return res;
-//        }
-
-//        // short string for supported action
-//        public static string ActionShortString(ActionID action)
-//        {
-//            return action == CommonDefinitions.IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
 //        }
 //    }
 //}
