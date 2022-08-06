@@ -11,7 +11,7 @@ namespace BossMod
 {
     public class ConfigRoot
     {
-        private const int _version = 4;
+        private const int _version = 5;
 
         public event EventHandler? Modified;
         private Dictionary<Type, ConfigNode> _nodes = new();
@@ -242,6 +242,27 @@ namespace BossMod
                 }
                 payload.Remove("BossMod.CooldownPlanManager");
             }
+            // v5: bloodwhetting -> raw intuition in cd planner, to support low-level content
+            if (version < 5)
+            {
+                Dictionary<string, string> renames = new();
+                renames[ActionID.MakeSpell(WAR.AID.Bloodwhetting).Raw.ToString()] = ActionID.MakeSpell(WAR.AID.RawIntuition).Raw.ToString();
+                foreach (var (k, config) in payload)
+                {
+                    var plans = config?["CooldownPlans"]?["WAR"]?["Available"] as JArray;
+                    if (plans != null)
+                    {
+                        foreach (var plan in plans)
+                        {
+                            var planAbilities = plan["PlanAbilities"] as JObject;
+                            if (planAbilities != null)
+                            {
+                                RenameKeys(planAbilities, renames);
+                            }
+                        }
+                    }
+                }
+            }
             return payload;
         }
 
@@ -261,6 +282,14 @@ namespace BossMod
                 result.Add(realTypeName, jChild);
             }
             json.Remove("__children__");
+        }
+
+        private static void RenameKeys(JObject map, Dictionary<string, string> rename)
+        {
+            JObject upd = new();
+            foreach (var (k, v) in map)
+                upd[rename.GetValueOrDefault(k, k)] = v;
+            map.Replace(upd);
         }
     }
 }

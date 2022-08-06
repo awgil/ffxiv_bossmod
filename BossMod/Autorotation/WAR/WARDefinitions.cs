@@ -166,9 +166,9 @@ namespace BossMod.WAR
             SupportedActions.OGCD(AID.Equilibrium, 0, CDGroup.Equilibrium, 60.0f).SetPlanningProperties(0, ActionCategory.SelfMitigation);
             SupportedActions.OGCD(AID.Reprisal, 0, CDGroup.Reprisal, 60.0f).SetPlanningProperties(10, ActionCategory.RaidMitigation);
             SupportedActions.OGCD(AID.ShakeItOff, 0, CDGroup.ShakeItOff, 90.0f).SetPlanningProperties(15, ActionCategory.RaidMitigation);
-            SupportedActions.OGCD(AID.RawIntuition, 0, CDGroup.Bloodwhetting, 25.0f).SetPlanningProperties(4);
+            SupportedActions.OGCD(AID.RawIntuition, 0, CDGroup.Bloodwhetting, 25.0f).SetPlanningProperties(4, ActionCategory.SelfMitigation);
             SupportedActions.OGCD(AID.NascentFlash, 30, CDGroup.Bloodwhetting, 25.0f).SetPlanningProperties(4);
-            SupportedActions.OGCD(AID.Bloodwhetting, 0, CDGroup.Bloodwhetting, 25.0f).SetPlanningProperties(4, ActionCategory.SelfMitigation);
+            SupportedActions.OGCD(AID.Bloodwhetting, 0, CDGroup.Bloodwhetting, 25.0f).SetPlanningProperties(4);
             SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).SetPlanningProperties(6, ActionCategory.SelfMitigation);
             SupportedActions.GCD(AID.Tomahawk, 20);
             SupportedActions.OGCD(AID.Defiance, 0, CDGroup.Defiance, 3.0f);
