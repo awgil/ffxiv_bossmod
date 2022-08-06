@@ -58,9 +58,10 @@ namespace BossMod
                 _arena.AddLine(playerPos, safe.Value, ArenaColor.Safe);
             _arena.End();
 
-            ImGui.BeginTable("targets", 6, ImGuiTableFlags.Resizable);
+            ImGui.BeginTable("targets", 7, ImGuiTableFlags.Resizable);
             ImGui.TableSetupColumn("Object");
             ImGui.TableSetupColumn("Rotation");
+            ImGui.TableSetupColumn("Radius");
             ImGui.TableSetupColumn("Dist from self");
             ImGui.TableSetupColumn("Dist from target");
             ImGui.TableSetupColumn("Cast");
@@ -70,6 +71,7 @@ namespace BossMod
             {
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"{actor.OID:X} '{actor.Name} ({actor.InstanceID:X})");
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{actor.HitboxRadius:f1}");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(actor.Rotation.ToString());
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(player != null ? $"{(actor.Position - player.Position).Length():f3}" : "---");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(target != null ? $"{(actor.Position - target.Position).Length():f3}" : "---");

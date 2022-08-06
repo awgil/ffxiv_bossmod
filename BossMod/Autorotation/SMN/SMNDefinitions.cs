@@ -192,7 +192,7 @@ namespace BossMod.SMN
         public static Dictionary<ActionID, ActionDefinition> SupportedActions;
         static Definitions()
         {
-            SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
+            SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionInt);
             SupportedActions.GCDCast(AID.Ruin1, 25, 1.5f);
             SupportedActions.GCDCast(AID.Ruin2, 25, 1.5f);
             SupportedActions.GCDCast(AID.Ruin3, 25, 1.5f);
