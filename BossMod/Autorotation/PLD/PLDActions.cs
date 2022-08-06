@@ -31,7 +31,7 @@ namespace BossMod.PLD
 
         protected override void UpdateInternalState(AutoAction strategy)
         {
-            _aoe = (AutoStrategy & AutoAction.AOEDamage) != 0 && Autorot.PotentialTargetsInRangeFromPlayer(5).Count() >= 2;
+            _aoe = (AutoStrategy & AutoAction.AOEDamage) != 0 && Autorot.PotentialTargetsInRangeFromPlayer(5).Count() >= 3;
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
         }
