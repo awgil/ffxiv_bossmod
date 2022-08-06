@@ -25,7 +25,7 @@ namespace BossMod.PLD
         HolyCircle = 16458, // L72, 1.5s cast, range 0, AOE circle 5/0, targets=self, animLock=???
 
         // oGCDs
-        SpiritsWithin = 29, // L30, instant, 30.0s CD (group 5), range 3, single-target 0/0, targets=hostile, animLock=???
+        SpiritsWithin = 29, // L30, instant, 30.0s CD (group 5), range 3, single-target 0/0, targets=hostile
         Expiacion = 25747, // L86, instant, 30.0s CD (group 5), range 3, AOE circle 5/0, targets=hostile, animLock=???
         CircleOfScorn = 23, // L50, instant, 30.0s CD (group 4), range 0, AOE circle 5/0, targets=self, animLock=???
         Intervene = 16461, // L74, instant, 30.0s CD (group 9) (2 charges), range 20, single-target 0/0, targets=hostile, animLock=???
@@ -45,7 +45,7 @@ namespace BossMod.PLD
         PassageOfArms = 7385, // L70, instant, 120.0s CD (group 21), range 0, Ground circle 8/0, targets=self, animLock=???
         DivineVeil = 3540, // L56, instant, 90.0s CD (group 14), range 0, single-target 0/0, targets=self, animLock=???
         Intervention = 7382, // L62, instant, 10.0s CD (group 1), range 30, single-target 0/0, targets=party, animLock=???
-        ArmsLength = 7548, // L32, instant, 120.0s CD (group 46), range 0, single-target 0/0, targets=self, animLock=???
+        ArmsLength = 7548, // L32, instant, 120.0s CD (group 46), range 0, single-target 0/0, targets=self
 
         // misc
         Clemency = 3541, // L58, 1.5s cast, range 30, single-target 0/0, targets=self/party/friendly, animLock=???
@@ -53,7 +53,7 @@ namespace BossMod.PLD
         ShieldLob = 24, // L15, instant, range 20, single-target 0/0, targets=hostile
         IronWill = 28, // L10, instant, 3.0s CD (group 3), range 0, single-target 0/0, targets=self
         Provoke = 7533, // L15, instant, 30.0s CD (group 42), range 25, single-target 0/0, targets=hostile
-        Shirk = 7537, // L48, instant, 120.0s CD (group 45), range 25, single-target 0/0, targets=party, animLock=???
+        Shirk = 7537, // L48, instant, 120.0s CD (group 45), range 25, single-target 0/0, targets=party
         LowBlow = 7540, // L12, instant, 25.0s CD (group 41), range 3, single-target 0/0, targets=hostile
         Interject = 7538, // L18, instant, 30.0s CD (group 44), range 3, single-target 0/0, targets=hostile
     }

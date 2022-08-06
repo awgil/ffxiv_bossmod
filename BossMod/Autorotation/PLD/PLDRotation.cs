@@ -63,6 +63,10 @@
             if (state.Unlocked(MinLevel.FightOrFlight) && state.ComboLastMove == (aoe ? AID.TotalEclipse : AID.FastBlade) && state.CanWeave(CDGroup.FightOrFlight, 0.6f, deadline) && state.GCD <= 1.0f)
                 return ActionID.MakeSpell(AID.FightOrFlight);
 
+            // 3. spirits within, delayed until FoF if it's about to be off cooldown (TODO: think more about delay condition...)
+            if (state.Unlocked(MinLevel.SpiritsWithin) && state.CanWeave(CDGroup.SpiritsWithin, 0.6f, deadline) && (state.FightOrFlightLeft > 0 || state.CD(CDGroup.FightOrFlight) > 15))
+                return ActionID.MakeSpell(AID.SpiritsWithin);
+
             // no suitable oGCDs...
             return new();
         }
