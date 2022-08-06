@@ -11,11 +11,11 @@ namespace BossMod
         private class StatusData
         {
             public HashSet<Class> Classes = new();
-            public HashSet<uint> Actions = new();
+            public HashSet<ActionID> Actions = new();
             public bool OnSource;
             public bool OnTarget;
 
-            public string AppliedByString() => string.Join(", ", Actions.Select(aid => new ActionID(aid).Name()));
+            public string AppliedByString() => string.Join(", ", Actions.Select(aid => aid.Name()));
             public string AppliedToString() => OnSource ? (OnTarget ? "self/target" : "self") : "target";
         }
 
@@ -54,7 +54,7 @@ namespace BossMod
 
         private WorldState _ws;
         private ClassData?[] _classes = new ClassData?[41];
-        private Dictionary<uint, float> _seenActionLocks = new();
+        private Dictionary<ActionID, float> _seenActionLocks = new();
         private Dictionary<uint, StatusData> _seenStatuses = new();
         private UITree _tree = new();
 
@@ -139,13 +139,13 @@ namespace BossMod
                 ImGui.SetClipboardText(sb.ToString());
             }
 
-            if (ImGui.MenuItem("Build defitions"))
+            if (ImGui.MenuItem("Build definitions"))
             {
                 var sb = new StringBuilder();
                 foreach (var action in cd.Actions)
                 {
                     var aidEnum = cd.AIDType?.GetEnumName(action.RowId) ?? Utils.StringToIdentifier(action.Name);
-                    float animLock = _seenActionLocks.GetValueOrDefault(new ActionID(ActionType.Spell, action.RowId).Raw, 0.6f);
+                    float animLock = _seenActionLocks.GetValueOrDefault(new ActionID(ActionType.Spell, action.RowId), 0.6f);
                     var animLockStr = animLock == 0.6f ? "" : $", {animLock:f3}f";
                     var cg = action.CooldownGroup - 1;
                     if (cg == CommonDefinitions.GCDGroup)
@@ -261,7 +261,7 @@ namespace BossMod
         {
             var aidEnum = cd.AIDType?.GetEnumName(action.RowId);
             var name = $"{action.RowId} '{action.Name}' ({aidEnum}): L{action.ClassJobLevel}";
-            return new(name, false, aidEnum == null ? 0xff0000ff : _seenActionLocks.ContainsKey(new ActionID(ActionType.Spell, action.RowId).Raw) ? 0xffffffff : 0xff00ffff);
+            return new(name, false, aidEnum == null ? 0xff0000ff : _seenActionLocks.ContainsKey(new ActionID(ActionType.Spell, action.RowId)) ? 0xffffffff : 0xff00ffff);
         }
 
         private string ActionEnumString(ClassData cd, Lumina.Excel.GeneratedSheets.Action action)
@@ -322,7 +322,7 @@ namespace BossMod
 
         private string AnimLockString(ActionID id)
         {
-            return _seenActionLocks.ContainsKey(id.Raw) ? $"{_seenActionLocks[id.Raw]:f3}s" : "???";
+            return _seenActionLocks.ContainsKey(id) ? $"{_seenActionLocks[id]:f3}s" : "???";
         }
 
         private string CastTypeString(int castType)
@@ -351,13 +351,14 @@ namespace BossMod
         {
             if (args.actor != _ws.Party.Player())
                 return;
-            _seenActionLocks[args.ev.Action.Raw] = args.ev.AnimationLockTime;
+            _seenActionLocks[args.ev.Action] = args.ev.AnimationLockTime;
             foreach (var t in args.ev.Targets)
             {
                 foreach (var eff in t.Effects.Where(eff => eff.Type is ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource))
                 {
                     var data = _seenStatuses.GetOrAdd(eff.Value);
-                    data.Actions.Add(args.ev.Action.Raw);
+                    data.Classes.Add(args.actor.Class);
+                    data.Actions.Add(args.ev.Action);
 
                     bool onTarget = eff.Type == ActionEffectType.ApplyStatusEffectTarget && t.ID != args.actor.InstanceID && (eff.Param4 & 0x80) == 0;
                     if (onTarget)

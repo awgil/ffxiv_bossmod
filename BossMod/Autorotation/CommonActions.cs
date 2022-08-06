@@ -191,13 +191,16 @@ namespace BossMod
             if (mqEmergency != null)
                 return new(mqEmergency.Action, mqEmergency.Target, mqEmergency.TargetPos, mqEmergency.Definition, ActionSource.Emergency);
 
+            var effAnimLock = Autorot.EffAnimLock;
+            var animLockDelay = Autorot.AnimLockDelay;
+
             // see if we have any GCD (queued or automatic)
             var mqGCD = _mq.PeekGCD();
             var nextGCD = mqGCD != null ? new NextAction(mqGCD.Action, mqGCD.Target, mqGCD.TargetPos, mqGCD.Definition, ActionSource.Manual) : AutoStrategy != AutoAction.None ? CalculateAutomaticGCD() : new();
-            float ogcdDeadline = nextGCD.Action ? Autorot.Cooldowns[CommonDefinitions.GCDGroup] - Autorot.AnimLockDelay : float.MaxValue;
+            float ogcdDeadline = nextGCD.Action ? Autorot.Cooldowns[CommonDefinitions.GCDGroup] : float.MaxValue;
 
             // search for any oGCDs that we can execute without delaying GCD
-            var mqOGCD = _mq.PeekOGCD(Autorot.EffAnimLock, ogcdDeadline);
+            var mqOGCD = _mq.PeekOGCD(effAnimLock, animLockDelay, ogcdDeadline);
             if (mqOGCD != null)
                 return new(mqOGCD.Action, mqOGCD.Target, mqOGCD.TargetPos, mqOGCD.Definition, ActionSource.Manual);
 
@@ -208,7 +211,7 @@ namespace BossMod
                 // TODO: support non-self targeting
                 // TODO: support custom conditions in planner
                 var planTarget = Player;
-                var cpAction = cooldownPlan.ActiveActions(Autorot.Bossmods.ActiveModule!.StateMachine).Where(x => CanExecutePlannedAction(x.Action, planTarget, x.Definition, Autorot.EffAnimLock, ogcdDeadline)).MinBy(x => x.TimeLeft);
+                var cpAction = cooldownPlan.ActiveActions(Autorot.Bossmods.ActiveModule!.StateMachine).Where(x => CanExecutePlannedAction(x.Action, planTarget, x.Definition, effAnimLock, animLockDelay, ogcdDeadline)).MinBy(x => x.TimeLeft);
                 if (cpAction.Action)
                     return new(cpAction.Action, planTarget, new(), cpAction.Definition, ActionSource.Planned);
             }
@@ -249,8 +252,8 @@ namespace BossMod
             var pc = Service.ClientState.LocalPlayer;
             s.Level = _lock.AdjustLevel(pc?.Level ?? 0);
             s.CurMP = pc?.CurrentMp ?? 0;
-            s.AnimationLock = Autorot.EffAnimLock;
-            s.AnimationLockDelay = Autorot.AnimLockDelay;
+            s.AnimationLock = am.EffectiveAnimationLock;
+            s.AnimationLockDelay = am.EffectiveAnimationLockDelay;
             s.ComboTimeLeft = am.ComboTimeLeft;
             s.ComboLastAction = am.ComboLastMove;
 
@@ -310,12 +313,12 @@ namespace BossMod
                 Service.Log($"[AR] [{GetType()}] {message}");
         }
 
-        private bool CanExecutePlannedAction(ActionID action, Actor target, ActionDefinition definition, float effAnimLock, float deadline)
+        private bool CanExecutePlannedAction(ActionID action, Actor target, ActionDefinition definition, float effAnimLock, float animLockDelay, float deadline)
         {
             // TODO: planned GCDs?..
             return definition.CooldownGroup != CommonDefinitions.GCDGroup
                 && Autorot.Cooldowns[definition.CooldownGroup] - effAnimLock <= definition.CooldownAtFirstCharge
-                && effAnimLock + definition.AnimationLock <= deadline
+                && effAnimLock + definition.AnimationLock + animLockDelay <= deadline
                 && SupportedActions[action].Allowed(Player, target);
         }
     }

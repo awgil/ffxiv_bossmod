@@ -110,7 +110,7 @@ namespace UIDev
                 var nextBuffCycleIndex = MathF.Ceiling((t - BuffWindowOffset) / BuffWindowFreq);
                 strategy.RaidBuffsIn = t < BuffWindowOffset ? 0 : (BuffWindowOffset + nextBuffCycleIndex * BuffWindowFreq - t);
 
-                var action = t == 0 && state.GCD == 0 && StartWithTomahawk && state.Unlocked(MinLevel.Tomahawk) ? ActionID.MakeSpell(AID.Tomahawk) : Rotation.GetNextBestAction(state, strategy, AOERotation);
+                var action = t == 0 && state.GCD == 0 && StartWithTomahawk && state.Unlocked(MinLevel.Tomahawk) ? ActionID.MakeSpell(AID.Tomahawk) : GetNextBestAction(state, strategy, AOERotation);
                 (var mistake, var ogcd) = Cast(state, action, ref t);
                 DrawActionRow(action, !ogcd, mistake, t, state, strategy);
             }
@@ -125,6 +125,18 @@ namespace UIDev
 
         public void Dispose()
         {
+        }
+
+        public ActionID GetNextBestAction(Rotation.State state, Rotation.Strategy strategy, bool aoe)
+        {
+            ActionID res = new();
+            if (state.AnimationLock + 2 * state.OGCDSlotLength <= state.GCD) // first ogcd slot
+                res = Rotation.GetNextBestOGCD(state, strategy, state.GCD - state.OGCDSlotLength, aoe);
+            if (!res && state.AnimationLock + state.OGCDSlotLength <= state.GCD) // second/only ogcd slot
+                res = Rotation.GetNextBestOGCD(state, strategy, state.GCD, aoe);
+            if (!res) // gcd
+                res = ActionID.MakeSpell(Rotation.GetNextBestGCD(state, strategy, aoe));
+            return res;
         }
 
         public Mistake AdvanceTime(Rotation.State state, ref float t, float newAnimLock, float cooldown)

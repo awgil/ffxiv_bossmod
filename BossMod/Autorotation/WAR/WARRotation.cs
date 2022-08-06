@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 
 namespace BossMod.WAR
 {
@@ -248,14 +247,14 @@ namespace BossMod.WAR
         }
 
         // window-end is either GCD or GCD - time-for-second-ogcd; we are allowed to use ogcds only if their animation lock would complete before window-end
-        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float windowEnd, bool aoe)
+        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline, bool aoe)
         {
             var irCD = state.CD(state.Unlocked(MinLevel.InnerRelease) ? CDGroup.InnerRelease : CDGroup.Berserk);
 
-            // 2. potion, if required by strategy, and not too early in opener (TODO: reconsider priority)
+            // 1. potion, if required by strategy, and not too early in opener (TODO: reconsider priority)
             // TODO: reconsider potion use during opener (delayed IR prefers after maim, early IR prefers after storm eye, to cover third IC on 13th GCD)
             // note: this check will not allow using potions before lvl 50, but who cares...
-            if (strategy.Potion != Strategy.PotionUse.Manual && state.CanWeave(state.PotionCD, 1.1f, windowEnd) && (state.SurgingTempestLeft > 0 || state.ComboLastMove == AID.Maim))
+            if (strategy.Potion != Strategy.PotionUse.Manual && state.CanWeave(state.PotionCD, 1.1f, deadline) && (state.SurgingTempestLeft > 0 || state.ComboLastMove == AID.Maim))
             {
                 // note: potion should never be delayed during opener slot
                 // we have a problem with late buff application during opener: between someone casting first raidbuff and us receiving buff, RaidBuffsLeft will be 0 and RaidBuffsIn will be very large
@@ -278,10 +277,10 @@ namespace BossMod.WAR
                     return CommonDefinitions.IDPotionStr;
             }
 
-            // 3. inner release, if surging tempest up
+            // 2. inner release, if surging tempest up
             // TODO: early IR option: technically we can use right after heavy swing, we'll use maim->SE->IC->3xFC
             // if not unlocked yet, use berserk instead, but only if we have enough gauge
-            if (state.Unlocked(MinLevel.Berserk) && state.CanWeave(irCD, 0.6f, windowEnd) && (state.SurgingTempestLeft > state.GCD + 5 || !state.Unlocked(MinLevel.StormEye)))
+            if (state.Unlocked(MinLevel.Berserk) && state.CanWeave(irCD, 0.6f, deadline) && (state.SurgingTempestLeft > state.GCD + 5 || !state.Unlocked(MinLevel.StormEye)))
             {
                 if (state.Unlocked(MinLevel.InnerRelease))
                     return ActionID.MakeSpell(AID.InnerRelease);
@@ -289,15 +288,15 @@ namespace BossMod.WAR
                     return ActionID.MakeSpell(AID.Berserk);
             }
 
-            // 4. upheaval, if surging tempest up and not forbidden
+            // 3. upheaval, if surging tempest up and not forbidden
             // TODO: delay for 1 GCD during opener...
             // TODO: reconsider priority compared to IR
-            if (state.Unlocked(MinLevel.Upheaval) && state.CanWeave(CDGroup.Upheaval, 0.6f, windowEnd) && state.SurgingTempestLeft > MathF.Max(state.CD(CDGroup.Upheaval), 0) && strategy.EnableUpheaval)
+            if (state.Unlocked(MinLevel.Upheaval) && state.CanWeave(CDGroup.Upheaval, 0.6f, deadline) && state.SurgingTempestLeft > MathF.Max(state.CD(CDGroup.Upheaval), 0) && strategy.EnableUpheaval)
                 return ActionID.MakeSpell(aoe && state.Unlocked(MinLevel.Orogeny) ? AID.Orogeny : AID.Upheaval);
 
-            // 5. infuriate, if not forbidden and not delayed
+            // 4. infuriate, if not forbidden and not delayed
             bool spendGauge = state.RaidBuffsLeft >= state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10;
-            bool infuriateAvailable = state.Unlocked(MinLevel.Infuriate) && state.CanWeave(state.CD(CDGroup.Infuriate) - 60, 0.6f, windowEnd); // note: for second stack, this will be true if casting it won't delay our next gcd
+            bool infuriateAvailable = state.Unlocked(MinLevel.Infuriate) && state.CanWeave(state.CD(CDGroup.Infuriate) - 60, 0.6f, deadline); // note: for second stack, this will be true if casting it won't delay our next gcd
             infuriateAvailable &= state.Gauge <= 50; // never cast infuriate if doing so would overcap gauge
             if (state.Unlocked(MinLevel.ChaoticCyclone))
             {
@@ -317,7 +316,7 @@ namespace BossMod.WAR
                     // don't delay if we risk overcapping stacks
                     // max safe cooldown calculation:
                     // - start with remaining GCD + grace period; if CD is smaller, by the time we get a chance to reconsider, we'll have 2 stacks
-                    //   grace period should at very least be OGCDDelay, but next-best GCD could be Primal Rend with longer animation lock, plus we might prioritize different oGCDs, so use full extra GCD to be safe
+                    //   grace period should at very least be LockDelay, but next-best GCD could be Primal Rend with longer animation lock, plus we might prioritize different oGCDs, so use full extra GCD to be safe
                     // - if next GCD could give us >50 gauge, we'd need one more GCD to cast FC (which would also reduce cd by extra 5 seconds), so add 7.5s
                     // - if IR is imminent, we delay infuriate now, cast some GCD that gives us >50 gauge, we'd need to cast 3xFCs, which would add extra 22.5s
                     // - if IR is active, we delay infuriate now, we might need to spend remaining GCDs on FCs, which would add extra N * 7.5s
@@ -345,8 +344,8 @@ namespace BossMod.WAR
                 }
             }
 
-            // 7. onslaught, if surging tempest up and not forbidden
-            if (state.Unlocked(MinLevel.Onslaught) && state.CanWeave(state.CD(CDGroup.Onslaught) - 60, 0.6f, windowEnd) && strategy.PositionLockIn > state.AnimationLock && state.SurgingTempestLeft > state.AnimationLock)
+            // 5. onslaught, if surging tempest up and not forbidden
+            if (state.Unlocked(MinLevel.Onslaught) && state.CanWeave(state.CD(CDGroup.Onslaught) - 60, 0.6f, deadline) && strategy.PositionLockIn > state.AnimationLock && state.SurgingTempestLeft > state.AnimationLock)
             {
                 float chargeCapIn = state.CD(CDGroup.Onslaught) - (state.Unlocked(MinLevel.EnhancedOnslaught) ? 0 : 30);
                 if (chargeCapIn < state.GCD + 2.5)
@@ -367,18 +366,6 @@ namespace BossMod.WAR
 
             // no suitable oGCDs...
             return new();
-        }
-
-        public static ActionID GetNextBestAction(State state, Strategy strategy, bool aoe)
-        {
-            ActionID res = new();
-            if (state.CanDoubleWeave) // first ogcd slot
-                res = GetNextBestOGCD(state, strategy, state.DoubleWeaveWindowEnd, aoe);
-            if (!res && state.CanSingleWeave) // second/only ogcd slot
-                res = GetNextBestOGCD(state, strategy, state.GCD, aoe);
-            if (!res) // gcd
-                res = ActionID.MakeSpell(GetNextBestGCD(state, strategy, aoe));
-            return res;
         }
     }
 }

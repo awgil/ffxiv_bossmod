@@ -58,8 +58,8 @@ namespace BossMod
         public Actor? PrimaryTarget;
         public List<Actor> PotentialTargets = new();
         public bool Moving => _inputOverride.IsMoving(); // TODO: reconsider
-        public float EffAnimLock => ActionManagerEx.Instance!.AnimationLock + ActionManagerEx.Instance!.CastTimeRemaining;
-        public float AnimLockDelay => MathF.Min(MathF.Min(ActionManagerEx.Instance!.AnimationLockDelayMax, ActionManagerEx.Instance!.AnimationLockDelayAverage), 0.1f);
+        public float EffAnimLock => ActionManagerEx.Instance!.EffectiveAnimationLock;
+        public float AnimLockDelay => ActionManagerEx.Instance!.EffectiveAnimationLockDelay;
 
         public unsafe Autorotation(Network network, BossModuleManager bossmods, InputOverride inputOverride)
         {
@@ -108,7 +108,7 @@ namespace BossMod
                 classType = player.Class switch
                 {
                     Class.WAR => typeof(WAR.Actions),
-                    //Class.GLA or Class.PLD => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(PLDActions) : null,
+                    Class.GLA or Class.PLD => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(PLD.Actions) : null,
                     //Class.CNJ or Class.WHM => typeof(WHMActions),
                     //Class.PGL or Class.MNK => typeof(MNKActions),
                     //Class.LNC or Class.DRG => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(DRGActions) : null,

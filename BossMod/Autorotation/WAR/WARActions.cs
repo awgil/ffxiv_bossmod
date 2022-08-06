@@ -58,12 +58,11 @@ namespace BossMod.WAR
             if (Autorot.PrimaryTarget == null)
                 return new();
 
-            // TODO: refactor... at very least replace window-end with deadline (difference is how lock-delay is accounted)
             ActionID res = new();
-            if (_state.CanDoubleWeave) // first ogcd slot
-                res = Rotation.GetNextBestOGCD(_state, _strategy, _state.DoubleWeaveWindowEnd, _aoe);
-            if (!res && _state.CanSingleWeave) // second/only ogcd slot
-                res = Rotation.GetNextBestOGCD(_state, _strategy, _state.GCD, _aoe);
+            if (_state.CanWeave(deadline - _state.OGCDSlotLength)) // first ogcd slot
+                res = Rotation.GetNextBestOGCD(_state, _strategy, deadline - _state.OGCDSlotLength, _aoe);
+            if (!res && _state.CanWeave(deadline)) // second/only ogcd slot
+                res = Rotation.GetNextBestOGCD(_state, _strategy, deadline, _aoe);
             return res ? MakeResult(res, Autorot.PrimaryTarget) : new();
         }
 

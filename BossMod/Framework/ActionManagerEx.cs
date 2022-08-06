@@ -55,6 +55,9 @@ namespace BossMod
         public unsafe byte GT_uB8 => Utils.ReadField<byte>(_inst, 0xB8);
         public unsafe uint GT_uBC => Utils.ReadField<byte>(_inst, 0xBC);
 
+        public float EffectiveAnimationLock => AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends
+        public float EffectiveAnimationLockDelay => AnimationLockDelayMax <= 0.5f ? AnimationLockDelayMax : MathF.Min(AnimationLockDelayAverage, 0.1f); // this is a conservative estimate
+
         public event EventHandler? PostUpdate;
 
         private unsafe ActionManager* _inst;

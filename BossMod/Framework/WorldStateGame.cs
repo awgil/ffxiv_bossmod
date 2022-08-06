@@ -101,7 +101,7 @@ namespace BossMod
             var friendly = Utils.GameObjectIsFriendly(obj);
             var isDead = Utils.GameObjectIsDead(obj);
             var inCombat = character?.StatusFlags.HasFlag(StatusFlags.InCombat) ?? false;
-            var target = SanitizedObjectID(obj.TargetObjectId);
+            var target = SanitizedObjectID(obj != Service.ClientState.LocalPlayer ? obj.TargetObjectId : (Service.TargetManager.Target?.ObjectId ?? 0)); // this is a bit of a hack - when changing targets, we want AI to see changes immediately rather than wait for server response
             var modelState = character != null ? Utils.CharacterModelState(character) : (byte)0; // TODO: consider this (reading memory) vs network (actor control 63)
 
             var act = Actors.Find(obj.ObjectId);

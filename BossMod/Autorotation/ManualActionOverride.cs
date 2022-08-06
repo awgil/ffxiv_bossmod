@@ -138,17 +138,17 @@ namespace BossMod
         }
 
         // deadline is typically gcd minus anim-lock-delay
-        public Entry? PeekOGCD(float effAnimLock, float deadline)
+        public Entry? PeekOGCD(float effAnimLock, float animLockDelay, float deadline)
         {
             var player = _ws.Party.Player();
-            return !_emergencyMode && player != null ? _queue.Find(e => CheckOGCD(e, player, effAnimLock, deadline)) : null;
+            return !_emergencyMode && player != null ? _queue.Find(e => CheckOGCD(e, player, effAnimLock, animLockDelay, deadline)) : null;
         }
 
-        private bool CheckOGCD(Entry e, Actor player, float effAnimLock, float deadline)
+        private bool CheckOGCD(Entry e, Actor player, float effAnimLock, float animLockDelay, float deadline)
         {
             return e.Definition.CooldownGroup != CommonDefinitions.GCDGroup
                 && _cooldowns[e.Definition.CooldownGroup] - effAnimLock <= e.Definition.CooldownAtFirstCharge
-                && effAnimLock + e.Definition.AnimationLock <= deadline
+                && effAnimLock + e.Definition.AnimationLock + animLockDelay <= deadline
                 && e.Allowed(player);
         }
 
