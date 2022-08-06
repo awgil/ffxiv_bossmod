@@ -23,6 +23,7 @@ namespace BossMod
     public class ActionDefinition
     {
         public float Range; // 0 is for self-targeted abilities
+        public float CastTime; // 0 for instant-cast
         public int CooldownGroup;
         public float Cooldown; // for multi-charge abilities - for single charge
         public int MaxChargesAtCap;
@@ -32,9 +33,10 @@ namespace BossMod
 
         public float CooldownAtFirstCharge => (MaxChargesAtCap - 1) * Cooldown;
 
-        public ActionDefinition(float range, int cooldownGroup, float cooldown, int maxChargesAtCap = 1, float animationLock = 0.6f)
+        public ActionDefinition(float range, float castTime, int cooldownGroup, float cooldown, int maxChargesAtCap, float animationLock)
         {
             Range = range;
+            CastTime = castTime;
             CooldownGroup = cooldownGroup;
             Cooldown = cooldown;
             MaxChargesAtCap = maxChargesAtCap;
@@ -84,16 +86,18 @@ namespace BossMod
         public static Dictionary<ActionID, ActionDefinition> CommonActionData(ActionID statPotion)
         {
             var res = new Dictionary<ActionID, ActionDefinition>();
-            (res[IDSprint] = new(0, SprintCDGroup, 60)).EffectDuration = 10;
-            (res[statPotion] = new(0, PotionCDGroup, 270, 1, 1.1f)).EffectDuration = 30;
+            (res[IDSprint] = new(0, 0, SprintCDGroup, 60, 1, 0.6f)).EffectDuration = 10;
+            (res[statPotion] = new(0, 0, PotionCDGroup, 270, 1, 1.1f)).EffectDuration = 30;
             return res;
         }
 
         public static ActionDefinition GCD<AID>(this Dictionary<ActionID, ActionDefinition> res, AID aid, float range, float animationLock = 0.6f) where AID : Enum
-            => res[ActionID.MakeSpell(aid)] = new(range, GCDGroup, 2.5f, 1, animationLock);
+            => res[ActionID.MakeSpell(aid)] = new(range, 0, GCDGroup, 2.5f, 1, animationLock);
+        public static ActionDefinition GCDCast<AID>(this Dictionary<ActionID, ActionDefinition> res, AID aid, float range, float castTime, float animationLock = 0.1f) where AID : Enum
+            => res[ActionID.MakeSpell(aid)] = new(range, castTime, GCDGroup, 2.5f, 1, animationLock);
         public static ActionDefinition OGCD<AID, CDGroup>(this Dictionary<ActionID, ActionDefinition> res, AID aid, float range, CDGroup cdGroup, float cooldown, float animationLock = 0.6f) where AID : Enum where CDGroup : Enum
-            => res[ActionID.MakeSpell(aid)] = new(range, (int)(object)cdGroup, cooldown, 1, animationLock);
+            => res[ActionID.MakeSpell(aid)] = new(range, 0, (int)(object)cdGroup, cooldown, 1, animationLock);
         public static ActionDefinition OGCDWithCharges<AID, CDGroup>(this Dictionary<ActionID, ActionDefinition> res, AID aid, float range, CDGroup cdGroup, float cooldown, int maxChargesAtCap, float animationLock = 0.6f) where AID : Enum where CDGroup : Enum
-            => res[ActionID.MakeSpell(aid)] = new(range, (int)(object)cdGroup, cooldown, maxChargesAtCap, animationLock);
+            => res[ActionID.MakeSpell(aid)] = new(range, 0, (int)(object)cdGroup, cooldown, maxChargesAtCap, animationLock);
     }
 }

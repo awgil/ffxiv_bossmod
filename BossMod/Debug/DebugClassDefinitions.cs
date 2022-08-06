@@ -145,19 +145,25 @@ namespace BossMod
                 foreach (var action in cd.Actions)
                 {
                     var aidEnum = cd.AIDType?.GetEnumName(action.RowId) ?? Utils.StringToIdentifier(action.Name);
-                    float animLock = _seenActionLocks.GetValueOrDefault(new ActionID(ActionType.Spell, action.RowId), 0.6f);
-                    var animLockStr = animLock == 0.6f ? "" : $", {animLock:f3}f";
+                    float defaultAnimLock = action.Cast100ms == 0 ? 0.6f : 0.1f;
+                    float animLock = _seenActionLocks.GetValueOrDefault(new ActionID(ActionType.Spell, action.RowId), defaultAnimLock);
+                    var animLockStr = animLock == defaultAnimLock ? "" : $", {animLock:f3}f";
                     var cg = action.CooldownGroup - 1;
                     if (cg == CommonDefinitions.GCDGroup)
                     {
-                        sb.Append($"SupportedActions.GCD(AID.{aidEnum}, {action.Range}{animLockStr});\n");
+                        if (action.Cast100ms == 0)
+                            sb.Append($"SupportedActions.GCD(AID.{aidEnum}, {action.Range}{animLockStr});\n");
+                        else
+                            sb.Append($"SupportedActions.GCDCast(AID.{aidEnum}, {action.Range}, {action.Cast100ms * 0.1f:f1}f{animLockStr});\n");
                     }
                     else
                     {
                         var cdgName = cd.CDGType?.GetEnumName(cg) ?? Utils.StringToIdentifier(action.Name);
                         var firstArgsStr = $"AID.{aidEnum}, {action.Range}, CDGroup.{cdgName}, {action.Recast100ms * 0.1f:f1}f";
                         var charges = MaxChargesAtCap(action.RowId);
-                        if (charges <= 1)
+                        if (action.Cast100ms != 0)
+                            sb.Append($"SupportedActions.OGCDCast({firstArgsStr}{animLockStr});\n"); // don't think such exist?..
+                        else if (charges <= 1)
                             sb.Append($"SupportedActions.OGCD({firstArgsStr}{animLockStr});\n");
                         else
                             sb.Append($"SupportedActions.OGCDWithCharges({firstArgsStr}, {charges}{animLockStr});\n");

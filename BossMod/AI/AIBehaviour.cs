@@ -29,22 +29,26 @@ namespace BossMod.AI
             _avoidAOE.Dispose();
         }
 
-        public Actor? Execute(Actor player, Actor master)
+        public void Execute(Actor player, Actor master)
         {
             var primaryTarget = _autoTarget ? TargetingSelectBest(player) : TargetingAssistMaster(player, master);
+            if (primaryTarget != null)
+            {
+                _autorot.PrimaryTarget = primaryTarget;
+                _ctrl.SetPrimaryTarget(primaryTarget);
+            }
+
+            var secondaryTarget = TargetingHeal(player);
+            _autorot.SecondaryTarget = secondaryTarget;
+
             UpdateState(player, master);
-            UpdateControl(player, master, primaryTarget);
-            return primaryTarget;
+            UpdateControl(player, master, primaryTarget, secondaryTarget);
         }
 
         private Actor? TargetingSelectBest(Actor player)
         {
-            var healTarget = TargetingHeal(player);
-            if (healTarget != null)
-                return healTarget;
-
             var selectedTarget = _autorot.WorldState.Actors.Find(player.TargetID);
-            if (selectedTarget?.Type == ActorType.Enemy)
+            if (selectedTarget?.Type == ActorType.Enemy && !selectedTarget.IsAlly)
                 return selectedTarget;
 
             // choose min-hp targets among those targeting me first
@@ -62,15 +66,11 @@ namespace BossMod.AI
                 return null; // master not in combat => just follow
 
             var masterTarget = _autorot.WorldState.Actors.Find(master.TargetID);
-            if (masterTarget?.Type != ActorType.Enemy)
+            if (masterTarget?.Type != ActorType.Enemy || masterTarget.IsAlly)
                 return null; // master has no target or targets non-enemy => just follow
 
             // TODO: check potential targets, if anyone is casting - queue interrupt or stun (unless planned), otherwise gtfo from aoe
             // TODO: mitigates/self heals, unless planned, if low hp
-
-            var healTarget = TargetingHeal(player);
-            if (healTarget != null)
-                return healTarget;
 
             // assist master
             return masterTarget;
@@ -109,7 +109,7 @@ namespace BossMod.AI
             bool masterChanged = Service.TargetManager.FocusTarget?.ObjectId != master.InstanceID;
             if (masterChanged)
             {
-                _ctrl.SetFocusTarget(master.InstanceID);
+                _ctrl.SetFocusTarget(master);
                 _masterPrevPos = _masterMovementStart = master.Position;
                 _masterLastMoved = new();
             }
@@ -134,23 +134,34 @@ namespace BossMod.AI
                 || _ctrl.NaviTargetPos != null && (_ctrl.NaviTargetPos.Value - player.Position).LengthSq() > 1;
         }
 
-        private void UpdateControl(Actor player, Actor master, Actor? primaryTarget)
+        private void UpdateControl(Actor player, Actor master, Actor? primaryTarget, Actor? healTarget)
         {
             var strategy = AutoAction.None;
-            if (_autorot.ClassActions != null && !_passive && primaryTarget != null && !_ctrl.InCutscene)
+            if (_autorot.ClassActions != null && !_passive && !_ctrl.InCutscene)
             {
-                strategy = primaryTarget.Type == ActorType.Player
+                strategy = healTarget != null
                     ? AutoAction.GCDHeal | AutoAction.OGCDHeal | AutoAction.AOEHeal
                     : AutoAction.GCDDamage | AutoAction.OGCDDamage | AutoAction.AOEDamage;
                 if (_instantCastsOnly)
                     strategy |= AutoAction.NoCast;
 
-                // note: that there is a 1-frame delay if target and/or strategy changes - we don't really care?..
-                // note: if target-of-target is player, don't try flanking, it's probably impossible... - unless target is currently casting
-                var positional = _autorot.ClassActions.PreferredPosition;
-                if (primaryTarget.TargetID == player.InstanceID && primaryTarget.CastInfo == null)
-                    positional = CommonActions.Positional.Any;
-                _avoidAOE.SetDesired(primaryTarget.Position, primaryTarget.Rotation, _autorot.ClassActions.PreferredRange + player.HitboxRadius + primaryTarget.HitboxRadius, positional);
+                if (primaryTarget != null)
+                {
+                    // note: that there is a 1-frame delay if target and/or strategy changes - we don't really care?..
+                    // note: if target-of-target is player, don't try flanking, it's probably impossible... - unless target is currently casting
+                    var positional = _autorot.ClassActions.PreferredPosition;
+                    if (primaryTarget.TargetID == player.InstanceID && primaryTarget.CastInfo == null)
+                        positional = CommonActions.Positional.Any;
+                    _avoidAOE.SetDesired(primaryTarget.Position, primaryTarget.Rotation, _autorot.ClassActions.PreferredRange + player.HitboxRadius + primaryTarget.HitboxRadius, positional);
+                }
+                else if (healTarget != null)
+                {
+                    _avoidAOE.SetDesired(healTarget.Position, healTarget.Rotation, _autorot.ClassActions.PreferredRange + player.HitboxRadius + healTarget.HitboxRadius);
+                }
+                else
+                {
+                    _avoidAOE.ClearDesired();
+                }
             }
             else
             {

@@ -284,9 +284,8 @@ namespace BossMod
             if (primaryTarget?.Type is ActorType.Player or ActorType.Chocobo)
                 return primaryTarget;
 
-            var mouseoverTarget = Autorot.WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
-            if (mouseoverTarget?.Type is ActorType.Player or ActorType.Chocobo)
-                return mouseoverTarget;
+            if (Autorot.SecondaryTarget?.Type is ActorType.Player or ActorType.Chocobo)
+                return Autorot.SecondaryTarget;
 
             return null;
         }
@@ -294,9 +293,8 @@ namespace BossMod
         // smart targeting utility: return mouseover (if hostile and allowed) or target (otherwise)
         protected Actor? SmartTargetHostile(Actor? primaryTarget)
         {
-            var mouseoverTarget = Autorot.WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
-            if (mouseoverTarget?.Type == ActorType.Enemy && !mouseoverTarget.IsAlly)
-                return mouseoverTarget;
+            if (Autorot.SecondaryTarget?.Type == ActorType.Enemy && !Autorot.SecondaryTarget.IsAlly)
+                return Autorot.SecondaryTarget;
 
             return primaryTarget;
         }

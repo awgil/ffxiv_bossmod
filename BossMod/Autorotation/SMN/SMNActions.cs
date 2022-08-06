@@ -1,187 +1,134 @@
-﻿//using Dalamud.Game.ClientState.JobGauge.Types;
-//using ImGuiNET;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
+﻿using Dalamud.Game.ClientState.JobGauge.Types;
+using ImGuiNET;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-//namespace BossMod
-//{
-//    class SMNActions : CommonActions
-//    {
-//        private SMNConfig _config;
-//        private SMNRotation.State _state;
-//        private SMNRotation.Strategy _strategy;
-//        private ActionID _nextBestSTAction = ActionID.MakeSpell(SMNRotation.AID.Ruin1);
-//        private ActionID _nextBestAOEAction = ActionID.MakeSpell(SMNRotation.AID.Outburst);
+namespace BossMod.SMN
+{
+    class Actions : CommonActions
+    {
+        private SMNConfig _config;
+        private bool _aoe;
+        private Rotation.State _state;
+        private Rotation.Strategy _strategy;
 
-//        public SMNActions(Autorotation autorot, Actor player)
-//            : base(autorot, player)
-//        {
-//            _config = Service.Config.Get<SMNConfig>();
-//            _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
-//            _strategy = new();
+        public Actions(Autorotation autorot, Actor player)
+            : base(autorot, player, Definitions.QuestsPerLevel, Definitions.SupportedActions)
+        {
+            PreferredRange = 25;
 
-//            SmartQueueRegisterSpell(SMNRotation.AID.RadiantAegis);
-//            SmartQueueRegisterSpell(SMNRotation.AID.Swiftcast);
-//            SmartQueueRegisterSpell(SMNRotation.AID.Surecast);
-//            SmartQueueRegisterSpell(SMNRotation.AID.Addle);
-//            SmartQueueRegister(CommonDefinitions.IDSprint);
-//            //SmartQueueRegister(SMNRotation.IDStatPotion);
-//        }
+            _config = Service.Config.Get<SMNConfig>();
+            _state = new(autorot.Cooldowns);
+            _strategy = new();
 
-//        protected override void OnCastSucceeded(ActorCastEvent ev)
-//        {
-//            Log($"Cast {ev.Action} @ {ev.MainTargetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
-//        }
+            _config.Modified += OnConfigModified;
+            OnConfigModified(null, EventArgs.Empty);
+        }
 
-//        protected override CommonRotation.PlayerState OnUpdate(Actor? target, bool moving)
-//        {
-//            var currState = BuildState(target);
-//            LogStateChange(_state, currState);
-//            _state = currState;
+        public override void Dispose()
+        {
+            _config.Modified -= OnConfigModified;
+        }
 
-//            FillCommonStrategy(_strategy, SMNRotation.IDStatPotion);
+        protected override void UpdateInternalState(AutoAction strategy)
+        {
+            _aoe = (AutoStrategy & AutoAction.AOEDamage) != 0 && Autorot.PrimaryTarget != null && Autorot.PotentialTargetsInRange(Autorot.PrimaryTarget.Position, 5).Count() >= 3;
+            UpdatePlayerState();
+            FillCommonStrategy(_strategy, CommonDefinitions.IDPotionInt);
+        }
 
-//            // cooldown execution
-//            _strategy.ExecuteRadiantAegis = SmartQueueActiveSpell(SMNRotation.AID.RadiantAegis);
-//            _strategy.ExecuteSwiftcast = SmartQueueActiveSpell(SMNRotation.AID.Swiftcast);
-//            _strategy.ExecuteSurecast = SmartQueueActiveSpell(SMNRotation.AID.Surecast);
-//            _strategy.ExecuteAddle = SmartQueueActiveSpell(SMNRotation.AID.Addle);
+        protected override NextAction CalculateAutomaticGCD()
+        {
+            if (_strategy.Prepull && _state.Unlocked(MinLevel.SummonCarbuncle) && !_state.PetSummoned)
+                return MakeResult(ActionID.MakeSpell(AID.SummonCarbuncle), Player);
+            if (Autorot.PrimaryTarget == null)
+                return new();
+            if ((AutoStrategy & AutoAction.GCDHeal) != 0)
+                return MakeResult(ActionID.MakeSpell(AID.Physick), Autorot.PrimaryTarget); // TODO: automatic target selection
+            var aid = Rotation.GetNextBestGCD(_state, _strategy, _aoe, (AutoStrategy & AutoAction.NoCast) != 0);
+            return aid != AID.None ? MakeResult(ActionID.MakeSpell(aid), Autorot.PrimaryTarget) : new();
+        }
 
-//            var nextBestST = _config.FullRotation ? SMNRotation.GetNextBestAction(_state, _strategy, false, moving) : ActionID.MakeSpell(SMNRotation.AID.Ruin1);
-//            var nextBestAOE = _config.FullRotation ? SMNRotation.GetNextBestAction(_state, _strategy, true, moving) : ActionID.MakeSpell(SMNRotation.AID.Outburst);
-//            if (_nextBestSTAction != nextBestST || _nextBestAOEAction != nextBestAOE)
-//            {
-//                Log($"Next-best changed: ST={_nextBestSTAction}->{nextBestST}, AOE={_nextBestAOEAction}->{nextBestAOE} [{_state}]");
-//                _nextBestSTAction = nextBestST;
-//                _nextBestAOEAction = nextBestAOE;
-//            }
-//            return _state;
-//        }
+        protected override NextAction CalculateAutomaticOGCD(float deadline)
+        {
+            if (Autorot.PrimaryTarget == null)
+                return new();
 
-//        protected override (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets)
-//        {
-//            if (actionID.Type == ActionType.Spell)
-//            {
-//                actionID = (SMNRotation.AID)actionID.ID switch
-//                {
-//                    SMNRotation.AID.Ruin1 => _config.FullRotation ? _nextBestSTAction : actionID,
-//                    SMNRotation.AID.Outburst => _config.FullRotation ? _nextBestAOEAction : actionID,
-//                    _ => actionID
-//                };
-//            }
-//            ulong targetID = actionID.Type == ActionType.Spell ? (SMNRotation.AID)actionID.ID switch
-//            {
-//                _ => targets.MainTarget
-//            } : targets.MainTarget;
-//            return (actionID, targetID);
-//        }
+            ActionID res = new();
+            if (_state.CanWeave(deadline - _state.OGCDSlotLength)) // first ogcd slot
+                res = Rotation.GetNextBestOGCD(_state, _strategy, deadline - _state.OGCDSlotLength, _aoe);
+            if (!res && _state.CanWeave(deadline)) // second/only ogcd slot
+                res = Rotation.GetNextBestOGCD(_state, _strategy, deadline, _aoe);
+            return res ? MakeResult(res, Autorot.PrimaryTarget) : new();
+        }
 
-//        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget, bool moving)
-//        {
-//            if (_strategy.Prepull && _state.UnlockedSummonCarbuncle && !_state.PetSummoned)
-//            {
-//                return new() { Action = ActionID.MakeSpell(SMNRotation.AID.SummonCarbuncle), Target = player };
-//            }
-//            else if (primaryTarget == null)
-//            {
-//                return new();
-//            }
-//            else if (primaryTarget.Type == ActorType.Enemy)
-//            {
-//                // TODO: proper implementation...
-//                bool useAOE = _state.UnlockedOutburst && Autorot.PotentialTargetsInRange(primaryTarget.Position, 5).Count() > 2;
-//                var action = SMNRotation.GetNextBestAction(_state, _strategy, useAOE, moving);
-//                return action ? new() { Action = action, Target = primaryTarget } : new();
-//            }
-//            else if (!moving && primaryTarget.IsDead)
-//            {
-//                return new() { Action = ActionID.MakeSpell(SmartResurrectAction()), Target = primaryTarget };
-//            }
-//            else if (primaryTarget.InCombat)
-//            {
-//                // TODO: this aoe/st heal selection is not very good...
-//                return new() { Action = _state.UnlockedPhysick ? ActionID.MakeSpell(SMNRotation.AID.Physick) : new(), Target = primaryTarget };
-//            }
-//            else
-//            {
-//                return new();
-//            }
-//        }
+        protected override void OnActionExecuted(ActionID action, Actor? target)
+        {
+            Log($"Executed {action} @ {target} [{_state}]");
+        }
 
-//        public override void DrawOverlay()
-//        {
-//            ImGui.TextUnformatted($"Next: {SMNRotation.ActionShortString(_nextBestSTAction)} / {SMNRotation.ActionShortString(_nextBestAOEAction)}");
-//            ImGui.TextUnformatted(_strategy.ToString());
-//            ImGui.TextUnformatted($"Raidbuffs: {_state.RaidBuffsLeft:f2}s left, next in {_strategy.RaidBuffsIn:f2}s");
-//            ImGui.TextUnformatted($"Downtime: {_strategy.FightEndIn:f2}s, pos-lock: {_strategy.PositionLockIn:f2}");
-//            ImGui.TextUnformatted($"GCD={_state.GCD:f3}, AnimLock={_state.AnimationLock:f3}+{_state.AnimationLockDelay:f3}");
-//        }
+        protected override void OnActionSucceeded(ActorCastEvent ev)
+        {
+            Log($"Succeeded {ev.Action} @ {ev.MainTargetID:X} [{_state}]");
+        }
 
-//        private SMNRotation.State BuildState(Actor? target)
-//        {
-//            SMNRotation.State s = new();
-//            FillCommonPlayerState(s, target, SMNRotation.IDStatPotion);
+        private void UpdatePlayerState()
+        {
+            FillCommonPlayerState(_state);
 
-//            s.PetSummoned = Autorot.WorldState.Actors.Any(a => a.Type == ActorType.Pet && a.OwnerID == Player.InstanceID);
+            _state.PetSummoned = Autorot.WorldState.Actors.Any(a => a.Type == ActorType.Pet && a.OwnerID == Player.InstanceID);
 
-//            var gauge = Service.JobGauges.Get<SMNGauge>();
-//            s.IfritReady = gauge.IsIfritReady;
-//            s.TitanReady = gauge.IsTitanReady;
-//            s.GarudaReady = gauge.IsGarudaReady;
-//            s.Attunement = (SMNRotation.Attunement)(((int)gauge.AetherFlags >> 2) & 3);
-//            s.AttunementStacks = gauge.Attunement;
-//            s.AttunementLeft = gauge.AttunmentTimerRemaining * 0.001f;
-//            s.SummonLockLeft = gauge.SummonTimerRemaining * 0.001f;
-//            s.AetherflowStacks = gauge.AetherflowStacks;
+            var gauge = Service.JobGauges.Get<SMNGauge>();
+            _state.IfritReady = gauge.IsIfritReady;
+            _state.TitanReady = gauge.IsTitanReady;
+            _state.GarudaReady = gauge.IsGarudaReady;
+            _state.Attunement = (Rotation.Attunement)(((int)gauge.AetherFlags >> 2) & 3);
+            _state.AttunementStacks = gauge.Attunement;
+            _state.AttunementLeft = gauge.AttunmentTimerRemaining * 0.001f;
+            _state.SummonLockLeft = gauge.SummonTimerRemaining * 0.001f;
+            _state.AetherflowStacks = gauge.AetherflowStacks;
 
-//            foreach (var status in Player.Statuses)
-//            {
-//                switch ((SMNRotation.SID)status.ID)
-//                {
-//                    case SMNRotation.SID.Swiftcast:
-//                        s.SwiftcastLeft = StatusDuration(status.ExpireAt);
-//                        break;
-//                }
-//            }
+            _state.SwiftcastLeft = 0;
+            foreach (var status in Player.Statuses)
+            {
+                switch ((SID)status.ID)
+                {
+                    case SID.Swiftcast:
+                        _state.SwiftcastLeft = StatusDuration(status.ExpireAt);
+                        break;
+                }
+            }
+        }
 
-//            //if (target != null)
-//            //{
-//            //    foreach (var status in target.Statuses)
-//            //    {
-//            //        switch ((SMNRotation.SID)status.ID)
-//            //        {
-//            //            case SMNRotation.SID.Thunder1:
-//            //                if (status.SourceID == Player.InstanceID)
-//            //                    s.TargetThunderLeft = StatusDuration(status.ExpireAt);
-//            //                break;
-//            //        }
-//            //    }
-//            //}
+        private void OnConfigModified(object? sender, EventArgs args)
+        {
+            // TODO: upgrades
 
-//            return s;
-//        }
+            // self-targeted spells
+            SupportedSpell(AID.AstralFlow).TransformTarget = SupportedSpell(AID.SummonCarbuncle).TransformTarget
+                = SupportedSpell(AID.Aethercharge).TransformTarget = SupportedSpell(AID.DreadwyrmTrance).TransformTarget
+                = SupportedSpell(AID.SearingLight).TransformTarget = SupportedSpell(AID.Swiftcast).TransformTarget = SupportedSpell(AID.LucidDreaming).TransformTarget
+                = SupportedSpell(AID.RadiantAegis).TransformTarget = SupportedSpell(AID.Surecast).TransformTarget
+                = _ => Player;
 
-//        private void LogStateChange(SMNRotation.State prev, SMNRotation.State curr)
-//        {
-//            // do nothing if not in combat
-//            if (!Player.InCombat)
-//                return;
+            // placeholders
+            SupportedSpell(AID.Ruin1).PlaceholderForStrategy = _config.FullRotation ? AutoAction.GCDDamage | AutoAction.OGCDDamage : AutoAction.None;
+            SupportedSpell(AID.Outburst).PlaceholderForStrategy = _config.FullRotation ? AutoAction.GCDDamage | AutoAction.OGCDDamage | AutoAction.AOEDamage : AutoAction.None;
 
-//            // detect expired buffs
-//            //if (curr.ElementalLeft == 0 && prev.ElementalLeft != 0 && prev.ElementalLeft < 1)
-//            //    Log($"Expired elemental [{curr}]");
-//        }
+            // smart targets
+            SupportedSpell(AID.Physick).TransformTarget = _config.MouseoverFriendly ? SmartTargetFriendly : null;
+        }
 
-//        private SMNRotation.AID SmartResurrectAction()
-//        {
-//            // 1. swiftcast, if ready and not up yet
-//            if (_state.UnlockedSwiftcast && _state.SwiftcastLeft <= 0 && _state.SwiftcastCD <= 0)
-//                return SMNRotation.AID.Swiftcast;
+        private AID SmartResurrectAction()
+        {
+            // 1. swiftcast, if ready and not up yet
+            if (_state.Unlocked(MinLevel.Swiftcast) && _state.SwiftcastLeft <= 0 && _state.CD(CDGroup.Swiftcast) <= 0)
+                return AID.Swiftcast;
 
-//            return SMNRotation.AID.Resurrection;
-//        }
-//    }
-//}
+            return AID.Resurrection;
+        }
+    }
+}

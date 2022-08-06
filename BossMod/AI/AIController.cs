@@ -55,15 +55,17 @@ namespace BossMod.AI
         private NaviAxis _axisForward;
         private NaviAxis _axisStrafe;
         private NaviAxis _axisRotate;
+        private Autorotation _autorot;
 
         public bool InCutscene => Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78];
         public WDir CameraFacing => ((Camera.Instance?.CameraAzimuth ?? 0).Radians() + 180.Degrees()).ToDirection();
 
-        public unsafe AIController(InputOverride input)
+        public unsafe AIController(InputOverride input, Autorotation autorot)
         {
             _axisForward = new(input, VirtualKey.W, VirtualKey.S);
             _axisStrafe = new(input, VirtualKey.D, VirtualKey.A);
             _axisRotate = new(input, VirtualKey.LEFT, VirtualKey.RIGHT);
+            _autorot = autorot;
         }
 
         public void Clear()
@@ -73,16 +75,16 @@ namespace BossMod.AI
             AllowInterruptingCastByMovement = false;
         }
 
-        public void SetTarget(ulong actorID)
+        public void SetPrimaryTarget(Actor? actor)
         {
-            if (Service.TargetManager.Target?.ObjectId != actorID)
-                Service.TargetManager.SetTarget(Service.ObjectTable.SearchById((uint)actorID));
+            if (Service.TargetManager.Target?.ObjectId != actor?.InstanceID)
+                Service.TargetManager.SetTarget(actor != null ? Service.ObjectTable.SearchById((uint)actor.InstanceID) : null);
         }
 
-        public void SetFocusTarget(ulong actorID)
+        public void SetFocusTarget(Actor? actor)
         {
-            if (Service.TargetManager.FocusTarget?.ObjectId != actorID)
-                Service.TargetManager.SetFocusTarget(Service.ObjectTable.SearchById((uint)actorID));
+            if (Service.TargetManager.FocusTarget?.ObjectId != actor?.InstanceID)
+                Service.TargetManager.SetFocusTarget(actor != null ? Service.ObjectTable.SearchById((uint)actor.InstanceID) : null);
         }
 
         public unsafe void Update(Actor? player)

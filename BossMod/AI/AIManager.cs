@@ -20,7 +20,7 @@ namespace BossMod.AI
         public AIManager(InputOverride inputOverride, Autorotation autorot)
         {
             _autorot = autorot;
-            _controller = new(inputOverride);
+            _controller = new(inputOverride, autorot);
             _config = Service.Config.Get<AIConfig>();
             Service.ChatGui.ChatMessage += OnChatMessage;
         }
@@ -43,9 +43,7 @@ namespace BossMod.AI
             var master = _autorot.WorldState.Party[_masterSlot];
             if (_beh != null && player != null && master != null)
             {
-                var target = _beh.Execute(player, master);
-                if (target != null)
-                    _controller.SetTarget(target.InstanceID);
+                _beh.Execute(player, master);
             }
             else
             {

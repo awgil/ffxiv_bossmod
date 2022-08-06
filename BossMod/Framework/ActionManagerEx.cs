@@ -144,6 +144,12 @@ namespace BossMod
             }
         }
 
+        public unsafe float GCD()
+        {
+            var gcd = _inst->GetRecastGroupDetail(CommonDefinitions.GCDGroup);
+            return gcd->Total - gcd->Elapsed;
+        }
+
         public unsafe uint GetActionStatus(ActionID action, ulong target, bool a4 = true, bool a5 = true)
         {
             return _inst->GetActionStatus((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, (long)target, a4 ? 1u : 0, a5 ? 1u : 0);
@@ -175,7 +181,7 @@ namespace BossMod
             {
                 _lastReqInitialAnimLock = AnimationLock;
                 _lastReqSequence = currSeq;
-                Service.Log($"[AMEx] UAL #{currSeq} ({new ActionID(actionType, actionID)} @ {targetID:X} / {Utils.Vec3String(*targetPos)} {(ret ? "succeeded" : "failed?")}, anim lock is now {_lastReqInitialAnimLock:f3}+{CastTimeRemaining:f3}");
+                Service.Log($"[AMEx] UAL #{currSeq} ({new ActionID(actionType, actionID)} @ {targetID:X} / {Utils.Vec3String(*targetPos)} {(ret ? "succeeded" : "failed?")}, ALock={_lastReqInitialAnimLock:f3}, CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
             }
             return ret;
         }
@@ -194,19 +200,20 @@ namespace BossMod
                 return;
             }
 
-            float delay = _lastReqInitialAnimLock - prevAnimLock;
-            Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} -> {currAnimLock:f3}+{CastTimeRemaining:f3} (actual delay {delay:f3})");
+            float originalDelay = _lastReqInitialAnimLock - prevAnimLock;
+            float reduction = 0;
             if (_lastReqInitialAnimLock > 0)
             {
-                if (delay > AnimationLockDelayMax)
+                float adjDelay = originalDelay;
+                if (adjDelay > AnimationLockDelayMax)
                 {
-                    var reduction = Math.Min(delay - AnimationLockDelayMax, currAnimLock);
-                    delay -= reduction;
+                    reduction = Math.Min(adjDelay - AnimationLockDelayMax, currAnimLock);
+                    adjDelay -= reduction;
                     Utils.WriteField(_inst, 8, currAnimLock - reduction);
-                    Service.Log($"[AMEx] Reducing delay by {reduction:f3}");
                 }
-                AnimationLockDelayAverage = delay * (1 - AnimationLockDelaySmoothing) + AnimationLockDelayAverage * AnimationLockDelaySmoothing;
+                AnimationLockDelayAverage = adjDelay * (1 - AnimationLockDelaySmoothing) + AnimationLockDelayAverage * AnimationLockDelaySmoothing;
             }
+            Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} -> ALock={currAnimLock:f3} (delayed by {originalDelay:f3}-{reduction:f3}), CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
         }
     }
 }

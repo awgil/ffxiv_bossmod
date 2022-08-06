@@ -55,7 +55,8 @@ namespace BossMod
         public CommonActions? ClassActions => _classActions;
         public float[] Cooldowns = new float[ActionManagerEx.NumCooldownGroups];
 
-        public Actor? PrimaryTarget;
+        public Actor? PrimaryTarget; // this is usually a normal (hard) target, but AI can override; typically used for damage abilities
+        public Actor? SecondaryTarget; // this is usually a mouseover, but AI can override; typically used for heal and utility abilities
         public List<Actor> PotentialTargets = new();
         public bool Moving => _inputOverride.IsMoving(); // TODO: reconsider
         public float EffAnimLock => ActionManagerEx.Instance!.EffectiveAnimationLock;
@@ -99,6 +100,7 @@ namespace BossMod
 
             var player = WorldState.Party.Player();
             PrimaryTarget = WorldState.Actors.Find(player?.TargetID ?? 0);
+            SecondaryTarget = WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
             PotentialTargets.Clear();
             PotentialTargets.AddRange(WorldState.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead && a.InCombat));
 
@@ -114,7 +116,7 @@ namespace BossMod
                     //Class.LNC or Class.DRG => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(DRGActions) : null,
                     //Class.BRD or Class.ARC => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(BRDActions) : null,
                     //Class.THM or Class.BLM => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(BLMActions) : null,
-                    //Class.ACN or Class.SMN => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(SMNActions) : null,
+                    Class.ACN or Class.SMN => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(SMN.Actions) : null,
                     _ => null
                 };
             }

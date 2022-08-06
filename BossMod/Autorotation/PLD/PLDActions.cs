@@ -41,7 +41,7 @@ namespace BossMod.PLD
             if (Autorot.PrimaryTarget == null)
                 return new();
             var aid = Rotation.GetNextBestGCD(_state, _strategy, _aoe);
-            return MakeResult(ActionID.MakeSpell(aid), Autorot.PrimaryTarget);
+            return aid != AID.None ? MakeResult(ActionID.MakeSpell(aid), Autorot.PrimaryTarget) : new();
         }
 
         protected override NextAction CalculateAutomaticOGCD(float deadline)

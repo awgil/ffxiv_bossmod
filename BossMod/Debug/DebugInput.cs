@@ -20,12 +20,12 @@ namespace BossMod
         private WPos _prevPos;
         private DateTime _prevFrame;
 
-        public DebugInput(InputOverride inputOverride, WorldState ws)
+        public DebugInput(InputOverride inputOverride, Autorotation autorot)
         {
             _convertVirtualKey = Service.KeyState.GetType().GetMethod("ConvertVirtualKey", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<ConvertVirtualKeyDelegate>(Service.KeyState);
             _getKeyRef = Service.KeyState.GetType().GetMethod("GetRefValue", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<GetRefValueDelegate>(Service.KeyState);
-            _ws = ws;
-            _navi = new(inputOverride);
+            _ws = autorot.WorldState;
+            _navi = new(inputOverride, autorot);
         }
 
         public void Draw()
