@@ -5,6 +5,9 @@ namespace BossMod.PLD
 {
     class Actions : CommonActions
     {
+        public const int AutoActionST = AutoActionFirstCustom + 0;
+        public const int AutoActionAOE = AutoActionFirstCustom + 1;
+
         private PLDConfig _config;
         private bool _aoe;
         private Rotation.State _state;
@@ -29,24 +32,30 @@ namespace BossMod.PLD
             _config.Modified -= OnConfigModified;
         }
 
-        protected override void UpdateInternalState(AutoAction strategy)
+        protected override void UpdateInternalState(int autoAction)
         {
-            _aoe = (AutoStrategy & AutoAction.AOEDamage) != 0 && Autorot.PotentialTargetsInRangeFromPlayer(5).Count() >= 3;
+            _aoe = autoAction switch
+            {
+                AutoActionST => false,
+                AutoActionAOE => true, // TODO: consider making AI-like check
+                AutoActionAIFight or AutoActionAIFightMove => Autorot.PotentialTargetsInRangeFromPlayer(5).Count() >= 3,
+                _ => false, // irrelevant...
+            };
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
         }
 
         protected override NextAction CalculateAutomaticGCD()
         {
-            if (Autorot.PrimaryTarget == null)
+            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
                 return new();
             var aid = Rotation.GetNextBestGCD(_state, _strategy, _aoe);
-            return aid != AID.None ? MakeResult(ActionID.MakeSpell(aid), Autorot.PrimaryTarget) : new();
+            return MakeResult(aid, Autorot.PrimaryTarget);
         }
 
         protected override NextAction CalculateAutomaticOGCD(float deadline)
         {
-            if (Autorot.PrimaryTarget == null)
+            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
                 return new();
 
             ActionID res = new();
@@ -54,7 +63,7 @@ namespace BossMod.PLD
                 res = Rotation.GetNextBestOGCD(_state, _strategy, deadline - _state.OGCDSlotLength, _aoe);
             if (!res && _state.CanWeave(deadline)) // second/only ogcd slot
                 res = Rotation.GetNextBestOGCD(_state, _strategy, deadline, _aoe);
-            return res ? MakeResult(res, Autorot.PrimaryTarget) : new();
+            return MakeResult(res, Autorot.PrimaryTarget);
         }
 
         protected override void OnActionExecuted(ActionID action, Actor? target)
@@ -100,8 +109,8 @@ namespace BossMod.PLD
                 = _ => Player;
 
             // placeholders
-            SupportedSpell(AID.FastBlade).PlaceholderForStrategy = _config.FullRotation ? AutoAction.GCDDamage | AutoAction.OGCDDamage : AutoAction.None;
-            SupportedSpell(AID.TotalEclipse).PlaceholderForStrategy = _config.FullRotation ? AutoAction.GCDDamage | AutoAction.OGCDDamage | AutoAction.AOEDamage : AutoAction.None;
+            SupportedSpell(AID.FastBlade).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
+            SupportedSpell(AID.TotalEclipse).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
 
             // combo replacement
             SupportedSpell(AID.RiotBlade).TransformAction = _config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextRiotBladeComboAction(ComboLastMove)) : null;

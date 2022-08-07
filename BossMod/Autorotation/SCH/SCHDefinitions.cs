@@ -71,12 +71,12 @@ namespace BossMod.SCH
         PetEmbrace = 802, // L1, instant, 3.0s CD (group 76), range 30, single-target 0/0, targets=self/party/friendly, animLock=???
         PetSeraphicVeil = 16548, // L80, instant, 3.0s CD (group 76), range 30, single-target 0/0, targets=self/party, animLock=???
         PetWhisperingDawn = 803, // L20, instant, 0.0s CD (group -1), range 0, AOE circle 15/0, targets=self, animLock=???
+        PetAngelsWhisper = 16550, // L80, instant, 0.0s CD (group -1), range 0, AOE circle 15/0, targets=self, animLock=???
         PetFeyIllumination = 805, // L40, instant, 0.0s CD (group -1), range 0, AOE circle 15/0, targets=self, animLock=???
+        PetSeraphicIllumination = 16551, // L80, instant, 0.0s CD (group -1), range 0, AOE circle 15/0, targets=self, animLock=???
         PetFeyUnion = 7438, // L70, instant, 0.0s CD (group -1), range 30, single-target 0/0, targets=party, animLock=???
         PetFeyBlessing = 16544, // L76, instant, 0.0s CD (group -1), range 0, AOE circle 20/0, targets=self, animLock=???
         PetConsolation = 16547, // L80, instant, 0.0s CD (group -1), range 0, AOE circle 20/0, targets=self, animLock=???
-        PetAngelsWhisper = 16550, // L80, instant, 0.0s CD (group -1), range 0, AOE circle 15/0, targets=self, animLock=???
-        PetSeraphicIllumination = 16551, // L80, instant, 0.0s CD (group -1), range 0, AOE circle 15/0, targets=self, animLock=???
     }
 
     public enum CDGroup : int

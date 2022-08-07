@@ -13,6 +13,7 @@ namespace BossMod.AI
         private bool _passive;
         private bool _autoTarget;
         private bool _instantCastsOnly;
+        private bool _afkMode;
         private WPos _masterPrevPos;
         private WPos _masterMovementStart;
         private DateTime _masterLastMoved;
@@ -38,15 +39,18 @@ namespace BossMod.AI
                 _ctrl.SetPrimaryTarget(primaryTarget);
             }
 
-            var secondaryTarget = TargetingHeal(player);
-            _autorot.SecondaryTarget = secondaryTarget;
+            //var secondaryTarget = TargetingHeal(player);
+            //_autorot.SecondaryTarget = secondaryTarget;
 
             UpdateState(player, master);
-            UpdateControl(player, master, primaryTarget, secondaryTarget);
+            UpdateControl(player, master, primaryTarget);
         }
 
         private Actor? TargetingSelectBest(Actor player)
         {
+            if (!player.InCombat)
+                return null; // not in combat => do nothing
+
             var selectedTarget = _autorot.WorldState.Actors.Find(player.TargetID);
             if (selectedTarget?.Type == ActorType.Enemy && !selectedTarget.IsAlly)
                 return selectedTarget;
@@ -76,32 +80,32 @@ namespace BossMod.AI
             return masterTarget;
         }
 
-        private Actor? TargetingHeal(Actor player)
-        {
-            if (player.Class != Class.ACN && player.Role != Role.Healer)
-                return null;
+        //private Actor? TargetingHeal(Actor player)
+        //{
+        //    if (player.Class != Class.ACN && player.Role != Role.Healer)
+        //        return null;
 
-            Actor? healTarget = null;
-            float healPrio = 0;
-            foreach (var p in _autorot.WorldState.Party.WithoutSlot(false))
-            {
-                if (p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)))
-                {
-                    if (healPrio == 0)
-                        healTarget = p; // esuna is lowest prio
-                }
-                else if (p.HP.Cur < p.HP.Max * 0.8f)
-                {
-                    var prio = 1 - (float)p.HP.Cur / p.HP.Max;
-                    if (prio > healPrio)
-                    {
-                        healTarget = p;
-                        healPrio = prio;
-                    }
-                }
-            }
-            return healTarget;
-        }
+        //    Actor? healTarget = null;
+        //    float healPrio = 0;
+        //    foreach (var p in _autorot.WorldState.Party.WithoutSlot(false))
+        //    {
+        //        if (p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)))
+        //        {
+        //            if (healPrio == 0)
+        //                healTarget = p; // esuna is lowest prio
+        //        }
+        //        else if (p.HP.Cur < p.HP.Max * 0.8f)
+        //        {
+        //            var prio = 1 - (float)p.HP.Cur / p.HP.Max;
+        //            if (prio > healPrio)
+        //            {
+        //                healTarget = p;
+        //                healPrio = prio;
+        //            }
+        //        }
+        //    }
+        //    return healTarget;
+        //}
 
         private void UpdateState(Actor player, Actor master)
         {
@@ -111,7 +115,7 @@ namespace BossMod.AI
             {
                 _ctrl.SetFocusTarget(master);
                 _masterPrevPos = _masterMovementStart = master.Position;
-                _masterLastMoved = new();
+                _masterLastMoved = _autorot.WorldState.CurrentTime;
             }
 
             // keep track of master movement
@@ -130,36 +134,30 @@ namespace BossMod.AI
             }
             // else: don't consider master to have stopped moving unless he's standing still for some small time
 
-            _instantCastsOnly = masterIsMoving && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (_masterPrevPos - _masterMovementStart).LengthSq() > 100
-                || _ctrl.NaviTargetPos != null && (_ctrl.NaviTargetPos.Value - player.Position).LengthSq() > 1;
+            bool moveWithMaster = masterIsMoving && (master == player || _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (_masterPrevPos - _masterMovementStart).LengthSq() > 100);
+            _instantCastsOnly = moveWithMaster || _ctrl.NaviTargetPos != null && (_ctrl.NaviTargetPos.Value - player.Position).LengthSq() > 1;
+            _afkMode = !masterIsMoving && !master.InCombat && (_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
         }
 
-        private void UpdateControl(Actor player, Actor master, Actor? primaryTarget, Actor? healTarget)
+        private void UpdateControl(Actor player, Actor master, Actor? primaryTarget)
         {
-            var strategy = AutoAction.None;
+            int strategy = CommonActions.AutoActionNone;
             if (_autorot.ClassActions != null && !_passive && !_ctrl.InCutscene)
             {
-                strategy = healTarget != null
-                    ? AutoAction.GCDHeal | AutoAction.OGCDHeal | AutoAction.AOEHeal
-                    : AutoAction.GCDDamage | AutoAction.OGCDDamage | AutoAction.AOEDamage;
-                if (_instantCastsOnly)
-                    strategy |= AutoAction.NoCast;
-
                 if (primaryTarget != null)
                 {
                     // note: that there is a 1-frame delay if target and/or strategy changes - we don't really care?..
                     // note: if target-of-target is player, don't try flanking, it's probably impossible... - unless target is currently casting
+                    strategy = _instantCastsOnly ? CommonActions.AutoActionAIFightMove : CommonActions.AutoActionAIFight;
                     var positional = _autorot.ClassActions.PreferredPosition;
                     if (primaryTarget.TargetID == player.InstanceID && primaryTarget.CastInfo == null)
                         positional = CommonActions.Positional.Any;
                     _avoidAOE.SetDesired(primaryTarget.Position, primaryTarget.Rotation, _autorot.ClassActions.PreferredRange + player.HitboxRadius + primaryTarget.HitboxRadius, positional);
                 }
-                else if (healTarget != null)
-                {
-                    _avoidAOE.SetDesired(healTarget.Position, healTarget.Rotation, _autorot.ClassActions.PreferredRange + player.HitboxRadius + healTarget.HitboxRadius);
-                }
                 else
                 {
+                    if (!_afkMode)
+                        strategy = _instantCastsOnly ? CommonActions.AutoActionAIIdleMove : CommonActions.AutoActionAIIdle;
                     _avoidAOE.ClearDesired();
                 }
             }
@@ -168,9 +166,9 @@ namespace BossMod.AI
                 _avoidAOE.ClearDesired();
             }
 
-            _autorot.ClassActions?.UpdateAutoStrategy(strategy);
+            _autorot.ClassActions?.UpdateAutoAction(strategy);
             var dest = _avoidAOE.Update(player);
-            if (dest == null && strategy == AutoAction.None && master != player)
+            if (dest == null && primaryTarget == null && master != player)
             {
                 // if there is no planned action and no aoe avoidance, just follow master...
                 var targetPos = master.Position;
@@ -204,7 +202,7 @@ namespace BossMod.AI
         {
             ImGui.Checkbox("Passively follow", ref _passive);
             ImGui.Checkbox("Auto select target", ref _autoTarget);
-            ImGui.TextUnformatted($"Only-instant={_instantCastsOnly}, master standing for {(_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds:f1}");
+            ImGui.TextUnformatted($"Only-instant={_instantCastsOnly}, afk={_afkMode}, master standing for {(_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds:f1}");
         }
     }
 }

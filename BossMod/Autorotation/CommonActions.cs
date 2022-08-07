@@ -7,6 +7,14 @@ namespace BossMod
 {
     abstract class CommonActions : IDisposable
     {
+        public const int AutoActionNone = 0;
+        public const int AutoActionAIIdle = 1;
+        public const int AutoActionAIIdleMove = 2;
+        public const int AutoActionFirstFight = 3;
+        public const int AutoActionAIFight = 3;
+        public const int AutoActionAIFightMove = 4;
+        public const int AutoActionFirstCustom = 5;
+
         public enum Positional { Any, Flank, Rear }
         public enum ActionSource { Automatic, Planned, Manual, Emergency }
 
@@ -33,7 +41,7 @@ namespace BossMod
             public ActionDefinition Definition;
             public bool IsGT;
             public Func<Actor?, bool>? Condition;
-            public AutoAction PlaceholderForStrategy; // if set, attempting to execute this action would instead initiate auto-strategy
+            public int PlaceholderForAuto; // if set, attempting to execute this action would instead initiate auto-strategy
             public Func<ActionID>? TransformAction;
             public Func<Actor?, Actor?>? TransformTarget;
 
@@ -61,8 +69,8 @@ namespace BossMod
         public Positional PreferredPosition { get; protected set; } // implementation can update this as needed
         public float PreferredRange { get; protected set; } = 3; // implementation can update this as needed
         protected Autorotation Autorot;
-        protected AutoAction AutoStrategy { get; private set; }
-        private DateTime _autoStrategyExpire;
+        protected int AutoAction { get; private set; }
+        private DateTime _autoActionExpire;
         private QuestLockCheck _lock;
         private ManualActionOverride _mq;
 
@@ -82,18 +90,18 @@ namespace BossMod
         public void UpdateMainTick()
         {
             _mq.RemoveExpired();
-            if (AutoStrategy != AutoAction.None && _autoStrategyExpire < Autorot.WorldState.CurrentTime)
+            if (AutoAction != AutoActionNone && _autoActionExpire < Autorot.WorldState.CurrentTime)
             {
-                Log("Strategy expired");
-                AutoStrategy = AutoAction.None;
+                Log($"Auto action {AutoAction} expired");
+                AutoAction = AutoActionNone;
             }
         }
 
         // this is called from actionmanager's post-update callback
         public void UpdateAMTick()
         {
-            if (AutoStrategy != AutoAction.None)
-                UpdateInternalState(AutoStrategy);
+            if (AutoAction != AutoActionNone)
+                UpdateInternalState(AutoAction);
         }
 
         public unsafe bool HaveItemInInventory(uint id)
@@ -129,12 +137,12 @@ namespace BossMod
             };
         }
 
-        public void UpdateAutoStrategy(AutoAction strategy)
+        public void UpdateAutoAction(int autoAction)
         {
-            if (AutoStrategy != strategy)
-                Log($"Strategy set to {strategy}");
-            AutoStrategy = strategy;
-            _autoStrategyExpire = Autorot.WorldState.CurrentTime.AddSeconds(1.0f);
+            if (AutoAction != autoAction)
+                Log($"Auto action set to {autoAction}");
+            AutoAction = autoAction;
+            _autoActionExpire = Autorot.WorldState.CurrentTime.AddSeconds(1.0f);
         }
 
         public bool HandleUserActionRequest(ActionID action, Actor? target)
@@ -153,9 +161,9 @@ namespace BossMod
                 }
             }
 
-            if (supportedAction.PlaceholderForStrategy != AutoAction.None)
+            if (supportedAction.PlaceholderForAuto != AutoActionNone)
             {
-                UpdateAutoStrategy(supportedAction.PlaceholderForStrategy);
+                UpdateAutoAction(supportedAction.PlaceholderForAuto);
                 return true;
             }
 
@@ -196,7 +204,7 @@ namespace BossMod
 
             // see if we have any GCD (queued or automatic)
             var mqGCD = _mq.PeekGCD();
-            var nextGCD = mqGCD != null ? new NextAction(mqGCD.Action, mqGCD.Target, mqGCD.TargetPos, mqGCD.Definition, ActionSource.Manual) : AutoStrategy != AutoAction.None ? CalculateAutomaticGCD() : new();
+            var nextGCD = mqGCD != null ? new NextAction(mqGCD.Action, mqGCD.Target, mqGCD.TargetPos, mqGCD.Definition, ActionSource.Manual) : AutoAction != AutoActionNone ? CalculateAutomaticGCD() : new();
             float ogcdDeadline = nextGCD.Action ? Autorot.Cooldowns[CommonDefinitions.GCDGroup] : float.MaxValue;
 
             // search for any oGCDs that we can execute without delaying GCD
@@ -217,7 +225,7 @@ namespace BossMod
             }
 
             // note: we intentionally don't check that automatic oGCD really does not clip GCD - we provide utilities that allow module checking that, but also allow overriding if needed
-            var nextOGCD = AutoStrategy != AutoAction.None ? CalculateAutomaticOGCD(ogcdDeadline) : new();
+            var nextOGCD = AutoAction != AutoActionNone ? CalculateAutomaticOGCD(ogcdDeadline) : new();
             return nextOGCD.Action ? nextOGCD : nextGCD;
         }
 
@@ -233,7 +241,7 @@ namespace BossMod
         }
 
         public abstract void Dispose();
-        protected abstract void UpdateInternalState(AutoAction strategy);
+        protected abstract void UpdateInternalState(int autoAction);
         protected abstract NextAction CalculateAutomaticGCD();
         protected abstract NextAction CalculateAutomaticOGCD(float deadline);
         protected abstract void OnActionExecuted(ActionID action, Actor? target);
@@ -241,9 +249,10 @@ namespace BossMod
 
         protected NextAction MakeResult(ActionID action, Actor target)
         {
-            var data = SupportedActions[action];
-            return data.Allowed(Player, target) ? new(action, target, new(), data.Definition, ActionSource.Automatic) : new();
+            var data = action ? SupportedActions[action] : null;
+            return (data?.Allowed(Player, target) ?? false) ? new(action, target, new(), data.Definition, ActionSource.Automatic) : new();
         }
+        protected NextAction MakeResult<AID>(AID aid, Actor target) where AID : Enum => MakeResult(ActionID.MakeSpell(aid), target);
 
         // fill common state properties
         protected unsafe void FillCommonPlayerState(CommonRotation.PlayerState s)

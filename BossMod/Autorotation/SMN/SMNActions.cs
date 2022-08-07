@@ -6,6 +6,9 @@ namespace BossMod.SMN
 {
     class Actions : CommonActions
     {
+        public const int AutoActionST = AutoActionFirstCustom + 0;
+        public const int AutoActionAOE = AutoActionFirstCustom + 1;
+
         private SMNConfig _config;
         private bool _aoe;
         private Rotation.State _state;
@@ -29,9 +32,15 @@ namespace BossMod.SMN
             _config.Modified -= OnConfigModified;
         }
 
-        protected override void UpdateInternalState(AutoAction strategy)
+        protected override void UpdateInternalState(int autoAction)
         {
-            _aoe = (AutoStrategy & AutoAction.AOEDamage) != 0 && Autorot.PrimaryTarget != null && Autorot.PotentialTargetsInRange(Autorot.PrimaryTarget.Position, 5).Count() >= 3;
+            _aoe = autoAction switch
+            {
+                AutoActionST => false,
+                AutoActionAOE => true, // TODO: consider making AI-like check
+                AutoActionAIFight or AutoActionAIFightMove => Autorot.PrimaryTarget != null && Autorot.PotentialTargetsInRange(Autorot.PrimaryTarget.Position, 5).Count() >= 3,
+                _ => false, // irrelevant...
+            };
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionInt);
         }
@@ -39,18 +48,19 @@ namespace BossMod.SMN
         protected override NextAction CalculateAutomaticGCD()
         {
             if (_strategy.Prepull && _state.Unlocked(MinLevel.SummonCarbuncle) && !_state.PetSummoned)
-                return MakeResult(ActionID.MakeSpell(AID.SummonCarbuncle), Player);
-            if (Autorot.PrimaryTarget == null)
+                return MakeResult(AID.SummonCarbuncle, Player);
+            //if ((AutoStrategy & AutoAction.GCDHeal) != 0)
+            //    return MakeResult(AID.Physick, Autorot.SecondaryTarget); // TODO: automatic target selection
+
+            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
                 return new();
-            if ((AutoStrategy & AutoAction.GCDHeal) != 0)
-                return MakeResult(ActionID.MakeSpell(AID.Physick), Autorot.PrimaryTarget); // TODO: automatic target selection
-            var aid = Rotation.GetNextBestGCD(_state, _strategy, _aoe, (AutoStrategy & AutoAction.NoCast) != 0);
-            return aid != AID.None ? MakeResult(ActionID.MakeSpell(aid), Autorot.PrimaryTarget) : new();
+            var aid = Rotation.GetNextBestGCD(_state, _strategy, _aoe, AutoAction == AutoActionAIFightMove);
+            return MakeResult(aid, Autorot.PrimaryTarget);
         }
 
         protected override NextAction CalculateAutomaticOGCD(float deadline)
         {
-            if (Autorot.PrimaryTarget == null)
+            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
                 return new();
 
             ActionID res = new();
@@ -58,7 +68,7 @@ namespace BossMod.SMN
                 res = Rotation.GetNextBestOGCD(_state, _strategy, deadline - _state.OGCDSlotLength, _aoe);
             if (!res && _state.CanWeave(deadline)) // second/only ogcd slot
                 res = Rotation.GetNextBestOGCD(_state, _strategy, deadline, _aoe);
-            return res ? MakeResult(res, Autorot.PrimaryTarget) : new();
+            return MakeResult(res, Autorot.PrimaryTarget);
         }
 
         protected override void OnActionExecuted(ActionID action, Actor? target)
@@ -111,8 +121,8 @@ namespace BossMod.SMN
                 = _ => Player;
 
             // placeholders
-            SupportedSpell(AID.Ruin1).PlaceholderForStrategy = _config.FullRotation ? AutoAction.GCDDamage | AutoAction.OGCDDamage : AutoAction.None;
-            SupportedSpell(AID.Outburst).PlaceholderForStrategy = _config.FullRotation ? AutoAction.GCDDamage | AutoAction.OGCDDamage | AutoAction.AOEDamage : AutoAction.None;
+            SupportedSpell(AID.Ruin1).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
+            SupportedSpell(AID.Outburst).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
 
             // smart targets
             SupportedSpell(AID.Physick).TransformTarget = _config.MouseoverFriendly ? SmartTargetFriendly : null;

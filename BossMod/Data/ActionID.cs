@@ -92,7 +92,8 @@ namespace BossMod
 
         public static ActionID MakeSpell<AID>(AID id) where AID : Enum
         {
-            return new(ActionType.Spell, (uint)(object)id);
+            var castID = (uint)(object)id;
+            return castID != 0 ? new(ActionType.Spell, castID) : new();
         }
     }
 }
