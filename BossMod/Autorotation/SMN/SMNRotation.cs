@@ -86,13 +86,13 @@
                 return state.Unlocked(MinLevel.Ruin2) ? AID.Ruin2 : AID.Ruin1;
         }
 
-        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float windowEnd, bool aoe)
+        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline, bool aoe)
         {
             // TODO: reconsider priorities, this kinda works at low level
-            if (state.Unlocked(MinLevel.EnergyDrainFester) && state.AetherflowStacks == 0 && state.CanWeave(CDGroup.EnergyDrain, 0.6f, windowEnd))
+            if (state.Unlocked(MinLevel.EnergyDrainFester) && state.AetherflowStacks == 0 && state.CanWeave(CDGroup.EnergyDrain, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.EnergyDrain);
 
-            if (state.Unlocked(MinLevel.EnergyDrainFester) && state.AetherflowStacks > 0 && state.CanWeave(CDGroup.Fester, 0.6f, windowEnd))
+            if (state.Unlocked(MinLevel.EnergyDrainFester) && state.AetherflowStacks > 0 && state.CanWeave(CDGroup.Fester, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Fester);
 
             return new();

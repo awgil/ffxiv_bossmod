@@ -1,170 +1,140 @@
-﻿//using Dalamud.Game.ClientState.JobGauge.Types;
-//using ImGuiNET;
-//using System;
-//using System.Linq;
+﻿using Dalamud.Game.ClientState.JobGauge.Types;
+using ImGuiNET;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-//namespace BossMod
-//{
-//    class BLMActions : CommonActions
-//    {
-//        private BLMConfig _config;
-//        private BLMRotation.State _state;
-//        private BLMRotation.Strategy _strategy;
-//        private ActionID _nextBestSTAction = ActionID.MakeSpell(BLMRotation.AID.Blizzard1);
-//        private ActionID _nextBestAOEAction = ActionID.MakeSpell(BLMRotation.AID.Blizzard2);
+namespace BossMod.BLM
+{
+    class Actions : CommonActions
+    {
+        public const int AutoActionST = AutoActionFirstCustom + 0;
+        public const int AutoActionAOE = AutoActionFirstCustom + 1;
 
-//        // TODO: this should be done by framework (speculative effect application for actions that we didn't get EffectResult for yet)
-//        private DateTime _lastThunderSpeculation;
-//        private ulong _lastThunderTarget;
+        private BLMConfig _config;
+        private bool _aoe;
+        private Rotation.State _state;
+        private Rotation.Strategy _strategy;
 
-//        public BLMActions(Autorotation autorot, Actor player)
-//            : base(autorot, player)
-//        {
-//            _config = Service.Config.Get<BLMConfig>();
-//            _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
-//            _strategy = new();
+        // TODO: this should be done by framework (speculative effect application for actions that we didn't get EffectResult for yet)
+        private DateTime _lastThunderSpeculation;
+        private List<ulong> _lastThunderTargets = new();
 
-//            SmartQueueRegisterSpell(BLMRotation.AID.Swiftcast);
-//            SmartQueueRegisterSpell(BLMRotation.AID.Surecast);
-//            SmartQueueRegisterSpell(BLMRotation.AID.Addle);
-//            SmartQueueRegister(CommonDefinitions.IDSprint);
-//            //SmartQueueRegister(BLMRotation.IDStatPotion);
-//        }
+        public Actions(Autorotation autorot, Actor player)
+            : base(autorot, player, Definitions.QuestsPerLevel, Definitions.SupportedActions)
+        {
+            PreferredRange = 25;
 
-//        protected override void OnCastSucceeded(ActorCastEvent ev)
-//        {
-//            Log($"Cast {ev.Action} @ {ev.MainTargetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
-//            // hack
-//            if (ev.Action.Type == ActionType.Spell && (BLMRotation.AID)ev.Action.ID is BLMRotation.AID.Thunder1)
-//            {
-//                _lastThunderSpeculation = Autorot.WorldState.CurrentTime.AddMilliseconds(1000);
-//                _lastThunderTarget = ev.MainTargetID;
-//            }
-//        }
+            _config = Service.Config.Get<BLMConfig>();
+            _state = new(autorot.Cooldowns);
+            _strategy = new();
 
-//        protected override CommonRotation.PlayerState OnUpdate(Actor? target, bool moving)
-//        {
-//            var currState = BuildState(target);
-//            LogStateChange(_state, currState);
-//            _state = currState;
+            _config.Modified += OnConfigModified;
+            OnConfigModified(null, EventArgs.Empty);
+        }
 
-//            FillCommonStrategy(_strategy, BLMRotation.IDStatPotion);
+        public override void Dispose()
+        {
+            _config.Modified -= OnConfigModified;
+        }
 
-//            // cooldown execution
-//            _strategy.ExecuteSwiftcast = SmartQueueActiveSpell(BLMRotation.AID.Swiftcast);
-//            _strategy.ExecuteSurecast = SmartQueueActiveSpell(BLMRotation.AID.Surecast);
-//            _strategy.ExecuteAddle = SmartQueueActiveSpell(BLMRotation.AID.Addle);
+        protected override void UpdateInternalState(int autoAction)
+        {
+            _aoe = autoAction switch
+            {
+                AutoActionST => false,
+                AutoActionAOE => true, // TODO: consider making AI-like check
+                AutoActionAIFight or AutoActionAIFightMove => Autorot.PrimaryTarget != null && Autorot.PotentialTargetsInRange(Autorot.PrimaryTarget.Position, 5).Count() >= 3,
+                _ => false, // irrelevant...
+            };
+            UpdatePlayerState();
+            FillCommonStrategy(_strategy, CommonDefinitions.IDPotionInt);
+        }
 
-//            var nextBestST = _config.FullRotation ? BLMRotation.GetNextBestAction(_state, _strategy, false, moving) : ActionID.MakeSpell(BLMRotation.AID.Blizzard1);
-//            var nextBestAOE = _config.FullRotation ? BLMRotation.GetNextBestAction(_state, _strategy, true, moving) : ActionID.MakeSpell(BLMRotation.AID.Blizzard2);
-//            if (_nextBestSTAction != nextBestST || _nextBestAOEAction != nextBestAOE)
-//            {
-//                Log($"Next-best changed: ST={_nextBestSTAction}->{nextBestST}, AOE={_nextBestAOEAction}->{nextBestAOE} [{_state}]");
-//                _nextBestSTAction = nextBestST;
-//                _nextBestAOEAction = nextBestAOE;
-//            }
-//            return _state;
-//        }
+        protected override NextAction CalculateAutomaticGCD()
+        {
+            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
+                return new();
+            var aid = Rotation.GetNextBestGCD(_state, _strategy, _aoe, AutoAction == AutoActionAIFightMove);
+            return MakeResult(aid, Autorot.PrimaryTarget);
+        }
 
-//        protected override (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets)
-//        {
-//            if (actionID.Type == ActionType.Spell)
-//            {
-//                actionID = (BLMRotation.AID)actionID.ID switch
-//                {
-//                    BLMRotation.AID.Blizzard1 => _config.FullRotation ? _nextBestSTAction : actionID,
-//                    BLMRotation.AID.Blizzard2 => _config.FullRotation ? _nextBestAOEAction : actionID,
-//                    _ => actionID
-//                };
-//            }
-//            ulong targetID = actionID.Type == ActionType.Spell ? (BLMRotation.AID)actionID.ID switch
-//            {
-//                _ => targets.MainTarget
-//            } : targets.MainTarget;
-//            return (actionID, targetID);
-//        }
+        protected override NextAction CalculateAutomaticOGCD(float deadline)
+        {
+            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
+                return new();
 
-//        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget, bool moving)
-//        {
-//            if (primaryTarget?.Type != ActorType.Enemy)
-//                return new();
+            ActionID res = new();
+            if (_state.CanWeave(deadline - _state.OGCDSlotLength)) // first ogcd slot
+                res = Rotation.GetNextBestOGCD(_state, _strategy, deadline - _state.OGCDSlotLength, _aoe);
+            if (!res && _state.CanWeave(deadline)) // second/only ogcd slot
+                res = Rotation.GetNextBestOGCD(_state, _strategy, deadline, _aoe);
+            return MakeResult(res, Autorot.PrimaryTarget);
+        }
 
-//            // TODO: proper implementation...
-//            bool useAOE = _state.UnlockedBlizzard2 && Autorot.PotentialTargetsInRange(primaryTarget.Position, 5).Count() > 2;
-//            return new() { Action = BLMRotation.GetNextBestAction(_state, _strategy, useAOE, moving), Target = primaryTarget };
-//        }
+        protected override void OnActionExecuted(ActionID action, Actor? target)
+        {
+            Log($"Executed {action} @ {target} [{_state}]");
+        }
 
-//        public override void DrawOverlay()
-//        {
-//            ImGui.TextUnformatted($"Next: {BLMRotation.ActionShortString(_nextBestSTAction)} / {BLMRotation.ActionShortString(_nextBestAOEAction)}");
-//            ImGui.TextUnformatted(_strategy.ToString());
-//            ImGui.TextUnformatted($"Raidbuffs: {_state.RaidBuffsLeft:f2}s left, next in {_strategy.RaidBuffsIn:f2}s");
-//            ImGui.TextUnformatted($"Downtime: {_strategy.FightEndIn:f2}s, pos-lock: {_strategy.PositionLockIn:f2}");
-//            ImGui.TextUnformatted($"GCD={_state.GCD:f3}, AnimLock={_state.AnimationLock:f3}+{_state.AnimationLockDelay:f3}");
-//        }
+        protected override void OnActionSucceeded(ActorCastEvent ev)
+        {
+            Log($"Succeeded {ev.Action} @ {ev.MainTargetID:X} [{_state}]");
+            // hack
+            if (ev.Action.Type == ActionType.Spell && (AID)ev.Action.ID is AID.Thunder1 or AID.Thunder2)
+            {
+                _lastThunderSpeculation = Autorot.WorldState.CurrentTime.AddMilliseconds(1000);
+                _lastThunderTargets.Clear();
+                _lastThunderTargets.AddRange(ev.Targets.Select(t => t.ID));
+            }
+        }
 
-//        private BLMRotation.State BuildState(Actor? target)
-//        {
-//            BLMRotation.State s = new();
-//            FillCommonPlayerState(s, target, BLMRotation.IDStatPotion);
+        private void UpdatePlayerState()
+        {
+            FillCommonPlayerState(_state);
 
-//            var gauge = Service.JobGauges.Get<BLMGauge>();
-//            s.ElementalLevel = gauge.InAstralFire ? gauge.AstralFireStacks : -gauge.UmbralIceStacks;
-//            s.ElementalLeft = gauge.ElementTimeRemaining * 0.001f;
+            var gauge = Service.JobGauges.Get<BLMGauge>();
+            _state.ElementalLevel = gauge.InAstralFire ? gauge.AstralFireStacks : -gauge.UmbralIceStacks;
+            _state.ElementalLeft = gauge.ElementTimeRemaining * 0.001f;
 
-//            //foreach (var status in player.Statuses)
-//            //{
-//            //    switch ((BLMRotation.SID)status.ID)
-//            //    {
-//            //        case BLMRotation.SID.Swiftcast:
-//            //            s.SwiftcastLeft = StatusDuration(status.ExpireAt);
-//            //            break;
-//            //        case BLMRotation.SID.ThinAir:
-//            //            s.ThinAirLeft = StatusDuration(status.ExpireAt);
-//            //            break;
-//            //        case BLMRotation.SID.Freecure:
-//            //            s.FreecureLeft = StatusDuration(status.ExpireAt);
-//            //            break;
-//            //        case BLMRotation.SID.Medica2:
-//            //            if (status.SourceID == player.InstanceID)
-//            //                s.MedicaLeft = StatusDuration(status.ExpireAt);
-//            //            break;
-//            //    }
-//            //}
+            _state.TargetThunderLeft = 0;
+            if (Autorot.PrimaryTarget != null)
+            {
+                foreach (var status in Autorot.PrimaryTarget.Statuses)
+                {
+                    switch ((SID)status.ID)
+                    {
+                        case SID.Thunder1:
+                        case SID.Thunder2:
+                            if (status.SourceID == Player.InstanceID)
+                                _state.TargetThunderLeft = StatusDuration(status.ExpireAt);
+                            break;
+                    }
+                }
+                if (_state.TargetThunderLeft == 0 && _lastThunderSpeculation > Autorot.WorldState.CurrentTime && _lastThunderTargets.Contains(Autorot.PrimaryTarget.InstanceID))
+                {
+                    _state.TargetThunderLeft = 21;
+                }
+            }
+        }
 
-//            if (target != null)
-//            {
-//                foreach (var status in target.Statuses)
-//                {
-//                    switch ((BLMRotation.SID)status.ID)
-//                    {
-//                        case BLMRotation.SID.Thunder1:
-//                            if (status.SourceID == Player.InstanceID)
-//                                s.TargetThunderLeft = StatusDuration(status.ExpireAt);
-//                            break;
-//                    }
-//                }
-//            }
-//            if (s.TargetThunderLeft == 0 && _lastThunderSpeculation > Autorot.WorldState.CurrentTime && _lastThunderTarget == target?.InstanceID)
-//            {
-//                s.TargetThunderLeft = 21;
-//            }
+        private void OnConfigModified(object? sender, EventArgs args)
+        {
+            // TODO: upgrades
 
-//            return s;
-//        }
+            // self-targeted spells
+            SupportedSpell(AID.Transpose).TransformTarget = SupportedSpell(AID.Sharpcast).TransformTarget
+                = SupportedSpell(AID.Swiftcast).TransformTarget = SupportedSpell(AID.Manafont).TransformTarget = SupportedSpell(AID.LeyLines).TransformTarget
+                = SupportedSpell(AID.Triplecast).TransformTarget = SupportedSpell(AID.Amplifier).TransformTarget = SupportedSpell(AID.LucidDreaming).TransformTarget
+                = SupportedSpell(AID.Manaward).TransformTarget = SupportedSpell(AID.Surecast).TransformTarget = SupportedSpell(AID.UmbralSoul).TransformTarget
+                = _ => Player;
 
-//        private void LogStateChange(BLMRotation.State prev, BLMRotation.State curr)
-//        {
-//            // do nothing if not in combat
-//            if (!Player.InCombat)
-//                return;
+            // placeholders
+            SupportedSpell(AID.Blizzard1).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
+            SupportedSpell(AID.Blizzard2).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
 
-//            //if (prev.Moving != curr.Moving)
-//            //    Log($"Moving changed to {curr.Moving}");
-
-//            // detect expired buffs
-//            if (curr.ElementalLeft == 0 && prev.ElementalLeft != 0 && prev.ElementalLeft < 1)
-//                Log($"Expired elemental [{curr}]");
-//        }
-//    }
-//}
+            // smart targets
+            SupportedSpell(AID.AetherialManipulation).TransformTarget = _config.MouseoverFriendly ? SmartTargetFriendly : null;
+        }
+    }
+}

@@ -38,7 +38,7 @@ namespace BossMod
         public unsafe void Draw()
         {
             var player = Service.ClientState.LocalPlayer;
-            ImGui.TextUnformatted($"Current zone: {_ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
+            ImGui.TextUnformatted($"Current zone: {_ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={Service.ClientState.LocalContentId:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
 
             if (ImGui.Button("Perform full dump"))
             {
