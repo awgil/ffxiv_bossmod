@@ -448,6 +448,13 @@ namespace BossMod
                         Service.Log($"[Network] - {p->Elapsed[0]:f1}/{p->Total[0]:f1}, ..., {p->Elapsed[21]:f1}/{p->Total[21]:f1}");
                         break;
                     }
+                case Protocol.Opcode.UpdateHate:
+                case Protocol.Opcode.UpdateHater:
+                    {
+                        ulong* p = (ulong*)(dataPtr + 4);
+                        Service.Log($"[Network] - {*(byte*)dataPtr} entries: [{*(uint*)p:X}={*((byte*)p+4)}, ...]");
+                        break;
+                    }
             }
         }
 

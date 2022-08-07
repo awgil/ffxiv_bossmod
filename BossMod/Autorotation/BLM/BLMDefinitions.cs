@@ -37,7 +37,7 @@ namespace BossMod.BLM
 
         // offsensive CDs
         Swiftcast = 7561, // L18, instant, 60.0s CD (group 42), range 0, single-target 0/0, targets=self
-        Manafont = 158, // L30, instant, 180.0s CD (group 23), range 0, single-target 0/0, targets=self, animLock=???
+        Manafont = 158, // L30, instant, 180.0s CD (group 23), range 0, single-target 0/0, targets=self
         LeyLines = 3573, // L52, instant, 120.0s CD (group 14), range 0, Ground circle 3/0, targets=area, animLock=???
         Triplecast = 7421, // L66, instant, 60.0s CD (group 9) (2 charges), range 0, single-target 0/0, targets=self, animLock=???
         Amplifier = 25796, // L86, instant, 120.0s CD (group 20), range 0, single-target 0/0, targets=self, animLock=???
@@ -45,7 +45,7 @@ namespace BossMod.BLM
 
         // defensive CDs
         Addle = 7560, // L8, instant, 90.0s CD (group 40), range 25, single-target 0/0, targets=hostile
-        Manaward = 157, // L30, instant, 120.0s CD (group 21), range 0, single-target 0/0, targets=self, animLock=???
+        Manaward = 157, // L30, instant, 120.0s CD (group 21), range 0, single-target 0/0, targets=self
         Surecast = 7559, // L44, instant, 120.0s CD (group 43), range 0, single-target 0/0, targets=self, animLock=???
 
         // misc

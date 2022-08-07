@@ -20,6 +20,9 @@
         // strategy configuration
         public class Strategy : CommonRotation.Strategy
         {
+            public bool AOE;
+            public bool Moving;
+            public bool UseManaward;
         }
 
         public static uint AdjustedFireCost(State state, uint baseCost)
@@ -32,15 +35,15 @@
             };
         }
 
-        public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe, bool moving)
+        public static AID GetNextBestGCD(State state, Strategy strategy)
         {
-            if (moving)
+            if (strategy.Moving)
             {
                 // TODO: not sure about this...
                 if (state.Unlocked(MinLevel.Scathe) && state.CurMP >= 800)
                     return AID.Scathe;
             }
-            else if (aoe && state.Unlocked(MinLevel.Blizzard2))
+            else if (strategy.AOE && state.Unlocked(MinLevel.Blizzard2))
             {
                 // TODO: this works until ~L40
                 if (state.Unlocked(MinLevel.Thunder2) && state.TargetThunderLeft <= state.GCD)
@@ -58,8 +61,15 @@
             return AID.None;
         }
 
-        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline, bool aoe)
+        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
+            if (strategy.UseManaward && state.Unlocked(MinLevel.Manaward) && state.CanWeave(CDGroup.Manaward, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.Manaward);
+
+            // TODO: this is not really correct...
+            if (state.Unlocked(MinLevel.Manafont) && state.CanWeave(CDGroup.Manafont, 0.6f, deadline) && state.CurMP < 5000)
+                return ActionID.MakeSpell(AID.Manafont);
+
             if (state.Unlocked(MinLevel.Transpose) && state.CanWeave(CDGroup.Transpose, 0.6f, deadline) && (state.ElementalLevel < 0 && state.CurMP >= 9200 || state.ElementalLevel > 0 && state.CurMP < 3600))
                 return ActionID.MakeSpell(AID.Transpose);
 

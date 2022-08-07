@@ -12,7 +12,6 @@ namespace BossMod.BLM
         public const int AutoActionAOE = AutoActionFirstCustom + 1;
 
         private BLMConfig _config;
-        private bool _aoe;
         private Rotation.State _state;
         private Rotation.Strategy _strategy;
 
@@ -40,22 +39,27 @@ namespace BossMod.BLM
 
         protected override void UpdateInternalState(int autoAction)
         {
-            _aoe = autoAction switch
-            {
-                AutoActionST => false,
-                AutoActionAOE => true, // TODO: consider making AI-like check
-                AutoActionAIFight or AutoActionAIFightMove => Autorot.PrimaryTarget != null && Autorot.PotentialTargetsInRange(Autorot.PrimaryTarget.Position, 5).Count() >= 3,
-                _ => false, // irrelevant...
-            };
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionInt);
+            if (autoAction is AutoActionAIFight or AutoActionAIFightMove)
+            {
+                _strategy.AOE = Autorot.PrimaryTarget != null && Autorot.PotentialTargetsInRange(Autorot.PrimaryTarget.Position, 5).Count() >= 3;
+                _strategy.Moving = AutoAction == AutoActionAIFightMove;
+                _strategy.UseManaward = Player.HP.Cur < Player.HP.Max * 0.8f;
+            }
+            else
+            {
+                _strategy.AOE = autoAction == AutoActionAOE; // TODO: consider making AI-like check
+                _strategy.Moving = false;
+                _strategy.UseManaward = false;
+            }
         }
 
         protected override NextAction CalculateAutomaticGCD()
         {
             if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
                 return new();
-            var aid = Rotation.GetNextBestGCD(_state, _strategy, _aoe, AutoAction == AutoActionAIFightMove);
+            var aid = Rotation.GetNextBestGCD(_state, _strategy);
             return MakeResult(aid, Autorot.PrimaryTarget);
         }
 
@@ -66,9 +70,9 @@ namespace BossMod.BLM
 
             ActionID res = new();
             if (_state.CanWeave(deadline - _state.OGCDSlotLength)) // first ogcd slot
-                res = Rotation.GetNextBestOGCD(_state, _strategy, deadline - _state.OGCDSlotLength, _aoe);
+                res = Rotation.GetNextBestOGCD(_state, _strategy, deadline - _state.OGCDSlotLength);
             if (!res && _state.CanWeave(deadline)) // second/only ogcd slot
-                res = Rotation.GetNextBestOGCD(_state, _strategy, deadline, _aoe);
+                res = Rotation.GetNextBestOGCD(_state, _strategy, deadline);
             return MakeResult(res, Autorot.PrimaryTarget);
         }
 
