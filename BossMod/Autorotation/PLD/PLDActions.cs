@@ -100,18 +100,6 @@ namespace BossMod.PLD
 
         private void OnConfigModified(object? sender, EventArgs args)
         {
-            // TODO: upgrades
-
-            // self-targeted spells
-            SupportedSpell(AID.TotalEclipse).TransformTarget = SupportedSpell(AID.Prominence).TransformTarget = SupportedSpell(AID.HolyCircle).TransformTarget
-                = SupportedSpell(AID.CircleOfScorn).TransformTarget
-                = SupportedSpell(AID.FightOrFlight).TransformTarget
-                = SupportedSpell(AID.Rampart).TransformTarget = SupportedSpell(AID.Sheltron).TransformTarget = SupportedSpell(AID.Sentinel).TransformTarget
-                = SupportedSpell(AID.HolySheltron).TransformTarget = SupportedSpell(AID.HallowedGround).TransformTarget = SupportedSpell(AID.Reprisal).TransformTarget
-                = SupportedSpell(AID.PassageOfArms).TransformTarget = SupportedSpell(AID.DivineVeil).TransformTarget
-                = SupportedSpell(AID.ArmsLength).TransformTarget = SupportedSpell(AID.IronWill).TransformTarget
-                = _ => Player;
-
             // placeholders
             SupportedSpell(AID.FastBlade).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
             SupportedSpell(AID.TotalEclipse).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;

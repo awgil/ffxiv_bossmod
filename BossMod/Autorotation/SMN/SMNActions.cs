@@ -115,15 +115,6 @@ namespace BossMod.SMN
 
         private void OnConfigModified(object? sender, EventArgs args)
         {
-            // TODO: upgrades
-
-            // self-targeted spells
-            SupportedSpell(AID.AstralFlow).TransformTarget = SupportedSpell(AID.SummonCarbuncle).TransformTarget
-                = SupportedSpell(AID.Aethercharge).TransformTarget = SupportedSpell(AID.DreadwyrmTrance).TransformTarget
-                = SupportedSpell(AID.SearingLight).TransformTarget = SupportedSpell(AID.Swiftcast).TransformTarget = SupportedSpell(AID.LucidDreaming).TransformTarget
-                = SupportedSpell(AID.RadiantAegis).TransformTarget = SupportedSpell(AID.Surecast).TransformTarget
-                = _ => Player;
-
             // placeholders
             SupportedSpell(AID.Ruin1).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
             SupportedSpell(AID.Outburst).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;

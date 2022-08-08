@@ -13,6 +13,13 @@
             public float DisciplinedFistLeft; // 15 max
             public float TargetDemolishLeft; // TODO: this shouldn't be here...
 
+            // upgrade paths
+            public AID BestForbiddenChakra => Unlocked(MinLevel.ForbiddenChakra) ? AID.ForbiddenChakra : AID.SteelPeak;
+            public AID BestEnlightenment => Unlocked(MinLevel.Enlightenment) ? AID.Enlightenment : AID.HowlingFist;
+            public AID BestShadowOfTheDestroyer => Unlocked(MinLevel.ShadowOfTheDestroyer) ? AID.ShadowOfTheDestroyer : AID.ArmOfTheDestroyer;
+            public AID BestRisingPhoenix => Unlocked(MinLevel.RisingPhoenix) ? AID.RisingPhoenix : AID.FlintStrike;
+            public AID BestPhantomRush => Unlocked(MinLevel.PhantomRush) ? AID.PhantomRush : AID.TornadoKick;
+
             public State(float[] cooldowns) : base(cooldowns) { }
 
             public override string ToString()
@@ -27,12 +34,10 @@
             public int NumAOETargets;
         }
 
-        public static AID GetOpoOpoAOEAction(State state) => state.Unlocked(MinLevel.ShadowOfTheDestroyer) ? AID.ShadowOfTheDestroyer : AID.ArmOfTheDestroyer;
-
         public static AID GetOpoOpoFormAction(State state, int numAOETargets)
         {
             // TODO: dragon kick (L50)
-            return state.Unlocked(MinLevel.ArmOfTheDestroyer) && numAOETargets >= 3 ? GetOpoOpoAOEAction(state) : AID.Bootshine;
+            return state.Unlocked(MinLevel.ArmOfTheDestroyer) && numAOETargets >= 3 ? state.BestShadowOfTheDestroyer : AID.Bootshine;
         }
 
         public static AID GetRaptorFormAction(State state, int numAOETargets)

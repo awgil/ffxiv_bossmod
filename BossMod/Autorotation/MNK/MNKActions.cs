@@ -20,6 +20,13 @@ namespace BossMod.MNK
             _state = new(autorot.Cooldowns);
             _strategy = new();
 
+            // upgrades
+            SupportedSpell(AID.SteelPeak).TransformAction = SupportedSpell(AID.ForbiddenChakra).TransformAction = () => ActionID.MakeSpell(_state.BestForbiddenChakra);
+            SupportedSpell(AID.HowlingFist).TransformAction = SupportedSpell(AID.Enlightenment).TransformAction = () => ActionID.MakeSpell(_state.BestEnlightenment);
+            SupportedSpell(AID.ArmOfTheDestroyer).TransformAction = SupportedSpell(AID.ShadowOfTheDestroyer).TransformAction = () => ActionID.MakeSpell(_state.BestShadowOfTheDestroyer);
+            SupportedSpell(AID.FlintStrike).TransformAction = SupportedSpell(AID.RisingPhoenix).TransformAction = () => ActionID.MakeSpell(_state.BestRisingPhoenix);
+            SupportedSpell(AID.TornadoKick).TransformAction = SupportedSpell(AID.PhantomRush).TransformAction = () => ActionID.MakeSpell(_state.BestPhantomRush);
+
             _config.Modified += OnConfigModified;
             OnConfigModified(null, EventArgs.Empty);
         }
@@ -120,23 +127,6 @@ namespace BossMod.MNK
 
         private void OnConfigModified(object? sender, EventArgs args)
         {
-            // upgrades
-            SupportedSpell(AID.SteelPeak).TransformAction = SupportedSpell(AID.ForbiddenChakra).TransformAction = () => ActionID.MakeSpell(_state.Unlocked(MinLevel.ForbiddenChakra) ? AID.ForbiddenChakra : AID.SteelPeak);
-            SupportedSpell(AID.HowlingFist).TransformAction = SupportedSpell(AID.Enlightenment).TransformAction = () => ActionID.MakeSpell(_state.Unlocked(MinLevel.Enlightenment) ? AID.Enlightenment : AID.HowlingFist);
-            SupportedSpell(AID.ArmOfTheDestroyer).TransformAction = SupportedSpell(AID.ShadowOfTheDestroyer).TransformAction = () => ActionID.MakeSpell(Rotation.GetOpoOpoAOEAction(_state));
-            SupportedSpell(AID.FlintStrike).TransformAction = SupportedSpell(AID.RisingPhoenix).TransformAction = () => ActionID.MakeSpell(_state.Unlocked(MinLevel.RisingPhoenix) ? AID.RisingPhoenix : AID.FlintStrike);
-            SupportedSpell(AID.TornadoKick).TransformAction = SupportedSpell(AID.PhantomRush).TransformAction = () => ActionID.MakeSpell(_state.Unlocked(MinLevel.PhantomRush) ? AID.PhantomRush : AID.TornadoKick);
-
-            // self-targeted spells
-            SupportedSpell(AID.ArmOfTheDestroyer).TransformTarget = SupportedSpell(AID.ShadowOfTheDestroyer).TransformTarget = SupportedSpell(AID.FourPointFury).TransformTarget = SupportedSpell(AID.Rockbreaker).TransformTarget
-                = SupportedSpell(AID.MasterfulBlitz).TransformTarget = SupportedSpell(AID.ElixirField).TransformTarget = SupportedSpell(AID.FlintStrike).TransformTarget = SupportedSpell(AID.RisingPhoenix).TransformTarget
-                = SupportedSpell(AID.PerfectBalance).TransformTarget = SupportedSpell(AID.RiddleOfFire).TransformTarget = SupportedSpell(AID.Brotherhood).TransformTarget = SupportedSpell(AID.RiddleOfWind).TransformTarget
-                = SupportedSpell(AID.SecondWind).TransformTarget = SupportedSpell(AID.Mantra).TransformTarget = SupportedSpell(AID.RiddleOfEarth).TransformTarget
-                = SupportedSpell(AID.Bloodbath).TransformTarget = SupportedSpell(AID.ArmsLength).TransformTarget
-                = SupportedSpell(AID.Meditation).TransformTarget = SupportedSpell(AID.TrueNorth).TransformTarget
-                = SupportedSpell(AID.FormShift).TransformTarget = SupportedSpell(AID.Anatman).TransformTarget
-                = _ => Player;
-
             // placeholders
             SupportedSpell(AID.Bootshine).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
             SupportedSpell(AID.ArmOfTheDestroyer).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;

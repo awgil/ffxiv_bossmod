@@ -8,6 +8,11 @@
             public Actor? Fairy;
             public float SwiftcastLeft; // 0 if buff not up, max 10
 
+            // upgrade paths
+            public AID BestBroil => Unlocked(MinLevel.Broil4) ? AID.Broil4 : Unlocked(MinLevel.Broil3) ? AID.Broil3 : Unlocked(MinLevel.Broil2) ? AID.Broil2 : Unlocked(MinLevel.Broil1) ? AID.Broil1 : AID.Ruin1;
+            public AID BestBio => Unlocked(MinLevel.Biolysis) ? AID.Biolysis : Unlocked(MinLevel.Bio2) ? AID.Bio2 : AID.Bio1;
+            public AID BestArtOfWar => Unlocked(MinLevel.ArtOfWar2) ? AID.ArtOfWar2 : AID.ArtOfWar1;
+
             public State(float[] cooldowns) : base(cooldowns) { }
 
             public override string ToString()
@@ -19,23 +24,6 @@
         // strategy configuration
         public class Strategy : CommonRotation.Strategy
         {
-        }
-
-        public static AID GetBroilAction(State state)
-        {
-            return state.Unlocked(MinLevel.Broil2)
-                ? (state.Unlocked(MinLevel.Broil4) ? AID.Broil4 : state.Unlocked(MinLevel.Broil3) ? AID.Broil3 : AID.Broil2)
-                : (state.Unlocked(MinLevel.Broil1) ? AID.Broil1 : AID.Ruin1);
-        }
-
-        public static AID GetBioAction(State state)
-        {
-            return state.Unlocked(MinLevel.Biolysis) ? AID.Biolysis : state.Unlocked(MinLevel.Bio2) ? AID.Bio2 : AID.Bio1;
-        }
-
-        public static AID GetArtOfWarAction(State state)
-        {
-            return state.Unlocked(MinLevel.ArtOfWar2) ? AID.ArtOfWar2 : AID.ArtOfWar1;
         }
 
         public static AID GetNextBestSTHealGCD(State state)

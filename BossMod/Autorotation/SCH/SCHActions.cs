@@ -5,12 +5,13 @@ namespace BossMod.SCH
 {
     class Actions : CommonActions
     {
+        // TODO: reconsider, shouldn't be here...
         public struct AIDecisionState
         {
-            public Actor? MultidotTarget;
-            public Actor? MostDamagedPartyMember;
-            public Actor? EsunablePartyMember;
-            public bool UseWhisperingDawn;
+            public Actor? MultidotTarget; // replace with custom target selection...
+            public Actor? MostDamagedPartyMember; // replace with queued heal
+            public Actor? EsunablePartyMember; // replace with queued esuna
+            public bool UseWhisperingDawn; // replace with queued WD
         }
 
         private SCHConfig _config;
@@ -26,6 +27,11 @@ namespace BossMod.SCH
             _config = Service.Config.Get<SCHConfig>();
             _state = new(autorot.Cooldowns);
             _strategy = new();
+
+            // upgrades
+            SupportedSpell(AID.Ruin1).TransformAction = SupportedSpell(AID.Broil1).TransformAction = SupportedSpell(AID.Broil2).TransformAction = SupportedSpell(AID.Broil3).TransformAction = SupportedSpell(AID.Broil4).TransformAction = () => ActionID.MakeSpell(_state.BestBroil);
+            SupportedSpell(AID.Bio1).TransformAction = SupportedSpell(AID.Bio2).TransformAction = SupportedSpell(AID.Biolysis).TransformAction = () => ActionID.MakeSpell(_state.BestBio);
+            SupportedSpell(AID.ArtOfWar1).TransformAction = SupportedSpell(AID.ArtOfWar2).TransformAction = () => ActionID.MakeSpell(_state.BestArtOfWar);
 
             _config.Modified += OnConfigModified;
             OnConfigModified(null, EventArgs.Empty);
@@ -64,7 +70,7 @@ namespace BossMod.SCH
             if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
                 return new();
             var res = Rotation.GetNextBestSTDamageGCD(_state, AutoAction == AutoActionAIFightMove, _aiState.MultidotTarget != null);
-            return MakeResult(res, res is AID.Bio1 or AID.Bio2 or AID.Biolysis ? _aiState.MultidotTarget! : Autorot.PrimaryTarget);
+            return MakeResult(res, res == _state.BestBio ? _aiState.MultidotTarget! : Autorot.PrimaryTarget);
         }
 
         protected override NextAction CalculateAutomaticOGCD(float deadline)
@@ -157,22 +163,6 @@ namespace BossMod.SCH
 
         private void OnConfigModified(object? sender, EventArgs args)
         {
-            // upgrades
-            SupportedSpell(AID.Ruin1).TransformAction = SupportedSpell(AID.Broil1).TransformAction = SupportedSpell(AID.Broil2).TransformAction = SupportedSpell(AID.Broil3).TransformAction = SupportedSpell(AID.Broil4).TransformAction
-                = () => ActionID.MakeSpell(Rotation.GetBroilAction(_state));
-            SupportedSpell(AID.Bio1).TransformAction = SupportedSpell(AID.Bio2).TransformAction = SupportedSpell(AID.Biolysis).TransformAction = () => ActionID.MakeSpell(Rotation.GetBioAction(_state));
-            SupportedSpell(AID.ArtOfWar1).TransformAction = SupportedSpell(AID.ArtOfWar2).TransformAction = () => ActionID.MakeSpell(Rotation.GetArtOfWarAction(_state));
-
-            // self-targeted spells
-            SupportedSpell(AID.ArtOfWar1).TransformTarget = SupportedSpell(AID.ArtOfWar2).TransformTarget = SupportedSpell(AID.Succor).TransformTarget
-                = SupportedSpell(AID.SummonEos).TransformTarget = SupportedSpell(AID.SummonSelene).TransformTarget
-                = SupportedSpell(AID.WhisperingDawn).TransformTarget = SupportedSpell(AID.Indomitability).TransformTarget = SupportedSpell(AID.EmergencyTactics).TransformTarget
-                = SupportedSpell(AID.DissolveUnion).TransformTarget = SupportedSpell(AID.FeyBlessing).TransformTarget = SupportedSpell(AID.Consolation).TransformTarget
-                = SupportedSpell(AID.LucidDreaming).TransformTarget = SupportedSpell(AID.Swiftcast).TransformTarget = SupportedSpell(AID.FeyIllumination).TransformTarget
-                = SupportedSpell(AID.Surecast).TransformTarget = SupportedSpell(AID.Aetherflow).TransformTarget = SupportedSpell(AID.Dissipation).TransformTarget
-                = SupportedSpell(AID.Recitation).TransformTarget = SupportedSpell(AID.SummonSeraph).TransformTarget = SupportedSpell(AID.Expedient).TransformTarget
-                = _ => Player;
-
             // placeholders
             //SupportedSpell(AID.Ruin1).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
             //SupportedSpell(AID.ArtOfWar1).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;

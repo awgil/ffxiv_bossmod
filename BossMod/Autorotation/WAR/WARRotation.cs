@@ -14,6 +14,12 @@ namespace BossMod.WAR
             public float InnerReleaseLeft; // 0 if buff not up, max 15
             public int InnerReleaseStacks; // 0 if buff not up, max 3
 
+            // upgrade paths
+            public AID BestFellCleave => NascentChaosLeft > GCD && Unlocked(MinLevel.InnerChaos) ? AID.InnerChaos : Unlocked(MinLevel.FellCleave) ? AID.FellCleave : AID.InnerBeast;
+            public AID BestDecimate => NascentChaosLeft > GCD ? AID.ChaoticCyclone : Unlocked(MinLevel.Decimate) ? AID.Decimate : AID.SteelCyclone;
+            public AID BestInnerRelease => Unlocked(MinLevel.InnerRelease) ? AID.InnerRelease : AID.Berserk;
+            public AID BestBloodwhetting => Unlocked(MinLevel.Bloodwhetting) ? AID.Bloodwhetting : AID.RawIntuition;
+
             public AID ComboLastMove => (AID)ComboLastAction;
             //public float InnerReleaseCD => CD(UnlockedInnerRelease ? CDGroup.InnerRelease : CDGroup.Berserk); // note: technically berserk and IR don't share CD, and with level sync you can have both...
 
@@ -33,22 +39,6 @@ namespace BossMod.WAR
             public float SecondChargeIn; // when do we need to use two onslaught charges in a short amount of time
             public bool EnableUpheaval = true; // if true, enable using upheaval when needed; setting to false is useful during opener before first party buffs
             public bool Aggressive; // if true, we use buffs and stuff at last possible moment; otherwise we make sure to keep at least 1 GCD safety net
-        }
-
-        // standard action replacements
-        public static AID GetFCAction(State state)
-        {
-            // TODO: consider what happens at L72-79, when we already have Chaotic Cyclone, but no IC...
-            return state.NascentChaosLeft > state.GCD && state.Unlocked(MinLevel.InnerChaos) ? AID.InnerChaos
-                : state.Unlocked(MinLevel.FellCleave) ? AID.FellCleave
-                : AID.InnerBeast;
-        }
-
-        public static AID GetDecimateAction(State state)
-        {
-            return state.NascentChaosLeft > state.GCD ? AID.ChaoticCyclone
-                : state.Unlocked(MinLevel.Decimate) ? AID.Decimate
-                : AID.SteelCyclone;
         }
 
         public static int GaugeGainedFromAction(State state, AID action)

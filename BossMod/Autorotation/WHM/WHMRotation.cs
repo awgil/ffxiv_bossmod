@@ -1,378 +1,169 @@
-﻿//using System;
-//using System.Text;
+﻿using System;
 
-//namespace BossMod
-//{
-//    public class WHMRotation
-//    {
-//        public enum AID : uint
-//        {
-//            None = 0,
+namespace BossMod.WHM
+{
+    public static class Rotation
+    {
+        // full state needed for determining next action
+        public class State : CommonRotation.PlayerState
+        {
+            public int NormalLilies;
+            public int BloodLilies;
+            public float NextLilyIn; // max 30
+            public float SwiftcastLeft; // 0 if buff not up, max 10
+            public float ThinAirLeft; // 0 if buff not up, max 12
+            public float FreecureLeft; // 0 if buff not up, max 15
+            public float MedicaLeft; // 0 if hot not up, max 15
+            public float TargetDiaLeft; // 0 if debuff not up, max 30 - TODO should not be here...
 
-//            // single-target damage GCDs
-//            Stone1 = 119,
-//            Stone2 = 127,
-//            Stone3 = 3568,
-//            Stone4 = 7431,
-//            Glare1 = 16533,
-//            Glare3 = 25859,
-//            Aero1 = 121,
-//            Aero2 = 132,
-//            Dia = 16532,
-//            AfflatusMisery = 16535,
+            // upgrade paths
+            public AID BestGlare => Unlocked(MinLevel.Glare3) ? AID.Glare3 : Unlocked(MinLevel.Glare1) ? AID.Glare1 : Unlocked(MinLevel.Stone4) ? AID.Stone4 : Unlocked(MinLevel.Stone3) ? AID.Stone3 : Unlocked(MinLevel.Stone2) ? AID.Stone2 : AID.Stone1;
+            public AID BestDia => Unlocked(MinLevel.Dia) ? AID.Dia : Unlocked(MinLevel.Aero2) ? AID.Aero2 : AID.Aero1;
+            public AID BestHoly => Unlocked(MinLevel.Holy3) ? AID.Holy3 : AID.Holy1;
 
-//            // aoe damage GCDs
-//            Holy1 = 139,
-//            Holy3 = 25860,
+            // num lilies on next GCD
+            public int NormalLiliesOnNextGCD => Unlocked(MinLevel.AfflatusSolace) ? Math.Min(NormalLilies + (NextLilyIn < GCD ? 1 : 0), 3) : 0;
 
-//            // single-target heal GCDs
-//            Cure1 = 120,
-//            Cure2 = 135,
-//            Regen = 137,
-//            AfflatusSolace = 16531,
+            public State(float[] cooldowns) : base(cooldowns) { }
 
-//            // aoe heal GCDs
-//            Medica1 = 124,
-//            Medica2 = 133,
-//            Cure3 = 131,
-//            AfflatusRapture = 16534,
+            public override string ToString()
+            {
+                return $"g={NormalLilies}/{BloodLilies}/{NextLilyIn:f1}, MP={CurMP}, RB={RaidBuffsLeft:f1}, Dia={TargetDiaLeft:f1}, Medica={MedicaLeft:f1}, Swiftcast={SwiftcastLeft:f1}, TA={ThinAirLeft:f1}, Freecure={FreecureLeft:f1}, AssizeCD={CD(CDGroup.Assize):f1}, PoMCD={CD(CDGroup.PresenceOfMind):f1}, LDCD={CD(CDGroup.LucidDreaming):f1}, TACD={CD(CDGroup.ThinAir):f1}, PlenCD={CD(CDGroup.PlenaryIndulgence):f1}, AsylumCD={CD(CDGroup.Asylum):f1}, BeniCD={CD(CDGroup.DivineBenison):f1}, TetraCD={CD(CDGroup.Tetragrammaton):f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+            }
+        }
 
-//            // oGCDs
-//            Assize = 3571,
-//            Asylum = 3569,
-//            DivineBenison = 7432,
-//            Tetragrammaton = 3570,
-//            Benediction = 140,
-//            LiturgyOfTheBell = 25862,
+        public class Strategy : CommonRotation.Strategy
+        {
+            public Actor? HealTarget;
+            public bool AOE;
+            public bool Moving;
+            public int NumAssizeMedica1Targets; // how many targets would assize/medica1 heal (15y around self)
+            public int NumRaptureMedica2Targets; // how many targets would rapture/medica2 heal (20y around self)
+            public int NumCure3Targets; // how many targets cure3 would heal (6y around selected/best target)
+            public bool EnableAssize;
+            public bool AllowReplacingHealWithMisery; // if true, allow replacing solace/rapture with misery
 
-//            // buff CDs
-//            Swiftcast = 7561,
-//            LucidDreaming = 7562,
-//            PresenceOfMind = 136,
-//            ThinAir = 7430,
-//            PlenaryIndulgence = 7433,
-//            Temperance = 16536,
-//            Aquaveil = 25861,
-//            Surecast = 7559,
+            public override string ToString()
+            {
+                return $"M2={NumRaptureMedica2Targets}, C3={NumCure3Targets}";
+            }
+        }
 
-//            // misc
-//            Raise = 125,
-//            Repose = 16560,
-//            Esuna = 7568,
-//            Rescue = 7571,
-//        }
-//        public static ActionID IDStatPotion = new(ActionType.Item, 1036113); // hq grade 6 tincture of mind
+        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
+        {
+            // 1. plenary indulgence, if we're gonna cast aoe gcd heal that will actually heal someone... (TODO: reconsider priority)
+            if (strategy.AOE && strategy.HealTarget != null && (strategy.NumRaptureMedica2Targets > 0 || strategy.NumCure3Targets > 0) && state.Unlocked(MinLevel.PlenaryIndulgence) && state.CanWeave(CDGroup.PlenaryIndulgence, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.PlenaryIndulgence);
 
-//        public enum SID : uint
-//        {
-//            None = 0,
-//            Aero1 = 143,
-//            Aero2 = 144,
-//            Medica2 = 150,
-//            Freecure = 155,
-//            Swiftcast = 167,
-//            ThinAir = 1217,
-//            DivineBenison = 1218,
-//            Dia = 1871,
-//        }
+            // 3.potion (TODO)
 
-//        public static int AssizeCDGroup = CommonRotation.SpellCDGroup(AID.Assize);
-//        public static int AsylumCDGroup = CommonRotation.SpellCDGroup(AID.Asylum);
-//        public static int DivineBenisonCDGroup = CommonRotation.SpellCDGroup(AID.DivineBenison);
-//        public static int TetragrammatonCDGroup = CommonRotation.SpellCDGroup(AID.Tetragrammaton);
-//        public static int BenedictionCDGroup = CommonRotation.SpellCDGroup(AID.Benediction);
-//        public static int LiturgyOfTheBellCDGroup = CommonRotation.SpellCDGroup(AID.LiturgyOfTheBell);
-//        public static int SwiftcastCDGroup = CommonRotation.SpellCDGroup(AID.Swiftcast);
-//        public static int LucidDreamingCDGroup = CommonRotation.SpellCDGroup(AID.LucidDreaming);
-//        public static int PresenceOfMindCDGroup = CommonRotation.SpellCDGroup(AID.PresenceOfMind);
-//        public static int ThinAirCDGroup = CommonRotation.SpellCDGroup(AID.ThinAir);
-//        public static int PlenaryIndulgenceCDGroup = CommonRotation.SpellCDGroup(AID.PlenaryIndulgence);
-//        public static int TemperanceCDGroup = CommonRotation.SpellCDGroup(AID.Temperance);
-//        public static int AquaveilCDGroup = CommonRotation.SpellCDGroup(AID.Aquaveil);
-//        public static int SurecastCDGroup = CommonRotation.SpellCDGroup(AID.Surecast);
+            // 4. assize, if allowed and if we have some mana deficit (TODO: consider delaying until raidbuffs?)
+            if (strategy.EnableAssize && state.CurMP <= 9000 && state.Unlocked(MinLevel.Assize) && state.CanWeave(CDGroup.Assize, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.Assize);
 
-//        // full state needed for determining next action
-//        public class State : CommonRotation.PlayerState
-//        {
-//            public int NormalLilies;
-//            public int BloodLilies;
-//            public float NextLilyIn; // max 30
-//            public float SwiftcastLeft; // 0 if buff not up, max 10
-//            public float ThinAirLeft; // 0 if buff not up, max 12
-//            public float FreecureLeft; // 0 if buff not up, max 15
-//            public float MedicaLeft; // 0 if hot not up, max 15
-//            public float TargetDiaLeft; // 0 if debuff not up, max 30
+            // 5. pom (TODO: consider delaying until raidbuffs?)
+            if (state.Unlocked(MinLevel.PresenceOfMind) && state.CanWeave(CDGroup.PresenceOfMind, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.PresenceOfMind);
 
-//            public float AssizeCD => Cooldowns[AssizeCDGroup]; // 45 max, 0 if ready
-//            public float AsylumCD => Cooldowns[AsylumCDGroup]; // 90 max, 0 if ready
-//            public float DivineBenisonCD => Cooldowns[DivineBenisonCDGroup]; // 60 max, >30 if 0 stacks ready, >0 if 1 stack ready, ==0 if 2 stacks ready
-//            public float TetragrammatonCD => Cooldowns[TetragrammatonCDGroup]; // 60 max, 0 if ready
-//            public float BenedictionCD => Cooldowns[BenedictionCDGroup]; // 180 max, 0 if ready
-//            public float LiturgyOfTheBellCD => Cooldowns[LiturgyOfTheBellCDGroup]; // 180 max, 0 if ready
-//            public float SwiftcastCD => Cooldowns[SwiftcastCDGroup]; // 60 max, 0 if ready
-//            public float LucidDreamingCD => Cooldowns[LucidDreamingCDGroup]; // 60 max, 0 if ready
-//            public float PresenceOfMindCD => Cooldowns[PresenceOfMindCDGroup]; // 120 max, 0 if ready
-//            public float ThinAirCD => Cooldowns[ThinAirCDGroup]; // 120 max, >60 if 0 stacks ready, >0 if 1 stack ready, ==0 if 2 stacks ready
-//            public float PlenaryIndulgenceCD => Cooldowns[PlenaryIndulgenceCDGroup]; // 60 max, 0 if ready
-//            public float TemperanceCD => Cooldowns[TemperanceCDGroup]; // 120 max, 0 if ready
-//            public float AquaveilCD => Cooldowns[AquaveilCDGroup]; // 60 max, 0 if ready
-//            public float SurecastCD => Cooldowns[SurecastCDGroup]; // 120 max, 0 if ready
+            // 6. lucid dreaming, if we won't waste mana (TODO: revise mp limit)
+            if (state.CurMP <= 7000 && state.Unlocked(MinLevel.LucidDreaming) && state.CanWeave(CDGroup.LucidDreaming, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.LucidDreaming);
 
-//            // per-level ability unlocks (TODO: consider abilities unlocked by quests - they could be unavailable despite level being high enough)
-//            public bool UnlockedCure1 => Level >= 2;
-//            public bool UnlockedAero1 => Level >= 4;
-//            public bool UnlockedRepose => Level >= 8;
-//            public bool UnlockedMedica1 => Level >= 10;
-//            public bool UnlockedEsuna => Level >= 10;
-//            public bool UnlockedRaise => Level >= 12;
-//            public bool UnlockedStone2 => Level >= 18;
-//            public bool UnlockedSwiftcast => Level >= 18;
-//            public bool UnlockedLucidDreaming => Level >= 24;
-//            public bool UnlockedCure2 => Level >= 30; // quest-locked
-//            public bool UnlockedPresenceOfMind => Level >= 30; // quest-locked
-//            public bool UnlockedFreecure => Level >= 32; // passive, cure1 can apply buff making next cure2 free
-//            public bool UnlockedRegen => Level >= 35; // quest-locked
-//            public bool UnlockedCure3 => Level >= 40; // quest-locked
-//            public bool UnlockedSurecast => Level >= 44;
-//            public bool UnlockedHoly1 => Level >= 45; // quest-locked
-//            public bool UnlockedAero2 => Level >= 46;
-//            public bool UnlockedRescue => Level >= 48;
-//            public bool UnlockedMedica2 => Level >= 50;
-//            public bool UnlockedBenediction => Level >= 50; // quest-locked
-//            public bool UnlockedAfflatusSolace => Level >= 52;
-//            public bool UnlockedAsylum => Level >= 52; // quest-locked
-//            public bool UnlockedStone3 => Level >= 54; // quest-locked
-//            public bool UnlockedAssize => Level >= 56; // quest-locked
-//            public bool UnlockedThinAir => Level >= 58;
-//            public bool UnlockedTetragrammaton => Level >= 60; // quest-locked
-//            public bool UnlockedStone4 => Level >= 64;
-//            public bool UnlockedDivineBenison => Level >= 66;
-//            public bool UnlockedPlenaryIndulgence => Level >= 70; // quest-locked
-//            public bool UnlockedDia => Level >= 72;
-//            public bool UnlockedGlare1 => Level >= 72;
-//            public bool UnlockedAfflatusMisery => Level >= 74;
-//            public bool UnlockedAfflatusRapture => Level >= 76;
-//            public bool UnlockedTemperance => Level >= 80;
-//            public bool UnlockedGlare3 => Level >= 82;
-//            public bool UnlockedHoly3 => Level >= 82;
-//            public bool UnlockedAquaveil => Level >= 86;
-//            public bool UnlockedEnhancedDivineBenison => Level >= 88; // passive, grants second charge to DB
-//            public bool UnlockedLiturgyOfTheBell => Level >= 90;
+            // 7. thin air, if we have some mana deficit and we're either sitting on 2 charges or we're gonna cast expensive spell (TODO: revise mp limit)
+            if (state.CurMP <= 9000 && state.Unlocked(MinLevel.ThinAir) && state.CanWeave(CDGroup.ThinAir - 60, 0.6f, deadline))
+            {
+                if (state.CD(CDGroup.ThinAir) < state.GCD)
+                    return ActionID.MakeSpell(AID.ThinAir); // spend second charge to start cooldown ticking, even if we gonna cast glare
+                if (strategy.HealTarget != null && state.NormalLiliesOnNextGCD == 0)
+                    return ActionID.MakeSpell(AID.ThinAir); // spend last charge if we're gonna cast expensive GCD
+            }
 
-//            // upgrade paths
-//            public AID BestDia => UnlockedDia ? AID.Dia : UnlockedAero2 ? AID.Aero2 : AID.Aero1;
-//            public AID BestGlare => UnlockedGlare3 ? AID.Glare3 : UnlockedGlare1 ? AID.Glare1 : UnlockedStone4 ? AID.Stone4 : UnlockedStone3 ? AID.Stone3 : UnlockedStone2 ? AID.Stone2 : AID.Stone1;
-//            public AID BestHoly => UnlockedHoly3 ? AID.Holy3 : AID.Holy1;
+            return new();
+        }
 
-//            // num lilies on next GCD
-//            public int NormalLiliesOnNextGCD => UnlockedAfflatusSolace ? Math.Min(NormalLilies + (NextLilyIn < GCD ? 1 : 0), 3) : 0;
+        public static AID GetNextBestSTDamageGCD(State state, Strategy strategy)
+        {
+            // 0. just use glare before pull
+            if (strategy.Prepull)
+                return state.BestGlare;
 
-//            public override string ToString()
-//            {
-//                return $"g={NormalLilies}/{BloodLilies}/{NextLilyIn:f1}, MP={CurMP}, RB={RaidBuffsLeft:f1}, Dia={TargetDiaLeft:f1}, Medica={MedicaLeft:f1}, Swiftcast={SwiftcastLeft:f1}, TA={ThinAirLeft:f1}, Freecure={FreecureLeft:f1}, AssizeCD={AssizeCD:f1}, PoMCD={PresenceOfMindCD:f1}, LDCD={LucidDreamingCD:f1}, TACD={ThinAirCD:f1}, PlenCD={PlenaryIndulgenceCD:f1}, AsylumCD={AsylumCD:f1}, BeniCD={DivineBenisonCD:f1}, TetraCD={TetragrammatonCD:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
-//            }
-//        }
+            // 1. refresh dia/aero, if needed (TODO: tweak threshold so that we don't overwrite or miss ticks...)
+            if (state.Unlocked(MinLevel.Aero1) && state.TargetDiaLeft < state.GCD + 3.0f)
+                return state.BestDia;
 
-//        public class Strategy : CommonRotation.Strategy
-//        {
-//            public int NumAssizeMedica1Targets; // how many targets would assize/medica1 heal (15y around self)
-//            public int NumRaptureMedica2Targets; // how many targets would rapture/medica2 heal (20y around self)
-//            public int NumCure3Targets; // how many targets cure3 would heal (6y around selected/best target)
-//            public bool EnableAssize;
-//            public bool AllowReplacingHealWithMisery; // if true, allow replacing solace/rapture with misery
-//            // cooldowns
-//            public bool ExecuteAsylum;
-//            public bool ExecuteDivineBenison;
-//            public bool ExecuteTetragrammaton;
-//            public bool ExecuteBenediction;
-//            public bool ExecuteLiturgyOfTheBell;
-//            public bool ExecuteSwiftcast;
-//            public bool ExecuteTemperance;
-//            public bool ExecuteAquaveil;
-//            public bool ExecuteSurecast;
+            // 2. glare, if not moving or if under swiftcast
+            if (!strategy.Moving || state.SwiftcastLeft > state.GCD)
+                return state.BestGlare;
 
-//            public override string ToString()
-//            {
-//                var sb = new StringBuilder($"M2={NumRaptureMedica2Targets}, C3={NumCure3Targets}, SmartQueue:");
-//                if (ExecuteBenediction)
-//                    sb.Append(" Benediction");
-//                if (ExecuteLiturgyOfTheBell)
-//                    sb.Append(" Liturgy");
-//                if (ExecuteSurecast)
-//                    sb.Append(" Surecast");
-//                if (ExecuteAsylum)
-//                    sb.Append(" Asylum");
-//                if (ExecuteDivineBenison)
-//                    sb.Append(" DB");
-//                if (ExecuteTetragrammaton)
-//                    sb.Append(" Tetra");
-//                if (ExecuteSwiftcast)
-//                    sb.Append(" Swiftcast");
-//                if (ExecuteTemperance)
-//                    sb.Append(" Temperance");
-//                if (ExecuteAquaveil)
-//                    sb.Append(" Aquaveil");
-//                if (ExecuteSprint)
-//                    sb.Append(" Sprint");
-//                return sb.ToString();
-//            }
-//        }
+            // 3. afflatus misery
+            if (state.BloodLilies >= 3)
+                return AID.AfflatusMisery;
 
-//        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float windowEnd, bool aoe, bool heal)
-//        {
-//            // 1. plenary indulgence, if we're gonna cast aoe gcd heal that will actually heal someone... (TODO: reconsider priority)
-//            if (aoe && heal && (strategy.NumRaptureMedica2Targets > 0 || strategy.NumCure3Targets > 0) && state.UnlockedPlenaryIndulgence && state.CanWeave(state.PlenaryIndulgenceCD, 0.6f, windowEnd))
-//                return ActionID.MakeSpell(AID.PlenaryIndulgence);
+            // 4. slidecast glare (TODO: consider early dia refresh if GCD is zero...)
+            return strategy.Moving ? state.BestDia : state.BestGlare;
+        }
 
-//            // 2. use cooldowns if requested in rough priority order
-//            if (strategy.ExecuteBenediction && state.UnlockedBenediction && state.CanWeave(state.BenedictionCD, 0.6f, windowEnd))
-//                return ActionID.MakeSpell(AID.Benediction);
-//            if (strategy.ExecuteLiturgyOfTheBell && state.UnlockedLiturgyOfTheBell && state.CanWeave(state.LiturgyOfTheBellCD, 0.6f, windowEnd))
-//                return ActionID.MakeSpell(AID.LiturgyOfTheBell);
-//            if (strategy.ExecuteSurecast && state.UnlockedSurecast && state.CanWeave(state.SurecastCD, 0.6f, windowEnd))
-//                return ActionID.MakeSpell(AID.Surecast);
-//            if (strategy.ExecuteAsylum && state.UnlockedAsylum && state.CanWeave(state.AsylumCD, 0.6f, windowEnd))
-//                return ActionID.MakeSpell(AID.Asylum);
-//            if (strategy.ExecuteDivineBenison && state.UnlockedDivineBenison && state.CanWeave(state.DivineBenisonCD - (state.UnlockedEnhancedDivineBenison ? 30 : 0), 0.6f, windowEnd))
-//                return ActionID.MakeSpell(AID.DivineBenison);
-//            if (strategy.ExecuteTetragrammaton && state.UnlockedTetragrammaton && state.CanWeave(state.TetragrammatonCD, 0.6f, windowEnd))
-//                return ActionID.MakeSpell(AID.Tetragrammaton);
-//            if (strategy.ExecuteSwiftcast && state.UnlockedSwiftcast && state.CanWeave(state.SwiftcastCD, 0.6f, windowEnd))
-//                return ActionID.MakeSpell(AID.Swiftcast);
-//            if (strategy.ExecuteTemperance && state.UnlockedTemperance && state.CanWeave(state.TemperanceCD, 0.6f, windowEnd))
-//                return ActionID.MakeSpell(AID.Temperance);
-//            if (strategy.ExecuteAquaveil && state.UnlockedAquaveil && state.CanWeave(state.AquaveilCD, 0.6f, windowEnd))
-//                return ActionID.MakeSpell(AID.Aquaveil);
-//            if (strategy.ExecuteSprint && state.CanWeave(state.SprintCD, 0.6f, windowEnd))
-//                return CommonDefinitions.IDSprint;
+        public static AID GetNextBestAOEDamageGCD(State state, Strategy strategy)
+        {
+            // misery > holy
+            return state.BloodLilies >= 3 ? AID.AfflatusMisery : state.BestHoly;
+        }
 
-//            // 3.potion (TODO)
+        public static AID GetNextBestSTHealGCD(State state, Strategy strategy)
+        {
+            // 1. cure 2, if free
+            if (state.Unlocked(MinLevel.Cure2) && (state.FreecureLeft > state.GCD || state.ThinAirLeft > state.GCD))
+                return AID.Cure2;
 
-//            // 4. assize, if allowed and if we have some mana deficit (TODO: consider delaying until raidbuffs?)
-//            if (strategy.EnableAssize && state.CurMP <= 9000 && state.UnlockedAssize && state.CanWeave(state.AssizeCD, 0.6f, windowEnd))
-//                return ActionID.MakeSpell(AID.Assize);
+            // 2. afflatus solace, if possible (replace with misery if needed)
+            if (state.NormalLiliesOnNextGCD > 0)
+                return strategy.AllowReplacingHealWithMisery && state.BloodLilies >= 3 ? AID.AfflatusMisery : AID.AfflatusSolace;
 
-//            // 5. pom (TODO: consider delaying until raidbuffs?)
-//            if (state.UnlockedPresenceOfMind && state.CanWeave(state.PresenceOfMindCD, 0.6f, windowEnd))
-//                return ActionID.MakeSpell(AID.PresenceOfMind);
+            // 3. cure 2, if possible
+            if (state.Unlocked(MinLevel.Cure2) && state.CurMP >= 1000)
+                return AID.Cure2;
 
-//            // 6. lucid dreaming, if we won't waste mana (TODO: revise mp limit)
-//            if (state.CurMP <= 7000 && state.UnlockedLucidDreaming && state.CanWeave(state.LucidDreamingCD, 0.6f, windowEnd))
-//                return ActionID.MakeSpell(AID.LucidDreaming);
+            // 4. fallback to cure1
+            return AID.Cure1;
+        }
 
-//            // 7. thin air, if we have some mana deficit and we're either sitting on 2 charges or we're gonna cast expensive spell (TODO: revise mp limit)
-//            if (state.CurMP <= 9000 && state.UnlockedThinAir && state.CanWeave(state.ThinAirCD - 60, 0.6f, windowEnd))
-//            {
-//                if (state.ThinAirCD < state.GCD)
-//                    return ActionID.MakeSpell(AID.ThinAir); // spend second charge to start cooldown ticking, even if we gonna cast glare
-//                if (heal && state.NormalLiliesOnNextGCD == 0)
-//                    return ActionID.MakeSpell(AID.ThinAir); // spend last charge if we're gonna cast expensive GCD
-//            }
+        public static AID GetNextBestAOEHealGCD(State state, Strategy strategy)
+        {
+            // 1. afflatus rapture, if possible (replace with misery if needed)
+            bool canCastRapture = state.Unlocked(MinLevel.AfflatusRapture) && state.NormalLiliesOnNextGCD > 0;
+            if (canCastRapture && strategy.NumRaptureMedica2Targets > 0)
+                return strategy.AllowReplacingHealWithMisery && state.BloodLilies >= 3 ? AID.AfflatusMisery : AID.AfflatusRapture;
 
-//            return new();
-//        }
+            // 2. medica 2, if possible and useful, and buff is not already up; we consider it ok to overwrite last tick
+            bool canCastMedica2 = state.Unlocked(MinLevel.Medica2) && (state.CurMP >= 1000 || state.ThinAirLeft > state.GCD);
+            if (canCastMedica2 && strategy.NumRaptureMedica2Targets > 0 && state.MedicaLeft <= state.GCD + 2.5f)
+                return AID.Medica2;
 
-//        public static AID GetNextBestSTDamageGCD(State state, Strategy strategy, bool moving)
-//        {
-//            // 0. just use glare before pull
-//            if (strategy.Prepull)
-//                return state.BestGlare;
+            // 3. cure 3, if possible and useful
+            if (strategy.NumCure3Targets > 0 && state.Unlocked(MinLevel.Cure3) && (state.CurMP >= 1500 || state.ThinAirLeft > state.GCD))
+                return AID.Cure3;
 
-//            // 1. refresh dia/aero, if needed (TODO: tweak threshold so that we don't overwrite or miss ticks...)
-//            if (state.UnlockedAero1 && state.TargetDiaLeft < state.GCD + 3.0f)
-//                return state.BestDia;
+            // 4. medica 1, if possible and useful
+            if (strategy.NumAssizeMedica1Targets > 0 && state.Unlocked(MinLevel.Medica1) && (state.CurMP >= 900 || state.ThinAirLeft > state.GCD))
+                return AID.Medica1;
 
-//            // 2. glare, if not moving or if under swiftcast
-//            if (!moving || state.SwiftcastLeft > state.GCD)
-//                return state.BestGlare;
+            // 5. fallback: overheal medica 2 for hot (e.g. during downtime)
+            if (canCastMedica2 && !strategy.Moving && state.MedicaLeft <= state.GCD + 5)
+                return AID.Medica2;
 
-//            // 3. afflatus misery
-//            if (state.BloodLilies >= 3)
-//                return AID.AfflatusMisery;
+            // 6. fallback: overheal rapture, unless capped on blood lilies
+            if (canCastRapture && state.BloodLilies < 3)
+                return AID.AfflatusRapture;
 
-//            // 4. slidecast glare (TODO: consider early dia refresh if GCD is zero...)
-//            return moving ? state.BestDia : state.BestGlare;
-//        }
+            // 7. fallback to medica 1/2
+            return canCastMedica2 ? AID.Medica2 : AID.Medica1;
+        }
 
-//        public static AID GetNextBestAOEDamageGCD(State state, Strategy strategy, bool moving)
-//        {
-//            // misery > holy
-//            return state.BloodLilies >= 3 ? AID.AfflatusMisery : state.BestHoly;
-//        }
-
-//        public static AID GetNextBestSTHealGCD(State state, Strategy strategy, bool moving)
-//        {
-//            // 1. cure 2, if free
-//            if (state.UnlockedCure2 && (state.FreecureLeft > state.GCD || state.ThinAirLeft > state.GCD))
-//                return AID.Cure2;
-
-//            // 2. afflatus solace, if possible (replace with misery if needed)
-//            if (state.NormalLiliesOnNextGCD > 0)
-//                return strategy.AllowReplacingHealWithMisery && state.BloodLilies >= 3 ? AID.AfflatusMisery : AID.AfflatusSolace;
-
-//            // 3. cure 2, if possible
-//            if (state.UnlockedCure2 && state.CurMP >= 1000)
-//                return AID.Cure2;
-
-//            // 4. fallback to cure1
-//            return AID.Cure1;
-//        }
-
-//        public static AID GetNextBestAOEHealGCD(State state, Strategy strategy, bool moving)
-//        {
-//            // 1. afflatus rapture, if possible  (replace with misery if needed)
-//            bool canCastRapture = state.UnlockedAfflatusRapture && state.NormalLiliesOnNextGCD > 0;
-//            if (canCastRapture && strategy.NumRaptureMedica2Targets > 0)
-//                return strategy.AllowReplacingHealWithMisery && state.BloodLilies >= 3 ? AID.AfflatusMisery : AID.AfflatusRapture;
-
-//            // 2. medica 2, if possible and useful, and buff is not already up; we consider it ok to overwrite last tick
-//            bool canCastMedica2 = state.UnlockedMedica2 && (state.CurMP >= 1000 || state.ThinAirLeft > state.GCD);
-//            if (canCastMedica2 && strategy.NumRaptureMedica2Targets > 0 && state.MedicaLeft <= state.GCD + 2.5f)
-//                return AID.Medica2;
-
-//            // 3. cure 3, if possible and useful
-//            if (strategy.NumCure3Targets > 0 && state.UnlockedCure3 && (state.CurMP >= 1500 || state.ThinAirLeft > state.GCD))
-//                return AID.Cure3;
-
-//            // 4. medica 1, if possible and useful
-//            if (strategy.NumAssizeMedica1Targets > 0 && state.UnlockedMedica1 && (state.CurMP >= 900 || state.ThinAirLeft > state.GCD))
-//                return AID.Medica1;
-
-//            // 5. fallback: overheal medica 2 for hot (e.g. during downtime)
-//            if (canCastMedica2 && !moving && state.MedicaLeft <= state.GCD + 5)
-//                return AID.Medica2;
-
-//            // 6. fallback: overheal rapture, unless capped on blood lilies
-//            if (canCastRapture && state.BloodLilies < 3)
-//                return AID.AfflatusRapture;
-
-//            // 7. fallback to medica 1/2
-//            return canCastMedica2 ? AID.Medica2 : AID.Medica1;
-//        }
-
-//        public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe, bool heal, bool moving)
-//        {
-//            return heal
-//                ? (aoe ? GetNextBestAOEHealGCD(state, strategy, moving) : GetNextBestSTHealGCD(state, strategy, moving))
-//                : (aoe ? GetNextBestAOEDamageGCD(state, strategy, moving) : GetNextBestSTDamageGCD(state, strategy, moving));
-//        }
-
-//        public static ActionID GetNextBestAction(State state, Strategy strategy, bool aoe, bool heal, bool moving)
-//        {
-//            ActionID res = new();
-//            if (state.CanDoubleWeave) // first ogcd slot
-//                res = GetNextBestOGCD(state, strategy, state.DoubleWeaveWindowEnd, aoe, heal);
-//            if (!res && state.CanSingleWeave) // second/only ogcd slot
-//                res = GetNextBestOGCD(state, strategy, state.GCD, aoe, heal);
-//            if (!res) // gcd
-//                res = ActionID.MakeSpell(GetNextBestGCD(state, strategy, aoe, heal, moving));
-//            return res;
-//        }
-
-//        // short string for supported action
-//        public static string ActionShortString(ActionID action)
-//        {
-//            return action == CommonDefinitions.IDSprint ? "Sprint" : action == IDStatPotion ? "StatPotion" : ((AID)action.ID).ToString();
-//        }
-//    }
-//}
+        public static AID GetNextBestGCD(State state, Strategy strategy)
+        {
+            return strategy.HealTarget != null
+                ? (strategy.AOE ? GetNextBestAOEHealGCD(state, strategy) : GetNextBestSTHealGCD(state, strategy))
+                : (strategy.AOE ? GetNextBestAOEDamageGCD(state, strategy) : GetNextBestSTDamageGCD(state, strategy));
+        }
+    }
+}

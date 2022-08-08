@@ -53,7 +53,7 @@ namespace BossMod
 
             public bool Allowed(Actor player, Actor target)
             {
-                if (Definition.Range > 0 && player != target)
+                if (player != target)
                 {
                     var distSq = (target.Position - player.Position).LengthSq();
                     var effRange = Definition.Range + player.HitboxRadius + target.HitboxRadius;
@@ -81,7 +81,11 @@ namespace BossMod
             Player = player;
             Autorot = autorot;
             foreach (var (aid, def) in supportedActions)
-                SupportedActions[aid] = new(def, aid.IsGroundTargeted());
+            {
+                var a = SupportedActions[aid] = new(def, aid.IsGroundTargeted());
+                if (def.Range == 0)
+                    a.TransformTarget = _ => Player; // by default, all actions with range 0 should always target player
+            }
             _lock = new(unlockData);
             _mq = new(autorot.Cooldowns, autorot.WorldState);
         }
@@ -261,7 +265,11 @@ namespace BossMod
         protected NextAction MakeResult(ActionID action, Actor target)
         {
             var data = action ? SupportedActions[action] : null;
-            return (data?.Allowed(Player, target) ?? false) ? new(action, target, new(), data.Definition, ActionSource.Automatic) : new();
+            if (data == null)
+                return new();
+            if (data.Definition.Range == 0)
+                target = Player; // override range-0 actions to always target player
+            return data.Allowed(Player, target) ? new(action, target, new(), data.Definition, ActionSource.Automatic) : new();
         }
         protected NextAction MakeResult<AID>(AID aid, Actor target) where AID : Enum => MakeResult(ActionID.MakeSpell(aid), target);
 

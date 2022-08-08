@@ -128,15 +128,6 @@ namespace BossMod.BLM
 
         private void OnConfigModified(object? sender, EventArgs args)
         {
-            // TODO: upgrades
-
-            // self-targeted spells
-            SupportedSpell(AID.Transpose).TransformTarget = SupportedSpell(AID.Sharpcast).TransformTarget
-                = SupportedSpell(AID.Swiftcast).TransformTarget = SupportedSpell(AID.Manafont).TransformTarget = SupportedSpell(AID.LeyLines).TransformTarget
-                = SupportedSpell(AID.Triplecast).TransformTarget = SupportedSpell(AID.Amplifier).TransformTarget = SupportedSpell(AID.LucidDreaming).TransformTarget
-                = SupportedSpell(AID.Manaward).TransformTarget = SupportedSpell(AID.Surecast).TransformTarget = SupportedSpell(AID.UmbralSoul).TransformTarget
-                = _ => Player;
-
             // placeholders
             SupportedSpell(AID.Blizzard1).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
             SupportedSpell(AID.Blizzard2).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;

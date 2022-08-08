@@ -25,6 +25,12 @@ namespace BossMod.WAR
                 SecondChargeIn = 10000, // ... but don't preserve second
             };
 
+            // upgrades
+            SupportedSpell(AID.InnerBeast).TransformAction = SupportedSpell(AID.FellCleave).TransformAction = SupportedSpell(AID.InnerChaos).TransformAction = () => ActionID.MakeSpell(_state.BestFellCleave);
+            SupportedSpell(AID.SteelCyclone).TransformAction = SupportedSpell(AID.Decimate).TransformAction = SupportedSpell(AID.ChaoticCyclone).TransformAction = () => ActionID.MakeSpell(_state.BestDecimate);
+            SupportedSpell(AID.Berserk).TransformAction = SupportedSpell(AID.InnerRelease).TransformAction = () => ActionID.MakeSpell(_state.BestInnerRelease);
+            SupportedSpell(AID.RawIntuition).TransformAction = SupportedSpell(AID.Bloodwhetting).TransformAction = () => ActionID.MakeSpell(_state.BestBloodwhetting);
+
             SupportedSpell(AID.Equilibrium).Condition = _ => Player.HP.Cur < Player.HP.Max;
             SupportedSpell(AID.Reprisal).Condition = _ => Autorot.PotentialTargetsInRangeFromPlayer(5).Any(); // TODO: consider checking only target?..
             SupportedSpell(AID.Interject).Condition = target => target?.CastInfo?.Interruptible ?? false;
@@ -121,23 +127,6 @@ namespace BossMod.WAR
 
         private void OnConfigModified(object? sender, EventArgs args)
         {
-            // IB/FC/IC is a single button, as is SteelCyclone/Decimate/ChaoticCyclone, as is Berserk/IR, as is RawIntuition/Bloodwhetting
-            SupportedSpell(AID.InnerBeast).TransformAction = SupportedSpell(AID.FellCleave).TransformAction = SupportedSpell(AID.InnerChaos).TransformAction = () => ActionID.MakeSpell(Rotation.GetFCAction(_state));
-            SupportedSpell(AID.SteelCyclone).TransformAction = SupportedSpell(AID.Decimate).TransformAction = SupportedSpell(AID.ChaoticCyclone).TransformAction = () => ActionID.MakeSpell(Rotation.GetDecimateAction(_state));
-            SupportedSpell(AID.Berserk).TransformAction = SupportedSpell(AID.Berserk).TransformAction = () => ActionID.MakeSpell(_state.Unlocked(MinLevel.InnerRelease) ? AID.InnerRelease : AID.Berserk);
-            SupportedSpell(AID.RawIntuition).TransformAction = SupportedSpell(AID.Bloodwhetting).TransformAction = () => ActionID.MakeSpell(_state.Unlocked(MinLevel.Bloodwhetting) ? AID.Bloodwhetting : AID.RawIntuition);
-
-            // self-targeted spells
-            SupportedSpell(AID.Overpower).TransformTarget = SupportedSpell(AID.MythrilTempest).TransformTarget
-                = SupportedSpell(AID.SteelCyclone).TransformTarget = SupportedSpell(AID.Decimate).TransformTarget = SupportedSpell(AID.ChaoticCyclone).TransformTarget
-                = SupportedSpell(AID.Infuriate).TransformTarget = SupportedSpell(AID.Orogeny).TransformTarget
-                = SupportedSpell(AID.Berserk).TransformTarget = SupportedSpell(AID.InnerRelease).TransformTarget
-                = SupportedSpell(AID.Rampart).TransformTarget = SupportedSpell(AID.Vengeance).TransformTarget = SupportedSpell(AID.ThrillOfBattle).TransformTarget
-                = SupportedSpell(AID.Equilibrium).TransformTarget = SupportedSpell(AID.Reprisal).TransformTarget = SupportedSpell(AID.ShakeItOff).TransformTarget
-                = SupportedSpell(AID.RawIntuition).TransformTarget = SupportedSpell(AID.Bloodwhetting).TransformTarget
-                = SupportedSpell(AID.ArmsLength).TransformTarget = SupportedSpell(AID.Defiance).TransformTarget
-                = _ => Player;
-
             // placeholders
             SupportedSpell(AID.HeavySwing).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
             SupportedSpell(AID.Overpower).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
