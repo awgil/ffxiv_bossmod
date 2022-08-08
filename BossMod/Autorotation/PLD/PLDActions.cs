@@ -45,6 +45,10 @@ namespace BossMod.PLD
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
         }
 
+        protected override void QueueAIActions()
+        {
+        }
+
         protected override NextAction CalculateAutomaticGCD()
         {
             if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)

@@ -43,6 +43,11 @@ namespace BossMod.SCH
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionMnd);
         }
 
+        protected override void QueueAIActions()
+        {
+            // TODO: move stuff here...
+        }
+
         protected override NextAction CalculateAutomaticGCD()
         {
             if (_state.Unlocked(MinLevel.SummonFairy) && _state.Fairy == null)

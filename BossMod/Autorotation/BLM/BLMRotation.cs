@@ -22,7 +22,6 @@
         {
             public bool AOE;
             public bool Moving;
-            public bool UseManaward;
         }
 
         public static uint AdjustedFireCost(State state, uint baseCost)
@@ -63,9 +62,6 @@
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
-            if (strategy.UseManaward && state.Unlocked(MinLevel.Manaward) && state.CanWeave(CDGroup.Manaward, 0.6f, deadline))
-                return ActionID.MakeSpell(AID.Manaward);
-
             // TODO: this is not really correct...
             if (state.Unlocked(MinLevel.Manafont) && state.CanWeave(CDGroup.Manafont, 0.6f, deadline) && state.CurMP < 5000)
                 return ActionID.MakeSpell(AID.Manafont);

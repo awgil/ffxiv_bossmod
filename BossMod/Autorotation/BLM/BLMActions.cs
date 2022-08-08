@@ -45,14 +45,18 @@ namespace BossMod.BLM
             {
                 _strategy.AOE = Autorot.PrimaryTarget != null && Autorot.PotentialTargetsInRange(Autorot.PrimaryTarget.Position, 5).Count() >= 3;
                 _strategy.Moving = AutoAction == AutoActionAIFightMove;
-                _strategy.UseManaward = Player.HP.Cur < Player.HP.Max * 0.8f;
             }
             else
             {
                 _strategy.AOE = autoAction == AutoActionAOE; // TODO: consider making AI-like check
                 _strategy.Moving = false;
-                _strategy.UseManaward = false;
             }
+        }
+
+        protected override void QueueAIActions()
+        {
+            if (_state.Unlocked(MinLevel.Manaward))
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.Manaward), Player, Player.HP.Cur < Player.HP.Max * 0.8f);
         }
 
         protected override NextAction CalculateAutomaticGCD()

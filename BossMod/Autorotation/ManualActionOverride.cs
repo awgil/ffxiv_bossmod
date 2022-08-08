@@ -71,13 +71,12 @@ namespace BossMod
             _queue.RemoveAll(CheckExpired);
         }
 
-        public void Push(ActionID action, Actor? target, Vector3 targetPos, ActionDefinition def, Func<Actor?, bool>? condition)
+        public void Push(ActionID action, Actor? target, Vector3 targetPos, ActionDefinition def, Func<Actor?, bool>? condition, bool simulated = false)
         {
             bool isGCD = def.CooldownGroup == CommonDefinitions.GCDGroup;
             float expire = isGCD ? 1.0f : 3.0f;
             if (_cooldowns[def.CooldownGroup] - expire > def.CooldownAtFirstCharge)
             {
-                Service.Log($"[MAO] Ignoring {action} @ {target}, since it will expire before coming off cooldown");
                 return;
             }
 
@@ -102,7 +101,7 @@ namespace BossMod
                 // spamming GCD - just extend expiration time; don't bother moving stuff around, since GCD vs oGCD order doesn't matter
                 e.ExpireAt = expireAt;
             }
-            else
+            else if (!simulated)
             {
                 Service.Log($"[MAO] Entering emergency mode for {e.Action}");
                 // spamming oGCD - enter emergency mode
@@ -112,12 +111,13 @@ namespace BossMod
             }
         }
 
-        public void Pop(ActionID action)
+        public void Pop(ActionID action, bool simulated = false)
         {
             var index = _queue.FindIndex(e => e.Action == action);
             if (index >= 0)
             {
-                Service.Log($"[MAO] Executed {action}");
+                if (!simulated)
+                    Service.Log($"[MAO] Executed {action}");
                 _queue.RemoveAt(index);
             }
 

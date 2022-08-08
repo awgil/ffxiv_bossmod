@@ -45,6 +45,10 @@ namespace BossMod.SMN
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionInt);
         }
 
+        protected override void QueueAIActions()
+        {
+        }
+
         protected override NextAction CalculateAutomaticGCD()
         {
             if (_strategy.Prepull && _state.Unlocked(MinLevel.SummonCarbuncle) && !_state.PetSummoned)

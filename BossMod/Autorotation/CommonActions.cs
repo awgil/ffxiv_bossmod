@@ -101,7 +101,11 @@ namespace BossMod
         public void UpdateAMTick()
         {
             if (AutoAction != AutoActionNone)
+            {
                 UpdateInternalState(AutoAction);
+                if (AutoAction < AutoActionFirstCustom)
+                    QueueAIActions();
+            }
         }
 
         public unsafe bool HaveItemInInventory(uint id)
@@ -145,7 +149,7 @@ namespace BossMod
             _autoActionExpire = Autorot.WorldState.CurrentTime.AddSeconds(1.0f);
         }
 
-        public bool HandleUserActionRequest(ActionID action, Actor? target)
+        public bool HandleUserActionRequest(ActionID action, Actor? target, Vector3? forcedGTPos = null)
         {
             var supportedAction = SupportedActions.GetValueOrDefault(action);
             if (supportedAction == null)
@@ -170,6 +174,12 @@ namespace BossMod
             // this is a manual action
             if (supportedAction.IsGT)
             {
+                if (forcedGTPos != null)
+                {
+                    _mq.Push(action, null, forcedGTPos.Value, supportedAction.Definition, supportedAction.Condition);
+                    return true;
+                }
+
                 if (Autorot.Config.GTMode == AutorotationConfig.GroundTargetingMode.Manual)
                     return false;
 
@@ -242,6 +252,7 @@ namespace BossMod
 
         public abstract void Dispose();
         protected abstract void UpdateInternalState(int autoAction);
+        protected abstract void QueueAIActions();
         protected abstract NextAction CalculateAutomaticGCD();
         protected abstract NextAction CalculateAutomaticOGCD(float deadline);
         protected abstract void OnActionExecuted(ActionID action, Actor? target);
@@ -253,6 +264,19 @@ namespace BossMod
             return (data?.Allowed(Player, target) ?? false) ? new(action, target, new(), data.Definition, ActionSource.Automatic) : new();
         }
         protected NextAction MakeResult<AID>(AID aid, Actor target) where AID : Enum => MakeResult(ActionID.MakeSpell(aid), target);
+
+        protected void SimulateManualActionForAI(ActionID action, Actor? target, bool enable)
+        {
+            if (enable)
+            {
+                var data = SupportedActions[action];
+                _mq.Push(action, target, new(), data.Definition, data.Condition, true);
+            }
+            else
+            {
+                _mq.Pop(action, true);
+            }
+        }
 
         // fill common state properties
         protected unsafe void FillCommonPlayerState(CommonRotation.PlayerState s)

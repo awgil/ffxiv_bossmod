@@ -111,7 +111,7 @@ namespace BossMod
                 {
                     Class.WAR => typeof(WAR.Actions),
                     Class.GLA or Class.PLD => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(PLD.Actions) : null,
-                    //Class.PGL or Class.MNK => typeof(MNKActions),
+                    Class.PGL or Class.MNK => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(MNK.Actions) : null,
                     //Class.LNC or Class.DRG => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(DRGActions) : null,
                     //Class.BRD or Class.ARC => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(BRDActions) : null,
                     Class.THM or Class.BLM => Service.ClientState.LocalPlayer?.Level <= 40 ? typeof(BLM.Actions) : null,
