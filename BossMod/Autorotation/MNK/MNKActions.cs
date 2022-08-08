@@ -33,21 +33,24 @@ namespace BossMod.MNK
         {
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
-            _strategy.AOE = autoAction switch
-            {
-                AutoActionST => false,
-                AutoActionAOE => true, // TODO: consider making AI-like check
-                AutoActionAIFight or AutoActionAIFightMove => Autorot.PotentialTargetsInRangeFromPlayer(5).Count() >= 3,
-                _ => false, // irrelevant...
-            };
+            _strategy.NumAOETargets = autoAction == AutoActionST ? 0 : Autorot.PotentialTargetsInRangeFromPlayer(5).Count();
 
-            PreferredPosition = _state.Form != Rotation.Form.Coeurl || _strategy.AOE ? Positional.Any : Positional.Flank; // TODO: demolish support...
+            PreferredPosition = (_state.Form == Rotation.Form.Coeurl ? Rotation.GetCoeurlFormAction(_state, _strategy.NumAOETargets) : AID.None) switch
+            {
+                AID.SnapPunch => Positional.Flank,
+                AID.Demolish => Positional.Rear,
+                _ => Positional.Any
+            };
         }
 
         protected override void QueueAIActions()
         {
             if (_state.Unlocked(MinLevel.SteelPeak))
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.Meditation), Player, _strategy.Prepull && _state.Chakra < 5);
+            if (_state.Unlocked(MinLevel.SecondWind))
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.HP.Cur < Player.HP.Max * 0.5f);
+            if (_state.Unlocked(MinLevel.Bloodbath))
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.Bloodbath), Player, Player.HP.Cur < Player.HP.Max * 0.8f);
         }
 
         protected override NextAction CalculateAutomaticGCD()
@@ -110,6 +113,9 @@ namespace BossMod.MNK
                         break;
                 }
             }
+
+            var demolish = Autorot.PrimaryTarget?.FindStatus(SID.Demolish, Player.InstanceID);
+            _state.TargetDemolishLeft = demolish != null ? StatusDuration(demolish.Value.ExpireAt) : 0;
         }
 
         private void OnConfigModified(object? sender, EventArgs args)
@@ -117,7 +123,7 @@ namespace BossMod.MNK
             // upgrades
             SupportedSpell(AID.SteelPeak).TransformAction = SupportedSpell(AID.ForbiddenChakra).TransformAction = () => ActionID.MakeSpell(_state.Unlocked(MinLevel.ForbiddenChakra) ? AID.ForbiddenChakra : AID.SteelPeak);
             SupportedSpell(AID.HowlingFist).TransformAction = SupportedSpell(AID.Enlightenment).TransformAction = () => ActionID.MakeSpell(_state.Unlocked(MinLevel.Enlightenment) ? AID.Enlightenment : AID.HowlingFist);
-            SupportedSpell(AID.ArmOfTheDestroyer).TransformAction = SupportedSpell(AID.ShadowOfTheDestroyer).TransformAction = () => ActionID.MakeSpell(_state.Unlocked(MinLevel.ShadowOfTheDestroyer) ? AID.ShadowOfTheDestroyer : AID.ArmOfTheDestroyer);
+            SupportedSpell(AID.ArmOfTheDestroyer).TransformAction = SupportedSpell(AID.ShadowOfTheDestroyer).TransformAction = () => ActionID.MakeSpell(Rotation.GetOpoOpoAOEAction(_state));
             SupportedSpell(AID.FlintStrike).TransformAction = SupportedSpell(AID.RisingPhoenix).TransformAction = () => ActionID.MakeSpell(_state.Unlocked(MinLevel.RisingPhoenix) ? AID.RisingPhoenix : AID.FlintStrike);
             SupportedSpell(AID.TornadoKick).TransformAction = SupportedSpell(AID.PhantomRush).TransformAction = () => ActionID.MakeSpell(_state.Unlocked(MinLevel.PhantomRush) ? AID.PhantomRush : AID.TornadoKick);
 
@@ -136,7 +142,7 @@ namespace BossMod.MNK
             SupportedSpell(AID.ArmOfTheDestroyer).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
 
             // combo replacement
-            SupportedSpell(AID.FourPointFury).TransformAction = _config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextAOEComboAction(_state)) : null;
+            SupportedSpell(AID.FourPointFury).TransformAction = _config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextComboAction(_state, 100)) : null;
 
             // smart targets
         }

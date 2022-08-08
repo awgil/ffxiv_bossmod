@@ -11,6 +11,7 @@
             public Form Form;
             public float FormLeft; // 0 if no form, 30 max
             public float DisciplinedFistLeft; // 15 max
+            public float TargetDemolishLeft; // TODO: this shouldn't be here...
 
             public State(float[] cooldowns) : base(cooldowns) { }
 
@@ -23,43 +24,52 @@
         // strategy configuration
         public class Strategy : CommonRotation.Strategy
         {
-            public bool AOE;
+            public int NumAOETargets;
         }
 
-        public static AID GetNextAOEComboAction(State state)
-        {
-            if (!state.Unlocked(MinLevel.Rockbreaker))
-                return AID.ArmOfTheDestroyer;
+        public static AID GetOpoOpoAOEAction(State state) => state.Unlocked(MinLevel.ShadowOfTheDestroyer) ? AID.ShadowOfTheDestroyer : AID.ArmOfTheDestroyer;
 
+        public static AID GetOpoOpoFormAction(State state, int numAOETargets)
+        {
+            // TODO: dragon kick (L50)
+            return state.Unlocked(MinLevel.ArmOfTheDestroyer) && numAOETargets >= 3 ? GetOpoOpoAOEAction(state) : AID.Bootshine;
+        }
+
+        public static AID GetRaptorFormAction(State state, int numAOETargets)
+        {
+            // TODO: low level - consider early restart...
+            // TODO: better threshold for buff reapplication...
+            return state.Unlocked(MinLevel.FourPointFury) && numAOETargets >= 3 ? AID.FourPointFury : state.Unlocked(MinLevel.TwinSnakes) && state.DisciplinedFistLeft < state.GCD + 7 ? AID.TwinSnakes : AID.TrueStrike;
+        }
+
+        public static AID GetCoeurlFormAction(State state, int numAOETargets)
+        {
+            // TODO: multidot support...
+            // TODO: low level - consider early restart...
+            // TODO: better threshold for debuff reapplication...
+            return state.Unlocked(MinLevel.Rockbreaker) && numAOETargets >= 3 ? AID.Rockbreaker : state.Unlocked(MinLevel.Demolish) && state.TargetDemolishLeft < state.GCD + 3 ? AID.Demolish : AID.SnapPunch;
+        }
+
+        public static AID GetNextComboAction(State state, int numAOETargets)
+        {
             return state.Form switch
             {
-                Form.Coeurl => AID.Rockbreaker,
-                Form.Raptor => state.Unlocked(MinLevel.FourPointFury) ? AID.FourPointFury : AID.TwinSnakes,
-                _ => state.Unlocked(MinLevel.ShadowOfTheDestroyer) ? AID.ShadowOfTheDestroyer : AID.ArmOfTheDestroyer,
+                Form.Coeurl => GetCoeurlFormAction(state, numAOETargets),
+                Form.Raptor => GetRaptorFormAction(state, numAOETargets),
+                _ => GetOpoOpoFormAction(state, numAOETargets)
             };
         }
 
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
-            if (strategy.AOE && state.Unlocked(MinLevel.ArmOfTheDestroyer))
-            {
-                // TODO: this is not right...
-                return AID.ArmOfTheDestroyer;
-            }
-            else
-            {
-                // TODO: L30+
-                return state.Form switch
-                {
-                    Form.Coeurl => AID.SnapPunch,
-                    Form.Raptor => state.Unlocked(MinLevel.TwinSnakes) && state.DisciplinedFistLeft < 7 ? AID.TwinSnakes : AID.TrueStrike, // TODO: better threshold for debuff reapplication
-                    _ => AID.Bootshine
-                };
-            }
+            // TODO: L50+
+            return GetNextComboAction(state, strategy.NumAOETargets);
         }
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
+            // 1. potion: TODO
+
             // 2. steel peek, if have chakra
             if (state.Unlocked(MinLevel.SteelPeak) && state.Chakra == 5 && state.CanWeave(CDGroup.SteelPeak, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.SteelPeak);

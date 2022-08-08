@@ -328,12 +328,19 @@ namespace BossMod
             // callType is 0 for normal calls, 1 if called by queue mechanism, 2 if called from macro, 3 if combo (in such case comboRouteID is ActionComboRoute row id)
             // right when GCD ends, it is called internally by queue mechanism with aid=adjusted-id, a5=1, a4=a6=a7==0, returns True
             // itemLocation==0 for spells, 65535 for item used from hotbar, some value (bagID<<8 | slotID) for item used from inventory; it is the same as a4 in UseActionLocation
-            var action = new ActionID(actionType, actionID);
             //Service.Log($"UA: {action} @ {targetID:X}: {a4} {a5} {a6} {a7}");
-
-            if (callType != 0 || _classActions == null || !_classActions.HandleUserActionRequest(action, WorldState.Actors.Find(targetID)))
+            if (callType != 0 || _classActions == null)
             {
-                // unsupported action - pass to hooked function
+                // pass to hooked function transparently
+                return _useActionHook.Original(self, actionType, actionID, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
+            }
+
+            var action = new ActionID(actionType, actionID);
+            bool nullTarget = targetID == 0 || targetID == GameObject.InvalidGameObjectId;
+            var target = nullTarget ? null : WorldState.Actors.Find(targetID);
+            if (target == null && !nullTarget || !_classActions.HandleUserActionRequest(action, target))
+            {
+                // unknown target (e.g. quest object) or unsupported action - pass to hooked function
                 return _useActionHook.Original(self, actionType, actionID, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
             }
 

@@ -11,7 +11,7 @@ boss modules:
 - boss module config presets/profiles
 
 ai:
-- better split with autorotation (core + 'override action on keypress' mode + 'full ai' mode)
+- better targeting (bossmodule-provided priority/forbidden targets, classmodule-provided prioritization => multidotting)
 - speculative status application, gauge changes, etc.
 - move by waymarks, especially on dungeon trash
 - avoid moving through aoes while going to desired zone

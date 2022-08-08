@@ -12,14 +12,14 @@ namespace BossMod.MNK
         TrueStrike = 54, // L4, instant, range 3, single-target 0/0, targets=hostile
         TwinSnakes = 61, // L18, instant, range 3, single-target 0/0, targets=hostile
         SnapPunch = 56, // L6, instant, range 3, single-target 0/0, targets=hostile
-        Demolish = 66, // L30, instant, range 3, single-target 0/0, targets=hostile, animLock=???
+        Demolish = 66, // L30, instant, range 3, single-target 0/0, targets=hostile
         SixSidedStar = 16476, // L80, instant, range 3, single-target 0/0, targets=hostile, animLock=???
 
         // aoe GCDs
         ArmOfTheDestroyer = 62, // L26, instant, range 0, AOE circle 5/0, targets=self
         ShadowOfTheDestroyer = 25767, // L82, instant, range 0, AOE circle 5/0, targets=self, animLock=???
         FourPointFury = 16473, // L45, instant, range 0, AOE circle 5/0, targets=self, animLock=???
-        Rockbreaker = 70, // L30, instant, range 0, AOE circle 5/0, targets=self, animLock=???
+        Rockbreaker = 70, // L30, instant, range 0, AOE circle 5/0, targets=self
 
         // masterful blitz variants
         MasterfulBlitz = 25764, // L60, instant, range 0, single-target 0/0, targets=self, animLock=???
@@ -193,6 +193,7 @@ namespace BossMod.MNK
         RaptorForm = 108, // applied by Bootshine, Arm of the Destroyer to self
         CoeurlForm = 109, // applied by True Strike, Twin Snakes to self
         DisciplinedFist = 3001, // applied by Twin Snakes to self, damage buff
+        Demolish = 246, // applied by Demolish to target, dot
         Bloodbath = 84, // applied by Bloodbath to self, lifesteal
         Feint = 1195, // applied by Feint to target, -10% phys and -5% magic damage dealt
         Stun = 2, // applied by Leg Sweep to target
