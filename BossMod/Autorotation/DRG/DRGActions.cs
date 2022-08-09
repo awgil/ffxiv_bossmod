@@ -1,132 +1,115 @@
-﻿//using ImGuiNET;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
+﻿using System;
 
-//namespace BossMod
-//{
-//    class DRGActions : CommonActions
-//    {
-//        private DRGConfig _config;
-//        private DRGRotation.State _state;
-//        private DRGRotation.Strategy _strategy;
-//        private ActionID _nextBestSTAction = ActionID.MakeSpell(DRGRotation.AID.TrueThrust);
-//        private ActionID _nextBestAOEAction = ActionID.MakeSpell(DRGRotation.AID.DoomSpike);
+namespace BossMod.DRG
+{
+    class Actions : CommonActions
+    {
+        public const int AutoActionST = AutoActionFirstCustom + 0;
+        public const int AutoActionAOE = AutoActionFirstCustom + 1;
 
-//        public DRGActions(Autorotation autorot, Actor player)
-//            : base(autorot, player)
-//        {
-//            _config = Service.Config.Get<DRGConfig>();
-//            _state = BuildState(autorot.WorldState.Actors.Find(player.TargetID));
-//            _strategy = new();
+        private DRGConfig _config;
+        private Rotation.State _state;
+        private Rotation.Strategy _strategy;
 
-//            SmartQueueRegisterSpell(DRGRotation.AID.ArmsLength);
-//            SmartQueueRegisterSpell(DRGRotation.AID.SecondWind);
-//            SmartQueueRegisterSpell(DRGRotation.AID.Bloodbath);
-//            SmartQueueRegisterSpell(DRGRotation.AID.LegSweep);
-//            SmartQueueRegister(CommonDefinitions.IDSprint);
-//            SmartQueueRegister(DRGRotation.IDStatPotion);
-//        }
+        public Actions(Autorotation autorot, Actor player)
+            : base(autorot, player, Definitions.QuestsPerLevel, Definitions.SupportedActions)
+        {
+            _config = Service.Config.Get<DRGConfig>();
+            _state = new(autorot.Cooldowns);
+            _strategy = new();
 
-//        protected override void OnCastSucceeded(ActorCastEvent ev)
-//        {
-//            Log($"Cast {ev.Action} @ {ev.MainTargetID:X}, next-best={_nextBestSTAction}/{_nextBestAOEAction} [{_state}]");
-//        }
+            // upgrades
+            SupportedSpell(AID.FullThrust).TransformAction = SupportedSpell(AID.HeavensThrust).TransformAction = () => ActionID.MakeSpell(_state.BestHeavensThrust);
+            SupportedSpell(AID.ChaosThrust).TransformAction = SupportedSpell(AID.ChaoticSpring).TransformAction = () => ActionID.MakeSpell(_state.BestChaoticSpring);
+            SupportedSpell(AID.Jump).TransformAction = SupportedSpell(AID.HighJump).TransformAction = () => ActionID.MakeSpell(_state.BestJump);
 
-//        protected override CommonRotation.PlayerState OnUpdate(Actor? target, bool moving)
-//        {
-//            var currState = BuildState(target);
-//            LogStateChange(_state, currState);
-//            _state = currState;
+            _config.Modified += OnConfigModified;
+            OnConfigModified(null, EventArgs.Empty);
+        }
 
-//            FillCommonStrategy(_strategy, DRGRotation.IDStatPotion);
+        public override void Dispose()
+        {
+            _config.Modified -= OnConfigModified;
+        }
 
-//            // cooldown execution
-//            _strategy.ExecuteArmsLength = SmartQueueActiveSpell(DRGRotation.AID.ArmsLength);
-//            _strategy.ExecuteSecondWind = SmartQueueActiveSpell(DRGRotation.AID.SecondWind) && Player.HP.Cur < Player.HP.Max;
-//            _strategy.ExecuteBloodbath = SmartQueueActiveSpell(DRGRotation.AID.Bloodbath);
-//            _strategy.ExecuteLegSweep = SmartQueueActiveSpell(DRGRotation.AID.LegSweep);
+        public override Targeting SelectBetterTarget(Actor initial)
+        {
+            // TODO: multidotting, positionals, aoe...
+            return new(initial, 3);
+        }
 
-//            var nextBestST = _config.FullRotation ? DRGRotation.GetNextBestAction(_state, _strategy, false) : ActionID.MakeSpell(DRGRotation.AID.TrueThrust);
-//            var nextBestAOE = _config.FullRotation ? DRGRotation.GetNextBestAction(_state, _strategy, true) : ActionID.MakeSpell(DRGRotation.AID.DoomSpike);
-//            if (_nextBestSTAction != nextBestST || _nextBestAOEAction != nextBestAOE)
-//            {
-//                Log($"Next-best changed: ST={_nextBestSTAction}->{nextBestST}, AOE={_nextBestAOEAction}->{nextBestAOE} [{_state}]");
-//                _nextBestSTAction = nextBestST;
-//                _nextBestAOEAction = nextBestAOE;
-//            }
-//            return _state;
-//        }
+        protected override void UpdateInternalState(int autoAction)
+        {
+            UpdatePlayerState();
+            FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
+        }
 
-//        protected override (ActionID, ulong) DoReplaceActionAndTarget(ActionID actionID, Targets targets)
-//        {
-//            if (actionID.Type == ActionType.Spell)
-//            {
-//                actionID = (DRGRotation.AID)actionID.ID switch
-//                {
-//                    DRGRotation.AID.TrueThrust => _config.FullRotation ? _nextBestSTAction : actionID,
-//                    DRGRotation.AID.DoomSpike => _config.FullRotation ? _nextBestAOEAction : actionID,
-//                    _ => actionID
-//                };
-//            }
-//            ulong targetID = actionID.Type == ActionType.Spell ? (DRGRotation.AID)actionID.ID switch
-//            {
-//                _ => targets.MainTarget
-//            } : targets.MainTarget;
-//            return (actionID, targetID);
-//        }
+        protected override void QueueAIActions()
+        {
+            if (_state.Unlocked(MinLevel.SecondWind))
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f);
+            if (_state.Unlocked(MinLevel.Bloodbath))
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.Bloodbath), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.8f);
+        }
 
-//        public override AIResult CalculateBestAction(Actor player, Actor? primaryTarget, bool moving)
-//        {
-//            if (primaryTarget?.Type != ActorType.Enemy)
-//                return new();
+        protected override NextAction CalculateAutomaticGCD()
+        {
+            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
+                return new();
+            var aid = Rotation.GetNextBestGCD(_state, _strategy);
+            return MakeResult(aid, Autorot.PrimaryTarget);
+        }
 
-//            // TODO: aoe...
-//            //bool useAOE = _state.UnlockedArmOfTheDestroyer && Autorot.PotentialTargetsInRangeFromPlayer(5).Count() > 2;
-//            var action = /*useAOE ? _nextBestAOEAction : */_nextBestSTAction;
-//            return new() { Action = action, Target = primaryTarget/*, Positional = Positional.Flank*/ };
-//        }
+        protected override NextAction CalculateAutomaticOGCD(float deadline)
+        {
+            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
+                return new();
 
-//        public override void DrawOverlay()
-//        {
-//            ImGui.TextUnformatted($"Next: {DRGRotation.ActionShortString(_nextBestSTAction)} / {DRGRotation.ActionShortString(_nextBestAOEAction)}");
-//            ImGui.TextUnformatted(_strategy.ToString());
-//            ImGui.TextUnformatted($"Raidbuffs: {_state.RaidBuffsLeft:f2}s left, next in {_strategy.RaidBuffsIn:f2}s");
-//            ImGui.TextUnformatted($"Downtime: {_strategy.FightEndIn:f2}s, pos-lock: {_strategy.PositionLockIn:f2}");
-//            ImGui.TextUnformatted($"GCD={_state.GCD:f3}, AnimLock={_state.AnimationLock:f3}+{_state.AnimationLockDelay:f3}");
-//        }
+            ActionID res = new();
+            if (_state.CanWeave(deadline - _state.OGCDSlotLength)) // first ogcd slot
+                res = Rotation.GetNextBestOGCD(_state, _strategy, deadline - _state.OGCDSlotLength);
+            if (!res && _state.CanWeave(deadline)) // second/only ogcd slot
+                res = Rotation.GetNextBestOGCD(_state, _strategy, deadline);
+            return MakeResult(res, Autorot.PrimaryTarget);
+        }
 
-//        private DRGRotation.State BuildState(Actor? target)
-//        {
-//            DRGRotation.State s = new();
-//            FillCommonPlayerState(s, target, DRGRotation.IDStatPotion);
+        protected override void OnActionExecuted(ActionID action, Actor? target)
+        {
+            Log($"Executed {action} @ {target} [{_state}]");
+        }
 
-//            //s.Chakra = Service.JobGauges.Get<DRGGauge>().Chakra;
+        protected override void OnActionSucceeded(ActorCastEvent ev)
+        {
+            Log($"Succeeded {ev.Action} @ {ev.MainTargetID:X} [{_state}]");
+        }
 
-//            foreach (var status in Player.Statuses)
-//            {
-//                switch ((DRGRotation.SID)status.ID)
-//                {
-//                    case DRGRotation.SID.PowerSurge:
-//                        s.PowerSurgeLeft = StatusDuration(status.ExpireAt);
-//                        break;
-//                }
-//            }
+        private void UpdatePlayerState()
+        {
+            FillCommonPlayerState(_state);
 
-//            return s;
-//        }
+            //s.Chakra = Service.JobGauges.Get<DRGGauge>().Chakra;
 
-//        private void LogStateChange(DRGRotation.State prev, DRGRotation.State curr)
-//        {
-//            // do nothing if not in combat
-//            if (!Player.InCombat)
-//                return;
+            _state.PowerSurgeLeft = 0;
+            foreach (var status in Player.Statuses)
+            {
+                switch ((SID)status.ID)
+                {
+                    case SID.PowerSurge:
+                        _state.PowerSurgeLeft = StatusDuration(status.ExpireAt);
+                        break;
+                }
+            }
+        }
 
-//            // detect expired buffs
-//            //if (curr.Form == DRGRotation.Form.None && prev.Form != DRGRotation.Form.None)
-//            //    Log($"Dropped form [{curr}]");
-//        }
-//    }
-//}
+        private void OnConfigModified(object? sender, EventArgs args)
+        {
+            // placeholders
+            SupportedSpell(AID.TrueThrust).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
+            SupportedSpell(AID.DoomSpike).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
+
+            // combo replacement
+
+            // smart targets
+        }
+    }
+}

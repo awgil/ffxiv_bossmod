@@ -109,13 +109,13 @@ namespace BossMod
                 classType = player.Class switch
                 {
                     Class.WAR => typeof(WAR.Actions),
-                    Class.GLA or Class.PLD => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(PLD.Actions) : null,
-                    Class.PGL or Class.MNK => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(MNK.Actions) : null,
-                    //Class.LNC or Class.DRG => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(DRGActions) : null,
-                    Class.BRD or Class.ARC => Service.ClientState.LocalPlayer?.Level <= 40 ? typeof(BRD.Actions) : null,
-                    Class.THM or Class.BLM => Service.ClientState.LocalPlayer?.Level <= 40 ? typeof(BLM.Actions) : null,
-                    Class.ACN or Class.SMN => Service.ClientState.LocalPlayer?.Level <= 30 ? typeof(SMN.Actions) : null,
-                    Class.CNJ or Class.WHM => typeof(WHM.Actions),
+                    Class.PLD => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(PLD.Actions) : null,
+                    Class.MNK => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(MNK.Actions) : null,
+                    Class.DRG => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(DRG.Actions) : null,
+                    Class.BRD => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(BRD.Actions) : null,
+                    Class.BLM => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(BLM.Actions) : null,
+                    Class.SMN => Service.ClientState.LocalPlayer?.Level <= 30 ? typeof(SMN.Actions) : null,
+                    Class.WHM => typeof(WHM.Actions),
                     Class.SCH => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(SCH.Actions) : null,
                     _ => null
                 };

@@ -61,7 +61,7 @@ namespace BossMod.BRD
         protected override void QueueAIActions()
         {
             if (_state.Unlocked(MinLevel.SecondWind))
-                SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.HP.Cur < Player.HP.Max * 0.5f);
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f);
             if (_state.Unlocked(MinLevel.WardensPaean))
             {
                 var esunableTarget = Autorot.WorldState.Party.WithoutSlot().FirstOrDefault(p => p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)));

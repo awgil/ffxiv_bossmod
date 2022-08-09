@@ -60,9 +60,9 @@ namespace BossMod.MNK
             if (_state.Unlocked(MinLevel.SteelPeak))
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.Meditation), Player, _strategy.Prepull && _state.Chakra < 5);
             if (_state.Unlocked(MinLevel.SecondWind))
-                SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.HP.Cur < Player.HP.Max * 0.5f);
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f);
             if (_state.Unlocked(MinLevel.Bloodbath))
-                SimulateManualActionForAI(ActionID.MakeSpell(AID.Bloodbath), Player, Player.HP.Cur < Player.HP.Max * 0.8f);
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.Bloodbath), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.8f);
         }
 
         protected override NextAction CalculateAutomaticGCD()
