@@ -14,11 +14,11 @@ namespace BossMod
 
         private bool _movementBlocked = false;
 
-        private unsafe delegate int PeekMessageDelegate(ulong* lpMsg, void* hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg);
-        private Hook<PeekMessageDelegate> _peekMessageHook;
+        //private unsafe delegate int PeekMessageDelegate(ulong* lpMsg, void* hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg);
+        //private Hook<PeekMessageDelegate> _peekMessageHook;
 
-        //private delegate void WndprocDelegate(ulong hWnd, uint uMsg, ulong wParam, ulong lParam, ulong uIdSubclass, ulong dwRefData);
-        //private Hook<WndprocDelegate> _wndprocHook;
+        private delegate void KbprocDelegate(ulong hWnd, uint uMsg, ulong wParam, ulong lParam, ulong uIdSubclass, ulong dwRefData);
+        private Hook<KbprocDelegate> _kbprocHook;
 
         private delegate ref int GetRefValueDelegate(int vkCode);
         private GetRefValueDelegate _getKeyRef;
@@ -26,27 +26,26 @@ namespace BossMod
         public unsafe InputOverride()
         {
             // note: it would be better to hook this instead of PeekMessage, but I didn't figure it out yet...
-            //var wndprocAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 4C 8B CB 4C 8B C7 8B D6 48 8B CD 48 8B 5C 24 40 48 8B 6C 24 48 48 8B 74 24 50 48 83 C4 30 5F E9 0A B2 01 01"); // note: look for callers of GetKeyboardState
-            //Service.Log($"Addr: {wndprocAddress}");
-            //_wndprocHook = new(wndprocAddress, new WndprocDelegate(WndprocDetour));
+            var kbprocAddress = Service.SigScanner.ScanText("48 89 5C 24 08 55 56 57 41 56 41 57 48 8D 6C 24 B0 48 81 EC 50 01 00 00 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 45 40 4D 8B F9 49 8B D8 81 FA 00 01 00 00"); // note: look for callers of GetKeyboardState
+            Service.Log($"[InputOverride] kbproc addess: 0x{kbprocAddress:X}");
+            _kbprocHook = Hook<KbprocDelegate>.FromAddress(kbprocAddress, KbprocDetour);
+            _kbprocHook.Enable();
 
-            _peekMessageHook = Hook<PeekMessageDelegate>.FromSymbol("user32.dll", "PeekMessageW", PeekMessageDetour);
-            _peekMessageHook.Enable();
+            //_peekMessageHook = Hook<PeekMessageDelegate>.FromSymbol("user32.dll", "PeekMessageW", PeekMessageDetour);
+            //_peekMessageHook.Enable();
 
             _getKeyRef = Service.KeyState.GetType().GetMethod("GetRefValue", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<GetRefValueDelegate>(Service.KeyState);
         }
 
         public void Dispose()
         {
-            //_wndprocHook.Dispose();
-            _peekMessageHook.Dispose();
+            _kbprocHook.Dispose();
+            //_peekMessageHook.Dispose();
         }
 
         // TODO: reconsider...
-        public bool IsMoving()
-        {
-            return Service.KeyState[VirtualKey.W] || Service.KeyState[VirtualKey.S] || Service.KeyState[VirtualKey.A] || Service.KeyState[VirtualKey.D];
-        }
+        public bool IsMoving() => Service.KeyState[VirtualKey.W] || Service.KeyState[VirtualKey.S] || Service.KeyState[VirtualKey.A] || Service.KeyState[VirtualKey.D];
+        public bool IsMoveRequested() => ReallyPressed(VirtualKey.W) || ReallyPressed(VirtualKey.S) || ReallyPressed(VirtualKey.A) || ReallyPressed(VirtualKey.D);
 
         public bool IsBlocked() => _movementBlocked;
 
@@ -59,7 +58,7 @@ namespace BossMod
             Block(VirtualKey.S);
             Block(VirtualKey.A);
             Block(VirtualKey.D);
-            Service.Log("Movement block started");
+            Service.Log("[InputOverride] Movement block started");
         }
 
         public void UnblockMovement()
@@ -71,7 +70,14 @@ namespace BossMod
             Unblock(VirtualKey.S);
             Unblock(VirtualKey.A);
             Unblock(VirtualKey.D);
-            Service.Log("Movement block ended");
+            Service.Log("[InputOverride] Movement block ended");
+        }
+
+        public void SimulatePress(VirtualKey vk) => ForcePress(vk);
+        public void SimulateRelease(VirtualKey vk)
+        {
+            if (!ReallyPressed(vk))
+                ForceRelease(vk);
         }
 
         public void ForcePress(VirtualKey vk) => _getKeyRef((int)vk) = 3;
@@ -95,34 +101,34 @@ namespace BossMod
             return (GetKeyState((int)vk) & 0x8000) == 0x8000;
         }
 
-        //private void WndprocDetour(ulong hWnd, uint uMsg, ulong wParam, ulong lParam, ulong uIdSubclass, ulong dwRefData)
-        //{
-        //    if (_movementBlocked && uMsg == WM_KEYDOWN && (VirtualKey)wParam is VirtualKey.W or VirtualKey.S or VirtualKey.A or VirtualKey.D)
-        //        return;
-        //    _wndprocHook.Original(hWnd, uMsg, wParam, lParam, uIdSubclass, dwRefData);
-        //}
-
-        private unsafe int PeekMessageDetour(ulong* lpMsg, void* hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg)
+        private void KbprocDetour(ulong hWnd, uint uMsg, ulong wParam, ulong lParam, ulong uIdSubclass, ulong dwRefData)
         {
-            do
-            {
-                var res = _peekMessageHook.Original(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
-                if (res == 0)
-                    return res;
-
-                if (_movementBlocked && lpMsg[1] == WM_KEYDOWN && (VirtualKey)lpMsg[2] is VirtualKey.W or VirtualKey.S or VirtualKey.A or VirtualKey.D)
-                {
-                    // eat message
-                    if ((wRemoveMsg & 1) == 0)
-                    {
-                        _peekMessageHook.Original(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | 1);
-                    }
-                    continue;
-                }
-
-                return res;
-            } while (true);
+            if (_movementBlocked && uMsg == WM_KEYDOWN && (VirtualKey)wParam is VirtualKey.W or VirtualKey.S or VirtualKey.A or VirtualKey.D)
+                return;
+            _kbprocHook.Original(hWnd, uMsg, wParam, lParam, uIdSubclass, dwRefData);
         }
+
+        //private unsafe int PeekMessageDetour(ulong* lpMsg, void* hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg)
+        //{
+        //    do
+        //    {
+        //        var res = _peekMessageHook.Original(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
+        //        if (res == 0)
+        //            return res;
+
+        //        if (_movementBlocked && lpMsg[1] == WM_KEYDOWN && (VirtualKey)lpMsg[2] is VirtualKey.W or VirtualKey.S or VirtualKey.A or VirtualKey.D)
+        //        {
+        //            // eat message
+        //            if ((wRemoveMsg & 1) == 0)
+        //            {
+        //                _peekMessageHook.Original(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | 1);
+        //            }
+        //            continue;
+        //        }
+
+        //        return res;
+        //    } while (true);
+        //}
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         private static extern short GetKeyState(int keyCode);

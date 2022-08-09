@@ -44,7 +44,6 @@ namespace BossMod
         private ActorCastEvent? _completedCast = null;
 
         private InputOverride _inputOverride;
-        private DateTime _inputPendingUnblock;
 
         private unsafe delegate bool UseActionDelegate(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted);
         private Hook<UseActionDelegate> _useActionHook;
@@ -58,7 +57,7 @@ namespace BossMod
         public Actor? PrimaryTarget; // this is usually a normal (hard) target, but AI can override; typically used for damage abilities
         public Actor? SecondaryTarget; // this is usually a mouseover, but AI can override; typically used for heal and utility abilities
         public List<Actor> PotentialTargets = new();
-        public bool Moving => _inputOverride.IsMoving(); // TODO: reconsider
+        public bool Moving => _inputOverride.IsMoveRequested(); // TODO: reconsider
         public float EffAnimLock => ActionManagerEx.Instance!.EffectiveAnimationLock;
         public float AnimLockDelay => ActionManagerEx.Instance!.EffectiveAnimationLockDelay;
 
@@ -136,13 +135,6 @@ namespace BossMod
                 _completedCast = null;
             }
 
-            // unblock 'speculative' movement locks
-            if (_inputPendingUnblock != new DateTime() && _inputPendingUnblock < DateTime.Now)
-            {
-                _inputOverride.UnblockMovement();
-                _inputPendingUnblock = new();
-            }
-
             bool showUI = _classActions != null && _config.ShowUI;
             if (showUI && _ui == null)
             {
@@ -183,8 +175,17 @@ namespace BossMod
 
         private void OnActionManagerUpdate(object? sender, EventArgs args)
         {
+            if (ActionManagerUpdateImpl())
+                _inputOverride.BlockMovement();
+            else
+                _inputOverride.UnblockMovement();
+        }
+
+        // returns whether input should be blocked
+        private bool ActionManagerUpdateImpl()
+        {
             if (_classActions == null)
-                return; // disabled
+                return false; // disabled
 
             // update cooldowns and autorotation implementation state, so that correct decision can be made
             var am = ActionManagerEx.Instance!;
@@ -192,23 +193,29 @@ namespace BossMod
             _classActions.UpdateAMTick();
 
             if (EffAnimLock > 0)
-                return; // casting/under animation lock - do nothing for now, we'll retry on future update anyway
+                return _config.PreventMovingWhileCasting && am.CastTimeRemaining > 0; // casting/under animation lock - do nothing for now, we'll retry on future update anyway
 
             var next = _classActions.CalculateNextAction();
-            if (!next.Action || Cooldowns[next.Definition.CooldownGroup] > next.Definition.CooldownAtFirstCharge)
-                return; // nothing to use, or action is still on cooldown
+            if (!next.Action)
+                return false; // nothing to use
+
+            // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
+            bool lockMovementForNext = _config.PreventMovingWhileCasting && next.Definition.CastTime > 0 && am.GCD() < 0.1f;
+            if (lockMovementForNext && _inputOverride.IsMoving() || Cooldowns[next.Definition.CooldownGroup] > next.Definition.CooldownAtFirstCharge)
+                return lockMovementForNext; // action is still on cooldown
 
             var targetID = next.Target?.InstanceID ?? GameObject.InvalidGameObjectId;
             var status = am.GetActionStatus(next.Action, targetID);
             if (status != 0)
             {
                 Log($"Can't execute {next.Source} action {next.Action} @ {targetID:X}: status {status} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.LogMessage>(status)?.Text}'");
-                return;
+                return false;
             }
 
             var res = am.UseActionRaw(next.Action, targetID, next.TargetPos, next.Action.Type == ActionType.Item ? 65535u : 0);
             Log($"Auto-execute {next.Source} action {next.Action} @ {targetID:X} {Utils.Vec3String(next.TargetPos)} => {res}");
             _classActions.NotifyActionExecuted(next.Action, next.Target);
+            return lockMovementForNext;
         }
 
         private void OnNetworkActionRequest(object? sender, Network.PendingAction action)
@@ -219,14 +226,6 @@ namespace BossMod
             }
             Log($"++ {PendingActionString(action)}");
             _pendingActions.Add(action);
-
-            if (_inputPendingUnblock > DateTime.Now)
-            {
-                // we have speculative movement block; if we've actually requested casted action, extend it until cast ends, otherwise cancel it
-                if (!action.Action.IsCasted())
-                    _inputOverride.UnblockMovement();
-                _inputPendingUnblock = new();
-            }
         }
 
         private void OnNetworkActionEffect(object? sender, (ulong actorID, ActorCastEvent cast) args)
@@ -277,9 +276,6 @@ namespace BossMod
                 Log($"-- {PendingActionString(_pendingActions[index])}");
                 _pendingActions.RemoveRange(0, index + 1);
             }
-
-            // keep movement locked for a slight duration after interrupted cast, in case player restarts it
-            _inputPendingUnblock = DateTime.Now.AddSeconds(0.2f);
         }
 
         private void OnNetworkActionReject(object? sender, (ulong actorID, uint actionID, uint sourceSequence) args)
@@ -305,9 +301,6 @@ namespace BossMod
                 Log($"!! {PendingActionString(_pendingActions[index])}");
                 _pendingActions.RemoveRange(0, index + 1);
             }
-
-            // unblock input unconditionally on reject (TODO: investigate more why it can happen)
-            _inputOverride.UnblockMovement();
         }
 
         private string PendingActionString(Network.PendingAction a)
@@ -342,20 +335,6 @@ namespace BossMod
             {
                 // unknown target (e.g. quest object) or unsupported action - pass to hooked function
                 return _useActionHook.Original(self, actionType, actionID, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
-            }
-
-            // TODO: this is really a hack at this point...
-            // if we're spamming casted action, we have to block movement a bit before cast starts, otherwise it would be interrupted
-            // if we block movement now, we might or might not get actual action request when GCD ends; if we do, we'll extend lock until cast ends, otherwise (e.g. if we got out of range) we'll remove lock after slight delay
-            if (_config.PreventMovingWhileCasting && !_inputOverride.IsBlocked() && action.IsCasted())
-            {
-                var gcd = self->GetRecastGroupDetail(CommonDefinitions.GCDGroup);
-                var gcdLeft = gcd->Total - gcd->Elapsed;
-                if (gcdLeft < 0.3f)
-                {
-                    _inputOverride.BlockMovement();
-                    _inputPendingUnblock = DateTime.Now.AddSeconds(gcdLeft + 0.1f);
-                }
             }
 
             return false;

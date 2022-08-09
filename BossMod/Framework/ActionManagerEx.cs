@@ -76,7 +76,7 @@ namespace BossMod
         private unsafe delegate bool UseActionLocationDelegate(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation);
         private Hook<UseActionLocationDelegate> _useActionLocationHook;
 
-        private unsafe delegate void ProcessActionEffectPacketDelegate(uint mainTargetID, void* mainTargetObj, Vector3* targetPos, Protocol.Server_ActionEffectHeader* header, ulong* effects, ulong* targets);
+        private unsafe delegate void ProcessActionEffectPacketDelegate(uint casterID, void* casterObj, Vector3* targetPos, Protocol.Server_ActionEffectHeader* header, ulong* effects, ulong* targets);
         private Hook<ProcessActionEffectPacketDelegate> _processActionEffectPacketHook;
 
         private IntPtr _gtQueuePatch; // instruction inside UseAction: conditional jump that disallows queueing for ground-targeted actions
@@ -145,6 +145,13 @@ namespace BossMod
         {
             _faceTargetFunc(_inst, &position, unkObjID);
         }
+        public void FaceDirection(Angle rotation)
+        {
+            var dir = rotation.ToDirection();
+            var player = Service.ClientState.LocalPlayer;
+            if (player != null)
+                FaceTarget(player.Position + new Vector3(dir.X, 0, dir.Z));
+        }
 
         public unsafe void GetCooldowns(float[] cooldowns)
         {
@@ -198,10 +205,10 @@ namespace BossMod
             return ret;
         }
 
-        private unsafe void ProcessActionEffectPacketDetour(uint mainTargetID, void* mainTargetObj, Vector3* targetPos, Protocol.Server_ActionEffectHeader* header, ulong* effects, ulong* targets)
+        private unsafe void ProcessActionEffectPacketDetour(uint casterID, void* casterObj, Vector3* targetPos, Protocol.Server_ActionEffectHeader* header, ulong* effects, ulong* targets)
         {
             var prevAnimLock = AnimationLock;
-            _processActionEffectPacketHook.Original(mainTargetID, mainTargetObj, targetPos, header, effects, targets);
+            _processActionEffectPacketHook.Original(casterID, casterObj, targetPos, header, effects, targets);
             var currAnimLock = AnimationLock;
             if (currAnimLock == prevAnimLock)
                 return;

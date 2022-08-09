@@ -24,19 +24,19 @@ namespace BossMod.AI
                     if (_curDirection == value)
                     {
                         if (value != 0 && !Service.KeyState[value > 0 ? _keyFwd : _keyBack])
-                            _input.ForcePress(value > 0 ? _keyFwd : _keyBack);
+                            _input.SimulatePress(value > 0 ? _keyFwd : _keyBack);
                         return;
                     }
 
                     if (_curDirection > 0)
-                        _input.ForceRelease(_keyFwd);
+                        _input.SimulateRelease(_keyFwd);
                     else if (_curDirection < 0)
-                        _input.ForceRelease(_keyBack);
+                        _input.SimulateRelease(_keyBack);
                     _curDirection = value;
                     if (value > 0)
-                        _input.ForcePress(_keyFwd);
+                        _input.SimulatePress(_keyFwd);
                     else if (value < 0)
-                        _input.ForcePress(_keyBack);
+                        _input.SimulatePress(_keyBack);
                 }
             }
 
@@ -55,6 +55,7 @@ namespace BossMod.AI
         private NaviAxis _axisForward;
         private NaviAxis _axisStrafe;
         private NaviAxis _axisRotate;
+        private InputOverride _input;
         private Autorotation _autorot;
 
         public bool InCutscene => Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78];
@@ -65,6 +66,7 @@ namespace BossMod.AI
             _axisForward = new(input, VirtualKey.W, VirtualKey.S);
             _axisStrafe = new(input, VirtualKey.D, VirtualKey.A);
             _axisRotate = new(input, VirtualKey.LEFT, VirtualKey.RIGHT);
+            _input = input;
             _autorot = autorot;
         }
 
@@ -107,7 +109,7 @@ namespace BossMod.AI
                 _axisRotate.CurDirection = 0;
             }
 
-            bool forbidMovement = !AllowInterruptingCastByMovement && player.CastInfo != null && !player.CastInfo.EventHappened;
+            bool forbidMovement = !AllowInterruptingCastByMovement && player.CastInfo != null && !player.CastInfo.EventHappened || _input.IsMoveRequested();
             if (NaviTargetPos != null && !forbidMovement && (NaviTargetPos.Value - player.Position).LengthSq() > 0.04f)
             {
                 var delta = NaviTargetPos.Value - player.Position;

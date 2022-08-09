@@ -37,12 +37,7 @@ namespace BossMod
 
             if (ImGui.Button("Rotate 30 CCW"))
             {
-                var player = _ws.Party.Player();
-                if (player != null)
-                {
-                    var dir = (player.Rotation + 30.Degrees()).ToDirection();
-                    am.FaceTarget(player.PosRot.XYZ() + new Vector3(dir.X, 0, dir.Z));
-                }
+                am.FaceDirection(_ws.Party.Player()?.Rotation ?? 0.Degrees() + 30.Degrees());
             }
         }
 
