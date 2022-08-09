@@ -73,7 +73,7 @@ namespace BossMod.WHM
                 if (_strategy.HealTarget != null) // TODO: this aoe/st heal selection is not very good...
                     _strategy.AOE = _strategy.NumAssizeMedica1Targets > 2 || _strategy.NumRaptureMedica2Targets > 2 || _strategy.NumCure3Targets > 2;
                 else
-                    _strategy.AOE = Autorot.PotentialTargetsInRangeFromPlayer(8).Count() >= 3;
+                    _strategy.AOE = _state.Unlocked(MinLevel.Holy1) && Autorot.PotentialTargetsInRangeFromPlayer(8).Count() >= 3;
                 _strategy.Moving = autoAction is AutoActionAIIdleMove or AutoActionAIFightMove;
             }
             else if (autoAction is AutoActionST or AutoActionAOE)

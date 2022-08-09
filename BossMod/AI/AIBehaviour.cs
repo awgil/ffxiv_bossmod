@@ -101,7 +101,7 @@ namespace BossMod.AI
         private void UpdateControl(Actor player, Actor master, CommonActions.Targeting target)
         {
             int strategy = CommonActions.AutoActionNone;
-            if (_autorot.ClassActions != null && !_passive && !_ctrl.InCutscene)
+            if (_autorot.ClassActions != null && !_passive && !_ctrl.InCutscene && !_ctrl.IsMounted)
             {
                 if (target.Target != null)
                 {

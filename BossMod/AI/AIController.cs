@@ -59,6 +59,7 @@ namespace BossMod.AI
         private Autorotation _autorot;
 
         public bool InCutscene => Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78];
+        public bool IsMounted => Service.Condition[ConditionFlag.Mounted];
         public WDir CameraFacing => ((Camera.Instance?.CameraAzimuth ?? 0).Radians() + 180.Degrees()).ToDirection();
 
         public unsafe AIController(InputOverride input, Autorotation autorot)
