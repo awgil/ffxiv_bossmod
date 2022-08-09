@@ -102,7 +102,7 @@ namespace BossMod
             PrimaryTarget = WorldState.Actors.Find(player?.TargetID ?? 0);
             SecondaryTarget = WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
             PotentialTargets.Clear();
-            PotentialTargets.AddRange(WorldState.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead && a.InCombat));
+            PotentialTargets.AddRange(WorldState.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead && a.InCombat)); // TODO: if boss module is active, get from it instead...
 
             Type? classType = null;
             if (_config.Enabled && player != null)
@@ -116,7 +116,7 @@ namespace BossMod
                     //Class.BRD or Class.ARC => Service.ClientState.LocalPlayer?.Level < 40 ? typeof(BRDActions) : null,
                     Class.THM or Class.BLM => Service.ClientState.LocalPlayer?.Level <= 40 ? typeof(BLM.Actions) : null,
                     Class.ACN or Class.SMN => Service.ClientState.LocalPlayer?.Level <= 30 ? typeof(SMN.Actions) : null,
-                    //Class.CNJ or Class.WHM => typeof(WHMActions),
+                    Class.CNJ or Class.WHM => typeof(WHM.Actions),
                     Class.SCH => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(SCH.Actions) : null,
                     _ => null
                 };

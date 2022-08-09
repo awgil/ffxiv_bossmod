@@ -1,5 +1,4 @@
 ﻿using Dalamud.Game.ClientState.JobGauge.Types;
-using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,8 +21,6 @@ namespace BossMod.BLM
         public Actions(Autorotation autorot, Actor player)
             : base(autorot, player, Definitions.QuestsPerLevel, Definitions.SupportedActions)
         {
-            PreferredRange = 25;
-
             _config = Service.Config.Get<BLMConfig>();
             _state = new(autorot.Cooldowns);
             _strategy = new();
@@ -35,6 +32,12 @@ namespace BossMod.BLM
         public override void Dispose()
         {
             _config.Modified -= OnConfigModified;
+        }
+
+        public override Targeting SelectBetterTarget(Actor initial)
+        {
+            // TODO: select best target for AOE
+            return new(initial, 25);
         }
 
         protected override void UpdateInternalState(int autoAction)

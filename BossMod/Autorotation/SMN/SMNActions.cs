@@ -17,8 +17,6 @@ namespace BossMod.SMN
         public Actions(Autorotation autorot, Actor player)
             : base(autorot, player, Definitions.QuestsPerLevel, Definitions.SupportedActions)
         {
-            PreferredRange = 25;
-
             _config = Service.Config.Get<SMNConfig>();
             _state = new(autorot.Cooldowns);
             _strategy = new();
@@ -30,6 +28,12 @@ namespace BossMod.SMN
         public override void Dispose()
         {
             _config.Modified -= OnConfigModified;
+        }
+
+        public override Targeting SelectBetterTarget(Actor initial)
+        {
+            // TODO: AOE & multidotting
+            return new(initial, 25);
         }
 
         protected override void UpdateInternalState(int autoAction)

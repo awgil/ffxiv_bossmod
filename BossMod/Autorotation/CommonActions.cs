@@ -36,6 +36,20 @@ namespace BossMod
             }
         }
 
+        public struct Targeting
+        {
+            public Actor? Target;
+            public float PreferredRange;
+            public Positional PreferredPosition;
+
+            public Targeting(Actor target, float range = 3, Positional pos = Positional.Any)
+            {
+                Target = target;
+                PreferredRange = range;
+                PreferredPosition = pos;
+            }
+        }
+
         public class SupportedAction
         {
             public ActionDefinition Definition;
@@ -66,8 +80,6 @@ namespace BossMod
 
         public Actor Player { get; init; }
         public Dictionary<ActionID, SupportedAction> SupportedActions { get; init; } = new();
-        public Positional PreferredPosition { get; protected set; } // implementation can update this as needed
-        public float PreferredRange { get; protected set; } = 3; // implementation can update this as needed
         protected Autorotation Autorot;
         protected int AutoAction { get; private set; }
         private DateTime _autoActionExpire;
@@ -159,9 +171,11 @@ namespace BossMod
             if (supportedAction == null)
                 return false;
 
+            UpdateInternalState(AutoAction);
             if (supportedAction.TransformAction != null)
             {
                 var adjAction = supportedAction.TransformAction();
+                Service.Log($"Transform: {action} -> {adjAction}");
                 if (adjAction != action)
                 {
                     action = adjAction;
@@ -255,6 +269,7 @@ namespace BossMod
         }
 
         public abstract void Dispose();
+        public virtual Targeting SelectBetterTarget(Actor initial) => new(initial);
         protected abstract void UpdateInternalState(int autoAction);
         protected abstract void QueueAIActions();
         protected abstract NextAction CalculateAutomaticGCD();

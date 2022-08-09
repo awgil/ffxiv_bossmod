@@ -3,27 +3,16 @@ using System.Linq;
 
 namespace BossMod.SCH
 {
+    // TODO: this is shit, like all healer modules...
     class Actions : CommonActions
     {
-        // TODO: reconsider, shouldn't be here...
-        public struct AIDecisionState
-        {
-            public Actor? MultidotTarget; // replace with custom target selection...
-            public Actor? MostDamagedPartyMember; // replace with queued heal
-            public Actor? EsunablePartyMember; // replace with queued esuna
-            public bool UseWhisperingDawn; // replace with queued WD
-        }
-
         private SCHConfig _config;
         private Rotation.State _state;
         private Rotation.Strategy _strategy;
-        private AIDecisionState _aiState = new();
 
         public Actions(Autorotation autorot, Actor player)
             : base(autorot, player, Definitions.QuestsPerLevel, Definitions.SupportedActions)
         {
-            PreferredRange = 25;
-
             _config = Service.Config.Get<SCHConfig>();
             _state = new(autorot.Cooldowns);
             _strategy = new();
@@ -42,16 +31,59 @@ namespace BossMod.SCH
             _config.Modified -= OnConfigModified;
         }
 
+        public override Targeting SelectBetterTarget(Actor initial)
+        {
+            // TODO: select target for art of war...
+
+            // look for target to multidot, if initial target already has dot
+            if (_state.Unlocked(MinLevel.Bio1) && !WithoutDOT(initial))
+            {
+                var multidotTarget = Autorot.PotentialTargetsInRangeFromPlayer(25).FirstOrDefault(t => t != initial && WithoutDOT(t));
+                if (multidotTarget != null)
+                    return new(multidotTarget, 25);
+            }
+
+            return new(initial, 25);
+        }
+
         protected override void UpdateInternalState(int autoAction)
         {
             UpdatePlayerState();
-            UpdateAIState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionMnd);
+            if (autoAction < AutoActionFirstCustom)
+            {
+                _strategy.HealTarget = Autorot.WorldState.Party.WithoutSlot().MaxBy(p => p.HP.Max - p.HP.Cur);
+                if (_strategy.HealTarget != null && _strategy.HealTarget.HP.Cur > _strategy.HealTarget.HP.Max * 0.5f)
+                    _strategy.HealTarget = null;
+                _strategy.Moving = autoAction is AutoActionAIIdleMove or AutoActionAIFightMove;
+            }
+            else
+            {
+                _strategy.HealTarget = null;
+                _strategy.Moving = false;
+            }
         }
 
         protected override void QueueAIActions()
         {
-            // TODO: move stuff here...
+            if (_state.Unlocked(MinLevel.Esuna))
+            {
+                var esunableTarget = _strategy.HealTarget != null ? null : Autorot.WorldState.Party.WithoutSlot().FirstOrDefault(p => p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)));
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.Esuna), esunableTarget, esunableTarget != null);
+            }
+            if (_state.Unlocked(MinLevel.WhisperingDawn))
+            {
+                // TODO: better whispering dawn condition...
+                var numWhisperingDawnTargets = _state.Fairy != null ? Autorot.WorldState.Party.WithoutSlot().Where(p => p.HP.Cur < p.HP.Max).InRadius(_state.Fairy.Position, 15).Count() : 0;
+                bool useWhisperingDawn = numWhisperingDawnTargets > 2;
+                if (!useWhisperingDawn && numWhisperingDawnTargets > 0)
+                {
+                    // also use it if most-damaged has large hp deficit and would be hit
+                    var mainHealTarget = Autorot.WorldState.Party.WithoutSlot().MaxBy(p => p.HP.Max - p.HP.Cur)!; // guaranteed to be non-null due to num-targets check
+                    useWhisperingDawn = mainHealTarget.HP.Cur < mainHealTarget.HP.Max * 0.8f && (mainHealTarget.Position - _state.Fairy!.Position).LengthSq() <= 15 * 15;
+                }
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.WhisperingDawn), Player, useWhisperingDawn);
+            }
         }
 
         protected override NextAction CalculateAutomaticGCD()
@@ -60,17 +92,15 @@ namespace BossMod.SCH
                 return MakeResult(_config.PreferSelene ? AID.SummonSelene : AID.SummonEos, Player);
 
             // AI actions (TODO: revise at L35)
-            if (_aiState.MostDamagedPartyMember != null && _aiState.MostDamagedPartyMember.HP.Cur <= _aiState.MostDamagedPartyMember.HP.Max * 0.5f)
-                return MakeResult(Rotation.GetNextBestSTHealGCD(_state), _aiState.MostDamagedPartyMember);
-            if (_aiState.EsunablePartyMember != null)
-                return MakeResult(AID.Esuna, _aiState.EsunablePartyMember);
+            if (_strategy.HealTarget != null)
+                return MakeResult(Rotation.GetNextBestSTHealGCD(_state, _strategy), _strategy.HealTarget);
             // TODO: prepull adlo on ??? (master? tank?)
 
             // normal damage actions
             if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
                 return new();
-            var res = Rotation.GetNextBestSTDamageGCD(_state, AutoAction == AutoActionAIFightMove, _aiState.MultidotTarget != null);
-            return MakeResult(res, res == _state.BestBio ? _aiState.MultidotTarget! : Autorot.PrimaryTarget);
+            var res = Rotation.GetNextBestSTDamageGCD(_state, _strategy);
+            return MakeResult(res, Autorot.PrimaryTarget);
         }
 
         protected override NextAction CalculateAutomaticOGCD(float deadline)
@@ -80,26 +110,10 @@ namespace BossMod.SCH
 
             NextAction res = new();
             if (_state.CanWeave(deadline - _state.OGCDSlotLength)) // first ogcd slot
-                res = CalculateAutomaticOGCDInSlot(Autorot.PrimaryTarget, deadline - _state.OGCDSlotLength);
+                res = MakeResult(Rotation.GetNextBestOGCD(_state, _strategy, deadline - _state.OGCDSlotLength), _strategy.HealTarget ?? Autorot.PrimaryTarget!);
             if (!res.Action && _state.CanWeave(deadline)) // second/only ogcd slot
-                res = CalculateAutomaticOGCDInSlot(Autorot.PrimaryTarget, deadline);
+                res = MakeResult(Rotation.GetNextBestOGCD(_state, _strategy, deadline), _strategy.HealTarget ?? Autorot.PrimaryTarget!);
             return res;
-        }
-
-        private NextAction CalculateAutomaticOGCDInSlot(Actor primaryTarget, float deadline)
-        {
-            // TODO: L40+
-            // whispering dawn, if AI wants to
-            if (_aiState.UseWhisperingDawn && _state.Unlocked(MinLevel.WhisperingDawn) && _state.CanWeave(CDGroup.WhisperingDawn, 0.6f, deadline))
-                return MakeResult(AID.WhisperingDawn, Player);
-
-            // lucid dreaming, if we won't waste mana (TODO: revise mp limit)
-            if (_state.CurMP <= 8000 && _state.Unlocked(MinLevel.LucidDreaming) && _state.CanWeave(CDGroup.LucidDreaming, 0.6f, deadline))
-                return MakeResult(AID.LucidDreaming, Player);
-
-            // TODO: swiftcast...
-
-            return new();
         }
 
         protected override void OnActionExecuted(ActionID action, Actor? target)
@@ -135,31 +149,11 @@ namespace BossMod.SCH
             }
         }
 
-        private void UpdateAIState()
+        private bool WithoutDOT(Actor a)
         {
-            if (AutoAction < AutoActionFirstCustom)
-            {
-                _aiState.MultidotTarget = AutoAction < AutoActionFirstFight ? null : Autorot.PotentialTargetsInRangeFromPlayer(25).FirstOrDefault(WithoutDOT);
-                _aiState.MostDamagedPartyMember = Autorot.WorldState.Party.WithoutSlot().MaxBy(p => p.HP.Max - p.HP.Cur);
-                _aiState.EsunablePartyMember = Autorot.WorldState.Party.WithoutSlot().FirstOrDefault(p => p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)));
-
-                // TODO: better whispering dawn condition...
-                var numWhisperingDawnTargets = _state.Fairy != null && _state.Unlocked(MinLevel.WhisperingDawn) ? Autorot.WorldState.Party.WithoutSlot().Where(p => p.HP.Cur < p.HP.Max).InRadius(_state.Fairy.Position, 15).Count() : 0;
-                _aiState.UseWhisperingDawn = numWhisperingDawnTargets > 2;
-                if (!_aiState.UseWhisperingDawn && numWhisperingDawnTargets > 0)
-                {
-                    // also use it if most-damaged has large hp deficit and would be hit
-                    var mainHealTarget = _aiState.MostDamagedPartyMember!; // guaranteed to be non-null due to num-targets check
-                    _aiState.UseWhisperingDawn = mainHealTarget.HP.Cur < mainHealTarget.HP.Max * 0.8f && (mainHealTarget.Position - _state.Fairy!.Position).LengthSq() <= 15 * 15;
-                }
-            }
-            else
-            {
-                _aiState = new();
-            }
+            var dot = a.Statuses.FirstOrDefault(s => s.SourceID == Player.InstanceID && (SID)s.ID is SID.Bio1 or SID.Bio2 or SID.Biolysis);
+            return dot.ID == 0 || Rotation.RefreshDOT(_state, StatusDuration(dot.ExpireAt));
         }
-
-        private bool WithoutDOT(Actor a) => !a.Statuses.Any(s => s.SourceID == Player.InstanceID && (SID)s.ID is SID.Bio1 or SID.Bio2);
 
         private void OnConfigModified(object? sender, EventArgs args)
         {

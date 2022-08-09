@@ -36,18 +36,23 @@ namespace BossMod.MNK
             _config.Modified -= OnConfigModified;
         }
 
-        protected override void UpdateInternalState(int autoAction)
+        public override Targeting SelectBetterTarget(Actor initial)
         {
-            UpdatePlayerState();
-            FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
-            _strategy.NumAOETargets = autoAction == AutoActionST ? 0 : Autorot.PotentialTargetsInRangeFromPlayer(5).Count();
-
-            PreferredPosition = (_state.Form == Rotation.Form.Coeurl ? Rotation.GetCoeurlFormAction(_state, _strategy.NumAOETargets) : AID.None) switch
+            // TODO: multidotting support...
+            var pos = (_state.Form == Rotation.Form.Coeurl ? Rotation.GetCoeurlFormAction(_state, _strategy.NumAOETargets) : AID.None) switch
             {
                 AID.SnapPunch => Positional.Flank,
                 AID.Demolish => Positional.Rear,
                 _ => Positional.Any
             };
+            return new(initial, 3, pos);
+        }
+
+        protected override void UpdateInternalState(int autoAction)
+        {
+            UpdatePlayerState();
+            FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
+            _strategy.NumAOETargets = autoAction == AutoActionST ? 0 : Autorot.PotentialTargetsInRangeFromPlayer(5).Count();
         }
 
         protected override void QueueAIActions()

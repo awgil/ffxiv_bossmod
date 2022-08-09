@@ -14,7 +14,7 @@ namespace BossMod.WHM
             public float ThinAirLeft; // 0 if buff not up, max 12
             public float FreecureLeft; // 0 if buff not up, max 15
             public float MedicaLeft; // 0 if hot not up, max 15
-            public float TargetDiaLeft; // 0 if debuff not up, max 30 - TODO should not be here...
+            public float TargetDiaLeft; // 0 if debuff not up, max 30
 
             // upgrade paths
             public AID BestGlare => Unlocked(MinLevel.Glare3) ? AID.Glare3 : Unlocked(MinLevel.Glare1) ? AID.Glare1 : Unlocked(MinLevel.Stone4) ? AID.Stone4 : Unlocked(MinLevel.Stone3) ? AID.Stone3 : Unlocked(MinLevel.Stone2) ? AID.Stone2 : AID.Stone1;
@@ -49,6 +49,8 @@ namespace BossMod.WHM
             }
         }
 
+        public static bool RefreshDOT(State state, float timeLeft) => timeLeft < state.GCD + 3.0f; // TODO: tweak threshold so that we don't overwrite or miss ticks...
+
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
             // 1. plenary indulgence, if we're gonna cast aoe gcd heal that will actually heal someone... (TODO: reconsider priority)
@@ -70,7 +72,7 @@ namespace BossMod.WHM
                 return ActionID.MakeSpell(AID.LucidDreaming);
 
             // 7. thin air, if we have some mana deficit and we're either sitting on 2 charges or we're gonna cast expensive spell (TODO: revise mp limit)
-            if (state.CurMP <= 9000 && state.Unlocked(MinLevel.ThinAir) && state.CanWeave(CDGroup.ThinAir - 60, 0.6f, deadline))
+            if (state.CurMP <= 9000 && state.Unlocked(MinLevel.ThinAir) && state.CanWeave(state.CD(CDGroup.ThinAir) - 60, 0.6f, deadline))
             {
                 if (state.CD(CDGroup.ThinAir) < state.GCD)
                     return ActionID.MakeSpell(AID.ThinAir); // spend second charge to start cooldown ticking, even if we gonna cast glare
@@ -87,8 +89,8 @@ namespace BossMod.WHM
             if (strategy.Prepull)
                 return state.BestGlare;
 
-            // 1. refresh dia/aero, if needed (TODO: tweak threshold so that we don't overwrite or miss ticks...)
-            if (state.Unlocked(MinLevel.Aero1) && state.TargetDiaLeft < state.GCD + 3.0f)
+            // 1. refresh dia/aero, if needed
+            if (state.Unlocked(MinLevel.Aero1) && RefreshDOT(state, state.TargetDiaLeft))
                 return state.BestDia;
 
             // 2. glare, if not moving or if under swiftcast

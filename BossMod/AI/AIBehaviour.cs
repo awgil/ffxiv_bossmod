@@ -11,7 +11,6 @@ namespace BossMod.AI
         private AIController _ctrl;
         private AvoidAOE _avoidAOE;
         private bool _passive;
-        private bool _autoTarget;
         private bool _instantCastsOnly;
         private bool _afkMode;
         private WPos _masterPrevPos;
@@ -32,80 +31,40 @@ namespace BossMod.AI
 
         public void Execute(Actor player, Actor master)
         {
-            var primaryTarget = _autoTarget ? TargetingSelectBest(player) : TargetingAssistMaster(player, master);
-            if (primaryTarget != null)
+            var targeting = UpdateTargeting(player, master);
+            if (targeting.Target != null)
             {
-                _autorot.PrimaryTarget = primaryTarget;
-                _ctrl.SetPrimaryTarget(primaryTarget);
+                _autorot.PrimaryTarget = targeting.Target;
+                _ctrl.SetPrimaryTarget(targeting.Target);
             }
 
-            //var secondaryTarget = TargetingHeal(player);
-            //_autorot.SecondaryTarget = secondaryTarget;
-
             UpdateState(player, master);
-            UpdateControl(player, master, primaryTarget);
+            UpdateControl(player, master, targeting);
         }
 
-        private Actor? TargetingSelectBest(Actor player)
+        // returns null if we're to be idle, otherwise target to attack
+        private CommonActions.Targeting UpdateTargeting(Actor player, Actor master)
         {
-            if (!player.InCombat)
-                return null; // not in combat => do nothing
+            if (_autorot.PotentialTargets.Count == 0 || !master.InCombat)
+                return new(); // there are no valid targets to attack, or we're not fighting - remain idle
 
-            var selectedTarget = _autorot.WorldState.Actors.Find(player.TargetID);
-            if (selectedTarget?.Type == ActorType.Enemy && !selectedTarget.IsAlly)
-                return selectedTarget;
+            // we prefer not to switch targets unnecessarily, so start with current target - it could've been selected manually or by AI on previous frames
+            var target = _autorot.PrimaryTarget;
 
-            // choose min-hp targets among those targeting me first
-            var bestAttacker = _autorot.PotentialTargets.Where(t => t.TargetID == player.InstanceID).MinBy(t => t.HP.Cur);
-            if (bestAttacker != null)
-                return bestAttacker;
+            // if current target is not among valid targets, clear it - this opens way for future target selection heuristics
+            if (target != null && !_autorot.PotentialTargets.Contains(target))
+                target = null;
 
-            // otherwise (if no one is attacking me), choose min-hp target (TODO: also consider distance?..)
-            return _autorot.PotentialTargets.MinBy(t => t.HP.Cur);
+            // if we don't have a valid target yet, use some heuristics to select some 'ok' target to attack
+            // try assisting master, otherwise (if player is own master, or if master has no valid target) just select closest valid target
+            target ??= master != player ? _autorot.PotentialTargets.Find(t => master.TargetID == t.InstanceID) : null;
+            target ??= _autorot.PotentialTargets.Closest(player.Position);
+
+            // now give class module a chance to improve targeting
+            // typically it would switch targets for multidotting, or to hit more targets with AOE
+            // in case of ties, it should prefer to return original target - this would prevent useless switches
+            return _autorot.ClassActions?.SelectBetterTarget(target!) ?? new(target!);
         }
-
-        private Actor? TargetingAssistMaster(Actor player, Actor master)
-        {
-            if (!master.InCombat)
-                return null; // master not in combat => just follow
-
-            var masterTarget = _autorot.WorldState.Actors.Find(master.TargetID);
-            if (masterTarget?.Type != ActorType.Enemy || masterTarget.IsAlly)
-                return null; // master has no target or targets non-enemy => just follow
-
-            // TODO: check potential targets, if anyone is casting - queue interrupt or stun (unless planned), otherwise gtfo from aoe
-            // TODO: mitigates/self heals, unless planned, if low hp
-
-            // assist master
-            return masterTarget;
-        }
-
-        //private Actor? TargetingHeal(Actor player)
-        //{
-        //    if (player.Class != Class.ACN && player.Role != Role.Healer)
-        //        return null;
-
-        //    Actor? healTarget = null;
-        //    float healPrio = 0;
-        //    foreach (var p in _autorot.WorldState.Party.WithoutSlot(false))
-        //    {
-        //        if (p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)))
-        //        {
-        //            if (healPrio == 0)
-        //                healTarget = p; // esuna is lowest prio
-        //        }
-        //        else if (p.HP.Cur < p.HP.Max * 0.8f)
-        //        {
-        //            var prio = 1 - (float)p.HP.Cur / p.HP.Max;
-        //            if (prio > healPrio)
-        //            {
-        //                healTarget = p;
-        //                healPrio = prio;
-        //            }
-        //        }
-        //    }
-        //    return healTarget;
-        //}
 
         private void UpdateState(Actor player, Actor master)
         {
@@ -115,7 +74,7 @@ namespace BossMod.AI
             {
                 _ctrl.SetFocusTarget(master);
                 _masterPrevPos = _masterMovementStart = master.Position;
-                _masterLastMoved = _autorot.WorldState.CurrentTime;
+                _masterLastMoved = _autorot.WorldState.CurrentTime.AddSeconds(-1);
             }
 
             // keep track of master movement
@@ -139,20 +98,20 @@ namespace BossMod.AI
             _afkMode = !masterIsMoving && !master.InCombat && (_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
         }
 
-        private void UpdateControl(Actor player, Actor master, Actor? primaryTarget)
+        private void UpdateControl(Actor player, Actor master, CommonActions.Targeting target)
         {
             int strategy = CommonActions.AutoActionNone;
             if (_autorot.ClassActions != null && !_passive && !_ctrl.InCutscene)
             {
-                if (primaryTarget != null)
+                if (target.Target != null)
                 {
                     // note: that there is a 1-frame delay if target and/or strategy changes - we don't really care?..
                     // note: if target-of-target is player, don't try flanking, it's probably impossible... - unless target is currently casting
                     strategy = _instantCastsOnly ? CommonActions.AutoActionAIFightMove : CommonActions.AutoActionAIFight;
-                    var positional = _autorot.ClassActions.PreferredPosition;
-                    if (primaryTarget.TargetID == player.InstanceID && primaryTarget.CastInfo == null)
+                    var positional = target.PreferredPosition;
+                    if (target.Target.TargetID == player.InstanceID && target.Target.CastInfo == null)
                         positional = CommonActions.Positional.Any;
-                    _avoidAOE.SetDesired(primaryTarget.Position, primaryTarget.Rotation, _autorot.ClassActions.PreferredRange + player.HitboxRadius + primaryTarget.HitboxRadius, positional);
+                    _avoidAOE.SetDesired(target.Target.Position, target.Target.Rotation, target.PreferredRange + player.HitboxRadius + target.Target.HitboxRadius, positional);
                 }
                 else
                 {
@@ -168,7 +127,7 @@ namespace BossMod.AI
 
             _autorot.ClassActions?.UpdateAutoAction(strategy);
             var dest = _avoidAOE.Update(player);
-            if (dest == null && primaryTarget == null && master != player)
+            if (dest == null && target.Target == null && master != player)
             {
                 // if there is no planned action and no aoe avoidance, just follow master...
                 var targetPos = master.Position;
@@ -201,7 +160,6 @@ namespace BossMod.AI
         public void DrawDebug()
         {
             ImGui.Checkbox("Passively follow", ref _passive);
-            ImGui.Checkbox("Auto select target", ref _autoTarget);
             ImGui.TextUnformatted($"Only-instant={_instantCastsOnly}, afk={_afkMode}, master standing for {(_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds:f1}");
         }
     }

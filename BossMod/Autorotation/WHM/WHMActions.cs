@@ -40,6 +40,21 @@ namespace BossMod.WHM
             _config.Modified -= OnConfigModified;
         }
 
+        public override Targeting SelectBetterTarget(Actor initial)
+        {
+            // TODO: select target for holy...
+
+            // look for target to multidot, if initial target already has dot
+            if (_state.Unlocked(MinLevel.Aero1) && !WithoutDOT(initial))
+            {
+                var multidotTarget = Autorot.PotentialTargetsInRangeFromPlayer(25).FirstOrDefault(t => t != initial && WithoutDOT(t));
+                if (multidotTarget != null)
+                    return new(multidotTarget, 25);
+            }
+
+            return new(initial, 25);
+        }
+
         protected override void UpdateInternalState(int autoAction)
         {
             UpdatePlayerState();
@@ -166,7 +181,11 @@ namespace BossMod.WHM
             }
         }
 
-        private bool WithoutDOT(Actor a) => !a.Statuses.Any(s => s.SourceID == Player.InstanceID && (SID)s.ID is SID.Aero1 or SID.Aero2 or SID.Dia);
+        private bool WithoutDOT(Actor a)
+        {
+            var dot = a.Statuses.FirstOrDefault(s => s.SourceID == Player.InstanceID && (SID)s.ID is SID.Aero1 or SID.Aero2 or SID.Dia);
+            return dot.ID == 0 || Rotation.RefreshDOT(_state, StatusDuration(dot.ExpireAt));
+        }
 
         private void OnConfigModified(object? sender, EventArgs args)
         {

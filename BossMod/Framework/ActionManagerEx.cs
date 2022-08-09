@@ -67,6 +67,9 @@ namespace BossMod
         private unsafe delegate bool GetGroundTargetPositionDelegate(ActionManager* self, Vector3* outPos);
         private GetGroundTargetPositionDelegate _getGroundTargetPositionFunc;
 
+        private unsafe delegate void FaceTargetDelegate(ActionManager* self, Vector3* position, ulong targetID);
+        private FaceTargetDelegate _faceTargetFunc;
+
         private unsafe delegate void UpdateDelegate(ActionManager* self);
         private Hook<UpdateDelegate> _updateHook;
 
@@ -100,6 +103,10 @@ namespace BossMod
             Service.Log($"[AMEx] GetGroundTargetPosition address = 0x{getGroundTargetPositionAddress:X}");
             _getGroundTargetPositionFunc = Marshal.GetDelegateForFunctionPointer<GetGroundTargetPositionDelegate>(getGroundTargetPositionAddress);
 
+            var faceTargetAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 81 FE FB 1C 00 00 74 ?? 81 FE 53 5F 00 00 74 ?? 81 FE 6F 73 00 00");
+            Service.Log($"[AMEx] FaceTarget address = 0x{faceTargetAddress:X}");
+            _faceTargetFunc = Marshal.GetDelegateForFunctionPointer<FaceTargetDelegate>(faceTargetAddress);
+
             var updateAddress = Service.SigScanner.ScanText("48 8B C4 48 89 58 20 57 48 81 EC 90 00 00 00 48 8B 3D ?? ?? ?? ?? 48 8B D9 48 85 FF 0F 84 ?? ?? ?? ?? 48 89 68 08 48 8B CF 48 89 70 10 4C 89 70 18 0F 29 70 E8 44 0F 29 48 B8 44 0F 29 50 A8");
             Service.Log($"[AMEx] Update address = 0x{updateAddress:X}");
             _updateHook = Hook<UpdateDelegate>.FromAddress(updateAddress, UpdateDetour);
@@ -132,6 +139,11 @@ namespace BossMod
         {
             Vector3 res = new();
             return _getGroundTargetPositionFunc(_inst, &res) ? res : null;
+        }
+
+        public unsafe void FaceTarget(Vector3 position, ulong unkObjID = GameObject.InvalidGameObjectId)
+        {
+            _faceTargetFunc(_inst, &position, unkObjID);
         }
 
         public unsafe void GetCooldowns(float[] cooldowns)

@@ -1,12 +1,19 @@
 ﻿using Dalamud.Game.Gui;
 using ImGuiNET;
 using System;
+using System.Numerics;
 
 namespace BossMod
 {
     public class DebugAction
     {
+        private WorldState _ws;
         private int _customAction = 0;
+
+        public DebugAction(WorldState ws)
+        {
+            _ws = ws;
+        }
 
         public unsafe void DrawActionManagerEx()
         {
@@ -26,6 +33,16 @@ namespace BossMod
             if (ImGui.Button("GT set target"))
             {
                 Utils.WriteField(amr, 0x98, (ulong)(Service.TargetManager.Target?.ObjectId ?? 0));
+            }
+
+            if (ImGui.Button("Rotate 30 CCW"))
+            {
+                var player = _ws.Party.Player();
+                if (player != null)
+                {
+                    var dir = (player.Rotation + 30.Degrees()).ToDirection();
+                    am.FaceTarget(player.PosRot.XYZ() + new Vector3(dir.X, 0, dir.Z));
+                }
             }
         }
 

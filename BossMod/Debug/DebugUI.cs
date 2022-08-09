@@ -14,7 +14,7 @@ namespace BossMod
         private DebugObjects _debugObjects = new();
         private DebugParty _debugParty = new();
         private DebugGraphics _debugGraphics = new();
-        private DebugAction _debugAction = new();
+        private DebugAction _debugAction;
         private DebugHate _debugHate = new();
         private DebugInput _debugInput;
         private DebugAI _debugAI;
@@ -24,6 +24,7 @@ namespace BossMod
         {
             _ws = ws;
             _autorot = autorot;
+            _debugAction = new(ws);
             _debugInput = new(inputOverride, autorot);
             _debugAI = new(autorot);
             _debugClassDefinitions = new(ws);
