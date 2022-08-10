@@ -13,6 +13,7 @@ namespace BossMod
         private const int WM_KEYDOWN = 0x0100;
 
         private bool _movementBlocked = false;
+        private ulong _hwnd;
 
         //private unsafe delegate int PeekMessageDelegate(ulong* lpMsg, void* hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg);
         //private Hook<PeekMessageDelegate> _peekMessageHook;
@@ -45,7 +46,7 @@ namespace BossMod
 
         // TODO: reconsider...
         public bool IsMoving() => Service.KeyState[VirtualKey.W] || Service.KeyState[VirtualKey.S] || Service.KeyState[VirtualKey.A] || Service.KeyState[VirtualKey.D];
-        public bool IsMoveRequested() => ReallyPressed(VirtualKey.W) || ReallyPressed(VirtualKey.S) || ReallyPressed(VirtualKey.A) || ReallyPressed(VirtualKey.D);
+        public bool IsMoveRequested() => IsWindowActive() && (ReallyPressed(VirtualKey.W) || ReallyPressed(VirtualKey.S) || ReallyPressed(VirtualKey.A) || ReallyPressed(VirtualKey.D));
 
         public bool IsBlocked() => _movementBlocked;
 
@@ -76,7 +77,7 @@ namespace BossMod
         public void SimulatePress(VirtualKey vk) => ForcePress(vk);
         public void SimulateRelease(VirtualKey vk)
         {
-            if (!ReallyPressed(vk))
+            if (!IsWindowActive() || !ReallyPressed(vk))
                 ForceRelease(vk);
         }
 
@@ -90,7 +91,7 @@ namespace BossMod
 
         private void Unblock(VirtualKey vk)
         {
-            if (ReallyPressed(vk))
+            if (IsWindowActive() && ReallyPressed(vk))
             {
                 ForcePress(vk);
             }
@@ -101,8 +102,15 @@ namespace BossMod
             return (GetKeyState((int)vk) & 0x8000) == 0x8000;
         }
 
+        private bool IsWindowActive() => GetForegroundWindow() == _hwnd;
+
         private void KbprocDetour(ulong hWnd, uint uMsg, ulong wParam, ulong lParam, ulong uIdSubclass, ulong dwRefData)
         {
+            if (_hwnd != hWnd)
+            {
+                _hwnd = hWnd;
+                Service.Log($"[InputOverride] Changing active hwnd to {hWnd:X}");
+            }
             if (_movementBlocked && uMsg == WM_KEYDOWN && (VirtualKey)wParam is VirtualKey.W or VirtualKey.S or VirtualKey.A or VirtualKey.D)
                 return;
             _kbprocHook.Original(hWnd, uMsg, wParam, lParam, uIdSubclass, dwRefData);
@@ -132,5 +140,8 @@ namespace BossMod
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         private static extern short GetKeyState(int keyCode);
+
+        [DllImport("user32.dll", ExactSpelling = true)]
+        private static extern ulong GetForegroundWindow();
     }
 }

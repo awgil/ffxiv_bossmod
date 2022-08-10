@@ -147,6 +147,23 @@ namespace BossMod.SCH
                         break;
                 }
             }
+
+            _state.TargetBioLeft = 0;
+            if (Autorot.PrimaryTarget != null)
+            {
+                foreach (var status in Autorot.PrimaryTarget.Statuses)
+                {
+                    switch ((SID)status.ID)
+                    {
+                        case SID.Bio1:
+                        case SID.Bio2:
+                        case SID.Biolysis:
+                            if (status.SourceID == Player.InstanceID)
+                                _state.TargetBioLeft = StatusDuration(status.ExpireAt);
+                            break;
+                    }
+                }
+            }
         }
 
         private bool WithoutDOT(Actor a)

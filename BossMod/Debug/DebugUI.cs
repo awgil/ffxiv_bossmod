@@ -111,6 +111,10 @@ namespace BossMod
             {
                 _debugClassDefinitions.Draw();
             }
+            if (ImGui.CollapsingHeader("Player attributes"))
+            {
+                DrawPlayerAttributes();
+            }
         }
 
         private void DrawStatuses()
@@ -193,6 +197,22 @@ namespace BossMod
             var angle = Angle.FromDirection(new((obj->Position - selfPos).XZ())) - refAngle;
             var visHalf = Angle.Asin(obj->HitboxRadius / dist);
             ImGui.TextUnformatted($"{kind}: {Utils.ObjectString(obj->ObjectID)}, hb={obj->HitboxRadius} ({visHalf}), dist={dist}, angle={angle} ({Math.Max(0, angle.Abs().Rad - visHalf.Rad).Radians()})");
+        }
+
+        private unsafe void DrawPlayerAttributes()
+        {
+            var uiState = FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance();
+            ImGui.BeginTable("attrs", 2);
+            ImGui.TableSetupColumn("Index");
+            ImGui.TableSetupColumn("Value");
+            ImGui.TableHeadersRow();
+            for (int i = 0; i < 74; ++i)
+            {
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(i.ToString());
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(uiState->PlayerState.Attributes[i].ToString());
+            }
+            ImGui.EndTable();
         }
     }
 }
