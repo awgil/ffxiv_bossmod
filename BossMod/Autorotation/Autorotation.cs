@@ -101,7 +101,7 @@ namespace BossMod
             PrimaryTarget = WorldState.Actors.Find(player?.TargetID ?? 0);
             SecondaryTarget = WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
             PotentialTargets.Clear();
-            PotentialTargets.AddRange(WorldState.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead && a.InCombat)); // TODO: if boss module is active, get from it instead...
+            PotentialTargets.AddRange(Bossmods.ActiveModule?.GetPriorityTargets(PartyState.PlayerSlot) ?? WorldState.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead && a.InCombat));
 
             Type? classType = null;
             if (_config.Enabled && player != null)

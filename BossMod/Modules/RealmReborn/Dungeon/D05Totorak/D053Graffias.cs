@@ -66,6 +66,15 @@ namespace BossMod.RealmReborn.Dungeon.D05Totorak.D053Graffias
 
     public class D053Graffias : BossModule
     {
-        public D053Graffias(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(215, -145), 20)) { }
+        private List<Actor> _tail;
+        private List<Actor> _adds;
+
+        public D053Graffias(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(215, -145), 20))
+        {
+            _tail = Enemies(OID.GraffiasTail);
+            _adds = Enemies(OID.Comesmite);
+        }
+
+        public override IEnumerable<Actor>? GetPriorityTargets(int pcSlot) => (_tail.Count > 0 ? _tail : Enumerable.Repeat(PrimaryActor, 1)).Concat(_adds);
     }
 }
