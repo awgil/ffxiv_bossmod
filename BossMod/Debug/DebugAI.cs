@@ -44,7 +44,7 @@ namespace BossMod
                 _avoid.SetDesired(target.Position, target.Rotation, _desiredRange, _desiredPositional);
             else
                 _avoid.ClearDesired();
-            var safe = player != null ? _avoid.Update(player) : null;
+            var safe = player != null ? _avoid.Update(player).DestPos : null;
             ImGui.TextUnformatted($"Safespot: {safe} ({_avoid.SafeZone.ChildCount})");
 
             _arena.Bounds = new ArenaBoundsCircle(playerPos, _arenaRadius);

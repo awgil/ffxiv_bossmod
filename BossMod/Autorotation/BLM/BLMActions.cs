@@ -58,6 +58,8 @@ namespace BossMod.BLM
 
         protected override void QueueAIActions()
         {
+            if (_state.Unlocked(MinLevel.Transpose))
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.Transpose), Player, _strategy.Prepull && _state.ElementalLevel > 0 && _state.CurMP < 10000);
             if (_state.Unlocked(MinLevel.Manaward))
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.Manaward), Player, Player.HP.Cur < Player.HP.Max * 0.8f);
         }

@@ -51,6 +51,7 @@ namespace BossMod.AI
         public WPos? NaviTargetPos;
         public WDir? NaviTargetRot;
         public bool AllowInterruptingCastByMovement;
+        public bool ForceFacing;
 
         private NaviAxis _axisForward;
         private NaviAxis _axisStrafe;
@@ -76,6 +77,7 @@ namespace BossMod.AI
             NaviTargetPos = null;
             NaviTargetRot = null;
             AllowInterruptingCastByMovement = false;
+            ForceFacing = false;
         }
 
         public void SetPrimaryTarget(Actor? actor)
@@ -98,6 +100,13 @@ namespace BossMod.AI
                 _axisStrafe.CurDirection = 0;
                 _axisRotate.CurDirection = 0;
                 return;
+            }
+
+            if (ForceFacing && NaviTargetRot != null && player.Rotation.ToDirection().Dot(NaviTargetRot.Value) < 0.996f)
+            {
+                var am = ActionManagerEx.Instance!;
+                am.FaceDirection(NaviTargetRot.Value);
+                _axisForward.CurDirection = am.CastTimeRemaining > 0 ? 1 : 0; // this is a hack to cancel any cast...
             }
 
             var cameraFacing = CameraFacing;

@@ -130,11 +130,17 @@ namespace BossMod.AI
             DesiredZone = new();
         }
 
-        public WPos? Update(Actor player)
+        // TODO: add position deadline
+        public (WPos? DestPos, WDir? DestRot, DateTime RotDeadline) Update(Actor player)
         {
             // update forbidden zone
             var z = _bmm.ActiveModule?.StateMachine.ActiveState != null ? _bmm.ActiveModule.CalculateSafeZone(PartyState.PlayerSlot, player) : _autoAOEs.CalculateSafeZone(player.Position);
             SafeZone = z.Result;
+            return (SelectDestinationPos(player), SelectAllowedRotation(player, z), z.ForbiddenRotationsActivation);
+        }
+
+        private WPos? SelectDestinationPos(Actor player)
+        {
             if (SafeZone.ChildCount > 0)
             {
                 if (DesiredZone.ChildCount > 0)
@@ -153,6 +159,33 @@ namespace BossMod.AI
                 // safe zone is empty - nothing to do but try to stay in desired zone...
                 return DesiredZone.ChildCount > 0 ? SelectPointInZone(DesiredZone, player.Position) : null;
             }
+        }
+
+        private WDir? SelectAllowedRotation(Actor player, SafeZone z)
+        {
+            if (!z.ForbiddenRotations.Contains(player.Rotation.Rad))
+                return null; // all good
+
+            if (_desiredTargetPos != null)
+            {
+                var toTarget = Angle.FromDirection(_desiredTargetPos.Value - player.Position);
+                if (!z.ForbiddenRotations.Contains(toTarget.Rad))
+                    return toTarget.ToDirection();
+            }
+
+            // select midpoint of largest allowed segment
+            float bestWidth = z.ForbiddenRotations.Segments.First().Min + 2 * MathF.PI - z.ForbiddenRotations.Segments.Last().Max;
+            float bestMidpoint = (z.ForbiddenRotations.Segments.First().Min + 2 * MathF.PI + z.ForbiddenRotations.Segments.Last().Max) / 2;
+            for (int i = 1; i < z.ForbiddenRotations.Segments.Count; ++i)
+            {
+                float width = z.ForbiddenRotations.Segments[i].Min - z.ForbiddenRotations.Segments[i - 1].Max;
+                if (width > bestWidth)
+                {
+                    bestWidth = width;
+                    bestMidpoint = (z.ForbiddenRotations.Segments[i].Min + z.ForbiddenRotations.Segments[i - 1].Max) / 2;
+                }
+            }
+            return bestMidpoint.Radians().ToDirection();
         }
 
         private WPos? SelectPointInZone(ClipperLib.PolyTree zone, WPos currentPosition)

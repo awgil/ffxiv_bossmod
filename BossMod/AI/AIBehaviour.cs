@@ -96,7 +96,7 @@ namespace BossMod.AI
 
             _followMaster = master != player && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (_masterPrevPos - _masterMovementStart).LengthSq() > 100;
             bool moveWithMaster = masterIsMoving && (master == player || _followMaster);
-            _instantCastsOnly = moveWithMaster || _ctrl.NaviTargetPos != null && (_ctrl.NaviTargetPos.Value - player.Position).LengthSq() > 1;
+            _instantCastsOnly = moveWithMaster || _ctrl.ForceFacing || _ctrl.NaviTargetPos != null && (_ctrl.NaviTargetPos.Value - player.Position).LengthSq() > 1;
             _afkMode = !masterIsMoving && !master.InCombat && (_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
         }
 
@@ -128,16 +128,16 @@ namespace BossMod.AI
             }
 
             _autorot.ClassActions?.UpdateAutoAction(strategy);
-            var dest = _avoidAOE.Update(player);
-            if (dest == null && (target.Target == null || _followMaster) && master != player)
+            var destData = _avoidAOE.Update(player);
+            if (destData.DestPos == null && (target.Target == null || _followMaster) && master != player)
             {
                 // if there is no planned action and no aoe avoidance, just follow master...
                 var targetPos = master.Position;
                 var playerPos = player.Position;
                 var toTarget = targetPos - playerPos;
-                if (toTarget.LengthSq() > 4)
+                if (toTarget.LengthSq() > 1)
                 {
-                    dest = targetPos;
+                    destData.DestPos = targetPos;
                 }
 
                 // sprint
@@ -154,9 +154,20 @@ namespace BossMod.AI
                 //    _ctrl.TargetRot = cameraFacing.OrthoL().Dot(_ctrl.TargetRot.Value) > 0 ? _ctrl.TargetRot.Value.OrthoR() : _ctrl.TargetRot.Value.OrthoL();
             }
 
-            var toDest = dest != null ? dest.Value - player.Position : new();
-            _ctrl.NaviTargetPos = dest;
-            _ctrl.NaviTargetRot = toDest.LengthSq() >= 0.04f ? toDest.Normalized() : null;
+            if (destData.DestRot != null && (destData.RotDeadline - _autorot.WorldState.CurrentTime).TotalSeconds < 0.5f)
+            {
+                // rotation check imminent, drop any movement - we should have moved to safe zone already...
+                _ctrl.NaviTargetPos = null;
+                _ctrl.NaviTargetRot = destData.DestRot;
+                _ctrl.ForceFacing = true;
+            }
+            else
+            {
+                var toDest = destData.DestPos != null ? destData.DestPos.Value - player.Position : new();
+                _ctrl.NaviTargetPos = destData.DestPos;
+                _ctrl.NaviTargetRot = toDest.LengthSq() >= 0.04f ? toDest.Normalized() : null;
+                _ctrl.ForceFacing = false;
+            }
         }
 
         public void DrawDebug()

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod.Components
 {
@@ -8,7 +7,7 @@ namespace BossMod.Components
     {
         public AOEShape Shape { get; private init; }
         public uint EnemyOID { get; private init; }
-        private IEnumerable<Actor> _enemies = Enumerable.Empty<Actor>();
+        private List<Actor> _enemies = new();
         private BitMask _inAOE = new(); // excludes main target
 
         // enemy OID == 0 means 'primary actor'
@@ -20,7 +19,7 @@ namespace BossMod.Components
 
         public override void Init(BossModule module)
         {
-            _enemies = EnemyOID != 0 ? module.Enemies(EnemyOID) : Enumerable.Repeat(module.PrimaryActor, 1);
+            _enemies = module.Enemies(EnemyOID != 0 ? EnemyOID : module.PrimaryActor.OID);
         }
 
         public override void Update(BossModule module)

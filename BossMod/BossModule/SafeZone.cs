@@ -10,6 +10,9 @@ namespace BossMod
         public ClipperLib.PolyTree Result { get; private set; }
         private Clip2D _clipper = new();
 
+        public DisjointSegmentList ForbiddenRotations { get; private set; } = new(); // sorted non-intersecting ranges, [-pi, +pi]
+        public DateTime ForbiddenRotationsActivation { get; private set; }
+
         public SafeZone(IEnumerable<WPos> bounds)
         {
             Result = _clipper.Union(Enumerable.Repeat(bounds, 1));
@@ -28,6 +31,36 @@ namespace BossMod
         //{
         //    Result = _clipper.Intersect - TODO...
         //}
+
+        public void ForbidDirections(Angle center, Angle halfWidth, DateTime activateAt)
+        {
+            if (ForbiddenRotationsActivation > activateAt)
+            {
+                // anything added before will activate later...
+                if (ForbiddenRotationsActivation > activateAt.AddSeconds(1))
+                    ForbiddenRotations.Clear();
+                ForbiddenRotationsActivation = activateAt;
+            }
+            else if (ForbiddenRotationsActivation != new DateTime() && ForbiddenRotationsActivation.AddSeconds(1) < activateAt)
+            {
+                // anything added before will activate before...
+                return;
+            }
+
+            center = center.Normalized();
+            var min = center - halfWidth;
+            if (min.Rad < -MathF.PI)
+            {
+                ForbiddenRotations.Add(min.Rad + 2 * MathF.PI, MathF.PI);
+            }
+            var max = center + halfWidth;
+            if (max.Rad > MathF.PI)
+            {
+                ForbiddenRotations.Add(-MathF.PI, max.Rad - 2 * MathF.PI);
+                max = MathF.PI.Radians();
+            }
+            ForbiddenRotations.Add(min.Rad, max.Rad);
+        }
 
         public static IEnumerable<WPos> DefaultBounds(WPos center)
         {

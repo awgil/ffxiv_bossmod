@@ -1,44 +1,15 @@
-﻿using ImGuiNET;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
     // eyes mechanics are quite standalone...
-    class P2SanctityOfTheWard1Gaze : Components.CastCounter
+    class P2SanctityOfTheWard1Gaze : Components.GenericGaze
     {
         private WPos? _eyePosition;
 
-        private static float _eyeOuterH = 10;
-        private static float _eyeOuterV = 6;
-        private static float _eyeInnerR = 4;
-        private static float _eyeOuterR = (_eyeOuterH * _eyeOuterH + _eyeOuterV * _eyeOuterV) / (2 * _eyeOuterV);
-        private static float _eyeOffsetV = _eyeOuterR - _eyeOuterV;
-        private static float _eyeHalfAngle = MathF.Asin(_eyeOuterH / _eyeOuterR);
-
         public P2SanctityOfTheWard1Gaze() : base(ActionID.MakeSpell(AID.DragonsGazeAOE)) { }
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (EyePositions(module).Any(eye => HitByEye(actor, eye)))
-                hints.Add("Turn away from gaze!");
-        }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            foreach (var eye in EyePositions(module))
-            {
-                var dir = (eye - module.Bounds.Center).Normalized();
-                var eyeCenter = arena.ScreenCenter + arena.RotatedCoords(dir.ToVec2()) * (arena.ScreenHalfSize + arena.ScreenMarginSize / 2);
-                var dl = ImGui.GetWindowDrawList();
-                dl.PathArcTo(eyeCenter - new Vector2(0, _eyeOffsetV), _eyeOuterR,  MathF.PI / 2 + _eyeHalfAngle,  MathF.PI / 2 - _eyeHalfAngle);
-                dl.PathArcTo(eyeCenter + new Vector2(0, _eyeOffsetV), _eyeOuterR, -MathF.PI / 2 + _eyeHalfAngle, -MathF.PI / 2 - _eyeHalfAngle);
-                dl.PathFillConvex(HitByEye(pc, eye) ? ArenaColor.Enemy : ArenaColor.PC);
-                dl.AddCircleFilled(eyeCenter, _eyeInnerR, ArenaColor.Border);
-            }
-        }
 
         public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
         {
@@ -49,12 +20,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        private bool HitByEye(Actor actor, WPos eye)
-        {
-            return actor.Rotation.ToDirection().Dot((eye - actor.Position).Normalized()) >= 0.707107f; // 45-degree
-        }
-
-        private IEnumerable<WPos> EyePositions(BossModule module)
+        protected override IEnumerable<WPos> EyePositions(BossModule module)
         {
             if (_eyePosition != null && NumCasts == 0)
             {
@@ -62,6 +28,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 yield return module.PrimaryActor.Position;
             }
         }
+
+        protected override DateTime NextGaze(BossModule module) => module.WorldState.CurrentTime; // TODO
     }
 
     // 'sever' (between 1/2 markers with shared damage), 'charge' (aka shining blade) + 'flare' (cw/ccw leaving exploding orbs)

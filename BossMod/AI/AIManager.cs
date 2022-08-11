@@ -69,7 +69,7 @@ namespace BossMod.AI
         private void DrawOverlay()
         {
             ImGui.TextUnformatted($"AI: {(_beh != null ? "on" : "off")}, master={_autorot.WorldState.Party[_masterSlot]?.Name}");
-            ImGui.TextUnformatted($"Navi={_controller.NaviTargetPos}");
+            ImGui.TextUnformatted($"Navi={_controller.NaviTargetPos} / {_controller.NaviTargetRot}{(_controller.ForceFacing ? " forced" : "")}");
             _beh?.DrawDebug();
             if (ImGui.Button("Reset"))
                 SwitchToIdle();

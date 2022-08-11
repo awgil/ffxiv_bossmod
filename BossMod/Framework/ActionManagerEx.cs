@@ -145,12 +145,11 @@ namespace BossMod
         {
             _faceTargetFunc(_inst, &position, unkObjID);
         }
-        public void FaceDirection(Angle rotation)
+        public void FaceDirection(WDir direction)
         {
-            var dir = rotation.ToDirection();
             var player = Service.ClientState.LocalPlayer;
             if (player != null)
-                FaceTarget(player.Position + new Vector3(dir.X, 0, dir.Z));
+                FaceTarget(player.Position + new Vector3(direction.X, 0, direction.Z));
         }
 
         public unsafe void GetCooldowns(float[] cooldowns)

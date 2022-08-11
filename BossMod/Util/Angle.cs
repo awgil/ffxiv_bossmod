@@ -30,6 +30,16 @@ namespace BossMod
         public static Angle Asin(float x) => new(MathF.Asin(x));
         public static Angle Acos(float x) => new(MathF.Acos(x));
 
+        public Angle Normalized()
+        {
+            var r = Rad;
+            while (r < -MathF.PI)
+                r += 2 * MathF.PI;
+            while (r > MathF.PI)
+                r -= 2 * MathF.PI;
+            return new(r);
+        }
+
         public static bool operator ==(Angle l, Angle r) => l.Rad == r.Rad;
         public static bool operator !=(Angle l, Angle r) => l.Rad != r.Rad;
         public override bool Equals(object? obj) =>  obj is Angle && this == (Angle)obj;
