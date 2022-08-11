@@ -11,6 +11,7 @@ namespace BossMod.AI
         private AIController _ctrl;
         private AvoidAOE _avoidAOE;
         private bool _passive;
+        private bool _followMaster;
         private bool _instantCastsOnly;
         private bool _afkMode;
         private WPos _masterPrevPos;
@@ -93,7 +94,8 @@ namespace BossMod.AI
             }
             // else: don't consider master to have stopped moving unless he's standing still for some small time
 
-            bool moveWithMaster = masterIsMoving && (master == player || _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (_masterPrevPos - _masterMovementStart).LengthSq() > 100);
+            _followMaster = master != player && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (_masterPrevPos - _masterMovementStart).LengthSq() > 100;
+            bool moveWithMaster = masterIsMoving && (master == player || _followMaster);
             _instantCastsOnly = moveWithMaster || _ctrl.NaviTargetPos != null && (_ctrl.NaviTargetPos.Value - player.Position).LengthSq() > 1;
             _afkMode = !masterIsMoving && !master.InCombat && (_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
         }
@@ -127,7 +129,7 @@ namespace BossMod.AI
 
             _autorot.ClassActions?.UpdateAutoAction(strategy);
             var dest = _avoidAOE.Update(player);
-            if (dest == null && target.Target == null && master != player)
+            if (dest == null && (target.Target == null || _followMaster) && master != player)
             {
                 // if there is no planned action and no aoe avoidance, just follow master...
                 var targetPos = master.Position;
