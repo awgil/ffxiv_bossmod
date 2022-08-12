@@ -276,26 +276,13 @@ namespace UIDev
                 return;
             }
 
-            var srcActor = _ws.Actors.Find(args.actor.InstanceID);
-            var tgtActor = _ws.Actors.Find(args.cast.MainTargetID);
-
-            Vector3 targetPos = new();
-            if (args.cast.TargetPos != targetPos)
-                targetPos = args.cast.TargetPos;
-            else if (tgtActor != null)
-                targetPos = tgtActor.PosRot.XYZ();
-            else if (srcActor?.CastInfo != null)
-                targetPos = srcActor.CastInfo.Location;
-            else if (args.cast.Targets.Count > 0)
-                targetPos = _ws.Actors.Find(args.cast.Targets[0].ID)?.PosRot.XYZ() ?? new();
-
             var a = new Replay.Action()
             {
                 ID = args.cast.Action,
                 Timestamp = _ws.CurrentTime,
                 Source = p,
                 MainTarget = _participants.GetValueOrDefault(args.cast.MainTargetID),
-                TargetPos = targetPos
+                TargetPos = _ws.Actors.Find(args.cast.MainTargetID)?.PosRot.XYZ() ?? args.cast.TargetPos
             };
             foreach (var t in args.cast.Targets)
             {

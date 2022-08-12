@@ -171,12 +171,7 @@ namespace UIDev
                 actor.PosRot = new(pos.X, actor.PosRot.Y, pos.Z, rot.Degrees().Rad);
 
             ImGui.TableNextColumn();
-            if (actor.IsDead)
-            {
-                ImGui.TextUnformatted("(Dead)");
-                ImGui.SameLine();
-            }
-            ImGui.TextUnformatted(actor.Name);
+            ImGui.TextUnformatted($"{(actor.IsDead ? "(Dead) " : "")}{actor.Name} (r={actor.HitboxRadius:f2})");
 
             ImGui.TableNextColumn();
             if (actor.HP.Max > 0)

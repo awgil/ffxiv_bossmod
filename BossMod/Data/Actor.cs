@@ -59,6 +59,8 @@ namespace BossMod
         public Vector3 TargetPos;
         public uint SourceSequence;
 
+        public WPos TargetXZ => new(TargetPos.XZ());
+
         public bool IsSpell() => Action.Type == ActionType.Spell;
         public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);
     }

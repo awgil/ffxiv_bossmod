@@ -7,8 +7,11 @@
         public TEAStates(TEA module) : base(module)
         {
             _module = module;
-            DeathPhase(0, Phase1LivingLiquid)
-                .ActivateOnEnter<P1HandOfPain>();
+            SimplePhase(0, Phase1LivingLiquid, "P1: Living Liquid")
+                .ActivateOnEnter<P1HandOfPain>()
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead;
+            SimplePhase(1, Phase2BruteJusticeCruiseChaser, "P2: BJ+CC")
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed && (_module.BruteJustice()?.IsDestroyed ?? true) && (_module.CruiseChaser()?.IsDestroyed ?? true);
         }
 
         private void Phase1LivingLiquid(uint id)
@@ -168,6 +171,61 @@
             ComponentCondition<P1FluidSwing>(id + 0x20, 1.2f, comp => comp.NumCasts > 0, "Cleave")
                 .DeactivateOnExit<P1FluidSwing>()
                 .SetHint(StateMachine.StateHint.Tankbuster);
+        }
+
+        private void Phase2BruteJusticeCruiseChaser(uint id)
+        {
+            P2Intermission(id);
+            P2WhirlwindDebuffs(id + 0x10000, 5.2f);
+            P2ChakramOpticalSightPhoton(id + 0x20000, 6);
+            P2SpinCrusher(id + 0x30000, 7.2f);
+            SimpleState(id + 0xFF0000, 10000, "???");
+        }
+
+        private void P2Intermission(uint id)
+        {
+            Timeout(id, 0)
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ComponentCondition<P2JKick>(id + 0x100, 31.2f, comp => comp.NumCasts > 0)
+                .ActivateOnEnter<P2Intermission>()
+                .ActivateOnEnter<P2JKick>()
+                .DeactivateOnExit<P2Intermission>()
+                .DeactivateOnExit<P2JKick>()
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ActorTargetable(id + 0x101, _module.BruteJustice, true, 3, "Intermission end")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+        }
+
+        private void P2WhirlwindDebuffs(uint id, float delay)
+        {
+            ActorCastStart(id, _module.CruiseChaser, AID.Whirlwind, delay);
+            ActorCastStart(id + 1, _module.BruteJustice, AID.JudgmentNisi, 3);
+            ActorCastEnd(id + 2, _module.CruiseChaser, 1, false, "Raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ActorCastEnd(id + 3, _module.BruteJustice, 3, false, "Nisi");
+            ActorCast(id + 0x10, _module.BruteJustice, AID.LinkUp, 3.2f, 3, false, "Debuffs");
+        }
+
+        private void P2ChakramOpticalSightPhoton(uint id, float delay)
+        {
+            ActorCastStart(id, _module.CruiseChaser, AID.OpticalSight, delay)
+                .ActivateOnEnter<P2EyeOfTheChakram>();
+            ActorCastEnd(id + 1, _module.CruiseChaser, 2);
+            ComponentCondition<P2EyeOfTheChakram>(id + 2, 0.9f, comp => comp.NumCasts > 0, "Chakrams")
+                .ActivateOnEnter<P2HawkBlasterOpticalSight>()
+                .DeactivateOnExit<P2EyeOfTheChakram>();
+            ActorCastStart(id + 0x10, _module.CruiseChaser, AID.Photon, 3.2f);
+            ComponentCondition<P2HawkBlasterOpticalSight>(id + 0x11, 1.1f, comp => comp.NumCasts > 0, "Puddles")
+                .DeactivateOnExit<P2HawkBlasterOpticalSight>();
+            ActorCastEnd(id + 0x12, _module.CruiseChaser, 1.9f, false, "Photon")
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P2SpinCrusher(uint id, float delay)
+        {
+            ActorCast(id, _module.CruiseChaser, AID.SpinCrusher, delay, 3, false, "Baited cleave")
+                .ActivateOnEnter<P2SpinCrusher>()
+                .DeactivateOnExit<P2SpinCrusher>();
         }
     }
 }
