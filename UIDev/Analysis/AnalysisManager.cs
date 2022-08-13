@@ -29,16 +29,21 @@ namespace UIDev
         private class Global
         {
             private Lazy<Analysis.UnknownActionEffects> _unkEffects;
+            private Lazy<Analysis.AbilityInfo> _abilityInfo;
 
             public Global(List<Replay> replays)
             {
                 _unkEffects = new(() => new(replays));
+                _abilityInfo = new(() => new(replays));
             }
 
             public void Draw(UITree tree)
             {
                 foreach (var n in tree.Node("Unknown action effects"))
                     _unkEffects.Get().Draw(tree);
+
+                foreach (var n in tree.Node("Ability info", false, 0xffffffff, () => _abilityInfo.Get().DrawContextMenu()))
+                    _abilityInfo.Get().Draw(tree);
             }
         }
 

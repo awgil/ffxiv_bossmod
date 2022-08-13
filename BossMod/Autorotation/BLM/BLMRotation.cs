@@ -13,7 +13,7 @@
 
             public override string ToString()
             {
-                return $"RB={RaidBuffsLeft:f1}, Elem={ElementalLevel}/{ElementalLeft:f1}, Thunder={TargetThunderLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+                return $"MP={CurMP}, RB={RaidBuffsLeft:f1}, Elem={ElementalLevel}/{ElementalLeft:f1}, Thunder={TargetThunderLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
             }
         }
 
@@ -63,7 +63,7 @@
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
             // TODO: this is not really correct...
-            if (state.Unlocked(MinLevel.Manafont) && state.CanWeave(CDGroup.Manafont, 0.6f, deadline) && state.CurMP < 5000)
+            if (state.Unlocked(MinLevel.Manafont) && state.CanWeave(CDGroup.Manafont, 0.6f, deadline) && state.CurMP < 6000)
                 return ActionID.MakeSpell(AID.Manafont);
 
             if (state.Unlocked(MinLevel.Transpose) && state.CanWeave(CDGroup.Transpose, 0.6f, deadline) && (state.ElementalLevel < 0 && state.CurMP >= 9200 || state.ElementalLevel > 0 && state.CurMP < 3600))

@@ -182,29 +182,16 @@ namespace UIDev.Analysis
             _oidType = moduleInfo?.ObjectIDType;
             _aidType = moduleInfo?.ActionIDType;
             foreach (var replay in replays)
-            {
                 foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
-                {
-                    foreach (var action in replay.EncounterActions(enc).Where(a => !(a.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)))
-                    {
-                        var data = _data.GetOrAdd(action.ID);
-                        if (action.Source != null)
-                            data.CasterOIDs.Add(action.Source.OID);
-                        if (action.MainTarget != null)
-                            data.TargetOIDs.Add(action.MainTarget.OID);
-                        data.SeenTargetSelf |= action.Source == action.MainTarget;
-                        data.SeenTargetOtherEnemy |= action.MainTarget != action.Source && action.MainTarget?.Type == ActorType.Enemy;
-                        data.SeenTargetPlayer |= action.MainTarget?.Type == ActorType.Player;
-                        data.SeenTargetLocation |= action.MainTarget == null;
-                        data.SeenAOE |= action.Targets.Count > 1;
+                    foreach (var action in replay.EncounterActions(enc))
+                        AddActionData(replay, action);
+        }
 
-                        var cast = action.Source?.Casts.Find(c => c.ID == action.ID && Math.Abs((c.Time.End - action.Timestamp).TotalSeconds) < 1);
-                        data.CastTime = cast?.ExpectedCastTime + 0.3f ?? 0;
-
-                        data.Instances.Add((replay, action));
-                    }
-                }
-            }
+        public AbilityInfo(List<Replay> replays)
+        {
+            foreach (var replay in replays)
+                foreach (var action in replay.Actions)
+                    AddActionData(replay, action);
         }
 
         public void Draw(UITree tree)
@@ -316,6 +303,28 @@ namespace UIDev.Analysis
                 sb.Append("\n};\n");
                 ImGui.SetClipboardText(sb.ToString());
             }
+        }
+
+        private void AddActionData(Replay replay, Replay.Action action)
+        {
+            if (action.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
+                return;
+
+            var data = _data.GetOrAdd(action.ID);
+            if (action.Source != null)
+                data.CasterOIDs.Add(action.Source.OID);
+            if (action.MainTarget != null)
+                data.TargetOIDs.Add(action.MainTarget.OID);
+            data.SeenTargetSelf |= action.Source == action.MainTarget;
+            data.SeenTargetOtherEnemy |= action.MainTarget != action.Source && action.MainTarget?.Type == ActorType.Enemy;
+            data.SeenTargetPlayer |= action.MainTarget?.Type == ActorType.Player;
+            data.SeenTargetLocation |= action.MainTarget == null;
+            data.SeenAOE |= action.Targets.Count > 1;
+
+            var cast = action.Source?.Casts.Find(c => c.ID == action.ID && Math.Abs((c.Time.End - action.Timestamp).TotalSeconds) < 1);
+            data.CastTime = cast?.ExpectedCastTime + 0.3f ?? 0;
+
+            data.Instances.Add((replay, action));
         }
 
         private static IEnumerable<Replay.Participant> AlivePlayersAt(Replay r, DateTime t)

@@ -33,7 +33,7 @@ namespace BossMod
             public bool CanWeave(float deadline) => AnimationLock + OGCDSlotLength <= deadline; // is it still possible to weave typical oGCD without missing deadline?
             // check whether weaving ogcd with specified remaining cooldown and lock time would end its animation lock by the specified deadline
             // deadline is typically either infinity (if we don't care about GCDs) or GCD (for second/only ogcd slot) or GCD-OGCDSlotLength (for first ogcd slot)
-            public bool CanWeave(float cooldown, float actionLock, float deadline) => MathF.Max(cooldown, AnimationLock) + actionLock + AnimationLockDelay <= deadline;
+            public bool CanWeave(float cooldown, float actionLock, float deadline) => deadline < 10000 ? MathF.Max(cooldown, AnimationLock) + actionLock + AnimationLockDelay <= deadline : cooldown <= AnimationLock;
             public bool CanWeave<CDGroup>(CDGroup group, float actionLock, float deadline) where CDGroup : Enum => CanWeave(CD(group), actionLock, deadline);
 
             public PlayerState(float[] cooldowns)
