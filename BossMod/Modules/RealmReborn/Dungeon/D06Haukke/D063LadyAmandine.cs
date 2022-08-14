@@ -68,6 +68,11 @@ namespace BossMod.RealmReborn.Dungeon.D06Haukke.D063LadyAmandine
             _add = Enemies(OID.Handmaiden);
         }
 
-        public override IEnumerable<Actor>? GetPriorityTargets(int pcSlot) => _add.Count > 0 ? _add : Enumerable.Repeat(PrimaryActor, 1);
+        public override bool FillTargets(BossTargets targets, int pcSlot)
+        {
+            if (!targets.AddIfValid(_add))
+                targets.AddIfValid(PrimaryActor);
+            return true;
+        }
     }
 }

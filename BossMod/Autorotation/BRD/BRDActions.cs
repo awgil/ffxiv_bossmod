@@ -162,7 +162,7 @@ namespace BossMod.BRD
         private int NumTargetsHitByLadonsbite(Actor primary)
         {
             var dir = Angle.FromDirection(primary.Position - Player.Position);
-            return 1 + Autorot.PotentialTargets.Count(a => a != primary && a.Position.InCone(Player.Position, dir, 45.Degrees()));
+            return 1 + Autorot.PotentialTargets.Valid.Count(a => a != primary && a.Position.InCone(Player.Position, dir, 45.Degrees()));
         }
     }
 }

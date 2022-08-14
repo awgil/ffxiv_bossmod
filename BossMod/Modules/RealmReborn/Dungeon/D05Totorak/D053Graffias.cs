@@ -75,6 +75,12 @@ namespace BossMod.RealmReborn.Dungeon.D05Totorak.D053Graffias
             _adds = Enemies(OID.Comesmite);
         }
 
-        public override IEnumerable<Actor>? GetPriorityTargets(int pcSlot) => (_tail.Count > 0 ? _tail : Enumerable.Repeat(PrimaryActor, 1)).Concat(_adds);
+        public override bool FillTargets(BossTargets targets, int pcSlot)
+        {
+            if (!targets.AddIfValid(_tail))
+                targets.AddIfValid(PrimaryActor);
+            targets.AddIfValid(_adds);
+            return true;
+        }
     }
 }

@@ -253,8 +253,8 @@ namespace BossMod
             return zone;
         }
 
-        // called by AI to determine targets to focus; null return value means any viable targets are equally good (as if module was not active)
-        public virtual IEnumerable<Actor>? GetPriorityTargets(int pcSlot) => null;
+        // called by AI to determine targets to focus; return false if module does not need any custom logic - in this case targets are filled automatically, as if module was not active
+        public virtual bool FillTargets(BossTargets targets, int pcSlot) => false;
 
         // TODO: move to some better place...
         public static WPos AdjustPositionForKnockback(WPos pos, WPos origin, float distance)

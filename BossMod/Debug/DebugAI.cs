@@ -67,7 +67,7 @@ namespace BossMod
             ImGui.TableSetupColumn("Cast");
             ImGui.TableSetupColumn("Auto AOE");
             ImGui.TableHeadersRow();
-            foreach (var actor in _autorot.PotentialTargets)
+            foreach (var actor in _autorot.PotentialTargets.Valid)
             {
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"{actor.OID:X} '{actor.Name} ({actor.InstanceID:X})");

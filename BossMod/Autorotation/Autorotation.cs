@@ -56,7 +56,7 @@ namespace BossMod
 
         public Actor? PrimaryTarget; // this is usually a normal (hard) target, but AI can override; typically used for damage abilities
         public Actor? SecondaryTarget; // this is usually a mouseover, but AI can override; typically used for heal and utility abilities
-        public List<Actor> PotentialTargets = new();
+        public BossTargets PotentialTargets = new();
         public bool Moving => _inputOverride.IsMoveRequested(); // TODO: reconsider
         public float EffAnimLock => ActionManagerEx.Instance!.EffectiveAnimationLock;
         public float AnimLockDelay => ActionManagerEx.Instance!.EffectiveAnimationLockDelay;
@@ -101,7 +101,8 @@ namespace BossMod
             PrimaryTarget = WorldState.Actors.Find(player?.TargetID ?? 0);
             SecondaryTarget = WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
             PotentialTargets.Clear();
-            PotentialTargets.AddRange(Bossmods.ActiveModule?.GetPriorityTargets(PartyState.PlayerSlot) ?? WorldState.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead && a.InCombat));
+            if (!(Bossmods.ActiveModule?.FillTargets(PotentialTargets, PartyState.PlayerSlot) ?? false))
+                PotentialTargets.Autofill(WorldState);
 
             Type? classType = null;
             if (_config.Enabled && player != null)
@@ -152,7 +153,7 @@ namespace BossMod
 
         public IEnumerable<Actor> PotentialTargetsInRange(WPos center, float radius)
         {
-            return PotentialTargets.Where(a => (a.Position - center).LengthSq() <= (a.HitboxRadius + radius) * (a.HitboxRadius + radius));
+            return PotentialTargets.Valid.Where(a => (a.Position - center).LengthSq() <= (a.HitboxRadius + radius) * (a.HitboxRadius + radius));
         }
 
         public IEnumerable<Actor> PotentialTargetsInRangeFromPlayer(float radius)
