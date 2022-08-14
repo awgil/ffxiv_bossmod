@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Dalamud.Game.ClientState.JobGauge.Types;
+using System;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod.BRD
 {
@@ -42,8 +40,22 @@ namespace BossMod.BRD
 
         public override Targeting SelectBetterTarget(Actor initial)
         {
-            // TODO: best target for aoe...
-            return new(initial, 12);
+            // TODO: min range to better hit clump with cone...
+            var bestTarget = initial;
+            if (_state.Unlocked(MinLevel.QuickNock))
+            {
+                var bestAOECount = NumTargetsHitByLadonsbite(initial);
+                foreach (var candidate in Autorot.PotentialTargetsInRangeFromPlayer(12).Exclude(initial))
+                {
+                    var candidateAOECount = NumTargetsHitByLadonsbite(candidate);
+                    if (candidateAOECount > bestAOECount)
+                    {
+                        bestTarget = candidate;
+                        bestAOECount = candidateAOECount;
+                    }
+                }
+            }
+            return new(bestTarget, 12);
         }
 
         protected override void UpdateInternalState(int autoAction)
@@ -106,7 +118,9 @@ namespace BossMod.BRD
         {
             FillCommonPlayerState(_state);
 
-            //s.Chakra = Service.JobGauges.Get<BRDGauge>().Chakra;
+            var gauge = Service.JobGauges.Get<BRDGauge>();
+            _state.ActiveSong = (Rotation.Song)gauge.Song;
+            _state.ActiveSongLeft = gauge.SongTimer * 0.001f;
 
             _state.StraightShotLeft = _state.RagingStrikesLeft = _state.BarrageLeft = _state.PelotonLeft = 0;
             foreach (var status in Player.Statuses)
@@ -162,7 +176,7 @@ namespace BossMod.BRD
         private int NumTargetsHitByLadonsbite(Actor primary)
         {
             var dir = Angle.FromDirection(primary.Position - Player.Position);
-            return 1 + Autorot.PotentialTargets.Valid.Count(a => a != primary && a.Position.InCone(Player.Position, dir, 45.Degrees()));
+            return 1 + Autorot.PotentialTargetsInRangeFromPlayer(12).Count(a => a != primary && a.Position.InCone(Player.Position, dir, 45.Degrees()));
         }
     }
 }

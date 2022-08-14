@@ -7,20 +7,20 @@ namespace BossMod.BRD
         None = 0,
 
         // single target GCDs
-        HeavyShot = 97, // L1, instant, range 25, single-target 0/0, targets=hostile, animLock=???
+        HeavyShot = 97, // L1, instant, range 25, single-target 0/0, targets=hostile
         BurstShot = 16495, // L76, instant, range 25, single-target 0/0, targets=hostile
-        StraightShot = 98, // L2, instant, range 25, single-target 0/0, targets=hostile, animLock=???
+        StraightShot = 98, // L2, instant, range 25, single-target 0/0, targets=hostile
         RefulgentArrow = 7409, // L70, instant, range 25, single-target 0/0, targets=hostile
-        VenomousBite = 100, // L6, instant, range 25, single-target 0/0, targets=hostile, animLock=???
+        VenomousBite = 100, // L6, instant, range 25, single-target 0/0, targets=hostile
         CausticBite = 7406, // L64, instant, range 25, single-target 0/0, targets=hostile
-        Windbite = 113, // L30, instant, range 25, single-target 0/0, targets=hostile, animLock=???
+        Windbite = 113, // L30, instant, range 25, single-target 0/0, targets=hostile
         Stormbite = 7407, // L64, instant, range 25, single-target 0/0, targets=hostile
         IronJaws = 3560, // L56, instant, range 25, single-target 0/0, targets=hostile
         ApexArrow = 16496, // L80, instant, range 25, AOE rect 25/4, targets=hostile
         BlastArrow = 25784, // L86, instant, range 25, AOE rect 25/4, targets=hostile, animLock=???
 
         // aoe GCDs
-        QuickNock = 106, // L18, instant, range 12, AOE cone 12/0 (90 degree), targets=hostile, animLock=???
+        QuickNock = 106, // L18, instant, range 12, AOE cone 12/0 (90 degree), targets=hostile
         Ladonsbite = 25783, // L82, instant, range 12, AOE cone 12/0 (90 degree), targets=hostile
         Shadowbite = 16494, // L72, instant, range 25, AOE circle 5/0, targets=hostile
 

@@ -2,9 +2,13 @@
 {
     public static class Rotation
     {
+        public enum Song { None, MagesBallad, ArmysPaeon, WanderersMinuet }
+
         // full state needed for determining next action
         public class State : CommonRotation.PlayerState
         {
+            public Song ActiveSong;
+            public float ActiveSongLeft; // 45 max
             public float StraightShotLeft;
             public float RagingStrikesLeft;
             public float BarrageLeft;
@@ -23,7 +27,7 @@
 
             public override string ToString()
             {
-                return $"RB={RaidBuffsLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+                return $"S={ActiveSong}/{ActiveSongLeft:f1}, RB={RaidBuffsLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
             }
         }
 
@@ -62,10 +66,15 @@
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
             // TODO: this should be improved... correct for low levels
-            if (state.Unlocked(MinLevel.MagesBallad) && state.CanWeave(CDGroup.MagesBallad, 0.6f, deadline))
+            if (state.ActiveSong == Song.None && state.Unlocked(MinLevel.MagesBallad) && state.CanWeave(CDGroup.MagesBallad, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.MagesBallad);
+            if (state.ActiveSong == Song.None && state.Unlocked(MinLevel.ArmysPaeon) && state.CanWeave(CDGroup.ArmysPaeon, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.ArmysPaeon);
+
             if (state.Unlocked(MinLevel.RagingStrikes) && state.CanWeave(CDGroup.RagingStrikes, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.RagingStrikes);
+            if (!strategy.AOE && state.StraightShotLeft <= state.GCD && state.Unlocked(MinLevel.Barrage) && state.CanWeave(CDGroup.Barrage, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.Barrage);
             if (state.Unlocked(MinLevel.Bloodletter) && state.CanWeave(state.CD(CDGroup.Bloodletter) - 60, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Bloodletter);
 
