@@ -50,16 +50,23 @@ namespace BossMod.SCH
         {
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionMnd);
+            _strategy.NumWhisperingDawnTargets = _state.Fairy != null && _state.Unlocked(MinLevel.WhisperingDawn) ? Autorot.WorldState.Party.WithoutSlot().Where(p => p.HP.Cur < p.HP.Max).InRadius(_state.Fairy.Position, 15).Count() : 0;
+            _strategy.NumSuccorTargets = _state.Unlocked(MinLevel.Succor) ? Autorot.WorldState.Party.WithoutSlot().Where(p => p.HP.Cur < p.HP.Max).InRadius(Player.Position, 15).Count() : 0;
             if (autoAction < AutoActionFirstCustom)
             {
                 _strategy.HealTarget = Autorot.WorldState.Party.WithoutSlot().MaxBy(p => p.HP.Max - p.HP.Cur);
-                if (_strategy.HealTarget != null && _strategy.HealTarget.HP.Cur > _strategy.HealTarget.HP.Max * 0.5f)
+                if (_strategy.HealTarget != null && _strategy.HealTarget.HP.Cur > _strategy.HealTarget.HP.Max * 0.7f)
                     _strategy.HealTarget = null;
+                if (_strategy.HealTarget != null) // TODO: this aoe/st heal selection is not very good...
+                    _strategy.AOE = _strategy.NumSuccorTargets > 2;
+                else
+                    _strategy.AOE = false;// _state.Unlocked(MinLevel.Holy1) && Autorot.PotentialTargetsInRangeFromPlayer(8).Count() >= 3;
                 _strategy.Moving = autoAction is AutoActionAIIdleMove or AutoActionAIFightMove;
             }
             else
             {
                 _strategy.HealTarget = null;
+                _strategy.AOE = false;
                 _strategy.Moving = false;
             }
         }
@@ -74,9 +81,8 @@ namespace BossMod.SCH
             if (_state.Unlocked(MinLevel.WhisperingDawn))
             {
                 // TODO: better whispering dawn condition...
-                var numWhisperingDawnTargets = _state.Fairy != null ? Autorot.WorldState.Party.WithoutSlot().Where(p => p.HP.Cur < p.HP.Max).InRadius(_state.Fairy.Position, 15).Count() : 0;
-                bool useWhisperingDawn = numWhisperingDawnTargets > 2;
-                if (!useWhisperingDawn && numWhisperingDawnTargets > 0)
+                bool useWhisperingDawn = _strategy.NumWhisperingDawnTargets > 2;
+                if (!useWhisperingDawn && _strategy.NumWhisperingDawnTargets > 0)
                 {
                     // also use it if most-damaged has large hp deficit and would be hit
                     var mainHealTarget = Autorot.WorldState.Party.WithoutSlot().MaxBy(p => p.HP.Max - p.HP.Cur)!; // guaranteed to be non-null due to num-targets check
@@ -91,10 +97,15 @@ namespace BossMod.SCH
             if (_state.Unlocked(MinLevel.SummonFairy) && _state.Fairy == null)
                 return MakeResult(_config.PreferSelene ? AID.SummonSelene : AID.SummonEos, Player);
 
-            // AI actions (TODO: revise at L35)
-            if (_strategy.HealTarget != null)
-                return MakeResult(Rotation.GetNextBestSTHealGCD(_state, _strategy), _strategy.HealTarget);
+            // AI actions (TODO: revise at L45)
             // TODO: prepull adlo on ??? (master? tank?)
+            if (_strategy.HealTarget != null)
+            {
+                if (_strategy.AOE && _state.Unlocked(MinLevel.Succor))
+                    return MakeResult(AID.Succor, Player);
+                else
+                    return MakeResult(Rotation.GetNextBestSTHealGCD(_state, _strategy), _strategy.HealTarget);
+            }
 
             // normal damage actions
             if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)

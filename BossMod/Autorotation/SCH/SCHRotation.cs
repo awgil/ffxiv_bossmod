@@ -26,14 +26,17 @@
         public class Strategy : CommonRotation.Strategy
         {
             public Actor? HealTarget;
+            public bool AOE;
             public bool Moving;
+            public int NumWhisperingDawnTargets; // how many targets would whispering dawn heal (15y around fairy)
+            public int NumSuccorTargets; // how many targets would succor heal (15y around self)
         }
 
         public static bool RefreshDOT(State state, float timeLeft) => timeLeft < state.GCD + 3.0f; // TODO: tweak threshold so that we don't overwrite or miss ticks...
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
-            // TODO: L40+
+            // TODO: L45+
 
             // lucid dreaming, if we won't waste mana (TODO: revise mp limit)
             if (state.CurMP <= 8000 && state.Unlocked(MinLevel.LucidDreaming) && state.CanWeave(CDGroup.LucidDreaming, 0.6f, deadline))
@@ -51,11 +54,12 @@
 
         public static AID GetNextBestSTDamageGCD(State state, Strategy strategy)
         {
-            // TODO: priorities change at L38 (ruin2), L46, L54, L64, L72, L82
+            // TODO: priorities change at L46, L54, L64, L72, L82
             if (state.Unlocked(MinLevel.Bio2))
             {
                 // L26: bio2 on all targets is more important than ruin
-                return RefreshDOT(state, state.TargetBioLeft) ? AID.Bio2 : !strategy.Moving ? AID.Ruin1 : AID.None;
+                // L38: cast ruin2 on the move
+                return RefreshDOT(state, state.TargetBioLeft) ? AID.Bio2 : !strategy.Moving ? AID.Ruin1 : (state.Unlocked(MinLevel.Ruin2) ? AID.Ruin2 : AID.None);
             }
             else if (state.Unlocked(MinLevel.Bio1))
             {
