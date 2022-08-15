@@ -18,8 +18,8 @@ namespace BossMod
             ActionEffect24 = 0x0065,
             ActionEffect32 = 0x012D,
             ActorCast = 0x0077,
-            EffectResult = 0xF12A,
-            EffectResultBasic = 0x1077,
+            EffectResult = 0x021E,
+            EffectResultBasic = 0x00F0,
             ActorControl = 0x00CB, // look at toggle weapon
             ActorControlSelf = 0x03CD, // look at cooldown
             ActorControlTarget = 0x0174, // look at target change
@@ -456,40 +456,46 @@ namespace BossMod
         public struct Server_EffectResultEntry
         {
             public byte EffectIndex;
-            public byte unknown1;
+            public byte padding1;
             public ushort EffectID;
-            public ushort unknown2;
-            public ushort unknown3;
-            public float duration;
+            public ushort Extra;
+            public ushort padding2;
+            public float Duration;
             public uint SourceActorID;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public unsafe struct Server_EffectResult
         {
-            public uint Unknown1;
+            public byte Count; // always 1?..
+            public byte padding1;
+            public short padding2;
             public uint RelatedActionSequence;
             public uint ActorID;
             public uint CurrentHP;
             public uint MaxHP;
             public ushort CurrentMP;
-            public ushort Unknown3;
+            public byte RelatedTargetIndex;
+            public byte ClassJob;
             public byte DamageShield;
             public byte EffectCount;
-            public ushort Unknown6;
+            public ushort padding3;
             public fixed byte Effects[4 * 4 * 4]; // Server_EffectResultEntry[4]
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public unsafe struct Server_EffectResultBasic
         {
-            public uint Unknown1;
+            public byte Count; // always 1?..
+            public byte padding1;
+            public short padding2;
             public uint RelatedActionSequence;
             public uint ActorID;
             public uint CurrentHP;
-            public uint Unknown2;
-            public ushort Unknown3;
-            public ushort Unknown4;
+            public byte RelatedTargetIndex;
+            public byte padding3;
+            public ushort padding4;
+            public uint padding5;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]

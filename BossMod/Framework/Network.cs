@@ -406,19 +406,19 @@ namespace BossMod
                 case Protocol.Opcode.EffectResult:
                     {
                         var p = (Protocol.Server_EffectResult*)dataPtr;
-                        Service.Log($"[Network] - seq={p->RelatedActionSequence}, actor={Utils.ObjectString(p->ActorID)}, hp={p->CurrentHP}/{p->MaxHP}, mp={p->CurrentMP}, shield={p->DamageShield}, u={p->Unknown1:X8} {p->Unknown3:X4} {p->Unknown6:X4}");
+                        Service.Log($"[Network] - cnt={p->Count} seq={p->RelatedActionSequence}/{p->RelatedTargetIndex}, actor={Utils.ObjectString(p->ActorID)}, hp={p->CurrentHP}/{p->MaxHP}, class={p->ClassJob} mp={p->CurrentMP}, shield={p->DamageShield}, pad={p->padding1:X2}{p->padding2:X4} {p->padding3:X4}");
                         var cnt = Math.Min(4, (int)p->EffectCount);
                         for (int i = 0; i < cnt; ++i)
                         {
                             var eff = ((Protocol.Server_EffectResultEntry*)p->Effects) + i;
-                            Service.Log($"[Network] -- idx={eff->EffectIndex}, id={Utils.StatusString(eff->EffectID)}, dur={eff->duration:f2}, src={Utils.ObjectString(eff->SourceActorID)}, u={eff->unknown1:X2} {eff->unknown2:X4} {eff->unknown3:X4}");
+                            Service.Log($"[Network] -- idx={eff->EffectIndex}, id={Utils.StatusString(eff->EffectID)}, extra={eff->Extra:X2}, dur={eff->Duration:f2}, src={Utils.ObjectString(eff->SourceActorID)}, pad={eff->padding1:X2} {eff->padding2:X4}");
                         }
                         break;
                     }
                 case Protocol.Opcode.EffectResultBasic:
                     {
                         var p = (Protocol.Server_EffectResultBasic*)dataPtr;
-                        Service.Log($"[Network] - seq={p->RelatedActionSequence}, actor={Utils.ObjectString(p->ActorID)}, hp={p->CurrentHP}, u={p->Unknown1:X8} {p->Unknown2:X8} {p->Unknown3:X4} {p->Unknown4:X4}");
+                        Service.Log($"[Network] - cnt={p->Count} seq={p->RelatedActionSequence}/{p->RelatedTargetIndex}, actor={Utils.ObjectString(p->ActorID)}, hp={p->CurrentHP}, pad={p->padding1:X2}{p->padding2:X4} {p->padding3:X2}{p->padding4:X4} {p->padding5:X8}");
                         break;
                     }
                 case Protocol.Opcode.Waymark:
