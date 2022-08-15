@@ -57,7 +57,8 @@ namespace BossMod
         public uint MaxTargets;
         public List<Target> Targets = new();
         public Vector3 TargetPos;
-        public uint SourceSequence;
+        public uint SourceSequence; // note: transient
+        public uint GlobalSequence;
 
         public WPos TargetXZ => new(TargetPos.XZ());
 

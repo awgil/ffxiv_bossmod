@@ -40,6 +40,7 @@ namespace UIDev
             public Participant? Source;
             public Participant? MainTarget;
             public Vector3 TargetPos;
+            public uint GlobalSequence;
             public List<ActionTarget> Targets = new();
         }
 

@@ -282,7 +282,8 @@ namespace UIDev
                 Timestamp = _ws.CurrentTime,
                 Source = p,
                 MainTarget = _participants.GetValueOrDefault(args.cast.MainTargetID),
-                TargetPos = _ws.Actors.Find(args.cast.MainTargetID)?.PosRot.XYZ() ?? args.cast.TargetPos
+                TargetPos = _ws.Actors.Find(args.cast.MainTargetID)?.PosRot.XYZ() ?? args.cast.TargetPos,
+                GlobalSequence = args.cast.GlobalSequence,
             };
             foreach (var t in args.cast.Targets)
             {

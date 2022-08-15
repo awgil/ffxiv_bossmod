@@ -42,7 +42,10 @@
         {
             if (aoe)
             {
-                return AID.TotalEclipse;
+                if (state.Unlocked(MinLevel.Prominence) && state.ComboLastMove == AID.TotalEclipse)
+                    return AID.Prominence;
+                else
+                    return AID.TotalEclipse;
             }
             else
             {

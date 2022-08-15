@@ -327,7 +327,7 @@ namespace BossMod
 
             public override string Str(WorldState? ws)
             {
-                var sb = new StringBuilder($"CST!|{StrActor(ws, InstanceID)}|{Value.Action}|{StrActor(ws, Value.MainTargetID)}|{Value.AnimationLockTime:f2}|{Value.MaxTargets}|{StrVec3(Value.TargetPos)}");
+                var sb = new StringBuilder($"CST!|{StrActor(ws, InstanceID)}|{Value.Action}|{StrActor(ws, Value.MainTargetID)}|{Value.AnimationLockTime:f2}|{Value.MaxTargets}|{StrVec3(Value.TargetPos)}|{Value.GlobalSequence}");
                 foreach (var t in Value.Targets)
                 {
                     sb.Append($"|{StrActor(ws, t.ID)}");

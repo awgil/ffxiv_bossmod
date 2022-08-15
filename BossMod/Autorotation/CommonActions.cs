@@ -134,6 +134,20 @@ namespace BossMod
             return Math.Max((float)(expireAt - Autorot.WorldState.CurrentTime).TotalSeconds, 0.0f);
         }
 
+        // this also checks pending statuses
+        public (float Left, int Stacks) StatusDetails<SID>(Actor? actor, SID id, ulong sourceID, float pendingDuration = 1000) where SID : Enum
+        {
+            if (actor == null)
+                return (0, 0);
+            var status = actor.FindStatus(id, sourceID);
+            if (status != null)
+                return (StatusDuration(status.Value.ExpireAt), status.Value.Extra & 0xFF);
+            var pending = Autorot.WorldState.PendingEffects.PendingStatus(actor.InstanceID, (uint)(object)id, sourceID);
+            if (pending != null)
+                return (pendingDuration, pending.Value);
+            return (0, 0);
+        }
+
         // check whether specified status is a damage buff
         public bool IsDamageBuff(uint statusID)
         {

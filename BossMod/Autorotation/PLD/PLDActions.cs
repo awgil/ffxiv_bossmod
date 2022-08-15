@@ -86,16 +86,7 @@ namespace BossMod.PLD
 
             //s.Gauge = Service.JobGauges.Get<PLDGauge>().OathGauge;
 
-            _state.FightOrFlightLeft = 0;
-            foreach (var status in Player.Statuses)
-            {
-                switch ((SID)status.ID)
-                {
-                    case SID.FightOrFlight:
-                        _state.FightOrFlightLeft = StatusDuration(status.ExpireAt);
-                        break;
-                }
-            }
+            _state.FightOrFlightLeft = StatusDetails(Player, SID.FightOrFlight, Player.InstanceID).Left;
         }
 
         private void OnConfigModified(object? sender, EventArgs args)

@@ -260,8 +260,15 @@ namespace UIDev
                 AnimationLockTime = float.Parse(payload[5]),
                 MaxTargets = uint.Parse(payload[6]),
                 TargetPos = _version >= 6 ? Vec3(payload[7]) : new(),
+                GlobalSequence = _version >= 7 ? uint.Parse(payload[8]) : 0,
             };
-            for (int i = _version >= 6 ? 8 : 7; i < payload.Length; ++i)
+            int firstTargetPayload = _version switch
+            {
+                <= 5 => 7,
+                6 => 8,
+                _ => 9,
+            };
+            for (int i = firstTargetPayload; i < payload.Length; ++i)
             {
                 var parts = payload[i].Split('!');
                 ActorCastEvent.Target target = new();

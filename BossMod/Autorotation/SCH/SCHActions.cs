@@ -141,47 +141,16 @@ namespace BossMod.SCH
         {
             FillCommonPlayerState(_state);
 
-            if (_state.Fairy?.IsDestroyed ?? false)
-                _state.Fairy = null;
-            if (_state.Fairy == null)
+            if (_state.Fairy == null || _state.Fairy.IsDestroyed)
                 _state.Fairy = Autorot.WorldState.Actors.FirstOrDefault(a => a.Type == ActorType.Pet && a.OwnerID == Player.InstanceID);
 
             //var gauge = Service.JobGauges.Get<SCHGauge>();
 
-            _state.SwiftcastLeft = 0;
-            foreach (var status in Player.Statuses)
-            {
-                switch ((SID)status.ID)
-                {
-                    case SID.Swiftcast:
-                        _state.SwiftcastLeft = StatusDuration(status.ExpireAt);
-                        break;
-                }
-            }
-
-            _state.TargetBioLeft = 0;
-            if (Autorot.PrimaryTarget != null)
-            {
-                foreach (var status in Autorot.PrimaryTarget.Statuses)
-                {
-                    switch ((SID)status.ID)
-                    {
-                        case SID.Bio1:
-                        case SID.Bio2:
-                        case SID.Biolysis:
-                            if (status.SourceID == Player.InstanceID)
-                                _state.TargetBioLeft = StatusDuration(status.ExpireAt);
-                            break;
-                    }
-                }
-            }
+            _state.SwiftcastLeft = StatusDetails(Player, SID.Swiftcast, Player.InstanceID).Left;
+            _state.TargetBioLeft = StatusDetails(Autorot.PrimaryTarget, _state.ExpectedBio, Player.InstanceID).Left;
         }
 
-        private bool WithoutDOT(Actor a)
-        {
-            var dot = a.Statuses.FirstOrDefault(s => s.SourceID == Player.InstanceID && (SID)s.ID is SID.Bio1 or SID.Bio2 or SID.Biolysis);
-            return dot.ID == 0 || Rotation.RefreshDOT(_state, StatusDuration(dot.ExpireAt));
-        }
+        private bool WithoutDOT(Actor a) => Rotation.RefreshDOT(_state, StatusDetails(a, _state.ExpectedBio, Player.InstanceID).Left);
 
         private void OnConfigModified(object? sender, EventArgs args)
         {

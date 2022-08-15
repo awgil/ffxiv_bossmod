@@ -41,6 +41,10 @@ namespace BossMod
             var player = Service.ClientState.LocalPlayer;
             ImGui.TextUnformatted($"Current zone: {_ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={Service.ClientState.LocalContentId:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
 
+            var eventFwk = FFXIVClientStructs.FFXIV.Client.Game.Event.EventFramework.Instance();
+            var instanceDirector = eventFwk != null ? eventFwk->GetInstanceContentDirector() : null;
+            ImGui.TextUnformatted($"Content time left: {(instanceDirector != null ? $"{instanceDirector->ContentDirector.ContentTimeLeft:f1}" : "n/a")}");
+
             if (ImGui.Button("Perform full dump"))
             {
                 DebugObjects.DumpObjectTable();

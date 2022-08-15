@@ -14,6 +14,9 @@
             public AID BestBio => Unlocked(MinLevel.Biolysis) ? AID.Biolysis : Unlocked(MinLevel.Bio2) ? AID.Bio2 : AID.Bio1;
             public AID BestArtOfWar => Unlocked(MinLevel.ArtOfWar2) ? AID.ArtOfWar2 : AID.ArtOfWar1;
 
+            // statuses
+            public SID ExpectedBio => Unlocked(MinLevel.Biolysis) ? SID.Biolysis : Unlocked(MinLevel.Bio2) ? SID.Bio2 : SID.Bio1;
+
             public State(float[] cooldowns) : base(cooldowns) { }
 
             public override string ToString()
@@ -55,20 +58,21 @@
         public static AID GetNextBestSTDamageGCD(State state, Strategy strategy)
         {
             // TODO: priorities change at L46, L54, L64, L72, L82
+            bool allowRuin = !strategy.Moving || state.SwiftcastLeft > state.GCD;
             if (state.Unlocked(MinLevel.Bio2))
             {
                 // L26: bio2 on all targets is more important than ruin
                 // L38: cast ruin2 on the move
-                return RefreshDOT(state, state.TargetBioLeft) ? AID.Bio2 : !strategy.Moving ? AID.Ruin1 : (state.Unlocked(MinLevel.Ruin2) ? AID.Ruin2 : AID.None);
+                return RefreshDOT(state, state.TargetBioLeft) ? AID.Bio2 : allowRuin ? AID.Ruin1 : (state.Unlocked(MinLevel.Ruin2) ? AID.Ruin2 : AID.None);
             }
             else if (state.Unlocked(MinLevel.Bio1))
             {
                 // L2: bio1 is only used on the move (TODO: it is slightly more potency than ruin on single target, but only if it ticks to the end)
-                return !strategy.Moving ? AID.Ruin1 : RefreshDOT(state, state.TargetBioLeft) ? AID.Bio1 : AID.None;
+                return allowRuin ? AID.Ruin1 : RefreshDOT(state, state.TargetBioLeft) ? AID.Bio1 : AID.None;
             }
             else
             {
-                return !strategy.Moving ? AID.Ruin1 : AID.None;
+                return allowRuin ? AID.Ruin1 : AID.None;
             }
         }
     }

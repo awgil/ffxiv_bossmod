@@ -21,7 +21,7 @@ namespace BossMod.PLD
 
         // aoe GCDs
         TotalEclipse = 7381, // L6, instant, range 0, AOE circle 5/0, targets=self
-        Prominence = 16457, // L40, instant, range 0, AOE circle 5/0, targets=self, animLock=???
+        Prominence = 16457, // L40, instant, range 0, AOE circle 5/0, targets=self
         HolyCircle = 16458, // L72, 1.5s cast, range 0, AOE circle 5/0, targets=self, animLock=???
 
         // oGCDs
@@ -36,8 +36,8 @@ namespace BossMod.PLD
 
         // defensive CDs
         Rampart = 7531, // L8, instant, 90.0s CD (group 40), range 0, single-target 0/0, targets=self
-        Sheltron = 3542, // L35, instant, 5.0s CD (group 0), range 0, single-target 0/0, targets=self, animLock=???
-        Sentinel = 17, // L38, instant, 120.0s CD (group 19), range 0, single-target 0/0, targets=self, animLock=???
+        Sheltron = 3542, // L35, instant, 5.0s CD (group 0), range 0, single-target 0/0, targets=self
+        Sentinel = 17, // L38, instant, 120.0s CD (group 19), range 0, single-target 0/0, targets=self
         Cover = 27, // L45, instant, 120.0s CD (group 20), range 10, single-target 0/0, targets=party, animLock=???
         HolySheltron = 25746, // L82, instant, 5.0s CD (group 2), range 0, single-target 0/0, targets=self, animLock=???
         HallowedGround = 30, // L50, instant, 420.0s CD (group 24), range 0, single-target 0/0, targets=self, animLock=???

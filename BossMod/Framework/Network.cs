@@ -16,6 +16,7 @@ namespace BossMod
         }
 
         public event EventHandler<(ulong actorID, ActorCastEvent cast)>? EventActionEffect;
+        public event EventHandler<(ulong actorID, uint seq)>? EventEffectResult;
         public event EventHandler<(ulong actorID, ActionID action, float castTime, ulong targetID)>? EventActorCast;
         public event EventHandler<(ulong actorID, uint actionID)>? EventActorControlCancelCast;
         public event EventHandler<(ulong actorID, uint iconID)>? EventActorControlTargetIcon;
@@ -121,6 +122,12 @@ namespace BossMod
                     case Protocol.Opcode.ActionEffect32:
                         HandleActionEffect32((Protocol.Server_ActionEffect32*)dataPtr, targetActorId);
                         break;
+                    case Protocol.Opcode.EffectResultBasic:
+                        HandleEffectResultBasic((Protocol.Server_EffectResultBasic*)dataPtr, targetActorId);
+                        break;
+                    case Protocol.Opcode.EffectResult:
+                        HandleEffectResult((Protocol.Server_EffectResult*)dataPtr, targetActorId);
+                        break;
                     case Protocol.Opcode.ActorCast:
                         HandleActorCast((Protocol.Server_ActorCast*)dataPtr, targetActorId);
                         break;
@@ -205,7 +212,8 @@ namespace BossMod
                 AnimationLockTime = header->animationLockTime,
                 MaxTargets = maxTargets,
                 TargetPos = targetPos,
-                SourceSequence = header->SourceSequence
+                SourceSequence = header->SourceSequence,
+                GlobalSequence = header->globalEffectCounter,
             };
 
             var targets = Math.Min(header->NumTargets, maxTargets);
@@ -223,6 +231,16 @@ namespace BossMod
             }
 
             EventActionEffect?.Invoke(this, (casterID, info));
+        }
+
+        private unsafe void HandleEffectResultBasic(Protocol.Server_EffectResultBasic* p, uint actorID)
+        {
+            EventEffectResult?.Invoke(this, (actorID, p->RelatedActionSequence));
+        }
+
+        private unsafe void HandleEffectResult(Protocol.Server_EffectResult* p, uint actorID)
+        {
+            EventEffectResult?.Invoke(this, (actorID, p->RelatedActionSequence));
         }
 
         private unsafe void HandleActorCast(Protocol.Server_ActorCast* p, uint actorID)
