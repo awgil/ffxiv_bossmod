@@ -61,7 +61,7 @@
                 // starting from L35, fire/blizzard 2/3 automatically grant 3 fire/ice stacks, so we use them to swap between stances
                 if (strategy.AOE)
                 {
-                    // TODO: revise at L40+ (freeze)
+                    // TODO: revise at L50+ (flare)
                     if (state.ElementalLevel > 0)
                     {
                         // fire phase: F2 until oom > B2
@@ -73,7 +73,7 @@
                     }
                     else if (state.ElementalLevel < 0)
                     {
-                        // ice phase: B2 if needed for mana tick > T2 if needed to refresh > F2
+                        // ice phase: Freeze/B2 if needed for mana tick > T2 if needed to refresh > F2
                         if (state.TargetThunderLeft <= state.GCD && (allowCasts || state.ThundercloudLeft > state.GCD))
                             return AID.Thunder2; // if thunder is about to fall off, refresh before B2
 
@@ -84,7 +84,7 @@
                             var mpTicksAtMinSwap = (int)((3 - state.TimeToManaTick + minTimeToSwap) / 3);
                             var mpAtMinSwap = state.CurMP + mpTicksAtMinSwap * MPTick(state.ElementalLevel);
                             if (mpAtMinSwap < 9600)
-                                return AID.Blizzard2;
+                                return state.Unlocked(MinLevel.Freeze) ? AID.Freeze : AID.Blizzard2;
                         }
                         if (state.ThundercloudLeft > state.GCD || wantThunder && allowCasts)
                             return AID.Thunder2;
