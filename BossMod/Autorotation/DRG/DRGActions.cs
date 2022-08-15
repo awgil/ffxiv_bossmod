@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace BossMod.DRG
 {
@@ -42,6 +43,12 @@ namespace BossMod.DRG
         {
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
+            _strategy.NumAOEGCDTargets = 0;
+            if (Autorot.PrimaryTarget != null && autoAction != AutoActionST && _state.Unlocked(MinLevel.DoomSpike))
+            {
+                var toTarget = (Autorot.PrimaryTarget.Position - Player.Position).Normalized();
+                _strategy.NumAOEGCDTargets = Autorot.PotentialTargets.Valid.Where(a => a.Position.InRect(Player.Position, toTarget, 10, 0, 2)).Count();
+            }
         }
 
         protected override void QueueAIActions()
@@ -89,16 +96,7 @@ namespace BossMod.DRG
 
             //s.Chakra = Service.JobGauges.Get<DRGGauge>().Chakra;
 
-            _state.PowerSurgeLeft = 0;
-            foreach (var status in Player.Statuses)
-            {
-                switch ((SID)status.ID)
-                {
-                    case SID.PowerSurge:
-                        _state.PowerSurgeLeft = StatusDuration(status.ExpireAt);
-                        break;
-                }
-            }
+            _state.PowerSurgeLeft = StatusDetails(Player, SID.PowerSurge, Player.InstanceID).Left;
         }
 
         private void OnConfigModified(object? sender, EventArgs args)

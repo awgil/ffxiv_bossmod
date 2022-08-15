@@ -49,10 +49,10 @@ namespace BossMod.WHM
             {
                 var multidotTarget = Autorot.PotentialTargetsInRangeFromPlayer(25).FirstOrDefault(t => t != initial && WithoutDOT(t));
                 if (multidotTarget != null)
-                    return new(multidotTarget, 25);
+                    return new(multidotTarget, 10);
             }
 
-            return new(initial, 25);
+            return new(initial, 10);
         }
 
         protected override void UpdateInternalState(int autoAction)
@@ -100,6 +100,7 @@ namespace BossMod.WHM
         protected override NextAction CalculateAutomaticGCD()
         {
             // heals
+            // TODO: prepull regen on ??? (master? tank?)
             if (_strategy.HealTarget != null)
                 return MakeResult(Rotation.GetNextBestGCD(_state, _strategy), _strategy.HealTarget);
 

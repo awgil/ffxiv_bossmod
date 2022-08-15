@@ -40,10 +40,10 @@ namespace BossMod.SCH
             {
                 var multidotTarget = Autorot.PotentialTargetsInRangeFromPlayer(25).FirstOrDefault(t => t != initial && WithoutDOT(t));
                 if (multidotTarget != null)
-                    return new(multidotTarget, 25);
+                    return new(multidotTarget, 10);
             }
 
-            return new(initial, 25);
+            return new(initial, 10);
         }
 
         protected override void UpdateInternalState(int autoAction)

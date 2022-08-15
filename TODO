@@ -17,6 +17,7 @@ ai:
 - avoid moving through aoes while going to desired zone
 
 autorotation:
+- improve questlock (use 'step' field in state, remove minlevel enum - instead generate old-style UnlockedXXX)
 - opener support
 - dot/regen server tick tracking
 - war

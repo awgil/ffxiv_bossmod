@@ -25,6 +25,7 @@
         // strategy configuration
         public class Strategy : CommonRotation.Strategy
         {
+            public int NumAOEGCDTargets; // range 10 width 4 rect
         }
 
         public static bool UseLifeSurge(State state)
@@ -39,13 +40,21 @@
 
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
-            // TODO: L40+
-            return state.ComboLastMove switch
+            // TODO: L45+
+            // TODO: better AOE condition
+            if (strategy.NumAOEGCDTargets >= 3 && state.PowerSurgeLeft > state.GCD)
             {
-                AID.TrueThrust => state.Unlocked(MinLevel.Disembowel) && state.PowerSurgeLeft < state.GCD + 5 ? AID.Disembowel : state.Unlocked(MinLevel.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust, // TODO: better threshold (probably depends on combo length?)
-                AID.VorpalThrust => state.Unlocked(MinLevel.FullThrust) ? AID.FullThrust : AID.TrueThrust,
-                _ => AID.TrueThrust
-            };
+                return AID.DoomSpike;
+            }
+            else
+            {
+                return state.ComboLastMove switch
+                {
+                    AID.TrueThrust => state.Unlocked(MinLevel.Disembowel) && state.PowerSurgeLeft < state.GCD + 5 ? AID.Disembowel : state.Unlocked(MinLevel.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust, // TODO: better threshold (probably depends on combo length?)
+                    AID.VorpalThrust => state.Unlocked(MinLevel.FullThrust) ? AID.FullThrust : AID.TrueThrust,
+                    _ => AID.TrueThrust
+                };
+            }
         }
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)

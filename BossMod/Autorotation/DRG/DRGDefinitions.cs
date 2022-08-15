@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace BossMod.DRG
 {
@@ -23,7 +19,7 @@ namespace BossMod.DRG
         RaidenThrust = 16479, // L76, instant, range 3, single-target 0/0, targets=hostile, animLock=???
 
         // aoe GCDs
-        DoomSpike = 86, // L40, instant, range 10, AOE rect 10/4, targets=hostile, animLock=???
+        DoomSpike = 86, // L40, instant, range 10, AOE rect 10/4, targets=hostile
         SonicThrust = 7397, // L62, instant, range 10, AOE rect 10/4, targets=hostile, animLock=???
         CoerthanTorment = 16477, // L72, instant, range 10, AOE rect 10/4, targets=hostile, animLock=???
         DraconianFury = 25770, // L82, instant, range 10, AOE rect 10/4, targets=hostile, animLock=???
@@ -49,11 +45,11 @@ namespace BossMod.DRG
         SecondWind = 7541, // L8, instant, 120.0s CD (group 40), range 0, single-target 0/0, targets=self
         Bloodbath = 7542, // L12, instant, 90.0s CD (group 42), range 0, single-target 0/0, targets=self
         Feint = 7549, // L22, instant, 90.0s CD (group 43), range 10, single-target 0/0, targets=hostile
-        ArmsLength = 7548, // L32, instant, 120.0s CD (group 46), range 0, single-target 0/0, targets=self, animLock=???
+        ArmsLength = 7548, // L32, instant, 120.0s CD (group 46), range 0, single-target 0/0, targets=self
 
         // misc
         PiercingTalon = 90, // L15, instant, range 20, single-target 0/0, targets=hostile
-        ElusiveJump = 94, // L35, instant, 30.0s CD (group 5), range 0, single-target 0/0, targets=self, animLock=???
+        ElusiveJump = 94, // L35, instant, 30.0s CD (group 5), range 0, single-target 0/0, targets=self, animLock=0.800s
         TrueNorth = 7546, // L50, instant, 45.0s CD (group 44) (2 charges), range 0, single-target 0/0, targets=self, animLock=???
         LegSweep = 7863, // L10, instant, 40.0s CD (group 41), range 3, single-target 0/0, targets=hostile
     }
