@@ -31,7 +31,8 @@
         // strategy configuration
         public class Strategy : CommonRotation.Strategy
         {
-            public int NumAOETargets;
+            public int NumPointBlankAOETargets; // range 5 around self
+            public int NumEnlightenmentTargets; // range 10 width 2/4 rect
         }
 
         public static AID GetOpoOpoFormAction(State state, int numAOETargets)
@@ -68,7 +69,7 @@
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
             // TODO: L50+
-            return GetNextComboAction(state, strategy.NumAOETargets);
+            return GetNextComboAction(state, strategy.NumPointBlankAOETargets);
         }
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
@@ -77,7 +78,20 @@
 
             // 2. steel peek, if have chakra
             if (state.Unlocked(MinLevel.SteelPeak) && state.Chakra == 5 && state.CanWeave(CDGroup.SteelPeak, 0.6f, deadline))
-                return ActionID.MakeSpell(AID.SteelPeak);
+            {
+                // L15 Steel Peak is 180p
+                // L40 Howling Fist is 100p/target => HF at 2+ targets
+                // L54 Forbidden Chakra is 340p => HF at 4+ targets
+                // L72 Enlightenment is 170p/target => at 2+ targets
+                if (state.Unlocked(MinLevel.Enlightenment))
+                    return ActionID.MakeSpell(strategy.NumEnlightenmentTargets >= 2 ? AID.Enlightenment : AID.ForbiddenChakra);
+                else if (state.Unlocked(MinLevel.ForbiddenChakra))
+                    return ActionID.MakeSpell(strategy.NumEnlightenmentTargets >= 4 ? AID.HowlingFist : AID.ForbiddenChakra);
+                else if (state.Unlocked(MinLevel.HowlingFist))
+                    return ActionID.MakeSpell(strategy.NumEnlightenmentTargets >= 2 ? AID.HowlingFist : AID.SteelPeak);
+                else
+                    return ActionID.MakeSpell(AID.SteelPeak);
+            }
 
             // no suitable oGCDs...
             return new();

@@ -33,7 +33,7 @@ namespace BossMod.MNK
         // oGCDs
         SteelPeak = 25761, // L15, instant, 1.0s CD (group 0), range 3, single-target 0/0, targets=hostile
         ForbiddenChakra = 3547, // L54, instant, 1.0s CD (group 0), range 3, single-target 0/0, targets=hostile, animLock=???
-        HowlingFist = 25763, // L40, instant, 1.0s CD (group 0), range 10, AOE rect 10/2, targets=hostile, animLock=???
+        HowlingFist = 25763, // L40, instant, 1.0s CD (group 0), range 10, AOE rect 10/2, targets=hostile
         Enlightenment = 16474, // L74, instant, 1.0s CD (group 0), range 10, AOE rect 10/4, targets=hostile, animLock=???
 
         // offsensive CDs
@@ -48,12 +48,12 @@ namespace BossMod.MNK
         RiddleOfEarth = 7394, // L64, instant, 30.0s CD (group 14) (3 charges), range 0, single-target 0/0, targets=self, animLock=???
         Bloodbath = 7542, // L12, instant, 90.0s CD (group 42), range 0, single-target 0/0, targets=self
         Feint = 7549, // L22, instant, 90.0s CD (group 43), range 10, single-target 0/0, targets=hostile
-        ArmsLength = 7548, // L32, instant, 120.0s CD (group 46), range 0, single-target 0/0, targets=self, animLock=???
+        ArmsLength = 7548, // L32, instant, 120.0s CD (group 46), range 0, single-target 0/0, targets=self
 
         // misc
         Meditation = 3546, // L15, instant, range 0, single-target 0/0, targets=self
         TrueNorth = 7546, // L50, instant, 45.0s CD (group 44) (2 charges), range 0, single-target 0/0, targets=self, animLock=???
-        Thunderclap = 25762, // L35, instant, 30.0s CD (group 9) (2 charges), range 20, single-target 0/0, targets=party/hostile, animLock=???
+        Thunderclap = 25762, // L35, instant, 30.0s CD (group 9) (2 charges), range 20, single-target 0/0, targets=party/hostile
         FormShift = 4262, // L52, instant, range 0, single-target 0/0, targets=self, animLock=???
         Anatman = 16475, // L78, instant, 60.0s CD (group 12), range 0, single-target 0/0, targets=self, animLock=???
         LegSweep = 7863, // L10, instant, 40.0s CD (group 41), range 3, single-target 0/0, targets=hostile

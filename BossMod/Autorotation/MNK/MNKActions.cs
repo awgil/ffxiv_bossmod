@@ -39,7 +39,7 @@ namespace BossMod.MNK
         public override Targeting SelectBetterTarget(Actor initial)
         {
             // TODO: multidotting support...
-            var pos = (_state.Form == Rotation.Form.Coeurl ? Rotation.GetCoeurlFormAction(_state, _strategy.NumAOETargets) : AID.None) switch
+            var pos = (_state.Form == Rotation.Form.Coeurl ? Rotation.GetCoeurlFormAction(_state, _strategy.NumPointBlankAOETargets) : AID.None) switch
             {
                 AID.SnapPunch => Positional.Flank,
                 AID.Demolish => Positional.Rear,
@@ -52,7 +52,13 @@ namespace BossMod.MNK
         {
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
-            _strategy.NumAOETargets = autoAction == AutoActionST ? 0 : Autorot.PotentialTargetsInRangeFromPlayer(5).Count();
+            _strategy.NumPointBlankAOETargets = autoAction == AutoActionST ? 0 : Autorot.PotentialTargetsInRangeFromPlayer(5).Count();
+            _strategy.NumEnlightenmentTargets = 0;
+            if (Autorot.PrimaryTarget != null && autoAction != AutoActionST && _state.Unlocked(MinLevel.HowlingFist))
+            {
+                var toTarget = (Autorot.PrimaryTarget.Position - Player.Position).Normalized();
+                _strategy.NumEnlightenmentTargets = Autorot.PotentialTargets.Valid.Where(a => a.Position.InRect(Player.Position, toTarget, 10, 0, _state.Unlocked(MinLevel.Enlightenment) ? 2 : 1)).Count();
+            }
         }
 
         protected override void QueueAIActions()

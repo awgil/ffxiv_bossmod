@@ -11,12 +11,10 @@ boss modules:
 - boss module config presets/profiles
 
 ai:
-- better targeting (bossmodule-provided priority/forbidden targets, classmodule-provided prioritization => multidotting)
-- speculative status application, gauge changes, etc.
-- move by waymarks, especially on dungeon trash
+- prepull timer
+- improve healing AI: analyze incoming dps, take pending hp changes into account...
+- movement: know time left, distance to travel => decide whether to swiftcast or slidecast or use movement rotation
 - avoid moving through aoes while going to desired zone
-- greed aoes more (know time-to-explosion)
-- better move detection for rotation & don't cast when avoiding aoes
 
 autorotation:
 - opener support
