@@ -11,8 +11,8 @@ namespace BossMod.BLM
         Fire1 = 141, // L2, 2.5s cast, range 25, single-target 0/0, targets=hostile
         Thunder1 = 144, // L6, 2.5s cast, range 25, single-target 0/0, targets=hostile
         Scathe = 156, // L15, instant, range 25, single-target 0/0, targets=hostile
-        Blizzard3 = 154, // L35, 3.5s cast, range 25, single-target 0/0, targets=hostile, animLock=???
-        Fire3 = 152, // L35, 3.5s cast, range 25, single-target 0/0, targets=hostile, animLock=???
+        Blizzard3 = 154, // L35, 3.5s cast, range 25, single-target 0/0, targets=hostile
+        Fire3 = 152, // L35, 3.5s cast, range 25, single-target 0/0, targets=hostile
         Thunder3 = 153, // L45, 2.5s cast, range 25, single-target 0/0, targets=hostile, animLock=???
         Blizzard4 = 3576, // L58, 2.5s cast, range 25, single-target 0/0, targets=hostile, animLock=???
         Fire4 = 3577, // L60, 2.8s cast, range 25, single-target 0/0, targets=hostile, animLock=???
@@ -197,6 +197,7 @@ namespace BossMod.BLM
         Thunder1 = 161, // applied by Thunder1 to target, dot
         Thunder2 = 162, // applied by Thunder2 to target, dot
         Thundercloud = 164, // proc
+        Firestarter = 165, // applied by Fire to self, next fire3 is free and instant
         Addle = 1203, // applied by Addle to target, -5% phys and -10% magic damage dealt
         LucidDreaming = 1204, // applied by Lucid Dreaming to self, MP restore
         Swiftcast = 167, // applied by Swiftcast to self, next cast is instant
