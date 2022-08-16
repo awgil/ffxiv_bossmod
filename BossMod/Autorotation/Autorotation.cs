@@ -204,7 +204,8 @@ namespace BossMod
             // normally general action -> spell conversion is done by UseAction before calling UseActionRaw
             // calling UseActionRaw directly is not good: it would call StartCooldown, which would in turn call GetRecastTime, which always returns 5s for general actions
             // this leads to incorrect sprint cooldown (5s instead of 60s), which is just bad
-            var actionAdj = next.Action == CommonDefinitions.IDSprint ? new(ActionType.Spell, 3) : next.Action;
+            // for spells, call GetAdjustedActionId - even though it is typically done correctly by autorotation modules, e.g. planner currenty doesn't support it
+            var actionAdj = next.Action == CommonDefinitions.IDSprint ? new(ActionType.Spell, 3) : next.Action.Type == ActionType.Spell ? new(ActionType.Spell, am.GetAdjustedActionID(next.Action.ID)) : next.Action;
 
             // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
             bool lockMovementForNext = _config.PreventMovingWhileCasting && next.Definition.CastTime > 0 && am.GCD() < 0.1f;
@@ -215,12 +216,12 @@ namespace BossMod
             var status = am.GetActionStatus(actionAdj, targetID);
             if (status != 0)
             {
-                Log($"Can't execute {next.Source} action {next.Action} @ {targetID:X}: status {status} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.LogMessage>(status)?.Text}'");
+                Log($"Can't execute {next.Source} action {next.Action} (=> {actionAdj}) @ {targetID:X}: status {status} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.LogMessage>(status)?.Text}'");
                 return false;
             }
 
             var res = am.UseActionRaw(actionAdj, targetID, next.TargetPos, next.Action.Type == ActionType.Item ? 65535u : 0);
-            Log($"Auto-execute {next.Source} action {next.Action} @ {targetID:X} {Utils.Vec3String(next.TargetPos)} => {res}");
+            Log($"Auto-execute {next.Source} action {next.Action} (=> {actionAdj}) @ {targetID:X} {Utils.Vec3String(next.TargetPos)} => {res}");
             _classActions.NotifyActionExecuted(next.Action, next.Target);
             return lockMovementForNext;
         }

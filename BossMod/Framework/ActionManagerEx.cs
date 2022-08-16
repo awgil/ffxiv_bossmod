@@ -168,6 +168,8 @@ namespace BossMod
             return gcd->Total - gcd->Elapsed;
         }
 
+        public unsafe uint GetAdjustedActionID(uint actionID) => _inst->GetAdjustedActionId(actionID);
+
         public unsafe uint GetActionStatus(ActionID action, ulong target, bool a4 = true, bool a5 = true)
         {
             return _inst->GetActionStatus((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, (long)target, a4 ? 1u : 0, a5 ? 1u : 0);
