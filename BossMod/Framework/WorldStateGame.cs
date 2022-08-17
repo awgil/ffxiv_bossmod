@@ -15,7 +15,7 @@ namespace BossMod
         private Dictionary<ulong, List<Operation>> _actorOps = new();
 
         private List<(ulong Caster, ActorCastEvent Event)> _castEvents = new();
-        private List<(uint Seq, ulong Target)> _confirms = new();
+        private List<(uint Seq, ulong Target, int TargetIndex)> _confirms = new();
 
         public WorldStateGame(Network network)
         {
@@ -51,7 +51,7 @@ namespace BossMod
             }
 
             foreach (var c in _confirms)
-                PendingEffects.Confirm(CurrentTime, c.Seq, c.Target);
+                PendingEffects.Confirm(CurrentTime, c.Seq, c.Target, c.TargetIndex);
             _confirms.Clear();
             PendingEffects.RemoveExpired(CurrentTime);
             foreach (var c in _castEvents)
@@ -308,9 +308,9 @@ namespace BossMod
             _castEvents.Add((args.actorID, args.cast));
         }
 
-        private void OnNetworkEffectResult(object? sender, (ulong actorID, uint seq) args)
+        private void OnNetworkEffectResult(object? sender, (ulong actorID, uint seq, int targetIndex) args)
         {
-            _confirms.Add((args.seq, args.actorID));
+            _confirms.Add((args.seq, args.actorID, args.targetIndex));
         }
 
         private void OnNetworkActorControlTargetIcon(object? sender, (ulong actorID, uint iconID) args)

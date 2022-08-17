@@ -36,7 +36,7 @@ namespace BossMod.BLM
         public override Targeting SelectBetterTarget(Actor initial)
         {
             // TODO: select best target for AOE
-            return new(initial, 25);
+            return new(initial, 15);
         }
 
         protected override void OnTick()

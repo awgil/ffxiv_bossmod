@@ -16,7 +16,7 @@ namespace BossMod
         }
 
         public event EventHandler<(ulong actorID, ActorCastEvent cast)>? EventActionEffect;
-        public event EventHandler<(ulong actorID, uint seq)>? EventEffectResult;
+        public event EventHandler<(ulong actorID, uint seq, int targetIndex)>? EventEffectResult;
         public event EventHandler<(ulong actorID, ActionID action, float castTime, ulong targetID)>? EventActorCast;
         public event EventHandler<(ulong actorID, uint actionID)>? EventActorControlCancelCast;
         public event EventHandler<(ulong actorID, uint iconID)>? EventActorControlTargetIcon;
@@ -235,12 +235,12 @@ namespace BossMod
 
         private unsafe void HandleEffectResultBasic(Protocol.Server_EffectResultBasic* p, uint actorID)
         {
-            EventEffectResult?.Invoke(this, (actorID, p->RelatedActionSequence));
+            EventEffectResult?.Invoke(this, (actorID, p->RelatedActionSequence, p->RelatedTargetIndex));
         }
 
         private unsafe void HandleEffectResult(Protocol.Server_EffectResult* p, uint actorID)
         {
-            EventEffectResult?.Invoke(this, (actorID, p->RelatedActionSequence));
+            EventEffectResult?.Invoke(this, (actorID, p->RelatedActionSequence, p->RelatedTargetIndex));
         }
 
         private unsafe void HandleActorCast(Protocol.Server_ActorCast* p, uint actorID)

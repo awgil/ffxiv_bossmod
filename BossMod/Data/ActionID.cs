@@ -72,14 +72,16 @@ namespace BossMod
             return $"{Type} {ID} '{Name()}'";
         }
 
-        public bool IsCasted()
+        public float CastTime()
         {
             return Type switch
             {
-                ActionType.Spell => (Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(ID)?.Cast100ms ?? 0) > 0,
-                _ => false
+                ActionType.Spell => (Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(ID)?.Cast100ms ?? 0) * 0.1f,
+                _ => 0
             };
         }
+
+        public bool IsCasted() => CastTime() > 0;
 
         public bool IsGroundTargeted()
         {

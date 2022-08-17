@@ -28,8 +28,6 @@
         // strategy configuration
         public class Strategy : CommonRotation.Strategy
         {
-            public Actor? HealTarget;
-            public bool AOE;
             public bool Moving;
             public int NumWhisperingDawnTargets; // how many targets would whispering dawn heal (15y around fairy)
             public int NumSuccorTargets; // how many targets would succor heal (15y around self)

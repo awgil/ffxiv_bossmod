@@ -21,8 +21,18 @@ namespace BossMod.WHM
             public AID BestDia => Unlocked(MinLevel.Dia) ? AID.Dia : Unlocked(MinLevel.Aero2) ? AID.Aero2 : AID.Aero1;
             public AID BestHoly => Unlocked(MinLevel.Holy3) ? AID.Holy3 : AID.Holy1;
 
+            // statuses
+            public SID ExpectedDia => Unlocked(MinLevel.Dia) ? SID.Dia : Unlocked(MinLevel.Aero2) ? SID.Aero2 : SID.Aero1;
+
             // num lilies on next GCD
             public int NormalLiliesOnNextGCD => Unlocked(MinLevel.AfflatusSolace) ? Math.Min(NormalLilies + (NextLilyIn < GCD ? 1 : 0), 3) : 0;
+
+            // can-cast checks
+            public bool EnoughMPForGCD(int cost) => CurMP >= cost || ThinAirLeft > GCD;
+            public bool CanCastMedica1 => Unlocked(MinLevel.Medica1) && EnoughMPForGCD(900);
+            public bool CanCastMedica2 => Unlocked(MinLevel.Medica2) && EnoughMPForGCD(1000);
+            public bool CanCastCure2 => Unlocked(MinLevel.Cure2) && (EnoughMPForGCD(1000) || FreecureLeft > GCD);
+            public bool CanCastCure3 => Unlocked(MinLevel.Cure3) && EnoughMPForGCD(1500);
 
             public State(float[] cooldowns) : base(cooldowns) { }
 
@@ -34,12 +44,13 @@ namespace BossMod.WHM
 
         public class Strategy : CommonRotation.Strategy
         {
-            public Actor? HealTarget;
+            public bool Heal;
             public bool AOE;
             public bool Moving;
             public int NumAssizeMedica1Targets; // how many targets would assize/medica1 heal (15y around self)
             public int NumRaptureMedica2Targets; // how many targets would rapture/medica2 heal (20y around self)
-            public int NumCure3Targets; // how many targets cure3 would heal (6y around selected/best target)
+            public int NumCure3Targets; // how many targets cure3 would heal (10y around selected/best target)
+            public int NumHolyTargets; // how many targets holy would hit (8y around self)
             public bool EnableAssize;
             public bool AllowReplacingHealWithMisery; // if true, allow replacing solace/rapture with misery
 
@@ -54,10 +65,10 @@ namespace BossMod.WHM
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
             // 1. plenary indulgence, if we're gonna cast aoe gcd heal that will actually heal someone... (TODO: reconsider priority)
-            if (strategy.AOE && strategy.HealTarget != null && (strategy.NumRaptureMedica2Targets > 0 || strategy.NumCure3Targets > 0) && state.Unlocked(MinLevel.PlenaryIndulgence) && state.CanWeave(CDGroup.PlenaryIndulgence, 0.6f, deadline))
+            if (strategy.AOE && strategy.Heal && (strategy.NumRaptureMedica2Targets > 0 || strategy.NumCure3Targets > 0) && state.Unlocked(MinLevel.PlenaryIndulgence) && state.CanWeave(CDGroup.PlenaryIndulgence, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.PlenaryIndulgence);
 
-            // 3.potion (TODO)
+            // 3. potion (TODO)
 
             // 4. assize, if allowed and if we have some mana deficit (TODO: consider delaying until raidbuffs?)
             if (strategy.EnableAssize && state.CurMP <= 9000 && state.Unlocked(MinLevel.Assize) && state.CanWeave(CDGroup.Assize, 0.6f, deadline))
@@ -76,7 +87,7 @@ namespace BossMod.WHM
             {
                 if (state.CD(CDGroup.ThinAir) < state.GCD)
                     return ActionID.MakeSpell(AID.ThinAir); // spend second charge to start cooldown ticking, even if we gonna cast glare
-                if (strategy.HealTarget != null && state.NormalLiliesOnNextGCD == 0)
+                if (strategy.Heal && state.NormalLiliesOnNextGCD == 0)
                     return ActionID.MakeSpell(AID.ThinAir); // spend last charge if we're gonna cast expensive GCD
             }
 
@@ -85,8 +96,10 @@ namespace BossMod.WHM
 
         public static AID GetNextBestSTDamageGCD(State state, Strategy strategy)
         {
+            bool allowCasts = !strategy.Moving || state.SwiftcastLeft > state.GCD;
+
             // 0. just use glare before pull
-            if (strategy.Prepull)
+            if (allowCasts && strategy.Prepull)
                 return state.BestGlare;
 
             // 1. refresh dia/aero, if needed
@@ -94,15 +107,16 @@ namespace BossMod.WHM
                 return state.BestDia;
 
             // 2. glare, if not moving or if under swiftcast
-            if (!strategy.Moving || state.SwiftcastLeft > state.GCD)
+            if (allowCasts)
                 return state.BestGlare;
 
             // 3. afflatus misery
             if (state.BloodLilies >= 3)
                 return AID.AfflatusMisery;
 
+            return AID.None;
             // 4. slidecast glare (TODO: consider early dia refresh if GCD is zero...)
-            return strategy.Moving ? state.BestDia : state.BestGlare;
+            //return strategy.Moving ? state.BestDia : state.BestGlare;
         }
 
         public static AID GetNextBestAOEDamageGCD(State state, Strategy strategy)
@@ -137,16 +151,16 @@ namespace BossMod.WHM
                 return strategy.AllowReplacingHealWithMisery && state.BloodLilies >= 3 ? AID.AfflatusMisery : AID.AfflatusRapture;
 
             // 2. medica 2, if possible and useful, and buff is not already up; we consider it ok to overwrite last tick
-            bool canCastMedica2 = state.Unlocked(MinLevel.Medica2) && (state.CurMP >= 1000 || state.ThinAirLeft > state.GCD);
+            bool canCastMedica2 = state.CanCastMedica2;
             if (canCastMedica2 && strategy.NumRaptureMedica2Targets > 0 && state.MedicaLeft <= state.GCD + 2.5f)
                 return AID.Medica2;
 
             // 3. cure 3, if possible and useful
-            if (strategy.NumCure3Targets > 0 && state.Unlocked(MinLevel.Cure3) && (state.CurMP >= 1500 || state.ThinAirLeft > state.GCD))
+            if (strategy.NumCure3Targets > 0 && state.CanCastCure3)
                 return AID.Cure3;
 
             // 4. medica 1, if possible and useful
-            if (strategy.NumAssizeMedica1Targets > 0 && state.Unlocked(MinLevel.Medica1) && (state.CurMP >= 900 || state.ThinAirLeft > state.GCD))
+            if (strategy.NumAssizeMedica1Targets > 0 && state.CanCastMedica1)
                 return AID.Medica1;
 
             // 5. fallback: overheal medica 2 for hot (e.g. during downtime)
@@ -163,7 +177,7 @@ namespace BossMod.WHM
 
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
-            return strategy.HealTarget != null
+            return strategy.Heal
                 ? (strategy.AOE ? GetNextBestAOEHealGCD(state, strategy) : GetNextBestSTHealGCD(state, strategy))
                 : (strategy.AOE ? GetNextBestAOEDamageGCD(state, strategy) : GetNextBestSTDamageGCD(state, strategy));
         }
