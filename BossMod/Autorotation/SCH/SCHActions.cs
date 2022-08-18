@@ -79,7 +79,7 @@ namespace BossMod.SCH
             if (allowCasts && _strategy.NumSuccorTargets > 2 && _state.CurMP >= 1000)
                 return MakeResult(AID.Succor, Player);
 
-            // now check ST heals (TODO: afflatus solace)
+            // now check ST heal
             if (allowCasts && _bestSTHeal.Target != null)
                 return MakeResult(Rotation.GetNextBestSTHealGCD(_state, _strategy), _bestSTHeal.Target);
 
@@ -93,7 +93,7 @@ namespace BossMod.SCH
 
             // prepull adlo, if allowed
             var preshieldTarget = _state.Unlocked(MinLevel.Adloquium) ? FindProtectTarget() : null;
-            if (preshieldTarget != null && StatusDetails(preshieldTarget, SID.Galvanize, Player.InstanceID).Left < _state.GCD)
+            if (preshieldTarget != null && StatusDetails(preshieldTarget, SID.Galvanize, Player.InstanceID).Left <= _state.GCD)
                 return MakeResult(AID.Adloquium, preshieldTarget);
 
             // finally perform damage rotation

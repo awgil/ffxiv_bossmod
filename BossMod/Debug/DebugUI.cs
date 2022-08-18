@@ -205,6 +205,11 @@ namespace BossMod
 
         private unsafe void DrawPlayerAttributes()
         {
+            if (ImGui.Button("Clear trial"))
+            {
+                Utils.WriteField((void*)Service.Condition.Address, (int)Dalamud.Game.ClientState.Conditions.ConditionFlag.OnFreeTrial, false);
+            }
+
             var uiState = FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance();
             ImGui.BeginTable("attrs", 2);
             ImGui.TableSetupColumn("Index");

@@ -107,10 +107,10 @@ namespace BossMod.WHM
                     if (allowCasts && _strategy.NumRaptureMedica2Targets > 2 && _state.CanCastMedica2 && _state.MedicaLeft <= _state.GCD + 2.5f)
                         return MakeResult(AID.Medica2, Player);
                     // 3. cure 3, if possible and useful
-                    if (allowCasts && _strategy.NumCure3Targets > 0 && _state.CanCastCure3)
+                    if (allowCasts && _strategy.NumCure3Targets > 2 && _state.CanCastCure3)
                         return MakeResult(AID.Cure3, SmartCure3Target().Item1 ?? Player);
                     // 4. medica 1, if possible and useful
-                    if (allowCasts && _strategy.NumAssizeMedica1Targets > 0 && _state.CanCastMedica1)
+                    if (allowCasts && _strategy.NumAssizeMedica1Targets > 2 && _state.CanCastMedica1)
                         return MakeResult(AID.Medica1, Player);
 
                     // now check ST heals (TODO: afflatus solace)
@@ -127,7 +127,7 @@ namespace BossMod.WHM
 
                     // regen, if allowed
                     var regenTarget = _state.Unlocked(MinLevel.Regen) ? FindProtectTarget() : null;
-                    if (regenTarget != null && StatusDetails(regenTarget, SID.Regen, Player.InstanceID).Left < _state.GCD)
+                    if (regenTarget != null && StatusDetails(regenTarget, SID.Regen, Player.InstanceID).Left <= _state.GCD)
                         return MakeResult(AID.Regen, regenTarget);
 
                     // finally perform damage rotation
@@ -143,6 +143,9 @@ namespace BossMod.WHM
 
         protected override NextAction CalculateAutomaticOGCD(float deadline)
         {
+            if (AutoAction < AutoActionFirstFight)
+                return new();
+
             if (deadline < float.MaxValue && _allowDelayingNextGCD)
                 deadline += 0.4f + _state.AnimationLockDelay;
 

@@ -101,7 +101,7 @@ namespace BossMod
             PrimaryTarget = WorldState.Actors.Find(player?.TargetID ?? 0);
             SecondaryTarget = WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
             PotentialTargets.Clear();
-            if (!(Bossmods.ActiveModule?.FillTargets(PotentialTargets, PartyState.PlayerSlot) ?? false))
+            if (Bossmods.ActiveModule?.StateMachine.ActivePhase == null || !Bossmods.ActiveModule.FillTargets(PotentialTargets, PartyState.PlayerSlot))
                 PotentialTargets.Autofill(WorldState);
 
             Type? classType = null;

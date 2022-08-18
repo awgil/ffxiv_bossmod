@@ -45,7 +45,7 @@ namespace BossMod
                 {
                     state.PredictedHPCur = (int)actor.HP.Cur + Autorot.WorldState.PendingEffects.PendingHPDifference(actor.InstanceID);
                     state.PredictedHPDeficit = (int)actor.HP.Max - state.PredictedHPCur;
-                    state.PredictedHPRatio = state.PredictedHPCur / actor.HP.Max;
+                    state.PredictedHPRatio = (float)state.PredictedHPCur / actor.HP.Max;
                     state.HaveRemovableDebuffs = actor.Statuses.Any(s => Utils.StatusIsRemovable(s.ID));
                 }
                 state.NumAttackers = 0;
