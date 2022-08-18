@@ -63,10 +63,10 @@ namespace BossMod.RealmReborn.Dungeon.D09Cutter.D093Chimera
     {
         public ChaoticChorus() : base(ActionID.MakeSpell(AID.ChaoticChorus), new AOEShapeCircle(6)) { }
 
-        public override IEnumerable<(Actor, DateTime)> ImminentCasts(BossModule module)
+        public override IEnumerable<(WPos, Angle, DateTime)> ImminentCasts(BossModule module)
         {
             // TODO: timings
-            return module.Enemies(OID.Cacophony).Where(c => !c.IsDead).Select(c => (c, module.WorldState.CurrentTime));
+            return module.Enemies(OID.Cacophony).Where(c => !c.IsDead).Select(c => (c.Position, c.Rotation, module.WorldState.CurrentTime));
         }
     }
 

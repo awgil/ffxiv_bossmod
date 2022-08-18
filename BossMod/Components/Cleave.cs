@@ -7,11 +7,12 @@ namespace BossMod.Components
     {
         public AOEShape Shape { get; private init; }
         public uint EnemyOID { get; private init; }
+        public bool ActiveForUntargetable { get; private init; }
         private List<Actor> _enemies = new();
         private BitMask _inAOE = new(); // excludes main target
 
         // enemy OID == 0 means 'primary actor'
-        public Cleave(ActionID aid, AOEShape shape, uint enemyOID = 0) : base(aid)
+        public Cleave(ActionID aid, AOEShape shape, uint enemyOID = 0, bool activeForUntargetable = false) : base(aid)
         {
             Shape = shape;
             EnemyOID = enemyOID;
@@ -62,6 +63,9 @@ namespace BossMod.Components
         {
             foreach (var enemy in _enemies)
             {
+                if (!ActiveForUntargetable && !enemy.IsTargetable)
+                    continue;
+
                 var target = module.WorldState.Actors.Find(enemy.TargetID);
                 if (target != null)
                 {

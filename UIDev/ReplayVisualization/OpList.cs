@@ -13,6 +13,7 @@ namespace UIDev
         private IEnumerable<WorldState.Operation> _ops;
         private Action<DateTime> _scrollTo;
         private List<(DateTime Timestamp, string Text, Action<UITree>? Children, Action? ContextMenu)> _nodes = new();
+        private HashSet<uint> _filteredOIDs = new();
         private HashSet<ActionID> _filteredActions = new();
         private HashSet<uint> _filteredStatuses = new();
         private bool _nodesUpToDate;
@@ -55,7 +56,9 @@ namespace UIDev
 
         public void ClearFilters()
         {
+            _filteredOIDs.Clear();
             _filteredActions.Clear();
+            _filteredStatuses.Clear();
             _nodesUpToDate = false;
         }
 
@@ -65,6 +68,8 @@ namespace UIDev
             if (p.Type is ActorType.Pet or ActorType.Chocobo or ActorType.Area)
                 return false;
             if (p.Type == ActorType.Player && !allowPlayers)
+                return false;
+            if (_filteredOIDs.Contains(p.OID))
                 return false;
             return true;
         }
@@ -146,12 +151,24 @@ namespace UIDev
                 ActorState.OpStatus op => () => ContextMenuActorStatus(op),
                 ActorState.OpCastInfo op => () => ContextMenuActorCast(op),
                 ActorState.OpCastEvent op => () => ContextMenuEventCast(op),
+                ActorState.Operation op => () => ContextMenuActor(op),
                 _ => null,
             };
         }
 
+        private void ContextMenuActor(ActorState.Operation op)
+        {
+            var oid = FindParticipant(op.InstanceID, op.Timestamp)!.OID;
+            if (ImGui.MenuItem($"Filter out OID {oid:X}"))
+            {
+                _filteredOIDs.Add(oid);
+                _nodesUpToDate = false;
+            }
+        }
+
         private void ContextMenuActorStatus(ActorState.OpStatus op)
         {
+            ContextMenuActor(op);
             var s = FindStatus(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0)!;
             if (ImGui.MenuItem($"Filter out {Utils.StatusString(s.ID)}"))
             {
@@ -162,6 +179,7 @@ namespace UIDev
 
         private void ContextMenuActorCast(ActorState.OpCastInfo op)
         {
+            ContextMenuActor(op);
             var id = FindCast(FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null)!.ID;
             if (ImGui.MenuItem($"Filter out {id}"))
             {
@@ -172,6 +190,7 @@ namespace UIDev
 
         private void ContextMenuEventCast(ActorState.OpCastEvent op)
         {
+            ContextMenuActor(op);
             if (ImGui.MenuItem($"Filter out {op.Value.Action}"))
             {
                 _filteredActions.Add(op.Value.Action);

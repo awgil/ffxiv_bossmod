@@ -14,24 +14,24 @@ namespace BossMod.Components
             Shape = shape;
         }
 
-        public abstract IEnumerable<(Actor, DateTime)> ImminentCasts(BossModule module);
+        public abstract IEnumerable<(WPos, Angle, DateTime)> ImminentCasts(BossModule module);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (ImminentCasts(module).Any(c => Shape.Check(actor.Position, c.Item1)))
+            if (ImminentCasts(module).Any(c => Shape.Check(actor.Position, c.Item1, c.Item2)))
                 hints.Add("GTFO from aoe!");
         }
 
         public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
         {
-            foreach (var (c, time) in ImminentCasts(module))
-                zone.ForbidZone(Shape, c.Position, c.Rotation, time);
+            foreach (var (pos, rot, time) in ImminentCasts(module))
+                zone.ForbidZone(Shape, pos, rot, time);
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var (c, _) in ImminentCasts(module))
-                Shape.Draw(arena, c);
+            foreach (var (pos, rot, _) in ImminentCasts(module))
+                Shape.Draw(arena, pos, rot);
         }
     }
 
@@ -48,9 +48,9 @@ namespace BossMod.Components
             MaxCasts = maxCasts;
         }
 
-        public override IEnumerable<(Actor, DateTime)> ImminentCasts(BossModule module)
+        public override IEnumerable<(WPos, Angle, DateTime)> ImminentCasts(BossModule module)
         {
-            return ActiveCasters.Select(c => (c, c.CastInfo!.FinishAt));
+            return ActiveCasters.Select(c => (c.Position, c.Rotation, c.CastInfo!.FinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
