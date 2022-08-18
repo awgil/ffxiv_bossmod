@@ -54,8 +54,8 @@ namespace BossMod.SCH
             base.UpdateInternalState(autoAction);
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionMnd);
-            _strategy.NumWhisperingDawnTargets = _state.Fairy != null && _state.Unlocked(MinLevel.WhisperingDawn) ? Autorot.WorldState.Party.WithoutSlot().Where(p => p.HP.Cur < p.HP.Max).InRadius(_state.Fairy.Position, 15).Count() : 0;
-            _strategy.NumSuccorTargets = _state.Unlocked(MinLevel.Succor) ? Autorot.WorldState.Party.WithoutSlot().Where(p => p.HP.Cur < p.HP.Max).InRadius(Player.Position, 15).Count() : 0;
+            _strategy.NumWhisperingDawnTargets = _state.Fairy != null && _state.Unlocked(MinLevel.WhisperingDawn) ? CountAOEHealTargets(15, _state.Fairy.Position) : 0;
+            _strategy.NumSuccorTargets = _state.Unlocked(MinLevel.Succor) ? CountAOEHealTargets(15, Player.Position) : 0;
             _strategy.Moving = autoAction is AutoActionAIIdleMove or AutoActionAIFightMove;
             _bestSTHeal = FindBestSTHealTarget();
         }
