@@ -40,5 +40,4 @@ namespace BossMod.Components
                 Shape.Draw(arena, c);
         }
     }
-
 }

@@ -116,6 +116,7 @@ namespace BossMod
             var inCombat = character?.StatusFlags.HasFlag(StatusFlags.InCombat) ?? false;
             var target = SanitizedObjectID(obj != Service.ClientState.LocalPlayer ? obj.TargetObjectId : (Service.TargetManager.Target?.ObjectId ?? 0)); // this is a bit of a hack - when changing targets, we want AI to see changes immediately rather than wait for server response
             var modelState = character != null ? Utils.CharacterModelState(character) : (byte)0; // TODO: consider this (reading memory) vs network (actor control 63)
+            var eventState = Utils.GameObjectEventState(obj);
 
             var act = Actors.Find(obj.ObjectId);
             if (act == null)
@@ -159,6 +160,8 @@ namespace BossMod
                 Execute(new ActorState.OpCombat() { InstanceID = act.InstanceID, Value = inCombat });
             if (act.ModelState != modelState)
                 Execute(new ActorState.OpModelState() { InstanceID = act.InstanceID, Value = modelState });
+            if (act.EventState != eventState)
+                Execute(new ActorState.OpEventState() { InstanceID = act.InstanceID, Value = eventState });
             if (act.TargetID != target)
                 Execute(new ActorState.OpTarget() { InstanceID = act.InstanceID, Value = target });
             DispatchActorEvents(act.InstanceID);

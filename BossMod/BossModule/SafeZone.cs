@@ -27,10 +27,11 @@ namespace BossMod
         }
         public void ForbidZone(AOEShape shape, WPos origin, Angle rot, DateTime activateAt, float activeDurationS = 0) => ForbidZone(shape.Contour(origin, rot, 1, 0.5f), activateAt, activeDurationS);
 
-        //public void RestrictToZone(IEnumerable<IEnumerable<WPos>> bounds)
-        //{
-        //    Result = _clipper.Intersect - TODO...
-        //}
+        public void RestrictToZone(IEnumerable<IEnumerable<WPos>> bounds, DateTime activateAt, float activeDurationS = 0)
+        {
+            Result = _clipper.Intersect(Result, bounds);
+        }
+        public void RestrictToZone(AOEShape shape, WPos origin, Angle rot, DateTime activateAt, float activeDurationS = 0) => RestrictToZone(shape.Contour(origin, rot, -1, 0.5f), activateAt, activeDurationS);
 
         public void ForbidDirections(Angle center, Angle halfWidth, DateTime activateAt)
         {

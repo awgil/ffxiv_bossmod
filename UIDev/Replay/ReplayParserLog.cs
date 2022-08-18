@@ -72,6 +72,7 @@ namespace UIDev
                 case "COM+": ParseActorCombat(payload, true); break;
                 case "COM-": ParseActorCombat(payload, false); break;
                 case "MDLS": ParseActorModelState(payload); break;
+                case "EVTS": ParseActorEventState(payload); break;
                 case "TARG": ParseActorTarget(payload); break;
                 case "TETH": ParseActorTether(payload, true); break;
                 case "TET+": ParseActorTether(payload, true); break; // legacy (up to v4)
@@ -219,6 +220,11 @@ namespace UIDev
         private void ParseActorModelState(string[] payload)
         {
             AddOp(new ActorState.OpModelState() { InstanceID = ActorID(payload[2]), Value = byte.Parse(payload[3]) });
+        }
+
+        private void ParseActorEventState(string[] payload)
+        {
+            AddOp(new ActorState.OpEventState() { InstanceID = ActorID(payload[2]), Value = byte.Parse(payload[3]) });
         }
 
         private void ParseActorTarget(string[] payload)

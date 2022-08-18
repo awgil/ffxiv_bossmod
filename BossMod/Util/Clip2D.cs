@@ -70,6 +70,17 @@ namespace BossMod
             return solution;
         }
 
+        public PolyTree Intersect(PolyTree subj, IEnumerable<IEnumerable<WPos>> clip)
+        {
+            _clipper.Clear();
+            _clipper.AddPaths(Clipper.PolyTreeToPaths(subj), PolyType.ptSubject, true);
+            foreach (var p in clip)
+                _clipper.AddPath(p.Select(ConvertPoint).ToList(), PolyType.ptClip, true);
+            PolyTree solution = new();
+            _clipper.Execute(ClipType.ctIntersection, solution, PolyFillType.pftEvenOdd);
+            return solution;
+        }
+
         public PolyTree Intersect(PolyTree subj, PolyTree clip)
         {
             _clipper.Clear();

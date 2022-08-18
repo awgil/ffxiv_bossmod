@@ -104,6 +104,7 @@ namespace BossMod
         public bool IsDead;
         public bool InCombat;
         public byte ModelState;
+        public byte EventState; // not sure about the field meaning...
         public ulong OwnerID; // uuid of owner, for pets and similar
         public ulong TargetID;
         public ActorCastInfo? CastInfo;

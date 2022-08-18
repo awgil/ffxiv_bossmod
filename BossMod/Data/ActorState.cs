@@ -255,6 +255,20 @@ namespace BossMod
             public override string Str(WorldState? ws) => $"MDLS|{StrActor(ws, InstanceID)}|{Value}";
         }
 
+        public event EventHandler<Actor>? EventStateChanged;
+        public class OpEventState : Operation
+        {
+            public byte Value;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
+            {
+                actor.EventState = Value;
+                ws.Actors.EventStateChanged?.Invoke(ws, actor);
+            }
+
+            public override string Str(WorldState? ws) => $"EVTS|{StrActor(ws, InstanceID)}|{Value}";
+        }
+
         public event EventHandler<Actor>? TargetChanged;
         public class OpTarget : Operation
         {
