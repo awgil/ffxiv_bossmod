@@ -20,7 +20,7 @@
 
     class Swinge : Components.SelfTargetedAOEs
     {
-        public Swinge() : base(ActionID.MakeSpell(AID.LionsBreath), new AOEShapeCone(40, 60.Degrees())) { } // TODO: verify angle
+        public Swinge() : base(ActionID.MakeSpell(AID.Swinge), new AOEShapeCone(40, 45.Degrees())) { } // TODO: verify angle
     }
 
     // due to relatively short casts and the fact that boss likes moving across arena to cast swinge, we always want non-tanks to be positioned slightly behing

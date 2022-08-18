@@ -28,7 +28,7 @@ namespace BossMod.RealmReborn.Dungeon.D10StoneVigil.D103Isgebind
 
     class FrostBreath : Components.Cleave
     {
-        public FrostBreath() : base(ActionID.MakeSpell(AID.FrostBreath), new AOEShapeCone(27, 45.Degrees())) { } // TODO: verify angle
+        public FrostBreath() : base(ActionID.MakeSpell(AID.FrostBreath), new AOEShapeCone(27, 60.Degrees())) { } // TODO: verify angle
     }
 
     class SheetOfIce : Components.LocationTargetedAOEs
