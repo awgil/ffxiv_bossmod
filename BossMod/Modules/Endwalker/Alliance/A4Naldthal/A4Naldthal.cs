@@ -12,32 +12,32 @@
 
     class FlamesOfTheDead : Components.SelfTargetedAOEs
     {
-        public FlamesOfTheDead() : base(ActionID.MakeSpell(AID.FlamesOfTheDeadReal), new AOEShapeDonut(8, 30)) { }
+        public FlamesOfTheDead() : base(ActionID.MakeSpell(AID.FlamesOfTheDeadReal), new AOEShapeDonut(8, 30), true) { }
     }
 
     class LivingHeat : Components.SelfTargetedAOEs
     {
-        public LivingHeat() : base(ActionID.MakeSpell(AID.LivingHeatReal), new AOEShapeCircle(8)) { }
+        public LivingHeat() : base(ActionID.MakeSpell(AID.LivingHeatReal), new AOEShapeCircle(8), true) { }
     }
 
     class HellOfFireFront : Components.SelfTargetedAOEs
     {
-        public HellOfFireFront() : base(ActionID.MakeSpell(AID.HellOfFireFrontAOE), new AOEShapeCone(60, 90.Degrees())) { }
+        public HellOfFireFront() : base(ActionID.MakeSpell(AID.HellOfFireFrontAOE), new AOEShapeCone(60, 90.Degrees()), true) { }
     }
 
     class HellOfFireBack : Components.SelfTargetedAOEs
     {
-        public HellOfFireBack() : base(ActionID.MakeSpell(AID.HellOfFireBackAOE), new AOEShapeCone(60, 90.Degrees())) { }
+        public HellOfFireBack() : base(ActionID.MakeSpell(AID.HellOfFireBackAOE), new AOEShapeCone(60, 90.Degrees()), true) { }
     }
 
     class WaywardSoul : Components.SelfTargetedAOEs
     {
-        public WaywardSoul() : base(ActionID.MakeSpell(AID.WaywardSoulAOE), new AOEShapeCircle(18), 3) { }
+        public WaywardSoul() : base(ActionID.MakeSpell(AID.WaywardSoulAOE), new AOEShapeCircle(18), true, 3) { }
     }
 
     class Twingaze : Components.SelfTargetedAOEs
     {
-        public Twingaze() : base(ActionID.MakeSpell(AID.Twingaze), new AOEShapeCone(60, 15.Degrees())) { }
+        public Twingaze() : base(ActionID.MakeSpell(AID.Twingaze), new AOEShapeCone(60, 15.Degrees()), true) { }
     }
 
     public class A4NaldthalStates : StateMachineBuilder

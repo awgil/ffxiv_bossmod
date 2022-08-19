@@ -17,28 +17,28 @@
 
     class HandOfTheDestroyerWrath : Components.SelfTargetedAOEs
     {
-        public HandOfTheDestroyerWrath() : base(ActionID.MakeSpell(AID.HandOfTheDestroyerWrathAOE), new AOEShapeRect(90, 20)) { }
+        public HandOfTheDestroyerWrath() : base(ActionID.MakeSpell(AID.HandOfTheDestroyerWrathAOE), new AOEShapeRect(90, 20), true) { }
     }
 
     class HandOfTheDestroyerJudgment : Components.SelfTargetedAOEs
     {
-        public HandOfTheDestroyerJudgment() : base(ActionID.MakeSpell(AID.HandOfTheDestroyerJudgmentAOE), new AOEShapeRect(90, 20)) { }
+        public HandOfTheDestroyerJudgment() : base(ActionID.MakeSpell(AID.HandOfTheDestroyerJudgmentAOE), new AOEShapeRect(90, 20), true) { }
     }
 
     class BrokenWorld : Components.SelfTargetedAOEs
     {
-        public BrokenWorld() : base(ActionID.MakeSpell(AID.BrokenWorldAOE), new AOEShapeCircle(30)) { } // TODO: determine falloff
+        public BrokenWorld() : base(ActionID.MakeSpell(AID.BrokenWorldAOE), new AOEShapeCircle(30), true) { } // TODO: determine falloff
     }
 
     class BronzeLightning : Components.SelfTargetedAOEs
     {
-        public BronzeLightning() : base(ActionID.MakeSpell(AID.BronzeLightning), new AOEShapeCone(50, 22.5f.Degrees()), 4) { }
+        public BronzeLightning() : base(ActionID.MakeSpell(AID.BronzeLightning), new AOEShapeCone(50, 22.5f.Degrees()), true, 4) { }
     }
 
     // TODO: show knockback hints, lightning hints, etc... need to draw complex arena shape though
     class RhalgrBeacon : Components.SelfTargetedAOEs
     {
-        public RhalgrBeacon() : base(ActionID.MakeSpell(AID.RhalgrsBeaconAOE), new AOEShapeCircle(10)) { }
+        public RhalgrBeacon() : base(ActionID.MakeSpell(AID.RhalgrsBeaconAOE), new AOEShapeCircle(10), true) { }
     }
 
     public class A2RhalgrStates : StateMachineBuilder

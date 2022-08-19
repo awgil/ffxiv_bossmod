@@ -20,17 +20,17 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D082TempleGuardian
 
     class BoulderClap : Components.SelfTargetedAOEs
     {
-        public BoulderClap() : base(ActionID.MakeSpell(AID.BoulderClap), new AOEShapeCone(14.2f, 60.Degrees())) { }
+        public BoulderClap() : base(ActionID.MakeSpell(AID.BoulderClap), new AOEShapeCone(14.2f, 60.Degrees()), true) { }
     }
 
     class TrueGrit : Components.SelfTargetedAOEs
     {
-        public TrueGrit() : base(ActionID.MakeSpell(AID.TrueGrit), new AOEShapeCone(14.2f, 60.Degrees())) { }
+        public TrueGrit() : base(ActionID.MakeSpell(AID.TrueGrit), new AOEShapeCone(14.2f, 60.Degrees()), true) { }
     }
 
     class Rockslide : Components.SelfTargetedAOEs
     {
-        public Rockslide() : base(ActionID.MakeSpell(AID.Rockslide), new AOEShapeRect(16.2f, 4)) { }
+        public Rockslide() : base(ActionID.MakeSpell(AID.Rockslide), new AOEShapeRect(16.2f, 4), true) { }
     }
 
     class D082TempleGuardianStates : StateMachineBuilder

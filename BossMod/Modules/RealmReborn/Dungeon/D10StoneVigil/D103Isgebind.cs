@@ -43,7 +43,7 @@ namespace BossMod.RealmReborn.Dungeon.D10StoneVigil.D103Isgebind
 
     class Cauterize : Components.SelfTargetedAOEs
     {
-        public Cauterize() : base(ActionID.MakeSpell(AID.Cauterize), new AOEShapeRect(48, 10)) { }
+        public Cauterize() : base(ActionID.MakeSpell(AID.Cauterize), new AOEShapeRect(48, 10), true) { }
     }
 
     class Touchdown : Components.GenericSelfTargetedAOEs

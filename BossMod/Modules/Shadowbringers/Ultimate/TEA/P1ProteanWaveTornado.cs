@@ -5,7 +5,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
 {
     class P1ProteanWaveTornadoVis : Components.SelfTargetedAOEs
     {
-        public P1ProteanWaveTornadoVis() : base(ActionID.MakeSpell(AID.ProteanWaveTornadoVis), new AOEShapeCone(40, 15.Degrees())) { }
+        public P1ProteanWaveTornadoVis() : base(ActionID.MakeSpell(AID.ProteanWaveTornadoVis), new AOEShapeCone(40, 15.Degrees()), true) { }
     }
 
     class P1ProteanWaveTornado : Components.CastCounter

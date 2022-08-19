@@ -49,6 +49,17 @@ namespace BossMod
             return solution;
         }
 
+        public PolyTree Union(PolyTree starting, IEnumerable<IEnumerable<WPos>> add)
+        {
+            _clipper.Clear();
+            _clipper.AddPaths(Clipper.PolyTreeToPaths(starting), PolyType.ptSubject, true);
+            foreach (var p in add)
+                _clipper.AddPath(p.Select(ConvertPoint).ToList(), PolyType.ptClip, true);
+            PolyTree solution = new();
+            _clipper.Execute(ClipType.ctUnion, solution, PolyFillType.pftEvenOdd);
+            return solution;
+        }
+
         public PolyTree Difference(PolyTree starting, IEnumerable<IEnumerable<WPos>> remove)
         {
             _clipper.Clear();
@@ -107,6 +118,12 @@ namespace BossMod
             List<(WPos, WPos, WPos)> triangulation = new();
             Triangulate(triangulation, solution);
             return triangulation;
+        }
+
+        public static IEnumerable<IEnumerable<WPos>> FullContour(PolyTree tree)
+        {
+            foreach (var p in Clipper.PolyTreeToPaths(tree))
+                yield return p.Select(ConvertPoint);
         }
 
         // returns root node (which is 'hole') if point is outside any 'root' polys

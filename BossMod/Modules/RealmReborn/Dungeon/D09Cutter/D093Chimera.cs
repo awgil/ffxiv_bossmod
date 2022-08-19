@@ -31,22 +31,22 @@ namespace BossMod.RealmReborn.Dungeon.D09Cutter.D093Chimera
 
     class RamsBreath : Components.SelfTargetedAOEs
     {
-        public RamsBreath() : base(ActionID.MakeSpell(AID.RamsBreath), new AOEShapeCone(9.7f, 60.Degrees(), -45.Degrees())) { }
+        public RamsBreath() : base(ActionID.MakeSpell(AID.RamsBreath), new AOEShapeCone(9.7f, 60.Degrees(), -45.Degrees()), true) { }
     }
 
     class DragonsBreath : Components.SelfTargetedAOEs
     {
-        public DragonsBreath() : base(ActionID.MakeSpell(AID.DragonsBreath), new AOEShapeCone(9.7f, 60.Degrees(), 45.Degrees())) { }
+        public DragonsBreath() : base(ActionID.MakeSpell(AID.DragonsBreath), new AOEShapeCone(9.7f, 60.Degrees(), 45.Degrees()), true) { }
     }
 
     class RamsVoice : Components.SelfTargetedAOEs
     {
-        public RamsVoice() : base(ActionID.MakeSpell(AID.RamsVoice), new AOEShapeCircle(9.7f)) { }
+        public RamsVoice() : base(ActionID.MakeSpell(AID.RamsVoice), new AOEShapeCircle(9.7f), true) { }
     }
 
     class DragonsVoice : Components.SelfTargetedAOEs
     {
-        public DragonsVoice() : base(ActionID.MakeSpell(AID.DragonsVoice), new AOEShapeDonut(7, 30)) { }
+        public DragonsVoice() : base(ActionID.MakeSpell(AID.DragonsVoice), new AOEShapeDonut(7, 30), true) { }
     }
 
     class RamsKeeper : Components.LocationTargetedAOEs

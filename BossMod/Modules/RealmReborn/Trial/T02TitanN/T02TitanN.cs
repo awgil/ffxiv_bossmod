@@ -51,12 +51,12 @@ namespace BossMod.RealmReborn.Trial.T02TitanN
 
     class Geocrush : Components.SelfTargetedAOEs
     {
-        public Geocrush() : base(ActionID.MakeSpell(AID.Geocrush), new AOEShapeCircle(18)) { } // TODO: verify falloff
+        public Geocrush() : base(ActionID.MakeSpell(AID.Geocrush), new AOEShapeCircle(18), true) { } // TODO: verify falloff
     }
 
     class Landslide : Components.SelfTargetedAOEs
     {
-        public Landslide() : base(ActionID.MakeSpell(AID.Landslide), new AOEShapeRect(40, 3)) { }
+        public Landslide() : base(ActionID.MakeSpell(AID.Landslide), new AOEShapeRect(40, 3), true) { }
     }
 
     class WeightOfTheLand : Components.LocationTargetedAOEs

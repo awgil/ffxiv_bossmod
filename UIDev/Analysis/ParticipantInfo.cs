@@ -85,7 +85,7 @@ namespace UIDev.Analysis
             Func<KeyValuePair<uint, ParticipantData>, UITree.NodeProperties> map = kv =>
             {
                 var name = _oidType?.GetEnumName(kv.Key);
-                return new($"{kv.Key:X} ({_oidType?.GetEnumName(kv.Key)})", false, name == null ? 0xff00ffff : 0xffffffff);
+                return new($"{kv.Key:X} ({_oidType?.GetEnumName(kv.Key)}) '{kv.Value.Name}' ({kv.Value.Type})", false, name == null ? 0xff00ffff : 0xffffffff);
             };
             foreach (var (oid, data) in tree.Nodes(_data, map))
             {

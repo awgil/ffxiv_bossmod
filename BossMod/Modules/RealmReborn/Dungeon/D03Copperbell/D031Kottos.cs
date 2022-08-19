@@ -24,12 +24,12 @@
 
     class LumberingLeap : Components.SelfTargetedAOEs
     {
-        public LumberingLeap() : base(ActionID.MakeSpell(AID.LumberingLeapAOE), new AOEShapeCircle(12)) { }
+        public LumberingLeap() : base(ActionID.MakeSpell(AID.LumberingLeapAOE), new AOEShapeCircle(12), true) { }
     }
 
     class ColossalSlam : Components.SelfTargetedAOEs
     {
-        public ColossalSlam() : base(ActionID.MakeSpell(AID.ColossalSlam), new AOEShapeCone(30, 30.Degrees())) { }
+        public ColossalSlam() : base(ActionID.MakeSpell(AID.ColossalSlam), new AOEShapeCone(30, 30.Degrees()), true) { }
     }
 
     class Catapult : Components.CastHint

@@ -5,12 +5,12 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
 {
     class P1ProteanWaveLiquidVisBoss : Components.SelfTargetedAOEs
     {
-        public P1ProteanWaveLiquidVisBoss() : base(ActionID.MakeSpell(AID.ProteanWaveLiquidVisBoss), new AOEShapeCone(40, 15.Degrees())) { }
+        public P1ProteanWaveLiquidVisBoss() : base(ActionID.MakeSpell(AID.ProteanWaveLiquidVisBoss), new AOEShapeCone(40, 15.Degrees()), true) { }
     }
 
     class P1ProteanWaveLiquidVisHelper : Components.SelfTargetedAOEs
     {
-        public P1ProteanWaveLiquidVisHelper() : base(ActionID.MakeSpell(AID.ProteanWaveLiquidVisHelper), new AOEShapeCone(40, 15.Degrees())) { }
+        public P1ProteanWaveLiquidVisHelper() : base(ActionID.MakeSpell(AID.ProteanWaveLiquidVisHelper), new AOEShapeCone(40, 15.Degrees()), true) { }
     }
 
     class P1ProteanWaveLiquidInvis : Components.CastCounter

@@ -28,7 +28,7 @@
 
     class Divide : Components.SelfTargetedAOEs
     {
-        public Divide() : base(ActionID.MakeSpell(AID.Burst), new AOEShapeCircle(8)) { }
+        public Divide() : base(ActionID.MakeSpell(AID.Burst), new AOEShapeCircle(8), true) { }
     }
 
     class D032IchorousIreStates : StateMachineBuilder

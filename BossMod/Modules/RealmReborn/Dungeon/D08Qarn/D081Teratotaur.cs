@@ -36,12 +36,12 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D081Teratotaur
 
     class Mow : Components.SelfTargetedAOEs
     {
-        public Mow() : base(ActionID.MakeSpell(AID.Mow), new AOEShapeCone(8.25f, 60.Degrees())) { }
+        public Mow() : base(ActionID.MakeSpell(AID.Mow), new AOEShapeCone(8.25f, 60.Degrees()), true) { }
     }
 
     class FrightfulRoar : Components.SelfTargetedAOEs
     {
-        public FrightfulRoar() : base(ActionID.MakeSpell(AID.FrightfulRoar), new AOEShapeCircle(8.25f)) { }
+        public FrightfulRoar() : base(ActionID.MakeSpell(AID.FrightfulRoar), new AOEShapeCircle(8.25f), true) { }
     }
 
     class MortalRay : BossComponent

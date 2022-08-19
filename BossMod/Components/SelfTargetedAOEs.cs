@@ -38,19 +38,21 @@ namespace BossMod.Components
     // self-targeted aoe that happens at the end of the cast
     public class SelfTargetedAOEs : GenericSelfTargetedAOEs
     {
+        public bool UseLegacyRotation { get; private init; } // set by old modules that were written before i reversed real cast rotation...
         public int MaxCasts { get; private init; } // used for staggered aoes, when showing all active would be pointless
         private List<Actor> _casters = new();
         public IReadOnlyList<Actor> Casters => _casters;
         public IEnumerable<Actor> ActiveCasters => _casters.Take(MaxCasts);
 
-        public SelfTargetedAOEs(ActionID aid, AOEShape shape, int maxCasts = int.MaxValue) : base(aid, shape)
+        public SelfTargetedAOEs(ActionID aid, AOEShape shape, bool useLegacyRotation, int maxCasts = int.MaxValue) : base(aid, shape)
         {
+            UseLegacyRotation = useLegacyRotation;
             MaxCasts = maxCasts;
         }
 
         public override IEnumerable<(WPos, Angle, DateTime)> ImminentCasts(BossModule module)
         {
-            return ActiveCasters.Select(c => (c.Position, c.Rotation, c.CastInfo!.FinishAt));
+            return ActiveCasters.Select(c => (c.Position, UseLegacyRotation ? c.Rotation : c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

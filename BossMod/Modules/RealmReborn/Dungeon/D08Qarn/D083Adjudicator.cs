@@ -25,12 +25,12 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D083Adjudicator
 
     class Darkness : Components.SelfTargetedAOEs
     {
-        public Darkness() : base(ActionID.MakeSpell(AID.Darkness), new AOEShapeCone(7.5f, 60.Degrees())) { }
+        public Darkness() : base(ActionID.MakeSpell(AID.Darkness), new AOEShapeCone(7.5f, 60.Degrees()), true) { }
     }
 
     class VergeLine : Components.SelfTargetedAOEs
     {
-        public VergeLine() : base(ActionID.MakeSpell(AID.VergeLine), new AOEShapeRect(60, 2)) { }
+        public VergeLine() : base(ActionID.MakeSpell(AID.VergeLine), new AOEShapeRect(60, 2), true) { }
     }
 
     class D083AdjudicatorStates : StateMachineBuilder

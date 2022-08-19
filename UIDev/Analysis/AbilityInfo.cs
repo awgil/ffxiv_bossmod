@@ -214,7 +214,7 @@ namespace UIDev.Analysis
                         var row = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID);
                         tree.LeafNode($"Cast time: {row?.Cast100ms * 0.1f:f1}");
                         tree.LeafNode($"Target range: {row?.Range}");
-                        tree.LeafNode($"Effect shape: {row?.CastType}");
+                        tree.LeafNode($"Effect shape: {row?.CastType} ({(row != null ? DescribeShape(row) : "")})");
                         tree.LeafNode($"Effect range: {row?.EffectRange}");
                         tree.LeafNode($"Effect width: {row?.XAxisModifier}");
                         tree.LeafNode($"Omen: {row?.Omen.Value?.Path} / {row?.Omen.Value?.PathAlly}");
@@ -272,7 +272,8 @@ namespace UIDev.Analysis
                 var sb = new StringBuilder("public enum AID : uint\n{");
                 foreach (var (aid, data) in _data)
                 {
-                    string name = aid.Type != ActionType.Spell ? $"// {aid}" : _aidType?.GetEnumName(aid.ID) ?? $"_Gen_{Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID)?.Name ?? $"Ability{aid.ID}")}";
+                    var ldata = aid.Type == ActionType.Spell ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID) : null;
+                    string name = aid.Type != ActionType.Spell ? $"// {aid}" : _aidType?.GetEnumName(aid.ID) ?? $"_Gen_{Utils.StringToIdentifier(ldata?.Name ?? $"Ability{aid.ID}")}";
                     sb.Append($"\n    {name} = {aid.ID}, // {OIDListString(data.CasterOIDs)}->");
 
                     var tarSB = new StringBuilder();
@@ -301,6 +302,8 @@ namespace UIDev.Analysis
 
                     sb.Append(tarSB);
                     sb.Append($", {(data.CastTime > 0 ? $"{data.CastTime:f1}s" : "no")} cast");
+                    if (ldata != null)
+                        sb.Append($", {DescribeShape(ldata)}");
                 }
                 sb.Append("\n};\n");
                 ImGui.SetClipboardText(sb.ToString());
@@ -338,6 +341,38 @@ namespace UIDev.Analysis
         {
             var s = string.Join('/', oids.Select(oid => oid == 0 ? "player" : _oidType?.GetEnumName(oid) ?? $"{oid:X}"));
             return s.Length > 0 ? s : "none";
+        }
+
+        private string DescribeShape(Lumina.Excel.GeneratedSheets.Action data)
+        {
+            return data.CastType switch
+            {
+                1 => "single-target",
+                2 => $"range {data.EffectRange} circle",
+                3 => $"range {data.EffectRange}+R {DetermineConeAngle(data)?.ToString() ?? "?"}-degree cone",
+                4 => $"range {data.EffectRange}+R width {data.XAxisModifier} rect",
+                5 => $"range {data.EffectRange}+R circle",
+                8 => $"width {data.XAxisModifier} rect charge",
+                10 => $"range ?-{data.EffectRange} donut",
+                11 => $"range {data.EffectRange} width {data.XAxisModifier} cross",
+                12 => $"range {data.EffectRange} width {data.XAxisModifier} rect",
+                13 => $"range {data.EffectRange} {DetermineConeAngle(data)?.ToString() ?? "?"}-degree cone",
+                _ => "???"
+            };
+        }
+
+        private Angle? DetermineConeAngle(Lumina.Excel.GeneratedSheets.Action data)
+        {
+            var omen = data.Omen.Value;
+            if (omen == null)
+                return null;
+
+            var path = omen.Path.ToString();
+            var pos = path.IndexOf("fan");
+            if (pos < 0 || pos + 6 > path.Length)
+                return null;
+
+            return int.Parse(path.Substring(pos + 3, 3)).Degrees();
         }
     }
 }
