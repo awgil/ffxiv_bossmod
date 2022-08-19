@@ -248,7 +248,7 @@ namespace UIDev
                 {
                     Action = Action(payload[3]),
                     TargetID = ActorID(payload[4]),
-                    Rotation = payload.Length > 8 ? float.Parse(parts[7]).Degrees() : new(),
+                    Rotation = payload.Length > 8 ? float.Parse(payload[8]).Degrees() : new(),
                     Location = Vec3(payload[5]),
                     TotalTime = totalTime,
                     FinishAt = DateTime.Parse(payload[0]).AddSeconds(totalTime - float.Parse(parts[0])),
