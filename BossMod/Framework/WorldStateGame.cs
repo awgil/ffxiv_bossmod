@@ -174,6 +174,7 @@ namespace BossMod
                     {
                         Action = new((ActionType)chara.CastActionType, chara.CastActionId),
                         TargetID = SanitizedObjectID(chara.CastTargetObjectId),
+                        Rotation = Utils.CharacterCastRotation(chara).Radians(),
                         Location = Utils.BattleCharaCastLocation(chara),
                         TotalTime = chara.TotalCastTime,
                         FinishAt = CurrentTime.AddSeconds(Math.Clamp(chara.TotalCastTime - chara.CurrentCastTime, 0, 100000)),

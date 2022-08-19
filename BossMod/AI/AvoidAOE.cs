@@ -9,7 +9,7 @@ namespace BossMod.AI
     public class AutoAOEs : IDisposable
     {
         private WorldState _ws;
-        private Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape)> _activeAOEs = new();
+        private Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = new();
 
         public AutoAOEs(WorldState ws)
         {
@@ -28,7 +28,20 @@ namespace BossMod.AI
         {
             var zone = new SafeZone(playerPos);
             foreach (var aoe in _activeAOEs.Values)
-                zone.ForbidZone(aoe.Shape, aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ, aoe.Caster.Rotation, aoe.Caster.CastInfo!.FinishAt);
+            {
+                var target = aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ;
+                var rot = aoe.Caster.CastInfo!.Rotation;
+                if (aoe.IsCharge)
+                {
+                    var shape = (AOEShapeRect)aoe.Shape;
+                    shape.SetEndPoint(target, aoe.Caster.Position, rot);
+                    zone.ForbidZone(shape, aoe.Caster.Position, rot, aoe.Caster.CastInfo.FinishAt);
+                }
+                else
+                {
+                    zone.ForbidZone(aoe.Shape, target, rot, aoe.Caster.CastInfo.FinishAt);
+                }
+            }
             return zone;
         }
 
@@ -45,8 +58,11 @@ namespace BossMod.AI
                 3 => new AOEShapeCone(data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data) * 0.5f),
                 4 => new AOEShapeRect(data.EffectRange + actor.HitboxRadius, data.XAxisModifier * 0.5f),
                 5 => new AOEShapeCircle(data.EffectRange + actor.HitboxRadius),
+                //6 => ???
                 //7 => new AOEShapeCircle(data.EffectRange), - used for player ground-targeted circles a-la asylum
+                //8 => charge rect
                 //10 => new AOEShapeDonut(actor.HitboxRadius, data.EffectRange), // TODO: find a way to determine inner radius (omen examples: 28762 - 4/40 - gl_sircle_4004bp1)
+                //11 => cross == 12 + another 12 rotated 90 degrees
                 12 => new AOEShapeRect(data.EffectRange, data.XAxisModifier * 0.5f),
                 13 => new AOEShapeCone(data.EffectRange, DetermineConeAngle(data) * 0.5f),
                 _ => null
@@ -57,7 +73,7 @@ namespace BossMod.AI
                 return;
             }
             var target = _ws.Actors.Find(actor.CastInfo.TargetID);
-            _activeAOEs[actor.InstanceID] = (actor, target, shape);
+            _activeAOEs[actor.InstanceID] = (actor, target, shape, data.CastType == 8);
         }
 
         private void OnCastFinished(object? sender, Actor actor)

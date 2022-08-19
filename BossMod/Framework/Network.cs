@@ -245,7 +245,7 @@ namespace BossMod
 
         private unsafe void HandleActorCast(Protocol.Server_ActorCast* p, uint actorID)
         {
-            EventActorCast?.Invoke(this, (actorID, new(p->SkillType, p->ActionID), p->CastTime, p->TargetID));
+            EventActorCast?.Invoke(this, (actorID, new(p->ActionType, p->SpellID), p->CastTime, p->TargetID));
         }
 
         private unsafe void HandleActorControl(Protocol.Server_ActorControl* p, uint actorID)
@@ -370,7 +370,8 @@ namespace BossMod
                 case Protocol.Opcode.ActorCast:
                     {
                         var p = (Protocol.Server_ActorCast*)dataPtr;
-                        Service.Log($"[Network] - AID={new ActionID(p->SkillType, p->ActionID)}, target={Utils.ObjectString(p->TargetID)}, time={p->CastTime:f2}, rot={p->Rotation:f3}, x={p->PosX}, y={p->PosY}, z={p->PosZ}, u={p->Unknown:X2}, u1={new ActionID(ActionType.Spell, p->Unknown1)}, u2={Utils.ObjectString(p->Unknown2)}, u3={p->Unknown3:X4}");
+                        uint aid = (uint)(p->ActionID - _unkDelta);
+                        Service.Log($"[Network] - AID={new ActionID(p->ActionType, aid)} ({new ActionID(ActionType.Spell, p->SpellID)}), target={Utils.ObjectString(p->TargetID)}, time={p->CastTime:f2} ({p->BaseCastTime100ms * 0.1f:f1}), rot={IntToFloatAngle(p->Rotation)}, targetpos={Utils.Vec3String(IntToFloatCoords(p->PosX, p->PosY, p->PosZ))}, interruptible={p->Interruptible}, u1={p->u1:X2}, u2={Utils.ObjectString(p->u2_objID)}, u3={p->u3:X4}");
                         break;
                     }
                 case Protocol.Opcode.ActorControl:
@@ -479,9 +480,9 @@ namespace BossMod
         private unsafe void DumpActionEffect(Protocol.Server_ActionEffectHeader* data, ActionEffect* effects, ulong* targetIDs, uint maxTargets, Vector3 targetPos)
         {
             // rotation: 0 -> -180, 65535 -> +180
-            float rot = (data->rotation / 65535.0f * 360.0f) - 180.0f;
+            var rot = IntToFloatAngle(data->rotation);
             uint aid = (uint)(data->actionId - _unkDelta);
-            Service.Log($"[Network] - AID={new ActionID(data->actionType, aid)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, seq={data->SourceSequence}, cntr={data->globalEffectCounter}, rot={rot:f0}, pos={Utils.Vec3String(targetPos)}, var={data->variation}, someTarget={Utils.ObjectString(data->SomeTargetID)}, u={data->unknown20:X2} {data->padding21:X4}");
+            Service.Log($"[Network] - AID={new ActionID(data->actionType, aid)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, seq={data->SourceSequence}, cntr={data->globalEffectCounter}, rot={rot}, pos={Utils.Vec3String(targetPos)}, var={data->variation}, someTarget={Utils.ObjectString(data->SomeTargetID)}, u={data->unknown20:X2} {data->padding21:X4}");
             var targets = Math.Min(data->NumTargets, maxTargets);
             for (int i = 0; i < targets; ++i)
             {
@@ -507,6 +508,11 @@ namespace BossMod
             float fy = y * (2000.0f / 65535) - 1000;
             float fz = z * (2000.0f / 65535) - 1000;
             return new(fx, fy, fz);
+        }
+
+        private static Angle IntToFloatAngle(ushort rot)
+        {
+            return (rot / 65535.0f * (2 * MathF.PI) - MathF.PI).Radians();
         }
     }
 }

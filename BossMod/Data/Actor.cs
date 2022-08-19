@@ -31,6 +31,7 @@ namespace BossMod
     {
         public ActionID Action;
         public ulong TargetID;
+        public Angle Rotation;
         public Vector3 Location;
         public float TotalTime;
         public DateTime FinishAt;

@@ -194,18 +194,20 @@ namespace BossMod
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct Server_ActorCast
         {
-            public ushort ActionID;
-            public ActionType SkillType;
-            public byte Unknown;
-            public uint Unknown1; // also action ID; dissector calls it ItemId - matches actionId of ActionEffectHeader - e.g. when using KeyItem, action is generic 'KeyItem 1', Unknown1 is actual item id, probably similar for stuff like mounts etc.
+            public ushort SpellID;
+            public ActionType ActionType;
+            public byte BaseCastTime100ms;
+            public uint ActionID; // also action ID; dissector calls it ItemId - matches actionId of ActionEffectHeader - e.g. when using KeyItem, action is generic 'KeyItem 1', Unknown1 is actual item id, probably similar for stuff like mounts etc.
             public float CastTime;
             public uint TargetID;
-            public float Rotation; // in radians
-            public uint Unknown2;
+            public ushort Rotation;
+            public byte Interruptible;
+            public byte u1;
+            public uint u2_objID;
             public ushort PosX;
             public ushort PosY;
             public ushort PosZ;
-            public ushort Unknown3;
+            public ushort u3;
         }
 
         public enum Server_ActorControlCategory : ushort

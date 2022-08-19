@@ -144,13 +144,14 @@ namespace BossMod
 
         private void DrawCastingEnemiesList()
         {
-            ImGui.BeginTable("enemies", 6);
+            ImGui.BeginTable("enemies", 7, ImGuiTableFlags.Resizable);
             ImGui.TableSetupColumn("Caster");
             ImGui.TableSetupColumn("Target");
             ImGui.TableSetupColumn("Action");
             ImGui.TableSetupColumn("Time");
             ImGui.TableSetupColumn("Location");
             ImGui.TableSetupColumn("Position");
+            ImGui.TableSetupColumn("Rotation");
             ImGui.TableHeadersRow();
             foreach (var elem in _ws.Actors)
             {
@@ -164,6 +165,7 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.CastTimeString(elem.CastInfo, _ws.CurrentTime));
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.Vec3String(elem.CastInfo.Location));
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(elem.Position.ToString());
+                ImGui.TableNextColumn(); ImGui.TextUnformatted(elem.CastInfo.Rotation.ToString());
             }
             ImGui.EndTable();
         }

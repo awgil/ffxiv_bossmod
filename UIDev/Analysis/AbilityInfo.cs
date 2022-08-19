@@ -218,6 +218,8 @@ namespace UIDev.Analysis
                         tree.LeafNode($"Effect range: {row?.EffectRange}");
                         tree.LeafNode($"Effect width: {row?.XAxisModifier}");
                         tree.LeafNode($"Omen: {row?.Omen.Value?.Path} / {row?.Omen.Value?.PathAlly}");
+                        var omenAlt = row != null ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Omen>(row.Unknown54) : null;
+                        tree.LeafNode($"Omen alt: {omenAlt?.Path} / {omenAlt?.PathAlly}");
                     }
                 }
                 foreach (var n in tree.Node("Instances"))

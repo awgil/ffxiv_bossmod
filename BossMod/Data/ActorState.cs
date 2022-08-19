@@ -322,7 +322,7 @@ namespace BossMod
             }
 
             public override string Str(WorldState? ws) => Value != null
-                ? $"CST+|{StrActor(ws, InstanceID)}|{Value.Action}|{StrActor(ws, Value.TargetID)}|{StrVec3(Value.Location)}|{Utils.CastTimeString(Value, ws?.CurrentTime ?? new())}|{Value.Interruptible}"
+                ? $"CST+|{StrActor(ws, InstanceID)}|{Value.Action}|{StrActor(ws, Value.TargetID)}|{StrVec3(Value.Location)}|{Utils.CastTimeString(Value, ws?.CurrentTime ?? new())}|{Value.Interruptible}|{Value.Rotation}"
                 : $"CST-|{StrActor(ws, InstanceID)}";
         }
 
