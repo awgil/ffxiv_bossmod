@@ -119,6 +119,10 @@ namespace BossMod
             {
                 DrawPlayerAttributes();
             }
+            if (ImGui.CollapsingHeader("Countdown"))
+            {
+                DrawCountdown();
+            }
         }
 
         private void DrawStatuses()
@@ -224,6 +228,14 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(uiState->PlayerState.Attributes[i].ToString());
             }
             ImGui.EndTable();
+        }
+
+        private unsafe void DrawCountdown()
+        {
+            var agent = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUiModule()->GetAgentModule()->GetAgentByInternalId(FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentId.CountDownSettingDialog);
+            ImGui.TextUnformatted($"Active: {Utils.ReadField<byte>(agent, 56) != 0}");
+            ImGui.TextUnformatted($"Initiator: {Utils.ObjectString(Utils.ReadField<uint>(agent, 60))}");
+            ImGui.TextUnformatted($"Time left: {Utils.ReadField<float>(agent, 40):f3}");
         }
     }
 }

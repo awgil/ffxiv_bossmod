@@ -120,6 +120,14 @@ namespace BossMod
             return ReadField<ulong>(o, 0x38);
         }
 
+        // returns null if countdown is not active, otherwise time left in seconds
+        public static unsafe float? CountdownRemaining()
+        {
+            var agent = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUiModule()->GetAgentModule()->GetAgentByInternalId(FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentId.CountDownSettingDialog);
+            bool active = agent != null && ReadField<byte>(agent, 56) != 0;
+            return active ? ReadField<float>(agent, 40) : null;
+        }
+
         // backport from .net 6
         public static TSource? MinBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector) where TKey : IComparable
         {

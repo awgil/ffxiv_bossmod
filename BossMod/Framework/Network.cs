@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.Network;
 using Dalamud.Hooking;
+using Dalamud.Memory;
 using System;
 using System.IO;
 using System.Numerics;
@@ -472,6 +473,23 @@ namespace BossMod
                     {
                         ulong* p = (ulong*)(dataPtr + 4);
                         Service.Log($"[Network] - {*(byte*)dataPtr} entries: [{*(uint*)p:X}={*((byte*)p+4)}, ...]");
+                        break;
+                    }
+                case Protocol.Opcode.Countdown:
+                    {
+                        void* p = (void*)dataPtr;
+                        uint senderID = Utils.ReadField<uint>(p, 0);
+                        ushort time = Utils.ReadField<ushort>(p, 6);
+                        var text = MemoryHelper.ReadStringNullTerminated(dataPtr + 11);
+                        Service.Log($"[Network] - {time}s from {Utils.ObjectString(senderID)} {(Utils.ReadField<byte>(p, 8) != 0 ? "fail-in-combat" : "")} '{text}' {Utils.ReadField<ushort>(p, 4):X4} {Utils.ReadField<byte>(p, 9):X2} {Utils.ReadField<byte>(p, 10):X2}");
+                        break;
+                    }
+                case Protocol.Opcode.CountdownCancel:
+                    {
+                        void* p = (void*)dataPtr;
+                        uint senderID = Utils.ReadField<uint>(p, 0);
+                        var text = MemoryHelper.ReadStringNullTerminated(dataPtr + 8);
+                        Service.Log($"[Network] - from {Utils.ObjectString(senderID)} '{text}' {Utils.ReadField<ushort>(p, 4):X4}");
                         break;
                     }
             }
