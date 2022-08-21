@@ -128,6 +128,16 @@ namespace BossMod
             drawlist.PathStroke(color, ImDrawFlags.Closed, thickness);
         }
 
+        public void AddDonutCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color, float thickness = 1)
+        {
+            var sCenter = WorldPositionToScreenPosition(center);
+            float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth;
+            var drawlist = ImGui.GetWindowDrawList();
+            drawlist.PathArcTo(sCenter, innerRadius / Bounds.HalfSize * ScreenHalfSize, sDir + halfAngle.Rad, sDir - halfAngle.Rad);
+            drawlist.PathArcTo(sCenter, outerRadius / Bounds.HalfSize * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
+            drawlist.PathStroke(color, ImDrawFlags.Closed, thickness);
+        }
+
         // path api: add new point to path; this adds new edge from last added point, or defines first vertex if path is empty
         public void PathLineTo(WPos p)
         {

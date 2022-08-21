@@ -106,6 +106,9 @@ namespace BossMod.SCH
 
         protected override NextAction CalculateAutomaticOGCD(float deadline)
         {
+            if (AutoAction < AutoActionFirstFight)
+                return new();
+
             if (deadline < float.MaxValue && _allowDelayingNextGCD)
                 deadline += 0.4f + _state.AnimationLockDelay;
 

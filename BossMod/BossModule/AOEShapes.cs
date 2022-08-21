@@ -95,6 +95,32 @@ namespace BossMod
         }
     }
 
+    public class AOEShapeDonutSector : AOEShape
+    {
+        public float InnerRadius;
+        public float OuterRadius;
+        public Angle DirectionOffset;
+        public Angle HalfAngle;
+
+        public AOEShapeDonutSector(float innerRadius, float outerRadius, Angle halfAngle, Angle directionOffset = new())
+        {
+            InnerRadius = innerRadius;
+            OuterRadius = outerRadius;
+            DirectionOffset = directionOffset;
+            HalfAngle = halfAngle;
+        }
+
+        public override bool Check(WPos position, WPos origin, Angle rotation) => position.InDonutCone(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle);
+        public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE) => arena.ZoneCone(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle, color);
+        public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger) => arena.AddDonutCone(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle, color);
+        public override IEnumerable<IEnumerable<WPos>> Contour(WPos origin, Angle rotation, float offset, float maxError)
+        {
+            var centerOffset = offset == 0 ? 0 : offset / HalfAngle.Sin();
+            var rot = rotation + DirectionOffset;
+            yield return CurveApprox.DonutSector(origin - centerOffset * rot.ToDirection(), InnerRadius + centerOffset - offset, OuterRadius + centerOffset + offset, rot - HalfAngle, rot + HalfAngle, maxError);
+        }
+    }
+
     public class AOEShapeRect : AOEShape
     {
         public float LengthFront;

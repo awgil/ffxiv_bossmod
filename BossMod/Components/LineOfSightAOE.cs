@@ -32,7 +32,7 @@ namespace BossMod.Components
                 {
                     var toBlock = b.Center - origin.Value;
                     var dist = toBlock.Length();
-                    Visibility.Add((dist, Angle.FromDirection(toBlock), Angle.Asin(b.Radius / dist)));
+                    Visibility.Add((dist + b.Radius, Angle.FromDirection(toBlock), Angle.Asin(b.Radius / dist)));
                 }
             }
         }
@@ -85,7 +85,7 @@ namespace BossMod.Components
 
         private IEnumerable<IEnumerable<WPos>> BlockZone(WPos origin, float distance, Angle dir, Angle halfWidth)
         {
-            yield return CurveApprox.DonutSector(origin, distance + 1, MaxRange + 10, dir - halfWidth, dir + halfWidth, 0.5f);
+            return new AOEShapeDonutSector(distance, MaxRange + 10, halfWidth).Contour(origin, dir, -1, 0.5f);
         }
     }
 
