@@ -34,6 +34,7 @@ namespace BossMod
             Service.LogHandler = (string msg) => PluginLog.Log(msg);
             Service.LuminaGameData = Service.DataManager.GameData;
             //Service.Device = pluginInterface.UiBuilder.Device;
+            Service.Condition.ConditionChange += OnConditionChanged;
             MultiboxUnlock.Exec();
             Camera.Instance = new();
             Mouseover.Instance = new();
@@ -62,6 +63,7 @@ namespace BossMod
 
         public void Dispose()
         {
+            Service.Condition.ConditionChange -= OnConditionChanged;
             WindowManager.Reset();
             _debugLogger.Dispose();
             _bossmod.Dispose();
@@ -127,6 +129,11 @@ namespace BossMod
                 WindowManager.DrawAll();
 
             _prevUpdateTime = DateTime.Now - tsStart;
+        }
+
+        private void OnConditionChanged(ConditionFlag flag, bool value)
+        {
+            Service.Log($"Condition chage: {flag}={value}");
         }
     }
 }

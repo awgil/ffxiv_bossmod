@@ -27,7 +27,7 @@ namespace BossMod.PLD
         // oGCDs
         SpiritsWithin = 29, // L30, instant, 30.0s CD (group 5), range 3, single-target 0/0, targets=hostile
         Expiacion = 25747, // L86, instant, 30.0s CD (group 5), range 3, AOE circle 5/0, targets=hostile, animLock=???
-        CircleOfScorn = 23, // L50, instant, 30.0s CD (group 4), range 0, AOE circle 5/0, targets=self, animLock=???
+        CircleOfScorn = 23, // L50, instant, 30.0s CD (group 4), range 0, AOE circle 5/0, targets=self
         Intervene = 16461, // L74, instant, 30.0s CD (group 9) (2 charges), range 20, single-target 0/0, targets=hostile, animLock=???
 
         // offensive CDs
@@ -40,7 +40,7 @@ namespace BossMod.PLD
         Sentinel = 17, // L38, instant, 120.0s CD (group 19), range 0, single-target 0/0, targets=self
         Cover = 27, // L45, instant, 120.0s CD (group 20), range 10, single-target 0/0, targets=party, animLock=???
         HolySheltron = 25746, // L82, instant, 5.0s CD (group 2), range 0, single-target 0/0, targets=self, animLock=???
-        HallowedGround = 30, // L50, instant, 420.0s CD (group 24), range 0, single-target 0/0, targets=self, animLock=???
+        HallowedGround = 30, // L50, instant, 420.0s CD (group 24), range 0, single-target 0/0, targets=self
         Reprisal = 7535, // L22, instant, 60.0s CD (group 43), range 0, AOE circle 5/0, targets=self
         PassageOfArms = 7385, // L70, instant, 120.0s CD (group 21), range 0, Ground circle 8/0, targets=self, animLock=???
         DivineVeil = 3540, // L56, instant, 90.0s CD (group 14), range 0, single-target 0/0, targets=self, animLock=???
@@ -106,8 +106,10 @@ namespace BossMod.PLD
     {
         None = 0,
         FightOrFlight = 76, // applied by Fight or Flight to self, +25% physical damage dealt buff
+        CircleOfScorn = 248, // applied by Circle of Scorn to target, dot
         Rampart = 1191, // applied by Rampart to self, -20% damage taken
         Reprisal = 1193, // applied by Reprisal to target
+        HallowedGround = 82, // applied by Hallowed Ground to self, immune
         IronWill = 79, // applied by Iron Will to self, tank stance
         Stun = 2, // applied by Low Blow, Shield Bash to target
     }

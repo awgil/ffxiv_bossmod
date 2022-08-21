@@ -6,6 +6,7 @@
         public class State : CommonRotation.PlayerState
         {
             public Actor? Fairy;
+            public int AetherflowStacks; // 3 max
             public float SwiftcastLeft; // 0 if buff not up, max 10
             public float TargetBioLeft; // 0 if debuff not up, max 30
 
@@ -24,7 +25,7 @@
 
             public override string ToString()
             {
-                return $"RB={RaidBuffsLeft:f1}, Bio={TargetBioLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                return $"AF={AetherflowStacks}, RB={RaidBuffsLeft:f1}, Bio={TargetBioLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -34,33 +35,35 @@
             public bool Moving;
             public int NumWhisperingDawnTargets; // how many targets would whispering dawn heal (15y around fairy)
             public int NumSuccorTargets; // how many targets would succor heal (15y around self)
+            public int NumArtOfWarTargets; // how many targets art of war would hit (5y around self)
         }
 
         public static bool RefreshDOT(State state, float timeLeft) => timeLeft < state.GCD + 3.0f; // TODO: tweak threshold so that we don't overwrite or miss ticks...
-
-        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
-        {
-            // TODO: L45+
-
-            // lucid dreaming, if we won't waste mana (TODO: revise mp limit)
-            if (state.CurMP <= 8000 && state.Unlocked(AID.LucidDreaming) && state.CanWeave(CDGroup.LucidDreaming, 0.6f, deadline))
-                return ActionID.MakeSpell(AID.LucidDreaming);
-
-            // TODO: swiftcast...
-
-            return new();
-        }
 
         public static AID GetNextBestSTHealGCD(State state, Strategy strategy)
         {
             return state.Unlocked(AID.Adloquium) && state.CurMP >= 1000 ? AID.Adloquium : AID.Physick;
         }
 
-        public static AID GetNextBestSTDamageGCD(State state, Strategy strategy)
+        public static AID GetNextBestDamageGCD(State state, Strategy strategy)
         {
-            // TODO: priorities change at L46, L54, L64, L72, L82
+            // TODO: priorities change at L54, L64, L72, L82
             bool allowRuin = !strategy.Moving || state.SwiftcastLeft > state.GCD;
-            if (state.Unlocked(AID.Bio2))
+            if (state.Unlocked(AID.ArtOfWar1))
+            {
+                // L46: spam art of war at 3+ targets, otherwise bio > art of war (even at 1 target) > ruin (if out of range) > ruin2 (on the move)
+                if (strategy.NumArtOfWarTargets >= 3)
+                    return AID.ArtOfWar1;
+                else if (RefreshDOT(state, state.TargetBioLeft))
+                    return AID.Bio2;
+                else if (strategy.NumArtOfWarTargets >= 1)
+                    return AID.ArtOfWar1;
+                else if (allowRuin)
+                    return AID.Ruin1;
+                else
+                    return AID.Ruin2;
+            }
+            else if (state.Unlocked(AID.Bio2))
             {
                 // L26: bio2 on all targets is more important than ruin
                 // L38: cast ruin2 on the move

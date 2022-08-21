@@ -12,7 +12,7 @@ namespace BossMod.DRG
         Disembowel = 87, // L18, instant, range 3, single-target 0/0, targets=hostile
         FullThrust = 84, // L26, instant, range 3, single-target 0/0, targets=hostile
         HeavensThrust = 25771, // L86, instant, range 3, single-target 0/0, targets=hostile, animLock=???
-        ChaosThrust = 88, // L50, instant, range 3, single-target 0/0, targets=hostile, animLock=???
+        ChaosThrust = 88, // L50, instant, range 3, single-target 0/0, targets=hostile
         ChaoticSpring = 25772, // L86, instant, range 3, single-target 0/0, targets=hostile, animLock=???
         FangAndClaw = 3554, // L56, instant, range 3, single-target 0/0, targets=hostile, animLock=???
         WheelingThrust = 3556, // L58, instant, range 3, single-target 0/0, targets=hostile, animLock=???
@@ -27,8 +27,8 @@ namespace BossMod.DRG
         // oGCDs
         Jump = 92, // L30, instant, 30.0s CD (group 4), range 20, single-target 0/0, targets=hostile, animLock=0.800s
         HighJump = 16478, // L74, instant, 30.0s CD (group 8), range 20, single-target 0/0, targets=hostile, animLock=???
-        SpineshatterDive = 95, // L45, instant, 60.0s CD (group 19), range 20, single-target 0/0, targets=hostile, animLock=???
-        DragonfireDive = 96, // L50, instant, 120.0s CD (group 20), range 20, AOE circle 5/0, targets=hostile, animLock=???
+        SpineshatterDive = 95, // L45, instant, 60.0s CD (group 19), range 20, single-target 0/0, targets=hostile, animLock=0.800s
+        DragonfireDive = 96, // L50, instant, 120.0s CD (group 20), range 20, AOE circle 5/0, targets=hostile, animLock=0.800s
         Geirskogul = 3555, // L60, instant, 30.0s CD (group 7), range 15, AOE rect 15/4, targets=hostile, animLock=???
         Nastrond = 7400, // L70, instant, 10.0s CD (group 2), range 15, AOE rect 15/4, targets=hostile, animLock=???
         MirageDive = 7399, // L68, instant, 1.0s CD (group 0), range 20, single-target 0/0, targets=hostile, animLock=???
@@ -50,7 +50,7 @@ namespace BossMod.DRG
         // misc
         PiercingTalon = 90, // L15, instant, range 20, single-target 0/0, targets=hostile
         ElusiveJump = 94, // L35, instant, 30.0s CD (group 5), range 0, single-target 0/0, targets=self, animLock=0.800s
-        TrueNorth = 7546, // L50, instant, 45.0s CD (group 44) (2 charges), range 0, single-target 0/0, targets=self, animLock=???
+        TrueNorth = 7546, // L50, instant, 45.0s CD (group 44) (2 charges), range 0, single-target 0/0, targets=self
         LegSweep = 7863, // L10, instant, 40.0s CD (group 41), range 3, single-target 0/0, targets=hostile
     }
 
@@ -97,8 +97,11 @@ namespace BossMod.DRG
     public enum SID : uint
     {
         None = 0,
+        LanceCharge = 1864, // applied by Lance Charge to self, damage buff
         LifeSurge = 116, // applied by Life Surge to self, forced crit for next gcd
         PowerSurge = 2720, // applied by Disembowel to self, damage buff
+        ChaosThrust = 118, // applied by Chaos Thrust to target, dot
+        TrueNorth = 1250, // applied by True North to self, ignore positionals
         Bloodbath = 84, // applied by Bloodbath to self, lifesteal
         Feint = 1195, // applied by Feint to target, -10% phys and -5% magic damage dealt
         Stun = 2, // applied by Leg Sweep to target

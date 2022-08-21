@@ -8,18 +8,18 @@ namespace BossMod.WHM
 
         // single-target damage GCDs
         Stone1 = 119, // L1, 1.5s cast, range 25, single-target 0/0, targets=hostile, animLock=???
-        Stone2 = 127, // L18, 1.5s cast, range 25, single-target 0/0, targets=hostile, animLock=???
+        Stone2 = 127, // L18, 1.5s cast, range 25, single-target 0/0, targets=hostile
         Stone3 = 3568, // L54, 1.5s cast, range 25, single-target 0/0, targets=hostile, animLock=???
         Stone4 = 7431, // L64, 1.5s cast, range 25, single-target 0/0, targets=hostile, animLock=???
         Glare1 = 16533, // L72, 1.5s cast, range 25, single-target 0/0, targets=hostile, animLock=???
         Glare3 = 25859, // L82, 1.5s cast, range 25, single-target 0/0, targets=hostile
         Aero1 = 121, // L4, instant, range 25, single-target 0/0, targets=hostile, animLock=???
-        Aero2 = 132, // L46, instant, range 25, single-target 0/0, targets=hostile, animLock=???
+        Aero2 = 132, // L46, instant, range 25, single-target 0/0, targets=hostile
         Dia = 16532, // L72, instant, range 25, single-target 0/0, targets=hostile
         AfflatusMisery = 16535, // L74, instant, range 25, AOE circle 5/0, targets=hostile
 
         // aoe damage GCDs
-        Holy1 = 139, // L45, 2.5s cast, range 0, AOE circle 8/0, targets=self, animLock=???
+        Holy1 = 139, // L45, 2.5s cast, range 0, AOE circle 8/0, targets=self
         Holy3 = 25860, // L82, 2.5s cast, range 0, AOE circle 8/0, targets=self
 
         // single-target heal GCDs

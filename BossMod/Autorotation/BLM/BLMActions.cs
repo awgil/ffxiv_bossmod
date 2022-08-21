@@ -35,8 +35,22 @@ namespace BossMod.BLM
 
         public override Targeting SelectBetterTarget(Actor initial)
         {
-            // TODO: select best target for AOE
-            return new(initial, 15);
+            // TODO: multidot?..
+            var bestTarget = initial;
+            if (_state.Unlocked(AID.Blizzard2))
+            {
+                var bestAOECount = Autorot.PotentialTargetsInRange(initial.Position, 5).Count();
+                foreach (var candidate in Autorot.PotentialTargetsInRangeFromPlayer(25).Exclude(initial))
+                {
+                    var candidateAOECount = Autorot.PotentialTargetsInRange(candidate.Position, 5).Count();
+                    if (candidateAOECount > bestAOECount)
+                    {
+                        bestTarget = candidate;
+                        bestAOECount = candidateAOECount;
+                    }
+                }
+            }
+            return new(bestTarget, 15);
         }
 
         protected override void OnTick()
@@ -126,7 +140,7 @@ namespace BossMod.BLM
             _state.ThundercloudLeft = StatusDetails(Player, SID.Thundercloud, Player.InstanceID).Left;
             _state.FirestarterLeft = StatusDetails(Player, SID.Firestarter, Player.InstanceID).Left;
 
-            _state.TargetThunderLeft = Math.Max(StatusDetails(Autorot.PrimaryTarget, SID.Thunder1, Player.InstanceID).Left, StatusDetails(Autorot.PrimaryTarget, SID.Thunder2, Player.InstanceID).Left);
+            _state.TargetThunderLeft = Math.Max(StatusDetails(Autorot.PrimaryTarget, _state.ExpectedThunder3, Player.InstanceID).Left, StatusDetails(Autorot.PrimaryTarget, SID.Thunder2, Player.InstanceID).Left);
         }
 
         private void OnConfigModified(object? sender, EventArgs args)

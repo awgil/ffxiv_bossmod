@@ -69,9 +69,11 @@
             if (state.Unlocked(AID.FightOrFlight) && state.ComboLastMove == (aoe ? AID.TotalEclipse : AID.FastBlade) && state.CanWeave(CDGroup.FightOrFlight, 0.6f, deadline) && state.GCD <= 1.0f)
                 return ActionID.MakeSpell(AID.FightOrFlight);
 
-            // 3. spirits within, delayed until FoF if it's about to be off cooldown (TODO: think more about delay condition...)
+            // 3. spirits within/circle of scorn, delayed until FoF if it's about to be off cooldown (TODO: think more about delay condition...)
             if (state.Unlocked(AID.SpiritsWithin) && state.CanWeave(CDGroup.SpiritsWithin, 0.6f, deadline) && (state.FightOrFlightLeft > 0 || state.CD(CDGroup.FightOrFlight) > 15))
                 return ActionID.MakeSpell(AID.SpiritsWithin);
+            if (state.Unlocked(AID.CircleOfScorn) && state.CanWeave(CDGroup.CircleOfScorn, 0.6f, deadline) && (state.FightOrFlightLeft > 0 || state.CD(CDGroup.FightOrFlight) > 15))
+                return ActionID.MakeSpell(AID.CircleOfScorn);
 
             // no suitable oGCDs...
             return new();

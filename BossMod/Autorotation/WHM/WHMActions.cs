@@ -45,7 +45,7 @@ namespace BossMod.WHM
 
         public override Targeting SelectBetterTarget(Actor initial)
         {
-            // TODO: select target for holy...
+            // TODO: look for good place to cast holy and move closer...
 
             // look for target to multidot, if initial target already has dot
             if (_state.Unlocked(AID.Aero1) && !WithoutDOT(initial))
@@ -165,7 +165,7 @@ namespace BossMod.WHM
             if (_bestSTHeal.Target != null && _bestSTHeal.HPRatio <= 0 && _state.Unlocked(AID.Benediction) && _state.CanWeave(CDGroup.Benediction, 0.6f, deadline))
                 return MakeResult(AID.Benediction, _bestSTHeal.Target);
 
-            // swiftcast, if can't cast any gcd
+            // swiftcast, if can't cast any gcd (TODO: current check is not very good...)
             if (deadline >= 10000 && _strategy.Moving && _state.Unlocked(AID.Swiftcast) && _state.CanWeave(CDGroup.Swiftcast, 0.6f, deadline))
                 return MakeResult(AID.Swiftcast, Player);
 

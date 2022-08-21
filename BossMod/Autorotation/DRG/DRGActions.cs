@@ -35,20 +35,49 @@ namespace BossMod.DRG
 
         public override Targeting SelectBetterTarget(Actor initial)
         {
-            // TODO: multidotting, positionals, aoe...
-            return new(initial, 3);
+            // targeting for aoe
+            if (_state.Unlocked(AID.DoomSpike))
+            {
+                var bestAOETarget = initial;
+                var bestAOECount = CountAOEGCDTargets(initial);
+                foreach (var candidate in Autorot.PotentialTargetsInRangeFromPlayer(10).Exclude(initial))
+                {
+                    var candidateAOECount = CountAOEGCDTargets(candidate);
+                    if (candidateAOECount > bestAOECount)
+                    {
+                        bestAOETarget = candidate;
+                        bestAOECount = candidateAOECount;
+                    }
+                }
+
+                if (bestAOECount >= 3)
+                    return new(bestAOETarget, 3);
+            }
+
+            // targeting for multidot
+            var adjTarget = initial;
+            if (_state.Unlocked(AID.ChaosThrust) && !WithoutDOT(initial))
+            {
+                var multidotTarget = Autorot.PotentialTargetsInRangeFromPlayer(25).FirstOrDefault(t => t != initial && WithoutDOT(t));
+                if (multidotTarget != null)
+                    adjTarget = multidotTarget;
+            }
+
+            // TODO: L56+ positionals
+            var pos = Positional.Any;
+            if (_state.TrueNorthLeft <= _state.GCD)
+            {
+                if (_state.ComboLastMove == AID.Disembowel && _state.Unlocked(AID.ChaosThrust))
+                    pos = Positional.Rear;
+            }
+            return new(adjTarget, 3, pos);
         }
 
         protected override void UpdateInternalState(int autoAction)
         {
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
-            _strategy.NumAOEGCDTargets = 0;
-            if (Autorot.PrimaryTarget != null && autoAction != AutoActionST && _state.Unlocked(AID.DoomSpike))
-            {
-                var toTarget = (Autorot.PrimaryTarget.Position - Player.Position).Normalized();
-                _strategy.NumAOEGCDTargets = Autorot.PotentialTargets.Valid.Where(a => a.Position.InRect(Player.Position, toTarget, 10, 0, 2)).Count();
-            }
+            _strategy.NumAOEGCDTargets = Autorot.PrimaryTarget != null && autoAction != AutoActionST && _state.Unlocked(AID.DoomSpike) ? CountAOEGCDTargets(Autorot.PrimaryTarget) : 0;
         }
 
         protected override void QueueAIActions()
@@ -57,6 +86,7 @@ namespace BossMod.DRG
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f);
             if (_state.Unlocked(AID.Bloodbath))
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.Bloodbath), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.8f);
+            // TODO: true north...
         }
 
         protected override NextAction CalculateAutomaticGCD()
@@ -97,7 +127,19 @@ namespace BossMod.DRG
             //s.Chakra = Service.JobGauges.Get<DRGGauge>().Chakra;
 
             _state.PowerSurgeLeft = StatusDetails(Player, SID.PowerSurge, Player.InstanceID).Left;
+            _state.LanceChargeLeft = StatusDetails(Player, SID.LanceCharge, Player.InstanceID).Left;
+            _state.TrueNorthLeft = StatusDetails(Player, SID.TrueNorth, Player.InstanceID).Left;
+
+            _state.TargetChaosThrustLeft = StatusDetails(Autorot.PrimaryTarget, SID.ChaosThrust, Player.InstanceID).Left;
         }
+
+        private int CountAOEGCDTargets(Actor target)
+        {
+            var dir = (target.Position - Player.Position).Normalized();
+            return Autorot.PotentialTargets.Valid.Count(a => a.Position.InRect(Player.Position, dir, 10, 0, 2));
+        }
+
+        private bool WithoutDOT(Actor a) => Rotation.RefreshDOT(_state, StatusDetails(a, SID.ChaosThrust, Player.InstanceID).Left);
 
         private void OnConfigModified(object? sender, EventArgs args)
         {

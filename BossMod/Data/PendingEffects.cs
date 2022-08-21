@@ -27,7 +27,7 @@ namespace BossMod
                 {
                     foreach (var eff in ev.Targets[i].Effects)
                     {
-                        if (eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage or ActionEffectType.Heal or ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.RecoveredFromStatusEffect)
+                        if (eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage or ActionEffectType.Heal or ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource or ActionEffectType.RecoveredFromStatusEffect)
                         {
                             if (ev.Targets[i].ID == source || (eff.Param4 & 0x80) != 0)
                                 UnconfirmedSource.Set(i);

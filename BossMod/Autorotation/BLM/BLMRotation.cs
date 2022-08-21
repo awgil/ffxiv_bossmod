@@ -16,6 +16,9 @@
             // upgrade paths
             public AID BestThunder3 => Unlocked(AID.Thunder3) ? AID.Thunder3 : AID.Thunder1;
 
+            // statuses
+            public SID ExpectedThunder3 => Unlocked(AID.Thunder3) ? SID.Thunder3 : SID.Thunder1;
+
             public State(float[] cooldowns) : base(cooldowns) { }
 
             public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
@@ -64,12 +67,17 @@
                 // starting from L35, fire/blizzard 2/3 automatically grant 3 fire/ice stacks, so we use them to swap between stances
                 if (strategy.AOE)
                 {
-                    // TODO: revise at L50+ (flare)
+                    // TODO: revise at L58+
                     if (state.ElementalLevel > 0)
                     {
-                        // fire phase: F2 until oom > B2
+                        // fire phase: F2 until oom > Flare > B2
                         if (allowCasts)
-                            return state.CurMP >= AdjustedFireCost(state, 1500) ? AID.Fire2 : AID.Blizzard2;
+                        {
+                            if (state.Unlocked(AID.Flare))
+                                return state.CurMP > AdjustedFireCost(state, 1500) ? AID.Fire2 : state.CurMP > 0 ? AID.Flare : AID.Blizzard2;
+                            else
+                                return state.CurMP >= AdjustedFireCost(state, 1500) ? AID.Fire2 : AID.Blizzard2;
+                        }
                         if (state.ThundercloudLeft > state.GCD)
                             return AID.Thunder2;
                         return AID.None; // chill...

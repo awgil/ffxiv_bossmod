@@ -13,7 +13,7 @@ namespace BossMod.BLM
         Scathe = 156, // L15, instant, range 25, single-target 0/0, targets=hostile
         Blizzard3 = 154, // L35, 3.5s cast, range 25, single-target 0/0, targets=hostile
         Fire3 = 152, // L35, 3.5s cast, range 25, single-target 0/0, targets=hostile
-        Thunder3 = 153, // L45, 2.5s cast, range 25, single-target 0/0, targets=hostile, animLock=???
+        Thunder3 = 153, // L45, 2.5s cast, range 25, single-target 0/0, targets=hostile
         Blizzard4 = 3576, // L58, 2.5s cast, range 25, single-target 0/0, targets=hostile, animLock=???
         Fire4 = 3577, // L60, 2.8s cast, range 25, single-target 0/0, targets=hostile, animLock=???
         Foul = 7422, // L70, 2.5s cast, range 25, AOE circle 5/0, targets=hostile, animLock=???
@@ -25,8 +25,8 @@ namespace BossMod.BLM
         Blizzard2 = 25793, // L12, 3.0s cast, range 25, AOE circle 5/0, targets=hostile
         Fire2 = 147, // L18, 3.0s cast, range 25, AOE circle 5/0, targets=hostile
         Thunder2 = 7447, // L26, 2.5s cast, range 25, AOE circle 5/0, targets=hostile
-        Freeze = 159, // L40, 2.8s cast, range 25, AOE circle 5/0, targets=hostile, animLock=???
-        Flare = 162, // L50, 4.0s cast, range 25, AOE circle 5/0, targets=hostile, animLock=???
+        Freeze = 159, // L40, 2.8s cast, range 25, AOE circle 5/0, targets=hostile
+        Flare = 162, // L50, 4.0s cast, range 25, AOE circle 5/0, targets=hostile
         Thunder4 = 7420, // L64, 2.5s cast, range 25, AOE circle 5/0, targets=hostile, animLock=???
         HighBlizzard2 = 25795, // L82, 3.0s cast, range 25, AOE circle 5/0, targets=hostile, animLock=???
         HighFire2 = 25794, // L82, 3.0s cast, range 25, AOE circle 5/0, targets=hostile, animLock=???
@@ -46,7 +46,7 @@ namespace BossMod.BLM
         // defensive CDs
         Addle = 7560, // L8, instant, 90.0s CD (group 40), range 25, single-target 0/0, targets=hostile
         Manaward = 157, // L30, instant, 120.0s CD (group 21), range 0, single-target 0/0, targets=self
-        Surecast = 7559, // L44, instant, 120.0s CD (group 43), range 0, single-target 0/0, targets=self, animLock=???
+        Surecast = 7559, // L44, instant, 120.0s CD (group 43), range 0, single-target 0/0, targets=self
 
         // misc
         AetherialManipulation = 155, // L50, instant, 10.0s CD (group 4), range 25, single-target 0/0, targets=party, animLock=???
@@ -103,11 +103,14 @@ namespace BossMod.BLM
         None = 0,
         Thunder1 = 161, // applied by Thunder1 to target, dot
         Thunder2 = 162, // applied by Thunder2 to target, dot
+        Thunder3 = 163, // applied by Thunder3 to target, dot
         Thundercloud = 164, // proc
         Firestarter = 165, // applied by Fire to self, next fire3 is free and instant
         Addle = 1203, // applied by Addle to target, -5% phys and -10% magic damage dealt
         LucidDreaming = 1204, // applied by Lucid Dreaming to self, MP restore
+        Manaward = 168, // applied by Manaward to self, shield
         Swiftcast = 167, // applied by Swiftcast to self, next cast is instant
+        Surecast = 160, // applied by Surecast to self, knockback immune
         Sleep = 3, // applied by Sleep to target
     }
 

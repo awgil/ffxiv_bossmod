@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dalamud.Game.ClientState.JobGauge.Types;
+using System;
 using System.Linq;
 
 namespace BossMod.SCH
@@ -36,7 +37,7 @@ namespace BossMod.SCH
 
         public override Targeting SelectBetterTarget(Actor initial)
         {
-            // TODO: select target for art of war...
+            // TODO: look for good place to cast art of war and move closer...
 
             // look for target to multidot, if initial target already has dot
             if (_state.Unlocked(AID.Bio1) && !WithoutDOT(initial))
@@ -56,6 +57,7 @@ namespace BossMod.SCH
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionMnd);
             _strategy.NumWhisperingDawnTargets = _state.Fairy != null && _state.Unlocked(AID.WhisperingDawn) ? CountAOEHealTargets(15, _state.Fairy.Position) : 0;
             _strategy.NumSuccorTargets = _state.Unlocked(AID.Succor) ? CountAOEHealTargets(15, Player.Position) : 0;
+            _strategy.NumArtOfWarTargets = _state.Unlocked(AID.ArtOfWar1) ? Autorot.PotentialTargetsInRangeFromPlayer(5).Count() : 0;
             _strategy.Moving = autoAction is AutoActionAIIdleMove or AutoActionAIFightMove;
             _bestSTHeal = FindBestSTHealTarget();
         }
@@ -97,9 +99,8 @@ namespace BossMod.SCH
                 return MakeResult(AID.Adloquium, preshieldTarget);
 
             // finally perform damage rotation
-            // TODO: art of war
             if (Autorot.PrimaryTarget != null)
-                return MakeResult(Rotation.GetNextBestSTDamageGCD(_state, _strategy), Autorot.PrimaryTarget);
+                return MakeResult(Rotation.GetNextBestDamageGCD(_state, _strategy), Autorot.PrimaryTarget);
 
             return new(); // chill
         }
@@ -122,7 +123,7 @@ namespace BossMod.SCH
 
         private NextAction GetNextBestOGCD(float deadline)
         {
-            // TODO: L45+
+            // TODO: L52+
             // TODO: fey illumination
 
             // whispering dawn, if it hits 3+ targets or hits st heal target
@@ -133,7 +134,19 @@ namespace BossMod.SCH
                     return MakeResult(AID.WhisperingDawn, Player);
             }
 
-            // swiftcast, if can't cast any gcd
+            // aetherflow, if no stacks left
+            if (_state.AetherflowStacks == 0 && _state.Unlocked(AID.Aetherflow) && _state.CanWeave(CDGroup.Aetherflow, 0.6f, deadline))
+                return MakeResult(AID.Aetherflow, Player);
+
+            // lustrate, if want single-target heals
+            if (_bestSTHeal.Target != null && _state.AetherflowStacks > 0 && _state.Unlocked(AID.Lustrate) && _state.CanWeave(CDGroup.Lustrate, 0.6f, deadline))
+                return MakeResult(AID.Lustrate, _bestSTHeal.Target);
+
+            // energy drain, if new aetherflow will come off cd soon (TODO: reconsider...)
+            if (Autorot.PrimaryTarget != null && _state.AetherflowStacks > 0 && _state.CD(CDGroup.Aetherflow) <= _state.GCD + _state.AetherflowStacks * 2.5f && _state.Unlocked(AID.EnergyDrain) && _state.CanWeave(CDGroup.EnergyDrain, 0.6f, deadline))
+                return MakeResult(AID.EnergyDrain, Autorot.PrimaryTarget);
+
+            // swiftcast, if can't cast any gcd (TODO: current check is not very good...)
             if (deadline >= 10000 && _strategy.Moving && _state.Unlocked(AID.Swiftcast) && _state.CanWeave(CDGroup.Swiftcast, 0.6f, deadline))
                 return MakeResult(AID.Swiftcast, Player);
 
@@ -164,7 +177,8 @@ namespace BossMod.SCH
             if (_state.Fairy == null || _state.Fairy.IsDestroyed)
                 _state.Fairy = Autorot.WorldState.Actors.FirstOrDefault(a => a.Type == ActorType.Pet && a.OwnerID == Player.InstanceID);
 
-            //var gauge = Service.JobGauges.Get<SCHGauge>();
+            var gauge = Service.JobGauges.Get<SCHGauge>();
+            _state.AetherflowStacks = gauge.Aetherflow;
 
             _state.SwiftcastLeft = StatusDetails(Player, SID.Swiftcast, Player.InstanceID).Left;
             _state.TargetBioLeft = StatusDetails(Autorot.PrimaryTarget, _state.ExpectedBio, Player.InstanceID).Left;

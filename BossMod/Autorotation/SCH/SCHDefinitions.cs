@@ -15,10 +15,10 @@ namespace BossMod.SCH
         Bio1 = 17864, // L2, instant, range 25, single-target 0/0, targets=hostile
         Bio2 = 17865, // L26, instant, range 25, single-target 0/0, targets=hostile
         Biolysis = 16540, // L72, instant, range 25, single-target 0/0, targets=hostile, animLock=???
-        Ruin2 = 17870, // L38, instant, range 25, single-target 0/0, targets=hostile, animLock=???
+        Ruin2 = 17870, // L38, instant, range 25, single-target 0/0, targets=hostile
 
         // aoe damage GCDs
-        ArtOfWar1 = 16539, // L46, instant, range 0, AOE circle 5/0, targets=self, animLock=???
+        ArtOfWar1 = 16539, // L46, instant, range 0, AOE circle 5/0, targets=self
         ArtOfWar2 = 25866, // L82, instant, range 0, AOE circle 5/0, targets=self, animLock=???
 
         // single-target heal GCDs
@@ -26,18 +26,18 @@ namespace BossMod.SCH
         Adloquium = 185, // L30, 2.0s cast, range 30, single-target 0/0, targets=self/party/friendly
 
         // aoe heal GCDs
-        Succor = 186, // L35, 2.0s cast, range 0, AOE circle 15/0, targets=self, animLock=???
+        Succor = 186, // L35, 2.0s cast, range 0, AOE circle 15/0, targets=self
 
         // summons
         SummonEos = 17215, // L4, 1.5s cast, range 0, single-target 0/0, targets=self
         SummonSelene = 17216, // L4, 1.5s cast, range 0, single-target 0/0, targets=self
 
         // damage oGCDs
-        EnergyDrain = 167, // L45, instant, 1.0s CD (group 3), range 25, single-target 0/0, targets=hostile, animLock=???
+        EnergyDrain = 167, // L45, instant, 1.0s CD (group 3), range 25, single-target 0/0, targets=hostile
 
         // heal oGCDs
         WhisperingDawn = 16537, // L20, instant, 60.0s CD (group 13), range 0, single-target 0/0, targets=self
-        Lustrate = 189, // L45, instant, 1.0s CD (group 0), range 30, single-target 0/0, targets=self/party/friendly, animLock=???
+        Lustrate = 189, // L45, instant, 1.0s CD (group 0), range 30, single-target 0/0, targets=self/party/friendly
         SacredSoil = 188, // L50, instant, 30.0s CD (group 5), range 30, Ground circle 10/0, targets=area, animLock=???
         Indomitability = 3583, // L52, instant, 30.0s CD (group 6), range 0, AOE circle 15/0, targets=self, animLock=???
         DeploymentTactics = 3585, // L56, instant, 120.0s CD (group 19), range 30, AOE circle 15/0, targets=self/party, animLock=???
@@ -51,9 +51,9 @@ namespace BossMod.SCH
         // buff CDs
         LucidDreaming = 7562, // L14, instant, 60.0s CD (group 41), range 0, single-target 0/0, targets=self
         Swiftcast = 7561, // L18, instant, 60.0s CD (group 42), range 0, single-target 0/0, targets=self
-        FeyIllumination = 16538, // L40, instant, 120.0s CD (group 21), range 0, single-target 0/0, targets=self, animLock=???
-        Surecast = 7559, // L44, instant, 120.0s CD (group 43), range 0, single-target 0/0, targets=self, animLock=???
-        Aetherflow = 166, // L45, instant, 60.0s CD (group 12), range 0, single-target 0/0, targets=self, animLock=???
+        FeyIllumination = 16538, // L40, instant, 120.0s CD (group 21), range 0, single-target 0/0, targets=self
+        Surecast = 7559, // L44, instant, 120.0s CD (group 43), range 0, single-target 0/0, targets=self
+        Aetherflow = 166, // L45, instant, 60.0s CD (group 12), range 0, single-target 0/0, targets=self
         Dissipation = 3587, // L60, instant, 180.0s CD (group 24), range 0, single-target 0/0, targets=self, animLock=???
         ChainStratagem = 7436, // L66, instant, 120.0s CD (group 20), range 25, single-target 0/0, targets=hostile, animLock=???
         Recitation = 16542, // L74, instant, 90.0s CD (group 14), range 0, single-target 0/0, targets=self, animLock=???
