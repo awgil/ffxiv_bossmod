@@ -19,7 +19,7 @@ namespace BossMod.WHM
         private bool _allowDelayingNextGCD;
 
         public Actions(Autorotation autorot, Actor player)
-            : base(autorot, player, Definitions.QuestsPerLevel, Definitions.SupportedActions)
+            : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
         {
             _config = Service.Config.Get<WHMConfig>();
             _state = new(autorot.Cooldowns);
@@ -48,7 +48,7 @@ namespace BossMod.WHM
             // TODO: select target for holy...
 
             // look for target to multidot, if initial target already has dot
-            if (_state.Unlocked(MinLevel.Aero1) && !WithoutDOT(initial))
+            if (_state.Unlocked(AID.Aero1) && !WithoutDOT(initial))
             {
                 var multidotTarget = Autorot.PotentialTargetsInRangeFromPlayer(25).FirstOrDefault(t => t != initial && WithoutDOT(t));
                 if (multidotTarget != null)
@@ -63,10 +63,10 @@ namespace BossMod.WHM
             base.UpdateInternalState(autoAction);
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionMnd);
-            _strategy.NumAssizeMedica1Targets = _state.Unlocked(MinLevel.Medica1) ? CountAOEHealTargets(15, Player.Position) : 0;
-            _strategy.NumRaptureMedica2Targets = _state.Unlocked(MinLevel.Medica2) ? CountAOEHealTargets(20, Player.Position) : 0;
-            _strategy.NumCure3Targets = _state.Unlocked(MinLevel.Cure3) ? SmartCure3Target().Item2 : 0;
-            _strategy.NumHolyTargets = _state.Unlocked(MinLevel.Holy1) ? Autorot.PotentialTargetsInRangeFromPlayer(8).Count() : 0;
+            _strategy.NumAssizeMedica1Targets = _state.Unlocked(AID.Medica1) ? CountAOEHealTargets(15, Player.Position) : 0;
+            _strategy.NumRaptureMedica2Targets = _state.Unlocked(AID.Medica2) ? CountAOEHealTargets(20, Player.Position) : 0;
+            _strategy.NumCure3Targets = _state.Unlocked(AID.Cure3) ? SmartCure3Target().Item2 : 0;
+            _strategy.NumHolyTargets = _state.Unlocked(AID.Holy1) ? Autorot.PotentialTargetsInRangeFromPlayer(8).Count() : 0;
             _strategy.EnableAssize = AllowAssize(); // note: should be plannable...
             _strategy.AllowReplacingHealWithMisery = _config.NeverOvercapBloodLilies && Autorot.PrimaryTarget?.Type == ActorType.Enemy;
             _strategy.Heal = _strategy.AOE = false;
@@ -126,7 +126,7 @@ namespace BossMod.WHM
                     }
 
                     // regen, if allowed
-                    var regenTarget = _state.Unlocked(MinLevel.Regen) ? FindProtectTarget() : null;
+                    var regenTarget = _state.Unlocked(AID.Regen) ? FindProtectTarget() : null;
                     if (regenTarget != null && StatusDetails(regenTarget, SID.Regen, Player.InstanceID).Left <= _state.GCD)
                         return MakeResult(AID.Regen, regenTarget);
 
@@ -162,19 +162,19 @@ namespace BossMod.WHM
             // TODO: L52+
 
             // benediction at extremely low hp (TODO: unless planned, tweak threshold)
-            if (_bestSTHeal.Target != null && _bestSTHeal.HPRatio <= 0 && _state.Unlocked(MinLevel.Benediction) && _state.CanWeave(CDGroup.Benediction, 0.6f, deadline))
+            if (_bestSTHeal.Target != null && _bestSTHeal.HPRatio <= 0 && _state.Unlocked(AID.Benediction) && _state.CanWeave(CDGroup.Benediction, 0.6f, deadline))
                 return MakeResult(AID.Benediction, _bestSTHeal.Target);
 
             // swiftcast, if can't cast any gcd
-            if (deadline >= 10000 && _strategy.Moving && _state.Unlocked(MinLevel.Swiftcast) && _state.CanWeave(CDGroup.Swiftcast, 0.6f, deadline))
+            if (deadline >= 10000 && _strategy.Moving && _state.Unlocked(AID.Swiftcast) && _state.CanWeave(CDGroup.Swiftcast, 0.6f, deadline))
                 return MakeResult(AID.Swiftcast, Player);
 
             // pom (TODO: consider delaying until raidbuffs?)
-            if (_state.Unlocked(MinLevel.PresenceOfMind) && _state.CanWeave(CDGroup.PresenceOfMind, 0.6f, deadline))
+            if (_state.Unlocked(AID.PresenceOfMind) && _state.CanWeave(CDGroup.PresenceOfMind, 0.6f, deadline))
                 return MakeResult(AID.PresenceOfMind, Player);
 
             // lucid dreaming, if we won't waste mana (TODO: revise mp limit)
-            if (_state.CurMP <= 7000 && _state.Unlocked(MinLevel.LucidDreaming) && _state.CanWeave(CDGroup.LucidDreaming, 0.6f, deadline))
+            if (_state.CurMP <= 7000 && _state.Unlocked(AID.LucidDreaming) && _state.CanWeave(CDGroup.LucidDreaming, 0.6f, deadline))
                 return MakeResult(AID.LucidDreaming, Player);
 
             return new();
@@ -236,11 +236,11 @@ namespace BossMod.WHM
         private AID SmartRaiseAction()
         {
             // 1. swiftcast, if ready and not up yet
-            if (_state.Unlocked(MinLevel.Swiftcast) && _state.SwiftcastLeft <= 0 && _state.CD(CDGroup.Swiftcast) <= 0)
+            if (_state.Unlocked(AID.Swiftcast) && _state.SwiftcastLeft <= 0 && _state.CD(CDGroup.Swiftcast) <= 0)
                 return AID.Swiftcast;
 
             // 2. thin air, if ready and not up yet
-            if (_state.Unlocked(MinLevel.ThinAir) && _state.ThinAirLeft <= 0 && _state.CD(CDGroup.ThinAir) <= 60)
+            if (_state.Unlocked(AID.ThinAir) && _state.ThinAirLeft <= 0 && _state.CD(CDGroup.ThinAir) <= 60)
                 return AID.ThinAir;
 
             return AID.Raise;

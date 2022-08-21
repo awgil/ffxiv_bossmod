@@ -114,6 +114,32 @@ namespace BossMod.SMN
         PetAerialBlast2 = 25854, // L90, instant, 0.0s CD (group -1), range 35, AOE circle 5/0, targets=hostile, animLock=???
     }
 
+    public enum TraitID : uint
+    {
+        None = 0,
+        EnhancedAethercharge1 = 466, // L15, ruby/topaz arcanum
+        MaimAndMend1 = 66, // L20, damage increase
+        EnhancedAethercharge2 = 467, // L22, emerald arcanum
+        RuinMastery1 = 217, // L30, ruin1 -> ruin2 upgrade
+        RubySummoningMastery = 468, // L30, summon ruby -> ifrit upgrade
+        TopazSummoningMastery = 469, // L35, summon topaz -> titan upgrade
+        MaimAndMend2 = 69, // L40, damage increase
+        EmeraldSummoningMastery = 470, // L45, summon emerald -> garuda upgrade
+        Enkindle1 = 471, // L50, summon attacks upgrade
+        RuinMastery2 = 473, // L54, ruin2 -> ruin3 upgrade
+        AetherchargeMastery = 474, // L58, aethercharge -> dreadwyrm trance upgrade
+        EnhancedEnergySiphon = 475, // L62, further ruin status
+        EnhancedDreadwyrmTrance = 178, // L70, dreadwyrm trance -> summon bahamut upgrade
+        RuinMastery3 = 476, // L72, gemshine upgrade
+        OutburstMastery1 = 477, // L74, outburst -> tri-disaster upgrade
+        EnhancedSummonBahamut = 502, // L80, summon bahamut -> phoenix upgrade
+        OutburstMastery2 = 478, // L82, precious brilliance upgrade
+        RuinMastery4 = 479, // L84, potency increase
+        ElementalMastery = 503, // L86
+        EnhancedRadiantAegis = 480, // L88, second charge
+        Enkindle2 = 481, // L90, summon upgrade
+    }
+
     public enum CDGroup : int
     {
         Fester = 0, // 1.0 max
@@ -132,62 +158,141 @@ namespace BossMod.SMN
         Surecast = 43, // 120.0 max
     }
 
-    public enum MinLevel : int
+    public enum SID : uint
     {
-        SummonCarbuncle = 2, // includes radiant aegis
-        Physick = 4,
-        SummonRuby = 6, // includes aethercharge, ruby ruin 1 and gemshine
-        Addle = 8,
-        EnergyDrainFester = 10,
-        Sleep = 10,
-        Resurrection = 12,
-        LucidDreaming = 14,
-        SummonTopaz = 15, // unlocked by quest 66639 'Topaz Teachings'; includes topaz ruin 1
-        Swiftcast = 18,
-        MaimAndMend1 = 20, // passive, damage increase
-        SummonEmerald = 22, // includes emerald ruin 1
-        Outburst = 26, // includes precious brilliance and elemental outbursts
-        Ruin2 = 30, // unlocked by quest 65997 'Sinking Doesmaga'; includes elemental ruins 2
-        SummonIfrit1 = 30, // unlocked by quest 66627 'Austerities of Flame'
-        SummonTitan1 = 35, // unlocked by quest 66628 'Austerities of Earth'
-        MaimAndMend2 = 40, // passive, damage increase
-        Painflare = 40, // unlocked by quest 66629 'Shadowing the Summoner'
-        Surecast = 44,
-        SummonGaruda1 = 45, // unlocked by quest 66631 'Austerities of Wind'
-        Enkindle1 = 50, // unlocked by quest 66632 'Primal Burdens'; passive, upgrades summmons
-        EnergySiphon = 52, // unlocked by quest 67637 'A Matter of Fact'
-        Ruin3 = 54, // unlocked by quest 67638 'A Miner Negotiation'; includes elemental ruins 3
-        DreadwyrmTrance = 58, // unlocked by quest 67640 'I Could Have Tranced All Night'; includes astral impulse and astral flare
-        Deathflare = 60, // unlocked by quest 67641 'A Flare for the Dramatic'; includes astral flow
-        Ruin4 = 62,
-        SearingLight = 66,
-        SummonBahamut = 70, // unlocked by quest 68165 'An Art for the Living'; includes enkindle bahamut
-        ElementalRites = 72,
-        TriDisaster = 74, // includes elemental disasters
-        SummonPhoenix = 80, // includes rekindle, enkindle phoenix, brand of purgatory, fountain of fire and scarlet flame
-        ElementalCatastrophes = 82,
-        RuinMastery = 84, // passive, increases potencies
-        ElementalMastery = 86, // includes crimson strike/cyclone, mountain buster and slipstream
-        EnhancedRadiantAegis = 88, // passive, grants charges to radiant aegis
-        Enkindle2 = 90, // passive, unlocks summon ifrit/titan/garuda 2
+        None = 0,
+        Addle = 1203, // applied by Addle to target, -5% phys and -10% magic damage dealt
+        LucidDreaming = 1204, // applied by Lucid Dreaming to self, MP restore
+        Swiftcast = 167, // applied by Swiftcast to self, next cast is instant
+        Sleep = 3, // applied by Sleep to target
     }
 
     public static class Definitions
     {
-        public static QuestLockEntry[] QuestsPerLevel = {
-            new(15, 66639),
-            new(30, 65997),
-            new(30, 66627),
-            new(35, 66628),
-            new(40, 66629),
-            new(45, 66631),
-            new(50, 66632),
-            new(52, 67637),
-            new(54, 67638),
-            new(58, 67640),
-            new(60, 67641),
-            new(70, 68165),
-        };
+        public static uint[] UnlockQuests = { 66639, 65997, 66627, 66628, 66629, 66631, 66632, 67637, 67638, 67640, 67641, 68165 };
+
+        public static bool Unlocked(AID aid, int level, int questProgress)
+        {
+            return aid switch
+            {
+                AID.RadiantAegis => level >= 2,
+                AID.PetRadiantAegis => level >= 2,
+                AID.SummonCarbuncle => level >= 2,
+                AID.Physick => level >= 4,
+                AID.Aethercharge => level >= 6,
+                AID.SummonRuby => level >= 6,
+                AID.PetGlitteringRuby => level >= 6,
+                AID.RubyRuin1 => level >= 6,
+                AID.Gemshine => level >= 6,
+                AID.Addle => level >= 8,
+                AID.EnergyDrain => level >= 10,
+                AID.Fester => level >= 10,
+                AID.Sleep => level >= 10,
+                AID.Resurrection => level >= 12,
+                AID.LucidDreaming => level >= 14,
+                AID.SummonTopaz => level >= 15 && questProgress > 0,
+                AID.PetGlitteringTopaz => level >= 15,
+                AID.TopazRuin1 => level >= 15 && questProgress > 0,
+                AID.Swiftcast => level >= 18,
+                AID.SummonEmerald => level >= 22,
+                AID.PetGlitteringEmerald => level >= 22,
+                AID.EmeraldRuin1 => level >= 22,
+                AID.PreciousBrilliance => level >= 26,
+                AID.TopazOutburst => level >= 26,
+                AID.EmeraldOutburst => level >= 26,
+                AID.RubyOutburst => level >= 26,
+                AID.Outburst => level >= 26,
+                AID.Ruin2 => level >= 30 && questProgress > 1,
+                AID.PetBurningStrike => level >= 30,
+                AID.EmeraldRuin2 => level >= 30 && questProgress > 1,
+                AID.TopazRuin2 => level >= 30 && questProgress > 1,
+                AID.SummonIfrit1 => level >= 30 && questProgress > 2,
+                AID.RubyRuin2 => level >= 30 && questProgress > 1,
+                AID.SummonTitan1 => level >= 35 && questProgress > 3,
+                AID.PetRockBuster => level >= 35,
+                AID.Painflare => level >= 40 && questProgress > 4,
+                AID.Surecast => level >= 44,
+                AID.SummonGaruda1 => level >= 45 && questProgress > 5,
+                AID.PetAerialSlash => level >= 45,
+                AID.PetEarthenFury1 => level >= 50,
+                AID.PetAerialBlast1 => level >= 50,
+                AID.PetInferno1 => level >= 50,
+                AID.EnergySiphon => level >= 52 && questProgress > 7,
+                AID.EmeraldRuin3 => level >= 54 && questProgress > 8,
+                AID.TopazRuin3 => level >= 54 && questProgress > 8,
+                AID.Ruin3 => level >= 54 && questProgress > 8,
+                AID.RubyRuin3 => level >= 54 && questProgress > 8,
+                AID.DreadwyrmTrance => level >= 58 && questProgress > 9,
+                AID.AstralImpulse => level >= 58 && questProgress > 9,
+                AID.AstralFlare => level >= 58 && questProgress > 9,
+                AID.AstralFlow => level >= 60 && questProgress > 10,
+                AID.Deathflare => level >= 60 && questProgress > 10,
+                AID.Ruin4 => level >= 62,
+                AID.SearingLight => level >= 66,
+                AID.SummonBahamut => level >= 70 && questProgress > 11,
+                AID.PetWyrmwave => level >= 70 && questProgress > 11,
+                AID.EnkindleBahamut => level >= 70 && questProgress > 11,
+                AID.PetAkhMorn => level >= 70 && questProgress > 11,
+                AID.EmeraldRite => level >= 72,
+                AID.RubyRite => level >= 72,
+                AID.TopazRite => level >= 72,
+                AID.TriDisaster => level >= 74,
+                AID.TopazDisaster => level >= 74,
+                AID.EmeraldDisaster => level >= 74,
+                AID.RubyDisaster => level >= 74,
+                AID.PetRevelation => level >= 80,
+                AID.Rekindle => level >= 80,
+                AID.PetEverlastingFlight => level >= 80,
+                AID.EnkindlePhoenix => level >= 80,
+                AID.BrandOfPurgatory => level >= 80,
+                AID.FountainOfFire => level >= 80,
+                AID.SummonPhoenix => level >= 80,
+                AID.PetScarletFlame => level >= 80,
+                AID.EmeraldCatastrophe => level >= 82,
+                AID.TopazCatastrophe => level >= 82,
+                AID.RubyCatastrophe => level >= 82,
+                AID.CrimsonStrike => level >= 86,
+                AID.CrimsonCyclone => level >= 86,
+                AID.MountainBuster => level >= 86,
+                AID.Slipstream => level >= 86,
+                AID.PetInferno2 => level >= 90,
+                AID.PetEarthenFury2 => level >= 90,
+                AID.PetAerialBlast2 => level >= 90,
+                AID.SummonGaruda2 => level >= 90,
+                AID.SummonTitan2 => level >= 90,
+                AID.SummonIfrit2 => level >= 90,
+                _ => true,
+            };
+        }
+
+        public static bool Unlocked(TraitID tid, int level, int questProgress)
+        {
+            return tid switch
+            {
+                TraitID.EnhancedAethercharge1 => level >= 15 && questProgress > 0,
+                TraitID.MaimAndMend1 => level >= 20,
+                TraitID.EnhancedAethercharge2 => level >= 22,
+                TraitID.RuinMastery1 => level >= 30 && questProgress > 1,
+                TraitID.RubySummoningMastery => level >= 30 && questProgress > 2,
+                TraitID.TopazSummoningMastery => level >= 35 && questProgress > 3,
+                TraitID.MaimAndMend2 => level >= 40,
+                TraitID.EmeraldSummoningMastery => level >= 45 && questProgress > 5,
+                TraitID.Enkindle1 => level >= 50 && questProgress > 6,
+                TraitID.RuinMastery2 => level >= 54 && questProgress > 8,
+                TraitID.AetherchargeMastery => level >= 58 && questProgress > 9,
+                TraitID.EnhancedEnergySiphon => level >= 62,
+                TraitID.EnhancedDreadwyrmTrance => level >= 70 && questProgress > 11,
+                TraitID.RuinMastery3 => level >= 72,
+                TraitID.OutburstMastery1 => level >= 74,
+                TraitID.EnhancedSummonBahamut => level >= 80,
+                TraitID.OutburstMastery2 => level >= 82,
+                TraitID.RuinMastery4 => level >= 84,
+                TraitID.ElementalMastery => level >= 86,
+                TraitID.EnhancedRadiantAegis => level >= 88,
+                TraitID.Enkindle2 => level >= 90,
+                _ => true,
+            };
+        }
 
         public static Dictionary<ActionID, ActionDefinition> SupportedActions;
         static Definitions()
@@ -263,14 +368,5 @@ namespace BossMod.SMN
             SupportedActions.GCDCast(AID.Resurrection, 30, 8.0f);
             SupportedActions.GCDCast(AID.Sleep, 30, 2.5f);
         }
-    }
-
-    public enum SID : uint
-    {
-        None = 0,
-        Addle = 1203, // applied by Addle to target, -5% phys and -10% magic damage dealt
-        LucidDreaming = 1204, // applied by Lucid Dreaming to self, MP restore
-        Swiftcast = 167, // applied by Swiftcast to self, next cast is instant
-        Sleep = 3, // applied by Sleep to target
     }
 }

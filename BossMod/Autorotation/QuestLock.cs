@@ -1,23 +1,22 @@
 ﻿namespace BossMod
 {
-    // to deal with quest-locked abilities, we use the following strategy: we auto-generate sorted list of level/quest-id pairs, then find first non-completed quest and cap effective level to 1 below
-    // this avoids having to deal with nasty permutations
+    // for quest-locked abilities, we maintain a sorted list of interesting quests in chain (assuming that it is slightly linear)
     // since quest can't be 'uncompleted', we keep track of first uncompleted quest and only check it
     class QuestLockCheck
     {
-        private QuestLockEntry[] _unlockData;
+        private uint[] _unlockData;
         private int _firstUncompletedIndex = 0;
 
-        public QuestLockCheck(QuestLockEntry[] unlockData)
+        public QuestLockCheck(uint[] unlockData)
         {
             _unlockData = unlockData;
         }
 
-        public int AdjustLevel(int level)
+        public int Progress()
         {
-            while (_firstUncompletedIndex < _unlockData.Length && _unlockData[_firstUncompletedIndex].Level <= level && FFXIVClientStructs.FFXIV.Client.Game.QuestManager.IsQuestComplete(_unlockData[_firstUncompletedIndex].QuestID))
+            while (_firstUncompletedIndex < _unlockData.Length && FFXIVClientStructs.FFXIV.Client.Game.QuestManager.IsQuestComplete(_unlockData[_firstUncompletedIndex]))
                 ++_firstUncompletedIndex;
-            return _firstUncompletedIndex < _unlockData.Length && _unlockData[_firstUncompletedIndex].Level <= level ? _unlockData[_firstUncompletedIndex].Level - 1 : level;
+            return _firstUncompletedIndex;
         }
     }
 }

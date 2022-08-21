@@ -14,17 +14,20 @@
             public float TargetDemolishLeft; // TODO: this shouldn't be here...
 
             // upgrade paths
-            public AID BestForbiddenChakra => Unlocked(MinLevel.ForbiddenChakra) ? AID.ForbiddenChakra : AID.SteelPeak;
-            public AID BestEnlightenment => Unlocked(MinLevel.Enlightenment) ? AID.Enlightenment : AID.HowlingFist;
-            public AID BestShadowOfTheDestroyer => Unlocked(MinLevel.ShadowOfTheDestroyer) ? AID.ShadowOfTheDestroyer : AID.ArmOfTheDestroyer;
-            public AID BestRisingPhoenix => Unlocked(MinLevel.RisingPhoenix) ? AID.RisingPhoenix : AID.FlintStrike;
-            public AID BestPhantomRush => Unlocked(MinLevel.PhantomRush) ? AID.PhantomRush : AID.TornadoKick;
+            public AID BestForbiddenChakra => Unlocked(AID.ForbiddenChakra) ? AID.ForbiddenChakra : AID.SteelPeak;
+            public AID BestEnlightenment => Unlocked(AID.Enlightenment) ? AID.Enlightenment : AID.HowlingFist;
+            public AID BestShadowOfTheDestroyer => Unlocked(AID.ShadowOfTheDestroyer) ? AID.ShadowOfTheDestroyer : AID.ArmOfTheDestroyer;
+            public AID BestRisingPhoenix => Unlocked(AID.RisingPhoenix) ? AID.RisingPhoenix : AID.FlintStrike;
+            public AID BestPhantomRush => Unlocked(AID.PhantomRush) ? AID.PhantomRush : AID.TornadoKick;
 
             public State(float[] cooldowns) : base(cooldowns) { }
 
+            public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
+            public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
+
             public override string ToString()
             {
-                return $"RB={RaidBuffsLeft:f1}, Chakra={Chakra}, Form={Form}/{FormLeft:f1}, DFist={DisciplinedFistLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+                return $"RB={RaidBuffsLeft:f1}, Chakra={Chakra}, Form={Form}/{FormLeft:f1}, DFist={DisciplinedFistLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -38,14 +41,14 @@
         public static AID GetOpoOpoFormAction(State state, int numAOETargets)
         {
             // TODO: dragon kick (L50)
-            return state.Unlocked(MinLevel.ArmOfTheDestroyer) && numAOETargets >= 3 ? state.BestShadowOfTheDestroyer : AID.Bootshine;
+            return state.Unlocked(AID.ArmOfTheDestroyer) && numAOETargets >= 3 ? state.BestShadowOfTheDestroyer : AID.Bootshine;
         }
 
         public static AID GetRaptorFormAction(State state, int numAOETargets)
         {
             // TODO: low level - consider early restart...
             // TODO: better threshold for buff reapplication...
-            return state.Unlocked(MinLevel.FourPointFury) && numAOETargets >= 3 ? AID.FourPointFury : state.Unlocked(MinLevel.TwinSnakes) && state.DisciplinedFistLeft < state.GCD + 7 ? AID.TwinSnakes : AID.TrueStrike;
+            return state.Unlocked(AID.FourPointFury) && numAOETargets >= 3 ? AID.FourPointFury : state.Unlocked(AID.TwinSnakes) && state.DisciplinedFistLeft < state.GCD + 7 ? AID.TwinSnakes : AID.TrueStrike;
         }
 
         public static AID GetCoeurlFormAction(State state, int numAOETargets)
@@ -53,7 +56,7 @@
             // TODO: multidot support...
             // TODO: low level - consider early restart...
             // TODO: better threshold for debuff reapplication...
-            return state.Unlocked(MinLevel.Rockbreaker) && numAOETargets >= 3 ? AID.Rockbreaker : state.Unlocked(MinLevel.Demolish) && state.TargetDemolishLeft < state.GCD + 3 ? AID.Demolish : AID.SnapPunch;
+            return state.Unlocked(AID.Rockbreaker) && numAOETargets >= 3 ? AID.Rockbreaker : state.Unlocked(AID.Demolish) && state.TargetDemolishLeft < state.GCD + 3 ? AID.Demolish : AID.SnapPunch;
         }
 
         public static AID GetNextComboAction(State state, int numAOETargets)
@@ -77,17 +80,17 @@
             // 1. potion: TODO
 
             // 2. steel peek, if have chakra
-            if (state.Unlocked(MinLevel.SteelPeak) && state.Chakra == 5 && state.CanWeave(CDGroup.SteelPeak, 0.6f, deadline))
+            if (state.Unlocked(AID.SteelPeak) && state.Chakra == 5 && state.CanWeave(CDGroup.SteelPeak, 0.6f, deadline))
             {
                 // L15 Steel Peak is 180p
                 // L40 Howling Fist is 100p/target => HF at 2+ targets
                 // L54 Forbidden Chakra is 340p => HF at 4+ targets
                 // L72 Enlightenment is 170p/target => at 2+ targets
-                if (state.Unlocked(MinLevel.Enlightenment))
+                if (state.Unlocked(AID.Enlightenment))
                     return ActionID.MakeSpell(strategy.NumEnlightenmentTargets >= 2 ? AID.Enlightenment : AID.ForbiddenChakra);
-                else if (state.Unlocked(MinLevel.ForbiddenChakra))
+                else if (state.Unlocked(AID.ForbiddenChakra))
                     return ActionID.MakeSpell(strategy.NumEnlightenmentTargets >= 4 ? AID.HowlingFist : AID.ForbiddenChakra);
-                else if (state.Unlocked(MinLevel.HowlingFist))
+                else if (state.Unlocked(AID.HowlingFist))
                     return ActionID.MakeSpell(strategy.NumEnlightenmentTargets >= 2 ? AID.HowlingFist : AID.SteelPeak);
                 else
                     return ActionID.MakeSpell(AID.SteelPeak);

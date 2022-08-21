@@ -13,7 +13,7 @@ namespace BossMod.SCH
         private bool _allowDelayingNextGCD;
 
         public Actions(Autorotation autorot, Actor player)
-            : base(autorot, player, Definitions.QuestsPerLevel, Definitions.SupportedActions)
+            : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
         {
             _config = Service.Config.Get<SCHConfig>();
             _state = new(autorot.Cooldowns);
@@ -39,7 +39,7 @@ namespace BossMod.SCH
             // TODO: select target for art of war...
 
             // look for target to multidot, if initial target already has dot
-            if (_state.Unlocked(MinLevel.Bio1) && !WithoutDOT(initial))
+            if (_state.Unlocked(AID.Bio1) && !WithoutDOT(initial))
             {
                 var multidotTarget = Autorot.PotentialTargetsInRangeFromPlayer(25).FirstOrDefault(t => t != initial && WithoutDOT(t));
                 if (multidotTarget != null)
@@ -54,8 +54,8 @@ namespace BossMod.SCH
             base.UpdateInternalState(autoAction);
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionMnd);
-            _strategy.NumWhisperingDawnTargets = _state.Fairy != null && _state.Unlocked(MinLevel.WhisperingDawn) ? CountAOEHealTargets(15, _state.Fairy.Position) : 0;
-            _strategy.NumSuccorTargets = _state.Unlocked(MinLevel.Succor) ? CountAOEHealTargets(15, Player.Position) : 0;
+            _strategy.NumWhisperingDawnTargets = _state.Fairy != null && _state.Unlocked(AID.WhisperingDawn) ? CountAOEHealTargets(15, _state.Fairy.Position) : 0;
+            _strategy.NumSuccorTargets = _state.Unlocked(AID.Succor) ? CountAOEHealTargets(15, Player.Position) : 0;
             _strategy.Moving = autoAction is AutoActionAIIdleMove or AutoActionAIFightMove;
             _bestSTHeal = FindBestSTHealTarget();
         }
@@ -67,7 +67,7 @@ namespace BossMod.SCH
         protected override NextAction CalculateAutomaticGCD()
         {
             // TODO: rework, implement non-ai...
-            if (_state.Unlocked(MinLevel.SummonFairy) && _state.Fairy == null)
+            if (_state.Unlocked(AID.SummonSelene) && _state.Fairy == null)
                 return MakeResult(_config.PreferSelene ? AID.SummonSelene : AID.SummonEos, Player);
 
             // AI: aoe heals > st heals > esuna > damage
@@ -92,7 +92,7 @@ namespace BossMod.SCH
             }
 
             // prepull adlo, if allowed
-            var preshieldTarget = _state.Unlocked(MinLevel.Adloquium) ? FindProtectTarget() : null;
+            var preshieldTarget = _state.Unlocked(AID.Adloquium) ? FindProtectTarget() : null;
             if (preshieldTarget != null && StatusDetails(preshieldTarget, SID.Galvanize, Player.InstanceID).Left <= _state.GCD)
                 return MakeResult(AID.Adloquium, preshieldTarget);
 
@@ -134,11 +134,11 @@ namespace BossMod.SCH
             }
 
             // swiftcast, if can't cast any gcd
-            if (deadline >= 10000 && _strategy.Moving && _state.Unlocked(MinLevel.Swiftcast) && _state.CanWeave(CDGroup.Swiftcast, 0.6f, deadline))
+            if (deadline >= 10000 && _strategy.Moving && _state.Unlocked(AID.Swiftcast) && _state.CanWeave(CDGroup.Swiftcast, 0.6f, deadline))
                 return MakeResult(AID.Swiftcast, Player);
 
             // lucid dreaming, if we won't waste mana (TODO: revise mp limit)
-            if (_state.CurMP <= 7000 && _state.Unlocked(MinLevel.LucidDreaming) && _state.CanWeave(CDGroup.LucidDreaming, 0.6f, deadline))
+            if (_state.CurMP <= 7000 && _state.Unlocked(AID.LucidDreaming) && _state.CanWeave(CDGroup.LucidDreaming, 0.6f, deadline))
                 return MakeResult(AID.LucidDreaming, Player);
 
             return new();

@@ -60,6 +60,27 @@ namespace BossMod.WHM
         Rescue = 7571, // L48, instant, 120.0s CD (group 45), range 30, single-target 0/0, targets=party, animLock=???
     }
 
+    public enum TraitID : uint
+    {
+        None = 0,
+        StoneMastery1 = 179, // L18, stone1 -> stone2 upgrade
+        MaimAndMend1 = 23, // L20, heal and damage increase
+        Freecure = 25, // L32, cure1 can proc a buff that makes cure2 free
+        MaimAndMend2 = 26, // L40, heal and damage increase
+        AeroMastery1 = 180, // L46, aero1 -> aero2 upgrade
+        SecretOfTheLily = 196, // L52, lily gauge
+        StoneMastery2 = 181, // L54, stone2 -> stone3 upgrade
+        StoneMastery3 = 182, // L64, store3 -> stone4 upgrade
+        AeroMastery2 = 307, // L72, aero2 -> dia upgrade
+        StoneMastery4 = 308, // L72, stone4 -> glare1 upgrade
+        TranscendentAfflatus = 309, // L74, blood lily
+        EnhancedAsylum = 310, // L78, healing taken buff
+        GlareMastery = 487, // L82, glare1 -> glare3 upgrade
+        HolyMastery = 488, // L82, holy1 -> holy3 upgrade
+        EnhancedHealingMagic = 489, // L85, potency increase
+        EnhancedDivineBenison = 490, // L88, second charge
+    }
+
     public enum CDGroup : int
     {
         LiturgyOfTheBellEnd = 0, // 1.0 max
@@ -80,72 +101,102 @@ namespace BossMod.WHM
         Rescue = 45, // 120.0 max
     }
 
-    public enum MinLevel : int
+    public enum SID : uint
     {
-        // actions
-        Cure1 = 2,
-        Aero1 = 4,
-        Repose = 8,
-        Esuna = 10,
-        Medica1 = 10,
-        Raise = 12,
-        LucidDreaming = 14,
-        Stone2 = 18,
-        Swiftcast = 18,
-        Cure2 = 30, // unlocked by quest 65977 'In Nature's Embrace'
-        PresenceOfMind = 30, // unlocked by quest 66615 'Seer Folly'
-        Regen = 35, // unlocked by quest 66616 'Only You Can Prevent Forest Ire'
-        Cure3 = 40, // unlocked by quest 66617 'O Brother, Where Art Thou'
-        Surecast = 44,
-        Holy1 = 45, // unlocked by quest 66619 'Yearn for the Urn'
-        Aero2 = 46,
-        Rescue = 48,
-        Medica2 = 50,
-        Benediction = 50, // unlocked by quest 66620 'Heart of the Forest'
-        AfflatusSolace = 52,
-        Asylum = 52, // unlocked by quest 67256 'A Journey of Purification'
-        Stone3 = 54, // unlocked by quest 67257 'The Girl with the Dragon Tissue'
-        Assize = 56, // unlocked by quest 67258 'The Dark Blight Writhes'
-        ThinAir = 58, // unlocked by quest 67259 'In the Wake of Death'
-        Tetragrammaton = 60, // unlocked by quest 67261 'Hands of Healing'
-        Stone4 = 64,
-        DivineBenison = 66,
-        PlenaryIndulgence = 70, // unlocked by quest 67954 'What She Always Wanted'
-        Dia = 72,
-        Glare1 = 72,
-        AfflatusMisery = 74,
-        AfflatusRapture = 76,
-        Temperance = 80,
-        Glare3 = 82,
-        Holy3 = 82,
-        Aquaveil = 86,
-        LiturgyOfTheBell = 90,
-
-        // traits
-        MaimAndMend1 = 20, // passive, heal and damage increase
-        Freecure = 32, // passive, cure1 can proc a buff that makes cure2 free
-        MaimAndMend2 = 40, // passive, heal and damage increase
-        EnhancedAsylum = 78, // passive, asylum increases healing taken
-        EnhancedHealingMagic = 85, // passive, potency increase
-        EnhancedDivineBenison = 88, // passive, second charge for DB
+        None = 0,
+        Aero1 = 143, // applied by Aero1 to target, dot
+        Aero2 = 144, // applied by Aero2 to target, dot
+        Dia = 1871, // applied by Dia to target, dot
+        Medica2 = 150, // applied by Medica2 to targets, hot
+        Freecure = 155, // applied by Cure1 to self, next cure2 is free
+        Swiftcast = 167, // applied by Swiftcast to self, next gcd is instant
+        ThinAir = 1217, // applied by Thin Air to self, next gcd costs no mp
+        LucidDreaming = 1204, // applied by Lucid Dreaming to self, mp regen
+        DivineBenison = 1218, // applied by Divine Benison to target, shield
+        Confession = 1219, // applied by Plenary Indulgence to self, heal buff
+        Temperance = 1872, // applied by Temperance to self, heal and mitigate buff
+        Surecast = 160, // applied by Surecast to self, knockback immune
+        PresenceOfMind = 157, // applied by Presence of Mind to self, damage buff
+        Regen = 158, // applied by Regen to target, hp regen
+        Asylum = 1911, // applied by Asylum to target, hp regen
+        Aquaveil = 2708, // applied by Aquaveil to target, mitigate
+        LiturgyOfTheBell = 2709, // applied by Liturgy of the Bell to target, heal on hit
+        Sleep = 3, // applied by Repose to target
     }
 
     public static class Definitions
     {
-        public static QuestLockEntry[] QuestsPerLevel = {
-            new(30, 65977),
-            new(30, 66615),
-            new(35, 66616),
-            new(40, 66617),
-            new(45, 66619),
-            new(50, 66620),
-            new(52, 67256),
-            new(54, 67257),
-            new(56, 67258),
-            new(58, 67259),
-            new(60, 67261),
-            new(70, 67954),
-        };
+        public static uint[] UnlockQuests = { 65977, 66615, 66616, 66617, 66619, 66620, 67256, 67257, 67258, 67259, 67261, 67954 };
+
+        public static bool Unlocked(AID aid, int level, int questProgress)
+        {
+            return aid switch
+            {
+                AID.Cure1 => level >= 2,
+                AID.Aero1 => level >= 4,
+                AID.Repose => level >= 8,
+                AID.Esuna => level >= 10,
+                AID.Medica1 => level >= 10,
+                AID.Raise => level >= 12,
+                AID.LucidDreaming => level >= 14,
+                AID.Stone2 => level >= 18,
+                AID.Swiftcast => level >= 18,
+                AID.Cure2 => level >= 30 && questProgress > 0,
+                AID.PresenceOfMind => level >= 30 && questProgress > 1,
+                AID.Regen => level >= 35 && questProgress > 2,
+                AID.Cure3 => level >= 40 && questProgress > 3,
+                AID.Surecast => level >= 44,
+                AID.Holy1 => level >= 45 && questProgress > 4,
+                AID.Aero2 => level >= 46,
+                AID.Rescue => level >= 48,
+                AID.Benediction => level >= 50 && questProgress > 5,
+                AID.Medica2 => level >= 50,
+                AID.AfflatusSolace => level >= 52,
+                AID.Asylum => level >= 52 && questProgress > 6,
+                AID.Stone3 => level >= 54 && questProgress > 7,
+                AID.Assize => level >= 56 && questProgress > 8,
+                AID.ThinAir => level >= 58 && questProgress > 9,
+                AID.Tetragrammaton => level >= 60 && questProgress > 10,
+                AID.Stone4 => level >= 64,
+                AID.DivineBenison => level >= 66,
+                AID.PlenaryIndulgence => level >= 70 && questProgress > 11,
+                AID.Dia => level >= 72,
+                AID.Glare1 => level >= 72,
+                AID.AfflatusMisery => level >= 74,
+                AID.AfflatusRapture => level >= 76,
+                AID.Temperance => level >= 80,
+                AID.Glare3 => level >= 82,
+                AID.Holy3 => level >= 82,
+                AID.Aquaveil => level >= 86,
+                AID.LiturgyOfTheBell => level >= 90,
+                AID.LiturgyOfTheBellEnd => level >= 90,
+                _ => true,
+            };
+        }
+
+        public static bool Unlocked(TraitID tid, int level, int questProgress)
+        {
+            return tid switch
+            {
+                TraitID.StoneMastery1 => level >= 18,
+                TraitID.MaimAndMend1 => level >= 20,
+                TraitID.Freecure => level >= 32,
+                TraitID.MaimAndMend2 => level >= 40,
+                TraitID.AeroMastery1 => level >= 46,
+                TraitID.SecretOfTheLily => level >= 52 && questProgress > 6,
+                TraitID.StoneMastery2 => level >= 54 && questProgress > 7,
+                TraitID.StoneMastery3 => level >= 64,
+                TraitID.AeroMastery2 => level >= 72,
+                TraitID.StoneMastery4 => level >= 72,
+                TraitID.TranscendentAfflatus => level >= 74,
+                TraitID.EnhancedAsylum => level >= 78,
+                TraitID.GlareMastery => level >= 82,
+                TraitID.HolyMastery => level >= 82,
+                TraitID.EnhancedHealingMagic => level >= 85,
+                TraitID.EnhancedDivineBenison => level >= 88,
+                _ => true,
+            };
+        }
 
         public static Dictionary<ActionID, ActionDefinition> SupportedActions;
         static Definitions()
@@ -191,28 +242,5 @@ namespace BossMod.WHM
             SupportedActions.GCDCast(AID.Esuna, 30, 1.0f);
             SupportedActions.OGCD(AID.Rescue, 30, CDGroup.Rescue, 120.0f);
         }
-    }
-
-    public enum SID : uint
-    {
-        None = 0,
-        Aero1 = 143, // applied by Aero1 to target, dot
-        Aero2 = 144, // applied by Aero2 to target, dot
-        Dia = 1871, // applied by Dia to target, dot
-        Medica2 = 150, // applied by Medica2 to targets, hot
-        Freecure = 155, // applied by Cure1 to self, next cure2 is free
-        Swiftcast = 167, // applied by Swiftcast to self, next gcd is instant
-        ThinAir = 1217, // applied by Thin Air to self, next gcd costs no mp
-        LucidDreaming = 1204, // applied by Lucid Dreaming to self, mp regen
-        DivineBenison = 1218, // applied by Divine Benison to target, shield
-        Confession = 1219, // applied by Plenary Indulgence to self, heal buff
-        Temperance = 1872, // applied by Temperance to self, heal and mitigate buff
-        Surecast = 160, // applied by Surecast to self, knockback immune
-        PresenceOfMind = 157, // applied by Presence of Mind to self, damage buff
-        Regen = 158, // applied by Regen to target, hp regen
-        Asylum = 1911, // applied by Asylum to target, hp regen
-        Aquaveil = 2708, // applied by Aquaveil to target, mitigate
-        LiturgyOfTheBell = 2709, // applied by Liturgy of the Bell to target, heal on hit
-        Sleep = 3, // applied by Repose to target
     }
 }

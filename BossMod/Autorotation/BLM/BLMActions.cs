@@ -17,7 +17,7 @@ namespace BossMod.BLM
         private uint _prevMP;
 
         public Actions(Autorotation autorot, Actor player)
-            : base(autorot, player, Definitions.QuestsPerLevel, Definitions.SupportedActions)
+            : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
         {
             _config = Service.Config.Get<BLMConfig>();
             _state = new(autorot.Cooldowns);
@@ -76,9 +76,9 @@ namespace BossMod.BLM
 
         protected override void QueueAIActions()
         {
-            if (_state.Unlocked(MinLevel.Transpose))
+            if (_state.Unlocked(AID.Transpose))
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.Transpose), Player, _strategy.Prepull && _state.ElementalLevel > 0 && _state.CurMP < 10000);
-            if (_state.Unlocked(MinLevel.Manaward))
+            if (_state.Unlocked(AID.Manaward))
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.Manaward), Player, Player.HP.Cur < Player.HP.Max * 0.8f);
         }
 

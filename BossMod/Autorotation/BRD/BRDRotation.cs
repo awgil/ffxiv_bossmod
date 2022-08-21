@@ -17,17 +17,20 @@
             public float TargetStormbiteLeft;
 
             // upgrade paths
-            public AID BestBurstShot => Unlocked(MinLevel.BurstShot) ? AID.BurstShot : AID.HeavyShot;
-            public AID BestRefulgentArrow => Unlocked(MinLevel.RefulgentArrow) ? AID.RefulgentArrow : AID.StraightShot;
-            public AID BestCausticBite => Unlocked(MinLevel.CausticBite) ? AID.CausticBite : AID.VenomousBite;
-            public AID BestStormbite => Unlocked(MinLevel.Stormbite) ? AID.Stormbite : AID.Windbite;
-            public AID BestLadonsbite => Unlocked(MinLevel.Ladonsbite) ? AID.Ladonsbite : AID.QuickNock;
+            public AID BestBurstShot => Unlocked(AID.BurstShot) ? AID.BurstShot : AID.HeavyShot;
+            public AID BestRefulgentArrow => Unlocked(AID.RefulgentArrow) ? AID.RefulgentArrow : AID.StraightShot;
+            public AID BestCausticBite => Unlocked(AID.CausticBite) ? AID.CausticBite : AID.VenomousBite;
+            public AID BestStormbite => Unlocked(AID.Stormbite) ? AID.Stormbite : AID.Windbite;
+            public AID BestLadonsbite => Unlocked(AID.Ladonsbite) ? AID.Ladonsbite : AID.QuickNock;
 
             public State(float[] cooldowns) : base(cooldowns) { }
 
+            public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
+            public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
+
             public override string ToString()
             {
-                return $"S={ActiveSong}/{ActiveSongLeft:f1}, RB={RaidBuffsLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+                return $"S={ActiveSong}/{ActiveSongLeft:f1}, RB={RaidBuffsLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -42,16 +45,16 @@
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
             // TODO: this is correct until L30
-            if (strategy.AOE && state.Unlocked(MinLevel.QuickNock))
+            if (strategy.AOE && state.Unlocked(AID.QuickNock))
             {
                 return state.BestLadonsbite;
             }
             else
             {
                 // 1. dots
-                if (state.Unlocked(MinLevel.Windbite) && RefreshDOT(state, state.TargetStormbiteLeft))
+                if (state.Unlocked(AID.Windbite) && RefreshDOT(state, state.TargetStormbiteLeft))
                     return state.BestStormbite;
-                if (state.Unlocked(MinLevel.VenomousBite) && RefreshDOT(state, state.TargetCausticLeft))
+                if (state.Unlocked(AID.VenomousBite) && RefreshDOT(state, state.TargetCausticLeft))
                     return state.BestCausticBite;
 
                 // 2. straight shot if possible
@@ -66,16 +69,16 @@
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
             // TODO: this should be improved... correct for low levels
-            if (state.ActiveSong == Song.None && state.Unlocked(MinLevel.MagesBallad) && state.CanWeave(CDGroup.MagesBallad, 0.6f, deadline))
+            if (state.ActiveSong == Song.None && state.Unlocked(AID.MagesBallad) && state.CanWeave(CDGroup.MagesBallad, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.MagesBallad);
-            if (state.ActiveSong == Song.None && state.Unlocked(MinLevel.ArmysPaeon) && state.CanWeave(CDGroup.ArmysPaeon, 0.6f, deadline))
+            if (state.ActiveSong == Song.None && state.Unlocked(AID.ArmysPaeon) && state.CanWeave(CDGroup.ArmysPaeon, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.ArmysPaeon);
 
-            if (state.Unlocked(MinLevel.RagingStrikes) && state.CanWeave(CDGroup.RagingStrikes, 0.6f, deadline))
+            if (state.Unlocked(AID.RagingStrikes) && state.CanWeave(CDGroup.RagingStrikes, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.RagingStrikes);
-            if (!strategy.AOE && state.StraightShotLeft <= state.GCD && state.Unlocked(MinLevel.Barrage) && state.CanWeave(CDGroup.Barrage, 0.6f, deadline))
+            if (!strategy.AOE && state.StraightShotLeft <= state.GCD && state.Unlocked(AID.Barrage) && state.CanWeave(CDGroup.Barrage, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Barrage);
-            if (state.Unlocked(MinLevel.Bloodletter) && state.CanWeave(state.CD(CDGroup.Bloodletter) - 60, 0.6f, deadline))
+            if (state.Unlocked(AID.Bloodletter) && state.CanWeave(state.CD(CDGroup.Bloodletter) - 60, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Bloodletter);
 
             // no suitable oGCDs...

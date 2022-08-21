@@ -55,6 +55,26 @@ namespace BossMod.WAR
         Interject = 7538, // L18, instant, 30.0s CD (group 44), range 3, single-target 0/0, targets=hostile
     }
 
+    public enum TraitID : uint
+    {
+        None = 0,
+        TankMastery = 318, // L1
+        TheBeastWithin = 249, // L35, gauge generation
+        InnerBeastMastery = 265, // L54, IB->FC upgrade
+        SteelCycloneMastery = 266, // L60,  steel cyclone -> decimate upgrade
+        EnhancedInfuriate = 157, // L66, gauge spenders reduce cd by 5
+        BerserkMastery = 218, // L70, berserk -> IR upgrade
+        NascentChaos = 267, // L72, decimate -> chaotic cyclone after infuriate
+        MasteringTheBeast = 268, // L74, mythril tempest gives gauge
+        EnhancedShakeItOff = 417, // L76, adds heal
+        EnhancedThrillOfBattle = 269, // L78, adds incoming heal buff
+        RawIntuitionMastery = 418, // L82, raw intuition -> bloodwhetting
+        EnhancedNascentFlash = 419, // L82, duration increase
+        EnhancedEquilibrium = 420, // L84, adds hot
+        MeleeMastery = 505, // L84, potency increase
+        EnhancedOnslaught = 421, // L88, 3rd onslaught charge
+    }
+
     public enum CDGroup : int
     {
         Defiance = 2, // 3.0 max
@@ -78,63 +98,102 @@ namespace BossMod.WAR
         ArmsLength = 46, // 120.0 max
     }
 
-    public enum MinLevel : int
+    public enum SID : uint
     {
-        Maim = 4,
-        Berserk = 6,
-        Rampart = 8,
-        Overpower = 10,
-        Defiance = 10,
-        LowBlow = 12,
-        Tomahawk = 15, // unlocked by quest 65852 'Brutal Strength'
-        Provoke = 15,
-        Interject = 18,
-        Reprisal = 22,
-        StormPath = 26,
-        ThrillOfBattle = 30, // unlocked by quest 65855 'Bringing Down the Mountain'
-        ArmsLength = 32,
-        InnerBeast = 35, // unlocked by quest 66586 'Embracing the Beast'
-        Vengeance = 38,
-        MythrilTempest = 40, // unlocked by quest 66587 'Curious Gorge Goes to Wineport'
-        Holmgang = 42,
-        SteelCyclone = 45, // unlocked by quest 66589 'Proof Is the Pudding'
-        Shirk = 48,
-        Infuriate = 50, // unlocked by quest 66590 'How to Quit You'
-        StormEye = 50,
-        FellCleave = 54, // unlocked by quest 66124 'The Bear Necessity'
-        RawIntuition = 56, // unlocked by quest 66132 'Pirates of Shallow Water'
-        Equilibrium = 58, // unlocked by quest 66134 'Slap an' Chop'
-        Decimate = 60, // unlocked by quest 66137 'And My Axe'
-        Onslaught = 62,
-        Upheaval = 64,
-        EnhancedInfuriate = 66, // passive, gauge spenders reduce infCD by 5
-        ShakeItOff = 68,
-        InnerRelease = 70, // unlocked by quest 68440 'The Heart of the Problem'
-        ChaoticCyclone = 72,
-        MasteringTheBeast = 74, // passive, mythril tempest gives gauge
-        NascentFlash = 76,
-        InnerChaos = 80,
-        Bloodwhetting = 82,
-        Orogeny = 86,
-        EnhancedOnslaught = 88, // passive, gives third charge to onslaught
-        PrimalRend = 90,
+        None = 0,
+        SurgingTempest = 2677, // applied by Storm's Eye, Mythril Tempest to self, damage buff
+        NascentChaos = 1897, // applied by Infuriate to self, converts next FC to IC
+        Berserk = 86, // applied by Berserk to self, next 3 GCDs are crit dhit
+        InnerRelease = 1177, // applied by Inner Release to self, next 3 GCDs should be free FCs
+        PrimalRend = 2624, // applied by Inner Release to self, allows casting PR
+        InnerStrength = 2663, // applied by Inner Release to self, immunes
+        VengeanceRetaliation = 89, // applied by Vengeance to self, retaliation for physical attacks
+        VengeanceDefense = 912, // applied by Vengeance to self, -30% damage taken
+        Rampart = 1191, // applied by Rampart to self, -20% damage taken
+        ThrillOfBattle = 87, // applied by Thrill of Battle to self
+        Holmgang = 409, // applied by Holmgang to self
+        EquilibriumRegen = 2681, // applied by Equilibrium to self, hp regen
+        Reprisal = 1193, // applied by Reprisal to target
+        ShakeItOff = 1457, // applied by ShakeItOff to self/target, damage shield
+        RawIntuition = 735, // applied by Raw Intuition to self
+        NascentFlashSelf = 1857, // applied by Nascent Flash to self, heal on hit
+        NascentFlashTarget = 1858, // applied by Nascent Flash to target, -10% damage taken + heal on hit
+        BloodwhettingDefenseLong = 2678, // applied by Bloodwhetting to self, -10% damage taken + heal on hit for 8 sec
+        BloodwhettingDefenseShort = 2679, // applied by Bloodwhetting, Nascent Flash to self/target, -10% damage taken for 4 sec
+        BloodwhettingShield = 2680, // applied by Bloodwhetting, Nascent Flash to self/target, damage shield
+        ArmsLength = 1209, // applied by Arm's Length to self
+        Defiance = 91, // applied by Defiance to self, tank stance
+        Stun = 2, // applied by Low Blow to target
     }
 
     public static class Definitions
     {
-        public static QuestLockEntry[] QuestsPerLevel = {
-            new(15, 65852),
-            new(30, 65855),
-            new(35, 66586),
-            new(40, 66587),
-            new(45, 66589),
-            new(50, 66590),
-            new(54, 66124),
-            new(56, 66132),
-            new(58, 66134),
-            new(60, 66137),
-            new(70, 68440),
-        };
+        public static uint[] UnlockQuests = { 65852, 65855, 66586, 66587, 66589, 66590, 66124, 66132, 66134, 66137, 68440 };
+
+        public static bool Unlocked(AID aid, int level, int questProgress)
+        {
+            return aid switch
+            {
+                AID.Maim => level >= 4,
+                AID.Berserk => level >= 6,
+                AID.Rampart => level >= 8,
+                AID.Overpower => level >= 10,
+                AID.Defiance => level >= 10,
+                AID.LowBlow => level >= 12,
+                AID.Tomahawk => level >= 15 && questProgress > 0,
+                AID.Provoke => level >= 15,
+                AID.Interject => level >= 18,
+                AID.Reprisal => level >= 22,
+                AID.StormPath => level >= 26,
+                AID.ThrillOfBattle => level >= 30 && questProgress > 1,
+                AID.ArmsLength => level >= 32,
+                AID.InnerBeast => level >= 35 && questProgress > 2,
+                AID.Vengeance => level >= 38,
+                AID.MythrilTempest => level >= 40 && questProgress > 3,
+                AID.Holmgang => level >= 42,
+                AID.SteelCyclone => level >= 45 && questProgress > 4,
+                AID.Shirk => level >= 48,
+                AID.Infuriate => level >= 50 && questProgress > 5,
+                AID.StormEye => level >= 50,
+                AID.FellCleave => level >= 54 && questProgress > 6,
+                AID.RawIntuition => level >= 56 && questProgress > 7,
+                AID.Equilibrium => level >= 58 && questProgress > 8,
+                AID.Decimate => level >= 60 && questProgress > 9,
+                AID.Onslaught => level >= 62,
+                AID.Upheaval => level >= 64,
+                AID.ShakeItOff => level >= 68,
+                AID.InnerRelease => level >= 70 && questProgress > 10,
+                AID.ChaoticCyclone => level >= 72,
+                AID.NascentFlash => level >= 76,
+                AID.InnerChaos => level >= 80,
+                AID.Bloodwhetting => level >= 82,
+                AID.Orogeny => level >= 86,
+                AID.PrimalRend => level >= 90,
+                _ => true,
+            };
+        }
+
+        public static bool Unlocked(TraitID tid, int level, int questProgress)
+        {
+            return tid switch
+            {
+                TraitID.TheBeastWithin => level >= 35 && questProgress > 2,
+                TraitID.InnerBeastMastery => level >= 54 && questProgress > 6,
+                TraitID.SteelCycloneMastery => level >= 60 && questProgress > 9,
+                TraitID.EnhancedInfuriate => level >= 66,
+                TraitID.BerserkMastery => level >= 70 && questProgress > 10,
+                TraitID.NascentChaos => level >= 72,
+                TraitID.MasteringTheBeast => level >= 74,
+                TraitID.EnhancedShakeItOff => level >= 76,
+                TraitID.EnhancedThrillOfBattle => level >= 78,
+                TraitID.RawIntuitionMastery => level >= 82,
+                TraitID.EnhancedNascentFlash => level >= 82,
+                TraitID.EnhancedEquilibrium => level >= 84,
+                TraitID.MeleeMastery => level >= 84,
+                TraitID.EnhancedOnslaught => level >= 88,
+                _ => true,
+            };
+        }
 
         public static Dictionary<ActionID, ActionDefinition> SupportedActions;
         static Definitions()
@@ -177,33 +236,5 @@ namespace BossMod.WAR
             SupportedActions.OGCD(AID.LowBlow, 3, CDGroup.LowBlow, 25.0f);
             SupportedActions.OGCD(AID.Interject, 3, CDGroup.Interject, 30.0f);
         }
-    }
-
-    public enum SID : uint
-    {
-        None = 0,
-        SurgingTempest = 2677, // applied by Storm's Eye, Mythril Tempest to self, damage buff
-        NascentChaos = 1897, // applied by Infuriate to self, converts next FC to IC
-        Berserk = 86, // applied by Berserk to self, next 3 GCDs are crit dhit
-        InnerRelease = 1177, // applied by Inner Release to self, next 3 GCDs should be free FCs
-        PrimalRend = 2624, // applied by Inner Release to self, allows casting PR
-        InnerStrength = 2663, // applied by Inner Release to self, immunes
-        VengeanceRetaliation = 89, // applied by Vengeance to self, retaliation for physical attacks
-        VengeanceDefense = 912, // applied by Vengeance to self, -30% damage taken
-        Rampart = 1191, // applied by Rampart to self, -20% damage taken
-        ThrillOfBattle = 87, // applied by Thrill of Battle to self
-        Holmgang = 409, // applied by Holmgang to self
-        EquilibriumRegen = 2681, // applied by Equilibrium to self, hp regen
-        Reprisal = 1193, // applied by Reprisal to target
-        ShakeItOff = 1457, // applied by ShakeItOff to self/target, damage shield
-        RawIntuition = 735, // applied by Raw Intuition to self
-        NascentFlashSelf = 1857, // applied by Nascent Flash to self, heal on hit
-        NascentFlashTarget = 1858, // applied by Nascent Flash to target, -10% damage taken + heal on hit
-        BloodwhettingDefenseLong = 2678, // applied by Bloodwhetting to self, -10% damage taken + heal on hit for 8 sec
-        BloodwhettingDefenseShort = 2679, // applied by Bloodwhetting, Nascent Flash to self/target, -10% damage taken for 4 sec
-        BloodwhettingShield = 2680, // applied by Bloodwhetting, Nascent Flash to self/target, damage shield
-        ArmsLength = 1209, // applied by Arm's Length to self
-        Defiance = 91, // applied by Defiance to self, tank stance
-        Stun = 2, // applied by Low Blow to target
     }
 }

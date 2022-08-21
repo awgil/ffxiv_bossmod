@@ -24,8 +24,10 @@ namespace BossMod
             public Type? AIDType;
             public Type? CDGType;
             public Type? SIDType;
+            public Type? TraitIDType;
             public List<Lumina.Excel.GeneratedSheets.Action> Actions = new();
             public List<Lumina.Excel.GeneratedSheets.Trait> Traits = new();
+            public List<uint>? Unlocks;
             public SortedDictionary<int, List<Lumina.Excel.GeneratedSheets.Action>> CooldownGroups = new();
 
             public ClassData(Class c)
@@ -33,6 +35,7 @@ namespace BossMod
                 AIDType = Type.GetType($"BossMod.{c}.AID");
                 CDGType = Type.GetType($"BossMod.{c}.CDGroup");
                 SIDType = Type.GetType($"BossMod.{c}.SID");
+                TraitIDType = Type.GetType($"BossMod.{c}.TraitID");
 
                 var cp = typeof(Lumina.Excel.GeneratedSheets.ClassJobCategory).GetProperty(c.ToString());
                 Func<Lumina.Excel.GeneratedSheets.Action, bool> actionIsInteresting = a => !a.IsPvP && a.ClassJobLevel > 0 && (cp?.GetValue(a.ClassJobCategory.Value) as bool? ?? false);
@@ -48,6 +51,63 @@ namespace BossMod
                     var cg = action.CooldownGroup - 1;
                     if (cg is >= 0 and < 80)
                         CooldownGroups.GetOrAdd(cg).Add(action);
+                }
+
+                List<(uint, bool)>? quests = new();
+                foreach (var action in Actions.Where(a => a.UnlockLink != 0))
+                {
+                    quests = BuildOrderedQuests(quests, action.UnlockLink);
+                }
+                foreach (var trait in Traits.Where(t => t.Quest.Row != 0))
+                {
+                    quests = BuildOrderedQuests(quests, trait.Quest.Row);
+                }
+                Unlocks = quests?.Where(q => q.Item2).Select(q => q.Item1).ToList();
+            }
+
+            private List<(uint, bool)>? BuildOrderedQuests(List<(uint, bool)>? quests, uint questID)
+            {
+                if (quests == null)
+                    return null;
+
+                var index = quests.FindIndex(q => q.Item1 == questID);
+                if (index < 0)
+                {
+                    var q = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Quest>(questID);
+                    if (q != null && AddToDepChain(quests, q))
+                        index = quests.Count - 1;
+                }
+
+                if (index < 0)
+                    return null;
+
+                quests[index] = (questID, true);
+                return quests;
+            }
+
+            private bool AddToDepChain(List<(uint, bool)> list, Lumina.Excel.GeneratedSheets.Quest item)
+            {
+                var prereq = item.PreviousQuest0.Value;
+                if (prereq == null)
+                {
+                    if (list.Count == 0)
+                    {
+                        list.Add((item.RowId, false));
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else if (list.Count == 0 || list.Last().Item1 == prereq.RowId || AddToDepChain(list, prereq))
+                {
+                    list.Add((item.RowId, false));
+                    return true;
+                }
+                else
+                {
+                    return false;
                 }
             }
         }
@@ -99,7 +159,7 @@ namespace BossMod
                         }
                     }
 
-                    foreach (var n in _tree.Node("Traits"))
+                    foreach (var n in _tree.Node("Traits", contextMenu: () => TraitsContextMenu(data)))
                     {
                         _tree.LeafNodes(data.Traits, t => $"{t.RowId} '{t.Name}': {UnlockString(t.Level, t.Quest.Row)}");
                     }
@@ -139,6 +199,21 @@ namespace BossMod
                 ImGui.SetClipboardText(sb.ToString());
             }
 
+            if (ImGui.MenuItem("Build Unlocked() function"))
+            {
+                var sb = new StringBuilder("public static bool Unlocked(AID aid, int level, int questProgress)\n{\n    return aid switch\n    {");
+                foreach (var action in cd.Actions.Where(a => a.ClassJobLevel > 1))
+                {
+                    var aidEnum = cd.AIDType?.GetEnumName(action.RowId) ?? Utils.StringToIdentifier(action.Name);
+                    sb.Append($"        AID.{aidEnum} => level >= {action.ClassJobLevel}");
+                    if (action.UnlockLink != 0)
+                        sb.Append($" && questProgress > {cd.Unlocks?.IndexOf(action.UnlockLink).ToString() ?? "???"}");
+                    sb.Append(",\n");
+                }
+                sb.Append("        _ => true,\n    };\n}\n");
+                ImGui.SetClipboardText(sb.ToString());
+            }
+
             if (ImGui.MenuItem("Build definitions"))
             {
                 var sb = new StringBuilder();
@@ -172,40 +247,38 @@ namespace BossMod
                 ImGui.SetClipboardText(sb.ToString());
             }
 
-            if (ImGui.MenuItem("Generate MinLevel enum"))
+            if (cd.Unlocks != null && ImGui.MenuItem("Generate quest lock definitions"))
             {
-                var sb = new StringBuilder("public enum MinLevel : int\n{\n    // actions");
-                foreach (var action in cd.Actions.Where(a => a.ClassJobLevel > 1))
+                ImGui.SetClipboardText($"public static uint[] UnlockQuests = {{ {string.Join(", ", cd.Unlocks)} }};\n");
+            }
+        }
+
+        private void TraitsContextMenu(ClassData cd)
+        {
+            if (ImGui.MenuItem("Generate TraitID enum"))
+            {
+                var sb = new StringBuilder("public enum TraitID : uint\n{\n    None = 0,");
+                foreach (var trait in cd.Traits)
                 {
-                    var aidEnum = cd.AIDType?.GetEnumName(action.RowId) ?? Utils.StringToIdentifier(action.Name);
-                    sb.Append($"\n    {aidEnum} = {action.ClassJobLevel},");
-                    if (action.UnlockLink != 0)
-                        sb.Append($" // {UnlockLinkString(action.UnlockLink)}");
-                }
-                sb.Append("\n\n    // traits");
-                foreach (var trait in cd.Traits.Where(t => t.Level > 1))
-                {
-                    sb.Append($"\n    {Utils.StringToIdentifier(trait.Name)} = {trait.Level},");
-                    if (trait.Quest.Row != 0)
-                        sb.Append($" // {UnlockLinkString(trait.Quest.Row)}");
+                    var tidEnum = cd.TraitIDType?.GetEnumName(trait.RowId) ?? Utils.StringToIdentifier(trait.Name);
+                    sb.Append($"\n    {tidEnum} = {trait.RowId}, // L{trait.Level}");
                 }
                 sb.Append("\n}\n");
                 ImGui.SetClipboardText(sb.ToString());
             }
 
-            if (ImGui.MenuItem("Generate quest lock definitions"))
+            if (ImGui.MenuItem("Build Unlocked() function"))
             {
-                List<(int, uint)> questLocks = new();
-                foreach (var action in cd.Actions.Where(a => a.UnlockLink != 0))
-                    questLocks.Add((action.ClassJobLevel, action.UnlockLink));
-                foreach (var trait in cd.Traits.Where(t => t.Quest.Row != 0))
-                    questLocks.Add((trait.Level, trait.Quest.Row));
-                questLocks.Sort();
-                var sb = new StringBuilder("public static QuestLockEntry[] QuestsPerLevel = {");
-                for (int i = 0; i < questLocks.Count; ++i)
-                    if (i == 0 || questLocks[i - 1] != questLocks[i])
-                        sb.Append($"\n    new({questLocks[i].Item1}, {questLocks[i].Item2}),");
-                sb.Append("\n};\n");
+                var sb = new StringBuilder("public static bool Unlocked(TraitID tid, int level, int questProgress)\n{\n    return tid switch\n    {");
+                foreach (var trait in cd.Traits.Where(t => t.Level > 1))
+                {
+                    var tidEnum = cd.TraitIDType?.GetEnumName(trait.RowId) ?? Utils.StringToIdentifier(trait.Name);
+                    sb.Append($"        TraitID.{tidEnum} => level >= {trait.Level}");
+                    if (trait.Quest.Row != 0)
+                        sb.Append($" && questProgress > {cd.Unlocks?.IndexOf(trait.Quest.Row).ToString() ?? "???"}");
+                    sb.Append(",\n");
+                }
+                sb.Append("        _ => true,\n    };\n}\n");
                 ImGui.SetClipboardText(sb.ToString());
             }
         }

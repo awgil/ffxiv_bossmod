@@ -79,6 +79,23 @@ namespace BossMod.SCH
         PetConsolation = 16547, // L80, instant, 0.0s CD (group -1), range 0, AOE circle 20/0, targets=self, animLock=???
     }
 
+    public enum TraitID : uint
+    {
+        None = 0,
+        MaimAndMend1 = 66, // L20, damage & healing increase
+        CorruptionMastery1 = 324, // L26, bio1 -> bio2 upgrade
+        MaimAndMend2 = 69, // L40, damage & healing increase
+        BroilMastery1 = 214, // L54, ruin1 -> broil1 upgrade, potency increase
+        BroilMastery2 = 184, // L64, broil1 -> broil2 upgrade, potency increase
+        CorruptionMastery2 = 311, // L72, bio2 -> biolysis upgrade
+        BroilMastery3 = 312, // L72, broil2 -> broil3 upgrade, potency increase
+        EnhancedSacredSoil = 313, // L78, adds hot
+        BroilMastery4 = 491, // L82, broil3 -> broil4 upgrade, potency increase
+        ArtOfWarMastery = 492, // L82, art of war 1 -> art of war 2 upgrade
+        EnhancedHealingMagic = 493, // L85, potency increase
+        EnhancedDeploymentTactics = 494, // L88, reduce cd
+    }
+
     public enum CDGroup : int
     {
         Lustrate = 0, // 1.0 max
@@ -108,70 +125,99 @@ namespace BossMod.SCH
         PetEmbrace = 76, // 3.0 max, shared by Embrace, Seraphic Veil
     }
 
-    public enum MinLevel : int
+    public enum SID : uint
     {
-        // actions
-        Bio1 = 2,
-        SummonFairy = 4, // includes summon eos and selene
-        Physick = 4,
-        Repose = 8,
-        Esuna = 10,
-        Resurrection = 12,
-        LucidDreaming = 14,
-        Swiftcast = 18,
-        WhisperingDawn = 20,
-        Bio2 = 26,
-        Adloquium = 30, // unlocked by quest 66633 'Forgotten but Not Gone'
-        Succor = 35, // unlocked by quest 66634 'The Last Remnants'
-        Ruin2 = 38,
-        FeyIllumination = 40,
-        Surecast = 44,
-        AetherflowEnergyDrain = 45, // includes aetherflow & energy drain
-        Lustrate = 45, // unlocked by quest 66637 'For Your Fellow Man'
-        ArtOfWar1 = 46,
-        Rescue = 48,
-        SacredSoil = 50, // unlocked by quest 66638 'The Beast Within'
-        Indomitability = 52, // unlocked by quest 67208 'Quarantine'
-        Broil1 = 54, // unlocked by quest 67209 'False Friends'
-        DeploymentTactics = 56, // unlocked by quest 67210 'Ooh Rah'
-        EmergencyTactics = 58, // unlocked by quest 67211 'Unseen'
-        Dissipation = 60, // unlocked by quest 67212 'Forward, the Royal Marines'
-        Excogitation = 62,
-        Broil2 = 64,
-        ChainStratagem = 66,
-        Aetherpact = 70, // unlocked by quest 68463 'Our Unsung Heroes'; also includes dissolve union
-        Biolysis = 72,
-        Broil3 = 72,
-        Recitation = 74,
-        FeyBlessing = 76,
-        SummonSeraph = 80, // also includes consolation
-        Broil4 = 82,
-        ArtOfWar2 = 82,
-        Protraction = 86,
-        Expedient = 90,
-
-        // traits
-        MaimAndMend1 = 20, // passive, damage & healing increase
-        MaimAndMend2 = 40, // passive, damage & healing increase
-        EnhancedSacredSoil = 78, // passive, sacred soil now also provides hot
-        EnhancedHealingMagic = 85, // passive, potency increase
-        EnhancedDeploymentTactics = 88, // passive, cd reduction
+        None = 0,
+        Bio1 = 179, // applied by Bio1 to target, dot
+        Bio2 = 189, // applied by Bio2 to target, dot
+        Biolysis = 0xFFFFFF, // TODO!
+        Galvanize = 297, // applied by Adloquium to target, shield
+        LucidDreaming = 1204, // applied by Lucid Dreaming to self
+        Swiftcast = 167, // applied by Swiftcast to self
+        Sleep = 3, // applied by Repose to target
     }
 
     public static class Definitions
     {
-        public static QuestLockEntry[] QuestsPerLevel = {
-            new(30, 66633),
-            new(35, 66634),
-            new(45, 66637),
-            new(50, 66638),
-            new(52, 67208),
-            new(54, 67209),
-            new(56, 67210),
-            new(58, 67211),
-            new(60, 67212),
-            new(70, 68463),
-        };
+        public static uint[] UnlockQuests = { 66633, 66634, 66637, 66638, 67208, 67209, 67210, 67211, 67212, 68463 };
+
+        public static bool Unlocked(AID aid, int level, int questProgress)
+        {
+            return aid switch
+            {
+                AID.Bio1 => level >= 2,
+                AID.SummonEos => level >= 4,
+                AID.SummonSelene => level >= 4,
+                AID.Physick => level >= 4,
+                AID.Repose => level >= 8,
+                AID.Esuna => level >= 10,
+                AID.Resurrection => level >= 12,
+                AID.LucidDreaming => level >= 14,
+                AID.Swiftcast => level >= 18,
+                AID.WhisperingDawn => level >= 20,
+                AID.PetWhisperingDawn => level >= 20,
+                AID.Bio2 => level >= 26,
+                AID.Adloquium => level >= 30 && questProgress > 0,
+                AID.Succor => level >= 35 && questProgress > 1,
+                AID.Ruin2 => level >= 38,
+                AID.PetFeyIllumination => level >= 40,
+                AID.FeyIllumination => level >= 40,
+                AID.Surecast => level >= 44,
+                AID.Lustrate => level >= 45 && questProgress > 2,
+                AID.EnergyDrain => level >= 45,
+                AID.Aetherflow => level >= 45,
+                AID.ArtOfWar1 => level >= 46,
+                AID.Rescue => level >= 48,
+                AID.SacredSoil => level >= 50 && questProgress > 3,
+                AID.Indomitability => level >= 52 && questProgress > 4,
+                AID.Broil1 => level >= 54 && questProgress > 5,
+                AID.DeploymentTactics => level >= 56 && questProgress > 6,
+                AID.EmergencyTactics => level >= 58 && questProgress > 7,
+                AID.Dissipation => level >= 60 && questProgress > 8,
+                AID.Excogitation => level >= 62,
+                AID.Broil2 => level >= 64,
+                AID.ChainStratagem => level >= 66,
+                AID.DissolveUnion => level >= 70 && questProgress > 9,
+                AID.Aetherpact => level >= 70 && questProgress > 9,
+                AID.PetFeyUnion => level >= 70 && questProgress > 9,
+                AID.Biolysis => level >= 72,
+                AID.Broil3 => level >= 72,
+                AID.Recitation => level >= 74,
+                AID.FeyBlessing => level >= 76,
+                AID.PetFeyBlessing => level >= 76,
+                AID.PetSeraphicVeil => level >= 80,
+                AID.PetConsolation => level >= 80,
+                AID.PetAngelsWhisper => level >= 80,
+                AID.Consolation => level >= 80,
+                AID.SummonSeraph => level >= 80,
+                AID.PetSeraphicIllumination => level >= 80,
+                AID.Broil4 => level >= 82,
+                AID.ArtOfWar2 => level >= 82,
+                AID.Protraction => level >= 86,
+                AID.Expedient => level >= 90,
+                _ => true,
+            };
+        }
+
+        public static bool Unlocked(TraitID tid, int level, int questProgress)
+        {
+            return tid switch
+            {
+                TraitID.MaimAndMend1 => level >= 20,
+                TraitID.CorruptionMastery1 => level >= 26,
+                TraitID.MaimAndMend2 => level >= 40,
+                TraitID.BroilMastery1 => level >= 54 && questProgress > 5,
+                TraitID.BroilMastery2 => level >= 64,
+                TraitID.CorruptionMastery2 => level >= 72,
+                TraitID.BroilMastery3 => level >= 72,
+                TraitID.EnhancedSacredSoil => level >= 78,
+                TraitID.BroilMastery4 => level >= 82,
+                TraitID.ArtOfWarMastery => level >= 82,
+                TraitID.EnhancedHealingMagic => level >= 85,
+                TraitID.EnhancedDeploymentTactics => level >= 88,
+                _ => true,
+            };
+        }
 
         public static Dictionary<ActionID, ActionDefinition> SupportedActions;
         static Definitions()
@@ -221,17 +267,5 @@ namespace BossMod.SCH
             SupportedActions.GCDCast(AID.Esuna, 30, 1.0f);
             SupportedActions.OGCD(AID.Rescue, 30, CDGroup.Rescue, 120.0f);
         }
-    }
-
-    public enum SID : uint
-    {
-        None = 0,
-        Bio1 = 179, // applied by Bio1 to target, dot
-        Bio2 = 189, // applied by Bio2 to target, dot
-        Biolysis = 0xFFFFFF, // TODO!
-        Galvanize = 297, // applied by Adloquium to target, shield
-        LucidDreaming = 1204, // applied by Lucid Dreaming to self
-        Swiftcast = 167, // applied by Swiftcast to self
-        Sleep = 3, // applied by Repose to target
     }
 }

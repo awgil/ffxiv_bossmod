@@ -20,9 +20,12 @@
 
             public State(float[] cooldowns) : base(cooldowns) { }
 
+            public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
+            public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
+
             public override string ToString()
             {
-                return $"RB={RaidBuffsLeft:f1}, Att={Attunement}/{AttunementStacks}/{AttunementLeft:f1}, SummLock={SummonLockLeft:f1}, IfritR={IfritReady}, TitanR={TitanReady}, GarudaR={GarudaReady}, Aetherflow={AetherflowStacks}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+                return $"RB={RaidBuffsLeft:f1}, Att={Attunement}/{AttunementStacks}/{AttunementLeft:f1}, SummLock={SummonLockLeft:f1}, IfritR={IfritReady}, TitanR={TitanReady}, GarudaR={GarudaReady}, Aetherflow={AetherflowStacks}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -35,13 +38,13 @@
         public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe, bool moving)
         {
             // make sure pet is summoned
-            if (!state.PetSummoned && state.Unlocked(MinLevel.SummonCarbuncle))
+            if (!state.PetSummoned && state.Unlocked(AID.SummonCarbuncle))
                 return AID.SummonCarbuncle;
 
             if (state.AttunementLeft > state.GCD)
             {
                 AID action;
-                if (aoe && state.Unlocked(MinLevel.Outburst))
+                if (aoe && state.Unlocked(AID.Outburst))
                 {
                     action = state.Attunement switch
                     {
@@ -55,9 +58,9 @@
                 {
                     action = state.Attunement switch
                     {
-                        Attunement.Ifrit => moving ? AID.None : state.Unlocked(MinLevel.Ruin2) ? AID.RubyRuin2 : AID.RubyRuin1,
-                        Attunement.Titan => state.Unlocked(MinLevel.Ruin2) ? AID.TopazRuin2 : AID.TopazRuin1,
-                        Attunement.Garuda => state.Unlocked(MinLevel.Ruin2) ? AID.EmeraldRuin2 : AID.EmeraldRuin1,
+                        Attunement.Ifrit => moving ? AID.None : state.Unlocked(AID.Ruin2) ? AID.RubyRuin2 : AID.RubyRuin1,
+                        Attunement.Titan => state.Unlocked(AID.Ruin2) ? AID.TopazRuin2 : AID.TopazRuin1,
+                        Attunement.Garuda => state.Unlocked(AID.Ruin2) ? AID.EmeraldRuin2 : AID.EmeraldRuin1,
                         _ => AID.None
                     };
                 }
@@ -65,34 +68,34 @@
                     return action;
             }
 
-            if (!strategy.Prepull && state.Unlocked(MinLevel.SummonRuby) && state.Attunement == Attunement.None && !state.IfritReady && !state.TitanReady && !state.GarudaReady && state.CD(CDGroup.Aethercharge) <= state.GCD)
+            if (!strategy.Prepull && state.Unlocked(AID.SummonRuby) && state.Attunement == Attunement.None && !state.IfritReady && !state.TitanReady && !state.GarudaReady && state.CD(CDGroup.Aethercharge) <= state.GCD)
                 return AID.Aethercharge;
 
             if (state.SummonLockLeft <= state.GCD)
             {
-                if (state.TitanReady && state.Unlocked(MinLevel.SummonTopaz))
+                if (state.TitanReady && state.Unlocked(AID.SummonTopaz))
                     return AID.SummonTopaz;
-                if (state.IfritReady && state.Unlocked(MinLevel.SummonRuby))
+                if (state.IfritReady && state.Unlocked(AID.SummonRuby))
                     return AID.SummonRuby;
-                if (state.GarudaReady && state.Unlocked(MinLevel.SummonEmerald))
+                if (state.GarudaReady && state.Unlocked(AID.SummonEmerald))
                     return AID.SummonEmerald;
             }
 
             if (moving)
                 return AID.None;
-            else if (aoe && state.Unlocked(MinLevel.Outburst))
+            else if (aoe && state.Unlocked(AID.Outburst))
                 return AID.Outburst;
             else
-                return state.Unlocked(MinLevel.Ruin2) ? AID.Ruin2 : AID.Ruin1;
+                return state.Unlocked(AID.Ruin2) ? AID.Ruin2 : AID.Ruin1;
         }
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline, bool aoe)
         {
             // TODO: reconsider priorities, this kinda works at low level
-            if (state.Unlocked(MinLevel.EnergyDrainFester) && state.AetherflowStacks == 0 && state.CanWeave(CDGroup.EnergyDrain, 0.6f, deadline))
+            if (state.Unlocked(AID.EnergyDrain) && state.AetherflowStacks == 0 && state.CanWeave(CDGroup.EnergyDrain, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.EnergyDrain);
 
-            if (state.Unlocked(MinLevel.EnergyDrainFester) && state.AetherflowStacks > 0 && state.CanWeave(CDGroup.Fester, 0.6f, deadline))
+            if (state.Unlocked(AID.Fester) && state.AetherflowStacks > 0 && state.CanWeave(CDGroup.Fester, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Fester);
 
             return new();

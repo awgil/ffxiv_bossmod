@@ -13,6 +13,7 @@ namespace BossMod
         public class PlayerState
         {
             public int Level;
+            public int UnlockProgress;
             public uint CurMP; // 10000 max
             public float AnimationLock; // typical actions have 0.6 delay, but some (notably primal rend and potion) are >1
             public float AnimationLockDelay; // average time between action request and confirmation; this is added to effective animation lock for actions
@@ -25,8 +26,6 @@ namespace BossMod
             public float SprintCD => Cooldowns[CommonDefinitions.SprintCDGroup]; // 60.0 max
             public float PotionCD => Cooldowns[CommonDefinitions.PotionCDGroup]; // variable max
             public float CD<CDGroup>(CDGroup group) where CDGroup : Enum => Cooldowns[(int)(object)group];
-
-            public bool Unlocked<MinLevel>(MinLevel lvl) where MinLevel : Enum => Level >= (int)(object)lvl;
 
             // check whether weaving typical ogcd off cooldown would end its animation lock by the specified deadline
             public float OGCDSlotLength => 0.6f + AnimationLockDelay; // most actions have 0.6 anim lock delay, which allows double-weaving oGCDs between GCDs

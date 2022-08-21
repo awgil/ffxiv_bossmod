@@ -54,6 +54,22 @@ namespace BossMod.DRG
         LegSweep = 7863, // L10, instant, 40.0s CD (group 41), range 3, single-target 0/0, targets=hostile
     }
 
+    public enum TraitID : uint
+    {
+        None = 0,
+        BloodOfTheDragon = 434, // L54, jump potency increase
+        LanceMastery1 = 162, // L64
+        LifeOfTheDragon = 163, // L70
+        JumpMastery = 275, // L74, jump -> high jump upgrade
+        LanceMastery2 = 247, // L76
+        LifeOfTheDragonMastery = 276, // L78, duration increase
+        EnhancedCoerthanTorment = 435, // L82
+        EnhancedSpineshatterDive = 436, // L84, second charge
+        LanceMastery3 = 437, // L86, full thrust -> heavens thrust, chaos thrust -> chaos spring upgrade
+        EnhancedLifeSurge = 438, // L88, second charge
+        LanceMastery4 = 508, // L90, potency increase
+    }
+
     public enum CDGroup : int
     {
         MirageDive = 0, // 1.0 max
@@ -78,72 +94,80 @@ namespace BossMod.DRG
         ArmsLength = 46, // 120.0 max
     }
 
-    public enum MinLevel : int
+    public enum SID : uint
     {
-        // actions
-        VorpalThrust = 4,
-        LifeSurge = 6,
-        SecondWind = 8,
-        LegSweep = 10,
-        Bloodbath = 12,
-        PiercingTalon = 15, // unlocked by quest 65591 'A Dangerous Proposition'
-        Disembowel = 18,
-        Feint = 22,
-        FullThrust = 26,
-        LanceCharge = 30, // unlocked by quest 65975 'Proof of Might'
-        Jump = 30, // unlocked by quest 66603 'Eye of the Dragon'
-        ArmsLength = 32,
-        ElusiveJump = 35, // unlocked by quest 66604 'Lance of Fury'
-        DoomSpike = 40, // unlocked by quest 66605 'Unfading Skies'
-        SpineshatterDive = 45, // unlocked by quest 66607 'Fatal Seduction'
-        ChaosThrust = 50,
-        TrueNorth = 50,
-        DragonfireDive = 50, // unlocked by quest 66608 'Into the Dragon's Maw'
-        BattleLitany = 52, // unlocked by quest 67226 'Days of Azure'
-        FangAndClaw = 56, // unlocked by quest 67229 'Dragoon's Errand'
-        WheelingThrust = 58, // unlocked by quest 67230 'Sanguine Dragoon'
-        Geirskogul = 60, // unlocked by quest 67231 'Dragoon's Fate'
-        SonicThrust = 62,
-        DragonSight = 66,
-        MirageDive = 68,
-        Nastrond = 70, // unlocked by quest 68450 'Dragon Sound'
-        CoerthanTorment = 72,
-        HighJump = 74,
-        RaidenThrust = 76,
-        Stardiver = 80,
-        DraconianFury = 82,
-        ChaoticSpring = 86,
-        HeavensThrust = 86,
-        WyrmwindThrust = 90,
-
-        // traits
-        BloodOfTheDragon = 54, // unlocked by quest 67228 'Sworn Upon a Lance', passive, potency increase
-        LanceMastery1 = 64, // passive
-        LanceMastery2 = 76, // passive
-        LifeOfTheDragonMastery = 78,
-        EnhancedCoerthanTorment = 82,
-        EnhancedSpineshatterDive = 84,
-        EnhancedLifeSurge = 88, // passive, adds lifesurge charge
-        LanceMastery4 = 90, // passive, potency increase
+        None = 0,
+        LifeSurge = 116, // applied by Life Surge to self, forced crit for next gcd
+        PowerSurge = 2720, // applied by Disembowel to self, damage buff
+        Bloodbath = 84, // applied by Bloodbath to self, lifesteal
+        Feint = 1195, // applied by Feint to target, -10% phys and -5% magic damage dealt
+        Stun = 2, // applied by Leg Sweep to target
     }
 
     public static class Definitions
     {
-        public static QuestLockEntry[] QuestsPerLevel = {
-            new(15, 65591),
-            new(30, 65975),
-            new(30, 66603),
-            new(35, 66604),
-            new(40, 66605),
-            new(45, 66607),
-            new(50, 66608),
-            new(52, 67226),
-            new(54, 67228),
-            new(56, 67229),
-            new(58, 67230),
-            new(60, 67231),
-            new(70, 68450),
-        };
+        public static uint[] UnlockQuests = { 65591, 65975, 66603, 66604, 66605, 66607, 66608, 67226, 67228, 67229, 67230, 67231, 68450 };
+
+        public static bool Unlocked(AID aid, int level, int questProgress)
+        {
+            return aid switch
+            {
+                AID.VorpalThrust => level >= 4,
+                AID.LifeSurge => level >= 6,
+                AID.SecondWind => level >= 8,
+                AID.LegSweep => level >= 10,
+                AID.Bloodbath => level >= 12,
+                AID.PiercingTalon => level >= 15 && questProgress > 0,
+                AID.Disembowel => level >= 18,
+                AID.Feint => level >= 22,
+                AID.FullThrust => level >= 26,
+                AID.Jump => level >= 30 && questProgress > 2,
+                AID.LanceCharge => level >= 30 && questProgress > 1,
+                AID.ArmsLength => level >= 32,
+                AID.ElusiveJump => level >= 35 && questProgress > 3,
+                AID.DoomSpike => level >= 40 && questProgress > 4,
+                AID.SpineshatterDive => level >= 45 && questProgress > 5,
+                AID.DragonfireDive => level >= 50 && questProgress > 6,
+                AID.ChaosThrust => level >= 50,
+                AID.TrueNorth => level >= 50,
+                AID.BattleLitany => level >= 52 && questProgress > 7,
+                AID.FangAndClaw => level >= 56 && questProgress > 9,
+                AID.WheelingThrust => level >= 58 && questProgress > 10,
+                AID.Geirskogul => level >= 60 && questProgress > 11,
+                AID.SonicThrust => level >= 62,
+                AID.DragonSight => level >= 66,
+                AID.MirageDive => level >= 68,
+                AID.Nastrond => level >= 70 && questProgress > 12,
+                AID.CoerthanTorment => level >= 72,
+                AID.HighJump => level >= 74,
+                AID.RaidenThrust => level >= 76,
+                AID.Stardiver => level >= 80,
+                AID.DraconianFury => level >= 82,
+                AID.ChaoticSpring => level >= 86,
+                AID.HeavensThrust => level >= 86,
+                AID.WyrmwindThrust => level >= 90,
+                _ => true,
+            };
+        }
+
+        public static bool Unlocked(TraitID tid, int level, int questProgress)
+        {
+            return tid switch
+            {
+                TraitID.BloodOfTheDragon => level >= 54 && questProgress > 8,
+                TraitID.LanceMastery1 => level >= 64,
+                TraitID.LifeOfTheDragon => level >= 70 && questProgress > 12,
+                TraitID.JumpMastery => level >= 74,
+                TraitID.LanceMastery2 => level >= 76,
+                TraitID.LifeOfTheDragonMastery => level >= 78,
+                TraitID.EnhancedCoerthanTorment => level >= 82,
+                TraitID.EnhancedSpineshatterDive => level >= 84,
+                TraitID.LanceMastery3 => level >= 86,
+                TraitID.EnhancedLifeSurge => level >= 88,
+                TraitID.LanceMastery4 => level >= 90,
+                _ => true,
+            };
+        }
 
         public static Dictionary<ActionID, ActionDefinition> SupportedActions;
         static Definitions()
@@ -185,15 +209,5 @@ namespace BossMod.DRG
             SupportedActions.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2);
             SupportedActions.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);
         }
-    }
-
-    public enum SID : uint
-    {
-        None = 0,
-        LifeSurge = 116, // applied by Life Surge to self, forced crit for next gcd
-        PowerSurge = 2720, // applied by Disembowel to self, damage buff
-        Bloodbath = 84, // applied by Bloodbath to self, lifesteal
-        Feint = 1195, // applied by Feint to target, -10% phys and -5% magic damage dealt
-        Stun = 2, // applied by Leg Sweep to target
     }
 }

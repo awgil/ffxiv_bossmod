@@ -15,7 +15,7 @@ namespace BossMod.SMN
         private Rotation.Strategy _strategy;
 
         public Actions(Autorotation autorot, Actor player)
-            : base(autorot, player, Definitions.QuestsPerLevel, Definitions.SupportedActions)
+            : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
         {
             _config = Service.Config.Get<SMNConfig>();
             _state = new(autorot.Cooldowns);
@@ -55,7 +55,7 @@ namespace BossMod.SMN
 
         protected override NextAction CalculateAutomaticGCD()
         {
-            if (_strategy.Prepull && _state.Unlocked(MinLevel.SummonCarbuncle) && !_state.PetSummoned)
+            if (_strategy.Prepull && _state.Unlocked(AID.SummonCarbuncle) && !_state.PetSummoned)
                 return MakeResult(AID.SummonCarbuncle, Player);
             //if ((AutoStrategy & AutoAction.GCDHeal) != 0)
             //    return MakeResult(AID.Physick, Autorot.SecondaryTarget); // TODO: automatic target selection
@@ -130,7 +130,7 @@ namespace BossMod.SMN
         private AID SmartResurrectAction()
         {
             // 1. swiftcast, if ready and not up yet
-            if (_state.Unlocked(MinLevel.Swiftcast) && _state.SwiftcastLeft <= 0 && _state.CD(CDGroup.Swiftcast) <= 0)
+            if (_state.Unlocked(AID.Swiftcast) && _state.SwiftcastLeft <= 0 && _state.CD(CDGroup.Swiftcast) <= 0)
                 return AID.Swiftcast;
 
             return AID.Resurrection;

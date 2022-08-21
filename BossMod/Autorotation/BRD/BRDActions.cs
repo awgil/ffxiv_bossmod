@@ -14,7 +14,7 @@ namespace BossMod.BRD
         private Rotation.Strategy _strategy;
 
         public Actions(Autorotation autorot, Actor player)
-            : base(autorot, player, Definitions.QuestsPerLevel, Definitions.SupportedActions)
+            : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
         {
             _config = Service.Config.Get<BRDConfig>();
             _state = new(autorot.Cooldowns);
@@ -42,7 +42,7 @@ namespace BossMod.BRD
         {
             // TODO: min range to better hit clump with cone...
             var bestTarget = initial;
-            if (_state.Unlocked(MinLevel.QuickNock))
+            if (_state.Unlocked(AID.QuickNock))
             {
                 var bestAOECount = NumTargetsHitByLadonsbite(initial);
                 foreach (var candidate in Autorot.PotentialTargetsInRangeFromPlayer(12).Exclude(initial))
@@ -72,14 +72,14 @@ namespace BossMod.BRD
 
         protected override void QueueAIActions()
         {
-            if (_state.Unlocked(MinLevel.SecondWind))
+            if (_state.Unlocked(AID.SecondWind))
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f);
-            if (_state.Unlocked(MinLevel.WardensPaean))
+            if (_state.Unlocked(AID.WardensPaean))
             {
                 var esunableTarget = Autorot.WorldState.Party.WithoutSlot().FirstOrDefault(p => p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)));
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.WardensPaean), esunableTarget, esunableTarget != null);
             }
-            if (_state.Unlocked(MinLevel.Peloton))
+            if (_state.Unlocked(AID.Peloton))
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.Peloton), Player, !Player.InCombat && _state.PelotonLeft < 3 && AutoAction is AutoActionAIIdleMove or AutoActionAIFightMove);
         }
 

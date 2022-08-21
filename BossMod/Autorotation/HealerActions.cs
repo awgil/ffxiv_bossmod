@@ -19,7 +19,7 @@ namespace BossMod
         protected bool AllowProtect { get; private set; }
         protected PartyMemberState[] PartyMemberStates { get; private set; } = new PartyMemberState[PartyState.MaxPartySize];
 
-        protected HealerActions(Autorotation autorot, Actor player, QuestLockEntry[] unlockData, Dictionary<ActionID, ActionDefinition> supportedActions)
+        protected HealerActions(Autorotation autorot, Actor player, uint[] unlockData, Dictionary<ActionID, ActionDefinition> supportedActions)
             : base(autorot, player, unlockData, supportedActions)
         {
         }

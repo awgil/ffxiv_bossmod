@@ -55,6 +55,27 @@ namespace BossMod.BRD
         WardensPaean = 3561, // L35, instant, 45.0s CD (group 8), range 30, single-target 0/0, targets=self/party
     }
 
+    public enum TraitID : uint
+    {
+        None = 0,
+        HeavierShot = 17, // L2, straight shot proc on heavy shot
+        IncreasedActionDamage1 = 18, // L20, damage increase
+        IncreasedActionDamage2 = 20, // L40, damage increase
+        BiteMastery1 = 168, // L64, dot upgrade
+        EnhancedEmpyrealArrow = 169, // L68, empyreal arrow triggers repertoire
+        StraightShotMastery = 282, // L70, straight shot -> refulgent arrow upgrade
+        EnhancedQuickNock = 283, // L72, shadowbite proc on quick nock
+        BiteMastery2 = 284, // L76, straight shot proc on dot
+        HeavyShotMastery = 285, // L76, heavy shot -> burst shot upgrade
+        EnhancedArmysPaeon = 286, // L78, army muse effect
+        SoulVoice = 287, // L80, gauge unlock
+        QuickNockMastery = 444, // L82, quck nock -> ladonsbite upgrade
+        EnhancedBloodletter = 445, // L84, third charge
+        EnhancedApexArrow = 446, // L86, blast arrow proc
+        EnhancedTroubadour = 447, // L88, reduce cd
+        MinstrelsCoda = 448, // L90, radiant finale mechanics
+    }
+
     public enum CDGroup : int
     {
         PitchPerfect = 0, // 1.0 max
@@ -80,70 +101,96 @@ namespace BossMod.BRD
         ArmsLength = 46, // 120.0 max
     }
 
-    public enum MinLevel : int
+    public enum SID : uint
     {
-        // actions
-        StraightShot = 2,
-        RagingStrikes = 4,
-        VenomousBite = 6,
-        LegGraze = 6,
-        SecondWind = 8,
-        FootGraze = 10,
-        Bloodletter = 12,
-        RepellingShot = 15, // unlocked by quest 65604 'Violators Will Be Shot'
-        QuickNock = 18,
-        Peloton = 20,
-        HeadGraze = 24,
-        Windbite = 30, // unlocked by quest 65612 'The One That Got Away'
-        MagesBallad = 30, // unlocked by quest 66621 'A Song of Bards and Bowmen'
-        ArmsLength = 32,
-        WardensPaean = 35, // unlocked by quest 66622 'The Archer's Anthem'
-        Barrage = 38,
-        ArmysPaeon = 40, // unlocked by quest 66623 'Bard's-eye View'
-        RainOfDeath = 45, // unlocked by quest 66624 'Doing It the Bard Way'
-        BattleVoice = 50, // unlocked by quest 66626 'Requiem for the Fallen'
-        WanderersMinuet = 52, // unlocked by quest 67250 'The Stiff and the Spent'
-        EmpyrealArrow = 54, // unlocked by quest 67251 'Requiem on Ice'
-        IronJaws = 56, // unlocked by quest 67252 'When Gnaths Cry'
-        Sidewinder = 60, // unlocked by quest 67254 'The Ballad of Oblivion'
-        Troubadour = 62,
-        Stormbite = 64,
-        CausticBite = 64,
-        NaturesMinne = 66,
-        RefulgentArrow = 70, // unlocked by quest 68430 'Sweet Dreams Are Made of Peace'
-        Shadowbite = 72,
-        BurstShot = 76,
-        ApexArrow = 80,
-        Ladonsbite = 82,
-        BlastArrow = 86,
-        RadiantFinale = 90,
-
-        // traits
-        IncreasedActionDamage1 = 20, // passive, damage increase
-        IncreasedActionDamage2 = 40, // passive, damage increase
-        EnhancedEmpyrealArrow = 68, // passive, empyreal arrow triggers repertoire
-        BiteMastery2 = 76, // passive, dots can trigger straight shot
-        EnhancedArmysPaeon = 78, // passive
-        EnhancedBloodletter = 84, // passive, third bloodletter charge
-        EnhancedTroubadour = 88, // passive, cd reduction
+        None = 0,
+        StraightShotReady = 122, // procced or applied by Barrage to self
+        VenomousBite = 124, // applied by Venomous Bite, dot
+        Windbite = 129, // applied by Windbite, dot
+        RagingStrikes = 125, // applied by Raging Strikes to self, damage buff
+        Barrage = 128, // applied by Barrage to self
+        Peloton = 1199,
+        CausticBite = 1200, // applied by Caustic Bite, Iron Jaws to target, dot
+        Stormbite = 1201, // applied by Stormbite, Iron Jaws to target, dot
+        ShadowbiteReady = 3002, // applied by Ladonsbite to self
+        NaturesMinne = 1202, // applied by Nature's Minne to self
+        WardensPaean = 866, // applied by the Warden's Paean to self
+        BattleVoice = 141, // applied by Battle Voice to self
+        Troubadour = 1934, // applied by Troubadour to self
+        ArmsLength = 1209, // applied by Arm's Length to self
+        Bind = 13, // applied by Foot Graze to target
     }
 
     public static class Definitions
     {
-        public static QuestLockEntry[] QuestsPerLevel = {
-            new(15, 65604),
-            new(30, 65612),
-            new(30, 66621),
-            new(35, 66622),
-            new(40, 66623),
-            new(45, 66624),
-            new(50, 66626),
-            new(52, 67250),
-            new(54, 67251),
-            new(56, 67252),
-            new(60, 67254),
-            new(70, 68430),
-        };
+        public static uint[] UnlockQuests = { 65604, 65612, 66621, 66622, 66623, 66624, 66626, 67250, 67251, 67252, 67254, 68430 };
+
+        public static bool Unlocked(AID aid, int level, int questProgress)
+        {
+            return aid switch
+            {
+                AID.StraightShot => level >= 2,
+                AID.RagingStrikes => level >= 4,
+                AID.VenomousBite => level >= 6,
+                AID.LegGraze => level >= 6,
+                AID.SecondWind => level >= 8,
+                AID.FootGraze => level >= 10,
+                AID.Bloodletter => level >= 12,
+                AID.RepellingShot => level >= 15 && questProgress > 0,
+                AID.QuickNock => level >= 18,
+                AID.Peloton => level >= 20,
+                AID.HeadGraze => level >= 24,
+                AID.Windbite => level >= 30 && questProgress > 1,
+                AID.MagesBallad => level >= 30 && questProgress > 2,
+                AID.ArmsLength => level >= 32,
+                AID.WardensPaean => level >= 35 && questProgress > 3,
+                AID.Barrage => level >= 38,
+                AID.ArmysPaeon => level >= 40 && questProgress > 4,
+                AID.RainOfDeath => level >= 45 && questProgress > 5,
+                AID.BattleVoice => level >= 50 && questProgress > 6,
+                AID.PitchPerfect => level >= 52,
+                AID.WanderersMinuet => level >= 52 && questProgress > 7,
+                AID.EmpyrealArrow => level >= 54 && questProgress > 8,
+                AID.IronJaws => level >= 56 && questProgress > 9,
+                AID.Sidewinder => level >= 60 && questProgress > 10,
+                AID.Troubadour => level >= 62,
+                AID.Stormbite => level >= 64,
+                AID.CausticBite => level >= 64,
+                AID.NaturesMinne => level >= 66,
+                AID.RefulgentArrow => level >= 70 && questProgress > 11,
+                AID.Shadowbite => level >= 72,
+                AID.BurstShot => level >= 76,
+                AID.ApexArrow => level >= 80,
+                AID.Ladonsbite => level >= 82,
+                AID.BlastArrow => level >= 86,
+                AID.RadiantFinale => level >= 90,
+                _ => true,
+            };
+        }
+
+        public static bool Unlocked(TraitID tid, int level, int questProgress)
+        {
+            return tid switch
+            {
+                TraitID.HeavierShot => level >= 2,
+                TraitID.IncreasedActionDamage1 => level >= 20,
+                TraitID.IncreasedActionDamage2 => level >= 40,
+                TraitID.BiteMastery1 => level >= 64,
+                TraitID.EnhancedEmpyrealArrow => level >= 68,
+                TraitID.StraightShotMastery => level >= 70 && questProgress > 11,
+                TraitID.EnhancedQuickNock => level >= 72,
+                TraitID.BiteMastery2 => level >= 76,
+                TraitID.HeavyShotMastery => level >= 76,
+                TraitID.EnhancedArmysPaeon => level >= 78,
+                TraitID.SoulVoice => level >= 80,
+                TraitID.QuickNockMastery => level >= 82,
+                TraitID.EnhancedBloodletter => level >= 84,
+                TraitID.EnhancedApexArrow => level >= 86,
+                TraitID.EnhancedTroubadour => level >= 88,
+                TraitID.MinstrelsCoda => level >= 90,
+                _ => true,
+            };
+        }
 
         public static Dictionary<ActionID, ActionDefinition> SupportedActions;
         static Definitions()
@@ -186,25 +233,5 @@ namespace BossMod.BRD
             SupportedActions.OGCD(AID.RepellingShot, 15, CDGroup.RepellingShot, 30.0f, 0.800f);
             SupportedActions.OGCD(AID.WardensPaean, 30, CDGroup.WardensPaean, 45.0f);
         }
-    }
-
-    public enum SID : uint
-    {
-        None = 0,
-        StraightShotReady = 122, // procced or applied by Barrage to self
-        VenomousBite = 124, // applied by Venomous Bite, dot
-        Windbite = 129, // applied by Windbite, dot
-        RagingStrikes = 125, // applied by Raging Strikes to self, damage buff
-        Barrage = 128, // applied by Barrage to self
-        Peloton = 1199,
-        CausticBite = 1200, // applied by Caustic Bite, Iron Jaws to target, dot
-        Stormbite = 1201, // applied by Stormbite, Iron Jaws to target, dot
-        ShadowbiteReady = 3002, // applied by Ladonsbite to self
-        NaturesMinne = 1202, // applied by Nature's Minne to self
-        WardensPaean = 866, // applied by the Warden's Paean to self
-        BattleVoice = 141, // applied by Battle Voice to self
-        Troubadour = 1934, // applied by Troubadour to self
-        ArmsLength = 1209, // applied by Arm's Length to self
-        Bind = 13, // applied by Foot Graze to target
     }
 }

@@ -59,6 +59,26 @@ namespace BossMod.MNK
         LegSweep = 7863, // L10, instant, 40.0s CD (group 41), range 3, single-target 0/0, targets=hostile
     }
 
+    public enum TraitID : uint
+    {
+        None = 0,
+        GreasedLightning = 364, // L1, haste
+        EnhancedGreasedLightning1 = 365, // L20, haste
+        DeepMeditation1 = 160, // L38, chakra proc on crit
+        EnhancedGreasedLightning2 = 366, // L40, haste
+        SteelPeakMastery = 428, // L54, steel peek -> forbidden chakra upgrade
+        EnhancedPerfectBalance = 433, // L60
+        DeepMeditation2 = 245, // L74, chakra on crit
+        HowlingFistMastery = 429, // L74, howling fist -> enlightenment upgrade
+        EnhancedGreasedLightning3 = 367, // L76, haste and buff effect increase
+        ArmOfTheDestroyerMastery = 430, // L82, arm of the destroyer -> shadow of the destroyer
+        EnhancedThunderclap = 431, // L84, third charge
+        MeleeMastery = 518, // L84, potency increase
+        FlintStrikeMastery = 512, // L86, flint strike -> rising phoenix upgrade
+        EnhancedBrotherhood = 432, // L88, gives chakra for each gcd under brotherhood buff
+        TornadoKickMastery = 513, // L90, tornado kick -> phantom rush upgrade
+    }
+
     public enum CDGroup : int
     {
         SteelPeak = 0, // 1.0 max, shared by Steel Peak, Howling Fist, Forbidden Chakra, Enlightenment
@@ -78,68 +98,89 @@ namespace BossMod.MNK
         ArmsLength = 46, // 120.0 max
     }
 
-    public enum MinLevel : int
+    public enum SID : uint
     {
-        // actions
-        TrueStrike = 4,
-        SnapPunch = 6,
-        SecondWind = 8,
-        LegSweep = 10,
-        Bloodbath = 12,
-        SteelPeak = 15, // unlocked by quest 66094 'The Spirit Is Willing', includes meditation
-        TwinSnakes = 18,
-        Feint = 22,
-        ArmOfTheDestroyer = 26,
-        Demolish = 30, // unlocked by quest 66103 'Return of the Holyfist'
-        Rockbreaker = 30, // unlocked by quest 66597 'Brother from Another Mother'
-        ArmsLength = 32,
-        Thunderclap = 35, // unlocked by quest 66598 'Insulted Intelligence'
-        HowlingFist = 40, // unlocked by quest 66599 'A Slave to the Aether'
-        Mantra = 42,
-        FourPointFury = 45, // unlocked by quest 66600 'The Pursuit of Power'
-        TrueNorth = 50,
-        DragonKick = 50,
-        PerfectBalance = 50, // unlocked by quest 66602 'Five Easy Pieces'
-        FormShift = 52, // unlocked by quest 67563 'Let's Talk about Sects'
-        ForbiddenChakra = 54, // unlocked by quest 67564 'Against the Shadow'
-        MasterfulBlitz = 60, // unlocked by quest 67567 'Appetite for Destruction', includes 4 basic chakra abilities
-        RiddleOfEarth = 64,
-        RiddleOfFire = 68,
-        Brotherhood = 70, // unlocked by quest 67966 'The Power to Protect'
-        RiddleOfWind = 72,
-        Enlightenment = 74,
-        Anatman = 78,
-        SixSidedStar = 80,
-        ShadowOfTheDestroyer = 82,
-        RisingPhoenix = 86,
-        PhantomRush = 90,
-
-        // traits
-        EnhancedGreasedLightning1 = 20, // passive, haste
-        DeepMeditation1 = 38, // passive, 80% to open chakra on crit
-        EnhancedGreasedLightning2 = 40, // passive, haste
-        DeepMeditation2 = 74, // passive, open chakra on crit
-        EnhancedGreasedLightning3 = 76, // passive, haste
-        EnhancedThunderclap = 84, // passive, 3rd thunderclap charge
-        MeleeMastery = 84, // passive, potency increase
-        EnhancedBrotherhood = 88, // passive, gives chakra for each GCD under Brotherhood buff
+        None = 0,
+        OpoOpoForm = 107, // applied by Snap Punch to self
+        RaptorForm = 108, // applied by Bootshine, Arm of the Destroyer to self
+        CoeurlForm = 109, // applied by True Strike, Twin Snakes to self
+        DisciplinedFist = 3001, // applied by Twin Snakes to self, damage buff
+        Demolish = 246, // applied by Demolish to target, dot
+        Bloodbath = 84, // applied by Bloodbath to self, lifesteal
+        Feint = 1195, // applied by Feint to target, -10% phys and -5% magic damage dealt
+        Stun = 2, // applied by Leg Sweep to target
     }
 
     public static class Definitions
     {
-        public static QuestLockEntry[] QuestsPerLevel = {
-            new(15, 66094),
-            new(30, 66103),
-            new(30, 66597),
-            new(35, 66598),
-            new(40, 66599),
-            new(45, 66600),
-            new(50, 66602),
-            new(52, 67563),
-            new(54, 67564),
-            new(60, 67567),
-            new(70, 67966),
-        };
+        public static uint[] UnlockQuests = { 66094, 66103, 66597, 66598, 66599, 66600, 66602, 67563, 67564, 67567, 67966 };
+
+        public static bool Unlocked(AID aid, int level, int questProgress)
+        {
+            return aid switch
+            {
+                AID.TrueStrike => level >= 4,
+                AID.SnapPunch => level >= 6,
+                AID.SecondWind => level >= 8,
+                AID.LegSweep => level >= 10,
+                AID.Bloodbath => level >= 12,
+                AID.SteelPeak => level >= 15 && questProgress > 0,
+                AID.Meditation => level >= 15 && questProgress > 0,
+                AID.TwinSnakes => level >= 18,
+                AID.Feint => level >= 22,
+                AID.ArmOfTheDestroyer => level >= 26,
+                AID.Demolish => level >= 30 && questProgress > 1,
+                AID.Rockbreaker => level >= 30 && questProgress > 2,
+                AID.ArmsLength => level >= 32,
+                AID.Thunderclap => level >= 35 && questProgress > 3,
+                AID.HowlingFist => level >= 40 && questProgress > 4,
+                AID.Mantra => level >= 42,
+                AID.FourPointFury => level >= 45 && questProgress > 5,
+                AID.TrueNorth => level >= 50,
+                AID.PerfectBalance => level >= 50 && questProgress > 6,
+                AID.DragonKick => level >= 50,
+                AID.FormShift => level >= 52 && questProgress > 7,
+                AID.ForbiddenChakra => level >= 54 && questProgress > 8,
+                AID.TornadoKick => level >= 60 && questProgress > 9,
+                AID.CelestialRevolution => level >= 60 && questProgress > 9,
+                AID.MasterfulBlitz => level >= 60 && questProgress > 9,
+                AID.FlintStrike => level >= 60 && questProgress > 9,
+                AID.ElixirField => level >= 60 && questProgress > 9,
+                AID.RiddleOfEarth => level >= 64,
+                AID.RiddleOfFire => level >= 68,
+                AID.Brotherhood => level >= 70 && questProgress > 10,
+                AID.RiddleOfWind => level >= 72,
+                AID.Enlightenment => level >= 74,
+                AID.Anatman => level >= 78,
+                AID.SixSidedStar => level >= 80,
+                AID.ShadowOfTheDestroyer => level >= 82,
+                AID.RisingPhoenix => level >= 86,
+                AID.PhantomRush => level >= 90,
+                _ => true,
+            };
+        }
+
+        public static bool Unlocked(TraitID tid, int level, int questProgress)
+        {
+            return tid switch
+            {
+                TraitID.EnhancedGreasedLightning1 => level >= 20,
+                TraitID.DeepMeditation1 => level >= 38,
+                TraitID.EnhancedGreasedLightning2 => level >= 40,
+                TraitID.SteelPeakMastery => level >= 54 && questProgress > 8,
+                TraitID.EnhancedPerfectBalance => level >= 60 && questProgress > 9,
+                TraitID.DeepMeditation2 => level >= 74,
+                TraitID.HowlingFistMastery => level >= 74,
+                TraitID.EnhancedGreasedLightning3 => level >= 76,
+                TraitID.ArmOfTheDestroyerMastery => level >= 82,
+                TraitID.EnhancedThunderclap => level >= 84,
+                TraitID.MeleeMastery => level >= 84,
+                TraitID.FlintStrikeMastery => level >= 86,
+                TraitID.EnhancedBrotherhood => level >= 88,
+                TraitID.TornadoKickMastery => level >= 90,
+                _ => true,
+            };
+        }
 
         public static Dictionary<ActionID, ActionDefinition> SupportedActions;
         static Definitions()
@@ -184,18 +225,5 @@ namespace BossMod.MNK
             SupportedActions.OGCD(AID.Anatman, 0, CDGroup.Anatman, 60.0f);
             SupportedActions.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);
         }
-    }
-
-    public enum SID : uint
-    {
-        None = 0,
-        OpoOpoForm = 107, // applied by Snap Punch to self
-        RaptorForm = 108, // applied by Bootshine, Arm of the Destroyer to self
-        CoeurlForm = 109, // applied by True Strike, Twin Snakes to self
-        DisciplinedFist = 3001, // applied by Twin Snakes to self, damage buff
-        Demolish = 246, // applied by Demolish to target, dot
-        Bloodbath = 84, // applied by Bloodbath to self, lifesteal
-        Feint = 1195, // applied by Feint to target, -10% phys and -5% magic damage dealt
-        Stun = 2, // applied by Leg Sweep to target
     }
 }

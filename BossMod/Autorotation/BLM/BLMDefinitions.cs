@@ -55,6 +55,32 @@ namespace BossMod.BLM
         Sleep = 25880, // L10, 2.5s cast, range 30, AOE circle 5/0, targets=hostile
     }
 
+    public enum TraitID : uint
+    {
+        None = 0,
+        AspectMastery1 = 296, // L1, first elemental stack
+        MaimAndMend1 = 29, // L20, damage increase
+        AspectMastery2 = 458, // L20, second elemental stack
+        Thundercloud = 33, // L28, thunder proc
+        AspectMastery3 = 459, // L35, third elemental stack
+        MaimAndMend2 = 31, // L40, damage increase
+        Firestarter = 32, // L42, fire proc
+        ThunderMastery1 = 171, // L45, T1->T3 upgrade
+        Enochian = 460, // L56, damage increase under elemental stacks
+        EnhancedFreeze = 295, // L58, gauge by freeze
+        ThunderMastery2 = 172, // L64, T2->T4 upgrade
+        EnhancedEnochian1 = 174, // L70, polyglot and effect increase
+        EnhancedSharpcast = 321, // L74, reduce cd
+        EnhancedEnochian2 = 322, // L78, effect increase
+        EnhancedPolyglot = 297, // L80, second stack
+        EnhancedFoul = 461, // L80, instant
+        AspectMastery4 = 462, // L82, B2/F2->HB2/HF2 upgrade
+        EnhancedManafont = 463, // L84, reduce cd
+        EnhancedEnochian3 = 509, // L86, effect increase
+        EnhancedSharpcast2 = 464, // L88, second charge
+        AspectMastery5 = 465, // L90, paradox
+    }
+
     public enum CDGroup : int
     {
         Transpose = 0, // 5.0 max
@@ -72,81 +98,93 @@ namespace BossMod.BLM
         Surecast = 43, // 120.0 max
     }
 
-    public enum MinLevel : int
+    public enum SID : uint
     {
-        // actions
-        Fire1 = 2,
-        Transpose = 4,
-        Thunder1 = 6,
-        Addle = 8,
-        Sleep = 10,
-        Blizzard2 = 12,
-        LucidDreaming = 14,
-        Scathe = 15, // unlocked by quest 65886 'The Threat of Superiority'
-        Fire2 = 18,
-        Swiftcast = 18,
-        Thunder2 = 26,
-        Manaward = 30, // unlocked by quest 65889 'Facing Your Demons'
-        Manafont = 30, // unlocked by quest 66609 'Taking the Black'
-        Fire3 = 35,
-        Blizzard3 = 35, // unlocked by quest 66610 'You'll Never Go Back'
-        Freeze = 40, // unlocked by quest 66611 'International Relations'
-        Surecast = 44,
-        Thunder3 = 45, // unlocked by quest 66612 'The Voidgate Breathes Gloomy'
-        AetherialManipulation = 50,
-        Flare = 50, // unlocked by quest 66614 'Always Bet on Black'
-        LeyLines = 52, // unlocked by quest 67215 'An Unexpected Journey'
-        Sharpcast = 54, // unlocked by quest 67216 'A Cunning Plan'
-        Blizzard4 = 58, // unlocked by quest 67218 'Destruction in the Name of Justice'
-        Fire4 = 60, // unlocked by quest 67219 'The Defiant Ones'
-        BetweenTheLines = 62,
-        Thunder4 = 64,
-        Triplecast = 66,
-        Foul = 70, // unlocked by quest 68128 'One Golem to Rule Them All'
-        Despair = 72,
-        UmbralSoul = 76,
-        Xenoglossy = 80,
-        HighFire2 = 82,
-        HighBlizzard2 = 82,
-        Amplifier = 86,
-        Paradox = 90,
-
-        // traits
-        MaimAndMend1 = 20, // passive, damage increase
-        AspectMastery2 = 20, // passive, second stack of astral fire / umbral ice
-        Thundercloud = 28, // passive, thunder proc
-        AspectMastery3 = 35, // passive, third stack of astral fire / umbral ice
-        MaimAndMend2 = 40, // passive, damage increase
-        Firestarter = 42, // passive, fire proc
-        Enochian = 56, // unlocked by quest 67217 'Black Squawk Down'; passive, increased damage dealt under astral fire / umbral ice
-        EnhancedFreeze = 58, // passive, freeze grants 3 umbral hearts
-        EnhancedEnochian1 = 70, // unlocked by quest 68128 'One Golem to Rule Them All'; passive
-        EnhancedSharpcast1 = 74, // passive, reduce cd
-        EnhancedEnochian2 = 78, // passive
-        EnhancedPolyglot = 80, // passive, second stack
-        EnhancedFoul = 80, // passive
-        EnhancedManafont = 84, // passive, reduce cd
-        EnhancedEnochian3 = 86, // passive
-        EnhancedSharpcast2 = 88, // passive, second charge
+        None = 0,
+        Thunder1 = 161, // applied by Thunder1 to target, dot
+        Thunder2 = 162, // applied by Thunder2 to target, dot
+        Thundercloud = 164, // proc
+        Firestarter = 165, // applied by Fire to self, next fire3 is free and instant
+        Addle = 1203, // applied by Addle to target, -5% phys and -10% magic damage dealt
+        LucidDreaming = 1204, // applied by Lucid Dreaming to self, MP restore
+        Swiftcast = 167, // applied by Swiftcast to self, next cast is instant
+        Sleep = 3, // applied by Sleep to target
     }
 
     public static class Definitions
     {
-        public static QuestLockEntry[] QuestsPerLevel = {
-            new(15, 65886),
-            new(30, 65889),
-            new(30, 66609),
-            new(35, 66610),
-            new(40, 66611),
-            new(45, 66612),
-            new(50, 66614),
-            new(52, 67215),
-            new(54, 67216),
-            new(56, 67217),
-            new(58, 67218),
-            new(60, 67219),
-            new(70, 68128),
-        };
+        public static uint[] UnlockQuests = { 65886, 65889, 66609, 66610, 66611, 66612, 66614, 67215, 67216, 67217, 67218, 67219, 68128 };
+
+        public static bool Unlocked(AID aid, int level, int questProgress)
+        {
+            return aid switch
+            {
+                AID.Fire1 => level >= 2,
+                AID.Transpose => level >= 4,
+                AID.Thunder1 => level >= 6,
+                AID.Addle => level >= 8,
+                AID.Sleep => level >= 10,
+                AID.Blizzard2 => level >= 12,
+                AID.LucidDreaming => level >= 14,
+                AID.Scathe => level >= 15 && questProgress > 0,
+                AID.Fire2 => level >= 18,
+                AID.Swiftcast => level >= 18,
+                AID.Thunder2 => level >= 26,
+                AID.Manaward => level >= 30 && questProgress > 1,
+                AID.Manafont => level >= 30 && questProgress > 2,
+                AID.Blizzard3 => level >= 35 && questProgress > 3,
+                AID.Fire3 => level >= 35,
+                AID.Freeze => level >= 40 && questProgress > 4,
+                AID.Surecast => level >= 44,
+                AID.Thunder3 => level >= 45 && questProgress > 5,
+                AID.Flare => level >= 50 && questProgress > 6,
+                AID.AetherialManipulation => level >= 50,
+                AID.LeyLines => level >= 52 && questProgress > 7,
+                AID.Sharpcast => level >= 54 && questProgress > 8,
+                AID.Blizzard4 => level >= 58 && questProgress > 10,
+                AID.Fire4 => level >= 60 && questProgress > 11,
+                AID.BetweenTheLines => level >= 62,
+                AID.Thunder4 => level >= 64,
+                AID.Triplecast => level >= 66,
+                AID.Foul => level >= 70 && questProgress > 12,
+                AID.Despair => level >= 72,
+                AID.UmbralSoul => level >= 76,
+                AID.Xenoglossy => level >= 80,
+                AID.HighFire2 => level >= 82,
+                AID.HighBlizzard2 => level >= 82,
+                AID.Amplifier => level >= 86,
+                AID.Paradox => level >= 90,
+                _ => true,
+            };
+        }
+
+        public static bool Unlocked(TraitID tid, int level, int questProgress)
+        {
+            return tid switch
+            {
+                TraitID.MaimAndMend1 => level >= 20,
+                TraitID.AspectMastery2 => level >= 20,
+                TraitID.Thundercloud => level >= 28,
+                TraitID.AspectMastery3 => level >= 35,
+                TraitID.MaimAndMend2 => level >= 40,
+                TraitID.Firestarter => level >= 42,
+                TraitID.ThunderMastery1 => level >= 45 && questProgress > 5,
+                TraitID.Enochian => level >= 56 && questProgress > 9,
+                TraitID.EnhancedFreeze => level >= 58,
+                TraitID.ThunderMastery2 => level >= 64,
+                TraitID.EnhancedEnochian1 => level >= 70 && questProgress > 12,
+                TraitID.EnhancedSharpcast => level >= 74,
+                TraitID.EnhancedEnochian2 => level >= 78,
+                TraitID.EnhancedPolyglot => level >= 80,
+                TraitID.EnhancedFoul => level >= 80,
+                TraitID.AspectMastery4 => level >= 82,
+                TraitID.EnhancedManafont => level >= 84,
+                TraitID.EnhancedEnochian3 => level >= 86,
+                TraitID.EnhancedSharpcast2 => level >= 88,
+                TraitID.AspectMastery5 => level >= 90,
+                _ => true,
+            };
+        }
 
         public static Dictionary<ActionID, ActionDefinition> SupportedActions;
         static Definitions()
@@ -189,18 +227,5 @@ namespace BossMod.BLM
             SupportedActions.GCD(AID.UmbralSoul, 0);
             SupportedActions.GCDCast(AID.Sleep, 30, 2.5f);
         }
-    }
-
-    public enum SID : uint
-    {
-        None = 0,
-        Thunder1 = 161, // applied by Thunder1 to target, dot
-        Thunder2 = 162, // applied by Thunder2 to target, dot
-        Thundercloud = 164, // proc
-        Firestarter = 165, // applied by Fire to self, next fire3 is free and instant
-        Addle = 1203, // applied by Addle to target, -5% phys and -10% magic damage dealt
-        LucidDreaming = 1204, // applied by Lucid Dreaming to self, MP restore
-        Swiftcast = 167, // applied by Swiftcast to self, next cast is instant
-        Sleep = 3, // applied by Sleep to target
     }
 }

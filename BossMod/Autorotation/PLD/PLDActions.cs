@@ -14,7 +14,7 @@ namespace BossMod.PLD
         private Rotation.Strategy _strategy;
 
         public Actions(Autorotation autorot, Actor player)
-            : base(autorot, player, Definitions.QuestsPerLevel, Definitions.SupportedActions)
+            : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
         {
             _config = Service.Config.Get<PLDConfig>();
             _state = new(autorot.Cooldowns);

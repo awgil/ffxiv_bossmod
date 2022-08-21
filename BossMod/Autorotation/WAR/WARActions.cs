@@ -15,7 +15,7 @@ namespace BossMod.WAR
         private Rotation.Strategy _strategy;
 
         public Actions(Autorotation autorot, Actor player)
-            : base(autorot, player, Definitions.QuestsPerLevel, Definitions.SupportedActions)
+            : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
         {
             _config = Service.Config.Get<WARConfig>();
             _state = new(autorot.Cooldowns);

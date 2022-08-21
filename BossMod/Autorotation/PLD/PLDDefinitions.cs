@@ -58,6 +58,25 @@ namespace BossMod.PLD
         Interject = 7538, // L18, instant, 30.0s CD (group 44), range 3, single-target 0/0, targets=hostile
     }
 
+    public enum TraitID : uint
+    {
+        None = 0,
+        TankMastery = 317, // L1
+        OathMastery = 209, // L35, gauge unlock
+        Chivalry = 246, // L58, riot blade & spirits within restore mp
+        RageOfHaloneMastery = 260, // L60, rage of halone -> royal authority upgrade
+        DivineMagicMastery1 = 207, // L64, reduce mp cost and prevent interruptions
+        EnhancedProminence = 261, // L66, prominence restores mp
+        EnhancedSheltron = 262, // L74, duration increase
+        SwordOath = 264, // L76
+        SheltronMastery = 412, // L82, sheltron -> holy sheltron upgrade
+        EnhancedIntervention = 413, // L82
+        DivineMagicMastery2 = 414, // L84, adds heal
+        MeleeMastery = 504, // L84, potency increase
+        SpiritsWithinMastery = 415, // L86, spirits within -> expiacion upgrade
+        EnhancedDivineVeil = 416, // L88, adds heal
+    }
+
     public enum CDGroup : int
     {
         Sheltron = 0, // 5.0 max
@@ -83,79 +102,86 @@ namespace BossMod.PLD
         ArmsLength = 46, // 120.0 max
     }
 
-    public enum MinLevel : int
+    public enum SID : uint
     {
-        // actions
-        FightOrFlight = 2,
-        RiotBlade = 4,
-        TotalEclipse = 6,
-        Rampart = 8,
-        ShieldBash = 10,
-        IronWill = 10,
-        LowBlow = 12,
-        Provoke = 15,
-        ShieldLob = 15, // unlocked by quest 65798 'That Old Familiar Feeling'
-        Interject = 18,
-        Reprisal = 22,
-        RageOfHalone = 26,
-        SpiritsWithin = 30, // unlocked by quest 66591 'Paladin's Pledge'
-        ArmsLength = 32,
-        Sheltron = 35, // unlocked by quest 66592 'Honor Lost'
-        Sentinel = 38,
-        Prominence = 40, // unlocked by quest 66593 'Power Struggles'
-        Cover = 45, // unlocked by quest 66595 'Parley in the Sagolii'
-        Shirk = 48,
-        HallowedGround = 50, // unlocked by quest 66596 'Keeping the Oath'
-        CircleOfScorn = 50,
-        GoringBlade = 54, // unlocked by quest 67570 'Big Sollerets to Fill'
-        DivineVeil = 56, // unlocked by quest 67571 'Hey Soul Crystal'
-        Clemency = 58, // unlocked by quest 67572 'All According to Plan'
-        RoyalAuthority = 60, // unlocked by quest 67573 'This Little Sword of Mine'
-        Intervention = 62,
-        HolySpirit = 64,
-        Requiescat = 68,
-        PassageOfArms = 70, // unlocked by quest 68111 'Raising the Sword'
-        HolyCircle = 72,
-        Intervene = 74,
-        Atonement = 76,
-        Confiteor = 80,
-        HolySheltron = 82,
-        Expiacion = 86,
-        BladeOfTruth = 90,
-        BladeOfFaith = 90,
-        BladeOfValor = 90,
-
-        // traits
-        OathMastery = 35, // unlocked by quest 66592 'Honor Lost'
-        Chivalry = 58,
-        RageOfHaloneMastery = 60, // unlocked by quest 67573 'This Little Sword of Mine'
-        DivineMagicMastery = 64,
-        EnhancedProminence = 66,
-        EnhancedSheltron = 74,
-        SwordOath = 76,
-        SheltronMastery = 82,
-        EnhancedIntervention = 82,
-        DivineMagicMasteryII = 84,
-        MeleeMastery = 84,
-        SpiritsWithinMastery = 86,
-        EnhancedDivineVeil = 88,
+        None = 0,
+        FightOrFlight = 76, // applied by Fight or Flight to self, +25% physical damage dealt buff
+        Rampart = 1191, // applied by Rampart to self, -20% damage taken
+        Reprisal = 1193, // applied by Reprisal to target
+        IronWill = 79, // applied by Iron Will to self, tank stance
+        Stun = 2, // applied by Low Blow, Shield Bash to target
     }
 
     public static class Definitions
     {
-        public static QuestLockEntry[] QuestsPerLevel = {
-            new(15, 65798),
-            new(30, 66591),
-            new(35, 66592),
-            new(40, 66593),
-            new(45, 66595),
-            new(50, 66596),
-            new(54, 67570),
-            new(56, 67571),
-            new(58, 67572),
-            new(60, 67573),
-            new(70, 68111),
-        };
+        public static uint[] UnlockQuests = { 65798, 66591, 66592, 66593, 66595, 66596, 67570, 67571, 67572, 67573, 68111 };
+
+        public static bool Unlocked(AID aid, int level, int questProgress)
+        {
+            return aid switch
+            {
+                AID.FightOrFlight => level >= 2,
+                AID.RiotBlade => level >= 4,
+                AID.TotalEclipse => level >= 6,
+                AID.Rampart => level >= 8,
+                AID.ShieldBash => level >= 10,
+                AID.IronWill => level >= 10,
+                AID.LowBlow => level >= 12,
+                AID.Provoke => level >= 15,
+                AID.ShieldLob => level >= 15 && questProgress > 0,
+                AID.Interject => level >= 18,
+                AID.Reprisal => level >= 22,
+                AID.RageOfHalone => level >= 26,
+                AID.SpiritsWithin => level >= 30 && questProgress > 1,
+                AID.ArmsLength => level >= 32,
+                AID.Sheltron => level >= 35 && questProgress > 2,
+                AID.Sentinel => level >= 38,
+                AID.Prominence => level >= 40 && questProgress > 3,
+                AID.Cover => level >= 45 && questProgress > 4,
+                AID.Shirk => level >= 48,
+                AID.HallowedGround => level >= 50 && questProgress > 5,
+                AID.CircleOfScorn => level >= 50,
+                AID.GoringBlade => level >= 54 && questProgress > 6,
+                AID.DivineVeil => level >= 56 && questProgress > 7,
+                AID.Clemency => level >= 58 && questProgress > 8,
+                AID.RoyalAuthority => level >= 60 && questProgress > 9,
+                AID.Intervention => level >= 62,
+                AID.HolySpirit => level >= 64,
+                AID.Requiescat => level >= 68,
+                AID.PassageOfArms => level >= 70 && questProgress > 10,
+                AID.HolyCircle => level >= 72,
+                AID.Intervene => level >= 74,
+                AID.Atonement => level >= 76,
+                AID.Confiteor => level >= 80,
+                AID.HolySheltron => level >= 82,
+                AID.Expiacion => level >= 86,
+                AID.BladeOfTruth => level >= 90,
+                AID.BladeOfFaith => level >= 90,
+                AID.BladeOfValor => level >= 90,
+                _ => true,
+            };
+        }
+
+        public static bool Unlocked(TraitID tid, int level, int questProgress)
+        {
+            return tid switch
+            {
+                TraitID.OathMastery => level >= 35 && questProgress > 2,
+                TraitID.Chivalry => level >= 58,
+                TraitID.RageOfHaloneMastery => level >= 60 && questProgress > 9,
+                TraitID.DivineMagicMastery1 => level >= 64,
+                TraitID.EnhancedProminence => level >= 66,
+                TraitID.EnhancedSheltron => level >= 74,
+                TraitID.SwordOath => level >= 76,
+                TraitID.SheltronMastery => level >= 82,
+                TraitID.EnhancedIntervention => level >= 82,
+                TraitID.DivineMagicMastery2 => level >= 84,
+                TraitID.MeleeMastery => level >= 84,
+                TraitID.SpiritsWithinMastery => level >= 86,
+                TraitID.EnhancedDivineVeil => level >= 88,
+                _ => true,
+            };
+        }
 
         public static Dictionary<ActionID, ActionDefinition> SupportedActions;
         static Definitions()
@@ -201,15 +227,5 @@ namespace BossMod.PLD
             SupportedActions.OGCD(AID.LowBlow, 3, CDGroup.LowBlow, 25.0f);
             SupportedActions.OGCD(AID.Interject, 3, CDGroup.Interject, 30.0f);
         }
-    }
-
-    public enum SID : uint
-    {
-        None = 0,
-        FightOrFlight = 76, // applied by Fight or Flight to self, +25% physical damage dealt buff
-        Rampart = 1191, // applied by Rampart to self, -20% damage taken
-        Reprisal = 1193, // applied by Reprisal to target
-        IronWill = 79, // applied by Iron Will to self, tank stance
-        Stun = 2, // applied by Low Blow, Shield Bash to target
     }
 }

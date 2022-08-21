@@ -14,13 +14,16 @@
             public float TargetThunderLeft; // TODO: this shouldn't be here...
 
             // upgrade paths
-            public AID BestThunder3 => Unlocked(MinLevel.Thunder3) ? AID.Thunder3 : AID.Thunder1;
+            public AID BestThunder3 => Unlocked(AID.Thunder3) ? AID.Thunder3 : AID.Thunder1;
 
             public State(float[] cooldowns) : base(cooldowns) { }
 
+            public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
+            public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
+
             public override string ToString()
             {
-                return $"MP={CurMP} (tick={TimeToManaTick:f1}), RB={RaidBuffsLeft:f1}, Elem={ElementalLevel}/{ElementalLeft:f1}, Thunder={TargetThunderLeft:f1}, TC={ThundercloudLeft:f1}, FS={FirestarterLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+                return $"MP={CurMP} (tick={TimeToManaTick:f1}), RB={RaidBuffsLeft:f1}, Elem={ElementalLevel}/{ElementalLeft:f1}, Thunder={TargetThunderLeft:f1}, TC={ThundercloudLeft:f1}, FS={FirestarterLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -56,7 +59,7 @@
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
             bool allowCasts = !strategy.Moving || state.SwiftcastLeft > state.GCD;
-            if (state.Unlocked(MinLevel.Blizzard3))
+            if (state.Unlocked(AID.Blizzard3))
             {
                 // starting from L35, fire/blizzard 2/3 automatically grant 3 fire/ice stacks, so we use them to swap between stances
                 if (strategy.AOE)
@@ -84,7 +87,7 @@
                             var mpTicksAtMinSwap = (int)((3 - state.TimeToManaTick + minTimeToSwap) / 3);
                             var mpAtMinSwap = state.CurMP + mpTicksAtMinSwap * MPTick(state.ElementalLevel);
                             if (mpAtMinSwap < 9600)
-                                return state.Unlocked(MinLevel.Freeze) ? AID.Freeze : AID.Blizzard2;
+                                return state.Unlocked(AID.Freeze) ? AID.Freeze : AID.Blizzard2;
                         }
                         if (state.ThundercloudLeft > state.GCD || wantThunder && allowCasts)
                             return AID.Thunder2;
@@ -160,20 +163,20 @@
                 if (!allowCasts)
                 {
                     // TODO: this is not really correct, we could have thundercloud, but w/e...
-                    if (state.Unlocked(MinLevel.Scathe) && state.CurMP >= 800)
+                    if (state.Unlocked(AID.Scathe) && state.CurMP >= 800)
                         return AID.Scathe;
                 }
-                else if (strategy.AOE && state.Unlocked(MinLevel.Blizzard2))
+                else if (strategy.AOE && state.Unlocked(AID.Blizzard2))
                 {
-                    if (state.Unlocked(MinLevel.Thunder2) && state.TargetThunderLeft <= state.GCD)
+                    if (state.Unlocked(AID.Thunder2) && state.TargetThunderLeft <= state.GCD)
                         return AID.Thunder2;
-                    return state.Unlocked(MinLevel.Fire2) ? TransposeRotationGCD(state, AID.Blizzard2, 800, AID.Fire2, 1500) : AID.Blizzard2;
+                    return state.Unlocked(AID.Fire2) ? TransposeRotationGCD(state, AID.Blizzard2, 800, AID.Fire2, 1500) : AID.Blizzard2;
                 }
                 else
                 {
-                    if (state.Unlocked(MinLevel.Thunder1) && state.TargetThunderLeft <= state.GCD)
+                    if (state.Unlocked(AID.Thunder1) && state.TargetThunderLeft <= state.GCD)
                         return AID.Thunder1;
-                    return state.Unlocked(MinLevel.Fire1) ? TransposeRotationGCD(state, AID.Blizzard1, 400, AID.Fire1, 800) : AID.Blizzard1;
+                    return state.Unlocked(AID.Fire1) ? TransposeRotationGCD(state, AID.Blizzard1, 400, AID.Fire1, 800) : AID.Blizzard1;
                 }
             }
             return AID.None;
@@ -181,12 +184,12 @@
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
-            if (state.Unlocked(MinLevel.Blizzard3))
+            if (state.Unlocked(AID.Blizzard3))
             {
                 // L35-Lxx: weave manafont in free slots (TODO: is that right?..)
-                if (deadline >= 10000 && strategy.Moving && state.Unlocked(MinLevel.Swiftcast) && state.CanWeave(CDGroup.Swiftcast, 0.6f, deadline))
+                if (deadline >= 10000 && strategy.Moving && state.Unlocked(AID.Swiftcast) && state.CanWeave(CDGroup.Swiftcast, 0.6f, deadline))
                     return ActionID.MakeSpell(AID.Swiftcast);
-                if (state.Unlocked(MinLevel.Manafont) && state.CanWeave(CDGroup.Manafont, 0.6f, deadline) && state.CurMP <= 7000)
+                if (state.Unlocked(AID.Manafont) && state.CanWeave(CDGroup.Manafont, 0.6f, deadline) && state.CurMP <= 7000)
                     return ActionID.MakeSpell(AID.Manafont);
             }
             else
@@ -194,7 +197,7 @@
                 // before L35, use transpose to swap between elemental states
                 // MP thresholds are not especially meaningful (they should work for both ST and AOE), who cares about low level...
                 // we could also use manafont, but again who cares
-                if (state.Unlocked(MinLevel.Transpose) && state.CanWeave(CDGroup.Transpose, 0.6f, deadline) && (state.ElementalLevel < 0 && state.CurMP >= 9200 || state.ElementalLevel > 0 && state.CurMP < 3600))
+                if (state.Unlocked(AID.Transpose) && state.CanWeave(CDGroup.Transpose, 0.6f, deadline) && (state.ElementalLevel < 0 && state.CurMP >= 9200 || state.ElementalLevel > 0 && state.CurMP < 3600))
                     return ActionID.MakeSpell(AID.Transpose);
 
                 // TODO: swiftcast if moving...
@@ -212,7 +215,7 @@
                 if (state.CurMP < 10000 - iceCost)
                     return iceSpell;
                 else
-                    return state.Unlocked(MinLevel.Transpose) ? AID.None : fireSpell;
+                    return state.Unlocked(AID.Transpose) ? AID.None : fireSpell;
             }
             else if (state.ElementalLevel > 0)
             {
@@ -220,7 +223,7 @@
                 if (state.CurMP >= fireCost * 2 + iceCost * 3 / 4)
                     return fireSpell;
                 else
-                    return state.Unlocked(MinLevel.Transpose) ? AID.None : iceSpell;
+                    return state.Unlocked(AID.Transpose) ? AID.None : iceSpell;
             }
             else
             {

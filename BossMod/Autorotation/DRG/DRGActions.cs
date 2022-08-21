@@ -13,7 +13,7 @@ namespace BossMod.DRG
         private Rotation.Strategy _strategy;
 
         public Actions(Autorotation autorot, Actor player)
-            : base(autorot, player, Definitions.QuestsPerLevel, Definitions.SupportedActions)
+            : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
         {
             _config = Service.Config.Get<DRGConfig>();
             _state = new(autorot.Cooldowns);
@@ -44,7 +44,7 @@ namespace BossMod.DRG
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
             _strategy.NumAOEGCDTargets = 0;
-            if (Autorot.PrimaryTarget != null && autoAction != AutoActionST && _state.Unlocked(MinLevel.DoomSpike))
+            if (Autorot.PrimaryTarget != null && autoAction != AutoActionST && _state.Unlocked(AID.DoomSpike))
             {
                 var toTarget = (Autorot.PrimaryTarget.Position - Player.Position).Normalized();
                 _strategy.NumAOEGCDTargets = Autorot.PotentialTargets.Valid.Where(a => a.Position.InRect(Player.Position, toTarget, 10, 0, 2)).Count();
@@ -53,9 +53,9 @@ namespace BossMod.DRG
 
         protected override void QueueAIActions()
         {
-            if (_state.Unlocked(MinLevel.SecondWind))
+            if (_state.Unlocked(AID.SecondWind))
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f);
-            if (_state.Unlocked(MinLevel.Bloodbath))
+            if (_state.Unlocked(AID.Bloodbath))
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.Bloodbath), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.8f);
         }
 

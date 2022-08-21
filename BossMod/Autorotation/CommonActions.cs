@@ -88,7 +88,7 @@ namespace BossMod
 
         public SupportedAction SupportedSpell<AID>(AID aid) where AID : Enum => SupportedActions[ActionID.MakeSpell(aid)];
 
-        protected unsafe CommonActions(Autorotation autorot, Actor player, QuestLockEntry[] unlockData, Dictionary<ActionID, ActionDefinition> supportedActions)
+        protected unsafe CommonActions(Autorotation autorot, Actor player, uint[] unlockData, Dictionary<ActionID, ActionDefinition> supportedActions)
         {
             Player = player;
             Autorot = autorot;
@@ -323,7 +323,8 @@ namespace BossMod
         {
             var am = ActionManagerEx.Instance!;
             var pc = Service.ClientState.LocalPlayer;
-            s.Level = _lock.AdjustLevel(pc?.Level ?? 0);
+            s.Level = pc?.Level ?? 0;
+            s.UnlockProgress = _lock.Progress();
             s.CurMP = pc?.CurrentMp ?? 0;
             s.AnimationLock = am.EffectiveAnimationLock;
             s.AnimationLockDelay = am.EffectiveAnimationLockDelay;
