@@ -82,7 +82,7 @@ namespace BossMod.SCH
                 return MakeResult(AID.Succor, Player);
 
             // now check ST heal
-            if (allowCasts && _bestSTHeal.Target != null)
+            if (allowCasts && _bestSTHeal.Target != null && _state.AetherflowStacks == 0)
                 return MakeResult(Rotation.GetNextBestSTHealGCD(_state, _strategy), _bestSTHeal.Target);
 
             // now check esuna
@@ -117,7 +117,7 @@ namespace BossMod.SCH
             if (_state.CanWeave(deadline - _state.OGCDSlotLength)) // first ogcd slot
                 res = GetNextBestOGCD(deadline - _state.OGCDSlotLength);
             if (!res.Action && _state.CanWeave(deadline)) // second/only ogcd slot
-                res = GetNextBestOGCD(deadline - _state.OGCDSlotLength);
+                res = GetNextBestOGCD(deadline);
             return res;
         }
 

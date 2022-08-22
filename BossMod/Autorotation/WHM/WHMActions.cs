@@ -153,7 +153,7 @@ namespace BossMod.WHM
             if (_state.CanWeave(deadline - _state.OGCDSlotLength)) // first ogcd slot
                 res = GetNextBestOGCD(deadline - _state.OGCDSlotLength);
             if (!res.Action && _state.CanWeave(deadline)) // second/only ogcd slot
-                res = GetNextBestOGCD(deadline - _state.OGCDSlotLength);
+                res = GetNextBestOGCD(deadline);
             return res;
         }
 
