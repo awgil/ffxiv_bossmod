@@ -18,7 +18,7 @@
 
     class GiganticSwing : Components.SelfTargetedAOEs
     {
-        public GiganticSwing() : base(ActionID.MakeSpell(AID.GiganticSwing), new AOEShapeDonut(4, 40), true) { }
+        public GiganticSwing() : base(ActionID.MakeSpell(AID.GiganticSwing), new AOEShapeDonut(4, 40)) { }
     }
 
     class GiganticSmash : Components.LocationTargetedAOEs
@@ -28,7 +28,7 @@
 
     class GiganticBlast : Components.SelfTargetedAOEs
     {
-        public GiganticBlast() : base(ActionID.MakeSpell(AID.GiganticBlast), new AOEShapeCircle(8), true) { }
+        public GiganticBlast() : base(ActionID.MakeSpell(AID.GiganticBlast), new AOEShapeCircle(8)) { }
     }
 
     class GrandSlam : Components.CastHint
@@ -36,9 +36,9 @@
         public GrandSlam() : base(ActionID.MakeSpell(AID.GrandSlam), "Tankbuster") { }
     }
 
-    class ColossalSlam : Components.SelfTargetedAOEs
+    class ColossalSlam : Components.SelfTargetedLegacyRotationAOEs
     {
-        public ColossalSlam() : base(ActionID.MakeSpell(AID.ColossalSlam), new AOEShapeCone(40, 30.Degrees()), true) { }
+        public ColossalSlam() : base(ActionID.MakeSpell(AID.ColossalSlam), new AOEShapeCone(40, 30.Degrees())) { }
     }
 
     class D033GygesStates : StateMachineBuilder

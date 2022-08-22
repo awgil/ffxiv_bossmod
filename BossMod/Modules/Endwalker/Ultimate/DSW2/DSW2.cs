@@ -2,9 +2,9 @@
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
-    class P2AscalonMercy : Components.SelfTargetedAOEs
+    class P2AscalonMercy : Components.SelfTargetedLegacyRotationAOEs
     {
-        public P2AscalonMercy() : base(ActionID.MakeSpell(AID.AscalonsMercyConcealedAOE), new AOEShapeCone(50, 15.Degrees()), true) { }
+        public P2AscalonMercy() : base(ActionID.MakeSpell(AID.AscalonsMercyConcealedAOE), new AOEShapeCone(50, 15.Degrees())) { }
     }
 
     class P2UltimateEnd : Components.CastCounter
@@ -12,14 +12,14 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P2UltimateEnd() : base(ActionID.MakeSpell(AID.UltimateEndAOE)) { }
     }
 
-    class P3Geirskogul : Components.SelfTargetedAOEs
+    class P3Geirskogul : Components.SelfTargetedLegacyRotationAOEs
     {
-        public P3Geirskogul() : base(ActionID.MakeSpell(AID.Geirskogul), new AOEShapeRect(62, 4), true) { }
+        public P3Geirskogul() : base(ActionID.MakeSpell(AID.Geirskogul), new AOEShapeRect(62, 4)) { }
     }
 
-    class P3Drachenlance : Components.SelfTargetedAOEs
+    class P3Drachenlance : Components.SelfTargetedLegacyRotationAOEs
     {
-        public P3Drachenlance() : base(ActionID.MakeSpell(AID.DrachenlanceAOE), new AOEShapeCone(13, 45.Degrees()), true) { }
+        public P3Drachenlance() : base(ActionID.MakeSpell(AID.DrachenlanceAOE), new AOEShapeCone(13, 45.Degrees())) { }
     }
 
     class P3SoulTether : Components.TankbusterTether

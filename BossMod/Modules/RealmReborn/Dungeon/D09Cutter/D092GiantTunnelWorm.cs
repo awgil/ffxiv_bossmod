@@ -26,15 +26,17 @@ namespace BossMod.RealmReborn.Dungeon.D09Cutter.D092GiantTunnelWorm
     }
 
     // TODO: pillars teleport right before cast, so we don't show them for now...
-    class Submerge : Components.GenericSelfTargetedAOEs
+    class Submerge : Components.GenericAOEs
     {
-        public Submerge() : base(ActionID.MakeSpell(AID.Earthbreak), new AOEShapeCircle(14.5f)) { }
+        private AOEShapeCircle _shape = new(14.5f);
 
-        public override IEnumerable<(WPos, Angle, DateTime)> ImminentCasts(BossModule module)
+        public Submerge() : base(ActionID.MakeSpell(AID.Earthbreak)) { }
+
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
         {
             // TODO: proper timings...
             if (!module.PrimaryActor.IsTargetable)
-                yield return (module.PrimaryActor.Position, module.PrimaryActor.Rotation, module.WorldState.CurrentTime);
+                yield return (_shape, module.PrimaryActor.Position, module.PrimaryActor.Rotation, module.WorldState.CurrentTime);
         }
     }
 

@@ -50,7 +50,7 @@ namespace BossMod.RealmReborn.Trial.T03GarudaN
 
     class Slipstream : Components.SelfTargetedAOEs
     {
-        public Slipstream() : base(ActionID.MakeSpell(AID.Slipstream), new AOEShapeCone(11.7f, 45.Degrees()), false) { }
+        public Slipstream() : base(ActionID.MakeSpell(AID.Slipstream), new AOEShapeCone(11.7f, 45.Degrees())) { }
     }
 
     class MistralSongP1 : Components.CastLineOfSightAOE
@@ -59,26 +59,28 @@ namespace BossMod.RealmReborn.Trial.T03GarudaN
     }
 
     // actual casts happen every ~6s after aerial blast cast
-    class EyeOfTheStorm : Components.GenericSelfTargetedAOEs
+    class EyeOfTheStorm : Components.GenericAOEs
     {
-        public EyeOfTheStorm() : base(ActionID.MakeSpell(AID.AerialBlast), new AOEShapeDonut(12, 25)) { }
+        private AOEShapeDonut _shape = new(12, 25);
 
-        public override IEnumerable<(WPos, Angle, DateTime)> ImminentCasts(BossModule module)
+        public EyeOfTheStorm() : base(ActionID.MakeSpell(AID.AerialBlast)) { }
+
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
         {
             if (NumCasts > 0)
                 foreach (var c in module.Enemies(OID.EyeOfTheStormHelper))
-                    yield return (c.Position, new Angle(), module.WorldState.CurrentTime);
+                    yield return (_shape, c.Position, new Angle(), module.WorldState.CurrentTime);
         }
     }
 
     class MistralSongP2 : Components.SelfTargetedAOEs
     {
-        public MistralSongP2() : base(ActionID.MakeSpell(AID.MistralSongP2), new AOEShapeCone(31.7f, 60.Degrees()), false) { }
+        public MistralSongP2() : base(ActionID.MakeSpell(AID.MistralSongP2), new AOEShapeCone(31.7f, 60.Degrees())) { }
     }
 
     class MistralShriek : Components.SelfTargetedAOEs
     {
-        public MistralShriek() : base(ActionID.MakeSpell(AID.MistralShriek), new AOEShapeCircle(24.7f), false) { }
+        public MistralShriek() : base(ActionID.MakeSpell(AID.MistralShriek), new AOEShapeCircle(24.7f)) { }
     }
 
     class T03GarudaNStates : StateMachineBuilder

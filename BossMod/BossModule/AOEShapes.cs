@@ -170,6 +170,57 @@ namespace BossMod
         }
     }
 
+    public class AOEShapeCross : AOEShape
+    {
+        public float Length;
+        public float HalfWidth;
+        public Angle DirectionOffset;
+
+        public AOEShapeCross(float length, float halfWidth, Angle directionOffset = new())
+        {
+            Length = length;
+            HalfWidth = halfWidth;
+            DirectionOffset = directionOffset;
+        }
+
+        public override bool Check(WPos position, WPos origin, Angle rotation) => position.InRect(origin, rotation + DirectionOffset, Length, Length, HalfWidth) || position.InRect(origin, rotation + DirectionOffset, HalfWidth, HalfWidth, Length);
+        public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE) => arena.Zone(arena.Bounds.ClipAndTriangulate(ContourPoints(origin, rotation)), color);
+
+        public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger)
+        {
+            foreach (var p in ContourPoints(origin, rotation))
+                arena.PathLineTo(p);
+            arena.PathStroke(true, color);
+        }
+
+        public override IEnumerable<IEnumerable<WPos>> Contour(WPos origin, Angle rotation, float offset, float maxError)
+        {
+            yield return ContourPoints(origin, rotation, offset);
+        }
+
+        private IEnumerable<WPos> ContourPoints(WPos origin, Angle rotation, float offset = 0)
+        {
+            var dx = (rotation + DirectionOffset).ToDirection();
+            var dy = dx.OrthoL();
+            var dx1 = dx * (Length + offset);
+            var dx2 = dx * (HalfWidth + offset);
+            var dy1 = dy * (Length + offset);
+            var dy2 = dy * (HalfWidth + offset);
+            yield return origin + dx1 - dy2;
+            yield return origin + dx2 - dy2;
+            yield return origin + dx2 - dy1;
+            yield return origin - dx2 - dy1;
+            yield return origin - dx2 - dy2;
+            yield return origin - dx1 - dy2;
+            yield return origin - dx1 + dy2;
+            yield return origin - dx2 + dy2;
+            yield return origin - dx2 + dy1;
+            yield return origin + dx2 + dy1;
+            yield return origin + dx2 + dy2;
+            yield return origin + dx1 + dy2;
+        }
+    }
+
     public class AOEShapeMulti : AOEShape
     {
         public List<AOEShape> Shapes;

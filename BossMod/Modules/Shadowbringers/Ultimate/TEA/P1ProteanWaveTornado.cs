@@ -3,9 +3,9 @@ using System.Linq;
 
 namespace BossMod.Shadowbringers.Ultimate.TEA
 {
-    class P1ProteanWaveTornadoVis : Components.SelfTargetedAOEs
+    class P1ProteanWaveTornadoVis : Components.SelfTargetedLegacyRotationAOEs
     {
-        public P1ProteanWaveTornadoVis() : base(ActionID.MakeSpell(AID.ProteanWaveTornadoVis), new AOEShapeCone(40, 15.Degrees()), true) { }
+        public P1ProteanWaveTornadoVis() : base(ActionID.MakeSpell(AID.ProteanWaveTornadoVis), new AOEShapeCone(40, 15.Degrees())) { }
     }
 
     class P1ProteanWaveTornado : Components.CastCounter

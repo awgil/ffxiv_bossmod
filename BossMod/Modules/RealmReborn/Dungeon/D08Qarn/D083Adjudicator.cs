@@ -23,14 +23,14 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D083Adjudicator
         VergePulse = 930, // MythrilVerge->self, 10.0s cast, range 60 ???
     };
 
-    class Darkness : Components.SelfTargetedAOEs
+    class Darkness : Components.SelfTargetedLegacyRotationAOEs
     {
-        public Darkness() : base(ActionID.MakeSpell(AID.Darkness), new AOEShapeCone(7.5f, 60.Degrees()), true) { }
+        public Darkness() : base(ActionID.MakeSpell(AID.Darkness), new AOEShapeCone(7.5f, 60.Degrees())) { }
     }
 
-    class VergeLine : Components.SelfTargetedAOEs
+    class VergeLine : Components.SelfTargetedLegacyRotationAOEs
     {
-        public VergeLine() : base(ActionID.MakeSpell(AID.VergeLine), new AOEShapeRect(60, 2), true) { }
+        public VergeLine() : base(ActionID.MakeSpell(AID.VergeLine), new AOEShapeRect(60, 2)) { }
     }
 
     class D083AdjudicatorStates : StateMachineBuilder

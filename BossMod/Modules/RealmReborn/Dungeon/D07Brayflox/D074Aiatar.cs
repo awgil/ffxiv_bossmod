@@ -23,17 +23,17 @@
 
     class ToxicVomit : Components.SelfTargetedAOEs
     {
-        public ToxicVomit() : base(ActionID.MakeSpell(AID.ToxicVomitAOE), new AOEShapeCircle(2), true) { }
+        public ToxicVomit() : base(ActionID.MakeSpell(AID.ToxicVomitAOE), new AOEShapeCircle(2)) { }
     }
 
     class Burst : Components.SelfTargetedAOEs
     {
-        public Burst() : base(ActionID.MakeSpell(AID.Burst), new AOEShapeCircle(10), true, 4) { }
+        public Burst() : base(ActionID.MakeSpell(AID.Burst), new AOEShapeCircle(10), 4) { }
     }
 
-    class DragonBreath : Components.SelfTargetedAOEs
+    class DragonBreath : Components.SelfTargetedLegacyRotationAOEs
     {
-        public DragonBreath() : base(ActionID.MakeSpell(AID.DragonBreath), new AOEShapeRect(30, 4), true) { }
+        public DragonBreath() : base(ActionID.MakeSpell(AID.DragonBreath), new AOEShapeRect(30, 4)) { }
     }
 
     class D074AiatarStates : StateMachineBuilder

@@ -41,20 +41,22 @@ namespace BossMod.RealmReborn.Dungeon.D10StoneVigil.D103Isgebind
         public SheetOfIce2() : base(ActionID.MakeSpell(AID.SheetOfIce2), 5) { }
     }
 
-    class Cauterize : Components.SelfTargetedAOEs
+    class Cauterize : Components.SelfTargetedLegacyRotationAOEs
     {
-        public Cauterize() : base(ActionID.MakeSpell(AID.Cauterize), new AOEShapeRect(48, 10), true) { }
+        public Cauterize() : base(ActionID.MakeSpell(AID.Cauterize), new AOEShapeRect(48, 10)) { }
     }
 
-    class Touchdown : Components.GenericSelfTargetedAOEs
+    class Touchdown : Components.GenericAOEs
     {
-        public Touchdown() : base(ActionID.MakeSpell(AID.Touchdown), new AOEShapeCircle(5)) { }
+        private AOEShapeCircle _shape = new(5);
 
-        public override IEnumerable<(WPos, Angle, DateTime)> ImminentCasts(BossModule module)
+        public Touchdown() : base(ActionID.MakeSpell(AID.Touchdown)) { }
+
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
         {
             // TODO: proper timings...
             if (!module.PrimaryActor.IsTargetable && !module.FindComponent<Cauterize>()!.ActiveCasters.Any())
-                yield return (module.Bounds.Center, new(), module.WorldState.CurrentTime);
+                yield return (_shape, module.Bounds.Center, new(), module.WorldState.CurrentTime);
         }
     }
 

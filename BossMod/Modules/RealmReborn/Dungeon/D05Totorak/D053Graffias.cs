@@ -26,9 +26,9 @@ namespace BossMod.RealmReborn.Dungeon.D05Totorak.D053Graffias
         DeadlyThrust = 702, // Boss->self, 2.0s cast, visual (spawns pollen zone)
     };
 
-    class Silkscreen : Components.SelfTargetedAOEs
+    class Silkscreen : Components.SelfTargetedLegacyRotationAOEs
     {
-        public Silkscreen() : base(ActionID.MakeSpell(AID.Silkscreen), new AOEShapeRect(18, 2), true) { }
+        public Silkscreen() : base(ActionID.MakeSpell(AID.Silkscreen), new AOEShapeRect(18, 2)) { }
     }
 
     class StickyWeb : Components.CastHint
@@ -38,7 +38,7 @@ namespace BossMod.RealmReborn.Dungeon.D05Totorak.D053Graffias
 
     class PodBurst : Components.SelfTargetedAOEs
     {
-        public PodBurst() : base(ActionID.MakeSpell(AID.PodBurst), new AOEShapeCircle(7.050f), true) { }
+        public PodBurst() : base(ActionID.MakeSpell(AID.PodBurst), new AOEShapeCircle(7.050f)) { }
     }
 
     class DeadlyThrust : Components.CastHint

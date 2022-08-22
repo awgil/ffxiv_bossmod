@@ -3,14 +3,14 @@ using System.Linq;
 
 namespace BossMod.Shadowbringers.Ultimate.TEA
 {
-    class P1ProteanWaveLiquidVisBoss : Components.SelfTargetedAOEs
+    class P1ProteanWaveLiquidVisBoss : Components.SelfTargetedLegacyRotationAOEs
     {
-        public P1ProteanWaveLiquidVisBoss() : base(ActionID.MakeSpell(AID.ProteanWaveLiquidVisBoss), new AOEShapeCone(40, 15.Degrees()), true) { }
+        public P1ProteanWaveLiquidVisBoss() : base(ActionID.MakeSpell(AID.ProteanWaveLiquidVisBoss), new AOEShapeCone(40, 15.Degrees())) { }
     }
 
-    class P1ProteanWaveLiquidVisHelper : Components.SelfTargetedAOEs
+    class P1ProteanWaveLiquidVisHelper : Components.SelfTargetedLegacyRotationAOEs
     {
-        public P1ProteanWaveLiquidVisHelper() : base(ActionID.MakeSpell(AID.ProteanWaveLiquidVisHelper), new AOEShapeCone(40, 15.Degrees()), true) { }
+        public P1ProteanWaveLiquidVisHelper() : base(ActionID.MakeSpell(AID.ProteanWaveLiquidVisHelper), new AOEShapeCone(40, 15.Degrees())) { }
     }
 
     class P1ProteanWaveLiquidInvis : Components.CastCounter

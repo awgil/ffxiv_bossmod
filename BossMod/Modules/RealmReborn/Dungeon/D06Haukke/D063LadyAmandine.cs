@@ -29,7 +29,7 @@ namespace BossMod.RealmReborn.Dungeon.D06Haukke.D063LadyAmandine
 
     class DarkMist : Components.SelfTargetedAOEs
     {
-        public DarkMist() : base(ActionID.MakeSpell(AID.DarkMist), new AOEShapeCircle(9), true) { }
+        public DarkMist() : base(ActionID.MakeSpell(AID.DarkMist), new AOEShapeCircle(9)) { }
     }
 
     class BeguilingMist : Components.CastHint

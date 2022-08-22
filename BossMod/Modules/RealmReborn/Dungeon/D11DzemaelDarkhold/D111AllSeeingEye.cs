@@ -27,22 +27,22 @@
 
     class CursedGaze : Components.SelfTargetedAOEs
     {
-        public CursedGaze() : base(ActionID.MakeSpell(AID.CursedGaze), new AOEShapeCone(8.7f, 45.Degrees()), false) { }
+        public CursedGaze() : base(ActionID.MakeSpell(AID.CursedGaze), new AOEShapeCone(8.7f, 45.Degrees())) { }
     }
 
     class DreadGaze : Components.SelfTargetedAOEs
     {
-        public DreadGaze() : base(ActionID.MakeSpell(AID.DreadGaze), new AOEShapeCone(8.7f, 45.Degrees()), false) { }
+        public DreadGaze() : base(ActionID.MakeSpell(AID.DreadGaze), new AOEShapeCone(8.7f, 45.Degrees())) { }
     }
 
     class Thunderstrike : Components.SelfTargetedAOEs
     {
-        public Thunderstrike() : base(ActionID.MakeSpell(AID.Thunderstrike), new AOEShapeRect(11.2f, 1.5f), false) { }
+        public Thunderstrike() : base(ActionID.MakeSpell(AID.Thunderstrike), new AOEShapeRect(11.2f, 1.5f)) { }
     }
 
     class Condemnation : Components.SelfTargetedAOEs
     {
-        public Condemnation() : base(ActionID.MakeSpell(AID.Condemnation), new AOEShapeCone(7.3f, 45.Degrees()), false) { }
+        public Condemnation() : base(ActionID.MakeSpell(AID.Condemnation), new AOEShapeCone(7.3f, 45.Degrees())) { }
     }
 
     // try to always stay in active crystal closest to boss

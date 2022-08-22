@@ -4,55 +4,57 @@ using System.Linq;
 
 namespace BossMod.Components
 {
-    // generic component that shows arbitrary shape for any number of active casters with self-targeted casts; assumed to be avoidable aoe
-    public abstract class GenericSelfTargetedAOEs : CastCounter
+    // self-targeted aoe that happens at the end of the cast
+    public class SelfTargetedAOEs : GenericAOEs
     {
         public AOEShape Shape { get; private init; }
-
-        public GenericSelfTargetedAOEs(ActionID aid, AOEShape shape) : base(aid)
-        {
-            Shape = shape;
-        }
-
-        public abstract IEnumerable<(WPos, Angle, DateTime)> ImminentCasts(BossModule module);
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (ImminentCasts(module).Any(c => Shape.Check(actor.Position, c.Item1, c.Item2)))
-                hints.Add("GTFO from aoe!");
-        }
-
-        public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
-        {
-            foreach (var (pos, rot, time) in ImminentCasts(module))
-                zone.ForbidZone(Shape, pos, rot, time);
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            foreach (var (pos, rot, _) in ImminentCasts(module))
-                Shape.Draw(arena, pos, rot);
-        }
-    }
-
-    // self-targeted aoe that happens at the end of the cast
-    public class SelfTargetedAOEs : GenericSelfTargetedAOEs
-    {
-        public bool UseLegacyRotation { get; private init; } // set by old modules that were written before i reversed real cast rotation...
         public int MaxCasts { get; private init; } // used for staggered aoes, when showing all active would be pointless
         private List<Actor> _casters = new();
         public IReadOnlyList<Actor> Casters => _casters;
         public IEnumerable<Actor> ActiveCasters => _casters.Take(MaxCasts);
 
-        public SelfTargetedAOEs(ActionID aid, AOEShape shape, bool useLegacyRotation, int maxCasts = int.MaxValue) : base(aid, shape)
+        public SelfTargetedAOEs(ActionID aid, AOEShape shape, int maxCasts = int.MaxValue) : base(aid)
         {
-            UseLegacyRotation = useLegacyRotation;
+            Shape = shape;
             MaxCasts = maxCasts;
         }
 
-        public override IEnumerable<(WPos, Angle, DateTime)> ImminentCasts(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
         {
-            return ActiveCasters.Select(c => (c.Position, UseLegacyRotation ? c.Rotation : c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
+            return ActiveCasters.Select(c => (Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction)
+                _casters.Add(caster);
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction)
+                _casters.Remove(caster);
+        }
+    }
+
+    // self-targeted aoe that uses current caster's rotation instead of rotation from cast-info - used by legacy modules written before i've reversed real cast rotation
+    public class SelfTargetedLegacyRotationAOEs : GenericAOEs
+    {
+        public AOEShape Shape { get; private init; }
+        public int MaxCasts { get; private init; } // used for staggered aoes, when showing all active would be pointless
+        private List<Actor> _casters = new();
+        public IReadOnlyList<Actor> Casters => _casters;
+        public IEnumerable<Actor> ActiveCasters => _casters.Take(MaxCasts);
+
+        public SelfTargetedLegacyRotationAOEs(ActionID aid, AOEShape shape, int maxCasts = int.MaxValue) : base(aid)
+        {
+            Shape = shape;
+            MaxCasts = maxCasts;
+        }
+
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        {
+            return ActiveCasters.Select(c => (Shape, c.Position, c.Rotation, c.CastInfo!.FinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

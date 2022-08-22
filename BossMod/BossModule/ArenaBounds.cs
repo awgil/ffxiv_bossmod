@@ -154,4 +154,41 @@ namespace BossMod
             return offset;
         }
     }
+
+    public class ArenaBoundsRect : ArenaBounds
+    {
+        public WDir Orientation { get; init; }
+        public float HalfSizeParallel { get; init; }
+        public float HalfSizeOrthogonal { get; init; }
+
+        public ArenaBoundsRect(WPos center, WDir orientation, float halfSizeParallel, float halfSizeOrthogonal) : base(center, MathF.Max(halfSizeParallel, halfSizeOrthogonal))
+        {
+            Orientation = orientation;
+            HalfSizeParallel = halfSizeParallel;
+            HalfSizeOrthogonal = halfSizeOrthogonal;
+        }
+
+        public override IEnumerable<WPos> BuildClipPoly(float offset)
+        {
+            var dx = Orientation * (HalfSizeParallel + offset);
+            var dy = Orientation.OrthoL() * (HalfSizeOrthogonal + offset);
+            yield return Center + dx - dy;
+            yield return Center + dx + dy;
+            yield return Center - dx + dy;
+            yield return Center - dx - dy;
+        }
+
+        public override bool Contains(WPos position) => position.InRect(Center, Orientation, HalfSizeParallel, HalfSizeParallel, HalfSizeOrthogonal);
+
+        public override WDir ClampToBounds(WDir offset, float scale)
+        {
+            var dx = MathF.Abs(offset.Dot(Orientation));
+            if (dx > HalfSizeParallel * scale)
+                offset *= HalfSizeParallel * scale / dx;
+            var dy = MathF.Abs(offset.Dot(Orientation.OrthoL()));
+            if (dy > HalfSizeOrthogonal * scale)
+                offset *= HalfSizeOrthogonal * scale / dy;
+            return offset;
+        }
+    }
 }

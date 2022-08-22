@@ -15,30 +15,30 @@
         public LightningStorm() : base(ActionID.MakeSpell(AID.LightningStorm), 5) { }
     }
 
-    class HandOfTheDestroyerWrath : Components.SelfTargetedAOEs
+    class HandOfTheDestroyerWrath : Components.SelfTargetedLegacyRotationAOEs
     {
-        public HandOfTheDestroyerWrath() : base(ActionID.MakeSpell(AID.HandOfTheDestroyerWrathAOE), new AOEShapeRect(90, 20), true) { }
+        public HandOfTheDestroyerWrath() : base(ActionID.MakeSpell(AID.HandOfTheDestroyerWrathAOE), new AOEShapeRect(90, 20)) { }
     }
 
-    class HandOfTheDestroyerJudgment : Components.SelfTargetedAOEs
+    class HandOfTheDestroyerJudgment : Components.SelfTargetedLegacyRotationAOEs
     {
-        public HandOfTheDestroyerJudgment() : base(ActionID.MakeSpell(AID.HandOfTheDestroyerJudgmentAOE), new AOEShapeRect(90, 20), true) { }
+        public HandOfTheDestroyerJudgment() : base(ActionID.MakeSpell(AID.HandOfTheDestroyerJudgmentAOE), new AOEShapeRect(90, 20)) { }
     }
 
     class BrokenWorld : Components.SelfTargetedAOEs
     {
-        public BrokenWorld() : base(ActionID.MakeSpell(AID.BrokenWorldAOE), new AOEShapeCircle(30), true) { } // TODO: determine falloff
+        public BrokenWorld() : base(ActionID.MakeSpell(AID.BrokenWorldAOE), new AOEShapeCircle(30)) { } // TODO: determine falloff
     }
 
-    class BronzeLightning : Components.SelfTargetedAOEs
+    class BronzeLightning : Components.SelfTargetedLegacyRotationAOEs
     {
-        public BronzeLightning() : base(ActionID.MakeSpell(AID.BronzeLightning), new AOEShapeCone(50, 22.5f.Degrees()), true, 4) { }
+        public BronzeLightning() : base(ActionID.MakeSpell(AID.BronzeLightning), new AOEShapeCone(50, 22.5f.Degrees()), 4) { }
     }
 
     // TODO: show knockback hints, lightning hints, etc... need to draw complex arena shape though
     class RhalgrBeacon : Components.SelfTargetedAOEs
     {
-        public RhalgrBeacon() : base(ActionID.MakeSpell(AID.RhalgrsBeaconAOE), new AOEShapeCircle(10), true) { }
+        public RhalgrBeacon() : base(ActionID.MakeSpell(AID.RhalgrsBeaconAOE), new AOEShapeCircle(10)) { }
     }
 
     public class A2RhalgrStates : StateMachineBuilder

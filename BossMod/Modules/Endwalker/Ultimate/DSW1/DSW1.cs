@@ -4,12 +4,12 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 {
     class EmptyDimension : Components.SelfTargetedAOEs
     {
-        public EmptyDimension() : base(ActionID.MakeSpell(AID.EmptyDimension), new AOEShapeDonut(6, 70), true) {}
+        public EmptyDimension() : base(ActionID.MakeSpell(AID.EmptyDimension), new AOEShapeDonut(6, 70)) {}
     }
 
     class FullDimension : Components.SelfTargetedAOEs
     {
-        public FullDimension() : base(ActionID.MakeSpell(AID.FullDimension), new AOEShapeCircle(6), true) { }
+        public FullDimension() : base(ActionID.MakeSpell(AID.FullDimension), new AOEShapeCircle(6)) { }
     }
 
     class HoliestHallowing : CommonComponents.Interruptible

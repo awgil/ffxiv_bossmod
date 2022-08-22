@@ -29,23 +29,25 @@ namespace BossMod.RealmReborn.Dungeon.D11DzemaelDarkhold.D113Batraal
 
     class Desolation : Components.SelfTargetedAOEs
     {
-        public Desolation() : base(ActionID.MakeSpell(AID.Desolation), new AOEShapeRect(60, 3), false) { }
+        public Desolation() : base(ActionID.MakeSpell(AID.Desolation), new AOEShapeRect(60, 3)) { }
     }
 
     class AetherialSurge : Components.SelfTargetedAOEs
     {
-        public AetherialSurge() : base(ActionID.MakeSpell(AID.AetherialSurge), new AOEShapeCircle(6), false) { }
+        public AetherialSurge() : base(ActionID.MakeSpell(AID.AetherialSurge), new AOEShapeCircle(6)) { }
     }
 
     // note: actor 'dies' immediately after casting
-    class SeaOfPitch : Components.GenericSelfTargetedAOEs
+    class SeaOfPitch : Components.GenericAOEs
     {
-        public SeaOfPitch() : base(ActionID.MakeSpell(AID.SeaOfPitch), new AOEShapeCircle(4)) { }
+        private AOEShape _shape = new AOEShapeCircle(4);
 
-        public override IEnumerable<(WPos, Angle, DateTime)> ImminentCasts(BossModule module)
+        public SeaOfPitch() : base(ActionID.MakeSpell(AID.SeaOfPitch)) { }
+
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
         {
             // TODO: proper timings...
-            return module.Enemies(OID.VoidPitch).Where(a => !a.IsDead).Select(a => (a.Position, new Angle(), module.WorldState.CurrentTime));
+            return module.Enemies(OID.VoidPitch).Where(a => !a.IsDead).Select(a => (_shape, a.Position, new Angle(), module.WorldState.CurrentTime));
         }
     }
 

@@ -33,9 +33,9 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public P2JKick() : base(ActionID.MakeSpell(AID.JKick)) { }
     }
 
-    class P2EyeOfTheChakram : Components.SelfTargetedAOEs
+    class P2EyeOfTheChakram : Components.SelfTargetedLegacyRotationAOEs
     {
-        public P2EyeOfTheChakram() : base(ActionID.MakeSpell(AID.EyeOfTheChakram), new AOEShapeRect(70, 3), true) { }
+        public P2EyeOfTheChakram() : base(ActionID.MakeSpell(AID.EyeOfTheChakram), new AOEShapeRect(70, 3)) { }
     }
 
     class P2HawkBlasterOpticalSight : Components.LocationTargetedAOEs
@@ -43,9 +43,9 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public P2HawkBlasterOpticalSight() : base(ActionID.MakeSpell(AID.HawkBlasterP2), 10) { }
     }
 
-    class P2SpinCrusher : Components.SelfTargetedAOEs
+    class P2SpinCrusher : Components.SelfTargetedLegacyRotationAOEs
     {
-        public P2SpinCrusher() : base(ActionID.MakeSpell(AID.SpinCrusher), new AOEShapeCone(10, 45.Degrees()), true) { } // TODO: verify angle
+        public P2SpinCrusher() : base(ActionID.MakeSpell(AID.SpinCrusher), new AOEShapeCone(10, 45.Degrees())) { } // TODO: verify angle
     }
 
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1)]

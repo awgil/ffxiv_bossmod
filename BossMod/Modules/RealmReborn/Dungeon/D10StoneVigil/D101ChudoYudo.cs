@@ -13,14 +13,14 @@
         Swinge = 903, // Boss->self, 4.0s cast, range 40 ?-degree cone aoe
     };
 
-    class LionsBreath : Components.SelfTargetedAOEs
+    class LionsBreath : Components.SelfTargetedLegacyRotationAOEs
     {
-        public LionsBreath() : base(ActionID.MakeSpell(AID.LionsBreath), new AOEShapeCone(10.25f, 60.Degrees()), true) { } // TODO: verify angle
+        public LionsBreath() : base(ActionID.MakeSpell(AID.LionsBreath), new AOEShapeCone(10.25f, 60.Degrees())) { } // TODO: verify angle
     }
 
-    class Swinge : Components.SelfTargetedAOEs
+    class Swinge : Components.SelfTargetedLegacyRotationAOEs
     {
-        public Swinge() : base(ActionID.MakeSpell(AID.Swinge), new AOEShapeCone(40, 30.Degrees()), true) { } // TODO: verify angle
+        public Swinge() : base(ActionID.MakeSpell(AID.Swinge), new AOEShapeCone(40, 30.Degrees())) { } // TODO: verify angle
     }
 
     // due to relatively short casts and the fact that boss likes moving across arena to cast swinge, we always want non-tanks to be positioned slightly behing

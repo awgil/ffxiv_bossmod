@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
     class P2SanctityOfTheWard2HeavensStakeDonut : Components.SelfTargetedAOEs
     {
-        public P2SanctityOfTheWard2HeavensStakeDonut() : base(ActionID.MakeSpell(AID.HeavensStakeDonut), new AOEShapeDonut(15, 30), true) { }
+        public P2SanctityOfTheWard2HeavensStakeDonut() : base(ActionID.MakeSpell(AID.HeavensStakeDonut), new AOEShapeDonut(15, 30)) { }
     }
 
     class P2SanctityOfTheWard2Knockback : CommonComponents.KnockbackFromCaster

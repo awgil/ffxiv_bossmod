@@ -18,19 +18,19 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D082TempleGuardian
         Obliterate = 680, // Boss->self, 2.0s cast, range 6? ??? aoe
     };
 
-    class BoulderClap : Components.SelfTargetedAOEs
+    class BoulderClap : Components.SelfTargetedLegacyRotationAOEs
     {
-        public BoulderClap() : base(ActionID.MakeSpell(AID.BoulderClap), new AOEShapeCone(14.2f, 60.Degrees()), true) { }
+        public BoulderClap() : base(ActionID.MakeSpell(AID.BoulderClap), new AOEShapeCone(14.2f, 60.Degrees())) { }
     }
 
-    class TrueGrit : Components.SelfTargetedAOEs
+    class TrueGrit : Components.SelfTargetedLegacyRotationAOEs
     {
-        public TrueGrit() : base(ActionID.MakeSpell(AID.TrueGrit), new AOEShapeCone(14.2f, 60.Degrees()), true) { }
+        public TrueGrit() : base(ActionID.MakeSpell(AID.TrueGrit), new AOEShapeCone(14.2f, 60.Degrees())) { }
     }
 
-    class Rockslide : Components.SelfTargetedAOEs
+    class Rockslide : Components.SelfTargetedLegacyRotationAOEs
     {
-        public Rockslide() : base(ActionID.MakeSpell(AID.Rockslide), new AOEShapeRect(16.2f, 4), true) { }
+        public Rockslide() : base(ActionID.MakeSpell(AID.Rockslide), new AOEShapeRect(16.2f, 4)) { }
     }
 
     class D082TempleGuardianStates : StateMachineBuilder

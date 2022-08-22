@@ -12,32 +12,32 @@
 
     class FlamesOfTheDead : Components.SelfTargetedAOEs
     {
-        public FlamesOfTheDead() : base(ActionID.MakeSpell(AID.FlamesOfTheDeadReal), new AOEShapeDonut(8, 30), true) { }
+        public FlamesOfTheDead() : base(ActionID.MakeSpell(AID.FlamesOfTheDeadReal), new AOEShapeDonut(8, 30)) { }
     }
 
     class LivingHeat : Components.SelfTargetedAOEs
     {
-        public LivingHeat() : base(ActionID.MakeSpell(AID.LivingHeatReal), new AOEShapeCircle(8), true) { }
+        public LivingHeat() : base(ActionID.MakeSpell(AID.LivingHeatReal), new AOEShapeCircle(8)) { }
     }
 
-    class HellOfFireFront : Components.SelfTargetedAOEs
+    class HellOfFireFront : Components.SelfTargetedLegacyRotationAOEs
     {
-        public HellOfFireFront() : base(ActionID.MakeSpell(AID.HellOfFireFrontAOE), new AOEShapeCone(60, 90.Degrees()), true) { }
+        public HellOfFireFront() : base(ActionID.MakeSpell(AID.HellOfFireFrontAOE), new AOEShapeCone(60, 90.Degrees())) { }
     }
 
-    class HellOfFireBack : Components.SelfTargetedAOEs
+    class HellOfFireBack : Components.SelfTargetedLegacyRotationAOEs
     {
-        public HellOfFireBack() : base(ActionID.MakeSpell(AID.HellOfFireBackAOE), new AOEShapeCone(60, 90.Degrees()), true) { }
+        public HellOfFireBack() : base(ActionID.MakeSpell(AID.HellOfFireBackAOE), new AOEShapeCone(60, 90.Degrees())) { }
     }
 
     class WaywardSoul : Components.SelfTargetedAOEs
     {
-        public WaywardSoul() : base(ActionID.MakeSpell(AID.WaywardSoulAOE), new AOEShapeCircle(18), true, 3) { }
+        public WaywardSoul() : base(ActionID.MakeSpell(AID.WaywardSoulAOE), new AOEShapeCircle(18), 3) { }
     }
 
-    class Twingaze : Components.SelfTargetedAOEs
+    class Twingaze : Components.SelfTargetedLegacyRotationAOEs
     {
-        public Twingaze() : base(ActionID.MakeSpell(AID.Twingaze), new AOEShapeCone(60, 15.Degrees()), true) { }
+        public Twingaze() : base(ActionID.MakeSpell(AID.Twingaze), new AOEShapeCone(60, 15.Degrees())) { }
     }
 
     public class A4NaldthalStates : StateMachineBuilder

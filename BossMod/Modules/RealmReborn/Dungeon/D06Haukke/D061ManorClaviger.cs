@@ -25,7 +25,7 @@
 
     class DarkMist : Components.SelfTargetedAOEs
     {
-        public DarkMist() : base(ActionID.MakeSpell(AID.DarkMist), new AOEShapeCircle(9.4f), true) { }
+        public DarkMist() : base(ActionID.MakeSpell(AID.DarkMist), new AOEShapeCircle(9.4f)) { }
     }
 
     class D061ManorClavigerStates : StateMachineBuilder

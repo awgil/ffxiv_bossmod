@@ -29,24 +29,24 @@ namespace BossMod.RealmReborn.Dungeon.D09Cutter.D093Chimera
         public LionsBreath() : base(ActionID.MakeSpell(AID.LionsBreath), new AOEShapeCone(9.7f, 60.Degrees())) { } // TODO: verify angle
     }
 
-    class RamsBreath : Components.SelfTargetedAOEs
+    class RamsBreath : Components.SelfTargetedLegacyRotationAOEs
     {
-        public RamsBreath() : base(ActionID.MakeSpell(AID.RamsBreath), new AOEShapeCone(9.7f, 60.Degrees(), -45.Degrees()), true) { }
+        public RamsBreath() : base(ActionID.MakeSpell(AID.RamsBreath), new AOEShapeCone(9.7f, 60.Degrees(), -45.Degrees())) { }
     }
 
-    class DragonsBreath : Components.SelfTargetedAOEs
+    class DragonsBreath : Components.SelfTargetedLegacyRotationAOEs
     {
-        public DragonsBreath() : base(ActionID.MakeSpell(AID.DragonsBreath), new AOEShapeCone(9.7f, 60.Degrees(), 45.Degrees()), true) { }
+        public DragonsBreath() : base(ActionID.MakeSpell(AID.DragonsBreath), new AOEShapeCone(9.7f, 60.Degrees(), 45.Degrees())) { }
     }
 
     class RamsVoice : Components.SelfTargetedAOEs
     {
-        public RamsVoice() : base(ActionID.MakeSpell(AID.RamsVoice), new AOEShapeCircle(9.7f), true) { }
+        public RamsVoice() : base(ActionID.MakeSpell(AID.RamsVoice), new AOEShapeCircle(9.7f)) { }
     }
 
     class DragonsVoice : Components.SelfTargetedAOEs
     {
-        public DragonsVoice() : base(ActionID.MakeSpell(AID.DragonsVoice), new AOEShapeDonut(7, 30), true) { }
+        public DragonsVoice() : base(ActionID.MakeSpell(AID.DragonsVoice), new AOEShapeDonut(7, 30)) { }
     }
 
     class RamsKeeper : Components.LocationTargetedAOEs
@@ -59,14 +59,16 @@ namespace BossMod.RealmReborn.Dungeon.D09Cutter.D093Chimera
         public RamsKeeperVoidzone() : base((uint)OID.RamsKeeper, new AOEShapeCircle(6)) { }
     }
 
-    class ChaoticChorus : Components.GenericSelfTargetedAOEs
+    class ChaoticChorus : Components.GenericAOEs
     {
-        public ChaoticChorus() : base(ActionID.MakeSpell(AID.ChaoticChorus), new AOEShapeCircle(6)) { }
+        private AOEShape _shape = new AOEShapeCircle(6);
 
-        public override IEnumerable<(WPos, Angle, DateTime)> ImminentCasts(BossModule module)
+        public ChaoticChorus() : base(ActionID.MakeSpell(AID.ChaoticChorus)) { }
+
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
         {
             // TODO: timings
-            return module.Enemies(OID.Cacophony).Where(c => !c.IsDead).Select(c => (c.Position, c.Rotation, module.WorldState.CurrentTime));
+            return module.Enemies(OID.Cacophony).Where(c => !c.IsDead).Select(c => (_shape, c.Position, c.Rotation, module.WorldState.CurrentTime));
         }
     }
 
