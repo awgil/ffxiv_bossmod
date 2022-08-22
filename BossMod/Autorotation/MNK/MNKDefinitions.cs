@@ -8,7 +8,7 @@ namespace BossMod.MNK
 
         // single target GCDs
         Bootshine = 53, // L1, instant, range 3, single-target 0/0, targets=hostile
-        DragonKick = 74, // L50, instant, range 3, single-target 0/0, targets=hostile, animLock=???
+        DragonKick = 74, // L50, instant, range 3, single-target 0/0, targets=hostile
         TrueStrike = 54, // L4, instant, range 3, single-target 0/0, targets=hostile
         TwinSnakes = 61, // L18, instant, range 3, single-target 0/0, targets=hostile
         SnapPunch = 56, // L6, instant, range 3, single-target 0/0, targets=hostile
@@ -18,7 +18,7 @@ namespace BossMod.MNK
         // aoe GCDs
         ArmOfTheDestroyer = 62, // L26, instant, range 0, AOE circle 5/0, targets=self
         ShadowOfTheDestroyer = 25767, // L82, instant, range 0, AOE circle 5/0, targets=self, animLock=???
-        FourPointFury = 16473, // L45, instant, range 0, AOE circle 5/0, targets=self, animLock=???
+        FourPointFury = 16473, // L45, instant, range 0, AOE circle 5/0, targets=self
         Rockbreaker = 70, // L30, instant, range 0, AOE circle 5/0, targets=self
 
         // masterful blitz variants
@@ -37,14 +37,14 @@ namespace BossMod.MNK
         Enlightenment = 16474, // L74, instant, 1.0s CD (group 0), range 10, AOE rect 10/4, targets=hostile, animLock=???
 
         // offsensive CDs
-        PerfectBalance = 69, // L50, instant, 40.0s CD (group 10) (2 charges), range 0, single-target 0/0, targets=self, animLock=???
+        PerfectBalance = 69, // L50, instant, 40.0s CD (group 10) (2 charges), range 0, single-target 0/0, targets=self
         RiddleOfFire = 7395, // L68, instant, 60.0s CD (group 11), range 0, single-target 0/0, targets=self, animLock=???
         Brotherhood = 7396, // L70, instant, 120.0s CD (group 19), range 0, AOE circle 15/0, targets=self, animLock=???
         RiddleOfWind = 25766, // L72, instant, 90.0s CD (group 16), range 0, single-target 0/0, targets=self, animLock=???
 
         // defensive CDs
         SecondWind = 7541, // L8, instant, 120.0s CD (group 40), range 0, single-target 0/0, targets=self
-        Mantra = 65, // L42, instant, 90.0s CD (group 15), range 0, AOE circle 15/0, targets=self, animLock=???
+        Mantra = 65, // L42, instant, 90.0s CD (group 15), range 0, AOE circle 15/0, targets=self
         RiddleOfEarth = 7394, // L64, instant, 30.0s CD (group 14) (3 charges), range 0, single-target 0/0, targets=self, animLock=???
         Bloodbath = 7542, // L12, instant, 90.0s CD (group 42), range 0, single-target 0/0, targets=self
         Feint = 7549, // L22, instant, 90.0s CD (group 43), range 10, single-target 0/0, targets=hostile
@@ -52,7 +52,7 @@ namespace BossMod.MNK
 
         // misc
         Meditation = 3546, // L15, instant, range 0, single-target 0/0, targets=self
-        TrueNorth = 7546, // L50, instant, 45.0s CD (group 44) (2 charges), range 0, single-target 0/0, targets=self, animLock=???
+        TrueNorth = 7546, // L50, instant, 45.0s CD (group 44) (2 charges), range 0, single-target 0/0, targets=self
         Thunderclap = 25762, // L35, instant, 30.0s CD (group 9) (2 charges), range 20, single-target 0/0, targets=party/hostile
         FormShift = 4262, // L52, instant, range 0, single-target 0/0, targets=self, animLock=???
         Anatman = 16475, // L78, instant, 60.0s CD (group 12), range 0, single-target 0/0, targets=self, animLock=???
@@ -104,10 +104,14 @@ namespace BossMod.MNK
         OpoOpoForm = 107, // applied by Snap Punch to self
         RaptorForm = 108, // applied by Bootshine, Arm of the Destroyer to self
         CoeurlForm = 109, // applied by True Strike, Twin Snakes to self
+        LeadenFist = 1861, // applied by Dragon Kick to self
         DisciplinedFist = 3001, // applied by Twin Snakes to self, damage buff
+        PerfectBalance = 110, // applied by Perfect Balance to self, ignore form requirements
         Demolish = 246, // applied by Demolish to target, dot
         Bloodbath = 84, // applied by Bloodbath to self, lifesteal
         Feint = 1195, // applied by Feint to target, -10% phys and -5% magic damage dealt
+        Mantra = 102, // applied by Mantra to targets, +10% healing taken
+        TrueNorth = 1250, // applied by True North to self, ignore positionals
         Stun = 2, // applied by Leg Sweep to target
     }
 

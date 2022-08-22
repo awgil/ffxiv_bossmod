@@ -41,6 +41,7 @@ namespace BossMod.BRD
         public override Targeting SelectBetterTarget(Actor initial)
         {
             // TODO: min range to better hit clump with cone...
+            // TODO: targeting for rain of death
             var bestTarget = initial;
             if (_state.Unlocked(AID.QuickNock))
             {
@@ -62,12 +63,8 @@ namespace BossMod.BRD
         {
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
-            _strategy.AOE = autoAction switch
-            {
-                AutoActionST => false,
-                AutoActionAOE => true,
-                _ => Autorot.PrimaryTarget != null && NumTargetsHitByLadonsbite(Autorot.PrimaryTarget) >= 2,
-            };
+            _strategy.NumLadonsbiteTargets = Autorot.PrimaryTarget != null && autoAction != AutoActionST && _state.Unlocked(AID.QuickNock) ? NumTargetsHitByLadonsbite(Autorot.PrimaryTarget) : 0;
+            _strategy.NumRainOfDeathTargets = Autorot.PrimaryTarget != null && autoAction != AutoActionST && _state.Unlocked(AID.RainOfDeath) ? NumTargetsHitByRainOfDeath(Autorot.PrimaryTarget) : 0;
         }
 
         protected override void QueueAIActions()
@@ -178,5 +175,7 @@ namespace BossMod.BRD
             var dir = Angle.FromDirection(primary.Position - Player.Position);
             return 1 + Autorot.PotentialTargetsInRangeFromPlayer(12).Count(a => a != primary && a.Position.InCone(Player.Position, dir, 45.Degrees()));
         }
+
+        private int NumTargetsHitByRainOfDeath(Actor primary) => Autorot.PotentialTargetsInRange(primary.Position, 8).Count();
     }
 }

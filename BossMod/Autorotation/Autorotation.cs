@@ -110,14 +110,14 @@ namespace BossMod
                 classType = player.Class switch
                 {
                     Class.WAR => typeof(WAR.Actions),
-                    Class.PLD => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(PLD.Actions) : null,
-                    Class.MNK => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(MNK.Actions) : null,
-                    Class.DRG => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(DRG.Actions) : null,
-                    Class.BRD => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(BRD.Actions) : null,
-                    Class.BLM => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(BLM.Actions) : null,
+                    Class.PLD => Service.ClientState.LocalPlayer?.Level <= 52 ? typeof(PLD.Actions) : null,
+                    Class.MNK => Service.ClientState.LocalPlayer?.Level <= 52 ? typeof(MNK.Actions) : null,
+                    Class.DRG => Service.ClientState.LocalPlayer?.Level <= 52 ? typeof(DRG.Actions) : null,
+                    Class.BRD => Service.ClientState.LocalPlayer?.Level <= 52 ? typeof(BRD.Actions) : null,
+                    Class.BLM => Service.ClientState.LocalPlayer?.Level <= 52 ? typeof(BLM.Actions) : null,
                     Class.SMN => Service.ClientState.LocalPlayer?.Level <= 30 ? typeof(SMN.Actions) : null,
                     Class.WHM => typeof(WHM.Actions),
-                    Class.SCH => Service.ClientState.LocalPlayer?.Level <= 50 ? typeof(SCH.Actions) : null,
+                    Class.SCH => Service.ClientState.LocalPlayer?.Level <= 52 ? typeof(SCH.Actions) : null,
                     _ => null
                 };
             }

@@ -37,15 +37,16 @@
         // strategy configuration
         public class Strategy : CommonRotation.Strategy
         {
-            public bool AOE;
+            public int NumLadonsbiteTargets; // range 12 90-degree cone
+            public int NumRainOfDeathTargets; // range 8 circle around target
         }
 
         public static bool RefreshDOT(State state, float timeLeft) => timeLeft < state.GCD + 3.0f; // TODO: tweak threshold so that we don't overwrite or miss ticks...
 
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
-            // TODO: this is correct until L30
-            if (strategy.AOE && state.Unlocked(AID.QuickNock))
+            // TODO: L56+
+            if (strategy.NumLadonsbiteTargets >= 2 && state.Unlocked(AID.QuickNock))
             {
                 return state.BestLadonsbite;
             }
@@ -76,10 +77,12 @@
 
             if (state.Unlocked(AID.RagingStrikes) && state.CanWeave(CDGroup.RagingStrikes, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.RagingStrikes);
-            if (!strategy.AOE && state.StraightShotLeft <= state.GCD && state.Unlocked(AID.Barrage) && state.CanWeave(CDGroup.Barrage, 0.6f, deadline))
+            if (state.Unlocked(AID.BattleVoice) && state.CanWeave(CDGroup.BattleVoice, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.BattleVoice);
+            if (strategy.NumLadonsbiteTargets < 2 && state.StraightShotLeft <= state.GCD && state.Unlocked(AID.Barrage) && state.CanWeave(CDGroup.Barrage, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Barrage);
             if (state.Unlocked(AID.Bloodletter) && state.CanWeave(state.CD(CDGroup.Bloodletter) - 60, 0.6f, deadline))
-                return ActionID.MakeSpell(AID.Bloodletter);
+                return ActionID.MakeSpell(strategy.NumRainOfDeathTargets >= 2 ? AID.RainOfDeath : AID.Bloodletter);
 
             // no suitable oGCDs...
             return new();

@@ -11,6 +11,7 @@
             public Form Form;
             public float FormLeft; // 0 if no form, 30 max
             public float DisciplinedFistLeft; // 15 max
+            public float LeadenFistLeft; // 30 max
             public float TargetDemolishLeft; // TODO: this shouldn't be here...
 
             // upgrade paths
@@ -27,7 +28,7 @@
 
             public override string ToString()
             {
-                return $"RB={RaidBuffsLeft:f1}, Chakra={Chakra}, Form={Form}/{FormLeft:f1}, DFist={DisciplinedFistLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                return $"RB={RaidBuffsLeft:f1}, Chakra={Chakra}, Form={Form}/{FormLeft:f1}, DFist={DisciplinedFistLeft:f1}, LFist={LeadenFistLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -40,8 +41,8 @@
 
         public static AID GetOpoOpoFormAction(State state, int numAOETargets)
         {
-            // TODO: dragon kick (L50)
-            return state.Unlocked(AID.ArmOfTheDestroyer) && numAOETargets >= 3 ? state.BestShadowOfTheDestroyer : AID.Bootshine;
+            // TODO: what should we use if form is not up?..
+            return state.Unlocked(AID.ArmOfTheDestroyer) && numAOETargets >= 3 ? state.BestShadowOfTheDestroyer : state.Unlocked(AID.DragonKick) && state.LeadenFistLeft <= state.GCD ? AID.DragonKick : AID.Bootshine;
         }
 
         public static AID GetRaptorFormAction(State state, int numAOETargets)
@@ -71,12 +72,13 @@
 
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
-            // TODO: L50+
+            // TODO: L52+
             return GetNextComboAction(state, strategy.NumPointBlankAOETargets);
         }
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
+            // TODO: perfect balance?.. no idea how it should be used at low level
             // 1. potion: TODO
 
             // 2. steel peek, if have chakra

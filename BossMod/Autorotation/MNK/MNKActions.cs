@@ -108,32 +108,25 @@ namespace BossMod.MNK
 
             _state.Chakra = Service.JobGauges.Get<MNKGauge>().Chakra;
 
-            _state.Form = Rotation.Form.None;
-            _state.FormLeft = _state.DisciplinedFistLeft = 0;
-            foreach (var status in Player.Statuses)
-            {
-                switch ((SID)status.ID)
-                {
-                    case SID.OpoOpoForm:
-                        _state.Form = Rotation.Form.OpoOpo;
-                        _state.FormLeft = StatusDuration(status.ExpireAt);
-                        break;
-                    case SID.RaptorForm:
-                        _state.Form = Rotation.Form.Raptor;
-                        _state.FormLeft = StatusDuration(status.ExpireAt);
-                        break;
-                    case SID.CoeurlForm:
-                        _state.Form = Rotation.Form.Coeurl;
-                        _state.FormLeft = StatusDuration(status.ExpireAt);
-                        break;
-                    case SID.DisciplinedFist:
-                        _state.DisciplinedFistLeft = StatusDuration(status.ExpireAt);
-                        break;
-                }
-            }
+            (_state.Form, _state.FormLeft) = DetermineForm();
+            _state.DisciplinedFistLeft = StatusDetails(Player, SID.DisciplinedFist, Player.InstanceID).Left;
+            _state.LeadenFistLeft = StatusDetails(Player, SID.LeadenFist, Player.InstanceID).Left;
 
-            var demolish = Autorot.PrimaryTarget?.FindStatus(SID.Demolish, Player.InstanceID);
-            _state.TargetDemolishLeft = demolish != null ? StatusDuration(demolish.Value.ExpireAt) : 0;
+            _state.TargetDemolishLeft = StatusDetails(Autorot.PrimaryTarget, SID.Demolish, Player.InstanceID).Left;
+        }
+
+        private (Rotation.Form, float) DetermineForm()
+        {
+            var s = StatusDetails(Player, SID.OpoOpoForm, Player.InstanceID).Left;
+            if (s > 0)
+                return (Rotation.Form.OpoOpo, s);
+            s = StatusDetails(Player, SID.RaptorForm, Player.InstanceID).Left;
+            if (s > 0)
+                return (Rotation.Form.Raptor, s);
+            s = StatusDetails(Player, SID.CoeurlForm, Player.InstanceID).Left;
+            if (s > 0)
+                return (Rotation.Form.Coeurl, s);
+            return (Rotation.Form.None, 0);
         }
 
         private void OnConfigModified(object? sender, EventArgs args)
