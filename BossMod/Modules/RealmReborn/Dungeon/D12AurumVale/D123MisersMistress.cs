@@ -26,13 +26,26 @@
         public BadBreath() : base(ActionID.MakeSpell(AID.BadBreath), new AOEShapeCone(16, 60.Degrees())) { }
     }
 
+    // arena has multiple weirdly-shaped puddles, so just prefer standing in large safe zone
+    class AIPosition : BossComponent
+    {
+        private AOEShapeRect _shape = new(5, 5, 5);
+        private WPos[] _centers = { new(-395, -130), new(-402, -114) };
+
+        public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
+        {
+            zone.RestrictToZone(_shape, _centers.MinBy(p => (p - module.PrimaryActor.Position).LengthSq()), new(), module.WorldState.CurrentTime, 10000);
+        }
+    }
+
     class D123MisersMistressStates : StateMachineBuilder
     {
         public D123MisersMistressStates(BossModule module) : base(module)
         {
             TrivialPhase()
                 .ActivateOnEnter<VineProbe>()
-                .ActivateOnEnter<BadBreath>();
+                .ActivateOnEnter<BadBreath>()
+                .ActivateOnEnter<AIPosition>();
         }
     }
 

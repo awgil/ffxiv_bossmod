@@ -32,7 +32,7 @@
 
     class HyperchargeOuter : Components.SelfTargetedAOEs
     {
-        public HyperchargeOuter() : base(ActionID.MakeSpell(AID.HyperchargeOuter), new AOEShapeDonut(12, 30)) { }
+        public HyperchargeOuter() : base(ActionID.MakeSpell(AID.HyperchargeOuter), new AOEShapeDonut(12.5f, 30)) { }
     }
 
     class TargetedSupport : Components.SelfTargetedAOEs
