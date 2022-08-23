@@ -109,11 +109,12 @@ namespace BossMod
         public static unsafe bool GameObjectIsDead(GameObject obj) => GameObjectInternal(obj)->IsDead();
         public static unsafe bool GameObjectIsTargetable(GameObject obj) => GameObjectInternal(obj)->GetIsTargetable();
         public static unsafe bool GameObjectIsFriendly(GameObject obj) => GameObjectIsFriendlyFunc(GameObjectInternal(obj)) != 0;
-        public static unsafe byte GameObjectEventState(GameObject obj) => ReadField<byte>(GameObjectInternal(obj), 0x70);
-        public static unsafe byte CharacterShieldValue(Character chr) => CharacterInternal(chr)->ShieldValue; // % of max hp
-        public static unsafe byte CharacterModelState(Character chr) => ReadField<byte>(CharacterInternal(chr), 0x1AC6);
-        public static unsafe float CharacterCastRotation(Character chr) => ReadField<float>(CharacterInternal(chr), 0x1A6C);
-        public static unsafe Vector3 BattleCharaCastLocation(BattleChara chara) => BattleCharaInternal(chara)->SpellCastInfo.CastLocation;
+        public static unsafe byte GameObjectEventState(GameObject obj) => ReadField<byte>(GameObjectInternal(obj), 0x70); // see actor control 106
+        public static unsafe float GameObjectRadius(GameObject obj) => GameObjectInternal(obj)->GetRadius();
+        public static unsafe byte CharacterShieldValue(Character chr) => CharacterInternal(chr)->ShieldValue; // % of max hp; see effect result
+        public static unsafe byte CharacterModelState(Character chr) => ReadField<byte>(CharacterInternal(chr), 0x1ADE); // see actor control 63
+        public static unsafe float CharacterCastRotation(Character chr) => ReadField<float>(CharacterInternal(chr), 0x1A84); // see ActorCast -> Character::StartCast
+        public static unsafe Vector3 BattleCharaCastLocation(BattleChara chara) => BattleCharaInternal(chara)->SpellCastInfo.CastLocation; // see ActorCast -> Character::StartCast -> Character::StartOmen
 
         public static unsafe ulong SceneObjectFlags(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o)
         {

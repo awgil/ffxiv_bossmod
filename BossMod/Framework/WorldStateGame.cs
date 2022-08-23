@@ -117,6 +117,7 @@ namespace BossMod
             var target = SanitizedObjectID(obj != Service.ClientState.LocalPlayer ? obj.TargetObjectId : (Service.TargetManager.Target?.ObjectId ?? 0)); // this is a bit of a hack - when changing targets, we want AI to see changes immediately rather than wait for server response
             var modelState = character != null ? Utils.CharacterModelState(character) : (byte)0; // TODO: consider this (reading memory) vs network (actor control 63)
             var eventState = Utils.GameObjectEventState(obj);
+            var radius = Utils.GameObjectRadius(obj);
 
             var act = Actors.Find(obj.ObjectId);
             if (act == null)
@@ -128,7 +129,7 @@ namespace BossMod
                     Type = (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind),
                     Class = classID,
                     PosRot = posRot,
-                    HitboxRadius = obj.HitboxRadius,
+                    HitboxRadius = radius,
                     HP = hp,
                     IsTargetable = targetable,
                     IsAlly = friendly,
@@ -144,8 +145,8 @@ namespace BossMod
                     Execute(new ActorState.OpClassChange() { InstanceID = act.InstanceID, Class = classID });
                 if (act.PosRot != posRot)
                     Execute(new ActorState.OpMove() { InstanceID = act.InstanceID, PosRot = posRot });
-                if (act.HitboxRadius != obj.HitboxRadius)
-                    Execute(new ActorState.OpSizeChange() { InstanceID = act.InstanceID, HitboxRadius = obj.HitboxRadius });
+                if (act.HitboxRadius != radius)
+                    Execute(new ActorState.OpSizeChange() { InstanceID = act.InstanceID, HitboxRadius = radius });
                 if (act.HP.Cur != hp.Cur || act.HP.Max != hp.Max || act.HP.Shield != hp.Shield)
                     Execute(new ActorState.OpHP() { InstanceID = act.InstanceID, Value = hp });
                 if (act.IsTargetable != targetable)
