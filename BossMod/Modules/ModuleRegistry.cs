@@ -124,7 +124,7 @@ namespace BossMod
 
         public static BossModule? CreateModuleForActor(WorldState ws, Actor primary)
         {
-            return CreateModule(FindByOID(primary.OID)?.ModuleType, ws, primary);
+            return primary.Type is ActorType.Enemy or ActorType.EventObj ? CreateModule(FindByOID(primary.OID)?.ModuleType, ws, primary) : null;
         }
 
         // TODO: this is a hack...

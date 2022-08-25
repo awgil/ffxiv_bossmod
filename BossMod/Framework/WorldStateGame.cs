@@ -114,7 +114,7 @@ namespace BossMod
             var friendly = Utils.GameObjectIsFriendly(obj);
             var isDead = Utils.GameObjectIsDead(obj);
             var inCombat = character?.StatusFlags.HasFlag(StatusFlags.InCombat) ?? false;
-            var target = SanitizedObjectID(obj != Service.ClientState.LocalPlayer ? obj.TargetObjectId : (Service.TargetManager.Target?.ObjectId ?? 0)); // this is a bit of a hack - when changing targets, we want AI to see changes immediately rather than wait for server response
+            var target = character == null ? 0 : SanitizedObjectID(obj != Service.ClientState.LocalPlayer ? Utils.CharacterTargetID(character) : (Service.TargetManager.Target?.ObjectId ?? 0)); // this is a bit of a hack - when changing targets, we want AI to see changes immediately rather than wait for server response
             var modelState = character != null ? Utils.CharacterModelState(character) : (byte)0; // TODO: consider this (reading memory) vs network (actor control 63)
             var eventState = Utils.GameObjectEventState(obj);
             var radius = Utils.GameObjectRadius(obj);
@@ -193,8 +193,8 @@ namespace BossMod
                     {
                         var dur = Math.Min(Math.Abs(s.RemainingTime), 100000);
                         curStatus.ID = s.StatusId;
-                        curStatus.SourceID = SanitizedObjectID(s.SourceID);
-                        curStatus.Extra = StatusExtra(s);
+                        curStatus.SourceID = SanitizedObjectID(s.SourceId);
+                        curStatus.Extra = s.Param;
                         curStatus.ExpireAt = CurrentTime.AddSeconds(dur);
                     }
                     UpdateActorStatus(act, i, curStatus);
@@ -286,8 +286,7 @@ namespace BossMod
                 Execute(new PartyState.OpModify() { Slot = slot, ContentID = contentID, InstanceID = instanceID });
         }
 
-        private ushort StatusExtra(Dalamud.Game.ClientState.Statuses.Status s) => (ushort)((s.Param << 8) | s.StackCount);
-        private ulong SanitizedObjectID(uint raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;
+        private ulong SanitizedObjectID(ulong raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;
 
         private void DispatchActorEvents(ulong instanceID)
         {
