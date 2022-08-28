@@ -158,33 +158,33 @@ namespace BossMod
             }
         }
 
-        // generic knockback from caster component (TODO: detect knockback immunity)
+        // generic knockback from caster component (TODO: detect knockback immunity, generalize...)
         public class KnockbackFromCaster : Components.CastCounter
         {
-            private float _distance;
-            private Actor? _caster;
+            public float Distance { get; private init; }
+            public int MaxCasts { get; private init; } // used for staggered knockbacks, when showing all active would be pointless
+            private List<Actor> _casters = new();
+            public IReadOnlyList<Actor> Casters => _casters;
+            public IEnumerable<Actor> ActiveCasters => _casters.Take(MaxCasts);
 
-            public KnockbackFromCaster(ActionID aid, float distance)
+            public KnockbackFromCaster(ActionID aid, float distance, int maxCasts = 1)
                 : base(aid)
             {
-                _distance = distance;
+                Distance = distance;
+                MaxCasts = maxCasts;
             }
 
             public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
             {
-                if (_caster != null)
-                {
-                    var adjPos = BossModule.AdjustPositionForKnockback(actor.Position, _caster, _distance);
-                    if (!module.Bounds.Contains(adjPos))
-                        hints.Add("About to be knocked into wall!");
-                }
+                if (ActiveCasters.Any(c => !module.Bounds.Contains(BossModule.AdjustPositionForKnockback(actor.Position, c, Distance))))
+                    hints.Add("About to be knocked into wall!");
             }
 
             public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
             {
-                if (_caster != null)
+                foreach (var c in ActiveCasters)
                 {
-                    var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _caster, _distance);
+                    var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, c, Distance);
                     arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
                     arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
                 }
@@ -193,13 +193,13 @@ namespace BossMod
             public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
             {
                 if (spell.Action == WatchedAction)
-                    _caster = caster;
+                    _casters.Add(caster);
             }
 
             public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
             {
-                if (_caster == caster)
-                    _caster = null;
+                if (spell.Action == WatchedAction)
+                    _casters.Remove(caster);
             }
         }
 

@@ -28,12 +28,38 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
 
     class P3EinSofOhr : Components.CastCounter
     {
-        public P3EinSofOhr() : base(ActionID.MakeSpell(AID.EinSofOhr)) { }
+        public P3EinSofOhr() : base(ActionID.MakeSpell(AID.EinSofOhrAOE)) { }
     }
 
     class P3Yesod : Components.SelfTargetedAOEs
     {
         public P3Yesod() : base(ActionID.MakeSpell(AID.Yesod), new AOEShapeCircle(4)) { }
+    }
+
+    class P3PillarOfMercyAOE : Components.SelfTargetedAOEs
+    {
+        public P3PillarOfMercyAOE() : base(ActionID.MakeSpell(AID.PillarOfMercyAOE), new AOEShapeCircle(5)) { }
+    }
+
+    class P3PillarOfMercyKnockback : CommonComponents.KnockbackFromCaster
+    {
+        public P3PillarOfMercyKnockback() : base(ActionID.MakeSpell(AID.PillarOfMercyAOE), 17) { }
+    }
+
+    class P3Malkuth : CommonComponents.KnockbackFromCaster
+    {
+        public P3Malkuth() : base(ActionID.MakeSpell(AID.Malkuth), 25) { }
+    }
+
+    // TODO: show safe spot?..
+    class P3Ascension : Components.CastCounter
+    {
+        public P3Ascension() : base(ActionID.MakeSpell(AID.Ascension)) { }
+    }
+
+    class P3PillarOfSeverity : Components.CastCounter
+    {
+        public P3PillarOfSeverity() : base(ActionID.MakeSpell(AID.PillarOfSeverityAOE)) { }
     }
 
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1)]
