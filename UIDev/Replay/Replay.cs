@@ -49,6 +49,7 @@ namespace UIDev
             public ulong InstanceID;
             public uint OID;
             public ActorType Type;
+            public ulong OwnerID;
             public string Name = "";
             public TimeRange Existence = new();
             public SortedList<DateTime, bool> TargetableHistory = new();

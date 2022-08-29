@@ -65,8 +65,8 @@ namespace UIDev
         private bool FilterInterestingActor(ulong instanceID, DateTime timestamp, bool allowPlayers)
         {
             var p = FindParticipant(instanceID, timestamp)!;
-            if (p.Type is ActorType.Pet or ActorType.Chocobo or ActorType.Area)
-                return false;
+            if ((p.OwnerID & 0xFF000000) == 0x10000000)
+                return false; // player's pet/area
             if (p.Type == ActorType.Player && !allowPlayers)
                 return false;
             if (_filteredOIDs.Contains(p.OID))

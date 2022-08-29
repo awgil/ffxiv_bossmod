@@ -178,7 +178,7 @@ namespace UIDev
 
         private void ActorAdded(object? sender, Actor actor)
         {
-            var p = _participants[actor.InstanceID] = new() { InstanceID = actor.InstanceID, OID = actor.OID, Type = actor.Type, Name = actor.Name, Existence = new(_ws.CurrentTime) };
+            var p = _participants[actor.InstanceID] = new() { InstanceID = actor.InstanceID, OID = actor.OID, Type = actor.Type, OwnerID = actor.OwnerID, Name = actor.Name, Existence = new(_ws.CurrentTime) };
             if (actor.IsTargetable)
                 p.TargetableHistory.Add(_ws.CurrentTime, true);
             p.PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
