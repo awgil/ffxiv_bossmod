@@ -13,13 +13,13 @@ namespace BossMod
             StatusEffectList3 = 0xF357,
             BossStatusEffectList = 0xF11A,
             ActionEffect1 = 0x0094, // Machina calls it AbilityN, size=124
-            ActionEffect8 = 0xF230, // size=636
-            ActionEffect16 = 0xF385,
-            ActionEffect24 = 0xF3E2,
-            ActionEffect32 = 0xF1EC,
+            ActionEffect8 = 0x02BB, // size=636
+            ActionEffect16 = 0x0267,
+            ActionEffect24 = 0x0373,
+            ActionEffect32 = 0x03AC,
             ActorCast = 0x026C,
             EffectResult = 0x0263,
-            EffectResultBasic = 0xF1E6, // TODO: 6.2
+            EffectResultBasic = 0x0089,
             ActorControl = 0x02A7, // look at toggle weapon
             ActorControlSelf = 0x023C, // look at cooldown
             ActorControlTarget = 0x0118, // look at target change
@@ -27,7 +27,7 @@ namespace BossMod
             PlayerSpawn = 0x0334,
             NpcSpawn = 0x019B,
             NpcSpawn2 = 0xF20A,
-            ActorMove = 0xF10B,
+            ActorMove = 0x00B3,
             ActorSetPos = 0x01BA,
             ActorGauge = 0x02AB,
             PresetWaymark = 0x01F4, // FFXIVOpcodes calls this PlaceFieldMarkerPreset
@@ -45,7 +45,7 @@ namespace BossMod
             CurrencyCrystalInfo = 0x018A,
             InitZone = 0x00E1,
             WeatherChange = 0xF143,
-            HousingWardInfo = 0xF239,
+            HousingWardInfo = 0x01DA,
             PrepareZoning = 0x00A0,
             ContainerInfo = 0x02D9,
             ItemInfo = 0x02ED,
@@ -102,8 +102,8 @@ namespace BossMod
             UpdateHater = 0xF32A, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
             Countdown = 0xF34E,
             CountdownCancel = 0xF17B,
-            ActionRequest = 0xF2B0, // just begin casting return...
-            ActionRequestGroundTargeted = 0xF3C6, // XIVAlexander
+            ActionRequest = 0x01B6, // just begin casting return...
+            ActionRequestGroundTargeted = 0x030A, // XIVAlexander
             // old - 0x1fd == EventObjSpawn? for stuff like exit points, etc.
         }
 
