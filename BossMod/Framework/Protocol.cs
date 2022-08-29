@@ -8,99 +8,106 @@ namespace BossMod
         public enum Opcode
         {
             // opcodes from machina
-            StatusEffectList = 0x008D,
+            StatusEffectList = 0x0265,
             StatusEffectList2 = 0xF31E,
             StatusEffectList3 = 0xF357,
             BossStatusEffectList = 0xF11A,
-            ActionEffect1 = 0x0350, // Machina calls it AbilityN, size=124
-            ActionEffect8 = 0x0230, // size=636
-            ActionEffect16 = 0x0385,
-            ActionEffect24 = 0x03E2,
-            ActionEffect32 = 0x01EC,
-            ActorCast = 0x03CC,
-            EffectResult = 0x01A8,
-            EffectResultBasic = 0x01E6,
-            ActorControl = 0x02B4, // look at toggle weapon
-            ActorControlSelf = 0x01AE, // look at cooldown
-            ActorControlTarget = 0x00AC, // look at target change
-            UpdateHpMpTp = 0x00C7,
-            PlayerSpawn = 0x0176,
-            NpcSpawn = 0x01EF,
+            ActionEffect1 = 0x0094, // Machina calls it AbilityN, size=124
+            ActionEffect8 = 0xF230, // size=636
+            ActionEffect16 = 0xF385,
+            ActionEffect24 = 0xF3E2,
+            ActionEffect32 = 0xF1EC,
+            ActorCast = 0x026C,
+            EffectResult = 0x0263,
+            EffectResultBasic = 0xF1E6, // TODO: 6.2
+            ActorControl = 0x02A7, // look at toggle weapon
+            ActorControlSelf = 0x023C, // look at cooldown
+            ActorControlTarget = 0x0118, // look at target change
+            UpdateHpMpTp = 0x0102,
+            PlayerSpawn = 0x0334,
+            NpcSpawn = 0x019B,
             NpcSpawn2 = 0xF20A,
-            ActorMove = 0x010B,
-            ActorSetPos = 0x01C0,
-            ActorGauge = 0x0394,
-            PresetWaymark = 0x039C, // FFXIVOpcodes calls this PlaceFieldMarkerPreset
-            Waymark = 0x0184, // FFXIVOpcodes calls this PlaceFieldMarker
-            SystemLogMessage = 0x029F, // FFXIVOpcodes calls this SomeDirectorUnk4
+            ActorMove = 0xF10B,
+            ActorSetPos = 0x01BA,
+            ActorGauge = 0x02AB,
+            PresetWaymark = 0x01F4, // FFXIVOpcodes calls this PlaceFieldMarkerPreset
+            Waymark = 0x039A, // FFXIVOpcodes calls this PlaceFieldMarker
+            SystemLogMessage = 0x01DB, // FFXIVOpcodes calls this SomeDirectorUnk4
 
             // opcodes from FFXIVOpcodes
-            PlayerSetup = 0x02F3,
-            UpdateClassInfo = 0x03BB,
-            PlayerStats = 0x0313,
-            Playtime = 0x01E9,
-            UpdateSearchInfo = 0x0217,
-            ExamineSearchInfo = 0x03BE,
-            Examine = 0x01E3,
-            CurrencyCrystalInfo = 0x00C5,
-            InitZone = 0xF10F,
-            WeatherChange = 0x0143,
-            HousingWardInfo = 0x0239,
-            PrepareZoning = 0x01E7,
-            ContainerInfo = 0x0283,
-            ItemInfo = 0x03A5,
-            DesynthResult = 0x03CE,
-            FreeCompanyInfo = 0x02A8,
-            FreeCompanyDialog = 0x00B6,
-            MarketBoardSearchResult = 0x034E,
-            MarketBoardItemListingCount = 0x0241,
-            MarketBoardItemListingHistory = 0x00E2,
-            MarketBoardItemListing = 0x0086,
-            MarketBoardPurchase = 0x0065,
-            UpdateInventorySlot = 0x0210,
-            InventoryActionAck = 0x01DF,
-            InventoryTransaction = 0x00D1,
-            InventoryTransactionFinish = 0x0286,
-            ResultDialog = 0x033C,
-            RetainerInformation = 0x00FE,
-            ItemMarketBoardInfo = 0x0252,
-            EventPlay32 = 0x035B,
-            EventStart = 0xF08D,
-            EventFinish = 0xF2CA,
+            PlayerSetup = 0x0342,
+            UpdateClassInfo = 0x00C7,
+            PlayerStats = 0x026B,
+            Playtime = 0x0122,
+            UpdateSearchInfo = 0x0171,
+            ExamineSearchInfo = 0x01CF,
+            Examine = 0x03E0,
+            CurrencyCrystalInfo = 0x018A,
+            InitZone = 0x00E1,
+            WeatherChange = 0xF143,
+            HousingWardInfo = 0xF239,
+            PrepareZoning = 0x00A0,
+            ContainerInfo = 0x02D9,
+            ItemInfo = 0x02ED,
+            DesynthResult = 0x02AA,
+            FreeCompanyInfo = 0x00BF,
+            FreeCompanyDialog = 0x0392,
+            MarketBoardSearchResult = 0x02A2,
+            MarketBoardItemListingCount = 0x02A1,
+            MarketBoardItemListingHistory = 0x0194,
+            MarketBoardItemListing = 0x0201,
+            MarketBoardPurchase = 0x015E,
+            UpdateInventorySlot = 0x01FB,
+            InventoryActionAck = 0x02C8,
+            InventoryTransaction = 0x017D,
+            InventoryTransactionFinish = 0x00B0,
+            ResultDialog = 0x02D2,
+            RetainerInformation = 0x01D9,
+            ItemMarketBoardInfo = 0x00E8,
+            EventStart = 0x0181,
+            EventFinish = 0x03BC,
             CFPreferredRole = 0xF2A0,
-            CFNotify = 0xF147,
-            ObjectSpawn = 0xF305,
-            AirshipTimers = 0xF3B4,
-            SubmarineTimers = 0xF172,
-            AirshipStatusList = 0xF2A8,
-            AirshipStatus = 0xF10C,
-            AirshipExplorationResult = 0xF320,
-            SubmarineExplorationResult = 0xF14D,
-            EventPlay = 0xF0F3,
-            EventPlay4 = 0xF2DB,
-            Logout = 0xF295,
+            CFNotify = 0x018C,
+            ObjectSpawn = 0x02F7,
+            AirshipTimers = 0x00EF,
+            SubmarineTimers = 0x031B,
+            AirshipStatusList = 0x036B,
+            AirshipStatus = 0x0168,
+            AirshipExplorationResult = 0x02C3,
+            SubmarineProgressionStatus = 0x037E,
+            SubmarineStatusList = 0x030D,
+            SubmarineExplorationResult = 0x00D1,
+            EventPlay = 0x02FD,
+            EventPlay4 = 0x0380,
+            EventPlay8 = 0x0107,
+            EventPlay16 = 0x02A4,
+            EventPlay32 = 0x00C1,
+            EventPlay64 = 0x02FB,
+            EventPlay128 = 0x0129,
+            EventPlay255 = 0x02CD,
+            Logout = 0x0230,
 
             // Client Zone
-            UpdatePositionHandler = 0x02C5,
-            ClientTrigger = 0x01D0,
-            ChatHandler = 0x028E,
-            SetSearchInfoHandler = 0x01C1,
-            MarketBoardPurchaseHandler = 0x0164,
-            UpdatePositionInstance = 0x024B,
+            UpdatePositionHandler = 0xF2C5,
+            ClientTrigger = 0xF1D0,
+            ChatHandler = 0xF28E,
+            SetSearchInfoHandler = 0xF1C1,
+            MarketBoardPurchaseHandler = 0xF164,
+            UpdatePositionInstance = 0xF24B,
 
             // below are opcodes i've reversed myself...
-            EnvironmentControl = 0x0195, // updated - size=16, look for a bunch of messages starting with 0x8003759F after P1N intemperance cast...
+            EnvironmentControl = 0x024A, // updated - size=16, look for a bunch of messages starting with 0x8003759F after P1N intemperance cast...
             UpdateRecastTimes = 0xF23C, // payload = 80 floats 'elapsed' + 80 floats 'total'
             UpdateHate = 0xF23F, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
             UpdateHater = 0xF32A, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
             Countdown = 0xF34E,
             CountdownCancel = 0xF17B,
-            ActionRequest = 0x02B0, // just begin casting return...
-            ActionRequestGroundTargeted = 0x03C6, // XIVAlexander
+            ActionRequest = 0xF2B0, // just begin casting return...
+            ActionRequestGroundTargeted = 0xF3C6, // XIVAlexander
             // old - 0x1fd == EventObjSpawn? for stuff like exit points, etc.
         }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct Server_IPCHeader
         {
             public ushort Magic; // 0x0014
