@@ -55,11 +55,11 @@ namespace BossMod
     {
         public static ActionID IDAutoAttack = new(ActionType.Spell, 7);
         public static ActionID IDSprint = new(ActionType.General, 4);
-        public static ActionID IDPotionStr = new(ActionType.Item, 1036109); // hq grade 6 tincture of strength
-        public static ActionID IDPotionDex = new(ActionType.Item, 1036110); // hq grade 6 tincture of dexterity
-        public static ActionID IDPotionVit = new(ActionType.Item, 1036111); // hq grade 6 tincture of vitality
-        public static ActionID IDPotionInt = new(ActionType.Item, 1036112); // hq grade 6 tincture of intelligence
-        public static ActionID IDPotionMnd = new(ActionType.Item, 1036113); // hq grade 6 tincture of mind
+        public static ActionID IDPotionStr = new(ActionType.Item, 1037840); // hq grade 7 tincture of strength
+        public static ActionID IDPotionDex = new(ActionType.Item, 1037841); // hq grade 7 tincture of dexterity
+        public static ActionID IDPotionVit = new(ActionType.Item, 1037842); // hq grade 7 tincture of vitality
+        public static ActionID IDPotionInt = new(ActionType.Item, 1037843); // hq grade 7 tincture of intelligence
+        public static ActionID IDPotionMnd = new(ActionType.Item, 1037844); // hq grade 7 tincture of mind
 
         public static int SprintCDGroup = 55;
         public static int GCDGroup = 57;
