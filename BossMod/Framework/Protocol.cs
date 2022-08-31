@@ -97,9 +97,9 @@ namespace BossMod
 
             // below are opcodes i've reversed myself...
             EnvironmentControl = 0x024A, // updated - size=16, look for a bunch of messages starting with 0x8003759F after P1N intemperance cast...
-            UpdateRecastTimes = 0xF23C, // payload = 80 floats 'elapsed' + 80 floats 'total'
-            UpdateHate = 0xF23F, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
-            UpdateHater = 0xF32A, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
+            UpdateRecastTimes = 0x03CB, // payload = 80 floats 'elapsed' + 80 floats 'total'
+            UpdateHate = 0x00F3, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
+            UpdateHater = 0x01B7, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
             Countdown = 0xF34E,
             CountdownCancel = 0xF17B,
             ActionRequest = 0x01B6, // just begin casting return...

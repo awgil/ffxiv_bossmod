@@ -25,6 +25,7 @@ namespace BossMod
             _network.EventActorControlTargetIcon += OnNetworkActorControlTargetIcon;
             _network.EventActorControlTether += OnNetworkActorControlTether;
             _network.EventActorControlTetherCancel += OnNetworkActorControlTetherCancel;
+            _network.EventActorControlEObjAnimation += OnNetworkActorControlEObjAnimation;
             _network.EventActorControlSelfDirectorUpdate += OnNetworkActorControlSelfDirectorUpdate;
             _network.EventEnvControl += OnNetworkEnvControl;
             _network.EventWaymark += OnNetworkWaymark;
@@ -37,6 +38,7 @@ namespace BossMod
             _network.EventActorControlTargetIcon -= OnNetworkActorControlTargetIcon;
             _network.EventActorControlTether -= OnNetworkActorControlTether;
             _network.EventActorControlTetherCancel -= OnNetworkActorControlTetherCancel;
+            _network.EventActorControlEObjAnimation -= OnNetworkActorControlEObjAnimation;
             _network.EventActorControlSelfDirectorUpdate -= OnNetworkActorControlSelfDirectorUpdate;
             _network.EventEnvControl -= OnNetworkEnvControl;
             _network.EventWaymark -= OnNetworkWaymark;
@@ -330,6 +332,11 @@ namespace BossMod
         private void OnNetworkActorControlTetherCancel(object? sender, ulong actorID)
         {
             _actorOps.GetOrAdd(actorID).Add(new ActorState.OpTether() { InstanceID = actorID, Value = new() });
+        }
+
+        private void OnNetworkActorControlEObjAnimation(object? sender, (ulong actorID, ushort p1, ushort p2) args)
+        {
+            _actorOps.GetOrAdd(args.actorID).Add(new ActorState.OpEventObjectAnimation() { InstanceID = args.actorID, Param1 = args.p1, Param2 = args.p2 });
         }
 
         private void OnNetworkActorControlSelfDirectorUpdate(object? sender, (uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4) args)

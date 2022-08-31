@@ -16,6 +16,7 @@ namespace UIDev
         private HashSet<uint> _filteredOIDs = new();
         private HashSet<ActionID> _filteredActions = new();
         private HashSet<uint> _filteredStatuses = new();
+        private HashSet<uint> _filteredDirectorUpdateTypes = new();
         private bool _nodesUpToDate;
 
         public OpList(Replay r, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldState.Operation> ops, Action<DateTime> scrollTo)
@@ -59,6 +60,7 @@ namespace UIDev
             _filteredOIDs.Clear();
             _filteredActions.Clear();
             _filteredStatuses.Clear();
+            _filteredDirectorUpdateTypes.Clear();
             _nodesUpToDate = false;
         }
 
@@ -93,6 +95,7 @@ namespace UIDev
             return o switch
             {
                 WorldState.OpFrameStart => false,
+                WorldState.OpDirectorUpdate op => !_filteredDirectorUpdateTypes.Contains(op.UpdateID),
                 ActorState.OpCreate op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpDestroy op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpMove => false,
@@ -150,12 +153,22 @@ namespace UIDev
         {
             return o switch
             {
+                WorldState.OpDirectorUpdate op => () => ContextMenuDirectorUpdate(op),
                 ActorState.OpStatus op => () => ContextMenuActorStatus(op),
                 ActorState.OpCastInfo op => () => ContextMenuActorCast(op),
                 ActorState.OpCastEvent op => () => ContextMenuEventCast(op),
                 ActorState.Operation op => () => ContextMenuActor(op),
                 _ => null,
             };
+        }
+
+        private void ContextMenuDirectorUpdate(WorldState.OpDirectorUpdate op)
+        {
+            if (ImGui.MenuItem($"Filter out type {op.UpdateID:X8}"))
+            {
+                _filteredDirectorUpdateTypes.Add(op.UpdateID);
+                _nodesUpToDate = false;
+            }
         }
 
         private void ContextMenuActor(ActorState.Operation op)

@@ -389,5 +389,20 @@ namespace BossMod
 
             public override string Str(WorldState? ws) => $"ICON|{StrActor(ws, InstanceID)}|{IconID}";
         }
+
+        // TODO: this should be an actor field (?)
+        public event EventHandler<(Actor, ushort, ushort)>? EventObjectAnimation;
+        public class OpEventObjectAnimation : Operation
+        {
+            public ushort Param1;
+            public ushort Param2;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
+            {
+                ws.Actors.EventObjectAnimation?.Invoke(ws, (actor, Param1, Param2));
+            }
+
+            public override string Str(WorldState? ws) => $"EANM|{StrActor(ws, InstanceID)}|{Param1:X4}|{Param2:X4}";
+        }
     }
 }
