@@ -52,6 +52,7 @@ namespace UIDev
             {
                 case "VER ": ParseVersion(payload); break;
                 case "FRAM": ParseFrameStart(payload); break;
+                case "RSV ": ParseRSVData(payload); break;
                 case "ZONE": ParseZoneChange(payload); break;
                 case "DIRU": ParseDirectorUpdate(payload); break;
                 case "ENVC": ParseEnvControl(payload); break;
@@ -107,6 +108,11 @@ namespace UIDev
                 FrameTimeMS = payload.Length > 3 ? long.Parse(payload[3]) : 0,
                 GaugePayload = payload.Length > 4 ? ulong.Parse(payload[4], NumberStyles.HexNumber) : 0,
             });
+        }
+
+        private void ParseRSVData(string[] payload)
+        {
+            AddOp(new WorldState.OpRSVData() { Key = payload[2], Value = payload[3] });
         }
 
         private void ParseZoneChange(string[] payload)

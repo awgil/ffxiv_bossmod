@@ -28,6 +28,7 @@ namespace BossMod
         public event EventHandler<(uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4)>? EventActorControlSelfDirectorUpdate;
         public event EventHandler<(uint directorID, byte index, uint state)>? EventEnvControl;
         public event EventHandler<(Waymark waymark, Vector3? pos)>? EventWaymark;
+        public event EventHandler<(string key, string value)>? EventRSVData;
         public event EventHandler<PendingAction>? EventActionRequest;
         public event EventHandler<PendingAction>? EventActionRequestGT;
 
@@ -147,6 +148,9 @@ namespace BossMod
                         break;
                     case Protocol.Opcode.PresetWaymark:
                         HandlePresetWaymark((Protocol.Server_PresetWaymark*)dataPtr);
+                        break;
+                    case Protocol.Opcode.RSVData:
+                        HandleRSVData(MemoryHelper.ReadStringNullTerminated(dataPtr + 4), MemoryHelper.ReadString(dataPtr + 0x34, *(int*)dataPtr));
                         break;
                 }
             }
@@ -304,6 +308,11 @@ namespace BossMod
                 EventWaymark?.Invoke(this, (i, (p->WaymarkMask & mask) != 0 ? new Vector3(p->PosX[(byte)i] / 1000.0f, p->PosY[(byte)i] / 1000.0f, p->PosZ[(byte)i] / 1000.0f) : null));
                 mask <<= 1;
             }
+        }
+
+        private unsafe void HandleRSVData(string key, string value)
+        {
+            EventRSVData?.Invoke(this, (key, value));
         }
 
         private unsafe void HandleActionRequest(Protocol.Client_ActionRequest* p)
@@ -494,6 +503,14 @@ namespace BossMod
                         uint senderID = Utils.ReadField<uint>(p, 0);
                         var text = MemoryHelper.ReadStringNullTerminated(dataPtr + 8);
                         Service.Log($"[Network] - from {Utils.ObjectString(senderID)} '{text}' {Utils.ReadField<ushort>(p, 4):X4}");
+                        break;
+                    }
+                case Protocol.Opcode.RSVData:
+                    {
+                        int valueLen = *(int*)dataPtr;
+                        var key = MemoryHelper.ReadStringNullTerminated(dataPtr + 4);
+                        var value = MemoryHelper.ReadString(dataPtr + 0x34, valueLen);
+                        Service.Log($"[Network] - {key} = {value} [{valueLen}]");
                         break;
                     }
             }

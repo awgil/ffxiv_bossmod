@@ -102,6 +102,7 @@ namespace BossMod
             UpdateHater = 0x01B7, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
             Countdown = 0xF34E,
             CountdownCancel = 0xF17B,
+            RSVData = 0x0296,
             ActionRequest = 0x01B6, // just begin casting return...
             ActionRequestGroundTargeted = 0x030A, // XIVAlexander
             // old - 0x1fd == EventObjSpawn? for stuff like exit points, etc.

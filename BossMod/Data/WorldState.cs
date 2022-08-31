@@ -80,6 +80,21 @@ namespace BossMod
             public override string Str(WorldState? ws) => $"FRAM|{PrevUpdateTime.TotalMilliseconds:f3}|{FrameTimeMS}|{GaugePayload:X16}";
         }
 
+        public event EventHandler<OpRSVData>? RSVDataReceived;
+        public class OpRSVData : Operation
+        {
+            public string Key = "";
+            public string Value = "";
+
+            protected override void Exec(WorldState ws)
+            {
+                Service.LuminaGameData?.Excel.RsvProvider.Add(Key, Value);
+                ws.RSVDataReceived?.Invoke(ws, this);
+            }
+
+            public override string Str(WorldState? ws) => $"RSV |{Key}|{Value}";
+        }
+
         public event EventHandler<OpZoneChange>? CurrentZoneChanged;
         public class OpZoneChange : Operation
         {

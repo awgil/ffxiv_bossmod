@@ -29,6 +29,7 @@ namespace BossMod
             _network.EventActorControlSelfDirectorUpdate += OnNetworkActorControlSelfDirectorUpdate;
             _network.EventEnvControl += OnNetworkEnvControl;
             _network.EventWaymark += OnNetworkWaymark;
+            _network.EventRSVData += OnNetworkRSVData;
         }
 
         public void Dispose()
@@ -42,6 +43,7 @@ namespace BossMod
             _network.EventActorControlSelfDirectorUpdate -= OnNetworkActorControlSelfDirectorUpdate;
             _network.EventEnvControl -= OnNetworkEnvControl;
             _network.EventWaymark -= OnNetworkWaymark;
+            _network.EventRSVData -= OnNetworkRSVData;
         }
 
         public void Update(TimeSpan prevFramePerf)
@@ -352,6 +354,11 @@ namespace BossMod
         private void OnNetworkWaymark(object? sender, (Waymark waymark, Vector3? pos) args)
         {
             _globalOps.Add(new WaymarkState.OpWaymarkChange() { ID = args.waymark, Pos = args.pos });
+        }
+
+        private void OnNetworkRSVData(object? sender, (string key, string value) args)
+        {
+            _globalOps.Add(new OpRSVData() { Key = args.key, Value = args.value });
         }
     }
 }
