@@ -59,6 +59,7 @@ namespace BossMod
         public class OpCreate : Operation
         {
             public uint OID;
+            public int SpawnIndex;
             public string Name = "";
             public ActorType Type;
             public Class Class;
@@ -72,11 +73,11 @@ namespace BossMod
             protected override void ExecActor(WorldState ws, Actor actor) { }
             protected override void Exec(WorldState ws)
             {
-                var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, Name, Type, Class, PosRot, HitboxRadius, HP, IsTargetable, IsAlly, OwnerID);
+                var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, SpawnIndex, Name, Type, Class, PosRot, HitboxRadius, HP, IsTargetable, IsAlly, OwnerID);
                 ws.Actors.Added?.Invoke(ws, actor);
             }
 
-            public override string Str(WorldState? ws) => $"ACT+|{StrActor(ws, InstanceID)}|{Class}|{IsTargetable}|{HitboxRadius:f3}|{StrActor(ws, OwnerID)}|{StrHP(HP)}|{IsAlly}";
+            public override string Str(WorldState? ws) => $"ACT+|{StrActor(ws, InstanceID)}|{Class}|{IsTargetable}|{HitboxRadius:f3}|{StrActor(ws, OwnerID)}|{StrHP(HP)}|{IsAlly}|{SpawnIndex}";
         }
 
         public event EventHandler<Actor>? Removed;

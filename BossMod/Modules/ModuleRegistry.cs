@@ -132,7 +132,7 @@ namespace BossMod
         {
             foreach (var i in _modules.Values)
                 if (i.ConfigType == cfg)
-                    return CreateModule(i.ModuleType, new(), new(0, i.PrimaryActorOID, "", ActorType.None, Class.None, new()));
+                    return CreateModule(i.ModuleType, new(), new(0, i.PrimaryActorOID, -1, "", ActorType.None, Class.None, new()));
             return null;
         }
     }

@@ -93,6 +93,7 @@ namespace BossMod
     {
         public ulong InstanceID; // 'uuid'
         public uint OID;
+        public int SpawnIndex; // [0-200) = character (even for normal, odd for dependents like mounts), [200-246) = client-side, [246, 286) = event object, [286, 426) = ???, [426-526) = ???, [526,596) = ???
         public string Name;
         public ActorType Type;
         public Class Class;
@@ -116,10 +117,11 @@ namespace BossMod
         public WPos Position => new(PosRot.X, PosRot.Z);
         public Angle Rotation => PosRot.W.Radians();
 
-        public Actor(ulong instanceID, uint oid, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), bool targetable = true, bool ally = false, ulong ownerID = 0)
+        public Actor(ulong instanceID, uint oid, int spawnIndex, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), bool targetable = true, bool ally = false, ulong ownerID = 0)
         {
             InstanceID = instanceID;
             OID = oid;
+            SpawnIndex = spawnIndex;
             Name = name;
             Type = type;
             Class = classID;

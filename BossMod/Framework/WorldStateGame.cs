@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Objects.Enums;
+﻿using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
 using System;
 using System.Collections.Generic;
@@ -13,12 +14,14 @@ namespace BossMod
         private PartyAlliance _alliance = new();
         private List<Operation> _globalOps = new();
         private Dictionary<ulong, List<Operation>> _actorOps = new();
+        private Actor?[] _actorsByIndex;
 
         private List<(ulong Caster, ActorCastEvent Event)> _castEvents = new();
         private List<(uint Seq, ulong Target, int TargetIndex)> _confirms = new();
 
         public WorldStateGame(Network network)
         {
+            _actorsByIndex = new Actor?[Service.ObjectTable.Length];
             _network = network;
             _network.EventActionEffect += OnNetworkActionEffect;
             _network.EventEffectResult += OnNetworkEffectResult;
@@ -74,21 +77,35 @@ namespace BossMod
 
         private void UpdateActors()
         {
-            Dictionary<ulong, GameObject> seenIDs = new();
-            foreach (var obj in Service.ObjectTable)
-                if (obj.ObjectId != GameObject.InvalidGameObjectId)
-                    seenIDs[obj.ObjectId] = obj;
+            for (int i = 0; i < _actorsByIndex.Length; ++i)
+            {
+                var actor = _actorsByIndex[i];
+                var obj = Service.ObjectTable[i];
 
-            List<Actor> delActors = new();
-            foreach (var e in Actors)
-                if (!seenIDs.ContainsKey(e.InstanceID))
-                    delActors.Add(e);
+                if (obj != null && obj.ObjectId == GameObject.InvalidGameObjectId)
+                    obj = null; // ignore non-networked objects (really?..)
 
-            foreach (var actor in delActors)
-                RemoveActor(actor);
+                if (obj != null && (obj.ObjectId & 0xFF000000) == 0xFF000000)
+                {
+                    Service.Log($"[WorldState] Skipping bad object #{i} with id {obj.ObjectId:X}");
+                    obj = null;
+                }
 
-            foreach ((_, var obj) in seenIDs)
-                UpdateActor(obj);
+                if (actor != null && actor.InstanceID != obj?.ObjectId)
+                {
+                    RemoveActor(actor);
+                    actor = _actorsByIndex[i] = null;
+                }
+
+                if (obj != null)
+                {
+                    if (actor != Actors.Find(obj.ObjectId))
+                    {
+                        Service.Log($"[WorldState] Actor position mismatch for #{i} {actor}");
+                    }
+                    UpdateActor(obj, i, actor);
+                }
+            }
 
             foreach (var (id, ops) in _actorOps)
                 Service.Log($"[WorldState] {ops.Count} actor events for unknown entity {id:X}");
@@ -101,7 +118,7 @@ namespace BossMod
             Execute(new ActorState.OpDestroy() { InstanceID = actor.InstanceID });
         }
 
-        private void UpdateActor(GameObject obj)
+        private void UpdateActor(GameObject obj, int index, Actor? act)
         {
             var character = obj as Character;
             var name = obj.Name.TextValue;
@@ -123,12 +140,12 @@ namespace BossMod
             var eventState = Utils.GameObjectEventState(obj);
             var radius = Utils.GameObjectRadius(obj);
 
-            var act = Actors.Find(obj.ObjectId);
             if (act == null)
             {
                 Execute(new ActorState.OpCreate() {
                     InstanceID = obj.ObjectId,
                     OID = obj.DataId,
+                    SpawnIndex = index,
                     Name = name,
                     Type = (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind),
                     Class = classID,
@@ -139,7 +156,7 @@ namespace BossMod
                     IsAlly = friendly,
                     OwnerID = SanitizedObjectID(obj.OwnerId)
                 });
-                act = Actors.Find(obj.ObjectId)!;
+                act = _actorsByIndex[index] = Actors.Find(obj.ObjectId)!;
             }
             else
             {

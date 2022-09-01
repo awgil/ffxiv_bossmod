@@ -26,32 +26,42 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
 
         private void Phase1(uint id)
         {
-            Phase1Repeat(id, 30.7f);
-            Phase1Repeat(id + 0x100000, 10.2f);
-            Phase1Repeat(id + 0x200000, 10.2f); // and so on...
+            Phase1Start(id, 6.1f);
+            Phase1Repeat(id + 0x100000, 6.1f);
+            Phase1Repeat(id + 0x200000, 6.1f);
+            Phase1Repeat(id + 0x300000, 6.1f); // and so on...
             SimpleState(id + 0xFF0000, 10000, "???");
+        }
+
+        private void Phase1Start(uint id, float delay)
+        {
+            ComponentCondition<P1TripleTrial>(id, delay, comp => comp.NumCasts >= 1, "Cleave 1")
+                .ActivateOnEnter<P1TripleTrial>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ComponentCondition<P1TripleTrial>(id + 0x10, 14.3f, comp => comp.NumCasts >= 2, "Cleave 2")
+                .DeactivateOnExit<P1TripleTrial>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
         }
 
         private void Phase1Repeat(uint id, float delay)
         {
             P1FiendishRage(id, delay);
-            P1Chesed(id + 0x10000, 12.2f);
-            P1EinRatzon(id + 0x20000, 12.2f);
-            P1Chesed(id + 0x30000, 7);
+            P1Chesed(id + 0x10000, 11);
+            P1EinRatzon(id + 0x20000, 8.1f);
+            P1Chesed(id + 0x30000, 5.8f);
         }
 
         private void P1FiendishRage(uint id, float delay)
         {
-            ComponentCondition<P1EinSof>(id, delay, comp => comp.Active, "Orbs")
-                .ActivateOnEnter<P1TripleTrial>()
-                .ActivateOnEnter<P1EinSof>()
-                .DeactivateOnExit<P1TripleTrial>();
+            ComponentCondition<EinSof>(id, delay, comp => comp.Active)
+                .ActivateOnEnter<EinSof>();
+            ComponentCondition<EinSof>(id + 2, 4, comp => comp.NumCasts > 0, "Orbs"); // first hit
             ComponentCondition<P1FiendishRage>(id + 0x10, 6.3f, comp => comp.NumCasts > 0, "Hit 1")
                 .ActivateOnEnter<P1FiendishRage>();
             ComponentCondition<P1FiendishRage>(id + 0x11, 3.3f, comp => comp.NumCasts > 1, "Hit 2")
                 .DeactivateOnExit<P1FiendishRage>();
-            ComponentCondition<P1EinSof>(id + 0x20, 1.1f, comp => !comp.Active, "Orbs resolve")
-                .DeactivateOnExit<P1EinSof>();
+            ComponentCondition<EinSof>(id + 0x20, 2.4f, comp => !comp.Active, "Orbs disappear")
+                .DeactivateOnExit<EinSof>();
         }
 
         private void P1Chesed(uint id, float delay)
@@ -60,21 +70,23 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
                 .ActivateOnEnter<P1TripleTrial>()
                 .SetHint(StateMachine.StateHint.Tankbuster);
             ComponentCondition<P1TripleTrial>(id + 0x10, 2.2f, comp => comp.NumCasts > 0, "Cleave")
-                .DeactivateOnExit<P1TripleTrial>();
+                .DeactivateOnExit<P1TripleTrial>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
         }
 
         private void P1EinRatzon(uint id, float delay)
         {
-            ComponentCondition<P1EinSof>(id, delay, comp => comp.Active, "Orb")
-                .ActivateOnEnter<P1EinSof>();
-            ActorCastStart(id + 0x10, _module.BossP1, AID.Ein, 2.3f, true, "Bait")
+            ComponentCondition<EinSof>(id, delay, comp => comp.Active)
+                .ActivateOnEnter<EinSof>();
+            ComponentCondition<EinSof>(id + 2, 4, comp => comp.NumCasts > 0, "Orbs"); // first hit
+            ActorCastStart(id + 0x10, _module.BossP1, AID.Ein, 2.2f, true, "Bait")
                 .ActivateOnEnter<P1Ratzon>();
             ActorCastEnd(id + 0x11, _module.BossP1, 4, true)
                 .ActivateOnEnter<P1Ein>()
                 .DeactivateOnExit<P1Ein>();
-            ComponentCondition<P1EinSof>(id + 0x20, 4.5f, comp => !comp.Active, "Orbs resolve")
+            ComponentCondition<EinSof>(id + 0x20, 5.7f, comp => !comp.Active, "Orbs disappear")
                 .DeactivateOnExit<P1Ratzon>()
-                .DeactivateOnExit<P1EinSof>();
+                .DeactivateOnExit<EinSof>();
         }
 
         private void Phase2(uint id)
@@ -91,9 +103,8 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
         {
             Phase3Start(id);
             Phase3Repeat(id + 0x100000, 1.2f);
-            Phase3Ascension(id + 0x200000, 10.6f);
-            Phase3Repeat(id + 0x300000, 8.2f);
-            Phase3Enrage(id + 0x400000, 11.6f);
+            Phase3Repeat(id + 0x200000, 8.1f);
+            SimpleState(id + 0xFF0000, 15, "Enrage"); // ???
         }
 
         private void Phase3Start(uint id)
@@ -117,7 +128,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
             P3FiendishWail(id + 0x40000, 1.1f);
             P3GevurahChesed(id + 0x50000, 2.1f); // consider merge with prev
             P3PillarsOfMercy(id + 0x60000, 3.6f);
-            P3Earthshaker(id + 0x70000, 3);
+            P3Earthshaker(id + 0x70000, 4.4f);
             P3DaatYesad(id + 0x80000, 3.3f);
             P3FiendishWail(id + 0x90000, 1.1f);
             P3GevurahChesed(id + 0xA0000, 2.1f); // consider merge with prev
@@ -140,14 +151,14 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
             ComponentCondition<P3FiendishWail>(id + 0x10, 1.6f, comp => comp.Active)
                 .ActivateOnEnter<P3FiendishWail>();
             ComponentCondition<P3FiendishWail>(id + 0x11, 4, comp => !comp.Active, "Towers 1")
+                .ActivateOnEnter<EinSof>()
                 .DeactivateOnExit<P3FiendishWail>();
 
             // TODO: tethers
 
             ComponentCondition<P3FiendishWail>(id + 0x40, 14.6f, comp => comp.Active)
-                .ActivateOnEnter<P1EinSof>()
                 .ActivateOnEnter<P3FiendishWail>()
-                .DeactivateOnExit<P1EinSof>();
+                .DeactivateOnExit<EinSof>();
             ComponentCondition<P3FiendishWail>(id + 0x41, 4, comp => !comp.Active, "Towers 2")
                 .DeactivateOnExit<P3FiendishWail>();
 
@@ -197,23 +208,24 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
             ComponentCondition<P3PillarOfMercyKnockback>(id, delay, comp => comp.Casters.Count > 0)
                 .ActivateOnEnter<P3PillarOfMercyAOE>()
                 .ActivateOnEnter<P3PillarOfMercyKnockback>()
-                .ActivateOnEnter<P1EinSof>();
+                .ActivateOnEnter<EinSof>();
             ComponentCondition<P3Yesod>(id + 1, 1.7f, comp => comp.Casters.Count > 0, "Twisters bait");
             ComponentCondition<P3PillarOfMercyKnockback>(id + 2, 2.7f, comp => comp.NumCasts >= 1, "Knockback 1");
             ComponentCondition<P3Yesod>(id + 3, 0.3f, comp => comp.Casters.Count == 0); // no name, since time difference is too small
             ComponentCondition<P3PillarOfMercyKnockback>(id + 0x10, 4.8f, comp => comp.NumCasts >= 2, "Knockback 2");
             ComponentCondition<P3PillarOfMercyKnockback>(id + 0x20, 4.0f, comp => comp.NumCasts >= 3, "Knockback 3")
                 .DeactivateOnExit<P3PillarOfMercyAOE>()
-                .DeactivateOnExit<P3PillarOfMercyKnockback>();
-            ComponentCondition<P1EinSof>(id + 0x30, 1.4f, comp => !comp.Active, "Orbs resolve")
-                .DeactivateOnExit<P1EinSof>();
+                .DeactivateOnExit<P3PillarOfMercyKnockback>()
+                .DeactivateOnExit<EinSof>(); // TODO: this happens a bit later, but need more investigation...
+            //ComponentCondition<P1EinSof>(id + 0x30, 2.6f, comp => !comp.Active, "Orbs disappear")
+            //    .DeactivateOnExit<P1EinSof>();
         }
 
         private void P3Earthshaker(uint id, float delay)
         {
             ComponentCondition<P3Earthshaker>(id, delay, comp => comp.Active)
                 .ActivateOnEnter<P3Earthshaker>();
-            ComponentCondition<P3Earthshaker>(id + 1, 5, comp => !comp.Active, "Earthshakers")
+            ComponentCondition<P3Earthshaker>(id + 1, 4.9f, comp => !comp.Active, "Earthshakers")
                 .DeactivateOnExit<P3Earthshaker>();
         }
 
@@ -252,24 +264,14 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
             ActorCastStartMulti(id + 0x3001, _module.BossP3, new[] { AID.GevurahChesed, AID.ChesedGevurah }, 1.1f, true);
             ComponentCondition<P3Yesod>(id + 0x3002, 1.9f, comp => comp.Casters.Count == 0, "Twisters resolve")
                 .ActivateOnEnter<P3GevurahChesed>();
-            ActorCastEnd(id + 0x3003, _module.BossP3, 3, true);
+            ActorCastEnd(id + 0x3003, _module.BossP3, 3.1f, true);
             ComponentCondition<P3GevurahChesed>(id + 0x3004, 0.6f, comp => comp.NumCasts > 0, "Raidwide")
                 .DeactivateOnExit<P3GevurahChesed>()
                 .SetHint(StateMachine.StateHint.Raidwide);
-        }
 
-        private void Phase3Ascension(uint id, float delay)
-        {
-            ComponentCondition<P3Ascension>(id, delay, comp => comp.NumCasts > 0, "Ascension")
+            ComponentCondition<P3Ascension>(id + 0x4000, 10.6f, comp => comp.NumCasts > 0, "Ascension")
                 .ActivateOnEnter<P3Ascension>()
                 .DeactivateOnExit<P3Ascension>();
-        }
-
-        private void Phase3Enrage(uint id, float delay)
-        {
-            ComponentCondition<P3PillarOfSeverity>(id, delay, comp => comp.NumCasts > 0, "Enrage")
-                .ActivateOnEnter<P3PillarOfSeverity>()
-                .DeactivateOnExit<P3PillarOfSeverity>();
         }
     }
 }

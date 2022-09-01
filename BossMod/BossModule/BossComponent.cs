@@ -51,6 +51,7 @@ namespace BossMod
         public virtual void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell) { } // note: action is always a spell; not called for player spells
         public virtual void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell) { } // note: action is always a spell; not called for player spells
         public virtual void OnEventIcon(BossModule module, Actor actor, uint iconID) { }
+        public virtual void OnActorEAnim(BossModule moudle, Actor actor, uint state) { }
         public virtual void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state) { }
     }
 }

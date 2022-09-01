@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 
 namespace BossMod.Endwalker.Unreal.Un2Sephirot
 {
     class P1TripleTrial : Components.Cleave
     {
-        public P1TripleTrial() : base(ActionID.MakeSpell(AID.TripleTrial), new AOEShapeCone(18.5f, 45.Degrees())) { } // TODO: verify angle
+        public P1TripleTrial() : base(ActionID.MakeSpell(AID.TripleTrial), new AOEShapeCone(18.5f, 30.Degrees())) { } // TODO: verify angle
     }
 
     class P1Ein : Components.SelfTargetedAOEs

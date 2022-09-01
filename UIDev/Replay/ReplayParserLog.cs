@@ -159,6 +159,7 @@ namespace UIDev
             {
                 InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber),
                 OID = uint.Parse(parts[1], NumberStyles.HexNumber),
+                SpawnIndex = payload.Length > 9 ? int.Parse(payload[9]) : -1,
                 Name = parts[2],
                 Type = Enum.Parse<ActorType>(parts[3]),
                 Class = Enum.Parse<Class>(payload[3]),
