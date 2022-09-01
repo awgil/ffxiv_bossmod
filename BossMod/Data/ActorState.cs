@@ -37,7 +37,7 @@ namespace BossMod
         {
             foreach (var act in this)
             {
-                yield return new OpCreate() { InstanceID = act.InstanceID, OID = act.OID, Name = act.Name, Type = act.Type, Class = act.Class, PosRot = act.PosRot, HitboxRadius = act.HitboxRadius, HP = act.HP, IsTargetable = act.IsTargetable, IsAlly = act.IsAlly, OwnerID = act.OwnerID };
+                yield return new OpCreate() { InstanceID = act.InstanceID, OID = act.OID, SpawnIndex = act.SpawnIndex, Name = act.Name, Type = act.Type, Class = act.Class, PosRot = act.PosRot, HitboxRadius = act.HitboxRadius, HP = act.HP, IsTargetable = act.IsTargetable, IsAlly = act.IsAlly, OwnerID = act.OwnerID };
                 if (act.IsDead)
                     yield return new OpDead() { InstanceID = act.InstanceID, Value = true };
                 if (act.InCombat)
