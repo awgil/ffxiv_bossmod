@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BossMod.Endwalker.Savage.P6SHegemone
+﻿namespace BossMod.Endwalker.Savage.P6SHegemone
 {
     class P6SStates : StateMachineBuilder
     {
@@ -38,10 +32,11 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
             Synergy(id + 0x140000, 6.1f);
             HemitheosDark(id + 0x150000, 7.2f);
             CachexiaTransmissionPolyominoidPteraIxou(id + 0x160000, 9.4f);
-            AethericPolyominoidDarkDome(id + 0x170000, 8.3f);
+            AethericPolyominoidDarkDome(id + 0x170000, 8.2f);
             AethericPolyominoidChorosIxou(id + 0x180000, 7.5f);
-
-            SimpleState(id + 0xFF0000, 10000, "???");
+            Synergy(id + 0x190000, 6.2f);
+            HemitheosDark(id + 0x1A0000, 7.2f);
+            Cast(id + 0x1B0000, AID.Enrage, 10, 10, "Enrage");
         }
 
         private void HemitheosDark(uint id, float delay)
@@ -70,10 +65,11 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
         }
 
         // leaves component active for second cone
-        private void ChorosIxouStart(uint id, float delay, string castEndName = "")
+        private void ChorosIxouStart(uint id, float delay, bool withParasiteStun = false)
         {
-            CastMulti(id, new AID[] { AID.ChorosIxouFSFront, AID.ChorosIxouSFSides }, delay, 4.5f, castEndName)
-                .ActivateOnEnter<ChorosIxou>();
+            CastMulti(id, new AID[] { AID.ChorosIxouFSFront, AID.ChorosIxouSFSides }, delay, 4.5f, withParasiteStun ? "Parasite stun" : "")
+                .ActivateOnEnter<ChorosIxou>()
+                .SetHint(StateMachine.StateHint.DowntimeStart, withParasiteStun);
             ComponentCondition<ChorosIxou>(id + 2, 0.5f, comp => comp.FirstDone, "Cones 1");
         }
 
@@ -127,10 +123,11 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
         {
             Cast(id, AID.Transmission, delay, 5)
                 .ActivateOnEnter<Transmission>();
-            ChorosIxouStart(id + 0x10, 8.4f, "Parasite stun"); // out-of-control is applied right as cast ends
-            ComponentCondition<Transmission>(id + 0x20, 1.4f, comp => comp.NumCasts > 0)
-                .DeactivateOnExit<Transmission>(); // out-of-control is dropped right after casts end
-            ChorosIxouEnd(id + 0x30, 1.7f);
+            ChorosIxouStart(id + 0x10, 8.4f, true); // out-of-control is applied right as cast ends
+            ComponentCondition<Transmission>(id + 0x20, 1.5f, comp => !comp.StunsActive)
+                .DeactivateOnExit<Transmission>()
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+            ChorosIxouEnd(id + 0x30, 1.6f);
         }
 
         private void DarkAshesChorosIxou(uint id, float delay)
@@ -158,7 +155,7 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
         {
             Cast(id, AID.AethericPolyominoid, delay, 4)
                 .ActivateOnEnter<Polyominoid>();
-            ChorosIxouStart(id + 0x20, 4.7f);
+            ChorosIxouStart(id + 0x20, 4.8f);
             ComponentCondition<Polyominoid>(id + 0x30, 0.2f, comp => comp.NumCasts > 0, "Cells resolve")
                 .DeactivateOnExit<Polyominoid>();
             ChorosIxouEnd(id + 0x40, 2.9f);
@@ -236,33 +233,47 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
 
         private void CachexiaDualPredationPteraIxou(uint id, float delay)
         {
-            // TODO: components...
             Cast(id, AID.Cachexia, delay, 3)
-                .ActivateOnEnter<Aetheronecrosis>();
-            Cast(id + 0x10, AID.DualPredationFirst, 11.2f, 6);
-            Cast(id + 0x20, AID.PteraIxou, 16.1f, 6)
-                .ActivateOnEnter<PteraIxou>() // old statuses are removed ~0.4s before cast start
-                .DeactivateOnExit<Aetheronecrosis>();
-            ComponentCondition<PteraIxou>(id + 0x22, 1, comp => comp.NumCasts > 0, "Cachexia 1 end")
+                .ActivateOnEnter<AetheronecrosisPredation>();
+            ComponentCondition<AetheronecrosisPredation>(id + 2, 0.9f, comp => comp.Active, "Cachexia 1 start");
+            ComponentCondition<AetheronecrosisPredation>(id + 0x10, 8, comp => comp.NumCastsAetheronecrosis > 0, "Explode 1");
+            CastStart(id + 0x20, AID.DualPredationFirst, 2.3f);
+            ComponentCondition<AetheronecrosisPredation>(id + 0x21, 1.7f, comp => comp.NumCastsAetheronecrosis > 2, "Explode 2");
+            ComponentCondition<AetheronecrosisPredation>(id + 0x22, 4, comp => comp.NumCastsAetheronecrosis > 4, "Explode 3");
+            CastEnd(id + 0x23, 0.3f);
+            ComponentCondition<AetheronecrosisPredation>(id + 0x24, 0.9f, comp => comp.NumCastsDualPredation > 0, "Wing/snake 1");
+            ComponentCondition<AetheronecrosisPredation>(id + 0x25, 2.8f, comp => comp.NumCastsAetheronecrosis > 6, "Explode 4");
+            ComponentCondition<AetheronecrosisPredation>(id + 0x30, 1.2f, comp => comp.NumCastsDualPredation > 1, "Wing/snake 2");
+            ComponentCondition<AetheronecrosisPredation>(id + 0x31, 4, comp => comp.NumCastsDualPredation > 2, "Wing/snake 3");
+            ComponentCondition<AetheronecrosisPredation>(id + 0x32, 4, comp => comp.NumCastsDualPredation > 3, "Wing/snake 4")
+                .DeactivateOnExit<AetheronecrosisPredation>();
+            Cast(id + 0x40, AID.PteraIxou, 3.1f, 6)
+                .ActivateOnEnter<PteraIxou>(); // old statuses are removed ~0.4s before cast start
+            ComponentCondition<PteraIxou>(id + 0x42, 1, comp => comp.NumCasts > 0, "Sides")
                 .DeactivateOnExit<PteraIxou>();
         }
 
         private void CachexiaTransmissionPolyominoidPteraIxou(uint id, float delay)
         {
-            Cast(id, AID.Cachexia, delay, 3);
-            Cast(id + 0x10, AID.Transmission, 2.6f, 5)
+            Cast(id, AID.Cachexia, delay, 3)
                 .ActivateOnEnter<PteraIxou>(); // activate early, since side selection is first thing we do - and boss won't rotate
-            Cast(id + 0x20, AID.AetherialExchange, 4.7f, 3);
+            Cast(id + 0x10, AID.Transmission, 2.7f, 5)
+                .ActivateOnEnter<Transmission>();
+            Cast(id + 0x20, AID.AetherialExchange, 4.6f, 3);
             Cast(id + 0x30, AID.PolyominoidSigma, 2.7f, 4)
                 .ActivateOnEnter<Polyominoid>();
-            Cast(id + 0x40, AID.PteraIxou, 7.5f, 6, "Cells resolve + Sides + Spread/stack")
-                .ActivateOnEnter<Transmission>() // activate late, to reduce visual clutter
+            CastStart(id + 0x40, AID.PteraIxou, 7.5f);
+            ComponentCondition<Transmission>(id + 0x41, 5.2f, comp => comp.StunsActive, "Parasite stun")
                 .ActivateOnEnter<PteraIxouSpreadStack>()
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            CastEnd(id + 0x42, 0.8f, "Cells resolve + Spread/stack")
                 .DeactivateOnExit<PteraIxouSpreadStack>()
                 .DeactivateOnExit<Polyominoid>();
-            ComponentCondition<Transmission>(id + 0x50, 1.1f, comp => comp.NumCasts > 0, "Transmission end")
-                .DeactivateOnExit<PteraIxou>() // resolves ~0.1s before transmissions
-                .DeactivateOnExit<Transmission>();
+            ComponentCondition<PteraIxou>(id + 0x43, 1, comp => comp.NumCasts > 0)
+                .DeactivateOnExit<PteraIxou>();
+            ComponentCondition<Transmission>(id + 0x44, 0.2f, comp => !comp.StunsActive, "Sides")
+                .DeactivateOnExit<Transmission>()
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
         }
     }
 }

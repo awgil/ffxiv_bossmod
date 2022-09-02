@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace BossMod.Endwalker.Savage.P6SHegemone
 {
-    // note: we use statuses rather than tethers, even though tethers allow predicting status significantly earlier
-    // reason is that we want to activate component late for second mechanic, and tethers disappear quickly
     class Transmission : Components.CastCounter
     {
+        private DateTime[] _infectionExpire = new DateTime[PartyState.MaxPartySize]; // when status expires, it will be replaced with stun - we show aoes for last few seconds only
         private BitMask _snakeInfection; // hits front
         private BitMask _wingInfection; // hits back
         private BitMask _stuns;
@@ -34,7 +34,7 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
                 hints.Add("Face away from raid", _clips[slot].Any());
             if (_wingInfection[slot])
                 hints.Add("Face raid", _clips[slot].Any());
-            if (_clippedByOthers[slot])
+            if (_clippedByOthers[slot] && ExpireImminent(module, slot))
                 hints.Add("Avoid transmission aoe!");
         }
 
@@ -46,7 +46,21 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var e in ActiveAOEs(module))
-                _shape.Draw(arena, e.player.Position, e.direction);
+                if (e.slot == pcSlot || ExpireImminent(module, e.slot))
+                    _shape.Draw(arena, e.player.Position, e.direction);
+        }
+
+        public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+        {
+            switch ((TetherID)tether.ID)
+            {
+                case TetherID.TransmissionSnake:
+                    _snakeInfection.Set(module.Raid.FindSlot(source.InstanceID));
+                    break;
+                case TetherID.TransmissionWing:
+                    _wingInfection.Set(module.Raid.FindSlot(source.InstanceID));
+                    break;
+            }
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
@@ -54,10 +68,10 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
             switch ((SID)status.ID)
             {
                 case SID.Glossomorph:
-                    _snakeInfection.Set(module.Raid.FindSlot(actor.InstanceID));
-                    break;
                 case SID.Chelomorph:
-                    _wingInfection.Set(module.Raid.FindSlot(actor.InstanceID));
+                    var slot = module.Raid.FindSlot(actor.InstanceID);
+                    if (slot >= 0)
+                        _infectionExpire[slot] = status.ExpireAt;
                     break;
                 case SID.OutOfControlSnake:
                 case SID.OutOfControlWing:
@@ -86,6 +100,12 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
                 if (_wingInfection[slot])
                     yield return (slot, player, player.Rotation + 180.Degrees());
             }
+        }
+
+        private bool ExpireImminent(BossModule module, int slot)
+        {
+            var expire = _infectionExpire[slot];
+            return expire != new DateTime() && (expire - module.WorldState.CurrentTime).TotalSeconds < 2;
         }
     }
 }

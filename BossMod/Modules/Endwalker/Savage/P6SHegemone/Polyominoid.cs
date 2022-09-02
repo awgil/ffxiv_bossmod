@@ -100,10 +100,10 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
                 10 => 0xD,
                 11 => 0xE,
                 12 => 0xF,
-                13 => 0x7, // not sure
+                13 => 0x8,
                 14 => 0xB,
                 15 => 0x4,
-                16 => 0x8, // not sure
+                16 => 0x7, // not sure
                 _ => -1
             };
 

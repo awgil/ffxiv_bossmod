@@ -8,6 +8,7 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
     {
         public enum PlayerState { None, Spread, Stack }
 
+        public int NumActiveMechanics { get; private set; }
         private PlayerState[] _states = new PlayerState[PartyState.MaxPartySize];
 
         private const float _stackRadius = 6;
@@ -15,6 +16,9 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
+            if (NumActiveMechanics == 0)
+                return;
+
             if (_states[slot] == PlayerState.Spread)
             {
                 // check only own circle - no one should be inside, this automatically resolves mechanic for us
@@ -33,11 +37,14 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {
-            return _states[playerSlot] == PlayerState.Spread ? PlayerPriority.Danger : PlayerPriority.Normal;
+            return NumActiveMechanics == 0 ? PlayerPriority.Irrelevant : _states[playerSlot] == PlayerState.Spread ? PlayerPriority.Danger : PlayerPriority.Normal;
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
+            if (NumActiveMechanics == 0)
+                return;
+
             if (_states[pcSlot] == PlayerState.Spread)
             {
                 // draw only own circle - no one should be inside, this automatically resolves mechanic for us
@@ -62,6 +69,7 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
                 if (slot >= 0)
                 {
                     _states[slot] = state;
+                    ++NumActiveMechanics;
                 }
             }
         }
@@ -75,6 +83,7 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
                 if (slot >= 0)
                 {
                     _states[slot] = PlayerState.None;
+                    --NumActiveMechanics;
                 }
             }
         }

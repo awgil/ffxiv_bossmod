@@ -15,6 +15,9 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
+            if (NumActiveMechanics == 0)
+                return;
+
             if (_states[slot] == PlayerState.Circle)
             {
                 // check only own circle - no one should be inside, this automatically resolves mechanic for us
@@ -33,11 +36,14 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {
-            return _states[playerSlot] == PlayerState.Circle ? PlayerPriority.Danger : PlayerPriority.Normal;
+            return NumActiveMechanics == 0 ? PlayerPriority.Irrelevant : _states[playerSlot] == PlayerState.Circle ? PlayerPriority.Danger : PlayerPriority.Normal;
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
+            if (NumActiveMechanics == 0)
+                return;
+
             if (_states[pcSlot] == PlayerState.Circle)
             {
                 // draw only own circle - no one should be inside, this automatically resolves mechanic for us

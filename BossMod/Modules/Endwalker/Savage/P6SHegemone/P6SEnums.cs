@@ -80,6 +80,8 @@
 
         DarkSphere = 30863, // Boss->self, 4.0s cast, single-target, visual
         DarkSphereAOE = 30864, // Helper->players, 6.0s cast, range 10 circle aoe (spread)
+
+        Enrage = 30867, // Boss->self, 10.0s cast
     };
 
     public enum SID : uint
