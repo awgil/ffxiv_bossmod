@@ -25,6 +25,7 @@ namespace UIDev
             public TimeRange Time = new();
             public Participant? Target;
             public Vector3 Location; // if target is non-null, corresponds to target's position at cast start
+            public Angle Rotation;
         }
 
         public class ActionTarget

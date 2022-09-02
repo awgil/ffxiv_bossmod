@@ -11,6 +11,7 @@ namespace UIDev
         private Replay _replay;
         private ModuleRegistry.Info? _moduleInfo;
         private IEnumerable<WorldState.Operation> _ops;
+        private DateTime _relativeTS;
         private Action<DateTime> _scrollTo;
         private List<(DateTime Timestamp, string Text, Action<UITree>? Children, Action? ContextMenu)> _nodes = new();
         private HashSet<uint> _filteredOIDs = new();
@@ -45,9 +46,10 @@ namespace UIDev
                 _nodesUpToDate = true;
             }
 
+            var timeRef = ImGui.GetIO().KeyShift && _relativeTS != new DateTime() ? _relativeTS : reference;
             foreach (var node in _nodes)
             {
-                foreach (var n in tree.Node($"{(node.Timestamp - reference).TotalSeconds:f3}: {node.Text}", node.Children == null, 0xffffffff, node.ContextMenu, () => _scrollTo(node.Timestamp)))
+                foreach (var n in tree.Node($"{(node.Timestamp - timeRef).TotalSeconds:f3}: {node.Text}", node.Children == null, 0xffffffff, node.ContextMenu, () => _scrollTo(node.Timestamp), () => _relativeTS = node.Timestamp))
                 {
                     if (node.Children != null)
                         node.Children(tree);
@@ -235,7 +237,7 @@ namespace UIDev
         {
             var p = FindParticipant(instanceID, timestamp);
             var c = FindCast(p, timestamp, start)!;
-            return $"{ReplayUtils.ParticipantPosRotString(p, timestamp)}: {c.ID} ({aidType?.GetEnumName(c.ID.ID)}), {c.ExpectedCastTime:f2}s ({c.Time} actual) @ {ReplayUtils.ParticipantString(c.Target)} {Utils.Vec3String(c.Location)}";
+            return $"{ReplayUtils.ParticipantPosRotString(p, timestamp)}: {c.ID} ({aidType?.GetEnumName(c.ID.ID)}), {c.ExpectedCastTime:f2}s ({c.Time} actual) @ {ReplayUtils.ParticipantString(c.Target)} {Utils.Vec3String(c.Location)} / {c.Rotation}";
         }
 
         private string StatusString(ulong instanceID, int index, DateTime timestamp, bool gain)

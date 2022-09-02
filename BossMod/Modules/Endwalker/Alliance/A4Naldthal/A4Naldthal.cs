@@ -1,11 +1,11 @@
 ﻿namespace BossMod.Endwalker.Alliance.A4Naldthal
 {
-    class GoldenTenet : CommonComponents.SharedTankbuster
+    class GoldenTenet : Components.SharedTankbuster
     {
         public GoldenTenet() : base(ActionID.MakeSpell(AID.GoldenTenetAOE), 6) { }
     }
 
-    class StygianTenet : CommonComponents.SpreadFromCastTargets
+    class StygianTenet : Components.SpreadFromCastTargets
     {
         public StygianTenet() : base(ActionID.MakeSpell(AID.StygianTenetAOE), 6) { }
     }

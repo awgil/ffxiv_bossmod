@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A2Rhalgr
 {
-    class DestructiveBolt : CommonComponents.SpreadFromCastTargets
+    class DestructiveBolt : Components.SpreadFromCastTargets
     {
         public DestructiveBolt() : base(ActionID.MakeSpell(AID.DestructiveBoltAOE), 3) { }
     }
@@ -10,7 +10,7 @@
         public StrikingMeteor() : base(ActionID.MakeSpell(AID.StrikingMeteor), 6) { }
     }
 
-    class LightningStorm : CommonComponents.SpreadFromCastTargets
+    class LightningStorm : Components.SpreadFromCastTargets
     {
         public LightningStorm() : base(ActionID.MakeSpell(AID.LightningStorm), 5) { }
     }

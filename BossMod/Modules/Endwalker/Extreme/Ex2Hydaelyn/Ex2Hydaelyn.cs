@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
     // state related to mousa scorn mechanic (shared tankbuster)
-    class MousaScorn : CommonComponents.SharedTankbuster
+    class MousaScorn : Components.SharedTankbuster
     {
         public MousaScorn() : base(ActionID.MakeSpell(AID.MousaScorn), 4) { }
     }

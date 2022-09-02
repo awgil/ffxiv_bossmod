@@ -219,7 +219,7 @@ namespace UIDev
         {
             var c = actor.CastInfo!;
             var target = _participants.GetValueOrDefault(c.TargetID);
-            _participants[actor.InstanceID].Casts.Add(new() { ID = c.Action, ExpectedCastTime = c.TotalTime, Time = new(_ws.CurrentTime), Target = target, Location = c.TargetID == 0 ? c.Location : (_ws.Actors.Find(c.TargetID)?.PosRot.XYZ() ?? new()) });
+            _participants[actor.InstanceID].Casts.Add(new() { ID = c.Action, ExpectedCastTime = c.TotalTime, Time = new(_ws.CurrentTime), Target = target, Location = c.TargetID == 0 ? c.Location : (_ws.Actors.Find(c.TargetID)?.PosRot.XYZ() ?? new()), Rotation = c.Rotation });
         }
 
         private void CastFinish(object? sender, Actor actor)

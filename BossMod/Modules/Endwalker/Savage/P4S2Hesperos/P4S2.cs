@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P4S2Hesperos
 {
     // state related to demigod double mechanic (shared tankbuster)
-    class DemigodDouble : CommonComponents.SharedTankbuster
+    class DemigodDouble : Components.SharedTankbuster
     {
         public DemigodDouble() : base(ActionID.MakeSpell(AID.DemigodDouble), 6) { }
     }

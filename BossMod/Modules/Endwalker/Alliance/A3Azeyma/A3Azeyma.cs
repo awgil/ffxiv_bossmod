@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A3Azeyma
 {
-    class WardensWarmth : CommonComponents.SpreadFromCastTargets
+    class WardensWarmth : Components.SpreadFromCastTargets
     {
         public WardensWarmth() : base(ActionID.MakeSpell(AID.WardensWarmthAOE), 6) { }
     }
