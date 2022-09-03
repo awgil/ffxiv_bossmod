@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
 {
+    // TODO: consider using eobjanim's to activate/deactivate stones instead
     class TopazStones : Components.GenericAOEs
     {
         private static AOEShapeRect _shapeRay = new(1, 7.5f, 14);

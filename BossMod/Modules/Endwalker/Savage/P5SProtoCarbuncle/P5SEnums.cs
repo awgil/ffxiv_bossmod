@@ -66,11 +66,21 @@
         JawsTeleport = 30473, // Jaws->location, no cast, single-target
         StarvingStampedeTeleport = 30474, // Boss->location, no cast, single-target
         StarvingStampede = 31235, // Helper->self, 1.8s cast, range 12 circle aoe
+        DevourPlayer = 30501, // Boss->player, no cast, single-target (players that failed mechanic)
+        SpitPlayer = 30503, // Boss->self, 2.0s cast, single-target
+        DevourPlayerKill = 30504, // Helper->player, no cast, single-target
+        ImpactPlayer = 31263, // Helper->self, 4.5s cast, range 6 circle (related to failing a mechanic?)
+        DevourBait = 30793, // Boss->LivelyBait, no cast, single-target
 
-        //_Gen_Devour = 30501, // Boss->player, no cast, single-target
-        //_Gen_Spit = 30503, // Boss->self, 2.0s cast, single-target
-        //_Gen_Impact = 31263, // Helper->self, 4.5s cast, range 6 circle
-        //_Gen_Devour = 30504, // Helper->player, no cast, single-target
-        //_Gen_Devour = 30793, // Boss->LivelyBait, no cast, single-target
+        VenomPoolRecolor = 31202, // Boss->self, 5.0s cast, single-target, visual
+        VenomPoolRecolorAOE = 31203, // Helper->players, no cast, range 5 circle shared
+        SearingRay = 30455, // Boss->self, 5.0s cast, reflected aoe
+        RagingClaw = 30458, // Boss->self, 5.0s cast, single-target
+        RagingClawAOEFirst = 30459, // Helper->self, 5.0s cast, range 45 180-degree cone
+        RagingClawAOERest = 30460, // Helper->self, no cast, range 45 180-degree cone
+
+        SonicShatter = 30497, // Boss->self, 5.0s cast, raidwide
+        SonicShatterRest = 30498, // Boss->self, no cast, raidwide
+        AcidicSlaver = 30499, // Boss->self, 5.0s cast, enrage
     };
 }

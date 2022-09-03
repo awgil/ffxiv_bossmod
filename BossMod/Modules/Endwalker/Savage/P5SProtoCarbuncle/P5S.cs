@@ -23,6 +23,16 @@
         public RubyReflection2() : base(ActionID.MakeSpell(AID.RubyReflection2)) { }
     }
 
+    class SonicShatter : Components.CastCounter
+    {
+        public SonicShatter() : base(ActionID.MakeSpell(AID.SonicShatterRest)) { }
+    }
+
+    class DevourBait : Components.CastCounter
+    {
+        public DevourBait() : base(ActionID.MakeSpell(AID.DevourBait)) { }
+    }
+
     public class P5S : BossModule
     {
         public P5S(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 15)) { }
