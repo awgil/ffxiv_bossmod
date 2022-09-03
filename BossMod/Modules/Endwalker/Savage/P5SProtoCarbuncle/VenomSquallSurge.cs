@@ -10,10 +10,9 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
     class VenomSquallSurge : BossComponent
     {
         public enum Mechanic { None, Rain, Drops, Pool }
-        public enum Order { None, Forward, Reverse }
 
         public int Progress { get; private set; }
-        public Order _order;
+        public bool _reverse;
 
         private static float _radius = 5;
 
@@ -34,14 +33,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            var hint = _order switch
-            {
-                Order.Forward => "Order: spread -> mid -> stack",
-                Order.Reverse => "Order: stack -> mid -> spread",
-                _ => ""
-            };
-            if (hint.Length > 0)
-                hints.Add(hint);
+            hints.Add(_reverse ? "Order: stack -> mid -> spread" : "Order: spread -> mid -> stack");
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
@@ -71,11 +63,8 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
         {
             switch ((AID)spell.Action.ID)
             {
-                case AID.VenomSquall:
-                    _order = Order.Forward;
-                    break;
                 case AID.VenomSurge:
-                    _order = Order.Reverse;
+                    _reverse = true;
                     break;
                 case AID.VenomDrops:
                     if (NextMechanic == Mechanic.Drops)
@@ -101,9 +90,9 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
 
         private Mechanic NextMechanic => Progress switch
         {
-            0 => _order == Order.None ? Mechanic.None : _order == Order.Reverse ? Mechanic.Pool : Mechanic.Rain,
+            0 => _reverse ? Mechanic.Pool : Mechanic.Rain,
             1 => Mechanic.Drops,
-            2 => _order == Order.Reverse ? Mechanic.Rain : Mechanic.Pool,
+            2 => _reverse ? Mechanic.Rain : Mechanic.Pool,
             _ => Mechanic.None
         };
     }

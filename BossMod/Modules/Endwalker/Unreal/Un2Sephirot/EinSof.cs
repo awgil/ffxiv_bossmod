@@ -19,7 +19,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
             return _active.Select(p => (_shape, p.Position, 0.Degrees(), module.WorldState.CurrentTime));
         }
 
-        public override void OnActorEAnim(BossModule moudle, Actor actor, uint state)
+        public override void OnActorEAnim(BossModule module, Actor actor, uint state)
         {
             switch (state)
             {

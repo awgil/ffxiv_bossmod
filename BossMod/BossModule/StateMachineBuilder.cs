@@ -54,7 +54,7 @@ namespace BossMod
                 return this;
             }
 
-            public State DeactivateOnExit<C>(bool condition = true) where C : BossComponent, new()
+            public State DeactivateOnExit<C>(bool condition = true) where C : BossComponent
             {
                 if (condition)
                     Raw.Exit.Add(_module.DeactivateComponent<C>);

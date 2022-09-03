@@ -17,12 +17,6 @@
         public DoubleRushReturn() : base(ActionID.MakeSpell(AID.DoubleRushReturn)) { }
     }
 
-    // TODO: show aoe/poison
-    class RubyReflection2 : Components.CastCounter
-    {
-        public RubyReflection2() : base(ActionID.MakeSpell(AID.RubyReflection2)) { }
-    }
-
     class SonicShatter : Components.CastCounter
     {
         public SonicShatter() : base(ActionID.MakeSpell(AID.SonicShatterRest)) { }

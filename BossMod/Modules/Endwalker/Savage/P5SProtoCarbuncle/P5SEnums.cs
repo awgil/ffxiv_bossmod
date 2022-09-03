@@ -23,10 +23,10 @@
         TopazStones = 30461, // Boss->self, 4.0s cast, single-target, visual
         TopazStonesVisualHelper = 30462, // Helper->self, 4.0s cast, single-target, visual
         TopazRayStones = 31230, // Helper->self, 12.0s cast, range 4 circle (semicircle?..)
-        RubyReflection1 = 30464, // Helper->self, no cast, single-target, visual
-        RubyReflection1AOE = 30465, // Helper->self, no cast, range 15 width 15 rect (1/4 arena)
-        RubyReflection2 = 30456, // Helper->self, no cast, single-target, visual
-        RubyReflection2AOE = 30457, // Helper->self, no cast, ??? (1/2 arena by diagonal)
+        RubyReflectionQuarter = 30464, // Helper->self, no cast, single-target, visual
+        RubyReflectionQuarterAOE = 30465, // Helper->self, no cast, range 15 width 15 rect (1/4 arena)
+        RubyReflectionHalf = 30456, // Helper->self, no cast, single-target, visual
+        RubyReflectionHalfAOE = 30457, // Helper->self, no cast, ??? (1/2 arena by diagonal)
 
         VenomousMass = 30493, // Boss->self, 5.0s cast, single-target, visual
         VenomousMassAOE = 30494, // Helper->players, no cast, range 6 circle, tankbuster
