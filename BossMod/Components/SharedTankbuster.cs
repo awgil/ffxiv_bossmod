@@ -8,6 +8,8 @@
         private Actor? _caster;
         private Actor? _target;
 
+        public bool CastActive => _caster != null;
+
         // oriented shapes (cones/rects) typically have origin at caster
         public SharedTankbuster(ActionID aid, AOEShape shape, bool originAtTarget = false) : base(aid)
         {
