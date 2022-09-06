@@ -17,7 +17,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
             if (module.PrimaryActor.CastInfo?.IsSpell(AID.RagingClaw) ?? false)
                 yield return (ShapeHalf, module.PrimaryActor.Position, module.PrimaryActor.CastInfo.Rotation, module.PrimaryActor.CastInfo.FinishAt);
             if (module.PrimaryActor.CastInfo?.IsSpell(AID.SearingRay) ?? false)
-                yield return (ShapeHalf, module.Bounds.Center, -module.PrimaryActor.CastInfo.Rotation, module.PrimaryActor.CastInfo.FinishAt);
+                yield return (ShapeHalf, module.Bounds.Center, module.PrimaryActor.CastInfo.Rotation + 180.Degrees(), module.PrimaryActor.CastInfo.FinishAt);
         }
     }
 }
