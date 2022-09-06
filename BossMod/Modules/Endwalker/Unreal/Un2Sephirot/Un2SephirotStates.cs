@@ -104,7 +104,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
             Phase3Start(id);
             Phase3Repeat(id + 0x100000, 1.2f);
             Phase3Repeat(id + 0x200000, 8.1f);
-            SimpleState(id + 0xFF0000, 15, "Enrage"); // ???
+            SimpleState(id + 0x300000, 16.2f, "Enrage"); // repeats impact of hod + 2x pillar of severity, latter now oneshotting
         }
 
         private void Phase3Start(uint id)
