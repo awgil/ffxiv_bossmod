@@ -12,11 +12,11 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
         BarbaricciaShadow = 0x39CF, // x9
         Helper = 0x233C, // x31
         Tangle = 0x3973, // x4, fetters tethers players to one of these
+        StiffBreeze = 0x39D0, // spawn during fight, moving circles
         //_Gen_Actor39d4 = 0x39D4, // x1
         //_Gen_Exit = 0x1E850B, // x1, EventObj type
         //_Gen_MagitekArmor = 0x1EB702, // x4, EventObj type
         //_Gen_Actor1e8536 = 0x1E8536, // x1, EventObj type
-        //_Gen_StiffBreeze = 0x39D0, // spawn during fight
     };
 
     public enum AID : uint
@@ -41,7 +41,8 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
         HairSpray = 30118, // Helper->players, 8.0s cast, range 5 circle spread
         DeadlyTwist = 30119, // Helper->players, 8.0s cast, range 6 circle shared
 
-        TeasingTangles = 30121, // Boss->self, 4.0s cast, single-target, visual
+        TeasingTangles1 = 30121, // Boss->self, 4.0s cast, single-target, visual
+        TeasingTangles2 = 30122, // Boss->self, no cast, single-target, visual
         Tangle = 30123, // Helper->self, 4.6s cast, range 6 circle aoe
         TangleKnockback = 30124, // Helper->player, no cast, single-target, knockback 9
         TangleFail = 29567, // Helper->player, no cast, single-target, knockback 20 on people leaving tangle zone
@@ -83,26 +84,28 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
         TornadoChainVisualInner = 30094, // Boss->self, no cast, single-target, visual
         TornadoChainVisualOuter = 30095, // Boss->self, no cast, single-target, visual
 
+        KnuckleDrumVisual = 30103, // Boss->self, no cast, single-target
+        KnuckleDrum = 30104, // Helper->self, no cast, raidwide
+        KnuckleDrumLast = 30105, // Helper->self, no cast, raidwide
+
+        BlowAwayRaidwide = 30101, // Boss->self, no cast, raidwide
+        BlowAwayPuddle = 30102, // Helper->self, 4.0s cast, range 6 circle puddle
+        BoldBoulderVisual = 30106, // Boss->self, no cast, single-target, visual
+        BoldBoulder = 30107, // Helper->players, 8.0s cast, flare with 20? falloff
+        ImpactTeleport = 30111, // Boss->location, no cast, single-target, teleport
+        ImpactAOE = 30112, // Helper->self, 6.2s cast, range 6 circle aoe (in center)
+        ImpactKnockback = 30113, // Helper->self, 6.2s cast, range 20 circle knockback 6
+        Trample = 30114, // Boss->players, no cast, range 6 circle shared
+
+        BlusteryRuler = 30096, // Helper->self, 5.0s cast, range 6 circle aoe (in center)
+        BlusteryRulerVisual = 30097, // Boss->self, no cast, single-target, visual
+        Tousle = 30098, // StiffBreeze->self, no cast, range 2 circle (when circle is clipped)
+        DryBlowsRaidwide = 30099, // Boss->self, no cast, raidwide
+        DryBlowsPuddle = 30100, // Helper->location, 3.0s cast, range 3 circle puddle
+
         //_Gen_SavageBarbery = 29835, // Boss->self, 6.0s cast, single-target
-        //_Gen_KnuckleDrum = 30103, // Boss->self, no cast, single-target
         //_Gen_SavageBarbery = 29796, // Boss->self, 6.0s cast, single-target
-        //_Gen_KnuckleDrum = 30104, // Helper->self, no cast, range 40 circle
-        //_Gen_KnuckleDrum = 30105, // Helper->self, no cast, range 40 circle
-        //_Gen_BlowAway = 30101, // Boss->self, no cast, range 20 circle
-        //_Gen_BlowAway = 30102, // Helper->self, 4.0s cast, range 6 circle
-        //_Gen_BoldBoulder = 30106, // Boss->self, no cast, single-target
-        //_Gen_Impact = 30111, // Boss->location, no cast, single-target
-        //_Gen_Impact = 30113, // Helper->self, 6.2s cast, range 20 circle
-        //_Gen_Impact = 30112, // Helper->self, 6.2s cast, range 6 circle
-        //_Gen_BoldBoulder = 30107, // Helper->players, 8.0s cast, range 40 circle
-        //_Gen_Trample = 30114, // Boss->players, no cast, range 6 circle
         //_Gen_SavageBarbery = 29798, // Boss->self, 6.0s cast, single-target
-        //_Gen_TeasingTangles = 30122, // Boss->self, no cast, single-target
-        //_Gen_BlusteryRuler = 30097, // Boss->self, no cast, single-target
-        //_Gen_BlusteryRuler = 30096, // Helper->self, 5.0s cast, range 6 circle
-        //_Gen_DryBlows = 30099, // Boss->self, no cast, range 20 circle
-        //_Gen_Tousle = 30098, // 39D0->self, no cast, range 2 circle
-        //_Gen_DryBlows = 30100, // Helper->location, 3.0s cast, range 3 circle
         //_Gen_IronOut = 30133, // Boss->self, no cast, single-target
         //_Gen_IronOut = 29781, // Helper->self, no cast, range 40 circle
         //_Gen_Entanglement = 30125, // Boss->self, 4.0s cast, single-target
@@ -115,5 +118,22 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
         Tangle = 199, // player->Tangle
         BrutalRush = 17, // player->Boss
         //_Gen_Tether_210 = 210, // player->player
+    };
+
+    public enum IconID : uint
+    {
+        Trample = 100, // player
+        BoldBoulder = 346, // player
+        //_Gen_Icon_345 = 345, // player
+        //_Gen_Icon_343 = 343, // player
+        //_Gen_Icon_347 = 347, // player
+        //_Gen_Icon_372 = 372, // player
+        //_Gen_Icon_259 = 259, // player
+        //_Gen_Icon_365 = 365, // player
+        //_Gen_Icon_371 = 371, // player
+        //_Gen_Icon_368 = 368, // player
+        //_Gen_Icon_370 = 370, // player
+        //_Gen_Icon_367 = 367, // player
+        //_Gen_Icon_369 = 369, // player
     };
 }

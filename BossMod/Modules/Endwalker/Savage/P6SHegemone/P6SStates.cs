@@ -85,14 +85,14 @@
         {
             Cast(id, AID.AetherialExchange, delay, 3);
             Cast(id + 2, AID.ExchangeOfAgonies, 2.7f, 4);
-            ComponentCondition<Agonies>(id + 4, 0.9f, comp => comp.NumActiveMechanics > 0)
+            ComponentCondition<Agonies>(id + 4, 0.9f, comp => comp.Active)
                 .ActivateOnEnter<Agonies>();
         }
 
         // happens ~7s after start
         private void ExchangeOfAgoniesResolve(uint id, float delay)
         {
-            ComponentCondition<Agonies>(id, delay, comp => comp.NumActiveMechanics == 0, "Stack/spread")
+            ComponentCondition<Agonies>(id, delay, comp => !comp.Active, "Stack/spread")
                 .DeactivateOnExit<Agonies>();
         }
 
@@ -135,7 +135,7 @@
             Cast(id, AID.DarkAshes, delay, 4)
                 .ActivateOnEnter<DarkAshes>();
             ChorosIxouStart(id + 0x10, 3.5f);
-            ComponentCondition<DarkAshes>(id + 0x20, 0.4f, comp => comp.NumCasts > 0, "Spread")
+            ComponentCondition<DarkAshes>(id + 0x20, 0.4f, comp => comp.NumFinishedSpreads > 0, "Spread")
                 .DeactivateOnExit<DarkAshes>();
             ChorosIxouEnd(id + 0x30, 2.7f);
         }
@@ -167,7 +167,7 @@
             Cast(id + 0x10, AID.PolyominoidSigma, 2.6f, 4)
                 .ActivateOnEnter<Polyominoid>();
             Cast(id + 0x20, AID.UnholyDarkness, 2.7f, 4);
-            ComponentCondition<UnholyDarkness>(id + 0x30, 7.1f, comp => comp.NumCasts > 0, "Cells resolve + Party stacks")
+            ComponentCondition<UnholyDarkness>(id + 0x30, 7.1f, comp => comp.NumFinishedStacks > 0, "Cells resolve + Party stacks")
                 .ActivateOnEnter<UnholyDarkness>() // activates ~1s after cast end
                 .DeactivateOnExit<UnholyDarkness>()
                 .DeactivateOnExit<Polyominoid>(); // resolves in the same frame
@@ -182,7 +182,7 @@
                 .ActivateOnEnter<UnholyDarkness>() // activates ~0.1s after cast start
                 .ActivateOnEnter<Exocleaver>()
                 .DeactivateOnExit<Polyominoid>(); // resolves ~0.2s before cast end
-            ComponentCondition<UnholyDarkness>(id + 0x30, 2.2f, comp => comp.NumCasts > 0, "Party stacks")
+            ComponentCondition<UnholyDarkness>(id + 0x30, 2.2f, comp => comp.NumFinishedStacks > 0, "Party stacks")
                 .DeactivateOnExit<UnholyDarkness>();
             ComponentCondition<Exocleaver>(id + 0x31, 0.4f, comp => comp.NumCasts > 0, "Pizzas 2")
                 .DeactivateOnExit<Exocleaver>();

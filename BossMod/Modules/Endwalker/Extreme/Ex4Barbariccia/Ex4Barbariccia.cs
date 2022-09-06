@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
+﻿namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
 {
     class RagingStorm : Components.CastCounter
     {
         public RagingStorm() : base(ActionID.MakeSpell(AID.RagingStorm)) { }
+    }
+
+    class HairFlayUpbraid : Components.CastStackSpread
+    {
+        public HairFlayUpbraid() : base(ActionID.MakeSpell(AID.Upbraid), ActionID.MakeSpell(AID.HairFlay), 3, 10, maxStackSize: 2) { }
     }
 
     class CurlingIron : Components.CastCounter
@@ -34,11 +33,6 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
     class SecretBreezeProteans : Components.SimpleProtean
     {
         public SecretBreezeProteans() : base(ActionID.MakeSpell(AID.SecretBreezeProtean), new AOEShapeCone(40, 22.5f.Degrees())) { }
-    }
-
-    class BrutalGust : Components.SelfTargetedAOEs
-    {
-        public BrutalGust() : base(ActionID.MakeSpell(AID.BrutalGust), new AOEShapeRect(40, 2)) { }
     }
 
     class WarningGale : Components.SelfTargetedAOEs
@@ -74,6 +68,51 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
     class TornadoChainOuter : Components.SelfTargetedAOEs
     {
         public TornadoChainOuter() : base(ActionID.MakeSpell(AID.TornadoChainOuter), new AOEShapeDonut(11, 20)) { }
+    }
+
+    class KnuckleDrum : Components.CastCounter
+    {
+        public KnuckleDrum() : base(ActionID.MakeSpell(AID.KnuckleDrum)) { }
+    }
+
+    class KnuckleDrumLast : Components.CastCounter
+    {
+        public KnuckleDrumLast() : base(ActionID.MakeSpell(AID.KnuckleDrumLast)) { }
+    }
+
+    class BlowAwayRaidwide : Components.CastCounter
+    {
+        public BlowAwayRaidwide() : base(ActionID.MakeSpell(AID.BlowAwayRaidwide)) { }
+    }
+
+    class BlowAwayPuddle : Components.SelfTargetedAOEs
+    {
+        public BlowAwayPuddle() : base(ActionID.MakeSpell(AID.BlowAwayPuddle), new AOEShapeCircle(6)) { }
+    }
+
+    class ImpactAOE : Components.SelfTargetedAOEs
+    {
+        public ImpactAOE() : base(ActionID.MakeSpell(AID.ImpactAOE), new AOEShapeCircle(6)) { }
+    }
+
+    class ImpactKnockback : CommonComponents.KnockbackFromCaster
+    {
+        public ImpactKnockback() : base(ActionID.MakeSpell(AID.ImpactKnockback), 6) { }
+    }
+
+    class BlusteryRuler : Components.SelfTargetedAOEs
+    {
+        public BlusteryRuler() : base(ActionID.MakeSpell(AID.BlusteryRuler), new AOEShapeCircle(6)) { }
+    }
+
+    class DryBlowsRaidwide : Components.CastCounter
+    {
+        public DryBlowsRaidwide() : base(ActionID.MakeSpell(AID.DryBlowsRaidwide)) { }
+    }
+
+    class DryBlowsPuddle : Components.LocationTargetedAOEs
+    {
+        public DryBlowsPuddle() : base(ActionID.MakeSpell(AID.DryBlowsPuddle), 3) { }
     }
 
     public class Ex4Barbariccia : BossModule

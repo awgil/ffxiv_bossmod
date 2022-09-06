@@ -67,13 +67,8 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
         }
     }
 
-    class HairSpray : Components.SpreadFromCastTargets
+    class HairSprayDeadlyTwist : Components.CastStackSpread
     {
-        public HairSpray() : base(ActionID.MakeSpell(AID.HairSpray), 5) { }
-    }
-
-    class DeadlyTwist : Components.StackWithCastTargets
-    {
-        public DeadlyTwist() : base(ActionID.MakeSpell(AID.DeadlyTwist), 6) { }
+        public HairSprayDeadlyTwist() : base(ActionID.MakeSpell(AID.DeadlyTwist), ActionID.MakeSpell(AID.HairSpray), 6, 5, 4) { }
     }
 }

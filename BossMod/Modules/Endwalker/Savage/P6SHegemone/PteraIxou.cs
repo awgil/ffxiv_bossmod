@@ -58,4 +58,9 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
                 yield return -90.Degrees();
         }
     }
+
+    class PteraIxouSpreadStack : Components.CastStackSpread
+    {
+        public PteraIxouSpreadStack() : base(ActionID.MakeSpell(AID.PteraIxouUnholyDarkness), ActionID.MakeSpell(AID.PteraIxouDarkSphere), 6, 10, 3) { }
+    }
 }
