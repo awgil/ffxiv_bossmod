@@ -27,10 +27,14 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
         VoidAeroTankbuster = 30065, // Boss->player, 5.0s cast, range 5 circle aoe tankbuster
         RagingStorm = 30066, // Boss->location, no cast, raidwide + teleport
 
-        SavageBarberyDonut = 29797, // Boss->self, 6.0s cast, single-target, visual
+        SavageBarberyDonut1 = 29796, // Boss->self, 6.0s cast, single-target, visual
+        SavageBarberyDonut2 = 29797, // Boss->self, 6.0s cast, single-target, visual
+        SavageBarberyDonut3 = 29798, // Boss->self, 6.0s cast, single-target, visual
+        SavageBarberyDonut4 = 30067, // Boss->self, 6.0s cast, single-target, visual
         SavageBarberyDonutAOE = 30068, // Helper->self, 7.0s cast, range 6-20 donut
         SavageBarberyDonutSword = 30069, // Helper->self, 9.1s cast, range 20 circle
-        SavageBarberyRect = 29833, // Boss->self, 6.0s cast, single-target, visual
+        SavageBarberyRect1 = 29833, // Boss->self, 6.0s cast, single-target, visual
+        SavageBarberyRect2 = 29835, // Boss->self, 6.0s cast, single-target, visual
         SavageBarberyRectAOE = 30074, // Helper->self, 7.0s cast, range 40 width 12 rect
         SavageBarberyRectSword = 30075, // Helper->self, 9.1s cast, range 20 circle
         //BrushWithDeathSavageBarbery = 30116, // Boss->self, no cast, single-target, visual ???
@@ -46,6 +50,7 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
         Tangle = 30123, // Helper->self, 4.6s cast, range 6 circle aoe
         TangleKnockback = 30124, // Helper->player, no cast, single-target, knockback 9
         TangleFail = 29567, // Helper->player, no cast, single-target, knockback 20 on people leaving tangle zone
+        FettersKnockback = 30127, // Helper->player, no cast, single-target, knockback 9 after fetters during entanglement
         Fetters = 30128, // Helper->player, no cast, single-target, applies fetters status
         //BrushWithDeathTangle = 30115, // Boss->self, no cast, single-target, visual ???
         HairFlay = 29715, // Helper->players, 8.0s cast, range 10 circle spread
@@ -103,27 +108,28 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
         DryBlowsRaidwide = 30099, // Boss->self, no cast, raidwide
         DryBlowsPuddle = 30100, // Helper->location, 3.0s cast, range 3 circle puddle
 
-        //_Gen_SavageBarbery = 29835, // Boss->self, 6.0s cast, single-target
-        //_Gen_SavageBarbery = 29796, // Boss->self, 6.0s cast, single-target
-        //_Gen_SavageBarbery = 29798, // Boss->self, 6.0s cast, single-target
-        //_Gen_IronOut = 30133, // Boss->self, no cast, single-target
-        //_Gen_IronOut = 29781, // Helper->self, no cast, range 40 circle
-        //_Gen_Entanglement = 30125, // Boss->self, 4.0s cast, single-target
-        //_Gen_ = 30127, // Helper->player, no cast, single-target
+        IronOut = 30133, // Boss->self, no cast, single-target, visual
+        IronOutAOE = 29781, // Helper->self, no cast, raidwide
+        Entanglement = 30125, // Boss->self, 4.0s cast, single-target, visual
+
         Maelstrom = 30142, // Boss->self, 9.0s cast, enrage
     };
 
     public enum TetherID : uint
     {
-        Tangle = 199, // player->Tangle
         BrutalRush = 17, // player->Boss
-        //_Gen_Tether_210 = 210, // player->player
+        Tangle = 199, // player->Tangle
+        Entanglement = 210, // player->player
     };
 
     public enum IconID : uint
     {
         Trample = 100, // player
         BoldBoulder = 346, // player
+        EntanglementCircle = 367, // player
+        EntanglementTriangle = 368, // player
+        EntanglementSquare = 369, // player
+        EntanglementCross = 370, // player
         //_Gen_Icon_345 = 345, // player
         //_Gen_Icon_343 = 343, // player
         //_Gen_Icon_347 = 347, // player
@@ -131,9 +137,5 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
         //_Gen_Icon_259 = 259, // player
         //_Gen_Icon_365 = 365, // player
         //_Gen_Icon_371 = 371, // player
-        //_Gen_Icon_368 = 368, // player
-        //_Gen_Icon_370 = 370, // player
-        //_Gen_Icon_367 = 367, // player
-        //_Gen_Icon_369 = 369, // player
     };
 }

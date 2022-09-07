@@ -115,6 +115,11 @@
         public DryBlowsPuddle() : base(ActionID.MakeSpell(AID.DryBlowsPuddle), 3) { }
     }
 
+    class IronOut : Components.CastCounter
+    {
+        public IronOut() : base(ActionID.MakeSpell(AID.IronOutAOE)) { }
+    }
+
     public class Ex4Barbariccia : BossModule
     {
         public Ex4Barbariccia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
