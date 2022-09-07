@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Dalamud.Interface;
+using Dalamud.Utility;
+using ImGuiNET;
+using System;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace BossMod
@@ -38,6 +42,36 @@ namespace BossMod
             ViewportSize = ReadVec2(matrixSingleton + 0x1f4);
         }
 
+        public void BeginWorldWindow(string name)
+        {
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
+            ImGuiHelpers.ForceNextWindowMainViewport();
+            ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(0, 0));
+            ImGui.Begin(name, ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground);
+            ImGui.SetWindowSize(ImGui.GetIO().DisplaySize);
+        }
+
+        public void EndWorldWindow()
+        {
+            ImGui.End();
+            ImGui.PopStyleVar();
+        }
+
+        public void DrawWorldLine(Vector3 start, Vector3 end, uint color)
+        {
+            var p1 = start.ToSharpDX();
+            var p2 = end.ToSharpDX();
+            if (!ClipLineToNearPlane(ref p1, ref p2))
+                return;
+
+            p1 = SharpDX.Vector3.TransformCoordinate(p1, ViewProj);
+            p2 = SharpDX.Vector3.TransformCoordinate(p2, ViewProj);
+            var p1screen = new Vector2(0.5f * ViewportSize.X * (1 + p1.X), 0.5f * ViewportSize.Y * (1 - p1.Y)) + ImGuiHelpers.MainViewport.Pos;
+            var p2screen = new Vector2(0.5f * ViewportSize.X * (1 + p2.X), 0.5f * ViewportSize.Y * (1 - p2.Y)) + ImGuiHelpers.MainViewport.Pos;
+            ImGui.GetWindowDrawList().AddLine(p1screen, p2screen, color);
+            //ImGui.GetWindowDrawList().AddText(p1screen, color, $"({p1.X:f3},{p1.Y:f3},{p1.Z:f3}) -> ({p2.X:f3},{p2.Y:f3},{p2.Z:f3})");
+        }
+
         private unsafe SharpDX.Matrix ReadMatrix(IntPtr address)
         {
             var p = (float*)address;
@@ -51,6 +85,27 @@ namespace BossMod
         {
             var p = (float*)address;
             return new(p[0], p[1]);
+        }
+
+        private bool ClipLineToNearPlane(ref SharpDX.Vector3 a, ref SharpDX.Vector3 b)
+        {
+            var n = ViewProj.Column3; // near plane
+            var an = SharpDX.Vector4.Dot(new(a, 1), n);
+            var bn = SharpDX.Vector4.Dot(new(b, 1), n);
+            if (an <= 0 && bn <= 0)
+                return false;
+
+            if (an < 0 || bn < 0)
+            {
+                var ab = b - a;
+                var abn = SharpDX.Vector3.Dot(ab, new(n.X, n.Y, n.Z));
+                var t = -an / abn;
+                if (an < 0)
+                    a = a + t * ab;
+                else
+                    b = a + t * ab;
+            }
+            return true;
         }
     }
 }

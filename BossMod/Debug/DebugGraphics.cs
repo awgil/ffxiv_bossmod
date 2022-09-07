@@ -18,6 +18,9 @@ namespace BossMod
 
         private bool _showGraphicsLeafCharactersOnly = true;
         private Dictionary<IntPtr, WatchedRenderObject> _watchedRenderObjects = new();
+        private Vector2 _overlayCenter = new(100, 100);
+        private Vector2 _overlayStep = new(2, 2);
+        private Vector2 _overlayMaxOffset = new(20, 20);
 
         public unsafe void DrawSceneTree()
         {
@@ -290,6 +293,32 @@ namespace BossMod
             ImGui.TextUnformatted($"{mtx[4]:f6} {mtx[5]:f6} {mtx[6]:f6} {mtx[7]:f6}");
             ImGui.TextUnformatted($"{mtx[8]:f6} {mtx[9]:f6} {mtx[10]:f6} {mtx[11]:f6}");
             ImGui.TextUnformatted($"{mtx[12]:f6} {mtx[13]:f6} {mtx[14]:f6} {mtx[15]:f6}");
+        }
+
+        public void DrawOverlay()
+        {
+            if (Camera.Instance == null || Service.ClientState.LocalPlayer == null)
+                return;
+
+            ImGui.DragFloat2("Center", ref _overlayCenter);
+            ImGui.DragFloat2("Step", ref _overlayStep);
+            ImGui.DragFloat2("Max offset", ref _overlayMaxOffset);
+
+            int mx = (int)(_overlayMaxOffset.X / _overlayStep.X);
+            int mz = (int)(_overlayMaxOffset.Y / _overlayStep.Y);
+            float y = Service.ClientState.LocalPlayer.Position.Y;
+            Camera.Instance.BeginWorldWindow("debug_overlay");
+            for (int ix = -mx; ix <= mx; ++ix)
+            {
+                var x = _overlayCenter.X + ix * _overlayStep.X;
+                Camera.Instance.DrawWorldLine(new(x, y, _overlayCenter.Y - _overlayMaxOffset.Y), new(x, y, _overlayCenter.Y + _overlayMaxOffset.Y), ArenaColor.PC);
+            }
+            for (int iz = -mz; iz <= mz; ++iz)
+            {
+                var z = _overlayCenter.Y + iz * _overlayStep.Y;
+                Camera.Instance.DrawWorldLine(new(_overlayCenter.X - _overlayMaxOffset.X, y, z), new(_overlayCenter.X + _overlayMaxOffset.X, y, z), ArenaColor.PC);
+            }
+            Camera.Instance.EndWorldWindow();
         }
 
         public static unsafe FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* FindSceneRoot()

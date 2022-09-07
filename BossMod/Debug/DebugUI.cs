@@ -91,6 +91,10 @@ namespace BossMod
             {
                 _debugGraphics.DrawMatrices();
             }
+            if (Camera.Instance != null && ImGui.CollapsingHeader("In-game overlay"))
+            {
+                _debugGraphics.DrawOverlay();
+            }
             if (ImGui.CollapsingHeader("Action manager ex"))
             {
                 _debugAction.DrawActionManagerEx();
