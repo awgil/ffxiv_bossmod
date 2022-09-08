@@ -24,6 +24,7 @@ namespace BossMod
         public event EventHandler<(ulong actorID, ulong targetID, uint tetherID)>? EventActorControlTether;
         public event EventHandler<ulong>? EventActorControlTetherCancel;
         public event EventHandler<(ulong actorID, ushort p1, ushort p2)>? EventActorControlEObjAnimation;
+        public event EventHandler<(ulong actorID, ushort actionTimelineID)>? EventActorControlPlayActionTimeline;
         public event EventHandler<(ulong actorID, uint actionID, uint sourceSequence)>? EventActorControlSelfActionRejected;
         public event EventHandler<(uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4)>? EventActorControlSelfDirectorUpdate;
         public event EventHandler<(uint directorID, byte index, uint state)>? EventEnvControl;
@@ -272,6 +273,9 @@ namespace BossMod
                     break;
                 case Protocol.Server_ActorControlCategory.EObjAnimation:
                     EventActorControlEObjAnimation?.Invoke(this, (actorID, (ushort)p->param1, (ushort)p->param2));
+                    break;
+                case Protocol.Server_ActorControlCategory.PlayActionTimeline:
+                    EventActorControlPlayActionTimeline?.Invoke(this, (actorID, (ushort)p->param1));
                     break;
             }
         }

@@ -405,5 +405,19 @@ namespace BossMod
 
             public override string Str(WorldState? ws) => $"EANM|{StrActor(ws, InstanceID)}|{Param1:X4}|{Param2:X4}";
         }
+
+        // TODO: this needs more reversing...
+        public event EventHandler<(Actor, ushort)>? PlayActionTimelineEvent;
+        public class OpPlayActionTimelineEvent : Operation
+        {
+            public ushort ActionTimelineID;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
+            {
+                ws.Actors.PlayActionTimelineEvent?.Invoke(ws, (actor, ActionTimelineID));
+            }
+
+            public override string Str(WorldState? ws) => $"PATE|{StrActor(ws, InstanceID)}|{ActionTimelineID:X4}";
+        }
     }
 }

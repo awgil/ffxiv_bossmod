@@ -86,6 +86,7 @@ namespace UIDev
                 case "STA!": ParseActorStatus(payload, true); break;
                 case "ICON": ParseActorIcon(payload); break;
                 case "EANM": ParseActorEventObjectAnimation(payload); break;
+                case "PATE": ParseActorPlayActionTimelineEvent(payload); break;
                 case "PAR ": ParsePartyModify(payload); break;
                 case "PAR+": ParsePartyJoin(payload); break; // legacy (up to v3)
                 case "PAR-": ParsePartyLeave(payload); break; // legacy (up to v3)
@@ -322,6 +323,11 @@ namespace UIDev
         private void ParseActorEventObjectAnimation(string[] payload)
         {
             AddOp(new ActorState.OpEventObjectAnimation() { InstanceID = ActorID(payload[2]), Param1 = ushort.Parse(payload[3], NumberStyles.HexNumber), Param2 = ushort.Parse(payload[4], NumberStyles.HexNumber) });
+        }
+
+        private void ParseActorPlayActionTimelineEvent(string[] payload)
+        {
+            AddOp(new ActorState.OpPlayActionTimelineEvent() { InstanceID = ActorID(payload[2]), ActionTimelineID = ushort.Parse(payload[3], NumberStyles.HexNumber) });
         }
 
         private void ParsePartyModify(string[] payload)

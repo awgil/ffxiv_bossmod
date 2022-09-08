@@ -342,6 +342,7 @@ namespace BossMod
             RelicInfuseMsg = 377, // from dissector
             PlayerCurrency = 378, // from dissector
             AetherReductionDlg = 381, // from dissector
+            PlayActionTimeline = 407, // seems to be equivalent to 412?..
             EObjSetState = 409, // from dissector
             Unk6 = 412, // from dissector
             EObjAnimation = 413, // from dissector
