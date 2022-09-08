@@ -5,7 +5,7 @@ using System.Linq;
 namespace BossMod.Components
 {
     // generic 'exaflare' component - these mechanics are a bunch of moving aoes, with different lines either staggered or moving with different speed
-    public class Exaflare : BossComponent
+    public class Exaflare : GenericAOEs
     {
         public class Line
         {
@@ -20,39 +20,16 @@ namespace BossMod.Components
         public AOEShapeCircle Shape { get; private init; }
         protected List<Line> Lines = new();
 
-        public Exaflare(float radius)
+        public Exaflare(float radius, ActionID watchedAction = new()) : base(watchedAction)
         {
             Shape = new(radius);
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (Lines.Any(l => ImminentAOEs(module, l).Any(c => Shape.Check(actor.Position, c.Item1))))
-            {
-                hints.Add("GTFO from aoe!");
-            }
-        }
-
-        public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
         {
             foreach (var l in Lines)
-            {
                 foreach (var (c, t) in ImminentAOEs(module, l))
-                {
-                    zone.ForbidZone(Shape, c, new(), t);
-                }
-            }
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            foreach (var l in Lines)
-            {
-                foreach (var (c, _) in ImminentAOEs(module, l))
-                {
-                    Shape.Draw(arena, c);
-                }
-            }
+                    yield return (Shape, c, new(), t);
         }
 
         protected IEnumerable<(WPos, DateTime)> ImminentAOEs(BossModule module, Line l)
