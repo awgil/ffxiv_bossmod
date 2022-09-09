@@ -121,6 +121,7 @@ namespace BossMod
             WorldState.Actors.IconAppeared += OnActorIcon;
             WorldState.Actors.CastEvent += OnActorCastEvent;
             WorldState.Actors.EventObjectAnimation += OnActorEAnim;
+            WorldState.Actors.PlayActionTimelineEvent += OnActorPlayActionTimelineEvent;
             WorldState.EnvControl += OnEnvControl;
             foreach (var v in WorldState.Actors)
                 OnActorCreated(null, v);
@@ -153,6 +154,7 @@ namespace BossMod
                 WorldState.Actors.IconAppeared -= OnActorIcon;
                 WorldState.Actors.CastEvent -= OnActorCastEvent;
                 WorldState.Actors.EventObjectAnimation -= OnActorEAnim;
+                WorldState.Actors.PlayActionTimelineEvent -= OnActorPlayActionTimelineEvent;
                 WorldState.EnvControl -= OnEnvControl;
             }
         }
@@ -444,6 +446,12 @@ namespace BossMod
             uint state = ((uint)arg.p1 << 16) | arg.p2;
             foreach (var comp in _components)
                 comp.OnActorEAnim(this, arg.actor, state);
+        }
+
+        private void OnActorPlayActionTimelineEvent(object? sender, (Actor actor, ushort id) arg)
+        {
+            foreach (var comp in _components)
+                comp.OnActorPlayActionTimelineEvent(this, arg.actor, arg.id);
         }
 
         private void OnEnvControl(object? sender, WorldState.OpEnvControl op)

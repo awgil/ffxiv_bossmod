@@ -45,30 +45,8 @@
         public HemitheosGlareMine() : base(ActionID.MakeSpell(AID.HemitheosGlareMine), new AOEShapeDonut(5, 30)) { } // TODO: verify inner radius
     }
 
-    // TODO: these should be a part of forbidden fruit component
-    class StaticMoon : Components.SelfTargetedAOEs
-    {
-        public StaticMoon() : base(ActionID.MakeSpell(AID.StaticMoon), new AOEShapeCircle(10)) { }
-    }
-
-    class StymphalianStrike : Components.SelfTargetedAOEs
-    {
-        public StymphalianStrike() : base(ActionID.MakeSpell(AID.StymphalianStrike), new AOEShapeRect(60, 4)) { }
-    }
-
     public class P7S : BossModule
     {
         public P7S(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 27)) { }
-
-        //protected override void DrawEnemies(int pcSlot, Actor pc)
-        //{
-        //    base.DrawEnemies(pcSlot, pc);
-        //    foreach (var e in Enemies(OID.ImmatureIo))
-        //        Arena.Actor(e, 0xffffff00);
-        //    foreach (var e in Enemies(OID.ImmatureStymphalide))
-        //        Arena.Actor(e, 0xff00ffff);
-        //    foreach (var e in Enemies(OID.ImmatureMinotaur))
-        //        Arena.Actor(e, 0xffff00ff);
-        //}
     }
 }

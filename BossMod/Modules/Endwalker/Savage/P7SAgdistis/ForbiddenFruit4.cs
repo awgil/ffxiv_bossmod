@@ -1,4 +1,6 @@
-﻿namespace BossMod.Endwalker.Savage.P7SAgdistis
+﻿using System;
+
+namespace BossMod.Endwalker.Savage.P7SAgdistis
 {
     // TODO: improve (add hints? show aoes?)
     class ForbiddenFruit4 : ForbiddenFruitCommon
@@ -12,12 +14,12 @@
             if (NumAssignedTethers == 0)
                 return;
 
-            WDir destOffset = new();
             var tetherSource = TetherSources[pcSlot];
             if (tetherSource != null)
             {
                 arena.AddLine(tetherSource.Position, pc.Position, TetherColor(tetherSource));
 
+                WDir destOffset;
                 if ((OID)tetherSource.OID == OID.BullTetherSource)
                 {
                     destOffset = PlatformDirection(_bullPlatform).ToDirection();
@@ -30,17 +32,19 @@
                         destPlatform = NextPlatform(destPlatform);
                     destOffset = PlatformDirection(destPlatform).ToDirection();
                 }
+                arena.AddCircle(module.Bounds.Center + destOffset * Border.SmallPlatformOffset, Border.SmallPlatformRadius, ArenaColor.Safe);
             }
-            arena.AddCircle(module.Bounds.Center + destOffset * Border.SmallPlatformOffset, Border.SmallPlatformRadius, ArenaColor.Safe);
+            else if (!MinotaursBaited)
+            {
+                arena.AddCircle(module.Bounds.Center - 2 * PlatformDirection(_bullPlatform).ToDirection(), 2, ArenaColor.Safe);
+            }
         }
 
-        public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+        protected override DateTime? PredictUntetheredCastStart(BossModule module, Actor fruit)
         {
-            base.OnTethered(module, source, tether);
-            if ((TetherID)tether.ID == TetherID.Bull)
-            {
-                _bullPlatform = PlatformIDFromOffset(source.Position - module.Bounds.Center);
-            }
+            if ((OID)fruit.OID == OID.ForbiddenFruitBull)
+                _bullPlatform = PlatformIDFromOffset(fruit.Position - module.Bounds.Center);
+            return null;
         }
     }
 }

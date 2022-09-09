@@ -4,16 +4,15 @@
     {
         Boss = 0x3A2D, // x1
         Helper = 0x233C, // x22
+        ForbiddenFruitBull = 0x3A2E, // x3
+        ForbiddenFruitBird = 0x3A2F, // x4
+        ForbiddenFruitMinotaur = 0x3A30, // x6
         ImmatureIo = 0x3A31, // x3, bull
         ImmatureStymphalide = 0x3A32, // x4, bird
         ImmatureMinotaur = 0x3A33, // x6, minotaur
         BridgeDestroyer = 0x3A34, // x3
         BullTetherSource = 0x3AD9, // x9
         Tower = 0x1EB793, // EventObj type, spawn during fight
-        //_Gen_ForbiddenFruit = 0x3A30, // x6
-        //_Gen_ForbiddenFruit = 0x3A2F, // x4
-        //_Gen_ForbiddenFruit = 0x3A2E, // x3
-        //_Gen_Actor1ea1a1 = 0x1EA1A1, // x1, EventObj type
     };
 
     public enum AID : uint
@@ -31,7 +30,7 @@
         BladesOfAttisFirst = 30767, // Helper->self, 7.5s cast, range 7 circle exaflare
         BladesOfAttisRest = 30768, // Helper->self, no cast, range 7 circle exaflare
         ImmortalsObol = 30732, // Boss->self, 5.5s cast, single-target, visual
-        ImmortalsObolAOE = 30733, // Helper->self, 7.5s cast, raidwide
+        ImmortalsObolAOE = 30733, // Helper->self, 7.5s cast, aoe with ~15 falloff
         ForbiddenFruit = 30736, // Boss->self, 4.0s cast, single-target, visual
         ForbiddenFruitInvis = 30737, // Boss->self, 3.0s cast, single-target, visual (followup, invisible cast bar)
         HemitheosHoly = 30778, // Boss->self, 3.0s cast, single-target, visual
@@ -73,7 +72,7 @@
         StaticPathAOE = 30740, // Helper->self, no cast, range 60 width 8 rect aoe (tethered bull)
         StymphalianStrike = 30741, // ImmatureStymphalide->self, 3.0s cast, range 60 width 8 rect aoe (untethered bird)
         BronzeBellows = 30742, // ImmatureStymphalide->self, no cast, range 60 width 8 rect aoe (tethered bird)
-        BullishSlash = 30743, // ImmatureMinotaur->self, no cast, range 60 45?-degree cone (tethered minotaur)
+        BullishSlash = 30743, // ImmatureMinotaur->self, no cast, range 60 45-degree cone (tethered minotaur)
         BullishSwipe = 30744, // ImmatureMinotaur->self, 2.5s cast, single-target, visual (untethered minotaur)
         BullishSwipeAOE = 30745, // Helper->self, 3.0s cast, range 60 90-degree cone aoe (baited from untethered minotaur)
     };
