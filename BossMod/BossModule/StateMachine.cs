@@ -157,8 +157,8 @@ namespace BossMod
             var timeLeft = MathF.Max(0, start.Duration - timeActive);
             if (writeTime && res.Length > 0)
             {
-                writeTime = false;
                 res.Append($" in {timeLeft:f1}s");
+                timeLeft = 0;
             }
 
             while (start.EndHint.HasFlag(StateHint.GroupWithNext) && start.Next != null)
@@ -171,15 +171,15 @@ namespace BossMod
                         res.Append(" + ");
                     res.Append(start.Name);
 
-                    if (writeTime)
+                    if (writeTime && timeLeft > 0)
                     {
-                        writeTime = false;
                         res.Append($" in {timeLeft:f1}s");
+                        timeLeft = 0;
                     }
                 }
             }
 
-            if (writeTime)
+            if (writeTime && timeLeft > 0)
             {
                 if (res.Length == 0)
                     res.Append("???");
