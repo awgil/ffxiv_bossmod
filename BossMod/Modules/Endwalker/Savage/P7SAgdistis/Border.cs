@@ -12,30 +12,30 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
         private bool _bridgeW;
         private bool _bridgeCenter;
 
-        private const float _largePlatformRadius = 20;
-        private const float _smallPlatformRadius = 10;
-        private const float _smallPlatformOffset = 16.5f;
-        private const float _bridgeHalfWidth = 4;
-        private static WDir _platformSOffset = _smallPlatformOffset * new WDir(0, 1);
-        private static WDir _platformEOffset = _smallPlatformOffset * 120.Degrees().ToDirection();
-        private static WDir _platformWOffset = _smallPlatformOffset * (-120.Degrees()).ToDirection();
-        private static float _bridgeStartOffset = MathF.Sqrt(_smallPlatformRadius * _smallPlatformRadius - _bridgeHalfWidth * _bridgeHalfWidth);
-        private static float _bridgeCenterOffset = _bridgeHalfWidth / 60.Degrees().Tan();
+        public const float LargePlatformRadius = 20;
+        public const float SmallPlatformRadius = 10;
+        public const float SmallPlatformOffset = 16.5f;
+        public const float BridgeHalfWidth = 4;
+        public static WDir PlatformSOffset { get; } = SmallPlatformOffset * new WDir(0, 1);
+        public static WDir PlatformEOffset { get; } = SmallPlatformOffset * 120.Degrees().ToDirection();
+        public static WDir PlatformWOffset { get; } = SmallPlatformOffset * (-120.Degrees()).ToDirection();
+        public static float BridgeStartOffset { get; } = MathF.Sqrt(SmallPlatformRadius * SmallPlatformRadius - BridgeHalfWidth * BridgeHalfWidth);
+        public static float BridgeCenterOffset { get; } = BridgeHalfWidth / 60.Degrees().Tan();
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (!_threePlatforms)
             {
-                arena.AddCircle(module.Bounds.Center, _largePlatformRadius, ArenaColor.Border);
+                arena.AddCircle(module.Bounds.Center, LargePlatformRadius, ArenaColor.Border);
             }
             else
             {
-                var cs = module.Bounds.Center + _platformSOffset;
-                var ce = module.Bounds.Center + _platformEOffset;
-                var cw = module.Bounds.Center + _platformWOffset;
-                arena.AddCircle(cs, _smallPlatformRadius, ArenaColor.Border);
-                arena.AddCircle(ce, _smallPlatformRadius, ArenaColor.Border);
-                arena.AddCircle(cw, _smallPlatformRadius, ArenaColor.Border);
+                var cs = module.Bounds.Center + PlatformSOffset;
+                var ce = module.Bounds.Center + PlatformEOffset;
+                var cw = module.Bounds.Center + PlatformWOffset;
+                arena.AddCircle(cs, SmallPlatformRadius, ArenaColor.Border);
+                arena.AddCircle(ce, SmallPlatformRadius, ArenaColor.Border);
+                arena.AddCircle(cw, SmallPlatformRadius, ArenaColor.Border);
                 if (_bridgeN)
                 {
                     DrawBridge(arena, ce, cw, false);
@@ -95,9 +95,9 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
         private void DrawBridge(MiniArena arena, WPos p1, WPos p2, bool p2center)
         {
             var dir = (p2 - p1).Normalized();
-            var p1adj = p1 + dir * _bridgeStartOffset;
-            var p2adj = p2 - dir * (p2center ? _bridgeCenterOffset : _bridgeStartOffset);
-            var ortho = dir.OrthoL() * _bridgeHalfWidth;
+            var p1adj = p1 + dir * BridgeStartOffset;
+            var p2adj = p2 - dir * (p2center ? BridgeCenterOffset : BridgeStartOffset);
+            var ortho = dir.OrthoL() * BridgeHalfWidth;
             arena.AddLine(p1adj + ortho, p2adj + ortho, ArenaColor.Border);
             arena.AddLine(p1adj - ortho, p2adj - ortho, ArenaColor.Border);
         }

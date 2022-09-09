@@ -20,14 +20,29 @@
         public BoughOfAttisSide() : base(ActionID.MakeSpell(AID.BoughOfAttisSideAOE), new AOEShapeRect(50, 12.5f)) { }
     }
 
-    class HemitheosAeroKnockback : CommonComponents.KnockbackFromCaster
+    class HemitheosAeroKnockback1 : CommonComponents.KnockbackFromCaster
     {
-        public HemitheosAeroKnockback() : base(ActionID.MakeSpell(AID.HemitheosAeroKnockback), 10) { } // TODO: verify distance...
+        public HemitheosAeroKnockback1() : base(ActionID.MakeSpell(AID.HemitheosAeroKnockback1), 16) { } // TODO: verify distance...
+    }
+
+    class HemitheosAeroKnockback2 : CommonComponents.KnockbackFromCaster
+    {
+        public HemitheosAeroKnockback2() : base(ActionID.MakeSpell(AID.HemitheosAeroKnockback2), 16) { }
     }
 
     class HemitheosHolySpread : Components.SpreadFromCastTargets
     {
         public HemitheosHolySpread() : base(ActionID.MakeSpell(AID.HemitheosHolySpread), 6) { }
+    }
+
+    class HemitheosTornado : Components.SelfTargetedAOEs
+    {
+        public HemitheosTornado() : base(ActionID.MakeSpell(AID.HemitheosTornado), new AOEShapeCircle(25)) { }
+    }
+
+    class HemitheosGlareMine : Components.SelfTargetedAOEs
+    {
+        public HemitheosGlareMine() : base(ActionID.MakeSpell(AID.HemitheosGlareMine), new AOEShapeDonut(5, 30)) { } // TODO: verify inner radius
     }
 
     // TODO: these should be a part of forbidden fruit component
