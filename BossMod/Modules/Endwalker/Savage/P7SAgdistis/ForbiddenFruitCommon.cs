@@ -22,7 +22,7 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
 
         public ForbiddenFruitCommon(ActionID watchedAction) : base(watchedAction) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var (source, shape, time) in _predictedAOEs)
                 yield return (shape, source.Position, source.Rotation, time);

@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
     // this includes venom pools and raging claw/searing ray aoes
     class RubyGlow4 : RubyGlowRecolor
     {
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (CurRecolorState != RecolorState.BeforeStones && MagicStones.Any())
                 yield return (ShapeHalf, module.Bounds.Center, Angle.FromDirection(QuadrantDir(AOEQuadrant)), module.WorldState.CurrentTime);

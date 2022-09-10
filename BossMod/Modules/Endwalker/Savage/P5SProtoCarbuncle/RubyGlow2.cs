@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
         // note: we start showing magic aoe only after double rush resolve
         public RubyGlow2() : base(ActionID.MakeSpell(AID.DoubleRush)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             // TODO: correct explosion time
             var magic = NumCasts > 0 ? MagicStones.FirstOrDefault() : null;

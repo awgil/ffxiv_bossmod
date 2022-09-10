@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
 
         public ClawTail() : base(new()) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             var rotation = module.PrimaryActor.CastInfo?.Rotation ?? module.PrimaryActor.Rotation;
             if (_tailFirst ? Progress == 0 : Progress >= 7)

@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
 
         public Exocleaver() : base(ActionID.MakeSpell(AID.ExocleaverAOE2)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (NumCasts > 0)
                 yield break;

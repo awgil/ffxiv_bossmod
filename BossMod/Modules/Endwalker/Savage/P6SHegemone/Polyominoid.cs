@@ -22,7 +22,7 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
 
         public Polyominoid() : base(ActionID.MakeSpell(AID.PolyominousDark)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             // TODO: timing...
             return _dangerCells.SetBits().Select(index => (_shape, IndexToPosition(index), 0.Degrees(), module.WorldState.CurrentTime));

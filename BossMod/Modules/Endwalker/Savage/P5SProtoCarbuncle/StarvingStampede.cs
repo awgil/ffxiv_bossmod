@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
 
         public StarvingStampede() : base(ActionID.MakeSpell(AID.StarvingStampede)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             // TODO: timings...
             return _positions.Skip(NumCasts).Take(3).Select(p => (_shape, p, new Angle(), module.WorldState.CurrentTime));

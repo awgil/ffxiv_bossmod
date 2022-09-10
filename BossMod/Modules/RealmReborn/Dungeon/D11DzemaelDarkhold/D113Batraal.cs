@@ -44,7 +44,7 @@ namespace BossMod.RealmReborn.Dungeon.D11DzemaelDarkhold.D113Batraal
 
         public SeaOfPitch() : base(ActionID.MakeSpell(AID.SeaOfPitch)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             // TODO: proper timings...
             return module.Enemies(OID.VoidPitch).Where(a => !a.IsDead).Select(a => (_shape, a.Position, new Angle(), module.WorldState.CurrentTime));

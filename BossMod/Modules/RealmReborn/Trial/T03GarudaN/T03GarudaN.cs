@@ -65,7 +65,7 @@ namespace BossMod.RealmReborn.Trial.T03GarudaN
 
         public EyeOfTheStorm() : base(ActionID.MakeSpell(AID.AerialBlast)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (NumCasts > 0)
                 foreach (var c in module.Enemies(OID.EyeOfTheStormHelper))

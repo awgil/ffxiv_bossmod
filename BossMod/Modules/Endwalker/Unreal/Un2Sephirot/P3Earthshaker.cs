@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
 
         public P3Earthshaker() : base(ActionID.MakeSpell(AID.EarthShakerAOE)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             var origin = module.Enemies(OID.BossP3).FirstOrDefault();
             if (origin == null)

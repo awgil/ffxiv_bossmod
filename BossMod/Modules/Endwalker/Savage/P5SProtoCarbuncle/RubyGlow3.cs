@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
         // note: it's somewhat simpler to count casts rather than activating/deactivating stones
         public RubyGlow3() : base(ActionID.MakeSpell(AID.RubyReflectionQuarter)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             var aoeQuadrants = NumCasts switch
             {

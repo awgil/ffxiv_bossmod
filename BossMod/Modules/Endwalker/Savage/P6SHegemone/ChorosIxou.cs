@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
 
         public ChorosIxou() : base(new()) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (SecondDone)
                 yield break;

@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
 
         public EinSof() : base(ActionID.MakeSpell(AID.EinSofAOE)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             return _active.Select(p => (_shape, p.Position, 0.Degrees(), module.WorldState.CurrentTime));
         }

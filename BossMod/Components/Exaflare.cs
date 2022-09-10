@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod.Components
 {
@@ -20,12 +19,12 @@ namespace BossMod.Components
         public AOEShapeCircle Shape { get; private init; }
         protected List<Line> Lines = new();
 
-        public Exaflare(float radius, ActionID watchedAction = new()) : base(watchedAction)
+        public Exaflare(float radius, ActionID watchedAction = new()) : base(watchedAction, "GTFO from exaflare!")
         {
             Shape = new(radius);
         }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var l in Lines)
                 foreach (var (c, t) in ImminentAOEs(module, l))

@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
 
         public SavageBarbery() : base(new()) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             return _casts.Select(cs => (cs.Shape, cs.Caster.Position, cs.Caster.CastInfo!.Rotation, cs.Caster.CastInfo.FinishAt));
         }
@@ -43,7 +43,7 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
 
         public HairRaid() : base(new()) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             return _casts.Select(cs => (cs.Shape, cs.Caster.Position, cs.Caster.CastInfo!.Rotation, cs.Caster.CastInfo.FinishAt));
         }

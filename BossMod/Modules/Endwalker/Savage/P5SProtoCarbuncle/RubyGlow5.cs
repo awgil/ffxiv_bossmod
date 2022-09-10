@@ -5,7 +5,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
 {
     class RubyGlow5 : RubyGlowCommon
     {
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             // TODO: correct explosion time
             foreach (var o in MagicStones)

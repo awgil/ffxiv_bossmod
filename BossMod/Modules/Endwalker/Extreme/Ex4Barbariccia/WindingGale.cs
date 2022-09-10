@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
 {
@@ -15,7 +12,7 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
 
         public WindingGale() : base(ActionID.MakeSpell(AID.WindingGale)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var c in _casters)
                 yield return (_shape, c.Position + _shape.OuterRadius * c.Rotation.ToDirection(), c.CastInfo!.Rotation, c.CastInfo.FinishAt);
