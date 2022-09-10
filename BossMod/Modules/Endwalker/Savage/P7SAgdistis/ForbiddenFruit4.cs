@@ -2,7 +2,6 @@
 
 namespace BossMod.Endwalker.Savage.P7SAgdistis
 {
-    // TODO: improve (add hints? show aoes?)
     class ForbiddenFruit4 : ForbiddenFruitCommon
     {
         private int _bullPlatform;
@@ -11,32 +10,30 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (NumAssignedTethers == 0)
-                return;
-
-            var tetherSource = TetherSources[pcSlot];
-            if (tetherSource != null)
-            {
-                arena.AddLine(tetherSource.Position, pc.Position, TetherColor(tetherSource));
-
-                WDir destOffset;
-                if ((OID)tetherSource.OID == OID.BullTetherSource)
-                {
-                    destOffset = PlatformDirection(_bullPlatform).ToDirection();
-                }
-                else
-                {
-                    var srcPlatform = PlatformIDFromOffset(tetherSource.Position - module.Bounds.Center);
-                    var destPlatform = NextPlatform(srcPlatform);
-                    if (destPlatform == _bullPlatform)
-                        destPlatform = NextPlatform(destPlatform);
-                    destOffset = PlatformDirection(destPlatform).ToDirection();
-                }
-                arena.AddCircle(module.Bounds.Center + destOffset * Border.SmallPlatformOffset, Border.SmallPlatformRadius, ArenaColor.Safe);
-            }
-            else if (!MinotaursBaited)
+            base.DrawArenaForeground(module, pcSlot, pc, arena);
+            if (NumAssignedTethers > 0 && !MinotaursBaited && TetherSources[pcSlot] == null)
             {
                 arena.AddCircle(module.Bounds.Center - 2 * PlatformDirection(_bullPlatform).ToDirection(), 2, ArenaColor.Safe);
+            }
+        }
+
+        public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+        {
+            var slot = TryAssignTether(module, source, tether);
+            if (slot < 0)
+                return;
+            switch ((TetherID)tether.ID)
+            {
+                case TetherID.Bull:
+                    SafePlatforms[slot].Set(_bullPlatform);
+                    break;
+                case TetherID.MinotaurFar:
+                case TetherID.MinotaurClose:
+                    var safePlatforms = ValidPlatformsMask;
+                    safePlatforms.Clear(_bullPlatform);
+                    safePlatforms.Clear(PlatformIDFromOffset(source.Position - module.Bounds.Center));
+                    SafePlatforms[slot] = safePlatforms;
+                    break;
             }
         }
 

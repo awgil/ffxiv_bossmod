@@ -4,16 +4,18 @@ using System.Collections.Generic;
 namespace BossMod.Endwalker.Savage.P7SAgdistis
 {
     // common parts of various forbidden fruit / harvest mechanics
-    // platform id's: 0 = S, -1 = W, +1 = E
-    // TODO: show knockback for bird tethers
+    // platform id's: 0 = W, 1 = S, 2 = E
+    // TODO: show knockback for bird tethers, something for bull/minotaur tethers...
     class ForbiddenFruitCommon : Components.GenericAOEs
     {
         public int NumAssignedTethers { get; private set; }
         public bool MinotaursBaited { get; private set; }
         protected Actor?[] TetherSources = new Actor?[8];
+        protected BitMask[] SafePlatforms = new BitMask[8];
         private List<(Actor, AOEShape, DateTime)> _predictedAOEs = new();
         private List<(Actor, AOEShape)> _activeAOEs = new();
 
+        protected static BitMask ValidPlatformsMask = new(7);
         private static AOEShapeCircle _shapeBullUntethered = new(10);
         private static AOEShapeRect _shapeBirdUntethered = new(60, 4);
         private static AOEShapeCone _shapeMinotaurUntethered = new(60, 45.Degrees());
@@ -30,17 +32,19 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
                 yield return (shape, source.Position, source.CastInfo!.Rotation, source.CastInfo.FinishAt);
         }
 
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            var tetherSource = TetherSources[pcSlot];
+            if (tetherSource != null)
+                arena.AddLine(tetherSource.Position, pc.Position, TetherColor(tetherSource));
+
+            foreach (var platform in SafePlatforms[pcSlot].SetBits())
+                arena.AddCircle(module.Bounds.Center + PlatformDirection(platform).ToDirection() * Border.SmallPlatformOffset, Border.SmallPlatformRadius, ArenaColor.Safe);
+        }
+
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
-            if ((TetherID)tether.ID is TetherID.Bull or TetherID.MinotaurClose or TetherID.MinotaurFar or TetherID.Bird)
-            {
-                int slot = module.Raid.FindSlot(tether.Target);
-                if (slot >= 0)
-                {
-                    TetherSources[slot] = source;
-                    ++NumAssignedTethers;
-                }
-            }
+            TryAssignTether(module, source, tether);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -86,6 +90,22 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
         // subclass can override and return non-null if specified fruit will become of untethered variety
         protected virtual DateTime? PredictUntetheredCastStart(BossModule module, Actor fruit) => null;
 
+        // this is called by default OnTethered, but subclasses might want to call it themselves and use returned info (target slot if tether was assigned)
+        protected int TryAssignTether(BossModule module, Actor source, ActorTetherInfo tether)
+        {
+            if ((TetherID)tether.ID is TetherID.Bull or TetherID.MinotaurClose or TetherID.MinotaurFar or TetherID.Bird)
+            {
+                int slot = module.Raid.FindSlot(tether.Target);
+                if (slot >= 0)
+                {
+                    TetherSources[slot] = source;
+                    ++NumAssignedTethers;
+                    return slot;
+                }
+            }
+            return -1;
+        }
+
         protected uint TetherColor(Actor source) => (OID)source.OID switch
         {
             OID.ImmatureMinotaur => 0xffff00ff,
@@ -94,10 +114,7 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
             _ => 0
         };
 
-        protected int PlatformIDFromOffset(WDir offset) => offset.Z > 0 ? 0 : offset.X > 0 ? 1 : -1;
-
-        protected Angle PlatformDirection(int id) => id * 120.Degrees();
-
-        protected int NextPlatform(int id) => id == 1 ? -1 : id + 1;
+        protected int PlatformIDFromOffset(WDir offset) => offset.Z > 0 ? 1 : offset.X > 0 ? 2 : 0;
+        protected Angle PlatformDirection(int id) => (id - 1) * 120.Degrees();
     }
 }
