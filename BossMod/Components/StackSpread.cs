@@ -72,7 +72,7 @@ namespace BossMod.Components
         {
             if (StackMask[slot])
             {
-                int numStacked = 0;
+                int numStacked = 1; // always stacked with self
                 bool stackedWithOtherStack = false;
                 foreach (var (otherSlot, other) in module.Raid.WithSlot().InRadiusExcluding(actor, StackRadius))
                 {

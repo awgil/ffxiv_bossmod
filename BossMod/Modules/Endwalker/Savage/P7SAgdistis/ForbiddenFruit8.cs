@@ -13,7 +13,7 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
             var slot = TryAssignTether(module, source, tether);
             if (slot < 0)
                 return;
-            var safe = ValidPlatformsMask & ~SafePlatforms[slot];
+            var safe = ValidPlatformsMask & ~_noBirdsPlatforms;
             safe.Clear(PlatformIDFromOffset(source.Position - module.Bounds.Center));
             SafePlatforms[slot] = safe;
         }

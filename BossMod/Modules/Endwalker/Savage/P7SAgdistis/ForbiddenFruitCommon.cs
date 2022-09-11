@@ -66,6 +66,12 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
             }
         }
 
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID is AID.StaticMoon or AID.StymphalianStrike or AID.BullishSwipeAOE)
+                _activeAOEs.RemoveAll(i => i.Item1 == caster);
+        }
+
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
         {
             if (id == 0x11D1)
