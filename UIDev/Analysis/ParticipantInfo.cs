@@ -43,7 +43,7 @@ namespace UIDev.Analysis
                         ActorType? commonType = null;
                         string commonName = "";
                         int spawnedPreFight = 0, spawnedMidFight = 0;
-                        foreach (var p in participants.Where(p => !(p.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Area or ActorType.Treasure)))
+                        foreach (var p in participants.Where(p => !(p.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Area or ActorType.Treasure) && (enc.Time.End - p.Existence.Start).TotalSeconds > 1))
                         {
                             if (commonType == null)
                                 commonType = p.Type;
