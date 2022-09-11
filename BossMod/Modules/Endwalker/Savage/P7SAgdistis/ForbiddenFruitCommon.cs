@@ -14,11 +14,14 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
         protected BitMask[] SafePlatforms = new BitMask[8];
         private List<(Actor, AOEShape, DateTime)> _predictedAOEs = new();
         private List<(Actor, AOEShape)> _activeAOEs = new();
+        private BitMatrix _tetherClips; // [i,j] is set if i is tethered and clips j
 
         protected static BitMask ValidPlatformsMask = new(7);
         private static AOEShapeCircle _shapeBullUntethered = new(10);
         private static AOEShapeRect _shapeBirdUntethered = new(60, 4);
+        private static AOEShapeRect _shapeBullBirdTethered = new(60, 4);
         private static AOEShapeCone _shapeMinotaurUntethered = new(60, 45.Degrees());
+        private static AOEShapeCone _shapeMinotaurTethered = new(60, 22.5f.Degrees());
 
         public bool CastsActive => _activeAOEs.Count > 0;
 
@@ -30,6 +33,34 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
                 yield return (shape, source.Position, source.Rotation, time);
             foreach (var (source, shape) in _activeAOEs)
                 yield return (shape, source.Position, source.CastInfo!.Rotation, source.CastInfo.FinishAt);
+        }
+
+        public override void Update(BossModule module)
+        {
+            _tetherClips.Reset();
+            foreach (var (slot, player) in module.Raid.WithSlot())
+            {
+                var tetherSource = TetherSources[slot];
+                if (tetherSource != null)
+                {
+                    AOEShape tetherShape = (OID)tetherSource.OID == OID.ImmatureMinotaur ? _shapeMinotaurTethered : _shapeBullBirdTethered;
+                    _tetherClips[slot] = module.Raid.WithSlot().Exclude(player).InShape(tetherShape, tetherSource.Position, Angle.FromDirection(player.Position - tetherSource.Position)).Mask();
+                }
+            }
+        }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            base.AddHints(module, slot, actor, hints, movementHints);
+            if (_tetherClips[slot].Any())
+                hints.Add("Hitting others with tether!");
+            if (_tetherClips.AnyBitInColumn(slot))
+                hints.Add("Clipped by other tethers!");
+        }
+
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        {
+            return _tetherClips[playerSlot, pcSlot] || _tetherClips[pcSlot, playerSlot] ? PlayerPriority.Danger : PlayerPriority.Normal;
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

@@ -38,6 +38,9 @@
             }
         }
 
+        // check if any bit in column is set
+        public bool AnyBitInColumn(int col) => (Raw & (0x0101010101010101ul << col)) != 0;
+
         public void Reset() => Raw = 0;
     }
 }
