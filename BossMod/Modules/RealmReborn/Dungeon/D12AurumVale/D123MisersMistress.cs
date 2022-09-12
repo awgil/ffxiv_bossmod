@@ -32,9 +32,9 @@
         private AOEShapeRect _shape = new(5, 5, 5);
         private WPos[] _centers = { new(-395, -130), new(-402, -114) };
 
-        public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
-            zone.RestrictToZone(_shape, _centers.MinBy(p => (p - module.PrimaryActor.Position).LengthSq()), new(), module.WorldState.CurrentTime, 10000);
+            hints.RestrictedZones.Add((_shape, _centers.MinBy(p => (p - module.PrimaryActor.Position).LengthSq()), new(), module.WorldState.CurrentTime));
         }
     }
 

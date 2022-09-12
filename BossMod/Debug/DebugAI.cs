@@ -1,5 +1,6 @@
 ﻿using ImGuiNET;
 using System;
+using System.Collections.Generic;
 
 namespace BossMod
 {
@@ -48,7 +49,7 @@ namespace BossMod
             ImGui.TextUnformatted($"Safespot: {safe} ({_avoid.SafeZone.ChildCount})");
 
             _arena.Bounds = new ArenaBoundsCircle(playerPos, _arenaRadius);
-            var forbiddenZone = new Clip2D().Difference(SafeZone.DefaultBounds(playerPos), _avoid.SafeZone);
+            var forbiddenZone = new Clip2D().Difference(DefaultBounds(playerPos), _avoid.SafeZone);
             _arena.Begin(Camera.Instance?.CameraAzimuth ?? 0);
             _arena.Zone(Clip2D.Triangulate(forbiddenZone), ArenaColor.AOE);
             _arena.Zone(Clip2D.Triangulate(_avoid.DesiredZone), ArenaColor.SafeFromAOE);
@@ -79,6 +80,15 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(DescribeAutoAOE(actor));
             }
             ImGui.EndTable();
+        }
+
+        public static IEnumerable<WPos> DefaultBounds(WPos center)
+        {
+            var s = 1000;
+            yield return center + new WDir(s, -s);
+            yield return center + new WDir(s, s);
+            yield return center + new WDir(-s, s);
+            yield return center + new WDir(-s, -s);
         }
 
         private string DescribeAutoAOE(Actor a)

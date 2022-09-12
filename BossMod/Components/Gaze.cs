@@ -27,10 +27,10 @@ namespace BossMod.Components
                 hints.Add("Turn away from gaze!");
         }
 
-        public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             foreach (var eye in EyePositions(module))
-                zone.ForbidDirections(Angle.FromDirection(eye - actor.Position), 45.Degrees(), NextGaze(module));
+                hints.ForbiddenDirections.Add((Angle.FromDirection(eye - actor.Position), 45.Degrees(), NextGaze(module)));
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

@@ -34,9 +34,9 @@ namespace BossMod.RealmReborn.Dungeon.D12AurumVale.D121Locksmith
     {
         private AOEShapeRect _shape = new(5, 5, 5);
 
-        public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
-            zone.RestrictToZone(_shape, new(30, 0), new(), module.WorldState.CurrentTime, 10000);
+            hints.RestrictedZones.Add((_shape, new(30, 0), new(), module.WorldState.CurrentTime));
         }
     }
 

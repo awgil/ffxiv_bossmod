@@ -50,13 +50,13 @@
     {
         private static AOEShapeCircle _shape = new(8); // TODO: verify range
 
-        public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             if (module.PrimaryActor.CastInfo == null) // do not restrict zone while boss is casting, to allow avoiding aoe, even if it means temporarily leaving crystal veil
             {
                 var closestCrystal = module.Enemies(OID.Crystal).Closest(module.PrimaryActor.Position);
                 if (closestCrystal != null)
-                    zone.RestrictToZone(_shape, closestCrystal.Position, new(), module.WorldState.CurrentTime, 10000);
+                    hints.RestrictedZones.Add((_shape, closestCrystal.Position, new(), module.WorldState.CurrentTime));
             }
         }
     }

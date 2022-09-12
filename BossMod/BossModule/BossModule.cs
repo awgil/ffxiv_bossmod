@@ -249,12 +249,12 @@ namespace BossMod
             return hints;
         }
 
-        public SafeZone CalculateSafeZone(int slot, Actor actor)
+        public AIHints CalculateAIHints(int slot, Actor actor)
         {
-            SafeZone zone = new(Bounds);
+            AIHints hints = new();
             foreach (var comp in _components)
-                comp.UpdateSafeZone(this, slot, actor, zone);
-            return zone;
+                comp.AddAIHints(this, slot, actor, hints);
+            return hints;
         }
 
         // called by AI to determine targets to focus; return false if module does not need any custom logic - in this case targets are filled automatically, as if module was not active

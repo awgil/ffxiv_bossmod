@@ -28,10 +28,10 @@ namespace BossMod.Components
                 hints.Add("GTFO from voidzone!");
         }
 
-        public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             foreach (var c in Casters)
-                zone.ForbidZone(Shape, c.Position, c.Rotation, module.WorldState.CurrentTime, float.MaxValue);
+                hints.ForbiddenZones.Add((Shape, c.Position, c.Rotation, module.WorldState.CurrentTime));
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

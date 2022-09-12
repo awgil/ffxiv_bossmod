@@ -24,9 +24,9 @@ namespace BossMod.AI
             _ws.Actors.CastFinished -= OnCastFinished;
         }
 
-        public SafeZone CalculateSafeZone(WPos playerPos)
+        public AIHints CalculateAIHints()
         {
-            var zone = new SafeZone(playerPos);
+            var hints = new AIHints();
             foreach (var aoe in _activeAOEs.Values)
             {
                 var target = aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ;
@@ -35,14 +35,14 @@ namespace BossMod.AI
                 {
                     var shape = (AOEShapeRect)aoe.Shape;
                     shape.SetEndPoint(target, aoe.Caster.Position, rot);
-                    zone.ForbidZone(shape, aoe.Caster.Position, rot, aoe.Caster.CastInfo.FinishAt);
+                    hints.ForbiddenZones.Add((shape, aoe.Caster.Position, rot, aoe.Caster.CastInfo.FinishAt));
                 }
                 else
                 {
-                    zone.ForbidZone(aoe.Shape, target, rot, aoe.Caster.CastInfo.FinishAt);
+                    hints.ForbiddenZones.Add((aoe.Shape, target, rot, aoe.Caster.CastInfo.FinishAt));
                 }
             }
-            return zone;
+            return hints;
         }
 
         private void OnCastStarted(object? sender, Actor actor)
@@ -149,10 +149,46 @@ namespace BossMod.AI
         // TODO: add position deadline
         public (WPos? DestPos, WDir? DestRot, DateTime RotDeadline) Update(Actor player)
         {
+            var aiHints = _bmm.ActiveModule?.StateMachine.ActiveState != null ? _bmm.ActiveModule.CalculateAIHints(PartyState.PlayerSlot, player) : _autoAOEs.CalculateAIHints();
+
             // update forbidden zone
-            var z = _bmm.ActiveModule?.StateMachine.ActiveState != null ? _bmm.ActiveModule.CalculateSafeZone(PartyState.PlayerSlot, player) : _autoAOEs.CalculateSafeZone(player.Position);
-            SafeZone = z.Result;
-            return (SelectDestinationPos(player), SelectAllowedRotation(player, z), z.ForbiddenRotationsActivation);
+            var clipper = new Clip2D();
+            SafeZone = clipper.Simplify(BuildInitialSafeZone(player.Position));
+            if (aiHints.RestrictedZones.Count > 0)
+            {
+                ClipperLib.PolyTree union = new();
+                foreach (var zone in aiHints.RestrictedZones)
+                    union = clipper.Union(union, zone.shape.Contour(zone.origin, zone.rot, -1, 0.5f));
+                SafeZone = clipper.Intersect(union, SafeZone);
+            }
+            foreach (var zone in aiHints.ForbiddenZones)
+            {
+                SafeZone = clipper.Difference(SafeZone, zone.shape.Contour(zone.origin, zone.rot, 1, 0.5f));
+            }
+
+            var (destRot, rotDeadline) = SelectAllowedRotation(player, aiHints);
+            return (SelectDestinationPos(player), destRot, rotDeadline);
+        }
+
+        private IEnumerable<IEnumerable<WPos>> BuildInitialSafeZone(WPos playerPos)
+        {
+            if (_bmm.ActiveModule?.StateMachine.ActiveState != null)
+            {
+                yield return _bmm.ActiveModule.Bounds.BuildClipPoly(-1);
+            }
+            else
+            {
+                yield return DefaultBounds(playerPos);
+            }
+        }
+
+        public static IEnumerable<WPos> DefaultBounds(WPos center)
+        {
+            var s = 1000;
+            yield return center + new WDir(s, -s);
+            yield return center + new WDir(s, s);
+            yield return center + new WDir(-s, s);
+            yield return center + new WDir(-s, -s);
         }
 
         private WPos? SelectDestinationPos(Actor player)
@@ -177,31 +213,57 @@ namespace BossMod.AI
             }
         }
 
-        private WDir? SelectAllowedRotation(Actor player, SafeZone z)
+        private (WDir?, DateTime) SelectAllowedRotation(Actor player, AIHints hints)
         {
-            if (!z.ForbiddenRotations.Contains(player.Rotation.Rad))
-                return null; // all good
+            if (hints.ForbiddenDirections.Count == 0)
+                return (null, new());
+
+            var earliest = hints.ForbiddenDirections.Min(d => d.activation);
+            if (earliest < _bmm.WorldState.CurrentTime)
+                earliest = _bmm.WorldState.CurrentTime;
+            var latest = earliest.AddSeconds(1);
+
+            DisjointSegmentList list = new();
+            foreach (var d in hints.ForbiddenDirections.Where(d => d.activation <= latest))
+            {
+                var center = d.center.Normalized();
+                var min = center - d.halfWidth;
+                if (min.Rad < -MathF.PI)
+                {
+                    list.Add(min.Rad + 2 * MathF.PI, MathF.PI);
+                }
+                var max = center + d.halfWidth;
+                if (max.Rad > MathF.PI)
+                {
+                    list.Add(-MathF.PI, max.Rad - 2 * MathF.PI);
+                    max = MathF.PI.Radians();
+                }
+                list.Add(min.Rad, max.Rad);
+            }
+
+            if (!list.Contains(player.Rotation.Rad))
+                return (null, new()); // all good
 
             if (_desiredTargetPos != null)
             {
                 var toTarget = Angle.FromDirection(_desiredTargetPos.Value - player.Position);
-                if (!z.ForbiddenRotations.Contains(toTarget.Rad))
-                    return toTarget.ToDirection();
+                if (!list.Contains(toTarget.Rad))
+                    return (toTarget.ToDirection(), earliest);
             }
 
             // select midpoint of largest allowed segment
-            float bestWidth = z.ForbiddenRotations.Segments.First().Min + 2 * MathF.PI - z.ForbiddenRotations.Segments.Last().Max;
-            float bestMidpoint = (z.ForbiddenRotations.Segments.First().Min + 2 * MathF.PI + z.ForbiddenRotations.Segments.Last().Max) / 2;
-            for (int i = 1; i < z.ForbiddenRotations.Segments.Count; ++i)
+            float bestWidth = list.Segments.First().Min + 2 * MathF.PI - list.Segments.Last().Max;
+            float bestMidpoint = (list.Segments.First().Min + 2 * MathF.PI + list.Segments.Last().Max) / 2;
+            for (int i = 1; i < list.Segments.Count; ++i)
             {
-                float width = z.ForbiddenRotations.Segments[i].Min - z.ForbiddenRotations.Segments[i - 1].Max;
+                float width = list.Segments[i].Min - list.Segments[i - 1].Max;
                 if (width > bestWidth)
                 {
                     bestWidth = width;
-                    bestMidpoint = (z.ForbiddenRotations.Segments[i].Min + z.ForbiddenRotations.Segments[i - 1].Max) / 2;
+                    bestMidpoint = (list.Segments[i].Min + list.Segments[i - 1].Max) / 2;
                 }
             }
-            return bestMidpoint.Radians().ToDirection();
+            return (bestMidpoint.Radians().ToDirection(), earliest);
         }
 
         private WPos? SelectPointInZone(ClipperLib.PolyTree zone, WPos currentPosition)
@@ -275,7 +337,5 @@ namespace BossMod.AI
             }
             return (best, bestDistSq);
         }
-
-
     }
 }

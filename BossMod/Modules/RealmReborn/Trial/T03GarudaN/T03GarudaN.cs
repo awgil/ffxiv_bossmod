@@ -35,11 +35,11 @@ namespace BossMod.RealmReborn.Trial.T03GarudaN
     {
         private AOEShapeCircle _shape = new(5);
 
-        public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             if (module.PrimaryActor.CastInfo == null) // don't forbid standing near monoliths while boss is casting to allow avoiding aoes
                 foreach (var m in module.Enemies(OID.Monolith))
-                    zone.ForbidZone(_shape, m.Position, new(), module.WorldState.CurrentTime, 10000);
+                    hints.ForbiddenZones.Add((_shape, m.Position, new(), module.WorldState.CurrentTime));
         }
     }
 

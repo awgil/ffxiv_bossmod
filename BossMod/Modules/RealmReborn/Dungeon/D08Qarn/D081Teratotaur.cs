@@ -66,14 +66,14 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D081Teratotaur
                 hints.Add("Go to glowing platform!");
         }
 
-        public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             if (_dooms[slot])
             {
                 var target = ActivePlatform;
                 if (target != null)
                 {
-                    zone.RestrictToZone(_platformShape, target.Position, 0.Degrees(), actor.FindStatus(SID.Doom)!.Value.ExpireAt);
+                    hints.RestrictedZones.Add((_platformShape, target.Position, 0.Degrees(), actor.FindStatus(SID.Doom)!.Value.ExpireAt));
                 }
             }
         }

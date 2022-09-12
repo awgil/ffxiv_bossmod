@@ -43,13 +43,13 @@ namespace BossMod.Components
             }
         }
 
-        public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             foreach (var (origin, target, angle) in OriginsAndTargets(module))
             {
                 if (actor != target)
                 {
-                    zone.ForbidZone(Shape, origin.Position, angle, module.WorldState.CurrentTime, 10000);
+                    hints.ForbiddenZones.Add((Shape, origin.Position, angle, module.WorldState.CurrentTime));
                 }
             }
         }

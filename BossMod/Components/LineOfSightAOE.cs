@@ -12,7 +12,6 @@ namespace BossMod.Components
         public WPos? Origin { get; private set; } // inactive if null
         public List<(WPos Center, float Radius)> Blockers { get; private set; } = new();
         public List<(float Distance, Angle Dir, Angle HalfWidth)> Visibility { get; private set; } = new();
-        private IEnumerable<IEnumerable<WPos>>? _safeZone;
 
         public GenericLineOfSightAOE(ActionID aid, float maxRange = 1000) : base(aid)
         {
@@ -25,7 +24,6 @@ namespace BossMod.Components
             Blockers.Clear();
             Blockers.AddRange(blockers);
             Visibility.Clear();
-            _safeZone = null;
             if (origin != null)
             {
                 foreach (var b in Blockers)
@@ -46,12 +44,13 @@ namespace BossMod.Components
             hints.Add("Hide behind obstacle!");
         }
 
-        public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             if (Origin != null)
             {
-                _safeZone ??= BuildSafeZone(Origin.Value);
-                zone.RestrictToZone(_safeZone, NextExplosion > module.WorldState.CurrentTime ? NextExplosion : module.WorldState.CurrentTime);
+                hints.RestrictedZones.Add((new AOEShapeDonut(MaxRange, 1000), Origin.Value, new(), NextExplosion));
+                foreach (var v in Visibility)
+                    hints.RestrictedZones.Add((new AOEShapeDonutSector(v.Distance, MaxRange + 10, v.HalfWidth), Origin.Value, v.Dir, NextExplosion));
             }
         }
 
@@ -63,29 +62,6 @@ namespace BossMod.Components
                 foreach (var v in Visibility)
                     arena.ZoneCone(Origin.Value, v.Distance, 1000, v.Dir, v.HalfWidth, ArenaColor.SafeFromAOE);
             }
-        }
-
-        private IEnumerable<IEnumerable<WPos>> BuildSafeZone(WPos origin)
-        {
-            Clip2D clipper = new();
-            var res = clipper.Simplify(OutrangeZone(origin));
-            foreach (var v in Visibility)
-                res = clipper.Union(res, BlockZone(origin, v.Distance, v.Dir, v.HalfWidth));
-            return Clip2D.FullContour(res);
-        }
-
-        private IEnumerable<IEnumerable<WPos>> OutrangeZone(WPos origin)
-        {
-            if (MaxRange < 1000)
-            {
-                yield return CurveApprox.Circle(origin, MaxRange + 1, 0.5f);
-                yield return SafeZone.DefaultBounds(origin);
-            }
-        }
-
-        private IEnumerable<IEnumerable<WPos>> BlockZone(WPos origin, float distance, Angle dir, Angle halfWidth)
-        {
-            return new AOEShapeDonutSector(distance, MaxRange + 10, halfWidth).Contour(origin, dir, -1, 0.5f);
         }
     }
 

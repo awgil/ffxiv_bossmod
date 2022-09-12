@@ -22,10 +22,10 @@ namespace BossMod.Components
                 hints.Add(_warningText);
         }
 
-        public override void UpdateSafeZone(BossModule module, int slot, Actor actor, SafeZone zone)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             foreach (var c in ActiveAOEs(module, slot, actor))
-                zone.ForbidZone(c.shape, c.origin, c.rotation, c.time);
+                hints.ForbiddenZones.Add((c.shape, c.origin, c.rotation, c.time));
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
