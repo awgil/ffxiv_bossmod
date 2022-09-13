@@ -1,15 +1,21 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
-    class Echoes : CommonComponents.FullPartyStack
+    class Echoes : Components.StackSpread
     {
-        public Echoes() : base(ActionID.MakeSpell(AID.EchoesAOE), 6) { }
+        public int NumCasts { get; private set; }
+
+        public Echoes() : base(6, 0, 8) { }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID == AID.EchoesAOE)
+                ++NumCasts;
+        }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Echoes)
-            {
-                Target = actor;
-            }
+                StackMask.Set(module.Raid.FindSlot(actor.InstanceID));
         }
     }
 }

@@ -6,50 +6,6 @@ namespace BossMod
     // legacy, these components should be reviewed and moved into Components dir/ns
     public static class CommonComponents
     {
-        // generic 'stack to target' component that shows radius around specific actor; derived class should set actor as needed
-        // it is also a cast counter
-        public class FullPartyStack : Components.CastCounter
-        {
-            protected float StackRadius;
-            protected Actor? Target;
-
-            public FullPartyStack(ActionID aid, float stackRadius)
-                : base(aid)
-            {
-                StackRadius = stackRadius;
-            }
-
-            public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-            {
-                if (Target != null && Target != actor && !actor.Position.InCircle(Target.Position, StackRadius))
-                    hints.Add("Stack!");
-            }
-
-            public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-            {
-                if (Target == null)
-                {
-                    return PlayerPriority.Irrelevant;
-                }
-                else if (Target == pc)
-                {
-                    // other players are somewhat interesting to simplify stacking
-                    return player.Position.InCircle(pc.Position, StackRadius) ? PlayerPriority.Normal : PlayerPriority.Interesting;
-                }
-                else
-                {
-                    // draw target next to which pc is to stack
-                    return Target == player ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
-                }
-            }
-
-            public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-            {
-                if (Target != null)
-                    arena.AddCircle(Target.Position, StackRadius, ArenaColor.Danger);
-            }
-        }
-
         // generic knockback from caster component (TODO: detect knockback immunity, generalize...)
         public class KnockbackFromCaster : Components.CastCounter
         {
