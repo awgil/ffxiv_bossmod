@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
             }
             if (_planetsAzure.Count > 0)
             {
-                var offsetLocation = BossModule.AdjustPositionForKnockback(actor.Position, _planetsAzure[0], _knockbackDistance);
+                var offsetLocation = Components.Knockback.AwayFromSource(actor.Position, _planetsAzure[0], _knockbackDistance);
                 if (!module.Bounds.Contains(offsetLocation))
                 {
                     hints.Add("About to be knocked into wall!");
@@ -47,7 +47,7 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
         {
             if (_planetsAzure.Count > 0)
             {
-                var offsetLocation = BossModule.AdjustPositionForKnockback(pc.Position, _planetsAzure[0], _knockbackDistance);
+                var offsetLocation = Components.Knockback.AwayFromSource(pc.Position, _planetsAzure[0], _knockbackDistance);
                 arena.AddLine(pc.Position, offsetLocation, ArenaColor.Danger);
                 arena.Actor(offsetLocation, pc.Rotation, ArenaColor.Danger);
             }

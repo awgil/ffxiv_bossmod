@@ -31,7 +31,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
                 _knockbackPos = _knockbackTarget.Position;
                 if (module.PrimaryActor.CastInfo != null)
                 {
-                    _knockbackPos = BossModule.AdjustPositionForKnockback(_knockbackPos, module.PrimaryActor, _kbDistance);
+                    _knockbackPos = Components.Knockback.AwayFromSource(_knockbackPos, module.PrimaryActor, _kbDistance);
                 }
             }
         }

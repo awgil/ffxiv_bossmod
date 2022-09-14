@@ -19,15 +19,15 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             if (!_active)
                 return;
 
-            var actorAdjPos = BossModule.AdjustPositionForKnockback(actor.Position, _knockbackSource, _knockbackDistance);
+            var actorAdjPos = Components.Knockback.AwayFromSource(actor.Position, _knockbackSource, _knockbackDistance);
             if (_knockbackSource != null && !module.Bounds.Contains(actorAdjPos))
                 hints.Add("About to be knocked into wall!");
 
-            if (module.Raid.WithoutSlot().Exclude(actor).Any(p => BossModule.AdjustPositionForKnockback(p.Position, _knockbackSource, _knockbackDistance).InCircle(actorAdjPos, _aoeRadius)))
+            if (module.Raid.WithoutSlot().Exclude(actor).Any(p => Components.Knockback.AwayFromSource(p.Position, _knockbackSource, _knockbackDistance).InCircle(actorAdjPos, _aoeRadius)))
                 hints.Add("Spread!");
 
             int partner = FindPartner(slot);
-            if (partner >= 0 && BossModule.AdjustPositionForKnockback(module.Raid[partner]!.Position, _knockbackSource, _knockbackDistance).InCircle(actorAdjPos, _tetherBreakDistance))
+            if (partner >= 0 && Components.Knockback.AwayFromSource(module.Raid[partner]!.Position, _knockbackSource, _knockbackDistance).InCircle(actorAdjPos, _tetherBreakDistance))
                 hints.Add("Aim to break tether!");
         }
 
@@ -51,7 +51,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
             if (_knockbackSource != null)
             {
-                var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _knockbackSource, _knockbackDistance);
+                var adjPos = Components.Knockback.AwayFromSource(pc.Position, _knockbackSource, _knockbackDistance);
                 arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
                 arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
             }
@@ -60,7 +60,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             {
                 if (slot != partner)
                     arena.Actor(player, ArenaColor.PlayerGeneric);
-                arena.AddCircle(BossModule.AdjustPositionForKnockback(player.Position, _knockbackSource, _knockbackDistance), _aoeRadius, ArenaColor.Danger);
+                arena.AddCircle(Components.Knockback.AwayFromSource(player.Position, _knockbackSource, _knockbackDistance), _aoeRadius, ArenaColor.Danger);
             }
         }
 

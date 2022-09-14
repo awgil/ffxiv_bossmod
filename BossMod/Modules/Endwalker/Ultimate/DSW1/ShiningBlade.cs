@@ -56,7 +56,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         {
             if (_knockbackSource != null)
             {
-                var adjPos = BossModule.AdjustPositionForKnockback(actor.Position, _knockbackSource, _knockbackDistance);
+                var adjPos = Components.Knockback.AwayFromSource(actor.Position, _knockbackSource, _knockbackDistance);
                 if (!module.Bounds.Contains(adjPos))
                     hints.Add("About to be knocked into wall!");
                 if (module.Enemies(OID.AetherialTear).InRadius(adjPos, _aoeTear.Radius).Any())
@@ -97,7 +97,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         {
             if (_knockbackSource != null)
             {
-                var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _knockbackSource, _knockbackDistance);
+                var adjPos = Components.Knockback.AwayFromSource(pc.Position, _knockbackSource, _knockbackDistance);
                 arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
                 arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
             }

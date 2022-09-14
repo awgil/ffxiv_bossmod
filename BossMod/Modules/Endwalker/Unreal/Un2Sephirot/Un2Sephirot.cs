@@ -37,12 +37,12 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
         public P3PillarOfMercyAOE() : base(ActionID.MakeSpell(AID.PillarOfMercyAOE), new AOEShapeCircle(5)) { }
     }
 
-    class P3PillarOfMercyKnockback : CommonComponents.KnockbackFromCaster
+    class P3PillarOfMercyKnockback : Components.KnockbackFromCaster
     {
         public P3PillarOfMercyKnockback() : base(ActionID.MakeSpell(AID.PillarOfMercyAOE), 17) { }
     }
 
-    class P3Malkuth : CommonComponents.KnockbackFromCaster
+    class P3Malkuth : Components.KnockbackFromCaster
     {
         public P3Malkuth() : base(ActionID.MakeSpell(AID.Malkuth), 25) { }
     }

@@ -31,7 +31,7 @@
         public SpineShatter() : base(ActionID.MakeSpell(AID.SpineShatter), "Tankbuster") { }
     }
 
-    class AugmentedSuffering : CommonComponents.KnockbackFromCaster
+    class AugmentedSuffering : Components.KnockbackFromCaster
     {
         public AugmentedSuffering() : base(ActionID.MakeSpell(AID.AugmentedSuffering), 12) { }
     }

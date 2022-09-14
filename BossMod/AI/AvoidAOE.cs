@@ -153,7 +153,7 @@ namespace BossMod.AI
 
             // update forbidden zone
             var clipper = new Clip2D();
-            SafeZone = clipper.Simplify(BuildInitialSafeZone(player.Position));
+            SafeZone = clipper.Simplify(BuildInitialSafeZone(player.Position, aiHints));
             if (aiHints.RestrictedZones.Count > 0)
             {
                 ClipperLib.PolyTree union = new();
@@ -170,11 +170,13 @@ namespace BossMod.AI
             return (SelectDestinationPos(player), destRot, rotDeadline);
         }
 
-        private IEnumerable<IEnumerable<WPos>> BuildInitialSafeZone(WPos playerPos)
+        private IEnumerable<IEnumerable<WPos>> BuildInitialSafeZone(WPos playerPos, AIHints hints)
         {
             if (_bmm.ActiveModule?.StateMachine.ActiveState != null)
             {
-                yield return _bmm.ActiveModule.Bounds.BuildClipPoly(-1);
+                // TODO: this is really basic, consider improving...
+                var maxImminentKnockback = hints.ForcedMovements.Count > 0 ? MathF.Sqrt(hints.ForcedMovements.Max(x => x.move.LengthSq())) : 0;
+                yield return _bmm.ActiveModule.Bounds.BuildClipPoly(-(maxImminentKnockback + 1));
             }
             else
             {

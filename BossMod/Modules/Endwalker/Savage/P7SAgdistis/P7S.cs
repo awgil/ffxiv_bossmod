@@ -20,12 +20,12 @@
         public BoughOfAttisSide() : base(ActionID.MakeSpell(AID.BoughOfAttisSideAOE), new AOEShapeRect(50, 12.5f)) { }
     }
 
-    class HemitheosAeroKnockback1 : CommonComponents.KnockbackFromCaster
+    class HemitheosAeroKnockback1 : Components.KnockbackFromCaster
     {
         public HemitheosAeroKnockback1() : base(ActionID.MakeSpell(AID.HemitheosAeroKnockback1), 16) { } // TODO: verify distance...
     }
 
-    class HemitheosAeroKnockback2 : CommonComponents.KnockbackFromCaster
+    class HemitheosAeroKnockback2 : Components.KnockbackFromCaster
     {
         public HemitheosAeroKnockback2() : base(ActionID.MakeSpell(AID.HemitheosAeroKnockback2), 16) { }
     }

@@ -15,7 +15,7 @@
         {
             if (_aoeMistralSong != null)
             {
-                var adjPos = _vulcanBurstImminent ? module.Bounds.ClampToBounds(BossModule.AdjustPositionForKnockback(actor.Position, _mistralSong, 30)) : actor.Position;
+                var adjPos = _vulcanBurstImminent ? module.Bounds.ClampToBounds(Components.Knockback.AwayFromSource(actor.Position, _mistralSong, 30)) : actor.Position;
                 if (_aoeMistralSong.Check(adjPos, _mistralSong))
                     hints.Add("GTFO from aoe!");
             }
@@ -36,7 +36,7 @@
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            var adjPos = _vulcanBurstImminent ? arena.Bounds.ClampToBounds(BossModule.AdjustPositionForKnockback(pc.Position, _mistralSong, 30)) : pc.Position;
+            var adjPos = _vulcanBurstImminent ? arena.Bounds.ClampToBounds(Components.Knockback.AwayFromSource(pc.Position, _mistralSong, 30)) : pc.Position;
             if (adjPos != pc.Position)
             {
                 arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);

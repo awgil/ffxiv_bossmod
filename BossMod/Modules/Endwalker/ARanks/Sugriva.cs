@@ -80,7 +80,7 @@
                     arena.AddCircle(target.Position, _twisterRadius, ArenaColor.Danger);
                     if (pc.Position.InCircle(target.Position, _twisterRadius))
                     {
-                        var kbPos = BossModule.AdjustPositionForKnockback(pc.Position, target, _twisterKnockback);
+                        var kbPos = Components.Knockback.AwayFromSource(pc.Position, target, _twisterKnockback);
                         if (kbPos != pc.Position)
                         {
                             arena.AddLine(pc.Position, kbPos, ArenaColor.Danger);

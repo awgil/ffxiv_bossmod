@@ -260,17 +260,6 @@ namespace BossMod
         // called by AI to determine targets to focus; return false if module does not need any custom logic - in this case targets are filled automatically, as if module was not active
         public virtual bool FillTargets(BossTargets targets, int pcSlot) => false;
 
-        // TODO: move to some better place...
-        public static WPos AdjustPositionForKnockback(WPos pos, WPos origin, float distance)
-        {
-            return pos != origin ? pos + distance * (pos - origin).Normalized() : pos;
-        }
-
-        public static WPos AdjustPositionForKnockback(WPos pos, Actor? source, float distance)
-        {
-            return source != null ? AdjustPositionForKnockback(pos, source.Position, distance) : pos;
-        }
-
         public void ReportError(BossComponent? comp, string message)
         {
             Service.Log($"[ModuleError] [{this.GetType().Name}] [{comp?.GetType().Name}] {message}");

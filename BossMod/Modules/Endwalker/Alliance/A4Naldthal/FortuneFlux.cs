@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
             if (_casters.Count == 0)
                 return;
             var knockback = _casters.Values.FirstOrDefault(i => i.Knockback).Caster?.CastInfo?.LocXZ;
-            var adjPos = knockback != null ? BossModule.AdjustPositionForKnockback(actor.Position, knockback.Value, _knockbackDistance) : actor.Position;
+            var adjPos = knockback != null ? Components.Knockback.AwayFromSource(actor.Position, knockback.Value, _knockbackDistance) : actor.Position;
             if (!module.Bounds.Contains(adjPos))
             {
                 hints.Add("About to be knocked into wall!");
@@ -38,7 +38,7 @@ namespace BossMod.Endwalker.Alliance.A4Naldthal
             var source = _casters.Values.FirstOrDefault(i => i.Knockback).Caster?.CastInfo?.LocXZ;
             if (source != null)
             {
-                var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, source.Value, _knockbackDistance);
+                var adjPos = Components.Knockback.AwayFromSource(pc.Position, source.Value, _knockbackDistance);
                 arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
                 arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
             }

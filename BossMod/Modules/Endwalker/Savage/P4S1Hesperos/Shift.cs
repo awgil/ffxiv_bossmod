@@ -15,7 +15,7 @@
             {
                 hints.Add("GTFO from sword!");
             }
-            else if (_cloakCaster != null && !module.Bounds.Contains(BossModule.AdjustPositionForKnockback(actor.Position, _cloakCaster, _knockbackRange)))
+            else if (_cloakCaster != null && !module.Bounds.Contains(Components.Knockback.AwayFromSource(actor.Position, _cloakCaster, _knockbackRange)))
             {
                 hints.Add("About to be knocked into wall!");
             }
@@ -32,7 +32,7 @@
             {
                 arena.AddCircle(_cloakCaster.Position, 5, ArenaColor.Safe);
 
-                var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _cloakCaster, _knockbackRange);
+                var adjPos = Components.Knockback.AwayFromSource(pc.Position, _cloakCaster, _knockbackRange);
                 if (adjPos != pc.Position)
                 {
                     arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);

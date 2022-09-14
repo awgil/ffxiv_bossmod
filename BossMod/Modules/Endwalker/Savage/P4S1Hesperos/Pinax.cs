@@ -43,7 +43,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
                 {
                     hints.Add("GTFO from water square!");
                 }
-                if (!module.Bounds.Contains(BossModule.AdjustPositionForKnockback(actor.Position, module.Bounds.Center, _knockbackRadius)))
+                if (!module.Bounds.Contains(Components.Knockback.AwayFromSource(actor.Position, module.Bounds.Center, _knockbackRadius)))
                 {
                     hints.Add("About to be knocked into wall!");
                 }
@@ -119,7 +119,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             }
             if (_water != null)
             {
-                var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, module.Bounds.Center, _knockbackRadius);
+                var adjPos = Components.Knockback.AwayFromSource(pc.Position, module.Bounds.Center, _knockbackRadius);
                 if (adjPos != pc.Position)
                 {
                     arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);

@@ -38,7 +38,7 @@
 
             if (_knockbackCaster != null)
             {
-                var adjPos = BossModule.AdjustPositionForKnockback(actor.Position, _knockbackCaster, _knockbackDistance);
+                var adjPos = Components.Knockback.AwayFromSource(actor.Position, _knockbackCaster, _knockbackDistance);
                 if (!module.Bounds.Contains(adjPos))
                 {
                     hints.Add("About to be knocked into wall!");
@@ -66,7 +66,7 @@
         {
             if (_knockbackCaster != null)
             {
-                var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, _knockbackCaster, _knockbackDistance);
+                var adjPos = Components.Knockback.AwayFromSource(pc.Position, _knockbackCaster, _knockbackDistance);
                 if (adjPos != pc.Position)
                 {
                     arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);

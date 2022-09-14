@@ -12,6 +12,9 @@ namespace BossMod
         public List<(AOEShape shape, WPos origin, Angle rot, DateTime activation)> ForbiddenZones = new();
         public List<(AOEShape shape, WPos origin, Angle rot, DateTime activation)> RestrictedZones = new();
 
+        // imminent forced movements (knockbacks, attracts, etc.)
+        public List<(WDir move, DateTime activation)> ForcedMovements = new();
+
         // positioning: position hint - if set, player will move closer to this position, assuming it is safe and in target's range, without losing uptime
         public WPos? RecommendedPosition = null;
 

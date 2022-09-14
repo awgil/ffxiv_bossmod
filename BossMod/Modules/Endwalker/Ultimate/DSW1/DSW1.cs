@@ -12,9 +12,9 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public FullDimension() : base(ActionID.MakeSpell(AID.FullDimension), new AOEShapeCircle(6)) { }
     }
 
-    class HoliestHallowing : CommonComponents.Interruptible
+    class HoliestHallowing : Components.CastHint
     {
-        public HoliestHallowing() : base(ActionID.MakeSpell(AID.HoliestHallowing)) { }
+        public HoliestHallowing() : base(ActionID.MakeSpell(AID.HoliestHallowing), "Interrupt!") { }
     }
 
     [ConfigDisplay(Order = 0x200, Parent = typeof(EndwalkerConfig))]

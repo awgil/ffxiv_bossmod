@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            var adjPos = BossModule.AdjustPositionForKnockback(actor.Position, DarkTwister(module), _knockbackRange);
+            var adjPos = Components.Knockback.AwayFromSource(actor.Position, DarkTwister(module), _knockbackRange);
             if (actor.Position != adjPos && !module.Bounds.Contains(adjPos))
             {
                 hints.Add("About to be knocked back into wall!");
@@ -47,7 +47,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             if (darkTwister == null)
                 return;
 
-            var adjPos = BossModule.AdjustPositionForKnockback(pc.Position, darkTwister, _knockbackRange);
+            var adjPos = Components.Knockback.AwayFromSource(pc.Position, darkTwister, _knockbackRange);
             if (adjPos != pc.Position)
             {
                 arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
