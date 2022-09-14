@@ -2,7 +2,7 @@
 
 namespace BossMod.Components
 {
-    // generic component that is 'active' when any actor casts specific primary spell
+    // generic component that is 'active' when any actor casts specific spell
     public class CastHint : CastCounter
     {
         public string Hint;
