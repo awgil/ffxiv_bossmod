@@ -17,11 +17,11 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
         private BitMatrix _tetherClips; // [i,j] is set if i is tethered and clips j
 
         protected static BitMask ValidPlatformsMask = new(7);
-        private static AOEShapeCircle _shapeBullUntethered = new(10);
-        private static AOEShapeRect _shapeBirdUntethered = new(60, 4);
-        private static AOEShapeRect _shapeBullBirdTethered = new(60, 4);
-        private static AOEShapeCone _shapeMinotaurUntethered = new(60, 45.Degrees());
-        private static AOEShapeCone _shapeMinotaurTethered = new(60, 22.5f.Degrees());
+        protected static AOEShapeCircle ShapeBullUntethered = new(10);
+        protected static AOEShapeRect ShapeBirdUntethered = new(60, 4);
+        protected static AOEShapeRect ShapeBullBirdTethered = new(60, 4);
+        protected static AOEShapeCone ShapeMinotaurUntethered = new(60, 45.Degrees());
+        protected static AOEShapeCone ShapeMinotaurTethered = new(60, 22.5f.Degrees());
 
         public bool CastsActive => _activeAOEs.Count > 0;
 
@@ -43,7 +43,7 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
                 var tetherSource = TetherSources[slot];
                 if (tetherSource != null)
                 {
-                    AOEShape tetherShape = (OID)tetherSource.OID == OID.ImmatureMinotaur ? _shapeMinotaurTethered : _shapeBullBirdTethered;
+                    AOEShape tetherShape = (OID)tetherSource.OID == OID.ImmatureMinotaur ? ShapeMinotaurTethered : ShapeBullBirdTethered;
                     _tetherClips[slot] = module.Raid.WithSlot().Exclude(player).InShape(tetherShape, tetherSource.Position, Angle.FromDirection(player.Position - tetherSource.Position)).Mask();
                 }
             }
@@ -84,15 +84,15 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
             {
                 case AID.StaticMoon:
                     _predictedAOEs.Clear();
-                    _activeAOEs.Add((caster, _shapeBullUntethered));
+                    _activeAOEs.Add((caster, ShapeBullUntethered));
                     break;
                 case AID.StymphalianStrike:
                     _predictedAOEs.Clear();
-                    _activeAOEs.Add((caster, _shapeBirdUntethered));
+                    _activeAOEs.Add((caster, ShapeBirdUntethered));
                     break;
                 case AID.BullishSwipeAOE:
                     MinotaursBaited = true;
-                    _activeAOEs.Add((caster, _shapeMinotaurUntethered));
+                    _activeAOEs.Add((caster, ShapeMinotaurUntethered));
                     break;
             }
         }
@@ -112,8 +112,8 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
                 {
                     AOEShape? shape = (OID)actor.OID switch
                     {
-                        OID.ForbiddenFruitBull => _shapeBullUntethered,
-                        OID.ForbiddenFruitBird => _shapeBirdUntethered,
+                        OID.ForbiddenFruitBull => ShapeBullUntethered,
+                        OID.ForbiddenFruitBird => ShapeBirdUntethered,
                         _ => null
                     };
                     if (shape != null)

@@ -8,6 +8,20 @@
 
         public ForbiddenFruit10() : base(ActionID.MakeSpell(AID.BronzeBellows)) { }
 
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            base.DrawArenaBackground(module, pcSlot, pc, arena);
+            foreach (var (slot, target) in module.Raid.WithSlot(true))
+            {
+                var source = TetherSources[slot];
+                if (source != null)
+                {
+                    AOEShape shape = (OID)source.OID == OID.ImmatureMinotaur ? ShapeMinotaurTethered : ShapeBullBirdTethered;
+                    shape.Draw(arena, source.Position, Angle.FromDirection(target.Position - source.Position));
+                }
+            }
+        }
+
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
             var slot = TryAssignTether(module, source, tether);
