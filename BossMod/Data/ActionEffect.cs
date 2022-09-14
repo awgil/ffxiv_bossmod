@@ -33,9 +33,12 @@ namespace BossMod
         EnmityAmountDown = 26, // 0x1A
         StartActionCombo = 27, // 0x1B
         Retaliation = 29, // 0x1D - 'vengeance' has value = 7, 'arms length' has value = 0
-        Knockback1 = 32, // 0x20
-        Knockback = 33, // 0x21
-        Unknown_22 = 34, // 0x22
+        Knockback = 32, // 0x20
+        Attract1 = 33, // 0x21
+        Attract2 = 34, // 0x22
+        AttractCustom1 = 35, // 0x23
+        AttractCustom2 = 36, // 0x24
+        AttractCustom3 = 37, // 0x25
         Unknown_27 = 39, // 0x27
         Mount = 40, // 0x28
         unknown_30 = 48, // 0x30
@@ -94,6 +97,16 @@ namespace BossMod
         Lightning,
         Water,
         Unaspected,
+    }
+
+    public enum KnockbackDirection
+    {
+        AwayFromSource = 0, // direction = target-source
+        Arg = 1, // direction = arg.degrees()
+        Random = 2, // direction = random(0, 2pi)
+        SourceForward = 3, // direction = src.direction
+        SourceRight = 4, // direction = src.direction - pi/2
+        SourceLeft = 5, // direction = src.direction + pi/2
     }
 
     public unsafe struct ActionEffects : IEnumerable<ActionEffect>
@@ -198,9 +211,18 @@ namespace BossMod
                 case ActionEffectType.LoseStatusEffectSource:
                     res.Append(Utils.StatusString(eff.Value));
                     break;
-                case ActionEffectType.Knockback1:
                 case ActionEffectType.Knockback:
-                    res.Append(Utils.KnockbackString(eff.Value));
+                    var kbData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Knockback>(eff.Value);
+                    res.Append($"row={eff.Value}, dist={kbData?.Distance}+{eff.Param0}, dir={(KnockbackDirection?)kbData?.Direction}{(kbData?.Direction == (byte)KnockbackDirection.Arg ? $" ({kbData.DirectionArg}deg)" : "")}, speed={kbData?.Speed}");
+                    break;
+                case ActionEffectType.Attract1:
+                case ActionEffectType.Attract2:
+                    res.Append($"row={eff.Value}, TODO lumina...");
+                    break;
+                case ActionEffectType.AttractCustom1:
+                case ActionEffectType.AttractCustom2:
+                case ActionEffectType.AttractCustom3:
+                    res.Append($"dist={eff.Value} (min={eff.Param1}), speed={eff.Param0}");
                     break;
                 case ActionEffectType.SetHP:
                     res.Append($"value={eff.Value}");
@@ -267,6 +289,15 @@ namespace BossMod
                         return "TODO investigate param0/1";// $"{Utils.StatusString(eff.Value)} {eff.Param0:X2}{eff.Param1:X2}"; - these are often non-zero, but I have no idea what they mean...
                 case ActionEffectType.RecoveredFromStatusEffect:
                     return eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || (eff.Param4 & ~0x80) != 0 ? "non-zero params" : "";
+                case ActionEffectType.Knockback:
+                    return eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0 ? "non-zero params" : "";
+                case ActionEffectType.Attract1:
+                case ActionEffectType.Attract2:
+                    return eff.Param0 != 0 || eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0 ? "non-zero params" : "";
+                case ActionEffectType.AttractCustom1:
+                case ActionEffectType.AttractCustom2:
+                case ActionEffectType.AttractCustom3:
+                    return eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0 ? "non-zero params" : "";
                 default:
                     return $"unknown type";
             }
