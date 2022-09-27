@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace BossMod.Components
 {
@@ -6,20 +7,23 @@ namespace BossMod.Components
     // there are various variants (e.g. everyone should spread, or everyone should stack in one or more groups, or some combination of that)
     public class StackSpread : BossComponent
     {
-        public float StackRadius { get; private init; }
-        public float SpreadRadius { get; private init; }
+        private AOEShapeCircle _stackShape;
+        private AOEShapeCircle _spreadShape;
+        public float StackRadius => _stackShape.Radius;
+        public float SpreadRadius => _spreadShape.Radius;
         public int MinStackSize { get; private init; }
         public int MaxStackSize { get; private init; }
         public bool AlwaysShowSpreads { get; private init; } // if false, we only shown own spread radius for spread targets - this reduces visual clutter
         public BitMask SpreadMask;
         public BitMask StackMask;
+        public DateTime ActivateAt;
 
         public bool Active => (SpreadMask | StackMask).Any();
 
         public StackSpread(float stackRadius, float spreadRadius, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false)
         {
-            SpreadRadius = spreadRadius;
-            StackRadius = stackRadius;
+            _stackShape = new(stackRadius);
+            _spreadShape = new(spreadRadius);
             MinStackSize = minStackSize;
             MaxStackSize = maxStackSize;
             AlwaysShowSpreads = alwaysShowSpreads;
@@ -42,6 +46,33 @@ namespace BossMod.Components
             {
                 hints.Add("GTFO from spreads!");
             }
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        {
+            // forbid standing next to spread markers
+            foreach (var (_, player) in module.Raid.WithSlot().Exclude(slot).IncludedInMask(SpreadMask))
+                hints.ForbiddenZones.Add((_spreadShape, player.Position, new(), ActivateAt));
+
+            // if not spreading, deal with stack markers
+            if (!SpreadMask[slot])
+            {
+                if (StackMask[slot])
+                {
+                    // forbid standing next to other stack markers
+                    foreach (var (_, player) in module.Raid.WithSlot().Exclude(slot).IncludedInMask(StackMask))
+                        hints.ForbiddenZones.Add((_stackShape, player.Position, new(), ActivateAt));
+                }
+                else
+                {
+                    // TODO: handle multi stacks better...
+                    foreach (var (_, player) in module.Raid.WithSlot().IncludedInMask(StackMask))
+                        hints.RestrictedZones.Add((_stackShape, player.Position, new(), ActivateAt));
+                }
+            }
+
+            // assume everyone will take some damage, either from sharing stacks or from spreads
+            hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), ActivateAt));
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
