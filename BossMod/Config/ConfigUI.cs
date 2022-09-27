@@ -63,7 +63,7 @@ namespace BossMod
 
         private void SortByOrder(List<UINode> nodes)
         {
-            nodes.Sort((l, r) => l.Order.CompareTo(r.Order));
+            nodes.SortBy(e => e.Order);
             foreach (var n in nodes)
                 SortByOrder(n.Children);
         }

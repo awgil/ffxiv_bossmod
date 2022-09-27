@@ -260,12 +260,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 if (order.HaveDirections)
                 {
-                    order.PlayerSlots.Sort((a, b) => _playerStates[a].JumpDirection.CompareTo(_playerStates[b].JumpDirection));
+                    order.PlayerSlots.SortBy(e => _playerStates[e].JumpDirection);
                     AssignPlayerSequence(order);
                 }
                 else if (roles.Length > 0)
                 {
-                    order.PlayerSlots.Sort((a, b) => roles[a].CompareTo(roles[b])); // TODO: this is completely arbitrary, but we need stable sort order...
+                    order.PlayerSlots.SortBy(e => roles[e]); // TODO: this is completely arbitrary, but we need stable sort order...
                     AssignPlayerSequence(order);
                 }
             }

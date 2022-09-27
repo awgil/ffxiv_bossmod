@@ -145,7 +145,7 @@ namespace UIDev.Analysis
 
                     _points.Add((r, a, minDistance));
                 }
-                _points.Sort((l, r) => r.MinDistance.CompareTo(l.MinDistance));
+                _points.SortByReverse(e => e.MinDistance);
             }
 
             public void Draw(UITree tree)

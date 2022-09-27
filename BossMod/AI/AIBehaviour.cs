@@ -1,6 +1,5 @@
 ﻿using ImGuiNET;
 using System;
-using System.Linq;
 
 namespace BossMod.AI
 {
@@ -22,12 +21,11 @@ namespace BossMod.AI
         {
             _autorot = autorot;
             _ctrl = ctrl;
-            _avoidAOE = new(autorot.Bossmods);
+            _avoidAOE = new();
         }
 
         public void Dispose()
         {
-            _avoidAOE.Dispose();
         }
 
         public void Execute(Actor player, Actor master)
@@ -126,10 +124,11 @@ namespace BossMod.AI
             {
                 _avoidAOE.ClearDesired();
             }
-
             _autorot.ClassActions?.UpdateAutoAction(strategy);
-            var destData = _avoidAOE.Update(player);
-            if (destData.DestPos == null && (target.Target == null || _followMaster) && master != player)
+
+            // update movement: avoid aoes, go to module-defined preferred position, follow master...
+            var destPos = _avoidAOE.Update(player, _autorot.Hints);
+            if (destPos == null && (target.Target == null || _followMaster) && master != player)
             {
                 // if there is no planned action and no aoe avoidance, just follow master...
                 var targetPos = master.Position;
@@ -137,7 +136,7 @@ namespace BossMod.AI
                 var toTarget = targetPos - playerPos;
                 if (toTarget.LengthSq() > 1)
                 {
-                    destData.DestPos = targetPos;
+                    destPos = targetPos;
                 }
 
                 // sprint
@@ -154,17 +153,18 @@ namespace BossMod.AI
                 //    _ctrl.TargetRot = cameraFacing.OrthoL().Dot(_ctrl.TargetRot.Value) > 0 ? _ctrl.TargetRot.Value.OrthoR() : _ctrl.TargetRot.Value.OrthoL();
             }
 
-            if (destData.DestRot != null && (destData.RotDeadline - _autorot.WorldState.CurrentTime).TotalSeconds < 0.5f)
+            var destRot = AvoidGaze.Update(player, target.Target?.Position, _autorot.Hints, _autorot.WorldState.CurrentTime.AddSeconds(0.5));
+            if (destRot != null)
             {
                 // rotation check imminent, drop any movement - we should have moved to safe zone already...
                 _ctrl.NaviTargetPos = null;
-                _ctrl.NaviTargetRot = destData.DestRot;
+                _ctrl.NaviTargetRot = destRot;
                 _ctrl.ForceFacing = true;
             }
             else
             {
-                var toDest = destData.DestPos != null ? destData.DestPos.Value - player.Position : new();
-                _ctrl.NaviTargetPos = destData.DestPos;
+                var toDest = destPos != null ? destPos.Value - player.Position : new();
+                _ctrl.NaviTargetPos = destPos;
                 _ctrl.NaviTargetRot = toDest.LengthSq() >= 0.04f ? toDest.Normalized() : null;
                 _ctrl.ForceFacing = false;
             }

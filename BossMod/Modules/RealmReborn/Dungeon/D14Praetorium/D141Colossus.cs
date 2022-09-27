@@ -19,9 +19,9 @@
         GrandSword = 28473, // Boss->self, 5.0s cast, range 25 90-degree cone aoe
     };
 
-    class CeruleumVent : Components.CastHint
+    class CeruleumVent : Components.RaidwideCast
     {
-        public CeruleumVent() : base(ActionID.MakeSpell(AID.CeruleumVent), "Raidwide") { }
+        public CeruleumVent() : base(ActionID.MakeSpell(AID.CeruleumVent)) { }
     }
 
     class PrototypeLaserAlpha1 : Components.LocationTargetedAOEs

@@ -37,6 +37,7 @@ namespace BossMod
         private Network _network;
         private AutorotationConfig _config;
         private BossModuleManager _bossmods;
+        private AutoHints _autoHints;
         private WindowManager.Window? _ui;
         private CommonActions? _classActions;
 
@@ -56,7 +57,8 @@ namespace BossMod
 
         public Actor? PrimaryTarget; // this is usually a normal (hard) target, but AI can override; typically used for damage abilities
         public Actor? SecondaryTarget; // this is usually a mouseover, but AI can override; typically used for heal and utility abilities
-        public BossTargets PotentialTargets = new();
+        public AIHints Hints = new();
+        public BossTargets PotentialTargets = new(); // TODO: move into ai hints
         public bool Moving => _inputOverride.IsMoveRequested(); // TODO: reconsider
         public float EffAnimLock => ActionManagerEx.Instance!.EffectiveAnimationLock;
         public float AnimLockDelay => ActionManagerEx.Instance!.EffectiveAnimationLockDelay;
@@ -66,6 +68,7 @@ namespace BossMod
             _network = network;
             _config = Service.Config.Get<AutorotationConfig>();
             _bossmods = bossmods;
+            _autoHints = new(bossmods.WorldState);
             _inputOverride = inputOverride;
 
             ActionManagerEx.Instance!.PostUpdate += OnActionManagerUpdate;
@@ -91,6 +94,7 @@ namespace BossMod
 
             _useActionHook.Dispose();
             _classActions?.Dispose();
+            _autoHints.Dispose();
         }
 
         public void Update()
@@ -100,8 +104,17 @@ namespace BossMod
             var player = WorldState.Party.Player();
             PrimaryTarget = WorldState.Actors.Find(player?.TargetID ?? 0);
             SecondaryTarget = WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
+
+            var activeModule = Bossmods.ActiveModule?.StateMachine.ActivePhase != null ? Bossmods.ActiveModule : null;
+            Hints.Clear();
+            if (activeModule != null && player != null)
+                activeModule.CalculateAIHints(PartyState.PlayerSlot, player, Hints);
+            else
+                _autoHints.CalculateAIHints(Hints);
+            Hints.Normalize();
+
             PotentialTargets.Clear();
-            if (Bossmods.ActiveModule?.StateMachine.ActivePhase == null || !Bossmods.ActiveModule.FillTargets(PotentialTargets, PartyState.PlayerSlot))
+            if (activeModule == null || !activeModule.FillTargets(PotentialTargets, PartyState.PlayerSlot))
                 PotentialTargets.Autofill(WorldState);
 
             Type? classType = null;

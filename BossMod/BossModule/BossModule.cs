@@ -249,12 +249,11 @@ namespace BossMod
             return hints;
         }
 
-        public AIHints CalculateAIHints(int slot, Actor actor)
+        public virtual void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
-            AIHints hints = new();
+            hints.Bounds = Bounds;
             foreach (var comp in _components)
                 comp.AddAIHints(this, slot, actor, hints);
-            return hints;
         }
 
         // called by AI to determine targets to focus; return false if module does not need any custom logic - in this case targets are filled automatically, as if module was not active

@@ -188,7 +188,7 @@ namespace BossMod
                     }
 
                     // sort and merge activation windows, so that they form disjoint ranges
-                    curAbility.ActivationWindows.Sort((l, r) => l.Start.CompareTo(r.Start));
+                    curAbility.ActivationWindows.SortBy(e => e.Start);
                     for (int i = 1; i < curAbility.ActivationWindows.Count; ++i)
                     {
                         if (curAbility.ActivationWindows[i].Start > curAbility.ActivationWindows[i - 1].End)

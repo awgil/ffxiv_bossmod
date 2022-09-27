@@ -56,7 +56,7 @@ namespace BossMod.SCH
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionMnd);
             _strategy.NumWhisperingDawnTargets = _state.Fairy != null && _state.Unlocked(AID.WhisperingDawn) ? CountAOEHealTargets(15, _state.Fairy.Position) : 0;
-            _strategy.NumSuccorTargets = _state.Unlocked(AID.Succor) ? CountAOEHealTargets(15, Player.Position) : 0;
+            _strategy.NumSuccorTargets = _state.Unlocked(AID.Succor) ? CountAOEPreshieldTargets(15, Player.Position, (uint)SID.Galvanize, _state.GCD + 2, 10) : 0;
             _strategy.NumArtOfWarTargets = _state.Unlocked(AID.ArtOfWar1) ? Autorot.PotentialTargetsInRangeFromPlayer(5).Count() : 0;
             _strategy.Moving = autoAction is AutoActionAIIdleMove or AutoActionAIFightMove;
             _bestSTHeal = FindBestSTHealTarget();
@@ -77,7 +77,6 @@ namespace BossMod.SCH
             // TODO: raise support...
             bool allowCasts = !_strategy.Moving || _state.SwiftcastLeft > _state.GCD;
 
-            // TODO: L45+
             if (allowCasts && _strategy.NumSuccorTargets > 2 && _state.CurMP >= 1000)
                 return MakeResult(AID.Succor, Player);
 

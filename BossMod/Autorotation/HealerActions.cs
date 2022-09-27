@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -72,6 +73,40 @@ namespace BossMod
                 if (PartyMemberStates[i].PredictedHPRatio < hpThreshold && actor != null && !actor.IsDead && actor.Position.InCircle(center, radius))
                 {
                     ++res;
+                }
+            }
+            return res;
+        }
+
+        // count alive players with hp ratio < threshold -or- that are valid preshield targets (have no specified status and have predicted incoming damage in specified time)
+        protected int CountAOEPreshieldTargets(float radius, WPos center, uint shieldSID, float minTime, float maxTime, float hpThreshold = 0.9f)
+        {
+            int res = 0;
+            for (int i = 0; i < PartyMemberStates.Length; ++i)
+            {
+                var actor = Autorot.WorldState.Party[i];
+                if (actor != null && !actor.IsDead && actor.Position.InCircle(center, radius))
+                {
+                    bool valid = PartyMemberStates[i].PredictedHPRatio < hpThreshold;
+                    if (!valid)
+                    {
+                        var shield = StatusDetails(actor, shieldSID, Autorot.WorldState.Party.Player()?.InstanceID ?? 0).Left;
+                        if (shield <= minTime)
+                        {
+                            foreach (var e in Autorot.Hints.PredictedDamage.Where(e => e.players[i]))
+                            {
+                                var time = MathF.Max(0, (float)(e.activation - Autorot.WorldState.CurrentTime).TotalSeconds);
+                                if (time >= minTime && time <= maxTime)
+                                {
+                                    valid = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (valid)
+                        ++res;
                 }
             }
             return res;

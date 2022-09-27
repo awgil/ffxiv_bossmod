@@ -26,9 +26,9 @@
         public IronUprising() : base(ActionID.MakeSpell(AID.IronUprising), new AOEShapeCone(7, 60.Degrees())) { }
     }
 
-    class SpineShatter : Components.CastHint
+    class SpineShatter : Components.SingleTargetCast
     {
-        public SpineShatter() : base(ActionID.MakeSpell(AID.SpineShatter), "Tankbuster") { }
+        public SpineShatter() : base(ActionID.MakeSpell(AID.SpineShatter)) { }
     }
 
     class AugmentedSuffering : Components.KnockbackFromCaster

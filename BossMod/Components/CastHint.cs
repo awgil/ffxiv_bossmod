@@ -7,7 +7,7 @@ namespace BossMod.Components
     {
         public string Hint;
         private List<Actor> _casters = new();
-
+        public IReadOnlyList<Actor> Casters => _casters;
         public bool Active => _casters.Count > 0;
 
         public CastHint(ActionID action, string hint) : base(action)
@@ -17,7 +17,7 @@ namespace BossMod.Components
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            if (Active)
+            if (Active && Hint.Length > 0)
                 hints.Add(Hint);
         }
 

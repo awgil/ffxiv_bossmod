@@ -80,7 +80,7 @@ namespace UIDev.Analysis
             {
                 foreach (var (_, trans) in state.Transitions)
                 {
-                    trans.Instances.Sort((l, r) => l.Duration.CompareTo(r.Duration));
+                    trans.Instances.SortBy(e => e.Duration);
                     trans.MinTime = trans.Instances.First().Duration;
                     trans.MaxTime = trans.Instances.Last().Duration;
                     double sum = 0, sumSq = 0;

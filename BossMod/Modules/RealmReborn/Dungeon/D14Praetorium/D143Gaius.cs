@@ -58,14 +58,14 @@ namespace BossMod.RealmReborn.Dungeon.D14Praetorium.D143Gaius
         public FestinaLente() : base(ActionID.MakeSpell(AID.FestinaLente), 6, 4) { }
     }
 
-    class Innocence : Components.CastHint
+    class Innocence : Components.SingleTargetCast
     {
-        public Innocence() : base(ActionID.MakeSpell(AID.Innocence), "Tankbuster") { }
+        public Innocence() : base(ActionID.MakeSpell(AID.Innocence)) { }
     }
 
-    class HorridaBella : Components.CastHint
+    class HorridaBella : Components.RaidwideCast
     {
-        public HorridaBella() : base(ActionID.MakeSpell(AID.HorridaBella), "Raidwide") { }
+        public HorridaBella() : base(ActionID.MakeSpell(AID.HorridaBella)) { }
     }
 
     class Ductus : Components.LocationTargetedAOEs
@@ -90,7 +90,10 @@ namespace BossMod.RealmReborn.Dungeon.D14Praetorium.D143Gaius
         }
     }
 
-    // Heirsbane: TODO
+    class Heirsbane : Components.SingleTargetCast
+    {
+        public Heirsbane() : base(ActionID.MakeSpell(AID.Innocence), "") { }
+    }
 
     class D143GaiusStates : StateMachineBuilder
     {
@@ -104,7 +107,8 @@ namespace BossMod.RealmReborn.Dungeon.D14Praetorium.D143Gaius
                 .ActivateOnEnter<Innocence>()
                 .ActivateOnEnter<HorridaBella>()
                 .ActivateOnEnter<Ductus>()
-                .ActivateOnEnter<AddEnrage>();
+                .ActivateOnEnter<AddEnrage>()
+                .ActivateOnEnter<Heirsbane>();
         }
     }
 

@@ -3,7 +3,6 @@ using ImGuiNET;
 using System;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
 
 namespace BossMod
 {
@@ -17,7 +16,7 @@ namespace BossMod
         private DebugAction _debugAction;
         private DebugHate _debugHate = new();
         private DebugInput _debugInput;
-        private DebugAI _debugAI;
+        //private DebugAI _debugAI;
         private DebugClassDefinitions _debugClassDefinitions;
 
         public DebugUI(WorldState ws, Autorotation autorot, InputOverride inputOverride)
@@ -26,13 +25,13 @@ namespace BossMod
             _autorot = autorot;
             _debugAction = new(ws);
             _debugInput = new(inputOverride, autorot);
-            _debugAI = new(autorot);
+            //_debugAI = new(autorot);
             _debugClassDefinitions = new(ws);
         }
 
         public void Dispose()
         {
-            _debugAI.Dispose();
+            //_debugAI.Dispose();
             _debugClassDefinitions.Dispose();
         }
 
@@ -75,10 +74,10 @@ namespace BossMod
             {
                 _debugParty.DrawPartyCustom();
             }
-            if (ImGui.CollapsingHeader("AI"))
-            {
-                _debugAI.Draw();
-            }
+            //if (ImGui.CollapsingHeader("AI"))
+            //{
+            //    _debugAI.Draw();
+            //}
             if (ImGui.CollapsingHeader("Graphics scene"))
             {
                 _debugGraphics.DrawSceneTree();

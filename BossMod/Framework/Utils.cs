@@ -216,6 +216,10 @@ namespace BossMod
             return first;
         }
 
+        // sort elements of a list by key
+        public static void SortBy<TValue, TKey>(this List<TValue> list, Func<TValue, TKey> proj) where TKey : notnull, IComparable => list.Sort((l, r) => proj(l).CompareTo(proj(r)));
+        public static void SortByReverse<TValue, TKey>(this List<TValue> list, Func<TValue, TKey> proj) where TKey : notnull, IComparable => list.Sort((l, r) => proj(r).CompareTo(proj(l)));
+
         // get all types defined in specified assembly
         public static IEnumerable<Type?> GetAllTypes(Assembly asm)
         {

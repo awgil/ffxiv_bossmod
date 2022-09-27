@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace BossMod
 {
-    // a set of valid, priority and forbidden targets
+    // a set of valid, priority and forbidden targets (TODO: move to ai hints)
     public class BossTargets
     {
         public List<Actor> Valid = new();

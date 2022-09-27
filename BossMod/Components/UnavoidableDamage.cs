@@ -1,0 +1,30 @@
+﻿namespace BossMod.Components
+{
+    // generic unavoidable raidwide cast
+    public class RaidwideCast : CastHint
+    {
+        public RaidwideCast(ActionID aid) : base(aid, "Raidwide") { }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        {
+            foreach (var c in Casters)
+                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), c.CastInfo!.FinishAt));
+        }
+    }
+
+    // generic unavoidable single-target damage cast (typically tankbuster, but not necessary)
+    public class SingleTargetCast : CastHint
+    {
+        public SingleTargetCast(ActionID aid, string hint = "Tankbuster") : base(aid, hint) { }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        {
+            foreach (var c in Casters)
+            {
+                BitMask targets = new();
+                targets.Set(module.Raid.FindSlot(c.CastInfo!.TargetID));
+                hints.PredictedDamage.Add((targets, c.CastInfo!.FinishAt));
+            }
+        }
+    }
+}

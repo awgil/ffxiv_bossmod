@@ -40,11 +40,11 @@ namespace BossMod
                 var cp = typeof(Lumina.Excel.GeneratedSheets.ClassJobCategory).GetProperty(c.ToString());
                 Func<Lumina.Excel.GeneratedSheets.Action, bool> actionIsInteresting = a => !a.IsPvP && a.ClassJobLevel > 0 && (cp?.GetValue(a.ClassJobCategory.Value) as bool? ?? false);
                 Actions = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(actionIsInteresting).ToList() ?? new();
-                Actions.Sort((l, r) => l.ClassJobLevel.CompareTo(r.ClassJobLevel));
+                Actions.SortBy(e => e.ClassJobLevel);
 
                 Func<Lumina.Excel.GeneratedSheets.Trait, bool> traitIsInteresting = t => (cp?.GetValue(t.ClassJobCategory.Value) as bool? ?? false);
                 Traits = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Trait>()?.Where(traitIsInteresting).ToList() ?? new();
-                Traits.Sort((l, r) => l.Level.CompareTo(r.Level));
+                Traits.SortBy(e => e.Level);
 
                 foreach (var action in Actions)
                 {

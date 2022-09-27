@@ -83,7 +83,7 @@ namespace BossMod
                     if (m != null)
                         party.Add((ws.Party.ContentIDs[i], m.Name, m.Role, this[ws.Party.ContentIDs[i]]));
                 }
-                party.Sort((l, r) => l.Item3.CompareTo(r.Item3));
+                party.SortBy(e => e.Item3);
 
                 foreach (var (contentID, name, classRole, assignedRole) in party)
                 {
