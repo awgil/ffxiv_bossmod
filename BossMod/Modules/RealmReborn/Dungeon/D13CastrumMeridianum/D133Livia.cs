@@ -40,14 +40,14 @@ namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia
         ArtificialPlasmaBoostRest = 29353, // Boss->self, no cast, raidwide
     };
 
-    class AglaeaClimb : Components.CastHint
+    class AglaeaClimb : Components.SingleTargetCast
     {
-        public AglaeaClimb() : base(ActionID.MakeSpell(AID.AglaeaClimb), "Tankbuster") { }
+        public AglaeaClimb() : base(ActionID.MakeSpell(AID.AglaeaClimb)) { }
     }
 
-    class ArtificialPlasma : Components.CastHint
+    class ArtificialPlasma : Components.RaidwideCast
     {
-        public ArtificialPlasma() : base(ActionID.MakeSpell(AID.ArtificialPlasma), "Raidwide") { }
+        public ArtificialPlasma() : base(ActionID.MakeSpell(AID.ArtificialPlasma)) { }
     }
 
     class Roundhouse : Components.GenericAOEs

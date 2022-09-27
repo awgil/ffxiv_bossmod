@@ -31,9 +31,9 @@
         public GiganticBlast() : base(ActionID.MakeSpell(AID.GiganticBlast), new AOEShapeCircle(8)) { }
     }
 
-    class GrandSlam : Components.CastHint
+    class GrandSlam : Components.SingleTargetCast
     {
-        public GrandSlam() : base(ActionID.MakeSpell(AID.GrandSlam), "Tankbuster") { }
+        public GrandSlam() : base(ActionID.MakeSpell(AID.GrandSlam)) { }
     }
 
     class ColossalSlam : Components.SelfTargetedLegacyRotationAOEs

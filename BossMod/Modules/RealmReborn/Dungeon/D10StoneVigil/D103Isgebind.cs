@@ -21,9 +21,9 @@ namespace BossMod.RealmReborn.Dungeon.D10StoneVigil.D103Isgebind
         Touchdown = 1027, // Boss->self, no cast, range 5 aoe around center
     };
 
-    class RimeWreath : Components.CastHint
+    class RimeWreath : Components.RaidwideCast
     {
-        public RimeWreath() : base(ActionID.MakeSpell(AID.RimeWreath), "Raidwide") { }
+        public RimeWreath() : base(ActionID.MakeSpell(AID.RimeWreath)) { }
     }
 
     class FrostBreath : Components.Cleave

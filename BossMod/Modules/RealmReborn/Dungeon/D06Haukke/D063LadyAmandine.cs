@@ -37,7 +37,7 @@ namespace BossMod.RealmReborn.Dungeon.D06Haukke.D063LadyAmandine
         public BeguilingMist() : base(ActionID.MakeSpell(AID.BeguilingMist), "Forced movement towards boss") { }
     }
 
-    class VoidThunder : Components.CastHint
+    class VoidThunder : Components.SingleTargetCast
     {
         public VoidThunder() : base(ActionID.MakeSpell(AID.VoidThunder3), "Interruptible tankbuster") { }
     }

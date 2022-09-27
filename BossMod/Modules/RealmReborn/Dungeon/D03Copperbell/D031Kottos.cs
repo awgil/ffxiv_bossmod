@@ -17,9 +17,9 @@
         Catapult = 28547, // Boss->player, 5.0s cast, single target damage at random target
     };
 
-    class GrandSlam : Components.CastHint
+    class GrandSlam : Components.SingleTargetCast
     {
-        public GrandSlam() : base(ActionID.MakeSpell(AID.GrandSlam), "Tankbuster") { }
+        public GrandSlam() : base(ActionID.MakeSpell(AID.GrandSlam)) { }
     }
 
     class LumberingLeap : Components.SelfTargetedAOEs
@@ -32,7 +32,7 @@
         public ColossalSlam() : base(ActionID.MakeSpell(AID.ColossalSlam), new AOEShapeCone(30, 30.Degrees())) { }
     }
 
-    class Catapult : Components.CastHint
+    class Catapult : Components.SingleTargetCast
     {
         public Catapult() : base(ActionID.MakeSpell(AID.Catapult), "Single-target damage") { }
     }

@@ -16,9 +16,9 @@
         DragonBreath = 28660, // Boss->self, 3.0s cast, range 30 width 8 rect
     };
 
-    class SalivousSnap : Components.CastHint
+    class SalivousSnap : Components.SingleTargetCast
     {
-        public SalivousSnap() : base(ActionID.MakeSpell(AID.SalivousSnap), "Tankbuster") { }
+        public SalivousSnap() : base(ActionID.MakeSpell(AID.SalivousSnap)) { }
     }
 
     class ToxicVomit : Components.SelfTargetedAOEs

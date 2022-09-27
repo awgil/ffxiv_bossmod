@@ -40,9 +40,9 @@
         public TargetedSupport() : base(ActionID.MakeSpell(AID.TargetedSupportAOE), new AOEShapeCircle(5)) { }
     }
 
-    class CermetDrill : Components.CastHint
+    class CermetDrill : Components.SingleTargetCast
     {
-        public CermetDrill() : base(ActionID.MakeSpell(AID.CermetDrill), "Tankbuster") { }
+        public CermetDrill() : base(ActionID.MakeSpell(AID.CermetDrill)) { }
     }
 
     class Overcharge : Components.SelfTargetedAOEs

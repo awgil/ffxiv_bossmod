@@ -22,9 +22,9 @@ namespace BossMod.RealmReborn.Dungeon.D10StoneVigil.D102Koshchei
         TyphoonAOE = 28731, // MaelstromHelper->self, no cast, range 3 aoe
     };
 
-    class SpikedTail : Components.CastHint
+    class SpikedTail : Components.SingleTargetCast
     {
-        public SpikedTail() : base(ActionID.MakeSpell(AID.SpikedTail), "Tankbuster") { }
+        public SpikedTail() : base(ActionID.MakeSpell(AID.SpikedTail)) { }
     }
 
     class SonicStorm : Components.LocationTargetedAOEs

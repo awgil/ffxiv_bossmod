@@ -21,9 +21,9 @@
         public Syrup() : base(ActionID.MakeSpell(AID.Syrup), 4) { }
     }
 
-    class FluidSpread : Components.CastHint
+    class FluidSpread : Components.SingleTargetCast
     {
-        public FluidSpread() : base(ActionID.MakeSpell(AID.FluidSpread), "Tankbuster") { }
+        public FluidSpread() : base(ActionID.MakeSpell(AID.FluidSpread)) { }
     }
 
     class Divide : Components.SelfTargetedAOEs
