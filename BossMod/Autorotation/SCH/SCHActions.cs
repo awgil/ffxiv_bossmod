@@ -128,7 +128,7 @@ namespace BossMod.SCH
             // TODO: fey illumination
 
             // whispering dawn, if it hits 3+ targets or hits st heal target
-            if (_strategy.NumWhisperingDawnTargets > 0)
+            if (_strategy.NumWhisperingDawnTargets > 0 && _state.CanWeave(CDGroup.WhisperingDawn, 0.6f, deadline))
             {
                 // TODO: better whispering dawn condition...
                 if (_strategy.NumWhisperingDawnTargets > 2 || _strategy.BestSTHeal.Target != null && (_strategy.BestSTHeal.Target.Position - _state.Fairy!.Position).LengthSq() <= 15 * 15)
