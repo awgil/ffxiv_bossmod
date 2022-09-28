@@ -47,6 +47,9 @@ namespace BossMod.WAR
             _config.Modified -= OnConfigModified;
         }
 
+        public override CommonRotation.PlayerState GetState() => _state;
+        public override CommonRotation.Strategy GetStrategy() => _strategy;
+
         protected override void UpdateInternalState(int autoAction)
         {
             _aoe = autoAction switch

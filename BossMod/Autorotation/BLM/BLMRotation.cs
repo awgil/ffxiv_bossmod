@@ -35,6 +35,11 @@
         {
             public bool AOE;
             public bool Moving;
+
+            public override string ToString()
+            {
+                return $"AOE={AOE}, moving={Moving}";
+            }
         }
 
         public static uint AdjustedFireCost(State state, uint baseCost)

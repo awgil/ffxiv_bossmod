@@ -37,6 +37,11 @@
         {
             public int NumPointBlankAOETargets; // range 5 around self
             public int NumEnlightenmentTargets; // range 10 width 2/4 rect
+
+            public override string ToString()
+            {
+                return $"AOE={NumPointBlankAOETargets}/{NumEnlightenmentTargets}";
+            }
         }
 
         public static AID GetOpoOpoFormAction(State state, int numAOETargets)

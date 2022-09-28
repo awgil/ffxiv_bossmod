@@ -42,6 +42,11 @@ namespace BossMod.WAR
             public float SecondChargeIn; // when do we need to use two onslaught charges in a short amount of time
             public bool EnableUpheaval = true; // if true, enable using upheaval when needed; setting to false is useful during opener before first party buffs
             public bool Aggressive; // if true, we use buffs and stuff at last possible moment; otherwise we make sure to keep at least 1 GCD safety net
+
+            public override string ToString()
+            {
+                return $"";
+            }
         }
 
         public static int GaugeGainedFromAction(State state, AID action)

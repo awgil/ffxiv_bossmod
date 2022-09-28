@@ -24,6 +24,10 @@
         // strategy configuration
         public class Strategy : CommonRotation.Strategy
         {
+            public override string ToString()
+            {
+                return $"";
+            }
         }
 
         public static AID GetNextRiotBladeComboAction(AID comboLastMove)

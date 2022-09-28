@@ -10,7 +10,6 @@ namespace BossMod.SCH
         private SCHConfig _config;
         private Rotation.State _state;
         private Rotation.Strategy _strategy;
-        private (Actor? Target, float HPRatio) _bestSTHeal;
         private bool _allowDelayingNextGCD;
 
         public Actions(Autorotation autorot, Actor player)
@@ -34,6 +33,9 @@ namespace BossMod.SCH
             _config.Modified -= OnConfigModified;
             base.Dispose();
         }
+
+        public override CommonRotation.PlayerState GetState() => _state;
+        public override CommonRotation.Strategy GetStrategy() => _strategy;
 
         public override Targeting SelectBetterTarget(Actor initial)
         {
@@ -59,7 +61,7 @@ namespace BossMod.SCH
             _strategy.NumSuccorTargets = _state.Unlocked(AID.Succor) ? CountAOEPreshieldTargets(15, Player.Position, (uint)SID.Galvanize, _state.GCD + 2, 10) : 0;
             _strategy.NumArtOfWarTargets = _state.Unlocked(AID.ArtOfWar1) ? Autorot.PotentialTargetsInRangeFromPlayer(5).Count() : 0;
             _strategy.Moving = autoAction is AutoActionAIIdleMove or AutoActionAIFightMove;
-            _bestSTHeal = FindBestSTHealTarget();
+            _strategy.BestSTHeal = FindBestSTHealTarget();
         }
 
         protected override void QueueAIActions()
@@ -81,8 +83,8 @@ namespace BossMod.SCH
                 return MakeResult(AID.Succor, Player);
 
             // now check ST heal
-            if (allowCasts && _bestSTHeal.Target != null && _state.AetherflowStacks == 0)
-                return MakeResult(Rotation.GetNextBestSTHealGCD(_state, _strategy), _bestSTHeal.Target);
+            if (allowCasts && _strategy.BestSTHeal.Target != null && _state.AetherflowStacks == 0)
+                return MakeResult(Rotation.GetNextBestSTHealGCD(_state, _strategy), _strategy.BestSTHeal.Target);
 
             // now check esuna
             if (allowCasts)
@@ -129,7 +131,7 @@ namespace BossMod.SCH
             if (_strategy.NumWhisperingDawnTargets > 0)
             {
                 // TODO: better whispering dawn condition...
-                if (_strategy.NumWhisperingDawnTargets > 2 || _bestSTHeal.Target != null && (_bestSTHeal.Target.Position - _state.Fairy!.Position).LengthSq() <= 15 * 15)
+                if (_strategy.NumWhisperingDawnTargets > 2 || _strategy.BestSTHeal.Target != null && (_strategy.BestSTHeal.Target.Position - _state.Fairy!.Position).LengthSq() <= 15 * 15)
                     return MakeResult(AID.WhisperingDawn, Player);
             }
 
@@ -138,8 +140,8 @@ namespace BossMod.SCH
                 return MakeResult(AID.Aetherflow, Player);
 
             // lustrate, if want single-target heals
-            if (_bestSTHeal.Target != null && _state.AetherflowStacks > 0 && _state.Unlocked(AID.Lustrate) && _state.CanWeave(CDGroup.Lustrate, 0.6f, deadline))
-                return MakeResult(AID.Lustrate, _bestSTHeal.Target);
+            if (_strategy.BestSTHeal.Target != null && _state.AetherflowStacks > 0 && _state.Unlocked(AID.Lustrate) && _state.CanWeave(CDGroup.Lustrate, 0.6f, deadline))
+                return MakeResult(AID.Lustrate, _strategy.BestSTHeal.Target);
 
             // energy drain, if new aetherflow will come off cd soon (TODO: reconsider...)
             if (Autorot.PrimaryTarget != null && _state.AetherflowStacks > 0 && _state.CD(CDGroup.Aetherflow) <= _state.GCD + _state.AetherflowStacks * 2.5f && _state.Unlocked(AID.EnergyDrain) && _state.CanWeave(CDGroup.EnergyDrain, 0.6f, deadline))

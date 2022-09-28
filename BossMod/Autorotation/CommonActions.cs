@@ -286,6 +286,8 @@ namespace BossMod
         }
 
         public abstract void Dispose();
+        public abstract CommonRotation.PlayerState GetState();
+        public abstract CommonRotation.Strategy GetStrategy();
         public virtual Targeting SelectBetterTarget(Actor initial) => new(initial);
         protected virtual void OnTick() { }
         protected abstract void UpdateInternalState(int autoAction);

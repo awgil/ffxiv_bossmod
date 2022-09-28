@@ -56,10 +56,11 @@ namespace BossMod.WHM
             public int NumHolyTargets; // how many targets holy would hit (8y around self)
             public bool EnableAssize;
             public bool AllowReplacingHealWithMisery; // if true, allow replacing solace/rapture with misery
+            public (Actor? Target, float HPRatio) BestSTHeal;
 
             public override string ToString()
             {
-                return $"M2={NumRaptureMedica2Targets}, C3={NumCure3Targets}";
+                return $"AOE={NumHolyTargets}, SH={BestSTHeal.Target?.Name.Substring(0, 4)}={BestSTHeal.HPRatio:f2}, AH={NumRaptureMedica2Targets}/{NumCure3Targets}/{NumAssizeMedica1Targets}, moving={Moving}";
             }
         }
 

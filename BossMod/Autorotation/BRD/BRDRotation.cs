@@ -39,6 +39,11 @@
         {
             public int NumLadonsbiteTargets; // range 12 90-degree cone
             public int NumRainOfDeathTargets; // range 8 circle around target
+
+            public override string ToString()
+            {
+                return $"AOE={NumRainOfDeathTargets}/{NumLadonsbiteTargets}";
+            }
         }
 
         public static bool RefreshDOT(State state, float timeLeft) => timeLeft < state.GCD + 3.0f; // TODO: tweak threshold so that we don't overwrite or miss ticks...

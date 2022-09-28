@@ -36,6 +36,12 @@
             public int NumWhisperingDawnTargets; // how many targets would whispering dawn heal (15y around fairy)
             public int NumSuccorTargets; // how many targets would succor heal (15y around self)
             public int NumArtOfWarTargets; // how many targets art of war would hit (5y around self)
+            public (Actor? Target, float HPRatio) BestSTHeal;
+
+            public override string ToString()
+            {
+                return $"AOE={NumArtOfWarTargets}, SH={BestSTHeal.Target?.Name.Substring(0, 4)}={BestSTHeal.HPRatio:f2}, AH={NumSuccorTargets}/{NumWhisperingDawnTargets}, moving={Moving}";
+            }
         }
 
         public static bool RefreshDOT(State state, float timeLeft) => timeLeft < state.GCD + 3.0f; // TODO: tweak threshold so that we don't overwrite or miss ticks...

@@ -32,6 +32,10 @@
         // strategy configuration
         public class Strategy : CommonRotation.Strategy
         {
+            public override string ToString()
+            {
+                return $"";
+            }
         }
 
         // TODO: this is valid up to ~L30

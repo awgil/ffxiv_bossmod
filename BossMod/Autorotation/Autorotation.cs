@@ -180,10 +180,12 @@ namespace BossMod
             if (_classActions == null)
                 return;
             var next = _classActions.CalculateNextAction();
+            var state = _classActions.GetState();
+            var strategy = _classActions.GetStrategy();
             ImGui.TextUnformatted($"Next: {next.Action} ({next.Source})");
-            //ImGui.TextUnformatted(_strategy.ToString());
-            //ImGui.TextUnformatted($"Raidbuffs: {_state.RaidBuffsLeft:f2}s left, next in {_strategy.RaidBuffsIn:f2}s");
-            //ImGui.TextUnformatted($"Downtime: {_strategy.FightEndIn:f2}s, pos-lock: {_strategy.PositionLockIn:f2}");
+            ImGui.TextUnformatted(strategy.ToString());
+            ImGui.TextUnformatted($"Raidbuffs: {state.RaidBuffsLeft:f2}s left, next in {strategy.RaidBuffsIn:f2}s");
+            ImGui.TextUnformatted($"Downtime: {strategy.FightEndIn:f2}s, pos-lock: {strategy.PositionLockIn:f2}");
             ImGui.TextUnformatted($"GCD={Cooldowns[CommonDefinitions.GCDGroup]:f3}, AnimLock={EffAnimLock:f3}+{AnimLockDelay:f3}");
         }
 

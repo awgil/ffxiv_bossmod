@@ -32,6 +32,11 @@
         public class Strategy : CommonRotation.Strategy
         {
             public int NumAOEGCDTargets; // range 10 width 4 rect
+
+            public override string ToString()
+            {
+                return $"AOE={NumAOEGCDTargets}";
+            }
         }
 
         public static bool RefreshDOT(State state, float timeLeft) => timeLeft < state.GCD + 3.0f; // TODO: tweak threshold so that we don't overwrite or miss ticks...

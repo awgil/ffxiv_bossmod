@@ -15,7 +15,6 @@ namespace BossMod.WHM
         private WHMConfig _config;
         private Rotation.State _state;
         private Rotation.Strategy _strategy;
-        private (Actor? Target, float HPRatio) _bestSTHeal;
         private bool _allowDelayingNextGCD;
 
         public Actions(Autorotation autorot, Actor player)
@@ -43,6 +42,9 @@ namespace BossMod.WHM
             base.Dispose();
         }
 
+        public override CommonRotation.PlayerState GetState() => _state;
+        public override CommonRotation.Strategy GetStrategy() => _strategy;
+
         public override Targeting SelectBetterTarget(Actor initial)
         {
             // TODO: look for good place to cast holy and move closer...
@@ -63,7 +65,7 @@ namespace BossMod.WHM
             base.UpdateInternalState(autoAction);
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionMnd);
-            _strategy.NumAssizeMedica1Targets = _state.Unlocked(AID.Medica1) ? CountAOEHealTargets(15, Player.Position) : 0;
+            _strategy.NumAssizeMedica1Targets = _state.Unlocked(AID.Medica1) ? CountAOEHealTargets(15, Player.Position, 0.5f) : 0;
             _strategy.NumRaptureMedica2Targets = _state.Unlocked(AID.Medica2) ? CountAOEHealTargets(20, Player.Position) : 0;
             _strategy.NumCure3Targets = _state.Unlocked(AID.Cure3) ? SmartCure3Target().Item2 : 0;
             _strategy.NumHolyTargets = _state.Unlocked(AID.Holy1) ? Autorot.PotentialTargetsInRangeFromPlayer(8).Count() : 0;
@@ -71,7 +73,7 @@ namespace BossMod.WHM
             _strategy.AllowReplacingHealWithMisery = _config.NeverOvercapBloodLilies && Autorot.PrimaryTarget?.Type == ActorType.Enemy;
             _strategy.Heal = _strategy.AOE = false;
             _strategy.Moving = autoAction is AutoActionAIIdleMove or AutoActionAIFightMove;
-            _bestSTHeal = FindBestSTHealTarget();
+            _strategy.BestSTHeal = FindBestSTHealTarget();
             if (autoAction >= AutoActionFirstCustom)
             {
                 _strategy.Heal = autoAction is AutoActionSTHeal or AutoActionAOEHeal;
@@ -114,8 +116,8 @@ namespace BossMod.WHM
                         return MakeResult(AID.Medica1, Player);
 
                     // now check ST heals (TODO: afflatus solace)
-                    if (allowCasts && _bestSTHeal.Target != null)
-                        return MakeResult(_state.CanCastCure2 ? AID.Cure2 : AID.Cure1, _bestSTHeal.Target);
+                    if (allowCasts && _strategy.BestSTHeal.Target != null)
+                        return MakeResult(_state.CanCastCure2 ? AID.Cure2 : AID.Cure1, _strategy.BestSTHeal.Target);
 
                     // now check esuna
                     if (allowCasts)
@@ -162,8 +164,8 @@ namespace BossMod.WHM
             // TODO: L52+
 
             // benediction at extremely low hp (TODO: unless planned, tweak threshold)
-            if (_bestSTHeal.Target != null && _bestSTHeal.HPRatio <= 0 && _state.Unlocked(AID.Benediction) && _state.CanWeave(CDGroup.Benediction, 0.6f, deadline))
-                return MakeResult(AID.Benediction, _bestSTHeal.Target);
+            if (_strategy.BestSTHeal.Target != null && _strategy.BestSTHeal.HPRatio <= 0 && _state.Unlocked(AID.Benediction) && _state.CanWeave(CDGroup.Benediction, 0.6f, deadline))
+                return MakeResult(AID.Benediction, _strategy.BestSTHeal.Target);
 
             // swiftcast, if can't cast any gcd (TODO: current check is not very good...)
             if (deadline >= 10000 && _strategy.Moving && _state.Unlocked(AID.Swiftcast) && _state.CanWeave(CDGroup.Swiftcast, 0.6f, deadline))
@@ -250,7 +252,7 @@ namespace BossMod.WHM
         private (Actor?, int) SmartCure3Target()
         {
             var rsq = 30 * 30;
-            return Autorot.WorldState.Party.WithoutSlot().Select(o => (o, (o.Position - Player.Position).LengthSq() <= rsq ? CountAOEHealTargets(10, o.Position) : -1)).MaxBy(oc => oc.Item2);
+            return Autorot.WorldState.Party.WithoutSlot().Select(o => (o, (o.Position - Player.Position).LengthSq() <= rsq ? CountAOEHealTargets(10, o.Position, 0.5f) : -1)).MaxBy(oc => oc.Item2);
         }
 
         // check whether any targetable enemies are in assize range

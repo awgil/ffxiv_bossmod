@@ -30,6 +30,9 @@ namespace BossMod.SMN
             _config.Modified -= OnConfigModified;
         }
 
+        public override CommonRotation.PlayerState GetState() => _state;
+        public override CommonRotation.Strategy GetStrategy() => _strategy;
+
         public override Targeting SelectBetterTarget(Actor initial)
         {
             // TODO: AOE & multidotting
