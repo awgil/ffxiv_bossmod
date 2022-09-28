@@ -139,10 +139,14 @@ namespace BossMod.Components
             if (spell.Action == StackAction)
             {
                 StackMask.Set(module.Raid.FindSlot(spell.TargetID));
+                if (ActivateAt < spell.FinishAt)
+                    ActivateAt = spell.FinishAt;
             }
             else if (spell.Action == SpreadAction)
             {
                 SpreadMask.Set(module.Raid.FindSlot(spell.TargetID));
+                if (ActivateAt < spell.FinishAt)
+                    ActivateAt = spell.FinishAt;
             }
         }
 

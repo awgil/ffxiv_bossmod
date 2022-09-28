@@ -62,6 +62,8 @@ namespace BossMod.AI
         {
             // TODO: this is really basic, consider improving...
             var maxImminentKnockback = hints.ForcedMovements.Count > 0 ? MathF.Sqrt(hints.ForcedMovements.Max(x => x.move.LengthSq())) : 0;
+            if (maxImminentKnockback >= hints.Bounds.HalfSize)
+                maxImminentKnockback = 0;
             yield return hints.Bounds.BuildClipPoly(-(maxImminentKnockback + 1));
         }
 
