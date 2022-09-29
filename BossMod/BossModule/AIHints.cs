@@ -76,7 +76,7 @@ namespace BossMod
         // normalize all entries after gathering data: sort by priority / activation timestamp
         public void Normalize()
         {
-            PotentialTargets.SortBy(x => x.Priority);
+            PotentialTargets.SortByReverse(x => x.Priority);
             HighestPotentialTargetPriority = Math.Max(0, PotentialTargets.FirstOrDefault().Priority);
             ForbiddenZones.SortBy(e => e.activation);
             RestrictedZones.SortBy(e => e.activation);

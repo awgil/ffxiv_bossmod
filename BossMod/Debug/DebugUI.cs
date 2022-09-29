@@ -16,6 +16,7 @@ namespace BossMod
         private DebugAction _debugAction;
         private DebugHate _debugHate = new();
         private DebugInput _debugInput;
+        private DebugAutorotation _debugAutorot;
         //private DebugAI _debugAI;
         private DebugClassDefinitions _debugClassDefinitions;
 
@@ -25,6 +26,7 @@ namespace BossMod
             _autorot = autorot;
             _debugAction = new(ws);
             _debugInput = new(inputOverride, autorot);
+            _debugAutorot = new(autorot);
             //_debugAI = new(autorot);
             _debugClassDefinitions = new(ws);
         }
@@ -73,6 +75,10 @@ namespace BossMod
             if (ImGui.CollapsingHeader("Party (custom)"))
             {
                 _debugParty.DrawPartyCustom();
+            }
+            if (ImGui.CollapsingHeader("Autorotation"))
+            {
+                _debugAutorot.Draw();
             }
             //if (ImGui.CollapsingHeader("AI"))
             //{
