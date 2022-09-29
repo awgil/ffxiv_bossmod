@@ -9,7 +9,7 @@ namespace BossMod.Components
     {
         private string _warningText;
 
-        public GenericAOEs(ActionID aid, string warningText = "GTFO from aoe!") : base(aid)
+        public GenericAOEs(ActionID aid = new(), string warningText = "GTFO from aoe!") : base(aid)
         {
             _warningText = warningText;
         }
