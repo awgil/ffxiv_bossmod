@@ -40,8 +40,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             // TODO: this is an ugly hack, think how multi-actor fights can be implemented without it...
             // the problem is that on wipe, any actor can be deleted and recreated in the same frame
-            if (_bossP3 == null && StateMachine.ActivePhaseIndex == 1)
-                _bossP3 = Enemies(OID.BossP3).FirstOrDefault();
+            _bossP3 ??= StateMachine.ActivePhaseIndex == 1 ? Enemies(OID.BossP3).FirstOrDefault() : null;
         }
 
         protected override void DrawArenaForeground(int pcSlot, Actor pc)

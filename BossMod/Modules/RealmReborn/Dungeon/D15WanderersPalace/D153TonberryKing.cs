@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BossMod.RealmReborn.Dungeon.D15WanderersPalace.D153TonberryKing
+﻿namespace BossMod.RealmReborn.Dungeon.D15WanderersPalace.D153TonberryKing
 {
     public enum OID : uint
     {
@@ -25,7 +19,7 @@ namespace BossMod.RealmReborn.Dungeon.D15WanderersPalace.D153TonberryKing
         RancorRelease = 949, // Tonberry->Boss, 1.0s cast, single-target, gives boss rancor stack on death
     };
 
-    internal class D153TonberryKingStates : StateMachineBuilder
+    class D153TonberryKingStates : StateMachineBuilder
     {
         public D153TonberryKingStates(BossModule module) : base(module)
         {

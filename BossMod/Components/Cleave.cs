@@ -66,6 +66,9 @@ namespace BossMod.Components
         {
             foreach (var enemy in _enemies)
             {
+                if (enemy.IsDead)
+                    continue;
+
                 if (!ActiveForUntargetable && !enemy.IsTargetable)
                     continue;
 

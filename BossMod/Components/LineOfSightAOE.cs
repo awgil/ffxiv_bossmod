@@ -66,29 +66,21 @@ namespace BossMod.Components
     }
 
     // simple line-of-sight aoe that happens at the end of the cast
-    public class CastLineOfSightAOE : GenericLineOfSightAOE
+    public abstract class CastLineOfSightAOE : GenericLineOfSightAOE
     {
-        public uint BlockOID { get; private init; }
-        private List<Actor> _blockers = new();
         private List<Actor> _casters = new();
         public Actor? ActiveCaster => _casters.MinBy(c => c.CastInfo!.FinishAt);
 
-        public CastLineOfSightAOE(ActionID aid, uint blockOID, float maxRange = 1000) : base(aid, maxRange)
-        {
-            BlockOID = blockOID;
-        }
+        public CastLineOfSightAOE(ActionID aid, float maxRange = 1000) : base(aid, maxRange) { }
 
-        public override void Init(BossModule module)
-        {
-            _blockers = module.Enemies(BlockOID);
-        }
+        public abstract IEnumerable<Actor> BlockerActors(BossModule module);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction)
             {
                 _casters.Add(caster);
-                Modify(ActiveCaster?.Position ?? null, _blockers.Select(b => (b.Position, b.HitboxRadius)));
+                Modify(ActiveCaster?.Position ?? null, BlockerActors(module).Select(b => (b.Position, b.HitboxRadius)));
             }
         }
 
@@ -97,7 +89,7 @@ namespace BossMod.Components
             if (spell.Action == WatchedAction)
             {
                 _casters.Remove(caster);
-                Modify(ActiveCaster?.Position ?? null, _blockers.Select(b => (b.Position, b.HitboxRadius)));
+                Modify(ActiveCaster?.Position ?? null, BlockerActors(module).Select(b => (b.Position, b.HitboxRadius)));
             }
         }
     }

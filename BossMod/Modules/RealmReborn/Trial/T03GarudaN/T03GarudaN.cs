@@ -55,7 +55,8 @@ namespace BossMod.RealmReborn.Trial.T03GarudaN
 
     class MistralSongP1 : Components.CastLineOfSightAOE
     {
-        public MistralSongP1() : base(ActionID.MakeSpell(AID.MistralSongP1), (uint)OID.Monolith, 31.7f) { }
+        public MistralSongP1() : base(ActionID.MakeSpell(AID.MistralSongP1), 31.7f) { }
+        public override IEnumerable<Actor> BlockerActors(BossModule module) => module.Enemies(OID.Monolith);
     }
 
     // actual casts happen every ~6s after aerial blast cast

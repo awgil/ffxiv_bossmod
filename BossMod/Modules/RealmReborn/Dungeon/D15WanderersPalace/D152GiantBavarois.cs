@@ -50,7 +50,7 @@
         }
     }
 
-    internal class D152GiantBavaroisStates : StateMachineBuilder
+    class D152GiantBavaroisStates : StateMachineBuilder
     {
         public D152GiantBavaroisStates(BossModule module) : base(module)
         {

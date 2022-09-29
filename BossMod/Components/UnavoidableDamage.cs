@@ -3,7 +3,7 @@
     // generic unavoidable raidwide cast
     public class RaidwideCast : CastHint
     {
-        public RaidwideCast(ActionID aid) : base(aid, "Raidwide") { }
+        public RaidwideCast(ActionID aid, string hint = "Raidwide") : base(aid, hint) { }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
