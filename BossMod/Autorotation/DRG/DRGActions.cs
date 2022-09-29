@@ -42,10 +42,10 @@ namespace BossMod.DRG
             if (_state.Unlocked(AID.DoomSpike))
             {
                 var bestAOETarget = initial;
-                var bestAOECount = CountAOEGCDTargets(initial);
-                foreach (var candidate in Autorot.PotentialTargetsInRangeFromPlayer(10).Exclude(initial))
+                var bestAOECount = NumTargetsHitByAOEGCD(initial);
+                foreach (var candidate in Autorot.Hints.PriorityTargetsActors.InRadius(Player.Position, 10).Exclude(initial))
                 {
-                    var candidateAOECount = CountAOEGCDTargets(candidate);
+                    var candidateAOECount = NumTargetsHitByAOEGCD(candidate);
                     if (candidateAOECount > bestAOECount)
                     {
                         bestAOETarget = candidate;
@@ -61,7 +61,7 @@ namespace BossMod.DRG
             var adjTarget = initial;
             if (_state.Unlocked(AID.ChaosThrust) && !WithoutDOT(initial))
             {
-                var multidotTarget = Autorot.PotentialTargetsInRangeFromPlayer(25).FirstOrDefault(t => t != initial && WithoutDOT(t));
+                var multidotTarget = Autorot.Hints.PriorityTargetsActors.InRadius(Player.Position, 5).FirstOrDefault(t => t != initial && WithoutDOT(t));
                 if (multidotTarget != null)
                     adjTarget = multidotTarget;
             }
@@ -80,7 +80,7 @@ namespace BossMod.DRG
         {
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
-            _strategy.NumAOEGCDTargets = Autorot.PrimaryTarget != null && autoAction != AutoActionST && _state.Unlocked(AID.DoomSpike) ? CountAOEGCDTargets(Autorot.PrimaryTarget) : 0;
+            _strategy.NumAOEGCDTargets = Autorot.PrimaryTarget != null && autoAction != AutoActionST && _state.Unlocked(AID.DoomSpike) ? NumTargetsHitByAOEGCD(Autorot.PrimaryTarget) : 0;
         }
 
         protected override void QueueAIActions()
@@ -136,14 +136,6 @@ namespace BossMod.DRG
             _state.TargetChaosThrustLeft = StatusDetails(Autorot.PrimaryTarget, SID.ChaosThrust, Player.InstanceID).Left;
         }
 
-        private int CountAOEGCDTargets(Actor target)
-        {
-            var dir = (target.Position - Player.Position).Normalized();
-            return Autorot.PotentialTargets.Valid.Count(a => a.Position.InRect(Player.Position, dir, 10, 0, 2));
-        }
-
-        private bool WithoutDOT(Actor a) => Rotation.RefreshDOT(_state, StatusDetails(a, SID.ChaosThrust, Player.InstanceID).Left);
-
         private void OnConfigModified(object? sender, EventArgs args)
         {
             // placeholders
@@ -154,5 +146,8 @@ namespace BossMod.DRG
 
             // smart targets
         }
+
+        private bool WithoutDOT(Actor a) => Rotation.RefreshDOT(_state, StatusDetails(a, SID.ChaosThrust, Player.InstanceID).Left);
+        private int NumTargetsHitByAOEGCD(Actor primary) => Autorot.Hints.NumPriorityTargetsInAOERect(Player.Position, (primary.Position - Player.Position).Normalized(), 10, 2);
     }
 }

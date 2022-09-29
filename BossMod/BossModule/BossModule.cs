@@ -256,9 +256,6 @@ namespace BossMod
                 comp.AddAIHints(this, slot, actor, hints);
         }
 
-        // called by AI to determine targets to focus; return false if module does not need any custom logic - in this case targets are filled automatically, as if module was not active
-        public virtual bool FillTargets(BossTargets targets, int pcSlot) => false;
-
         public void ReportError(BossComponent? comp, string message)
         {
             Service.Log($"[ModuleError] [{this.GetType().Name}] [{comp?.GetType().Name}] {message}");

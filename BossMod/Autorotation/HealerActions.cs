@@ -51,9 +51,9 @@ namespace BossMod
                 }
                 state.NumAttackers = 0;
             }
-            foreach (var enemy in Autorot.PotentialTargets.Valid)
+            foreach (var enemy in Autorot.Hints.PotentialTargets)
             {
-                var targetSlot = Autorot.WorldState.Party.FindSlot(enemy.TargetID);
+                var targetSlot = Autorot.WorldState.Party.FindSlot(enemy.Actor.TargetID);
                 if (targetSlot >= 0 && targetSlot < PartyMemberStates.Length)
                 {
                     ref var state = ref PartyMemberStates[targetSlot];

@@ -1,5 +1,6 @@
 ﻿using ImGuiNET;
 using System;
+using System.Linq;
 
 namespace BossMod.AI
 {
@@ -44,20 +45,20 @@ namespace BossMod.AI
         // returns null if we're to be idle, otherwise target to attack
         private CommonActions.Targeting UpdateTargeting(Actor player, Actor master)
         {
-            if (_autorot.PotentialTargets.Valid.Count == 0 || !master.InCombat)
+            if (!_autorot.Hints.PriorityTargets.Any() || !master.InCombat)
                 return new(); // there are no valid targets to attack, or we're not fighting - remain idle
 
             // we prefer not to switch targets unnecessarily, so start with current target - it could've been selected manually or by AI on previous frames
             var target = _autorot.PrimaryTarget;
 
             // if current target is not among valid targets, clear it - this opens way for future target selection heuristics
-            if (target != null && !_autorot.PotentialTargets.Valid.Contains(target))
+            if (target != null && !_autorot.Hints.PriorityTargetsActors.Contains(target))
                 target = null;
 
             // if we don't have a valid target yet, use some heuristics to select some 'ok' target to attack
             // try assisting master, otherwise (if player is own master, or if master has no valid target) just select closest valid target
-            target ??= master != player ? _autorot.PotentialTargets.Valid.Find(t => master.TargetID == t.InstanceID) : null;
-            target ??= _autorot.PotentialTargets.Valid.Closest(player.Position);
+            target ??= master != player ? _autorot.Hints.PriorityTargetsActors.FirstOrDefault(t => master.TargetID == t.InstanceID) : null;
+            target ??= _autorot.Hints.PriorityTargetsActors.Closest(player.Position);
 
             // now give class module a chance to improve targeting
             // typically it would switch targets for multidotting, or to hit more targets with AOE

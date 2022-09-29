@@ -79,20 +79,17 @@ namespace BossMod.RealmReborn.Trial.T02TitanN
 
     public class T02TitanN : BossModule
     {
-        private List<Actor> _gaol;
-        private List<Actor> _heart;
+        public T02TitanN(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-0, 0), 20)) { } // note: initial area is size 25, but it becomes smaller at 75%
 
-        public T02TitanN(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-0, 0), 20)) // note: initial area is size 25, but it becomes smaller at 75%
+        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
-            _gaol = Enemies(OID.GraniteGaol);
-            _heart = Enemies(OID.TitansHeart);
-        }
-
-        public override bool FillTargets(BossTargets targets, int pcSlot)
-        {
-            if (!targets.AddIfValid(_gaol) && !targets.AddIfValid(_heart))
-                targets.AddIfValid(PrimaryActor);
-            return true;
+            base.CalculateAIHints(slot, actor, hints);
+            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
+            {
+                OID.GraniteGaol => 2,
+                OID.TitansHeart => 1,
+                _ => 0
+            });
         }
     }
 }

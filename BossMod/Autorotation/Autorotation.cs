@@ -58,7 +58,6 @@ namespace BossMod
         public Actor? PrimaryTarget; // this is usually a normal (hard) target, but AI can override; typically used for damage abilities
         public Actor? SecondaryTarget; // this is usually a mouseover, but AI can override; typically used for heal and utility abilities
         public AIHints Hints = new();
-        public BossTargets PotentialTargets = new(); // TODO: move into ai hints
         public bool Moving => _inputOverride.IsMoveRequested(); // TODO: reconsider
         public float EffAnimLock => ActionManagerEx.Instance!.EffectiveAnimationLock;
         public float AnimLockDelay => ActionManagerEx.Instance!.EffectiveAnimationLockDelay;
@@ -107,15 +106,12 @@ namespace BossMod
 
             var activeModule = Bossmods.ActiveModule?.StateMachine.ActivePhase != null ? Bossmods.ActiveModule : null;
             Hints.Clear();
+            Hints.FillPotentialTargets(WorldState);
             if (activeModule != null && player != null)
                 activeModule.CalculateAIHints(PartyState.PlayerSlot, player, Hints);
             else
                 _autoHints.CalculateAIHints(Hints);
             Hints.Normalize();
-
-            PotentialTargets.Clear();
-            if (activeModule == null || !activeModule.FillTargets(PotentialTargets, PartyState.PlayerSlot))
-                PotentialTargets.Autofill(WorldState);
 
             Type? classType = null;
             if (_config.Enabled && player != null)
@@ -123,14 +119,14 @@ namespace BossMod
                 classType = player.Class switch
                 {
                     Class.WAR => typeof(WAR.Actions),
-                    Class.PLD => Service.ClientState.LocalPlayer?.Level <= 52 ? typeof(PLD.Actions) : null,
-                    Class.MNK => Service.ClientState.LocalPlayer?.Level <= 52 ? typeof(MNK.Actions) : null,
-                    Class.DRG => Service.ClientState.LocalPlayer?.Level <= 52 ? typeof(DRG.Actions) : null,
-                    Class.BRD => Service.ClientState.LocalPlayer?.Level <= 52 ? typeof(BRD.Actions) : null,
-                    Class.BLM => Service.ClientState.LocalPlayer?.Level <= 52 ? typeof(BLM.Actions) : null,
+                    Class.PLD => Service.ClientState.LocalPlayer?.Level <= 60 ? typeof(PLD.Actions) : null,
+                    Class.MNK => Service.ClientState.LocalPlayer?.Level <= 60 ? typeof(MNK.Actions) : null,
+                    Class.DRG => Service.ClientState.LocalPlayer?.Level <= 60 ? typeof(DRG.Actions) : null,
+                    Class.BRD => Service.ClientState.LocalPlayer?.Level <= 60 ? typeof(BRD.Actions) : null,
+                    Class.BLM => Service.ClientState.LocalPlayer?.Level <= 60 ? typeof(BLM.Actions) : null,
                     Class.SMN => Service.ClientState.LocalPlayer?.Level <= 30 ? typeof(SMN.Actions) : null,
                     Class.WHM => typeof(WHM.Actions),
-                    Class.SCH => Service.ClientState.LocalPlayer?.Level <= 52 ? typeof(SCH.Actions) : null,
+                    Class.SCH => Service.ClientState.LocalPlayer?.Level <= 60 ? typeof(SCH.Actions) : null,
                     _ => null
                 };
             }
@@ -162,17 +158,6 @@ namespace BossMod
                 WindowManager.CloseWindow(_ui);
                 _ui = null;
             }
-        }
-
-        public IEnumerable<Actor> PotentialTargetsInRange(WPos center, float radius)
-        {
-            return PotentialTargets.Valid.Where(a => (a.Position - center).LengthSq() <= (a.HitboxRadius + radius) * (a.HitboxRadius + radius));
-        }
-
-        public IEnumerable<Actor> PotentialTargetsInRangeFromPlayer(float radius)
-        {
-            var player = WorldState.Party.Player();
-            return player != null ? PotentialTargetsInRange(player.Position, radius) : Enumerable.Empty<Actor>();
         }
 
         private void DrawOverlay()

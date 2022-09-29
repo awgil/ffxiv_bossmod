@@ -66,21 +66,19 @@ namespace BossMod.RealmReborn.Dungeon.D05Totorak.D053Graffias
 
     public class D053Graffias : BossModule
     {
-        private List<Actor> _tail;
-        private List<Actor> _adds;
+        public D053Graffias(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(215, -145), 20)) { }
 
-        public D053Graffias(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(215, -145), 20))
+        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
-            _tail = Enemies(OID.GraffiasTail);
-            _adds = Enemies(OID.Comesmite);
-        }
+            base.CalculateAIHints(slot, actor, hints);
 
-        public override bool FillTargets(BossTargets targets, int pcSlot)
-        {
-            if (!targets.AddIfValid(_tail))
-                targets.AddIfValid(PrimaryActor);
-            targets.AddIfValid(_adds);
-            return true;
+            bool haveTail = Enemies(OID.GraffiasTail).Count > 0;
+            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
+            {
+                OID.GraffiasTail => 1,
+                OID.Comesmite => haveTail ? 1 : 0,
+                _ => 0,
+            });
         }
     }
 }

@@ -32,7 +32,7 @@ namespace BossMod.WAR
             SupportedSpell(AID.RawIntuition).TransformAction = SupportedSpell(AID.Bloodwhetting).TransformAction = () => ActionID.MakeSpell(_state.BestBloodwhetting);
 
             SupportedSpell(AID.Equilibrium).Condition = _ => Player.HP.Cur < Player.HP.Max;
-            SupportedSpell(AID.Reprisal).Condition = _ => Autorot.PotentialTargetsInRangeFromPlayer(5).Any(); // TODO: consider checking only target?..
+            SupportedSpell(AID.Reprisal).Condition = _ => Autorot.Hints.PotentialTargets.Any(e => e.Actor.Position.InCircle(Player.Position, 5 + e.Actor.HitboxRadius)); // TODO: consider checking only target?..
             SupportedSpell(AID.Interject).Condition = target => target?.CastInfo?.Interruptible ?? false;
             // TODO: SIO - check that raid is in range?..
             // TODO: Provoke - check that not already MT?
@@ -56,7 +56,7 @@ namespace BossMod.WAR
             {
                 AutoActionST => false,
                 AutoActionAOE => true, // TODO: consider making AI-like check
-                AutoActionAIFight or AutoActionAIFightMove => Autorot.PotentialTargetsInRangeFromPlayer(5).Count() >= 3,
+                AutoActionAIFight or AutoActionAIFightMove => NumTargetsHitByAOE() >= 3,
                 _ => false, // irrelevant...
             };
             UpdatePlayerState();
@@ -148,5 +148,7 @@ namespace BossMod.WAR
         }
 
         private AID ComboLastMove => (AID)ActionManagerEx.Instance!.ComboLastMove;
+
+        private int NumTargetsHitByAOE() => Autorot.Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
     }
 }

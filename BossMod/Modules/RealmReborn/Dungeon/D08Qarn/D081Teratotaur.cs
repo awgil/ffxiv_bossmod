@@ -111,18 +111,16 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D081Teratotaur
 
     public class D081Teratotaur : BossModule
     {
-        private List<Actor> _wespe;
+        public D081Teratotaur(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-70, -60), 20)) { }
 
-        public D081Teratotaur(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-70, -60), 20))
+        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
-            _wespe = Enemies(OID.DungWespe);
-        }
-
-        public override bool FillTargets(BossTargets targets, int pcSlot)
-        {
-            if (!targets.AddIfValid(_wespe))
-                targets.AddIfValid(PrimaryActor);
-            return true;
+            base.CalculateAIHints(slot, actor, hints);
+            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
+            {
+                OID.DungWespe => 1,
+                _ => 0
+            });
         }
     }
 }

@@ -42,10 +42,10 @@ namespace BossMod.BLM
             var bestTarget = initial;
             if (_state.Unlocked(AID.Blizzard2))
             {
-                var bestAOECount = Autorot.PotentialTargetsInRange(initial.Position, 5).Count();
-                foreach (var candidate in Autorot.PotentialTargetsInRangeFromPlayer(25).Exclude(initial))
+                var bestAOECount = NumTargetsHitByAOE(initial);
+                foreach (var candidate in Autorot.Hints.PriorityTargetsActors.InRadius(Player.Position, 25).Exclude(initial))
                 {
-                    var candidateAOECount = Autorot.PotentialTargetsInRange(candidate.Position, 5).Count();
+                    var candidateAOECount = NumTargetsHitByAOE(candidate);
                     if (candidateAOECount > bestAOECount)
                     {
                         bestTarget = candidate;
@@ -81,7 +81,7 @@ namespace BossMod.BLM
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionInt);
             if (autoAction is AutoActionAIFight or AutoActionAIFightMove)
             {
-                _strategy.AOE = Autorot.PrimaryTarget != null && Autorot.PotentialTargetsInRange(Autorot.PrimaryTarget.Position, 5).Count() >= 3;
+                _strategy.AOE = Autorot.PrimaryTarget != null && NumTargetsHitByAOE(Autorot.PrimaryTarget) >= 3;
                 _strategy.Moving = AutoAction == AutoActionAIFightMove;
             }
             else
@@ -155,5 +155,7 @@ namespace BossMod.BLM
             // smart targets
             SupportedSpell(AID.AetherialManipulation).TransformTarget = _config.MouseoverFriendly ? SmartTargetFriendly : null;
         }
+
+        private int NumTargetsHitByAOE(Actor primary) => Autorot.Hints.NumPriorityTargetsInAOECircle(primary.Position, 5);
     }
 }

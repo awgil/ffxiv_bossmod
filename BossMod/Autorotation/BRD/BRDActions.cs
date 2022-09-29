@@ -49,7 +49,7 @@ namespace BossMod.BRD
             if (_state.Unlocked(AID.QuickNock))
             {
                 var bestAOECount = NumTargetsHitByLadonsbite(initial);
-                foreach (var candidate in Autorot.PotentialTargetsInRangeFromPlayer(12).Exclude(initial))
+                foreach (var candidate in Autorot.Hints.PriorityTargetsActors.InRadius(Player.Position, 12).Exclude(initial))
                 {
                     var candidateAOECount = NumTargetsHitByLadonsbite(candidate);
                     if (candidateAOECount > bestAOECount)
@@ -173,12 +173,7 @@ namespace BossMod.BRD
             // smart targets
         }
 
-        private int NumTargetsHitByLadonsbite(Actor primary)
-        {
-            var dir = Angle.FromDirection(primary.Position - Player.Position);
-            return 1 + Autorot.PotentialTargetsInRangeFromPlayer(12).Count(a => a != primary && a.Position.InCone(Player.Position, dir, 45.Degrees()));
-        }
-
-        private int NumTargetsHitByRainOfDeath(Actor primary) => Autorot.PotentialTargetsInRange(primary.Position, 8).Count();
+        private int NumTargetsHitByLadonsbite(Actor primary) => Autorot.Hints.NumPriorityTargetsInAOECone(Player.Position, 12, (primary.Position - Player.Position).Normalized(), 45.Degrees());
+        private int NumTargetsHitByRainOfDeath(Actor primary) => Autorot.Hints.NumPriorityTargetsInAOECircle(primary.Position, 8);
     }
 }

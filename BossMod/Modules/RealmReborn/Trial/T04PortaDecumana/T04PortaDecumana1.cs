@@ -128,11 +128,14 @@
     {
         public T04PortaDecumana1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-772, -600), 20)) { }
 
-        public override bool FillTargets(BossTargets targets, int pcSlot)
+        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
-            if (PrimaryActor.FindStatus(SID.Invincibility) == null && PrimaryActor.FindStatus(SID.VortexBarrier) == null)
-                targets.AddIfValid(PrimaryActor);
-            return true;
+            base.CalculateAIHints(slot, actor, hints);
+            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
+            {
+                OID.Boss => PrimaryActor.FindStatus(SID.Invincibility) == null && PrimaryActor.FindStatus(SID.VortexBarrier) == null ? 0 : -1,
+                _ => 0
+            });
         }
     }
 }

@@ -45,32 +45,17 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D083Adjudicator
 
     public class D083Adjudicator : BossModule
     {
-        private List<Actor> _juror;
-        private List<Actor> _verge;
-        private List<Actor> _platform1;
-        private List<Actor> _platform2;
-        private List<Actor> _platform3;
+        public D083Adjudicator(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(238, 0), 20)) { }
 
-        public D083Adjudicator(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(238, 0), 20))
+        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
-            _juror = Enemies(OID.SunJuror);
-            _verge = Enemies(OID.MythrilVerge);
-            _platform1 = Enemies(OID.Platform1);
-            _platform2 = Enemies(OID.Platform2);
-            _platform3 = Enemies(OID.Platform3);
-        }
-
-        public override bool FillTargets(BossTargets targets, int pcSlot)
-        {
-            if (!targets.AddIfValid(_verge) && !targets.AddIfValid(JurorsNearPlatforms()))
-                targets.AddIfValid(PrimaryActor);
-            return true;
-        }
-
-        private IEnumerable<Actor> JurorsNearPlatforms()
-        {
-            var platforms = _platform1.Concat(_platform2).Concat(_platform3);
-            return _juror.Where(j => platforms.InRadius(j.Position, 1).Any());
+            base.CalculateAIHints(slot, actor, hints);
+            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
+            {
+                OID.MythrilVerge => 2,
+                OID.SunJuror => WorldState.Actors.Where(other => (OID)other.OID is OID.Platform1 or OID.Platform2 or OID.Platform3).InRadius(a.Position, 1).Any() ? 1 : -1,
+                _ => 0
+            });
         }
     }
 }

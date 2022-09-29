@@ -78,12 +78,14 @@
     {
         public D111AllSeeingEye(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(40, 70), 30)) { }
 
-        public override bool FillTargets(BossTargets targets, int pcSlot)
+        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
-            targets.Autofill(WorldState);
-            if (PrimaryActor.FindStatus(SID.Invincibility) != null)
-                targets.Valid.Remove(PrimaryActor);
-            return true;
+            base.CalculateAIHints(slot, actor, hints);
+            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
+            {
+                OID.Boss => PrimaryActor.FindStatus(SID.Invincibility) == null ? 0 : -1,
+                _ => 0
+            });
         }
     }
 }

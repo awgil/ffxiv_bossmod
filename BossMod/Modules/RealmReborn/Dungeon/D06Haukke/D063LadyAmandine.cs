@@ -61,18 +61,16 @@ namespace BossMod.RealmReborn.Dungeon.D06Haukke.D063LadyAmandine
 
     public class D063LadyAmandine : BossModule
     {
-        private List<Actor> _add;
+        public D063LadyAmandine(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(0, 4), 20)) { }
 
-        public D063LadyAmandine(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(0, 4), 20))
+        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
-            _add = Enemies(OID.Handmaiden);
-        }
-
-        public override bool FillTargets(BossTargets targets, int pcSlot)
-        {
-            if (!targets.AddIfValid(_add))
-                targets.AddIfValid(PrimaryActor);
-            return true;
+            base.CalculateAIHints(slot, actor, hints);
+            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
+            {
+                OID.Handmaiden => 1,
+                _ => 0
+            });
         }
     }
 }

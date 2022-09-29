@@ -102,11 +102,14 @@ namespace BossMod.RealmReborn.Trial.T03GarudaN
     {
         public T03GarudaN(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-0, 0), 21)) { }
 
-        public override bool FillTargets(BossTargets targets, int pcSlot)
+        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
-            if (!targets.AddIfValid(Enemies(OID.RazorPlumeP1)) && !targets.AddIfValid(Enemies(OID.RazorPlumeP2)))
-                targets.AddIfValid(PrimaryActor);
-            return true;
+            base.CalculateAIHints(slot, actor, hints);
+            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
+            {
+                OID.RazorPlumeP1 or OID.RazorPlumeP2 => 1,
+                _ => 0
+            });
         }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)

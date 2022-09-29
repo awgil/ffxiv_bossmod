@@ -69,11 +69,14 @@
     {
         public D142Nero(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-164, 0), 20)) { }
 
-        public override bool FillTargets(BossTargets targets, int pcSlot)
+        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
-            if (!targets.AddIfValid(Enemies(OID.MagitekDeathClaw)))
-                targets.AddIfValid(PrimaryActor);
-            return true;
+            base.CalculateAIHints(slot, actor, hints);
+            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
+            {
+                OID.MagitekDeathClaw => 1,
+                _ => 0
+            });
         }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)

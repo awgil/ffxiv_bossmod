@@ -52,7 +52,7 @@ namespace BossMod.WHM
             // look for target to multidot, if initial target already has dot
             if (_state.Unlocked(AID.Aero1) && !WithoutDOT(initial))
             {
-                var multidotTarget = Autorot.PotentialTargetsInRangeFromPlayer(25).FirstOrDefault(t => t != initial && WithoutDOT(t));
+                var multidotTarget = Autorot.Hints.PriorityTargetsActors.InRadius(Player.Position, 25).FirstOrDefault(t => t != initial && WithoutDOT(t));
                 if (multidotTarget != null)
                     return new(multidotTarget, 10);
             }
@@ -68,7 +68,7 @@ namespace BossMod.WHM
             _strategy.NumAssizeMedica1Targets = _state.Unlocked(AID.Medica1) ? CountAOEHealTargets(15, Player.Position, 0.5f) : 0;
             _strategy.NumRaptureMedica2Targets = _state.Unlocked(AID.Medica2) ? CountAOEHealTargets(20, Player.Position) : 0;
             _strategy.NumCure3Targets = _state.Unlocked(AID.Cure3) ? SmartCure3Target().Item2 : 0;
-            _strategy.NumHolyTargets = _state.Unlocked(AID.Holy1) ? Autorot.PotentialTargetsInRangeFromPlayer(8).Count() : 0;
+            _strategy.NumHolyTargets = _state.Unlocked(AID.Holy1) ? Autorot.Hints.NumPriorityTargetsInAOECircle(Player.Position, 8) : 0;
             _strategy.EnableAssize = AllowAssize(); // note: should be plannable...
             _strategy.AllowReplacingHealWithMisery = _config.NeverOvercapBloodLilies && Autorot.PrimaryTarget?.Type == ActorType.Enemy;
             _strategy.Heal = _strategy.AOE = false;
@@ -258,7 +258,7 @@ namespace BossMod.WHM
         // check whether any targetable enemies are in assize range
         private bool AllowAssize()
         {
-            return Autorot.PotentialTargetsInRangeFromPlayer(15).Any();
+            return Autorot.Hints.NumPriorityTargetsInAOECircle(Player.Position, 15) > 0;
         }
     }
 }
