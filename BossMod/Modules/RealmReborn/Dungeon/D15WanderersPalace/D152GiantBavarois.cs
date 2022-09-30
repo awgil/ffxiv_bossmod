@@ -40,13 +40,19 @@
         public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             if (actor == _kiter)
-                hints.RestrictedZones.Add((_avoidBossShape, module.PrimaryActor.Position, new(), new()));
+                hints.ForbiddenZones.Add((_avoidBossShape, module.PrimaryActor.Position, new(), new()));
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.AmorphicFlail)
                 _kiter = actor;
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if (caster == module.PrimaryActor && (AID)spell.Action.ID == AID.AmorphicFlail)
+                _kiter = null;
         }
     }
 

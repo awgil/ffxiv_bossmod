@@ -19,6 +19,11 @@
         RancorRelease = 949, // Tonberry->Boss, 1.0s cast, single-target, gives boss rancor stack on death
     };
 
+    public enum SID : uint
+    {
+        Rancor = 351, // Tonberry->Boss, extra=num stacks
+    };
+
     class D153TonberryKingStates : StateMachineBuilder
     {
         public D153TonberryKingStates(BossModule module) : base(module)
@@ -34,10 +39,11 @@
         public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
             base.CalculateAIHints(slot, actor, hints);
+            var rancorStacks = PrimaryActor.FindStatus(SID.Rancor)?.Extra ?? 0;
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
+                OID.Tonberry => rancorStacks < 4 ? 2 : -1,
                 OID.Boss => 1,
-                OID.Tonberry => -1,
                 _ => 0
             });
         }
