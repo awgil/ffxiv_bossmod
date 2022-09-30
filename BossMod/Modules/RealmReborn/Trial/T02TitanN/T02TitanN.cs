@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.RealmReborn.Trial.T02TitanN
@@ -31,14 +32,14 @@ namespace BossMod.RealmReborn.Trial.T02TitanN
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            var nail = module.Enemies(OID.TitansHeart).FirstOrDefault();
-            if (_heartSpawn == new DateTime() && nail != null && nail.IsTargetable)
+            var heartExists = ((T02TitanN)module).ActiveHeart.Any();
+            if (_heartSpawn == new DateTime() && heartExists)
             {
                 _heartSpawn = module.WorldState.CurrentTime;
             }
-            if (_heartSpawn != new DateTime() && nail != null && nail.IsTargetable && !nail.IsDead)
+            if (_heartSpawn != new DateTime() && heartExists)
             {
-                hints.Add($"Heart enrage in: {Math.Max(62.6f - (module.WorldState.CurrentTime - _heartSpawn).TotalSeconds, 0.0f):f1}s");
+                hints.Add($"Heart enrage in: {Math.Max(62 - (module.WorldState.CurrentTime - _heartSpawn).TotalSeconds, 0.0f):f1}s");
             }
         }
     }
@@ -78,11 +79,19 @@ namespace BossMod.RealmReborn.Trial.T02TitanN
 
     public class T02TitanN : BossModule
     {
-        public T02TitanN(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-0, 0), 20)) { } // note: initial area is size 25, but it becomes smaller at 75%
+        private List<Actor> _heart;
+        public IEnumerable<Actor> ActiveHeart => _heart.Where(h => h.IsTargetable && !h.IsDead);
+
+        public T02TitanN(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-0, 0), 20)) // note: initial area is size 25, but it becomes smaller at 75%
+        {
+            _heart = Enemies(OID.TitansHeart);
+        }
 
         public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
             base.CalculateAIHints(slot, actor, hints);
+            foreach (var heart in ActiveHeart)
+                hints.PotentialTargets.Add(new() { Actor = heart, TimeToKill = 10000 });
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
                 OID.GraniteGaol => 3,
