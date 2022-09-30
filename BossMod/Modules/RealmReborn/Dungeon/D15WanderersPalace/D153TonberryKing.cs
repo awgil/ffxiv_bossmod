@@ -39,10 +39,10 @@
         public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
             base.CalculateAIHints(slot, actor, hints);
-            var rancorStacks = PrimaryActor.FindStatus(SID.Rancor)?.Extra ?? 0;
+            //var rancorStacks = PrimaryActor.FindStatus(SID.Rancor)?.Extra ?? 0;
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
-                OID.Tonberry => rancorStacks < 4 ? 2 : -1,
+                //OID.Tonberry => a.HP.Cur > 1 && rancorStacks < 3 ? 0 : -1, // note: we don't bother with them - let tank aoe them when they reach center and invuln high stacks...
                 OID.Boss => 1,
                 _ => 0
             });

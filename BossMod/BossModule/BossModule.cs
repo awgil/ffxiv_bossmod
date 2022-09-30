@@ -273,7 +273,8 @@ namespace BossMod
         // called at the very end to draw important enemies, default implementation draws primary actor
         protected virtual void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            if (PrimaryActor.IsTargetable)
+                Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         }
 
         private void DrawGlobalHints(BossComponent.GlobalHints hints)

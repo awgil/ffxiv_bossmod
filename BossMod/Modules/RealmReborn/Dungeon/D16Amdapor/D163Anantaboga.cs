@@ -149,6 +149,7 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D163Anantaboga
                 Arena.Actor(p, ArenaColor.Object);
         }
 
+        // TODO: blocker coordinates are slightly different, find out correct coords...
         public IEnumerable<Actor> ActivePillars()
         {
             foreach (var e in Enemies(OID.Pillar1).Where(e => e.EventState == 0))
