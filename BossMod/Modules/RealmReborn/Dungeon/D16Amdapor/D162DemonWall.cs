@@ -13,17 +13,11 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D162DemonWall
 
     public enum AID : uint
     {
-        MurderHole = 1044, // Boss->player, no cast, range 6 circle cleaving autoattack
+        MurderHole = 1044, // Boss->player, no cast, range 6 circle cleaving autoattack at random target
         LiquefyCenter = 1045, // Helper->self, 3.0s cast, range 50+R width 8 rect
         LiquefySides = 1046, // Helper->self, 2.0s cast, range 50+R width 7 rect
         Repel = 1047, // Boss->self, 3.0s cast, range 40+R 180?-degree cone knockback 20 (non-immunable)
     };
-
-    // TODO: does it target tank or random?..
-    class MurderHole : Components.Cleave
-    {
-        public MurderHole() : base(ActionID.MakeSpell(AID.MurderHole), new AOEShapeCircle(6), originAtTarget: true) { }
-    }
 
     class LiquefyCenter : Components.SelfTargetedAOEs
     {
@@ -43,8 +37,8 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D162DemonWall
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
-            // custom hint: always stay in narrow zone in center, unless avoiding liquefy
-            if (module.FindComponent<LiquefyCenter>()!.Casters.Count == 0)
+            // custom hint: stay in narrow zone in center
+            if (Casters.Count > 0)
                 hints.RestrictedZones.Add((_hint, module.PrimaryActor.Position + new WDir(0, 2), 0.Degrees(), new()));
         }
     }
@@ -68,7 +62,7 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D162DemonWall
         public D162DemonWallStates(BossModule module) : base(module)
         {
             TrivialPhase()
-                .ActivateOnEnter<MurderHole>()
+                //.ActivateOnEnter<MurderHole>() - note: no component here, there's not enough space to spread properly, and this hits for small damage
                 .ActivateOnEnter<LiquefyCenter>()
                 .ActivateOnEnter<LiquefySides>()
                 .ActivateOnEnter<Repel>()

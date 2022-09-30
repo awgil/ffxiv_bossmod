@@ -132,7 +132,12 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D163Anantaboga
         public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
             base.CalculateAIHints(slot, actor, hints);
-            hints.AssignPotentialTargetPriorities(a => (OID)a.OID == OID.DarkHelot ? 1 : 0);
+            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
+            {
+                OID.DarkHelot => 2,
+                OID.Boss => 1,
+                _ => 0
+            });
         }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)

@@ -72,7 +72,8 @@ namespace BossMod.RealmReborn.Dungeon.D11DzemaelDarkhold.D113Batraal
             base.CalculateAIHints(slot, actor, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
-                OID.CorruptedCrystal => 1,
+                OID.CorruptedCrystal => 2,
+                OID.Boss => 1,
                 _ => 0
             });
         }

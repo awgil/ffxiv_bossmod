@@ -118,7 +118,8 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D081Teratotaur
             base.CalculateAIHints(slot, actor, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
-                OID.DungWespe => 1,
+                OID.DungWespe => 2,
+                OID.Boss => 1,
                 _ => 0
             });
         }

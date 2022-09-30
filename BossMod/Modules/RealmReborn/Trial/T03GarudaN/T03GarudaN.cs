@@ -108,7 +108,8 @@ namespace BossMod.RealmReborn.Trial.T03GarudaN
             base.CalculateAIHints(slot, actor, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
-                OID.RazorPlumeP1 or OID.RazorPlumeP2 => 1,
+                OID.RazorPlumeP1 or OID.RazorPlumeP2 => 2,
+                OID.Boss => 1,
                 _ => 0
             });
         }

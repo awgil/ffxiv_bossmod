@@ -131,11 +131,8 @@
         public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
             base.CalculateAIHints(slot, actor, hints);
-            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
-            {
-                OID.Boss => PrimaryActor.FindStatus(SID.Invincibility) == null && PrimaryActor.FindStatus(SID.VortexBarrier) == null ? 0 : -1,
-                _ => 0
-            });
+            if (PrimaryActor.FindStatus(SID.Invincibility) != null || PrimaryActor.FindStatus(SID.VortexBarrier) != null)
+                hints.PotentialTargets.RemoveAll(e => e.Actor == PrimaryActor);
         }
     }
 }

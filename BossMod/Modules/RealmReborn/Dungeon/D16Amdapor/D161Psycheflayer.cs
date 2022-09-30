@@ -99,10 +99,10 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D161Psycheflayer
             base.CalculateAIHints(slot, actor, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
-                OID.MarbleMarionette => 2,
-                OID.StoneMarionette => 1,
-                OID.BossP1 => 1,
-                OID.MegalithMarionette => -1,
+                OID.MarbleMarionette => 4,
+                OID.StoneMarionette => 3,
+                OID.BossP1 => 2,
+                OID.BossP2 => 1,
                 _ => 0
             });
         }

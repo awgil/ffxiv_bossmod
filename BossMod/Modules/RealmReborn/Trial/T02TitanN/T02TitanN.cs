@@ -86,8 +86,9 @@ namespace BossMod.RealmReborn.Trial.T02TitanN
             base.CalculateAIHints(slot, actor, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
-                OID.GraniteGaol => 2,
-                OID.TitansHeart => 1,
+                OID.GraniteGaol => 3,
+                OID.TitansHeart => 2,
+                OID.Boss => 1,
                 _ => 0
             });
         }

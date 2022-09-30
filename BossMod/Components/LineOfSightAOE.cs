@@ -80,7 +80,7 @@ namespace BossMod.Components
             if (spell.Action == WatchedAction)
             {
                 _casters.Add(caster);
-                Modify(ActiveCaster?.Position ?? null, BlockerActors(module).Select(b => (b.Position, b.HitboxRadius)));
+                Refresh(module);
             }
         }
 
@@ -89,8 +89,15 @@ namespace BossMod.Components
             if (spell.Action == WatchedAction)
             {
                 _casters.Remove(caster);
-                Modify(ActiveCaster?.Position ?? null, BlockerActors(module).Select(b => (b.Position, b.HitboxRadius)));
+                Refresh(module);
             }
+        }
+
+        private void Refresh(BossModule module)
+        {
+            var caster = ActiveCaster;
+            WPos? position = caster != null ? (module.WorldState.Actors.Find(caster.CastInfo!.TargetID)?.Position ?? caster.CastInfo!.LocXZ) : null;
+            Modify(position, BlockerActors(module).Select(b => (b.Position, b.HitboxRadius)));
         }
     }
 }

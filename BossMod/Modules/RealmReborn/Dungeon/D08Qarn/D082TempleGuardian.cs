@@ -53,7 +53,8 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D082TempleGuardian
             base.CalculateAIHints(slot, actor, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
-                OID.GolemSoulstone => 1,
+                OID.GolemSoulstone => 2,
+                OID.Boss => 1,
                 _ => 0
             });
         }

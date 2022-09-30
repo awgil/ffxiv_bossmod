@@ -68,7 +68,8 @@ namespace BossMod.RealmReborn.Dungeon.D06Haukke.D063LadyAmandine
             base.CalculateAIHints(slot, actor, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
-                OID.Handmaiden => 1,
+                OID.Handmaiden => 2,
+                OID.Boss => 1,
                 _ => 0
             });
         }

@@ -74,7 +74,8 @@
             base.CalculateAIHints(slot, actor, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
-                OID.MagitekDeathClaw => 1,
+                OID.MagitekDeathClaw => 2,
+                OID.Boss => 1,
                 _ => 0
             });
         }

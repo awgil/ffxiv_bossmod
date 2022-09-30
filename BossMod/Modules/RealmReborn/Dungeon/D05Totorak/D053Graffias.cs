@@ -75,8 +75,9 @@ namespace BossMod.RealmReborn.Dungeon.D05Totorak.D053Graffias
             bool haveTail = Enemies(OID.GraffiasTail).Count > 0;
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
-                OID.GraffiasTail => 1,
-                OID.Comesmite => haveTail ? 1 : 0,
+                OID.GraffiasTail => 2,
+                OID.Comesmite => haveTail ? 2 : 1,
+                OID.Boss => 1,
                 _ => 0,
             });
         }

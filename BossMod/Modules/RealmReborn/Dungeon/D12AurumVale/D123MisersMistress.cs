@@ -58,7 +58,8 @@
             base.CalculateAIHints(slot, actor, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
-                OID.MorbolFruit => 1,
+                OID.MorbolFruit => 2,
+                OID.Boss => 1,
                 _ => 0
             });
         }
