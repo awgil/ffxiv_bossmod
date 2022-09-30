@@ -50,17 +50,20 @@ namespace BossMod.AI
 
         public WPos? NaviTargetPos;
         public WDir? NaviTargetRot;
+        public float? NaviTargetVertical;
         public bool AllowInterruptingCastByMovement;
         public bool ForceFacing;
 
         private NaviAxis _axisForward;
         private NaviAxis _axisStrafe;
         private NaviAxis _axisRotate;
+        private NaviAxis _axisVertical;
         private InputOverride _input;
         private Autorotation _autorot;
 
         public bool InCutscene => Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas];
         public bool IsMounted => Service.Condition[ConditionFlag.Mounted];
+        public bool IsVerticalAllowed => Service.Condition[ConditionFlag.InFlight];
         public WDir CameraFacing => ((Camera.Instance?.CameraAzimuth ?? 0).Radians() + 180.Degrees()).ToDirection();
 
         public unsafe AIController(InputOverride input, Autorotation autorot)
@@ -68,6 +71,7 @@ namespace BossMod.AI
             _axisForward = new(input, VirtualKey.W, VirtualKey.S);
             _axisStrafe = new(input, VirtualKey.D, VirtualKey.A);
             _axisRotate = new(input, VirtualKey.LEFT, VirtualKey.RIGHT);
+            _axisVertical = new(input, VirtualKey.OEM_4, VirtualKey.OEM_6); // []
             _input = input;
             _autorot = autorot;
         }
@@ -76,6 +80,7 @@ namespace BossMod.AI
         {
             NaviTargetPos = null;
             NaviTargetRot = null;
+            NaviTargetVertical = null;
             AllowInterruptingCastByMovement = false;
             ForceFacing = false;
         }
@@ -99,6 +104,7 @@ namespace BossMod.AI
                 _axisForward.CurDirection = 0;
                 _axisStrafe.CurDirection = 0;
                 _axisRotate.CurDirection = 0;
+                _axisVertical.CurDirection = 0;
                 return;
             }
 
@@ -154,6 +160,16 @@ namespace BossMod.AI
             {
                 _axisForward.CurDirection = 0;
                 _axisStrafe.CurDirection = 0;
+            }
+
+            if (NaviTargetVertical != null && IsVerticalAllowed)
+            {
+                var delta = NaviTargetVertical.Value - player.PosRot.Y;
+                _axisVertical.CurDirection = delta > 0.2f ? +1 : delta < 0.2f ? -1 : 0;
+            }
+            else
+            {
+                _axisVertical.CurDirection = 0;
             }
         }
     }

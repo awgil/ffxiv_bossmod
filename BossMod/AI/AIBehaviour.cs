@@ -129,6 +129,7 @@ namespace BossMod.AI
 
             // update movement: avoid aoes, go to module-defined preferred position, follow master...
             var destPos = _avoidAOE.Update(player, _autorot.Hints);
+            float? destVert = null;
             if (destPos == null && (target.Target == null || _followMaster) && master != player)
             {
                 // if there is no planned action and no aoe avoidance, just follow master...
@@ -139,6 +140,7 @@ namespace BossMod.AI
                 {
                     destPos = targetPos;
                 }
+                destVert = master.PosRot.Y;
 
                 // sprint
                 if (toTarget.LengthSq() > 400 && !player.InCombat)
@@ -160,6 +162,7 @@ namespace BossMod.AI
                 // rotation check imminent, drop any movement - we should have moved to safe zone already...
                 _ctrl.NaviTargetPos = null;
                 _ctrl.NaviTargetRot = destRot;
+                _ctrl.NaviTargetVertical = null;
                 _ctrl.ForceFacing = true;
             }
             else
@@ -167,6 +170,7 @@ namespace BossMod.AI
                 var toDest = destPos != null ? destPos.Value - player.Position : new();
                 _ctrl.NaviTargetPos = destPos;
                 _ctrl.NaviTargetRot = toDest.LengthSq() >= 0.04f ? toDest.Normalized() : null;
+                _ctrl.NaviTargetVertical = destVert;
                 _ctrl.ForceFacing = false;
             }
         }
