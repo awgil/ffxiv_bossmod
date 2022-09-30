@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod.RealmReborn.Trial.T03GarudaN
 {
@@ -101,7 +98,7 @@ namespace BossMod.RealmReborn.Trial.T03GarudaN
 
     public class T03GarudaN : BossModule
     {
-        public T03GarudaN(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-0, 0), 21)) { }
+        public T03GarudaN(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 21)) { }
 
         public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {
