@@ -89,7 +89,7 @@ namespace BossMod
 
         private void HandleDirectorUpdate(object? sender, WorldState.OpDirectorUpdate op)
         {
-            if (op.UpdateID is 0x40000001 or 0x40000010) // init or fade-out (wipe)
+            if (op.UpdateID is 0x40000001 or 0x40000005) // init or fade-out (wipe)
             {
                 Service.Log($"[RaidCooldowns] Clearing damage cooldowns ({_damageCooldowns.Count} entries)");
                 _damageCooldowns.Clear();
