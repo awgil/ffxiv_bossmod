@@ -14,7 +14,7 @@ namespace BossMod.RealmReborn.Trial.T05IfritH
     public enum AID : uint
     {
         AutoAttack = 451, // Boss->player, no cast, range 8+R ?-degree cone cleave
-        Incinerate = 1353, // Boss->self, no cast, range 10+R ?-degree cone cleave
+        Incinerate = 1353, // Boss->self, no cast, range 10+R 120-degree cone cleave
         VulcanBurst = 1354, // Boss->self, no cast, range 16+R circle knockback 10
         Eruption = 1355, // Boss->self, 2.2s cast, single-target, visual
         EruptionAOE = 1358, // Helper->location, 3.0s cast, range 8 circle aoe
@@ -45,7 +45,7 @@ namespace BossMod.RealmReborn.Trial.T05IfritH
 
     class Incinerate : Components.Cleave
     {
-        public Incinerate() : base(ActionID.MakeSpell(AID.Incinerate), new AOEShapeCone(15, 60.Degrees())) { } // TODO: verify angle
+        public Incinerate() : base(ActionID.MakeSpell(AID.Incinerate), new AOEShapeCone(15, 60.Degrees())) { }
     }
 
     class Eruption : Components.LocationTargetedAOEs

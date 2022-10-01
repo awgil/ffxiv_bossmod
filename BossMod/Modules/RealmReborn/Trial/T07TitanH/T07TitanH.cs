@@ -16,7 +16,7 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
     public enum AID : uint
     {
         AutoAttack = 872, // Boss->player, no cast, single-target
-        RockBuster = 1360, // Boss->self, no cast, range 6+R ?-degree cone cleave
+        RockBuster = 1360, // Boss->self, no cast, range 6+R 120-degree cone cleave
         Tumult = 1361, // Boss->self, no cast, multihit raidwide (2 hits until 1st geocrush, 3 hits until earthen fury, 4 hits until kill)
         WeightOfTheLand = 1362, // Boss->self, 2.0s cast, single-target, visual
         WeightOfTheLandAOE = 1363, // Helper->location, 2.5s cast, range 6 circle puddle
