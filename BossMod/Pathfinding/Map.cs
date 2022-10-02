@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace BossMod.Pathfinding
@@ -106,11 +107,11 @@ namespace BossMod.Pathfinding
             }
         }
 
-        public IEnumerable<(int x, int y, Coverage cv)> RasterizeCircle(WPos origin, float radius) => RasterizeDonut(origin, 0, radius);
-        public IEnumerable<(int x, int y, Coverage cv)> RasterizeDonut(WPos origin, float innerRadius, float outerRadius)
+        public Func<WPos, Coverage> CoverageCircle(WPos origin, float radius) => CoverageDonut(origin, 0, radius);
+        public Func<WPos, Coverage> CoverageDonut(WPos origin, float innerRadius, float outerRadius)
         {
             if (outerRadius <= 0 || innerRadius >= outerRadius)
-                yield break;
+                return _ => Coverage.Outside;
 
             var delta = Resolution * 0.707107f;
             var r1 = outerRadius + delta; // d >= r1 => fully outside
@@ -122,26 +123,21 @@ namespace BossMod.Pathfinding
             var r4 = Math.Max(0, innerRadius - delta);
             r4 *= r4;
 
-            foreach (var p in EnumeratePixels())
+            return p =>
             {
-                var d = (p.center - origin).LengthSq();
-                var c = (d >= r1 || d < r4) ? Coverage.Outside : (d >= r3 && d < r2) ? Coverage.Inside : Coverage.Border;
-                yield return (p.x, p.y, c);
-            }
+                var d = (p - origin).LengthSq();
+                return (d >= r1 || d < r4) ? Coverage.Outside : (d >= r3 && d < r2) ? Coverage.Inside : Coverage.Border;
+            };
         }
 
-        public IEnumerable<(int x, int y, Coverage cv)> RasterizeCone(WPos origin, float radius, Angle centerDir, Angle halfAngle) => RasterizeDonutSector(origin, 0, radius, centerDir, halfAngle);
-        public IEnumerable<(int x, int y, Coverage cv)> RasterizeDonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
+        public Func<WPos, Coverage> CoverageCone(WPos origin, float radius, Angle centerDir, Angle halfAngle) => CoverageDonutSector(origin, 0, radius, centerDir, halfAngle);
+        public Func<WPos, Coverage> CoverageDonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
         {
             if (halfAngle.Rad <= 0 || outerRadius <= 0 || innerRadius >= outerRadius)
-                yield break;
+                return _ => Coverage.Outside;
 
             if (halfAngle.Rad >= MathF.PI)
-            {
-                foreach (var p in RasterizeDonut(origin, innerRadius, outerRadius))
-                    yield return p;
-                yield break;
-            }
+                return CoverageDonut(origin, innerRadius, outerRadius);
 
             var delta = Resolution * 0.707107f;
             var r1 = outerRadius + delta; // d >= r1 => fully outside
@@ -149,63 +145,63 @@ namespace BossMod.Pathfinding
             var r3 = innerRadius > 0 ? innerRadius + delta : 0; // r2 > d >= r3 => fully inside
             var r4 = Math.Max(0, innerRadius - delta);
 
-            foreach (var p in EnumeratePixels())
+            return p =>
             {
-                var off = p.center - origin;
+                var off = p - origin;
                 var d = off.Length();
                 if (d >= r1 || d < r4)
-                {
-                    yield return (p.x, p.y, Coverage.Outside);
-                    continue;
-                }
+                    return Coverage.Outside;
 
                 var dir = (Angle.FromDirection(off) - centerDir).Normalized();
                 var angularDist = MathF.Abs(dir.Rad);
                 var sideDist = (angularDist - halfAngle.Rad) * d;
                 if (sideDist >= delta)
-                {
-                    yield return (p.x, p.y, Coverage.Outside);
-                    continue;
-                }
+                    return Coverage.Outside;
 
-                yield return (p.x, p.y, (sideDist <= -delta && d >= r3 && d < r2) ? Coverage.Inside : Coverage.Border);
-            }
+                return (sideDist <= -delta && d >= r3 && d < r2) ? Coverage.Inside : Coverage.Border;
+            };
         }
 
-        public IEnumerable<(int x, int y, Coverage cv)> RasterizeRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth)
+        public Func<WPos, Coverage> CoverageRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth)
         {
             var delta = Resolution * 0.707107f;
             var dir = direction.ToDirection();
             var normal = dir.OrthoL();
-            foreach (var p in EnumeratePixels())
+            return p =>
             {
-                var offset = p.center - origin;
+                var offset = p - origin;
                 var dotDir = offset.Dot(dir);
                 var dotNormal = MathF.Abs(offset.Dot(normal));
-                var c = dotDir < -lenBack - delta || dotDir > lenFront + delta || dotNormal > halfWidth + delta ? Coverage.Outside
+                return dotDir < -lenBack - delta || dotDir > lenFront + delta || dotNormal > halfWidth + delta ? Coverage.Outside
                     : dotDir >= -lenBack + delta && dotDir <= lenFront - delta && dotNormal <= halfWidth - delta ? Coverage.Inside
                     : Coverage.Border;
-                yield return (p.x, p.y, c);
-            }
+            };
         }
 
-        public IEnumerable<(int x, int y, Coverage cv)> RasterizeCross(WPos origin, Angle direction, float length, float halfWidth)
+        public Func<WPos, Coverage> CoverageCross(WPos origin, Angle direction, float length, float halfWidth)
         {
             var delta = Resolution * 0.707107f;
             var dir = direction.ToDirection();
             var normal = dir.OrthoL();
-            foreach (var p in EnumeratePixels())
+            return p =>
             {
-                var offset = p.center - origin;
+                var offset = p - origin;
                 var dotDir = MathF.Abs(offset.Dot(dir));
                 var dotNormal = MathF.Abs(offset.Dot(normal));
                 var minDot = Math.Min(dotDir, dotNormal);
-                var c = dotDir > length + delta || dotNormal > length + delta || minDot > halfWidth + delta ? Coverage.Outside
+                return dotDir > length + delta || dotNormal > length + delta || minDot > halfWidth + delta ? Coverage.Outside
                     : dotDir > length - delta || dotNormal > length - delta || minDot > halfWidth + delta ? Coverage.Border
                     : Coverage.Inside;
-                yield return (p.x, p.y, c);
-            }
+            };
         }
+
+        public IEnumerable<(int x, int y, Coverage cv)> Rasterize(Func<WPos, Coverage> r) => EnumeratePixels().Select(p => (p.x, p.y, r(p.center)));
+        public IEnumerable<(int x, int y, Coverage cv)> RasterizeCircle(WPos origin, float radius) => Rasterize(CoverageCircle(origin, radius));
+        public IEnumerable<(int x, int y, Coverage cv)> RasterizeDonut(WPos origin, float innerRadius, float outerRadius) => Rasterize(CoverageDonut(origin, innerRadius, outerRadius));
+        public IEnumerable<(int x, int y, Coverage cv)> RasterizeCone(WPos origin, float radius, Angle centerDir, Angle halfAngle) => Rasterize(CoverageCone(origin, radius, centerDir, halfAngle));
+        public IEnumerable<(int x, int y, Coverage cv)> RasterizeDonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle) => Rasterize(CoverageDonutSector(origin, innerRadius, outerRadius, centerDir, halfAngle));
+        public IEnumerable<(int x, int y, Coverage cv)> RasterizeRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => Rasterize(CoverageRect(origin, direction, lenFront, lenBack, halfWidth));
+        public IEnumerable<(int x, int y, Coverage cv)> RasterizeCross(WPos origin, Angle direction, float length, float halfWidth) => Rasterize(CoverageCross(origin, direction, length, halfWidth));
 
         private IEnumerable<(int x, int y, WPos center)> EnumeratePixels()
         {
