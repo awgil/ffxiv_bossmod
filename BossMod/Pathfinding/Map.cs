@@ -40,7 +40,7 @@ namespace BossMod.Pathfinding
         private WDir _localZDivRes { get; init; }
 
         public float MaxG { get; private set; } // maximal 'maxG' value of all blocked pixels
-        public int MaxPriority { get; private set; } // maximal 'priority' value of all blocked pixels
+        public int MaxPriority { get; private set; } // maximal 'priority' value of all goal pixels
 
         //public float Speed = 6; // used for converting activation time into max g-value: num world units that player can move per second
 
@@ -202,6 +202,20 @@ namespace BossMod.Pathfinding
         public IEnumerable<(int x, int y, Coverage cv)> RasterizeDonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle) => Rasterize(CoverageDonutSector(origin, innerRadius, outerRadius, centerDir, halfAngle));
         public IEnumerable<(int x, int y, Coverage cv)> RasterizeRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => Rasterize(CoverageRect(origin, direction, lenFront, lenBack, halfWidth));
         public IEnumerable<(int x, int y, Coverage cv)> RasterizeCross(WPos origin, Angle direction, float length, float halfWidth) => Rasterize(CoverageCross(origin, direction, length, halfWidth));
+
+        public IEnumerable<(int x, int y, int priority)> Goals()
+        {
+            int index = 0;
+            for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; ++x)
+                {
+                    if (Pixels[index].MaxG == float.MaxValue)
+                        yield return (x, y, Pixels[index].Priority);
+                    ++index;
+                }
+            }
+        }
 
         private IEnumerable<(int x, int y, WPos center)> EnumeratePixels()
         {

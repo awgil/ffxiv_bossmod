@@ -1,6 +1,8 @@
 ﻿using BossMod;
 using BossMod.Pathfinding;
 using ImGuiNET;
+using System;
+using System.Linq;
 using System.Numerics;
 
 namespace UIDev
@@ -8,6 +10,7 @@ namespace UIDev
     class PathfindingTest : ITest
     {
         private MapVisualizer _visu;
+
         private float _mapResolution = 1;
         private Vector2 _mapCenter;
         private Vector2 _mapHalfSize = new(20, 20);
@@ -17,6 +20,7 @@ namespace UIDev
         private Vector2 _targetPos = new(15, 0);
         private float _targetRadius = 10;
         private float _targetFacingDeg;
+        private int _goalPrio = 15;
 
         private Map.Coverage _blockCone = Map.Coverage.Inside | Map.Coverage.Border;
         private Vector2 _blockConeCenter = new(0, 1);
@@ -57,6 +61,8 @@ namespace UIDev
                 rebuild |= ImGui.DragFloat2("Target position", ref _targetPos, 1, -30, 30);
                 rebuild |= ImGui.DragFloat("Target radius", ref _targetRadius, 1, 0, 30);
                 rebuild |= ImGui.DragFloat("Target direction", ref _targetFacingDeg, 5, -180, 180);
+
+                rebuild |= ImGui.DragInt("Goal priority", ref _goalPrio, 1, 0, 100);
 
                 rebuild |= DrawCoverage("Block cone", ref _blockCone);
                 if (_blockCone != Map.Coverage.None)
@@ -103,20 +109,50 @@ namespace UIDev
 
         private MapVisualizer RebuildMap()
         {
-            MapVisualizer visu = new(new(_mapResolution, new(_mapCenter), _mapHalfSize.X, _mapHalfSize.Y, _mapRotationDeg.Degrees()));
+            Map map = new(_mapResolution, new(_mapCenter), _mapHalfSize.X, _mapHalfSize.Y, _mapRotationDeg.Degrees());
             if (_blockCone != Map.Coverage.None)
-            {
-                visu.Map.BlockPixels(visu.Map.RasterizeDonutSector(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()), _blockConeG, _blockCone);
-                visu.Sectors.Add((new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()));
-            }
+                map.BlockPixels(map.RasterizeDonutSector(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()), _blockConeG, _blockCone);
             if (_blockRect != Map.Coverage.None)
-            {
-                visu.Map.BlockPixels(visu.Map.RasterizeRect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth), _blockRectG, _blockRect);
+                map.BlockPixels(map.RasterizeRect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth), _blockRectG, _blockRect);
+            map.AddGoal(map.RasterizeCircle(new(_targetPos), _targetRadius), Map.Coverage.Inside, 0, 10);
+            map.AddGoal(map.RasterizeCone(new(_targetPos), _targetRadius, _targetFacingDeg.Degrees(), 45.Degrees()), Map.Coverage.Inside, 10, 5);
+
+            var visu = new MapVisualizer(map, _goalPrio, new(_startingPos));
+
+            if (_blockCone != Map.Coverage.None)
+                visu.Sectors.Add((new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()));
+            if (_blockRect != Map.Coverage.None)
                 visu.Rects.Add((new(_blockRectCenter), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth, _blockRectRotationDeg.Degrees()));
-            }
-            visu.Map.AddGoal(visu.Map.RasterizeCircle(new(_targetPos), _targetRadius), Map.Coverage.Inside, 0, 10);
-            visu.Map.AddGoal(visu.Map.RasterizeCone(new(_targetPos), _targetRadius, _targetFacingDeg.Degrees(), 45.Degrees()), Map.Coverage.Inside, 10, 5);
+
             return visu;
         }
+
+        //private (ThetaStar, int) RebuildPathfinding(Map map)
+        //{
+        //    var start = map.WorldToGrid(new(_startingPos));
+        //    if (start.x < 0 || start.x >= map.Width || start.y < 0 || start.y >= map.Height)
+        //    {
+        //        var pathfind = new ThetaStar(map, Enumerable.Empty<(int, int)>(), 0, 0);
+        //        var pathfindResult = pathfind.Execute();
+        //        return (pathfind, pathfindResult);
+        //    }
+
+        //    var goals = map.Goals().ToList();
+        //    goals.SortByReverse(x => x.priority);
+        //    for (int begin = 0; begin < goals.Count;)
+        //    {
+        //        int prio = goals[begin].priority;
+        //        int end = begin + 1;
+        //        while (end < goals.Count && goals[end].priority == prio)
+        //            ++end;
+        //        var pathfind = new ThetaStar(map, goals.Skip(begin).Take(end - begin).Select(x => (x.x, x.y)), start.x, start.y);
+        //        var pathfindResult = pathfind.Execute();
+        //        if (pathfindResult >= 0)
+        //            return (pathfind, pathfindResult);
+        //        begin = end;
+        //    }
+
+        //    return (new ThetaStar(map, Enumerable.Empty<(int, int)>(), 0, 0), -1);
+        //}
     }
 }
