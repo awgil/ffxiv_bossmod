@@ -13,10 +13,19 @@ namespace UIDev
         private Vector2 _mapHalfSize = new(20, 20);
         private float _mapRotationDeg;
 
-        private Map.Coverage _blockCircle = Map.Coverage.Outside;
-        private Vector2 _blockCircleCenter = new(0, 1);
-        private float _blockCircleRadius = 2;
-        private float _blockCircleG = 0;
+        private Map.Coverage _blockCone = Map.Coverage.Outside;
+        private Vector2 _blockConeCenter = new(0, 1);
+        private Vector2 _blockConeRadius = new(0, 10);
+        private float _blockConeRotationDeg;
+        private float _blockConeHalfAngle = 180;
+        private float _blockConeG = 0;
+
+        private Map.Coverage _blockRect = Map.Coverage.None;
+        private Vector2 _blockRectCenter = new(0, 0);
+        private Vector2 _blockRectLen = new(20, 20);
+        private float _blockRectHalfWidth = 20;
+        private float _blockRectRotationDeg;
+        private float _blockRectG = 0;
 
         public PathfindingTest()
         {
@@ -39,12 +48,24 @@ namespace UIDev
                 rebuild |= ImGui.DragFloat2("Half-size", ref _mapHalfSize, 1, 0, 30);
                 rebuild |= ImGui.DragFloat("Rotation", ref _mapRotationDeg, 5, -180, 180);
 
-                rebuild |= DrawCoverage("Block circle", ref _blockCircle);
-                if (_blockCircle != Map.Coverage.None)
+                rebuild |= DrawCoverage("Block cone", ref _blockCone);
+                if (_blockCone != Map.Coverage.None)
                 {
-                    rebuild |= ImGui.DragFloat2("Block circle: center", ref _blockCircleCenter, 0.25f);
-                    rebuild |= ImGui.DragFloat("Block circle: radius", ref _blockCircleRadius, 0.25f, 0, 30);
-                    rebuild |= ImGui.DragFloat("Block circle: max-g", ref _blockCircleG, 1, 0, 100);
+                    rebuild |= ImGui.DragFloat2("Block cone: center", ref _blockConeCenter, 0.25f);
+                    rebuild |= ImGui.DragFloat2("Block cone: radius", ref _blockConeRadius, 0.25f, 0, 30);
+                    rebuild |= ImGui.DragFloat("Block cone: direction", ref _blockConeRotationDeg, 5, -180, 180);
+                    rebuild |= ImGui.DragFloat("Block cone: half-angle", ref _blockConeHalfAngle, 5, 0, 180);
+                    rebuild |= ImGui.DragFloat("Block cone: max-g", ref _blockConeG, 1, 0, 100);
+                }
+
+                rebuild |= DrawCoverage("Block rect", ref _blockRect);
+                if (_blockRect != Map.Coverage.None)
+                {
+                    rebuild |= ImGui.DragFloat2("Block rect: center", ref _blockRectCenter, 0.25f);
+                    rebuild |= ImGui.DragFloat2("Block rect: length", ref _blockRectLen, 0.25f, 0, 30);
+                    rebuild |= ImGui.DragFloat("Block rect: half width", ref _blockRectHalfWidth, 1, 0, 30);
+                    rebuild |= ImGui.DragFloat("Block rect: direction", ref _blockRectRotationDeg, 5, -180, 180);
+                    rebuild |= ImGui.DragFloat("Block rect: max-g", ref _blockRectG, 1, 0, 100);
                 }
             }
 
@@ -73,10 +94,15 @@ namespace UIDev
         private MapVisualizer RebuildMap()
         {
             MapVisualizer visu = new(new(_mapResolution, new(_mapCenter), _mapHalfSize.X, _mapHalfSize.Y, _mapRotationDeg.Degrees()));
-            if (_blockCircle != Map.Coverage.None)
+            if (_blockCone != Map.Coverage.None)
             {
-                visu.Map.BlockPixels(visu.Map.RasterizeCircle(new(_blockCircleCenter), _blockCircleRadius, _blockCircle), _blockCircleG);
-                visu.Circles.Add((new(_blockCircleCenter), _blockCircleRadius));
+                visu.Map.BlockPixels(visu.Map.RasterizeDonutSector(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()), _blockConeG, _blockCone);
+                visu.Sectors.Add((new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()));
+            }
+            if (_blockRect != Map.Coverage.None)
+            {
+                visu.Map.BlockPixels(visu.Map.RasterizeRect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth), _blockRectG, _blockRect);
+                visu.Rects.Add((new(_blockRectCenter), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth, _blockRectRotationDeg.Degrees()));
             }
             return visu;
         }

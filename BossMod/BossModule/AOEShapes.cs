@@ -9,6 +9,7 @@ namespace BossMod
         public abstract void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE);
         public abstract void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger);
         public abstract IEnumerable<IEnumerable<WPos>> Contour(WPos origin, Angle rotation, float offset = 0, float maxError = 1); // positive offset increases area, negative decreases
+        public abstract IEnumerable<(int x, int y, Pathfinding.Map.Coverage cv)> Rasterize(Pathfinding.Map map, WPos origin, Angle rotation);
 
         public bool Check(WPos position, Actor? origin)
         {
@@ -50,6 +51,7 @@ namespace BossMod
             var rot = rotation + DirectionOffset;
             yield return CurveApprox.CircleSector(origin - centerOffset * rot.ToDirection(), Radius + centerOffset + offset, rot - HalfAngle, rot + HalfAngle, maxError);
         }
+        public override IEnumerable<(int x, int y, Pathfinding.Map.Coverage cv)> Rasterize(Pathfinding.Map map, WPos origin, Angle rotation) => map.RasterizeDonutSector(origin, 0, Radius, rotation + DirectionOffset, HalfAngle);
     }
 
     public class AOEShapeCircle : AOEShape
@@ -68,6 +70,7 @@ namespace BossMod
         {
             yield return CurveApprox.Circle(origin, Radius + offset, maxError);
         }
+        public override IEnumerable<(int x, int y, Pathfinding.Map.Coverage cv)> Rasterize(Pathfinding.Map map, WPos origin, Angle rotation) => map.RasterizeCircle(origin, Radius);
     }
 
     public class AOEShapeDonut : AOEShape
@@ -93,6 +96,7 @@ namespace BossMod
             yield return CurveApprox.Circle(origin, OuterRadius + offset, maxError);
             yield return CurveApprox.Circle(origin, InnerRadius - offset, maxError);
         }
+        public override IEnumerable<(int x, int y, Pathfinding.Map.Coverage cv)> Rasterize(Pathfinding.Map map, WPos origin, Angle rotation) => map.RasterizeDonut(origin, InnerRadius, OuterRadius);
     }
 
     public class AOEShapeDonutSector : AOEShape
@@ -119,6 +123,7 @@ namespace BossMod
             var rot = rotation + DirectionOffset;
             yield return CurveApprox.DonutSector(origin - centerOffset * rot.ToDirection(), InnerRadius + centerOffset - offset, OuterRadius + centerOffset + offset, rot - HalfAngle, rot + HalfAngle, maxError);
         }
+        public override IEnumerable<(int x, int y, Pathfinding.Map.Coverage cv)> Rasterize(Pathfinding.Map map, WPos origin, Angle rotation) => map.RasterizeDonutSector(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle);
     }
 
     public class AOEShapeRect : AOEShape
@@ -154,6 +159,7 @@ namespace BossMod
             var back = origin - (LengthBack + offset) * direction;
             yield return new[] { front + side, front - side, back - side, back + side };
         }
+        public override IEnumerable<(int x, int y, Pathfinding.Map.Coverage cv)> Rasterize(Pathfinding.Map map, WPos origin, Angle rotation) => map.RasterizeRect(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth);
 
         public void SetEndPoint(WPos endpoint, WPos origin, Angle rotation)
         {
@@ -198,6 +204,8 @@ namespace BossMod
             yield return ContourPoints(origin, rotation, offset);
         }
 
+        public override IEnumerable<(int x, int y, Pathfinding.Map.Coverage cv)> Rasterize(Pathfinding.Map map, WPos origin, Angle rotation) => map.RasterizeCross(origin, rotation + DirectionOffset, Length, HalfWidth);
+
         private IEnumerable<WPos> ContourPoints(WPos origin, Angle rotation, float offset = 0)
         {
             var dx = (rotation + DirectionOffset).ToDirection();
@@ -218,40 +226,6 @@ namespace BossMod
             yield return origin + dx2 + dy1;
             yield return origin + dx2 + dy2;
             yield return origin + dx1 + dy2;
-        }
-    }
-
-    public class AOEShapeMulti : AOEShape
-    {
-        public List<AOEShape> Shapes;
-
-        public AOEShapeMulti(IEnumerable<AOEShape> shapes)
-        {
-            Shapes = new(shapes);
-        }
-
-        public override bool Check(WPos position, WPos origin, Angle rotation)
-        {
-            return Shapes.Any(s => s.Check(position, origin, rotation));
-        }
-
-        public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE)
-        {
-            foreach (var s in Shapes)
-                s.Draw(arena, origin, rotation, color);
-        }
-
-        public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger)
-        {
-            foreach (var s in Shapes)
-                s.Outline(arena, origin, rotation, color);
-        }
-
-        public override IEnumerable<IEnumerable<WPos>> Contour(WPos origin, Angle rotation, float offset, float maxError)
-        {
-            foreach (var s in Shapes)
-                foreach (var c in s.Contour(origin, rotation, offset, maxError))
-                    yield return c;
         }
     }
 }

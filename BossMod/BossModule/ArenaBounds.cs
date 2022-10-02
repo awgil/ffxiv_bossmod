@@ -123,7 +123,7 @@ namespace BossMod
         public override Pathfinding.Map BuildMap(float resolution)
         {
             var map = new Pathfinding.Map(resolution, Center, HalfSize, HalfSize);
-            map.BlockPixels(map.RasterizeCircle(Center, HalfSize, Pathfinding.Map.Coverage.Outside | Pathfinding.Map.Coverage.Border), 0);
+            map.BlockPixels(map.RasterizeCircle(Center, HalfSize), 0, Pathfinding.Map.Coverage.Outside | Pathfinding.Map.Coverage.Border);
             return map;
         }
 

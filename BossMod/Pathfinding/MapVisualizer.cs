@@ -1,10 +1,7 @@
 ﻿using ImGuiNET;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod.Pathfinding
 {
@@ -12,7 +9,8 @@ namespace BossMod.Pathfinding
     {
         public Map Map;
         public float ScreenPixelSize = 10;
-        public List<(WPos center, float radius)> Circles = new();
+        public List<(WPos center, float ir, float or, Angle dir, Angle halfWidth)> Sectors = new();
+        public List<(WPos origin, float lenF, float lenB, float halfWidth, Angle dir)> Rects = new();
 
         public MapVisualizer(Map map)
         {
@@ -28,19 +26,38 @@ namespace BossMod.Pathfinding
             ImGui.Dummy(br - tl);
             var dl = ImGui.GetWindowDrawList();
 
-            // blocked squares
+            // blocked squares / goal
             for (int y = 0; y < Map.Height; ++y)
             {
                 for (int x = 0; x < Map.Width; ++x)
                 {
-                    var g = Map[x, y].MaxG;
-                    if (g < float.MaxValue)
+                    var corner = tl + new Vector2(x, y) * ScreenPixelSize;
+                    var cornerEnd = corner + new Vector2(ScreenPixelSize, ScreenPixelSize);
+
+                    var pix = Map[x, y];
+                    if (pix.MaxG < float.MaxValue)
                     {
-                        var alpha = 1 - (g > 0 ? g / Map.MaxG : 0);
+                        var alpha = 1 - (pix.MaxG > 0 ? pix.MaxG / Map.MaxG : 0);
                         uint c = 128 + (uint)(alpha * 127);
-                        c = c | (c << 8) | (c << 24);
-                        var corner = tl + new Vector2(x, y) * ScreenPixelSize;
-                        dl.AddRectFilled(corner, corner + new Vector2(ScreenPixelSize, ScreenPixelSize), c);
+                        c = c | (c << 8) | 0xff000000;
+                        dl.AddRectFilled(corner, cornerEnd, c);
+                    }
+
+                    if (ImGui.IsMouseHoveringRect(corner, cornerEnd))
+                    {
+                        ImGui.SameLine();
+                        if (pix.MaxG < float.MaxValue)
+                        {
+                            ImGui.TextUnformatted($"Pixel at {x},{y}: blocked, g={pix.MaxG:f3}");
+                        }
+                        else if (pix.Priority > 0)
+                        {
+                            ImGui.TextUnformatted($"Pixel at {x},{y}: goal, prio={pix.Priority}");
+                        }
+                        else
+                        {
+                            ImGui.TextUnformatted($"Pixel at {x},{y}: normal");
+                        }
                     }
                 }
             }
@@ -64,9 +81,38 @@ namespace BossMod.Pathfinding
             }
 
             // shapes
-            foreach (var c in Circles)
+            foreach (var c in Sectors)
             {
-                dl.AddCircle(tl + Map.WorldToGridFrac(c.center) * ScreenPixelSize, c.radius / Map.Resolution * ScreenPixelSize, 0xff0000ff);
+                DrawSector(dl, tl, c.center, c.ir, c.or, c.dir, c.halfWidth);
+            }
+            foreach (var r in Rects)
+            {
+                var direction = r.dir.ToDirection();
+                var side = r.halfWidth * direction.OrthoR();
+                var front = r.origin + r.lenF * direction;
+                var back = r.origin - r.lenB * direction;
+                dl.AddQuad(tl + Map.WorldToGridFrac(front + side) * ScreenPixelSize, tl + Map.WorldToGridFrac(front - side) * ScreenPixelSize, tl + Map.WorldToGridFrac(back - side) * ScreenPixelSize, tl + Map.WorldToGridFrac(back + side) * ScreenPixelSize, 0xff0000ff);
+            }
+        }
+
+        private void DrawSector(ImDrawListPtr dl, Vector2 tl, WPos center, float ir, float or, Angle dir, Angle halfWidth)
+        {
+            if (halfWidth.Rad <= 0 || or <= 0 || ir >= or)
+                return;
+
+            var sCenter = tl + Map.WorldToGridFrac(center) * ScreenPixelSize;
+            if (halfWidth.Rad >= MathF.PI)
+            {
+                dl.AddCircle(sCenter, or / Map.Resolution * ScreenPixelSize, 0xff0000ff);
+                if (ir > 0)
+                    dl.AddCircle(sCenter, ir / Map.Resolution * ScreenPixelSize, 0xff0000ff);
+            }
+            else
+            {
+                float sDir = MathF.PI / 2 - dir.Rad;
+                dl.PathArcTo(sCenter, ir / Map.Resolution * ScreenPixelSize, sDir + halfWidth.Rad, sDir - halfWidth.Rad);
+                dl.PathArcTo(sCenter, or / Map.Resolution * ScreenPixelSize, sDir - halfWidth.Rad, sDir + halfWidth.Rad);
+                dl.PathStroke(0xff0000ff, ImDrawFlags.Closed, 1);
             }
         }
     }

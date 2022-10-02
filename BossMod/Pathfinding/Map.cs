@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod.Pathfinding
 {
@@ -80,148 +77,134 @@ namespace BossMod.Pathfinding
             return Center + ax * _localZDivRes.OrthoL() + az * _localZDivRes;
         }
 
-        public void BlockPixels(IEnumerable<(int x, int y)> pixels, float maxG)
+        public void BlockPixels(IEnumerable<(int x, int y, Coverage cv)> pixels, float maxG, Coverage coverage)
         {
             MaxG = MathF.Max(MaxG, maxG);
-            foreach (var (x, y) in pixels)
+            foreach (var (x, y, cv) in pixels)
             {
-                ref var pixel = ref Pixels[y * Width + x];
-                pixel.MaxG = MathF.Min(pixel.MaxG, maxG);
-            }
-        }
-
-        public IEnumerable<(int x, int y)> RasterizeCircle(WPos origin, float radius, Coverage coverage)
-        {
-            var cf = WorldToGridFrac(origin);
-            var ci = FracToGrid(cf);
-            var lo = FracToGrid(cf - new Vector2(radius, radius) / Resolution);
-            var hi = FracToGrid(cf + new Vector2(radius, radius) / Resolution);
-
-            // area outside AABB
-            if (coverage.HasFlag(Coverage.Outside))
-                foreach (var p in PixelsOutsideAABB(lo.x, hi.x, lo.y, hi.y))
-                    yield return p;
-
-            // top-left quadrant: lo.x <= x < c.x, lo.y <= y < c.y
-            // other quadrants are similar
-            var outerRadiusSq = radius * radius;
-            var innerRadiusSq = 0;
-            foreach (var p in PixelsInQuadrant(lo.x, ci.x, lo.y, ci.y, true, true, origin, outerRadiusSq, innerRadiusSq, coverage))
-                yield return p;
-            foreach (var p in PixelsInQuadrant(ci.x + 1, hi.x + 1, lo.y, ci.y, true, false, origin, outerRadiusSq, innerRadiusSq, coverage))
-                yield return p;
-            foreach (var p in PixelsInQuadrant(lo.x, ci.x, ci.y + 1, hi.y + 1, false, true, origin, outerRadiusSq, innerRadiusSq, coverage))
-                yield return p;
-            foreach (var p in PixelsInQuadrant(ci.x + 1, hi.x + 1, ci.y + 1, hi.y + 1, false, false, origin, outerRadiusSq, innerRadiusSq, coverage))
-                yield return p;
-
-            // pixels sharing x and/or y grid coordinate with origin
-            var df = cf - new Vector2(ci.x, ci.y);
-            foreach (var p in PixelsInCenterLineX(lo.x, ci.x, ci.y, df.Y, true, origin, outerRadiusSq, innerRadiusSq, coverage))
-                yield return p;
-            foreach (var p in PixelsInCenterLineX(ci.x + 1, hi.x + 1, ci.y, df.Y, false, origin, outerRadiusSq, innerRadiusSq, coverage))
-                yield return p;
-            foreach (var p in PixelsInCenterLineY(lo.y, ci.y, ci.x, df.X, true, origin, outerRadiusSq, innerRadiusSq, coverage))
-                yield return p;
-            foreach (var p in PixelsInCenterLineY(ci.y + 1, hi.y + 1, ci.x, df.X, false, origin, outerRadiusSq, innerRadiusSq, coverage))
-                yield return p;
-
-            // center pixel
-            var dfi = new Vector2(1, 1) - df;
-            df *= df;
-            dfi *= dfi;
-            var farthest = MathF.Max(df.X, dfi.X) + MathF.Max(df.Y, dfi.Y);
-            float closest = 0;
-            var cv = farthest < innerRadiusSq || closest >= outerRadiusSq ? Coverage.Outside
-                : farthest < outerRadiusSq && closest >= innerRadiusSq ? Coverage.Inside
-                : Coverage.Border;
-            if (coverage.HasFlag(cv))
-                yield return ci;
-        }
-
-        //public IEnumerable<(int x, int y)> RasterizeRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth)
-        //{
-
-        //}
-
-        // returns all valid points with xmin <= x < xmax, ymin <= y < ymax
-        private IEnumerable<(int x, int y)> PixelsInRange(int xmin, int xmax, int ymin, int ymax)
-        {
-            xmin = Math.Max(xmin, 0);
-            ymin = Math.Max(ymin, 0);
-            xmax = Math.Min(xmax, Width);
-            ymax = Math.Min(ymax, Height);
-            for (int y = ymin; y < ymax; ++y)
-                for (int x = xmin; x < xmax; ++x)
-                    yield return (x, y);
-        }
-
-        // returns all points that have x < xmin OR x > xmax OR y < ymin OR y > ymax
-        private IEnumerable<(int x, int y)> PixelsOutsideAABB(int xmin, int xmax, int ymin, int ymax)
-        {
-            foreach (var p in PixelsInRange(0, Width, 0, ymin))
-                yield return p;
-            foreach (var p in PixelsInRange(0, xmin, ymin, ymax + 1))
-                yield return p;
-            foreach (var p in PixelsInRange(xmax + 1, Width, ymin, ymax + 1))
-                yield return p;
-            foreach (var p in PixelsInRange(0, Width, ymax + 1, Height))
-                yield return p;
-        }
-
-        private IEnumerable<(int x, int y)> PixelsInQuadrant(int xmin, int xmax, int ymin, int ymax, bool top, bool left, WPos origin, float outerRadiusSq, float innerRadiusSq, Coverage coverage)
-        {
-            foreach (var p in PixelsInRange(xmin, xmax, ymin, ymax))
-            {
-                var farthest = (GridToWorld(p.x, p.y, left ? 0 : 1, top ? 0 : 1) - origin).LengthSq();
-                var closest = (GridToWorld(p.x, p.y, left ? 1 : 0, top ? 1 : 0) - origin).LengthSq();
-                var cv = farthest < innerRadiusSq || closest >= outerRadiusSq ? Coverage.Outside
-                    : farthest < outerRadiusSq && closest >= innerRadiusSq ? Coverage.Inside
-                    : Coverage.Border;
                 if (coverage.HasFlag(cv))
-                    yield return p;
+                {
+                    ref var pixel = ref Pixels[y * Width + x];
+                    pixel.MaxG = MathF.Min(pixel.MaxG, maxG);
+                }
             }
         }
 
-        private IEnumerable<(int x, int y)> PixelsInCenterLineX(int xmin, int xmax, int y, float dy, bool left, WPos origin, float outerRadiusSq, float innerRadiusSq, Coverage coverage)
+        public IEnumerable<(int x, int y, Coverage cv)> RasterizeCircle(WPos origin, float radius) => RasterizeDonut(origin, 0, radius);
+        public IEnumerable<(int x, int y, Coverage cv)> RasterizeDonut(WPos origin, float innerRadius, float outerRadius)
         {
-            if (y < 0 || y >= Height)
+            if (outerRadius <= 0 || innerRadius >= outerRadius)
                 yield break;
 
-            var cornerMaxSq = dy > 0.5f ? dy : 1 - dy;
-            cornerMaxSq *= cornerMaxSq;
-            xmin = Math.Max(xmin, 0);
-            xmax = Math.Min(xmax, Width);
-            for (int x = xmin; x < xmax; ++x)
+            var delta = Resolution * 0.707107f;
+            var r1 = outerRadius + delta; // d >= r1 => fully outside
+            r1 *= r1;
+            var r2 = Math.Max(0, outerRadius - delta);
+            r2 *= r2;
+            var r3 = innerRadius > 0 ? innerRadius + delta : 0; // r2 > d >= r3 => fully inside
+            r3 *= r3;
+            var r4 = Math.Max(0, innerRadius - delta);
+            r4 *= r4;
+
+            foreach (var p in EnumeratePixels())
             {
-                var farthest = (GridToWorld(x, y, left ? 0 : 1, dy) - origin).LengthSq() + cornerMaxSq;
-                var closest = (GridToWorld(x, y, left ? 1 : 0, dy) - origin).LengthSq();
-                var cv = farthest < innerRadiusSq || closest >= outerRadiusSq ? Coverage.Outside
-                    : farthest < outerRadiusSq && closest >= innerRadiusSq ? Coverage.Inside
-                    : Coverage.Border;
-                if (coverage.HasFlag(cv))
-                    yield return (x, y);
+                var d = (p.center - origin).LengthSq();
+                var c = (d >= r1 || d < r4) ? Coverage.Outside : (d >= r3 && d < r2) ? Coverage.Inside : Coverage.Border;
+                yield return (p.x, p.y, c);
             }
         }
 
-        private IEnumerable<(int x, int y)> PixelsInCenterLineY(int ymin, int ymax, int x, float dx, bool top, WPos origin, float outerRadiusSq, float innerRadiusSq, Coverage coverage)
+        public IEnumerable<(int x, int y, Coverage cv)> RasterizeDonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
         {
-            if (x < 0 || x >= Width)
+            if (halfAngle.Rad <= 0 || outerRadius <= 0 || innerRadius >= outerRadius)
                 yield break;
 
-            var cornerMaxSq = dx > 0.5f ? dx : 1 - dx;
-            cornerMaxSq *= cornerMaxSq;
-            ymin = Math.Max(ymin, 0);
-            ymax = Math.Min(ymax, Height);
-            for (int y = ymin; y < ymax; ++y)
+            if (halfAngle.Rad >= MathF.PI)
             {
-                var farthest = (GridToWorld(x, y, dx, top ? 0 : 1) - origin).LengthSq() + cornerMaxSq;
-                var closest = (GridToWorld(x, y, dx, top ? 1 : 0) - origin).LengthSq();
-                var cv = farthest < innerRadiusSq || closest >= outerRadiusSq ? Coverage.Outside
-                    : farthest < outerRadiusSq && closest >= innerRadiusSq ? Coverage.Inside
+                foreach (var p in RasterizeDonut(origin, innerRadius, outerRadius))
+                    yield return p;
+                yield break;
+            }
+
+            var delta = Resolution * 0.707107f;
+            var r1 = outerRadius + delta; // d >= r1 => fully outside
+            var r2 = Math.Max(0, outerRadius - delta);
+            var r3 = innerRadius > 0 ? innerRadius + delta : 0; // r2 > d >= r3 => fully inside
+            var r4 = Math.Max(0, innerRadius - delta);
+
+            foreach (var p in EnumeratePixels())
+            {
+                var off = p.center - origin;
+                var d = off.Length();
+                if (d >= r1 || d < r4)
+                {
+                    yield return (p.x, p.y, Coverage.Outside);
+                    continue;
+                }
+
+                var dir = (Angle.FromDirection(off) - centerDir).Normalized();
+                var angularDist = MathF.Abs(dir.Rad);
+                var sideDist = (angularDist - halfAngle.Rad) * d;
+                if (sideDist >= delta)
+                {
+                    yield return (p.x, p.y, Coverage.Outside);
+                    continue;
+                }
+
+                yield return (p.x, p.y, (sideDist <= -delta && d >= r3 && d < r2) ? Coverage.Inside : Coverage.Border);
+            }
+        }
+
+        public IEnumerable<(int x, int y, Coverage cv)> RasterizeRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth)
+        {
+            var delta = Resolution * 0.707107f;
+            var dir = direction.ToDirection();
+            var normal = dir.OrthoL();
+            foreach (var p in EnumeratePixels())
+            {
+                var offset = p.center - origin;
+                var dotDir = offset.Dot(dir);
+                var dotNormal = MathF.Abs(offset.Dot(normal));
+                var c = dotDir < -lenBack - delta || dotDir > lenFront + delta || dotNormal > halfWidth + delta ? Coverage.Outside
+                    : dotDir >= -lenBack + delta && dotDir <= lenFront - delta && dotNormal <= halfWidth - delta ? Coverage.Inside
                     : Coverage.Border;
-                if (coverage.HasFlag(cv))
-                    yield return (x, y);
+                yield return (p.x, p.y, c);
+            }
+        }
+
+        public IEnumerable<(int x, int y, Coverage cv)> RasterizeCross(WPos origin, Angle direction, float length, float halfWidth)
+        {
+            var delta = Resolution * 0.707107f;
+            var dir = direction.ToDirection();
+            var normal = dir.OrthoL();
+            foreach (var p in EnumeratePixels())
+            {
+                var offset = p.center - origin;
+                var dotDir = MathF.Abs(offset.Dot(dir));
+                var dotNormal = MathF.Abs(offset.Dot(normal));
+                var minDot = Math.Min(dotDir, dotNormal);
+                var c = dotDir > length + delta || dotNormal > length + delta || minDot > halfWidth + delta ? Coverage.Outside
+                    : dotDir > length - delta || dotNormal > length - delta || minDot > halfWidth + delta ? Coverage.Border
+                    : Coverage.Inside;
+                yield return (p.x, p.y, c);
+            }
+        }
+
+        private IEnumerable<(int x, int y, WPos center)> EnumeratePixels()
+        {
+            var rsq = Resolution * Resolution; // since we then multiply by _localZDivRes, end result is same as * res * rotation.ToDir()
+            var dx = _localZDivRes.OrthoL() * rsq;
+            var dy = _localZDivRes * rsq;
+            var cy = Center + (-Width / 2 + 0.5f) * dx + (-Height / 2 + 0.5f) * dy;
+            for (int y = 0; y < Height; y++)
+            {
+                var cx = cy;
+                for (int x = 0; x < Width; ++x)
+                {
+                    yield return (x, y, cx);
+                    cx += dx;
+                }
+                cy += dy;
             }
         }
     }

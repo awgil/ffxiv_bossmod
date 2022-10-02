@@ -22,7 +22,7 @@
 
     class SolarFold : Components.SelfTargetedLegacyRotationAOEs
     {
-        public SolarFold() : base(ActionID.MakeSpell(AID.SolarFoldAOE), new AOEShapeMulti(new AOEShape[] { new AOEShapeRect(30, 5, 30), new AOEShapeRect(5, 30, 5) })) { }
+        public SolarFold() : base(ActionID.MakeSpell(AID.SolarFoldAOE), new AOEShapeCross(30, 5)) { }
     }
 
     class Sunbeam : Components.SelfTargetedAOEs
