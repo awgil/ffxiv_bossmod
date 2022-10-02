@@ -40,6 +40,7 @@ namespace BossMod
         }
 
         public abstract IEnumerable<WPos> BuildClipPoly(float offset = 0); // positive offset increases area, negative decreases
+        public abstract Pathfinding.Map BuildMap(float resolution = 0.5f);
         public abstract bool Contains(WPos p);
         public abstract WDir ClampToBounds(WDir offset, float scale = 1);
         public WPos ClampToBounds(WPos position) => Center + ClampToBounds(position - Center);
@@ -118,6 +119,14 @@ namespace BossMod
         public ArenaBoundsCircle(WPos center, float radius) : base(center, radius) { }
 
         public override IEnumerable<WPos> BuildClipPoly(float offset) => CurveApprox.Circle(Center, HalfSize + offset, MaxApproxError);
+
+        public override Pathfinding.Map BuildMap(float resolution)
+        {
+            var map = new Pathfinding.Map(resolution, Center, HalfSize, HalfSize);
+            map.BlockPixels(map.RasterizeCircle(Center, HalfSize, Pathfinding.Map.Coverage.Outside | Pathfinding.Map.Coverage.Border), 0);
+            return map;
+        }
+
         public override bool Contains(WPos position) => position.InCircle(Center, HalfSize);
 
         public override WDir ClampToBounds(WDir offset, float scale)
@@ -136,10 +145,16 @@ namespace BossMod
         public override IEnumerable<WPos> BuildClipPoly(float offset)
         {
             var s = HalfSize + offset;
-            yield return Center + new WDir( s, -s);
-            yield return Center + new WDir( s,  s);
-            yield return Center + new WDir(-s,  s);
+            yield return Center + new WDir(s, -s);
+            yield return Center + new WDir(s, s);
+            yield return Center + new WDir(-s, s);
             yield return Center + new WDir(-s, -s);
+        }
+
+        public override Pathfinding.Map BuildMap(float resolution)
+        {
+            var map = new Pathfinding.Map(resolution, Center, HalfSize, HalfSize);
+            return map;
         }
 
         public override bool Contains(WPos position) => WPos.AlmostEqual(position, Center, HalfSize);
@@ -157,37 +172,40 @@ namespace BossMod
 
     public class ArenaBoundsRect : ArenaBounds
     {
-        public WDir Orientation { get; init; }
-        public float HalfSizeParallel { get; init; }
-        public float HalfSizeOrthogonal { get; init; }
+        public float HalfWidth { get; init; } // along X if rotation is 0
+        public float HalfHeight { get; init; } // along Z if rotation is 0
+        public Angle Rotation { get; init; }
 
-        public ArenaBoundsRect(WPos center, WDir orientation, float halfSizeParallel, float halfSizeOrthogonal) : base(center, MathF.Max(halfSizeParallel, halfSizeOrthogonal))
+        public ArenaBoundsRect(WPos center, float halfWidth, float halfHeight, Angle rotation = new()) : base(center, MathF.Max(halfWidth, halfHeight))
         {
-            Orientation = orientation;
-            HalfSizeParallel = halfSizeParallel;
-            HalfSizeOrthogonal = halfSizeOrthogonal;
+            HalfWidth = halfWidth;
+            HalfHeight = halfHeight;
+            Rotation = rotation;
         }
 
         public override IEnumerable<WPos> BuildClipPoly(float offset)
         {
-            var dx = Orientation * (HalfSizeParallel + offset);
-            var dy = Orientation.OrthoL() * (HalfSizeOrthogonal + offset);
-            yield return Center + dx - dy;
-            yield return Center + dx + dy;
-            yield return Center - dx + dy;
-            yield return Center - dx - dy;
+            var n = Rotation.ToDirection(); // local 'z' axis
+            var dx = n.OrthoL() * (HalfWidth + offset);
+            var dz = n * (HalfHeight + offset);
+            yield return Center + dx - dz;
+            yield return Center + dx + dz;
+            yield return Center - dx + dz;
+            yield return Center - dx - dz;
         }
 
-        public override bool Contains(WPos position) => position.InRect(Center, Orientation, HalfSizeParallel, HalfSizeParallel, HalfSizeOrthogonal);
+        public override Pathfinding.Map BuildMap(float resolution) => new Pathfinding.Map(resolution, Center, HalfWidth, HalfHeight, Rotation);
+        public override bool Contains(WPos position) => position.InRect(Center, Rotation, HalfHeight, HalfHeight, HalfWidth);
 
         public override WDir ClampToBounds(WDir offset, float scale)
         {
-            var dx = MathF.Abs(offset.Dot(Orientation));
-            if (dx > HalfSizeParallel * scale)
-                offset *= HalfSizeParallel * scale / dx;
-            var dy = MathF.Abs(offset.Dot(Orientation.OrthoL()));
-            if (dy > HalfSizeOrthogonal * scale)
-                offset *= HalfSizeOrthogonal * scale / dy;
+            var n = Rotation.ToDirection();
+            var dx = MathF.Abs(offset.Dot(n.OrthoL()));
+            if (dx > HalfWidth * scale)
+                offset *= HalfWidth * scale / dx;
+            var dy = MathF.Abs(offset.Dot(n));
+            if (dy > HalfHeight * scale)
+                offset *= HalfHeight * scale / dy;
             return offset;
         }
     }

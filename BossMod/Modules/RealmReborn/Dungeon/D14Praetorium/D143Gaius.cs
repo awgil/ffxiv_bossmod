@@ -114,7 +114,7 @@ namespace BossMod.RealmReborn.Dungeon.D14Praetorium.D143Gaius
 
     public class D143Gaius : BossModule
     {
-        public D143Gaius(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-562, 220), new(1, 0), 15, 20)) { }
+        public D143Gaius(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-562, 220), 15, 20)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

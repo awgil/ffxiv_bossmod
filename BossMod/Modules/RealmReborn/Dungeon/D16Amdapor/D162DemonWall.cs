@@ -72,6 +72,6 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D162DemonWall
 
     public class D162DemonWall : BossModule
     {
-        public D162DemonWall(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(200, -131), new(1, 0), 10, 21)) { }
+        public D162DemonWall(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(200, -131), 10, 21)) { }
     }
 }

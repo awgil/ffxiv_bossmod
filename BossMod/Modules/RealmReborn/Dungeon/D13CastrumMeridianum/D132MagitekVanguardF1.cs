@@ -66,6 +66,6 @@
 
     public class D132MagitekVanguardF1 : BossModule
     {
-        public D132MagitekVanguardF1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-13, 31), 20.Degrees().ToDirection(), 20, 20)) { }
+        public D132MagitekVanguardF1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-13, 31), 20, 20, 20.Degrees())) { }
     }
 }
