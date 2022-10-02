@@ -13,7 +13,12 @@ namespace UIDev
         private Vector2 _mapHalfSize = new(20, 20);
         private float _mapRotationDeg;
 
-        private Map.Coverage _blockCone = Map.Coverage.Outside;
+        private Vector2 _startingPos = new(-15, 0);
+        private Vector2 _targetPos = new(15, 0);
+        private float _targetRadius = 10;
+        private float _targetFacingDeg;
+
+        private Map.Coverage _blockCone = Map.Coverage.Inside | Map.Coverage.Border;
         private Vector2 _blockConeCenter = new(0, 1);
         private Vector2 _blockConeRadius = new(0, 10);
         private float _blockConeRotationDeg;
@@ -47,6 +52,11 @@ namespace UIDev
                 rebuild |= ImGui.DragFloat2("Center", ref _mapCenter);
                 rebuild |= ImGui.DragFloat2("Half-size", ref _mapHalfSize, 1, 0, 30);
                 rebuild |= ImGui.DragFloat("Rotation", ref _mapRotationDeg, 5, -180, 180);
+
+                rebuild |= ImGui.DragFloat2("Starting position", ref _startingPos, 1, -30, 30);
+                rebuild |= ImGui.DragFloat2("Target position", ref _targetPos, 1, -30, 30);
+                rebuild |= ImGui.DragFloat("Target radius", ref _targetRadius, 1, 0, 30);
+                rebuild |= ImGui.DragFloat("Target direction", ref _targetFacingDeg, 5, -180, 180);
 
                 rebuild |= DrawCoverage("Block cone", ref _blockCone);
                 if (_blockCone != Map.Coverage.None)
@@ -104,6 +114,8 @@ namespace UIDev
                 visu.Map.BlockPixels(visu.Map.RasterizeRect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth), _blockRectG, _blockRect);
                 visu.Rects.Add((new(_blockRectCenter), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth, _blockRectRotationDeg.Degrees()));
             }
+            visu.Map.AddGoal(visu.Map.RasterizeCircle(new(_targetPos), _targetRadius), Map.Coverage.Inside, 0, 10);
+            visu.Map.AddGoal(visu.Map.RasterizeCone(new(_targetPos), _targetRadius, _targetFacingDeg.Degrees(), 45.Degrees()), Map.Coverage.Inside, 10, 5);
             return visu;
         }
     }

@@ -90,6 +90,22 @@ namespace BossMod.Pathfinding
             }
         }
 
+        public void AddGoal(IEnumerable<(int x, int y, Coverage cv)> pixels, Coverage coverage, int minPriority, int deltaPriority)
+        {
+            foreach (var (x, y, cv) in pixels)
+            {
+                if (coverage.HasFlag(cv))
+                {
+                    ref var pixel = ref Pixels[y * Width + x];
+                    if (pixel.Priority >= minPriority)
+                    {
+                        pixel.Priority += deltaPriority;
+                        MaxPriority = Math.Max(MaxPriority, pixel.Priority);
+                    }
+                }
+            }
+        }
+
         public IEnumerable<(int x, int y, Coverage cv)> RasterizeCircle(WPos origin, float radius) => RasterizeDonut(origin, 0, radius);
         public IEnumerable<(int x, int y, Coverage cv)> RasterizeDonut(WPos origin, float innerRadius, float outerRadius)
         {
@@ -114,6 +130,7 @@ namespace BossMod.Pathfinding
             }
         }
 
+        public IEnumerable<(int x, int y, Coverage cv)> RasterizeCone(WPos origin, float radius, Angle centerDir, Angle halfAngle) => RasterizeDonutSector(origin, 0, radius, centerDir, halfAngle);
         public IEnumerable<(int x, int y, Coverage cv)> RasterizeDonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
         {
             if (halfAngle.Rad <= 0 || outerRadius <= 0 || innerRadius >= outerRadius)

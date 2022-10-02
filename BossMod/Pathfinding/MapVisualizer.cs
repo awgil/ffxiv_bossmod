@@ -42,6 +42,13 @@ namespace BossMod.Pathfinding
                         c = c | (c << 8) | 0xff000000;
                         dl.AddRectFilled(corner, cornerEnd, c);
                     }
+                    else if (pix.Priority > 0)
+                    {
+                        var alpha = pix.Priority / Map.MaxPriority;
+                        uint c = 128 + (uint)(alpha * 127);
+                        c = (c << 8) | 0xff000000;
+                        dl.AddRectFilled(corner, cornerEnd, c);
+                    }
 
                     if (ImGui.IsMouseHoveringRect(corner, cornerEnd))
                     {

@@ -51,7 +51,7 @@ namespace BossMod
             var rot = rotation + DirectionOffset;
             yield return CurveApprox.CircleSector(origin - centerOffset * rot.ToDirection(), Radius + centerOffset + offset, rot - HalfAngle, rot + HalfAngle, maxError);
         }
-        public override IEnumerable<(int x, int y, Pathfinding.Map.Coverage cv)> Rasterize(Pathfinding.Map map, WPos origin, Angle rotation) => map.RasterizeDonutSector(origin, 0, Radius, rotation + DirectionOffset, HalfAngle);
+        public override IEnumerable<(int x, int y, Pathfinding.Map.Coverage cv)> Rasterize(Pathfinding.Map map, WPos origin, Angle rotation) => map.RasterizeCone(origin, Radius, rotation + DirectionOffset, HalfAngle);
     }
 
     public class AOEShapeCircle : AOEShape
