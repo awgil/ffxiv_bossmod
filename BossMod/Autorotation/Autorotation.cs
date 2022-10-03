@@ -109,8 +109,8 @@ namespace BossMod
             Hints.FillPotentialTargets(WorldState);
             if (activeModule != null && player != null)
                 activeModule.CalculateAIHints(PartyState.PlayerSlot, player, Hints);
-            else
-                _autoHints.CalculateAIHints(Hints);
+            else if (player != null)
+                _autoHints.CalculateAIHints(Hints, player.Position);
             Hints.Normalize();
 
             Type? classType = null;

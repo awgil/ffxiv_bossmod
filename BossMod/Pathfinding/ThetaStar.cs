@@ -23,8 +23,6 @@ namespace BossMod.Pathfinding
         private float _deltaGSide;
         private float _deltaGDiag;
 
-        public IReadOnlyList<int> OpenList => _openList;
-
         public ref Node NodeByIndex(int index) => ref _nodes[index];
 
         public ThetaStar(Map map, IEnumerable<(int x, int y)> goals, int startX, int startY)

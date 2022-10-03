@@ -260,7 +260,7 @@ namespace UIDev
                     Rotation = payload.Length > 8 ? float.Parse(payload[8]).Degrees() : new(),
                     Location = Vec3(payload[5]),
                     TotalTime = totalTime,
-                    FinishAt = DateTime.Parse(payload[0]).AddSeconds(totalTime - float.Parse(parts[0])),
+                    FinishAt = DateTime.Parse(payload[0]).AddSeconds(float.Parse(parts[0])),
                     Interruptible = payload.Length > 7 ? bool.Parse(payload[7]) : false,
                 };
             }

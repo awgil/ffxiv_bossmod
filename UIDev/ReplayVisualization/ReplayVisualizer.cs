@@ -1,4 +1,5 @@
 ﻿using BossMod;
+using BossMod.Pathfinding;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,8 @@ namespace UIDev
     {
         private ReplayPlayer _player;
         private BossModuleManager _mgr;
+        private AIHints _hints = new();
+        private MapVisualizer? _pf;
         private DateTime _first;
         private DateTime _last;
         private DateTime _curTime; // note that is could fall between frames
@@ -82,6 +85,7 @@ namespace UIDev
             DrawPartyTable();
             DrawEnemyTables();
             DrawAllActorsTable();
+            DrawPathfinding();
 
             if (ImGui.CollapsingHeader("Events"))
                 _events.Draw();
@@ -221,9 +225,11 @@ namespace UIDev
 
                 bool isPOV = _povSlot == slot;
                 ImGui.TableNextColumn();
-                ImGui.Checkbox("###POV", ref isPOV);
-                if (isPOV)
+                if (ImGui.Checkbox("###POV", ref isPOV) && isPOV)
+                {
                     _povSlot = slot;
+                    _pf = null;
+                }
 
                 ImGui.TableNextColumn();
                 ImGui.TextUnformatted(player.Class.ToString());
@@ -313,6 +319,34 @@ namespace UIDev
             ImGui.EndTable();
         }
 
+        private void DrawPathfinding()
+        {
+            if (!ImGui.CollapsingHeader("Pathfinding"))
+                return;
+            if (_mgr.ActiveModule == null)
+                return;
+
+            if (_pf == null)
+            {
+                var player = _mgr.ActiveModule.Raid[_povSlot];
+                if (player == null)
+                    return;
+
+                _hints.Clear();
+                _mgr.ActiveModule.CalculateAIHints(_povSlot, player, _hints);
+                _hints.Normalize();
+                var map = _hints.BuildPathfindingMap(_mgr.WorldState.CurrentTime);
+
+                var target = _mgr.WorldState.Actors.Find(player.TargetID);
+                if (target != null)
+                    map.AddGoal(map.RasterizeCircle(target.Position, 3 + target.HitboxRadius), Map.Coverage.Inside, 0, 1);
+
+                _pf = new(map, map.MaxPriority, player.Position);
+            }
+
+            _pf.Draw();
+        }
+
         private void MoveTo(DateTime t)
         {
             if (t < _player.WorldState.CurrentTime)
@@ -322,6 +356,7 @@ namespace UIDev
             }
             _player.AdvanceTo(t, _mgr.Update);
             _curTime = t;
+            _pf = null;
         }
 
         private void Rewind(float seconds)

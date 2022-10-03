@@ -23,6 +23,7 @@ namespace BossMod.Pathfinding
             GoalPriority = goalPriority;
             StartPos = startPos;
             _pathfind = BuildPathfind();
+            RunPathfind();
         }
 
         public void Draw()

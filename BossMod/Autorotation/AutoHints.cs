@@ -23,8 +23,9 @@ namespace BossMod
             _ws.Actors.CastFinished -= OnCastFinished;
         }
 
-        public void CalculateAIHints(AIHints hints)
+        public void CalculateAIHints(AIHints hints, WPos playerPos)
         {
+            hints.Bounds = new ArenaBoundsSquare(playerPos, 30);
             foreach (var aoe in _activeAOEs.Values)
             {
                 var target = aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ;
