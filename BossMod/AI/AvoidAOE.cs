@@ -12,10 +12,10 @@ namespace BossMod.AI
         private WPos? _desiredTargetPos;
         private Angle _desiredTargetRot;
         private float _desiredMaxRange;
-        private CommonActions.Positional _desiredPositional;
+        private Positional _desiredPositional;
         private WPos? _prevResult;
 
-        public void SetDesired(WPos targetPosition, Angle targetRotation, float maxRange, CommonActions.Positional positional = CommonActions.Positional.Any)
+        public void SetDesired(WPos targetPosition, Angle targetRotation, float maxRange, Positional positional = Positional.Any)
         {
             if (_desiredTargetPos == targetPosition && _desiredTargetRot == targetRotation && _desiredMaxRange == maxRange && _desiredPositional == positional)
                 return;
@@ -33,7 +33,7 @@ namespace BossMod.AI
             _desiredTargetPos = null;
             _desiredTargetRot = new();
             _desiredMaxRange = 0;
-            _desiredPositional = CommonActions.Positional.Any;
+            _desiredPositional = Positional.Any;
             DesiredZone = new();
         }
 
@@ -110,12 +110,12 @@ namespace BossMod.AI
         {
             switch (_desiredPositional)
             {
-                case CommonActions.Positional.Flank:
+                case Positional.Flank:
                     var left = _desiredTargetRot.ToDirection().OrthoL();
                     yield return CurveApprox.CircleSector(center + tolerance * 1.4142f * left, _desiredMaxRange - tolerance * 2.4142f, _desiredTargetRot + 45.Degrees(), _desiredTargetRot + 135.Degrees(), 1);
                     yield return CurveApprox.CircleSector(center - tolerance * 1.4142f * left, _desiredMaxRange - tolerance * 2.4142f, _desiredTargetRot - 45.Degrees(), _desiredTargetRot - 135.Degrees(), 1);
                     break;
-                case CommonActions.Positional.Rear:
+                case Positional.Rear:
                     yield return CurveApprox.CircleSector(center - tolerance * 1.4142f * _desiredTargetRot.ToDirection(), _desiredMaxRange - tolerance * 2.4142f, _desiredTargetRot + 135.Degrees(), _desiredTargetRot + 225.Degrees(), 1);
                     break;
                 default:

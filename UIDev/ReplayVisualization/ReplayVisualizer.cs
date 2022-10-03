@@ -13,7 +13,6 @@ namespace UIDev
         private ReplayPlayer _player;
         private BossModuleManager _mgr;
         private AIHints _hints = new();
-        private MapVisualizer? _pf;
         private DateTime _first;
         private DateTime _last;
         private DateTime _curTime; // note that is could fall between frames
@@ -25,6 +24,10 @@ namespace UIDev
         private bool _showConfig;
         private EventList _events;
         private AnalysisManager _analysis;
+
+        private MapVisualizer? _pf;
+        private float _pfTargetRadius = 3;
+        private Positional _pfPositional = Positional.Any;
 
         public ReplayVisualizer(Replay data)
         {
@@ -331,20 +334,26 @@ namespace UIDev
                 var player = _mgr.ActiveModule.Raid[_povSlot];
                 if (player == null)
                     return;
+                var target = _mgr.WorldState.Actors.Find(player.TargetID) ?? player;
 
                 _hints.Clear();
                 _mgr.ActiveModule.CalculateAIHints(_povSlot, player, _hints);
                 _hints.Normalize();
-                var map = _hints.BuildPathfindingMap(_mgr.WorldState.CurrentTime);
-
-                var target = _mgr.WorldState.Actors.Find(player.TargetID);
-                if (target != null)
-                    map.AddGoal(map.RasterizeCircle(target.Position, 3 + target.HitboxRadius), Map.Coverage.Inside, 0, 1);
-
-                _pf = new(map, map.MaxPriority, player.Position);
+                var decision = NavigationDecision.Build(_mgr.WorldState, _hints, player, target.Position, target.HitboxRadius + _pfTargetRadius, target.Rotation, _pfPositional);
+                if (decision.Map != null)
+                {
+                    _pf = new(decision.Map, decision.MapGoal, player.Position);
+                    if (decision.Destination != null)
+                        _pf.Lines.Add((player.Position, decision.Destination.Value));
+                }
             }
 
-            _pf.Draw();
+            _pf?.Draw();
+
+            if (ImGui.SliderFloat("Ability range", ref _pfTargetRadius, 3, 25))
+                _pf = null;
+            if (UICombo.Enum("Ability positional", ref _pfPositional))
+                _pf = null;
         }
 
         private void MoveTo(DateTime t)

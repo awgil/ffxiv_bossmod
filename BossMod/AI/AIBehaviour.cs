@@ -111,7 +111,7 @@ namespace BossMod.AI
                     strategy = _instantCastsOnly ? CommonActions.AutoActionAIFightMove : CommonActions.AutoActionAIFight;
                     var positional = target.PreferredPosition;
                     if (target.Target.TargetID == player.InstanceID && target.Target.CastInfo == null)
-                        positional = CommonActions.Positional.Any;
+                        positional = Positional.Any;
                     _avoidAOE.SetDesired(target.Target.Position, target.Target.Rotation, target.PreferredRange + player.HitboxRadius + target.Target.HitboxRadius, positional);
                 }
                 else

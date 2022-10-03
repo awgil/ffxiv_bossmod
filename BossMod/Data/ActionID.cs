@@ -24,6 +24,8 @@ namespace BossMod
         Accessory = 20
     }
 
+    public enum Positional { Any, Flank, Rear }
+
     public struct ActionID
     {
         public uint Raw; // high byte is type, low 3 bytes is ID

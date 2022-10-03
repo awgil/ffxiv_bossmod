@@ -13,33 +13,43 @@ namespace BossMod.Pathfinding
             public int ParentX;
             public int ParentY;
             public int OpenHeapIndex; // -1 if in closed list, 0 if not in any lists, otherwise (index+1)
+            public float PathLeeway;
         }
 
         private Map _map;
         private (int x, int y)[] _goals;
         private Node[] _nodes;
         private List<int> _openList = new();
-        private float _resSq;
         private float _deltaGSide;
         private float _deltaGDiag;
 
         public ref Node NodeByIndex(int index) => ref _nodes[index];
+        public int CellIndex(int x, int y) => y * _map.Width + x;
+        public WPos CellCenter(int index) => _map.GridToWorld(index % _map.Width, index / _map.Width, 0.5f, 0.5f);
 
-        public ThetaStar(Map map, IEnumerable<(int x, int y)> goals, int startX, int startY)
+        // gMultiplier is typically inverse speed, which turns g-values into time
+        public ThetaStar(Map map, IEnumerable<(int x, int y)> goals, (int x, int y) start, float gMultiplier)
         {
             _map = map;
             _goals = goals.ToArray();
             _nodes = new Node[map.Width * map.Height];
-            _resSq = map.Resolution * map.Resolution;
-            _deltaGSide = map.Resolution;
+            _deltaGSide = map.Resolution * gMultiplier;
             _deltaGDiag = _deltaGSide * 1.414214f;
 
-            int startIndex = startY * _map.Width + startX;
+            int startX = Math.Clamp(start.x, 0, map.Width);
+            int startY = Math.Clamp(start.y, 0, map.Height);
+            int startIndex = CellIndex(startX, startY);
             _nodes[startIndex].GScore = 0;
             _nodes[startIndex].HScore = HeuristicDistance(startX, startY);
             _nodes[startIndex].ParentX = startX; // start's parent is self
             _nodes[startIndex].ParentY = startY;
+            _nodes[startIndex].PathLeeway = float.MaxValue; // min diff along path between node's g-value and cell's g-value
             AddToOpen(startIndex);
+        }
+
+        public ThetaStar(Map map, int goalPriority, WPos startPos, float gMultiplier)
+            : this(map, map.Goals().Where(g => g.priority >= goalPriority).Select(g => (g.x, g.y)), map.WorldToGrid(startPos), gMultiplier)
+        {
         }
 
         // returns whether search is to be terminated; on success, first node of the open list would contain found goal
@@ -92,7 +102,8 @@ namespace BossMod.Pathfinding
             if (_nodes[nodeIndex].OpenHeapIndex < 0)
                 return; // in closed list already
             var nodeG = _nodes[parentIndex].GScore + deltaG;
-            if (_map.Pixels[nodeIndex].MaxG < nodeG)
+            var nodeLeeway = _map.Pixels[nodeIndex].MaxG - nodeG;
+            if (nodeLeeway < 0)
                 return; // node is blocked along this path
 
             if (_nodes[nodeIndex].OpenHeapIndex == 0)
@@ -104,14 +115,14 @@ namespace BossMod.Pathfinding
                 // check LoS from grandparent
                 int grandParentX = _nodes[parentIndex].ParentX;
                 int grandParentY = _nodes[parentIndex].ParentY;
-                if (LineOfSight(grandParentX, grandParentY, nodeX, nodeY, nodeG))
+                var losLeeway = LineOfSight(grandParentX, grandParentY, nodeX, nodeY, nodeG);
+                if (losLeeway >= 0)
                 {
                     parentX = grandParentX;
                     parentY = grandParentY;
-                    parentIndex = parentY * _map.Width + parentX;
-                    var dx = nodeX - parentX;
-                    var dy = nodeY - parentY;
-                    nodeG = _nodes[parentIndex].GScore + _deltaGSide * MathF.Sqrt(dx * dx + dy * dy);
+                    parentIndex = CellIndex(parentX, parentY);
+                    nodeG = _nodes[parentIndex].GScore + _deltaGSide * MathF.Sqrt(DistanceSq(nodeX, nodeY, parentX, parentY));
+                    nodeLeeway = losLeeway;
                 }
 
                 if (nodeG + 0.00001f < _nodes[nodeIndex].GScore)
@@ -119,79 +130,41 @@ namespace BossMod.Pathfinding
                     _nodes[nodeIndex].GScore = nodeG;
                     _nodes[nodeIndex].ParentX = parentX;
                     _nodes[nodeIndex].ParentY = parentY;
+                    _nodes[nodeIndex].PathLeeway = MathF.Min(_nodes[parentIndex].PathLeeway, nodeLeeway);
                     AddToOpen(nodeIndex);
                 }
             }
         }
 
-        private bool LineOfSight(int x1, int y1, int x2, int y2, float maxG)
+        private float LineOfSight(int x1, int y1, int x2, int y2, float maxG)
         {
-            int dx = x2 - x1;
-            int dy = y2 - y1;
-            int sx = dx > 0 ? 1 : -1;
-            int sy = dy > 0 ? 1 : -1;
-            dx = Math.Abs(dx);
-            dy = Math.Abs(dy);
-            if (dx >= dy)
+            float minLeeway = float.MaxValue;
+            foreach (var (x, y) in _map.EnumeratePixelsInLine(x1, y1, x2, y2))
             {
-                int err = 2 * dy - dx;
-                do
-                {
-                    x1 += sx;
-                    if (_map[x1, y1].MaxG < maxG)
-                        return false;
-
-                    if (err > 0)
-                    {
-                        y1 += sy;
-                        if (_map[x1, y1].MaxG < maxG)
-                            return false;
-                        err -= 2 * dx;
-                    }
-                    err += 2 * dy;
-                }
-                while (x1 != x2);
+                minLeeway = Math.Min(minLeeway, _map[x, y].MaxG - maxG);
+                if (minLeeway < 0)
+                    return minLeeway;
             }
-            else
-            {
-                int err = 2 * dx - dy;
-                do
-                {
-                    y1 += sy;
-                    if (_map[x1, y1].MaxG < maxG)
-                        return false;
-
-                    if (err > 0)
-                    {
-                        x1 += sx;
-                        if (_map[x1, y1].MaxG < maxG)
-                            return false;
-                        err -= 2 * dy;
-                    }
-                    err += 2 * dx;
-                }
-                while (y1 != y2);
-            }
-            return true;
+            return minLeeway;
         }
 
         private float HeuristicDistance(int x, int y)
         {
-            float best = float.MaxValue;
+            float bestSq = float.MaxValue;
             foreach (var g in _goals)
             {
-                var cur = Distance(x, y, g.x, g.y);
-                if (cur < best)
-                    best = cur;
+                var curSq = DistanceSq(x, y, g.x, g.y);
+                if (curSq < bestSq)
+                    bestSq = curSq;
             }
-            return best;
+            return _deltaGSide * MathF.Sqrt(bestSq);
         }
 
-        private float Distance(int x1, int y1, int x2, int y2)
+        private float DistanceSq(int x1, int y1, int x2, int y2)
         {
             var dx = x1 - x2;
             var dy = y1 - y2;
-            return (dx * dx + dy * dy) * _resSq;
+            return dx * dx + dy * dy;
         }
 
         private void AddToOpen(int nodeIndex)

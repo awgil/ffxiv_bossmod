@@ -33,7 +33,7 @@ namespace BossMod.Pathfinding
         public float Resolution { get; private init; } // pixel size, in world units
         public int Width { get; private init; } // always even
         public int Height { get; private init; } // always even
-        public Pixel[] Pixels { get; private init; }
+        public Pixel[] Pixels { get; private set; }
 
         public WPos Center { get; private init; } // position of map center in world units
         public Angle Rotation { get; private init; } // rotation relative to world space (=> ToDirection() is equal to direction of local 'height' axis in world space)
@@ -57,6 +57,14 @@ namespace BossMod.Pathfinding
             Center = center;
             Rotation = rotation;
             _localZDivRes = rotation.ToDirection() / Resolution;
+        }
+
+        public Map Clone()
+        {
+            var res = (Map)MemberwiseClone();
+            res.Pixels = new Pixel[Pixels.Length];
+            Array.Copy(Pixels, res.Pixels, Pixels.Length);
+            return res;
         }
 
         public Vector2 WorldToGridFrac(WPos world)
@@ -91,8 +99,9 @@ namespace BossMod.Pathfinding
             }
         }
 
-        public void AddGoal(IEnumerable<(int x, int y, Coverage cv)> pixels, Coverage coverage, int minPriority, int deltaPriority)
+        public int AddGoal(IEnumerable<(int x, int y, Coverage cv)> pixels, Coverage coverage, int minPriority, int deltaPriority)
         {
+            int maxAdjustedPriority = minPriority;
             foreach (var (x, y, cv) in pixels)
             {
                 if (coverage.HasFlag(cv))
@@ -101,10 +110,12 @@ namespace BossMod.Pathfinding
                     if (pixel.Priority >= minPriority)
                     {
                         pixel.Priority += deltaPriority;
-                        MaxPriority = Math.Max(MaxPriority, pixel.Priority);
+                        maxAdjustedPriority = Math.Max(maxAdjustedPriority, pixel.Priority);
                     }
                 }
             }
+            MaxPriority = Math.Max(MaxPriority, maxAdjustedPriority);
+            return maxAdjustedPriority;
         }
 
         public Func<WPos, Coverage> CoverageCircle(WPos origin, float radius) => CoverageDonut(origin, 0, radius);
@@ -217,7 +228,7 @@ namespace BossMod.Pathfinding
             }
         }
 
-        private IEnumerable<(int x, int y, WPos center)> EnumeratePixels()
+        public IEnumerable<(int x, int y, WPos center)> EnumeratePixels()
         {
             var rsq = Resolution * Resolution; // since we then multiply by _localZDivRes, end result is same as * res * rotation.ToDir()
             var dx = _localZDivRes.OrthoL() * rsq;
@@ -232,6 +243,51 @@ namespace BossMod.Pathfinding
                     cx += dx;
                 }
                 cy += dy;
+            }
+        }
+
+        // enumerate pixels along line starting from (x1, y1) to (x2, y2); first is not returned, last is returned
+        public IEnumerable<(int x, int y)> EnumeratePixelsInLine(int x1, int y1, int x2, int y2)
+        {
+            int dx = x2 - x1;
+            int dy = y2 - y1;
+            int sx = dx > 0 ? 1 : -1;
+            int sy = dy > 0 ? 1 : -1;
+            dx = Math.Abs(dx);
+            dy = Math.Abs(dy);
+            if (dx >= dy)
+            {
+                int err = 2 * dy - dx;
+                do
+                {
+                    x1 += sx;
+                    yield return (x1, y1);
+                    if (err > 0)
+                    {
+                        y1 += sy;
+                        yield return (x1, y1);
+                        err -= 2 * dx;
+                    }
+                    err += 2 * dy;
+                }
+                while (x1 != x2);
+            }
+            else
+            {
+                int err = 2 * dx - dy;
+                do
+                {
+                    y1 += sy;
+                    yield return (x1, y1);
+                    if (err > 0)
+                    {
+                        x1 += sx;
+                        yield return (x1, y1);
+                        err -= 2 * dy;
+                    }
+                    err += 2 * dx;
+                }
+                while (y1 != y2);
             }
         }
     }

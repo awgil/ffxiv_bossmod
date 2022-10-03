@@ -15,7 +15,6 @@ namespace BossMod
         public const int AutoActionAIFightMove = 4;
         public const int AutoActionFirstCustom = 5;
 
-        public enum Positional { Any, Flank, Rear }
         public enum ActionSource { Automatic, Planned, Manual, Emergency }
 
         public struct NextAction

@@ -1,5 +1,4 @@
-﻿using BossMod.Pathfinding;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -26,6 +25,7 @@ namespace BossMod
         // positioning: two lists below define areas that player is allowed to be standing in, now or in near future
         // a resulting 'safe zone' is calculated as: arena-bounds INTERSECT union-of(restricted-zones) MINUS union-of(forbidden-zones)
         // AI will try to move in such a way to avoid standing in any forbidden zone after its activation or outside of some restricted zone after its activation, even at the cost of uptime
+        // TODO: remove restricted, they are weird...
         public List<(AOEShape shape, WPos origin, Angle rot, DateTime activation)> ForbiddenZones = new();
         public List<(AOEShape shape, WPos origin, Angle rot, DateTime activation)> RestrictedZones = new();
 
@@ -97,33 +97,5 @@ namespace BossMod
         public int NumPriorityTargetsInAOECircle(WPos origin, float radius) => NumPriorityTargetsInAOE(a => a.Position.InCircle(origin, radius + a.HitboxRadius));
         public int NumPriorityTargetsInAOECone(WPos origin, float radius, WDir direction, Angle halfAngle) => NumPriorityTargetsInAOE(a => a.Position.InCircleCone(origin, radius + a.HitboxRadius, direction, halfAngle));
         public int NumPriorityTargetsInAOERect(WPos origin, WDir direction, float lenFront, float halfWidth, float lenBack = 0) => NumPriorityTargetsInAOE(a => a.Position.InRect(origin, direction, lenFront + a.HitboxRadius, lenBack, halfWidth));
-
-        // build pathfinding map
-        public Map BuildPathfindingMap(DateTime currentTime, float speed = 6)
-        {
-            var map = Bounds.BuildMap();
-            var imminent = currentTime.AddSeconds(0.5);
-            foreach (var z in ForbiddenZones)
-            {
-                var g = z.activation > imminent ? speed * (float)(z.activation - imminent).TotalSeconds : 0;
-                map.BlockPixels(map.Rasterize(z.shape.Coverage(map, z.origin, z.rot)), g, Map.Coverage.Inside | Map.Coverage.Border);
-            }
-            if (RestrictedZones.Count > 0)
-            {
-                var min = RestrictedZones[0].activation;
-                if (min < imminent)
-                    min = imminent;
-                var union = RestrictedZones.TakeWhile(z => z.activation <= min).Select(z => z.shape.Coverage(map, z.origin, z.rot)).ToList();
-                Func<WPos, Map.Coverage> unionFunc = p =>
-                {
-                    Map.Coverage cv = Map.Coverage.None;
-                    foreach (var f in union)
-                        cv |= f(p);
-                    return cv.HasFlag(Map.Coverage.Inside) ? Map.Coverage.Inside : Map.Coverage.Outside;
-                };
-                map.BlockPixels(map.Rasterize(unionFunc), speed * (float)(min - imminent).TotalSeconds, Map.Coverage.Outside);
-            }
-            return map;
-        }
     }
 }

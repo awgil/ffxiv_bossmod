@@ -14,6 +14,7 @@ namespace BossMod.Pathfinding
         public float ScreenPixelSize = 10;
         public List<(WPos center, float ir, float or, Angle dir, Angle halfWidth)> Sectors = new();
         public List<(WPos origin, float lenF, float lenB, float halfWidth, Angle dir)> Rects = new();
+        public List<(WPos origin, WPos dest)> Lines = new();
 
         private ThetaStar _pathfind;
 
@@ -62,6 +63,10 @@ namespace BossMod.Pathfinding
                         c = (c << 8) | 0xff000000;
                         dl.AddRectFilled(corner, cornerEnd, c);
                     }
+                    else if (pix.Priority < 0)
+                    {
+                        dl.AddRectFilled(corner, cornerEnd, 0xff808080);
+                    }
 
                     ref var pfNode = ref _pathfind.NodeByIndex(nodeIndex);
                     if (pfNode.OpenHeapIndex != 0)
@@ -76,7 +81,7 @@ namespace BossMod.Pathfinding
                         {
                             ImGui.TextUnformatted($"Pixel at {x}x{y}: blocked, g={pix.MaxG:f3}");
                         }
-                        else if (pix.Priority > 0)
+                        else if (pix.Priority != 0)
                         {
                             ImGui.TextUnformatted($"Pixel at {x}x{y}: goal, prio={pix.Priority}");
                         }
@@ -88,7 +93,7 @@ namespace BossMod.Pathfinding
                         if (pfNode.OpenHeapIndex != 0)
                         {
                             ImGui.SetCursorPosX(cursorEnd.X + Map.Width * ScreenPixelSize + 10);
-                            ImGui.TextUnformatted($"PF: g={pfNode.GScore:f3}, h={pfNode.HScore:f3}, g+h={pfNode.GScore + pfNode.HScore:f3}, parent={pfNode.ParentX}x{pfNode.ParentY}, index={pfNode.OpenHeapIndex}");
+                            ImGui.TextUnformatted($"PF: g={pfNode.GScore:f3}, h={pfNode.HScore:f3}, g+h={pfNode.GScore + pfNode.HScore:f3}, parent={pfNode.ParentX}x{pfNode.ParentY}, index={pfNode.OpenHeapIndex}, leeway={pfNode.PathLeeway:f3}");
 
                             pfPathNode = nodeIndex;
                         }
@@ -150,6 +155,10 @@ namespace BossMod.Pathfinding
                 var back = r.origin - r.lenB * direction;
                 dl.AddQuad(tl + Map.WorldToGridFrac(front + side) * ScreenPixelSize, tl + Map.WorldToGridFrac(front - side) * ScreenPixelSize, tl + Map.WorldToGridFrac(back - side) * ScreenPixelSize, tl + Map.WorldToGridFrac(back + side) * ScreenPixelSize, 0xff0000ff);
             }
+            foreach (var l in Lines)
+            {
+                dl.AddLine(tl + Map.WorldToGridFrac(l.origin) * ScreenPixelSize, tl + Map.WorldToGridFrac(l.dest) * ScreenPixelSize, 0xff0000ff);
+            }
 
             ImGui.SetCursorPos(cursorEnd);
         }
@@ -200,10 +209,6 @@ namespace BossMod.Pathfinding
             }
         }
 
-        private ThetaStar BuildPathfind()
-        {
-            var s = Map.WorldToGrid(StartPos);
-            return new(Map, Map.Goals().Where(g => g.priority >= GoalPriority).Select(g => (g.x, g.y)), Math.Clamp(s.x, 0, Map.Width), Math.Clamp(s.y, 0, Map.Height));
-        }
+        private ThetaStar BuildPathfind() => new(Map, GoalPriority, StartPos, 1.0f / 6);
     }
 }
