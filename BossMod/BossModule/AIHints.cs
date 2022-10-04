@@ -12,6 +12,7 @@ namespace BossMod
             public Actor Actor;
             public int Priority; // <0 means damaging is actually forbidden, 0 is default
             public float TimeToKill;
+            public float AttackStrength; // target's predicted HP percent is decreased by this amount (0.05 by default)
         }
 
         public static ArenaBounds DefaultBounds = new ArenaBoundsSquare(new(), 30);
@@ -52,7 +53,18 @@ namespace BossMod
         {
             foreach (var actor in ws.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead))
             {
-                PotentialTargets.Add(new() { Actor = actor, Priority = actor.InCombat ? 0 : -1, TimeToKill = 10000 });
+                PotentialTargets.Add(new() { Actor = actor, Priority = actor.InCombat ? 0 : -1, TimeToKill = 10000, AttackStrength = 0.05f });
+            }
+        }
+
+        public delegate void UpdatePotentialTargetsDelegate(ref Enemy enemy);
+        public void UpdatePotentialTargets(UpdatePotentialTargetsDelegate fn)
+        {
+            for (int i = 0; i < PotentialTargets.Count; i++)
+            {
+                var e = PotentialTargets[i];
+                fn(ref e);
+                PotentialTargets[i] = e;
             }
         }
 

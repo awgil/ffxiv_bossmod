@@ -153,12 +153,16 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
             base.CalculateAIHints(slot, actor, hints);
             foreach (var heart in ActiveHeart)
                 hints.PotentialTargets.Add(new() { Actor = heart, TimeToKill = 10000 });
-            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
+            hints.UpdatePotentialTargets((ref AIHints.Enemy enemy) =>
             {
-                OID.GraniteGaol => 3,
-                OID.TitansHeart => 2,
-                OID.Boss => 1,
-                _ => 0
+                enemy.Priority = (OID)enemy.Actor.OID switch
+                {
+                    OID.GraniteGaol => 3,
+                    OID.TitansHeart => 2,
+                    OID.Boss => 1,
+                    _ => 0
+                };
+                enemy.AttackStrength = (OID)enemy.Actor.OID == OID.Boss ? 0.45f : 0;
             });
         }
     }

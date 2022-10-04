@@ -13,7 +13,7 @@ namespace BossMod
             public int PredictedHPCur;
             public int PredictedHPDeficit;
             public int NumAttackers;
-            public float PredictedHPRatio; // reduced by 0.05 per attacker
+            public float PredictedHPRatio; // reduced by sum of attacker strengths (0.05 by default), unless at full hp
             public bool HaveRemovableDebuffs;
         }
 
@@ -58,7 +58,8 @@ namespace BossMod
                 {
                     ref var state = ref PartyMemberStates[targetSlot];
                     ++state.NumAttackers;
-                    state.PredictedHPRatio -= 0.05f;
+                    if (state.PredictedHPRatio < 0.99f)
+                        state.PredictedHPRatio -= enemy.AttackStrength;
                 }
             }
         }
