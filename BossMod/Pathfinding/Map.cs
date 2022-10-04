@@ -206,6 +206,24 @@ namespace BossMod.Pathfinding
             };
         }
 
+        public Func<WPos, Coverage> CoverageUnion(IEnumerable<Func<WPos, Coverage>> zones) => p =>
+        {
+            Coverage cv = Coverage.None;
+            foreach (var zone in zones)
+            {
+                cv |= zone(p);
+                if (cv.HasFlag(Coverage.Inside))
+                    return Coverage.Inside;
+            }
+            return cv.HasFlag(Coverage.Border) ? Coverage.Border : Coverage.Outside;
+        };
+
+        public Func<WPos, Coverage> CoverageInvert(Func<WPos, Coverage> zone) => p =>
+        {
+            var cv = zone(p);
+            return cv.HasFlag(Coverage.Inside) ? Coverage.Outside : cv.HasFlag(Coverage.Border) ? Coverage.Border : Coverage.Inside;
+        };
+
         public IEnumerable<(int x, int y, Coverage cv)> Rasterize(Func<WPos, Coverage> r) => EnumeratePixels().Select(p => (p.x, p.y, r(p.center)));
         public IEnumerable<(int x, int y, Coverage cv)> RasterizeCircle(WPos origin, float radius) => Rasterize(CoverageCircle(origin, radius));
         public IEnumerable<(int x, int y, Coverage cv)> RasterizeDonut(WPos origin, float innerRadius, float outerRadius) => Rasterize(CoverageDonut(origin, innerRadius, outerRadius));

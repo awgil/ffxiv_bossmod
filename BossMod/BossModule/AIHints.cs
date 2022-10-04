@@ -22,12 +22,9 @@ namespace BossMod
         public List<Enemy> PotentialTargets = new();
         public int HighestPotentialTargetPriority = 0;
 
-        // positioning: two lists below define areas that player is allowed to be standing in, now or in near future
-        // a resulting 'safe zone' is calculated as: arena-bounds INTERSECT union-of(restricted-zones) MINUS union-of(forbidden-zones)
+        // positioning: list of areas that are either forbidden to stand in now or will be in near future
         // AI will try to move in such a way to avoid standing in any forbidden zone after its activation or outside of some restricted zone after its activation, even at the cost of uptime
-        // TODO: remove restricted, they are weird...
         public List<(AOEShape shape, WPos origin, Angle rot, DateTime activation)> ForbiddenZones = new();
-        public List<(AOEShape shape, WPos origin, Angle rot, DateTime activation)> RestrictedZones = new();
 
         // imminent forced movements (knockbacks, attracts, etc.)
         public List<(WDir move, DateTime activation)> ForcedMovements = new();
@@ -49,7 +46,6 @@ namespace BossMod
             Bounds = DefaultBounds;
             PotentialTargets.Clear();
             ForbiddenZones.Clear();
-            RestrictedZones.Clear();
             ForcedMovements.Clear();
             ForbiddenDirections.Clear();
             PredictedDamage.Clear();
@@ -80,7 +76,6 @@ namespace BossMod
             PotentialTargets.SortByReverse(x => x.Priority);
             HighestPotentialTargetPriority = Math.Max(0, PotentialTargets.FirstOrDefault().Priority);
             ForbiddenZones.SortBy(e => e.activation);
-            RestrictedZones.SortBy(e => e.activation);
             ForcedMovements.SortBy(e => e.activation);
             ForbiddenDirections.SortBy(e => e.activation);
             PredictedDamage.SortBy(e => e.activation);

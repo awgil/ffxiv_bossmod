@@ -43,13 +43,13 @@ namespace BossMod.AI
             // update forbidden zone
             var clipper = new Clip2D();
             SafeZone = clipper.Simplify(BuildInitialSafeZone(hints));
-            if (hints.RestrictedZones.Count > 0)
-            {
-                ClipperLib.PolyTree union = new();
-                foreach (var zone in hints.RestrictedZones)
-                    union = clipper.Union(union, zone.shape.Contour(zone.origin, zone.rot, -1, 0.5f));
-                SafeZone = clipper.Intersect(union, SafeZone);
-            }
+            //if (hints.RestrictedZones.Count > 0)
+            //{
+            //    ClipperLib.PolyTree union = new();
+            //    foreach (var zone in hints.RestrictedZones)
+            //        union = clipper.Union(union, zone.shape.Contour(zone.origin, zone.rot, -1, 0.5f));
+            //    SafeZone = clipper.Intersect(union, SafeZone);
+            //}
             foreach (var zone in hints.ForbiddenZones)
             {
                 SafeZone = clipper.Difference(SafeZone, zone.shape.Contour(zone.origin, zone.rot, 1, 0.5f));

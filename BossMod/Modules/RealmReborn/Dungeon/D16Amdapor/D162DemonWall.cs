@@ -31,7 +31,8 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D162DemonWall
 
     class Repel : Components.KnockbackFromCaster
     {
-        private AOEShapeRect _hint = new(50, 1);
+        private AOEShapeRect _hintNoFront = new(2, 1);
+        private AOEShapeRect _hintNoSide = new(50, 10);
 
         public Repel() : base(ActionID.MakeSpell(AID.Repel), 20, ignoreImmunes: true) { }
 
@@ -39,7 +40,12 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D162DemonWall
         {
             // custom hint: stay in narrow zone in center
             if (Casters.Count > 0)
-                hints.RestrictedZones.Add((_hint, module.PrimaryActor.Position + new WDir(0, 2), 0.Degrees(), new()));
+            {
+                var sideOffset = new WDir(0, _hintNoFront.HalfWidth + _hintNoSide.HalfWidth);
+                hints.ForbiddenZones.Add((_hintNoFront, module.PrimaryActor.Position, 0.Degrees(), new()));
+                hints.ForbiddenZones.Add((_hintNoSide, module.PrimaryActor.Position + sideOffset, 0.Degrees(), new()));
+                hints.ForbiddenZones.Add((_hintNoSide, module.PrimaryActor.Position - sideOffset, 0.Degrees(), new()));
+            }
         }
     }
 

@@ -66,13 +66,13 @@ namespace BossMod.RealmReborn.Trial.T06GarudaH
 
     class MistralShriek : Components.CastLineOfSightAOE
     {
-        public MistralShriek() : base(ActionID.MakeSpell(AID.MistralShriek), 24.7f) { }
+        public MistralShriek() : base(ActionID.MakeSpell(AID.MistralShriek), 24.7f, true) { }
         public override IEnumerable<Actor> BlockerActors(BossModule module) => ((T06GarudaH)module).ActiveMonoliths;
     }
 
     class MistralSong : Components.CastLineOfSightAOE
     {
-        public MistralSong() : base(ActionID.MakeSpell(AID.MistralSong), 31.7f) { }
+        public MistralSong() : base(ActionID.MakeSpell(AID.MistralSong), 31.7f, true) { }
         public override IEnumerable<Actor> BlockerActors(BossModule module) => ((T06GarudaH)module).ActiveMonoliths;
     }
 

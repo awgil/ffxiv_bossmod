@@ -48,7 +48,7 @@
     // try to always stay in active crystal closest to boss
     class Positioning : BossComponent
     {
-        private static AOEShapeCircle _shape = new(8); // TODO: verify range
+        private static AOEShapeDonut _shape = new(8, 100); // TODO: verify range
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
@@ -56,7 +56,7 @@
             {
                 var closestCrystal = module.Enemies(OID.Crystal).Closest(module.PrimaryActor.Position);
                 if (closestCrystal != null)
-                    hints.RestrictedZones.Add((_shape, closestCrystal.Position, new(), module.WorldState.CurrentTime));
+                    hints.ForbiddenZones.Add((_shape, closestCrystal.Position, new(), new()));
             }
         }
     }

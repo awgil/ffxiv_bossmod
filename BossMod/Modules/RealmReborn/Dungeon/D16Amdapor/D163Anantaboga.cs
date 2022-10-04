@@ -50,7 +50,7 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D163Anantaboga
 
     class ImminentCatastrophe : Components.CastLineOfSightAOE
     {
-        public ImminentCatastrophe() : base(ActionID.MakeSpell(AID.ImminentCatastrophe)) { }
+        public ImminentCatastrophe() : base(ActionID.MakeSpell(AID.ImminentCatastrophe), 100, true) { }
         public override IEnumerable<Actor> BlockerActors(BossModule module) => ((D163Anantaboga)module).ActivePillars();
     }
 

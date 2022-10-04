@@ -52,7 +52,7 @@ namespace BossMod.RealmReborn.Trial.T03GarudaN
 
     class MistralSongP1 : Components.CastLineOfSightAOE
     {
-        public MistralSongP1() : base(ActionID.MakeSpell(AID.MistralSongP1), 31.7f) { }
+        public MistralSongP1() : base(ActionID.MakeSpell(AID.MistralSongP1), 31.7f, true) { }
         public override IEnumerable<Actor> BlockerActors(BossModule module) => module.Enemies(OID.Monolith);
     }
 

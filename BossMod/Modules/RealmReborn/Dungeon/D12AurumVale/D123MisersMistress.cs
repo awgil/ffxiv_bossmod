@@ -29,12 +29,12 @@
     // arena has multiple weirdly-shaped puddles, so just prefer standing in large safe zone
     class AIPosition : BossComponent
     {
-        private AOEShapeRect _shape = new(5, 5, 5);
+        private AOEShapeDonut _shape = new(5, 100);
         private WPos[] _centers = { new(-395, -130), new(-402, -114) };
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
-            hints.RestrictedZones.Add((_shape, _centers.MinBy(p => (p - module.PrimaryActor.Position).LengthSq()), new(), module.WorldState.CurrentTime));
+            hints.ForbiddenZones.Add((_shape, _centers.MinBy(p => (p - module.PrimaryActor.Position).LengthSq()), new(), new()));
         }
     }
 
