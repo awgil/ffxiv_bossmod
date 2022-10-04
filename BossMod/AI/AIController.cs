@@ -65,13 +65,14 @@ namespace BossMod.AI
         public bool IsMounted => Service.Condition[ConditionFlag.Mounted];
         public bool IsVerticalAllowed => Service.Condition[ConditionFlag.InFlight];
         public WDir CameraFacing => ((Camera.Instance?.CameraAzimuth ?? 0).Radians() + 180.Degrees()).ToDirection();
+        public Angle CameraAltitude => (Camera.Instance?.CameraAltitude ?? 0).Radians();
 
         public unsafe AIController(InputOverride input, Autorotation autorot)
         {
             _axisForward = new(input, VirtualKey.W, VirtualKey.S);
             _axisStrafe = new(input, VirtualKey.D, VirtualKey.A);
             _axisRotate = new(input, VirtualKey.LEFT, VirtualKey.RIGHT);
-            _axisVertical = new(input, VirtualKey.OEM_4, VirtualKey.OEM_6); // []
+            _axisVertical = new(input, VirtualKey.UP, VirtualKey.DOWN);
             _input = input;
             _autorot = autorot;
         }
@@ -163,10 +164,12 @@ namespace BossMod.AI
                 _axisStrafe.CurDirection = 0;
             }
 
-            if (NaviTargetVertical != null && IsVerticalAllowed)
+            if (NaviTargetVertical != null && IsVerticalAllowed && NaviTargetPos != null)
             {
-                var delta = NaviTargetVertical.Value - player.PosRot.Y;
-                _axisVertical.CurDirection = delta > 0.2f ? +1 : delta < 0.2f ? -1 : 0;
+                var deltaY = NaviTargetVertical.Value - player.PosRot.Y;
+                var deltaXZ = (NaviTargetPos.Value - player.Position).Length();
+                var deltaAltitude = Angle.FromDirection(new(-deltaY, deltaXZ)) - CameraAltitude;
+                _axisVertical.CurDirection = deltaAltitude.Rad > 0.088f ? -1 : deltaAltitude.Rad < -0.088f ? +1 : 0;
             }
             else
             {

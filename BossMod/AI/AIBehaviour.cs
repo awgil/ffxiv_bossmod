@@ -43,7 +43,7 @@ namespace BossMod.AI
 
             _afkMode = !master.InCombat && (_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
 
-            _followMaster = master != player && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (_masterPrevPos - _masterMovementStart).LengthSq() > 100;
+            _followMaster = master != player && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (!master.InCombat || (_masterPrevPos - _masterMovementStart).LengthSq() > 100);
             if (_followMaster)
                 _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, master.Position, master.InCombat ? 5 : 1, new(), Positional.Any);
             else if (target.Target != null)
@@ -172,7 +172,7 @@ namespace BossMod.AI
         public void DrawDebug()
         {
             ImGui.Checkbox("Passively follow", ref _passive);
-            ImGui.TextUnformatted($"Max-cast={_maxCastTime}, afk={_afkMode}, master standing for {(_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds:f1}");
+            ImGui.TextUnformatted($"Max-cast={_maxCastTime}, afk={_afkMode}, follow={_followMaster}, master standing for {(_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds:f1}");
         }
     }
 }
