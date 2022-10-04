@@ -76,9 +76,9 @@ namespace BossMod
 
         public Actor Player { get; init; }
         public Dictionary<ActionID, SupportedAction> SupportedActions { get; init; } = new();
+        public int AutoAction { get; private set; }
+        public float MaxCastTime { get; private set; }
         protected Autorotation Autorot;
-        protected int AutoAction { get; private set; }
-        protected float MaxCastTime { get; private set; }
         private DateTime _autoActionExpire;
         private QuestLockCheck _lock;
         private ManualActionOverride _mq;

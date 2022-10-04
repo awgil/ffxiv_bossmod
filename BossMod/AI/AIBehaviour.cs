@@ -56,8 +56,11 @@ namespace BossMod.AI
             _maxCastTime = moveWithMaster || _ctrl.ForceFacing ? 0 : _naviDecision.LeewaySeconds;
 
             // note: that there is a 1-frame delay if target and/or strategy changes - we don't really care?..
-            int actionStrategy = target.Target != null ? CommonActions.AutoActionAIFight : !_afkMode ? CommonActions.AutoActionAIIdle : CommonActions.AutoActionNone;
-            _autorot.ClassActions?.UpdateAutoAction(actionStrategy, _maxCastTime);
+            if (_autorot.ClassActions != null && _autorot.ClassActions.AutoAction < CommonActions.AutoActionFirstCustom && !_passive)
+            {
+                int actionStrategy = target.Target != null ? CommonActions.AutoActionAIFight : !_afkMode ? CommonActions.AutoActionAIIdle : CommonActions.AutoActionNone;
+                _autorot.ClassActions.UpdateAutoAction(actionStrategy, _maxCastTime);
+            }
 
             UpdateMovement(player, master, target);
         }
@@ -65,7 +68,7 @@ namespace BossMod.AI
         // returns null if we're to be idle, otherwise target to attack
         private CommonActions.Targeting SelectPrimaryTarget(Actor player, Actor master)
         {
-            if (!_autorot.Hints.PriorityTargets.Any() || !master.InCombat || _passive || _ctrl.InCutscene || _ctrl.IsMounted || _autorot.ClassActions == null)
+            if (!_autorot.Hints.PriorityTargets.Any() || !master.InCombat || _ctrl.InCutscene || _ctrl.IsMounted || _autorot.ClassActions == null)
                 return new(); // there are no valid targets to attack, or we're not fighting - remain idle
 
             // we prefer not to switch targets unnecessarily, so start with current target - it could've been selected manually or by AI on previous frames
