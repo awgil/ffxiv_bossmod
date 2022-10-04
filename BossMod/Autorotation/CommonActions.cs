@@ -9,11 +9,8 @@ namespace BossMod
     {
         public const int AutoActionNone = 0;
         public const int AutoActionAIIdle = 1;
-        public const int AutoActionAIIdleMove = 2;
-        public const int AutoActionFirstFight = 3;
-        public const int AutoActionAIFight = 3;
-        public const int AutoActionAIFightMove = 4;
-        public const int AutoActionFirstCustom = 5;
+        public const int AutoActionAIFight = 2;
+        public const int AutoActionFirstCustom = 3;
 
         public enum ActionSource { Automatic, Planned, Manual, Emergency }
 
@@ -81,6 +78,7 @@ namespace BossMod
         public Dictionary<ActionID, SupportedAction> SupportedActions { get; init; } = new();
         protected Autorotation Autorot;
         protected int AutoAction { get; private set; }
+        protected float MaxCastTime { get; private set; }
         private DateTime _autoActionExpire;
         private QuestLockCheck _lock;
         private ManualActionOverride _mq;
@@ -173,11 +171,12 @@ namespace BossMod
             };
         }
 
-        public void UpdateAutoAction(int autoAction)
+        public void UpdateAutoAction(int autoAction, float maxCastTime)
         {
             if (AutoAction != autoAction)
                 Log($"Auto action set to {autoAction}");
             AutoAction = autoAction;
+            MaxCastTime = maxCastTime;
             _autoActionExpire = Autorot.WorldState.CurrentTime.AddSeconds(1.0f);
         }
 
@@ -201,7 +200,7 @@ namespace BossMod
 
             if (supportedAction.PlaceholderForAuto != AutoActionNone)
             {
-                UpdateAutoAction(supportedAction.PlaceholderForAuto);
+                UpdateAutoAction(supportedAction.PlaceholderForAuto, float.MaxValue);
                 return true;
             }
 
@@ -345,6 +344,7 @@ namespace BossMod
         protected void FillCommonStrategy(CommonRotation.Strategy strategy, ActionID potion)
         {
             strategy.Prepull = !Player.InCombat;
+            strategy.ForceMovementIn = MaxCastTime;
             strategy.FightEndIn = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextDowntime(Autorot.Bossmods.ActiveModule?.StateMachine) ?? 0;
             strategy.RaidBuffsIn = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextVulnerable(Autorot.Bossmods.ActiveModule?.StateMachine) ?? 10000;
             if (Autorot.Bossmods.ActiveModule?.PlanConfig != null) // assumption: if there is no planning support for encounter (meaning it's something trivial, like outdoor boss), don't expect any cooldowns

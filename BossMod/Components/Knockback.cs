@@ -74,9 +74,10 @@ namespace BossMod.Components
         {
             if (IgnoreImmunes || !Immune[slot])
             {
-                foreach (var c in ActiveCasters)
+                // this is really basic - implementations should probably override
+                if (Distance < module.Bounds.HalfSize && ActiveCasters.Any())
                 {
-                    hints.ForcedMovements.Add((Distance * (actor.Position - c.Position).Normalized(), c.CastInfo!.FinishAt));
+                    hints.ForbiddenZones.Add((new AOEShapeDonut(Distance, 100), module.Bounds.Center, new(), ActiveCasters.First().CastInfo!.FinishAt));
                 }
             }
         }

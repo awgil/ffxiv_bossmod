@@ -26,9 +26,6 @@ namespace BossMod
         // AI will try to move in such a way to avoid standing in any forbidden zone after its activation or outside of some restricted zone after its activation, even at the cost of uptime
         public List<(AOEShape shape, WPos origin, Angle rot, DateTime activation)> ForbiddenZones = new();
 
-        // imminent forced movements (knockbacks, attracts, etc.)
-        public List<(WDir move, DateTime activation)> ForcedMovements = new();
-
         // positioning: position hint - if set, player will move closer to this position, assuming it is safe and in target's range, without losing uptime
         //public WPos? RecommendedPosition = null;
 
@@ -46,7 +43,6 @@ namespace BossMod
             Bounds = DefaultBounds;
             PotentialTargets.Clear();
             ForbiddenZones.Clear();
-            ForcedMovements.Clear();
             ForbiddenDirections.Clear();
             PredictedDamage.Clear();
         }
@@ -76,7 +72,6 @@ namespace BossMod
             PotentialTargets.SortByReverse(x => x.Priority);
             HighestPotentialTargetPriority = Math.Max(0, PotentialTargets.FirstOrDefault().Priority);
             ForbiddenZones.SortBy(e => e.activation);
-            ForcedMovements.SortBy(e => e.activation);
             ForbiddenDirections.SortBy(e => e.activation);
             PredictedDamage.SortBy(e => e.activation);
         }

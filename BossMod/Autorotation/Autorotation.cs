@@ -59,6 +59,7 @@ namespace BossMod
         public Actor? SecondaryTarget; // this is usually a mouseover, but AI can override; typically used for heal and utility abilities
         public AIHints Hints = new();
         public bool Moving => _inputOverride.IsMoveRequested(); // TODO: reconsider
+        public bool AboutToStartCast { get; private set; }
         public float EffAnimLock => ActionManagerEx.Instance!.EffectiveAnimationLock;
         public float AnimLockDelay => ActionManagerEx.Instance!.EffectiveAnimationLockDelay;
 
@@ -185,6 +186,7 @@ namespace BossMod
         // returns whether input should be blocked
         private bool ActionManagerUpdateImpl()
         {
+            AboutToStartCast = false;
             if (_classActions == null)
                 return false; // disabled
 
@@ -208,7 +210,8 @@ namespace BossMod
             var actionAdj = next.Action == CommonDefinitions.IDSprint ? new(ActionType.Spell, 3) : next.Action.Type == ActionType.Spell ? new(ActionType.Spell, am.GetAdjustedActionID(next.Action.ID)) : next.Action;
 
             // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
-            bool lockMovementForNext = _config.PreventMovingWhileCasting && next.Definition.CastTime > 0 && am.GCD() < 0.1f;
+            AboutToStartCast = next.Definition.CastTime > 0 && am.GCD() < 0.1f;
+            bool lockMovementForNext = _config.PreventMovingWhileCasting && AboutToStartCast;
             if (lockMovementForNext && _inputOverride.IsMoving() || Cooldowns[next.Definition.CooldownGroup] > next.Definition.CooldownAtFirstCharge)
                 return lockMovementForNext; // action is still on cooldown
 

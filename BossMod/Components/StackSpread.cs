@@ -66,7 +66,7 @@ namespace BossMod.Components
                 else
                 {
                     // TODO: handle multi stacks better...
-                    var closestStack = module.Raid.WithSlot().IncludedInMask(StackMask).Closest(actor.Position);
+                    var closestStack = module.Raid.WithSlot().IncludedInMask(StackMask).Select(ia => ia.Item2).Closest(actor.Position);
                     if (closestStack != null)
                         hints.ForbiddenZones.Add((new AOEShapeDonut(StackRadius, 100), closestStack.Position, new(), ActivateAt));
                 }

@@ -115,8 +115,9 @@ namespace BossMod.AI
                 _axisForward.CurDirection = am.CastTimeRemaining > 0 ? 1 : 0; // this is a hack to cancel any cast...
             }
 
+            bool moveRequested = _input.IsMoveRequested();
             var cameraFacing = CameraFacing;
-            if (NaviTargetRot != null && NaviTargetRot.Value.Dot(cameraFacing) < 0.996f) // ~5 degrees
+            if (!moveRequested && NaviTargetRot != null && NaviTargetRot.Value.Dot(cameraFacing) < 0.996f) // ~5 degrees
             {
                 _axisRotate.CurDirection = cameraFacing.OrthoL().Dot(NaviTargetRot.Value) > 0 ? 1 : -1;
             }
@@ -125,7 +126,7 @@ namespace BossMod.AI
                 _axisRotate.CurDirection = 0;
             }
 
-            bool forbidMovement = !AllowInterruptingCastByMovement && player.CastInfo != null && !player.CastInfo.EventHappened || _input.IsMoveRequested();
+            bool forbidMovement = moveRequested || !AllowInterruptingCastByMovement && (player.CastInfo != null && !player.CastInfo.EventHappened || _autorot.AboutToStartCast);
             if (NaviTargetPos != null && !forbidMovement && (NaviTargetPos.Value - player.Position).LengthSq() > 0.04f)
             {
                 var delta = NaviTargetPos.Value - player.Position;

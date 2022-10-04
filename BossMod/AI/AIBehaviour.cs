@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using BossMod.Pathfinding;
+using ImGuiNET;
 using System;
 using System.Linq;
 
@@ -9,11 +10,11 @@ namespace BossMod.AI
     {
         private Autorotation _autorot;
         private AIController _ctrl;
-        private AvoidAOE _avoidAOE;
+        private NavigationDecision _naviDecision;
         private bool _passive;
-        private bool _followMaster;
-        private bool _instantCastsOnly;
         private bool _afkMode;
+        private bool _followMaster; // if true, our navigation target is master rather than primary target - this happens e.g. in outdoor or in dungeons during gathering trash
+        private float _maxCastTime;
         private WPos _masterPrevPos;
         private WPos _masterMovementStart;
         private DateTime _masterLastMoved;
@@ -22,7 +23,6 @@ namespace BossMod.AI
         {
             _autorot = autorot;
             _ctrl = ctrl;
-            _avoidAOE = new();
         }
 
         public void Dispose()
@@ -31,21 +31,41 @@ namespace BossMod.AI
 
         public void Execute(Actor player, Actor master)
         {
-            var targeting = UpdateTargeting(player, master);
-            if (targeting.Target != null)
-            {
-                _autorot.PrimaryTarget = targeting.Target;
-                _ctrl.SetPrimaryTarget(targeting.Target);
-            }
+            // keep master in focus
+            FocusMaster(master);
 
-            UpdateState(player, master);
-            UpdateControl(player, master, targeting);
+            var target = SelectPrimaryTarget(player, master);
+            _autorot.PrimaryTarget = target.Target;
+            if (target.Target != null)
+                _ctrl.SetPrimaryTarget(target.Target);
+
+            AdjustTargetPositional(player, ref target);
+
+            _afkMode = !master.InCombat && (_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
+
+            _followMaster = master != player && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (_masterPrevPos - _masterMovementStart).LengthSq() > 100;
+            if (_followMaster)
+                _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, master.Position, master.InCombat ? 5 : 1, new(), Positional.Any);
+            else if (target.Target != null)
+                _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, target.Target.Position, target.PreferredRange + player.HitboxRadius + target.Target.HitboxRadius, target.Target.Rotation, target.PreferredPosition);
+            else
+                _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, null, 0, new(), Positional.Any);
+
+            bool masterIsMoving = TrackMasterMovement(master);
+            bool moveWithMaster = masterIsMoving && (master == player || _followMaster);
+            _maxCastTime = moveWithMaster || _ctrl.ForceFacing ? 0 : _naviDecision.LeewaySeconds;
+
+            // note: that there is a 1-frame delay if target and/or strategy changes - we don't really care?..
+            int actionStrategy = target.Target != null ? CommonActions.AutoActionAIFight : !_afkMode ? CommonActions.AutoActionAIIdle : CommonActions.AutoActionNone;
+            _autorot.ClassActions?.UpdateAutoAction(actionStrategy, _maxCastTime);
+
+            UpdateMovement(player, master, target);
         }
 
         // returns null if we're to be idle, otherwise target to attack
-        private CommonActions.Targeting UpdateTargeting(Actor player, Actor master)
+        private CommonActions.Targeting SelectPrimaryTarget(Actor player, Actor master)
         {
-            if (!_autorot.Hints.PriorityTargets.Any() || !master.InCombat)
+            if (!_autorot.Hints.PriorityTargets.Any() || !master.InCombat || _passive || _ctrl.InCutscene || _ctrl.IsMounted || _autorot.ClassActions == null)
                 return new(); // there are no valid targets to attack, or we're not fighting - remain idle
 
             // we prefer not to switch targets unnecessarily, so start with current target - it could've been selected manually or by AI on previous frames
@@ -63,12 +83,23 @@ namespace BossMod.AI
             // now give class module a chance to improve targeting
             // typically it would switch targets for multidotting, or to hit more targets with AOE
             // in case of ties, it should prefer to return original target - this would prevent useless switches
-            return _autorot.ClassActions?.SelectBetterTarget(target!) ?? new(target!);
+            return _autorot.ClassActions.SelectBetterTarget(target!);
         }
 
-        private void UpdateState(Actor player, Actor master)
+        private void AdjustTargetPositional(Actor player, ref CommonActions.Targeting targeting)
         {
-            // keep master in focus
+            if (targeting.Target == null || targeting.PreferredPosition == Positional.Any)
+                return; // nothing to adjust
+
+            // if target-of-target is player, don't try flanking, it's probably impossible... - unless target is currently casting (TODO: reconsider?)
+            if (targeting.Target.TargetID == player.InstanceID && targeting.Target.CastInfo == null)
+                targeting.PreferredPosition = Positional.Any;
+
+            // TODO: check whether target ignores positionals...
+        }
+
+        private void FocusMaster(Actor master)
+        {
             bool masterChanged = Service.TargetManager.FocusTarget?.ObjectId != master.InstanceID;
             if (masterChanged)
             {
@@ -76,7 +107,10 @@ namespace BossMod.AI
                 _masterPrevPos = _masterMovementStart = master.Position;
                 _masterLastMoved = _autorot.WorldState.CurrentTime.AddSeconds(-1);
             }
+        }
 
+        private bool TrackMasterMovement(Actor master)
+        {
             // keep track of master movement
             // idea is that if master is moving forward (e.g. running in outdoor or pulling trashpacks in dungeon), we want to closely follow and not stop to cast
             bool masterIsMoving = true;
@@ -93,69 +127,11 @@ namespace BossMod.AI
             }
             // else: don't consider master to have stopped moving unless he's standing still for some small time
 
-            _followMaster = master != player && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (_masterPrevPos - _masterMovementStart).LengthSq() > 100;
-            bool moveWithMaster = masterIsMoving && (master == player || _followMaster);
-            _instantCastsOnly = moveWithMaster || _ctrl.ForceFacing || _ctrl.NaviTargetPos != null && (_ctrl.NaviTargetPos.Value - player.Position).LengthSq() > 1;
-            _afkMode = !masterIsMoving && !master.InCombat && (_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
+            return masterIsMoving;
         }
 
-        private void UpdateControl(Actor player, Actor master, CommonActions.Targeting target)
+        private void UpdateMovement(Actor player, Actor master, CommonActions.Targeting target)
         {
-            int strategy = CommonActions.AutoActionNone;
-            if (_autorot.ClassActions != null && !_passive && !_ctrl.InCutscene && !_ctrl.IsMounted)
-            {
-                if (target.Target != null)
-                {
-                    // note: that there is a 1-frame delay if target and/or strategy changes - we don't really care?..
-                    // note: if target-of-target is player, don't try flanking, it's probably impossible... - unless target is currently casting
-                    strategy = _instantCastsOnly ? CommonActions.AutoActionAIFightMove : CommonActions.AutoActionAIFight;
-                    var positional = target.PreferredPosition;
-                    if (target.Target.TargetID == player.InstanceID && target.Target.CastInfo == null)
-                        positional = Positional.Any;
-                    _avoidAOE.SetDesired(target.Target.Position, target.Target.Rotation, target.PreferredRange + player.HitboxRadius + target.Target.HitboxRadius, positional);
-                }
-                else
-                {
-                    if (!_afkMode)
-                        strategy = _instantCastsOnly ? CommonActions.AutoActionAIIdleMove : CommonActions.AutoActionAIIdle;
-                    _avoidAOE.ClearDesired();
-                }
-            }
-            else
-            {
-                _avoidAOE.ClearDesired();
-            }
-            _autorot.ClassActions?.UpdateAutoAction(strategy);
-
-            // update movement: avoid aoes, go to module-defined preferred position, follow master...
-            var destPos = _avoidAOE.Update(player, _autorot.Hints);
-            float? destVert = null;
-            if (destPos == null && (target.Target == null || _followMaster) && master != player)
-            {
-                // if there is no planned action and no aoe avoidance, just follow master...
-                var targetPos = master.Position;
-                var playerPos = player.Position;
-                var toTarget = targetPos - playerPos;
-                if (toTarget.LengthSq() > 1)
-                {
-                    destPos = targetPos;
-                }
-                destVert = master.PosRot.Y;
-
-                // sprint
-                if (toTarget.LengthSq() > 400 && !player.InCombat)
-                {
-                    _autorot.ClassActions?.HandleUserActionRequest(CommonDefinitions.IDSprint, player);
-                }
-
-                //var cameraFacing = _ctrl.CameraFacing;
-                //var dot = cameraFacing.Dot(_ctrl.TargetRot.Value);
-                //if (dot < -0.707107f)
-                //    _ctrl.TargetRot = -_ctrl.TargetRot.Value;
-                //else if (dot < 0.707107f)
-                //    _ctrl.TargetRot = cameraFacing.OrthoL().Dot(_ctrl.TargetRot.Value) > 0 ? _ctrl.TargetRot.Value.OrthoR() : _ctrl.TargetRot.Value.OrthoL();
-            }
-
             var destRot = AvoidGaze.Update(player, target.Target?.Position, _autorot.Hints, _autorot.WorldState.CurrentTime.AddSeconds(0.5));
             if (destRot != null)
             {
@@ -167,18 +143,33 @@ namespace BossMod.AI
             }
             else
             {
-                var toDest = destPos != null ? destPos.Value - player.Position : new();
-                _ctrl.NaviTargetPos = destPos;
-                _ctrl.NaviTargetRot = toDest.LengthSq() >= 0.04f ? toDest.Normalized() : null;
-                _ctrl.NaviTargetVertical = destVert;
+                var toDest = _naviDecision.Destination != null ? _naviDecision.Destination.Value - player.Position : new();
+                var distSq = toDest.LengthSq();
+                _ctrl.NaviTargetPos = _naviDecision.Destination;
+                _ctrl.NaviTargetRot = distSq >= 0.04f ? toDest.Normalized() : null;
+                _ctrl.NaviTargetVertical = master != player ? master.PosRot.Y : null;
+                _ctrl.AllowInterruptingCastByMovement = player.CastInfo != null && _maxCastTime <= (player.CastInfo.FinishAt - _autorot.WorldState.CurrentTime).TotalSeconds - 0.5;
                 _ctrl.ForceFacing = false;
+
+                //var cameraFacing = _ctrl.CameraFacing;
+                //var dot = cameraFacing.Dot(_ctrl.TargetRot.Value);
+                //if (dot < -0.707107f)
+                //    _ctrl.TargetRot = -_ctrl.TargetRot.Value;
+                //else if (dot < 0.707107f)
+                //    _ctrl.TargetRot = cameraFacing.OrthoL().Dot(_ctrl.TargetRot.Value) > 0 ? _ctrl.TargetRot.Value.OrthoR() : _ctrl.TargetRot.Value.OrthoL();
+
+                // sprint, if not in combat and far enough away from destination
+                if (!player.InCombat && player != master && distSq > 400)
+                {
+                    _autorot.ClassActions?.HandleUserActionRequest(CommonDefinitions.IDSprint, player);
+                }
             }
         }
 
         public void DrawDebug()
         {
             ImGui.Checkbox("Passively follow", ref _passive);
-            ImGui.TextUnformatted($"Only-instant={_instantCastsOnly}, afk={_afkMode}, master standing for {(_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds:f1}");
+            ImGui.TextUnformatted($"Max-cast={_maxCastTime}, afk={_afkMode}, master standing for {(_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds:f1}");
         }
     }
 }

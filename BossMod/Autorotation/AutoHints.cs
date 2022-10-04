@@ -67,7 +67,7 @@ namespace BossMod
             };
             if (shape == null)
             {
-                Service.Log($"[AutoAOEs] Unknown cast type {data.CastType} for {actor.CastInfo.Action}");
+                Service.Log($"[AutoHints] Unknown cast type {data.CastType} for {actor.CastInfo.Action}");
                 return;
             }
             var target = _ws.Actors.Find(actor.CastInfo.TargetID);
@@ -84,14 +84,14 @@ namespace BossMod
             var omen = data.Omen.Value;
             if (omen == null)
             {
-                Service.Log($"[AvoidAOE] No omen data for {data.RowId} '{data.Name}'...");
+                Service.Log($"[AutoHints] No omen data for {data.RowId} '{data.Name}'...");
                 return 180.Degrees();
             }
             var path = omen.Path.ToString();
             var pos = path.IndexOf("fan");
             if (pos < 0 || pos + 6 > path.Length)
             {
-                Service.Log($"[AvoidAOE] Can't determine angle from omen ({path}/{omen.PathAlly}) for {data.RowId} '{data.Name}'...");
+                Service.Log($"[AutoHints] Can't determine angle from omen ({path}/{omen.PathAlly}) for {data.RowId} '{data.Name}'...");
                 return 180.Degrees();
             }
             return int.Parse(path.Substring(pos + 3, 3)).Degrees();

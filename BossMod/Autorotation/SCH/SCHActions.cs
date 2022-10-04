@@ -60,7 +60,6 @@ namespace BossMod.SCH
             _strategy.NumWhisperingDawnTargets = _state.Fairy != null && _state.Unlocked(AID.WhisperingDawn) ? CountAOEHealTargets(15, _state.Fairy.Position) : 0;
             _strategy.NumSuccorTargets = _state.Unlocked(AID.Succor) ? CountAOEPreshieldTargets(15, Player.Position, (uint)SID.Galvanize, _state.GCD + 2, 10) : 0;
             _strategy.NumArtOfWarTargets = _state.Unlocked(AID.ArtOfWar1) ? Autorot.Hints.NumPriorityTargetsInAOECircle(Player.Position, 5) : 0;
-            _strategy.Moving = autoAction is AutoActionAIIdleMove or AutoActionAIFightMove;
             _strategy.BestSTHeal = FindBestSTHealTarget();
         }
 
@@ -77,17 +76,15 @@ namespace BossMod.SCH
             // AI: aoe heals > st heals > esuna > damage
             // i don't really think 'rotation/actions' split is particularly good fit for healers AI...
             // TODO: raise support...
-            bool allowCasts = !_strategy.Moving || _state.SwiftcastLeft > _state.GCD;
-
-            if (allowCasts && _strategy.NumSuccorTargets > 2 && _state.CurMP >= 1000)
+            if (Rotation.CanCast(_state, _strategy, 2) && _strategy.NumSuccorTargets > 2 && _state.CurMP >= 1000)
                 return MakeResult(AID.Succor, Player);
 
             // now check ST heal
-            if (allowCasts && _strategy.BestSTHeal.Target != null && _state.AetherflowStacks == 0)
+            if (Rotation.CanCast(_state, _strategy, 2) && _strategy.BestSTHeal.Target != null && _state.AetherflowStacks == 0)
                 return MakeResult(Rotation.GetNextBestSTHealGCD(_state, _strategy), _strategy.BestSTHeal.Target);
 
             // now check esuna
-            if (allowCasts)
+            if (Rotation.CanCast(_state, _strategy, 1))
             {
                 var esunaTarget = FindEsunaTarget();
                 if (esunaTarget != null)
@@ -108,7 +105,7 @@ namespace BossMod.SCH
 
         protected override NextAction CalculateAutomaticOGCD(float deadline)
         {
-            if (AutoAction < AutoActionFirstFight)
+            if (AutoAction < AutoActionAIFight)
                 return new();
 
             if (deadline < float.MaxValue && _allowDelayingNextGCD)
@@ -148,7 +145,7 @@ namespace BossMod.SCH
                 return MakeResult(AID.EnergyDrain, Autorot.PrimaryTarget);
 
             // swiftcast, if can't cast any gcd (TODO: current check is not very good...)
-            if (deadline >= 10000 && _strategy.Moving && _state.Unlocked(AID.Swiftcast) && _state.CanWeave(CDGroup.Swiftcast, 0.6f, deadline))
+            if (deadline >= 10000 && _strategy.ForceMovementIn < 5 && _state.Unlocked(AID.Swiftcast) && _state.CanWeave(CDGroup.Swiftcast, 0.6f, deadline))
                 return MakeResult(AID.Swiftcast, Player);
 
             // lucid dreaming, if we won't waste mana (TODO: revise mp limit)

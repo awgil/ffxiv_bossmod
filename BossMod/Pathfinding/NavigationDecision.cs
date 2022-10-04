@@ -20,7 +20,7 @@ namespace BossMod.Pathfinding
         public Map? Map;
         public int MapGoal;
 
-        public static NavigationDecision Build(WorldState ws, AIHints hints, Actor player, WPos targetPos, float targetRadius, Angle targetRot, Positional positional, float playerSpeed = 6)
+        public static NavigationDecision Build(WorldState ws, AIHints hints, Actor player, WPos? targetPos, float targetRadius, Angle targetRot, Positional positional, float playerSpeed = 6)
         {
             // first check that player is in bounds; otherwise pathfinding won't work properly anyway
             if (!hints.Bounds.Contains(player.Position))
@@ -29,7 +29,7 @@ namespace BossMod.Pathfinding
             var imminent = ImminentExplosionTime(ws.CurrentTime);
             int numImminentZones = hints.ForbiddenZones.FindIndex(z => z.activation > imminent);
             if (numImminentZones < 0)
-                numImminentZones = hints.ForcedMovements.Count;
+                numImminentZones = hints.ForbiddenZones.Count;
 
             // check whether player is inside each forbidden zone
             var inZone = hints.ForbiddenZones.Select(z => z.shape.Check(player.Position, z.origin, z.rot)).ToList();
@@ -50,7 +50,7 @@ namespace BossMod.Pathfinding
                     foreach (var (z, inside) in hints.ForbiddenZones.Zip(inZone))
                         if (inside)
                             AddBlockerZone(map2, imminent, z);
-                    int maxGoal = AddTargetGoal(map2, targetPos, targetRadius, targetRot, positional, 0);
+                    int maxGoal = targetPos != null ? AddTargetGoal(map2, targetPos.Value, targetRadius, targetRot, positional, 0) : 0;
                     var res = FindPathFromUnsafe(map2, player.Position, 0, maxGoal, playerSpeed);
                     if (res != null)
                         return res.Value;
@@ -64,60 +64,63 @@ namespace BossMod.Pathfinding
             }
 
             // we're safe, see if we can improve our position
-            if (!player.Position.InCircle(targetPos, targetRadius))
+            if (targetPos != null)
             {
-                // we're not in uptime zone, just run to it, avoiding any aoes
-                var map = hints.Bounds.BuildMap();
-                foreach (var z in hints.ForbiddenZones)
-                    AddBlockerZone(map, imminent, z);
-                int maxGoal = AddTargetGoal(map, targetPos, targetRadius, targetRot, Positional.Any, 0);
-                if (maxGoal != 0)
+                if (!player.Position.InCircle(targetPos.Value, targetRadius))
                 {
-                    // try to find a path to target
-                    var pathfind = new ThetaStar(map, maxGoal, player.Position, 1.0f / playerSpeed);
-                    int res = pathfind.Execute();
-                    if (res >= 0)
-                        return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = float.MaxValue, TimeToPositional = float.MaxValue, Map = map, MapGoal = maxGoal };
+                    // we're not in uptime zone, just run to it, avoiding any aoes
+                    var map = hints.Bounds.BuildMap();
+                    foreach (var z in hints.ForbiddenZones)
+                        AddBlockerZone(map, imminent, z);
+                    int maxGoal = AddTargetGoal(map, targetPos.Value, targetRadius, targetRot, Positional.Any, 0);
+                    if (maxGoal != 0)
+                    {
+                        // try to find a path to target
+                        var pathfind = new ThetaStar(map, maxGoal, player.Position, 1.0f / playerSpeed);
+                        int res = pathfind.Execute();
+                        if (res >= 0)
+                            return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = float.MaxValue, TimeToPositional = float.MaxValue, Map = map, MapGoal = maxGoal };
+                    }
+
+                    // goal is not reachable, but we can try getting as close to the target as we can until first aoe
+                    var start = map.WorldToGrid(player.Position);
+                    var end = map.WorldToGrid(hints.Bounds.ClampToBounds(targetPos.Value));
+                    var best = start;
+                    foreach (var (x, y) in map.EnumeratePixelsInLine(start.x, start.y, end.x, end.y))
+                    {
+                        if (map[x, y].MaxG != float.MaxValue)
+                            break;
+                        best = (x, y);
+                    }
+                    return new() { Destination = best != start ? map.GridToWorld(best.x, best.y, 0.5f, 0.5f) : null, LeewaySeconds = 0, TimeToPositional = float.MaxValue, Map = map, MapGoal = maxGoal };
                 }
 
-                // goal is not reachable, but we can try getting as close to the target as we can until first aoe
-                var start = map.WorldToGrid(player.Position);
-                var end = map.WorldToGrid(targetPos);
-                var best = start;
-                foreach (var (x, y) in map.EnumeratePixelsInLine(start.x, start.y, end.x, end.y))
+                bool inPositional = positional switch
                 {
-                    if (map[x, y].MaxG != float.MaxValue)
-                        break;
-                    best = (x, y);
-                }
-                return new() { Destination = best != start ? map.GridToWorld(best.x, best.y, 0.5f, 0.5f) : null, LeewaySeconds = 0, TimeToPositional = float.MaxValue, Map = map, MapGoal = maxGoal };
-            }
-
-            bool inPositional = positional switch
-            {
-                Positional.Flank => MathF.Abs(targetRot.ToDirection().Dot((targetPos - player.Position).Normalized())) < 0.7071067f,
-                Positional.Rear => targetRot.ToDirection().Dot((targetPos - player.Position).Normalized()) < -0.7071068f,
-                _ => true
-            };
-            if (!inPositional)
-            {
-                // we're in uptime zone, but not in correct quadrant - move there, avoiding all aoes and staying within uptime zone
-                var map = hints.Bounds.BuildMap();
-                map.BlockPixels(map.RasterizeCircle(targetPos, targetRadius), 0, Map.Coverage.Outside | Map.Coverage.Border);
-                foreach (var z in hints.ForbiddenZones)
-                    AddBlockerZone(map, imminent, z);
-                int maxGoal = AddPositionalGoal(map, targetPos, targetRadius, targetRot, positional, 0);
-                if (maxGoal > 0)
+                    Positional.Flank => MathF.Abs(targetRot.ToDirection().Dot((targetPos.Value - player.Position).Normalized())) < 0.7071067f,
+                    Positional.Rear => targetRot.ToDirection().Dot((targetPos.Value - player.Position).Normalized()) < -0.7071068f,
+                    _ => true
+                };
+                if (!inPositional)
                 {
-                    // try to find a path to quadrant
-                    var pathfind = new ThetaStar(map, maxGoal, player.Position, 1.0f / playerSpeed);
-                    int res = pathfind.Execute();
-                    if (res >= 0)
-                        return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = float.MaxValue, TimeToPositional = pathfind.NodeByIndex(res).GScore, Map = map, MapGoal = maxGoal };
-                }
+                    // we're in uptime zone, but not in correct quadrant - move there, avoiding all aoes and staying within uptime zone
+                    var map = hints.Bounds.BuildMap();
+                    map.BlockPixels(map.RasterizeCircle(targetPos.Value, targetRadius), 0, Map.Coverage.Outside | Map.Coverage.Border);
+                    foreach (var z in hints.ForbiddenZones)
+                        AddBlockerZone(map, imminent, z);
+                    int maxGoal = AddPositionalGoal(map, targetPos.Value, targetRadius, targetRot, positional, 0);
+                    if (maxGoal > 0)
+                    {
+                        // try to find a path to quadrant
+                        var pathfind = new ThetaStar(map, maxGoal, player.Position, 1.0f / playerSpeed);
+                        int res = pathfind.Execute();
+                        if (res >= 0)
+                            return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = float.MaxValue, TimeToPositional = pathfind.NodeByIndex(res).GScore, Map = map, MapGoal = maxGoal };
+                    }
 
-                // fail
-                return new() { Destination = null, LeewaySeconds = float.MaxValue, TimeToPositional = float.MaxValue, Map = map, MapGoal = maxGoal };
+                    // fail
+                    return new() { Destination = null, LeewaySeconds = float.MaxValue, TimeToPositional = float.MaxValue, Map = map, MapGoal = maxGoal };
+                }
             }
 
             return new() { Destination = null, LeewaySeconds = float.MaxValue, TimeToPositional = float.MaxValue };

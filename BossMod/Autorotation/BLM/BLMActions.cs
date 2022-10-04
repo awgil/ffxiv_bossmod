@@ -79,15 +79,13 @@ namespace BossMod.BLM
         {
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionInt);
-            if (autoAction is AutoActionAIFight or AutoActionAIFightMove)
+            if (autoAction == AutoActionAIFight)
             {
-                _strategy.AOE = Autorot.PrimaryTarget != null && NumTargetsHitByAOE(Autorot.PrimaryTarget) >= 3;
-                _strategy.Moving = AutoAction == AutoActionAIFightMove;
+                _strategy.NumAOETargets = Autorot.PrimaryTarget != null ? NumTargetsHitByAOE(Autorot.PrimaryTarget) : 0;
             }
             else
             {
-                _strategy.AOE = autoAction == AutoActionAOE; // TODO: consider making AI-like check
-                _strategy.Moving = false;
+                _strategy.NumAOETargets = autoAction == AutoActionAOE ? 100 : 0; // TODO: consider making AI-like check
             }
         }
 
@@ -101,7 +99,7 @@ namespace BossMod.BLM
 
         protected override NextAction CalculateAutomaticGCD()
         {
-            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
+            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionAIFight)
                 return new();
             var aid = Rotation.GetNextBestGCD(_state, _strategy);
             return MakeResult(aid, Autorot.PrimaryTarget);
@@ -109,7 +107,7 @@ namespace BossMod.BLM
 
         protected override NextAction CalculateAutomaticOGCD(float deadline)
         {
-            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
+            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionAIFight)
                 return new();
 
             ActionID res = new();

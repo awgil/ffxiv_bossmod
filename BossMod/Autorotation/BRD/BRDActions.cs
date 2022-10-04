@@ -80,12 +80,12 @@ namespace BossMod.BRD
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.WardensPaean), esunableTarget, esunableTarget != null);
             }
             if (_state.Unlocked(AID.Peloton))
-                SimulateManualActionForAI(ActionID.MakeSpell(AID.Peloton), Player, !Player.InCombat && _state.PelotonLeft < 3 && AutoAction is AutoActionAIIdleMove or AutoActionAIFightMove);
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.Peloton), Player, !Player.InCombat && _state.PelotonLeft < 3 && _strategy.ForceMovementIn == 0);
         }
 
         protected override NextAction CalculateAutomaticGCD()
         {
-            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
+            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionAIFight)
                 return new();
             var aid = Rotation.GetNextBestGCD(_state, _strategy);
             return MakeResult(aid, Autorot.PrimaryTarget);
@@ -93,7 +93,7 @@ namespace BossMod.BRD
 
         protected override NextAction CalculateAutomaticOGCD(float deadline)
         {
-            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
+            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionAIFight)
                 return new();
 
             ActionID res = new();

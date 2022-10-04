@@ -32,7 +32,6 @@
         // strategy configuration
         public class Strategy : CommonRotation.Strategy
         {
-            public bool Moving;
             public int NumWhisperingDawnTargets; // how many targets would whispering dawn heal (15y around fairy)
             public int NumSuccorTargets; // how many targets would succor heal (15y around self)
             public int NumArtOfWarTargets; // how many targets art of war would hit (5y around self)
@@ -40,10 +39,11 @@
 
             public override string ToString()
             {
-                return $"AOE={NumArtOfWarTargets}, SH={BestSTHeal.Target?.Name.Substring(0, 4)}={BestSTHeal.HPRatio:f2}, AH={NumSuccorTargets}/{NumWhisperingDawnTargets}, moving={Moving}";
+                return $"AOE={NumArtOfWarTargets}, SH={BestSTHeal.Target?.Name.Substring(0, 4)}={BestSTHeal.HPRatio:f2}, AH={NumSuccorTargets}/{NumWhisperingDawnTargets}, movement-in={ForceMovementIn:f3}";
             }
         }
 
+        public static bool CanCast(State state, Strategy strategy, float castTime) => state.SwiftcastLeft > state.GCD || strategy.ForceMovementIn >= state.GCD + castTime;
         public static bool RefreshDOT(State state, float timeLeft) => timeLeft < state.GCD + 3.0f; // TODO: tweak threshold so that we don't overwrite or miss ticks...
 
         public static AID GetNextBestSTHealGCD(State state, Strategy strategy)
@@ -54,7 +54,7 @@
         public static AID GetNextBestDamageGCD(State state, Strategy strategy)
         {
             // TODO: priorities change at L54, L64, L72, L82
-            bool allowRuin = !strategy.Moving || state.SwiftcastLeft > state.GCD;
+            bool allowRuin = CanCast(state, strategy, 1.5f);
             if (state.Unlocked(AID.ArtOfWar1))
             {
                 // L46: spam art of war at 3+ targets, otherwise bio > art of war (even at 1 target) > ruin (if out of range) > ruin2 (on the move)

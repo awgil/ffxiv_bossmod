@@ -72,7 +72,6 @@ namespace BossMod.WHM
             _strategy.EnableAssize = AllowAssize(); // note: should be plannable...
             _strategy.AllowReplacingHealWithMisery = _config.NeverOvercapBloodLilies && Autorot.PrimaryTarget?.Type == ActorType.Enemy;
             _strategy.Heal = _strategy.AOE = false;
-            _strategy.Moving = autoAction is AutoActionAIIdleMove or AutoActionAIFightMove;
             _strategy.BestSTHeal = FindBestSTHealTarget();
             if (autoAction >= AutoActionFirstCustom)
             {
@@ -102,25 +101,24 @@ namespace BossMod.WHM
                     // AI: aoe heals > st heals > esuna > damage
                     // i don't really think 'rotation/actions' split is particularly good fit for healers AI...
                     // TODO: raise support...
-                    bool allowCasts = !_strategy.Moving || _state.SwiftcastLeft > _state.GCD;
 
                     // TODO: L52+ (afflatus rapture)
                     // 2. medica 2, if possible and useful, and buff is not already up; we consider it ok to overwrite last tick
-                    if (allowCasts && _strategy.NumRaptureMedica2Targets > 2 && _state.CanCastMedica2 && _state.MedicaLeft <= _state.GCD + 2.5f)
+                    if (Rotation.CanCast(_state, _strategy, 2) && _strategy.NumRaptureMedica2Targets > 2 && _state.CanCastMedica2 && _state.MedicaLeft <= _state.GCD + 2.5f)
                         return MakeResult(AID.Medica2, Player);
                     // 3. cure 3, if possible and useful
-                    if (allowCasts && _strategy.NumCure3Targets > 2 && _state.CanCastCure3)
+                    if (Rotation.CanCast(_state, _strategy, 2) && _strategy.NumCure3Targets > 2 && _state.CanCastCure3)
                         return MakeResult(AID.Cure3, SmartCure3Target().Item1 ?? Player);
                     // 4. medica 1, if possible and useful
-                    if (allowCasts && _strategy.NumAssizeMedica1Targets > 2 && _state.CanCastMedica1)
+                    if (Rotation.CanCast(_state, _strategy, 2) && _strategy.NumAssizeMedica1Targets > 2 && _state.CanCastMedica1)
                         return MakeResult(AID.Medica1, Player);
 
                     // now check ST heals (TODO: afflatus solace)
-                    if (allowCasts && _strategy.BestSTHeal.Target != null)
+                    if (Rotation.CanCast(_state, _strategy, 2) && _strategy.BestSTHeal.Target != null)
                         return MakeResult(_state.CanCastCure2 ? AID.Cure2 : AID.Cure1, _strategy.BestSTHeal.Target);
 
                     // now check esuna
-                    if (allowCasts)
+                    if (Rotation.CanCast(_state, _strategy, 1))
                     {
                         var esunaTarget = FindEsunaTarget();
                         if (esunaTarget != null)
@@ -133,7 +131,7 @@ namespace BossMod.WHM
                         return MakeResult(AID.Regen, regenTarget);
 
                     // finally perform damage rotation
-                    if (allowCasts && _strategy.NumHolyTargets >= 3)
+                    if (Rotation.CanCast(_state, _strategy, 2.5f) && _strategy.NumHolyTargets >= 3)
                         return MakeResult(_state.BestHoly, Player);
 
                     if (Autorot.PrimaryTarget != null)
@@ -145,7 +143,7 @@ namespace BossMod.WHM
 
         protected override NextAction CalculateAutomaticOGCD(float deadline)
         {
-            if (AutoAction < AutoActionFirstFight)
+            if (AutoAction < AutoActionAIFight)
                 return new();
 
             if (deadline < float.MaxValue && _allowDelayingNextGCD)
@@ -168,7 +166,7 @@ namespace BossMod.WHM
                 return MakeResult(AID.Benediction, _strategy.BestSTHeal.Target);
 
             // swiftcast, if can't cast any gcd (TODO: current check is not very good...)
-            if (deadline >= 10000 && _strategy.Moving && _state.Unlocked(AID.Swiftcast) && _state.CanWeave(CDGroup.Swiftcast, 0.6f, deadline))
+            if (deadline >= 10000 && _strategy.ForceMovementIn < 5 && _state.Unlocked(AID.Swiftcast) && _state.CanWeave(CDGroup.Swiftcast, 0.6f, deadline))
                 return MakeResult(AID.Swiftcast, Player);
 
             // pom (TODO: consider delaying until raidbuffs?)

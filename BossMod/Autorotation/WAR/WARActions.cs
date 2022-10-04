@@ -56,7 +56,7 @@ namespace BossMod.WAR
             {
                 AutoActionST => false,
                 AutoActionAOE => true, // TODO: consider making AI-like check
-                AutoActionAIFight or AutoActionAIFightMove => NumTargetsHitByAOE() >= 3,
+                AutoActionAIFight => NumTargetsHitByAOE() >= 3,
                 _ => false, // irrelevant...
             };
             UpdatePlayerState();
@@ -69,7 +69,7 @@ namespace BossMod.WAR
 
         protected override NextAction CalculateAutomaticGCD()
         {
-            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
+            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionAIFight)
                 return new();
             var aid = Rotation.GetNextBestGCD(_state, _strategy, _aoe);
             return MakeResult(aid, Autorot.PrimaryTarget);
@@ -77,7 +77,7 @@ namespace BossMod.WAR
 
         protected override NextAction CalculateAutomaticOGCD(float deadline)
         {
-            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionFirstFight)
+            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionAIFight)
                 return new();
 
             ActionID res = new();
