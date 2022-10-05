@@ -26,6 +26,7 @@ namespace UIDev
         private AnalysisManager _analysis;
 
         private MapVisualizer? _pf;
+        private NavigationDecision? _pfResult;
         private float _pfTargetRadius = 3;
         private Positional _pfPositional = Positional.Any;
 
@@ -231,7 +232,7 @@ namespace UIDev
                 if (ImGui.Checkbox("###POV", ref isPOV) && isPOV)
                 {
                     _povSlot = slot;
-                    _pf = null;
+                    ResetPF();
                 }
 
                 ImGui.TableNextColumn();
@@ -329,7 +330,7 @@ namespace UIDev
             if (_mgr.ActiveModule == null)
                 return;
 
-            if (_pf == null)
+            if (_pfResult == null)
             {
                 var player = _mgr.ActiveModule.Raid[_povSlot];
                 if (player == null)
@@ -339,21 +340,31 @@ namespace UIDev
                 _hints.Clear();
                 _mgr.ActiveModule.CalculateAIHints(_povSlot, player, _hints);
                 _hints.Normalize();
-                var decision = NavigationDecision.Build(_mgr.WorldState, _hints, player, target.Position, target.HitboxRadius + _pfTargetRadius, target.Rotation, _pfPositional);
-                if (decision.Map != null)
+                _pfResult = NavigationDecision.Build(_mgr.WorldState, _hints, player, target.Position, target.HitboxRadius + player.HitboxRadius + _pfTargetRadius, target.Rotation, _pfPositional);
+                if (_pfResult.Value.Map != null)
                 {
-                    _pf = new(decision.Map, decision.MapGoal, player.Position);
-                    if (decision.Destination != null)
-                        _pf.Lines.Add((player.Position, decision.Destination.Value));
+                    _pf = new(_pfResult.Value.Map, _pfResult.Value.MapGoal, player.Position);
                 }
+                else
+                {
+                    var map = _hints.Bounds.BuildMap();
+                    var imm = NavigationDecision.ImminentExplosionTime(_mgr.WorldState.CurrentTime);
+                    foreach (var z in _hints.ForbiddenZones)
+                        NavigationDecision.AddBlockerZone(map, imm, z);
+                    var goal = NavigationDecision.AddTargetGoal(map, target.Position, target.HitboxRadius + player.HitboxRadius + _pfTargetRadius, target.Rotation, _pfPositional, 0);
+                    _pf = new(map, goal, player.Position);
+                }
+                if (_pfResult.Value.Destination != null)
+                    _pf.Lines.Add((player.Position, _pfResult.Value.Destination.Value));
             }
 
             _pf?.Draw();
 
+            ImGui.TextUnformatted($"Decision: {_pfResult.Value.DecisionType}, leeway={_pfResult.Value.LeewaySeconds:f3}, ttg={_pfResult.Value.TimeToGoal:f3}");
             if (ImGui.SliderFloat("Ability range", ref _pfTargetRadius, 3, 25))
-                _pf = null;
+                ResetPF();
             if (UICombo.Enum("Ability positional", ref _pfPositional))
-                _pf = null;
+                ResetPF();
         }
 
         private void MoveTo(DateTime t)
@@ -365,13 +376,19 @@ namespace UIDev
             }
             _player.AdvanceTo(t, _mgr.Update);
             _curTime = t;
-            _pf = null;
+            ResetPF();
         }
 
         private void Rewind(float seconds)
         {
             _playSpeed = 0;
             MoveTo(_curTime.AddSeconds(-seconds));
+        }
+
+        private void ResetPF()
+        {
+            _pf = null;
+            _pfResult = null;
         }
     }
 }

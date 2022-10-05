@@ -151,7 +151,7 @@ namespace BossMod.AI
                 _ctrl.NaviTargetPos = _naviDecision.Destination;
                 _ctrl.NaviTargetRot = distSq >= 0.04f ? toDest.Normalized() : null;
                 _ctrl.NaviTargetVertical = master != player ? master.PosRot.Y : null;
-                _ctrl.AllowInterruptingCastByMovement = player.CastInfo != null && _maxCastTime <= (player.CastInfo.FinishAt - _autorot.WorldState.CurrentTime).TotalSeconds - 0.5;
+                _ctrl.AllowInterruptingCastByMovement = player.CastInfo != null && _naviDecision.LeewaySeconds <= (player.CastInfo.FinishAt - _autorot.WorldState.CurrentTime).TotalSeconds - 0.5;
                 _ctrl.ForceFacing = false;
 
                 //var cameraFacing = _ctrl.CameraFacing;
@@ -162,7 +162,7 @@ namespace BossMod.AI
                 //    _ctrl.TargetRot = cameraFacing.OrthoL().Dot(_ctrl.TargetRot.Value) > 0 ? _ctrl.TargetRot.Value.OrthoR() : _ctrl.TargetRot.Value.OrthoL();
 
                 // sprint, if not in combat and far enough away from destination
-                if (!player.InCombat && player != master && distSq > 400)
+                if (!player.InCombat && player != master && distSq > 400 && !_ctrl.IsMounted && !_ctrl.InCutscene)
                 {
                     _autorot.ClassActions?.HandleUserActionRequest(CommonDefinitions.IDSprint, player);
                 }
@@ -172,7 +172,7 @@ namespace BossMod.AI
         public void DrawDebug()
         {
             ImGui.Checkbox("Passively follow", ref _passive);
-            ImGui.TextUnformatted($"Max-cast={_maxCastTime}, afk={_afkMode}, follow={_followMaster}, master standing for {(_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds:f1}");
+            ImGui.TextUnformatted($"Max-cast={_maxCastTime}, afk={_afkMode}, follow={_followMaster}, algo={_naviDecision.DecisionType}, master standing for {(_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds:f1}");
         }
     }
 }

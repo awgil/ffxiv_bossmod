@@ -14,17 +14,38 @@ namespace BossMod.Pathfinding
     // 4. be in range of healers - even less important, but still nice to do
     public struct NavigationDecision
     {
+        public enum Decision
+        {
+            None,
+            SrcOutOfBounds,
+            ImminentToSafe,
+            ImminentToClosest,
+            UnsafeToPositional,
+            UnsafeToUptime,
+            UnsafeToSafe,
+            SafeToUptime,
+            SafeToCloser,
+            SafeBlocked,
+            UptimeToPositional,
+            UptimeBlocked,
+            Optimal,
+        }
+
         public WPos? Destination;
         public float LeewaySeconds; // can be used for finishing casts / slidecasting etc.
-        public float TimeToPositional;
+        public float TimeToGoal;
         public Map? Map;
         public int MapGoal;
+        public Decision DecisionType;
 
         public static NavigationDecision Build(WorldState ws, AIHints hints, Actor player, WPos? targetPos, float targetRadius, Angle targetRot, Positional positional, float playerSpeed = 6)
         {
             // first check that player is in bounds; otherwise pathfinding won't work properly anyway
             if (!hints.Bounds.Contains(player.Position))
-                return new() { Destination = hints.Bounds.ClampToBounds(player.Position), LeewaySeconds = 0, TimeToPositional = float.MaxValue };
+            {
+                var dest = hints.Bounds.ClampToBounds(player.Position);
+                return new() { Destination = dest, LeewaySeconds = float.MaxValue, TimeToGoal = (dest - player.Position).Length() / playerSpeed, DecisionType = Decision.SrcOutOfBounds };
+            }
 
             var imminent = ImminentExplosionTime(ws.CurrentTime);
             int numImminentZones = hints.ForbiddenZones.FindIndex(z => z.activation > imminent);
@@ -33,7 +54,7 @@ namespace BossMod.Pathfinding
 
             // check whether player is inside each forbidden zone
             var inZone = hints.ForbiddenZones.Select(z => z.shape.Check(player.Position, z.origin, z.rot)).ToList();
-            if (inZone.Any())
+            if (inZone.Any(z => z))
             {
                 // we're in forbidden zone => find path to safety (and ideally to uptime zone)
                 // if such a path can't be found (that's always the case if we're inside imminent forbidden zone, but can also happen in other cases), try instead to find a path to safety that doesn't enter any other zones that we're not inside
@@ -43,7 +64,7 @@ namespace BossMod.Pathfinding
                     if (!inside)
                         AddBlockerZone(map, imminent, z);
 
-                bool inImminentForbiddenZone = inZone.Take(numImminentZones).Any();
+                bool inImminentForbiddenZone = inZone.Take(numImminentZones).Any(z => z);
                 if (!inImminentForbiddenZone)
                 {
                     var map2 = map.Clone();
@@ -79,7 +100,7 @@ namespace BossMod.Pathfinding
                         var pathfind = new ThetaStar(map, maxGoal, player.Position, 1.0f / playerSpeed);
                         int res = pathfind.Execute();
                         if (res >= 0)
-                            return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = float.MaxValue, TimeToPositional = float.MaxValue, Map = map, MapGoal = maxGoal };
+                            return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = float.MaxValue, TimeToGoal = pathfind.NodeByIndex(res).GScore, Map = map, MapGoal = maxGoal, DecisionType = Decision.SafeToUptime };
                     }
 
                     // goal is not reachable, but we can try getting as close to the target as we can until first aoe
@@ -92,7 +113,13 @@ namespace BossMod.Pathfinding
                             break;
                         best = (x, y);
                     }
-                    return new() { Destination = best != start ? map.GridToWorld(best.x, best.y, 0.5f, 0.5f) : null, LeewaySeconds = 0, TimeToPositional = float.MaxValue, Map = map, MapGoal = maxGoal };
+                    if (best != start)
+                    {
+                        var dest = map.GridToWorld(best.x, best.y, 0.5f, 0.5f);
+                        return new() { Destination = dest, LeewaySeconds = float.MaxValue, TimeToGoal = (dest - player.Position).Length() / playerSpeed, Map = map, MapGoal = maxGoal, DecisionType = Decision.SafeToCloser };
+                    }
+
+                    return new() { Destination = null, LeewaySeconds = float.MaxValue, TimeToGoal = 0, Map = map, MapGoal = maxGoal, DecisionType = Decision.SafeBlocked };
                 }
 
                 bool inPositional = positional switch
@@ -115,15 +142,15 @@ namespace BossMod.Pathfinding
                         var pathfind = new ThetaStar(map, maxGoal, player.Position, 1.0f / playerSpeed);
                         int res = pathfind.Execute();
                         if (res >= 0)
-                            return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = float.MaxValue, TimeToPositional = pathfind.NodeByIndex(res).GScore, Map = map, MapGoal = maxGoal };
+                            return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = float.MaxValue, TimeToGoal = pathfind.NodeByIndex(res).GScore, Map = map, MapGoal = maxGoal, DecisionType = Decision.UptimeToPositional };
                     }
 
                     // fail
-                    return new() { Destination = null, LeewaySeconds = float.MaxValue, TimeToPositional = float.MaxValue, Map = map, MapGoal = maxGoal };
+                    return new() { Destination = null, LeewaySeconds = float.MaxValue, TimeToGoal = 0, Map = map, MapGoal = maxGoal, DecisionType = Decision.UptimeBlocked };
                 }
             }
 
-            return new() { Destination = null, LeewaySeconds = float.MaxValue, TimeToPositional = float.MaxValue };
+            return new() { Destination = null, LeewaySeconds = float.MaxValue, TimeToGoal = 0, DecisionType = Decision.Optimal };
         }
 
         public static DateTime ImminentExplosionTime(DateTime currentTime) => currentTime.AddSeconds(0.5);
@@ -166,7 +193,7 @@ namespace BossMod.Pathfinding
                 var pathfind = new ThetaStar(map, maxGoal, startPos, 1.0f / speed);
                 int res = pathfind.Execute();
                 if (res >= 0)
-                    return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = pathfind.NodeByIndex(res).PathLeeway, TimeToPositional = pathfind.NodeByIndex(res).GScore, Map = map, MapGoal = maxGoal };
+                    return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = pathfind.NodeByIndex(res).PathLeeway, TimeToGoal = pathfind.NodeByIndex(res).GScore, Map = map, MapGoal = maxGoal, DecisionType = Decision.UnsafeToPositional };
                 --maxGoal;
             }
 
@@ -176,7 +203,7 @@ namespace BossMod.Pathfinding
                 var pathfind = new ThetaStar(map, maxGoal, startPos, 1.0f / speed);
                 int res = pathfind.Execute();
                 if (res >= 0)
-                    return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = pathfind.NodeByIndex(res).PathLeeway, TimeToPositional = float.MaxValue, Map = map, MapGoal = maxGoal };
+                    return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = pathfind.NodeByIndex(res).PathLeeway, TimeToGoal = pathfind.NodeByIndex(res).GScore, Map = map, MapGoal = maxGoal, DecisionType = Decision.UnsafeToUptime };
                 --maxGoal;
             }
 
@@ -186,7 +213,7 @@ namespace BossMod.Pathfinding
                 var pathfind = new ThetaStar(map, maxGoal, startPos, 1.0f / speed);
                 int res = pathfind.Execute();
                 if (res >= 0)
-                    return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = pathfind.NodeByIndex(res).PathLeeway, TimeToPositional = float.MaxValue, Map = map, MapGoal = maxGoal };
+                    return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = pathfind.NodeByIndex(res).PathLeeway, TimeToGoal = pathfind.NodeByIndex(res).GScore, Map = map, MapGoal = maxGoal, DecisionType = Decision.UnsafeToSafe };
             }
 
             return null;
@@ -197,9 +224,13 @@ namespace BossMod.Pathfinding
             // just run to closest safe spot, if no good path can be found
             var pathfind = new ThetaStar(map, 0, startPos, 1.0f / speed);
             int res = pathfind.Execute();
-            var dest = res >= 0 ? GetFirstWaypoint(pathfind, res)
-                : map.EnumeratePixels().Where(p => { var px = map[p.x, p.y]; return px.Priority == 0 && px.MaxG == float.MaxValue; }).MinBy(p => (p.center - startPos).LengthSq()).center;
-            return new() { Destination = dest, LeewaySeconds = 0, TimeToPositional = float.MaxValue, Map = map };
+            if (res >= 0)
+            {
+                return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = 0, TimeToGoal = pathfind.NodeByIndex(res).GScore, Map = map, MapGoal = 0, DecisionType = Decision.ImminentToSafe };
+            }
+
+            var closest = map.EnumeratePixels().Where(p => { var px = map[p.x, p.y]; return px.Priority == 0 && px.MaxG == float.MaxValue; }).MinBy(p => (p.center - startPos).LengthSq()).center;
+            return new() { Destination = closest, LeewaySeconds = 0, TimeToGoal = (closest - startPos).Length() / speed, Map = map, DecisionType = Decision.ImminentToClosest };
         }
 
         public static WPos? GetFirstWaypoint(ThetaStar pf, int cell)
@@ -215,30 +246,6 @@ namespace BossMod.Pathfinding
                 cell = parent;
             }
             while (true);
-        }
-
-        public static Map BuildPathfindingMap(AIHints hints, DateTime currentTime)
-        {
-            var map = hints.Bounds.BuildMap();
-            var imminent = ImminentExplosionTime(currentTime);
-            foreach (var z in hints.ForbiddenZones)
-                AddBlockerZone(map, imminent, z);
-            //if (hints.RestrictedZones.Count > 0)
-            //{
-            //    var min = hints.RestrictedZones[0].activation;
-            //    if (min < imminent)
-            //        min = imminent;
-            //    var union = hints.RestrictedZones.TakeWhile(z => z.activation <= min).Select(z => z.shape.Coverage(map, z.origin, z.rot)).ToList();
-            //    Func<WPos, Map.Coverage> unionFunc = p =>
-            //    {
-            //        Map.Coverage cv = Map.Coverage.None;
-            //        foreach (var f in union)
-            //            cv |= f(p);
-            //        return cv.HasFlag(Map.Coverage.Inside) ? Map.Coverage.Inside : Map.Coverage.Outside;
-            //    };
-            //    map.BlockPixels(map.Rasterize(unionFunc), (float)(min - imminent).TotalSeconds, Map.Coverage.Outside);
-            //}
-            return map;
         }
     }
 }
