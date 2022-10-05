@@ -128,7 +128,7 @@ namespace BossMod.AI
             }
 
             bool forbidMovement = moveRequested || !AllowInterruptingCastByMovement && (player.CastInfo != null && !player.CastInfo.EventHappened || _autorot.AboutToStartCast);
-            if (NaviTargetPos != null && !forbidMovement && (NaviTargetPos.Value - player.Position).LengthSq() > 0.04f)
+            if (NaviTargetPos != null && !forbidMovement && (NaviTargetPos.Value - player.Position).LengthSq() > 0.01f)
             {
                 var delta = NaviTargetPos.Value - player.Position;
                 var projFwd = delta.Dot(cameraFacing);

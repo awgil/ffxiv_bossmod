@@ -95,7 +95,7 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
                     _ => module.Bounds.HalfSize
                 };
                 _outer = new AOEShapeDonut(outerRadius, module.Bounds.HalfSize);
-                _inner = new AOEShapeCircle(outerRadius - 3); // TODO: check falloff...
+                _inner = new AOEShapeCircle(outerRadius - 2); // TODO: check falloff...
                 _innerFinish = spell.FinishAt;
             }
         }
@@ -162,7 +162,7 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
                     OID.Boss => 1,
                     _ => 0
                 };
-                enemy.AttackStrength = (OID)enemy.Actor.OID == OID.Boss ? 0.3f : 0;
+                enemy.AttackStrength = (OID)enemy.Actor.OID == OID.Boss ? enemy.Actor.HP.Cur < 0.6f * enemy.Actor.HP.Max ? 0.3f : 0.1f : 0;
             });
         }
     }

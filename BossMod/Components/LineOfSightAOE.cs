@@ -31,14 +31,25 @@ namespace BossMod.Components
                 yield break; // not supported, do we need it?..
             }
 
-            public override Func<WPos, Map.Coverage> Coverage(Map map, WPos origin, Angle rotation)
+            public override Func<WPos, float> Distance(WPos origin, Angle rotation)
             {
-                // TODO: important, implement...
-                List<Func<WPos, Map.Coverage>> safeZones = new();
-                safeZones.Add(map.CoverageDonut(origin, MaxRange, 100));
-                foreach (var v in Visibility)
-                    safeZones.Add(map.CoverageDonutSector(origin, v.Distance, 100, v.Dir, v.HalfWidth));
-                return map.CoverageInvert(map.CoverageUnion(safeZones));
+                // inverse of a union of inverted max-range circle and a bunch of infinite cones minus inner cirles
+                var normals = Visibility.Select(v => (v.Distance, (v.Dir + v.HalfWidth).ToDirection().OrthoL(), (v.Dir - v.HalfWidth).ToDirection().OrthoR())).ToList();
+                return p =>
+                {
+                    var off = p - origin;
+                    var distOrigin = off.Length();
+                    var distInverted = MaxRange - distOrigin; // this is positive if we're inside max-range
+                    foreach (var (minRange, nl, nr) in normals)
+                    {
+                        var distInnerInv = minRange - distOrigin;
+                        var distLeft = off.Dot(nl);
+                        var distRight = off.Dot(nr);
+                        var distCone = Math.Max(distInnerInv, Math.Max(distLeft, distRight));
+                        distInverted = Math.Min(distInverted, distCone);
+                    }
+                    return -distInverted;
+                };
             }
 
             public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color)

@@ -42,7 +42,7 @@ namespace BossMod
                     var map = _autorot.Hints.Bounds.BuildMap();
                     var imm = NavigationDecision.ImminentExplosionTime(_autorot.WorldState.CurrentTime);
                     foreach (var z in _autorot.Hints.ForbiddenZones)
-                        NavigationDecision.AddBlockerZone(map, imm, z);
+                        NavigationDecision.AddBlockerZone(map, imm, z.activation, z.shape.Distance(z.origin, z.rot));
                     int goal = 0;
                     if (_autorot.PrimaryTarget != null && _autorot.ClassActions != null)
                     {

@@ -122,8 +122,8 @@ namespace BossMod
 
         public override Pathfinding.Map BuildMap(float resolution)
         {
-            var map = new Pathfinding.Map(resolution, Center, HalfSize, HalfSize);
-            map.BlockPixels(map.RasterizeCircle(Center, HalfSize), 0, Pathfinding.Map.Coverage.Outside | Pathfinding.Map.Coverage.Border);
+            var map = new Pathfinding.Map(resolution, Center, HalfSize, HalfSize, new());
+            map.BlockPixelsInside(ShapeDistance.InvertedCircle(Center, HalfSize), 0, 0);
             return map;
         }
 
@@ -151,12 +151,7 @@ namespace BossMod
             yield return Center + new WDir(-s, -s);
         }
 
-        public override Pathfinding.Map BuildMap(float resolution)
-        {
-            var map = new Pathfinding.Map(resolution, Center, HalfSize, HalfSize);
-            return map;
-        }
-
+        public override Pathfinding.Map BuildMap(float resolution) => new Pathfinding.Map(resolution, Center, HalfSize, HalfSize);
         public override bool Contains(WPos position) => WPos.AlmostEqual(position, Center, HalfSize);
 
         public override WDir ClampToBounds(WDir offset, float scale)

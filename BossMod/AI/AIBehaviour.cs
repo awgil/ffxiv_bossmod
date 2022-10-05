@@ -53,7 +53,7 @@ namespace BossMod.AI
             if (_forbidMovement)
                 _naviDecision = new() { LeewaySeconds = float.MaxValue };
             else if (_followMaster)
-                _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, master.Position, 2, new(), Positional.Any);
+                _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, master.Position, 1, new(), Positional.Any);
             else if (target.Target != null)
                 _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, target.Target.Position, target.PreferredRange + player.HitboxRadius + target.Target.HitboxRadius, target.Target.Rotation, target.PreferredPosition);
             else
@@ -157,7 +157,7 @@ namespace BossMod.AI
                 var toDest = _naviDecision.Destination != null ? _naviDecision.Destination.Value - player.Position : new();
                 var distSq = toDest.LengthSq();
                 _ctrl.NaviTargetPos = _naviDecision.Destination;
-                _ctrl.NaviTargetRot = distSq >= 0.04f ? toDest.Normalized() : null;
+                _ctrl.NaviTargetRot = distSq >= 0.01f ? toDest.Normalized() : null;
                 _ctrl.NaviTargetVertical = master != player ? master.PosRot.Y : null;
                 _ctrl.AllowInterruptingCastByMovement = player.CastInfo != null && _naviDecision.LeewaySeconds <= (player.CastInfo.FinishAt - _autorot.WorldState.CurrentTime).TotalSeconds - 0.5;
                 _ctrl.ForceFacing = false;
@@ -182,7 +182,9 @@ namespace BossMod.AI
             ImGui.Checkbox("Forbid actions", ref _forbidActions);
             ImGui.SameLine();
             ImGui.Checkbox("Forbid movement", ref _forbidMovement);
-            ImGui.TextUnformatted($"Max-cast={MathF.Min(_maxCastTime, 1000):f3}, afk={_afkMode}, follow={_followMaster}, algo={_naviDecision.DecisionType}, master standing for {Math.Clamp((_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds, 0, 1000):f1}");
+            var player = _autorot.WorldState.Party.Player();
+            var dist = _naviDecision.Destination != null && player != null ? (_naviDecision.Destination.Value - player.Position).Length() : 0;
+            ImGui.TextUnformatted($"Max-cast={MathF.Min(_maxCastTime, 1000):f3}, afk={_afkMode}, follow={_followMaster}, algo={_naviDecision.DecisionType} {_naviDecision.Destination} (d={dist:f3}), master standing for {Math.Clamp((_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds, 0, 1000):f1}");
         }
     }
 }

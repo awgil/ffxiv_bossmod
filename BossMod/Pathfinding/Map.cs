@@ -15,15 +15,6 @@ namespace BossMod.Pathfinding
     // typically we try to find a path to goal with highest priority; if that fails, try lower priorities; if no paths can be found (e.g. we're currently inside an imminent aoe) we find direct path to closest safe pixel
     public class Map
     {
-        [Flags]
-        public enum Coverage
-        {
-            None = 0,
-            Inside = 1,
-            Border = 2,
-            Outside = 4
-        }
-
         public struct Pixel
         {
             public float MaxG; // MaxValue if not dangerous
@@ -34,7 +25,6 @@ namespace BossMod.Pathfinding
         public int Width { get; private init; } // always even
         public int Height { get; private init; } // always even
         public Pixel[] Pixels { get; private set; }
-        public float BorderWidth => Resolution * 2.8284f;
 
         public WPos Center { get; private init; } // position of map center in world units
         public Angle Rotation { get; private init; } // rotation relative to world space (=> ToDirection() is equal to direction of local 'height' axis in world space)
@@ -87,12 +77,13 @@ namespace BossMod.Pathfinding
             return Center + ax * _localZDivRes.OrthoL() + az * _localZDivRes;
         }
 
-        public void BlockPixels(IEnumerable<(int x, int y, Coverage cv)> pixels, float maxG, Coverage coverage)
+        // block all pixels for which function returns value smaller than threshold ('inside' shape + extra cushion)
+        public void BlockPixelsInside(Func<WPos, float> shape, float maxG, float threshold)
         {
             MaxG = MathF.Max(MaxG, maxG);
-            foreach (var (x, y, cv) in pixels)
+            foreach (var (x, y, center) in EnumeratePixels())
             {
-                if (coverage.HasFlag(cv))
+                if (shape(center) <= threshold)
                 {
                     ref var pixel = ref Pixels[y * Width + x];
                     pixel.MaxG = MathF.Min(pixel.MaxG, maxG);
@@ -100,12 +91,12 @@ namespace BossMod.Pathfinding
             }
         }
 
-        public int AddGoal(IEnumerable<(int x, int y, Coverage cv)> pixels, Coverage coverage, int minPriority, int deltaPriority)
+        public int AddGoal(Func<WPos, float> shape, float threshold, int minPriority, int deltaPriority)
         {
             int maxAdjustedPriority = minPriority;
-            foreach (var (x, y, cv) in pixels)
+            foreach (var (x, y, center) in EnumeratePixels())
             {
-                if (coverage.HasFlag(cv))
+                if (shape(center) <= threshold)
                 {
                     ref var pixel = ref Pixels[y * Width + x];
                     if (pixel.Priority >= minPriority)
@@ -118,120 +109,6 @@ namespace BossMod.Pathfinding
             MaxPriority = Math.Max(MaxPriority, maxAdjustedPriority);
             return maxAdjustedPriority;
         }
-
-        public Func<WPos, Coverage> CoverageCircle(WPos origin, float radius) => CoverageDonut(origin, 0, radius);
-        public Func<WPos, Coverage> CoverageDonut(WPos origin, float innerRadius, float outerRadius)
-        {
-            if (outerRadius <= 0 || innerRadius >= outerRadius)
-                return _ => Coverage.Outside;
-
-            var delta = BorderWidth;
-            var r1 = outerRadius + delta; // d >= r1 => fully outside
-            r1 *= r1;
-            var r2 = Math.Max(0, outerRadius - delta);
-            r2 *= r2;
-            var r3 = innerRadius > 0 ? innerRadius + delta : 0; // r2 > d >= r3 => fully inside
-            r3 *= r3;
-            var r4 = Math.Max(0, innerRadius - delta);
-            r4 *= r4;
-
-            return p =>
-            {
-                var d = (p - origin).LengthSq();
-                return (d >= r1 || d < r4) ? Coverage.Outside : (d >= r3 && d < r2) ? Coverage.Inside : Coverage.Border;
-            };
-        }
-
-        public Func<WPos, Coverage> CoverageCone(WPos origin, float radius, Angle centerDir, Angle halfAngle) => CoverageDonutSector(origin, 0, radius, centerDir, halfAngle);
-        public Func<WPos, Coverage> CoverageDonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
-        {
-            if (halfAngle.Rad <= 0 || outerRadius <= 0 || innerRadius >= outerRadius)
-                return _ => Coverage.Outside;
-
-            if (halfAngle.Rad >= MathF.PI)
-                return CoverageDonut(origin, innerRadius, outerRadius);
-
-            var delta = BorderWidth;
-            var r1 = outerRadius + delta; // d >= r1 => fully outside
-            var r2 = Math.Max(0, outerRadius - delta);
-            var r3 = innerRadius > 0 ? innerRadius + delta : 0; // r2 > d >= r3 => fully inside
-            var r4 = Math.Max(0, innerRadius - delta);
-
-            return p =>
-            {
-                var off = p - origin;
-                var d = off.Length();
-                if (d >= r1 || d < r4)
-                    return Coverage.Outside;
-
-                var dir = (Angle.FromDirection(off) - centerDir).Normalized();
-                var angularDist = MathF.Abs(dir.Rad);
-                var sideDist = (angularDist - halfAngle.Rad) * d;
-                if (sideDist >= delta)
-                    return Coverage.Outside;
-
-                return (sideDist <= -delta && d >= r3 && d < r2) ? Coverage.Inside : Coverage.Border;
-            };
-        }
-
-        public Func<WPos, Coverage> CoverageRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth)
-        {
-            var delta = BorderWidth;
-            var dir = direction.ToDirection();
-            var normal = dir.OrthoL();
-            return p =>
-            {
-                var offset = p - origin;
-                var dotDir = offset.Dot(dir);
-                var dotNormal = MathF.Abs(offset.Dot(normal));
-                return dotDir < -lenBack - delta || dotDir > lenFront + delta || dotNormal > halfWidth + delta ? Coverage.Outside
-                    : dotDir >= -lenBack + delta && dotDir <= lenFront - delta && dotNormal <= halfWidth - delta ? Coverage.Inside
-                    : Coverage.Border;
-            };
-        }
-
-        public Func<WPos, Coverage> CoverageCross(WPos origin, Angle direction, float length, float halfWidth)
-        {
-            var delta = BorderWidth;
-            var dir = direction.ToDirection();
-            var normal = dir.OrthoL();
-            return p =>
-            {
-                var offset = p - origin;
-                var dotDir = MathF.Abs(offset.Dot(dir));
-                var dotNormal = MathF.Abs(offset.Dot(normal));
-                var minDot = Math.Min(dotDir, dotNormal);
-                return dotDir > length + delta || dotNormal > length + delta || minDot > halfWidth + delta ? Coverage.Outside
-                    : dotDir > length - delta || dotNormal > length - delta || minDot > halfWidth + delta ? Coverage.Border
-                    : Coverage.Inside;
-            };
-        }
-
-        public Func<WPos, Coverage> CoverageUnion(IEnumerable<Func<WPos, Coverage>> zones) => p =>
-        {
-            Coverage cv = Coverage.None;
-            foreach (var zone in zones)
-            {
-                cv |= zone(p);
-                if (cv.HasFlag(Coverage.Inside))
-                    return Coverage.Inside;
-            }
-            return cv.HasFlag(Coverage.Border) ? Coverage.Border : Coverage.Outside;
-        };
-
-        public Func<WPos, Coverage> CoverageInvert(Func<WPos, Coverage> zone) => p =>
-        {
-            var cv = zone(p);
-            return cv.HasFlag(Coverage.Inside) ? Coverage.Outside : cv.HasFlag(Coverage.Border) ? Coverage.Border : Coverage.Inside;
-        };
-
-        public IEnumerable<(int x, int y, Coverage cv)> Rasterize(Func<WPos, Coverage> r) => EnumeratePixels().Select(p => (p.x, p.y, r(p.center)));
-        public IEnumerable<(int x, int y, Coverage cv)> RasterizeCircle(WPos origin, float radius) => Rasterize(CoverageCircle(origin, radius));
-        public IEnumerable<(int x, int y, Coverage cv)> RasterizeDonut(WPos origin, float innerRadius, float outerRadius) => Rasterize(CoverageDonut(origin, innerRadius, outerRadius));
-        public IEnumerable<(int x, int y, Coverage cv)> RasterizeCone(WPos origin, float radius, Angle centerDir, Angle halfAngle) => Rasterize(CoverageCone(origin, radius, centerDir, halfAngle));
-        public IEnumerable<(int x, int y, Coverage cv)> RasterizeDonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle) => Rasterize(CoverageDonutSector(origin, innerRadius, outerRadius, centerDir, halfAngle));
-        public IEnumerable<(int x, int y, Coverage cv)> RasterizeRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => Rasterize(CoverageRect(origin, direction, lenFront, lenBack, halfWidth));
-        public IEnumerable<(int x, int y, Coverage cv)> RasterizeCross(WPos origin, Angle direction, float length, float halfWidth) => Rasterize(CoverageCross(origin, direction, length, halfWidth));
 
         public IEnumerable<(int x, int y, int priority)> Goals()
         {

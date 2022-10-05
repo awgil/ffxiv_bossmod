@@ -9,7 +9,7 @@ namespace BossMod
         public abstract void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE);
         public abstract void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger);
         public abstract IEnumerable<IEnumerable<WPos>> Contour(WPos origin, Angle rotation, float offset = 0, float maxError = 1); // positive offset increases area, negative decreases
-        public abstract Func<WPos, Pathfinding.Map.Coverage> Coverage(Pathfinding.Map map, WPos origin, Angle rotation);
+        public abstract Func<WPos, float> Distance(WPos origin, Angle rotation);
 
         public bool Check(WPos position, Actor? origin)
         {
@@ -52,7 +52,7 @@ namespace BossMod
             var rot = rotation + DirectionOffset;
             yield return CurveApprox.CircleSector(origin - centerOffset * rot.ToDirection(), Radius + centerOffset + offset, rot - HalfAngle, rot + HalfAngle, maxError);
         }
-        public override Func<WPos, Pathfinding.Map.Coverage> Coverage(Pathfinding.Map map, WPos origin, Angle rotation) => map.CoverageCone(origin, Radius, rotation + DirectionOffset, HalfAngle);
+        public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Cone(origin, Radius, rotation + DirectionOffset, HalfAngle);
     }
 
     public class AOEShapeCircle : AOEShape
@@ -72,7 +72,7 @@ namespace BossMod
         {
             yield return CurveApprox.Circle(origin, Radius + offset, maxError);
         }
-        public override Func<WPos, Pathfinding.Map.Coverage> Coverage(Pathfinding.Map map, WPos origin, Angle rotation) => map.CoverageCircle(origin, Radius);
+        public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Circle(origin, Radius);
     }
 
     public class AOEShapeDonut : AOEShape
@@ -99,7 +99,7 @@ namespace BossMod
             yield return CurveApprox.Circle(origin, OuterRadius + offset, maxError);
             yield return CurveApprox.Circle(origin, InnerRadius - offset, maxError);
         }
-        public override Func<WPos, Pathfinding.Map.Coverage> Coverage(Pathfinding.Map map, WPos origin, Angle rotation) => map.CoverageDonut(origin, InnerRadius, OuterRadius);
+        public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Donut(origin, InnerRadius, OuterRadius);
     }
 
     public class AOEShapeDonutSector : AOEShape
@@ -127,7 +127,7 @@ namespace BossMod
             var rot = rotation + DirectionOffset;
             yield return CurveApprox.DonutSector(origin - centerOffset * rot.ToDirection(), InnerRadius + centerOffset - offset, OuterRadius + centerOffset + offset, rot - HalfAngle, rot + HalfAngle, maxError);
         }
-        public override Func<WPos, Pathfinding.Map.Coverage> Coverage(Pathfinding.Map map, WPos origin, Angle rotation) => map.CoverageDonutSector(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle);
+        public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.DonutSector(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle);
     }
 
     public class AOEShapeRect : AOEShape
@@ -164,7 +164,7 @@ namespace BossMod
             var back = origin - (LengthBack + offset) * direction;
             yield return new[] { front + side, front - side, back - side, back + side };
         }
-        public override Func<WPos, Pathfinding.Map.Coverage> Coverage(Pathfinding.Map map, WPos origin, Angle rotation) => map.CoverageRect(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth);
+        public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Rect(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth);
 
         public void SetEndPoint(WPos endpoint, WPos origin, Angle rotation)
         {
@@ -210,7 +210,7 @@ namespace BossMod
             yield return ContourPoints(origin, rotation, offset);
         }
 
-        public override Func<WPos, Pathfinding.Map.Coverage> Coverage(Pathfinding.Map map, WPos origin, Angle rotation) => map.CoverageCross(origin, rotation + DirectionOffset, Length, HalfWidth);
+        public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Cross(origin, rotation + DirectionOffset, Length, HalfWidth);
 
         private IEnumerable<WPos> ContourPoints(WPos origin, Angle rotation, float offset = 0)
         {

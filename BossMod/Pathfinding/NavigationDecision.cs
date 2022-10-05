@@ -35,6 +35,8 @@ namespace BossMod.Pathfinding
         public int MapGoal;
         public Decision DecisionType;
 
+        public const float ForbiddenZoneCushion = 0.7071068f;
+
         public static NavigationDecision Build(WorldState ws, AIHints hints, Actor player, WPos? targetPos, float targetRadius, Angle targetRot, Positional positional, float playerSpeed = 6)
         {
             // TODO: skip pathfinding if there are no forbidden zones, just find closest point in circle/cone...
@@ -52,24 +54,25 @@ namespace BossMod.Pathfinding
                 numImminentZones = hints.ForbiddenZones.Count;
 
             // check whether player is inside each forbidden zone
-            var inZone = hints.ForbiddenZones.Select(z => z.shape.Check(player.Position, z.origin, z.rot)).ToList();
-            if (inZone.Any(z => z))
+            var zoneDistanceFuncs = hints.ForbiddenZones.Select(z => (z.shape.Distance(z.origin, z.rot), z.activation)).ToList();
+            var inZone = zoneDistanceFuncs.Select(f => f.Item1(player.Position) <= ForbiddenZoneCushion - 0.1f).ToList(); // we might have a situation where player's cell center is outside, but player is not, yet player is too close to center for navigation to work...
+            if (inZone.Any(inside => inside))
             {
                 // we're in forbidden zone => find path to safety (and ideally to uptime zone)
                 // if such a path can't be found (that's always the case if we're inside imminent forbidden zone, but can also happen in other cases), try instead to find a path to safety that doesn't enter any other zones that we're not inside
                 // first build a map with zones that we're outside of as blockers
                 var map = hints.Bounds.BuildMap();
-                foreach (var (z, inside) in hints.ForbiddenZones.Zip(inZone))
+                foreach (var (zf, inside) in zoneDistanceFuncs.Zip(inZone))
                     if (!inside)
-                        AddBlockerZone(map, imminent, z);
+                        AddBlockerZone(map, imminent, zf.Item2, zf.Item1);
 
-                bool inImminentForbiddenZone = inZone.Take(numImminentZones).Any(z => z);
+                bool inImminentForbiddenZone = inZone.Take(numImminentZones).Any(inside => inside);
                 if (!inImminentForbiddenZone)
                 {
                     var map2 = map.Clone();
-                    foreach (var (z, inside) in hints.ForbiddenZones.Zip(inZone))
+                    foreach (var (zf, inside) in zoneDistanceFuncs.Zip(inZone))
                         if (inside)
-                            AddBlockerZone(map2, imminent, z);
+                            AddBlockerZone(map2, imminent, zf.Item2, zf.Item1);
                     int maxGoal = targetPos != null ? AddTargetGoal(map2, targetPos.Value, targetRadius, targetRot, positional, 0) : 0;
                     var res = FindPathFromUnsafe(map2, player.Position, 0, maxGoal, playerSpeed);
                     if (res != null)
@@ -77,9 +80,9 @@ namespace BossMod.Pathfinding
                 }
 
                 // pathfind to any spot outside aoes we're in that doesn't enter new aoes
-                foreach (var (z, inside) in hints.ForbiddenZones.Zip(inZone))
+                foreach (var (zf, inside) in zoneDistanceFuncs.Zip(inZone))
                     if (inside)
-                        map.AddGoal(map.Rasterize(z.shape.Coverage(map, z.origin, z.rot)), Map.Coverage.Inside | Map.Coverage.Border, 0, -1);
+                        map.AddGoal(zf.Item1, ForbiddenZoneCushion, 0, -1);
                 return FindPathFromImminent(map, player.Position, playerSpeed);
             }
 
@@ -90,8 +93,8 @@ namespace BossMod.Pathfinding
                 {
                     // we're not in uptime zone, just run to it, avoiding any aoes
                     var map = hints.Bounds.BuildMap();
-                    foreach (var z in hints.ForbiddenZones)
-                        AddBlockerZone(map, imminent, z);
+                    foreach (var (shape, activation) in zoneDistanceFuncs)
+                        AddBlockerZone(map, imminent, activation, shape);
                     int maxGoal = AddTargetGoal(map, targetPos.Value, targetRadius, targetRot, Positional.Any, 0);
                     if (maxGoal != 0)
                     {
@@ -131,9 +134,9 @@ namespace BossMod.Pathfinding
                 {
                     // we're in uptime zone, but not in correct quadrant - move there, avoiding all aoes and staying within uptime zone
                     var map = hints.Bounds.BuildMap();
-                    map.BlockPixels(map.RasterizeCircle(targetPos.Value, targetRadius), 0, Map.Coverage.Outside | Map.Coverage.Border);
-                    foreach (var z in hints.ForbiddenZones)
-                        AddBlockerZone(map, imminent, z);
+                    map.BlockPixelsInside(ShapeDistance.InvertedCircle(targetPos.Value, targetRadius), 0, 0);
+                    foreach (var (shape, activation) in zoneDistanceFuncs)
+                        AddBlockerZone(map, imminent, activation, shape);
                     int maxGoal = AddPositionalGoal(map, targetPos.Value, targetRadius, targetRot, positional, 0);
                     if (maxGoal > 0)
                     {
@@ -154,17 +157,42 @@ namespace BossMod.Pathfinding
 
         public static DateTime ImminentExplosionTime(DateTime currentTime) => currentTime.AddSeconds(1);
 
-        public static void AddBlockerZone(Map map, DateTime imminent, (AOEShape shape, WPos origin, Angle rot, DateTime activation) zone)
-        {
-            map.BlockPixels(map.Rasterize(zone.shape.Coverage(map, zone.origin, zone.rot)), MathF.Max(0, (float)(zone.activation - imminent).TotalSeconds), Map.Coverage.Inside | Map.Coverage.Border);
-        }
+        public static void AddBlockerZone(Map map, DateTime imminent, DateTime activation, Func<WPos, float> shape) => map.BlockPixelsInside(shape, MathF.Max(0, (float)(activation - imminent).TotalSeconds), ForbiddenZoneCushion);
 
         public static int AddTargetGoal(Map map, WPos targetPos, float targetRadius, Angle targetRot, Positional positional, int minPriority)
         {
-            var adjPrio = map.AddGoal(map.RasterizeCircle(targetPos, targetRadius), Map.Coverage.Inside, minPriority, 1);
+            var adjPrio = map.AddGoal(ShapeDistance.Circle(targetPos, targetRadius), 0, minPriority, 1);
             if (adjPrio == minPriority)
                 return minPriority;
             return AddPositionalGoal(map, targetPos, targetRadius, targetRot, positional, minPriority + 1);
+        }
+
+        public static Func<WPos, float> ShapeDistanceFlank(WPos targetPos, Angle targetRot)
+        {
+            var n1 = (targetRot + 45.Degrees()).ToDirection();
+            var n2 = n1.OrthoL();
+            return p =>
+            {
+                var off = p - targetPos;
+                var d1 = n1.Dot(off);
+                var d2 = n2.Dot(off);
+                var dr = Math.Max(d1, d2);
+                var dl = Math.Max(-d1, -d2);
+                return Math.Min(dr, dl);
+            };
+        }
+
+        public static Func<WPos, float> ShapeDistanceRear(WPos targetPos, Angle targetRot)
+        {
+            var n1 = (targetRot - 45.Degrees()).ToDirection();
+            var n2 = n1.OrthoL();
+            return p =>
+            {
+                var off = p - targetPos;
+                var d1 = n1.Dot(off);
+                var d2 = n2.Dot(off);
+                return Math.Max(d1, d2);
+            };
         }
 
         public static int AddPositionalGoal(Map map, WPos targetPos, float targetRadius, Angle targetRot, Positional positional, int minPriority)
@@ -173,12 +201,10 @@ namespace BossMod.Pathfinding
             switch (positional)
             {
                 case Positional.Flank:
-                    var cvl = map.CoverageCone(targetPos, targetRadius, targetRot + 90.Degrees(), 45.Degrees());
-                    var cvr = map.CoverageCone(targetPos, targetRadius, targetRot - 90.Degrees(), 45.Degrees());
-                    adjPrio = map.AddGoal(map.Rasterize(p => cvl(p) | cvr(p)), Map.Coverage.Inside, minPriority, 1);
+                    adjPrio = map.AddGoal(ShapeDistanceFlank(targetPos, targetRot), 0, minPriority, 1);
                     break;
                 case Positional.Rear:
-                    adjPrio = map.AddGoal(map.RasterizeCone(targetPos, targetRadius, targetRot + 180.Degrees(), 45.Degrees()), Map.Coverage.Inside, minPriority, 1);
+                    adjPrio = map.AddGoal(ShapeDistanceRear(targetPos, targetRot), 0, minPriority, 1);
                     break;
             }
             return adjPrio;
@@ -234,8 +260,6 @@ namespace BossMod.Pathfinding
 
         public static WPos? GetFirstWaypoint(ThetaStar pf, int cell)
         {
-            if (pf.NodeByIndex(cell).GScore == 0)
-                return null; // already at dest
             do
             {
                 ref var node = ref pf.NodeByIndex(cell);

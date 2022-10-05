@@ -329,12 +329,12 @@ namespace UIDev
                 return;
             if (_mgr.ActiveModule == null)
                 return;
+            var player = _mgr.ActiveModule.Raid[_povSlot];
+            if (player == null)
+                return;
 
             if (_pfResult == null)
             {
-                var player = _mgr.ActiveModule.Raid[_povSlot];
-                if (player == null)
-                    return;
                 var target = _mgr.WorldState.Actors.Find(player.TargetID) ?? player;
 
                 _hints.Clear();
@@ -350,7 +350,7 @@ namespace UIDev
                     var map = _hints.Bounds.BuildMap();
                     var imm = NavigationDecision.ImminentExplosionTime(_mgr.WorldState.CurrentTime);
                     foreach (var z in _hints.ForbiddenZones)
-                        NavigationDecision.AddBlockerZone(map, imm, z);
+                        NavigationDecision.AddBlockerZone(map, imm, z.activation, z.shape.Distance(z.origin, z.rot));
                     var goal = NavigationDecision.AddTargetGoal(map, target.Position, target.HitboxRadius + player.HitboxRadius + _pfTargetRadius, target.Rotation, _pfPositional, 0);
                     _pf = new(map, goal, player.Position);
                 }
@@ -360,10 +360,11 @@ namespace UIDev
 
             _pf?.Draw();
 
-            ImGui.TextUnformatted($"Decision: {_pfResult.Value.DecisionType}, leeway={_pfResult.Value.LeewaySeconds:f3}, ttg={_pfResult.Value.TimeToGoal:f3}");
-            if (ImGui.SliderFloat("Ability range", ref _pfTargetRadius, 3, 25))
-                ResetPF();
-            if (UICombo.Enum("Ability positional", ref _pfPositional))
+            bool rebuild = false;
+            ImGui.TextUnformatted($"Decision: {_pfResult.Value.DecisionType}, leeway={_pfResult.Value.LeewaySeconds:f3}, ttg={_pfResult.Value.TimeToGoal:f3}, dist={((_pfResult.Value.Destination ?? player.Position) - player.Position).Length():f3}");
+            rebuild |= ImGui.SliderFloat("Ability range", ref _pfTargetRadius, 3, 25);
+            rebuild |= UICombo.Enum("Ability positional", ref _pfPositional);
+            if (rebuild)
                 ResetPF();
         }
 

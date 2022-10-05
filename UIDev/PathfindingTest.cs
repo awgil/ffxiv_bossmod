@@ -12,6 +12,7 @@ namespace UIDev
         private MapVisualizer _visu;
 
         private float _mapResolution = 1;
+        private float _mapThreshold = 0.5f;
         private Vector2 _mapCenter;
         private Vector2 _mapHalfSize = new(20, 20);
         private float _mapRotationDeg;
@@ -22,14 +23,14 @@ namespace UIDev
         private float _targetFacingDeg;
         private int _goalPrio = 15;
 
-        private Map.Coverage _blockCone = Map.Coverage.Inside | Map.Coverage.Border;
+        private bool _blockCone = true;
         private Vector2 _blockConeCenter = new(0, 1);
         private Vector2 _blockConeRadius = new(0, 10);
         private float _blockConeRotationDeg;
         private float _blockConeHalfAngle = 180;
         private float _blockConeG = 0;
 
-        private Map.Coverage _blockRect = Map.Coverage.None;
+        private bool _blockRect = false;
         private Vector2 _blockRectCenter = new(0, 0);
         private Vector2 _blockRectLen = new(20, 20);
         private float _blockRectHalfWidth = 20;
@@ -53,6 +54,7 @@ namespace UIDev
             if (ImGui.CollapsingHeader("Map setup"))
             {
                 rebuild |= ImGui.DragFloat("Resolution", ref _mapResolution, 0.1f, 0.1f, 10, "%.1f", ImGuiSliderFlags.Logarithmic);
+                rebuild |= ImGui.DragFloat("Block zone threshold", ref _mapThreshold, 0.1f, -5, 5);
                 rebuild |= ImGui.DragFloat2("Center", ref _mapCenter);
                 rebuild |= ImGui.DragFloat2("Half-size", ref _mapHalfSize, 1, 0, 30);
                 rebuild |= ImGui.DragFloat("Rotation", ref _mapRotationDeg, 5, -180, 180);
@@ -64,8 +66,8 @@ namespace UIDev
 
                 rebuild |= ImGui.DragInt("Goal priority", ref _goalPrio, 1, 0, 100);
 
-                rebuild |= DrawCoverage("Block cone", ref _blockCone);
-                if (_blockCone != Map.Coverage.None)
+                rebuild |= ImGui.Checkbox("Block cone", ref _blockCone);
+                if (_blockCone)
                 {
                     rebuild |= ImGui.DragFloat2("Block cone: center", ref _blockConeCenter, 0.25f);
                     rebuild |= ImGui.DragFloat2("Block cone: radius", ref _blockConeRadius, 0.25f, 0, 30);
@@ -74,8 +76,8 @@ namespace UIDev
                     rebuild |= ImGui.DragFloat("Block cone: max-g", ref _blockConeG, 1, 0, 100);
                 }
 
-                rebuild |= DrawCoverage("Block rect", ref _blockRect);
-                if (_blockRect != Map.Coverage.None)
+                rebuild |= ImGui.Checkbox("Block rect", ref _blockRect);
+                if (_blockRect)
                 {
                     rebuild |= ImGui.DragFloat2("Block rect: center", ref _blockRectCenter, 0.25f);
                     rebuild |= ImGui.DragFloat2("Block rect: length", ref _blockRectLen, 0.25f, 0, 30);
@@ -91,68 +93,24 @@ namespace UIDev
 
         public ImGuiWindowFlags WindowFlags() { return ImGuiWindowFlags.None; }
 
-        private bool DrawCoverage(string label, ref Map.Coverage v)
-        {
-            var castV = (int)v;
-            bool changed = false;
-            ImGui.TextUnformatted(label);
-            ImGui.SameLine();
-            changed |= ImGui.CheckboxFlags($"Inside##{label}", ref castV, (int)Map.Coverage.Inside);
-            ImGui.SameLine();
-            changed |= ImGui.CheckboxFlags($"Border##{label}", ref castV, (int)Map.Coverage.Border);
-            ImGui.SameLine();
-            changed |= ImGui.CheckboxFlags($"Outside##{label}", ref castV, (int)Map.Coverage.Outside);
-            if (changed)
-                v = (Map.Coverage)castV;
-            return changed;
-        }
-
         private MapVisualizer RebuildMap()
         {
             Map map = new(_mapResolution, new(_mapCenter), _mapHalfSize.X, _mapHalfSize.Y, _mapRotationDeg.Degrees());
-            if (_blockCone != Map.Coverage.None)
-                map.BlockPixels(map.RasterizeDonutSector(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()), _blockConeG, _blockCone);
-            if (_blockRect != Map.Coverage.None)
-                map.BlockPixels(map.RasterizeRect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth), _blockRectG, _blockRect);
-            map.AddGoal(map.RasterizeCircle(new(_targetPos), _targetRadius), Map.Coverage.Inside, 0, 10);
-            map.AddGoal(map.RasterizeCone(new(_targetPos), _targetRadius, _targetFacingDeg.Degrees(), 45.Degrees()), Map.Coverage.Inside, 10, 5);
+            if (_blockCone)
+                map.BlockPixelsInside(ShapeDistance.DonutSector(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()), _blockConeG, _mapThreshold);
+            if (_blockRect)
+                map.BlockPixelsInside(ShapeDistance.Rect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth), _blockRectG, _mapThreshold);
+            map.AddGoal(ShapeDistance.Circle(new(_targetPos), _targetRadius), 0, 0, 10);
+            map.AddGoal(ShapeDistance.Cone(new(_targetPos), _targetRadius, _targetFacingDeg.Degrees(), 45.Degrees()), 0, 10, 5);
 
             var visu = new MapVisualizer(map, _goalPrio, new(_startingPos));
 
-            if (_blockCone != Map.Coverage.None)
+            if (_blockCone)
                 visu.Sectors.Add((new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()));
-            if (_blockRect != Map.Coverage.None)
+            if (_blockRect)
                 visu.Rects.Add((new(_blockRectCenter), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth, _blockRectRotationDeg.Degrees()));
 
             return visu;
         }
-
-        //private (ThetaStar, int) RebuildPathfinding(Map map)
-        //{
-        //    var start = map.WorldToGrid(new(_startingPos));
-        //    if (start.x < 0 || start.x >= map.Width || start.y < 0 || start.y >= map.Height)
-        //    {
-        //        var pathfind = new ThetaStar(map, Enumerable.Empty<(int, int)>(), 0, 0);
-        //        var pathfindResult = pathfind.Execute();
-        //        return (pathfind, pathfindResult);
-        //    }
-
-        //    var goals = map.Goals().ToList();
-        //    goals.SortByReverse(x => x.priority);
-        //    for (int begin = 0; begin < goals.Count;)
-        //    {
-        //        int prio = goals[begin].priority;
-        //        int end = begin + 1;
-        //        while (end < goals.Count && goals[end].priority == prio)
-        //            ++end;
-        //        var pathfind = new ThetaStar(map, goals.Skip(begin).Take(end - begin).Select(x => (x.x, x.y)), start.x, start.y);
-        //        var pathfindResult = pathfind.Execute();
-        //        if (pathfindResult >= 0)
-        //            return (pathfind, pathfindResult);
-        //        begin = end;
-        //    }
-
-        //    return (new ThetaStar(map, Enumerable.Empty<(int, int)>(), 0, 0), -1);
-        //}
     }
 }
