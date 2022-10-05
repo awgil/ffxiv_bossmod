@@ -17,6 +17,8 @@ namespace BossMod.Components
             public List<(WPos Center, float Radius)> Blockers = new();
             public List<(float Distance, Angle Dir, Angle HalfWidth)> Visibility = new();
 
+            public override string ToString() => $"LOS: r={MaxRange:f3}, blockers=[{string.Join(", ", Blockers.Select(b => $"{b.Center} r{b.Radius:f3}"))}]";
+
             public override bool Check(WPos position, WPos origin, Angle rotation)
             {
                 return Origin != null

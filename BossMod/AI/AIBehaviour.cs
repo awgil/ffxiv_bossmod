@@ -172,7 +172,7 @@ namespace BossMod.AI
         public void DrawDebug()
         {
             ImGui.Checkbox("Passively follow", ref _passive);
-            ImGui.TextUnformatted($"Max-cast={_maxCastTime}, afk={_afkMode}, follow={_followMaster}, algo={_naviDecision.DecisionType}, master standing for {(_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds:f1}");
+            ImGui.TextUnformatted($"Max-cast={MathF.Min(_maxCastTime, 1000):f3}, afk={_afkMode}, follow={_followMaster}, algo={_naviDecision.DecisionType}, master standing for {Math.Clamp((_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds, 0, 1000):f1}");
         }
     }
 }
