@@ -27,6 +27,7 @@ namespace UIDev
 
         private MapVisualizer? _pf;
         private NavigationDecision? _pfResult;
+        private float _pfCushion = NavigationDecision.DefaultForbiddenZoneCushion;
         private float _pfTargetRadius = 3;
         private Positional _pfPositional = Positional.Any;
 
@@ -340,7 +341,7 @@ namespace UIDev
                 _hints.Clear();
                 _mgr.ActiveModule.CalculateAIHints(_povSlot, player, _hints);
                 _hints.Normalize();
-                _pfResult = NavigationDecision.Build(_mgr.WorldState, _hints, player, target.Position, target.HitboxRadius + player.HitboxRadius + _pfTargetRadius, target.Rotation, _pfPositional);
+                _pfResult = NavigationDecision.Build(_mgr.WorldState, _hints, player, target.Position, target.HitboxRadius + player.HitboxRadius + _pfTargetRadius, target.Rotation, _pfPositional, forbiddenZoneCushion: _pfCushion);
                 if (_pfResult.Value.Map != null)
                 {
                     _pf = new(_pfResult.Value.Map, _pfResult.Value.MapGoal, player.Position);
@@ -350,7 +351,7 @@ namespace UIDev
                     var map = _hints.Bounds.BuildMap();
                     var imm = NavigationDecision.ImminentExplosionTime(_mgr.WorldState.CurrentTime);
                     foreach (var z in _hints.ForbiddenZones)
-                        NavigationDecision.AddBlockerZone(map, imm, z.activation, z.shape.Distance(z.origin, z.rot));
+                        NavigationDecision.AddBlockerZone(map, imm, z.activation, z.shape.Distance(z.origin, z.rot), _pfCushion);
                     var goal = NavigationDecision.AddTargetGoal(map, target.Position, target.HitboxRadius + player.HitboxRadius + _pfTargetRadius, target.Rotation, _pfPositional, 0);
                     _pf = new(map, goal, player.Position);
                 }
@@ -362,6 +363,7 @@ namespace UIDev
 
             bool rebuild = false;
             ImGui.TextUnformatted($"Decision: {_pfResult.Value.DecisionType}, leeway={_pfResult.Value.LeewaySeconds:f3}, ttg={_pfResult.Value.TimeToGoal:f3}, dist={((_pfResult.Value.Destination ?? player.Position) - player.Position).Length():f3}");
+            rebuild |= ImGui.SliderFloat("Zone cushion", ref _pfCushion, 0.1f, 5);
             rebuild |= ImGui.SliderFloat("Ability range", ref _pfTargetRadius, 3, 25);
             rebuild |= UICombo.Enum("Ability positional", ref _pfPositional);
             if (rebuild)

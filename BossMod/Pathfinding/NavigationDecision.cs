@@ -35,9 +35,9 @@ namespace BossMod.Pathfinding
         public int MapGoal;
         public Decision DecisionType;
 
-        public const float ForbiddenZoneCushion = 0.7071068f;
+        public const float DefaultForbiddenZoneCushion = 0.7071068f;
 
-        public static NavigationDecision Build(WorldState ws, AIHints hints, Actor player, WPos? targetPos, float targetRadius, Angle targetRot, Positional positional, float playerSpeed = 6)
+        public static NavigationDecision Build(WorldState ws, AIHints hints, Actor player, WPos? targetPos, float targetRadius, Angle targetRot, Positional positional, float playerSpeed = 6, float forbiddenZoneCushion = DefaultForbiddenZoneCushion)
         {
             // TODO: skip pathfinding if there are no forbidden zones, just find closest point in circle/cone...
 
@@ -55,7 +55,7 @@ namespace BossMod.Pathfinding
 
             // check whether player is inside each forbidden zone
             var zoneDistanceFuncs = hints.ForbiddenZones.Select(z => (z.shape.Distance(z.origin, z.rot), z.activation)).ToList();
-            var inZone = zoneDistanceFuncs.Select(f => f.Item1(player.Position) <= ForbiddenZoneCushion - 0.1f).ToList(); // we might have a situation where player's cell center is outside, but player is not, yet player is too close to center for navigation to work...
+            var inZone = zoneDistanceFuncs.Select(f => f.Item1(player.Position) <= forbiddenZoneCushion - 0.1f).ToList(); // we might have a situation where player's cell center is outside, but player is not, yet player is too close to center for navigation to work...
             if (inZone.Any(inside => inside))
             {
                 // we're in forbidden zone => find path to safety (and ideally to uptime zone)
@@ -64,7 +64,7 @@ namespace BossMod.Pathfinding
                 var map = hints.Bounds.BuildMap();
                 foreach (var (zf, inside) in zoneDistanceFuncs.Zip(inZone))
                     if (!inside)
-                        AddBlockerZone(map, imminent, zf.Item2, zf.Item1);
+                        AddBlockerZone(map, imminent, zf.Item2, zf.Item1, forbiddenZoneCushion);
 
                 bool inImminentForbiddenZone = inZone.Take(numImminentZones).Any(inside => inside);
                 if (!inImminentForbiddenZone)
@@ -72,7 +72,7 @@ namespace BossMod.Pathfinding
                     var map2 = map.Clone();
                     foreach (var (zf, inside) in zoneDistanceFuncs.Zip(inZone))
                         if (inside)
-                            AddBlockerZone(map2, imminent, zf.Item2, zf.Item1);
+                            AddBlockerZone(map2, imminent, zf.Item2, zf.Item1, forbiddenZoneCushion);
                     int maxGoal = targetPos != null ? AddTargetGoal(map2, targetPos.Value, targetRadius, targetRot, positional, 0) : 0;
                     var res = FindPathFromUnsafe(map2, player.Position, 0, maxGoal, playerSpeed);
                     if (res != null)
@@ -82,7 +82,7 @@ namespace BossMod.Pathfinding
                 // pathfind to any spot outside aoes we're in that doesn't enter new aoes
                 foreach (var (zf, inside) in zoneDistanceFuncs.Zip(inZone))
                     if (inside)
-                        map.AddGoal(zf.Item1, ForbiddenZoneCushion, 0, -1);
+                        map.AddGoal(zf.Item1, forbiddenZoneCushion, 0, -1);
                 return FindPathFromImminent(map, player.Position, playerSpeed);
             }
 
@@ -94,7 +94,7 @@ namespace BossMod.Pathfinding
                     // we're not in uptime zone, just run to it, avoiding any aoes
                     var map = hints.Bounds.BuildMap();
                     foreach (var (shape, activation) in zoneDistanceFuncs)
-                        AddBlockerZone(map, imminent, activation, shape);
+                        AddBlockerZone(map, imminent, activation, shape, forbiddenZoneCushion);
                     int maxGoal = AddTargetGoal(map, targetPos.Value, targetRadius, targetRot, Positional.Any, 0);
                     if (maxGoal != 0)
                     {
@@ -136,7 +136,7 @@ namespace BossMod.Pathfinding
                     var map = hints.Bounds.BuildMap();
                     map.BlockPixelsInside(ShapeDistance.InvertedCircle(targetPos.Value, targetRadius), 0, 0);
                     foreach (var (shape, activation) in zoneDistanceFuncs)
-                        AddBlockerZone(map, imminent, activation, shape);
+                        AddBlockerZone(map, imminent, activation, shape, forbiddenZoneCushion);
                     int maxGoal = AddPositionalGoal(map, targetPos.Value, targetRadius, targetRot, positional, 0);
                     if (maxGoal > 0)
                     {
@@ -157,7 +157,7 @@ namespace BossMod.Pathfinding
 
         public static DateTime ImminentExplosionTime(DateTime currentTime) => currentTime.AddSeconds(1);
 
-        public static void AddBlockerZone(Map map, DateTime imminent, DateTime activation, Func<WPos, float> shape) => map.BlockPixelsInside(shape, MathF.Max(0, (float)(activation - imminent).TotalSeconds), ForbiddenZoneCushion);
+        public static void AddBlockerZone(Map map, DateTime imminent, DateTime activation, Func<WPos, float> shape, float threshold) => map.BlockPixelsInside(shape, MathF.Max(0, (float)(activation - imminent).TotalSeconds), threshold);
 
         public static int AddTargetGoal(Map map, WPos targetPos, float targetRadius, Angle targetRot, Positional positional, int minPriority)
         {
