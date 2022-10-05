@@ -34,6 +34,7 @@ namespace BossMod.Pathfinding
         public int Width { get; private init; } // always even
         public int Height { get; private init; } // always even
         public Pixel[] Pixels { get; private set; }
+        public float BorderWidth => Resolution * 1.4142f;
 
         public WPos Center { get; private init; } // position of map center in world units
         public Angle Rotation { get; private init; } // rotation relative to world space (=> ToDirection() is equal to direction of local 'height' axis in world space)
@@ -124,7 +125,7 @@ namespace BossMod.Pathfinding
             if (outerRadius <= 0 || innerRadius >= outerRadius)
                 return _ => Coverage.Outside;
 
-            var delta = Resolution * 0.707107f;
+            var delta = BorderWidth;
             var r1 = outerRadius + delta; // d >= r1 => fully outside
             r1 *= r1;
             var r2 = Math.Max(0, outerRadius - delta);
@@ -150,7 +151,7 @@ namespace BossMod.Pathfinding
             if (halfAngle.Rad >= MathF.PI)
                 return CoverageDonut(origin, innerRadius, outerRadius);
 
-            var delta = Resolution * 0.707107f;
+            var delta = BorderWidth;
             var r1 = outerRadius + delta; // d >= r1 => fully outside
             var r2 = Math.Max(0, outerRadius - delta);
             var r3 = innerRadius > 0 ? innerRadius + delta : 0; // r2 > d >= r3 => fully inside
@@ -175,7 +176,7 @@ namespace BossMod.Pathfinding
 
         public Func<WPos, Coverage> CoverageRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth)
         {
-            var delta = Resolution * 0.707107f;
+            var delta = BorderWidth;
             var dir = direction.ToDirection();
             var normal = dir.OrthoL();
             return p =>
@@ -191,7 +192,7 @@ namespace BossMod.Pathfinding
 
         public Func<WPos, Coverage> CoverageCross(WPos origin, Angle direction, float length, float halfWidth)
         {
-            var delta = Resolution * 0.707107f;
+            var delta = BorderWidth;
             var dir = direction.ToDirection();
             var normal = dir.OrthoL();
             return p =>
