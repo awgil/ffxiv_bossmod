@@ -34,7 +34,7 @@ namespace BossMod.Pathfinding
         public int Width { get; private init; } // always even
         public int Height { get; private init; } // always even
         public Pixel[] Pixels { get; private set; }
-        public float BorderWidth => Resolution * 1.4142f;
+        public float BorderWidth => Resolution * 2.8284f;
 
         public WPos Center { get; private init; } // position of map center in world units
         public Angle Rotation { get; private init; } // rotation relative to world space (=> ToDirection() is equal to direction of local 'height' axis in world space)

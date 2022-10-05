@@ -53,7 +53,7 @@ namespace BossMod.AI
             if (_forbidMovement)
                 _naviDecision = new() { LeewaySeconds = float.MaxValue };
             else if (_followMaster)
-                _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, master.Position, 1, new(), Positional.Any);
+                _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, master.Position, 2, new(), Positional.Any);
             else if (target.Target != null)
                 _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, target.Target.Position, target.PreferredRange + player.HitboxRadius + target.Target.HitboxRadius, target.Target.Rotation, target.PreferredPosition);
             else

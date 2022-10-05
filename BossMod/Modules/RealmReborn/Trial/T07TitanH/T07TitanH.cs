@@ -162,7 +162,7 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
                     OID.Boss => 1,
                     _ => 0
                 };
-                enemy.AttackStrength = (OID)enemy.Actor.OID == OID.Boss ? 0.45f : 0;
+                enemy.AttackStrength = (OID)enemy.Actor.OID == OID.Boss ? 0.3f : 0;
             });
         }
     }

@@ -152,7 +152,7 @@ namespace BossMod.Pathfinding
             return new() { Destination = null, LeewaySeconds = float.MaxValue, TimeToGoal = 0, DecisionType = Decision.Optimal };
         }
 
-        public static DateTime ImminentExplosionTime(DateTime currentTime) => currentTime.AddSeconds(0.5);
+        public static DateTime ImminentExplosionTime(DateTime currentTime) => currentTime.AddSeconds(1);
 
         public static void AddBlockerZone(Map map, DateTime imminent, (AOEShape shape, WPos origin, Angle rot, DateTime activation) zone)
         {
