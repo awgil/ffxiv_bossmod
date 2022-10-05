@@ -11,7 +11,8 @@ namespace BossMod.AI
         private Autorotation _autorot;
         private AIController _ctrl;
         private NavigationDecision _naviDecision;
-        private bool _passive;
+        private bool _forbidMovement;
+        private bool _forbidActions;
         private bool _afkMode;
         private bool _followMaster; // if true, our navigation target is master rather than primary target - this happens e.g. in outdoor or in dungeons during gathering trash
         private float _maxCastTime;
@@ -31,21 +32,28 @@ namespace BossMod.AI
 
         public void Execute(Actor player, Actor master)
         {
+            if (_ctrl.InCutscene)
+                return;
+
             // keep master in focus
             FocusMaster(master);
 
-            var target = SelectPrimaryTarget(player, master);
-            _autorot.PrimaryTarget = target.Target;
+            _afkMode = !master.InCombat && (_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
+            bool forbidActions = _forbidActions || _ctrl.IsMounted || _afkMode || _autorot.ClassActions == null || _autorot.ClassActions.AutoAction >= CommonActions.AutoActionFirstCustom;
+
+            var target = forbidActions ? new() : SelectPrimaryTarget(player, master);
+            if (!forbidActions)
+                _autorot.PrimaryTarget = target.Target;
             if (target.Target != null)
                 _ctrl.SetPrimaryTarget(target.Target);
 
             AdjustTargetPositional(player, ref target);
 
-            _afkMode = !master.InCombat && (_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
-
             _followMaster = master != player && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (!master.InCombat || (_masterPrevPos - _masterMovementStart).LengthSq() > 100);
-            if (_followMaster)
-                _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, master.Position, master.InCombat ? 5 : 1, new(), Positional.Any);
+            if (_forbidMovement)
+                _naviDecision = new() { LeewaySeconds = float.MaxValue };
+            else if (_followMaster)
+                _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, master.Position, 1, new(), Positional.Any);
             else if (target.Target != null)
                 _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, target.Target.Position, target.PreferredRange + player.HitboxRadius + target.Target.HitboxRadius, target.Target.Rotation, target.PreferredPosition);
             else
@@ -56,19 +64,19 @@ namespace BossMod.AI
             _maxCastTime = moveWithMaster || _ctrl.ForceFacing ? 0 : _naviDecision.LeewaySeconds;
 
             // note: that there is a 1-frame delay if target and/or strategy changes - we don't really care?..
-            if (_autorot.ClassActions != null && _autorot.ClassActions.AutoAction < CommonActions.AutoActionFirstCustom && !_passive)
+            if (!forbidActions)
             {
-                int actionStrategy = target.Target != null ? CommonActions.AutoActionAIFight : !_afkMode ? CommonActions.AutoActionAIIdle : CommonActions.AutoActionNone;
-                _autorot.ClassActions.UpdateAutoAction(actionStrategy, _maxCastTime);
+                int actionStrategy = target.Target != null ? CommonActions.AutoActionAIFight : CommonActions.AutoActionAIIdle;
+                _autorot.ClassActions?.UpdateAutoAction(actionStrategy, _maxCastTime);
             }
 
-            UpdateMovement(player, master, target);
+            UpdateMovement(player, master, target, !forbidActions);
         }
 
         // returns null if we're to be idle, otherwise target to attack
         private CommonActions.Targeting SelectPrimaryTarget(Actor player, Actor master)
         {
-            if (!_autorot.Hints.PriorityTargets.Any() || !master.InCombat || _ctrl.InCutscene || _ctrl.IsMounted || _autorot.ClassActions == null)
+            if (!_autorot.Hints.PriorityTargets.Any() || !master.InCombat || _autorot.ClassActions == null)
                 return new(); // there are no valid targets to attack, or we're not fighting - remain idle
 
             // we prefer not to switch targets unnecessarily, so start with current target - it could've been selected manually or by AI on previous frames
@@ -133,7 +141,7 @@ namespace BossMod.AI
             return masterIsMoving;
         }
 
-        private void UpdateMovement(Actor player, Actor master, CommonActions.Targeting target)
+        private void UpdateMovement(Actor player, Actor master, CommonActions.Targeting target, bool allowSprint)
         {
             var destRot = AvoidGaze.Update(player, target.Target?.Position, _autorot.Hints, _autorot.WorldState.CurrentTime.AddSeconds(0.5));
             if (destRot != null)
@@ -162,7 +170,7 @@ namespace BossMod.AI
                 //    _ctrl.TargetRot = cameraFacing.OrthoL().Dot(_ctrl.TargetRot.Value) > 0 ? _ctrl.TargetRot.Value.OrthoR() : _ctrl.TargetRot.Value.OrthoL();
 
                 // sprint, if not in combat and far enough away from destination
-                if (!player.InCombat && player != master && distSq > 400 && !_ctrl.IsMounted && !_ctrl.InCutscene)
+                if (allowSprint && !player.InCombat && player != master && distSq > 400)
                 {
                     _autorot.ClassActions?.HandleUserActionRequest(CommonDefinitions.IDSprint, player);
                 }
@@ -171,7 +179,9 @@ namespace BossMod.AI
 
         public void DrawDebug()
         {
-            ImGui.Checkbox("Passively follow", ref _passive);
+            ImGui.Checkbox("Forbid actions", ref _forbidActions);
+            ImGui.SameLine();
+            ImGui.Checkbox("Forbid movement", ref _forbidMovement);
             ImGui.TextUnformatted($"Max-cast={MathF.Min(_maxCastTime, 1000):f3}, afk={_afkMode}, follow={_followMaster}, algo={_naviDecision.DecisionType}, master standing for {Math.Clamp((_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds, 0, 1000):f1}");
         }
     }

@@ -31,7 +31,7 @@
         public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             if (actor.Role != Role.Tank)
-                hints.ForbiddenZones.Add((_shape, module.PrimaryActor.Position, module.PrimaryActor.Rotation + 90.Degrees(), module.WorldState.CurrentTime));
+                hints.ForbiddenZones.Add((_shape, module.PrimaryActor.Position, module.PrimaryActor.Rotation, module.WorldState.CurrentTime));
         }
     }
 

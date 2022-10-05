@@ -168,8 +168,8 @@ namespace BossMod.AI
             {
                 var deltaY = NaviTargetVertical.Value - player.PosRot.Y;
                 var deltaXZ = (NaviTargetPos.Value - player.Position).Length();
-                var deltaAltitude = Angle.FromDirection(new(-deltaY, deltaXZ)) - CameraAltitude;
-                _axisVertical.CurDirection = deltaAltitude.Rad > 0.088f ? -1 : deltaAltitude.Rad < -0.088f ? +1 : 0;
+                var deltaAltitude = (Angle.FromDirection(new(-deltaY, deltaXZ)) - CameraAltitude).Deg;
+                _axisVertical.CurDirection = deltaAltitude > 3 ? -1 : deltaAltitude < -3 ? +1 : 0;
             }
             else
             {

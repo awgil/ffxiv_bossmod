@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BossMod.Pathfinding;
+using System;
 using System.Linq;
 
 namespace BossMod
@@ -32,6 +33,25 @@ namespace BossMod
             foreach (var n in _tree.Node("Predicted damage", _autorot.Hints.PredictedDamage.Count == 0))
             {
                 _tree.LeafNodes(_autorot.Hints.PredictedDamage, d => $"[{string.Join(", ", _autorot.WorldState.Party.WithSlot().IncludedInMask(d.players).Select(ia => ia.Item2.Name))}], at {Math.Max(0, (d.activation - _autorot.WorldState.CurrentTime).TotalSeconds):f3}");
+            }
+            foreach (var n in _tree.Node("Pathfinding"))
+            {
+                var player = _autorot.WorldState.Party.Player();
+                if (player != null)
+                {
+                    var map = _autorot.Hints.Bounds.BuildMap();
+                    var imm = NavigationDecision.ImminentExplosionTime(_autorot.WorldState.CurrentTime);
+                    foreach (var z in _autorot.Hints.ForbiddenZones)
+                        NavigationDecision.AddBlockerZone(map, imm, z);
+                    int goal = 0;
+                    if (_autorot.PrimaryTarget != null && _autorot.ClassActions != null)
+                    {
+                        var tgt = _autorot.ClassActions.SelectBetterTarget(_autorot.PrimaryTarget);
+                        if (tgt.Target != null)
+                            goal = NavigationDecision.AddTargetGoal(map, tgt.Target.Position, tgt.Target.HitboxRadius + player.HitboxRadius + tgt.PreferredRange, tgt.Target.Rotation, tgt.PreferredPosition, 0);
+                    }
+                    new MapVisualizer(map, goal, player.Position).Draw();
+                }
             }
         }
     }

@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod.Pathfinding
 {
@@ -40,7 +37,9 @@ namespace BossMod.Pathfinding
 
         public static NavigationDecision Build(WorldState ws, AIHints hints, Actor player, WPos? targetPos, float targetRadius, Angle targetRot, Positional positional, float playerSpeed = 6)
         {
-            // first check that player is in bounds; otherwise pathfinding won't work properly anyway
+            // TODO: skip pathfinding if there are no forbidden zones, just find closest point in circle/cone...
+
+            // check that player is in bounds; otherwise pathfinding won't work properly anyway
             if (!hints.Bounds.Contains(player.Position))
             {
                 var dest = hints.Bounds.ClampToBounds(player.Position);
