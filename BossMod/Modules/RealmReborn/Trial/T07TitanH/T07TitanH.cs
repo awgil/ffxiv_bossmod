@@ -95,7 +95,7 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
                     _ => module.Bounds.HalfSize
                 };
                 _outer = new AOEShapeDonut(outerRadius, module.Bounds.HalfSize);
-                _inner = new AOEShapeCircle(outerRadius - 2); // TODO: check falloff...
+                _inner = new AOEShapeCircle(outerRadius - 3); // TODO: check falloff...
                 _innerFinish = spell.FinishAt;
             }
         }
