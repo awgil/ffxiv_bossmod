@@ -97,7 +97,7 @@ namespace BossMod.SCH
                 return MakeResult(AID.Adloquium, preshieldTarget);
 
             // finally perform damage rotation
-            if (Autorot.PrimaryTarget != null)
+            if (_state.CurMP > 3000 && Autorot.PrimaryTarget != null)
                 return MakeResult(Rotation.GetNextBestDamageGCD(_state, _strategy), Autorot.PrimaryTarget);
 
             return new(); // chill

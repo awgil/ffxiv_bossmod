@@ -49,7 +49,7 @@ namespace BossMod
                     state.PredictedHPRatio = (float)state.PredictedHPCur / actor.HP.Max;
                     foreach (var s in actor.Statuses)
                     {
-                        if (!state.HaveRemovableDebuffs && Utils.StatusIsRemovable(s.ID))
+                        if (!state.HaveRemovableDebuffs && actor.IsTargetable && Utils.StatusIsRemovable(s.ID))
                             state.HaveRemovableDebuffs = true;
                         if (IsHOT(s.ID))
                             state.PredictedHPRatio += 0.1f;

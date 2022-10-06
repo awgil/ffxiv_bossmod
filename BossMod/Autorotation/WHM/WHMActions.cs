@@ -131,11 +131,13 @@ namespace BossMod.WHM
                         return MakeResult(AID.Regen, regenTarget);
 
                     // finally perform damage rotation
-                    if (Rotation.CanCast(_state, _strategy, 2.5f) && _strategy.NumHolyTargets >= 3)
-                        return MakeResult(_state.BestHoly, Player);
-
-                    if (Autorot.PrimaryTarget != null)
-                        return MakeResult(Rotation.GetNextBestSTDamageGCD(_state, _strategy), Autorot.PrimaryTarget);
+                    if (_state.CurMP > 3000)
+                    {
+                        if (Rotation.CanCast(_state, _strategy, 2.5f) && _strategy.NumHolyTargets >= 3)
+                            return MakeResult(_state.BestHoly, Player);
+                        if (Autorot.PrimaryTarget != null)
+                            return MakeResult(Rotation.GetNextBestSTDamageGCD(_state, _strategy), Autorot.PrimaryTarget);
+                    }
 
                     return new(); // chill
             }
