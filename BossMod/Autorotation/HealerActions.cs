@@ -36,11 +36,11 @@ namespace BossMod
             {
                 var actor = Autorot.WorldState.Party[i];
                 ref var state = ref PartyMemberStates[i];
+                state.HaveRemovableDebuffs = false;
                 if (actor == null || actor.IsDead || actor.HP.Max == 0)
                 {
                     state.PredictedHPCur = state.PredictedHPDeficit = 0;
                     state.PredictedHPRatio = 1;
-                    state.HaveRemovableDebuffs = false;
                 }
                 else
                 {
