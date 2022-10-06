@@ -195,6 +195,20 @@ namespace BossMod.Pathfinding
             };
         }
 
+        public static Func<WPos, float> ShapeDistanceFront(WPos targetPos, Angle targetRot)
+        {
+            // TODO: think more about it, currently using 30-degree frontal cone...
+            var n1 = (targetRot + 15.Degrees()).ToDirection().OrthoL();
+            var n2 = (targetRot - 15.Degrees()).ToDirection().OrthoR();
+            return p =>
+            {
+                var off = p - targetPos;
+                var d1 = n1.Dot(off);
+                var d2 = n2.Dot(off);
+                return Math.Max(d1, d2);
+            };
+        }
+
         public static int AddPositionalGoal(Map map, WPos targetPos, float targetRadius, Angle targetRot, Positional positional, int minPriority)
         {
             var adjPrio = minPriority;
@@ -205,6 +219,9 @@ namespace BossMod.Pathfinding
                     break;
                 case Positional.Rear:
                     adjPrio = map.AddGoal(ShapeDistanceRear(targetPos, targetRot), 0, minPriority, 1);
+                    break;
+                case Positional.Front:
+                    adjPrio = map.AddGoal(ShapeDistanceFront(targetPos, targetRot), 0, minPriority, 1);
                     break;
             }
             return adjPrio;

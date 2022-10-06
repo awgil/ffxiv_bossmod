@@ -50,14 +50,7 @@ namespace BossMod.AI
             AdjustTargetPositional(player, ref target);
 
             _followMaster = master != player && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (!master.InCombat || (_masterPrevPos - _masterMovementStart).LengthSq() > 100);
-            if (_forbidMovement)
-                _naviDecision = new() { LeewaySeconds = float.MaxValue };
-            else if (_followMaster)
-                _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, master.Position, 1, new(), Positional.Any);
-            else if (target.Target != null)
-                _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, target.Target.Actor.Position, target.PreferredRange + player.HitboxRadius + target.Target.Actor.HitboxRadius, target.Target.Actor.Rotation, target.PreferredPosition);
-            else
-                _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, null, 0, new(), Positional.Any);
+            _naviDecision = BuildNavigationDecision(player, master, ref target);
 
             bool masterIsMoving = TrackMasterMovement(master);
             bool moveWithMaster = masterIsMoving && (master == player || _followMaster);
@@ -99,11 +92,45 @@ namespace BossMod.AI
             if (targeting.Target == null || targeting.PreferredPosition == Positional.Any)
                 return; // nothing to adjust
 
+            if (targeting.PreferredPosition == Positional.Front)
+            {
+                // 'front' is tank-specific positional; no point doing anything if we're not tanking target
+                if (targeting.Target.Actor.TargetID != player.InstanceID)
+                    targeting.PreferredPosition = Positional.Any;
+                return;
+            }
+
             // if target-of-target is player, don't try flanking, it's probably impossible... - unless target is currently casting (TODO: reconsider?)
             if (targeting.Target.Actor.TargetID == player.InstanceID && targeting.Target.Actor.CastInfo == null)
                 targeting.PreferredPosition = Positional.Any;
 
             // TODO: check whether target ignores positionals...
+        }
+
+        private NavigationDecision BuildNavigationDecision(Actor player, Actor master, ref CommonActions.Targeting targeting)
+        {
+            if (_forbidMovement)
+                return new() { LeewaySeconds = float.MaxValue };
+            if (_followMaster)
+                return NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, master.Position, 1, new(), Positional.Any);
+            if (targeting.Target == null)
+                return NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, null, 0, new(), Positional.Any);
+
+            var adjRange = targeting.PreferredRange + player.HitboxRadius + targeting.Target.Actor.HitboxRadius;
+            if (targeting.PreferTanking)
+            {
+                // see whether we need to move target
+                // TODO: think more about keeping uptime while tanking, this is tricky...
+                var desiredToTarget = targeting.Target.Actor.Position - targeting.Target.DesiredPosition;
+                if (desiredToTarget.LengthSq() > 4 && (_autorot.ClassActions?.GetState().GCD ?? 0) > 0.5f)
+                {
+                    var dest = targeting.Target.DesiredPosition - adjRange * desiredToTarget.Normalized();
+                    return NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, dest, 0.5f, new(), Positional.Any);
+                }
+            }
+
+            var adjRotation = targeting.PreferTanking ? targeting.Target.DesiredRotation : targeting.Target.Actor.Rotation;
+            return NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, targeting.Target.Actor.Position, adjRange, adjRotation, targeting.PreferredPosition);
         }
 
         private void FocusMaster(Actor master)

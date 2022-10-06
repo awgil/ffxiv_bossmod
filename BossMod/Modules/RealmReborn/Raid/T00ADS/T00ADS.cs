@@ -27,7 +27,6 @@ namespace BossMod.RealmReborn.Raid.T00ADS
         Object199 = 1229, // Boss->self, no cast, enrage
     };
 
-    // TODO: this needs interrupt rotation, implement AI for it
     class HighVoltage : Components.CastHint
     {
         public HighVoltage() : base(ActionID.MakeSpell(AID.HighVoltage), "Interruptible") { }
@@ -90,6 +89,7 @@ namespace BossMod.RealmReborn.Raid.T00ADS
                     enemy.DesiredPosition = Bounds.Center;
                     enemy.DesiredRotation = 0.Degrees();
                 }
+                enemy.ShouldBeInterrupted = true; // only boss casts interruptible spells (high voltage), and it should be interrupted every time
             });
         }
 

@@ -66,6 +66,11 @@ namespace BossMod.WAR
 
         protected override void QueueAIActions()
         {
+            if (_state.Unlocked(AID.Interject))
+            {
+                var interruptibleEnemy = Autorot.Hints.PotentialTargets.FirstOrDefault(e => e.ShouldBeInterrupted && (e.Actor.CastInfo?.Interruptible ?? false) && e.Actor.Position.InCircle(Player.Position, 3 + e.Actor.HitboxRadius + Player.HitboxRadius));
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.Interject), interruptibleEnemy?.Actor, interruptibleEnemy != null);
+            }
             if (_state.Unlocked(AID.Defiance))
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.Defiance), Player, ShouldSwapStance());
         }

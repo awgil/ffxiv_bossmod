@@ -18,6 +18,7 @@ namespace BossMod
             public TankAffinity TankAffinity; // who should be tanking this enemy
             public WPos DesiredPosition; // tank AI will try to move enemy to this position
             public Angle DesiredRotation; // tank AI will try to rotate enemy to this angle
+            public bool ShouldBeInterrupted; // if set and enemy is casting interruptible spell, some ranged/tank will try to interrupt
 
             public Enemy(Actor actor)
             {

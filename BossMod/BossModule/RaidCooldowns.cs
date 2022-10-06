@@ -4,10 +4,12 @@ using System.Linq;
 
 namespace BossMod
 {
+    // TODO: this should probably store available-at per player per cooldown group...
     public class RaidCooldowns : IDisposable
     {
         private WorldState _ws;
         private List<(int Slot, ActionID Action, DateTime AvailableAt)> _damageCooldowns = new(); // TODO: this should be improved - determine available cooldowns by class?..
+        private DateTime[] _interruptCooldowns = new DateTime[PartyState.MaxPartySize];
 
         public RaidCooldowns(WorldState ws)
         {
@@ -38,6 +40,8 @@ namespace BossMod
             return MathF.Max(0, (float)(firstAvailable - now).TotalSeconds);
         }
 
+        public float InterruptAvailableIn(int slot, DateTime now) => MathF.Max(0, (float)(_interruptCooldowns[slot] - now).TotalSeconds);
+
         private void HandlePartyUpdate(object? sender, PartyState.OpModify op)
         {
             _damageCooldowns.RemoveAll(e => e.Slot == op.Slot);
@@ -51,18 +55,19 @@ namespace BossMod
             // TODO: AST card buffs?, all non-damage buffs
             _ = args.cast.Action.ID switch
             {
-                118 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120), // BRD battle voice
+                (uint)BRD.AID.BattleVoice => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120),
                 //2258 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 60), // NIN trick attack - note that this results in debuff on enemy, which isn't handled properly for now
-                3557 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120), // DRG battle litany
-                7396 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120), // MNK brotherhood
-                //7398 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 20, 120), // DRG dragon sight - note that it is single-target rather than raid
-                //7436 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120), // SCH chain stratagem - note that this results in debuff on enemy, which isn't handled properly for now
+                (uint)DRG.AID.BattleLitany => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120),
+                (uint)MNK.AID.Brotherhood => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120),
+                //(uint)DRG.AID.DragonSight => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 20, 120), // note that it is single-target rather than raid
+                //(uint)SCH.AID.ChainStratagem => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120), // note that this results in debuff on enemy, which isn't handled properly for now
                 7520 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 20, 120), // RDM embolden
                 16196 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 20, 120), // DNC technical finish
                 16552 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120), // AST divination
                 24405 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 20, 120), // RPR arcane circle
-                25785 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120), // BRD radiant finale - note that even though CD is 110, it's used together with other 2min cds
-                25801 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 30, 120), // SMN searing light
+                (uint)BRD.AID.RadiantFinale => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120), // note that even though CD is 110, it's used together with other 2min cds
+                (uint)SMN.AID.SearingLight => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 30, 120),
+                (uint)WAR.AID.Interject or (uint)BRD.AID.HeadGraze => UpdateInterruptCooldown(args.actor.InstanceID, args.cast.Action, 30),
                 _ => false
             };
         }
@@ -87,12 +92,23 @@ namespace BossMod
             return true;
         }
 
+        private bool UpdateInterruptCooldown(ulong casterID, ActionID action, float cooldown)
+        {
+            int slot = _ws.Party.FindSlot(casterID);
+            if (slot < 0 || slot >= PartyState.MaxPartySize) // ignore cooldowns from other alliance parties
+                return false;
+            _interruptCooldowns[slot] = _ws.CurrentTime.AddSeconds(cooldown);
+            Service.Log($"[RaidCooldowns] Updating interrupt cooldown: {action} by {_ws.Party[slot]?.Name} will next be available in {cooldown:f1}s");
+            return true;
+        }
+
         private void HandleDirectorUpdate(object? sender, WorldState.OpDirectorUpdate op)
         {
             if (op.UpdateID is 0x40000001 or 0x40000005) // init or fade-out (wipe)
             {
-                Service.Log($"[RaidCooldowns] Clearing damage cooldowns ({_damageCooldowns.Count} entries)");
+                Service.Log($"[RaidCooldowns] Clearing cooldowns ({_damageCooldowns.Count} damage entries)");
                 _damageCooldowns.Clear();
+                Array.Fill(_interruptCooldowns, new());
             }
         }
     }

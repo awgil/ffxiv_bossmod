@@ -24,7 +24,7 @@ namespace BossMod
         Accessory = 20
     }
 
-    public enum Positional { Any, Flank, Rear }
+    public enum Positional { Any, Flank, Rear, Front }
 
     public struct ActionID
     {

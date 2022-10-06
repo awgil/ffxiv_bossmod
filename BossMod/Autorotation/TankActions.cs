@@ -24,17 +24,21 @@ namespace BossMod
 
         public override Targeting SelectBetterTarget(AIHints.Enemy initial)
         {
-            // 1. select closest target that should be tanked but is currently not
             var enemiesToTank = Autorot.Hints.PotentialTargets.Where(ShouldBeTanked);
+            if (!enemiesToTank.Any())
+                return new(initial); // there is no one to tank...
+
+            // note: most enemies have 'autoattack range' of 2 (compared to player's 3), so staying at max melee can cause enemy movement
+            // 1. select closest target that should be tanked but is currently not
             var closestNeedOveraggro = enemiesToTank.Where(e => e.Actor.TargetID != Player.InstanceID).MinBy(e => (e.Actor.Position - Player.Position).LengthSq());
             if (closestNeedOveraggro != null)
-                return new(closestNeedOveraggro);
+                return new(closestNeedOveraggro, 2, Positional.Front, true);
 
             // 2. if initial target is not to be tanked, select any that is to be
             if (!ShouldBeTanked(initial))
-                return new(enemiesToTank.FirstOrDefault() ?? initial);
+                return new(enemiesToTank.First(), 2, Positional.Front, true);
 
-            return new(initial);
+            return new(initial, 2, Positional.Front, true);
         }
 
         protected override void UpdateInternalState(int autoAction)

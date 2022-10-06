@@ -37,12 +37,14 @@ namespace BossMod
             public AIHints.Enemy? Target;
             public float PreferredRange;
             public Positional PreferredPosition;
+            public bool PreferTanking;
 
-            public Targeting(AIHints.Enemy target, float range = 3, Positional pos = Positional.Any)
+            public Targeting(AIHints.Enemy target, float range = 3, Positional pos = Positional.Any, bool preferTanking = false)
             {
                 Target = target;
                 PreferredRange = range;
                 PreferredPosition = pos;
+                PreferTanking = preferTanking;
             }
         }
 
