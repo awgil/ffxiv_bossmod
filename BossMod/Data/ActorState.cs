@@ -354,6 +354,21 @@ namespace BossMod
             }
         }
 
+        // note: this is inherently an event, it can't be accessed from actor fields
+        public event EventHandler<(Actor Source, uint Seq, int TargetIndex)>? EffectResult;
+        public class OpEffectResult : Operation
+        {
+            public uint Seq;
+            public int TargetIndex;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
+            {
+                ws.Actors.EffectResult?.Invoke(ws, (actor, Seq, TargetIndex));
+            }
+
+            public override string Str(WorldState? ws) => $"ER  |{StrActor(ws, InstanceID)}|{Seq}|{TargetIndex}";
+        }
+
         public event EventHandler<(Actor, int)>? StatusGain; // called when status appears -or- when extra or expiration time is changed
         public event EventHandler<(Actor, int)>? StatusLose; // note that status structure still contains details when this is invoked; invoked if actor disappears
         public class OpStatus : Operation

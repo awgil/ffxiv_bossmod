@@ -337,6 +337,7 @@ namespace BossMod
 
         private void OnNetworkEffectResult(object? sender, (ulong actorID, uint seq, int targetIndex) args)
         {
+            _actorOps.GetOrAdd(args.actorID).Add(new ActorState.OpEffectResult() { InstanceID = args.actorID, Seq = args.seq, TargetIndex = args.targetIndex });
             _confirms.Add((args.seq, args.actorID, args.targetIndex));
         }
 

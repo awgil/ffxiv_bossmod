@@ -81,6 +81,7 @@ namespace UIDev
                 case "CST+": ParseActorCastInfo(payload, true); break;
                 case "CST-": ParseActorCastInfo(payload, false); break;
                 case "CST!": ParseActorCastEvent(payload); break;
+                case "ER  ": ParseActorEffectResult(payload); break;
                 case "STA+": ParseActorStatus(payload, true); break;
                 case "STA-": ParseActorStatus(payload, false); break;
                 case "STA!": ParseActorStatus(payload, true); break;
@@ -294,6 +295,11 @@ namespace UIDev
                 value.Targets.Add(target);
             }
             AddOp(new ActorState.OpCastEvent() { InstanceID = ActorID(payload[2]), Value = value });
+        }
+
+        private void ParseActorEffectResult(string[] payload)
+        {
+            AddOp(new ActorState.OpEffectResult() { InstanceID = ActorID(payload[2]), Seq = uint.Parse(payload[3]), TargetIndex = int.Parse(payload[4]) });
         }
 
         private void ParseActorStatus(string[] payload, bool gainOrUpdate)

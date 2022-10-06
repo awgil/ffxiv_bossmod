@@ -18,8 +18,16 @@ namespace BossMod
             ActionEffect24 = 0x0276,
             ActionEffect32 = 0x01F5,
             ActorCast = 0x02E8,
-            EffectResult = 0x012F,
-            EffectResultBasic = 0x027B,
+            EffectResult1 = 0x012F,
+            EffectResult4 = 0x0124,
+            EffectResult8 = 0x0238,
+            EffectResult16 = 0x0588,
+            EffectResultBasic1 = 0x027B,
+            EffectResultBasic4 = 0x02C8,
+            EffectResultBasic8 = 0x01F3,
+            EffectResultBasic16 = 0x00CE,
+            EffectResultBasic32 = 0x0208,
+            EffectResultBasic64 = 0x0408,
             ActorControl = 0x0335, // look at toggle weapon
             ActorControlSelf = 0x02ED, // look at cooldown
             ActorControlTarget = 0x0212, // look at target change
@@ -475,7 +483,7 @@ namespace BossMod
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public struct Server_EffectResultEntry
+        public struct Server_EffectResultEffectEntry
         {
             public byte EffectIndex;
             public byte padding1;
@@ -486,12 +494,10 @@ namespace BossMod
             public uint SourceActorID;
         }
 
+        // EffectResultN has byte NumEntries at offset 0 and array EffectResultEntry[N] at offset 4
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public unsafe struct Server_EffectResult
+        public unsafe struct Server_EffectResultEntry
         {
-            public byte Count; // always 1?..
-            public byte padding1;
-            public short padding2;
             public uint RelatedActionSequence;
             public uint ActorID;
             public uint CurrentHP;
@@ -502,22 +508,19 @@ namespace BossMod
             public byte DamageShield;
             public byte EffectCount;
             public ushort padding3;
-            public fixed byte Effects[4 * 4 * 4]; // Server_EffectResultEntry[4]
+            public fixed byte Effects[4 * 4 * 4]; // Server_EffectResultEffectEntry[4]
         }
 
+        // EffectResultBasicN has byte NumEntries at offset 0 and array EffectResultBasicEntry[N] at offset 4
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public unsafe struct Server_EffectResultBasic
+        public unsafe struct Server_EffectResultBasicEntry
         {
-            public byte Count; // always 1?..
-            public byte padding1;
-            public short padding2;
             public uint RelatedActionSequence;
             public uint ActorID;
             public uint CurrentHP;
             public byte RelatedTargetIndex;
             public byte padding3;
             public ushort padding4;
-            public uint padding5;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
