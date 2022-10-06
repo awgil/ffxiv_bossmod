@@ -16,11 +16,14 @@ namespace BossMod
 
         public void Draw()
         {
+            if (_autorot.ClassActions == null)
+                return;
+
             _tree.LeafNode($"Primary target: {_autorot.PrimaryTarget}");
             _tree.LeafNode($"Secondary target: {_autorot.SecondaryTarget}");
             foreach (var n in _tree.Node("Potential targets", _autorot.Hints.PotentialTargets.Count == 0))
             {
-                _tree.LeafNodes(_autorot.Hints.PotentialTargets, e => $"[{e.Priority}] {e.Actor} (TTL={e.TimeToKill:f2}, str={e.AttackStrength:f2}), dist={(e.Actor.Position - _autorot.WorldState.Party.Player()?.Position ?? new()).Length():f2}");
+                _tree.LeafNodes(_autorot.Hints.PotentialTargets, e => $"[{e.Priority}] {e.Actor} (TTL={e.TimeToKill:f2}, str={e.AttackStrength:f2}), dist={(e.Actor.Position - _autorot.ClassActions.Player.Position).Length():f2}, tank={e.TankAffinity}/{e.DesiredPosition}/{e.DesiredRotation}");
             }
             foreach (var n in _tree.Node("Forbidden zones", _autorot.Hints.ForbiddenZones.Count == 0))
             {
@@ -36,27 +39,42 @@ namespace BossMod
             }
             foreach (var n in _tree.Node("Pathfinding"))
             {
-                var player = _autorot.WorldState.Party.Player();
-                if (player != null)
+                var targetEnemy = _autorot.Hints.PotentialTargets.FirstOrDefault(e => e.Actor == _autorot.PrimaryTarget);
+                var targeting = targetEnemy != null ? _autorot.ClassActions.SelectBetterTarget(targetEnemy) : new();
+                var navi = BuildPathfind(_autorot.ClassActions, targeting);
+                if (navi.Map == null)
                 {
-                    var map = _autorot.Hints.Bounds.BuildMap();
+                    navi.Map = _autorot.Hints.Bounds.BuildMap();
                     var imm = NavigationDecision.ImminentExplosionTime(_autorot.WorldState.CurrentTime);
                     foreach (var z in _autorot.Hints.ForbiddenZones)
-                        NavigationDecision.AddBlockerZone(map, imm, z.activation, z.shape.Distance(z.origin, z.rot), NavigationDecision.DefaultForbiddenZoneCushion);
-                    int goal = 0;
-                    if (_autorot.PrimaryTarget != null && _autorot.ClassActions != null)
-                    {
-                        var targetEnemy = _autorot.Hints.PotentialTargets.FirstOrDefault(e => e.Actor == _autorot.PrimaryTarget);
-                        if (targetEnemy != null)
-                        {
-                            var tgt = _autorot.ClassActions.SelectBetterTarget(targetEnemy);
-                            if (tgt.Target != null)
-                                goal = NavigationDecision.AddTargetGoal(map, tgt.Target.Actor.Position, tgt.Target.Actor.HitboxRadius + player.HitboxRadius + tgt.PreferredRange, tgt.Target.Actor.Rotation, tgt.PreferredPosition, 0);
-                        }
-                    }
-                    new MapVisualizer(map, goal, player.Position).Draw();
+                        NavigationDecision.AddBlockerZone(navi.Map, imm, z.activation, z.shape.Distance(z.origin, z.rot), NavigationDecision.DefaultForbiddenZoneCushion);
+                    if (targetEnemy != null)
+                        navi.MapGoal = NavigationDecision.AddTargetGoal(navi.Map, targetEnemy.Actor.Position, targetEnemy.Actor.HitboxRadius + _autorot.ClassActions.Player.HitboxRadius + targeting.PreferredRange, targetEnemy.Actor.Rotation, targeting.PreferredPosition, 0);
+                }
+                new MapVisualizer(navi.Map, navi.MapGoal, _autorot.ClassActions.Player.Position).Draw();
+            }
+        }
+
+        private NavigationDecision BuildPathfind(CommonActions actions, CommonActions.Targeting targeting)
+        {
+            if (targeting.Target == null)
+                return NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, actions.Player, null, 0, new(), Positional.Any);
+
+            var adjRange = targeting.PreferredRange + actions.Player.HitboxRadius + targeting.Target.Actor.HitboxRadius;
+            if (targeting.PreferTanking)
+            {
+                // see whether we need to move target
+                // TODO: think more about keeping uptime while tanking, this is tricky...
+                var desiredToTarget = targeting.Target.Actor.Position - targeting.Target.DesiredPosition;
+                if (desiredToTarget.LengthSq() > 4 && actions.GetState().GCD > 0.5f)
+                {
+                    var dest = targeting.Target.DesiredPosition - adjRange * desiredToTarget.Normalized();
+                    return NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, actions.Player, dest, 0.5f, new(), Positional.Any);
                 }
             }
+
+            var adjRotation = targeting.PreferTanking ? targeting.Target.DesiredRotation : targeting.Target.Actor.Rotation;
+            return NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, actions.Player, targeting.Target.Actor.Position, adjRange, adjRotation, targeting.PreferredPosition);
         }
     }
 }

@@ -14,7 +14,6 @@ namespace BossMod.Pathfinding
         public enum Decision
         {
             None,
-            SrcOutOfBounds,
             ImminentToSafe,
             ImminentToClosest,
             UnsafeToPositional,
@@ -40,13 +39,6 @@ namespace BossMod.Pathfinding
         public static NavigationDecision Build(WorldState ws, AIHints hints, Actor player, WPos? targetPos, float targetRadius, Angle targetRot, Positional positional, float playerSpeed = 6, float forbiddenZoneCushion = DefaultForbiddenZoneCushion)
         {
             // TODO: skip pathfinding if there are no forbidden zones, just find closest point in circle/cone...
-
-            // check that player is in bounds; otherwise pathfinding won't work properly anyway
-            if (!hints.Bounds.Contains(player.Position))
-            {
-                var dest = hints.Bounds.ClampToBounds(player.Position);
-                return new() { Destination = dest, LeewaySeconds = float.MaxValue, TimeToGoal = (dest - player.Position).Length() / playerSpeed, DecisionType = Decision.SrcOutOfBounds };
-            }
 
             var imminent = ImminentExplosionTime(ws.CurrentTime);
             int numImminentZones = hints.ForbiddenZones.FindIndex(z => z.activation > imminent);
@@ -106,8 +98,8 @@ namespace BossMod.Pathfinding
                     }
 
                     // goal is not reachable, but we can try getting as close to the target as we can until first aoe
-                    var start = map.WorldToGrid(player.Position);
-                    var end = map.WorldToGrid(hints.Bounds.ClampToBounds(targetPos.Value));
+                    var start = map.ClampToGrid(map.WorldToGrid(player.Position));
+                    var end = map.ClampToGrid(map.WorldToGrid(targetPos.Value));
                     var best = start;
                     foreach (var (x, y) in map.EnumeratePixelsInLine(start.x, start.y, end.x, end.y))
                     {
@@ -128,6 +120,7 @@ namespace BossMod.Pathfinding
                 {
                     Positional.Flank => MathF.Abs(targetRot.ToDirection().Dot((targetPos.Value - player.Position).Normalized())) < 0.7071067f,
                     Positional.Rear => targetRot.ToDirection().Dot((targetPos.Value - player.Position).Normalized()) < -0.7071068f,
+                    Positional.Front => targetRot.ToDirection().Dot((targetPos.Value - player.Position).Normalized()) > 0.965f,
                     _ => true
                 };
                 if (!inPositional)

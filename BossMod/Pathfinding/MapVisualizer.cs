@@ -195,7 +195,7 @@ namespace BossMod.Pathfinding
 
             int from = startingIndex;
             int x1 = startingIndex % Map.Width;
-            int y1 = startingIndex / Map.Height;
+            int y1 = startingIndex / Map.Width;
             int x2 = _pathfind.NodeByIndex(from).ParentX;
             int y2 = _pathfind.NodeByIndex(from).ParentY;
             while (x1 != x2 || y1 != y2)

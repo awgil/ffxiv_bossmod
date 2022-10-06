@@ -36,13 +36,12 @@ namespace BossMod.Pathfinding
             _deltaGSide = map.Resolution * gMultiplier;
             _deltaGDiag = _deltaGSide * 1.414214f;
 
-            int startX = Math.Clamp(start.x, 0, map.Width);
-            int startY = Math.Clamp(start.y, 0, map.Height);
-            int startIndex = CellIndex(startX, startY);
+            start = map.ClampToGrid(start);
+            int startIndex = CellIndex(start.x, start.y);
             _nodes[startIndex].GScore = 0;
-            _nodes[startIndex].HScore = HeuristicDistance(startX, startY);
-            _nodes[startIndex].ParentX = startX; // start's parent is self
-            _nodes[startIndex].ParentY = startY;
+            _nodes[startIndex].HScore = HeuristicDistance(start.x, start.y);
+            _nodes[startIndex].ParentX = start.x; // start's parent is self
+            _nodes[startIndex].ParentY = start.y;
             _nodes[startIndex].PathLeeway = float.MaxValue; // min diff along path between node's g-value and cell's g-value
             AddToOpen(startIndex);
         }

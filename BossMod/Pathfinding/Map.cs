@@ -68,6 +68,7 @@ namespace BossMod.Pathfinding
 
         public (int x, int y) FracToGrid(Vector2 frac) => ((int)MathF.Floor(frac.X), (int)MathF.Floor(frac.Y));
         public (int x, int y) WorldToGrid(WPos world) => FracToGrid(WorldToGridFrac(world));
+        public (int x, int y) ClampToGrid((int x, int y) pos) => (Math.Clamp(pos.x, 0, Width - 1), Math.Clamp(pos.y, 0, Height - 1));
 
         public WPos GridToWorld(int gx, int gy, float fx, float fy)
         {

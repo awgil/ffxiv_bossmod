@@ -9,6 +9,7 @@ namespace BossMod.RealmReborn.Raid.T00ADS
     public enum OID : uint
     {
         Boss = 0x887, // x1
+        Helper = 0x8EC, // x1
         PatrolNode = 0x888, // spawn during fight
         AttackNode = 0x889, // spawn during fight
         DefenseNode = 0x88A, // spawn during fight
@@ -23,6 +24,8 @@ namespace BossMod.RealmReborn.Raid.T00ADS
         PiercingLaser = 1450, // Boss->self, 2.2s cast, range 30+R width 6 rect aoe
         DirtyCannons = 1378, // PatrolNode->self, 1.0s cast, range 4+R circle aoe
         GravityField = 1220, // AttackNode->location, 1.0s cast, range 6 circle, spawns voidzone
+        ChainLightning = 1225, // DefenseNode->self, 1.5s cast, single-target, visual
+        ChainLightningAOE = 1449, // Helper->player, no cast, single-target, ???
         NodeRetrieval = 1228, // Boss->PatrolNode/AttackNode/DefenseNode, no cast, single-target, happens if add is not killed in ~27s and gives boss damage up
         Object199 = 1229, // Boss->self, no cast, enrage
     };
