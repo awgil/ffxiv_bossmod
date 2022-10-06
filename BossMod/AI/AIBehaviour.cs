@@ -170,7 +170,7 @@ namespace BossMod.AI
                 //    _ctrl.TargetRot = cameraFacing.OrthoL().Dot(_ctrl.TargetRot.Value) > 0 ? _ctrl.TargetRot.Value.OrthoR() : _ctrl.TargetRot.Value.OrthoL();
 
                 // sprint, if not in combat and far enough away from destination
-                if (allowSprint && !player.InCombat && player != master && distSq > 400)
+                if (allowSprint && (player.InCombat ? _naviDecision.LeewaySeconds <= 0 && distSq > 25 : player != master && distSq > 400))
                 {
                     _autorot.ClassActions?.HandleUserActionRequest(CommonDefinitions.IDSprint, player);
                 }
