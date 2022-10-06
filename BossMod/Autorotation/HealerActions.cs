@@ -32,6 +32,11 @@ namespace BossMod
         protected override void UpdateInternalState(int autoAction)
         {
             AllowProtect = Service.Condition[ConditionFlag.BoundByDuty]; // TODO: validate...
+
+            BitMask incomingEsunas = new();
+            foreach (var esunaCaster in Autorot.WorldState.Party.WithoutSlot().Where(a => a.CastInfo?.IsSpell(WHM.AID.Esuna) ?? false))
+                incomingEsunas.Set(Autorot.WorldState.Party.FindSlot(esunaCaster.CastInfo!.TargetID));
+
             for (int i = 0; i < PartyMemberStates.Length; ++i)
             {
                 var actor = Autorot.WorldState.Party[i];
@@ -47,9 +52,10 @@ namespace BossMod
                     state.PredictedHPCur = (int)actor.HP.Cur + Autorot.WorldState.PendingEffects.PendingHPDifference(actor.InstanceID);
                     state.PredictedHPDeficit = (int)actor.HP.Max - state.PredictedHPCur;
                     state.PredictedHPRatio = (float)state.PredictedHPCur / actor.HP.Max;
+                    bool actorValidForEsuna = actor.IsTargetable && !incomingEsunas[i];
                     foreach (var s in actor.Statuses)
                     {
-                        if (!state.HaveRemovableDebuffs && actor.IsTargetable && Utils.StatusIsRemovable(s.ID))
+                        if (!state.HaveRemovableDebuffs && actorValidForEsuna && Utils.StatusIsRemovable(s.ID))
                             state.HaveRemovableDebuffs = true;
                         if (IsHOT(s.ID))
                             state.PredictedHPRatio += 0.1f;
