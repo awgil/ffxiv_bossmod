@@ -132,13 +132,12 @@ namespace BossMod.RealmReborn.Trial.T06GarudaH
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            if (PrimaryActor.IsTargetable)
-                Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var m in ActiveMonoliths)
-                Arena.Actor(m, ArenaColor.Object);
-            foreach (var e in Enemies(OID.Suparna).Where(e => e.IsTargetable && !e.IsDead))
+                Arena.Actor(m, ArenaColor.Object, true);
+            foreach (var e in Enemies(OID.Suparna))
                 Arena.Actor(e, ArenaColor.Enemy);
-            foreach (var e in Enemies(OID.Chirada).Where(e => e.IsTargetable && !e.IsDead))
+            foreach (var e in Enemies(OID.Chirada))
                 Arena.Actor(e, ArenaColor.Enemy);
         }
     }

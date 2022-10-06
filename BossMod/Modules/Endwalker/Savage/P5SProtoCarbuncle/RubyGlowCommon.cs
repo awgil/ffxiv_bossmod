@@ -172,7 +172,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
             if (CurRecolorState == RecolorState.BeforeRecolor)
                 foreach (var o in MagicStones)
                     if (QuadrantForPosition(module, o.Position) != AOEQuadrant)
-                        arena.Actor(o, ArenaColor.Vulnerable);
+                        arena.Actor(o, ArenaColor.Vulnerable, true);
 
             if (VenomPoolActive)
                 foreach (var a in module.Raid.WithoutSlot().Where(a => a.Role == Role.Healer))

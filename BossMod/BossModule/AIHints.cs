@@ -7,12 +7,26 @@ namespace BossMod
     // information relevant for AI decision making process for a specific player
     public class AIHints
     {
-        public struct Enemy
+        public class Enemy
         {
             public Actor Actor;
             public int Priority; // <0 means damaging is actually forbidden, 0 is default
             public float TimeToKill;
             public float AttackStrength; // target's predicted HP percent is decreased by this amount (0.05 by default)
+            public PartyRolesConfig.Assignment DesignatedTank; // who should tank this enemy (MT by default)
+            public WPos DesiredPosition; // tank AI will try to move enemy to this position
+            public Angle DesiredRotation; // tank AI will try to rotate enemy to this angle
+
+            public Enemy(Actor actor)
+            {
+                Actor = actor;
+                Priority = actor.InCombat ? 0 : -1;
+                TimeToKill = 10000;
+                AttackStrength = 0.05f;
+                DesignatedTank = PartyRolesConfig.Assignment.MT;
+                DesiredPosition = actor.Position;
+                DesiredRotation = actor.Rotation;
+            }
         }
 
         public static ArenaBounds DefaultBounds = new ArenaBoundsSquare(new(), 30);
@@ -53,36 +67,27 @@ namespace BossMod
         {
             foreach (var actor in ws.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead))
             {
-                PotentialTargets.Add(new() { Actor = actor, Priority = actor.InCombat ? 0 : -1, TimeToKill = 10000, AttackStrength = 0.05f });
+                PotentialTargets.Add(new(actor));
             }
         }
 
-        public delegate void UpdatePotentialTargetsDelegate(ref Enemy enemy);
-        public void UpdatePotentialTargets(UpdatePotentialTargetsDelegate fn)
+        public void UpdatePotentialTargets(Action<Enemy> fn)
         {
-            for (int i = 0; i < PotentialTargets.Count; i++)
-            {
-                var e = PotentialTargets[i];
-                fn(ref e);
-                PotentialTargets[i] = e;
-            }
+            foreach (var enemy in PotentialTargets)
+                fn(enemy);
         }
 
         public void AssignPotentialTargetPriorities(Func<Actor, int> map)
         {
-            for (int i = 0; i < PotentialTargets.Count; i++)
-            {
-                var e = PotentialTargets[i];
-                e.Priority = map(e.Actor);
-                PotentialTargets[i] = e;
-            }
+            foreach (var enemy in PotentialTargets)
+                enemy.Priority = map(enemy.Actor);
         }
 
         // normalize all entries after gathering data: sort by priority / activation timestamp
         public void Normalize()
         {
             PotentialTargets.SortByReverse(x => x.Priority);
-            HighestPotentialTargetPriority = Math.Max(0, PotentialTargets.FirstOrDefault().Priority);
+            HighestPotentialTargetPriority = Math.Max(0, PotentialTargets.FirstOrDefault()?.Priority ?? 0);
             ForbiddenZones.SortBy(e => e.activation);
             ForbiddenDirections.SortBy(e => e.activation);
             PredictedDamage.SortBy(e => e.activation);

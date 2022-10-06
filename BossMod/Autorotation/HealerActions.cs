@@ -67,7 +67,10 @@ namespace BossMod
             {
                 foreach (var slot in incomingHealTargets.SetBits())
                 {
-                    PartyMemberStates[slot].PredictedHPRatio += 0.2f;
+                    if (slot < PartyMemberStates.Length)
+                    {
+                        PartyMemberStates[slot].PredictedHPRatio += 0.2f;
+                    }
                 }
             }
             foreach (var enemy in Autorot.Hints.PotentialTargets)
@@ -167,7 +170,7 @@ namespace BossMod
                 {
                     curScore = 2 + strength - minAttackerStrengthInCombat;
                 }
-                else if (strength == 0 && !actor.InCombat && HasTankStance(actor))
+                else if (strength == 0 && !actor.InCombat && CommonDefinitions.HasTankStance(actor))
                 {
                     curScore = 1;
                 }
@@ -179,18 +182,6 @@ namespace BossMod
                 }
             }
             return best;
-        }
-
-        // check whether given actor has tank stance
-        protected static bool HasTankStance(Actor a)
-        {
-            var stanceSID = a.Class switch
-            {
-                Class.WAR => (uint)WAR.SID.Defiance,
-                Class.PLD => (uint)PLD.SID.IronWill,
-                _ => 0u
-            };
-            return stanceSID != 0 && a.FindStatus(stanceSID) != null;
         }
 
         protected static bool IsHOT(uint sid)

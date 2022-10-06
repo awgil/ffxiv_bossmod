@@ -81,5 +81,17 @@ namespace BossMod
             => res[ActionID.MakeSpell(aid)] = new(range, 0, (int)(object)cdGroup, cooldown, 1, animationLock);
         public static ActionDefinition OGCDWithCharges<AID, CDGroup>(this Dictionary<ActionID, ActionDefinition> res, AID aid, float range, CDGroup cdGroup, float cooldown, int maxChargesAtCap, float animationLock = 0.6f) where AID : Enum where CDGroup : Enum
             => res[ActionID.MakeSpell(aid)] = new(range, 0, (int)(object)cdGroup, cooldown, maxChargesAtCap, animationLock);
+
+        // check whether given actor has tank stance
+        public static bool HasTankStance(Actor a)
+        {
+            var stanceSID = a.Class switch
+            {
+                Class.WAR => (uint)WAR.SID.Defiance,
+                Class.PLD => (uint)PLD.SID.IronWill,
+                _ => 0u
+            };
+            return stanceSID != 0 && a.FindStatus(stanceSID) != null;
+        }
     }
 }

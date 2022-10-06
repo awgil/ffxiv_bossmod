@@ -55,7 +55,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
                     continue; // this orb has already exploded
 
                 bool lethal = IsOrbLethal(pcSlot, pc, orbRole);
-                arena.Actor(orb, lethal ? ArenaColor.Enemy : ArenaColor.Danger);
+                arena.Actor(orb, lethal ? ArenaColor.Enemy : ArenaColor.Danger, true);
 
                 var target = module.WorldState.Actors.Find(orb.Tether.Target);
                 if (target != null)

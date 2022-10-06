@@ -229,9 +229,9 @@ namespace BossMod
             }
         }
 
-        public void Actor(Actor? actor, uint color)
+        public void Actor(Actor? actor, uint color, bool allowDeadAndUntargetable = false)
         {
-            if (actor != null)
+            if (actor != null && !actor.IsDestroyed && (allowDeadAndUntargetable || actor.IsTargetable && !actor.IsDead))
                 Actor(actor.Position, actor.Rotation, color);
         }
 

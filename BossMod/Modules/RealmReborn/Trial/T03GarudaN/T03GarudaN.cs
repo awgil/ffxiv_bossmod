@@ -115,7 +115,7 @@ namespace BossMod.RealmReborn.Trial.T03GarudaN
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var m in Enemies(OID.Monolith))
-                Arena.Actor(m, ArenaColor.Danger);
+                Arena.Actor(m, ArenaColor.Danger, true);
         }
     }
 }

@@ -212,6 +212,7 @@ namespace UIDev.Analysis
                     foreach (var n in tree.Node("Lumina data"))
                     {
                         var row = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID);
+                        tree.LeafNode($"Category: {row?.ActionCategory?.Value?.Name}");
                         tree.LeafNode($"Cast time: {row?.Cast100ms * 0.1f:f1}");
                         tree.LeafNode($"Target range: {row?.Range}");
                         tree.LeafNode($"Effect shape: {row?.CastType} ({(row != null ? DescribeShape(row) : "")})");
@@ -273,7 +274,7 @@ namespace UIDev.Analysis
                 foreach (var (aid, data) in _data)
                 {
                     var ldata = aid.Type == ActionType.Spell ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID) : null;
-                    string name = aid.Type != ActionType.Spell ? $"// {aid}" : _aidType?.GetEnumName(aid.ID) ?? $"_Gen_{Utils.StringToIdentifier(ldata?.Name ?? $"Ability{aid.ID}")}";
+                    string name = aid.Type != ActionType.Spell ? $"// {aid}" : _aidType?.GetEnumName(aid.ID) ?? $"_{Utils.StringToIdentifier(ldata?.ActionCategory?.Value?.Name ?? "")}_{Utils.StringToIdentifier(ldata?.Name ?? $"Ability{aid.ID}")}";
                     sb.Append($"\n    {name} = {aid.ID}, // {OIDListString(data.CasterOIDs)}->");
 
                     var tarSB = new StringBuilder();

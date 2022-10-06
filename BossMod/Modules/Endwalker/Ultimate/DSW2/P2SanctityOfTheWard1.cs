@@ -124,7 +124,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (NumSeverCasts < 4)
             {
                 var source = module.Enemies(OID.SerZephirin).FirstOrDefault();
-                arena.Actor(source, ArenaColor.Enemy);
+                arena.Actor(source, ArenaColor.Enemy, true);
 
                 var target = module.Raid[_severTargetSlots[NumSeverCasts % 2]];
                 if (source != null && target != null)
@@ -146,7 +146,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
             foreach (var c in _charges)
                 if (c?.Positions.Count > 1)
-                    arena.Actor(c.Source, ArenaColor.Enemy);
+                    arena.Actor(c.Source, ArenaColor.Enemy, true);
 
             foreach (var safespot in MovementHintOffsets(pcSlot))
             {

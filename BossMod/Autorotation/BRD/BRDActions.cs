@@ -28,6 +28,7 @@ namespace BossMod.BRD
             SupportedSpell(AID.QuickNock).TransformAction = SupportedSpell(AID.Ladonsbite).TransformAction = () => ActionID.MakeSpell(_state.BestLadonsbite);
 
             SupportedSpell(AID.Peloton).Condition = _ => !Player.InCombat;
+            SupportedSpell(AID.HeadGraze).Condition = target => target?.CastInfo?.Interruptible ?? false;
 
             _config.Modified += OnConfigModified;
             OnConfigModified(null, EventArgs.Empty);

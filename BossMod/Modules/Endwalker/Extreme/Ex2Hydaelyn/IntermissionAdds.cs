@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var echo in module.Enemies(OID.Echo).Where(e => e.IsTargetable && !e.IsDead))
+            foreach (var echo in module.Enemies(OID.Echo))
                 arena.Actor(echo, ArenaColor.Enemy);
 
             // note that there are two crystals per position, one targetable and one not - untargetable one can be tethered to second echo

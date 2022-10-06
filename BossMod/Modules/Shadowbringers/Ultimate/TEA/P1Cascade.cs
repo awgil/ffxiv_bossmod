@@ -28,7 +28,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var e in _embolus)
-                arena.Actor(e, ArenaColor.Object);
+                arena.Actor(e, ArenaColor.Object, true);
         }
     }
 }

@@ -157,7 +157,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 foreach (var comet in module.Enemies(OID.HolyComet))
                 {
-                    arena.Actor(comet, ArenaColor.Object);
+                    arena.Actor(comet, ArenaColor.Object, true);
                     arena.AddCircle(comet.Position, _cometLinkRange, ArenaColor.Object);
                 }
             }

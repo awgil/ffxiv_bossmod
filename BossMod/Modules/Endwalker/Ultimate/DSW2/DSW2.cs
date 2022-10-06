@@ -61,8 +61,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            if (!PrimaryActor.IsDestroyed)
-                Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
             Arena.Actor(_bossP3, ArenaColor.Enemy);
             //Arena.AddLine(PrimaryActor.Position, PrimaryActor.Position + GeometryUtils.DirectionToVec3(PrimaryActor.Rotation) * 5, ArenaColor.Enemy);
         }

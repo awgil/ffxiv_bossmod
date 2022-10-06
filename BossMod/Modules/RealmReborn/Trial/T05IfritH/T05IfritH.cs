@@ -120,8 +120,7 @@ namespace BossMod.RealmReborn.Trial.T05IfritH
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            if (PrimaryActor.IsTargetable)
-                Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var n in ActiveNails)
                 Arena.Actor(n, ArenaColor.Enemy);
         }

@@ -152,8 +152,8 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
         {
             base.CalculateAIHints(slot, actor, hints);
             foreach (var heart in ActiveHeart)
-                hints.PotentialTargets.Add(new() { Actor = heart, TimeToKill = 10000 });
-            hints.UpdatePotentialTargets((ref AIHints.Enemy enemy) =>
+                hints.PotentialTargets.Add(new(heart));
+            hints.UpdatePotentialTargets(enemy =>
             {
                 enemy.Priority = (OID)enemy.Actor.OID switch
                 {

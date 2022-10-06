@@ -230,7 +230,7 @@ namespace BossMod
 
             // draw enemies & player
             DrawEnemies(pcSlot, pc);
-            Arena.Actor(pc, ArenaColor.PC);
+            Arena.Actor(pc, ArenaColor.PC, true);
         }
 
         public BossComponent.TextHints CalculateHintsForRaidMember(int slot, Actor actor, BossComponent.MovementHints? movementHints = null)
@@ -273,8 +273,7 @@ namespace BossMod
         // called at the very end to draw important enemies, default implementation draws primary actor
         protected virtual void DrawEnemies(int pcSlot, Actor pc)
         {
-            if (PrimaryActor.IsTargetable)
-                Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         }
 
         private void DrawGlobalHints(BossComponent.GlobalHints hints)

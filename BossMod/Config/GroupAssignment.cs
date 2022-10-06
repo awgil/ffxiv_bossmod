@@ -19,9 +19,9 @@ namespace BossMod
     // typically you would use derived classes that provide validation
     public class GroupAssignment
     {
-        public int[] Assignments = new int[(int)PartyRolesConfig.Role.Unassigned]; // role -> group id
+        public int[] Assignments = new int[(int)PartyRolesConfig.Assignment.Unassigned]; // assignment -> group id
 
-        public int this[PartyRolesConfig.Role r]
+        public int this[PartyRolesConfig.Assignment r]
         {
             get => Assignments[(int)r];
             set => Assignments[(int)r] = value;
@@ -66,13 +66,13 @@ namespace BossMod
     {
         public GroupAssignmentLightParties()
         {
-            this[PartyRolesConfig.Role.MT] = this[PartyRolesConfig.Role.H1] = this[PartyRolesConfig.Role.M1] = this[PartyRolesConfig.Role.R1] = 0;
-            this[PartyRolesConfig.Role.OT] = this[PartyRolesConfig.Role.H2] = this[PartyRolesConfig.Role.M2] = this[PartyRolesConfig.Role.R2] = 1;
+            this[PartyRolesConfig.Assignment.MT] = this[PartyRolesConfig.Assignment.H1] = this[PartyRolesConfig.Assignment.M1] = this[PartyRolesConfig.Assignment.R1] = 0;
+            this[PartyRolesConfig.Assignment.OT] = this[PartyRolesConfig.Assignment.H2] = this[PartyRolesConfig.Assignment.M2] = this[PartyRolesConfig.Assignment.R2] = 1;
         }
 
         public override bool Validate()
         {
-            for (int i = 0; i < (int)PartyRolesConfig.Role.Unassigned; i += 2)
+            for (int i = 0; i < (int)PartyRolesConfig.Assignment.Unassigned; i += 2)
                 if (Assignments[i] < 0 || Assignments[i] >= 2 || Assignments[i + 1] < 0 || Assignments[i + 1] >= 2 || Assignments[i] == Assignments[i + 1])
                     return false;
             return true;
@@ -84,10 +84,10 @@ namespace BossMod
     {
         public GroupAssignmentDDSupportPairs()
         {
-            this[PartyRolesConfig.Role.MT] = this[PartyRolesConfig.Role.R1] = 0;
-            this[PartyRolesConfig.Role.H1] = this[PartyRolesConfig.Role.M1] = 1;
-            this[PartyRolesConfig.Role.OT] = this[PartyRolesConfig.Role.R2] = 2;
-            this[PartyRolesConfig.Role.H2] = this[PartyRolesConfig.Role.M2] = 3;
+            this[PartyRolesConfig.Assignment.MT] = this[PartyRolesConfig.Assignment.R1] = 0;
+            this[PartyRolesConfig.Assignment.H1] = this[PartyRolesConfig.Assignment.M1] = 1;
+            this[PartyRolesConfig.Assignment.OT] = this[PartyRolesConfig.Assignment.R2] = 2;
+            this[PartyRolesConfig.Assignment.H2] = this[PartyRolesConfig.Assignment.M2] = 3;
         }
 
         public override bool Validate()
@@ -111,14 +111,14 @@ namespace BossMod
     {
         public GroupAssignmentUnique()
         {
-            this[PartyRolesConfig.Role.MT] = 0;
-            this[PartyRolesConfig.Role.M1] = 1;
-            this[PartyRolesConfig.Role.OT] = 2;
-            this[PartyRolesConfig.Role.M2] = 3;
-            this[PartyRolesConfig.Role.R1] = 4;
-            this[PartyRolesConfig.Role.H1] = 5;
-            this[PartyRolesConfig.Role.R2] = 6;
-            this[PartyRolesConfig.Role.H2] = 7;
+            this[PartyRolesConfig.Assignment.MT] = 0;
+            this[PartyRolesConfig.Assignment.M1] = 1;
+            this[PartyRolesConfig.Assignment.OT] = 2;
+            this[PartyRolesConfig.Assignment.M2] = 3;
+            this[PartyRolesConfig.Assignment.R1] = 4;
+            this[PartyRolesConfig.Assignment.H1] = 5;
+            this[PartyRolesConfig.Assignment.R2] = 6;
+            this[PartyRolesConfig.Assignment.H2] = 7;
         }
 
         public override bool Validate()

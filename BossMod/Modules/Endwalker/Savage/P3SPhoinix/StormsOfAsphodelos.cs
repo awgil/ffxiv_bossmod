@@ -117,7 +117,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
         {
             foreach (var twister in module.Enemies(OID.DarkblazeTwister))
             {
-                arena.Actor(twister, ArenaColor.Enemy);
+                arena.Actor(twister, ArenaColor.Enemy, true);
             }
 
             foreach ((int i, var player) in module.Raid.WithSlot())

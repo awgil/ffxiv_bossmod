@@ -83,8 +83,8 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
                     Arena.Actor(LiquidHand(), ArenaColor.Enemy);
                     break;
                 case 1:
-                    Arena.Actor(_bruteJustice, ArenaColor.Enemy);
-                    Arena.Actor(_cruiseChaser, ArenaColor.Enemy);
+                    Arena.Actor(_bruteJustice, ArenaColor.Enemy, true);
+                    Arena.Actor(_cruiseChaser, ArenaColor.Enemy, true);
                     break;
             }
         }

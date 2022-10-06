@@ -146,7 +146,7 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D163Anantaboga
             foreach (var add in Enemies(OID.DarkHelot))
                 Arena.Actor(add, ArenaColor.Enemy);
             foreach (var p in ActivePillars())
-                Arena.Actor(p, ArenaColor.Object);
+                Arena.Actor(p, ArenaColor.Object, true);
         }
 
         // TODO: blocker coordinates are slightly different, find out correct coords...

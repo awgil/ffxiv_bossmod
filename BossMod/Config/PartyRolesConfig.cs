@@ -8,25 +8,25 @@ namespace BossMod
     [ConfigDisplay(Name = "Party roles assignment", Order = 2)]
     public class PartyRolesConfig : ConfigNode
     {
-        public enum Role { MT, OT, H1, H2, M1, M2, R1, R2, Unassigned }
+        public enum Assignment { MT, OT, H1, H2, M1, M2, R1, R2, Unassigned }
 
-        public Dictionary<ulong, Role> Assignments = new();
+        public Dictionary<ulong, Assignment> Assignments = new();
 
-        public Role this[ulong contentID] => Assignments.GetValueOrDefault(contentID, Role.Unassigned);
+        public Assignment this[ulong contentID] => Assignments.GetValueOrDefault(contentID, Assignment.Unassigned);
 
         // return either array of assigned roles per party slot (if each role is assigned exactly once) or empty array (if assignments are invalid)
-        public Role[] AssignmentsPerSlot(PartyState party)
+        public Assignment[] AssignmentsPerSlot(PartyState party)
         {
-            int[] counts = new int[(int)Role.Unassigned];
-            Role[] res = new Role[PartyState.MaxPartySize];
-            Array.Fill(res, Role.Unassigned);
+            int[] counts = new int[(int)Assignment.Unassigned];
+            Assignment[] res = new Assignment[PartyState.MaxPartySize];
+            Array.Fill(res, Assignment.Unassigned);
             for (int i = 0; i < PartyState.MaxPartySize; ++i)
             {
                 var r = this[party.ContentIDs[i]];
-                if (r == Role.Unassigned)
-                    return new Role[0];
+                if (r == Assignment.Unassigned)
+                    return new Assignment[0];
                 if (counts[(int)r]++ > 0)
-                    return new Role[0];
+                    return new Assignment[0];
                 res[i] = r;
             }
             return res;
@@ -35,12 +35,12 @@ namespace BossMod
         // return either array of party slots per assigned role (if each role is assigned exactly once) or empty array (if assignments are invalid)
         public int[] SlotsPerAssignment(PartyState party)
         {
-            int[] res = new int[(int)Role.Unassigned];
+            int[] res = new int[(int)Assignment.Unassigned];
             Array.Fill(res, PartyState.MaxPartySize);
             for (int i = 0; i < PartyState.MaxPartySize; ++i)
             {
                 var r = this[party.ContentIDs[i]];
-                if (r == Role.Unassigned)
+                if (r == Assignment.Unassigned)
                     return new int[0];
                 if (res[(int)r] != PartyState.MaxPartySize)
                     return new int[0];
@@ -50,18 +50,18 @@ namespace BossMod
         }
 
         // return array of effective roles per party slot
-        public BossMod.Role[] EffectiveRolePerSlot(PartyState party)
+        public Role[] EffectiveRolePerSlot(PartyState party)
         {
-            var res = new BossMod.Role[PartyState.MaxPartySize];
+            var res = new Role[PartyState.MaxPartySize];
             for (int i = 0; i < PartyState.MaxPartySize; ++i)
             {
                 res[i] = this[party.ContentIDs[i]] switch
                 {
-                    Role.MT or Role.OT => BossMod.Role.Tank,
-                    Role.H1 or Role.H2 => BossMod.Role.Healer,
-                    Role.M1 or Role.M2 => BossMod.Role.Melee,
-                    Role.R1 or Role.R2 => BossMod.Role.Ranged,
-                    _ => party[i]?.Role ?? BossMod.Role.None
+                    Assignment.MT or Assignment.OT => Role.Tank,
+                    Assignment.H1 or Assignment.H2 => Role.Healer,
+                    Assignment.M1 or Assignment.M2 => Role.Melee,
+                    Assignment.R1 or Assignment.R2 => Role.Ranged,
+                    _ => party[i]?.Role ?? Role.None
                 };
             }
             return res;
@@ -71,29 +71,29 @@ namespace BossMod
         {
             if (ImGui.BeginTable("tab2", 10, ImGuiTableFlags.SizingFixedFit))
             {
-                foreach (var r in typeof(Role).GetEnumValues())
+                foreach (var r in typeof(Assignment).GetEnumValues())
                     ImGui.TableSetupColumn(r.ToString(), ImGuiTableColumnFlags.None, 25);
                 ImGui.TableSetupColumn("Name");
                 ImGui.TableHeadersRow();
 
-                List<(ulong, string, BossMod.Role, Role)> party = new();
+                List<(ulong cid, string name, Role role, Assignment assignment)> party = new();
                 for (int i = 0; i < PartyState.MaxPartySize; ++i)
                 {
                     var m = ws.Party.Members[i];
                     if (m != null)
                         party.Add((ws.Party.ContentIDs[i], m.Name, m.Role, this[ws.Party.ContentIDs[i]]));
                 }
-                party.SortBy(e => e.Item3);
+                party.SortBy(e => e.role);
 
-                foreach (var (contentID, name, classRole, assignedRole) in party)
+                foreach (var (contentID, name, classRole, assignment) in party)
                 {
                     ImGui.TableNextRow();
-                    foreach (var r in typeof(Role).GetEnumValues().Cast<Role>())
+                    foreach (var r in typeof(Assignment).GetEnumValues().Cast<Assignment>())
                     {
                         ImGui.TableNextColumn();
-                        if (ImGui.RadioButton($"###{contentID:X}:{r}", assignedRole == r))
+                        if (ImGui.RadioButton($"###{contentID:X}:{r}", assignment == r))
                         {
-                            if (r != Role.Unassigned)
+                            if (r != Assignment.Unassigned)
                                 Assignments[contentID] = r;
                             else
                                 Assignments.Remove(contentID);

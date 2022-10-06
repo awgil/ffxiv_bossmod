@@ -127,7 +127,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             // draw tethers
             foreach (var source in _chargeSources)
             {
-                module.Arena.Actor(source, ArenaColor.Danger);
+                module.Arena.Actor(source, ArenaColor.Danger, true);
                 var target = module.WorldState.Actors.Find(source.Tether.Target);
                 if (target != null)
                     module.Arena.AddLine(source.Position, target.Position, ArenaColor.Danger);

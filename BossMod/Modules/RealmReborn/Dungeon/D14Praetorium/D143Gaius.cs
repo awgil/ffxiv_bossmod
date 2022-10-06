@@ -118,11 +118,9 @@ namespace BossMod.RealmReborn.Dungeon.D14Praetorium.D143Gaius
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            if (PrimaryActor.IsTargetable)
-                Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var add in Enemies(OID.PhantomGaiusAdd))
-                if (add.IsTargetable && !add.IsDead)
-                    Arena.Actor(add, ArenaColor.Enemy);
+                Arena.Actor(add, ArenaColor.Enemy);
         }
     }
 }

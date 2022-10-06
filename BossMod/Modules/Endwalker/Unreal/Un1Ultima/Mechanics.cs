@@ -107,18 +107,18 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
             foreach (var orb in module.Enemies(OID.Ultimaplasm).Where(orb => !_orbsSharedExploded.Contains(orb.InstanceID)))
             {
                 // TODO: line between paired orbs
-                arena.Actor(orb, ArenaColor.Danger);
+                arena.Actor(orb, ArenaColor.Danger, true);
                 arena.AddCircle(orb.Position, _orbSharedRange, ArenaColor.Safe);
             }
 
             foreach (var orb in module.Enemies(OID.Aetheroplasm).Where(orb => !_orbsKitedExploded.Contains(orb.InstanceID)))
             {
                 // TODO: line from corresponding target
-                arena.Actor(orb, ArenaColor.Danger);
+                arena.Actor(orb, ArenaColor.Danger, true);
                 arena.AddCircle(orb.Position, _orbFixateRange, ArenaColor.Danger);
             }
 
-            foreach (var bit in module.Enemies(OID.MagitekBit).Where(bit => !bit.IsDead))
+            foreach (var bit in module.Enemies(OID.MagitekBit))
             {
                 arena.Actor(bit, ArenaColor.Danger);
             }
