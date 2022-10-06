@@ -37,14 +37,14 @@ namespace BossMod.SCH
         public override CommonRotation.PlayerState GetState() => _state;
         public override CommonRotation.Strategy GetStrategy() => _strategy;
 
-        public override Targeting SelectBetterTarget(Actor initial)
+        public override Targeting SelectBetterTarget(AIHints.Enemy initial)
         {
             // TODO: look for good place to cast art of war and move closer...
 
             // look for target to multidot, if initial target already has dot
-            if (_state.Unlocked(AID.Bio1) && !WithoutDOT(initial))
+            if (_state.Unlocked(AID.Bio1) && !WithoutDOT(initial.Actor))
             {
-                var multidotTarget = Autorot.Hints.PriorityTargetsActors.InRadius(Player.Position, 25).FirstOrDefault(t => t != initial && WithoutDOT(t));
+                var multidotTarget = Autorot.Hints.PriorityTargets.FirstOrDefault(t => t != initial && t.Actor.Position.InCircle(Player.Position, 25) && WithoutDOT(t.Actor));
                 if (multidotTarget != null)
                     return new(multidotTarget, 10);
             }

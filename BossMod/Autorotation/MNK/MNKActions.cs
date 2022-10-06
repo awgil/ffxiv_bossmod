@@ -39,7 +39,7 @@ namespace BossMod.MNK
         public override CommonRotation.PlayerState GetState() => _state;
         public override CommonRotation.Strategy GetStrategy() => _strategy;
 
-        public override Targeting SelectBetterTarget(Actor initial)
+        public override Targeting SelectBetterTarget(AIHints.Enemy initial)
         {
             // TODO: multidotting support...
             var pos = (_state.Form == Rotation.Form.Coeurl ? Rotation.GetCoeurlFormAction(_state, _strategy.NumPointBlankAOETargets) : AID.None) switch

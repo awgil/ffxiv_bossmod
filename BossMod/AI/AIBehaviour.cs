@@ -43,9 +43,9 @@ namespace BossMod.AI
 
             var target = forbidActions ? new() : SelectPrimaryTarget(player, master);
             if (!forbidActions)
-                _autorot.PrimaryTarget = target.Target;
+                _autorot.PrimaryTarget = target.Target?.Actor;
             if (target.Target != null)
-                _ctrl.SetPrimaryTarget(target.Target);
+                _ctrl.SetPrimaryTarget(target.Target.Actor);
 
             AdjustTargetPositional(player, ref target);
 
@@ -55,7 +55,7 @@ namespace BossMod.AI
             else if (_followMaster)
                 _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, master.Position, 1, new(), Positional.Any);
             else if (target.Target != null)
-                _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, target.Target.Position, target.PreferredRange + player.HitboxRadius + target.Target.HitboxRadius, target.Target.Rotation, target.PreferredPosition);
+                _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, target.Target.Actor.Position, target.PreferredRange + player.HitboxRadius + target.Target.Actor.HitboxRadius, target.Target.Actor.Rotation, target.PreferredPosition);
             else
                 _naviDecision = NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, null, 0, new(), Positional.Any);
 
@@ -80,16 +80,13 @@ namespace BossMod.AI
                 return new(); // there are no valid targets to attack, or we're not fighting - remain idle
 
             // we prefer not to switch targets unnecessarily, so start with current target - it could've been selected manually or by AI on previous frames
-            var target = _autorot.PrimaryTarget;
-
             // if current target is not among valid targets, clear it - this opens way for future target selection heuristics
-            if (target != null && !_autorot.Hints.PriorityTargetsActors.Contains(target))
-                target = null;
+            var target = _autorot.Hints.PriorityTargets.FirstOrDefault(e => e.Actor == _autorot.PrimaryTarget);
 
             // if we don't have a valid target yet, use some heuristics to select some 'ok' target to attack
             // try assisting master, otherwise (if player is own master, or if master has no valid target) just select closest valid target
-            target ??= master != player ? _autorot.Hints.PriorityTargetsActors.FirstOrDefault(t => master.TargetID == t.InstanceID) : null;
-            target ??= _autorot.Hints.PriorityTargetsActors.Closest(player.Position);
+            target ??= master != player ? _autorot.Hints.PriorityTargets.FirstOrDefault(t => master.TargetID == t.Actor.InstanceID) : null;
+            target ??= _autorot.Hints.PriorityTargets.MinBy(e => (e.Actor.Position - player.Position).LengthSq());
 
             // now give class module a chance to improve targeting
             // typically it would switch targets for multidotting, or to hit more targets with AOE
@@ -103,7 +100,7 @@ namespace BossMod.AI
                 return; // nothing to adjust
 
             // if target-of-target is player, don't try flanking, it's probably impossible... - unless target is currently casting (TODO: reconsider?)
-            if (targeting.Target.TargetID == player.InstanceID && targeting.Target.CastInfo == null)
+            if (targeting.Target.Actor.TargetID == player.InstanceID && targeting.Target.Actor.CastInfo == null)
                 targeting.PreferredPosition = Positional.Any;
 
             // TODO: check whether target ignores positionals...
@@ -143,7 +140,7 @@ namespace BossMod.AI
 
         private void UpdateMovement(Actor player, Actor master, CommonActions.Targeting target, bool allowSprint)
         {
-            var destRot = AvoidGaze.Update(player, target.Target?.Position, _autorot.Hints, _autorot.WorldState.CurrentTime.AddSeconds(0.5));
+            var destRot = AvoidGaze.Update(player, target.Target?.Actor.Position, _autorot.Hints, _autorot.WorldState.CurrentTime.AddSeconds(0.5));
             if (destRot != null)
             {
                 // rotation check imminent, drop any movement - we should have moved to safe zone already...

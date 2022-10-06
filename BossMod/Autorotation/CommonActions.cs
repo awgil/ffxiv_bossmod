@@ -34,11 +34,11 @@ namespace BossMod
 
         public struct Targeting
         {
-            public Actor? Target;
+            public AIHints.Enemy? Target;
             public float PreferredRange;
             public Positional PreferredPosition;
 
-            public Targeting(Actor target, float range = 3, Positional pos = Positional.Any)
+            public Targeting(AIHints.Enemy target, float range = 3, Positional pos = Positional.Any)
             {
                 Target = target;
                 PreferredRange = range;
@@ -286,7 +286,7 @@ namespace BossMod
         public abstract void Dispose();
         public abstract CommonRotation.PlayerState GetState();
         public abstract CommonRotation.Strategy GetStrategy();
-        public virtual Targeting SelectBetterTarget(Actor initial) => new(initial);
+        public virtual Targeting SelectBetterTarget(AIHints.Enemy initial) => new(initial);
         protected virtual void OnTick() { }
         protected abstract void UpdateInternalState(int autoAction);
         protected abstract void QueueAIActions();

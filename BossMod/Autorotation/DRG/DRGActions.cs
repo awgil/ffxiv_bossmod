@@ -36,16 +36,16 @@ namespace BossMod.DRG
         public override CommonRotation.PlayerState GetState() => _state;
         public override CommonRotation.Strategy GetStrategy() => _strategy;
 
-        public override Targeting SelectBetterTarget(Actor initial)
+        public override Targeting SelectBetterTarget(AIHints.Enemy initial)
         {
             // targeting for aoe
             if (_state.Unlocked(AID.DoomSpike))
             {
                 var bestAOETarget = initial;
-                var bestAOECount = NumTargetsHitByAOEGCD(initial);
-                foreach (var candidate in Autorot.Hints.PriorityTargetsActors.InRadius(Player.Position, 10).Exclude(initial))
+                var bestAOECount = NumTargetsHitByAOEGCD(initial.Actor);
+                foreach (var candidate in Autorot.Hints.PriorityTargets.Where(e => e != initial && e.Actor.Position.InCircle(Player.Position, 10)))
                 {
-                    var candidateAOECount = NumTargetsHitByAOEGCD(candidate);
+                    var candidateAOECount = NumTargetsHitByAOEGCD(candidate.Actor);
                     if (candidateAOECount > bestAOECount)
                     {
                         bestAOETarget = candidate;
@@ -59,9 +59,9 @@ namespace BossMod.DRG
 
             // targeting for multidot
             var adjTarget = initial;
-            if (_state.Unlocked(AID.ChaosThrust) && !WithoutDOT(initial))
+            if (_state.Unlocked(AID.ChaosThrust) && !WithoutDOT(initial.Actor))
             {
-                var multidotTarget = Autorot.Hints.PriorityTargetsActors.InRadius(Player.Position, 5).FirstOrDefault(t => t != initial && WithoutDOT(t));
+                var multidotTarget = Autorot.Hints.PriorityTargets.FirstOrDefault(e => e != initial && e.Actor.Position.InCircle(Player.Position, 5) && WithoutDOT(e.Actor));
                 if (multidotTarget != null)
                     adjTarget = multidotTarget;
             }

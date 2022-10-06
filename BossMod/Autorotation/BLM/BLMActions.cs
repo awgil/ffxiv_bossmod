@@ -36,16 +36,16 @@ namespace BossMod.BLM
         public override CommonRotation.PlayerState GetState() => _state;
         public override CommonRotation.Strategy GetStrategy() => _strategy;
 
-        public override Targeting SelectBetterTarget(Actor initial)
+        public override Targeting SelectBetterTarget(AIHints.Enemy initial)
         {
             // TODO: multidot?..
             var bestTarget = initial;
             if (_state.Unlocked(AID.Blizzard2))
             {
-                var bestAOECount = NumTargetsHitByAOE(initial);
-                foreach (var candidate in Autorot.Hints.PriorityTargetsActors.InRadius(Player.Position, 25).Exclude(initial))
+                var bestAOECount = NumTargetsHitByAOE(initial.Actor);
+                foreach (var candidate in Autorot.Hints.PriorityTargets.Where(e => e != initial && e.Actor.Position.InCircle(Player.Position, 25)))
                 {
-                    var candidateAOECount = NumTargetsHitByAOE(candidate);
+                    var candidateAOECount = NumTargetsHitByAOE(candidate.Actor);
                     if (candidateAOECount > bestAOECount)
                     {
                         bestTarget = candidate;

@@ -7,13 +7,15 @@ namespace BossMod
     // information relevant for AI decision making process for a specific player
     public class AIHints
     {
+        public enum TankAffinity { None, MT, OT }
+
         public class Enemy
         {
             public Actor Actor;
             public int Priority; // <0 means damaging is actually forbidden, 0 is default
             public float TimeToKill;
             public float AttackStrength; // target's predicted HP percent is decreased by this amount (0.05 by default)
-            public PartyRolesConfig.Assignment DesignatedTank; // who should tank this enemy (MT by default)
+            public TankAffinity TankAffinity; // who should be tanking this enemy
             public WPos DesiredPosition; // tank AI will try to move enemy to this position
             public Angle DesiredRotation; // tank AI will try to rotate enemy to this angle
 
@@ -23,7 +25,7 @@ namespace BossMod
                 Priority = actor.InCombat ? 0 : -1;
                 TimeToKill = 10000;
                 AttackStrength = 0.05f;
-                DesignatedTank = PartyRolesConfig.Assignment.MT;
+                TankAffinity = actor.TargetID != 0 ? TankAffinity.MT : TankAffinity.None;
                 DesiredPosition = actor.Position;
                 DesiredRotation = actor.Rotation;
             }
@@ -96,13 +98,12 @@ namespace BossMod
         // query utilities
         public IEnumerable<Enemy> PotentialTargetsEnumerable => PotentialTargets;
         public IEnumerable<Enemy> PriorityTargets => PotentialTargets.TakeWhile(e => e.Priority == HighestPotentialTargetPriority);
-        public IEnumerable<Actor> PriorityTargetsActors => PriorityTargets.Select(e => e.Actor);
-        public IEnumerable<Actor> ForbiddenTargetsActors => PotentialTargetsEnumerable.Reverse().TakeWhile(e => e.Priority < 0).Select(e => e.Actor);
+        public IEnumerable<Enemy> ForbiddenTargets => PotentialTargetsEnumerable.Reverse().TakeWhile(e => e.Priority < 0);
 
         // TODO: verify how source/target hitboxes are accounted for by various aoe shapes
-        public int NumPriorityTargetsInAOE(Func<Actor, bool> pred) => ForbiddenTargetsActors.Any(pred) ? 0 : PriorityTargetsActors.Count(pred);
-        public int NumPriorityTargetsInAOECircle(WPos origin, float radius) => NumPriorityTargetsInAOE(a => a.Position.InCircle(origin, radius + a.HitboxRadius));
-        public int NumPriorityTargetsInAOECone(WPos origin, float radius, WDir direction, Angle halfAngle) => NumPriorityTargetsInAOE(a => a.Position.InCircleCone(origin, radius + a.HitboxRadius, direction, halfAngle));
-        public int NumPriorityTargetsInAOERect(WPos origin, WDir direction, float lenFront, float halfWidth, float lenBack = 0) => NumPriorityTargetsInAOE(a => a.Position.InRect(origin, direction, lenFront + a.HitboxRadius, lenBack, halfWidth));
+        public int NumPriorityTargetsInAOE(Func<Enemy, bool> pred) => ForbiddenTargets.Any(pred) ? 0 : PriorityTargets.Count(pred);
+        public int NumPriorityTargetsInAOECircle(WPos origin, float radius) => NumPriorityTargetsInAOE(a => a.Actor.Position.InCircle(origin, radius + a.Actor.HitboxRadius));
+        public int NumPriorityTargetsInAOECone(WPos origin, float radius, WDir direction, Angle halfAngle) => NumPriorityTargetsInAOE(a => a.Actor.Position.InCircleCone(origin, radius + a.Actor.HitboxRadius, direction, halfAngle));
+        public int NumPriorityTargetsInAOERect(WPos origin, WDir direction, float lenFront, float halfWidth, float lenBack = 0) => NumPriorityTargetsInAOE(a => a.Actor.Position.InRect(origin, direction, lenFront + a.Actor.HitboxRadius, lenBack, halfWidth));
     }
 }

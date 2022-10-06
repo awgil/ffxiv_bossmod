@@ -46,9 +46,13 @@ namespace BossMod
                     int goal = 0;
                     if (_autorot.PrimaryTarget != null && _autorot.ClassActions != null)
                     {
-                        var tgt = _autorot.ClassActions.SelectBetterTarget(_autorot.PrimaryTarget);
-                        if (tgt.Target != null)
-                            goal = NavigationDecision.AddTargetGoal(map, tgt.Target.Position, tgt.Target.HitboxRadius + player.HitboxRadius + tgt.PreferredRange, tgt.Target.Rotation, tgt.PreferredPosition, 0);
+                        var targetEnemy = _autorot.Hints.PotentialTargets.FirstOrDefault(e => e.Actor == _autorot.PrimaryTarget);
+                        if (targetEnemy != null)
+                        {
+                            var tgt = _autorot.ClassActions.SelectBetterTarget(targetEnemy);
+                            if (tgt.Target != null)
+                                goal = NavigationDecision.AddTargetGoal(map, tgt.Target.Actor.Position, tgt.Target.Actor.HitboxRadius + player.HitboxRadius + tgt.PreferredRange, tgt.Target.Actor.Rotation, tgt.PreferredPosition, 0);
+                        }
                     }
                     new MapVisualizer(map, goal, player.Position).Draw();
                 }

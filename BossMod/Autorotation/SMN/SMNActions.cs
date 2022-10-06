@@ -33,7 +33,7 @@ namespace BossMod.SMN
         public override CommonRotation.PlayerState GetState() => _state;
         public override CommonRotation.Strategy GetStrategy() => _strategy;
 
-        public override Targeting SelectBetterTarget(Actor initial)
+        public override Targeting SelectBetterTarget(AIHints.Enemy initial)
         {
             // TODO: AOE & multidotting
             return new(initial, 25);

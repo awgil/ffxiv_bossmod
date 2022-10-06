@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace BossMod.WAR
 {
-    class Actions : CommonActions
+    class Actions : TankActions
     {
         public const int AutoActionST = AutoActionFirstCustom + 0;
         public const int AutoActionAOE = AutoActionFirstCustom + 1;
@@ -52,6 +52,7 @@ namespace BossMod.WAR
 
         protected override void UpdateInternalState(int autoAction)
         {
+            base.UpdateInternalState(autoAction);
             _aoe = autoAction switch
             {
                 AutoActionST => false,
@@ -65,6 +66,8 @@ namespace BossMod.WAR
 
         protected override void QueueAIActions()
         {
+            if (_state.Unlocked(AID.Defiance))
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.Defiance), Player, ShouldSwapStance());
         }
 
         protected override NextAction CalculateAutomaticGCD()
@@ -90,6 +93,7 @@ namespace BossMod.WAR
 
         protected override void OnActionExecuted(ActionID action, Actor? target)
         {
+            base.OnActionExecuted(action, target);
             Log($"Executed {action} @ {target} [{_state}]");
         }
 

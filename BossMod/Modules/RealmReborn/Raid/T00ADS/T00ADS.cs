@@ -54,8 +54,6 @@ namespace BossMod.RealmReborn.Raid.T00ADS
         public GravityField() : base((uint)OID.GravityField, new AOEShapeCircle(6)) { }
     }
 
-    // TODO: offtank add pickup logic...
-
     class T00ADSStates : StateMachineBuilder
     {
         public T00ADSStates(BossModule module) : base(module)
@@ -86,7 +84,12 @@ namespace BossMod.RealmReborn.Raid.T00ADS
                     OID.Boss => 1,
                     _ => 0
                 };
-                enemy.DesignatedTank = (OID)enemy.Actor.OID == OID.Boss ? PartyRolesConfig.Assignment.MT : PartyRolesConfig.Assignment.OT;
+                if ((OID)enemy.Actor.OID is OID.PatrolNode or OID.AttackNode or OID.DefenseNode)
+                {
+                    enemy.TankAffinity = AIHints.TankAffinity.OT;
+                    enemy.DesiredPosition = Bounds.Center;
+                    enemy.DesiredRotation = 0.Degrees();
+                }
             });
         }
 

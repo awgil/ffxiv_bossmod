@@ -42,17 +42,17 @@ namespace BossMod.BRD
         public override CommonRotation.PlayerState GetState() => _state;
         public override CommonRotation.Strategy GetStrategy() => _strategy;
 
-        public override Targeting SelectBetterTarget(Actor initial)
+        public override Targeting SelectBetterTarget(AIHints.Enemy initial)
         {
             // TODO: min range to better hit clump with cone...
             // TODO: targeting for rain of death
             var bestTarget = initial;
             if (_state.Unlocked(AID.QuickNock))
             {
-                var bestAOECount = NumTargetsHitByLadonsbite(initial);
-                foreach (var candidate in Autorot.Hints.PriorityTargetsActors.InRadius(Player.Position, 12).Exclude(initial))
+                var bestAOECount = NumTargetsHitByLadonsbite(initial.Actor);
+                foreach (var candidate in Autorot.Hints.PriorityTargets.Where(e => e != initial && e.Actor.Position.InCircle(Player.Position, 12)))
                 {
-                    var candidateAOECount = NumTargetsHitByLadonsbite(candidate);
+                    var candidateAOECount = NumTargetsHitByLadonsbite(candidate.Actor);
                     if (candidateAOECount > bestAOECount)
                     {
                         bestTarget = candidate;
