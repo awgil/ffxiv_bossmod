@@ -12,8 +12,8 @@ namespace BossMod
         {
             public int PredictedHPCur;
             public int PredictedHPDeficit;
-            public int NumAttackers;
-            public float PredictedHPRatio; // reduced by sum of attacker strengths (0.05 by default), unless at full hp
+            public float AttackerStrength; // 0.05 per attacker by default
+            public float PredictedHPRatio; // reduced by sum of attacker strengths, unless at full hp; increased by active hots and incoming heals from other healers
             public bool HaveRemovableDebuffs;
         }
 
@@ -47,9 +47,22 @@ namespace BossMod
                     state.PredictedHPCur = (int)actor.HP.Cur + Autorot.WorldState.PendingEffects.PendingHPDifference(actor.InstanceID);
                     state.PredictedHPDeficit = (int)actor.HP.Max - state.PredictedHPCur;
                     state.PredictedHPRatio = (float)state.PredictedHPCur / actor.HP.Max;
-                    state.HaveRemovableDebuffs = actor.Statuses.Any(s => Utils.StatusIsRemovable(s.ID));
+                    foreach (var s in actor.Statuses)
+                    {
+                        if (!state.HaveRemovableDebuffs && Utils.StatusIsRemovable(s.ID))
+                            state.HaveRemovableDebuffs = true;
+                        if (IsHOT(s.ID))
+                            state.PredictedHPRatio += 0.1f;
+                    }
                 }
-                state.NumAttackers = 0;
+                state.AttackerStrength = 0;
+            }
+            foreach (var incomingHealTargets in Autorot.WorldState.Party.WithoutSlot().Select(a => CastedHealTargets(Autorot.WorldState, a)))
+            {
+                foreach (var slot in incomingHealTargets.SetBits())
+                {
+                    PartyMemberStates[slot].PredictedHPRatio += 0.2f;
+                }
             }
             foreach (var enemy in Autorot.Hints.PotentialTargets)
             {
@@ -57,7 +70,7 @@ namespace BossMod
                 if (targetSlot >= 0 && targetSlot < PartyMemberStates.Length)
                 {
                     ref var state = ref PartyMemberStates[targetSlot];
-                    ++state.NumAttackers;
+                    state.AttackerStrength += enemy.AttackStrength;
                     if (state.PredictedHPRatio < 0.99f)
                         state.PredictedHPRatio -= enemy.AttackStrength;
                 }
@@ -130,26 +143,25 @@ namespace BossMod
         }
 
         // find best target for regen/preshield
-        protected Actor? FindProtectTarget(int minAttackersInCombat = 3)
+        protected Actor? FindProtectTarget(float minAttackerStrengthInCombat = 0.15f)
         {
-            // TODO: reconsider... consider multiple tanks (select one with stance), consider when protection is not needed (few attackers?)
             if (!AllowProtect)
                 return null;
             Actor? best = null;
-            int bestScore = 0; // 1 if out of combat and has stance, 2+N if have more attackers than threshold
+            float bestScore = 0; // 1 if out of combat and has stance, 2+X if have more attacker strength than threshold
             for (int i = 0; i < PartyMemberStates.Length; ++i)
             {
                 var actor = Autorot.WorldState.Party[i];
                 if (actor == null || actor.IsDead || actor.Role != Role.Tank)
                     continue; // consider only alive tanks
 
-                int curScore = 0;
-                var numAttackers = PartyMemberStates[i].NumAttackers;
-                if (numAttackers >= minAttackersInCombat)
+                float curScore = 0;
+                var strength = PartyMemberStates[i].AttackerStrength;
+                if (strength >= minAttackerStrengthInCombat)
                 {
-                    curScore = 2 + numAttackers - minAttackersInCombat;
+                    curScore = 2 + strength - minAttackerStrengthInCombat;
                 }
-                else if (numAttackers == 0 && !actor.InCombat && HasTankStance(actor))
+                else if (strength == 0 && !actor.InCombat && HasTankStance(actor))
                 {
                     curScore = 1;
                 }
@@ -164,7 +176,7 @@ namespace BossMod
         }
 
         // check whether given actor has tank stance
-        protected bool HasTankStance(Actor a)
+        protected static bool HasTankStance(Actor a)
         {
             var stanceSID = a.Class switch
             {
@@ -173,6 +185,38 @@ namespace BossMod
                 _ => 0u
             };
             return stanceSID != 0 && a.FindStatus(stanceSID) != null;
+        }
+
+        protected static bool IsHOT(uint sid)
+        {
+            return (WHM.SID)sid is WHM.SID.Medica2 or WHM.SID.Asylum or WHM.SID.Regen;
+        }
+
+        protected static BitMask CastedHealTargets(WorldState ws, Actor a)
+        {
+            BitMask res = new();
+            if (a.CastInfo == null || a.Role != Role.Healer || !a.CastInfo.IsSpell())
+                return res;
+            switch (a.CastInfo.Action.ID)
+            {
+                case (uint)WHM.AID.Cure1:
+                case (uint)WHM.AID.Cure2:
+                case (uint)SCH.AID.Physick:
+                case (uint)SCH.AID.Adloquium:
+                    res.Set(ws.Party.FindSlot(a.CastInfo.TargetID));
+                    break;
+                case (uint)WHM.AID.Medica1:
+                case (uint)SCH.AID.Succor:
+                    res = ws.Party.WithSlot().InRadius(a.Position, 15).Mask();
+                    break;
+                case (uint)WHM.AID.Medica2:
+                    res = ws.Party.WithSlot().InRadius(a.Position, 20).Mask();
+                    break;
+                case (uint)WHM.AID.Cure3:
+                    res = ws.Party.WithSlot().InRadius((ws.Actors.Find(a.CastInfo.TargetID) ?? a).Position, 20).Mask();
+                    break;
+            };
+            return res;
         }
 
         // find target for esuna, if available

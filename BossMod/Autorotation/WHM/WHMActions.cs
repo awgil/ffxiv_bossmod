@@ -114,7 +114,7 @@ namespace BossMod.WHM
                         return MakeResult(AID.Medica1, Player);
 
                     // now check ST heals (TODO: afflatus solace)
-                    if (Rotation.CanCast(_state, _strategy, 2) && _strategy.BestSTHeal.Target != null)
+                    if (Rotation.CanCast(_state, _strategy, 2) && _strategy.BestSTHeal.Target != null && _strategy.BestSTHeal.HPRatio <= 0.5f)
                         return MakeResult(_state.CanCastCure2 ? AID.Cure2 : AID.Cure1, _strategy.BestSTHeal.Target);
 
                     // now check esuna

@@ -92,7 +92,7 @@ namespace BossMod.SCH
             }
 
             // prepull adlo, if allowed
-            var preshieldTarget = _state.Unlocked(AID.Adloquium) ? FindProtectTarget() : null;
+            var preshieldTarget = _state.Unlocked(AID.Adloquium) ? FindProtectTarget(0.5f) : null;
             if (preshieldTarget != null && Rotation.CanCast(_state, _strategy, 2) && StatusDetails(preshieldTarget, SID.Galvanize, Player.InstanceID).Left <= _state.GCD)
                 return MakeResult(AID.Adloquium, preshieldTarget);
 
