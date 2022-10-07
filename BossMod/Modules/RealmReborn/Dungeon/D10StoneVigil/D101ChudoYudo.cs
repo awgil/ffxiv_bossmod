@@ -26,12 +26,10 @@
     // due to relatively short casts and the fact that boss likes moving across arena to cast swinge, we always want non-tanks to be positioned slightly behind
     class Positioning : BossComponent
     {
-        private static AOEShapeCone _shape = new(10, 90.Degrees());
-
         public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             if (actor.Role != Role.Tank)
-                hints.ForbiddenZones.Add((_shape, module.PrimaryActor.Position, module.PrimaryActor.Rotation, module.WorldState.CurrentTime));
+                hints.AddForbiddenZone(ShapeDistance.Cone(module.PrimaryActor.Position, 10, module.PrimaryActor.Rotation, 90.Degrees()));
         }
     }
 

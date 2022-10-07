@@ -40,9 +40,9 @@ namespace BossMod
         public List<Enemy> PotentialTargets = new();
         public int HighestPotentialTargetPriority = 0;
 
-        // positioning: list of areas that are either forbidden to stand in now or will be in near future
+        // positioning: list of shapes that are either forbidden to stand in now or will be in near future
         // AI will try to move in such a way to avoid standing in any forbidden zone after its activation or outside of some restricted zone after its activation, even at the cost of uptime
-        public List<(AOEShape shape, WPos origin, Angle rot, DateTime activation)> ForbiddenZones = new();
+        public List<(Func<WPos, float> shapeDistance, DateTime activation)> ForbiddenZones = new();
 
         // positioning: position hint - if set, player will move closer to this position, assuming it is safe and in target's range, without losing uptime
         //public WPos? RecommendedPosition = null;
@@ -85,6 +85,9 @@ namespace BossMod
             foreach (var enemy in PotentialTargets)
                 enemy.Priority = map(enemy.Actor);
         }
+
+        public void AddForbiddenZone(Func<WPos, float> shapeDistance, DateTime activation = new()) => ForbiddenZones.Add((shapeDistance, activation));
+        public void AddForbiddenZone(AOEShape shape, WPos origin, Angle rot = new(), DateTime activation = new()) => ForbiddenZones.Add((shape.Distance(origin, rot), activation));
 
         // normalize all entries after gathering data: sort by priority / activation timestamp
         public void Normalize()

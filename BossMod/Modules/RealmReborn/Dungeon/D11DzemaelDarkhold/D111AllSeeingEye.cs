@@ -48,15 +48,13 @@
     // try to always stay in active crystal closest to boss
     class Positioning : BossComponent
     {
-        private static AOEShapeDonut _shape = new(8, 100); // TODO: verify range
-
         public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             if (module.PrimaryActor.CastInfo == null) // do not restrict zone while boss is casting, to allow avoiding aoe, even if it means temporarily leaving crystal veil
             {
                 var closestCrystal = module.Enemies(OID.Crystal).Closest(module.PrimaryActor.Position);
                 if (closestCrystal != null)
-                    hints.ForbiddenZones.Add((_shape, closestCrystal.Position, new(), new()));
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closestCrystal.Position, 8)); // TODO: verify range
             }
         }
     }

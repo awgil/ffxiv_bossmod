@@ -71,11 +71,11 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D163Anantaboga
             if (actor == _target)
             {
                 foreach (var p in ((D163Anantaboga)module).ActivePillars())
-                    hints.ForbiddenZones.Add((_shape, p.Position, new(), _activation));
+                    hints.AddForbiddenZone(_shape, p.Position, new(), _activation);
             }
             else if (_target != null)
             {
-                hints.ForbiddenZones.Add((_shape, _target.Position, new(), _activation));
+                hints.AddForbiddenZone(_shape, _target.Position, new(), _activation);
             }
         }
 

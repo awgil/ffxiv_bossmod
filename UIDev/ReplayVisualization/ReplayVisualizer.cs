@@ -351,7 +351,7 @@ namespace UIDev
                     var map = _hints.Bounds.BuildMap();
                     var imm = NavigationDecision.ImminentExplosionTime(_mgr.WorldState.CurrentTime);
                     foreach (var z in _hints.ForbiddenZones)
-                        NavigationDecision.AddBlockerZone(map, imm, z.activation, z.shape.Distance(z.origin, z.rot), _pfCushion);
+                        NavigationDecision.AddBlockerZone(map, imm, z.activation, z.shapeDistance, _pfCushion);
                     var goal = NavigationDecision.AddTargetGoal(map, target.Position, target.HitboxRadius + player.HitboxRadius + _pfTargetRadius, target.Rotation, _pfPositional, 0);
                     _pf = new(map, goal, player.Position);
                 }

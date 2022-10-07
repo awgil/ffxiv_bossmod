@@ -30,13 +30,11 @@ namespace BossMod.RealmReborn.Trial.T03GarudaN
     // disallow clipping monoliths
     class Friction : BossComponent
     {
-        private AOEShapeCircle _shape = new(5);
-
         public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             if (module.PrimaryActor.CastInfo == null) // don't forbid standing near monoliths while boss is casting to allow avoiding aoes
                 foreach (var m in module.Enemies(OID.Monolith))
-                    hints.ForbiddenZones.Add((_shape, m.Position, new(), module.WorldState.CurrentTime));
+                    hints.AddForbiddenZone(ShapeDistance.Circle(m.Position, 5));
         }
     }
 

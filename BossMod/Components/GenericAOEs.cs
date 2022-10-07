@@ -25,7 +25,7 @@ namespace BossMod.Components
         public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             foreach (var c in ActiveAOEs(module, slot, actor))
-                hints.ForbiddenZones.Add((c.shape, c.origin, c.rotation, c.time));
+                hints.AddForbiddenZone(c.shape, c.origin, c.rotation, c.time);
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

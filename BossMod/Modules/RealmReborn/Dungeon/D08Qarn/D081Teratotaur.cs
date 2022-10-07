@@ -50,7 +50,6 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D081Teratotaur
         private Actor?[] _platforms = { null, null, null };
 
         private static AOEShapeCircle _platformShape = new(2);
-        private static AOEShapeDonut _outsideShape = new(2, 50);
 
         private Actor? ActivePlatform => _platforms.FirstOrDefault(a => a != null && a.EventState == 0);
 
@@ -74,7 +73,7 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D081Teratotaur
                 var target = ActivePlatform;
                 if (target != null)
                 {
-                    hints.ForbiddenZones.Add((_outsideShape, target.Position, 0.Degrees(), actor.FindStatus(SID.Doom)!.Value.ExpireAt));
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(target.Position, _platformShape.Radius), actor.FindStatus(SID.Doom)!.Value.ExpireAt);
                 }
             }
         }

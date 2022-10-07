@@ -27,7 +27,12 @@ namespace BossMod
             }
             foreach (var n in _tree.Node("Forbidden zones", _autorot.Hints.ForbiddenZones.Count == 0))
             {
-                _tree.LeafNodes(_autorot.Hints.ForbiddenZones, z => $"{z.shape} @ {z.origin} rot={z.rot}, at {Math.Max(0, (z.activation - _autorot.WorldState.CurrentTime).TotalSeconds):f3}");
+                foreach (var (shape, _) in _tree.Nodes(_autorot.Hints.ForbiddenZones, z => new($"Activated at {Math.Max(0, (z.activation - _autorot.WorldState.CurrentTime).TotalSeconds):f3}", true)))
+                {
+                    var map = _autorot.Hints.Bounds.BuildMap();
+                    map.BlockPixelsInside(shape, 0, NavigationDecision.DefaultForbiddenZoneCushion);
+                    new MapVisualizer(map, 0, _autorot.ClassActions.Player.Position).Draw();
+                }
             }
             foreach (var n in _tree.Node("Forbidden directions", _autorot.Hints.ForbiddenDirections.Count == 0))
             {
@@ -46,8 +51,8 @@ namespace BossMod
                 {
                     navi.Map = _autorot.Hints.Bounds.BuildMap();
                     var imm = NavigationDecision.ImminentExplosionTime(_autorot.WorldState.CurrentTime);
-                    foreach (var z in _autorot.Hints.ForbiddenZones)
-                        NavigationDecision.AddBlockerZone(navi.Map, imm, z.activation, z.shape.Distance(z.origin, z.rot), NavigationDecision.DefaultForbiddenZoneCushion);
+                    foreach (var (shape, activation) in _autorot.Hints.ForbiddenZones)
+                        NavigationDecision.AddBlockerZone(navi.Map, imm, activation, shape, NavigationDecision.DefaultForbiddenZoneCushion);
                     if (targetEnemy != null)
                         navi.MapGoal = NavigationDecision.AddTargetGoal(navi.Map, targetEnemy.Actor.Position, targetEnemy.Actor.HitboxRadius + _autorot.ClassActions.Player.HitboxRadius + targeting.PreferredRange, targetEnemy.Actor.Rotation, targeting.PreferredPosition, 0);
                 }

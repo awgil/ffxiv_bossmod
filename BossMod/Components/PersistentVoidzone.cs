@@ -31,7 +31,7 @@ namespace BossMod.Components
         public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             foreach (var c in Casters)
-                hints.ForbiddenZones.Add((Shape, c.Position, c.Rotation, module.WorldState.CurrentTime));
+                hints.AddForbiddenZone(Shape, c.Position, c.Rotation);
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

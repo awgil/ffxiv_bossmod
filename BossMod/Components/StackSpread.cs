@@ -52,7 +52,7 @@ namespace BossMod.Components
         {
             // forbid standing next to spread markers
             foreach (var (_, player) in module.Raid.WithSlot().Exclude(slot).IncludedInMask(SpreadMask))
-                hints.ForbiddenZones.Add((_spreadShape, player.Position, new(), ActivateAt));
+                hints.AddForbiddenZone(_spreadShape, player.Position, new(), ActivateAt);
 
             // if not spreading, deal with stack markers
             if (!SpreadMask[slot])
@@ -61,14 +61,14 @@ namespace BossMod.Components
                 {
                     // forbid standing next to other stack markers
                     foreach (var (_, player) in module.Raid.WithSlot().Exclude(slot).IncludedInMask(StackMask))
-                        hints.ForbiddenZones.Add((_stackShape, player.Position, new(), ActivateAt));
+                        hints.AddForbiddenZone(_stackShape, player.Position, new(), ActivateAt);
                 }
                 else
                 {
                     // TODO: handle multi stacks better...
                     var closestStack = module.Raid.WithSlot().IncludedInMask(StackMask).Select(ia => ia.Item2).Closest(actor.Position);
                     if (closestStack != null)
-                        hints.ForbiddenZones.Add((new AOEShapeDonut(StackRadius, 100), closestStack.Position, new(), ActivateAt));
+                        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closestStack.Position, StackRadius), ActivateAt);
                 }
             }
 

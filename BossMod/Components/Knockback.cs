@@ -77,7 +77,7 @@ namespace BossMod.Components
                 // this is really basic - implementations should probably override
                 if (Distance < module.Bounds.HalfSize && ActiveCasters.Any())
                 {
-                    hints.ForbiddenZones.Add((new AOEShapeDonut(Distance, 100), module.Bounds.Center, new(), ActiveCasters.First().CastInfo!.FinishAt));
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.Bounds.Center, Distance), ActiveCasters.First().CastInfo!.FinishAt);
                 }
             }
         }

@@ -49,7 +49,7 @@ namespace BossMod.Components
             {
                 if (actor != target)
                 {
-                    hints.ForbiddenZones.Add((Shape, origin.Position, angle, module.WorldState.CurrentTime));
+                    hints.AddForbiddenZone(Shape, origin.Position, angle);
                 }
             }
         }

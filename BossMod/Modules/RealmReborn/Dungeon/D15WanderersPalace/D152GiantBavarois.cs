@@ -35,12 +35,10 @@
     {
         private Actor? _kiter;
 
-        private static AOEShapeCircle _avoidBossShape = new(8);
-
         public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             if (actor == _kiter)
-                hints.ForbiddenZones.Add((_avoidBossShape, module.PrimaryActor.Position, new(), new()));
+                hints.AddForbiddenZone(ShapeDistance.Circle(module.PrimaryActor.Position, 8));
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)

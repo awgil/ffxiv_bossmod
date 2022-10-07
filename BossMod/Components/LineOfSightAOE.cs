@@ -8,109 +8,74 @@ namespace BossMod.Components
     // generic component that shows line-of-sight cones for arbitrary origin and blocking shapes
     public abstract class GenericLineOfSightAOE : CastCounter
     {
-        // shape describing forbidden zone
-        // note that origin/rotation args are ignored (rotation doesn't matter, changing origin requires recalculating cached visibility data)
-        private class ResultingShape : AOEShape
-        {
-            public float MaxRange;
-            public WPos? Origin;
-            public List<(WPos Center, float Radius)> Blockers = new();
-            public List<(float Distance, Angle Dir, Angle HalfWidth)> Visibility = new();
-
-            public override string ToString() => $"LOS: r={MaxRange:f3}, blockers=[{string.Join(", ", Blockers.Select(b => $"{b.Center} r{b.Radius:f3}"))}]";
-
-            public override bool Check(WPos position, WPos origin, Angle rotation)
-            {
-                return Origin != null
-                    && position.InCircle(Origin.Value, MaxRange)
-                    && !Visibility.Any(v => !position.InCircle(Origin.Value, v.Distance) && position.InCone(Origin.Value, v.Dir, v.HalfWidth));
-            }
-
-            public override IEnumerable<IEnumerable<WPos>> Contour(WPos origin, Angle rotation, float offset, float maxError)
-            {
-                yield break; // not supported, do we need it?..
-            }
-
-            public override Func<WPos, float> Distance(WPos origin, Angle rotation)
-            {
-                // inverse of a union of inverted max-range circle and a bunch of infinite cones minus inner cirles
-                var normals = Visibility.Select(v => (v.Distance, (v.Dir + v.HalfWidth).ToDirection().OrthoL(), (v.Dir - v.HalfWidth).ToDirection().OrthoR())).ToList();
-                return p =>
-                {
-                    var off = p - origin;
-                    var distOrigin = off.Length();
-                    var distInverted = MaxRange - distOrigin; // this is positive if we're inside max-range
-                    foreach (var (minRange, nl, nr) in normals)
-                    {
-                        var distInnerInv = minRange - distOrigin;
-                        var distLeft = off.Dot(nl);
-                        var distRight = off.Dot(nr);
-                        var distCone = Math.Max(distInnerInv, Math.Max(distLeft, distRight));
-                        distInverted = Math.Min(distInverted, distCone);
-                    }
-                    return -distInverted;
-                };
-            }
-
-            public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color)
-            {
-                // not supported...
-            }
-
-            public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color)
-            {
-                // not supported...
-            }
-        }
-
         public DateTime NextExplosion;
         public bool BlockersImpassable;
-        public float MaxRange => _shape.MaxRange;
-        public WPos? Origin => _shape.Origin; // inactive if null
-        public IReadOnlyList<(WPos Center, float Radius)> Blockers => _shape.Blockers;
-        public IReadOnlyList<(float Distance, Angle Dir, Angle HalfWidth)> Visibility => _shape.Visibility;
-        private ResultingShape _shape = new();
-        private List<AOEShape> _blockerShapes = new();
+        public float MaxRange { get; private set; }
+        public WPos? Origin { get; private set; } // inactive if null
+        public List<(WPos Center, float Radius)> Blockers { get; private set; } = new();
+        public List<(float Distance, Angle Dir, Angle HalfWidth)> Visibility { get; private set; } = new();
 
         public GenericLineOfSightAOE(ActionID aid, float maxRange, bool blockersImpassable) : base(aid)
         {
             BlockersImpassable = blockersImpassable;
-            _shape.MaxRange = maxRange;
+            MaxRange = maxRange;
         }
 
         public void Modify(WPos? origin, IEnumerable<(WPos Center, float Radius)> blockers)
         {
-            _shape.Origin = origin;
-            _shape.Blockers.Clear();
-            _shape.Blockers.AddRange(blockers);
-            _shape.Visibility.Clear();
-            _blockerShapes.Clear();
+            Origin = origin;
+            Blockers.Clear();
+            Blockers.AddRange(blockers);
+            Visibility.Clear();
             if (origin != null)
             {
                 foreach (var b in Blockers)
                 {
                     var toBlock = b.Center - origin.Value;
                     var dist = toBlock.Length();
-                    _shape.Visibility.Add((dist + b.Radius, Angle.FromDirection(toBlock), Angle.Asin(b.Radius / dist)));
+                    Visibility.Add((dist + b.Radius, Angle.FromDirection(toBlock), Angle.Asin(b.Radius / dist)));
                 }
             }
-            if (BlockersImpassable)
-                foreach (var b in Blockers)
-                    _blockerShapes.Add(new AOEShapeCircle(b.Radius));
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_shape.Check(actor.Position, new(), new()))
+            if (Origin != null
+                && actor.Position.InCircle(Origin.Value, MaxRange)
+                && !Visibility.Any(v => !actor.Position.InCircle(Origin.Value, v.Distance) && actor.Position.InCone(Origin.Value, v.Dir, v.HalfWidth)))
+            {
                 hints.Add("Hide behind obstacle!");
+            }
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
         {
             if (Origin != null)
-                hints.ForbiddenZones.Add((_shape, Origin.Value, new(), NextExplosion));
-            foreach (var (blocker, shape) in _shape.Blockers.Zip(_blockerShapes))
-                hints.ForbiddenZones.Add((shape, blocker.Center, new(), new()));
+            {
+                // inverse of a union of inverted max-range circle and a bunch of infinite cones minus inner cirles
+                var normals = Visibility.Select(v => (v.Distance, (v.Dir + v.HalfWidth).ToDirection().OrthoL(), (v.Dir - v.HalfWidth).ToDirection().OrthoR())).ToArray();
+                Func<WPos, float> invertedDistanceToSafe = p =>
+                {
+                    var off = p - Origin.Value;
+                    var distOrigin = off.Length();
+                    var distanceToSafe = MaxRange - distOrigin; // this is positive if we're inside max-range
+                    foreach (var (minRange, nl, nr) in normals)
+                    {
+                        var distInnerInv = minRange - distOrigin;
+                        var distLeft = off.Dot(nl);
+                        var distRight = off.Dot(nr);
+                        var distCone = Math.Max(distInnerInv, Math.Max(distLeft, distRight));
+                        distanceToSafe = Math.Min(distanceToSafe, distCone);
+                    }
+                    return -distanceToSafe;
+                };
+                hints.AddForbiddenZone(invertedDistanceToSafe, NextExplosion);
+            }
+            if (BlockersImpassable)
+            {
+                var blockers = Blockers.Select(b => ShapeDistance.Circle(b.Center, b.Radius)).ToArray();
+                hints.AddForbiddenZone(p => blockers.Min(b => b(p)));
+            }
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -134,6 +99,11 @@ namespace BossMod.Components
         public CastLineOfSightAOE(ActionID aid, float maxRange, bool blockersImpassable) : base(aid, maxRange, blockersImpassable) { }
 
         public abstract IEnumerable<Actor> BlockerActors(BossModule module);
+
+        public override void Init(BossModule module)
+        {
+            Refresh(module);
+        }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {

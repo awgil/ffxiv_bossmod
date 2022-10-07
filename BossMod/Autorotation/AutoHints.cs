@@ -34,11 +34,11 @@ namespace BossMod
                 {
                     var shape = (AOEShapeRect)aoe.Shape;
                     shape.SetEndPoint(target, aoe.Caster.Position, rot);
-                    hints.ForbiddenZones.Add((shape, aoe.Caster.Position, rot, aoe.Caster.CastInfo.FinishAt));
+                    hints.AddForbiddenZone(shape, aoe.Caster.Position, rot, aoe.Caster.CastInfo.FinishAt);
                 }
                 else
                 {
-                    hints.ForbiddenZones.Add((aoe.Shape, target, rot, aoe.Caster.CastInfo.FinishAt));
+                    hints.AddForbiddenZone(aoe.Shape, target, rot, aoe.Caster.CastInfo.FinishAt);
                 }
             }
         }
