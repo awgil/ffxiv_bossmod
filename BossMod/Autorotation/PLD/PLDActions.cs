@@ -64,6 +64,8 @@ namespace BossMod.PLD
         {
             if (Autorot.PrimaryTarget == null || AutoAction < AutoActionAIFight)
                 return new();
+            if (AutoAction == AutoActionAIFight && !Autorot.PrimaryTarget.Position.InCircle(Player.Position, 10 + Autorot.PrimaryTarget.HitboxRadius + Player.HitboxRadius) && _state.Unlocked(AID.ShieldLob))
+                return MakeResult(AID.ShieldLob, Autorot.PrimaryTarget); // TODO: reconsider...
             var aid = Rotation.GetNextBestGCD(_state, _strategy, _aoe);
             return MakeResult(aid, Autorot.PrimaryTarget);
         }
