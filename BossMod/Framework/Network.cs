@@ -23,6 +23,7 @@ namespace BossMod
         public event EventHandler<(ulong actorID, uint iconID)>? EventActorControlTargetIcon;
         public event EventHandler<(ulong actorID, ulong targetID, uint tetherID)>? EventActorControlTether;
         public event EventHandler<ulong>? EventActorControlTetherCancel;
+        public event EventHandler<(ulong actorID, ushort state)>? EventActorControlEObjSetState;
         public event EventHandler<(ulong actorID, ushort p1, ushort p2)>? EventActorControlEObjAnimation;
         public event EventHandler<(ulong actorID, ushort actionTimelineID)>? EventActorControlPlayActionTimeline;
         public event EventHandler<(ulong actorID, uint actionID, uint sourceSequence)>? EventActorControlSelfActionRejected;
@@ -298,6 +299,10 @@ namespace BossMod
                     break;
                 case Protocol.Server_ActorControlCategory.TetherCancel:
                     EventActorControlTetherCancel?.Invoke(this, actorID);
+                    break;
+                case Protocol.Server_ActorControlCategory.EObjSetState:
+                    // p2 is unused (seems to be director id?), p3==1 means housing (?) item instead of event obj, p4 is housing item id
+                    EventActorControlEObjSetState?.Invoke(this, (actorID, (ushort)p->param1));
                     break;
                 case Protocol.Server_ActorControlCategory.EObjAnimation:
                     EventActorControlEObjAnimation?.Invoke(this, (actorID, (ushort)p->param1, (ushort)p->param2));

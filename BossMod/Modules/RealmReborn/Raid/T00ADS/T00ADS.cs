@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BossMod.RealmReborn.Raid.T00ADS
+﻿namespace BossMod.RealmReborn.Raid.T00ADS
 {
     public enum OID : uint
     {
@@ -56,6 +50,8 @@ namespace BossMod.RealmReborn.Raid.T00ADS
         public GravityField() : base((uint)OID.GravityField, new AOEShapeCircle(6)) { }
     }
 
+    // TODO: chain lightning?..
+
     class T00ADSStates : StateMachineBuilder
     {
         public T00ADSStates(BossModule module) : base(module)
@@ -73,7 +69,7 @@ namespace BossMod.RealmReborn.Raid.T00ADS
 
     public class T00ADS : BossModule
     {
-        public T00ADS(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-3, 27), 5, 28)) { }
+        public T00ADS(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-3, 27), 7, 28)) { }
 
         public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
         {

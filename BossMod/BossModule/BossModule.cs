@@ -120,6 +120,7 @@ namespace BossMod
             WorldState.Actors.StatusLose += OnActorStatusLose;
             WorldState.Actors.IconAppeared += OnActorIcon;
             WorldState.Actors.CastEvent += OnActorCastEvent;
+            WorldState.Actors.EventObjectStateChange += OnActorEState;
             WorldState.Actors.EventObjectAnimation += OnActorEAnim;
             WorldState.Actors.PlayActionTimelineEvent += OnActorPlayActionTimelineEvent;
             WorldState.EnvControl += OnEnvControl;
@@ -153,6 +154,7 @@ namespace BossMod
                 WorldState.Actors.StatusLose -= OnActorStatusLose;
                 WorldState.Actors.IconAppeared -= OnActorIcon;
                 WorldState.Actors.CastEvent -= OnActorCastEvent;
+                WorldState.Actors.EventObjectStateChange -= OnActorEState;
                 WorldState.Actors.EventObjectAnimation -= OnActorEAnim;
                 WorldState.Actors.PlayActionTimelineEvent -= OnActorPlayActionTimelineEvent;
                 WorldState.EnvControl -= OnEnvControl;
@@ -424,6 +426,12 @@ namespace BossMod
             if ((arg.actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && arg.cast.IsSpell())
                 foreach (var comp in _components)
                     comp.OnEventCast(this, arg.actor, arg.cast);
+        }
+
+        private void OnActorEState(object? sender, (Actor actor, ushort state) arg)
+        {
+            foreach (var comp in _components)
+                comp.OnActorEState(this, arg.actor, arg.state);
         }
 
         private void OnActorEAnim(object? sender, (Actor actor, ushort p1, ushort p2) arg)

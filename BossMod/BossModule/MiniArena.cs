@@ -138,6 +138,13 @@ namespace BossMod
             drawlist.PathStroke(color, ImDrawFlags.Closed, thickness);
         }
 
+        public void AddPolygon(IEnumerable<WPos> vertices, uint color, float thickness = 1)
+        {
+            foreach (var p in vertices)
+                PathLineTo(p);
+            PathStroke(true, color, thickness);
+        }
+
         // path api: add new point to path; this adds new edge from last added point, or defines first vertex if path is empty
         public void PathLineTo(WPos p)
         {

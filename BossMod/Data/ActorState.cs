@@ -407,6 +407,20 @@ namespace BossMod
         }
 
         // TODO: this should be an actor field (?)
+        public event EventHandler<(Actor, ushort)>? EventObjectStateChange;
+        public class OpEventObjectStateChange : Operation
+        {
+            public ushort State;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
+            {
+                ws.Actors.EventObjectStateChange?.Invoke(ws, (actor, State));
+            }
+
+            public override string Str(WorldState? ws) => $"ESTA|{StrActor(ws, InstanceID)}|{State:X4}";
+        }
+
+        // TODO: this should be an actor field (?)
         public event EventHandler<(Actor, ushort, ushort)>? EventObjectAnimation;
         public class OpEventObjectAnimation : Operation
         {

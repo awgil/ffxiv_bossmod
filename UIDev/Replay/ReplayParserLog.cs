@@ -86,6 +86,7 @@ namespace UIDev
                 case "STA-": ParseActorStatus(payload, false); break;
                 case "STA!": ParseActorStatus(payload, true); break;
                 case "ICON": ParseActorIcon(payload); break;
+                case "ESTA": ParseActorEventObjectStateChange(payload); break;
                 case "EANM": ParseActorEventObjectAnimation(payload); break;
                 case "PATE": ParseActorPlayActionTimelineEvent(payload); break;
                 case "PAR ": ParsePartyModify(payload); break;
@@ -324,6 +325,11 @@ namespace UIDev
         private void ParseActorIcon(string[] payload)
         {
             AddOp(new ActorState.OpIcon() { InstanceID = ActorID(payload[2]), IconID = uint.Parse(payload[3]) });
+        }
+
+        private void ParseActorEventObjectStateChange(string[] payload)
+        {
+            AddOp(new ActorState.OpEventObjectStateChange() { InstanceID = ActorID(payload[2]), State = ushort.Parse(payload[3], NumberStyles.HexNumber) });
         }
 
         private void ParseActorEventObjectAnimation(string[] payload)
