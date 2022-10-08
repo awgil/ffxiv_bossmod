@@ -18,6 +18,7 @@ namespace BossMod
         private AI.AIController _navi;
         private Vector2 _dest;
         private WPos _prevPos;
+        private bool _jump;
         private DateTime _prevFrame;
 
         public DebugInput(InputOverride inputOverride, Autorotation autorot)
@@ -39,6 +40,7 @@ namespace BossMod
             ImGui.TextUnformatted($"Speed: {(curPos - _prevPos).Length() / dt:f2}");
             _prevPos = curPos;
 
+            ImGui.Checkbox("Jump!", ref _jump);
             ImGui.InputFloat2("Destination", ref _dest);
             ImGui.SameLine();
             if (ImGui.Button("Move!"))
@@ -54,6 +56,8 @@ namespace BossMod
                     _navi.NaviTargetRot = -_navi.NaviTargetRot.Value;
                 else if (dot < 0.707107f)
                     _navi.NaviTargetRot = cameraFacing.OrthoL().Dot(_navi.NaviTargetRot.Value) > 0 ? _navi.NaviTargetRot.Value.OrthoR() : _navi.NaviTargetRot.Value.OrthoL();
+
+                _navi.WantJump = _jump;
             }
             ImGui.SameLine();
             if (ImGui.Button("Cancel move"))

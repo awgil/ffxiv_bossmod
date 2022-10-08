@@ -258,6 +258,8 @@ namespace BossMod
                 comp.AddAIHints(this, slot, actor, hints);
         }
 
+        public virtual bool NeedToJump(WPos from, WDir dir) => false; // if arena has complicated shape that requires jumps to navigate, module can provide this info to AI
+
         public void ReportError(BossComponent? comp, string message)
         {
             Service.Log($"[ModuleError] [{this.GetType().Name}] [{comp?.GetType().Name}] {message}");

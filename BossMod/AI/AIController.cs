@@ -48,16 +48,51 @@ namespace BossMod.AI
             }
         }
 
+        private class NaviInput
+        {
+            private InputOverride _input;
+            private VirtualKey _key;
+            private bool _held;
+
+            public bool Held
+            {
+                get => _held;
+                set
+                {
+                    if (_held == value)
+                    {
+                        if (value && !Service.KeyState[_key])
+                            _input.SimulatePress(_key);
+                        return;
+                    }
+
+                    if (_held)
+                        _input.SimulateRelease(_key);
+                    _held = value;
+                    if (value)
+                        _input.SimulatePress(_key);
+                }
+            }
+
+            public NaviInput(InputOverride input, VirtualKey key)
+            {
+                _input = input;
+                _key = key;
+            }
+        }
+
         public WPos? NaviTargetPos;
         public WDir? NaviTargetRot;
         public float? NaviTargetVertical;
         public bool AllowInterruptingCastByMovement;
         public bool ForceFacing;
+        public bool WantJump;
 
         private NaviAxis _axisForward;
         private NaviAxis _axisStrafe;
         private NaviAxis _axisRotate;
         private NaviAxis _axisVertical;
+        private NaviInput _keyJump;
         private InputOverride _input;
         private Autorotation _autorot;
 
@@ -73,6 +108,7 @@ namespace BossMod.AI
             _axisStrafe = new(input, VirtualKey.D, VirtualKey.A);
             _axisRotate = new(input, VirtualKey.LEFT, VirtualKey.RIGHT);
             _axisVertical = new(input, VirtualKey.UP, VirtualKey.DOWN);
+            _keyJump = new(input, VirtualKey.SPACE);
             _input = input;
             _autorot = autorot;
         }
@@ -84,6 +120,7 @@ namespace BossMod.AI
             NaviTargetVertical = null;
             AllowInterruptingCastByMovement = false;
             ForceFacing = false;
+            WantJump = false;
         }
 
         public void SetPrimaryTarget(Actor? actor)
@@ -106,6 +143,7 @@ namespace BossMod.AI
                 _axisStrafe.CurDirection = 0;
                 _axisRotate.CurDirection = 0;
                 _axisVertical.CurDirection = 0;
+                _keyJump.Held = false;
                 return;
             }
 
@@ -157,11 +195,14 @@ namespace BossMod.AI
                     _axisForward.CurDirection = 0;
                     _axisStrafe.CurDirection = strafeDir;
                 }
+
+                _keyJump.Held = !_keyJump.Held && WantJump;
             }
             else
             {
                 _axisForward.CurDirection = 0;
                 _axisStrafe.CurDirection = 0;
+                _keyJump.Held = false;
             }
 
             if (NaviTargetVertical != null && IsVerticalAllowed && NaviTargetPos != null)

@@ -32,7 +32,7 @@ namespace BossMod.AI
             for (int i = 0; i < _broadcasts.Count; ++i)
             {
                 var vk = _broadcasts[i].Item1;
-                bool pressed = Service.KeyState[vk];
+                bool pressed = (GetKeyState((int)vk) & 0x8000) == 0x8000;
                 if (pressed != _broadcasts[i].Item2)
                 {
                     foreach (var w in EnumerateSlaves())
@@ -105,5 +105,8 @@ namespace BossMod.AI
 
         [DllImport("user32.dll", ExactSpelling = true)]
         private static extern bool PostMessageW(IntPtr hWnd, uint msg, ulong wparam, ulong lparam);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        private static extern short GetKeyState(int keyCode);
     }
 }

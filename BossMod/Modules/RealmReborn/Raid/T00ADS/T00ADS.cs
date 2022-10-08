@@ -85,7 +85,7 @@
                 if ((OID)enemy.Actor.OID is OID.PatrolNode or OID.AttackNode or OID.DefenseNode)
                 {
                     enemy.TankAffinity = AIHints.TankAffinity.OT;
-                    enemy.DesiredPosition = Bounds.Center;
+                    //enemy.DesiredPosition = Bounds.Center;
                     enemy.DesiredRotation = 0.Degrees();
                 }
                 enemy.ShouldBeInterrupted = true; // only boss casts interruptible spells (high voltage), and it should be interrupted every time

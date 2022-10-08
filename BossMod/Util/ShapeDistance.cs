@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod
 {
@@ -72,9 +74,9 @@ namespace BossMod
             };
         }
 
-        public static Func<WPos, float> Rect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth)
+        public static Func<WPos, float> Rect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
         {
-            var dir = direction.ToDirection(); // points outside far side
+            // dir points outside far side
             var normal = dir.OrthoL(); // points outside left side
             return p =>
             {
@@ -87,6 +89,13 @@ namespace BossMod
                 var distRight = -distOrtho - halfWidth;
                 return Math.Max(Math.Max(distFront, distBack), Math.Max(distLeft, distRight));
             };
+        }
+        public static Func<WPos, float> Rect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => Rect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
+        public static Func<WPos, float> Rect(WPos from, WPos to, float halfWidth)
+        {
+            var dir = to - from;
+            var l = dir.Length();
+            return Rect(from, dir / l, l, 0, halfWidth);
         }
 
         public static Func<WPos, float> Cross(WPos origin, Angle direction, float length, float halfWidth)
@@ -112,5 +121,33 @@ namespace BossMod
             };
         }
 
+        // positive offset increases area
+        public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0)
+        {
+            List<(WPos point, WDir normal)> edges = new();
+            Action<WPos, WPos> addEdge = (p1, p2) =>
+            {
+                if (p1 != p2)
+                {
+                    var dir = (p2 - p1).Normalized();
+                    edges.Add((p1, cw ? dir.OrthoL() : dir.OrthoR()));
+                }
+            };
+
+            var en = vertices.GetEnumerator();
+            if (!en.MoveNext())
+                return _ => float.MaxValue; // empty polygon
+            var prev = en.Current;
+            var first = prev;
+            while (en.MoveNext())
+            {
+                var cur = en.Current;
+                addEdge(prev, cur);
+                prev = cur;
+            }
+            addEdge(prev, first);
+
+            return p => edges.Max(e => e.normal.Dot(p - e.point)) - offset;
+        }
     }
 }
