@@ -136,8 +136,8 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
                     {
                         PartyRolesConfig.Assignment.MT => 0,
                         PartyRolesConfig.Assignment.OT => 2,
-                        _ => (module.WorldState.CurrentTime - CloneSpawnTime).TotalSeconds < 3 || hpDiff < -0.05f ? 0
-                            : hpDiff > 0.05f ? 2
+                        _ => (module.WorldState.CurrentTime - CloneSpawnTime).TotalSeconds < 3 || hpDiff < -5 ? 0
+                            : hpDiff > 5 ? 2
                             : e.Actor.HP.Cur <= 0.3f * e.Actor.HP.Max ? 1
                             : assignment is PartyRolesConfig.Assignment.H2 or PartyRolesConfig.Assignment.M2 or PartyRolesConfig.Assignment.R2 ? 2 : 0
                     };
