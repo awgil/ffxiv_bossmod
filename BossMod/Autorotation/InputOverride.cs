@@ -12,6 +12,9 @@ namespace BossMod
     {
         private const int WM_KEYDOWN = 0x0100;
 
+        public int[] GamepadOverrides = new int[7];
+        public bool GamepadOverridesEnabled;
+
         private bool _movementBlocked = false;
         private ulong _hwnd;
 
@@ -21,19 +24,23 @@ namespace BossMod
         private delegate void KbprocDelegate(ulong hWnd, uint uMsg, ulong wParam, ulong lParam, ulong uIdSubclass, ulong dwRefData);
         private Hook<KbprocDelegate> _kbprocHook;
 
+        private delegate int GetGamepadAxisDelegate(ulong self, int axisID);
+        private Hook<GetGamepadAxisDelegate> _getGamepadAxisHook;
+
         private delegate ref int GetRefValueDelegate(int vkCode);
         private GetRefValueDelegate _getKeyRef;
 
         public unsafe InputOverride()
         {
-            // note: it would be better to hook this instead of PeekMessage, but I didn't figure it out yet...
             var kbprocAddress = Service.SigScanner.ScanText("48 89 5C 24 08 55 56 57 41 56 41 57 48 8D 6C 24 B0 48 81 EC 50 01 00 00 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 45 40 4D 8B F9 49 8B D8 81 FA 00 01 00 00"); // note: look for callers of GetKeyboardState
             Service.Log($"[InputOverride] kbproc addess: 0x{kbprocAddress:X}");
             _kbprocHook = Hook<KbprocDelegate>.FromAddress(kbprocAddress, KbprocDetour);
             _kbprocHook.Enable();
 
-            //_peekMessageHook = Hook<PeekMessageDelegate>.FromSymbol("user32.dll", "PeekMessageW", PeekMessageDetour);
-            //_peekMessageHook.Enable();
+            var getGamepadAxisAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 0F BE 0D ?? ?? ?? ?? BA 04 00 00 00 66 0F 6E F8 66 0F 6E C1 48 8B CE 0F 5B C0 0F 5B FF F3 0F 5E F8");
+            Service.Log($"[InputOverride] GetGamepadAxis address: 0x{getGamepadAxisAddress:X}");
+            _getGamepadAxisHook = Hook<GetGamepadAxisDelegate>.FromAddress(getGamepadAxisAddress, GetGamepadAxisDetour);
+            _getGamepadAxisHook.Enable();
 
             _getKeyRef = Service.KeyState.GetType().GetMethod("GetRefValue", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<GetRefValueDelegate>(Service.KeyState);
         }
@@ -41,11 +48,11 @@ namespace BossMod
         public void Dispose()
         {
             _kbprocHook.Dispose();
-            //_peekMessageHook.Dispose();
+            _getGamepadAxisHook.Dispose();
         }
 
         // TODO: reconsider...
-        public bool IsMoving() => Service.KeyState[VirtualKey.W] || Service.KeyState[VirtualKey.S] || Service.KeyState[VirtualKey.A] || Service.KeyState[VirtualKey.D];
+        public bool IsMoving() => Service.KeyState[VirtualKey.W] || Service.KeyState[VirtualKey.S] || Service.KeyState[VirtualKey.A] || Service.KeyState[VirtualKey.D] || GamepadOverridesEnabled && (GamepadOverrides[3] != 0 || GamepadOverrides[4] != 0);
         public bool IsMoveRequested() => IsWindowActive() && (ReallyPressed(VirtualKey.W) || ReallyPressed(VirtualKey.S) || ReallyPressed(VirtualKey.A) || ReallyPressed(VirtualKey.D));
 
         public bool IsBlocked() => _movementBlocked;
@@ -116,27 +123,12 @@ namespace BossMod
             _kbprocHook.Original(hWnd, uMsg, wParam, lParam, uIdSubclass, dwRefData);
         }
 
-        //private unsafe int PeekMessageDetour(ulong* lpMsg, void* hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg)
-        //{
-        //    do
-        //    {
-        //        var res = _peekMessageHook.Original(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
-        //        if (res == 0)
-        //            return res;
-
-        //        if (_movementBlocked && lpMsg[1] == WM_KEYDOWN && (VirtualKey)lpMsg[2] is VirtualKey.W or VirtualKey.S or VirtualKey.A or VirtualKey.D)
-        //        {
-        //            // eat message
-        //            if ((wRemoveMsg & 1) == 0)
-        //            {
-        //                _peekMessageHook.Original(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | 1);
-        //            }
-        //            continue;
-        //        }
-
-        //        return res;
-        //    } while (true);
-        //}
+        private int GetGamepadAxisDetour(ulong self, int axisID)
+        {
+            return _movementBlocked && axisID is 3 or 4 ? 0
+                : GamepadOverridesEnabled && axisID < GamepadOverrides.Length ? GamepadOverrides[axisID]
+                : _getGamepadAxisHook.Original(self, axisID);
+        }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         private static extern short GetKeyState(int keyCode);

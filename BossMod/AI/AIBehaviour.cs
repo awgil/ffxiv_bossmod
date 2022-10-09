@@ -181,11 +181,11 @@ namespace BossMod.AI
                 var toDest = _naviDecision.Destination != null ? _naviDecision.Destination.Value - player.Position : new();
                 var distSq = toDest.LengthSq();
                 _ctrl.NaviTargetPos = _naviDecision.Destination;
-                _ctrl.NaviTargetRot = distSq >= 0.01f ? toDest.Normalized() : null;
+                //_ctrl.NaviTargetRot = distSq >= 0.01f ? toDest.Normalized() : null;
                 _ctrl.NaviTargetVertical = master != player ? master.PosRot.Y : null;
                 _ctrl.AllowInterruptingCastByMovement = player.CastInfo != null && _naviDecision.LeewaySeconds <= (player.CastInfo.FinishAt - _autorot.WorldState.CurrentTime).TotalSeconds - 0.5;
                 _ctrl.ForceFacing = false;
-                _ctrl.WantJump = _ctrl.NaviTargetRot != null && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState != null && _autorot.Bossmods.ActiveModule.NeedToJump(player.Position, _ctrl.NaviTargetRot.Value);
+                _ctrl.WantJump = distSq >= 0.01f && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState != null && _autorot.Bossmods.ActiveModule.NeedToJump(player.Position, toDest.Normalized());
 
                 //var cameraFacing = _ctrl.CameraFacing;
                 //var dot = cameraFacing.Dot(_ctrl.TargetRot.Value);

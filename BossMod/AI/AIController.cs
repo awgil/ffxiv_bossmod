@@ -81,6 +81,7 @@ namespace BossMod.AI
             }
         }
 
+        public InputOverride Input { get; private init; }
         public WPos? NaviTargetPos;
         public WDir? NaviTargetRot;
         public float? NaviTargetVertical;
@@ -93,23 +94,22 @@ namespace BossMod.AI
         private NaviAxis _axisRotate;
         private NaviAxis _axisVertical;
         private NaviInput _keyJump;
-        private InputOverride _input;
         private Autorotation _autorot;
 
         public bool InCutscene => Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas];
         public bool IsMounted => Service.Condition[ConditionFlag.Mounted];
         public bool IsVerticalAllowed => Service.Condition[ConditionFlag.InFlight];
-        public WDir CameraFacing => ((Camera.Instance?.CameraAzimuth ?? 0).Radians() + 180.Degrees()).ToDirection();
+        public Angle CameraFacing => ((Camera.Instance?.CameraAzimuth ?? 0).Radians() + 180.Degrees());
         public Angle CameraAltitude => (Camera.Instance?.CameraAltitude ?? 0).Radians();
 
         public unsafe AIController(InputOverride input, Autorotation autorot)
         {
+            Input = input;
             _axisForward = new(input, VirtualKey.W, VirtualKey.S);
             _axisStrafe = new(input, VirtualKey.D, VirtualKey.A);
             _axisRotate = new(input, VirtualKey.LEFT, VirtualKey.RIGHT);
             _axisVertical = new(input, VirtualKey.UP, VirtualKey.DOWN);
             _keyJump = new(input, VirtualKey.SPACE);
-            _input = input;
             _autorot = autorot;
         }
 
@@ -144,6 +144,7 @@ namespace BossMod.AI
                 _axisRotate.CurDirection = 0;
                 _axisVertical.CurDirection = 0;
                 _keyJump.Held = false;
+                Input.GamepadOverridesEnabled = false;
                 return;
             }
 
@@ -154,11 +155,12 @@ namespace BossMod.AI
                 _axisForward.CurDirection = am.CastTimeRemaining > 0 ? 1 : 0; // this is a hack to cancel any cast...
             }
 
-            bool moveRequested = _input.IsMoveRequested();
+            bool moveRequested = Input.IsMoveRequested();
             var cameraFacing = CameraFacing;
-            if (!moveRequested && NaviTargetRot != null && NaviTargetRot.Value.Dot(cameraFacing) < 0.996f) // ~5 degrees
+            var cameraFacingDir = cameraFacing.ToDirection();
+            if (!moveRequested && NaviTargetRot != null && NaviTargetRot.Value.Dot(cameraFacingDir) < 0.996f) // ~5 degrees
             {
-                _axisRotate.CurDirection = cameraFacing.OrthoL().Dot(NaviTargetRot.Value) > 0 ? 1 : -1;
+                _axisRotate.CurDirection = cameraFacingDir.OrthoL().Dot(NaviTargetRot.Value) > 0 ? 1 : -1;
             }
             else
             {
@@ -168,40 +170,15 @@ namespace BossMod.AI
             bool forbidMovement = moveRequested || !AllowInterruptingCastByMovement && (player.CastInfo != null && !player.CastInfo.EventHappened || _autorot.AboutToStartCast);
             if (NaviTargetPos != null && !forbidMovement && (NaviTargetPos.Value - player.Position).LengthSq() > 0.01f)
             {
-                var delta = NaviTargetPos.Value - player.Position;
-                var projFwd = delta.Dot(cameraFacing);
-                var projRight = delta.Dot(cameraFacing.OrthoR());
-                var fwdDir = projFwd > 0 ? 1 : -1;
-                var strafeDir = projRight > 0 ? 1 : -1;
-                if (_axisForward.CurDirection != 0 && _axisForward.CurDirection == fwdDir && Math.Abs(projFwd) > 0.5 * Math.Abs(projRight))
-                {
-                    // continue moving forward/backward
-                    _axisForward.CurDirection = fwdDir;
-                    _axisStrafe.CurDirection = 0;
-                }
-                else if (_axisStrafe.CurDirection != 0 && _axisStrafe.CurDirection == strafeDir && Math.Abs(projRight) > 0.5 * Math.Abs(projFwd))
-                {
-                    // continue strafing
-                    _axisForward.CurDirection = 0;
-                    _axisStrafe.CurDirection = strafeDir;
-                }
-                else if (Math.Abs(projFwd) > Math.Abs(projRight))
-                {
-                    _axisForward.CurDirection = fwdDir;
-                    _axisStrafe.CurDirection = 0;
-                }
-                else
-                {
-                    _axisForward.CurDirection = 0;
-                    _axisStrafe.CurDirection = strafeDir;
-                }
-
+                var dir = cameraFacing - Angle.FromDirection(NaviTargetPos.Value - player.Position);
+                Input.GamepadOverridesEnabled = true;
+                Input.GamepadOverrides[3] = (int)(100 * dir.Sin());
+                Input.GamepadOverrides[4] = (int)(100 * dir.Cos());
                 _keyJump.Held = !_keyJump.Held && WantJump;
             }
             else
             {
-                _axisForward.CurDirection = 0;
-                _axisStrafe.CurDirection = 0;
+                Input.GamepadOverridesEnabled = false;
                 _keyJump.Held = false;
             }
 
@@ -209,12 +186,12 @@ namespace BossMod.AI
             {
                 var deltaY = NaviTargetVertical.Value - player.PosRot.Y;
                 var deltaXZ = (NaviTargetPos.Value - player.Position).Length();
-                var deltaAltitude = (Angle.FromDirection(new(-deltaY, deltaXZ)) - CameraAltitude).Deg;
-                _axisVertical.CurDirection = deltaAltitude > 3 ? -1 : deltaAltitude < -3 ? +1 : 0;
+                var deltaAltitude = (CameraAltitude - Angle.FromDirection(new(Input.GamepadOverrides[4] < 0 ? deltaY : -deltaY, deltaXZ))).Deg;
+                Input.GamepadOverrides[6] = Math.Clamp((int)(deltaAltitude * 5), -100, 100);
             }
             else
             {
-                _axisVertical.CurDirection = 0;
+                Input.GamepadOverrides[6] = 0;
             }
         }
     }
