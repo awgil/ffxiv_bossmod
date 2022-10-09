@@ -83,7 +83,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
         public Syrup() : base(4, ActionID.MakeSpell(AID.Syrup), m => m.Enemies(OID.Syrup).Where(z => z.EventState != 7), 0.8f, true) { }
     }
 
-    // TODO: merge happens if bosses are 'close enough' (threshold is >18.32 at least) and more than 20s passed since split
+    // TODO: merge happens if bosses are 'close enough' (threshold is >20.82 at least) and more than 20s passed since split
     class CloneMerge : BossComponent
     {
         public Actor? Clone { get; private set; }
@@ -106,7 +106,8 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
             if (clone != null && !module.PrimaryActor.IsDestroyed && !module.PrimaryActor.IsDead && module.PrimaryActor.IsTargetable)
             {
                 var hpDiff = (int)(clone.HP.Cur - module.PrimaryActor.HP.Cur) * 100.0f / module.PrimaryActor.HP.Max;
-                hints.Add($"Clone HP: {(hpDiff > 0 ? "+" : "")}{hpDiff:f1}%, distance: {(clone.Position - module.PrimaryActor.Position).Length():f2}");
+                var checkIn = Math.Max(0, 20 - (module.WorldState.CurrentTime - CloneSpawnTime).TotalSeconds);
+                hints.Add($"Clone HP: {(hpDiff > 0 ? "+" : "")}{hpDiff:f1}%, distance: {(clone.Position - module.PrimaryActor.Position).Length():f2}, check in {checkIn:f1}s");
             }
         }
 
