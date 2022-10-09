@@ -89,7 +89,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
         public Actor? Clone { get; private set; }
         public DateTime CloneSpawnTime { get; private set; }
         public Actor? CloneIfValid => Clone != null && !Clone.IsDestroyed && !Clone.IsDead && Clone.IsTargetable ? Clone : null;
-        public bool CloneSpawningSoon(BossModule module) => Clone == null && module.PrimaryActor.HP.Cur < 0.72f * module.PrimaryActor.HP.Max;
+        public bool CloneSpawningSoon(BossModule module) => Clone == null && module.PrimaryActor.HP.Cur < 0.73f * module.PrimaryActor.HP.Max;
 
         public override void Update(BossModule module)
         {
@@ -196,7 +196,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
             });
         }
 
-        public override bool NeedToJump(WPos from, WDir dir) => Platforms.IntersectJumpEdge(from, dir, 3);
+        public override bool NeedToJump(WPos from, WDir dir) => Platforms.IntersectJumpEdge(from, dir, 2.5f);
 
         // don't activate module created for clone (this is a hack...)
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat && PrimaryActor.HP.Cur > PrimaryActor.HP.Max / 2; }
