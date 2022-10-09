@@ -120,7 +120,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
             var clone = CloneIfValid;
             var hpDiff = clone != null ? (int)(clone.HP.Cur - module.PrimaryActor.HP.Cur) * 100.0f / module.PrimaryActor.HP.Max : 0;
             if (assignment == PartyRolesConfig.Assignment.OT && CloneSpawningSoon(module))
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Platforms.HexaPlatformCenters[6], 2), DateTime.MaxValue);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Platforms.HexaPlatformCenters[6], 15), DateTime.MaxValue);
             hints.UpdatePotentialTargets(e =>
             {
                 if (e.Actor == module.PrimaryActor)
@@ -187,8 +187,9 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
                 {
                     // for now, let kiter damage it until 20%
                     e.Priority =
-                        e.Actor.HP.Cur < 0.2f * e.Actor.HP.Max ? -1 :
-                        e.Actor.TargetID == actor.InstanceID ? 3 : -1;
+                        e.Actor.HP.Cur > 0.5f * e.Actor.HP.Max ? (actor.Role is not Role.Tank ? 3 : -1) :
+                        e.Actor.HP.Cur > 0.2f * e.Actor.HP.Max ? (e.Actor.TargetID == actor.InstanceID ? 3 : -1) :
+                        -1;
                     e.TankAffinity = AIHints.TankAffinity.None;
                     e.ForbidDOTs = true;
                 }
