@@ -188,7 +188,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
                     // for now, let kiter damage it until 20%
                     e.Priority =
                         e.Actor.HP.Cur < 0.2f * e.Actor.HP.Max ? -1 :
-                        e.Actor.TargetID == actor.InstanceID ? 3 : 0;
+                        e.Actor.TargetID == actor.InstanceID ? 3 : -1;
                     e.TankAffinity = AIHints.TankAffinity.None;
                     e.ForbidDOTs = true;
                 }

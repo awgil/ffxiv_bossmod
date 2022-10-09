@@ -174,11 +174,13 @@ namespace BossMod.AI
                 Input.GamepadOverridesEnabled = true;
                 Input.GamepadOverrides[3] = (int)(100 * dir.Sin());
                 Input.GamepadOverrides[4] = (int)(100 * dir.Cos());
+                _axisForward.CurDirection = Input.GamepadOverrides[4] > 10 ? 1 : Input.GamepadOverrides[4] < 10 ? -1 : 0; // this is a hack, needed to prevent afk :( this will be ignored anyway due to gamepad inputs
                 _keyJump.Held = !_keyJump.Held && WantJump;
             }
             else
             {
                 Input.GamepadOverridesEnabled = false;
+                _axisForward.CurDirection = 0;
                 _keyJump.Held = false;
             }
 
