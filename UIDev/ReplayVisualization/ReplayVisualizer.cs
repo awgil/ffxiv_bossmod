@@ -25,11 +25,11 @@ namespace UIDev
         private EventList _events;
         private AnalysisManager _analysis;
 
-        private MapVisualizer? _pf;
-        private NavigationDecision? _pfResult;
-        private float _pfCushion = NavigationDecision.DefaultForbiddenZoneCushion;
+        private UITree _pfTree = new();
+        private AIHintsVisualizer? _pfVisu;
         private float _pfTargetRadius = 3;
         private Positional _pfPositional = Positional.Any;
+        private bool _pfTank = false;
 
         public ReplayVisualizer(Replay data)
         {
@@ -90,7 +90,7 @@ namespace UIDev
             DrawPartyTable();
             DrawEnemyTables();
             DrawAllActorsTable();
-            DrawPathfinding();
+            DrawAI();
 
             if (ImGui.CollapsingHeader("Events"))
                 _events.Draw();
@@ -324,9 +324,9 @@ namespace UIDev
             ImGui.EndTable();
         }
 
-        private void DrawPathfinding()
+        private void DrawAI()
         {
-            if (!ImGui.CollapsingHeader("Pathfinding"))
+            if (!ImGui.CollapsingHeader("AI hints"))
                 return;
             if (_mgr.ActiveModule == null)
                 return;
@@ -334,38 +334,21 @@ namespace UIDev
             if (player == null)
                 return;
 
-            if (_pfResult == null)
+            if (_pfVisu == null)
             {
-                var target = _mgr.WorldState.Actors.Find(player.TargetID) ?? player;
-
                 _hints.Clear();
-                _mgr.ActiveModule.CalculateAIHints(_povSlot, player, _hints);
+                _hints.FillPotentialTargets(_mgr.WorldState);
+                _mgr.ActiveModule.CalculateAIHints(_povSlot, player, Service.Config.Get<PartyRolesConfig>()[_mgr.WorldState.Party.ContentIDs[_povSlot]], _hints);
                 _hints.Normalize();
-                _pfResult = NavigationDecision.Build(_mgr.WorldState, _hints, player, target.Position, target.HitboxRadius + player.HitboxRadius + _pfTargetRadius, target.Rotation, _pfPositional, forbiddenZoneCushion: _pfCushion);
-                if (_pfResult.Value.Map != null)
-                {
-                    _pf = new(_pfResult.Value.Map, _pfResult.Value.MapGoal, player.Position);
-                }
-                else
-                {
-                    var map = _hints.Bounds.BuildMap();
-                    var imm = NavigationDecision.ImminentExplosionTime(_mgr.WorldState.CurrentTime);
-                    foreach (var z in _hints.ForbiddenZones)
-                        NavigationDecision.AddBlockerZone(map, imm, z.activation, z.shapeDistance, _pfCushion);
-                    var goal = NavigationDecision.AddTargetGoal(map, target.Position, target.HitboxRadius + player.HitboxRadius + _pfTargetRadius, target.Rotation, _pfPositional, 0);
-                    _pf = new(map, goal, player.Position);
-                }
-                if (_pfResult.Value.Destination != null)
-                    _pf.Lines.Add((player.Position, _pfResult.Value.Destination.Value));
+                _pfVisu = new(_hints, _mgr.WorldState, player, player.TargetID, e => (e, _pfTargetRadius, _pfPositional, _pfTank));
             }
-
-            _pf?.Draw();
+            _pfVisu?.Draw(_pfTree);
 
             bool rebuild = false;
-            ImGui.TextUnformatted($"Decision: {_pfResult.Value.DecisionType}, leeway={_pfResult.Value.LeewaySeconds:f3}, ttg={_pfResult.Value.TimeToGoal:f3}, dist={((_pfResult.Value.Destination ?? player.Position) - player.Position).Length():f3}");
-            rebuild |= ImGui.SliderFloat("Zone cushion", ref _pfCushion, 0.1f, 5);
+            //rebuild |= ImGui.SliderFloat("Zone cushion", ref _pfCushion, 0.1f, 5);
             rebuild |= ImGui.SliderFloat("Ability range", ref _pfTargetRadius, 3, 25);
             rebuild |= UICombo.Enum("Ability positional", ref _pfPositional);
+            rebuild |= ImGui.Checkbox("Prefer tanking", ref _pfTank);
             if (rebuild)
                 ResetPF();
         }
@@ -390,8 +373,7 @@ namespace UIDev
 
         private void ResetPF()
         {
-            _pf = null;
-            _pfResult = null;
+            _pfVisu = null;
         }
     }
 }

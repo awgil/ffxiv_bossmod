@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod.RealmReborn.Raid.T01Caduceus
 {
@@ -13,6 +11,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
         DarkMatterSlime = 0x7D8, // spawn during fight
         Platform = 0x1E8729, // x13
         Regorge = 0x1E8B20, // EventObj type, spawn during fight
+        Syrup = 0x1E88F1, // EventObj type, spawn during fight
     };
 
     public enum AID : uint
@@ -25,6 +24,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
 
         PlatformExplosion = 674, // Helper->self, no cast, hits players on glowing platforms and spawns dark matter slime on them
         AutoAttackSlime = 872, // DarkMatterSlime->player, no cast, single-target
+        Syrup = 1214, // DarkMatterSlime->location, 0.5s cast, range 4 circle aoe that leaves voidzone
         Rupture = 1213, // DarkMatterSlime->self, no cast, range 16+R circle aoe suicide (damage depends on cur hp?)
         Devour = 1454, // Boss->DarkMatterSlime, no cast, single-target visual
     };
@@ -36,7 +36,36 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
 
     class HoodSwing : Components.Cleave
     {
+        public DateTime _lastBossCast; // assume boss/add cleaves are synchronized?..
+
         public HoodSwing() : base(ActionID.MakeSpell(AID.HoodSwing), new AOEShapeCone(11, 60.Degrees()), (uint)OID.Boss) { } // TODO: verify angle
+
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            var timeUntilCast = Math.Max(0, 18 - (module.WorldState.CurrentTime - _lastBossCast).TotalSeconds);
+            hints.Add($"Next cleave in ~{timeUntilCast:f1}s");
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            base.AddAIHints(module, slot, actor, assignment, hints);
+
+            hints.UpdatePotentialTargets(e =>
+            {
+                if ((OID)e.Actor.OID == OID.Boss)
+                {
+                    bool cleaveImminent = (module.WorldState.CurrentTime - _lastBossCast).TotalSeconds > 15;
+                    e.AttackStrength = cleaveImminent ? 0.5f : 0.2f;
+                }
+            });
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            base.OnEventCast(module, caster, spell);
+            if (spell.Action == WatchedAction && caster == module.PrimaryActor)
+                _lastBossCast = module.WorldState.CurrentTime;
+        }
     }
 
     class WhipBack : Components.SelfTargetedAOEs
@@ -44,42 +73,87 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
         public WhipBack() : base(ActionID.MakeSpell(AID.WhipBack), new AOEShapeCone(9, 60.Degrees())) { }
     }
 
-    class Regorge : Components.GenericAOEs
+    class Regorge : Components.PersistentVoidzoneAtCastTarget
     {
-        private List<(WPos pos, DateTime time)> _predictedSpawns = new();
-        private List<Actor> _voidzones = new();
+        public Regorge() : base(4, ActionID.MakeSpell(AID.Regorge), m => m.Enemies(OID.Regorge).Where(z => z.EventState != 7), 2.1f, false) { }
+    }
 
-        private static AOEShapeCircle _shape = new(4);
+    class Syrup : Components.PersistentVoidzoneAtCastTarget
+    {
+        public Syrup() : base(4, ActionID.MakeSpell(AID.Syrup), m => m.Enemies(OID.Syrup).Where(z => z.EventState != 7), 0.8f, true) { }
+    }
 
-        public Regorge() : base(ActionID.MakeSpell(AID.Regorge), "GTFO from voidzone!") { }
-
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            foreach (var p in _predictedSpawns)
-                yield return (_shape, p.pos, new(), p.time);
-            foreach (var z in _voidzones.Where(z => z.EventState != 7))
-                yield return (_shape, z.Position, new(), new());
-        }
-
-        public override void Init(BossModule module)
-        {
-            _voidzones = module.Enemies(OID.Regorge);
-        }
+    // TODO: merge happens if bosses are 'close enough' (threshold is >18.32 at least) and more than 20s passed since split
+    class CloneMerge : BossComponent
+    {
+        public Actor? Clone { get; private set; }
+        public DateTime CloneSpawnTime { get; private set; }
+        public Actor? CloneIfValid => Clone != null && !Clone.IsDestroyed && !Clone.IsDead && Clone.IsTargetable ? Clone : null;
+        public bool CloneSpawningSoon(BossModule module) => Clone == null && module.PrimaryActor.HP.Cur < 0.72f * module.PrimaryActor.HP.Max;
 
         public override void Update(BossModule module)
         {
-            _predictedSpawns.RemoveAll(p => _voidzones.InRadius(p.pos, 2).Any());
+            if (Clone != null || module.PrimaryActor.HP.Cur > module.PrimaryActor.HP.Max / 2)
+                return;
+            Clone = module.Enemies(OID.Boss).FirstOrDefault(a => a != module.PrimaryActor);
+            if (Clone != null)
+                CloneSpawnTime = module.WorldState.CurrentTime;
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            base.OnEventCast(module, caster, spell);
-            if (spell.Action == WatchedAction)
-                _predictedSpawns.Add((spell.TargetXZ, module.WorldState.CurrentTime.AddSeconds(2.1f)));
+            var clone = CloneIfValid;
+            if (clone != null && !module.PrimaryActor.IsDestroyed && !module.PrimaryActor.IsDead && module.PrimaryActor.IsTargetable)
+            {
+                var hpDiff = (int)(clone.HP.Cur - module.PrimaryActor.HP.Cur) * 100.0f / module.PrimaryActor.HP.Max;
+                hints.Add($"Clone HP: {(hpDiff > 0 ? "+" : "")}{hpDiff:f1}%, distance: {(clone.Position - module.PrimaryActor.Position).Length():f2}");
+            }
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            // attack priorities:
+            // - first few seconds after split - only OT on boss to simplify pickup
+            // - after that and until 30% - MT/H1/M1/R1 on boss, rest on clone
+            // - after that - equal priorities unless hp diff is larger than 5%
+            var clone = CloneIfValid;
+            var hpDiff = clone != null ? (int)(clone.HP.Cur - module.PrimaryActor.HP.Cur) * 100.0f / module.PrimaryActor.HP.Max : 0;
+            if (assignment == PartyRolesConfig.Assignment.OT && CloneSpawningSoon(module))
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Platforms.HexaPlatformCenters[6], 2), DateTime.MaxValue);
+            hints.UpdatePotentialTargets(e =>
+            {
+                if (e.Actor == module.PrimaryActor)
+                {
+                    e.Priority = 1; // this is a baseline; depending on whether we want to prioritize clone vs boss, clone's priority changes
+                    if (CloneSpawningSoon(module) && e.Actor.FindStatus(SID.SteelScales) != null)
+                        e.Priority = -1; // stop dps until stack can be dropped
+                    e.StayAtLongRange = true;
+                }
+                else if (e.Actor == clone)
+                {
+                    e.Priority = assignment switch
+                    {
+                        PartyRolesConfig.Assignment.MT => 0,
+                        PartyRolesConfig.Assignment.OT => 2,
+                        _ => (module.WorldState.CurrentTime - CloneSpawnTime).TotalSeconds < 3 || hpDiff < -0.05f ? 0
+                            : hpDiff > 0.05f ? 2
+                            : e.Actor.HP.Cur <= 0.3f * e.Actor.HP.Max ? 1
+                            : assignment is PartyRolesConfig.Assignment.H2 or PartyRolesConfig.Assignment.M2 or PartyRolesConfig.Assignment.R2 ? 2 : 0
+                    };
+                    e.TankAffinity = AIHints.TankAffinity.OT;
+                    if ((e.Actor.Position - module.PrimaryActor.Position).LengthSq() < 625)
+                        e.DesiredPosition = Platforms.HexaPlatformCenters[6];
+                    e.DesiredRotation = -90.Degrees();
+                    e.StayAtLongRange = true;
+                }
+            });
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            arena.Actor(Clone, ArenaColor.Enemy);
         }
     }
-
-    // TODO: merge: happens if bosses are 'close enough' and more than 20s passed since split
 
     class T01CaduceusStates : StateMachineBuilder
     {
@@ -88,13 +162,13 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
             TrivialPhase()
                 .ActivateOnEnter<HoodSwing>()
                 .ActivateOnEnter<WhipBack>()
-                .ActivateOnEnter<Regorge>();
+                .ActivateOnEnter<Regorge>()
+                .ActivateOnEnter<CloneMerge>();
         }
     }
 
     public class T01Caduceus : BossModule
     {
-        public Actor? Clone { get; private set; }
         public List<Actor> Slimes { get; private set; }
 
         public T01Caduceus(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-26, -407), 35, 43))
@@ -103,36 +177,17 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
             ActivateComponent<Platforms>();
         }
 
-        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, hints);
-            // attack priorities:
-            // - just after split (hp > 30%) - MT/H1/M1/R1 on boss, rest on clone
-            // - after that - equal priorities unless hp diff is larger than 5%
-            var hpDiff = Clone != null ? (float)(Clone.HP.Cur - PrimaryActor.HP.Cur) / PrimaryActor.HP.Max : 0;
-            var assignment = Service.Config.Get<PartyRolesConfig>()[WorldState.Party.ContentIDs[slot]];
+            base.CalculateAIHints(slot, actor, assignment, hints);
             hints.UpdatePotentialTargets(e =>
             {
-                if (e.Actor == PrimaryActor)
-                {
-                    e.Priority = hpDiff < -0.05f || e.Actor.HP.Cur > 0.3f * e.Actor.HP.Max && assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.R1 ? 1 : 0;
-                    if (Clone == null && e.Actor.HP.Cur < 0.7f * e.Actor.HP.Max && e.Actor.FindStatus(SID.SteelScales) != null)
-                        e.Priority = -1; // stop dps until stack can be dropped
-                    e.AttackStrength = Clone == null || Clone.IsDead ? 0.3f : 0.15f;
-                }
-                else if (e.Actor == Clone)
-                {
-                    e.Priority = hpDiff > 0.05f || e.Actor.HP.Cur > 0.3f * e.Actor.HP.Max && assignment is PartyRolesConfig.Assignment.OT or PartyRolesConfig.Assignment.H2 or PartyRolesConfig.Assignment.M2 or PartyRolesConfig.Assignment.R2 ? 1 : 0;
-                    e.TankAffinity = AIHints.TankAffinity.OT;
-                    if ((e.Actor.Position - PrimaryActor.Position).LengthSq() < 100)
-                        e.DesiredPosition = Platforms.HexaPlatformCenters[6];
-                    e.DesiredRotation = -90.Degrees();
-                    e.AttackStrength = PrimaryActor.IsDead ? 0.3f : 0.15f;
-                }
-                else if ((OID)e.Actor.OID == OID.DarkMatterSlime)
+                if ((OID)e.Actor.OID == OID.DarkMatterSlime)
                 {
                     // for now, let kiter damage it until 20%
-                    e.Priority = e.Actor.HP.Cur < 0.2f * e.Actor.HP.Max ? -1 : e.Actor.TargetID == actor.InstanceID ? 2 : 0;
+                    e.Priority =
+                        e.Actor.HP.Cur < 0.2f * e.Actor.HP.Max ? -1 :
+                        e.Actor.TargetID == actor.InstanceID ? 3 : 0;
                     e.TankAffinity = AIHints.TankAffinity.None;
                 }
             });
@@ -142,16 +197,5 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
 
         // don't activate module created for clone (this is a hack...)
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat && PrimaryActor.HP.Cur > PrimaryActor.HP.Max / 2; }
-
-        protected override void UpdateModule()
-        {
-            Clone ??= Enemies(OID.Boss).FirstOrDefault(a => a != PrimaryActor);
-        }
-
-        protected override void DrawEnemies(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actor(Clone, ArenaColor.Enemy);
-        }
     }
 }

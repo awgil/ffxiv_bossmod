@@ -48,7 +48,7 @@ namespace BossMod.RealmReborn.Dungeon.D05Totorak.D053Graffias
 
     class PollenZone : Components.PersistentVoidzone
     {
-        public PollenZone() : base((uint)OID.PollenZone, new AOEShapeCircle(10)) { }
+        public PollenZone() : base(10, m => m.Enemies(OID.PollenZone)) { }
     }
 
     class D053GraffiasStates : StateMachineBuilder
@@ -68,9 +68,9 @@ namespace BossMod.RealmReborn.Dungeon.D05Totorak.D053Graffias
     {
         public D053Graffias(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(215, -145), 20)) { }
 
-        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
 
             bool haveTail = Enemies(OID.GraffiasTail).Count > 0;
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch

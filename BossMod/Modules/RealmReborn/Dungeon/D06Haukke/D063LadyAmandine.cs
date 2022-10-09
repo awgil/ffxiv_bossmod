@@ -63,9 +63,9 @@ namespace BossMod.RealmReborn.Dungeon.D06Haukke.D063LadyAmandine
     {
         public D063LadyAmandine(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(0, 4), 20)) { }
 
-        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
                 OID.Handmaiden => 2,

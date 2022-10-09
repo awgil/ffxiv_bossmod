@@ -33,7 +33,7 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D162DemonWall
     {
         public Repel() : base(ActionID.MakeSpell(AID.Repel), 20, ignoreImmunes: true) { }
 
-        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             // custom hint: stay in narrow zone in center
             if (Casters.Count > 0)

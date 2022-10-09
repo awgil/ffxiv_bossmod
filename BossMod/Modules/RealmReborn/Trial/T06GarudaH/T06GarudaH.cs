@@ -44,7 +44,7 @@ namespace BossMod.RealmReborn.Trial.T06GarudaH
     // disallow clipping monoliths
     class Friction : BossComponent
     {
-        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             if (module.PrimaryActor.CastInfo == null) // don't forbid standing near monoliths while boss is casting to allow avoiding aoes
                 foreach (var m in ((T06GarudaH)module).ActiveMonoliths)
@@ -115,9 +115,9 @@ namespace BossMod.RealmReborn.Trial.T06GarudaH
             _monoliths = Enemies(OID.Monolith);
         }
 
-        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
                 OID.Suparna or OID.Chirada => a.Tether.ID == (uint)TetherID.Rehabilitation ? 3 : 2,

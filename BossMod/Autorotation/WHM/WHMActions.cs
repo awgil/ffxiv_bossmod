@@ -54,10 +54,10 @@ namespace BossMod.WHM
             {
                 var multidotTarget = Autorot.Hints.PriorityTargets.FirstOrDefault(t => t != initial && t.Actor.Position.InCircle(Player.Position, 25) && WithoutDOT(t.Actor));
                 if (multidotTarget != null)
-                    return new(multidotTarget, 10);
+                    return new(multidotTarget, multidotTarget.StayAtLongRange ? 25 : 10);
             }
 
-            return new(initial, 10);
+            return new(initial, initial.StayAtLongRange ? 25 : 10);
         }
 
         protected override void UpdateInternalState(int autoAction)

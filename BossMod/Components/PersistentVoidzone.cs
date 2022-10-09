@@ -1,43 +1,71 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Components
 {
-    // generic component that shows arbitrary shape for each existing object, assumed to be persistent voidzone center
-    public class PersistentVoidzone : BossComponent
+    // voidzone (circle aoe that stays active for some time) centered at each existing object with specified OID, assumed to be persistent voidzone center
+    public class PersistentVoidzone : GenericAOEs
     {
-        public uint SourceOID { get; private init; }
-        public AOEShape Shape { get; private init; }
-        private List<Actor> _casters = new();
-        public IReadOnlyList<Actor> Casters => _casters;
+        public AOEShapeCircle Shape { get; private init; }
+        public Func<BossModule, IEnumerable<Actor>> Sources { get; private init; }
 
-        public PersistentVoidzone(uint sourceOID, AOEShape shape)
+        public PersistentVoidzone(float radius, Func<BossModule, IEnumerable<Actor>> sources) : base(new(), "GTFO from voidzone!")
         {
-            SourceOID = sourceOID;
-            Shape = shape;
+            Shape = new(radius);
+            Sources = sources;
         }
 
-        public override void Init(BossModule module)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            _casters = module.Enemies(SourceOID);
+            foreach (var s in Sources(module))
+                yield return (Shape, s.Position, new(), new());
+        }
+    }
+
+    // voidzone that appears with some delay at cast target
+    public class PersistentVoidzoneAtCastTarget : GenericAOEs
+    {
+        public AOEShapeCircle Shape { get; private init; }
+        public Func<BossModule, IEnumerable<Actor>> Sources { get; private init; }
+        public float SpawnDelay { get; private init; }
+        public bool PredictFromCastStart { get; private init; } // if true, predicted spawn is defined by cast-start rather than cast-event
+        private List<(WPos pos, DateTime time)> _predictedSpawns = new();
+
+        public PersistentVoidzoneAtCastTarget(float radius, ActionID aid, Func<BossModule, IEnumerable<Actor>> sources, float spawnDelay, bool predictFromCastStart) : base(aid, "GTFO from voidzone!")
+        {
+            Shape = new(radius);
+            Sources = sources;
+            SpawnDelay = spawnDelay;
+            PredictFromCastStart = predictFromCastStart;
         }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (Casters.Any(c => Shape.Check(actor.Position, c)))
-                hints.Add("GTFO from voidzone!");
+            foreach (var p in _predictedSpawns)
+                yield return (Shape, p.pos, new(), p.time);
+            foreach (var z in Sources(module))
+                yield return (Shape, z.Position, new(), new());
         }
 
-        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        public override void Update(BossModule module)
         {
-            foreach (var c in Casters)
-                hints.AddForbiddenZone(Shape, c.Position, c.Rotation);
+            if (_predictedSpawns.Count > 0)
+                foreach (var s in Sources(module))
+                    _predictedSpawns.RemoveAll(p => p.pos.InCircle(s.Position, 2));
         }
 
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            foreach (var c in Casters)
-                Shape.Draw(arena, c);
+            if (PredictFromCastStart && spell.Action == WatchedAction)
+                _predictedSpawns.Add((spell.LocXZ, module.WorldState.CurrentTime.AddSeconds(SpawnDelay)));
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            base.OnEventCast(module, caster, spell);
+            if (!PredictFromCastStart && spell.Action == WatchedAction)
+                _predictedSpawns.Add((spell.TargetXZ, module.WorldState.CurrentTime.AddSeconds(SpawnDelay)));
         }
     }
 }

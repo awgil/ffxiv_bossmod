@@ -251,11 +251,11 @@ namespace BossMod
             return hints;
         }
 
-        public virtual void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public virtual void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             hints.Bounds = Bounds;
             foreach (var comp in _components)
-                comp.AddAIHints(this, slot, actor, hints);
+                comp.AddAIHints(this, slot, actor, assignment, hints);
         }
 
         public virtual bool NeedToJump(WPos from, WDir dir) => false; // if arena has complicated shape that requires jumps to navigate, module can provide this info to AI

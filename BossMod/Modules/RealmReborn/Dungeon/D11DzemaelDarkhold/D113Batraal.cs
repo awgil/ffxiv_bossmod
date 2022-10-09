@@ -67,9 +67,9 @@ namespace BossMod.RealmReborn.Dungeon.D11DzemaelDarkhold.D113Batraal
     {
         public D113Batraal(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(85, -180), 25)) { }
 
-        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
                 OID.CorruptedCrystal => 2,

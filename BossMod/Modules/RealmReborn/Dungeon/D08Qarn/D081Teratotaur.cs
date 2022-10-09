@@ -66,7 +66,7 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D081Teratotaur
                 hints.Add("Go to glowing platform!");
         }
 
-        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             if (_dooms[slot])
             {
@@ -113,9 +113,9 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D081Teratotaur
     {
         public D081Teratotaur(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-70, -60), 20)) { }
 
-        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
                 OID.DungWespe => 2,

@@ -70,7 +70,7 @@ namespace BossMod.Components
                 hints.Add("About to be knocked into wall!");
         }
 
-        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             if (IgnoreImmunes || !Immune[slot])
             {

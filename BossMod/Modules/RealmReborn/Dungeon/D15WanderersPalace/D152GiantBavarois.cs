@@ -35,7 +35,7 @@
     {
         private Actor? _kiter;
 
-        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             if (actor == _kiter)
                 hints.AddForbiddenZone(ShapeDistance.Circle(module.PrimaryActor.Position, 8));

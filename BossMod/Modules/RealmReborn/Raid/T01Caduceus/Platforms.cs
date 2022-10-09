@@ -95,16 +95,17 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
             return te >= 0 && te <= e.l;
         });
 
+        private static BitMask AllPlatforms = new(0x1FFF);
         private BitMask _activePlatforms;
         private DateTime _explosionAt;
 
-        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             Func<WPos, float> blockedArea = p =>
             {
                 var res = -PlatformShapes.Min(f => f(p));
                 foreach (var (e, f) in HighEdges.Zip(HighEdgeShapes))
-                    if (actor.PosRot.Y < PlatformHeights[e.upper])
+                    if (actor.PosRot.Y + 0.1f < PlatformHeights[e.upper])
                         res = Math.Min(res, f(p));
                 return res;
             };
@@ -116,13 +117,17 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
             // 3. before clone is spawned, R1 (assumed to be physical) stays on platform #6 and spawns slimes except on two highest platforms
             // 4. before clone is spawned, R2 (assumed to be caster) stays on platform #0 and spawns slime there
             // 5. healers stand on platform #4 to be in range of everyone
-            var assignment = Service.Config.Get<PartyRolesConfig>()[module.Raid.ContentIDs[slot]];
             var castModule = (T01Caduceus)module;
-            if (_activePlatforms.Any())
+            var cloneSpawned = module.FindComponent<CloneMerge>()?.Clone != null;
+            if (module.StateMachine.TimeSincePhaseEnter < 10)
             {
-                bool actorIsSpawner = assignment == (_activePlatforms[0] ? PartyRolesConfig.Assignment.R2 : PartyRolesConfig.Assignment.R1);
+                // do nothing for first few seconds to let MT position the boss
+            }
+            else if (_activePlatforms.Any())
+            {
+                bool actorIsSpawner = !cloneSpawned && assignment == (_activePlatforms[0] ? PartyRolesConfig.Assignment.R2 : PartyRolesConfig.Assignment.R1);
                 Func<WPos, float> nonAllowedPlatforms = actorIsSpawner
-                    ? p => -_activePlatforms.SetBits().Min(platform => PlatformShapes[platform](p)) // inverse union of active
+                    ? p => -_activePlatforms.SetBits().Min(platform => PlatformShapes[platform](p)) - 1 // inverse union of active, slightly reduced to avoid standing on borders
                     : p => _activePlatforms.SetBits().Min(platform => PlatformShapes[platform](p)); // union of active
                 hints.AddForbiddenZone(nonAllowedPlatforms, _explosionAt);
             }
@@ -134,22 +139,25 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
                     // kiting a slime: bring it near boss until low hp, then into boss
                     var dest = module.PrimaryActor.Position;
                     if (kitedSlime.HP.Cur > 0.2f * kitedSlime.HP.Max)
-                        dest += (kitedSlime.Position - module.PrimaryActor.Position).Normalized() * (module.PrimaryActor.HitboxRadius + kitedSlime.HitboxRadius + 5);
+                        dest += (kitedSlime.Position - module.PrimaryActor.Position).Normalized() * (module.PrimaryActor.HitboxRadius + kitedSlime.HitboxRadius + 6); // 6 to avoid triggering whip back
                     hints.AddForbiddenZone(ShapeDistance.InvertedCircle(dest, 2), DateTime.MaxValue);
                 }
                 else
                 {
                     BitMask allowedPlatforms = assignment switch
                     {
-                        PartyRolesConfig.Assignment.MT => new(1 << 2),
-                        PartyRolesConfig.Assignment.OT => new(castModule.Clone != null ? (1u << 6) : 0x1FFF),
+                        //PartyRolesConfig.Assignment.MT => new(1 << 2),
+                        //PartyRolesConfig.Assignment.OT => castModule.Clone != null ? new(1u << 6) : AllPlatforms,
                         PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.H2 => new(1u << 4),
-                        PartyRolesConfig.Assignment.R1 => new(castModule.Clone != null ? 0x1FFF : 1u << 8),
-                        PartyRolesConfig.Assignment.R2 => new(castModule.Clone != null ? 0x1FFF : 1u << 0),
-                        _ => new(0x1FFF)
+                        PartyRolesConfig.Assignment.R1 => cloneSpawned ? AllPlatforms : new(1u << 8),
+                        PartyRolesConfig.Assignment.R2 => cloneSpawned || actor.PosRot.Y + 0.1f < PlatformHeights[0] ? AllPlatforms : new(1u << 0),
+                        _ => AllPlatforms
                     };
-                    Func<WPos, float> nonAllowedPlatforms = p => -allowedPlatforms.SetBits().Min(platform => PlatformShapes[platform](p)); // inverse union of allowed
-                    hints.AddForbiddenZone(nonAllowedPlatforms, DateTime.MaxValue);
+                    if (allowedPlatforms.Raw != AllPlatforms.Raw)
+                    {
+                        Func<WPos, float> nonAllowedPlatforms = p => -allowedPlatforms.SetBits().Min(platform => PlatformShapes[platform](p)) - 1; // inverse union of allowed, slightly reduced to avoid standing on borders
+                        hints.AddForbiddenZone(nonAllowedPlatforms, DateTime.MaxValue);
+                    }
                 }
             }
         }

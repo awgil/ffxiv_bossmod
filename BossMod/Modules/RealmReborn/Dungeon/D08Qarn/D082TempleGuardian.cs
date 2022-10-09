@@ -48,9 +48,9 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D082TempleGuardian
     {
         public D082TempleGuardian(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(50, -10), 15)) { }
 
-        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
                 OID.GolemSoulstone => 2,

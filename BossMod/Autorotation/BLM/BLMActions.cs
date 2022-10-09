@@ -53,7 +53,7 @@ namespace BossMod.BLM
                     }
                 }
             }
-            return new(bestTarget, 15);
+            return new(bestTarget, bestTarget.StayAtLongRange ? 25 : 15);
         }
 
         protected override void OnTick()

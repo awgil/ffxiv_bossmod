@@ -148,9 +148,9 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
             _heart = Enemies(OID.TitansHeart);
         }
 
-        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var heart in ActiveHeart)
                 hints.PotentialTargets.Add(new(heart));
             hints.UpdatePotentialTargets(enemy =>

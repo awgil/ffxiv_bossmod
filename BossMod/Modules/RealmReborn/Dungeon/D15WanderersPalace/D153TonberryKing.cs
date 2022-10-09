@@ -36,9 +36,9 @@
     {
         public D153TonberryKing(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(73, -435), 30)) { }
 
-        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             //var rancorStacks = PrimaryActor.FindStatus(SID.Rancor)?.Extra ?? 0;
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {

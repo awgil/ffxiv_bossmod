@@ -128,9 +128,9 @@
     {
         public T04PortaDecumana1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-772, -600), 20)) { }
 
-        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             if (PrimaryActor.FindStatus(SID.Invincibility) != null || PrimaryActor.FindStatus(SID.VortexBarrier) != null)
                 hints.PotentialTargets.RemoveAll(e => e.Actor == PrimaryActor);
         }

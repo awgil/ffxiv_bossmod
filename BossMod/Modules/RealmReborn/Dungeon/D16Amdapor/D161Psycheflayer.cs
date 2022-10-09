@@ -94,9 +94,9 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D161Psycheflayer
 
         public D161Psycheflayer(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-29, 0), 40)) { }
 
-        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
                 OID.MarbleMarionette => 4,

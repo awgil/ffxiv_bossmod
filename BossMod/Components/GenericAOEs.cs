@@ -22,7 +22,7 @@ namespace BossMod.Components
                 hints.Add(_warningText);
         }
 
-        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             foreach (var c in ActiveAOEs(module, slot, actor))
                 hints.AddForbiddenZone(c.shape, c.origin, c.rotation, c.time);

@@ -60,7 +60,7 @@ namespace BossMod.BRD
                     }
                 }
             }
-            return new(bestTarget, 12);
+            return new(bestTarget, bestTarget.StayAtLongRange ? 25 : 12);
         }
 
         protected override void UpdateInternalState(int autoAction)

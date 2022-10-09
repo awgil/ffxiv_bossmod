@@ -27,7 +27,7 @@ namespace BossMod.Components
                 hints.Add("Turn away from gaze!");
         }
 
-        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             foreach (var eye in EyePositions(module))
                 hints.ForbiddenDirections.Add((Angle.FromDirection(eye - actor.Position), 45.Degrees(), NextGaze(module)));

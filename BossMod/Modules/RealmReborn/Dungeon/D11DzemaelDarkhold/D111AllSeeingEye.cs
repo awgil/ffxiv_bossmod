@@ -48,7 +48,7 @@
     // try to always stay in active crystal closest to boss
     class Positioning : BossComponent
     {
-        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             if (module.PrimaryActor.CastInfo == null) // do not restrict zone while boss is casting, to allow avoiding aoe, even if it means temporarily leaving crystal veil
             {
@@ -76,9 +76,9 @@
     {
         public D111AllSeeingEye(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(40, 70), 30)) { }
 
-        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             if (PrimaryActor.FindStatus(SID.Invincibility) != null)
                 hints.PotentialTargets.RemoveAll(e => e.Actor == PrimaryActor);
         }

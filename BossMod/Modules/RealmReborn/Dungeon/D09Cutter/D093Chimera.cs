@@ -56,7 +56,7 @@ namespace BossMod.RealmReborn.Dungeon.D09Cutter.D093Chimera
 
     class RamsKeeperVoidzone : Components.PersistentVoidzone
     {
-        public RamsKeeperVoidzone() : base((uint)OID.RamsKeeper, new AOEShapeCircle(6)) { }
+        public RamsKeeperVoidzone() : base(6, m => m.Enemies(OID.RamsKeeper)) { }
     }
 
     class ChaoticChorus : Components.GenericAOEs

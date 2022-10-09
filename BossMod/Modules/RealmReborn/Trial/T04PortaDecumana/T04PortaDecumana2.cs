@@ -91,10 +91,10 @@
         public Explosion() : base(ActionID.MakeSpell(AID.Explosion), new AOEShapeCircle(16)) { } // TODO: verify falloff
 
         // there is an overlap with another mechanic which has to be resolved first
-        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             if (module.FindComponent<AssaultCannon>()!.Casters.Count == 0)
-                base.AddAIHints(module, slot, actor, hints);
+                base.AddAIHints(module, slot, actor, assignment, hints);
         }
     }
 

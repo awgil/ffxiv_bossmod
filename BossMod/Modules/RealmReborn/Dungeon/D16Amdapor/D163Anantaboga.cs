@@ -66,7 +66,7 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D163Anantaboga
 
         private static AOEShapeCircle _shape = new(11.5f);
 
-        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             if (actor == _target)
             {
@@ -107,7 +107,7 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D163Anantaboga
 
     class BubonicCloud : Components.PersistentVoidzone
     {
-        public BubonicCloud() : base((uint)OID.DarkNova, new AOEShapeCircle(11.5f)) { }
+        public BubonicCloud() : base(11.5f, m => m.Enemies(OID.DarkNova)) { }
     }
 
     class D163AnantabogaStates : StateMachineBuilder
@@ -129,9 +129,9 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D163Anantaboga
     {
         public D163Anantaboga(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(10, 0), 25)) { }
 
-        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
                 OID.DarkHelot => 2,

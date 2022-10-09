@@ -30,7 +30,7 @@
     class AIPosition : BossComponent
     {
         private WPos[] _centers = { new(-395, -130), new(-402, -114) };
-        public override void AddAIHints(BossModule module, int slot, Actor actor, AIHints hints)
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_centers.MinBy(p => (p - module.PrimaryActor.Position).LengthSq()), 5));
         }
@@ -51,9 +51,9 @@
     {
         public D123MisersMistress(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-400, -130), 25)) { }
 
-        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
                 OID.MorbolFruit => 2,

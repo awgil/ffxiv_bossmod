@@ -44,10 +44,9 @@
         public DirtyCannons() : base(ActionID.MakeSpell(AID.DirtyCannons), new AOEShapeCircle(5.15f)) { }
     }
 
-    // note: we can predict target ~1s before event object spawning by looking at cast target
-    class GravityField : Components.PersistentVoidzone
+    class GravityField : Components.PersistentVoidzoneAtCastTarget
     {
-        public GravityField() : base((uint)OID.GravityField, new AOEShapeCircle(6)) { }
+        public GravityField() : base(6, ActionID.MakeSpell(AID.GravityField), m => m.Enemies(OID.GravityField), 2, true) { }
     }
 
     // TODO: chain lightning?..
@@ -71,29 +70,30 @@
     {
         public T00ADS(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-3, 27), 7, 28)) { }
 
-        public override void CalculateAIHints(int slot, Actor actor, AIHints hints)
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             hints.UpdatePotentialTargets(enemy =>
             {
-                enemy.Priority = (OID)enemy.Actor.OID switch
+                if (enemy.Actor == PrimaryActor)
                 {
-                    OID.PatrolNode or OID.AttackNode or OID.DefenseNode => 2,
-                    OID.Boss => 1,
-                    _ => 0
-                };
-                if ((OID)enemy.Actor.OID is OID.PatrolNode or OID.AttackNode or OID.DefenseNode)
+                    enemy.Priority = 1;
+                    enemy.ShouldBeInterrupted = true; // only interruptible spell (high voltage) should be interrupted every time (TODO: consider physranged even/mt odd)
+                }
+                else if ((OID)enemy.Actor.OID is OID.PatrolNode or OID.AttackNode or OID.DefenseNode)
                 {
+                    // these always spawn at south entrance, let OT tank them facing away from raid
+                    // even at MINE first add spawns when boss has ~25% hp left, so it makes sense just to offtank it and zerg boss
+                    enemy.Priority = assignment == PartyRolesConfig.Assignment.OT ? 2 : 0;
                     enemy.TankAffinity = AIHints.TankAffinity.OT;
-                    //enemy.DesiredPosition = Bounds.Center;
                     enemy.DesiredRotation = 0.Degrees();
                 }
-                enemy.ShouldBeInterrupted = true; // only boss casts interruptible spells (high voltage), and it should be interrupted every time
             });
         }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var e in Enemies(OID.PatrolNode))
                 Arena.Actor(e, ArenaColor.Enemy);
             foreach (var e in Enemies(OID.AttackNode))

@@ -1,10 +1,8 @@
-﻿using Dalamud;
-using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod
 {
@@ -109,7 +107,7 @@ namespace BossMod
             Hints.Clear();
             Hints.FillPotentialTargets(WorldState);
             if (activeModule != null && player != null)
-                activeModule.CalculateAIHints(PartyState.PlayerSlot, player, Hints);
+                activeModule.CalculateAIHints(PartyState.PlayerSlot, player, Service.Config.Get<PartyRolesConfig>()[WorldState.Party.ContentIDs[PartyState.PlayerSlot]], Hints);
             else if (player != null)
                 _autoHints.CalculateAIHints(Hints, player.Position);
             Hints.Normalize();
