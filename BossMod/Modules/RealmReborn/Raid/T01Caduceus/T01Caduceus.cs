@@ -194,7 +194,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
             });
         }
 
-        public override bool NeedToJump(WPos from, WDir dir) => Platforms.IntersectJumpEdge(from, dir, 2);
+        public override bool NeedToJump(WPos from, WDir dir) => Platforms.IntersectJumpEdge(from, dir, 3);
 
         // don't activate module created for clone (this is a hack...)
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat && PrimaryActor.HP.Cur > PrimaryActor.HP.Max / 2; }
