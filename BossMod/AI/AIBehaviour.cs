@@ -122,7 +122,7 @@ namespace BossMod.AI
                 // see whether we need to move target
                 // TODO: think more about keeping uptime while tanking, this is tricky...
                 var desiredToTarget = targeting.Target.Actor.Position - targeting.Target.DesiredPosition;
-                if (desiredToTarget.LengthSq() > 4 && (_autorot.ClassActions?.GetState().GCD ?? 0) > 0.5f)
+                if (desiredToTarget.LengthSq() > 4 /*&& (_autorot.ClassActions?.GetState().GCD ?? 0) > 0.5f*/)
                 {
                     var dest = targeting.Target.DesiredPosition - adjRange * desiredToTarget.Normalized();
                     return NavigationDecision.Build(_autorot.WorldState, _autorot.Hints, player, dest, 0.5f, new(), Positional.Any);
