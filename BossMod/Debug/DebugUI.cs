@@ -17,7 +17,6 @@ namespace BossMod
         private DebugHate _debugHate = new();
         private DebugInput _debugInput;
         private DebugAutorotation _debugAutorot;
-        //private DebugAI _debugAI;
         private DebugClassDefinitions _debugClassDefinitions;
 
         public DebugUI(WorldState ws, Autorotation autorot, InputOverride inputOverride)
@@ -27,13 +26,12 @@ namespace BossMod
             _debugAction = new(ws);
             _debugInput = new(inputOverride, autorot);
             _debugAutorot = new(autorot);
-            //_debugAI = new(autorot);
             _debugClassDefinitions = new(ws);
         }
 
         public void Dispose()
         {
-            //_debugAI.Dispose();
+            _debugInput.Dispose();
             _debugClassDefinitions.Dispose();
         }
 
@@ -80,10 +78,6 @@ namespace BossMod
             {
                 _debugAutorot.Draw();
             }
-            //if (ImGui.CollapsingHeader("AI"))
-            //{
-            //    _debugAI.Draw();
-            //}
             if (ImGui.CollapsingHeader("Graphics scene"))
             {
                 _debugGraphics.DrawSceneTree();
