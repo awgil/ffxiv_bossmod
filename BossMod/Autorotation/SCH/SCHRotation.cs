@@ -39,7 +39,7 @@
 
             public override string ToString()
             {
-                return $"AOE={NumArtOfWarTargets}, SH={BestSTHeal.Target?.Name.Substring(0, 4)}={BestSTHeal.HPRatio:f2}, AH={NumSuccorTargets}/{NumWhisperingDawnTargets}, movement-in={ForceMovementIn:f3}";
+                return $"AOE={NumArtOfWarTargets}, SH={BestSTHeal.Target?.Name.Substring(0, 4)}={BestSTHeal.HPRatio:f2}, AH={NumSuccorTargets}/{NumWhisperingDawnTargets}, no-dots={ForbidDOTs}, movement-in={ForceMovementIn:f3}";
             }
         }
 
@@ -60,7 +60,7 @@
                 // L46: spam art of war at 3+ targets, otherwise bio > art of war (even at 1 target) > ruin (if out of range) > ruin2 (on the move)
                 if (strategy.NumArtOfWarTargets >= 3)
                     return AID.ArtOfWar1;
-                else if (RefreshDOT(state, state.TargetBioLeft))
+                else if (!strategy.ForbidDOTs && RefreshDOT(state, state.TargetBioLeft))
                     return AID.Bio2;
                 else if (strategy.NumArtOfWarTargets >= 1)
                     return AID.ArtOfWar1;
@@ -73,12 +73,12 @@
             {
                 // L26: bio2 on all targets is more important than ruin
                 // L38: cast ruin2 on the move
-                return RefreshDOT(state, state.TargetBioLeft) ? AID.Bio2 : allowRuin ? AID.Ruin1 : (state.Unlocked(AID.Ruin2) ? AID.Ruin2 : AID.None);
+                return !strategy.ForbidDOTs && RefreshDOT(state, state.TargetBioLeft) ? AID.Bio2 : allowRuin ? AID.Ruin1 : (state.Unlocked(AID.Ruin2) ? AID.Ruin2 : AID.None);
             }
             else if (state.Unlocked(AID.Bio1))
             {
                 // L2: bio1 is only used on the move (TODO: it is slightly more potency than ruin on single target, but only if it ticks to the end)
-                return allowRuin ? AID.Ruin1 : RefreshDOT(state, state.TargetBioLeft) ? AID.Bio1 : AID.None;
+                return allowRuin ? AID.Ruin1 : !strategy.ForbidDOTs && RefreshDOT(state, state.TargetBioLeft) ? AID.Bio1 : AID.None;
             }
             else
             {

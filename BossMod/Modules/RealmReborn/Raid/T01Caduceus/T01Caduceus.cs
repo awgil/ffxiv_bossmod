@@ -189,6 +189,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
                         e.Actor.HP.Cur < 0.2f * e.Actor.HP.Max ? -1 :
                         e.Actor.TargetID == actor.InstanceID ? 3 : 0;
                     e.TankAffinity = AIHints.TankAffinity.None;
+                    e.ForbidDOTs = true;
                 }
             });
         }

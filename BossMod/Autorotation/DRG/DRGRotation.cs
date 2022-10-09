@@ -35,7 +35,7 @@
 
             public override string ToString()
             {
-                return $"AOE={NumAOEGCDTargets}";
+                return $"AOE={NumAOEGCDTargets}, no-dots={ForbidDOTs}";
             }
         }
 
@@ -51,7 +51,7 @@
                 return state.ComboLastMove == AID.TrueThrust;
         }
 
-        public static bool UseBuffingCombo(State state)
+        public static bool UseBuffingCombo(State state, Strategy strategy)
         {
             // the selected action will happen in GCD, and it will be the *second* action in the combo
             // TODO: L56+
@@ -64,7 +64,7 @@
                 // these seem to be really close (~305 p/gcd average)?.. TODO decide which is better
                 // we use dot duration rather than buff duration, because it works for multi-target scenario (refreshing buff is only 40p loss)
                 // if we use buff combo, next dot refresh be second action - that's 2.5s, plus we allow overwriting last tick ... (TODO!!!)
-                return RefreshDOT(state, state.TargetChaosThrustLeft - 5);
+                return !strategy.ForbidDOTs && RefreshDOT(state, state.TargetChaosThrustLeft - 5);
             }
             else if (state.Unlocked(AID.Disembowel))
             {
@@ -92,7 +92,7 @@
             {
                 return state.ComboLastMove switch
                 {
-                    AID.TrueThrust => UseBuffingCombo(state) ? AID.Disembowel : state.Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust, // TODO: better threshold (probably depends on combo length?)
+                    AID.TrueThrust => UseBuffingCombo(state, strategy) ? AID.Disembowel : state.Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust, // TODO: better threshold (probably depends on combo length?)
                     AID.VorpalThrust => state.Unlocked(AID.FullThrust) ? AID.FullThrust : AID.TrueThrust,
                     AID.Disembowel => state.Unlocked(AID.ChaosThrust) ? AID.ChaosThrust : AID.TrueThrust,
                     _ => AID.TrueThrust

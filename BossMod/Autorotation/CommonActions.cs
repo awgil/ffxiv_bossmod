@@ -345,7 +345,9 @@ namespace BossMod
         // fill common strategy properties
         protected void FillCommonStrategy(CommonRotation.Strategy strategy, ActionID potion)
         {
+            var targetEnemy = Autorot.PrimaryTarget != null ? Autorot.Hints.PotentialTargets.Find(e => e.Actor == Autorot.PrimaryTarget) : null;
             strategy.Prepull = !Player.InCombat;
+            strategy.ForbidDOTs = targetEnemy?.ForbidDOTs ?? false;
             strategy.ForceMovementIn = MaxCastTime;
             strategy.FightEndIn = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextDowntime(Autorot.Bossmods.ActiveModule?.StateMachine) ?? 0;
             strategy.RaidBuffsIn = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextVulnerable(Autorot.Bossmods.ActiveModule?.StateMachine) ?? 10000;

@@ -42,7 +42,7 @@ namespace BossMod.MNK
         public override Targeting SelectBetterTarget(AIHints.Enemy initial)
         {
             // TODO: multidotting support...
-            var pos = (_state.Form == Rotation.Form.Coeurl ? Rotation.GetCoeurlFormAction(_state, _strategy.NumPointBlankAOETargets) : AID.None) switch
+            var pos = (_state.Form == Rotation.Form.Coeurl ? Rotation.GetCoeurlFormAction(_state, _strategy.NumPointBlankAOETargets, _strategy.ForbidDOTs) : AID.None) switch
             {
                 AID.SnapPunch => Positional.Flank,
                 AID.Demolish => Positional.Rear,
@@ -134,7 +134,7 @@ namespace BossMod.MNK
             SupportedSpell(AID.ArmOfTheDestroyer).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
 
             // combo replacement
-            SupportedSpell(AID.FourPointFury).TransformAction = _config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextComboAction(_state, 100)) : null;
+            SupportedSpell(AID.FourPointFury).TransformAction = _config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextComboAction(_state, 100, false)) : null;
 
             // smart targets
         }

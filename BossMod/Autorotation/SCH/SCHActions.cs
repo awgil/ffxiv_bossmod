@@ -44,7 +44,7 @@ namespace BossMod.SCH
             // look for target to multidot, if initial target already has dot
             if (_state.Unlocked(AID.Bio1) && !WithoutDOT(initial.Actor))
             {
-                var multidotTarget = Autorot.Hints.PriorityTargets.FirstOrDefault(t => t != initial && t.Actor.Position.InCircle(Player.Position, 25) && WithoutDOT(t.Actor));
+                var multidotTarget = Autorot.Hints.PriorityTargets.FirstOrDefault(t => t != initial && !t.ForbidDOTs && t.Actor.Position.InCircle(Player.Position, 25) && WithoutDOT(t.Actor));
                 if (multidotTarget != null)
                     return new(multidotTarget, multidotTarget.StayAtLongRange ? 25 : 10);
             }

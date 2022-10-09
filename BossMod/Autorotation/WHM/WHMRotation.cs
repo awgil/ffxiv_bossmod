@@ -59,7 +59,7 @@ namespace BossMod.WHM
 
             public override string ToString()
             {
-                return $"AOE={NumHolyTargets}, SH={BestSTHeal.Target?.Name.Substring(0, 4)}={BestSTHeal.HPRatio:f2}, AH={NumRaptureMedica2Targets}/{NumCure3Targets}/{NumAssizeMedica1Targets}, movement-in={ForceMovementIn:f3}";
+                return $"AOE={NumHolyTargets}, SH={BestSTHeal.Target?.Name.Substring(0, 4)}={BestSTHeal.HPRatio:f2}, AH={NumRaptureMedica2Targets}/{NumCure3Targets}/{NumAssizeMedica1Targets}, no-dots={ForbidDOTs}, movement-in={ForceMovementIn:f3}";
             }
         }
 
@@ -107,7 +107,7 @@ namespace BossMod.WHM
                 return state.BestGlare;
 
             // 1. refresh dia/aero, if needed
-            if (state.Unlocked(AID.Aero1) && RefreshDOT(state, state.TargetDiaLeft))
+            if (!strategy.ForbidDOTs && state.Unlocked(AID.Aero1) && RefreshDOT(state, state.TargetDiaLeft))
                 return state.BestDia;
 
             // 2. glare, if not moving or if under swiftcast

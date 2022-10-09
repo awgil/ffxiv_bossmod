@@ -37,7 +37,7 @@
 
             public override string ToString()
             {
-                return $"AOE={NumAOETargets}, movement-in={ForceMovementIn:f3}";
+                return $"AOE={NumAOETargets}, no-dots={ForbidDOTs}, movement-in={ForceMovementIn:f3}";
             }
         }
 
@@ -84,17 +84,17 @@
                             else
                                 return state.CurMP >= AdjustedFireCost(state, 1500) ? AID.Fire2 : AID.Blizzard2;
                         }
-                        if (state.ThundercloudLeft > state.GCD)
+                        if (!strategy.ForbidDOTs && state.ThundercloudLeft > state.GCD)
                             return AID.Thunder2;
                         return AID.None; // chill...
                     }
                     else if (state.ElementalLevel < 0)
                     {
                         // ice phase: Freeze/B2 if needed for mana tick > T2 if needed to refresh > F2
-                        if (state.TargetThunderLeft <= state.GCD && (state.ThundercloudLeft > state.GCD || CanCast(state, strategy, 2.5f)))
+                        if (!strategy.ForbidDOTs && state.TargetThunderLeft <= state.GCD && (state.ThundercloudLeft > state.GCD || CanCast(state, strategy, 2.5f)))
                             return AID.Thunder2; // if thunder is about to fall off, refresh before B2
 
-                        bool wantThunder = state.TargetThunderLeft < 10; // TODO: better threshold
+                        bool wantThunder = !strategy.ForbidDOTs && state.TargetThunderLeft < 10; // TODO: better threshold
                         if (CanCast(state, strategy, 3))
                         {
                             float minTimeToSwap = state.GCD + (wantThunder ? 2.5f : 0) + 1; // F2 is always hardcasted, time is 3 / 2 = 1.5 minus ~0.5 slidecast
@@ -103,7 +103,7 @@
                             if (mpAtMinSwap < 9600)
                                 return state.Unlocked(AID.Freeze) ? AID.Freeze : AID.Blizzard2;
                         }
-                        if (state.ThundercloudLeft > state.GCD || wantThunder && CanCast(state, strategy, 2.5f))
+                        if (!strategy.ForbidDOTs && state.ThundercloudLeft > state.GCD || wantThunder && CanCast(state, strategy, 2.5f))
                             return AID.Thunder2;
                         if (state.CurMP >= 9600 && CanCast(state, strategy, state.ElementalLevel == -3 ? 1.5f : 3))
                             return AID.Fire2;
@@ -130,17 +130,17 @@
                         if (CanCast(state, strategy, 2.5f)) // TODO: B3 is 3.5, but since we typically have 3 fire stacks, it's actually 1.75
                             return state.CurMP >= AdjustedFireCost(state, 800) ? AID.Fire1 : AID.Blizzard3;
                         // TODO: scathe on the move?..
-                        if (state.ThundercloudLeft > state.GCD)
+                        if (!strategy.ForbidDOTs && state.ThundercloudLeft > state.GCD)
                             return state.BestThunder3;
                         return AID.None; // chill...
                     }
                     else if (state.ElementalLevel < 0)
                     {
                         // ice phase: B1 if needed for mana tick > T1/T3 if needed to refresh > F3
-                        if (state.TargetThunderLeft <= state.GCD && (state.ThundercloudLeft > state.GCD || CanCast(state, strategy, 2.5f)))
+                        if (!strategy.ForbidDOTs && state.TargetThunderLeft <= state.GCD && (state.ThundercloudLeft > state.GCD || CanCast(state, strategy, 2.5f)))
                             return state.BestThunder3; // if thunder is about to fall off, refresh before B1
 
-                        bool wantThunder = state.TargetThunderLeft < 10; // TODO: better threshold
+                        bool wantThunder = !strategy.ForbidDOTs && state.TargetThunderLeft < 10; // TODO: better threshold
                         if (CanCast(state, strategy, 2.5f))
                         {
                             float minTimeToSwap = state.GCD + (wantThunder ? 2.5f : 0);
@@ -151,7 +151,7 @@
                             if (mpAtMinSwap < 9800)
                                 return AID.Blizzard1;
                         }
-                        if (state.ThundercloudLeft > state.GCD || wantThunder && CanCast(state, strategy, 2.5f))
+                        if (!strategy.ForbidDOTs && state.ThundercloudLeft > state.GCD || wantThunder && CanCast(state, strategy, 2.5f))
                             return state.BestThunder3;
                         if (state.CurMP >= 9800 && (state.FirestarterLeft > state.GCD || CanCast(state, strategy, state.ElementalLeft == -3 ? 1.75f : 3.5f)))
                             return AID.Fire3;
@@ -180,13 +180,13 @@
                 }
                 else if (strategy.NumAOETargets >= 3 && state.Unlocked(AID.Blizzard2))
                 {
-                    if (state.Unlocked(AID.Thunder2) && state.TargetThunderLeft <= state.GCD)
+                    if (!strategy.ForbidDOTs && state.Unlocked(AID.Thunder2) && state.TargetThunderLeft <= state.GCD)
                         return AID.Thunder2;
                     return state.Unlocked(AID.Fire2) ? TransposeRotationGCD(state, AID.Blizzard2, 800, AID.Fire2, 1500) : AID.Blizzard2;
                 }
                 else
                 {
-                    if (state.Unlocked(AID.Thunder1) && state.TargetThunderLeft <= state.GCD)
+                    if (!strategy.ForbidDOTs && state.Unlocked(AID.Thunder1) && state.TargetThunderLeft <= state.GCD)
                         return AID.Thunder1;
                     return state.Unlocked(AID.Fire1) ? TransposeRotationGCD(state, AID.Blizzard1, 400, AID.Fire1, 800) : AID.Blizzard1;
                 }

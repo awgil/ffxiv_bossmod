@@ -30,7 +30,7 @@ namespace BossMod
         {
             foreach (var n in tree.Node("Potential targets", _hints.PotentialTargets.Count == 0))
             {
-                tree.LeafNodes(_hints.PotentialTargets, e => $"[{e.Priority}] {e.Actor} (TTL={e.TimeToKill:f2}, str={e.AttackStrength:f2}), dist={(e.Actor.Position - _player.Position).Length():f2}, tank={e.TankAffinity}/{e.DesiredPosition}/{e.DesiredRotation}");
+                tree.LeafNodes(_hints.PotentialTargets, e => $"[{e.Priority}] {e.Actor} (str={e.AttackStrength:f2}), dist={(e.Actor.Position - _player.Position).Length():f2}, tank={e.TankAffinity}/{e.DesiredPosition}/{e.DesiredRotation}");
             }
             foreach (var n in tree.Node("Forbidden zones", _hints.ForbiddenZones.Count == 0))
             {

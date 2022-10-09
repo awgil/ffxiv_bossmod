@@ -40,7 +40,7 @@
 
             public override string ToString()
             {
-                return $"AOE={NumPointBlankAOETargets}/{NumEnlightenmentTargets}";
+                return $"AOE={NumPointBlankAOETargets}/{NumEnlightenmentTargets}, no-dots={ForbidDOTs}";
             }
         }
 
@@ -57,19 +57,19 @@
             return state.Unlocked(AID.FourPointFury) && numAOETargets >= 3 ? AID.FourPointFury : state.Unlocked(AID.TwinSnakes) && state.DisciplinedFistLeft < state.GCD + 7 ? AID.TwinSnakes : AID.TrueStrike;
         }
 
-        public static AID GetCoeurlFormAction(State state, int numAOETargets)
+        public static AID GetCoeurlFormAction(State state, int numAOETargets, bool forbidDOTs)
         {
             // TODO: multidot support...
             // TODO: low level - consider early restart...
             // TODO: better threshold for debuff reapplication...
-            return state.Unlocked(AID.Rockbreaker) && numAOETargets >= 3 ? AID.Rockbreaker : state.Unlocked(AID.Demolish) && state.TargetDemolishLeft < state.GCD + 3 ? AID.Demolish : AID.SnapPunch;
+            return state.Unlocked(AID.Rockbreaker) && numAOETargets >= 3 ? AID.Rockbreaker : !forbidDOTs && state.Unlocked(AID.Demolish) && state.TargetDemolishLeft < state.GCD + 3 ? AID.Demolish : AID.SnapPunch;
         }
 
-        public static AID GetNextComboAction(State state, int numAOETargets)
+        public static AID GetNextComboAction(State state, int numAOETargets, bool forbidDOTs)
         {
             return state.Form switch
             {
-                Form.Coeurl => GetCoeurlFormAction(state, numAOETargets),
+                Form.Coeurl => GetCoeurlFormAction(state, numAOETargets, forbidDOTs),
                 Form.Raptor => GetRaptorFormAction(state, numAOETargets),
                 _ => GetOpoOpoFormAction(state, numAOETargets)
             };
@@ -78,7 +78,7 @@
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
             // TODO: L52+
-            return GetNextComboAction(state, strategy.NumPointBlankAOETargets);
+            return GetNextComboAction(state, strategy.NumPointBlankAOETargets, strategy.ForbidDOTs);
         }
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)

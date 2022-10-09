@@ -13,12 +13,13 @@ namespace BossMod
         {
             public Actor Actor;
             public int Priority; // <0 means damaging is actually forbidden, 0 is default
-            public float TimeToKill;
+            //public float TimeToKill;
             public float AttackStrength; // target's predicted HP percent is decreased by this amount (0.05 by default)
             public TankAffinity TankAffinity; // who should be tanking this enemy
             public WPos DesiredPosition; // tank AI will try to move enemy to this position
             public Angle DesiredRotation; // tank AI will try to rotate enemy to this angle
             //public bool PreferProvoking; // tank AI will provoke enemy if not targeted
+            public bool ForbidDOTs; // if true, dots on target are forbidden
             public bool ShouldBeInterrupted; // if set and enemy is casting interruptible spell, some ranged/tank will try to interrupt
             public bool StayAtLongRange; // if set, players with ranged attacks don't bother coming closer than max range (TODO: reconsider)
 
@@ -26,7 +27,6 @@ namespace BossMod
             {
                 Actor = actor;
                 Priority = actor.InCombat ? 0 : -1;
-                TimeToKill = 10000;
                 AttackStrength = 0.05f;
                 TankAffinity = actor.TargetID != 0 ? TankAffinity.MT : TankAffinity.None;
                 DesiredPosition = actor.Position;

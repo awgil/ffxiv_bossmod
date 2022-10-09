@@ -46,6 +46,7 @@ namespace BossMod
             public enum PotionUse { Manual, DelayUntilRaidBuffs, DelayUntilPersonalBuffs, Immediate }
 
             public bool Prepull; // true if neither self nor target are in combat; TODO consider replacing with countdown timer
+            public bool ForbidDOTs;
             public float ForceMovementIn;
             public float FightEndIn; // how long fight will last (we try to spend all resources before this happens)
             public float RaidBuffsIn; // estimate time when new raidbuff window starts (if it is smaller than FightEndIn, we try to conserve resources)

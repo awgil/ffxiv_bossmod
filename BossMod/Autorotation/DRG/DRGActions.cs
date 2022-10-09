@@ -61,7 +61,7 @@ namespace BossMod.DRG
             var adjTarget = initial;
             if (_state.Unlocked(AID.ChaosThrust) && !WithoutDOT(initial.Actor))
             {
-                var multidotTarget = Autorot.Hints.PriorityTargets.FirstOrDefault(e => e != initial && e.Actor.Position.InCircle(Player.Position, 5) && WithoutDOT(e.Actor));
+                var multidotTarget = Autorot.Hints.PriorityTargets.FirstOrDefault(e => e != initial && !e.ForbidDOTs && e.Actor.Position.InCircle(Player.Position, 5) && WithoutDOT(e.Actor));
                 if (multidotTarget != null)
                     adjTarget = multidotTarget;
             }
