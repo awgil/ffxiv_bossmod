@@ -148,7 +148,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
                     {
                         //PartyRolesConfig.Assignment.MT => new(1 << 2),
                         //PartyRolesConfig.Assignment.OT => castModule.Clone != null ? new(1u << 6) : AllPlatforms,
-                        PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.H2 => new(1u << 4),
+                        PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.H2 => new(1u << 5),
                         PartyRolesConfig.Assignment.R1 => cloneSpawned ? AllPlatforms : new(1u << 8),
                         PartyRolesConfig.Assignment.R2 => cloneSpawned || actor.PosRot.Y + 0.1f < PlatformHeights[0] ? AllPlatforms : new(1u << 0),
                         _ => AllPlatforms
