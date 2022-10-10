@@ -63,6 +63,13 @@ namespace BossMod
         static AbilityDefinitions()
         {
             Classes[BossMod.Class.WAR] = new(WAR.Definitions.SupportedActions, typeof(WAR.CDGroup));
+            Classes[BossMod.Class.PLD] = new(PLD.Definitions.SupportedActions, typeof(PLD.CDGroup));
+            Classes[BossMod.Class.WHM] = new(WHM.Definitions.SupportedActions, typeof(WHM.CDGroup));
+            Classes[BossMod.Class.SCH] = new(SCH.Definitions.SupportedActions, typeof(SCH.CDGroup));
+            Classes[BossMod.Class.DRG] = new(DRG.Definitions.SupportedActions, typeof(DRG.CDGroup));
+            Classes[BossMod.Class.MNK] = new(MNK.Definitions.SupportedActions, typeof(MNK.CDGroup));
+            Classes[BossMod.Class.BRD] = new(BRD.Definitions.SupportedActions, typeof(BRD.CDGroup));
+            Classes[BossMod.Class.BLM] = new(BLM.Definitions.SupportedActions, typeof(BLM.CDGroup));
         }
     }
 }
