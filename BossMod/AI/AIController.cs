@@ -86,6 +86,7 @@ namespace BossMod.AI
         public WDir? NaviTargetRot;
         public float? NaviTargetVertical;
         public bool AllowInterruptingCastByMovement;
+        public bool ForceCancelCast;
         public bool ForceFacing;
         public bool WantJump;
 
@@ -119,6 +120,7 @@ namespace BossMod.AI
             NaviTargetRot = null;
             NaviTargetVertical = null;
             AllowInterruptingCastByMovement = false;
+            ForceCancelCast = false;
             ForceFacing = false;
             WantJump = false;
         }
@@ -150,9 +152,7 @@ namespace BossMod.AI
 
             if (ForceFacing && NaviTargetRot != null && player.Rotation.ToDirection().Dot(NaviTargetRot.Value) < 0.996f)
             {
-                var am = ActionManagerEx.Instance!;
-                am.FaceDirection(NaviTargetRot.Value);
-                _axisForward.CurDirection = am.CastTimeRemaining > 0 ? 1 : 0; // this is a hack to cancel any cast...
+                ActionManagerEx.Instance!.FaceDirection(NaviTargetRot.Value);
             }
 
             bool moveRequested = Input.IsMoveRequested();
@@ -167,7 +167,8 @@ namespace BossMod.AI
                 _axisRotate.CurDirection = 0;
             }
 
-            bool forbidMovement = moveRequested || !AllowInterruptingCastByMovement && (player.CastInfo != null && !player.CastInfo.EventHappened || _autorot.AboutToStartCast);
+            bool castInProgress = player.CastInfo != null && !player.CastInfo.EventHappened;
+            bool forbidMovement = moveRequested || !AllowInterruptingCastByMovement && (castInProgress || _autorot.AboutToStartCast);
             if (NaviTargetPos != null && !forbidMovement && (NaviTargetPos.Value - player.Position).LengthSq() > 0.01f)
             {
                 var dir = cameraFacing - Angle.FromDirection(NaviTargetPos.Value - player.Position);
@@ -180,7 +181,7 @@ namespace BossMod.AI
             else
             {
                 Input.GamepadOverridesEnabled = false;
-                _axisForward.CurDirection = 0;
+                _axisForward.CurDirection = ForceCancelCast && castInProgress ? 1 : 0; // this is a hack to cancel any cast...
                 _keyJump.Held = false;
             }
 

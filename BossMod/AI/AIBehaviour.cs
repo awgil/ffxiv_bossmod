@@ -41,13 +41,15 @@ namespace BossMod.AI
             _afkMode = !master.InCombat && (_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
             bool forbidActions = _forbidActions || _ctrl.IsMounted || _afkMode || _autorot.ClassActions == null || _autorot.ClassActions.AutoAction >= CommonActions.AutoActionFirstCustom;
 
-            var target = forbidActions ? new() : SelectPrimaryTarget(player, master);
+            CommonActions.Targeting target = new();
             if (!forbidActions)
+            {
+                target = SelectPrimaryTarget(player, master);
+                if (target.Target != null || TargetIsForbidden(_autorot.PrimaryTarget))
+                    _ctrl.SetPrimaryTarget(target.Target?.Actor);
                 _autorot.PrimaryTarget = target.Target?.Actor;
-            if (target.Target != null)
-                _ctrl.SetPrimaryTarget(target.Target.Actor);
-
-            AdjustTargetPositional(player, ref target);
+                AdjustTargetPositional(player, ref target);
+            }
 
             _followMaster = master != player && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (!master.InCombat || (_masterPrevPos - _masterMovementStart).LengthSq() > 100);
             _naviDecision = BuildNavigationDecision(player, master, ref target);
@@ -174,6 +176,7 @@ namespace BossMod.AI
                 _ctrl.NaviTargetPos = null;
                 _ctrl.NaviTargetRot = destRot;
                 _ctrl.NaviTargetVertical = null;
+                _ctrl.ForceCancelCast = true;
                 _ctrl.ForceFacing = true;
             }
             else
@@ -184,6 +187,7 @@ namespace BossMod.AI
                 //_ctrl.NaviTargetRot = distSq >= 0.01f ? toDest.Normalized() : null;
                 _ctrl.NaviTargetVertical = master != player ? master.PosRot.Y : null;
                 _ctrl.AllowInterruptingCastByMovement = player.CastInfo != null && _naviDecision.LeewaySeconds <= (player.CastInfo.FinishAt - _autorot.WorldState.CurrentTime).TotalSeconds - 0.5;
+                _ctrl.ForceCancelCast = TargetIsForbidden(_autorot.WorldState.Actors.Find(player.CastInfo?.TargetID ?? 0));
                 _ctrl.ForceFacing = false;
                 _ctrl.WantJump = distSq >= 0.01f && _autorot.Bossmods.ActiveModule?.StateMachine.ActiveState != null && _autorot.Bossmods.ActiveModule.NeedToJump(player.Position, toDest.Normalized());
 
@@ -211,5 +215,7 @@ namespace BossMod.AI
             var dist = _naviDecision.Destination != null && player != null ? (_naviDecision.Destination.Value - player.Position).Length() : 0;
             ImGui.TextUnformatted($"Max-cast={MathF.Min(_maxCastTime, 1000):f3}, afk={_afkMode}, follow={_followMaster}, algo={_naviDecision.DecisionType} {_naviDecision.Destination} (d={dist:f3}), master standing for {Math.Clamp((_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds, 0, 1000):f1}");
         }
+
+        private bool TargetIsForbidden(Actor? actor) => actor != null && _autorot.Hints.ForbiddenTargets.Any(e => e.Actor == actor);
     }
 }
