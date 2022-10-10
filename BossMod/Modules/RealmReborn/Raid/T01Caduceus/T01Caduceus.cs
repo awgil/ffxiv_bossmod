@@ -83,7 +83,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
         public Syrup() : base(4, ActionID.MakeSpell(AID.Syrup), m => m.Enemies(OID.Syrup).Where(z => z.EventState != 7), 0.8f, true) { }
     }
 
-    // TODO: merge happens if bosses are 'close enough' (threshold is >20.82 at least) and more than 20s passed since split
+    // TODO: merge happens if bosses are 'close enough' (threshold is >20.82 at least) or have high enough hp difference (>5% at least) and more than 20s passed since split
     class CloneMerge : BossComponent
     {
         public Actor? Clone { get; private set; }
@@ -168,6 +168,9 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
                 .ActivateOnEnter<CloneMerge>();
         }
     }
+
+    [ConfigDisplay(Order = 0x110, Parent = typeof(RealmRebornConfig))]
+    public class T01CaduceusConfig : CooldownPlanningConfigNode { }
 
     public class T01Caduceus : BossModule
     {
