@@ -125,7 +125,7 @@ namespace UIDev
             {
                 if (_config == null)
                 {
-                    _config = WindowManager.CreateWindow($"Player actions timeline config", DrawConfig, () => _config = null, () => true);
+                    _config = WindowManager.CreateWindow($"Player actions timeline config: {_planner.PlanClass} {_pc?.Name} {_replay.Path} @ {_encounter.Time.Start:O}", DrawConfig, () => _config = null, () => true);
                     _config.SizeHint = new(600, 600);
                     _config.MinSize = new(100, 100);
                 }

@@ -164,6 +164,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
                 .ActivateOnEnter<HoodSwing>()
                 .ActivateOnEnter<WhipBack>()
                 .ActivateOnEnter<Regorge>()
+                .ActivateOnEnter<Syrup>()
                 .ActivateOnEnter<CloneMerge>();
         }
     }

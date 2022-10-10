@@ -80,7 +80,7 @@ namespace BossMod.SCH
                 return MakeResult(AID.Succor, Player);
 
             // now check ST heal
-            if (Rotation.CanCast(_state, _strategy, 2) && _strategy.BestSTHeal.Target != null && _state.AetherflowStacks == 0)
+            if (Rotation.CanCast(_state, _strategy, 2) && _strategy.BestSTHeal.Target != null && _state.AetherflowStacks == 0 && StatusDetails(_strategy.BestSTHeal.Target, SID.Galvanize, Player.InstanceID).Left <= _state.GCD)
                 return MakeResult(Rotation.GetNextBestSTHealGCD(_state, _strategy), _strategy.BestSTHeal.Target);
 
             // now check esuna

@@ -54,6 +54,7 @@ namespace BossMod
     public static class CommonDefinitions
     {
         public static ActionID IDAutoAttack = new(ActionType.Spell, 7);
+        public static ActionID IDAutoShot = new(ActionType.Spell, 8);
         public static ActionID IDSprint = new(ActionType.General, 4);
         public static ActionID IDPotionStr = new(ActionType.Item, 1037840); // hq grade 7 tincture of strength
         public static ActionID IDPotionDex = new(ActionType.Item, 1037841); // hq grade 7 tincture of dexterity

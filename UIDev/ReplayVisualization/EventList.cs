@@ -233,7 +233,7 @@ namespace UIDev
         private void OpenPlayerActions(Replay.Encounter enc, Class pcClass, Replay.Participant? pc = null)
         {
             var planner = new PlayerActions(_replay, enc, pcClass, pc);
-            var w = WindowManager.CreateWindow($"Player actions timeline", planner.Draw, planner.Close, () => true);
+            var w = WindowManager.CreateWindow($"Player actions timeline: {pcClass} {pc?.Name} {_replay.Path} @ {enc.Time.Start:O}", planner.Draw, planner.Close, () => true);
             w.SizeHint = new(600, 600);
             w.MinSize = new(100, 100);
         }

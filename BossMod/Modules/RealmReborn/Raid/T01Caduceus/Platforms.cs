@@ -103,7 +103,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
         {
             Func<WPos, float> blockedArea = p =>
             {
-                var res = -PlatformShapes.Min(f => f(p));
+                var res = -PlatformShapes.Min(f => f(p)) - 0.5f;
                 foreach (var (e, f) in HighEdges.Zip(HighEdgeShapes))
                     if (actor.PosRot.Y + 0.1f < PlatformHeights[e.upper])
                         res = Math.Min(res, f(p));
@@ -150,7 +150,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
                         //PartyRolesConfig.Assignment.OT => castModule.Clone != null ? new(1u << 6) : AllPlatforms,
                         PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.H2 => new(1u << 5),
                         PartyRolesConfig.Assignment.R1 => cloneSpawned ? AllPlatforms : new(1u << 8),
-                        PartyRolesConfig.Assignment.R2 => cloneSpawned || actor.PosRot.Y + 0.1f < PlatformHeights[0] ? AllPlatforms : new(1u << 0),
+                        PartyRolesConfig.Assignment.R2 => cloneSpawned || actor.PosRot.Y + 0.1f < PlatformHeights[0] ? AllPlatforms : new(1u << 0), // TODO: there's a LOS problem if standing on starting platform - maybe just ignore these platforms?..
                         _ => AllPlatforms
                     };
                     if (allowedPlatforms.Raw != AllPlatforms.Raw)

@@ -20,6 +20,8 @@ namespace BossMod
 
         private float _trackWidth = 80;
 
+        public Class PlanClass => _plan.Class;
+
         public CooldownPlannerColumns(CooldownPlan plan, Action onModified, Timeline timeline, StateMachineTree tree, List<int> phaseBranches)
         {
             _plan = plan;
