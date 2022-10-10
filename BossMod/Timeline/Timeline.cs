@@ -57,6 +57,12 @@ namespace BossMod
             return col;
         }
 
+        public T AddColumnBefore<T>(T col, Column next) where T : Column
+        {
+            _columns.Insert(_columns.IndexOf(next), col);
+            return col;
+        }
+
         public void Draw()
         {
             _screenClientTL = ImGui.GetCursorScreenPos();

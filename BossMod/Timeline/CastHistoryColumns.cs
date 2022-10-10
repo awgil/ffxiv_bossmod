@@ -56,5 +56,17 @@ namespace BossMod
                 }
             }
         }
+
+        public void ClearEvents()
+        {
+            _autoAttacks.Events.Clear();
+            _animLock.Events.Clear();
+            _animLock.Entries.Clear();
+            foreach (var c in _columns)
+            {
+                c.Events.Clear();
+                c.Entries.Clear();
+            }
+        }
     }
 }

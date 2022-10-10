@@ -47,6 +47,12 @@ namespace BossMod
             _columns.GetValueOrDefault(aid)?.Events.Add(ev);
         }
 
+        public void ClearEvents()
+        {
+            foreach (var c in _columns.Values)
+                c.Events.Clear();
+        }
+
         public void DrawControls()
         {
             if (ImGui.Button("Export to clipboard"))
