@@ -97,7 +97,7 @@ namespace BossMod.AI
         private NaviInput _keyJump;
         private Autorotation _autorot;
 
-        public bool InCutscene => Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas];
+        public bool InCutscene => Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas] || Service.Condition[ConditionFlag.OccupiedInQuestEvent];
         public bool IsMounted => Service.Condition[ConditionFlag.Mounted];
         public bool IsVerticalAllowed => Service.Condition[ConditionFlag.InFlight];
         public Angle CameraFacing => ((Camera.Instance?.CameraAzimuth ?? 0).Radians() + 180.Degrees());
@@ -139,7 +139,7 @@ namespace BossMod.AI
 
         public unsafe void Update(Actor? player)
         {
-            if (player == null || InCutscene)
+            if (player == null || player.IsDead || InCutscene)
             {
                 _axisForward.CurDirection = 0;
                 _axisStrafe.CurDirection = 0;

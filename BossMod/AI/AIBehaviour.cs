@@ -32,7 +32,7 @@ namespace BossMod.AI
 
         public void Execute(Actor player, Actor master)
         {
-            if (_ctrl.InCutscene)
+            if (player.IsDead || _ctrl.InCutscene)
                 return;
 
             // keep master in focus
