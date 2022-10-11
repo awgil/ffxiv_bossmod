@@ -160,12 +160,13 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
     {
         public T01CaduceusStates(BossModule module) : base(module)
         {
-            TrivialPhase()
+            SimplePhase(0, id => { SimpleState(id, 600, "Enrage"); }, "Boss death")
                 .ActivateOnEnter<HoodSwing>()
                 .ActivateOnEnter<WhipBack>()
                 .ActivateOnEnter<Regorge>()
                 .ActivateOnEnter<Syrup>()
-                .ActivateOnEnter<CloneMerge>();
+                .ActivateOnEnter<CloneMerge>()
+                .Raw.Update = () => (module.PrimaryActor.IsDead || module.PrimaryActor.IsDestroyed) && module.FindComponent<CloneMerge>()!.CloneIfValid == null;
         }
     }
 
