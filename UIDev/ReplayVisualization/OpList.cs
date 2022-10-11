@@ -100,7 +100,7 @@ namespace UIDev
                 ActorState.OpCreate op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpDestroy op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpMove => false,
-                ActorState.OpHP => false,
+                ActorState.OpHPMP => false,
                 ActorState.OpTargetable op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpDead op => FilterInterestingActor(op.InstanceID, op.Timestamp, true),
                 ActorState.OpCombat => false,
@@ -108,7 +108,7 @@ namespace UIDev
                 ActorState.OpTarget => false, // reconsider...
                 ActorState.OpCastInfo op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(FindCast(FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null)!.ID),
                 ActorState.OpCastEvent op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(op.Value.Action),
-                ActorState.OpEffectResult op => false,
+                ActorState.OpEffectResult => false,
                 ActorState.OpStatus op => FilterInterestingStatus(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0),
                 _ => true
             };

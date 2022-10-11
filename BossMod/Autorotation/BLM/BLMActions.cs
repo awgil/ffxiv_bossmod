@@ -22,7 +22,7 @@ namespace BossMod.BLM
             _config = Service.Config.Get<BLMConfig>();
             _state = new(autorot.Cooldowns);
             _strategy = new();
-            _prevMP = Service.ClientState.LocalPlayer?.CurrentMp ?? 0;
+            _prevMP = player.CurMP;
 
             _config.Modified += OnConfigModified;
             OnConfigModified(null, EventArgs.Empty);
@@ -59,20 +59,19 @@ namespace BossMod.BLM
         protected override void OnTick()
         {
             // track mana ticks
-            var currMP = Service.ClientState.LocalPlayer?.CurrentMp ?? 0;
-            if (_prevMP < currMP)
+            if (_prevMP < Player.CurMP)
             {
                 var gauge = Service.JobGauges.Get<BLMGauge>();
                 if (!gauge.InAstralFire)
                 {
                     var expectedTick = Rotation.MPTick(-gauge.UmbralIceStacks);
-                    if (currMP - _prevMP == expectedTick)
+                    if (Player.CurMP - _prevMP == expectedTick)
                     {
                         _lastManaTick = Autorot.WorldState.CurrentTime;
                     }
                 }
             }
-            _prevMP = currMP;
+            _prevMP = Player.CurMP;
         }
 
         protected override void UpdateInternalState(int autoAction)

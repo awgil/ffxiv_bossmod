@@ -129,11 +129,13 @@ namespace BossMod
             var classID = (Class)(character?.ClassJob.Id ?? 0);
             var posRot = new Vector4(obj.Position, obj.Rotation);
             var hp = new ActorHP();
+            uint curMP = 0;
             if (character != null)
             {
                 hp.Cur = character.CurrentHp;
                 hp.Max = character.MaxHp;
                 hp.Shield = (uint)(Utils.CharacterShieldValue(character) * 0.01f * hp.Max);
+                curMP = character.CurrentMp;
             }
             var targetable = Utils.GameObjectIsTargetable(obj);
             var friendly = Utils.GameObjectIsFriendly(obj);
@@ -156,6 +158,7 @@ namespace BossMod
                     PosRot = posRot,
                     HitboxRadius = radius,
                     HP = hp,
+                    CurMP = curMP,
                     IsTargetable = targetable,
                     IsAlly = friendly,
                     OwnerID = SanitizedObjectID(obj.OwnerId)
@@ -172,8 +175,8 @@ namespace BossMod
                     Execute(new ActorState.OpMove() { InstanceID = act.InstanceID, PosRot = posRot });
                 if (act.HitboxRadius != radius)
                     Execute(new ActorState.OpSizeChange() { InstanceID = act.InstanceID, HitboxRadius = radius });
-                if (act.HP.Cur != hp.Cur || act.HP.Max != hp.Max || act.HP.Shield != hp.Shield)
-                    Execute(new ActorState.OpHP() { InstanceID = act.InstanceID, Value = hp });
+                if (act.HP.Cur != hp.Cur || act.HP.Max != hp.Max || act.HP.Shield != hp.Shield || act.CurMP != curMP)
+                    Execute(new ActorState.OpHPMP() { InstanceID = act.InstanceID, HP = hp, CurMP = curMP });
                 if (act.IsTargetable != targetable)
                     Execute(new ActorState.OpTargetable() { InstanceID = act.InstanceID, Value = targetable });
                 if (act.IsAlly != friendly)

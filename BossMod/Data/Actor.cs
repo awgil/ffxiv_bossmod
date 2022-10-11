@@ -100,6 +100,7 @@ namespace BossMod
         public Vector4 PosRot = new(); // W = rotation: 0 = pointing S, pi/2 = pointing E, pi = pointing N, -pi/2 = pointing W
         public float HitboxRadius;
         public ActorHP HP;
+        public uint CurMP;
         public bool IsDestroyed; // set to true when actor is removed from world; object might still be alive because of other references
         public bool IsTargetable;
         public bool IsAlly;
@@ -117,7 +118,7 @@ namespace BossMod
         public WPos Position => new(PosRot.X, PosRot.Z);
         public Angle Rotation => PosRot.W.Radians();
 
-        public Actor(ulong instanceID, uint oid, int spawnIndex, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), bool targetable = true, bool ally = false, ulong ownerID = 0)
+        public Actor(ulong instanceID, uint oid, int spawnIndex, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), uint mp = 0, bool targetable = true, bool ally = false, ulong ownerID = 0)
         {
             InstanceID = instanceID;
             OID = oid;
@@ -128,6 +129,7 @@ namespace BossMod
             PosRot = posRot;
             HitboxRadius = hitboxRadius;
             HP = hp;
+            CurMP = mp;
             IsTargetable = targetable;
             IsAlly = ally;
             OwnerID = ownerID;

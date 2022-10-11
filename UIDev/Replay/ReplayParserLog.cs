@@ -64,7 +64,7 @@ namespace UIDev
                 case "CLSR": ParseActorClassChange(payload); break;
                 case "MOVE": ParseActorMove(payload); break;
                 case "ACSZ": ParseActorSizeChange(payload); break;
-                case "HP  ": ParseActorHP(payload); break;
+                case "HP  ": ParseActorHPMP(payload); break;
                 case "ATG+": ParseActorTargetable(payload, true); break;
                 case "ATG-": ParseActorTargetable(payload, false); break;
                 case "ALLY": ParseActorAlly(payload); break;
@@ -157,7 +157,7 @@ namespace UIDev
         private void ParseActorCreate(string[] payload)
         {
             var parts = payload[2].Split('/');
-            var hp = payload.Length > 7 ? ActorHP(payload[7]) : new();
+            var hpmp = payload.Length > 7 ? ActorHPMP(payload[7]) : new();
             AddOp(new ActorState.OpCreate()
             {
                 InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber),
@@ -168,7 +168,8 @@ namespace UIDev
                 Class = Enum.Parse<Class>(payload[3]),
                 PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]).Degrees().Rad),
                 HitboxRadius = float.Parse(payload[5]),
-                HP = hp,
+                HP = hpmp.hp,
+                CurMP = hpmp.curMP,
                 IsTargetable = bool.Parse(payload[4]),
                 IsAlly = payload.Length > 8 ? bool.Parse(payload[8]) : false,
                 OwnerID = payload.Length > 6 ? ActorID(payload[6]) : 0,
@@ -202,10 +203,10 @@ namespace UIDev
             AddOp(new ActorState.OpSizeChange() { InstanceID = ActorID(payload[2]), HitboxRadius = float.Parse(payload[3]) });
         }
 
-        private void ParseActorHP(string[] payload)
+        private void ParseActorHPMP(string[] payload)
         {
-            var hp = ActorHP(payload[3]);
-            AddOp(new ActorState.OpHP() { InstanceID = ActorID(payload[2]), Value = hp });
+            var hpmp = ActorHPMP(payload[3]);
+            AddOp(new ActorState.OpHPMP() { InstanceID = ActorID(payload[2]), HP = hpmp.hp, CurMP = hpmp.curMP });
         }
 
         private void ParseActorTargetable(string[] payload, bool targetable)
@@ -389,10 +390,12 @@ namespace UIDev
             return ulong.Parse(sep >= 0 ? actor.AsSpan(0, sep) : actor.AsSpan(), NumberStyles.HexNumber);
         }
 
-        private static ActorHP ActorHP(string repr)
+        private static (ActorHP hp, uint curMP) ActorHPMP(string repr)
         {
             var parts = repr.Split('/');
-            return new() { Cur = uint.Parse(parts[0]), Max = uint.Parse(parts[1]), Shield = parts.Length > 2 ? uint.Parse(parts[2]) : 0 };
+            var hp = new ActorHP() { Cur = uint.Parse(parts[0]), Max = uint.Parse(parts[1]), Shield = parts.Length > 2 ? uint.Parse(parts[2]) : 0 };
+            uint curMP = parts.Length > 3 ? uint.Parse(parts[3]) : 0;
+            return (hp, curMP);
         }
 
         private static ActionID Action(string repr)

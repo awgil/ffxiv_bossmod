@@ -57,7 +57,7 @@ namespace UIDev
             public SortedList<DateTime, bool> TargetableHistory = new();
             public SortedList<DateTime, bool> DeadHistory = new();
             public SortedList<DateTime, Vector4> PosRotHistory = new();
-            public SortedList<DateTime, ActorHP> HPHistory = new();
+            public SortedList<DateTime, (ActorHP hp, uint curMP)> HPMPHistory = new();
             public List<Cast> Casts = new();
             public bool HasAnyActions;
             public bool HasAnyStatuses;
@@ -66,7 +66,9 @@ namespace UIDev
             public bool TargetableAt(DateTime t) => HistoryEntryAt(TargetableHistory, t);
             public bool DeadAt(DateTime t) => HistoryEntryAt(DeadHistory, t);
             public Vector4 PosRotAt(DateTime t) => HistoryEntryAt(PosRotHistory, t);
-            public ActorHP HPAt(DateTime t) => HistoryEntryAt(HPHistory, t);
+            public (ActorHP hp, uint curMP) HPMPAt(DateTime t) => HistoryEntryAt(HPMPHistory, t);
+            public ActorHP HPAt(DateTime t) => HPMPAt(t).hp;
+            public uint MPAt(DateTime t) => HPMPAt(t).curMP;
 
             private T? HistoryEntryAt<T>(SortedList<DateTime, T> history, DateTime t)
             {

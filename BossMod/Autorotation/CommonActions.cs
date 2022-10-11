@@ -328,7 +328,7 @@ namespace BossMod
             var pc = Service.ClientState.LocalPlayer;
             s.Level = pc?.Level ?? 0;
             s.UnlockProgress = _lock.Progress();
-            s.CurMP = pc?.CurrentMp ?? 0;
+            s.CurMP = Player.CurMP;
             s.AnimationLock = am.EffectiveAnimationLock;
             s.AnimationLockDelay = am.EffectiveAnimationLockDelay;
             s.ComboTimeLeft = am.ComboTimeLeft;
