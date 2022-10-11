@@ -103,7 +103,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
         {
             Func<WPos, float> blockedArea = p =>
             {
-                var res = -PlatformShapes.Min(f => f(p)) - 0.5f;
+                var res = -PlatformShapes.Min(f => f(p));
                 foreach (var (e, f) in HighEdges.Zip(HighEdgeShapes))
                     if (actor.PosRot.Y + 0.1f < PlatformHeights[e.upper])
                         res = Math.Min(res, f(p));
