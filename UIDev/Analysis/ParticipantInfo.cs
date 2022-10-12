@@ -15,13 +15,17 @@ namespace UIDev.Analysis
             public string Name;
             public int? SpawnedPreFight; // null if value is different in different encounters
             public bool SpawnedMidFight;
+            public float MinRadius;
+            public float MaxRadius;
 
-            public ParticipantData(ActorType type, string name, int spawnedPreFight, bool spawnedMidFight)
+            public ParticipantData(ActorType type, string name, int spawnedPreFight, bool spawnedMidFight, float minRadius, float maxRadius)
             {
                 Type = type;
                 Name = name;
                 SpawnedPreFight = spawnedPreFight;
                 SpawnedMidFight = spawnedMidFight;
+                MinRadius = minRadius;
+                MaxRadius = maxRadius;
             }
         }
 
@@ -43,6 +47,8 @@ namespace UIDev.Analysis
                         ActorType? commonType = null;
                         string commonName = "";
                         int spawnedPreFight = 0, spawnedMidFight = 0;
+                        float minRadius = float.MaxValue;
+                        float maxRadius = float.MinValue;
                         foreach (var p in participants.Where(p => !(p.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Area or ActorType.Treasure) && (enc.Time.End - p.Existence.Start).TotalSeconds > 1))
                         {
                             if (commonType == null)
@@ -57,6 +63,9 @@ namespace UIDev.Analysis
                                 ++spawnedPreFight;
                             else
                                 ++spawnedMidFight;
+
+                            minRadius = Math.Min(minRadius, p.MinRadius);
+                            maxRadius = Math.Max(maxRadius, p.MaxRadius);
                         }
 
                         if (commonType != null)
@@ -64,7 +73,7 @@ namespace UIDev.Analysis
                             var data = _data.GetValueOrDefault(commonOID);
                             if (data == null)
                             {
-                                data = _data[commonOID] = new(commonType.Value, commonName, spawnedPreFight, spawnedMidFight > 0);
+                                data = _data[commonOID] = new(commonType.Value, commonName, spawnedPreFight, spawnedMidFight > 0, minRadius, maxRadius);
                             }
                             else
                             {
@@ -73,6 +82,8 @@ namespace UIDev.Analysis
                                 if (data.SpawnedPreFight != spawnedPreFight)
                                     data.SpawnedPreFight = null;
                                 data.SpawnedMidFight |= spawnedMidFight > 0;
+                                data.MinRadius = Math.Min(minRadius, data.MinRadius);
+                                data.MaxRadius = Math.Max(maxRadius, data.MaxRadius);
                             }
                         }
                     }
@@ -93,6 +104,7 @@ namespace UIDev.Analysis
                 tree.LeafNode($"Name: {data.Name}");
                 tree.LeafNode($"Spawned pre fight: {(data.SpawnedPreFight != null ? data.SpawnedPreFight.Value.ToString() : "mixed!")}");
                 tree.LeafNode($"Spawned mid fight: {data.SpawnedMidFight}");
+                tree.LeafNode($"Radius: {RadiusString(data)}");
             }
         }
 
@@ -103,7 +115,7 @@ namespace UIDev.Analysis
                 var sb = new StringBuilder($"public enum OID : uint\n{{");
                 foreach (var (oid, data) in _data)
                 {
-                    sb.Append($"\n    {_oidType?.GetEnumName(oid) ?? $"_Gen_{Utils.StringToIdentifier(data.Name.Length > 0 ? data.Name : $"Actor{oid:X}")}"} = 0x{oid:X}, // x{data.SpawnedPreFight}");
+                    sb.Append($"\n    {_oidType?.GetEnumName(oid) ?? $"_Gen_{Utils.StringToIdentifier(data.Name.Length > 0 ? data.Name : $"Actor{oid:X}")}"} = 0x{oid:X}, // R{RadiusString(data)}, x{data.SpawnedPreFight}");
                     if (data.Type != ActorType.Enemy)
                     {
                         sb.Append(data.Type == ActorType.None ? ", mixed types" : $", {data.Type} type");
@@ -117,5 +129,7 @@ namespace UIDev.Analysis
                 ImGui.SetClipboardText(sb.ToString());
             }
         }
+
+        private string RadiusString(ParticipantData d) => d.MinRadius != d.MaxRadius ? $"{d.MinRadius:f3}-{d.MaxRadius:f3}" : $"{d.MinRadius:f3}";
     }
 }

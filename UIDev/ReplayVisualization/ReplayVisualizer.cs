@@ -337,7 +337,7 @@ namespace UIDev
             if (_pfVisu == null)
             {
                 _hints.Clear();
-                _hints.FillPotentialTargets(_mgr.WorldState);
+                _hints.FillPotentialTargets(_mgr.WorldState, _pfTank);
                 _mgr.ActiveModule.CalculateAIHints(_povSlot, player, Service.Config.Get<PartyRolesConfig>()[_mgr.WorldState.Party.ContentIDs[_povSlot]], _hints);
                 _hints.Normalize();
                 _pfVisu = new(_hints, _mgr.WorldState, player, player.TargetID, e => (e, _pfTargetRadius, _pfPositional, _pfTank));

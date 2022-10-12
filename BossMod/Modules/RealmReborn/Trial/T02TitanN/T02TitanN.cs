@@ -91,7 +91,7 @@ namespace BossMod.RealmReborn.Trial.T02TitanN
         {
             base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var heart in ActiveHeart)
-                hints.PotentialTargets.Add(new(heart));
+                hints.PotentialTargets.Add(new(heart, actor.Role == Role.Tank));
             hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
             {
                 OID.GraniteGaol => 3,

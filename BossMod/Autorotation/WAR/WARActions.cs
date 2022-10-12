@@ -68,11 +68,16 @@ namespace BossMod.WAR
         {
             if (_state.Unlocked(AID.Interject))
             {
-                var interruptibleEnemy = Autorot.Hints.PotentialTargets.FirstOrDefault(e => e.ShouldBeInterrupted && (e.Actor.CastInfo?.Interruptible ?? false) && e.Actor.Position.InCircle(Player.Position, 3 + e.Actor.HitboxRadius + Player.HitboxRadius));
+                var interruptibleEnemy = Autorot.Hints.PotentialTargets.Find(e => e.ShouldBeInterrupted && (e.Actor.CastInfo?.Interruptible ?? false) && e.Actor.Position.InCircle(Player.Position, 3 + e.Actor.HitboxRadius + Player.HitboxRadius));
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.Interject), interruptibleEnemy?.Actor, interruptibleEnemy != null);
             }
             if (_state.Unlocked(AID.Defiance))
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.Defiance), Player, ShouldSwapStance());
+            if (_state.Unlocked(AID.Provoke))
+            {
+                var provokeEnemy = Autorot.Hints.PotentialTargets.Find(e => e.ShouldBeTanked && e.PreferProvoking && e.Actor.TargetID != Player.InstanceID && e.Actor.Position.InCircle(Player.Position, 25 + e.Actor.HitboxRadius + Player.HitboxRadius));
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.Provoke), provokeEnemy?.Actor, provokeEnemy != null);
+            }
         }
 
         protected override NextAction CalculateAutomaticGCD()

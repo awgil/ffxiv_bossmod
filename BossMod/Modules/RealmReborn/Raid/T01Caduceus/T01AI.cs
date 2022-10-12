@@ -114,7 +114,8 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
                                 : Math.Min(e.Actor.HP.Cur, module.PrimaryActor.HP.Cur) <= 0.3f * e.Actor.HP.Max ? 1
                                 : assignment is PartyRolesConfig.Assignment.H2 or PartyRolesConfig.Assignment.M2 or PartyRolesConfig.Assignment.R2 ? 2 : 0
                         };
-                        e.TankAffinity = AIHints.TankAffinity.OT;
+                        e.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.OT;
+                        e.PreferProvoking = true;
                         if ((e.Actor.Position - module.PrimaryActor.Position).LengthSq() < 625)
                             e.DesiredPosition = Platforms.HexaPlatformCenters[6];
                         e.DesiredRotation = -90.Degrees();
@@ -130,7 +131,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
                         //predictedHP > 0.7f * e.Actor.HP.Max ? (actor.Role is Role.Ranged or Role.Melee ? 3 : -1) :
                         predictedHP > 0.2f * e.Actor.HP.Max ? (e.Actor.TargetID == actor.InstanceID ? 3 : -1) :
                         -1;
-                    e.TankAffinity = AIHints.TankAffinity.None;
+                    e.ShouldBeTanked = false;
                     e.ForbidDOTs = true;
                 }
             });

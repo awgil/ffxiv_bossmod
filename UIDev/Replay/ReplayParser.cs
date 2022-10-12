@@ -78,6 +78,7 @@ namespace UIDev
             _ws.Actors.IsTargetableChanged += ActorTargetable;
             _ws.Actors.IsDeadChanged += ActorDead;
             _ws.Actors.Moved += ActorMoved;
+            _ws.Actors.SizeChanged += ActorSize;
             _ws.Actors.HPMPChanged += ActorHPMP;
             _ws.Actors.CastStarted += CastStart;
             _ws.Actors.CastFinished += CastFinish;
@@ -178,7 +179,7 @@ namespace UIDev
 
         private void ActorAdded(object? sender, Actor actor)
         {
-            var p = _participants[actor.InstanceID] = new() { InstanceID = actor.InstanceID, OID = actor.OID, Type = actor.Type, OwnerID = actor.OwnerID, Name = actor.Name, Existence = new(_ws.CurrentTime) };
+            var p = _participants[actor.InstanceID] = new() { InstanceID = actor.InstanceID, OID = actor.OID, Type = actor.Type, OwnerID = actor.OwnerID, Name = actor.Name, Existence = new(_ws.CurrentTime), MinRadius = actor.HitboxRadius, MaxRadius = actor.HitboxRadius };
             if (actor.IsTargetable)
                 p.TargetableHistory.Add(_ws.CurrentTime, true);
             p.PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
@@ -208,6 +209,13 @@ namespace UIDev
         private void ActorMoved(object? sender, Actor actor)
         {
             _participants[actor.InstanceID].PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
+        }
+
+        private void ActorSize(object? sender, Actor actor)
+        {
+            var p = _participants[actor.InstanceID];
+            p.MinRadius = Math.Min(p.MinRadius, actor.HitboxRadius);
+            p.MaxRadius = Math.Max(p.MaxRadius, actor.HitboxRadius);
         }
 
         private void ActorHPMP(object? sender, Actor actor)

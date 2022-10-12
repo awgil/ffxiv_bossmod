@@ -14,15 +14,16 @@ namespace UIDev.Analysis
             private UIPlot _plot = new();
             private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Angle, float Range, bool Hit)> _points = new();
 
-            public ConeAnalysis(List<(Replay, Replay.Action)> infos)
+            public ConeAnalysis(List<(Replay, Replay.Action)> infos, bool originAtSource)
             {
                 _plot.DataMin = new(-180, 0);
                 _plot.DataMax = new(180, 60);
                 _plot.TickAdvance = new(45, 5);
                 foreach (var (r, a) in infos)
                 {
-                    var origin = new WPos(a.TargetPos.XZ());
-                    var dir = (a.Source?.PosRotAt(a.Timestamp).W ?? 0).Radians().ToDirection();
+                    var sourcePosRot = a.Source?.PosRotAt(a.Timestamp) ?? new();
+                    var origin = new WPos(originAtSource ? sourcePosRot.XZ() : a.TargetPos.XZ());
+                    var dir = sourcePosRot.W.Radians().ToDirection();
                     var left = dir.OrthoL();
                     foreach (var target in AlivePlayersAt(r, a.Timestamp))
                     {
@@ -165,7 +166,8 @@ namespace UIDev.Analysis
             public bool SeenTargetLocation;
             public bool SeenAOE;
             public float CastTime;
-            public ConeAnalysis? ConeAnalysis;
+            public ConeAnalysis? ConeAnalysisSrc;
+            public ConeAnalysis? ConeAnalysisTgt;
             public DamageFalloffAnalysis? DamageFalloffAnalysisDist;
             public DamageFalloffAnalysis? DamageFalloffAnalysisMinCoord;
             public GazeAnalysis? GazeAnalysis;
@@ -233,11 +235,17 @@ namespace UIDev.Analysis
                         }
                     }
                 }
-                foreach (var an in tree.Node("Cone analysis"))
+                foreach (var an in tree.Node("Cone analysis (origin at source)"))
                 {
-                    if (data.ConeAnalysis == null)
-                        data.ConeAnalysis = new(data.Instances);
-                    data.ConeAnalysis.Draw();
+                    if (data.ConeAnalysisSrc == null)
+                        data.ConeAnalysisSrc = new(data.Instances, true);
+                    data.ConeAnalysisSrc.Draw();
+                }
+                foreach (var an in tree.Node("Cone analysis (origin at target)"))
+                {
+                    if (data.ConeAnalysisTgt == null)
+                        data.ConeAnalysisTgt = new(data.Instances, false);
+                    data.ConeAnalysisTgt.Draw();
                 }
                 foreach (var an in tree.Node("Damage falloff analysis (by distance)"))
                 {

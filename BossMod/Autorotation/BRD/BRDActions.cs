@@ -75,7 +75,7 @@ namespace BossMod.BRD
         {
             if (_state.Unlocked(AID.HeadGraze))
             {
-                var interruptibleEnemy = Autorot.Hints.PotentialTargets.FirstOrDefault(e => e.ShouldBeInterrupted && (e.Actor.CastInfo?.Interruptible ?? false) && e.Actor.Position.InCircle(Player.Position, 25 + e.Actor.HitboxRadius + Player.HitboxRadius));
+                var interruptibleEnemy = Autorot.Hints.PotentialTargets.Find(e => e.ShouldBeInterrupted && (e.Actor.CastInfo?.Interruptible ?? false) && e.Actor.Position.InCircle(Player.Position, 25 + e.Actor.HitboxRadius + Player.HitboxRadius));
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.HeadGraze), interruptibleEnemy?.Actor, interruptibleEnemy != null);
             }
             if (_state.Unlocked(AID.SecondWind))

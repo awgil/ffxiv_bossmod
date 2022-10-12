@@ -59,6 +59,8 @@ namespace UIDev
             public SortedList<DateTime, Vector4> PosRotHistory = new();
             public SortedList<DateTime, (ActorHP hp, uint curMP)> HPMPHistory = new();
             public List<Cast> Casts = new();
+            public float MinRadius;
+            public float MaxRadius;
             public bool HasAnyActions;
             public bool HasAnyStatuses;
             public bool IsTargetOfAnyActions;

@@ -85,7 +85,7 @@
                     // these always spawn at south entrance, let OT tank them facing away from raid
                     // even at MINE first add spawns when boss has ~25% hp left, so it makes sense just to offtank it and zerg boss
                     enemy.Priority = assignment == PartyRolesConfig.Assignment.OT ? 2 : 0;
-                    enemy.TankAffinity = AIHints.TankAffinity.OT;
+                    enemy.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.OT;
                     enemy.DesiredRotation = 0.Degrees();
                 }
             });
