@@ -193,6 +193,8 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
             {
                 if (e.Actor == module.PrimaryActor)
                 {
+                    int targetVulnStacks = module.WorldState.Actors.Find(e.Actor.TargetID)?.FindStatus(SID.VulnerabilityUp)?.Extra ?? 0;
+                    e.AttackStrength = 0.2f + 0.05f * targetVulnStacks;
                     e.Priority = 1;
                     e.ShouldBeInterrupted = true; // interrupt every high voltage; TODO consider interrupt rotation
                     if (assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT)
@@ -206,8 +208,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
                         else
                         {
                             // player is not tanking - taunt off when current tank has >=5 vuln stacks and self has no stacks
-                            var curTarget = module.WorldState.Actors.Find(e.Actor.TargetID);
-                            e.ShouldBeTanked = e.PreferProvoking = (curTarget?.FindStatus(SID.VulnerabilityUp)?.Extra ?? 0) >= 5 && actor.FindStatus(SID.VulnerabilityUp) == null;
+                            e.ShouldBeTanked = e.PreferProvoking = targetVulnStacks >= 5 && actor.FindStatus(SID.VulnerabilityUp) == null;
                         }
                     }
                 }
@@ -233,6 +234,9 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
                 .ActivateOnEnter<T02AI>();
         }
     }
+
+    [ConfigDisplay(Order = 0x120, Parent = typeof(RealmRebornConfig))]
+    public class T02ADSConfig : CooldownPlanningConfigNode { }
 
     [ModuleInfo(PrimaryActorOID = (uint)OID.ADS)]
     public class T02ADS : BossModule
