@@ -36,28 +36,14 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
 
     class HoodSwing : Components.Cleave
     {
-        public DateTime _lastBossCast; // assume boss/add cleaves are synchronized?..
+        private DateTime _lastBossCast; // assume boss/add cleaves are synchronized?..
+        public float SecondsUntilNextCast(BossModule module) => Math.Max(0, 18 - (float)(module.WorldState.CurrentTime - _lastBossCast).TotalSeconds);
 
         public HoodSwing() : base(ActionID.MakeSpell(AID.HoodSwing), new AOEShapeCone(11, 60.Degrees()), (uint)OID.Boss) { } // TODO: verify angle
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            var timeUntilCast = Math.Max(0, 18 - (module.WorldState.CurrentTime - _lastBossCast).TotalSeconds);
-            hints.Add($"Next cleave in ~{timeUntilCast:f1}s");
-        }
-
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            base.AddAIHints(module, slot, actor, assignment, hints);
-
-            hints.UpdatePotentialTargets(e =>
-            {
-                if ((OID)e.Actor.OID == OID.Boss)
-                {
-                    bool cleaveImminent = (module.WorldState.CurrentTime - _lastBossCast).TotalSeconds > 15;
-                    e.AttackStrength = cleaveImminent ? 0.5f : 0.2f;
-                }
-            });
+            hints.Add($"Next cleave in ~{SecondsUntilNextCast(module):f1}s");
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -89,7 +75,6 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
         public Actor? Clone { get; private set; }
         public DateTime CloneSpawnTime { get; private set; }
         public Actor? CloneIfValid => Clone != null && !Clone.IsDestroyed && !Clone.IsDead && Clone.IsTargetable ? Clone : null;
-        public bool CloneSpawningSoon(BossModule module) => Clone == null && module.PrimaryActor.HP.Cur < 0.73f * module.PrimaryActor.HP.Max;
 
         public override void Update(BossModule module)
         {
@@ -111,45 +96,6 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
             }
         }
 
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            // attack priorities:
-            // - first few seconds after split - only OT on boss to simplify pickup
-            // - after that and until 30% - MT/H1/M1/R1 on boss, rest on clone
-            // - after that - equal priorities unless hp diff is larger than 5%
-            var clone = CloneIfValid;
-            var hpDiff = clone != null ? (int)(clone.HP.Cur - module.PrimaryActor.HP.Cur) * 100.0f / module.PrimaryActor.HP.Max : 0;
-            if (assignment == PartyRolesConfig.Assignment.OT && CloneSpawningSoon(module))
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Platforms.HexaPlatformCenters[6], 20), DateTime.MaxValue);
-            hints.UpdatePotentialTargets(e =>
-            {
-                if (e.Actor == module.PrimaryActor)
-                {
-                    e.Priority = 1; // this is a baseline; depending on whether we want to prioritize clone vs boss, clone's priority changes
-                    if (CloneSpawningSoon(module) && e.Actor.FindStatus(SID.SteelScales) != null)
-                        e.Priority = -1; // stop dps until stack can be dropped
-                    e.StayAtLongRange = true;
-                }
-                else if (e.Actor == clone)
-                {
-                    e.Priority = assignment switch
-                    {
-                        PartyRolesConfig.Assignment.MT => 0,
-                        PartyRolesConfig.Assignment.OT => 2,
-                        _ => (module.WorldState.CurrentTime - CloneSpawnTime).TotalSeconds < 3 || hpDiff < -5 ? 0
-                            : hpDiff > 5 ? 2
-                            : Math.Min(e.Actor.HP.Cur, module.PrimaryActor.HP.Cur) <= 0.3f * e.Actor.HP.Max ? 1
-                            : assignment is PartyRolesConfig.Assignment.H2 or PartyRolesConfig.Assignment.M2 or PartyRolesConfig.Assignment.R2 ? 2 : 0
-                    };
-                    e.TankAffinity = AIHints.TankAffinity.OT;
-                    if ((e.Actor.Position - module.PrimaryActor.Position).LengthSq() < 625)
-                        e.DesiredPosition = Platforms.HexaPlatformCenters[6];
-                    e.DesiredRotation = -90.Degrees();
-                    e.StayAtLongRange = true;
-                }
-            });
-        }
-
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             arena.Actor(Clone, ArenaColor.Enemy);
@@ -166,6 +112,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
                 .ActivateOnEnter<Regorge>()
                 .ActivateOnEnter<Syrup>()
                 .ActivateOnEnter<CloneMerge>()
+                .ActivateOnEnter<T01AI>()
                 .Raw.Update = () => (module.PrimaryActor.IsDead || module.PrimaryActor.IsDestroyed) && module.FindComponent<CloneMerge>()!.CloneIfValid == null;
         }
     }
@@ -175,31 +122,9 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
 
     public class T01Caduceus : BossModule
     {
-        public List<Actor> Slimes { get; private set; }
-
         public T01Caduceus(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-26, -407), 35, 43))
         {
-            Slimes = Enemies(OID.DarkMatterSlime);
             ActivateComponent<Platforms>();
-        }
-
-        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            base.CalculateAIHints(slot, actor, assignment, hints);
-            hints.UpdatePotentialTargets(e =>
-            {
-                if ((OID)e.Actor.OID == OID.DarkMatterSlime)
-                {
-                    // for now, let kiter damage it until 20%
-                    var predictedHP = (int)e.Actor.HP.Cur + WorldState.PendingEffects.PendingHPDifference(e.Actor.InstanceID);
-                    e.Priority =
-                        //predictedHP > 0.7f * e.Actor.HP.Max ? (actor.Role is Role.Ranged or Role.Melee ? 3 : -1) :
-                        predictedHP > 0.2f * e.Actor.HP.Max ? (e.Actor.TargetID == actor.InstanceID ? 3 : -1) :
-                        -1;
-                    e.TankAffinity = AIHints.TankAffinity.None;
-                    e.ForbidDOTs = true;
-                }
-            });
         }
 
         public override bool NeedToJump(WPos from, WDir dir) => Platforms.IntersectJumpEdge(from, dir, 2.5f);

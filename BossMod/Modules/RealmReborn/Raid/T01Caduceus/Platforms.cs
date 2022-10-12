@@ -27,8 +27,14 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
         public static (int lower, int upper)[] HighEdges = { (1, 0), (3, 7), (4, 7), (9, 12), (11, 12) };
         public static (int lower, int upper)[] JumpEdges = { (3, 1), (4, 1), (4, 2), (4, 8), (5, 8), (5, 9), (8, 10), (8, 11), (9, 11) };
 
-        private static WPos HexaCenter((int x, int y) c) => ClosestPlatformCenter - new WDir(c.x * HexaNeighbourDistX + ((c.y & 1) != 0 ? HexaCenterToSideCornerX : 0), c.y * HexaNeighbourDistZ);
-        private static WDir[] HexaCornerOffsets = {
+        public static Func<WPos, float>[] PlatformShapes;
+        public static Func<WPos, float>[] HighEdgeShapes;
+        public static (WPos p, WDir d, float l)[] JumpEdgeSegments;
+
+        public static BitMask AllPlatforms = new(0x1FFF);
+
+        public static WPos HexaCenter((int x, int y) c) => ClosestPlatformCenter - new WDir(c.x * HexaNeighbourDistX + ((c.y & 1) != 0 ? HexaCenterToSideCornerX : 0), c.y * HexaNeighbourDistZ);
+        public static WDir[] HexaCornerOffsets = {
             new(HexaCenterToSideCornerX, -HexaCenterToSideCornerZ),
             new(HexaCenterToSideCornerX, HexaCenterToSideCornerZ),
             new(0, HexaPlatformSide),
@@ -37,8 +43,8 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
             new(0, -HexaPlatformSide)
         };
 
-        private static IEnumerable<WPos> HexaPoly(WPos center) => HexaCornerOffsets.Select(off => center + off);
-        private static IEnumerable<WPos> OctaPoly()
+        public static IEnumerable<WPos> HexaPoly(WPos center) => HexaCornerOffsets.Select(off => center + off);
+        public static IEnumerable<WPos> OctaPoly()
         {
             yield return OctaPlatformCenter + new WDir(OctaCenterOffset.X, -OctaCenterOffset.Z - HexaPlatformSide);
             yield return OctaPlatformCenter + new WDir(OctaCenterOffset.X + HexaCenterToSideCornerX, -OctaCenterOffset.Z - HexaCenterToSideCornerZ);
@@ -49,7 +55,10 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
             yield return OctaPlatformCenter - new WDir(OctaCenterOffset.X + HexaCenterToSideCornerX, +OctaCenterOffset.Z + HexaCenterToSideCornerZ);
             yield return OctaPlatformCenter - new WDir(OctaCenterOffset.X, +OctaCenterOffset.Z + HexaPlatformSide);
         }
-        private static (WPos, WPos) HexaEdge(int from, int to)
+
+        public static IEnumerable<WPos> PlatformPoly(int index) => index < HexaPlatformCenters.Length ? HexaPoly(HexaPlatformCenters[index]) : OctaPoly();
+
+        public static (WPos, WPos) HexaEdge(int from, int to)
         {
             var (x1, y1) = from < HexaPlatforms.Length ? HexaPlatforms[from] : OctaPlatform;
             var (x2, y2) = to < HexaPlatforms.Length ? HexaPlatforms[to] : OctaPlatform;
@@ -67,21 +76,6 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
             return (c + HexaCornerOffsets[o1], c + HexaCornerOffsets[o2]);
         }
 
-        private static Func<WPos, float>[] PlatformShapes;
-        private static Func<WPos, float>[] HighEdgeShapes;
-        private static (WPos p, WDir d, float l)[] JumpEdgeSegments;
-
-        static Platforms()
-        {
-            PlatformShapes = new Func<WPos, float>[HexaPlatformCenters.Length + 1];
-            for (int i = 0; i < HexaPlatformCenters.Length; ++i)
-                PlatformShapes[i] = ShapeDistance.ConvexPolygon(HexaPoly(HexaPlatformCenters[i]), true, Pathfinding.NavigationDecision.DefaultForbiddenZoneCushion);
-            PlatformShapes[HexaPlatformCenters.Length] = ShapeDistance.ConvexPolygon(OctaPoly(), true, Pathfinding.NavigationDecision.DefaultForbiddenZoneCushion);
-
-            HighEdgeShapes = HighEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => ShapeDistance.Rect(e.Item1, e.Item2, 0)).ToArray();
-            JumpEdgeSegments = JumpEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => (e.Item1, (e.Item2 - e.Item1).Normalized(), (e.Item2 - e.Item1).Length())).ToArray();
-        }
-
         public static bool IntersectJumpEdge(WPos p, WDir d, float l) => JumpEdgeSegments.Any(e =>
         {
             var n = e.d.OrthoL();
@@ -95,9 +89,18 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
             return te >= 0 && te <= e.l;
         });
 
-        private static BitMask AllPlatforms = new(0x1FFF);
-        private BitMask _activePlatforms;
-        private DateTime _explosionAt;
+        static Platforms()
+        {
+            PlatformShapes = new Func<WPos, float>[HexaPlatformCenters.Length + 1];
+            for (int i = 0; i < PlatformShapes.Length; ++i)
+                PlatformShapes[i] = ShapeDistance.ConvexPolygon(PlatformPoly(i), true, Pathfinding.NavigationDecision.DefaultForbiddenZoneCushion);
+
+            HighEdgeShapes = HighEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => ShapeDistance.Rect(e.Item1, e.Item2, 0)).ToArray();
+            JumpEdgeSegments = JumpEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => (e.Item1, (e.Item2 - e.Item1).Normalized(), (e.Item2 - e.Item1).Length())).ToArray();
+        }
+
+        public BitMask ActivePlatforms;
+        public DateTime ExplosionAt { get; private set; }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
@@ -110,64 +113,14 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
                 return res;
             };
             hints.AddForbiddenZone(blockedArea);
-
-            // note on positioning:
-            // 1. after clone spawns, we just burn bosses and not spawn any slimes (TODO: reconsider if DPS turns out to be too low...)
-            // 2. main boss is tanked on platform #2, clone is tanked on platform #6
-            // 3. before clone is spawned, R1 (assumed to be physical) stays on platform #6 and spawns slimes except on two highest platforms
-            // 4. before clone is spawned, R2 (assumed to be caster) stays on platform #0 and spawns slime there
-            // 5. healers stand on platform #4 to be in range of everyone
-            var castModule = (T01Caduceus)module;
-            var cloneSpawned = module.FindComponent<CloneMerge>()?.Clone != null;
-            if (module.StateMachine.TimeSincePhaseEnter < 10)
-            {
-                // do nothing for first few seconds to let MT position the boss
-            }
-            else if (_activePlatforms.Any())
-            {
-                bool actorIsSpawner = !cloneSpawned && assignment == (_activePlatforms[0] ? PartyRolesConfig.Assignment.R2 : PartyRolesConfig.Assignment.R1);
-                Func<WPos, float> nonAllowedPlatforms = actorIsSpawner
-                    ? p => -_activePlatforms.SetBits().Min(platform => PlatformShapes[platform](p)) - 1 // inverse union of active, slightly reduced to avoid standing on borders
-                    : p => _activePlatforms.SetBits().Min(platform => PlatformShapes[platform](p)); // union of active
-                hints.AddForbiddenZone(nonAllowedPlatforms, _explosionAt);
-            }
-            else
-            {
-                var kitedSlime = castModule.Slimes.FirstOrDefault(slime => slime.TargetID == actor.InstanceID);
-                if (kitedSlime != null)
-                {
-                    // kiting a slime: bring it near boss until low hp, then into boss
-                    var dest = module.PrimaryActor.Position;
-                    if (kitedSlime.HP.Cur > 0.2f * kitedSlime.HP.Max)
-                        dest += (kitedSlime.Position - module.PrimaryActor.Position).Normalized() * (module.PrimaryActor.HitboxRadius + kitedSlime.HitboxRadius + 6); // 6 to avoid triggering whip back
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(dest, 2), DateTime.MaxValue);
-                }
-                else
-                {
-                    BitMask allowedPlatforms = assignment switch
-                    {
-                        //PartyRolesConfig.Assignment.MT => new(1 << 2),
-                        //PartyRolesConfig.Assignment.OT => castModule.Clone != null ? new(1u << 6) : AllPlatforms,
-                        PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.H2 => new(1u << 5),
-                        PartyRolesConfig.Assignment.R1 => cloneSpawned ? AllPlatforms : new(1u << 8),
-                        PartyRolesConfig.Assignment.R2 => cloneSpawned || actor.PosRot.Y + 0.1f < PlatformHeights[0] ? AllPlatforms : new(1u << 0), // TODO: there's a LOS problem if standing on starting platform - maybe just ignore these platforms?..
-                        _ => AllPlatforms
-                    };
-                    if (allowedPlatforms.Raw != AllPlatforms.Raw)
-                    {
-                        Func<WPos, float> nonAllowedPlatforms = p => -allowedPlatforms.SetBits().Min(platform => PlatformShapes[platform](p)) - 1; // inverse union of allowed, slightly reduced to avoid standing on borders
-                        hints.AddForbiddenZone(nonAllowedPlatforms, DateTime.MaxValue);
-                    }
-                }
-            }
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            int i = 0;
-            foreach (var p in HexaPlatformCenters)
-                arena.AddPolygon(HexaPoly(p), _activePlatforms[i++] ? ArenaColor.Enemy : ArenaColor.Border);
-            arena.AddPolygon(OctaPoly(), _activePlatforms[i++] ? ArenaColor.Enemy : ArenaColor.Border);
+            foreach (int i in (ActivePlatforms ^ AllPlatforms).SetBits())
+                arena.AddPolygon(PlatformPoly(i), ArenaColor.Border);
+            foreach (int i in ActivePlatforms.SetBits())
+                arena.AddPolygon(PlatformPoly(i), ArenaColor.Enemy);
         }
 
         public override void OnActorEState(BossModule module, Actor actor, ushort state)
@@ -178,9 +131,9 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
                 if (i == -1)
                     i = HexaPlatformCenters.Length;
                 bool active = state == 2;
-                _activePlatforms[i] = active;
+                ActivePlatforms[i] = active;
                 if (active)
-                    _explosionAt = module.WorldState.CurrentTime.AddSeconds(6);
+                    ExplosionAt = module.WorldState.CurrentTime.AddSeconds(6);
             }
         }
     }
