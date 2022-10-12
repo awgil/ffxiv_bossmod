@@ -176,7 +176,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
             foreach (var next in _rotPriority)
             {
                 int nextSlot = assignments[(int)next];
-                if (_immunityExpiration[nextSlot] < deadline && !(module.Raid[nextSlot]?.IsDead ?? true))
+                if (nextSlot != _rotHolderSlot && _immunityExpiration[nextSlot] < deadline && !(module.Raid[nextSlot]?.IsDead ?? true))
                     return next == assignment;
             }
 
@@ -199,8 +199,15 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
                     {
                         if (e.Actor.TargetID == actor.InstanceID)
                         {
-                            // player is tanking - continue doing so until 5 vuln stacks
-                            //e.ShouldBeTanked = ;
+                            // player is tanking - continue doing so until OT taunts
+                            e.ShouldBeTanked = true;
+                            e.PreferProvoking = false;
+                        }
+                        else
+                        {
+                            // player is not tanking - taunt off when current tank has >=5 vuln stacks and self has no stacks
+                            var curTarget = module.WorldState.Actors.Find(e.Actor.TargetID);
+                            e.ShouldBeTanked = e.PreferProvoking = (curTarget?.FindStatus(SID.VulnerabilityUp)?.Extra ?? 0) >= 5 && actor.FindStatus(SID.VulnerabilityUp) == null;
                         }
                     }
                 }
