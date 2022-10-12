@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace BossMod.RealmReborn.Raid.T02MultiADS
 {
@@ -267,6 +268,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
     public class T02QuarantineNode : BossModule
     {
         public T02QuarantineNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 112), 14, 13)) { }
+        protected override bool CheckPull() => base.CheckPull() && !Enemies(OID.ADS).Any(e => e.InCombat); // don't start modules for temporary node actors spawned during main boss fight
     }
 
     class T02AttackNodeStates : StateMachineBuilder
@@ -286,6 +288,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
     public class T02AttackNode : BossModule
     {
         public T02AttackNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-44, 94), 17)) { }
+        protected override bool CheckPull() => base.CheckPull() && !Enemies(OID.ADS).Any(e => e.InCombat); // don't start modules for temporary node actors spawned during main boss fight
     }
 
     class T02SanitaryNodeStates : StateMachineBuilder
@@ -307,6 +310,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
     public class T02SanitaryNode : BossModule
     {
         public T02SanitaryNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-43, 52), 18, 15)) { }
+        protected override bool CheckPull() => base.CheckPull() && !Enemies(OID.ADS).Any(e => e.InCombat); // don't start modules for temporary node actors spawned during main boss fight
     }
 
     class T02MonitoringNodeStates : StateMachineBuilder
@@ -325,6 +329,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
     public class T02MonitoringNode : BossModule
     {
         public T02MonitoringNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 39), 17, 15)) { }
+        protected override bool CheckPull() => base.CheckPull() && !Enemies(OID.ADS).Any(e => e.InCombat); // don't start modules for temporary node actors spawned during main boss fight
     }
 
     class T02DefenseNodeStates : StateMachineBuilder
@@ -343,6 +348,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
     public class T02DefenseNode : BossModule
     {
         public T02DefenseNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(46, 52), 17, 14)) { }
+        protected override bool CheckPull() => base.CheckPull() && !Enemies(OID.ADS).Any(e => e.InCombat); // don't start modules for temporary node actors spawned during main boss fight
     }
 
     class T02DisposalNodeStates : StateMachineBuilder
@@ -362,5 +368,6 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
     public class T02DisposalNode : BossModule
     {
         public T02DisposalNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(41, 94), 14, 20)) { }
+        protected override bool CheckPull() => base.CheckPull() && !Enemies(OID.ADS).Any(e => e.InCombat); // don't start modules for temporary node actors spawned during main boss fight
     }
 }
