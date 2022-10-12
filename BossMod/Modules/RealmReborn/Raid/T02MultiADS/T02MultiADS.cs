@@ -214,8 +214,8 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
                         }
                         else
                         {
-                            // player is not tanking - taunt off when current tank has >=5 vuln stacks and self has no stacks
-                            e.ShouldBeTanked = e.PreferProvoking = targetVulnStacks >= 5 && actor.FindStatus(SID.VulnerabilityUp) == null;
+                            // player is not tanking - taunt off when current tank has >=4 vuln stacks and self has no stacks
+                            e.ShouldBeTanked = e.PreferProvoking = targetVulnStacks >= 4 && actor.FindStatus(SID.VulnerabilityUp) == null;
                         }
                     }
                 }
