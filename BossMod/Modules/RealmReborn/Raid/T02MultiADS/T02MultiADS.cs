@@ -57,7 +57,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
 
     class CleaveCommon : Components.Cleave
     {
-        public CleaveCommon(AID aid, float hitboxRadius) : base(ActionID.MakeSpell(aid), new AOEShapeCone(6 + hitboxRadius, 60.Degrees())) { }
+        public CleaveCommon(AID aid, float hitboxRadius) : base(ActionID.MakeSpell(aid), new AOEShapeCone(6 + hitboxRadius, 60.Degrees()), activeWhileCasting: false) { }
     }
     class CleaveADS : CleaveCommon { public CleaveADS() : base(AID.CleaveADS, 2.3f) { } }
     class CleaveNode : CleaveCommon { public CleaveNode() : base(AID.CleaveNode, 1.15f) { } }
@@ -114,6 +114,12 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
         private static float _rotPassRadius = 3;
         private static PartyRolesConfig.Assignment[] _rotPriority = { PartyRolesConfig.Assignment.R1, PartyRolesConfig.Assignment.M1, PartyRolesConfig.Assignment.M2, PartyRolesConfig.Assignment.H1, PartyRolesConfig.Assignment.H2, PartyRolesConfig.Assignment.R2 };
 
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (_rotHolderSlot >= 0)
+                hints.Add($"Rot: {(_rotExpiration[_rotHolderSlot] - module.WorldState.CurrentTime).TotalSeconds:f1}s");
+        }
+
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             if (_rotHolderSlot == -1 || _rotHolderSlot == slot)
@@ -126,7 +132,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
             if (WantToPickUpRot(module, assignment))
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(rotHolder.Position, _rotPassRadius - 1), _rotExpiration[_rotHolderSlot]);
             else
-                hints.AddForbiddenZone(ShapeDistance.Circle(rotHolder.Position, _rotPassRadius + 2), _immunityExpiration[slot]);
+                hints.AddForbiddenZone(ShapeDistance.Circle(rotHolder.Position, _rotPassRadius + 4), _immunityExpiration[slot]);
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
