@@ -34,7 +34,6 @@ namespace BossMod.RealmReborn.Raid.T04Gauntlet
         public Rotoswipe() : base(ActionID.MakeSpell(AID.Rotoswipe), new AOEShapeCone(11, 60.Degrees()), (uint)OID.ClockworkDreadnaught) { } // TODO: verify angle
     }
 
-    // TODO: reconsider this...
     class GravityThrustPox : Components.GenericAOEs
     {
         private static AOEShape _shape = new AOEShapeRect(50, 50);
@@ -103,16 +102,27 @@ namespace BossMod.RealmReborn.Raid.T04Gauntlet
         {
             base.CalculateAIHints(slot, actor, assignment, hints);
 
-            //bool isMagicDD = assignment is PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.H2 or PartyRolesConfig.Assignment.R2; // TODO: better 'magic dd' check...
-            //hints.UpdatePotentialTargets(e =>
-            //{
-            //    e.Priority = (OID)e.Actor.OID switch
-            //    {
-            //        OID.ClockworkSoldier => isMagicDD ? 2 : 1,
-            //        OID.ClockworkKnight => isMagicDD ? 1 : 2,
-            //        _ => 2,
-            //    };
-            //});
+            // note: we don't bother checking for physical/magical defense on knights/soldiers and just have everyone aoe them down; magic reflect is very small
+            // note: we try to kill dreadnaught first, since it's the only dangerous thing here
+            // note: we try to offtank all bugs and not have dreadnaught eat them
+            hints.UpdatePotentialTargets(e =>
+            {
+                e.Priority = (OID)e.Actor.OID == OID.ClockworkDreadnaught ? 2 : 1;
+                e.AttackStrength = (OID)e.Actor.OID == OID.ClockworkDreadnaught ? 0.2f : 0.05f;
+                e.ShouldBeTanked = assignment switch
+                {
+                    PartyRolesConfig.Assignment.MT => (OID)e.Actor.OID != OID.ClockworkBug,
+                    PartyRolesConfig.Assignment.OT => (OID)e.Actor.OID == OID.ClockworkBug,
+                    _ => false
+                };
+
+                e.Priority = (OID)e.Actor.OID switch
+                {
+                    OID.ClockworkSoldier => isMagicDD ? 2 : 1,
+                    OID.ClockworkKnight => isMagicDD ? 1 : 2,
+                    _ => 2,
+                };
+            });
         }
 
         protected override bool CheckPull() => P1Bugs.Any(a => a.IsTargetable && a.InCombat);
