@@ -50,6 +50,42 @@ namespace UIDev.Analysis
             }
         }
 
+        class RectAnalysis
+        {
+            private UIPlot _plot = new();
+            private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Normal, float Length, bool Hit)> _points = new();
+
+            public RectAnalysis(List<(Replay, Replay.Action)> infos, bool originAtSource)
+            {
+                _plot.DataMin = new(-50, -50);
+                _plot.DataMax = new(50, 50);
+                _plot.TickAdvance = new(5, 5);
+                foreach (var (r, a) in infos)
+                {
+                    var sourcePosRot = a.Source?.PosRotAt(a.Timestamp) ?? new();
+                    var origin = new WPos(sourcePosRot.XZ());
+                    var dir = sourcePosRot.W.Radians().ToDirection();
+                    var left = dir.OrthoL();
+                    foreach (var target in AlivePlayersAt(r, a.Timestamp))
+                    {
+                        // TODO: take target hitbox size into account...
+                        var pos = new WPos(target.PosRotAt(a.Timestamp).XZ());
+                        var toTarget = pos - origin;
+                        bool hit = a.Targets.Any(t => t.Target?.InstanceID == target.InstanceID);
+                        _points.Add((r, a, target, toTarget.Dot(left), toTarget.Dot(dir), hit));
+                    }
+                }
+            }
+
+            public void Draw()
+            {
+                _plot.Begin();
+                foreach (var i in _points)
+                    _plot.Point(new(i.Normal, i.Length), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.Name} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
+                _plot.End();
+            }
+        }
+
         class DamageFalloffAnalysis
         {
             private UIPlot _plot = new();
@@ -168,6 +204,7 @@ namespace UIDev.Analysis
             public float CastTime;
             public ConeAnalysis? ConeAnalysisSrc;
             public ConeAnalysis? ConeAnalysisTgt;
+            public RectAnalysis? RectAnalysis;
             public DamageFalloffAnalysis? DamageFalloffAnalysisDist;
             public DamageFalloffAnalysis? DamageFalloffAnalysisMinCoord;
             public GazeAnalysis? GazeAnalysis;
@@ -246,6 +283,12 @@ namespace UIDev.Analysis
                     if (data.ConeAnalysisTgt == null)
                         data.ConeAnalysisTgt = new(data.Instances, false);
                     data.ConeAnalysisTgt.Draw();
+                }
+                foreach (var an in tree.Node("Rect analysis"))
+                {
+                    if (data.RectAnalysis == null)
+                        data.RectAnalysis = new(data.Instances, true);
+                    data.RectAnalysis.Draw();
                 }
                 foreach (var an in tree.Node("Damage falloff analysis (by distance)"))
                 {
