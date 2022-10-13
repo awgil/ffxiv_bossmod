@@ -115,13 +115,6 @@ namespace BossMod.RealmReborn.Raid.T04Gauntlet
                     PartyRolesConfig.Assignment.OT => (OID)e.Actor.OID == OID.ClockworkBug,
                     _ => false
                 };
-
-                e.Priority = (OID)e.Actor.OID switch
-                {
-                    OID.ClockworkSoldier => isMagicDD ? 2 : 1,
-                    OID.ClockworkKnight => isMagicDD ? 1 : 2,
-                    _ => 2,
-                };
             });
         }
 
