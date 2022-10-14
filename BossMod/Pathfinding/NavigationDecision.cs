@@ -65,7 +65,7 @@ namespace BossMod.Pathfinding
                         if (inside)
                             AddBlockerZone(map2, imminent, zf.activation, zf.shapeDistance, forbiddenZoneCushion);
                     int maxGoal = targetPos != null ? AddTargetGoal(map2, targetPos.Value, targetRadius, targetRot, positional, 0) : 0;
-                    var res = FindPathFromUnsafe(map2, player.Position, 0, maxGoal, playerSpeed);
+                    var res = FindPathFromUnsafe(map2, player.Position, 0, maxGoal, targetPos, targetRot, positional, playerSpeed);
                     if (res != null)
                         return res.Value;
                 }
@@ -119,7 +119,7 @@ namespace BossMod.Pathfinding
                 {
                     Positional.Flank => MathF.Abs(targetRot.ToDirection().Dot((targetPos.Value - player.Position).Normalized())) < 0.7071067f,
                     Positional.Rear => targetRot.ToDirection().Dot((targetPos.Value - player.Position).Normalized()) < -0.7071068f,
-                    Positional.Front => targetRot.ToDirection().Dot((targetPos.Value - player.Position).Normalized()) > 0.965f,
+                    Positional.Front => targetRot.ToDirection().Dot((targetPos.Value - player.Position).Normalized()) > 0.999f, // ~2.5 degrees - assuming max position error of 0.1, this requires us to stay at least at R=~2.25
                     _ => true
                 };
                 if (!inPositional)
@@ -136,7 +136,10 @@ namespace BossMod.Pathfinding
                         var pathfind = new ThetaStar(map, maxGoal, player.Position, 1.0f / playerSpeed);
                         int res = pathfind.Execute();
                         if (res >= 0)
-                            return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = float.MaxValue, TimeToGoal = pathfind.NodeByIndex(res).GScore, Map = map, MapGoal = maxGoal, DecisionType = Decision.UptimeToPositional };
+                        {
+                            var dest = IncreaseDestinationPrecision(GetFirstWaypoint(pathfind, res), targetPos, targetRot, positional);
+                            return new() { Destination = dest, LeewaySeconds = float.MaxValue, TimeToGoal = pathfind.NodeByIndex(res).GScore, Map = map, MapGoal = maxGoal, DecisionType = Decision.UptimeToPositional };
+                        }
                     }
 
                     // fail
@@ -187,20 +190,6 @@ namespace BossMod.Pathfinding
             };
         }
 
-        public static Func<WPos, float> ShapeDistanceFront(WPos targetPos, Angle targetRot)
-        {
-            // TODO: think more about it, currently using 30-degree frontal cone...
-            var n1 = (targetRot + 15.Degrees()).ToDirection().OrthoL();
-            var n2 = (targetRot - 15.Degrees()).ToDirection().OrthoR();
-            return p =>
-            {
-                var off = p - targetPos;
-                var d1 = n1.Dot(off);
-                var d2 = n2.Dot(off);
-                return Math.Max(d1, d2);
-            };
-        }
-
         public static int AddPositionalGoal(Map map, WPos targetPos, float targetRadius, Angle targetRot, Positional positional, int minPriority)
         {
             var adjPrio = minPriority;
@@ -213,13 +202,32 @@ namespace BossMod.Pathfinding
                     adjPrio = map.AddGoal(ShapeDistanceRear(targetPos, targetRot), 0, minPriority, 1);
                     break;
                 case Positional.Front:
-                    adjPrio = map.AddGoal(ShapeDistanceFront(targetPos, targetRot), 0, minPriority, 1);
+                    var dir = targetRot.ToDirection();
+                    var maxRange = map.WorldToGrid(targetPos + dir * targetRadius);
+                    var pixel = map[maxRange.x, maxRange.y];
+                    if (pixel.Priority >= minPriority && pixel.MaxG == float.MaxValue)
+                    {
+                        adjPrio = map.AddGoal(maxRange.x, maxRange.y, 1);
+                    }
+                    else if (targetRadius > 3)
+                    {
+                        var minRange = map.WorldToGrid(targetPos + dir * 3);
+                        foreach (var p in map.EnumeratePixelsInLine(maxRange.x, maxRange.y, minRange.x, minRange.y))
+                        {
+                            pixel = map[p.x, p.y];
+                            if (pixel.Priority >= minPriority && pixel.MaxG == float.MaxValue)
+                            {
+                                adjPrio = map.AddGoal(p.x, p.y, 1);
+                                break;
+                            }
+                        }
+                    }
                     break;
             }
             return adjPrio;
         }
 
-        public static NavigationDecision? FindPathFromUnsafe(Map map, WPos startPos, int safeGoal, int maxGoal, float speed = 6)
+        public static NavigationDecision? FindPathFromUnsafe(Map map, WPos startPos, int safeGoal, int maxGoal, WPos? targetPos, Angle targetRot, Positional positional, float speed = 6)
         {
             if (maxGoal - safeGoal == 2)
             {
@@ -227,7 +235,10 @@ namespace BossMod.Pathfinding
                 var pathfind = new ThetaStar(map, maxGoal, startPos, 1.0f / speed);
                 int res = pathfind.Execute();
                 if (res >= 0)
-                    return new() { Destination = GetFirstWaypoint(pathfind, res), LeewaySeconds = pathfind.NodeByIndex(res).PathLeeway, TimeToGoal = pathfind.NodeByIndex(res).GScore, Map = map, MapGoal = maxGoal, DecisionType = Decision.UnsafeToPositional };
+                {
+                    var dest = IncreaseDestinationPrecision(GetFirstWaypoint(pathfind, res), targetPos, targetRot, positional);
+                    return new() { Destination = dest, LeewaySeconds = pathfind.NodeByIndex(res).PathLeeway, TimeToGoal = pathfind.NodeByIndex(res).GScore, Map = map, MapGoal = maxGoal, DecisionType = Decision.UnsafeToPositional };
+                }
                 --maxGoal;
             }
 
@@ -278,6 +289,15 @@ namespace BossMod.Pathfinding
                 cell = parent;
             }
             while (true);
+        }
+
+        public static WPos? IncreaseDestinationPrecision(WPos? dest, WPos? targetPos, Angle targetRot, Positional positional)
+        {
+            if (dest == null || targetPos == null || positional != Positional.Front)
+                return dest;
+            var dir = targetRot.ToDirection();
+            var adjDest = targetPos.Value + dir * dir.Dot(dest.Value - targetPos.Value);
+            return (dest.Value - adjDest).LengthSq() < 1 ? adjDest : dest;
         }
     }
 }

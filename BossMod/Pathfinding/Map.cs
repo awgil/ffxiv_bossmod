@@ -92,6 +92,14 @@ namespace BossMod.Pathfinding
             }
         }
 
+        public int AddGoal(int x, int y, int deltaPriority)
+        {
+            ref var pixel = ref Pixels[y * Width + x];
+            pixel.Priority += deltaPriority;
+            MaxPriority = Math.Max(MaxPriority, pixel.Priority);
+            return pixel.Priority;
+        }
+
         public int AddGoal(Func<WPos, float> shape, float threshold, int minPriority, int deltaPriority)
         {
             int maxAdjustedPriority = minPriority;
