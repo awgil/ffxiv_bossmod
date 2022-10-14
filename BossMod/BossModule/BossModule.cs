@@ -254,6 +254,12 @@ namespace BossMod
         public virtual void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             hints.Bounds = Bounds;
+            if (PlanExecution != null)
+            {
+                // TODO: support non-self targeting
+                // TODO: support custom conditions in planner
+                hints.PlannedActions.AddRange(PlanExecution.ActiveActions(StateMachine).Select(e => (e.Action, actor, e.TimeLeft)));
+            }
             foreach (var comp in _components)
                 comp.AddAIHints(this, slot, actor, assignment, hints);
         }

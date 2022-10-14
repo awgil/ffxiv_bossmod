@@ -258,16 +258,9 @@ namespace BossMod
                 return new(mqOGCD.Action, mqOGCD.Target, mqOGCD.TargetPos, mqOGCD.Definition, ActionSource.Manual);
 
             // see if there is anything from cooldown plan to be executed
-            var cooldownPlan = Autorot.Bossmods.ActiveModule?.PlanExecution;
-            if (cooldownPlan != null)
-            {
-                // TODO: support non-self targeting
-                // TODO: support custom conditions in planner
-                var planTarget = Player;
-                var cpAction = cooldownPlan.ActiveActions(Autorot.Bossmods.ActiveModule!.StateMachine).Where(x => CanExecutePlannedAction(x.Action, planTarget, x.Definition, effAnimLock, animLockDelay, ogcdDeadline)).MinBy(x => x.TimeLeft);
-                if (cpAction.Action)
-                    return new(cpAction.Action, planTarget, new(), cpAction.Definition, ActionSource.Planned);
-            }
+            var cpAction = Autorot.Hints.PlannedActions.FirstOrDefault(x => CanExecutePlannedAction(x.action, x.target, effAnimLock, animLockDelay, ogcdDeadline));
+            if (cpAction.action)
+                return new(cpAction.action, cpAction.target, new(), SupportedActions[cpAction.action].Definition, ActionSource.Planned);
 
             // note: we intentionally don't check that automatic oGCD really does not clip GCD - we provide utilities that allow module checking that, but also allow overriding if needed
             var nextOGCD = AutoAction != AutoActionNone ? CalculateAutomaticOGCD(ogcdDeadline) : new();
@@ -392,13 +385,15 @@ namespace BossMod
                 Service.Log($"[AR] [{GetType()}] {message}");
         }
 
-        private bool CanExecutePlannedAction(ActionID action, Actor target, ActionDefinition definition, float effAnimLock, float animLockDelay, float deadline)
+        private bool CanExecutePlannedAction(ActionID action, Actor target, float effAnimLock, float animLockDelay, float deadline)
         {
             // TODO: planned GCDs?..
-            return definition.CooldownGroup != CommonDefinitions.GCDGroup
-                && Autorot.Cooldowns[definition.CooldownGroup] - effAnimLock <= definition.CooldownAtFirstCharge
-                && effAnimLock + definition.AnimationLock + animLockDelay <= deadline
-                && SupportedActions[action].Allowed(Player, target);
+            var definition = SupportedActions.GetValueOrDefault(action);
+            return definition != null
+                && definition.Definition.CooldownGroup != CommonDefinitions.GCDGroup
+                && Autorot.Cooldowns[definition.Definition.CooldownGroup] - effAnimLock <= definition.Definition.CooldownAtFirstCharge
+                && effAnimLock + definition.Definition.AnimationLock + animLockDelay <= deadline
+                && definition.Allowed(Player, target);
         }
     }
 }

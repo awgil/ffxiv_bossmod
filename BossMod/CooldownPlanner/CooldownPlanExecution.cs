@@ -23,14 +23,12 @@ namespace BossMod
         public class PerAbility
         {
             public ActionID ID;
-            public ActionDefinition Definition;
             public List<(float Start, float End)> ActivationWindows = new();
             public NextEvent? NextActivation = null;
 
-            public PerAbility(ActionID id, ActionDefinition definition)
+            public PerAbility(ActionID id)
             {
                 ID = id;
-                Definition = definition;
             }
         }
 
@@ -50,7 +48,7 @@ namespace BossMod
                 foreach (var (k, uses) in plan.PlanAbilities)
                 {
                     var action = new ActionID(k);
-                    Abilities.Add(new(action, classData.Abilities[action].Definition));
+                    Abilities.Add(new(action));
                 }
             }
         }
@@ -112,7 +110,7 @@ namespace BossMod
                 return s.Vulnerable.Transition.Value.EstimatedTime - sm!.TimeSinceTransitionClamped;
         }
 
-        public IEnumerable<(ActionID Action, ActionDefinition Definition, float TimeLeft)> ActiveActions(StateMachine sm)
+        public IEnumerable<(ActionID Action, float TimeLeft)> ActiveActions(StateMachine sm)
         {
             var progress = sm.TimeSinceTransitionClamped;
             var stateData = FindStateData(sm.ActiveState);
@@ -121,7 +119,7 @@ namespace BossMod
                 var activeWindow = plan.ActivationWindows.FindIndex(w => w.Start <= progress && w.End > progress);
                 if (activeWindow != -1)
                 {
-                    yield return (plan.ID, plan.Definition, plan.ActivationWindows[activeWindow].End - progress);
+                    yield return (plan.ID, plan.ActivationWindows[activeWindow].End - progress);
                 }
             }
         }
@@ -133,7 +131,7 @@ namespace BossMod
             var t = sm.TimeSinceTransitionClamped;
             foreach (var ability in s.Abilities)
             {
-                var cd = ability.Definition.Cooldown;
+                var cd = db?.Abilities[ability.ID].Definition.Cooldown ?? 0;
                 int nextWindow = ability.ActivationWindows.FindIndex(w => w.End > t);
                 bool windowActive = nextWindow != -1 && t >= ability.ActivationWindows[nextWindow].Start;
                 float? nextTransition = windowActive ? ability.ActivationWindows[nextWindow].End : nextWindow != -1 ? ability.ActivationWindows[nextWindow].Start : ability.NextActivation?.EstimatedTime;

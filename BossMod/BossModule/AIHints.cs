@@ -55,6 +55,10 @@ namespace BossMod
         // AI will attempt to shield & mitigate
         public List<(BitMask players, DateTime activation)> PredictedDamage = new();
 
+        // planned actions
+        // autorotation will execute them in window-end order, if possible
+        public List<(ActionID action, Actor target, float windowEnd)> PlannedActions = new();
+
         // clear all stored data
         public void Clear()
         {
@@ -63,6 +67,7 @@ namespace BossMod
             ForbiddenZones.Clear();
             ForbiddenDirections.Clear();
             PredictedDamage.Clear();
+            PlannedActions.Clear();
         }
 
         // fill list of potential targets from world state
@@ -97,6 +102,7 @@ namespace BossMod
             ForbiddenZones.SortBy(e => e.activation);
             ForbiddenDirections.SortBy(e => e.activation);
             PredictedDamage.SortBy(e => e.activation);
+            PlannedActions.SortBy(e => e.windowEnd);
         }
 
         // query utilities

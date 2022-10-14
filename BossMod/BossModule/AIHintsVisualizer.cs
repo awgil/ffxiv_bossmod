@@ -51,6 +51,10 @@ namespace BossMod
             {
                 tree.LeafNodes(_hints.PredictedDamage, d => $"[{string.Join(", ", _ws.Party.WithSlot().IncludedInMask(d.players).Select(ia => ia.Item2.Name))}], at {Math.Max(0, (d.activation - _ws.CurrentTime).TotalSeconds):f3}");
             }
+            foreach (var n in tree.Node("Planned actions", _hints.PlannedActions.Count == 0))
+            {
+                tree.LeafNodes(_hints.PlannedActions, e => $"{e.action} @ {e.target} in {e.windowEnd:f3}s");
+            }
             foreach (var n in tree.Node("Pathfinding"))
             {
                 _pathfindVisualizer ??= BuildPathfindingVisualizer();
