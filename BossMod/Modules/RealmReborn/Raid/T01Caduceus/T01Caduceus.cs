@@ -61,12 +61,12 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
 
     class Regorge : Components.PersistentVoidzoneAtCastTarget
     {
-        public Regorge() : base(4, ActionID.MakeSpell(AID.Regorge), m => m.Enemies(OID.Regorge).Where(z => z.EventState != 7), 2.1f, false) { }
+        public Regorge() : base(4, ActionID.MakeSpell(AID.Regorge), m => m.Enemies(OID.Regorge).Where(z => z.EventState != 7), 2.1f) { }
     }
 
     class Syrup : Components.PersistentVoidzoneAtCastTarget
     {
-        public Syrup() : base(4, ActionID.MakeSpell(AID.Syrup), m => m.Enemies(OID.Syrup).Where(z => z.EventState != 7), 0.8f, true) { }
+        public Syrup() : base(4, ActionID.MakeSpell(AID.Syrup), m => m.Enemies(OID.Syrup).Where(z => z.EventState != 7), 0.3f) { }
     }
 
     // TODO: merge happens if bosses are 'close enough' (threshold is >20.82 at least) or have high enough hp difference (>5% at least) and more than 20s passed since split

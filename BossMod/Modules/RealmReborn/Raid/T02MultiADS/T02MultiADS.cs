@@ -101,7 +101,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
 
     class GravityField : Components.PersistentVoidzoneAtCastTarget
     {
-        public GravityField() : base(6, ActionID.MakeSpell(AID.GravityField), m => m.Enemies(OID.GravityField), 2, true) { }
+        public GravityField() : base(6, ActionID.MakeSpell(AID.GravityField), m => m.Enemies(OID.GravityField), 1) { }
     }
 
     class T02AI : BossComponent

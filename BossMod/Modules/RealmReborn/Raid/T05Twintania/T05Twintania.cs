@@ -4,8 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-// TODO: arena bounds
-// TODO: enrage (~13 min?)
+// TODO: enrage: if staying in P1 - at 780 we get P2 version of death sentence instead of normal one, then on 791 we start getting profusion raidwides (onr per 5-8s)
 // TODO: tank swaps on death sentence (is it true that taunt mid cast makes OT eat debuff? is it true that boss can be single-tanked in p2+?)
 // TODO: is it possible to plan for death sentence in P2+? specifically, how death sentence timings align with phase change / fireball timings?..
 // TODO: boss / neurolink positions
@@ -17,6 +16,8 @@ using System.Threading.Tasks;
 // TODO: P4 twisters & dreadknights (looks quite simple)
 // TODO: P5 liquid hells
 // TODO: P5 hatch (OT in center, otherwise target should run to neurolink, others should avoid line between hatch and target/neurolink?)
+// note: this is one of the very early fights that is not represented well by a state machine - it has multiple timers running, can delay casts randomly, can have different overlaps depending on raid dps, etc.
+// the only thing that is well timed is P3 (divebombs phase)
 namespace BossMod.RealmReborn.Raid.T05Twintania
 {
     public enum OID : uint
@@ -28,7 +29,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         Hygieia = 0x7E8, // R1.200, spawn during fight
         Asclepius = 0x7E9, // R1.800, spawn during fight
         Dreadknight = 0x7EA, // R1.700, spawn during fight
-        Oviform = 0x7F3, // R1.000, spawn during fight
+        Oviform = 0x7F3, // R1.000, spawn during fight (hatch orbs)
 
         HelperTwister = 0x8EB, // R0.500, x8
         HelperMarker = 0x8EE, // R0.500, x2
@@ -84,11 +85,58 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
 
     class LiquidHellAdds : Components.PersistentVoidzoneAtCastTarget
     {
-        public LiquidHellAdds() : base(6, ActionID.MakeSpell(AID.LiquidHellAdds), m => m.Enemies(OID.LiquidHell).Where(z => z.EventState != 7), 3, true) { } // note: voidzone appears ~1.2s after cast ends, but we want to try avoiding initial damage too
+        public LiquidHellAdds() : base(6, ActionID.MakeSpell(AID.LiquidHellAdds), m => m.Enemies(OID.LiquidHell).Where(z => z.EventState != 7), 0) { } // note: voidzone appears ~1.2s after cast ends, but we want to try avoiding initial damage too
     }
 
-    // TODO: death sentence - every ~36s
+    // TODO: death sentence - every ~36s; various other mechanics can delay it somewhat - it seems that e.g. phase transitions don't affect the running timer...
+    class DeathSentence : BossComponent
+    {
+        private DateTime _nextCastStart;
+
+        public override void Init(BossModule module)
+        {
+            _nextCastStart = module.WorldState.CurrentTime.AddSeconds(18);
+        }
+
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            hints.Add($"Next death sentence in ~{(_nextCastStart - module.WorldState.CurrentTime).TotalSeconds:f1}s");
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.DeathSentence)
+                _nextCastStart = module.WorldState.CurrentTime.AddSeconds(36);
+        }
+    }
+
     // TODO: p1->p2 when first neurolink appears, p2->p3 when second neurolink appears, p4->p5 when third neurolink appears
+
+    class Divebomb : Components.GenericAOEs
+    {
+        private WPos? _target;
+
+        private static AOEShapeRect _shape = new(35, 6);
+
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (_target != null)
+                yield return (_shape, module.PrimaryActor.Position, Angle.FromDirection(_target.Value - module.PrimaryActor.Position), new());
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.DivebombMarker:
+                    _target = module.WorldState.Actors.Find(spell.MainTargetID)?.Position;
+                    break;
+                case AID.DivebombAOE:
+                    _target = null;
+                    break;
+            }
+        }
+    }
 
     // TODO: what happens here is marker appears -> 5 liquid hells drop at (0.6 + 1.7*N)s; each liquid hell cast does small damage and spawns voidzone 1.2s later
     //class LiquidHellBoss : Components.PersistentVoidzoneAtCastTarget
@@ -100,15 +148,17 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
     {
         public T05TwintaniaStates(BossModule module) : base(module)
         {
-            TrivialPhase();
-            //.ActivateOnEnter<>()
-            //;
+            TrivialPhase()
+                .ActivateOnEnter<Plummet>()
+                .ActivateOnEnter<LiquidHellAdds>()
+                .ActivateOnEnter<DeathSentence>()
+                .ActivateOnEnter<Divebomb>();
         }
     }
 
     public class T05Twintania : BossModule
     {
-        public T05Twintania(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-7, 5), 30)) { } // TODO
+        public T05Twintania(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-3, -6.5f), 31)) { }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
