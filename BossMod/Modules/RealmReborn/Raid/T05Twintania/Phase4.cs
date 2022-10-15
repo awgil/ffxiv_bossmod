@@ -82,6 +82,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                 {
                     hints.PlannedActions.Add((ActionID.MakeSpell(BRD.AID.LegGraze), dk, 5));
                     hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.LowBlow), dk, 5));
+                    hints.PlannedActions.Add((ActionID.MakeSpell(DRG.AID.LegSweep), dk, 5));
                 }
             }
         }
