@@ -5,7 +5,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
     // mechanics used for the whole fight
     class Plummet : Components.Cleave
     {
-        public Plummet() : base(ActionID.MakeSpell(AID.Plummet), new AOEShapeCone(8, 60.Degrees())) { } // TODO: verify shape...
+        public Plummet() : base(ActionID.MakeSpell(AID.Plummet), new AOEShapeCone(20, 30.Degrees())) { } // TODO: verify shape...
 
         public override void Init(BossModule module)
         {
@@ -20,7 +20,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
             {
                 var boss = hints.PotentialTargets.Find(e => e.Actor == module.PrimaryActor);
                 if (boss != null)
-                    boss.AttackStrength += 0.1f;
+                    boss.AttackStrength += 0.3f;
             }
         }
 

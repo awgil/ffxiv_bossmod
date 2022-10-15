@@ -113,7 +113,8 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
             }
 
             // conflagrate target always wants to run straight into boss center
-            // for fireball, we want to be stacked in two groups; currently we have OT/healers on the left and all DD on the right (TODO: depending on comp, we might want different stacking...)
+            // for fireball, we want to be stacked in two groups; currently we have OT/healers on the left and all DD on the right before fireball target is selected
+            // after fireball target is selected, we have healers on left, ranged on right, ot/melee on target (right if one of them is a target)
             // TODO: verify that pets really count as targets, this is weird...
             // TODO: if conflagration is active, consider having fireball target run into conflag...
             if (_conflagrate?.Target == actor)
@@ -123,7 +124,16 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
             }
             else if (_deathSentence?.TankRole != assignment)
             {
-                var dir = module.PrimaryActor.Rotation + (actor.Role is Role.Tank or Role.Healer ? 135 : -135).Degrees();
+                bool stayLeft = actor.Role switch
+                {
+                    Role.Healer => true,
+                    Role.Ranged => false,
+                    _ => _fireball?.Target?.Role == Role.Healer
+                };
+                // note that boss rotates when casting fireball - we don't want that to affect positioning
+                var bossTarget = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
+                var dir = bossTarget != null ? Angle.FromDirection(bossTarget.Position - module.PrimaryActor.Position) : module.PrimaryActor.Rotation;
+                dir += (stayLeft ? 135 : -135).Degrees();
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.PrimaryActor.Position + dir.ToDirection() * 8, P2Fireball.Radius * 0.5f), _fireball?.Target != null ? _fireball.ExplosionAt : DateTime.MaxValue);
             }
         }
