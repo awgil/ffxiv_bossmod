@@ -99,8 +99,10 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                 .ActivateOnEnter<Plummet>()
                 .ActivateOnEnter<DeathSentence>()
                 .ActivateOnEnter<P4Twisters>()
+                .ActivateOnEnter<P4Dreadknights>()
                 .ActivateOnEnter<P4AI>()
                 .DeactivateOnExit<P4Twisters>()
+                .DeactivateOnExit<P4Dreadknights>()
                 .DeactivateOnExit<P4AI>();
 
             SimpleState(id + 0x40000, 100, "P5: hatch/liquid hell")
@@ -132,8 +134,10 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
 
         private void Divebomb(uint id, float delay, string name)
         {
-            ComponentCondition<P3Divebomb>(id, delay, comp => comp.Target != null);
-            ComponentCondition<P3Divebomb>(id + 1, 1.7f, comp => comp.Target == null, name);
+            ComponentCondition<P3Divebomb>(id, delay, comp => comp.Target != null)
+                .SetHint(StateMachine.StateHint.PositioningStart);
+            ComponentCondition<P3Divebomb>(id + 1, 1.7f, comp => comp.Target == null, name)
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
     }
 
@@ -143,21 +147,17 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
 
         public List<Actor> ScourgeOfMeracydia;
         public List<Actor> Neurolinks;
-        public List<Actor> Dreadknights;
 
         public T05Twintania(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-3, -6.5f), 31))
         {
             ScourgeOfMeracydia = Enemies(OID.ScourgeOfMeracydia);
             Neurolinks = Enemies(OID.Neurolink);
-            Dreadknights = Enemies(OID.Dreadknight);
         }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
             foreach (var a in ScourgeOfMeracydia)
-                Arena.Actor(a, ArenaColor.Enemy);
-            foreach (var a in Dreadknights)
                 Arena.Actor(a, ArenaColor.Enemy);
         }
     }

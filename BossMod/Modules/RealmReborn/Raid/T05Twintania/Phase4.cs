@@ -11,8 +11,8 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         private IEnumerable<Actor> ActiveTwisters => _twisters.Where(t => t.EventState != 7);
 
         private const float PredictBeforeCastFinish = 0; // 0.5f
-        private const float PredictAvoidRadius = 1; // 5
-        private const float TwisterCushion = 0; // 1
+        private const float PredictAvoidRadius = 2; // 5
+        private const float TwisterCushion = 1; // 1
 
         public override void Init(BossModule module)
         {
@@ -48,13 +48,70 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         }
     }
 
-    // TODO: do we need anything specific here? maybe AI to stun/slow adds?
-    //class P4Dreadknights : BossComponent
-    //{
-    //}
+    class P4Dreadknights : BossComponent
+    {
+        private Actor? _target;
+        private List<Actor> _dreadknights = new();
+        public IEnumerable<Actor> ActiveDreadknights => _dreadknights.Where(a => !a.IsDead);
+
+        public override void Init(BossModule module)
+        {
+            _dreadknights = module.Enemies(OID.Dreadknight);
+        }
+
+        public override void Update(BossModule module)
+        {
+            if (!ActiveDreadknights.Any())
+                _target = null;
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            if (_target == null)
+            {
+                // until target is selected, stay away from any dreadknights
+                foreach (var dk in ActiveDreadknights)
+                {
+                    hints.AddForbiddenZone(ShapeDistance.Circle(dk.Position, 10));
+                }
+            }
+            else
+            {
+                // stun/slow dreadknight if possible
+                foreach (var dk in ActiveDreadknights)
+                {
+                    hints.PlannedActions.Add((ActionID.MakeSpell(BRD.AID.LegGraze), dk, 5));
+                    hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.LowBlow), dk, 5));
+                }
+            }
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            foreach (var a in ActiveDreadknights)
+            {
+                arena.Actor(a, ArenaColor.Enemy);
+                if (_target != null)
+                    arena.AddLine(a.Position, _target.Position, ArenaColor.Danger);
+            }
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID == AID.UnwovenWill)
+                _target = module.WorldState.Actors.Find(spell.MainTargetID);
+        }
+    }
 
     class P4AI : BossComponent
     {
+        private DeathSentence? _deathSentence;
+
+        public override void Init(BossModule module)
+        {
+            _deathSentence = module.FindComponent<DeathSentence>();
+        }
+
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             foreach (var e in hints.PotentialTargets)
@@ -67,7 +124,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                         e.DesiredRotation = 180.Degrees();
                         break;
                     case OID.Dreadknight:
-                        e.Priority = 2;
+                        e.Priority = assignment != _deathSentence?.TankRole ? 2 : 0; // for current mt it is not worth switching to dreadknight, since it risks plummeting raid
                         break;
                 }
             }

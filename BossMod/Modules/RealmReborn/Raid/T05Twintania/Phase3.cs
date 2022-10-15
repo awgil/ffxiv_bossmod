@@ -58,7 +58,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         {
             var nextHygieia = ActiveHygieia.MinBy(a => a.InstanceID); // select next add to kill by lowest hp
             var asclepiusVuln = Asclepius.FirstOrDefault()?.FindStatus(SID.Disseminate);
-            bool killHygieia = asclepiusVuln == null || (asclepiusVuln.Value.ExpireAt - module.WorldState.CurrentTime).TotalSeconds < 15;
+            bool killHygieia = asclepiusVuln == null || (asclepiusVuln.Value.ExpireAt - module.WorldState.CurrentTime).TotalSeconds < 10;
             foreach (var e in hints.PotentialTargets)
             {
                 switch ((OID)e.Actor.OID)
@@ -72,10 +72,11 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                         e.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.OT;
                         bool gtfo = predictedHP <= (e.ShouldBeTanked ? 1 : 0.1f * e.Actor.HP.Max);
                         if (gtfo)
-                            hints.AddForbiddenZone(ShapeDistance.Circle(e.Actor.Position, 8));
+                            hints.AddForbiddenZone(ShapeDistance.Circle(e.Actor.Position, 9));
                         break;
                     case OID.Asclepius:
                         e.Priority = 1;
+                        e.AttackStrength = 0.15f;
                         e.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.MT;
                         break;
                 }

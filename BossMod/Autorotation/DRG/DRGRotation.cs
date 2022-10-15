@@ -103,13 +103,14 @@
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
             // TODO: better buff conditions...
+            bool canJump = strategy.PositionLockIn > state.AnimationLock;
             if (state.Unlocked(AID.LanceCharge) && state.CanWeave(CDGroup.LanceCharge, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.LanceCharge);
-            if (state.Unlocked(AID.Jump) && state.CanWeave(state.Unlocked(AID.HighJump) ? CDGroup.HighJump : CDGroup.Jump, 0.8f, deadline))
+            if (canJump && state.Unlocked(AID.Jump) && state.CanWeave(state.Unlocked(AID.HighJump) ? CDGroup.HighJump : CDGroup.Jump, 0.8f, deadline))
                 return ActionID.MakeSpell(state.BestJump);
-            if (state.Unlocked(AID.DragonfireDive) && state.CanWeave(CDGroup.DragonfireDive, 0.8f, deadline))
+            if (canJump && state.Unlocked(AID.DragonfireDive) && state.CanWeave(CDGroup.DragonfireDive, 0.8f, deadline))
                 return ActionID.MakeSpell(AID.DragonfireDive);
-            if (state.Unlocked(AID.SpineshatterDive) && state.CanWeave(CDGroup.SpineshatterDive, 0.8f, deadline))
+            if (canJump && state.Unlocked(AID.SpineshatterDive) && state.CanWeave(CDGroup.SpineshatterDive, 0.8f, deadline))
                 return ActionID.MakeSpell(AID.SpineshatterDive);
 
             // 2. life surge on most damaging gcd (TODO: reconsider condition, it's valid until L26...)
