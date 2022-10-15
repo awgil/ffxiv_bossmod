@@ -129,6 +129,11 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
             var boss = hints.PotentialTargets.Find(e => e.Actor == module.PrimaryActor);
             if (boss != null)
                 boss.PreferProvoking = true;
+
+            // mitigate heavy raidwide
+            hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), _activation));
+            if (actor.Role == Role.Ranged)
+                hints.PlannedActions.Add((ActionID.MakeSpell(BLM.AID.Addle), module.PrimaryActor, (float)(_activation - module.WorldState.CurrentTime).TotalSeconds));
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

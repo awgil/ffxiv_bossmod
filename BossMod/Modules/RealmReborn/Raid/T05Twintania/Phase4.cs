@@ -72,7 +72,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                 // until target is selected, stay away from any dreadknights
                 foreach (var dk in ActiveDreadknights)
                 {
-                    hints.AddForbiddenZone(ShapeDistance.Circle(dk.Position, 10));
+                    hints.AddForbiddenZone(ShapeDistance.Circle(dk.Position, 15));
                 }
             }
             else
@@ -125,6 +125,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                         break;
                     case OID.Dreadknight:
                         e.Priority = assignment != _deathSentence?.TankRole ? 2 : 0; // for current mt it is not worth switching to dreadknight, since it risks plummeting raid
+                        e.ShouldBeTanked = false;
                         break;
                 }
             }
