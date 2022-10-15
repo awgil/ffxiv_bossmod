@@ -64,10 +64,14 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                 switch ((OID)e.Actor.OID)
                 {
                     case OID.Hygieia:
-                        var hpLeft= HPLeft(module, e.Actor);
-                        e.Priority = e.Actor.HP.Cur == 1 ? 0 : killHygieia && e.Actor == nextHygieia ? 2 : hpLeft < 0.3f ? -1 : 1;
+                        var predictedHP = e.Actor.HP.Cur + module.WorldState.PendingEffects.PendingHPDifference(e.Actor.InstanceID);
+                        e.Priority = e.Actor.HP.Cur == 1 ? 0
+                            : killHygieia && e.Actor == nextHygieia ? 2
+                            : predictedHP < 0.3f * e.Actor.HP.Max ? -1
+                            : 1;
                         e.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.OT;
-                        if (hpLeft < 0.1f)
+                        bool gtfo = e.ShouldBeTanked ? e.Actor.HP.Cur == 1 : predictedHP < 0.1f * e.Actor.HP.Max;
+                        if (gtfo)
                             hints.AddForbiddenZone(ShapeDistance.Circle(e.Actor.Position, 8));
                         break;
                     case OID.Asclepius:
@@ -89,14 +93,11 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
             foreach (var a in ActiveHygieia)
             {
                 arena.Actor(a, ArenaColor.Enemy);
-                if (HPLeft(module, a) < 0.1f)
-                    arena.AddCircle(a.Position, _explosionRadius, ArenaColor.Danger);
+                arena.AddCircle(a.Position, _explosionRadius, ArenaColor.Danger);
             }
             foreach (var a in Asclepius)
                 arena.Actor(a, ArenaColor.Enemy);
         }
-
-        private float HPLeft(BossModule module, Actor a) => ((float)a.HP.Cur + module.WorldState.PendingEffects.PendingHPDifference(a.InstanceID)) / a.HP.Max;
     }
 
     class P3AethericProfusion : Components.CastCounter
