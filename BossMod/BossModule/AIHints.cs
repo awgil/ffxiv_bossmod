@@ -79,12 +79,6 @@ namespace BossMod
             }
         }
 
-        public void UpdatePotentialTargets(Action<Enemy> fn)
-        {
-            foreach (var enemy in PotentialTargets)
-                fn(enemy);
-        }
-
         public void AssignPotentialTargetPriorities(Func<Actor, int> map)
         {
             foreach (var enemy in PotentialTargets)

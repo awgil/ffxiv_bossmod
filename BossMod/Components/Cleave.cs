@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace BossMod.Components
 {
@@ -10,6 +11,7 @@ namespace BossMod.Components
         public bool ActiveForUntargetable { get; private init; }
         public bool ActiveWhileCasting { get; private init; }
         public bool OriginAtTarget { get; private init; }
+        public DateTime NextExpected;
         private List<Actor> _enemies = new();
         private BitMask _inAOE = new(); // excludes main target
 
@@ -51,7 +53,7 @@ namespace BossMod.Components
             {
                 if (actor != target)
                 {
-                    hints.AddForbiddenZone(Shape, origin.Position, angle);
+                    hints.AddForbiddenZone(Shape, origin.Position, angle, NextExpected);
                 }
             }
         }

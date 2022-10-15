@@ -153,7 +153,7 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
             base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var heart in ActiveHeart)
                 hints.PotentialTargets.Add(new(heart, assignment == PartyRolesConfig.Assignment.MT));
-            hints.UpdatePotentialTargets(enemy =>
+            foreach (var enemy in hints.PotentialTargets)
             {
                 enemy.Priority = (OID)enemy.Actor.OID switch
                 {
@@ -163,7 +163,7 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
                     _ => 0
                 };
                 enemy.AttackStrength = (OID)enemy.Actor.OID == OID.Boss ? enemy.Actor.HP.Cur < 0.6f * enemy.Actor.HP.Max ? 0.3f : 0.1f : 0;
-            });
+            }
         }
     }
 }

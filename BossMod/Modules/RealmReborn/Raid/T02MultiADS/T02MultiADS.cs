@@ -108,7 +108,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
     {
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            hints.UpdatePotentialTargets(e =>
+            foreach (var e in hints.PotentialTargets)
             {
                 if (e.Actor == module.PrimaryActor)
                 {
@@ -131,7 +131,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
                         }
                     }
                 }
-            });
+            }
         }
     }
 

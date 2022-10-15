@@ -105,7 +105,7 @@ namespace BossMod.RealmReborn.Raid.T04Gauntlet
             // note: we don't bother checking for physical/magical defense on knights/soldiers and just have everyone aoe them down; magic reflect is very small
             // note: we try to kill dreadnaught first, since it's the only dangerous thing here
             // note: we try to offtank all bugs and not have dreadnaught eat them
-            hints.UpdatePotentialTargets(e =>
+            foreach (var e in hints.PotentialTargets)
             {
                 e.Priority = (OID)e.Actor.OID == OID.ClockworkDreadnaught ? 2 : 1;
                 e.AttackStrength = (OID)e.Actor.OID == OID.ClockworkDreadnaught ? 0.2f : 0.05f;
@@ -115,7 +115,7 @@ namespace BossMod.RealmReborn.Raid.T04Gauntlet
                     PartyRolesConfig.Assignment.OT => (OID)e.Actor.OID == OID.ClockworkBug,
                     _ => false
                 };
-            });
+            }
         }
 
         protected override bool CheckPull() => P1Bugs.Any(a => a.IsTargetable && a.InCombat);

@@ -93,7 +93,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
             // - first few seconds after split - only OT on boss to simplify pickup
             // - after that and until 30% - MT/H1/M1/R1 on boss, rest on clone
             // - after that - equal priorities unless hp diff is larger than 5%
-            hints.UpdatePotentialTargets(e =>
+            foreach (var e in hints.PotentialTargets)
             {
                 if ((OID)e.Actor.OID == OID.Boss)
                 {
@@ -134,7 +134,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
                     e.ShouldBeTanked = false;
                     e.ForbidDOTs = true;
                 }
-            });
+            }
         }
 
         private void SetPreferredPlatform(AIHints hints, int platform)

@@ -73,7 +73,7 @@
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             base.CalculateAIHints(slot, actor, assignment, hints);
-            hints.UpdatePotentialTargets(enemy =>
+            foreach (var enemy in hints.PotentialTargets)
             {
                 if (enemy.Actor == PrimaryActor)
                 {
@@ -88,7 +88,7 @@
                     enemy.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.OT;
                     enemy.DesiredRotation = 0.Degrees();
                 }
-            });
+            }
         }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
