@@ -76,6 +76,12 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                         break;
                 }
             }
+
+            if (!module.PrimaryActor.IsTargetable && !ActiveHygieia.Any() && !Asclepius.Any(a => !a.IsDead))
+            {
+                // once all adds are dead, gather where boss will return
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(-6.67f, 5), 5), DateTime.MaxValue);
+            }
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

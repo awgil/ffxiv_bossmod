@@ -99,8 +99,8 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                     if (!orbIntercepted)
                     {
                         forbidNeurolinks = false;
-                        foreach (var neurolink in _hatch.Neurolinks)
-                            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(neurolink.Position, T05Twintania.NeurolinkRadius));
+                        var forbidden = _hatch.Neurolinks.Select(n => ShapeDistance.Circle(n.Position, T05Twintania.NeurolinkRadius));
+                        hints.AddForbiddenZone(p => -forbidden.Min(f => f(p)));
                     }
                 }
                 else if (assignment == ((_deathSentence?.TankedByOT ?? false) ? PartyRolesConfig.Assignment.MT : PartyRolesConfig.Assignment.OT) && neurolinkUnderBoss != null && actor != _liquidHell?.Target)

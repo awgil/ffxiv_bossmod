@@ -119,7 +119,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
             // TODO: if conflagration is active, consider having fireball target run into conflag...
             if (_conflagrate?.Target == actor)
             {
-                // TODO: consider 
+                hints.ForbiddenZones.Clear(); // ignore things like cleave
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.PrimaryActor.Position, 1), _conflagrate.FettersAt);
             }
             else if (_deathSentence?.TankRole != assignment)
@@ -135,6 +135,18 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                 var dir = bossTarget != null ? Angle.FromDirection(bossTarget.Position - module.PrimaryActor.Position) : module.PrimaryActor.Rotation;
                 dir += (stayLeft ? 135 : -135).Degrees();
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.PrimaryActor.Position + dir.ToDirection() * 8, P2Fireball.Radius * 0.5f), _fireball?.Target != null ? _fireball.ExplosionAt : DateTime.MaxValue);
+            }
+
+            if (_fireball?.Target != null)
+            {
+                bool hitHealers = _fireball.Target.Role == Role.Healer;
+                var hitPlayers = module.Raid.WithSlot().WhereActor(a => a.Role switch
+                {
+                    Role.Healer => hitHealers,
+                    Role.Ranged => !hitHealers,
+                    _ => module.PrimaryActor.TargetID != a.InstanceID
+                }).Mask();
+                hints.PredictedDamage.Add((hitPlayers, _fireball.ExplosionAt));
             }
         }
     }
