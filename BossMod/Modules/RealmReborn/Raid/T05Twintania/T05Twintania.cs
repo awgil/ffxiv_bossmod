@@ -18,14 +18,6 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         HelperMarker = 0x8EE, // R0.500, x2
         LiquidHell = 0x1E88FE, // R0.500, EventObj type, spawn during fight
         Twister = 0x1E8910, // R0.500, EventObj type, spawn during fight
-
-        //_Gen_Actor7f1 = 0x7F1, // R1.000, spawn during fight
-        //_Gen_AllaganTerminal = 0x1E890B, // R2.000, x1, EventObj type
-        //_Gen_Actor1e871a = 0x1E871A, // R2.000, x1, EventObj type
-        //_Gen_Actor1e86f7 = 0x1E86F7, // R2.000, x1, EventObj type, and more spawn during fight
-        //_Gen_Actor1e86ef = 0x1E86EF, // R2.000, x1, EventObj type
-        //_Gen_Actor1e88ff = 0x1E88FF, // R0.500, x0, EventObj type, and more spawn during fight
-        //_Gen_Actor1e8ef2 = 0x1E8EF2, // R0.500, x0, EventObj type, and more spawn during fight
     };
 
     public enum AID : uint
@@ -66,12 +58,6 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
     {
         Fetters = 292, // none->player, extra=0x0
         Disseminate = 348, // Hygieia->Asclepius/Hygieia/player, extra=0x1/0x2/0x3/0x4
-        //_Gen_Slow = 10, // none->Boss, extra=0x0
-        //_Gen_Burns = 284, // none->player, extra=0x0
-        //_Gen_Neurolink = 344, // none->player, extra=0x0
-        //_Gen_WaxenFlesh = 346, // none->Boss, extra=0x1
-        //_Gen_Infirmity = 172, // Boss->player, extra=0x0
-        //_Gen_Stun = 201, // none->player, extra=0x0
     };
 
     // note: this is one of the very early fights that is not represented well by a state machine - it has multiple timers running, can delay casts randomly, can have different overlaps depending on raid dps, etc.

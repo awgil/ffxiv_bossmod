@@ -9,11 +9,13 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
 
         public override void Init(BossModule module)
         {
+            base.Init(module);
             NextExpected = module.WorldState.CurrentTime.AddSeconds(6.5f);
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
+            base.AddAIHints(module, slot, actor, assignment, hints);
             if ((NextExpected - module.WorldState.CurrentTime).TotalSeconds < 3)
             {
                 var boss = hints.PotentialTargets.Find(e => e.Actor == module.PrimaryActor);
@@ -24,6 +26,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
+            base.OnEventCast(module, caster, spell);
             if (spell.Action == WatchedAction)
                 NextExpected = module.WorldState.CurrentTime.AddSeconds(12.5f);
         }

@@ -26,6 +26,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
+            base.OnEventCast(module, caster, spell);
             switch ((AID)spell.Action.ID)
             {
                 case AID.DivebombMarker:

@@ -10,6 +10,10 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         private List<WPos> _predictedPositions = new();
         private IEnumerable<Actor> ActiveTwisters => _twisters.Where(t => t.EventState != 7);
 
+        private const float PredictBeforeCastFinish = 0; // 0.5f
+        private const float PredictAvoidRadius = 1; // 5
+        private const float TwisterCushion = 0; // 1
+
         public override void Init(BossModule module)
         {
             _twisters = module.Enemies(OID.Twister);
@@ -17,7 +21,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
 
         public override void Update(BossModule module)
         {
-            if (_predictedPositions.Count == 0 && (module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false) && (module.PrimaryActor.CastInfo.FinishAt - module.WorldState.CurrentTime).TotalSeconds < 0.5f)
+            if (_predictedPositions.Count == 0 && (module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false) && (module.PrimaryActor.CastInfo.FinishAt - module.WorldState.CurrentTime).TotalSeconds <= PredictBeforeCastFinish)
                 _predictedPositions.AddRange(module.Raid.WithoutSlot().Select(a => a.Position));
             if (_twisters.Count > 0)
                 _predictedPositions.Clear();
@@ -32,9 +36,9 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             foreach (var p in _predictedPositions)
-                hints.AddForbiddenZone(ShapeDistance.Circle(p, 5), module.PrimaryActor.CastInfo?.FinishAt ?? new());
+                hints.AddForbiddenZone(ShapeDistance.Circle(p, PredictAvoidRadius), module.PrimaryActor.CastInfo?.FinishAt ?? new());
             foreach (var t in ActiveTwisters)
-                hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, t.HitboxRadius + 1));
+                hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, t.HitboxRadius + TwisterCushion));
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
