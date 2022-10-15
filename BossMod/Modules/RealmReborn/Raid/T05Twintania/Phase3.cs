@@ -70,7 +70,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                             : predictedHP < 0.3f * e.Actor.HP.Max ? -1
                             : 1;
                         e.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.OT;
-                        bool gtfo = e.ShouldBeTanked ? e.Actor.HP.Cur == 1 : predictedHP < 0.1f * e.Actor.HP.Max;
+                        bool gtfo = predictedHP <= (e.ShouldBeTanked ? 1 : 0.1f * e.Actor.HP.Max);
                         if (gtfo)
                             hints.AddForbiddenZone(ShapeDistance.Circle(e.Actor.Position, 8));
                         break;
