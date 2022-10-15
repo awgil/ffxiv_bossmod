@@ -92,14 +92,16 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
             {
                 // see if there is anyone intercepting orb in a neurolink
                 var neurolinkUnderBoss = _hatch.Neurolinks.Find(n => n.Position.InCircle(module.PrimaryActor.Position, 1));
-                var orbIntercepted = neurolinkUnderBoss != null && module.Raid.WithoutSlot().InRadius(neurolinkUnderBoss.Position, T05Twintania.NeurolinkRadius).Any();
+                // note: i've used to have extra logic if orb is being intercepted: in such case neither target would move anywhere nor others would give space
+                // however, it's a bit finicky - instead, it's safer to just let everyone move, and if orb ends up being intercepted - oh well...
+                //var orbIntercepted = neurolinkUnderBoss != null && module.Raid.WithoutSlot().InRadius(neurolinkUnderBoss.Position, T05Twintania.NeurolinkRadius).Any();
                 if (actor == _hatch.Target)
                 {
-                    // hatch target should run to nearest neurolink if orb is not being intercepted
-                    if (!orbIntercepted)
+                    // hatch target should run to safe neurolink (except for neurolink under boss, this is unsafe) if orb is not being intercepted
+                    //if (!orbIntercepted)
                     {
                         forbidNeurolinks = false;
-                        var forbidden = _hatch.Neurolinks.Select(n => ShapeDistance.Circle(n.Position, T05Twintania.NeurolinkRadius));
+                        var forbidden = _hatch.Neurolinks.Exclude(neurolinkUnderBoss).Select(n => ShapeDistance.Circle(n.Position, T05Twintania.NeurolinkRadius));
                         hints.AddForbiddenZone(p => -forbidden.Min(f => f(p)));
                     }
                 }
@@ -113,11 +115,15 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                         hints.AddForbiddenZone(ShapeDistance.InvertedCircle(neurolinkUnderBoss.Position, T05Twintania.NeurolinkRadius));
                     }
                 }
-                else if (!orbIntercepted)
+                else //if (!orbIntercepted)
                 {
                     // everyone else should gtfo from orb path
                     foreach (var orb in _hatch.Orbs)
                         hints.AddForbiddenZone(ShapeDistance.Rect(orb.Position, _hatch.Target.Position, 2));
+                    // also avoid predicted movement path
+                    var closestNeurolink = _hatch.Neurolinks.Exclude(neurolinkUnderBoss).Closest(_hatch.Target.Position);
+                    if (closestNeurolink != null)
+                        hints.AddForbiddenZone(ShapeDistance.Rect(_hatch.Target.Position, closestNeurolink.Position, 2));
                 }
             }
 
