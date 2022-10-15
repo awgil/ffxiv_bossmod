@@ -97,14 +97,17 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D161Psycheflayer
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             base.CalculateAIHints(slot, actor, assignment, hints);
-            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
+            foreach (var e in hints.PotentialTargets)
             {
-                OID.MarbleMarionette => 4,
-                OID.StoneMarionette => 3,
-                OID.BossP1 => 2,
-                OID.BossP2 => 1,
-                _ => 0
-            });
+                e.Priority = (OID)e.Actor.OID switch
+                {
+                    OID.MarbleMarionette => 4,
+                    OID.StoneMarionette => 3,
+                    OID.BossP1 => 2,
+                    OID.BossP2 => 1,
+                    _ => 0
+                };
+            }
         }
 
         protected override void UpdateModule()

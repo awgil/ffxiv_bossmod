@@ -50,13 +50,16 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D083Adjudicator
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             base.CalculateAIHints(slot, actor, assignment, hints);
-            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
+            foreach (var e in hints.PotentialTargets)
             {
-                OID.MythrilVerge => 3,
-                OID.SunJuror => WorldState.Actors.Where(other => (OID)other.OID is OID.Platform1 or OID.Platform2 or OID.Platform3).InRadius(a.Position, 1).Any() ? 2 : -1,
-                OID.Boss => 1,
-                _ => 0
-            });
+                e.Priority = (OID)e.Actor.OID switch
+                {
+                    OID.MythrilVerge => 3,
+                    OID.SunJuror => WorldState.Actors.Where(other => (OID)other.OID is OID.Platform1 or OID.Platform2 or OID.Platform3).InRadius(e.Actor.Position, 1).Any() ? 2 : -1,
+                    OID.Boss => 1,
+                    _ => 0
+                };
+            }
         }
     }
 }

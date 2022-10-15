@@ -40,12 +40,15 @@
         {
             base.CalculateAIHints(slot, actor, assignment, hints);
             //var rancorStacks = PrimaryActor.FindStatus(SID.Rancor)?.Extra ?? 0;
-            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
+            foreach (var e in hints.PotentialTargets)
             {
-                //OID.Tonberry => a.HP.Cur > 1 && rancorStacks < 3 ? 0 : -1, // note: we don't bother with them - let tank aoe them when they reach center and invuln high stacks...
-                OID.Boss => 1,
-                _ => 0
-            });
+                e.Priority = (OID)e.Actor.OID switch
+                {
+                    //OID.Tonberry => a.HP.Cur > 1 && rancorStacks < 3 ? 0 : -1, // note: we don't bother with them - let tank aoe them when they reach center and invuln high stacks...
+                    OID.Boss => 1,
+                    _ => 0
+                };
+            }
         }
     }
 }

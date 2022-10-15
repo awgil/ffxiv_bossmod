@@ -110,12 +110,15 @@ namespace BossMod.RealmReborn.Trial.T05IfritH
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             base.CalculateAIHints(slot, actor, assignment, hints);
-            hints.AssignPotentialTargetPriorities(a => (OID)a.OID switch
+            foreach (var e in hints.PotentialTargets)
             {
-                OID.InfernalNail => 2,
-                OID.Boss => a == PrimaryActor ? 1 : 0,
-                _ => 0,
-            });
+                e.Priority = (OID)e.Actor.OID switch
+                {
+                    OID.InfernalNail => 2,
+                    OID.Boss => e.Actor == PrimaryActor ? 1 : 0,
+                    _ => 0,
+                };
+            }
         }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
