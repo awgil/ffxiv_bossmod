@@ -16,7 +16,12 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (Target != null)
-                yield return (_shape, module.PrimaryActor.Position, Angle.FromDirection(Target.Value - module.PrimaryActor.Position), HitAt);
+            {
+                if (module.PrimaryActor.CastInfo == null)
+                    yield return (_shape, module.PrimaryActor.Position, Angle.FromDirection(Target.Value - module.PrimaryActor.Position), HitAt);
+                else
+                    yield return (_shape, module.PrimaryActor.Position, module.PrimaryActor.CastInfo.Rotation, module.PrimaryActor.CastInfo.FinishAt);
+            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -36,20 +41,21 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
 
     class P3Adds : BossComponent
     {
-        public List<Actor> Hygieia { get; private set; } = new();
+        private List<Actor> _hygieia = new();
         public List<Actor> Asclepius { get; private set; } = new();
+        public IEnumerable<Actor> ActiveHygieia => _hygieia.Where(a => !a.IsDead);
 
         private const float _explosionRadius = 8;
 
         public override void Init(BossModule module)
         {
-            Hygieia = module.Enemies(OID.Hygieia);
+            _hygieia = module.Enemies(OID.Hygieia);
             Asclepius = module.Enemies(OID.Asclepius);
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            var nextHygieia = Hygieia.MinBy(a => a.InstanceID); // select next add to kill by lowest hp
+            var nextHygieia = ActiveHygieia.MinBy(a => a.InstanceID); // select next add to kill by lowest hp
             var asclepiusVuln = Asclepius.FirstOrDefault()?.FindStatus(SID.Disseminate);
             bool killHygieia = asclepiusVuln == null || (asclepiusVuln.Value.ExpireAt - module.WorldState.CurrentTime).TotalSeconds < 15;
             foreach (var e in hints.PotentialTargets)
@@ -58,10 +64,10 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                 {
                     case OID.Hygieia:
                         bool lowHP = IsLowHP(module, e.Actor);
-                        e.Priority = killHygieia && e.Actor == nextHygieia ? 2 : lowHP ? -1 : 1;
+                        e.Priority = e.Actor.HP.Cur == 1 ? 0 : killHygieia && e.Actor == nextHygieia ? 2 : lowHP ? -1 : 1;
                         e.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.OT;
                         if (lowHP)
-                            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(e.Actor.Position, 8));
+                            hints.AddForbiddenZone(ShapeDistance.Circle(e.Actor.Position, 8));
                         break;
                     case OID.Asclepius:
                         e.Priority = 1;
@@ -73,7 +79,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var a in Hygieia)
+            foreach (var a in ActiveHygieia)
             {
                 arena.Actor(a, ArenaColor.Enemy);
                 if (IsLowHP(module, a))

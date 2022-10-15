@@ -17,7 +17,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
 
         public override void Update(BossModule module)
         {
-            if (_predictedPositions.Count == 0 && (module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false) && module.PrimaryActor.CastInfo.FinishAt <= module.WorldState.CurrentTime)
+            if (_predictedPositions.Count == 0 && (module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false) && (module.PrimaryActor.CastInfo.FinishAt - module.WorldState.CurrentTime).TotalSeconds < 0.5f)
                 _predictedPositions.AddRange(module.Raid.WithoutSlot().Select(a => a.Position));
             if (_twisters.Count > 0)
                 _predictedPositions.Clear();
@@ -34,7 +34,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
             foreach (var p in _predictedPositions)
                 hints.AddForbiddenZone(ShapeDistance.Circle(p, 5), module.PrimaryActor.CastInfo?.FinishAt ?? new());
             foreach (var t in ActiveTwisters)
-                hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, t.HitboxRadius));
+                hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, t.HitboxRadius + 1));
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
