@@ -16,32 +16,31 @@ namespace BossMod.Components
         private static float _eyeOffsetV = _eyeOuterR - _eyeOuterV;
         private static float _eyeHalfAngle = MathF.Asin(_eyeOuterH / _eyeOuterR);
 
-        protected abstract IEnumerable<WPos> EyePositions(BossModule module);
-        protected abstract DateTime NextGaze(BossModule module);
+        public abstract IEnumerable<(WPos pos, DateTime activation)> EyePositions(BossModule module);
 
-        public GenericGaze(ActionID aid) : base(aid) { }
+        public GenericGaze(ActionID aid = new()) : base(aid) { }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (EyePositions(module).Any(eye => HitByEye(actor, eye)))
+            if (EyePositions(module).Any(eye => HitByEye(actor, eye.pos)))
                 hints.Add("Turn away from gaze!");
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             foreach (var eye in EyePositions(module))
-                hints.ForbiddenDirections.Add((Angle.FromDirection(eye - actor.Position), 45.Degrees(), NextGaze(module)));
+                hints.ForbiddenDirections.Add((Angle.FromDirection(eye.pos - actor.Position), 45.Degrees(), eye.activation));
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var eye in EyePositions(module))
             {
-                var eyeCenter = IndicatorScreenPos(module, eye);
+                var eyeCenter = IndicatorScreenPos(module, eye.pos);
                 var dl = ImGui.GetWindowDrawList();
                 dl.PathArcTo(eyeCenter - new Vector2(0, _eyeOffsetV), _eyeOuterR, MathF.PI / 2 + _eyeHalfAngle, MathF.PI / 2 - _eyeHalfAngle);
                 dl.PathArcTo(eyeCenter + new Vector2(0, _eyeOffsetV), _eyeOuterR, -MathF.PI / 2 + _eyeHalfAngle, -MathF.PI / 2 - _eyeHalfAngle);
-                dl.PathFillConvex(HitByEye(pc, eye) ? ArenaColor.Enemy : ArenaColor.PC);
+                dl.PathFillConvex(HitByEye(pc, eye.pos) ? ArenaColor.Enemy : ArenaColor.PC);
                 dl.AddCircleFilled(eyeCenter, _eyeInnerR, ArenaColor.Border);
             }
         }
@@ -72,6 +71,8 @@ namespace BossMod.Components
 
         public CastGaze(ActionID aid) : base(aid) { }
 
+        public override IEnumerable<(WPos pos, DateTime activation)> EyePositions(BossModule module) => _casters.Select(c => (c.Position, c.CastInfo!.FinishAt));
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction)
@@ -83,8 +84,5 @@ namespace BossMod.Components
             if (spell.Action == WatchedAction)
                 _casters.Remove(caster);
         }
-
-        protected override IEnumerable<WPos> EyePositions(BossModule module) => _casters.Select(c => c.Position);
-        protected override DateTime NextGaze(BossModule module) => _casters.Select(c => c.CastInfo!.FinishAt).Min();
     }
 }

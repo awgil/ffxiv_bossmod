@@ -11,6 +11,16 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public P2SanctityOfTheWard1Gaze() : base(ActionID.MakeSpell(AID.DragonsGazeAOE)) { }
 
+        public override IEnumerable<(WPos pos, DateTime activation)> EyePositions(BossModule module)
+        {
+            // TODO: activation time
+            if (_eyePosition != null && NumCasts == 0)
+            {
+                yield return (_eyePosition.Value, new());
+                yield return (module.PrimaryActor.Position, new());
+            }
+        }
+
         public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
         {
             // seen indices: 2 = E, 5 = SW, 6 = W => inferring 0=N, 1=NE, ... cw order
@@ -19,17 +29,6 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 _eyePosition = module.Bounds.Center + 40 * (180 - index * 45).Degrees().ToDirection();
             }
         }
-
-        protected override IEnumerable<WPos> EyePositions(BossModule module)
-        {
-            if (_eyePosition != null && NumCasts == 0)
-            {
-                yield return _eyePosition.Value;
-                yield return module.PrimaryActor.Position;
-            }
-        }
-
-        protected override DateTime NextGaze(BossModule module) => module.WorldState.CurrentTime; // TODO
     }
 
     // 'sever' (between 1/2 markers with shared damage), 'charge' (aka shining blade) + 'flare' (cw/ccw leaving exploding orbs)

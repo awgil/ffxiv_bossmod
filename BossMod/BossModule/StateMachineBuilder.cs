@@ -109,7 +109,7 @@ namespace BossMod
         }
 
         // create a phase triggered by primary actor's hp reaching specific threshold
-        public Phase HPPercentPhase(uint seqID, Action<uint> buildState, string name, float hpThreshold, float dur)
+        public Phase HPPercentPhase(uint seqID, Action<uint> buildState, string name, float hpThreshold, float dur = -1)
         {
             var phase = SimplePhase(seqID, buildState, name, dur);
             phase.Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HP.Cur < Module.PrimaryActor.HP.Max * hpThreshold;
