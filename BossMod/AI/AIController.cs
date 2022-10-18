@@ -103,7 +103,7 @@ namespace BossMod.AI
         public Angle CameraFacing => ((Camera.Instance?.CameraAzimuth ?? 0).Radians() + 180.Degrees());
         public Angle CameraAltitude => (Camera.Instance?.CameraAltitude ?? 0).Radians();
 
-        public unsafe AIController(InputOverride input, Autorotation autorot)
+        public AIController(InputOverride input, Autorotation autorot)
         {
             Input = input;
             _axisForward = new(input, VirtualKey.W, VirtualKey.S);
@@ -137,7 +137,7 @@ namespace BossMod.AI
                 Service.TargetManager.SetFocusTarget(actor != null ? Service.ObjectTable.SearchById((uint)actor.InstanceID) : null);
         }
 
-        public unsafe void Update(Actor? player)
+        public void Update(Actor? player)
         {
             if (player == null || player.IsDead || InCutscene)
             {

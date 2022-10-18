@@ -87,7 +87,7 @@ namespace BossMod
 
         public SupportedAction SupportedSpell<AID>(AID aid) where AID : Enum => SupportedActions[ActionID.MakeSpell(aid)];
 
-        protected unsafe CommonActions(Autorotation autorot, Actor player, uint[] unlockData, Dictionary<ActionID, ActionDefinition> supportedActions)
+        protected CommonActions(Autorotation autorot, Actor player, uint[] unlockData, Dictionary<ActionID, ActionDefinition> supportedActions)
         {
             Player = player;
             Autorot = autorot;
@@ -315,7 +315,7 @@ namespace BossMod
         }
 
         // fill common state properties
-        protected unsafe void FillCommonPlayerState(CommonRotation.PlayerState s)
+        protected void FillCommonPlayerState(CommonRotation.PlayerState s)
         {
             var am = ActionManagerEx.Instance!;
             var pc = Service.ClientState.LocalPlayer;
