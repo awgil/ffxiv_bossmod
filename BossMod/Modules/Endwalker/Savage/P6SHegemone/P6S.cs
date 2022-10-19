@@ -20,6 +20,11 @@
         public DarkSphere() : base(ActionID.MakeSpell(AID.DarkSphereAOE), 10) { }
     }
 
+    [ConfigDisplay(Order = 0x160, Parent = typeof(EndwalkerConfig))]
+    public class P6SConfig : CooldownPlanningConfigNode
+    {
+    }
+
     public class P6S : BossModule
     {
         public P6S(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }

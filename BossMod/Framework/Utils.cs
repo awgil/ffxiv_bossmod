@@ -220,6 +220,14 @@ namespace BossMod
         public static void SortBy<TValue, TKey>(this List<TValue> list, Func<TValue, TKey> proj) where TKey : notnull, IComparable => list.Sort((l, r) => proj(l).CompareTo(proj(r)));
         public static void SortByReverse<TValue, TKey>(this List<TValue> list, Func<TValue, TKey> proj) where TKey : notnull, IComparable => list.Sort((l, r) => proj(r).CompareTo(proj(l)));
 
+        // swap to values
+        public static void Swap<T>(ref T l, ref T r)
+        {
+            var t = l;
+            l = r;
+            r = t;
+        }
+
         // get all types defined in specified assembly
         public static IEnumerable<Type?> GetAllTypes(Assembly asm)
         {

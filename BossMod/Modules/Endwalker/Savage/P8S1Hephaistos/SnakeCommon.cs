@@ -16,13 +16,14 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
         }
     }
 
+    // snake 'priority' depends on position, CW from N: N is 0, NE is 1, and so on
     abstract class PetrifactionCommon : Components.GenericGaze
     {
         public int NumEyeCasts { get; private set; }
         public int NumBloodCasts { get; private set; }
         public int NumCrownCasts { get; private set; }
         public int NumBreathCasts { get; private set; }
-        protected List<(Actor caster, DateTime activation)> ActiveGorgons = new();
+        protected List<(Actor caster, DateTime activation, int priority)> ActiveGorgons = new();
 
         public PetrifactionCommon() : base(ActionID.MakeSpell(AID.PetrifactionAOE)) { }
 
@@ -47,7 +48,9 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
         {
             if ((AID)spell.Action.ID == AID.Petrifaction)
             {
-                ActiveGorgons.Add((caster, spell.FinishAt.AddSeconds(1.1f)));
+                var dir = Angle.FromDirection(caster.Position - module.Bounds.Center);
+                var priority = (int)MathF.Round((180 - dir.Deg) / 45) % 8;
+                ActiveGorgons.Add((caster, spell.FinishAt.AddSeconds(1.1f), priority));
             }
         }
 
