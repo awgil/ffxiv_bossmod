@@ -45,7 +45,7 @@ namespace BossMod.Components
             foreach (var p in _predictedByEvent)
                 yield return (Shape, p.pos, new(), p.time);
             foreach (var p in _predictedByCast)
-                yield return (Shape, p.caster.CastInfo!.LocXZ, new(), p.time);
+                yield return (Shape, module.WorldState.Actors.Find(p.caster.CastInfo!.TargetID)?.Position ?? p.caster.CastInfo.LocXZ, new(), p.time);
             foreach (var z in Sources(module))
                 yield return (Shape, z.Position, new(), new());
         }

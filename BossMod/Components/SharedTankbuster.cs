@@ -1,6 +1,7 @@
 ﻿namespace BossMod.Components
 {
     // generic 'shared tankbuster' component; assumes only 1 concurrent cast is active
+    // TODO: revise and improve (track invuln, ai hints, num stacked tanks?)
     public class SharedTankbuster : CastCounter
     {
         public AOEShape Shape { get; private init; }
@@ -35,6 +36,18 @@
             else
             {
                 hints.Add("GTFO from tank!", InAOE(actor));
+            }
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            if (_caster != null && _target != null && _target != actor)
+            {
+                var shape = OriginAtTarget ? Shape.Distance(_target.Position, _target.Rotation) : Shape.Distance(_caster.Position, Angle.FromDirection(_target.Position - _caster.Position));
+                if (actor.Role == Role.Tank)
+                    hints.AddForbiddenZone(p => -shape(p), _caster.CastInfo!.FinishAt);
+                else
+                    hints.AddForbiddenZone(shape, _caster.CastInfo!.FinishAt);
             }
         }
 

@@ -242,6 +242,12 @@ namespace BossMod
                 Actor(actor.Position, actor.Rotation, color);
         }
 
+        public void Actors(IEnumerable<Actor> actors, uint color, bool allowDeadAndUntargetable = false)
+        {
+            foreach (var a in actors)
+                Actor(a, color, allowDeadAndUntargetable);
+        }
+
         public void End()
         {
             ImGui.GetWindowDrawList().PopClipRect();
