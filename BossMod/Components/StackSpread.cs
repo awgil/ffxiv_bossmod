@@ -51,6 +51,8 @@ namespace BossMod.Components
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             // forbid standing next to spread markers
+            // TODO: think how to improve this, current implementation works, but isn't particularly good - e.g. nearby players tend to move to same spot, turn around, etc.
+            // ideally we should provide per-mechanic spread spots, but for simple cases we should try to let melee spread close and healers/rdd spread far from main target...
             foreach (var (_, player) in module.Raid.WithSlot().Exclude(slot).IncludedInMask(SpreadMask))
                 hints.AddForbiddenZone(_spreadShape, player.Position, new(), ActivateAt);
 
@@ -73,7 +75,8 @@ namespace BossMod.Components
             }
 
             // assume everyone will take some damage, either from sharing stacks or from spreads
-            hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), ActivateAt));
+            if ((StackMask | SpreadMask).Any())
+                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), ActivateAt));
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
