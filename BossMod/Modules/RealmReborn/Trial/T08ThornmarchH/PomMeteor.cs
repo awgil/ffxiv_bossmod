@@ -18,6 +18,9 @@ namespace BossMod.RealmReborn.Trial.T08ThornmarchH
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
+            if (_activeTowers.None())
+                return;
+
             if (_cometsLeft > 0)
             {
                 foreach (int i in _activeTowers.SetBits())
