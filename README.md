@@ -37,3 +37,9 @@ This is still work-in-progress, in future it should allow creating cooldown plan
 1. esc -> dalamud settings -> experimental -> custom plugin repositories, add https://raw.githubusercontent.com/awgil/ffxiv_plugin_distribution/master/pluginmaster.json
 2. esc -> dalamud plugins -> all plugins -> find "Boss Mod" and install
 3. settings are accessible either via esc menu or /vbm console command
+
+# Getting help
+
+When you've found a bug or think you have some issue with the plugin, please do the following:
+1. Set log level to 'debug' (type /xldev, select Dalamud -> Set log level -> Debug), reproduce the issue and find logs (typically found at C:\Users\username\AppData\Roaming\XIVLauncher\dalamud.log).
+2. Create a new issue in github, provide a detailed description (ideally include steps to reproduce the issue) and attach logs.
