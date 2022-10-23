@@ -97,8 +97,9 @@ namespace BossMod
 
                 if (actor != null && actor.InstanceID != obj?.ObjectId)
                 {
+                    _actorsByIndex[i] = null;
                     RemoveActor(actor);
-                    actor = _actorsByIndex[i] = null;
+                    actor = null;
                 }
 
                 if (obj != null)
