@@ -31,7 +31,11 @@ namespace BossMod
             [RequiredVersion("1.0")] CommandManager commandManager)
         {
             dalamud.Create<Service>();
+#if DEBUG
             Service.LogHandler = (string msg) => PluginLog.Log(msg);
+#else
+            Service.LogHandler = (string msg) => PluginLog.Debug(msg);
+#endif
             Service.LuminaGameData = Service.DataManager.GameData;
             //Service.Device = pluginInterface.UiBuilder.Device;
             Service.Condition.ConditionChange += OnConditionChanged;
