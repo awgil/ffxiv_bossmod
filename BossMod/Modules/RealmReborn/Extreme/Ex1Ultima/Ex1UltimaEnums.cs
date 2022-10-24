@@ -2,55 +2,65 @@
 {
     public enum OID : uint
     {
-        Boss = 0x90F,
-        //Ifrit = 0x385C, // x1
-        //Titan = 0x385D, // x1
-        //Garuda = 0x385E, // x1
-        //Aetheroplasm = 0x385F, // spawn mid fight, orbs that can be kited
-        //Ultimaplasm = 0x3860, // spawn mid fight, aetheric boom orbs
-        //MagitekBit = 0x3861, // spawn mid fight
-        //Helper = 0x3867, // x19
-        //AetheroplasmHelper = 0x3868, // x3
+        Boss = 0x90F, // R6.000, x1
+        UltimaIfrit = 0x910, // R5.000, x1
+        UltimaTitan = 0x911, // R5.250, x1
+        UltimaGaruda = 0x912, // R3.400, x1
+        Aetheroplasm = 0x913, // R1.000, more spawn during fight, orbs that can be kited
+        Ultimaplasm = 0x914, // R1.000, more spawn during fight, aetheric boom orbs
+        MagitekBit = 0x915, // R0.600, more spawn during fight
+        Helper = 0x1B2, // R0.500, x19
+        AetheroplasmHelper = 0x8EE, // R0.500, x3
+
+        //_Gen_Actor1e8536 = 0x1E8536, // R2.000, x1, EventObj type
+        //_Gen_Actor1e8f3a = 0x1E8F3A, // R2.000, x1, EventObj type
+        //_Gen_Actor1e8f3d = 0x1E8F3D, // R2.000, x1, EventObj type
+        //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
+        //_Gen_Actor1e8f3c = 0x1E8F3C, // R2.000, x1, EventObj type
+        //_Gen_Actor1e8f3e = 0x1E8F3E, // R2.000, x1, EventObj type
+        //_Gen_Actor1e8f3b = 0x1E8F3B, // R2.000, x1, EventObj type
+        //_Gen_Actor1e8f39 = 0x1E8F39, // R2.000, x1, EventObj type
     };
 
     public enum AID : uint
     {
-        //AutoAttack = 28426, // cleave range 2
-        //ViscousAetheroplasm = 28398, // Boss->mt, no cast, stacking debuff, range 2 cleave
-        //ViscousAetheroplasmKill = 28422, // Boss->target, no cast, if debuff reaches 5 stacks
-        //CeruleumVent = 28399, // Boss->self, no cast, range 8 aoe (around self)
-        //HomingLasers = 28400, // Boss->target, no cast, range 4 aoe (around random target)
-        //DiffractiveLaser = 28401, // Boss->self, no cast, range 12 120-degree (?) cone (should only hit mt)
-        //MagitekRayCenter = 28402, // Helper->self, 2.2s cast, range 40 half-width 3 rect
-        //MagitekRayRight = 28403, // Helper->self, 2.2s cast, range 40 half-width 3 rect
-        //MagitekRayLeft = 28404, // Helper->self, 2.2s cast, range 40 half-width 3 rect
-        //TankPurge = 28409, // Boss->self, 3.5s cast, raidwide
+        AutoAttack = 1420, // Boss->player, no cast, range 2 circle cleave
+        ViscousAetheroplasm = 1503, // Boss->player, no cast, range 2 circle cleave, stacking debuff
+        ViscousAetheroplasmKill = 1546, // Helper->player, no cast, single-target, if debuff reaches 5 stacks
 
-        //MistralSong = 28412, // Garuda->self, 3s cast, range 20 150-degree (?) cone
-        //VulcanBurst = 28413, // Boss->self, no cast, knockback 30
-        //EyeOfTheStorm = 28414, // Helper->self, 3s cast, range 25 donut aoe, 15? inner
-        //Geocrush = 28415, // Titan->self, 4s cast, range 25 aoe with ? falloff
+        CeruleumVent = 1504, // Boss->self, no cast, range 8+R circle aoe
+        HomingLasers = 1505, // Boss->player, no cast, range 4 circle aoe around random target
+        DiffractiveLaser = 1506, // Boss->self, no cast, range 12+R 120-degree cone cleave (after primal phases end)
+        MagitekRayCenter = 1507, // Helper->self, 2.2s cast, range 40+R width 6 rect
+        MagitekRayRight = 1508, // Helper->self, 2.2s cast, range 40+R width 6 rect
+        MagitekRayLeft = 1509, // Helper->self, 2.2s cast, range 40+R width 6 rect
+        TankPurge = 1514, // Boss->self, 3.5s cast, raidwide
+        Ultima = 1516, // Boss->self, 11.0s cast, enrage
 
-        //RadiantPlume = 28416, // Helper->location, 3s cast, range 8 aoe
-        //WeightOfTheLand = 28417, // Helper->location, 3s cast, range 6 aoe
+        MistralSong = 1517, // UltimaGaruda->self, 3.0s cast, range 20+R 150-degree cone
+        VulcanBurst = 1518, // Boss->self, no cast, range 16+R circle, knockback 30
+        EyeOfTheStorm = 1519, // Helper->self, 3.0s cast, range 12-25 donut aoe
+        Geocrush = 1520, // UltimaTitan->self, 4.0s cast, range 25 circle aoe with ? falloff
 
-        //Eruption = 28419, // Helper->location, 3s cast, range 8 aoe
-        //CrimsonCyclone = 28420, // Ifrit->self, 3s cast, range 38 half-width 6 rect
+        RadiantPlume = 1521, // Helper->location, 3.0s cast, range 8 circle aoe
+        WeightOfTheLand = 1522, // Helper->location, 3.0s cast, range 6 circle aoe
 
-        //AethericBoom = 28406, // Boss->self, 4s cast, knockback 30
-        //AetheroplasmBoom = 28407, // Ultimaplasm->self, no cast, range 8 shared-damage aoe
-        //FusionBurst = 28408, // Ultimaplasm->self, no cast, wipe if orbs touch
-        //OrbFixate = 28423, // AetheroplasmHelper->target, no cast, target select for fixate
-        //AetheroplasmFixated = 28405, // Aetheroplasm->self, no cast, range 6 aoe
+        Eruption = 1524, // Helper->location, 3.0s cast, range 8 circle aoe
+        CrimsonCyclone = 1525, // UltimaIfrit->self, 3.0s cast, range 38+R width 12 rect aoe
 
-        //AssaultCannon = 28421, // MagitekBit->self, 2.5s cast, range 45 half-width 1 rect
-        //Detonation = 28410, // Helper->self, no cast, range 40 aoe with ? falloff (TODO: don't know how to detect in advance...)
+        AethericBoom = 1511, // Boss->self, 4.0s cast, range 40 circle knockback 30
+        AetheroplasmBoom = 1512, // Ultimaplasm->self, no cast, range 8 circle shared aoe
+        FusionBurst = 1513, // Ultimaplasm->self, no cast, wipe if orbs touch
+        OrbFixate = 1650, // AetheroplasmHelper->player, no cast, single-target, orb fixate icon
+        AetheroplasmFixated = 1510, // Aetheroplasm->self, no cast, range 6 circle aoe
+
+        AssaultCannon = 1526, // MagitekBit->self, 2.5s cast, range 45+R width 2 rect aoe
+        Freefire = 1515, // Helper->self, no cast, range 40 circle aoe with 15 falloff
     };
 
     public enum SID : uint
     {
-        None = 0,
-        //ViscousAetheroplasm = 369,
+        ViscousAetheroplasm = 369, // Boss->player, extra=0x1/0x2/0x3/0x4/0x5
     }
 
     public enum TetherID : uint

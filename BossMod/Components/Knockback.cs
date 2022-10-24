@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Components
@@ -20,8 +19,11 @@ namespace BossMod.Components
 
         public static void DrawKnockback(Actor actor, WPos adjPos, MiniArena arena)
         {
-            arena.Actor(adjPos, actor.Rotation, ArenaColor.Danger);
-            arena.AddLine(actor.Position, adjPos, ArenaColor.Danger);
+            if (actor.Position != adjPos)
+            {
+                arena.Actor(adjPos, actor.Rotation, ArenaColor.Danger);
+                arena.AddLine(actor.Position, adjPos, ArenaColor.Danger);
+            }
         }
 
         public Knockback(float distance, ActionID aid = new(), bool ignoreImmunes = false) : base(aid)
@@ -34,11 +36,11 @@ namespace BossMod.Components
         {
             switch (status.ID)
             {
-                case 160: // surecast
-                case 1209: // arm's length
+                case (uint)WHM.SID.Surecast:
+                case (uint)WAR.SID.ArmsLength:
                     _armsLengthSurecast.Set(module.Raid.FindSlot(actor.InstanceID));
                     break;
-                case 2663: // inner strength
+                case (uint)WAR.SID.InnerStrength:
                     _innerStrength.Set(module.Raid.FindSlot(actor.InstanceID));
                     break;
             }
@@ -48,11 +50,11 @@ namespace BossMod.Components
         {
             switch (status.ID)
             {
-                case 160: // surecast
-                case 1209: // arm's length
+                case (uint)WHM.SID.Surecast:
+                case (uint)WAR.SID.ArmsLength:
                     _armsLengthSurecast.Clear(module.Raid.FindSlot(actor.InstanceID));
                     break;
-                case 2663: // inner strength
+                case (uint)WAR.SID.InnerStrength:
                     _innerStrength.Clear(module.Raid.FindSlot(actor.InstanceID));
                     break;
             }
