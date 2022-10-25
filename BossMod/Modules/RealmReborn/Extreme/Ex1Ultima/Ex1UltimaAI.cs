@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace BossMod.RealmReborn.Extreme.Ex1Ultima
 {
@@ -16,21 +17,21 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            if (module.PrimaryActor.TargetID != actor.InstanceID && hints.ForbiddenZones.Count == 1) // for non-mt, there is always a cleave
+            if (module.PrimaryActor.TargetID != actor.InstanceID && hints.ForbiddenZones.Count == 1 && !module.Enemies(OID.MagitekBit).Any(a => !a.IsDead)) // for non-mt, there is always a cleave
             {
                 // default positions: tank boss at the edge facing N, OT south of boss, M1/M2 to the left/right (so that they can slightly adjust for positionals), H1/H2/R1/R2 to S outside ceruleum vent range, all spread somewhat to avoid homing lasers
                 // when tanks need to swap, OT moves between boss and MT and taunts; OT needs to ignore diffractive lasers at this point
                 WDir hintOffset = assignment switch
                 {
                     PartyRolesConfig.Assignment.M1 => _meleeRange * 45.Degrees().ToDirection(),
-                    PartyRolesConfig.Assignment.M2 => _meleeRange * -45.Degrees().ToDirection(),
+                    PartyRolesConfig.Assignment.M2 => _meleeRange * (-45).Degrees().ToDirection(),
                     PartyRolesConfig.Assignment.R1 => _rangedRange * 30.Degrees().ToDirection(),
-                    PartyRolesConfig.Assignment.R2 => _rangedRange * -30.Degrees().ToDirection(),
+                    PartyRolesConfig.Assignment.R2 => _rangedRange * (-30).Degrees().ToDirection(),
                     PartyRolesConfig.Assignment.H1 => _rangedRange * 10.Degrees().ToDirection(),
-                    PartyRolesConfig.Assignment.H2 => _rangedRange * -10.Degrees().ToDirection(),
-                    _ => new(0, _viscousAetheroplasm!.NeedTankSwap ? 4 : -_meleeRange)
+                    PartyRolesConfig.Assignment.H2 => _rangedRange * (-10).Degrees().ToDirection(),
+                    _ => new(0, _viscousAetheroplasm!.NeedTankSwap ? -4 : _meleeRange)
                 };
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.PrimaryActor.Position + hintOffset, 1), DateTime.MaxValue);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.PrimaryActor.Position + hintOffset, 1.5f), DateTime.MaxValue);
             }
 
             foreach (var e in hints.PotentialTargets)

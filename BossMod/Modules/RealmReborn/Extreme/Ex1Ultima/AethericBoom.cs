@@ -65,7 +65,7 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
                 if (NumCasts < 2)
                 {
                     // first or second cast in progress => stack S of boss to be knocked back roughly in same direction
-                    hints.AddForbiddenZone(ShapeDistance.Cone(module.PrimaryActor.Position, 50, 180.Degrees(), 160.Degrees()));
+                    hints.AddForbiddenZone(ShapeDistance.Cone(module.PrimaryActor.Position, 50, 180.Degrees(), 170.Degrees()));
                 }
                 else
                 {
@@ -119,7 +119,7 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
         private void PrepositionForOrbs(AIHints hints, PartyRolesConfig.Assignment assignment, int orbsCount)
         {
             float x = assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.R1 ? 2 : -2;
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(x, -10), 1));
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(x, 10), 1.5f));
         }
     }
 }
