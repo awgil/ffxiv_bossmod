@@ -92,15 +92,15 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
             {
                 // run to pop next orb
                 var nextOrb = _orbsToPop[0];
-                if (!actor.Position.InCircle(nextOrb.Position, _explosionRadius - 1))
+                if (actor.Role is Role.Melee or Role.Tank && module.Raid.WithoutSlot().InRadius(nextOrb.Position, _explosionRadius).Count() > 5)
+                {
+                    // pop the orb
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(nextOrb.Position, 1.5f));
+                }
+                else
                 {
                     // run closer to the orb
                     hints.AddForbiddenZone(ShapeDistance.InvertedCircle(nextOrb.Position + nextOrb.Rotation.ToDirection(), _explosionRadius - 2));
-                }
-                else if (actor.Role is Role.Melee or Role.Tank && module.Raid.WithoutSlot().InRadius(nextOrb.Position, _explosionRadius).Count() > 5)
-                {
-                    // pop the orb
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(nextOrb.Position, 1));
                 }
             }
         }

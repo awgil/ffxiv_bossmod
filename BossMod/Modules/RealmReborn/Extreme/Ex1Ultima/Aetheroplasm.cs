@@ -27,8 +27,8 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
                 // TODO: + line to kiter
                 hints.AddForbiddenZone(ShapeDistance.Circle(orb.Position, _explosionRadius + 1));
                 var kiter = MostLikelyKiter(module, orb);
-                if (kiter != null)
-                    hints.AddForbiddenZone(ShapeDistance.Rect(orb.Position, kiter.Position, _explosionRadius - 1));
+                if (kiter != null && kiter != actor)
+                    hints.AddForbiddenZone(ShapeDistance.Rect(orb.Position, kiter.Position, 2));
             }
         }
 
