@@ -29,7 +29,7 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
                     PartyRolesConfig.Assignment.R2 => _rangedRange * (-30).Degrees().ToDirection(),
                     PartyRolesConfig.Assignment.H1 => _rangedRange * 10.Degrees().ToDirection(),
                     PartyRolesConfig.Assignment.H2 => _rangedRange * (-10).Degrees().ToDirection(),
-                    _ => new(0, _viscousAetheroplasm!.NeedTankSwap ? -4 : _meleeRange)
+                    _ => new(0, _viscousAetheroplasm!.NeedTankSwap ? -2 : _meleeRange)
                 };
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.PrimaryActor.Position + hintOffset, 1.5f), DateTime.MaxValue);
             }

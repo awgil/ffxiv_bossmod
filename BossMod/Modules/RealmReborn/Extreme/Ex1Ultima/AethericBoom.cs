@@ -57,8 +57,15 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            if (!OrbsActive || module.PrimaryActor.TargetID == actor.InstanceID)
-                return; // current MT should not be doing this mechanic
+            if (!OrbsActive)
+                return;
+
+            if (module.PrimaryActor.TargetID == actor.InstanceID)
+            {
+                // current MT should not be doing this mechanic
+                foreach (var orb in _activeOrbs)
+                    hints.AddForbiddenZone(ShapeDistance.Circle(orb.Position, 3));
+            }
 
             if (Active)
             {
