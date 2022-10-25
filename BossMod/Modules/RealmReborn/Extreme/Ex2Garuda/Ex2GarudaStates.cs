@@ -10,10 +10,12 @@
             _module = module;
             SimplePhase(0, Phase1, "Plumes")
                 .ActivateOnEnter<EyeOfTheStorm>()
+                .ActivateOnEnter<FeatherRain>()
                 .Raw.Update = () => _module.PrimaryActor.IsDestroyed || _module.Chirada.Count + _module.Suparna.Count > 0;
             DeathPhase(1, Phase2)
                 .ActivateOnEnter<AerialBlast>()
                 .ActivateOnEnter<MistralShriek>()
+                .ActivateOnEnter<FeatherRain>()
                 .ActivateOnEnter<Gigastorm>()
                 .ActivateOnEnter<SpinyShield>()
                 .ActivateOnEnter<Ex2GarudaAI>();
@@ -39,9 +41,7 @@
                 .DeactivateOnExit<Slipstream>()
                 .DeactivateOnExit<Ex2GarudaAI>();
             Targetable(id + 1, true, 6.8f, "Reappear")
-                .ActivateOnEnter<Song>()
-                .ActivateOnEnter<FeatherRain>()
-                .DeactivateOnExit<FeatherRain>();
+                .ActivateOnEnter<Song>();
             Cast(id + 0x10, AID.MistralSong, 0.6f, 1, "Hide behind pillars")
                 .DeactivateOnExit<Song>();
         }
@@ -65,7 +65,7 @@
 
         private void Subphase2(uint id, float delay)
         {
-            Targetable(id, false, delay, "Disappear")
+            Targetable(id, false, delay, "Disappear", 60)
                 .ActivateOnEnter<DownburstBoss>()
                 .ActivateOnEnter<DownburstSuparna>()
                 .ActivateOnEnter<DownburstChirada>()
@@ -76,9 +76,7 @@
                 .DeactivateOnExit<DownburstChirada>()
                 .DeactivateOnExit<Slipstream>()
                 .DeactivateOnExit<FrictionAdds>();
-            Targetable(id + 1, true, 6.8f, "Reappear")
-                .ActivateOnEnter<FeatherRain>()
-                .DeactivateOnExit<FeatherRain>();
+            Targetable(id + 1, true, 6.8f, "Reappear");
             Cast(id + 0x10, AID.AerialBlast, 0.6f, 4, "Raidwide");
         }
 
@@ -90,15 +88,11 @@
                 .ActivateOnEnter<Slipstream>()
                 .DeactivateOnExit<DownburstBoss>()
                 .DeactivateOnExit<Slipstream>();
-            Targetable(id + 1, true, 7.5f, "Reappear")
-                .ActivateOnEnter<FeatherRain>()
-                .DeactivateOnExit<FeatherRain>();
+            Targetable(id + 1, true, 7.5f, "Reappear");
             Cast(id + 0x10, AID.MistralShriek, 0.6f, 3, "Raidwide");
             Targetable(id + 0x20, false, 2.3f, "Disappear")
                 .DeactivateOnExit<EyeOfTheStorm>();
-            Targetable(id + 0x21, true, 6.8f, "Reappear")
-                .ActivateOnEnter<FeatherRain>()
-                .DeactivateOnExit<FeatherRain>();
+            Targetable(id + 0x21, true, 6.8f, "Reappear");
         }
 
         private void Subphase4(uint id, float delay)
@@ -116,8 +110,6 @@
                 .DeactivateOnExit<Slipstream>()
                 .DeactivateOnExit<FrictionAdds>();
             Targetable(id + 1, true, 6.8f, "Reappear")
-                .ActivateOnEnter<FeatherRain>()
-                .DeactivateOnExit<FeatherRain>()
                 .DeactivateOnExit<GreatWhirlwind>();
             Cast(id + 0x10, AID.AerialBlast, 0.6f, 4, "Raidwide");
         }

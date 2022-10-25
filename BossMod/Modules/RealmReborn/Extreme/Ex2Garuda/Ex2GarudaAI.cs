@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace BossMod.RealmReborn.Extreme.Ex2Garuda
 {
@@ -33,11 +34,11 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
                             e.DesiredPosition = module.Bounds.Center + 8 * e.DesiredRotation.ToDirection();
                         }
                         break;
-                    case OID.Suparna:
+                    case OID.Chirada:
                         e.Priority = 2;
                         e.AttackStrength = 0.15f;
                         break;
-                    case OID.Chirada:
+                    case OID.Suparna:
                         e.Priority = assignment != PartyRolesConfig.Assignment.MT ? 3 : 0;
                         e.AttackStrength = 0.15f;
                         e.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.OT;
@@ -68,9 +69,17 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
             }
 
             // don't stand near monoliths to avoid clipping them with friction
+            bool haveMonoliths = false;
             foreach (var monolith in module.Enemies(OID.Monolith).Where(a => !a.IsDead))
             {
                 hints.AddForbiddenZone(ShapeDistance.Circle(monolith.Position, 5));
+                haveMonoliths = true;
+            }
+
+            if (haveMonoliths && actor.Role is Role.Healer or Role.Ranged)
+            {
+                // have ranged stay in center to avoid los issues
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.Bounds.Center, 9), DateTime.MaxValue);
             }
         }
     }
