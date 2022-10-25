@@ -11,15 +11,6 @@
         MagitekBit = 0x915, // R0.600, more spawn during fight
         Helper = 0x1B2, // R0.500, x19
         AetheroplasmHelper = 0x8EE, // R0.500, x3
-
-        //_Gen_Actor1e8536 = 0x1E8536, // R2.000, x1, EventObj type
-        //_Gen_Actor1e8f3a = 0x1E8F3A, // R2.000, x1, EventObj type
-        //_Gen_Actor1e8f3d = 0x1E8F3D, // R2.000, x1, EventObj type
-        //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
-        //_Gen_Actor1e8f3c = 0x1E8F3C, // R2.000, x1, EventObj type
-        //_Gen_Actor1e8f3e = 0x1E8F3E, // R2.000, x1, EventObj type
-        //_Gen_Actor1e8f3b = 0x1E8F3B, // R2.000, x1, EventObj type
-        //_Gen_Actor1e8f39 = 0x1E8F39, // R2.000, x1, EventObj type
     };
 
     public enum AID : uint
@@ -61,15 +52,5 @@
     public enum SID : uint
     {
         ViscousAetheroplasm = 369, // Boss->player, extra=0x1/0x2/0x3/0x4/0x5
-    }
-
-    public enum TetherID : uint
-    {
-        None = 0,
-    }
-
-    public enum IconID : uint
-    {
-        None = 0,
     }
 }
