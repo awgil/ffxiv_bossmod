@@ -79,7 +79,7 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
             if (haveMonoliths && actor.Role is Role.Healer or Role.Ranged)
             {
                 // have ranged stay in center to avoid los issues
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.Bounds.Center, 9), DateTime.MaxValue);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.Bounds.Center, 7), DateTime.MaxValue);
             }
         }
     }

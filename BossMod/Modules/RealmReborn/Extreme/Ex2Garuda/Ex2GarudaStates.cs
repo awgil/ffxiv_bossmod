@@ -1,6 +1,5 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex2Garuda
 {
-    // note: there is no component for wicked wheel, it is not particularly useful for visualization, and ai handles that by position hints
     class Ex2GarudaStates : StateMachineBuilder
     {
         private Ex2Garuda _module;
@@ -71,11 +70,13 @@
                 .ActivateOnEnter<DownburstChirada>()
                 .ActivateOnEnter<Slipstream>()
                 .ActivateOnEnter<FrictionAdds>()
+                .ActivateOnEnter<WickedWheel>()
                 .DeactivateOnExit<DownburstBoss>()
                 .DeactivateOnExit<DownburstSuparna>()
                 .DeactivateOnExit<DownburstChirada>()
                 .DeactivateOnExit<Slipstream>()
-                .DeactivateOnExit<FrictionAdds>();
+                .DeactivateOnExit<FrictionAdds>()
+                .DeactivateOnExit<WickedWheel>();
             Targetable(id + 1, true, 6.8f, "Reappear");
             Cast(id + 0x10, AID.AerialBlast, 0.6f, 4, "Raidwide");
         }
@@ -104,11 +105,13 @@
                 .ActivateOnEnter<DownburstChirada>()
                 .ActivateOnEnter<Slipstream>()
                 .ActivateOnEnter<FrictionAdds>()
+                .ActivateOnEnter<WickedWheel>()
                 .DeactivateOnExit<DownburstBoss>()
                 .DeactivateOnExit<DownburstSuparna>()
                 .DeactivateOnExit<DownburstChirada>()
                 .DeactivateOnExit<Slipstream>()
-                .DeactivateOnExit<FrictionAdds>();
+                .DeactivateOnExit<FrictionAdds>()
+                .DeactivateOnExit<WickedWheel>();
             Targetable(id + 1, true, 6.8f, "Reappear")
                 .DeactivateOnExit<GreatWhirlwind>();
             Cast(id + 0x10, AID.AerialBlast, 0.6f, 4, "Raidwide");
