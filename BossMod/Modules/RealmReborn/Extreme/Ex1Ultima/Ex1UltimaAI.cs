@@ -42,7 +42,7 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
                     case OID.Boss:
                         e.Priority = 1;
                         e.AttackStrength = 0.25f;
-                        e.DesiredPosition = new(0, -11);
+                        e.DesiredPosition = new(0, -10);
                         e.DesiredRotation = 180.Degrees();
                         e.PreferProvoking = e.ShouldBeTanked = module.PrimaryActor.TargetID == actor.InstanceID ? !_viscousAetheroplasm!.NeedTankSwap : _viscousAetheroplasm!.NeedTankSwap && actor.Role == Role.Tank && actor.PosRot.Z < module.PrimaryActor.PosRot.Z;
                         break;

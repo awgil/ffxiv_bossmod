@@ -51,6 +51,7 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
+            base.OnEventCast(module, caster, spell);
             if (spell.Action == WatchedAction)
                 _casters.Remove(caster);
         }
