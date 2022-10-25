@@ -65,6 +65,7 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
                 // current MT should not be doing this mechanic
                 foreach (var orb in _activeOrbs)
                     hints.AddForbiddenZone(ShapeDistance.Circle(orb.Position, 3));
+                return;
             }
 
             if (Active)
