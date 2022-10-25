@@ -29,7 +29,7 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
                 Modify(null, ActiveBlockers(module));
         }
 
-        private IEnumerable<(WPos, float)> ActiveBlockers(BossModule module) => module.Enemies(OID.Monolith).Where(a => !a.IsDead).Select(a => (a.Position, a.HitboxRadius));
+        private IEnumerable<(WPos, float)> ActiveBlockers(BossModule module) => module.Enemies(OID.Monolith).Where(a => !a.IsDead).Select(a => (a.Position, a.HitboxRadius - 0.5f));
     }
 
     class MistralSong1 : MistralSong
