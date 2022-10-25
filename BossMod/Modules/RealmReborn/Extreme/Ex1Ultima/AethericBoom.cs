@@ -83,9 +83,9 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
                     PrepositionForOrbs(hints, assignment, 3);
                 }
             }
-            else if (_waitingForOrbs)
+            else if (_waitingForOrbs || NumCasts == 3)
             {
-                // preposition while waiting for orbs
+                // preposition while waiting for orbs (or for static positions at third orbs)
                 PrepositionForOrbs(hints, assignment, NumCasts);
             }
             else
@@ -126,8 +126,16 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
 
         private void PrepositionForOrbs(AIHints hints, PartyRolesConfig.Assignment assignment, int orbsCount)
         {
-            float x = assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.R1 ? 2 : -2;
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(x, 10), 1.5f));
+            float x = assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.R1 ? 1 : -1;
+            if (orbsCount == 3 && assignment is PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.M2)
+            {
+                // sacrifice melees on side orbs, this sucks but whatever
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(10 * x, -2), 1.5f));
+            }
+            else
+            {
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(2 * x, 10), 1.5f));
+            }
         }
     }
 }
