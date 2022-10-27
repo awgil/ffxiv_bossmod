@@ -4,7 +4,7 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
 {
     class Upheaval : Components.KnockbackFromCaster
     {
-        public Upheaval() : base(ActionID.MakeSpell(AID.Upheaval), 15) { } // TODO: verify range
+        public Upheaval() : base(ActionID.MakeSpell(AID.Upheaval), 13) { }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {

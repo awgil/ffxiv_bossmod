@@ -19,7 +19,7 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
             SimplePhase(2, Phase2, "Phase 2")
                 .ActivateOnEnter<LandslideBurst>()
                 .ActivateOnEnter<WeightOfTheLand>()
-                .ActivateOnEnter<RockThrow>()
+                .ActivateOnEnter<GraniteGaol>()
                 .ActivateOnEnter<Upheaval>()
                 .ActivateOnEnter<Ex3TitanAI>()
                 .Raw.Update = () => module.PrimaryActor.IsDestroyed || !module.PrimaryActor.IsTargetable; // lasts until second untargetable
@@ -28,7 +28,7 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
             SimplePhase(4, Phase3, "Phase 3")
                 .ActivateOnEnter<LandslideBurst>()
                 .ActivateOnEnter<WeightOfTheLand>()
-                .ActivateOnEnter<RockThrow>()
+                .ActivateOnEnter<GraniteGaol>()
                 .ActivateOnEnter<Upheaval>()
                 .ActivateOnEnter<Ex3TitanAI>()
                 .Raw.Update = () => module.PrimaryActor.IsDestroyed || !(module.Heart()?.IsTargetable ?? false);
@@ -37,7 +37,7 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
             DeathPhase(6, Phase4)
                 .ActivateOnEnter<LandslideBurst>()
                 .ActivateOnEnter<WeightOfTheLand>()
-                .ActivateOnEnter<RockThrow>()
+                .ActivateOnEnter<GraniteGaol>()
                 .ActivateOnEnter<Upheaval>()
                 .ActivateOnEnter<Ex3TitanAI>()
                 .ActivateOnEnter<GaolerVoidzone>(); // note: activated after AI, so that it doesn't fuck up positioning
@@ -81,7 +81,7 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
         private void Phase2Repeat(uint id, float delay, bool even)
         {
             GaolsNonHeart(id, delay);
-            Tumult(id + 0x10000, 6.2f); // TODO: timing?..
+            Tumult(id + 0x10000, 6.2f);
             WeightOfTheLand(id + 0x20000, 3.1f);
             MountainBuster(id + 0x30000, 3.6f);
             Landslide(id + 0x40000, 5.1f);
@@ -174,7 +174,7 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
 
         private void Tumult(uint id, float delay)
         {
-            ComponentCondition<Tumult>(id, delay, comp => comp.NumCasts > 0, "Raidwide first")
+            ComponentCondition<Tumult>(id, delay, comp => comp.NumCasts > 0, "Raidwide first", 10)
                 .ActivateOnEnter<Tumult>()
                 .SetHint(StateMachine.StateHint.Raidwide);
             ComponentCondition<Tumult>(id + 1, 1.2f, comp => comp.NumCasts > 1)
@@ -198,27 +198,27 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
 
         private void GaolsNonHeart(uint id, float delay)
         {
-            ComponentCondition<RockThrow>(id, delay, comp => comp.PendingFetters.Any(), "Gaol markers");
+            ComponentCondition<GraniteGaol>(id, delay, comp => comp.PendingFetters.Any(), "Gaol markers");
             // +2.9s: fetters
             // +4.2s: gaols create
             // +5.0s: gaols targetable
             // +6.5s: granite sepulchre cast start
             MountainBuster(id + 0x100, 4.1f);
             Cast(id + 0x200, AID.Upheaval, 4.1f, 5, "Knockback");
-            //Landslide(id + 0x300, ???) - this doesn't happen after gaols when solo :(
+            Landslide(id + 0x300, 2.8f); // note: this gets skipped entirely if there is no one alive and unfettered, e.g. when doing solo
             // granite sepulchre cast ends during next mechanic, but realistically they should be killed earlier
         }
 
         private void GaolsHeart(uint id, float delay)
         {
-            ComponentCondition<RockThrow>(id, delay, comp => comp.PendingFetters.Any(), "Gaol markers");
+            ComponentCondition<GraniteGaol>(id, delay, comp => comp.PendingFetters.Any(), "Gaol markers");
             // +2.9s: fetters
             // +4.2s: gaols create
             // +5.0s: gaols targetable
             // +6.5s: granite sepulchre cast start
             RockBuster(id + 0x100, 5.5f);
             Cast(id + 0x200, AID.Upheaval, 2.0f, 5, "Knockback");
-            //Landslide(id + 0x300, ???) - this doesn't happen after gaols when solo :(
+            Landslide(id + 0x300, 2.8f); // note: this gets skipped entirely if there is no one alive and unfettered, e.g. when doing solo
             // granite sepulchre cast ends during next mechanic, but realistically they should be killed earlier
         }
 

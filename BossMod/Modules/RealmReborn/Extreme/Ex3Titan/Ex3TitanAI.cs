@@ -6,11 +6,11 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
     class Ex3TitanAI : BossComponent
     {
         public bool KillNextBomb;
-        private RockThrow? _rockThrow;
+        private GraniteGaol? _rockThrow;
 
         public override void Init(BossModule module)
         {
-            _rockThrow = module.FindComponent<RockThrow>();
+            _rockThrow = module.FindComponent<GraniteGaol>();
         }
 
         public override void Update(BossModule module)
@@ -42,7 +42,7 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
                             // OT's vuln will expire right before 5th buster, so MT will eat 1/4/7/... and OT will eat 2+3/5+6/...
                             // however, in reality phase is going to be extremely short - 1 or 2 tb's?..
                             bool isCurrentTank = actor.InstanceID == module.PrimaryActor.TargetID;
-                            bool needTankSwap = !haveGaolers && module.FindComponent<MountainBuster>() == null && TankVulnStacks(module) >= 3;
+                            bool needTankSwap = !haveGaolers && module.FindComponent<MountainBuster>() == null && TankVulnStacks(module) >= 2;
                             e.PreferProvoking = e.ShouldBeTanked = isCurrentTank != needTankSwap;
                         }
                         break;
