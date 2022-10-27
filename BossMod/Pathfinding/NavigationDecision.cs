@@ -210,10 +210,17 @@ namespace BossMod.Pathfinding
                     adjPrio = map.AddGoal(ShapeDistanceRear(targetPos, targetRot), 0, minPriority, 1);
                     break;
                 case Positional.Front:
+                    Func<int, int, bool> suitable = (x, y) =>
+                    {
+                        if (!map.InBounds(x, y))
+                            return false;
+                        var pixel = map[x, y];
+                        return pixel.Priority >= minPriority && pixel.MaxG == float.MaxValue;
+                    };
+
                     var dir = targetRot.ToDirection();
                     var maxRange = map.WorldToGrid(targetPos + dir * targetRadius);
-                    var pixel = map[maxRange.x, maxRange.y];
-                    if (pixel.Priority >= minPriority && pixel.MaxG == float.MaxValue)
+                    if (suitable(maxRange.x, maxRange.y))
                     {
                         adjPrio = map.AddGoal(maxRange.x, maxRange.y, 1);
                     }
@@ -222,8 +229,7 @@ namespace BossMod.Pathfinding
                         var minRange = map.WorldToGrid(targetPos + dir * 3);
                         foreach (var p in map.EnumeratePixelsInLine(maxRange.x, maxRange.y, minRange.x, minRange.y))
                         {
-                            pixel = map[p.x, p.y];
-                            if (pixel.Priority >= minPriority && pixel.MaxG == float.MaxValue)
+                            if (suitable(p.x, p.y))
                             {
                                 adjPrio = map.AddGoal(p.x, p.y, 1);
                                 break;

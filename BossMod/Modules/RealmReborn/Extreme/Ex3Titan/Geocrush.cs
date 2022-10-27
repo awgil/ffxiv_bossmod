@@ -22,6 +22,7 @@
         {
             var ring = ShapeDistance.Donut(module.Bounds.Center, _radius - _ringWidth, _radius);
             hints.AddForbiddenZone(p => -ring(p));
+            hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), new()));
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

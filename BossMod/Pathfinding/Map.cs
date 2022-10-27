@@ -35,7 +35,7 @@ namespace BossMod.Pathfinding
 
         //public float Speed = 6; // used for converting activation time into max g-value: num world units that player can move per second
 
-        public Pixel this[int x, int y] => x >= 0 && x < Width && y >= 0 && y < Height ? Pixels[y * Width + x] : new() { MaxG = float.MaxValue, Priority = 0 };
+        public Pixel this[int x, int y] => InBounds(x, y) ? Pixels[y * Width + x] : new() { MaxG = float.MaxValue, Priority = 0 };
 
         public Map(float resolution, WPos center, float worldHalfWidth, float worldHalfHeight, Angle rotation = new())
         {
@@ -69,6 +69,7 @@ namespace BossMod.Pathfinding
         public (int x, int y) FracToGrid(Vector2 frac) => ((int)MathF.Floor(frac.X), (int)MathF.Floor(frac.Y));
         public (int x, int y) WorldToGrid(WPos world) => FracToGrid(WorldToGridFrac(world));
         public (int x, int y) ClampToGrid((int x, int y) pos) => (Math.Clamp(pos.x, 0, Width - 1), Math.Clamp(pos.y, 0, Height - 1));
+        public bool InBounds(int x, int y) => x >= 0 && x < Width && y >= 0 && y < Height;
 
         public WPos GridToWorld(int gx, int gy, float fx, float fy)
         {

@@ -79,7 +79,8 @@ namespace UIDev
                 if (data.Ops.Count > 0)
                 {
                     var visu = new ReplayVisualizer(data);
-                    WindowManager.CreateWindow($"Native log: {_path}", visu.Draw, visu.Dispose, () => true);
+                    var w = WindowManager.CreateWindow($"Native log: {_path}", visu.Draw, visu.Dispose, () => true);
+                    w.SizeHint = new(1000, 1000);
                 }
             }
             //ImGui.SameLine();
