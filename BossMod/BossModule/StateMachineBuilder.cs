@@ -47,19 +47,22 @@ namespace BossMod
                 _module = module;
             }
 
-            public State ActivateOnEnter<C>(bool condition = true) where C : BossComponent, new()
+            public State OnEnter(Action action, bool condition = true)
             {
                 if (condition)
-                    Raw.Enter.Add(_module.ActivateComponent<C>);
+                    Raw.Enter.Add(action);
                 return this;
             }
 
-            public State DeactivateOnExit<C>(bool condition = true) where C : BossComponent
+            public State OnExit(Action action, bool condition = true)
             {
                 if (condition)
-                    Raw.Exit.Add(_module.DeactivateComponent<C>);
+                    Raw.Exit.Add(action);
                 return this;
             }
+
+            public State ActivateOnEnter<C>(bool condition = true) where C : BossComponent, new() => OnEnter(_module.ActivateComponent<C>, condition);
+            public State DeactivateOnExit<C>(bool condition = true) where C : BossComponent => OnExit(_module.DeactivateComponent<C>, condition);
 
             public State SetHint(StateMachine.StateHint h, bool condition = true)
             {

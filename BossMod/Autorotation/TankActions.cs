@@ -32,13 +32,13 @@ namespace BossMod
             // 1. select closest target that should be tanked but is currently not
             var closestNeedOveraggro = enemiesToTank.Where(e => e.Actor.TargetID != Player.InstanceID).MinBy(e => (e.Actor.Position - Player.Position).LengthSq());
             if (closestNeedOveraggro != null)
-                return new(closestNeedOveraggro, 2, Positional.Front, true);
+                return new(closestNeedOveraggro, closestNeedOveraggro.TankDistance, Positional.Front, true);
 
             // 2. if initial target is not to be tanked, select any that is to be
             if (!initial.ShouldBeTanked)
-                return new(enemiesToTank.First(), 2, Positional.Front, true);
+                return new(enemiesToTank.First(), enemiesToTank.First().TankDistance, Positional.Front, true);
 
-            return new(initial, 2, Positional.Front, true);
+            return new(initial, initial.TankDistance, Positional.Front, true);
         }
 
         protected override void UpdateInternalState(int autoAction)

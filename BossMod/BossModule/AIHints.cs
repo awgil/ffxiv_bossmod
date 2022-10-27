@@ -15,6 +15,7 @@ namespace BossMod
             public float AttackStrength; // target's predicted HP percent is decreased by this amount (0.05 by default)
             public WPos DesiredPosition; // tank AI will try to move enemy to this position
             public Angle DesiredRotation; // tank AI will try to rotate enemy to this angle
+            public float TankDistance; // enemy will start moving if distance between hitboxes is bigger than this
             public bool ShouldBeTanked; // tank AI will try to tank this enemy
             public bool PreferProvoking; // tank AI will provoke enemy if not targeted
             public bool ForbidDOTs; // if true, dots on target are forbidden
@@ -29,6 +30,7 @@ namespace BossMod
                 ShouldBeTanked = shouldBeTanked;
                 DesiredPosition = actor.Position;
                 DesiredRotation = actor.Rotation;
+                TankDistance = 2;
             }
         }
 

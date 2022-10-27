@@ -151,6 +151,20 @@ namespace BossMod
             return res.ToString();
         }
 
+        public DateTime NextTransitionWithFlag(StateHint flag)
+        {
+            var time = _lastTransition;
+            var next = ActiveState;
+            while (next != null)
+            {
+                time = time.AddSeconds(next.Duration);
+                if (next.EndHint.HasFlag(flag))
+                    return time;
+                next = next.Next;
+            }
+            return DateTime.MaxValue;
+        }
+
         private (string, State?) BuildComplexStateNameAndDuration(State start, float timeActive, bool writeTime)
         {
             var res = new StringBuilder(start.Name);
