@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace BossMod.RealmReborn.Extreme.Ex3Titan
 {
@@ -8,6 +9,12 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
         private DateTime _remainInPosition;
 
         public Upheaval() : base(13, ActionID.MakeSpell(AID.Upheaval)) { }
+
+        public override IEnumerable<WPos> Sources(BossModule module)
+        {
+            if (_remainInPosition > module.WorldState.CurrentTime)
+                yield return module.PrimaryActor.Position;
+        }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
