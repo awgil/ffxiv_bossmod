@@ -171,6 +171,14 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 {
                     pos = _nextNailToKill.Position;
                     radius = MaxRange(_nextNailToKill, actor);
+                    // cleave
+                    var bossTarget = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
+                    var bossDir = bossTarget != null ? Angle.FromDirection(bossTarget.Position - module.PrimaryActor.Position) : module.PrimaryActor.Rotation;
+                    hints.AddForbiddenZone(ShapeDistance.Cone(module.PrimaryActor.Position, 21, bossDir, 60.Degrees()));
+                    // searing wind
+                    if (_searingWind != null && _searingWind.Active)
+                        foreach (var (i, p) in module.Raid.WithSlot().IncludedInMask(_searingWind.SpreadMask))
+                            hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, _searingWind.SpreadRadius), _searingWind.ActivateAt);
                 }
                 else
                 {
