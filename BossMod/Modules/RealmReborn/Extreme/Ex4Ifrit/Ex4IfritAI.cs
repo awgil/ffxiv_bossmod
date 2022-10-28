@@ -211,7 +211,8 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 
         private bool NailReachable(BossModule module, Actor nail, Actor player)
         {
-            return player.Role is Role.Healer or Role.Ranged || nail.Position.InCircle(player.Position, 3 + nail.HitboxRadius + player.HitboxRadius);
+            float maxRange = player.Role is Role.Healer or Role.Ranged ? 25 : 3;
+            return nail.Position.InCircle(player.Position, maxRange + nail.HitboxRadius + player.HitboxRadius);
         }
 
         private bool HPLargerThanThreshold(BossModule module, Actor target, float threshold) => target.HP.Cur + module.WorldState.PendingEffects.PendingHPDifference(target.InstanceID) > threshold * target.HP.Max;
