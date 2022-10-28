@@ -167,10 +167,10 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 {
                     pos = module.PrimaryActor.Position - 11.5f * toBoss;
                 }
-                else if (actor.Role == Role.Melee && _nextNailToKill != null /*&& NailCanBeAttackedByMelee(module, _nextNailToKill, actor)*/)
+                else if (actor.Role == Role.Melee && _nextNailToKill != null)
                 {
                     pos = _nextNailToKill.Position;
-                    radius = MaxRange(_nextNailToKill, actor);
+                    radius = NailCanBeAttackedByMelee(module, _nextNailToKill, actor) ? MaxRange(_nextNailToKill, actor) : 25;
                     // cleave
                     var bossTarget = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
                     var bossDir = bossTarget != null ? Angle.FromDirection(bossTarget.Position - module.PrimaryActor.Position) : module.PrimaryActor.Rotation;

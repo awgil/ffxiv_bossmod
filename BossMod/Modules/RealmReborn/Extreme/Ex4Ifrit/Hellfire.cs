@@ -35,7 +35,6 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
             if (actor == module.PrimaryActor && (SID)status.ID == SID.Invincibility)
             {
                 Invincible = true;
-                PlumesImminent = true;
                 _expectedRaidwide = module.WorldState.CurrentTime.AddSeconds(5);
             }
         }
@@ -54,6 +53,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
             {
                 case AID.Hellfire:
                     _expectedRaidwide = spell.FinishAt;
+                    PlumesImminent = true;
                     break;
                 case AID.RadiantPlume:
                     PlumesImminent = false;
