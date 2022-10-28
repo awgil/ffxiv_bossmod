@@ -55,20 +55,21 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                                 // continue tanking until OT taunts
                                 e.ShouldBeTanked = true;
                             }
-                            else
+                            else if (vulnStacks == 0 && TankVulnStacks(module.WorldState.Actors.Find(module.PrimaryActor.TargetID)) >= 2)
                             {
-                                // taunt if current MT has >= 2 stacks and self has no stacks
-                                e.PreferProvoking = e.ShouldBeTanked = vulnStacks == 0 && TankVulnStacks(module.WorldState.Actors.Find(module.PrimaryActor.TargetID)) >= 2;
+                                // taunt if safe
+                                var dirIfTaunted = Angle.FromDirection(actor.Position - module.PrimaryActor.Position);
+                                e.PreferProvoking = e.ShouldBeTanked = !module.Raid.WithoutSlot().Any(a => a.Role != Role.Tank && a.Position.InCircleCone(module.PrimaryActor.Position, 21, dirIfTaunted, 60.Degrees()));
                             }
                         }
                         break;
                     case OID.InfernalNailSmall:
-                        e.Priority = (e.Actor == nextNailToKill || HPLargerThanThreshold(module, e.Actor, 0.5f)) && !NailUnreachable(module, e.Actor, actor) ? 2 : -1;
+                        e.Priority = (e.Actor == nextNailToKill /*|| HPLargerThanThreshold(module, e.Actor, 0.5f)*/) && NailReachable(module, e.Actor, actor) ? 2 : -1;
                         e.AttackStrength = 0;
                         e.ShouldBeTanked = false;
                         break;
                     case OID.InfernalNailLarge:
-                        e.Priority = e.Actor == nextNailToKill && !NailUnreachable(module, e.Actor, actor) ? 2 : -1;
+                        e.Priority = e.Actor == nextNailToKill && NailReachable(module, e.Actor, actor) ? 2 : -1;
                         e.AttackStrength = 0;
                         e.ShouldBeTanked = false;
                         e.ForbidDOTs = true;
@@ -78,7 +79,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 
             // position hints
             bool isFettered = _infernalFetters != null && _infernalFetters.Fetters[slot];
-            if (_radiantPlume?.Casters.Count > 0 || _crimsonCyclone?.Casters.Count > 0 || nextNailToKill != null)
+            if (_radiantPlume?.Casters.Count > 0 || _crimsonCyclone?.Casters.Count > 0 /*|| nextNailToKill != null*/)
             {
                 // during plumes/cyclone/nails, just make sure searing winds doesn't intersect with others
                 if (_searingWind != null && _searingWind.Active)
@@ -158,6 +159,12 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos, 2)/*, DateTime.MaxValue*/ );
             }
+            else if (_hellfire?.Invincible ?? false)
+            {
+                // MT should go to safe spot when boss is casting hellfire...
+                var pos = module.Bounds.Center + 13 * _hellfire.NextSafeSpot.ToDirection();
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos, 2));
+            }
 
             // cooldowns
             //if (module.PrimaryActor.TargetID == actor.InstanceID && vulnStacks > 1)
@@ -196,12 +203,18 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 
         private int TankVulnStacks(Actor? tank) => tank?.FindStatus(SID.Suppuration)?.Extra ?? 0;
 
-        private bool NailUnreachable(BossModule module, Actor nail, Actor player)
+        private bool NailReachable(BossModule module, Actor nail, Actor player)
         {
-            return player.Role is Role.Tank or Role.Melee
-                && _searingWind != null
-                && _searingWind.SpreadMask.Any()
-                && module.Raid.WithSlot().IncludedInMask(_searingWind.SpreadMask).InRadius(nail.Position, _searingWind.SpreadRadius - nail.HitboxRadius - 3.5f).Any();
+            if (player.Role is Role.Healer or Role.Ranged)
+                return true;
+
+            //if (nail.Position.InCone(module.PrimaryActor.Position, module.PrimaryActor.Rotation, 60.Degrees()))
+            //    return false; // in cleave
+
+            //if (_searingWind != null && _searingWind.SpreadMask.Any() && module.Raid.WithSlot().IncludedInMask(_searingWind.SpreadMask).InRadius(nail.Position, _searingWind.SpreadRadius - nail.HitboxRadius - 3.5f).Any())
+            //    return false; // in searing wind
+
+            return nail.Position.InCircle(player.Position, 3 + nail.HitboxRadius + player.HitboxRadius);
         }
 
         private bool HPLargerThanThreshold(BossModule module, Actor target, float threshold) => target.HP.Cur + module.WorldState.PendingEffects.PendingHPDifference(target.InstanceID) > threshold * target.HP.Max;
