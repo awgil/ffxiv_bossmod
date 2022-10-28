@@ -127,6 +127,10 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 if (actor.Role == Role.Melee && _nextNailToKill != null && NailCanBeAttackedByMelee(module, _nextNailToKill, actor))
                 {
                     hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_nextNailToKill.Position, MaxRange(_nextNailToKill, actor)));
+                    // cleave
+                    var bossTarget = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
+                    var bossDir = bossTarget != null ? Angle.FromDirection(bossTarget.Position - module.PrimaryActor.Position) : module.PrimaryActor.Rotation;
+                    hints.AddForbiddenZone(ShapeDistance.Cone(module.PrimaryActor.Position, 21, bossDir, 60.Degrees()));
                 }
             }
             else if (module.PrimaryActor.TargetID != actor.InstanceID)
@@ -224,8 +228,8 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 
         private bool NailCanBeAttackedByMelee(BossModule module, Actor nail, Actor player)
         {
-            if (nail.Position.InCone(module.PrimaryActor.Position, module.PrimaryActor.Rotation, 60.Degrees()))
-                return false; // in cleave
+            //if (nail.Position.InCone(module.PrimaryActor.Position, module.PrimaryActor.Rotation, 60.Degrees()))
+            //    return false; // in cleave
             var maxRange = MaxRange(nail, player);
             if (_searingWind != null && _searingWind.SpreadMask.Any() && maxRange < _searingWind.SpreadRadius && module.Raid.WithSlot().IncludedInMask(_searingWind.SpreadMask).InRadius(nail.Position, _searingWind.SpreadRadius - maxRange).Any())
                 return false; // in searing wind
@@ -234,7 +238,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 
         private bool NailReachable(BossModule module, Actor nail, Actor player)
         {
-            return nail.Position.InCircle(player.Position, MaxRange(nail, player));
+            return player.Role is Role.Ranged or Role.Healer || nail.Position.InCircle(player.Position, MaxRange(nail, player));
         }
 
         private bool HPLargerThanThreshold(BossModule module, Actor target, float threshold) => target.HP.Cur + module.WorldState.PendingEffects.PendingHPDifference(target.InstanceID) > threshold * target.HP.Max;
