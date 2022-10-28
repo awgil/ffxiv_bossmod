@@ -5,11 +5,9 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
     class Incinerate : Components.Cleave
     {
         public Incinerate() : base(ActionID.MakeSpell(AID.Incinerate), new AOEShapeCone(21, 60.Degrees())) { } // TODO: verify angle
-    }
 
-    class Hellfire : Components.RaidwideCast
-    {
-        public Hellfire() : base(ActionID.MakeSpell(AID.Hellfire)) { }
+        // no-op, we provide custom positioning hints
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { }
     }
 
     class RadiantPlume : Components.LocationTargetedAOEs
@@ -33,6 +31,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 .ActivateOnEnter<Hellfire>()
                 .ActivateOnEnter<RadiantPlume>()
                 .ActivateOnEnter<CrimsonCyclone>()
+                .ActivateOnEnter<InfernalFetters>()
                 .ActivateOnEnter<Ex4IfritAI>();
         }
     }
