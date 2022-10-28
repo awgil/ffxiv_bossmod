@@ -144,6 +144,8 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 {
                     var dir = (_hellfire?.Invincible ?? false) ? (actor.Position - module.Bounds.Center).Normalized() : (bossAngle + 135.Degrees()).ToDirection();
                     pos = module.Bounds.Center + 18 * dir;
+                    if (_nextNailToKill != null && _nextNailToKill.Position.InCircle(pos, 10) || module.Raid.WithSlot().Exclude(actor).IncludedInMask(_searingWind.SpreadMask).InRadius(pos, 10).Any())
+                        pos = module.Bounds.Center + 18 * (bossAngle + 80.Degrees()).ToDirection();
                 }
                 else if (_hellfire?.Invincible ?? false)
                 {
