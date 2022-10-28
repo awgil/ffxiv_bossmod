@@ -167,7 +167,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 {
                     pos = module.PrimaryActor.Position - 11.5f * toBoss;
                 }
-                else if (actor.Role == Role.Melee && _nextNailToKill != null && NailCanBeAttackedByMelee(module, _nextNailToKill, actor))
+                else if (actor.Role == Role.Melee && _nextNailToKill != null /*&& NailCanBeAttackedByMelee(module, _nextNailToKill, actor)*/)
                 {
                     pos = _nextNailToKill.Position;
                     radius = MaxRange(_nextNailToKill, actor);
