@@ -79,7 +79,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 
             // position hints
             bool isFettered = _infernalFetters != null && _infernalFetters.Fetters[slot];
-            if (_radiantPlume?.Casters.Count > 0 || _crimsonCyclone?.Casters.Count > 0 /*|| nextNailToKill != null*/)
+            if (_radiantPlume?.Casters.Count > 0 || _crimsonCyclone?.Casters.Count > 0 || _eruption?.Casters.Count > 0)
             {
                 // during plumes/cyclone/nails, just make sure searing winds doesn't intersect with others
                 if (_searingWind != null && _searingWind.Active)
@@ -97,16 +97,14 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 {
                     hints.AddForbiddenZone(ShapeDistance.InvertedCircle(fetterPartner.Position, 5));
                 }
-            }
-            else if (_eruption?.Casters.Count > 0)
-            {
+
                 // eruption bait hints
-                if (_eruption.Baiters[slot])
+                if (_eruption != null && _eruption.Baiters[slot])
                 {
                     if (actor.Role is Role.Melee or Role.Ranged && module.PrimaryActor.CastInfo != null)
                     {
                         // specific spot for first baits
-                        var baitSpot = module.PrimaryActor.Position - 11.5f * toBoss + 9 * toBoss.OrthoR();
+                        var baitSpot = module.PrimaryActor.Position - 11.5f * toBoss + 11 * toBoss.OrthoR();
                         hints.AddForbiddenZone(ShapeDistance.InvertedCircle(baitSpot, 2));
                     }
                     else
@@ -115,13 +113,6 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                         foreach (var (i, p) in module.Raid.WithSlot().ExcludedFromMask(_eruption.Baiters))
                             hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, _eruption.Shape.Radius));
                     }
-                }
-
-                // and also stay near fetter partner
-                var fetterPartner = isFettered ? module.Raid.WithSlot().Exclude(actor).IncludedInMask(_infernalFetters!.Fetters).FirstOrDefault().Item2 : null;
-                if (fetterPartner != null)
-                {
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(fetterPartner.Position, 5));
                 }
             }
             else if (module.PrimaryActor.TargetID != actor.InstanceID)
@@ -134,6 +125,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 // - caster stays behind dd camp, so that eruptions at melee won't force him to move and out of range of knockbacks
                 // - healer with searing winds moves opposite at 45 degrees, so that other healer won't be knocked into searing winds
                 WPos pos;
+                float radius = 2;
                 if (_searingWind != null && _searingWind.SpreadMask[slot])
                 {
                     pos = module.Bounds.Center + 18 * (bossAngle + 135.Degrees()).ToDirection();
@@ -150,6 +142,11 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 {
                     pos = module.PrimaryActor.Position - 11.5f * toBoss;
                 }
+                else if (actor.Role == Role.Melee && nextNailToKill != null && NailCanBeAttackedByMelee(module, nextNailToKill, actor))
+                {
+                    pos = nextNailToKill.Position;
+                    radius = 3 + nextNailToKill.HitboxRadius + actor.HitboxRadius;
+                }
                 else
                 {
                     pos = module.PrimaryActor.Position + 6 * (bossAngle - 135.Degrees()).ToDirection();
@@ -157,7 +154,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                         pos -= 15 * toBoss;
                 }
 
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos, 2)/*, DateTime.MaxValue*/ );
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos, radius)/*, DateTime.MaxValue*/ );
             }
             else if (_hellfire?.Invincible ?? false)
             {
@@ -203,18 +200,18 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 
         private int TankVulnStacks(Actor? tank) => tank?.FindStatus(SID.Suppuration)?.Extra ?? 0;
 
+        private bool NailCanBeAttackedByMelee(BossModule module, Actor nail, Actor player)
+        {
+            if (nail.Position.InCone(module.PrimaryActor.Position, module.PrimaryActor.Rotation, 60.Degrees()))
+                return false; // in cleave
+            if (_searingWind != null && _searingWind.SpreadMask.Any() && module.Raid.WithSlot().IncludedInMask(_searingWind.SpreadMask).InRadius(nail.Position, _searingWind.SpreadRadius - nail.HitboxRadius - 3.5f).Any())
+                return false; // in searing wind
+            return true;
+        }
+
         private bool NailReachable(BossModule module, Actor nail, Actor player)
         {
-            if (player.Role is Role.Healer or Role.Ranged)
-                return true;
-
-            //if (nail.Position.InCone(module.PrimaryActor.Position, module.PrimaryActor.Rotation, 60.Degrees()))
-            //    return false; // in cleave
-
-            //if (_searingWind != null && _searingWind.SpreadMask.Any() && module.Raid.WithSlot().IncludedInMask(_searingWind.SpreadMask).InRadius(nail.Position, _searingWind.SpreadRadius - nail.HitboxRadius - 3.5f).Any())
-            //    return false; // in searing wind
-
-            return nail.Position.InCircle(player.Position, 3 + nail.HitboxRadius + player.HitboxRadius);
+            return player.Role is Role.Healer or Role.Ranged || nail.Position.InCircle(player.Position, 3 + nail.HitboxRadius + player.HitboxRadius);
         }
 
         private bool HPLargerThanThreshold(BossModule module, Actor target, float threshold) => target.HP.Cur + module.WorldState.PendingEffects.PendingHPDifference(target.InstanceID) > threshold * target.HP.Max;
