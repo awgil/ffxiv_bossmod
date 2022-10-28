@@ -12,6 +12,8 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         private CrimsonCyclone? _crimsonCyclone;
         private InfernalFetters? _infernalFetters;
 
+        private Actor? _nextNailToKill;
+
         public override void Init(BossModule module)
         {
             _searingWind = module.FindComponent<SearingWind>();
@@ -22,11 +24,18 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
             _infernalFetters = module.FindComponent<InfernalFetters>();
         }
 
+        public override void Update(BossModule module)
+        {
+            if (_nextNailToKill == null || _nextNailToKill.IsDestroyed || _nextNailToKill.IsDead || !_nextNailToKill.IsTargetable)
+            {
+                // find next nail to destroy - closest to boss or to previous nail
+                var castModule = (Ex4Ifrit)module;
+                _nextNailToKill = castModule.SmallNails.Where(a => !a.IsDead && a.IsTargetable).Closest((_nextNailToKill ?? module.PrimaryActor).Position) ?? castModule.LargeNails.FirstOrDefault(a => !a.IsDead && a.IsTargetable);
+            }
+        }
+
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            var castModule = (Ex4Ifrit)module;
-            var nextNailToKill = castModule.SmallNails.Where(a => !a.IsDead && a.IsTargetable).Closest(module.PrimaryActor.Position) ?? castModule.LargeNails.FirstOrDefault(a => !a.IsDead && a.IsTargetable);
-
             var vulnStacks = TankVulnStacks(actor);
             var bossAngle = Angle.FromDirection(module.PrimaryActor.Position - module.Bounds.Center);
             var toBoss = bossAngle.ToDirection();
@@ -36,7 +45,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 switch ((OID)e.Actor.OID)
                 {
                     case OID.Boss:
-                        e.Priority = 1;
+                        e.Priority = _nextNailToKill == null ? 1 : -1; // reconsider...
                         e.AttackStrength = 0.25f;
                         if (_hellfire?.PlumesImminent ?? false)
                         {
@@ -64,12 +73,12 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                         }
                         break;
                     case OID.InfernalNailSmall:
-                        e.Priority = (e.Actor == nextNailToKill /*|| HPLargerThanThreshold(module, e.Actor, 0.5f)*/) && NailReachable(module, e.Actor, actor) ? 2 : -1;
+                        e.Priority = (e.Actor == _nextNailToKill /*|| HPLargerThanThreshold(module, e.Actor, 0.5f)*/) && NailReachable(module, e.Actor, actor) ? 2 : -1;
                         e.AttackStrength = 0;
                         e.ShouldBeTanked = false;
                         break;
                     case OID.InfernalNailLarge:
-                        e.Priority = e.Actor == nextNailToKill && NailReachable(module, e.Actor, actor) ? 2 : -1;
+                        e.Priority = e.Actor == _nextNailToKill && NailReachable(module, e.Actor, actor) ? 2 : -1;
                         e.AttackStrength = 0;
                         e.ShouldBeTanked = false;
                         e.ForbidDOTs = true;
@@ -114,6 +123,11 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                             hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, _eruption.Shape.Radius));
                     }
                 }
+
+                if (actor.Role == Role.Melee && _nextNailToKill != null && NailCanBeAttackedByMelee(module, _nextNailToKill, actor))
+                {
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_nextNailToKill.Position, MaxRange(_nextNailToKill, actor)));
+                }
             }
             else if (module.PrimaryActor.TargetID != actor.InstanceID)
             {
@@ -142,10 +156,10 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 {
                     pos = module.PrimaryActor.Position - 11.5f * toBoss;
                 }
-                else if (actor.Role == Role.Melee && nextNailToKill != null && NailCanBeAttackedByMelee(module, nextNailToKill, actor))
+                else if (actor.Role == Role.Melee && _nextNailToKill != null && NailCanBeAttackedByMelee(module, _nextNailToKill, actor))
                 {
-                    pos = nextNailToKill.Position;
-                    radius = 3 + nextNailToKill.HitboxRadius + actor.HitboxRadius;
+                    pos = _nextNailToKill.Position;
+                    radius = MaxRange(_nextNailToKill, actor);
                 }
                 else
                 {
@@ -199,20 +213,21 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         }
 
         private int TankVulnStacks(Actor? tank) => tank?.FindStatus(SID.Suppuration)?.Extra ?? 0;
+        private float MaxRange(Actor nail, Actor player) => (player.Role is Role.Healer or Role.Ranged ? 25 : 3) + nail.HitboxRadius + player.HitboxRadius;
 
         private bool NailCanBeAttackedByMelee(BossModule module, Actor nail, Actor player)
         {
             if (nail.Position.InCone(module.PrimaryActor.Position, module.PrimaryActor.Rotation, 60.Degrees()))
                 return false; // in cleave
-            if (_searingWind != null && _searingWind.SpreadMask.Any() && module.Raid.WithSlot().IncludedInMask(_searingWind.SpreadMask).InRadius(nail.Position, _searingWind.SpreadRadius - nail.HitboxRadius - 3.5f).Any())
+            var maxRange = MaxRange(nail, player);
+            if (_searingWind != null && _searingWind.SpreadMask.Any() && maxRange < _searingWind.SpreadRadius && module.Raid.WithSlot().IncludedInMask(_searingWind.SpreadMask).InRadius(nail.Position, _searingWind.SpreadRadius - maxRange).Any())
                 return false; // in searing wind
             return true;
         }
 
         private bool NailReachable(BossModule module, Actor nail, Actor player)
         {
-            float maxRange = player.Role is Role.Healer or Role.Ranged ? 25 : 3;
-            return nail.Position.InCircle(player.Position, maxRange + nail.HitboxRadius + player.HitboxRadius);
+            return nail.Position.InCircle(player.Position, MaxRange(nail, player));
         }
 
         private bool HPLargerThanThreshold(BossModule module, Actor target, float threshold) => target.HP.Cur + module.WorldState.PendingEffects.PendingHPDifference(target.InstanceID) > threshold * target.HP.Max;
