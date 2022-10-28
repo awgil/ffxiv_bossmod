@@ -142,7 +142,8 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 float radius = 2;
                 if (_searingWind != null && _searingWind.SpreadMask[slot])
                 {
-                    pos = module.Bounds.Center + 18 * (bossAngle + 135.Degrees()).ToDirection();
+                    var dir = (_hellfire?.Invincible ?? false) ? (actor.Position - module.Bounds.Center).Normalized() : (bossAngle + 135.Degrees()).ToDirection();
+                    pos = module.Bounds.Center + 18 * dir;
                 }
                 else if (_hellfire?.Invincible ?? false)
                 {
@@ -164,7 +165,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 else
                 {
                     pos = module.PrimaryActor.Position + 6 * (bossAngle - 135.Degrees()).ToDirection();
-                    if (assignment == PartyRolesConfig.Assignment.R2) // assumed caster, TODO
+                    if (actor.Role == Role.Ranged) // assumed caster, TODO
                         pos -= 15 * toBoss;
                 }
 
