@@ -4,7 +4,7 @@
     {
         private int _searingWindsLeft;
 
-        public SearingWind() : base(0, 10) { } // TODO: verify range
+        public SearingWind() : base(0, 14) { } // TODO: verify range
 
         // no-op, AI handles positioning...
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { }

@@ -94,7 +94,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                     Role.Tank => 4 * (bossToCenter + bossToCenter.OrthoR()),
                     _ => 4 * (bossToCenter + bossToCenter.OrthoL()),
                 };
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos, 2), DateTime.MaxValue);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos, 2)/*, DateTime.MaxValue*/ );
             }
         }
 
