@@ -22,7 +22,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             Actor? nextNailToKill = null;
-            if (actor.FindStatus(SID.VulnerabilityUp) == null)
+            //if (actor.FindStatus(SID.VulnerabilityUp) == null)
             {
                 var castModule = (Ex4Ifrit)module;
                 nextNailToKill = castModule.SmallNails.Where(a => !a.IsDead && a.IsTargetable).Closest(module.PrimaryActor.Position);
@@ -67,7 +67,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
             bool haveActiveEruptions = _eruption?.Casters.Count > 0;
             bool haveActivePlumes = _radiantPlume?.Casters.Count > 0;
             bool haveActiveCyclones = _crimsonCyclone?.Casters.Count > 0;
-            if (haveActiveEruptions || haveActivePlumes || haveActiveCyclones || nextNailToKill != null)
+            if (haveActiveEruptions || haveActivePlumes || haveActiveCyclones /*|| nextNailToKill != null*/)
             {
                 // if doing mechanics, avoid searing wind
                 if (_searingWind != null && _searingWind.Active)
