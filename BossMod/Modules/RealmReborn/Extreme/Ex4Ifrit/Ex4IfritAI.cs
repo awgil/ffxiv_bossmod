@@ -37,6 +37,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             var vulnStacks = TankVulnStacks(actor);
+            bool isFettered = _infernalFetters != null && _infernalFetters.Fetters[slot];
             var bossAngle = Angle.FromDirection(module.PrimaryActor.Position - module.Bounds.Center);
             var toBoss = bossAngle.ToDirection();
             foreach (var e in hints.PotentialTargets)
@@ -45,7 +46,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 switch ((OID)e.Actor.OID)
                 {
                     case OID.Boss:
-                        e.Priority = _nextNailToKill == null ? 1 : -1; // reconsider...
+                        e.Priority = _nextNailToKill == null || actor.Role == Role.Tank || isFettered ? 1 : -1; // reconsider...
                         e.AttackStrength = 0.25f;
                         if (_hellfire?.PlumesImminent ?? false)
                         {
@@ -87,7 +88,6 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
             }
 
             // position hints
-            bool isFettered = _infernalFetters != null && _infernalFetters.Fetters[slot];
             if (_radiantPlume?.Casters.Count > 0 || _crimsonCyclone?.Casters.Count > 0 || _eruption?.Casters.Count > 0)
             {
                 // during plumes/cyclone/nails, just make sure searing winds doesn't intersect with others
@@ -151,7 +151,11 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 {
                     pos = module.Bounds.Center; // stack in center during hellfire for easier healing
                 }
-                else if (actor.Role == Role.Tank || isFettered)
+                else if (isFettered)
+                {
+                    pos = module.PrimaryActor.Position + 3 * (bossAngle + (actor.Role == Role.Tank ? 75 : 180).Degrees()).ToDirection();
+                }
+                else if (actor.Role == Role.Tank)
                 {
                     pos = module.PrimaryActor.Position + 7.5f * (bossAngle + 75.Degrees()).ToDirection();
                 }
