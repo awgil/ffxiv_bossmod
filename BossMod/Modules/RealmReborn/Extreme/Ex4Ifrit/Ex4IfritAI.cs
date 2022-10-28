@@ -74,12 +74,12 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                         }
                         break;
                     case OID.InfernalNailSmall:
-                        e.Priority = (e.Actor == _nextNailToKill /*|| HPLargerThanThreshold(module, e.Actor, 0.5f)*/) && NailReachable(module, e.Actor, actor) ? 2 : -1;
+                        e.Priority = (e.Actor == _nextNailToKill /*|| HPLargerThanThreshold(module, e.Actor, 0.5f)*/) && NailReachable(module, e.Actor, actor) ? 3 : -1;
                         e.AttackStrength = 0;
                         e.ShouldBeTanked = false;
                         break;
                     case OID.InfernalNailLarge:
-                        e.Priority = e.Actor == _nextNailToKill && NailReachable(module, e.Actor, actor) ? 2 : -1;
+                        e.Priority = e.Actor == _nextNailToKill ? 3 : e.Actor.HP.Cur > 0.25f * e.Actor.HP.Max ? 2 : -1;
                         e.AttackStrength = 0;
                         e.ShouldBeTanked = false;
                         e.ForbidDOTs = true;
@@ -170,7 +170,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 else if (actor.Role == Role.Melee && _nextNailToKill != null)
                 {
                     pos = _nextNailToKill.Position;
-                    radius = NailCanBeAttackedByMelee(module, _nextNailToKill, actor) ? MaxRange(_nextNailToKill, actor) : 25;
+                    radius = NailCanBeAttackedByMelee(module, _nextNailToKill, actor) ? MaxRange(_nextNailToKill, actor) : 50;
                     // cleave
                     var bossTarget = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
                     var bossDir = bossTarget != null ? Angle.FromDirection(bossTarget.Position - module.PrimaryActor.Position) : module.PrimaryActor.Rotation;
@@ -178,7 +178,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                     // searing wind
                     if (_searingWind != null && _searingWind.Active)
                         foreach (var (i, p) in module.Raid.WithSlot().IncludedInMask(_searingWind.SpreadMask))
-                            hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, _searingWind.SpreadRadius), _searingWind.ActivateAt);
+                            hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, _searingWind.SpreadRadius + 2), _searingWind.ActivateAt);
                 }
                 else
                 {
@@ -189,7 +189,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos, radius)/*, DateTime.MaxValue*/ );
             }
-            else if (_hellfire?.Invincible ?? false)
+            else if (_hellfire?.PlumesImminent ?? false)
             {
                 // MT should go to safe spot when boss is casting hellfire...
                 var pos = module.Bounds.Center + 13 * _hellfire.NextSafeSpot.ToDirection();
