@@ -237,7 +237,8 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 else
                 {
                     // in addition to usual hints, we want to avoid potential cleave at OT and center (so that we don't bait eruption there)
-                    hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, Eruption.Radius));
+                    if (!EruptionActive)
+                        hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, Eruption.Radius));
                     foreach (var ot in module.Raid.WithoutSlot().Where(a => a.InstanceID != module.PrimaryActor.InstanceID && a.Role == Role.Tank))
                         hints.AddForbiddenZone(Incinerate.CleaveShape.Distance(module.PrimaryActor.Position, Angle.FromDirection(ot.Position - module.PrimaryActor.Position)));
                 }
