@@ -37,9 +37,9 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 
         private void SinglePhase(uint id)
         {
-            NailsSubphase<Ex4IfritAINails1, Ex4IfritAIHellfire1>(id, "4 nails at ~85%", false, 45);
-            NailsSubphase<Ex4IfritAINails2, Ex4IfritAIHellfire2>(id + 0x10000, "8 nails at ~50%", true, 75);
-            NailsSubphase<Ex4IfritAINails3, Ex4IfritAIHellfire3>(id + 0x20000, "13 nails at ~30%", true, 115);
+            NailsSubphase<Ex4IfritAINails1, Ex4IfritAIHellfire1>(id, "4 nails at ~85%", false, false, 45);
+            NailsSubphase<Ex4IfritAINails2, Ex4IfritAIHellfire2>(id + 0x10000, "8 nails at ~50%", true, true, 75);
+            NailsSubphase<Ex4IfritAINails3, Ex4IfritAIHellfire3>(id + 0x20000, "13 nails at ~30%", true, false, 115);
             SimpleState(id + 0x30000, 1000, "Enrage")
                 .ActivateOnEnter<Incinerate>()
                 .ActivateOnEnter<Eruption>()
@@ -49,7 +49,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 .DeactivateOnExit<Ex4IfritAINormal>();
         }
 
-        private void NailsSubphase<AINails, AIHellfire>(uint id, string name, bool withFetters, float nailEnrage)
+        private void NailsSubphase<AINails, AIHellfire>(uint id, string name, bool withFetters, bool startWithOT, float nailEnrage)
             where AINails : Ex4IfritAINails, new()
             where AIHellfire : Ex4IfritAIHellfire, new()
         {
@@ -59,6 +59,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 .ActivateOnEnter<SearingWind>()
                 .ActivateOnEnter<InfernalFetters>(withFetters)
                 .ActivateOnEnter<Ex4IfritAINormal>()
+                .OnEnter(() => Module.FindComponent<Ex4IfritAINormal>()!.BossTankRole = startWithOT ? PartyRolesConfig.Assignment.OT : PartyRolesConfig.Assignment.MT)
                 .DeactivateOnExit<Incinerate>() // we want to reset cast counter
                 .DeactivateOnExit<Ex4IfritAINormal>();
             Condition(id + 1, nailEnrage, () => Module.PrimaryActor.FindStatus(SID.Invincibility) != null, "Nails enrage", 1000)
