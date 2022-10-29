@@ -31,7 +31,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         protected bool IsFettered(int slot) => _infernalFetters != null && _infernalFetters.Fetters[slot];
         protected int IncinerateCount => _incinerate?.NumCasts ?? 0;
 
-        protected void UpdateBossTankingProperties(BossModule module, AIHints.Enemy boss, Actor player, bool isDesiredTank)
+        protected void UpdateBossTankingProperties(BossModule module, AIHints.Enemy boss, Actor player, PartyRolesConfig.Assignment assignment)
         {
             boss.AttackStrength = 0.25f;
             boss.DesiredRotation = Angle.FromDirection(module.PrimaryActor.Position - module.Bounds.Center); // point to the wall
@@ -44,7 +44,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                     // continue tanking until OT taunts
                     boss.ShouldBeTanked = true;
                 }
-                else if (isDesiredTank)
+                else if (assignment == BossTankRole)
                 //else if (TankVulnStacks(player) == 0 && TankVulnStacks(module.WorldState.Actors.Find(boss.Actor.TargetID)) >= 2)
                 {
                     // taunt if safe
@@ -116,7 +116,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
             {
                 boss.Priority = 1;
                 boss.StayAtLongRange = true;
-                UpdateBossTankingProperties(module, boss, actor, assignment == BossTankRole);
+                UpdateBossTankingProperties(module, boss, actor, assignment);
             }
 
             // position hints
@@ -224,6 +224,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         public override void Update(BossModule module)
         {
             NailKillOrder.RemoveAll(a => a.IsDestroyed || a.IsDead);
+            BossTankRole = OTTankAtIncinerateCounts[IncinerateCount] ? PartyRolesConfig.Assignment.OT : PartyRolesConfig.Assignment.MT;
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -234,7 +235,6 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
             }
             else
             {
-                var desiredTankRole = OTTankAtIncinerateCounts[IncinerateCount] ? PartyRolesConfig.Assignment.OT : PartyRolesConfig.Assignment.MT;
                 var bossAngle = Angle.FromDirection(module.PrimaryActor.Position - module.Bounds.Center);
                 var nextNail = NailKillOrder.FirstOrDefault();
                 foreach (var e in hints.PotentialTargets)
@@ -244,7 +244,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                     {
                         case OID.Boss:
                             e.Priority = 1; // attack only if it's the only thing to do...
-                            UpdateBossTankingProperties(module, e, actor, assignment == desiredTankRole);
+                            UpdateBossTankingProperties(module, e, actor, assignment);
                             if (nextNail != null && nextNail.Position.InCone(e.Actor.Position, e.DesiredRotation, Incinerate.CleaveShape.HalfAngle))
                             {
                                 var bossToNail = Angle.FromDirection(nextNail.Position - e.Actor.Position);
@@ -275,7 +275,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                             : bossAngle + (invertedSW ? -105 : 105).Degrees();
                         AddPositionHint(hints, module.Bounds.Center + 18 * dir.ToDirection());
                     }
-                    else if (assignment == desiredTankRole)
+                    else if (assignment == BossTankRole)
                     {
                         var dir = bossAngle + (invertedSW ? 75 : -75).Degrees();
                         AddPositionHint(hints, module.PrimaryActor.Position + 7.5f * (bossAngle + 75.Degrees()).ToDirection());
