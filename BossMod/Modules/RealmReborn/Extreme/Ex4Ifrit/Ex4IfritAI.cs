@@ -33,7 +33,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 
         protected void UpdateBossTankingProperties(BossModule module, AIHints.Enemy boss, Actor player, PartyRolesConfig.Assignment assignment)
         {
-            boss.AttackStrength = 0.25f;
+            boss.AttackStrength = 0.35f;
             boss.DesiredRotation = Angle.FromDirection(module.PrimaryActor.Position - module.Bounds.Center); // point to the wall
             if (!module.PrimaryActor.Position.InCircle(module.Bounds.Center, 13)) // 13 == radius (20) - tank distance (2) - hitbox (5)
                 boss.DesiredPosition = module.Bounds.Center + 13 * boss.DesiredRotation.ToDirection();
