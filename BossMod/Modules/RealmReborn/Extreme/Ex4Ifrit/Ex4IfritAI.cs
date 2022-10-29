@@ -7,15 +7,20 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
     // common ai features for whole fight
     class Ex4IfritAICommon : BossComponent
     {
+        private Incinerate? _incinerate;
         private Eruption? _eruption;
         private SearingWind? _searingWind;
         private InfernalFetters? _infernalFetters;
+        protected DateTime CreatedAt;
+        public PartyRolesConfig.Assignment BossTankRole = PartyRolesConfig.Assignment.Unassigned;
 
         public override void Init(BossModule module)
         {
+            _incinerate = module.FindComponent<Incinerate>();
             _eruption = module.FindComponent<Eruption>();
             _searingWind = module.FindComponent<SearingWind>();
             _infernalFetters = module.FindComponent<InfernalFetters>();
+            CreatedAt = module.WorldState.CurrentTime;
         }
 
         protected bool IsInvincible(Actor actor) => actor.FindStatus(SID.Invincibility) != null;
@@ -24,10 +29,14 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         protected bool IsEruptionBaiter(int slot) => _eruption != null && _eruption.Baiters[slot];
         protected bool IsSearingWindTarget(int slot) => _searingWind != null && _searingWind.SpreadMask[slot];
         protected bool IsFettered(int slot) => _infernalFetters != null && _infernalFetters.Fetters[slot];
+        protected int IncinerateCount => _incinerate?.NumCasts ?? 0;
 
-        protected void UpdateBossTankingProperties(BossModule module, AIHints.Enemy boss, Actor player)
+        protected void UpdateBossTankingProperties(BossModule module, AIHints.Enemy boss, Actor player, bool isDesiredTank)
         {
             boss.AttackStrength = 0.25f;
+            boss.DesiredRotation = Angle.FromDirection(module.PrimaryActor.Position - module.Bounds.Center); // point to the wall
+            if (!module.PrimaryActor.Position.InCircle(module.Bounds.Center, 13)) // 13 == radius (20) - tank distance (2) - hitbox (5)
+                boss.DesiredPosition = module.Bounds.Center + 13 * boss.DesiredRotation.ToDirection();
             if (player.Role == Role.Tank)
             {
                 if (player.InstanceID == boss.Actor.TargetID)
@@ -35,7 +44,8 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                     // continue tanking until OT taunts
                     boss.ShouldBeTanked = true;
                 }
-                else if (TankVulnStacks(player) == 0 && TankVulnStacks(module.WorldState.Actors.Find(boss.Actor.TargetID)) >= 2)
+                else if (isDesiredTank)
+                //else if (TankVulnStacks(player) == 0 && TankVulnStacks(module.WorldState.Actors.Find(boss.Actor.TargetID)) >= 2)
                 {
                     // taunt if safe
                     var dirIfTaunted = Angle.FromDirection(player.Position - module.PrimaryActor.Position);
@@ -56,9 +66,31 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 foreach (var (i, p) in module.Raid.WithSlot().ExcludedFromMask(_eruption.Baiters))
                     hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, _eruption.Shape.Radius));
         }
+
+        // TODO: this shouldn't be here...
+        protected void PlanAction(AIHints hints, Actor player, ActionID action, float phaseTime, float minPhaseTime, float maxPhaseTime)
+        {
+            if (action && phaseTime >= minPhaseTime && phaseTime < maxPhaseTime)
+            {
+                hints.PlannedActions.Add((action, player, maxPhaseTime - phaseTime));
+            }
+        }
+
+        protected void PlanStrongCooldown(AIHints hints, Actor player, float phaseTime, float minPhaseTime, float maxPhaseTime)
+        {
+            var aid = player.Class switch
+            {
+                Class.WAR => ActionID.MakeSpell(WAR.AID.Vengeance),
+                Class.PLD => ActionID.MakeSpell(PLD.AID.Sentinel),
+                _ => new()
+            };
+            PlanAction(hints, player, aid, phaseTime, minPhaseTime, maxPhaseTime);
+        }
+        protected void PlanRampart(AIHints hints, Actor player, float phaseTime, float minPhaseTime, float maxPhaseTime) => PlanAction(hints, player, ActionID.MakeSpell(WAR.AID.Rampart), phaseTime, minPhaseTime, maxPhaseTime);
+        protected void PlanReprisal(AIHints hints, Actor player, float phaseTime, float minPhaseTime, float maxPhaseTime) => PlanAction(hints, player, ActionID.MakeSpell(WAR.AID.Reprisal), phaseTime, minPhaseTime, maxPhaseTime);
     }
 
-    // ai used during 'normal' phases (no nails, plumes or cyclones)
+    // ai used during 'normal' phases (no plumes or cyclones)
     // during this phase we use specific positioning to simplify dealing with tank swaps, eruptions, searing winds and fetters
     // - MT always points boss to the wall, to ensure most of the arena is not cleaved
     // - searing wind target (typically a healer) prefers standing near edge to the left of the boss
@@ -84,10 +116,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
             {
                 boss.Priority = 1;
                 boss.StayAtLongRange = true;
-                UpdateBossTankingProperties(module, boss, actor);
-                boss.DesiredRotation = bossAngle; // point to the wall
-                if (!module.PrimaryActor.Position.InCircle(module.Bounds.Center, 13)) // 13 == radius (20) - tank distance (2) - hitbox (5)
-                    boss.DesiredPosition = module.Bounds.Center + 13 * toBoss;
+                UpdateBossTankingProperties(module, boss, actor, assignment == BossTankRole);
             }
 
             // position hints
@@ -159,22 +188,30 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         }
     }
 
-    // ai used during 'nails' phases
-    // during this phase we destroy nails in CCW order, starting from one closest to boss on phase init; large nail, if any, is killed in the very end
-    // - MT drags the boss so that next nail is behind his back; this allows everyone including fettered dd to focus on nails
-    // - OT stays just outside cleave zone to the right (near the wall), ready to provoke when tank swap is needed
-    // - searing wind target moves far enough in front of the boss, outside cleave range
+    // common ai used during 'nails' phases
+    // while there are still nails to kill, uses custom positioning hints and cooldowns
+    // nail kill order is always CW starting from E; large nail is last
+    // - MT keeps boss where he is, rotating to face wall (unless next nail to kill is in cleave)
+    // - searing wind target moves either CW from boss or CCW, depending on phase-specific remaining nail threshold
     // - healers without searing wind stay in center
-    // - dd stay anywhere outside cleave range, potential cleave from OT during swap, and center (so that not to bait eruptions on healers)
-    class Ex4IfritAINails : Ex4IfritAICommon
+    // - dd stay anywhere outside cleave range and center (so that not to bait eruptions on healers)
+    class Ex4IfritAINails : Ex4IfritAINormal
     {
         private List<Actor> NailKillOrder = new();
+        private int MinNailsForCWSearingWinds;
+        private BitMask OTTankAtIncinerateCounts;
+
+        public Ex4IfritAINails(int minNailsForCWSearingWinds, ulong otTankAtIncinerateCounts)
+        {
+            MinNailsForCWSearingWinds = minNailsForCWSearingWinds;
+            OTTankAtIncinerateCounts = new(otTankAtIncinerateCounts);
+        }
 
         public override void Init(BossModule module)
         {
             base.Init(module);
             var smallNails = module.Enemies(OID.InfernalNailSmall);
-            var startingNail = smallNails.Closest(module.PrimaryActor.Position);
+            var startingNail = smallNails.Closest(module.Bounds.Center + new WDir(15, 0));
             if (startingNail != null)
             {
                 NailKillOrder.Add(startingNail);
@@ -191,105 +228,140 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            var bossAngle = Angle.FromDirection(module.PrimaryActor.Position - module.Bounds.Center);
-            var nextNail = NailKillOrder.FirstOrDefault();
-            foreach (var e in hints.PotentialTargets)
+            if (NailKillOrder.Count == 0)
             {
-                e.StayAtLongRange = true;
-                switch ((OID)e.Actor.OID)
-                {
-                    case OID.Boss:
-                        e.Priority = 1; // attack only if it's the only thing to do...
-                        UpdateBossTankingProperties(module, e, actor);
-                        (e.DesiredPosition, e.DesiredRotation) = DesiredBossPosRot(module);
-                        break;
-                    case OID.InfernalNailSmall:
-                    case OID.InfernalNailLarge:
-                        e.Priority = e.Actor == nextNail ? 2 : 0;
-                        e.AttackStrength = 0;
-                        e.ShouldBeTanked = false;
-                        e.ForbidDOTs = (OID)e.Actor.OID == OID.InfernalNailSmall;
-                        break;
-                }
+                base.AddAIHints(module, slot, actor, assignment, hints);
             }
+            else
+            {
+                var desiredTankRole = OTTankAtIncinerateCounts[IncinerateCount] ? PartyRolesConfig.Assignment.OT : PartyRolesConfig.Assignment.MT;
+                var bossAngle = Angle.FromDirection(module.PrimaryActor.Position - module.Bounds.Center);
+                var nextNail = NailKillOrder.FirstOrDefault();
+                foreach (var e in hints.PotentialTargets)
+                {
+                    e.StayAtLongRange = true;
+                    switch ((OID)e.Actor.OID)
+                    {
+                        case OID.Boss:
+                            e.Priority = 1; // attack only if it's the only thing to do...
+                            UpdateBossTankingProperties(module, e, actor, assignment == desiredTankRole);
+                            if (nextNail != null && nextNail.Position.InCone(e.Actor.Position, e.DesiredRotation, Incinerate.CleaveShape.HalfAngle))
+                            {
+                                var bossToNail = Angle.FromDirection(nextNail.Position - e.Actor.Position);
+                                e.DesiredRotation = bossToNail + (bossToNail.Rad > e.DesiredRotation.Rad ? -75 : 75).Degrees();
+                            }
+                            break;
+                        case OID.InfernalNailSmall:
+                        case OID.InfernalNailLarge:
+                            e.Priority = e.Actor == nextNail ? 2 : 0;
+                            e.AttackStrength = 0;
+                            e.ShouldBeTanked = false;
+                            e.ForbidDOTs = (OID)e.Actor.OID == OID.InfernalNailSmall;
+                            break;
+                    }
+                }
 
-            // position hints
-            if (IsEruptionBaiter(slot))
-            {
-                AddDefaultEruptionBaiterHints(module, hints);
-            }
-            else if (module.PrimaryActor.TargetID != actor.InstanceID)
-            {
-                if (IsSearingWindTarget(slot))
+                // position hints
+                if (IsEruptionBaiter(slot))
                 {
-                    var dir = bossAngle + 135.Degrees();
-                    AddPositionHint(hints, module.Bounds.Center + 18 * dir.ToDirection());
+                    AddDefaultEruptionBaiterHints(module, hints);
                 }
-                else if (actor.Role == Role.Tank)
+                else if (module.PrimaryActor.TargetID != actor.InstanceID)
                 {
-                    // we want to stay at desired rotation - 75 +/- 15 == bossAngle + 15 +/- 15 => inverse is bossAngle + 195 +- 165
-                    hints.AddForbiddenZone(ShapeDistance.Cone(module.PrimaryActor.Position, 50, bossAngle + 195.Degrees(), 165.Degrees()));
-                }
-                else if (actor.Role == Role.Healer)
-                {
-                    AddPositionHint(hints, module.Bounds.Center);
-                }
-                else
-                {
-                    // in addition to usual hints, we want to avoid potential cleave at OT and center (so that we don't bait eruption there)
-                    if (!EruptionActive)
-                        hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, Eruption.Radius));
-                    foreach (var ot in module.Raid.WithoutSlot().Where(a => a.InstanceID != module.PrimaryActor.InstanceID && a.Role == Role.Tank))
-                        hints.AddForbiddenZone(Incinerate.CleaveShape.Distance(module.PrimaryActor.Position, Angle.FromDirection(ot.Position - module.PrimaryActor.Position)));
+                    bool invertedSW = NailKillOrder.Count <= MinNailsForCWSearingWinds;
+                    if (IsSearingWindTarget(slot))
+                    {
+                        var dir = !actor.Position.InCircle(module.Bounds.Center, 10) ? Angle.FromDirection(actor.Position - module.Bounds.Center)
+                            : bossAngle + (invertedSW ? -105 : 105).Degrees();
+                        AddPositionHint(hints, module.Bounds.Center + 18 * dir.ToDirection());
+                    }
+                    else if (assignment == desiredTankRole)
+                    {
+                        var dir = bossAngle + (invertedSW ? 75 : -75).Degrees();
+                        AddPositionHint(hints, module.PrimaryActor.Position + 7.5f * (bossAngle + 75.Degrees()).ToDirection());
+                        hints.AddForbiddenZone(ShapeDistance.Cone(module.PrimaryActor.Position, 50, bossAngle + 195.Degrees(), 165.Degrees()));
+                    }
+                    else if (actor.Role == Role.Healer)
+                    {
+                        AddPositionHint(hints, module.Bounds.Center);
+                    }
+                    else
+                    {
+                        // in addition to usual hints, we want to avoid center (so that we don't bait eruption there)
+                        if (!EruptionActive)
+                            hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, Eruption.Radius));
+                    }
                 }
             }
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
+            base.DrawArenaForeground(module, pcSlot, pc, arena);
             var nextNail = NailKillOrder.FirstOrDefault();
             if (nextNail != null)
                 arena.AddCircle(nextNail.Position, 2, ArenaColor.Safe);
-
-            if (module.PrimaryActor.TargetID == pc.InstanceID)
-            {
-                // cone to help mt with proper positioning
-                var (pos, rot) = DesiredBossPosRot(module);
-                arena.AddCone(pos, 2, rot, Incinerate.CleaveShape.HalfAngle, ArenaColor.Safe);
-            }
-        }
-
-        private (WPos, Angle) DesiredBossPosRot(BossModule module)
-        {
-            var bossOffset = module.PrimaryActor.Position - module.Bounds.Center;
-            var bossAngle = Angle.FromDirection(bossOffset);
-            var nextNail = NailKillOrder.FirstOrDefault();
-            Angle? nextNailDir = nextNail != null && !nextNail.Position.AlmostEqual(module.Bounds.Center, 1) ? Angle.FromDirection(nextNail.Position - module.Bounds.Center) : null;
-            if (nextNailDir != null)
-            {
-                var radius = Math.Max(13, bossOffset.Length());
-                var desiredAngle = nextNailDir.Value + 30.Degrees();
-                var pos = module.Bounds.Center + radius * desiredAngle.ToDirection();
-                var rot = bossAngle + 90.Degrees();
-                if (rot.ToDirection().Dot(pos - module.PrimaryActor.Position) < 0)
-                {
-                    pos = module.PrimaryActor.Position; // do not turn boss around on 'overshoot'
-                }
-                return (pos, rot);
-            }
-            else
-            {
-                // no nails except central, just make boss face the wall...
-                return (module.PrimaryActor.Position, bossAngle);
-            }
         }
 
         private (float, float) NailDirDist(WDir offset, Angle startingDir)
         {
-            var dir = Angle.FromDirection(offset);
-            if (dir.Rad < startingDir.Rad)
+            var dir = startingDir - Angle.FromDirection(offset);
+            if (dir.Rad < 0)
                 dir += 360.Degrees();
             return (dir.Rad, offset.LengthSq());
+        }
+    }
+
+    class Ex4IfritAINails1 : Ex4IfritAINails
+    {
+        public Ex4IfritAINails1() : base(1, 0x8) { }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            base.AddAIHints(module, slot, actor, assignment, hints);
+
+            if (module.PrimaryActor.TargetID == actor.InstanceID)
+            {
+                var phaseTime = (float)(module.WorldState.CurrentTime - CreatedAt).TotalSeconds;
+                PlanRampart(hints, actor, phaseTime, 10, 20);
+            }
+        }
+    }
+
+    class Ex4IfritAINails2 : Ex4IfritAINails
+    {
+        public Ex4IfritAINails2() : base(4, 0x7) { }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            base.AddAIHints(module, slot, actor, assignment, hints);
+
+            if (module.PrimaryActor.TargetID == actor.InstanceID)
+            {
+                var phaseTime = (float)(module.WorldState.CurrentTime - CreatedAt).TotalSeconds;
+                PlanRampart(hints, actor, phaseTime, 8, 13);
+            }
+        }
+    }
+
+    class Ex4IfritAINails3 : Ex4IfritAINails
+    {
+        public Ex4IfritAINails3() : base(7, 0x3C70) { }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            base.AddAIHints(module, slot, actor, assignment, hints);
+
+            if (module.PrimaryActor.TargetID == actor.InstanceID)
+            {
+                var phaseTime = (float)(module.WorldState.CurrentTime - CreatedAt).TotalSeconds;
+                PlanRampart(hints, actor, phaseTime, 9, 13);
+                PlanReprisal(hints, actor, phaseTime, 20, 25);
+                PlanStrongCooldown(hints, actor, phaseTime, 35, 40);
+                PlanStrongCooldown(hints, actor, phaseTime, 57, 63);
+                PlanRampart(hints, actor, phaseTime, 91, 97);
+                PlanReprisal(hints, actor, phaseTime, 102, 109);
+            }
         }
     }
 
@@ -299,18 +371,29 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
     {
         private WDir _safespotOffset;
 
-        public Ex4IfritAIHellfire(Angle safeSpotDir)
+        public Ex4IfritAIHellfire(Angle safeSpotDir, PartyRolesConfig.Assignment tankRole)
         {
             _safespotOffset = 18 * safeSpotDir.ToDirection();
+            BossTankRole = tankRole;
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
+            var boss = hints.PotentialTargets.Find(e => e.Actor == module.PrimaryActor);
+            if (boss != null)
+            {
+                boss.Priority = 1;
+                boss.StayAtLongRange = true;
+                boss.DesiredRotation = Angle.FromDirection(_safespotOffset);
+                boss.DesiredPosition = module.Bounds.Center + 13 * boss.DesiredRotation.ToDirection();
+                boss.PreferProvoking = boss.ShouldBeTanked = assignment == BossTankRole;
+            }
+
             if (IsSearingWindTarget(slot))
             {
                 AddPositionHint(hints, module.Bounds.Center - _safespotOffset);
             }
-            else if (module.PrimaryActor.TargetID == actor.InstanceID)
+            else if (BossTankRole == assignment)
             {
                 AddPositionHint(hints, module.Bounds.Center + _safespotOffset);
             }
@@ -325,7 +408,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
             arena.AddCircle(module.Bounds.Center + _safespotOffset, 2, ArenaColor.Safe);
         }
     }
-    class Ex4IfritAIHellfire1 : Ex4IfritAIHellfire { public Ex4IfritAIHellfire1() : base(150.Degrees()) { } }
-    class Ex4IfritAIHellfire2 : Ex4IfritAIHellfire { public Ex4IfritAIHellfire2() : base(110.Degrees()) { } }
-    class Ex4IfritAIHellfire3 : Ex4IfritAIHellfire { public Ex4IfritAIHellfire3() : base(70.Degrees()) { } }
+    class Ex4IfritAIHellfire1 : Ex4IfritAIHellfire { public Ex4IfritAIHellfire1() : base(150.Degrees(), PartyRolesConfig.Assignment.MT) { } }
+    class Ex4IfritAIHellfire2 : Ex4IfritAIHellfire { public Ex4IfritAIHellfire2() : base(110.Degrees(), PartyRolesConfig.Assignment.OT) { } }
+    class Ex4IfritAIHellfire3 : Ex4IfritAIHellfire { public Ex4IfritAIHellfire3() : base(70.Degrees(), PartyRolesConfig.Assignment.MT) { } }
 }

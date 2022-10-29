@@ -33,26 +33,14 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         {
             _module = module;
             DeathPhase(0, SinglePhase);
-            //.ActivateOnEnter<Incinerate>()
-            //.ActivateOnEnter<SearingWind>()
-            //.ActivateOnEnter<Eruption>()
-            //.ActivateOnEnter<Hellfire>()
-            //.ActivateOnEnter<RadiantPlume>()
-            //.ActivateOnEnter<CrimsonCyclone>()
-            //.ActivateOnEnter<InfernalFetters>()
-            //.ActivateOnEnter<Ex4IfritAI>();
         }
 
         private void SinglePhase(uint id)
         {
-            NailsSubphase(id, "4 nails at ~85%", false, 45);
-            Intermission<Ex4IfritAIHellfire1>(id + 0x10000);
-            NailsSubphase(id + 0x20000, "8 nails at ~50%", true, 75);
-            Intermission<Ex4IfritAIHellfire2>(id + 0x30000);
-            NailsSubphase(id + 0x40000, "13 nails at ~30%", true, 115);
-            Intermission<Ex4IfritAIHellfire3>(id + 0x50000);
-
-            SimpleState(id + 0x60000, 1000, "Enrage")
+            NailsSubphase<Ex4IfritAINails1, Ex4IfritAIHellfire1>(id, "4 nails at ~85%", false, 45);
+            NailsSubphase<Ex4IfritAINails2, Ex4IfritAIHellfire2>(id + 0x10000, "8 nails at ~50%", true, 75);
+            NailsSubphase<Ex4IfritAINails3, Ex4IfritAIHellfire3>(id + 0x20000, "13 nails at ~30%", true, 115);
+            SimpleState(id + 0x30000, 1000, "Enrage")
                 .ActivateOnEnter<Incinerate>()
                 .ActivateOnEnter<Eruption>()
                 .ActivateOnEnter<SearingWind>()
@@ -61,7 +49,9 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 .DeactivateOnExit<Ex4IfritAINormal>();
         }
 
-        private void NailsSubphase(uint id, string name, bool withFetters, float nailEnrage)
+        private void NailsSubphase<AINails, AIHellfire>(uint id, string name, bool withFetters, float nailEnrage)
+            where AINails : Ex4IfritAINails, new()
+            where AIHellfire : Ex4IfritAIHellfire, new()
         {
             Condition(id, 1000, () => _module.SmallNails.Any(a => a.IsTargetable && !a.IsDead), name)
                 .ActivateOnEnter<Incinerate>()
@@ -69,20 +59,17 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 .ActivateOnEnter<SearingWind>()
                 .ActivateOnEnter<InfernalFetters>(withFetters)
                 .ActivateOnEnter<Ex4IfritAINormal>()
+                .DeactivateOnExit<Incinerate>() // we want to reset cast counter
                 .DeactivateOnExit<Ex4IfritAINormal>();
-            Condition(id + 1, nailEnrage, () => !_module.SmallNails.Any(a => a.IsTargetable && !a.IsDead) && !_module.LargeNails.Any(a => a.IsTargetable && !a.IsDead), "Nails enrage", 1000)
-                .ActivateOnEnter<Ex4IfritAINails>()
-                .DeactivateOnExit<Ex4IfritAINails>();
-        }
-
-        private void Intermission<AIHellfire>(uint id) where AIHellfire : Ex4IfritAIHellfire, new()
-        {
-            Condition(id, 45, () => Module.PrimaryActor.FindStatus(SID.Invincibility) != null, "Invincible", 1000)
-                .ActivateOnEnter<Ex4IfritAINormal>()
+            Condition(id + 1, nailEnrage, () => Module.PrimaryActor.FindStatus(SID.Invincibility) != null, "Nails enrage", 1000)
+                .ActivateOnEnter<Incinerate>()
+                .ActivateOnEnter<AINails>()
                 .DeactivateOnExit<Incinerate>()
                 .DeactivateOnExit<Eruption>()
-                .DeactivateOnExit<Ex4IfritAINormal>()
+                .DeactivateOnExit<InfernalFetters>(withFetters)
+                .DeactivateOnExit<AINails>()
                 .SetHint(StateMachine.StateHint.DowntimeStart);
+
             CastStart(id + 0x10, AID.Hellfire, 3.4f)
                 .ActivateOnEnter<Hellfire>()
                 .ActivateOnEnter<AIHellfire>();
@@ -100,12 +87,13 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
             ComponentCondition<RadiantPlume>(id + 0x32, 0.9f, comp => comp.Casters.Count == 0, "Plumes")
                 .DeactivateOnExit<RadiantPlume>();
 
-            Targetable(id + 0x40, false, 13.5f, "Disappear", 10)
+            // note: cyclones could be skipped with high enough dps
+            Condition(id + 0x40, 13.5f, () => !Module.PrimaryActor.IsTargetable || _module.SmallNails.Any(a => a.IsTargetable && !a.IsDead), "Disappear", 10)
                 .ActivateOnEnter<Incinerate>()
                 .ActivateOnEnter<Ex4IfritAINormal>()
                 .DeactivateOnExit<Incinerate>()
                 .DeactivateOnExit<Ex4IfritAINormal>();
-            Targetable(id + 0x50, true, 15.4f, "Cyclones + Reappear", 10)
+            Targetable(id + 0x50, true, 15.4f, "Cyclones + Reappear")
                 .ActivateOnEnter<CrimsonCyclone>()
                 .DeactivateOnExit<CrimsonCyclone>();
         }
