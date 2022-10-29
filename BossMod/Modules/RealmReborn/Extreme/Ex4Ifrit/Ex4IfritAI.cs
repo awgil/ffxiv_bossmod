@@ -279,7 +279,6 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                     {
                         var dir = bossAngle + (invertedSW ? 75 : -75).Degrees();
                         AddPositionHint(hints, module.PrimaryActor.Position + 7.5f * (bossAngle + 75.Degrees()).ToDirection());
-                        hints.AddForbiddenZone(ShapeDistance.Cone(module.PrimaryActor.Position, 50, bossAngle + 195.Degrees(), 165.Degrees()));
                     }
                     else if (actor.Role == Role.Healer)
                     {
