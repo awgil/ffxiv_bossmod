@@ -151,7 +151,8 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                     // - at +135 degrees - gives lots of space to OT eruption baits, but can't heal MT
                     // - at +80 degrees - can heal MT, but tight for OT (eruptions, knockbacks...)
                     // - at +100-110 degrees - can heal MT, decent space for OT, but can't possibly fit two targets - that's actually fine?..
-                    var dir = bossAngle + 105.Degrees();
+                    var dir = !actor.Position.InCircle(module.Bounds.Center, 10) ? Angle.FromDirection(actor.Position - module.Bounds.Center)
+                        : bossAngle + 105.Degrees();
                     AddPositionHint(hints, module.Bounds.Center + 18 * dir.ToDirection());
                 }
                 else if (IsFettered(slot))
