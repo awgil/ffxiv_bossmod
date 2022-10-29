@@ -62,7 +62,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 .OnEnter(() => Module.FindComponent<Ex4IfritAINormal>()!.BossTankRole = startWithOT ? PartyRolesConfig.Assignment.OT : PartyRolesConfig.Assignment.MT)
                 .DeactivateOnExit<Incinerate>() // we want to reset cast counter
                 .DeactivateOnExit<Ex4IfritAINormal>();
-            Condition(id + 1, nailEnrage, () => Module.PrimaryActor.FindStatus(SID.Invincibility) != null, "Nails enrage", 1000)
+            Condition(id + 1, nailEnrage, () => !Module.PrimaryActor.IsTargetable, "Nails enrage", 1000)
                 .ActivateOnEnter<Incinerate>()
                 .ActivateOnEnter<AINails>()
                 .DeactivateOnExit<Incinerate>()
