@@ -10,11 +10,11 @@
 
     public enum AID : uint
     {
-        AutoAttack = 451, // Boss->player, no cast, range 8+R 90?-degree cone cleave, autoattack
+        AutoAttack = 451, // Boss->player, no cast, range 8+R 120-degree cone cleave, autoattack
         VulcanBurst = 1531, // Boss->self, no cast, range 16+R circle knockback 10
-        Incinerate = 1528, // Boss->self, no cast, range 10+R 120?-degree cone cleave, tankbuster applying debuff stack
+        Incinerate = 1528, // Boss->self, no cast, range 10+R 120-degree cone cleave, tankbuster applying debuff stack
         InfernoHowl = 1529, // Boss->player, 2.0s cast, single-target, applies searing wind on healer
-        SearingWind = 1530, // Helper->location, no cast, range ? circle around player with searing wind debuff, not including player himself
+        SearingWind = 1530, // Helper->location, no cast, range 14 circle around player with searing wind debuff, not including player himself
         Eruption = 1676, // Boss->self, 2.2s cast, single-target, visual
         EruptionAOE = 1677, // Helper->location, 3.0s cast, range 8 circle baited aoe (on 3 dps or on OT)
         InfernalSurge = 1535, // InfernalNailSmall->self, no cast, raidwide applying vuln up on death

@@ -9,7 +9,9 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         private DateTime _baitDetectDeadline;
         public BitMask Baiters;
 
-        public Eruption() : base(ActionID.MakeSpell(AID.EruptionAOE), 8) { }
+        public static float Radius = 8;
+
+        public Eruption() : base(ActionID.MakeSpell(AID.EruptionAOE), Radius) { }
 
         public override void Update(BossModule module)
         {

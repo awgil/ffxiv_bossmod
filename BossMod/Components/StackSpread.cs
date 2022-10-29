@@ -14,19 +14,21 @@ namespace BossMod.Components
         public int MinStackSize { get; private init; }
         public int MaxStackSize { get; private init; }
         public bool AlwaysShowSpreads { get; private init; } // if false, we only shown own spread radius for spread targets - this reduces visual clutter
+        public bool RaidwideOnResolve; // by default, assume even if mechanic is correctly resolved everyone will still take damage
         public BitMask SpreadMask;
         public BitMask StackMask;
         public DateTime ActivateAt;
 
         public bool Active => (SpreadMask | StackMask).Any();
 
-        public StackSpread(float stackRadius, float spreadRadius, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false)
+        public StackSpread(float stackRadius, float spreadRadius, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false, bool raidwideOnResolve = true)
         {
             _stackShape = new(stackRadius);
             _spreadShape = new(spreadRadius);
             MinStackSize = minStackSize;
             MaxStackSize = maxStackSize;
             AlwaysShowSpreads = alwaysShowSpreads;
+            RaidwideOnResolve = raidwideOnResolve;
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
@@ -75,7 +77,7 @@ namespace BossMod.Components
             }
 
             // assume everyone will take some damage, either from sharing stacks or from spreads
-            if ((StackMask | SpreadMask).Any())
+            if (RaidwideOnResolve && (StackMask | SpreadMask).Any())
                 hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), ActivateAt));
         }
 
