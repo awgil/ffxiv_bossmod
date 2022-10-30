@@ -2,7 +2,12 @@
 
 namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 {
-    // note: boss has multiple phases triggered by hp, but we represent them as states to avoid problems associated with component deletion (TODO: reconsider...)
+    // note: boss has multiple phases triggered by hp, but we represent them as states
+    // I don't really understand the trigger for phase changes
+    // for example, initial state (before first nails transition) typically (in MINE) is very short and has no incinrates; boss starts howl -> eruption -> burst sequence at ~10s
+    // if instead you don't hit him at all (e.g. in unsync), he will cast incinerates at 10/20/30 and only start this sequence at ~35s
+    // timings for nail phases seem to be extremely consistent, but they can end early depending on nail kill speed (at least starting from 2nd nails)
+    // TODO: biggest improvement to do would be to specify incinerate timings (these seem to be pretty consistent, at least with decent dps) and replace hardcoded cooldowns with planned
     class Ex4IfritStates : StateMachineBuilder
     {
         Ex4Ifrit _module;
@@ -39,7 +44,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 .OnEnter(() => Module.FindComponent<Ex4IfritAINormal>()!.BossTankRole = startWithOT ? PartyRolesConfig.Assignment.OT : PartyRolesConfig.Assignment.MT)
                 .DeactivateOnExit<Incinerate>() // we want to reset cast counter
                 .DeactivateOnExit<Ex4IfritAINormal>();
-            Condition(id + 1, nailEnrage, () => !Module.PrimaryActor.IsTargetable, "Nails enrage", 1000)
+            Condition(id + 1, nailEnrage, () => !Module.PrimaryActor.IsTargetable, "Nails enrage", 1000) // note: not using invincibility as a condition here, since boss can become invincible early during nails if brought below 10%
                 .ActivateOnEnter<Incinerate>()
                 .ActivateOnEnter<AINails>()
                 .DeactivateOnExit<Incinerate>()
@@ -48,7 +53,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 .DeactivateOnExit<AINails>()
                 .SetHint(StateMachine.StateHint.DowntimeStart);
 
-            CastStart(id + 0x10, AID.Hellfire, 3.4f)
+            CastStart(id + 0x10, AID.Hellfire, 2.7f)
                 .ActivateOnEnter<Hellfire>()
                 .ActivateOnEnter<AIHellfire>();
             CastEnd(id + 0x11, 2, "Raidwide")

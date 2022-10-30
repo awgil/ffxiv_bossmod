@@ -230,14 +230,14 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            if (NailKillOrder.Count == 0)
+            var nextNail = NailKillOrder.FirstOrDefault();
+            if (nextNail == null)
             {
                 base.AddAIHints(module, slot, actor, assignment, hints);
             }
             else
             {
                 var bossAngle = Angle.FromDirection(module.PrimaryActor.Position - module.Bounds.Center);
-                var nextNail = NailKillOrder.FirstOrDefault();
                 foreach (var e in hints.PotentialTargets)
                 {
                     e.StayAtLongRange = true;
@@ -246,7 +246,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                         case OID.Boss:
                             e.Priority = 1; // attack only if it's the only thing to do...
                             UpdateBossTankingProperties(module, e, actor, assignment);
-                            if (nextNail != null && nextNail.Position.InCone(e.Actor.Position, e.DesiredRotation, Incinerate.CleaveShape.HalfAngle))
+                            if (nextNail.Position.InCone(e.Actor.Position, e.DesiredRotation, Incinerate.CleaveShape.HalfAngle))
                             {
                                 var bossToNail = Angle.FromDirection(nextNail.Position - e.Actor.Position);
                                 e.DesiredRotation = bossToNail + (bossToNail.Rad > e.DesiredRotation.Rad ? -75 : 75).Degrees();
@@ -279,7 +279,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                     else if (assignment == BossTankRole)
                     {
                         var dir = bossAngle + (invertedSW ? 75 : -75).Degrees();
-                        AddPositionHint(hints, module.PrimaryActor.Position + 7.5f * (bossAngle + 75.Degrees()).ToDirection());
+                        AddPositionHint(hints, module.PrimaryActor.Position + 7.5f * dir.ToDirection());
                     }
                     else if (actor.Role == Role.Healer)
                     {
@@ -292,6 +292,10 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                             hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, Eruption.Radius));
                     }
                 }
+
+                // heavy raidwide on large nail death
+                if ((OID)nextNail.OID == OID.InfernalNailLarge && nextNail.HP.Cur < 0.5f * nextNail.HP.Max)
+                    hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), new()));
             }
         }
 
