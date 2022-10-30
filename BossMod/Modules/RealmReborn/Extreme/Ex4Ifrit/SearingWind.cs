@@ -11,7 +11,10 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         private int _searingWindsLeft;
         private DateTime _showHintsAfter = DateTime.MaxValue;
 
-        public SearingWind() : base(0, 14) { }
+        public SearingWind() : base(0, 14)
+        {
+            KeepOnPhaseChange = true;
+        }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {

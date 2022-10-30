@@ -64,7 +64,7 @@ namespace BossMod
         {
             if (FindComponent<T>() != null)
             {
-                Service.Log($"[BossModule] Activating a component of type {typeof(T)} when another of the same type is already active; old one is deactivated automatically");
+                ReportError(null, $"Activating a component of type {typeof(T)} when another of the same type is already active; old one is deactivated automatically");
                 DeactivateComponent<T>();
             }
             T comp = new();
@@ -90,10 +90,10 @@ namespace BossMod
         {
             int count = _components.RemoveAll(x => x is T);
             if (count == 0)
-                Service.Log($"[BossModule] Could not find a component of type {typeof(T)} to deactivate");
+                ReportError(null, $"Could not find a component of type {typeof(T)} to deactivate");
         }
 
-        public void ClearComponents() => _components.Clear();
+        public void ClearComponents(Predicate<BossComponent> condition) => _components.RemoveAll(condition);
 
         public BossModule(WorldState ws, Actor primary, ArenaBounds bounds)
         {
@@ -139,7 +139,7 @@ namespace BossMod
             if (disposing)
             {
                 StateMachine.Reset();
-                ClearComponents();
+                ClearComponents(_ => true);
 
                 if (PlanConfig != null)
                     PlanConfig.Modified -= OnPlanModified;

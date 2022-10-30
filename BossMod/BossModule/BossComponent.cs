@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod
 {
@@ -32,6 +31,8 @@ namespace BossMod
             Danger, // player is a source of danger to the player: might be risking failing a mechanic that would wipe a raid, or might be baiting nasty AOE, etc.
             Critical, // tracking this player's position is extremely important
         }
+
+        public bool KeepOnPhaseChange; // by default, all components are deactivated on phase change automatically (since phase change can happen at any time) - setting this to true prevents this
 
         public virtual void Init(BossModule module) { } // called at activation
         public virtual void Update(BossModule module) { } // called every frame - it is a good place to update any cached values

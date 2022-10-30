@@ -26,13 +26,23 @@ namespace BossMod
                 _module = module;
             }
 
-            // note that there is no "deactivate on exit", since phase change clears all components automatically
-            public Phase ActivateOnEnter<C>(bool condition = true) where C : BossComponent, new()
+            public Phase OnEnter(Action action, bool condition = true)
             {
                 if (condition)
-                    Raw.Enter.Add(_module.ActivateComponent<C>);
+                    Raw.Enter.Add(action);
                 return this;
             }
+
+            public Phase OnExit(Action action, bool condition = true)
+            {
+                if (condition)
+                    Raw.Exit.Add(action);
+                return this;
+            }
+
+            // note: usually components are deactivated automatically on phase change - manual deactivate is needed only for components that opt out of this (useful for components that need to maintain state across multiple phases)
+            public Phase ActivateOnEnter<C>(bool condition = true) where C : BossComponent, new() => OnEnter(_module.ActivateComponent<C>, condition);
+            public Phase DeactivateOnExit<C>(bool condition = true) where C : BossComponent => OnExit(_module.DeactivateComponent<C>, condition);
         }
 
         // wrapper that simplifies building states
@@ -96,7 +106,7 @@ namespace BossMod
         }
 
         // create a simple phase; buildState is called to fill out phase states, argument is seqID << 24
-        // note that on exit, all components are removed, since generally phase transition can happen at any time
+        // note that on exit, by default all components are removed (except those that opt out of this explicitly), since generally phase transition can happen at any time
         public Phase SimplePhase(uint seqID, Action<uint> buildState, string name, float dur = -1)
         {
             if (_curInitial != null)
@@ -105,7 +115,7 @@ namespace BossMod
             if (_curInitial == null)
                 throw new Exception($"Phase '{name}' has no states");
             var phase = new StateMachine.Phase(_curInitial, name, dur);
-            phase.Exit.Add(Module.ClearComponents);
+            phase.Exit.Add(() => Module.ClearComponents(comp => !comp.KeepOnPhaseChange));
             _phases.Add(phase);
             _curInitial = _lastState = null;
             return new(phase, Module);
