@@ -8,43 +8,43 @@ namespace BossMod
         public enum Opcode
         {
             // opcodes from machina
-            StatusEffectList = 0x0274,
+            StatusEffectList = 0x0090,
             StatusEffectList2 = 0xF31E,
             StatusEffectList3 = 0xF357,
             BossStatusEffectList = 0xF11A,
-            ActionEffect1 = 0x03C4, // Machina calls it AbilityN, size=124
-            ActionEffect8 = 0x0391, // size=636
-            ActionEffect16 = 0x02E4,
-            ActionEffect24 = 0x02EF,
-            ActionEffect32 = 0x03B9,
-            ActorCast = 0x02EC,
-            EffectResult1 = 0x02CA,
-            EffectResult4 = 0x0284,
-            EffectResult8 = 0x027D,
-            EffectResult16 = 0x0150,
-            EffectResultBasic1 = 0x03C5,
-            EffectResultBasic4 = 0x00C3,
-            EffectResultBasic8 = 0x036F,
-            EffectResultBasic16 = 0x014A,
-            EffectResultBasic32 = 0x0089,
-            EffectResultBasic64 = 0x0307,
-            ActorControl = 0x039E, // look at toggle weapon
-            ActorControlSelf = 0x03CE, // look at cooldown
-            ActorControlTarget = 0x03C6, // look at target change
-            UpdateHpMpTp = 0x0129,
-            PlayerSpawn = 0x017E,
-            NpcSpawn = 0x029D,
+            ActionEffect1 = 0x0130, // Machina calls it AbilityN, size=124
+            ActionEffect8 = 0x01DF, // size=636
+            ActionEffect16 = 0x0202,
+            ActionEffect24 = 0x00BD,
+            ActionEffect32 = 0x014C,
+            ActorCast = 0x0398,
+            EffectResult1 = 0x034B,
+            EffectResult4 = 0x01E1,
+            EffectResult8 = 0x0145,
+            EffectResult16 = 0x0230,
+            EffectResultBasic1 = 0x00D9,
+            EffectResultBasic4 = 0x00A9,
+            EffectResultBasic8 = 0x03A5,
+            EffectResultBasic16 = 0x0247,
+            EffectResultBasic32 = 0x033B,
+            EffectResultBasic64 = 0x01B9,
+            ActorControl = 0x02D3, // look at toggle weapon
+            ActorControlSelf = 0x029B, // look at cooldown
+            ActorControlTarget = 0x253, // look at target change
+            UpdateHpMpTp = 0x02DC,
+            PlayerSpawn = 0x02C2,
+            NpcSpawn = 0x03CD,
             NpcSpawn2 = 0xF20A,
             ActorMove = 0xF0B3,
             ActorSetPos = 0xF1BA,
             ActorGauge = 0xF2AB,
-            PresetWaymark = 0x02E2, // FFXIVOpcodes calls this PlaceFieldMarkerPreset
-            Waymark = 0x03E5, // FFXIVOpcodes calls this PlaceFieldMarker
+            PresetWaymark = 0x010F, // FFXIVOpcodes calls this PlaceFieldMarkerPreset
+            Waymark = 0x006F, // FFXIVOpcodes calls this PlaceFieldMarker
             SystemLogMessage = 0xF1DB, // FFXIVOpcodes calls this SomeDirectorUnk4
 
             // opcodes from FFXIVOpcodes
             PlayerSetup = 0xF342,
-            UpdateClassInfo = 0x01F7,
+            UpdateClassInfo = 0x03CC,
             PlayerStats = 0xF26B,
             Playtime = 0xF122,
             UpdateSearchInfo = 0xF171,
@@ -96,15 +96,15 @@ namespace BossMod
             Logout = 0xF230,
 
             // below are opcodes i've reversed myself...
-            EnvironmentControl = 0x01A5, // updated - size=16, look for a bunch of messages starting with 0x8003759F after P1N intemperance cast...
-            UpdateRecastTimes = 0x01D4, // payload = 80 floats 'elapsed' + 80 floats 'total'
-            UpdateHate = 0x0221, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
-            UpdateHater = 0x0112, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
+            EnvironmentControl = 0x0193, // updated - size=16, look for a bunch of messages starting with 0x8003759F after P1N intemperance cast...
+            UpdateRecastTimes = 0x03B5, // payload = 80 floats 'elapsed' + 80 floats 'total'
+            UpdateHate = 0x01AE, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
+            UpdateHater = 0x026A, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
             Countdown = 0xF34E,
             CountdownCancel = 0xF17B,
-            RSVData = 0x0318,
-            ActionRequest = 0x0140, // just begin casting return...
-            ActionRequestGroundTargeted = 0x020B, // XIVAlexander
+            RSVData = 0x007D,
+            ActionRequest = 0x038F, // just begin casting return...
+            ActionRequestGroundTargeted = 0x0199, // XIVAlexander
             // old - 0x1fd == EventObjSpawn? for stuff like exit points, etc.
         }
 
