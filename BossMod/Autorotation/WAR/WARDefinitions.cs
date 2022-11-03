@@ -212,7 +212,7 @@ namespace BossMod.WAR
             SupportedActions.GCD(AID.SteelCyclone, 0);
             SupportedActions.GCD(AID.Decimate, 0);
             SupportedActions.GCD(AID.ChaoticCyclone, 0);
-            SupportedActions.OGCDWithCharges(AID.Infuriate, 0, CDGroup.Infuriate, 60.0f, 2).SetPlanningProperties(30);
+            SupportedActions.OGCDWithCharges(AID.Infuriate, 0, CDGroup.Infuriate, 60.0f, 2);
             SupportedActions.OGCDWithCharges(AID.Onslaught, 20, CDGroup.Onslaught, 30.0f, 3);
             SupportedActions.OGCD(AID.Upheaval, 3, CDGroup.Upheaval, 30.0f);
             SupportedActions.OGCD(AID.Orogeny, 0, CDGroup.Upheaval, 30.0f);

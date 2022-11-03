@@ -7,6 +7,7 @@ using System.Linq;
 namespace UIDev
 {
     // replay visualization using player's actions timeline + embedded personal cooldown planner
+    // TODO: legacy, remove
     class PlayerActions
     {
         private class BossColumn
@@ -16,7 +17,7 @@ namespace UIDev
 
             public BossColumn(PlayerActions owner)
             {
-                Column = owner._timeline.AddColumnBefore(new ActionUseColumn(owner._timeline, owner._stateTree, owner._phaseBranches), owner._colStates);
+                Column = owner._timeline.Columns.AddBefore(new ActionUseColumn(owner._timeline, owner._stateTree, owner._phaseBranches), owner._colStates);
                 Column.Width = 10;
             }
         }
@@ -91,7 +92,7 @@ namespace UIDev
             _stateTree.ApplyTimings(null);
             _timeline.MaxTime = _stateTree.TotalMaxTime;
 
-            _colStates = _timeline.AddColumn(new StateMachineBranchColumn(_timeline, _stateTree, _phaseBranches));
+            _colStates = _timeline.Columns.Add(new StateMachineBranchColumn(_timeline, _stateTree, _phaseBranches));
 
             var defaultBossCol = new BossColumn(this);
             _colBoss.Add(defaultBossCol);

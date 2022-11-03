@@ -46,6 +46,8 @@ namespace UIDev
                 DrawContents(e, moduleInfo);
                 DrawEncounterDetails(e, TimePrinter(e.Time.Start));
                 DrawPlayerActions(e);
+                if (ImGui.Button("Show timeline"))
+                    OpenTimeline(e);
             }
         }
 
@@ -228,6 +230,14 @@ namespace UIDev
         private Func<DateTime, string> TimePrinter(DateTime start)
         {
             return t => new Replay.TimeRange(start, t).ToString();
+        }
+
+        private void OpenTimeline(Replay.Encounter enc)
+        {
+            var tl = new ReplayTimeline(_replay, enc);
+            var w = WindowManager.CreateWindow($"Replay timeline: {_replay.Path} @ {enc.Time.Start:O}", tl.Draw, tl.Close, () => true);
+            w.SizeHint = new(1200, 1000);
+            w.MinSize = new(100, 100);
         }
 
         private void OpenPlayerActions(Replay.Encounter enc, Class pcClass, Replay.Participant? pc = null)

@@ -135,5 +135,11 @@ namespace BossMod
                     return CreateModule(i.ModuleType, new(), new(0, i.PrimaryActorOID, -1, "", ActorType.None, Class.None, new()));
             return null;
         }
+
+        // TODO: this is a hack...
+        public static BossModule? CreateModuleForTimeline(uint oid)
+        {
+            return CreateModule(FindByOID(oid)?.ModuleType, new(), new(0, oid, -1, "", ActorType.None, Class.None, new()));
+        }
     }
 }

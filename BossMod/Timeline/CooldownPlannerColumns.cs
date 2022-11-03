@@ -32,7 +32,7 @@ namespace BossMod
             {
                 if (!info.IsPlannable)
                     continue;
-                var col = _columns[aid] = timeline.AddColumn(new ActionUseColumn(timeline, tree, phaseBranches));
+                var col = _columns[aid] = timeline.Columns.Add(new ActionUseColumn(timeline, tree, phaseBranches));
                 col.Width = _trackWidth;
                 col.Name = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID)?.Name.ToString() ?? "(unknown)";
                 col.Editable = true;

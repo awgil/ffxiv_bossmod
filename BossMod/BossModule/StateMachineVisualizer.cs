@@ -9,7 +9,7 @@ namespace BossMod
 
         public StateMachineVisualizer(StateMachine sm)
         {
-            _col = _timeline.AddColumn(new StateMachineTreeColumn(_timeline, new(sm), sm));
+            _col = _timeline.Columns.Add(new StateMachineTreeColumn(_timeline, new(sm), sm));
             _timeline.MaxTime = _col.Tree.TotalMaxTime;
         }
 

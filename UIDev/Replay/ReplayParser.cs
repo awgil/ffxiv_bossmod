@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace UIDev
 {
@@ -12,6 +11,7 @@ namespace UIDev
         {
             public BossModule Module;
             public Replay.Encounter Encounter;
+            public int ActivePhaseIndex = -1;
             public StateMachine.State? ActiveState;
 
             public LoadedModuleData(BossModule module, Replay.Encounter enc)
@@ -49,7 +49,10 @@ namespace UIDev
             {
                 var data = _self._modules[module.PrimaryActor.InstanceID];
                 if (data.ActiveState != null)
+                {
+                    data.Encounter.Phases.Add(new() { ID = data.ActivePhaseIndex, LastStateID = data.ActiveState.ID, Exit = _self._ws.CurrentTime });
                     data.Encounter.States.Add(new() { ID = data.ActiveState.ID, Name = data.ActiveState.Name, Comment = data.ActiveState.Comment, ExpectedDuration = data.ActiveState.Duration, Exit = _self._ws.CurrentTime });
+                }
                 data.Encounter.Time.End = _self._ws.CurrentTime;
                 _self._modules.Remove(module.PrimaryActor.InstanceID);
                 module.Error -= OnError;
@@ -120,7 +123,10 @@ namespace UIDev
             foreach (var enc in _modules.Values)
             {
                 if (enc.ActiveState != null)
+                {
+                    enc.Encounter.Phases.Add(new() { ID = enc.ActivePhaseIndex, LastStateID = enc.ActiveState.ID, Exit = _ws.CurrentTime });
                     enc.Encounter.States.Add(new() { ID = enc.ActiveState.ID, Name = enc.ActiveState.Name, Comment = enc.ActiveState.Comment, ExpectedDuration = enc.ActiveState.Duration, Exit = _ws.CurrentTime });
+                }
                 enc.Encounter.Time.End = _ws.CurrentTime;
             }
             foreach (var p in _participants.Values)
@@ -156,8 +162,13 @@ namespace UIDev
                     }
                     else
                     {
+                        if (m.Module.StateMachine?.ActivePhaseIndex != m.ActivePhaseIndex)
+                        {
+                            m.Encounter.Phases.Add(new() { ID = m.ActivePhaseIndex, LastStateID = m.ActiveState.ID, Exit = _ws.CurrentTime });
+                        }
                         m.Encounter.States.Add(new() { ID = m.ActiveState.ID, Name = m.ActiveState.Name, Comment = m.ActiveState.Comment, ExpectedDuration = m.ActiveState.Duration, Exit = _ws.CurrentTime });
                     }
+                    m.ActivePhaseIndex = m.Module.StateMachine?.ActivePhaseIndex ?? -1;
                     m.ActiveState = m.Module.StateMachine?.ActiveState;
                 }
             }
@@ -291,6 +302,7 @@ namespace UIDev
                 Source = p,
                 MainTarget = _participants.GetValueOrDefault(args.cast.MainTargetID),
                 TargetPos = _ws.Actors.Find(args.cast.MainTargetID)?.PosRot.XYZ() ?? args.cast.TargetPos,
+                AnimationLock = args.cast.AnimationLockTime,
                 GlobalSequence = args.cast.GlobalSequence,
             };
             foreach (var t in args.cast.Targets)

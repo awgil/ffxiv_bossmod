@@ -141,6 +141,15 @@ namespace BossMod
             };
         }
 
+        public (Node, float) AbsoluteTimeToNodeAndDelay(float t, List<int> phaseBranches)
+        {
+            int phaseIndex = FindPhaseAtTime(t);
+            var phase = Phases[phaseIndex];
+            t -= phase.StartTime;
+            var node = phase.TimeToBranchNode(phaseBranches[phaseIndex], t);
+            return (node, t - (node.Predecessor?.Time ?? 0));
+        }
+
         private (Node, float) LayoutNodeAndSuccessors(float t, int phaseID, int branchID, StateMachine.State state, Node? pred)
         {
             var node = _nodes[state.ID] = new Node(t + state.Duration, phaseID, branchID, state, pred);

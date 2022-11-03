@@ -10,22 +10,94 @@ namespace BossMod
     public class Timeline
     {
         // definition of a timeline column
-        public abstract class Column
+        public class Column
         {
-            public bool Visible = true;
             public float Width;
             public string Name = "";
-            protected Timeline Timeline;
+            public Timeline Timeline { get; private init; }
 
-            protected Column(Timeline timeline)
+            public Column(Timeline timeline)
             {
                 Timeline = timeline;
             }
 
-            // called before layouting and drawing, good chance to update e.g. width and column name
+            // called before layouting and drawing, good chance to update e.g. width
             public virtual void Update() { }
 
-            public abstract void Draw();
+            public virtual void DrawHeader(Vector2 topLeft)
+            {
+                var s = ImGui.CalcTextSize(Name);
+                ImGui.GetWindowDrawList().AddText(topLeft + new Vector2((Width - s.X) * 0.5f, 0), 0xffffffff, Name);
+            }
+
+            public virtual void Draw() { }
+
+            // this version is used by column group to advance cursor
+            public virtual void DrawAdvance(ref float x)
+            {
+                Draw();
+                x += Width;
+            }
+        }
+
+        // a number of consecutive columns grouped together
+        // if a column has a name, it won't draw subcolumn names
+        public class ColumnGroup : Column
+        {
+            public List<Column> Columns = new();
+
+            public ColumnGroup(Timeline timeline) : base(timeline) { }
+
+            public override void Update()
+            {
+                Width = 0;
+                foreach (var c in Columns)
+                {
+                    c.Update();
+                    Width += c.Width;
+                }
+            }
+
+            public override void DrawHeader(Vector2 topLeft)
+            {
+                if (Name.Length > 0)
+                {
+                    base.DrawHeader(topLeft);
+                }
+                else
+                {
+                    foreach (var c in Columns.Where(c => c.Width > 0))
+                    {
+                        c.DrawHeader(topLeft);
+                        topLeft.X += c.Width;
+                    }
+                }
+            }
+
+            public override void DrawAdvance(ref float x)
+            {
+                Draw(); // in case someone overrides this...
+                foreach (var c in Columns.Where(c => c.Width > 0))
+                    c.DrawAdvance(ref x);
+            }
+
+            public T Add<T>(T col) where T : Column
+            {
+                Columns.Add(col);
+                return col;
+            }
+
+            public T AddBefore<T>(T col, Column next) where T : Column
+            {
+                Columns.Insert(Columns.IndexOf(next), col);
+                return col;
+            }
+
+            public Column AddDummy()
+            {
+                Columns.Add(new(Timeline));
+                return Columns.Last();
+            }
         }
 
         public float MaxTime = 0;
@@ -33,15 +105,14 @@ namespace BossMod
         public float PixelsPerSecond = 10;
         public float TopMargin = 20;
         public float BottomMargin = 5;
+        public ColumnGroup Columns;
 
-        private List<Column> _columns = new();
         private float _tScroll = 0;
         private float _tickFrequency = 5;
         private float _timeAxisWidth = 35;
 
         // these fields are transient and reinitialized on each draw
         private float _height = 0;
-        private float _clientWidth = 0;
         private float _curColumnOffset = 0;
         private Vector2 _screenClientTL;
         private List<List<string>> _tooltip = new();
@@ -51,49 +122,30 @@ namespace BossMod
         public float Height => _height;
         public Vector2 ScreenClientTL => _screenClientTL;
 
-        public T AddColumn<T>(T col) where T : Column
+        public Timeline()
         {
-            _columns.Add(col);
-            return col;
-        }
-
-        public T AddColumnBefore<T>(T col, Column next) where T : Column
-        {
-            _columns.Insert(_columns.IndexOf(next), col);
-            return col;
+            Columns = new(this);
         }
 
         public void Draw()
         {
+            Columns.Update();
+
             _screenClientTL = ImGui.GetCursorScreenPos();
-            _clientWidth = 0;
-            foreach (var c in _columns)
-            {
-                c.Update();
-                if (c.Visible)
-                {
-                    var s = ImGui.CalcTextSize(c.Name);
-                    ImGui.GetWindowDrawList().AddText(_screenClientTL + new Vector2(_timeAxisWidth + _clientWidth + c.Width / 2 - s.X / 2, 0), 0xffffffff, c.Name);
-                    _clientWidth += c.Width;
-                }
-            }
+            Columns.DrawHeader(_screenClientTL + new Vector2(_timeAxisWidth, 0));
 
             _screenClientTL.Y += TopMargin;
             ImGui.SetCursorScreenPos(_screenClientTL);
             _screenClientTL.X += _timeAxisWidth;
 
             _height = MathF.Max(10, ImGui.GetWindowPos().Y + ImGui.GetWindowHeight() - _screenClientTL.Y - TopMargin - BottomMargin - 8);
-            ImGui.InvisibleButton("canvas", new(_timeAxisWidth + _clientWidth, _height), ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight);
+            ImGui.InvisibleButton("canvas", new(_timeAxisWidth + Columns.Width, _height), ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight);
             HandleScrollZoom();
             DrawTimeAxis();
-            ImGui.PushClipRect(_screenClientTL, _screenClientTL + new Vector2(_clientWidth, _height), true);
+            ImGui.PushClipRect(_screenClientTL, _screenClientTL + new Vector2(Columns.Width, _height), true);
 
             _curColumnOffset = 0;
-            foreach (var c in _columns.Where(c => c.Visible))
-            {
-                c.Draw();
-                _curColumnOffset += c.Width;
-            }
+            Columns.DrawAdvance(ref _curColumnOffset);
 
             ImGui.PopClipRect();
 
@@ -122,7 +174,7 @@ namespace BossMod
 
         public void HighlightTime(float t)
         {
-            ImGui.GetWindowDrawList().AddLine(CanvasCoordsToScreenCoords(0, t), CanvasCoordsToScreenCoords(_clientWidth, t), 0xffffffff);
+            ImGui.GetWindowDrawList().AddLine(CanvasCoordsToScreenCoords(0, t), CanvasCoordsToScreenCoords(Columns.Width, t), 0xffffffff);
         }
 
         public float TimeDeltaToScreenDelta(float dt) => dt * PixelsPerSecond;

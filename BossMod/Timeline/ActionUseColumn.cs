@@ -5,6 +5,7 @@ using System.Numerics;
 
 namespace BossMod
 {
+    // TODO: legacy, remove
     public class ActionUseColumn : Timeline.Column
     {
         public class Event

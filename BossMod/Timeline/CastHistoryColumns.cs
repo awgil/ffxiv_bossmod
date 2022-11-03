@@ -3,6 +3,7 @@
 namespace BossMod
 {
     // a set of columns representing actor's action history
+    // TODO: legacy, remove
     public class CastHistoryColumns
     {
         private Class _class;
@@ -18,15 +19,15 @@ namespace BossMod
             _class = @class;
             _tree = tree;
 
-            _autoAttacks = timeline.AddColumn(new ActionUseColumn(timeline, tree, phaseBranches));
+            _autoAttacks = timeline.Columns.Add(new ActionUseColumn(timeline, tree, phaseBranches));
             _autoAttacks.Width = _trackWidth;
 
-            _animLock = timeline.AddColumn(new ActionUseColumn(timeline, tree, phaseBranches));
+            _animLock = timeline.Columns.Add(new ActionUseColumn(timeline, tree, phaseBranches));
             _animLock.Width = _trackWidth;
 
             foreach (var track in AbilityDefinitions.Classes[@class].Tracks)
             {
-                var col = timeline.AddColumn(new ActionUseColumn(timeline, tree, phaseBranches));
+                var col = timeline.Columns.Add(new ActionUseColumn(timeline, tree, phaseBranches));
                 col.Width = _trackWidth;
                 _columns.Add(col);
             }

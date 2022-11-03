@@ -97,12 +97,6 @@ namespace BossMod
             }
         }
 
-        private string EnumString(Enum v)
-        {
-            var name = v.ToString();
-            return v.GetType().GetField(name)?.GetCustomAttribute<PropertyDisplayAttribute>()?.Label ?? name;
-        }
-
         private bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, bool v)
         {
             if (ImGui.Checkbox(props.Label, ref v))
@@ -115,18 +109,10 @@ namespace BossMod
 
         private bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, Enum v)
         {
-            ImGui.SetNextItemWidth(200);
-            if (ImGui.BeginCombo(props.Label, EnumString(v)))
+            if (UICombo.Enum(props.Label, ref v))
             {
-                foreach (var opt in Enum.GetValues(v.GetType()))
-                {
-                    if (ImGui.Selectable(EnumString((Enum)opt), opt.Equals(v)))
-                    {
-                        member.SetValue(node, opt);
-                        node.NotifyModified();
-                    }
-                }
-                ImGui.EndCombo();
+                member.SetValue(node, v);
+                node.NotifyModified();
             }
             return true;
         }

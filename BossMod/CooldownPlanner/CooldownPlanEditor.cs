@@ -20,7 +20,7 @@ namespace BossMod
 
             var tree = new StateMachineTree(sm);
             var phaseBranches = Enumerable.Repeat(0, tree.Phases.Count).ToList();
-            _colStates = _timeline.AddColumn(new StateMachineBranchColumn(_timeline, tree, phaseBranches));
+            _colStates = _timeline.Columns.Add(new StateMachineBranchColumn(_timeline, tree, phaseBranches));
             _planner = new(plan, OnPlanModified, _timeline, tree, phaseBranches);
 
             _timeline.MaxTime = tree.TotalMaxTime;

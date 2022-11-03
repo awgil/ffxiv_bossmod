@@ -13,8 +13,10 @@ namespace UIDev
             public DateTime Start;
             public DateTime End;
 
+            public float Duration => (float)(End - Start).TotalSeconds;
+
             public TimeRange(DateTime start = new(), DateTime end = new()) { Start = start; End = end; }
-            public override string ToString() => $"{(End - Start).TotalSeconds:f2}";
+            public override string ToString() => $"{Duration:f2}";
             public bool Contains(DateTime t) => t >= Start && t <= End;
         }
 
@@ -42,6 +44,7 @@ namespace UIDev
             public Participant? Source;
             public Participant? MainTarget;
             public Vector3 TargetPos;
+            public float AnimationLock;
             public uint GlobalSequence;
             public List<ActionTarget> Targets = new();
         }
@@ -124,6 +127,13 @@ namespace UIDev
             public DateTime Timestamp;
         }
 
+        public class EncounterPhase
+        {
+            public int ID;
+            public uint LastStateID;
+            public DateTime Exit;
+        }
+
         public class EncounterState
         {
             public uint ID;
@@ -148,6 +158,7 @@ namespace UIDev
             public uint OID;
             public ushort Zone;
             public TimeRange Time = new(); // pull to deactivation
+            public List<EncounterPhase> Phases = new();
             public List<EncounterState> States = new();
             public List<EncounterError> Errors = new();
             public Dictionary<uint, List<Participant>> Participants = new(); // key = oid

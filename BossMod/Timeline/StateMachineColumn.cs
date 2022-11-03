@@ -7,11 +7,30 @@ namespace BossMod
 {
     public abstract class StateMachineColumn : Timeline.Column
     {
+        public enum NodeTextDisplay
+        {
+            [PropertyDisplay("No text")]
+            None,
+
+            [PropertyDisplay("ID only")]
+            ID,
+
+            [PropertyDisplay("ID and name")]
+            IDName,
+        }
+
         public StateMachineTree Tree;
-        public float PixelsPerBranch = 250;
+        public NodeTextDisplay TextDisplay = NodeTextDisplay.IDName;
         public bool DrawUnnamedNodes = true;
         public bool DrawTankbusterNodesOnly = false;
         public bool DrawRaidwideNodesOnly = false;
+
+        public float PixelsPerBranch => TextDisplay switch
+        {
+            NodeTextDisplay.ID => 80,
+            NodeTextDisplay.IDName => 250,
+            _ => 20,
+        };
 
         private float _nodeHOffset = 10;
         private float _nodeRadius = 5;
@@ -67,7 +86,15 @@ namespace BossMod
                     ? (node.State.EndHint.HasFlag(StateMachine.StateHint.Tankbuster) ? 0xffff00ff : 0xffff0000)
                     : (node.State.EndHint.HasFlag(StateMachine.StateHint.Tankbuster) ? 0xff0000ff : 0xffffffff);
                 drawlist.AddCircleFilled(nodeScreenPos, _nodeRadius, nodeColor);
-                drawlist.AddText(nodeScreenPos + new Vector2(7, -10), 0xffffffff, $"{node.State.ID:X} '{node.State.Name}'");
+
+                var nodeText = TextDisplay switch
+                {
+                    NodeTextDisplay.ID => $"{node.State.ID:X8}",
+                    NodeTextDisplay.IDName => $"{node.State.ID:X8} '{node.State.Name}'",
+                    _ => ""
+                };
+                if (nodeText.Length > 0)
+                    drawlist.AddText(nodeScreenPos + new Vector2(7, -10), 0xffffffff, nodeText);
 
                 if (progress != null)
                 {
@@ -91,7 +118,7 @@ namespace BossMod
         private List<string> NodeTooltip(StateMachineTree.Node n)
         {
             List<string> res = new();
-            res.Add($"State: {n.State.ID:X} '{n.State.Name}'");
+            res.Add($"State: {n.State.ID:X8} '{n.State.Name}'");
             res.Add($"Comment: {n.State.Comment}");
             res.Add($"Phase: {n.PhaseID} '{Tree.Phases[n.PhaseID].Name}'");
             res.Add($"Time: {n.Time:f1} ({n.State.Duration:f1} from prev)");

@@ -1,5 +1,4 @@
 ﻿using BossMod;
-using BossMod.Pathfinding;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
