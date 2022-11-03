@@ -72,23 +72,24 @@ namespace BossMod
             var trackMax = Timeline.ColumnCoordsToScreenCoords(Width / 2 + _trackHalfWidth, Timeline.MaxVisibleTime);
             drawlist.AddRectFilled(trackMin, trackMax, _colBackground);
 
-            foreach (var e in Entries.Where(IsEntryVisible))
+            foreach (var e in Entries.Where(e => e.EntryType == Entry.Type.Range && IsEntryVisible(e)))
             {
                 var eStart = e.TimeSinceGlobalStart(Tree);
                 var yStart = Timeline.TimeToScreenCoord(eStart);
                 var yEnd = Timeline.TimeToScreenCoord(eStart + e.Duration);
-                switch (e.EntryType)
-                {
-                    case Entry.Type.Dot:
-                        drawlist.AddCircleFilled(new((trackMin.X + trackMax.X) * 0.5f, yStart), _eventRadius, e.Color);
-                        break;
-                    case Entry.Type.Line:
-                        drawlist.AddLine(new(trackMin.X, yStart), new(trackMax.X, yStart), e.Color);
-                        break;
-                    case Entry.Type.Range:
-                        drawlist.AddRectFilled(new(trackMin.X, yStart), new(trackMax.X, yEnd), e.Color);
-                        break;
-                }
+                drawlist.AddRectFilled(new(trackMin.X, yStart), new(trackMax.X, yEnd), e.Color);
+            }
+
+            foreach (var e in Entries.Where(e => e.EntryType == Entry.Type.Line && IsEntryVisible(e)))
+            {
+                var y = Timeline.TimeToScreenCoord(e.TimeSinceGlobalStart(Tree));
+                drawlist.AddLine(new(trackMin.X, y), new(trackMax.X, y), e.Color);
+            }
+
+            foreach (var e in Entries.Where(e => e.EntryType == Entry.Type.Dot && IsEntryVisible(e)))
+            {
+                var y = Timeline.TimeToScreenCoord(e.TimeSinceGlobalStart(Tree));
+                drawlist.AddCircleFilled(new((trackMin.X + trackMax.X) * 0.5f, y), _eventRadius, e.Color);
             }
         }
 
@@ -100,7 +101,7 @@ namespace BossMod
             if (!PointInRect(mousePos, trackMin, trackMax))
                 return;
 
-            foreach (var e in Entries.Where(IsEntryVisible))
+            foreach (var e in Entries.Where(e => (e.Name.Length > 0 || e.TooltipExtra.Count > 0) && IsEntryVisible(e)))
             {
                 var tStart = e.TimeSinceGlobalStart(Tree);
                 var yMin = Timeline.TimeToScreenCoord(tStart);

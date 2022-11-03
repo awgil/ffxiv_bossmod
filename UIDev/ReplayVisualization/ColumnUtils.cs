@@ -15,6 +15,14 @@ namespace UIDev
             return e;
         }
 
+        public static GenericHistoryColumn.Entry AddHistoryEntryLine(this GenericHistoryColumn column, DateTime encStart, DateTime timestamp, string name, uint color)
+        {
+            var (node, delay) = column.Tree.AbsoluteTimeToNodeAndDelay((float)(timestamp - encStart).TotalSeconds, column.PhaseBranches);
+            var e = new GenericHistoryColumn.Entry(GenericHistoryColumn.Entry.Type.Line, node, delay, 0, name, color);
+            column.Entries.Add(e);
+            return e;
+        }
+
         public static GenericHistoryColumn.Entry AddHistoryEntryRange(this GenericHistoryColumn column, DateTime encStart, DateTime rangeStart, float duration, string name, uint color)
         {
             var (node, delay) = column.Tree.AbsoluteTimeToNodeAndDelay((float)(rangeStart - encStart).TotalSeconds, column.PhaseBranches);
