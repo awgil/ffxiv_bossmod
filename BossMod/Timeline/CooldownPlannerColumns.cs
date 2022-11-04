@@ -7,7 +7,7 @@ using System.Linq;
 namespace BossMod
 {
     // a set of action-use columns that represent cooldown plan
-    public class CooldownPlannerColumns
+    public class CooldownPlannerColumns : Timeline.ColumnGroup
     {
         private CooldownPlan _plan;
         private Action _onModified;
@@ -15,7 +15,7 @@ namespace BossMod
         private List<int> _phaseBranches;
         private string _name = "";
         private StateMachineTimings _timings = new();
-        private Dictionary<ActionID, ActionUseColumn> _columns = new();
+        private Dictionary<ActionID, ColumnPlannerTrack> _columns = new();
         private int _selectedPhase = 0;
 
         private float _trackWidth = 80;
@@ -23,6 +23,7 @@ namespace BossMod
         public Class PlanClass => _plan.Class;
 
         public CooldownPlannerColumns(CooldownPlan plan, Action onModified, Timeline timeline, StateMachineTree tree, List<int> phaseBranches)
+            : base(timeline)
         {
             _plan = plan;
             _onModified = onModified;
@@ -32,27 +33,19 @@ namespace BossMod
             {
                 if (!info.IsPlannable)
                     continue;
-                var col = _columns[aid] = timeline.Columns.Add(new ActionUseColumn(timeline, tree, phaseBranches));
+                var col = _columns[aid] = Add(new ColumnPlannerTrack(timeline, tree, phaseBranches, Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID)?.Name.ToString() ?? "(unknown)"));
                 col.Width = _trackWidth;
-                col.Name = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID)?.Name.ToString() ?? "(unknown)";
-                col.Editable = true;
                 col.NotifyModified = onModified;
-                col.EffectDuration = info.Definition.EffectDuration;
-                col.Cooldown = info.Definition.Cooldown;
+                col.NewElementEffectLength = info.Definition.EffectDuration;
+                col.NewElementCooldownLength = info.Definition.Cooldown;
             }
 
             ExtractPlanData(plan);
         }
 
-        public void AddEvent(ActionID aid, ActionUseColumn.Event ev)
+        public void AddEvent(ActionID aid, ColumnGenericHistory.Entry ev)
         {
-            _columns.GetValueOrDefault(aid)?.Events.Add(ev);
-        }
-
-        public void ClearEvents()
-        {
-            foreach (var c in _columns.Values)
-                c.Events.Clear();
+            _columns.GetValueOrDefault(aid)?.Entries.Add(ev);
         }
 
         public void DrawControls()
@@ -139,7 +132,7 @@ namespace BossMod
 
             foreach (var (aid, col) in _columns)
             {
-                col.Entries.Clear();
+                col.Elements.Clear();
                 var list = plan.PlanAbilities.GetValueOrDefault(aid.Raw);
                 if (list == null)
                     continue;
@@ -148,7 +141,7 @@ namespace BossMod
                 {
                     var state = _tree.Nodes.GetValueOrDefault(e.StateID);
                     if (state != null)
-                        col.Entries.Add(new(state, e.TimeSinceActivation, e.WindowLength, col.EffectDuration, col.Cooldown, col.Name));
+                        col.AddElement(state, e.TimeSinceActivation, e.WindowLength);
                 }
             }
         }
@@ -160,9 +153,9 @@ namespace BossMod
             foreach (var (aid, col) in _columns)
             {
                 var list = res.PlanAbilities[aid.Raw];
-                foreach (var e in col.Entries.Where(e => e.AttachNode != null))
+                foreach (var e in col.Elements)
                 {
-                    list.Add(new(e.AttachNode!.State.ID, e.WindowStartDelay, e.WindowLength));
+                    list.Add(new(e.Window.AttachNode.State.ID, e.Window.Delay, e.Window.Duration));
                 }
             }
             return res;

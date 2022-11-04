@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -99,21 +100,13 @@ namespace BossMod
         protected void DrawHover()
         {
             var mousePos = ImGui.GetMousePos();
-            var trackMin = Timeline.ColumnCoordsToScreenCoords(Width / 2 - _trackHalfWidth, Timeline.MinVisibleTime);
-            var trackMax = Timeline.ColumnCoordsToScreenCoords(Width / 2 + _trackHalfWidth, Timeline.MaxVisibleTime);
-            if (!PointInRect(mousePos, trackMin, trackMax))
+            if (!ScreenPosInTrack(mousePos))
                 return;
 
-            foreach (var e in Entries.Where(e => (e.Name.Length > 0 || e.TooltipExtra.Count > 0) && IsEntryVisible(e)))
+            foreach (var e in Entries.Where(e => (e.Name.Length > 0 || e.TooltipExtra.Count > 0) && ScreenPosInEntry(mousePos, e)))
             {
-                var tStart = e.TimeSinceGlobalStart(Tree);
-                var yMin = Timeline.TimeToScreenCoord(tStart);
-                var yMax = Timeline.TimeToScreenCoord(tStart + e.Duration);
-                if (mousePos.Y >= (yMin - 4) && mousePos.Y <= (yMax + 4))
-                {
-                    Timeline.AddTooltip(EntryTooltip(e));
-                    HighlightEntry(e);
-                }
+                Timeline.AddTooltip(EntryTooltip(e));
+                HighlightEntry(e);
             }
         }
 
@@ -124,7 +117,25 @@ namespace BossMod
             Timeline.HighlightTime(tStart + e.Duration);
         }
 
-        private static bool PointInRect(Vector2 point, Vector2 min, Vector2 max) => point.X >= min.X && point.X <= max.X && point.Y >= min.Y && point.Y <= max.Y;
+        protected bool ScreenPosInTrack(Vector2 pos)
+        {
+            var ox = Timeline.ScreenCoordToColumnOffset(pos.X) - Width / 2; // distance from column center
+            if (Math.Abs(ox) > _trackHalfWidth)
+                return false;
+            if (pos.Y < Timeline.ScreenClientTL.Y || pos.Y > Timeline.ScreenClientTL.Y + Timeline.Height)
+                return false;
+            return true;
+        }
+
+        protected bool ScreenPosInEntry(Vector2 pos, Entry e)
+        {
+            if (!IsEntryVisible(e))
+                return false;
+            var tStart = e.TimeSinceGlobalStart(Tree);
+            var yMin = Timeline.TimeToScreenCoord(tStart);
+            var yMax = Timeline.TimeToScreenCoord(tStart + e.Duration);
+            return pos.Y >= (yMin - 4) && pos.Y <= (yMax + 4);
+        }
 
         private List<string> EntryTooltip(Entry e)
         {

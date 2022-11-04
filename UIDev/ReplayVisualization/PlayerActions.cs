@@ -98,7 +98,7 @@ namespace UIDev
             _colBoss.Add(defaultBossCol);
 
             // TODO: use cooldown plan selector...
-            _planner = new(new(pcClass, ""), () => _timeline.MaxTime = _stateTree.TotalMaxTime, _timeline, _stateTree, _phaseBranches);
+            _planner = _timeline.Columns.Add(new CooldownPlannerColumns(new(pcClass, ""), () => _timeline.MaxTime = _stateTree.TotalMaxTime, _timeline, _stateTree, _phaseBranches));
             if (pc != null)
                 _casts = new(_timeline, pcClass, _stateTree, _phaseBranches);
 
@@ -167,7 +167,7 @@ namespace UIDev
 
             if (isPlayer)
             {
-                _planner.AddEvent(a.ID, ev);
+                //_planner.AddEvent(a.ID, ev);
                 _casts?.AddEvent(a.ID, ev);
             }
             else
