@@ -20,6 +20,7 @@ namespace UIDev
         private List<Type> _testTypes = new();
         private string _path = "";
         private string _configPath = "";
+        private bool _configModified;
 
         public void Initialize(SimpleImGuiScene scene)
         {
@@ -29,6 +30,7 @@ namespace UIDev
             Service.LuminaGameData = new(FindGameDataPath());
             Service.Config.Initialize();
             Service.Config.LoadFromFile(new(_configPath));
+            Service.Config.Modified += (_, _) => _configModified = true;
             //Service.Device = (SharpDX.Direct3D11.Device?)scene.Renderer.GetType().GetField("_device", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(scene.Renderer);
 
             // scene is a little different from what you have access to in dalamud
@@ -63,11 +65,13 @@ namespace UIDev
             if (ImGui.Button("Reload"))
             {
                 Service.Config.LoadFromFile(new(_configPath));
+                _configModified = false;
             }
             ImGui.SameLine();
-            if (ImGui.Button("Save"))
+            if (ImGui.Button(_configModified ? "Save (modified)" : "Save (no changes)"))
             {
                 Service.Config.SaveToFile(new(_configPath));
+                _configModified = false;
             }
 
             ImGui.Separator();

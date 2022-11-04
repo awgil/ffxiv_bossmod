@@ -16,7 +16,6 @@ namespace UIDev
         private ColumnEnemiesCastEvents _colCastEvents;
         private ColumnStateMachineBranch _colStates;
         private ColumnEnemiesDetails _colEnemies;
-        //private CooldownPlannerColumns _planner;
         private ColumnPlayersDetails _colPlayers;
         private WindowManager.Window? _config;
         private UITree _configTree = new();
@@ -33,11 +32,6 @@ namespace UIDev
             _timeline.Columns.Add(new ColumnSeparator(_timeline));
             _colEnemies = _timeline.Columns.Add(new ColumnEnemiesDetails(_timeline, _stateTree, _phaseBranches, replay, enc));
             _colPlayers = _timeline.Columns.Add(new ColumnPlayersDetails(_timeline, _stateTree, _phaseBranches, replay, enc));
-
-            //// TODO: use cooldown plan selector...
-            //_planner = new(new(pcClass, ""), () => _timeline.MaxTime = _stateTree.TotalMaxTime, _timeline, _stateTree, _phaseBranches);
-            //if (pc != null)
-            //    _casts = new(_timeline, pcClass, _stateTree, _phaseBranches);
         }
 
         public void Draw()
@@ -55,8 +49,6 @@ namespace UIDev
                     WindowManager.CloseWindow(_config);
                 }
             }
-            //ImGui.SameLine();
-            //_planner.DrawControls();
             _timeline.Draw();
         }
 

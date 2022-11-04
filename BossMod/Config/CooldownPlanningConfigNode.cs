@@ -32,23 +32,11 @@ namespace BossMod
                 return; // class is not supported
 
             var plans = CooldownPlans.GetOrAdd(c);
-            ImGui.SetNextItemWidth(100);
-            if (ImGui.BeginCombo("Cooldown plan", plans.Selected()?.Name ?? "none"))
+            var newSelected = DrawPlanCombo(plans, plans.SelectedIndex, "Cooldown plan");
+            if (newSelected != plans.SelectedIndex)
             {
-                if (ImGui.Selectable("none", plans.SelectedIndex < 0))
-                {
-                    plans.SelectedIndex = -1;
-                    NotifyModified();
-                }
-                for (int i = 0; i < plans.Available.Count; ++i)
-                {
-                    if (ImGui.Selectable(plans.Available[i].Name, plans.SelectedIndex == i))
-                    {
-                        plans.SelectedIndex = i;
-                        NotifyModified();
-                    }
-                }
-                ImGui.EndCombo();
+                plans.SelectedIndex = newSelected;
+                NotifyModified();
             }
             ImGui.SameLine();
             if (ImGui.Button(plans.SelectedIndex >= 0 ? "Edit plan" : "Create new plan"))
@@ -61,6 +49,27 @@ namespace BossMod
                 }
                 StartPlanEditor(plans.Available[plans.SelectedIndex], sm);
             }
+        }
+
+        public static int DrawPlanCombo(PlanList list, int selected, string label)
+        {
+            ImGui.SetNextItemWidth(100);
+            if (ImGui.BeginCombo(label, selected >= 0 && selected < list.Available.Count ? list.Available[selected].Name : "none"))
+            {
+                if (ImGui.Selectable("none", selected < 0))
+                {
+                    selected = -1;
+                }
+                for (int i = 0; i < list.Available.Count; ++i)
+                {
+                    if (ImGui.Selectable(list.Available[i].Name, selected == i))
+                    {
+                        selected = i;
+                    }
+                }
+                ImGui.EndCombo();
+            }
+            return selected;
         }
 
         public override void DrawCustom(UITree tree, WorldState ws)

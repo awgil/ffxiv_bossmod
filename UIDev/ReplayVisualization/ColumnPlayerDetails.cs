@@ -1,28 +1,152 @@
 ﻿using BossMod;
+using ImGuiNET;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UIDev
 {
     public class ColumnPlayerDetails : Timeline.ColumnGroup
     {
+        private StateMachineTree _tree;
+        private List<int> _phaseBraches;
+        private Replay _replay;
+        private Replay.Encounter _enc;
+        private Replay.Participant _player;
+        private Class _playerClass;
+
         private ColumnPlayerActions _actions;
         private ColumnSeparator _separator;
 
-        public bool AnyVisible => _actions.Width > 0;
+        private CooldownPlanningConfigNode? _planConfig;
+        private int _selectedPlan = -1;
+        private bool _planModified;
+        private CooldownPlannerColumns? _planner;
+
+        public bool AnyVisible => _actions.Width > 0 || _planner != null;
 
         public ColumnPlayerDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass)
             : base(timeline)
         {
-            Name = player.Name;
+            _tree = tree;
+            _phaseBraches = phaseBranches;
+            _replay = replay;
+            _enc = enc;
+            _player = player;
+            _playerClass = playerClass;
+
             _actions = Add(new ColumnPlayerActions(timeline, tree, phaseBranches, replay, enc, player, playerClass));
+            _actions.Name = player.Name;
+
             _separator = Add(new ColumnSeparator(timeline));
+
+            var info = ModuleRegistry.FindByOID(enc.OID);
+            if (info?.CooldownPlanningSupported ?? false)
+            {
+                _planConfig = Service.Config.Get<CooldownPlanningConfigNode>(info.ConfigType!);
+                var plans = _planConfig?.CooldownPlans.GetValueOrDefault(playerClass);
+                if (plans != null)
+                    UpdateSelectedPlan(plans, plans.SelectedIndex);
+            }
         }
 
         public void DrawConfig(UITree tree)
         {
+            DrawConfigPlanner(tree);
             foreach (var n in tree.Node("Actions"))
                 _actions.DrawConfig(tree);
             _separator.Width = AnyVisible ? 1 : 0;
+        }
+
+        private void DrawConfigPlanner(UITree tree)
+        {
+            if (_planConfig == null)
+            {
+                tree.LeafNode("Planner: not supported for this encounter");
+                return;
+            }
+
+            var plans = _planConfig.CooldownPlans.GetValueOrDefault(_playerClass);
+            if (plans == null)
+            {
+                tree.LeafNode("Planner: not supported for this class");
+                return;
+            }
+
+            foreach (var n in tree.Node("Planner"))
+            {
+                UpdateSelectedPlan(plans, DrawPlanSelector(plans, _selectedPlan));
+                _planner?.DrawConfig();
+            }
+        }
+
+        private int DrawPlanSelector(CooldownPlanningConfigNode.PlanList list, int selection)
+        {
+            selection = CooldownPlanningConfigNode.DrawPlanCombo(list, selection, "###planner");
+            ImGui.SameLine();
+
+            bool isDefault = selection == list.SelectedIndex;
+            if (ImGui.Checkbox("Default", ref isDefault))
+            {
+                list.SelectedIndex = isDefault ? selection : -1;
+                _planConfig?.NotifyModified();
+            }
+            ImGui.SameLine();
+
+            if (ImGui.Button(selection >= 0 ? "Create copy" : "Create new"))
+            {
+                CooldownPlan plan;
+                if (selection >= 0)
+                {
+                    plan = list.Available[selection].Clone();
+                    plan.Name += " Copy";
+                }
+                else
+                {
+                    plan = new(_playerClass, $"New {list.Available.Count}");
+                }
+                selection = list.Available.Count;
+                list.Available.Add(plan);
+                _planConfig?.NotifyModified();
+            }
+
+            if (_planner != null && _planModified)
+            {
+                ImGui.SameLine();
+                if (ImGui.Button("Save modifications"))
+                {
+                    _planner.UpdateEditedPlan();
+                    _planConfig?.NotifyModified();
+                    _planModified = false;
+                }
+            }
+
+            return selection;
+        }
+
+        private void UpdateSelectedPlan(CooldownPlanningConfigNode.PlanList list, int newSelection)
+        {
+            if (_selectedPlan == newSelection)
+                return;
+
+            if (_planner != null)
+            {
+                Columns.Remove(_planner);
+                _planner = null;
+            }
+            _selectedPlan = newSelection;
+            _planModified = false;
+            if (_selectedPlan >= 0)
+            {
+                _planner = AddBefore(new CooldownPlannerColumns(list.Available[newSelection], () => _planModified = true, Timeline, _tree, _phaseBraches), _actions);
+
+                // TODO: this should be reworked...
+                foreach (var a in _replay.EncounterActions(_enc).Where(a => a.Source == _player))
+                {
+                    var track = _planner.TrackForAction(a.ID);
+                    if (track != null)
+                        track.AddHistoryEntryDot(_enc.Time.Start, a.Timestamp, $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget)} #{a.GlobalSequence}", 0xffffffff).AddActionTooltip(a);
+                }
+            }
         }
     }
 }

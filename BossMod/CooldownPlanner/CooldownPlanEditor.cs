@@ -6,16 +6,15 @@ namespace BossMod
 {
     public class CooldownPlanEditor
     {
-        private CooldownPlan _plan;
         private Action _onModified;
         private Timeline _timeline = new();
         private ColumnStateMachineBranch _colStates;
         private CooldownPlannerColumns _planner;
+        private int _selectedPhase = 0;
         private bool _modified = false;
 
         public CooldownPlanEditor(CooldownPlan plan, StateMachine sm, Action onModified)
         {
-            _plan = plan;
             _onModified = onModified;
 
             var tree = new StateMachineTree(sm);
@@ -31,7 +30,9 @@ namespace BossMod
             if (ImGui.Button(_modified ? "Save" : "No changes") && _modified)
                 Save();
             ImGui.SameLine();
-            _planner.DrawControls();
+            _planner.DrawCommonControls();
+
+            _selectedPhase = _planner.DrawPhaseControls(_selectedPhase);
 
             _timeline.Draw();
         }

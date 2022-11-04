@@ -45,7 +45,6 @@ namespace UIDev
 
                 DrawContents(e, moduleInfo);
                 DrawEncounterDetails(e, TimePrinter(e.Time.Start));
-                DrawPlayerActions(e);
                 if (ImGui.Button("Show timeline"))
                     OpenTimeline(e);
             }
@@ -238,36 +237,6 @@ namespace UIDev
             var w = WindowManager.CreateWindow($"Replay timeline: {_replay.Path} @ {enc.Time.Start:O}", tl.Draw, tl.Close, () => true);
             w.SizeHint = new(1200, 1000);
             w.MinSize = new(100, 100);
-        }
-
-        private void OpenPlayerActions(Replay.Encounter enc, Class pcClass, Replay.Participant? pc = null)
-        {
-            var planner = new PlayerActions(_replay, enc, pcClass, pc);
-            var w = WindowManager.CreateWindow($"Player actions timeline: {pcClass} {pc?.Name} {_replay.Path} @ {enc.Time.Start:O}", planner.Draw, planner.Close, () => true);
-            w.SizeHint = new(600, 600);
-            w.MinSize = new(100, 100);
-        }
-
-        private void DrawPlayerActions(Replay.Encounter enc)
-        {
-            foreach (var n in _tree.Node("Player actions timeline"))
-            {
-                foreach (var c in AbilityDefinitions.Classes.Keys)
-                {
-                    if (ImGui.Button(c.ToString()))
-                    {
-                        OpenPlayerActions(enc, c);
-                    }
-                    foreach (var (p, _) in enc.PartyMembers.Where(pc => pc.Item2 == c))
-                    {
-                        ImGui.SameLine();
-                        if (ImGui.Button($"{p.Name}##{p.InstanceID:X}"))
-                        {
-                            OpenPlayerActions(enc, c, p);
-                        }
-                    }
-                }
-            }
         }
 
         private void OpListContextMenu(OpList? list)

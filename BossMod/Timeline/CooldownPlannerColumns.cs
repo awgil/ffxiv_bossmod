@@ -2,11 +2,11 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod
 {
     // a set of action-use columns that represent cooldown plan
+    // TODO: rework...
     public class CooldownPlannerColumns : Timeline.ColumnGroup
     {
         private CooldownPlan _plan;
@@ -16,7 +16,6 @@ namespace BossMod
         private string _name = "";
         private StateMachineTimings _timings = new();
         private Dictionary<ActionID, ColumnPlannerTrack> _columns = new();
-        private int _selectedPhase = 0;
 
         private float _trackWidth = 80;
 
@@ -43,12 +42,10 @@ namespace BossMod
             ExtractPlanData(plan);
         }
 
-        public void AddEvent(ActionID aid, ColumnGenericHistory.Entry ev)
-        {
-            _columns.GetValueOrDefault(aid)?.Entries.Add(ev);
-        }
+        // TODO: should be removed...
+        public ColumnPlannerTrack? TrackForAction(ActionID aid) => _columns.GetValueOrDefault(aid);
 
-        public void DrawControls()
+        public void DrawCommonControls()
         {
             if (ImGui.Button("Export to clipboard"))
                 ExportToClipboard();
@@ -59,32 +56,43 @@ namespace BossMod
             ImGui.SetNextItemWidth(100);
             if (ImGui.InputText("Name", ref _name, 255))
                 _onModified();
+        }
 
-            if (ImGui.Button("<##Phase") && _selectedPhase > 0)
-                --_selectedPhase;
+        public int DrawPhaseControls(int selectedPhase)
+        {
+            if (ImGui.Button("<##Phase") && selectedPhase > 0)
+                --selectedPhase;
             ImGui.SameLine();
-            ImGui.TextUnformatted($"Current phase: {_selectedPhase + 1}/{_tree.Phases.Count}");
+            ImGui.TextUnformatted($"Current phase: {selectedPhase + 1}/{_tree.Phases.Count}");
             ImGui.SameLine();
-            if (ImGui.Button(">##Phase") && _selectedPhase < _tree.Phases.Count - 1)
-                ++_selectedPhase;
+            if (ImGui.Button(">##Phase") && selectedPhase < _tree.Phases.Count - 1)
+                ++selectedPhase;
 
-            var selPhase = _tree.Phases[_selectedPhase];
+            var selPhase = _tree.Phases[selectedPhase];
             ImGui.SameLine();
             if (ImGui.SliderFloat("###phase-duration", ref selPhase.Duration, 0, selPhase.MaxTime, $"{selPhase.Name}: %.1f"))
             {
-                _timings.PhaseDurations[_selectedPhase] = selPhase.Duration;
+                _timings.PhaseDurations[selectedPhase] = selPhase.Duration;
                 _tree.ApplyTimings(_timings);
                 _onModified();
             }
 
             ImGui.SameLine();
-            if (ImGui.Button("<##Branch") && _phaseBranches[_selectedPhase] > 0)
-                --_phaseBranches[_selectedPhase];
+            if (ImGui.Button("<##Branch") && _phaseBranches[selectedPhase] > 0)
+                --_phaseBranches[selectedPhase];
             ImGui.SameLine();
-            ImGui.TextUnformatted($"Current branch: {_phaseBranches[_selectedPhase] + 1}/{selPhase.StartingNode.NumBranches}");
+            ImGui.TextUnformatted($"Current branch: {_phaseBranches[selectedPhase] + 1}/{selPhase.StartingNode.NumBranches}");
             ImGui.SameLine();
-            if (ImGui.Button(">##Branch") && _phaseBranches[_selectedPhase] < selPhase.StartingNode.NumBranches - 1)
-                ++_phaseBranches[_selectedPhase];
+            if (ImGui.Button(">##Branch") && _phaseBranches[selectedPhase] < selPhase.StartingNode.NumBranches - 1)
+                ++_phaseBranches[selectedPhase];
+
+            return selectedPhase;
+        }
+
+        public void DrawConfig()
+        {
+            DrawCommonControls();
+            // TODO: hide/show for tracks
         }
 
         public void UpdateEditedPlan()
