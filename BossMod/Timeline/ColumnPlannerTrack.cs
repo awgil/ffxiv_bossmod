@@ -42,6 +42,7 @@ namespace BossMod
         public float NewElementEffectLength;
         public float NewElementCooldownLength;
         private EditState? _edit = null;
+        private Element? _popupElement = null;
 
         private uint _colCooldown = 0x80808080;
         private uint _colEffect = 0x8000ff00;
@@ -54,6 +55,20 @@ namespace BossMod
 
         public override void Draw()
         {
+            var popupName = $"popupProps/{GetHashCode()}";
+            if (_popupElement != null)
+            {
+                if (ImGui.BeginPopup(popupName))
+                {
+                    ImGui.TextUnformatted($"Placeholder for properties of {Name}");
+                    ImGui.EndPopup();
+                }
+                else
+                {
+                    _popupElement = null;
+                }
+            }
+
             var lclickPos = ImGui.GetIO().MouseClickedPos[0];
             if (ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left) && ScreenPosInTrack(lclickPos))
             {
@@ -97,21 +112,19 @@ namespace BossMod
                 }
             }
 
+            if (ImGui.IsItemActive() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left) && ScreenPosInTrack(lclickPos))
+            {
+                _popupElement = Elements.Find(e => ScreenPosInElement(lclickPos, e));
+                if (_popupElement != null)
+                    ImGui.OpenPopup(popupName);
+            }
+
             var rclickPos = ImGui.GetIO().MouseClickedPos[1];
             if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && ScreenPosInTrack(rclickPos))
             {
                 var toDelete = Elements.FindIndex(e => e != _edit?.Element && ScreenPosInElement(rclickPos, e));
                 if (toDelete >= 0)
-                {
-                    var e = Elements[toDelete];
-                    Entries.Remove(e.Window);
-                    if (e.Effect != null)
-                        Entries.Remove(e.Effect);
-                    if (e.Cooldown != null)
-                        Entries.Remove(e.Cooldown);
-                    Elements.RemoveAt(toDelete);
-                    NotifyModified();
-                }
+                    RemoveElement(toDelete);
             }
 
             DrawEntries();
@@ -145,6 +158,22 @@ namespace BossMod
             Elements.Add(e);
             UpdateElement(e);
             return e;
+        }
+
+        public void RemoveElement(int index)
+        {
+            var e = Elements[index];
+            Entries.Remove(e.Window);
+            if (e.Effect != null)
+                Entries.Remove(e.Effect);
+            if (e.Cooldown != null)
+                Entries.Remove(e.Cooldown);
+            if (_edit?.Element == e)
+                _edit = null;
+            if (_popupElement == e)
+                _popupElement = null;
+            Elements.RemoveAt(index);
+            NotifyModified();
         }
 
         protected bool ScreenPosInElement(Vector2 pos, Element e)
