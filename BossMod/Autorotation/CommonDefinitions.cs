@@ -15,8 +15,6 @@ namespace BossMod
         }
     }
 
-    public enum ActionCategory { None, SelfMitigation, RaidMitigation }
-
     public class ActionDefinition
     {
         public float Range; // 0 is for self-targeted abilities
@@ -26,7 +24,6 @@ namespace BossMod
         public int MaxChargesAtCap;
         public float AnimationLock;
         public float EffectDuration; // used by planner UI
-        public ActionCategory Category; // used by planner UI
 
         public float CooldownAtFirstCharge => (MaxChargesAtCap - 1) * Cooldown;
 
@@ -38,13 +35,6 @@ namespace BossMod
             Cooldown = cooldown;
             MaxChargesAtCap = maxChargesAtCap;
             AnimationLock = animationLock;
-        }
-
-        // TODO improve...
-        public void SetPlanningProperties(float effectDuration, ActionCategory category = ActionCategory.None)
-        {
-            EffectDuration = effectDuration;
-            Category = category;
         }
     }
 

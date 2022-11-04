@@ -29,7 +29,7 @@ namespace UIDev
             _animLocks = Add<ColumnGenericHistory>(new(timeline, tree, phaseBranches, "Abilities with animation locks"));
             GetCooldownColumn(CommonDefinitions.GCDGroup, new()).Name = "GCD"; // make sure GCD column always exists and is before any others
 
-            var classDef = AbilityDefinitions.Classes.GetValueOrDefault(playerClass);
+            var classDef = PlanDefinitions.Classes.GetValueOrDefault(playerClass);
             int iCast = 0;
             foreach (var a in replay.EncounterActions(enc).Where(a => a.Source == player))
             {
@@ -48,7 +48,7 @@ namespace UIDev
                     AddUnfinishedCast(player.Casts[iCast++], enc.Time.Start, classDef);
                 }
 
-                var actionDef = classDef?.Abilities.GetValueOrDefault(a.ID)?.Definition;
+                var actionDef = classDef?.Abilities.GetValueOrDefault(a.ID);
                 DateTime effectStart;
                 if (iCast < player.Casts.Count && player.Casts[iCast].Time.Start < a.Timestamp && player.Casts[iCast].ID == a.ID)
                 {
@@ -122,12 +122,12 @@ namespace UIDev
             }
         }
 
-        private void AddUnfinishedCast(Replay.Cast cast, DateTime encStart, AbilityDefinitions.Class? classDef)
+        private void AddUnfinishedCast(Replay.Cast cast, DateTime encStart, PlanDefinitions.ClassData? classDef)
         {
             var name = $"[unfinished] {cast.ID} -> {ReplayUtils.ParticipantString(cast.Target)}";
             _animLocks.AddHistoryEntryRange(encStart, cast.Time, name, 0x800000ff).AddCastTooltip(cast);
 
-            var castActionDef = classDef?.Abilities.GetValueOrDefault(cast.ID)?.Definition;
+            var castActionDef = classDef?.Abilities.GetValueOrDefault(cast.ID);
             if (castActionDef != null)
             {
                 AdvanceCooldown(castActionDef.CooldownGroup, encStart, cast.Time.Start, true);

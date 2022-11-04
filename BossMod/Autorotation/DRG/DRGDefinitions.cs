@@ -205,8 +205,8 @@ namespace BossMod.DRG
             SupportedActions.OGCD(AID.DragonSight, 30, CDGroup.DragonSight, 120.0f);
             SupportedActions.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
             SupportedActions.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f);
-            SupportedActions.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).SetPlanningProperties(10);
-            SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).SetPlanningProperties(6, ActionCategory.SelfMitigation);
+            SupportedActions.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).EffectDuration = 10;
+            SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
             SupportedActions.GCD(AID.PiercingTalon, 20);
             SupportedActions.OGCD(AID.ElusiveJump, 0, CDGroup.ElusiveJump, 30.0f);
             SupportedActions.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2);

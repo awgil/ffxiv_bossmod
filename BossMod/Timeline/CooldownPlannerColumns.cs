@@ -15,7 +15,8 @@ namespace BossMod
         private List<int> _phaseBranches;
         private string _name = "";
         private StateMachineTimings _timings = new();
-        private Dictionary<ActionID, ColumnPlannerTrack> _columns = new();
+        private List<ColumnPlannerTrackCooldown> _colCooldowns = new();
+        private Dictionary<ActionID, int> _aidToColCooldown = new();
 
         private float _trackWidth = 80;
 
@@ -28,22 +29,27 @@ namespace BossMod
             _onModified = onModified;
             _tree = tree;
             _phaseBranches = phaseBranches;
-            foreach (var (aid, info) in AbilityDefinitions.Classes[plan.Class].Abilities)
+            var classDef = PlanDefinitions.Classes[plan.Class];
+            foreach (var track in classDef.CooldownTracks)
             {
-                if (!info.IsPlannable)
-                    continue;
-                var col = _columns[aid] = Add(new ColumnPlannerTrack(timeline, tree, phaseBranches, Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID)?.Name.ToString() ?? "(unknown)"));
+                foreach (var aid in track.AIDs)
+                    _aidToColCooldown[aid] = _colCooldowns.Count;
+
+                var col = Add(new ColumnPlannerTrackCooldown(timeline, tree, phaseBranches, track.Name, classDef, track));
                 col.Width = _trackWidth;
                 col.NotifyModified = onModified;
-                col.NewElementEffectLength = info.Definition.EffectDuration;
-                col.NewElementCooldownLength = info.Definition.Cooldown;
+                _colCooldowns.Add(col);
             }
 
             ExtractPlanData(plan);
         }
 
         // TODO: should be removed...
-        public ColumnPlannerTrack? TrackForAction(ActionID aid) => _columns.GetValueOrDefault(aid);
+        public ColumnPlannerTrackCooldown? TrackForAction(ActionID aid)
+        {
+            var index = _aidToColCooldown.GetValueOrDefault(aid, -1);
+            return index >= 0 ? _colCooldowns[index] : null;
+        }
 
         public void DrawCommonControls()
         {
@@ -138,18 +144,23 @@ namespace BossMod
             foreach (var p in _tree.Phases)
                 _timings.PhaseDurations.Add(p.Duration);
 
-            foreach (var (aid, col) in _columns)
+            foreach (var col in _colCooldowns)
             {
                 col.Elements.Clear();
-                var list = plan.PlanAbilities.GetValueOrDefault(aid.Raw);
-                if (list == null)
-                    continue;
-
-                foreach (var e in list)
+                foreach (var aid in col.TrackDef.AIDs)
                 {
-                    var state = _tree.Nodes.GetValueOrDefault(e.StateID);
-                    if (state != null)
-                        col.AddElement(state, e.TimeSinceActivation, e.WindowLength);
+                    var list = plan.PlanAbilities.GetValueOrDefault(aid.Raw);
+                    if (list == null)
+                        continue;
+
+                    foreach (var e in list)
+                    {
+                        var state = _tree.Nodes.GetValueOrDefault(e.StateID);
+                        if (state != null)
+                        {
+                            col.AddElement(state, e.TimeSinceActivation, e.WindowLength, aid);
+                        }
+                    }
                 }
             }
         }
@@ -158,12 +169,12 @@ namespace BossMod
         {
             var res = new CooldownPlan(_plan.Class, _name);
             res.Timings = _timings.Clone();
-            foreach (var (aid, col) in _columns)
+            foreach (var col in _colCooldowns)
             {
-                var list = res.PlanAbilities[aid.Raw];
                 foreach (var e in col.Elements)
                 {
-                    list.Add(new(e.Window.AttachNode.State.ID, e.Window.Delay, e.Window.Duration));
+                    var cast = (ColumnPlannerTrackCooldown.ActionElement)e;
+                    res.PlanAbilities[cast.Action.Raw].Add(new(e.Window.AttachNode.State.ID, e.Window.Delay, e.Window.Duration));
                 }
             }
             return res;

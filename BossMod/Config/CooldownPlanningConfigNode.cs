@@ -22,13 +22,13 @@ namespace BossMod
 
         public CooldownPlanningConfigNode()
         {
-            foreach (var c in AbilityDefinitions.Classes.Keys)
+            foreach (var c in PlanDefinitions.Classes.Keys)
                 CooldownPlans[c] = new();
         }
 
         public void DrawSelectionUI(Class c, StateMachine sm)
         {
-            if (!AbilityDefinitions.Classes.ContainsKey(c))
+            if (!PlanDefinitions.Classes.ContainsKey(c))
                 return; // class is not supported
 
             var plans = CooldownPlans.GetOrAdd(c);

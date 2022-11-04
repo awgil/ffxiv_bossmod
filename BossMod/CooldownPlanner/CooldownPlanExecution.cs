@@ -44,7 +44,6 @@ namespace BossMod
                 if (plan == null)
                     return;
 
-                var classData = AbilityDefinitions.Classes[plan.Class];
                 foreach (var (k, uses) in plan.PlanAbilities)
                 {
                     var action = new ActionID(k);
@@ -126,12 +125,12 @@ namespace BossMod
 
         public void Draw(StateMachine sm)
         {
-            var db = Plan != null ? AbilityDefinitions.Classes[Plan.Class] : null;
+            var db = Plan != null ? PlanDefinitions.Classes[Plan.Class] : null;
             var s = FindStateData(sm.ActiveState);
             var t = sm.TimeSinceTransitionClamped;
             foreach (var ability in s.Abilities)
             {
-                var cd = db?.Abilities[ability.ID].Definition.Cooldown ?? 0;
+                var cd = db?.Abilities[ability.ID].Cooldown ?? 0;
                 int nextWindow = ability.ActivationWindows.FindIndex(w => w.End > t);
                 bool windowActive = nextWindow != -1 && t >= ability.ActivationWindows[nextWindow].Start;
                 float? nextTransition = windowActive ? ability.ActivationWindows[nextWindow].End : nextWindow != -1 ? ability.ActivationWindows[nextWindow].Start : ability.NextActivation?.EstimatedTime;

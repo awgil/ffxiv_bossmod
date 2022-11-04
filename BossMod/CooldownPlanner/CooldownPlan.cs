@@ -32,8 +32,8 @@ namespace BossMod
         {
             Class = @class;
             Name = name;
-            foreach (var (aid, info) in AbilityDefinitions.Classes[@class].Abilities)
-                if (info.IsPlannable)
+            foreach (var track in PlanDefinitions.Classes[@class].CooldownTracks)
+                foreach (var aid in track.AIDs)
                     PlanAbilities[aid.Raw] = new();
         }
 

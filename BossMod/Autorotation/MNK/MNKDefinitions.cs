@@ -220,8 +220,8 @@ namespace BossMod.MNK
             SupportedActions.OGCD(AID.Mantra, 0, CDGroup.Mantra, 90.0f);
             SupportedActions.OGCDWithCharges(AID.RiddleOfEarth, 0, CDGroup.RiddleOfEarth, 30.0f, 3);
             SupportedActions.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f);
-            SupportedActions.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).SetPlanningProperties(10);
-            SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).SetPlanningProperties(6, ActionCategory.SelfMitigation);
+            SupportedActions.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).EffectDuration = 10;
+            SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
             SupportedActions.GCD(AID.Meditation, 0);
             SupportedActions.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2);
             SupportedActions.OGCDWithCharges(AID.Thunderclap, 20, CDGroup.Thunderclap, 30.0f, 2);

@@ -7,7 +7,7 @@ using System.Numerics;
 namespace BossMod
 {
     // column representing single planner track (could be cooldowns or anything else)
-    public class ColumnPlannerTrack : ColumnGenericHistory
+    public abstract class ColumnPlannerTrack : ColumnGenericHistory
     {
         public class Element
         {
@@ -39,8 +39,6 @@ namespace BossMod
 
         public Action NotifyModified = () => { };
         public List<Element> Elements = new();
-        public float NewElementEffectLength;
-        public float NewElementCooldownLength;
         private EditState? _edit = null;
         private Element? _popupElement = null;
 
@@ -60,7 +58,7 @@ namespace BossMod
             {
                 if (ImGui.BeginPopup(popupName))
                 {
-                    ImGui.TextUnformatted($"Placeholder for properties of {Name}");
+                    EditElement(_popupElement);
                     ImGui.EndPopup();
                 }
                 else
@@ -152,9 +150,7 @@ namespace BossMod
         {
             var w = new Entry(Entry.Type.Range, attachNode, delay, windowLength, "", _colWindow);
             Entries.Add(w);
-            var e = new Element(w);
-            e.EffectLength = NewElementEffectLength;
-            e.CooldownLength = NewElementCooldownLength;
+            var e = CreateElement(w);
             Elements.Add(e);
             UpdateElement(e);
             return e;
@@ -175,6 +171,10 @@ namespace BossMod
             Elements.RemoveAt(index);
             NotifyModified();
         }
+
+        protected abstract Element CreateElement(Entry window);
+        protected abstract void EditElement(Element e);
+        protected abstract List<string> DescribeElement(Element e);
 
         protected bool ScreenPosInElement(Vector2 pos, Element e)
         {
@@ -229,8 +229,7 @@ namespace BossMod
         {
             var tStart = element.Window.TimeSinceGlobalStart(Tree);
 
-            List<string> tooltip = new();
-            tooltip.Add($"Action: {Name}");
+            List<string> tooltip = DescribeElement(element);
             tooltip.Add($"Press at: {tStart:f1}s ({element.Window.TimeSincePhaseStart():f1}s since phase start, {element.Window.Delay:f1}s after state start)");
             if (element.Window.AttachNode.Predecessor != null)
                 tooltip.Add($"Attached: {element.Window.Delay:f1}s after {element.Window.AttachNode.Predecessor.State.ID:X} '{element.Window.AttachNode.Predecessor.State.Name}' ({element.Window.AttachNode.Predecessor.State.Comment})");
