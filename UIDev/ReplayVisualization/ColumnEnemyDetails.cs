@@ -9,7 +9,7 @@ namespace UIDev
     {
         private Replay.Participant _enemy;
         private ColumnEnemyCasts _casts;
-        private SeparatorColumn _separator;
+        private ColumnSeparator _separator;
 
         public bool AnyVisible => _casts.Width > 0;
 
@@ -19,7 +19,7 @@ namespace UIDev
             //Name = ReplayUtils.ParticipantString(enemy);
             _enemy = enemy;
             _casts = Add(new ColumnEnemyCasts(timeline, tree, phaseBranches, replay, enc, enemy));
-            _separator = Add(new SeparatorColumn(timeline));
+            _separator = Add(new ColumnSeparator(timeline));
         }
 
         public void DrawConfig()
@@ -30,12 +30,12 @@ namespace UIDev
             ImGui.PopID();
         }
 
-        private void DrawColumnToggle(Timeline.Column col, string name, float width = 10)
+        private void DrawColumnToggle(Timeline.Column col, string name)
         {
             bool visible = col.Width > 0;
             if (ImGui.Checkbox(name, ref visible))
             {
-                col.Width = visible ? width : 0;
+                col.Width = visible ? ColumnGenericHistory.DefaultWidth : 0;
                 _separator.Width = AnyVisible ? 1 : 0;
             }
             ImGui.SameLine();

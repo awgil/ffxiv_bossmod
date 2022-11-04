@@ -29,7 +29,7 @@ namespace UIDev
         private List<int> _phaseBranches;
         private List<(Replay.Participant?, ActionID)> _enemyActions = new();
         private Timeline _timeline = new();
-        private StateMachineBranchColumn _colStates;
+        private ColumnStateMachineBranch _colStates;
         private List<BossColumn> _colBoss = new();
         private CooldownPlannerColumns _planner;
         private CastHistoryColumns? _casts;
@@ -92,7 +92,7 @@ namespace UIDev
             _stateTree.ApplyTimings(null);
             _timeline.MaxTime = _stateTree.TotalMaxTime;
 
-            _colStates = _timeline.Columns.Add(new StateMachineBranchColumn(_timeline, _stateTree, _phaseBranches));
+            _colStates = _timeline.Columns.Add(new ColumnStateMachineBranch(_timeline, _stateTree, _phaseBranches));
 
             var defaultBossCol = new BossColumn(this);
             _colBoss.Add(defaultBossCol);

@@ -1,10 +1,10 @@
 ﻿namespace BossMod
 {
-    public class StateMachineTreeColumn : StateMachineColumn
+    public class ColumnStateMachineTree : ColumnStateMachine
     {
         public StateMachine? ControlledSM;
 
-        public StateMachineTreeColumn(Timeline timeline, StateMachineTree tree, StateMachine? controlledSM)
+        public ColumnStateMachineTree(Timeline timeline, StateMachineTree tree, StateMachine? controlledSM)
             : base(timeline, tree)
         {
             ControlledSM = controlledSM;

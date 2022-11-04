@@ -5,7 +5,7 @@ using System.Numerics;
 
 namespace BossMod
 {
-    public abstract class StateMachineColumn : Timeline.Column
+    public abstract class ColumnStateMachine : Timeline.Column
     {
         public enum NodeTextDisplay
         {
@@ -35,7 +35,7 @@ namespace BossMod
         private float _nodeHOffset = 10;
         private float _nodeRadius = 5;
 
-        public StateMachineColumn(Timeline timeline, StateMachineTree tree)
+        public ColumnStateMachine(Timeline timeline, StateMachineTree tree)
             : base(timeline)
         {
             Tree = tree;

@@ -1,4 +1,5 @@
 ﻿using BossMod;
+using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace UIDev
     {
         private struct CooldownGroup
         {
-            public GenericHistoryColumn? Column;
+            public ColumnGenericHistory? Column;
             public DateTime Cursor;
             public DateTime ChargeCooldownEnd;
             public int ChargesOnCooldown;
@@ -17,16 +18,16 @@ namespace UIDev
             public ActionID CooldownAction;
         }
 
-        private GenericHistoryColumn _autoAttacks;
-        private GenericHistoryColumn _animLocks;
+        private ColumnGenericHistory _autoAttacks;
+        private ColumnGenericHistory _animLocks;
         private CooldownGroup[] _cdGroups = new CooldownGroup[80];
 
         public ColumnPlayerActions(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass)
             : base(timeline)
         {
-            _autoAttacks = Add<GenericHistoryColumn>(new(timeline, tree, phaseBranches));
-            _animLocks = Add<GenericHistoryColumn>(new(timeline, tree, phaseBranches));
-            GetCooldownColumn(CommonDefinitions.GCDGroup); // make sure GCD column always exists and is before any others
+            _autoAttacks = Add<ColumnGenericHistory>(new(timeline, tree, phaseBranches, "Auto attacks"));
+            _animLocks = Add<ColumnGenericHistory>(new(timeline, tree, phaseBranches, "Abilities with animation locks"));
+            GetCooldownColumn(CommonDefinitions.GCDGroup, new()).Name = "GCD"; // make sure GCD column always exists and is before any others
 
             var classDef = AbilityDefinitions.Classes.GetValueOrDefault(playerClass);
             int iCast = 0;
@@ -58,7 +59,7 @@ namespace UIDev
                     if (actionDef != null)
                     {
                         StartCooldown(a.ID, actionDef, enc.Time.Start, cast.Time.Start);
-                        GetCooldownColumn(actionDef.CooldownGroup).AddHistoryEntryRange(enc.Time.Start, cast.Time, castName, 0x80ffffff).AddCastTooltip(cast);
+                        GetCooldownColumn(actionDef.CooldownGroup, a.ID).AddHistoryEntryRange(enc.Time.Start, cast.Time, castName, 0x80ffffff).AddCastTooltip(cast);
                         AdvanceCooldown(actionDef.CooldownGroup, enc.Time.Start, cast.Time.End, false);
                     }
                     effectStart = cast.Time.End;
@@ -77,7 +78,7 @@ namespace UIDev
 
                 if (actionDef != null)
                 {
-                    var col = GetCooldownColumn(actionDef.CooldownGroup);
+                    var col = GetCooldownColumn(actionDef.CooldownGroup, a.ID);
                     // TODO: effect should be extended by action-to-effectresult delay?..
                     if (actionDef.EffectDuration > 0)
                     {
@@ -103,7 +104,22 @@ namespace UIDev
 
         public void DrawConfig(UITree tree)
         {
+            if (ImGui.Button("Show all"))
+                foreach (var col in Columns)
+                    col.Width = ColumnGenericHistory.DefaultWidth;
+            ImGui.SameLine();
+            if (ImGui.Button("Hide all"))
+                foreach (var col in Columns)
+                    col.Width = 0;
 
+            foreach (var col in Columns)
+            {
+                bool visible = col.Width > 0;
+                if (ImGui.Checkbox(col.Name, ref visible))
+                {
+                    col.Width = visible ? ColumnGenericHistory.DefaultWidth : 0;
+                }
+            }
         }
 
         private void AddUnfinishedCast(Replay.Cast cast, DateTime encStart, AbilityDefinitions.Class? classDef)
@@ -115,39 +131,38 @@ namespace UIDev
             if (castActionDef != null)
             {
                 AdvanceCooldown(castActionDef.CooldownGroup, encStart, cast.Time.Start, true);
-                GetCooldownColumn(castActionDef.CooldownGroup).AddHistoryEntryRange(encStart, cast.Time, name, 0x800000ff).AddCastTooltip(cast);
+                GetCooldownColumn(castActionDef.CooldownGroup, cast.ID).AddHistoryEntryRange(encStart, cast.Time, name, 0x800000ff).AddCastTooltip(cast);
                 AdvanceCooldown(castActionDef.CooldownGroup, encStart, cast.Time.Start, false); // consider cooldown reset instead?..
             }
         }
 
-        private void AddAnimationLock(GenericHistoryColumn col, Replay.Action action, DateTime encStart, DateTime lockStart, string name)
+        private void AddAnimationLock(ColumnGenericHistory col, Replay.Action action, DateTime encStart, DateTime lockStart, string name)
         {
             if (action.AnimationLock > 0)
                 col.AddHistoryEntryRange(encStart, lockStart, action.AnimationLock, name, 0x80808080).TooltipExtra.Add($"- anim lock: {action.AnimationLock:f2}");
         }
 
-        private GenericHistoryColumn GetCooldownColumn(int cooldownGroup)
+        private ColumnGenericHistory GetCooldownColumn(int cooldownGroup, ActionID defaultAction)
         {
             var col = _cdGroups[cooldownGroup].Column;
             if (col == null)
-                col = _cdGroups[cooldownGroup].Column = Add<GenericHistoryColumn>(new(Timeline, _autoAttacks.Tree, _autoAttacks.PhaseBranches));
+                col = _cdGroups[cooldownGroup].Column = Add<ColumnGenericHistory>(new(Timeline, _autoAttacks.Tree, _autoAttacks.PhaseBranches, defaultAction.ToString()));
             return col;
         }
 
         private void AdvanceCooldown(int cdGroup, DateTime encStart, DateTime timestamp, bool addRanges)
         {
-            var col = GetCooldownColumn(cdGroup); // ensure column exists
             ref var data = ref _cdGroups[cdGroup];
 
             while (data.ChargesOnCooldown > 0 && timestamp >= data.ChargeCooldownEnd)
             {
                 // next charge is fully finished
                 if (addRanges)
-                    col.AddHistoryEntryRange(encStart, data.Cursor, data.ChargeCooldownEnd, data.CooldownAction.ToString(), 0x80808080).TooltipExtra.Add($"- cooldown: {data.ChargeCooldown:f1}s ({data.ChargesOnCooldown} charges) ");
+                    data.Column?.AddHistoryEntryRange(encStart, data.Cursor, data.ChargeCooldownEnd, data.CooldownAction.ToString(), 0x80808080).TooltipExtra.Add($"- cooldown: {data.ChargeCooldown:f1}s ({data.ChargesOnCooldown} charges) ");
                 data.Cursor = data.ChargeCooldownEnd;
                 if (--data.ChargesOnCooldown > 0)
                 {
-                    col.AddHistoryEntryLine(encStart, data.Cursor, "", 0xffffffff);
+                    data.Column?.AddHistoryEntryLine(encStart, data.Cursor, "", 0xffffffff);
                     data.ChargeCooldownEnd = data.Cursor.AddSeconds(data.ChargeCooldown);
                 }
             }
@@ -157,7 +172,7 @@ namespace UIDev
             {
                 // assertion: timestamp < data.ChargeCooldownEnd
                 if (addRanges)
-                    col.AddHistoryEntryRange(encStart, data.Cursor, timestamp, data.CooldownAction.ToString(), 0x80808080).TooltipExtra.Add($"- cooldown: {data.ChargeCooldown:f1}s ({data.ChargesOnCooldown} charges) ");
+                    data.Column?.AddHistoryEntryRange(encStart, data.Cursor, timestamp, data.CooldownAction.ToString(), 0x80808080).TooltipExtra.Add($"- cooldown: {data.ChargeCooldown:f1}s ({data.ChargesOnCooldown} charges) ");
             }
 
             data.Cursor = timestamp;

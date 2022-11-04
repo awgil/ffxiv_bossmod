@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace UIDev
 {
-    public class ColumnEnemyCasts : GenericHistoryColumn
+    public class ColumnEnemyCasts : ColumnGenericHistory
     {
         public ColumnEnemyCasts(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant enemy)
             : base(timeline, tree, phaseBranches)

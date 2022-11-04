@@ -6,7 +6,7 @@ namespace UIDev
     public class ColumnPlayerDetails : Timeline.ColumnGroup
     {
         private ColumnPlayerActions _actions;
-        private SeparatorColumn _separator;
+        private ColumnSeparator _separator;
 
         public bool AnyVisible => _actions.Width > 0;
 
@@ -15,7 +15,7 @@ namespace UIDev
         {
             Name = player.Name;
             _actions = Add(new ColumnPlayerActions(timeline, tree, phaseBranches, replay, enc, player, playerClass));
-            _separator = Add(new SeparatorColumn(timeline));
+            _separator = Add(new ColumnSeparator(timeline));
         }
 
         public void DrawConfig(UITree tree)

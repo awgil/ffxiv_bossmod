@@ -2,11 +2,11 @@
 
 namespace BossMod
 {
-    public class SeparatorColumn : Timeline.Column
+    public class ColumnSeparator : Timeline.Column
     {
         public uint Color;
 
-        public SeparatorColumn(Timeline timeline, uint color = 0xffffffff, float width = 1)
+        public ColumnSeparator(Timeline timeline, uint color = 0xffffffff, float width = 1)
             : base(timeline)
         {
             Width = width;

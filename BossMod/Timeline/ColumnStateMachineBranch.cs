@@ -3,11 +3,11 @@ using System.Linq;
 
 namespace BossMod
 {
-    public class StateMachineBranchColumn : StateMachineColumn
+    public class ColumnStateMachineBranch : ColumnStateMachine
     {
         private List<int> _phaseBranches;
 
-        public StateMachineBranchColumn(Timeline timeline, StateMachineTree tree, List<int> phaseBranches)
+        public ColumnStateMachineBranch(Timeline timeline, StateMachineTree tree, List<int> phaseBranches)
             : base(timeline, tree)
         {
             _phaseBranches = phaseBranches;

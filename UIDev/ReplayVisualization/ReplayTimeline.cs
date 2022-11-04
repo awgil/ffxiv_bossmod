@@ -14,7 +14,7 @@ namespace UIDev
         private List<int> _phaseBranches;
         private Timeline _timeline = new();
         private ColumnEnemiesCastEvents _colCastEvents;
-        private StateMachineBranchColumn _colStates;
+        private ColumnStateMachineBranch _colStates;
         private ColumnEnemiesDetails _colEnemies;
         //private CooldownPlannerColumns _planner;
         private ColumnPlayersDetails _colPlayers;
@@ -29,8 +29,8 @@ namespace UIDev
             _timeline.MaxTime = _stateTree.TotalMaxTime;
 
             _colCastEvents = _timeline.Columns.Add(new ColumnEnemiesCastEvents(_timeline, _stateTree, _phaseBranches, replay, enc));
-            _colStates = _timeline.Columns.Add(new StateMachineBranchColumn(_timeline, _stateTree, _phaseBranches));
-            _timeline.Columns.Add(new SeparatorColumn(_timeline));
+            _colStates = _timeline.Columns.Add(new ColumnStateMachineBranch(_timeline, _stateTree, _phaseBranches));
+            _timeline.Columns.Add(new ColumnSeparator(_timeline));
             _colEnemies = _timeline.Columns.Add(new ColumnEnemiesDetails(_timeline, _stateTree, _phaseBranches, replay, enc));
             _colPlayers = _timeline.Columns.Add(new ColumnPlayersDetails(_timeline, _stateTree, _phaseBranches, replay, enc));
 

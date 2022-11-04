@@ -7,7 +7,7 @@ namespace BossMod
 {
     // column showing a history of some events (actions, casts, statuses, etc.)
     // entry is attached to a node (this is important if timings are adjusted for any reason)
-    public class GenericHistoryColumn : Timeline.Column
+    public class ColumnGenericHistory : Timeline.Column
     {
         public class Entry
         {
@@ -35,6 +35,8 @@ namespace BossMod
             }
         }
 
+        public const float DefaultWidth = 10;
+
         public List<Entry> Entries = new();
         public StateMachineTree Tree { get; private init; }
         public List<int> PhaseBranches { get; private init; }
@@ -44,12 +46,13 @@ namespace BossMod
 
         private uint _colBackground = 0x40404040;
 
-        public GenericHistoryColumn(Timeline timeline, StateMachineTree tree, List<int> phaseBranches)
+        public ColumnGenericHistory(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name = "")
             : base(timeline)
         {
             Tree = tree;
             PhaseBranches = phaseBranches;
-            Width = 10;
+            Width = DefaultWidth;
+            Name = name;
         }
 
         public override void Draw()

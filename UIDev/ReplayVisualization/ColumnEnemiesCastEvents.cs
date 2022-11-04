@@ -78,7 +78,7 @@ namespace UIDev
 
         private void AddColumn()
         {
-            Add(new GenericHistoryColumn(Timeline, _tree, _phaseBranches));
+            Add(new ColumnGenericHistory(Timeline, _tree, _phaseBranches));
         }
 
         private bool DrawConfigColumns(ref BitMask mask, string name)
@@ -100,7 +100,7 @@ namespace UIDev
 
         private void RebuildEvents()
         {
-            foreach (var c in Columns.Cast<GenericHistoryColumn>())
+            foreach (var c in Columns.Cast<ColumnGenericHistory>())
                 c.Entries.Clear();
 
             foreach (var a in _actions)
@@ -112,7 +112,7 @@ namespace UIDev
                 var name = $"{a.ID} ({_moduleInfo?.ActionIDType?.GetEnumName(a.ID.ID)}) {ReplayUtils.ParticipantString(a.Source)} -> {ReplayUtils.ParticipantString(a.MainTarget)} #{a.GlobalSequence}";
                 foreach (var c in cols.SetBits())
                 {
-                    var col = (GenericHistoryColumn)Columns[c];
+                    var col = (ColumnGenericHistory)Columns[c];
                     col.AddHistoryEntryDot(_encounter.Time.Start, a.Timestamp, name, ColumnUtils.ActionHasDamageToPlayerEffects(a) ? 0xffffffff : 0x80808080).AddActionTooltip(a);
                 }
             }
