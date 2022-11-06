@@ -147,10 +147,13 @@ namespace BossMod
             if (_states.ContainsKey(id))
                 throw new Exception($"Duplicate state id {id}");
 
-            var state = _states[id] = new() { Name = name, Duration = duration, ID = id };
+            var state = _states[id] = new() { ID = id, Duration = duration, Name = name };
             if (_lastState != null)
             {
-                _lastState.Next = state;
+                if (_lastState.NextStates != null)
+                    throw new Exception($"Previous state {_lastState.ID} is already linked while adding new state {id}");
+
+                _lastState.NextStates = new[] { state };
                 if ((_lastState.ID & 0xFFFF0000) == (id & 0xFFFF0000))
                     _lastState.EndHint |= StateMachine.StateHint.GroupWithNext;
             }
@@ -172,7 +175,7 @@ namespace BossMod
         {
             var state = SimpleState(id, duration, name);
             state.Raw.Comment = "Timeout";
-            state.Raw.Update = timeSinceTransition => timeSinceTransition >= state.Raw.Duration ? state.Raw.Next : null;
+            state.Raw.Update = timeSinceTransition => timeSinceTransition >= state.Raw.Duration ? 0 : -1;
             return state;
         }
 
@@ -184,16 +187,16 @@ namespace BossMod
             state.Raw.Update = timeSinceTransition =>
             {
                 if (timeSinceTransition < checkDelay)
-                    return null; // too early to check for condition
+                    return -1; // too early to check for condition
 
                 if (condition())
-                    return state.Raw.Next;
+                    return 0;
 
                 if (timeSinceTransition < expected + maxOverdue)
-                    return null;
+                    return -1;
 
                 Module.ReportError(null, $"State {id:X}: transition triggered because of overdue");
-                return state.Raw.Next;
+                return 0;
             };
             return state;
         }
@@ -202,33 +205,37 @@ namespace BossMod
         public State ConditionFork<Key>(uint id, float expected, Func<bool> condition, Func<Key> select, Dictionary<Key, (uint seqID, Action<uint> buildState)> dispatch, string name = "")
             where Key : notnull
         {
-            Dictionary<Key, StateMachine.State?> stateDispatch = new();
+            Dictionary<Key, int> stateDispatch = new();
 
             var state = SimpleState(id, expected, name);
             state.Raw.Comment = $"Fork: [{string.Join(", ", dispatch.Keys)}]";
+            state.Raw.NextStates = new StateMachine.State[dispatch.Count];
             state.Raw.Update = _ =>
             {
                 if (!condition())
-                    return null;
+                    return -1;
 
                 var key = select();
-                var fork = stateDispatch.GetValueOrDefault(key);
-                if (fork == null)
+                var fork = stateDispatch.GetValueOrDefault(key, -1);
+                if (fork < 0)
                     Module.ReportError(null, $"State {id:X}: unexpected fork condition result: got {key}");
                 return fork;
             };
 
+            int nextIndex = 0;
             var prevInit = _curInitial;
             foreach (var (key, action) in dispatch)
             {
                 _lastState = _curInitial = null;
                 action.buildState(action.seqID << 24);
-                stateDispatch[key] = _curInitial;
+                if (_curInitial == null)
+                    throw new Exception($"Fork #{nextIndex} didn't create any states");
+                state.Raw.NextStates[nextIndex] = _curInitial;
+                stateDispatch[key] = nextIndex++;
             }
             _curInitial = prevInit;
             _lastState = null;
 
-            state.Raw.PotentialSuccessors = stateDispatch.Values.OfType<StateMachine.State>().Distinct().ToArray();
             return state;
         }
 
@@ -240,23 +247,23 @@ namespace BossMod
             state.Raw.Update = (timeSinceTransition) =>
             {
                 if (timeSinceTransition < checkDelay)
-                    return null; // too early to check for condition
+                    return -1; // too early to check for condition
 
                 var comp = Module.FindComponent<T>();
                 if (comp == null)
                 {
                     Module.ReportError(null, $"State {id:X}: component {typeof(T)} needed for condition is missing");
-                    return state.Raw.Next;
+                    return 0;
                 }
 
                 if (condition(comp))
-                    return state.Raw.Next;
+                    return 0;
 
                 if (timeSinceTransition < expected + maxOverdue)
-                    return null;
+                    return -1;
 
                 Module.ReportError(null, $"State {id:X}: transition triggered because of overdue");
-                return state.Raw.Next;
+                return 0;
             };
             return state;
         }
@@ -290,10 +297,10 @@ namespace BossMod
             {
                 var castInfo = actorAcc()?.CastInfo;
                 if (castInfo == null)
-                    return null;
+                    return -1;
                 if (castInfo.Action != expected)
                     Module.ReportError(null, $"State {id:X}: unexpected cast start: got {castInfo.Action}, expected {expected}");
-                return state.Raw.Next;
+                return 0;
             };
             return state;
         }
@@ -315,10 +322,10 @@ namespace BossMod
             {
                 var castInfo = actorAcc()?.CastInfo;
                 if (castInfo == null)
-                    return null;
+                    return -1;
                 if (!aids.Any(aid => castInfo.IsSpell(aid)))
                     Module.ReportError(null, $"State {id:X}: unexpected cast start: got {castInfo.Action}");
-                return state.Raw.Next;
+                return 0;
             };
             return state;
         }
@@ -344,7 +351,7 @@ namespace BossMod
         {
             var state = SimpleState(id, castTime, name).SetHint(StateMachine.StateHint.BossCastEnd, isBoss);
             state.Raw.Comment = "Cast end";
-            state.Raw.Update = _ => actorAcc()?.CastInfo == null ? state.Raw.Next : null;
+            state.Raw.Update = _ => actorAcc()?.CastInfo == null ? 0 : -1;
             return state;
         }
 
@@ -391,7 +398,7 @@ namespace BossMod
         {
             var state = SimpleState(id, delay, name);
             state.Raw.Comment = targetable ? "Targetable" : "Untargetable";
-            state.Raw.Update = timeSinceTransition => timeSinceTransition >= checkDelay && actorAcc()?.IsTargetable == targetable ? state.Raw.Next : null;
+            state.Raw.Update = timeSinceTransition => timeSinceTransition >= checkDelay && actorAcc()?.IsTargetable == targetable ? 0 : -1;
             return state;
         }
 

@@ -101,7 +101,7 @@
                 .DeactivateOnExit<HoliestHallowing>()
                 .SetHint(StateMachine.StateHint.PositioningEnd, clearPosFlag);
             castEnd.Raw.Comment = "Interruptible cast end";
-            castEnd.Raw.Update = timeSinceTransition => _module.SerAdelphel()?.CastInfo == null && timeSinceTransition >= castEnd.Raw.Duration ? castEnd.Raw.Next : null;
+            castEnd.Raw.Update = timeSinceTransition => _module.SerAdelphel()?.CastInfo == null && timeSinceTransition >= castEnd.Raw.Duration ? 0 : -1;
         }
 
         // leaves positioning hint at the end, since tanks need to move bosses after this stage
@@ -136,7 +136,7 @@
             {
                 bool adelphelCast = _module.SerAdelphel()?.CastInfo?.IsSpell(AID.BrightbladesSteel) ?? false;
                 bool grinnauxCast = _module.SerGrinnaux()?.CastInfo?.IsSpell(AID.TheBullsSteel) ?? false;
-                return adelphelCast || grinnauxCast ? castStart.Raw.Next : null;
+                return adelphelCast || grinnauxCast ? 0 : -1;
             };
 
             var castEnd = SimpleState(id + 1, 3, "Adelphel/Grinnaux Enrage");
@@ -145,7 +145,7 @@
             {
                 bool adelphelDone = _module.SerAdelphel()?.CastInfo == null;
                 bool grinnauxDone = _module.SerGrinnaux()?.CastInfo == null;
-                return adelphelDone && grinnauxDone ? castEnd.Raw.Next : null;
+                return adelphelDone && grinnauxDone ? 0 : -1;
             };
         }
     }

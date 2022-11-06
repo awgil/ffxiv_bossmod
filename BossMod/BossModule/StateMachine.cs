@@ -32,18 +32,15 @@ namespace BossMod
 
         public class State
         {
-            public string Name = ""; // if name is empty, state is "hidden" from UI
-            public float Duration = 0; // estimated state duration
             public uint ID = 0;
+            public float Duration = 0; // estimated state duration
+            public string Name = ""; // if name is empty, state is "hidden" from UI
             public string Comment = "";
             public List<Action> Enter = new(); // callbacks executed when state is activated
             public List<Action> Exit = new(); // callbacks executed when state is deactivated; note that this can happen unexpectedly, e.g. due to external reset or phase change
-            public Func<float, State?>? Update = null; // callback executed every frame when state is active; should return target state for transition or null to remain in current state; argument = time since activation
-
-            // fields below are used for visualization, autorotations, etc.
-            public State? Next = null; // expected next state; note that actual next state is determined by update function
-            public State[]? PotentialSuccessors = null; // if null, we consider the only potential successor to be Next; otherwise we use this list instead when building timeline
-            public StateHint EndHint = StateHint.None; // special flags for state end
+            public Func<float, int>? Update; // callback executed every frame when state is active; should return target state index for transition or -1 to remain in current state; argument = time since activation
+            public State[]? NextStates; // potential successor states
+            public StateHint EndHint = StateHint.None; // special flags for state end (used for visualization, autorotation, etc.)
         }
 
         public class Phase
@@ -108,11 +105,12 @@ namespace BossMod
             }
             while (ActiveState != null)
             {
-                var transition = ActiveState.Update?.Invoke(TimeSinceTransition);
-                if (transition == null)
+                var transition = ActiveState.Update?.Invoke(TimeSinceTransition) ?? -1;
+                var nextState = ActiveState.NextStates != null && transition >= 0 && transition < ActiveState.NextStates.Length ? ActiveState.NextStates[transition] : null;
+                if (nextState == null)
                     break;
-                Service.Log($"[StateMachine] State transition from {ActiveState.ID:X} '{ActiveState.Name}' to {transition.ID:X} '{transition.Name}', overdue={TimeSinceTransition:f2}-{ActiveState.Duration:f2}={TimeSinceTransition - ActiveState.Duration:f2}");
-                TransitionToState(transition);
+                Service.Log($"[StateMachine] State transition from {ActiveState.ID:X} '{ActiveState.Name}' to {nextState.ID:X} '{nextState.Name}', overdue={TimeSinceTransition:f2}-{ActiveState.Duration:f2}={TimeSinceTransition - ActiveState.Duration:f2}");
+                TransitionToState(nextState);
             }
         }
 
@@ -160,7 +158,7 @@ namespace BossMod
                 time = time.AddSeconds(next.Duration);
                 if (next.EndHint.HasFlag(flag))
                     return time;
-                next = next.Next;
+                next = next.NextStates?.Length == 1 ? next.NextStates[0] : null;
             }
             return DateTime.MaxValue;
         }
@@ -175,9 +173,9 @@ namespace BossMod
                 timeLeft = 0;
             }
 
-            while (start.EndHint.HasFlag(StateHint.GroupWithNext) && start.Next != null)
+            while (start.EndHint.HasFlag(StateHint.GroupWithNext) && start.NextStates?.Length == 1)
             {
-                start = start.Next;
+                start = start.NextStates[0];
                 timeLeft += MathF.Max(0, start.Duration);
                 if (start.Name.Length > 0)
                 {
@@ -200,7 +198,7 @@ namespace BossMod
                 res.Append($" in {timeLeft:f1}s");
             }
 
-            return (res.ToString(), start.Next);
+            return (res.ToString(), start.NextStates?.Length == 1 ? start.NextStates[0] : null);
         }
 
         private void TransitionToPhase(int nextIndex)

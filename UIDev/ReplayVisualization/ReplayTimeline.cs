@@ -116,12 +116,9 @@ namespace UIDev
         private void GatherStates(Dictionary<uint, (StateMachine.State state, StateMachine.State? pred)> res, StateMachine.State start, StateMachine.State? pred)
         {
             res[start.ID] = (start, pred);
-            if (start.Next != null)
-                GatherStates(res, start.Next, start);
-            if (start.PotentialSuccessors != null)
-                foreach (var succ in start.PotentialSuccessors)
-                    if (succ != start.Next)
-                        GatherStates(res, succ, start);
+            if (start.NextStates != null)
+                foreach (var succ in start.NextStates)
+                    GatherStates(res, succ, start);
         }
     }
 }
