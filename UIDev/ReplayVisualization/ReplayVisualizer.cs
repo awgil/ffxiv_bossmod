@@ -63,26 +63,27 @@ namespace UIDev
                 _mgr.ActiveModule.Draw(_azimuth / 180 * MathF.PI, _povSlot, null);
                 var drawTimerPost = DateTime.Now;
 
-                ImGui.TextUnformatted($"Current state: {_mgr.ActiveModule.StateMachine.ActiveState?.ID:X}, Time since pull: {_mgr.ActiveModule.StateMachine.TimeSinceActivation:f3}, Draw time: {(drawTimerPost - drawTimerPre).TotalMilliseconds:f3}ms, Downtime in: {_mgr.ActiveModule.PlanExecution?.EstimateTimeToNextDowntime(_mgr.ActiveModule.StateMachine):f2}, Positioning in: {_mgr.ActiveModule.PlanExecution?.EstimateTimeToNextPositioning(_mgr.ActiveModule.StateMachine):f2}, Vuln in: {_mgr.ActiveModule.PlanExecution?.EstimateTimeToNextVulnerable(_mgr.ActiveModule.StateMachine):f2}, Components:");
-                foreach (var comp in _mgr.ActiveModule.Components)
-                {
-                    ImGui.SameLine();
-                    ImGui.TextUnformatted(comp.GetType().Name);
-                }
+                ImGui.TextUnformatted($"Current state: {_mgr.ActiveModule.StateMachine.ActiveState?.ID:X}, Time since pull: {_mgr.ActiveModule.StateMachine.TimeSinceActivation:f3}, Draw time: {(drawTimerPost - drawTimerPre).TotalMilliseconds:f3}ms, Components: {string.Join(", ", _mgr.ActiveModule.Components.Select(c => c.GetType().Name))}");
 
                 if (ImGui.CollapsingHeader("Plan execution"))
                 {
+                    var sm = _mgr.ActiveModule.StateMachine;
                     if (ImGui.Button("Show timeline"))
                     {
-                        var timeline = new StateMachineVisualizer(_mgr.ActiveModule.StateMachine);
+                        var timeline = new StateMachineVisualizer(sm);
                         var w = WindowManager.CreateWindow($"{_mgr.ActiveModule.GetType().Name} timeline", timeline.Draw, () => { }, () => true);
                         w.SizeHint = new(600, 600);
                         w.MinSize = new(100, 100);
                     }
                     ImGui.SameLine();
-                    _mgr.ActiveModule.PlanConfig?.DrawSelectionUI(_mgr.ActiveModule.Raid[_povSlot]?.Class ?? Class.None, _mgr.ActiveModule.StateMachine);
+                    _mgr.ActiveModule.PlanConfig?.DrawSelectionUI(_mgr.ActiveModule.Raid[_povSlot]?.Class ?? Class.None, sm);
 
-                    _mgr.ActiveModule.PlanExecution?.Draw(_mgr.ActiveModule.StateMachine);
+                    var pe = _mgr.ActiveModule.PlanExecution;
+                    if (pe != null)
+                    {
+                        ImGui.TextUnformatted($"Downtime: {FlagTransitionString(pe.EstimateTimeToNextDowntime(sm))}; Pos-lock: {FlagTransitionString(pe.EstimateTimeToNextPositioning(sm))}; Vuln: {FlagTransitionString(pe.EstimateTimeToNextVulnerable(sm))}");
+                        pe.Draw(sm);
+                    }
                 }
             }
 
@@ -351,6 +352,8 @@ namespace UIDev
             if (rebuild)
                 ResetPF();
         }
+
+        private string FlagTransitionString((bool active, float transIn) arg) => $"{(arg.active ? "end" : "start")} in {arg.transIn:f2}s";
 
         private void MoveTo(DateTime t)
         {

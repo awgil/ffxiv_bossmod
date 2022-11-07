@@ -225,7 +225,7 @@ namespace BossMod
 
             var res = am.UseActionRaw(actionAdj, targetID, next.TargetPos, next.Action.Type == ActionType.Item ? 65535u : 0);
             Log($"Auto-execute {next.Source} action {next.Action} (=> {actionAdj}) @ {targetID:X} {Utils.Vec3String(next.TargetPos)} => {res}");
-            _classActions.NotifyActionExecuted(next.Action, next.Target);
+            _classActions.NotifyActionExecuted(next);
             return lockMovementForNext;
         }
 

@@ -11,7 +11,7 @@ namespace BossMod
 {
     public class ConfigRoot
     {
-        private const int _version = 5;
+        private const int _version = 6;
 
         public event EventHandler? Modified;
         private Dictionary<Type, ConfigNode> _nodes = new();
@@ -259,6 +259,49 @@ namespace BossMod
                             {
                                 RenameKeys(planAbilities, renames);
                             }
+                        }
+                    }
+                }
+            }
+            // v6: new cooldown planner
+            if (version < 6)
+            {
+                foreach (var (k, config) in payload)
+                {
+                    var plans = config?["CooldownPlans"] as JObject;
+                    if (plans == null)
+                        continue;
+                    foreach (var (cls, planList) in plans)
+                    {
+                        var avail = planList?["Available"] as JArray;
+                        if (avail == null)
+                            continue;
+                        var c = Enum.Parse<Class>(cls);
+                        var aidType = PlanDefinitions.Classes[c].AIDType;
+                        foreach (var plan in avail)
+                        {
+                            var abilities = plan?["PlanAbilities"] as JObject;
+                            if (abilities == null)
+                                continue;
+
+                            var actions = new JArray();
+                            foreach (var (aidRaw, aidData) in abilities)
+                            {
+                                var aidList = aidData as JArray;
+                                if (aidList == null)
+                                    continue;
+
+                                var aid = new ActionID(uint.Parse(aidRaw));
+                                foreach (var abilUse in aidList)
+                                {
+                                    abilUse["ID"] = aidType.GetEnumName(aid.ID);
+                                    abilUse["StateID"] = $"0x{abilUse["StateID"]?.Value<uint>():X8}";
+                                    actions.Add(abilUse);
+                                }
+                            }
+                            var jplan = (JObject)plan!;
+                            jplan.Remove("PlanAbilities");
+                            jplan["Actions"] = actions;
                         }
                     }
                 }

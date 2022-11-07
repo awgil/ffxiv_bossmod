@@ -1,260 +1,215 @@
 ﻿using ImGuiNET;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod
 {
-    // per-state list of activation windows based on cooldown plan
-    // this solves the problem of e.g. window start being at the end of state and early switch to next
+    // to execute a concrete plan for a concrete encounter, we build a "timeline" - for each state we assign a time/duration (which depend both on state machine definition and plan's phase timings)
+    // for each action defined by a plan, we define start/end times on that timeline (plus a range of branches in which it might be executed)
     public class CooldownPlanExecution
     {
-        public struct NextEvent
-        {
-            public uint StateID;
-            public float EstimatedTime;
-        }
-
         public struct StateFlag
         {
             public bool Active;
-            public NextEvent? Transition;
+            public float TransitionIn;
         }
 
-        public class PerAbility
+        public class StateData
+        {
+            public float EnterTime;
+            public float Duration;
+            public int BranchID;
+            public int NumBranches;
+            public StateFlag Downtime = new() { TransitionIn = float.MaxValue };
+            public StateFlag Positioning = new() { TransitionIn = float.MaxValue };
+            public StateFlag Vulnerable = new() { TransitionIn = float.MaxValue };
+        }
+
+        public class ActionData
         {
             public ActionID ID;
-            public List<(float Start, float End)> ActivationWindows = new();
-            public NextEvent? NextActivation = null;
+            public float WindowStart;
+            public float WindowEnd;
+            public int BranchID;
+            public int NumBranches;
+            public bool Executed;
+            // TODO: target, condition, etc.
 
-            public PerAbility(ActionID id)
-            {
-                ID = id;
-            }
+            public bool IntersectBranchRange(int branchID, int numBranches) => BranchID < branchID + numBranches && branchID < BranchID + NumBranches;
         }
 
-        public class PerState
-        {
-            public StateFlag Downtime;
-            public StateFlag Positioning;
-            public StateFlag Vulnerable;
-            public List<PerAbility> Abilities = new();
-
-            internal PerState(CooldownPlan? plan)
-            {
-                if (plan == null)
-                    return;
-
-                foreach (var (k, uses) in plan.PlanAbilities)
-                {
-                    var action = new ActionID(k);
-                    Abilities.Add(new(action));
-                }
-            }
-        }
-
-        public CooldownPlan? Plan;
-        public PerState Pull;
-        public Dictionary<uint, PerState> States = new();
+        public CooldownPlan? Plan { get; private init; }
+        private StateData Pull = new();
+        private Dictionary<uint, StateData> States = new();
+        private List<ActionData> Actions = new();
 
         public CooldownPlanExecution(StateMachine sm, CooldownPlan? plan)
         {
             Plan = plan;
-            Pull = new(plan);
 
             var tree = new StateMachineTree(sm);
             tree.ApplyTimings(plan?.Timings);
 
-            if (tree.Phases.Count > 0)
+            StateData? nextPhaseStart = null;
+            for (int i = tree.Phases.Count - 1; i >= 0; i--)
+                nextPhaseStart = ProcessState(tree, tree.Phases[i].StartingNode, null, nextPhaseStart);
+            UpdateTransitions(Pull, nextPhaseStart);
+
+            if (plan != null)
             {
-                ProcessState(tree, tree.Phases[0].StartingNode, Pull, 0);
+                foreach (var a in plan.Actions)
+                {
+                    var s = States.GetValueOrDefault(a.StateID);
+                    if (s != null)
+                    {
+                        var windowStart = s.EnterTime + Math.Min(s.Duration, a.TimeSinceActivation);
+                        Actions.Add(new() { ID = a.ID, WindowStart = windowStart, WindowEnd = windowStart + a.WindowLength, BranchID = s.BranchID, NumBranches = s.NumBranches });
+                    }
+                }
             }
         }
 
-        public PerState FindStateData(StateMachine.State? s)
+        public StateData FindStateData(StateMachine.State? s)
         {
             var state = s != null ? States.GetValueOrDefault(s.ID) : null;
             return state ?? Pull;
         }
 
-        public float EstimateTimeToNextDowntime(StateMachine? sm)
+        // all such functions return whether flag is currently active + estimated time to transition
+        public (bool, float) EstimateTimeToNextDowntime(StateMachine sm)
         {
-            var s = FindStateData(sm?.ActiveState);
-            if (s.Downtime.Active)
-                return 0;
-            else if (s.Downtime.Transition == null)
-                return 10000; // this is a fork and we don't know where we'll go - assume there will be no downtime ever...
-            else
-                return s.Downtime.Transition.Value.EstimatedTime - sm!.TimeSinceTransitionClamped;
+            var s = FindStateData(sm.ActiveState);
+            return (s.Downtime.Active, s.Downtime.TransitionIn - Math.Min(sm.TimeSinceTransition, s.Duration));
         }
 
-        public float EstimateTimeToNextPositioning(StateMachine? sm)
+        public (bool, float) EstimateTimeToNextPositioning(StateMachine sm)
         {
-            var s = FindStateData(sm?.ActiveState);
-            if (s.Positioning.Active)
-                return 0;
-            else if (s.Positioning.Transition == null)
-                return 10000; // no known positionings going forward
-            else
-                return s.Positioning.Transition.Value.EstimatedTime - sm!.TimeSinceTransitionClamped;
+            var s = FindStateData(sm.ActiveState);
+            return (s.Positioning.Active, s.Positioning.TransitionIn - Math.Min(sm.TimeSinceTransition, s.Duration));
         }
 
-        public float EstimateTimeToNextVulnerable(StateMachine? sm)
+        public (bool, float) EstimateTimeToNextVulnerable(StateMachine sm)
         {
-            var s = FindStateData(sm?.ActiveState);
-            if (s.Vulnerable.Active)
-                return 0;
-            else if (s.Vulnerable.Transition == null)
-                return 10000; // no known vulnerabilities going forward
-            else
-                return s.Vulnerable.Transition.Value.EstimatedTime - sm!.TimeSinceTransitionClamped;
+            var s = FindStateData(sm.ActiveState);
+            return (s.Vulnerable.Active, s.Vulnerable.TransitionIn - Math.Min(sm.TimeSinceTransition, s.Duration));
         }
 
         public IEnumerable<(ActionID Action, float TimeLeft)> ActiveActions(StateMachine sm)
         {
-            var progress = sm.TimeSinceTransitionClamped;
-            var stateData = FindStateData(sm.ActiveState);
-            foreach (var plan in stateData.Abilities)
-            {
-                var activeWindow = plan.ActivationWindows.FindIndex(w => w.Start <= progress && w.End > progress);
-                if (activeWindow != -1)
-                {
-                    yield return (plan.ID, plan.ActivationWindows[activeWindow].End - progress);
-                }
-            }
+            var s = FindStateData(sm.ActiveState);
+            var t = s.EnterTime + Math.Min(sm.TimeSinceTransition, s.Duration);
+            return Actions.Where(a => !a.Executed && t >= a.WindowStart && t <= a.WindowEnd && a.IntersectBranchRange(s.BranchID, s.NumBranches)).Select(a => (a.ID, a.WindowEnd - t));
+        }
+
+        public void NotifyActionExecuted(StateMachine sm, ActionID action)
+        {
+            // TODO: not sure what to do if we have several overlapping requests for same action, do we really mark all of them as executed?..
+            var s = FindStateData(sm.ActiveState);
+            var t = s.EnterTime + Math.Min(sm.TimeSinceTransition, s.Duration);
+            foreach (var a in Actions.Where(a => a.ID == action && t >= a.WindowStart && t <= a.WindowEnd && a.IntersectBranchRange(s.BranchID, s.NumBranches)))
+                a.Executed = true;
         }
 
         public void Draw(StateMachine sm)
         {
-            var db = Plan != null ? PlanDefinitions.Classes[Plan.Class] : null;
+            if (Plan == null)
+                return;
             var s = FindStateData(sm.ActiveState);
-            var t = sm.TimeSinceTransitionClamped;
-            foreach (var ability in s.Abilities)
+            var t = s.EnterTime + Math.Min(sm.TimeSinceTransition, s.Duration);
+            var classDef = PlanDefinitions.Classes[Plan.Class];
+            foreach (var track in classDef.CooldownTracks)
             {
-                var cd = db?.Abilities[ability.ID].Cooldown ?? 0;
-                int nextWindow = ability.ActivationWindows.FindIndex(w => w.End > t);
-                bool windowActive = nextWindow != -1 && t >= ability.ActivationWindows[nextWindow].Start;
-                float? nextTransition = windowActive ? ability.ActivationWindows[nextWindow].End : nextWindow != -1 ? ability.ActivationWindows[nextWindow].Start : ability.NextActivation?.EstimatedTime;
-
-                var name = ability.ID.Name();
-                if (nextTransition == null)
+                var next = FindNextActionInTrack(track.AIDs, t, s.BranchID, s.NumBranches);
+                if (next == null)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, 0x80808080);
-                    ImGui.TextUnformatted(name);
+                    ImGui.TextUnformatted(track.Name);
                     ImGui.PopStyleColor();
-
                 }
-                else if (windowActive)
+                else if (next.WindowStart <= t)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, 0xff00ffff);
-                    ImGui.TextUnformatted($"{name}: use now! ({nextTransition.Value - t:f1}s left)");
+                    ImGui.TextUnformatted($"{track.Name}: use now! ({next.WindowEnd - t:f1}s left)");
                     ImGui.PopStyleColor();
                 }
                 else
                 {
-                    var left = nextTransition.Value - t;
-                    ImGui.PushStyleColor(ImGuiCol.Text, left < cd ? 0xffffffff : 0x80808080);
-                    ImGui.TextUnformatted($"{name}: in {left:f1}s");
+                    var left = next.WindowStart - t;
+                    ImGui.PushStyleColor(ImGuiCol.Text, left < classDef.Abilities[track.AIDs[0]].Cooldown ? 0xffffffff : 0x80808080);
+                    ImGui.TextUnformatted($"{track.Name}: in {left:f1}s");
                     ImGui.PopStyleColor();
                 }
             }
         }
 
-        private PerState ProcessState(StateMachineTree tree, StateMachineTree.Node curState, PerState prev, float prevDuration)
+        private StateData ProcessState(StateMachineTree tree, StateMachineTree.Node curState, StateData? prev, StateData? nextPhaseStart)
         {
-            var s = States[curState.State.ID] = new PerState(Plan);
+            var curPhase = tree.Phases[curState.PhaseID];
+
+            // phaseLeft < 0 if cur state exit is after expected phase exit
+            var phaseLeft = curPhase.Duration - curState.Time;
+
+            var s = States[curState.State.ID] = new();
+            s.EnterTime = prev != null ? prev.EnterTime + prev.Duration : curPhase.StartTime;
+            s.Duration = Math.Clamp(curState.State.Duration + phaseLeft, 0, curState.State.Duration);
+            s.BranchID = curState.BranchID;
+            s.NumBranches = curState.NumBranches;
             s.Downtime.Active = curState.IsDowntime;
             s.Positioning.Active = curState.IsPositioning;
             s.Vulnerable.Active = curState.IsVulnerable;
 
-            if (Plan != null)
+            // process successor states of the same phase
+            // note that we might not expect to reach them due to phase timings, but they still might be reached in practice (if we're going slower than intended)
+            // in such case all successors will have identical enter-time (equal to enter-time of initial state of next phase) and identical duration (zero)
+            if (curState.Successors.Count == 0)
             {
-                foreach (var (curAbility, prevAbility) in s.Abilities.Zip(prev.Abilities))
-                {
-                    var uses = Plan.PlanAbilities[curAbility.ID.Raw];
-                    if (prevAbility.ActivationWindows.Count > 0)
-                    {
-                        var last = prevAbility.ActivationWindows.Last();
-                        var overlap = last.End - prevDuration;
-                        if (overlap > 0)
-                            curAbility.ActivationWindows.Add((0, overlap));
-                    }
-
-                    foreach (var use in uses.Where(use => use.StateID == curState.State.ID))
-                    {
-                        curAbility.ActivationWindows.Add((use.TimeSinceActivation, use.TimeSinceActivation + use.WindowLength));
-                    }
-
-                    // sort and merge activation windows, so that they form disjoint ranges
-                    curAbility.ActivationWindows.SortBy(e => e.Start);
-                    for (int i = 1; i < curAbility.ActivationWindows.Count; ++i)
-                    {
-                        if (curAbility.ActivationWindows[i].Start > curAbility.ActivationWindows[i - 1].End)
-                            continue;
-
-                        if (curAbility.ActivationWindows[i].End > curAbility.ActivationWindows[i - 1].End)
-                            curAbility.ActivationWindows[i - 1] = (curAbility.ActivationWindows[i - 1].Start, curAbility.ActivationWindows[i].End);
-
-                        curAbility.ActivationWindows.RemoveAt(i--);
-                    }
-                }
-            }
-
-            var phaseLeft = tree.Phases[curState.PhaseID].Duration - curState.Time;
-            if (phaseLeft > 0 && curState.Successors.Count > 0)
-            {
-                // transition to next state of the same phase
-                foreach (var succ in curState.Successors)
-                {
-                    ProcessState(tree, succ, s, curState.State.Duration);
-                }
-            }
-            else if (curState.PhaseID + 1 < tree.Phases.Count)
-            {
-                // transition to next phase
-                ProcessState(tree, tree.Phases[curState.PhaseID + 1].StartingNode, s, curState.State.Duration + phaseLeft);
+                UpdateTransitions(s, nextPhaseStart);
             }
             else
             {
-                // transition to enrage
-                if (!s.Downtime.Active)
-                    s.Downtime.Transition = new() { EstimatedTime = curState.State.Duration + phaseLeft };
+                foreach (var succ in curState.Successors)
+                {
+                    var succState = ProcessState(tree, succ, s, nextPhaseStart);
+                    UpdateTransitions(s, succState);
+                }
             }
-
-            // update transition info from prev to this
-            UpdateTransitions(prev, s, curState.State.ID, prevDuration);
 
             return s;
         }
 
-        private void UpdateTransitions(PerState s, PerState next, uint nextID, float curDuration)
+        private void UpdateTransitions(StateData s, StateData? next)
         {
-            UpdateFlagTransition(ref s.Downtime, next.Downtime, nextID, curDuration);
-            UpdateFlagTransition(ref s.Positioning, next.Positioning, nextID, curDuration);
-            UpdateFlagTransition(ref s.Vulnerable, next.Vulnerable, nextID, curDuration);
-
-            foreach (var (nextAbility, curAbility) in next.Abilities.Zip(s.Abilities))
-            {
-                if (nextAbility.ActivationWindows.Count > 0)
-                {
-                    curAbility.NextActivation = new() { StateID = nextID, EstimatedTime = curDuration + nextAbility.ActivationWindows.First().Start };
-                }
-                else if (nextAbility.NextActivation != null)
-                {
-                    curAbility.NextActivation = new() { StateID = nextAbility.NextActivation.Value.StateID, EstimatedTime = curDuration + nextAbility.NextActivation.Value.EstimatedTime };
-                }
-            }
+            UpdateFlagTransition(ref s.Downtime, next?.Downtime ?? new() { Active = true, TransitionIn = 10000 }, s.Duration);
+            UpdateFlagTransition(ref s.Positioning, next?.Positioning ?? new() { Active = false, TransitionIn = 10000 }, s.Duration);
+            UpdateFlagTransition(ref s.Vulnerable, next?.Vulnerable ?? new() { Active = false, TransitionIn = 10000 }, s.Duration);
         }
 
-        private void UpdateFlagTransition(ref StateFlag curFlag, StateFlag nextFlag, uint nextID, float curDuration)
+        private void UpdateFlagTransition(ref StateFlag curFlag, StateFlag nextFlag, float curDuration)
         {
-            if (curFlag.Active != nextFlag.Active)
+            var transition = (curFlag.Active == nextFlag.Active ? nextFlag.TransitionIn : 0) + curDuration;
+            curFlag.TransitionIn = Math.Min(curFlag.TransitionIn, transition); // in case state has multiple successors, take minimal time to transition (TODO: is that right?..)
+        }
+
+        // note: current implementation won't work well with overlapping windows
+        private ActionData? FindNextActionInTrack(ActionID[] filter, float time, int branchID, int numBranches)
+        {
+            ActionData? res = null;
+            foreach (var a in Actions.Where(a => !a.Executed && a.IntersectBranchRange(branchID, numBranches) && a.WindowEnd > time && filter.Contains(a.ID)))
+                if (res == null || a.WindowEnd < res.WindowEnd)
+                    res = a;
+            return res;
+        }
+
+        private ActionData? FindNthActionInTrack(ActionID[] filter, float time, int branchID, int numBranches, int skip)
+        {
+            var next = FindNextActionInTrack(filter, time, branchID, numBranches);
+            while (next != null && skip > 0)
             {
-                curFlag.Transition = new() { StateID = nextID, EstimatedTime = curDuration };
+                next = FindNextActionInTrack(filter, next.WindowEnd, next.BranchID, next.NumBranches);
+                --skip;
             }
-            else if (nextFlag.Transition != null)
-            {
-                curFlag.Transition = new() { StateID = nextFlag.Transition.Value.StateID, EstimatedTime = curDuration + nextFlag.Transition.Value.EstimatedTime };
-            }
+            return next;
         }
     }
 }

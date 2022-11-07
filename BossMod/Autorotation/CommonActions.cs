@@ -267,10 +267,12 @@ namespace BossMod
             return nextOGCD.Action ? nextOGCD : nextGCD;
         }
 
-        public void NotifyActionExecuted(ActionID action, Actor? target)
+        public void NotifyActionExecuted(NextAction action)
         {
-            _mq.Pop(action);
-            OnActionExecuted(action, target);
+            _mq.Pop(action.Action);
+            if (action.Source == ActionSource.Planned)
+                Autorot.Bossmods.ActiveModule?.PlanExecution?.NotifyActionExecuted(Autorot.Bossmods.ActiveModule.StateMachine, action.Action);
+            OnActionExecuted(action.Action, action.Target);
         }
 
         public void NotifyActionSucceeded(ActorCastEvent ev)
@@ -317,6 +319,8 @@ namespace BossMod
         // fill common state properties
         protected void FillCommonPlayerState(CommonRotation.PlayerState s)
         {
+            var vuln = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextVulnerable(Autorot.Bossmods.ActiveModule.StateMachine) ?? (false, 10000);
+
             var am = ActionManagerEx.Instance!;
             var pc = Service.ClientState.LocalPlayer;
             s.Level = pc?.Level ?? 0;
@@ -327,7 +331,7 @@ namespace BossMod
             s.ComboTimeLeft = am.ComboTimeLeft;
             s.ComboLastAction = am.ComboLastMove;
 
-            s.RaidBuffsLeft = 0;
+            s.RaidBuffsLeft = vuln.Item1 ? vuln.Item2 : 0;
             foreach (var status in Player.Statuses.Where(s => IsDamageBuff(s.ID)))
             {
                 s.RaidBuffsLeft = MathF.Max(s.RaidBuffsLeft, StatusDuration(status.ExpireAt));
@@ -339,14 +343,18 @@ namespace BossMod
         protected void FillCommonStrategy(CommonRotation.Strategy strategy, ActionID potion)
         {
             var targetEnemy = Autorot.PrimaryTarget != null ? Autorot.Hints.PotentialTargets.Find(e => e.Actor == Autorot.PrimaryTarget) : null;
+            var downtime = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextDowntime(Autorot.Bossmods.ActiveModule.StateMachine) ?? (false, 0);
+            var poslock = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextPositioning(Autorot.Bossmods.ActiveModule.StateMachine) ?? (false, 10000);
+            var vuln = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextVulnerable(Autorot.Bossmods.ActiveModule.StateMachine) ?? (false, 10000);
+
             strategy.Prepull = !Player.InCombat;
             strategy.ForbidDOTs = targetEnemy?.ForbidDOTs ?? false;
             strategy.ForceMovementIn = MaxCastTime;
-            strategy.FightEndIn = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextDowntime(Autorot.Bossmods.ActiveModule?.StateMachine) ?? 0;
-            strategy.RaidBuffsIn = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextVulnerable(Autorot.Bossmods.ActiveModule?.StateMachine) ?? 10000;
+            strategy.FightEndIn = downtime.Item1 ? 0 : downtime.Item2;
+            strategy.RaidBuffsIn = vuln.Item1 ? 0 : vuln.Item2;
             if (Autorot.Bossmods.ActiveModule?.PlanConfig != null) // assumption: if there is no planning support for encounter (meaning it's something trivial, like outdoor boss), don't expect any cooldowns
                 strategy.RaidBuffsIn = Math.Min(strategy.RaidBuffsIn, Autorot.Bossmods.RaidCooldowns.NextDamageBuffIn(Autorot.WorldState.CurrentTime));
-            strategy.PositionLockIn = Autorot.Config.EnableMovement ? (Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextPositioning(Autorot.Bossmods.ActiveModule?.StateMachine) ?? 10000) : 0;
+            strategy.PositionLockIn = Autorot.Config.EnableMovement && !poslock.Item1 ? poslock.Item2 : 0;
             strategy.Potion = Autorot.Config.PotionUse;
             if (strategy.Potion != CommonRotation.Strategy.PotionUse.Manual && !HaveItemInInventory(potion.ID)) // don't try to use potions if player doesn't have any
                 strategy.Potion = CommonRotation.Strategy.PotionUse.Manual;

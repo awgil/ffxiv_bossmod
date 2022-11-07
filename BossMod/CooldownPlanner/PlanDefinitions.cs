@@ -20,11 +20,13 @@ namespace BossMod
 
         public class ClassData
         {
+            public Type AIDType;
             public Dictionary<ActionID, ActionDefinition> Abilities;
             public List<CooldownTrack> CooldownTracks = new();
 
-            public ClassData(Dictionary<ActionID, ActionDefinition> supportedActions)
+            public ClassData(Type aidType, Dictionary<ActionID, ActionDefinition> supportedActions)
             {
+                AIDType = aidType;
                 Abilities = supportedActions;
             }
         }
@@ -45,7 +47,7 @@ namespace BossMod
 
         private static ClassData DefineWAR()
         {
-            var c = new ClassData(WAR.Definitions.SupportedActions);
+            var c = new ClassData(typeof(WAR.AID), WAR.Definitions.SupportedActions);
             c.CooldownTracks.Add(DefineTrack(c.Abilities, WAR.CDGroup.Vengeance));
             c.CooldownTracks.Add(DefineTrack(c.Abilities, WAR.CDGroup.Rampart));
             c.CooldownTracks.Add(DefineTrack(c.Abilities, WAR.CDGroup.ThrillOfBattle));
@@ -60,7 +62,7 @@ namespace BossMod
 
         private static ClassData DefinePLD()
         {
-            var c = new ClassData(PLD.Definitions.SupportedActions);
+            var c = new ClassData(typeof(PLD.AID), PLD.Definitions.SupportedActions);
             c.CooldownTracks.Add(DefineTrack(c.Abilities, PLD.CDGroup.Sentinel));
             c.CooldownTracks.Add(DefineTrack(c.Abilities, PLD.CDGroup.Rampart));
             c.CooldownTracks.Add(DefineTrack(c.Abilities, PLD.CDGroup.HallowedGround));
@@ -72,37 +74,37 @@ namespace BossMod
 
         private static ClassData DefineWHM()
         {
-            var c = new ClassData(WHM.Definitions.SupportedActions);
+            var c = new ClassData(typeof(WHM.AID), WHM.Definitions.SupportedActions);
             return c;
         }
 
         private static ClassData DefineSCH()
         {
-            var c = new ClassData(SCH.Definitions.SupportedActions);
+            var c = new ClassData(typeof(SCH.AID), SCH.Definitions.SupportedActions);
             return c;
         }
 
         private static ClassData DefineDRG()
         {
-            var c = new ClassData(DRG.Definitions.SupportedActions);
+            var c = new ClassData(typeof(DRG.AID), DRG.Definitions.SupportedActions);
             return c;
         }
 
         private static ClassData DefineMNK()
         {
-            var c = new ClassData(MNK.Definitions.SupportedActions);
+            var c = new ClassData(typeof(MNK.AID), MNK.Definitions.SupportedActions);
             return c;
         }
 
         private static ClassData DefineBRD()
         {
-            var c = new ClassData(BRD.Definitions.SupportedActions);
+            var c = new ClassData(typeof(BRD.AID), BRD.Definitions.SupportedActions);
             return c;
         }
 
         private static ClassData DefineBLM()
         {
-            var c = new ClassData(BLM.Definitions.SupportedActions);
+            var c = new ClassData(typeof(BLM.AID), BLM.Definitions.SupportedActions);
             return c;
         }
 

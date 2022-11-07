@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
     {
         public P8S1States(BossModule module) : base(module)
         {
-            SimplePhase(0, SinglePhase, "Single phase", 0.5f)
+            SimplePhase(0, SinglePhase, "Single phase")
                 .Raw.Update = () => module.PrimaryActor.IsDestroyed;
         }
 

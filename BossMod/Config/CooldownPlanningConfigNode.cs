@@ -1,6 +1,9 @@
 ﻿using ImGuiNET;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod
 {
@@ -13,7 +16,7 @@ namespace BossMod
             public List<CooldownPlan> Available = new();
             public int SelectedIndex = -1;
 
-            public CooldownPlan? Selected() => SelectedIndex >= 0 ? Available[SelectedIndex] : null;
+            public CooldownPlan? Selected() => SelectedIndex >= 0 && SelectedIndex < Available.Count ? Available[SelectedIndex] : null;
         }
 
         public Dictionary<Class, PlanList> CooldownPlans = new();
@@ -130,6 +133,33 @@ namespace BossMod
             }
         }
 
+        public override void Deserialize(JObject j, JsonSerializer ser)
+        {
+            foreach (var (f, data) in j)
+            {
+                if (f == "CooldownPlans")
+                    DeserializeCooldownPlans(data as JObject, ser);
+                else
+                    DeserializeField(f, data, ser);
+            }
+        }
+
+        public override JObject Serialize(JsonSerializer ser)
+        {
+            var baseType = typeof(CooldownPlanningConfigNode);
+            JObject res = new();
+            foreach (var f in GetType().GetFields().Where(f => f.DeclaringType != baseType))
+            {
+                var v = f.GetValue(this);
+                if (v != null)
+                {
+                    res[f.Name] = JToken.FromObject(v, ser);
+                }
+            }
+            res["CooldownPlans"] = SerializeCooldownPlans(ser);
+            return res;
+        }
+
         private void StartPlanEditor(CooldownPlan plan, StateMachine? sm)
         {
             if (sm == null)
@@ -143,6 +173,51 @@ namespace BossMod
         private StateMachine? CreateStateMachine()
         {
             return ModuleRegistry.CreateModuleForConfigPlanning(GetType())?.StateMachine;
+        }
+
+        private void DeserializeCooldownPlans(JObject? j, JsonSerializer ser)
+        {
+            if (j == null)
+                return;
+            foreach (var (c, data) in j)
+            {
+                Class cls;
+                if (!Enum.TryParse(c, out cls))
+                    continue; // invalid class
+                var plans = CooldownPlans.GetValueOrDefault(cls);
+                if (plans == null)
+                    continue; // non-plannable class
+                var jPlans = data?["Available"] as JArray;
+                if (jPlans == null)
+                    continue;
+
+                plans.SelectedIndex = data?["SelectedIndex"]?.Value<int>() ?? -1;
+                foreach (var jPlan in jPlans)
+                {
+                    var plan = CooldownPlan.FromJSON(cls, jPlan as JObject, ser);
+                    if (plan != null)
+                    {
+                        plans.Available.Add(plan);
+                    }
+                }
+            }
+        }
+
+        private JObject SerializeCooldownPlans(JsonSerializer ser)
+        {
+            JObject res = new();
+            foreach (var (c, plans) in CooldownPlans)
+            {
+                if (plans.Available.Count == 0)
+                    continue;
+                var j = res[c.ToString()] = new JObject();
+                j["SelectedIndex"] = plans.SelectedIndex;
+                var jPlans = new JArray();
+                j["Available"] = jPlans;
+                foreach (var plan in plans.Available)
+                    jPlans.Add(plan.ToJSON(ser));
+            }
+            return res;
         }
     }
 }

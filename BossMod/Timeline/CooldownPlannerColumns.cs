@@ -106,7 +106,7 @@ namespace BossMod
             var plan = BuildPlan();
             _plan.Name = plan.Name;
             _plan.Timings = plan.Timings;
-            _plan.PlanAbilities = plan.PlanAbilities;
+            _plan.Actions = plan.Actions;
         }
 
         public void ExportToClipboard()
@@ -145,21 +145,18 @@ namespace BossMod
                 _timings.PhaseDurations.Add(p.Duration);
 
             foreach (var col in _colCooldowns)
-            {
-                col.Elements.Clear();
-                foreach (var aid in col.TrackDef.AIDs)
-                {
-                    var list = plan.PlanAbilities.GetValueOrDefault(aid.Raw);
-                    if (list == null)
-                        continue;
+                while (col.Elements.Count > 0)
+                    col.RemoveElement(0);
 
-                    foreach (var e in list)
+            foreach (var a in plan.Actions)
+            {
+                var col = TrackForAction(a.ID);
+                if (col != null)
+                {
+                    var state = _tree.Nodes.GetValueOrDefault(a.StateID);
+                    if (state != null)
                     {
-                        var state = _tree.Nodes.GetValueOrDefault(e.StateID);
-                        if (state != null)
-                        {
-                            col.AddElement(state, e.TimeSinceActivation, e.WindowLength, aid);
-                        }
+                        col.AddElement(state, a.TimeSinceActivation, a.WindowLength, a.ID);
                     }
                 }
             }
@@ -174,7 +171,7 @@ namespace BossMod
                 foreach (var e in col.Elements)
                 {
                     var cast = (ColumnPlannerTrackCooldown.ActionElement)e;
-                    res.PlanAbilities[cast.Action.Raw].Add(new(e.Window.AttachNode.State.ID, e.Window.Delay, e.Window.Duration));
+                    res.Actions.Add(new(cast.Action, e.Window.AttachNode.State.ID, e.Window.Delay, e.Window.Duration));
                 }
             }
             return res;
