@@ -1,5 +1,6 @@
 ﻿using ImGuiNET;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod
 {
@@ -15,13 +16,15 @@ namespace BossMod
         public PlanDefinitions.ClassData ClassDef;
         public PlanDefinitions.CooldownTrack TrackDef;
         public ActionID DefaultAction;
+        public int Level;
 
-        public ColumnPlannerTrackCooldown(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name, PlanDefinitions.ClassData classDef, PlanDefinitions.CooldownTrack trackDef, ActionID defaultAction)
+        public ColumnPlannerTrackCooldown(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name, PlanDefinitions.ClassData classDef, PlanDefinitions.CooldownTrack trackDef, ActionID defaultAction, int level)
             : base(timeline, tree, phaseBranches, name)
         {
             ClassDef = classDef;
             TrackDef = trackDef;
             DefaultAction = defaultAction;
+            Level = level;
         }
 
         public void AddElement(StateMachineTree.Node attachNode, float delay, float windowLength, ActionID aid)
@@ -46,7 +49,18 @@ namespace BossMod
         protected override void EditElement(Element e)
         {
             var cast = (ActionElement)e;
-            ImGui.TextUnformatted($"Action: {cast.Action}"); // TODO: should be a selector...
+            if (ImGui.BeginCombo("Action", cast.Action.ToString()))
+            {
+                foreach (var a in TrackDef.Actions.Where(a => a.minLevel <= Level))
+                {
+                    if (ImGui.Selectable(a.aid.ToString(), cast.Action == a.aid))
+                    {
+                        SetElementAction(cast, a.aid);
+                        NotifyModified();
+                    }
+                }
+                ImGui.EndCombo();
+            }
         }
 
         private ActionElement SetElementAction(ActionElement e, ActionID action)

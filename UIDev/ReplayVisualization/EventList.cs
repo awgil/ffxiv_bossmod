@@ -45,8 +45,7 @@ namespace UIDev
 
                 DrawContents(e, moduleInfo);
                 DrawEncounterDetails(e, TimePrinter(e.Time.Start));
-                if (ImGui.Button("Show timeline"))
-                    OpenTimeline(e);
+                DrawTimelines(e);
             }
         }
 
@@ -231,12 +230,28 @@ namespace UIDev
             return t => new Replay.TimeRange(start, t).ToString();
         }
 
-        private void OpenTimeline(Replay.Encounter enc)
+        private void OpenTimeline(Replay.Encounter enc, BitMask showPlayers)
         {
-            var tl = new ReplayTimeline(_replay, enc);
+            var tl = new ReplayTimeline(_replay, enc, showPlayers);
             var w = WindowManager.CreateWindow($"Replay timeline: {_replay.Path} @ {enc.Time.Start:O}", tl.Draw, tl.Close, () => true);
             w.SizeHint = new(1200, 1000);
             w.MinSize = new(100, 100);
+        }
+
+        private void DrawTimelines(Replay.Encounter enc)
+        {
+            if (ImGui.Button("Show timeline"))
+                OpenTimeline(enc, new());
+            ImGui.SameLine();
+            for (int i = 0; i < enc.PartyMembers.Count; i++)
+            {
+                var (p, c) = enc.PartyMembers[i];
+                if (ImGui.Button($"{c} {p.Name}"))
+                    OpenTimeline(enc, new(1u << i));
+                ImGui.SameLine();
+            }
+            if (ImGui.Button("All"))
+                OpenTimeline(enc, new((1u << enc.PartyMembers.Count) - 1));
         }
 
         private void OpListContextMenu(OpList? list)

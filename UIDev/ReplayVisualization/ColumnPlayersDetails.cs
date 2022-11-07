@@ -12,7 +12,7 @@ namespace UIDev
         private Replay.Encounter _encounter;
         private ColumnPlayerDetails?[] _columns;
 
-        public ColumnPlayersDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc)
+        public ColumnPlayersDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, BitMask showPlayers)
             : base(timeline)
         {
             _tree = tree;
@@ -20,6 +20,11 @@ namespace UIDev
             _replay = replay;
             _encounter = enc;
             _columns = new ColumnPlayerDetails[enc.PartyMembers.Count];
+            foreach (var i in showPlayers.SetBits())
+            {
+                var (p, c) = enc.PartyMembers[i];
+                _columns[i] = Add(new ColumnPlayerDetails(Timeline, _tree, _phaseBranches, _replay, _encounter, p, c));
+            }
         }
 
         public void DrawConfig(UITree tree)

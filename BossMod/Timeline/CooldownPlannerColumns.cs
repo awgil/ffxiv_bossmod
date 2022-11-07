@@ -43,7 +43,7 @@ namespace BossMod
 
                 if (defaultAction)
                 {
-                    var col = Add(new ColumnPlannerTrackCooldown(timeline, tree, phaseBranches, track.Name, classDef, track, defaultAction));
+                    var col = Add(new ColumnPlannerTrackCooldown(timeline, tree, phaseBranches, track.Name, classDef, track, defaultAction, plan.Level));
                     col.Width = _trackWidth;
                     col.NotifyModified = onModified;
                     _colCooldowns.Add(col);

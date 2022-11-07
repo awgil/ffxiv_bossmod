@@ -20,7 +20,7 @@ namespace UIDev
         private WindowManager.Window? _config;
         private UITree _configTree = new();
 
-        public ReplayTimeline(Replay replay, Replay.Encounter enc)
+        public ReplayTimeline(Replay replay, Replay.Encounter enc, BitMask showPlayers)
         {
             _replay = replay;
             _encounter = enc;
@@ -31,7 +31,7 @@ namespace UIDev
             _colStates = _timeline.Columns.Add(new ColumnStateMachineBranch(_timeline, _stateTree, _phaseBranches));
             _timeline.Columns.Add(new ColumnSeparator(_timeline));
             _colEnemies = _timeline.Columns.Add(new ColumnEnemiesDetails(_timeline, _stateTree, _phaseBranches, replay, enc));
-            _colPlayers = _timeline.Columns.Add(new ColumnPlayersDetails(_timeline, _stateTree, _phaseBranches, replay, enc));
+            _colPlayers = _timeline.Columns.Add(new ColumnPlayersDetails(_timeline, _stateTree, _phaseBranches, replay, enc, showPlayers));
         }
 
         public void Draw()

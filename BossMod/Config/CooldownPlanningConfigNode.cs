@@ -137,6 +137,12 @@ namespace BossMod
 
         public override void Deserialize(JObject j, JsonSerializer ser)
         {
+            foreach (var p in CooldownPlans.Values)
+            {
+                p.Available.Clear();
+                p.SelectedIndex = -1;
+            }
+
             foreach (var (f, data) in j)
             {
                 if (f == "CooldownPlans")
