@@ -34,9 +34,20 @@ namespace BossMod
             public int BranchID;
             public int NumBranches;
             public bool Executed;
-            // TODO: target, condition, etc.
+            public PlanTarget.ISelector Target;
+            // TODO: condition, etc.
 
             public bool IntersectBranchRange(int branchID, int numBranches) => BranchID < branchID + numBranches && branchID < BranchID + NumBranches;
+
+            public ActionData(ActionID iD, float windowStart, float windowEnd, int branchID, int numBranches, PlanTarget.ISelector target)
+            {
+                ID = iD;
+                WindowStart = windowStart;
+                WindowEnd = windowEnd;
+                BranchID = branchID;
+                NumBranches = numBranches;
+                Target = target;
+            }
         }
 
         public CooldownPlan? Plan { get; private init; }
@@ -64,7 +75,7 @@ namespace BossMod
                     if (s != null)
                     {
                         var windowStart = s.EnterTime + Math.Min(s.Duration, a.TimeSinceActivation);
-                        Actions.Add(new() { ID = a.ID, WindowStart = windowStart, WindowEnd = windowStart + a.WindowLength, BranchID = s.BranchID, NumBranches = s.NumBranches });
+                        Actions.Add(new(a.ID, windowStart, windowStart + a.WindowLength, s.BranchID, s.NumBranches, a.Target));
                     }
                 }
             }
@@ -95,11 +106,11 @@ namespace BossMod
             return (s.Vulnerable.Active, s.Vulnerable.TransitionIn - Math.Min(sm.TimeSinceTransition, s.Duration));
         }
 
-        public IEnumerable<(ActionID Action, float TimeLeft)> ActiveActions(StateMachine sm)
+        public IEnumerable<(ActionID Action, float TimeLeft, PlanTarget.ISelector Target)> ActiveActions(StateMachine sm)
         {
             var s = FindStateData(sm.ActiveState);
             var t = s.EnterTime + Math.Min(sm.TimeSinceTransition, s.Duration);
-            return Actions.Where(a => !a.Executed && t >= a.WindowStart && t <= a.WindowEnd && a.IntersectBranchRange(s.BranchID, s.NumBranches)).Select(a => (a.ID, a.WindowEnd - t));
+            return Actions.Where(a => !a.Executed && t >= a.WindowStart && t <= a.WindowEnd && a.IntersectBranchRange(s.BranchID, s.NumBranches)).Select(a => (a.ID, a.WindowEnd - t, a.Target));
         }
 
         public void NotifyActionExecuted(StateMachine sm, ActionID action)

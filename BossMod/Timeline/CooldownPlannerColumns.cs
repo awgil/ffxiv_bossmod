@@ -23,7 +23,7 @@ namespace BossMod
 
         public Class PlanClass => _plan.Class;
 
-        public CooldownPlannerColumns(CooldownPlan plan, Action onModified, Timeline timeline, StateMachineTree tree, List<int> phaseBranches)
+        public CooldownPlannerColumns(CooldownPlan plan, Action onModified, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, ModuleRegistry.Info? moduleInfo)
             : base(timeline)
         {
             _plan = plan;
@@ -43,7 +43,7 @@ namespace BossMod
 
                 if (defaultAction)
                 {
-                    var col = Add(new ColumnPlannerTrackCooldown(timeline, tree, phaseBranches, track.Name, classDef, track, defaultAction, plan.Level));
+                    var col = Add(new ColumnPlannerTrackCooldown(timeline, tree, phaseBranches, track.Name, moduleInfo, classDef, track, defaultAction, plan.Level));
                     col.Width = _trackWidth;
                     col.NotifyModified = onModified;
                     _colCooldowns.Add(col);
@@ -165,7 +165,7 @@ namespace BossMod
                     var state = _tree.Nodes.GetValueOrDefault(a.StateID);
                     if (state != null)
                     {
-                        col.AddElement(state, a.TimeSinceActivation, a.WindowLength, a.ID);
+                        col.AddElement(state, a.TimeSinceActivation, a.WindowLength, a.ID, a.Target.Clone());
                     }
                 }
             }
@@ -180,7 +180,7 @@ namespace BossMod
                 foreach (var e in col.Elements)
                 {
                     var cast = (ColumnPlannerTrackCooldown.ActionElement)e;
-                    res.Actions.Add(new(cast.Action, e.Window.AttachNode.State.ID, e.Window.Delay, e.Window.Duration));
+                    res.Actions.Add(new(cast.Action, e.Window.AttachNode.State.ID, e.Window.Delay, e.Window.Duration, cast.Target.Clone()));
                 }
             }
             return res;

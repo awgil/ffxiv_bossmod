@@ -76,7 +76,7 @@ namespace UIDev
                         w.MinSize = new(100, 100);
                     }
                     ImGui.SameLine();
-                    _mgr.ActiveModule.PlanConfig?.DrawSelectionUI(_mgr.ActiveModule.Raid[_povSlot]?.Class ?? Class.None, sm);
+                    _mgr.ActiveModule.PlanConfig?.DrawSelectionUI(_mgr.ActiveModule.Raid[_povSlot]?.Class ?? Class.None, sm, _mgr.ActiveModule.Info);
 
                     var pe = _mgr.ActiveModule.PlanExecution;
                     if (pe != null)

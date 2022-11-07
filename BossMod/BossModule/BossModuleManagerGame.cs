@@ -152,7 +152,7 @@ namespace BossMod
                 w.MinSize = new(100, 100);
             }
             ImGui.SameLine();
-            ActiveModule.PlanConfig?.DrawSelectionUI(ActiveModule.Raid.Player()?.Class ?? Class.None, ActiveModule.StateMachine);
+            ActiveModule.PlanConfig?.DrawSelectionUI(ActiveModule.Raid.Player()?.Class ?? Class.None, ActiveModule.StateMachine, ActiveModule.Info);
 
             ActiveModule.PlanExecution.Draw(ActiveModule.StateMachine);
         }

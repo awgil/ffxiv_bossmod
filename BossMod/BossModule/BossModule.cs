@@ -29,6 +29,7 @@ namespace BossMod
         public BossModuleConfig WindowConfig { get; init; }
         public MiniArena Arena { get; init; }
         public StateMachine StateMachine { get; private init; }
+        public ModuleRegistry.Info? Info { get; private init; }
         // TODO: this should be moved outside...
         public CooldownPlanningConfigNode? PlanConfig { get; init; }
         public CooldownPlanExecution? PlanExecution = null;
@@ -102,11 +103,11 @@ namespace BossMod
             WindowConfig = Service.Config.Get<BossModuleConfig>();
             Arena = new(WindowConfig, bounds);
 
-            var info = ModuleRegistry.FindByOID(primary.OID);
-            StateMachine = info?.StatesType != null ? ((StateMachineBuilder)Activator.CreateInstance(info.StatesType, this)!).Build() : new(new());
-            if (info?.CooldownPlanningSupported ?? false)
+            Info = ModuleRegistry.FindByOID(primary.OID);
+            StateMachine = Info?.StatesType != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new(new());
+            if (Info?.CooldownPlanningSupported ?? false)
             {
-                PlanConfig = Service.Config.Get<CooldownPlanningConfigNode>(info.ConfigType!);
+                PlanConfig = Service.Config.Get<CooldownPlanningConfigNode>(Info.ConfigType!);
                 PlanConfig.Modified += OnPlanModified;
             }
 
@@ -256,9 +257,14 @@ namespace BossMod
             hints.Bounds = Bounds;
             if (PlanExecution != null)
             {
-                // TODO: support non-self targeting
                 // TODO: support custom conditions in planner
-                hints.PlannedActions.AddRange(PlanExecution.ActiveActions(StateMachine).Select(e => (e.Action, actor, e.TimeLeft)));
+                foreach (var a in PlanExecution.ActiveActions(StateMachine))
+                {
+                    var target = a.Target.Select(this, slot, actor);
+                    if (target == null)
+                        continue;
+                    hints.PlannedActions.Add((a.Action, target, a.TimeLeft));
+                }
             }
             foreach (var comp in _components)
                 comp.AddAIHints(this, slot, actor, assignment, hints);

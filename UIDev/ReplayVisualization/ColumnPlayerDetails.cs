@@ -13,6 +13,7 @@ namespace UIDev
         private Replay.Encounter _enc;
         private Replay.Participant _player;
         private Class _playerClass;
+        private ModuleRegistry.Info? _moduleInfo;
 
         private ColumnPlayerActions _actions;
         private ColumnSeparator _separator;
@@ -33,6 +34,7 @@ namespace UIDev
             _enc = enc;
             _player = player;
             _playerClass = playerClass;
+            _moduleInfo = ModuleRegistry.FindByOID(enc.OID);
 
             _actions = Add(new ColumnPlayerActions(timeline, tree, phaseBranches, replay, enc, player, playerClass));
             _actions.Name = player.Name;
@@ -137,7 +139,7 @@ namespace UIDev
             _planModified = false;
             if (_selectedPlan >= 0)
             {
-                _planner = AddBefore(new CooldownPlannerColumns(list.Available[newSelection], () => _planModified = true, Timeline, _tree, _phaseBraches), _actions);
+                _planner = AddBefore(new CooldownPlannerColumns(list.Available[newSelection], () => _planModified = true, Timeline, _tree, _phaseBraches, _moduleInfo), _actions);
 
                 // TODO: this should be reworked...
                 foreach (var a in _replay.EncounterActions(_enc).Where(a => a.Source == _player))

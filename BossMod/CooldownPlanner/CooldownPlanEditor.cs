@@ -13,14 +13,14 @@ namespace BossMod
         private int _selectedPhase = 0;
         private bool _modified = false;
 
-        public CooldownPlanEditor(CooldownPlan plan, StateMachine sm, Action onModified)
+        public CooldownPlanEditor(CooldownPlan plan, StateMachine sm, ModuleRegistry.Info? moduleInfo, Action onModified)
         {
             _onModified = onModified;
 
             var tree = new StateMachineTree(sm);
             var phaseBranches = Enumerable.Repeat(0, tree.Phases.Count).ToList();
             _colStates = _timeline.Columns.Add(new ColumnStateMachineBranch(_timeline, tree, phaseBranches));
-            _planner = _timeline.Columns.Add(new CooldownPlannerColumns(plan, OnPlanModified, _timeline, tree, phaseBranches));
+            _planner = _timeline.Columns.Add(new CooldownPlannerColumns(plan, OnPlanModified, _timeline, tree, phaseBranches, moduleInfo));
 
             _timeline.MaxTime = tree.TotalMaxTime;
         }

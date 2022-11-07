@@ -15,20 +15,19 @@ namespace BossMod
             public uint StateID;
             public float TimeSinceActivation;
             public float WindowLength;
-            // TODO: target, condition, delay-auto
+            public PlanTarget.ISelector Target;
+            // TODO: condition, delay-auto
 
-            public ActionUse(ActionID aid, uint stateID, float timeSinceActivation, float windowLength)
+            public ActionUse(ActionID aid, uint stateID, float timeSinceActivation, float windowLength, PlanTarget.ISelector target)
             {
                 ID = aid;
                 StateID = stateID;
                 TimeSinceActivation = timeSinceActivation;
                 WindowLength = windowLength;
+                Target = target;
             }
 
-            public ActionUse Clone()
-            {
-                return (ActionUse)MemberwiseClone();
-            }
+            public ActionUse Clone() => new(ID, StateID, TimeSinceActivation, WindowLength, Target.Clone());
 
             public static ActionUse? FromJSON(Type aidType, JObject? j, JsonSerializer ser)
             {
@@ -45,20 +44,47 @@ namespace BossMod
                 var sid = j?["StateID"]?.Value<string>() ?? "";
                 if (!actionID || !sid.StartsWith("0x"))
                     return null;
-
                 var usid = uint.Parse(sid.Substring(2), NumberStyles.HexNumber);
-                return new ActionUse(actionID, usid, j?["TimeSinceActivation"]?.Value<float>() ?? 0, j?["WindowLength"]?.Value<float>() ?? 0);
+
+                var jTarget = j?["Target"] as JObject;
+                var targetType = Type.GetType($"BossMod.PlanTarget.{jTarget?["Type"]?.Value<string>() ?? ""}");
+                PlanTarget.ISelector? target = targetType?.IsAssignableTo(typeof(PlanTarget.ISelector)) ?? false ? (PlanTarget.ISelector?)Activator.CreateInstance(targetType) : null;
+                if (target != null)
+                {
+                    foreach (var (f, data) in jTarget!)
+                    {
+                        if (f != "Type")
+                        {
+                            var field = targetType?.GetField(f);
+                            if (field != null)
+                            {
+                                var value = data?.ToObject(field.FieldType, ser);
+                                if (value != null)
+                                {
+                                    field.SetValue(target, value);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return new ActionUse(actionID, usid, j?["TimeSinceActivation"]?.Value<float>() ?? 0, j?["WindowLength"]?.Value<float>() ?? 0, target ?? new PlanTarget.Self());
             }
 
             public JObject ToJSON(Type aidType, JsonSerializer ser)
             {
                 var aidStr = ID.Type == ActionType.Spell ? aidType.GetEnumName(ID.ID) : null;
                 aidStr ??= $"0x{ID.Raw:X}";
+
+                var target = JObject.FromObject(Target, ser);
+                target["Type"] = Target.GetType().Name;
+
                 JObject res = new();
                 res["ID"] = aidStr;
                 res["StateID"] = $"0x{StateID:X8}";
                 res["TimeSinceActivation"] = TimeSinceActivation;
                 res["WindowLength"] = WindowLength;
+                res["Target"] = target;
                 return res;
             }
         }

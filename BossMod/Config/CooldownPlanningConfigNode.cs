@@ -31,7 +31,7 @@ namespace BossMod
                 CooldownPlans[c] = new();
         }
 
-        public void DrawSelectionUI(Class c, StateMachine sm)
+        public void DrawSelectionUI(Class c, StateMachine sm, ModuleRegistry.Info? moduleInfo)
         {
             if (!PlanDefinitions.Classes.ContainsKey(c))
                 return; // class is not supported
@@ -52,7 +52,7 @@ namespace BossMod
                     plans.SelectedIndex = plans.Available.Count - 1;
                     NotifyModified();
                 }
-                StartPlanEditor(plans.Available[plans.SelectedIndex], sm);
+                StartPlanEditor(plans.Available[plans.SelectedIndex], sm, moduleInfo);
             }
         }
 
@@ -88,7 +88,7 @@ namespace BossMod
                         ImGui.PushID($"{c}/{i}");
                         if (ImGui.Button($"Edit"))
                         {
-                            StartPlanEditor(plans.Available[i], CreateStateMachine());
+                            StartPlanEditor(plans.Available[i]);
                         }
                         ImGui.SameLine();
                         if (ImGui.Button($"Copy"))
@@ -97,7 +97,7 @@ namespace BossMod
                             plan.Name += " Copy";
                             plans.Available.Add(plan);
                             NotifyModified();
-                            StartPlanEditor(plan, CreateStateMachine());
+                            StartPlanEditor(plan);
                         }
                         ImGui.SameLine();
                         if (ImGui.Button($"Delete"))
@@ -129,7 +129,7 @@ namespace BossMod
                         var plan = new CooldownPlan(c, SyncLevel, $"New {plans.Available.Count}");
                         plans.Available.Add(plan);
                         NotifyModified();
-                        StartPlanEditor(plan, CreateStateMachine());
+                        StartPlanEditor(plan);
                     }
                 }
             }
@@ -168,19 +168,21 @@ namespace BossMod
             return res;
         }
 
-        private void StartPlanEditor(CooldownPlan plan, StateMachine? sm)
+        private void StartPlanEditor(CooldownPlan plan, StateMachine? sm, ModuleRegistry.Info? moduleInfo)
         {
             if (sm == null)
                 return;
-            var editor = new CooldownPlanEditor(plan, sm, NotifyModified);
+            var editor = new CooldownPlanEditor(plan, sm, moduleInfo, NotifyModified);
             var w = WindowManager.CreateWindow($"Cooldown planner", editor.Draw, () => { }, () => true);
             w.SizeHint = new(600, 600);
             w.MinSize = new(100, 100);
         }
 
-        private StateMachine? CreateStateMachine()
+        private void StartPlanEditor(CooldownPlan plan)
         {
-            return ModuleRegistry.CreateModuleForConfigPlanning(GetType())?.StateMachine;
+            var m = ModuleRegistry.CreateModuleForConfigPlanning(GetType());
+            if (m != null)
+                StartPlanEditor(plan, m.StateMachine, m.Info);
         }
 
         private void DeserializeCooldownPlans(JObject? j, JsonSerializer ser)
