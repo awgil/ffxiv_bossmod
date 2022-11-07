@@ -18,7 +18,10 @@ namespace BossMod.Endwalker.Ultimate.DSW1
     }
 
     [ConfigDisplay(Order = 0x200, Parent = typeof(EndwalkerConfig))]
-    public class DSW1Config : CooldownPlanningConfigNode { }
+    public class DSW1Config : CooldownPlanningConfigNode
+    {
+        public DSW1Config() : base(90) { }
+    }
 
     [ModuleInfo(PrimaryActorOID = (uint)OID.SerAdelphel)]
     public class DSW1 : BossModule

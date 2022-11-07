@@ -120,7 +120,7 @@ namespace BossMod
             var classDef = PlanDefinitions.Classes[Plan.Class];
             foreach (var track in classDef.CooldownTracks)
             {
-                var next = FindNextActionInTrack(track.AIDs, t, s.BranchID, s.NumBranches);
+                var next = FindNextActionInTrack(track.Actions.Select(a => a.aid), t, s.BranchID, s.NumBranches);
                 if (next == null)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, 0x80808080);
@@ -136,7 +136,7 @@ namespace BossMod
                 else
                 {
                     var left = next.WindowStart - t;
-                    ImGui.PushStyleColor(ImGuiCol.Text, left < classDef.Abilities[track.AIDs[0]].Cooldown ? 0xffffffff : 0x80808080);
+                    ImGui.PushStyleColor(ImGuiCol.Text, left < classDef.Abilities[track.Actions[0].aid].Cooldown ? 0xffffffff : 0x80808080);
                     ImGui.TextUnformatted($"{track.Name}: in {left:f1}s");
                     ImGui.PopStyleColor();
                 }
@@ -192,7 +192,7 @@ namespace BossMod
         }
 
         // note: current implementation won't work well with overlapping windows
-        private ActionData? FindNextActionInTrack(ActionID[] filter, float time, int branchID, int numBranches)
+        private ActionData? FindNextActionInTrack(IEnumerable<ActionID> filter, float time, int branchID, int numBranches)
         {
             ActionData? res = null;
             foreach (var a in Actions.Where(a => !a.Executed && a.IntersectBranchRange(branchID, numBranches) && a.WindowEnd > time && filter.Contains(a.ID)))
@@ -201,7 +201,7 @@ namespace BossMod
             return res;
         }
 
-        private ActionData? FindNthActionInTrack(ActionID[] filter, float time, int branchID, int numBranches, int skip)
+        private ActionData? FindNthActionInTrack(IEnumerable<ActionID> filter, float time, int branchID, int numBranches, int skip)
         {
             var next = FindNextActionInTrack(filter, time, branchID, numBranches);
             while (next != null && skip > 0)

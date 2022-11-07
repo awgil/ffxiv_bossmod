@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod
 {
@@ -9,12 +8,18 @@ namespace BossMod
         public class CooldownTrack
         {
             public string Name;
-            public ActionID[] AIDs;
+            public (ActionID aid, int minLevel)[] Actions;
 
-            public CooldownTrack(string name, ActionID[] aids)
+            public CooldownTrack(string name, (ActionID aid, int minLevel)[] actions)
             {
                 Name = name;
-                AIDs = aids;
+                Actions = actions;
+            }
+
+            public CooldownTrack(string name, ActionID aid, int minLevel)
+            {
+                Name = name;
+                Actions = new[] { (aid, minLevel) };
             }
         }
 
@@ -48,27 +53,27 @@ namespace BossMod
         private static ClassData DefineWAR()
         {
             var c = new ClassData(typeof(WAR.AID), WAR.Definitions.SupportedActions);
-            c.CooldownTracks.Add(DefineTrack(c.Abilities, WAR.CDGroup.Vengeance));
-            c.CooldownTracks.Add(DefineTrack(c.Abilities, WAR.CDGroup.Rampart));
-            c.CooldownTracks.Add(DefineTrack(c.Abilities, WAR.CDGroup.ThrillOfBattle));
-            c.CooldownTracks.Add(DefineTrack(c.Abilities, WAR.CDGroup.Holmgang));
-            c.CooldownTracks.Add(new("Bloodwhetting", new[] { ActionID.MakeSpell(WAR.AID.RawIntuition) })); // TODO: others...
-            c.CooldownTracks.Add(DefineTrack(c.Abilities, WAR.CDGroup.Equilibrium));
-            c.CooldownTracks.Add(DefineTrack(c.Abilities, WAR.CDGroup.ArmsLength));
-            c.CooldownTracks.Add(DefineTrack(c.Abilities, WAR.CDGroup.Reprisal));
-            c.CooldownTracks.Add(DefineTrack(c.Abilities, WAR.CDGroup.ShakeItOff));
+            c.CooldownTracks.Add(new("Vengeance", ActionID.MakeSpell(WAR.AID.Vengeance), 38));
+            c.CooldownTracks.Add(new("Rampart", ActionID.MakeSpell(WAR.AID.Rampart), 8));
+            c.CooldownTracks.Add(new("Thrill", ActionID.MakeSpell(WAR.AID.ThrillOfBattle), 30));
+            c.CooldownTracks.Add(new("Holmgang", ActionID.MakeSpell(WAR.AID.Holmgang), 42));
+            c.CooldownTracks.Add(new("Bloodwhetting", new[] { (ActionID.MakeSpell(WAR.AID.Bloodwhetting), 82), (ActionID.MakeSpell(WAR.AID.RawIntuition), 56), (ActionID.MakeSpell(WAR.AID.NascentFlash), 76) }));
+            c.CooldownTracks.Add(new("Equilibrium", ActionID.MakeSpell(WAR.AID.Equilibrium), 58));
+            c.CooldownTracks.Add(new("ArmsLength", ActionID.MakeSpell(WAR.AID.ArmsLength), 32));
+            c.CooldownTracks.Add(new("Reprisal", ActionID.MakeSpell(WAR.AID.Reprisal), 22));
+            c.CooldownTracks.Add(new("ShakeItOff", ActionID.MakeSpell(WAR.AID.ShakeItOff), 68));
             return c;
         }
 
         private static ClassData DefinePLD()
         {
             var c = new ClassData(typeof(PLD.AID), PLD.Definitions.SupportedActions);
-            c.CooldownTracks.Add(DefineTrack(c.Abilities, PLD.CDGroup.Sentinel));
-            c.CooldownTracks.Add(DefineTrack(c.Abilities, PLD.CDGroup.Rampart));
-            c.CooldownTracks.Add(DefineTrack(c.Abilities, PLD.CDGroup.HallowedGround));
-            c.CooldownTracks.Add(DefineTrack(c.Abilities, PLD.CDGroup.Sheltron));
-            c.CooldownTracks.Add(DefineTrack(c.Abilities, PLD.CDGroup.ArmsLength));
-            c.CooldownTracks.Add(DefineTrack(c.Abilities, PLD.CDGroup.Reprisal));
+            c.CooldownTracks.Add(new("Sentinel", ActionID.MakeSpell(PLD.AID.Sentinel), 38));
+            c.CooldownTracks.Add(new("Rampart", ActionID.MakeSpell(PLD.AID.Rampart), 8));
+            c.CooldownTracks.Add(new("HallowedGround", ActionID.MakeSpell(PLD.AID.HallowedGround), 30));
+            c.CooldownTracks.Add(new("Sheltron", ActionID.MakeSpell(PLD.AID.Sheltron), 35));
+            c.CooldownTracks.Add(new("ArmsLength", ActionID.MakeSpell(PLD.AID.ArmsLength), 32));
+            c.CooldownTracks.Add(new("Reprisal", ActionID.MakeSpell(PLD.AID.Reprisal), 22));
             return c;
         }
 
@@ -106,12 +111,6 @@ namespace BossMod
         {
             var c = new ClassData(typeof(BLM.AID), BLM.Definitions.SupportedActions);
             return c;
-        }
-
-        private static CooldownTrack DefineTrack<CDG>(Dictionary<ActionID, ActionDefinition> actions, CDG group) where CDG : Enum
-        {
-            var igroup = (int)(object)group;
-            return new(typeof(CDG).GetEnumName(group)!, actions.Where(kv => kv.Value.CooldownGroup == igroup).Select(kv => kv.Key).ToArray());
         }
     }
 }

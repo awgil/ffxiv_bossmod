@@ -118,7 +118,10 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
     }
 
     [ConfigDisplay(Order = 0x110, Parent = typeof(RealmRebornConfig))]
-    public class T01CaduceusConfig : CooldownPlanningConfigNode { }
+    public class T01CaduceusConfig : CooldownPlanningConfigNode
+    {
+        public T01CaduceusConfig() : base(50) { }
+    }
 
     public class T01Caduceus : BossModule
     {

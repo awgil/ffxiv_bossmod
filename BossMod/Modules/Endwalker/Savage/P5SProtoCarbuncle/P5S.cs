@@ -30,6 +30,7 @@
     [ConfigDisplay(Order = 0x150, Parent = typeof(EndwalkerConfig))]
     public class P5SConfig : CooldownPlanningConfigNode
     {
+        public P5SConfig() : base(90) { }
     }
 
     public class P5S : BossModule

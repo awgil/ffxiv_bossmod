@@ -7,5 +7,7 @@
 
         [PropertyDisplay("Intemperance: corner that swaps with N on asymmetrical pattern")]
         public Corner IntemperanceAsymmetricalSwapCorner = Corner.NW;
+
+        public P1SConfig() : base(90) { }
     }
 }

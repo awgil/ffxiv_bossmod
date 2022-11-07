@@ -19,7 +19,10 @@
     }
 
     [ConfigDisplay(Order = 0x020, Parent = typeof(EndwalkerConfig))]
-    public class Ex2HydaelynConfig : CooldownPlanningConfigNode { }
+    public class Ex2HydaelynConfig : CooldownPlanningConfigNode
+    {
+        public Ex2HydaelynConfig() : base(90) { }
+    }
 
     public class Ex2Hydaelyn : BossModule
     {

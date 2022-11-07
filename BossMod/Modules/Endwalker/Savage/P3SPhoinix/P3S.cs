@@ -1,7 +1,10 @@
 ﻿namespace BossMod.Endwalker.Savage.P3SPhoinix
 {
     [ConfigDisplay(Order = 0x130, Parent = typeof(EndwalkerConfig))]
-    public class P3SConfig : CooldownPlanningConfigNode { }
+    public class P3SConfig : CooldownPlanningConfigNode
+    {
+        public P3SConfig() : base(90) { }
+    }
 
     class HeatOfCondemnation : Components.TankbusterTether
     {

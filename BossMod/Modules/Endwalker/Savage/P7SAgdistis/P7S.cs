@@ -48,6 +48,7 @@
     [ConfigDisplay(Order = 0x170, Parent = typeof(EndwalkerConfig))]
     public class P7SConfig : CooldownPlanningConfigNode
     {
+        public P7SConfig() : base(90) { }
     }
 
     public class P7S : BossModule

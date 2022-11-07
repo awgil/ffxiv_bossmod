@@ -64,30 +64,32 @@ namespace BossMod
         }
 
         public Class Class;
+        public int Level;
         public string Name;
         public StateMachineTimings Timings = new();
         public List<ActionUse> Actions = new();
 
-        public CooldownPlan(Class @class, string name)
+        public CooldownPlan(Class @class, int level, string name)
         {
             Class = @class;
+            Level = level;
             Name = name;
         }
 
         public CooldownPlan Clone()
         {
-            var res = new CooldownPlan(Class, Name);
+            var res = new CooldownPlan(Class, Level, Name);
             res.Timings = Timings.Clone();
             res.Actions.AddRange(Actions.Select(a => a.Clone()));
             return res;
         }
 
-        public static CooldownPlan? FromJSON(Class @class, JObject? j, JsonSerializer ser)
+        public static CooldownPlan? FromJSON(Class @class, int level, JObject? j, JsonSerializer ser)
         {
             var name = j?["Name"]?.Value<string>();
             if (name == null)
                 return null;
-            var res = new CooldownPlan(@class, name);
+            var res = new CooldownPlan(@class, level, name);
             res.Timings = j?["Timings"]?.ToObject<StateMachineTimings>(ser) ?? res.Timings;
             var actions = j?["Actions"] as JArray;
             var aidType = PlanDefinitions.Classes[@class].AIDType;

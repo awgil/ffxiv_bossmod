@@ -14,12 +14,14 @@ namespace BossMod
 
         public PlanDefinitions.ClassData ClassDef;
         public PlanDefinitions.CooldownTrack TrackDef;
+        public ActionID DefaultAction;
 
-        public ColumnPlannerTrackCooldown(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name, PlanDefinitions.ClassData classDef, PlanDefinitions.CooldownTrack trackDef)
+        public ColumnPlannerTrackCooldown(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name, PlanDefinitions.ClassData classDef, PlanDefinitions.CooldownTrack trackDef, ActionID defaultAction)
             : base(timeline, tree, phaseBranches, name)
         {
             ClassDef = classDef;
             TrackDef = trackDef;
+            DefaultAction = defaultAction;
         }
 
         public void AddElement(StateMachineTree.Node attachNode, float delay, float windowLength, ActionID aid)
@@ -30,8 +32,7 @@ namespace BossMod
 
         protected override Element CreateElement(Entry window)
         {
-            var defaultAction = TrackDef.AIDs[0]; // TODO: this is not correct!
-            return SetElementAction(new ActionElement(window), defaultAction);
+            return SetElementAction(new ActionElement(window), DefaultAction);
         }
 
         protected override List<string> DescribeElement(Element e)

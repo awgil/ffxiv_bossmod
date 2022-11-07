@@ -155,7 +155,10 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
     }
 
     [ConfigDisplay(Order = 0x120, Parent = typeof(RealmRebornConfig))]
-    public class T02ADSConfig : CooldownPlanningConfigNode { }
+    public class T02ADSConfig : CooldownPlanningConfigNode
+    {
+        public T02ADSConfig() : base(50) { }
+    }
 
     [ModuleInfo(PrimaryActorOID = (uint)OID.ADS)]
     public class T02ADS : BossModule

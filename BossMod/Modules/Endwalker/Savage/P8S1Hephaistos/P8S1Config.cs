@@ -6,5 +6,7 @@
         [PropertyDisplay("Snake assignments")]
         [GroupDetails(new string[] { "CCW from NW (flex)", "CCW from NW (fixed)", "CW from N (flex)", "CW from N (fixed)" })]
         public GroupAssignmentDDSupportPairs SnakeAssignments = new();
+
+        public P8S1Config() : base(90) { }
     }
 }

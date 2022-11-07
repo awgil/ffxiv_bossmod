@@ -19,12 +19,14 @@ namespace BossMod
             public CooldownPlan? Selected() => SelectedIndex >= 0 && SelectedIndex < Available.Count ? Available[SelectedIndex] : null;
         }
 
+        public int SyncLevel { get; private init; }
         public Dictionary<Class, PlanList> CooldownPlans = new();
 
         public CooldownPlan? SelectedPlan(Class c) => CooldownPlans.GetValueOrDefault(c)?.Selected();
 
-        public CooldownPlanningConfigNode()
+        public CooldownPlanningConfigNode(int syncLevel)
         {
+            SyncLevel = syncLevel;
             foreach (var c in PlanDefinitions.Classes.Keys)
                 CooldownPlans[c] = new();
         }
@@ -46,7 +48,7 @@ namespace BossMod
             {
                 if (plans.SelectedIndex < 0)
                 {
-                    plans.Available.Add(new(c, $"New {plans.Available.Count + 1}"));
+                    plans.Available.Add(new(c, SyncLevel, $"New {plans.Available.Count + 1}"));
                     plans.SelectedIndex = plans.Available.Count - 1;
                     NotifyModified();
                 }
@@ -124,7 +126,7 @@ namespace BossMod
                     ImGui.SameLine();
                     if (ImGui.Button(c.ToString()))
                     {
-                        var plan = new CooldownPlan(c, $"New {plans.Available.Count}");
+                        var plan = new CooldownPlan(c, SyncLevel, $"New {plans.Available.Count}");
                         plans.Available.Add(plan);
                         NotifyModified();
                         StartPlanEditor(plan, CreateStateMachine());
@@ -194,7 +196,7 @@ namespace BossMod
                 plans.SelectedIndex = data?["SelectedIndex"]?.Value<int>() ?? -1;
                 foreach (var jPlan in jPlans)
                 {
-                    var plan = CooldownPlan.FromJSON(cls, jPlan as JObject, ser);
+                    var plan = CooldownPlan.FromJSON(cls, SyncLevel, jPlan as JObject, ser);
                     if (plan != null)
                     {
                         plans.Available.Add(plan);

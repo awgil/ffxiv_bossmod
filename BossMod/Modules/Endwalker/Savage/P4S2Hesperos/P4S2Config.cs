@@ -11,5 +11,7 @@
 
         [PropertyDisplay("Curtain call: DD break debuff first")]
         public bool CurtainCallDDFirst = false;
+
+        public P4S2Config() : base(90) { }
     }
 }

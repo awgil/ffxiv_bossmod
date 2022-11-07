@@ -271,6 +271,7 @@ namespace BossMod
                     var plans = config?["CooldownPlans"] as JObject;
                     if (plans == null)
                         continue;
+                    bool isTEA = k == typeof(Shadowbringers.Ultimate.TEA.TEAConfig).FullName;
                     foreach (var (cls, planList) in plans)
                     {
                         var avail = planList?["Available"] as JArray;
@@ -292,6 +293,10 @@ namespace BossMod
                                     continue;
 
                                 var aid = new ActionID(uint.Parse(aidRaw));
+                                // hack revert, out of config modules existing before v6 only TEA could use raw intuition instead of BW
+                                if (!isTEA && aid.ID == (uint)WAR.AID.RawIntuition)
+                                    aid = ActionID.MakeSpell(WAR.AID.Bloodwhetting);
+
                                 foreach (var abilUse in aidList)
                                 {
                                     abilUse["ID"] = aidType.GetEnumName(aid.ID);

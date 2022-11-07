@@ -102,7 +102,7 @@ namespace UIDev
                 }
                 else
                 {
-                    plan = new(_playerClass, $"New {list.Available.Count}");
+                    plan = new(_playerClass, _planConfig?.SyncLevel ?? 0, $"New {list.Available.Count}");
                 }
                 selection = list.Available.Count;
                 list.Available.Add(plan);

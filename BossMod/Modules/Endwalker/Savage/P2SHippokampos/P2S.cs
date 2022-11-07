@@ -11,7 +11,10 @@
     }
 
     [ConfigDisplay(Order = 0x120, Parent = typeof(EndwalkerConfig))]
-    public class P2SConfig : CooldownPlanningConfigNode { }
+    public class P2SConfig : CooldownPlanningConfigNode
+    {
+        public P2SConfig() : base(90) { }
+    }
 
     public class P2S : BossModule
     {

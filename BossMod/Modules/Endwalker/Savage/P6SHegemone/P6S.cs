@@ -23,6 +23,7 @@
     [ConfigDisplay(Order = 0x160, Parent = typeof(EndwalkerConfig))]
     public class P6SConfig : CooldownPlanningConfigNode
     {
+        public P6SConfig() : base(90) { }
     }
 
     public class P6S : BossModule

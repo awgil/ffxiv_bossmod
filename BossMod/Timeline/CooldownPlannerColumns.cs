@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod
 {
@@ -32,13 +33,21 @@ namespace BossMod
             var classDef = PlanDefinitions.Classes[plan.Class];
             foreach (var track in classDef.CooldownTracks)
             {
-                foreach (var aid in track.AIDs)
-                    _aidToColCooldown[aid] = _colCooldowns.Count;
+                ActionID defaultAction = new();
+                foreach (var a in track.Actions.Where(a => a.minLevel <= plan.Level))
+                {
+                    _aidToColCooldown[a.aid] = _colCooldowns.Count;
+                    if (!defaultAction)
+                        defaultAction = a.aid;
+                }
 
-                var col = Add(new ColumnPlannerTrackCooldown(timeline, tree, phaseBranches, track.Name, classDef, track));
-                col.Width = _trackWidth;
-                col.NotifyModified = onModified;
-                _colCooldowns.Add(col);
+                if (defaultAction)
+                {
+                    var col = Add(new ColumnPlannerTrackCooldown(timeline, tree, phaseBranches, track.Name, classDef, track, defaultAction));
+                    col.Width = _trackWidth;
+                    col.NotifyModified = onModified;
+                    _colCooldowns.Add(col);
+                }
             }
 
             ExtractPlanData(plan);
@@ -164,7 +173,7 @@ namespace BossMod
 
         private CooldownPlan BuildPlan()
         {
-            var res = new CooldownPlan(_plan.Class, _name);
+            var res = new CooldownPlan(_plan.Class, _plan.Level, _name);
             res.Timings = _timings.Clone();
             foreach (var col in _colCooldowns)
             {

@@ -32,5 +32,7 @@
 
         [PropertyDisplay("P3 four towers with counters: prefer flexing to CCW tower (rather than to CW)")]
         public bool P3DarkdragonDiveCounterPreferCCWFlex = false;
+
+        public DSW2Config() : base(90) { }
     }
 }

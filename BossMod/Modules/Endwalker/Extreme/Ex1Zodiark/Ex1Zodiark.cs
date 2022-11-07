@@ -12,7 +12,10 @@
     }
 
     [ConfigDisplay(Order = 0x010, Parent = typeof(EndwalkerConfig))]
-    public class Ex1ZodiarkConfig : CooldownPlanningConfigNode { }
+    public class Ex1ZodiarkConfig : CooldownPlanningConfigNode
+    {
+        public Ex1ZodiarkConfig() : base(90) { }
+    }
 
     public class Ex1Zodiark : BossModule
     {

@@ -8,7 +8,10 @@
     }
 
     [ConfigDisplay(Order = 0x141, Parent = typeof(EndwalkerConfig))]
-    public class P4S1Config : CooldownPlanningConfigNode { }
+    public class P4S1Config : CooldownPlanningConfigNode
+    {
+        public P4S1Config() : base(90) { }
+    }
 
     public class P4S1 : BossModule
     {
