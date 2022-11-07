@@ -7,23 +7,19 @@ boss modules:
 - wipe should not fast forward all phases
 - p3s - review, searing breeze component
 - aglaia revise, implement phases
-- ultima weapon - implement phases
 - boss module config presets/profiles
 
 ai:
 - prepull timer
-- improve healing AI: analyze incoming dps, take pending hp changes into account...
+- improve healing AI: analyze incoming dps
 - movement: know time left, distance to travel => decide whether to swiftcast or slidecast or use movement rotation
-- avoid moving through aoes while going to desired zone
 
 autorotation:
-- improve questlock (use 'step' field in state, remove minlevel enum - instead generate old-style UnlockedXXX)
 - opener support
 - dot/regen server tick tracking
 - war
 -- simulate gauge changes (message can arrive few frames after ActionEffect...)
 -- low-level rotation - improve berserk delay logic
--- automatic bloodwhetting?
 -- charge planning
 -- offensive CD planning/delay
 - whm:
@@ -37,7 +33,6 @@ cooldown planner:
 - plan tankswaps
 - plan raid cooldowns (think about ui and storage for that...)
 - show hp, statuses, ...
-- proper cooldown plan selector in PlayerActions
 
 world rendering:
 - danger zones (modify action vfx?)
@@ -57,7 +52,6 @@ misc:
 - memory show/watch utility
 - clip circles to arena bounds...
 - draw target max-melee and boss positioning hints?..
-- action not learned = GetActionStatus -> 573 (this is rowid of LogMessage "action not yet learned") => can be used to disable non-learned spells
 - assignments/config sharing (webservice?)
 - ?? aoe checks should take hitbox into account (0.5 for players) - cones, circles, rects... - apparently not really...
 
