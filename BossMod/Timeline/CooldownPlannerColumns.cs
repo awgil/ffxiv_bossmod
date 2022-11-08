@@ -7,7 +7,6 @@ using System.Linq;
 namespace BossMod
 {
     // a set of action-use columns that represent cooldown plan
-    // TODO: rework...
     public class CooldownPlannerColumns : Timeline.ColumnGroup
     {
         private CooldownPlan _plan;
@@ -165,7 +164,7 @@ namespace BossMod
                     var state = _tree.Nodes.GetValueOrDefault(a.StateID);
                     if (state != null)
                     {
-                        col.AddElement(state, a.TimeSinceActivation, a.WindowLength, a.ID, a.Target.Clone());
+                        col.AddElement(state, a.TimeSinceActivation, a.WindowLength, a.ID, a.LowPriority, a.Target.Clone(), a.Comment);
                     }
                 }
             }
@@ -180,7 +179,7 @@ namespace BossMod
                 foreach (var e in col.Elements)
                 {
                     var cast = (ColumnPlannerTrackCooldown.ActionElement)e;
-                    res.Actions.Add(new(cast.Action, e.Window.AttachNode.State.ID, e.Window.Delay, e.Window.Duration, cast.Target.Clone()));
+                    res.Actions.Add(new(cast.Action, e.Window.AttachNode.State.ID, e.Window.Delay, e.Window.Duration, cast.LowPriority, cast.Target.Clone(), cast.Comment));
                 }
             }
             return res;

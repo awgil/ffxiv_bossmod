@@ -11,11 +11,15 @@ namespace BossMod
         public class ActionElement : Element
         {
             public ActionID Action;
+            public bool LowPriority;
             public PlanTarget.ISelector Target;
+            public string Comment;
 
-            public ActionElement(Entry window, PlanTarget.ISelector target) : base(window)
+            public ActionElement(Entry window, bool lowPriority, PlanTarget.ISelector target, string comment) : base(window)
             {
+                LowPriority = lowPriority;
                 Target = target;
+                Comment = comment;
             }
         }
 
@@ -35,16 +39,18 @@ namespace BossMod
             Level = level;
         }
 
-        public void AddElement(StateMachineTree.Node attachNode, float delay, float windowLength, ActionID aid, PlanTarget.ISelector target)
+        public void AddElement(StateMachineTree.Node attachNode, float delay, float windowLength, ActionID aid, bool lowPriority, PlanTarget.ISelector target, string comment)
         {
             var elem = (ActionElement)AddElement(attachNode, delay, windowLength);
+            elem.LowPriority = lowPriority;
             elem.Target = target;
+            elem.Comment = comment;
             SetElementAction(elem, aid);
         }
 
         protected override Element CreateElement(Entry window)
         {
-            return SetElementAction(new ActionElement(window, new PlanTarget.Self()), DefaultAction);
+            return SetElementAction(new ActionElement(window, false, new PlanTarget.Self(), ""), DefaultAction);
         }
 
         protected override List<string> DescribeElement(Element e)
@@ -53,6 +59,8 @@ namespace BossMod
             List<string> res = new();
             res.Add($"Action: {cast.Action}");
             res.Add($"Target: {cast.Target.GetType().Name}: {cast.Target.Describe(ModuleInfo)}");
+            res.Add($"Priority: {(cast.LowPriority ? "low" : "high")}");
+            res.Add($"Comment: {cast.Comment}");
             return res;
         }
 
@@ -70,6 +78,14 @@ namespace BossMod
                     }
                 }
                 ImGui.EndCombo();
+            }
+            if (ImGui.InputText("Comment", ref cast.Comment, 256))
+            {
+                NotifyModified();
+            }
+            if (ImGui.Checkbox("Low priority", ref cast.LowPriority))
+            {
+                NotifyModified();
             }
             if (ImGui.BeginCombo("Target", cast.Target.GetType().Name))
             {

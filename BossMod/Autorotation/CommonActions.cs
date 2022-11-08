@@ -257,14 +257,22 @@ namespace BossMod
             if (mqOGCD != null)
                 return new(mqOGCD.Action, mqOGCD.Target, mqOGCD.TargetPos, mqOGCD.Definition, ActionSource.Manual);
 
-            // see if there is anything from cooldown plan to be executed
-            var cpAction = Autorot.Hints.PlannedActions.FirstOrDefault(x => CanExecutePlannedAction(x.action, x.target, effAnimLock, animLockDelay, ogcdDeadline));
-            if (cpAction.action)
-                return new(cpAction.action, cpAction.target, new(), SupportedActions[cpAction.action].Definition, ActionSource.Planned);
+            // see if there is anything high-priority from cooldown plan to be executed
+            var cpActionHigh = Autorot.Hints.PlannedActions.FirstOrDefault(x => !x.lowPriority && CanExecutePlannedAction(x.action, x.target, effAnimLock, animLockDelay, ogcdDeadline));
+            if (cpActionHigh.action)
+                return new(cpActionHigh.action, cpActionHigh.target, new(), SupportedActions[cpActionHigh.action].Definition, ActionSource.Planned);
 
             // note: we intentionally don't check that automatic oGCD really does not clip GCD - we provide utilities that allow module checking that, but also allow overriding if needed
             var nextOGCD = AutoAction != AutoActionNone ? CalculateAutomaticOGCD(ogcdDeadline) : new();
-            return nextOGCD.Action ? nextOGCD : nextGCD;
+            if (nextOGCD.Action)
+                return nextOGCD;
+
+            // finally see whether there are any low-priority planned actions
+            var cpActionLow = Autorot.Hints.PlannedActions.FirstOrDefault(x => x.lowPriority && CanExecutePlannedAction(x.action, x.target, effAnimLock, animLockDelay, ogcdDeadline));
+            if (cpActionLow.action)
+                return new(cpActionLow.action, cpActionLow.target, new(), SupportedActions[cpActionLow.action].Definition, ActionSource.Planned);
+
+            return nextGCD;
         }
 
         public void NotifyActionExecuted(NextAction action)

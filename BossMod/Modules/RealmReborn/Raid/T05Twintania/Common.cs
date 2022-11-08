@@ -88,25 +88,25 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                                 case Class.WAR:
                                     if (useFirstCooldowns)
                                     {
-                                        hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Vengeance), actor, cooldownWindowEnd));
+                                        hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Vengeance), actor, cooldownWindowEnd, false));
                                     }
                                     else
                                     {
-                                        hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Rampart), actor, cooldownWindowEnd));
-                                        hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Reprisal), actor, cooldownWindowEnd));
-                                        hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.ThrillOfBattle), actor, cooldownWindowEnd));
+                                        hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Rampart), actor, cooldownWindowEnd, false));
+                                        hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Reprisal), actor, cooldownWindowEnd, false));
+                                        hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.ThrillOfBattle), actor, cooldownWindowEnd, false));
                                     }
                                     break;
                                 case Class.PLD:
-                                    hints.PlannedActions.Add((ActionID.MakeSpell(PLD.AID.Sheltron), actor, cooldownWindowEnd));
+                                    hints.PlannedActions.Add((ActionID.MakeSpell(PLD.AID.Sheltron), actor, cooldownWindowEnd, false));
                                     if (useFirstCooldowns)
                                     {
-                                        hints.PlannedActions.Add((ActionID.MakeSpell(PLD.AID.Sentinel), actor, cooldownWindowEnd));
+                                        hints.PlannedActions.Add((ActionID.MakeSpell(PLD.AID.Sentinel), actor, cooldownWindowEnd, false));
                                     }
                                     else
                                     {
-                                        hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Rampart), actor, cooldownWindowEnd));
-                                        hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Reprisal), actor, cooldownWindowEnd));
+                                        hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Rampart), actor, cooldownWindowEnd, false));
+                                        hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Reprisal), actor, cooldownWindowEnd, false));
                                     }
                                     break;
                             }
@@ -115,20 +115,20 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                     case PartyRolesConfig.Assignment.M1:
                         if (NumCasts % 3 == 0)
                         {
-                            hints.PlannedActions.Add((ActionID.MakeSpell(DRG.AID.Feint), module.PrimaryActor, cooldownWindowEnd));
+                            hints.PlannedActions.Add((ActionID.MakeSpell(DRG.AID.Feint), module.PrimaryActor, cooldownWindowEnd, false));
                         }
                         break;
                     case PartyRolesConfig.Assignment.M2:
                         if (NumCasts % 3 == 1)
                         {
-                            hints.PlannedActions.Add((ActionID.MakeSpell(DRG.AID.Feint), module.PrimaryActor, cooldownWindowEnd));
+                            hints.PlannedActions.Add((ActionID.MakeSpell(DRG.AID.Feint), module.PrimaryActor, cooldownWindowEnd, false));
                         }
                         break;
                     case PartyRolesConfig.Assignment.R1:
                     case PartyRolesConfig.Assignment.R2:
                         if (NumCasts % 3 == 2)
                         {
-                            hints.PlannedActions.Add((ActionID.MakeSpell(BLM.AID.Addle), module.PrimaryActor, cooldownWindowEnd));
+                            hints.PlannedActions.Add((ActionID.MakeSpell(BLM.AID.Addle), module.PrimaryActor, cooldownWindowEnd, false));
                         }
                         break;
                 }

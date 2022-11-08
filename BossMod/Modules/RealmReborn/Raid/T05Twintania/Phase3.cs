@@ -133,7 +133,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
             // mitigate heavy raidwide
             hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), _activation));
             if (actor.Role == Role.Ranged)
-                hints.PlannedActions.Add((ActionID.MakeSpell(BLM.AID.Addle), module.PrimaryActor, (float)(_activation - module.WorldState.CurrentTime).TotalSeconds));
+                hints.PlannedActions.Add((ActionID.MakeSpell(BLM.AID.Addle), module.PrimaryActor, (float)(_activation - module.WorldState.CurrentTime).TotalSeconds, false));
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

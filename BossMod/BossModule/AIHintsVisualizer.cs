@@ -53,7 +53,7 @@ namespace BossMod
             }
             foreach (var n in tree.Node("Planned actions", _hints.PlannedActions.Count == 0))
             {
-                tree.LeafNodes(_hints.PlannedActions, e => $"{e.action} @ {e.target} in {e.windowEnd:f3}s");
+                tree.LeafNodes(_hints.PlannedActions, e => $"{e.action} @ {e.target} in {e.windowEnd:f3}s ({(e.lowPriority ? "low" : "high")} priority)");
             }
             foreach (var n in tree.Node("Pathfinding"))
             {

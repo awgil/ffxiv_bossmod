@@ -78,8 +78,8 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
                 else
                 {
                     // third cast in progress => immune knockback and go to resolve positions
-                    hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.ArmsLength), actor, 1));
-                    hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Surecast), actor, 1));
+                    hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.ArmsLength), actor, 1, false));
+                    hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Surecast), actor, 1, false));
                     PrepositionForOrbs(hints, assignment, 3);
                 }
             }

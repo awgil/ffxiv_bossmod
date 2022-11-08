@@ -49,6 +49,12 @@ namespace UIDev
                     WindowManager.CloseWindow(_config);
                 }
             }
+            ImGui.SameLine();
+            if (ImGui.Button($"Save {(_colPlayers.AnyPlanModified ? "all changes" : "(no changes)")}"))
+            {
+                _colPlayers.SaveAll();
+            }
+
             _timeline.Draw();
         }
 

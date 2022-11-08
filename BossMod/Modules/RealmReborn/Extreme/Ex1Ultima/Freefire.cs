@@ -32,7 +32,7 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
                 };
                 if (invuln)
                 {
-                    hints.PlannedActions.Add((invuln, actor, (float)(_resolve - module.WorldState.CurrentTime).TotalSeconds));
+                    hints.PlannedActions.Add((invuln, actor, (float)(_resolve - module.WorldState.CurrentTime).TotalSeconds, false));
                     return;
                 }
             }

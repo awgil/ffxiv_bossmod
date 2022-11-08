@@ -72,7 +72,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         {
             if (action && phaseTime >= minPhaseTime && phaseTime < maxPhaseTime)
             {
-                hints.PlannedActions.Add((action, player, maxPhaseTime - phaseTime));
+                hints.PlannedActions.Add((action, player, maxPhaseTime - phaseTime, false));
             }
         }
 

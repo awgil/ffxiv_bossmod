@@ -15,19 +15,23 @@ namespace BossMod
             public uint StateID;
             public float TimeSinceActivation;
             public float WindowLength;
+            public bool LowPriority;
             public PlanTarget.ISelector Target;
+            public string Comment;
             // TODO: condition, delay-auto
 
-            public ActionUse(ActionID aid, uint stateID, float timeSinceActivation, float windowLength, PlanTarget.ISelector target)
+            public ActionUse(ActionID aid, uint stateID, float timeSinceActivation, float windowLength, bool lowPriority, PlanTarget.ISelector target, string comment)
             {
                 ID = aid;
                 StateID = stateID;
                 TimeSinceActivation = timeSinceActivation;
                 WindowLength = windowLength;
+                LowPriority = lowPriority;
                 Target = target;
+                Comment = comment;
             }
 
-            public ActionUse Clone() => new(ID, StateID, TimeSinceActivation, WindowLength, Target.Clone());
+            public ActionUse Clone() => new(ID, StateID, TimeSinceActivation, WindowLength, LowPriority, Target.Clone(), Comment);
 
             public static ActionUse? FromJSON(Type aidType, JObject? j, JsonSerializer ser)
             {
@@ -68,7 +72,7 @@ namespace BossMod
                     }
                 }
 
-                return new ActionUse(actionID, usid, j?["TimeSinceActivation"]?.Value<float>() ?? 0, j?["WindowLength"]?.Value<float>() ?? 0, target ?? new PlanTarget.Self());
+                return new ActionUse(actionID, usid, j?["TimeSinceActivation"]?.Value<float>() ?? 0, j?["WindowLength"]?.Value<float>() ?? 0, j?["LowPriority"]?.Value<bool>() ?? false, target ?? new PlanTarget.Self(), j?["Comment"]?.Value<string>() ?? "");
             }
 
             public JObject ToJSON(Type aidType, JsonSerializer ser)
@@ -84,7 +88,9 @@ namespace BossMod
                 res["StateID"] = $"0x{StateID:X8}";
                 res["TimeSinceActivation"] = TimeSinceActivation;
                 res["WindowLength"] = WindowLength;
+                res["LowPriority"] = LowPriority;
                 res["Target"] = target;
+                res["Comment"] = Comment;
                 return res;
             }
         }

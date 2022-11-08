@@ -59,7 +59,7 @@ namespace BossMod
 
         // planned actions
         // autorotation will execute them in window-end order, if possible
-        public List<(ActionID action, Actor target, float windowEnd)> PlannedActions = new();
+        public List<(ActionID action, Actor target, float windowEnd, bool lowPriority)> PlannedActions = new();
 
         // clear all stored data
         public void Clear()

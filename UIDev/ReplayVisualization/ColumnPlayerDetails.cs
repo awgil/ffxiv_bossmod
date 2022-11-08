@@ -24,6 +24,7 @@ namespace UIDev
         private CooldownPlannerColumns? _planner;
 
         public bool AnyVisible => _actions.Width > 0 || _planner != null;
+        public bool PlanModified => _planModified;
 
         public ColumnPlayerDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass)
             : base(timeline)
@@ -57,6 +58,16 @@ namespace UIDev
             foreach (var n in tree.Node("Actions"))
                 _actions.DrawConfig(tree);
             _separator.Width = AnyVisible ? 1 : 0;
+        }
+
+        public void SaveChanges()
+        {
+            if (_planner != null && _planModified)
+            {
+                _planner.UpdateEditedPlan();
+                _planConfig?.NotifyModified();
+                _planModified = false;
+            }
         }
 
         private void DrawConfigPlanner(UITree tree)
@@ -116,9 +127,7 @@ namespace UIDev
                 ImGui.SameLine();
                 if (ImGui.Button("Save modifications"))
                 {
-                    _planner.UpdateEditedPlan();
-                    _planConfig?.NotifyModified();
-                    _planModified = false;
+                    SaveChanges();
                 }
             }
 

@@ -1,6 +1,7 @@
 ﻿using BossMod;
 using ImGuiNET;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UIDev
 {
@@ -11,6 +12,8 @@ namespace UIDev
         private Replay _replay;
         private Replay.Encounter _encounter;
         private ColumnPlayerDetails?[] _columns;
+
+        public bool AnyPlanModified => _columns.Any(c => c?.PlanModified ?? false);
 
         public ColumnPlayersDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, BitMask showPlayers)
             : base(timeline)
@@ -41,6 +44,12 @@ namespace UIDev
                         _columns[i] = Add(new ColumnPlayerDetails(Timeline, _tree, _phaseBranches, _replay, _encounter, p, c));
                 }
             }
+        }
+
+        public void SaveAll()
+        {
+            foreach (var c in _columns)
+                c?.SaveChanges();
         }
     }
 }

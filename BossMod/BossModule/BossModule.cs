@@ -263,7 +263,7 @@ namespace BossMod
                     var target = a.Target.Select(this, slot, actor);
                     if (target == null)
                         continue;
-                    hints.PlannedActions.Add((a.Action, target, a.TimeLeft));
+                    hints.PlannedActions.Add((a.Action, target, a.TimeLeft, a.LowPriority));
                 }
             }
             foreach (var comp in _components)

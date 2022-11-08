@@ -15,27 +15,27 @@
                 {
                     case PartyRolesConfig.Assignment.MT:
                         if ((NumCasts & 1) == 0)
-                            hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Reprisal), actor, 1));
+                            hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Reprisal), actor, 1, false));
                         break;
                     case PartyRolesConfig.Assignment.OT:
                         if ((NumCasts & 1) == 1)
-                            hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Reprisal), actor, 1));
+                            hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Reprisal), actor, 1, false));
                         break;
                     case PartyRolesConfig.Assignment.M1:
                         if ((NumCasts & 1) == 0)
-                            hints.PlannedActions.Add((ActionID.MakeSpell(DRG.AID.Feint), module.PrimaryActor, 1));
+                            hints.PlannedActions.Add((ActionID.MakeSpell(DRG.AID.Feint), module.PrimaryActor, 1, false));
                         break;
                     case PartyRolesConfig.Assignment.M2:
                         if ((NumCasts & 1) == 1)
-                            hints.PlannedActions.Add((ActionID.MakeSpell(DRG.AID.Feint), module.PrimaryActor, 1));
+                            hints.PlannedActions.Add((ActionID.MakeSpell(DRG.AID.Feint), module.PrimaryActor, 1, false));
                         break;
                     case PartyRolesConfig.Assignment.R1:
                         if ((NumCasts & 1) == 0)
-                            hints.PlannedActions.Add((ActionID.MakeSpell(BLM.AID.Addle), module.PrimaryActor, 1));
+                            hints.PlannedActions.Add((ActionID.MakeSpell(BLM.AID.Addle), module.PrimaryActor, 1, false));
                         break;
                     case PartyRolesConfig.Assignment.R2:
                         if ((NumCasts & 1) == 1)
-                            hints.PlannedActions.Add((ActionID.MakeSpell(BLM.AID.Addle), module.PrimaryActor, 1));
+                            hints.PlannedActions.Add((ActionID.MakeSpell(BLM.AID.Addle), module.PrimaryActor, 1, false));
                         break;
                 }
             }
