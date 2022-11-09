@@ -141,5 +141,6 @@ namespace BossMod
 
         // find closest actor to point
         public static Actor? Closest(this IEnumerable<Actor> range, WPos origin) => range.MinBy(a => (a.Position - origin).LengthSq());
+        public static (int, Actor) Closest(this IEnumerable<(int, Actor)> range, WPos origin) => range.MinBy(ia => (ia.Item2.Position - origin).LengthSq());
     }
 }

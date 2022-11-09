@@ -7,24 +7,23 @@ namespace BossMod.Components
     // there are various variants (e.g. everyone should spread, or everyone should stack in one or more groups, or some combination of that)
     public class StackSpread : BossComponent
     {
-        private AOEShapeCircle _stackShape;
-        private AOEShapeCircle _spreadShape;
-        public float StackRadius => _stackShape.Radius;
-        public float SpreadRadius => _spreadShape.Radius;
-        public int MinStackSize { get; private init; }
-        public int MaxStackSize { get; private init; }
-        public bool AlwaysShowSpreads { get; private init; } // if false, we only shown own spread radius for spread targets - this reduces visual clutter
+        public float StackRadius;
+        public float SpreadRadius;
+        public int MinStackSize;
+        public int MaxStackSize;
+        public bool AlwaysShowSpreads; // if false, we only shown own spread radius for spread targets - this reduces visual clutter
         public bool RaidwideOnResolve; // by default, assume even if mechanic is correctly resolved everyone will still take damage
         public BitMask SpreadMask;
         public BitMask StackMask;
+        public BitMask AvoidMask; // players that should not participate in the mechanic (i.e. avoid all stacks and spreads)
         public DateTime ActivateAt;
 
         public bool Active => (SpreadMask | StackMask).Any();
 
         public StackSpread(float stackRadius, float spreadRadius, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false, bool raidwideOnResolve = true)
         {
-            _stackShape = new(stackRadius);
-            _spreadShape = new(spreadRadius);
+            StackRadius = stackRadius;
+            SpreadRadius = spreadRadius;
             MinStackSize = minStackSize;
             MaxStackSize = maxStackSize;
             AlwaysShowSpreads = alwaysShowSpreads;
@@ -33,6 +32,12 @@ namespace BossMod.Components
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
+            if (AvoidMask[slot] && Active)
+            {
+                hints.Add("GTFO from raid!", module.Raid.WithSlot().IncludedInMask(SpreadMask).InRadius(actor.Position, SpreadRadius).Any() || module.Raid.WithSlot().IncludedInMask(StackMask).InRadius(actor.Position, StackRadius).Any());
+                return;
+            }
+
             // check that we're stacked properly
             if (!SpreadMask[slot] && StackMask.Any())
             {
@@ -56,16 +61,16 @@ namespace BossMod.Components
             // TODO: think how to improve this, current implementation works, but isn't particularly good - e.g. nearby players tend to move to same spot, turn around, etc.
             // ideally we should provide per-mechanic spread spots, but for simple cases we should try to let melee spread close and healers/rdd spread far from main target...
             foreach (var (_, player) in module.Raid.WithSlot().Exclude(slot).IncludedInMask(SpreadMask))
-                hints.AddForbiddenZone(_spreadShape, player.Position, new(), ActivateAt);
+                hints.AddForbiddenZone(ShapeDistance.Circle(player.Position, SpreadRadius), ActivateAt);
 
             // if not spreading, deal with stack markers
             if (!SpreadMask[slot])
             {
-                if (StackMask[slot])
+                if ((StackMask | AvoidMask)[slot])
                 {
                     // forbid standing next to other stack markers
                     foreach (var (_, player) in module.Raid.WithSlot().Exclude(slot).IncludedInMask(StackMask))
-                        hints.AddForbiddenZone(_stackShape, player.Position, new(), ActivateAt);
+                        hints.AddForbiddenZone(ShapeDistance.Circle(player.Position, StackRadius), ActivateAt);
                 }
                 else
                 {
@@ -77,13 +82,15 @@ namespace BossMod.Components
             }
 
             // assume everyone will take some damage, either from sharing stacks or from spreads
-            if (RaidwideOnResolve && (StackMask | SpreadMask).Any())
-                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), ActivateAt));
+            if (RaidwideOnResolve && Active)
+                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask() & ~AvoidMask, ActivateAt));
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {
-            return SpreadMask[playerSlot] ? PlayerPriority.Danger
+            if (AvoidMask[playerSlot])
+                customColor = ArenaColor.Vulnerable;
+            return (SpreadMask | SpreadMask)[playerSlot] ? PlayerPriority.Danger
                 : StackMask[playerSlot] ? PlayerPriority.Interesting
                 : Active ? PlayerPriority.Normal : PlayerPriority.Irrelevant;
         }
@@ -110,13 +117,13 @@ namespace BossMod.Components
             if (StackMask[slot])
             {
                 int numStacked = 1; // always stacked with self
-                bool stackedWithOtherStack = false;
+                bool stackedWithOtherStackOrAvoid = false;
                 foreach (var (otherSlot, other) in module.Raid.WithSlot().InRadiusExcluding(actor, StackRadius))
                 {
                     ++numStacked;
-                    stackedWithOtherStack |= StackMask[otherSlot];
+                    stackedWithOtherStackOrAvoid |= (StackMask | AvoidMask)[otherSlot];
                 }
-                return !stackedWithOtherStack && numStacked >= MinStackSize && numStacked <= MaxStackSize;
+                return !stackedWithOtherStackOrAvoid && numStacked >= MinStackSize && numStacked <= MaxStackSize;
             }
             else
             {

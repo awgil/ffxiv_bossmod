@@ -3,12 +3,46 @@ using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 
 namespace UIDev.Analysis
 {
     class AbilityInfo
     {
+        class SourcePositionAnalysis
+        {
+            private UIPlot _plot = new();
+            private List<(Replay Replay, Replay.Action Action, Vector2 SourcePos)> _points = new();
+
+            public SourcePositionAnalysis(List<(Replay, Replay.Action)> infos)
+            {
+                _plot.DataMin = new(float.MaxValue, float.MaxValue);
+                _plot.DataMax = new(float.MinValue, float.MinValue);
+                _plot.TickAdvance = new(5, 5);
+                foreach (var (r, a) in infos)
+                {
+                    if (a.Source != null)
+                    {
+                        var pos = a.Source.PosRotAt(a.Timestamp).XZ();
+                        _plot.DataMin.X = Math.Min(_plot.DataMin.X, pos.X);
+                        _plot.DataMin.Y = Math.Min(_plot.DataMin.Y, pos.Y);
+                        _plot.DataMax.X = Math.Max(_plot.DataMax.X, pos.X);
+                        _plot.DataMax.Y = Math.Max(_plot.DataMax.Y, pos.Y);
+                        _points.Add((r, a, pos));
+                    }
+                }
+            }
+
+            public void Draw()
+            {
+                _plot.Begin();
+                foreach (var i in _points)
+                    _plot.Point(i.SourcePos, 0xff808080, () => $"{i.Replay.Path} @ {i.Action.Timestamp:O}");
+                _plot.End();
+            }
+        }
+
         class ConeAnalysis
         {
             private UIPlot _plot = new();
@@ -202,6 +236,7 @@ namespace UIDev.Analysis
             public bool SeenTargetLocation;
             public bool SeenAOE;
             public float CastTime;
+            public SourcePositionAnalysis? SrcPosAnalysis;
             public ConeAnalysis? ConeAnalysisSrc;
             public ConeAnalysis? ConeAnalysisTgt;
             public RectAnalysis? RectAnalysis;
@@ -271,6 +306,12 @@ namespace UIDev.Analysis
                             tree.LeafNodes(tn.Effects, ReplayUtils.ActionEffectString);
                         }
                     }
+                }
+                foreach (var an in tree.Node("Source position analysis"))
+                {
+                    if (data.SrcPosAnalysis == null)
+                        data.SrcPosAnalysis = new(data.Instances);
+                    data.SrcPosAnalysis.Draw();
                 }
                 foreach (var an in tree.Node("Cone analysis (origin at source)"))
                 {

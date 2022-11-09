@@ -33,13 +33,7 @@ namespace UIDev
                 {
                     InstanceID = module.PrimaryActor.InstanceID,
                     OID = module.PrimaryActor.OID,
-                    Zone = _self._ws.CurrentZone,
-                    FirstAction = _self._res.Actions.Count,
-                    FirstStatus = _self._res.Statuses.Count,
-                    FirstTether = _self._res.Tethers.Count,
-                    FirstIcon = _self._res.Icons.Count,
-                    FirstDirectorUpdate = _self._res.DirectorUpdates.Count,
-                    FirstEnvControl = _self._res.EnvControls.Count
+                    Zone = _self._ws.CurrentZone
                 };
                 _self._modules[module.PrimaryActor.InstanceID] = new(module, enc);
                 module.Error += OnError;
@@ -154,6 +148,12 @@ namespace UIDev
                     if (m.ActiveState == null)
                     {
                         m.Encounter.Time.Start = _ws.CurrentTime;
+                        m.Encounter.FirstAction = _res.Actions.Count;
+                        m.Encounter.FirstStatus = _res.Statuses.Count;
+                        m.Encounter.FirstTether = _res.Tethers.Count;
+                        m.Encounter.FirstIcon = _res.Icons.Count;
+                        m.Encounter.FirstDirectorUpdate = _res.DirectorUpdates.Count;
+                        m.Encounter.FirstEnvControl = _res.EnvControls.Count;
                         foreach (var p in _participants.Values)
                             m.Encounter.Participants.GetOrAdd(p.OID).Add(p);
                         foreach (var p in _ws.Party.WithoutSlot(true))
