@@ -132,34 +132,34 @@
             Aioniopyr(id + 0x1000, 3.2f);
         }
 
-        // TODO: component...
         private void HighConcept1(uint id, float delay)
         {
             Cast(id, AID.HighConcept, delay, 5); // this is really weird...
             Targetable(id + 2, false, 4.4f, "High Concept 1")
+                .ActivateOnEnter<HighConcept1>() // buffs appear right as boss becomes untargetable
                 .SetHint(StateMachine.StateHint.Raidwide);
-            // buffs appear right as boss becomes untargetable
 
-            Cast(id + 0x10, AID.ArcaneControl, 4.8f, 3);
+            Cast(id + 0x10, AID.ArcaneControl, 4.8f, 3, "Explosion 1");
             // +0.3s: first explosions (conceptual shift)
             // +1.0s: perfection status gains
-            // +1.1s: first towers appear (ENVC 00020001 index 1E/1F for purple, 28/29 for blue, 32/33 for green)
+            // +1.1s: first towers appear
 
             CastMulti(id + 0x30, new AID[] { AID.AshingBlazeL, AID.AshingBlazeR }, 6.2f, 6, "Towers 1") // tower explosions happen at the same time as cast-end
                 .ActivateOnEnter<AshingBlaze>()
                 .DeactivateOnExit<AshingBlaze>();
 
-            Cast(id + 0x100, AID.ArcaneControl, 3.2f, 3);
+            Cast(id + 0x100, AID.ArcaneControl, 3.2f, 3, "Explosion 2");
             // +0.1s: second explosions (conceptual shift)
             // +0.7s: perfection status gains
-            // +1.1s: second towers appear (ENVC 00020001 index 1A-1D for purple, 24-27 for blue, 2E-31 for green)
+            // +1.1s: second towers appear
 
             CastMulti(id + 0x120, new AID[] { AID.AshingBlazeL, AID.AshingBlazeR }, 6.2f, 6, "Towers 2") // tower explosions happen at the same time as cast-end
                 .ActivateOnEnter<AshingBlaze>()
                 .DeactivateOnExit<AshingBlaze>();
 
             Targetable(id + 0x200, true, 3.1f, "Reappear");
-            Cast(id + 0x210, AID.Deconceptualize, 0.1f, 3);
+            Cast(id + 0x210, AID.Deconceptualize, 0.1f, 3)
+                .DeactivateOnExit<HighConcept1>();
 
             Aioniopyr(id + 0x1000, 3.2f);
         }
