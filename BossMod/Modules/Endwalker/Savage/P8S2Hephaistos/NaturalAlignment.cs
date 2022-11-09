@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Savage.P8S2
         private bool CurMechanicInverted;
         public int CurMechanicProgress { get; private set; }
 
-        public NaturalAlignment() : base(0, 0) { }
+        public NaturalAlignment() : base(0, 0, alwaysShowSpreads: true) { }
 
         public override void Update(BossModule module)
         {

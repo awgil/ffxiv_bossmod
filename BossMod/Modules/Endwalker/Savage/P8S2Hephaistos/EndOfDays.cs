@@ -1,0 +1,39 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace BossMod.Endwalker.Savage.P8S2
+{
+    // note: we can detect aoes ~2s before cast start by looking at PATE 0x11D3
+    class EndOfDays : Components.GenericAOEs
+    {
+        public List<(Actor caster, DateTime finish)> Casters = new();
+
+        private static AOEShapeRect _shape = new(60, 5);
+
+        public EndOfDays() : base(ActionID.MakeSpell(AID.EndOfDays)) { }
+
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            foreach (var c in Casters.Take(3))
+            {
+                if (c.caster.CastInfo == null)
+                    yield return (_shape, c.caster.Position, c.caster.Rotation, c.finish);
+                else
+                    yield return (_shape, c.caster.Position, c.caster.CastInfo.Rotation, c.caster.CastInfo.FinishAt);
+            }
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction)
+                Casters.RemoveAll(c => c.caster == caster);
+        }
+
+        public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+        {
+            if ((OID)actor.OID == OID.IllusoryHephaistosLanes && id == 0x11D3)
+                Casters.Add((actor, module.WorldState.CurrentTime.AddSeconds(8)));
+        }
+    }
+}

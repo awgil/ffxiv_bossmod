@@ -59,7 +59,7 @@
             Cast(id + 0x10, AID.TwistNature, 6.2f, 3);
 
             // ~0.1s before next cast start, NA progress bars start filling (1E1/1E3 replaced with 1E0/1E2)
-            Cast(id + 0x20, AID.TyrantsFlare, 3.2f, 3);
+            Cast(id + 0x20, AID.TyrantsFlare, 3.2f, 3, "Puddle bait");
 
             ComponentCondition<NaturalAlignment>(id + 0x30, 3, comp => comp.CurMechanicProgress > 0, "Stack/spread")
                 .ActivateOnEnter<TyrantsFlare>() // AOE casts start right after visual cast end
@@ -70,13 +70,13 @@
                 .DeactivateOnExit<AshingBlaze>();
 
             ComponentCondition<NaturalAlignment>(id + 0x50, 3.7f, comp => comp.CurMechanicProgress == 0);
-            // +0.5s: PATE on 3 bad lanes (IllusoryHephaistosLanes) - a chance for early detection of EndOfDays
-            // +2.0s: target 2 replaces 2552 0x1DE (ice first filling progress bars) or 0x1DC (fire first filling progress bars)
-            // +2.6s: EndOfDays cast-start on 3 bad lanes
-            // +6.5s: PATE on second 3 bad lanes
-
-            ComponentCondition<NaturalAlignment>(id + 0x60, 8.1f, comp => comp.CurMechanicProgress > 0)
+            ComponentCondition<EndOfDays>(id + 0x51, 0.5f, comp => comp.Casters.Count > 0)
                 .ActivateOnEnter<EndOfDays>();
+            // +1.5s: target 2 replaces 2552 0x1DE (ice first filling progress bars) or 0x1DC (fire first filling progress bars)
+            // +2.0s: EndOfDays cast-start on 3 bad lanes
+            // +6.0s: PATE on second 3 bad lanes
+
+            ComponentCondition<NaturalAlignment>(id + 0x60, 7.6f, comp => comp.CurMechanicProgress > 0);
             ComponentCondition<EndOfDays>(id + 0x61, 0.5f, comp => comp.NumCasts > 0, "Fire/ice"); // second set of cast-starts immediately after
 
             ComponentCondition<NaturalAlignment>(id + 0x70, 5.6f, comp => comp.CurMechanicProgress > 1)
@@ -99,32 +99,32 @@
             // ~0.1s before next cast start, first NA activates (209 replaced with 1E1/1E3)
             Cast(id + 0x20, AID.TwistNature, 3.2f, 3);
 
-            // +1.1s: PATE on 3 bad lanes
-            // +3.1s: NA progress bars start filling, EndOfDays cast start
-            // +7.0s: PATE on second set of lanes
-            ComponentCondition<NaturalAlignment>(id + 0x30, 9.1f, comp => comp.CurMechanicProgress > 0, "Stack/spread")
-                .ActivateOnEnter<EndOfDays>(); // first set of cast-ends and second set of cast-starts happen at the same time as first mechanic
+            ComponentCondition<EndOfDays>(id + 0x30, 1, comp => comp.Casters.Count > 0)
+                .ActivateOnEnter<EndOfDays>();
+            // +2.0s: NA progress bars start filling, EndOfDays cast start
+            // +6.0s: PATE on second set of lanes
+            ComponentCondition<NaturalAlignment>(id + 0x40, 8.1f, comp => comp.CurMechanicProgress > 0, "Stack/spread");
 
-            ComponentCondition<NaturalAlignment>(id + 0x40, 6.1f, comp => comp.CurMechanicProgress > 1, "Spread/stack")
+            ComponentCondition<NaturalAlignment>(id + 0x50, 6.1f, comp => comp.CurMechanicProgress > 1, "Spread/stack")
                 .DeactivateOnExit<EndOfDays>(); // second set of cast-ends happens at the same time as second mechanic
 
-            ComponentCondition<NaturalAlignment>(id + 0x50, 4.7f, comp => comp.CurMechanicProgress == 0);
-            // +0.2s: PATE on 3 bad lanes
-            // +2.0s: NA progress bars start filling
-            // +2.3s: EndOfDays cast-start on 3 bad lanes
-            // +6.2s: PATE on second 3 bad lanes
-
-            ComponentCondition<NaturalAlignment>(id + 0x60, 8.1f, comp => comp.CurMechanicProgress > 0)
+            ComponentCondition<NaturalAlignment>(id + 0x60, 4.7f, comp => comp.CurMechanicProgress == 0);
+            ComponentCondition<EndOfDays>(id + 0x61, 0.2f, comp => comp.Casters.Count > 0)
                 .ActivateOnEnter<EndOfDays>();
-            ComponentCondition<EndOfDays>(id + 0x61, 0.2f, comp => comp.NumCasts > 0, "Fire/ice"); // second set of cast-starts immediately after
+            // +1.8s: NA progress bars start filling
+            // +2.0s: EndOfDays cast-start on 3 bad lanes
+            // +6.0s: PATE on second 3 bad lanes
 
-            ComponentCondition<NaturalAlignment>(id + 0x70, 5.9f, comp => comp.CurMechanicProgress > 1, "Ice/fire")
-                .DeactivateOnExit<NaturalAlignment>();
+            ComponentCondition<NaturalAlignment>(id + 0x70, 7.9f, comp => comp.CurMechanicProgress > 0);
+            ComponentCondition<EndOfDays>(id + 0x71, 0.2f, comp => comp.NumCasts > 0, "Fire/ice"); // second set of cast-starts immediately after
+
+            ComponentCondition<NaturalAlignment>(id + 0x80, 5.9f, comp => comp.CurMechanicProgress > 1, "Ice/fire")
+                .DeactivateOnExit<NaturalAlignment>()
+                .DeactivateOnExit<EndOfDays>();
 
             // end-of-days ends right after mechanic proc & ashing blaze start
-            CastMulti(id + 0x80, new AID[] { AID.AshingBlazeL, AID.AshingBlazeR }, 0.1f, 6)
+            CastMulti(id + 0x90, new AID[] { AID.AshingBlazeL, AID.AshingBlazeR }, 0.1f, 6)
                 .ActivateOnEnter<AshingBlaze>()
-                .DeactivateOnExit<EndOfDays>()
                 .DeactivateOnExit<AshingBlaze>();
 
             Aioniopyr(id + 0x1000, 3.2f);
