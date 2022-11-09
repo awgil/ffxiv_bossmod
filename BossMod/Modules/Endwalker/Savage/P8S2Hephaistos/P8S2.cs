@@ -7,7 +7,6 @@
 
     // TODO: autoattack component
     // TODO: HC components
-    // TODO: limitless desolation component
     // TODO: final mechanic component
     public class P8S2 : BossModule
     {

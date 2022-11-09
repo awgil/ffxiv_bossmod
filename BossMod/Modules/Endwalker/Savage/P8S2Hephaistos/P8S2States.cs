@@ -193,43 +193,28 @@
             Targetable(id + 0x200, true, 16.1f, "Reappear");
         }
 
-        // TODO: component...
         private void LimitlessDesolation(uint id, float delay)
         {
-            // tower ENVC:
-            // 00020001 = appear
-            // 00200010 = occupied
-            // 00400001 = unoccupied
-            // 00080004 = explode
-            // 4C = (85, 85) (extra 46)
-            // 4D = (95, 85) (extra 47)
-            // 4E = (105, 85) (extra 48)
-            // 4F = (115, 85) (extra 49)
-            // 50 = (85, 95) (extra 4A)
-            // ?? = (95, 95) (extra ??)
-            // 0A = (105, 95) (extra 06)
-            // 51 = (115, 95) (extra 4B)
-            // 54 = (85, 105) (extra 52)
-            // 0B = (95, 105) (extra 07)
-            // 0C = (105, 105)(extra 08)
-            // 55 = (115, 105) (extra 53)
+            Cast(id, AID.LimitlessDesolation, delay, 5)
+                .ActivateOnEnter<LimitlessDesolation>(); // show spreads slightly in advance
 
-            Cast(id, AID.LimitlessDesolation, delay, 5);
-            // +1.1s: aoe 1
-            // +2.1s: towers 1 appear (ENVC 00020001 index 46/4C/48/4E -> (105, 85), (85, 85); ???)
-            // +4.2s: aoe 2
-            // +5.2s: towers 2 appear (ENVC 00020001 index 4B/51/4A/50 -> (115, 95), (85, 95); ???)
-            // +7.2s: aoe 3
-            // +8.2s: towers 3 appear (ENVC 00020001 index 47/4D/06/0A/???)
-            // +9.2s: puddles 1 start
-            // +10.2s: aoe 4
-            // +11.2s: towers 4 appear (ENVC 00020001 index 52/54/53/55/???)
-            // +12.2s: puddles 1 end, towers 1 explode, puddles 2 start
-            // +15.2s: puddles 2 end, towers 2 explode, puddles 3 start
-            // +18.2s: puddles 3 end, towers 3 explode, puddles 4 start
-            // +21.2s: puddles 4 end, towers 4 explode
+            ComponentCondition<LimitlessDesolation>(id + 0x10, 1.1f, comp => comp.NumAOEs > 0, "Limitless desolation start");
+            ComponentCondition<LimitlessDesolation>(id + 0x11, 0.9f, comp => comp.NumTowers > 0);
+            ComponentCondition<LimitlessDesolation>(id + 0x12, 2.1f, comp => comp.NumAOEs > 2);
+            ComponentCondition<LimitlessDesolation>(id + 0x13, 0.9f, comp => comp.NumTowers > 2);
+            ComponentCondition<LimitlessDesolation>(id + 0x14, 2.1f, comp => comp.NumAOEs > 4);
+            ComponentCondition<LimitlessDesolation>(id + 0x15, 0.9f, comp => comp.NumTowers > 4);
+            ComponentCondition<LimitlessDesolation>(id + 0x16, 2.1f, comp => comp.NumAOEs > 6)
+                .ActivateOnEnter<LimitlessDesolationTyrantsFlare>();
+            ComponentCondition<LimitlessDesolation>(id + 0x17, 0.9f, comp => comp.NumTowers > 6);
+            ComponentCondition<LimitlessDesolation>(id + 0x20, 1.0f, comp => comp.NumBursts > 0);
+            ComponentCondition<LimitlessDesolation>(id + 0x21, 3.0f, comp => comp.NumBursts > 2);
+            ComponentCondition<LimitlessDesolation>(id + 0x22, 3.0f, comp => comp.NumBursts > 4);
+            ComponentCondition<LimitlessDesolation>(id + 0x23, 3.0f, comp => comp.NumBursts > 6)
+                .DeactivateOnExit<LimitlessDesolationTyrantsFlare>()
+                .DeactivateOnExit<LimitlessDesolation>();
 
-            Aioniopyr(id + 0x1000, 23.2f);
+            Aioniopyr(id + 0x1000, 1.9f);
         }
 
         private void EgoDeath(uint id, float delay)
