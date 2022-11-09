@@ -7,7 +7,6 @@
 
     // TODO: autoattack component
     // TODO: HC components
-    // TODO: final mechanic component
     public class P8S2 : BossModule
     {
         public P8S2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }

@@ -30,8 +30,10 @@
             // TODO: 1 autoattack
             HighConcept2(id + 0x90000, 6.1f);
             EgoDeath(id + 0xA0000, 6.1f);
-            AionagoniaDominion(id + 0xB0000, 9.2f);
-            Cast(id + 0xC0000, AID.Enrage, 7.1f, 16, "Enrage");
+            Aionagonia(id + 0xB0000, 9.2f);
+            DominionAionagonia(id + 0xC0000, 3.2f);
+            DominionAionagonia(id + 0xD0000, 3.2f);
+            Cast(id + 0xE0000, AID.Enrage, 7.1f, 16, "Enrage");
         }
 
         private void Aioniopyr(uint id, float delay)
@@ -234,27 +236,21 @@
                 .SetHint(StateMachine.StateHint.Raidwide);
         }
 
-        private void Dominion(uint id, float delay)
+        private void DominionAionagonia(uint id, float delay)
         {
             Cast(id, AID.Dominion, delay, 7, "Raidwide")
+                .ActivateOnEnter<Dominion>() // activate early to show spreads
                 .SetHint(StateMachine.StateHint.Raidwide);
-        }
 
-        // TODO: component...
-        private void AionagoniaDominion(uint id, float delay)
-        {
-            Aionagonia(id, delay);
+            ComponentCondition<Dominion>(id + 0x10, 1.1f, comp => comp.NumDeformations > 0, "Spread");
+            // +6.0s: cast-start for second set of shifts
+            ComponentCondition<Dominion>(id + 0x20, 7.0f, comp => comp.NumShifts > 0, "Towers 1");
 
-            Dominion(id + 0x1000, 3.2f);
-            // +1.1s: 4x deformation + 4x shift cast-start
-            // +7.1s: 4x shift cast-start (second set)
-            // +8.1s: first set of towers
-            // +14.1s: second set of towers (during next raidwide)
-            Aionagonia(id + 0x2000, 11.2f);
-
-            Dominion(id + 0x3000, 3.2f);
-            // repeat...
-            Aionagonia(id + 0x4000, 11.2f);
+            CastStart(id + 0x30, AID.Aionagonia, 3.1f);
+            ComponentCondition<Dominion>(id + 0x31, 2.9f, comp => comp.NumShifts > 4, "Towers 2")
+                .DeactivateOnExit<Dominion>();
+            CastEnd(id + 0x32, 5.1f, "Raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
         }
     }
 }
