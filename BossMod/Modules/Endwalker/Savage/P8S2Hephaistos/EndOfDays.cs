@@ -4,7 +4,6 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P8S2
 {
-    // note: we can detect aoes ~2s before cast start by looking at PATE 0x11D3
     class EndOfDays : Components.GenericAOEs
     {
         public List<(Actor caster, DateTime finish)> Casters = new();
@@ -33,7 +32,7 @@ namespace BossMod.Endwalker.Savage.P8S2
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
         {
             if ((OID)actor.OID == OID.IllusoryHephaistosLanes && id == 0x11D3)
-                Casters.Add((actor, module.WorldState.CurrentTime.AddSeconds(8)));
+                Casters.Add((actor, module.WorldState.CurrentTime.AddSeconds(8))); // ~2s before cast start
         }
     }
 }

@@ -164,35 +164,35 @@
             Aioniopyr(id + 0x1000, 3.2f);
         }
 
-        // TODO: component...
         private void HighConcept2(uint id, float delay)
         {
-            // second tower ENVC
-            // 34/2B/36/2D = (95,105) green, (95, 95) green, (105, 105) blue, (105, 95) blue
-
             Cast(id, AID.HighConcept, delay, 5); // this is really weird...
             Targetable(id + 2, false, 4.4f, "High Concept 2")
+                .ActivateOnEnter<HighConcept2>() // buffs appear right as boss becomes untargetable
                 .SetHint(StateMachine.StateHint.Raidwide);
-            // buffs appear right as boss becomes untargetable
 
-            Cast(id + 0x10, AID.ArcaneControl, 4.7f, 3);
+            Cast(id + 0x10, AID.ArcaneControl, 4.7f, 3, "Explosion 1");
             // +0.3s: first explosions (conceptual shift)
             // +1.0s: perfection status gains
-            // +1.1s: first towers appear (ENVC 00020001 index 1E/1F for purple - always same?)
+            // +1.1s: first towers appear (always blue or purple)
 
             CastMulti(id + 0x30, new AID[] { AID.AshingBlazeL, AID.AshingBlazeR }, 6.2f, 6, "Towers 1") // tower explosions happen at the same time as cast-end
                 .ActivateOnEnter<AshingBlaze>()
                 .DeactivateOnExit<AshingBlaze>();
 
-            Cast(id + 0x100, AID.ArcaneControl, 3.2f, 3);
+            Cast(id + 0x100, AID.ArcaneControl, 3.2f, 3, "Explosion 2");
             // +0.0s: PATE 11D3 on IllusoryHephaistosMovable (appear)
             // +0.1s: second explosions (conceptual shift)
             // +0.7s: perfection status gains
             // +1.1s: second towers appear (ENVC 00020001 index 34/2B/36/2D/ ???)
-            // +7.1s: targeting
-            // +12.2s: towers 2 + end-of-days
 
-            Targetable(id + 0x200, true, 16.1f, "Reappear");
+            ComponentCondition<EndOfDaysTethered>(id + 0x110, 7.1f, comp => comp.Active, "Tethers")
+                .ActivateOnEnter<EndOfDaysTethered>();
+            ComponentCondition<EndOfDaysTethered>(id + 0x111, 5.1f, comp => !comp.Active, "Towers 2") // tower explosions happen at the same time as end-of-days
+                .DeactivateOnExit<EndOfDaysTethered>();
+
+            Targetable(id + 0x200, true, 3.9f, "Reappear")
+                .DeactivateOnExit<HighConcept2>(); // not sure, current implementation can be deactivated earlier, but maybe we want to show phoenix merge hints?..
         }
 
         private void LimitlessDesolation(uint id, float delay)
