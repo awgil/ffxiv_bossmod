@@ -4,8 +4,8 @@
     public class DSW2Config : CooldownPlanningConfigNode
     {
         [PropertyDisplay("P2 Sanctity of the Ward (charges): group assignments")]
-        [GroupDetails(new string[]{ "West/Across", "East/Behind" })]
-        public GroupAssignmentLightParties P2SanctityGroups = new();
+        [GroupDetails(new string[] { "West/Across", "East/Behind" })]
+        public GroupAssignmentLightParties P2SanctityGroups = GroupAssignmentLightParties.DefaultLightParties();
 
         [PropertyDisplay("P2 Sanctity of the Ward (charges): groups relative to DRK (across/behind) rather than absolute (west/east)")]
         public bool P2SanctityRelative = false;
@@ -15,7 +15,7 @@
 
         [PropertyDisplay("P2 Sanctity of the Ward (meteors): pair assignments")]
         [GroupDetails(new string[] { "North", "West", "South", "East" })]
-        public GroupAssignmentDDSupportPairs P2Sanctity2Pairs = new();
+        public GroupAssignmentDDSupportPairs P2Sanctity2Pairs = GroupAssignmentDDSupportPairs.DefaultOneMeleePerPair();
 
         [PropertyDisplay("P2 Sanctity of the Ward (meteors): prefer E/W for prey rather than N/S")]
         public bool P2Sanctity2PreferEWPrey = false;
@@ -28,7 +28,7 @@
 
         [PropertyDisplay("P3 four towers with counters: assignments")]
         [GroupDetails(new string[] { "NW Flex", "NE Flex", "SE Flex", "SW Flex", "NW Stay", "NE Stay", "SE Stay", "SW Stay" })]
-        public GroupAssignmentUnique P3DarkdragonDiveCounterGroups = new();
+        public GroupAssignmentUnique P3DarkdragonDiveCounterGroups = GroupAssignmentUnique.Default();
 
         [PropertyDisplay("P3 four towers with counters: prefer flexing to CCW tower (rather than to CW)")]
         public bool P3DarkdragonDiveCounterPreferCCWFlex = false;

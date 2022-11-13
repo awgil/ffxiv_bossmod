@@ -148,7 +148,7 @@ namespace BossMod
             if (group == null)
                 return false;
 
-            foreach (var tn in _tree.Node(props.Label, false, v.Validate() ? 0xffffffff : 0xff00ffff))
+            foreach (var tn in _tree.Node(props.Label, false, v.Validate() ? 0xffffffff : 0xff00ffff, () => DrawPropertyContextMenu(node, member, v)))
             {
                 var assignments = _root.Get<PartyRolesConfig>().SlotsPerAssignment(_ws.Party);
                 if (ImGui.BeginTable("table", group.Names.Length + 2, ImGuiTableFlags.SizingFixedFit))
@@ -188,6 +188,19 @@ namespace BossMod
                 }
             }
             return true;
+        }
+
+        private void DrawPropertyContextMenu(ConfigNode node, FieldInfo member, GroupAssignment v)
+        {
+            foreach (var preset in member.GetCustomAttributes<GroupPresetAttribute>())
+            {
+                if (ImGui.MenuItem(preset.Name))
+                {
+                    for (int i = 0; i < preset.Preset.Length; ++i)
+                        v.Assignments[i] = preset.Preset[i];
+                    node.NotifyModified();
+                }
+            }
         }
     }
 }

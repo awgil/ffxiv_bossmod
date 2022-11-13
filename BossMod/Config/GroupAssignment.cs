@@ -15,11 +15,30 @@ namespace BossMod
         }
     }
 
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+    public class GroupPresetAttribute : Attribute
+    {
+        public string Name;
+        public int[] Preset;
+
+        public GroupPresetAttribute(string name, int[] preset)
+        {
+            Name = name;
+            Preset = preset;
+        }
+    }
+
     // config node property that allows assigning party roles to arbitrary named groups
     // typically you would use derived classes that provide validation
     public class GroupAssignment
     {
-        public int[] Assignments = new int[(int)PartyRolesConfig.Assignment.Unassigned]; // assignment -> group id
+        public int[] Assignments; // assignment -> group id
+
+        public GroupAssignment()
+        {
+            Assignments = new int[(int)PartyRolesConfig.Assignment.Unassigned];
+            Array.Fill(Assignments, -1);
+        }
 
         public int this[PartyRolesConfig.Assignment r]
         {
@@ -64,10 +83,12 @@ namespace BossMod
     // assignments to two light parties with THMR split
     public class GroupAssignmentLightParties : GroupAssignment
     {
-        public GroupAssignmentLightParties()
+        public static GroupAssignmentLightParties DefaultLightParties()
         {
-            this[PartyRolesConfig.Assignment.MT] = this[PartyRolesConfig.Assignment.H1] = this[PartyRolesConfig.Assignment.M1] = this[PartyRolesConfig.Assignment.R1] = 0;
-            this[PartyRolesConfig.Assignment.OT] = this[PartyRolesConfig.Assignment.H2] = this[PartyRolesConfig.Assignment.M2] = this[PartyRolesConfig.Assignment.R2] = 1;
+            var r = new GroupAssignmentLightParties();
+            r[PartyRolesConfig.Assignment.MT] = r[PartyRolesConfig.Assignment.H1] = r[PartyRolesConfig.Assignment.M1] = r[PartyRolesConfig.Assignment.R1] = 0;
+            r[PartyRolesConfig.Assignment.OT] = r[PartyRolesConfig.Assignment.H2] = r[PartyRolesConfig.Assignment.M2] = r[PartyRolesConfig.Assignment.R2] = 1;
+            return r;
         }
 
         public override bool Validate()
@@ -82,12 +103,24 @@ namespace BossMod
     // assignments to four tank/healer+DD pairs
     public class GroupAssignmentDDSupportPairs : GroupAssignment
     {
-        public GroupAssignmentDDSupportPairs()
+        public static GroupAssignmentDDSupportPairs DefaultOneMeleePerPair()
         {
-            this[PartyRolesConfig.Assignment.MT] = this[PartyRolesConfig.Assignment.R1] = 0;
-            this[PartyRolesConfig.Assignment.H1] = this[PartyRolesConfig.Assignment.M1] = 1;
-            this[PartyRolesConfig.Assignment.OT] = this[PartyRolesConfig.Assignment.R2] = 2;
-            this[PartyRolesConfig.Assignment.H2] = this[PartyRolesConfig.Assignment.M2] = 3;
+            GroupAssignmentDDSupportPairs r = new();
+            r[PartyRolesConfig.Assignment.MT] = r[PartyRolesConfig.Assignment.R1] = 0;
+            r[PartyRolesConfig.Assignment.H1] = r[PartyRolesConfig.Assignment.M1] = 1;
+            r[PartyRolesConfig.Assignment.OT] = r[PartyRolesConfig.Assignment.R2] = 2;
+            r[PartyRolesConfig.Assignment.H2] = r[PartyRolesConfig.Assignment.M2] = 3;
+            return r;
+        }
+
+        public static GroupAssignmentDDSupportPairs DefaultMeleeTogether()
+        {
+            GroupAssignmentDDSupportPairs r = new();
+            r[PartyRolesConfig.Assignment.MT] = r[PartyRolesConfig.Assignment.M1] = 0;
+            r[PartyRolesConfig.Assignment.OT] = r[PartyRolesConfig.Assignment.M2] = 1;
+            r[PartyRolesConfig.Assignment.H1] = r[PartyRolesConfig.Assignment.R1] = 2;
+            r[PartyRolesConfig.Assignment.H2] = r[PartyRolesConfig.Assignment.R2] = 3;
+            return r;
         }
 
         public override bool Validate()
@@ -109,16 +142,18 @@ namespace BossMod
     // assignments to 8 unique roles
     public class GroupAssignmentUnique : GroupAssignment
     {
-        public GroupAssignmentUnique()
+        public static GroupAssignmentUnique Default()
         {
-            this[PartyRolesConfig.Assignment.MT] = 0;
-            this[PartyRolesConfig.Assignment.M1] = 1;
-            this[PartyRolesConfig.Assignment.OT] = 2;
-            this[PartyRolesConfig.Assignment.M2] = 3;
-            this[PartyRolesConfig.Assignment.R1] = 4;
-            this[PartyRolesConfig.Assignment.H1] = 5;
-            this[PartyRolesConfig.Assignment.R2] = 6;
-            this[PartyRolesConfig.Assignment.H2] = 7;
+            GroupAssignmentUnique r = new();
+            r[PartyRolesConfig.Assignment.MT] = 0;
+            r[PartyRolesConfig.Assignment.M1] = 1;
+            r[PartyRolesConfig.Assignment.OT] = 2;
+            r[PartyRolesConfig.Assignment.M2] = 3;
+            r[PartyRolesConfig.Assignment.R1] = 4;
+            r[PartyRolesConfig.Assignment.H1] = 5;
+            r[PartyRolesConfig.Assignment.R2] = 6;
+            r[PartyRolesConfig.Assignment.H2] = 7;
+            return r;
         }
 
         public override bool Validate()

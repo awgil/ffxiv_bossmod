@@ -104,7 +104,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
         private void InitAssignments(BossModule module, int order)
         {
             int[] assignedSlots = { -1, -1, -1, -1 };
-            foreach (var a in Service.Config.Get<P8S1Config>().SnakeAssignments.Resolve(module.Raid))
+            foreach (var a in Service.Config.Get<P8S1Config>().Snake1Assignments.Resolve(module.Raid))
                 if (_players[a.slot].Order == order)
                     assignedSlots[a.group] = a.slot;
             if (assignedSlots[0] == -1)
@@ -116,10 +116,10 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
                 Utils.Swap(ref option1, ref option2);
 
             bool flex = _players[assignedSlots[0]].IsExplode == _players[assignedSlots[1]].IsExplode;
-            _players[assignedSlots[0]].AssignedSnake = flex ? option1 : option2;
-            _players[assignedSlots[1]].AssignedSnake = option2;
-            _players[assignedSlots[2]].AssignedSnake = flex ? option2 : option1;
-            _players[assignedSlots[3]].AssignedSnake = option1;
+            _players[assignedSlots[0]].AssignedSnake = option1;
+            _players[assignedSlots[1]].AssignedSnake = flex ? option2 : option1;
+            _players[assignedSlots[2]].AssignedSnake = flex ? option1 : option2;
+            _players[assignedSlots[3]].AssignedSnake = option2;
         }
     }
 }

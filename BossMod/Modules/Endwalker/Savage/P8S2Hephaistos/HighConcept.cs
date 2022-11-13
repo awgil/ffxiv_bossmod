@@ -146,6 +146,8 @@ namespace BossMod.Endwalker.Savage.P8S2
 
     class HighConcept1 : HighConceptCommon
     {
+        public bool LongGoS => Service.Config.Get<P8S2Config>().HC1LongGoS;
+
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (NumAssignedRoles < 8)
@@ -153,91 +155,92 @@ namespace BossMod.Endwalker.Savage.P8S2
 
             // TODO: consider adding stack/spread-like hints
 
+            var (shortTowers, longTowers) = LongGoS ? ("N", "S") : ("S", "N");
             var hint = (NextMechanic, RoleForSlot(slot)) switch
             {
                 (Mechanic.Explosion1, PlayerRole.ShortAlpha) => "A -> N or chill",
                 (Mechanic.Explosion1, PlayerRole.ShortBeta) => "B -> adjust or chill",
                 (Mechanic.Explosion1, PlayerRole.ShortGamma) => "C -> S or chill",
-                (Mechanic.Explosion1, PlayerRole.LongAlpha) => "2 -> A -> N+N",
-                (Mechanic.Explosion1, PlayerRole.LongBeta) => "3 -> B -> N+adjust",
-                (Mechanic.Explosion1, PlayerRole.LongGamma) => "3 -> C -> N+S",
-                (Mechanic.Explosion1, PlayerRole.Stack2) => "2 -> A/B -> S",
-                (Mechanic.Explosion1, PlayerRole.Stack3) => "3 -> C/B -> S",
+                (Mechanic.Explosion1, PlayerRole.LongAlpha) => $"2 -> A -> {longTowers}+N",
+                (Mechanic.Explosion1, PlayerRole.LongBeta) => $"3 -> B -> {longTowers}+adjust",
+                (Mechanic.Explosion1, PlayerRole.LongGamma) => $"3 -> C -> {longTowers}+S",
+                (Mechanic.Explosion1, PlayerRole.Stack2) => $"2 -> A/B -> {shortTowers}",
+                (Mechanic.Explosion1, PlayerRole.Stack3) => $"3 -> C/B -> {shortTowers}",
 
                 (Mechanic.Towers1, PlayerRole.ShortAlpha) => FirstTowers switch
                 {
-                    TowerColor.Purple => "chill -> S+N",
+                    TowerColor.Purple => $"chill -> {shortTowers}+N",
                     TowerColor.Blue or TowerColor.Green => "N -> chill",
                     _ => "N or chill"
                 },
-                (Mechanic.Explosion2 or Mechanic.Towers2, PlayerRole.ShortAlpha) => FirstTowers == TowerColor.Purple ? "S+N" : "chill",
+                (Mechanic.Explosion2 or Mechanic.Towers2, PlayerRole.ShortAlpha) => FirstTowers == TowerColor.Purple ? $"{shortTowers}+N" : "chill",
 
                 (Mechanic.Towers1, PlayerRole.ShortBeta) => FirstTowers switch
                 {
                     TowerColor.Purple => "N -> chill",
-                    TowerColor.Blue => "chill -> S+adjust",
+                    TowerColor.Blue => $"chill -> {shortTowers}+adjust",
                     TowerColor.Green => "S -> chill",
                     _ => "adjust or chill"
                 },
-                (Mechanic.Explosion2, PlayerRole.ShortBeta) => FirstTowers == TowerColor.Blue ? "S+adjust" : "chill",
+                (Mechanic.Explosion2, PlayerRole.ShortBeta) => FirstTowers == TowerColor.Blue ? $"{shortTowers}+adjust" : "chill",
                 (Mechanic.Towers2, PlayerRole.ShortBeta) => FirstTowers != TowerColor.Blue ? "chill" : SecondTowersHC1 switch
                 {
-                    TowerColor.Purple => "S+N",
+                    TowerColor.Purple => $"{shortTowers}+N",
                     TowerColor.Blue => "chill",
-                    TowerColor.Green => "S+S",
-                    _ => "S+adjust"
+                    TowerColor.Green => $"{shortTowers}+S",
+                    _ => $"{shortTowers}+adjust"
                 },
 
                 (Mechanic.Towers1, PlayerRole.ShortGamma) => FirstTowers switch
                 {
                     TowerColor.Purple or TowerColor.Blue => "S -> chill",
-                    TowerColor.Green => "chill -> S+S",
+                    TowerColor.Green => $"chill -> {shortTowers}+S",
                     _ => "S or chill"
                 },
-                (Mechanic.Explosion2 or Mechanic.Towers2, PlayerRole.ShortGamma) => FirstTowers == TowerColor.Green ? "S+S" : "chill",
+                (Mechanic.Explosion2 or Mechanic.Towers2, PlayerRole.ShortGamma) => FirstTowers == TowerColor.Green ? $"{shortTowers}+S" : "chill",
 
-                (Mechanic.Towers1 or Mechanic.Explosion2, PlayerRole.LongAlpha) => "A -> N+N",
-                (Mechanic.Towers2, PlayerRole.LongAlpha) => SecondTowersHC1 != TowerColor.Purple ? "N+N" : "chill",
+                (Mechanic.Towers1 or Mechanic.Explosion2, PlayerRole.LongAlpha) => $"A -> {longTowers}+N",
+                (Mechanic.Towers2, PlayerRole.LongAlpha) => SecondTowersHC1 != TowerColor.Purple ? $"{longTowers}+N" : "chill",
 
-                (Mechanic.Towers1 or Mechanic.Explosion2, PlayerRole.LongBeta) => "B -> N+adjust",
+                (Mechanic.Towers1 or Mechanic.Explosion2, PlayerRole.LongBeta) => $"B -> {longTowers}+adjust",
                 (Mechanic.Towers2, PlayerRole.LongBeta) => SecondTowersHC1 switch
                 {
-                    TowerColor.Purple => "N+N",
+                    TowerColor.Purple => $"{longTowers}+N",
                     TowerColor.Blue => "chill",
-                    TowerColor.Green => "N+S",
-                    _ => "N+adjust"
+                    TowerColor.Green => $"{longTowers}+S",
+                    _ => $"{longTowers}+adjust"
                 },
 
-                (Mechanic.Towers1 or Mechanic.Explosion2, PlayerRole.LongGamma) => "C -> N+S",
-                (Mechanic.Towers2, PlayerRole.LongGamma) => SecondTowersHC1 != TowerColor.Green ? "N+S" : "chill",
+                (Mechanic.Towers1 or Mechanic.Explosion2, PlayerRole.LongGamma) => $"C -> {longTowers}+S",
+                (Mechanic.Towers2, PlayerRole.LongGamma) => SecondTowersHC1 != TowerColor.Green ? $"{longTowers}+S" : "chill",
 
                 (Mechanic.Towers1 or Mechanic.Explosion2, PlayerRole.Stack2) => FirstTowers switch
                 {
-                    TowerColor.Purple => "B -> S+adjust",
-                    TowerColor.Blue or TowerColor.Green => "A -> S+N",
-                    _ => "A/B -> S"
+                    TowerColor.Purple => $"B -> {shortTowers}+adjust",
+                    TowerColor.Blue or TowerColor.Green => $"A -> {shortTowers}+N",
+                    _ => $"A/B -> {shortTowers}"
                 },
                 (Mechanic.Towers2, PlayerRole.Stack2) => FirstTowers == TowerColor.Purple ? SecondTowersHC1 switch
                 {
-                    TowerColor.Purple => "S+N",
+                    TowerColor.Purple => $"{shortTowers}+N",
                     TowerColor.Blue => "chill",
-                    TowerColor.Green => "S+S",
-                    _ => "S+adjust"
-                } : SecondTowersHC1 != TowerColor.Purple ? "S+N" : "chill",
+                    TowerColor.Green => $"{shortTowers}+S",
+                    _ => $"{shortTowers}+adjust"
+                } : SecondTowersHC1 != TowerColor.Purple ? $"{shortTowers}+N" : "chill",
 
                 (Mechanic.Towers1 or Mechanic.Explosion2, PlayerRole.Stack3) => FirstTowers switch
                 {
-                    TowerColor.Purple or TowerColor.Blue => "C -> S+S",
-                    TowerColor.Green => "B -> S+adjust",
-                    _ => "C/B -> S"
+                    TowerColor.Purple or TowerColor.Blue => $"C -> {shortTowers}+S",
+                    TowerColor.Green => $"B -> {shortTowers}+adjust",
+                    _ => $"C/B -> {shortTowers}"
                 },
                 (Mechanic.Towers2, PlayerRole.Stack3) => FirstTowers == TowerColor.Green ? SecondTowersHC1 switch
                 {
-                    TowerColor.Purple => "S+N",
+                    TowerColor.Purple => $"{shortTowers}+N",
                     TowerColor.Blue => "chill",
-                    TowerColor.Green => "S+S",
-                    _ => "S+adjust"
-                } : SecondTowersHC1 != TowerColor.Green ? "S+S" : "chill",
+                    TowerColor.Green => $"{shortTowers}+S",
+                    _ => $"{shortTowers}+adjust"
+                } : SecondTowersHC1 != TowerColor.Green ? $"{shortTowers}+S" : "chill",
 
                 _ => ""
             };
@@ -307,18 +310,19 @@ namespace BossMod.Endwalker.Savage.P8S2
                             _ => PlayerRole.ShortBeta
                         };
                         var roleSC = FirstTowers == TowerColor.Green ? PlayerRole.ShortGamma : PlayerRole.Stack3;
-                        var (roleNN, roleNS, roleSN, roleSS) = SecondTowersHC1 switch
+                        var (roleLN, roleLS, roleSN, roleSS) = SecondTowersHC1 switch
                         {
                             TowerColor.Purple => (PlayerRole.LongBeta, PlayerRole.LongGamma, roleSB, roleSC),
                             TowerColor.Blue => (PlayerRole.LongAlpha, PlayerRole.LongGamma, roleSA, roleSC),
                             TowerColor.Green => (PlayerRole.LongAlpha, PlayerRole.LongBeta, roleSA, roleSB),
                             _ => (PlayerRole.Unassigned, PlayerRole.Unassigned, PlayerRole.Unassigned, PlayerRole.Unassigned)
                         };
-                        DrawTower(module, -15, pcRole == roleNN);
-                        DrawTower(module, -5, pcRole == roleNS);
-                        DrawTower(module, +5, pcRole == roleSN);
-                        DrawTower(module, +15, pcRole == roleSS);
-                        DrawTether(module, SlotForRole(roleNN), SlotForRole(roleNS), pcSlot);
+                        var (sOff, lOff) = LongGoS ? (-10, +10) : (+10, -10);
+                        DrawTower(module, lOff - 5, pcRole == roleLN);
+                        DrawTower(module, lOff + 5, pcRole == roleLS);
+                        DrawTower(module, sOff - 5, pcRole == roleSN);
+                        DrawTower(module, sOff + 5, pcRole == roleSS);
+                        DrawTether(module, SlotForRole(roleLN), SlotForRole(roleLS), pcSlot);
                         DrawTether(module, SlotForRole(roleSN), SlotForRole(roleSS), pcSlot);
                     }
                     break;

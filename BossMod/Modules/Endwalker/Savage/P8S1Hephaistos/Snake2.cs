@@ -36,7 +36,6 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
     }
 
     // TODO: add various hints for gaze/explode
-    // TODO: show circle around assigned snake
     class Snake2 : PetrifactionCommon
     {
         struct PlayerState
@@ -53,6 +52,11 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
         private int _gorgospitCounter;
 
         private const float _breathRadius = 6;
+
+        public Snake2()
+        {
+            Array.Fill(_players, new PlayerState() { AssignedSnake = -1 });
+        }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
@@ -112,7 +116,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
                 return;
 
             int[] assignedSlots = { -1, -1, -1, -1, -1, -1, -1, -1 }; // supports then dd
-            foreach (var a in Service.Config.Get<P8S1Config>().SnakeAssignments.Resolve(module.Raid))
+            foreach (var a in Service.Config.Get<P8S1Config>().Snake2Assignments.Resolve(module.Raid))
                 assignedSlots[a.group + (module.Raid[a.slot]?.Role is Role.Tank or Role.Healer ? 0 : 4)] = a.slot;
             if (assignedSlots[0] == -1)
                 return; // invalid assignments
@@ -126,23 +130,20 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
             if (survivingSnakes.Count != 2)
                 return;
 
-            int option1 = survivingSnakes[0]; // first CW from N
-            int option2 = survivingSnakes[1]; // first CCW from NW
-            if (ActiveGorgons[option1].priority > ActiveGorgons[option2].priority)
-                Utils.Swap(ref option1, ref option2);
+            var (option1, option2) = AssignSnakesToGroups(survivingSnakes[0], survivingSnakes[1]);
 
             // both TH and DD should always get exactly 2 debuffs of same type
-            bool flexTH = _players[assignedSlots[0]].HasDebuff == _players[assignedSlots[1]].HasDebuff;
-            _players[assignedSlots[0]].AssignedSnake = flexTH ? option1 : option2;
-            _players[assignedSlots[1]].AssignedSnake = option2;
-            _players[assignedSlots[2]].AssignedSnake = flexTH ? option2 : option1;
-            _players[assignedSlots[3]].AssignedSnake = option1;
+            bool flexTH = _players[assignedSlots[0]].HasDebuff == _players[assignedSlots[2]].HasDebuff;
+            _players[assignedSlots[0]].AssignedSnake = flexTH ? option2 : option1;
+            _players[assignedSlots[1]].AssignedSnake = flexTH ? option1 : option2;
+            _players[assignedSlots[2]].AssignedSnake = option1;
+            _players[assignedSlots[3]].AssignedSnake = option2;
 
-            bool flexDD = _players[assignedSlots[4]].HasDebuff == _players[assignedSlots[5]].HasDebuff;
-            _players[assignedSlots[4]].AssignedSnake = flexDD ? option1 : option2;
-            _players[assignedSlots[5]].AssignedSnake = option2;
-            _players[assignedSlots[6]].AssignedSnake = flexDD ? option2 : option1;
-            _players[assignedSlots[7]].AssignedSnake = option1;
+            bool flexDD = _players[assignedSlots[4]].HasDebuff == _players[assignedSlots[6]].HasDebuff;
+            _players[assignedSlots[4]].AssignedSnake = flexDD ? option2 : option1;
+            _players[assignedSlots[5]].AssignedSnake = flexDD ? option1 : option2;
+            _players[assignedSlots[6]].AssignedSnake = option1;
+            _players[assignedSlots[7]].AssignedSnake = option2;
         }
 
         private void SetPlayerLongPetrify(int slot, bool value)
@@ -161,6 +162,26 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
         {
             if (slot >= 0)
                 _players[slot].HasBreath = value;
+        }
+
+        private (int, int) AssignSnakesToGroups(int snake1, int snake2)
+        {
+            if (Service.Config.Get<P8S1Config>().Snake2CardinalPriorities)
+            {
+                // G1/G2 take N/S, or if Z coords are equal - G1/G2 take W/E
+                var pos1 = ActiveGorgons[snake1].caster.Position;
+                var pos2 = ActiveGorgons[snake2].caster.Position;
+                var (coord1, coord2) = Math.Abs(pos1.Z - pos2.Z) > 5 ? (pos1.Z, pos2.Z) : (pos1.X, pos2.X);
+                if (coord1 > coord2)
+                    Utils.Swap(ref snake1, ref snake2);
+            }
+            else
+            {
+                // G1 takes higher priority
+                if (ActiveGorgons[snake1].priority < ActiveGorgons[snake2].priority)
+                    Utils.Swap(ref snake1, ref snake2);
+            }
+            return (snake1, snake2);
         }
     }
 }
