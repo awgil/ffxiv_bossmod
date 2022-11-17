@@ -94,7 +94,7 @@ namespace BossMod
 
             public static StrategyOverride? FromJSON(Type? valueType, JObject? j, JsonSerializer ser)
             {
-                var value = ser.DeserializeEnum(j?["Value"], valueType) ?? 0;
+                var value = valueType != null ? (ser.DeserializeEnum(j?["Value"], valueType) ?? 0) : 1;
                 var stateID = ser.DeserializeHex(j?["StateID"]);
                 if (stateID == null)
                     return null;
@@ -119,7 +119,7 @@ namespace BossMod
         public string Name;
         public StateMachineTimings Timings = new();
         public List<ActionUse> Actions = new();
-        public Dictionary<string, List<StrategyOverride>> StrategyOverrides = new();
+        public List<List<StrategyOverride>> StrategyOverrides = new();
 
         public CooldownPlan(Class cls, int level, string name)
         {
@@ -128,7 +128,7 @@ namespace BossMod
             Name = name;
 
             foreach (var s in PlanDefinitions.Classes[cls].StrategyTracks)
-                StrategyOverrides[s.Name] = new();
+                StrategyOverrides.Add(new());
         }
 
         public CooldownPlan Clone()
@@ -136,8 +136,8 @@ namespace BossMod
             var res = new CooldownPlan(Class, Level, Name);
             res.Timings = Timings.Clone();
             res.Actions.AddRange(Actions.Select(a => a.Clone()));
-            foreach (var (k, v) in StrategyOverrides)
-                res.StrategyOverrides[k].AddRange(v.Select(s => s.Clone()));
+            for (int i = 0; i < StrategyOverrides.Count; ++i)
+                res.StrategyOverrides[i].AddRange(StrategyOverrides[i].Select(s => s.Clone()));
             return res;
         }
 
@@ -164,13 +164,12 @@ namespace BossMod
             }
 
             var jstrats = j?["Strategies"] as JObject;
-            foreach (var trackData in classData.StrategyTracks)
+            foreach (var (trackData, resStrats) in classData.StrategyTracks.Zip(res.StrategyOverrides))
             {
                 var jstrat = jstrats?[trackData.Name] as JArray;
                 if (jstrat == null)
                     continue;
 
-                var resStrats = res.StrategyOverrides[trackData.Name];
                 foreach (var js in jstrat)
                 {
                     var s = StrategyOverride.FromJSON(trackData.Values, js as JObject, ser);
@@ -198,11 +197,11 @@ namespace BossMod
 
             var strats = new JObject();
             res["Strategies"] = strats;
-            foreach (var trackData in classData.StrategyTracks)
+            foreach (var (trackData, trackOverrides) in classData.StrategyTracks.Zip(StrategyOverrides))
             {
                 var overrides = new JArray();
                 strats[trackData.Name] = overrides;
-                foreach (var o in StrategyOverrides[trackData.Name])
+                foreach (var o in trackOverrides)
                 {
                     overrides.Add(o.ToJSON(trackData.Values, ser));
                 }

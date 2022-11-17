@@ -177,12 +177,12 @@ namespace BossMod
                 }
             }
 
-            foreach (var col in _colStrategy)
+            foreach (var (col, overrides) in _colStrategy.Zip(plan.StrategyOverrides))
             {
                 while (col.Elements.Count > 0)
                     col.RemoveElement(0);
 
-                foreach (var o in plan.StrategyOverrides[col.Name])
+                foreach (var o in overrides)
                 {
                     var state = _tree.Nodes.GetValueOrDefault(o.StateID);
                     if (state != null)
@@ -205,9 +205,8 @@ namespace BossMod
                     res.Actions.Add(new(cast.Action, e.Window.AttachNode.State.ID, e.Window.Delay, e.Window.Duration, cast.LowPriority, cast.Target.Clone(), cast.Comment));
                 }
             }
-            foreach (var col in _colStrategy)
+            foreach (var (col, overrides) in _colStrategy.Zip(res.StrategyOverrides))
             {
-                var overrides = res.StrategyOverrides[col.Name];
                 foreach (var e in col.Elements)
                 {
                     var cast = (ColumnPlannerTrackStrategy.OverrideElement)e;

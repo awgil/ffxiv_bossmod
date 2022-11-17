@@ -81,7 +81,7 @@ namespace UIDev
                     var pe = _mgr.ActiveModule.PlanExecution;
                     if (pe != null)
                     {
-                        ImGui.TextUnformatted($"Downtime: {FlagTransitionString(pe.EstimateTimeToNextDowntime(sm))}; Pos-lock: {FlagTransitionString(pe.EstimateTimeToNextPositioning(sm))}; Vuln: {FlagTransitionString(pe.EstimateTimeToNextVulnerable(sm))}");
+                        ImGui.TextUnformatted($"Downtime: {FlagTransitionString(pe.EstimateTimeToNextDowntime(sm))}; Pos-lock: {FlagTransitionString(pe.EstimateTimeToNextPositioning(sm))}; Vuln: {FlagTransitionString(pe.EstimateTimeToNextVulnerable(sm))}; Strats: [{string.Join(",", pe.ActiveStrategyOverrides(sm))}]");
                         pe.Draw(sm);
                     }
                 }
