@@ -40,9 +40,9 @@ namespace BossMod
 
             public bool IntersectBranchRange(int branchID, int numBranches) => BranchID < branchID + numBranches && branchID < BranchID + NumBranches;
 
-            public ActionData(ActionID iD, float windowStart, float windowEnd, int branchID, int numBranches, bool lowPriority, PlanTarget.ISelector target)
+            public ActionData(ActionID id, float windowStart, float windowEnd, int branchID, int numBranches, bool lowPriority, PlanTarget.ISelector target)
             {
-                ID = iD;
+                ID = id;
                 WindowStart = windowStart;
                 WindowEnd = windowEnd;
                 BranchID = branchID;

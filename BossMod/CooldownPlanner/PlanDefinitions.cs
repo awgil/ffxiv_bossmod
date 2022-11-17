@@ -66,15 +66,15 @@ namespace BossMod
         private static ClassData DefineWAR()
         {
             var c = new ClassData(typeof(WAR.AID), WAR.Definitions.SupportedActions);
-            c.CooldownTracks.Add(new("Vengeance", ActionID.MakeSpell(WAR.AID.Vengeance), 38));
+            c.CooldownTracks.Add(new("Veng", ActionID.MakeSpell(WAR.AID.Vengeance), 38));
             c.CooldownTracks.Add(new("Rampart", ActionID.MakeSpell(WAR.AID.Rampart), 8));
             c.CooldownTracks.Add(new("Thrill", ActionID.MakeSpell(WAR.AID.ThrillOfBattle), 30));
             c.CooldownTracks.Add(new("Holmgang", ActionID.MakeSpell(WAR.AID.Holmgang), 42));
-            c.CooldownTracks.Add(new("Bloodwhetting", new[] { (ActionID.MakeSpell(WAR.AID.Bloodwhetting), 82), (ActionID.MakeSpell(WAR.AID.RawIntuition), 56), (ActionID.MakeSpell(WAR.AID.NascentFlash), 76) }));
-            c.CooldownTracks.Add(new("Equilibrium", ActionID.MakeSpell(WAR.AID.Equilibrium), 58));
-            c.CooldownTracks.Add(new("ArmsLength", ActionID.MakeSpell(WAR.AID.ArmsLength), 32));
+            c.CooldownTracks.Add(new("BW", new[] { (ActionID.MakeSpell(WAR.AID.Bloodwhetting), 82), (ActionID.MakeSpell(WAR.AID.RawIntuition), 56), (ActionID.MakeSpell(WAR.AID.NascentFlash), 76) }));
+            c.CooldownTracks.Add(new("Equi", ActionID.MakeSpell(WAR.AID.Equilibrium), 58));
+            c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(WAR.AID.ArmsLength), 32));
             c.CooldownTracks.Add(new("Reprisal", ActionID.MakeSpell(WAR.AID.Reprisal), 22));
-            c.CooldownTracks.Add(new("ShakeItOff", ActionID.MakeSpell(WAR.AID.ShakeItOff), 68));
+            c.CooldownTracks.Add(new("SIO", ActionID.MakeSpell(WAR.AID.ShakeItOff), 68));
             c.StrategyTracks.Add(new("Gauge use", typeof(WAR.Rotation.Strategy.GaugeUse)));
             return c;
         }

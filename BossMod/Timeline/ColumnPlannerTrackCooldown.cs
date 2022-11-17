@@ -57,10 +57,10 @@ namespace BossMod
         {
             var cast = (ActionElement)e;
             List<string> res = new();
+            res.Add($"Comment: {cast.Comment}");
             res.Add($"Action: {cast.Action}");
             res.Add($"Target: {cast.Target.GetType().Name}: {cast.Target.Describe(ModuleInfo)}");
             res.Add($"Priority: {(cast.LowPriority ? "low" : "high")}");
-            res.Add($"Comment: {cast.Comment}");
             return res;
         }
 

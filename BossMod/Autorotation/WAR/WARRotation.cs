@@ -38,17 +38,17 @@ namespace BossMod.WAR
         // many strategy decisions are represented as "need-something-in" counters; 0 means "use asap", >0 means "do not use unless value is larger than cooldown" (so 'infinity' means 'free to use')
         public class Strategy : CommonRotation.Strategy
         {
-            public enum GaugeUse
+            public enum GaugeUse : uint
             {
                 Automatic = 0, // spend gauge either under raid buffs or if next downtime is soon (so that next raid buff window won't cover at least 4 GCDs)
 
-                [PropertyDisplay("Spend all gauge ASAP", 0xff00ff00)]
+                [PropertyDisplay("Spend all gauge ASAP", 0x8000ff00)]
                 Spend = 1, // spend all gauge asap, don't bother conserving
 
-                [PropertyDisplay("Conserve unless under raid buffs", 0xff00ffff)]
+                [PropertyDisplay("Conserve unless under raid buffs", 0x8000ffff)]
                 ConserveIfNoBuffs = 2, // spend under raid buffs, conserve otherwise (even if downtime is imminent)
 
-                [PropertyDisplay("Conserve as much as possible", 0xff0000ff)]
+                [PropertyDisplay("Conserve as much as possible", 0x800000ff)]
                 Conserve = 3, // conserve even if under raid buffs (useful if heavy vuln phase is imminent)
             }
 
