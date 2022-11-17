@@ -19,8 +19,6 @@ autorotation:
 - dot/regen server tick tracking
 - war
 -- charge planning
--- potion/IR/upheaval planning/delay
--- better 'spend gauge' logic (there could be buff windows immediately after downtime, for which we might want to preserve some gauge...) - consider manual preserve/spend zones (overridden by raidbuffs?..); e.g. p8s1 centaur first is really hurt by downtime...
 -- simulate gauge changes (message can arrive few frames after ActionEffect...)
 -- low-level rotation - improve berserk delay logic
 -- gauge & buff visualization

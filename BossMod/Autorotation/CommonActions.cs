@@ -363,9 +363,6 @@ namespace BossMod
             if (Autorot.Bossmods.ActiveModule?.PlanConfig != null) // assumption: if there is no planning support for encounter (meaning it's something trivial, like outdoor boss), don't expect any cooldowns
                 strategy.RaidBuffsIn = Math.Min(strategy.RaidBuffsIn, Autorot.Bossmods.RaidCooldowns.NextDamageBuffIn(Autorot.WorldState.CurrentTime));
             strategy.PositionLockIn = Autorot.Config.EnableMovement && !poslock.Item1 ? poslock.Item2 : 0;
-            strategy.Potion = Autorot.Config.PotionUse;
-            if (strategy.Potion != CommonRotation.Strategy.PotionUse.Manual && !HaveItemInInventory(potion.ID)) // don't try to use potions if player doesn't have any
-                strategy.Potion = CommonRotation.Strategy.PotionUse.Manual;
         }
 
         // smart targeting utility: return target (if friendly) or mouseover (if friendly) or null (otherwise)

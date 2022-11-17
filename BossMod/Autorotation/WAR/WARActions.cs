@@ -62,10 +62,7 @@ namespace BossMod.WAR
             };
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
-
-            // TODO: these index->field bindings should be done by common framework...
-            var strats = Autorot.Bossmods.ActiveModule?.PlanExecution?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine) ?? new uint[0];
-            _strategy.Gauge = (Rotation.Strategy.GaugeUse)(strats.Length > 0 ? strats[0] : 0);
+            _strategy.ApplyStrategyOverrides(Autorot.Bossmods.ActiveModule?.PlanExecution?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine) ?? new uint[0]);
         }
 
         protected override void QueueAIActions()

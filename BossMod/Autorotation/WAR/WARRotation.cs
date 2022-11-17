@@ -52,15 +52,64 @@ namespace BossMod.WAR
                 Conserve = 3, // conserve even if under raid buffs (useful if heavy vuln phase is imminent)
             }
 
-            public GaugeUse Gauge; // how are we supposed to handle gauge
+            public enum PotionUse : uint
+            {
+                Manual = 0, // potion won't be used automatically
+
+                [PropertyDisplay("Use ASAP, but delay slightly during opener", 0x8000ff00)]
+                Immediate = 1,
+
+                [PropertyDisplay("Delay until raidbuffs", 0x8000ffff)]
+                DelayUntilRaidBuffs = 2,
+
+                [PropertyDisplay("Use ASAP, even if without ST", 0x800000ff)]
+                Force = 3,
+            }
+
+            public enum OffensiveAbilityUse : uint
+            {
+                Automatic = 0, // use standard logic for ability
+
+                [PropertyDisplay("Delay", 0x800000ff)]
+                Delay = 1, // delay until window end
+
+                [PropertyDisplay("Force", 0x8000ff00)]
+                Force = 2, // force use ASAP
+            }
+
+            public GaugeUse GaugeStrategy; // how are we supposed to handle gauge
+            public PotionUse PotionStrategy; // how are we supposed to use potions
+            public OffensiveAbilityUse InnerReleaseUse; // how are we supposed to use IR
+            public OffensiveAbilityUse UpheavalUse; // how are we supposed to use upheaval
+            public OffensiveAbilityUse PrimalRendUse; // how are we supposed to use PR
             public float FirstChargeIn; // when do we need to use onslaught charge (0 means 'use asap if out of melee range', >0 means that we'll try to make sure 1 charge is available in this time)
             public float SecondChargeIn; // when do we need to use two onslaught charges in a short amount of time
-            public bool EnableUpheaval = true; // if true, enable using upheaval when needed; setting to false is useful during opener before first party buffs
             public bool Aggressive; // if true, we use buffs and stuff at last possible moment; otherwise we make sure to keep at least 1 GCD safety net
 
             public override string ToString()
             {
                 return $"";
+            }
+
+            // TODO: these bindings should be done by the framework...
+            public void ApplyStrategyOverrides(uint[] overrides)
+            {
+                if (overrides.Length >= 5)
+                {
+                    GaugeStrategy = (GaugeUse)overrides[0];
+                    PotionStrategy = (PotionUse)overrides[1];
+                    InnerReleaseUse = (OffensiveAbilityUse)overrides[2];
+                    UpheavalUse = (OffensiveAbilityUse)overrides[3];
+                    PrimalRendUse = (OffensiveAbilityUse)overrides[4];
+                }
+                else
+                {
+                    GaugeStrategy = GaugeUse.Automatic;
+                    PotionStrategy = PotionUse.Manual;
+                    InnerReleaseUse = OffensiveAbilityUse.Automatic;
+                    UpheavalUse = OffensiveAbilityUse.Automatic;
+                    PrimalRendUse = OffensiveAbilityUse.Automatic;
+                }
             }
         }
 
@@ -125,24 +174,100 @@ namespace BossMod.WAR
         }
 
         // by default, we spend resources either under raid buffs or if another raid buff window will cover at least 4 GCDs of the fight
-        public static bool ShouldSpendGauge(State state, Strategy strategy) => strategy.Gauge switch
+        public static bool ShouldSpendGauge(State state, Strategy strategy) => strategy.GaugeStrategy switch
         {
             Strategy.GaugeUse.Automatic => state.RaidBuffsLeft > state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10,
             Strategy.GaugeUse.Spend => true,
             Strategy.GaugeUse.ConserveIfNoBuffs => state.RaidBuffsLeft > state.GCD,
             Strategy.GaugeUse.Conserve => false,
-            _ => true,
+            _ => true
+        };
+
+        // note: this check will not allow using non-forced potions before lvl 50, but who cares...
+        public static bool ShouldUsePotion(State state, Strategy strategy) => strategy.PotionStrategy switch
+        {
+            Strategy.PotionUse.Manual => false,
+            Strategy.PotionUse.Immediate => state.SurgingTempestLeft > 0 || state.ComboLastMove == AID.Maim, // TODO: reconsider potion use during opener (delayed IR prefers after maim, early IR prefers after storm eye, to cover third IC on 13th GCD)
+            Strategy.PotionUse.DelayUntilRaidBuffs => state.SurgingTempestLeft > 0 && state.RaidBuffsLeft > 0,
+            Strategy.PotionUse.Force => true,
+            _ => false
+        };
+
+        // by default, we use IR asap as soon as ST is up
+        // TODO: early IR option: technically we can use right after heavy swing, we'll use maim->SE->IC->3xFC
+        public static bool ShouldUseInnerRelease(State state, Strategy strategy) => strategy.InnerReleaseUse switch
+        {
+            Strategy.OffensiveAbilityUse.Delay => false,
+            Strategy.OffensiveAbilityUse.Force => true,
+            _ => state.SurgingTempestLeft > state.GCD + 5
+        };
+
+        // check whether berserk should be delayed (we want to spend it on FCs)
+        // this is relevant only until we unlock IR
+        public static bool ShouldUseBerserk(State state, Strategy strategy, bool aoe)
+        {
+            if (strategy.InnerReleaseUse != Strategy.OffensiveAbilityUse.Automatic)
+                return strategy.InnerReleaseUse == Strategy.OffensiveAbilityUse.Force;
+
+            if (state.Unlocked(AID.StormEye) && state.SurgingTempestLeft <= state.GCD + 5)
+                return false; // no ST yet
+
+            if (aoe)
+                return true; // don't delay during aoe
+
+            if (state.Unlocked(AID.Infuriate))
+            {
+                // we really want to cast SP + 2xIB or 3xIB under berserk; check whether we'll have infuriate before third GCD
+                var availableGauge = state.Gauge;
+                if (state.CD(CDGroup.Infuriate) <= 65)
+                    availableGauge += 50;
+                return state.ComboLastMove switch
+                {
+                    AID.Maim => availableGauge >= 80, // TODO: this isn't a very good check, improve...
+                    _ => availableGauge == 150
+                };
+            }
+            else if (state.Unlocked(AID.InnerBeast))
+            {
+                // pre level 50 we ideally want to cast SP + 2xIB under berserk (we need to have 80+ gauge for that)
+                // however, we are also content with casting Maim + SP + IB (we need to have 20+ gauge for that; but if we have 70+, it is better to delay for 1 GCD)
+                // alternatively, we could delay for 3 GCDs at 40+ gauge - TODO determine which is better
+                return state.ComboLastMove switch
+                {
+                    AID.HeavySwing => state.Gauge is >= 20 and < 70,
+                    AID.Maim => state.Gauge >= 80,
+                    _ => false,
+                };
+            }
+            else
+            {
+                // pre level 35 there is no point delaying berserk at all
+                return true;
+            }
+        }
+
+        // by default, we use upheaval asap as soon as ST is up
+        // TODO: consider delaying for 1 GCD during opener...
+        public static bool ShouldUseUpheaval(State state, Strategy strategy) => strategy.UpheavalUse switch
+        {
+            Strategy.OffensiveAbilityUse.Delay => false,
+            Strategy.OffensiveAbilityUse.Force => true,
+            _ => state.SurgingTempestLeft > MathF.Max(state.CD(CDGroup.Upheaval), state.AnimationLock)
         };
 
         public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
         {
+            // forced PR
+            if (strategy.PrimalRendUse == Strategy.OffensiveAbilityUse.Force && state.PrimalRendLeft > state.GCD)
+                return AID.PrimalRend;
+
             var irCD = state.CD(state.Unlocked(AID.InnerRelease) ? CDGroup.InnerRelease : CDGroup.Berserk);
 
             bool spendGauge = ShouldSpendGauge(state, strategy);
             if (!state.Unlocked(AID.InnerRelease))
                 spendGauge &= irCD > 5; // TODO: improve...
 
-            float primalRendWindow = MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);
+            float primalRendWindow = strategy.PrimalRendUse == Strategy.OffensiveAbilityUse.Delay ? 0 : MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);
             var nextFCAction = state.NascentChaosLeft > state.GCD ? (state.Unlocked(AID.InnerChaos) && !aoe ? AID.InnerChaos : AID.ChaoticCyclone)
                 : (aoe && state.Unlocked(AID.SteelCyclone)) ? (state.Unlocked(AID.Decimate) ? AID.Decimate : AID.SteelCyclone)
                 : (state.Unlocked(AID.FellCleave) ? AID.FellCleave : AID.InnerBeast);
@@ -233,87 +358,28 @@ namespace BossMod.WAR
             return GetNextUnlockedComboAction(state, gcdDelay + 12.5f, aoe);
         }
 
-        // check whether berserk should be delayed (we want to spend it on FCs)
-        // this is relevant only until we unlock IR
-        public static bool DelayBerserk(State state)
-        {
-            if (state.Unlocked(AID.Infuriate))
-            {
-                // we really want to cast SP + 2xIB or 3xIB under berserk; check whether we'll have infuriate before third GCD
-                var availableGauge = state.Gauge;
-                if (state.CD(CDGroup.Infuriate) <= 65)
-                    availableGauge += 50;
-                return state.ComboLastMove switch
-                {
-                    AID.Maim => availableGauge < 80, // TODO: this isn't a very good check, improve...
-                    _ => availableGauge < 150
-                };
-            }
-            else if (state.Unlocked(AID.InnerBeast))
-            {
-                // pre level 50 we ideally want to cast SP + 2xIB under berserk (we need to have 80+ gauge for that)
-                // however, we are also content with casting Maim + SP + IB (we need to have 20+ gauge for that; but if we have 70+, it is better to delay for 1 GCD)
-                // alternatively, we could delay for 3 GCDs at 40+ gauge - TODO determine which is better
-                return state.ComboLastMove switch
-                {
-                    AID.HeavySwing => state.Gauge < 20 || state.Gauge >= 70,
-                    AID.Maim => state.Gauge < 80,
-                    _ => true,
-                };
-            }
-            else
-            {
-                // pre level 35 there is no point delaying berserk at all
-                return false;
-            }
-        }
-
         // window-end is either GCD or GCD - time-for-second-ogcd; we are allowed to use ogcds only if their animation lock would complete before window-end
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline, bool aoe)
         {
-            var irCD = state.CD(state.Unlocked(AID.InnerRelease) ? CDGroup.InnerRelease : CDGroup.Berserk);
+            // 1. potion
+            if (ShouldUsePotion(state, strategy) && state.CanWeave(state.PotionCD, 1.1f, deadline))
+                return CommonDefinitions.IDPotionStr;
 
-            // 1. potion, if required by strategy, and not too early in opener (TODO: reconsider priority)
-            // TODO: reconsider potion use during opener (delayed IR prefers after maim, early IR prefers after storm eye, to cover third IC on 13th GCD)
-            // note: this check will not allow using potions before lvl 50, but who cares...
-            if (strategy.Potion != Strategy.PotionUse.Manual && state.CanWeave(state.PotionCD, 1.1f, deadline) && (state.SurgingTempestLeft > 0 || state.ComboLastMove == AID.Maim))
+            // 2. inner release / berserk
+            if (state.Unlocked(AID.InnerRelease))
             {
-                // note: potion should never be delayed during opener slot
-                // we have a problem with late buff application during opener: between someone casting first raidbuff and us receiving buff, RaidBuffsLeft will be 0 and RaidBuffsIn will be very large
-                // after opener this won't be a huge deal, since we have several GCDs of leeway + most likely we have several raid buffs that are at least somewhat staggered
-                bool allowPotion = true;
-                if (strategy.Potion != Strategy.PotionUse.Immediate && state.SurgingTempestLeft > 0)
-                {
-                    // if we're delaying potion, make sure it covers IR (note: if IR is already up, it is too late...)
-                    allowPotion &= irCD < 15; // note: absolute max is 10, since we need 4 GCDs to fully consume IR
-                    if (strategy.Potion == Strategy.PotionUse.DelayUntilRaidBuffs)
-                    {
-                        // further delay potion until raidbuffs are up or imminent
-                        // we can't really control whether raidbuffs cover IR window, so skip potion only if we're sure raidbuffs might be up for next IR window
-                        // we assume that typical average raidbuff window is 20 sec, so raidbuffs will cover next window if they will start in ~(time to next IR - buff duration) ~= (IRCD + 60 - 20)
-                        allowPotion &= state.RaidBuffsLeft > 0 || strategy.RaidBuffsIn < irCD + 40;
-                    }
-                }
-
-                if (allowPotion)
-                    return CommonDefinitions.IDPotionStr;
-            }
-
-            // 2. inner release, if surging tempest up
-            // TODO: early IR option: technically we can use right after heavy swing, we'll use maim->SE->IC->3xFC
-            // if not unlocked yet, use berserk instead, but only if we have enough gauge
-            if (state.Unlocked(AID.Berserk) && state.CanWeave(irCD, 0.6f, deadline) && (state.SurgingTempestLeft > state.GCD + 5 || !state.Unlocked(AID.StormEye)))
-            {
-                if (state.Unlocked(AID.InnerRelease))
+                if (ShouldUseInnerRelease(state, strategy) && state.CanWeave(CDGroup.InnerRelease, 0.6f, deadline))
                     return ActionID.MakeSpell(AID.InnerRelease);
-                else if (aoe || !DelayBerserk(state))
+            }
+            else if (state.Unlocked(AID.Berserk))
+            {
+                if (ShouldUseBerserk(state, strategy, aoe) && state.CanWeave(CDGroup.Berserk, 0.6f, deadline))
                     return ActionID.MakeSpell(AID.Berserk);
             }
 
-            // 3. upheaval, if surging tempest up and not forbidden
-            // TODO: delay for 1 GCD during opener...
+            // 3. upheaval
             // TODO: reconsider priority compared to IR
-            if (state.Unlocked(AID.Upheaval) && state.CanWeave(CDGroup.Upheaval, 0.6f, deadline) && state.SurgingTempestLeft > MathF.Max(state.CD(CDGroup.Upheaval), 0) && strategy.EnableUpheaval)
+            if (state.Unlocked(AID.Upheaval) && ShouldUseUpheaval(state, strategy) && state.CanWeave(CDGroup.Upheaval, 0.6f, deadline))
                 return ActionID.MakeSpell(aoe && state.Unlocked(AID.Orogeny) ? AID.Orogeny : AID.Upheaval);
 
             // 4. infuriate, if not forbidden and not delayed
@@ -346,7 +412,7 @@ namespace BossMod.WAR
                     int gaugeCap = state.ComboLastMove == AID.None ? 50 : (state.ComboLastMove == AID.HeavySwing ? 40 : 30);
                     if (state.Gauge > gaugeCap)
                         maxInfuriateCD += 7.5f;
-                    bool irImminent = irCD < state.GCD + 2.5;
+                    bool irImminent = state.CD(CDGroup.InnerRelease) < state.GCD + 2.5;
                     maxInfuriateCD += (irImminent ? 3 : state.InnerReleaseStacks) * 7.5f;
                     if (state.CD(CDGroup.Infuriate) <= maxInfuriateCD)
                         return ActionID.MakeSpell(AID.Infuriate);

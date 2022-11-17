@@ -43,15 +43,12 @@ namespace BossMod
 
         public class Strategy
         {
-            public enum PotionUse { Manual, DelayUntilRaidBuffs, DelayUntilPersonalBuffs, Immediate }
-
             public bool Prepull; // true if neither self nor target are in combat; TODO consider replacing with countdown timer
             public bool ForbidDOTs;
             public float ForceMovementIn;
             public float FightEndIn; // how long fight will last (we try to spend all resources before this happens)
             public float RaidBuffsIn; // estimate time when new raidbuff window starts (if it is smaller than FightEndIn, we try to conserve resources)
             public float PositionLockIn; // time left to use moving abilities (Primal Rend and Onslaught) - we won't use them if it is ==0; setting this to 2.5f will make us use PR asap
-            public PotionUse Potion; // strategy for automatic potion use
         }
     }
 }
