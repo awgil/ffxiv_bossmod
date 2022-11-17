@@ -47,7 +47,7 @@ namespace BossMod
                 if (payload != null)
                 {
                     payload = ConvertConfig(payload, version);
-                    var ser = BuildSerializer();
+                    var ser = Serialization.BuildSerializer();
                     foreach (var (t, j) in payload)
                     {
                         var type = Type.GetType(t);
@@ -70,7 +70,7 @@ namespace BossMod
         {
             try
             {
-                var ser = BuildSerializer();
+                var ser = Serialization.BuildSerializer();
                 JObject payload = new();
                 foreach (var (t, n) in _nodes)
                 {
@@ -89,13 +89,6 @@ namespace BossMod
             {
                 Service.Log($"Failed to save config to {file.FullName}: {e}");
             }
-        }
-
-        public static JsonSerializer BuildSerializer()
-        {
-            var res = new JsonSerializer();
-            res.Converters.Add(new StringEnumConverter());
-            return res;
         }
 
         public List<string> ConsoleCommand(IReadOnlyList<string> args)

@@ -2,7 +2,6 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 
 namespace BossMod
@@ -35,20 +34,10 @@ namespace BossMod
 
             public static ActionUse? FromJSON(Type aidType, JObject? j, JsonSerializer ser)
             {
-                var aidStr = j?["ID"]?.Value<string>();
-                ActionID actionID;
-                object? aid;
-                if (Enum.TryParse(aidType, aidStr, out aid) && aid != null)
-                    actionID = new(ActionType.Spell, (uint)aid);
-                else if (aidStr?.StartsWith("0x") ?? false)
-                    actionID = new(uint.Parse(aidStr.Substring(2), NumberStyles.HexNumber));
-                else
+                var actionID = ser.DeserializeActionID(j?["ID"], aidType);
+                var stateID = ser.DeserializeHex(j?["StateID"]);
+                if (actionID == null || stateID == null)
                     return null;
-
-                var sid = j?["StateID"]?.Value<string>() ?? "";
-                if (!actionID || !sid.StartsWith("0x"))
-                    return null;
-                var usid = uint.Parse(sid.Substring(2), NumberStyles.HexNumber);
 
                 var jTarget = j?["Target"] as JObject;
                 var targetType = Type.GetType($"BossMod.PlanTarget.{jTarget?["Type"]?.Value<string>() ?? ""}");
@@ -59,32 +48,21 @@ namespace BossMod
                     {
                         if (f != "Type")
                         {
-                            var field = targetType?.GetField(f);
-                            if (field != null)
-                            {
-                                var value = data?.ToObject(field.FieldType, ser);
-                                if (value != null)
-                                {
-                                    field.SetValue(target, value);
-                                }
-                            }
+                            ser.DeserializeField(f, data, target);
                         }
                     }
                 }
 
-                return new ActionUse(actionID, usid, j?["TimeSinceActivation"]?.Value<float>() ?? 0, j?["WindowLength"]?.Value<float>() ?? 0, j?["LowPriority"]?.Value<bool>() ?? false, target ?? new PlanTarget.Self(), j?["Comment"]?.Value<string>() ?? "");
+                return new ActionUse(actionID.Value, stateID.Value, j?["TimeSinceActivation"]?.Value<float>() ?? 0, j?["WindowLength"]?.Value<float>() ?? 0, j?["LowPriority"]?.Value<bool>() ?? false, target ?? new PlanTarget.Self(), j?["Comment"]?.Value<string>() ?? "");
             }
 
             public JObject ToJSON(Type aidType, JsonSerializer ser)
             {
-                var aidStr = ID.Type == ActionType.Spell ? aidType.GetEnumName(ID.ID) : null;
-                aidStr ??= $"0x{ID.Raw:X}";
-
                 var target = JObject.FromObject(Target, ser);
                 target["Type"] = Target.GetType().Name;
 
                 JObject res = new();
-                res["ID"] = aidStr;
+                res["ID"] = ser.SerializeActionID(ID, aidType);
                 res["StateID"] = $"0x{StateID:X8}";
                 res["TimeSinceActivation"] = TimeSinceActivation;
                 res["WindowLength"] = WindowLength;
@@ -95,17 +73,62 @@ namespace BossMod
             }
         }
 
+        public class StrategyOverride
+        {
+            public uint Value;
+            public uint StateID;
+            public float TimeSinceActivation;
+            public float WindowLength;
+            public string Comment;
+
+            public StrategyOverride(uint value, uint stateID, float timeSinceActivation, float windowLength, string comment)
+            {
+                Value = value;
+                StateID = stateID;
+                TimeSinceActivation = timeSinceActivation;
+                WindowLength = windowLength;
+                Comment = comment;
+            }
+
+            public StrategyOverride Clone() => new(Value, StateID, TimeSinceActivation, WindowLength, Comment);
+
+            public static StrategyOverride? FromJSON(Type? valueType, JObject? j, JsonSerializer ser)
+            {
+                var value = ser.DeserializeEnum(j?["Value"], valueType) ?? 0;
+                var stateID = ser.DeserializeHex(j?["StateID"]);
+                if (stateID == null)
+                    return null;
+                return new StrategyOverride(value, stateID.Value, j?["TimeSinceActivation"]?.Value<float>() ?? 0, j?["WindowLength"]?.Value<float>() ?? 0, j?["Comment"]?.Value<string>() ?? "");
+            }
+
+            public JObject ToJSON(Type? valueType, JsonSerializer ser)
+            {
+                JObject res = new();
+                if (valueType != null && Value != 0)
+                    res["Value"] = valueType.GetEnumName(Value);
+                res["StateID"] = $"0x{StateID:X8}";
+                res["TimeSinceActivation"] = TimeSinceActivation;
+                res["WindowLength"] = WindowLength;
+                res["Comment"] = Comment;
+                return res;
+            }
+        }
+
         public Class Class;
         public int Level;
         public string Name;
         public StateMachineTimings Timings = new();
         public List<ActionUse> Actions = new();
+        public Dictionary<string, List<StrategyOverride>> StrategyOverrides = new();
 
-        public CooldownPlan(Class @class, int level, string name)
+        public CooldownPlan(Class cls, int level, string name)
         {
-            Class = @class;
+            Class = cls;
             Level = level;
             Name = name;
+
+            foreach (var s in PlanDefinitions.Classes[cls].StrategyTracks)
+                StrategyOverrides[s.Name] = new();
         }
 
         public CooldownPlan Clone()
@@ -113,29 +136,51 @@ namespace BossMod
             var res = new CooldownPlan(Class, Level, Name);
             res.Timings = Timings.Clone();
             res.Actions.AddRange(Actions.Select(a => a.Clone()));
+            foreach (var (k, v) in StrategyOverrides)
+                res.StrategyOverrides[k].AddRange(v.Select(s => s.Clone()));
             return res;
         }
 
-        public static CooldownPlan? FromJSON(Class @class, int level, JObject? j, JsonSerializer ser)
+        public static CooldownPlan? FromJSON(Class cls, int level, JObject? j, JsonSerializer ser)
         {
             var name = j?["Name"]?.Value<string>();
             if (name == null)
                 return null;
-            var res = new CooldownPlan(@class, level, name);
+            var res = new CooldownPlan(cls, level, name);
             res.Timings = j?["Timings"]?.ToObject<StateMachineTimings>(ser) ?? res.Timings;
+
+            var classData = PlanDefinitions.Classes[cls];
             var actions = j?["Actions"] as JArray;
-            var aidType = PlanDefinitions.Classes[@class].AIDType;
             if (actions != null)
             {
                 foreach (var ja in actions)
                 {
-                    var a = ActionUse.FromJSON(aidType, ja as JObject, ser);
+                    var a = ActionUse.FromJSON(classData.AIDType, ja as JObject, ser);
                     if (a != null)
                     {
                         res.Actions.Add(a);
                     }
                 }
             }
+
+            var jstrats = j?["Strategies"] as JObject;
+            foreach (var trackData in classData.StrategyTracks)
+            {
+                var jstrat = jstrats?[trackData.Name] as JArray;
+                if (jstrat == null)
+                    continue;
+
+                var resStrats = res.StrategyOverrides[trackData.Name];
+                foreach (var js in jstrat)
+                {
+                    var s = StrategyOverride.FromJSON(trackData.Values, js as JObject, ser);
+                    if (s != null)
+                    {
+                        resStrats.Add(s);
+                    }
+                }
+            }
+
             return res;
         }
 
@@ -144,11 +189,25 @@ namespace BossMod
             JObject res = new();
             res["Name"] = Name;
             res["Timings"] = JObject.FromObject(Timings, ser);
-            var aidType = PlanDefinitions.Classes[Class].AIDType;
+
+            var classData = PlanDefinitions.Classes[Class];
             var actions = new JArray();
             res["Actions"] = actions;
             foreach (var a in Actions)
-                actions.Add(a.ToJSON(aidType, ser));
+                actions.Add(a.ToJSON(classData.AIDType, ser));
+
+            var strats = new JObject();
+            res["Strategies"] = strats;
+            foreach (var trackData in classData.StrategyTracks)
+            {
+                var overrides = new JArray();
+                strats[trackData.Name] = overrides;
+                foreach (var o in StrategyOverrides[trackData.Name])
+                {
+                    overrides.Add(o.ToJSON(trackData.Values, ser));
+                }
+            }
+
             return res;
         }
     }

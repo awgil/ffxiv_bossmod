@@ -23,11 +23,24 @@ namespace BossMod
             }
         }
 
+        public class StrategyTrack
+        {
+            public string Name;
+            public Type? Values;
+
+            public StrategyTrack(string name, Type? values = null)
+            {
+                Name = name;
+                Values = values;
+            }
+        }
+
         public class ClassData
         {
             public Type AIDType;
             public Dictionary<ActionID, ActionDefinition> Abilities;
             public List<CooldownTrack> CooldownTracks = new();
+            public List<StrategyTrack> StrategyTracks = new();
 
             public ClassData(Type aidType, Dictionary<ActionID, ActionDefinition> supportedActions)
             {
@@ -62,6 +75,7 @@ namespace BossMod
             c.CooldownTracks.Add(new("ArmsLength", ActionID.MakeSpell(WAR.AID.ArmsLength), 32));
             c.CooldownTracks.Add(new("Reprisal", ActionID.MakeSpell(WAR.AID.Reprisal), 22));
             c.CooldownTracks.Add(new("ShakeItOff", ActionID.MakeSpell(WAR.AID.ShakeItOff), 68));
+            c.StrategyTracks.Add(new("Gauge use", typeof(WAR.Rotation.Strategy.GaugeUse)));
             return c;
         }
 

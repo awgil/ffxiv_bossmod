@@ -38,6 +38,21 @@ namespace BossMod.WAR
         // many strategy decisions are represented as "need-something-in" counters; 0 means "use asap", >0 means "do not use unless value is larger than cooldown" (so 'infinity' means 'free to use')
         public class Strategy : CommonRotation.Strategy
         {
+            public enum GaugeUse
+            {
+                Automatic = 0, // spend gauge either under raid buffs or if next downtime is soon (so that next raid buff window won't cover at least 4 GCDs)
+
+                [PropertyDisplay("Spend all gauge ASAP", 0xff00ff00)]
+                Spend = 1, // spend all gauge asap, don't bother conserving
+
+                [PropertyDisplay("Conserve unless under raid buffs", 0xff00ffff)]
+                ConserveIfNoBuffs = 2, // spend under raid buffs, conserve otherwise (even if downtime is imminent)
+
+                [PropertyDisplay("Conserve as much as possible", 0xff0000ff)]
+                Conserve = 3, // conserve even if under raid buffs (useful if heavy vuln phase is imminent)
+            }
+
+            public GaugeUse Gauge; // how are we supposed to handle gauge
             public float FirstChargeIn; // when do we need to use onslaught charge (0 means 'use asap if out of melee range', >0 means that we'll try to make sure 1 charge is available in this time)
             public float SecondChargeIn; // when do we need to use two onslaught charges in a short amount of time
             public bool EnableUpheaval = true; // if true, enable using upheaval when needed; setting to false is useful during opener before first party buffs
@@ -109,12 +124,21 @@ namespace BossMod.WAR
             }
         }
 
+        // by default, we spend resources either under raid buffs or if another raid buff window will cover at least 4 GCDs of the fight
+        public static bool ShouldSpendGauge(State state, Strategy strategy) => strategy.Gauge switch
+        {
+            Strategy.GaugeUse.Automatic => state.RaidBuffsLeft > state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10,
+            Strategy.GaugeUse.Spend => true,
+            Strategy.GaugeUse.ConserveIfNoBuffs => state.RaidBuffsLeft > state.GCD,
+            Strategy.GaugeUse.Conserve => false,
+            _ => true,
+        };
+
         public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
         {
             var irCD = state.CD(state.Unlocked(AID.InnerRelease) ? CDGroup.InnerRelease : CDGroup.Berserk);
 
-            // we spend resources either under raid buffs or if another raid buff window will cover at least 4 GCDs of the fight
-            bool spendGauge = state.RaidBuffsLeft > state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10;
+            bool spendGauge = ShouldSpendGauge(state, strategy);
             if (!state.Unlocked(AID.InnerRelease))
                 spendGauge &= irCD > 5; // TODO: improve...
 
@@ -293,7 +317,7 @@ namespace BossMod.WAR
                 return ActionID.MakeSpell(aoe && state.Unlocked(AID.Orogeny) ? AID.Orogeny : AID.Upheaval);
 
             // 4. infuriate, if not forbidden and not delayed
-            bool spendGauge = state.RaidBuffsLeft >= state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10;
+            bool spendGauge = ShouldSpendGauge(state, strategy);
             bool infuriateAvailable = state.Unlocked(AID.Infuriate) && state.CanWeave(state.CD(CDGroup.Infuriate) - 60, 0.6f, deadline); // note: for second stack, this will be true if casting it won't delay our next gcd
             infuriateAvailable &= state.Gauge <= 50; // never cast infuriate if doing so would overcap gauge
             if (state.Unlocked(AID.ChaoticCyclone))

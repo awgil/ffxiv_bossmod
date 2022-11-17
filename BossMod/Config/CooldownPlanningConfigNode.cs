@@ -148,7 +148,7 @@ namespace BossMod
                 if (f == "CooldownPlans")
                     DeserializeCooldownPlans(data as JObject, ser);
                 else
-                    DeserializeField(f, data, ser);
+                    ser.DeserializeField(f, data, this);
             }
         }
 
