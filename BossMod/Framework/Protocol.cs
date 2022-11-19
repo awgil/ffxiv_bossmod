@@ -9,9 +9,9 @@ namespace BossMod
         {
             // opcodes from machina
             StatusEffectList = 0x019B,
-            StatusEffectList2 = 0xF31E,
-            StatusEffectList3 = 0xF357,
-            BossStatusEffectList = 0xF11A,
+            StatusEffectList2 = 0x00F8, // idb: StatusEffectListWithForay2
+            StatusEffectList3 = 0x03CD, // idb: UpdatePlayerStatuses
+            BossStatusEffectList = 0x034D, // idb: StatusEffectListDouble
             ActionEffect1 = 0x0395, // Machina calls it AbilityN, size=124
             ActionEffect8 = 0x0311, // size=636
             ActionEffect16 = 0x0351,
@@ -34,10 +34,10 @@ namespace BossMod
             UpdateHpMpTp = 0x02A2,
             PlayerSpawn = 0x00DD,
             NpcSpawn = 0x0359,
-            NpcSpawn2 = 0xF20A,
-            ActorMove = 0xF0B3,
-            ActorSetPos = 0xF1BA,
-            ActorGauge = 0xF2AB,
+            NpcSpawn2 = 0x0190, // idb: type-3 (double status list?..)
+            ActorMove = 0x0384,
+            ActorSetPos = 0x0329,
+            ActorGauge = 0x0382,
             PresetWaymark = 0x0332, // FFXIVOpcodes calls this PlaceFieldMarkerPreset
             Waymark = 0x01D8, // FFXIVOpcodes calls this PlaceFieldMarker
             SystemLogMessage = 0xF1DB, // FFXIVOpcodes calls this SomeDirectorUnk4
@@ -100,8 +100,8 @@ namespace BossMod
             UpdateRecastTimes = 0x00A9, // payload = 80 floats 'elapsed' + 80 floats 'total'
             UpdateHate = 0x0328, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
             UpdateHater = 0x026C, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
-            Countdown = 0xF34E,
-            CountdownCancel = 0xF17B,
+            Countdown = 0x020C,
+            CountdownCancel = 0x018F,
             RSVData = 0x00D0,
             ActionRequest = 0x0093, // just begin casting return...
             ActionRequestGroundTargeted = 0x00EA, // XIVAlexander
