@@ -50,6 +50,9 @@ namespace BossMod.WAR
 
                 [PropertyDisplay("Conserve as much as possible", 0x800000ff)]
                 Conserve = 3, // conserve even if under raid buffs (useful if heavy vuln phase is imminent)
+
+                [PropertyDisplay("Force extend ST buff, potentially overcapping gauge and/or ST", 0x80ff00ff)]
+                ForceExtendST = 4, // force combo to extend buff (useful before downtime of medium length)
             }
 
             public enum PotionUse : uint
@@ -173,6 +176,20 @@ namespace BossMod.WAR
             }
         }
 
+        public static AID GetNextFCAction(State state, bool aoe)
+        {
+            // note: under nascent chaos, if IC is not unlocked yet, we want to use cyclone even in non-aoe situations
+            if (state.NascentChaosLeft > state.GCD)
+                return state.Unlocked(AID.InnerChaos) && !aoe ? AID.InnerChaos : AID.ChaoticCyclone;
+
+            // aoe gauge spender
+            if (aoe && state.Unlocked(AID.SteelCyclone))
+                return state.Unlocked(AID.Decimate) ? AID.Decimate : AID.SteelCyclone;
+
+            // single-target gauge spender
+            return state.Unlocked(AID.FellCleave) ? AID.FellCleave : AID.InnerBeast;
+        }
+
         // by default, we spend resources either under raid buffs or if another raid buff window will cover at least 4 GCDs of the fight
         public static bool ShouldSpendGauge(State state, Strategy strategy) => strategy.GaugeStrategy switch
         {
@@ -180,6 +197,7 @@ namespace BossMod.WAR
             Strategy.GaugeUse.Spend => true,
             Strategy.GaugeUse.ConserveIfNoBuffs => state.RaidBuffsLeft > state.GCD,
             Strategy.GaugeUse.Conserve => false,
+            Strategy.GaugeUse.ForceExtendST => false,
             _ => true
         };
 
@@ -199,7 +217,7 @@ namespace BossMod.WAR
         {
             Strategy.OffensiveAbilityUse.Delay => false,
             Strategy.OffensiveAbilityUse.Force => true,
-            _ => state.SurgingTempestLeft > state.GCD + 5
+            _ => state.TargetingEnemy && state.SurgingTempestLeft > state.GCD + 5
         };
 
         // check whether berserk should be delayed (we want to spend it on FCs)
@@ -208,6 +226,9 @@ namespace BossMod.WAR
         {
             if (strategy.InnerReleaseUse != Strategy.OffensiveAbilityUse.Automatic)
                 return strategy.InnerReleaseUse == Strategy.OffensiveAbilityUse.Force;
+
+            if (!state.TargetingEnemy)
+                return false; // no target, maybe downtime?
 
             if (state.Unlocked(AID.StormEye) && state.SurgingTempestLeft <= state.GCD + 5)
                 return false; // no ST yet
@@ -252,25 +273,26 @@ namespace BossMod.WAR
         {
             Strategy.OffensiveAbilityUse.Delay => false,
             Strategy.OffensiveAbilityUse.Force => true,
-            _ => state.SurgingTempestLeft > MathF.Max(state.CD(CDGroup.Upheaval), state.AnimationLock)
+            _ => state.TargetingEnemy && state.SurgingTempestLeft > MathF.Max(state.CD(CDGroup.Upheaval), state.AnimationLock)
         };
 
         public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
         {
+            // 0. non-standard actions forced by strategy
             // forced PR
             if (strategy.PrimalRendUse == Strategy.OffensiveAbilityUse.Force && state.PrimalRendLeft > state.GCD)
                 return AID.PrimalRend;
+            float primalRendWindow = strategy.PrimalRendUse == Strategy.OffensiveAbilityUse.Delay ? 0 : MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);
+
+            // forced surging tempest combo (TODO: at which point does AOE combo start giving ST?)
+            if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceExtendST && state.Unlocked(AID.StormEye))
+                return aoe ? GetNextAOEComboAction(state.ComboLastMove) : GetNextSTComboAction(state.ComboLastMove, AID.StormEye);
 
             var irCD = state.CD(state.Unlocked(AID.InnerRelease) ? CDGroup.InnerRelease : CDGroup.Berserk);
 
             bool spendGauge = ShouldSpendGauge(state, strategy);
             if (!state.Unlocked(AID.InnerRelease))
                 spendGauge &= irCD > 5; // TODO: improve...
-
-            float primalRendWindow = strategy.PrimalRendUse == Strategy.OffensiveAbilityUse.Delay ? 0 : MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);
-            var nextFCAction = state.NascentChaosLeft > state.GCD ? (state.Unlocked(AID.InnerChaos) && !aoe ? AID.InnerChaos : AID.ChaoticCyclone)
-                : (aoe && state.Unlocked(AID.SteelCyclone)) ? (state.Unlocked(AID.Decimate) ? AID.Decimate : AID.SteelCyclone)
-                : (state.Unlocked(AID.FellCleave) ? AID.FellCleave : AID.InnerBeast);
 
             // 1. if it is the last CD possible for PR/NC, don't waste them
             float gcdDelay = state.GCD + (strategy.Aggressive ? 0 : 2.5f);
@@ -279,7 +301,7 @@ namespace BossMod.WAR
             if (primalRendWindow > state.GCD && primalRendWindow < secondGCDIn)
                 return AID.PrimalRend;
             if (state.NascentChaosLeft > state.GCD && state.NascentChaosLeft < secondGCDIn)
-                return nextFCAction;
+                return GetNextFCAction(state, aoe);
             if (primalRendWindow > state.GCD && state.NascentChaosLeft > state.GCD && primalRendWindow < thirdGCDIn && state.NascentChaosLeft < thirdGCDIn)
                 return AID.PrimalRend; // either is fine
 
@@ -293,22 +315,22 @@ namespace BossMod.WAR
                     if (state.NascentChaosLeft > state.GCD)
                         ++fcCastsLeft;
                     if (state.InnerReleaseLeft <= state.GCD + fcCastsLeft * 2.5f)
-                        return nextFCAction;
+                        return GetNextFCAction(state, aoe);
 
                     // don't delay if it won't give us anything (but still prefer PR under buffs)
-                    if (state.InnerReleaseLeft <= strategy.RaidBuffsIn)
-                        return primalRendWindow > state.GCD && spendGauge ? AID.PrimalRend : nextFCAction;
+                    if (spendGauge || state.InnerReleaseLeft <= strategy.RaidBuffsIn)
+                        return primalRendWindow > state.GCD && spendGauge ? AID.PrimalRend : GetNextFCAction(state, aoe);
 
                     // don't delay FC if it can cause infuriate overcap (e.g. we use combo action, gain gauge and then can't spend it in time)
                     if (state.CD(CDGroup.Infuriate) < state.GCD + (state.InnerReleaseStacks + 1) * 7.5f)
-                        return nextFCAction;
+                        return GetNextFCAction(state, aoe);
 
                 }
                 else if (state.Gauge >= 50 && (state.Unlocked(AID.FellCleave) || state.ComboLastMove != AID.Maim || aoe && state.Unlocked(AID.SteelCyclone)))
                 {
                     // single-target: FC > SE/ST > IB > Maim > HS
                     // aoe: Decimate > SC > Combo
-                    return nextFCAction;
+                    return GetNextFCAction(state, aoe);
                 }
             }
 
@@ -327,12 +349,12 @@ namespace BossMod.WAR
 
             // 4. if we're delaying Infuriate due to gauge, cast FC asap (7.5 for FC)
             if (state.Gauge > 50 && state.Unlocked(AID.Infuriate) && state.CD(CDGroup.Infuriate) <= gcdDelay + 7.5)
-                return nextFCAction;
+                return GetNextFCAction(state, aoe);
 
             // 5. if we have >50 gauge, IR is imminent, and not spending gauge now will cause us to overcap infuriate, spend gauge asap
             // 30 seconds is for FC + IR + 3xFC - this is 4 gcds (10 sec) and 4 FCs (another 20 sec)
             if (state.Gauge > 50 && state.Unlocked(AID.Infuriate) && state.CD(CDGroup.Infuriate) <= gcdDelay + 30 && irCD < secondGCDIn)
-                return nextFCAction;
+                return GetNextFCAction(state, aoe);
 
             // 6. if there is no chance we can delay PR until next raid buffs, just cast it now
             if (primalRendWindow > state.GCD && primalRendWindow <= strategy.RaidBuffsIn)
@@ -352,7 +374,7 @@ namespace BossMod.WAR
             if (primalRendWindow > state.GCD)
                 return AID.PrimalRend;
             if (state.Gauge >= 50 || state.InnerReleaseStacks > 0 && state.Unlocked(AID.InnerRelease))
-                return nextFCAction;
+                return GetNextFCAction(state, aoe);
 
             // TODO: reconsider min time left...
             return GetNextUnlockedComboAction(state, gcdDelay + 12.5f, aoe);
@@ -392,7 +414,7 @@ namespace BossMod.WAR
                 infuriateAvailable &= state.InnerReleaseLeft <= state.GCD || state.InnerReleaseLeft > state.GCD + 2.5f * state.InnerReleaseStacks; // never cast infuriate if it will cause us to lose IR stacks
                 infuriateAvailable &= state.NascentChaosLeft <= state.GCD; // never cast infuriate if NC from previous infuriate is still up for next GCD
             }
-            if (infuriateAvailable)
+            if (infuriateAvailable && state.TargetingEnemy)
             {
                 // different logic before IR and after IR
                 if (state.Unlocked(AID.InnerRelease))
@@ -433,7 +455,7 @@ namespace BossMod.WAR
             }
 
             // 5. onslaught, if surging tempest up and not forbidden
-            if (state.Unlocked(AID.Onslaught) && state.CanWeave(state.CD(CDGroup.Onslaught) - 60, 0.6f, deadline) && strategy.PositionLockIn > state.AnimationLock && state.SurgingTempestLeft > state.AnimationLock)
+            if (state.Unlocked(AID.Onslaught) && state.CanWeave(state.CD(CDGroup.Onslaught) - 60, 0.6f, deadline) && state.TargetingEnemy && strategy.PositionLockIn > state.AnimationLock && state.SurgingTempestLeft > state.AnimationLock)
             {
                 float chargeCapIn = state.CD(CDGroup.Onslaught) - (state.Unlocked(TraitID.EnhancedOnslaught) ? 0 : 30);
                 if (chargeCapIn < state.GCD + 2.5)

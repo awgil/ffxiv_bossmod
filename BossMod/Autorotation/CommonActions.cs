@@ -300,16 +300,16 @@ namespace BossMod
         protected abstract void OnActionExecuted(ActionID action, Actor? target);
         protected abstract void OnActionSucceeded(ActorCastEvent ev);
 
-        protected NextAction MakeResult(ActionID action, Actor target)
+        protected NextAction MakeResult(ActionID action, Actor? target)
         {
             var data = action ? SupportedActions[action] : null;
             if (data == null)
                 return new();
             if (data.Definition.Range == 0)
                 target = Player; // override range-0 actions to always target player
-            return data.Allowed(Player, target) ? new(action, target, new(), data.Definition, ActionSource.Automatic) : new();
+            return target != null && data.Allowed(Player, target) ? new(action, target, new(), data.Definition, ActionSource.Automatic) : new();
         }
-        protected NextAction MakeResult<AID>(AID aid, Actor target) where AID : Enum => MakeResult(ActionID.MakeSpell(aid), target);
+        protected NextAction MakeResult<AID>(AID aid, Actor? target) where AID : Enum => MakeResult(ActionID.MakeSpell(aid), target);
 
         protected void SimulateManualActionForAI(ActionID action, Actor? target, bool enable)
         {
@@ -334,6 +334,7 @@ namespace BossMod
             s.Level = pc?.Level ?? 0;
             s.UnlockProgress = _lock.Progress();
             s.CurMP = Player.CurMP;
+            s.TargetingEnemy = Autorot.PrimaryTarget != null && Autorot.PrimaryTarget.Type is ActorType.Enemy or ActorType.Unknown && !Autorot.PrimaryTarget.IsAlly;
             s.AnimationLock = am.EffectiveAnimationLock;
             s.AnimationLockDelay = am.EffectiveAnimationLockDelay;
             s.ComboTimeLeft = am.ComboTimeLeft;

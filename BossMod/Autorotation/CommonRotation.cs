@@ -15,6 +15,7 @@ namespace BossMod
             public int Level;
             public int UnlockProgress;
             public uint CurMP; // 10000 max
+            public bool TargetingEnemy;
             public float AnimationLock; // typical actions have 0.6 delay, but some (notably primal rend and potion) are >1
             public float AnimationLockDelay; // average time between action request and confirmation; this is added to effective animation lock for actions
             public float ComboTimeLeft; // 0 if not in combo, max 30
