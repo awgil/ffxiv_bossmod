@@ -86,8 +86,7 @@ namespace UIDev
 
             var strategy = new Rotation.Strategy();
             strategy.PositionLockIn = 10000;
-            strategy.FirstChargeIn = KeepOnslaughtCharge ? 0.1f : 10000;
-            strategy.SecondChargeIn = 10000;
+            strategy.OnslaughtStrategy = KeepOnslaughtCharge ? Rotation.Strategy.OnslaughtUse.Automatic : Rotation.Strategy.OnslaughtUse.NoReserve;
             //strategy.Potion = PotionUse;
 
             var state = new Rotation.State(new float[0]);

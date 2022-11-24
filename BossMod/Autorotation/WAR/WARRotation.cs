@@ -35,7 +35,6 @@ namespace BossMod.WAR
         }
 
         // strategy configuration
-        // many strategy decisions are represented as "need-something-in" counters; 0 means "use asap", >0 means "do not use unless value is larger than cooldown" (so 'infinity' means 'free to use')
         public class Strategy : CommonRotation.Strategy
         {
             public enum GaugeUse : uint
@@ -80,13 +79,29 @@ namespace BossMod.WAR
                 Force = 2, // force use ASAP
             }
 
+            public enum OnslaughtUse : uint
+            {
+                Automatic = 0, // always keep one charge reserved, use other charges under raidbuffs or prevent overcapping
+
+                [PropertyDisplay("Forbid automatic use", 0x800000ff)]
+                Forbid = 1, // forbid until window end
+
+                [PropertyDisplay("Do not reserve charges: use all charges if under raidbuffs, otherwise use as needed to prevent overcapping", 0x8000ffff)]
+                NoReserve = 2, // automatic logic, except without reserved charge
+
+                [PropertyDisplay("Use all charges ASAP", 0x8000ff00)]
+                Force = 3, // use all charges immediately, don't wait for raidbuffs
+
+                [PropertyDisplay("Use all charges except one ASAP", 0x80ff0000)]
+                ForceReserve = 4, // if 2+ charges, use immediately
+            }
+
             public GaugeUse GaugeStrategy; // how are we supposed to handle gauge
             public PotionUse PotionStrategy; // how are we supposed to use potions
             public OffensiveAbilityUse InnerReleaseUse; // how are we supposed to use IR
             public OffensiveAbilityUse UpheavalUse; // how are we supposed to use upheaval
             public OffensiveAbilityUse PrimalRendUse; // how are we supposed to use PR
-            public float FirstChargeIn; // when do we need to use onslaught charge (0 means 'use asap if out of melee range', >0 means that we'll try to make sure 1 charge is available in this time)
-            public float SecondChargeIn; // when do we need to use two onslaught charges in a short amount of time
+            public OnslaughtUse OnslaughtStrategy; // how are we supposed to use onslaught
             public bool Aggressive; // if true, we use buffs and stuff at last possible moment; otherwise we make sure to keep at least 1 GCD safety net
 
             public override string ToString()
@@ -97,13 +112,14 @@ namespace BossMod.WAR
             // TODO: these bindings should be done by the framework...
             public void ApplyStrategyOverrides(uint[] overrides)
             {
-                if (overrides.Length >= 5)
+                if (overrides.Length >= 6)
                 {
                     GaugeStrategy = (GaugeUse)overrides[0];
                     PotionStrategy = (PotionUse)overrides[1];
                     InnerReleaseUse = (OffensiveAbilityUse)overrides[2];
                     UpheavalUse = (OffensiveAbilityUse)overrides[3];
                     PrimalRendUse = (OffensiveAbilityUse)overrides[4];
+                    OnslaughtStrategy = (OnslaughtUse)overrides[5];
                 }
                 else
                 {
@@ -112,6 +128,7 @@ namespace BossMod.WAR
                     InnerReleaseUse = OffensiveAbilityUse.Automatic;
                     UpheavalUse = OffensiveAbilityUse.Automatic;
                     PrimalRendUse = OffensiveAbilityUse.Automatic;
+                    OnslaughtStrategy = OnslaughtUse.Automatic;
                 }
             }
         }
@@ -276,6 +293,32 @@ namespace BossMod.WAR
             _ => state.TargetingEnemy && state.SurgingTempestLeft > MathF.Max(state.CD(CDGroup.Upheaval), state.AnimationLock)
         };
 
+        public static bool ShouldUseOnslaught(State state, Strategy strategy)
+        {
+            switch (strategy.OnslaughtStrategy)
+            {
+                case Strategy.OnslaughtUse.Forbid:
+                    return false;
+                case Strategy.OnslaughtUse.Force:
+                    return true;
+                case Strategy.OnslaughtUse.ForceReserve:
+                    return state.CD(CDGroup.Onslaught) <= 30 + state.AnimationLock;
+                default:
+                    if (strategy.PositionLockIn <= state.AnimationLock)
+                        return false; // forbidden due to state flags
+                    if (state.SurgingTempestLeft <= state.AnimationLock)
+                        return false; // delay until ST, even if overcapping charges
+                    float chargeCapIn = state.CD(CDGroup.Onslaught) - (state.Unlocked(TraitID.EnhancedOnslaught) ? 0 : 30);
+                    if (chargeCapIn < state.GCD + 2.5)
+                        return true; // if we won't onslaught now, we risk overcapping charges
+                    if (strategy.OnslaughtStrategy != Strategy.OnslaughtUse.NoReserve && state.CD(CDGroup.Onslaught) > 30 + state.AnimationLock)
+                        return false; // strategy prevents us from using last charge
+                    if (state.RaidBuffsLeft > state.AnimationLock)
+                        return true; // use now, since we're under raid buffs
+                    return chargeCapIn <= strategy.RaidBuffsIn; // use if we won't be able to delay until next raid buffs
+            }
+        }
+
         public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
         {
             // 0. non-standard actions forced by strategy
@@ -405,7 +448,6 @@ namespace BossMod.WAR
                 return ActionID.MakeSpell(aoe && state.Unlocked(AID.Orogeny) ? AID.Orogeny : AID.Upheaval);
 
             // 4. infuriate, if not forbidden and not delayed
-            bool spendGauge = ShouldSpendGauge(state, strategy);
             bool infuriateAvailable = state.Unlocked(AID.Infuriate) && state.CanWeave(state.CD(CDGroup.Infuriate) - 60, 0.6f, deadline); // note: for second stack, this will be true if casting it won't delay our next gcd
             infuriateAvailable &= state.Gauge <= 50; // never cast infuriate if doing so would overcap gauge
             if (state.Unlocked(AID.ChaoticCyclone))
@@ -420,7 +462,7 @@ namespace BossMod.WAR
                 if (state.Unlocked(AID.InnerRelease))
                 {
                     // with IR, main purpose of infuriate is to generate gauge to burn in spend mode
-                    if (spendGauge)
+                    if (ShouldSpendGauge(state, strategy))
                         return ActionID.MakeSpell(AID.Infuriate);
 
                     // don't delay if we risk overcapping stacks
@@ -455,24 +497,8 @@ namespace BossMod.WAR
             }
 
             // 5. onslaught, if surging tempest up and not forbidden
-            if (state.Unlocked(AID.Onslaught) && state.CanWeave(state.CD(CDGroup.Onslaught) - 60, 0.6f, deadline) && state.TargetingEnemy && strategy.PositionLockIn > state.AnimationLock && state.SurgingTempestLeft > state.AnimationLock)
-            {
-                float chargeCapIn = state.CD(CDGroup.Onslaught) - (state.Unlocked(TraitID.EnhancedOnslaught) ? 0 : 30);
-                if (chargeCapIn < state.GCD + 2.5)
-                    return ActionID.MakeSpell(AID.Onslaught); // onslaught now, otherwise we risk overcapping charges
-
-                if (strategy.FirstChargeIn <= 0)
-                    return ActionID.MakeSpell(AID.Onslaught); // onslaught now, since strategy asks for it
-
-                // check whether using onslaught now won't prevent us from using it when strategy demands
-                // first charge: if we use charge now, CD will become curr+30; after dt, it will then become curr+30-dt; if we want to charge there, we need it to be <= 60 ==> it's safe to charge if curr+30-dt <= 60 => curr <= dt+30
-                // second charge: if we use charge now, CD will become curr+30; after dt (and using 'first' charge inside this dt) it will then become curr+60-dt; condition for second charge is then curr+60-dt <= 60 => curr <= dt
-                bool safeToUseOnslaught = state.CD(CDGroup.Onslaught) <= strategy.FirstChargeIn + 30 && state.CD(CDGroup.Onslaught) <= strategy.SecondChargeIn;
-
-                // use onslaught now if it's safe and we're either spending gauge or won't be able to delay it until next buff window anyway
-                if (safeToUseOnslaught && (spendGauge || chargeCapIn <= strategy.RaidBuffsIn))
-                    return ActionID.MakeSpell(AID.Onslaught);
-            }
+            if (state.Unlocked(AID.Onslaught) && state.TargetingEnemy && state.CanWeave(state.CD(CDGroup.Onslaught) - 60, 0.6f, deadline) && ShouldUseOnslaught(state, strategy))
+                return ActionID.MakeSpell(AID.Onslaught);
 
             // no suitable oGCDs...
             return new();

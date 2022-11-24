@@ -18,7 +18,6 @@ autorotation:
 - opener support
 - dot/regen server tick tracking
 - war
--- charge planning
 -- simulate gauge changes (message can arrive few frames after ActionEffect...)
 -- low-level rotation - improve berserk delay logic
 -- gauge & buff visualization

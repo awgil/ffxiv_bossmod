@@ -19,11 +19,7 @@ namespace BossMod.WAR
         {
             _config = Service.Config.Get<WARConfig>();
             _state = new(autorot.Cooldowns);
-            _strategy = new()
-            {
-                FirstChargeIn = 0.01f, // by default, always preserve 1 onslaught charge
-                SecondChargeIn = 10000, // ... but don't preserve second
-            };
+            _strategy = new();
 
             // upgrades
             SupportedSpell(AID.InnerBeast).TransformAction = SupportedSpell(AID.FellCleave).TransformAction = SupportedSpell(AID.InnerChaos).TransformAction = () => ActionID.MakeSpell(_state.BestFellCleave);
