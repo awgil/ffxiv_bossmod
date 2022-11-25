@@ -58,7 +58,7 @@ namespace BossMod.SMN
 
         protected override NextAction CalculateAutomaticGCD()
         {
-            if (_strategy.Prepull && _state.Unlocked(AID.SummonCarbuncle) && !_state.PetSummoned)
+            if (!Player.InCombat && _state.Unlocked(AID.SummonCarbuncle) && !_state.PetSummoned)
                 return MakeResult(AID.SummonCarbuncle, Player);
             //if ((AutoStrategy & AutoAction.GCDHeal) != 0)
             //    return MakeResult(AID.Physick, Autorot.SecondaryTarget); // TODO: automatic target selection

@@ -44,7 +44,7 @@ namespace BossMod
 
         public class Strategy
         {
-            public bool Prepull; // true if neither self nor target are in combat; TODO consider replacing with countdown timer
+            public float CombatTimer; // MinValue if not in combat, negative during countdown, zero or positive during combat
             public bool ForbidDOTs;
             public float ForceMovementIn;
             public float FightEndIn; // how long fight will last (we try to spend all resources before this happens)

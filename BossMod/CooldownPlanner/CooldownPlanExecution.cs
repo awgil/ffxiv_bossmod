@@ -76,15 +76,18 @@ namespace BossMod
         }
 
         public CooldownPlan? Plan { get; private init; }
-        private StateData Pull = new();
+        private StateData Pull;
         private Dictionary<uint, StateData> States = new();
         private List<ActionData> Actions = new();
         private List<StrategyData> Strategies = new();
         private int _numStrategyTracks;
 
+        public IReadOnlyList<StrategyData> Strats => Strategies;
+
         public CooldownPlanExecution(StateMachine sm, CooldownPlan? plan)
         {
             Plan = plan;
+            Pull = new() { EnterTime = -30, Duration = 30, NumBranches = 1 };
 
             var tree = new StateMachineTree(sm);
             tree.ApplyTimings(plan?.Timings);
@@ -151,8 +154,9 @@ namespace BossMod
         {
             var res = new uint[_numStrategyTracks];
             var max = new float[_numStrategyTracks];
+            Array.Fill(max, float.MinValue);
             var s = FindStateData(sm.ActiveState);
-            var t = s.EnterTime + Math.Min(sm.TimeSinceTransition, s.Duration);
+            var t = s != Pull ? s.EnterTime + Math.Min(sm.TimeSinceTransition, s.Duration) : -sm.PrepullTimer;
             foreach (var st in Strategies.Where(st => st.IsActive(t, s) && st.WindowStart >= max[st.Index]))
             {
                 res[st.Index] = st.Value;
@@ -164,7 +168,7 @@ namespace BossMod
         public IEnumerable<(ActionID Action, float TimeLeft, PlanTarget.ISelector Target, bool LowPriority)> ActiveActions(StateMachine sm)
         {
             var s = FindStateData(sm.ActiveState);
-            var t = s.EnterTime + Math.Min(sm.TimeSinceTransition, s.Duration);
+            var t = s != Pull ? s.EnterTime + Math.Min(sm.TimeSinceTransition, s.Duration) : -sm.PrepullTimer;
             return Actions.Where(a => !a.Executed && a.IsActive(t, s)).Select(a => (a.ID, a.WindowEnd - t, a.Target, a.LowPriority));
         }
 
@@ -172,7 +176,7 @@ namespace BossMod
         {
             // TODO: not sure what to do if we have several overlapping requests for same action, do we really mark all of them as executed?..
             var s = FindStateData(sm.ActiveState);
-            var t = s.EnterTime + Math.Min(sm.TimeSinceTransition, s.Duration);
+            var t = s != Pull ? s.EnterTime + Math.Min(sm.TimeSinceTransition, s.Duration) : -sm.PrepullTimer;
             foreach (var a in Actions.Where(a => a.ID == action && a.IsActive(t, s)))
                 a.Executed = true;
         }

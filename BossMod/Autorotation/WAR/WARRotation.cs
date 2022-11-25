@@ -307,7 +307,7 @@ namespace BossMod.WAR
         {
             Strategy.OffensiveAbilityUse.Delay => false,
             Strategy.OffensiveAbilityUse.Force => true,
-            _ => state.TargetingEnemy && state.SurgingTempestLeft > state.GCD + 5
+            _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.SurgingTempestLeft > state.GCD + 5
         };
 
         // check whether berserk should be delayed (we want to spend it on FCs)
@@ -316,6 +316,9 @@ namespace BossMod.WAR
         {
             if (strategy.InnerReleaseUse != Strategy.OffensiveAbilityUse.Automatic)
                 return strategy.InnerReleaseUse == Strategy.OffensiveAbilityUse.Force;
+
+            if (strategy.CombatTimer < 0)
+                return false; // don't use before pull
 
             if (!state.TargetingEnemy)
                 return false; // no target, maybe downtime?
@@ -363,7 +366,7 @@ namespace BossMod.WAR
         {
             Strategy.OffensiveAbilityUse.Delay => false,
             Strategy.OffensiveAbilityUse.Force => true,
-            _ => state.TargetingEnemy && state.SurgingTempestLeft > MathF.Max(state.CD(CDGroup.Upheaval), state.AnimationLock)
+            _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.SurgingTempestLeft > MathF.Max(state.CD(CDGroup.Upheaval), state.AnimationLock)
         };
 
         public static bool ShouldUseOnslaught(State state, Strategy strategy)
@@ -377,6 +380,8 @@ namespace BossMod.WAR
                 case Strategy.OnslaughtUse.ForceReserve:
                     return state.CD(CDGroup.Onslaught) <= 30 + state.AnimationLock;
                 default:
+                    if (strategy.CombatTimer < 0)
+                        return false; // don't use out of combat
                     if (strategy.PositionLockIn <= state.AnimationLock)
                         return false; // forbidden due to state flags
                     if (state.SurgingTempestLeft <= state.AnimationLock)
@@ -394,6 +399,10 @@ namespace BossMod.WAR
 
         public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
         {
+            // prepull
+            if (strategy.CombatTimer > -100 && strategy.CombatTimer < -0.7f)
+                return AID.None;
+
             // 0. non-standard actions forced by strategy
             // forced PR
             if (strategy.PrimalRendUse == Strategy.OffensiveAbilityUse.Force && state.PrimalRendLeft > state.GCD)
@@ -520,8 +529,8 @@ namespace BossMod.WAR
             if (state.Unlocked(AID.Upheaval) && ShouldUseUpheaval(state, strategy) && state.CanWeave(CDGroup.Upheaval, 0.6f, deadline))
                 return ActionID.MakeSpell(aoe && state.Unlocked(AID.Orogeny) ? AID.Orogeny : AID.Upheaval);
 
-            // 4. infuriate, if not forbidden and not delayed
-            if (state.Unlocked(AID.Infuriate) && state.CanWeave(state.CD(CDGroup.Infuriate) - 60, 0.6f, deadline) && ShouldUseInfuriate(state, strategy))
+            // 4. infuriate, if not forbidden and not delayed; note that infuriate can't be used out of combat
+            if (state.Unlocked(AID.Infuriate) && strategy.CombatTimer >= 0 && state.CanWeave(state.CD(CDGroup.Infuriate) - 60, 0.6f, deadline) && ShouldUseInfuriate(state, strategy))
                 return ActionID.MakeSpell(AID.Infuriate);
 
             // 5. onslaught, if surging tempest up and not forbidden

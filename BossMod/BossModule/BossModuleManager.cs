@@ -75,6 +75,7 @@ namespace BossMod
             for (int i = 0; i < _loadedModules.Count; ++i)
             {
                 var m = _loadedModules[i];
+                m.StateMachine.PrepullTimer = PrepullTimer();
                 bool wasActive = m.StateMachine.ActiveState != null;
                 bool isActive;
                 try
@@ -130,6 +131,7 @@ namespace BossMod
         protected virtual void RefreshConfigOrModules() { }
         protected virtual void OnModuleLoaded(BossModule module) { Service.Log($"[BMM] Boss module '{module.GetType()}' for actor {module.PrimaryActor.InstanceID:X} ({module.PrimaryActor.OID:X}) '{module.PrimaryActor.Name}' loaded"); }
         protected virtual void OnModuleUnloaded(BossModule module) { Service.Log($"[BMM] Boss module '{module.GetType()}' for actor {module.PrimaryActor.InstanceID:X} unloaded"); }
+        protected virtual float PrepullTimer() => 0; // TODO: reconsider...
 
         private void Startup()
         {

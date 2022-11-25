@@ -72,7 +72,7 @@
                     return action;
             }
 
-            if (!strategy.Prepull && state.Unlocked(AID.SummonRuby) && state.Attunement == Attunement.None && !state.IfritReady && !state.TitanReady && !state.GarudaReady && state.CD(CDGroup.Aethercharge) <= state.GCD)
+            if (strategy.CombatTimer >= 0 && state.Unlocked(AID.SummonRuby) && state.Attunement == Attunement.None && !state.IfritReady && !state.TitanReady && !state.GarudaReady && state.CD(CDGroup.Aethercharge) <= state.GCD)
                 return AID.Aethercharge;
 
             if (state.SummonLockLeft <= state.GCD)

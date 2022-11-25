@@ -103,7 +103,7 @@ namespace BossMod.WHM
             bool allowCasts = CanCast(state, strategy, 1.5f);
 
             // 0. just use glare before pull
-            if (allowCasts && strategy.Prepull)
+            if (allowCasts && strategy.CombatTimer < 0)
                 return state.BestGlare;
 
             // 1. refresh dia/aero, if needed

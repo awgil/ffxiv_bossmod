@@ -1,6 +1,4 @@
-﻿using Dalamud.Interface;
-using Dalamud.Utility;
-using ImGuiNET;
+﻿using ImGuiNET;
 using System;
 using System.Numerics;
 
@@ -67,6 +65,8 @@ namespace BossMod
                     _planWindow.Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
             }
         }
+
+        protected override float PrepullTimer() => Countdown.TimeRemaining() ?? 10000;
 
         private void DrawMainWindow()
         {

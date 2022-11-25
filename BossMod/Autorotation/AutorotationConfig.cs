@@ -24,6 +24,9 @@
         [PropertyDisplay("Remove extra lag-induced animation lock from instant casts (a-la xivalex)")]
         public bool RemoveAnimationLockDelay = false;
 
+        [PropertyDisplay("Sticky auto actions")]
+        public bool StickyAutoActions = false;
+
         public enum GroundTargetingMode
         {
             [PropertyDisplay("Manually select position by extra click (normal game behaviour)")]

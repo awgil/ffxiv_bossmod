@@ -81,6 +81,7 @@ namespace BossMod
         public int AutoAction { get; private set; }
         public float MaxCastTime { get; private set; }
         protected Autorotation Autorot;
+        private DateTime _playerCombatStart;
         private DateTime _autoActionExpire;
         private QuestLockCheck _lock;
         private ManualActionOverride _mq;
@@ -104,6 +105,17 @@ namespace BossMod
         // this is called after worldstate update
         public void UpdateMainTick()
         {
+            bool wasInCombat = _playerCombatStart != new DateTime();
+            if (Player.InCombat && !wasInCombat)
+            {
+                _playerCombatStart = Autorot.WorldState.CurrentTime;
+            }
+            else if (!Player.InCombat && wasInCombat)
+            {
+                _playerCombatStart = new();
+                _autoActionExpire = new(); // immediately expire auto actions, if any
+            }
+
             _mq.RemoveExpired();
             if (AutoAction != AutoActionNone && _autoActionExpire < Autorot.WorldState.CurrentTime)
             {
@@ -176,10 +188,19 @@ namespace BossMod
         public void UpdateAutoAction(int autoAction, float maxCastTime)
         {
             if (AutoAction != autoAction)
+            {
                 Log($"Auto action set to {autoAction}");
-            AutoAction = autoAction;
+                AutoAction = autoAction;
+                _autoActionExpire = Autorot.Config.StickyAutoActions ? DateTime.MaxValue : Autorot.WorldState.CurrentTime.AddSeconds(1.0f);
+            }
+            else if (Autorot.Config.StickyAutoActions)
+            {
+                Log($"Turning off auto action {autoAction}");
+                AutoAction = AutoActionNone;
+                _autoActionExpire = new();
+            }
+
             MaxCastTime = maxCastTime;
-            _autoActionExpire = Autorot.WorldState.CurrentTime.AddSeconds(1.0f);
         }
 
         public bool HandleUserActionRequest(ActionID action, Actor? target, Vector3? forcedGTPos = null)
@@ -251,6 +272,7 @@ namespace BossMod
             var mqGCD = _mq.PeekGCD();
             var nextGCD = mqGCD != null ? new NextAction(mqGCD.Action, mqGCD.Target, mqGCD.TargetPos, mqGCD.Definition, ActionSource.Manual) : AutoAction != AutoActionNone ? CalculateAutomaticGCD() : new();
             float ogcdDeadline = nextGCD.Action ? Autorot.Cooldowns[CommonDefinitions.GCDGroup] : float.MaxValue;
+            //Log($"{nextGCD.Action} = {ogcdDeadline}");
 
             // search for any oGCDs that we can execute without delaying GCD
             var mqOGCD = _mq.PeekOGCD(effAnimLock, animLockDelay, ogcdDeadline);
@@ -356,7 +378,7 @@ namespace BossMod
             var poslock = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextPositioning(Autorot.Bossmods.ActiveModule.StateMachine) ?? (false, 10000);
             var vuln = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextVulnerable(Autorot.Bossmods.ActiveModule.StateMachine) ?? (false, 10000);
 
-            strategy.Prepull = !Player.InCombat;
+            strategy.CombatTimer = CombatTimer();
             strategy.ForbidDOTs = targetEnemy?.ForbidDOTs ?? false;
             strategy.ForceMovementIn = MaxCastTime;
             strategy.FightEndIn = downtime.Item1 ? 0 : downtime.Item2;
@@ -408,6 +430,14 @@ namespace BossMod
                 && Autorot.Cooldowns[definition.Definition.CooldownGroup] - effAnimLock <= definition.Definition.CooldownAtFirstCharge
                 && effAnimLock + definition.Definition.AnimationLock + animLockDelay <= deadline
                 && definition.Allowed(Player, target);
+        }
+
+        private float CombatTimer()
+        {
+            if (_playerCombatStart != new DateTime())
+                return (float)(Autorot.WorldState.CurrentTime - _playerCombatStart).TotalSeconds;
+            var countdown = Countdown.TimeRemaining();
+            return countdown != null ? -Math.Max(0.001f, countdown.Value) : float.MinValue;
         }
     }
 }

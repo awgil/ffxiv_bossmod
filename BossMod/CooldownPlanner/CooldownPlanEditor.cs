@@ -22,6 +22,7 @@ namespace BossMod
             _colStates = _timeline.Columns.Add(new ColumnStateMachineBranch(_timeline, tree, phaseBranches));
             _planner = _timeline.Columns.Add(new CooldownPlannerColumns(plan, OnPlanModified, _timeline, tree, phaseBranches, moduleInfo));
 
+            _timeline.MinTime = -30;
             _timeline.MaxTime = tree.TotalMaxTime;
         }
 

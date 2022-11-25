@@ -25,6 +25,7 @@ namespace UIDev
             _replay = replay;
             _encounter = enc;
             (_stateTree, _phaseBranches) = BuildStateData(enc);
+            _timeline.MinTime = -30;
             _timeline.MaxTime = _stateTree.TotalMaxTime;
 
             _colCastEvents = _timeline.Columns.Add(new ColumnEnemiesCastEvents(_timeline, _stateTree, _phaseBranches, replay, enc));

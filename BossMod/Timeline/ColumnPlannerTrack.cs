@@ -102,7 +102,8 @@ namespace BossMod
                 if (_edit != null)
                 {
                     // finish editing
-                    _edit.Element.Window.Delay = Math.Max(MathF.Round(_edit.Element.Window.Delay, 1), 0);
+                    float minTime = _edit.Element.Window.AttachNode.PhaseID == 0 && _edit.Element.Window.AttachNode.Predecessor == null ? Timeline.MinTime : 0;
+                    _edit.Element.Window.Delay = Math.Max(MathF.Round(_edit.Element.Window.Delay, 1), minTime);
                     _edit.Element.Window.Duration = Math.Max(MathF.Round(_edit.Element.Window.Duration, 1), 0.1f);
                     UpdateElement(_edit.Element);
                     _edit = null;

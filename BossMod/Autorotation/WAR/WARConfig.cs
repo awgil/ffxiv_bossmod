@@ -20,5 +20,8 @@
 
         [PropertyDisplay("Use self for holmgang target")]
         public bool HolmgangSelf = true;
+
+        [PropertyDisplay("Forbid tomahawk too early in prepull")]
+        public bool ForbidEarlyTomahawk = true;
     }
 }

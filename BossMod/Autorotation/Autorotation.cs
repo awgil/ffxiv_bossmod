@@ -168,7 +168,7 @@ namespace BossMod
             var next = _classActions.CalculateNextAction();
             var state = _classActions.GetState();
             var strategy = _classActions.GetStrategy();
-            ImGui.TextUnformatted($"Next: {next.Action} ({next.Source})");
+            ImGui.TextUnformatted($"[{_classActions.AutoAction}] Next: {next.Action} ({next.Source})");
             ImGui.TextUnformatted(strategy.ToString());
             ImGui.TextUnformatted($"Raidbuffs: {state.RaidBuffsLeft:f2}s left, next in {strategy.RaidBuffsIn:f2}s");
             ImGui.TextUnformatted($"Downtime: {strategy.FightEndIn:f2}s, pos-lock: {strategy.PositionLockIn:f2}");

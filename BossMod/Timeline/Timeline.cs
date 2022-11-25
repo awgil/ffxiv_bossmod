@@ -100,6 +100,7 @@ namespace BossMod
             }
         }
 
+        public float MinTime = 0;
         public float MaxTime = 0;
         public float? CurrentTime = null;
         public float PixelsPerSecond = 10;
@@ -215,7 +216,7 @@ namespace BossMod
 
             // clamp to data range
             _tScroll = MathF.Min(_tScroll, MaxTime - _height / PixelsPerSecond);
-            _tScroll = MathF.Max(_tScroll, 0);
+            _tScroll = MathF.Max(_tScroll, MinTime);
         }
 
         private void DrawTimeAxis()

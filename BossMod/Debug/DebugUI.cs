@@ -235,10 +235,10 @@ namespace BossMod
 
         private unsafe void DrawCountdown()
         {
-            var agent = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUiModule()->GetAgentModule()->GetAgentByInternalId(FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentId.CountDownSettingDialog);
-            ImGui.TextUnformatted($"Active: {Utils.ReadField<byte>(agent, 56) != 0}");
-            ImGui.TextUnformatted($"Initiator: {Utils.ObjectString(Utils.ReadField<uint>(agent, 60))}");
-            ImGui.TextUnformatted($"Time left: {Utils.ReadField<float>(agent, 40):f3}");
+            var agent = Countdown.Instance;
+            ImGui.TextUnformatted($"Active: {agent->Active != 0}");
+            ImGui.TextUnformatted($"Initiator: {Utils.ObjectString(agent->Initiator)}");
+            ImGui.TextUnformatted($"Time left: {agent->Timer:f3}");
         }
     }
 }

@@ -10,12 +10,10 @@ boss modules:
 - boss module config presets/profiles
 
 ai:
-- prepull timer
 - improve healing AI: analyze incoming dps
 - movement: know time left, distance to travel => decide whether to swiftcast or slidecast or use movement rotation
 
 autorotation:
-- opener support
 - dot/regen server tick tracking
 - war
 -- simulate gauge changes (message can arrive few frames after ActionEffect...)
