@@ -151,7 +151,8 @@ namespace UIDev
                 _planner = AddBefore(new CooldownPlannerColumns(list.Available[newSelection], () => _planModified = true, Timeline, _tree, _phaseBraches, _moduleInfo), _actions);
 
                 // TODO: this should be reworked...
-                foreach (var a in _replay.EncounterActions(_enc).Where(a => a.Source == _player))
+                var minTime = _enc.Time.Start.AddSeconds(Timeline.MinTime);
+                foreach (var a in _replay.Actions.SkipWhile(a => a.Timestamp < minTime).TakeWhile(a => a.Timestamp <= _enc.Time.End).Where(a => a.Source == _player))
                 {
                     var track = _planner.TrackForAction(a.ID);
                     if (track != null)

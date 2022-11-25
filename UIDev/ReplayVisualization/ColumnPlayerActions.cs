@@ -31,7 +31,8 @@ namespace UIDev
 
             var classDef = PlanDefinitions.Classes.GetValueOrDefault(playerClass);
             int iCast = 0;
-            foreach (var a in replay.EncounterActions(enc).Where(a => a.Source == player))
+            var minTime = enc.Time.Start.AddSeconds(timeline.MinTime);
+            foreach (var a in replay.Actions.SkipWhile(a => a.Timestamp < minTime).TakeWhile(a => a.Timestamp <= enc.Time.End).Where(a => a.Source == player))
             {
                 // note: we assume autoattacks are never casted... in fact, I think only GCDs can be casted
                 var actionName = $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget)} #{a.GlobalSequence}";
