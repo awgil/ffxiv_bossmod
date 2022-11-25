@@ -54,6 +54,17 @@ namespace BossMod.WAR
                 ForceExtendST = 4, // force combo to extend buff (useful before downtime of medium length)
             }
 
+            public enum InfuriateUse : uint
+            {
+                Automatic = 0, // try to delay uses until raidbuffs, avoiding overcap
+
+                [PropertyDisplay("Delay", 0x800000ff)]
+                Delay = 1, // delay until window end, even if risking overcap
+
+                [PropertyDisplay("Force unless NC active", 0x8000ff00)]
+                ForceIfNoNC = 2, // force use (if NC is not already active), even if gauge is overcapped
+            }
+
             public enum PotionUse : uint
             {
                 Manual = 0, // potion won't be used automatically
@@ -97,6 +108,7 @@ namespace BossMod.WAR
             }
 
             public GaugeUse GaugeStrategy; // how are we supposed to handle gauge
+            public InfuriateUse InfuriateStrategy; // how are we supposed to use infuriate
             public PotionUse PotionStrategy; // how are we supposed to use potions
             public OffensiveAbilityUse InnerReleaseUse; // how are we supposed to use IR
             public OffensiveAbilityUse UpheavalUse; // how are we supposed to use upheaval
@@ -112,18 +124,20 @@ namespace BossMod.WAR
             // TODO: these bindings should be done by the framework...
             public void ApplyStrategyOverrides(uint[] overrides)
             {
-                if (overrides.Length >= 6)
+                if (overrides.Length >= 7)
                 {
                     GaugeStrategy = (GaugeUse)overrides[0];
-                    PotionStrategy = (PotionUse)overrides[1];
-                    InnerReleaseUse = (OffensiveAbilityUse)overrides[2];
-                    UpheavalUse = (OffensiveAbilityUse)overrides[3];
-                    PrimalRendUse = (OffensiveAbilityUse)overrides[4];
-                    OnslaughtStrategy = (OnslaughtUse)overrides[5];
+                    InfuriateStrategy = (InfuriateUse)overrides[1];
+                    PotionStrategy = (PotionUse)overrides[2];
+                    InnerReleaseUse = (OffensiveAbilityUse)overrides[3];
+                    UpheavalUse = (OffensiveAbilityUse)overrides[4];
+                    PrimalRendUse = (OffensiveAbilityUse)overrides[5];
+                    OnslaughtStrategy = (OnslaughtUse)overrides[6];
                 }
                 else
                 {
                     GaugeStrategy = GaugeUse.Automatic;
+                    InfuriateStrategy = InfuriateUse.Automatic;
                     PotionStrategy = PotionUse.Manual;
                     InnerReleaseUse = OffensiveAbilityUse.Automatic;
                     UpheavalUse = OffensiveAbilityUse.Automatic;
@@ -217,6 +231,65 @@ namespace BossMod.WAR
             Strategy.GaugeUse.ForceExtendST => false,
             _ => true
         };
+
+        public static bool ShouldUseInfuriate(State state, Strategy strategy)
+        {
+            switch (strategy.InfuriateStrategy)
+            {
+                case Strategy.InfuriateUse.Delay:
+                    return false;
+
+                case Strategy.InfuriateUse.ForceIfNoNC:
+                    return state.NascentChaosLeft <= state.GCD;
+
+                default:
+                    if (!state.TargetingEnemy)
+                        return false; // don't cast during downtime
+                    if (state.Gauge > 50)
+                        return false; // never cast infuriate if doing so would overcap gauge
+                    if (state.NascentChaosLeft > state.GCD)
+                        return false; // never cast infuriate if NC from previous infuriate is still up for next GCD
+                    if (state.Unlocked(AID.ChaoticCyclone) && state.InnerReleaseLeft > state.GCD && state.InnerReleaseLeft <= state.GCD + 2.5f * state.InnerReleaseStacks)
+                        return false; // never cast infuriate if it will cause us to lose IR stacks
+
+                    // different logic before IR and after IR
+                    if (state.Unlocked(AID.InnerRelease))
+                    {
+                        // with IR, main purpose of infuriate is to generate gauge to burn in spend mode
+                        if (ShouldSpendGauge(state, strategy))
+                            return true;
+
+                        // don't delay if we risk overcapping stacks
+                        // max safe cooldown calculation:
+                        // - start with remaining GCD + grace period; if CD is smaller, by the time we get a chance to reconsider, we'll have 2 stacks
+                        //   grace period should at very least be LockDelay, but next-best GCD could be Primal Rend with longer animation lock, plus we might prioritize different oGCDs, so use full extra GCD to be safe
+                        // - if next GCD could give us >50 gauge, we'd need one more GCD to cast FC (which would also reduce cd by extra 5 seconds), so add 7.5s
+                        // - if IR is imminent, we delay infuriate now, cast some GCD that gives us >50 gauge, we'd need to cast 3xFCs, which would add extra 22.5s
+                        // - if IR is active, we delay infuriate now, we might need to spend remaining GCDs on FCs, which would add extra N * 7.5s
+                        float maxInfuriateCD = state.GCD + 2.5f;
+                        int gaugeCap = state.ComboLastMove == AID.None ? 50 : (state.ComboLastMove == AID.HeavySwing ? 40 : 30);
+                        if (state.Gauge > gaugeCap)
+                            maxInfuriateCD += 7.5f;
+                        bool irImminent = state.CD(CDGroup.InnerRelease) < state.GCD + 2.5;
+                        maxInfuriateCD += (irImminent ? 3 : state.InnerReleaseStacks) * 7.5f;
+                        if (state.CD(CDGroup.Infuriate) <= maxInfuriateCD)
+                            return true;
+                    }
+                    else
+                    {
+                        // before IR, main purpose of infuriate is to maximize buffed FCs under Berserk
+                        if (state.InnerReleaseLeft > state.GCD)
+                            return true;
+
+                        // don't delay if we risk overcapping stacks
+                        if (state.CD(CDGroup.Infuriate) <= state.GCD + 10)
+                            return true;
+
+                        // TODO: consider whether we want to spend both stacks in spend mode if Berserk is not imminent...
+                    }
+                    return false;
+            }
+        }
 
         // note: this check will not allow using non-forced potions before lvl 50, but who cares...
         public static bool ShouldUsePotion(State state, Strategy strategy) => strategy.PotionStrategy switch
@@ -448,53 +521,8 @@ namespace BossMod.WAR
                 return ActionID.MakeSpell(aoe && state.Unlocked(AID.Orogeny) ? AID.Orogeny : AID.Upheaval);
 
             // 4. infuriate, if not forbidden and not delayed
-            bool infuriateAvailable = state.Unlocked(AID.Infuriate) && state.CanWeave(state.CD(CDGroup.Infuriate) - 60, 0.6f, deadline); // note: for second stack, this will be true if casting it won't delay our next gcd
-            infuriateAvailable &= state.Gauge <= 50; // never cast infuriate if doing so would overcap gauge
-            if (state.Unlocked(AID.ChaoticCyclone))
-            {
-                // if we have NC, we should not cast infuriate if IR is about to expire or if we haven't spent NC yet
-                infuriateAvailable &= state.InnerReleaseLeft <= state.GCD || state.InnerReleaseLeft > state.GCD + 2.5f * state.InnerReleaseStacks; // never cast infuriate if it will cause us to lose IR stacks
-                infuriateAvailable &= state.NascentChaosLeft <= state.GCD; // never cast infuriate if NC from previous infuriate is still up for next GCD
-            }
-            if (infuriateAvailable && state.TargetingEnemy)
-            {
-                // different logic before IR and after IR
-                if (state.Unlocked(AID.InnerRelease))
-                {
-                    // with IR, main purpose of infuriate is to generate gauge to burn in spend mode
-                    if (ShouldSpendGauge(state, strategy))
-                        return ActionID.MakeSpell(AID.Infuriate);
-
-                    // don't delay if we risk overcapping stacks
-                    // max safe cooldown calculation:
-                    // - start with remaining GCD + grace period; if CD is smaller, by the time we get a chance to reconsider, we'll have 2 stacks
-                    //   grace period should at very least be LockDelay, but next-best GCD could be Primal Rend with longer animation lock, plus we might prioritize different oGCDs, so use full extra GCD to be safe
-                    // - if next GCD could give us >50 gauge, we'd need one more GCD to cast FC (which would also reduce cd by extra 5 seconds), so add 7.5s
-                    // - if IR is imminent, we delay infuriate now, cast some GCD that gives us >50 gauge, we'd need to cast 3xFCs, which would add extra 22.5s
-                    // - if IR is active, we delay infuriate now, we might need to spend remaining GCDs on FCs, which would add extra N * 7.5s
-                    float maxInfuriateCD = state.GCD + 2.5f;
-                    int gaugeCap = state.ComboLastMove == AID.None ? 50 : (state.ComboLastMove == AID.HeavySwing ? 40 : 30);
-                    if (state.Gauge > gaugeCap)
-                        maxInfuriateCD += 7.5f;
-                    bool irImminent = state.CD(CDGroup.InnerRelease) < state.GCD + 2.5;
-                    maxInfuriateCD += (irImminent ? 3 : state.InnerReleaseStacks) * 7.5f;
-                    if (state.CD(CDGroup.Infuriate) <= maxInfuriateCD)
-                        return ActionID.MakeSpell(AID.Infuriate);
-
-                }
-                else
-                {
-                    // before IR, main purpose of infuriate is to maximize buffed FCs under Berserk
-                    if (state.InnerReleaseLeft > state.GCD)
-                        return ActionID.MakeSpell(AID.Infuriate);
-
-                    // don't delay if we risk overcapping stacks
-                    if (state.CD(CDGroup.Infuriate) <= state.GCD + 10)
-                        return ActionID.MakeSpell(AID.Infuriate);
-
-                    // TODO: consider whether we want to spend both stacks in spend mode if Berserk is not imminent...
-                }
-            }
+            if (state.Unlocked(AID.Infuriate) && state.CanWeave(state.CD(CDGroup.Infuriate) - 60, 0.6f, deadline) && ShouldUseInfuriate(state, strategy))
+                return ActionID.MakeSpell(AID.Infuriate);
 
             // 5. onslaught, if surging tempest up and not forbidden
             if (state.Unlocked(AID.Onslaught) && state.TargetingEnemy && state.CanWeave(state.CD(CDGroup.Onslaught) - 60, 0.6f, deadline) && ShouldUseOnslaught(state, strategy))
