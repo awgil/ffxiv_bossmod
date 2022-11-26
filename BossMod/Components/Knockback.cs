@@ -87,7 +87,7 @@ namespace BossMod.Components
 
     }
 
-    // generic 'knockback away from caster' component
+    // generic 'knockback away from caster' component (TODO: reconsider - probably most abilities should use cast target instead...)
     public class KnockbackFromCaster : KnockbackFromPoints
     {
         public int MaxCasts { get; private init; } // used for staggered knockbacks, when showing all active would be pointless
@@ -114,6 +114,35 @@ namespace BossMod.Components
                 }
             }
         }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction)
+                _casters.Add(caster);
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction)
+                _casters.Remove(caster);
+        }
+    }
+
+    // generic 'knockback away from cast target' component
+    public class KnockbackFromCastTarget : KnockbackFromPoints
+    {
+        public int MaxCasts { get; private init; } // used for staggered knockbacks, when showing all active would be pointless
+        private List<Actor> _casters = new();
+        public IReadOnlyList<Actor> Casters => _casters;
+        public IEnumerable<Actor> ActiveCasters => _casters.Take(MaxCasts);
+
+        public KnockbackFromCastTarget(ActionID aid, float distance, int maxCasts = 1, bool ignoreImmunes = false)
+            : base(distance, aid, ignoreImmunes)
+        {
+            MaxCasts = maxCasts;
+        }
+
+        public override IEnumerable<WPos> Sources(BossModule module) => ActiveCasters.Select(a => module.WorldState.Actors.Find(a.CastInfo!.TargetID)?.Position ?? a.CastInfo.LocXZ);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
