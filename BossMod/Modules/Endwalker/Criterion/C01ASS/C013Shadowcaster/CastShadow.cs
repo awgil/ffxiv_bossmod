@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
     class CastShadow : Components.GenericAOEs
     {
         private Angle _startingAngle;
-        protected DateTime Activation;
+        //protected DateTime Activation;
 
         private static AOEShapeCone _shape = new(65, 15.Degrees());
 
