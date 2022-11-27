@@ -45,6 +45,8 @@ namespace BossMod
 
         private InputOverride _inputOverride;
 
+        private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
+
         private unsafe delegate bool UseActionDelegate(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted);
         private Hook<UseActionDelegate> _useActionHook;
 
@@ -195,6 +197,18 @@ namespace BossMod
             am.GetCooldowns(Cooldowns);
             _classActions.UpdateAMTick();
 
+            // restore rotation logic; note that movement abilities (like charge) can take multiple frames until they allow changing facing
+            var gamePlayer = Service.ClientState.LocalPlayer;
+            if (_restoreRotation != null && (_classActions.Player.CastInfo?.EventHappened ?? true))
+            {
+                var curRot = (gamePlayer?.Rotation ?? 0).Radians();
+                //Log($"Restore rotation: {curRot.Rad}: {_restoreRotation.Value.post.Rad}->{_restoreRotation.Value.pre.Rad}");
+                if (_restoreRotation.Value.post.AlmostEqual(curRot, 0.01f))
+                    am.FaceDirection(_restoreRotation.Value.pre.ToDirection());
+                else
+                    _restoreRotation = null;
+            }
+
             if (EffAnimLock > 0)
                 return _config.PreventMovingWhileCasting && am.CastTimeRemaining > 0; // casting/under animation lock - do nothing for now, we'll retry on future update anyway
 
@@ -223,9 +237,15 @@ namespace BossMod
                 return false;
             }
 
+            var rotPre = (gamePlayer?.Rotation ?? 0).Radians();
             var res = am.UseActionRaw(actionAdj, targetID, next.TargetPos, next.Action.Type == ActionType.Item ? 65535u : 0);
+            var rotPost = (gamePlayer?.Rotation ?? 0).Radians();
             Log($"Auto-execute {next.Source} action {next.Action} (=> {actionAdj}) @ {targetID:X} {Utils.Vec3String(next.TargetPos)} => {res}");
             _classActions.NotifyActionExecuted(next);
+
+            if (rotPre != rotPost && Config.RestoreRotation)
+                _restoreRotation = (rotPre, rotPost);
+
             return lockMovementForNext;
         }
 
