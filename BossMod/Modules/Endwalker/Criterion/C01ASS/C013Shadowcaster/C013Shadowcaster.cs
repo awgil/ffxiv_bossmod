@@ -2,7 +2,7 @@
 {
     class FiresteelFracture : Components.Cleave
     {
-        public FiresteelFracture() : base(ActionID.MakeSpell(AID.FiresteelFracture), new AOEShapeCone(40, 45.Degrees())) { } // TODO: angle?..
+        public FiresteelFracture() : base(ActionID.MakeSpell(AID.FiresteelFracture), new AOEShapeCone(40, 30.Degrees())) { }
     }
 
     // TODO: show AOEs
@@ -15,6 +15,11 @@
     class InfernWave : Components.CastCounter
     {
         public InfernWave() : base(ActionID.MakeSpell(AID.InfernWaveAOE)) { }
+    }
+
+    class PureFire : Components.LocationTargetedAOEs
+    {
+        public PureFire() : base(ActionID.MakeSpell(AID.PureFireAOE), 6) { }
     }
 
     public class C013Shadowcaster : BossModule

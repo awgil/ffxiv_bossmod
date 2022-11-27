@@ -69,8 +69,5 @@
         FizzlingSudsPuff = 3307, // none->SilkenPuff, extra=0x0
 
         ForkedLightning = 587, // Boss->player, extra=0x0, spread
-
-        //_Gen_ = 2056, // none->SilkenPuff, extra=0x16C
-        //_Gen_ = 2397, // none->EasternEwer, extra=0x1EC
     };
 }

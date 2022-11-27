@@ -92,7 +92,15 @@ namespace BossMod
                 Service.Log($"[AutoHints] Can't determine angle from omen ({path}/{omen.PathAlly}) for {data.RowId} '{data.Name}'...");
                 return 180.Degrees();
             }
-            return int.Parse(path.Substring(pos + 3, 3)).Degrees();
+
+            int angle;
+            if (!int.TryParse(path.Substring(pos + 3, 3), out angle))
+            {
+                Service.Log($"[AutoHints] Can't determine angle from omen ({path}/{omen.PathAlly}) for {data.RowId} '{data.Name}'...");
+                return 180.Degrees();
+            }
+
+            return angle.Degrees();
         }
     }
 }

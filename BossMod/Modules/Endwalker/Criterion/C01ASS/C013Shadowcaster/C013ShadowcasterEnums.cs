@@ -15,7 +15,7 @@
     {
         AutoAttack = 872, // Boss->player, no cast, single-target
         ShowOfStrength = 29871, // Boss->self, 5.0s cast, raidwide
-        FiresteelFracture = 29869, // Boss->self, 5.0s cast, range 40 ?-degree cone
+        FiresteelFracture = 29869, // Boss->self, 5.0s cast, range 40 60-degree cone cleave
         Teleport = 29886, // Boss->location, no cast, single-target
 
         InfernBrand = 29841, // Boss->self, 4.0s cast, single-target, visual
@@ -31,7 +31,7 @@
         CrypticFlames = 29878, // Boss->self, 8.3s cast, single-target, visual
         CrypticFlamesBreak = 29879, // Helper->player, no cast, single-target, small damage when correct laser is broken
         CrypticFlamesFail = 29880, // Helper->player, no cast, single-target, small damage + stun + damage down when incorrect laser is broken
-        //_Ability_BigBurst = 29881, // Helper->self, no cast, range 65 circle
+        BigBurst = 29881, // Helper->self, no cast, raidwide cast when player with any flame debuff dies
         BlazingBenifice = 29862, // ArcaneFont->self, no cast, range 100 width 10 rect aoe (mirror explosion)
         CastShadow = 29850, // Boss->self, 4.8s cast, single-target, visual
         CastShadowAOE1 = 29852, // Helper->self, no cast, range 65 30-degree cone aoe
@@ -42,12 +42,13 @@
         Banishment = 29884, // Boss->self, 4.0s cast, single-target, visual
         ActivateBeacon = 29845, // Helper->Beacon/Laser, no cast, single-target, visual
         InfernWard = 29846, // Boss->self, 4.0s cast, single-target, visual
-        //_Ability_ = 29847, // Helper->self, no cast, single-target
-        //_Ability_Brandfire = 29885, // Helper->player, no cast, single-target
-        //_Ability_ = 29890, // Helper->self, no cast, range 60 width 100 rect
-        //_Ability_TrespassersPyre = 29849, // Helper->player, 1.0s cast, single-target
+        ActivateBeacon2 = 29847, // Helper->self, no cast, single-target, visual ???
+        Brandfire = 29885, // Helper->player, no cast, single-target, kill anyone who doesn't take portal
+        TrespassersPyre = 29849, // Helper->player, 1.0s cast, single-target, damage if player crosses unbreakable laser
+        TrespassersPyreAttract = 29890, // Helper->self, no cast, range 60 width 100 rect, attract ?, bumps player away from unbreakable laser
+
         PureFire = 29855, // Boss->self, 3.0s cast, single-target, visual
-        //_Ability_PureFire = 29857, // Helper->location, 3.0s cast, range 6 circle
+        PureFireAOE = 29857, // Helper->location, 3.0s cast, range 6 circle puddle
     };
 
     public enum SID : uint
@@ -61,11 +62,6 @@
         ThirdFlame = 3274, // none->player, extra=0x0
         FourthFlame = 3275, // none->player, extra=0x0
         Counter = 2397, // none->Laser/39AE, extra=0x1C2/0x1C3/0x1C4/0x1C5/0x1C6/0x1C7/0x1C8/0x1C9/0x1C1/0x1CC/0x1F3 (1C2-1C5 = #1-#4 NS, 1C6-1C9 = #1-#4 EW, 1C1 = unbreakable)
-
-        PlayerPortal = 2970, // Boss->player, extra=0x1CD/0x1CE/0x1D2/0x1D3  ????? (1CD = CCW W->N, 1CE = CCW E->N, 1D2 = CCW W->S, 1D3 = CCW E->S)
-        //_Gen_CallOfThePortal = 3276, // Boss->player, extra=0x0
-        //_Gen_RiteOfPassage = 3277, // Boss->player, extra=0x0
-        //_Gen_ForbiddenPassage = 3278, // none->player, extra=0x0
-        //_Gen_ForbiddenPassage = 3279, // none->player, extra=0x0
+        PlayerPortal = 2970, // Boss->player, extra=0x1CD/0x1CE/0x1D2/0x1D3 (1CD = CCW W->N, 1CE = CW W->N, 1D2 = CW E->S, 1D3 = CCW W->S)
     };
 }

@@ -56,19 +56,16 @@
                 .DeactivateOnExit<FiresteelStrike>();
         }
 
+        // TODO: hints for mirrors and cast-shadows
         private void InfernBrand2(uint id, float delay)
         {
             Cast(id, AID.InfernBrand, delay, 4);
-            // +0.8s: PATE 1E44 on 8 Lasers
-            // +3.0s: statuses (brands on players, counters 1C2-1C9 on lasers)
-            // right at next cast start - Arcane Font spawn
             Cast(id + 0x10, AID.CrypticFlames, 3.2f, 8.3f)
-                .ActivateOnEnter<BlazingBenifice>();
-            // +2.7s: brand -> flame debuffs
-            // on laser break - PATE 1E3A on laser
-            // +3.7s: second set of Arcane Fonts spawn
+                .ActivateOnEnter<CrypticFlames>(); // note: statuses appear right before cast start
+            ComponentCondition<CrypticFlames>(id + 0x12, 2.7f, comp => comp.ReadyToBreak, "Lasers break start");
 
-            CastStart(id + 0x20, AID.CastShadow, 9.3f);
+            CastStart(id + 0x20, AID.CastShadow, 6.7f)
+                .ActivateOnEnter<BlazingBenifice>(); // TODO: proper activation time (first set of arcane fonts spawn around cryptic flames cast start, second spawn ~12s later)
             ComponentCondition<BlazingBenifice>(id + 0x21, 4.1f, comp => comp.NumCasts > 0, "Mirrors 1")
                 .ActivateOnEnter<CastShadow1>(); // TODO: proper activation time
             CastEnd(id + 0x22, 0.6f);
@@ -81,6 +78,7 @@
             CastStart(id + 0x30, AID.FiresteelFracture, 7.7f);
             ComponentCondition<BlazingBenifice>(id + 0x31, 1, comp => comp.NumCasts >= 5, "Mirrors 2")
                 .ActivateOnEnter<FiresteelFracture>()
+                .DeactivateOnExit<CrypticFlames>()
                 .DeactivateOnExit<BlazingBenifice>();
             CastEnd(id + 0x32, 4);
             ComponentCondition<FiresteelFracture>(id + 0x33, 0.2f, comp => comp.NumCasts > 0, "Tankbuster")
@@ -88,7 +86,7 @@
                 .SetHint(StateMachine.StateHint.Tankbuster);
         }
 
-        // TODO: component!
+        // TODO: components: portal & wave
         private void InfernBrand3(uint id, float delay)
         {
             Cast(id, AID.InfernBrand, delay, 4);
@@ -98,16 +96,17 @@
             Cast(id + 0x10, AID.InfernWave, 4.2f, 4);
             // +0.8s: beacons gain counter 1CC, 4 activate beacon cast events
             Cast(id + 0x20, AID.Banishment, 4.5f, 4);
-            // +0.0s: statuses on players
+            // +0.0s: statuses on players <-- activate portals here...
             // +0.7s: eobjanim on portals
             Cast(id + 0x30, AID.InfernWard, 4.2f, 4);
             // +0.9s: 4 activate beacon cast events
             // +1.3s: beacons gain counter 1F3
             // +1.4s: 4 29847 cast events
-            // +3.1s: teleports
+            // +3.2s: teleports (players lose 3276 status) <-- deactivate portals and show waves here...
             ComponentCondition<InfernWave>(id + 0x40, 7.8f, comp => comp.NumCasts > 0, "Wave 1")
                 .ActivateOnEnter<InfernWave>();
-            // TODO: timings..
+            // +0.9s: stun
+            // +5.9s: stun end
             ComponentCondition<InfernWave>(id + 0x41, 8, comp => comp.NumCasts > 4, "Wave 2")
                 .DeactivateOnExit<InfernWave>();
         }
@@ -116,9 +115,9 @@
         {
             Cast(id, AID.InfernBrand, delay, 4);
             Cast(id + 0x10, AID.CrypticPortal, 3.2f, 4)
-                .ActivateOnEnter<PortalsMirror>(); // eobjanims ~0.8s after cast end
-            Cast(id + 0x20, AID.FiresteelStrike, 6.2f, 4.9f)
-                .ActivateOnEnter<FiresteelStrike>(); // TODO: consider activating earlier?..
+                .ActivateOnEnter<PortalsMirror>() // eobjanims ~0.8s after cast end
+                .ActivateOnEnter<FiresteelStrike>();
+            Cast(id + 0x20, AID.FiresteelStrike, 6.2f, 4.9f);
             ComponentCondition<FiresteelStrike>(id + 0x22, 0.3f, comp => comp.NumJumps > 0, "Jump 1");
             ComponentCondition<PortalsMirror>(id + 0x30, 1, comp => comp.NumCasts > 0, "Mirror aoe")
                 .DeactivateOnExit<PortalsMirror>();
@@ -130,23 +129,40 @@
                 .DeactivateOnExit<FiresteelStrike>();
         }
 
-        // TODO: component! timings!
+        // TODO: component for wave - investigate how to determine next activated beacon...
+        // TODO: component for pizzas
         private void InfernBrand5(uint id, float delay)
         {
             Cast(id, AID.InfernBrand, delay, 4);
             Cast(id + 0x10, AID.InfernWave, 4.2f, 4);
-            Cast(id + 0x20, AID.CrypticFlames, 4.2f, 8.3f);
-            Cast(id + 0x100, AID.PureFire, 11.9f, 3);
+            Cast(id + 0x20, AID.CrypticFlames, 4.2f, 8.3f)
+                .ActivateOnEnter<CrypticFlames>(); // note: statuses appear right before cast start
+            ComponentCondition<CrypticFlames>(id + 0x22, 2.7f, comp => comp.ReadyToBreak, "Lasers break start");
 
-            Cast(id + 0x200, AID.CastShadow, 8.6f, 4.8f)
+            ComponentCondition<InfernWave>(id + 0x30, 1.3f, comp => comp.NumCasts > 0, "Wave 1")
+                .ActivateOnEnter<InfernWave>(); // TODO: activate earlier and show baits
+            CastStart(id + 0x40, AID.PureFire, 8);
+            ComponentCondition<InfernWave>(id + 0x41, 2, comp => comp.NumCasts > 2, "Wave 2");
+            CastEnd(id + 0x42, 1);
+            ComponentCondition<PureFire>(id + 0x50, 0.8f, comp => comp.Casters.Count > 0, "Puddle bait")
+                .ActivateOnEnter<PureFire>();
+            ComponentCondition<PureFire>(id + 0x51, 3, comp => comp.Casters.Count == 0)
+                .DeactivateOnExit<PureFire>();
+
+            CastStart(id + 0x60, AID.CastShadow, 4.9f)
                 .ActivateOnEnter<CastShadow1>(); // TODO: proper activation time
-            ComponentCondition<CastShadow1>(id + 0x202, 0.7f, comp => comp.NumCasts > 0, "Pizzas 1")
+            ComponentCondition<InfernWave>(id + 0x61, 0.4f, comp => comp.NumCasts > 4, "Wave 3");
+            CastEnd(id + 0x62, 4.3f);
+            ComponentCondition<CastShadow1>(id + 0x63, 0.7f, comp => comp.NumCasts > 0, "Pizzas 1")
                 .DeactivateOnExit<CastShadow1>();
-            ComponentCondition<CastShadow2>(id + 0x203, 2, comp => comp.NumCasts > 0, "Pizzas 2")
+            ComponentCondition<CastShadow2>(id + 0x64, 2, comp => comp.NumCasts > 0, "Pizzas 2")
                 .ActivateOnEnter<CastShadow2>()
                 .DeactivateOnExit<CastShadow2>();
+            ComponentCondition<InfernWave>(id + 0x65, 3, comp => comp.NumCasts > 6, "Wave 4")
+                .DeactivateOnExit<InfernWave>()
+                .DeactivateOnExit<CrypticFlames>();
 
-            FiresteelFracture(id + 0x300, 4.7f);
+            FiresteelFracture(id + 0x300, 1.6f);
         }
     }
 }

@@ -45,10 +45,12 @@ namespace UIDev.Analysis
 
         class ConeAnalysis
         {
+            public enum Targeting { SourcePosRot, TargetPosSourceRot, SourcePosDirToTarget }
+
             private UIPlot _plot = new();
             private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Angle, float Range, bool Hit)> _points = new();
 
-            public ConeAnalysis(List<(Replay, Replay.Action)> infos, bool originAtSource)
+            public ConeAnalysis(List<(Replay, Replay.Action)> infos, Targeting targeting)
             {
                 _plot.DataMin = new(-180, 0);
                 _plot.DataMax = new(180, 60);
@@ -56,8 +58,12 @@ namespace UIDev.Analysis
                 foreach (var (r, a) in infos)
                 {
                     var sourcePosRot = a.Source?.PosRotAt(a.Timestamp) ?? new();
-                    var origin = new WPos(originAtSource ? sourcePosRot.XZ() : a.TargetPos.XZ());
-                    var dir = sourcePosRot.W.Radians().ToDirection();
+                    var sourcePos = new WPos(sourcePosRot.XZ());
+                    var targetPos = new WPos(a.TargetPos.XZ());
+                    if (targetPos == sourcePos && a.Targets.Count > 0 && a.Targets[0].Target != null)
+                        targetPos = new(a.Targets[0].Target!.PosRotAt(a.Timestamp).XZ());
+                    var origin = targeting != Targeting.TargetPosSourceRot ? sourcePos: targetPos;
+                    var dir = targeting != Targeting.SourcePosDirToTarget ? sourcePosRot.W.Radians().ToDirection() : (targetPos - origin).Normalized();
                     var left = dir.OrthoL();
                     foreach (var target in AlivePlayersAt(r, a.Timestamp))
                     {
@@ -237,8 +243,9 @@ namespace UIDev.Analysis
             public bool SeenAOE;
             public float CastTime;
             public SourcePositionAnalysis? SrcPosAnalysis;
-            public ConeAnalysis? ConeAnalysisSrc;
-            public ConeAnalysis? ConeAnalysisTgt;
+            public ConeAnalysis? ConeAnalysisSourcePosRot;
+            public ConeAnalysis? ConeAnalysisTargetPosSourceRot;
+            public ConeAnalysis? ConeAnalysisSourcePosDirToTarget;
             public RectAnalysis? RectAnalysis;
             public DamageFalloffAnalysis? DamageFalloffAnalysisDist;
             public DamageFalloffAnalysis? DamageFalloffAnalysisMinCoord;
@@ -313,17 +320,23 @@ namespace UIDev.Analysis
                         data.SrcPosAnalysis = new(data.Instances);
                     data.SrcPosAnalysis.Draw();
                 }
-                foreach (var an in tree.Node("Cone analysis (origin at source)"))
+                foreach (var an in tree.Node("Cone analysis (origin & rotation at source)"))
                 {
-                    if (data.ConeAnalysisSrc == null)
-                        data.ConeAnalysisSrc = new(data.Instances, true);
-                    data.ConeAnalysisSrc.Draw();
+                    if (data.ConeAnalysisSourcePosRot == null)
+                        data.ConeAnalysisSourcePosRot = new(data.Instances, ConeAnalysis.Targeting.SourcePosRot);
+                    data.ConeAnalysisSourcePosRot.Draw();
                 }
-                foreach (var an in tree.Node("Cone analysis (origin at target)"))
+                foreach (var an in tree.Node("Cone analysis (origin at target, rotation from source)"))
                 {
-                    if (data.ConeAnalysisTgt == null)
-                        data.ConeAnalysisTgt = new(data.Instances, false);
-                    data.ConeAnalysisTgt.Draw();
+                    if (data.ConeAnalysisTargetPosSourceRot == null)
+                        data.ConeAnalysisTargetPosSourceRot = new(data.Instances, ConeAnalysis.Targeting.TargetPosSourceRot);
+                    data.ConeAnalysisTargetPosSourceRot.Draw();
+                }
+                foreach (var an in tree.Node("Cone analysis (origin at source, directed at target)"))
+                {
+                    if (data.ConeAnalysisSourcePosDirToTarget == null)
+                        data.ConeAnalysisSourcePosDirToTarget = new(data.Instances, ConeAnalysis.Targeting.SourcePosDirToTarget);
+                    data.ConeAnalysisSourcePosDirToTarget.Draw();
                 }
                 foreach (var an in tree.Node("Rect analysis"))
                 {

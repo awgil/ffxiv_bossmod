@@ -1,14 +1,16 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
 {
-    // TODO: implement hints for second part of the mechanic (intercepted cleaves)
     class FiresteelStrike : Components.StackSpread
     {
         public int NumJumps { get; private set; }
         public int NumCleaves { get; private set; }
         private List<int> _jumpTargets = new();
         private BitMask _interceptMask;
+
+        private static AOEShapeRect _cleaveShape = new(65, 4);
 
         public FiresteelStrike() : base(0, 10, alwaysShowSpreads: true) { }
 
@@ -25,11 +27,10 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
             }
             else if (NumCleaves < _jumpTargets.Count)
             {
-                // TODO: add actual checks...
-                if (_interceptMask[slot])
-                    hints.Add("Intercept next cleave!", false);
-                else if (_jumpTargets[NumCleaves] == slot)
-                    hints.Add("Hide behind someone!", false);
+                if (_jumpTargets[NumCleaves] == slot)
+                    hints.Add("Hide behind someone!", !TargetIntercepted(module));
+                else if (_interceptMask[slot])
+                    hints.Add("Intercept next cleave!", !TargetIntercepted(module));
             }
         }
 
@@ -45,7 +46,14 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            // TODO: implement..
+            if (NumJumps >= 2 && NumCleaves < _jumpTargets.Count)
+            {
+                var target = module.Raid[_jumpTargets[NumCleaves]];
+                if (target != null)
+                {
+                    _cleaveShape.Draw(arena, module.PrimaryActor.Position, Angle.FromDirection(target.Position - module.PrimaryActor.Position), target == pc || _interceptMask[pcSlot] ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
+                }
+            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -76,6 +84,18 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
                     ++NumCleaves;
                     break;
             }
+        }
+
+        private bool TargetIntercepted(BossModule module)
+        {
+            var target = NumCleaves < _jumpTargets.Count ? module.Raid[_jumpTargets[NumCleaves]] : null;
+            if (target == null)
+                return true;
+
+            var toTarget = target.Position - module.PrimaryActor.Position;
+            var angle = Angle.FromDirection(toTarget);
+            var distSq = toTarget.LengthSq();
+            return module.Raid.WithSlot().IncludedInMask(_interceptMask).InShape(_cleaveShape, module.PrimaryActor.Position, angle).WhereActor(a => (a.Position - module.PrimaryActor.Position).LengthSq() < distSq).Any();
         }
     }
 }
