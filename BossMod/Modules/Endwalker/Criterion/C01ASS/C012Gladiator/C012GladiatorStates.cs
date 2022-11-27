@@ -1,8 +1,8 @@
-﻿namespace BossMod.Endwalker.Criterion.C01ASS.C012GladiatorOfSildih
+﻿namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
 {
-    class C012GladiatorOfSildihStates : StateMachineBuilder
+    class C012GladiatorStates : StateMachineBuilder
     {
-        public C012GladiatorOfSildihStates(BossModule module) : base(module)
+        public C012GladiatorStates(BossModule module) : base(module)
         {
             DeathPhase(0, SinglePhase);
         }

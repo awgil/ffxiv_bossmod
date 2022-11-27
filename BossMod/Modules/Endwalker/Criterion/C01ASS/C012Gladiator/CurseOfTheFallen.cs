@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BossMod.Endwalker.Criterion.C01ASS.C012GladiatorOfSildih
+namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
 {
     class CurseOfTheFallen : Components.StackSpread
     {

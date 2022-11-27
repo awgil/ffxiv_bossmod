@@ -45,6 +45,7 @@ namespace UIDev.Analysis
 
         private SortedDictionary<uint, StateMetrics> _metrics = new();
         private List<(Replay, Replay.EncounterError)> _errors = new();
+        private List<(Replay, Replay.Encounter)> _encounters = new();
 
         public StateTransitionTimings(List<Replay> replays, uint oid)
         {
@@ -52,6 +53,8 @@ namespace UIDev.Analysis
             {
                 foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
                 {
+                    _encounters.Add((replay, enc));
+
                     foreach (var s in enc.States)
                     {
                         if (!_metrics.ContainsKey(s.ID))
@@ -93,10 +96,17 @@ namespace UIDev.Analysis
                     trans.StdDev = trans.Instances.Count > 0 ? Math.Sqrt((sumSq - sum * sum / trans.Instances.Count) / (trans.Instances.Count - 1)) : 0;
                 }
             }
+
+            _encounters.SortByReverse(e => e.Item2.Time.Duration);
         }
 
         public void Draw(UITree tree)
         {
+            foreach (var n in tree.Node("Encounters", _encounters.Count == 0))
+            {
+                tree.LeafNodes(_encounters, e => $"{e.Item1.Path} @ {e.Item2.Time.Start:O} ({e.Item2.Time.Duration:f3}s)");
+            }
+
             foreach (var n in tree.Node("Errors", _errors.Count == 0))
             {
                 tree.LeafNodes(_errors, error => $"{error.Item1.Path} @ {error.Item2.Timestamp:O} [{error.Item2.CompType}] {error.Item2.Message}");

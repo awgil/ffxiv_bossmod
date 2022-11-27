@@ -465,7 +465,11 @@ namespace UIDev.Analysis
             if (pos < 0 || pos + 6 > path.Length)
                 return null;
 
-            return int.Parse(path.Substring(pos + 3, 3)).Degrees();
+            int angle;
+            if (!int.TryParse(path.Substring(pos + 3, 3), out angle))
+                return null;
+
+            return angle.Degrees();
         }
     }
 }

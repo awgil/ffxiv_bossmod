@@ -106,7 +106,7 @@ namespace UIDev
                 ActorState.OpCombat => false,
                 ActorState.OpEventState op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpTarget => false, // reconsider...
-                ActorState.OpCastInfo op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(FindCast(FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null)!.ID),
+                ActorState.OpCastInfo op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(FindCast(FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null)?.ID ?? new()),
                 ActorState.OpCastEvent op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(op.Value.Action),
                 ActorState.OpEffectResult => false,
                 ActorState.OpStatus op => FilterInterestingStatus(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0),
@@ -200,10 +200,10 @@ namespace UIDev
         private void ContextMenuActorCast(ActorState.OpCastInfo op)
         {
             ContextMenuActor(op);
-            var id = FindCast(FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null)!.ID;
-            if (ImGui.MenuItem($"Filter out {id}"))
+            var cast = FindCast(FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null);
+            if (cast != null && ImGui.MenuItem($"Filter out {cast.ID}"))
             {
-                _filteredActions.Add(id);
+                _filteredActions.Add(cast.ID);
                 _nodesUpToDate = false;
             }
         }
@@ -243,7 +243,9 @@ namespace UIDev
         private string CastString(ulong instanceID, DateTime timestamp, bool start)
         {
             var p = FindParticipant(instanceID, timestamp);
-            var c = FindCast(p, timestamp, start)!;
+            var c = FindCast(p, timestamp, start);
+            if (c == null)
+                return $"{ActorString(p, timestamp)}: <unknown cast>";
             return $"{ActorString(p, timestamp)}: {c.ID} ({_moduleInfo?.ActionIDType?.GetEnumName(c.ID.ID)}), {c.ExpectedCastTime:f2}s ({c.Time} actual){(c.Interruptible ? " (interruptible)" : "")} @ {ReplayUtils.ParticipantString(c.Target)} {Utils.Vec3String(c.Location)} / {c.Rotation}";
         }
 
