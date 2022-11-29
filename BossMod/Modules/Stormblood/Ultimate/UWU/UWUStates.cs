@@ -1,4 +1,6 @@
-﻿namespace BossMod.Stormblood.Ultimate.UWU
+﻿using System.Linq;
+
+namespace BossMod.Stormblood.Ultimate.UWU
 {
     class UWUStates : StateMachineBuilder
     {
@@ -11,9 +13,12 @@
                 .ActivateOnEnter<P1Plumes>()
                 .ActivateOnEnter<P1Gigastorm>()
                 .ActivateOnEnter<P1GreatWhirlwind>() // TODO: not sure about this...
-                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HP.Cur <= 1;
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HP.Cur <= 1 && !Module.PrimaryActor.IsTargetable;
             SimplePhase(1, Phase2Ifrit, "P2: Ifrit")
-                .Raw.Update = () => Module.PrimaryActor.IsDestroyed && (_module.Ifrit()?.IsDestroyed ?? true);
+                .ActivateOnEnter<P2Nails>()
+                .ActivateOnEnter<P2InfernalFetters>()
+                .ActivateOnEnter<P2SearingWind>()
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed; // TODO: next phase condition
         }
 
         private void Phase1Garuda(uint id)
@@ -58,8 +63,7 @@
 
         private void P1Adds1(uint id, float delay)
         {
-            ComponentCondition<P1Plumes>(id, delay, comp => comp.Active, "Adds")
-                .ActivateOnEnter<P1Cyclone>();
+            ComponentCondition<P1Plumes>(id, delay, comp => comp.Active, "Adds");
             P1Slipstream(id + 0x10, 1.8f);
             ComponentCondition<P1Downburst>(id + 0x20, 3.5f, comp => comp.NumCasts > 0, "Cleave + Cyclone 1") // note: cyclone happens ~0.1s after cleave
                 .ActivateOnEnter<P1Downburst>()
@@ -128,7 +132,95 @@
 
         private void Phase2Ifrit(uint id)
         {
+            P2CrimsonCycloneRadiantPlumeHellfire(id, 4.2f);
+            P2VulcanBurst(id + 0x10000, 8.2f);
+            P2Incinerate(id + 0x20000, 2.8f);
+            P2Nails(id + 0x30000, 7.2f);
+            P2InfernoHowlEruptionCrimsonCyclone(id + 0x40000, 6.3f);
+
             SimpleState(id + 0xFF0000, 10000, "???");
+        }
+
+        private void P2CrimsonCycloneRadiantPlumeHellfire(uint id, float delay)
+        {
+            ComponentCondition<P2CrimsonCyclone>(id, delay, comp => comp.CastsPredicted)
+                .ActivateOnEnter<P2CrimsonCyclone>()
+                .ActivateOnEnter<P2RadiantPlume>(); // casts starts at the same time as charge (2.1s)
+            ComponentCondition<P2CrimsonCyclone>(id + 0x10, 5.1f, comp => comp.NumCasts > 0, "Charge")
+                .DeactivateOnExit<P2CrimsonCyclone>();
+            ComponentCondition<P2RadiantPlume>(id + 0x20, 1, comp => comp.NumCasts > 0, "Plumes")
+                .DeactivateOnExit<P2RadiantPlume>();
+
+            Condition(id + 0x100, 3.2f, () => _module.Ifrit() != null, "Ifrit appears");
+            ActorCast(id + 0x200, _module.Ifrit, AID.Hellfire, 0.1f, 3, true, "Raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P2VulcanBurst(uint id, float delay)
+        {
+            ComponentCondition<P2VulcanBurst>(id, delay, comp => comp.NumCasts > 0, "Knockback")
+                .ActivateOnEnter<P2VulcanBurst>()
+                .DeactivateOnExit<P2VulcanBurst>();
+        }
+
+        private void P2Incinerate(uint id, float delay)
+        {
+            ComponentCondition<P2Incinerate>(id, delay, comp => comp.NumCasts > 0, "Incinerate 1")
+                .ActivateOnEnter<P2Incinerate>();
+            ComponentCondition<P2Incinerate>(id + 1, 3.1f, comp => comp.NumCasts > 1, "Incinerate 2");
+            ComponentCondition<P2Incinerate>(id + 2, 4.1f, comp => comp.NumCasts > 2, "Incinerate 3")
+                .DeactivateOnExit<P2Incinerate>();
+        }
+
+        private void P2Nails(uint id, float delay)
+        {
+            ComponentCondition<P2Nails>(id, delay, comp => comp.Active, "Nails spawn");
+            // +5.0s: fetters
+            ActorCast(id + 0x100, _module.Ifrit, AID.InfernoHowl, 5.2f, 2, true, "Searing wind start");
+            ActorCastStart(id + 0x110, _module.Ifrit, AID.Eruption, 3.1f, true, "Eruption baits")
+                .ActivateOnEnter<P2Eruption>(); // activate early to show bait hints
+            ActorCastEnd(id + 0x111, _module.Ifrit, 2.5f, true);
+            ComponentCondition<P2Eruption>(id + 0x120, 6.5f, comp => comp.NumCasts >= 8)
+                .DeactivateOnExit<P2Eruption>();
+            ComponentCondition<P2SearingWind>(id + 0x130, 5.8f, comp => !comp.Active, "Searing wind end");
+
+            ActorTargetable(id + 0x200, _module.Ifrit, false, 5.1f, "Disappear");
+            ActorTargetable(id + 0x201, _module.Ifrit, true, 4.3f, "Reappear");
+            ActorCast(id + 0x210, _module.Ifrit, AID.Hellfire, 0.1f, 3, true, "Raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P2InfernoHowlEruptionCrimsonCyclone(uint id, float delay)
+        {
+            ActorCast(id, _module.Ifrit, AID.InfernoHowl, delay, 2, true, "Searing wind 1 start");
+            ActorCastStart(id + 0x10, _module.Ifrit, AID.Eruption, 3.2f, true, "Eruption baits")
+                .ActivateOnEnter<P2Eruption>(); // activate early to show bait hints
+            ActorCastEnd(id + 0x21, _module.Ifrit, 2.5f, true);
+            // +0.3s: searing wind 1
+            ComponentCondition<P2CrimsonCyclone>(id + 0x30, 2.5f, comp => comp.CastsPredicted)
+                .ActivateOnEnter<P2CrimsonCyclone>();
+            // +3.8s: searing wind 2
+            ComponentCondition<P2Eruption>(id + 0x40, 4, comp => comp.NumCasts >= 8)
+                .DeactivateOnExit<P2Eruption>();
+            ComponentCondition<P2CrimsonCyclone>(id + 0x50, 1.1f, comp => comp.NumCasts > 0, "Charges")
+                .DeactivateOnExit<P2CrimsonCyclone>();
+
+            ActorCast(id + 0x1000, _module.Ifrit, AID.InfernoHowl, 2.9f, 2, true, "Searing wind 2 start");
+            // +0.0s: searing wind 3 (on first target only)
+            ComponentCondition<P2FlamingCrush>(id + 0x1010, 5.1f, comp => comp.Active)
+                .ActivateOnEnter<P2FlamingCrush>();
+            // +0.8s: searing wind 4 (1st target) / 1 (2nd target)
+            ComponentCondition<P2FlamingCrush>(id + 0x1020, 5.1f, comp => !comp.Active, "Stack")
+                .DeactivateOnExit<P2FlamingCrush>();
+            // +1.7s: searing wind 5 (1st target) / 2 (2nd target)
+
+            ActorTargetable(id + 0x2000, _module.Ifrit, false, 4.1f, "Disappear");
+            // +2.2s: PATE 1E43 on 4 ifrits
+            // +3.6s: searing wind 3 (2nd target)
+            // +4.4s: first charge start
+            // +6.4s: second charge start
+            // +7.4s: first charge end
+            // TODO: ...
         }
     }
 }

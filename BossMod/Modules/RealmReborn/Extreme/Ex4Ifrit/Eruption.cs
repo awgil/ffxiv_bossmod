@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 
 namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 {
