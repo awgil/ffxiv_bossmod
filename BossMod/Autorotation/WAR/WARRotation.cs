@@ -105,6 +105,9 @@ namespace BossMod.WAR
 
                 [PropertyDisplay("Use all charges except one ASAP", 0x80ff0000)]
                 ForceReserve = 4, // if 2+ charges, use immediately
+
+                [PropertyDisplay("Reserve 2 charges, trying to prevent overcap", 0x80ffff00)]
+                ReserveTwo = 5, // use only if about to overcap
             }
 
             public GaugeUse GaugeStrategy; // how are we supposed to handle gauge
@@ -379,6 +382,8 @@ namespace BossMod.WAR
                     return true;
                 case Strategy.OnslaughtUse.ForceReserve:
                     return state.CD(CDGroup.Onslaught) <= 30 + state.AnimationLock;
+                case Strategy.OnslaughtUse.ReserveTwo:
+                    return state.CD(CDGroup.Onslaught) - (state.Unlocked(TraitID.EnhancedOnslaught) ? 0 : 30) <= state.GCD;
                 default:
                     if (strategy.CombatTimer < 0)
                         return false; // don't use out of combat

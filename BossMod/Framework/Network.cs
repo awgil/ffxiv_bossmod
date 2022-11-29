@@ -385,7 +385,7 @@ namespace BossMod
         private unsafe void DumpServerMessage(IntPtr dataPtr, ushort opCode, uint targetActorId)
         {
             var header = (Protocol.Server_IPCHeader*)(dataPtr - 0x10);
-            Service.Log($"[Network] Server message {(Protocol.Opcode)opCode} -> {Utils.ObjectString(targetActorId)} (seq={header->Epoch}): {*(ulong*)dataPtr:X16}...");
+            Service.Log($"[Network] Server message {(Protocol.Opcode)opCode} -> {Utils.ObjectString(targetActorId)} (seq={header->Epoch}): {((ulong*)dataPtr)[0]:X16} {((ulong*)dataPtr)[1]:X16}...");
             switch ((Protocol.Opcode)opCode)
             {
                 case Protocol.Opcode.ActionEffect1:
