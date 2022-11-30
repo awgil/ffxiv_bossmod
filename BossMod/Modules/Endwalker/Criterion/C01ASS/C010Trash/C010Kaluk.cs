@@ -1,89 +1,62 @@
 ﻿namespace BossMod.Endwalker.Criterion.C01ASS.C010Kaluk
 {
+    public enum OID : uint
+    {
+        NBoss = 0x3AD6, // R2.800, x1
+        SBoss = 0x3ADF, // R2.800, x1
+    };
+
+    public enum AID : uint
+    {
+        AutoAttack = 31320, // NBoss/SBoss->player, no cast, single-target
+        NRightSweep = 31075, // NBoss->self, 4.0s cast, range 30 210-degree cone aoe
+        NLeftSweep = 31076, // NBoss->self, 4.0s cast, range 30 210-degree cone aoe
+        NCreepingIvy = 31077, // NBoss->self, 3.0s cast, range 10 90-degree cone aoe
+        SRightSweep = 31099, // SBoss->self, 4.0s cast, range 30 210-degree cone aoe
+        SLeftSweep = 31100, // SBoss->self, 4.0s cast, range 30 210-degree cone aoe
+        SCreepingIvy = 31101, // SBoss->self, 3.0s cast, range 10 90-degree cone aoe
+    };
+
     class RightSweep : Components.SelfTargetedAOEs
     {
-        public RightSweep(ActionID aid) : base(aid, new AOEShapeCone(30, 105.Degrees())) { }
+        public RightSweep(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCone(30, 105.Degrees())) { }
     }
+    class NRightSweep : RightSweep { public NRightSweep() : base(AID.NRightSweep) { } }
+    class SRightSweep : RightSweep { public SRightSweep() : base(AID.SRightSweep) { } }
 
     class LeftSweep : Components.SelfTargetedAOEs
     {
-        public LeftSweep(ActionID aid) : base(aid, new AOEShapeCone(30, 105.Degrees())) { }
+        public LeftSweep(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCone(30, 105.Degrees())) { }
     }
+    class NLeftSweep : LeftSweep { public NLeftSweep() : base(AID.NLeftSweep) { } }
+    class SLeftSweep : LeftSweep { public SLeftSweep() : base(AID.SLeftSweep) { } }
 
     class CreepingIvy : Components.SelfTargetedAOEs
     {
-        public CreepingIvy(ActionID aid) : base(aid, new AOEShapeCone(10, 45.Degrees())) { }
+        public CreepingIvy(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCone(10, 45.Degrees())) { }
     }
+    class NCreepingIvy : CreepingIvy { public NCreepingIvy() : base(AID.NCreepingIvy) { } }
+    class SCreepingIvy : CreepingIvy { public SCreepingIvy() : base(AID.SCreepingIvy) { } }
 
-    namespace Normal
+    class C010KalukStates : StateMachineBuilder
     {
-        public enum OID : uint
+        public C010KalukStates(BossModule module, bool savage) : base(module)
         {
-            Boss = 0x3AD6, // R2.800, x1
-        };
-
-        public enum AID : uint
-        {
-            AutoAttack = 31320, // Boss->player, no cast, single-target
-            RightSweep = 31075, // Boss->self, 4.0s cast, range 30 210-degree cone aoe
-            LeftSweep = 31076, // Boss->self, 4.0s cast, range 30 210-degree cone aoe
-            CreepingIvy = 31077, // Boss->self, 3.0s cast, range 10 90-degree cone aoe
-        };
-
-        class NRightSweep : RightSweep { public NRightSweep() : base(ActionID.MakeSpell(AID.RightSweep)) { } }
-        class NLeftSweep : LeftSweep { public NLeftSweep() : base(ActionID.MakeSpell(AID.LeftSweep)) { } }
-        class NCreepingIvy : CreepingIvy { public NCreepingIvy() : base(ActionID.MakeSpell(AID.CreepingIvy)) { } }
-
-        class C010NKalukStates : StateMachineBuilder
-        {
-            public C010NKalukStates(BossModule module) : base(module)
-            {
-                TrivialPhase()
-                    .ActivateOnEnter<NRightSweep>()
-                    .ActivateOnEnter<NLeftSweep>()
-                    .ActivateOnEnter<NCreepingIvy>();
-            }
-        }
-
-        public class C010NKaluk : SimpleBossModule
-        {
-            public C010NKaluk(WorldState ws, Actor primary) : base(ws, primary) { }
+            TrivialPhase()
+                .ActivateOnEnter<NRightSweep>(!savage)
+                .ActivateOnEnter<NLeftSweep>(!savage)
+                .ActivateOnEnter<NCreepingIvy>(!savage)
+                .ActivateOnEnter<SRightSweep>(savage)
+                .ActivateOnEnter<SLeftSweep>(savage)
+                .ActivateOnEnter<SCreepingIvy>(savage);
         }
     }
+    class C010NKalukStates : C010KalukStates { public C010NKalukStates(BossModule module) : base(module, false) { } }
+    class C010SKalukStates : C010KalukStates { public C010SKalukStates(BossModule module) : base(module, true) { } }
 
-    namespace Savage
-    {
-        public enum OID : uint
-        {
-            Boss = 0x3ADF, // R2.800, x1
-        };
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss)]
+    public class C010NKaluk : SimpleBossModule { public C010NKaluk(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-        public enum AID : uint
-        {
-            AutoAttack = 31320, // Boss->player, no cast, single-target
-            RightSweep = 31099, // Boss->self, 4.0s cast, range 30 210-degree cone aoe
-            LeftSweep = 31100, // Boss->self, 4.0s cast, range 30 210-degree cone aoe
-            CreepingIvy = 31101, // Boss->self, 3.0s cast, range 10 90-degree cone aoe
-        };
-
-        class SRightSweep : RightSweep { public SRightSweep() : base(ActionID.MakeSpell(AID.RightSweep)) { } }
-        class SLeftSweep : LeftSweep { public SLeftSweep() : base(ActionID.MakeSpell(AID.LeftSweep)) { } }
-        class SCreepingIvy : CreepingIvy { public SCreepingIvy() : base(ActionID.MakeSpell(AID.CreepingIvy)) { } }
-
-        class C010SKalukStates : StateMachineBuilder
-        {
-            public C010SKalukStates(BossModule module) : base(module)
-            {
-                TrivialPhase()
-                    .ActivateOnEnter<SRightSweep>()
-                    .ActivateOnEnter<SLeftSweep>()
-                    .ActivateOnEnter<SCreepingIvy>();
-            }
-        }
-
-        public class C010SKaluk : SimpleBossModule
-        {
-            public C010SKaluk(WorldState ws, Actor primary) : base(ws, primary) { }
-        }
-    }
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss)]
+    public class C010SKaluk : SimpleBossModule { public C010SKaluk(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

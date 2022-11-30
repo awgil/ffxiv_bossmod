@@ -86,9 +86,12 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie
                 case AID.SlipperySoapTargetSelection:
                     _chargeTarget = module.WorldState.Actors.Find(spell.MainTargetID);
                     break;
-                case AID.SlipperySoapAOEBlue:
-                case AID.SlipperySoapAOEGreen:
-                case AID.SlipperySoapAOEYellow:
+                case AID.NSlipperySoapAOEBlue:
+                case AID.NSlipperySoapAOEGreen:
+                case AID.NSlipperySoapAOEYellow:
+                case AID.SSlipperySoapAOEBlue:
+                case AID.SSlipperySoapAOEGreen:
+                case AID.SSlipperySoapAOEYellow:
                     _chargeTarget = null;
                     break;
             }
@@ -137,7 +140,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             base.OnEventCast(module, caster, spell);
-            if ((AID)spell.Action.ID is AID.ChillingDusterBoss or AID.BracingDusterBoss or AID.FizzlingDusterBoss)
+            if ((AID)spell.Action.ID is AID.NChillingDusterBoss or AID.NBracingDusterBoss or AID.NFizzlingDusterBoss or AID.SChillingDusterBoss or AID.SBracingDusterBoss or AID.SFizzlingDusterBoss)
                 _color = SlipperySoap.Color.None;
         }
     }

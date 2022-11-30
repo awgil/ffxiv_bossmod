@@ -2,8 +2,11 @@
 {
     class C011SilkieStates : StateMachineBuilder
     {
-        public C011SilkieStates(BossModule module) : base(module)
+        private bool _savage;
+
+        public C011SilkieStates(BossModule module, bool savage) : base(module)
         {
+            _savage = savage;
             DeathPhase(0, SinglePhase)
                 .ActivateOnEnter<PuffTracker>();
         }
@@ -30,22 +33,25 @@
 
         private void CarpetBeater(uint id, float delay)
         {
-            Cast(id, AID.CarpetBeater, delay, 5, "Tankbuster")
+            Cast(id, _savage ? AID.SCarpetBeater : AID.NCarpetBeater, delay, 5, "Tankbuster")
                 .SetHint(StateMachine.StateHint.Tankbuster);
         }
 
         private void TotalWash(uint id, float delay)
         {
-            Cast(id, AID.TotalWash, delay, 5, "Raidwide")
+            Cast(id, _savage ? AID.STotalWash : AID.NTotalWash, delay, 5, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide);
         }
 
         private State SoapingSpree(uint id, float delay, string name = "Puffs")
         {
-            return Cast(id, AID.SoapingSpreeBoss, delay, 5, name)
-                .ActivateOnEnter<ChillingDusterPuff>()
-                .ActivateOnEnter<BracingDusterPuff>()
-                .ActivateOnEnter<FizzlingDusterPuff>()
+            return Cast(id, _savage ? AID.SSoapingSpreeBoss : AID.NSoapingSpreeBoss, delay, 5, name)
+                .ActivateOnEnter<NChillingDusterPuff>(!_savage)
+                .ActivateOnEnter<NBracingDusterPuff>(!_savage)
+                .ActivateOnEnter<NFizzlingDusterPuff>(!_savage)
+                .ActivateOnEnter<SChillingDusterPuff>(_savage)
+                .ActivateOnEnter<SBracingDusterPuff>(_savage)
+                .ActivateOnEnter<SFizzlingDusterPuff>(_savage)
                 .DeactivateOnExit<ChillingDusterPuff>()
                 .DeactivateOnExit<BracingDusterPuff>()
                 .DeactivateOnExit<FizzlingDusterPuff>();
@@ -53,25 +59,29 @@
 
         private void FizzlingSuds(uint id, float delay)
         {
-            Cast(id, AID.FizzlingSuds, delay, 3);
-            Cast(id + 0x10, AID.SoapsUp, 2.1f, 4)
-                .ActivateOnEnter<FizzlingDuster>();
+            Cast(id, _savage ? AID.SFizzlingSuds : AID.NFizzlingSuds, delay, 3);
+            Cast(id + 0x10, _savage ? AID.SSoapsUp : AID.NSoapsUp, 2.1f, 4)
+                .ActivateOnEnter<NFizzlingDuster>(!_savage)
+                .ActivateOnEnter<SFizzlingDuster>(_savage);
             ComponentCondition<FizzlingDuster>(id + 0x20, 1, comp => comp.NumCasts > 0, "Cones")
                 .DeactivateOnExit<FizzlingDuster>();
         }
 
         private void DustBluster(uint id, float delay)
         {
-            Cast(id, AID.DustBluster, delay, 5, "Knockback")
-                .ActivateOnEnter<DustBluster>()
+            Cast(id, _savage ? AID.SDustBluster : AID.NDustBluster, delay, 5, "Knockback")
+                .ActivateOnEnter<NDustBluster>(!_savage)
+                .ActivateOnEnter<SDustBluster>(_savage)
                 .DeactivateOnExit<DustBluster>();
         }
 
         private void SqueakyClean(uint id, float delay)
         {
-            CastMulti(id, new AID[] { AID.SqueakyCleanE, AID.SqueakyCleanW }, delay, 4.5f)
-                .ActivateOnEnter<SqueakyCleanE>()
-                .ActivateOnEnter<SqueakyCleanW>();
+            CastMulti(id, new AID[] { _savage ? AID.SSqueakyCleanE : AID.NSqueakyCleanE, _savage ? AID.SSqueakyCleanW : AID.NSqueakyCleanW }, delay, 4.5f)
+                .ActivateOnEnter<NSqueakyCleanE>(!_savage)
+                .ActivateOnEnter<NSqueakyCleanW>(!_savage)
+                .ActivateOnEnter<SSqueakyCleanE>(_savage)
+                .ActivateOnEnter<SSqueakyCleanW>(_savage);
             Condition(id + 2, 4.7f, () => Module.FindComponent<SqueakyCleanE>()!.NumCasts + Module.FindComponent<SqueakyCleanW>()!.NumCasts > 0, "Recolor")
                 .DeactivateOnExit<SqueakyCleanE>()
                 .DeactivateOnExit<SqueakyCleanW>();
@@ -79,7 +89,7 @@
 
         private void SlipperySoap(uint id, float delay, bool longCharge = false)
         {
-            CastStart(id, AID.SlipperySoap, delay)
+            CastStart(id, _savage ? AID.SSlipperySoap : AID.NSlipperySoap, delay)
                 .ActivateOnEnter<SlipperySoapCharge>(); // target selection and cast start happen at the same time
             CastEnd(id + 1, 5);
             ComponentCondition<SlipperySoapCharge>(id + 2, longCharge ? 0.5f : 0.3f, comp => !comp.ChargeImminent, "Charge")
@@ -94,22 +104,22 @@
 
         private void SudsSlipperySoap(uint id, float delay, bool longCharge = false)
         {
-            CastMulti(id, new AID[] { AID.BracingSuds, AID.ChillingSuds, AID.FizzlingSuds }, delay, 3);
+            CastMulti(id, new AID[] { _savage ? AID.SBracingSuds : AID.NBracingSuds, _savage ? AID.SChillingSuds : AID.NChillingSuds, _savage ? AID.SFizzlingSuds : AID.NFizzlingSuds }, delay, 3);
             SlipperySoap(id + 0x100, 2.1f, longCharge);
         }
 
         private void ChillingSudsCarpetBeaterSlipperySoap(uint id, float delay)
         {
-            Cast(id, AID.ChillingSuds, delay, 3);
+            Cast(id, _savage ? AID.SChillingSuds : AID.NChillingSuds, delay, 3);
             CarpetBeater(id + 0x100, 2.2f);
             SlipperySoap(id + 0x200, 2.1f);
         }
 
         private void SqueakyCleanSlipperySoap(uint id, float delay)
         {
-            Cast(id, AID.FreshPuff, delay, 4);
+            Cast(id, _savage ? AID.SFreshPuff : AID.NFreshPuff, delay, 4);
             // +1.1s: debuffs on 3 puffs with offsets (0, -10), (12.5, 7), (-12.5, 7); no point showing anything for them, since they will be recolored
-            Cast(id + 0x10, AID.BracingSuds, 2.1f, 3);
+            Cast(id + 0x10, _savage ? AID.SBracingSuds : AID.NBracingSuds, 2.1f, 3);
 
             // TODO: as soon as next cast starts, we can determine desired position for bait: N if remaining puff is yellow, recolored side if remaining puff is blue
             SqueakyClean(id + 0x20, 2.1f);
@@ -123,8 +133,8 @@
 
         private void EasternEwers(uint id, float delay)
         {
-            Cast(id, AID.FreshPuff, delay, 4);
-            Cast(id + 0x10, AID.EasternEwers, 2.1f, 4);
+            Cast(id, _savage ? AID.SFreshPuff : AID.NFreshPuff, delay, 4);
+            Cast(id + 0x10, _savage ? AID.SEasternEwers : AID.NEasternEwers, 2.1f, 4);
             ComponentCondition<EasternEwers>(id + 0x20, 1.2f, comp => comp.Active)
                 .ActivateOnEnter<EasternEwers>();
             // TODO: consider showing puff aoes early, as soon as exaflares start...
@@ -135,15 +145,15 @@
         // TODO: consider grouping with prev and showing early blue puff hints
         private void BracingSudsSoapingSpree(uint id, float delay)
         {
-            Cast(id, AID.BracingSuds, delay, 3);
+            Cast(id, _savage ? AID.SBracingSuds : AID.NBracingSuds, delay, 3);
             SoapingSpree(id + 0x100, 2.2f);
         }
 
         private void Tethers1(uint id, float delay)
         {
-            CastMulti(id, new AID[] { AID.BracingSuds, AID.ChillingSuds }, delay, 3)
+            CastMulti(id, new AID[] { _savage ? AID.SBracingSuds : AID.NBracingSuds, _savage ? AID.SChillingSuds : AID.NChillingSuds }, delay, 3)
                 .ActivateOnEnter<PuffTethers1>();
-            Cast(id + 0x10, AID.FreshPuff, 2.1f, 4);
+            Cast(id + 0x10, _savage ? AID.SFreshPuff : AID.NFreshPuff, 2.1f, 4);
             // +1.1s: puffs appear
             // +3.2s: tethers appear
             // +9.4s/+10.1s: puff and tumble start
@@ -155,9 +165,9 @@
 
         private void Tethers2(uint id, float delay)
         {
-            Cast(id, AID.BracingSuds, delay, 3)
+            Cast(id, _savage ? AID.SBracingSuds : AID.NBracingSuds, delay, 3)
                 .ActivateOnEnter<PuffTethers2>();
-            Cast(id + 0x10, AID.FreshPuff, 2.1f, 4);
+            Cast(id + 0x10, _savage ? AID.SFreshPuff : AID.NFreshPuff, 2.1f, 4);
             // +1.1s: puffs appear
             // +3.2s: tethers appear
             // +10.0s: puff and tumble start
@@ -168,4 +178,7 @@
                 .DeactivateOnExit<PuffTethers2>();
         }
     }
+
+    class C011NSilkieStates : C011SilkieStates { public C011NSilkieStates(BossModule module) : base(module, false) { } }
+    class C011SSilkieStates : C011SilkieStates { public C011SSilkieStates(BossModule module) : base(module, true) { } }
 }

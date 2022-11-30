@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.BrimOver)
+            if ((AID)spell.Action.ID is AID.NBrimOver or AID.SBrimOver)
             {
                 Lines.Add(new() { Next = caster.Position, Advance = new(0, 5.1f), LastExplosion = spell.FinishAt.AddSeconds(-0.8f), TimeToMove = 0.8f, ExplosionsLeft = 11, MaxShownExplosions = int.MaxValue });
             }
@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if ((AID)spell.Action.ID is AID.BrimOver or AID.Rinse)
+            if ((AID)spell.Action.ID is AID.NBrimOver or AID.SBrimOver or AID.NRinse or AID.SRinse)
             {
                 int index = Lines.FindIndex(item => Math.Abs(item.Next.X - caster.Position.X) < 1);
                 if (index == -1)

@@ -1,114 +1,93 @@
 ﻿namespace BossMod.Endwalker.Criterion.C01ASS.C010Dryad
 {
+    public enum OID : uint
+    {
+        NBoss = 0x3AD1, // R3.000, x1
+        NOdqan = 0x3AD2, // R1.050, x2
+        SBoss = 0x3ADA, // R3.000, x1
+        SOdqan = 0x3ADB, // R1.050, x2
+    };
+
+    public enum AID : uint
+    {
+        AutoAttack = 31320, // NBoss/NOdqan/SBoss/SOdqan->player, no cast, single-target
+        NArborealStorm = 31063, // NBoss->self, 5.0s cast, range 12 circle
+        NAcornBomb = 31064, // NBoss->location, 3.0s cast, range 6 circle
+        NGelidGale = 31065, // NOdqan->location, 3.0s cast, range 6 circle
+        NUproot = 31066, // NOdqan->self, 3.0s cast, range 6 circle
+        SArborealStorm = 31087, // SBoss->self, 5.0s cast, range 12 circle
+        SAcornBomb = 31088, // SBoss->location, 3.0s cast, range 6 circle
+        SGelidGale = 31089, // SOdqan->location, 3.0s cast, range 6 circle
+        SUproot = 31090, // SOdqan->self, 3.0s cast, range 6 circle
+    };
+
     class ArborealStorm : Components.SelfTargetedAOEs
     {
-        public ArborealStorm(ActionID aid) : base(aid, new AOEShapeCircle(12)) { }
+        public ArborealStorm(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCircle(12)) { }
     }
+    class NArborealStorm : ArborealStorm { public NArborealStorm() : base(AID.NArborealStorm) { } }
+    class SArborealStorm : ArborealStorm { public SArborealStorm() : base(AID.SArborealStorm) { } }
 
     class AcornBomb : Components.LocationTargetedAOEs
     {
-        public AcornBomb(ActionID aid) : base(aid, 6) { }
+        public AcornBomb(AID aid) : base(ActionID.MakeSpell(aid), 6) { }
     }
+    class NAcornBomb : AcornBomb { public NAcornBomb() : base(AID.NAcornBomb) { } }
+    class SAcornBomb : AcornBomb { public SAcornBomb() : base(AID.SAcornBomb) { } }
 
     class GelidGale : Components.LocationTargetedAOEs
     {
-        public GelidGale(ActionID aid) : base(aid, 6) { }
+        public GelidGale(AID aid) : base(ActionID.MakeSpell(aid), 6) { }
     }
+    class NGelidGale : GelidGale { public NGelidGale() : base(AID.NGelidGale) { } }
+    class SGelidGale : GelidGale { public SGelidGale() : base(AID.SGelidGale) { } }
 
     class Uproot : Components.SelfTargetedAOEs
     {
-        public Uproot(ActionID aid) : base(aid, new AOEShapeCircle(6)) { }
+        public Uproot(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCircle(6)) { }
     }
+    class NUproot : Uproot { public NUproot() : base(AID.NUproot) { } }
+    class SUproot : Uproot { public SUproot() : base(AID.SUproot) { } }
 
-    namespace Normal
+    class C010DryadStates : StateMachineBuilder
     {
-        public enum OID : uint
+        public C010DryadStates(BossModule module, bool savage) : base(module)
         {
-            Boss = 0x3AD1, // R3.000, x1
-            Odqan = 0x3AD2, // R1.050, x2
-        };
-
-        public enum AID : uint
-        {
-            AutoAttack = 31320, // Boss/Odqan->player, no cast, single-target
-            ArborealStorm = 31063, // Boss->self, 5.0s cast, range 12 circle
-            AcornBomb = 31064, // Boss->location, 3.0s cast, range 6 circle
-            GelidGale = 31065, // Odqan->location, 3.0s cast, range 6 circle
-            Uproot = 31066, // Odqan->self, 3.0s cast, range 6 circle
-        };
-
-        class NArborealStorm : ArborealStorm { public NArborealStorm() : base(ActionID.MakeSpell(AID.ArborealStorm)) { } }
-        class NAcornBomb : AcornBomb { public NAcornBomb() : base(ActionID.MakeSpell(AID.AcornBomb)) { } }
-        class NGelidGale : GelidGale { public NGelidGale() : base(ActionID.MakeSpell(AID.GelidGale)) { } }
-        class NUproot : Uproot { public NUproot() : base(ActionID.MakeSpell(AID.Uproot)) { } }
-
-        class C010NDryadStates : StateMachineBuilder
-        {
-            public C010NDryadStates(BossModule module) : base(module)
-            {
-                TrivialPhase()
-                    .ActivateOnEnter<NArborealStorm>()
-                    .ActivateOnEnter<NAcornBomb>()
-                    .ActivateOnEnter<NGelidGale>()
-                    .ActivateOnEnter<NUproot>();
-            }
+            TrivialPhase()
+                .ActivateOnEnter<NArborealStorm>(!savage)
+                .ActivateOnEnter<NAcornBomb>(!savage)
+                .ActivateOnEnter<NGelidGale>(!savage)
+                .ActivateOnEnter<NUproot>(!savage)
+                .ActivateOnEnter<SArborealStorm>(savage)
+                .ActivateOnEnter<SAcornBomb>(savage)
+                .ActivateOnEnter<SGelidGale>(savage)
+                .ActivateOnEnter<SUproot>(savage);
         }
+    }
+    class C010NDryadStates : C010DryadStates { public C010NDryadStates(BossModule module) : base(module, false) { } }
+    class C010SDryadStates : C010DryadStates { public C010SDryadStates(BossModule module) : base(module, true) { } }
 
-        public class C010NDryad : SimpleBossModule
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss)]
+    public class C010NDryad : SimpleBossModule
+    {
+        public C010NDryad(WorldState ws, Actor primary) : base(ws, primary) { }
+
+        protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            public C010NDryad(WorldState ws, Actor primary) : base(ws, primary) { }
-
-            protected override void DrawEnemies(int pcSlot, Actor pc)
-            {
-                Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-                Arena.Actors(Enemies(OID.Odqan), ArenaColor.Enemy);
-            }
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actors(Enemies(OID.NOdqan), ArenaColor.Enemy);
         }
     }
 
-    namespace Savage
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss)]
+    public class C010SDryad : SimpleBossModule
     {
-        public enum OID : uint
+        public C010SDryad(WorldState ws, Actor primary) : base(ws, primary) { }
+
+        protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Boss = 0x3ADA, // R3.000, x1
-            Odqan = 0x3ADB, // R1.050, x2
-        };
-
-        public enum AID : uint
-        {
-            AutoAttack = 31320, // Boss/Odqan->player, no cast, single-target
-            ArborealStorm = 31087, // Boss->self, 5.0s cast, range 12 circle
-            AcornBomb = 31088, // Boss->location, 3.0s cast, range 6 circle
-            GelidGale = 31089, // Odqan->location, 3.0s cast, range 6 circle
-            Uproot = 31090, // Odqan->self, 3.0s cast, range 6 circle
-        };
-
-        class NArborealStorm : ArborealStorm { public NArborealStorm() : base(ActionID.MakeSpell(AID.ArborealStorm)) { } }
-        class NAcornBomb : AcornBomb { public NAcornBomb() : base(ActionID.MakeSpell(AID.AcornBomb)) { } }
-        class NGelidGale : GelidGale { public NGelidGale() : base(ActionID.MakeSpell(AID.GelidGale)) { } }
-        class NUproot : Uproot { public NUproot() : base(ActionID.MakeSpell(AID.Uproot)) { } }
-
-        class C010NDryadStates : StateMachineBuilder
-        {
-            public C010NDryadStates(BossModule module) : base(module)
-            {
-                TrivialPhase()
-                    .ActivateOnEnter<NArborealStorm>()
-                    .ActivateOnEnter<NAcornBomb>()
-                    .ActivateOnEnter<NGelidGale>()
-                    .ActivateOnEnter<NUproot>();
-            }
-        }
-
-        public class C010NDryad : SimpleBossModule
-        {
-            public C010NDryad(WorldState ws, Actor primary) : base(ws, primary) { }
-
-            protected override void DrawEnemies(int pcSlot, Actor pc)
-            {
-                Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-                Arena.Actors(Enemies(OID.Odqan), ArenaColor.Enemy);
-            }
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actors(Enemies(OID.SOdqan), ArenaColor.Enemy);
         }
     }
 }
