@@ -35,11 +35,6 @@ namespace BossMod.Stormblood.Ultimate.UWU
         public P1EyeOfTheStorm() : base(ActionID.MakeSpell(AID.EyeOfTheStorm), new AOEShapeDonut(12, 25)) { }
     }
 
-    class P1WickedWheel : Components.SelfTargetedAOEs
-    {
-        public P1WickedWheel() : base(ActionID.MakeSpell(AID.WickedWheel), new AOEShapeCircle(8.7f)) { }
-    }
-
     class P1Gigastorm : Components.SelfTargetedAOEs
     {
         public P1Gigastorm() : base(ActionID.MakeSpell(AID.Gigastorm), new AOEShapeCircle(6.5f)) { }
@@ -55,20 +50,60 @@ namespace BossMod.Stormblood.Ultimate.UWU
         public P2Incinerate() : base(ActionID.MakeSpell(AID.Incinerate), new AOEShapeCone(15, 60.Degrees()), (uint)OID.Ifrit) { }
     }
 
+    class P3RockBuster : Components.Cleave
+    {
+        public P3RockBuster() : base(ActionID.MakeSpell(AID.RockBuster), new AOEShapeCone(10.55f, 60.Degrees()), (uint)OID.Titan) { } // TODO: verify angle
+    }
+
+    class P3MountainBuster : Components.Cleave
+    {
+        public P3MountainBuster() : base(ActionID.MakeSpell(AID.MountainBuster), new AOEShapeCone(15.55f, 45.Degrees()), (uint)OID.Titan) { } // TODO: verify angle
+    }
+
+    class P3WeightOfTheLand : Components.LocationTargetedAOEs
+    {
+        public P3WeightOfTheLand() : base(ActionID.MakeSpell(AID.WeightOfTheLandAOE), 6) { }
+    }
+
+    class P3Upheaval : Components.KnockbackFromCastTarget
+    {
+        public P3Upheaval() : base(ActionID.MakeSpell(AID.Upheaval), 24, 1, true) { }
+    }
+
+    class P3LandslideBoss : Components.SelfTargetedAOEs
+    {
+        public P3LandslideBoss() : base(ActionID.MakeSpell(AID.LandslideBoss), new AOEShapeRect(44.55f, 3)) { }
+    }
+
+    class P3LandslideHelper : Components.SelfTargetedAOEs
+    {
+        public P3LandslideHelper() : base(ActionID.MakeSpell(AID.LandslideHelper), new AOEShapeRect(40.5f, 3)) { }
+    }
+
+    class P3Tumult : Components.CastCounter
+    {
+        public P3Tumult() : base(ActionID.MakeSpell(AID.Tumult)) { }
+    }
+
+
+
     [ModuleInfo(PrimaryActorOID = (uint)OID.Garuda)]
     public class UWU : BossModule
     {
         private List<Actor> _ifrits;
+        private List<Actor> _titan;
         private Actor? _mainIfrit;
 
         public IReadOnlyList<Actor> Ifrits => _ifrits;
 
         public Actor? Garuda() => PrimaryActor.IsDestroyed ? null : PrimaryActor;
         public Actor? Ifrit() => _mainIfrit;
+        public Actor? Titan() => _titan.FirstOrDefault();
 
         public UWU(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
         {
             _ifrits = Enemies(OID.Ifrit);
+            _titan = Enemies(OID.Titan);
         }
 
         protected override void UpdateModule()
@@ -81,6 +116,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
         {
             Arena.Actor(Garuda(), ArenaColor.Enemy);
             Arena.Actor(Ifrit(), ArenaColor.Enemy);
+            Arena.Actor(Titan(), ArenaColor.Enemy);
         }
     }
 }

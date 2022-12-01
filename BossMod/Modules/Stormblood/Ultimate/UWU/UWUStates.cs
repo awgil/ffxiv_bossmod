@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Stormblood.Ultimate.UWU
+﻿namespace BossMod.Stormblood.Ultimate.UWU
 {
     class UWUStates : StateMachineBuilder
     {
@@ -18,7 +16,9 @@ namespace BossMod.Stormblood.Ultimate.UWU
                 .ActivateOnEnter<P2Nails>()
                 .ActivateOnEnter<P2InfernalFetters>()
                 .ActivateOnEnter<P2SearingWind>()
-                .Raw.Update = () => Module.PrimaryActor.IsDestroyed; // TODO: next phase condition
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || (_module.Ifrit()?.HP.Cur <= 1 && !(_module.Ifrit()?.IsTargetable ?? true));
+            SimplePhase(2, Phase3Titan, "P3Titan")
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed; // TODO: condition
         }
 
         private void Phase1Garuda(uint id)
@@ -33,9 +33,9 @@ namespace BossMod.Stormblood.Ultimate.UWU
             // awakening happens here...
             P1SistersFeatherRain(id + 0x70000, 2.0f);
             P1Slipstream(id + 0x80000, 10.0f);
-
-            // TODO: awakened wicked wheel > awakened downburst > slipstream > enrage
-            SimpleState(id + 0xFF0000, 10000, "???");
+            P1AwakenedWickedWheelDownburst(id + 0x90000, 5.5f);
+            P1Slipstream(id + 0xA0000, 5.5f);
+            P1Enrage(id + 0xB0000, 9.4f);
         }
 
         private State P1Slipstream(uint id, float delay)
@@ -130,6 +130,31 @@ namespace BossMod.Stormblood.Ultimate.UWU
                 .DeactivateOnExit<P1Mesohigh>(); // resolves at the same time as cleave
         }
 
+        // note: they aren't necessarily awakened if previous mechanics were fucked up, but who cares...
+        private void P1AwakenedWickedWheelDownburst(uint id, float delay)
+        {
+            ActorCast(id, _module.Garuda, AID.WickedWheel, delay, 3, true, "Out")
+                .ActivateOnEnter<P1WickedWheel>()
+                .DeactivateOnExit<P1WickedWheel>();
+            ComponentCondition<P1WickedTornado>(id + 2, 2.1f, comp => comp.NumCasts > 0, "In")
+                .ActivateOnEnter<P1WickedTornado>()
+                .DeactivateOnExit<P1WickedTornado>();
+            ComponentCondition<P1Downburst>(id + 0x10, 2.8f, comp => comp.NumCasts > 0, "Cleave")
+                .ActivateOnEnter<P1Downburst>()
+                .DeactivateOnExit<P1Downburst>();
+        }
+
+        private void P1Enrage(uint id, float delay)
+        {
+            // note: similar to P1GarudaFeatherRainRaidwide, except that garuda doesn't reappear
+            ActorTargetable(id, _module.Garuda, false, delay, "Disappear");
+            ComponentCondition<P1FeatherRain>(id + 1, 1.6f, comp => comp.CastsActive)
+                .ActivateOnEnter<P1FeatherRain>();
+            ComponentCondition<P1FeatherRain>(id + 2, 1, comp => !comp.CastsActive)
+                .DeactivateOnExit<P1FeatherRain>();
+            ActorCast(id + 0x10, _module.Garuda, AID.AerialBlast, 1.8f, 3, true, "Enrage");
+        }
+
         private void Phase2Ifrit(uint id)
         {
             P2CrimsonCycloneRadiantPlumeHellfire(id, 4.2f);
@@ -137,7 +162,9 @@ namespace BossMod.Stormblood.Ultimate.UWU
             P2Incinerate(id + 0x20000, 2.8f);
             P2Nails(id + 0x30000, 7.2f);
             P2InfernoHowlEruptionCrimsonCyclone(id + 0x40000, 6.3f);
+            P2Incinerate(id + 0x50000, 4.2f);
 
+            // TODO: eruptions > flaming crush > enrage
             SimpleState(id + 0xFF0000, 10000, "???");
         }
 
@@ -177,7 +204,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
             ComponentCondition<P2Nails>(id, delay, comp => comp.Active, "Nails spawn");
             // +5.0s: fetters
             ActorCast(id + 0x100, _module.Ifrit, AID.InfernoHowl, 5.2f, 2, true, "Searing wind start");
-            ActorCastStart(id + 0x110, _module.Ifrit, AID.Eruption, 3.1f, true, "Eruption baits")
+            ActorCastStart(id + 0x110, _module.Ifrit, AID.Eruption, 3.2f, true, "Eruption baits")
                 .ActivateOnEnter<P2Eruption>(); // activate early to show bait hints
             ActorCastEnd(id + 0x111, _module.Ifrit, 2.5f, true);
             ComponentCondition<P2Eruption>(id + 0x120, 6.5f, comp => comp.NumCasts >= 8)
@@ -202,7 +229,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
             // +3.8s: searing wind 2
             ComponentCondition<P2Eruption>(id + 0x40, 4, comp => comp.NumCasts >= 8)
                 .DeactivateOnExit<P2Eruption>();
-            ComponentCondition<P2CrimsonCyclone>(id + 0x50, 1.1f, comp => comp.NumCasts > 0, "Charges")
+            ComponentCondition<P2CrimsonCyclone>(id + 0x50, 1.0f, comp => comp.NumCasts > 0, "Charges")
                 .DeactivateOnExit<P2CrimsonCyclone>();
 
             ActorCast(id + 0x1000, _module.Ifrit, AID.InfernoHowl, 2.9f, 2, true, "Searing wind 2 start");
@@ -215,11 +242,106 @@ namespace BossMod.Stormblood.Ultimate.UWU
             // +1.7s: searing wind 5 (1st target) / 2 (2nd target)
 
             ActorTargetable(id + 0x2000, _module.Ifrit, false, 4.1f, "Disappear");
+            ComponentCondition<P2CrimsonCyclone>(id + 0x2001, 2.3f, comp => comp.CastsPredicted)
+                .ActivateOnEnter<P2CrimsonCyclone>();
             // +2.2s: PATE 1E43 on 4 ifrits
             // +3.6s: searing wind 3 (2nd target)
-            // +4.4s: first charge start
-            // +6.4s: second charge start
-            // +7.4s: first charge end
+            // +4.4s: first charge start (others are staggered by 1.4s); 3s cast duration, ~2.2s after awakened charge we get 2 'cross' charges
+            // +9.6s: searing wind 4 (2nd target)
+            // +15.6s: searing wind 5 (2nd target)
+            ActorTargetable(id + 0x2100, _module.Ifrit, true, 13.5f, "Awakened charges + Reappear")
+                .DeactivateOnExit<P2CrimsonCyclone>();
+        }
+
+        private void Phase3Titan(uint id)
+        {
+            P3GeocrushEarthenFury(id, 2.2f);
+            P3RockBusterMountainBuster(id + 0x10000, 8.2f);
+            P3WeightOfTheLandGeocrush(id + 0x20000, 2.1f);
+            P3UpheavalGaolsLandslideTumult(id + 0x30000, 2.2f);
+            P3WeightOfTheLand(id + 0x40000, 5.2f);
+
+            SimpleState(id + 0xFF0000, 10000, "???");
+        }
+
+        private void P3GeocrushEarthenFury(uint id, float delay)
+        {
+            ActorCast(id, _module.Titan, AID.Geocrush1, delay, 3, true, "Proximity")
+                .ActivateOnEnter<P3Geocrush1>()
+                .DeactivateOnExit<P3Geocrush1>();
+            ActorTargetable(id + 0x10, _module.Titan, true, 2.4f, "Titan appears");
+            ActorCast(id + 0x20, _module.Titan, AID.EarthenFury, 0.1f, 3, true, "Raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P3RockBusterMountainBuster(uint id, float delay)
+        {
+            ComponentCondition<P3RockBuster>(id, delay, comp => comp.NumCasts > 0, "Cleave 1")
+                .ActivateOnEnter<P3RockBuster>()
+                .DeactivateOnExit<P3RockBuster>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ComponentCondition<P3MountainBuster>(id + 1, 3.1f, comp => comp.NumCasts > 0, "Cleave 2")
+                .ActivateOnEnter<P3MountainBuster>()
+                .DeactivateOnExit<P3MountainBuster>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+        }
+
+        private void P3WeightOfTheLandGeocrush(uint id, float delay)
+        {
+            ActorCast(id, _module.Titan, AID.WeightOfTheLand, delay, 2.5f, true)
+                .ActivateOnEnter<P3WeightOfTheLand>();
+            ComponentCondition<P3WeightOfTheLand>(id + 0x10, 0.5f, comp => comp.NumCasts > 0, "Puddles 1");
+
+            ActorTargetable(id + 0x20, _module.Titan, false, 2.7f, "Disappear");
+            ComponentCondition<P3WeightOfTheLand>(id + 0x30, 0.3f, comp => comp.Casters.Count == 0)
+                .DeactivateOnExit<P3WeightOfTheLand>();
+
+            ActorCastStart(id + 0x40, _module.Titan, AID.Geocrush2, 2.2f, true)
+                .ActivateOnEnter<P3Geocrush2>();
+            ActorCastEnd(id + 0x41, _module.Titan, 3, true, "Proximity")
+                .DeactivateOnExit<P3Geocrush2>();
+            ActorTargetable(id + 0x50, _module.Titan, true, 2.4f, "Reappear");
+        }
+
+        private void P3UpheavalGaolsLandslideTumult(uint id, float delay)
+        {
+            ActorCast(id, _module.Titan, AID.Upheaval, delay, 4, true, "Knockback")
+                .ActivateOnEnter<P3Upheaval>()
+                .ActivateOnEnter<P3Burst>() // bombs appear ~0.2s after cast start
+                .DeactivateOnExit<P3Upheaval>();
+            ComponentCondition<P3Gaols>(id + 0x10, 2.1f, comp => comp.Active)
+                .ActivateOnEnter<P3Gaols>();
+            ComponentCondition<P3Burst>(id + 0x11, 0.4f, comp => comp.NumCasts > 0)
+                .DeactivateOnExit<P3Burst>();
+
+            ActorCast(id + 0x20, _module.Titan, AID.LandslideBoss, 1.8f, 2.2f, true, "Landslide 1")
+                .ActivateOnEnter<P3LandslideBoss>()
+                .ActivateOnEnter<P3LandslideHelper>()
+                .ActivateOnEnter<P3Burst>() // extra bomb appears ~0.1s before landslide start
+                .DeactivateOnExit<P3LandslideBoss>()
+                .DeactivateOnExit<P3LandslideHelper>();
+            // +0.6s: fetters for gaols
+            ActorCast(id + 0x30, _module.Titan, AID.LandslideBoss, 2.2f, 2.2f, true, "Landslide 2")
+                .ActivateOnEnter<P3LandslideBoss>()
+                .ActivateOnEnter<P3LandslideHelper>()
+                .DeactivateOnExit<P3LandslideBoss>()
+                .DeactivateOnExit<P3LandslideHelper>()
+                .DeactivateOnExit<P3Burst>(); // bomb explodes ~0.5s before landslide end
+
+            ComponentCondition<P3Tumult>(id + 0x1000, 2.1f, comp => comp.NumCasts > 0, "Raidwide 1")
+                .ActivateOnEnter<P3Tumult>()
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ComponentCondition<P3Tumult>(id + 0x1007, 7.8f, comp => comp.NumCasts >= 8, "Raidwide 8")
+                .DeactivateOnExit<P3Tumult>()
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P3WeightOfTheLand(uint id, float delay)
+        {
+            ActorCast(id, _module.Titan, AID.WeightOfTheLand, delay, 2.5f, true)
+                .ActivateOnEnter<P3WeightOfTheLand>();
+            ComponentCondition<P3WeightOfTheLand>(id + 0x10, 0.5f, comp => comp.NumCasts > 0, "Puddles 1");
+
             // TODO: ...
         }
     }
