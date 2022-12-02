@@ -148,7 +148,7 @@ namespace UIDev
             _planModified = false;
             if (_selectedPlan >= 0)
             {
-                _planner = AddBefore(new CooldownPlannerColumns(list.Available[newSelection], () => _planModified = true, Timeline, _tree, _phaseBraches, _moduleInfo), _actions);
+                _planner = AddBefore(new CooldownPlannerColumns(list.Available[newSelection], () => _planModified = true, Timeline, _tree, _phaseBraches, _moduleInfo, false), _actions);
 
                 // TODO: this should be reworked...
                 var minTime = _enc.Time.Start.AddSeconds(Timeline.MinTime);

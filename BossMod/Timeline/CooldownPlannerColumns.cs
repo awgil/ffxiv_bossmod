@@ -13,6 +13,7 @@ namespace BossMod
         private Action _onModified;
         private StateMachineTree _tree;
         private List<int> _phaseBranches;
+        private bool _syncTimings;
         private string _name = "";
         private StateMachineTimings _timings = new();
         private List<ColumnPlannerTrackCooldown> _colCooldowns = new();
@@ -23,13 +24,14 @@ namespace BossMod
 
         public Class PlanClass => _plan.Class;
 
-        public CooldownPlannerColumns(CooldownPlan plan, Action onModified, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, ModuleRegistry.Info? moduleInfo)
+        public CooldownPlannerColumns(CooldownPlan plan, Action onModified, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, ModuleRegistry.Info? moduleInfo, bool syncTimings)
             : base(timeline)
         {
             _plan = plan;
             _onModified = onModified;
             _tree = tree;
             _phaseBranches = phaseBranches;
+            _syncTimings = syncTimings;
             var classDef = PlanDefinitions.Classes[plan.Class];
             foreach (var track in classDef.CooldownTracks)
             {
@@ -95,7 +97,8 @@ namespace BossMod
             if (ImGui.SliderFloat("###phase-duration", ref selPhase.Duration, 0, selPhase.MaxTime, $"{selPhase.Name}: %.1f"))
             {
                 _timings.PhaseDurations[selectedPhase] = selPhase.Duration;
-                _tree.ApplyTimings(_timings);
+                if (_syncTimings)
+                    _tree.ApplyTimings(_timings);
                 _onModified();
             }
 
@@ -155,11 +158,12 @@ namespace BossMod
         private void ExtractPlanData(CooldownPlan plan)
         {
             _name = plan.Name;
-            _tree.ApplyTimings(plan.Timings);
 
-            _timings = new();
-            foreach (var p in _tree.Phases)
-                _timings.PhaseDurations.Add(p.Duration);
+            _timings = plan.Timings.Clone();
+            for (int i = _timings.PhaseDurations.Count; i < _tree.Phases.Count; ++i)
+                _timings.PhaseDurations.Add(_tree.Phases[i].Duration);
+            if (_syncTimings)
+                _tree.ApplyTimings(plan.Timings);
 
             foreach (var col in _colCooldowns)
                 while (col.Elements.Count > 0)
