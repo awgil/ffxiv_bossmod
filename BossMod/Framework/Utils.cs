@@ -105,6 +105,7 @@ namespace BossMod
         public static unsafe byte GameObjectEventState(GameObject obj) => ReadField<byte>(GameObjectInternal(obj), 0x70); // see actor control 106
         public static unsafe float GameObjectRadius(GameObject obj) => GameObjectInternal(obj)->GetRadius();
         public static unsafe byte CharacterShieldValue(Character chr) => CharacterInternal(chr)->ShieldValue; // % of max hp; see effect result
+        public static unsafe byte CharacterAnimationState(Character chr, bool second) => ReadField<byte>(CharacterInternal(chr), second ? 0x1ADD : 0x1ADC); // see actor control 62
         public static unsafe byte CharacterModelState(Character chr) => ReadField<byte>(CharacterInternal(chr), 0x1ADE); // see actor control 63
         public static unsafe float CharacterCastRotation(Character chr) => ReadField<float>(CharacterInternal(chr), 0x1A84); // see ActorCast -> Character::StartCast
         public static unsafe ulong CharacterTargetID(Character chr) => ReadField<ulong>(CharacterInternal(chr), 0x1A68); // until FFXIVClientStructs fixes offset and type...

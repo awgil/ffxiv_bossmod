@@ -47,7 +47,7 @@ namespace UIDev.Analysis
             _plotResolvesPrayer.TickAdvance = new(5, 10000);
             foreach (var replay in replays)
             {
-                foreach (var op in replay.Ops.OfType<ActorState.OpModelState>().Where(op => op.Value is 19 or 20))
+                foreach (var op in replay.Ops.OfType<ActorState.OpModelState>().Where(op => op.Value.ModelState is 19 or 20))
                 {
                     var hand = replay.Participants.Find(p => p.InstanceID == op.InstanceID);
                     var boss = replay.Participants.Find(p => p.OID == oid && p.Existence.Contains(op.Timestamp));
@@ -55,7 +55,7 @@ namespace UIDev.Analysis
                     {
                         var handPos = new WPos(hand.PosRotAt(op.Timestamp).XZ());
                         var bossPos = new WPos(boss.PosRotAt(op.Timestamp).XZ());
-                        _baits.Add(new() { Replay = replay, Timestamp = op.Timestamp, IsPrayer = op.Value == 19, Distance = (handPos - bossPos).Length() });
+                        _baits.Add(new() { Replay = replay, Timestamp = op.Timestamp, IsPrayer = op.Value.ModelState == 19, Distance = (handPos - bossPos).Length() });
                     }
                 }
 

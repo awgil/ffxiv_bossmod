@@ -231,7 +231,7 @@ namespace UIDev
 
         private void ParseActorModelState(string[] payload)
         {
-            AddOp(new ActorState.OpModelState() { InstanceID = ActorID(payload[2]), Value = byte.Parse(payload[3]) });
+            AddOp(new ActorState.OpModelState() { InstanceID = ActorID(payload[2]), Value = new() { ModelState = byte.Parse(payload[3]), AnimState1 = payload.Length > 4 ? byte.Parse(payload[4]) : (byte)0, AnimState2 = payload.Length > 5 ? byte.Parse(payload[5]) : (byte)0 } });
         }
 
         private void ParseActorEventState(string[] payload)

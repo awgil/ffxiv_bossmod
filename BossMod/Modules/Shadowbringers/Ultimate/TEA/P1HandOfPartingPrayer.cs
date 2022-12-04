@@ -9,7 +9,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            var hint = (module.Enemies(OID.LiquidHand).FirstOrDefault()?.ModelState ?? 0) switch
+            var hint = (module.Enemies(OID.LiquidHand).FirstOrDefault()?.ModelState.ModelState ?? 0) switch
             {
                 19 => "Split boss & hand",
                 20 => "Stack boss & hand",

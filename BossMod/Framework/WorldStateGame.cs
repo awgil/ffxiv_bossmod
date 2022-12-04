@@ -143,7 +143,7 @@ namespace BossMod
             var isDead = Utils.GameObjectIsDead(obj);
             var inCombat = character?.StatusFlags.HasFlag(StatusFlags.InCombat) ?? false;
             var target = character == null ? 0 : SanitizedObjectID(obj != Service.ClientState.LocalPlayer ? Utils.CharacterTargetID(character) : (Service.TargetManager.Target?.ObjectId ?? 0)); // this is a bit of a hack - when changing targets, we want AI to see changes immediately rather than wait for server response
-            var modelState = character != null ? Utils.CharacterModelState(character) : (byte)0; // TODO: consider this (reading memory) vs network (actor control 63)
+            var modelState = character != null ? new ActorModelState() { ModelState = Utils.CharacterModelState(character), AnimState1 = Utils.CharacterAnimationState(character, false), AnimState2 = Utils.CharacterAnimationState(character, true) } : new ActorModelState();
             var eventState = Utils.GameObjectEventState(obj);
             var radius = Utils.GameObjectRadius(obj);
 
@@ -188,7 +188,7 @@ namespace BossMod
                 Execute(new ActorState.OpDead() { InstanceID = act.InstanceID, Value = isDead });
             if (act.InCombat != inCombat)
                 Execute(new ActorState.OpCombat() { InstanceID = act.InstanceID, Value = inCombat });
-            if (act.ModelState != modelState)
+            if (act.ModelState.ModelState != modelState.ModelState || act.ModelState.AnimState1 != modelState.AnimState1 || act.ModelState.AnimState2 != modelState.AnimState2)
                 Execute(new ActorState.OpModelState() { InstanceID = act.InstanceID, Value = modelState });
             if (act.EventState != eventState)
                 Execute(new ActorState.OpEventState() { InstanceID = act.InstanceID, Value = eventState });

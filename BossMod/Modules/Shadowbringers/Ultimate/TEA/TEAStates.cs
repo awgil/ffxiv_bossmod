@@ -50,7 +50,7 @@
 
         private void P1HandsProteansDollsCleaves(uint id, float delay)
         {
-            Condition(id, delay, () => (_module.LiquidHand()?.ModelState ?? 0) != 0, "Hand of parting/prayer bait");
+            Condition(id, delay, () => (_module.LiquidHand()?.ModelState.ModelState ?? 0) != 0, "Hand of parting/prayer bait");
             ComponentCondition<P1ProteanWaveTornadoVis>(id + 1, 3.1f, comp => comp.Casters.Count > 0)
                 .ActivateOnEnter<P1HandOfPartingPrayer>()
                 .ActivateOnEnter<P1ProteanWaveTornadoVis>()
@@ -149,7 +149,7 @@
                 .DeactivateOnExit<P1ProteanWaveTornado>();
             // +3.9s: pressurize
             // +4.5s: embolus spawn
-            Condition(id + 0x40, 3.9f, () => (_module.LiquidHand()?.ModelState ?? 0) != 0, "Hand of parting/prayer bait");
+            Condition(id + 0x40, 3.9f, () => (_module.LiquidHand()?.ModelState.ModelState ?? 0) != 0, "Hand of parting/prayer bait");
             ComponentCondition<P1HandOfPartingPrayer>(id + 0x41, 5.1f, comp => comp.Resolved, "Resolve")
                 .ActivateOnEnter<P1HandOfPartingPrayer>()
                 .DeactivateOnExit<P1HandOfPartingPrayer>();

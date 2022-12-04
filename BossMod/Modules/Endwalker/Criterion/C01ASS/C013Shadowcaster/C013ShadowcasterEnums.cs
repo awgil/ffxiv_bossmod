@@ -34,8 +34,8 @@
         BigBurst = 29881, // Helper->self, no cast, raidwide cast when player with any flame debuff dies
         BlazingBenifice = 29862, // ArcaneFont->self, no cast, range 100 width 10 rect aoe (mirror explosion)
         CastShadow = 29850, // Boss->self, 4.8s cast, single-target, visual
-        CastShadowAOE1 = 29852, // Helper->self, no cast, range 65 30-degree cone aoe
-        CastShadowAOE2 = 29854, // Helper->self, no cast, range 65 30-degree cone aoe
+        CastShadowAOE1 = 29852, // Helper->self, 5.5s cast, range 65 30-degree cone aoe
+        CastShadowAOE2 = 29854, // Helper->self, 7.5s cast, range 65 30-degree cone aoe
 
         InfernWave = 29882, // Boss->self, 4.0s cast, single-target, visual
         InfernWaveAOE = 29883, // Helper->self, no cast, range 60 90-degree cone aoe

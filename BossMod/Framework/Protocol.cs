@@ -262,6 +262,7 @@ namespace BossMod
             TetherCancel = 47,
             SetTarget = 50, // from dissector
             Targetable = 54, // dissector calls it ToggleNameHidden
+            SetAnimationState = 62, // example - ASSN beacon activation; param1 = animation set index (0 or 1), param2 = animation index (0-7)
             SetModelState = 63, // example - TEA liquid hand (open/closed); param1=ModelState row index, rest unused
             LimitBreakStart = 71, // from dissector
             LimitBreakPartyStart = 72, // from dissector

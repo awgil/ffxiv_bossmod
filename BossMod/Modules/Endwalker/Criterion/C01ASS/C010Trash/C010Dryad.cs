@@ -1,4 +1,6 @@
-﻿namespace BossMod.Endwalker.Criterion.C01ASS.C010Dryad
+﻿using System.Linq;
+
+namespace BossMod.Endwalker.Criterion.C01ASS.C010Dryad
 {
     public enum OID : uint
     {
@@ -61,7 +63,8 @@
                 .ActivateOnEnter<SArborealStorm>(savage)
                 .ActivateOnEnter<SAcornBomb>(savage)
                 .ActivateOnEnter<SGelidGale>(savage)
-                .ActivateOnEnter<SUproot>(savage);
+                .ActivateOnEnter<SUproot>(savage)
+                .Raw.Update = () => (module.PrimaryActor.IsDestroyed || module.PrimaryActor.IsDead) && !module.Enemies(savage ? OID.SOdqan : OID.NOdqan).Any(a => !a.IsDead);
         }
     }
     class C010NDryadStates : C010DryadStates { public C010NDryadStates(BossModule module) : base(module, false) { } }

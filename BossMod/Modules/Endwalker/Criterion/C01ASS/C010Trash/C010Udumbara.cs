@@ -1,4 +1,6 @@
-﻿namespace BossMod.Endwalker.Criterion.C01ASS.C010Udumbara
+﻿using System.Linq;
+
+namespace BossMod.Endwalker.Criterion.C01ASS.C010Udumbara
 {
     public enum OID : uint
     {
@@ -61,7 +63,8 @@
                 .ActivateOnEnter<SHoneyedLeft>(savage)
                 .ActivateOnEnter<SHoneyedRight>(savage)
                 .ActivateOnEnter<SHoneyedFront>(savage)
-                .ActivateOnEnter<SBloodyCaress>(savage);
+                .ActivateOnEnter<SBloodyCaress>(savage)
+                .Raw.Update = () => (module.PrimaryActor.IsDestroyed || module.PrimaryActor.IsDead) && !module.Enemies(savage ? OID.SSapria : OID.NSapria).Any(a => !a.IsDead);
         }
     }
     class C010NUdumbaraStates : C010UdumbaraStates { public C010NUdumbaraStates(BossModule module) : base(module, false) { } }

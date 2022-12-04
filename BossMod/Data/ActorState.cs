@@ -42,6 +42,8 @@ namespace BossMod
                     yield return new OpDead() { InstanceID = act.InstanceID, Value = true };
                 if (act.InCombat)
                     yield return new OpCombat() { InstanceID = act.InstanceID, Value = true };
+                if (act.ModelState.ModelState != 0 || act.ModelState.AnimState1 != 0 || act.ModelState.AnimState2 != 0)
+                    yield return new OpModelState() { InstanceID = act.InstanceID, Value = act.ModelState };
                 if (act.TargetID != 0)
                     yield return new OpTarget() { InstanceID = act.InstanceID, Value = act.TargetID };
                 if (act.Tether.Target != 0)
@@ -248,7 +250,7 @@ namespace BossMod
         public event EventHandler<Actor>? ModelStateChanged;
         public class OpModelState : Operation
         {
-            public byte Value;
+            public ActorModelState Value;
 
             protected override void ExecActor(WorldState ws, Actor actor)
             {
@@ -256,7 +258,7 @@ namespace BossMod
                 ws.Actors.ModelStateChanged?.Invoke(ws, actor);
             }
 
-            public override string Str(WorldState? ws) => $"MDLS|{StrActor(ws, InstanceID)}|{Value}";
+            public override string Str(WorldState? ws) => $"MDLS|{StrActor(ws, InstanceID)}|{Value.ModelState}|{Value.AnimState1}|{Value.AnimState2}";
         }
 
         public event EventHandler<Actor>? EventStateChanged;

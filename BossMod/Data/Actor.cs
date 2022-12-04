@@ -89,6 +89,13 @@ namespace BossMod
         public DateTime ExpireAt;
     }
 
+    public struct ActorModelState
+    {
+        public byte ModelState;
+        public byte AnimState1;
+        public byte AnimState2;
+    }
+
     public class Actor
     {
         public ulong InstanceID; // 'uuid'
@@ -106,7 +113,7 @@ namespace BossMod
         public bool IsAlly;
         public bool IsDead;
         public bool InCombat;
-        public byte ModelState;
+        public ActorModelState ModelState;
         public byte EventState; // not sure about the field meaning...
         public ulong OwnerID; // uuid of owner, for pets and similar
         public ulong TargetID;
