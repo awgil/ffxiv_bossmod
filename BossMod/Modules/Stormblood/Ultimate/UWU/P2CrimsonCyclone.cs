@@ -3,9 +3,14 @@ using System.Collections.Generic;
 
 namespace BossMod.Stormblood.Ultimate.UWU
 {
-    // TODO: consider predicting charge order for awakened cyclone
-    class P2CrimsonCyclone : Components.GenericAOEs
+    // crimson cyclone has multiple variations:
+    // p2 first cast is a single charge along cardinal
+    // p2 second cast is two charges along both cardinals
+    // p2 third cast is four staggered charges, with different patterns depending on whether awakening happened (TODO: we can predict that very early)
+    // p4 predation is a single awakened charge along intercardinal
+    class CrimsonCyclone : Components.GenericAOEs
     {
+        private float _predictionDelay;
         private List<(WPos pos, Angle rot, DateTime activation)> _predicted = new(); // note: there could be 1/2/4 predicted normal charges and 0 or 2 'cross' charges
         private List<Actor> _casters = new();
 
@@ -13,7 +18,10 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         public bool CastsPredicted => _predicted.Count > 0;
 
-        public P2CrimsonCyclone() : base(ActionID.MakeSpell(AID.CrimsonCyclone)) { }
+        public CrimsonCyclone(float predictionDelay) : base(ActionID.MakeSpell(AID.CrimsonCyclone))
+        {
+            _predictionDelay = predictionDelay;
+        }
 
         public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -27,7 +35,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
         {
             if (NumCasts == 0 && (OID)actor.OID == OID.Ifrit && id == 0x1E43)
-                _predicted.Add((actor.Position, actor.Rotation, module.WorldState.CurrentTime.AddSeconds(5.2f)));
+                _predicted.Add((actor.Position, actor.Rotation, module.WorldState.CurrentTime.AddSeconds(_predictionDelay)));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -61,5 +69,15 @@ namespace BossMod.Stormblood.Ultimate.UWU
                 _predicted.Clear();
             }
         }
+    }
+
+    class P2CrimsonCyclone : CrimsonCyclone
+    {
+        public P2CrimsonCyclone() : base(5.2f) { }
+    }
+
+    class P4CrimsonCyclone : CrimsonCyclone
+    {
+        public P4CrimsonCyclone() : base(8.1f) { }
     }
 }

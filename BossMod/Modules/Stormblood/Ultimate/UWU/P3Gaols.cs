@@ -1,29 +1,65 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Stormblood.Ultimate.UWU
 {
-    class P3Gaols : BossComponent
+    // TODO: add sludge voidzones?..
+    class P3Gaols : Components.GenericAOEs
     {
+        public enum State { None, TargetSelection, Fetters, Done }
+
+        public State CurState { get; private set; }
         private BitMask _targets;
 
-        public bool Active => _targets.Any();
+        private static AOEShapeCircle _freefireShape = new(6);
+
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, System.DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (CurState == State.Fetters && !_targets[slot])
+                foreach (var target in module.Raid.WithSlot(true).IncludedInMask(_targets))
+                    yield return (_freefireShape, target.Item2.Position, new(), new());
+        }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            if (Active)
+            if (CurState == State.TargetSelection && _targets.Any())
             {
                 var hint = string.Join(" > ", Service.Config.Get<UWUConfig>().P3GaolPriorities.Resolve(module.Raid).Where(i => _targets[i.slot]).OrderBy(i => i.group).Select(i => module.Raid[i.slot]?.Name));
                 hints.Add($"Gaols: {hint}");
             }
         }
 
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+            if ((SID)status.ID == SID.Fetters)
+            {
+                if (CurState == State.TargetSelection)
+                {
+                    CurState = State.Fetters;
+                    _targets.Reset(); // note that if target dies, fetters is applied to random player
+                }
+                _targets.Set(module.Raid.FindSlot(actor.InstanceID));
+            }
+        }
+
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
+            base.OnEventCast(module, caster, spell);
             switch ((AID)spell.Action.ID)
             {
                 case AID.RockThrowBoss:
                 case AID.RockThrowHelper:
+                    CurState = State.TargetSelection;
                     _targets.Set(module.Raid.FindSlot(spell.MainTargetID));
+                    break;
+                case AID.FreefireGaol:
+                    var (closestSlot, closestPlayer) = module.Raid.WithSlot(true).IncludedInMask(_targets).Closest(caster.Position);
+                    if (closestPlayer != null)
+                    {
+                        _targets.Clear(closestSlot);
+                        if (_targets.None())
+                            CurState = State.Done;
+                    }
                     break;
             }
         }

@@ -42,7 +42,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
     class P2RadiantPlume : Components.LocationTargetedAOEs
     {
-        public P2RadiantPlume() : base(ActionID.MakeSpell(AID.RadiantPlume), 8) { }
+        public P2RadiantPlume() : base(ActionID.MakeSpell(AID.RadiantPlumeAOE), 8) { }
     }
 
     class P2Incinerate : Components.Cleave
@@ -70,21 +70,20 @@ namespace BossMod.Stormblood.Ultimate.UWU
         public P3Upheaval() : base(ActionID.MakeSpell(AID.Upheaval), 24, 1, true) { }
     }
 
-    class P3LandslideBoss : Components.SelfTargetedAOEs
-    {
-        public P3LandslideBoss() : base(ActionID.MakeSpell(AID.LandslideBoss), new AOEShapeRect(44.55f, 3)) { }
-    }
-
-    class P3LandslideHelper : Components.SelfTargetedAOEs
-    {
-        public P3LandslideHelper() : base(ActionID.MakeSpell(AID.LandslideHelper), new AOEShapeRect(40.5f, 3)) { }
-    }
-
     class P3Tumult : Components.CastCounter
     {
         public P3Tumult() : base(ActionID.MakeSpell(AID.Tumult)) { }
     }
 
+    class P4Blight : Components.CastCounter
+    {
+        public P4Blight() : base(ActionID.MakeSpell(AID.Blight)) { }
+    }
+
+    class P4HomingLasers : Components.SpreadFromCastTargets
+    {
+        public P4HomingLasers() : base(ActionID.MakeSpell(AID.HomingLasers), 4) { }
+    }
 
 
     [ModuleInfo(PrimaryActorOID = (uint)OID.Garuda)]
@@ -92,6 +91,8 @@ namespace BossMod.Stormblood.Ultimate.UWU
     {
         private List<Actor> _ifrits;
         private List<Actor> _titan;
+        private List<Actor> _lahabrea;
+        private List<Actor> _ultima;
         private Actor? _mainIfrit;
 
         public IReadOnlyList<Actor> Ifrits => _ifrits;
@@ -99,11 +100,15 @@ namespace BossMod.Stormblood.Ultimate.UWU
         public Actor? Garuda() => PrimaryActor.IsDestroyed ? null : PrimaryActor;
         public Actor? Ifrit() => _mainIfrit;
         public Actor? Titan() => _titan.FirstOrDefault();
+        public Actor? Lahabrea() => _lahabrea.FirstOrDefault();
+        public Actor? Ultima() => _ultima.FirstOrDefault();
 
         public UWU(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
         {
             _ifrits = Enemies(OID.Ifrit);
             _titan = Enemies(OID.Titan);
+            _lahabrea = Enemies(OID.Lahabrea);
+            _ultima = Enemies(OID.UltimaWeapon);
         }
 
         protected override void UpdateModule()
@@ -117,6 +122,8 @@ namespace BossMod.Stormblood.Ultimate.UWU
             Arena.Actor(Garuda(), ArenaColor.Enemy);
             Arena.Actor(Ifrit(), ArenaColor.Enemy);
             Arena.Actor(Titan(), ArenaColor.Enemy);
+            Arena.Actor(Lahabrea(), ArenaColor.Enemy);
+            Arena.Actor(Ultima(), ArenaColor.Enemy);
         }
     }
 }

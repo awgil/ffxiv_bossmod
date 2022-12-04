@@ -4,7 +4,7 @@
     public class CastCounter : BossComponent
     {
         public ActionID WatchedAction { get; private set; }
-        public int NumCasts { get; private set; } = 0;
+        public int NumCasts { get; protected set; } = 0;
 
         public CastCounter(ActionID aid)
         {
