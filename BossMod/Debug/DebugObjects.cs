@@ -24,8 +24,8 @@ namespace BossMod
             ImGui.TableSetupColumn("HP");
             ImGui.TableSetupColumn("Flags");
             ImGui.TableSetupColumn("Friendly?");
-            ImGui.TableSetupColumn("Position");
-            ImGui.TableSetupColumn("Rotation");
+            ImGui.TableSetupColumn("Pos/Rot");
+            //ImGui.TableSetupColumn("Ros/Rot non-interpolated");
             ImGui.TableSetupColumn("Cast");
             ImGui.TableSetupColumn("Render flags");
             ImGui.TableSetupColumn("Draw data");
@@ -52,8 +52,8 @@ namespace BossMod
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(character != null ? $"{character.CurrentHp}/{character.MaxHp} ({(character != null ? Utils.CharacterShieldValue(character) : 0)})" : "---");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"{character?.StatusFlags}");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"{Utils.GameObjectIsFriendly(obj)}");
-                ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.Vec3String(obj.Position));
-                ImGui.TableNextColumn(); ImGui.TextUnformatted(obj.Rotation.Radians().ToString());
+                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{Utils.Vec3String(obj.Position)} {obj.Rotation.Radians()}");
+                //ImGui.TableNextColumn(); ImGui.TextUnformatted($"{Utils.Vec3String(Utils.GameObjectNonInterpolatedPosition(obj))} {Utils.GameObjectNonInterpolatedRotation(obj).Radians()} [{Utils.ReadField<byte>(Utils.GameObjectInternal(obj), 0x1F0 + 0x3F4)}, {Utils.ReadField<byte>(Utils.GameObjectInternal(obj), 0x1F0 + 0x110 + 0xA4)}]");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted(battleChara != null ? $"{battleChara.CurrentCastTime:f2}/{battleChara.TotalCastTime:f2}" : "---");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"{internalObj->RenderFlags:X}");
                 ImGui.TableNextColumn(); ImGui.TextUnformatted($"0x{(IntPtr)internalObj->DrawObject:X}");

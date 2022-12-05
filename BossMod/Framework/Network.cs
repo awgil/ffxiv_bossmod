@@ -470,7 +470,7 @@ namespace BossMod
                 //case Protocol.Opcode.ActorMove:
                 //    {
                 //        var p = (Protocol.Server_ActorMove*)dataPtr;
-                //        Service.Log($"[Network] - [{p->X}, {p->Y}, {p->Z}], rot={p->Rotation}/{p->HeadRotation}/{p->UnknownRotation}, anim={p->AnimationType}/{p->AnimationState}/{p->AnimationSpeed}, u={p->Unknown:X8}");
+                //        Service.Log($"[Network] - {Utils.Vec3String(IntToFloatCoords(p->X, p->Y, p->Z))}, {IntToFloatAngle(p->Rotation)}, anim={p->AnimationFlags:X4}/{p->AnimationSpeed}, u={p->UnknownRotation:X2} {p->Unknown:X8}");
                 //        break;
                 //    }
                 case Protocol.Opcode.EffectResult1:

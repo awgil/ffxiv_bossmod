@@ -104,6 +104,8 @@ namespace BossMod
         public static unsafe bool GameObjectIsFriendly(GameObject obj) => GameObjectIsFriendlyFunc(GameObjectInternal(obj)) != 0;
         public static unsafe byte GameObjectEventState(GameObject obj) => ReadField<byte>(GameObjectInternal(obj), 0x70); // see actor control 106
         public static unsafe float GameObjectRadius(GameObject obj) => GameObjectInternal(obj)->GetRadius();
+        //public static unsafe Vector3 GameObjectNonInterpolatedPosition(GameObject obj) => ReadField<Vector3>(GameObjectInternal(obj), 0x10);
+        //public static unsafe float GameObjectNonInterpolatedRotation(GameObject obj) => ReadField<float>(GameObjectInternal(obj), 0x20);
         public static unsafe byte CharacterShieldValue(Character chr) => CharacterInternal(chr)->ShieldValue; // % of max hp; see effect result
         public static unsafe byte CharacterAnimationState(Character chr, bool second) => ReadField<byte>(CharacterInternal(chr), second ? 0x1ADD : 0x1ADC); // see actor control 62
         public static unsafe byte CharacterModelState(Character chr) => ReadField<byte>(CharacterInternal(chr), 0x1ADE); // see actor control 63

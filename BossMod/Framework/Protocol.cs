@@ -463,15 +463,13 @@ namespace BossMod
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct Server_ActorMove
         {
-            public byte HeadRotation;
-            public byte Rotation;
-            public byte AnimationType;
-            public byte AnimationState;
+            public ushort Rotation;
+            public ushort AnimationFlags;
             public byte AnimationSpeed;
             public byte UnknownRotation;
-            public short X;
-            public short Y;
-            public short Z;
+            public ushort X;
+            public ushort Y;
+            public ushort Z;
             public uint Unknown;
         }
 
