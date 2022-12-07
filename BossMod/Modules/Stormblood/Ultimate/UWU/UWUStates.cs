@@ -402,8 +402,9 @@
         {
             P4Lahabrea(id, 9.1f);
             P4BeforePredation(id + 0x10000, 39.7f);
-            P4UltimatePredation(id + 0x20000, 3.2f);
+            P4Predation(id + 0x20000, 3.2f);
             P4BeforeAnnihilation(id + 0x30000, 2.0f);
+            P4Annihilation(id + 0x40000, 2.3f);
 
             SimpleState(id + 0xFF0000, 10000, "???");
         }
@@ -432,7 +433,7 @@
             ComponentCondition<P4ViscousAetheroplasmApply>(id + 0x20, 2.2f, comp => comp.NumCasts > 0, "Aetheroplasm apply")
                 .ActivateOnEnter<P4ViscousAetheroplasmResolve>() // activate early to let component determine aetheroplasm target
                 .DeactivateOnExit<P4ViscousAetheroplasmApply>();
-            ActorCast(id + 0x30, _module.Ultima, AID.HomingLasers, 3.2f, 4, true, "Tankbuster")
+            ActorCast(id + 0x30, _module.Ultima, AID.HomingLasers, 3.2f, 3, true, "Tankbuster")
                 .ActivateOnEnter<P4HomingLasers>()
                 .DeactivateOnExit<P4HomingLasers>()
                 .SetHint(StateMachine.StateHint.Tankbuster);
@@ -440,27 +441,30 @@
                 .DeactivateOnExit<P4ViscousAetheroplasmResolve>();
         }
 
-        private void P4UltimatePredation(uint id, float delay)
+        private void P4Predation(uint id, float delay)
         {
             ActorCast(id, _module.Ultima, AID.UltimatePredation, delay, 3, true);
             ActorTargetable(id + 0x10, _module.Ultima, false, 4.4f, "Disappear (predation)");
 
-            ComponentCondition<P4WickedWheel>(id + 0x20, 10.3f, comp => comp.NumCasts > 0, "Predation 1") // wicked wheel + crimson cyclone + landslides
+            ComponentCondition<P4UltimatePredation>(id + 0x20, 2.2f, comp => comp.CurState == P4UltimatePredation.State.Predicted)
+                .ActivateOnEnter<P4UltimatePredation>()
                 .ActivateOnEnter<P4WickedWheel>()
                 .ActivateOnEnter<P4CrimsonCyclone>()
                 .ActivateOnEnter<P4Landslide>()
                 .ActivateOnEnter<P4CeruleumVent>();
+            ComponentCondition<P4UltimatePredation>(id + 0x30, 8.1f, comp => comp.CurState == P4UltimatePredation.State.Second, "Predation 1"); // wicked wheel + crimson cyclone + landslides
             // awakened landslided and ceruleum vent happen ~0.1s earlier, awakened cyclone and tornado happen at the same time
-            ComponentCondition<P4WickedWheel>(id + 0x30, 2.1f, comp => comp.NumCasts > 1, "Predation 2")
+            ComponentCondition<P4UltimatePredation>(id + 0x40, 2.1f, comp => comp.CurState == P4UltimatePredation.State.Done, "Predation 2")
+                .DeactivateOnExit<P4UltimatePredation>()
                 .DeactivateOnExit<P4WickedWheel>()
                 .DeactivateOnExit<P4CrimsonCyclone>()
                 .DeactivateOnExit<P4Landslide>()
                 .DeactivateOnExit<P4CeruleumVent>();
 
             // PATE happens ~1.5s earlier
-            ComponentCondition<P1FeatherRain>(id + 0x41, 4.3f, comp => comp.CastsActive)
+            ComponentCondition<P1FeatherRain>(id + 0x51, 4.3f, comp => comp.CastsActive)
                 .ActivateOnEnter<P1FeatherRain>();
-            ComponentCondition<P1FeatherRain>(id + 0x42, 1, comp => !comp.CastsActive, "Feathers")
+            ComponentCondition<P1FeatherRain>(id + 0x52, 1, comp => !comp.CastsActive, "Feathers")
                 .DeactivateOnExit<P1FeatherRain>();
         }
 
@@ -483,10 +487,12 @@
                 .ActivateOnEnter<P3Burst>() // first bomb appears ~0.1s after cast end
                 .DeactivateOnExit<P2RadiantPlume>();
 
-            ComponentCondition<Landslide>(id + 0x3000, 1.4f, comp => comp.CastsActive)
+            ActorCastStart(id + 0x3000, _module.Titan, AID.LandslideBossAwakened, 1.4f, false);
+            ActorCastStart(id + 0x3001, _module.Ultima, AID.LandslideUltima, 0.6f, true)
                 .ActivateOnEnter<Landslide>();
-            ComponentCondition<Landslide>(id + 0x3001, 2.2f, comp => comp.NumCasts > 0, "Landslides first");
-            ComponentCondition<Landslide>(id + 0x3002, 2, comp => !comp.CastsActive, "Landslides last")
+            ActorCastEnd(id + 0x3002, _module.Titan, 1.6f, false, "Landslides first");
+            ActorCastEnd(id + 0x3003, _module.Ultima, 0.6f, true);
+            ComponentCondition<Landslide>(id + 0x3004, 1.4f, comp => !comp.CastsActive, "Landslides last")
                 .DeactivateOnExit<Landslide>();
 
             // note: there are tumults during these casts; first cast happens ~1.3s after next cast start, 7 total
@@ -498,9 +504,32 @@
 
             ComponentCondition<WickedWheel>(id + 0x5000, 2.1f, comp => comp.Sources.Count > 0)
                 .ActivateOnEnter<WickedWheel>();
-            ComponentCondition<WickedWheel>(id + 0x5001, 3, comp => comp.NumCasts > 0, "Wheels")
+            ActorCastStart(id + 0x5001, _module.Garuda, AID.MistralShriek, 2, false);
+            ComponentCondition<WickedWheel>(id + 0x5002, 1, comp => comp.NumCasts > 0, "Wheels")
+                .DeactivateOnExit<P3Burst>() // last explosion ~0.8s before wheels cast end
                 .DeactivateOnExit<WickedWheel>();
-            // TODO: aetheroplasm resolve, shriek, deactivate bombs & fetters, feather rains, homing lasers
+            ActorCastEnd(id + 0x5003, _module.Garuda, 2, false, "Raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
+
+            ActorCastStart(id + 0x6000, _module.Ultima, AID.HomingLasers, 2, true)
+                .ActivateOnEnter<P1FeatherRain>(); // sisters: PATE ~1.1s before cast start
+            ComponentCondition<P1FeatherRain>(id + 0x6001, 1.4f, comp => comp.NumCasts > 0, "Feathers 1")
+                .ActivateOnEnter<P4HomingLasers>()
+                .DeactivateOnExit<P1FeatherRain>();
+            ComponentCondition<P4ViscousAetheroplasmResolve>(id + 0x6002, 0.7f, comp => !comp.Active, "Aetheroplasm resolve")
+                .ActivateOnEnter<P1FeatherRain>() // garuda: PATE ~0.3s after resolve, but activate earlier just in case...
+                .DeactivateOnExit<P4ViscousAetheroplasmResolve>();
+            ActorCastEnd(id + 0x6003, _module.Ultima, 0.9f, true, "Tankbuster")
+                .DeactivateOnExit<P4HomingLasers>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ComponentCondition<P1FeatherRain>(id + 0x6004, 1.9f, comp => comp.NumCasts > 0, "Feathers 2")
+                .DeactivateOnExit<P1FeatherRain>()
+                .DeactivateOnExit<P2InfernalFetters>(); // TODO: it should probably be deactivated earlier...
+        }
+
+        private void P4Annihilation(uint id, float delay)
+        {
+            ActorCast(id, _module.Ultima, AID.UltimateAnnihilation, delay, 3, true);
         }
     }
 }

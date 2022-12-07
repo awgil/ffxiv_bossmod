@@ -117,6 +117,8 @@
         LandslideUltima = 11134, // UltimaWeapon->self, 2.2s cast, range 40+R width 6 rect aoe
         LandslideUltimaHelper = 11135, // Helper->self, 2.2s cast, range 40+R width 6 rect aoe
         WickedWheelSister = 11084, // GarudaSister->self, 3.0s cast, range 7+R circle aoe
+
+        UltimateAnnihilation = 11596, // UltimaWeapon->self, 3.0s cast, single-target, visual
     };
 
     public enum SID : uint

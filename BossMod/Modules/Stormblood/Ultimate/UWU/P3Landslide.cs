@@ -37,6 +37,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
         {
             if ((AID)spell.Action.ID is AID.LandslideBoss or AID.LandslideBossAwakened or AID.LandslideHelper or AID.LandslideHelperAwakened or AID.LandslideUltima or AID.LandslideUltimaHelper)
             {
+                PredictedSource = null;
                 _casters.Add(caster);
                 if ((AID)spell.Action.ID == AID.LandslideBossAwakened)
                     Awakened = true;
