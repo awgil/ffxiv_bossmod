@@ -18,7 +18,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var s in _sisters)
+            foreach (var s in EnumerateTetherSources(module))
             {
                 var tetherTarget = module.WorldState.Actors.Find(s.Tether.Target);
                 if (tetherTarget != null)
@@ -32,6 +32,14 @@ namespace BossMod.Stormblood.Ultimate.UWU
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {
             return _sisters.Any(s => s.Tether.Target == player.InstanceID) ? PlayerPriority.Danger : PlayerPriority.Normal;
+        }
+
+        private IEnumerable<Actor> EnumerateTetherSources(BossModule module)
+        {
+            foreach (var s in _sisters.Tethered(TetherID.Mesohigh))
+                yield return s;
+            if (module.PrimaryActor.Tether.ID == (uint)TetherID.Mesohigh)
+                yield return module.PrimaryActor;
         }
     }
 }

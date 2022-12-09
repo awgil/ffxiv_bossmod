@@ -26,13 +26,6 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            //var segs = CurState == State.Second ? _forbiddenSecond : _forbiddenFirst;
-            //foreach (var (min, max) in Cushioned(SafeSegments(segs)))
-            //{
-            //    arena.PathArcTo(module.Bounds.Center, _dodgeRadius, min.Rad, max.Rad);
-            //    arena.PathStroke(false, ArenaColor.Safe, 2);
-            //}
-
             foreach (var h in EnumerateHints(pc.Position))
                 arena.AddLine(h.from, h.to, h.color);
         }
@@ -116,94 +109,6 @@ namespace BossMod.Stormblood.Ultimate.UWU
             var (a1, a2) = safespots.MinBy(AngularDistance);
             _hints.Add(GetSafePositionAtAngle(module, a1));
             _hints.Add(GetSafePositionAtAngle(module, a2));
-
-            // simplest way to think about various patterns and safespots is to first look at the titan
-            // titan is slightly offset from random cardinal, by half-width of landslide; to simplify things, let's rotate arena to make titan's cardinal 'relative south' and mirror if it is offset to the right
-            // then we can always think that titan is S and slightly W (so potential safe spots are N/E/W)
-            // landslides then cover following directions (assuming points on border): -85 to -65 degrees (E), 0 to 20 degrees (N), 75 to 105 degrees (W) and 135 to -135 degrees (S)
-            // first ifrit charge covers two intercardinals (+- 27 degrees), second charge covers all cardinals (+- 15 degrees)
-            // garuda covers two cardinals + ~45 degrees
-            // ultima covers single intercardinal (approximately from one cardinal to another)
-
-            //var titanOffset = titan.Position - module.Bounds.Center;
-            //var garudaOffset = garuda.Position - module.Bounds.Center;
-            //var ifritOffset = ifrit.Position - module.Bounds.Center;
-            //var ultimaOffset = ultima.Position - module.Bounds.Center;
-            //var titanCardinal = Math.Abs(titanOffset.X) > 10 ? (titanOffset.X > 0 ? 90.Degrees() : -90.Degrees()) : (titanOffset.Z > 0 ? 0.Degrees() : 180.Degrees());
-            //var titanCardinalDir = titanCardinal.ToDirection();
-            //bool titanMirrored = titanCardinalDir.OrthoL().Dot(titanOffset) > 0;
-            //Func<Angle, Angle, Angle> rotate = (start, move) => titanMirrored ? start - move : start + move;
-
-            // note that titan is slightly offset from cardinal, by half-width of landslide - meaning cardinal strictly opposite titan is always on the landslide edge
-            // note that ifrit's charge and titan's landslide essentially touch right at the border
-            //if (garudaOffset.Dot(titanOffset) > 0)
-            //{
-            //    // titan near garuda => two cardinals at +- 135 degrees from garuda have safe area nearby
-            //    // cardinal opposite titan always has large safe zone for first part, safe zone for second part depends on ultima's position
-            //    // TODO: sometimes other cardinal is more comfy...
-            //    var safeCardinal = titanCardinal + 180.Degrees();
-            //    var safeCardinalDir = safeCardinal.ToDirection();
-
-            //    var dodgeLeft = safeCardinalDir.OrthoL().Dot(titanOffset) > 0;
-            //    var firstSafeDir = safeCardinal + (dodgeLeft ? -5.Degrees() : 5.Degrees());
-            //    _hints.Add(GetSafePositionAtAngle(module, firstSafeDir));
-
-            //    // ultima covers almost completely one quadrant => check whether it is on the first safe side
-            //    if (ultimaOffset.Dot(safeCardinalDir) > 0)
-            //    {
-            //        bool ultimaLeft = safeCardinalDir.OrthoL().Dot(ultimaOffset) < 0;
-            //        if (dodgeLeft == ultimaLeft)
-            //            dodgeLeft = !dodgeLeft;
-            //    }
-            //    // else: ultima is near titan, so don't bother
-
-            //    var secondSafeDir = safeCardinal + (dodgeLeft ? -20.Degrees() : 20.Degrees());
-            //    _hints.Add(GetSafePositionAtAngle(module, secondSafeDir));
-            //}
-            //else
-            //{
-            //    // titan opposite garuda => safe area is near remaining cardinal
-            //    var safeCardinal = titanCardinal + 90.Degrees();
-            //    if (safeCardinal.ToDirection().Dot(garudaOffset) > 0)
-            //        safeCardinal = titanCardinal - 90.Degrees();
-
-            //    var safeCardinalDir = safeCardinal.ToDirection();
-            //    if (safeCardinalDir.Dot(titanOffset) < 0)
-            //    {
-            //        // titan is offset away from safe cardinal => first safe spot exactly at cardinal, second is away from ultima
-            //        _hints.Add(GetSafePositionAtAngle(module, safeCardinal));
-
-            //        bool dodgeLeft = true; // default doesn't matter
-            //        if (ultimaOffset.Dot(safeCardinalDir) > 0)
-            //        {
-            //            bool ultimaLeft = safeCardinalDir.OrthoL().Dot(ultimaOffset) < 0;
-            //            if (dodgeLeft == ultimaLeft)
-            //                dodgeLeft = !dodgeLeft;
-            //        }
-
-            //        var secondSafeDir = safeCardinal + (dodgeLeft ? -20.Degrees() : 20.Degrees());
-            //        _hints.Add(GetSafePositionAtAngle(module, secondSafeDir));
-            //    }
-            //    else
-            //    {
-            //        // complicated pattern - first dodge ifrit, then dodge ultima
-            //        var leftIntercardDir = (safeCardinal - 45.Degrees()).ToDirection();
-            //        bool dodgeLeft = Math.Abs(leftIntercardDir.Dot(ifritOffset)) < 10;
-            //        bool titanLeft = safeCardinal.Rad > titanCardinal.Rad;
-            //        var dodgeAngle = (dodgeLeft ? -1 : 1) * (titanLeft == dodgeLeft ? 20 : 10).Degrees();
-            //        _hints.Add(GetSafePositionAtAngle(module, safeCardinal + dodgeAngle));
-
-            //        if (ultimaOffset.Dot(safeCardinalDir) > 0)
-            //        {
-            //            bool ultimaLeft = safeCardinalDir.OrthoL().Dot(ultimaOffset) < 0;
-            //            if (dodgeLeft == ultimaLeft)
-            //                dodgeLeft = !dodgeLeft;
-            //        }
-
-            //        var secondSafeDir = safeCardinal + (dodgeLeft ? -20.Degrees() : 20.Degrees());
-            //        _hints.Add(GetSafePositionAtAngle(module, secondSafeDir));
-            //    }
-            //}
         }
 
         private WPos GetSafePositionAtAngle(BossModule module, Angle angle) => module.Bounds.Center + _dodgeRadius * angle.ToDirection();

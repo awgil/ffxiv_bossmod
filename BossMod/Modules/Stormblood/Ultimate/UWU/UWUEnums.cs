@@ -21,8 +21,9 @@
         MagitekBit = 0x221D, // R0.600, spawn during fight
 
         UltimaWeapon = 0x221E, // R6.000, x1
-        Helper = 0x233C, // R0.500, x14
+        Aetheroplasm = 0x221F, // R1.000, spawn during fight
 
+        Helper = 0x233C, // R0.500, x14
         ArenaFeatures = 0x1EA1A1, // R2.000, x8, EventObj type
         BeyondLimits = 0x1EA989, // R0.500, EventObj type, spawn during fight
     };
@@ -119,6 +120,8 @@
         WickedWheelSister = 11084, // GarudaSister->self, 3.0s cast, range 7+R circle aoe
 
         UltimateAnnihilation = 11596, // UltimaWeapon->self, 3.0s cast, single-target, visual
+        AetheroplasmSpawn = 11136, // UltimaWeapon->self, no cast, single-target, visual
+        Aetheroplasm = 11137, // Aetheroplasm->self, no cast, range 6 circle aoe
     };
 
     public enum SID : uint
@@ -143,5 +146,13 @@
     {
         MistralSong = 16, // player
         FlamingCrush = 117, // player
+    };
+
+    public enum TetherID : uint
+    {
+        Mesohigh = 4, // GarudaSister/Garuda->player
+        //_Gen_Tether_17 = 17, // SpinyPlume->player
+        //_Gen_Tether_9 = 9, // player->player
+        //_Gen_Tether_1 = 1, // player->UltimaWeapon
     };
 }

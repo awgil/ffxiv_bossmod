@@ -286,7 +286,7 @@
         }
 
         // note: keeps component active for second and maybe third sets
-        private State P3WeightOfTheLandFirst(uint id, float delay, string name = "Puddles")
+        private State P3WeightOfTheLandFirst(uint id, float delay, string name)
         {
             ActorCast(id, _module.Titan, AID.WeightOfTheLand, delay, 2.5f, true)
                 .ActivateOnEnter<P3WeightOfTheLand>();
@@ -527,9 +527,88 @@
                 .DeactivateOnExit<P2InfernalFetters>(); // TODO: it should probably be deactivated earlier...
         }
 
+        // TODO: component for orbs?
         private void P4Annihilation(uint id, float delay)
         {
+            // timeline relative to 'disappear' state:
+            // +4.4s: titan starts WotL (visual + 4x aoe), flaming crush icon appears
+            // +6.9s: titan ends WotL visual
+            // +7.4s: WotL set 1 ends, then immediately after second set of 4x aoes start
+            // +7.5s: mesohigh 1 tether
+            // +7.6s: EotS cast start
+            // +9.4s: flaming crush
+            // +10.4s: WotL set 2 ends, third set of 4x aoes start
+            // +10.6s: EotS cast end
+            // +10.7s: orb 1 spawn
+            // +11.5s: ifrit starts inferno howl cast
+            // +12.6s: mesohigh 1
+            // +13.4s: WotL set 3 ends
+            // +13.5s: inferno howl cast end
+            // +14.8s: garuda PATE 1E3A (feather rain 1 bait)
+            // +16.3s: feather rain start
+            // +16.8s: ifrit starts crimson cyclone, orb 2 spawns
+            // +17.3s: feather rain end
+            // +19.8s: crimson cyclone end
+            // +20.4s: titan + 5 helpers start landslide
+            // +21.9s: crimson cyclone cross
+            // +22.6s: landslide end, secondary start
+            // +22.8s: orb 3 spawn
+            // +24.6s: landslide secondary end, EotS start
+            // +25.0s: mesohigh 2 tether
+            // +27.6s: EotS end
+            // +28.8s: ultima starts tank purge
+            // +29.1s: orb 4 spawn
+            // +30.0s: mesohigh 2
+            // +32.1s: garuda pate 1E3A (feather rain 2 bait)
+            // +32.8s: tank purge end
+            // ??? feather rain resolve...
+
             ActorCast(id, _module.Ultima, AID.UltimateAnnihilation, delay, 3, true);
+            ActorTargetable(id + 0x10, _module.Ultima, false, 4.4f, "Disappear (annihilation)");
+
+            ActorTargetable(id + 0x20, _module.Ultima, true, 4.4f, "Reappear")
+                .ActivateOnEnter<P3WeightOfTheLand>() // first set starts at the same time as boss becomes targetable
+                .ActivateOnEnter<P2FlamingCrush>() // icon appears at the same time as boss becomes targetable
+                .ActivateOnEnter<P1EyeOfTheStorm>(); // there are two casts over the duration of the mechanic: after ~3.2s and after ~20.2s - just keep the component active for the whole duration, it's not a particularly important mechanic
+
+            ComponentCondition<P2FlamingCrush>(id + 0x30, 5.0f, comp => !comp.Active, "Stack")
+                .ActivateOnEnter<P1Mesohigh>() // tether appears ~1.9s before crash resolve, but should be handled after this mechanic
+                .DeactivateOnExit<P2FlamingCrush>();
+
+            ComponentCondition<P1Mesohigh>(id + 0x40, 3.2f, comp => comp.NumCasts > 0, "Tether 1 resolve")
+                .ActivateOnEnter<P2SearingWind>() // inferno howl cast starts ~1.1s before tether resolve
+                .DeactivateOnExit<P1Mesohigh>();
+
+            ComponentCondition<P1FeatherRain>(id + 0x50, 2.2f, comp => comp.CastsPredicted, "Feathers bait")
+                .ActivateOnEnter<P1FeatherRain>()
+                .DeactivateOnExit<P3WeightOfTheLand>(); // last set ends ~1.4s before feathers PATE
+
+            ComponentCondition<P1FeatherRain>(id + 0x60, 2.5f, comp => comp.NumCasts > 0)
+                .ActivateOnEnter<P2CrimsonCyclone>() // TODO: proper activation time for prediction?.. cast-start is ~0.5s before feathers resolve
+                .DeactivateOnExit<P1FeatherRain>();
+            ComponentCondition<P2CrimsonCyclone>(id + 0x61, 2.5f, comp => comp.NumCasts > 0, "Diag charge");
+
+            ActorCastStart(id + 0x70, _module.Titan, AID.LandslideBossAwakened, 0.6f, false);
+            ComponentCondition<P2CrimsonCyclone>(id + 0x72, 1.5f, comp => !comp.CastsPredicted)
+                .ActivateOnEnter<Landslide>()
+                .DeactivateOnExit<P2CrimsonCyclone>();
+            ActorCastEnd(id + 0x73, _module.Titan, 0.7f, false, "Landslide 1");
+
+            ActorCastStart(id + 0x80, _module.Ultima, AID.TankPurge, 6.2f, true)
+                .ActivateOnEnter<P1Mesohigh>() // tether appears ~3.8s before cast start
+                //.ActivateOnEnter<P1EyeOfTheStorm>() // eots starts ~4.2s before cast start
+                .DeactivateOnExit<P1EyeOfTheStorm>() // second eots ends ~1.2s before cast start
+                .DeactivateOnExit<Landslide>(); // second landslide ends ~4.2s before cast start
+            ComponentCondition<P1Mesohigh>(id + 0x82, 1.2f, comp => comp.NumCasts > 0, "Tether 2 resolve")
+                .DeactivateOnExit<P1Mesohigh>();
+            ComponentCondition<P1FeatherRain>(id + 0x83, 2.1f, comp => comp.CastsPredicted, "Feathers bait")
+                .ActivateOnEnter<P1FeatherRain>();
+            ActorCastEnd(id + 0x84, _module.Ultima, 0.7f, true, "Raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
+
+            // TODO: didn't see stuff below yet; deactivate searing wind...
+            ComponentCondition<P1FeatherRain>(id + 0x90, 1.8f, comp => comp.NumCasts > 0, "Annihilation resolve")
+                .DeactivateOnExit<P1FeatherRain>();
         }
     }
 }
