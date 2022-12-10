@@ -108,6 +108,9 @@ namespace BossMod.WAR
 
                 [PropertyDisplay("Reserve 2 charges, trying to prevent overcap", 0x80ffff00)]
                 ReserveTwo = 5, // use only if about to overcap
+
+                [PropertyDisplay("Use as gapcloser if outside melee range", 0x80ff00ff)]
+                UseOutsideMelee = 6, // use immediately if outside melee range
             }
 
             public GaugeUse GaugeStrategy; // how are we supposed to handle gauge
@@ -384,9 +387,13 @@ namespace BossMod.WAR
                     return state.CD(CDGroup.Onslaught) <= 30 + state.AnimationLock;
                 case Strategy.OnslaughtUse.ReserveTwo:
                     return state.CD(CDGroup.Onslaught) - (state.Unlocked(TraitID.EnhancedOnslaught) ? 0 : 30) <= state.GCD;
+                case Strategy.OnslaughtUse.UseOutsideMelee:
+                    return state.RangeToTarget > 3;
                 default:
                     if (strategy.CombatTimer < 0)
                         return false; // don't use out of combat
+                    if (state.RangeToTarget > 3)
+                        return false; // don't use out of melee range to prevent fucking up player's position
                     if (strategy.PositionLockIn <= state.AnimationLock)
                         return false; // forbidden due to state flags
                     if (state.SurgingTempestLeft <= state.AnimationLock)
@@ -412,7 +419,8 @@ namespace BossMod.WAR
             // forced PR
             if (strategy.PrimalRendUse == Strategy.OffensiveAbilityUse.Force && state.PrimalRendLeft > state.GCD)
                 return AID.PrimalRend;
-            float primalRendWindow = strategy.PrimalRendUse == Strategy.OffensiveAbilityUse.Delay ? 0 : MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);
+            // forbid automatic PR when out of melee range, to avoid fucking up player positioning when avoiding mechanics
+            float primalRendWindow = (strategy.PrimalRendUse == Strategy.OffensiveAbilityUse.Delay || state.RangeToTarget > 3) ? 0 : MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);
 
             // forced surging tempest combo (TODO: at which point does AOE combo start giving ST?)
             if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceExtendST && state.Unlocked(AID.StormEye))
@@ -513,6 +521,11 @@ namespace BossMod.WAR
         // window-end is either GCD or GCD - time-for-second-ogcd; we are allowed to use ogcds only if their animation lock would complete before window-end
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline, bool aoe)
         {
+            // 0. onslaught as a gap-filler - this should be used asap even if we're delaying GCD, since otherwise we'll probably end up delaying it even more
+            bool wantOnslaught = state.Unlocked(AID.Onslaught) && state.TargetingEnemy && ShouldUseOnslaught(state, strategy);
+            if (wantOnslaught && state.RangeToTarget > 3)
+                return ActionID.MakeSpell(AID.Onslaught);
+
             // 1. potion
             if (ShouldUsePotion(state, strategy) && state.CanWeave(state.PotionCD, 1.1f, deadline))
                 return CommonDefinitions.IDPotionStr;
@@ -539,7 +552,7 @@ namespace BossMod.WAR
                 return ActionID.MakeSpell(AID.Infuriate);
 
             // 5. onslaught, if surging tempest up and not forbidden
-            if (state.Unlocked(AID.Onslaught) && state.TargetingEnemy && state.CanWeave(state.CD(CDGroup.Onslaught) - 60, 0.6f, deadline) && ShouldUseOnslaught(state, strategy))
+            if (wantOnslaught && state.CanWeave(state.CD(CDGroup.Onslaught) - 60, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Onslaught);
 
             // no suitable oGCDs...
