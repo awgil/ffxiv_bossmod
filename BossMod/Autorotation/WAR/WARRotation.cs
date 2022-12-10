@@ -230,7 +230,7 @@ namespace BossMod.WAR
         // by default, we spend resources either under raid buffs or if another raid buff window will cover at least 4 GCDs of the fight
         public static bool ShouldSpendGauge(State state, Strategy strategy) => strategy.GaugeStrategy switch
         {
-            Strategy.GaugeUse.Automatic => state.RaidBuffsLeft > state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10,
+            Strategy.GaugeUse.Automatic => (state.RaidBuffsLeft > state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10) && state.SurgingTempestLeft > state.GCD,
             Strategy.GaugeUse.Spend => true,
             Strategy.GaugeUse.ConserveIfNoBuffs => state.RaidBuffsLeft > state.GCD,
             Strategy.GaugeUse.Conserve => false,
