@@ -110,6 +110,7 @@
             // +0.9s: stun
             // +5.9s: stun end
             ComponentCondition<InfernWave>(id + 0x60, 8, comp => comp.NumCasts > 4, "Wave 2")
+                .DeactivateOnExit<CrypticFlames>()
                 .DeactivateOnExit<InfernWave>();
         }
 
