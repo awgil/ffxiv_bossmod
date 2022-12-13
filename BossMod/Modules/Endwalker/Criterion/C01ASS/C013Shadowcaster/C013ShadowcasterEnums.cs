@@ -62,6 +62,7 @@
         ThirdFlame = 3274, // none->player, extra=0x0
         FourthFlame = 3275, // none->player, extra=0x0
         Counter = 2397, // none->Laser/39AE, extra=0x1C2/0x1C3/0x1C4/0x1C5/0x1C6/0x1C7/0x1C8/0x1C9/0x1C1/0x1CC/0x1F3 (1C2-1C5 = #1-#4 NS, 1C6-1C9 = #1-#4 EW, 1C1 = unbreakable)
-        PlayerPortal = 2970, // Boss->player, extra=0x1CD/0x1CE/0x1D2/0x1D3 (1CD = CCW W->N, 1CE = CW W->N, 1D2 = CW E->S, 1D3 = CCW W->S)
+        PlayerPortal = 2970, // Boss->player, extra=0x1CD/0x1CE/0x1D2/0x1D3 (1CD = CCW E->N, 1CE = CW W->N, 1D2 = CW E->S, 1D3 = CCW W->S)
+        CallOfThePortal = 3276, // Boss->player, extra=0x0
     };
 }

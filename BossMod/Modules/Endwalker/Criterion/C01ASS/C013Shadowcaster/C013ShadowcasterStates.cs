@@ -17,7 +17,7 @@
             InfernBrand3(id + 0x50000, 8.2f);
             FiresteelFracture(id + 0x60000, 3.4f);
             InfernBrand4(id + 0x70000, 8.2f);
-            ShowOfStrength(id + 0x80000, 5.2f);
+            ShowOfStrength(id + 0x80000, 5.1f);
             InfernBrand5(id + 0x90000, 8.2f);
 
             SimpleState(id + 0xFF000000, 10000, "???");
@@ -66,7 +66,7 @@
 
             CastStart(id + 0x20, AID.CastShadow, 6.7f)
                 .ActivateOnEnter<BlazingBenifice>(); // TODO: proper activation time (first set of arcane fonts spawn around cryptic flames cast start, second spawn ~12s later)
-            ComponentCondition<BlazingBenifice>(id + 0x21, 4.2f, comp => comp.NumCasts > 0, "Mirrors 1")
+            ComponentCondition<BlazingBenifice>(id + 0x21, 4.1f, comp => comp.NumCasts > 0, "Mirrors 1")
                 .ActivateOnEnter<CastShadow>(); // all cast-shadow casts start at the same time
             CastEnd(id + 0x22, 0.6f);
             ComponentCondition<CastShadow>(id + 0x23, 0.7f, comp => comp.FirstAOECasters.Count == 0, "Pizzas 1");
@@ -84,29 +84,23 @@
                 .SetHint(StateMachine.StateHint.Tankbuster);
         }
 
-        // TODO: components: portal & wave
         private void InfernBrand3(uint id, float delay)
         {
-            Cast(id, AID.InfernBrand, delay, 4);
-            // +0.8s: PATE 1E44 on 4 lasers, 1E43 on 4 beacons
-            // +1.2s: 4 portals spawn
-            // +1.9s: lasers gain counter 1C1
+            Cast(id, AID.InfernBrand, delay, 4)
+                .ActivateOnEnter<CrypticFlames>(); // lasers gain counter 1C1 ~1.9s after cast end
             Cast(id + 0x10, AID.InfernWave, 4.2f, 4);
-            // +0.8s: beacons gain counter 1CC, 4 activate beacon cast events
-            Cast(id + 0x20, AID.Banishment, 4.5f, 4);
-            // +0.0s: statuses on players <-- activate portals here...
-            // +0.7s: eobjanim on portals
+            Cast(id + 0x20, AID.Banishment, 4.5f, 4)
+                .ActivateOnEnter<InfernWave1>() // two of the beacons activate ~2.6s after cast start
+                .ActivateOnEnter<PortalsWave>(); // portal statuses appear right at cast end, eobjanims on portals happen ~0.8s after cast end
             Cast(id + 0x30, AID.InfernWard, 4.2f, 4);
-            // +0.9s: 4 activate beacon cast events
-            // +1.3s: beacons gain counter 1F3
-            // +1.4s: 4 29847 cast events
-            // +3.2s: teleports (players lose 3276 status) <-- deactivate portals and show waves here...
-            ComponentCondition<InfernWave>(id + 0x40, 7.8f, comp => comp.NumCasts > 0, "Wave 1")
-                .ActivateOnEnter<InfernWave>();
+            ComponentCondition<PortalsWave>(id + 0x40, 2.9f, comp => comp.Done, "Portals")
+                .OnExit(() => Module.FindComponent<InfernWave1>()!.ShowHints = true)
+                .DeactivateOnExit<PortalsWave>();
+            ComponentCondition<InfernWave1>(id + 0x50, 4.8f, comp => comp.NumCasts > 0, "Wave 1");
             // +0.9s: stun
             // +5.9s: stun end
-            ComponentCondition<InfernWave>(id + 0x41, 8, comp => comp.NumCasts > 4, "Wave 2")
-                .DeactivateOnExit<InfernWave>();
+            ComponentCondition<InfernWave1>(id + 0x60, 8, comp => comp.NumCasts > 4, "Wave 2")
+                .DeactivateOnExit<InfernWave1>();
         }
 
         private void InfernBrand4(uint id, float delay)
@@ -127,19 +121,18 @@
                 .DeactivateOnExit<FiresteelStrike>();
         }
 
-        // TODO: component for wave - investigate how to determine next activated beacon...
         private void InfernBrand5(uint id, float delay)
         {
             Cast(id, AID.InfernBrand, delay, 4);
-            Cast(id + 0x10, AID.InfernWave, 4.2f, 4);
+            Cast(id + 0x10, AID.InfernWave, 4.2f, 4)
+                .ActivateOnEnter<InfernWave2>(); // first beacon activates ~2.3s after cast end
             Cast(id + 0x20, AID.CrypticFlames, 4.2f, 8.3f)
                 .ActivateOnEnter<CrypticFlames>(); // note: statuses appear right before cast start
             ComponentCondition<CrypticFlames>(id + 0x22, 2.7f, comp => comp.ReadyToBreak, "Lasers break start");
 
-            ComponentCondition<InfernWave>(id + 0x30, 1.3f, comp => comp.NumCasts > 0, "Wave 1")
-                .ActivateOnEnter<InfernWave>(); // TODO: activate earlier and show baits
+            ComponentCondition<InfernWave2>(id + 0x30, 1.3f, comp => comp.NumCasts > 0, "Wave 1");
             CastStart(id + 0x40, AID.PureFire, 8);
-            ComponentCondition<InfernWave>(id + 0x41, 2, comp => comp.NumCasts > 2, "Wave 2");
+            ComponentCondition<InfernWave2>(id + 0x41, 2, comp => comp.NumCasts > 2, "Wave 2");
             CastEnd(id + 0x42, 1);
             ComponentCondition<PureFire>(id + 0x50, 0.8f, comp => comp.Casters.Count > 0, "Puddle bait")
                 .ActivateOnEnter<PureFire>();
@@ -147,14 +140,14 @@
                 .DeactivateOnExit<PureFire>();
 
             CastStart(id + 0x60, AID.CastShadow, 4.9f);
-            ComponentCondition<InfernWave>(id + 0x61, 0.4f, comp => comp.NumCasts > 4, "Wave 3")
+            ComponentCondition<InfernWave2>(id + 0x61, 0.4f, comp => comp.NumCasts > 4, "Wave 3")
                 .ActivateOnEnter<CastShadow>();
             CastEnd(id + 0x62, 4.4f);
             ComponentCondition<CastShadow>(id + 0x63, 0.7f, comp => comp.FirstAOECasters.Count == 0, "Pizzas 1");
             ComponentCondition<CastShadow>(id + 0x64, 2, comp => comp.SecondAOECasters.Count == 0, "Pizzas 2")
                 .DeactivateOnExit<CastShadow>();
-            ComponentCondition<InfernWave>(id + 0x65, 3, comp => comp.NumCasts > 6, "Wave 4")
-                .DeactivateOnExit<InfernWave>()
+            ComponentCondition<InfernWave2>(id + 0x65, 3, comp => comp.NumCasts > 6, "Wave 4")
+                .DeactivateOnExit<InfernWave2>()
                 .DeactivateOnExit<CrypticFlames>();
 
             FiresteelFracture(id + 0x300, 1.6f);

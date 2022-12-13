@@ -51,8 +51,17 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
                     ReadyToBreak = true;
                     break;
                 case SID.Counter:
-                    if (status.Extra is >= 0x1C2 and <= 0x1C9)
-                        _lasers.Add((actor, ((status.Extra - 0x1C2) & 3) + 1));
+                    var order = status.Extra switch
+                    {
+                        0x1C1 => -1, // unbreakable
+                        0x1C2 or 0x1C6 => 1,
+                        0x1C3 or 0x1C7 => 2,
+                        0x1C4 or 0x1C8 => 3,
+                        0x1C5 or 0x1C9 => 4,
+                        _ => 0
+                    };
+                    if (order != 0)
+                        _lasers.Add((actor, order));
                     break;
             }
         }

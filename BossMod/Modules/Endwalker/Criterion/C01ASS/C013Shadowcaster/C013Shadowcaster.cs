@@ -11,12 +11,6 @@
         public BlazingBenifice() : base(ActionID.MakeSpell(AID.BlazingBenifice)) { }
     }
 
-    // TODO: show stuff
-    class InfernWave : Components.CastCounter
-    {
-        public InfernWave() : base(ActionID.MakeSpell(AID.InfernWaveAOE)) { }
-    }
-
     class PureFire : Components.LocationTargetedAOEs
     {
         public PureFire() : base(ActionID.MakeSpell(AID.PureFireAOE), 6) { }
