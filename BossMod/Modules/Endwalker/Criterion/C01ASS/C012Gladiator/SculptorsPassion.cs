@@ -2,7 +2,7 @@
 {
     class SculptorsPassion : Components.GenericWildCharge
     {
-        public SculptorsPassion() : base(4, ActionID.MakeSpell(AID.SculptorsPassionAOE)) { }
+        public SculptorsPassion(AID aid) : base(4, ActionID.MakeSpell(aid)) { }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
@@ -15,4 +15,6 @@
             }
         }
     }
+    class NSculptorsPassion : SculptorsPassion { public NSculptorsPassion() : base(AID.NSculptorsPassion) { } }
+    class SSculptorsPassion : SculptorsPassion { public SSculptorsPassion() : base(AID.SSculptorsPassion) { } }
 }

@@ -59,8 +59,8 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
 
         private List<Actor>? CasterList(ActorCastInfo spell) => (AID)spell.Action.ID switch
         {
-            AID.GoldenFlame => _goldenFlames,
-            AID.SilverFlame => _silverFlames,
+            AID.NGoldenFlame or AID.SGoldenFlame => _goldenFlames,
+            AID.NSilverFlame or AID.SSilverFlame => _silverFlames,
             _ => null
         };
 
@@ -83,11 +83,15 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
     // note: we can predict cast start during Regret actor spawn...
     class RackAndRuin : Components.SelfTargetedAOEs
     {
-        public RackAndRuin() : base(ActionID.MakeSpell(AID.RackAndRuin), new AOEShapeRect(40, 2.5f), 8) { }
+        public RackAndRuin(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeRect(40, 2.5f), 8) { }
     }
+    class NRackAndRuin : RackAndRuin { public NRackAndRuin() : base(AID.NRackAndRuin) { } }
+    class SRackAndRuin : RackAndRuin { public SRackAndRuin() : base(AID.SRackAndRuin) { } }
 
     class NothingBesideRemains : Components.SpreadFromCastTargets
     {
-        public NothingBesideRemains() : base(ActionID.MakeSpell(AID.NothingBesideRemainsAOE), 8) { }
+        public NothingBesideRemains(AID aid) : base(ActionID.MakeSpell(aid), 8) { }
     }
+    class NNothingBesideRemains : NothingBesideRemains { public NNothingBesideRemains() : base(AID.NNothingBesideRemainsAOE) { } }
+    class SNothingBesideRemains : NothingBesideRemains { public SNothingBesideRemains() : base(AID.SNothingBesideRemainsAOE) { } }
 }

@@ -64,15 +64,11 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
         }
     }
 
-    class PortalsBurn : PortalsAOE
-    {
-        public PortalsBurn() : base(AID.Burn, OID.BallOfFire, 11.6f, new AOEShapeCircle(12)) { }
-    }
+    class NPortalsBurn : PortalsAOE { public NPortalsBurn() : base(AID.NBurn, OID.NBallOfFire, 11.6f, new AOEShapeCircle(12)) { } }
+    class SPortalsBurn : PortalsAOE { public SPortalsBurn() : base(AID.SBurn, OID.SBallOfFire, 11.6f, new AOEShapeCircle(12)) { } }
 
-    class PortalsMirror : PortalsAOE
-    {
-        public PortalsMirror() : base(AID.BlazingBenifice, OID.ArcaneFont, 11.7f, new AOEShapeRect(100, 5, 100)) { }
-    }
+    class NPortalsMirror : PortalsAOE { public NPortalsMirror() : base(AID.NBlazingBenifice, OID.NArcaneFont, 11.7f, new AOEShapeRect(100, 5, 100)) { } }
+    class SPortalsMirror : PortalsAOE { public SPortalsMirror() : base(AID.SBlazingBenifice, OID.SArcaneFont, 11.7f, new AOEShapeRect(100, 5, 100)) { } }
 
     class PortalsWave : BossComponent
     {
@@ -87,7 +83,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
             {
                 foreach (var p in _portals)
                 {
-                    arena.AddCircle(dir > 0 ? p.s : p.n, 2, ArenaColor.Safe, 2);
+                    arena.AddCircle(dir > 0 ? p.s : p.n, 1, ArenaColor.Safe, 2);
                 }
             }
         }

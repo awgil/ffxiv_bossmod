@@ -20,22 +20,23 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
         }
 
         public bool ShowHints = true;
-        private int _aoesPerBeacon;
+        private bool _savage;
         private int _maxActive;
         private List<Beacon> _beacons = new();
 
         private static AOEShapeCone _shape = new(60, 45.Degrees());
 
-        public InfernWave(int aoesPerBeacon, int maxActive) : base(ActionID.MakeSpell(AID.InfernWaveAOE))
+        public InfernWave(bool savage, bool showHints, int maxActive) : base(ActionID.MakeSpell(savage ? AID.SInfernWaveAOE : AID.NInfernWaveAOE))
         {
-            _aoesPerBeacon = aoesPerBeacon;
+            ShowHints = showHints;
+            _savage = savage;
             _maxActive = maxActive;
         }
 
         public override void Update(BossModule module)
         {
             // create entries for newly activated beacons
-            foreach (var s in module.Enemies(OID.Beacon).Where(s => s.ModelState.AnimState1 == 1 && !_beacons.Any(b => b.Source == s)))
+            foreach (var s in module.Enemies(_savage ? OID.SBeacon : OID.NBeacon).Where(s => s.ModelState.AnimState1 == 1 && !_beacons.Any(b => b.Source == s)))
             {
                 _beacons.Add(new(s, module.WorldState.CurrentTime.AddSeconds(17.1f)));
             }
@@ -46,7 +47,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
                 foreach (var b in ActiveBeacons())
                 {
                     b.Targets.Clear();
-                    foreach (var t in module.Raid.WithoutSlot().SortedByRange(b.Source.Position).Take(_aoesPerBeacon))
+                    foreach (var t in module.Raid.WithoutSlot().SortedByRange(b.Source.Position).Take(2))
                         b.Targets.Add((t, Angle.FromDirection(t.Position - b.Source.Position)));
                 }
             }
@@ -113,16 +114,8 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
         private IEnumerable<Beacon> ActiveBeacons() => _beacons.Where(b => b.Activation != new DateTime()).Take(_maxActive);
     }
 
-    class InfernWave1 : InfernWave
-    {
-        public InfernWave1() : base(2, 2)
-        {
-            ShowHints = false;
-        }
-    }
-
-    class InfernWave2 : InfernWave
-    {
-        public InfernWave2() : base(2, 1) { }
-    }
+    class NInfernWave1 : InfernWave { public NInfernWave1() : base(false, false, 2) { } }
+    class SInfernWave1 : InfernWave { public SInfernWave1() : base(true, false, 2) { } }
+    class NInfernWave2 : InfernWave { public NInfernWave2() : base(false, true, 1) { } }
+    class SInfernWave2 : InfernWave { public SInfernWave2() : base(true, true, 1) { } }
 }

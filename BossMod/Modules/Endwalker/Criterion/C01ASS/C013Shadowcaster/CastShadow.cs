@@ -28,8 +28,8 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
 
         private List<Actor>? ListForAction(ActionID action) => (AID)action.ID switch
         {
-            AID.CastShadowAOE1 => FirstAOECasters,
-            AID.CastShadowAOE2 => SecondAOECasters,
+            AID.NCastShadowAOE1 or AID.SCastShadowAOE1 => FirstAOECasters,
+            AID.NCastShadowAOE2 or AID.SCastShadowAOE2 => SecondAOECasters,
             _ => null
         };
     }

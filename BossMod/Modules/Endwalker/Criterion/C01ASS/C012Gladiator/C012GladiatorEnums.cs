@@ -2,64 +2,108 @@
 {
     public enum OID : uint
     {
-        Boss = 0x39A5, // R6.500, x1
+        NBoss = 0x39A5, // R6.500, x1
+        NGladiatorMirage = 0x39A6, // R6.500, spawn during fight, specter of might
+        NHatefulVisage = 0x39A7, // R2.250, spawn during fight
+        NRegret = 0x39A8, // R1.000, spawn during fight
+
+        SBoss = 0x3A10, // R6.500, x1
+        SGladiatorMirage = 0x3A11, // R6.500, spawn during fight
+        SHatefulVisage = 0x3A12, // R2.250, spawn during fight
+        SRegret = 0x3A13, // R1.000, spawn during fight
+
         Helper = 0x233C, // R0.500, x18
-        GladiatorMirage = 0x39A6, // R6.500, spawns during fight, specter of might
-        HatefulVisage = 0x39A7, // R2.250, spawns during fight
-        Regret = 0x39A8, // R1.000, spawns during fight
     };
 
     public enum AID : uint
     {
-        AutoAttack = 870, // Boss->player, no cast, single-target
-        FlashOfSteel = 30321, // Boss->self, 5.0s cast, raidwide
-        MightySmite = 30322, // Boss->player, 5.0s cast, single-target tankbuster
-        Teleport = 30265, // Boss->location, no cast, single-target, teleport
+        AutoAttack = 870, // NBoss/SBoss->player, no cast, single-target
+        Teleport = 30265, // NBoss/SBoss->location, no cast, single-target, teleport
 
-        SpecterOfMight = 30323, // Boss->self, 4.0s cast, single-target, visual
-        RushOfMight1 = 30296, // GladiatorMirage->location, 10.0s cast, range 35 width 3 rect aoe
-        RushOfMight2 = 30297, // GladiatorMirage->location, 10.0s cast, range 35 width 3 rect aoe
-        RushOfMight3 = 30298, // GladiatorMirage->location, 10.0s cast, range 35 width 3 rect aoe
-        RushOfMightFront = 30299, // Helper->self, 10.5s cast, range 60 180-degree cone aoe
-        RushOfMightBack = 30300, // Helper->self, 12.5s cast, range 60 180-degree cone aoe
+        NFlashOfSteel = 30321, // NBoss->self, 5.0s cast, raidwide
+        NMightySmite = 30322, // NBoss->player, 5.0s cast, single-target tankbuster
+        SFlashOfSteel = 30643, // SBoss->self, 5.0s cast, raidwide
+        SMightySmite = 30644, // SBoss->player, 5.0s cast, single-target tankbuster
+
+        NSpecterOfMight = 30323, // NBoss->self, 4.0s cast, single-target, visual
+        NRushOfMight1 = 30296, // NGladiatorMirage->location, 10.0s cast, range 35 width 3 rect aoe
+        NRushOfMight2 = 30297, // NGladiatorMirage->location, 10.0s cast, range 35 width 3 rect aoe
+        NRushOfMight3 = 30298, // NGladiatorMirage->location, 10.0s cast, range 35 width 3 rect aoe
+        NRushOfMightFront = 30299, // Helper->self, 10.5s cast, range 60 180-degree cone aoe
+        NRushOfMightBack = 30300, // Helper->self, 12.5s cast, range 60 180-degree cone aoe
+        SSpecterOfMight = 30645, // SBoss->self, 4.0s cast, single-target, visual
+        SRushOfMight1 = 30618, // SGladiatorMirage->location, 10.0s cast, range 35 width 3 rect aoe
+        SRushOfMight2 = 30619, // SGladiatorMirage->location, 10.0s cast, range 35 width 3 rect aoe
+        SRushOfMight3 = 30620, // SGladiatorMirage->location, 10.0s cast, range 35 width 3 rect aoe
+        SRushOfMightFront = 30621, // Helper->self, 10.5s cast, range 60 180-degree cone aoe
+        SRushOfMightBack = 30622, // Helper->self, 12.5s cast, range 60 180-degree cone aoe
 
         SculptorsPassionTargetSelection = 26708, // Helper->player, no cast, single-target, cast right before the beginning of visual cast
-        SculptorsPassion = 30316, // Boss->self, 5.0s cast, single-target, visual
-        SculptorsPassionAOE = 31219, // Boss->self, no cast, range 60 width 8 rect shared
+        NSculptorsPassion = 30316, // NBoss->self, 5.0s cast, single-target, visual
+        NSculptorsPassionAOE = 31219, // NBoss->self, no cast, range 60 width 8 rect shared
+        SSculptorsPassion = 30638, // SBoss->self, 5.0s cast, single-target, visual
+        SSculptorsPassionAOE = 31220, // SBoss->self, no cast, range 60 width 8 rect shared
 
-        CurseOfTheFallen = 30324, // Boss->self, 5.0s cast, single-target, visual
         RingOfMightVisual = 30655, // Helper->self, 10.0s cast, range 18 circle, ???
-        RingOfMight1Out = 30301, // Boss->self, 10.0s cast, range 8 circle
-        RingOfMight2Out = 30302, // Boss->self, 10.0s cast, range 13 circle
-        RingOfMight3Out = 30303, // Boss->self, 10.0s cast, range 18 circle
-        RingOfMight1In = 30304, // Helper->self, 12.0s cast, range 8-30 donut
-        RingOfMight2In = 30305, // Helper->self, 12.0s cast, range 13-30 donut
-        RingOfMight3In = 30306, // Helper->self, 12.0s cast, range 18-30 donut
-        EchoOfTheFallen = 30325, // Helper->players, no cast, range 6 circle spread
-        ThunderousEcho = 30326, // Helper->players, no cast, range 5 circle stack
-        LingeringEcho = 30327, // Helper->location, no cast, range 5 circle baited 5x repeated aoe
-        EchoOfTheFallenDeath = 30950, // Helper->location, no cast, range 8 circle aoe on debuffed player death
+        NCurseOfTheFallen = 30324, // NBoss->self, 5.0s cast, single-target, visual
+        NRingOfMight1Out = 30301, // NBoss->self, 10.0s cast, range 8 circle
+        NRingOfMight2Out = 30302, // NBoss->self, 10.0s cast, range 13 circle
+        NRingOfMight3Out = 30303, // NBoss->self, 10.0s cast, range 18 circle
+        NRingOfMight1In = 30304, // Helper->self, 12.0s cast, range 8-30 donut
+        NRingOfMight2In = 30305, // Helper->self, 12.0s cast, range 13-30 donut
+        NRingOfMight3In = 30306, // Helper->self, 12.0s cast, range 18-30 donut
+        NEchoOfTheFallen = 30325, // Helper->players, no cast, range 6 circle spread
+        NThunderousEcho = 30326, // Helper->players, no cast, range 5 circle stack
+        NLingeringEcho = 30327, // Helper->location, no cast, range 5 circle baited 5x repeated aoe
+        NEchoOfTheFallenDeath = 30950, // Helper->location, no cast, range 8 circle aoe on debuffed player death
+        SCurseOfTheFallen = 30646, // SBoss->self, 5.0s cast, single-target, visual
+        SRingOfMight1Out = 30623, // SBoss->self, 10.0s cast, range 8 circle
+        SRingOfMight2Out = 30624, // SBoss->self, 10.0s cast, range 13 circle
+        SRingOfMight3Out = 30625, // SBoss->self, 10.0s cast, range 18 circle
+        SRingOfMight1In = 30626, // Helper->self, 12.0s cast, range 8-30 donut
+        SRingOfMight2In = 30627, // Helper->self, 12.0s cast, range 13-30 donut
+        SRingOfMight3In = 30628, // Helper->self, 12.0s cast, range 18-30 donut
+        SEchoOfTheFallen = 30647, // Helper->players, no cast, range 6 circle spread
+        SThunderousEcho = 30648, // Helper->players, no cast, range 5 circle stack
+        SLingeringEcho = 30649, // Helper->location, no cast, range 5 circle baited 5x repeated aoe
+        //SEchoOfTheFallenDeath = ???, // Helper->location, no cast, range 8 circle aoe on debuffed player death
 
-        HatefulVisage = 30318, // Boss->self, 3.0s cast, single-target, visual
-        AccursedVisage = 30349, // Boss->self, 3.0s cast, single-target, visual
-        WrathOfRuin = 30307, // Boss->self, 3.0s cast, single-target, visual
-        RackAndRuin = 30308, // Regret->location, 4.0s cast, range 40 width 5 rect
-        GoldenFlame = 30319, // HatefulVisage->self, 10.0s cast, range 60 width 10 rect
-        SilverFlame = 30320, // HatefulVisage->self, 10.0s cast, range 60 width 10 rect
-        NothingBesideRemains = 30347, // Boss->self, 5.0s cast, single-target, visual
-        NothingBesideRemainsAOE = 30348, // Helper->players, 5.0s cast, range 8 circle spread
+        NHatefulVisage = 30318, // NBoss->self, 3.0s cast, single-target, visual
+        NAccursedVisage = 30349, // NBoss->self, 3.0s cast, single-target, visual
+        NWrathOfRuin = 30307, // NBoss->self, 3.0s cast, single-target, visual
+        NRackAndRuin = 30308, // NRegret->location, 4.0s cast, range 40 width 5 rect
+        NGoldenFlame = 30319, // NHatefulVisage->self, 10.0s cast, range 60 width 10 rect
+        NSilverFlame = 30320, // NHatefulVisage->self, 10.0s cast, range 60 width 10 rect
+        NNothingBesideRemains = 30347, // NBoss->self, 5.0s cast, single-target, visual
+        NNothingBesideRemainsAOE = 30348, // Helper->players, 5.0s cast, range 8 circle spread
+        SHatefulVisage = 30640, // SBoss->self, 3.0s cast, single-target, visual
+        SAccursedVisage = 30654, // SBoss->self, 3.0s cast, single-target, visual
+        SWrathOfRuin = 30629, // SBoss->self, 3.0s cast, single-target, visual
+        SRackAndRuin = 30630, // SRegret->location, 4.0s cast, range 40 width 5 rect
+        SGoldenFlame = 30641, // SHatefulVisage->self, 10.0s cast, range 60 width 10 rect
+        SSilverFlame = 30642, // SHatefulVisage->self, 10.0s cast, range 60 width 10 rect
+        SNothingBesideRemains = 30652, // SBoss->self, 5.0s cast, single-target, visual
+        SNothingBesideRemainsAOE = 30653, // Helper->players, 5.0s cast, range 8 circle spread
 
-        CurseOfTheMonument = 30310, // Boss->self, 4.0s cast, single-target, visual
-        ChainsOfResentment = 30311, // Helper->self, no cast, raidwide if tether is not broken in time
-        SunderedRemains = 30312, // Helper->self, 6.0s cast, range 10 circle aoe
-        ScreamOfTheFallen = 30328, // Helper->players, no cast, range 15 circle spread
-        ScreamOfTheFallenDeath = 30951, // Helper->location, no cast, range 15 circle on debuffed player death
-        ColossalWreck = 30313, // Boss->self, 6.0s cast, single-target, visual
-        Explosion = 30314, // Helper->self, 6.5s cast, range 3 circle tower
-        MassiveExplosion = 30315, // Helper->self, no cast, raidwide if tower is unsoaked
+        NCurseOfTheMonument = 30310, // NBoss->self, 4.0s cast, single-target, visual
+        NChainsOfResentment = 30311, // Helper->self, no cast, raidwide if tether is not broken in time
+        NSunderedRemains = 30312, // Helper->self, 6.0s cast, range 10 circle aoe
+        NScreamOfTheFallen = 30328, // Helper->players, no cast, range 15 circle spread
+        NScreamOfTheFallenDeath = 30951, // Helper->location, no cast, range 15 circle on debuffed player death
+        NColossalWreck = 30313, // NBoss->self, 6.0s cast, single-target, visual
+        NExplosion = 30314, // Helper->self, 6.5s cast, range 3 circle tower
+        NMassiveExplosion = 30315, // Helper->self, no cast, raidwide if tower is unsoaked
+        SCurseOfTheMonument = 30632, // SBoss->self, 4.0s cast, single-target, visual
+        SChainsOfResentment = 30633, // Helper->self, no cast, raidwide if tether is not broken in time
+        SSunderedRemains = 30634, // Helper->self, 6.0s cast, range 10 circle aoe
+        SScreamOfTheFallen = 30650, // Helper->players, no cast, range 15 circle spread
+        //SScreamOfTheFallenDeath = ???, // Helper->location, no cast, range 15 circle on debuffed player death
+        SColossalWreck = 30635, // SBoss->self, 6.0s cast, single-target, visual
+        SExplosion = 30636, // Helper->self, 6.5s cast, range 3 circle tower
+        SMassiveExplosion = 30637, // Helper->self, no cast, raidwide if tower is unsoaked
 
-        Enrage = 30329, // Boss->self, 10.0s cast, enrage
-        Enrage2 = 31282, // Boss->self, no cast, range 60 circle ???
+        Enrage = 30329, // NBoss->self, 10.0s cast, enrage
+        Enrage2 = 31282, // NBoss->self, no cast, range 60 circle ???
     };
 
     public enum SID : uint

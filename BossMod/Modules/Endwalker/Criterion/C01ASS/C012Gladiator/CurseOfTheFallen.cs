@@ -59,15 +59,18 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
         {
             switch ((AID)spell.Action.ID)
             {
-                case AID.EchoOfTheFallen:
+                case AID.NEchoOfTheFallen:
+                case AID.SEchoOfTheFallen:
                     _fallen.Clear(module.Raid.FindSlot(spell.MainTargetID));
                     _dirty = true;
                     break;
-                case AID.ThunderousEcho:
+                case AID.NThunderousEcho:
+                case AID.SThunderousEcho:
                     _thunderous = -1;
                     _dirty = true;
                     break;
-                case AID.LingeringEcho:
+                case AID.NLingeringEcho:
+                case AID.SLingeringEcho:
                     _lingering = -1;
                     _dirty = true;
                     break;
@@ -77,31 +80,43 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
 
     class RingOfMight1Out : Components.SelfTargetedAOEs
     {
-        public RingOfMight1Out() : base(ActionID.MakeSpell(AID.RingOfMight1Out), new AOEShapeCircle(8)) { }
+        public RingOfMight1Out(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCircle(8)) { }
     }
+    class NRingOfMight1Out : RingOfMight1Out { public NRingOfMight1Out() : base(AID.NRingOfMight1Out) { } }
+    class SRingOfMight1Out : RingOfMight1Out { public SRingOfMight1Out() : base(AID.SRingOfMight1Out) { } }
 
     class RingOfMight2Out : Components.SelfTargetedAOEs
     {
-        public RingOfMight2Out() : base(ActionID.MakeSpell(AID.RingOfMight2Out), new AOEShapeCircle(13)) { }
+        public RingOfMight2Out(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCircle(13)) { }
     }
+    class NRingOfMight2Out : RingOfMight2Out { public NRingOfMight2Out() : base(AID.NRingOfMight2Out) { } }
+    class SRingOfMight2Out : RingOfMight2Out { public SRingOfMight2Out() : base(AID.SRingOfMight2Out) { } }
 
     class RingOfMight3Out : Components.SelfTargetedAOEs
     {
-        public RingOfMight3Out() : base(ActionID.MakeSpell(AID.RingOfMight3Out), new AOEShapeCircle(18)) { }
+        public RingOfMight3Out(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCircle(18)) { }
     }
+    class NRingOfMight3Out : RingOfMight3Out { public NRingOfMight3Out() : base(AID.NRingOfMight3Out) { } }
+    class SRingOfMight3Out : RingOfMight3Out { public SRingOfMight3Out() : base(AID.SRingOfMight3Out) { } }
 
     class RingOfMight1In : Components.SelfTargetedAOEs
     {
-        public RingOfMight1In() : base(ActionID.MakeSpell(AID.RingOfMight1In), new AOEShapeDonut(8, 30)) { }
+        public RingOfMight1In(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeDonut(8, 30)) { }
     }
+    class NRingOfMight1In : RingOfMight1In { public NRingOfMight1In() : base(AID.NRingOfMight1In) { } }
+    class SRingOfMight1In : RingOfMight1In { public SRingOfMight1In() : base(AID.SRingOfMight1In) { } }
 
     class RingOfMight2In : Components.SelfTargetedAOEs
     {
-        public RingOfMight2In() : base(ActionID.MakeSpell(AID.RingOfMight2In), new AOEShapeDonut(13, 30)) { }
+        public RingOfMight2In(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeDonut(13, 30)) { }
     }
+    class NRingOfMight2In : RingOfMight2In { public NRingOfMight2In() : base(AID.NRingOfMight2In) { } }
+    class SRingOfMight2In : RingOfMight2In { public SRingOfMight2In() : base(AID.SRingOfMight2In) { } }
 
     class RingOfMight3In : Components.SelfTargetedAOEs
     {
-        public RingOfMight3In() : base(ActionID.MakeSpell(AID.RingOfMight3In), new AOEShapeDonut(18, 30)) { }
+        public RingOfMight3In(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeDonut(18, 30)) { }
     }
+    class NRingOfMight3In : RingOfMight3In { public NRingOfMight3In() : base(AID.NRingOfMight3In) { } }
+    class SRingOfMight3In : RingOfMight3In { public SRingOfMight3In() : base(AID.SRingOfMight3In) { } }
 }

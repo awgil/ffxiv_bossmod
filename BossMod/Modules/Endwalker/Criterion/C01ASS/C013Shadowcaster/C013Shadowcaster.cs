@@ -2,22 +2,34 @@
 {
     class FiresteelFracture : Components.Cleave
     {
-        public FiresteelFracture() : base(ActionID.MakeSpell(AID.FiresteelFracture), new AOEShapeCone(40, 30.Degrees())) { }
+        public FiresteelFracture(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCone(40, 30.Degrees())) { }
     }
+    class NFiresteelFracture : FiresteelFracture { public NFiresteelFracture() : base(AID.NFiresteelFracture) { } }
+    class SFiresteelFracture : FiresteelFracture { public SFiresteelFracture() : base(AID.SFiresteelFracture) { } }
 
     // TODO: show AOEs
     class BlazingBenifice : Components.CastCounter
     {
-        public BlazingBenifice() : base(ActionID.MakeSpell(AID.BlazingBenifice)) { }
+        public BlazingBenifice(AID aid) : base(ActionID.MakeSpell(aid)) { }
     }
+    class NBlazingBenifice : BlazingBenifice { public NBlazingBenifice() : base(AID.NBlazingBenifice) { } }
+    class SBlazingBenifice : BlazingBenifice { public SBlazingBenifice() : base(AID.SBlazingBenifice) { } }
 
     class PureFire : Components.LocationTargetedAOEs
     {
-        public PureFire() : base(ActionID.MakeSpell(AID.PureFireAOE), 6) { }
+        public PureFire(AID aid) : base(ActionID.MakeSpell(aid), 6) { }
     }
+    class NPureFire : PureFire { public NPureFire() : base(AID.NPureFireAOE) { } }
+    class SPureFire : PureFire { public SPureFire() : base(AID.SPureFireAOE) { } }
 
-    public class C013Shadowcaster : BossModule
+    public abstract class C013Shadowcaster : BossModule
     {
         public C013Shadowcaster(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(289, -105), 15, 20)) { }
     }
+
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss)]
+    public class C013NShadowcaster : C013Shadowcaster { public C013NShadowcaster(WorldState ws, Actor primary) : base(ws, primary) { } }
+
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss)]
+    public class C013SShadowcaster : C013Shadowcaster { public C013SShadowcaster(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

@@ -2,16 +2,26 @@
 {
     class RushOfMightFront : Components.SelfTargetedAOEs
     {
-        public RushOfMightFront() : base(ActionID.MakeSpell(AID.RushOfMightFront), new AOEShapeCone(60, 90.Degrees())) { }
+        public RushOfMightFront(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCone(60, 90.Degrees())) { }
     }
+    class NRushOfMightFront : RushOfMightFront { public NRushOfMightFront() : base(AID.NRushOfMightFront) { } }
+    class SRushOfMightFront : RushOfMightFront { public SRushOfMightFront() : base(AID.SRushOfMightFront) { } }
 
     class RushOfMightBack : Components.SelfTargetedAOEs
     {
-        public RushOfMightBack() : base(ActionID.MakeSpell(AID.RushOfMightBack), new AOEShapeCone(60, 90.Degrees())) { }
+        public RushOfMightBack(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCone(60, 90.Degrees())) { }
     }
+    class NRushOfMightBack : RushOfMightBack { public NRushOfMightBack() : base(AID.NRushOfMightBack) { } }
+    class SRushOfMightBack : RushOfMightBack { public SRushOfMightBack() : base(AID.SRushOfMightBack) { } }
 
-    public class C012Gladiator : BossModule
+    public abstract class C012Gladiator : BossModule
     {
         public C012Gladiator(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-35, -271), 20)) { }
     }
+
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss)]
+    public class C012NGladiator : C012Gladiator { public C012NGladiator(WorldState ws, Actor primary) : base(ws, primary) { } }
+
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss)]
+    public class C012SGladiator : C012Gladiator { public C012SGladiator(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

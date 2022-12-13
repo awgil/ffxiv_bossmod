@@ -60,8 +60,10 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
         {
             switch ((AID)spell.Action.ID)
             {
-                case AID.FiresteelStrikeAOE1:
-                case AID.FiresteelStrikeAOE2:
+                case AID.NFiresteelStrikeAOE1:
+                case AID.NFiresteelStrikeAOE2:
+                case AID.SFiresteelStrikeAOE1:
+                case AID.SFiresteelStrikeAOE2:
                     if (spell.Targets.Count > 0)
                     {
                         var slot = module.Raid.FindSlot(spell.Targets[0].ID);
@@ -77,8 +79,10 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
                         SpreadMask.Reset();
                     }
                     break;
-                case AID.BlessedBeaconAOE1:
-                case AID.BlessedBeaconAOE2:
+                case AID.NBlessedBeaconAOE1:
+                case AID.NBlessedBeaconAOE2:
+                case AID.SBlessedBeaconAOE1:
+                case AID.SBlessedBeaconAOE2:
                     if (spell.Targets.Count > 0)
                         _interceptMask.Clear(module.Raid.FindSlot(spell.Targets[0].ID));
                     ++NumCleaves;

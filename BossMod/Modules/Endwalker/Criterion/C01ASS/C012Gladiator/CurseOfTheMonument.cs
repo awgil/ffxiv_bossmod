@@ -5,8 +5,10 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
 {
     class SunderedRemains : Components.SelfTargetedAOEs
     {
-        public SunderedRemains() : base(ActionID.MakeSpell(AID.SunderedRemains), new AOEShapeCircle(10)) { } // TODO: max-casts...
+        public SunderedRemains(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCircle(10)) { } // TODO: max-casts...
     }
+    class NSunderedRemains : SunderedRemains { public NSunderedRemains() : base(AID.NSunderedRemains) { } }
+    class SSunderedRemains : SunderedRemains { public SSunderedRemains() : base(AID.SSunderedRemains) { } }
 
     class ScreamOfTheFallen : Components.StackSpread
     {
@@ -50,13 +52,13 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.Explosion)
+            if ((AID)spell.Action.ID is AID.NExplosion or AID.SExplosion)
                 _towers.Add(caster);
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.Explosion)
+            if ((AID)spell.Action.ID is AID.NExplosion or AID.SExplosion)
             {
                 switch (++NumCasts)
                 {
