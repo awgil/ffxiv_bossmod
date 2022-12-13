@@ -18,7 +18,7 @@
         {
             if ((AID)spell.Action.ID == AID.SearingWind)
             {
-                var (targetSlot, target) = module.Raid.WithSlot().IncludedInMask(SpreadMask).Closest(spell.TargetXZ);
+                var (targetSlot, target) = module.Raid.WithSlot(true).IncludedInMask(SpreadMask).Closest(spell.TargetXZ);
                 if (target != null)
                 {
                     var status = target.FindStatus(SID.SearingWind);

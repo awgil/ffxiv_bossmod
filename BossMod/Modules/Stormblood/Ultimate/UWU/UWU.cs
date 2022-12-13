@@ -85,6 +85,26 @@ namespace BossMod.Stormblood.Ultimate.UWU
         public P4HomingLasers() : base(ActionID.MakeSpell(AID.HomingLasers), 4) { }
     }
 
+    class P5MistralSongCone : Components.SelfTargetedAOEs
+    {
+        public P5MistralSongCone() : base(ActionID.MakeSpell(AID.MistralSongCone), new AOEShapeCone(21.7f, 45.Degrees())) { } // TODO: verify angle
+    }
+
+    class P5AetherochemicalLaserCenter : Components.SelfTargetedAOEs
+    {
+        public P5AetherochemicalLaserCenter() : base(ActionID.MakeSpell(AID.AetherochemicalLaserCenter), new AOEShapeRect(46, 4, 6)) { }
+    }
+
+    class P5AetherochemicalLaserRight : Components.SelfTargetedAOEs
+    {
+        public P5AetherochemicalLaserRight() : base(ActionID.MakeSpell(AID.AetherochemicalLaserRight), new AOEShapeRect(46, 4, 6)) { }
+    }
+
+    class P5AetherochemicalLaserLeft : Components.SelfTargetedAOEs
+    {
+        public P5AetherochemicalLaserLeft() : base(ActionID.MakeSpell(AID.AetherochemicalLaserLeft), new AOEShapeRect(46, 4, 6)) { }
+    }
+
 
     [ModuleInfo(PrimaryActorOID = (uint)OID.Garuda)]
     public class UWU : BossModule
