@@ -2,72 +2,57 @@
 {
     public enum OID : uint
     {
-        Boss = 0x35C1,
+        Boss = 0x35C1, // R5.040, x1
     };
 
     public enum AID : uint
     {
-        Divebomb = 27373,
-        DivebombDisappear = 27374,
-        DivebombReappear = 27375,
-        LiquidHell = 27376,
-        Plummet = 27378,
-        DeathSentence = 27379,
-        CycloneWing = 27380,
-        AutoAttack = 27381,
-    }
+        Divebomb = 27373, // Boss->players, 5.0s cast, range 30 width 11 rect
+        DivebombDisappear = 27374, // Boss->location, no cast, single-target
+        DivebombReappear = 27375, // Boss->self, 1.0s cast, single-target
+        LiquidHell = 27376, // Boss->location, 3.0s cast, range 6 circle
+        Plummet = 27378, // Boss->self, 4.0s cast, range 8 90-degree cone
+        DeathSentence = 27379, // Boss->player, 5.0s cast, single-target
+        CycloneWing = 27380, // Boss->self, 5.0s cast, range 35 circle
+        AutoAttack = 27381, // Boss->player, no cast, single-target
+    };
 
-    public class Mechanics : BossComponent
+    // TODO: ok, this needs investigation...
+    class Divebomb : Components.SelfTargetedLegacyRotationAOEs
     {
-        private AOEShapeCone _plummet = new(8, 45.Degrees());
-        private AOEShapeRect _divebomb = new(30, 5.5f);
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (ActiveAOE(module)?.Check(actor.Position, module.PrimaryActor) ?? false)
-                hints.Add("GTFO from aoe!");
-        }
-
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
-                return;
-
-            string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
-            {
-                AID.CycloneWing => "Raidwide",
-                AID.Plummet or AID.Divebomb or AID.LiquidHell => "Avoidable AOE",
-                AID.DeathSentence => "Tankbuster",
-                _ => "",
-            };
-            if (hint.Length > 0)
-                hints.Add(hint);
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            ActiveAOE(module)?.Draw(arena, module.PrimaryActor);
-        }
-
-        private AOEShape? ActiveAOE(BossModule module)
-        {
-            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
-                return null;
-
-            return (AID)module.PrimaryActor.CastInfo.Action.ID switch
-            {
-                AID.Plummet => _plummet,
-                AID.Divebomb => _divebomb,
-                _ => null
-            };
-        }
+        public Divebomb() : base(ActionID.MakeSpell(AID.Divebomb), new AOEShapeRect(30, 5.5f)) { }
     }
 
-    public class FanAilStates : StateMachineBuilder
+    class LiquidHell : Components.LocationTargetedAOEs
+    {
+        public LiquidHell() : base(ActionID.MakeSpell(AID.LiquidHell), 6) { }
+    }
+
+    class Plummet : Components.SelfTargetedAOEs
+    {
+        public Plummet() : base(ActionID.MakeSpell(AID.Plummet), new AOEShapeCone(8, 45.Degrees())) { }
+    }
+
+    class DeathSentence : Components.SingleTargetCast
+    {
+        public DeathSentence() : base(ActionID.MakeSpell(AID.DeathSentence)) { }
+    }
+
+    class CycloneWing : Components.RaidwideCast
+    {
+        public CycloneWing() : base(ActionID.MakeSpell(AID.CycloneWing)) { }
+    }
+
+    class FanAilStates : StateMachineBuilder
     {
         public FanAilStates(BossModule module) : base(module)
         {
-            TrivialPhase().ActivateOnEnter<Mechanics>();
+            TrivialPhase()
+                .ActivateOnEnter<Divebomb>()
+                .ActivateOnEnter<LiquidHell>()
+                .ActivateOnEnter<Plummet>()
+                .ActivateOnEnter<DeathSentence>()
+                .ActivateOnEnter<CycloneWing>();
         }
     }
 

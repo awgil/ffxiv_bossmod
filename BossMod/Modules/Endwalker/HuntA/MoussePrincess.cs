@@ -1,20 +1,24 @@
-﻿namespace BossMod.Endwalker.HuntA.MoussePrincess
+﻿using System;
+using System.Collections.Generic;
+
+namespace BossMod.Endwalker.HuntA.MoussePrincess
 {
     public enum OID : uint
     {
-        Boss = 0x360B,
+        Boss = 0x360B, // R6.000, x1
     };
 
     public enum AID : uint
     {
-        AutoAttack = 872,
-        PrincessThrenodyPrepare = 27318,
-        PrincessThrenodyResolve = 27319,
-        WhimsyAlaMode = 27320,
-        AmorphicFlail = 27321,
-        PrincessCacophony = 27322,
-        Banish = 27323,
-    }
+        AutoAttack = 872, // Boss->player, no cast, single-target
+        PrincessThrenodyPrepare = 27318, // Boss->self, 4.0s cast, range 40 ?-degree cone
+        PrincessThrenodyResolve = 27319, // Boss->self, 1.0s cast, range 40 120-degree cone
+        WhimsyAlaMode = 27320, // Boss->self, 4.0s cast, single-target
+        AmorphicFlail = 27321, // Boss->self, 5.0s cast, range 9 circle
+        PrincessCacophony = 27322, // Boss->location, 5.0s cast, range 12 circle
+        Banish = 27323, // Boss->player, 5.0s cast, single-target
+        RemoveWhimsy = 27634, // Boss->self, no cast, single-target, removes whimsy debuffs
+    };
 
     public enum SID : uint
     {
@@ -24,72 +28,27 @@
         ForwardWhimsy = 2958,
     }
 
-    public class Mechanics : BossComponent
+    class PrincessThrenody : Components.GenericAOEs
     {
-        private Angle? _threnodyDirection = null;
-        private AOEShapeCone _princessThrenody = new(40, 60.Degrees());
-        private AOEShapeCircle _amorphicFlail = new(9);
-        private AOEShapeCircle _princessCacophony = new(12);
+        private Angle? _direction = null;
+        private AOEShapeCone _shape = new(40, 60.Degrees());
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            bool inAOE = _threnodyDirection != null && _princessThrenody.Check(actor.Position, module.PrimaryActor.Position, _threnodyDirection.Value);
-            if (!inAOE)
-            {
-                var (aoe, pos) = ActiveAOE(module, actor);
-                inAOE = aoe?.Check(actor.Position, pos, module.PrimaryActor.Rotation) ?? false;
-            }
-            if (inAOE)
-                hints.Add("GTFO from aoe!");
-        }
-
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
-                return;
-
-            string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
-            {
-                AID.WhimsyAlaMode => "Select direction",
-                AID.PrincessThrenodyPrepare or AID.PrincessThrenodyResolve or AID.AmorphicFlail or AID.PrincessCacophony => "Avoidable AOE",
-                AID.Banish => "Tankbuster",
-                _ => "",
-            };
-            if (hint.Length > 0)
-                hints.Add(hint);
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            if (_threnodyDirection != null)
-                _princessThrenody.Draw(arena, module.PrimaryActor.Position, _threnodyDirection.Value);
-            var (aoe, pos) = ActiveAOE(module, pc);
-            aoe?.Draw(arena, pos, module.PrimaryActor.Rotation);
+            if (_direction != null)
+                yield return (_shape, module.PrimaryActor.Position, _direction.Value, new());
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (caster == module.PrimaryActor && (AID)spell.Action.ID == AID.PrincessThrenodyPrepare)
-                _threnodyDirection = module.PrimaryActor.Rotation + ThrenodyDirection(module);
+                _direction = spell.Rotation + ThrenodyDirection(module);
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (caster == module.PrimaryActor && (AID)spell.Action.ID == AID.PrincessThrenodyResolve)
-                _threnodyDirection = null;
-        }
-
-        private (AOEShape?, WPos) ActiveAOE(BossModule module, Actor pc)
-        {
-            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
-                return (null, new());
-
-            return (AID)module.PrimaryActor.CastInfo.Action.ID switch
-            {
-                AID.AmorphicFlail => (_amorphicFlail, module.PrimaryActor.Position),
-                AID.PrincessCacophony => (_princessCacophony, module.PrimaryActor.CastInfo.LocXZ),
-                _ => (null, new())
-            };
+                _direction = null;
         }
 
         private Angle ThrenodyDirection(BossModule module)
@@ -108,11 +67,36 @@
         }
     }
 
-    public class MoussePrincessStates : StateMachineBuilder
+    class WhimsyAlaMode : Components.CastHint
+    {
+        public WhimsyAlaMode() : base(ActionID.MakeSpell(AID.WhimsyAlaMode), "Select direction") { }
+    }
+
+    class AmorphicFlail : Components.SelfTargetedAOEs
+    {
+        public AmorphicFlail() : base(ActionID.MakeSpell(AID.AmorphicFlail), new AOEShapeCircle(9)) { }
+    }
+
+    class PrincessCacophony : Components.LocationTargetedAOEs
+    {
+        public PrincessCacophony() : base(ActionID.MakeSpell(AID.PrincessCacophony), 12) { }
+    }
+
+    class Banish : Components.SingleTargetCast
+    {
+        public Banish() : base(ActionID.MakeSpell(AID.Banish)) { }
+    }
+
+    class MoussePrincessStates : StateMachineBuilder
     {
         public MoussePrincessStates(BossModule module) : base(module)
         {
-            TrivialPhase().ActivateOnEnter<Mechanics>();
+            TrivialPhase()
+                .ActivateOnEnter<PrincessThrenody>()
+                .ActivateOnEnter<WhimsyAlaMode>()
+                .ActivateOnEnter<AmorphicFlail>()
+                .ActivateOnEnter<PrincessCacophony>()
+                .ActivateOnEnter<Banish>();
         }
     }
 

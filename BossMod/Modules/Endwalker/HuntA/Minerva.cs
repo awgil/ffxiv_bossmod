@@ -1,37 +1,38 @@
-﻿namespace BossMod.Endwalker.HuntA.Minerva
+﻿using System;
+using System.Collections.Generic;
+
+namespace BossMod.Endwalker.HuntA.Minerva
 {
     public enum OID : uint
     {
-        Boss = 0x3609,
+        Boss = 0x3609, // R6.000, x1
     };
 
     public enum AID : uint
     {
         AutoAttack = 872,
-        AntiPersonnelBuild = 27297,
-        RingBuild = 27298,
-        BallisticMissileCircle = 27299,
-        BallisticMissileDonut = 27300,
-        Hyperflame = 27301, // TODO: never seen one...
+        AntiPersonnelBuild = 27297, // Boss->self, 5.0s cast, single-target, visual
+        RingBuild = 27298, // Boss->self, 5.0s cast, single-target, visual
+        BallisticMissileCircle = 27299, // Boss->location, 3.5s cast, range 6 circle
+        BallisticMissileDonut = 27300, // Boss->location, 3.5s cast, range 6-20 donut
+        Hyperflame = 27301, // Boss->self, 5.0s cast, range 60 60-degree cone
         SonicAmplifier = 27302, // TODO: never seen one...
-        HammerKnuckles = 27304, // TODO: never seen one...
-        BallisticMissileMarkTarget = 27377,
-        BallisticMissileCircleWarning = 27517,
-        BallisticMissileDonutWarning = 27518,
+        HammerKnuckles = 27304, // Boss->player, 5.0s cast, single-target
+        BallisticMissileMarkTarget = 27377, // Boss->player, no cast, single-target
+        BallisticMissileCircleWarning = 27517, // Boss->player, 6.5s cast, single-target
+        BallisticMissileDonutWarning = 27518, // Boss->player, 6.5s cast, single-target
     }
 
-    public class Mechanics : BossComponent
+    class BallisticMissile : Components.GenericAOEs
     {
-        private AOEShapeCircle _ballisticMissileCircle = new(6);
-        private AOEShapeDonut _ballisticMissileDonut = new(6, 20);
-        private AOEShape? _activeBallisticMissile;
-        private Actor? _activeBallisticMissileTarget;
-        private WPos _activeBallisticMissileLocation = new();
+        private AOEShape? _activeMissile;
+        private Actor? _activeTarget;
+        private WPos _activeLocation = new();
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (_activeBallisticMissile?.Check(actor.Position, _activeBallisticMissileTarget?.Position ?? _activeBallisticMissileLocation, 0.Degrees()) ?? false)
-                hints.Add("GTFO from aoe!");
+            if (_activeMissile != null)
+                yield return (_activeMissile, _activeTarget?.Position ?? _activeLocation, new(), new());
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
@@ -43,18 +44,10 @@
             {
                 AID.AntiPersonnelBuild or AID.RingBuild => "Select next AOE type",
                 AID.BallisticMissileCircleWarning or AID.BallisticMissileDonutWarning => "Select next AOE target",
-                AID.BallisticMissileCircle or AID.BallisticMissileDonut or AID.Hyperflame => "Avoidable AOE",
-                AID.HammerKnuckles => "Tankbuster",
-                AID.SonicAmplifier => "Raidwide",
                 _ => "",
             };
             if (hint.Length > 0)
                 hints.Add(hint);
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            _activeBallisticMissile?.Draw(arena, _activeBallisticMissileTarget?.Position ?? _activeBallisticMissileLocation, 0.Degrees());
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -64,16 +57,16 @@
             switch ((AID)spell.Action.ID)
             {
                 case AID.BallisticMissileCircleWarning:
-                    _activeBallisticMissile = _ballisticMissileCircle;
-                    _activeBallisticMissileTarget = module.WorldState.Actors.Find(spell.TargetID);
+                    _activeMissile = new AOEShapeCircle(6);
+                    _activeTarget = module.WorldState.Actors.Find(spell.TargetID);
                     break;
                 case AID.BallisticMissileDonutWarning:
-                    _activeBallisticMissile = _ballisticMissileDonut;
-                    _activeBallisticMissileTarget = module.WorldState.Actors.Find(spell.TargetID);
+                    _activeMissile = new AOEShapeDonut(6, 20);
+                    _activeTarget = module.WorldState.Actors.Find(spell.TargetID);
                     break;
                 case AID.BallisticMissileCircle:
                 case AID.BallisticMissileDonut:
-                    _activeBallisticMissileLocation = spell.LocXZ;
+                    _activeLocation = spell.LocXZ;
                     break;
             }
         }
@@ -86,22 +79,41 @@
             {
                 case AID.BallisticMissileCircleWarning:
                 case AID.BallisticMissileDonutWarning:
-                    _activeBallisticMissileLocation = _activeBallisticMissileTarget?.Position ?? new();
-                    _activeBallisticMissileTarget = null;
+                    _activeLocation = _activeTarget?.Position ?? new();
+                    _activeTarget = null;
                     break;
                 case AID.BallisticMissileCircle:
                 case AID.BallisticMissileDonut:
-                    _activeBallisticMissile = null;
+                    _activeMissile = null;
                     break;
             }
         }
     }
 
-    public class MinervaStates : StateMachineBuilder
+    class Hyperflame : Components.SelfTargetedAOEs
+    {
+        public Hyperflame() : base(ActionID.MakeSpell(AID.Hyperflame), new AOEShapeCone(60, 30.Degrees())) { }
+    }
+
+    class SonicAmplifier : Components.RaidwideCast
+    {
+        public SonicAmplifier() : base(ActionID.MakeSpell(AID.SonicAmplifier)) { }
+    }
+
+    class HammerKnuckles : Components.SingleTargetCast
+    {
+        public HammerKnuckles() : base(ActionID.MakeSpell(AID.HammerKnuckles)) { }
+    }
+
+    class MinervaStates : StateMachineBuilder
     {
         public MinervaStates(BossModule module) : base(module)
         {
-            TrivialPhase().ActivateOnEnter<Mechanics>();
+            TrivialPhase()
+                .ActivateOnEnter<BallisticMissile>()
+                .ActivateOnEnter<Hyperflame>()
+                .ActivateOnEnter<SonicAmplifier>()
+                .ActivateOnEnter<HammerKnuckles>();
         }
     }
 

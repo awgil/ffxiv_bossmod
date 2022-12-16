@@ -1,104 +1,76 @@
-﻿namespace BossMod.Endwalker.HuntA.Storsie
+﻿using System;
+using System.Collections.Generic;
+
+namespace BossMod.Endwalker.HuntA.Storsie
 {
     public enum OID : uint
     {
-        Boss = 0x35DE,
+        Boss = 0x35DE, // R5.290, x1
     };
 
     public enum AID : uint
     {
-        AutoAttack = 872,
-        AspectEarth = 27354,
-        AspectWind = 27355,
-        AspectLightning = 27356,
-        Whorlstorm = 27358,
-        Defibrillate = 27359,
-        EarthenAugur = 27360,
-        FangsEnd = 27361,
-        AspectEarthApply = 27870,
-        AspectWindApply = 27871,
-        AspectLightningApply = 27872,
+        AutoAttack = 872, // Boss->player, no cast, single-target
+        AspectEarth = 27354, // Boss->self, 3.0s cast, single-target
+        AspectWind = 27355, // Boss->self, 3.0s cast, single-target
+        AspectLightning = 27356, // Boss->self, 3.0s cast, single-target
+        Whorlstorm = 27358, // Boss->self, 1.0s cast, range 10-40 donut
+        Defibrillate = 27359, // Boss->self, 1.0s cast, range 22 circle
+        EarthenAugur = 27360, // Boss->self, 1.0s cast, range 30 270-degree cone
+        FangsEnd = 27361, // Boss->player, 5.0s cast, single-target
+        AspectEarthApply = 27870, // Boss->self, no cast, single-target
+        AspectWindApply = 27871, // Boss->self, no cast, single-target
+        AspectLightningApply = 27872, // Boss->self, no cast, single-target
     }
 
-    public class Mechanics : BossComponent
+    class Aspect : Components.GenericAOEs
     {
-        private enum AspectType { None, Earth, Wind, Lightning }
+        private AOEShape? _imminentAOE;
+        private DateTime _activation;
 
-        private AspectType _imminentAspect;
-        private AOEShapeCone _earthenAugur = new(30, 135.Degrees());
-        private AOEShapeDonut _whorlstorm = new(10, 40);
-        private AOEShapeCircle _defibrillate = new(22);
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (ActiveAOE()?.Check(actor.Position, module.PrimaryActor) ?? false)
-                hints.Add("GTFO from aoe!");
-        }
-
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
-                return;
-
-            string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
-            {
-                AID.FangsEnd => "Tankbuster",
-                AID.AspectEarth or AID.AspectWind or AID.AspectLightning => "Select AOE shape",
-                AID.EarthenAugur or AID.Whorlstorm or AID.Defibrillate => "Avoidable AOE",
-                _ => "",
-            };
-            if (hint.Length > 0)
-                hints.Add(hint);
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            ActiveAOE()?.Draw(arena, module.PrimaryActor);
+            if (_imminentAOE != null)
+                yield return (_imminentAOE, module.PrimaryActor.Position, module.PrimaryActor.CastInfo?.Rotation ?? module.PrimaryActor.Rotation, _activation);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (caster != module.PrimaryActor)
                 return;
-            switch ((AID)spell.Action.ID)
+            AOEShape? shape = (AID)spell.Action.ID switch
             {
-                case AID.AspectEarth: _imminentAspect = AspectType.Earth; break;
-                case AID.AspectWind: _imminentAspect = AspectType.Wind; break;
-                case AID.AspectLightning: _imminentAspect = AspectType.Lightning; break;
+                AID.AspectEarth => new AOEShapeCone(30, 135.Degrees()),
+                AID.AspectWind => new AOEShapeDonut(10, 40),
+                AID.AspectLightning => new AOEShapeCircle(22),
+                _ => null
+            };
+            if (shape != null)
+            {
+                _imminentAOE = shape;
+                _activation = module.WorldState.CurrentTime.AddSeconds(10.5f);
             }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (caster != module.PrimaryActor)
-                return;
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.Whorlstorm:
-                case AID.Defibrillate:
-                case AID.EarthenAugur:
-                    _imminentAspect = AspectType.None;
-                    break;
-            }
-        }
-
-        private AOEShape? ActiveAOE()
-        {
-            return _imminentAspect switch
-            {
-                AspectType.Earth => _earthenAugur,
-                AspectType.Wind => _whorlstorm,
-                AspectType.Lightning => _defibrillate,
-                _ => null
-            };
+            if (caster == module.PrimaryActor && (AID)spell.Action.ID is AID.Whorlstorm or AID.Defibrillate or AID.EarthenAugur)
+                _imminentAOE = null;
         }
     }
 
-    public class StorsieStates : StateMachineBuilder
+    class FangsEnd : Components.SingleTargetCast
+    {
+        public FangsEnd() : base(ActionID.MakeSpell(AID.FangsEnd)) { }
+    }
+
+    class StorsieStates : StateMachineBuilder
     {
         public StorsieStates(BossModule module) : base(module)
         {
-            TrivialPhase().ActivateOnEnter<Mechanics>();
+            TrivialPhase()
+                .ActivateOnEnter<Aspect>()
+                .ActivateOnEnter<FangsEnd>();
         }
     }
 

@@ -1,95 +1,77 @@
-﻿namespace BossMod.Endwalker.HuntA.Aegeiros
+﻿using System;
+using System.Collections.Generic;
+
+namespace BossMod.Endwalker.HuntA.Aegeiros
 {
     public enum OID : uint
     {
-        Boss = 0x3671,
+        Boss = 0x3671, // R7.500, x1
     };
 
     public enum AID : uint
     {
-        AutoAttack = 872,
-        Leafstorm = 27708,
-        Rimestorm = 27709,
-        Snowball = 27710,
-        Canopy = 27711,
-        BackhandBlow = 27712,
-    }
+        AutoAttack = 872, // Boss->player, no cast, single-target
+        Leafstorm = 27708, // Boss->self, 6.0s cast, range 10 circle
+        Rimestorm = 27709, // Boss->self, 1.0s cast, range 40 180-degree cone
+        Snowball = 27710, // Boss->location, 3.0s cast, range 8 circle
+        Canopy = 27711, // Boss->players, no cast, range 12 ?-degree cone cleave
+        BackhandBlow = 27712, // Boss->self, 3.0s cast, range 12 120-degree cone
+    };
 
-    public class Mechanics : BossComponent
+    class LeafstormRimestorm : Components.GenericAOEs
     {
-        private bool _showRimestorm;
-        private AOEShapeCircle _leafstorm = new(10);
-        private AOEShapeCone _rimestorm = new(40, 90.Degrees());
-        private AOEShapeCircle _snowball = new(8);
-        private AOEShapeCone _backhandBlow = new(12, 60.Degrees(), 180.Degrees());
+        private DateTime _rimestormExpected;
+        private static AOEShapeCircle _leafstorm = new(10);
+        private static AOEShapeCone _rimestorm = new(40, 90.Degrees());
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            bool inAOE = _showRimestorm && _rimestorm.Check(actor.Position, module.PrimaryActor);
-            if (!inAOE)
-            {
-                var (aoe, pos) = ActiveAOE(module, actor);
-                inAOE = aoe?.Check(actor.Position, pos, module.PrimaryActor.Rotation) ?? false;
-            }
-            if (inAOE)
-                hints.Add("GTFO from aoe!");
-        }
+            if (module.PrimaryActor.CastInfo?.IsSpell(AID.Leafstorm) ?? false)
+                yield return (_leafstorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.FinishAt);
 
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
-                return;
-
-            string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
-            {
-                AID.Leafstorm or AID.Rimestorm or AID.Snowball or AID.BackhandBlow => "Avoidable AOE",
-                _ => "",
-            };
-            if (hint.Length > 0)
-                hints.Add(hint);
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            if (_showRimestorm)
-                _rimestorm.Draw(arena, module.PrimaryActor);
-
-            var (aoe, pos) = ActiveAOE(module, pc);
-            aoe?.Draw(arena, pos, module.PrimaryActor.Rotation);
+            if (module.PrimaryActor.CastInfo?.IsSpell(AID.Rimestorm) ?? false)
+                yield return (_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.FinishAt);
+            else if (_rimestormExpected != new DateTime())
+                yield return (_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo?.Rotation ?? module.PrimaryActor.Rotation, _rimestormExpected);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (caster == module.PrimaryActor && (AID)spell.Action.ID == AID.Leafstorm)
-                _showRimestorm = true;
+                _rimestormExpected = module.WorldState.CurrentTime.AddSeconds(9.6f);
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (caster == module.PrimaryActor && (AID)spell.Action.ID == AID.Rimestorm)
-                _showRimestorm = false;
-        }
-
-        private (AOEShape?, WPos) ActiveAOE(BossModule module, Actor pc)
-        {
-            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
-                return (null, new());
-
-            return (AID)module.PrimaryActor.CastInfo.Action.ID switch
-            {
-                AID.Leafstorm => (_leafstorm, module.PrimaryActor.Position),
-                AID.Snowball => (_snowball, module.PrimaryActor.CastInfo.LocXZ),
-                AID.BackhandBlow => (_backhandBlow, module.PrimaryActor.Position),
-                _ => (null, new())
-            };
+                _rimestormExpected = new();
         }
     }
 
-    public class AegeirosStates : StateMachineBuilder
+    class Snowball : Components.LocationTargetedAOEs
+    {
+        public Snowball() : base(ActionID.MakeSpell(AID.Snowball), 8) { }
+    }
+
+    class Canopy : Components.Cleave
+    {
+        public Canopy() : base(ActionID.MakeSpell(AID.Canopy), new AOEShapeCone(12, 60.Degrees()), activeWhileCasting: false) { } // TODO: verify angle
+    }
+
+    class BackhandBlow : Components.SelfTargetedAOEs
+    {
+        public BackhandBlow() : base(ActionID.MakeSpell(AID.BackhandBlow), new AOEShapeCone(12, 60.Degrees())) { }
+    }
+
+    class AegeirosStates : StateMachineBuilder
     {
         public AegeirosStates(BossModule module) : base(module)
         {
-            TrivialPhase().ActivateOnEnter<Mechanics>();
+            TrivialPhase()
+                .ActivateOnEnter<LeafstormRimestorm>()
+                .ActivateOnEnter<Snowball>()
+                .ActivateOnEnter<Canopy>()
+                .ActivateOnEnter<BackhandBlow>();
         }
     }
 

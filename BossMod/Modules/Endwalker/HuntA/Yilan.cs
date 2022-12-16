@@ -1,19 +1,22 @@
-﻿namespace BossMod.Endwalker.HuntA.Yilan
+﻿using System;
+using System.Collections.Generic;
+
+namespace BossMod.Endwalker.HuntA.Yilan
 {
     public enum OID : uint
     {
-        Boss = 0x35BF,
+        Boss = 0x35BF, // R5.400, x1
     };
 
     public enum AID : uint
     {
-        AutoAttack = 872,
-        Soundstorm = 27230,
-        MiniLight = 27231,
-        Devour = 27232, // cone that kills seduced and deals very small damage otherwise, so we ignore...
-        BogBomb = 27233,
-        BrackishRain = 27234,
-    }
+        AutoAttack = 872, // Boss->player, no cast, single-target
+        Soundstorm = 27230, // Boss->self, 5.0s cast, range 30 circle
+        MiniLight = 27231, // Boss->self, 6.0s cast, range 18 circle
+        Devour = 27232, // Boss->self, 1.0s cast, range 10 ?-degree cone, kills seduced and deals very small damage otherwise
+        BogBomb = 27233, // Boss->location, 4.0s cast, range 6 circle
+        BrackishRain = 27234, // Boss->self, 4.0s cast, range 10 90-degree cone
+    };
 
     public enum SID : uint
     {
@@ -24,19 +27,15 @@
         RightFace = 1961,
     }
 
-    public class Mechanics : BossComponent
+    class SoundstormMiniLightDevour : Components.GenericAOEs
     {
-        private AOEShapeCircle _miniLight = new(18);
-        private AOEShapeCircle _bogBomb = new(6);
-        private AOEShapeCone _brackishRain = new(10, 45.Degrees());
-
+        private static AOEShapeCircle _miniLight = new(18);
         private static float _marchDistance = 12;
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            var (aoe, pos) = ActiveAOE(module, actor);
-            if (aoe?.Check(actor.Position, pos, module.PrimaryActor.Rotation) ?? false)
-                hints.Add("GTFO from aoe!");
+            if ((module.PrimaryActor.CastInfo?.IsSpell(AID.MiniLight) ?? false) || MarchDirection(actor) != SID.None)
+                yield return (_miniLight, module.PrimaryActor.Position, new(), new());
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
@@ -47,18 +46,11 @@
             string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
                 AID.Soundstorm => "Apply march debuffs",
-                AID.MiniLight or AID.BogBomb or AID.BrackishRain => "Avoidable AOE",
                 AID.Devour => "Harmless unless failed",
                 _ => "",
             };
             if (hint.Length > 0)
                 hints.Add(hint);
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            var (aoe, pos) = ActiveAOE(module, pc);
-            aoe?.Draw(arena, pos, module.PrimaryActor.Rotation);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -79,23 +71,6 @@
             }
         }
 
-        private (AOEShape?, WPos) ActiveAOE(BossModule module, Actor pc)
-        {
-            if (MarchDirection(pc) != SID.None)
-                return (_miniLight, module.PrimaryActor.Position);
-
-            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
-                return (null, new());
-
-            return (AID)module.PrimaryActor.CastInfo.Action.ID switch
-            {
-                AID.MiniLight => (_miniLight, module.PrimaryActor.Position),
-                AID.BogBomb => (_bogBomb, module.PrimaryActor.CastInfo.LocXZ),
-                AID.BrackishRain => (_brackishRain, module.PrimaryActor.Position),
-                _ => (null, new())
-            };
-        }
-
         private SID MarchDirection(Actor actor)
         {
             foreach (var s in actor.Statuses)
@@ -105,11 +80,24 @@
         }
     }
 
-    public class YilanStates : StateMachineBuilder
+    class BogBomb : Components.LocationTargetedAOEs
+    {
+        public BogBomb() : base(ActionID.MakeSpell(AID.BogBomb), 6) { }
+    }
+
+    class BrackishRain : Components.SelfTargetedAOEs
+    {
+        public BrackishRain() : base(ActionID.MakeSpell(AID.BrackishRain), new AOEShapeCone(10, 45.Degrees())) { }
+    }
+
+    class YilanStates : StateMachineBuilder
     {
         public YilanStates(BossModule module) : base(module)
         {
-            TrivialPhase().ActivateOnEnter<Mechanics>();
+            TrivialPhase()
+                .ActivateOnEnter<SoundstormMiniLightDevour>()
+                .ActivateOnEnter<BogBomb>()
+                .ActivateOnEnter<BrackishRain>();
         }
     }
 

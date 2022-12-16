@@ -9,6 +9,8 @@ namespace BossMod.Components
     // generic gaze component, allows customized 'eye' position
     public abstract class GenericGaze : CastCounter
     {
+        public bool Inverted; // if inverted, player should face eyes instead of averting
+
         private static float _eyeOuterH = 10;
         private static float _eyeOuterV = 6;
         private static float _eyeInnerR = 4;
@@ -18,18 +20,29 @@ namespace BossMod.Components
 
         public abstract IEnumerable<(WPos pos, DateTime activation)> EyePositions(BossModule module);
 
-        public GenericGaze(ActionID aid = new()) : base(aid) { }
+        public GenericGaze(ActionID aid = new(), bool inverted = false) : base(aid)
+        {
+            Inverted = inverted;
+        }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (EyePositions(module).Any(eye => HitByEye(actor, eye.pos)))
-                hints.Add("Turn away from gaze!");
+            if (EyePositions(module).Any(eye => HitByEye(actor, eye.pos) != Inverted))
+                hints.Add(Inverted ? "Face the eye!" : "Turn away from gaze!");
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            foreach (var eye in EyePositions(module))
-                hints.ForbiddenDirections.Add((Angle.FromDirection(eye.pos - actor.Position), 45.Degrees(), eye.activation));
+            if (Inverted)
+            {
+                foreach (var eye in EyePositions(module))
+                    hints.ForbiddenDirections.Add((Angle.FromDirection(actor.Position - eye.pos), 135.Degrees(), eye.activation));
+            }
+            else
+            {
+                foreach (var eye in EyePositions(module))
+                    hints.ForbiddenDirections.Add((Angle.FromDirection(eye.pos - actor.Position), 45.Degrees(), eye.activation));
+            }
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -40,7 +53,7 @@ namespace BossMod.Components
                 var dl = ImGui.GetWindowDrawList();
                 dl.PathArcTo(eyeCenter - new Vector2(0, _eyeOffsetV), _eyeOuterR, MathF.PI / 2 + _eyeHalfAngle, MathF.PI / 2 - _eyeHalfAngle);
                 dl.PathArcTo(eyeCenter + new Vector2(0, _eyeOffsetV), _eyeOuterR, -MathF.PI / 2 + _eyeHalfAngle, -MathF.PI / 2 - _eyeHalfAngle);
-                dl.PathFillConvex(HitByEye(pc, eye.pos) ? ArenaColor.Enemy : ArenaColor.PC);
+                dl.PathFillConvex(HitByEye(pc, eye.pos) != Inverted ? ArenaColor.Enemy : ArenaColor.PC);
                 dl.AddCircleFilled(eyeCenter, _eyeInnerR, ArenaColor.Border);
             }
         }
@@ -69,7 +82,7 @@ namespace BossMod.Components
     {
         private List<Actor> _casters = new();
 
-        public CastGaze(ActionID aid) : base(aid) { }
+        public CastGaze(ActionID aid, bool inverted = false) : base(aid, inverted) { }
 
         public override IEnumerable<(WPos pos, DateTime activation)> EyePositions(BossModule module) => _casters.Select(c => (c.Position, c.CastInfo!.FinishAt));
 

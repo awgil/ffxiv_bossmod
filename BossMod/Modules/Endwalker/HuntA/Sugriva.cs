@@ -1,138 +1,138 @@
-﻿namespace BossMod.Endwalker.HuntA.Sugriva
+﻿using System;
+using System.Collections.Generic;
+
+namespace BossMod.Endwalker.HuntA.Sugriva
 {
     public enum OID : uint
     {
-        Boss = 0x35FC,
+        Boss = 0x35FC, // R6.000, x1
     };
 
     public enum AID : uint
     {
-        AutoAttack = 872,
-        Twister = 27219,
-        BarrelingSmash = 27220, // instant cast, charges to random player - starts casting Scythe Tail immediately afterwards
-        Spark = 27221,
-        ScytheTail = 27222,
-        Butcher = 27223,
-        Rip = 27224,
-        RockThrowFirst = 27225,
-        RockThrowRest = 27226,
-        Crosswind = 27227,
-        ApplyPrey = 27229,
+        AutoAttack = 872, // Boss->player, no cast, single-target
+        Twister = 27219, // Boss->players, 5.0s cast, range 8 circle stack + knockback 20
+        BarrelingSmash = 27220, // Boss->player, no cast, single-target, charges to random player and starts casting Spark or Scythe Tail immediately afterwards
+        Spark = 27221, // Boss->self, 5.0s cast, range 14-24+R donut
+        ScytheTail = 27222, // Boss->self, 5.0s cast, range 17 circle
+        Butcher = 27223, // Boss->self, 5.0s cast, range 8 ?-degree cone
+        Rip = 27224, // Boss->self, 2.5s cast, range 8 ?-degree cone
+        RockThrowFirst = 27225, // Boss->location, 4.0s cast, range 6 circle
+        RockThrowRest = 27226, // Boss->location, 1.6s cast, range 6 circle
+        Crosswind = 27227, // Boss->self, 5.0s cast, range 36 circle
+        ApplyPrey = 27229, // Boss->player, 0.5s cast, single-target
     }
 
-    public class Mechanics : BossComponent
+    class Twister : Components.Knockback
     {
-        private AOEShapeDonut _spark = new(14, 24);
-        private AOEShapeCircle _scytheTail = new(17);
-        private AOEShapeCircle _rockThrow = new(6);
-        private AOEShapeCone _butcherRip = new(8, 45.Degrees()); // TODO: verify angle, too little data points so far...
-        private Actor? _rockThrowTarget;
-        private int _numSecondaryRockThrows;
+        private static float _stackRadius = 8;
 
-        private static float _twisterRadius = 8;
-        private static float _twisterKnockback = 20;
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            var (aoe, pos) = ActiveAOE(module);
-            if (aoe?.Check(actor.Position, pos, module.PrimaryActor.Rotation) ?? false)
-                hints.Add("GTFO from aoe!");
-        }
+        public Twister() : base(20, ActionID.MakeSpell(AID.Twister)) { }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
-                return;
-
-            string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
-            {
-                AID.Twister => "Stack and knockback",
-                AID.Spark or AID.ScytheTail or AID.Butcher or AID.Rip or AID.RockThrowFirst or AID.RockThrowRest => "Avoidable AOE",
-                AID.Crosswind => "Raidwide",
-                _ => "",
-            };
-            if (hint.Length > 0)
-                hints.Add(hint);
+            if (Active(module))
+                hints.Add("Stack and knockback");
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {
-            if ((module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false) && module.PrimaryActor.CastInfo!.TargetID == player.InstanceID)
-                return PlayerPriority.Interesting;
-            if (player == _rockThrowTarget)
-                return PlayerPriority.Interesting;
-            return PlayerPriority.Irrelevant;
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            var (aoe, pos) = ActiveAOE(module);
-            aoe?.Draw(arena, pos, module.PrimaryActor.Rotation);
+            return Active(module) && module.PrimaryActor.CastInfo!.TargetID == player.InstanceID ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false)
-            {
-                var target = module.WorldState.Actors.Find(module.PrimaryActor.CastInfo!.TargetID);
-                if (target != null)
-                {
-                    arena.AddCircle(target.Position, _twisterRadius, ArenaColor.Danger);
-                    if (pc.Position.InCircle(target.Position, _twisterRadius))
-                    {
-                        var kbPos = Components.Knockback.AwayFromSource(pc.Position, target, _twisterKnockback);
-                        if (kbPos != pc.Position)
-                        {
-                            arena.AddLine(pc.Position, kbPos, ArenaColor.Danger);
-                            arena.Actor(kbPos, pc.Rotation, ArenaColor.Danger);
-                        }
-                    }
-                }
-            }
-
-            if (_rockThrowTarget != null)
-            {
-                arena.AddCircle(_rockThrowTarget.Position, _rockThrow.Radius, ArenaColor.Danger);
-            }
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if (caster != module.PrimaryActor)
+            var target = Active(module) ? module.WorldState.Actors.Find(module.PrimaryActor.CastInfo!.TargetID) : null;
+            if (target == null)
                 return;
 
-            if ((AID)spell.Action.ID == AID.ApplyPrey)
-            {
-                _rockThrowTarget = module.WorldState.Actors.Find(spell.MainTargetID);
-            }
-            else if ((AID)spell.Action.ID == AID.RockThrowRest && ++_numSecondaryRockThrows == 2)
-            {
-                _rockThrowTarget = null;
-                _numSecondaryRockThrows = 0;
-            }
+            arena.AddCircle(target.Position, _stackRadius, ArenaColor.Danger);
+            if (!IsImmune(pcSlot) && pc.Position.InCircle(target.Position, _stackRadius))
+                DrawKnockback(pc, AwayFromSource(pc.Position, target, Distance), arena);
         }
 
-        private (AOEShape?, WPos) ActiveAOE(BossModule module)
-        {
-            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
-                return (null, new());
-
-            return (AID)module.PrimaryActor.CastInfo.Action.ID switch
-            {
-                AID.Spark => (_spark, module.PrimaryActor.Position),
-                AID.ScytheTail => (_scytheTail, module.PrimaryActor.Position),
-                AID.RockThrowFirst or AID.RockThrowRest => (_rockThrow, module.PrimaryActor.CastInfo.LocXZ),
-                AID.Butcher or AID.Rip => (_butcherRip, module.PrimaryActor.Position),
-                _ => (null, new())
-            };
-        }
+        private bool Active(BossModule module) => module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false;
     }
 
-    public class SugrivaStates : StateMachineBuilder
+    class Spark : Components.SelfTargetedAOEs
+    {
+        public Spark() : base(ActionID.MakeSpell(AID.Spark), new AOEShapeDonut(14, 30)) { }
+    }
+
+    class ScytheTail : Components.SelfTargetedAOEs
+    {
+        public ScytheTail() : base(ActionID.MakeSpell(AID.ScytheTail), new AOEShapeCircle(17)) { }
+    }
+
+    class Butcher : Components.SelfTargetedAOEs
+    {
+        public Butcher() : base(ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(8, 45.Degrees())) { } // TODO: verify angle, too few data points so far...
+    }
+
+    class Rip : Components.SelfTargetedAOEs
+    {
+        public Rip() : base(ActionID.MakeSpell(AID.Rip), new AOEShapeCone(8, 45.Degrees())) { } // TODO: verify angle, too few data points so far...
+    }
+
+    class RockThrow : Components.GenericAOEs
+    {
+        private Actor? _target;
+        private static AOEShapeCircle _shape = new(6);
+
+        public RockThrow() : base(ActionID.MakeSpell(AID.RockThrowRest)) { }
+
+        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (Active(module))
+                yield return (_shape, module.PrimaryActor.CastInfo!.LocXZ, new(), module.PrimaryActor.CastInfo.FinishAt);
+        }
+
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        {
+            return player == _target ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            if (_target != null)
+                arena.AddCircle(_target.Position, _shape.Radius, ArenaColor.Danger);
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.ApplyPrey:
+                    _target = module.WorldState.Actors.Find(spell.TargetID);
+                    NumCasts = 0;
+                    break;
+                case AID.RockThrowRest:
+                    if (NumCasts >= 1)
+                        _target = null;
+                    break;
+            }
+        }
+
+        private bool Active(BossModule module) => (module.PrimaryActor.CastInfo?.IsSpell() ?? false) && (AID)module.PrimaryActor.CastInfo!.Action.ID is AID.RockThrowFirst or AID.RockThrowRest;
+    }
+
+    class Crosswind : Components.RaidwideCast
+    {
+        public Crosswind() : base(ActionID.MakeSpell(AID.Crosswind)) { }
+    }
+
+    class SugrivaStates : StateMachineBuilder
     {
         public SugrivaStates(BossModule module) : base(module)
         {
-            TrivialPhase().ActivateOnEnter<Mechanics>();
+            TrivialPhase()
+                .ActivateOnEnter<Twister>()
+                .ActivateOnEnter<Spark>()
+                .ActivateOnEnter<ScytheTail>()
+                .ActivateOnEnter<Butcher>()
+                .ActivateOnEnter<Rip>()
+                .ActivateOnEnter<RockThrow>()
+                .ActivateOnEnter<Crosswind>();
         }
     }
 

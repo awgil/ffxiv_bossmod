@@ -84,7 +84,6 @@ namespace BossMod.Components
                 }
             }
         }
-
     }
 
     // generic 'knockback away from caster' component (TODO: reconsider - probably most abilities should use cast target instead...)
