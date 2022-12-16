@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BossMod.Endwalker.ARanks.Gurangatch
+namespace BossMod.Endwalker.HuntA.Gurangatch
 {
     public enum OID : uint
     {

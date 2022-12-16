@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.ARanks.Sugriva
+﻿namespace BossMod.Endwalker.HuntA.Sugriva
 {
     public enum OID : uint
     {

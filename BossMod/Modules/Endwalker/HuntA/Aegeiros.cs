@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.ARanks.Aegeiros
+﻿namespace BossMod.Endwalker.HuntA.Aegeiros
 {
     public enum OID : uint
     {

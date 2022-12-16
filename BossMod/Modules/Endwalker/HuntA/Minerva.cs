@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.ARanks.Minerva
+﻿namespace BossMod.Endwalker.HuntA.Minerva
 {
     public enum OID : uint
     {

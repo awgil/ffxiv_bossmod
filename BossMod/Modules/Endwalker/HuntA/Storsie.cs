@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.ARanks.Storsie
+﻿namespace BossMod.Endwalker.HuntA.Storsie
 {
     public enum OID : uint
     {

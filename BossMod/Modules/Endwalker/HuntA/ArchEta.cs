@@ -1,26 +1,26 @@
-﻿namespace BossMod.Endwalker.ARanks.FanAil
+﻿namespace BossMod.Endwalker.HuntA.ArchEta
 {
     public enum OID : uint
     {
-        Boss = 0x35C1,
+        Boss = 0x35C0,
     };
 
     public enum AID : uint
     {
-        Divebomb = 27373,
-        DivebombDisappear = 27374,
-        DivebombReappear = 27375,
-        LiquidHell = 27376,
-        Plummet = 27378,
-        DeathSentence = 27379,
-        CycloneWing = 27380,
-        AutoAttack = 27381,
+        AutoAttack = 870,
+        EnergyWave = 27269,
+        TailSwipe = 27270,
+        HeavyStomp = 27271,
+        SonicHowl = 27272,
+        SteelFang = 27273,
+        FangedLunge = 27274,
     }
 
     public class Mechanics : BossComponent
     {
-        private AOEShapeCone _plummet = new(8, 45.Degrees());
-        private AOEShapeRect _divebomb = new(30, 5.5f);
+        private AOEShapeCircle _heavyStomp = new(17);
+        private AOEShapeRect _energyWave = new(40, 7);
+        private AOEShapeCone _tailSwipe = new(25, 45.Degrees(), 180.Degrees());
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
@@ -35,9 +35,9 @@
 
             string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
-                AID.CycloneWing => "Raidwide",
-                AID.Plummet or AID.Divebomb or AID.LiquidHell => "Avoidable AOE",
-                AID.DeathSentence => "Tankbuster",
+                AID.HeavyStomp or AID.EnergyWave or AID.TailSwipe => "Avoidable AOE",
+                AID.SonicHowl => "Raidwide",
+                AID.SteelFang => "Tankbuster",
                 _ => "",
             };
             if (hint.Length > 0)
@@ -56,23 +56,24 @@
 
             return (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
-                AID.Plummet => _plummet,
-                AID.Divebomb => _divebomb,
+                AID.HeavyStomp => _heavyStomp,
+                AID.EnergyWave => _energyWave,
+                AID.TailSwipe => _tailSwipe,
                 _ => null
             };
         }
     }
 
-    public class FanAilStates : StateMachineBuilder
+    public class ArchEtaStates : StateMachineBuilder
     {
-        public FanAilStates(BossModule module) : base(module)
+        public ArchEtaStates(BossModule module) : base(module)
         {
             TrivialPhase().ActivateOnEnter<Mechanics>();
         }
     }
 
-    public class FanAil : SimpleBossModule
+    public class ArchEta : SimpleBossModule
     {
-        public FanAil(WorldState ws, Actor primary) : base(ws, primary) { }
+        public ArchEta(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 }

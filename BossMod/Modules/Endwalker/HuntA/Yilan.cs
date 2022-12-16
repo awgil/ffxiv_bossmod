@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.ARanks.Yilan
+﻿namespace BossMod.Endwalker.HuntA.Yilan
 {
     public enum OID : uint
     {

@@ -1,23 +1,33 @@
-﻿namespace BossMod.Endwalker.ARanks.Petalodus
+﻿namespace BossMod.Endwalker.HuntA.Hulder
 {
     public enum OID : uint
     {
-        Boss = 0x35FB,
+        Boss = 0x35DD,
     };
 
     public enum AID : uint
     {
         AutoAttack = 872,
-        MarineMayhem = 27063,
-        Waterga = 27067,
-        TidalGuillotine = 27068,
-        AncientBlizzard = 27069,
+        LayOfMislaidMemory = 27073,
+        TempestuousWrath = 27075,
+        RottingElegy = 27076,
+        OdeToLostLove = 27077,
+        StormOfColor = 27078,
     }
 
     public class Mechanics : BossComponent
     {
-        private AOEShapeCircle _tidalGuillotine = new(13);
-        private AOEShapeCone _ancientBlizzard = new(40, 22.5f.Degrees());
+        private AOEShapeCone _layOfMislaidMemory = new(30, 60.Degrees());
+        private AOEShapeRect _tempestuousWrath = new(0, 4);
+        private AOEShapeDonut _rottingElegy = new(5, 50);
+
+        public override void Update(BossModule module)
+        {
+            if (module.PrimaryActor.CastInfo?.IsSpell(AID.TempestuousWrath) ?? false)
+            {
+                _tempestuousWrath.SetEndPointFromCastLocation(module.PrimaryActor);
+            }
+        }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
@@ -32,9 +42,9 @@
 
             string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
-                AID.MarineMayhem => "Interruptible Raidwide",
-                AID.TidalGuillotine or AID.AncientBlizzard => "Avoidable AOE",
-                AID.Waterga => "AOE marker",
+                AID.LayOfMislaidMemory or AID.TempestuousWrath or AID.RottingElegy => "Avoidable AOE",
+                AID.StormOfColor => "Tankbuster",
+                AID.OdeToLostLove => "Raidwide",
                 _ => "",
             };
             if (hint.Length > 0)
@@ -53,23 +63,24 @@
 
             return (AID)module.PrimaryActor.CastInfo.Action.ID switch
             {
-                AID.TidalGuillotine => _tidalGuillotine,
-                AID.AncientBlizzard => _ancientBlizzard,
+                AID.LayOfMislaidMemory => _layOfMislaidMemory,
+                AID.TempestuousWrath => _tempestuousWrath,
+                AID.RottingElegy => _rottingElegy,
                 _ => null
             };
         }
     }
 
-    public class PetalodusStates : StateMachineBuilder
+    public class HulderStates : StateMachineBuilder
     {
-        public PetalodusStates(BossModule module) : base(module)
+        public HulderStates(BossModule module) : base(module)
         {
             TrivialPhase().ActivateOnEnter<Mechanics>();
         }
     }
 
-    public class Petalodus : SimpleBossModule
+    public class Hulder : SimpleBossModule
     {
-        public Petalodus(WorldState ws, Actor primary) : base(ws, primary) { }
+        public Hulder(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.ARanks.MoussePrincess
+﻿namespace BossMod.Endwalker.HuntA.MoussePrincess
 {
     public enum OID : uint
     {
