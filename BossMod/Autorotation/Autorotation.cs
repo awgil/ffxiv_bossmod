@@ -106,14 +106,18 @@ namespace BossMod
             PrimaryTarget = WorldState.Actors.Find(player?.TargetID ?? 0);
             SecondaryTarget = WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
 
-            var playerAssignment = Service.Config.Get<PartyRolesConfig>()[WorldState.Party.ContentIDs[PartyState.PlayerSlot]];
-            var activeModule = Bossmods.ActiveModule?.StateMachine.ActivePhase != null ? Bossmods.ActiveModule : null;
             Hints.Clear();
-            Hints.FillPotentialTargets(WorldState, playerAssignment == PartyRolesConfig.Assignment.MT || playerAssignment == PartyRolesConfig.Assignment.OT && !WorldState.Party.WithoutSlot().Any(p => p != player && p.Role == Role.Tank));
-            if (activeModule != null && player != null)
-                activeModule.CalculateAIHints(PartyState.PlayerSlot, player, playerAssignment, Hints);
-            else if (player != null)
-                _autoHints.CalculateAIHints(Hints, player.Position);
+            if (player != null)
+            {
+                var playerAssignment = Service.Config.Get<PartyRolesConfig>()[WorldState.Party.ContentIDs[PartyState.PlayerSlot]];
+                var activeModule = Bossmods.ActiveModule?.StateMachine.ActivePhase != null ? Bossmods.ActiveModule : null;
+                Hints.FillPotentialTargets(WorldState, playerAssignment == PartyRolesConfig.Assignment.MT || playerAssignment == PartyRolesConfig.Assignment.OT && !WorldState.Party.WithoutSlot().Any(p => p != player && p.Role == Role.Tank));
+                Hints.FillPlannedActions(Bossmods.ActiveModule, PartyState.PlayerSlot, player); // note that we might fill some actions even if module is not active yet (prepull)
+                if (activeModule != null)
+                    activeModule.CalculateAIHints(PartyState.PlayerSlot, player, playerAssignment, Hints);
+                else
+                    _autoHints.CalculateAIHints(Hints, player.Position);
+            }
             Hints.Normalize();
 
             Type? classType = null;

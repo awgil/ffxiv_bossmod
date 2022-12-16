@@ -81,6 +81,22 @@ namespace BossMod
             }
         }
 
+        // fill planned actions based on current state
+        public void FillPlannedActions(BossModule? module, int slot, Actor player)
+        {
+            if (module?.PlanExecution != null)
+            {
+                // TODO: support custom conditions in planner
+                foreach (var a in module.PlanExecution.ActiveActions(module.StateMachine))
+                {
+                    var target = a.Target.Select(module, slot, player);
+                    if (target == null)
+                        continue;
+                    PlannedActions.Add((a.Action, target, a.TimeLeft, a.LowPriority));
+                }
+            }
+        }
+
         public void AddForbiddenZone(Func<WPos, float> shapeDistance, DateTime activation = new()) => ForbiddenZones.Add((shapeDistance, activation));
         public void AddForbiddenZone(AOEShape shape, WPos origin, Angle rot = new(), DateTime activation = new()) => ForbiddenZones.Add((shape.Distance(origin, rot), activation));
 
