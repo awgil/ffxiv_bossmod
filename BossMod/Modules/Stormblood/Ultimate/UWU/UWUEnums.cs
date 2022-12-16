@@ -125,10 +125,13 @@
 
         UltimateSuppression = 11597, // UltimaWeapon->self, 3.0s cast, single-target, visual
         LightPillar = 11138, // UltimaWeapon->self, 2.0s cast, single-target, visual
+        LightPillarAOE = 11139, // Helper->location, 1.0s cast, range 3 circle aoe
         MistralSongCone = 11150, // Garuda->self, 2.0s cast, range 20+R ?-degree cone
         AetherochemicalLaserCenter = 11140, // UltimaWeapon->self, 3.0s cast, range 40+R width 8 rect aoe
         AetherochemicalLaserRight = 11141, // UltimaWeapon->self, 3.0s cast, range 40+R width 8 rect aoe
         AetherochemicalLaserLeft = 11142, // UltimaWeapon->self, 3.0s cast, range 40+R width 8 rect aoe
+        DiffractiveLaser = 11128, // UltimaWeapon->self, no cast, range 12+R ?-degree cone tankbuster
+        VulcanBurstUltima = 11508, // UltimaWeapon->self, no cast, range 16+R circle knockback 15
     };
 
     public enum SID : uint

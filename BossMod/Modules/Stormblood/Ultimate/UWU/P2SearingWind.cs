@@ -2,7 +2,7 @@
 {
     class P2SearingWind : Components.StackSpread
     {
-        public P2SearingWind() : base(0, 14, alwaysShowSpreads: true) { }
+        public P2SearingWind() : base(0, 14, alwaysShowSpreads: true, includeDeadTargets: true) { }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {

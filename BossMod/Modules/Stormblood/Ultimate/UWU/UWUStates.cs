@@ -535,7 +535,8 @@
 
             ActorTargetable(id + 0x20, _module.Ultima, true, 4.3f, "Reappear")
                 .ActivateOnEnter<P3WeightOfTheLand>() // first set starts at the same time as boss becomes targetable
-                .ActivateOnEnter<P2FlamingCrush>(); // icon appears at the same time as boss becomes targetable
+                .ActivateOnEnter<P2FlamingCrush>();
+            ComponentCondition<P2FlamingCrush>(id + 0x21, 0, comp => comp.Active); // icon appears at the same time as or slightly after boss becomes targetable
 
             ComponentCondition<P2FlamingCrush>(id + 0x30, 5.1f, comp => !comp.Active, "Stack")
                 .ActivateOnEnter<P1EyeOfTheStorm>() // cast starts ~1.8s before crash resolve
@@ -591,7 +592,29 @@
         private void P4BeforeSuppression(uint id, float delay)
         {
             P4HomingLasers(id, delay);
-            // TODO: [eots + plumes > diffractive laser > eots + knockback > homing lasers] x2 > eots + diffractive + knockback ?
+
+            ActorCastStart(id + 0x100, _module.Ultima, AID.RadiantPlumeUltima, 7.3f, true)
+                .ActivateOnEnter<P1EyeOfTheStorm>(); // eots starts ~2.1s before plumes cast start
+            ActorCastEnd(id + 0x101, _module.Ultima, 3.2f, true)
+                .ActivateOnEnter<P2RadiantPlume>()
+                .ActivateOnEnter<P4DiffractiveLaser>() // show hint early...
+                .DeactivateOnExit<P1EyeOfTheStorm>(); // eots ends ~0.9s after plumes cast start
+            ComponentCondition<P2RadiantPlume>(id + 0x102, 0.8f, comp => comp.NumCasts > 0, "Inner plumes")
+                .DeactivateOnExit<P2RadiantPlume>();
+
+            ComponentCondition<P4DiffractiveLaser>(id + 0x200, 2.5f, comp => comp.NumCasts > 0, "Tankbuster")
+                .DeactivateOnExit<P4DiffractiveLaser>();
+
+            ComponentCondition<P1EyeOfTheStorm>(id + 0x300, 3.0f, comp => comp.Casters.Count > 0)
+                .ActivateOnEnter<P1EyeOfTheStorm>()
+                .ActivateOnEnter<P4VulcanBurst>();
+            ComponentCondition<P4VulcanBurst>(id + 0x301, 1.0f, comp => comp.NumCasts > 0, "Knockback")
+                .DeactivateOnExit<P4VulcanBurst>();
+            ComponentCondition<P1EyeOfTheStorm>(id + 0x302, 2.0f, comp => comp.NumCasts > 0)
+                .DeactivateOnExit<P1EyeOfTheStorm>();
+
+            // TODO: homing lasers > eots + knockback > diffractive ?
+            //P4HomingLasers(id + 0x400, 10);
         }
 
         private void P4HomingLasers(uint id, float delay)
@@ -609,7 +632,7 @@
             SimpleState(id + 0xFF0000, 1000, "???");
         }
 
-        // TODO: light pillar component, plumes
+        // TODO: razor plumes featherlance...
         private void P5Suppression(uint id, float delay)
         {
             ActorCast(id, _module.Ultima, AID.UltimateSuppression, delay, 3, true);
@@ -628,7 +651,7 @@
 
             ActorCastEnd(id + 0x40, _module.Ultima, 1.6f, true)
                 .ActivateOnEnter<P5MistralSongCone>();
-            ComponentCondition<P1FeatherRain>(id + 0x41, 0.2f, comp => comp.CastsPredicted, "Feathers bait")
+            ComponentCondition<P1FeatherRain>(id + 0x41, 0.2f, comp => comp.CastsPredicted, "Feathers bait 1")
                 .ActivateOnEnter<P1FeatherRain>();
             ActorCastEnd(id + 0x42, _module.Garuda, 0.2f, false)
                 .DeactivateOnExit<P5MistralSongCone>();
@@ -636,26 +659,30 @@
             ComponentCondition<P2Eruption>(id + 0x50, 0.6f, comp => comp.Casters.Count == 0)
                 .DeactivateOnExit<P2Eruption>();
 
-            ActorCastStartMulti(id + 0x60, _module.Ultima, new AID[] { AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft }, 1.2f, true)
+            // second set of feathers are baited at the same time as first laser cast start
+            ActorCastStartMulti(id + 0x60, _module.Ultima, new AID[] { AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft }, 1.2f, true, "Feathers bait 2")
+                .ActivateOnEnter<P5LightPillar>() // first light pillar cast starts at the same time as first laser, activate earlier to show bait hints
                 .ActivateOnEnter<P1GreatWhirlwind>(); // cast starts ~0.2s after last eruption ends
-            ComponentCondition<P1FeatherRain>(id + 0x61, 0.5f, comp => comp.NumCasts > 0)
+            ComponentCondition<P1FeatherRain>(id + 0x61, 0.5f, comp => comp.NumCasts > 0); // second set should still be predicted
+            ComponentCondition<P1GreatWhirlwind>(id + 0x62, 1.5f, comp => comp.NumCasts > 0)
                 .ActivateOnEnter<P5AetherochemicalLaserCenter>()
                 .ActivateOnEnter<P5AetherochemicalLaserRight>()
                 .ActivateOnEnter<P5AetherochemicalLaserLeft>()
-                .DeactivateOnExit<P1FeatherRain>();
-            ComponentCondition<P1GreatWhirlwind>(id + 0x62, 1.5f, comp => comp.NumCasts > 0)
                 .DeactivateOnExit<P1GreatWhirlwind>();
-            ActorCastEnd(id + 0x63, _module.Ultima, 1.0f, true);
+            ComponentCondition<P1FeatherRain>(id + 0x63, 0.5f, comp => !comp.CastsPredicted && !comp.CastsActive)
+                .DeactivateOnExit<P1FeatherRain>();
+            ActorCastEnd(id + 0x64, _module.Ultima, 0.5f, true, "Laser 1");
 
-            ActorCastMulti(id + 0x70, _module.Ultima, new AID[] { AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft }, 1.2f, 3, true);
+            // TODO: gaol deadline is ~1.8s into second laser cast
+            ActorCastMulti(id + 0x70, _module.Ultima, new AID[] { AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft }, 1.2f, 3, true, "Laser 2");
 
-            ActorCastMulti(id + 0x80, _module.Ultima, new AID[] { AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft }, 1.2f, 3, true)
-                .ActivateOnEnter<Landslide>() // TODO:...
+            ActorCastMulti(id + 0x80, _module.Ultima, new AID[] { AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft }, 1.2f, 3, true, "Laser 3")
+                .ActivateOnEnter<Landslide>() // landslide cast starts together with third laser cast
                 .ActivateOnEnter<P1Mesohigh>() // TODO:...
                 .DeactivateOnExit<P5AetherochemicalLaserCenter>()
                 .DeactivateOnExit<P5AetherochemicalLaserRight>()
                 .DeactivateOnExit<P5AetherochemicalLaserLeft>();
-            // TODO: rest (deactivate landslide/mesohigh at least): feather rains, tank purge...
+            // TODO: rest (deactivate pillar/landslide/mesohigh at least): feather rains, tank purge...
         }
     }
 }

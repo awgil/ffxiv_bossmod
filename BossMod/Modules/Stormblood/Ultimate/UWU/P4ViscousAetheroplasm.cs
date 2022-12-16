@@ -23,7 +23,7 @@
                     break;
                 case AID.HomingLasers:
                     AvoidMask.Reset();
-                    AvoidMask.Set(module.Raid.FindSlot(spell.MainTargetID)); // update avoid target to homing laser target
+                    //AvoidMask.Set(module.Raid.FindSlot(spell.MainTargetID)); // update avoid target to homing laser target
                     break;
             }
         }

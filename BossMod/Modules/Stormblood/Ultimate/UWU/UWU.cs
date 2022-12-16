@@ -85,6 +85,11 @@ namespace BossMod.Stormblood.Ultimate.UWU
         public P4HomingLasers() : base(ActionID.MakeSpell(AID.HomingLasers), 4) { }
     }
 
+    class P4DiffractiveLaser : Components.Cleave
+    {
+        public P4DiffractiveLaser() : base(ActionID.MakeSpell(AID.DiffractiveLaser), new AOEShapeCone(18, 45.Degrees()), (uint)OID.UltimaWeapon) { } // TODO: verify angle
+    }
+
     class P5MistralSongCone : Components.SelfTargetedAOEs
     {
         public P5MistralSongCone() : base(ActionID.MakeSpell(AID.MistralSongCone), new AOEShapeCone(21.7f, 45.Degrees())) { } // TODO: verify angle
@@ -103,6 +108,12 @@ namespace BossMod.Stormblood.Ultimate.UWU
     class P5AetherochemicalLaserLeft : Components.SelfTargetedAOEs
     {
         public P5AetherochemicalLaserLeft() : base(ActionID.MakeSpell(AID.AetherochemicalLaserLeft), new AOEShapeRect(46, 4, 6)) { }
+    }
+
+    // TODO: consider showing circle around baiter
+    class P5LightPillar : Components.LocationTargetedAOEs
+    {
+        public P5LightPillar() : base(ActionID.MakeSpell(AID.LightPillarAOE), 3) { }
     }
 
 
