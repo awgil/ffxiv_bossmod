@@ -5,6 +5,7 @@ namespace BossMod.BRD
     public enum AID : uint
     {
         None = 0,
+        Sprint = 3,
 
         // single target GCDs
         HeavyShot = 97, // L1, instant, range 25, single-target 0/0, targets=hostile

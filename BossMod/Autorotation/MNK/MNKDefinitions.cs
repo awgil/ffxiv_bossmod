@@ -5,6 +5,7 @@ namespace BossMod.MNK
     public enum AID : uint
     {
         None = 0,
+        Sprint = 3,
 
         // single target GCDs
         Bootshine = 53, // L1, instant, range 3, single-target 0/0, targets=hostile

@@ -64,6 +64,8 @@ namespace BossMod
         public float EffAnimLock => ActionManagerEx.Instance!.EffectiveAnimationLock;
         public float AnimLockDelay => ActionManagerEx.Instance!.EffectiveAnimationLockDelay;
 
+        private static ActionID IDSprintGeneral = new(ActionType.General, 4);
+
         public unsafe Autorotation(Network network, BossModuleManager bossmods, InputOverride inputOverride)
         {
             _network = network;
@@ -220,12 +222,15 @@ namespace BossMod
             if (!next.Action)
                 return false; // nothing to use
 
+            // extra safety checks (should no longer be needed, but leaving them for now)
             // hack for sprint support
             // normally general action -> spell conversion is done by UseAction before calling UseActionRaw
             // calling UseActionRaw directly is not good: it would call StartCooldown, which would in turn call GetRecastTime, which always returns 5s for general actions
             // this leads to incorrect sprint cooldown (5s instead of 60s), which is just bad
-            // for spells, call GetAdjustedActionId - even though it is typically done correctly by autorotation modules, e.g. planner currenty doesn't support it
-            var actionAdj = next.Action == CommonDefinitions.IDSprint ? new(ActionType.Spell, 3) : next.Action.Type == ActionType.Spell ? new(ActionType.Spell, am.GetAdjustedActionID(next.Action.ID)) : next.Action;
+            // for spells, call GetAdjustedActionId - even though it is typically done correctly by autorotation modules
+            var actionAdj = next.Action == IDSprintGeneral ? CommonDefinitions.IDSprint : next.Action.Type == ActionType.Spell ? new(ActionType.Spell, am.GetAdjustedActionID(next.Action.ID)) : next.Action;
+            if (actionAdj != next.Action)
+                Log($"Something didn't perform action adjustment correctly: replacing {next.Action} with {actionAdj}");
 
             // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
             AboutToStartCast = next.Definition.CastTime > 0 && am.GCD() < 0.1f;
@@ -364,6 +369,8 @@ namespace BossMod
             }
 
             var action = new ActionID(actionType, actionID);
+            if (action == IDSprintGeneral)
+                action = CommonDefinitions.IDSprint;
             bool nullTarget = targetID == 0 || targetID == GameObject.InvalidGameObjectId;
             var target = nullTarget ? null : WorldState.Actors.Find(targetID);
             if (target == null && !nullTarget || !_classActions.HandleUserActionRequest(action, target))

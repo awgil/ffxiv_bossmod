@@ -5,6 +5,7 @@ namespace BossMod.SCH
     public enum AID : uint
     {
         None = 0,
+        Sprint = 3,
 
         // single-target damage GCDs
         Ruin1 = 17869, // L1, 1.5s cast, range 25, single-target 0/0, targets=hostile

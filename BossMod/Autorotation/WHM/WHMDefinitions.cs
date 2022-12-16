@@ -5,6 +5,7 @@ namespace BossMod.WHM
     public enum AID : uint
     {
         None = 0,
+        Sprint = 3,
 
         // single-target damage GCDs
         Stone1 = 119, // L1, 1.5s cast, range 25, single-target 0/0, targets=hostile, animLock=???

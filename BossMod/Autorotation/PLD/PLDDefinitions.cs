@@ -5,6 +5,7 @@ namespace BossMod.PLD
     public enum AID : uint
     {
         None = 0,
+        Sprint = 3,
 
         // single target GCDs
         FastBlade = 9, // L1, instant, range 3, single-target 0/0, targets=hostile

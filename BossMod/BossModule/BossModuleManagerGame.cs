@@ -154,7 +154,7 @@ namespace BossMod
             ImGui.SameLine();
             ActiveModule.PlanConfig?.DrawSelectionUI(ActiveModule.Raid.Player()?.Class ?? Class.None, ActiveModule.StateMachine, ActiveModule.Info);
 
-            ActiveModule.PlanExecution.Draw(ActiveModule.StateMachine);
+            ActiveModule.PlanExecution?.Draw(ActiveModule.StateMachine); // note: null check again, since plan could've been just deleted
         }
 
         private void PlanWindowClosed()

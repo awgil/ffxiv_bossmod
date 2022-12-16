@@ -5,6 +5,7 @@ namespace BossMod.BLM
     public enum AID : uint
     {
         None = 0,
+        Sprint = 3,
 
         // single target GCDs
         Blizzard1 = 142, // L1, 2.5s cast, range 25, single-target 0/0, targets=hostile
