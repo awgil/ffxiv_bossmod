@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod.Endwalker.HuntS.Sphatika
 {
@@ -56,6 +54,7 @@ namespace BossMod.Endwalker.HuntS.Sphatika
 
     class Stance : Components.GenericAOEs
     {
+        private SID _secondBearing; // TODO: this is a hack, find a way to properly determine which buff is 'first'
         private List<Angle> _pendingCleaves = new();
         private static AOEShapeCone _shape = new(40, 90.Degrees());
 
@@ -82,6 +81,9 @@ namespace BossMod.Endwalker.HuntS.Sphatika
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
+            if (caster != module.PrimaryActor)
+                return;
+
             switch ((AID)spell.Action.ID)
             {
                 case AID.LickwhipStance:
@@ -90,12 +92,30 @@ namespace BossMod.Endwalker.HuntS.Sphatika
                 case AID.WhiplickStance:
                     InitCleaves(module, spell.Rotation, true);
                     break;
+                case AID.LongLickForward:
+                case AID.HindWhipForward:
+                    FixupOrder(SID.ForwardBearing);
+                    break;
+                case AID.LongLickBackward:
+                case AID.HindWhipBackward:
+                    FixupOrder(SID.BackwardBearing);
+                    break;
+                case AID.LongLickLeftward:
+                case AID.HindWhipLeftward:
+                    FixupOrder(SID.LeftwardBearing);
+                    break;
+                case AID.LongLickRightward:
+                case AID.HindWhipRightward:
+                    FixupOrder(SID.RightwardBearing);
+                    break;
             }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (_pendingCleaves.Count > 0 && (AID)spell.Action.ID is AID.LongLickForward or AID.LongLickBackward or AID.LongLickLeftward or AID.LongLickRightward or AID.HindWhipForward or AID.HindWhipBackward or AID.HindWhipLeftward or AID.HindWhipRightward or AID.LongLickSecond or AID.HindWhipSecond)
+            if (caster == module.PrimaryActor && _pendingCleaves.Count > 0 &&
+                (AID)spell.Action.ID is AID.LongLickForward or AID.LongLickBackward or AID.LongLickLeftward or AID.LongLickRightward or AID.LongLickSecond
+                                     or AID.HindWhipForward or AID.HindWhipBackward or AID.HindWhipLeftward or AID.HindWhipRightward or AID.HindWhipSecond)
             {
                 _pendingCleaves.RemoveAt(0);
             }
@@ -105,24 +125,28 @@ namespace BossMod.Endwalker.HuntS.Sphatika
         {
             _pendingCleaves.Clear();
             // TODO: current implementation looks correct, but buffs are sometimes picked in wrong order...
-            //foreach (var s in module.PrimaryActor.Statuses)
-            //{
-            //    switch ((SID)s.ID)
-            //    {
-            //        case SID.ForwardBearing:
-            //            AddPendingCleave(reference, inverted);
-            //            break;
-            //        case SID.BackwardBearing:
-            //            AddPendingCleave(reference + 180.Degrees(), inverted);
-            //            break;
-            //        case SID.LeftwardBearing:
-            //            AddPendingCleave(reference + 90.Degrees(), inverted);
-            //            break;
-            //        case SID.RightwardBearing:
-            //            AddPendingCleave(reference - 90.Degrees(), inverted);
-            //            break;
-            //    }
-            //}
+            foreach (var s in module.PrimaryActor.Statuses)
+            {
+                switch ((SID)s.ID)
+                {
+                    case SID.ForwardBearing:
+                        _secondBearing = (SID)s.ID;
+                        AddPendingCleave(reference, inverted);
+                        break;
+                    case SID.BackwardBearing:
+                        _secondBearing = (SID)s.ID;
+                        AddPendingCleave(reference + 180.Degrees(), inverted);
+                        break;
+                    case SID.LeftwardBearing:
+                        _secondBearing = (SID)s.ID;
+                        AddPendingCleave(reference + 90.Degrees(), inverted);
+                        break;
+                    case SID.RightwardBearing:
+                        _secondBearing = (SID)s.ID;
+                        AddPendingCleave(reference - 90.Degrees(), inverted);
+                        break;
+                }
+            }
         }
 
         private void AddPendingCleave(Angle dir, bool inverted)
@@ -131,6 +155,19 @@ namespace BossMod.Endwalker.HuntS.Sphatika
                 dir += 180.Degrees();
             _pendingCleaves.Add(dir);
             _pendingCleaves.Add(dir + 180.Degrees());
+        }
+
+        private void FixupOrder(SID expectedFirst)
+        {
+            if (expectedFirst == _secondBearing && _pendingCleaves.Count == 4)
+            {
+                var t1 = _pendingCleaves[0];
+                var t2 = _pendingCleaves[1];
+                _pendingCleaves[0] = _pendingCleaves[2];
+                _pendingCleaves[1] = _pendingCleaves[3];
+                _pendingCleaves[2] = t1;
+                _pendingCleaves[3] = t2;
+            }
         }
     }
 

@@ -100,6 +100,7 @@ namespace UIDev
                 ActorState.OpCreate op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpDestroy op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpMove => false,
+                ActorState.OpSizeChange op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpHPMP => false,
                 ActorState.OpTargetable op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpDead op => FilterInterestingActor(op.InstanceID, op.Timestamp, true),

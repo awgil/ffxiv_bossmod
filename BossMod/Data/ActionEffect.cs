@@ -56,7 +56,7 @@ namespace BossMod
         Unknown_42 = 66, // 0x42
         Unknown_46 = 70, // 0x46
         Unknown_47 = 71, // 0x47
-        Unknown_48 = 72, // 0x48 - looks like 'keep in place'?
+        SetModelState = 72, // 0x48 - value == model state
         SetHP = 73, // 0x49 - e.g. zodiark's kokytos
         Partial_Invulnerable = 74, // 0x4A
         Interrupt = 75, // 0x4B
