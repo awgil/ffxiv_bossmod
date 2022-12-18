@@ -110,7 +110,13 @@ namespace UIDev
             try
             {
                 var di = new DirectoryInfo(rootPath);
-                foreach (var fi in di.EnumerateFiles("*.log", new EnumerationOptions { RecurseSubdirectories = true }))
+                var pattern = "*.log";
+                if (!di.Exists && (di.Parent?.Exists ?? false))
+                {
+                    pattern = di.Name;
+                    di = di.Parent;
+                }
+                foreach (var fi in di.EnumerateFiles(pattern, new EnumerationOptions { RecurseSubdirectories = true }))
                 {
                     Service.Log($"Parsing {fi.FullName}...");
                     _replays.Add(ReplayParserLog.Parse(fi.FullName));
