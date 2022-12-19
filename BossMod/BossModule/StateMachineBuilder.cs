@@ -337,13 +337,21 @@ namespace BossMod
             return ActorCastStartMulti(id, () => Module.PrimaryActor, aids, delay, true, name);
         }
 
+        // create a state triggered by one of a set of expected casts by arbitrary actor, each of which forking to a separate subsequence
+        // values in map are actions building state chains corresponding to each fork
+        public State ActorCastStartFork<AID>(uint id, Func<Actor?> actorAcc, Dictionary<AID, (uint seqID, Action<uint> buildState)> dispatch, float delay, bool isBoss = false, string name = "")
+             where AID : Enum
+        {
+            return ConditionFork(id, delay, () => actorAcc()?.CastInfo?.IsSpell() ?? false, () => (AID)(object)actorAcc()!.CastInfo!.Action.ID, dispatch, name)
+                .SetHint(StateMachine.StateHint.BossCastStart, isBoss);
+        }
+
         // create a state triggered by one of a set of expected casts by a primary actor, each of which forking to a separate subsequence
         // values in map are actions building state chains corresponding to each fork
         public State CastStartFork<AID>(uint id, Dictionary<AID, (uint seqID, Action<uint> buildState)> dispatch, float delay, string name = "")
              where AID : Enum
         {
-            return ConditionFork(id, delay, () => Module.PrimaryActor.CastInfo != null, () => (AID)(object)(Module.PrimaryActor.CastInfo!.IsSpell() ? Module.PrimaryActor.CastInfo.Action.ID : 0), dispatch, name)
-                .SetHint(StateMachine.StateHint.BossCastStart);
+            return ActorCastStartFork(id, () => Module.PrimaryActor, dispatch, delay, true, name);
         }
 
         // create a state triggered by cast end by arbitrary actor

@@ -116,6 +116,11 @@ namespace BossMod.Stormblood.Ultimate.UWU
         public P5LightPillar() : base(ActionID.MakeSpell(AID.LightPillarAOE), 3) { }
     }
 
+    class P5AethericBoom : Components.KnockbackFromCastTarget
+    {
+        public P5AethericBoom() : base(ActionID.MakeSpell(AID.AethericBoom), 10) { }
+    }
+
 
     [ModuleInfo(PrimaryActorOID = (uint)OID.Garuda)]
     public class UWU : BossModule

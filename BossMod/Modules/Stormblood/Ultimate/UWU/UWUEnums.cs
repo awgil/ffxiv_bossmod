@@ -22,6 +22,7 @@
 
         UltimaWeapon = 0x221E, // R6.000, x1
         Aetheroplasm = 0x221F, // R1.000, spawn during fight
+        Ultimaplasm = 0x2220, // R1.000, spawn during fight
 
         Helper = 0x233C, // R0.500, x14
         ArenaFeatures = 0x1EA1A1, // R2.000, x8, EventObj type
@@ -132,14 +133,24 @@
         AetherochemicalLaserLeft = 11142, // UltimaWeapon->self, 3.0s cast, range 40+R width 8 rect aoe
         DiffractiveLaser = 11128, // UltimaWeapon->self, no cast, range 12+R ?-degree cone tankbuster
         VulcanBurstUltima = 11508, // UltimaWeapon->self, no cast, range 16+R circle knockback 15
+
+        AethericBoom = 11144, // UltimaWeapon->self, 4.0s cast, raidwide knockback 10
+        AetheroplasmUltima = 11145, // Ultimaplasm->self, no cast, range 8 circle shared aoe
+        FusionBurst = 11146, // Ultimaplasm->self, no cast, wipe if orbs connect
+
+        ViscousAetheroplasmTriple = 11151, // UltimaWeapon->self, no cast, range 40 circle (3 debuffs for primal roulette)
+        EnrageSequenceStart = 11148, // UltimaWeapon->self, no cast, single-target, visual
+        EnrageSelectVictim = 11154, // Helper->player, no cast, single-target
+        Sabik = 11155, // UltimaWeapon->self, no cast, range 50 circle ? (related to enrage)
     };
 
     public enum SID : uint
     {
         InfernalFetters = 377, // none->player, extra=1-7
         SearingWind = 1578, // Ifrit->player, extra=0x0
-        //ThermalLow = 1525, // SpinyPlume/Garuda->player, extra=1-2
-        //ThermalHigh = 1526, // GarudaSister->player, extra=0x0
+        ViscousAetheroplasm = 1532, // UltimaWeapon->player, extra=0x0
+        ThermalLow = 1525, // SpinyPlume/Garuda->player, extra=1-2
+        //ThermalHigh = 1526, // GarudaSister/Garuda->player, extra=0x0
         //ThermalHigh = 380, // none->player, extra=0x0
         //Sleep = 1510, // SatinPlume->player, extra=0x0
         //AccursedFlame = 1527, // none->player, extra=0x0
@@ -147,9 +158,10 @@
         //Sludge = 287, // none->player, extra=0x0
 
         //AetheriallyCharged = 1528, // none->Garuda/Ifrit/Titan, extra=1-3
-        Woken = 1529, // none->Garuda/Ifrit/Titan, extra=0x0
+        Woken = 1529, // none->Garuda/Ifrit/Titan/UltimaWeapon, extra=0x0/0x61
         //BeyondLimits = 1530, // none->player, extra=0x0
         //Woken = 1591, // none->Lahabrea, extra=0x0
+        //Doom = 210, // Lahabrea->player, extra=0x0
     };
 
     public enum IconID : uint

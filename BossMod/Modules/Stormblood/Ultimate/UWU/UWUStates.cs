@@ -1,4 +1,7 @@
-﻿namespace BossMod.Stormblood.Ultimate.UWU
+﻿using System;
+using System.Collections.Generic;
+
+namespace BossMod.Stormblood.Ultimate.UWU
 {
     class UWUStates : StateMachineBuilder
     {
@@ -268,11 +271,8 @@
             P3RockBusterMountainBuster(id + 0x80000, 2.2f, true);
             P3TripleWeightOfTheLandLandslideAwakenedBombs(id + 0x90000, 4.2f);
             P3RockBusterMountainBuster(id + 0xA0000, 4.2f, true);
-
-            // TODO: weights > tumults > enrage
-            SimpleState(id + 0xFF0000, 100, "???")
-                .ActivateOnEnter<P3WeightOfTheLand>()
-                .ActivateOnEnter<P3Landslide>();
+            P3TripleWeightOfTheLandTumult(id + 0xB0000, 2.1f);
+            P3Enrage(id + 0xC0000, 8);
         }
 
         private void P3RockBusterMountainBuster(uint id, float delay, bool longDelay)
@@ -400,6 +400,19 @@
             // +14.1s: impact end
         }
 
+        private void P3TripleWeightOfTheLandTumult(uint id, float delay)
+        {
+            P3WeightOfTheLandFirst(id, delay, "Puddles x3");
+            P3Tumult(id + 0x100, 7.6f, 8)
+                .DeactivateOnExit<P3WeightOfTheLand>();
+        }
+
+        private void P3Enrage(uint id, float delay)
+        {
+            ActorTargetable(id, _module.Titan, false, delay, "Disappear");
+            ActorCast(id + 0x10, _module.Titan, AID.EarthenFury, 4.4f, 3, true, "Enrage");
+        }
+
         private void Phase4LahabreaUltima(uint id)
         {
             P4Lahabrea(id, 9.1f);
@@ -494,11 +507,11 @@
             ActorCastEnd(id + 0x3002, _module.Titan, 1.6f, false, "Landslides first");
             ActorCastEnd(id + 0x3003, _module.Ultima, 0.6f, true);
             ComponentCondition<Landslide>(id + 0x3004, 1.4f, comp => !comp.CastsActive, "Landslides last")
+                .ActivateOnEnter<P4ViscousAetheroplasmApply>() // activate early to show hint for MT
                 .DeactivateOnExit<Landslide>();
 
             // note: there are tumults during these casts; first cast happens ~1.3s after next cast start, 7 total
-            ActorCast(id + 0x4000, _module.Ultima, AID.PrepareGaruda, 1.8f, 2, true)
-                .ActivateOnEnter<P4ViscousAetheroplasmApply>(); // activate early to show hint for MT
+            ActorCast(id + 0x4000, _module.Ultima, AID.PrepareGaruda, 1.8f, 2, true);
             ComponentCondition<P4ViscousAetheroplasmApply>(id + 0x4010, 2.1f, comp => comp.NumCasts > 0, "Aetheroplasm apply")
                 .ActivateOnEnter<P4ViscousAetheroplasmResolve>()
                 .DeactivateOnExit<P4ViscousAetheroplasmApply>();
@@ -535,12 +548,12 @@
 
             ActorTargetable(id + 0x20, _module.Ultima, true, 4.3f, "Reappear")
                 .ActivateOnEnter<P3WeightOfTheLand>() // first set starts at the same time as boss becomes targetable
-                .ActivateOnEnter<P2FlamingCrush>();
-            ComponentCondition<P2FlamingCrush>(id + 0x21, 0, comp => comp.Active); // icon appears at the same time as or slightly after boss becomes targetable
+                .ActivateOnEnter<P4FlamingCrush>();
+            ComponentCondition<P4FlamingCrush>(id + 0x21, 0, comp => comp.Active); // icon appears at the same time as or slightly after boss becomes targetable
 
-            ComponentCondition<P2FlamingCrush>(id + 0x30, 5.1f, comp => !comp.Active, "Stack")
+            ComponentCondition<P4FlamingCrush>(id + 0x30, 5.1f, comp => !comp.Active, "Stack")
                 .ActivateOnEnter<P1EyeOfTheStorm>() // cast starts ~1.8s before crash resolve
-                .DeactivateOnExit<P2FlamingCrush>();
+                .DeactivateOnExit<P4FlamingCrush>();
 
             ComponentCondition<P1Mesohigh>(id + 0x40, 3.2f, comp => comp.NumCasts > 0, "Tether 1 resolve")
                 .ActivateOnEnter<P1Mesohigh>() // tether appears ~1.9s before crash resolve, but should be handled after this mechanic
@@ -628,8 +641,41 @@
         private void Phase5Ultima(uint id)
         {
             P5Suppression(id, 0);
+            P5Ultima(id + 0x10000, 6.3f);
+            P5AethericBoom(id + 0x20000, 6.2f);
 
-            SimpleState(id + 0xFF0000, 1000, "???");
+            Dictionary<AID, (uint seqID, Action<uint> buildState)> fork = new();
+            fork[AID.PrepareGaruda] = ((id >> 24) + 1, Phase5GarudaIfritTitan);
+            fork[AID.PrepareIfrit] = ((id >> 24) + 2, Phase5IfritGarudaTitan);
+            fork[AID.PrepareTitan] = ((id >> 24) + 3, Phase5TitanIfritGaruda);
+            ActorCastStartFork(id + 0x30000, _module.Ultima, fork, 23.3f, true, "Primal roulette")
+                .ActivateOnEnter<P5ViscousAetheroplasmTriple>();
+        }
+
+        private void Phase5GarudaIfritTitan(uint id)
+        {
+            P5PrimalRouletteGaruda(id, 0);
+            P5PrimalRouletteIfrit(id + 0x10000, 4);
+            P5PrimalRouletteTitan(id + 0x20000, 2.8f);
+            P5Enrage(id + 0x30000, 3.9f);
+        }
+
+        private void Phase5IfritGarudaTitan(uint id)
+        {
+            // TODO: timings
+            P5PrimalRouletteIfrit(id, 0);
+            P5PrimalRouletteGaruda(id + 0x10000, 2.8f);
+            P5PrimalRouletteTitan(id + 0x20000, 4);
+            P5Enrage(id + 0x30000, 3.9f);
+        }
+
+        private void Phase5TitanIfritGaruda(uint id)
+        {
+            // TODO: timings
+            P5PrimalRouletteTitan(id, 0);
+            P5PrimalRouletteIfrit(id + 0x10000, 4);
+            P5PrimalRouletteGaruda(id + 0x20000, 2.8f);
+            P5Enrage(id + 0x30000, 4);
         }
 
         // TODO: razor plumes featherlance...
@@ -674,15 +720,91 @@
             ActorCastEnd(id + 0x64, _module.Ultima, 0.5f, true, "Laser 1");
 
             // TODO: gaol deadline is ~1.8s into second laser cast
-            ActorCastMulti(id + 0x70, _module.Ultima, new AID[] { AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft }, 1.2f, 3, true, "Laser 2");
+            ActorCastMulti(id + 0x70, _module.Ultima, new AID[] { AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft }, 1.2f, 3, true, "Laser 2")
+                .DeactivateOnExit<P5LightPillar>(); // last light pillar ends ~1.1s before cast end
 
-            ActorCastMulti(id + 0x80, _module.Ultima, new AID[] { AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft }, 1.2f, 3, true, "Laser 3")
-                .ActivateOnEnter<Landslide>() // landslide cast starts together with third laser cast
-                .ActivateOnEnter<P1Mesohigh>() // TODO:...
+            ActorCastStartMulti(id + 0x80, _module.Ultima, new AID[] { AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft }, 1.2f, true, "Landslide bait")
+                .ActivateOnEnter<Landslide>() // landslide cast starts together with third laser cast, but activate it earlier just in case
+                .ActivateOnEnter<P1Mesohigh>(); // mesohigh tether appears ~0.1s before cast start
+            ActorCastEnd(id + 0x81, _module.Ultima, 3, true, "Laser 3")
+                .ActivateOnEnter<P5FlamingCrush>() // icon appears ~0.7s after cast start
                 .DeactivateOnExit<P5AetherochemicalLaserCenter>()
                 .DeactivateOnExit<P5AetherochemicalLaserRight>()
                 .DeactivateOnExit<P5AetherochemicalLaserLeft>();
-            // TODO: rest (deactivate pillar/landslide/mesohigh at least): feather rains, tank purge...
+            ComponentCondition<Landslide>(id + 0x82, 1.3f, comp => !comp.CastsActive)
+                .DeactivateOnExit<Landslide>();
+            ComponentCondition<P1Mesohigh>(id + 0x83, 0.7f, comp => comp.NumCasts > 0, "Mesohigh")
+                .DeactivateOnExit<P1Mesohigh>();
+            ComponentCondition<P5FlamingCrush>(id + 0x84, 0.8f, comp => !comp.Active)
+                .DeactivateOnExit<P5FlamingCrush>();
+
+            ActorCastStart(id + 0x90, _module.Ultima, AID.TankPurge, 1.4f, true);
+            ComponentCondition<P1FeatherRain>(id + 0x91, 0.9f, comp => comp.CastsPredicted, "Feathers bait 3")
+                .ActivateOnEnter<P1FeatherRain>(); // PATE ~0.9s after cast start
+            ComponentCondition<P1FeatherRain>(id + 0x93, 2.5f, comp => comp.NumCasts > 0)
+                .DeactivateOnExit<P1FeatherRain>();
+            ActorCastEnd(id + 0x94, _module.Ultima, 0.6f, true, "Raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P5Ultima(uint id, float delay)
+        {
+            ActorTargetable(id, _module.Ultima, true, delay, "Reappear");
+            ActorCast(id + 0x10, _module.Ultima, AID.Ultima, 0.1f, 5, true, "Tank LB3")
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P5AethericBoom(uint id, float delay)
+        {
+            ActorCast(id, _module.Ultima, AID.AethericBoom, delay, 4, true, "Knockback + orbs")
+                .ActivateOnEnter<P5AethericBoom>()
+                .DeactivateOnExit<P5AethericBoom>();
+            // TODO: consider adding more hints and states here...
+        }
+
+        private void P5PrimalRouletteGaruda(uint id, float delay)
+        {
+            ActorCast(id, _module.Ultima, AID.PrepareGaruda, delay, 2, true);
+            ActorCast(id + 0x10, _module.Garuda, AID.WickedWheel, 4.3f, 3, false, "Out")
+                .ActivateOnEnter<WickedWheel>();
+            // +1.5s: aetheroplasm resolve
+            ComponentCondition<WickedWheel>(id + 0x20, 2.1f, comp => !comp.Active, "In")
+                .DeactivateOnExit<WickedWheel>();
+            ActorCast(id + 0x30, _module.Garuda, AID.AerialBlast, 1.8f, 3, false, "Raidwide")
+                .ActivateOnEnter<P1FeatherRain>() // leave it active, it will overlap next primal
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P5PrimalRouletteIfrit(uint id, float delay)
+        {
+            ActorCast(id, _module.Ultima, AID.PrepareIfrit, delay, 2, true);
+            // both cyclone and eruptions happen at the same time
+            ActorCast(id + 0x10, _module.Ifrit, AID.Eruption, 4.3f, 2.5f, false)
+                .ActivateOnEnter<P2Eruption>()
+                .ActivateOnEnter<P2CrimsonCyclone>();
+            ComponentCondition<P2Eruption>(id + 0x20, 0.5f, comp => comp.NumCasts > 0, "Eruptions + Charges")
+                .DeactivateOnExit<P2Eruption>()
+                .DeactivateOnExit<P2CrimsonCyclone>();
+            // +1.5s: aetheroplasm resolve
+            ActorCast(id + 0x30, _module.Ifrit, AID.Hellfire, 5, 3, false, "Raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P5PrimalRouletteTitan(uint id, float delay)
+        {
+            ActorCast(id, _module.Ultima, AID.PrepareTitan, delay, 2, true);
+            ComponentCondition<P3WeightOfTheLand>(id + 0x10, 2.2f, comp => comp.Casters.Count > 0, "Puddles x3")
+                .ActivateOnEnter<P3WeightOfTheLand>();
+            ActorCast(id + 0x30, _module.Titan, AID.EarthenFury, 9.1f, 3, false, "Raidwide")
+                .DeactivateOnExit<P3WeightOfTheLand>() // last puddle finishes just before cast start
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P5Enrage(uint id, float delay)
+        {
+            ActorTargetable(id, _module.Ultima, false, delay, "Disappear");
+            ActorTargetable(id + 1, _module.Ultima, true, 4.3f, "Reappear");
+            SimpleState(id + 2, 10, "Enrage"); // TODO: better timing/condition
         }
     }
 }
