@@ -24,13 +24,13 @@ namespace BossMod.Stormblood.Ultimate.UWU
             _predictionDelay = predictionDelay;
         }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_predicted.Count <= 2) // don't draw 4 predicted charges, it is pointless
                 foreach (var p in _predicted)
-                    yield return (p.shape, p.pos, p.rot, p.activation);
+                    yield return new(p.shape, p.pos, p.rot, p.activation);
             foreach (var c in _casters)
-                yield return (_shapeMain, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt);
+                yield return new(_shapeMain, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt);
         }
 
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)

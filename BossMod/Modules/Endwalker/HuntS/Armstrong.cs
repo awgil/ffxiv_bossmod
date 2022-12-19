@@ -29,10 +29,10 @@ namespace BossMod.Endwalker.HuntS.Armstrong
         private int _castsLeft;
         private static AOEShapeCross _shape = new(50, 3.5f);
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_castsLeft > 0)
-                yield return (_shape, module.PrimaryActor.Position, _starting, new());
+                yield return new(_shape, module.PrimaryActor.Position, _starting, new()); // TODO: activation
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

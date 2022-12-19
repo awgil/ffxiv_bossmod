@@ -11,14 +11,14 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
 
         public Gorgospit() : base(ActionID.MakeSpell(AID.Gorgospit)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var c in Casters)
             {
                 if (c.caster.CastInfo == null)
-                    yield return (_shape, c.caster.Position, c.caster.Rotation, c.finish);
+                    yield return new(_shape, c.caster.Position, c.caster.Rotation, c.finish);
                 else
-                    yield return (_shape, c.caster.Position, c.caster.CastInfo.Rotation, c.caster.CastInfo.FinishAt);
+                    yield return new(_shape, c.caster.Position, c.caster.CastInfo.Rotation, c.caster.CastInfo.FinishAt);
             }
         }
 

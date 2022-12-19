@@ -88,9 +88,9 @@ namespace BossMod.Shadowbringers.Foray.CE41WithDiremiteAndMain
     {
         private List<(Actor caster, AOEShape shape)> _active = new();
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return _active.Take(1).Select(e => (e.shape, e.caster.Position, e.caster.CastInfo!.Rotation, e.caster.CastInfo.FinishAt));
+            return _active.Take(1).Select(e => new AOEInstance(e.shape, e.caster.Position, e.caster.CastInfo!.Rotation, e.caster.CastInfo.FinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -178,10 +178,10 @@ namespace BossMod.Shadowbringers.Foray.CE41WithDiremiteAndMain
 
         public Hailfire() : base(ActionID.MakeSpell(AID.HailfireAOE)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (NextTarget is var target && target != null && target != actor)
-                yield return (_shape, module.PrimaryActor.Position, Angle.FromDirection(target.Position - module.PrimaryActor.Position), _activation);
+                yield return new(_shape, module.PrimaryActor.Position, Angle.FromDirection(target.Position - module.PrimaryActor.Position), _activation);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

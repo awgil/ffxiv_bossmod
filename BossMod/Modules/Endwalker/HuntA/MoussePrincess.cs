@@ -33,10 +33,10 @@ namespace BossMod.Endwalker.HuntA.MoussePrincess
         private Angle? _direction = null;
         private AOEShapeCone _shape = new(40, 60.Degrees());
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_direction != null)
-                yield return (_shape, module.PrimaryActor.Position, _direction.Value, new());
+                yield return new(_shape, module.PrimaryActor.Position, _direction.Value); // TODO: activation
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

@@ -24,15 +24,15 @@ namespace BossMod.Endwalker.HuntA.Aegeiros
         private static AOEShapeCircle _leafstorm = new(10);
         private static AOEShapeCone _rimestorm = new(40, 90.Degrees());
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (module.PrimaryActor.CastInfo?.IsSpell(AID.Leafstorm) ?? false)
-                yield return (_leafstorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.FinishAt);
+                yield return new(_leafstorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.FinishAt);
 
             if (module.PrimaryActor.CastInfo?.IsSpell(AID.Rimestorm) ?? false)
-                yield return (_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.FinishAt);
+                yield return new(_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.FinishAt);
             else if (_rimestormExpected != new DateTime())
-                yield return (_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo?.Rotation ?? module.PrimaryActor.Rotation, _rimestormExpected);
+                yield return new(_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo?.Rotation ?? module.PrimaryActor.Rotation, _rimestormExpected);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

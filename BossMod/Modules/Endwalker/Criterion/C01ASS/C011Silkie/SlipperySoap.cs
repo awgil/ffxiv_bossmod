@@ -108,22 +108,22 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie
 
         public bool Active => _color != SlipperySoap.Color.None;
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             // TODO: activation
             switch (_color)
             {
                 case SlipperySoap.Color.Green:
-                    yield return (C011Silkie.ShapeGreen, module.PrimaryActor.Position, module.PrimaryActor.Rotation, new());
+                    yield return new(C011Silkie.ShapeGreen, module.PrimaryActor.Position, module.PrimaryActor.Rotation);
                     break;
                 case SlipperySoap.Color.Blue:
-                    yield return (C011Silkie.ShapeBlue, module.PrimaryActor.Position, module.PrimaryActor.Rotation, new());
+                    yield return new(C011Silkie.ShapeBlue, module.PrimaryActor.Position, module.PrimaryActor.Rotation);
                     break;
                 case SlipperySoap.Color.Yellow:
-                    yield return (C011Silkie.ShapeYellow, module.PrimaryActor.Position, module.PrimaryActor.Rotation + 45.Degrees(), new());
-                    yield return (C011Silkie.ShapeYellow, module.PrimaryActor.Position, module.PrimaryActor.Rotation + 135.Degrees(), new());
-                    yield return (C011Silkie.ShapeYellow, module.PrimaryActor.Position, module.PrimaryActor.Rotation - 135.Degrees(), new());
-                    yield return (C011Silkie.ShapeYellow, module.PrimaryActor.Position, module.PrimaryActor.Rotation - 45.Degrees(), new());
+                    yield return new(C011Silkie.ShapeYellow, module.PrimaryActor.Position, module.PrimaryActor.Rotation + 45.Degrees());
+                    yield return new(C011Silkie.ShapeYellow, module.PrimaryActor.Position, module.PrimaryActor.Rotation + 135.Degrees());
+                    yield return new(C011Silkie.ShapeYellow, module.PrimaryActor.Position, module.PrimaryActor.Rotation - 135.Degrees());
+                    yield return new(C011Silkie.ShapeYellow, module.PrimaryActor.Position, module.PrimaryActor.Rotation - 45.Degrees());
                     break;
             }
         }

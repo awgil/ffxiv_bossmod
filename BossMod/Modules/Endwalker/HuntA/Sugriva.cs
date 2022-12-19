@@ -81,10 +81,10 @@ namespace BossMod.Endwalker.HuntA.Sugriva
 
         public RockThrow() : base(ActionID.MakeSpell(AID.RockThrowRest)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (Active(module))
-                yield return (_shape, module.PrimaryActor.CastInfo!.LocXZ, new(), module.PrimaryActor.CastInfo.FinishAt);
+                yield return new(_shape, module.PrimaryActor.CastInfo!.LocXZ, new(), module.PrimaryActor.CastInfo.FinishAt);
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)

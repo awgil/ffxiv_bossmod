@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace BossMod.Stormblood.Ultimate.UWU
 {
@@ -19,12 +18,12 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         public P3Geocrush2() : base(ActionID.MakeSpell(AID.Geocrush2)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_caster != null)
-                yield return (_shapeCrush, _caster.Position, _caster.CastInfo!.Rotation, _caster.CastInfo.FinishAt);
+                yield return new(_shapeCrush, _caster.Position, _caster.CastInfo!.Rotation, _caster.CastInfo.FinishAt);
             if (_shapeReduced != null)
-                yield return (_shapeReduced, module.Bounds.Center, new(), new());
+                yield return new(_shapeReduced, module.Bounds.Center);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

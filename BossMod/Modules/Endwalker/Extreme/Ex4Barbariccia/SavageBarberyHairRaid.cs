@@ -11,9 +11,9 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
 
         public SavageBarbery() : base(new()) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return _casts.Select(cs => (cs.Shape, cs.Caster.Position, cs.Caster.CastInfo!.Rotation, cs.Caster.CastInfo.FinishAt));
+            return _casts.Select(cs => new AOEInstance(cs.Shape, cs.Caster.Position, cs.Caster.CastInfo!.Rotation, cs.Caster.CastInfo.FinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -43,9 +43,9 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
 
         public HairRaid() : base(new()) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return _casts.Select(cs => (cs.Shape, cs.Caster.Position, cs.Caster.CastInfo!.Rotation, cs.Caster.CastInfo.FinishAt));
+            return _casts.Select(cs => new AOEInstance(cs.Shape, cs.Caster.Position, cs.Caster.CastInfo!.Rotation, cs.Caster.CastInfo.FinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

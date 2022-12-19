@@ -15,12 +15,12 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
         private static AOEShapeRect _shapeLandslide = new(40.25f, 3);
         private static AOEShapeCircle _shapeBurst = new(6.3f);
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var l in _landslides)
-                yield return (_shapeLandslide, l.Position, l.CastInfo!.Rotation, l.CastInfo.FinishAt);
+                yield return new(_shapeLandslide, l.Position, l.CastInfo!.Rotation, l.CastInfo.FinishAt);
             foreach (var b in _bursts.Take(MaxBombs))
-                yield return (_shapeBurst, b.Position, b.CastInfo!.Rotation, b.CastInfo.FinishAt);
+                yield return new(_shapeBurst, b.Position, b.CastInfo!.Rotation, b.CastInfo.FinishAt);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace BossMod.Endwalker.Savage.P6SHegemone
 {
@@ -11,7 +10,7 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
 
         public Exocleaver() : base(ActionID.MakeSpell(AID.ExocleaverAOE2)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (NumCasts > 0)
                 yield break;
@@ -19,7 +18,7 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
             // TODO: timing
             var offset = (FirstDone ? 30 : 0).Degrees();
             foreach (var dir in _directions)
-                yield return (_cone, module.PrimaryActor.Position, dir + offset, module.WorldState.CurrentTime);
+                yield return new(_cone, module.PrimaryActor.Position, dir + offset);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

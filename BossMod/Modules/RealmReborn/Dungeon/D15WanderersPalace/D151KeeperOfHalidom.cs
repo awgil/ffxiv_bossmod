@@ -32,12 +32,12 @@ namespace BossMod.RealmReborn.Dungeon.D15WanderersPalace.D151KeeperOfHalidom
         private static AOEShapeCone _shapeInhale = new(22.85f, 45.Degrees());
         private static AOEShapeCircle _shapeGrief = new(8.85f);
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_showInhale)
-                yield return (_shapeInhale, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.FinishAt);
+                yield return new(_shapeInhale, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.FinishAt);
             if (_showGrief)
-                yield return (_shapeGrief, module.PrimaryActor.Position, new(), _griefActivation);
+                yield return new(_shapeGrief, module.PrimaryActor.Position, new(), _griefActivation);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

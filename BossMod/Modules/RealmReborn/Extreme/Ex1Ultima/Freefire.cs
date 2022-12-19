@@ -13,10 +13,10 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
 
         public Freefire() : base(ActionID.MakeSpell(AID.Freefire)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var c in _casters)
-                yield return (_shape, c.Position, new(), _resolve);
+                yield return new(_shape, c.Position, new(), _resolve);
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

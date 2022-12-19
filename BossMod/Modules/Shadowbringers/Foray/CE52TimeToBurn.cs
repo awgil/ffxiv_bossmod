@@ -50,22 +50,22 @@ namespace BossMod.Shadowbringers.Foray.CE52TimeToBurn
         private static AOEShapeRect _shapeCyclone = new(60, 10);
         private static AOEShapeRect _shapeEruption = new(10, 10, 10);
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_bombsActivation != new DateTime())
             {
                 foreach (var b in _bombs)
-                    yield return (_shapeBomb, b.Position, b.Rotation, _bombsActivation);
+                    yield return new(_shapeBomb, b.Position, b.Rotation, _bombsActivation);
             }
             else if (_cycloneCasters.Count > 0)
             {
                 foreach (var c in _cycloneCasters)
-                    yield return (_shapeCyclone, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt);
+                    yield return new(_shapeCyclone, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt);
             }
             else if (_eruptionStart != new DateTime())
             {
                 foreach (var e in _clocks.Count > 2 ? _clocks.Take(_clocks.Count - 2) : _clocks)
-                    yield return (_shapeEruption, e.pos, new(), _eruptionStart + e.delay);
+                    yield return new(_shapeEruption, e.pos, new(), _eruptionStart + e.delay);
             }
         }
 

@@ -28,10 +28,10 @@ namespace BossMod.Endwalker.HuntA.Storsie
         private AOEShape? _imminentAOE;
         private DateTime _activation;
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_imminentAOE != null)
-                yield return (_imminentAOE, module.PrimaryActor.Position, module.PrimaryActor.CastInfo?.Rotation ?? module.PrimaryActor.Rotation, _activation);
+                yield return new(_imminentAOE, module.PrimaryActor.Position, module.PrimaryActor.CastInfo?.Rotation ?? module.PrimaryActor.Rotation, _activation);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

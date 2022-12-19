@@ -31,11 +31,11 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
 
         private static AOEShapeCone _shape = new(40, 45.Degrees()); // TODO: verify angle
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_sneezing)
                 foreach (var off in _pendingOffsets.Take(2))
-                    yield return (_shape, module.PrimaryActor.Position, _referenceAngle + off, new());
+                    yield return new(_shape, module.PrimaryActor.Position, _referenceAngle + off); // TODO: activation
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

@@ -48,13 +48,13 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D162DemonWall
     {
         private static AOEShapeRect _shape = new(50, 10);
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            yield return (_shape, module.PrimaryActor.Position, 180.Degrees(), new()); // area behind boss
+            yield return new(_shape, module.PrimaryActor.Position, 180.Degrees()); // area behind boss
 
             var pollen = module.Enemies(OID.Pollen).FirstOrDefault();
             if (pollen != null && pollen.EventState == 0)
-                yield return (_shape, new(200, -122), 0.Degrees(), new());
+                yield return new(_shape, new(200, -122));
         }
     }
 

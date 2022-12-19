@@ -33,10 +33,10 @@ namespace BossMod.Endwalker.HuntA.Gurangatch
 
         private static AOEShapeCone _shape = new(30, 90.Degrees());
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_remainingSlams > 0)
-                yield return (_shape, module.PrimaryActor.Position, _slamDir, new());
+                yield return new(_shape, module.PrimaryActor.Position, _slamDir); // TODO: activation
         }
 
         // TODO: this shouldn't be necessary...

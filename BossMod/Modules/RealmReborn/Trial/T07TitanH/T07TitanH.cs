@@ -75,12 +75,12 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
 
         public Geocrush() : base(ActionID.MakeSpell(AID.Geocrush)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_outer != null)
-                yield return (_outer, module.Bounds.Center, new(), new());
+                yield return new(_outer, module.Bounds.Center);
             if (_inner != null)
-                yield return (_inner, module.Bounds.Center, new(), _innerFinish);
+                yield return new(_inner, module.Bounds.Center, new(), _innerFinish);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -113,14 +113,14 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
     {
         public Burst() : base(ActionID.MakeSpell(AID.Burst), new AOEShapeCircle(6.3f)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             // pattern 1: one-by-one explosions every ~0.4-0.5s, 8 clockwise then center
             // pattern 2: center -> 4 cardinals at small offset ~1s later -> 4 intercardinals at bigger offset ~1s later
             // pattern 3: 3 in center line -> 3 in side line ~1.5s later -> 3 in other side line ~1.5s later
             // showing casts that end within 2.25s seems to deal with all patterns reasonably well
             var timeLimit = Casters.FirstOrDefault()?.CastInfo?.FinishAt.AddSeconds(2.25f) ?? new();
-            return Casters.TakeWhile(c => c.CastInfo!.FinishAt <= timeLimit).Select(c => (Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
+            return Casters.TakeWhile(c => c.CastInfo!.FinishAt <= timeLimit).Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
         }
     }
 

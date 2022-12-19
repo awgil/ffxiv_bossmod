@@ -26,14 +26,14 @@ namespace BossMod.Components
             Shape = new(radius);
         }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var l in Lines)
-                foreach (var (c, t) in ImminentAOEs(module, l))
-                    yield return (Shape, c, new(), t);
+                foreach (var (i, c, t) in ImminentAOEs(module, l))
+                    yield return new(Shape, c, activation: t, color: i == 0 ? ArenaColor.Danger : ArenaColor.AOE);
         }
 
-        protected IEnumerable<(WPos, DateTime)> ImminentAOEs(BossModule module, Line l)
+        protected IEnumerable<(int, WPos, DateTime)> ImminentAOEs(BossModule module, Line l)
         {
             int num = Math.Min(l.ExplosionsLeft, l.MaxShownExplosions);
             var pos = l.Next;
@@ -42,7 +42,7 @@ namespace BossMod.Components
                 time = module.WorldState.CurrentTime;
             for (int i = 0; i < num; ++i)
             {
-                yield return (pos, time);
+                yield return (i, pos, time);
                 pos += l.Advance;
                 time = time.AddSeconds(l.TimeToMove);
             }

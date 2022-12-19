@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace BossMod.Endwalker.Savage.P8S1Hephaistos
 {
@@ -9,10 +8,10 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
         private List<WPos> _centers = new();
         private static AOEShapeCircle _shape = new(23);
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var c in _centers)
-                yield return (_shape, c, new(), new());
+                yield return new(_shape, c);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

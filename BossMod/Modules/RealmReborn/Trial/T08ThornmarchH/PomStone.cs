@@ -10,14 +10,14 @@ namespace BossMod.RealmReborn.Trial.T08ThornmarchH
         private static AOEShapeDonut _shapeMid = new(10, 20);
         private static AOEShapeDonut _shapeOut = new(20, 30);
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_casters.Count > 0)
             {
                 var deadline = _casters[0].caster.CastInfo!.FinishAt.AddSeconds(1);
                 foreach (var c in _casters)
                     if (c.caster.CastInfo!.FinishAt < deadline)
-                        yield return (c.shape, c.caster.Position, c.caster.CastInfo.Rotation, c.caster.CastInfo.FinishAt);
+                        yield return new(c.shape, c.caster.Position, c.caster.CastInfo.Rotation, c.caster.CastInfo.FinishAt);
             }
         }
 

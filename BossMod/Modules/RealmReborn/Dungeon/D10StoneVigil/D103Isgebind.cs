@@ -52,11 +52,11 @@ namespace BossMod.RealmReborn.Dungeon.D10StoneVigil.D103Isgebind
 
         public Touchdown() : base(ActionID.MakeSpell(AID.Touchdown)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             // TODO: proper timings...
             if (!module.PrimaryActor.IsTargetable && !module.FindComponent<Cauterize>()!.ActiveCasters.Any())
-                yield return (_shape, module.Bounds.Center, new(), module.WorldState.CurrentTime);
+                yield return new(_shape, module.Bounds.Center);
         }
     }
 

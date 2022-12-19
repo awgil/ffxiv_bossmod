@@ -18,9 +18,9 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         public bool Active => Sources.Count > 0;
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return Sources.Select(s => (s.shape, s.source.Position, s.source.Rotation, s.activation));
+            return Sources.Select(s => new AOEInstance(s.shape, s.source.Position, s.source.Rotation, s.activation));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

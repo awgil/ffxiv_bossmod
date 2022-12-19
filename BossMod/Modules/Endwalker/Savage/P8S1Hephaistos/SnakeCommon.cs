@@ -10,9 +10,9 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
 
         public SnakingKick() : base(ActionID.MakeSpell(AID.SnakingKick)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            yield return (_shape, module.PrimaryActor.Position, new(), new());
+            yield return new(_shape, module.PrimaryActor.Position);
         }
     }
 

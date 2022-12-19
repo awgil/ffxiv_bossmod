@@ -47,9 +47,9 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
             _movedActors = module.Enemies(_movedOID);
         }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return _origins.Select(o => (_shape, o.pos, o.rot, o.activation));
+            return _origins.Select(o => new AOEInstance(_shape, o.pos, o.rot, o.activation));
         }
 
         public override void OnActorEAnim(BossModule module, Actor actor, uint state)

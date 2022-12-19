@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Unreal.Un2Sephirot
@@ -14,9 +13,9 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
 
         public EinSof() : base(ActionID.MakeSpell(AID.EinSofAOE)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return _active.Select(p => (_shape, p.Position, 0.Degrees(), module.WorldState.CurrentTime));
+            return _active.Select(p => new AOEInstance(_shape, p.Position));
         }
 
         public override void OnActorEAnim(BossModule module, Actor actor, uint state)

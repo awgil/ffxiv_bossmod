@@ -12,10 +12,10 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
 
         public WindingGale() : base(ActionID.MakeSpell(AID.WindingGale)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var c in _casters)
-                yield return (_shape, c.Position + _shape.OuterRadius * c.Rotation.ToDirection(), c.CastInfo!.Rotation, c.CastInfo.FinishAt);
+                yield return new(_shape, c.Position + _shape.OuterRadius * c.Rotation.ToDirection(), c.CastInfo!.Rotation, c.CastInfo.FinishAt);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

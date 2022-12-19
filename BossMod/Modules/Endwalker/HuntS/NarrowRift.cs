@@ -44,10 +44,10 @@ namespace BossMod.Endwalker.HuntS.NarrowRift
         private static AOEShapeCircle _shapeCircle = new(10);
         private static AOEShapeDonut _shapeDonut = new(6, 40);
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_pendingShapes.Count > 0)
-                yield return (_pendingShapes.First(), module.PrimaryActor.Position, new(), module.PrimaryActor.CastInfo?.FinishAt ?? module.WorldState.CurrentTime);
+                yield return new(_pendingShapes.First(), module.PrimaryActor.Position, new(), module.PrimaryActor.CastInfo?.FinishAt ?? module.WorldState.CurrentTime); // TODO: activation
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -85,10 +85,10 @@ namespace BossMod.Endwalker.HuntS.NarrowRift
         private DateTime _activation;
         private static AOEShapeRect _shape = new(50, 4);
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_activation != new DateTime())
-                yield return (_shape, module.PrimaryActor.Position, module.PrimaryActor.Rotation, _activation);
+                yield return new(_shape, module.PrimaryActor.Position, module.PrimaryActor.Rotation, _activation);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

@@ -32,10 +32,10 @@ namespace BossMod.Endwalker.HuntS.Ruminator
         private bool _active;
         private List<AOEShape> _pendingShapes = new();
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_active && _pendingShapes.Count > 0)
-                yield return (_pendingShapes.First(), module.PrimaryActor.Position, new(), new());
+                yield return new(_pendingShapes.First(), module.PrimaryActor.Position); // TODO: activation
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

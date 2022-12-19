@@ -14,10 +14,10 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         public P4CeruleumVent() : base(ActionID.MakeSpell(AID.CeruleumVent)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_source != null)
-                yield return (_shape, _source.Position, _source.Rotation, _activation);
+                yield return new(_shape, _source.Position, _source.Rotation, _activation);
         }
 
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)

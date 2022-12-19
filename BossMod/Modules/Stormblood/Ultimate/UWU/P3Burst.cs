@@ -13,13 +13,13 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         public P3Burst() : base(ActionID.MakeSpell(AID.Burst)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var b in _bombs)
             {
                 var activation = _bombActivation.GetValueOrDefault(b.InstanceID);
                 if (activation != null)
-                    yield return (_shape, b.Position, b.Rotation, b.CastInfo?.FinishAt ?? activation.Value);
+                    yield return new(_shape, b.Position, b.Rotation, b.CastInfo?.FinishAt ?? activation.Value);
             }
         }
 

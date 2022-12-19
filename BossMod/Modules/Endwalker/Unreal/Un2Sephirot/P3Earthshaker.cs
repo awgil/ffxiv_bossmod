@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Unreal.Un2Sephirot
@@ -14,7 +13,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
 
         public P3Earthshaker() : base(ActionID.MakeSpell(AID.EarthShakerAOE)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             var origin = module.Enemies(OID.BossP3).FirstOrDefault();
             if (origin == null)
@@ -22,7 +21,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
 
             // TODO: timing...
             foreach (var target in module.Raid.WithSlot(true).IncludedInMask(_targets))
-                yield return (_shape, origin.Position, Angle.FromDirection(target.Item2.Position - origin.Position), module.WorldState.CurrentTime);
+                yield return new(_shape, origin.Position, Angle.FromDirection(target.Item2.Position - origin.Position));
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)

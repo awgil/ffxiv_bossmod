@@ -7,6 +7,26 @@ namespace BossMod.Components
     // generic component that shows arbitrary shapes representing avoidable aoes
     public abstract class GenericAOEs : CastCounter
     {
+        public struct AOEInstance
+        {
+            public AOEShape Shape;
+            public WPos Origin;
+            public Angle Rotation;
+            public DateTime Activation;
+            public uint Color;
+            public bool Risky;
+
+            public AOEInstance(AOEShape shape, WPos origin, Angle rotation = new(), DateTime activation = new(), uint color = ArenaColor.AOE, bool risky = true)
+            {
+                Shape = shape;
+                Origin = origin;
+                Rotation = rotation;
+                Activation = activation;
+                Color = color;
+                Risky = risky;
+            }
+        }
+
         private string _warningText;
 
         public GenericAOEs(ActionID aid = new(), string warningText = "GTFO from aoe!") : base(aid)
@@ -14,24 +34,25 @@ namespace BossMod.Components
             _warningText = warningText;
         }
 
-        public abstract IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor);
+        public abstract IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (ActiveAOEs(module, slot, actor).Any(c => c.shape.Check(actor.Position, c.origin, c.rotation)))
+            if (ActiveAOEs(module, slot, actor).Any(c => c.Risky && c.Shape.Check(actor.Position, c.Origin, c.Rotation)))
                 hints.Add(_warningText);
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             foreach (var c in ActiveAOEs(module, slot, actor))
-                hints.AddForbiddenZone(c.shape, c.origin, c.rotation, c.time);
+                if (c.Risky)
+                    hints.AddForbiddenZone(c.Shape, c.Origin, c.Rotation, c.Activation);
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var c in ActiveAOEs(module, pcSlot, pc))
-                c.shape.Draw(arena, c.origin, c.rotation);
+                c.Shape.Draw(arena, c.Origin, c.Rotation, c.Color);
         }
     }
 
@@ -50,9 +71,9 @@ namespace BossMod.Components
             MaxCasts = maxCasts;
         }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return ActiveCasters.Select(c => (Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
+            return ActiveCasters.Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -83,9 +104,9 @@ namespace BossMod.Components
             MaxCasts = maxCasts;
         }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return ActiveCasters.Select(c => (Shape, c.Position, c.Rotation, c.CastInfo!.FinishAt));
+            return ActiveCasters.Select(c => new AOEInstance(Shape, c.Position, c.Rotation, c.CastInfo!.FinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -113,10 +134,10 @@ namespace BossMod.Components
             Shape = new(radius);
         }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var c in _casters)
-                yield return (Shape, c.CastInfo!.LocXZ, new(), c.CastInfo!.FinishAt);
+                yield return new(Shape, c.CastInfo!.LocXZ, activation: c.CastInfo.FinishAt);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -144,9 +165,9 @@ namespace BossMod.Components
             HalfWidth = halfWidth;
         }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return Casters.Select(csr => (csr.shape, csr.caster.Position, csr.direction, csr.caster.CastInfo!.FinishAt));
+            return Casters.Select(csr => new AOEInstance(csr.shape, csr.caster.Position, csr.direction, csr.caster.CastInfo!.FinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -161,7 +182,7 @@ namespace BossMod.Components
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction)
-                _casters.RemoveAll(e => e.Item1 == caster);
+                _casters.RemoveAll(e => e.caster == caster);
         }
     }
 }

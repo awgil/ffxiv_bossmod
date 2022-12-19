@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod.Components
 {
@@ -16,10 +15,10 @@ namespace BossMod.Components
             Sources = sources;
         }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var s in Sources(module))
-                yield return (Shape, s.Position, new(), new());
+                yield return new(Shape, s.Position);
         }
     }
 
@@ -40,14 +39,14 @@ namespace BossMod.Components
             CastEventToSpawn = castEventToSpawn;
         }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var p in _predictedByEvent)
-                yield return (Shape, p.pos, new(), p.time);
+                yield return new(Shape, p.pos, activation: p.time);
             foreach (var p in _predictedByCast)
-                yield return (Shape, module.WorldState.Actors.Find(p.caster.CastInfo!.TargetID)?.Position ?? p.caster.CastInfo.LocXZ, new(), p.time);
+                yield return new(Shape, module.WorldState.Actors.Find(p.caster.CastInfo!.TargetID)?.Position ?? p.caster.CastInfo.LocXZ, activation: p.time);
             foreach (var z in Sources(module))
-                yield return (Shape, z.Position, new(), new());
+                yield return new(Shape, z.Position);
         }
 
         public override void Update(BossModule module)

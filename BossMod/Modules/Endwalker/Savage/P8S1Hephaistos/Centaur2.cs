@@ -31,10 +31,10 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
 
         public QuadrupedalCrush() : base(ActionID.MakeSpell(AID.QuadrupedalCrushAOE)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_source != null)
-                yield return (_shape, _source.Value, new(), _activation);
+                yield return new(_shape, _source.Value, new(), _activation);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

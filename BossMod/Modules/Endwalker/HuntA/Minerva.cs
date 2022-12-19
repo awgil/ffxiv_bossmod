@@ -29,10 +29,10 @@ namespace BossMod.Endwalker.HuntA.Minerva
         private Actor? _activeTarget;
         private WPos _activeLocation = new();
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_activeMissile != null)
-                yield return (_activeMissile, _activeTarget?.Position ?? _activeLocation, new(), new());
+                yield return new(_activeMissile, _activeTarget?.Position ?? _activeLocation);
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)

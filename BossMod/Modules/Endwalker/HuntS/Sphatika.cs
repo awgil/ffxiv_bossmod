@@ -58,10 +58,10 @@ namespace BossMod.Endwalker.HuntS.Sphatika
         private List<Angle> _pendingCleaves = new();
         private static AOEShapeCone _shape = new(40, 90.Degrees());
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_pendingCleaves.Count > 0)
-                yield return (_shape, module.PrimaryActor.Position, _pendingCleaves.First(), new());
+                yield return new(_shape, module.PrimaryActor.Position, _pendingCleaves.First()); // TODO: activation
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
@@ -12,10 +11,10 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
 
         public StarvingStampede() : base(ActionID.MakeSpell(AID.StarvingStampede)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             // TODO: timings...
-            return _positions.Skip(NumCasts).Take(3).Select(p => (_shape, p, new Angle(), module.WorldState.CurrentTime));
+            return _positions.Skip(NumCasts).Take(3).Select(p => new AOEInstance(_shape, p));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

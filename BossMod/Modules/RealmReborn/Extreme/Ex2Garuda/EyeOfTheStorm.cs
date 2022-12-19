@@ -13,10 +13,10 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
 
         public bool Active(BossModule module) => _caster?.CastInfo != null || _nextCastAt > module.WorldState.CurrentTime;
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_caster != null)
-                yield return (_shape, _caster.Position, new(), _nextCastAt);
+                yield return new(_shape, _caster.Position, new(), _nextCastAt);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

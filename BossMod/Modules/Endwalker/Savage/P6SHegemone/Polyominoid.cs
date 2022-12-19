@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P6SHegemone
@@ -22,10 +21,10 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
 
         public Polyominoid() : base(ActionID.MakeSpell(AID.PolyominousDark)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             // TODO: timing...
-            return _dangerCells.SetBits().Select(index => (_shape, IndexToPosition(index), 0.Degrees(), module.WorldState.CurrentTime));
+            return _dangerCells.SetBits().Select(index => new AOEInstance(_shape, IndexToPosition(index)));
         }
 
         public override void Update(BossModule module)

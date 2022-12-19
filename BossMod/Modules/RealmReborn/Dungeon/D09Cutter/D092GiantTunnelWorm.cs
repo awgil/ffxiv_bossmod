@@ -32,11 +32,11 @@ namespace BossMod.RealmReborn.Dungeon.D09Cutter.D092GiantTunnelWorm
 
         public Submerge() : base(ActionID.MakeSpell(AID.Earthbreak)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             // TODO: proper timings...
             if (!module.PrimaryActor.IsTargetable)
-                yield return (_shape, module.PrimaryActor.Position, module.PrimaryActor.Rotation, module.WorldState.CurrentTime);
+                yield return new(_shape, module.PrimaryActor.Position, module.PrimaryActor.Rotation);
         }
     }
 

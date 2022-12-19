@@ -18,19 +18,19 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         public bool CastsActive => _casters.Count > 0;
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (PredictedSource != null)
             {
-                yield return (ShapeBoss, PredictedSource.Position, PredictedSource.Rotation, PredictedActivation);
-                yield return (ShapeHelper, PredictedSource.Position, PredictedSource.Rotation + 45.Degrees(), PredictedActivation);
-                yield return (ShapeHelper, PredictedSource.Position, PredictedSource.Rotation - 45.Degrees(), PredictedActivation);
-                yield return (ShapeHelper, PredictedSource.Position, PredictedSource.Rotation + 135.Degrees(), PredictedActivation);
-                yield return (ShapeHelper, PredictedSource.Position, PredictedSource.Rotation - 135.Degrees(), PredictedActivation);
+                yield return new(ShapeBoss, PredictedSource.Position, PredictedSource.Rotation, PredictedActivation);
+                yield return new(ShapeHelper, PredictedSource.Position, PredictedSource.Rotation + 45.Degrees(), PredictedActivation);
+                yield return new(ShapeHelper, PredictedSource.Position, PredictedSource.Rotation - 45.Degrees(), PredictedActivation);
+                yield return new(ShapeHelper, PredictedSource.Position, PredictedSource.Rotation + 135.Degrees(), PredictedActivation);
+                yield return new(ShapeHelper, PredictedSource.Position, PredictedSource.Rotation - 135.Degrees(), PredictedActivation);
             }
 
             foreach (var c in _casters)
-                yield return ((OID)c.OID == OID.Titan ? ShapeBoss : ShapeHelper, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt);
+                yield return new((OID)c.OID == OID.Titan ? ShapeBoss : ShapeHelper, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

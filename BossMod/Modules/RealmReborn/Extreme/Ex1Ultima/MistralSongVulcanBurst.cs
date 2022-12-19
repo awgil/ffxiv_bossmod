@@ -13,10 +13,10 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
 
         public MistralSongVulcanBurst() : base(ActionID.MakeSpell(AID.MistralSong)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (Active)
-                yield return (_shape, _garuda!.Position, _garuda!.Rotation, _resolve);
+                yield return new(_shape, _garuda!.Position, _garuda!.Rotation, _resolve);
         }
 
         public override void Update(BossModule module)

@@ -13,9 +13,9 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         public P4Freefire() : base(ActionID.MakeSpell(AID.FreefireIntermission)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return _casters.Select(c => (_shape, c.Position, 0.Degrees(), _activation));
+            return _casters.Select(c => new AOEInstance(_shape, c.Position, 0.Degrees(), _activation));
         }
 
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)

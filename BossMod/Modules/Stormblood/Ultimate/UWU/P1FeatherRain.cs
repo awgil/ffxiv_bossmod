@@ -18,12 +18,12 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         public P1FeatherRain() : base(ActionID.MakeSpell(AID.FeatherRain), "GTFO from puddle!") { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var p in _predicted)
-                yield return (_shape, p, new(), _activation);
+                yield return new(_shape, p, new(), _activation);
             foreach (var c in _casters)
-                yield return (_shape, c.CastInfo!.LocXZ, new(), c.CastInfo!.FinishAt);
+                yield return new(_shape, c.CastInfo!.LocXZ, new(), c.CastInfo!.FinishAt);
         }
 
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)

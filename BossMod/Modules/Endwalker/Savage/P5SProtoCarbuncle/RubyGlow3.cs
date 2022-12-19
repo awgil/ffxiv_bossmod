@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
 {
@@ -11,7 +10,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
         // note: it's somewhat simpler to count casts rather than activating/deactivating stones
         public RubyGlow3() : base(ActionID.MakeSpell(AID.RubyReflectionQuarter)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             var aoeQuadrants = NumCasts switch
             {
@@ -23,7 +22,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
             };
             // TODO: correct explosion time
             foreach (var q in aoeQuadrants.SetBits())
-                yield return (ShapeQuadrant, QuadrantCenter(module, q), 0.Degrees(), module.WorldState.CurrentTime);
+                yield return new(ShapeQuadrant, QuadrantCenter(module, q));
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)

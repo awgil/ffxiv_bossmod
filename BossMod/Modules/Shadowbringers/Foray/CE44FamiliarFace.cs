@@ -77,10 +77,10 @@ namespace BossMod.Shadowbringers.Foray.CE44FamiliarFace
         private List<(Actor caster, float offset)> _casters = new();
         private static AOEShapeRect _shape = new(60, 18);
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var c in _casters)
-                yield return (_shape, c.caster.Position + c.offset * c.caster.CastInfo!.Rotation.ToDirection().OrthoL(), c.caster.CastInfo.Rotation, c.caster.CastInfo.FinishAt);
+                yield return new(_shape, c.caster.Position + c.offset * c.caster.CastInfo!.Rotation.ToDirection().OrthoL(), c.caster.CastInfo.Rotation, c.caster.CastInfo.FinishAt);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

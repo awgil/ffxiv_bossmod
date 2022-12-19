@@ -14,10 +14,10 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
 
         public CrimsonCyclone() : base(ActionID.MakeSpell(AID.CrimsonCyclone)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_ifrit != null)
-                yield return (_shape, _ifrit.Position, _ifrit.Rotation, _resolve);
+                yield return new(_shape, _ifrit.Position, _ifrit.Rotation, _resolve);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

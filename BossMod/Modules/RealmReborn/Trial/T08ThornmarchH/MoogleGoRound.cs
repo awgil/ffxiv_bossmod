@@ -9,9 +9,9 @@ namespace BossMod.RealmReborn.Trial.T08ThornmarchH
         private List<Actor> _casters = new();
         private static AOEShape _shape = new AOEShapeCircle(20);
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return _casters.Take(2).Select(c => (_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
+            return _casters.Take(2).Select(c => new AOEInstance(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

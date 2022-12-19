@@ -13,11 +13,11 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         private static AOEShapeCircle _freefireShape = new(6);
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, System.DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (CurState == State.Fetters && !_targets[slot])
-                foreach (var target in module.Raid.WithSlot(true).IncludedInMask(_targets))
-                    yield return (_freefireShape, target.Item2.Position, new(), new());
+                foreach (var (_, target) in module.Raid.WithSlot(true).IncludedInMask(_targets))
+                    yield return new(_freefireShape, target.Position);
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)

@@ -13,14 +13,14 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
 
         private static AOEShapeRect _shape = new(35, 6);
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (Target != null)
             {
                 if (module.PrimaryActor.CastInfo == null)
-                    yield return (_shape, module.PrimaryActor.Position, Angle.FromDirection(Target.Value - module.PrimaryActor.Position), HitAt);
+                    yield return new(_shape, module.PrimaryActor.Position, Angle.FromDirection(Target.Value - module.PrimaryActor.Position), HitAt);
                 else
-                    yield return (_shape, module.PrimaryActor.Position, module.PrimaryActor.CastInfo.Rotation, module.PrimaryActor.CastInfo.FinishAt);
+                    yield return new(_shape, module.PrimaryActor.Position, module.PrimaryActor.CastInfo.Rotation, module.PrimaryActor.CastInfo.FinishAt);
             }
         }
 

@@ -32,10 +32,10 @@ namespace BossMod.Endwalker.HuntA.Yilan
         private static AOEShapeCircle _miniLight = new(18);
         private static float _marchDistance = 12;
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if ((module.PrimaryActor.CastInfo?.IsSpell(AID.MiniLight) ?? false) || MarchDirection(actor) != SID.None)
-                yield return (_miniLight, module.PrimaryActor.Position, new(), new());
+                yield return new(_miniLight, module.PrimaryActor.Position); // TODO: activation
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)

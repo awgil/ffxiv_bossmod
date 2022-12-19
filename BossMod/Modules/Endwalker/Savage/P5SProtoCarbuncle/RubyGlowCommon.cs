@@ -58,10 +58,10 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
             return w;
         }
 
-        public IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActivePoisonAOEs(BossModule module)
+        public IEnumerable<AOEInstance> ActivePoisonAOEs(BossModule module)
         {
             // TODO: correct explosion time
-            return PoisonStones.Select(o => (ShapePoison, o.Position, 0.Degrees(), module.WorldState.CurrentTime));
+            return PoisonStones.Select(o => new AOEInstance(ShapePoison, o.Position));
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

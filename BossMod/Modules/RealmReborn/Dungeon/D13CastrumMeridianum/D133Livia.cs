@@ -60,12 +60,12 @@ namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia
 
         public Roundhouse() : base(ActionID.MakeSpell(AID.Roundhouse)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_castersRoundhouse.Count > 0)
-                return _castersRoundhouse.Select(c => (_shapeRoundhouse, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
+                return _castersRoundhouse.Select(c => new AOEInstance(_shapeRoundhouse, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
             else
-                return _castersDischarge.Select(c => (_shapeDischarge, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
+                return _castersDischarge.Select(c => new AOEInstance(_shapeDischarge, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -100,25 +100,25 @@ namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia
 
         public InfiniteReach() : base(ActionID.MakeSpell(AID.InfiniteReachDischarge)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             bool haveSets = false;
             int currentSet = NumCasts / 6;
             foreach (var c in _castersRect.Skip(currentSet).Take(1).OfType<Actor>())
             {
                 haveSets = true;
-                yield return (_shapeRect, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt);
+                yield return new(_shapeRect, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt);
             }
             foreach (var c in _castersDischarge.Skip(currentSet * 6).Take(6).OfType<Actor>())
             {
                 haveSets = true;
-                yield return (_shapeDischarge, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt);
+                yield return new(_shapeDischarge, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt);
             }
             if (!haveSets)
             {
                 foreach (var c in _castersSalamander.OfType<Actor>())
                 {
-                    yield return (_shapeSalamander, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt);
+                    yield return new(_shapeSalamander, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt);
                 }
             }
         }
@@ -158,12 +158,12 @@ namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia
 
         public StunningSweep() : base(ActionID.MakeSpell(AID.StunningSweep)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_castersSweepDischarge.Count > 0)
-                return _castersSweepDischarge.Select(c => (_shapeSweepDischarge, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
+                return _castersSweepDischarge.Select(c => new AOEInstance(_shapeSweepDischarge, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
             else
-                return _castersThermobaric.Select(c => (_shapeThermobaric, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
+                return _castersThermobaric.Select(c => new AOEInstance(_shapeThermobaric, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -194,12 +194,12 @@ namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia
 
         public AngrySalamander() : base(ActionID.MakeSpell(AID.AngrySalamander)) { }
 
-        public override IEnumerable<(AOEShape shape, WPos origin, Angle rotation, DateTime time)> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var c in _castersSalamander)
-                yield return (_shapeSalamander, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt);
+                yield return new(_shapeSalamander, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt);
             foreach (var c in _castersThermobaric)
-                yield return (_shapeThermobaric, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt);
+                yield return new(_shapeThermobaric, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
