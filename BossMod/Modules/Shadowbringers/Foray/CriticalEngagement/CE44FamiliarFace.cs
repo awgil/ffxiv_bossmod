@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace BossMod.Shadowbringers.Foray.CE44FamiliarFace
+namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
 {
     public enum OID : uint
     {
@@ -134,6 +130,11 @@ namespace BossMod.Shadowbringers.Foray.CE44FamiliarFace
 
     }
 
+    class Hammerfall : Components.SelfTargetedAOEs
+    {
+        public Hammerfall() : base(ActionID.MakeSpell(AID.Hammerfall), new AOEShapeCircle(37)) { }
+    }
+
     // TODO: roxxor component
     class CE44FamiliarFaceStates : StateMachineBuilder
     {
@@ -146,7 +147,8 @@ namespace BossMod.Shadowbringers.Foray.CE44FamiliarFace
                 .ActivateOnEnter<ControlTowerAppear>()
                 .ActivateOnEnter<Towerfall>()
                 .ActivateOnEnter<ExtremeEdge>()
-                .ActivateOnEnter<IntractableLand>();
+                .ActivateOnEnter<IntractableLand>()
+                .ActivateOnEnter<Hammerfall>();
         }
     }
 

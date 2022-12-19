@@ -22,6 +22,7 @@ namespace BossMod.Endwalker.HuntA.Petalodus
         public MarineMayhem() : base(ActionID.MakeSpell(AID.MarineMayhem), "Interruptible raidwide") { }
     }
 
+    // TODO: generalize (outdoor spread)
     class Waterga : Components.CastHint
     {
         private static float _radius = 6;
