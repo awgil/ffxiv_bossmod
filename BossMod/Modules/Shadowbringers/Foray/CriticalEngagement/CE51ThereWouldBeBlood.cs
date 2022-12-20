@@ -21,7 +21,8 @@
         Teleport = 23580, // Boss->location, no cast, teleport
         GaleCannon = 21475, // Boss->self, 5.0s cast, range 30 width 12 rect aoe
 
-        //FlightOfTheMalefic1 = 24810, // Boss->self, 7.0s cast, single-target
+        FlightOfTheMalefic1 = 24810, // Boss->self, 7.0s cast, single-target, visual (45, -45, -135)
+        //FlightOfTheMalefic2 = 24811, // Boss->self, 7.0s cast, single-target, visual (-45, -135, 135)
         FlightOfTheMalefic3 = 24812, // Boss->self, 7.0s cast, single-target, visual (45, -45, 135)
         FlightOfTheMalefic4 = 24813, // Boss->self, 7.0s cast, single-target, visual (45, -135, 135)
         FlightOfTheMaleficAOECone = 23579, // Helper->self, 7.0s cast, range 30 90-degree cone aoe

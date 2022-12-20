@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalry
 {
@@ -12,9 +8,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
         Helper = 0x233C, // R0.500, x4
         ImperialAssaultCraft = 0x2EE8, // R0.500, x22, also helper?
         Cavalry = 0x31C6, // R4.000, x9, and more spawn during fight
+        FireShot = 0x1EB1D3, // R0.500, EventObj type, spawn during fight
         //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x2, EventObj type
         //_Gen_Actor1eb174 = 0x1EB174, // R0.500, x0, EventObj type, and more spawn during fight
-        FireShot = 0x1EB1D3, // R0.500, EventObj type, spawn during fight
     };
 
     public enum AID : uint

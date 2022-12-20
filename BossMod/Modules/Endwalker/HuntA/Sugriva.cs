@@ -74,6 +74,7 @@ namespace BossMod.Endwalker.HuntA.Sugriva
         public Rip() : base(ActionID.MakeSpell(AID.Rip), new AOEShapeCone(8, 45.Degrees())) { } // TODO: verify angle, too few data points so far...
     }
 
+    // TODO: generalize to baited aoe
     class RockThrow : Components.GenericAOEs
     {
         private Actor? _target;

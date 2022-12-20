@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Components
 {
@@ -13,7 +14,6 @@ namespace BossMod.Components
         public bool OriginAtTarget { get; private init; }
         public DateTime NextExpected;
         private List<Actor> _enemies = new();
-        private BitMask _inAOE = new(); // excludes main target
 
         // enemy OID == 0 means 'primary actor'
         public Cleave(ActionID aid, AOEShape shape, uint enemyOID = 0, bool activeForUntargetable = false, bool originAtTarget = false, bool activeWhileCasting = true) : base(aid)
@@ -30,18 +30,9 @@ namespace BossMod.Components
             _enemies = module.Enemies(EnemyOID != 0 ? EnemyOID : module.PrimaryActor.OID);
         }
 
-        public override void Update(BossModule module)
-        {
-            _inAOE = new();
-            foreach (var (origin, target, angle) in OriginsAndTargets(module))
-            {
-                _inAOE |= module.Raid.WithSlot().Exclude(target).InShape(Shape, origin.Position, angle).Mask();
-            }
-        }
-
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_inAOE[slot])
+            if (OriginsAndTargets(module).Any(e => e.target != actor && Shape.Check(actor.Position, e.origin.Position, e.angle)))
             {
                 hints.Add("GTFO from cleave!");
             }
@@ -60,13 +51,13 @@ namespace BossMod.Components
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var (origin, target, angle) in OriginsAndTargets(module))
+            foreach (var e in OriginsAndTargets(module))
             {
-                Shape.Outline(arena, origin.Position, angle);
+                Shape.Outline(arena, e.origin.Position, e.angle);
             }
         }
 
-        private IEnumerable<(Actor, Actor, Angle)> OriginsAndTargets(BossModule module)
+        private IEnumerable<(Actor origin, Actor target, Angle angle)> OriginsAndTargets(BossModule module)
         {
             foreach (var enemy in _enemies)
             {
