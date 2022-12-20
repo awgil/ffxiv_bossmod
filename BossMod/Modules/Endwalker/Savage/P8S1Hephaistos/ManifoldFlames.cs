@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
 
         public override void Init(BossModule module)
         {
-            SpreadMask = module.Raid.WithSlot().Mask();
+            SpreadTargets.AddRange(module.Raid.WithoutSlot());
         }
     }
 

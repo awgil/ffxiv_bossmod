@@ -1,4 +1,6 @@
-﻿namespace BossMod.Endwalker.Savage.P8S1Hephaistos
+﻿using System.Linq;
+
+namespace BossMod.Endwalker.Savage.P8S1Hephaistos
 {
     // component dealing with tetra/octaflare mechanics (conceptual or not)
     class TetraOctaFlareCommon : Components.StackSpread
@@ -10,7 +12,10 @@
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID is AID.EmergentOctaflare or AID.EmergentTetraflare)
-                StackMask = SpreadMask = new();
+            {
+                StackTargets.Clear();
+                SpreadTargets.Clear();
+            }
         }
 
         protected void SetupMasks(BossModule module, Concept concept)
@@ -19,10 +24,10 @@
             {
                 case Concept.Tetra:
                     // note that targets are either all dps or all tanks/healers, it seems to be unknown until actual cast, so for simplicity assume it will target tanks/healers (not that it matters much in practice)
-                    StackMask = module.Raid.WithSlot().WhereActor(a => a.Role is Role.Tank or Role.Healer).Mask();
+                    StackTargets.AddRange(module.Raid.WithoutSlot().Where(a => a.Role is Role.Tank or Role.Healer));
                     break;
                 case Concept.Octa:
-                    SpreadMask = module.Raid.WithSlot().Mask();
+                    SpreadTargets.AddRange(module.Raid.WithoutSlot());
                     break;
             }
         }

@@ -16,6 +16,9 @@ namespace BossMod
             return mask;
         }
 
+        // convert slot+actor range into actor range
+        public static IEnumerable<Actor> Actors(this IEnumerable<(int, Actor)> range) => range.Select(indexActor => indexActor.Item2);
+
         // filter range with slot+actor by slot or by actor
         public static IEnumerable<(int, Actor)> WhereSlot(this IEnumerable<(int, Actor)> range, Func<int, bool> predicate)
         {
@@ -142,5 +145,8 @@ namespace BossMod
         // find closest actor to point
         public static Actor? Closest(this IEnumerable<Actor> range, WPos origin) => range.MinBy(a => (a.Position - origin).LengthSq());
         public static (int, Actor) Closest(this IEnumerable<(int, Actor)> range, WPos origin) => range.MinBy(ia => (ia.Item2.Position - origin).LengthSq());
+
+        // find farthest actor from point
+        public static Actor? Farthest(this IEnumerable<Actor> range, WPos origin) => range.MaxBy(a => (a.Position - origin).LengthSq());
     }
 }

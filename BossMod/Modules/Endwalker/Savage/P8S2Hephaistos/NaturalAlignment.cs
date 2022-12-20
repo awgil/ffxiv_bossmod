@@ -16,12 +16,13 @@ namespace BossMod.Endwalker.Savage.P8S2
 
         public override void Update(BossModule module)
         {
-            StackMask.Reset();
-            SpreadMask.Reset();
+            StackTargets.Clear();
+            SpreadTargets.Clear();
             if (CurMechanicProgress >= 2 || CurMechanicSource == null)
                 return;
 
             bool firstPart = CurMechanicProgress == (CurMechanicInverted ? 1 : 0);
+            var potentialTargets = module.Raid.WithoutSlot().Except(AvoidTargets).ToList();
             switch (CurMechanic)
             {
                 case Mechanic.StackSpread:
@@ -30,14 +31,14 @@ namespace BossMod.Endwalker.Savage.P8S2
                         StackRadius = 6;
                         MinStackSize = MaxStackSize = 6;
                         // no idea how stack target is actually selected, assume it is closest...
-                        var stackTarget = module.Raid.WithSlot().ExcludedFromMask(AvoidMask).Closest(CurMechanicSource.Position);
-                        if (stackTarget.Item2 != null)
-                            StackMask.Set(stackTarget.Item1);
+                        var stackTarget = potentialTargets.Closest(CurMechanicSource.Position);
+                        if (stackTarget != null)
+                            StackTargets.Add(stackTarget);
                     }
                     else
                     {
                         SpreadRadius = 6;
-                        SpreadMask = module.Raid.WithSlot().ExcludedFromMask(AvoidMask).Mask();
+                        SpreadTargets.AddRange(potentialTargets);
                     }
                     break;
                 case Mechanic.FireIce:
@@ -45,13 +46,13 @@ namespace BossMod.Endwalker.Savage.P8S2
                     {
                         StackRadius = 6;
                         MinStackSize = MaxStackSize = 2;
-                        StackMask = module.Raid.WithSlot().ExcludedFromMask(AvoidMask).SortedByRange(CurMechanicSource.Position).TakeLast(3).Mask();
+                        StackTargets.AddRange(potentialTargets.SortedByRange(CurMechanicSource.Position).TakeLast(3));
                     }
                     else
                     {
                         StackRadius = 5;
                         MinStackSize = MaxStackSize = 3;
-                        StackMask = module.Raid.WithSlot().ExcludedFromMask(AvoidMask).SortedByRange(CurMechanicSource.Position).Take(2).Mask();
+                        StackTargets.AddRange(potentialTargets.SortedByRange(CurMechanicSource.Position).Take(2));
                     }
                     break;
             }
@@ -83,7 +84,7 @@ namespace BossMod.Endwalker.Savage.P8S2
                     switch (status.Extra)
                     {
                         case 0x209: // initial application
-                            AvoidMask.Set(module.Raid.FindSlot(actor.InstanceID));
+                            AvoidTargets.Add(actor);
                             break;
                         case 0x1E0: // stack->spread filling progress bars
                         case 0x1E1: // stack->spread empty progress bars

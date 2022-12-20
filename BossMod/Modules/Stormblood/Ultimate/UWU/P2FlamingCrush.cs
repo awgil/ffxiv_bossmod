@@ -1,4 +1,6 @@
-﻿namespace BossMod.Stormblood.Ultimate.UWU
+﻿using System.Linq;
+
+namespace BossMod.Stormblood.Ultimate.UWU
 {
     class FlamingCrush : Components.StackSpread
     {
@@ -8,14 +10,16 @@
         {
             if (iconID == (uint)IconID.FlamingCrush)
             {
-                StackMask.Set(module.Raid.FindSlot(actor.InstanceID));
+                StackTargets.Add(actor);
             }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.FlamingCrush)
-                StackMask = AvoidMask = new();
+            {
+                StackTargets.Clear();
+            }
         }
     }
 
@@ -24,7 +28,8 @@
     {
         public override void Init(BossModule module)
         {
-            AvoidMask = module.FindComponent<P2SearingWind>()?.SpreadMask ?? new();
+            if (module.FindComponent<P2SearingWind>() is var searingWind && searingWind != null)
+                AvoidTargets.AddRange(searingWind.SpreadTargets);
         }
     }
 
@@ -36,7 +41,7 @@
     {
         public override void Init(BossModule module)
         {
-            AvoidMask = module.Raid.WithSlot(true).WhereActor(p => p.FindStatus(SID.ThermalLow) != null && p.Role != Role.Healer).Mask();
+            AvoidTargets.AddRange(module.Raid.WithoutSlot(true).Where(p => p.FindStatus(SID.ThermalLow) != null && p.Role != Role.Healer));
         }
     }
 }

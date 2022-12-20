@@ -22,16 +22,16 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
 
         public override void Init(BossModule module)
         {
-            SpreadMask = module.Raid.WithSlot(true).Mask();
+            SpreadTargets.AddRange(module.Raid.WithoutSlot(true));
         }
 
         public override void Update(BossModule module)
         {
-            if (SpreadMask.None())
+            if (SpreadTargets.Count == 0)
             {
-                StackMask.Reset();
-                if (module.Raid.WithSlot().Any())
-                    StackMask.Set(module.Raid.WithSlot().MaxBy(ia => (module.PrimaryActor.Position - ia.Item2.Position).LengthSq()).Item1);
+                StackTargets.Clear();
+                if (module.Raid.WithoutSlot().Farthest(module.PrimaryActor.Position) is var target && target != null)
+                    StackTargets.Add(target);
             }
         }
 
@@ -42,7 +42,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
                 hints.Add($"Bait order: {OrderPerSlot[slot]}", false);
             }
 
-            if (SpreadMask.Any())
+            if (SpreadTargets.Count > 0)
             {
                 // default implementation is fine during uplifts
                 base.AddHints(module, slot, actor, hints, movementHints);
@@ -50,7 +50,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
             else
             {
                 // custom hints for baiting stomps
-                bool isBaiting = StackMask[slot] || module.Raid.WithSlot().IncludedInMask(StackMask).InRadius(actor.Position, StackRadius).Any();
+                bool isBaiting = StackTargets.InRadius(actor.Position, StackRadius).Any();
                 bool shouldBait = OrderPerSlot[slot] == NumStomps + 1;
                 hints.Add(shouldBait ? "Bait jump!" : "Avoid jump!", isBaiting != shouldBait);
             }
@@ -61,11 +61,11 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
             switch ((AID)spell.Action.ID)
             {
                 case AID.Uplift:
+                    SpreadTargets.RemoveAll(a => a.InstanceID == spell.MainTargetID);
                     int slot = module.Raid.FindSlot(spell.MainTargetID);
                     if (slot >= 0)
                     {
-                        SpreadMask.Clear(slot);
-                        OrderPerSlot[slot] = 4 - SpreadMask.NumSetBits() / 2;
+                        OrderPerSlot[slot] = 4 - SpreadTargets.Count / 2;
                     }
                     ++NumUplifts;
                     break;

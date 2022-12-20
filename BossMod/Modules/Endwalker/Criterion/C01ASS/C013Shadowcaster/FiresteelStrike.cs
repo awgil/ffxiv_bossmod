@@ -7,8 +7,8 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
     {
         public int NumJumps { get; private set; }
         public int NumCleaves { get; private set; }
-        private List<int> _jumpTargets = new();
-        private BitMask _interceptMask;
+        private List<Actor> _jumpTargets = new();
+        private List<Actor> _interceptors = new();
 
         private static AOEShapeRect _cleaveShape = new(65, 4);
 
@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
 
         public override void Init(BossModule module)
         {
-            SpreadMask = module.Raid.WithSlot().Mask();
+            SpreadTargets.AddRange(module.Raid.WithoutSlot());
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
@@ -27,9 +27,9 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
             }
             else if (NumCleaves < _jumpTargets.Count)
             {
-                if (_jumpTargets[NumCleaves] == slot)
+                if (_jumpTargets[NumCleaves] == actor)
                     hints.Add("Hide behind someone!", !TargetIntercepted(module));
-                else if (_interceptMask[slot])
+                else if (_interceptors.Contains(actor))
                     hints.Add("Intercept next cleave!", !TargetIntercepted(module));
             }
         }
@@ -39,7 +39,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
             if (NumJumps < 2)
                 return base.CalcPriority(module, pcSlot, pc, playerSlot, player, ref customColor);
             else if (NumCleaves < _jumpTargets.Count)
-                return playerSlot == _jumpTargets[NumCleaves] ? PlayerPriority.Danger : PlayerPriority.Normal;
+                return player == _jumpTargets[NumCleaves] ? PlayerPriority.Danger : PlayerPriority.Normal;
             else
                 return PlayerPriority.Irrelevant;
         }
@@ -48,11 +48,8 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
         {
             if (NumJumps >= 2 && NumCleaves < _jumpTargets.Count)
             {
-                var target = module.Raid[_jumpTargets[NumCleaves]];
-                if (target != null)
-                {
-                    _cleaveShape.Draw(arena, module.PrimaryActor.Position, Angle.FromDirection(target.Position - module.PrimaryActor.Position), target == pc || _interceptMask[pcSlot] ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
-                }
+                var target = _jumpTargets[NumCleaves];
+                _cleaveShape.Draw(arena, module.PrimaryActor.Position, Angle.FromDirection(target.Position - module.PrimaryActor.Position), target == pc || _interceptors.Contains(pc) ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
             }
         }
 
@@ -64,19 +61,15 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
                 case AID.NFiresteelStrikeAOE2:
                 case AID.SFiresteelStrikeAOE1:
                 case AID.SFiresteelStrikeAOE2:
-                    if (spell.Targets.Count > 0)
+                    if ((spell.Targets.Count > 0 ? module.WorldState.Actors.Find(spell.Targets[0].ID) : null) is var target && target != null)
                     {
-                        var slot = module.Raid.FindSlot(spell.Targets[0].ID);
-                        if (slot >= 0)
-                        {
-                            _jumpTargets.Add(slot);
-                            SpreadMask.Clear(slot);
-                        }
+                        _jumpTargets.Add(target);
+                        SpreadTargets.Remove(target);
                     }
                     if (++NumJumps == 2)
                     {
-                        _interceptMask = SpreadMask;
-                        SpreadMask.Reset();
+                        // players that were not jumped on are now interceptors
+                        Utils.Swap(ref _interceptors, ref SpreadTargets);
                     }
                     break;
                 case AID.NBlessedBeaconAOE1:
@@ -84,7 +77,9 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
                 case AID.SBlessedBeaconAOE1:
                 case AID.SBlessedBeaconAOE2:
                     if (spell.Targets.Count > 0)
-                        _interceptMask.Clear(module.Raid.FindSlot(spell.Targets[0].ID));
+                    {
+                        _interceptors.RemoveAll(a => a.InstanceID == spell.Targets[0].ID);
+                    }
                     ++NumCleaves;
                     break;
             }
@@ -92,14 +87,14 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
 
         private bool TargetIntercepted(BossModule module)
         {
-            var target = NumCleaves < _jumpTargets.Count ? module.Raid[_jumpTargets[NumCleaves]] : null;
+            var target = NumCleaves < _jumpTargets.Count ? _jumpTargets[NumCleaves] : null;
             if (target == null)
                 return true;
 
             var toTarget = target.Position - module.PrimaryActor.Position;
             var angle = Angle.FromDirection(toTarget);
             var distSq = toTarget.LengthSq();
-            return module.Raid.WithSlot().IncludedInMask(_interceptMask).InShape(_cleaveShape, module.PrimaryActor.Position, angle).WhereActor(a => (a.Position - module.PrimaryActor.Position).LengthSq() < distSq).Any();
+            return _interceptors.InShape(_cleaveShape, module.PrimaryActor.Position, angle).Any(a => (a.Position - module.PrimaryActor.Position).LengthSq() < distSq);
         }
     }
 }

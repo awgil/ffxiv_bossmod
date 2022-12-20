@@ -6,26 +6,26 @@
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.BoldBoulder)
-                SpreadMask.Set(module.Raid.FindSlot(spell.TargetID));
+            if ((AID)spell.Action.ID == AID.BoldBoulder && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
+                SpreadTargets.Add(target);
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.BoldBoulder)
-                SpreadMask.Clear(module.Raid.FindSlot(spell.TargetID));
+                SpreadTargets.RemoveAll(a => a.InstanceID == spell.TargetID);
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if ((IconID)iconID == IconID.Trample)
-                StackMask.Set(module.Raid.FindSlot(actor.InstanceID));
+                StackTargets.Add(actor);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.Trample)
-                StackMask.Clear(module.Raid.FindSlot(spell.MainTargetID));
+                StackTargets.RemoveAll(a => a.InstanceID == spell.MainTargetID);
         }
     }
 }

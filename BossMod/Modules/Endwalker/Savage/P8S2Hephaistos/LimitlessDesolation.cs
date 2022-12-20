@@ -28,7 +28,7 @@ namespace BossMod.Endwalker.Savage.P8S2
 
         public override void Init(BossModule module)
         {
-            SpreadMask = module.Raid.WithSlot().Mask();
+            SpreadTargets.AddRange(module.Raid.WithoutSlot());
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
@@ -54,9 +54,8 @@ namespace BossMod.Endwalker.Savage.P8S2
             switch ((AID)spell.Action.ID)
             {
                 case AID.TyrantsFire:
-                    var slot = module.Raid.FindSlot(spell.MainTargetID);
-                    SpreadMask.Clear(slot);
-                    _waitingForTowers.Set(slot);
+                    SpreadTargets.RemoveAll(a => a.InstanceID == spell.MainTargetID);
+                    _waitingForTowers.Set(module.Raid.FindSlot(spell.MainTargetID));
                     ++NumAOEs;
                     break;
                 case AID.Burst:

@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Savage.P8S2
 
         public override void Init(BossModule module)
         {
-            SpreadMask = module.Raid.WithSlot().Mask();
+            SpreadTargets.AddRange(module.Raid.WithoutSlot());
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
@@ -58,7 +58,7 @@ namespace BossMod.Endwalker.Savage.P8S2
         {
             if ((AID)spell.Action.ID == AID.OrogenicDeformation)
             {
-                SpreadMask.Reset();
+                SpreadTargets.Clear();
                 _secondOrder.Set(module.Raid.FindSlot(spell.MainTargetID));
                 ++NumDeformations;
             }

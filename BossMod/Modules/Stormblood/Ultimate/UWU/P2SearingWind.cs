@@ -8,9 +8,10 @@
         {
             if ((AID)spell.Action.ID == AID.InfernoHowl)
             {
-                if (SpreadMask.None())
+                if (SpreadTargets.Count == 0)
                     ActivateAt = module.WorldState.CurrentTime.AddSeconds(8);
-                SpreadMask.Set(module.Raid.FindSlot(spell.TargetID));
+                if (module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
+                    SpreadTargets.Add(target);
             }
         }
 
@@ -18,13 +19,13 @@
         {
             if ((AID)spell.Action.ID == AID.SearingWind)
             {
-                var (targetSlot, target) = module.Raid.WithSlot(true).IncludedInMask(SpreadMask).Closest(spell.TargetXZ);
+                var target = SpreadTargets.Closest(spell.TargetXZ);
                 if (target != null)
                 {
                     var status = target.FindStatus(SID.SearingWind);
                     if (status == null || (status.Value.ExpireAt - module.WorldState.CurrentTime).TotalSeconds < 6)
                     {
-                        SpreadMask.Clear(targetSlot);
+                        SpreadTargets.Remove(target);
                     }
                 }
                 ActivateAt = module.WorldState.CurrentTime.AddSeconds(6);

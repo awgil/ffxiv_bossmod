@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Stormblood.Ultimate.UWU
 {
@@ -17,8 +18,11 @@ namespace BossMod.Stormblood.Ultimate.UWU
         {
             if ((AID)spell.Action.ID == AID.HomingLasers)
             {
-                AvoidMask.Reset();
-                AvoidMask.Set(module.Raid.FindSlot(spell.TargetID)); // update avoid target to homing laser target
+                // update avoid target to homing laser target
+                AvoidTargets.Clear();
+                var target = module.WorldState.Actors.Find(spell.TargetID);
+                if (target != null)
+                    AvoidTargets.Add(target);
             }
         }
 
@@ -27,14 +31,16 @@ namespace BossMod.Stormblood.Ultimate.UWU
             switch ((AID)spell.Action.ID)
             {
                 case AID.ViscousAetheroplasmApply:
-                    StackMask.Set(module.Raid.FindSlot(spell.MainTargetID));
-                    AvoidMask = module.Raid.WithSlot(true).WhereActor(a => a.InstanceID != spell.MainTargetID && a.Role == Role.Tank).Mask();
+                    var target = module.WorldState.Actors.Find(spell.MainTargetID);
+                    if (target != null)
+                        StackTargets.Add(target);
+                    AvoidTargets.AddRange(module.Raid.WithoutSlot(true).Where(a => a.InstanceID != spell.MainTargetID && a.Role == Role.Tank));
                     break;
                 case AID.ViscousAetheroplasmResolve:
-                    StackMask = AvoidMask = new();
+                    StackTargets.Clear();
                     break;
                 case AID.HomingLasers:
-                    AvoidMask.Reset();
+                    AvoidTargets.Clear();
                     break;
             }
         }
@@ -43,17 +49,17 @@ namespace BossMod.Stormblood.Ultimate.UWU
     class P5ViscousAetheroplasmTriple : Components.StackSpread
     {
         public int NumCasts { get; private set; }
-        private List<(int slot, DateTime resolve)> _aetheroplasms = new();
+        private List<(Actor target, DateTime resolve)> _aetheroplasms = new();
 
         public P5ViscousAetheroplasmTriple() : base(4, 0, 8) { }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-            if ((SID)status.ID == SID.ViscousAetheroplasm && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+            if ((SID)status.ID == SID.ViscousAetheroplasm)
             {
-                _aetheroplasms.Add((slot, status.ExpireAt));
+                _aetheroplasms.Add((actor, status.ExpireAt));
                 _aetheroplasms.SortBy(a => a.resolve);
-                UpdateStackMask();
+                UpdateStackTargets();
             }
         }
 
@@ -62,17 +68,17 @@ namespace BossMod.Stormblood.Ultimate.UWU
             if ((AID)spell.Action.ID == AID.ViscousAetheroplasmResolve)
             {
                 ++NumCasts;
-                _aetheroplasms.RemoveAll(a => module.Raid[a.slot]?.InstanceID == spell.MainTargetID);
-                UpdateStackMask();
+                _aetheroplasms.RemoveAll(a => a.target.InstanceID == spell.MainTargetID);
+                UpdateStackTargets();
             }
         }
 
-        private void UpdateStackMask()
+        private void UpdateStackTargets()
         {
-            StackMask.Reset();
+            StackTargets.Clear();
             if (_aetheroplasms.Count > 0)
             {
-                StackMask.Set(_aetheroplasms[0].slot);
+                StackTargets.Add(_aetheroplasms[0].target);
                 ActivateAt = _aetheroplasms[0].resolve;
             }
         }

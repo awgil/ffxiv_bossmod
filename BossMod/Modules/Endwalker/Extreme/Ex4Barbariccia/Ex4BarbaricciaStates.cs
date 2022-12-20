@@ -230,15 +230,15 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
             ComponentCondition<BrutalRush>(id + 0x110, 0.7f, comp => comp.NumCasts >= 4, "Charges")
                 .ActivateOnEnter<ImpactKnockback>()
                 .DeactivateOnExit<BrutalRush>();
-            ComponentCondition<BoldBoulderTrample>(id + 0x120, 0.3f, comp => comp.StackMask.Any())
+            ComponentCondition<BoldBoulderTrample>(id + 0x120, 0.3f, comp => comp.StackTargets.Count > 0)
                 .ActivateOnEnter<BoldBoulderTrample>();
             ComponentCondition<BlowAwayPuddle>(id + 0x130, 0.6f, comp => !comp.ActiveCasters.Any())
                 .DeactivateOnExit<BlowAwayPuddle>();
             ComponentCondition<ImpactAOE>(id + 0x200, 4.7f, comp => comp.NumCasts > 0, "Knockback")
                 .DeactivateOnExit<ImpactAOE>()
                 .DeactivateOnExit<ImpactKnockback>();
-            ComponentCondition<BoldBoulderTrample>(id + 0x201, 1.8f, comp => comp.SpreadMask.None(), "Flare");
-            ComponentCondition<BoldBoulderTrample>(id + 0x202, 0.3f, comp => comp.StackMask.None(), "Stack")
+            ComponentCondition<BoldBoulderTrample>(id + 0x201, 1.8f, comp => comp.SpreadTargets.Count == 0, "Flare");
+            ComponentCondition<BoldBoulderTrample>(id + 0x202, 0.3f, comp => comp.StackTargets.Count == 0, "Stack")
                 .DeactivateOnExit<BoldBoulderTrample>();
         }
 
@@ -433,13 +433,13 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
             ComponentCondition<TornadoChainOuter>(id + 0x51, 0.2f, comp => comp.NumCasts > 0, "In")
                 .ActivateOnEnter<WindingGale>()
                 .DeactivateOnExit<TornadoChainOuter>();
-            ComponentCondition<BoldBoulderTrample>(id + 0x52, 1.6f, comp => comp.StackMask.Any())
+            ComponentCondition<BoldBoulderTrample>(id + 0x52, 1.6f, comp => comp.StackTargets.Count > 0)
                 .ActivateOnEnter<BoldBoulderTrample>();
             ComponentCondition<WarningGale>(id + 0x53, 3.2f, comp => comp.NumCasts > 0, "Spirals")
                 .DeactivateOnExit<WarningGale>()
                 .DeactivateOnExit<WindingGale>();
-            ComponentCondition<BoldBoulderTrample>(id + 0x54, 2.7f, comp => comp.StackMask.None(), "Stack");
-            ComponentCondition<BoldBoulderTrample>(id + 0x55, 1, comp => comp.SpreadMask.None(), "Flare")
+            ComponentCondition<BoldBoulderTrample>(id + 0x54, 2.7f, comp => comp.StackTargets.Count == 0, "Stack");
+            ComponentCondition<BoldBoulderTrample>(id + 0x55, 1, comp => comp.SpreadTargets.Count == 0, "Flare")
                 .DeactivateOnExit<BoldBoulderTrample>();
         }
     }

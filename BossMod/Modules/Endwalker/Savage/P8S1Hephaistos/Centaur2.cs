@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P8S1Hephaistos
 {
@@ -63,13 +64,13 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.ConceptualDiflare)
-                StackMask = module.Raid.WithSlot().WhereActor(a => a.Role == Role.Healer).Mask();
+                StackTargets.AddRange(module.Raid.WithoutSlot().Where(a => a.Role == Role.Healer));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.EmergentDiflare)
-                StackMask = new();
+                StackTargets.Clear();
         }
     }
 

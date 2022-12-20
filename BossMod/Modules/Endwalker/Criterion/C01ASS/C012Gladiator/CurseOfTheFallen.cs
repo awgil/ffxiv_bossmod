@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
 {
     class CurseOfTheFallen : Components.StackSpread
     {
-        private BitMask _fallen;
-        private int _thunderous = -1;
-        private int _lingering = -1;
+        private List<Actor> _fallen = new();
+        private Actor? _thunderous;
+        private Actor? _lingering;
         private DateTime _spreadResolve;
         private DateTime _stackResolve;
         private bool _dirty;
@@ -19,16 +20,20 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
             {
                 _dirty = false;
 
-                SpreadMask = StackMask = AvoidMask = new();
-                if (_fallen.Any() && (_thunderous == -1 || _spreadResolve < _stackResolve))
+                SpreadTargets.Clear();
+                StackTargets.Clear();
+                AvoidTargets.Clear();
+
+                if (_fallen.Count > 0 && (_thunderous == null || _spreadResolve < _stackResolve))
                 {
-                    SpreadMask = _fallen;
+                    SpreadTargets.AddRange(_fallen);
                     ActivateAt = _spreadResolve;
                 }
-                else if (_thunderous != -1 && (_fallen.None() || _stackResolve < _spreadResolve))
+                else if (_thunderous != null && (_fallen.Count == 0 || _stackResolve < _spreadResolve))
                 {
-                    StackMask.Set(_thunderous);
-                    AvoidMask.Set(_lingering);
+                    StackTargets.Add(_thunderous);
+                    if (_lingering != null)
+                        AvoidTargets.Add(_lingering);
                     ActivateAt = _stackResolve;
                 }
             }
@@ -39,17 +44,17 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
             switch ((SID)status.ID)
             {
                 case SID.EchoOfTheFallen:
-                    _fallen.Set(module.Raid.FindSlot(actor.InstanceID));
+                    _fallen.Add(actor);
                     _spreadResolve = status.ExpireAt;
                     _dirty = true;
                     break;
                 case SID.ThunderousEcho:
-                    _thunderous = module.Raid.FindSlot(actor.InstanceID);
+                    _thunderous = actor;
                     _stackResolve = status.ExpireAt;
                     _dirty = true;
                     break;
                 case SID.LingeringEchoes:
-                    _lingering = module.Raid.FindSlot(actor.InstanceID);
+                    _lingering = actor;
                     _dirty = true;
                     break;
             }
@@ -61,17 +66,17 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
             {
                 case AID.NEchoOfTheFallen:
                 case AID.SEchoOfTheFallen:
-                    _fallen.Clear(module.Raid.FindSlot(spell.MainTargetID));
+                    _fallen.RemoveAll(a => a.InstanceID == spell.MainTargetID);
                     _dirty = true;
                     break;
                 case AID.NThunderousEcho:
                 case AID.SThunderousEcho:
-                    _thunderous = -1;
+                    _thunderous = null;
                     _dirty = true;
                     break;
                 case AID.NLingeringEcho:
                 case AID.SLingeringEcho:
-                    _lingering = -1;
+                    _lingering = null;
                     _dirty = true;
                     break;
             }

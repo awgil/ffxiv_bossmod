@@ -13,7 +13,6 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
     class ScreamOfTheFallen : Components.StackSpread
     {
         public int NumCasts { get; private set; }
-        private BitMask _first;
         private BitMask _second;
         private List<Actor> _towers = new();
 
@@ -24,14 +23,14 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             base.AddHints(module, slot, actor, hints, movementHints);
-            if (!SpreadMask[slot])
+            if (!IsSpreadTarget(actor))
                 hints.Add("Soak the tower!", !ActiveTowers(_second[slot]).Any(t => t.Position.InCircle(actor.Position, _towerRadius)));
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
-            if (!SpreadMask[pcSlot])
+            if (!IsSpreadTarget(pc))
                 foreach (var t in ActiveTowers(_second[pcSlot]))
                     arena.AddCircle(t.Position, _towerRadius, ArenaColor.Safe, 2);
         }
@@ -41,8 +40,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
             switch ((SID)status.ID)
             {
                 case SID.FirstInLine:
-                    _first.Set(module.Raid.FindSlot(actor.InstanceID));
-                    SpreadMask = _first;
+                    SpreadTargets.Add(actor);
                     break;
                 case SID.SecondInLine:
                     _second.Set(module.Raid.FindSlot(actor.InstanceID));
@@ -63,10 +61,11 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
                 switch (++NumCasts)
                 {
                     case 2:
-                        SpreadMask = _second;
+                        SpreadTargets.Clear();
+                        SpreadTargets.AddRange(module.Raid.WithSlot().IncludedInMask(_second).Actors());
                         break;
                     case 4:
-                        SpreadMask = new();
+                        SpreadTargets.Clear();
                         break;
                 }
             }

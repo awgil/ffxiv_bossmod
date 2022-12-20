@@ -156,8 +156,12 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
         public CloseQuarters() : base(ActionID.MakeSpell(AID.CloseQuartersAOE), new AOEShapeCircle(15)) { }
     }
 
+    class MagitekBlaster : Components.StackWithCastTargets
+    {
+        public MagitekBlaster() : base(ActionID.MakeSpell(AID.MagitekBlaster), 8) { }
+    }
+
     // TODO: far afield
-    // TODO: magitek blaster (generic outdoor stack component)
     class CE53HereComesTheCavalryStates : StateMachineBuilder
     {
         public CE53HereComesTheCavalryStates(BossModule module) : base(module)
@@ -172,7 +176,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
                 .ActivateOnEnter<RideDown>()
                 .ActivateOnEnter<CallRaze>()
                 .ActivateOnEnter<RawSteel>()
-                .ActivateOnEnter<CloseQuarters>();
+                .ActivateOnEnter<CloseQuarters>()
+                .ActivateOnEnter<MagitekBlaster>();
         }
     }
 

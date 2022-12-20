@@ -9,8 +9,9 @@
         {
             if (module.PrimaryActor.CastInfo != null)
             {
-                StackMask.Reset();
-                StackMask.Set(module.Raid.FindSlot(module.PrimaryActor.TargetID));
+                StackTargets.Clear();
+                if (module.WorldState.Actors.Find(module.PrimaryActor.TargetID) is var target && target != null)
+                    StackTargets.Add(target);
             }
         }
     }

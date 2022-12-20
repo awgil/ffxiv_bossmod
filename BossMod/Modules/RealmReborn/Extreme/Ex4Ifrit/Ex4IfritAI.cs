@@ -27,7 +27,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         protected int TankVulnStacks(Actor? tank) => tank?.FindStatus(SID.Suppuration)?.Extra ?? 0;
         protected bool EruptionActive => _eruption?.Casters.Count > 0;
         protected bool IsEruptionBaiter(int slot) => _eruption != null && _eruption.Baiters[slot];
-        protected bool IsSearingWindTarget(int slot) => _searingWind != null && _searingWind.SpreadMask[slot];
+        protected bool IsSearingWindTarget(Actor actor) => _searingWind?.IsSpreadTarget(actor) ?? false;
         protected bool IsFettered(int slot) => _infernalFetters != null && _infernalFetters.Fetters[slot];
         protected int IncinerateCount => _incinerate?.NumCasts ?? 0;
 
@@ -145,7 +145,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 // - healer stays opposite MT far enough away to not be affected by eruptions
                 // - caster stays behind dd camp, so that eruptions at melee won't force him to move and out of range of knockbacks
                 // - healer with searing winds moves opposite at 45 degrees, so that other healer won't be knocked into searing winds
-                if (IsSearingWindTarget(slot))
+                if (IsSearingWindTarget(actor))
                 {
                     // consider possible spots:
                     // - at +135 degrees - gives lots of space to OT eruption baits, but can't heal MT
@@ -270,7 +270,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 else if (module.PrimaryActor.TargetID != actor.InstanceID)
                 {
                     bool invertedSW = NailKillOrder.Count <= MinNailsForCWSearingWinds;
-                    if (IsSearingWindTarget(slot))
+                    if (IsSearingWindTarget(actor))
                     {
                         var dir = !actor.Position.InCircle(module.Bounds.Center, 10) ? Angle.FromDirection(actor.Position - module.Bounds.Center)
                             : bossAngle + (invertedSW ? -105 : 105).Degrees();
@@ -393,7 +393,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 boss.PreferProvoking = boss.ShouldBeTanked = assignment == BossTankRole;
             }
 
-            if (IsSearingWindTarget(slot))
+            if (IsSearingWindTarget(actor))
             {
                 AddPositionHint(hints, module.Bounds.Center - _safespotOffset);
             }

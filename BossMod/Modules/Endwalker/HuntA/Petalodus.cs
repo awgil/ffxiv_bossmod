@@ -22,31 +22,9 @@ namespace BossMod.Endwalker.HuntA.Petalodus
         public MarineMayhem() : base(ActionID.MakeSpell(AID.MarineMayhem), "Interruptible raidwide") { }
     }
 
-    // TODO: generalize (outdoor spread)
-    class Waterga : Components.CastHint
+    class Waterga : Components.SpreadFromCastTargets
     {
-        private static float _radius = 6;
-
-        public Waterga() : base(ActionID.MakeSpell(AID.Waterga), "Spread") { }
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (Targets(module).Any(t => t != actor && actor.Position.InCircle(t.Position, _radius)))
-                hints.Add("GTFO from spread marker!");
-        }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            foreach (var t in Targets(module))
-                arena.AddCircle(t.Position, _radius, ArenaColor.Danger);
-        }
-
-        private IEnumerable<Actor> Targets(BossModule module)
-        {
-            foreach (var c in Casters)
-                if (module.WorldState.Actors.Find(c.CastInfo!.TargetID) is var t && t != null)
-                    yield return t;
-        }
+        public Waterga() : base(ActionID.MakeSpell(AID.Waterga), 6) { }
     }
 
     class TidalGuillotine : Components.SelfTargetedAOEs

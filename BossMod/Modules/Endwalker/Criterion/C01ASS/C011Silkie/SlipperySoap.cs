@@ -153,7 +153,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
             if (actor == module.PrimaryActor && SlipperySoap.ColorForStatus(status.ID) == SlipperySoap.Color.Yellow)
-                SpreadMask = module.Raid.WithSlot().Mask();
+                SpreadTargets.AddRange(module.Raid.WithoutSlot());
         }
     }
 }

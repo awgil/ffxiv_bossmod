@@ -11,12 +11,14 @@
                 case AID.AgoniesDarkburst1:
                 case AID.AgoniesDarkburst2:
                 case AID.AgoniesDarkburst3:
-                    SpreadMask.Set(module.Raid.FindSlot(spell.TargetID));
+                    if (module.WorldState.Actors.Find(spell.TargetID) is var spreadTarget && spreadTarget != null)
+                        SpreadTargets.Add(spreadTarget);
                     break;
                 case AID.AgoniesUnholyDarkness1:
                 case AID.AgoniesUnholyDarkness2:
                 case AID.AgoniesUnholyDarkness3:
-                    StackMask.Set(module.Raid.FindSlot(spell.TargetID));
+                    if (module.WorldState.Actors.Find(spell.TargetID) is var stackTarget && stackTarget != null)
+                        StackTargets.Add(stackTarget);
                     break;
                 case AID.AgoniesDarkPerimeter1:
                 case AID.AgoniesDarkPerimeter2:
@@ -32,12 +34,12 @@
                 case AID.AgoniesDarkburst1:
                 case AID.AgoniesDarkburst2:
                 case AID.AgoniesDarkburst3:
-                    SpreadMask.Clear(module.Raid.FindSlot(spell.TargetID));
+                    SpreadTargets.RemoveAll(a => a.InstanceID == spell.TargetID);
                     break;
                 case AID.AgoniesUnholyDarkness1:
                 case AID.AgoniesUnholyDarkness2:
                 case AID.AgoniesUnholyDarkness3:
-                    StackMask.Clear(module.Raid.FindSlot(spell.TargetID));
+                    StackTargets.RemoveAll(a => a.InstanceID == spell.TargetID);
                     break;
                 case AID.AgoniesDarkPerimeter1:
                 case AID.AgoniesDarkPerimeter2:

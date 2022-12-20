@@ -27,8 +27,9 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         {
             if ((AID)spell.Action.ID == AID.InfernoHowl)
             {
-                SpreadMask.Reset();
-                SpreadMask.Set(module.Raid.FindSlot(spell.TargetID));
+                SpreadTargets.Clear();
+                if (module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
+                    SpreadTargets.Add(target);
                 ActivateAt = module.WorldState.CurrentTime.AddSeconds(5.4f);
                 _searingWindsLeft = 3;
                 _showHintsAfter = ActivateAt.AddSeconds(-2);
@@ -42,7 +43,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
             {
                 if (--_searingWindsLeft == 0)
                 {
-                    SpreadMask.Reset();
+                    SpreadTargets.Clear();
                     _showHintsAfter = DateTime.MaxValue;
                 }
                 else

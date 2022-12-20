@@ -115,53 +115,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE41WithDiremiteAndMai
         public CrystalNeedle() : base(ActionID.MakeSpell(AID.CrystalNeedle)) { }
     }
 
-    // TODO: this should really be a 'spread', however our spread component works only with party...
-    class Shardstrike : BossComponent
+    class Shardstrike : Components.SpreadFromCastTargets
     {
-        private List<Actor> _dimCrystals = new();
-        private List<Actor> _corruptedCrystals = new();
-        private List<Actor> _targets = new();
-        private static float _spreadRadius = 5;
-
-        public override void Init(BossModule module)
-        {
-            _dimCrystals = module.Enemies(OID.DimCrystal);
-            _corruptedCrystals = module.Enemies(OID.CorruptedCrystal);
-        }
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (_targets.Contains(actor))
-            {
-                if (module.WorldState.Actors.Any(a => a != actor && !a.IsDead && (a.Type == ActorType.Player || (OID)a.OID is OID.DimCrystal or OID.CorruptedCrystal) && a.Position.InCircle(actor.Position, _spreadRadius)))
-                    hints.Add("Spread!");
-            }
-            else if (_targets.Any(t => actor.Position.InCircle(t.Position, _spreadRadius)))
-            {
-                hints.Add("GTFO from spread targets!");
-            }
-        }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            arena.Actors(ActiveCrystals(), ArenaColor.Object, true);
-            foreach (var t in _targets)
-                arena.AddCircle(t.Position, _spreadRadius, ArenaColor.Danger);
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.ShardstrikeAOE && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
-                _targets.Add(target);
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.ShardstrikeAOE)
-                _targets.RemoveAll(t => t.InstanceID == spell.TargetID);
-        }
-
-        private IEnumerable<Actor> ActiveCrystals() => _dimCrystals.Concat(_corruptedCrystals).Where(c => !c.IsDead);
+        public Shardstrike() : base(ActionID.MakeSpell(AID.ShardstrikeAOE), 5) { }
     }
 
     // TODO: this should probably be generalized
@@ -237,6 +193,20 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE41WithDiremiteAndMai
 
     public class CE41WithDiremiteAndMain : BossModule
     {
-        public CE41WithDiremiteAndMain(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-220, 530), 25)) { }
+        private List<Actor> _dimCrystals = new();
+        private List<Actor> _corruptedCrystals = new();
+
+        public CE41WithDiremiteAndMain(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-220, 530), 25))
+        {
+            _dimCrystals = Enemies(OID.DimCrystal);
+            _corruptedCrystals = Enemies(OID.CorruptedCrystal);
+        }
+
+        protected override void DrawEnemies(int pcSlot, Actor pc)
+        {
+            base.DrawEnemies(pcSlot, pc);
+            Arena.Actors(_dimCrystals.Where(c => !c.IsDead), ArenaColor.Object, true);
+            Arena.Actors(_corruptedCrystals.Where(c => !c.IsDead), ArenaColor.Object, true);
+        }
     }
 }

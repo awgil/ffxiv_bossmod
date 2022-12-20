@@ -15,7 +15,7 @@
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Styx)
-                StackMask.Set(module.Raid.FindSlot(actor.InstanceID));
+                StackTargets.Add(actor);
         }
     }
 }
