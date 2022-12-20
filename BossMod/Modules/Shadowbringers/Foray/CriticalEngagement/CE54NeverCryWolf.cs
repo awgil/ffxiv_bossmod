@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BossMod.Shadowbringers.Foray.CriticalEngagement.C54NeverCryWolf
+namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
 {
     public enum OID : uint
     {
@@ -148,9 +148,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.C54NeverCryWolf
     }
 
     // TODO: age of endless frost (cone angle, rotation direction...)
-    class C54NeverCryWolfStates : StateMachineBuilder
+    class CE54NeverCryWolfStates : StateMachineBuilder
     {
-        public C54NeverCryWolfStates(BossModule module) : base(module)
+        public CE54NeverCryWolfStates(BossModule module) : base(module)
         {
             TrivialPhase()
                 .ActivateOnEnter<IcePillar>()
@@ -166,11 +166,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.C54NeverCryWolf
         }
     }
 
-    public class C54NeverCryWolf : BossModule
+    public class CE54NeverCryWolf : BossModule
     {
         private List<Actor> _adds = new();
 
-        public C54NeverCryWolf(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-830, 190), 21))
+        public CE54NeverCryWolf(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-830, 190), 21))
         {
             _adds = Enemies(OID.Imaginifer);
         }
