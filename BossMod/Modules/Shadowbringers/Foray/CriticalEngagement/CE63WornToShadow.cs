@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE63WornToShadow
 {
@@ -14,8 +12,6 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE63WornToShadow
         VorticalOrb1 = 0x3239, // R0.500, spawn during fight
         VorticalOrb2 = 0x323A, // R0.500, spawn during fight
         VorticalOrb3 = 0x31D2, // R0.500, spawn during fight
-        //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x2, EventObj type
-        //_Gen_Actor1eb17c = 0x1EB17C, // R0.500, x1, EventObj type
     };
 
     public enum AID : uint

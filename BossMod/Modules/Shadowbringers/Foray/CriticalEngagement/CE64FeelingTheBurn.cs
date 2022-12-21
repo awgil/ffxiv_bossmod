@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
 {
@@ -12,7 +9,6 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
         Escort1 = 0x31A1, // R2.800, x24
         Escort2 = 0x32FD, // R2.800, spawn during fight
         Helper = 0x233C, // R0.500, x26
-        //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x2, EventObj type
     };
 
     public enum AID : uint
