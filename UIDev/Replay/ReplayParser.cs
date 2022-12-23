@@ -177,7 +177,7 @@ namespace UIDev
         private void FinalizeParticipant(Replay.Participant p)
         {
             p.Existence.End = _ws.CurrentTime;
-            if (p.Casts.LastOrDefault()?.Time.End == default)
+            if (p.Casts.LastOrDefault()?.Time.End == new DateTime())
                 p.Casts.Last().Time.End = _ws.CurrentTime;
             if (p.TargetableHistory.LastOrDefault().Value)
             {
