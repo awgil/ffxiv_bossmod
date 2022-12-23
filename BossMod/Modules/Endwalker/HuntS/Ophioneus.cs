@@ -1,4 +1,6 @@
-﻿namespace BossMod.Endwalker.HuntS.Ophioneus
+﻿using System.Collections.Generic;
+
+namespace BossMod.Endwalker.HuntS.Ophioneus
 {
     public enum OID : uint
     {
@@ -29,26 +31,45 @@
         public LeftMaw() : base(ActionID.MakeSpell(AID.LeftMaw), new AOEShapeCone(30, 90.Degrees())) { }
     }
 
-    class PyricCircle : Components.SelfTargetedAOEs
+    class PyricCircleBurst : Components.GenericAOEs
     {
-        public PyricCircle() : base(ActionID.MakeSpell(AID.PyricCircle), new AOEShapeDonut(5, 40)) { }
-    }
+        private AOEInstance? _aoe;
 
-    class PyricBurst : Components.SelfTargetedAOEs
-    {
-        public PyricBurst() : base(ActionID.MakeSpell(AID.PyricBurst), new AOEShapeCircle(10)) { } // TODO: verify falloff
-    }
+        private static AOEShapeCircle _shapeCircle = new(10); // TODO: verify falloff
+        private static AOEShapeDonut _shapeDonut = new(5, 40);
 
-    // TODO: consider showing early hint during teleport cast
-    class LeapingPyricCircle : Components.SelfTargetedAOEs
-    {
-        public LeapingPyricCircle() : base(ActionID.MakeSpell(AID.LeapingPyricCircleAOE), new AOEShapeDonut(5, 40)) { }
-    }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (_aoe != null)
+                yield return _aoe.Value;
+        }
 
-    // TODO: consider showing early hint during teleport cast
-    class LeapingPyricBurst : Components.SelfTargetedAOEs
-    {
-        public LeapingPyricBurst() : base(ActionID.MakeSpell(AID.LeapingPyricBurstAOE), new AOEShapeCircle(10)) { } // TODO: verify falloff
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.PyricCircle:
+                case AID.LeapingPyricCircleAOE:
+                    _aoe = new(_shapeDonut, caster.Position, spell.Rotation, spell.FinishAt);
+                    break;
+                case AID.PyricBurst:
+                case AID.LeapingPyricBurstAOE:
+                    _aoe = new(_shapeCircle, caster.Position, spell.Rotation, spell.FinishAt);
+                    break;
+                case AID.LeapingPyricCircle:
+                    _aoe = new(_shapeDonut, spell.LocXZ, spell.Rotation, spell.FinishAt.AddSeconds(5));
+                    break;
+                case AID.LeapingPyricBurst:
+                    _aoe = new(_shapeCircle, spell.LocXZ, spell.Rotation, spell.FinishAt.AddSeconds(5));
+                    break;
+            }
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID is AID.PyricCircle or AID.PyricBurst or AID.LeapingPyricCircleAOE or AID.LeapingPyricBurstAOE)
+                _aoe = null;
+        }
     }
 
     class Scratch : Components.SingleTargetCast
@@ -63,10 +84,7 @@
             TrivialPhase()
                 .ActivateOnEnter<RightMaw>()
                 .ActivateOnEnter<LeftMaw>()
-                .ActivateOnEnter<PyricCircle>()
-                .ActivateOnEnter<PyricBurst>()
-                .ActivateOnEnter<LeapingPyricCircle>()
-                .ActivateOnEnter<LeapingPyricBurst>()
+                .ActivateOnEnter<PyricCircleBurst>()
                 .ActivateOnEnter<Scratch>();
         }
     }
