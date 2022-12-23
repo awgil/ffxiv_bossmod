@@ -9,7 +9,7 @@ namespace BossMod
         {
             // opcodes from machina
             StatusEffectList = 0x019B,
-            StatusEffectList2 = 0x00F8, // idb: StatusEffectListWithForay2
+            StatusEffectListBozja = 0x00F8, // machina: StatusEffectList2
             StatusEffectList3 = 0x03CD, // idb: UpdatePlayerStatuses
             BossStatusEffectList = 0x034D, // idb: StatusEffectListDouble
             ActionEffect1 = 0x0395, // Machina calls it AbilityN, size=124

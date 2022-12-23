@@ -29,11 +29,11 @@ namespace BossMod.RealmReborn.Trial.T01IfritN
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             var nail = module.Enemies(OID.InfernalNail).FirstOrDefault();
-            if (_nailSpawn == new DateTime() && nail != null && nail.IsTargetable)
+            if (_nailSpawn == default && nail != null && nail.IsTargetable)
             {
                 _nailSpawn = module.WorldState.CurrentTime;
             }
-            if (_nailSpawn != new DateTime() && nail != null && nail.IsTargetable && !nail.IsDead)
+            if (_nailSpawn != default && nail != null && nail.IsTargetable && !nail.IsDead)
             {
                 hints.Add($"Nail enrage in: {Math.Max(35 - (module.WorldState.CurrentTime - _nailSpawn).TotalSeconds, 0.0f):f1}s");
             }

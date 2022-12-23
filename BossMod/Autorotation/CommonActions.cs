@@ -105,7 +105,7 @@ namespace BossMod
         // this is called after worldstate update
         public void UpdateMainTick()
         {
-            bool wasInCombat = _playerCombatStart != new DateTime();
+            bool wasInCombat = _playerCombatStart != default;
             if (Player.InCombat && !wasInCombat)
             {
                 _playerCombatStart = Autorot.WorldState.CurrentTime;
@@ -435,7 +435,7 @@ namespace BossMod
 
         private float CombatTimer()
         {
-            if (_playerCombatStart != new DateTime())
+            if (_playerCombatStart != default)
                 return (float)(Autorot.WorldState.CurrentTime - _playerCombatStart).TotalSeconds;
             var countdown = Countdown.TimeRemaining();
             return countdown != null ? -Math.Max(0.001f, countdown.Value) : float.MinValue;

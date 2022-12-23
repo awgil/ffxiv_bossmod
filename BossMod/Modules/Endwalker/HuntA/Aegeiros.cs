@@ -31,7 +31,7 @@ namespace BossMod.Endwalker.HuntA.Aegeiros
 
             if (module.PrimaryActor.CastInfo?.IsSpell(AID.Rimestorm) ?? false)
                 yield return new(_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.FinishAt);
-            else if (_rimestormExpected != new DateTime())
+            else if (_rimestormExpected != default)
                 yield return new(_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo?.Rotation ?? module.PrimaryActor.Rotation, _rimestormExpected);
         }
 

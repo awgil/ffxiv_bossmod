@@ -33,11 +33,11 @@ namespace BossMod.RealmReborn.Trial.T02TitanN
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             var heartExists = ((T02TitanN)module).ActiveHeart.Any();
-            if (_heartSpawn == new DateTime() && heartExists)
+            if (_heartSpawn == default && heartExists)
             {
                 _heartSpawn = module.WorldState.CurrentTime;
             }
-            if (_heartSpawn != new DateTime() && heartExists)
+            if (_heartSpawn != default && heartExists)
             {
                 hints.Add($"Heart enrage in: {Math.Max(62 - (module.WorldState.CurrentTime - _heartSpawn).TotalSeconds, 0.0f):f1}s");
             }

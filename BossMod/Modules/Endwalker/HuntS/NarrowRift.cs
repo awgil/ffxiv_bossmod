@@ -87,7 +87,7 @@ namespace BossMod.Endwalker.HuntS.NarrowRift
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (_activation != new DateTime())
+            if (_activation != default)
                 yield return new(_shape, module.PrimaryActor.Position, module.PrimaryActor.Rotation, _activation);
         }
 

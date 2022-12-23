@@ -45,7 +45,7 @@ namespace UIDev
                 _nodesUpToDate = true;
             }
 
-            var timeRef = ImGui.GetIO().KeyShift && _relativeTS != new DateTime() ? _relativeTS : reference;
+            var timeRef = ImGui.GetIO().KeyShift && _relativeTS != default ? _relativeTS : reference;
             foreach (var node in _nodes)
             {
                 foreach (var n in tree.Node($"{(node.Timestamp - timeRef).TotalSeconds:f3}: {node.Text}", node.Children == null, 0xffffffff, node.ContextMenu, () => _scrollTo(node.Timestamp), () => _relativeTS = node.Timestamp))

@@ -111,7 +111,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
             }
         }
 
-        private IEnumerable<Beacon> ActiveBeacons() => _beacons.Where(b => b.Activation != new DateTime()).Take(_maxActive);
+        private IEnumerable<Beacon> ActiveBeacons() => _beacons.Where(b => b.Activation != default).Take(_maxActive);
     }
 
     class NInfernWave1 : InfernWave { public NInfernWave1() : base(false, false, 2) { } }

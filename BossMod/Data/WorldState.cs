@@ -50,7 +50,7 @@ namespace BossMod
         // generate a set of operations that would turn default-constructed state into current state
         public IEnumerable<Operation> CompareToInitial()
         {
-            if (CurrentTime != new DateTime())
+            if (CurrentTime != default)
                 yield return new OpFrameStart() { NewTimestamp = CurrentTime };
             if (CurrentZone != 0)
                 yield return new OpZoneChange() { Zone = CurrentZone };

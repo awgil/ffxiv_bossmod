@@ -17,20 +17,20 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            if (_expectedNext != new DateTime())
+            if (_expectedNext != default)
                 hints.Add($"Wicked wheel in ~{Math.Max((_expectedNext - module.WorldState.CurrentTime).TotalSeconds, 0)}s");
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             // note: suparna also casts this, but we generally ignore it...
-            if (_expectedNext != new DateTime() && module.PrimaryActor.TargetID != actor.InstanceID && (_expectedNext - module.WorldState.CurrentTime).TotalSeconds < 3)
+            if (_expectedNext != default && module.PrimaryActor.TargetID != actor.InstanceID && (_expectedNext - module.WorldState.CurrentTime).TotalSeconds < 3)
                 hints.AddForbiddenZone(ShapeDistance.Circle(module.PrimaryActor.Position, _radius), _expectedNext);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_expectedNext != new DateTime() && (_expectedNext - module.WorldState.CurrentTime).TotalSeconds < 3)
+            if (_expectedNext != default && (_expectedNext - module.WorldState.CurrentTime).TotalSeconds < 3)
                 arena.AddCircle(module.PrimaryActor.Position, _radius, ArenaColor.Danger);
         }
 

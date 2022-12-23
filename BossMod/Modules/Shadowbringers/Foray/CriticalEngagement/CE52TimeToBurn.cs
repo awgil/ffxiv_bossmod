@@ -52,7 +52,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE52TimeToBurn
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (_bombsActivation != new DateTime())
+            if (_bombsActivation != default)
             {
                 foreach (var b in _bombs)
                     yield return new(_shapeBomb, b.Position, b.Rotation, _bombsActivation);
@@ -62,7 +62,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE52TimeToBurn
                 foreach (var c in _cycloneCasters)
                     yield return new(_shapeCyclone, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt);
             }
-            else if (_eruptionStart != new DateTime())
+            else if (_eruptionStart != default)
             {
                 foreach (var e in _clocks.Count > 2 ? _clocks.Take(_clocks.Count - 2) : _clocks)
                     yield return new(_shapeEruption, e.pos, new(), _eruptionStart + e.delay);

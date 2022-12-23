@@ -32,11 +32,11 @@ namespace BossMod.RealmReborn.Trial.T05IfritH
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             bool nailsActive = ((T05IfritH)module).ActiveNails.Any();
-            if (_nailSpawn == new DateTime() && nailsActive)
+            if (_nailSpawn == default && nailsActive)
             {
                 _nailSpawn = module.WorldState.CurrentTime;
             }
-            if (_nailSpawn != new DateTime() && nailsActive)
+            if (_nailSpawn != default && nailsActive)
             {
                 hints.Add($"Nail enrage in: {Math.Max(55 - (module.WorldState.CurrentTime - _nailSpawn).TotalSeconds, 0.0f):f1}s");
             }

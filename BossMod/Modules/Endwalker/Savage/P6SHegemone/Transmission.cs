@@ -105,7 +105,7 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
         private bool ExpireImminent(BossModule module, int slot)
         {
             var expire = _infectionExpire[slot];
-            return expire != new DateTime() && (expire - module.WorldState.CurrentTime).TotalSeconds < 2;
+            return expire != default && (expire - module.WorldState.CurrentTime).TotalSeconds < 2;
         }
     }
 }

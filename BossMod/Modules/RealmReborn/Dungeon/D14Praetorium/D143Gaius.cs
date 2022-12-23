@@ -79,7 +79,7 @@ namespace BossMod.RealmReborn.Dungeon.D14Praetorium.D143Gaius
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            if (_enrage != new DateTime())
+            if (_enrage != default)
                 hints.Add($"Enrage in {(_enrage - module.WorldState.CurrentTime).TotalSeconds:f1}s");
         }
 
