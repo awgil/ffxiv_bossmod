@@ -34,7 +34,7 @@ namespace BossMod.Endwalker.HuntS.NarrowRift
         AboutFace = 1959, // Boss->player, extra=0x0
         LeftFace = 1960, // Boss->player, extra=0x0
         RightFace = 1961, // Boss->player, extra=0x0
-        ForcedMarch = 1257, // Boss->player, extra=1 (forward) / 2 (backward) / 4 (left) / ? (right)
+        ForcedMarch = 1257, // Boss->player, extra=1 (forward) / 2 (backward) / 4 (left) / 8 (right)
     };
 
     class EmptyPromise : Components.GenericAOEs
@@ -107,61 +107,14 @@ namespace BossMod.Endwalker.HuntS.NarrowRift
         }
     }
 
-    class ContinualMeddling : BossComponent
+    class ContinualMeddling : Components.StatusDrivenForcedMarch
     {
-        private static float _marchSpeed = 6;
-        private static float _marchDuration = 2;
+        public ContinualMeddling() : base(2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) { }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (module.PrimaryActor.CastInfo != null && module.PrimaryActor.CastInfo.IsSpell() && (AID)module.PrimaryActor.CastInfo.Action.ID is AID.ContinualMeddlingFR or AID.ContinualMeddlingFL or AID.ContinualMeddlingBL or AID.ContinualMeddlingBR)
-            {
                 hints.Add("Apply march debuffs");
-            }
-        }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            var pos = pc.Position;
-            var dir = pc.Rotation;
-            foreach (var march in MarchDirections(module, pc))
-            {
-                dir += march.dir;
-                var dest = pos + dir.ToDirection() * _marchSpeed * march.duration;
-                arena.AddLine(pos, dest, ArenaColor.Danger);
-                arena.Actor(dest, pc.Rotation, ArenaColor.Danger);
-                pos = dest;
-            }
-        }
-
-        private List<(Angle dir, float duration, TimeSpan start)> MarchDirections(BossModule module, Actor actor)
-        {
-            List<(Angle dir, float duration, TimeSpan start)> res = new();
-            foreach (var s in actor.Statuses)
-            {
-                switch ((SID)s.ID)
-                {
-                    case SID.ForwardMarch:
-                        res.Add((0.Degrees(), _marchDuration, s.ExpireAt - module.WorldState.CurrentTime));
-                        break;
-                    case SID.AboutFace:
-                        res.Add((180.Degrees(), _marchDuration, s.ExpireAt - module.WorldState.CurrentTime));
-                        break;
-                    case SID.LeftFace:
-                        res.Add((90.Degrees(), _marchDuration, s.ExpireAt - module.WorldState.CurrentTime));
-                        break;
-                    case SID.RightFace:
-                        res.Add((-90.Degrees(), _marchDuration, s.ExpireAt - module.WorldState.CurrentTime));
-                        break;
-                    case SID.ForcedMarch:
-                        // note: as soon as player starts marching, he turns to desired direction...
-                        // TODO: would be nice to use non-interpolated rotation here...
-                        res.Add((0.Degrees(), (float)(s.ExpireAt - module.WorldState.CurrentTime).TotalSeconds, new()));
-                        break;
-                }
-            }
-            res.SortBy(e => e.start);
-            return res;
         }
     }
 

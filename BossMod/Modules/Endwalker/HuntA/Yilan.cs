@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace BossMod.Endwalker.HuntA.Yilan
 {
@@ -11,7 +10,7 @@ namespace BossMod.Endwalker.HuntA.Yilan
     public enum AID : uint
     {
         AutoAttack = 872, // Boss->player, no cast, single-target
-        Soundstorm = 27230, // Boss->self, 5.0s cast, range 30 circle
+        Soundstorm = 27230, // Boss->self, 5.0s cast, range 30 circle, applies march debuffs
         MiniLight = 27231, // Boss->self, 6.0s cast, range 18 circle
         Devour = 27232, // Boss->self, 1.0s cast, range 10 ?-degree cone, kills seduced and deals very small damage otherwise
         BogBomb = 27233, // Boss->location, 4.0s cast, range 6 circle
@@ -27,57 +26,46 @@ namespace BossMod.Endwalker.HuntA.Yilan
         RightFace = 1961,
     }
 
-    class SoundstormMiniLightDevour : Components.GenericAOEs
+    class Soundstorm : Components.StatusDrivenForcedMarch
     {
-        private static AOEShapeCircle _miniLight = new(18);
-        private static float _marchDistance = 12;
+        public Soundstorm() : base(2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) { }
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if ((module.PrimaryActor.CastInfo?.IsSpell(AID.MiniLight) ?? false) || MarchDirection(actor) != SID.None)
-                yield return new(_miniLight, module.PrimaryActor.Position); // TODO: activation
-        }
+        public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => MiniLight.Shape.Check(pos, module.PrimaryActor);
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
-                return;
-
-            string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
-            {
-                AID.Soundstorm => "Apply march debuffs",
-                AID.Devour => "Harmless unless failed",
-                _ => "",
-            };
-            if (hint.Length > 0)
-                hints.Add(hint);
+            if (module.PrimaryActor.CastInfo?.IsSpell(AID.Soundstorm) ?? false)
+                hints.Add("Apply march debuffs");
         }
+    }
 
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    class MiniLight : Components.GenericAOEs
+    {
+        private bool _active;
+        public static AOEShapeCircle Shape = new(18);
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            var marchDirection = MarchDirection(pc);
-            if (marchDirection != SID.None)
-            {
-                var dir = marchDirection switch
-                {
-                    SID.AboutFace => 180.Degrees(),
-                    SID.LeftFace => 90.Degrees(),
-                    SID.RightFace => -90.Degrees(),
-                    _ => 0.Degrees()
-                };
-                var target = pc.Position + _marchDistance * (pc.Rotation + dir).ToDirection();
-                arena.AddLine(pc.Position, target, ArenaColor.Danger);
-                arena.Actor(target, pc.Rotation, ArenaColor.Danger);
-            }
+            if (_active)
+                yield return new(Shape, module.PrimaryActor.Position); // TODO: activation
         }
 
-        private SID MarchDirection(Actor actor)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            foreach (var s in actor.Statuses)
-                if ((SID)s.ID is SID.ForwardMarch or SID.AboutFace or SID.LeftFace or SID.RightFace)
-                    return (SID)s.ID;
-            return SID.None;
+            if ((AID)spell.Action.ID is AID.Soundstorm or AID.MiniLight)
+                _active = true;
         }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.MiniLight)
+                _active = false;
+        }
+    }
+
+    class Devour : Components.CastHint
+    {
+        public Devour() : base(ActionID.MakeSpell(AID.Devour), "Harmless until failed previous mechanic") { }
     }
 
     class BogBomb : Components.LocationTargetedAOEs
@@ -95,7 +83,9 @@ namespace BossMod.Endwalker.HuntA.Yilan
         public YilanStates(BossModule module) : base(module)
         {
             TrivialPhase()
-                .ActivateOnEnter<SoundstormMiniLightDevour>()
+                .ActivateOnEnter<Soundstorm>()
+                .ActivateOnEnter<MiniLight>()
+                .ActivateOnEnter<Devour>()
                 .ActivateOnEnter<BogBomb>()
                 .ActivateOnEnter<BrackishRain>();
         }

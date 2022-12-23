@@ -33,8 +33,13 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_sneezing)
-                foreach (var off in _pendingOffsets.Take(2))
-                    yield return new(_shape, module.PrimaryActor.Position, _referenceAngle + off); // TODO: activation
+            {
+                // TODO: activation
+                if (_pendingOffsets.Count > 0)
+                    yield return new(_shape, module.PrimaryActor.Position, _referenceAngle + _pendingOffsets[0], color: ArenaColor.Danger);
+                if (_pendingOffsets.Count > 1)
+                    yield return new(_shape, module.PrimaryActor.Position, _referenceAngle + _pendingOffsets[1]);
+            }
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
