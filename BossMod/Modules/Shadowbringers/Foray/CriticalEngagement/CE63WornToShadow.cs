@@ -40,6 +40,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE63WornToShadow
         Transfiguration = 705, // AlkonostsShadow->AlkonostsShadow, extra=0x1A4
     };
 
+    public enum TetherID : uint
+    {
+        Foreshadowing = 45, // AlkonostsShadow->Boss
+    };
+
     class Stormcall : Components.GenericAOEs
     {
         private List<(Actor source, WPos dest, DateTime activation)> _sources = new();
@@ -90,35 +95,62 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE63WornToShadow
         public Fantod() : base(ActionID.MakeSpell(AID.FantodAOE), 3) { }
     }
 
-    class FrigidPulse : Components.SelfTargetedAOEs
+    class Foreshadowing : Components.GenericAOEs
     {
-        public FrigidPulse() : base(ActionID.MakeSpell(AID.FrigidPulse), new AOEShapeDonut(8, 25)) { }
-    }
+        private AOEShape? _bossAOE;
+        private List<(Actor caster, AOEShape shape)> _addAOEs = new();
+        private DateTime _addActivation;
 
-    class PainStorm : Components.SelfTargetedAOEs
-    {
-        public PainStorm() : base(ActionID.MakeSpell(AID.PainStorm), new AOEShapeCone(36, 65.Degrees())) { }
-    }
+        private static AOEShapeDonut _shapePulse = new(8, 25);
+        private static AOEShapeCone _shapeStorm = new(36, 65.Degrees());
+        private static AOEShapeCircle _shapeGust = new(20);
 
-    class PainfulGust : Components.SelfTargetedAOEs
-    {
-        public PainfulGust() : base(ActionID.MakeSpell(AID.PainfulGust), new AOEShapeCircle(20)) { }
-    }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (_bossAOE != null)
+                yield return new(_bossAOE, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.FinishAt);
 
-    // TODO: prediction for foreshadowing?..
-    class ForeshadowingPulse : Components.SelfTargetedAOEs
-    {
-        public ForeshadowingPulse() : base(ActionID.MakeSpell(AID.ForeshadowingPulse), new AOEShapeDonut(8, 25)) { }
-    }
+            if (_addActivation != default)
+                foreach (var add in _addAOEs)
+                    yield return new(add.shape, add.caster.Position, add.caster.CastInfo?.Rotation ?? add.caster.Rotation, add.caster.CastInfo?.FinishAt ?? _addActivation);
+        }
 
-    class ForeshadowingStorm : Components.SelfTargetedAOEs
-    {
-        public ForeshadowingStorm() : base(ActionID.MakeSpell(AID.ForeshadowingStorm), new AOEShapeCone(36, 65.Degrees())) { }
-    }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            AOEShape? shape = (AID)spell.Action.ID switch
+            {
+                AID.FrigidPulse => _shapePulse,
+                AID.PainStorm => _shapeStorm,
+                AID.PainfulGust => _shapeGust,
+                _ => null
+            };
+            if (shape == null)
+                return;
 
-    class ForeshadowingGust : Components.SelfTargetedAOEs
-    {
-        public ForeshadowingGust() : base(ActionID.MakeSpell(AID.ForeshadowingGust), new AOEShapeCircle(20)) { }
+            _bossAOE = shape;
+            _addActivation = new();
+            foreach (var add in module.Enemies(OID.AlkonostsShadow).Tethered(TetherID.Foreshadowing))
+                _addAOEs.Add((add, shape));
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.FrigidPulse:
+                case AID.PainStorm:
+                case AID.PainfulGust:
+                    _bossAOE = null;
+                    if (_addAOEs.Count == 4)
+                        _addActivation = module.WorldState.CurrentTime.AddSeconds(11.1f);
+                    break;
+                case AID.ForeshadowingPulse:
+                case AID.ForeshadowingStorm:
+                case AID.ForeshadowingGust:
+                    _addAOEs.RemoveAll(e => e.caster == caster);
+                    break;
+            }
+        }
     }
 
     class CE63WornToShadowStates : StateMachineBuilder
@@ -130,12 +162,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE63WornToShadow
                 .ActivateOnEnter<BladedBeak>()
                 .ActivateOnEnter<NihilitysSong>()
                 .ActivateOnEnter<Fantod>()
-                .ActivateOnEnter<FrigidPulse>()
-                .ActivateOnEnter<PainStorm>()
-                .ActivateOnEnter<PainfulGust>()
-                .ActivateOnEnter<ForeshadowingPulse>()
-                .ActivateOnEnter<ForeshadowingStorm>()
-                .ActivateOnEnter<ForeshadowingGust>();
+                .ActivateOnEnter<Foreshadowing>();
         }
     }
 

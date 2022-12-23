@@ -132,7 +132,6 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
                     Lines.RemoveAt(index);
             }
         }
-
     }
 
     class Hammerfall : Components.SelfTargetedAOEs

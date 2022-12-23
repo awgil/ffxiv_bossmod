@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
@@ -28,10 +29,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
         ThermalGust = 23589, // Imaginifer->self, 2.0s cast, range 60 width 4 rect aoe (when adds appear)
         GlaciationEnrage = 22881, // Boss->self, 20.0s cast, single-target, visual
         GlaciationEnrageAOE = 23625, // Helper->self, no cast, ???, raidwide (deadly if adds aren't killed)
-        AgeOfEndlessFrostFirst = 23590, // Boss->self, 5.0s cast, single-target, visual
-        AgeOfEndlessFrostFirstAOE = 23592, // Helper->self, 5.0s cast, range 40 ?-degree cone
+        AgeOfEndlessFrostFirstCW = 23590, // Boss->self, 5.0s cast, single-target, visual
+        AgeOfEndlessFrostFirstCCW = 23591, // Boss->self, 5.0s cast, single-target, visual
+        AgeOfEndlessFrostFirstAOE = 23592, // Helper->self, 5.0s cast, range 40 20-degree cone
         AgeOfEndlessFrostRest = 22883, // Boss->self, no cast, single-target
-        AgeOfEndlessFrostRestAOE = 23593, // Helper->self, 0.5s cast, range 40 ?-degree cone
+        AgeOfEndlessFrostRestAOE = 23593, // Helper->self, 0.5s cast, range 40 20-degree cone
 
         StormWithout = 23594, // Boss->self, 5.0s cast, single-target
         StormWithoutAOE = 23595, // Helper->self, 5.0s cast, range 10-40 donut
@@ -122,6 +124,62 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
         public ThermalGust() : base(ActionID.MakeSpell(AID.ThermalGust), new AOEShapeRect(60, 2)) { }
     }
 
+    class AgeOfEndlessFrost : Components.GenericAOEs
+    {
+        private Angle _increment;
+        private List<Angle> _angles = new();
+        private DateTime _nextActivation;
+
+        private static AOEShapeCone _shape = new(40, 10.Degrees());
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            return _angles.Select(a => new AOEInstance(_shape, module.PrimaryActor.Position, a, _nextActivation));
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.AgeOfEndlessFrostFirstCW:
+                    _increment = -40.Degrees();
+                    _nextActivation = spell.FinishAt;
+                    break;
+                case AID.AgeOfEndlessFrostFirstCCW:
+                    _increment = 40.Degrees();
+                    _nextActivation = spell.FinishAt;
+                    break;
+                case AID.AgeOfEndlessFrostFirstAOE:
+                    NumCasts = 0;
+                    _angles.Add(spell.Rotation);
+                    break;
+            }
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID is AID.AgeOfEndlessFrostFirstCCW or AID.AgeOfEndlessFrostFirstCW or AID.AgeOfEndlessFrostRest)
+            {
+                if (NumCasts == 0)
+                {
+                    _nextActivation = module.WorldState.CurrentTime.AddSeconds(2.6);
+                }
+                else if (NumCasts < 6)
+                {
+                    _nextActivation = module.WorldState.CurrentTime.AddSeconds(2.1);
+                }
+                else
+                {
+                    _angles.Clear();
+                }
+
+                ++NumCasts;
+                for (int i = 0; i < _angles.Count; ++i)
+                    _angles[i] += _increment;
+            }
+        }
+    }
+
     class StormWithout : Components.SelfTargetedAOEs
     {
         public StormWithout() : base(ActionID.MakeSpell(AID.StormWithout), new AOEShapeDonut(10, 40)) { }
@@ -142,7 +200,6 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
         public Glaciation() : base(ActionID.MakeSpell(AID.Glaciation)) { }
     }
 
-    // TODO: age of endless frost (cone angle, rotation direction...)
     class CE54NeverCryWolfStates : StateMachineBuilder
     {
         public CE54NeverCryWolfStates(BossModule module) : base(module)
@@ -154,6 +211,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
                 .ActivateOnEnter<BracingWind>()
                 .ActivateOnEnter<LunarCry>()
                 .ActivateOnEnter<ThermalGust>()
+                .ActivateOnEnter<AgeOfEndlessFrost>()
                 .ActivateOnEnter<StormWithout>()
                 .ActivateOnEnter<StormWithin>()
                 .ActivateOnEnter<AncientGlacier>()
@@ -165,7 +223,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
     {
         private List<Actor> _adds = new();
 
-        public CE54NeverCryWolf(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-830, 190), 21))
+        public CE54NeverCryWolf(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-830, 190), 24))
         {
             _adds = Enemies(OID.Imaginifer);
         }
