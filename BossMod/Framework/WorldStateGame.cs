@@ -165,6 +165,11 @@ namespace BossMod
                     OwnerID = SanitizedObjectID(obj.OwnerId)
                 });
                 act = _actorsByIndex[index] = Actors.Find(obj.ObjectId)!;
+
+                // note: for now, we continue relying on network messages for tether changes, since sometimes multiple changes can happen in a single frame, and some components rely on seeing all of them...
+                ActorTetherInfo tether = character != null ? new{ ID = Utils.CharacterTetherID(character), Target = Utils.CharacterTetherTargetID(character) } : new();
+                if (tether.ID != 0)
+                    Execute(new ActorState.OpTether() { InstanceID = act.InstanceID, Value = tether });
             }
             else
             {
