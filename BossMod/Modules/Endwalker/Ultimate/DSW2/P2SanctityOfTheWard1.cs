@@ -11,13 +11,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public P2SanctityOfTheWard1Gaze() : base(ActionID.MakeSpell(AID.DragonsGazeAOE)) { }
 
-        public override IEnumerable<(WPos pos, DateTime activation)> EyePositions(BossModule module)
+        public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
         {
             // TODO: activation time
             if (_eyePosition != null && NumCasts == 0)
             {
-                yield return (_eyePosition.Value, new());
-                yield return (module.PrimaryActor.Position, new());
+                yield return new(_eyePosition.Value);
+                yield return new(module.PrimaryActor.Position);
             }
         }
 

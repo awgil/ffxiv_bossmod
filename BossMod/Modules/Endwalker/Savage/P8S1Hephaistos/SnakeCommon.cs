@@ -27,13 +27,13 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
 
         public PetrifactionCommon() : base(ActionID.MakeSpell(AID.PetrifactionAOE)) { }
 
-        public override IEnumerable<(WPos pos, DateTime activation)> EyePositions(BossModule module)
+        public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
         {
             if (ActiveGorgons.Count > NumCasts)
             {
                 var maxActivation = ActiveGorgons[NumCasts].activation.AddSeconds(1);
                 foreach (var g in ActiveGorgons.Skip(NumCasts).TakeWhile(g => g.activation < maxActivation))
-                    yield return (g.caster.Position, g.activation);
+                    yield return new(g.caster.Position, g.activation);
             }
         }
 

@@ -76,7 +76,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
         }
     }
 
-    // TODO: bait hints for escorts - can we even find the source?..
+    // TODO: bait hints for escorts - can we even find the source?.. i think there are tethers on spawn that we miss...
     class ChainCannon : Components.GenericAOEs
     {
         private List<(WPos origin, Angle dir)> _casters = new();
@@ -91,7 +91,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
         {
             // TODO: this is extremely stupid, fix! find better end condition
             if (((CE64FeelingTheBurn)module).Escorts.Any(e => e.IsTargetable) || // end condition for escorts
-                _casters.Count == 1 && module.PrimaryActor.CastInfo != null) // end condition for boss
+                _casters.Count == 1 && module.PrimaryActor.CastInfo != null && !module.PrimaryActor.CastInfo.IsSpell(AID.ChainCannonBoss)) // end condition for boss
                 _casters.Clear();
         }
 
@@ -112,7 +112,16 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
         public SuppressiveMagitekRays() : base(ActionID.MakeSpell(AID.SuppressiveMagitekRays)) { }
     }
 
-    // TODO: analysis/precise strike component
+    class Analysis : Components.CastHint
+    {
+        public Analysis() : base(ActionID.MakeSpell(AID.Analysis), "Face open weakpoint to charging adds") { }
+    }
+
+    class PreciseStrike : Components.CastWeakpoint
+    {
+        public PreciseStrike() : base(ActionID.MakeSpell(AID.PreciseStrike), new AOEShapeRect(60, 3), (uint)SID.FrontUnseen, (uint)SID.BackUnseen, 0, 0) { }
+    }
+
     class CE64FeelingTheBurnStates : StateMachineBuilder
     {
         public CE64FeelingTheBurnStates(BossModule module) : base(module)
@@ -122,7 +131,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
                 .ActivateOnEnter<AntiPersonnelMissile>()
                 .ActivateOnEnter<ChainCannon>()
                 .ActivateOnEnter<SurfaceMissile>()
-                .ActivateOnEnter<SuppressiveMagitekRays>();
+                .ActivateOnEnter<SuppressiveMagitekRays>()
+                .ActivateOnEnter<Analysis>()
+                .ActivateOnEnter<PreciseStrike>();
         }
     }
 
