@@ -86,6 +86,8 @@ namespace UIDev
                 return false; // don't care about statuses applied to pets
             if (s.ID is 43 or 44 or 418)
                 return false; // don't care about resurrect-related statuses
+            if (s.Target != null && _filteredOIDs.Contains(s.Target.OID))
+                return false; // don't care about filtered out targets
             if (_filteredStatuses.Contains(s.ID))
                 return false; // don't care about filtered out statuses
             return true;

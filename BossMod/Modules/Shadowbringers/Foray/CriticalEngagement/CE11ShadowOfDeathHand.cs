@@ -14,7 +14,6 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand
         Whirlwind = 0x2DAA, // R1.000, spawn during fight
         Deathwall = 0x2EE8, // R0.500, x1
         Helper = 0x233C, // R0.500, x10
-        //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x2, EventObj type
         DeathwallEvent = 0x1EB02E, // R0.500, EventObj type, spawn during fight
     };
 
