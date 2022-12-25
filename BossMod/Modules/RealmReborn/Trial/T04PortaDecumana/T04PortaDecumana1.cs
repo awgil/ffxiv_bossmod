@@ -100,9 +100,15 @@
         public RadiantPlume() : base(ActionID.MakeSpell(AID.RadiantPlumeAOE), new AOEShapeCircle(8)) { }
     }
 
-    class VulcanBurst : Components.KnockbackFromCaster
+    class VulcanBurst : Components.KnockbackFromCastTarget
     {
         public VulcanBurst() : base(ActionID.MakeSpell(AID.VulcanBurst), 15) { }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            if (Casters.Count > 0)
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.Bounds.Center, module.Bounds.HalfSize - Distance), Casters[0].CastInfo!.FinishAt);
+        }
     }
 
     class T04PortaDecumana1States : StateMachineBuilder

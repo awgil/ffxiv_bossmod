@@ -14,7 +14,7 @@ namespace BossMod
         public IEnumerator<Actor> GetEnumerator() => _actors.Values.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => _actors.Values.GetEnumerator();
 
-        public Actor? Find(ulong instanceID) => instanceID != 0 ? _actors.GetValueOrDefault(instanceID) : null;
+        public Actor? Find(ulong instanceID) => instanceID != 0 && instanceID != 0xE0000000 ? _actors.GetValueOrDefault(instanceID) : null;
 
         // all actor-related operations have instance ID to which they are applied
         // in addition to worldstate's modification event, extra event with actor pointer is dispatched for all actor events

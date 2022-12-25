@@ -4,16 +4,16 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P8S1Hephaistos
 {
-    class QuadrupedalImpact : Components.KnockbackFromPoints
+    class QuadrupedalImpact : Components.Knockback
     {
         private WPos? _source;
 
         public QuadrupedalImpact() : base(30, ActionID.MakeSpell(AID.QuadrupedalImpactAOE), true) { }
 
-        public override IEnumerable<WPos> Sources(BossModule module)
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (_source != null)
-                yield return _source.Value;
+                yield return new(_source.Value); // TODO: activation
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

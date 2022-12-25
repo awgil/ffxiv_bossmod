@@ -19,33 +19,41 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie
     class SlipperySoapCharge : Components.Knockback
     {
         private Actor? _chargeTarget;
+        private Angle _chargeDir;
         private AOEShapeRect _chargeShape = new(0, 5);
         private SlipperySoap.Color _color;
+        private DateTime _chargeResolve;
 
         public bool ChargeImminent => _chargeTarget != null;
 
         public SlipperySoapCharge() : base(15) { }
 
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+        {
+            if (_chargeTarget != null && _color == SlipperySoap.Color.Green)
+                yield return new(module.PrimaryActor.Position, _chargeResolve, _chargeShape, _chargeDir, Kind.DirForward);
+        }
+
         public override void Update(BossModule module)
         {
             if (_chargeTarget != null)
-                _chargeShape.SetEndPoint(_chargeTarget.Position, module.PrimaryActor.Position, module.PrimaryActor.Rotation);
+            {
+                var toTarget = _chargeTarget.Position - module.PrimaryActor.Position;
+                _chargeShape.LengthFront = toTarget.Length() + 0.01f; // add eps to ensure charge target is considered 'inside'
+                _chargeDir = Angle.FromDirection(toTarget); // keep shape's offset zero to properly support dir-forward
+            }
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
+            base.AddHints(module, slot, actor, hints, movementHints);
             if (_chargeTarget != null)
             {
-                bool inShape = InAOE(module, actor);
-                if (!inShape)
+                if (_chargeTarget != actor && !_chargeShape.Check(actor.Position, module.PrimaryActor.Position, _chargeDir))
                     hints.Add("Stack inside charge!");
 
                 switch (_color)
                 {
-                    case SlipperySoap.Color.Green:
-                        if (inShape && !IsImmune(slot) && !module.Bounds.Contains(KnockbackPos(module, actor)))
-                            hints.Add("About to be knocked into wall!");
-                        break;
                     case SlipperySoap.Color.Blue:
                         hints.Add("Move!", false);
                         break;
@@ -59,13 +67,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_chargeTarget != null)
-                _chargeShape.Draw(arena, module.PrimaryActor, ArenaColor.SafeFromAOE);
-        }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            if (_chargeTarget != null && _color == SlipperySoap.Color.Green && !IsImmune(pcSlot) && InAOE(module, pc))
-                DrawKnockback(pc, KnockbackPos(module, pc), arena);
+                _chargeShape.Draw(arena, module.PrimaryActor.Position, _chargeDir, ArenaColor.SafeFromAOE);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
@@ -85,6 +87,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie
             {
                 case AID.SlipperySoapTargetSelection:
                     _chargeTarget = module.WorldState.Actors.Find(spell.MainTargetID);
+                    _chargeResolve = module.WorldState.CurrentTime.AddSeconds(5.5f);
                     break;
                 case AID.NSlipperySoapAOEBlue:
                 case AID.NSlipperySoapAOEGreen:
@@ -96,10 +99,6 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie
                     break;
             }
         }
-
-        private bool InAOE(BossModule module, Actor player) => _chargeTarget == player || _chargeShape.Check(player.Position, module.PrimaryActor);
-
-        private WPos KnockbackPos(BossModule module, Actor player) => player.Position + Distance * (module.PrimaryActor.Rotation + _chargeShape.DirectionOffset).ToDirection();
     }
 
     class SlipperySoapAOE : Components.GenericAOEs

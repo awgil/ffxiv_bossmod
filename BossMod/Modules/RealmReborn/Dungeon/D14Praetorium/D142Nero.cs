@@ -31,9 +31,15 @@
         public SpineShatter() : base(ActionID.MakeSpell(AID.SpineShatter)) { }
     }
 
-    class AugmentedSuffering : Components.KnockbackFromCaster
+    class AugmentedSuffering : Components.KnockbackFromCastTarget
     {
         public AugmentedSuffering() : base(ActionID.MakeSpell(AID.AugmentedSuffering), 12) { }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            if (Casters.Count > 0)
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.Bounds.Center, module.Bounds.HalfSize - Distance), Casters[0].CastInfo!.FinishAt);
+        }
     }
 
     class AugmentedShatter : Components.StackWithCastTargets

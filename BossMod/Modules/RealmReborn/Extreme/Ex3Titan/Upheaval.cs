@@ -3,17 +3,17 @@ using System.Collections.Generic;
 
 namespace BossMod.RealmReborn.Extreme.Ex3Titan
 {
-    // TODO: most of what's here should be handled by KnockbackFromCaster component...
-    class Upheaval : Components.KnockbackFromPoints
+    // TODO: most of what's here should be handled by KnockbackFromCastTarget component...
+    class Upheaval : Components.Knockback
     {
         private DateTime _remainInPosition;
 
         public Upheaval() : base(13, ActionID.MakeSpell(AID.Upheaval)) { }
 
-        public override IEnumerable<WPos> Sources(BossModule module)
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (_remainInPosition > module.WorldState.CurrentTime)
-                yield return module.PrimaryActor.Position;
+                yield return new(module.PrimaryActor.Position);
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

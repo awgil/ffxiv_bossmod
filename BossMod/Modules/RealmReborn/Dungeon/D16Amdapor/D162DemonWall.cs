@@ -29,9 +29,9 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D162DemonWall
         public LiquefySides() : base(ActionID.MakeSpell(AID.LiquefySides), new AOEShapeRect(50, 3.5f)) { }
     }
 
-    class Repel : Components.KnockbackFromCaster
+    class Repel : Components.KnockbackFromCastTarget
     {
-        public Repel() : base(ActionID.MakeSpell(AID.Repel), 20, ignoreImmunes: true) { }
+        public Repel() : base(ActionID.MakeSpell(AID.Repel), 20, true) { }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {

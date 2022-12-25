@@ -64,44 +64,10 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
         public Shatter() : base(ActionID.MakeSpell(AID.Shatter), new AOEShapeCircle(8)) { }
     }
 
-    // TODO: generalize
-    class BracingWind : Components.Knockback
+    // TODO: does it really ignore immunes?..
+    class BracingWind : Components.KnockbackFromCastTarget
     {
-        private List<Actor> _sources = new();
-        private static AOEShapeRect _shape = new(60, 6);
-
-        public BracingWind() : base(40, ActionID.MakeSpell(AID.BracingWind), true) { } // TODO: does it really ignore immunes?..
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (!IsImmune(slot) && !module.Bounds.Contains(AdjustedPosition(actor)))
-                hints.Add("About to be knocked into wall!");
-        }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            if (!IsImmune(pcSlot))
-                DrawKnockback(pc, AdjustedPosition(pc), arena);
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == WatchedAction)
-                _sources.Add(caster);
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == WatchedAction)
-                _sources.Remove(caster);
-        }
-
-        private WPos AdjustedPosition(Actor target)
-        {
-            var source = _sources.Find(a => _shape.Check(target.Position, a));
-            var dir = source?.CastInfo?.Rotation.ToDirection() ?? new();
-            return target.Position + Distance * dir;
-        }
+        public BracingWind() : base(ActionID.MakeSpell(AID.BracingWind), 40, true, 1, new AOEShapeRect(60, 6), Kind.DirForward) { }
     }
 
     class LunarCry : Components.CastLineOfSightAOE

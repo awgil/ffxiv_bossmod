@@ -95,7 +95,7 @@
         public ImpactAOE() : base(ActionID.MakeSpell(AID.ImpactAOE), new AOEShapeCircle(6)) { }
     }
 
-    class ImpactKnockback : Components.KnockbackFromCaster
+    class ImpactKnockback : Components.KnockbackFromCastTarget
     {
         public ImpactKnockback() : base(ActionID.MakeSpell(AID.ImpactKnockback), 6) { }
     }

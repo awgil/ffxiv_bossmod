@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Endwalker.HuntA.Sugriva
 {
@@ -23,35 +24,30 @@ namespace BossMod.Endwalker.HuntA.Sugriva
         ApplyPrey = 27229, // Boss->player, 0.5s cast, single-target
     }
 
-    class Twister : Components.Knockback
+    class Twister : Components.KnockbackFromCastTarget
     {
-        private static float _stackRadius = 8;
-
-        public Twister() : base(20, ActionID.MakeSpell(AID.Twister)) { }
+        public Twister() : base(ActionID.MakeSpell(AID.Twister), 20, shape: new AOEShapeCircle(8)) { }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            if (Active(module))
+            if (Casters.Count > 0)
                 hints.Add("Stack and knockback");
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {
-            return Active(module) && module.PrimaryActor.CastInfo!.TargetID == player.InstanceID ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
+            return Casters.FirstOrDefault()?.CastInfo?.TargetID == player.InstanceID ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            var target = Active(module) ? module.WorldState.Actors.Find(module.PrimaryActor.CastInfo!.TargetID) : null;
-            if (target == null)
-                return;
+            base.DrawArenaForeground(module, pcSlot, pc, arena);
 
-            arena.AddCircle(target.Position, _stackRadius, ArenaColor.Danger);
-            if (!IsImmune(pcSlot) && pc.Position.InCircle(target.Position, _stackRadius))
-                DrawKnockback(pc, AwayFromSource(pc.Position, target, Distance), arena);
+            var caster = Casters.FirstOrDefault();
+            var target = caster != null ? module.WorldState.Actors.Find(caster.CastInfo!.TargetID) : null;
+            if (target != null)
+                Shape!.Outline(arena, target);
         }
-
-        private bool Active(BossModule module) => module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false;
     }
 
     class Spark : Components.SelfTargetedAOEs

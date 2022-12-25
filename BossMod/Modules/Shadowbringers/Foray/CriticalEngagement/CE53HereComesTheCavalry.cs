@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalry
 {
@@ -53,38 +54,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
         public BurnishedJoust() : base(ActionID.MakeSpell(AID.BurnishedJoust), 3) { }
     }
 
-    // TODO: generalize to reusable component
-    class GustSlash : Components.Knockback
+    // note: there are two casters, probably to avoid 32-target limit - we only want to show one
+    // TODO: does it really ignore immunes?..
+    class GustSlash : Components.KnockbackFromCastTarget
     {
-        private Actor? _source; // note that there are two casters, probably to avoid 32-target limit
-
-        public GustSlash() : base(35, ActionID.MakeSpell(AID.GustSlashAOE), true) { } // TODO: does it really ignore immunes?..
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (_source != null && !IsImmune(slot) && !module.Bounds.Contains(AdjustedPosition(_source, actor)))
-                hints.Add("About to be knocked into wall!");
-        }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            if (_source != null && !IsImmune(pcSlot))
-                DrawKnockback(pc, AdjustedPosition(_source, pc), arena);
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == WatchedAction)
-                _source = caster;
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (_source == caster)
-                _source = null;
-        }
-
-        private WPos AdjustedPosition(Actor source, Actor target) => target.Position + Distance * source.CastInfo!.Rotation.ToDirection();
+        public GustSlash() : base(ActionID.MakeSpell(AID.GustSlashAOE), 35, true, 1, null, Kind.DirForward) { }
     }
 
     class FireShot : Components.PersistentVoidzoneAtCastTarget
@@ -97,44 +71,34 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
         public AirborneExplosion() : base(ActionID.MakeSpell(AID.AirborneExplosion), 10) { }
     }
 
+    // note: there are two casters, probably to avoid 32-target limit - we only want to show one
     // TODO: show aoe near center (width?)
     // TODO: generalize to reusable component
+    // TODO: does it really ignore immunes?..
     class RideDown : Components.Knockback
     {
-        private Actor? _source; // note that there are two casters, probably to avoid 32-target limit
+        private List<Source> _sources = new();
+        private static AOEShapeCone _shape = new(30, 90.Degrees());
 
-        public RideDown() : base(12, ActionID.MakeSpell(AID.RideDownAOE), true) { } // TODO: does it really ignore immunes?..
+        public RideDown() : base(12, ActionID.MakeSpell(AID.RideDownAOE), true, 1) { }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (_source != null && !IsImmune(slot) && !module.Bounds.Contains(AdjustedPosition(_source, actor)))
-                hints.Add("About to be knocked into wall!");
-        }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            if (_source != null && !IsImmune(pcSlot))
-                DrawKnockback(pc, AdjustedPosition(_source, pc), arena);
-        }
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => _sources;
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction)
-                _source = caster;
+            {
+                _sources.Clear();
+                // charge always happens through center, so create two sources with origin at center looking orthogonally
+                _sources.Add(new(module.Bounds.Center, spell.FinishAt, _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
+                _sources.Add(new(module.Bounds.Center, spell.FinishAt, _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
+            }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (_source == caster)
-                _source = null;
-        }
-
-        private WPos AdjustedPosition(Actor source, Actor target)
-        {
-            var dir = source.CastInfo!.Rotation.ToDirection();
-            var offset = target.Position - source.Position;
-            var ortho = offset - dir * dir.Dot(offset);
-            return target.Position + Distance * ortho.Normalized();
+            if (spell.Action == WatchedAction)
+                _sources.Clear();
         }
     }
 

@@ -2,16 +2,16 @@
 
 namespace BossMod.Stormblood.Ultimate.UWU
 {
-    class VulcanBurst : Components.KnockbackFromPoints
+    class VulcanBurst : Components.Knockback
     {
-        protected Actor? Source;
+        protected Actor? SourceActor;
 
         public VulcanBurst(AID aid) : base(15, ActionID.MakeSpell(aid)) { }
 
-        public override IEnumerable<WPos> Sources(BossModule module)
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
-            if (Source != null)
-                yield return Source.Position;
+            if (SourceActor != null)
+                yield return new(SourceActor.Position); // TODO: activation
         }
     }
 
@@ -21,7 +21,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         public override void Init(BossModule module)
         {
-            Source = ((UWU)module).Ifrit();
+            SourceActor = ((UWU)module).Ifrit();
         }
     }
 
@@ -31,7 +31,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         public override void Init(BossModule module)
         {
-            Source = ((UWU)module).Ultima();
+            SourceActor = ((UWU)module).Ultima();
         }
     }
 }

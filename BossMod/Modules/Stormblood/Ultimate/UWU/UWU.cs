@@ -67,7 +67,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
     class P3Upheaval : Components.KnockbackFromCastTarget
     {
-        public P3Upheaval() : base(ActionID.MakeSpell(AID.Upheaval), 24, 1, true) { }
+        public P3Upheaval() : base(ActionID.MakeSpell(AID.Upheaval), 24, true) { }
     }
 
     class P3Tumult : Components.CastCounter

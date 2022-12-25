@@ -13,7 +13,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P2SanctityOfTheWard2HeavensStakeDonut() : base(ActionID.MakeSpell(AID.HeavensStakeDonut), new AOEShapeDonut(15, 30)) { }
     }
 
-    class P2SanctityOfTheWard2Knockback : Components.KnockbackFromCaster
+    class P2SanctityOfTheWard2Knockback : Components.KnockbackFromCastTarget
     {
         public P2SanctityOfTheWard2Knockback() : base(ActionID.MakeSpell(AID.FaithUnmoving), 16) { }
     }
