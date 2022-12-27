@@ -78,7 +78,6 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
         }
     }
 
-    // TODO: match baiter (player with icon) to source - investigate network messages; can do it by smallest angle, but that could have issues
     class ChainCannonEscort : Components.GenericAOEs
     {
         private List<(Actor caster, int numCasts, DateTime activation)> _casters = new();
@@ -86,7 +85,13 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return _casters.Select(c => new AOEInstance(_shape, c.caster.Position, c.caster.Rotation, c.activation));
+            return _casters.Where(c => !IsTrackingPlayer(c, actor)).Select(c => new AOEInstance(_shape, c.caster.Position, c.caster.Rotation, c.activation));
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            foreach (var c in _casters.Where(c => IsTrackingPlayer(c, pc)))
+                _shape.Outline(arena, c.caster);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
@@ -110,6 +115,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
                 }
             }
         }
+
+        private bool IsTrackingPlayer((Actor caster, int numCasts, DateTime activation) c, Actor actor) => c.numCasts == 0 && c.caster.CastInfo == null && c.caster.TargetID == actor.InstanceID;
     }
 
     class ChainCannonBoss : Components.GenericAOEs

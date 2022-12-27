@@ -167,7 +167,7 @@ namespace UIDev
             ImGui.GetWindowDrawList().AddCircleFilled(center, 3, color);
         }
 
-        // x, z, rot, hp, name, cast, statuses
+        // x, z, rot, hp, name, target, cast, statuses
         private void DrawCommonColumns(Actor actor)
         {
             var pos = actor.Position;
@@ -187,7 +187,10 @@ namespace UIDev
             }
 
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted($"{(actor.IsDead ? "(Dead) " : "")}{actor.Name} (r={actor.HitboxRadius:f2})");
+            ImGui.TextUnformatted($"{(actor.IsDead ? "(Dead) " : "")}{actor} (r={actor.HitboxRadius:f2})");
+
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{_player.WorldState.Actors.Find(actor.TargetID)}");
 
             ImGui.TableNextColumn();
             if (actor.CastInfo != null)
@@ -211,7 +214,7 @@ namespace UIDev
             if (!ImGui.CollapsingHeader("Party"))
                 return;
 
-            ImGui.BeginTable("party", 10, ImGuiTableFlags.Resizable);
+            ImGui.BeginTable("party", 11, ImGuiTableFlags.Resizable);
             ImGui.TableSetupColumn("POV", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 25);
             ImGui.TableSetupColumn("Class", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 30);
             ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
@@ -219,6 +222,7 @@ namespace UIDev
             ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("HP", ImGuiTableColumnFlags.WidthFixed, 200);
             ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.None, 100);
+            ImGui.TableSetupColumn("Target", ImGuiTableColumnFlags.None, 100);
             ImGui.TableSetupColumn("Cast", ImGuiTableColumnFlags.None, 100);
             ImGui.TableSetupColumn("Statuses", ImGuiTableColumnFlags.None, 100);
             ImGui.TableSetupColumn("Hints", ImGuiTableColumnFlags.None, 250);
@@ -281,12 +285,13 @@ namespace UIDev
             if (!ImGui.CollapsingHeader($"Enemy {oid:X} {oidName ?? ""}") || actors.Count == 0)
                 return;
 
-            ImGui.BeginTable($"enemy_{oid}", 7, ImGuiTableFlags.Resizable);
+            ImGui.BeginTable($"enemy_{oid}", 8, ImGuiTableFlags.Resizable);
             ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("HP", ImGuiTableColumnFlags.WidthFixed, 200);
             ImGui.TableSetupColumn("Name");
+            ImGui.TableSetupColumn("Target");
             ImGui.TableSetupColumn("Cast");
             ImGui.TableSetupColumn("Statuses");
             ImGui.TableHeadersRow();
@@ -305,12 +310,13 @@ namespace UIDev
             if (!ImGui.CollapsingHeader("All actors"))
                 return;
 
-            ImGui.BeginTable($"actors", 7, ImGuiTableFlags.Resizable);
+            ImGui.BeginTable($"actors", 8, ImGuiTableFlags.Resizable);
             ImGui.TableSetupColumn("X", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
             ImGui.TableSetupColumn("HP", ImGuiTableColumnFlags.WidthFixed, 200);
             ImGui.TableSetupColumn("Name");
+            ImGui.TableSetupColumn("Target");
             ImGui.TableSetupColumn("Cast");
             ImGui.TableSetupColumn("Statuses");
             ImGui.TableHeadersRow();
