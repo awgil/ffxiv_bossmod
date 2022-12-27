@@ -245,7 +245,7 @@ namespace BossMod
             DeathAnimation = 14, // from dissector
             CancelCast = 15, // dissector calls it CastInterrupt (ActorControl), machina calls it CancelAbility
             Cooldown = 17, // dissector calls it ActionStart (ActorControlSelf)
-            GainEffect = 20,
+            GainEffect = 20, // note: this packet only causes log message and hit vfx to appear, it does not actually update statuses
             LoseEffect = 21,
             UpdateEffect = 22,
             HoT_DoT = 23, // dissector calls it HPFloatingText

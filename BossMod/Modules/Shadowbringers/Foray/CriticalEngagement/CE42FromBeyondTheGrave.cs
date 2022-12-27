@@ -79,7 +79,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
 
     class GallowsMarch : Components.StatusDrivenForcedMarch
     {
-        public GallowsMarch() : base(2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) { }
+        public GallowsMarch() : base(3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) { }
 
         public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => !module.FindComponent<PurifyingLight>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? true;
 
@@ -195,7 +195,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
 
     public class CE42FromBeyondTheGrave : BossModule
     {
-        public CE42FromBeyondTheGrave(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-60, 800), 25)) { }
+        public CE42FromBeyondTheGrave(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-60, 800), 30)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

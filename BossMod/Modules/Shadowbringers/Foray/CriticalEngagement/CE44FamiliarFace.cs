@@ -134,6 +134,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
         }
     }
 
+    // TODO: consider prediction - actor-create happens ~4.7s before cast start
     class Hammerfall : Components.SelfTargetedAOEs
     {
         public Hammerfall() : base(ActionID.MakeSpell(AID.Hammerfall), new AOEShapeCircle(37)) { }

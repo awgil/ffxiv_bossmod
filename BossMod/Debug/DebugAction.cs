@@ -53,6 +53,9 @@ namespace BossMod
                     ImGui.TextUnformatted($"Cast time: {data.Cast100ms / 10.0:f1}");
                     ImGui.TextUnformatted($"Range: {data.Range}");
                     ImGui.TextUnformatted($"Effect range: {data.EffectRange}");
+                    ImGui.TextUnformatted($"Cooldown group: {data.CooldownGroup}");
+                    ImGui.TextUnformatted($"Max charges: {data.MaxCharges}");
+                    ImGui.TextUnformatted($"Category: {data.ActionCategory.Row} ({data.ActionCategory.Value?.Name})");
                 }
             }
 

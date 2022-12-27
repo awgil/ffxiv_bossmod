@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE62LooksToDieFor
 {
@@ -126,7 +124,19 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE62LooksToDieFor
 
         private static AOEShapeCircle _shape = new(8);
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _casters.Where(c => c.aoe != null).Take(8).Select(c => c.aoe!.Value);
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            var deadline = new DateTime();
+            foreach (var c in _casters)
+            {
+                if (c.aoe == null)
+                    continue;
+                if (deadline == default)
+                    deadline = c.aoe.Value.Activation.AddSeconds(1);
+                if (c.aoe.Value.Activation < deadline)
+                    yield return c.aoe.Value;
+            }
+        }
 
         public override void Init(BossModule module)
         {

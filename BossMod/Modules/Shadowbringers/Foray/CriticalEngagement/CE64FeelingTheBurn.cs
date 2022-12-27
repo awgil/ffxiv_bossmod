@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
@@ -35,6 +36,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
 
     public enum SID : uint
     {
+        Tracking = 2056, // none->Escort2, extra=0x87
         FrontUnseen = 2644, // Boss->player, extra=0x120
         BackUnseen = 1709, // Boss->player, extra=0xE8
     };
@@ -76,29 +78,71 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
         }
     }
 
-    // TODO: bait hints for escorts - can we even find the source?.. i think there are tethers on spawn that we miss...
-    class ChainCannon : Components.GenericAOEs
+    // TODO: match baiter (player with icon) to source - investigate network messages; can do it by smallest angle, but that could have issues
+    class ChainCannonEscort : Components.GenericAOEs
     {
-        private List<(WPos origin, Angle dir)> _casters = new();
+        private List<(Actor caster, int numCasts, DateTime activation)> _casters = new();
         private static AOEShapeRect _shape = new(60, 2.5f);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return _casters.Select(c => new AOEInstance(_shape, c.origin, c.dir));
+            return _casters.Select(c => new AOEInstance(_shape, c.caster.Position, c.caster.Rotation, c.activation));
         }
 
-        public override void Update(BossModule module)
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-            // TODO: this is extremely stupid, fix! find better end condition
-            if (((CE64FeelingTheBurn)module).Escorts.Any(e => e.IsTargetable) || // end condition for escorts
-                _casters.Count == 1 && module.PrimaryActor.CastInfo != null && !module.PrimaryActor.CastInfo.IsSpell(AID.ChainCannonBoss)) // end condition for boss
-                _casters.Clear();
+            if ((SID)status.ID == SID.Tracking)
+                _casters.Add((actor, 0, status.ExpireAt));
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID == AID.ChainCannonEscortAOE)
+            {
+                var index = _casters.FindIndex(c => c.caster.Position.AlmostEqual(caster.Position, 1));
+                if (index >= 0)
+                {
+                    int numCasts = _casters[index].numCasts + 1;
+                    if (numCasts >= 6)
+                        _casters.RemoveAt(index);
+                    else
+                        _casters[index] = (_casters[index].caster, numCasts, module.WorldState.CurrentTime.AddSeconds(1));
+                }
+            }
+        }
+    }
+
+    class ChainCannonBoss : Components.GenericAOEs
+    {
+        private AOEInstance? _instance;
+        private static AOEShapeRect _shape = new(60, 2.5f);
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (_instance != null)
+                yield return _instance.Value;
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID is AID.ChainCannonEscort or AID.ChainCannonBoss)
-                _casters.Add((caster.Position, spell.Rotation));
+            if ((AID)spell.Action.ID == AID.ChainCannonBoss)
+                _instance = new(_shape, caster.Position, spell.Rotation, spell.FinishAt.AddSeconds(1));
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID == AID.ChainCannonBossAOE)
+            {
+                if (++NumCasts >= 4)
+                {
+                    _instance = null;
+                    NumCasts = 0;
+                }
+                else
+                {
+                    _instance = new(_shape, caster.Position, caster.Rotation, module.WorldState.CurrentTime.AddSeconds(1));
+                }
+            }
         }
     }
 
@@ -129,7 +173,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
             TrivialPhase()
                 .ActivateOnEnter<DiveFormation>()
                 .ActivateOnEnter<AntiPersonnelMissile>()
-                .ActivateOnEnter<ChainCannon>()
+                .ActivateOnEnter<ChainCannonEscort>()
+                .ActivateOnEnter<ChainCannonBoss>()
                 .ActivateOnEnter<SurfaceMissile>()
                 .ActivateOnEnter<SuppressiveMagitekRays>()
                 .ActivateOnEnter<Analysis>()

@@ -434,8 +434,8 @@ namespace BossMod
                             case Protocol.Server_ActorControlCategory.CancelCast: // note: some successful boss casts have this message on completion, seen param1=param4=0, param2=1; param1 is related to cast time?..
                                 Service.Log($"[Network] -- cancelled {new ActionID((ActionType)p->param2, p->param3)}, interrupted={p->param4 == 1}");
                                 break;
-                            case Protocol.Server_ActorControlCategory.GainEffect: // gain status effect, seen param2=param3=param4=0
-                                Service.Log($"[Network] -- gained {Utils.StatusString(p->param1)}");
+                            case Protocol.Server_ActorControlCategory.GainEffect: // gain status effect, seen param3=param4=0
+                                Service.Log($"[Network] -- gained {Utils.StatusString(p->param1)}, extra={p->param2:X4}");
                                 break;
                             case Protocol.Server_ActorControlCategory.LoseEffect: // lose status effect, seen param2=param4=0, param3=invalid-oid
                                 Service.Log($"[Network] -- lost {Utils.StatusString(p->param1)}");

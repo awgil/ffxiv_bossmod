@@ -10,7 +10,7 @@
     public enum AID : uint
     {
         AutoAttack = 6497, // Boss->player, no cast, single-target
-        Electrocution = 24706, // Helper->self, no cast, range 25?-30 donut, deathwall around arena
+        Electrocution = 24706, // Helper->self, no cast, range 25-30 donut, deathwall around arena
         CloudOfLocusts = 23568, // Boss->self, 6.5s cast, range 15 circle
         PlagueOfLocusts = 23569, // Boss->self, 6.5s cast, range 6-40 donut
         DivestingGale = 23570, // Helper->location, 3.0s cast, range 5 circle
@@ -20,7 +20,7 @@
         GaleCannon = 21475, // Boss->self, 5.0s cast, range 30 width 12 rect aoe
 
         FlightOfTheMalefic1 = 24810, // Boss->self, 7.0s cast, single-target, visual (45, -45, -135)
-        //FlightOfTheMalefic2 = 24811, // Boss->self, 7.0s cast, single-target, visual (-45, -135, 135)
+        FlightOfTheMalefic2 = 24811, // Boss->self, 7.0s cast, single-target, visual (-45, -135, 135)
         FlightOfTheMalefic3 = 24812, // Boss->self, 7.0s cast, single-target, visual (45, -45, 135)
         FlightOfTheMalefic4 = 24813, // Boss->self, 7.0s cast, single-target, visual (45, -135, 135)
         FlightOfTheMaleficAOECone = 23579, // Helper->self, 7.0s cast, range 30 90-degree cone aoe

@@ -98,7 +98,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE63WornToShadow
     class Foreshadowing : Components.GenericAOEs
     {
         private AOEShape? _bossAOE;
-        private List<(Actor caster, AOEShape shape)> _addAOEs = new();
+        private List<(Actor caster, AOEShape? shape)> _addAOEs = new(); // shape is null if add starts cast slightly before boss
         private DateTime _addActivation;
 
         private static AOEShapeDonut _shapePulse = new(8, 25);
@@ -112,25 +112,27 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE63WornToShadow
 
             if (_addActivation != default)
                 foreach (var add in _addAOEs)
-                    yield return new(add.shape, add.caster.Position, add.caster.CastInfo?.Rotation ?? add.caster.Rotation, add.caster.CastInfo?.FinishAt ?? _addActivation);
+                    if (add.shape != null)
+                        yield return new(add.shape, add.caster.Position, add.caster.CastInfo?.Rotation ?? add.caster.Rotation, add.caster.CastInfo?.FinishAt ?? _addActivation);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            AOEShape? shape = (AID)spell.Action.ID switch
+            switch ((AID)spell.Action.ID)
             {
-                AID.FrigidPulse => _shapePulse,
-                AID.PainStorm => _shapeStorm,
-                AID.PainfulGust => _shapeGust,
-                _ => null
-            };
-            if (shape == null)
-                return;
-
-            _bossAOE = shape;
-            _addActivation = new();
-            foreach (var add in module.Enemies(OID.AlkonostsShadow).Tethered(TetherID.Foreshadowing))
-                _addAOEs.Add((add, shape));
+                case AID.FrigidPulse:
+                    StartBossCast(_shapePulse);
+                    break;
+                case AID.PainStorm:
+                    StartBossCast(_shapeStorm);
+                    break;
+                case AID.PainfulGust:
+                    StartBossCast(_shapeGust);
+                    break;
+                case AID.ShadowsCast:
+                    _addAOEs.Add((caster, _bossAOE)); // depending on timings, this might be null - will be updated when boss aoe starts
+                    break;
+            }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
@@ -150,6 +152,15 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE63WornToShadow
                     _addAOEs.RemoveAll(e => e.caster == caster);
                     break;
             }
+        }
+
+        private void StartBossCast(AOEShape shape)
+        {
+            _bossAOE = shape;
+            _addActivation = new();
+            for (int i = 0; i < _addAOEs.Count; ++i)
+                if (_addAOEs[i].shape == null)
+                    _addAOEs[i] = (_addAOEs[i].caster, shape);
         }
     }
 

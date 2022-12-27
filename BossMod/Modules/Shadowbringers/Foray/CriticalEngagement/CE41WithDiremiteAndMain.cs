@@ -196,7 +196,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE41WithDiremiteAndMai
         private List<Actor> _dimCrystals = new();
         private List<Actor> _corruptedCrystals = new();
 
-        public CE41WithDiremiteAndMain(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-220, 530), 25))
+        public CE41WithDiremiteAndMain(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-220, 530), 30))
         {
             _dimCrystals = Enemies(OID.DimCrystal);
             _corruptedCrystals = Enemies(OID.CorruptedCrystal);
