@@ -16,14 +16,16 @@ namespace BossMod.Components
         public struct Source
         {
             public WPos Origin;
+            public float Distance;
             public Angle Direction;
             public AOEShape? Shape; // if null, assume it is unavoidable raidwide knockback
             public DateTime Activation;
             public Kind Kind;
 
-            public Source(WPos origin, DateTime activation = new(), AOEShape? shape = null, Angle dir = new(), Kind kind = Kind.AwayFromOrigin)
+            public Source(WPos origin, float distance, DateTime activation = new(), AOEShape? shape = null, Angle dir = new(), Kind kind = Kind.AwayFromOrigin)
             {
                 Origin = origin;
+                Distance = distance;
                 Direction = dir;
                 Shape = shape;
                 Activation = activation;
@@ -39,7 +41,6 @@ namespace BossMod.Components
             public bool ImmuneAt(DateTime time) => ArmsLengthSurecastExpire > time || InnerStrengthExpire > time;
         }
 
-        public float Distance { get; private init; }
         public bool IgnoreImmunes { get; private init; }
         public int MaxCasts; // use to limit number of drawn knockbacks
         private PlayerImmunes[] _playerImmunes = new PlayerImmunes[PartyState.MaxAllianceSize];
@@ -59,9 +60,8 @@ namespace BossMod.Components
         }
         public static void DrawKnockback(Actor actor, WPos adjPos, MiniArena arena) => DrawKnockback(actor.Position, adjPos, actor.Rotation, arena);
 
-        public Knockback(float distance, ActionID aid = new(), bool ignoreImmunes = false, int maxCasts = int.MaxValue) : base(aid)
+        public Knockback(ActionID aid = new(), bool ignoreImmunes = false, int maxCasts = int.MaxValue) : base(aid)
         {
-            Distance = distance;
             IgnoreImmunes = ignoreImmunes;
             MaxCasts = maxCasts;
         }
@@ -140,7 +140,7 @@ namespace BossMod.Components
                 if (dir == default)
                     continue; // couldn't determine direction for some reason
 
-                var to = from + Distance * dir;
+                var to = from + s.Distance * dir;
                 yield return (from, to);
                 from = to;
 
@@ -154,14 +154,16 @@ namespace BossMod.Components
     // TODO: knockback is really applied when effectresult arrives rather than when actioneffect arrives, this is important for ai hints (they can reposition too early otherwise)
     public class KnockbackFromCastTarget : Knockback
     {
+        public float Distance;
         public AOEShape? Shape;
         public Kind KnockbackKind;
         private List<Actor> _casters = new();
         public IReadOnlyList<Actor> Casters => _casters;
 
         public KnockbackFromCastTarget(ActionID aid, float distance, bool ignoreImmunes = false, int maxCasts = int.MaxValue, AOEShape? shape = null, Kind kind = Kind.AwayFromOrigin)
-            : base(distance, aid, ignoreImmunes, maxCasts)
+            : base(aid, ignoreImmunes, maxCasts)
         {
+            Distance = distance;
             Shape = shape;
             KnockbackKind = kind;
         }
@@ -173,12 +175,12 @@ namespace BossMod.Components
                 // note that majority of knockback casts are self-targeted
                 if (c.CastInfo!.TargetID == c.InstanceID)
                 {
-                    yield return new(c.Position, c.CastInfo.FinishAt, Shape, c.CastInfo.Rotation, KnockbackKind);
+                    yield return new(c.Position, Distance, c.CastInfo.FinishAt, Shape, c.CastInfo.Rotation, KnockbackKind);
                 }
                 else
                 {
                     var origin = module.WorldState.Actors.Find(c.CastInfo.TargetID)?.Position ?? c.CastInfo.LocXZ;
-                    yield return new(origin, c.CastInfo.FinishAt, Shape, c.CastInfo.Rotation, KnockbackKind); // TODO: not sure whether rotation should be this or Angle.FromDirection(origin - c.Position)...
+                    yield return new(origin, Distance, c.CastInfo.FinishAt, Shape, c.CastInfo.Rotation, KnockbackKind); // TODO: not sure whether rotation should be this or Angle.FromDirection(origin - c.Position)...
                 }
             }
         }

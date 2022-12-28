@@ -8,12 +8,12 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
     {
         private WPos? _source;
 
-        public QuadrupedalImpact() : base(30, ActionID.MakeSpell(AID.QuadrupedalImpactAOE), true) { }
+        public QuadrupedalImpact() : base(ActionID.MakeSpell(AID.QuadrupedalImpactAOE), true) { }
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (_source != null)
-                yield return new(_source.Value); // TODO: activation
+                yield return new(_source.Value, 30); // TODO: activation
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

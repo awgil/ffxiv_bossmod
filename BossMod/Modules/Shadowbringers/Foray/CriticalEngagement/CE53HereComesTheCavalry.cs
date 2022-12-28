@@ -84,7 +84,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
         private List<Source> _sources = new();
         private static AOEShapeCone _shape = new(30, 90.Degrees());
 
-        public RideDownKnockback() : base(12, ActionID.MakeSpell(AID.RideDownAOE), false, 1) { }
+        public RideDownKnockback() : base(ActionID.MakeSpell(AID.RideDownAOE), false, 1) { }
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => _sources;
 
@@ -94,8 +94,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
             {
                 _sources.Clear();
                 // charge always happens through center, so create two sources with origin at center looking orthogonally
-                _sources.Add(new(module.Bounds.Center, spell.FinishAt, _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
-                _sources.Add(new(module.Bounds.Center, spell.FinishAt, _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
+                _sources.Add(new(module.Bounds.Center, 12, spell.FinishAt, _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
+                _sources.Add(new(module.Bounds.Center, 12, spell.FinishAt, _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
             }
         }
 

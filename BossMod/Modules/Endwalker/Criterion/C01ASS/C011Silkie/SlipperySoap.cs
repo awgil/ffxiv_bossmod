@@ -26,12 +26,10 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie
 
         public bool ChargeImminent => _chargeTarget != null;
 
-        public SlipperySoapCharge() : base(15) { }
-
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (_chargeTarget != null && _color == SlipperySoap.Color.Green)
-                yield return new(module.PrimaryActor.Position, _chargeResolve, _chargeShape, _chargeDir, Kind.DirForward);
+                yield return new(module.PrimaryActor.Position, 15, _chargeResolve, _chargeShape, _chargeDir, Kind.DirForward);
         }
 
         public override void Update(BossModule module)

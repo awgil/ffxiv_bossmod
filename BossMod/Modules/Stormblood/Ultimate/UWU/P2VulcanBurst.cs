@@ -6,12 +6,12 @@ namespace BossMod.Stormblood.Ultimate.UWU
     {
         protected Actor? SourceActor;
 
-        public VulcanBurst(AID aid) : base(15, ActionID.MakeSpell(aid)) { }
+        public VulcanBurst(AID aid) : base(ActionID.MakeSpell(aid)) { }
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (SourceActor != null)
-                yield return new(SourceActor.Position); // TODO: activation
+                yield return new(SourceActor.Position, 15); // TODO: activation
         }
     }
 

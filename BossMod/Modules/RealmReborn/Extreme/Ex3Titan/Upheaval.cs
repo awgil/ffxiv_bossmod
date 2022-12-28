@@ -8,12 +8,12 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
     {
         private DateTime _remainInPosition;
 
-        public Upheaval() : base(13, ActionID.MakeSpell(AID.Upheaval)) { }
+        public Upheaval() : base(ActionID.MakeSpell(AID.Upheaval)) { }
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (_remainInPosition > module.WorldState.CurrentTime)
-                yield return new(module.PrimaryActor.Position);
+                yield return new(module.PrimaryActor.Position, 13);
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
