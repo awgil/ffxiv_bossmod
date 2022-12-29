@@ -11,11 +11,16 @@ namespace BossMod
         {
             foreach (var handle in EnumHandles())
             {
-                var name = ObjectName(handle);
-                if (name.Contains("6AA83AB5-BAC4-4a36-9F66-A309770760CB_ffxiv_game0"))
+                // there's a weird bug in winapi - sometimes name query can hang; apparently it happens on some file objects
+                // to avoid that, try to get names only for mutexes
+                if (ObjectNameOrTypeName(handle, true) == "Mutant")
                 {
-                    Service.Log($"[Multibox] Closing handle {handle:X} '{name}'");
-                    CloseHandle(handle);
+                    var name = ObjectNameOrTypeName(handle, false);
+                    if (name.Contains("6AA83AB5-BAC4-4a36-9F66-A309770760CB_ffxiv_game0"))
+                    {
+                        Service.Log($"[Multibox] Closing handle {handle:X} '{name}'");
+                        CloseHandle(handle);
+                    }
                 }
             }
         }
@@ -52,14 +57,15 @@ namespace BossMod
             return ret;
         }
 
-        private unsafe static string ObjectName(ulong handle)
+        // both OBJECT_NAME_INFORMATION and OBJECT_TYPE_INFORMATION have UNICODE_STRING as first member, so same thing works for both
+        private unsafe static string ObjectNameOrTypeName(ulong handle, bool typeName)
         {
             uint bufferSize = 1024;
             var buffer = new byte[bufferSize];
             fixed (byte* pbuf = &buffer[0])
             {
                 uint retSize = 0;
-                var status = NtQueryObject(handle, 1, pbuf, bufferSize, &retSize);
+                var status = NtQueryObject(handle, typeName ? 2 : 1, pbuf, bufferSize, &retSize);
                 if (status >= 0)
                 {
                     var name = (UNICODE_STRING*)pbuf;
