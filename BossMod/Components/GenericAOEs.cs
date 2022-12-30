@@ -158,11 +158,11 @@ namespace BossMod.Components
     // 'charge at location' aoes that happen at the end of the cast
     public class ChargeAOEs : GenericAOEs
     {
-        public int HalfWidth { get; private init; }
+        public float HalfWidth { get; private init; }
         private List<(Actor caster, AOEShape shape, Angle direction)> _casters = new();
         public IReadOnlyList<(Actor caster, AOEShape shape, Angle direction)> Casters => _casters;
 
-        public ChargeAOEs(ActionID aid, int halfWidth) : base(aid)
+        public ChargeAOEs(ActionID aid, float halfWidth) : base(aid)
         {
             HalfWidth = halfWidth;
         }

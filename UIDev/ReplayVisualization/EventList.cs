@@ -210,7 +210,7 @@ namespace UIDev
 
         private void DrawEncounterDetails(Replay.Encounter enc, Func<DateTime, string> tp)
         {
-            foreach (var n in _tree.Node("State transitions"))
+            foreach (var n in _tree.Node("State transitions", enc.States.Count == 0))
             {
                 var enter = enc.Time.Start;
                 foreach (var s in _tree.Nodes(enc.States, s => new($"{s.FullName:X}: {tp(enter)} - {tp(s.Exit)} = {new Replay.TimeRange(enter, s.Exit)} (expected {s.ExpectedDuration:f1})", true)))
@@ -219,7 +219,7 @@ namespace UIDev
                 }
             }
 
-            foreach (var n in _tree.Node("Errors"))
+            foreach (var n in _tree.Node("Errors", enc.Errors.Count == 0))
             {
                 _tree.LeafNodes(enc.Errors, error => $"{tp(error.Timestamp)} [{error.CompType}] {error.Message}");
             }
