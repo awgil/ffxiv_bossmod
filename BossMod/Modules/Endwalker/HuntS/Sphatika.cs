@@ -53,7 +53,6 @@ namespace BossMod.Endwalker.HuntS.Sphatika
 
     class Stance : Components.GenericAOEs
     {
-        private SID _secondBearing; // TODO: this is a hack, find a way to properly determine which buff is 'first'
         private List<Angle> _pendingCleaves = new();
         private static AOEShapeCone _shape = new(40, 90.Degrees());
 
@@ -91,22 +90,6 @@ namespace BossMod.Endwalker.HuntS.Sphatika
                 case AID.WhiplickStance:
                     InitCleaves(module, spell.Rotation, true);
                     break;
-                case AID.LongLickForward:
-                case AID.HindWhipForward:
-                    FixupOrder(SID.ForwardBearing);
-                    break;
-                case AID.LongLickBackward:
-                case AID.HindWhipBackward:
-                    FixupOrder(SID.BackwardBearing);
-                    break;
-                case AID.LongLickLeftward:
-                case AID.HindWhipLeftward:
-                    FixupOrder(SID.LeftwardBearing);
-                    break;
-                case AID.LongLickRightward:
-                case AID.HindWhipRightward:
-                    FixupOrder(SID.RightwardBearing);
-                    break;
             }
         }
 
@@ -122,50 +105,36 @@ namespace BossMod.Endwalker.HuntS.Sphatika
 
         private void InitCleaves(BossModule module, Angle reference, bool inverted)
         {
-            _pendingCleaves.Clear();
-            // TODO: current implementation looks correct, but buffs are sometimes picked in wrong order...
+            // bearings are resolved in UI order; it is forward > backward > left > right, see PartyListPriority column
+            List<(Angle offset, int priority)> bearings = new();
             foreach (var s in module.PrimaryActor.Statuses)
             {
                 switch ((SID)s.ID)
                 {
                     case SID.ForwardBearing:
-                        _secondBearing = (SID)s.ID;
-                        AddPendingCleave(reference, inverted);
+                        bearings.Add((0.Degrees(), 0));
                         break;
                     case SID.BackwardBearing:
-                        _secondBearing = (SID)s.ID;
-                        AddPendingCleave(reference + 180.Degrees(), inverted);
+                        bearings.Add((180.Degrees(), 1));
                         break;
                     case SID.LeftwardBearing:
-                        _secondBearing = (SID)s.ID;
-                        AddPendingCleave(reference + 90.Degrees(), inverted);
+                        bearings.Add((90.Degrees(), 2));
                         break;
                     case SID.RightwardBearing:
-                        _secondBearing = (SID)s.ID;
-                        AddPendingCleave(reference - 90.Degrees(), inverted);
+                        bearings.Add((-90.Degrees(), 3));
                         break;
                 }
             }
-        }
+            bearings.SortBy(b => b.priority);
 
-        private void AddPendingCleave(Angle dir, bool inverted)
-        {
-            if (inverted)
-                dir += 180.Degrees();
-            _pendingCleaves.Add(dir);
-            _pendingCleaves.Add(dir + 180.Degrees());
-        }
-
-        private void FixupOrder(SID expectedFirst)
-        {
-            if (expectedFirst == _secondBearing && _pendingCleaves.Count == 4)
+            _pendingCleaves.Clear();
+            foreach (var b in bearings)
             {
-                var t1 = _pendingCleaves[0];
-                var t2 = _pendingCleaves[1];
-                _pendingCleaves[0] = _pendingCleaves[2];
-                _pendingCleaves[1] = _pendingCleaves[3];
-                _pendingCleaves[2] = t1;
-                _pendingCleaves[3] = t2;
+                var dir = reference + b.offset;
+                if (inverted)
+                    dir += 180.Degrees();
+                _pendingCleaves.Add(dir);
+                _pendingCleaves.Add(dir + 180.Degrees());
             }
         }
     }
