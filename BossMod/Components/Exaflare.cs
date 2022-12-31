@@ -16,15 +16,16 @@ namespace BossMod.Components
             public int MaxShownExplosions;
         }
 
-        public AOEShapeCircle Shape { get; private init; }
+        public AOEShape Shape { get; private init; }
         protected List<Line> Lines = new();
 
         public bool Active => Lines.Count > 0;
 
-        public Exaflare(float radius, ActionID watchedAction = new()) : base(watchedAction, "GTFO from exaflare!")
+        public Exaflare(AOEShape shape, ActionID watchedAction = new()) : base(watchedAction, "GTFO from exaflare!")
         {
-            Shape = new(radius);
+            Shape = shape;
         }
+        public Exaflare(float radius, ActionID watchedAction = new()) : this(new AOEShapeCircle(radius), watchedAction) { }
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
