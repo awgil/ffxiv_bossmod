@@ -21,7 +21,7 @@ namespace BossMod.Components
         public float MovementSpeed = 6; // default movement speed, can be overridden if necessary
 
         // called to determine whether we need to show hint
-        public virtual bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => false;
+        public virtual bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => !module.Bounds.Contains(pos);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
@@ -78,6 +78,7 @@ namespace BossMod.Components
     // typical forced march is driven by statuses
     public class StatusDrivenForcedMarch : GenericForcedMarch
     {
+        public int NumActiveForcedMarches { get; private set; } // TODO: should it be in base class instead?
         public float Duration;
         public uint[] Statuses; // 5 elements: fwd, left, back, right, forced
 
@@ -93,6 +94,7 @@ namespace BossMod.Components
             if (statusKind == 4)
             {
                 State.GetOrAdd(actor.InstanceID).ForcedEnd = status.ExpireAt;
+                ++NumActiveForcedMarches;
             }
             else if (statusKind >= 0)
             {
@@ -106,6 +108,7 @@ namespace BossMod.Components
             if (statusKind == 4)
             {
                 State.GetOrAdd(actor.InstanceID).ForcedEnd = default;
+                --NumActiveForcedMarches;
             }
             else if (statusKind >= 0)
             {

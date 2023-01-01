@@ -61,6 +61,8 @@ namespace BossMod.Components
     {
         public AOEShape Shape { get; private init; }
         public int MaxCasts { get; private init; } // used for staggered aoes, when showing all active would be pointless
+        public uint Color = ArenaColor.AOE; // can be customized if needed
+        public bool Risky = true; // can be customized if needed
         private List<Actor> _casters = new();
         public IReadOnlyList<Actor> Casters => _casters;
         public IEnumerable<Actor> ActiveCasters => _casters.Take(MaxCasts);
@@ -73,7 +75,7 @@ namespace BossMod.Components
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return ActiveCasters.Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt));
+            return ActiveCasters.Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt, Color, Risky));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

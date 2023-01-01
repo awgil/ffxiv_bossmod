@@ -145,7 +145,7 @@ namespace BossMod
         public State SimpleState(uint id, float duration, string name)
         {
             if (_states.ContainsKey(id))
-                throw new Exception($"Duplicate state id {id}");
+                throw new Exception($"Duplicate state id {id:X}");
 
             var state = _states[id] = new() { ID = id, Duration = duration, Name = name };
             if (_lastState != null)
