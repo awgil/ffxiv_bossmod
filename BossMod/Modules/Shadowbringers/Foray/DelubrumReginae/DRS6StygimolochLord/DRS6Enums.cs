@@ -27,6 +27,7 @@
         WhackExtra = 22480, // Boss->self, no cast, range 40 60-degree cone, visual?
         WhackAOE = 22481, // Helper->self, 3.0s cast, range 40 60-degree cone
 
+        AutoAttackMinotaur = 21926, // StygimolochMonk->player, no cast, single-target
         MemoryOfTheLabyrinth = 22467, // Boss->self, 3.0s cast, single-target, visual (add phase start)
         ManaFlame = 22494, // BallOfFire->self, 5.0s cast, range 6 circle reflectable aoe
         Entrapment = 22491, // StygimolochMonk->self, 3.0s cast, single-target, visual (spawn traps in outer ring)
