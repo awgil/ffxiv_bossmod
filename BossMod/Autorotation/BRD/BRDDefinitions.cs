@@ -18,7 +18,7 @@ namespace BossMod.BRD
         Stormbite = 7407, // L64, instant, range 25, single-target 0/0, targets=hostile
         IronJaws = 3560, // L56, instant, range 25, single-target 0/0, targets=hostile
         ApexArrow = 16496, // L80, instant, range 25, AOE rect 25/4, targets=hostile
-        BlastArrow = 25784, // L86, instant, range 25, AOE rect 25/4, targets=hostile, animLock=???
+        BlastArrow = 25784, // L86, instant, range 25, AOE rect 25/4, targets=hostile
 
         // aoe GCDs
         QuickNock = 106, // L18, instant, range 12, AOE cone 12/0 (90 degree), targets=hostile
@@ -39,7 +39,7 @@ namespace BossMod.BRD
         ArmysPaeon = 116, // L40, instant, 120.0s CD (group 16), range 25, single-target 0/0, targets=hostile
         WanderersMinuet = 3559, // L52, instant, 120.0s CD (group 17), range 25, single-target 0/0, targets=hostile
         BattleVoice = 118, // L50, instant, 120.0s CD (group 22), range 0, AOE circle 20/0, targets=self
-        RadiantFinale = 25785, // L90, instant, 110.0s CD (group 15), range 0, AOE circle 20/0, targets=self, animLock=???
+        RadiantFinale = 25785, // L90, instant, 110.0s CD (group 15), range 0, AOE circle 20/0, targets=self
 
         // defensive CDs
         SecondWind = 7541, // L8, instant, 120.0s CD (group 40), range 0, single-target 0/0, targets=self
@@ -108,11 +108,11 @@ namespace BossMod.BRD
         StraightShotReady = 122, // procced or applied by Barrage to self
         VenomousBite = 124, // applied by Venomous Bite, dot
         Windbite = 129, // applied by Windbite, dot
+        CausticBite = 1200, // applied by Caustic Bite, Iron Jaws to target, dot
+        Stormbite = 1201, // applied by Stormbite, Iron Jaws to target, dot
         RagingStrikes = 125, // applied by Raging Strikes to self, damage buff
         Barrage = 128, // applied by Barrage to self
         Peloton = 1199,
-        CausticBite = 1200, // applied by Caustic Bite, Iron Jaws to target, dot
-        Stormbite = 1201, // applied by Stormbite, Iron Jaws to target, dot
         ShadowbiteReady = 3002, // applied by Ladonsbite to self
         NaturesMinne = 1202, // applied by Nature's Minne to self
         WardensPaean = 866, // applied by the Warden's Paean to self
@@ -120,6 +120,10 @@ namespace BossMod.BRD
         Troubadour = 1934, // applied by Troubadour to self
         ArmsLength = 1209, // applied by Arm's Length to self
         Bind = 13, // applied by Foot Graze to target
+        BlastArrowReady = 2692, // applied by Apex Arrow to self
+        RadiantFinale = 2964, // applied by Radiant Finale to self. damage up
+        RadiantFinaleVisual = 2722, // applied by Radiant Finale to self, visual effect
+        ArmysMuse = 1932, // applied when leaving army's paeon
     }
 
     public static class Definitions

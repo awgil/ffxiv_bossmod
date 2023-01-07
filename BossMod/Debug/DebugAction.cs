@@ -70,7 +70,7 @@ namespace BossMod
                 Lumina.Text.SeString? name = null;
                 FFXIVClientStructs.FFXIV.Client.Game.ActionType type = FFXIVClientStructs.FFXIV.Client.Game.ActionType.None;
                 uint unlockLink = 0;
-                if (hover.ActionKind == HoverActionKind.Action)
+                if ((int)hover.ActionKind == 24) // action
                 {
                     var data = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(hover.ActionID);
                     name = data?.Name;
@@ -113,7 +113,7 @@ namespace BossMod
                     ImGui.TextUnformatted($"Recast group: {groupID}");
                     var group = mgr->GetRecastGroupDetail(groupID);
                     if (group != null)
-                        ImGui.TextUnformatted($"Recast group details: active={group->IsActive}, action={group->ActionID}, elapsed={group->Elapsed}, total={group->Total}");
+                        ImGui.TextUnformatted($"Recast group details: active={group->IsActive}, action={group->ActionID}, elapsed={group->Elapsed:f3}, total={group->Total:f3}, cooldown={group->Total - group->Elapsed:f3}");
                 }
             }
             else if (Service.GameGui.HoveredItem != 0)

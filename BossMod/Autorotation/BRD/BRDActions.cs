@@ -123,58 +123,37 @@ namespace BossMod.BRD
         private void UpdatePlayerState()
         {
             FillCommonPlayerState(_state);
+            if (_state.AnimationLockDelay < 0.1f)
+                _state.AnimationLockDelay = 0.1f; // TODO: reconsider; we generally don't want triple weaves or extra-late proc weaves
 
             var gauge = Service.JobGauges.Get<BRDGauge>();
             _state.ActiveSong = (Rotation.Song)gauge.Song;
             _state.ActiveSongLeft = gauge.SongTimer * 0.001f;
+            _state.Repertoire = gauge.Repertoire;
+            _state.SoulVoice = gauge.SoulVoice;
+            _state.NumCoda = gauge.Coda.Count(c => c != default);
 
-            _state.StraightShotLeft = _state.RagingStrikesLeft = _state.BarrageLeft = _state.PelotonLeft = 0;
-            foreach (var status in Player.Statuses)
-            {
-                switch ((SID)status.ID)
-                {
-                    case SID.StraightShotReady:
-                        _state.StraightShotLeft = StatusDuration(status.ExpireAt);
-                        break;
-                    case SID.RagingStrikes:
-                        _state.RagingStrikesLeft = StatusDuration(status.ExpireAt);
-                        break;
-                    case SID.Barrage:
-                        _state.BarrageLeft = StatusDuration(status.ExpireAt);
-                        break;
-                    case SID.Peloton:
-                        _state.PelotonLeft = StatusDuration(status.ExpireAt);
-                        break;
-                }
-            }
+            _state.StraightShotLeft = StatusDetails(Player, SID.StraightShotReady, Player.InstanceID, 30).Left;
+            _state.BlastArrowLeft = StatusDetails(Player, SID.BlastArrowReady, Player.InstanceID, 10).Left;
+            _state.ShadowbiteLeft = StatusDetails(Player, SID.ShadowbiteReady, Player.InstanceID, 30).Left;
+            _state.RagingStrikesLeft = StatusDetails(Player, SID.RagingStrikes, Player.InstanceID, 20).Left;
+            _state.BattleVoiceLeft = StatusDetails(Player, SID.BattleVoice, Player.InstanceID, 15).Left;
+            _state.RadiantFinaleLeft = StatusDetails(Player, SID.RadiantFinale, Player.InstanceID, 15).Left;
+            _state.ArmysMuseLeft = StatusDetails(Player, SID.ArmysMuse, Player.InstanceID, 10).Left;
+            _state.BarrageLeft = StatusDetails(Player, SID.Barrage, Player.InstanceID, 10).Left;
+            _state.PelotonLeft = StatusDetails(Player, SID.Peloton, Player.InstanceID, 30).Left;
 
-            _state.TargetCausticLeft = _state.TargetStormbiteLeft = 0;
-            if (Autorot.PrimaryTarget != null)
-            {
-                foreach (var status in Autorot.PrimaryTarget.Statuses)
-                {
-                    switch ((SID)status.ID)
-                    {
-                        case SID.VenomousBite:
-                        case SID.CausticBite:
-                            if (status.SourceID == Player.InstanceID)
-                                _state.TargetCausticLeft = StatusDuration(status.ExpireAt);
-                            break;
-                        case SID.Windbite:
-                        case SID.Stormbite:
-                            if (status.SourceID == Player.InstanceID)
-                                _state.TargetStormbiteLeft = StatusDuration(status.ExpireAt);
-                            break;
-                    }
-                }
-            }
+            _state.TargetCausticLeft = StatusDetails(Autorot.PrimaryTarget, _state.ExpectedCaustic, Player.InstanceID, 45).Left;
+            _state.TargetStormbiteLeft = StatusDetails(Autorot.PrimaryTarget, _state.ExpectedStormbite, Player.InstanceID, 45).Left;
         }
 
         private void OnConfigModified(object? sender, EventArgs args)
         {
             // placeholders
             SupportedSpell(AID.HeavyShot).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
+            SupportedSpell(AID.BurstShot).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
             SupportedSpell(AID.QuickNock).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
+            SupportedSpell(AID.Ladonsbite).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
 
             // smart targets
         }

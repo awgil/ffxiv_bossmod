@@ -449,8 +449,14 @@ namespace BossMod
                         Service.Log($"[Network] - cat={p->category}, params={p->param1:X8} {p->param2:X8} {p->param3:X8} {p->param4:X8} {p->param5:X8} {p->param6:X8} {p->param7:X8}, unk={p->unk0:X4}");
                         switch (p->category)
                         {
+                            case Protocol.Server_ActorControlCategory.RecastDetails:
+                                Service.Log($"[Network] -- group={p->param1}, elapsed={p->param2 / 100.0f:f2}s, total={p->param3 / 100.0f:f2}s");
+                                break;
                             case Protocol.Server_ActorControlCategory.Cooldown:
                                 Service.Log($"[Network] -- group={p->param1}, action={new ActionID(ActionType.Spell, p->param2)}, time={p->param3 / 100.0f:f2}s");
+                                break;
+                            case Protocol.Server_ActorControlCategory.IncrementRecast:
+                                Service.Log($"[Network] -- group={p->param1}, time={p->param2 / 100.0f:f2}s");
                                 break;
                         }
                         break;
