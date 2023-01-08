@@ -36,7 +36,8 @@
         {
             VerdantPathFist(id, 0);
             IronRoseIronSplitter(id + 0x10000, 5.3f);
-            // TODO: (iron splitter + dead iron) x2 -> iron rose -> verdant tempest -> forced phase change
+            IronSplitterDeadIronIronRose(id + 0x20000, 5.5f);
+            // TODO: verdant tempest -> forced phase change
             SimpleState(id + 0xFF0000, 100, "???")
                 .ActivateOnEnter<IronSplitter>();
         }
@@ -150,7 +151,7 @@
         // TODO: component for chains
         private void BurningChainsBalefulBlade(uint id, float delay)
         {
-            // TODO: what happens with timings if phantom edge is here?
+            // note: there could be an extra phantom edge cast (7.3 to 3.3 before next cast start), but it doesn't change the baleful blade delay
             Condition(id, delay, () => (Module.PrimaryActor.CastInfo?.IsSpell() ?? false) && (AID)Module.PrimaryActor.CastInfo!.Action.ID is AID.BalefulBlade1 or AID.BalefulBlade2, "", 10000); // this is a hack for phantom edge...
             CastMulti(id + 0x10, new[] { AID.BalefulBlade1, AID.BalefulBlade2 }, 0, 8, "Knockback")
                 .ActivateOnEnter<BalefulBlade>()
@@ -191,8 +192,35 @@
                 .DeactivateOnExit<IronSplitter>();
         }
 
+        private void IronSplitterDeadIronIronRose(uint id, float delay)
+        {
+            Cast(id, AID.ManifestAvatar, delay, 3);
+
+            Cast(id + 0x100, AID.IronSplitter, 6.0f, 5, "Tiles/sands")
+                .ActivateOnEnter<IronSplitter>()
+                .ActivateOnEnter<DeadIron>() // icons & tethers appear ~3.2s after cast start
+                .DeactivateOnExit<IronSplitter>();
+            ComponentCondition<DeadIron>(id + 0x110, 2.8f, comp => comp.NumCasts > 0, "Earthshakers 1")
+                .DeactivateOnExit<DeadIron>();
+
+            CastStart(id + 0x200, AID.IronSplitter, 4.2f)
+                .ActivateOnEnter<DeadIron>(); // icons & tethers appear ~1.8s before cast start
+            ComponentCondition<DeadIron>(id + 0x201, 3.2f, comp => comp.NumCasts > 0, "Earthshakers 2")
+                .ActivateOnEnter<IronSplitter>()
+                .DeactivateOnExit<DeadIron>();
+            CastEnd(id + 0x202, 1.8f, "Tiles/sands")
+                .DeactivateOnExit<IronSplitter>();
+
+            // note: iron roses are slightly staggered
+            ComponentCondition<IronRose>(id + 0x300, 1.4f, comp => comp.Casters.Count > 0)
+                .ActivateOnEnter<IronRose>();
+            ComponentCondition<IronRose>(id + 0x301, 3.6f, comp => comp.Casters.Count == 0, "Line AOEs")
+                .DeactivateOnExit<IronRose>();
+        }
+
         private void BalefulFirestormMercyFourfoldSeasonsOfMercy(uint id, float delay)
         {
+            // TODO: consider starting showing mercies only after firestorms resolve
             Cast(id, AID.ManifestAvatar, delay, 3)
                 .ActivateOnEnter<BalefulFirestorm>(); // first comet is ~6.2s after cast end
             MercyFourfold(id + 0x1000, 11.4f, true)

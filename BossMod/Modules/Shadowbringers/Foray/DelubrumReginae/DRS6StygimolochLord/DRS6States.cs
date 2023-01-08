@@ -42,7 +42,8 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6StygimolochLord
             RapidBolts(id + 0x40000, 2.1f);
             CrushingHoof(id + 0x50000, 2.1f);
             Whack(id + 0x60000, 2.3f);
-            // TODO: foe splitter > vicious swipe > whact > loop
+            FoeSplitter(id + 0x70000, 12.0f);
+            // TODO: vicious swipe > whack > loop
             SimpleState(id + 0xFF0000, 100, "???");
         }
 

@@ -93,7 +93,8 @@
         CoatOfArmsFB = 22559, // AetherialWard->self, 4.0s cast, single-target, applies front/back directional parry
         CoatOfArmsLR = 22560, // AetherialWard->self, 4.0s cast, single-target, applies left/right directional parry
         Counterplay = 22773, // Helper->player, no cast, single-target, damage + knockback 5 + stun + ruin if attack hits wrong side
-        SpriteCheck = 22575, // AuraSphere->self, 9.0s cast, ??? (enrage?)
+        SpiteCheck = 22575, // AuraSphere->self, 9.0s cast, 'enrage' (does nothing - but if not killed before cast end, sphere will start killing people)
+        SpiteCheckEnrage = 23457, // AuraSphere->player, no cast, single-target (lethal damage on random target if sphere lives too long)
         SpiteSmite = 22576, // AuraSphere->player, 5.0s cast, single-target, lethal tankbuster on sphere target that should be invulned
         Fracture = 23445, // SpiritualSphere->self, 2.0s cast, range 6 circle, reflectable aoe
         Burst = 23446, // SpiritualSphere->self, no cast, range 60 circle, raidwide if no one soaked the sphere

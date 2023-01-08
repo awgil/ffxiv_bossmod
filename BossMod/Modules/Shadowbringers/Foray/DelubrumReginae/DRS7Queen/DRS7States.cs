@@ -32,7 +32,8 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
             QueensEdict(id + 0x60000, 11.5f);
             CleansingSlash(id + 0x70000, 2.1f);
             RelentlessPlay3(id + 0x80000, 10.2f);
-            // TODO: maelstroms bolt > empyrean iniquity > relentless play 4 > soft enrage
+            MaelstromsBolt(id + 0x90000, 16.3f); // not sure about delay...
+            // TODO: empyrean iniquity > relentless play 4 > soft enrage
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -81,14 +82,14 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
             Cast(id + 0x20, AID.BeckAndCallToArmsEdictKW, 0.1f, 16.3f);
 
             CastStart(id + 0x30, AID.BeckAndCallToArmsEdictSG, 3.2f);
-            ComponentCondition<QueensEdict>(id + 0x31, 1.3f, comp => comp.NumCasts >= 2, "Super chess rows");
+            ComponentCondition<QueensEdict>(id + 0x31, 1.3f, comp => comp.NumCasts >= 2, "Super chess rows"); // 1st edict movement starts ~0.2s before this
             CastEnd(id + 0x32, 7.4f);
 
             ComponentCondition<QueensEdict>(id + 0x40, 2.4f, comp => comp.NumStuns > 0, "Super chess columns");
             ComponentCondition<QueensEdict>(id + 0x41, 1.9f, comp => comp.NumCasts >= 4);
 
             CastStart(id + 0x50, AID.GunnhildrsBlades, 2.9f);
-            ComponentCondition<QueensEdict>(id + 0x51, 1.3f, comp => comp.NumStuns == 0);
+            ComponentCondition<QueensEdict>(id + 0x51, 1.3f, comp => comp.NumStuns == 0); // 2nd edict movement starts ~1.0s before this
             ComponentCondition<QueensEdict>(id + 0x52, 9, comp => comp.NumStuns > 0, "Super chess safespot");
             CastEnd(id + 0x53, 3.7f)
                 .DeactivateOnExit<QueensEdict>();
@@ -140,9 +141,9 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
                 .DeactivateOnExit<QueensShot>();
 
             // +0.5s: turrets start their casts
-            ComponentCondition<TurretsTour>(id + 0x40, 3.5f, comp => comp.NumCasts > 0, "Face turret")
-                .ActivateOnEnter<TurretsTour>()
-                .DeactivateOnExit<TurretsTour>();
+            ComponentCondition<TurretsTourUnseen>(id + 0x40, 3.5f, comp => comp.NumCasts > 0, "Face turret")
+                .ActivateOnEnter<TurretsTourUnseen>()
+                .DeactivateOnExit<TurretsTourUnseen>();
         }
 
         private void RelentlessPlay2(uint id, float delay)
@@ -184,7 +185,19 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
         private void RelentlessPlay3(uint id, float delay)
         {
             Cast(id, AID.RelentlessPlay, delay, 5);
-            // TODO: implement... (3.2 to omen, never seen rest)
+            ActorCastMulti(id + 0x10, Module.Enemies(OID.QueensKnight).FirstOrDefault, new[] { AID.ShieldOmen }, 3.2f, 3); // TODO: could also be sword omen
+
+            // note: gunner starts automatic turret visual together with optimal play
+            ActorCastMulti(id + 0x20, Module.Enemies(OID.QueensKnight).FirstOrDefault, new[] { AID.OptimalPlayShield }, 6.4f, 5, false, "Cone + circle/donut")
+                .ActivateOnEnter<OptimalPlayShield>()
+                .ActivateOnEnter<OptimalPlayCone>()
+                .DeactivateOnExit<OptimalPlayShield>()
+                .DeactivateOnExit<OptimalPlayCone>();
+
+            ActorCast(id + 0x30, Module.Enemies(OID.QueensGunner).FirstOrDefault, AID.TurretsTour, 1.1f, 5, false, "Turrets start")
+                .ActivateOnEnter<TurretsTour>();
+            ComponentCondition<TurretsTour>(id + 0x40, 1.8f, comp => comp.NumCasts >= 4, "Turrets resolve")
+                .DeactivateOnExit<TurretsTour>();
         }
     }
 }

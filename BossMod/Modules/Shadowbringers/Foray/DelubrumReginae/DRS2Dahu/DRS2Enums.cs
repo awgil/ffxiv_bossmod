@@ -22,7 +22,7 @@
         LeftSidedShockwaveFirst = 22383, // Boss->self, 3.0s cast, range 20 180-degree cone
         RightSidedShockwaveFirst = 22384, // Boss->self, 3.0s cast, range 20 180-degree cone
         LeftSidedShockwaveSecond = 22385, // Boss->self, 1.0s cast, range 20 180-degree cone
-        RightSidedShockwaveSecond = 22385, // Boss->self, 1.0s cast, range 20 180-degree cone
+        RightSidedShockwaveSecond = 22386, // Boss->self, 1.0s cast, range 20 180-degree cone
         FeralHowl = 22375, // Boss->self, 5.0s cast, single-target
         FeralHowlAOE = 23349, // Helper->self, no cast, range 50 circle, raidwide knockback 30
         HuntersClaw = 22377, // Marchosias->self, 8.5s cast, range 8 circle puddle

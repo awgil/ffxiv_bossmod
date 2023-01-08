@@ -61,6 +61,9 @@
         IronSplitterSand1 = 23236, // Helper->self, no cast, range 4-8 donut
         IronSplitterSand2 = 23237, // Helper->self, no cast, range 12-16 donut
         IronSplitterSand3 = 23238, // Helper->self, no cast, range 20-25 donut
+        DeadIron = 23244, // SeekerAvatar->self, 4.0s cast, single-target, visual (earthshakers)
+        DeadIronAOE = 23245, // Helper->self, no cast, range 50 30-degree cone earthshaker
+        DeadIronSecond = 23364, // SeekerAvatar->self, no cast, single-target, visual (second earthshakers, without cast)
     };
 
     public enum SID : uint
@@ -72,5 +75,11 @@
         //PhantomEdge = 2488, // Boss->Boss, extra=0x0
         //BurningChains = 769, // none->player, extra=0x0
         //AreaOfInfluenceUp = 1749, // none->Helper, extra=0x10
+    };
+
+    public enum TetherID : uint
+    {
+        //_Gen_Tether_128 = 128, // player->player
+        DeadIron = 138, // player->SeekerAvatar
     };
 }

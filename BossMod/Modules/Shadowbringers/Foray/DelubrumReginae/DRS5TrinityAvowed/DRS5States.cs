@@ -53,13 +53,12 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed
 
         private void ForkSwordBowStaff(uint id)
         {
-            // TODO: no idea about timings here
-            Sword1(id, 8);
-            Bow1(id + 0x100000, 8);
-            Staff1(id + 0x200000, 8);
-            Sword2(id + 0x300000, 8);
-            Bow2(id + 0x400000, 8);
-            Staff2(id + 0x500000, 8);
+            Sword1(id, 5.3f);
+            Bow1(id + 0x100000, 8.6f);
+            Staff1(id + 0x200000, 7.5f);
+            Sword2(id + 0x300000, 7.4f);
+            Bow2(id + 0x400000, 8.5f);
+            Staff2(id + 0x500000, 8); // TODO: timing
             SimpleState(id + 0xFF0000, 10, "Enrage"); // TODO: action
         }
 
@@ -106,12 +105,8 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed
             // +1.1s: temperature statuses
             Cast(id + 0x10010, AID.UnwaveringApparition, 4.1f, 3);
             Targetable(id + 0x10020, false, 5.7f, "Disappear");
-            CastMulti(id + 0x10030, new[] { AID.BladeOfEntropyBC11, AID.BladeOfEntropyBC21, AID.BladeOfEntropyBH11, AID.BladeOfEntropyBH21 }, 0.1f, 10, "Sword 1")
-                .ActivateOnEnter<BladeOfEntropy>()
-                .DeactivateOnExit<BladeOfEntropy>();
-            CastMulti(id + 0x10040, new[] { AID.BladeOfEntropyBC11, AID.BladeOfEntropyBC21, AID.BladeOfEntropyBH11, AID.BladeOfEntropyBH21 }, 3.7f, 10, "Sword 2")
-                .ActivateOnEnter<BladeOfEntropy>()
-                .DeactivateOnExit<BladeOfEntropy>();
+            BladeOfEntropy(id + 0x10030, 0.1f, "Sword 1");
+            BladeOfEntropy(id + 0x10040, 3.7f, "Sword 2");
             Targetable(id + 0x10050, true, 3.1f, "Reappear");
 
             GloryOfBozja(id + 0x20000, 6.5f);
@@ -177,17 +172,12 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed
         {
             AllegiantArsenalAOE(id, delay);
 
-            // TODO: no idea about timings here
-            Cast(id + 0x10000, AID.HotAndColdSword, 4.9f, 3);
+            Cast(id + 0x10000, AID.HotAndColdSword, 4.4f, 3);
             Cast(id + 0x10010, AID.ElementalBrandSword, 4.1f, 3);
-            Cast(id + 0x10020, AID.UnwaveringApparition, 4.1f, 3);
-            Targetable(id + 0x10030, false, 5.7f, "Disappear");
-            CastMulti(id + 0x10040, new[] { AID.BladeOfEntropyBC11, AID.BladeOfEntropyBC21, AID.BladeOfEntropyBH11, AID.BladeOfEntropyBH21 }, 0.1f, 10, "Sword 1")
-                .ActivateOnEnter<BladeOfEntropy>()
-                .DeactivateOnExit<BladeOfEntropy>();
-            CastMulti(id + 0x10050, new[] { AID.BladeOfEntropyBC11, AID.BladeOfEntropyBC21, AID.BladeOfEntropyBH11, AID.BladeOfEntropyBH21 }, 3.7f, 10, "Sword 2")
-                .ActivateOnEnter<BladeOfEntropy>()
-                .DeactivateOnExit<BladeOfEntropy>();
+            Cast(id + 0x10020, AID.UnwaveringApparition, 3.2f, 3);
+            Targetable(id + 0x10030, false, 6.0f, "Disappear");
+            BladeOfEntropy(id + 0x10040, 0.1f, "Sword 1");
+            BladeOfEntropy(id + 0x10050, 3.9f, "Sword 2");
             Targetable(id + 0x10060, true, 3.1f, "Reappear");
 
             GloryOfBozja(id + 0x20000, 6.5f);
@@ -264,6 +254,13 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed
         {
             CastMulti(id, new[] { AID.AllegiantArsenalSword, AID.AllegiantArsenalBow, AID.AllegiantArsenalStaff }, delay, 3);
             ComponentCondition<AllegiantArsenal>(id + 0x10, 5.2f, comp => !comp.Active, "Weapon aoe");
+        }
+
+        private void BladeOfEntropy(uint id, float delay, string name)
+        {
+            CastMulti(id, new[] { AID.BladeOfEntropyBC11, AID.BladeOfEntropyBC21, AID.BladeOfEntropyBH11, AID.BladeOfEntropyBH21, AID.BladeOfEntropyAC11, AID.BladeOfEntropyAC21, AID.BladeOfEntropyAH11, AID.BladeOfEntropyAH21 }, delay, 10, name)
+                .ActivateOnEnter<BladeOfEntropy>()
+                .DeactivateOnExit<BladeOfEntropy>();
         }
     }
 }

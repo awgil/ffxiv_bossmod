@@ -150,7 +150,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
                 int forbiddenRow2 = OffsetToCell(GuardStates[1].FinalPosition.Z - module.Bounds.Center.Z);
                 foreach (var s2 in CellsAtManhattanDistance((0, _safespotZOffset), state.SecondEdict).Where(s2 => s2.x != forbiddenCol1 && s2.x != forbiddenCol2))
                 {
-                    foreach (var s1 in CellsAtManhattanDistance(s2, state.FirstEdict).Where(s1 => s1.z != forbiddenRow1 && s1.x != forbiddenRow2))
+                    foreach (var s1 in CellsAtManhattanDistance(s2, state.FirstEdict).Where(s1 => s1.z != forbiddenRow1 && s1.z != forbiddenRow2))
                     {
                         state.Safespots.Add(CellCenter(module, s1));
                         state.Safespots.Add(CellCenter(module, s2));

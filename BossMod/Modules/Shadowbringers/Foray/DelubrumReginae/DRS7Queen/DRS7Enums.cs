@@ -51,14 +51,14 @@
 
         ReversalOfForcesExtra = 23361, // Helper->self, 4.0s cast, single-target, visual?
         ReversalOfForces = 23054, // QueensWarrior->self, 4.0s cast, single-target, visual (tethers/icons for players)
-        AutomaticTurret = 23083, // QueensGunner->self, 3.0s cast, single-target, visual (spawn turrets)
+        AutomaticTurretRP1 = 23083, // QueensGunner->self, 3.0s cast, single-target, visual (spawn turrets)
         Reading = 23084, // QueensGunner->self, 3.0s cast, single-target, visual (unseen statuses)
         WindsOfWeight = 23055, // QueensWarrior->self, 6.0s cast, single-target, visual (wind/gravity aoes)
         WeightOfFortune = 23056, // Helper->self, 6.0s cast, range 20 circle (purple: small hit unless player has reversal)
         WindsOfFate = 23057, // Helper->self, 6.0s cast, range 20 circle (green: small hit if player has reversal)
         QueensShot = 23085, // QueensGunner->self, 7.0s cast, range 60 circle, visual (unseen resolve)
         QueensShotAOE = 23086, // Helper->self, 7.0s cast, range 60 circle, raidwide that requires directing unseen side to caster
-        TurretsTour = 23087, // AutomaticTurret->self, 3.0s cast, range 50 width 5 rect aoe that requires directing unseen side to caster
+        TurretsTourUnseen = 23087, // AutomaticTurret->self, 3.0s cast, range 50 width 5 rect aoe that requires directing unseen side to caster
 
         ShieldOmen = 23038, // QueensKnight->self, 3.0s cast, single-target, apply shield-bearer status
         DoubleGambit = 23067, // QueensSoldier->self, 5.0s cast, single-target, visual (summon 4 pawns)
@@ -74,6 +74,15 @@
         SecretsRevealedExtra = 23436, // SoldierAvatar->self, no cast, single-target, visual?
         PawnOffReal = 23069, // SoldierAvatar->self, 7.0s cast, range 20 circle aoe
         PawnOffFake = 23070, // SoldierAvatar->self, 7.0s cast, range 20 circle fake aoe
+
+        AutomaticTurretRP3 = 23078, // QueensGunner->self, 3.0s cast, single-target, visual (spawn turrets)
+        // OptimalPlaySword = 23039?
+        OptimalPlayShield = 23040, // QueensKnight->self, 5.0s cast, range 5-60 donut
+        OptimalPlayCone = 23041, // Helper->self, 5.0s cast, range 60 270-degree cone
+        TurretsTour = 23079, // QueensGunner->self, 5.0s cast, single-target, visual (turret aoes)
+        TurretsTourAOE1 = 23080, // Helper->location, 5.0s cast, width 6 rect charge aoe
+        TurretsTourAOE2 = 23082, // AutomaticTurret->self, no cast, range 50 width 6 rect
+        TurretsTourAOE3 = 23081, // AutomaticTurret->location, no cast, width 6 rect charge
     };
 
     public enum SID : uint

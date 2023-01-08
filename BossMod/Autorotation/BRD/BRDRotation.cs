@@ -241,10 +241,6 @@ namespace BossMod.BRD
                     if (usePP2)
                         return ActionID.MakeSpell(AID.PitchPerfect); // PP2 if we might get conflict with EA
                 }
-
-                //// if we get tick right before next GCD, we might have to wait up to 0.6 (any more and we would fit PP3 before next gcd) + 0.6 (anim lock after gcd) + 0.6 (anim lock for pp) == 1.8; compare this to EA cd to determine whether it would be delayed
-                //if (state.Repertoire == 2 && state.CD(CDGroup.EmpyrealArrow) < nextProcIn + 1.8f)
-                //    return ActionID.MakeSpell(AID.PitchPerfect); // PP2 if we might get conflict with EA
             }
 
             // barrage, under buffs and if there is no proc already

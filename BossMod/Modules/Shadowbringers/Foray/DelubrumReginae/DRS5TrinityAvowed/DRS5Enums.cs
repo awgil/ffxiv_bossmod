@@ -72,6 +72,7 @@
         SearingBlast2 = 22836, // Helper->self, 8.0s cast, range 22 circle, gives +2 temperature
         ElementalBrandStaff = 22909, // Boss->self, 3.0s cast, single-target, visual (applies brand debuffs)
 
+        // TODO: i'm not sure what is the difference between A/B variants, it seems each can be cast either by boss or by avatar...
         HotAndColdSword = 23471, // Boss->self, 3.0s cast, single-target, visual (applies temperature debuffs)
         UnwaveringApparition = 23354, // Boss->self, 3.0s cast, single-target, visual (show clones and disappear)
         BladeOfEntropyBH11 = 22850, // Boss->self, 10.0s cast, range 40 180-degree cone
@@ -79,13 +80,13 @@
         BladeOfEntropyBH12 = 22852, // Helper->self, 10.0s cast, range 40 180-degree cone
         BladeOfEntropyAC12 = 22853, // Helper->self, 10.0s cast, range 40 180-degree cone
         BladeOfEntropyAH11 = 22854, // AvowedAvatar->self, 10.0s cast, range 40 180-degree cone
-        BladeOfEntropyBC11 = 22855, // Boss->self, 10.0s cast, range 40 180-degree cone (unsure)
+        BladeOfEntropyBC11 = 22855, // Boss->self, 10.0s cast, range 40 180-degree cone
         BladeOfEntropyAH12 = 22856, // Helper->self, 10.0s cast, range 40 180-degree cone
-        BladeOfEntropyBC12 = 22857, // Helper->self, 10.0s cast, range 40 180-degree cone (unsure)
+        BladeOfEntropyBC12 = 22857, // Helper->self, 10.0s cast, range 40 180-degree cone
         BladeOfEntropyBH21 = 22870, // Boss->self, 10.0s cast, range 40 180-degree cone
-        BladeOfEntropyBC21 = 22871, // Boss->self, 10.0s cast, range 40 180-degree cone (unsure)
+        BladeOfEntropyBC21 = 22871, // Boss->self, 10.0s cast, range 40 180-degree cone
         BladeOfEntropyBH22 = 22872, // Helper->self, 10.0s cast, range 40 180-degree cone
-        BladeOfEntropyBC22 = 22873, // Helper->self, 10.0s cast, range 40 180-degree cone (unsure)
+        BladeOfEntropyBC22 = 22873, // Helper->self, 10.0s cast, range 40 180-degree cone
         BladeOfEntropyAH21 = 22874, // AvowedAvatar->self, 10.0s cast, range 40 180-degree cone
         BladeOfEntropyAC21 = 22875, // AvowedAvatar->self, 10.0s cast, range 40 180-degree cone
         BladeOfEntropyAH22 = 22876, // Helper->self, 10.0s cast, range 40 180-degree cone
