@@ -72,6 +72,9 @@
         PureFire = 29855, // NBoss/SBoss->self, 3.0s cast, single-target, visual
         NPureFireAOE = 29857, // Helper->location, 3.0s cast, range 6 circle puddle
         SPureFireAOE = 30399, // Helper->location, 3.0s cast, range 6 circle puddle
+
+        Enrage = 29887, // NBoss->self, 10.0s cast, range 80 circle enrage
+        EnrageRepeat = 29641, // NBoss->self, no cast, range 80 circle enrage
     };
 
     public enum SID : uint

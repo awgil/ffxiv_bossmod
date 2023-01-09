@@ -64,10 +64,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
         public Shatter() : base(ActionID.MakeSpell(AID.Shatter), new AOEShapeCircle(8)) { }
     }
 
-    // TODO: does it really ignore immunes?..
     class BracingWind : Components.KnockbackFromCastTarget
     {
-        public BracingWind() : base(ActionID.MakeSpell(AID.BracingWind), 40, true, 1, new AOEShapeRect(60, 6), Kind.DirForward) { }
+        public BracingWind() : base(ActionID.MakeSpell(AID.BracingWind), 40, false, 1, new AOEShapeRect(60, 6), Kind.DirForward) { }
     }
 
     class LunarCry : Components.CastLineOfSightAOE

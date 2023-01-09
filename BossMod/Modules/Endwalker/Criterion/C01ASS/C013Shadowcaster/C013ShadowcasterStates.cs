@@ -24,8 +24,7 @@
             InfernBrand5(id + 0x90000, 8.2f);
             FiresteelFracture(id + 0xA0000, 1.6f);
             ShowOfStrength(id + 0xB0000, 4.1f);
-
-            SimpleState(id + 0xFF000000, 10000, "???");
+            Cast(id + 0xC0000, AID.Enrage, 4.8f, 10, "Enrage");
         }
 
         private void ShowOfStrength(uint id, float delay)
