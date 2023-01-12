@@ -10,8 +10,8 @@ namespace BossMod
         private unsafe GroupManager* _groupManager = GroupManager.Instance();
 
         public unsafe int NumPartyMembers => _groupManager->MemberCount;
-        public bool IsAlliance => (AllianceFlags & 1) != 0;
-        public bool IsSmallGroupAlliance => (AllianceFlags & 2) != 0; // alliance containing 6 groups of 4 members rather than 3x8
+        public unsafe bool IsAlliance => (_groupManager->AllianceFlags & 1) != 0;
+        public unsafe bool IsSmallGroupAlliance => (_groupManager->AllianceFlags & 2) != 0; // alliance containing 6 groups of 4 members rather than 3x8
 
         public unsafe PartyMember* PartyMember(int index) => (index >= 0 && index < NumPartyMembers) ? ArrayElement(_groupManager->PartyMembers, index) : null;
         public unsafe PartyMember* AllianceMember(int rawIndex) => (rawIndex is >= 0 and < 20) ? AllianceMemberIfValid(rawIndex) : null;
@@ -34,12 +34,11 @@ namespace BossMod
             return null;
         }
 
-        private unsafe byte AllianceFlags => Utils.ReadField<byte>(_groupManager, 0x3D61);
         private static unsafe PartyMember* ArrayElement(byte* array, int index) => ((PartyMember*)array) + index;
         private unsafe PartyMember* AllianceMemberIfValid(int rawIndex)
         {
             var p = ArrayElement(_groupManager->AllianceMembers, rawIndex);
-            return (p->Unk_220 & 1) != 0 ? p : null;
+            return (p->Flags & 1) != 0 ? p : null;
         }
     }
 }

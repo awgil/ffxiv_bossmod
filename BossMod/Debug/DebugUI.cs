@@ -206,8 +206,9 @@ namespace BossMod
             if (obj == null)
                 return;
 
-            var dist = (obj->Position - selfPos).Length();
-            var angle = Angle.FromDirection(new((obj->Position - selfPos).XZ())) - refAngle;
+            var selfToObj = (Vector3)obj->Position - selfPos;
+            var dist = selfToObj.Length();
+            var angle = Angle.FromDirection(new(selfToObj.XZ())) - refAngle;
             var visHalf = Angle.Asin(obj->HitboxRadius / dist);
             ImGui.TextUnformatted($"{kind}: {Utils.ObjectString(obj->ObjectID)}, hb={obj->HitboxRadius} ({visHalf}), dist={dist}, angle={angle} ({Math.Max(0, angle.Abs().Rad - visHalf.Rad).Radians()})");
         }

@@ -1,7 +1,6 @@
 ﻿using Dalamud.Game.Gui;
 using ImGuiNET;
 using System;
-using System.Numerics;
 
 namespace BossMod
 {
@@ -103,7 +102,11 @@ namespace BossMod
                 if (type != FFXIVClientStructs.FFXIV.Client.Game.ActionType.None)
                 {
                     //ImGui.TextUnformatted($"Cost: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionCost(type, hover.ActionID, 0, 0, 0, 0)}");
-                    ImGui.TextUnformatted($"Status: {mgr->GetActionStatus(type, hover.ActionID, Service.ClientState.LocalPlayer?.TargetObjectId ?? 0xE0000000, 1, 1)}");
+                    var action = new ActionID((ActionType)type, hover.ActionID);
+                    DrawStatus("Status RC", action, true, true);
+                    DrawStatus("Status R-", action, true, false);
+                    DrawStatus("Status -C", action, false, true);
+                    DrawStatus("Status --", action, false, false);
                     ImGui.TextUnformatted($"Adjusted recast: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetAdjustedRecastTime(type, hover.ActionID):f2}");
                     ImGui.TextUnformatted($"Adjusted cast: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetAdjustedCastTime(type, hover.ActionID):f2}");
                     ImGui.TextUnformatted($"Recast: {mgr->GetRecastTime(type, hover.ActionID):f2}");
@@ -139,6 +142,13 @@ namespace BossMod
             {
                 ImGui.TextUnformatted("Hover: none");
             }
+        }
+
+        private unsafe void DrawStatus(string prompt, ActionID action, bool checkRecast, bool checkCasting)
+        {
+            uint extra;
+            var status = ActionManagerEx.Instance!.GetActionStatus(action, Service.ClientState.LocalPlayer?.TargetObjectId ?? 0xE0000000, checkRecast, checkCasting, &extra);
+            ImGui.TextUnformatted($"{prompt}: {status} [{extra}] '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.LogMessage>(status)?.Text}'");
         }
     }
 }

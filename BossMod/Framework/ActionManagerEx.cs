@@ -170,9 +170,9 @@ namespace BossMod
 
         public unsafe uint GetAdjustedActionID(uint actionID) => _inst->GetAdjustedActionId(actionID);
 
-        public unsafe uint GetActionStatus(ActionID action, ulong target, bool a4 = true, bool a5 = true)
+        public unsafe uint GetActionStatus(ActionID action, ulong target, bool checkRecastActive = true, bool checkCastingActive = true, uint* outOptExtraInfo = null)
         {
-            return _inst->GetActionStatus((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, (long)target, a4 ? 1u : 0, a5 ? 1u : 0);
+            return _inst->GetActionStatus((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, (long)target, checkRecastActive, checkCastingActive, outOptExtraInfo);
         }
 
         public unsafe bool UseAction(ActionID action, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
