@@ -533,7 +533,7 @@ namespace BossMod
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public unsafe struct Server_PresetWaymark
+        public unsafe struct Server_WaymarkPreset
         {
             public byte WaymarkMask;
             public byte Unknown1;

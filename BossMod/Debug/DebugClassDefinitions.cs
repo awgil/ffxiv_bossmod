@@ -87,7 +87,7 @@ namespace BossMod
 
             private bool AddToDepChain(List<(uint, bool)> list, Lumina.Excel.GeneratedSheets.Quest item)
             {
-                var prereq = item.PreviousQuest0.Value;
+                var prereq = item.PreviousQuest[0].Value;
                 if (prereq == null)
                 {
                     if (list.Count == 0)

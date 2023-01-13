@@ -172,8 +172,8 @@ namespace BossMod
                     case Protocol.Opcode.Waymark:
                         HandleWaymark((Protocol.Server_Waymark*)dataPtr);
                         break;
-                    case Protocol.Opcode.PresetWaymark:
-                        HandlePresetWaymark((Protocol.Server_PresetWaymark*)dataPtr);
+                    case Protocol.Opcode.WaymarkPreset:
+                        HandleWaymarkPreset((Protocol.Server_WaymarkPreset*)dataPtr);
                         break;
                     case Protocol.Opcode.RSVData:
                         HandleRSVData(MemoryHelper.ReadStringNullTerminated(dataPtr + 4), MemoryHelper.ReadString(dataPtr + 0x34, *(int*)dataPtr));
@@ -337,7 +337,7 @@ namespace BossMod
                 EventWaymark?.Invoke(this, (p->Waymark, p->Active != 0 ? new Vector3(p->PosX / 1000.0f, p->PosY / 1000.0f, p->PosZ / 1000.0f) : null));
         }
 
-        private unsafe void HandlePresetWaymark(Protocol.Server_PresetWaymark* p)
+        private unsafe void HandleWaymarkPreset(Protocol.Server_WaymarkPreset* p)
         {
             byte mask = 1;
             for (var i = Waymark.A; i < Waymark.Count; ++i)
@@ -515,9 +515,9 @@ namespace BossMod
                         Service.Log($"[Network] - {p->Waymark}: {p->Active} at {p->PosX / 1000.0f:f3} {p->PosY / 1000.0f:f3} {p->PosZ / 1000.0f:f3}");
                         break;
                     }
-                case Protocol.Opcode.PresetWaymark:
+                case Protocol.Opcode.WaymarkPreset:
                     {
-                        var p = (Protocol.Server_PresetWaymark*)dataPtr;
+                        var p = (Protocol.Server_WaymarkPreset*)dataPtr;
                         for (int i = 0; i < 8; ++i)
                         {
                             Service.Log($"[Network] - {(Waymark)i}: {(p->WaymarkMask & (1 << i)) != 0} at {p->PosX[i] / 1000.0f:f3} {p->PosY[i] / 1000.0f:f3} {p->PosZ[i] / 1000.0f:f3}");
