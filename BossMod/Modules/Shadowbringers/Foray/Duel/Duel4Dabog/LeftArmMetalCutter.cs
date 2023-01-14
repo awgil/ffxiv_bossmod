@@ -43,13 +43,12 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog
         }
     }
 
-    // TODO: check whether it really ignores immunities
     class LeftArmMetalCutterKnockback : Components.Knockback
     {
         private float _distance;
         private Source? _instance;
 
-        public LeftArmMetalCutterKnockback(AID aid, float distance) : base(ActionID.MakeSpell(aid), true)
+        public LeftArmMetalCutterKnockback(AID aid, float distance) : base(ActionID.MakeSpell(aid))
         {
             _distance = distance;
         }

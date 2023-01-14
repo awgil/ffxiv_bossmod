@@ -30,7 +30,7 @@
             LLCArmUnit(id + 0x250000, 1.3f);
             LSlash(id + 0x260000, 9.1f);
 
-            SimpleState(id + 0xFF0000, 15, "Enrage"); // TODO: timing/action-id
+            Cast(id + 0x300000, AID.Enrage, 4.4f, 10, "Enrage");
         }
 
         private void LSlash(uint id, float delay)

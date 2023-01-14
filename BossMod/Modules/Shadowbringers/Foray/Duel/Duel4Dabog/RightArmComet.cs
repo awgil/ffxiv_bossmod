@@ -6,7 +6,7 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog
     {
         private static float _radius = 5;
 
-        public RightArmComet(AID aid, float distance) : base(ActionID.MakeSpell(aid), distance, true, shape: new AOEShapeCircle(_radius)) { } // TODO: check whether it really ignores immunities
+        public RightArmComet(AID aid, float distance) : base(ActionID.MakeSpell(aid), distance, shape: new AOEShapeCircle(_radius)) { }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

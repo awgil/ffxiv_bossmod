@@ -14,7 +14,7 @@
     {
         AutoAttack = 6497, // Boss->player, no cast, single-target
         Deathwall = 24246, // Deathwall->self, no cast, range 20-30 donut deathwall
-
+        Enrage = 24247, // Boss->self, 10.0s cast, enrage
         LeftArmLimitCut = 24249, // Boss->self, 4.0s cast, single-target, buff for next left-arm attack
         RightArmLimitCut = 24250, // Boss->self, 4.0s cast, single-target, buff for next right-arm attack
         LeftArmMetalCutter = 24251, // Boss->self, 5.0s cast, single-target, visual (triple cones)
