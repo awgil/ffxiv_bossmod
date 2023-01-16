@@ -72,7 +72,7 @@ namespace BossMod.Components
         {
             base.OnEventCast(module, caster, spell);
             if (spell.Action == WatchedAction)
-                _predictedByEvent.Add((spell.TargetXZ, module.WorldState.CurrentTime.AddSeconds(CastEventToSpawn)));
+                _predictedByEvent.Add((module.WorldState.Actors.Find(spell.MainTargetID)?.Position ?? spell.TargetXZ, module.WorldState.CurrentTime.AddSeconds(CastEventToSpawn)));
         }
     }
 }
