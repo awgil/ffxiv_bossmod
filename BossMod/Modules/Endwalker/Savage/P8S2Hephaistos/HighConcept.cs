@@ -173,7 +173,7 @@ namespace BossMod.Endwalker.Savage.P8S2
                     TowerColor.Blue or TowerColor.Green => "N -> chill",
                     _ => "N or chill"
                 },
-                (Mechanic.Explosion2 or Mechanic.Towers2, PlayerRole.ShortAlpha) => FirstTowers == TowerColor.Purple ? $"{shortTowers}+N" : "chill",
+                (Mechanic.Explosion2 or Mechanic.Towers2, PlayerRole.ShortAlpha) => FirstTowers == TowerColor.Purple && SecondTowersHC1 != TowerColor.Purple ? $"{shortTowers}+N" : "chill",
 
                 (Mechanic.Towers1, PlayerRole.ShortBeta) => FirstTowers switch
                 {
@@ -197,7 +197,7 @@ namespace BossMod.Endwalker.Savage.P8S2
                     TowerColor.Green => $"chill -> {shortTowers}+S",
                     _ => "S or chill"
                 },
-                (Mechanic.Explosion2 or Mechanic.Towers2, PlayerRole.ShortGamma) => FirstTowers == TowerColor.Green ? $"{shortTowers}+S" : "chill",
+                (Mechanic.Explosion2 or Mechanic.Towers2, PlayerRole.ShortGamma) => FirstTowers == TowerColor.Green && SecondTowersHC1 != TowerColor.Green ? $"{shortTowers}+S" : "chill",
 
                 (Mechanic.Towers1 or Mechanic.Explosion2, PlayerRole.LongAlpha) => $"A -> {longTowers}+N",
                 (Mechanic.Towers2, PlayerRole.LongAlpha) => SecondTowersHC1 != TowerColor.Purple ? $"{longTowers}+N" : "chill",

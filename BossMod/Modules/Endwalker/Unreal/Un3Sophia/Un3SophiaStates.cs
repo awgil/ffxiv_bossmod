@@ -32,7 +32,7 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
             Proximity(id + 0x50000, 5.2f);
             ThunderDonutAero(id + 0x60000, 1.5f);
             Quasar(id + 0x70000, 3.2f);
-            Cintamani(id + 0x80000, 4.8f, 2);
+            Cintamani(id + 0x80000, 4.7f, false);
             ArmsOfWisdom(id + 0x90000, 2.2f);
             SimpleState(id + 0xA0000, 4.5f, "Frontal cone (75% short circuit)");
         }
@@ -41,36 +41,37 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
         {
             ThunderCone(id, 0);
             QuasarOnrush(id + 0x10000, 3.2f);
-            PairsCintamani(id + 0x20000, 10.0f);
+            PairsCintamani(id + 0x20000, 10.1f);
             ArmsOfWisdom(id + 0x30000, 3.1f);
-            Cintamani(id + 0x40000, 12.4f, 3); // TODO: sometimes 10.3 instead?..
-            ExecuteArmsOfWisdomLightDew(id + 0x50000, 3.2f);
-            Cintamani(id + 0x60000, 10.6f, 3);
+            Cintamani(id + 0x40000, 12.3f, true); // TODO: sometimes 10.3 instead?..
+            ExecuteArmsOfWisdomLightDew(id + 0x50000, 3.1f);
+            Cintamani(id + 0x60000, 10.5f, true);
             ArmsOfWisdom(id + 0x70000, 3.1f);
             QuasarLightDew(id + 0x80000, 3.2f);
-            ThunderDonut(id + 0x90000, 9.4f);
+            ThunderDonut(id + 0x90000, 9.3f);
             ArmsOfWisdom(id + 0xA0000, 4.2f);
             QuasarOnrushLightDew(id + 0xB0000, 3.3f);
-            Cintamani(id + 0xC0000, 7.3f, 3);
+            Cintamani(id + 0xC0000, 7.2f, true);
             ArmsOfWisdom(id + 0xD0000, 3.1f);
             ThunderCone(id + 0xE0000, 4.2f);
             PairsGnosis(id + 0xF0000, 5.1f);
             ArmsOfWisdom(id + 0x100000, 8.3f);
             PairsQuasar(id + 0x110000, 11.2f);
-            Cintamani(id + 0x120000, 5.7f, 3);
-            ArmsOfWisdom(id + 0x130000, 3.2f);
+            Cintamani(id + 0x120000, 5.7f, true);
+            ArmsOfWisdom(id + 0x130000, 3.1f);
             ExecuteProximityArmsOfWisdomPairs(id + 0x140000, 4.2f);
-            Cintamani(id + 0x150000, 12.2f, 3);
+            Cintamani(id + 0x150000, 12.2f, true);
             ArmsOfWisdom(id + 0x160000, 3.1f);
-            QuasarLightDew(id + 0x170000, 3.1f);
-            RandomThunderAero(id + 0x180000, 9.4f); // TODO: or only donut?..
+            QuasarLightDew(id + 0x170000, 3.2f);
+            ThunderDonut(id + 0x180000, 9.4f);
             ArmsOfWisdom(id + 0x190000, 4.2f);
             QuasarOnrushLightDew(id + 0x1A0000, 3.3f);
-            Cintamani(id + 0x1B0000, 7.3f, 3);
+            Cintamani(id + 0x1B0000, 7.2f, true);
             ArmsOfWisdom(id + 0x1C0000, 3.1f);
-            RandomThunderAero(id + 0x1D0000, 4.2f); // TODO: or only cone?..
+            ThunderCone(id + 0x1D0000, 4.2f);
             PairsGnosis(id + 0x1E0000, 5.1f);
-            SimpleState(id + 0x1F0000, 17.5f, "Enrage"); // 5 seconds before that, everyone gets icons of same color; enrage cast happens together with impossible 'resolve'
+            ArmsOfWisdom(id + 0x1F0000, 8.3f); // note: sometimes it is skipped and encounter goes straight to enrage
+            SimpleState(id + 0x200000, 13.4f, "Enrage"); // 5 seconds before that, everyone gets icons of same color; enrage cast happens together with impossible 'resolve'
         }
 
         private void ArmsOfWisdom(uint id, float delay)
@@ -88,12 +89,12 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
                 .DeactivateOnExit<Gnosis>();
         }
 
-        private void Cintamani(uint id, float delay, int count)
+        private void Cintamani(uint id, float delay, bool triple)
         {
             ComponentCondition<Cintamani>(id, delay, comp => comp.NumCasts > 0, "Raidwide (1)")
                 .ActivateOnEnter<Cintamani>()
                 .SetHint(StateMachine.StateHint.Raidwide);
-            ComponentCondition<Cintamani>(id + 0x10, (count - 1) * 2.1f, comp => comp.NumCasts >= count, $"Raidwide ({count})")
+            ComponentCondition<Cintamani>(id + 0x10, triple ? 4.1f : 2.1f, comp => comp.NumCasts >= (triple ? 3 : 2), triple ? "Raidwide (3)" : "Raidwide (2)")
                 .DeactivateOnExit<Cintamani>()
                 .SetHint(StateMachine.StateHint.Raidwide);
         }
@@ -128,17 +129,6 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
                 .DeactivateOnExit<ThunderCone>();
         }
 
-        private void RandomThunderAero(uint id, float delay)
-        {
-            CastMulti(id, new[] { AID.ThunderDonut, AID.Aero, AID.ThunderCone }, delay, 3, "Donut/circle/cone")
-                .ActivateOnEnter<ThunderDonut>()
-                .ActivateOnEnter<Aero>()
-                .ActivateOnEnter<ThunderCone>()
-                .DeactivateOnExit<ThunderDonut>()
-                .DeactivateOnExit<Aero>()
-                .DeactivateOnExit<ThunderCone>();
-        }
-
         private void ThunderDonutAero(uint id, float delay)
         {
             CastMulti(id, new[] { AID.ThunderDonut, AID.Aero }, delay, 3, "Donut/circle")
@@ -152,7 +142,7 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
         private void Execute(uint id, float delay)
         {
             RandomThunder(id, delay);
-            Aero(id + 0x100, 3.1f);
+            Aero(id + 0x100, 3.2f);
             Cast(id + 0x200, AID.Execute, 5.2f, 5, "Repeat by copies")
                 .ActivateOnEnter<ExecuteDonut>()
                 .ActivateOnEnter<ExecuteAero>()
@@ -168,15 +158,15 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
             Aero(id + 0x100, 3.1f);
             ArmsOfWisdom(id + 0x200, 5.2f);
 
-            CastStart(id + 0x300, AID.Execute, 7.4f);
-            ActorCastStart(id + 0x301, Module.Enemies(OID.Barbelo).FirstOrDefault, AID.LightDewShort, 2.2f)
+            CastStart(id + 0x300, AID.Execute, 7.3f);
+            ActorCastStart(id + 0x301, Module.Enemies(OID.Barbelo).FirstOrDefault, AID.LightDewShort, 2.1f)
                 .ActivateOnEnter<ExecuteDonut>()
                 .ActivateOnEnter<ExecuteAero>()
                 .ActivateOnEnter<ExecuteCone>();
             ActorCastEnd(id + 0x302, Module.Enemies(OID.Barbelo).FirstOrDefault, 2, false, "Line")
                 .ActivateOnEnter<LightDewShort>()
                 .DeactivateOnExit<LightDewShort>();
-            CastEnd(id + 0x303, 0.8f, "Repeat by copies")
+            CastEnd(id + 0x303, 0.9f, "Repeat by copies")
                 .DeactivateOnExit<ExecuteDonut>()
                 .DeactivateOnExit<ExecuteAero>()
                 .DeactivateOnExit<ExecuteCone>();
@@ -239,7 +229,7 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
             Targetable(id + 0x10, false, 0.9f, "Boss disappear");
             ComponentCondition<Quasar>(id + 0x20, 0.1f, comp => comp.WeightLeft + comp.WeightRight > 0)
                 .ActivateOnEnter<Quasar>();
-            Cast(id + 0x30, AID.Onrush, 3.3f, 3, "Line")
+            Cast(id + 0x30, AID.Onrush, 3.2f, 3, "Half room aoe")
                 .ActivateOnEnter<Onrush>()
                 .DeactivateOnExit<Onrush>();
             ComponentCondition<Quasar>(id + 0x40, 1.6f, comp => comp.NumCasts > 0, "Tilt")
@@ -266,51 +256,46 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
             ComponentCondition<Quasar>(id + 0x20, 0, comp => comp.WeightLeft + comp.WeightRight > 0)
                 .ActivateOnEnter<Quasar>();
             ActorCastStart(id + 0x30, Module.Enemies(OID.Barbelo).FirstOrDefault, AID.LightDewLong, 3.3f);
-            CastStart(id + 0x31, AID.Onrush, 3.1f)
+            CastStart(id + 0x31, AID.Onrush, 3.0f)
                 .ActivateOnEnter<LightDewLong>();
             ComponentCondition<Quasar>(id + 0x40, 1.5f, comp => comp.NumCasts > 0, "Tilt")
                 .ActivateOnEnter<Onrush>()
                 .DeactivateOnExit<Quasar>();
-            CastEnd(id + 0x42, 1.5f, "Line 1")
+            CastEnd(id + 0x42, 1.5f, "Half room aoe")
                 .DeactivateOnExit<Onrush>();
-            ActorCastEnd(id + 0x43, Module.Enemies(OID.Barbelo).FirstOrDefault, 1, false, "Line 2")
+            ActorCastEnd(id + 0x43, Module.Enemies(OID.Barbelo).FirstOrDefault, 1, false, "Line")
                 .DeactivateOnExit<LightDewLong>();
             Targetable(id + 0x50, true, 4.2f, "Boss reappear");
         }
 
         private void PairsCintamani(uint id, float delay)
         {
-            ComponentCondition<Pairs>(id, delay, comp => comp.Active, "Color pairs")
+            ComponentCondition<Pairs>(id, delay, comp => comp.Active)
                 .ActivateOnEnter<Pairs>();
-            ComponentCondition<Cintamani>(id + 0x10, 5.2f, comp => comp.NumCasts > 0, "Raidwide (1)")
-                .ActivateOnEnter<Cintamani>()
-                .DeactivateOnExit<Pairs>() // resolves just before first raidwide, TODO: find better condition
-                .SetHint(StateMachine.StateHint.Raidwide);
-            ComponentCondition<Cintamani>(id + 0x11, 2.1f, comp => comp.NumCasts > 1, $"Raidwide (2)")
-                .DeactivateOnExit<Cintamani>()
-                .SetHint(StateMachine.StateHint.Raidwide);
+            ComponentCondition<Pairs>(id + 1, 5, comp => !comp.Active, "Color pairs")
+                .DeactivateOnExit<Pairs>();
+            Cintamani(id + 0x100, 0.2f, false);
         }
 
         private void PairsGnosis(uint id, float delay)
         {
-            ComponentCondition<Pairs>(id, delay, comp => comp.Active, "Color pairs")
+            ComponentCondition<Pairs>(id, delay, comp => comp.Active)
                 .ActivateOnEnter<Pairs>();
-            ActorCastStart(id + 0x10, Module.Enemies(OID.Barbelo).FirstOrDefault, AID.Gnosis, 6.4f)
-                .DeactivateOnExit<Pairs>(); // resolves slightly before cast start; TODO: find better condition
-            ActorCastEnd(id + 0x11, Module.Enemies(OID.Barbelo).FirstOrDefault, 3, false, "Knockback")
-                .ActivateOnEnter<Gnosis>()
-                .DeactivateOnExit<Gnosis>();
+            ComponentCondition<Pairs>(id + 1, 5, comp => !comp.Active, "Color pairs")
+                .DeactivateOnExit<Pairs>();
+            Gnosis(id + 0x100, 1.3f);
         }
 
         private void PairsQuasar(uint id, float delay)
         {
-            ComponentCondition<Pairs>(id, delay, comp => comp.Active, "Color pairs")
+            ComponentCondition<Pairs>(id, delay, comp => comp.Active)
                 .ActivateOnEnter<Pairs>();
             Cast(id + 0x10, AID.Quasar1, 1.1f, 2.7f);
             ComponentCondition<Quasar>(id + 0x20, 1, comp => comp.WeightLeft + comp.WeightRight > 0)
-                .ActivateOnEnter<Quasar>()
-                .DeactivateOnExit<Pairs>(); // resolves slightly after casts start; TODO: find better condition
-            ComponentCondition<Quasar>(id + 0x30, 7.8f, comp => comp.NumCasts > 0, "Tilt")
+                .ActivateOnEnter<Quasar>(); // resolves slightly after casts start; TODO: find better condition
+            ComponentCondition<Pairs>(id + 0x21, 0.2f, comp => !comp.Active, "Color pairs")
+                .DeactivateOnExit<Pairs>();
+            ComponentCondition<Quasar>(id + 0x30, 7.6f, comp => comp.NumCasts > 0, "Tilt")
                 .DeactivateOnExit<Quasar>();
         }
 
@@ -321,13 +306,15 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
             Proximity(id + 0x2000, 3.2f);
             ArmsOfWisdom(id + 0x3000, 2.5f);
 
-            ComponentCondition<Pairs>(id + 0x4000, 7.1f, comp => comp.Active, "Color pairs")
+            ComponentCondition<Pairs>(id + 0x4000, 7.1f, comp => comp.Active)
                 .ActivateOnEnter<Pairs>();
-            Cast(id + 0x4010, AID.Execute, 2.1f, 5, "Repeat by copies")
+            CastStart(id + 0x4001, AID.Execute, 2.1f);
+            ComponentCondition<Pairs>(id + 0x4002, 2.9f, comp => !comp.Active, "Color pairs")
                 .ActivateOnEnter<ExecuteDonut>()
                 .ActivateOnEnter<ExecuteAero>()
                 .ActivateOnEnter<ExecuteCone>()
-                .DeactivateOnExit<Pairs>() // resolves mid cast; TODO: find better condition
+                .DeactivateOnExit<Pairs>();
+            CastEnd(id + 0x4003, 2.1f, "Repeat by copies")
                 .DeactivateOnExit<ExecuteDonut>()
                 .DeactivateOnExit<ExecuteAero>()
                 .DeactivateOnExit<ExecuteCone>();

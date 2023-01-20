@@ -26,8 +26,9 @@ namespace UIDev
         {
             _configPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "pluginConfigs", "BossMod.json");
 
-            Service.LogHandler = (string msg) => Debug.WriteLine(msg);
+            Service.LogHandler = msg => Debug.WriteLine(msg);
             Service.LuminaGameData = new(FindGameDataPath());
+            Service.LuminaGameData.Options.PanicOnSheetChecksumMismatch = false; // TODO: remove - temporary workaround until lumina is updated
             Service.Config.Initialize();
             Service.Config.LoadFromFile(new(_configPath));
             Service.Config.Modified += (_, _) => _configModified = true;

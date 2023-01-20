@@ -66,6 +66,12 @@
         public QuasarProximity2() : base(ActionID.MakeSpell(AID.QuasarProximity2), 15) { } // TODO: reconsider distance
     }
 
+    [ConfigDisplay(Order = 0x330, Parent = typeof(EndwalkerConfig))]
+    public class Un3SophiaConfig : CooldownPlanningConfigNode
+    {
+        public Un3SophiaConfig() : base(90) { }
+    }
+
     public class Un3Sophia : BossModule
     {
         public Un3Sophia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 0), 20, 15)) { }

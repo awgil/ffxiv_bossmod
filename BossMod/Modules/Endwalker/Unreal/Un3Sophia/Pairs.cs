@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace BossMod.Endwalker.Unreal.Un3Sophia
 {
@@ -7,9 +8,20 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
     {
         private BitMask _players1;
         private BitMask _players2;
-        private static float _radius = 5; // TODO: verify
+        private DateTime _activation;
+
+        private static float _radius = 4; // TODO: verify
 
         public bool Active => (_players1 | _players2).Any();
+
+        public override void Update(BossModule module)
+        {
+            if (module.WorldState.CurrentTime > _activation && Active)
+            {
+                _players1.Reset();
+                _players2.Reset();
+            }
+        }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
@@ -32,9 +44,11 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
             {
                 case IconID.Pairs1:
                     _players1.Set(module.Raid.FindSlot(actor.InstanceID));
+                    _activation = module.WorldState.CurrentTime.AddSeconds(5); // TODO: verify
                     break;
                 case IconID.Pairs2:
                     _players2.Set(module.Raid.FindSlot(actor.InstanceID));
+                    _activation = module.WorldState.CurrentTime.AddSeconds(5); // TODO: verify
                     break;
             }
         }

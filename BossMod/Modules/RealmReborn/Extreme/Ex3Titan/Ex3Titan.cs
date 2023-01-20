@@ -13,7 +13,7 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
         public GaolerVoidzone() : base(5, m => m.Enemies(OID.GaolerVoidzone).Where(e => e.EventState != 7)) { }
     }
 
-    [ConfigDisplay(Order = 030, Parent = typeof(RealmRebornConfig))]
+    [ConfigDisplay(Order = 0x030, Parent = typeof(RealmRebornConfig))]
     public class Ex3TitanConfig : CooldownPlanningConfigNode
     {
         public Ex3TitanConfig() : base(50) { }

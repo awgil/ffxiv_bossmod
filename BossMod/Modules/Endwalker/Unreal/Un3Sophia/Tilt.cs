@@ -47,6 +47,7 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
                     if (NumCasts == 1)
                     {
                         // prepare for second tilt
+                        Distance = DistanceShort;
                         Direction = 90.Degrees();
                         Activation = module.WorldState.CurrentTime.AddSeconds(4.9f);
                     }
