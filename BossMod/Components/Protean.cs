@@ -4,6 +4,7 @@ using System.Linq;
 namespace BossMod.Components
 {
     // generic protean mechanic is a bunch of aoes baited in some manner by players that have to hit that player only
+    // TODO: combine with BaitAway
     public abstract class GenericProtean : CastCounter
     {
         public AOEShape Shape { get; private init; }

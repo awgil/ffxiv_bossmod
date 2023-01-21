@@ -84,7 +84,8 @@
         AquaticConception = 3338, // none->player, extra=0x0 (HC blue)
         ShockingConception = 3339, // none->player, extra=0x0 (HC purple)
         FieryConception = 3340, // none->player, extra=0x0 (HC red)
-        // 3341/3342 are probably HC yellow & brown
+        ToxicConception = 3341, // none->player, extra=0x0 (HC snake)
+        GrowingConception = 3342, // none->player, extra=0x0 (HC tree)
         ImmortalSpark = 3343, // none->player, extra=0x0 (HC phoenix)
         ImmortalConception = 3344, // Helper->player, extra=0x0 (HC phoenix all raid)
         Solosplice = 3345, // none->player, extra=0x0 (HC 1-person stack)
