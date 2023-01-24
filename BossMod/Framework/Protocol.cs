@@ -8,45 +8,45 @@ namespace BossMod
         public enum Opcode
         {
             // opcodes from machina
-            StatusEffectList = 0x02BC,
-            StatusEffectListEureka = 0x0353, // not in machina
-            StatusEffectListBozja = 0x0164, // machina: StatusEffectList2
-            StatusEffectListPlayer = 0x024C, // machina: StatusEffectList3
-            StatusEffectListDouble = 0x01EE, // machina: BossStatusEffectList
-            ActionEffect1 = 0x01C9, // Machina calls it AbilityN, size=124
-            ActionEffect8 = 0x024A, // size=636
-            ActionEffect16 = 0x038A,
-            ActionEffect24 = 0x00C8,
-            ActionEffect32 = 0x032B,
-            ActorCast = 0x029C,
-            EffectResult1 = 0x022C,
-            EffectResult4 = 0x01B6,
-            EffectResult8 = 0x016E,
-            EffectResult16 = 0x0250,
-            EffectResultBasic1 = 0x0384,
-            EffectResultBasic4 = 0x0121,
-            EffectResultBasic8 = 0x01D7,
-            EffectResultBasic16 = 0x03D9,
-            EffectResultBasic32 = 0x0332,
-            EffectResultBasic64 = 0x0275,
-            ActorControl = 0x0179, // look at toggle weapon
-            ActorControlSelf = 0x026F, // look at cooldown
-            ActorControlTarget = 0x0220, // look at target change
-            UpdateHpMpTp = 0x0383,
-            SpawnPlayer = 0x007F, // machina: PlayerSpawn
-            SpawnNPC = 0x039E, // machina: NpcSpawn
-            SpawnBoss = 0x02E5, // machina: NpcSpawn2
-            DespawnCharacter = 0x028A, // not in machina
-            ActorMove = 0x01DB,
-            ActorSetPos = 0x018C,
-            ActorGauge = 0x0171,
-            WaymarkPreset = 0x0204, // FFXIVOpcodes calls this PlaceFieldMarkerPreset, machina: PresetWaymark
-            Waymark = 0x038E, // FFXIVOpcodes calls this PlaceFieldMarker
+            StatusEffectList = 0x02A4,
+            StatusEffectListEureka = 0x01DE, // not in machina
+            StatusEffectListBozja = 0x009C, // machina: StatusEffectList2
+            StatusEffectListPlayer = 0x024D, // machina: StatusEffectList3
+            StatusEffectListDouble = 0x00A6, // machina: BossStatusEffectList
+            ActionEffect1 = 0x03C1, // Machina calls it AbilityN, size=124
+            ActionEffect8 = 0x0078, // size=636
+            ActionEffect16 = 0x0398,
+            ActionEffect24 = 0x02EA,
+            ActionEffect32 = 0x0210,
+            ActorCast = 0x0207,
+            EffectResult1 = 0x036C,
+            EffectResult4 = 0x016F,
+            EffectResult8 = 0x0123,
+            EffectResult16 = 0x00EA,
+            EffectResultBasic1 = 0x02E9,
+            EffectResultBasic4 = 0x0261,
+            EffectResultBasic8 = 0x01CC,
+            EffectResultBasic16 = 0x0197,
+            EffectResultBasic32 = 0x01ED,
+            EffectResultBasic64 = 0x008B,
+            ActorControl = 0x0363, // look at toggle weapon
+            ActorControlSelf = 0x0267, // look at cooldown
+            ActorControlTarget = 0x01EC, // look at target change
+            UpdateHpMpTp = 0x010D,
+            SpawnPlayer = 0x0187, // machina: PlayerSpawn
+            SpawnNPC = 0x0391, // machina: NpcSpawn
+            SpawnBoss = 0x0225, // machina: NpcSpawn2
+            DespawnCharacter = 0x01C3, // not in machina
+            ActorMove = 0x02A1,
+            ActorSetPos = 0x0186,
+            ActorGauge = 0x00A9,
+            WaymarkPreset = 0x0223, // FFXIVOpcodes calls this PlaceFieldMarkerPreset, machina: PresetWaymark
+            Waymark = 0x0175, // FFXIVOpcodes calls this PlaceFieldMarker
             SystemLogMessage = 0xF1DB, // FFXIVOpcodes calls this SomeDirectorUnk4
 
-            UpdateClassInfo = 0x02D9,
-            UpdateClassInfoEureka = 0x02EC,
-            UpdateClassInfoBozja = 0x009E,
+            UpdateClassInfo = 0x00BD,
+            UpdateClassInfoEureka = 0x03AE,
+            UpdateClassInfoBozja = 0x0107,
 
             // opcodes from FFXIVOpcodes
             PlayerSetup = 0xF342,
@@ -101,15 +101,15 @@ namespace BossMod
             Logout = 0xF230,
 
             // below are opcodes i've reversed myself...
-            EnvironmentControl = 0x02CE, // updated - size=16, look for a bunch of messages starting with 0x8003759F after P1N intemperance cast...
-            UpdateRecastTimes = 0x01B9, // payload = 80 floats 'elapsed' + 80 floats 'total'
-            UpdateHate = 0x0134, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
-            UpdateHater = 0x02F9, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
-            Countdown = 0x03B1,
-            CountdownCancel = 0x00B6,
-            RSVData = 0x0374,
-            ActionRequest = 0x0249, // just begin casting return...
-            ActionRequestGroundTargeted = 0x03DC, // XIVAlexander
+            EnvironmentControl = 0x02D9, // updated - size=16, look for a bunch of messages starting with 0x8003759F after P1N intemperance cast...
+            UpdateRecastTimes = 0x0268, // payload = 80 floats 'elapsed' + 80 floats 'total'
+            UpdateHate = 0x0250, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
+            UpdateHater = 0x0359, // payload = byte length + 3 bytes padding + { uint objID, byte enmity, byte padding[3] }[len]
+            Countdown = 0x01FF,
+            CountdownCancel = 0x0140,
+            RSVData = 0x0277,
+            ActionRequest = 0x0383, // just begin casting return...
+            ActionRequestGroundTargeted = 0x01A0, // XIVAlexander
             // old - 0x1fd == EventObjSpawn? for stuff like exit points, etc.
         }
 
