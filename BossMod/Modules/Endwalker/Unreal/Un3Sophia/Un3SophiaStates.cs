@@ -2,76 +2,84 @@
 
 namespace BossMod.Endwalker.Unreal.Un3Sophia
 {
-    class MechanicsSkip : BossComponent
-    {
-        public bool Ready;
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.ThunderCone)
-                Ready = true;
-        }
-    }
-
     class Un3SophiaStates : StateMachineBuilder
     {
         public Un3SophiaStates(BossModule module) : base(module)
         {
-            SimplePhase(0, Phase1, "Before skip")
-                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HP.Cur <= 1 || (Module.FindComponent<MechanicsSkip>()?.Ready ?? false);
-            DeathPhase(2, Phase2);
+            SimplePhase(0, Phase1, "Before adds (until 83%)")
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !Module.PrimaryActor.IsTargetable;
+            SimplePhase(1, Phase2, "Adds + next few mechanics (until 75%)")
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || (Module.PrimaryActor.CastInfo?.IsSpell(AID.ThunderCone) ?? false);
+            SimplePhase(2, Phase3, "Skippable mechanics (until 68%)")
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.Enemies(OID.AionTeleos).Any();
+            DeathPhase(3, Phase4);
         }
 
         private void Phase1(uint id)
         {
             ThunderCone(id, 8.2f);
             Gnosis(id + 0x10000, 7.4f);
-            Execute(id + 0x20000, 15.4f); // TODO: sometimes 22.4 instead?..
+            Execute(id + 0x20000, 15.4f); // TODO: sometimes 22.4 instead?.. maybe there should be an extra phase here?
             ArmsOfWisdom(id + 0x30000, 6.2f);
-            CloudyHeavensScalesOfWisdom(id + 0x40000, 7.5f); // TODO: sometimes 17.5 instead?..
-            Proximity(id + 0x50000, 5.2f);
-            ThunderDonutAero(id + 0x60000, 1.5f);
-            Quasar(id + 0x70000, 3.2f);
-            Cintamani(id + 0x80000, 4.7f, false);
-            ArmsOfWisdom(id + 0x90000, 2.2f);
-            SimpleState(id + 0xA0000, 4.5f, "Frontal cone (75% short circuit)");
+            SimpleState(id + 0x40000, 15.4f, "Add phase (83% short circuit)");
         }
 
         private void Phase2(uint id)
+        {
+            CloudyHeavensScalesOfWisdom(id, 0.1f);
+            Proximity(id + 0x10000, 5.2f);
+            ThunderDonutAero(id + 0x20000, 1.5f);
+            Quasar(id + 0x30000, 3.2f);
+            Cintamani(id + 0x40000, 4.7f, false);
+            ArmsOfWisdom(id + 0x50000, 2.2f);
+            SimpleState(id + 0x60000, 4.5f, "Frontal cone (75% short circuit)");
+        }
+
+        private void Phase3(uint id)
         {
             ThunderCone(id, 0);
             QuasarOnrush(id + 0x10000, 3.2f);
             PairsCintamani(id + 0x20000, 10.1f);
             ArmsOfWisdom(id + 0x30000, 3.1f);
-            Cintamani(id + 0x40000, 12.3f, true); // TODO: sometimes 10.3 instead?..
-            ExecuteArmsOfWisdomLightDew(id + 0x50000, 3.1f);
-            Cintamani(id + 0x60000, 10.5f, true);
-            ArmsOfWisdom(id + 0x70000, 3.1f);
-            QuasarLightDew(id + 0x80000, 3.2f);
-            ThunderDonut(id + 0x90000, 9.3f);
-            ArmsOfWisdom(id + 0xA0000, 4.2f);
-            QuasarOnrushLightDew(id + 0xB0000, 3.3f);
-            Cintamani(id + 0xC0000, 7.2f, true);
-            ArmsOfWisdom(id + 0xD0000, 3.1f);
-            ThunderCone(id + 0xE0000, 4.2f);
-            PairsGnosis(id + 0xF0000, 5.1f);
-            ArmsOfWisdom(id + 0x100000, 8.3f);
-            PairsQuasar(id + 0x110000, 11.2f);
-            Cintamani(id + 0x120000, 5.7f, true);
-            ArmsOfWisdom(id + 0x130000, 3.1f);
-            ExecuteProximityArmsOfWisdomPairs(id + 0x140000, 4.2f);
-            Cintamani(id + 0x150000, 12.2f, true);
-            ArmsOfWisdom(id + 0x160000, 3.1f);
-            QuasarLightDew(id + 0x170000, 3.2f);
-            ThunderDonut(id + 0x180000, 9.4f);
-            ArmsOfWisdom(id + 0x190000, 4.2f);
-            QuasarOnrushLightDew(id + 0x1A0000, 3.3f);
-            Cintamani(id + 0x1B0000, 7.2f, true);
-            ArmsOfWisdom(id + 0x1C0000, 3.1f);
-            ThunderCone(id + 0x1D0000, 4.2f);
-            PairsGnosis(id + 0x1E0000, 5.1f);
-            ArmsOfWisdom(id + 0x1F0000, 8.3f); // note: sometimes it is skipped and encounter goes straight to enrage
-            SimpleState(id + 0x200000, 13.4f, "Enrage"); // 5 seconds before that, everyone gets icons of same color; enrage cast happens together with impossible 'resolve'
+            SimpleState(id + 0x40000, 8.6f, "Raidwide x3 (68% short circuit)");
+        }
+
+        private void Phase4(uint id)
+        {
+            Cintamani(id, 3.9f, true);
+            ExecuteArmsOfWisdomLightDew(id + 0x10000, 3.1f);
+            Cintamani(id + 0x20000, 10.5f, true);
+            ArmsOfWisdom(id + 0x30000, 3.1f);
+            QuasarLightDew(id + 0x40000, 3.2f);
+
+            // repeat 1
+            ThunderDonut(id + 0x100000, 9.3f);
+            ArmsOfWisdom(id + 0x110000, 4.2f);
+            QuasarOnrushLightDew(id + 0x120000, 3.3f);
+            Cintamani(id + 0x130000, 7.2f, true);
+            ArmsOfWisdom(id + 0x140000, 3.1f);
+            ThunderCone(id + 0x150000, 4.2f);
+            PairsGnosis(id + 0x160000, 5.1f);
+            ArmsOfWisdom(id + 0x170000, 8.3f);
+            PairsQuasar(id + 0x180000, 11.2f);
+            Cintamani(id + 0x190000, 5.7f, true);
+            ArmsOfWisdom(id + 0x1A0000, 3.1f);
+            ExecuteProximityArmsOfWisdomPairs(id + 0x1B0000, 4.2f);
+            Cintamani(id + 0x1C0000, 12.2f, true);
+            ArmsOfWisdom(id + 0x1D0000, 3.1f);
+            QuasarLightDew(id + 0x1E0000, 3.2f);
+
+            // repeat 2
+            ThunderDonut(id + 0x200000, 9.3f);
+            ArmsOfWisdom(id + 0x210000, 4.2f);
+            QuasarOnrushLightDew(id + 0x220000, 3.3f);
+            Cintamani(id + 0x230000, 7.2f, true);
+            ArmsOfWisdom(id + 0x240000, 3.1f);
+            ThunderCone(id + 0x250000, 4.2f);
+            PairsGnosis(id + 0x260000, 5.1f);
+            ArmsOfWisdom(id + 0x270000, 8.3f); // note: sometimes it is skipped and encounter goes straight to enrage
+
+            SimpleState(id + 0x300000, 13.4f, "Enrage"); // 5 seconds before that, everyone gets icons of same color; enrage cast happens together with impossible 'resolve'
         }
 
         private void ArmsOfWisdom(uint id, float delay)
@@ -174,7 +182,8 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
 
         private void CloudyHeavensScalesOfWisdom(uint id, float delay)
         {
-            Cast(id, AID.CloudyHeavens, delay, 3, "Raidwide")
+            Targetable(id, true, delay);
+            Cast(id + 0x10, AID.CloudyHeavens, 2.1f, 3, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide);
             ComponentCondition<Demiurges>(id + 0x1000, 1.5f, comp => comp.AddsActive, "Adds appear")
                 .ActivateOnEnter<Demiurges>();
@@ -191,7 +200,6 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
             // +2.3s: remove doom statuses (not sure what happens if it ticks down naturally right after adds are killed)
 
             ComponentCondition<ScalesOfWisdom>(id + 0x3000, 2.4f, comp => comp.Distance > 0, "", 5) // note: can be slightly delayed if adds enrage
-                .ActivateOnEnter<MechanicsSkip>() // TODO: current assumption is that as soon as baited cone starts, we skip a bunch of mechanics
                 .ActivateOnEnter<ScalesOfWisdom>();
             ComponentCondition<ScalesOfWisdom>(id + 0x3001, 8.0f, comp => comp.NumCasts > 0, "Tilt 1");
             ComponentCondition<ScalesOfWisdom>(id + 0x3002, 5.0f, comp => comp.NumCasts > 1, "Tilt 2");
