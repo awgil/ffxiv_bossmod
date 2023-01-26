@@ -125,6 +125,11 @@ namespace BossMod
         private static ClassData DefineBRD()
         {
             var c = new ClassData(typeof(BRD.AID), BRD.Definitions.SupportedActions);
+            c.CooldownTracks.Add(new("Troub", ActionID.MakeSpell(BRD.AID.Troubadour), 62));
+            c.CooldownTracks.Add(new("Minne", ActionID.MakeSpell(BRD.AID.NaturesMinne), 66));
+            c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(BRD.AID.ArmsLength), 32));
+            c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
+            c.StrategyTracks.Add(new("Potion", typeof(BRD.Rotation.Strategy.PotionUse)));
             return c;
         }
 
