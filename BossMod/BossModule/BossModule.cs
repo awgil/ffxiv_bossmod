@@ -77,8 +77,13 @@ namespace BossMod
             // execute callbacks for existing state
             foreach (var actor in WorldState.Actors)
             {
-                if (actor.CastInfo?.IsSpell() ?? false)
-                    comp.OnCastStarted(this, actor, actor.CastInfo);
+                bool nonPlayer = actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo;
+                if (nonPlayer)
+                {
+                    comp.OnActorCreated(this, actor);
+                    if (actor.CastInfo?.IsSpell() ?? false)
+                        comp.OnCastStarted(this, actor, actor.CastInfo);
+                }
                 if (actor.Tether.ID != 0)
                     comp.OnTethered(this, actor, actor.Tether);
                 for (int i = 0; i < actor.Statuses.Length; ++i)
@@ -373,11 +378,17 @@ namespace BossMod
         private void OnActorCreated(object? sender, Actor actor)
         {
             _relevantEnemies.GetValueOrDefault(actor.OID)?.Add(actor);
+            if (actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo)
+                foreach (var comp in _components)
+                    comp.OnActorCreated(this, actor);
         }
 
         private void OnActorDestroyed(object? sender, Actor actor)
         {
             _relevantEnemies.GetValueOrDefault(actor.OID)?.Remove(actor);
+            if (actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo)
+                foreach (var comp in _components)
+                    comp.OnActorDestroyed(this, actor);
         }
 
         private void OnActorCastStarted(object? sender, Actor actor)

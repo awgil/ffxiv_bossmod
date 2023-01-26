@@ -44,6 +44,8 @@ namespace BossMod
         public virtual void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { } // called after arena background and borders are drawn, good place to draw actors, tethers, etc.
 
         // world state event handlers
+        public virtual void OnActorCreated(BossModule module, Actor actor) { }
+        public virtual void OnActorDestroyed(BossModule module, Actor actor) { }
         public virtual void OnStatusGain(BossModule module, Actor actor, ActorStatus status) { } // note: also called for status-change events; if component needs to distinguish between lose+gain and change, it can use the fact that 'lose' is not called for change
         public virtual void OnStatusLose(BossModule module, Actor actor, ActorStatus status) { }
         public virtual void OnTethered(BossModule module, Actor source, ActorTetherInfo tether) { }
