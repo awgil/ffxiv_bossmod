@@ -14,6 +14,12 @@ namespace BossMod.Endwalker.Ultimate.TOP
         private static float _towerRadius = 3;
         private static float _tetherRadius = 15;
 
+        protected override (GroupAssignmentUnique assignment, bool global) Assignments()
+        {
+            var config = Service.Config.Get<TOPConfig>();
+            return (config.P1ProgramLoopAssignments, config.P1ProgramLoopGlobalPriority);
+        }
+
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             base.AddHints(module, slot, actor, hints, movementHints);

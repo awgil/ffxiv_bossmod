@@ -3,7 +3,7 @@
 namespace BossMod.Endwalker.Ultimate.TOP
 {
     // common assignments for program loop & pantokrator
-    class P1Common : BossComponent
+    abstract class P1Common : BossComponent
     {
         protected struct PlayerState
         {
@@ -47,11 +47,14 @@ namespace BossMod.Endwalker.Ultimate.TOP
             }
         }
 
+        protected abstract (GroupAssignmentUnique assignment, bool global) Assignments();
+
         private void InitAssignments(BossModule module)
         {
+            var (ca, global) = Assignments();
             List<(int slot, int group, int priority, int order)> assignments = new();
-            foreach (var a in Service.Config.Get<TOPConfig>().ProgramLoopPantokratorAssignments.Resolve(module.Raid))
-                assignments.Add((a.slot, a.group >> 2, a.group & 3, PlayerStates[a.slot].Order));
+            foreach (var a in ca.Resolve(module.Raid))
+                assignments.Add((a.slot, global ? 0 : a.group >> 2, global ? a.group : a.group & 3, PlayerStates[a.slot].Order));
             if (assignments.Count == 0)
                 return; // invalid assignments
 

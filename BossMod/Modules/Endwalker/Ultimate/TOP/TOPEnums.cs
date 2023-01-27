@@ -14,7 +14,6 @@
     public enum AID : uint
     {
         AutoAttack = 31741, // Boss->player, no cast, single-target
-
         ProgramLoop = 31491, // Boss->self, 4.0s cast, single-target, visual (first mechanic start)
         StorageViolation = 31492, // Helper->self, no cast, range 3 circle tower
         StorageViolationObliteration = 31494, // Helper->self, no cast, range 100 circle if tower is unsoaked
@@ -22,16 +21,15 @@
         BlasterRepeat = 31496, // Boss->self, no cast, single-target, visual (1-3 tether explosion)
         BlasterLast = 31497, // Boss->self, no cast, single-target, visual (4 tether explosion)
         BlasterAOE = 31498, // Helper->players, no cast, range 15 circle aoe around tether target
-
         Pantokrator = 31499, // Boss->self, 5.0s cast, single-target, visual (second mechanic start)
         BallisticImpact = 31500, // Helper->location, 3.0s cast, range 5 circle baited puddle
         FlameThrowerFirst = 31501, // Helper->self, 4.0s cast, range 65 60-degree cone
         FlameThrowerRest = 32368, // Helper->self, 4.0s cast, range 65 60-degree cone
         GuidedMissileKyrios = 31502, // Helper->player, no cast, range 5 circle aoe
         CondensedWaveCannonKyrios = 31503, // Helper->self, no cast, range 50 width 6 rect shared aoe
-
         DiffuseWaveCannonKyrios = 31504, // Helper->self, no cast, range 60 ?-degree cone tankbuster baited on 2 furthest targets
         WaveCannonKyrios = 31505, // Helper->self, no cast, range 50 width 6 rect aoe
+        AtomicRay = 31480, // Boss->self, 5.0s cast, range 100 circle, enrage
     };
 
     public enum SID : uint

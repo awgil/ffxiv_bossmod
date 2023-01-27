@@ -11,7 +11,8 @@
         {
             P1ProgramLoop(id, 10.1f);
             P1Pantokrator(id + 0x10000, 8.2f);
-            SimpleState(id + 0xFF0000, 10, "???");
+            P1WaveCannons(id + 0x20000, 6.6f);
+            Cast(id + 0x30000, AID.AtomicRay, 5.8f, 5, "Enrage");
         }
 
         private void P1ProgramLoop(uint id, float delay)
@@ -43,11 +44,20 @@
             ComponentCondition<P1FlameThrowerRest>(id + 0x50, 2.1f, comp => comp.Casters.Count == 0, "Last flamethrower")
                 .DeactivateOnExit<P1BallisticImpact>()
                 .DeactivateOnExit<P1FlameThrowerRest>();
+        }
 
-            ComponentCondition<P1DiffuseWaveCannonKyrios>(id + 0x100, 6.7f, comp => comp.NumCasts > 0, "Tankbusters + spreads")
+        private void P1WaveCannons(uint id, float delay)
+        {
+            ComponentCondition<P1DiffuseWaveCannonKyrios>(id, delay, comp => comp.NumCasts > 0, "Tankbusters (1) + spreads (1)")
                 .ActivateOnEnter<P1DiffuseWaveCannonKyrios>()
-                .ActivateOnEnter<P1WaveCannonKyrios>()
-                .DeactivateOnExit<P1DiffuseWaveCannonKyrios>()
+                .ActivateOnEnter<P1WaveCannonKyrios>();
+            // +2.1s: 2nd tankbuster (diffuse) hit
+            // +3.9s: 2nd set of icons
+            // +4.1s: 3rd tankbuster hit
+            // +6.2s: 4th tankbuster hit
+            ComponentCondition<P1DiffuseWaveCannonKyrios>(id + 0x10, 8.3f, comp => comp.NumCasts >= 10, "Tankbusters resolve (5)")
+                .DeactivateOnExit<P1DiffuseWaveCannonKyrios>();
+            ComponentCondition<P1WaveCannonKyrios>(id + 0x20, 0.7f, comp => comp.CurrentBaits.Count == 0, "Spreads (2)")
                 .DeactivateOnExit<P1WaveCannonKyrios>();
         }
     }
