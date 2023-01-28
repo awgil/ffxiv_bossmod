@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.TOP
 {
-    class P1ProgramLoop : P1Common
+    class P1ProgramLoop : P1CommonAssignments
     {
         public int NumTowersDone { get; private set; }
         public int NumTethersDone { get; private set; }

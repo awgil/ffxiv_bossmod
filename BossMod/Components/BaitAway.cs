@@ -9,15 +9,17 @@ namespace BossMod.Components
     public class GenericBaitAway : CastCounter
     {
         public bool AlwaysDrawOtherBaits; // if false, other baits are drawn only if they are clipping a player
+        public bool CenterAtTarget; // if true, aoe source is at target
         public bool AllowDeadTargets = true; // if false, baits with dead targets are ignored
         public BitMask ForbiddenPlayers;
         public List<(Actor source, Actor target, AOEShape shape)> CurrentBaits = new();
 
         public IEnumerable<(Actor source, Actor target, AOEShape shape)> ActiveBaits => AllowDeadTargets ? CurrentBaits : CurrentBaits.Where(b => !b.target.IsDead);
 
-        public GenericBaitAway(ActionID aid = default, bool alwaysDrawOtherBaits = true) : base(aid)
+        public GenericBaitAway(ActionID aid = default, bool alwaysDrawOtherBaits = true, bool centerAtTarget = false) : base(aid)
         {
             AlwaysDrawOtherBaits = alwaysDrawOtherBaits;
+            CenterAtTarget = centerAtTarget;
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
@@ -28,10 +30,10 @@ namespace BossMod.Components
                 {
                     if (ForbiddenPlayers[slot])
                         hints.Add("Avoid baiting!");
-                    else if (module.Raid.WithoutSlot().Exclude(actor).InShape(bait.shape, bait.source.Position, Angle.FromDirection(bait.target.Position - bait.source.Position)).Any())
+                    else if (module.Raid.WithoutSlot().Exclude(actor).InShape(bait.shape, (CenterAtTarget ? bait.target : bait.source).Position, Angle.FromDirection(bait.target.Position - bait.source.Position)).Any())
                         hints.Add("Bait away from raid!");
                 }
-                else if (bait.shape.Check(actor.Position, bait.source.Position, Angle.FromDirection(bait.target.Position - bait.source.Position)))
+                else if (bait.shape.Check(actor.Position, (CenterAtTarget ? bait.target : bait.source).Position, Angle.FromDirection(bait.target.Position - bait.source.Position)))
                 {
                     hints.Add("GTFO from baited aoe!");
                 }
@@ -48,8 +50,8 @@ namespace BossMod.Components
             foreach (var bait in ActiveBaits.Where(bait => bait.target != pc))
             {
                 var dir = Angle.FromDirection(bait.target.Position - bait.source.Position);
-                if (AlwaysDrawOtherBaits || bait.shape.Check(pc.Position, bait.source.Position, dir))
-                    bait.shape.Draw(arena, bait.source.Position, dir);
+                if (AlwaysDrawOtherBaits || bait.shape.Check(pc.Position, (CenterAtTarget ? bait.target : bait.source).Position, dir))
+                    bait.shape.Draw(arena, (CenterAtTarget ? bait.target : bait.source).Position, dir);
             }
         }
 
@@ -57,7 +59,7 @@ namespace BossMod.Components
         {
             foreach (var bait in ActiveBaits.Where(bait => bait.target == pc))
             {
-                bait.shape.Outline(arena, bait.source.Position, Angle.FromDirection(bait.target.Position - bait.source.Position));
+                bait.shape.Outline(arena, (CenterAtTarget ? bait.target : bait.source).Position, Angle.FromDirection(bait.target.Position - bait.source.Position));
             }
         }
     }
@@ -130,6 +132,29 @@ namespace BossMod.Components
             }
 
             return (player, enemy);
+        }
+    }
+
+    // component for mechanics requiring cast targets to gtfo from raid (aoe tankbusters etc)
+    public class BaitAwayCast : GenericBaitAway
+    {
+        public AOEShape Shape;
+
+        public BaitAwayCast(ActionID aid, AOEShape shape, bool centerAtTarget = false) : base(aid, centerAtTarget: centerAtTarget)
+        {
+            Shape = shape;
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
+                CurrentBaits.Add((caster, target, Shape));
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction)
+                CurrentBaits.RemoveAll(b => b.source == caster);
         }
     }
 }

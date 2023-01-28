@@ -18,7 +18,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public P1FlameThrowerRest() : base(ActionID.MakeSpell(AID.FlameThrowerRest), new AOEShapeCone(65, 30.Degrees())) { }
     }
 
-    class P1Pantokrator : P1Common
+    class P1Pantokrator : P1CommonAssignments
     {
         public int NumSpreadsDone { get; private set; }
         public int NumStacksDone { get; private set; }
