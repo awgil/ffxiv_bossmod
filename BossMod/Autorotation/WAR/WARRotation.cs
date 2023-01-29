@@ -79,17 +79,6 @@ namespace BossMod.WAR
                 Force = 3,
             }
 
-            public enum OffensiveAbilityUse : uint
-            {
-                Automatic = 0, // use standard logic for ability
-
-                [PropertyDisplay("Delay", 0x800000ff)]
-                Delay = 1, // delay until window end
-
-                [PropertyDisplay("Force", 0x8000ff00)]
-                Force = 2, // force use ASAP
-            }
-
             public enum OnslaughtUse : uint
             {
                 Automatic = 0, // always keep one charge reserved, use other charges under raidbuffs or prevent overcapping

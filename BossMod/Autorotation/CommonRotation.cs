@@ -45,6 +45,17 @@ namespace BossMod
 
         public class Strategy
         {
+            public enum OffensiveAbilityUse : uint
+            {
+                Automatic = 0, // use standard logic for ability
+
+                [PropertyDisplay("Delay", 0x800000ff)]
+                Delay = 1, // delay until window end
+
+                [PropertyDisplay("Force", 0x8000ff00)]
+                Force = 2, // force use ASAP
+            }
+
             public float CombatTimer; // MinValue if not in combat, negative during countdown, zero or positive during combat
             public bool ForbidDOTs;
             public float ForceMovementIn;
