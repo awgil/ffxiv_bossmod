@@ -312,14 +312,14 @@ namespace BossMod
 
         private void DrawWaymarks()
         {
-            DrawWaymark(WorldState.Waymarks[Waymark.A], "A", 0xffff928a);
-            DrawWaymark(WorldState.Waymarks[Waymark.B], "B", 0xfff7c139);
-            DrawWaymark(WorldState.Waymarks[Waymark.C], "C", 0xff6cb4e0);
-            DrawWaymark(WorldState.Waymarks[Waymark.D], "D", 0xffa352fa);
-            DrawWaymark(WorldState.Waymarks[Waymark.N1], "1", 0xffff928a);
-            DrawWaymark(WorldState.Waymarks[Waymark.N2], "2", 0xfff7c139);
-            DrawWaymark(WorldState.Waymarks[Waymark.N3], "3", 0xff6cb4e0);
-            DrawWaymark(WorldState.Waymarks[Waymark.N4], "4", 0xffa352fa);
+            DrawWaymark(WorldState.Waymarks[Waymark.A], "A", 0xff964ee5);
+            DrawWaymark(WorldState.Waymarks[Waymark.B], "B", 0xff11a2c6);
+            DrawWaymark(WorldState.Waymarks[Waymark.C], "C", 0xffe29f30);
+            DrawWaymark(WorldState.Waymarks[Waymark.D], "D", 0xffbc567a);
+            DrawWaymark(WorldState.Waymarks[Waymark.N1], "1", 0xff964ee5);
+            DrawWaymark(WorldState.Waymarks[Waymark.N2], "2", 0xff11a2c6);
+            DrawWaymark(WorldState.Waymarks[Waymark.N3], "3", 0xffe29f30);
+            DrawWaymark(WorldState.Waymarks[Waymark.N4], "4", 0xffbc567a);
         }
 
         private void DrawWaymark(Vector3? pos, string text, uint color)

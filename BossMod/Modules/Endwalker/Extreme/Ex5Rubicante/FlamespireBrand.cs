@@ -109,9 +109,11 @@ namespace BossMod.Endwalker.Extreme.Ex5Rubicante
                 switch (state)
                 {
                     case 0x00010001:
+                    case 0x00100010:
                         _offset = 45.Degrees();
                         _activation = module.WorldState.CurrentTime.AddSeconds(8.5f);
                         break;
+                    case 0x00200020:
                     case 0x00800080:
                         _offset = 0.Degrees();
                         _activation = module.WorldState.CurrentTime.AddSeconds(8.5f);

@@ -11,6 +11,8 @@
         [GroupPreset("Light Party TMRH inverted", new[] { 4, 0, 7, 3, 5, 1, 6, 2 })]
         [GroupPreset("Light Party RTMH", new[] { 1, 5, 3, 7, 2, 6, 0, 4 })]
         [GroupPreset("Light Party RTMH inverted", new[] { 5, 1, 7, 3, 6, 2, 4, 0 })]
+        [GroupPreset("Global THMR", new[] { 0, 1, 2, 3, 4, 5, 6, 7 })]
+        [GroupPreset("Global THMR reverse", new[] { 7, 6, 5, 4, 3, 2, 1, 0 })]
         [GroupPreset("Global RMTH", new[] { 4, 5, 6, 7, 2, 3, 0, 1 })]
         [GroupPreset("Global RMTH reverse", new[] { 3, 2, 1, 0, 5, 4, 7, 6 })]
         public GroupAssignmentUnique P1ProgramLoopAssignments = GroupAssignmentUnique.Default();
@@ -26,6 +28,8 @@
         [GroupPreset("Light Party TMRH inverted", new[] { 4, 0, 7, 3, 5, 1, 6, 2 })]
         [GroupPreset("Light Party RTMH", new[] { 1, 5, 3, 7, 2, 6, 0, 4 })]
         [GroupPreset("Light Party RTMH inverted", new[] { 5, 1, 7, 3, 6, 2, 4, 0 })]
+        [GroupPreset("Global THMR", new[] { 0, 1, 2, 3, 4, 5, 6, 7 })]
+        [GroupPreset("Global THMR reverse", new[] { 7, 6, 5, 4, 3, 2, 1, 0 })]
         [GroupPreset("Global RMTH", new[] { 4, 5, 6, 7, 2, 3, 0, 1 })]
         [GroupPreset("Global RMTH reverse", new[] { 3, 2, 1, 0, 5, 4, 7, 6 })]
         public GroupAssignmentUnique P1PantokratorAssignments = GroupAssignmentUnique.Default();
@@ -41,6 +45,8 @@
         [GroupPreset("Light Party TMRH inverted", new[] { 4, 0, 7, 3, 5, 1, 6, 2 })]
         [GroupPreset("Light Party RTMH", new[] { 1, 5, 3, 7, 2, 6, 0, 4 })]
         [GroupPreset("Light Party RTMH inverted", new[] { 5, 1, 7, 3, 6, 2, 4, 0 })]
+        [GroupPreset("Global THMR", new[] { 0, 1, 2, 3, 4, 5, 6, 7 })]
+        [GroupPreset("Global THMR reverse", new[] { 7, 6, 5, 4, 3, 2, 1, 0 })]
         [GroupPreset("Global RMTH", new[] { 4, 5, 6, 7, 2, 3, 0, 1 })]
         [GroupPreset("Global RMTH reverse", new[] { 3, 2, 1, 0, 5, 4, 7, 6 })]
         public GroupAssignmentUnique P2PartySynergyAssignments = GroupAssignmentUnique.Default();
