@@ -75,6 +75,7 @@ namespace BossMod.BRD
             public SongUse SongStrategy; // how are we supposed to switch songs
             public PotionUse PotionStrategy; // how are we supposed to use potions
             public OffensiveAbilityUse RagingStrikesUse; // how are we supposed to use RS
+            public OffensiveAbilityUse BloodletterUse; // how are we supposed to use bloodletters
             public int NumLadonsbiteTargets; // range 12 90-degree cone
             public int NumRainOfDeathTargets; // range 8 circle around target
 
@@ -86,17 +87,19 @@ namespace BossMod.BRD
             // TODO: these bindings should be done by the framework...
             public void ApplyStrategyOverrides(uint[] overrides)
             {
-                if (overrides.Length >= 2)
+                if (overrides.Length >= 4)
                 {
                     SongStrategy = (SongUse)overrides[0];
                     PotionStrategy = (PotionUse)overrides[1];
                     RagingStrikesUse = (OffensiveAbilityUse)overrides[2];
+                    BloodletterUse = (OffensiveAbilityUse)overrides[3];
                 }
                 else
                 {
                     SongStrategy = SongUse.Automatic;
                     PotionStrategy = PotionUse.Manual;
                     RagingStrikesUse = OffensiveAbilityUse.Automatic;
+                    BloodletterUse = OffensiveAbilityUse.Automatic;
                 }
             }
         }
@@ -112,7 +115,7 @@ namespace BossMod.BRD
         public static bool ShouldUsePotion(State state, Strategy strategy) => strategy.PotionStrategy switch
         {
             Strategy.PotionUse.Manual => false,
-            Strategy.PotionUse.Burst => strategy.CombatTimer < 0 ? strategy.CombatTimer > -1.8f : state.TargetingEnemy && state.CD(CDGroup.RagingStrikes) < state.GCD + 3.5f, // pre-pull or RS ready in 2 gcds (assume pot -> late-weaved WM -> RS)
+            Strategy.PotionUse.Burst => strategy.CombatTimer < 0 ? strategy.CombatTimer > -2f : state.TargetingEnemy && state.CD(CDGroup.RagingStrikes) < state.GCD + 3.5f, // pre-pull or RS ready in 2 gcds (assume pot -> late-weaved WM -> RS)
             Strategy.PotionUse.Force => true,
             _ => false
         };
@@ -123,6 +126,17 @@ namespace BossMod.BRD
             Strategy.OffensiveAbilityUse.Delay => false,
             Strategy.OffensiveAbilityUse.Force => true,
             _ => state.TargetingEnemy && (state.ActiveSong == Song.WanderersMinuet || !state.Unlocked(AID.WanderersMinuet))
+        };
+
+        // by default, we pool bloodletter for burst
+        public static bool ShouldUseBloodletter(State state, Strategy strategy) => strategy.BloodletterUse switch
+        {
+            Strategy.OffensiveAbilityUse.Delay => false,
+            Strategy.OffensiveAbilityUse.Force => true,
+            _ => !state.Unlocked(AID.WanderersMinuet) || // don't try to pool BLs at low level (reconsider)
+                state.ActiveSong == Song.MagesBallad || // don't try to pool BLs during MB, it's risky
+                state.BattleVoiceLeft > state.AnimationLock || // don't pool BLs during buffs
+                state.CD(CDGroup.Bloodletter) - (state.Unlocked(TraitID.EnhancedBloodletter) ? 0 : 15) <= Math.Min(state.CD(CDGroup.RagingStrikes), state.CD(CDGroup.BattleVoice)) // don't pool BLs if they will overcap before next buffs
         };
 
         public static AID GetNextBestGCD(State state, Strategy strategy)
@@ -268,9 +282,22 @@ namespace BossMod.BRD
                 return ActionID.MakeSpell(AID.RagingStrikes);
 
             // BV+RF 2 gcds after RS (RF first with 1 coda, ? with 2 coda, BV first with 3 coda)
-            // opener: gcd is slightly smaller than 2.5, RS should've happened in second ogcd slot at 1.2, we should apply buff at >= 2*2.5-0.6 = 4.4 => RS will have <= 1.2+20-4.4 == 16.8 (+ER-delay) left
-            // burst: gcd is slightly smaller than 2.1 (assuming 4-stack AP), RS should've happened in first ogcd slot at 0.6, apply buff at >= 2*2.1-0.6 = 3.6 => RS will have <= 0.6+20-3.6 == 17 (+ER-delay) left
-            if (state.TargetingEnemy && state.RagingStrikesLeft > state.AnimationLock && state.RagingStrikesLeft < 16.8f)
+            // visualization:
+            // -GCD               0               GCD
+            //   * -gcd---------- * -gcd---------- * -gcd---------- * -gcd----------
+            //   * ---- RS ------ * -------------- * ---- BV - RF - * --------------
+            //           ^^^^----------------^^^----------^^^
+            //         20s  20s              max          min
+            // GCD is slightly smaller than 2.5 during opener, and slightly smaller than 2.1 during reopener (assuming 4-stack AP)
+            // RS should happen in second ogcd slot during opener (t in [-gcd + 1.2, -0.6] == [-1.3 + sksDelta, -0.6], or anywhere during burst (t in [-gcd + 0.6, -0.6] == [-1.5 + sksDelta, -0.6])
+            // RS buff starts ticking down from 20 at t+erDelay, so we can imagine that RS has effective time-left == 20+erDelay when applied
+            // we want to enable BV/RF between [gcd-0.6, gcd+0.6]
+            // at T=gcd RS buff will have remaining 20+erDelay-(T-t) == [opener] 20+erDelay-(2.5-sksDelta)+[-1.3+sksDelta, -0.6] == 17.5+erDelay+sksDelta+[-1.3+sksDelta, -0.6] == [16.2+sksDelta, 16.9]+erDelay+sksDelta
+            //                                                       == [burst]  20+erDelay-(2.1-sksDelta)+[-1.5+sksDelta, -0.6] == 17.9+erDelay+sksDelta+[-1.5+sksDelta, -0.6] == [16.4+sksDelta, 17.3]+erDelay+sksDelta
+            // so condition is [opener] RSLeft <= 16.8 + [sksDelta, 0.7]+erDelay+sksDelta
+            //                 [burst]  RSLeft <= 17.0 + [sksDelta, 0.9]+erDelay+sksDelta
+            // but note that if we select too small limit (e.g. 16.8), we might run into a problem: if 0.7+erDelay+sksDelta > 1.2, then we might not allow using buff at min, use something else instead, and push second buff to next GCD
+            if (state.TargetingEnemy && state.RagingStrikesLeft > state.AnimationLock && state.RagingStrikesLeft < 17)
             {
                 if (state.NumCoda == 1 && state.CanWeave(CDGroup.RadiantFinale, 0.6f, deadline))
                     return ActionID.MakeSpell(AID.RadiantFinale);
@@ -330,17 +357,8 @@ namespace BossMod.BRD
                 return ActionID.MakeSpell(AID.Sidewinder);
 
             // bloodletter, unless we're pooling them for burst
-            if (state.TargetingEnemy && strategy.CombatTimer >= 0 && state.Unlocked(AID.Bloodletter) && state.CanWeave(state.CD(CDGroup.Bloodletter) - 30, 0.6f, deadline))
-            {
-                bool poolBL = false;
-                if (state.Unlocked(AID.WanderersMinuet) && state.ActiveSong != Song.MagesBallad && state.BattleVoiceLeft <= state.AnimationLock)
-                {
-                    float chargeCapIn = state.CD(CDGroup.Bloodletter) - (state.Unlocked(TraitID.EnhancedBloodletter) ? 0 : 15);
-                    poolBL = chargeCapIn > Math.Min(state.CD(CDGroup.RagingStrikes), state.CD(CDGroup.BattleVoice));
-                }
-                if (!poolBL)
-                    return ActionID.MakeSpell(strategy.NumRainOfDeathTargets >= 2 ? AID.RainOfDeath : AID.Bloodletter);
-            }
+            if (state.TargetingEnemy && strategy.CombatTimer >= 0 && state.Unlocked(AID.Bloodletter) && ShouldUseBloodletter(state, strategy) && state.CanWeave(state.CD(CDGroup.Bloodletter) - 30, 0.6f, deadline))
+                return ActionID.MakeSpell(strategy.NumRainOfDeathTargets >= 2 ? AID.RainOfDeath : AID.Bloodletter);
 
             // no suitable oGCDs...
             return new();

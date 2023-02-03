@@ -132,6 +132,7 @@ namespace BossMod
             c.StrategyTracks.Add(new("Songs", typeof(BRD.Rotation.Strategy.SongUse)));
             c.StrategyTracks.Add(new("Potion", typeof(BRD.Rotation.Strategy.PotionUse)));
             c.StrategyTracks.Add(new("RS", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
+            c.StrategyTracks.Add(new("BL", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
             return c;
         }
 
