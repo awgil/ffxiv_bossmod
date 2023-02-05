@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.TOP
@@ -61,7 +62,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 return;
             switch ((OID)actor.OID)
             {
-                case OID.OmegaM2:
+                case OID.OmegaMHelper:
                     if (actor.ModelState.ModelState == 4)
                     {
                         AOEs.Add(new(new AOEShapeDonut(10, 40), actor.Position, actor.Rotation, module.WorldState.CurrentTime.AddSeconds(5.1f)));
@@ -71,7 +72,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                         AOEs.Add(new(new AOEShapeCircle(10), actor.Position, actor.Rotation, module.WorldState.CurrentTime.AddSeconds(5.1f)));
                     }
                     break;
-                case OID.OmegaF2:
+                case OID.OmegaFHelper:
                     if (actor.ModelState.ModelState == 4)
                     {
                         AOEs.Add(new(new AOEShapeRect(40, 40, -4), actor.Position, actor.Rotation + 90.Degrees(), module.WorldState.CurrentTime.AddSeconds(5.1f)));
@@ -147,6 +148,105 @@ namespace BossMod.Endwalker.Ultimate.TOP
                     return 19 * (Angle.FromDirection(eyeOffset) + ps.Order * 40.Degrees() - 10.Degrees() + (ps.Group == 1 ? 0.Degrees() : 180.Degrees())).ToDirection();
                 default:
                     return new();
+            }
+        }
+    }
+
+    class P2PartySynergyDischarger : Components.Knockback
+    {
+        public P2PartySynergyDischarger() : base(ActionID.MakeSpell(AID.Discharger)) { }
+
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+        {
+            yield return new(module.Bounds.Center, 13); // TODO: activation
+        }
+    }
+
+    class P2PartySynergyEfficientBladework : Components.GenericAOEs
+    {
+        private P2PartySynergy? _synergy;
+        private DateTime _activation;
+        private List<Actor> _sources = new();
+
+        private static AOEShapeCircle _shape = new(10);
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (_activation != default)
+                foreach (var s in _sources)
+                    yield return new(_shape, s.Position, new(), _activation);
+        }
+
+        public override void Init(BossModule module)
+        {
+            _synergy = module.FindComponent<P2PartySynergy>();
+            _sources.AddRange(module.Enemies(OID.OmegaF));
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            var pos = AssignedPosition(module, pcSlot);
+            if (pos != default)
+                arena.AddCircle(module.Bounds.Center + pos, 1, ArenaColor.Safe);
+        }
+
+        public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+        {
+            if (id == 0x1E43 && (OID)actor.OID == OID.OmegaMHelper)
+                _sources.Add(actor);
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.EfficientBladework:
+                    ++NumCasts;
+                    break;
+                case AID.OpticalLaser:
+                    _activation = module.WorldState.CurrentTime.AddSeconds(9.8f);
+                    break;
+            }
+        }
+
+        private WDir AssignedPosition(BossModule module, int slot)
+        {
+            if (_activation == default || _synergy == null || _sources.Count == 0)
+                return new();
+
+            // assumption: first source (F) is our relative north, G1 always goes to relative west, G2 goes to relative S/E depending on glitch
+            var relNorth = 1.4f * (_sources[0].Position - module.Bounds.Center);
+            return _synergy.PlayerStates[slot].Group switch
+            {
+                1 => relNorth.OrthoL(),
+                2 => _synergy.ActiveGlitch == P2PartySynergy.Glitch.Mid ? -relNorth : relNorth.OrthoR(),
+                _ => new()
+            };
+        }
+    }
+
+    class P2PartySynergySpotlight : Components.StackSpread
+    {
+        private List<Actor> _stackTargets = new(); // don't show anything until knockbacks are done, to reduce visual clutter
+
+        public P2PartySynergySpotlight() : base(6, 0, 4, 4) { }
+
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+        {
+            if (iconID == (uint)IconID.Spotlight)
+                _stackTargets.Add(actor);
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.Discharger:
+                    StackTargets = _stackTargets;
+                    break;
+                case AID.Spotlight:
+                    _stackTargets.RemoveAll(t => t.InstanceID == spell.MainTargetID);
+                    break;
             }
         }
     }

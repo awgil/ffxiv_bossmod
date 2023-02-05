@@ -101,11 +101,22 @@
             ComponentCondition<P2PartySynergyOptimizedFire>(id + 0x30, 6.4f, comp => !comp.Active, "Spreads")
                 .ActivateOnEnter<P2PartySynergyOptimizedFire>()
                 .ActivateOnEnter<P2PartySynergyOpticalLaser>()
+                .ActivateOnEnter<P2PartySynergyEfficientBladework>() // PATEs happen 0.8s after double aoes
                 .DeactivateOnExit<P2PartySynergyOptimizedFire>();
             ComponentCondition<P2PartySynergyOpticalLaser>(id + 0x31, 0.4f, comp => comp.NumCasts > 0)
                 .DeactivateOnExit<P2PartySynergyOpticalLaser>();
 
-            // TODO: kb + mid/remote stacks, reappear
+            ComponentCondition<P2PartySynergyDischarger>(id + 0x40, 6.9f, comp => comp.NumCasts > 0, "Knockback")
+                .ActivateOnEnter<P2PartySynergyDischarger>()
+                .ActivateOnEnter<P2PartySynergySpotlight>() // TODO: reconsider (icons appear ~0.6s after laser end, but do we even care about this?)
+                .DeactivateOnExit<P2PartySynergyDischarger>();
+            ComponentCondition<P2PartySynergyEfficientBladework>(id + 0x41, 4.4f, comp => comp.NumCasts > 0, "Stacks")
+                .DeactivateOnExit<P2PartySynergySpotlight>() // TODO: reconsider (happens right before aoes, but do we even care?)
+                .DeactivateOnExit<P2PartySynergyEfficientBladework>()
+                .DeactivateOnExit<P2PartySynergy>();
+
+            ActorTargetable(id + 0x50, _module.BossP2M, true, 3.0f, "M/F reappear")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
         }
     }
 }
