@@ -1,6 +1,4 @@
-﻿using Dalamud.Game.ClientState.JobGauge.Enums;
-using System;
-using static BossMod.WAR.Rotation.Strategy;
+﻿using System;
 
 namespace BossMod.BRD
 {
@@ -57,8 +55,11 @@ namespace BossMod.BRD
             {
                 Automatic = 0, // allow early MB->AP and AP->WM switches
 
-                [PropertyDisplay("Extend active song", 0x8000ff00)]
+                [PropertyDisplay("Extend until last tick", 0x8000ff00)]
                 Extend = 1, // extend currently active song until window end or until last tick
+
+                [PropertyDisplay("Extend until last moment", 0x8000ffff)]
+                Overextend = 2, // extend currently active song until window end or until last possible moment
             }
 
             public enum PotionUse : uint
@@ -104,13 +105,19 @@ namespace BossMod.BRD
             }
         }
 
-        public static float SwitchAtRemainingSongTimer(State state, Strategy strategy) => strategy.SongStrategy == Strategy.SongUse.Automatic ? state.ActiveSong switch
+        public static float SwitchAtRemainingSongTimer(State state, Strategy strategy) => strategy.SongStrategy switch
         {
-            Song.WanderersMinuet => 3, // WM->MB transition when no more repertoire ticks left
-            Song.MagesBallad => 12, // MB->AP transition asap as long as we won't end up songless (active song condition 15 == 45 - (120 - 2*45); get extra MB tick at 12s to avoid being songless for a moment)
-            Song.ArmysPaeon => state.Repertoire == 4 ? 15 : 3, // AP->WM transition asap as long as we'll have MB ready when WM ends, if we either have full repertoire or AP is about to run out anyway
+            Strategy.SongUse.Automatic => state.ActiveSong switch
+            {
+                Song.WanderersMinuet => 3, // WM->MB transition when no more repertoire ticks left
+                Song.MagesBallad => 12, // MB->AP transition asap as long as we won't end up songless (active song condition 15 == 45 - (120 - 2*45); get extra MB tick at 12s to avoid being songless for a moment)
+                Song.ArmysPaeon => state.Repertoire == 4 ? 15 : 3, // AP->WM transition asap as long as we'll have MB ready when WM ends, if we either have full repertoire or AP is about to run out anyway
+                _ => 3
+            },
+            Strategy.SongUse.Extend => 3,
+            Strategy.SongUse.Overextend => 0, // TODO: think more about it...
             _ => 3
-        } : 3;
+        };
 
         public static bool ShouldUsePotion(State state, Strategy strategy) => strategy.PotionStrategy switch
         {
