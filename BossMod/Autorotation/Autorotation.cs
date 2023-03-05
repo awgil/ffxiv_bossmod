@@ -167,6 +167,22 @@ namespace BossMod
                 WindowManager.CloseWindow(_ui);
                 _ui = null;
             }
+
+            if (_config.ShowPositionals && PrimaryTarget != null && _classActions != null && _classActions.AutoAction != CommonActions.AutoActionNone && !PrimaryTarget.Omnidirectional)
+            {
+                var strategy = _classActions.GetStrategy();
+                var color = PositionalColor(strategy);
+                switch (strategy.NextPositional)
+                {
+                    case Positional.Flank:
+                        Camera.Instance?.DrawWorldCone(PrimaryTarget.PosRot.XYZ(), PrimaryTarget.HitboxRadius + 1, PrimaryTarget.Rotation + 90.Degrees(), 45.Degrees(), color);
+                        Camera.Instance?.DrawWorldCone(PrimaryTarget.PosRot.XYZ(), PrimaryTarget.HitboxRadius + 1, PrimaryTarget.Rotation - 90.Degrees(), 45.Degrees(), color);
+                        break;
+                    case Positional.Rear:
+                        Camera.Instance?.DrawWorldCone(PrimaryTarget.PosRot.XYZ(), PrimaryTarget.HitboxRadius + 1, PrimaryTarget.Rotation + 180.Degrees(), 45.Degrees(), color);
+                        break;
+                }
+            }
         }
 
         private void DrawOverlay()
@@ -177,6 +193,13 @@ namespace BossMod
             var state = _classActions.GetState();
             var strategy = _classActions.GetStrategy();
             ImGui.TextUnformatted($"[{_classActions.AutoAction}] Next: {next.Action} ({next.Source})");
+            if (_classActions.AutoAction != CommonActions.AutoActionNone && strategy.NextPositional != Positional.Any)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, PositionalColor(strategy));
+                ImGui.TextUnformatted(strategy.NextPositional.ToString());
+                ImGui.PopStyleColor();
+                ImGui.SameLine();
+            }
             ImGui.TextUnformatted(strategy.ToString());
             ImGui.TextUnformatted($"Raidbuffs: {state.RaidBuffsLeft:f2}s left, next in {strategy.RaidBuffsIn:f2}s");
             ImGui.TextUnformatted($"Downtime: {strategy.FightEndIn:f2}s, pos-lock: {strategy.PositionLockIn:f2}");
@@ -346,6 +369,13 @@ namespace BossMod
         private string PendingActionString(Network.PendingAction a)
         {
             return $"#{a.Sequence} {a.Action} @ {Utils.ObjectString(a.TargetID)}";
+        }
+
+        private uint PositionalColor(CommonRotation.Strategy strategy)
+        {
+            return strategy.NextPositionalImminent
+                ? (strategy.NextPositionalCorrect ? 0xff00ff00 : 0xff0000ff)
+                : (strategy.NextPositionalCorrect ? 0xffffffff : 0xff00ffff);
         }
 
         private void Log(string message, bool warning = false)

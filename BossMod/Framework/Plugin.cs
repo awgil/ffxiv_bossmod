@@ -132,6 +132,7 @@ namespace BossMod
             if (!uiHidden)
                 WindowManager.DrawAll();
 
+            Camera.Instance?.DrawWorldPrimitives();
             _prevUpdateTime = DateTime.Now - tsStart;
         }
 

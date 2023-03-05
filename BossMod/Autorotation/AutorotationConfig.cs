@@ -12,6 +12,9 @@
         [PropertyDisplay("Show in-game UI")]
         public bool ShowUI = false;
 
+        [PropertyDisplay("Show positional hints in world")]
+        public bool ShowPositionals = false;
+
         [PropertyDisplay("Enable actions that affect position (e.g. Onslaught, Primal Rend)")]
         public bool EnableMovement = true;
 

@@ -66,13 +66,7 @@ namespace BossMod.DRG
                     adjTarget = multidotTarget;
             }
 
-            // TODO: L56+ positionals
-            var pos = Positional.Any;
-            if (_state.TrueNorthLeft <= _state.GCD)
-            {
-                if (_state.ComboLastMove == AID.Disembowel && _state.Unlocked(AID.ChaosThrust))
-                    pos = Positional.Rear;
-            }
+            var pos = _strategy.NextPositionalImminent ? _strategy.NextPositional : Positional.Any; // TODO: move to common code
             return new(adjTarget, 3, pos);
         }
 
@@ -81,6 +75,14 @@ namespace BossMod.DRG
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
             _strategy.NumAOEGCDTargets = Autorot.PrimaryTarget != null && autoAction != AutoActionST && _state.Unlocked(AID.DoomSpike) ? NumTargetsHitByAOEGCD(Autorot.PrimaryTarget) : 0;
+            _strategy.UseAOERotation = autoAction switch
+            {
+                AutoActionST => false,
+                AutoActionAOE => true, // TODO: consider making AI-like check
+                AutoActionAIFight => _strategy.NumAOEGCDTargets >= 3 && (_state.Unlocked(AID.SonicThrust) || _state.PowerSurgeLeft > _state.GCD), // TODO: better AOE condition
+                _ => false, // irrelevant...
+            };
+            FillStrategyPositionals(_strategy, Rotation.GetNextPositional(_state, _strategy), _state.TrueNorthLeft > _state.GCD);
         }
 
         protected override void QueueAIActions()
@@ -129,6 +131,7 @@ namespace BossMod.DRG
 
             //s.Chakra = Service.JobGauges.Get<DRGGauge>().Chakra;
 
+            _state.FangAndClawBaredLeft = StatusDetails(Player, SID.FangAndClawBared, Player.InstanceID).Left;
             _state.PowerSurgeLeft = StatusDetails(Player, SID.PowerSurge, Player.InstanceID).Left;
             _state.LanceChargeLeft = StatusDetails(Player, SID.LanceCharge, Player.InstanceID).Left;
             _state.TrueNorthLeft = StatusDetails(Player, SID.TrueNorth, Player.InstanceID).Left;

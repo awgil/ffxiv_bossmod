@@ -5,6 +5,7 @@
         // full state needed for determining next action
         public class State : CommonRotation.PlayerState
         {
+            public float FangAndClawBaredLeft; // 30 max
             public float PowerSurgeLeft; // 30 max
             public float LanceChargeLeft; // 20 max
             public float TrueNorthLeft; // 10 max
@@ -24,7 +25,7 @@
 
             public override string ToString()
             {
-                return $"RB={RaidBuffsLeft:f1}, PS={PowerSurgeLeft:f1}, LC={LanceChargeLeft:f1}, TN={TrueNorthLeft:f1}, CT={TargetChaosThrustLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                return $"ComboEx={FangAndClawBaredLeft:f1}, RB={RaidBuffsLeft:f1}, PS={PowerSurgeLeft:f1}, LC={LanceChargeLeft:f1}, TN={TrueNorthLeft:f1}, CT={TargetChaosThrustLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -32,6 +33,7 @@
         public class Strategy : CommonRotation.Strategy
         {
             public int NumAOEGCDTargets; // range 10 width 4 rect
+            public bool UseAOERotation;
 
             public override string ToString()
             {
@@ -39,32 +41,31 @@
             }
         }
 
-        public static bool RefreshDOT(State state, float timeLeft) => timeLeft < state.GCD + 3.0f; // TODO: tweak threshold so that we don't overwrite or miss ticks...
+        public static bool RefreshDOT(State state, float timeLeft) => timeLeft < state.GCD; // TODO: tweak threshold so that we don't overwrite or miss ticks...
 
-        public static bool UseLifeSurge(State state)
-        {
-            if (state.Unlocked(AID.FullThrust))
-                return state.ComboLastMove == AID.VorpalThrust;
-            else if (state.Unlocked(AID.Disembowel))
-                return state.ComboLastMove == AID.TrueThrust && state.PowerSurgeLeft >= state.GCD; // TODO: proper threshold
-            else
-                return state.ComboLastMove == AID.TrueThrust;
-        }
-
-        public static bool UseBuffingCombo(State state, Strategy strategy)
+        public static bool UseBuffingCombo(State state, Strategy strategy, bool predict)
         {
             // the selected action will happen in GCD, and it will be the *second* action in the combo
-            // TODO: L56+
+            // note if we're in 'predict' mode (that is, our next action is TT, but we try to predict which branch we'll take), the selected action will happen in second GCD instead
+            var secondActionIn = state.GCD + (predict ? 2.5f : 0);
+            // TODO: L58+
             if (state.Unlocked(AID.ChaosThrust))
             {
-                // at this point, we have 3-action buff and pure damage combos
-                // damage combo (vorpal + full) is 230+250+400 = 880 potency
-                // buff combo (disembowel + chaos) is 230+210+260+40*N = 700+40*N potency (assuming positional, -40 otherwise), where N is num ticks
+                // L50-55: at this point, we have 3-action buff and pure damage combos
+                // damage combo (vorpal + full) is 170+250+400 = 820 potency
+                // buff combo (disembowel + chaos) is 170+210+260+40*N = 640+40*N potency (assuming positional, -40 otherwise), where N is num ticks
                 // dot is 8 ticks (24 sec), assuming 2.5 gcd, we can either do 1:2 rotation (9 gcds = 22.5s => reapplying dot at ~1.5 left) or 1:3 rotation (12 gcds = 30s => dropping a dot for 6 seconds)
-                // these seem to be really close (~305 p/gcd average)?.. TODO decide which is better
-                // we use dot duration rather than buff duration, because it works for multi-target scenario (refreshing buff is only 40p loss)
-                // if we use buff combo, next dot refresh be second action - that's 2.5s, plus we allow overwriting last tick ... (TODO!!!)
-                return !strategy.ForbidDOTs && RefreshDOT(state, state.TargetChaosThrustLeft - 5);
+                // these seem to be really close (285 vs 284.44 p/gcd); balance recommends 1:3 rotation however
+                // we use dot duration rather than buff duration, because it works for two-target scenario
+
+                // L56-57: at this point, we have 3-action buff and 4-action damage combos
+                // damage combo (vorpal + full + f&c) is 170+250+400+300 = 1120 potency (asssuming positional)
+                // buff combo (disembowel + chaos) is same 640+40*N potency as above
+                // most logical is 1:2 rotation (11 gcds = 27.5s => dropping a dot for 3.5s), since 1:1 would clip 3 ticks
+                // it also works nicely for 2 targets (25s rotation, meaning almost full dot uptime on both targets)
+
+                // if we use buff combo, next dot refresh be second action - that's 2.5s + however many ticks we are ok with overwriting (0 in all cases, for now)
+                return !strategy.ForbidDOTs && state.TargetChaosThrustLeft < secondActionIn + 2.5f;
             }
             else if (state.Unlocked(AID.Disembowel))
             {
@@ -72,7 +73,7 @@
                 // if we execute pure damage combo, next chance to disembowel will be in GCD-remaining (vorpal) + N (full, if unlocked, then true, then disembowel) gcds
                 // we want to avoid dropping power surge buff, so that disembowel is still buffed
                 var damageComboLength = state.Unlocked(AID.FullThrust) ? 3 : 2;
-                return state.PowerSurgeLeft < state.GCD + 2.5f * damageComboLength;
+                return state.PowerSurgeLeft < secondActionIn + 2.5f * damageComboLength;
             }
             else
             {
@@ -80,19 +81,75 @@
             }
         }
 
+        public static bool UseLifeSurge(State state, Strategy strategy)
+        {
+            if (strategy.UseAOERotation)
+            {
+                // for aoe rotation, just use LS on last unlocked combo action
+                return state.Unlocked(AID.CoerthanTorment) ? state.ComboLastMove == AID.SonicThrust
+                    : state.Unlocked(AID.SonicThrust) ? state.ComboLastMove == AID.DoomSpike
+                    : true;
+            }
+
+            // TODO: L64+
+            if (state.Unlocked(AID.FullThrust))
+            {
+                // L26+: our most damaging action is FT, which is the third action in damaging combo
+                return state.ComboLastMove == AID.VorpalThrust;
+            }
+            else
+            {
+                // L6+: our most damaging action is VT, which is the second action in damaging combo (which is the only combo we have before L18)
+                return state.ComboLastMove == AID.TrueThrust && !UseBuffingCombo(state, strategy, false);
+            }
+        }
+
+        public static (Positional, bool) GetNextPositional(State state, Strategy strategy)
+        {
+            if (strategy.UseAOERotation)
+                return default; // AOE rotation has no positionals
+
+            // TODO: L58+
+            if (state.Unlocked(AID.FangAndClaw))
+            {
+                // we have flank positional (fang and claw, 4th in damaging combo) and rear positionals (chaos thrust & wheeling thrust, 3rd and 4th in buffing combo)
+                // if our next action is not a positional, then just use next action in the current combo; for True Thrust, predict what branch we'll take using UseBuffingCombo
+                if (state.FangAndClawBaredLeft > state.GCD)
+                    return (Positional.Flank, true);
+                var buffingCombo = state.ComboLastMove switch
+                {
+                    AID.TrueThrust => UseBuffingCombo(state, strategy, false),
+                    AID.VorpalThrust => false,
+                    AID.Disembowel => true,
+                    _ => UseBuffingCombo(state, strategy, true)
+                };
+                return (buffingCombo ? Positional.Rear : Positional.Flank, state.ComboLastMove == AID.Disembowel);
+            }
+            else if (state.Unlocked(AID.ChaosThrust))
+            {
+                // the only positional we have at this point is chaos thrust (rear)
+                return (Positional.Rear, state.ComboLastMove == AID.Disembowel);
+            }
+            else
+            {
+                return default;
+            }
+        }
+
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
-            // TODO: L56+
-            // TODO: better AOE condition
-            if (strategy.NumAOEGCDTargets >= 3 && state.PowerSurgeLeft > state.GCD)
+            // TODO: L58+
+            if (strategy.UseAOERotation)
             {
                 return AID.DoomSpike;
             }
             else
             {
+                if (state.FangAndClawBaredLeft > state.GCD)
+                    return AID.FangAndClaw;
                 return state.ComboLastMove switch
                 {
-                    AID.TrueThrust => UseBuffingCombo(state, strategy) ? AID.Disembowel : state.Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust, // TODO: better threshold (probably depends on combo length?)
+                    AID.TrueThrust => UseBuffingCombo(state, strategy, false) ? AID.Disembowel : state.Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust,
                     AID.VorpalThrust => state.Unlocked(AID.FullThrust) ? AID.FullThrust : AID.TrueThrust,
                     AID.Disembowel => state.Unlocked(AID.ChaosThrust) ? AID.ChaosThrust : AID.TrueThrust,
                     _ => AID.TrueThrust
@@ -102,10 +159,14 @@
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
+            // TODO: L60+
+
             // TODO: better buff conditions...
             bool canJump = strategy.PositionLockIn > state.AnimationLock;
             if (state.Unlocked(AID.LanceCharge) && state.CanWeave(CDGroup.LanceCharge, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.LanceCharge);
+            if (state.Unlocked(AID.BattleLitany) && state.CanWeave(CDGroup.BattleLitany, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.BattleLitany);
             if (canJump && state.Unlocked(AID.Jump) && state.CanWeave(state.Unlocked(AID.HighJump) ? CDGroup.HighJump : CDGroup.Jump, 0.8f, deadline))
                 return ActionID.MakeSpell(state.BestJump);
             if (canJump && state.Unlocked(AID.DragonfireDive) && state.CanWeave(CDGroup.DragonfireDive, 0.8f, deadline))
@@ -113,8 +174,8 @@
             if (canJump && state.Unlocked(AID.SpineshatterDive) && state.CanWeave(CDGroup.SpineshatterDive, 0.8f, deadline))
                 return ActionID.MakeSpell(AID.SpineshatterDive);
 
-            // 2. life surge on most damaging gcd (TODO: reconsider condition, it's valid until L26...)
-            if (state.Unlocked(AID.LifeSurge) && state.CanWeave(state.CD(CDGroup.LifeSurge) - 45, 0.6f, deadline) && UseLifeSurge(state))
+            // 2. life surge on most damaging gcd
+            if (state.Unlocked(AID.LifeSurge) && state.CanWeave(state.CD(CDGroup.LifeSurge) - 45, 0.6f, deadline) && UseLifeSurge(state, strategy))
                 return ActionID.MakeSpell(AID.LifeSurge);
 
             // no suitable oGCDs...

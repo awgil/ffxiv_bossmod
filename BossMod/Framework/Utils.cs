@@ -54,6 +54,8 @@ namespace BossMod
             return $"[{posRot.X:f2}, {posRot.Y:f2}, {posRot.Z:f2}, {posRot.W.Radians()}]";
         }
 
+        public static bool CharacterIsOmnidirectional(uint oid) => Service.LuminaRow<Lumina.Excel.GeneratedSheets.BNpcBase>(oid)?.Unknown10 ?? false;
+
         public static string StatusString(uint statusID)
         {
             var statusData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(statusID);

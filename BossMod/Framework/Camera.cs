@@ -2,6 +2,7 @@
 using Dalamud.Utility;
 using ImGuiNET;
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -24,6 +25,8 @@ namespace BossMod
         public float CameraAltitude { get; private set; } // facing horizontally = 0, facing down = pi/4, facing up = -pi/4
         public SharpDX.Vector2 ViewportSize { get; private set; }
 
+        private List<(Vector2 from, Vector2 to, uint col)> _worldDrawLines = new();
+
         public Camera()
         {
             var funcAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8D 4C 24 ?? 48 89 4c 24 ?? 4C 8D 4D ?? 4C 8D 44 24 ??");
@@ -42,17 +45,22 @@ namespace BossMod
             ViewportSize = ReadVec2(matrixSingleton + 0x1f4);
         }
 
-        public void BeginWorldWindow(string name)
+        public void DrawWorldPrimitives()
         {
+            if (_worldDrawLines.Count == 0)
+                return;
+
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
             ImGuiHelpers.ForceNextWindowMainViewport();
             ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(0, 0));
-            ImGui.Begin(name, ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground);
+            ImGui.Begin("world_overlay", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground);
             ImGui.SetWindowSize(ImGui.GetIO().DisplaySize);
-        }
 
-        public void EndWorldWindow()
-        {
+            var dl = ImGui.GetWindowDrawList();
+            foreach (var l in _worldDrawLines)
+                dl.AddLine(l.from, l.to, l.col);
+            _worldDrawLines.Clear();
+
             ImGui.End();
             ImGui.PopStyleVar();
         }
@@ -68,8 +76,23 @@ namespace BossMod
             p2 = SharpDX.Vector3.TransformCoordinate(p2, ViewProj);
             var p1screen = new Vector2(0.5f * ViewportSize.X * (1 + p1.X), 0.5f * ViewportSize.Y * (1 - p1.Y)) + ImGuiHelpers.MainViewport.Pos;
             var p2screen = new Vector2(0.5f * ViewportSize.X * (1 + p2.X), 0.5f * ViewportSize.Y * (1 - p2.Y)) + ImGuiHelpers.MainViewport.Pos;
-            ImGui.GetWindowDrawList().AddLine(p1screen, p2screen, color);
-            //ImGui.GetWindowDrawList().AddText(p1screen, color, $"({p1.X:f3},{p1.Y:f3},{p1.Z:f3}) -> ({p2.X:f3},{p2.Y:f3},{p2.Z:f3})");
+            _worldDrawLines.Add((p1screen, p2screen, color));
+        }
+
+        public void DrawWorldCone(Vector3 center, float radius, Angle direction, Angle halfWidth, uint color)
+        {
+            int numSegments = CurveApprox.CalculateCircleSegments(radius, halfWidth, 1);
+            var delta = halfWidth / numSegments;
+
+            var prev = center + radius * (direction - delta * numSegments).ToDirection().ToVec3();
+            DrawWorldLine(center, prev, color);
+            for (int i = -numSegments + 1; i <= numSegments; ++i)
+            {
+                var curr = center + radius * (direction + delta * i).ToDirection().ToVec3();
+                DrawWorldLine(prev, curr, color);
+                prev = curr;
+            }
+            DrawWorldLine(prev, center, color);
         }
 
         private unsafe SharpDX.Matrix ReadMatrix(IntPtr address)

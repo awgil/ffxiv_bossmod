@@ -307,7 +307,6 @@ namespace BossMod
             int mx = (int)(_overlayMaxOffset.X / _overlayStep.X);
             int mz = (int)(_overlayMaxOffset.Y / _overlayStep.Y);
             float y = Service.ClientState.LocalPlayer.Position.Y;
-            Camera.Instance.BeginWorldWindow("debug_overlay");
             for (int ix = -mx; ix <= mx; ++ix)
             {
                 var x = _overlayCenter.X + ix * _overlayStep.X;
@@ -318,7 +317,6 @@ namespace BossMod
                 var z = _overlayCenter.Y + iz * _overlayStep.Y;
                 Camera.Instance.DrawWorldLine(new(_overlayCenter.X - _overlayMaxOffset.X, y, z), new(_overlayCenter.X + _overlayMaxOffset.X, y, z), ArenaColor.PC);
             }
-            Camera.Instance.EndWorldWindow();
         }
 
         public static unsafe FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* FindSceneRoot()

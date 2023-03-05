@@ -12,6 +12,7 @@ namespace BossMod
         public WDir(float x = 0, float z = 0) { X = x; Z = z; }
         public WDir(Vector2 v) { X = v.X; Z = v.Y; }
         public Vector2 ToVec2() => new(X, Z);
+        public Vector3 ToVec3() => new(X, 0, Z);
 
         public static WDir operator +(WDir a, WDir b) => new(a.X + b.X, a.Z + b.Z);
         public static WDir operator -(WDir a, WDir b) => new(a.X - b.X, a.Z - b.Z);

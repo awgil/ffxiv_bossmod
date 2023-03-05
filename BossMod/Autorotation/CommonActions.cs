@@ -387,6 +387,22 @@ namespace BossMod
             if (Autorot.Bossmods.ActiveModule?.PlanConfig != null) // assumption: if there is no planning support for encounter (meaning it's something trivial, like outdoor boss), don't expect any cooldowns
                 strategy.RaidBuffsIn = Math.Min(strategy.RaidBuffsIn, Autorot.Bossmods.RaidCooldowns.NextDamageBuffIn(Autorot.WorldState.CurrentTime));
             strategy.PositionLockIn = Autorot.Config.EnableMovement && !poslock.Item1 ? poslock.Item2 : 0;
+            strategy.NextPositional = Positional.Any;
+            strategy.NextPositionalImminent = false;
+            strategy.NextPositionalCorrect = true;
+        }
+
+        protected void FillStrategyPositionals(CommonRotation.Strategy strategy, (Positional pos, bool imm) positional, bool trueNorth)
+        {
+            var ignore = trueNorth || (Autorot.PrimaryTarget?.Omnidirectional ?? true);
+            strategy.NextPositional = positional.pos;
+            strategy.NextPositionalImminent = !ignore && positional.imm;
+            strategy.NextPositionalCorrect = ignore || Autorot.PrimaryTarget == null || positional.pos switch
+            {
+                Positional.Flank => MathF.Abs(Autorot.PrimaryTarget.Rotation.ToDirection().Dot((Player.Position - Autorot.PrimaryTarget.Position).Normalized())) < 0.7071067f,
+                Positional.Rear => Autorot.PrimaryTarget.Rotation.ToDirection().Dot((Player.Position - Autorot.PrimaryTarget.Position).Normalized()) < -0.7071068f,
+                _ => true
+            };
         }
 
         // smart targeting utility: return target (if friendly) or mouseover (if friendly) or null (otherwise)

@@ -124,6 +124,7 @@ namespace BossMod
         public Role Role => Class.GetRole();
         public WPos Position => new(PosRot.X, PosRot.Z);
         public Angle Rotation => PosRot.W.Radians();
+        public bool Omnidirectional => Utils.CharacterIsOmnidirectional(OID);
 
         public Actor(ulong instanceID, uint oid, int spawnIndex, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), uint mp = 0, bool targetable = true, bool ally = false, ulong ownerID = 0)
         {

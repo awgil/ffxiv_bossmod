@@ -101,7 +101,6 @@ namespace BossMod
             if (arrows == null || arrows.Count == 0 || Camera.Instance == null)
                 return;
 
-            Camera.Instance.BeginWorldWindow("movement_hints_overlay");
             foreach ((var start, var end, uint color) in arrows)
             {
                 Vector3 start3 = new(start.X, y, start.Z);
@@ -113,7 +112,6 @@ namespace BossMod
                 Camera.Instance.DrawWorldLine(arrowStart + offset, end3, color);
                 Camera.Instance.DrawWorldLine(arrowStart - offset, end3, color);
             }
-            Camera.Instance.EndWorldWindow();
         }
 
         private void MainWindowClosed()

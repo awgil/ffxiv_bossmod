@@ -15,7 +15,7 @@ namespace BossMod.DRG
         HeavensThrust = 25771, // L86, instant, range 3, single-target 0/0, targets=hostile, animLock=???
         ChaosThrust = 88, // L50, instant, range 3, single-target 0/0, targets=hostile
         ChaoticSpring = 25772, // L86, instant, range 3, single-target 0/0, targets=hostile, animLock=???
-        FangAndClaw = 3554, // L56, instant, range 3, single-target 0/0, targets=hostile, animLock=???
+        FangAndClaw = 3554, // L56, instant, range 3, single-target 0/0, targets=hostile
         WheelingThrust = 3556, // L58, instant, range 3, single-target 0/0, targets=hostile, animLock=???
         RaidenThrust = 16479, // L76, instant, range 3, single-target 0/0, targets=hostile, animLock=???
 
@@ -39,7 +39,7 @@ namespace BossMod.DRG
         // offsensive CDs
         LifeSurge = 83, // L6, instant, 45.0s CD (group 14), range 0, single-target 0/0, targets=self
         LanceCharge = 85, // L30, instant, 60.0s CD (group 9), range 0, single-target 0/0, targets=self
-        BattleLitany = 3557, // L52, instant, 120.0s CD (group 23), range 0, AOE circle 15/0, targets=self, animLock=???
+        BattleLitany = 3557, // L52, instant, 120.0s CD (group 23), range 0, AOE circle 15/0, targets=self
         DragonSight = 7398, // L66, instant, 120.0s CD (group 21), range 30, single-target 0/0, targets=self/party, animLock=???
 
         // defensive CDs
@@ -100,8 +100,10 @@ namespace BossMod.DRG
         None = 0,
         LanceCharge = 1864, // applied by Lance Charge to self, damage buff
         LifeSurge = 116, // applied by Life Surge to self, forced crit for next gcd
+        BattleLitany = 786, // applied by Battle Litany to self
         PowerSurge = 2720, // applied by Disembowel to self, damage buff
         ChaosThrust = 118, // applied by Chaos Thrust to target, dot
+        FangAndClawBared = 802, // applied by Full Thrust to self
         TrueNorth = 1250, // applied by True North to self, ignore positionals
         Bloodbath = 84, // applied by Bloodbath to self, lifesteal
         Feint = 1195, // applied by Feint to target, -10% phys and -5% magic damage dealt

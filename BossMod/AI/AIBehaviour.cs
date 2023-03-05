@@ -105,8 +105,6 @@ namespace BossMod.AI
             // if target-of-target is player, don't try flanking, it's probably impossible... - unless target is currently casting (TODO: reconsider?)
             if (targeting.Target.Actor.TargetID == player.InstanceID && targeting.Target.Actor.CastInfo == null)
                 targeting.PreferredPosition = Positional.Any;
-
-            // TODO: check whether target ignores positionals...
         }
 
         private NavigationDecision BuildNavigationDecision(Actor player, Actor master, ref CommonActions.Targeting targeting)
