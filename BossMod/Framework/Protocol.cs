@@ -554,7 +554,7 @@ namespace BossMod
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public unsafe struct Server_EnvironmentControl
+        public unsafe struct Server_EnvControl
         {
             public uint FeatureID; // seen 0x80xxxxxx, seems to be unique identifier of controlled feature
             public uint State; // typically hiword and loword both have one bit set; in disassembly this is actually 2 words

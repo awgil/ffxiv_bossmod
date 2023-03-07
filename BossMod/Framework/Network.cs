@@ -166,8 +166,8 @@ namespace BossMod
                     case Protocol.Opcode.ActorControlSelf:
                         HandleActorControlSelf((Protocol.Server_ActorControlSelf*)dataPtr, targetActorId);
                         break;
-                    case Protocol.Opcode.EnvironmentControl:
-                        HandleEnvironmentControl((Protocol.Server_EnvironmentControl*)dataPtr, targetActorId);
+                    case Protocol.Opcode.EnvControl:
+                        HandleEnvControl((Protocol.Server_EnvControl*)dataPtr, targetActorId);
                         break;
                     case Protocol.Opcode.Waymark:
                         HandleWaymark((Protocol.Server_Waymark*)dataPtr);
@@ -326,7 +326,7 @@ namespace BossMod
             }
         }
 
-        private unsafe void HandleEnvironmentControl(Protocol.Server_EnvironmentControl* p, uint actorID)
+        private unsafe void HandleEnvControl(Protocol.Server_EnvControl* p, uint actorID)
         {
             EventEnvControl?.Invoke(this, (p->FeatureID, p->Index, p->State));
         }
@@ -524,9 +524,9 @@ namespace BossMod
                         }
                         break;
                     }
-                case Protocol.Opcode.EnvironmentControl:
+                case Protocol.Opcode.EnvControl:
                     {
-                        var p = (Protocol.Server_EnvironmentControl*)dataPtr;
+                        var p = (Protocol.Server_EnvControl*)dataPtr;
                         Service.Log($"[Network] - {p->FeatureID:X8}.{p->Index:X2}: {p->State:X8}, u={p->u0:X2} {p->u1:X4} {p->u2:X8}");
                         break;
                     }
