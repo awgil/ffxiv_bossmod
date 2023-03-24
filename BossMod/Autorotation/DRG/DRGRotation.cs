@@ -5,9 +5,14 @@
         // full state needed for determining next action
         public class State : CommonRotation.PlayerState
         {
+            public int EyeCount; // 2 max
+            public float LifeOfTheDragonLeft; // 20 max
             public float FangAndClawBaredLeft; // 30 max
+            public float WheelInMotionLeft; // 30 max
+            public float DiveReadyLeft; // 15 max
             public float PowerSurgeLeft; // 30 max
             public float LanceChargeLeft; // 20 max
+            public float RightEyeLeft; // 20 max
             public float TrueNorthLeft; // 10 max
             public float TargetChaosThrustLeft; // 24 max
 
@@ -25,7 +30,7 @@
 
             public override string ToString()
             {
-                return $"ComboEx={FangAndClawBaredLeft:f1}, RB={RaidBuffsLeft:f1}, PS={PowerSurgeLeft:f1}, LC={LanceChargeLeft:f1}, TN={TrueNorthLeft:f1}, CT={TargetChaosThrustLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                return $"LotD={EyeCount}/{LifeOfTheDragonLeft:f3}, ComboEx={FangAndClawBaredLeft:f3}/{WheelInMotionLeft:f3}, Dive={DiveReadyLeft:f3}, RB={RaidBuffsLeft:f3}, PS={PowerSurgeLeft:f3}, LC={LanceChargeLeft:f3}, Eye={RightEyeLeft:f3}, TN={TrueNorthLeft:f3}, CT={TargetChaosThrustLeft:f3}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -48,7 +53,6 @@
             // the selected action will happen in GCD, and it will be the *second* action in the combo
             // note if we're in 'predict' mode (that is, our next action is TT, but we try to predict which branch we'll take), the selected action will happen in second GCD instead
             var secondActionIn = state.GCD + (predict ? 2.5f : 0);
-            // TODO: L58+
             if (state.Unlocked(AID.ChaosThrust))
             {
                 // L50-55: at this point, we have 3-action buff and pure damage combos
@@ -63,6 +67,14 @@
                 // buff combo (disembowel + chaos) is same 640+40*N potency as above
                 // most logical is 1:2 rotation (11 gcds = 27.5s => dropping a dot for 3.5s), since 1:1 would clip 3 ticks
                 // it also works nicely for 2 targets (25s rotation, meaning almost full dot uptime on both targets)
+
+                // L58-63: at this point, we have 4-action buff and pure damage combos
+                // damage combo (vorpal + full + f&c) is same 1120 potency as above
+                // buff combo (disembowel + chaos + wheeling) is +300 = 940+40*N potency
+                // most logical is 1:2 rotation (12 gcds = 30s => dropping a dot for 6s), since 1:1 would clip 2 ticks
+
+                // L64+: at this point, we have 5-action buff and pure damage combos
+                // most logical is 1:1 rotation (10 gcds = 25s => dropping a dot for 1s)
 
                 // if we use buff combo, next dot refresh be second action - that's 2.5s + however many ticks we are ok with overwriting (0 in all cases, for now)
                 return !strategy.ForbidDOTs && state.TargetChaosThrustLeft < secondActionIn + 2.5f;
@@ -109,13 +121,14 @@
             if (strategy.UseAOERotation)
                 return default; // AOE rotation has no positionals
 
-            // TODO: L58+
             if (state.Unlocked(AID.FangAndClaw))
             {
                 // we have flank positional (fang and claw, 4th in damaging combo) and rear positionals (chaos thrust & wheeling thrust, 3rd and 4th in buffing combo)
                 // if our next action is not a positional, then just use next action in the current combo; for True Thrust, predict what branch we'll take using UseBuffingCombo
                 if (state.FangAndClawBaredLeft > state.GCD)
                     return (Positional.Flank, true);
+                if (state.WheelInMotionLeft > state.GCD)
+                    return (Positional.Rear, true);
                 var buffingCombo = state.ComboLastMove switch
                 {
                     AID.TrueThrust => UseBuffingCombo(state, strategy, false),
@@ -138,15 +151,22 @@
 
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
-            // TODO: L58+
+            // TODO: L76+
             if (strategy.UseAOERotation)
             {
-                return AID.DoomSpike;
+                return state.ComboLastMove switch
+                {
+                    AID.DoomSpike => state.Unlocked(AID.SonicThrust) ? AID.SonicThrust : AID.DoomSpike,
+                    AID.SonicThrust => state.Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : AID.DoomSpike,
+                    _ => AID.DoomSpike
+                };
             }
             else
             {
                 if (state.FangAndClawBaredLeft > state.GCD)
                     return AID.FangAndClaw;
+                if (state.WheelInMotionLeft > state.GCD)
+                    return AID.WheelingThrust;
                 return state.ComboLastMove switch
                 {
                     AID.TrueThrust => UseBuffingCombo(state, strategy, false) ? AID.Disembowel : state.Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust,
@@ -159,24 +179,32 @@
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
-            // TODO: L60+
-
-            // TODO: better buff conditions...
-            bool canJump = strategy.PositionLockIn > state.AnimationLock;
-            if (state.Unlocked(AID.LanceCharge) && state.CanWeave(CDGroup.LanceCharge, 0.6f, deadline))
-                return ActionID.MakeSpell(AID.LanceCharge);
-            if (state.Unlocked(AID.BattleLitany) && state.CanWeave(CDGroup.BattleLitany, 0.6f, deadline))
-                return ActionID.MakeSpell(AID.BattleLitany);
-            if (canJump && state.Unlocked(AID.Jump) && state.CanWeave(state.Unlocked(AID.HighJump) ? CDGroup.HighJump : CDGroup.Jump, 0.8f, deadline))
-                return ActionID.MakeSpell(state.BestJump);
-            if (canJump && state.Unlocked(AID.DragonfireDive) && state.CanWeave(CDGroup.DragonfireDive, 0.8f, deadline))
-                return ActionID.MakeSpell(AID.DragonfireDive);
-            if (canJump && state.Unlocked(AID.SpineshatterDive) && state.CanWeave(CDGroup.SpineshatterDive, 0.8f, deadline))
-                return ActionID.MakeSpell(AID.SpineshatterDive);
-
-            // 2. life surge on most damaging gcd
+            // life surge on most damaging gcd
             if (state.Unlocked(AID.LifeSurge) && state.CanWeave(state.CD(CDGroup.LifeSurge) - 45, 0.6f, deadline) && UseLifeSurge(state, strategy))
                 return ActionID.MakeSpell(AID.LifeSurge);
+
+            // TODO: L80+
+            // TODO: better buff conditions, reconsider priorities
+            if (state.Unlocked(AID.LanceCharge) && state.CanWeave(CDGroup.LanceCharge, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.LanceCharge);
+            if (state.Unlocked(AID.DragonSight) && state.CanWeave(CDGroup.DragonSight, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.DragonSight);
+            if (state.Unlocked(AID.BattleLitany) && state.CanWeave(CDGroup.BattleLitany, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.BattleLitany);
+            if (state.LifeOfTheDragonLeft > 0 && state.CanWeave(CDGroup.Nastrond, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.Nastrond);
+            if (state.Unlocked(AID.Geirskogul) && state.CanWeave(CDGroup.Geirskogul, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.Geirskogul);
+            if (state.DiveReadyLeft > state.AnimationLock && state.CanWeave(CDGroup.MirageDive, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.MirageDive);
+
+            bool canJump = strategy.PositionLockIn > state.AnimationLock;
+            if (canJump && state.Unlocked(AID.Jump) && state.CanWeave(state.Unlocked(AID.HighJump) ? CDGroup.HighJump : CDGroup.Jump, 0.8f, deadline))
+                return ActionID.MakeSpell(state.BestJump);
+            //if (canJump && state.Unlocked(AID.DragonfireDive) && state.CanWeave(CDGroup.DragonfireDive, 0.8f, deadline))
+            //    return ActionID.MakeSpell(AID.DragonfireDive);
+            //if (canJump && state.Unlocked(AID.SpineshatterDive) && state.CanWeave(CDGroup.SpineshatterDive, 0.8f, deadline))
+            //    return ActionID.MakeSpell(AID.SpineshatterDive);
 
             // no suitable oGCDs...
             return new();

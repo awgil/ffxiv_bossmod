@@ -16,12 +16,12 @@ namespace BossMod.DRG
         ChaosThrust = 88, // L50, instant, range 3, single-target 0/0, targets=hostile
         ChaoticSpring = 25772, // L86, instant, range 3, single-target 0/0, targets=hostile, animLock=???
         FangAndClaw = 3554, // L56, instant, range 3, single-target 0/0, targets=hostile
-        WheelingThrust = 3556, // L58, instant, range 3, single-target 0/0, targets=hostile, animLock=???
+        WheelingThrust = 3556, // L58, instant, range 3, single-target 0/0, targets=hostile
         RaidenThrust = 16479, // L76, instant, range 3, single-target 0/0, targets=hostile, animLock=???
 
         // aoe GCDs
         DoomSpike = 86, // L40, instant, range 10, AOE rect 10/4, targets=hostile
-        SonicThrust = 7397, // L62, instant, range 10, AOE rect 10/4, targets=hostile, animLock=???
+        SonicThrust = 7397, // L62, instant, range 10, AOE rect 10/4, targets=hostile
         CoerthanTorment = 16477, // L72, instant, range 10, AOE rect 10/4, targets=hostile, animLock=???
         DraconianFury = 25770, // L82, instant, range 10, AOE rect 10/4, targets=hostile, animLock=???
 
@@ -30,9 +30,9 @@ namespace BossMod.DRG
         HighJump = 16478, // L74, instant, 30.0s CD (group 8), range 20, single-target 0/0, targets=hostile, animLock=???
         SpineshatterDive = 95, // L45, instant, 60.0s CD (group 19), range 20, single-target 0/0, targets=hostile, animLock=0.800s
         DragonfireDive = 96, // L50, instant, 120.0s CD (group 20), range 20, AOE circle 5/0, targets=hostile, animLock=0.800s
-        Geirskogul = 3555, // L60, instant, 30.0s CD (group 7), range 15, AOE rect 15/4, targets=hostile, animLock=???
-        Nastrond = 7400, // L70, instant, 10.0s CD (group 2), range 15, AOE rect 15/4, targets=hostile, animLock=???
-        MirageDive = 7399, // L68, instant, 1.0s CD (group 0), range 20, single-target 0/0, targets=hostile, animLock=???
+        Geirskogul = 3555, // L60, instant, 30.0s CD (group 7), range 15, AOE rect 15/4, targets=hostile
+        Nastrond = 7400, // L70, instant, 10.0s CD (group 2), range 15, AOE rect 15/4, targets=hostile
+        MirageDive = 7399, // L68, instant, 1.0s CD (group 0), range 20, single-target 0/0, targets=hostile
         Stardiver = 16480, // L80, instant, 30.0s CD (group 6), range 20, AOE circle 5/0, targets=hostile, animLock=???
         WyrmwindThrust = 25773, // L90, instant, 10.0s CD (group 1), range 15, AOE rect 15/4, targets=hostile, animLock=???
 
@@ -40,7 +40,7 @@ namespace BossMod.DRG
         LifeSurge = 83, // L6, instant, 45.0s CD (group 14), range 0, single-target 0/0, targets=self
         LanceCharge = 85, // L30, instant, 60.0s CD (group 9), range 0, single-target 0/0, targets=self
         BattleLitany = 3557, // L52, instant, 120.0s CD (group 23), range 0, AOE circle 15/0, targets=self
-        DragonSight = 7398, // L66, instant, 120.0s CD (group 21), range 30, single-target 0/0, targets=self/party, animLock=???
+        DragonSight = 7398, // L66, instant, 120.0s CD (group 21), range 30, single-target 0/0, targets=self/party
 
         // defensive CDs
         SecondWind = 7541, // L8, instant, 120.0s CD (group 40), range 0, single-target 0/0, targets=self
@@ -101,9 +101,12 @@ namespace BossMod.DRG
         LanceCharge = 1864, // applied by Lance Charge to self, damage buff
         LifeSurge = 116, // applied by Life Surge to self, forced crit for next gcd
         BattleLitany = 786, // applied by Battle Litany to self
-        PowerSurge = 2720, // applied by Disembowel to self, damage buff
+        PowerSurge = 2720, // applied by Disembowel & Sonic Thrust to self, damage buff
         ChaosThrust = 118, // applied by Chaos Thrust to target, dot
         FangAndClawBared = 802, // applied by Full Thrust to self
+        WheelInMotion = 803, // applied by Chaos Thrust to self
+        RightEye = 1910, // applied by Dragon Sight to self
+        DiveReady = 1243, // applied by Jump to self
         TrueNorth = 1250, // applied by True North to self, ignore positionals
         Bloodbath = 84, // applied by Bloodbath to self, lifesteal
         Feint = 1195, // applied by Feint to target, -10% phys and -5% magic damage dealt
