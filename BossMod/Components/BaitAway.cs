@@ -11,6 +11,7 @@ namespace BossMod.Components
         public bool AlwaysDrawOtherBaits; // if false, other baits are drawn only if they are clipping a player
         public bool CenterAtTarget; // if true, aoe source is at target
         public bool AllowDeadTargets = true; // if false, baits with dead targets are ignored
+        public PlayerPriority BaiterPriority = PlayerPriority.Interesting;
         public BitMask ForbiddenPlayers;
         public List<(Actor source, Actor target, AOEShape shape)> CurrentBaits = new();
 
@@ -42,7 +43,7 @@ namespace BossMod.Components
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {
-            return ActiveBaits.Any(b => b.target == player) ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
+            return ActiveBaits.Any(b => b.target == player) ? BaiterPriority : PlayerPriority.Irrelevant;
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -87,6 +88,7 @@ namespace BossMod.Components
     // component for mechanics requiring tether targets to bait their aoe away from raid
     public class BaitAwayTethers : GenericBaitAway
     {
+        public bool DrawTethers = true;
         public AOEShape Shape;
         public uint TID;
 
@@ -94,6 +96,14 @@ namespace BossMod.Components
         {
             Shape = shape;
             TID = tetherID;
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            base.DrawArenaForeground(module, pcSlot, pc, arena);
+            if (DrawTethers)
+                foreach (var b in ActiveBaits)
+                    arena.AddLine(b.source.Position, b.target.Position, ArenaColor.Danger);
         }
 
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)

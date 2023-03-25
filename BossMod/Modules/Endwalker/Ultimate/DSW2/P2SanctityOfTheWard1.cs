@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BossMod.AI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -31,13 +32,57 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         }
     }
 
-    // 'sever' (between 1/2 markers with shared damage), 'charge' (aka shining blade) + 'flare' (cw/ccw leaving exploding orbs)
-    class P2SanctityOfTheWard1 : BossComponent
+    // sacred sever - distance-based shared damage on 1/2/1/2 markers
+    class P2SanctityOfTheWard1Sever : Components.StackSpread
     {
-        class ChargeInfo
+        public int NumCasts { get; private set; }
+        public Actor? Source { get; private set; }
+
+        public P2SanctityOfTheWard1Sever() : base(6, 0, 4) { }
+
+        public override void Init(BossModule module)
+        {
+            Source = module.Enemies(OID.SerZephirin).FirstOrDefault();
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            base.DrawArenaForeground(module, pcSlot, pc, arena);
+
+            if (StackTargets.Count == 2 && Source != null)
+            {
+                arena.Actor(Source, ArenaColor.Enemy, true);
+                arena.AddLine(Source.Position, StackTargets[NumCasts % 2].Position, ArenaColor.Danger);
+            }
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID == AID.SacredSever && ++NumCasts >= 4)
+                StackTargets.Clear();
+        }
+
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+        {
+            switch ((IconID)iconID)
+            {
+                case IconID.SacredSever1:
+                    StackTargets.Insert(0, actor);
+                    break;
+                case IconID.SacredSever2:
+                    StackTargets.Add(actor);
+                    break;
+            }
+        }
+    }
+
+    // shining blade (charges that leave orbs) + flares (their explosions)
+    class P2SanctityOfTheWard1Flares : Components.GenericAOEs
+    {
+        public class ChargeInfo
         {
             public Actor Source;
-            public List<WPos> Positions = new();
+            public List<AOEInstance> ChargeAOEs = new();
             public List<WPos> Spheres = new();
 
             public ChargeInfo(Actor source)
@@ -46,48 +91,187 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public int NumSeverCasts { get; private set; }
-        public int NumFlareCasts { get; private set; }
-        private DSW2Config _config;
+        public List<ChargeInfo> Charges = new();
+        public Angle ChargeAngle { get; private set; } // 0 if charges are not active or on failure, <0 if CW, >0 if CCW
+
+        private static float _chargeHalfWidth = 3;
+        private static AOEShapeCircle _brightflareShape = new(9);
+
+        public P2SanctityOfTheWard1Flares() : base(ActionID.MakeSpell(AID.BrightFlare), "GTFO from charges and spheres!") { }
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            foreach (var c in Charges)
+            {
+                foreach (var aoe in c.ChargeAOEs)
+                    yield return aoe;
+                foreach (var s in c.Spheres.Take(6))
+                    yield return new(_brightflareShape, s);
+            }
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            arena.Actors(Charges.Where(c => c.ChargeAOEs.Count > 0).Select(c => c.Source), ArenaColor.Enemy, true);
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.ShiningBlade:
+                    var charge = Charges.Find(c => c?.Source == caster);
+                    if (charge?.ChargeAOEs.Count > 0)
+                        charge.ChargeAOEs.RemoveAt(0);
+                    break;
+                case AID.BrightFlare:
+                    foreach (var c in Charges)
+                        c.Spheres.RemoveAll(s => s.AlmostEqual(caster.Position, 2));
+                    ++NumCasts;
+                    break;
+            }
+        }
+
+        // TODO: currently we initialize charges when we get sever icons, but we should be able to do that a bit earlier
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+        {
+            if (iconID != (uint)IconID.SacredSever1)
+                return;
+
+            var a1 = BuildChargeInfo(module, OID.SerAdelphel);
+            var a2 = BuildChargeInfo(module, OID.SerJanlenoux);
+            if (Charges.Count == 2 && a1 == a2)
+            {
+                ChargeAngle = a1;
+            }
+            else
+            {
+                module.ReportError(this, "Failed to initialize charges");
+            }
+        }
+
+        // returns angle between successive charges (>0 if CCW, <0 if CW, 0 on failure)
+        private Angle BuildChargeInfo(BossModule module, OID oid)
+        {
+            var actor = module.Enemies(oid).FirstOrDefault();
+            if (actor == null)
+                return default;
+
+            // so far I've only seen both enemies starting at (+-5, 0)
+            if (!Utils.AlmostEqual(actor.Position.Z, module.Bounds.Center.Z, 1))
+                return default;
+            if (!Utils.AlmostEqual(MathF.Abs(actor.Position.X - module.Bounds.Center.X), 5, 1))
+                return default;
+
+            bool right = actor.Position.X > module.Bounds.Center.X;
+            bool facingSouth = Utils.AlmostEqual(actor.Rotation.Rad, 0, 0.1f);
+            bool cw = right == facingSouth;
+            var res = new ChargeInfo(actor);
+            var firstPointDir = actor.Rotation;
+            var angleBetweenPoints = (cw ? -1 : 1) * 112.5f.Degrees();
+
+            Func<Angle, WPos> posAt = dir => module.Bounds.Center + 21 * dir.ToDirection();
+            var p0 = actor.Position;
+            var p1 = posAt(firstPointDir);
+            var p2 = posAt(firstPointDir + angleBetweenPoints);
+            var p3 = posAt(firstPointDir + angleBetweenPoints * 2);
+
+            Func<WPos, WPos, AOEInstance> chargeAOE = (from, to) => new(new AOEShapeRect((to - from).Length(), _chargeHalfWidth), from, Angle.FromDirection(to - from));
+            res.ChargeAOEs.Add(chargeAOE(p0, p1));
+            res.ChargeAOEs.Add(chargeAOE(p1, p2));
+            res.ChargeAOEs.Add(chargeAOE(p2, p3));
+
+            res.Spheres.Add(p0);
+            res.Spheres.Add(WPos.Lerp(p0, p1, 0.5f));
+            res.Spheres.Add(p1);
+            res.Spheres.Add(WPos.Lerp(p1, p2, 1.0f / 3));
+            res.Spheres.Add(WPos.Lerp(p1, p2, 2.0f / 3));
+            res.Spheres.Add(p2);
+            res.Spheres.Add(WPos.Lerp(p2, p3, 1.0f / 3));
+            res.Spheres.Add(WPos.Lerp(p2, p3, 2.0f / 3));
+            res.Spheres.Add(p3);
+
+            Charges.Add(res);
+            return angleBetweenPoints;
+        }
+    }
+
+    // hints & assignments
+    class P2SanctityOfTheWard1Hints : BossComponent
+    {
+        private P2SanctityOfTheWard1Sever? _sever;
+        private P2SanctityOfTheWard1Flares? _flares;
+        private bool _inited;
         private Angle _severStartDir;
-        private int[] _severTargetSlots = { -1, -1 };
-        private ChargeInfo?[] _charges = { null, null };
-        private bool _chargeCW;
         private bool _chargeEarly;
         private BitMask _groupEast; // 0 until initialized
         private string _groupSwapHints = "";
 
-        private static float _severRadius = 6;
-        private static float _chargeHalfWidth = 3;
-        private static float _brightflareRadius = 9;
-
-        public P2SanctityOfTheWard1()
+        public override void Init(BossModule module)
         {
-            _config = Service.Config.Get<DSW2Config>();
+            _sever = module.FindComponent<P2SanctityOfTheWard1Sever>();
+            _flares = module.FindComponent<P2SanctityOfTheWard1Flares>();
+        }
+
+        public override void Update(BossModule module)
+        {
+            if (!_inited && _sever?.Source != null && _sever.StackTargets.Count == 2 && _flares != null && _flares.ChargeAngle != default)
+            {
+                _inited = true;
+                _severStartDir = Angle.FromDirection(_sever.Source.Position - module.Bounds.Center);
+
+                var config = Service.Config.Get<DSW2Config>();
+                _groupEast = config.P2SanctityGroups.BuildGroupMask(1, module.Raid);
+                if (_groupEast.None())
+                {
+                    _groupSwapHints = "unconfigured";
+                }
+                else
+                {
+                    if (config.P2SanctityRelative && _severStartDir.Rad < 0)
+                    {
+                        // swap groups for relative assignment if needed
+                        _groupEast.Raw ^= 0xff;
+                    }
+
+                    var effRoles = Service.Config.Get<PartyRolesConfig>().EffectiveRolePerSlot(module.Raid);
+                    if (config.P2SanctitySwapRole == Role.None)
+                    {
+                        AssignmentSwapWithRolePartner(module, effRoles, _sever.StackTargets[0], _severStartDir.Rad < 0);
+                        AssignmentSwapWithRolePartner(module, effRoles, _sever.StackTargets[1], _severStartDir.Rad > 0);
+                    }
+                    else
+                    {
+                        AssignmentReassignIfNeeded(module, _sever.StackTargets[0], _severStartDir.Rad < 0);
+                        AssignmentReassignIfNeeded(module, _sever.StackTargets[1], _severStartDir.Rad > 0);
+                        if (_groupEast.NumSetBits() != 4)
+                        {
+                            // to balance, unmarked player of designated role should swap
+                            var (swapSlot, swapper) = module.Raid.WithSlot(true).FirstOrDefault(sa => sa.Item2 != _sever.StackTargets[0] && sa.Item2 != _sever.StackTargets[1] && effRoles[sa.Item1] == config.P2SanctitySwapRole);
+                            if (swapper != null)
+                            {
+                                _groupEast.Toggle(swapSlot);
+                                _groupSwapHints = swapper.Name;
+                            }
+                        }
+                    }
+
+                    if (_groupSwapHints.Length == 0)
+                        _groupSwapHints = "none";
+                }
+
+                // second safe spot could be either 3rd or 5th explosion
+                var severDirEast = _severStartDir;
+                if (severDirEast.Rad < 0)
+                    severDirEast += 180.Degrees();
+                bool severDiagonalSE = severDirEast.Rad < MathF.PI / 2;
+                bool chargeCW = _flares.ChargeAngle.Rad < 0;
+                _chargeEarly = severDiagonalSE == chargeCW;
+            }
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (NumSeverCasts < 4)
-            {
-                if (_severTargetSlots.Contains(slot))
-                {
-                    // TODO: check 'far enough'?
-                    if (module.Raid.WithoutSlot().InRadiusExcluding(actor, _severRadius).Count() < 3)
-                        hints.Add("Stack in fours!");
-                }
-                else
-                {
-                    if (!_severTargetSlots.Select(slot => module.Raid[slot]).Any(s => s == null || s.Position.InCircle(actor.Position, _severRadius)))
-                        hints.Add("Stack in fours!");
-                }
-            }
-
-            if (ImminentCharges().Any(fromTo => actor.Position.InRect(fromTo.Item1, fromTo.Item2 - fromTo.Item1, _chargeHalfWidth)))
-                hints.Add("GTFO from charge!");
-            if (ImminentSpheres().Any(s => actor.Position.InCircle(s, _brightflareRadius)))
-                hints.Add("GTFO from sphere!");
-
             if (movementHints != null && _groupEast.Any())
             {
                 var from = actor.Position;
@@ -102,174 +286,37 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            if (_groupSwapHints.Length > 0)
-                hints.Add($"Swap: {_groupSwapHints}");
-            if (_charges[0] != null && _charges[1] != null)
-                hints.Add($"Move: {(_chargeCW ? "clockwise" : "counterclockwise")} {(_chargeEarly ? "early" : "late")}");
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            foreach (var (from, to) in ImminentCharges())
-                arena.ZoneRect(from, to, _chargeHalfWidth, ArenaColor.AOE);
-            foreach (var sphere in ImminentSpheres())
-                arena.ZoneCircle(sphere, _brightflareRadius, ArenaColor.AOE);
-        }
-
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (NumSeverCasts < 4)
-            {
-                var source = module.Enemies(OID.SerZephirin).FirstOrDefault();
-                arena.Actor(source, ArenaColor.Enemy, true);
-
-                var target = module.Raid[_severTargetSlots[NumSeverCasts % 2]];
-                if (source != null && target != null)
-                    arena.AddLine(source.Position, target.Position, ArenaColor.Danger);
-
-                foreach (var (slot, player) in module.Raid.WithSlot())
-                {
-                    if (_severTargetSlots.Contains(slot))
-                    {
-                        arena.Actor(player, ArenaColor.PlayerInteresting);
-                        arena.AddCircle(player.Position, _severRadius, ArenaColor.Danger);
-                    }
-                    else
-                    {
-                        arena.Actor(player, ArenaColor.PlayerGeneric);
-                    }
-                }
-            }
-
-            foreach (var c in _charges)
-                if (c?.Positions.Count > 1)
-                    arena.Actor(c.Source, ArenaColor.Enemy, true);
-
-            foreach (var safespot in MovementHintOffsets(pcSlot))
+            foreach (var safespot in MovementHintOffsets(pcSlot).Take(1))
             {
                 arena.AddCircle(module.Bounds.Center + safespot, 2, ArenaColor.Safe);
                 if (_groupEast.None())
                     arena.AddCircle(module.Bounds.Center - safespot, 2, ArenaColor.Safe); // if there are no valid assignments, draw spots for both groups
-                break; // only draw immediate safespot here
             }
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.SacredSever:
-                    ++NumSeverCasts;
-                    break;
-                case AID.ShiningBlade:
-                    var charge = Array.Find(_charges, c => c?.Source == caster);
-                    if (charge?.Positions.Count > 0)
-                        charge.Positions.RemoveAt(0);
-                    break;
-                case AID.BrightFlare:
-                    foreach (var c in _charges)
-                        c?.Spheres.RemoveAll(s => s.AlmostEqual(caster.Position, 2));
-                    ++NumFlareCasts;
-                    break;
-            }
+            if (!_inited)
+                return;
+            if (_groupSwapHints.Length > 0)
+                hints.Add($"Swap: {_groupSwapHints}");
+            if (_flares != null && _flares.ChargeAngle != default)
+                hints.Add($"Move: {(_flares.ChargeAngle.Rad < 0 ? "clockwise" : "counterclockwise")} {(_chargeEarly ? "early" : "late")}");
         }
 
-        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+        private void AssignmentReassignIfNeeded(BossModule module, Actor player, bool shouldGoEast)
         {
-            switch ((IconID)iconID)
-            {
-                case IconID.SacredSever1:
-                    _severTargetSlots[0] = module.Raid.FindSlot(actor.InstanceID);
-                    InitChargesAndSafeSpots(module);
-                    break;
-                case IconID.SacredSever2:
-                    _severTargetSlots[1] = module.Raid.FindSlot(actor.InstanceID);
-                    InitChargesAndSafeSpots(module);
-                    break;
-            }
-        }
-
-        private void InitChargesAndSafeSpots(BossModule module)
-        {
-            if (_severTargetSlots[0] < 0 || _severTargetSlots[1] < 0)
-                return; // wait for other event...
-
-            var severSource = module.Enemies(OID.SerZephirin).FirstOrDefault();
-            _severStartDir = severSource != null ? Angle.FromDirection(severSource.Position - module.Bounds.Center) : 0.Degrees();
-            if (_severStartDir.Rad != 0)
-            {
-                _groupEast = _config.P2SanctityGroups.BuildGroupMask(1, module.Raid);
-                if (_groupEast.None())
-                {
-                    _groupSwapHints = "unconfigured";
-                }
-                else
-                {
-                    if (_config.P2SanctityRelative && _severStartDir.Rad < 0)
-                    {
-                        // swap groups for relative assignment if needed
-                        _groupEast.Raw ^= 0xff;
-                    }
-
-                    var effRoles = Service.Config.Get<PartyRolesConfig>().EffectiveRolePerSlot(module.Raid);
-                    if (_config.P2SanctitySwapRole == Role.None)
-                    {
-                        AssignmentSwapWithRolePartner(module, effRoles, 0, _severStartDir.Rad < 0);
-                        AssignmentSwapWithRolePartner(module, effRoles, 1, _severStartDir.Rad > 0);
-                    }
-                    else
-                    {
-                        AssignmentReassignIfNeeded(0, _severStartDir.Rad < 0);
-                        AssignmentReassignIfNeeded(1, _severStartDir.Rad > 0);
-                        if (_groupEast.NumSetBits() != 4)
-                        {
-                            // to balance, unmarked player of designated role should swap
-                            var (swapSlot, swapper) = module.Raid.WithSlot(true).FirstOrDefault(sa => sa.Item1 != _severTargetSlots[0] && sa.Item1 != _severTargetSlots[1] && effRoles[sa.Item1] == _config.P2SanctitySwapRole);
-                            if (swapper != null)
-                            {
-                                _groupEast.Toggle(swapSlot);
-                                _groupSwapHints = swapper.Name;
-                            }
-                        }
-                    }
-
-                    if (_groupSwapHints.Length == 0)
-                        _groupSwapHints = "none";
-                }
-            }
-
-            bool cw1, cw2;
-            (_charges[0], cw1) = BuildChargeInfo(module, OID.SerAdelphel);
-            (_charges[1], cw2) = BuildChargeInfo(module, OID.SerJanlenoux);
-            if (_charges[0] == null || _charges[1] == null || cw1 != cw2)
-            {
-                module.ReportError(this, "Failed to initialize charges");
-            }
-            else
-            {
-                _chargeCW = cw1;
-                // second safe spot could be either 3rd or 5th explosion
-                var severDirEast = _severStartDir;
-                if (severDirEast.Rad < 0)
-                    severDirEast += 180.Degrees();
-                bool severDiagonalSE = severDirEast.Rad < MathF.PI / 2;
-                _chargeEarly = severDiagonalSE == cw1;
-            }
-        }
-
-        private void AssignmentReassignIfNeeded(int order, bool shouldGoEast)
-        {
-            int slot = _severTargetSlots[order];
+            int slot = module.Raid.FindSlot(player.InstanceID);
             if (shouldGoEast == _groupEast[slot])
                 return; // target is already assigned to correct position, no need to swap
             _groupEast.Toggle(slot);
         }
 
-        private void AssignmentSwapWithRolePartner(BossModule module, Role[] effRoles, int order, bool shouldGoEast)
+        private void AssignmentSwapWithRolePartner(BossModule module, Role[] effRoles, Actor player, bool shouldGoEast)
         {
-            int slot = _severTargetSlots[order];
+            int slot = module.Raid.FindSlot(player.InstanceID);
             if (shouldGoEast == _groupEast[slot])
                 return; // target is already assigned to correct position, no need to swap
             var role = effRoles[slot];
@@ -285,68 +332,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             _groupSwapHints += role.ToString();
         }
 
-        private (ChargeInfo?, bool) BuildChargeInfo(BossModule module, OID oid)
-        {
-            var actor = module.Enemies(oid).FirstOrDefault();
-            if (actor == null)
-                return (null, false);
-
-            // so far I've only seen both enemies starting at (+-5, 0)
-            if (!Utils.AlmostEqual(actor.Position.Z, module.Bounds.Center.Z, 1))
-                return (null, false);
-            if (!Utils.AlmostEqual(MathF.Abs(actor.Position.X - module.Bounds.Center.X), 5, 1))
-                return (null, false);
-
-            bool right = actor.Position.X > module.Bounds.Center.X;
-            bool facingSouth = Utils.AlmostEqual(actor.Rotation.Rad, 0, 0.1f);
-            bool cw = right == facingSouth;
-            var res = new ChargeInfo(actor);
-            var firstPointDir = actor.Rotation;
-            var angleBetweenPoints = (cw ? -1 : 1) * 112.5f.Degrees();
-
-            res.Positions.Add(actor.Position);
-            Action<Angle> addPosition = dir => res.Positions.Add(module.Bounds.Center + 21 * dir.ToDirection());
-            addPosition(firstPointDir);
-            addPosition(firstPointDir + angleBetweenPoints);
-            addPosition(firstPointDir + angleBetweenPoints * 2);
-
-            res.Spheres.Add(res.Positions[0]);
-            res.Spheres.Add(WPos.Lerp(res.Positions[0], res.Positions[1], 0.5f));
-            res.Spheres.Add(res.Positions[1]);
-            res.Spheres.Add(WPos.Lerp(res.Positions[1], res.Positions[2], 1.0f / 3));
-            res.Spheres.Add(WPos.Lerp(res.Positions[1], res.Positions[2], 2.0f / 3));
-            res.Spheres.Add(res.Positions[2]);
-            res.Spheres.Add(WPos.Lerp(res.Positions[2], res.Positions[3], 1.0f / 3));
-            res.Spheres.Add(WPos.Lerp(res.Positions[2], res.Positions[3], 2.0f / 3));
-            res.Spheres.Add(res.Positions[3]);
-            return (res, cw);
-        }
-
-        private IEnumerable<(WPos, WPos)> ImminentCharges()
-        {
-            foreach (var c in _charges)
-            {
-                if (c == null)
-                    continue;
-                for (int i = 1; i < c.Positions.Count; ++i)
-                    yield return (c.Positions[i - 1], c.Positions[i]);
-            }
-        }
-
-        private IEnumerable<WPos> ImminentSpheres()
-        {
-            foreach (var c in _charges)
-            {
-                if (c == null)
-                    continue;
-                foreach (var s in c.Spheres.Take(6))
-                    yield return s;
-            }
-        }
-
         private WDir SafeSpotOffset(int slot, Angle dirOffset)
         {
-            var dir = _severStartDir + (_chargeCW ? -1 : 1) * dirOffset;
+            var dir = _severStartDir + (_flares?.ChargeAngle.Rad < 0 ? -1 : 1) * dirOffset;
             if (dir.Rad < 0 == _groupEast[slot])
                 dir += 180.Degrees();
             return 20 * dir.ToDirection();
@@ -354,12 +342,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private IEnumerable<WDir> MovementHintOffsets(int slot)
         {
-            if (_severStartDir.Rad != 0 && _charges[0] != null && _charges[1] != null)
+            if (_inited && _flares?.Charges.Count == 2)
             {
                 // second safe spot could be either 3rd or 5th explosion
-                if (_charges[0]!.Spheres.Count > (_chargeEarly ? 6 : 4))
+                if (_flares.Charges[0].Spheres.Count > (_chargeEarly ? 6 : 4))
                     yield return SafeSpotOffset(slot, _chargeEarly ? 15.Degrees() : 11.7f.Degrees());
-                if (_charges[0]!.Spheres.Count > 0)
+                if (_flares.Charges[0].Spheres.Count > 0)
                     yield return SafeSpotOffset(slot, 33.3f.Degrees());
             }
         }

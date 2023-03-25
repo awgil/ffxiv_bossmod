@@ -17,12 +17,6 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public HoliestHallowing() : base(ActionID.MakeSpell(AID.HoliestHallowing), "Interrupt!") { }
     }
 
-    [ConfigDisplay(Order = 0x200, Parent = typeof(EndwalkerConfig))]
-    public class DSW1Config : CooldownPlanningConfigNode
-    {
-        public DSW1Config() : base(90) { }
-    }
-
     [ModuleInfo(PrimaryActorOID = (uint)OID.SerAdelphel)]
     public class DSW1 : BossModule
     {

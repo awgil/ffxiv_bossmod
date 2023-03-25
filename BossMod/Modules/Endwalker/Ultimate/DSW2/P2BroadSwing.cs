@@ -1,5 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW2
 {
+    // TODO: refactor (generic-aoe, use cast rotation)
     class P2BroadSwing : Components.CastCounter
     {
         private Actor? _caster;

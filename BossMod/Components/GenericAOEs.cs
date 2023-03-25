@@ -133,7 +133,7 @@ namespace BossMod.Components
         private List<Actor> _casters = new();
         public IReadOnlyList<Actor> Casters => _casters;
 
-        public LocationTargetedAOEs(ActionID aid, float radius) : base(aid, "GTFO from puddle!")
+        public LocationTargetedAOEs(ActionID aid, float radius, string warningText = "GTFO from puddle!") : base(aid, warningText)
         {
             Shape = new(radius);
         }

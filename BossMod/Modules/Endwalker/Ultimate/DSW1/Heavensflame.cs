@@ -1,90 +1,84 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.DSW1
 {
-    class Heavensflame : Components.CastCounter
+    class HeavensflameAOE : Components.CastCounter
     {
-        private int[] _playerIcons = new int[PartyState.MaxPartySize]; // 0 = unassigned, 1 = circle/red, 2 = triangle/green, 3 = cross/blue, 4 = square/purple - matching waypoint colors...
-        private Actor? _knockbackSource;
-        private bool _active;
+        public HeavensflameAOE() : base(ActionID.MakeSpell(AID.HeavensflameAOE)) { }
+    }
 
-        private static float _knockbackDistance = 16;
+    class HeavensflameKnockback : Components.KnockbackFromCastTarget
+    {
+        private WPos[] _playerAdjustedPositions = new WPos[PartyState.MaxPartySize];
+        private int[] _playerIcons = new int[PartyState.MaxPartySize]; // 0 = unassigned, 1 = circle/red, 2 = triangle/green, 3 = cross/blue, 4 = square/purple
+        private BitMask _brokenTethers;
+
         private static float _aoeRadius = 10;
         private static float _tetherBreakDistance = 32; // TODO: verify...
 
-        public Heavensflame() : base(ActionID.MakeSpell(AID.HeavensflameAOE)) { }
+        public HeavensflameKnockback() : base(ActionID.MakeSpell(AID.FaithUnmoving), 16) { }
+
+        public override void Update(BossModule module)
+        {
+            foreach (var (slot, player) in module.Raid.WithSlot())
+                _playerAdjustedPositions[slot] = AwayFromSource(player.Position, Casters.FirstOrDefault(), Distance);
+        }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (!_active)
+            if (_playerIcons[slot] == 0)
                 return;
 
-            var actorAdjPos = Components.Knockback.AwayFromSource(actor.Position, _knockbackSource, _knockbackDistance);
-            if (_knockbackSource != null && !module.Bounds.Contains(actorAdjPos))
+            if (Casters.Count > 0 && IsImmune(slot, module.WorldState.CurrentTime))
+                hints.Add("Cancel knockback immunity!");
+
+            var actorAdjPos = _playerAdjustedPositions[slot];
+            if (!module.Bounds.Contains(actorAdjPos))
                 hints.Add("About to be knocked into wall!");
 
-            if (module.Raid.WithoutSlot().Exclude(actor).Any(p => Components.Knockback.AwayFromSource(p.Position, _knockbackSource, _knockbackDistance).InCircle(actorAdjPos, _aoeRadius)))
+            if (module.Raid.WithSlot().Exclude(actor).WhereSlot(s => _playerAdjustedPositions[s].InCircle(actorAdjPos, _aoeRadius)).Any())
                 hints.Add("Spread!");
 
-            int partner = FindPartner(slot);
-            if (partner >= 0 && Components.Knockback.AwayFromSource(module.Raid[partner]!.Position, _knockbackSource, _knockbackDistance).InCircle(actorAdjPos, _tetherBreakDistance))
+            int partner = FindTetheredPartner(slot);
+            if (partner >= 0 && _playerAdjustedPositions[partner].InCircle(actorAdjPos, _tetherBreakDistance))
                 hints.Add("Aim to break tether!");
+        }
+
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        {
+            return _playerIcons[pcSlot] == 0 ? PlayerPriority.Irrelevant :
+                !_brokenTethers[pcSlot] && _playerIcons[pcSlot] == _playerIcons[playerSlot] ? PlayerPriority.Interesting
+                : PlayerPriority.Normal;
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            int partner = FindPartner(pcSlot);
-            if (_playerIcons[pcSlot] != 0)
-            {
-                DrawPreferredLocation(module, (Waymark)((int)Waymark.A + (_playerIcons[pcSlot] - 1)));
-                DrawPreferredLocation(module, (Waymark)((int)Waymark.N1 + (_playerIcons[pcSlot] - 1)));
-            }
-
-            if (partner >= 0)
-            {
-                arena.Actor(module.Raid[partner], ArenaColor.PlayerInteresting);
-                arena.AddLine(pc.Position, module.Raid[partner]!.Position, ArenaColor.Safe);
-            }
-
-            if (!_active)
+            if (_playerIcons[pcSlot] == 0)
                 return;
 
-            if (_knockbackSource != null)
+            foreach (var hint in PositionHints(module, pcSlot))
             {
-                var adjPos = Components.Knockback.AwayFromSource(pc.Position, _knockbackSource, _knockbackDistance);
-                arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
-                arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
+                module.Arena.AddCircle(hint, 2, ArenaColor.Safe);
+                //var dir = Vector3.Normalize(pos.Value - _knockbackSource.Position);
+                //var adjPos = module.Arena.ClampToBounds(_knockbackSource.Position + 50 * dir);
+                //module.Arena.AddLine(module.Bounds.Center, adjPos, ArenaColor.Safe);
             }
 
-            foreach (var (slot, player) in module.Raid.WithSlot().Exclude(pc))
-            {
-                if (slot != partner)
-                    arena.Actor(player, ArenaColor.PlayerGeneric);
-                arena.AddCircle(Components.Knockback.AwayFromSource(player.Position, _knockbackSource, _knockbackDistance), _aoeRadius, ArenaColor.Danger);
-            }
+            int partner = FindTetheredPartner(pcSlot);
+            if (partner >= 0)
+                arena.AddLine(pc.Position, module.Raid[partner]!.Position, ArenaColor.Safe);
+
+            DrawKnockback(pc, _playerAdjustedPositions[pcSlot], arena);
+
+            foreach (var (slot, _) in module.Raid.WithSlot().Exclude(pc))
+                arena.AddCircle(_playerAdjustedPositions[slot], _aoeRadius, ArenaColor.Danger);
         }
 
         public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
-            SetIcon(module, source.InstanceID, 0);
-            SetIcon(module, tether.Target, 0);
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.FaithUnmoving)
-            {
-                _knockbackSource = caster;
-                _active = true;
-            }
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.FaithUnmoving)
-            {
-                _knockbackSource = null;
-            }
+            _brokenTethers.Set(module.Raid.FindSlot(source.InstanceID));
+            _brokenTethers.Set(module.Raid.FindSlot(tether.Target));
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
@@ -98,18 +92,17 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 _ => 0
             };
             if (icon != 0)
-                SetIcon(module, actor.InstanceID, icon);
+            {
+                var slot = module.Raid.FindSlot(actor.InstanceID);
+                if (slot >= 0)
+                    _playerIcons[slot] = icon;
+            }
         }
 
-        private void SetIcon(BossModule module, ulong actorID, int icon)
+        private int FindTetheredPartner(int slot)
         {
-            var slot = module.Raid.FindSlot(actorID);
-            if (slot >= 0)
-                _playerIcons[slot] = icon;
-        }
-
-        private int FindPartner(int slot)
-        {
+            if (_brokenTethers[slot])
+                return -1;
             if (_playerIcons[slot] == 0)
                 return -1;
             for (int i = 0; i < _playerIcons.Length; ++i)
@@ -118,15 +111,30 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             return -1;
         }
 
-        private void DrawPreferredLocation(BossModule module, Waymark wm)
+        private IEnumerable<WPos> PositionHints(BossModule module, int slot)
         {
-            var pos = module.WorldState.Waymarks[wm];
-            if (pos != null)
+            var icon = _playerIcons[slot];
+            if (icon == 0)
+                yield break;
+
+            switch (Service.Config.Get<DSW1Config>().Heavensflame)
             {
-                module.Arena.AddCircle(new(pos.Value.XZ()), 2, ArenaColor.Safe);
-                //var dir = Vector3.Normalize(pos.Value - _knockbackSource.Position);
-                //var adjPos = module.Arena.ClampToBounds(_knockbackSource.Position + 50 * dir);
-                //module.Arena.AddLine(module.Bounds.Center, adjPos, ArenaColor.Safe);
+                case DSW1Config.HeavensflameHints.Waymarks:
+                    {
+                        if (module.WorldState.Waymarks[(Waymark)((int)Waymark.A + (icon - 1))] is var alt1 && alt1 != null)
+                            yield return new(alt1.Value.XZ());
+                        if (module.WorldState.Waymarks[(Waymark)((int)Waymark.N1 + (icon - 1))] is var alt2 && alt2 != null)
+                            yield return new(alt2.Value.XZ());
+                    }
+                    break;
+                case DSW1Config.HeavensflameHints.LPDU:
+                    {
+                        var angle = 135.Degrees() - icon * 45.Degrees();
+                        var offset = _tetherBreakDistance * 0.5f * angle.ToDirection();
+                        yield return module.Bounds.Center + offset;
+                        yield return module.Bounds.Center - offset;
+                    }
+                    break;
             }
         }
     }

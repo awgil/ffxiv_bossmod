@@ -1,73 +1,41 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW1
 {
-    // 'heavensblaze' (full party stack except tank) + 'holy shield bash' / 'holy bladedance' (stun + aoe tankbuster)
-    class Heavensblaze : BossComponent
+    // TODO: consider adding invuln hint for tether tank?..
+    class HolyShieldBash : Components.BaitAwayTethers
     {
-        private Actor? _danceSource;
-        private Actor? _danceTarget;
-        private Actor? _blazeTarget;
-
-        private static AOEShapeCone _danceAOE = new(16, 45.Degrees());
-        private static float _blazeRadius = 4;
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public HolyShieldBash() : base(new AOEShapeRect(80, 4), (uint)TetherID.HolyBladedance, ActionID.MakeSpell(AID.HolyShieldBash))
         {
-            if (_blazeTarget != null)
-            {
-                // during blaze cast, dance target is stunned, so don't bother providing any hints for him
-                // others need to remain stacked and out of dance aoe
-                if (actor == _danceTarget)
-                    return;
-
-                if (actor != _blazeTarget && !actor.Position.InCircle(_blazeTarget.Position, _blazeRadius))
-                    hints.Add("Stack!");
-
-                // don't bother adding hints for dance aoe, you're probably dead if you get there anyway...
-            }
-            else if (_danceSource != null && _danceTarget != null)
-            {
-                // TODO: consider adding pass/take tether hint (how to select tether tank, should it always be adelphel's?)
-                // TODO: consider adding invuln hint for tether tank?..
-            }
+            BaiterPriority = PlayerPriority.Danger;
         }
 
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        public override void Init(BossModule module)
         {
-            if (_danceSource != null && _danceTarget != null)
-            {
-                _danceAOE.Draw(arena, _danceSource.Position, Angle.FromDirection(_danceTarget.Position - _danceSource.Position));
-            }
+            // TODO: consider selecting specific tank rather than any
+            ForbiddenPlayers = module.Raid.WithSlot(true).WhereActor(a => a.Role != Role.Tank).Mask();
         }
+    }
 
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    // note: this is not really a 'bait', but component works well enough
+    class HolyBladedance : Components.GenericBaitAway
+    {
+        public HolyBladedance() : base(ActionID.MakeSpell(AID.HolyBladedanceAOE)) { }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if (_blazeTarget != null)
-            {
-                foreach (var p in module.Raid.WithoutSlot())
-                    arena.Actor(p, p == _danceTarget || p == _blazeTarget ? ArenaColor.Danger : p.Position.InCircle(_blazeTarget.Position, _blazeRadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
-                arena.AddCircle(_blazeTarget.Position, _blazeRadius, ArenaColor.Safe);
-            }
-            else if (_danceSource != null && _danceTarget != null)
-            {
-                foreach (var p in module.Raid.WithoutSlot())
-                    arena.Actor(p, p == _danceTarget ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
-                arena.AddLine(_danceSource.Position, _danceTarget.Position, ArenaColor.Danger);
-            }
+            if ((AID)spell.Action.ID == AID.HolyShieldBash && module.WorldState.Actors.Find(spell.MainTargetID) is var target && target != null)
+                CurrentBaits.Add((caster, target, new AOEShapeCone(16, 45.Degrees())));
         }
+    }
 
-        public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
-        {
-            if (tether.ID == (uint)TetherID.HolyBladedance)
-            {
-                _danceSource = source;
-                _danceTarget = module.WorldState.Actors.Find(tether.Target);
-            }
-        }
+    class Heavensblaze : Components.StackWithCastTargets
+    {
+        public Heavensblaze() : base(ActionID.MakeSpell(AID.Heavensblaze), 4, 7) { }
 
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if ((AID)spell.Action.ID == AID.Heavensblaze)
-                _blazeTarget = module.WorldState.Actors.Find(spell.TargetID);
+            // bladedance target shouldn't stack
+            if ((AID)spell.Action.ID == AID.HolyShieldBash && module.WorldState.Actors.Find(spell.MainTargetID) is var target && target != null)
+                AvoidTargets.Add(target);
         }
     }
 }

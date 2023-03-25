@@ -46,6 +46,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 return;
 
             int tearIndex = _tears.FindIndex(t => t.Source == actor);
+            hints.Add(tearIndex >= 0 ? "Next: laser" : "Next: cone", false);
             if (tearIndex >= 0)
             {
                 // make sure actor's tear placement is good

@@ -2,26 +2,28 @@
 {
     public enum OID : uint
     {
-        BossP2 = 0x313C, // king thordan - p2
-        SerZephirin = 0x3130, // x1 - ??
-        SerAdelphel = 0x3139, // x1 - p1, p2
-        SerGrinnaux = 0x313A, // x1 - p1, p2
-        SerCharibert = 0x313B, // x1 - ??
-        SerJanlenoux = 0x3158, // x1 - p2
-        SerVellguine = 0x3159, // x1 - p2
-        SerPaulecrain = 0x315A, // x1 - p2
-        SerIgnasse = 0x315B, // x1 - p2
-        SerHermenost = 0x315C, // x1 - p2
-        SerGuerrique = 0x315D, // x1 - p2
-        SerHaumeric = 0x315E, // x1 - p2
-        SerNoudenet = 0x315F, // x1 - p2
-        //_Gen_Actor_3316 = 0x3316, // x1
-        Helper = 0x233C, // x24
-        Brightsphere = 0x330E, // spawn during fight by Shining Blade
-        HolyComet = 0x312F, // spawn during fight by Holy Comet
+        BossP2 = 0x313C, // R5.001, x1 - king thordan - p2
+        SerZephirin = 0x3130, // R4.002, x1 - ??
+        SerAdelphel = 0x3139, // R4.002, x1 - p1, p2
+        SerGrinnaux = 0x313A, // R4.002, x1 - p1, p2
+        SerCharibert = 0x313B, // R4.002, x1 - ??
+        SerJanlenoux = 0x3158, // R4.002, x1 - p2
+        SerVellguine = 0x3159, // R4.002, x1 - p2
+        SerPaulecrain = 0x315A, // R4.002, x1 - p2
+        SerIgnasse = 0x315B, // R4.002, x1 - p2
+        SerHermenost = 0x315C, // R4.002, x1 - p2
+        SerGuerrique = 0x315D, // R4.002, x1 - p2
+        SerHaumeric = 0x315E, // R4.002, x1 - p2
+        SerNoudenet = 0x315F, // R4.002, x1 - p2
+        //_Gen_Actor_3316 = 0x3316, // R3.800, x1
+        Helper = 0x233C, // R0.500, x24
+        Brightsphere = 0x330E, // R1.000, spawn during fight by Shining Blade
+        HolyComet = 0x312F, // R1.440, spawn during fight by Holy Comet
+        VoidzoneFire = 0x1EB686, // R0.500, EventObj type, spawn during fight - fire voidzones spawned on intercards during meteors
+        VoidzoneIce = 0x1EB682, // R0.500, EventObj type, spawn during fight - ice voidzones spawned on hiemal storm targets during meteors
 
-        BossP3 = 0x313D, // nidhogg - p3
-        NidhoggDrake = 0x313E, // x8 - p3
+        BossP3 = 0x313D, // R8.019, nidhogg - p3
+        NidhoggDrake = 0x313E, // R8.019, x8 - p3
         // 34FB (x3), 34FC (x3), 34FD, 34FE, 34FF, 3500 (x3) 3501, 3502 - wtf is this shit, spawn together with nidhogg and attack each other with 870's for 5 dmg...
     };
 

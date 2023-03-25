@@ -56,24 +56,28 @@
 
         private void Heavensblaze(uint id, float delay)
         {
-            ActorCastStart(id, _module.SerGrinnaux, AID.EmptyDimension, delay)
-                .SetHint(StateMachine.StateHint.PositioningStart);
-            ActorCastEnd(id + 1, _module.SerGrinnaux, 5, false, "Donut")
+            ActorCast(id, _module.SerGrinnaux, AID.EmptyDimension, delay, 5, false, "Donut + Tankbuster")
                 .ActivateOnEnter<EmptyDimension>()
+                .ActivateOnEnter<HolyShieldBash>()
+                .ActivateOnEnter<HolyBladedance>()
                 .ActivateOnEnter<Heavensblaze>()
-                .DeactivateOnExit<EmptyDimension>();
-            ActorCast(id + 0x10, _module.SerCharibert, AID.Heavensblaze, 0.1f, 5, false, "Tankbuster + Stack")
+                .DeactivateOnExit<EmptyDimension>()
+                .DeactivateOnExit<HolyShieldBash>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ActorCast(id + 0x10, _module.SerCharibert, AID.Heavensblaze, 0.1f, 5, false, "Stack")
+                .DeactivateOnExit<HolyBladedance>()
                 .DeactivateOnExit<Heavensblaze>()
-                .SetHint(StateMachine.StateHint.PositioningEnd);
+                .SetHint(StateMachine.StateHint.Raidwide);
         }
 
         private void HyperdimensionalSlash(uint id, float delay)
         {
-            ActorCastStart(id, _module.SerGrinnaux, AID.HyperdimensionalSlash, delay)
+            ActorCastStart(id, _module.SerGrinnaux, AID.HyperdimensionalSlash, delay, false, "Adelphel disappear")
                 .ActivateOnEnter<HyperdimensionalSlash>() // icons appear just before cast start
                 .SetHint(StateMachine.StateHint.PositioningStart);
             ActorCastEnd(id + 1, _module.SerGrinnaux, 5);
-            ComponentCondition<HyperdimensionalSlash>(id + 2, 8.2f, comp => comp.NumCasts >= 2, "Slash")
+            ComponentCondition<HyperdimensionalSlash>(id + 0x10, 1.1f, comp => comp.NumCasts >= 1, "Slash 1");
+            ComponentCondition<HyperdimensionalSlash>(id + 0x11, 7.1f, comp => comp.NumCasts >= 2, "Slash 2")
                 .DeactivateOnExit<HyperdimensionalSlash>()
                 .SetHint(StateMachine.StateHint.PositioningEnd);
         }
@@ -82,13 +86,19 @@
         private void ShiningBlade(uint id, float delay)
         {
             ActorCastStart(id, _module.SerGrinnaux, AID.FaithUnmoving, delay)
-                .ActivateOnEnter<ShiningBlade>()
+                .ActivateOnEnter<ShiningBladeKnockback>()
+                .ActivateOnEnter<ShiningBladeFlares>()
                 .SetHint(StateMachine.StateHint.PositioningStart);
             ActorCastEnd(id + 1, _module.SerGrinnaux, 4, false, "Knockback");
             ActorCastEnd(id + 2, _module.SerAdelphel, 1.1f, false, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide); // holiest-of-holy overlap
-            ComponentCondition<ShiningBlade>(id + 0x10, 8.5f, comp => comp.Done, "Charges")
-                .DeactivateOnExit<ShiningBlade>();
+            ComponentCondition<ShiningBladeExecution>(id + 8, 7.9f, comp => comp.NumCasts > 0, "Tankbuster")
+                .ActivateOnEnter<ShiningBladeExecution>()
+                .DeactivateOnExit<ShiningBladeExecution>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ComponentCondition<ShiningBladeFlares>(id + 0x10, 0.6f, comp => comp.Done, "Charges")
+                .DeactivateOnExit<ShiningBladeKnockback>() // note: we keep this component alive, because it shows tears
+                .DeactivateOnExit<ShiningBladeFlares>();
         }
 
         // this often happens when pos flag is set
@@ -108,11 +118,15 @@
         private void Heavensflame(uint id, float delay)
         {
             ActorCastStart(id, _module.SerCharibert, AID.Heavensflame, delay)
-                .ActivateOnEnter<Heavensflame>() // icons appear just before cast start
+                .ActivateOnEnter<HeavensflameKnockback>() // icons appear just before cast start
                 .SetHint(StateMachine.StateHint.PositioningStart);
-            ActorCastEnd(id + 1, _module.SerCharibert, 7);
-            ComponentCondition<Heavensflame>(id + 2, 0.6f, comp => comp.NumCasts > 0, "Heavensflame")
-                .DeactivateOnExit<Heavensflame>();
+            ActorCast(id + 0x10, _module.SerGrinnaux, AID.FaithUnmoving, 1.1f, 4, false, "Knockback");
+            ActorCastEnd(id + 0x20, _module.SerCharibert, 1.9f);
+            ComponentCondition<HeavensflameAOE>(id + 0x30, 0.6f, comp => comp.NumCasts > 0, "Heavensflame")
+                .ActivateOnEnter<HeavensflameAOE>()
+                .DeactivateOnExit<HeavensflameAOE>()
+                .DeactivateOnExit<HeavensflameKnockback>()
+                .SetHint(StateMachine.StateHint.Raidwide);
         }
 
         private void EmptyFullDimension(uint id, float delay)

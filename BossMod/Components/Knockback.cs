@@ -33,7 +33,7 @@ namespace BossMod.Components
             }
         }
 
-        private struct PlayerImmunes
+        protected struct PlayerImmuneState
         {
             public DateTime ArmsLengthSurecastExpire; // 0 if not active
             public DateTime InnerStrengthExpire; // 0 if not active
@@ -43,9 +43,9 @@ namespace BossMod.Components
 
         public bool IgnoreImmunes { get; private init; }
         public int MaxCasts; // use to limit number of drawn knockbacks
-        private PlayerImmunes[] _playerImmunes = new PlayerImmunes[PartyState.MaxAllianceSize];
+        protected PlayerImmuneState[] PlayerImmunes = new PlayerImmuneState[PartyState.MaxAllianceSize];
 
-        public bool IsImmune(int slot, DateTime time) => !IgnoreImmunes && _playerImmunes[slot].ImmuneAt(time);
+        public bool IsImmune(int slot, DateTime time) => !IgnoreImmunes && PlayerImmunes[slot].ImmuneAt(time);
 
         public static WPos AwayFromSource(WPos pos, WPos origin, float distance) => pos != origin ? pos + distance * (pos - origin).Normalized() : pos;
         public static WPos AwayFromSource(WPos pos, Actor? source, float distance) => source != null ? AwayFromSource(pos, source.Position, distance) : pos;
@@ -89,12 +89,12 @@ namespace BossMod.Components
                 case (uint)WAR.SID.ArmsLength:
                     var slot1 = module.Raid.FindSlot(actor.InstanceID);
                     if (slot1 >= 0)
-                        _playerImmunes[slot1].ArmsLengthSurecastExpire = status.ExpireAt;
+                        PlayerImmunes[slot1].ArmsLengthSurecastExpire = status.ExpireAt;
                     break;
                 case (uint)WAR.SID.InnerStrength:
                     var slot2 = module.Raid.FindSlot(actor.InstanceID);
                     if (slot2 >= 0)
-                        _playerImmunes[slot2].InnerStrengthExpire = status.ExpireAt;
+                        PlayerImmunes[slot2].InnerStrengthExpire = status.ExpireAt;
                     break;
             }
         }
@@ -107,12 +107,12 @@ namespace BossMod.Components
                 case (uint)WAR.SID.ArmsLength:
                     var slot1 = module.Raid.FindSlot(actor.InstanceID);
                     if (slot1 >= 0)
-                        _playerImmunes[slot1].ArmsLengthSurecastExpire = new();
+                        PlayerImmunes[slot1].ArmsLengthSurecastExpire = new();
                     break;
                 case (uint)WAR.SID.InnerStrength:
                     var slot2 = module.Raid.FindSlot(actor.InstanceID);
                     if (slot2 >= 0)
-                        _playerImmunes[slot2].InnerStrengthExpire = new();
+                        PlayerImmunes[slot2].InnerStrengthExpire = new();
                     break;
             }
         }

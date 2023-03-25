@@ -41,12 +41,13 @@
             CastStart(id, AID.AscalonsMercyConcealed, delay);
             CastEnd(id + 1, 3)
                 .SetHint(StateMachine.StateHint.PositioningStart);
-            ComponentCondition<P2AscalonMercy>(id + 2, 1.6f, comp => comp.NumCasts > 0, "Dropped cones")
+            ComponentCondition<P2AscalonMercy>(id + 2, 1.6f, comp => comp.NumCasts > 0, "Baited cones")
                 .ActivateOnEnter<P2AscalonMercy>()
                 .DeactivateOnExit<P2AscalonMercy>();
             ComponentCondition<P2AscalonMight>(id + 0x1000, 4.9f, comp => comp.NumCasts > 2, "3x tankbuster cones")
                 .ActivateOnEnter<P2AscalonMight>()
                 .DeactivateOnExit<P2AscalonMight>()
+                .SetHint(StateMachine.StateHint.Tankbuster)
                 .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
@@ -55,22 +56,32 @@
             Cast(id, AID.StrengthOfTheWard, delay, 4);
             Targetable(id + 0x10, false, 3.1f, "Trio 1");
             CastStart(id + 0x20, AID.LightningStorm, 3.6f)
-                .ActivateOnEnter<P2StrengthOfTheWard1>();
+                .ActivateOnEnter<P2StrengthOfTheWard1LightningStorm>()
+                .ActivateOnEnter<P2StrengthOfTheWard1SpiralThrust>()
+                .ActivateOnEnter<P2StrengthOfTheWard1HeavyImpact>();
             CastEnd(id + 0x21, 5.7f);
-            ComponentCondition<P2StrengthOfTheWard1>(id + 0x30, 0.3f, comp => comp.NumImpactHits > 0, "Charges + Ring 1");
-            ComponentCondition<P2StrengthOfTheWard1>(id + 0x40, 1.9f, comp => comp.NumImpactHits > 1, "Ring 2");
-            ComponentCondition<P2StrengthOfTheWard1>(id + 0x60, 1.9f, comp => comp.NumImpactHits > 2, "Ring 3");
-            ComponentCondition<P2StrengthOfTheWard1>(id + 0x80, 1.9f, comp => comp.NumImpactHits > 3, "Ring 4")
+            ComponentCondition<P2StrengthOfTheWard1HeavyImpact>(id + 0x30, 0.3f, comp => comp.NumCasts > 0, "Charges + Ring 1")
+                .DeactivateOnExit<P2StrengthOfTheWard1SpiralThrust>();
+            ComponentCondition<P2StrengthOfTheWard1HeavyImpact>(id + 0x40, 1.9f, comp => comp.NumCasts > 1, "Ring 2")
+                .DeactivateOnExit<P2StrengthOfTheWard1LightningStorm>(); // event happens ~0.2s after previous state
+            ComponentCondition<P2StrengthOfTheWard1HeavyImpact>(id + 0x60, 1.9f, comp => comp.NumCasts > 2, "Ring 3");
+            ComponentCondition<P2StrengthOfTheWard1HeavyImpact>(id + 0x80, 1.9f, comp => comp.NumCasts > 3, "Ring 4")
                 .ActivateOnEnter<P2AscalonMercy>();
-            ComponentCondition<P2AscalonMercy>(id + 0x90, 1, comp => comp.NumCasts > 0, "Dropped cones")
+            ComponentCondition<P2AscalonMercy>(id + 0x90, 1, comp => comp.NumCasts > 0, "Baited cones")
                 .DeactivateOnExit<P2AscalonMercy>();
-            ComponentCondition<P2StrengthOfTheWard1>(id + 0xA0, 0.9f, comp => comp.NumImpactHits > 4, "Ring 5")
-                .ActivateOnEnter<P2StrengthOfTheWard2>()
-                .DeactivateOnExit<P2StrengthOfTheWard1>();
-            ComponentCondition<P2StrengthOfTheWard2>(id + 0x100, 9, comp => comp.LeapsDone && comp.ChargeDone && comp.RageDone, "Void zones + Leaps + Charges + Stacks")
+            ComponentCondition<P2StrengthOfTheWard1HeavyImpact>(id + 0xA0, 0.9f, comp => comp.NumCasts > 4, "Ring 5")
+                .ActivateOnEnter<P2StrengthOfTheWard2SpreadStack>()
+                .ActivateOnEnter<P2StrengthOfTheWard2Voidzones>()
+                .ActivateOnEnter<P2StrengthOfTheWard2Charges>()
+                .DeactivateOnExit<P2StrengthOfTheWard1HeavyImpact>();
+            ComponentCondition<P2StrengthOfTheWard2SpreadStack>(id + 0x100, 9, comp => comp.LeapsDone && comp.RageDone, "Void zones + Leaps + Charges + Stacks")
+                .DeactivateOnExit<P2StrengthOfTheWard2SpreadStack>()
+                .DeactivateOnExit<P2StrengthOfTheWard2Voidzones>()
+                .DeactivateOnExit<P2StrengthOfTheWard2Charges>()
                 .SetHint(StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster);
-            ComponentCondition<P2StrengthOfTheWard2>(id + 0x110, 3.3f, comp => comp.TowersDone, "Towers")
-                .DeactivateOnExit<P2StrengthOfTheWard2>();
+            ComponentCondition<P2StrengthOfTheWard2Towers>(id + 0x110, 3.3f, comp => comp.NumCasts > 0, "Towers")
+                .ActivateOnEnter<P2StrengthOfTheWard2Towers>()
+                .DeactivateOnExit<P2StrengthOfTheWard2Towers>();
             Targetable(id + 0x120, true, 1.7f, "Reappear");
         }
 
@@ -95,24 +106,34 @@
             Targetable(id + 0x10, false, 3.1f, "Trio 2");
             CastStart(id + 0x20, AID.DragonsGaze, 5.6f)
                 .ActivateOnEnter<P2SanctityOfTheWard1Gaze>()
-                .ActivateOnEnter<P2SanctityOfTheWard1>();
+                .ActivateOnEnter<P2SanctityOfTheWard1Sever>()
+                .ActivateOnEnter<P2SanctityOfTheWard1Flares>()
+                .ActivateOnEnter<P2SanctityOfTheWard1Hints>();
             CastEnd(id + 0x21, 4);
             ComponentCondition<P2SanctityOfTheWard1Gaze>(id + 0x30, 1.1f, comp => comp.NumCasts > 0, "Gazes")
                 .DeactivateOnExit<P2SanctityOfTheWard1Gaze>();
-            ComponentCondition<P2SanctityOfTheWard1>(id + 0x40, 6.1f, comp => comp.NumFlareCasts >= 18, "Charges")
-                .DeactivateOnExit<P2SanctityOfTheWard1>();
+            ComponentCondition<P2SanctityOfTheWard1Flares>(id + 0x40, 6.1f, comp => comp.NumCasts >= 18, "Charges")
+                .DeactivateOnExit<P2SanctityOfTheWard1Hints>()
+                .DeactivateOnExit<P2SanctityOfTheWard1Flares>()
+                .DeactivateOnExit<P2SanctityOfTheWard1Sever>();
+
             ComponentCondition<P2SanctityOfTheWard2>(id + 0x100, 11.9f, comp => comp.StormDone, "Storms")
                 .ActivateOnEnter<P2SanctityOfTheWard2HeavensStakeCircles>()
                 .ActivateOnEnter<P2SanctityOfTheWard2HeavensStakeDonut>()
                 .ActivateOnEnter<P2SanctityOfTheWard2>()
                 .DeactivateOnExit<P2SanctityOfTheWard2HeavensStakeCircles>()
                 .DeactivateOnExit<P2SanctityOfTheWard2HeavensStakeDonut>();
-            ComponentCondition<P2SanctityOfTheWard2>(id + 0x110, 4.2f, comp => comp.Towers1Done > 0, "Towers 1");
+            ComponentCondition<P2SanctityOfTheWard2>(id + 0x110, 4.2f, comp => comp.Towers1Done > 0, "Towers 1")
+                .ActivateOnEnter<P2SanctityOfTheWard2VoidzoneFire>()
+                .ActivateOnEnter<P2SanctityOfTheWard2VoidzoneIce>();
             ComponentCondition<P2SanctityOfTheWard2Knockback>(id + 0x120, 10.4f, comp => comp.NumCasts > 0, "Knockback")
                 .ActivateOnEnter<P2SanctityOfTheWard2Knockback>()
-                .DeactivateOnExit<P2SanctityOfTheWard2Knockback>();
+                .DeactivateOnExit<P2SanctityOfTheWard2Knockback>()
+                .DeactivateOnExit<P2SanctityOfTheWard2VoidzoneFire>()
+                .DeactivateOnExit<P2SanctityOfTheWard2VoidzoneIce>();
             ComponentCondition<P2SanctityOfTheWard2>(id + 0x130, 3, comp => comp.Towers2Done > 0, "Towers 2")
                 .DeactivateOnExit<P2SanctityOfTheWard2>();
+
             Targetable(id + 0x200, true, 4.5f, "Reappear");
         }
 

@@ -177,6 +177,15 @@ namespace BossMod
             return value;
         }
 
+        // add value to the list, if it is not null
+        public static bool AddIfNonNull<T>(this List<T> list, T? value)
+        {
+            if (value == null)
+                return false;
+            list.Add(value);
+            return true;
+        }
+
         // lower bound: given sorted list, find index of first element with key >= than test value
         public static int LowerBound<TKey, TValue>(this SortedList<TKey, TValue> list, TKey test) where TKey : notnull, IComparable
         {

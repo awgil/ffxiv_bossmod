@@ -13,6 +13,16 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P2SanctityOfTheWard2HeavensStakeDonut() : base(ActionID.MakeSpell(AID.HeavensStakeDonut), new AOEShapeDonut(15, 30)) { }
     }
 
+    class P2SanctityOfTheWard2VoidzoneFire : Components.PersistentVoidzone
+    {
+        public P2SanctityOfTheWard2VoidzoneFire() : base(7, m => m.Enemies(OID.VoidzoneFire)) { }
+    }
+
+    class P2SanctityOfTheWard2VoidzoneIce : Components.PersistentVoidzone
+    {
+        public P2SanctityOfTheWard2VoidzoneIce() : base(7, m => m.Enemies(OID.VoidzoneIce)) { }
+    }
+
     class P2SanctityOfTheWard2Knockback : Components.KnockbackFromCastTarget
     {
         public P2SanctityOfTheWard2Knockback() : base(ActionID.MakeSpell(AID.FaithUnmoving), 16) { }
@@ -24,6 +34,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     // - towers 1: [0,11] are outer towers in CW order, starting from '11 o'clock' (CCW tower of N quadrant); [12,15] are inner towers in CCW order, starting from NE (NE-SE-SW-NW)
     //   so, inner towers for quadrant k are [3*k, 3*k+2]; neighbouring inner are 12+k & 12+(k+3)%4
     // - towers 2: [0,7] - CW order, starting from N
+    // TODO: move hints for prey (position for new meteor is snapshotted approximately when previous meteors do their aoes; actual actor appears ~0.5s later)
     class P2SanctityOfTheWard2 : BossComponent
     {
         struct PlayerData
@@ -115,11 +126,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        {
+            return _players[playerSlot].HavePrey ? PlayerPriority.Danger : PlayerPriority.Normal;
+        }
+
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var (slot, player) in module.Raid.WithSlot().Exclude(pc))
-                arena.Actor(player, _players[slot].HavePrey ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
-
             if (_activeTowers1 == 8)
             {
                 float diag = module.Bounds.HalfSize / 1.414214f;
@@ -266,29 +279,36 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private void InitPreyPositions(BossModule module)
         {
             _preyGoEW = _config.P2Sanctity2PreferEWPrey;
-            var (scoreCW, qCW) = ScoreForAssignment(_preyGoEW, false);
-            var (scoreCCW, qCCW) = ScoreForAssignment(_preyGoEW, true);
-            if (scoreCW == 0 && scoreCCW == 0) // TODO: if allowed by config...
+            InitPreyPositionsForCurrentCardinals();
+            if (_preyScore == 0 && !_config.P2Sanctity2ForcePreferredPrey)
             {
                 _preyGoEW = !_preyGoEW;
-                (scoreCW, qCW) = ScoreForAssignment(_preyGoEW, false);
-                (scoreCCW, qCCW) = ScoreForAssignment(_preyGoEW, true);
+                InitPreyPositionsForCurrentCardinals();
             }
-            _preyGoCCW = scoreCCW > scoreCW;
-            _preyLimitedRangeQuadrant = _preyGoCCW ? qCCW : qCW;
-            _preyScore = Math.Max(scoreCCW, scoreCW);
+        }
+
+        private void InitPreyPositionsForCurrentCardinals()
+        {
+            _preyGoCCW = !_config.P2Sanctity2PreferCWTowerAsPrey;
+            (_preyScore, _preyLimitedRangeQuadrant) = ScoreForAssignment(_preyGoEW, _preyGoCCW, _preyGoCCW);
+            if (_config.P2Sanctity2AllowNonPreferredTowerAsPrey)
+            {
+                var (altScore, altQ) = ScoreForAssignment(_preyGoEW, !_preyGoCCW, _config.P2Sanctity2PreyFollowsSelectedDirection ? !_preyGoCCW : _preyGoCCW);
+                if (altScore > _preyScore)
+                {
+                    _preyGoCCW = !_preyGoCCW;
+                    _preyScore = altScore;
+                    _preyLimitedRangeQuadrant = altQ;
+                }
+            }
         }
 
         private bool InitQuadrantAssignments(BossModule module)
         {
             bool validAssignments = false;
-            foreach (var (slot, group) in _config.P2Sanctity2Pairs.Resolve(module.Raid))
+            foreach (var (slot, quadrant) in _config.P2Sanctity2Pairs.Resolve(module.Raid))
             {
                 validAssignments = true;
-                int quadrant = group;
-                if ((quadrant & 1) != 0) // W=1, E=3
-                    quadrant ^= 2; // ... is swapped in assignments and in component (because I want sane defaults match my static assignments ...)
-
                 _players[slot].AssignedQuadrant = quadrant;
 
                 bool isTH = module.Raid[slot]!.Role is Role.Tank or Role.Healer;
@@ -339,6 +359,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private void InitTowers1(BossModule module)
         {
             // assign outer towers
+            // TODO: reconsider - preyGoCCW is not necessarily how players in non-prey quadrants want to handle their assignments...
             for (int q = 0; q < _quadrants.Length; ++q)
             {
                 // first (or only) - to prey role
@@ -353,7 +374,33 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 }
             }
 
-            // now assign remaining inner towers, as long as it can be done non-ambiguously
+            // now assign inner towers, as long as it can be done non-ambiguously
+            switch (_config.P2Sanctity2InnerTowers)
+            {
+                case DSW2Config.P2InnerTowers.Closest:
+                    AssignInnerTowersClosest();
+                    break;
+                case DSW2Config.P2InnerTowers.CW:
+                    AssignInnerTowersCW();
+                    break;
+            }
+
+            // if we still have unassigned towers, assign each of them to each remaining player
+            var ambiguousQuadrants = _quadrants.Where(q => _players[q.NonPreySlot].AssignedTowers1.None()).ToArray();
+            for (int t = 12; t < _towers1.Length; ++t)
+            {
+                if (_towers1[t].Actor != null && _towers1[t].AssignedPlayers.None())
+                {
+                    foreach (var q in ambiguousQuadrants)
+                    {
+                        AssignTower(q.NonPreySlot, t);
+                    }
+                }
+            }
+        }
+
+        private void AssignInnerTowersClosest()
+        {
             while (true)
             {
                 int unambiguousInnerTower = -1;
@@ -382,22 +429,27 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     // else: ignore this tower on this iteration...
                 }
 
-                if (unambiguousInnerTower != -1)
-                    AssignTower(_quadrants[unambiguousQuadrant].NonPreySlot, unambiguousInnerTower);
-                else
-                    break;
-            }
+                if (unambiguousInnerTower == -1)
+                    return;
 
-            // if we still have unassigned towers, assign each of them to each remaining player
-            var ambiguousQuadrants = _quadrants.Where(q => _players[q.NonPreySlot].AssignedTowers1.None()).ToArray();
-            for (int t = 12; t < _towers1.Length; ++t)
+                AssignTower(_quadrants[unambiguousQuadrant].NonPreySlot, unambiguousInnerTower);
+            }
+        }
+
+        private void AssignInnerTowersCW()
+        {
+            for (int distance = 0; distance < _quadrants.Length; ++distance)
             {
-                if (_towers1[t].Actor != null && _towers1[t].AssignedPlayers.None())
+                for (int q = 0; q < _quadrants.Length; ++q)
                 {
-                    foreach (var q in ambiguousQuadrants)
-                    {
-                        AssignTower(q.NonPreySlot, t);
-                    }
+                    if (_players[_quadrants[q].NonPreySlot].AssignedTowers1.Any())
+                        continue;
+
+                    var tower = 12 + ((q + distance) & 3);
+                    if (_towers1[tower].Actor == null || _towers1[tower].AssignedPlayers.Any())
+                        continue; // tower is unavailable or already assigned
+
+                    AssignTower(_quadrants[q].NonPreySlot, tower);
                 }
             }
         }
@@ -414,19 +466,19 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         // 'score' depends on angle between preys: 0 for 120, 1 for 150, 2 for 180
         // 'limited quadrant' is -1 if angle is 180, otherwise it is index of the quadrant that has shorter movement range
-        private (int, int) ScoreForAssignment(bool ew, bool ccw)
+        private (int, int) ScoreForAssignment(bool ew, bool ccwTowers, bool ccwMovement)
         {
             int q1 = ew ? 1 : 0;
             int q2 = q1 + 2;
-            int t1 = SelectOuterTower(q1, ccw);
-            int t2 = SelectOuterTower(q2, ccw);
+            int t1 = SelectOuterTower(q1, ccwTowers);
+            int t2 = SelectOuterTower(q2, ccwTowers);
             return (t2 - t1) switch
             {
-                4 => (0, ccw ? q2 : q1),
-                5 => (1, ccw ? q2 : q1),
+                4 => (0, ccwMovement ? q2 : q1),
+                5 => (1, ccwMovement ? q2 : q1),
                 6 => (2, -1),
-                7 => (1, ccw ? q1 : q2),
-                8 => (0, ccw ? q1 : q2),
+                7 => (1, ccwMovement ? q1 : q2),
+                8 => (0, ccwMovement ? q1 : q2),
                 _ => (2, -1) // that's an error, really...
             };
         }

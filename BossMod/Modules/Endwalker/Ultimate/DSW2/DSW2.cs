@@ -7,6 +7,11 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P2AscalonMercy() : base(ActionID.MakeSpell(AID.AscalonsMercyConcealedAOE), new AOEShapeCone(50, 15.Degrees())) { }
     }
 
+    class P2AscalonMight : Components.Cleave
+    {
+        public P2AscalonMight() : base(ActionID.MakeSpell(AID.AscalonsMight), new AOEShapeCone(50, 30.Degrees()), (uint)OID.BossP2) { }
+    }
+
     class P2UltimateEnd : Components.CastCounter
     {
         public P2UltimateEnd() : base(ActionID.MakeSpell(AID.UltimateEndAOE)) { }
