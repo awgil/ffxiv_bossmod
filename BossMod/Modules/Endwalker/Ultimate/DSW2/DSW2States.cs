@@ -70,7 +70,7 @@
             ComponentCondition<P2AscalonMercy>(id + 0x90, 1, comp => comp.NumCasts > 0, "Baited cones")
                 .DeactivateOnExit<P2AscalonMercy>();
             ComponentCondition<P2StrengthOfTheWard1HeavyImpact>(id + 0xA0, 0.9f, comp => comp.NumCasts > 4, "Ring 5")
-                .ActivateOnEnter<P2StrengthOfTheWard2SpreadStack>()
+                .ActivateOnEnter<P2StrengthOfTheWard2SpreadStack>() // note: PATE 1E43 happens right after ring-2, could start showing something (boss/charging mobs/?) much earlier
                 .ActivateOnEnter<P2StrengthOfTheWard2Voidzones>()
                 .ActivateOnEnter<P2StrengthOfTheWard2Charges>()
                 .DeactivateOnExit<P2StrengthOfTheWard1HeavyImpact>();

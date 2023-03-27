@@ -15,12 +15,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
     class P2SanctityOfTheWard2VoidzoneFire : Components.PersistentVoidzone
     {
-        public P2SanctityOfTheWard2VoidzoneFire() : base(7, m => m.Enemies(OID.VoidzoneFire)) { }
+        public P2SanctityOfTheWard2VoidzoneFire() : base(7, m => m.Enemies(OID.VoidzoneFire).Where(z => z.EventState != 7)) { }
     }
 
     class P2SanctityOfTheWard2VoidzoneIce : Components.PersistentVoidzone
     {
-        public P2SanctityOfTheWard2VoidzoneIce() : base(7, m => m.Enemies(OID.VoidzoneIce)) { }
+        public P2SanctityOfTheWard2VoidzoneIce() : base(7, m => m.Enemies(OID.VoidzoneIce).Where(z => z.EventState != 7)) { }
     }
 
     class P2SanctityOfTheWard2Knockback : Components.KnockbackFromCastTarget

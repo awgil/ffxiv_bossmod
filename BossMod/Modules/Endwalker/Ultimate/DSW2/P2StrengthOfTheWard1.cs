@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
@@ -29,21 +28,26 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public P2StrengthOfTheWard1SpiralThrust() : base(ActionID.MakeSpell(AID.SpiralThrust), "GTFO from charge aoe!") { }
 
-        public override void Init(BossModule module)
-        {
-            _knights.AddRange(module.Enemies(OID.SerVellguine));
-            _knights.AddRange(module.Enemies(OID.SerPaulecrain));
-            _knights.AddRange(module.Enemies(OID.SerIgnasse));
-        }
-
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (NumCasts == 0)
-                foreach (var k in _knights.Where(k => IsKnightInChargePosition(module, k)))
-                    yield return new(_shape, k.Position, k.Rotation); // TODO: activation
+            foreach (var k in _knights)
+                yield return new(_shape, k.Position, k.Rotation); // TODO: activation
         }
 
-        private bool IsKnightInChargePosition(BossModule module, Actor knight) => Utils.AlmostEqual((knight.Position - module.Bounds.Center).LengthSq(), 23 * 23, 5);
+        public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+        {
+            if (id == 0x1E43 && (OID)actor.OID is OID.SerVellguine or OID.SerPaulecrain or OID.SerIgnasse)
+                _knights.Add(actor);
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if (spell.Action == WatchedAction)
+            {
+                _knights.Remove(caster);
+                ++NumCasts;
+            }
+        }
     }
 
     // rings
@@ -59,11 +63,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 yield return _aoe.Value;
         }
 
-        public override void Init(BossModule module)
+        public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
         {
-            var source = module.Enemies(OID.SerGuerrique).FirstOrDefault();
-            if (source != null)
-                _aoe = new(new AOEShapeCircle(_impactRadiusIncrement), source.Position); // TODO: activation
+            if (id == 0x1E43 && (OID)actor.OID == OID.SerGuerrique)
+            {
+                _aoe = new(new AOEShapeCircle(_impactRadiusIncrement), actor.Position, default, module.WorldState.CurrentTime.AddSeconds(8.2f));
+            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -73,7 +78,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 if (++NumCasts < 5)
                 {
                     var inner = _impactRadiusIncrement * NumCasts;
-                    _aoe = new(new AOEShapeDonut(inner, inner + _impactRadiusIncrement), caster.Position); // TODO: activation
+                    _aoe = new(new AOEShapeDonut(inner, inner + _impactRadiusIncrement), caster.Position, default, module.WorldState.CurrentTime.AddSeconds(1.9f));
                 }
                 else
                 {

@@ -45,7 +45,6 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
     class ShiningBladeFlares : Components.GenericAOEs
     {
-        private Actor? _serAdelphel; // casts charges and execution
         private List<WDir> _flares = new(); // [0] = initial boss offset from center, [2] = first charge offset, [5] = second charge offset, [7] = third charge offset, [10] = fourth charge offset == [0]
 
         private static AOEShapeCircle _shape = new(9);
@@ -59,29 +58,27 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             return _flares.Skip(NumCasts).Take(7).Select(f => new AOEInstance(_shape, module.Bounds.Center + f)); // TODO: activation
         }
 
-        public override void Init(BossModule module)
+        public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
         {
-            _serAdelphel = module.Enemies(OID.SerAdelphel).FirstOrDefault();
+            if ((OID)actor.OID != OID.SerAdelphel || id != 0x1E43 || _flares.Count > 0)
+                return;
+
+            // add first flare at boss position; we can't determine direction yet
+            var bossOffset = actor.Position - module.Bounds.Center;
+            if (!Utils.AlmostEqual(bossOffset.LengthSq(), module.Bounds.HalfSize * module.Bounds.HalfSize, 1))
+                module.ReportError(this, "Unexpected boss position");
+            _flares.Add(bossOffset);
         }
 
-        public override void Update(BossModule module)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if (_serAdelphel == null)
-                return;
-            if (_flares.Count == 0)
+            base.OnEventCast(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.ShiningBlade && _flares.Count <= 1)
             {
-                // add first flare as soon as boss teleports to border
-                var bossOffset = _serAdelphel.Position - module.Bounds.Center;
-                if (Utils.AlmostEqual(bossOffset.LengthSq(), module.Bounds.HalfSize * module.Bounds.HalfSize, 1))
-                {
-                    _flares.Add(bossOffset);
-                }
-            }
-            if (_flares.Count == 1 && Utils.AlmostEqual(_serAdelphel.Rotation.Abs().Rad % (MathF.PI / 2), MathF.PI / 4, 0.1f))
-            {
-                // add remaining flares as soon as boss rotates
-                var startOffset = _flares[0];
-                var endOffset = startOffset + _serAdelphel.Rotation.ToDirection() * 31.113f; // 22 * sqrt(2)
+                var startOffset = caster.Position - module.Bounds.Center;
+                var endOffset = spell.TargetXZ - module.Bounds.Center;
+                _flares.Clear();
+                _flares.Add(startOffset);
                 AddShortFlares(startOffset, endOffset);
                 AddLongFlares(endOffset, -endOffset);
                 AddShortFlares(-endOffset, -startOffset);

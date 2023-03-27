@@ -51,6 +51,11 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 hints.Add("GTFO from puddle!");
         }
 
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        {
+            return _skyblindPlayers[playerSlot] ? PlayerPriority.Danger : _coneTargets[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Normal;
+        }
+
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_boss != null)
@@ -69,17 +74,9 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var (slot, player) in module.Raid.WithSlot())
+            foreach (var (_, player) in module.Raid.WithSlot().IncludedInMask(_skyblindPlayers))
             {
-                if (_skyblindPlayers[slot])
-                {
-                    arena.Actor(player, ArenaColor.Danger);
-                    arena.AddCircle(player.Position, _skyblindRadius, ArenaColor.Danger);
-                }
-                else
-                {
-                    arena.Actor(player, _coneTargets[slot] ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
-                }
+                arena.AddCircle(player.Position, _skyblindRadius, ArenaColor.Danger);
             }
         }
 

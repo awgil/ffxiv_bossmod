@@ -92,7 +92,7 @@
             ActorCastEnd(id + 1, _module.SerGrinnaux, 4, false, "Knockback");
             ActorCastEnd(id + 2, _module.SerAdelphel, 1.1f, false, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide); // holiest-of-holy overlap
-            ComponentCondition<ShiningBladeExecution>(id + 8, 7.9f, comp => comp.NumCasts > 0, "Tankbuster")
+            ComponentCondition<ShiningBladeExecution>(id + 8, 7.9f, comp => comp.NumCasts > 0, "Execution")
                 .ActivateOnEnter<ShiningBladeExecution>()
                 .DeactivateOnExit<ShiningBladeExecution>()
                 .SetHint(StateMachine.StateHint.Tankbuster);

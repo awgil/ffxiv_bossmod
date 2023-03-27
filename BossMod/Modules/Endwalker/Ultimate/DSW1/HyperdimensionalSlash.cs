@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
     class HyperdimensionalSlash : BossComponent
     {
         public int NumCasts { get; private set; }
-        private List<Actor> _laserTargets = new();
+        private BitMask _laserTargets;
         private Angle _coneDir;
         private List<(WPos Pos, Actor? Source)> _tears = new();
         private BitMask _riskyTears;
@@ -20,7 +20,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             _tears.Clear();
             foreach (var tear in module.Enemies(OID.AetherialTear))
                 _tears.Add((tear.Position, null));
-            foreach (var target in _laserTargets)
+            foreach (var target in module.Raid.WithSlot(true).IncludedInMask(_laserTargets).Actors())
                 _tears.Add((TearPosition(module, target), target));
 
             _riskyTears.Reset();
@@ -36,13 +36,14 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 }
             }
 
-            var coneTarget = module.Raid.WithoutSlot().Closest(module.Bounds.Center);
+            // TODO: proper targeting (seems to be predefined, charibert's target for first?..)
+            var coneTarget = module.Raid.WithSlot().ExcludedFromMask(_laserTargets).Actors().Closest(module.Bounds.Center);
             _coneDir = coneTarget != null ? Angle.FromDirection(coneTarget.Position - module.Bounds.Center) : 0.Degrees();
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_laserTargets.Count == 0)
+            if (_laserTargets.None())
                 return;
 
             int tearIndex = _tears.FindIndex(t => t.Source == actor);
@@ -57,7 +58,9 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
 
             // make sure actor is not clipped by any lasers
-            if (_laserTargets.Exclude(actor).Any(target => _aoeLaser.Check(actor.Position, module.Bounds.Center, Angle.FromDirection(target.Position - module.Bounds.Center))))
+            var otherLasers = _laserTargets;
+            otherLasers.Clear(slot);
+            if (module.Raid.WithSlot().IncludedInMask(otherLasers).WhereActor(target => _aoeLaser.Check(actor.Position, module.Bounds.Center, Angle.FromDirection(target.Position - module.Bounds.Center))).Any())
                 hints.Add("GTFO from laser aoe!");
 
             // make sure actor is either not hit by cone (if is target of a laser) or is hit by a cone (otherwise)
@@ -70,10 +73,10 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_laserTargets.Count == 0)
+            if (_laserTargets.None())
                 return;
 
-            foreach (var t in _laserTargets)
+            foreach (var t in module.Raid.WithSlot().IncludedInMask(_laserTargets).Actors())
                 _aoeLaser.Draw(arena, module.Bounds.Center, Angle.FromDirection(t.Position - module.Bounds.Center));
             _aoeCone.Draw(arena, module.Bounds.Center, _coneDir);
         }
@@ -83,7 +86,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             for (int i = 0; i < _tears.Count; ++i)
                 arena.AddCircle(_tears[i].Pos, _linkRadius, _riskyTears[i] ? ArenaColor.Danger : ArenaColor.Safe);
 
-            if (_laserTargets.Contains(pc))
+            if (_laserTargets[pcSlot])
                 arena.AddLine(module.Bounds.Center, TearPosition(module, pc), ArenaColor.Danger);
         }
 
@@ -91,7 +94,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         {
             if ((AID)spell.Action.ID == AID.HyperdimensionalSlashAOERest)
             {
-                _laserTargets.Clear();
+                _laserTargets.Reset();
                 ++NumCasts;
             }
         }
@@ -100,7 +103,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         {
             if ((IconID)iconID == IconID.HyperdimensionalSlash)
             {
-                _laserTargets.Add(actor);
+                _laserTargets.Set(module.Raid.FindSlot(actor.InstanceID));
             }
         }
 

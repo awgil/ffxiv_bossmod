@@ -217,7 +217,8 @@ namespace BossMod
                     break;
                 case ActionEffectType.Attract1:
                 case ActionEffectType.Attract2:
-                    res.Append($"row={eff.Value}, TODO lumina...");
+                    var attrData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Attract>(eff.Value);
+                    res.Append($"row={eff.Value}, dist<={attrData?.MaxDistance} up to {attrData?.MinRemainingDistance} between {(attrData?.UseDistanceBetweenHitboxes == true ? "hitboxes" : "centers")}, dir={attrData?.Direction}, speed={attrData?.Speed}");
                     break;
                 case ActionEffectType.AttractCustom1:
                 case ActionEffectType.AttractCustom2:
