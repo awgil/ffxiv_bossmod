@@ -9,7 +9,7 @@
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Dualfire)
-                CurrentBaits.Add((module.PrimaryActor, actor, _shape));
+                CurrentBaits.Add(new(module.PrimaryActor, actor, _shape));
         }
     }
 }

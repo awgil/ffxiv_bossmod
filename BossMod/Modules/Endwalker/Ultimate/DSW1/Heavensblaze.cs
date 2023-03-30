@@ -23,7 +23,7 @@
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.HolyShieldBash && module.WorldState.Actors.Find(spell.MainTargetID) is var target && target != null)
-                CurrentBaits.Add((caster, target, new AOEShapeCone(16, 45.Degrees())));
+                CurrentBaits.Add(new(caster, target, new AOEShapeCone(16, 45.Degrees())));
         }
     }
 

@@ -51,24 +51,26 @@
         private void P1HandsProteansDollsCleaves(uint id, float delay)
         {
             Condition(id, delay, () => (_module.LiquidHand()?.ModelState.ModelState ?? 0) != 0, "Hand of parting/prayer bait");
-            ComponentCondition<P1ProteanWaveTornadoVis>(id + 1, 3.1f, comp => comp.Casters.Count > 0)
+            ComponentCondition<P1ProteanWaveTornadoVisCast>(id + 1, 3.1f, comp => comp.Casters.Count > 0)
                 .ActivateOnEnter<P1HandOfPartingPrayer>()
-                .ActivateOnEnter<P1ProteanWaveTornadoVis>()
-                .ActivateOnEnter<P1ProteanWaveTornado>();
+                .ActivateOnEnter<P1ProteanWaveTornadoVisBait>()
+                .ActivateOnEnter<P1ProteanWaveTornadoVisCast>()
+                .DeactivateOnExit<P1ProteanWaveTornadoVisBait>();
             ComponentCondition<P1JagdDolls>(id + 2, 1, comp => comp.Active)
                 .ActivateOnEnter<P1JagdDolls>();
             ComponentCondition<P1HandOfPartingPrayer>(id + 3, 1, comp => comp.Resolved, "Resolve")
                 .DeactivateOnExit<P1HandOfPartingPrayer>();
-            ComponentCondition<P1ProteanWaveTornadoVis>(id + 0x10, 1, comp => comp.Casters.Count == 0)
+            ComponentCondition<P1ProteanWaveTornadoVisCast>(id + 0x10, 1, comp => comp.Casters.Count == 0)
                 .ActivateOnEnter<P1FluidStrike>()
                 .ActivateOnEnter<P1FluidSwing>()
-                .DeactivateOnExit<P1ProteanWaveTornadoVis>();
+                .DeactivateOnExit<P1ProteanWaveTornadoVisCast>();
             ComponentCondition<P1FluidSwing>(id + 0x20, 1.1f, comp => comp.NumCasts > 0, "Cleaves")
+                .ActivateOnEnter<P1ProteanWaveTornadoInvis>()
                 .DeactivateOnExit<P1FluidStrike>()
                 .DeactivateOnExit<P1FluidSwing>()
                 .SetHint(StateMachine.StateHint.Tankbuster);
-            ComponentCondition<P1ProteanWaveTornado>(id + 0x30, 1, comp => comp.NumCasts > 0)
-                .DeactivateOnExit<P1ProteanWaveTornado>();
+            ComponentCondition<P1ProteanWaveTornadoInvis>(id + 0x30, 1, comp => comp.NumCasts > 0)
+                .DeactivateOnExit<P1ProteanWaveTornadoInvis>();
             ComponentCondition<P1JagdDolls>(id + 0x100, 1, comp => comp.NumExhausts > 0, "Exhaust 1");
             // +0.1s: hand of pain start
             // +2.0s: pressurize
@@ -91,11 +93,13 @@
                 .DeactivateOnExit<P1ProteanWaveLiquidVisBoss>()
                 .DeactivateOnExit<P1ProteanWaveLiquidVisHelper>();
             P1HandOfPain(id + 0x10, 0.2f, 2)
-                .ActivateOnEnter<P1ProteanWaveLiquidInvis>()
+                .ActivateOnEnter<P1ProteanWaveLiquidInvisFixed>()
+                .ActivateOnEnter<P1ProteanWaveLiquidInvisBaited>()
                 .ActivateOnEnter<P1Sluice>();
-            ComponentCondition<P1ProteanWaveLiquidInvis>(id + 0x20, 1.9f, comp => comp.NumCasts > 0, "Protean 1");
-            ComponentCondition<P1ProteanWaveLiquidInvis>(id + 0x30, 3.0f, comp => comp.NumCasts > 1, "Protean 2")
-                .DeactivateOnExit<P1ProteanWaveLiquidInvis>()
+            ComponentCondition<P1ProteanWaveLiquidInvisFixed>(id + 0x20, 1.9f, comp => comp.NumCasts > 0, "Protean 1");
+            ComponentCondition<P1ProteanWaveLiquidInvisFixed>(id + 0x30, 3.0f, comp => comp.NumCasts > 1, "Protean 2")
+                .DeactivateOnExit<P1ProteanWaveLiquidInvisFixed>()
+                .DeactivateOnExit<P1ProteanWaveLiquidInvisBaited>()
                 .DeactivateOnExit<P1Sluice>();
         }
 
@@ -134,19 +138,23 @@
                 .DeactivateOnExit<P1ProteanWaveLiquidVisBoss>()
                 .DeactivateOnExit<P1ProteanWaveLiquidVisHelper>();
             P1HandOfPain(id + 0x10, 2, 4)
-                .ActivateOnEnter<P1ProteanWaveLiquidInvis>()
+                .ActivateOnEnter<P1ProteanWaveLiquidInvisFixed>()
+                .ActivateOnEnter<P1ProteanWaveLiquidInvisBaited>()
                 .ActivateOnEnter<P1Sluice>()
-                .ActivateOnEnter<P1ProteanWaveTornadoVis>()
-                .ActivateOnEnter<P1ProteanWaveTornado>();
-            ComponentCondition<P1ProteanWaveLiquidInvis>(id + 0x11, 0.1f, comp => comp.NumCasts > 0, "Protean 1");
-            ComponentCondition<P1ProteanWaveTornadoVis>(id + 0x12, 0.9f, comp => comp.Casters.Count > 0);
-            ComponentCondition<P1ProteanWaveLiquidInvis>(id + 0x20, 2.1f, comp => comp.NumCasts > 1, "Protean 2")
-                .DeactivateOnExit<P1ProteanWaveLiquidInvis>()
+                .ActivateOnEnter<P1ProteanWaveTornadoVisBait>()
+                .ActivateOnEnter<P1ProteanWaveTornadoVisCast>();
+            ComponentCondition<P1ProteanWaveLiquidInvisFixed>(id + 0x11, 0.1f, comp => comp.NumCasts > 0, "Protean 1");
+            ComponentCondition<P1ProteanWaveTornadoVisCast>(id + 0x12, 0.9f, comp => comp.Casters.Count > 0)
+                .DeactivateOnExit<P1ProteanWaveTornadoVisBait>();
+            ComponentCondition<P1ProteanWaveLiquidInvisFixed>(id + 0x20, 2.1f, comp => comp.NumCasts > 1, "Protean 2")
+                .DeactivateOnExit<P1ProteanWaveLiquidInvisFixed>()
+                .DeactivateOnExit<P1ProteanWaveLiquidInvisBaited>()
                 .DeactivateOnExit<P1Sluice>();
-            ComponentCondition<P1ProteanWaveTornadoVis>(id + 0x21, 0.8f, comp => comp.Casters.Count == 0)
-                .DeactivateOnExit<P1ProteanWaveTornadoVis>();
-            ComponentCondition<P1ProteanWaveTornado>(id + 0x30, 2.1f, comp => comp.NumCasts > 0)
-                .DeactivateOnExit<P1ProteanWaveTornado>();
+            ComponentCondition<P1ProteanWaveTornadoVisCast>(id + 0x21, 0.8f, comp => comp.Casters.Count == 0)
+                .DeactivateOnExit<P1ProteanWaveTornadoVisCast>();
+            ComponentCondition<P1ProteanWaveTornadoInvis>(id + 0x30, 2.1f, comp => comp.NumCasts > 0)
+                .ActivateOnEnter<P1ProteanWaveTornadoInvis>()
+                .DeactivateOnExit<P1ProteanWaveTornadoInvis>();
             // +3.9s: pressurize
             // +4.5s: embolus spawn
             Condition(id + 0x40, 3.9f, () => (_module.LiquidHand()?.ModelState.ModelState ?? 0) != 0, "Hand of parting/prayer bait");
@@ -186,10 +194,19 @@
         {
             Timeout(id, 0)
                 .SetHint(StateMachine.StateHint.DowntimeStart);
-            ComponentCondition<P2JKick>(id + 0x100, 31.2f, comp => comp.NumCasts > 0)
-                .ActivateOnEnter<P2Intermission>()
+            ComponentCondition<P2IntermissionHawkBlaster>(id + 0x10, 5.2f, comp => comp.NumCasts > 0, "First aoe")
+                .ActivateOnEnter<P2IntermissionOrder>()
+                .ActivateOnEnter<P2IntermissionHawkBlaster>();
+            ComponentCondition<P2IntermissionKnockbacks>(id + 0x20, 7.4f, comp => comp.NumCasts >= 1, "Hit 1")
+                .ActivateOnEnter<P2IntermissionKnockbacks>();
+            ComponentCondition<P2IntermissionKnockbacks>(id + 0x30, 4.6f, comp => comp.NumCasts >= 3, "Hit 3");
+            ComponentCondition<P2IntermissionKnockbacks>(id + 0x40, 4.6f, comp => comp.NumCasts >= 5, "Hit 5");
+            ComponentCondition<P2IntermissionKnockbacks>(id + 0x50, 4.6f, comp => comp.NumCasts >= 7, "Hit 7");
+            ComponentCondition<P2JKick>(id + 0x100, 4.6f, comp => comp.NumCasts > 0)
                 .ActivateOnEnter<P2JKick>()
-                .DeactivateOnExit<P2Intermission>()
+                .DeactivateOnExit<P2IntermissionOrder>()
+                .DeactivateOnExit<P2IntermissionHawkBlaster>()
+                .DeactivateOnExit<P2IntermissionKnockbacks>()
                 .DeactivateOnExit<P2JKick>()
                 .SetHint(StateMachine.StateHint.Raidwide);
             ActorTargetable(id + 0x101, _module.BruteJustice, true, 3, "Intermission end")

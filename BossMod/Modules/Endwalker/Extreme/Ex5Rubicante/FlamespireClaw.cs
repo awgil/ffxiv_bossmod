@@ -51,7 +51,7 @@ namespace BossMod.Endwalker.Extreme.Ex5Rubicante
                 var nextSlot = Array.IndexOf(_order, NumCasts + 1);
                 var nextTarget = nextSlot >= 0 ? module.Raid[nextSlot] : null;
                 if (nextTarget != null)
-                    CurrentBaits.Add((module.PrimaryActor, nextTarget, _shape));
+                    CurrentBaits.Add(new(module.PrimaryActor, nextTarget, _shape));
             }
         }
 
@@ -76,7 +76,7 @@ namespace BossMod.Endwalker.Extreme.Ex5Rubicante
                 if (slot >= 0)
                     _order[slot] = order;
                 if (order == 1)
-                    CurrentBaits.Add((module.PrimaryActor, actor, _shape));
+                    CurrentBaits.Add(new(module.PrimaryActor, actor, _shape));
             }
         }
     }

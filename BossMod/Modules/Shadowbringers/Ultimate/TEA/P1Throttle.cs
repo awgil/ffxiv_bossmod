@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BossMod.Shadowbringers.Ultimate.TEA
+﻿namespace BossMod.Shadowbringers.Ultimate.TEA
 {
     class P1Throttle : BossComponent
     {

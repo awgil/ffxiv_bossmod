@@ -8,14 +8,36 @@ namespace BossMod.Components
     // otherwise we show own bait as as outline (and warn if player is clipping someone) and other baits as filled (and warn if player is being clipped)
     public class GenericBaitAway : CastCounter
     {
+        public struct Bait
+        {
+            public Actor Source;
+            public Actor Target;
+            public AOEShape Shape;
+
+            public Angle Rotation => Angle.FromDirection(Target.Position - Source.Position);
+
+            public Bait(Actor source, Actor target, AOEShape shape)
+            {
+                Source = source;
+                Target = target;
+                Shape = shape;
+            }
+        }
+
         public bool AlwaysDrawOtherBaits; // if false, other baits are drawn only if they are clipping a player
         public bool CenterAtTarget; // if true, aoe source is at target
         public bool AllowDeadTargets = true; // if false, baits with dead targets are ignored
+        public bool EnableHints = true;
         public PlayerPriority BaiterPriority = PlayerPriority.Interesting;
         public BitMask ForbiddenPlayers;
-        public List<(Actor source, Actor target, AOEShape shape)> CurrentBaits = new();
+        public List<Bait> CurrentBaits = new();
 
-        public IEnumerable<(Actor source, Actor target, AOEShape shape)> ActiveBaits => AllowDeadTargets ? CurrentBaits : CurrentBaits.Where(b => !b.target.IsDead);
+        public IEnumerable<Bait> ActiveBaits => AllowDeadTargets ? CurrentBaits : CurrentBaits.Where(b => !b.Target.IsDead);
+        public IEnumerable<Bait> ActiveBaitsOn(Actor target) => ActiveBaits.Where(b => b.Target == target);
+        public IEnumerable<Bait> ActiveBaitsNotOn(Actor target) => ActiveBaits.Where(b => b.Target != target);
+        public WPos BaitOrigin(Bait bait) => (CenterAtTarget ? bait.Target : bait.Source).Position;
+        public bool IsClippedBy(Actor actor, Bait bait) => bait.Shape.Check(actor.Position, BaitOrigin(bait), bait.Rotation);
+        public IEnumerable<Actor> PlayersClippedBy(BossModule module, Bait bait) => module.Raid.WithoutSlot().Exclude(bait.Target).InShape(bait.Shape, BaitOrigin(bait), bait.Rotation);
 
         public GenericBaitAway(ActionID aid = default, bool alwaysDrawOtherBaits = true, bool centerAtTarget = false) : base(aid)
         {
@@ -25,42 +47,41 @@ namespace BossMod.Components
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            foreach (var bait in ActiveBaits)
+            if (!EnableHints)
+                return;
+
+            if (ForbiddenPlayers[slot])
             {
-                if (bait.target == actor)
-                {
-                    if (ForbiddenPlayers[slot])
-                        hints.Add("Avoid baiting!");
-                    else if (module.Raid.WithoutSlot().Exclude(actor).InShape(bait.shape, (CenterAtTarget ? bait.target : bait.source).Position, Angle.FromDirection(bait.target.Position - bait.source.Position)).Any())
-                        hints.Add("Bait away from raid!");
-                }
-                else if (bait.shape.Check(actor.Position, (CenterAtTarget ? bait.target : bait.source).Position, Angle.FromDirection(bait.target.Position - bait.source.Position)))
-                {
-                    hints.Add("GTFO from baited aoe!");
-                }
+                if (ActiveBaitsOn(actor).Any())
+                    hints.Add("Avoid baiting!");
             }
+            else
+            {
+                if (ActiveBaitsOn(actor).Any(b => PlayersClippedBy(module, b).Any()))
+                    hints.Add("Bait away from raid!");
+            }
+
+            if (ActiveBaitsNotOn(actor).Any(b => IsClippedBy(actor, b)))
+                hints.Add("GTFO from baited aoe!");
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {
-            return ActiveBaits.Any(b => b.target == player) ? BaiterPriority : PlayerPriority.Irrelevant;
+            return ActiveBaitsOn(player).Any() ? BaiterPriority : PlayerPriority.Irrelevant;
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var bait in ActiveBaits.Where(bait => bait.target != pc))
-            {
-                var dir = Angle.FromDirection(bait.target.Position - bait.source.Position);
-                if (AlwaysDrawOtherBaits || bait.shape.Check(pc.Position, (CenterAtTarget ? bait.target : bait.source).Position, dir))
-                    bait.shape.Draw(arena, (CenterAtTarget ? bait.target : bait.source).Position, dir);
-            }
+            foreach (var bait in ActiveBaitsNotOn(pc))
+                if (AlwaysDrawOtherBaits || IsClippedBy(pc, bait))
+                    bait.Shape.Draw(arena, BaitOrigin(bait), bait.Rotation);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var bait in ActiveBaits.Where(bait => bait.target == pc))
+            foreach (var bait in ActiveBaitsOn(pc))
             {
-                bait.shape.Outline(arena, (CenterAtTarget ? bait.target : bait.source).Position, Angle.FromDirection(bait.target.Position - bait.source.Position));
+                bait.Shape.Outline(arena, BaitOrigin(bait), bait.Rotation);
             }
         }
     }
@@ -81,7 +102,7 @@ namespace BossMod.Components
         public void SetSource(BossModule module, Actor source)
         {
             CurrentBaits.Clear();
-            CurrentBaits.AddRange(module.Raid.WithoutSlot(true).Select(p => (source, p, Shape)));
+            CurrentBaits.AddRange(module.Raid.WithoutSlot(true).Select(p => new Bait(source, p, Shape)));
         }
     }
 
@@ -103,7 +124,7 @@ namespace BossMod.Components
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             if (DrawTethers)
                 foreach (var b in ActiveBaits)
-                    arena.AddLine(b.source.Position, b.target.Position, ArenaColor.Danger);
+                    arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Danger);
         }
 
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
@@ -111,7 +132,7 @@ namespace BossMod.Components
             var (player, enemy) = DetermineTetherSides(module, source, tether);
             if (player != null && enemy != null)
             {
-                CurrentBaits.Add((enemy, player, Shape));
+                CurrentBaits.Add(new(enemy, player, Shape));
             }
         }
 
@@ -120,7 +141,7 @@ namespace BossMod.Components
             var (player, enemy) = DetermineTetherSides(module, source, tether);
             if (player != null && enemy != null)
             {
-                CurrentBaits.RemoveAll(b => b.source == enemy && b.target == player);
+                CurrentBaits.RemoveAll(b => b.Source == enemy && b.Target == player);
             }
         }
 
@@ -158,13 +179,13 @@ namespace BossMod.Components
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
-                CurrentBaits.Add((caster, target, Shape));
+                CurrentBaits.Add(new(caster, target, Shape));
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction)
-                CurrentBaits.RemoveAll(b => b.source == caster);
+                CurrentBaits.RemoveAll(b => b.Source == caster);
         }
     }
 }

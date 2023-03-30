@@ -113,7 +113,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public override void Update(BossModule module)
         {
             CurrentBaits.Clear();
-            CurrentBaits.AddRange(module.Raid.WithoutSlot().SortedByRange(module.PrimaryActor.Position).TakeLast(2).Select(t => (module.PrimaryActor, t, _shape)));
+            CurrentBaits.AddRange(module.Raid.WithoutSlot().SortedByRange(module.PrimaryActor.Position).TakeLast(2).Select(t => new Bait(module.PrimaryActor, t, _shape)));
         }
     }
 
@@ -133,7 +133,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.WaveCannonKyrios)
-                CurrentBaits.Add((module.PrimaryActor, actor, _shape));
+                CurrentBaits.Add(new(module.PrimaryActor, actor, _shape));
         }
     }
 }
