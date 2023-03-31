@@ -236,6 +236,7 @@
                 .DeactivateOnExit<P2HawkBlasterOpticalSight>();
             ActorCastEnd(id + 0x12, _module.CruiseChaser, 1.9f, false, "Photon")
                 .SetHint(StateMachine.StateHint.Raidwide);
+            // TODO: start showing first nisi pass here...
         }
 
         private void P2SpinCrusher(uint id, float delay)

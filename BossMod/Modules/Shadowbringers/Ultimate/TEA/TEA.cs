@@ -10,7 +10,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
 
     class P1FluidStrike : Components.Cleave
     {
-        public P1FluidStrike() : base(ActionID.MakeSpell(AID.FluidSwing), new AOEShapeCone(11.5f, 45.Degrees()), (uint)OID.LiquidHand) { }
+        public P1FluidStrike() : base(ActionID.MakeSpell(AID.FluidSwing), new AOEShapeCone(11.6f, 45.Degrees()), (uint)OID.LiquidHand) { }
     }
 
     class P1Sluice : Components.LocationTargetedAOEs
@@ -33,7 +33,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public P2JKick() : base(ActionID.MakeSpell(AID.JKick)) { }
     }
 
-    class P2EyeOfTheChakram : Components.SelfTargetedLegacyRotationAOEs
+    class P2EyeOfTheChakram : Components.SelfTargetedAOEs
     {
         public P2EyeOfTheChakram() : base(ActionID.MakeSpell(AID.EyeOfTheChakram), new AOEShapeRect(70, 3)) { }
     }
@@ -43,9 +43,9 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public P2HawkBlasterOpticalSight() : base(ActionID.MakeSpell(AID.HawkBlasterP2), 10) { }
     }
 
-    class P2SpinCrusher : Components.SelfTargetedLegacyRotationAOEs
+    class P2SpinCrusher : Components.SelfTargetedAOEs
     {
-        public P2SpinCrusher() : base(ActionID.MakeSpell(AID.SpinCrusher), new AOEShapeCone(10, 45.Degrees())) { } // TODO: verify angle
+        public P2SpinCrusher() : base(ActionID.MakeSpell(AID.SpinCrusher), new AOEShapeCone(10, 45.Degrees())) { }
     }
 
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1)]

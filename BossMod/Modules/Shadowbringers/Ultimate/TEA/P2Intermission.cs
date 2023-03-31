@@ -149,8 +149,8 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         private Actor? _chaser;
         private WPos _prevPos;
 
-        private static AOEShapeCone _shapeAlpha = new(25, 45.Degrees()); // TODO: verify angle
-        private static AOEShapeRect _shapeBlasty = new(50, 5);
+        private static AOEShapeCone _shapeAlpha = new(30, 45.Degrees());
+        private static AOEShapeRect _shapeBlasty = new(55, 5);
 
         public override void Init(BossModule module)
         {
