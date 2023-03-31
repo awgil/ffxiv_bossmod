@@ -33,7 +33,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     }
 
     // sacred sever - distance-based shared damage on 1/2/1/2 markers
-    class P2SanctityOfTheWard1Sever : Components.StackSpread
+    class P2SanctityOfTheWard1Sever : Components.UniformStackSpread
     {
         public int NumCasts { get; private set; }
         public Actor? Source { get; private set; }
@@ -49,17 +49,17 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
 
-            if (StackTargets.Count == 2 && Source != null)
+            if (Stacks.Count == 2 && Source != null)
             {
                 arena.Actor(Source, ArenaColor.Enemy, true);
-                arena.AddLine(Source.Position, StackTargets[NumCasts % 2].Position, ArenaColor.Danger);
+                arena.AddLine(Source.Position, Stacks[NumCasts % 2].Target.Position, ArenaColor.Danger);
             }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.SacredSever && ++NumCasts >= 4)
-                StackTargets.Clear();
+                Stacks.Clear();
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
@@ -67,10 +67,10 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             switch ((IconID)iconID)
             {
                 case IconID.SacredSever1:
-                    StackTargets.Insert(0, actor);
+                    Stacks.Insert(0, new(actor, StackRadius, MinStackSize, MaxStackSize));
                     break;
                 case IconID.SacredSever2:
-                    StackTargets.Add(actor);
+                    AddStack(actor);
                     break;
             }
         }
@@ -215,7 +215,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void Update(BossModule module)
         {
-            if (!_inited && _sever?.Source != null && _sever.StackTargets.Count == 2 && _flares != null && _flares.ChargeAngle != default)
+            if (!_inited && _sever?.Source != null && _sever.Stacks.Count == 2 && _flares != null && _flares.ChargeAngle != default)
             {
                 _inited = true;
                 _severStartDir = Angle.FromDirection(_sever.Source.Position - module.Bounds.Center);
@@ -237,17 +237,17 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     var effRoles = Service.Config.Get<PartyRolesConfig>().EffectiveRolePerSlot(module.Raid);
                     if (config.P2SanctitySwapRole == Role.None)
                     {
-                        AssignmentSwapWithRolePartner(module, effRoles, _sever.StackTargets[0], _severStartDir.Rad < 0);
-                        AssignmentSwapWithRolePartner(module, effRoles, _sever.StackTargets[1], _severStartDir.Rad > 0);
+                        AssignmentSwapWithRolePartner(module, effRoles, _sever.Stacks[0].Target, _severStartDir.Rad < 0);
+                        AssignmentSwapWithRolePartner(module, effRoles, _sever.Stacks[1].Target, _severStartDir.Rad > 0);
                     }
                     else
                     {
-                        AssignmentReassignIfNeeded(module, _sever.StackTargets[0], _severStartDir.Rad < 0);
-                        AssignmentReassignIfNeeded(module, _sever.StackTargets[1], _severStartDir.Rad > 0);
+                        AssignmentReassignIfNeeded(module, _sever.Stacks[0].Target, _severStartDir.Rad < 0);
+                        AssignmentReassignIfNeeded(module, _sever.Stacks[1].Target, _severStartDir.Rad > 0);
                         if (_groupEast.NumSetBits() != 4)
                         {
                             // to balance, unmarked player of designated role should swap
-                            var (swapSlot, swapper) = module.Raid.WithSlot(true).FirstOrDefault(sa => sa.Item2 != _sever.StackTargets[0] && sa.Item2 != _sever.StackTargets[1] && effRoles[sa.Item1] == config.P2SanctitySwapRole);
+                            var (swapSlot, swapper) = module.Raid.WithSlot(true).FirstOrDefault(sa => sa.Item2 != _sever.Stacks[0].Target && sa.Item2 != _sever.Stacks[1].Target && effRoles[sa.Item1] == config.P2SanctitySwapRole);
                             if (swapper != null)
                             {
                                 _groupEast.Toggle(swapSlot);

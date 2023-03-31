@@ -186,6 +186,10 @@ namespace BossMod
             return true;
         }
 
+        // get reference to the list element (a bit of a hack, but oh well...)
+        public static ref T Ref<T>(this List<T> list, int index) => ref CollectionsMarshal.AsSpan(list)[index];
+        public static Span<T> AsSpan<T>(this List<T> list) => CollectionsMarshal.AsSpan(list);
+
         // lower bound: given sorted list, find index of first element with key >= than test value
         public static int LowerBound<TKey, TValue>(this SortedList<TKey, TValue> list, TKey test) where TKey : notnull, IComparable
         {

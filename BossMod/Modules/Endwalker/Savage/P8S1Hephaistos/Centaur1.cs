@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
         public RearingRampageLast() : base(ActionID.MakeSpell(AID.RearingRampageLast)) { }
     }
 
-    class UpliftStompDead : Components.StackSpread
+    class UpliftStompDead : Components.UniformStackSpread
     {
         public int NumUplifts { get; private set; }
         public int NumStomps { get; private set; }
@@ -22,16 +22,16 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
 
         public override void Init(BossModule module)
         {
-            SpreadTargets.AddRange(module.Raid.WithoutSlot(true));
+            AddSpreads(module.Raid.WithoutSlot(true));
         }
 
         public override void Update(BossModule module)
         {
-            if (SpreadTargets.Count == 0)
+            if (Spreads.Count == 0)
             {
-                StackTargets.Clear();
+                Stacks.Clear();
                 if (module.Raid.WithoutSlot().Farthest(module.PrimaryActor.Position) is var target && target != null)
-                    StackTargets.Add(target);
+                    AddStack(target);
             }
         }
 
@@ -42,7 +42,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
                 hints.Add($"Bait order: {OrderPerSlot[slot]}", false);
             }
 
-            if (SpreadTargets.Count > 0)
+            if (Spreads.Count > 0)
             {
                 // default implementation is fine during uplifts
                 base.AddHints(module, slot, actor, hints, movementHints);
@@ -50,7 +50,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
             else
             {
                 // custom hints for baiting stomps
-                bool isBaiting = StackTargets.InRadius(actor.Position, StackRadius).Any();
+                bool isBaiting = Stacks.Any(s => actor.Position.InCircle(s.Target.Position, s.Radius));
                 bool shouldBait = OrderPerSlot[slot] == NumStomps + 1;
                 hints.Add(shouldBait ? "Bait jump!" : "Avoid jump!", isBaiting != shouldBait);
             }
@@ -61,11 +61,11 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
             switch ((AID)spell.Action.ID)
             {
                 case AID.Uplift:
-                    SpreadTargets.RemoveAll(a => a.InstanceID == spell.MainTargetID);
+                    Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
                     int slot = module.Raid.FindSlot(spell.MainTargetID);
                     if (slot >= 0)
                     {
-                        OrderPerSlot[slot] = 4 - SpreadTargets.Count / 2;
+                        OrderPerSlot[slot] = 4 - Spreads.Count / 2;
                     }
                     ++NumUplifts;
                     break;

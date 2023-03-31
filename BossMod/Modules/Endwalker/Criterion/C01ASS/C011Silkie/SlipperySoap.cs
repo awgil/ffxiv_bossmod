@@ -143,14 +143,14 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie
     }
 
     // note: we don't wait for forked lightning statuses to appear
-    class SoapsudStatic : Components.StackSpread
+    class SoapsudStatic : Components.UniformStackSpread
     {
         public SoapsudStatic() : base(0, 5) { }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
             if (actor == module.PrimaryActor && SlipperySoap.ColorForStatus(status.ID) == SlipperySoap.Color.Yellow)
-                SpreadTargets.AddRange(module.Raid.WithoutSlot());
+                AddSpreads(module.Raid.WithoutSlot(true));
         }
     }
 }

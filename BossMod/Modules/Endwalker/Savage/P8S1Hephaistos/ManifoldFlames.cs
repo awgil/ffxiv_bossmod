@@ -2,13 +2,13 @@
 
 namespace BossMod.Endwalker.Savage.P8S1Hephaistos
 {
-    class ManifoldFlames : Components.StackSpread
+    class ManifoldFlames : Components.UniformStackSpread
     {
         public ManifoldFlames() : base(0, 6) { }
 
         public override void Init(BossModule module)
         {
-            SpreadTargets.AddRange(module.Raid.WithoutSlot());
+            AddSpreads(module.Raid.WithoutSlot(true));
         }
     }
 

@@ -3,19 +3,19 @@
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
     // spreads
-    class P2StrengthOfTheWard1LightningStorm : Components.StackSpread
+    class P2StrengthOfTheWard1LightningStorm : Components.UniformStackSpread
     {
         public P2StrengthOfTheWard1LightningStorm() : base(0, 5) { }
 
         public override void Init(BossModule module)
         {
-            SpreadTargets.AddRange(module.Raid.WithoutSlot(true));
+            AddSpreads(module.Raid.WithoutSlot(true));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.LightningStormAOE)
-                SpreadTargets.Clear();
+                Spreads.Clear();
         }
     }
 

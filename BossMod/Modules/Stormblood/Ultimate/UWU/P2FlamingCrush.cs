@@ -2,15 +2,17 @@
 
 namespace BossMod.Stormblood.Ultimate.UWU
 {
-    class FlamingCrush : Components.StackSpread
+    class FlamingCrush : Components.UniformStackSpread
     {
+        protected BitMask Avoid;
+
         public FlamingCrush() : base(4, 0, 6) { }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.FlamingCrush)
             {
-                StackTargets.Add(actor);
+                AddStack(actor, default, Avoid);
             }
         }
 
@@ -18,7 +20,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
         {
             if ((AID)spell.Action.ID == AID.FlamingCrush)
             {
-                StackTargets.Clear();
+                Stacks.Clear();
             }
         }
     }
@@ -29,7 +31,8 @@ namespace BossMod.Stormblood.Ultimate.UWU
         public override void Init(BossModule module)
         {
             if (module.FindComponent<P2SearingWind>() is var searingWind && searingWind != null)
-                AvoidTargets.AddRange(searingWind.SpreadTargets);
+                foreach (var sw in searingWind.Spreads)
+                    Avoid.Set(module.Raid.FindSlot(sw.Target.InstanceID));
         }
     }
 
@@ -41,7 +44,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
     {
         public override void Init(BossModule module)
         {
-            AvoidTargets.AddRange(module.Raid.WithoutSlot(true).Where(p => p.FindStatus(SID.ThermalLow) != null && p.Role != Role.Healer));
+            Avoid = module.Raid.WithSlot(true).WhereActor(p => p.FindStatus(SID.ThermalLow) != null && p.Role != Role.Healer).Mask();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
-    class Echoes : Components.StackSpread
+    class Echoes : Components.UniformStackSpread
     {
         public int NumCasts { get; private set; }
 
@@ -15,7 +15,7 @@
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Echoes)
-                StackTargets.Add(actor);
+                AddStack(actor);
         }
     }
 }

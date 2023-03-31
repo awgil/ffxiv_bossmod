@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P8S2
 {
-    class LimitlessDesolation : Components.StackSpread
+    class LimitlessDesolation : Components.UniformStackSpread
     {
         public int NumAOEs { get; private set; }
         public int NumTowers { get; private set; }
@@ -28,7 +28,7 @@ namespace BossMod.Endwalker.Savage.P8S2
 
         public override void Init(BossModule module)
         {
-            SpreadTargets.AddRange(module.Raid.WithoutSlot());
+            AddSpreads(module.Raid.WithoutSlot());
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
@@ -54,7 +54,7 @@ namespace BossMod.Endwalker.Savage.P8S2
             switch ((AID)spell.Action.ID)
             {
                 case AID.TyrantsFire:
-                    SpreadTargets.RemoveAll(a => a.InstanceID == spell.MainTargetID);
+                    Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
                     _waitingForTowers.Set(module.Raid.FindSlot(spell.MainTargetID));
                     ++NumAOEs;
                     break;

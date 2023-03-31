@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
 {
-    class FiresteelStrike : Components.StackSpread
+    class FiresteelStrike : Components.UniformStackSpread
     {
         public int NumJumps { get; private set; }
         public int NumCleaves { get; private set; }
@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
 
         public override void Init(BossModule module)
         {
-            SpreadTargets.AddRange(module.Raid.WithoutSlot());
+            AddSpreads(module.Raid.WithoutSlot(true));
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
@@ -64,12 +64,13 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
                     if ((spell.Targets.Count > 0 ? module.WorldState.Actors.Find(spell.Targets[0].ID) : null) is var target && target != null)
                     {
                         _jumpTargets.Add(target);
-                        SpreadTargets.Remove(target);
+                        Spreads.RemoveAll(s => s.Target == target);
                     }
                     if (++NumJumps == 2)
                     {
                         // players that were not jumped on are now interceptors
-                        Utils.Swap(ref _interceptors, ref SpreadTargets);
+                        _interceptors.AddRange(Spreads.Select(s => s.Target));
+                        Spreads.Clear();
                     }
                     break;
                 case AID.NBlessedBeaconAOE1:

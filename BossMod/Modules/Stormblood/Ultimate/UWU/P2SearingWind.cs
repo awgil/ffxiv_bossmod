@@ -1,17 +1,16 @@
-﻿namespace BossMod.Stormblood.Ultimate.UWU
+﻿using System.Linq;
+
+namespace BossMod.Stormblood.Ultimate.UWU
 {
-    class P2SearingWind : Components.StackSpread
+    class P2SearingWind : Components.UniformStackSpread
     {
         public P2SearingWind() : base(0, 14, alwaysShowSpreads: true, includeDeadTargets: true) { }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.InfernoHowl)
+            if ((AID)spell.Action.ID == AID.InfernoHowl && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
             {
-                if (SpreadTargets.Count == 0)
-                    ActivateAt = module.WorldState.CurrentTime.AddSeconds(8);
-                if (module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
-                    SpreadTargets.Add(target);
+                AddSpread(target, module.WorldState.CurrentTime.AddSeconds(8));
             }
         }
 
@@ -19,16 +18,20 @@
         {
             if ((AID)spell.Action.ID == AID.SearingWind)
             {
-                var target = SpreadTargets.Closest(spell.TargetXZ);
-                if (target != null)
+                var index = Enumerable.Range(0, Spreads.Count).MinBy(i => (spell.TargetXZ - Spreads[i].Target.Position).LengthSq());
+                if (index < Spreads.Count)
                 {
-                    var status = target.FindStatus(SID.SearingWind);
+                    ref var spread = ref Spreads.Ref(index);
+                    var status = spread.Target.FindStatus(SID.SearingWind);
                     if (status == null || (status.Value.ExpireAt - module.WorldState.CurrentTime).TotalSeconds < 6)
                     {
-                        SpreadTargets.Remove(target);
+                        Spreads.RemoveAt(index);
+                    }
+                    else
+                    {
+                        spread.Activation = module.WorldState.CurrentTime.AddSeconds(6);
                     }
                 }
-                ActivateAt = module.WorldState.CurrentTime.AddSeconds(6);
             }
         }
     }

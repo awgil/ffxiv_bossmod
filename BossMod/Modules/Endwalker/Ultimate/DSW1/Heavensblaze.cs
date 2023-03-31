@@ -34,8 +34,9 @@
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             // bladedance target shouldn't stack
-            if ((AID)spell.Action.ID == AID.HolyShieldBash && module.WorldState.Actors.Find(spell.MainTargetID) is var target && target != null)
-                AvoidTargets.Add(target);
+            if ((AID)spell.Action.ID == AID.HolyShieldBash)
+                foreach (ref var s in Stacks.AsSpan())
+                    s.ForbiddenPlayers.Set(module.Raid.FindSlot(spell.MainTargetID));
         }
     }
 }

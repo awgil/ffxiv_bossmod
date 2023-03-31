@@ -87,16 +87,16 @@ namespace BossMod.Endwalker.Ultimate.TOP
         }
     }
 
-    class P2PartySynergyOptimizedFire : Components.StackSpread
+    class P2PartySynergyOptimizedFire : Components.UniformStackSpread
     {
         public P2PartySynergyOptimizedFire() : base(0, 7, alwaysShowSpreads: true) { }
 
-        public override void Init(BossModule module) => SpreadTargets.AddRange(module.Raid.WithoutSlot(true));
+        public override void Init(BossModule module) => AddSpreads(module.Raid.WithoutSlot(true));
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.OptimizedFire)
-                SpreadTargets.Clear();
+                Spreads.Clear();
         }
     }
 
@@ -225,7 +225,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         }
     }
 
-    class P2PartySynergySpotlight : Components.StackSpread
+    class P2PartySynergySpotlight : Components.UniformStackSpread
     {
         private List<Actor> _stackTargets = new(); // don't show anything until knockbacks are done, to reduce visual clutter
 
@@ -242,10 +242,10 @@ namespace BossMod.Endwalker.Ultimate.TOP
             switch ((AID)spell.Action.ID)
             {
                 case AID.Discharger:
-                    StackTargets = _stackTargets;
+                    AddStacks(_stackTargets);
                     break;
                 case AID.Spotlight:
-                    _stackTargets.RemoveAll(t => t.InstanceID == spell.MainTargetID);
+                    Stacks.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
                     break;
             }
         }

@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     // leap (icons spread) + rage (rest stack)
     // note: we currently don't show stack hints, that happens automatically if mechanic is resolved properly
     // TODO: figure out rage target - it is probably a random non-tank non-spread
-    class P2StrengthOfTheWard2SpreadStack : Components.StackSpread
+    class P2StrengthOfTheWard2SpreadStack : Components.UniformStackSpread
     {
         public bool LeapsDone { get; private set; }
         public bool RageDone { get; private set; }
@@ -32,7 +32,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             base.DrawArenaForeground(module, pcSlot, pc, arena);
 
             // draw safe spots
-            bool pcIsLeapTarget = SpreadTargets.Contains(pc);
+            bool pcIsLeapTarget = IsSpreadTarget(pc);
             if (pcIsLeapTarget && !LeapsDone)
             {
                 // TODO: select single safe spot for a player based on some criterion...
@@ -52,11 +52,11 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 case AID.SkywardLeap:
                     LeapsDone = true;
-                    SpreadTargets.Clear();
+                    Spreads.Clear();
                     break;
                 case AID.DragonsRageAOE:
                     RageDone = true;
-                    StackTargets.Clear();
+                    Stacks.Clear();
                     break;
             }
         }
@@ -64,7 +64,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if ((IconID)iconID == IconID.SkywardLeap)
-                SpreadTargets.Add(actor);
+                AddSpread(actor);
         }
 
         private void DrawSafeSpot(MiniArena arena, Angle dir)

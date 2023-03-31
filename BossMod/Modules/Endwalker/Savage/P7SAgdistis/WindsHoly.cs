@@ -2,7 +2,7 @@
 
 namespace BossMod.Endwalker.Savage.P7SAgdistis
 {
-    class WindsHoly : Components.StackSpread
+    class WindsHoly : Components.UniformStackSpread
     {
         public int NumCasts { get; private set; }
         private List<Actor>[] _futureStacks = { new(), new(), new(), new() };
@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
             {
                 case SID.InviolateWinds1:
                 case SID.PurgatoryWinds1:
-                    SpreadTargets.Add(actor);
+                    AddSpread(actor);
                     break;
                 case SID.InviolateWinds2:
                 case SID.PurgatoryWinds2:
@@ -30,7 +30,7 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
                     break;
                 case SID.HolyBonds1:
                 case SID.HolyPurgation1:
-                    StackTargets.Add(actor);
+                    AddStack(actor);
                     break;
                 case SID.HolyBonds2:
                 case SID.HolyPurgation2:
@@ -49,8 +49,10 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
         {
             if ((AID)spell.Action.ID == AID.HemitheosHolyExpire)
             {
-                StackTargets = _futureStacks[NumCasts];
-                SpreadTargets = _futureSpreads[NumCasts];
+                Stacks.Clear();
+                Spreads.Clear();
+                AddStacks(_futureStacks[NumCasts]);
+                AddSpreads(_futureSpreads[NumCasts]);
                 ++NumCasts;
             }
         }

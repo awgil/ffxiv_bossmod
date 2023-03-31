@@ -6,35 +6,57 @@ namespace BossMod.Components
 {
     // generic 'stack/spread' mechanic has some players that have to spread away from raid, some other players that other players need to stack with
     // there are various variants (e.g. everyone should spread, or everyone should stack in one or more groups, or some combination of that)
-    public class StackSpread : BossComponent
+    public class GenericStackSpread : BossComponent
     {
-        public float StackRadius;
-        public float SpreadRadius;
-        public int MinStackSize;
-        public int MaxStackSize;
-        public bool AlwaysShowSpreads; // if false, we only shown own spread radius for spread targets - this reduces visual clutter
-        public bool RaidwideOnResolve; // by default, assume even if mechanic is correctly resolved everyone will still take damage
-        public bool IncludeDeadTargets; // by default, mechanics can't target dead players
-        public List<Actor> SpreadTargets = new();
-        public List<Actor> StackTargets = new();
-        public List<Actor> AvoidTargets = new(); // players that should not participate in the mechanic (i.e. avoid all stacks and spreads)
-        public DateTime ActivateAt;
-
-        public bool Active => SpreadTargets.Count + StackTargets.Count > 0;
-        public IEnumerable<Actor> ActiveSpreadTargets => ActiveTargets(SpreadTargets);
-        public IEnumerable<Actor> ActiveStackTargets => ActiveTargets(StackTargets);
-        public IEnumerable<Actor> ActiveAvoidTargets => ActiveTargets(AvoidTargets);
-
-        public bool IsSpreadTarget(Actor actor) => SpreadTargets.Contains(actor);
-        public bool IsStackTarget(Actor actor) => StackTargets.Contains(actor);
-        public bool IsAvoidTarget(Actor actor) => AvoidTargets.Contains(actor);
-
-        public StackSpread(float stackRadius, float spreadRadius, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false, bool raidwideOnResolve = true, bool includeDeadTargets = false)
+        public struct Stack
         {
-            StackRadius = stackRadius;
-            SpreadRadius = spreadRadius;
-            MinStackSize = minStackSize;
-            MaxStackSize = maxStackSize;
+            public Actor Target;
+            public float Radius;
+            public int MinSize;
+            public int MaxSize;
+            public DateTime Activation;
+            public BitMask ForbiddenPlayers; // raid members that aren't allowed to participate in the stack
+
+            public Stack(Actor target, float radius, int minSize = 2, int maxSize = int.MaxValue, DateTime activation = default, BitMask forbiddenPlayers = default)
+            {
+                Target = target;
+                Radius = radius;
+                MinSize = minSize;
+                MaxSize = maxSize;
+                Activation = activation;
+                ForbiddenPlayers = forbiddenPlayers;
+            }
+        }
+
+        public struct Spread
+        {
+            public Actor Target;
+            public float Radius;
+            public DateTime Activation;
+
+            public Spread(Actor target, float radius, DateTime activation = default)
+            {
+                Target = target;
+                Radius = radius;
+                Activation = activation;
+            }
+        }
+
+        public bool AlwaysShowSpreads; // if false, we only shown own spread radius for spread targets - this reduces visual clutter
+        public bool RaidwideOnResolve; // if true, assume even if mechanic is correctly resolved everyone will still take damage
+        public bool IncludeDeadTargets; // if false, stacks & spreads with dead targets are ignored
+        public List<Stack> Stacks = new();
+        public List<Spread> Spreads = new();
+
+        public bool Active => Stacks.Count + Spreads.Count > 0;
+        public IEnumerable<Stack> ActiveStacks => IncludeDeadTargets ? Stacks : Stacks.Where(s => !s.Target.IsDead);
+        public IEnumerable<Spread> ActiveSpreads => IncludeDeadTargets ? Spreads : Spreads.Where(s => !s.Target.IsDead);
+
+        public bool IsStackTarget(Actor actor) => Stacks.Any(s => s.Target == actor);
+        public bool IsSpreadTarget(Actor actor) => Spreads.Any(s => s.Target == actor);
+
+        public GenericStackSpread(bool alwaysShowSpreads = false, bool raidwideOnResolve = true, bool includeDeadTargets = false)
+        {
             AlwaysShowSpreads = alwaysShowSpreads;
             RaidwideOnResolve = raidwideOnResolve;
             IncludeDeadTargets = includeDeadTargets;
@@ -42,27 +64,34 @@ namespace BossMod.Components
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (IsAvoidTarget(actor) && Active)
+            if (Spreads.FindIndex(s => s.Target == actor) is var iSpread && iSpread >= 0)
             {
-                hints.Add("GTFO from raid!", ActiveSpreadTargets.InRadiusExcluding(actor, SpreadRadius).Any() || ActiveStackTargets.InRadiusExcluding(actor, StackRadius).Any());
-                return;
+                hints.Add("Spread!", module.Raid.WithoutSlot().InRadiusExcluding(actor, Spreads[iSpread].Radius).Any());
+            }
+            else if (Stacks.FindIndex(s => s.Target == actor) is var iStack && iStack >= 0)
+            {
+                var stack = Stacks[iStack];
+                int numStacked = 1; // always stacked with self
+                bool stackedWithOtherStackOrAvoid = false;
+                foreach (var (j, other) in module.Raid.WithSlot().InRadiusExcluding(actor, stack.Radius))
+                {
+                    ++numStacked;
+                    stackedWithOtherStackOrAvoid |= stack.ForbiddenPlayers[j] || IsStackTarget(other);
+                }
+                hints.Add("Stack!", stackedWithOtherStackOrAvoid || numStacked < stack.MinSize || numStacked > stack.MaxSize);
+            }
+            else if (ActiveStacks.Any(s => !s.ForbiddenPlayers[slot]))
+            {
+                hints.Add("Stack!", ActiveStacks.Count(s => !s.ForbiddenPlayers[slot] && actor.Position.InCircle(s.Target.Position, s.Radius)) != 1);
             }
 
-            // check that we're stacked properly
-            bool shouldSpread = IsSpreadTarget(actor);
-            if (!shouldSpread && StackTargets.Count > 0)
-            {
-                hints.Add("Stack!", !IsWellStacked(module, actor));
-            }
-
-            // check that we're spread properly
-            if (shouldSpread)
-            {
-                hints.Add("Spread!", module.Raid.WithoutSlot().InRadiusExcluding(actor, SpreadRadius).Any());
-            }
-            else if (ActiveSpreadTargets.InRadius(actor.Position, SpreadRadius).Any())
+            if (ActiveSpreads.Any(s => s.Target != actor && actor.Position.InCircle(s.Target.Position, s.Radius)))
             {
                 hints.Add("GTFO from spreads!");
+            }
+            else if (ActiveStacks.Any(s => s.Target != actor && s.ForbiddenPlayers[slot] && actor.Position.InCircle(s.Target.Position, s.Radius)))
+            {
+                hints.Add("GTFO from forbidden stacks!");
             }
         }
 
@@ -71,88 +100,104 @@ namespace BossMod.Components
             // forbid standing next to spread markers
             // TODO: think how to improve this, current implementation works, but isn't particularly good - e.g. nearby players tend to move to same spot, turn around, etc.
             // ideally we should provide per-mechanic spread spots, but for simple cases we should try to let melee spread close and healers/rdd spread far from main target...
-            foreach (var spreadFrom in ActiveSpreadTargets.Exclude(actor))
-                hints.AddForbiddenZone(ShapeDistance.Circle(spreadFrom.Position, SpreadRadius), ActivateAt);
+            foreach (var spreadFrom in ActiveSpreads.Where(s => s.Target != actor))
+                hints.AddForbiddenZone(ShapeDistance.Circle(spreadFrom.Target.Position, spreadFrom.Radius), spreadFrom.Activation);
 
-            // if not spreading, deal with stack markers
-            if (!IsSpreadTarget(actor))
+            foreach (var avoid in ActiveStacks.Where(s => s.Target != actor && s.ForbiddenPlayers[slot]))
+                hints.AddForbiddenZone(ShapeDistance.Circle(avoid.Target.Position, avoid.Radius), avoid.Activation);
+
+            if (IsStackTarget(actor))
             {
-                if (IsStackTarget(actor) || IsAvoidTarget(actor))
-                {
-                    // forbid standing next to other stack markers
-                    foreach (var stackWith in ActiveStackTargets.Exclude(actor))
-                        hints.AddForbiddenZone(ShapeDistance.Circle(stackWith.Position, StackRadius), ActivateAt);
-                }
-                else
-                {
-                    // TODO: handle multi stacks better...
-                    var closestStack = ActiveStackTargets.Closest(actor.Position);
-                    if (closestStack != null)
-                        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closestStack.Position, StackRadius), ActivateAt);
-                }
+                // forbid standing next to other stack markers
+                foreach (var stackWith in ActiveStacks.Where(s => s.Target != actor))
+                    hints.AddForbiddenZone(ShapeDistance.Circle(stackWith.Target.Position, stackWith.Radius), stackWith.Activation);
+            }
+            else if (!IsSpreadTarget(actor))
+            {
+                // TODO: handle multi stacks better...
+                var closestStack = ActiveStacks.Where(s => !s.ForbiddenPlayers[slot]).MinBy(s => (s.Target.Position - actor.Position).LengthSq());
+                if (closestStack.Target != null)
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closestStack.Target.Position, closestStack.Radius), closestStack.Activation);
             }
 
-            // assume everyone will take some damage, either from sharing stacks or from spreads
-            if (RaidwideOnResolve && Active)
+            if (RaidwideOnResolve)
             {
-                var damageMask = module.Raid.WithSlot().Mask();
-                foreach (var avoid in AvoidTargets)
-                    damageMask.Clear(module.Raid.FindSlot(avoid.InstanceID));
-                hints.PredictedDamage.Add((damageMask, ActivateAt));
+                DateTime firstActivation = DateTime.MaxValue;
+                BitMask damageMask = new();
+                foreach (var s in ActiveSpreads)
+                {
+                    damageMask.Set(module.Raid.FindSlot(s.Target.InstanceID));
+                    firstActivation = firstActivation < s.Activation ? firstActivation : s.Activation;
+                }
+                foreach (var s in ActiveStacks)
+                {
+                    damageMask |= module.Raid.WithSlot().Mask() & ~s.ForbiddenPlayers; // assume everyone will take damage except forbidden players (so-so assumption really...)
+                    firstActivation = firstActivation < s.Activation ? firstActivation : s.Activation;
+                }
+
+                if (damageMask.Any())
+                    hints.PredictedDamage.Add((damageMask, firstActivation));
             }
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {
-            var shouldAvoid = IsAvoidTarget(player);
+            var shouldSpread = IsSpreadTarget(player);
+            var shouldStack = IsStackTarget(player);
+            var shouldAvoid = !shouldSpread && !shouldStack && ActiveStacks.Any(s => s.ForbiddenPlayers[playerSlot]);
             if (shouldAvoid)
                 customColor = ArenaColor.Vulnerable;
-            return shouldAvoid || IsSpreadTarget(player) ? PlayerPriority.Danger
-                : IsStackTarget(player) ? PlayerPriority.Interesting
+            return shouldAvoid || shouldSpread ? PlayerPriority.Danger
+                : shouldStack ? PlayerPriority.Interesting
                 : Active ? PlayerPriority.Normal : PlayerPriority.Irrelevant;
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (!AlwaysShowSpreads && IsSpreadTarget(pc))
+            if (!AlwaysShowSpreads && Spreads.FindIndex(s => s.Target == pc) is var iSpread && iSpread >= 0)
             {
                 // draw only own circle - no one should be inside, this automatically resolves mechanic for us
-                arena.AddCircle(pc.Position, SpreadRadius, ArenaColor.Danger);
+                arena.AddCircle(pc.Position, Spreads[iSpread].Radius, ArenaColor.Danger);
             }
             else
             {
                 // draw spread and stack circles
-                foreach (var player in ActiveStackTargets)
-                    arena.AddCircle(player.Position, StackRadius, ArenaColor.Safe);
-                foreach (var player in ActiveSpreadTargets)
-                    arena.AddCircle(player.Position, SpreadRadius, ArenaColor.Danger);
+                foreach (var s in ActiveStacks)
+                    arena.AddCircle(s.Target.Position, s.Radius, ArenaColor.Safe);
+                foreach (var s in ActiveSpreads)
+                    arena.AddCircle(s.Target.Position, s.Radius, ArenaColor.Danger);
             }
         }
+    }
 
-        private bool IsWellStacked(BossModule module, Actor actor)
+    // stack/spread with same properties for all stacks and all spreads (most common variant)
+    public class UniformStackSpread : GenericStackSpread
+    {
+        public float StackRadius;
+        public float SpreadRadius;
+        public int MinStackSize;
+        public int MaxStackSize;
+
+        public IEnumerable<Actor> ActiveStackTargets => ActiveStacks.Select(s => s.Target);
+        public IEnumerable<Actor> ActiveSpreadTargets => ActiveSpreads.Select(s => s.Target);
+
+        public UniformStackSpread(float stackRadius, float spreadRadius, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false, bool raidwideOnResolve = true, bool includeDeadTargets = false)
+            : base(alwaysShowSpreads, raidwideOnResolve, includeDeadTargets)
         {
-            if (IsStackTarget(actor))
-            {
-                int numStacked = 1; // always stacked with self
-                bool stackedWithOtherStackOrAvoid = false;
-                foreach (var other in module.Raid.WithoutSlot().InRadiusExcluding(actor, StackRadius))
-                {
-                    ++numStacked;
-                    stackedWithOtherStackOrAvoid |= IsStackTarget(other) || IsAvoidTarget(other);
-                }
-                return !stackedWithOtherStackOrAvoid && numStacked >= MinStackSize && numStacked <= MaxStackSize;
-            }
-            else
-            {
-                return ActiveStackTargets.InRadius(actor.Position, StackRadius).Count() == 1;
-            }
+            StackRadius = stackRadius;
+            SpreadRadius = spreadRadius;
+            MinStackSize = minStackSize;
+            MaxStackSize = maxStackSize;
         }
 
-        private IEnumerable<Actor> ActiveTargets(List<Actor> list) => IncludeDeadTargets ? list : list.Where(a => !a.IsDead);
+        public void AddStack(Actor target, DateTime activation = default, BitMask forbiddenPlayers = default) => Stacks.Add(new(target, StackRadius, MinStackSize, MaxStackSize, activation, forbiddenPlayers));
+        public void AddStacks(IEnumerable<Actor> targets, DateTime activation = default) => Stacks.AddRange(targets.Select(target => new Stack(target, StackRadius, MinStackSize, MaxStackSize, activation)));
+        public void AddSpread(Actor target, DateTime activation = default) => Spreads.Add(new(target, SpreadRadius, activation));
+        public void AddSpreads(IEnumerable<Actor> targets, DateTime activation = default) => Spreads.AddRange(targets.Select(target => new Spread(target, SpreadRadius, activation)));
     }
 
     // spread/stack mechanic that selects targets by casts
-    public class CastStackSpread : StackSpread
+    public class CastStackSpread : UniformStackSpread
     {
         public ActionID StackAction { get; private init; }
         public ActionID SpreadAction { get; private init; }
@@ -168,19 +213,13 @@ namespace BossMod.Components
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (spell.Action == StackAction)
+            if (spell.Action == StackAction && module.WorldState.Actors.Find(spell.TargetID) is var stackTarget && stackTarget != null)
             {
-                if (module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
-                    StackTargets.Add(target);
-                if (ActivateAt < spell.FinishAt)
-                    ActivateAt = spell.FinishAt;
+                AddStack(stackTarget, spell.FinishAt);
             }
-            else if (spell.Action == SpreadAction)
+            else if (spell.Action == SpreadAction && module.WorldState.Actors.Find(spell.TargetID) is var spreadTarget && spreadTarget != null)
             {
-                if (module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
-                    SpreadTargets.Add(target);
-                if (ActivateAt < spell.FinishAt)
-                    ActivateAt = spell.FinishAt;
+                AddSpread(spreadTarget, spell.FinishAt);
             }
         }
 
@@ -188,12 +227,12 @@ namespace BossMod.Components
         {
             if (spell.Action == StackAction)
             {
-                StackTargets.RemoveAll(a => a.InstanceID == spell.TargetID);
+                Stacks.RemoveAll(s => s.Target.InstanceID == spell.TargetID);
                 ++NumFinishedStacks;
             }
             else if (spell.Action == SpreadAction)
             {
-                SpreadTargets.RemoveAll(a => a.InstanceID == spell.TargetID);
+                Spreads.RemoveAll(s => s.Target.InstanceID == spell.TargetID);
                 ++NumFinishedSpreads;
             }
         }

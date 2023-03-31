@@ -57,20 +57,20 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
         }
     }
 
-    class CentaurDiflare : Components.StackSpread
+    class CentaurDiflare : Components.UniformStackSpread
     {
         public CentaurDiflare() : base(6, 0, 4, 4) { }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.ConceptualDiflare)
-                StackTargets.AddRange(module.Raid.WithoutSlot().Where(a => a.Role == Role.Healer));
+                AddStacks(module.Raid.WithoutSlot().Where(a => a.Role == Role.Healer));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.EmergentDiflare)
-                StackTargets.Clear();
+                Stacks.Clear();
         }
     }
 

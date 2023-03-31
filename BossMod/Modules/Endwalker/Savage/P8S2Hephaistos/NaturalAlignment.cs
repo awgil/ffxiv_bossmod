@@ -2,57 +2,54 @@
 
 namespace BossMod.Endwalker.Savage.P8S2
 {
-    class NaturalAlignment : Components.StackSpread
+    class NaturalAlignment : Components.GenericStackSpread
     {
         public enum Mechanic { None, StackSpread, FireIce }
 
+        private BitMask _targets;
         private BitMask _inverse;
         private Mechanic CurMechanic;
         private Actor? CurMechanicSource;
         private bool CurMechanicInverted;
         public int CurMechanicProgress { get; private set; }
 
-        public NaturalAlignment() : base(0, 0, alwaysShowSpreads: true) { }
+        public NaturalAlignment() : base(true) { }
 
         public override void Update(BossModule module)
         {
-            StackTargets.Clear();
-            SpreadTargets.Clear();
+            Stacks.Clear();
+            Spreads.Clear();
             if (CurMechanicProgress >= 2 || CurMechanicSource == null)
                 return;
 
             bool firstPart = CurMechanicProgress == (CurMechanicInverted ? 1 : 0);
-            var potentialTargets = module.Raid.WithoutSlot().Except(AvoidTargets).ToList();
+            var potentialTargets = module.Raid.WithSlot().ExcludedFromMask(_targets).Actors().ToList();
             switch (CurMechanic)
             {
                 case Mechanic.StackSpread:
                     if (firstPart)
                     {
-                        StackRadius = 6;
-                        MinStackSize = MaxStackSize = 6;
                         // no idea how stack target is actually selected, assume it is closest...
                         var stackTarget = potentialTargets.Closest(CurMechanicSource.Position);
                         if (stackTarget != null)
-                            StackTargets.Add(stackTarget);
+                            Stacks.Add(new(stackTarget, 6, 6, 6, default, _targets));
                     }
                     else
                     {
-                        SpreadRadius = 6;
-                        SpreadTargets.AddRange(potentialTargets);
+                        foreach (var target in potentialTargets)
+                            Spreads.Add(new(target, 6));
                     }
                     break;
                 case Mechanic.FireIce:
                     if (firstPart)
                     {
-                        StackRadius = 6;
-                        MinStackSize = MaxStackSize = 2;
-                        StackTargets.AddRange(potentialTargets.SortedByRange(CurMechanicSource.Position).TakeLast(3));
+                        foreach (var target in potentialTargets.SortedByRange(CurMechanicSource.Position).TakeLast(3))
+                            Stacks.Add(new(target, 6, 2, 2));
                     }
                     else
                     {
-                        StackRadius = 5;
-                        MinStackSize = MaxStackSize = 3;
-                        StackTargets.AddRange(potentialTargets.SortedByRange(CurMechanicSource.Position).Take(2));
+                        foreach (var target in potentialTargets.SortedByRange(CurMechanicSource.Position).Take(2))
+                            Stacks.Add(new(target, 5, 3, 3));
                     }
                     break;
             }
@@ -84,7 +81,7 @@ namespace BossMod.Endwalker.Savage.P8S2
                     switch (status.Extra)
                     {
                         case 0x209: // initial application
-                            AvoidTargets.Add(actor);
+                            _targets.Set(module.Raid.FindSlot(actor.InstanceID));
                             break;
                         case 0x1E0: // stack->spread filling progress bars
                         case 0x1E1: // stack->spread empty progress bars

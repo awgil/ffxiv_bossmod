@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
     class NSunderedRemains : SunderedRemains { public NSunderedRemains() : base(AID.NSunderedRemains) { } }
     class SSunderedRemains : SunderedRemains { public SSunderedRemains() : base(AID.SSunderedRemains) { } }
 
-    class ScreamOfTheFallen : Components.StackSpread
+    class ScreamOfTheFallen : Components.UniformStackSpread
     {
         public int NumCasts { get; private set; }
         private BitMask _second;
@@ -40,7 +40,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
             switch ((SID)status.ID)
             {
                 case SID.FirstInLine:
-                    SpreadTargets.Add(actor);
+                    AddSpread(actor);
                     break;
                 case SID.SecondInLine:
                     _second.Set(module.Raid.FindSlot(actor.InstanceID));
@@ -61,11 +61,11 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
                 switch (++NumCasts)
                 {
                     case 2:
-                        SpreadTargets.Clear();
-                        SpreadTargets.AddRange(module.Raid.WithSlot().IncludedInMask(_second).Actors());
+                        Spreads.Clear();
+                        AddSpreads(module.Raid.WithSlot().IncludedInMask(_second).Actors());
                         break;
                     case 4:
-                        SpreadTargets.Clear();
+                        Spreads.Clear();
                         break;
                 }
             }

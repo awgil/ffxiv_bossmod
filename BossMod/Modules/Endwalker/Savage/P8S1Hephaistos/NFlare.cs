@@ -3,7 +3,7 @@
 namespace BossMod.Endwalker.Savage.P8S1Hephaistos
 {
     // component dealing with tetra/octaflare mechanics (conceptual or not)
-    class TetraOctaFlareCommon : Components.StackSpread
+    class TetraOctaFlareCommon : Components.UniformStackSpread
     {
         public enum Concept { None, Tetra, Octa }
 
@@ -13,8 +13,8 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
         {
             if ((AID)spell.Action.ID is AID.EmergentOctaflare or AID.EmergentTetraflare)
             {
-                StackTargets.Clear();
-                SpreadTargets.Clear();
+                Stacks.Clear();
+                Spreads.Clear();
             }
         }
 
@@ -24,10 +24,10 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
             {
                 case Concept.Tetra:
                     // note that targets are either all dps or all tanks/healers, it seems to be unknown until actual cast, so for simplicity assume it will target tanks/healers (not that it matters much in practice)
-                    StackTargets.AddRange(module.Raid.WithoutSlot().Where(a => a.Role is Role.Tank or Role.Healer));
+                    AddStacks(module.Raid.WithoutSlot().Where(a => a.Role is Role.Tank or Role.Healer));
                     break;
                 case Concept.Octa:
-                    SpreadTargets.AddRange(module.Raid.WithoutSlot());
+                    AddSpreads(module.Raid.WithoutSlot());
                     break;
             }
         }

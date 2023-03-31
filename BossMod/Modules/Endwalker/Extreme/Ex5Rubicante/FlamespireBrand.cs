@@ -3,23 +3,23 @@ using System.Collections.Generic;
 
 namespace BossMod.Endwalker.Extreme.Ex5Rubicante
 {
-    class Welts : Components.StackSpread
+    class Welts : Components.GenericStackSpread
     {
         public enum Mechanic { StackFlare, Spreads, Done }
 
         public Mechanic NextMechanic;
 
-        public Welts() : base(6, 15, 4, 4, true) { } // TODO: verify flare falloff
+        public Welts() : base(true) { }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
             switch ((SID)status.ID)
             {
                 case SID.BloomingWelt:
-                    SpreadTargets.Add(actor);
+                    Spreads.Add(new(actor, 15));
                     break;
                 case SID.FuriousWelt:
-                    StackTargets.Add(actor);
+                    Stacks.Add(new(actor, 6, 4, 4)); // TODO: verify flare falloff
                     break;
             }
         }
@@ -30,14 +30,14 @@ namespace BossMod.Endwalker.Extreme.Ex5Rubicante
             {
                 case AID.FuriousWelt:
                     NextMechanic = Mechanic.Spreads;
-                    StackTargets.Clear();
-                    SpreadTargets.Clear();
-                    SpreadTargets.AddRange(module.Raid.WithoutSlot());
-                    SpreadRadius = 6;
+                    Stacks.Clear();
+                    Spreads.Clear();
+                    foreach (var t in module.Raid.WithoutSlot())
+                        Spreads.Add(new(t, 6));
                     break;
                 case AID.StingingWelt:
                     NextMechanic = Mechanic.Done;
-                    SpreadTargets.Clear();
+                    Spreads.Clear();
                     break;
             }
         }

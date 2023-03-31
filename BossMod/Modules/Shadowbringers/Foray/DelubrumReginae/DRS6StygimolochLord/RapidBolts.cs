@@ -4,14 +4,14 @@ using System.Linq;
 namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6StygimolochLord
 {
     // TODO: generalize to 'baited puddles' component
-    class RapidBoltsBait : Components.StackSpread
+    class RapidBoltsBait : Components.UniformStackSpread
     {
         public RapidBoltsBait() : base(0, 5, alwaysShowSpreads: true) { }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.RapidBolts)
-                SpreadTargets.Add(actor);
+                AddSpread(actor);
         }
     }
 

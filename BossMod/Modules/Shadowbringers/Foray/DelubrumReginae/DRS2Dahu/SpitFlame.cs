@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2Dahu
 {
-    class SpitFlame : Components.StackSpread
+    class SpitFlame : Components.UniformStackSpread
     {
+        private Actor?[] _targets = { null, null, null, null };
         private List<Actor> _adds = new();
 
         public SpitFlame() : base(0, 4, alwaysShowSpreads: true, raidwideOnResolve: false) { }
@@ -17,9 +19,9 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2Dahu
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             base.AddHints(module, slot, actor, hints, movementHints);
-            if (SpreadTargets.IndexOf(actor) is var order && order >= 0)
+            if (Array.IndexOf(_targets, actor) is var order && order >= 0)
             {
-                hints.Add($"Order: {order}", false);
+                hints.Add($"Order: {order + 1}", false);
                 if (!_adds.Any(add => add.Position.InCircle(actor.Position, SpreadRadius)))
                     hints.Add("Hit at least one add!");
             }
@@ -33,14 +35,25 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2Dahu
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
-            if ((IconID)iconID is IconID.SpitFlame1 or IconID.SpitFlame2 or IconID.SpitFlame3 or IconID.SpitFlame4)
-                SpreadTargets.Add(actor);
+            var order = (IconID)iconID switch
+            {
+                IconID.SpitFlame1 => 1,
+                IconID.SpitFlame2 => 2,
+                IconID.SpitFlame3 => 3,
+                IconID.SpitFlame4 => 4,
+                _ => 0
+            };
+            if (order > 0)
+            {
+                AddSpread(actor);
+                _targets[order - 1] = actor;
+            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.SpitFlameAOE)
-                SpreadTargets.RemoveAll(a => a.InstanceID == spell.MainTargetID);
+                Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
         }
     }
 }

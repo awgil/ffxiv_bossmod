@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P8S2
 {
-    class Dominion : Components.StackSpread
+    class Dominion : Components.UniformStackSpread
     {
         public int NumDeformations { get; private set; }
         public int NumShifts { get; private set; }
@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Savage.P8S2
 
         public override void Init(BossModule module)
         {
-            SpreadTargets.AddRange(module.Raid.WithoutSlot());
+            AddSpreads(module.Raid.WithoutSlot());
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
@@ -58,7 +58,7 @@ namespace BossMod.Endwalker.Savage.P8S2
         {
             if ((AID)spell.Action.ID == AID.OrogenicDeformation)
             {
-                SpreadTargets.Clear();
+                Spreads.Clear();
                 _secondOrder.Set(module.Raid.FindSlot(spell.MainTargetID));
                 ++NumDeformations;
             }

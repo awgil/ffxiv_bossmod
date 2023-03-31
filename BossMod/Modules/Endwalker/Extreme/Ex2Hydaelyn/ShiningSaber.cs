@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
     // state related to shining saber mechanic (shared damage)
-    class ShiningSaber : Components.StackSpread
+    class ShiningSaber : Components.UniformStackSpread
     {
         public ShiningSaber() : base(6, 0, 8) { }
 
@@ -9,9 +9,9 @@
         {
             if (module.PrimaryActor.CastInfo != null)
             {
-                StackTargets.Clear();
+                Stacks.Clear();
                 if (module.WorldState.Actors.Find(module.PrimaryActor.TargetID) is var target && target != null)
-                    StackTargets.Add(target);
+                    AddStack(target);
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace BossMod.Stormblood.Ultimate.UWU
 {
@@ -10,7 +11,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
     }
 
     // TODO: if aetheroplasm target is the same as homing laser target, assume it is being soaked solo; consider merging these two components
-    class P4ViscousAetheroplasmResolve : Components.StackSpread
+    class P4ViscousAetheroplasmResolve : Components.UniformStackSpread
     {
         public P4ViscousAetheroplasmResolve() : base(4, 0, 7) { }
 
@@ -19,10 +20,10 @@ namespace BossMod.Stormblood.Ultimate.UWU
             if ((AID)spell.Action.ID == AID.HomingLasers)
             {
                 // update avoid target to homing laser target
-                AvoidTargets.Clear();
-                var target = module.WorldState.Actors.Find(spell.TargetID);
-                if (target != null)
-                    AvoidTargets.Add(target);
+                BitMask avoid = new();
+                avoid.Set(module.Raid.FindSlot(spell.TargetID));
+                foreach (ref var s in Stacks.AsSpan())
+                    s.ForbiddenPlayers = avoid;
             }
         }
 
@@ -33,20 +34,20 @@ namespace BossMod.Stormblood.Ultimate.UWU
                 case AID.ViscousAetheroplasmApply:
                     var target = module.WorldState.Actors.Find(spell.MainTargetID);
                     if (target != null)
-                        StackTargets.Add(target);
-                    AvoidTargets.AddRange(module.Raid.WithoutSlot(true).Where(a => a.InstanceID != spell.MainTargetID && a.Role == Role.Tank));
+                        AddStack(target, default, module.Raid.WithSlot(true).WhereActor(a => a.InstanceID != spell.MainTargetID && a.Role == Role.Tank).Mask());
                     break;
                 case AID.ViscousAetheroplasmResolve:
-                    StackTargets.Clear();
+                    Stacks.Clear();
                     break;
                 case AID.HomingLasers:
-                    AvoidTargets.Clear();
+                    foreach (ref var s in Stacks.AsSpan())
+                        s.ForbiddenPlayers.Reset();
                     break;
             }
         }
     }
 
-    class P5ViscousAetheroplasmTriple : Components.StackSpread
+    class P5ViscousAetheroplasmTriple : Components.UniformStackSpread
     {
         public int NumCasts { get; private set; }
         private List<(Actor target, DateTime resolve)> _aetheroplasms = new();
@@ -75,12 +76,9 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         private void UpdateStackTargets()
         {
-            StackTargets.Clear();
+            Stacks.Clear();
             if (_aetheroplasms.Count > 0)
-            {
-                StackTargets.Add(_aetheroplasms[0].target);
-                ActivateAt = _aetheroplasms[0].resolve;
-            }
+                AddStack(_aetheroplasms[0].target, _aetheroplasms[0].resolve);
         }
     }
 }

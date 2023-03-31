@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P6SHegemone
 {
-    class Agonies : Components.StackSpread
+    class Agonies : Components.UniformStackSpread
     {
         public Agonies() : base(6, 15, 3) { }
 
@@ -12,13 +12,13 @@
                 case AID.AgoniesDarkburst2:
                 case AID.AgoniesDarkburst3:
                     if (module.WorldState.Actors.Find(spell.TargetID) is var spreadTarget && spreadTarget != null)
-                        SpreadTargets.Add(spreadTarget);
+                        AddSpread(spreadTarget);
                     break;
                 case AID.AgoniesUnholyDarkness1:
                 case AID.AgoniesUnholyDarkness2:
                 case AID.AgoniesUnholyDarkness3:
                     if (module.WorldState.Actors.Find(spell.TargetID) is var stackTarget && stackTarget != null)
-                        StackTargets.Add(stackTarget);
+                        AddStack(stackTarget);
                     break;
                 case AID.AgoniesDarkPerimeter1:
                 case AID.AgoniesDarkPerimeter2:
@@ -34,12 +34,12 @@
                 case AID.AgoniesDarkburst1:
                 case AID.AgoniesDarkburst2:
                 case AID.AgoniesDarkburst3:
-                    SpreadTargets.RemoveAll(a => a.InstanceID == spell.TargetID);
+                    Spreads.RemoveAll(s => s.Target.InstanceID == spell.TargetID);
                     break;
                 case AID.AgoniesUnholyDarkness1:
                 case AID.AgoniesUnholyDarkness2:
                 case AID.AgoniesUnholyDarkness3:
-                    StackTargets.RemoveAll(a => a.InstanceID == spell.TargetID);
+                    Stacks.RemoveAll(s => s.Target.InstanceID == spell.TargetID);
                     break;
                 case AID.AgoniesDarkPerimeter1:
                 case AID.AgoniesDarkPerimeter2:

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
 {
-    class CurseOfTheFallen : Components.StackSpread
+    class CurseOfTheFallen : Components.UniformStackSpread
     {
         private List<Actor> _fallen = new();
         private Actor? _thunderous;
-        private Actor? _lingering;
+        private BitMask _lingering;
         private DateTime _spreadResolve;
         private DateTime _stackResolve;
         private bool _dirty;
@@ -20,21 +20,16 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
             {
                 _dirty = false;
 
-                SpreadTargets.Clear();
-                StackTargets.Clear();
-                AvoidTargets.Clear();
+                Spreads.Clear();
+                Stacks.Clear();
 
                 if (_fallen.Count > 0 && (_thunderous == null || _spreadResolve < _stackResolve))
                 {
-                    SpreadTargets.AddRange(_fallen);
-                    ActivateAt = _spreadResolve;
+                    AddSpreads(_fallen, _spreadResolve);
                 }
                 else if (_thunderous != null && (_fallen.Count == 0 || _stackResolve < _spreadResolve))
                 {
-                    StackTargets.Add(_thunderous);
-                    if (_lingering != null)
-                        AvoidTargets.Add(_lingering);
-                    ActivateAt = _stackResolve;
+                    AddStack(_thunderous, _stackResolve, _lingering);
                 }
             }
         }
@@ -54,7 +49,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
                     _dirty = true;
                     break;
                 case SID.LingeringEchoes:
-                    _lingering = actor;
+                    _lingering.Set(module.Raid.FindSlot(actor.InstanceID));
                     _dirty = true;
                     break;
             }
@@ -76,7 +71,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
                     break;
                 case AID.NLingeringEcho:
                 case AID.SLingeringEcho:
-                    _lingering = null;
+                    _lingering.Reset();
                     _dirty = true;
                     break;
             }

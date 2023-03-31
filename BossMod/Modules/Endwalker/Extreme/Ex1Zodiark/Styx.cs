@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex1Zodiark
 {
-    class Styx : Components.StackSpread
+    class Styx : Components.UniformStackSpread
     {
         public int NumCasts { get; private set; }
 
@@ -15,7 +15,7 @@
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Styx)
-                StackTargets.Add(actor);
+                AddStack(actor);
         }
     }
 }
