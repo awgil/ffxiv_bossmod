@@ -32,6 +32,8 @@ namespace BossMod.Components
         private List<(WPos pos, DateTime time)> _predictedByEvent = new();
         private List<(Actor caster, DateTime time)> _predictedByCast = new();
 
+        public bool HaveCasters => _predictedByCast.Count > 0;
+
         public PersistentVoidzoneAtCastTarget(float radius, ActionID aid, Func<BossModule, IEnumerable<Actor>> sources, float castEventToSpawn) : base(aid, "GTFO from voidzone!")
         {
             Shape = new(radius);

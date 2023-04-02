@@ -1,4 +1,6 @@
-﻿namespace BossMod.Shadowbringers.Ultimate.TEA
+﻿using System.Linq;
+
+namespace BossMod.Shadowbringers.Ultimate.TEA
 {
     class TEAStates : StateMachineBuilder
     {
@@ -186,7 +188,10 @@
             P2Intermission(id);
             P2WhirlwindDebuffs(id + 0x10000, 5.2f);
             P2ChakramOpticalSightPhoton(id + 0x20000, 6);
-            P2SpinCrusher(id + 0x30000, 7.2f);
+            P2SpinCrusherCompressedWaterLightning(id + 0x30000, 7.2f);
+            P2MissileCommand(id + 0x40000, 4.3f);
+            P2VerdictGavel(id + 0x50000, 1.4f);
+            // TODO: tankbusters > jumps + ray > whirlwind x2 > enrage
             SimpleState(id + 0xFF0000, 10000, "???");
         }
 
@@ -213,14 +218,17 @@
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
         }
 
+        // keeps nisi component active
         private void P2WhirlwindDebuffs(uint id, float delay)
         {
             ActorCastStart(id, _module.CruiseChaser, AID.Whirlwind, delay);
             ActorCastStart(id + 1, _module.BruteJustice, AID.JudgmentNisi, 3);
             ActorCastEnd(id + 2, _module.CruiseChaser, 1, false, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide);
-            ActorCastEnd(id + 3, _module.BruteJustice, 3, false, "Nisi");
-            ActorCast(id + 0x10, _module.BruteJustice, AID.LinkUp, 3.2f, 3, false, "Debuffs");
+            ActorCastEnd(id + 3, _module.BruteJustice, 3, false, "Nisi")
+                .ActivateOnEnter<P2Nisi>(); // debuffs are applied ~0.8s after cast end
+            ActorCast(id + 0x10, _module.BruteJustice, AID.LinkUp, 3.2f, 3, false, "Debuffs")
+                .ActivateOnEnter<P2CompressedWaterLightning>(); // debuffs & icons are applied ~0.8s after cast end
         }
 
         private void P2ChakramOpticalSightPhoton(uint id, float delay)
@@ -231,19 +239,81 @@
             ComponentCondition<P2EyeOfTheChakram>(id + 2, 0.9f, comp => comp.NumCasts > 0, "Chakrams")
                 .ActivateOnEnter<P2HawkBlasterOpticalSight>()
                 .DeactivateOnExit<P2EyeOfTheChakram>();
-            ActorCastStart(id + 0x10, _module.CruiseChaser, AID.Photon, 3.2f);
+            ActorCastStart(id + 0x10, _module.CruiseChaser, AID.Photon, 3.3f);
             ComponentCondition<P2HawkBlasterOpticalSight>(id + 0x11, 1.1f, comp => comp.NumCasts > 0, "Puddles")
                 .DeactivateOnExit<P2HawkBlasterOpticalSight>();
             ActorCastEnd(id + 0x12, _module.CruiseChaser, 1.9f, false, "Photon")
+                .OnEnter(() => Module.FindComponent<P2Nisi>()!.ShowPassHint = 1) // first nisi pass should happen around photon cast end
+                .OnExit(() => Module.FindComponent<P2CompressedWaterLightning>()!.ResolveImminent = true) // should start moving to debuff stacks after nisi pass
                 .SetHint(StateMachine.StateHint.Raidwide);
-            // TODO: start showing first nisi pass here...
         }
 
-        private void P2SpinCrusher(uint id, float delay)
+        // keeps tornado component active
+        private void P2SpinCrusherCompressedWaterLightning(uint id, float delay)
         {
             ActorCast(id, _module.CruiseChaser, AID.SpinCrusher, delay, 3, false, "Baited cleave")
                 .ActivateOnEnter<P2SpinCrusher>()
                 .DeactivateOnExit<P2SpinCrusher>();
+            ComponentCondition<P2CompressedWaterLightning>(id + 0x10, 4.6f, comp => !comp.ResolveImminent, "Water/lightning 1")
+                .ActivateOnEnter<P2Drainage>(); // tornado spawns ~1s after resolve
+            // +0.6s: vulns applied to previous stack targets
+            // +0.7s: icons/debuffs applied to next stack targets
+            // +0.8s: first sets of nisis expire
+        }
+
+        private void P2MissileCommand(uint id, float delay)
+        {
+            ActorCast(id, _module.BruteJustice, AID.MissileCommand, delay, 3);
+            ComponentCondition<P2EarthMissileBaited>(id + 0x10, 1.1f, comp => comp.HaveCasters, "Bait missiles")
+                .ActivateOnEnter<P2EarthMissileBaited>();
+            ComponentCondition<P2Enumeration>(id + 0x20, 2.0f, comp => comp.Active)
+                .ActivateOnEnter<P2Enumeration>();
+            ComponentCondition<P2HiddenMinefield>(id + 0x30, 0.1f, comp => comp.Casters.Count > 0)
+                .ActivateOnEnter<P2HiddenMinefield>();
+            ComponentCondition<P2EarthMissileBaited>(id + 0x40, 1.0f, comp => !comp.HaveCasters); // voidzones appear at cast positions with a slight delay
+            ComponentCondition<P2HiddenMinefield>(id + 0x50, 2.0f, comp => comp.Casters.Count == 0);
+            ComponentCondition<P2Enumeration>(id + 0x60, 2.1f, comp => !comp.Active, "Enumerations + Ice")
+                .ActivateOnEnter<P2EarthMissileIce>()
+                .DeactivateOnExit<P2Enumeration>();
+            ComponentCondition<P2EarthMissileIce>(id + 0x70, 0.8f, comp => comp.Sources(Module).Any());
+            // +4.0s: ice voidzone grows
+            // +5.6s: gelid gaol spawns where tornado is (assuming it is in ice voidzone)
+            // +6.3s: tornado is destroyed
+            // +6.3s: if any mine is not soaked, they explode now
+            // +6.8s: smaller ice voidzone disappears (eventstate 7)
+            // +7.7s: fire voidzones disappear (eventstate 7)
+            ComponentCondition<P2EarthMissileIce>(id + 0x80, 9.8f, comp => !comp.Sources(Module).Any(), "Voidzones disappear")
+                .OnEnter(() => Module.FindComponent<P2Nisi>()!.ShowPassHint = 2) // second nisi pass should happen after enumerations are resolved
+                .OnEnter(() => Module.FindComponent<P2CompressedWaterLightning>()!.ResolveImminent = true) // should start moving to debuff stacks after nisi pass
+                .DeactivateOnExit<P2Drainage>()
+                .DeactivateOnExit<P2EarthMissileBaited>()
+                .DeactivateOnExit<P2HiddenMinefield>()
+                .DeactivateOnExit<P2EarthMissileIce>();
+        }
+
+        private void P2VerdictGavel(uint id, float delay)
+        {
+            ActorCastStart(id, _module.BruteJustice, AID.Verdict, delay);
+            ComponentCondition<P2CompressedWaterLightning>(id + 0x10, 2.2f, comp => !comp.ResolveImminent, "Water/lightning 2")
+                .ActivateOnEnter<P2Drainage>();
+            ActorCastEnd(id + 0x20, _module.BruteJustice, 1.8f); // judgment debuffs appear ~0.8s after cast end
+
+            ActorCast(id + 0x100, _module.CruiseChaser, AID.LimitCut, 3.2f, 2, false, "CC invuln") // note: BJ starts flarethrower cast together with CC; invuln is applied ~0.6s after cast end
+                .ActivateOnEnter<P2Flarethrower>();
+            ActorCastEnd(id + 0x102, _module.BruteJustice, 1.9f)
+                .ActivateOnEnter<P2PlasmaShield>();
+            ComponentCondition<P2Flarethrower>(id + 0x103, 0.3f, comp => comp.NumCasts > 0, "Baited flamethrower")
+                .DeactivateOnExit<P2Flarethrower>() // note: tornado is normally destroyed by a flarethrower, failing to do that will cause tornado to wipe the raid later
+                .OnExit(() => Module.FindComponent<P2Nisi>()!.ShowPassHint = 3) // third nisi pass should happen after flarethrower bait
+                .OnExit(() => Module.FindComponent<P2CompressedWaterLightning>()!.ResolveImminent = true); // resolve stacks after nisi pass
+            ActorCast(id + 0x110, _module.CruiseChaser, AID.Whirlwind, 8.0f, 4, false, "Raidwide")
+                .DeactivateOnExit<P2PlasmaShield>() // it's a wipe if shield is not dealth with in time
+                .SetHint(StateMachine.StateHint.Raidwide);
+
+            ComponentCondition<P2CompressedWaterLightning>(id + 0x200, 8.7f, comp => !comp.ResolveImminent, "Water/lightning 3")
+                .DeactivateOnExit<P2CompressedWaterLightning>()
+                .OnExit(() => Module.FindComponent<P2Nisi>()!.ShowPassHint = 4); // fourth nisi pass should happen after last stacks, while resolving propeller wind
+            // TODO: propeller wind & 4th nisi pass > gavel
         }
     }
 }

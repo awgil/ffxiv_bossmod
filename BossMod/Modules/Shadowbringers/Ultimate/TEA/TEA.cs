@@ -25,7 +25,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
 
     class P1Drainage : Components.TankbusterTether
     {
-        public P1Drainage() : base(ActionID.MakeSpell(AID.Drainage), (uint)TetherID.Drainage, 6) { }
+        public P1Drainage() : base(ActionID.MakeSpell(AID.DrainageP1), (uint)TetherID.Drainage, 6) { }
     }
 
     class P2JKick : Components.CastCounter
@@ -46,6 +46,11 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
     class P2SpinCrusher : Components.SelfTargetedAOEs
     {
         public P2SpinCrusher() : base(ActionID.MakeSpell(AID.SpinCrusher), new AOEShapeCone(10, 45.Degrees())) { }
+    }
+
+    class P2Drainage : Components.PersistentVoidzone
+    {
+        public P2Drainage() : base(8, m => m.Enemies(OID.LiquidRage)) { } // TODO: verify distance
     }
 
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1)]
