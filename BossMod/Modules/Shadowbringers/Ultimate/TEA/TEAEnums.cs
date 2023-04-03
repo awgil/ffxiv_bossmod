@@ -7,6 +7,7 @@
         LiquidRage = 0x2C49, // R4.000, spawn during fight (tornado in P1 and P2)
         JagdDoll = 0x2C4A, // R0.800, spawn during fight
         Embolus = 0x2C4B, // R1.000, spawn during fight
+        VoidzoneLiquidRage = 0x1E9998, // R0.500, EventObj type, spawn during fight together with LiquidRage
 
         BruteJustice = 0x2C4C, // R5.400, x1
         CruiseChaser = 0x2C4E, // R4.998, x1
@@ -28,7 +29,6 @@
 
         //_Gen_Actor1EA1A1 = 0x1EA1A1, // R0.500-2.000, x8, EventObj type
         //_Gen_Actor1E8536 = 0x1E8536, // R0.500-2.000, x1, EventObj type
-        //_Gen_Actor1E9998 = 0x1E9998, // R0.500, EventObj type, spawn during fight together with LiquidRage
     };
 
     public enum AID : uint

@@ -21,6 +21,12 @@ namespace BossMod.PlanTarget
         public override Actor? Select(BossModule module, int playerSlot, Actor player) => module.PrimaryActor;
     }
 
+    // useful for tank buddy saves
+    public class CoTank : ISelector
+    {
+        public override Actor? Select(BossModule module, int playerSlot, Actor player) => module.Raid.WithoutSlot(true).FirstOrDefault(a => a != player && a.Role == Role.Tank);
+    }
+
     public class EnemyByOID : ISelector
     {
         public uint OID;
