@@ -27,7 +27,7 @@ namespace BossMod.DRG
 
         // oGCDs
         Jump = 92, // L30, instant, 30.0s CD (group 4), range 20, single-target 0/0, targets=hostile, animLock=0.800s
-        HighJump = 16478, // L74, instant, 30.0s CD (group 8), range 20, single-target 0/0, targets=hostile, animLock=???
+        HighJump = 16478, // L74, instant, 30.0s CD (group 8), range 20, single-target 0/0, targets=hostile, animLock=0.800s
         SpineshatterDive = 95, // L45, instant, 60.0s CD (group 19), range 20, single-target 0/0, targets=hostile, animLock=0.800s
         DragonfireDive = 96, // L50, instant, 120.0s CD (group 20), range 20, AOE circle 5/0, targets=hostile, animLock=0.800s
         Geirskogul = 3555, // L60, instant, 30.0s CD (group 7), range 15, AOE rect 15/4, targets=hostile
