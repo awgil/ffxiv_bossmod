@@ -4,7 +4,7 @@
   "InternalName": "BossMod",
   "Punchline": "Don't fail at raid mechanics anymore",
   "Description": "A bunch of utilities to simplify bosses. Currently supports endwalker content. ***very early alpha, use at your own risk***",
-  "ApplicableVersion": "2023.02.28.0000.0000",
+  "ApplicableVersion": "2023.03.24.0000.0000",
   "RepoUrl": "https://github.com/awgil/ffxiv_bossmod",
   "IconUrl": "https://raw.githubusercontent.com/awgil/ffxiv_bossmod/f4efcb5dc279d21ee16185d5a9f2d09a3a2bc58b/Data/icon.png",
   "ImageUrls": [
