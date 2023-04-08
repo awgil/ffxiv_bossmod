@@ -9,6 +9,7 @@
             public float LifeOfTheDragonLeft; // 20 max
             public float FangAndClawBaredLeft; // 30 max
             public float WheelInMotionLeft; // 30 max
+            public float DraconianFireLeft; // 30 max
             public float DiveReadyLeft; // 15 max
             public float PowerSurgeLeft; // 30 max
             public float LanceChargeLeft; // 20 max
@@ -20,6 +21,10 @@
             public AID BestHeavensThrust => Unlocked(AID.HeavensThrust) ? AID.HeavensThrust : AID.FullThrust;
             public AID BestChaoticSpring => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : AID.ChaosThrust;
             public AID BestJump => Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump;
+            // proc replacements
+            public AID BestGeirskogul => LifeOfTheDragonLeft > AnimationLock ? AID.Nastrond : AID.Geirskogul;
+            public AID BestTrueThrust => DraconianFireLeft > GCD ? AID.RaidenThrust : AID.TrueThrust;
+            public AID BestDoomSpike => DraconianFireLeft > GCD && Unlocked(AID.DraconianFury) ? AID.DraconianFury : AID.DoomSpike;
 
             public AID ComboLastMove => (AID)ComboLastAction;
 
@@ -30,7 +35,7 @@
 
             public override string ToString()
             {
-                return $"LotD={EyeCount}/{LifeOfTheDragonLeft:f3}, ComboEx={FangAndClawBaredLeft:f3}/{WheelInMotionLeft:f3}, Dive={DiveReadyLeft:f3}, RB={RaidBuffsLeft:f3}, PS={PowerSurgeLeft:f3}, LC={LanceChargeLeft:f3}, Eye={RightEyeLeft:f3}, TN={TrueNorthLeft:f3}, CT={TargetChaosThrustLeft:f3}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                return $"LotD={EyeCount}/{LifeOfTheDragonLeft:f3}, ComboEx={FangAndClawBaredLeft:f3}/{WheelInMotionLeft:f3}, DFire={DraconianFireLeft:f3}, Dive={DiveReadyLeft:f3}, RB={RaidBuffsLeft:f3}, PS={PowerSurgeLeft:f3}, LC={LanceChargeLeft:f3}, Eye={RightEyeLeft:f3}, TN={TrueNorthLeft:f3}, CT={TargetChaosThrustLeft:f3}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -99,7 +104,7 @@
             {
                 // for aoe rotation, just use LS on last unlocked combo action
                 return state.Unlocked(AID.CoerthanTorment) ? state.ComboLastMove == AID.SonicThrust
-                    : state.Unlocked(AID.SonicThrust) ? state.ComboLastMove == AID.DoomSpike
+                    : state.Unlocked(AID.SonicThrust) ? state.ComboLastMove is AID.DoomSpike or AID.DraconianFury
                     : true;
             }
 
@@ -131,7 +136,7 @@
                     return (Positional.Rear, true);
                 var buffingCombo = state.ComboLastMove switch
                 {
-                    AID.TrueThrust => UseBuffingCombo(state, strategy, false),
+                    AID.TrueThrust or AID.RaidenThrust => UseBuffingCombo(state, strategy, false),
                     AID.VorpalThrust => false,
                     AID.Disembowel => true,
                     _ => UseBuffingCombo(state, strategy, true)
@@ -151,14 +156,13 @@
 
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
-            // TODO: L76+
             if (strategy.UseAOERotation)
             {
                 return state.ComboLastMove switch
                 {
-                    AID.DoomSpike => state.Unlocked(AID.SonicThrust) ? AID.SonicThrust : AID.DoomSpike,
+                    AID.DoomSpike or AID.DraconianFury => state.Unlocked(AID.SonicThrust) ? AID.SonicThrust : AID.DoomSpike,
                     AID.SonicThrust => state.Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : AID.DoomSpike,
-                    _ => AID.DoomSpike
+                    _ => state.BestDoomSpike
                 };
             }
             else
@@ -169,10 +173,10 @@
                     return AID.WheelingThrust;
                 return state.ComboLastMove switch
                 {
-                    AID.TrueThrust => UseBuffingCombo(state, strategy, false) ? AID.Disembowel : state.Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust,
-                    AID.VorpalThrust => state.Unlocked(AID.FullThrust) ? AID.FullThrust : AID.TrueThrust,
-                    AID.Disembowel => state.Unlocked(AID.ChaosThrust) ? AID.ChaosThrust : AID.TrueThrust,
-                    _ => AID.TrueThrust
+                    AID.TrueThrust or AID.RaidenThrust => UseBuffingCombo(state, strategy, false) ? AID.Disembowel : state.Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust,
+                    AID.VorpalThrust => state.Unlocked(AID.FullThrust) ? state.BestHeavensThrust : AID.TrueThrust,
+                    AID.Disembowel => state.Unlocked(AID.ChaosThrust) ? state.BestChaoticSpring : AID.TrueThrust,
+                    _ => state.BestTrueThrust
                 };
             }
         }
@@ -191,7 +195,7 @@
                 return ActionID.MakeSpell(AID.DragonSight);
             if (state.Unlocked(AID.BattleLitany) && state.CanWeave(CDGroup.BattleLitany, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.BattleLitany);
-            if (state.LifeOfTheDragonLeft > 0 && state.CanWeave(CDGroup.Nastrond, 0.6f, deadline))
+            if (state.LifeOfTheDragonLeft > state.AnimationLock && state.CanWeave(CDGroup.Nastrond, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Nastrond);
             if (state.Unlocked(AID.Geirskogul) && state.CanWeave(CDGroup.Geirskogul, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Geirskogul);

@@ -17,12 +17,12 @@ namespace BossMod.DRG
         ChaoticSpring = 25772, // L86, instant, range 3, single-target 0/0, targets=hostile, animLock=???
         FangAndClaw = 3554, // L56, instant, range 3, single-target 0/0, targets=hostile
         WheelingThrust = 3556, // L58, instant, range 3, single-target 0/0, targets=hostile
-        RaidenThrust = 16479, // L76, instant, range 3, single-target 0/0, targets=hostile, animLock=???
+        RaidenThrust = 16479, // L76, instant, range 3, single-target 0/0, targets=hostile
 
         // aoe GCDs
         DoomSpike = 86, // L40, instant, range 10, AOE rect 10/4, targets=hostile
         SonicThrust = 7397, // L62, instant, range 10, AOE rect 10/4, targets=hostile
-        CoerthanTorment = 16477, // L72, instant, range 10, AOE rect 10/4, targets=hostile, animLock=???
+        CoerthanTorment = 16477, // L72, instant, range 10, AOE rect 10/4, targets=hostile
         DraconianFury = 25770, // L82, instant, range 10, AOE rect 10/4, targets=hostile, animLock=???
 
         // oGCDs
@@ -105,6 +105,7 @@ namespace BossMod.DRG
         ChaosThrust = 118, // applied by Chaos Thrust to target, dot
         FangAndClawBared = 802, // applied by Full Thrust to self
         WheelInMotion = 803, // applied by Chaos Thrust to self
+        DraconianFire = 1863, // applied by Fang and Claw, Wheeling Thrust to self
         RightEye = 1910, // applied by Dragon Sight to self
         DiveReady = 1243, // applied by Jump to self
         TrueNorth = 1250, // applied by True North to self, ignore positionals

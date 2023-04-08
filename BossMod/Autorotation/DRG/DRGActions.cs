@@ -24,7 +24,9 @@ namespace BossMod.DRG
             SupportedSpell(AID.FullThrust).TransformAction = SupportedSpell(AID.HeavensThrust).TransformAction = () => ActionID.MakeSpell(_state.BestHeavensThrust);
             SupportedSpell(AID.ChaosThrust).TransformAction = SupportedSpell(AID.ChaoticSpring).TransformAction = () => ActionID.MakeSpell(_state.BestChaoticSpring);
             SupportedSpell(AID.Jump).TransformAction = SupportedSpell(AID.HighJump).TransformAction = () => ActionID.MakeSpell(_state.BestJump);
-            SupportedSpell(AID.Geirskogul).TransformAction = SupportedSpell(AID.Nastrond).TransformAction = () => ActionID.MakeSpell(_state.LifeOfTheDragonLeft > 0 ? AID.Nastrond : AID.Geirskogul);
+            SupportedSpell(AID.TrueThrust).TransformAction = SupportedSpell(AID.RaidenThrust).TransformAction = () => ActionID.MakeSpell(_state.BestTrueThrust);
+            SupportedSpell(AID.DoomSpike).TransformAction = SupportedSpell(AID.DraconianFury).TransformAction = () => ActionID.MakeSpell(_state.BestDoomSpike);
+            SupportedSpell(AID.Geirskogul).TransformAction = SupportedSpell(AID.Nastrond).TransformAction = () => ActionID.MakeSpell(_state.BestGeirskogul);
 
             _config.Modified += OnConfigModified;
             OnConfigModified(null, EventArgs.Empty);
@@ -139,6 +141,7 @@ namespace BossMod.DRG
 
             _state.FangAndClawBaredLeft = StatusDetails(Player, SID.FangAndClawBared, Player.InstanceID).Left;
             _state.WheelInMotionLeft = StatusDetails(Player, SID.WheelInMotion, Player.InstanceID).Left;
+            _state.DraconianFireLeft = StatusDetails(Player, SID.DraconianFire, Player.InstanceID).Left;
             _state.DiveReadyLeft = StatusDetails(Player, SID.DiveReady, Player.InstanceID).Left;
             _state.PowerSurgeLeft = StatusDetails(Player, SID.PowerSurge, Player.InstanceID).Left;
             _state.LanceChargeLeft = StatusDetails(Player, SID.LanceCharge, Player.InstanceID).Left;
