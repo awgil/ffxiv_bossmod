@@ -147,11 +147,15 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
 
         public RecolorState CurRecolorState { get; private set; }
         public int AOEQuadrant { get; private set; }
+        private int _expectedMagicStones;
 
         private const float _recolorRadius = 5;
 
         // note: we show circles around healers until cast happens
-        public RubyGlowRecolor() : base(ActionID.MakeSpell(AID.VenomPoolRecolorAOE)) { }
+        public RubyGlowRecolor(int expectedMagicStones) : base(ActionID.MakeSpell(AID.VenomPoolRecolorAOE))
+        {
+            _expectedMagicStones = expectedMagicStones;
+        }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
@@ -185,7 +189,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
             switch (CurRecolorState)
             {
                 case RecolorState.BeforeStones:
-                    if (MagicStones.Count() == 5)
+                    if (MagicStones.Count() == _expectedMagicStones)
                     {
                         int[] counts = new int[4];
                         foreach (var o in MagicStones)
