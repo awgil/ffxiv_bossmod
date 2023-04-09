@@ -1,8 +1,6 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Hooking;
+﻿using Dalamud.Hooking;
 using ImGuiNET;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod
@@ -33,14 +31,11 @@ namespace BossMod
     // 3. when there are pending actions, we don't update internal state, leaving same next-best recommendation
     class Autorotation : IDisposable
     {
-        private Network _network;
         private AutorotationConfig _config;
         private BossModuleManager _bossmods;
         private AutoHints _autoHints;
         private WindowManager.Window? _ui;
         private CommonActions? _classActions;
-
-        private ActorCastEvent? _completedCast = null;
 
         private unsafe delegate bool UseActionDelegate(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted);
         private Hook<UseActionDelegate> _useActionHook;
@@ -59,15 +54,14 @@ namespace BossMod
 
         private static ActionID IDSprintGeneral = new(ActionType.General, 4);
 
-        public unsafe Autorotation(Network network, BossModuleManager bossmods)
+        public unsafe Autorotation(BossModuleManager bossmods)
         {
-            _network = network;
             _config = Service.Config.Get<AutorotationConfig>();
             _bossmods = bossmods;
             _autoHints = new(bossmods.WorldState);
 
             ActionManagerEx.Instance!.AutoActionExecuted += OnAutoActionExecuted;
-            _network.EventActionEffect += OnNetworkActionEffect;
+            WorldState.Actors.CastEvent += OnCastEvent;
 
             var useActionAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 64 B1 01");
             _useActionHook = Hook<UseActionDelegate>.FromAddress(useActionAddress, UseActionDetour);
@@ -77,7 +71,7 @@ namespace BossMod
         public void Dispose()
         {
             ActionManagerEx.Instance!.AutoActionExecuted -= OnAutoActionExecuted;
-            _network.EventActionEffect -= OnNetworkActionEffect;
+            WorldState.Actors.CastEvent -= OnCastEvent;
 
             _useActionHook.Dispose();
             _classActions?.Dispose();
@@ -104,7 +98,7 @@ namespace BossMod
             }
             Hints.Normalize();
 
-            // TODO-AMREF: reconsider (should be part of worldstate update for player)
+            // TODO: this should be part of worldstate update for player
             ActionManagerEx.Instance!.GetCooldowns(Cooldowns);
 
             Type? classType = null;
@@ -131,16 +125,7 @@ namespace BossMod
                 _classActions = classType != null ? (CommonActions?)Activator.CreateInstance(classType, this, player) : null;
             }
 
-            // TODO-AMREF: reconsider, do we even need it?..
-            if (_completedCast != null)
-            {
-                _classActions?.NotifyActionSucceeded(_completedCast);
-                _completedCast = null;
-            }
-
-            // TODO-AMREF: these function names are no longer correct...
-            _classActions?.UpdateMainTick();
-            _classActions?.UpdateAMTick();
+            _classActions?.Update();
             ActionManagerEx.Instance!.AutoQueue = _classActions?.CalculateNextAction() ?? default;
 
             bool showUI = _classActions != null && _config.ShowUI;
@@ -200,10 +185,10 @@ namespace BossMod
             _classActions?.NotifyActionExecuted(action);
         }
 
-        private void OnNetworkActionEffect(object? sender, (ulong actorID, ActorCastEvent cast) args)
+        private void OnCastEvent(object? sender, (Actor actor, ActorCastEvent cast) args)
         {
-            if (args.cast.SourceSequence != 0 && args.actorID == WorldState.Party.Player()?.InstanceID)
-                _completedCast = args.cast;
+            if (args.cast.SourceSequence != 0 && args.actor == WorldState.Party.Player())
+                _classActions?.NotifyActionSucceeded(args.cast);
         }
 
         private uint PositionalColor(CommonRotation.Strategy strategy)
@@ -230,7 +215,7 @@ namespace BossMod
             var action = new ActionID(actionType, actionID);
             if (action == IDSprintGeneral)
                 action = CommonDefinitions.IDSprint;
-            bool nullTarget = targetID == 0 || targetID == GameObject.InvalidGameObjectId;
+            bool nullTarget = targetID == 0 || targetID == Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId;
             var target = nullTarget ? null : WorldState.Actors.Find(targetID);
             if (target == null && !nullTarget || !_classActions.HandleUserActionRequest(action, target))
             {

@@ -102,7 +102,7 @@ namespace BossMod
         }
 
         // this is called after worldstate update
-        public void UpdateMainTick()
+        public void Update()
         {
             bool wasInCombat = _playerCombatStart != default;
             if (Player.InCombat && !wasInCombat)
@@ -121,12 +121,9 @@ namespace BossMod
                 Log($"Auto action {AutoAction} expired");
                 AutoAction = AutoActionNone;
             }
-            OnTick();
-        }
 
-        // this is called from actionmanager's post-update callback
-        public void UpdateAMTick()
-        {
+            OnTick();
+
             if (AutoAction != AutoActionNone)
             {
                 UpdateInternalState(AutoAction);
@@ -297,7 +294,7 @@ namespace BossMod
 
         public void NotifyActionExecuted(NextAction action)
         {
-            Log($"Executed {action.Action} @ {action.Target} [{GetState()}]");
+            Log($"Executed {action.Source} {action.Action} @ {action.Target} [{GetState()}]");
             _mq.Pop(action.Action);
             if (action.Source == ActionSource.Planned)
                 Autorot.Bossmods.ActiveModule?.PlanExecution?.NotifyActionExecuted(Autorot.Bossmods.ActiveModule.StateMachine, action.Action);

@@ -55,7 +55,7 @@ namespace BossMod
             _bossmod = new(_ws);
 
             ActionManagerEx.Instance = new();
-            _autorotation = new(_network, _bossmod);
+            _autorotation = new(_bossmod);
             _ai = new(ActionManagerEx.Instance.InputOverride, _autorotation);
             _broadcast = new();
 

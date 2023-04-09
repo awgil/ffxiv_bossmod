@@ -97,7 +97,7 @@ namespace BossMod
 
         public InputOverride InputOverride;
         public ActionManagerConfig Config;
-        public CommonActions.NextAction AutoQueue; // TODO-AMREF: reconsider
+        public CommonActions.NextAction AutoQueue; // TODO: consider using native 'queue' fields for this?
         public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
         private unsafe ActionManager* _inst;
         private float _lastReqInitialAnimLock;
@@ -279,7 +279,7 @@ namespace BossMod
                     var rotPre = (pc?.Rotation ?? 0).Radians();
                     var res = UseActionRaw(actionAdj, targetID, AutoQueue.TargetPos, AutoQueue.Action.Type == ActionType.Item ? 65535u : 0);
                     var rotPost = (pc?.Rotation ?? 0).Radians();
-                    Service.Log($"[AMEx] Auto-execute {AutoQueue.Source} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X} {Utils.Vec3String(AutoQueue.TargetPos)} => {res}");
+                    //Service.Log($"[AMEx] Auto-execute {AutoQueue.Source} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X} {Utils.Vec3String(AutoQueue.TargetPos)} => {res}");
                     AutoActionExecuted?.Invoke(this, AutoQueue);
 
                     if (rotPre != rotPost && Config.RestoreRotation)
@@ -354,7 +354,6 @@ namespace BossMod
             }
 
             Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}-{animLockReduction:f3}), CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
-            // TODO-AMREF: consider sending an event here...
         }
     }
 }
