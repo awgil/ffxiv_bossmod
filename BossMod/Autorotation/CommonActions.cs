@@ -294,7 +294,7 @@ namespace BossMod
 
         public void NotifyActionExecuted(ActorCastRequest request)
         {
-            Log($"Executed {request.Action} @ {request.TargetID:X} [{GetState()}]");
+            Log($"Exec #{request.SourceSequence} {request.Action} @ {request.TargetID:X} [{GetState()}]");
             _mq.Pop(request.Action);
             Autorot.Bossmods.ActiveModule?.PlanExecution?.NotifyActionExecuted(Autorot.Bossmods.ActiveModule.StateMachine, request.Action);
             OnActionExecuted(request);
@@ -302,7 +302,7 @@ namespace BossMod
 
         public void NotifyActionSucceeded(ActorCastEvent ev)
         {
-            Log($"Succeeded {ev.Action} @ {ev.MainTargetID:X} [{GetState()}]");
+            Log($"Cast #{ev.SourceSequence} {ev.Action} @ {ev.MainTargetID:X} [{GetState()}]");
             OnActionSucceeded(ev);
         }
 

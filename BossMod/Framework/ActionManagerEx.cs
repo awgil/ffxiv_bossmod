@@ -2,10 +2,10 @@
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace BossMod
 {
@@ -102,6 +102,7 @@ namespace BossMod
         private unsafe ActionManager* _inst;
         private float _lastReqInitialAnimLock;
         private ushort _lastReqSequence;
+        private float _useActionInPast; // if >0 while using an action, cooldown/anim lock will be reduced by this amount as if action was used a bit in the past
         private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
 
         private unsafe delegate bool GetGroundTargetPositionDelegate(ActionManager* self, Vector3* outPos);
@@ -226,6 +227,9 @@ namespace BossMod
         public unsafe bool IsRecastTimerActive(ActionID action)
             => _inst->IsRecastTimerActive((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID);
 
+        public unsafe int GetRecastGroup(ActionID action)
+            => _inst->GetRecastGroup((int)action.Type, action.ID);
+
         public unsafe bool UseAction(ActionID action, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
         {
             return _inst->UseAction((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, (long)targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
@@ -239,10 +243,23 @@ namespace BossMod
 
         private unsafe void UpdateDetour(ActionManager* self)
         {
+            var dt = Framework.Instance()->FrameDeltaTime;
+            var imminentAction = QueueActive ? QueueAction : AutoQueue.Action;
+            var imminentRecast = imminentAction ? _inst->GetRecastGroupDetail(GetRecastGroup(imminentAction)) : null;
+            if (imminentRecast != null && Config.RemoveCooldownDelay)
+            {
+                var cooldownOverflow = imminentRecast->IsActive != 0 ? imminentRecast->Elapsed + dt - imminentRecast->Total : dt;
+                var animlockOverflow = dt - AnimationLock;
+                _useActionInPast = Math.Min(cooldownOverflow, animlockOverflow);
+                if (_useActionInPast >= dt)
+                    _useActionInPast = 0; // nothing prevented us from casting it before, so do not adjust anything...
+                else if (_useActionInPast > 0.1f)
+                    _useActionInPast = 0.1f; // upper limit for time adjustment
+            }
+
             _updateHook.Original(self);
 
             // check whether movement is safe; block movement if not and if desired
-            var imminentAction = QueueActive ? QueueAction : AutoQueue.Action;
             MoveMightInterruptCast &= CastTimeRemaining > 0; // previous cast could have ended without action effect
             MoveMightInterruptCast |= imminentAction && CastTimeRemaining <= 0 && AnimationLock < 0.1f && GetAdjustedCastTime(imminentAction) > 0 && GCD() < 0.1f; // if we're not casting, but will start soon, moving might interrupt future cast
             bool blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast;
@@ -285,6 +302,8 @@ namespace BossMod
                 }
             }
 
+            _useActionInPast = 0; // clear any potential adjustments
+
             if (blockMovement)
                 InputOverride.BlockMovement();
             else
@@ -308,8 +327,26 @@ namespace BossMod
                     _restoreRotation = (prevRot.Radians(), currRot.Radians());
 
                 var action = new ActionID(actionType, actionID);
-                Service.Log($"[AMEx] UAL #{currSeq} ({action} @ {targetID:X} / {Utils.Vec3String(*targetPos)} {(ret ? "succeeded" : "failed?")}, ALock={_lastReqInitialAnimLock:f3}, CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
-                ActionRequested?.Invoke(this, new() { Action = action, TargetID = targetID, TargetPos = *targetPos, SourceSequence = currSeq, InitialAnimationLock = _lastReqInitialAnimLock, InitialCastTime = CastTimeRemaining });
+                var recast = _inst->GetRecastGroupDetail(GetRecastGroup(action));
+                if (_useActionInPast > 0 && recast != null)
+                {
+                    Utils.WriteField(_inst, 8, Math.Max(0, AnimationLock - _useActionInPast));
+                    recast->Elapsed += _useActionInPast;
+                }
+
+                var recastElapsed = recast != null ? recast->Elapsed : 0;
+                var recastTotal = recast != null ? recast->Total : 0;
+                Service.Log($"[AMEx] UAL #{currSeq} ({action} @ {targetID:X} / {Utils.Vec3String(*targetPos)} {(ret ? "succeeded" : "failed?")}, ALock={AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
+                ActionRequested?.Invoke(this, new() {
+                    Action = action,
+                    TargetID = targetID,
+                    TargetPos = *targetPos,
+                    SourceSequence = currSeq,
+                    InitialAnimationLock = AnimationLock,
+                    InitialCastTime = CastTimeRemaining,
+                    InitialRecastElapsed = recastElapsed,
+                    InitialRecastTotal = recastTotal,
+                });
             }
             return ret;
         }

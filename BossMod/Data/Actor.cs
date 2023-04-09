@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BossMod.Endwalker.Alliance.A4Naldthal;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -75,6 +76,8 @@ namespace BossMod
         public uint SourceSequence;
         public float InitialAnimationLock;
         public float InitialCastTime;
+        public float InitialRecastElapsed;
+        public float InitialRecastTotal;
     }
 
     public struct ActorHP
