@@ -9,13 +9,6 @@ namespace BossMod
 {
     class Network : IDisposable
     {
-        public struct PendingAction
-        {
-            public ActionID Action;
-            public ulong TargetID;
-            public uint Sequence;
-        }
-
         public event EventHandler<(ulong actorID, ActorCastEvent cast)>? EventActionEffect;
         public event EventHandler<(ulong actorID, uint seq, int targetIndex)>? EventEffectResult;
         public event EventHandler<(ulong actorID, ActionID action, float castTime, ulong targetID)>? EventActorCast;
@@ -31,8 +24,6 @@ namespace BossMod
         public event EventHandler<(uint directorID, byte index, uint state)>? EventEnvControl;
         public event EventHandler<(Waymark waymark, Vector3? pos)>? EventWaymark;
         public event EventHandler<(string key, string value)>? EventRSVData;
-        public event EventHandler<PendingAction>? EventActionRequest;
-        public event EventHandler<PendingAction>? EventActionRequestGT;
 
         private GeneralConfig _config;
         //private Logger _logger;
@@ -186,16 +177,6 @@ namespace BossMod
                 if (_config.DumpClientPackets)
                 {
                     DumpClientMessage(dataPtr, opCode);
-                }
-
-                switch ((Protocol.Opcode)opCode)
-                {
-                    case Protocol.Opcode.ActionRequest:
-                        HandleActionRequest((Protocol.Client_ActionRequest*)dataPtr);
-                        break;
-                    case Protocol.Opcode.ActionRequestGroundTargeted:
-                        HandleActionRequestGT((Protocol.Client_ActionRequestGroundTargeted*)dataPtr);
-                        break;
                 }
             }
         }
@@ -352,34 +333,24 @@ namespace BossMod
             EventRSVData?.Invoke(this, (key, value));
         }
 
-        private unsafe void HandleActionRequest(Protocol.Client_ActionRequest* p)
-        {
-            EventActionRequest?.Invoke(this, new() { Action = new(p->Type, p->ActionID), TargetID = p->TargetID, Sequence = p->Sequence });
-        }
-
-        private unsafe void HandleActionRequestGT(Protocol.Client_ActionRequestGroundTargeted* p)
-        {
-            EventActionRequestGT?.Invoke(this, new() { Action = new(p->Type, p->ActionID), TargetID = 0, Sequence = p->Sequence });
-        }
-
         private unsafe void DumpClientMessage(IntPtr dataPtr, ushort opCode)
         {
-            Service.Log($"[Network] Client message {(Protocol.Opcode)opCode}");
-            switch ((Protocol.Opcode)opCode)
-            {
-                case Protocol.Opcode.ActionRequest:
-                    {
-                        var p = (Protocol.Client_ActionRequest*)dataPtr;
-                        Service.Log($"[Network] - AID={new ActionID(p->Type, p->ActionID)}, proc={p->ActionProcState}, target={Utils.ObjectString(p->TargetID)}, seq={p->Sequence}, itemsrc={p->ItemSourceContainer}:{p->ItemSourceSlot}, casterrot={(p->IntCasterRot * 2 * MathF.PI / 65535 - MathF.PI).Radians()}, dirtotarget={(p->IntDirToTarget * 2 * MathF.PI / 65535 - MathF.PI).Radians()}, u={p->u1:X4} {p->u3:X4} {p->u4:X8} {p->u5:X16}");
-                        break;
-                    }
-                case Protocol.Opcode.ActionRequestGroundTargeted:
-                    {
-                        var p = (Protocol.Client_ActionRequestGroundTargeted*)dataPtr;
-                        Service.Log($"[Network] - AID={new ActionID(p->Type, p->ActionID)}, proc={p->ActionProcState}, target={Utils.Vec3String(new(p->LocX, p->LocY, p->LocZ))}, seq={p->Sequence}, casterrot={(p->IntCasterRot * 2 * MathF.PI / 65535 - MathF.PI).Radians()}, dirtotarget={(p->IntDirToTarget * 2 * MathF.PI / 65535 - MathF.PI).Radians()}, u={p->u1:X4} {p->u3:X4} {p->u4:X8} {p->u5:X16}");
-                        break;
-                    }
-            }
+            //Service.Log($"[Network] Client message {(Protocol.Opcode)opCode}");
+            //switch ((Protocol.Opcode)opCode)
+            //{
+            //    case Protocol.Opcode.ActionRequest:
+            //        {
+            //            var p = (Protocol.Client_ActionRequest*)dataPtr;
+            //            Service.Log($"[Network] - AID={new ActionID(p->Type, p->ActionID)}, proc={p->ActionProcState}, target={Utils.ObjectString(p->TargetID)}, seq={p->Sequence}, itemsrc={p->ItemSourceContainer}:{p->ItemSourceSlot}, casterrot={(p->IntCasterRot * 2 * MathF.PI / 65535 - MathF.PI).Radians()}, dirtotarget={(p->IntDirToTarget * 2 * MathF.PI / 65535 - MathF.PI).Radians()}, u={p->u1:X4} {p->u3:X4} {p->u4:X8} {p->u5:X16}");
+            //            break;
+            //        }
+            //    case Protocol.Opcode.ActionRequestGroundTargeted:
+            //        {
+            //            var p = (Protocol.Client_ActionRequestGroundTargeted*)dataPtr;
+            //            Service.Log($"[Network] - AID={new ActionID(p->Type, p->ActionID)}, proc={p->ActionProcState}, target={Utils.Vec3String(new(p->LocX, p->LocY, p->LocZ))}, seq={p->Sequence}, casterrot={(p->IntCasterRot * 2 * MathF.PI / 65535 - MathF.PI).Radians()}, dirtotarget={(p->IntDirToTarget * 2 * MathF.PI / 65535 - MathF.PI).Radians()}, u={p->u1:X4} {p->u3:X4} {p->u4:X8} {p->u5:X16}");
+            //            break;
+            //        }
+            //}
         }
 
         private unsafe void DumpServerMessage(IntPtr dataPtr, ushort opCode, uint targetActorId)

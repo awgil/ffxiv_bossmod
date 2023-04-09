@@ -38,7 +38,7 @@ namespace BossMod
         {
             if (!_logger.Active)
             {
-                if (!_logger.Activate(8))
+                if (!_logger.Activate(9))
                 {
                     _config.DumpWorldStateEvents = false;
                     return;

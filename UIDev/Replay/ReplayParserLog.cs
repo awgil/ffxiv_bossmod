@@ -279,13 +279,15 @@ namespace UIDev
                 AnimationLockTime = float.Parse(payload[5]),
                 MaxTargets = uint.Parse(payload[6]),
                 TargetPos = _version >= 6 ? Vec3(payload[7]) : new(),
+                SourceSequence = _version >= 9 ? uint.Parse(payload[9]) : 0,
                 GlobalSequence = _version >= 7 ? uint.Parse(payload[8]) : 0,
             };
             int firstTargetPayload = _version switch
             {
                 <= 5 => 7,
                 6 => 8,
-                _ => 9,
+                7 or 8 => 9,
+                _ => 10,
             };
             for (int i = firstTargetPayload; i < payload.Length; ++i)
             {

@@ -118,8 +118,8 @@ namespace BossMod
             // old - 0x1fd == EventObjSpawn? for stuff like exit points, etc.
 
             // client->server; TODO move to a different enum
-            ActionRequest = 0x029E,
-            ActionRequestGroundTargeted = 0x0205,
+            //ActionRequest = 0x029E,
+            //ActionRequestGroundTargeted = 0x0205,
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]

@@ -93,7 +93,7 @@ namespace BossMod
         public float EffectiveAnimationLock => AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends
         public float EffectiveAnimationLockDelay => AnimationLockDelayMax <= 0.5f ? AnimationLockDelayMax : MathF.Min(AnimationLockDelayAverage, 0.1f); // this is a conservative estimate
 
-        public event EventHandler<CommonActions.NextAction>? AutoActionExecuted;
+        public event EventHandler<ActorCastRequest>? ActionRequested;
 
         public InputOverride InputOverride;
         public ActionManagerConfig Config;
@@ -248,10 +248,9 @@ namespace BossMod
             bool blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast;
 
             // restore rotation logic; note that movement abilities (like charge) can take multiple frames until they allow changing facing
-            var pc = Service.ClientState.LocalPlayer;
             if (_restoreRotation != null && !MoveMightInterruptCast)
             {
-                var curRot = (pc?.Rotation ?? 0).Radians();
+                var curRot = (Service.ClientState.LocalPlayer?.Rotation ?? 0).Radians();
                 //Log($"[AMEx] Restore rotation: {curRot.Rad}: {_restoreRotation.Value.post.Rad}->{_restoreRotation.Value.pre.Rad}");
                 if (_restoreRotation.Value.post.AlmostEqual(curRot, 0.01f))
                     FaceDirection(_restoreRotation.Value.pre.ToDirection());
@@ -276,14 +275,8 @@ namespace BossMod
                 var status = GetActionStatus(actionAdj, targetID);
                 if (status == 0)
                 {
-                    var rotPre = (pc?.Rotation ?? 0).Radians();
                     var res = UseActionRaw(actionAdj, targetID, AutoQueue.TargetPos, AutoQueue.Action.Type == ActionType.Item ? 65535u : 0);
-                    var rotPost = (pc?.Rotation ?? 0).Radians();
                     //Service.Log($"[AMEx] Auto-execute {AutoQueue.Source} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X} {Utils.Vec3String(AutoQueue.TargetPos)} => {res}");
-                    AutoActionExecuted?.Invoke(this, AutoQueue);
-
-                    if (rotPre != rotPost && Config.RestoreRotation)
-                        _restoreRotation = (rotPre, rotPost);
                 }
                 else
                 {
@@ -300,15 +293,23 @@ namespace BossMod
 
         private unsafe bool UseActionLocationDetour(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation)
         {
+            var pc = Service.ClientState.LocalPlayer;
             var prevSeq = LastUsedActionSequence;
+            var prevRot = pc?.Rotation ?? 0;
             bool ret = _useActionLocationHook.Original(self, actionType, actionID, targetID, targetPos, itemLocation);
             var currSeq = LastUsedActionSequence;
+            var currRot = pc?.Rotation ?? 0;
             if (currSeq != prevSeq)
             {
                 _lastReqInitialAnimLock = AnimationLock;
                 _lastReqSequence = currSeq;
                 MoveMightInterruptCast = CastTimeRemaining > 0;
-                Service.Log($"[AMEx] UAL #{currSeq} ({new ActionID(actionType, actionID)} @ {targetID:X} / {Utils.Vec3String(*targetPos)} {(ret ? "succeeded" : "failed?")}, ALock={_lastReqInitialAnimLock:f3}, CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
+                if (prevRot != currRot && Config.RestoreRotation)
+                    _restoreRotation = (prevRot.Radians(), currRot.Radians());
+
+                var action = new ActionID(actionType, actionID);
+                Service.Log($"[AMEx] UAL #{currSeq} ({action} @ {targetID:X} / {Utils.Vec3String(*targetPos)} {(ret ? "succeeded" : "failed?")}, ALock={_lastReqInitialAnimLock:f3}, CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
+                ActionRequested?.Invoke(this, new() { Action = action, TargetID = targetID, TargetPos = *targetPos, SourceSequence = currSeq, InitialAnimationLock = _lastReqInitialAnimLock, InitialCastTime = CastTimeRemaining });
             }
             return ret;
         }

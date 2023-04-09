@@ -60,7 +60,7 @@ namespace BossMod
             _bossmods = bossmods;
             _autoHints = new(bossmods.WorldState);
 
-            ActionManagerEx.Instance!.AutoActionExecuted += OnAutoActionExecuted;
+            ActionManagerEx.Instance!.ActionRequested += OnActionRequested;
             WorldState.Actors.CastEvent += OnCastEvent;
 
             var useActionAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 64 B1 01");
@@ -70,7 +70,7 @@ namespace BossMod
 
         public void Dispose()
         {
-            ActionManagerEx.Instance!.AutoActionExecuted -= OnAutoActionExecuted;
+            ActionManagerEx.Instance!.ActionRequested -= OnActionRequested;
             WorldState.Actors.CastEvent -= OnCastEvent;
 
             _useActionHook.Dispose();
@@ -180,9 +180,9 @@ namespace BossMod
             ImGui.TextUnformatted($"GCD={Cooldowns[CommonDefinitions.GCDGroup]:f3}, AnimLock={EffAnimLock:f3}+{AnimLockDelay:f3}");
         }
 
-        private void OnAutoActionExecuted(object? sender, CommonActions.NextAction action)
+        private void OnActionRequested(object? sender, ActorCastRequest request)
         {
-            _classActions?.NotifyActionExecuted(action);
+            _classActions?.NotifyActionExecuted(request);
         }
 
         private void OnCastEvent(object? sender, (Actor actor, ActorCastEvent cast) args)

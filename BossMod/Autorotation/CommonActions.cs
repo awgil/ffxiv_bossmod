@@ -292,13 +292,12 @@ namespace BossMod
             return nextGCD;
         }
 
-        public void NotifyActionExecuted(NextAction action)
+        public void NotifyActionExecuted(ActorCastRequest request)
         {
-            Log($"Executed {action.Source} {action.Action} @ {action.Target} [{GetState()}]");
-            _mq.Pop(action.Action);
-            if (action.Source == ActionSource.Planned)
-                Autorot.Bossmods.ActiveModule?.PlanExecution?.NotifyActionExecuted(Autorot.Bossmods.ActiveModule.StateMachine, action.Action);
-            OnActionExecuted(action.Action, action.Target);
+            Log($"Executed {request.Action} @ {request.TargetID:X} [{GetState()}]");
+            _mq.Pop(request.Action);
+            Autorot.Bossmods.ActiveModule?.PlanExecution?.NotifyActionExecuted(Autorot.Bossmods.ActiveModule.StateMachine, request.Action);
+            OnActionExecuted(request);
         }
 
         public void NotifyActionSucceeded(ActorCastEvent ev)
@@ -316,7 +315,7 @@ namespace BossMod
         protected abstract void QueueAIActions();
         protected abstract NextAction CalculateAutomaticGCD();
         protected abstract NextAction CalculateAutomaticOGCD(float deadline);
-        protected virtual void OnActionExecuted(ActionID action, Actor? target) { }
+        protected virtual void OnActionExecuted(ActorCastRequest request) { }
         protected virtual void OnActionSucceeded(ActorCastEvent ev) { }
 
         protected NextAction MakeResult(ActionID action, Actor? target)

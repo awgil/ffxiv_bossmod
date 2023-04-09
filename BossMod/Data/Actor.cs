@@ -58,13 +58,23 @@ namespace BossMod
         public uint MaxTargets;
         public List<Target> Targets = new();
         public Vector3 TargetPos;
-        public uint SourceSequence; // note: transient
+        public uint SourceSequence;
         public uint GlobalSequence;
 
         public WPos TargetXZ => new(TargetPos.XZ());
 
         public bool IsSpell() => Action.Type == ActionType.Spell;
         public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);
+    }
+
+    public struct ActorCastRequest
+    {
+        public ActionID Action;
+        public ulong TargetID;
+        public Vector3 TargetPos;
+        public uint SourceSequence;
+        public float InitialAnimationLock;
+        public float InitialCastTime;
     }
 
     public struct ActorHP

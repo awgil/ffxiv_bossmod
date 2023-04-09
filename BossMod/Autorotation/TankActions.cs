@@ -48,9 +48,9 @@ namespace BossMod
             HaveStance = CommonDefinitions.HasTankStance(Player);
         }
 
-        protected override void OnActionExecuted(ActionID action, Actor? target)
+        protected override void OnActionExecuted(ActorCastRequest request)
         {
-            if (action.Type == ActionType.Spell && action.ID is (uint)WAR.AID.Defiance or (uint)PLD.AID.IronWill)
+            if (request.Action.Type == ActionType.Spell && request.Action.ID is (uint)WAR.AID.Defiance or (uint)PLD.AID.IronWill)
                 LastStanceSwap = Autorot.WorldState.CurrentTime;
         }
 
