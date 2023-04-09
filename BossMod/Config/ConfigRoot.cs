@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +9,7 @@ namespace BossMod
 {
     public class ConfigRoot
     {
-        private const int _version = 6;
+        private const int _version = 7;
 
         public event EventHandler? Modified;
         private Dictionary<Type, ConfigNode> _nodes = new();
@@ -303,6 +301,16 @@ namespace BossMod
                         }
                     }
                 }
+            }
+            // v7: action manager refactor
+            if (version < 7)
+            {
+                var amConfig = payload["BossMod.ActionManagerConfig"] = new JObject();
+                var autorotConfig = payload["BossMod.AutorotationConfig"];
+                amConfig["RemoveAnimationLockDelay"] = autorotConfig?["RemoveAnimationLockDelay"] ?? false;
+                amConfig["PreventMovingWhileCasting"] = autorotConfig?["PreventMovingWhileCasting"] ?? false;
+                amConfig["RestoreRotation"] = autorotConfig?["RestoreRotation"] ?? false;
+                amConfig["GTMode"] = autorotConfig?["GTMode"] ?? "Manual";
             }
             return payload;
         }

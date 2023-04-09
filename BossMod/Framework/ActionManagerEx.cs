@@ -9,9 +9,41 @@ using System.Runtime.InteropServices;
 namespace BossMod
 {
     // extensions and utilities for interacting with game's ActionManager singleton
-    // animation lock for instants: on request it is set to 0.5 (or 0.35 for some specific actions) and ticks down, on response updated to packet data (typically 0.6) and continues ticking down, so 'effective' lock is action lock + delay between request and response
-    // animation lock for casts: on request is remains 0, on response updated to packet data (typically 0.1) and is 'frozen' until 'cast' ends - and only then starts ticking down (meaning that 'effective' lock is ~0.6 after action-effect or ~0.1 after visual cast end)
-    // since for casts 'visual' cast countdown starts immediately on request and is not updated, there is no extra delay
+    // handles following features:
+    // 1. automatic action execution (provided by autorotation or ai modules, if enabled); does nothing if no automatic actions are provided
+    // 2. effective animation lock reduction (a-la xivalex)
+    //    game handles instants and casted actions differently:
+    //    * instants: on action request (e.g. on the frame the action button is pressed), animation lock is set to 0.5 (or 0.35 for some specific actions); it then ticks down every frame
+    //      some time later (ping + server latency, typically 50-100ms if ping is good), we receive action effect packet - the packet contains action's animation lock (typically 0.6)
+    //      the game then updates animation lock (now equal to 0.5 minus time since request) to the packet data
+    //      so the 'effective' animation lock between action request and animation lock end is equal to action's animation lock + delay between request and response
+    //      this feature reduces effective animation lock by either removing extra delay completely or clamping it to specified maximal value
+    //    * casts: on action request animation lock is not set (remains equal to 0), remaining cast time is set to action's cast time; remaining cast time then ticks down every frame
+    //      some time later (cast time minus approximately 0.5s, aka slidecast window), we receive action effect packet - the packet contains action's animation lock (typically 0.1)
+    //      the game then updates animation lock (still 0) to the packet data - however, since animation lock isn't ticking down while cast is in progress, there is no extra delay
+    //      this feature does nothing for casts, since they already work correctly
+    // 3. framerate-dependent cooldown reduction
+    //    imagine game is running at exactly 100fps (10ms frame time), and action is queued when remaining cooldown is 5ms
+    //    on next frame (+10ms), cooldown will be reduced and clamped to 0, action will be executed and it's cooldown set to X ms - so next time it can be pressed at X+10 ms
+    //    if we were running with infinite fps, cooldown would be reduced to 0 and action would be executed slightly (5ms) earlier
+    //    we can't fix that easily, but at least we can fix the cooldown after action execution - so that next time it can be pressed at X+5ms
+    //    we do that by reducing actual cooldown by difference between previously-remaining cooldown and frame delta, if action is executed at first opportunity
+    // 4. slidecast assistant aka movement block
+    //    cast is interrupted if player moves when remaining cast time is greater than ~0.5s (moving during that window without interrupting is known as slidecasting)
+    //    this feature blocks WSAD input to prevent movement while this would interrupt a cast, allowing slidecasting efficiently while just holding movement button
+    //    other ways of moving (eg LMB+RMB, jumping etc) are not blocked, allowing for emergency movement even while the feature is active
+    //    movement is blocked a bit before cast start and unblocked as soon as action effect packet is received
+    // 5. preserving character facing direction
+    //    when any action is executed, character is automatically rotated to face the target (this can be disabled in-game, but it would simply block an action if not facing target instead)
+    //    this makes maintaining uptime during gaze mechanics unnecessarily complicated (requiring either moving or rotating mouse back-and-forth in non-legacy camera mode)
+    //    this feature remembers original rotation before executing an action and then attempts to restore it
+    //    just like any 'manual' way, it is not 100% reliable:
+    //    * client rate-limits rotation updates, so even for instant casts there is a short window of time (~0.1s) following action execution when character faces a target on server
+    //    * for movement-affecting abilities (jumps, charges, etc) rotation can't be restored until animation ends
+    //    * for casted abilities, rotation isn't restored until slidecast window starts, as otherwise cast is interrupted
+    // 6. ground-targeted action queueing
+    //    ground-targeted actions can't be queued, making using them efficiently tricky
+    //    this feature allows queueing them, plus provides options to execute them automatically either at target's position or at cursor's position
     class ActionManagerEx : IDisposable
     {
         public static ActionManagerEx? Instance;
@@ -19,7 +51,7 @@ namespace BossMod
 
         public float AnimationLockDelaySmoothing = 0.8f; // TODO tweak
         public float AnimationLockDelayAverage { get; private set; } = 0.1f; // smoothed delay between client request and server response
-        public float AnimationLockDelayMax = float.MaxValue; // this caps max delay a-la xivalexander
+        public float AnimationLockDelayMax => Config.RemoveAnimationLockDelay ? 0 : float.MaxValue; // this caps max delay a-la xivalexander (TODO: make tweakable?)
         public unsafe float AnimationLock => Utils.ReadField<float>(_inst, 8);
 
         public unsafe uint CastSpellID => Utils.ReadField<uint>(_inst, 0x24);
@@ -60,8 +92,10 @@ namespace BossMod
         public float EffectiveAnimationLock => AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends
         public float EffectiveAnimationLockDelay => AnimationLockDelayMax <= 0.5f ? AnimationLockDelayMax : MathF.Min(AnimationLockDelayAverage, 0.1f); // this is a conservative estimate
 
-        public event EventHandler? PostUpdate;
+        public event EventHandler? PostUpdate; // TODO-AMREF: remove
 
+        public InputOverride InputOverride;
+        public ActionManagerConfig Config;
         private unsafe ActionManager* _inst;
         private float _lastReqInitialAnimLock;
         private ushort _lastReqSequence;
@@ -98,6 +132,9 @@ namespace BossMod
 
         public unsafe ActionManagerEx()
         {
+            InputOverride = new();
+            Config = Service.Config.Get<ActionManagerConfig>();
+
             _inst = ActionManager.Instance();
             Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
 
@@ -135,6 +172,7 @@ namespace BossMod
             _processActionEffectPacketHook.Dispose();
             _useActionLocationHook.Dispose();
             _updateHook.Dispose();
+            InputOverride.Dispose();
         }
 
         public unsafe Vector3? GetWorldPosUnderCursor()

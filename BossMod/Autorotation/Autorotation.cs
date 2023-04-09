@@ -43,7 +43,7 @@ namespace BossMod
         private List<Network.PendingAction> _pendingActions = new();
         private ActorCastEvent? _completedCast = null;
 
-        private InputOverride _inputOverride;
+        private InputOverride _inputOverride => ActionManagerEx.Instance!.InputOverride; // TODO-AMREF: remove
 
         private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
 
@@ -59,20 +59,18 @@ namespace BossMod
         public Actor? PrimaryTarget; // this is usually a normal (hard) target, but AI can override; typically used for damage abilities
         public Actor? SecondaryTarget; // this is usually a mouseover, but AI can override; typically used for heal and utility abilities
         public AIHints Hints = new();
-        public bool Moving => _inputOverride.IsMoveRequested(); // TODO: reconsider
         public bool AboutToStartCast { get; private set; }
         public float EffAnimLock => ActionManagerEx.Instance!.EffectiveAnimationLock;
         public float AnimLockDelay => ActionManagerEx.Instance!.EffectiveAnimationLockDelay;
 
         private static ActionID IDSprintGeneral = new(ActionType.General, 4);
 
-        public unsafe Autorotation(Network network, BossModuleManager bossmods, InputOverride inputOverride)
+        public unsafe Autorotation(Network network, BossModuleManager bossmods)
         {
             _network = network;
             _config = Service.Config.Get<AutorotationConfig>();
             _bossmods = bossmods;
             _autoHints = new(bossmods.WorldState);
-            _inputOverride = inputOverride;
 
             ActionManagerEx.Instance!.PostUpdate += OnActionManagerUpdate;
             _network.EventActionRequest += OnNetworkActionRequest;
@@ -102,8 +100,6 @@ namespace BossMod
 
         public void Update()
         {
-            ActionManagerEx.Instance!.AnimationLockDelayMax = _config.RemoveAnimationLockDelay ? 0 : float.MaxValue;
-
             var player = WorldState.Party.Player();
             PrimaryTarget = WorldState.Actors.Find(player?.TargetID ?? 0);
             SecondaryTarget = WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
@@ -239,7 +235,7 @@ namespace BossMod
             }
 
             if (EffAnimLock > 0)
-                return _config.PreventMovingWhileCasting && am.CastTimeRemaining > 0; // casting/under animation lock - do nothing for now, we'll retry on future update anyway
+                return ActionManagerEx.Instance!.Config.PreventMovingWhileCasting && am.CastTimeRemaining > 0; // casting/under animation lock - do nothing for now, we'll retry on future update anyway
 
             var next = _classActions.CalculateNextAction();
             if (!next.Action)
@@ -257,7 +253,7 @@ namespace BossMod
 
             // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
             AboutToStartCast = next.Definition.CastTime > 0 && am.GCD() < 0.1f;
-            bool lockMovementForNext = _config.PreventMovingWhileCasting && AboutToStartCast;
+            bool lockMovementForNext = ActionManagerEx.Instance!.Config.PreventMovingWhileCasting && AboutToStartCast;
             if (lockMovementForNext && _inputOverride.IsMoving() || Cooldowns[next.Definition.CooldownGroup] > next.Definition.CooldownAtFirstCharge)
                 return lockMovementForNext; // action is still on cooldown
 
@@ -275,7 +271,7 @@ namespace BossMod
             Log($"Auto-execute {next.Source} action {next.Action} (=> {actionAdj}) @ {targetID:X} {Utils.Vec3String(next.TargetPos)} => {res}");
             _classActions.NotifyActionExecuted(next);
 
-            if (rotPre != rotPost && Config.RestoreRotation)
+            if (rotPre != rotPost && ActionManagerEx.Instance!.Config.RestoreRotation)
                 _restoreRotation = (rotPre, rotPost);
 
             return lockMovementForNext;

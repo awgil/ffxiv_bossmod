@@ -236,10 +236,10 @@ namespace BossMod
                     return true;
                 }
 
-                if (Autorot.Config.GTMode == AutorotationConfig.GroundTargetingMode.Manual)
+                if (ActionManagerEx.Instance!.Config.GTMode == ActionManagerConfig.GroundTargetingMode.Manual)
                     return false;
 
-                if (Autorot.Config.GTMode == AutorotationConfig.GroundTargetingMode.AtCursor)
+                if (ActionManagerEx.Instance!.Config.GTMode == ActionManagerConfig.GroundTargetingMode.AtCursor)
                 {
                     var pos = ActionManagerEx.Instance!.GetWorldPosUnderCursor();
                     if (pos == null)

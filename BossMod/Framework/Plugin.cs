@@ -20,7 +20,6 @@ namespace BossMod
         private WorldStateGame _ws;
         private WorldStateLogger _debugLogger;
         private BossModuleManagerGame _bossmod;
-        private InputOverride _inputOverride;
         private Autorotation _autorotation;
         private AI.AIManager _ai;
         private AI.Broadcast _broadcast;
@@ -42,7 +41,6 @@ namespace BossMod
             MultiboxUnlock.Exec();
             Camera.Instance = new();
             Mouseover.Instance = new();
-            ActionManagerEx.Instance = new();
 
             Service.Config.Initialize();
             Service.Config.LoadFromFile(dalamud.ConfigFile);
@@ -55,9 +53,10 @@ namespace BossMod
             _ws = new(_network);
             _debugLogger = new(_ws, dalamud.ConfigDirectory);
             _bossmod = new(_ws);
-            _inputOverride = new();
-            _autorotation = new(_network, _bossmod, _inputOverride);
-            _ai = new(_inputOverride, _autorotation);
+
+            ActionManagerEx.Instance = new();
+            _autorotation = new(_network, _bossmod);
+            _ai = new(ActionManagerEx.Instance.InputOverride, _autorotation);
             _broadcast = new();
 
             dalamud.UiBuilder.DisableAutomaticUiHide = true;
@@ -74,7 +73,6 @@ namespace BossMod
             _network.Dispose();
             _ai.Dispose();
             _autorotation.Dispose();
-            _inputOverride.Dispose();
             Mouseover.Instance?.Dispose();
             ActionManagerEx.Instance?.Dispose();
             _commandManager.RemoveHandler("/vbm");
@@ -112,7 +110,7 @@ namespace BossMod
 
         private void OpenDebugUI()
         {
-            var ui = new DebugUI(_ws, _autorotation, _inputOverride);
+            var ui = new DebugUI(_ws, _autorotation, ActionManagerEx.Instance!.InputOverride);
             var w = WindowManager.CreateWindow("Boss mod debug UI", ui.Draw, ui.Dispose, () => true);
             w.SizeHint = new Vector2(300, 200);
         }

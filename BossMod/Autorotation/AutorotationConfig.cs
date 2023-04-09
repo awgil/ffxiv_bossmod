@@ -1,6 +1,6 @@
 ﻿namespace BossMod
 {
-    [ConfigDisplay(Name = "Autorotation settings (experimental!)", Order = 4)]
+    [ConfigDisplay(Name = "Autorotation settings (experimental!)", Order = 5)]
     class AutorotationConfig : ConfigNode
     {
         [PropertyDisplay("Enable autorotation")]
@@ -18,33 +18,7 @@
         [PropertyDisplay("Enable actions that affect position (e.g. Onslaught, Primal Rend)")]
         public bool EnableMovement = true;
 
-        [PropertyDisplay("Smart queue for cooldowns (when pressing a button, queue it into next ogcd slot without delaying GCDs)")]
-        public bool SmartCooldownQueueing = true;
-
-        [PropertyDisplay("Prevent movement while casting")]
-        public bool PreventMovingWhileCasting = false;
-
-        [PropertyDisplay("Remove extra lag-induced animation lock from instant casts (a-la xivalex)")]
-        public bool RemoveAnimationLockDelay = false;
-
         [PropertyDisplay("Sticky auto actions")]
         public bool StickyAutoActions = false;
-
-        [PropertyDisplay("Restore rotation after action use")]
-        public bool RestoreRotation = false;
-
-        public enum GroundTargetingMode
-        {
-            [PropertyDisplay("Manually select position by extra click (normal game behaviour)")]
-            Manual,
-
-            [PropertyDisplay("Cast at current mouse position")]
-            AtCursor,
-
-            [PropertyDisplay("Cast at selected target's position")]
-            AtTarget
-        }
-        [PropertyDisplay("Target selection for ground-targeted abilities")]
-        public GroundTargetingMode GTMode = GroundTargetingMode.AtCursor;
     }
 }
