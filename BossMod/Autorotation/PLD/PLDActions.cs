@@ -88,17 +88,6 @@ namespace BossMod.PLD
             return MakeResult(res, Autorot.PrimaryTarget);
         }
 
-        protected override void OnActionExecuted(ActionID action, Actor? target)
-        {
-            base.OnActionExecuted(action, target);
-            Log($"Executed {action} @ {target} [{_state}]");
-        }
-
-        protected override void OnActionSucceeded(ActorCastEvent ev)
-        {
-            Log($"Succeeded {ev.Action} @ {ev.MainTargetID:X} [{_state}]");
-        }
-
         private void UpdatePlayerState()
         {
             FillCommonPlayerState(_state);

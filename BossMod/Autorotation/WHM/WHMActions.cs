@@ -182,14 +182,8 @@ namespace BossMod.WHM
             return new();
         }
 
-        protected override void OnActionExecuted(ActionID action, Actor? target)
-        {
-            Log($"Executed {action} @ {target} [{_state}]");
-        }
-
         protected override void OnActionSucceeded(ActorCastEvent ev)
         {
-            Log($"Succeeded {ev.Action} @ {ev.MainTargetID:X} [{_state}]");
             // note: our GCD heals have cast time 2 => 1.6 under POM (minus haste), +0.1 anim lock => after them we have 0.3 or even slightly smaller window
             // we want to be able to cast at least one oGCD after them, even if it means slightly delaying next GCD
             _allowDelayingNextGCD = ev.Action.Type == ActionType.Spell && (AID)ev.Action.ID is AID.Medica1 or AID.Medica2 or AID.Cure2 or AID.Cure3;

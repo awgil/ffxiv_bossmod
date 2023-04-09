@@ -40,12 +40,7 @@ namespace BossMod
         private WindowManager.Window? _ui;
         private CommonActions? _classActions;
 
-        private List<Network.PendingAction> _pendingActions = new();
         private ActorCastEvent? _completedCast = null;
-
-        private InputOverride _inputOverride => ActionManagerEx.Instance!.InputOverride; // TODO-AMREF: remove
-
-        private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
 
         private unsafe delegate bool UseActionDelegate(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted);
         private Hook<UseActionDelegate> _useActionHook;
@@ -59,7 +54,6 @@ namespace BossMod
         public Actor? PrimaryTarget; // this is usually a normal (hard) target, but AI can override; typically used for damage abilities
         public Actor? SecondaryTarget; // this is usually a mouseover, but AI can override; typically used for heal and utility abilities
         public AIHints Hints = new();
-        public bool AboutToStartCast { get; private set; }
         public float EffAnimLock => ActionManagerEx.Instance!.EffectiveAnimationLock;
         public float AnimLockDelay => ActionManagerEx.Instance!.EffectiveAnimationLockDelay;
 
@@ -72,12 +66,8 @@ namespace BossMod
             _bossmods = bossmods;
             _autoHints = new(bossmods.WorldState);
 
-            ActionManagerEx.Instance!.PostUpdate += OnActionManagerUpdate;
-            _network.EventActionRequest += OnNetworkActionRequest;
-            _network.EventActionRequestGT += OnNetworkActionRequest;
+            ActionManagerEx.Instance!.AutoActionExecuted += OnAutoActionExecuted;
             _network.EventActionEffect += OnNetworkActionEffect;
-            _network.EventActorControlCancelCast += OnNetworkActionCancel;
-            _network.EventActorControlSelfActionRejected += OnNetworkActionReject;
 
             var useActionAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 64 B1 01");
             _useActionHook = Hook<UseActionDelegate>.FromAddress(useActionAddress, UseActionDetour);
@@ -86,12 +76,8 @@ namespace BossMod
 
         public void Dispose()
         {
-            ActionManagerEx.Instance!.PostUpdate -= OnActionManagerUpdate;
-            _network.EventActionRequest -= OnNetworkActionRequest;
-            _network.EventActionRequestGT -= OnNetworkActionRequest;
+            ActionManagerEx.Instance!.AutoActionExecuted -= OnAutoActionExecuted;
             _network.EventActionEffect -= OnNetworkActionEffect;
-            _network.EventActorControlCancelCast -= OnNetworkActionCancel;
-            _network.EventActorControlSelfActionRejected -= OnNetworkActionReject;
 
             _useActionHook.Dispose();
             _classActions?.Dispose();
@@ -118,6 +104,9 @@ namespace BossMod
             }
             Hints.Normalize();
 
+            // TODO-AMREF: reconsider (should be part of worldstate update for player)
+            ActionManagerEx.Instance!.GetCooldowns(Cooldowns);
+
             Type? classType = null;
             if (_config.Enabled && player != null)
             {
@@ -142,13 +131,17 @@ namespace BossMod
                 _classActions = classType != null ? (CommonActions?)Activator.CreateInstance(classType, this, player) : null;
             }
 
-            _classActions?.UpdateMainTick();
-
+            // TODO-AMREF: reconsider, do we even need it?..
             if (_completedCast != null)
             {
                 _classActions?.NotifyActionSucceeded(_completedCast);
                 _completedCast = null;
             }
+
+            // TODO-AMREF: these function names are no longer correct...
+            _classActions?.UpdateMainTick();
+            _classActions?.UpdateAMTick();
+            ActionManagerEx.Instance!.AutoQueue = _classActions?.CalculateNextAction() ?? default;
 
             bool showUI = _classActions != null && _config.ShowUI;
             if (showUI && _ui == null)
@@ -185,7 +178,7 @@ namespace BossMod
         {
             if (_classActions == null)
                 return;
-            var next = _classActions.CalculateNextAction();
+            var next = ActionManagerEx.Instance!.AutoQueue;
             var state = _classActions.GetState();
             var strategy = _classActions.GetStrategy();
             ImGui.TextUnformatted($"[{_classActions.AutoAction}] Next: {next.Action} ({next.Source})");
@@ -202,169 +195,15 @@ namespace BossMod
             ImGui.TextUnformatted($"GCD={Cooldowns[CommonDefinitions.GCDGroup]:f3}, AnimLock={EffAnimLock:f3}+{AnimLockDelay:f3}");
         }
 
-        private void OnActionManagerUpdate(object? sender, EventArgs args)
+        private void OnAutoActionExecuted(object? sender, CommonActions.NextAction action)
         {
-            if (ActionManagerUpdateImpl())
-                _inputOverride.BlockMovement();
-            else
-                _inputOverride.UnblockMovement();
-        }
-
-        // returns whether input should be blocked
-        private unsafe bool ActionManagerUpdateImpl()
-        {
-            AboutToStartCast = false;
-            if (_classActions == null)
-                return false; // disabled
-
-            // update cooldowns and autorotation implementation state, so that correct decision can be made
-            var am = ActionManagerEx.Instance!;
-            am.GetCooldowns(Cooldowns);
-            _classActions.UpdateAMTick();
-
-            // restore rotation logic; note that movement abilities (like charge) can take multiple frames until they allow changing facing
-            var gamePlayer = Service.ClientState.LocalPlayer;
-            if (_restoreRotation != null && (_classActions.Player.CastInfo?.EventHappened ?? true))
-            {
-                var curRot = (gamePlayer?.Rotation ?? 0).Radians();
-                //Log($"Restore rotation: {curRot.Rad}: {_restoreRotation.Value.post.Rad}->{_restoreRotation.Value.pre.Rad}");
-                if (_restoreRotation.Value.post.AlmostEqual(curRot, 0.01f))
-                    am.FaceDirection(_restoreRotation.Value.pre.ToDirection());
-                else
-                    _restoreRotation = null;
-            }
-
-            if (EffAnimLock > 0)
-                return ActionManagerEx.Instance!.Config.PreventMovingWhileCasting && am.CastTimeRemaining > 0; // casting/under animation lock - do nothing for now, we'll retry on future update anyway
-
-            var next = _classActions.CalculateNextAction();
-            if (!next.Action)
-                return false; // nothing to use
-
-            // extra safety checks (should no longer be needed, but leaving them for now)
-            // hack for sprint support
-            // normally general action -> spell conversion is done by UseAction before calling UseActionRaw
-            // calling UseActionRaw directly is not good: it would call StartCooldown, which would in turn call GetRecastTime, which always returns 5s for general actions
-            // this leads to incorrect sprint cooldown (5s instead of 60s), which is just bad
-            // for spells, call GetAdjustedActionId - even though it is typically done correctly by autorotation modules
-            var actionAdj = next.Action == IDSprintGeneral ? CommonDefinitions.IDSprint : next.Action.Type == ActionType.Spell ? new(ActionType.Spell, am.GetAdjustedActionID(next.Action.ID)) : next.Action;
-            if (actionAdj != next.Action)
-                Log($"Something didn't perform action adjustment correctly: replacing {next.Action} with {actionAdj}");
-
-            // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
-            AboutToStartCast = next.Definition.CastTime > 0 && am.GCD() < 0.1f;
-            bool lockMovementForNext = ActionManagerEx.Instance!.Config.PreventMovingWhileCasting && AboutToStartCast;
-            if (lockMovementForNext && _inputOverride.IsMoving() || Cooldowns[next.Definition.CooldownGroup] > next.Definition.CooldownAtFirstCharge)
-                return lockMovementForNext; // action is still on cooldown
-
-            var targetID = next.Target?.InstanceID ?? GameObject.InvalidGameObjectId;
-            var status = am.GetActionStatus(actionAdj, targetID);
-            if (status != 0)
-            {
-                Log($"Can't execute {next.Source} action {next.Action} (=> {actionAdj}) @ {targetID:X}: status {status} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.LogMessage>(status)?.Text}'");
-                return false;
-            }
-
-            var rotPre = (gamePlayer?.Rotation ?? 0).Radians();
-            var res = am.UseActionRaw(actionAdj, targetID, next.TargetPos, next.Action.Type == ActionType.Item ? 65535u : 0);
-            var rotPost = (gamePlayer?.Rotation ?? 0).Radians();
-            Log($"Auto-execute {next.Source} action {next.Action} (=> {actionAdj}) @ {targetID:X} {Utils.Vec3String(next.TargetPos)} => {res}");
-            _classActions.NotifyActionExecuted(next);
-
-            if (rotPre != rotPost && ActionManagerEx.Instance!.Config.RestoreRotation)
-                _restoreRotation = (rotPre, rotPost);
-
-            return lockMovementForNext;
-        }
-
-        private void OnNetworkActionRequest(object? sender, Network.PendingAction action)
-        {
-            if (_pendingActions.Count > 0)
-            {
-                Log($"New action request ({PendingActionString(action)}) while {_pendingActions.Count} are pending (first = {PendingActionString(_pendingActions[0])})", true);
-            }
-            Log($"++ {PendingActionString(action)}");
-            _pendingActions.Add(action);
+            _classActions?.NotifyActionExecuted(action);
         }
 
         private void OnNetworkActionEffect(object? sender, (ulong actorID, ActorCastEvent cast) args)
         {
-            if (args.cast.SourceSequence == 0 || args.actorID != WorldState.Party.Player()?.InstanceID)
-                return; // non-player-initiated
-
-            var pa = new Network.PendingAction() { Action = args.cast.Action, TargetID = args.cast.MainTargetID, Sequence = args.cast.SourceSequence };
-            int index = _pendingActions.FindIndex(a => a.Sequence == args.cast.SourceSequence);
-            if (index == -1)
-            {
-                Log($"Unexpected action-effect ({PendingActionString(pa)}): currently {_pendingActions.Count} are pending", true);
-                _pendingActions.Clear();
-            }
-            else if (index > 0)
-            {
-                Log($"Unexpected action-effect ({PendingActionString(pa)}): index={index}, first={PendingActionString(_pendingActions[0])}, count={_pendingActions.Count}", true);
-            }
-            else if (_pendingActions[0].Action != args.cast.Action)
-            {
-                Log($"Request/response action mismatch: requested {PendingActionString(_pendingActions[0])}, got {PendingActionString(pa)}", true);
-            }
-            _pendingActions.RemoveRange(0, index + 1);
-            Log($"-+ {PendingActionString(pa)}, lock={args.cast.AnimationLockTime:f3}");
-            _completedCast = args.cast;
-
-            // unblock input unconditionally on successful cast (I assume there are no instances where we need to immediately start next GCD?)
-            _inputOverride.UnblockMovement();
-        }
-
-        private void OnNetworkActionCancel(object? sender, (ulong actorID, uint actionID) args)
-        {
-            if (args.actorID != WorldState.Party.Player()?.InstanceID)
-                return; // non-player-initiated
-
-            int index = _pendingActions.FindIndex(a => a.Action.ID == args.actionID);
-            if (index == -1)
-            {
-                Log($"Unexpected action-cancel ({args.actionID}): currently {_pendingActions.Count} are pending", true);
-                _pendingActions.Clear();
-            }
-            else
-            {
-                if (index > 0)
-                {
-                    Log($"Unexpected action-cancel ({PendingActionString(_pendingActions[index])}): index={index}, first={PendingActionString(_pendingActions[0])}, count={_pendingActions.Count}", true);
-                }
-                Log($"-- {PendingActionString(_pendingActions[index])}");
-                _pendingActions.RemoveRange(0, index + 1);
-            }
-        }
-
-        private void OnNetworkActionReject(object? sender, (ulong actorID, uint actionID, uint sourceSequence) args)
-        {
-            int index = args.sourceSequence != 0
-                ? _pendingActions.FindIndex(a => a.Sequence == args.sourceSequence)
-                : _pendingActions.FindIndex(a => a.Action.ID == args.actionID);
-            if (index == -1)
-            {
-                Log($"Unexpected action-reject (#{args.sourceSequence} '{args.actionID}'): currently {_pendingActions.Count} are pending", true);
-                _pendingActions.Clear();
-            }
-            else
-            {
-                if (index > 0)
-                {
-                    Log($"Unexpected action-reject ({PendingActionString(_pendingActions[index])}): index={index}, first={PendingActionString(_pendingActions[0])}, count={_pendingActions.Count}", true);
-                }
-                if (_pendingActions[index].Action.ID != args.actionID)
-                {
-                    Log($"Request/reject action mismatch: requested {PendingActionString(_pendingActions[index])}, got {args.actionID}", true);
-                }
-                Log($"!! {PendingActionString(_pendingActions[index])}");
-                _pendingActions.RemoveRange(0, index + 1);
-            }
-        }
-
-        private string PendingActionString(Network.PendingAction a)
-        {
-            return $"#{a.Sequence} {a.Action} @ {Utils.ObjectString(a.TargetID)}";
+            if (args.cast.SourceSequence != 0 && args.actorID == WorldState.Party.Player()?.InstanceID)
+                _completedCast = args.cast;
         }
 
         private uint PositionalColor(CommonRotation.Strategy strategy)
@@ -372,12 +211,6 @@ namespace BossMod
             return strategy.NextPositionalImminent
                 ? (strategy.NextPositionalCorrect ? 0xff00ff00 : 0xff0000ff)
                 : (strategy.NextPositionalCorrect ? 0xffffffff : 0xff00ffff);
-        }
-
-        private void Log(string message, bool warning = false)
-        {
-            if (warning || _config.Logging)
-                Service.Log($"[AR] {message}");
         }
 
         private unsafe bool UseActionDetour(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)

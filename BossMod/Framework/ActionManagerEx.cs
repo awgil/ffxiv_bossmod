@@ -5,6 +5,7 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BossMod
 {
@@ -92,13 +93,16 @@ namespace BossMod
         public float EffectiveAnimationLock => AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends
         public float EffectiveAnimationLockDelay => AnimationLockDelayMax <= 0.5f ? AnimationLockDelayMax : MathF.Min(AnimationLockDelayAverage, 0.1f); // this is a conservative estimate
 
-        public event EventHandler? PostUpdate; // TODO-AMREF: remove
+        public event EventHandler<CommonActions.NextAction>? AutoActionExecuted;
 
         public InputOverride InputOverride;
         public ActionManagerConfig Config;
+        public CommonActions.NextAction AutoQueue; // TODO-AMREF: reconsider
+        public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
         private unsafe ActionManager* _inst;
         private float _lastReqInitialAnimLock;
         private ushort _lastReqSequence;
+        private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
 
         private unsafe delegate bool GetGroundTargetPositionDelegate(ActionManager* self, Vector3* outPos);
         private GetGroundTargetPositionDelegate _getGroundTargetPositionFunc;
@@ -215,6 +219,13 @@ namespace BossMod
             return _inst->GetActionStatus((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, (long)target, checkRecastActive, checkCastingActive, outOptExtraInfo);
         }
 
+        // returns time in ms
+        public unsafe int GetAdjustedCastTime(ActionID action, bool skipHasteAdjustment = true, byte* outOptProcState = null)
+            => ActionManager.GetAdjustedCastTime((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, (byte)(skipHasteAdjustment ? 1 : 0), outOptProcState);
+
+        public unsafe bool IsRecastTimerActive(ActionID action)
+            => _inst->IsRecastTimerActive((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID);
+
         public unsafe bool UseAction(ActionID action, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
         {
             return _inst->UseAction((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, (long)targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
@@ -229,7 +240,62 @@ namespace BossMod
         private unsafe void UpdateDetour(ActionManager* self)
         {
             _updateHook.Original(self);
-            PostUpdate?.Invoke(this, EventArgs.Empty);
+
+            // check whether movement is safe; block movement if not and if desired
+            var imminentAction = QueueActive ? QueueAction : AutoQueue.Action;
+            MoveMightInterruptCast &= CastTimeRemaining > 0; // previous cast could have ended without action effect
+            MoveMightInterruptCast |= imminentAction && CastTimeRemaining <= 0 && AnimationLock < 0.1f && GetAdjustedCastTime(imminentAction) > 0 && GCD() < 0.1f; // if we're not casting, but will start soon, moving might interrupt future cast
+            bool blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast;
+
+            // restore rotation logic; note that movement abilities (like charge) can take multiple frames until they allow changing facing
+            var pc = Service.ClientState.LocalPlayer;
+            if (_restoreRotation != null && !MoveMightInterruptCast)
+            {
+                var curRot = (pc?.Rotation ?? 0).Radians();
+                //Log($"[AMEx] Restore rotation: {curRot.Rad}: {_restoreRotation.Value.post.Rad}->{_restoreRotation.Value.pre.Rad}");
+                if (_restoreRotation.Value.post.AlmostEqual(curRot, 0.01f))
+                    FaceDirection(_restoreRotation.Value.pre.ToDirection());
+                else
+                    _restoreRotation = null;
+            }
+
+            // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
+            if (EffectiveAnimationLock <= 0 && AutoQueue.Action && !IsRecastTimerActive(AutoQueue.Action) && !(blockMovement && InputOverride.IsMoving()))
+            {
+                // extra safety checks (should no longer be needed, but leaving them for now)
+                // hack for sprint support
+                // normally general action -> spell conversion is done by UseAction before calling UseActionRaw
+                // calling UseActionRaw directly is not good: it would call StartCooldown, which would in turn call GetRecastTime, which always returns 5s for general actions
+                // this leads to incorrect sprint cooldown (5s instead of 60s), which is just bad
+                // for spells, call GetAdjustedActionId - even though it is typically done correctly by autorotation modules
+                var actionAdj = AutoQueue.Action.Type == ActionType.Spell ? new(ActionType.Spell, GetAdjustedActionID(AutoQueue.Action.ID)) : AutoQueue.Action;
+                if (actionAdj != AutoQueue.Action)
+                    Service.Log($"[AMEx] Something didn't perform action adjustment correctly: replacing {AutoQueue.Action} with {actionAdj}");
+
+                var targetID = AutoQueue.Target?.InstanceID ?? GameObject.InvalidGameObjectId;
+                var status = GetActionStatus(actionAdj, targetID);
+                if (status == 0)
+                {
+                    var rotPre = (pc?.Rotation ?? 0).Radians();
+                    var res = UseActionRaw(actionAdj, targetID, AutoQueue.TargetPos, AutoQueue.Action.Type == ActionType.Item ? 65535u : 0);
+                    var rotPost = (pc?.Rotation ?? 0).Radians();
+                    Service.Log($"[AMEx] Auto-execute {AutoQueue.Source} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X} {Utils.Vec3String(AutoQueue.TargetPos)} => {res}");
+                    AutoActionExecuted?.Invoke(this, AutoQueue);
+
+                    if (rotPre != rotPost && Config.RestoreRotation)
+                        _restoreRotation = (rotPre, rotPost);
+                }
+                else
+                {
+                    Service.Log($"[AMEx] Can't execute {AutoQueue.Source} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X}: status {status} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.LogMessage>(status)?.Text}'");
+                    blockMovement = false;
+                }
+            }
+
+            if (blockMovement)
+                InputOverride.BlockMovement();
+            else
+                InputOverride.UnblockMovement();
         }
 
         private unsafe bool UseActionLocationDetour(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation)
@@ -241,6 +307,7 @@ namespace BossMod
             {
                 _lastReqInitialAnimLock = AnimationLock;
                 _lastReqSequence = currSeq;
+                MoveMightInterruptCast = CastTimeRemaining > 0;
                 Service.Log($"[AMEx] UAL #{currSeq} ({new ActionID(actionType, actionID)} @ {targetID:X} / {Utils.Vec3String(*targetPos)} {(ret ? "succeeded" : "failed?")}, ALock={_lastReqInitialAnimLock:f3}, CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
             }
             return ret;
@@ -251,29 +318,43 @@ namespace BossMod
             var prevAnimLock = AnimationLock;
             _processActionEffectPacketHook.Original(casterID, casterObj, targetPos, header, effects, targets);
             var currAnimLock = AnimationLock;
-            if (currAnimLock == prevAnimLock)
-                return;
 
-            if (_lastReqSequence != header->SourceSequence)
+            if (header->SourceSequence == 0 || casterID != Service.ClientState.LocalPlayer?.ObjectId)
             {
-                Service.Log($"[AMEx] Animation lock updated by action with unexpected sequence ID: {prevAnimLock:f3} -> {currAnimLock:f3}");
+                // non-player-initiated
+                if (currAnimLock != prevAnimLock)
+                    Service.Log($"[AMEx] Animation lock updated by non-player-initiated action: {casterID:X} {new ActionID(header->actionType, header->actionId)} {prevAnimLock:f3} -> {currAnimLock:f3}");
                 return;
             }
 
-            float originalDelay = _lastReqInitialAnimLock - prevAnimLock;
-            float reduction = 0;
-            if (_lastReqInitialAnimLock > 0)
+            MoveMightInterruptCast = false; // slidecast window start
+            InputOverride.UnblockMovement(); // unblock input unconditionally on successful cast (I assume there are no instances where we need to immediately start next GCD?)
+
+            float animLockDelay = _lastReqInitialAnimLock - prevAnimLock;
+            float animLockReduction = 0;
+
+            // animation lock delay update
+            if (_lastReqSequence == header->SourceSequence)
             {
-                float adjDelay = originalDelay;
-                if (adjDelay > AnimationLockDelayMax)
+                if (_lastReqInitialAnimLock > 0)
                 {
-                    reduction = Math.Min(adjDelay - AnimationLockDelayMax, currAnimLock);
-                    adjDelay -= reduction;
-                    Utils.WriteField(_inst, 8, currAnimLock - reduction);
+                    float adjDelay = animLockDelay;
+                    if (adjDelay > AnimationLockDelayMax)
+                    {
+                        animLockReduction = Math.Min(adjDelay - AnimationLockDelayMax, currAnimLock);
+                        adjDelay -= animLockReduction;
+                        Utils.WriteField(_inst, 8, currAnimLock - animLockReduction);
+                    }
+                    AnimationLockDelayAverage = adjDelay * (1 - AnimationLockDelaySmoothing) + AnimationLockDelayAverage * AnimationLockDelaySmoothing;
                 }
-                AnimationLockDelayAverage = adjDelay * (1 - AnimationLockDelaySmoothing) + AnimationLockDelayAverage * AnimationLockDelaySmoothing;
             }
-            Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} -> ALock={currAnimLock:f3} (delayed by {originalDelay:f3}-{reduction:f3}), CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
+            else if (currAnimLock != prevAnimLock)
+            {
+                Service.Log($"[AMEx] Animation lock updated by action with unexpected sequence ID #{header->SourceSequence}: {prevAnimLock:f3} -> {currAnimLock:f3}");
+            }
+
+            Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}-{animLockReduction:f3}), CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
+            // TODO-AMREF: consider sending an event here...
         }
     }
 }

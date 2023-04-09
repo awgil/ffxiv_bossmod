@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using static BossMod.ActorCastEvent;
 
 namespace BossMod
 {
@@ -19,15 +20,13 @@ namespace BossMod
             public ActionID Action;
             public Actor? Target;
             public Vector3 TargetPos;
-            public ActionDefinition Definition;
             public ActionSource Source;
 
-            public NextAction(ActionID action, Actor? target, Vector3 targetPos, ActionDefinition definition, ActionSource source)
+            public NextAction(ActionID action, Actor? target, Vector3 targetPos, ActionSource source)
             {
                 Action = action;
                 Target = target;
                 TargetPos = targetPos;
-                Definition = definition;
                 Source = source;
             }
         }
@@ -209,7 +208,7 @@ namespace BossMod
             if (supportedAction == null)
                 return false;
 
-            UpdateInternalState(AutoAction);
+            //UpdateInternalState(AutoAction);
             if (supportedAction.TransformAction != null)
             {
                 var adjAction = supportedAction.TransformAction();
@@ -257,32 +256,31 @@ namespace BossMod
             return true;
         }
 
-        // effective animation lock is 0 if we're getting an action to use, otherwise it can be larger (e.g. if we're showing next-action hint during animation lock)
         public NextAction CalculateNextAction()
         {
             // check emergency mode
             var mqEmergency = _mq.PeekEmergency();
             if (mqEmergency != null)
-                return new(mqEmergency.Action, mqEmergency.Target, mqEmergency.TargetPos, mqEmergency.Definition, ActionSource.Emergency);
+                return new(mqEmergency.Action, mqEmergency.Target, mqEmergency.TargetPos, ActionSource.Emergency);
 
             var effAnimLock = Autorot.EffAnimLock;
             var animLockDelay = Autorot.AnimLockDelay;
 
             // see if we have any GCD (queued or automatic)
             var mqGCD = _mq.PeekGCD();
-            var nextGCD = mqGCD != null ? new NextAction(mqGCD.Action, mqGCD.Target, mqGCD.TargetPos, mqGCD.Definition, ActionSource.Manual) : AutoAction != AutoActionNone ? CalculateAutomaticGCD() : new();
+            var nextGCD = mqGCD != null ? new NextAction(mqGCD.Action, mqGCD.Target, mqGCD.TargetPos, ActionSource.Manual) : AutoAction != AutoActionNone ? CalculateAutomaticGCD() : new();
             float ogcdDeadline = nextGCD.Action ? Autorot.Cooldowns[CommonDefinitions.GCDGroup] : float.MaxValue;
             //Log($"{nextGCD.Action} = {ogcdDeadline}");
 
             // search for any oGCDs that we can execute without delaying GCD
             var mqOGCD = _mq.PeekOGCD(effAnimLock, animLockDelay, ogcdDeadline);
             if (mqOGCD != null)
-                return new(mqOGCD.Action, mqOGCD.Target, mqOGCD.TargetPos, mqOGCD.Definition, ActionSource.Manual);
+                return new(mqOGCD.Action, mqOGCD.Target, mqOGCD.TargetPos, ActionSource.Manual);
 
             // see if there is anything high-priority from cooldown plan to be executed
             var cpActionHigh = Autorot.Hints.PlannedActions.FirstOrDefault(x => !x.lowPriority && CanExecutePlannedAction(x.action, x.target, effAnimLock, animLockDelay, ogcdDeadline));
             if (cpActionHigh.action)
-                return new(cpActionHigh.action, cpActionHigh.target, new(), SupportedActions[cpActionHigh.action].Definition, ActionSource.Planned);
+                return new(cpActionHigh.action, cpActionHigh.target, new(), ActionSource.Planned);
 
             // note: we intentionally don't check that automatic oGCD really does not clip GCD - we provide utilities that allow module checking that, but also allow overriding if needed
             var nextOGCD = AutoAction != AutoActionNone ? CalculateAutomaticOGCD(ogcdDeadline) : new();
@@ -292,13 +290,14 @@ namespace BossMod
             // finally see whether there are any low-priority planned actions
             var cpActionLow = Autorot.Hints.PlannedActions.FirstOrDefault(x => x.lowPriority && CanExecutePlannedAction(x.action, x.target, effAnimLock, animLockDelay, ogcdDeadline));
             if (cpActionLow.action)
-                return new(cpActionLow.action, cpActionLow.target, new(), SupportedActions[cpActionLow.action].Definition, ActionSource.Planned);
+                return new(cpActionLow.action, cpActionLow.target, new(), ActionSource.Planned);
 
             return nextGCD;
         }
 
         public void NotifyActionExecuted(NextAction action)
         {
+            Log($"Executed {action.Action} @ {action.Target} [{GetState()}]");
             _mq.Pop(action.Action);
             if (action.Source == ActionSource.Planned)
                 Autorot.Bossmods.ActiveModule?.PlanExecution?.NotifyActionExecuted(Autorot.Bossmods.ActiveModule.StateMachine, action.Action);
@@ -307,6 +306,7 @@ namespace BossMod
 
         public void NotifyActionSucceeded(ActorCastEvent ev)
         {
+            Log($"Succeeded {ev.Action} @ {ev.MainTargetID:X} [{GetState()}]");
             OnActionSucceeded(ev);
         }
 
@@ -319,8 +319,8 @@ namespace BossMod
         protected abstract void QueueAIActions();
         protected abstract NextAction CalculateAutomaticGCD();
         protected abstract NextAction CalculateAutomaticOGCD(float deadline);
-        protected abstract void OnActionExecuted(ActionID action, Actor? target);
-        protected abstract void OnActionSucceeded(ActorCastEvent ev);
+        protected virtual void OnActionExecuted(ActionID action, Actor? target) { }
+        protected virtual void OnActionSucceeded(ActorCastEvent ev) { }
 
         protected NextAction MakeResult(ActionID action, Actor? target)
         {
@@ -329,7 +329,7 @@ namespace BossMod
                 return new();
             if (data.Definition.Range == 0)
                 target = Player; // override range-0 actions to always target player
-            return target != null && data.Allowed(Player, target) ? new(action, target, new(), data.Definition, ActionSource.Automatic) : new();
+            return target != null && data.Allowed(Player, target) ? new(action, target, new(), ActionSource.Automatic) : new();
         }
         protected NextAction MakeResult<AID>(AID aid, Actor? target) where AID : Enum => MakeResult(ActionID.MakeSpell(aid), target);
 

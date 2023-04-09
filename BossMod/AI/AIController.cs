@@ -168,7 +168,7 @@ namespace BossMod.AI
             }
 
             bool castInProgress = player.CastInfo != null && !player.CastInfo.EventHappened;
-            bool forbidMovement = moveRequested || !AllowInterruptingCastByMovement && (castInProgress || _autorot.AboutToStartCast);
+            bool forbidMovement = moveRequested || !AllowInterruptingCastByMovement && ActionManagerEx.Instance!.MoveMightInterruptCast;
             if (NaviTargetPos != null && !forbidMovement && (NaviTargetPos.Value - player.Position).LengthSq() > 0.01f)
             {
                 var dir = cameraFacing - Angle.FromDirection(NaviTargetPos.Value - player.Position);
