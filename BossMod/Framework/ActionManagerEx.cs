@@ -55,6 +55,8 @@ namespace BossMod
         public unsafe byte GT_uB8 => Utils.ReadField<byte>(_inst, 0xB8);
         public unsafe uint GT_uBC => Utils.ReadField<byte>(_inst, 0xBC);
 
+        public unsafe ushort LastUsedActionSequence => Utils.ReadField<ushort>(_inst, 0x110);
+
         public float EffectiveAnimationLock => AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends
         public float EffectiveAnimationLockDelay => AnimationLockDelayMax <= 0.5f ? AnimationLockDelayMax : MathF.Min(AnimationLockDelayAverage, 0.1f); // this is a conservative estimate
 
@@ -194,9 +196,9 @@ namespace BossMod
 
         private unsafe bool UseActionLocationDetour(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation)
         {
-            var prevSeq = Utils.ReadField<ushort>(self, 0x110);
+            var prevSeq = LastUsedActionSequence;
             bool ret = _useActionLocationHook.Original(self, actionType, actionID, targetID, targetPos, itemLocation);
-            var currSeq = Utils.ReadField<ushort>(self, 0x110);
+            var currSeq = LastUsedActionSequence;
             if (currSeq != prevSeq)
             {
                 _lastReqInitialAnimLock = AnimationLock;

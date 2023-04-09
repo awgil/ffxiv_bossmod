@@ -24,6 +24,7 @@ namespace BossMod
             ImGui.TextUnformatted($"Combo: {new ActionID(ActionType.Spell, am.ComboLastMove)}, {am.ComboTimeLeft:f3}");
             ImGui.TextUnformatted($"Queue: {(am.QueueActive ? "active" : "inactive")}, {am.QueueAction} @ {am.QueueTargetID:X} [{am.QueueCallType}], combo={am.QueueComboRouteID}");
             ImGui.TextUnformatted($"GT: {am.GTAction} / {am.GTSpell}, arg={am.GTUnkArg}, obj={am.GTUnkObj:X}, a0={am.GT_uA0:X2}, b8={am.GT_uB8:X2}, bc={am.GT_uBC:X}");
+            ImGui.TextUnformatted($"Last used action sequence: {am.LastUsedActionSequence}");
             if (ImGui.Button("GT complete"))
             {
                 Utils.WriteField(amr, 0xB8, (byte)1);
