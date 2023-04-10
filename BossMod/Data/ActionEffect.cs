@@ -142,23 +142,24 @@ namespace BossMod
     {
         public static string DescribeFields(ActionEffect eff)
         {
-            // note: for all effects, bit 7 of param4 means "applied to caster instead of target"
+            // note: for all effects, bit 7 of param4 means "applied to source instead of target"
+            // note: for all effects, bit 5 of param4 means "originate from target instead of source"
             var res = new StringBuilder();
             switch (eff.Type)
             {
                 case ActionEffectType.Damage:
                 case ActionEffectType.BlockedDamage:
                 case ActionEffectType.ParriedDamage:
-                    // param0: bit 0 = crit, bit 1 = direct hit, others unused
+                    // param0: bits0-4 (0x1F) = some kind of vfx, bit5 = crit, bit6 = direct hit
                     // param1: damage/element type
                     // param2: bonus percent in log (purely visual)
                     // param3: third (high) byte of value (if bit 6 in param4 is set), 0 otherwise
                     // param4: bit1 = ? (seen when part of damage is absorbed by BLM manaward), bit2 = partial absorb? (seen when part of damage is absorbed by SMN succor), bit4 = immune (e.g. because of transcendent after raise),
-                    //         bit5 = retaliation (set together with bit 7, e.g. for damage from vengeance), bit 6 = large value, bit 7 = applied to source, others unused
+                    //         bit5 = originating from target (e.g. retaliation damage from vengeance), bit 6 = large value, bit 7 = applied to source, others unused
                     res.Append($"amount={eff.Value + ((eff.Param4 & 0x40) != 0 ? eff.Param3 * 0x10000 : 0)} {(DamageType)(eff.Param1 & 0x0F)} {(DamageElementType)(eff.Param1 >> 4)} ({(sbyte)eff.Param2}% bonus)");
-                    if ((eff.Param0 & 1) != 0)
+                    if ((eff.Param0 & 0x20) != 0)
                         res.Append(", crit");
-                    if ((eff.Param0 & 2) != 0)
+                    if ((eff.Param0 & 0x40) != 0)
                         res.Append(", dhit");
                     if ((eff.Param4 & 2) != 0)
                         res.Append(", manaward absorb?");
@@ -166,17 +167,15 @@ namespace BossMod
                         res.Append(", partially absorbed?");
                     if ((eff.Param4 & 0x10) != 0)
                         res.Append(", immune");
-                    if ((eff.Param4 & 0x20) != 0)
-                        res.Append(", retaliation");
                     break;
                 case ActionEffectType.Heal:
-                    // param0: bit 0 = lifedrain? (e.g. melee bloodbath, SCH energy drain, etc. - also called "absorb"), bit 1 = nascent flash?, others unused
-                    // param1: bit 0 = crit, others unused
+                    // param0: bit0 = lifedrain? (e.g. melee bloodbath, SCH energy drain, etc. - also called "absorb"), bit1 = nascent flash?, others unused
+                    // param1: bit5 = crit, others unused
                     // param2: unused
                     // param3: third (high) byte of value (if bit 6 in param4 is set), 0 otherwise
                     // param4: bit 6 = large value, bit 7 = applied to source, others unused
                     res.Append($"amount={eff.Value + ((eff.Param4 & 0x40) != 0 ? eff.Param3 * 0x10000 : 0)}");
-                    if ((eff.Param1 & 1) != 0)
+                    if ((eff.Param1 & 0x20) != 0)
                         res.Append(", crit");
                     if ((eff.Param0 & 1) != 0)
                         res.Append(", lifedrain?");
@@ -245,23 +244,21 @@ namespace BossMod
                 case ActionEffectType.Damage:
                 case ActionEffectType.BlockedDamage:
                 case ActionEffectType.ParriedDamage:
-                    if ((eff.Param0 & ~3) != 0)
-                        return $"param0={eff.Param0 & ~3:X2}";
+                    if ((eff.Param0 & ~0x60) != 0)
+                        return $"param0={eff.Param0 & ~0x60:X2}";
                     else if (eff.Param3 != 0 && (eff.Param4 & 0x40) == 0)
                         return "non-zero param3 while large-value bit is unset";
                     else if ((eff.Param4 & ~0xF0) != 0)
                         return $"param4={eff.Param4 & ~0xF0:X2}";
                     else if ((eff.Param4 & 0x10) != 0 && eff.Value != 0)
                         return $"immune bit set but value is non-zero";
-                    else if ((eff.Param4 & 0xA0) == 0x20)
-                        return $"retaliation bit set but source is unset";
                     else
                         return "";
                 case ActionEffectType.Heal:
                     if ((eff.Param0 & ~3) != 0)
                         return $"param0={eff.Param0 & ~3:X2}";
-                    else if ((eff.Param1 & ~1) != 0)
-                        return $"param1={eff.Param1 & ~1:X2}";
+                    else if ((eff.Param1 & ~0x20) != 0)
+                        return $"param1={eff.Param1 & ~0x20:X2}";
                     else if (eff.Param2 != 0)
                         return $"param2={eff.Param2}";
                     else if (eff.Param3 != 0 && (eff.Param4 & 0x40) == 0)

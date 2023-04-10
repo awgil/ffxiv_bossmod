@@ -45,7 +45,7 @@ namespace UIDev
         {
             foreach (var t in action.Targets)
             {
-                entry.TooltipExtra.Add($"- {ReplayUtils.ParticipantString(t.Target)}");
+                entry.TooltipExtra.Add($"- {ReplayUtils.ActionTargetString(t, action.Timestamp)}");
                 foreach (var e in t.Effects)
                 {
                     entry.TooltipExtra.Add($"-- {ReplayUtils.ActionEffectString(e)}");

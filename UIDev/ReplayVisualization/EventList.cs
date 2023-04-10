@@ -191,7 +191,7 @@ namespace UIDev
         {
             foreach (var a in _tree.Nodes(list, a => new(ActionString(a, tp, aidType), a.Targets.Count == 0)))
             {
-                foreach (var t in _tree.Nodes(a.Targets, t => new(ReplayUtils.ParticipantPosRotString(t.Target, a.Timestamp))))
+                foreach (var t in _tree.Nodes(a.Targets, t => new(ReplayUtils.ActionTargetString(t, a.Timestamp))))
                 {
                     _tree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
                 }

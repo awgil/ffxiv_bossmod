@@ -308,7 +308,7 @@ namespace UIDev.Analysis
                 {
                     foreach (var an in tree.Nodes(data.Instances, a => new($"{a.Item1.Path} @ {a.Item2.Timestamp:O}: {ReplayUtils.ParticipantPosRotString(a.Item2.Source, a.Item2.Timestamp)} -> {ReplayUtils.ParticipantString(a.Item2.MainTarget)} {Utils.Vec3String(a.Item2.TargetPos)} ({a.Item2.Targets.Count} affected)", a.Item2.Targets.Count == 0)))
                     {
-                        foreach (var tn in tree.Nodes(an.Item2.Targets, t => new(ReplayUtils.ParticipantPosRotString(t.Target, an.Item2.Timestamp))))
+                        foreach (var tn in tree.Nodes(an.Item2.Targets, t => new(ReplayUtils.ActionTargetString(t, an.Item2.Timestamp))))
                         {
                             tree.LeafNodes(tn.Effects, ReplayUtils.ActionEffectString);
                         }

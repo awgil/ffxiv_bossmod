@@ -8,6 +8,9 @@ namespace BossMod
     // when we receive ActionEffectN packet, it contains damage/heal effects and status gain effects - these are applied when later EffectResult[Basic] packet is received
     // we mostly ignore this, however it is important e.g. for autorotation - not taking these 'pending' effects can make us recast same spell again
     // this is most visible with long GCD casts - like BLM dots or GCD heals
+    // TODO: refactor:
+    // - move out of worldstate, it has no business being here; things like replays handle this better anyway
+    // - handle things we care about (hp, statuses, knockbacks) independently, taking into account how game handles all that stuff (no ER for buff reapplication or instant buffs, no ER for 100% overheals or holmgang 'overkills', etc etc)
     public class PendingEffects
     {
         public class Entry
@@ -25,16 +28,24 @@ namespace BossMod
                 Event = ev;
                 for (int i = 0; i < ev.Targets.Count; ++i)
                 {
+                    bool confirmSource = false;
+                    bool confirmTarget = false;
                     foreach (var eff in ev.Targets[i].Effects)
                     {
                         if (eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage or ActionEffectType.Heal or ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource or ActionEffectType.RecoveredFromStatusEffect)
                         {
-                            if (ev.Targets[i].ID == source || (eff.Param4 & 0x80) != 0)
-                                UnconfirmedSource.Set(i);
+                            if (ev.Targets[i].ID == source)
+                                confirmSource = confirmTarget = true;
+                            else if ((eff.Param4 & 0x80) != 0)
+                                confirmSource = true;
                             else
-                                UnconfirmedTargets.Set(i);
+                                confirmTarget = true;
                         }
                     }
+                    if (confirmSource)
+                        UnconfirmedSource.Set(i);
+                    if (confirmTarget)
+                        UnconfirmedTargets.Set(i);
                 }
             }
         }
@@ -54,7 +65,8 @@ namespace BossMod
             var entryIndex = _entries.FindIndex(e => e.Event.GlobalSequence == seq);
             if (entryIndex < 0)
             {
-                Service.Log($"[PendingEffects] Confirmation for missing event #{seq}/{targetIndex} @ {target:X}");
+                // note: this can happen if we misjudge and assume event required no confirmations, but then got one
+                //Service.Log($"[PendingEffects] Confirmation for missing event #{seq}/{targetIndex} @ {target:X}");
                 return;
             }
             var entry = _entries[entryIndex];
@@ -64,28 +76,25 @@ namespace BossMod
                 return;
             }
 
-            if (entry.Source == target)
+            var forSource = entry.Source == target;
+            var forTarget = entry.Event.Targets[targetIndex].ID == target;
+            if (forSource)
             {
-                if (!entry.UnconfirmedSource[targetIndex])
-                {
-                    Service.Log($"[PendingEffects] Double confirmation for source #{seq}/{targetIndex} {entry.Event.Action} from {entry.Source:X} @ {target:X}");
-                    return;
-                }
+                // note: this can happen if we misjudge and assume source required no confirmations, but then got one
+                //if (!entry.UnconfirmedSource[targetIndex])
+                //    Service.Log($"[PendingEffects] Double confirmation for source #{seq}/{targetIndex} {entry.Event.Action} from {entry.Source:X} @ {target:X}");
                 entry.UnconfirmedSource.Clear(targetIndex);
             }
-            else if (entry.Event.Targets[targetIndex].ID == target)
+            if (forTarget)
             {
-                if (!entry.UnconfirmedTargets[targetIndex])
-                {
-                    Service.Log($"[PendingEffects] Double confirmation for target #{seq}/{targetIndex} {entry.Event.Action} from {entry.Source:X} @ {target:X}");
-                    return;
-                }
+                // note: this can happen if we misjudge and assume target required no confirmations, but then got one
+                //if (!entry.UnconfirmedTargets[targetIndex])
+                //    Service.Log($"[PendingEffects] Double confirmation for target #{seq}/{targetIndex} {entry.Event.Action} from {entry.Source:X} @ {target:X}");
                 entry.UnconfirmedTargets.Clear(targetIndex);
             }
-            else
+            if (!forSource && !forTarget)
             {
                 Service.Log($"[PendingEffects] Confirmation for unexpected target #{seq}/{targetIndex} @ {target:X}; expected source={entry.Source:X}, expected target={entry.Event.Targets[targetIndex].ID:X}");
-                return;
             }
 
             if ((entry.UnconfirmedTargets | entry.UnconfirmedSource).None())
@@ -99,8 +108,9 @@ namespace BossMod
             var minRemaining = ts.AddSeconds(-3);
             _entries.RemoveAll(e => {
                 bool expired = e.Timestamp < minRemaining;
-                if (expired)
-                    Service.Log($"[PendingEffects] Expired #{e.Event.GlobalSequence} {e.Event.Action} from {e.Source:X} without confirmations");
+                // note: this can happen if we misjudge and assume event required confirmation, but get none
+                //if (expired)
+                //    Service.Log($"[PendingEffects] Expired #{e.Event.GlobalSequence} {e.Event.Action} from {e.Source:X} without confirmations");
                 return expired;
             });
         }

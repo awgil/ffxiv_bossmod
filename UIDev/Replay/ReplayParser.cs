@@ -85,6 +85,7 @@ namespace UIDev
             _ws.Actors.StatusLose += StatusLose;
             _ws.Actors.IconAppeared += EventIcon;
             _ws.Actors.CastEvent += EventCast;
+            _ws.Actors.EffectResult += EventConfirm;
             _ws.DirectorUpdate += EventDirectorUpdate;
             _ws.EnvControl += EventEnvControl;
         }
@@ -310,10 +311,48 @@ namespace UIDev
                 var target = _participants.GetValueOrDefault(t.ID);
                 if (target != null)
                     target.IsTargetOfAnyActions = true;
-                a.Targets.Add(new() { Target = target, Effects = t.Effects });
+                a.Targets.Add(new() { Target = target, TargetID = t.ID, Effects = t.Effects });
             }
             p.HasAnyActions = true;
             _res.Actions.Add(a);
+        }
+
+        private void EventConfirm(object? sender, (Actor Source, uint Seq, int TargetIndex) args)
+        {
+            var a = _res.Actions.Find(a => a.GlobalSequence == args.Seq);
+            if (a == null)
+            {
+                Service.Log($"Skipping confirmation #{args.Seq}/{args.TargetIndex} for {args.Source.InstanceID:X} for missing action");
+                return;
+            }
+
+            if (args.TargetIndex >= a.Targets.Count)
+            {
+                Service.Log($"Skipping confirmation #{args.Seq}/{args.TargetIndex} for {args.Source.InstanceID:X} for out-of-range target index (action has {a.Targets.Count} targets)");
+                return;
+            }
+
+            var t = a.Targets[args.TargetIndex];
+            var forSource = a.Source?.InstanceID == args.Source.InstanceID;
+            var forTarget = t.TargetID == args.Source.InstanceID;
+            if (forSource)
+            {
+                if (t.ConfirmationSource == default)
+                    t.ConfirmationSource = _ws.CurrentTime;
+                else
+                    Service.Log($"Double confirmation ${args.Seq}/{args.TargetIndex} for {args.Source.InstanceID:X} (source)");
+            }
+            if (forTarget)
+            {
+                if (t.ConfirmationTarget == default)
+                    t.ConfirmationTarget = _ws.CurrentTime;
+                else
+                    Service.Log($"Double confirmation ${args.Seq}/{args.TargetIndex} for {args.Source.InstanceID:X} (target)");
+            }
+            if (!forSource && !forTarget)
+            {
+                Service.Log($"Skipping confirmation #{args.Seq}/{args.TargetIndex} for {args.Source.InstanceID:X} for unexpected target (src={a.Source?.InstanceID:X}, tgt={t.TargetID:X})");
+            }
         }
 
         private void EventDirectorUpdate(object? sender, WorldState.OpDirectorUpdate op)

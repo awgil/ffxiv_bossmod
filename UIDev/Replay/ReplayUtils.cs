@@ -19,12 +19,22 @@ namespace UIDev
         public static string ActionEffectString(ActionEffect eff)
         {
             var s = $"{eff.Type}: {eff.Param0:X2} {eff.Param1:X2} {eff.Param2:X2} {eff.Param3:X2} {eff.Param4:X2} {eff.Value:X4}";
+            if ((eff.Param4 & 0x20) != 0)
+                s = "(from target) " + s;
             if ((eff.Param4 & 0x80) != 0)
-                s = "(source) " + s;
+                s = "(at source) " + s;
             var desc = ActionEffectParser.DescribeFields(eff);
             if (desc.Length > 0)
                 s += $": {desc}";
             return s;
+        }
+
+        public static string ActionTargetString(Replay.ActionTarget t, DateTime ts)
+        {
+            var participant = t.Target != null ? ParticipantPosRotString(t.Target, ts) : t.TargetID != 0 ? $"<unknown {t.TargetID:X}>" : "<none>";
+            var confirmTarget = t.ConfirmationTarget != default ? $"confirmed at +{(t.ConfirmationTarget - ts).TotalSeconds:f3}s" : "unconfirmed";
+            var confirmSource = t.ConfirmationSource != default ? $"confirmed at +{(t.ConfirmationSource - ts).TotalSeconds:f3}s" : "unconfirmed";
+            return $"{participant}, target {confirmTarget}, source {confirmSource}";
         }
 
         public static int ActionDamage(Replay.ActionTarget a)

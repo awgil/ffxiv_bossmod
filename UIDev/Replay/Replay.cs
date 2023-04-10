@@ -34,7 +34,10 @@ namespace UIDev
         public class ActionTarget
         {
             public Participant? Target;
+            public ulong TargetID; // TODO: this is a hack for the fact that sometimes we get action events before target is spawned on client...
             public ActionEffects Effects;
+            public DateTime ConfirmationSource;
+            public DateTime ConfirmationTarget;
         }
 
         public class Action
