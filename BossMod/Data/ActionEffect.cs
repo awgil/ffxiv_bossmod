@@ -28,8 +28,8 @@ namespace BossMod
         LoseStatusEffectSource = 18, // 0x12
         Unknown_13 = 19, // 0x13 - sometimes part of pvp Purify & Empyrean Rain spells, related to afflictions removal?..
         StatusNoEffect = 20, // 0x14
-        ThreatPosition = 24, // 0x18
-        EnmityAmountUp = 25, // 0x19
+        ThreatPosition = 24, // 0x18 - provoke
+        EnmityAmountUp = 25, // 0x19 - ? summons
         EnmityAmountDown = 26, // 0x1A
         StartActionCombo = 27, // 0x1B
         Retaliation = 29, // 0x1D - 'vengeance' has value = 7, 'arms length' has value = 0
@@ -198,8 +198,6 @@ namespace BossMod
                     // param3: unused
                     // param4: bit5 = retaliation, bit 7 = applied to source, others unused
                     res.Append($"{Utils.StatusString(eff.Value)} (xx{eff.Param2:X2})");
-                    if ((eff.Param4 & 0x20) != 0)
-                        res.Append(", retaliation");
                     break;
                 case ActionEffectType.RecoveredFromStatusEffect:
                     // param0: low byte of 'extra' (don't know where high byte is...)
@@ -208,7 +206,11 @@ namespace BossMod
                     break;
                 case ActionEffectType.LoseStatusEffectTarget:
                 case ActionEffectType.LoseStatusEffectSource:
+                case ActionEffectType.StatusNoEffect:
                     res.Append(Utils.StatusString(eff.Value));
+                    break;
+                case ActionEffectType.StartActionCombo:
+                    res.Append($"aid={eff.Value}");
                     break;
                 case ActionEffectType.Knockback:
                     var kbData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Knockback>(eff.Value);
@@ -224,6 +226,9 @@ namespace BossMod
                 case ActionEffectType.AttractCustom3:
                     res.Append($"dist={eff.Value} (min={eff.Param1}), speed={eff.Param0}");
                     break;
+                case ActionEffectType.Mount:
+                    res.Append($"{eff.Value} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Mount>(eff.Value)?.Singular}'");
+                    break;
                 case ActionEffectType.SetHP:
                     res.Append($"value={eff.Value}");
                     break;
@@ -237,10 +242,12 @@ namespace BossMod
             {
                 case ActionEffectType.Miss:
                 case ActionEffectType.FullResist:
-                case ActionEffectType.NoEffectText: // e.g. taunt immune
                 case ActionEffectType.FailMissingStatus: // e.g. deployment tactics or bane when target doesn't have required status
                     // so far never seen any non-zero params
                     return eff.Param0 != 0 || eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0 || eff.Value != 0 ? "non-zero params" : "";
+                case ActionEffectType.NoEffectText: // e.g. taunt immune
+                    // so far never seen any non-zero params, except for 'source' flag
+                    return eff.Param0 != 0 || eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || (eff.Param4 & ~0x80) != 0 || eff.Value != 0 ? "non-zero params" : "";
                 case ActionEffectType.Damage:
                 case ActionEffectType.BlockedDamage:
                 case ActionEffectType.ParriedDamage:
@@ -272,8 +279,7 @@ namespace BossMod
                 case ActionEffectType.Invulnerable:
                 case ActionEffectType.MpGain:
                 case ActionEffectType.TpGain:
-                case ActionEffectType.LoseStatusEffectTarget:
-                case ActionEffectType.LoseStatusEffectSource:
+                case ActionEffectType.StartActionCombo:
                 case ActionEffectType.SetHP:
                     // so far only seen 'source' flag and non-zero values
                     return eff.Param0 != 0 || eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || (eff.Param4 & ~0x80) != 0 ? "non-zero params" : "";
@@ -281,12 +287,29 @@ namespace BossMod
                 case ActionEffectType.ApplyStatusEffectSource:
                     if (eff.Param3 != 0 || (eff.Param4 & ~0xA0) != 0)
                         return "non-zero param3/4";
-                    else if ((eff.Param4 & 0xA0) == 0x20)
-                        return $"retaliation bit set but source is unset";
                     else
                         return "TODO investigate param0/1";// $"{Utils.StatusString(eff.Value)} {eff.Param0:X2}{eff.Param1:X2}"; - these are often non-zero, but I have no idea what they mean...
                 case ActionEffectType.RecoveredFromStatusEffect:
-                    return eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || (eff.Param4 & ~0x80) != 0 ? "non-zero params" : "";
+                case ActionEffectType.LoseStatusEffectTarget:
+                case ActionEffectType.LoseStatusEffectSource:
+                case ActionEffectType.StatusNoEffect:
+                    if (eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || (eff.Param4 & ~0x80) != 0)
+                        return "non-zero params";
+                    else if (eff.Param0 != 0)
+                        return $"param0={eff.Param0}"; // this has some meaning, TODO investigate
+                    else
+                        return "";
+                case ActionEffectType.ThreatPosition:
+                case ActionEffectType.EnmityAmountUp:
+                    if (eff.Param0 != 0 || eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0)
+                        return "non-zero params";
+                    else
+                        return $"value={eff.Value}"; // this has some meaning, TODO investigate
+                case ActionEffectType.Retaliation:
+                    if (eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0)
+                        return "non-zero params";
+                    else
+                        return $"param0={eff.Param0}, value={eff.Value}"; // this has some meaning, TODO investigate
                 case ActionEffectType.Knockback:
                     return eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0 ? "non-zero params" : "";
                 case ActionEffectType.Attract1:
@@ -296,6 +319,11 @@ namespace BossMod
                 case ActionEffectType.AttractCustom2:
                 case ActionEffectType.AttractCustom3:
                     return eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0 ? "non-zero params" : "";
+                case ActionEffectType.Mount:
+                    if (eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0)
+                        return "non-zero params";
+                    else
+                        return $"param0={eff.Param0}"; // 0 or 1, TODO investigate
                 default:
                     return $"unknown type";
             }
