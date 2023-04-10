@@ -93,7 +93,7 @@ namespace BossMod
         public float EffectiveAnimationLock => AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends
         public float EffectiveAnimationLockDelay => AnimationLockDelayMax <= 0.5f ? AnimationLockDelayMax : MathF.Min(AnimationLockDelayAverage, 0.1f); // this is a conservative estimate
 
-        public event EventHandler<ActorCastRequest>? ActionRequested;
+        public event EventHandler<ClientActionRequest>? ActionRequested;
 
         public InputOverride InputOverride;
         public ActionManagerConfig Config;
@@ -330,7 +330,10 @@ namespace BossMod
                 var recast = _inst->GetRecastGroupDetail(GetRecastGroup(action));
                 if (_useActionInPast > 0 && recast != null)
                 {
-                    Utils.WriteField(_inst, 8, Math.Max(0, AnimationLock - _useActionInPast));
+                    if (CastTimeRemaining > 0)
+                        Utils.WriteField(_inst, 0x30, CastTimeElapsed + _useActionInPast);
+                    else
+                        Utils.WriteField(_inst, 8, Math.Max(0, AnimationLock - _useActionInPast));
                     recast->Elapsed += _useActionInPast;
                 }
 
@@ -343,7 +346,8 @@ namespace BossMod
                     TargetPos = *targetPos,
                     SourceSequence = currSeq,
                     InitialAnimationLock = AnimationLock,
-                    InitialCastTime = CastTimeRemaining,
+                    InitialCastTimeElapsed = CastSpellID != 0 ? CastTimeElapsed : 0,
+                    InitialCastTimeTotal = CastSpellID != 0 ? CastTimeTotal : 0,
                     InitialRecastElapsed = recastElapsed,
                     InitialRecastTotal = recastTotal,
                 });

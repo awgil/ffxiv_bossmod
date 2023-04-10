@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using static BossMod.ActorCastEvent;
 
 namespace BossMod
 {
@@ -292,7 +291,7 @@ namespace BossMod
             return nextGCD;
         }
 
-        public void NotifyActionExecuted(ActorCastRequest request)
+        public void NotifyActionExecuted(ClientActionRequest request)
         {
             Log($"Exec #{request.SourceSequence} {request.Action} @ {request.TargetID:X} [{GetState()}]");
             _mq.Pop(request.Action);
@@ -315,7 +314,7 @@ namespace BossMod
         protected abstract void QueueAIActions();
         protected abstract NextAction CalculateAutomaticGCD();
         protected abstract NextAction CalculateAutomaticOGCD(float deadline);
-        protected virtual void OnActionExecuted(ActorCastRequest request) { }
+        protected virtual void OnActionExecuted(ClientActionRequest request) { }
         protected virtual void OnActionSucceeded(ActorCastEvent ev) { }
 
         protected NextAction MakeResult(ActionID action, Actor? target)

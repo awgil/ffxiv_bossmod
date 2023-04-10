@@ -46,6 +46,8 @@ namespace BossMod
             Service.Config.LoadFromFile(dalamud.ConfigFile);
             Service.Config.Modified += (_, _) => Service.Config.SaveToFile(dalamud.ConfigFile);
 
+            ActionManagerEx.Instance = new(); // needs config
+
             _commandManager = commandManager;
             _commandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
@@ -53,8 +55,6 @@ namespace BossMod
             _ws = new(_network);
             _debugLogger = new(_ws, dalamud.ConfigDirectory);
             _bossmod = new(_ws);
-
-            ActionManagerEx.Instance = new();
             _autorotation = new(_bossmod);
             _ai = new(ActionManagerEx.Instance.InputOverride, _autorotation);
             _broadcast = new();

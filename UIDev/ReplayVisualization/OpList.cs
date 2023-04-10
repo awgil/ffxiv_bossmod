@@ -113,6 +113,8 @@ namespace UIDev
                 ActorState.OpCastEvent op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(op.Value.Action),
                 ActorState.OpEffectResult => false,
                 ActorState.OpStatus op => FilterInterestingStatus(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0),
+                ClientState.OpActionRequest => false,
+                //ClientState.OpActionReject => false,
                 _ => true
             };
         }

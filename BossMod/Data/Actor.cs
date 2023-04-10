@@ -68,18 +68,6 @@ namespace BossMod
         public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);
     }
 
-    public struct ActorCastRequest
-    {
-        public ActionID Action;
-        public ulong TargetID;
-        public Vector3 TargetPos;
-        public uint SourceSequence;
-        public float InitialAnimationLock;
-        public float InitialCastTime;
-        public float InitialRecastElapsed;
-        public float InitialRecastTotal;
-    }
-
     public struct ActorHP
     {
         public uint Cur;

@@ -17,7 +17,7 @@ namespace BossMod
     {
 #pragma warning disable CS8618
         [PluginService] public static DataManager DataManager { get; private set; }
-        [PluginService] public static ClientState ClientState { get; private set; }
+        [PluginService] public static Dalamud.Game.ClientState.ClientState ClientState { get; private set; }
         [PluginService] public static ObjectTable ObjectTable { get; private set; }
         [PluginService] public static PartyList PartyList { get; private set; }
         [PluginService] public static ChatGui ChatGui { get; private set; }

@@ -19,7 +19,7 @@ namespace BossMod
         public event EventHandler<(ulong actorID, ushort state)>? EventActorControlEObjSetState;
         public event EventHandler<(ulong actorID, ushort p1, ushort p2)>? EventActorControlEObjAnimation;
         public event EventHandler<(ulong actorID, ushort actionTimelineID)>? EventActorControlPlayActionTimeline;
-        public event EventHandler<(ulong actorID, uint actionID, uint sourceSequence)>? EventActorControlSelfActionRejected;
+        public event EventHandler<ClientActionReject>? EventActorControlSelfActionRejected;
         public event EventHandler<(uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4)>? EventActorControlSelfDirectorUpdate;
         public event EventHandler<(uint directorID, byte index, uint state)>? EventEnvControl;
         public event EventHandler<(Waymark waymark, Vector3? pos)>? EventWaymark;
@@ -299,7 +299,7 @@ namespace BossMod
             switch (p->category)
             {
                 case Protocol.Server_ActorControlCategory.ActionRejected:
-                    EventActorControlSelfActionRejected?.Invoke(this, (actorID, p->param3, p->param6));
+                    EventActorControlSelfActionRejected?.Invoke(this, new ClientActionReject() { Action = new((ActionType)p->param2, p->param3), SourceSequence = p->param6, RecastElapsed = p->param4 * 0.01f, RecastTotal = p->param5 * 0.01f, LogMessageID = p->param1 });
                     break;
                 case Protocol.Server_ActorControlCategory.DirectorUpdate:
                     EventActorControlSelfDirectorUpdate?.Invoke(this, (p->param1, p->param2, p->param3, p->param4, p->param5, p->param6));

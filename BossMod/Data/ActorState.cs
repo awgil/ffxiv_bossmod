@@ -295,12 +295,10 @@ namespace BossMod
         public class OpTether : Operation
         {
             public ActorTetherInfo Value;
-            public ActorTetherInfo PrevValue { get; private set; }
 
             protected override void ExecActor(WorldState ws, Actor actor)
             {
-                PrevValue = actor.Tether;
-                if (PrevValue.Target != 0)
+                if (actor.Tether.Target != 0)
                     ws.Actors.Untethered?.Invoke(ws, actor);
                 actor.Tether = Value;
                 if (Value.Target != 0)
@@ -315,12 +313,10 @@ namespace BossMod
         public class OpCastInfo : Operation
         {
             public ActorCastInfo? Value;
-            public ActorCastInfo? PrevValue { get; private set; }
 
             protected override void ExecActor(WorldState ws, Actor actor)
             {
-                PrevValue = actor.CastInfo;
-                if (PrevValue != null)
+                if (actor.CastInfo != null)
                     ws.Actors.CastFinished?.Invoke(ws, actor);
                 actor.CastInfo = Value;
                 if (Value != null)

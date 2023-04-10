@@ -93,6 +93,8 @@ namespace UIDev
                 case "PAR+": ParsePartyJoin(payload); break; // legacy (up to v3)
                 case "PAR-": ParsePartyLeave(payload); break; // legacy (up to v3)
                 case "PAR!": ParsePartyAssign(payload); break; // legacy (up to v3)
+                case "CLAR": ParseClientActionRequest(payload); break;
+                case "CLRJ": ParseClientActionReject(payload); break;
             }
         }
 
@@ -378,6 +380,36 @@ namespace UIDev
                 ContentID = ulong.Parse(payload[3], NumberStyles.HexNumber),
                 InstanceID = ulong.Parse(payload[4], NumberStyles.HexNumber),
             });
+        }
+
+        private void ParseClientActionRequest(string[] payload)
+        {
+            var cast = payload[7].Split('/');
+            var recast = payload[8].Split('/');
+            AddOp(new ClientState.OpActionRequest() { Request = new() {
+                Action = Action(payload[2]),
+                TargetID = ActorID(payload[3]),
+                TargetPos = Vec3(payload[4]),
+                SourceSequence = uint.Parse(payload[5]),
+                InitialAnimationLock = float.Parse(payload[6]),
+                InitialCastTimeElapsed = float.Parse(cast[0]),
+                InitialCastTimeTotal = float.Parse(cast[1]),
+                InitialRecastElapsed = float.Parse(recast[0]),
+                InitialRecastTotal = float.Parse(recast[1]),
+            } });
+        }
+
+        private void ParseClientActionReject(string[] payload)
+        {
+            var recast = payload[4].Split('/');
+            AddOp(new ClientState.OpActionReject() { Value = new()
+            {
+                Action = Action(payload[2]),
+                SourceSequence = uint.Parse(payload[3]),
+                RecastElapsed = float.Parse(recast[0]),
+                RecastTotal = float.Parse(recast[1]),
+                LogMessageID = uint.Parse(payload[5]),
+            } });
         }
 
         private static Vector3 Vec3(string repr)

@@ -30,11 +30,13 @@ namespace UIDev
         {
             private Lazy<Analysis.UnknownActionEffects> _unkEffects;
             private Lazy<Analysis.AbilityInfo> _abilityInfo;
+            private Lazy<Analysis.ClientActions> _clientActions;
 
             public Global(List<Replay> replays)
             {
                 _unkEffects = new(() => new(replays));
                 _abilityInfo = new(() => new(replays));
+                _clientActions = new(() => new(replays));
             }
 
             public void Draw(UITree tree)
@@ -44,6 +46,9 @@ namespace UIDev
 
                 foreach (var n in tree.Node("Ability info", false, 0xffffffff, () => _abilityInfo.Get().DrawContextMenu()))
                     _abilityInfo.Get().Draw(tree);
+
+                foreach (var n in tree.Node("Client action weirdness"))
+                    _clientActions.Get().Draw(tree);
             }
         }
 

@@ -15,6 +15,7 @@ namespace BossMod
         public WaymarkState Waymarks { get; init; } = new();
         public ActorState Actors { get; init; } = new();
         public PartyState Party { get; init; }
+        public ClientState Client { get; init; } = new();
         public PendingEffects PendingEffects { get; init; } = new();
 
         public WorldState()

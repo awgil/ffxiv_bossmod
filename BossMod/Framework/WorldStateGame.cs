@@ -31,10 +31,12 @@ namespace BossMod
             _network.EventActorControlEObjSetState += OnNetworkActorControlEObjSetState;
             _network.EventActorControlEObjAnimation += OnNetworkActorControlEObjAnimation;
             _network.EventActorControlPlayActionTimeline += OnNetworkActorControlPlayActionTimeline;
+            _network.EventActorControlSelfActionRejected += OnNetworkActorControlSelfActionRejected;
             _network.EventActorControlSelfDirectorUpdate += OnNetworkActorControlSelfDirectorUpdate;
             _network.EventEnvControl += OnNetworkEnvControl;
             _network.EventWaymark += OnNetworkWaymark;
             _network.EventRSVData += OnNetworkRSVData;
+            ActionManagerEx.Instance!.ActionRequested += OnActionRequested;
         }
 
         public void Dispose()
@@ -47,10 +49,12 @@ namespace BossMod
             _network.EventActorControlEObjSetState -= OnNetworkActorControlEObjSetState;
             _network.EventActorControlEObjAnimation -= OnNetworkActorControlEObjAnimation;
             _network.EventActorControlPlayActionTimeline -= OnNetworkActorControlPlayActionTimeline;
+            _network.EventActorControlSelfActionRejected -= OnNetworkActorControlSelfActionRejected;
             _network.EventActorControlSelfDirectorUpdate -= OnNetworkActorControlSelfDirectorUpdate;
             _network.EventEnvControl -= OnNetworkEnvControl;
             _network.EventWaymark -= OnNetworkWaymark;
             _network.EventRSVData -= OnNetworkRSVData;
+            ActionManagerEx.Instance!.ActionRequested -= OnActionRequested;
         }
 
         public void Update(TimeSpan prevFramePerf)
@@ -241,7 +245,8 @@ namespace BossMod
             if (cast == null && act.CastInfo == null)
                 return; // was not casting and is not casting
 
-            if (cast != null && act.CastInfo != null && cast.Action == act.CastInfo.Action && cast.TargetID == act.CastInfo.TargetID)
+            // note: ignore small finish-at differences, assume these are due to frame time irregularities
+            if (cast != null && act.CastInfo != null && cast.Action == act.CastInfo.Action && cast.TargetID == act.CastInfo.TargetID && Math.Abs((cast.FinishAt - act.CastInfo.FinishAt).TotalSeconds) < 0.05)
             {
                 // continuing casting same spell
                 act.CastInfo.TotalTime = cast.TotalTime;
@@ -382,6 +387,11 @@ namespace BossMod
             _actorOps.GetOrAdd(args.actorID).Add(new ActorState.OpPlayActionTimelineEvent() { InstanceID = args.actorID, ActionTimelineID = args.actionTimelineID });
         }
 
+        private void OnNetworkActorControlSelfActionRejected(object? sender, ClientActionReject arg)
+        {
+            _globalOps.Add(new ClientState.OpActionReject() { Value = arg });
+        }
+
         private void OnNetworkActorControlSelfDirectorUpdate(object? sender, (uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4) args)
         {
             _globalOps.Add(new OpDirectorUpdate() { DirectorID = args.directorID, UpdateID = args.updateID, Param1 = args.p1, Param2 = args.p2, Param3 = args.p3, Param4 = args.p4 });
@@ -400,6 +410,11 @@ namespace BossMod
         private void OnNetworkRSVData(object? sender, (string key, string value) args)
         {
             _globalOps.Add(new OpRSVData() { Key = args.key, Value = args.value });
+        }
+
+        private void OnActionRequested(object? sender, ClientActionRequest arg)
+        {
+            _globalOps.Add(new ClientState.OpActionRequest() { Request = arg });
         }
     }
 }

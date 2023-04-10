@@ -180,7 +180,7 @@ namespace BossMod
             ImGui.TextUnformatted($"GCD={Cooldowns[CommonDefinitions.GCDGroup]:f3}, AnimLock={EffAnimLock:f3}+{AnimLockDelay:f3}");
         }
 
-        private void OnActionRequested(object? sender, ActorCastRequest request)
+        private void OnActionRequested(object? sender, ClientActionRequest request)
         {
             _classActions?.NotifyActionExecuted(request);
         }
@@ -198,6 +198,7 @@ namespace BossMod
                 : (strategy.NextPositionalCorrect ? 0xffffffff : 0xff00ffff);
         }
 
+        // note: current implementation introduces slight input lag (on button press, next autorotation update will pick state updates, which will be executed on next action manager update)
         private unsafe bool UseActionDetour(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
         {
             // when spamming e.g. HS, every click (~0.2 sec) this function is called; aid=HS, a4=a5=a6=a7==0, returns True
