@@ -31,8 +31,9 @@ namespace UIDev
             private Lazy<Analysis.UnknownActionEffects> _unkEffects;
             private Lazy<Analysis.AbilityInfo> _abilityInfo;
             private Lazy<Analysis.ClientActions> _clientActions;
-            private Lazy<Analysis.EffectResult> _effectResultMissing;
-            private Lazy<Analysis.EffectResult> _effectResultUnexpected;
+            private Lazy<Analysis.EffectResultMispredict> _effectResultMissing;
+            private Lazy<Analysis.EffectResultMispredict> _effectResultUnexpected;
+            private Lazy<Analysis.EffectResultReorder> _effectResultReorder;
 
             public Global(List<Replay> replays)
             {
@@ -41,6 +42,7 @@ namespace UIDev
                 _clientActions = new(() => new(replays));
                 _effectResultMissing = new(() => new(replays, true));
                 _effectResultUnexpected = new(() => new(replays, false));
+                _effectResultReorder = new(() => new(replays));
             }
 
             public void Draw(UITree tree)
@@ -59,6 +61,9 @@ namespace UIDev
 
                 foreach (var n in tree.Node("Effect results: unexpected confirmations"))
                     _effectResultUnexpected.Get().Draw(tree);
+
+                foreach (var n in tree.Node("Effect results: reorders"))
+                    _effectResultReorder.Get().Draw(tree);
             }
         }
 

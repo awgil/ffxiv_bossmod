@@ -10,11 +10,11 @@ namespace UIDev.Analysis
     // - damage which does not affect HP (e.g. holmgang at 1 hp) has no ER
     // - 0 damage has no ER
     // - stuff like actor disappearing right after cast event will have no ER
-    class EffectResult
+    class EffectResultMispredict
     {
         private List<(Replay r, Replay.Action a)> _unexpected = new();
 
-        public EffectResult(List<Replay> replays, bool showMissing)
+        public EffectResultMispredict(List<Replay> replays, bool showMissing)
         {
             foreach (var r in replays)
             {
