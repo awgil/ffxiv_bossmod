@@ -69,9 +69,9 @@ namespace UIDev
                 {
                     if (actionDef != null)
                     {
-                        StartCooldown(a.ID, actionDef, enc.Time.Start, a.Timestamp);
+                        StartCooldown(a.ID, actionDef, enc.Time.Start, a.ClientAction != null ? a.ClientAction.Requested : a.Timestamp);
                     }
-                    effectStart = a.Timestamp;
+                    effectStart = a.ClientAction != null ? a.ClientAction.Requested : a.Timestamp; // TODO: different depending on config...
                 }
 
                 AddAnimationLock(_animLocks, a, enc.Time.Start, effectStart, actionName);
@@ -133,7 +133,7 @@ namespace UIDev
             {
                 AdvanceCooldown(castActionDef.CooldownGroup, encStart, cast.Time.Start, true);
                 GetCooldownColumn(castActionDef.CooldownGroup, cast.ID).AddHistoryEntryRange(encStart, cast.Time, name, 0x800000ff).AddCastTooltip(cast);
-                AdvanceCooldown(castActionDef.CooldownGroup, encStart, cast.Time.Start, false); // consider cooldown reset instead?..
+                AdvanceCooldown(castActionDef.CooldownGroup, encStart, cast.Time.End, false); // consider cooldown reset instead?..
             }
         }
 

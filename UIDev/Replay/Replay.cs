@@ -29,6 +29,7 @@ namespace UIDev
             public Vector3 Location; // if target is non-null, corresponds to target's position at cast start
             public Angle Rotation;
             public bool Interruptible;
+            public ClientAction? ClientAction;
         }
 
         public class ActionTarget
@@ -50,6 +51,7 @@ namespace UIDev
             public float AnimationLock;
             public uint GlobalSequence;
             public List<ActionTarget> Targets = new();
+            public ClientAction? ClientAction;
         }
 
         public class Participant
@@ -130,6 +132,18 @@ namespace UIDev
             public DateTime Timestamp;
         }
 
+        public class ClientAction
+        {
+            public ActionID ID;
+            public uint SourceSequence;
+            public Participant? Target;
+            public Vector3 TargetPos;
+            public DateTime Requested;
+            public DateTime Rejected;
+            public Cast? Cast;
+            public Action? Action;
+        }
+
         public class EncounterPhase
         {
             public int ID;
@@ -183,6 +197,7 @@ namespace UIDev
         public List<Icon> Icons = new();
         public List<DirectorUpdate> DirectorUpdates = new();
         public List<EnvControl> EnvControls = new();
+        public List<ClientAction> ClientActions = new();
         public List<Encounter> Encounters = new();
 
         public IEnumerable<Action> EncounterActions(Encounter e) => Actions.Skip(e.FirstAction).TakeWhile(a => a.Timestamp <= e.Time.End);

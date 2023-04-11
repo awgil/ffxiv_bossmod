@@ -49,22 +49,22 @@ namespace UIDev.Analysis
                                 : pendingRequests.FindIndex(a => a.Request.Action == o.Value.Action);
                             if (rejIndex < 0)
                             {
-                                _warnings.Add((r, op.Timestamp, $"Reject {o.Value}: unexpected (not found); currently {pendingRequests.Count} are pending"));
+                                _warnings.Add((r, op.Timestamp, $"Reject {StrReject(o.Value)}: unexpected (not found); currently {pendingRequests.Count} are pending"));
                                 pendingRequests.Clear();
                             }
                             else if (rejIndex > 0)
                             {
-                                _warnings.Add((r, op.Timestamp, $"Reject {o.Value}: unexpected (index {rejIndex}); currently {pendingRequests.Count} are pending, first={StrReq(pendingRequests[0].Request)}"));
+                                _warnings.Add((r, op.Timestamp, $"Reject {StrReject(o.Value)}: unexpected (index {rejIndex}); currently {pendingRequests.Count} are pending, first={StrReq(pendingRequests[0].Request)}"));
                                 pendingRequests.RemoveRange(0, rejIndex + 1);
                             }
                             else if (pendingRequests[0].Request.SourceSequence != o.Value.SourceSequence || pendingRequests[0].Request.Action != o.Value.Action)
                             {
-                                _warnings.Add((r, op.Timestamp, $"Reject {o.Value}: mismatched, expected {StrReq(pendingRequests[0].Request)}"));
+                                _warnings.Add((r, op.Timestamp, $"Reject {StrReject(o.Value)}: mismatched, expected {StrReq(pendingRequests[0].Request)}"));
                                 pendingRequests.RemoveAt(0);
                             }
                             else
                             {
-                                _warnings.Add((r, op.Timestamp, $"Reject {o.Value}: all good, but still"));
+                                _warnings.Add((r, op.Timestamp, $"Reject {StrReject(o.Value)}: all good, but still"));
                                 pendingRequests.RemoveAt(0);
                             }
                             pendingCast = null; // TODO: right?
