@@ -121,14 +121,9 @@ namespace BossMod
                 AutoAction = AutoActionNone;
             }
 
-            OnTick();
-
-            if (AutoAction != AutoActionNone)
-            {
-                UpdateInternalState(AutoAction);
-                if (AutoAction < AutoActionFirstCustom)
-                    QueueAIActions();
-            }
+            UpdateInternalState(AutoAction);
+            if (AutoAction is > AutoActionNone and < AutoActionFirstCustom)
+                QueueAIActions();
         }
 
         public unsafe bool HaveItemInInventory(uint id)
@@ -309,7 +304,6 @@ namespace BossMod
         public abstract CommonRotation.PlayerState GetState();
         public abstract CommonRotation.Strategy GetStrategy();
         public virtual Targeting SelectBetterTarget(AIHints.Enemy initial) => new(initial);
-        protected virtual void OnTick() { }
         protected abstract void UpdateInternalState(int autoAction);
         protected abstract void QueueAIActions();
         protected abstract NextAction CalculateAutomaticGCD();

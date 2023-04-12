@@ -144,8 +144,8 @@ namespace BossMod.DRG
         private void OnConfigModified(object? sender, EventArgs args)
         {
             // placeholders
-            SupportedSpell(AID.TrueThrust).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
-            SupportedSpell(AID.DoomSpike).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
+            SupportedSpell(AID.TrueThrust).PlaceholderForAuto = SupportedSpell(AID.RaidenThrust).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
+            SupportedSpell(AID.DoomSpike).PlaceholderForAuto = SupportedSpell(AID.DraconianFury).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
 
             // combo replacement
 

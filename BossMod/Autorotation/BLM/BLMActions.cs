@@ -56,24 +56,6 @@ namespace BossMod.BLM
             return new(bestTarget, bestTarget.StayAtLongRange ? 25 : 15);
         }
 
-        protected override void OnTick()
-        {
-            // track mana ticks
-            if (_prevMP < Player.CurMP)
-            {
-                var gauge = Service.JobGauges.Get<BLMGauge>();
-                if (!gauge.InAstralFire)
-                {
-                    var expectedTick = Rotation.MPTick(-gauge.UmbralIceStacks);
-                    if (Player.CurMP - _prevMP == expectedTick)
-                    {
-                        _lastManaTick = Autorot.WorldState.CurrentTime;
-                    }
-                }
-            }
-            _prevMP = Player.CurMP;
-        }
-
         protected override void UpdateInternalState(int autoAction)
         {
             UpdatePlayerState();
@@ -120,9 +102,21 @@ namespace BossMod.BLM
         private void UpdatePlayerState()
         {
             FillCommonPlayerState(_state);
-            _state.TimeToManaTick = 3 - (_lastManaTick != default ? (float)(Autorot.WorldState.CurrentTime - _lastManaTick).TotalSeconds % 3 : 0);
 
             var gauge = Service.JobGauges.Get<BLMGauge>();
+
+            // track mana ticks
+            if (_prevMP < Player.CurMP && !gauge.InAstralFire)
+            {
+                var expectedTick = Rotation.MPTick(-gauge.UmbralIceStacks);
+                if (Player.CurMP - _prevMP == expectedTick)
+                {
+                    _lastManaTick = Autorot.WorldState.CurrentTime;
+                }
+            }
+            _prevMP = Player.CurMP;
+            _state.TimeToManaTick = 3 - (_lastManaTick != default ? (float)(Autorot.WorldState.CurrentTime - _lastManaTick).TotalSeconds % 3 : 0);
+
             _state.ElementalLevel = gauge.InAstralFire ? gauge.AstralFireStacks : -gauge.UmbralIceStacks;
             _state.ElementalLeft = gauge.ElementTimeRemaining * 0.001f;
 
