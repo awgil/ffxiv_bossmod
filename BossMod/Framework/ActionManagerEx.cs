@@ -104,6 +104,7 @@ namespace BossMod
         private ushort _lastReqSequence;
         private float _useActionInPast; // if >0 while using an action, cooldown/anim lock will be reduced by this amount as if action was used a bit in the past
         private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
+        private int _restoreCntr;
 
         private unsafe delegate bool GetGroundTargetPositionDelegate(ActionManager* self, Vector3* outPos);
         private GetGroundTargetPositionDelegate _getGroundTargetPositionFunc;
@@ -268,10 +269,10 @@ namespace BossMod
             if (_restoreRotation != null && !MoveMightInterruptCast)
             {
                 var curRot = (Service.ClientState.LocalPlayer?.Rotation ?? 0).Radians();
-                //Log($"[AMEx] Restore rotation: {curRot.Rad}: {_restoreRotation.Value.post.Rad}->{_restoreRotation.Value.pre.Rad}");
+                //Service.Log($"[AMEx] Restore rotation: {curRot.Rad}: {_restoreRotation.Value.post.Rad}->{_restoreRotation.Value.pre.Rad}");
                 if (_restoreRotation.Value.post.AlmostEqual(curRot, 0.01f))
                     FaceDirection(_restoreRotation.Value.pre.ToDirection());
-                else
+                else if (--_restoreCntr == 0)
                     _restoreRotation = null;
             }
 
@@ -324,7 +325,11 @@ namespace BossMod
                 _lastReqSequence = currSeq;
                 MoveMightInterruptCast = CastTimeRemaining > 0;
                 if (prevRot != currRot && Config.RestoreRotation)
+                {
                     _restoreRotation = (prevRot.Radians(), currRot.Radians());
+                    _restoreCntr = 2; // not sure why - but sometimes after successfully restoring rotation it is snapped back on next frame; TODO investigate
+                    //Service.Log($"[AMEx] Restore start: {currRot} -> {prevRot}");
+                }
 
                 var action = new ActionID(actionType, actionID);
                 var recast = _inst->GetRecastGroupDetail(GetRecastGroup(action));
