@@ -82,6 +82,7 @@ namespace BossMod.Components
             }
             else if (ActiveStacks.Any(s => !s.ForbiddenPlayers[slot]))
             {
+                // TODO: don't show a risk (show nothing?) if player is 'optional' and stack is satisfied without him...
                 hints.Add("Stack!", ActiveStacks.Count(s => !s.ForbiddenPlayers[slot] && actor.Position.InCircle(s.Target.Position, s.Radius)) != 1);
             }
 

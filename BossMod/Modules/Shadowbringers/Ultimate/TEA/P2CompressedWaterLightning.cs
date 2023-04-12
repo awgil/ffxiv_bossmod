@@ -34,11 +34,11 @@
             switch ((SID)status.ID)
             {
                 case SID.CompressedWater:
-                    Stacks.Add(new(actor, 8, 2, 2, status.ExpireAt, _forbiddenWater));
+                    Stacks.Add(new(actor, 8, 3, 6, status.ExpireAt, _forbiddenWater));
                     _forbiddenWater.Reset();
                     break;
                 case SID.CompressedLightning:
-                    Stacks.Add(new(actor, 8, 3, 6, status.ExpireAt, _forbiddenLighting));
+                    Stacks.Add(new(actor, 8, 2, 2, status.ExpireAt, _forbiddenLighting));
                     _forbiddenLighting.Reset();
                     break;
             }
@@ -51,11 +51,11 @@
             switch ((AID)spell.Action.ID)
             {
                 case AID.CrashingWave:
-                    Stacks.RemoveAll(s => CheckAndRecord(s, 2, module, ref _forbiddenWater));
+                    Stacks.RemoveAll(s => CheckAndRecord(s, 6, module, ref _forbiddenWater));
                     ResolveImminent = false; // auto disable on resolve
                     break;
                 case AID.CrashingThunder:
-                    Stacks.RemoveAll(s => CheckAndRecord(s, 6, module, ref _forbiddenLighting));
+                    Stacks.RemoveAll(s => CheckAndRecord(s, 2, module, ref _forbiddenLighting));
                     ResolveImminent = false; // auto disable on resolve
                     break;
             }
