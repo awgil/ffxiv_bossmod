@@ -7,6 +7,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public enum Nisi { None, Alpha, Beta, Gamma, Delta }
 
         public int ShowPassHint; // show hints for Nth pass
+        public int NumActiveNisi { get; private set; }
         private int _numNisiApplications;
         private int[] _partners = new int[PartyState.MaxPartySize];
         private Nisi[] _current = new Nisi[PartyState.MaxPartySize];
@@ -53,7 +54,10 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             var nisi = NisiForSID((SID)status.ID);
             if (nisi != Nisi.None && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
             {
-                ++_numNisiApplications;
+                if (_current[slot] != nisi) // sometimes same nisi is reapplied, which is weird...
+                    ++_numNisiApplications;
+                if (_current[slot] == Nisi.None) // sometimes same nisi is reapplied, which is weird... - also i guess nisi could change in a single frame...
+                    ++NumActiveNisi;
                 _current[slot] = nisi;
             }
 
@@ -75,7 +79,10 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         {
             var nisi = NisiForSID((SID)status.ID);
             if (nisi != Nisi.None && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && nisi == _current[slot])
+            {
                 _current[slot] = Nisi.None;
+                --NumActiveNisi;
+            }
         }
 
         private Nisi NisiForSID(SID sid) => sid switch

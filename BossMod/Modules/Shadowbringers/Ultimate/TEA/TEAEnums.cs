@@ -91,6 +91,14 @@
         LimitCut = 18483, // CruiseChaser->self, 2.0s cast, single-target, invulnerabitily
         Flarethrower = 18501, // BruteJustice->self, 3.9s cast, single-target, visual
         FlarethrowerAOE = 18502, // BruteJustice->self, no cast, range 100 ?-degree cone aoe
+        PropellerWind = 18482, // CruiseChaser->self, 6.0s cast, range 50 circle LOSable aoe
+        Gavel = 18492, // BruteJustice->self, 5.0s cast, ??? raidwide, nisi resolve
+        DoubleRocketPunch = 18503, // BruteJustice->player, 4.0s cast, range 3 circle shared tankbuster
+        SuperJump = 18505, // BruteJustice->self, 3.9s cast, single-target, visual
+        SuperJumpAOE = 18506, // BruteJustice->location, no cast, range 10 circle aoe baited on farthest
+        ApocalypticRay = 18507, // BruteJustice->self, no cast, single-target, visual
+        ApocalypticRayAOE = 18508, // Helper->self, no cast, range 25+R ?-degree cone aoe
+        FinalSentence = 18518, // BruteJustice->self, 8.0s cast, single-target, visual (enrage)
     };
 
     public enum SID : uint

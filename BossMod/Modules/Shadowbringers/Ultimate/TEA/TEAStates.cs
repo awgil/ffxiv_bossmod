@@ -188,10 +188,12 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             P2Intermission(id);
             P2WhirlwindDebuffs(id + 0x10000, 5.2f);
             P2ChakramOpticalSightPhoton(id + 0x20000, 6);
-            P2SpinCrusherCompressedWaterLightning(id + 0x30000, 7.2f);
+            P2SpinCrusherCompressedWaterLightning(id + 0x30000, 6.9f);
             P2MissileCommand(id + 0x40000, 4.3f);
             P2VerdictGavel(id + 0x50000, 1.4f);
-            // TODO: tankbusters > jumps + ray > whirlwind x2 > enrage
+            P2PhotonDoubleRocketPunch(id + 0x60000, 5.5f);
+            P2SuperJumpApocalypticRay(id + 0x70000, 3.2f);
+            // TODO: whirlwind x2 > enrage
             SimpleState(id + 0xFF0000, 10000, "???");
         }
 
@@ -242,9 +244,12 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             ActorCastStart(id + 0x10, _module.CruiseChaser, AID.Photon, 3.3f);
             ComponentCondition<P2HawkBlasterOpticalSight>(id + 0x11, 1.1f, comp => comp.NumCasts > 0, "Puddles")
                 .DeactivateOnExit<P2HawkBlasterOpticalSight>();
-            ActorCastEnd(id + 0x12, _module.CruiseChaser, 1.9f, false, "Photon")
+            ActorCastEnd(id + 0x12, _module.CruiseChaser, 1.9f)
                 .OnEnter(() => Module.FindComponent<P2Nisi>()!.ShowPassHint = 1) // first nisi pass should happen around photon cast end
-                .OnExit(() => Module.FindComponent<P2CompressedWaterLightning>()!.ResolveImminent = true) // should start moving to debuff stacks after nisi pass
+                .OnExit(() => Module.FindComponent<P2CompressedWaterLightning>()!.ResolveImminent = true); // should start moving to debuff stacks after nisi pass
+            ComponentCondition<P2Photon>(id + 0x13, 0.3f, comp => comp.NumCasts > 0, "Photon")
+                .ActivateOnEnter<P2Photon>()
+                .DeactivateOnExit<P2Photon>()
                 .SetHint(StateMachine.StateHint.Raidwide);
         }
 
@@ -264,9 +269,9 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         private void P2MissileCommand(uint id, float delay)
         {
             ActorCast(id, _module.BruteJustice, AID.MissileCommand, delay, 3);
-            ComponentCondition<P2EarthMissileBaited>(id + 0x10, 1.1f, comp => comp.HaveCasters, "Bait missiles")
+            ComponentCondition<P2EarthMissileBaited>(id + 0x10, 1.2f, comp => comp.HaveCasters, "Bait missiles")
                 .ActivateOnEnter<P2EarthMissileBaited>();
-            ComponentCondition<P2Enumeration>(id + 0x20, 2.0f, comp => comp.Active)
+            ComponentCondition<P2Enumeration>(id + 0x20, 1.9f, comp => comp.Active)
                 .ActivateOnEnter<P2Enumeration>();
             ComponentCondition<P2HiddenMinefield>(id + 0x30, 0.1f, comp => comp.Casters.Count > 0)
                 .ActivateOnEnter<P2HiddenMinefield>();
@@ -313,7 +318,42 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             ComponentCondition<P2CompressedWaterLightning>(id + 0x200, 8.7f, comp => !comp.ResolveImminent, "Water/lightning 3")
                 .DeactivateOnExit<P2CompressedWaterLightning>()
                 .OnExit(() => Module.FindComponent<P2Nisi>()!.ShowPassHint = 4); // fourth nisi pass should happen after last stacks, while resolving propeller wind
-            // TODO: propeller wind & 4th nisi pass > gavel
+
+            ActorCastStart(id + 0x300, _module.CruiseChaser, AID.PropellerWind, 12.5f);
+            ActorCastStart(id + 0x301, _module.BruteJustice, AID.Gavel, 3)
+                .ActivateOnEnter<P2PropellerWind>();
+            ActorCastEnd(id + 0x302, _module.CruiseChaser, 3, false, "LOS")
+                .DeactivateOnExit<P2PropellerWind>();
+            ActorCastEnd(id + 0x303, _module.BruteJustice, 2, false, "Gavel");
+            ComponentCondition<P2Nisi>(id + 0x304, 2, comp => comp.NumActiveNisi == 0, "Nisi resolve")
+                .DeactivateOnExit<P2Nisi>()
+                .DeactivateOnExit<P2Drainage>();
+        }
+
+        private void P2PhotonDoubleRocketPunch(uint id, float delay)
+        {
+            ActorCast(id, _module.CruiseChaser, AID.Photon, delay, 3);
+            ComponentCondition<P2Photon>(id + 2, 0.3f, comp => comp.NumCasts > 0, "Photon")
+                .ActivateOnEnter<P2Photon>()
+                .DeactivateOnExit<P2Photon>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ActorCast(id + 0x100, _module.BruteJustice, AID.DoubleRocketPunch, 3.4f, 4, false, "Shared tankbuster")
+                .ActivateOnEnter<P2DoubleRocketPunch>()
+                .DeactivateOnExit<P2DoubleRocketPunch>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+        }
+
+        private void P2SuperJumpApocalypticRay(uint id, float delay)
+        {
+            ActorCast(id, _module.BruteJustice, AID.SuperJump, delay, 3.9f)
+                .ActivateOnEnter<P2SuperJump>();
+            ComponentCondition<P2SuperJump>(id + 2, 0.4f, comp => comp.NumCasts > 0, "Jump")
+                .DeactivateOnExit<P2SuperJump>();
+
+            ComponentCondition<P2ApocalypticRay>(id + 0x10, 2.3f, comp => comp.Source != null)
+                .ActivateOnEnter<P2ApocalypticRay>();
+            ComponentCondition<P2ApocalypticRay>(id + 0x15, 5.0f, comp => comp.NumCasts >= 5, "AOE end")
+                .DeactivateOnExit<P2ApocalypticRay>();
         }
     }
 }

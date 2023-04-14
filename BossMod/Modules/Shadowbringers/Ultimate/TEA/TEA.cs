@@ -43,6 +43,11 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public P2HawkBlasterOpticalSight() : base(ActionID.MakeSpell(AID.HawkBlasterP2), 10) { }
     }
 
+    class P2Photon : Components.CastCounter
+    {
+        public P2Photon() : base(ActionID.MakeSpell(AID.PhotonAOE)) { }
+    }
+
     class P2SpinCrusher : Components.SelfTargetedAOEs
     {
         public P2SpinCrusher() : base(ActionID.MakeSpell(AID.SpinCrusher), new AOEShapeCone(10, 45.Degrees())) { }
@@ -51,6 +56,17 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
     class P2Drainage : Components.PersistentVoidzone
     {
         public P2Drainage() : base(8, m => m.Enemies(OID.LiquidRage)) { } // TODO: verify distance
+    }
+
+    class P2PropellerWind : Components.CastLineOfSightAOE
+    {
+        public P2PropellerWind() : base(ActionID.MakeSpell(AID.PropellerWind), 50, false) { }
+        public override IEnumerable<Actor> BlockerActors(BossModule module) => module.Enemies(OID.GelidGaol);
+    }
+
+    class P2DoubleRocketPunch : Components.SharedTankbuster
+    {
+        public P2DoubleRocketPunch() : base(ActionID.MakeSpell(AID.DoubleRocketPunch), 3) { }
     }
 
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1)]
