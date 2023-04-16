@@ -1,4 +1,6 @@
-﻿namespace BossMod.Components
+﻿using System.Linq;
+
+namespace BossMod.Components
 {
     // generic 'shared tankbuster' component; assumes only 1 concurrent cast is active
     // TODO: revise and improve (track invuln, ai hints, num stacked tanks?)
@@ -27,7 +29,7 @@
                 return;
             if (_target == actor)
             {
-                hints.Add("Stack with other tanks or press invuln!");
+                hints.Add("Stack with other tanks or press invuln!", !module.Raid.WithoutSlot().Any(a => a != actor && a.Role == Role.Tank && InAOE(a)));
             }
             else if (actor.Role == Role.Tank)
             {

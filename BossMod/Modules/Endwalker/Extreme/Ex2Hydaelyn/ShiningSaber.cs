@@ -13,6 +13,7 @@
                 if (module.WorldState.Actors.Find(module.PrimaryActor.TargetID) is var target && target != null)
                     AddStack(target);
             }
+            base.Update(module);
         }
     }
 }

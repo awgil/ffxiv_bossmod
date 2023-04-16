@@ -69,6 +69,16 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public P2DoubleRocketPunch() : base(ActionID.MakeSpell(AID.DoubleRocketPunch), 3) { }
     }
 
+    class P3ChasteningHeat : Components.BaitAwayCast
+    {
+        public P3ChasteningHeat() : base(ActionID.MakeSpell(AID.ChasteningHeat), new AOEShapeCircle(5), true) { }
+    }
+
+    class P3DivineSpear : Components.Cleave
+    {
+        public P3DivineSpear() : base(ActionID.MakeSpell(AID.DivineSpear), new AOEShapeCone(24.2f, 45.Degrees()), (uint)OID.AlexanderPrime) { } // TODO: verify angle
+    }
+
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1)]
     public class TEA : BossModule
     {
@@ -81,9 +91,15 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public Actor? BruteJustice() => _bruteJustice;
         public Actor? CruiseChaser() => _cruiseChaser;
 
+        private Actor? _alexPrime;
+        private List<Actor> _trueHeart;
+        public Actor? AlexPrime() => _alexPrime;
+        public Actor? TrueHeart() => _trueHeart.FirstOrDefault();
+
         public TEA(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 22))
         {
             _liquidHand = Enemies(OID.LiquidHand);
+            _trueHeart = Enemies(OID.TrueHeart);
         }
 
         protected override void UpdateModule()
@@ -92,6 +108,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             // the problem is that on wipe, any actor can be deleted and recreated in the same frame
             _bruteJustice ??= StateMachine.ActivePhaseIndex >= 0 ? Enemies(OID.BruteJustice).FirstOrDefault() : null;
             _cruiseChaser ??= StateMachine.ActivePhaseIndex >= 0 ? Enemies(OID.CruiseChaser).FirstOrDefault() : null;
+            _alexPrime ??= StateMachine.ActivePhaseIndex >= 0 ? Enemies(OID.AlexanderPrime).FirstOrDefault() : null;
         }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
@@ -106,6 +123,10 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
                 case 1:
                     Arena.Actor(_bruteJustice, ArenaColor.Enemy, true);
                     Arena.Actor(_cruiseChaser, ArenaColor.Enemy, true);
+                    break;
+                case 2:
+                    Arena.Actor(_alexPrime, ArenaColor.Enemy);
+                    Arena.Actor(TrueHeart(), ArenaColor.Enemy);
                     break;
             }
         }

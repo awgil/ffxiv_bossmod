@@ -80,10 +80,26 @@ namespace BossMod.Components
                 }
                 hints.Add("Stack!", stackedWithOtherStackOrAvoid || numStacked < stack.MinSize || numStacked > stack.MaxSize);
             }
-            else if (ActiveStacks.Any(s => !s.ForbiddenPlayers[slot]))
+            else
             {
-                // TODO: don't show a risk (show nothing?) if player is 'optional' and stack is satisfied without him...
-                hints.Add("Stack!", ActiveStacks.Count(s => !s.ForbiddenPlayers[slot] && actor.Position.InCircle(s.Target.Position, s.Radius)) != 1);
+                int numParticipatingStacks = 0;
+                int numUnsatisfiedStacks = 0;
+                foreach (var s in ActiveStacks.Where(s => !s.ForbiddenPlayers[slot]))
+                {
+                    if (actor.Position.InCircle(s.Target.Position, s.Radius))
+                        ++numParticipatingStacks;
+                    else if (module.Raid.WithoutSlot().InRadiusExcluding(s.Target, s.Radius).Count() + 1 < s.MinSize)
+                        ++numUnsatisfiedStacks;
+                }
+
+                if (numParticipatingStacks > 1)
+                    hints.Add("Stack!");
+                else if (numParticipatingStacks == 1)
+                    hints.Add("Stack!", false);
+                else if (numUnsatisfiedStacks > 0)
+                    hints.Add("Stack!");
+                // else: don't show anything, all potential stacks are already satisfied without a player
+                //hints.Add("Stack!", ActiveStacks.Count(s => !s.ForbiddenPlayers[slot] && actor.Position.InCircle(s.Target.Position, s.Radius)) != 1);
             }
 
             if (ActiveSpreads.Any(s => s.Target != actor && actor.Position.InCircle(s.Target.Position, s.Radius)))

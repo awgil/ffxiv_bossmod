@@ -33,6 +33,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
                 if (module.Raid.WithoutSlot().Farthest(module.PrimaryActor.Position) is var target && target != null)
                     AddStack(target);
             }
+            base.Update(module);
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)

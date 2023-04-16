@@ -260,6 +260,10 @@ namespace UIDev
             {
                 list?.ClearFilters();
             }
+            if (list != null && ImGui.MenuItem("Show actor-size events", "", list.ShowActorSizeEvents, true))
+            {
+                list.ShowActorSizeEvents = !list.ShowActorSizeEvents;
+            }
         }
     }
 }

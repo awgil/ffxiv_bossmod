@@ -195,7 +195,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         {
             switch ((AID)spell.Action.ID)
             {
-                case AID.AlphaSword:
+                case AID.AlphaSwordP2:
                     ++NumCasts;
                     _nextState = State.Blasty;
                     SetNextBaiter(module, NumCasts + 1, _shapeBlasty);

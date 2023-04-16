@@ -19,6 +19,13 @@
         VoidzoneEarthMissileIceLarge = 0x1E958E, // R0.500, EventObj type, spawn during fight
 
         AlexanderPrime = 0x2C53, // R7.200, x1
+        Plasmasphere = 0x2C50, // R1.200-3.000, spawn during fight
+        Shanoa = 0x2C51, // R2.000, spawn during fight
+        TrueHeart = 0x2C52, // R1.000, spawn during fight
+        JudgmentCrystal = 0x2C54, // R1.190, spawn during fight
+        VoidzoneJudgmentCrystal = 0x1E9E3C, // R0.500, EventObj type, spawn during fight
+        VoidzonePlasmasphere = 0x1EA1C9, // R0.500, EventObj type, spawn during fight
+
         PerfectAlexander = 0x2C55, // R10.800, x1
         CruiseChaser2 = 0x2C9D, // R0.850, x1
         AlexanderPrime2 = 0x2C9E, // R7.200, x1
@@ -60,7 +67,7 @@
         Enrage = 18867, // BossP1->self, 4.0s cast
 
         HawkBlasterIntermission = 18480, // Helper->location, no cast, range 10 aoe
-        AlphaSword = 18484, // CruiseChaser->self, no cast, range 25+R 90-degree cone, knockback 5
+        AlphaSwordP2 = 18484, // CruiseChaser->self, no cast, range 25+R 90-degree cone, knockback 5
         SuperBlasstyCharge = 19279, // CruiseChaser->self, no cast, range 50+R width 10 rect, knockback 20
         JKick = 18516, // BruteJustice->self, no cast, raidwide
 
@@ -89,8 +96,8 @@
         HiddenMineShrapnel = 18515, // Helper->self, no cast, range 80+R circle (explosion when no one soaks the mine)
         Verdict = 18491, // BruteJustice->self, 4.0s cast, single-target
         LimitCut = 18483, // CruiseChaser->self, 2.0s cast, single-target, invulnerabitily
-        Flarethrower = 18501, // BruteJustice->self, 3.9s cast, single-target, visual
-        FlarethrowerAOE = 18502, // BruteJustice->self, no cast, range 100 ?-degree cone aoe
+        FlarethrowerP2 = 18501, // BruteJustice->self, 3.9s cast, single-target, visual
+        FlarethrowerP2AOE = 18502, // BruteJustice->self, no cast, range 100 ?-degree cone aoe
         PropellerWind = 18482, // CruiseChaser->self, 6.0s cast, range 50 circle LOSable aoe
         Gavel = 18492, // BruteJustice->self, 5.0s cast, ??? raidwide, nisi resolve
         DoubleRocketPunch = 18503, // BruteJustice->player, 4.0s cast, range 3 circle shared tankbuster
@@ -99,6 +106,30 @@
         ApocalypticRay = 18507, // BruteJustice->self, no cast, single-target, visual
         ApocalypticRayAOE = 18508, // Helper->self, no cast, range 25+R ?-degree cone aoe
         FinalSentence = 18518, // BruteJustice->self, 8.0s cast, single-target, visual (enrage)
+        //SevereContamination = 18891, // LiquidRage->self, no cast, range 80 circle
+
+        AutoAttackP3 = 18812, // AlexanderPrime->player, no cast, single-target
+        TemporalStasis = 18522, // AlexanderPrime->self, 8.0s cast, single-target, visual (debuffs & baits)
+        PlaintOfSeverity = 18529, // Helper->player, no cast, single-target, small damage + vulns on aggravated assault targets
+        PlaintOfSolidarity = 18530, // Helper->players, no cast, range 4 circle 3-person stack
+        PlaintOfSurety = 18531, // Helper->self, no cast, ???, 1 damage or kill on close/far tethers
+        AlphaSwordP3 = 18539, // CruiseChaser->self, no cast, range 25+R ?-degree cone on 3 closest
+        FlarethrowerP3 = 18540, // BruteJustice->self, no cast, range 100 ?-degree cone on 2 closest
+        ChasteningHeat = 19072, // AlexanderPrime->player, 5.0s cast, range 5 circle tankbuster inflicting vuln
+        DivineSpear = 19074, // AlexanderPrime->self, no cast, range 17+R ?-degree cone tankbuster
+        InceptionFormation = 18543, // AlexanderPrime->self, 4.0s cast, single-target, visual (mechanic start)
+        InceptionVisual = 18545, // CruiseChaser->self, no cast, single-target, visual (???)
+        JudgmentCrystal = 18523, // AlexanderPrime->self, 3.0s cast, single-target, visual
+        JudgmentCrystalAOE = 18524, // Helper->location, no cast, range 5 circle baited aoe
+        UndyingAffection = 19020, // Shanoa->self, no cast, single-target, visual (spawn true heart)
+        Aetheroplasm = 18546, // Plasmasphere->self, no cast, range 6 circle (orb explosion)
+        //_Weaponskill_ElectromagneticBurst = 18548, // Helper->self, no cast, range 50 circle
+        Tetrashatter = 19080, // JudgmentCrystal->self, no cast, range 80+R circle (light raidwide, if mechanic succeeded)
+        TetrashatterFail = 18525, // JudgmentCrystal->self, 5.5s cast, range 80+R circle
+        Inception = 18526, // AlexanderPrime->self, 5.0s cast, range 100 width 16 cross, ???
+        Sacrament = 18527, // AlexanderPrime->self, no cast, range 100 width 16 cross aoe
+        //_Weaponskill_ = 19023, // Helper->self, no cast, single-target, ??? visual?
+        TrueHeartSuccess = 19024, // TrueHeart->self, no cast, range 80 circle, applies Enigma Codex to whole raid (on success?)
     };
 
     public enum SID : uint
@@ -118,12 +149,27 @@
         //FinalJudgment:PenaltyIII = 1035, // none->player, extra=0x0
         //_Gen_Invincibility = 775, // none->CruiseChaser, extra=0x0
         DirectionalInvincibility = 1125, // none->PlasmaShield, extra=0x0
+        TemporalDisplacement = 1119, // none->player, extra=0x0
+        AggravatedAssault = 1121, // none->player, extra=0x0
+        SharedSentence = 1122, // none->player, extra=0x0
+        HouseArrest = 1123, // none->player, extra=0x0
+        RestrainingOrder = 1124, // none->player, extra=0x0
+        //_Gen_EnigmaCodex = 2147, // none->TrueHeart, extra=0x171
+        //_Gen_EnigmaCodex = 2146, // TrueHeart->player, extra=0x0
+        //_Gen_DamageDown = 1016, // none->Plasmasphere, extra=0x1/0x2/0x3/0x4
+        //_Gen_VulnerabilityDown = 406, // none->TrueHeart, extra=0x1/0x2/0x3/0x4
+        //_Gen_DamageUp = 290, // none->AlexanderPrime/CruiseChaser, extra=0x0
+        //_Gen_VulnerabilityDown = 350, // none->AlexanderPrime, extra=0x0
+        //_Gen_Sludge = 287, // none->player, extra=0x0
     }
 
     public enum TetherID : uint
     {
         None = 0,
         Drainage = 3, // LiquidRage->player
+        HouseArrest = 28, // player->player (stay at range <= 5; 4.93 is ok, 5.34 is fatal)
+        RestrainingOrder = 29, // player->player (stay at range >= 30 or so; 25.45 is fatal, 31.25 is ok)
+        Plasmasphere = 12, // Plasmasphere->player
     }
 
     public enum IconID : uint
@@ -133,5 +179,6 @@
         CompressedLightning = 69, // player
         Enumeration = 65, // player
         EarthMissileIce = 67, // player
+        JudgmentCrystal = 96, // player
     }
 }

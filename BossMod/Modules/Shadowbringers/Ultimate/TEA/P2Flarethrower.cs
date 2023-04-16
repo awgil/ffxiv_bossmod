@@ -8,7 +8,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
 
         private static AOEShapeCone _shape = new(100, 45.Degrees()); // TODO: verify angle
 
-        public P2Flarethrower() : base(ActionID.MakeSpell(AID.FlarethrowerAOE)) { }
+        public P2Flarethrower() : base(ActionID.MakeSpell(AID.FlarethrowerP2AOE)) { }
 
         public override void Update(BossModule module)
         {
@@ -26,7 +26,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.Flarethrower)
+            if ((AID)spell.Action.ID == AID.FlarethrowerP2)
             {
                 _source = caster;
                 ForbiddenPlayers = module.Raid.WithSlot(true).WhereActor(a => a.InstanceID != caster.TargetID).Mask(); // TODO: unsure about this... assumes BJ main target should bait

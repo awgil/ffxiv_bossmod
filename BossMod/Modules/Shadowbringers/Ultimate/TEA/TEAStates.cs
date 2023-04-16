@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using static BossMod.ActorState;
 
 namespace BossMod.Shadowbringers.Ultimate.TEA
 {
@@ -11,9 +12,23 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             _module = module;
             SimplePhase(0, Phase1LivingLiquid, "P1: Living Liquid")
                 .ActivateOnEnter<P1HandOfPain>()
-                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead;
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead; // phase 1 ends either with wipe (everything destroyed) or success (boss dies, then is destroyed few seconds into next phase)
             SimplePhase(1, Phase2BruteJusticeCruiseChaser, "P2: BJ+CC")
-                .Raw.Update = () => Module.PrimaryActor.IsDestroyed && (_module.BruteJustice()?.IsDestroyed ?? true) && (_module.CruiseChaser()?.IsDestroyed ?? true);
+                .Raw.Update = () =>
+                {
+                    var bj = _module.BruteJustice();
+                    var cc = _module.CruiseChaser();
+                    if (bj == null || cc == null)
+                        return true; // shouldn't happen - BJ & CC should exist from the start
+                    if (Module.PrimaryActor.IsDestroyed && bj.IsDestroyed && cc.IsDestroyed)
+                        return true; // wipe in p1/p2 => all actors are destroyed; BJ/CC are not destroyed otherwise
+                    // BJ/CC start untargetable, then both become targetable after intermission and stay targetable until the end
+                    // when either reaches 1hp, it becomes untargetable, and the remaining one starts casting enrage
+                    // some time after becoming untargetable, BJ/CC get healed to full - so the pass condition is: both untargetable and at least one at non-full hp (this prevents triggering during intermission)
+                    return !bj.IsTargetable && !cc.IsTargetable && (bj.HP.Cur < bj.HP.Max || cc.HP.Cur < cc.HP.Max);
+                };
+            SimplePhase(2, Phase3AlexanderPrime, "P3: Alex Prime")
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed && (_module.BruteJustice()?.IsDestroyed ?? true) && (_module.CruiseChaser()?.IsDestroyed ?? true); // TODO: improve...
         }
 
         private void Phase1LivingLiquid(uint id)
@@ -194,7 +209,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             P2PhotonDoubleRocketPunch(id + 0x60000, 5.5f);
             P2SuperJumpApocalypticRay(id + 0x70000, 3.2f);
             // TODO: whirlwind x2 > enrage
-            SimpleState(id + 0xFF0000, 10000, "???");
+            SimpleState(id + 0xFF0000, 100, "???");
         }
 
         private void P2Intermission(uint id)
@@ -354,6 +369,86 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
                 .ActivateOnEnter<P2ApocalypticRay>();
             ComponentCondition<P2ApocalypticRay>(id + 0x15, 5.0f, comp => comp.NumCasts >= 5, "AOE end")
                 .DeactivateOnExit<P2ApocalypticRay>();
+        }
+
+        private void Phase3AlexanderPrime(uint id)
+        {
+            P3TemporalStasis(id, 0);
+            P3ChasteningHeat(id + 0x10000, 5.1f);
+            P3InceptionFormation(id + 0x20000, 5.3f);
+            SimpleState(id + 0xFF0000, 200, "???");
+        }
+
+        private void P3TemporalStasis(uint id, float delay)
+        {
+            ActorTargetable(id, _module.AlexPrime, false, delay)
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ActorCast(id + 0x10, _module.AlexPrime, AID.TemporalStasis, 7.5f, 8, true)
+                .ActivateOnEnter<P3TemporalStasis>();
+            ComponentCondition<P3TemporalStasis>(id + 0x20, 1.2f, comp => comp.Frozen, "Temporal stasis");
+            ComponentCondition<P3TemporalStasis>(id + 0x30, 6.4f, comp => comp.NumCasts >= 2)
+                .DeactivateOnExit<P3TemporalStasis>();
+            ActorTargetable(id + 0x40, _module.AlexPrime, true, 3.7f, "Boss appears")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+        }
+
+        private void P3ChasteningHeat(uint id, float delay)
+        {
+            ActorCast(id, _module.AlexPrime, AID.ChasteningHeat, delay, 5, true, "Tankbuster (vuln)")
+                .ActivateOnEnter<P3ChasteningHeat>()
+                .DeactivateOnExit<P3ChasteningHeat>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ComponentCondition<P3DivineSpear>(id + 0x10, 3.2f, comp => comp.NumCasts >= 1)
+                .ActivateOnEnter<P3DivineSpear>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ComponentCondition<P3DivineSpear>(id + 0x11, 2.1f, comp => comp.NumCasts >= 2)
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ComponentCondition<P3DivineSpear>(id + 0x12, 2.1f, comp => comp.NumCasts >= 3, "Tankbuster (cones)")
+                .DeactivateOnExit<P3DivineSpear>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+        }
+
+        private void P3InceptionFormation(uint id, float delay)
+        {
+            ActorCast(id, _module.AlexPrime, AID.InceptionFormation, delay, 4, true);
+            ActorTargetable(id + 0x10, _module.AlexPrime, false, 3.1f, "Inception formation")
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ComponentCondition<P3Inception1>(id + 0x20, 4.2f, comp => comp.AllSpheresSpawned)
+                .ActivateOnEnter<P3Inception1>();
+            ActorCast(id + 0x30, _module.AlexPrime, AID.JudgmentCrystal, 4.2f, 3, true);
+            // +0.7s: remaining 4 players get icon 96
+            ComponentCondition<P3Inception1>(id + 0x40, 5.8f, comp => comp.CrystalsDone, "Crystals");
+            ActorTargetable(id + 0x50, _module.TrueHeart, true, 0.7f);
+
+            ComponentCondition<P3Inception2>(id + 0x100, 10.6f, comp => comp.NumCasts >= 1, "Bait 1")
+                .ActivateOnEnter<P3Inception2>()
+                .DeactivateOnExit<P3Inception1>();
+            ComponentCondition<P3Inception2>(id + 0x101, 2.2f, comp => comp.NumCasts >= 2, "Bait 2");
+            ComponentCondition<P3Inception2>(id + 0x102, 2.2f, comp => comp.NumCasts >= 3, "Bait 3")
+                .DeactivateOnExit<P3Inception2>();
+
+            // debuffs (restraining x2, aggravated x2, shared) appear right before cast start
+            ActorCast(id + 0x200, _module.AlexPrime, AID.Inception, 2.2f, 5, true);
+            Condition(id + 0x208, 4.0f, () => _module.TrueHeart()?.IsDead ?? true, "Heart disappears");
+            ComponentCondition<P3Inception3Sacrament>(id + 0x210, 4.3f, comp => comp.NumCasts > 0, "Shared sentence")
+                .ActivateOnEnter<P3Inception3Sacrament>()
+                .ActivateOnEnter<P3Inception3Debuffs>()
+                .DeactivateOnExit<P3Inception3Debuffs>() // note: debuffs resolve ~0.3s before sacrament
+                .DeactivateOnExit<P3Inception3Sacrament>();
+
+            ActorCastStart(id + 0x300, _module.BruteJustice, AID.SuperJump, 5.1f)
+                .ActivateOnEnter<P2SuperJump>()
+                .ActivateOnEnter<P3Inception4Cleaves>();
+            ComponentCondition<P3Inception4Cleaves>(id + 0x301, 0.9f, comp => comp.NumCasts >= 1);
+            ComponentCondition<P3Inception4Cleaves>(id + 0x302, 1.1f, comp => comp.NumCasts >= 2);
+            ComponentCondition<P3Inception4Cleaves>(id + 0x303, 1.1f, comp => comp.NumCasts >= 3)
+                .DeactivateOnExit<P3Inception4Cleaves>();
+            ActorCastEnd(id + 0x304, _module.BruteJustice, 0.8f);
+            ComponentCondition<P2SuperJump>(id + 0x305, 0.3f, comp => comp.NumCasts > 0, "Jump")
+                .DeactivateOnExit<P2SuperJump>();
+
+            ActorTargetable(id + 0x400, _module.AlexPrime, true, 2.1f, "Inception resolve")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
         }
     }
 }

@@ -18,7 +18,17 @@ namespace UIDev
         private HashSet<ActionID> _filteredActions = new();
         private HashSet<uint> _filteredStatuses = new();
         private HashSet<uint> _filteredDirectorUpdateTypes = new();
+        private bool _showActorSizeEvents = true;
         private bool _nodesUpToDate;
+
+        public bool ShowActorSizeEvents
+        {
+            get => _showActorSizeEvents;
+            set {
+                _showActorSizeEvents = value;
+                _nodesUpToDate = false;
+            }
+        }
 
         public OpList(Replay r, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldState.Operation> ops, Action<DateTime> scrollTo)
         {
@@ -102,7 +112,7 @@ namespace UIDev
                 ActorState.OpCreate op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpDestroy op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpMove => false,
-                ActorState.OpSizeChange op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
+                ActorState.OpSizeChange op => _showActorSizeEvents && FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpHPMP => false,
                 ActorState.OpTargetable op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpDead op => FilterInterestingActor(op.InstanceID, op.Timestamp, true),

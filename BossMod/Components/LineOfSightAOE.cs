@@ -33,7 +33,7 @@ namespace BossMod.Components
                 {
                     var toBlock = b.Center - origin.Value;
                     var dist = toBlock.Length();
-                    Visibility.Add((dist + b.Radius, Angle.FromDirection(toBlock), Angle.Asin(b.Radius / dist)));
+                    Visibility.Add((dist + b.Radius, Angle.FromDirection(toBlock), b.Radius < dist ? Angle.Asin(b.Radius / dist) : 90.Degrees()));
                 }
             }
         }

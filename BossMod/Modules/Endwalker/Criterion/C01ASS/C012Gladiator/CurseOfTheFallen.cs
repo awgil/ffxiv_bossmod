@@ -32,6 +32,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
                     AddStack(_thunderous, _stackResolve, _lingering);
                 }
             }
+            base.Update(module);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

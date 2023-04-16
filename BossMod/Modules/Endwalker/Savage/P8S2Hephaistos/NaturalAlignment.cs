@@ -53,6 +53,7 @@ namespace BossMod.Endwalker.Savage.P8S2
                     }
                     break;
             }
+            base.Update(module);
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
