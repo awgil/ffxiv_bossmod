@@ -25,6 +25,9 @@
         JudgmentCrystal = 0x2C54, // R1.190, spawn during fight
         VoidzoneJudgmentCrystal = 0x1E9E3C, // R0.500, EventObj type, spawn during fight
         VoidzonePlasmasphere = 0x1EA1C9, // R0.500, EventObj type, spawn during fight
+        Wormhole1 = 0x1EA1DF, // R0.500, EventObj type, spawn during fight
+        Wormhole2 = 0x1EA1E0, // R0.500, EventObj type, spawn during fight
+        Wormhole3 = 0x1EA1E1, // R0.500, EventObj type, spawn during fight
 
         PerfectAlexander = 0x2C55, // R10.800, x1
         CruiseChaser2 = 0x2C9D, // R0.850, x1
@@ -68,7 +71,7 @@
 
         HawkBlasterIntermission = 18480, // Helper->location, no cast, range 10 aoe
         AlphaSwordP2 = 18484, // CruiseChaser->self, no cast, range 25+R 90-degree cone, knockback 5
-        SuperBlasstyCharge = 19279, // CruiseChaser->self, no cast, range 50+R width 10 rect, knockback 20
+        SuperBlasstyChargeP2 = 19279, // CruiseChaser->self, no cast, range 50+R width 10 rect, knockback 20
         JKick = 18516, // BruteJustice->self, no cast, raidwide
 
         AutoAttackCC = 18810, // CruiseChaser->player, no cast, single-target
@@ -95,7 +98,7 @@
         HiddenMine = 18514, // Helper->self, no cast, range 8 circle mine soak
         HiddenMineShrapnel = 18515, // Helper->self, no cast, range 80+R circle (explosion when no one soaks the mine)
         Verdict = 18491, // BruteJustice->self, 4.0s cast, single-target
-        LimitCut = 18483, // CruiseChaser->self, 2.0s cast, single-target, invulnerabitily
+        LimitCutP2 = 18483, // CruiseChaser->self, 2.0s cast, single-target, invulnerabitily
         FlarethrowerP2 = 18501, // BruteJustice->self, 3.9s cast, single-target, visual
         FlarethrowerP2AOE = 18502, // BruteJustice->self, no cast, range 100 ?-degree cone aoe
         PropellerWind = 18482, // CruiseChaser->self, 6.0s cast, range 50 circle LOSable aoe
@@ -127,9 +130,25 @@
         Tetrashatter = 19080, // JudgmentCrystal->self, no cast, range 80+R circle (light raidwide, if mechanic succeeded)
         TetrashatterFail = 18525, // JudgmentCrystal->self, 5.5s cast, range 80+R circle
         Inception = 18526, // AlexanderPrime->self, 5.0s cast, range 100 width 16 cross, ???
-        Sacrament = 18527, // AlexanderPrime->self, no cast, range 100 width 16 cross aoe
+        SacramentInception = 18527, // AlexanderPrime->self, no cast, range 100 width 16 cross aoe
         //_Weaponskill_ = 19023, // Helper->self, no cast, single-target, ??? visual?
         TrueHeartSuccess = 19024, // TrueHeart->self, no cast, range 80 circle, applies Enigma Codex to whole raid (on success?)
+        WormholeFormation = 18542, // AlexanderPrime->self, 4.0s cast, single-target, visual (mechanic start)
+        LimitCutP3 = 19215, // CruiseChaser->self, 2.0s cast, single-target, visual
+        VoidOfRepentance = 18534, // AlexanderPrime->self, 3.0s cast, single-target, visual
+        SuperBlasstyChargeP3 = 18883, // CruiseChaser->self, no cast, range 50+R width 10 rect
+        SacramentWormhole = 18519, // AlexanderPrime->self, 6.0s cast, range 100 width 16 cross
+        Repentance3 = 18535, // Helper->self, no cast, ???, third wormhole soak
+        Repentance2 = 18536, // Helper->self, no cast, ???, second wormhole soak
+        Repentance1 = 18537, // Helper->self, no cast, ???, first wormhole soak
+        //_Weaponskill_Confession = 18538, // Helper->self, no cast, range 80+R circle
+        IncineratingHeat = 19025, // AlexanderPrime->players, 5.0s cast, range 5 circle stack
+        MegaHoly = 19075, // AlexanderPrime->self, 4.0s cast, range 80+R circle
+        SummonAlexander = 19029, // AlexanderPrime->self, 3.0s cast, single-target, visual
+        JStorm = 18550, // BruteJustice->self, no cast, range 80+R circle
+        JWave = 18551, // Helper->self, no cast, range 80 circle
+        EternalDarkness = 18549, // CruiseChaser->self, 25.0s cast, enrage
+        DivineJudgment = 18552, // AlexanderPrime->self, 75.0s cast, enrage?
     };
 
     public enum SID : uint
@@ -175,10 +194,19 @@
     public enum IconID : uint
     {
         None = 0,
+        Icon1 = 79, // player
+        Icon2 = 80, // player
+        Icon3 = 81, // player
+        Icon4 = 82, // player
+        Icon5 = 83, // player
+        Icon6 = 84, // player
+        Icon7 = 85, // player
+        Icon8 = 86, // player
         CompressedWater = 68, // player
         CompressedLightning = 69, // player
         Enumeration = 65, // player
         EarthMissileIce = 67, // player
         JudgmentCrystal = 96, // player
+        IncineratingHeat = 93, // player
     }
 }

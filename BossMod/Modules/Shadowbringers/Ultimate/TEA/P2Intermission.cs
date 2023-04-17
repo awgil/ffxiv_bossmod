@@ -201,7 +201,8 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
                     SetNextBaiter(module, NumCasts + 1, _shapeBlasty);
                     _nextHit = module.WorldState.CurrentTime.AddSeconds(1.5f);
                     break;
-                case AID.SuperBlasstyCharge:
+                case AID.SuperBlasstyChargeP2:
+                case AID.SuperBlasstyChargeP3:
                     ++NumCasts;
                     _nextState = State.Teleport;
                     CurrentBaits.Clear();

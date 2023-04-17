@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace BossMod.Shadowbringers.Ultimate.TEA
 {
@@ -111,8 +112,10 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
                 }
                 else
                 {
-                    // we need to pass nisi to whoever has correct judgment
+                    // we need to pass nisi to whoever has correct judgment and no nisi
                     partner = Array.IndexOf(_judgments, _current[slot]);
+                    if (partner >= 0 && _current[partner] != Nisi.None && partner < _judgments.Length - 1)
+                        partner = Array.IndexOf(_judgments, _current[slot], partner + 1);
                 }
             }
 

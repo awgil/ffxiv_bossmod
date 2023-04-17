@@ -11,7 +11,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         private DateTime _activation;
         private static AOEShapeCross _shape = new(100, 8);
 
-        public P3Inception3Sacrament() : base(ActionID.MakeSpell(AID.Sacrament)) { }
+        public P3Inception3Sacrament() : base(ActionID.MakeSpell(AID.SacramentInception)) { }
 
         public override void Init(BossModule module)
         {
