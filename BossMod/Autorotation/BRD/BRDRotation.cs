@@ -110,7 +110,7 @@ namespace BossMod.BRD
             Strategy.SongUse.Automatic => state.ActiveSong switch
             {
                 Song.WanderersMinuet => 3, // WM->MB transition when no more repertoire ticks left
-                Song.MagesBallad => 12, // MB->AP transition asap as long as we won't end up songless (active song condition 15 == 45 - (120 - 2*45); get extra MB tick at 12s to avoid being songless for a moment)
+                Song.MagesBallad => strategy.NumRainOfDeathTargets < 3 ? 12 : 3, // MB->AP transition asap as long as we won't end up songless (active song condition 15 == 45 - (120 - 2*45); get extra MB tick at 12s to avoid being songless for a moment), unless we're doing aoe rotation
                 Song.ArmysPaeon => state.Repertoire == 4 ? 15 : 3, // AP->WM transition asap as long as we'll have MB ready when WM ends, if we either have full repertoire or AP is about to run out anyway
                 _ => 3
             },
