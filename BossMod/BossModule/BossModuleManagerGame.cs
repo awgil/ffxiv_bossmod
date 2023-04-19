@@ -8,6 +8,7 @@ namespace BossMod
     class BossModuleManagerGame : BossModuleManager
     {
         private WindowManager.Window? _mainWindow;
+        private WindowManager.Window? _hintWindow;
         private WindowManager.Window? _planWindow;
 
         public BossModuleManagerGame(WorldState ws)
@@ -18,12 +19,13 @@ namespace BossMod
         protected override void RefreshConfigOrModules()
         {
             // create or destroy main window if needed
-            if (_mainWindow != null && LoadedModules.Count == 0)
+            bool showMainWindow = LoadedModules.Count > 0;
+            if (_mainWindow != null && !showMainWindow)
             {
                 Service.Log("[BMM] Closing main window, since there are no more loaded modules");
                 WindowManager.CloseWindow(_mainWindow);
             }
-            else if (_mainWindow == null && LoadedModules.Count > 0)
+            else if (_mainWindow == null && showMainWindow)
             {
                 Service.Log("[BMM] Creating main window, since there are now loaded modules");
                 _mainWindow = WindowManager.CreateWindow("Boss module", DrawMainWindow, MainWindowClosed, MainWindowClosedByUser);
@@ -39,6 +41,29 @@ namespace BossMod
                     _mainWindow.Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
                 if (WindowConfig.Lock)
                     _mainWindow.Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
+            }
+
+            // create or destroy extra hints window if needed
+            bool showHintWindow = WindowConfig.HintsInSeparateWindow && showMainWindow;
+            if (_hintWindow != null && !showHintWindow)
+            {
+                Service.Log("[BMM] Closing hint window");
+                WindowManager.CloseWindow(_hintWindow);
+                _hintWindow = null;
+            }
+            else if (_hintWindow == null && showHintWindow)
+            {
+                Service.Log("[BMM] Opening hint window");
+                _hintWindow = WindowManager.CreateWindow("Boss module hints", DrawHintWindow, HintWindowClosed, () => true);
+                _hintWindow.SizeHint = new(400, 100);
+            }
+
+            // update hint window properties
+            if (_hintWindow != null)
+            {
+                _hintWindow.Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
+                if (WindowConfig.Lock)
+                    _hintWindow.Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
             }
 
             // create or destroy plan window if needed
@@ -75,7 +100,7 @@ namespace BossMod
                 try
                 {
                     BossComponent.MovementHints? movementHints = WindowConfig.ShowWorldArrows ? new() : null;
-                    ActiveModule.Draw(WindowConfig.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, PartyState.PlayerSlot, movementHints);
+                    ActiveModule.Draw(WindowConfig.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, PartyState.PlayerSlot, movementHints, !WindowConfig.HintsInSeparateWindow, true);
                     DrawMovementHints(movementHints, WorldState.Party.Player()?.PosRot.Y ?? 0);
                 }
                 catch (Exception ex)
@@ -135,6 +160,28 @@ namespace BossMod
                 Service.Log("[BMM] Bossmod window closed by user, disabling temporarily");
                 return true;
             }
+        }
+
+        private void DrawHintWindow()
+        {
+            if (ActiveModule == null)
+                return;
+
+            try
+            {
+                ActiveModule.Draw(0, PartyState.PlayerSlot, null, true, false);
+            }
+            catch (Exception ex)
+            {
+                Service.Log($"Boss module draw-hints crashed: {ex}");
+                ActiveModule = null;
+            }
+        }
+
+        private void HintWindowClosed()
+        {
+            Service.Log("[BMM] Hint window closed");
+            _hintWindow = null;
         }
 
         private void DrawPlanWindow()

@@ -16,6 +16,9 @@
         [PropertyDisplay("Rotate map to match camera orientation")]
         public bool RotateArena = true;
 
+        [PropertyDisplay("Expand space reserved for map to allow arbitrary rotations")]
+        public bool AddSlackForRotations = true;
+
         [PropertyDisplay("Show arena border")]
         public bool ShowBorder = true;
 
@@ -36,6 +39,9 @@
 
         [PropertyDisplay("Show warnings and hints for player")]
         public bool ShowPlayerHints = true;
+
+        [PropertyDisplay("Show text hints in separate window")]
+        public bool HintsInSeparateWindow = false;
 
         [PropertyDisplay("Trisha mode: show radar without window")]
         public bool TrishaMode = false;

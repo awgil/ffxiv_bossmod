@@ -192,25 +192,30 @@ namespace BossMod
             }
         }
 
-        public virtual void Draw(float cameraAzimuth, int pcSlot, BossComponent.MovementHints? pcMovementHints)
+        public void Draw(float cameraAzimuth, int pcSlot, BossComponent.MovementHints? pcMovementHints, bool includeText, bool includeArena)
         {
             var pc = Raid[pcSlot];
             if (pc == null)
                 return;
 
-            if (WindowConfig.ShowMechanicTimers)
-                StateMachine.Draw();
-
-            if (WindowConfig.ShowGlobalHints)
-                DrawGlobalHints(CalculateGlobalHints());
-
             var pcHints = CalculateHintsForRaidMember(pcSlot, pc, pcMovementHints);
-            if (WindowConfig.ShowPlayerHints)
-                DrawPlayerHints(pcHints);
+            if (includeText)
+            {
+                if (WindowConfig.ShowMechanicTimers)
+                    StateMachine.Draw();
 
-            Arena.Begin(cameraAzimuth);
-            DrawArena(pcSlot, pc, pcHints.Any(h => h.Item2));
-            Arena.End();
+                if (WindowConfig.ShowGlobalHints)
+                    DrawGlobalHints(CalculateGlobalHints());
+
+                if (WindowConfig.ShowPlayerHints)
+                    DrawPlayerHints(pcHints);
+            }
+            if (includeArena)
+            {
+                Arena.Begin(cameraAzimuth);
+                DrawArena(pcSlot, pc, pcHints.Any(h => h.Item2));
+                Arena.End();
+            }
         }
 
         public virtual void DrawArena(int pcSlot, Actor pc, bool haveRisks)

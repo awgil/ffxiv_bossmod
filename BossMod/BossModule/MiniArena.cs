@@ -33,7 +33,7 @@ namespace BossMod
         // prepare for drawing - set up internal state, clip rect etc.
         public void Begin(float cameraAzimuthRadians)
         {
-            var centerOffset = new Vector2(ScreenMarginSize + 1.5f * ScreenHalfSize);
+            var centerOffset = new Vector2(ScreenMarginSize + (Config.AddSlackForRotations ? 1.5f : 1.0f) * ScreenHalfSize);
             var fullSize = 2 * centerOffset;
             var cursor = ImGui.GetCursorScreenPos();
             ImGui.Dummy(fullSize);

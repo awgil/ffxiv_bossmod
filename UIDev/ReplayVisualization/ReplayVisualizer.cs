@@ -60,7 +60,7 @@ namespace UIDev
             if (_mgr.ActiveModule != null)
             {
                 var drawTimerPre = DateTime.Now;
-                _mgr.ActiveModule.Draw(_azimuth / 180 * MathF.PI, _povSlot, null);
+                _mgr.ActiveModule.Draw(_azimuth / 180 * MathF.PI, _povSlot, null, true, true);
                 var drawTimerPost = DateTime.Now;
 
                 ImGui.TextUnformatted($"Current state: {_mgr.ActiveModule.StateMachine.ActiveState?.ID:X}, Time since pull: {_mgr.ActiveModule.StateMachine.TimeSinceActivation:f3}, Draw time: {(drawTimerPost - drawTimerPre).TotalMilliseconds:f3}ms, Components: {string.Join(", ", _mgr.ActiveModule.Components.Select(c => c.GetType().Name))}");
