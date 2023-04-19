@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod
 {
@@ -10,7 +8,6 @@ namespace BossMod
     abstract class TankActions : CommonActions
     {
         protected bool IsOfftank { get; private set; }
-        protected bool HaveStance { get; private set; }
         protected DateTime LastStanceSwap { get; private set; }
 
         protected TankActions(Autorotation autorot, Actor player, uint[] unlockData, Dictionary<ActionID, ActionDefinition> supportedActions)
@@ -45,7 +42,6 @@ namespace BossMod
         {
             var assignments = Service.Config.Get<PartyRolesConfig>();
             IsOfftank = assignments[Autorot.WorldState.Party.ContentIDs[PartyState.PlayerSlot]] == PartyRolesConfig.Assignment.OT && Autorot.WorldState.Party.WithoutSlot().Any(a => a != Player && a.Role == Role.Tank);
-            HaveStance = CommonDefinitions.HasTankStance(Player);
         }
 
         protected override void OnActionExecuted(ClientActionRequest request)
@@ -55,6 +51,6 @@ namespace BossMod
         }
 
         protected bool WantStance() => !IsOfftank || Autorot.Hints.PotentialTargets.Any(e => e.ShouldBeTanked);
-        protected bool ShouldSwapStance() => (Autorot.WorldState.CurrentTime - LastStanceSwap).TotalSeconds > 0.5 && HaveStance != WantStance();
+        protected bool ShouldSwapStance() => (Autorot.WorldState.CurrentTime - LastStanceSwap).TotalSeconds > 0.5 && GetState().HaveTankStance != WantStance();
     }
 }

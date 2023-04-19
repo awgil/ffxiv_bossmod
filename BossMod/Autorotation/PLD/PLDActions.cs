@@ -91,6 +91,7 @@ namespace BossMod.PLD
         private void UpdatePlayerState()
         {
             FillCommonPlayerState(_state);
+            _state.HaveTankStance = Player.FindStatus(SID.IronWill) != null;
 
             //s.Gauge = Service.JobGauges.Get<PLDGauge>().OathGauge;
 

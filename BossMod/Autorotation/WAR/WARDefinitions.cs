@@ -49,7 +49,8 @@ namespace BossMod.WAR
 
         // misc
         Tomahawk = 46, // L15, instant, range 20, single-target 0/0, targets=hostile
-        Defiance = 48, // L10, instant, 3.0s CD (group 2), range 0, single-target 0/0, targets=self
+        Defiance = 48, // L10, instant, 2.0s CD (group 2), range 0, single-target 0/0, targets=self
+        ReleaseDefiance = 32066, // L10, instant, 1.0s CD (group 2), range 0, single-target 0/0, targets=self
         Provoke = 7533, // L15, instant, 30.0s CD (group 42), range 25, single-target 0/0, targets=hostile
         Shirk = 7537, // L48, instant, 120.0s CD (group 45), range 25, single-target 0/0, targets=party
         LowBlow = 7540, // L12, instant, 25.0s CD (group 41), range 3, single-target 0/0, targets=hostile
@@ -140,6 +141,7 @@ namespace BossMod.WAR
                 AID.Rampart => level >= 8,
                 AID.Overpower => level >= 10,
                 AID.Defiance => level >= 10,
+                AID.ReleaseDefiance => level >= 10,
                 AID.LowBlow => level >= 12,
                 AID.Tomahawk => level >= 15 && questProgress > 0,
                 AID.Provoke => level >= 15,
@@ -231,7 +233,8 @@ namespace BossMod.WAR
             SupportedActions.OGCD(AID.Bloodwhetting, 0, CDGroup.Bloodwhetting, 25.0f).EffectDuration = 4;
             SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
             SupportedActions.GCD(AID.Tomahawk, 20);
-            SupportedActions.OGCD(AID.Defiance, 0, CDGroup.Defiance, 3.0f);
+            SupportedActions.OGCD(AID.Defiance, 0, CDGroup.Defiance, 2.0f);
+            SupportedActions.OGCD(AID.ReleaseDefiance, 0, CDGroup.Defiance, 1.0f);
             SupportedActions.OGCD(AID.Provoke, 25, CDGroup.Provoke, 30.0f);
             SupportedActions.OGCD(AID.Shirk, 25, CDGroup.Shirk, 120.0f);
             SupportedActions.OGCD(AID.LowBlow, 3, CDGroup.LowBlow, 25.0f);

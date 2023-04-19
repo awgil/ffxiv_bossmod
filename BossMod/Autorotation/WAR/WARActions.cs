@@ -22,6 +22,7 @@ namespace BossMod.WAR
             _strategy = new();
 
             // upgrades
+            SupportedSpell(AID.Defiance).TransformAction = SupportedSpell(AID.ReleaseDefiance).TransformAction = () => ActionID.MakeSpell(_state.HaveTankStance ? AID.ReleaseDefiance : AID.Defiance);
             SupportedSpell(AID.InnerBeast).TransformAction = SupportedSpell(AID.FellCleave).TransformAction = SupportedSpell(AID.InnerChaos).TransformAction = () => ActionID.MakeSpell(_state.BestFellCleave);
             SupportedSpell(AID.SteelCyclone).TransformAction = SupportedSpell(AID.Decimate).TransformAction = SupportedSpell(AID.ChaoticCyclone).TransformAction = () => ActionID.MakeSpell(_state.BestDecimate);
             SupportedSpell(AID.Berserk).TransformAction = SupportedSpell(AID.InnerRelease).TransformAction = () => ActionID.MakeSpell(_state.BestInnerRelease);
@@ -104,6 +105,7 @@ namespace BossMod.WAR
         private void UpdatePlayerState()
         {
             FillCommonPlayerState(_state);
+            _state.HaveTankStance = Player.FindStatus(SID.Defiance) != null;
 
             _state.Gauge = Service.JobGauges.Get<WARGauge>().BeastGauge;
 

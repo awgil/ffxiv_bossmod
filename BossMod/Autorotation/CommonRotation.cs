@@ -16,6 +16,7 @@ namespace BossMod
             public int UnlockProgress;
             public uint CurMP; // 10000 max
             public bool TargetingEnemy;
+            public bool HaveTankStance;
             public float RangeToTarget; // minus both hitboxes; <= 0 means inside hitbox, <= 3 means in melee range, maxvalue if there is no target
             public float AnimationLock; // typical actions have 0.6 delay, but some (notably primal rend and potion) are >1
             public float AnimationLockDelay; // average time between action request and confirmation; this is added to effective animation lock for actions
