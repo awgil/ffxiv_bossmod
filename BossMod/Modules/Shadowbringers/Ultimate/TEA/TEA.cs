@@ -35,7 +35,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
 
     class P2EyeOfTheChakram : Components.SelfTargetedAOEs
     {
-        public P2EyeOfTheChakram() : base(ActionID.MakeSpell(AID.EyeOfTheChakram), new AOEShapeRect(70, 3)) { }
+        public P2EyeOfTheChakram() : base(ActionID.MakeSpell(AID.EyeOfTheChakram), new AOEShapeRect(73, 3, 3)) { }
     }
 
     class P2HawkBlasterOpticalSight : Components.LocationTargetedAOEs
@@ -79,6 +79,11 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public P3DivineSpear() : base(ActionID.MakeSpell(AID.DivineSpear), new AOEShapeCone(24.2f, 45.Degrees()), (uint)OID.AlexanderPrime) { } // TODO: verify angle
     }
 
+    class P3DivineJudgmentRaidwide : Components.CastCounter
+    {
+        public P3DivineJudgmentRaidwide() : base(ActionID.MakeSpell(AID.DivineJudgmentRaidwide)) { }
+    }
+
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1)]
     public class TEA : BossModule
     {
@@ -96,6 +101,9 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public Actor? AlexPrime() => _alexPrime;
         public Actor? TrueHeart() => _trueHeart.FirstOrDefault();
 
+        private Actor? _perfectAlex;
+        public Actor? PerfectAlex() => _perfectAlex;
+
         public TEA(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 22))
         {
             _liquidHand = Enemies(OID.LiquidHand);
@@ -109,6 +117,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             _bruteJustice ??= StateMachine.ActivePhaseIndex >= 0 ? Enemies(OID.BruteJustice).FirstOrDefault() : null;
             _cruiseChaser ??= StateMachine.ActivePhaseIndex >= 0 ? Enemies(OID.CruiseChaser).FirstOrDefault() : null;
             _alexPrime ??= StateMachine.ActivePhaseIndex >= 0 ? Enemies(OID.AlexanderPrime).FirstOrDefault() : null;
+            _perfectAlex ??= StateMachine.ActivePhaseIndex >= 0 ? Enemies(OID.PerfectAlexander).FirstOrDefault() : null;
         }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
@@ -127,6 +136,11 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
                 case 2:
                     Arena.Actor(_alexPrime, ArenaColor.Enemy);
                     Arena.Actor(TrueHeart(), ArenaColor.Enemy);
+                    Arena.Actor(_bruteJustice, ArenaColor.Enemy);
+                    Arena.Actor(_cruiseChaser, ArenaColor.Enemy);
+                    break;
+                case 3:
+                    Arena.Actor(_perfectAlex, ArenaColor.Enemy);
                     break;
             }
         }

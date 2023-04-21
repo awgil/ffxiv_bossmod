@@ -234,6 +234,7 @@ namespace UIDev.Analysis
         class ActionData
         {
             public List<(Replay, Replay.Action)> Instances = new();
+            public List<(Replay, Replay.Participant, Replay.Cast)> Casts = new();
             public HashSet<uint> CasterOIDs = new();
             public HashSet<uint> TargetOIDs = new();
             public bool SeenTargetSelf;
@@ -263,16 +264,29 @@ namespace UIDev.Analysis
             _oidType = moduleInfo?.ObjectIDType;
             _aidType = moduleInfo?.ActionIDType;
             foreach (var replay in replays)
+            {
                 foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
+                {
                     foreach (var action in replay.EncounterActions(enc))
                         AddActionData(replay, action);
+                    foreach (var (_, participants) in enc.Participants)
+                        foreach (var p in participants)
+                            foreach (var c in p.Casts.Where(c => enc.Time.Contains(c.Time.Start)))
+                                AddCastData(replay, p, c);
+                }
+            }
         }
 
         public AbilityInfo(List<Replay> replays)
         {
             foreach (var replay in replays)
+            {
                 foreach (var action in replay.Actions)
                     AddActionData(replay, action);
+                foreach (var p in replay.Participants)
+                    foreach (var c in p.Casts)
+                        AddCastData(replay, p, c);
+            }
         }
 
         public void Draw(UITree tree)
@@ -304,7 +318,7 @@ namespace UIDev.Analysis
                         tree.LeafNode($"Omen alt: {omenAlt?.Path} / {omenAlt?.PathAlly}");
                     }
                 }
-                foreach (var n in tree.Node("Instances"))
+                foreach (var n in tree.Node("Instances", data.Instances.Count == 0))
                 {
                     foreach (var an in tree.Nodes(data.Instances, a => new($"{a.Item1.Path} @ {a.Item2.Timestamp:O}: {ReplayUtils.ParticipantPosRotString(a.Item2.Source, a.Item2.Timestamp)} -> {ReplayUtils.ParticipantString(a.Item2.MainTarget)} {Utils.Vec3String(a.Item2.TargetPos)} ({a.Item2.Targets.Count} affected)", a.Item2.Targets.Count == 0)))
                     {
@@ -313,6 +327,10 @@ namespace UIDev.Analysis
                             tree.LeafNodes(tn.Effects, ReplayUtils.ActionEffectString);
                         }
                     }
+                }
+                foreach (var n in tree.Node("Casts", data.Casts.Count == 0))
+                {
+                    tree.LeafNodes(data.Casts, c => $"{c.Item1.Path} @ {c.Item3.Time.Start:O} + {c.Item3.Time.Duration:f3}/{c.Item3.ExpectedCastTime:f3}: {ReplayUtils.ParticipantString(c.Item2)} / {c.Item3.Rotation} -> {ReplayUtils.ParticipantString(c.Item3.Target)} {Utils.Vec3String(c.Item3.Location)}");
                 }
                 foreach (var an in tree.Node("Source position analysis"))
                 {
@@ -436,6 +454,24 @@ namespace UIDev.Analysis
             data.CastTime = cast?.ExpectedCastTime + 0.3f ?? 0;
 
             data.Instances.Add((replay, action));
+        }
+
+        private void AddCastData(Replay replay, Replay.Participant caster, Replay.Cast cast)
+        {
+            if (caster.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
+                return;
+
+            var data = _data.GetOrAdd(cast.ID);
+            data.CasterOIDs.Add(caster.OID);
+            if (cast.Target != null)
+                data.TargetOIDs.Add(cast.Target.OID);
+            data.SeenTargetSelf |= caster == cast.Target;
+            data.SeenTargetOtherEnemy |= cast.Target != caster && cast.Target?.Type == ActorType.Enemy;
+            data.SeenTargetPlayer |= cast.Target?.Type == ActorType.Player;
+            data.SeenTargetLocation |= cast.Target == null;
+            data.CastTime = cast.ExpectedCastTime + 0.3f;
+
+            data.Casts.Add((replay, caster, cast));
         }
 
         private static IEnumerable<Replay.Participant> AlivePlayersAt(Replay r, DateTime t)

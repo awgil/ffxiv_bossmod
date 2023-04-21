@@ -27,7 +27,18 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
                     return !bj.IsTargetable && !cc.IsTargetable && (bj.HP.Cur < bj.HP.Max || cc.HP.Cur < cc.HP.Max);
                 };
             SimplePhase(2, Phase3AlexanderPrime, "P3: Alex Prime")
-                .Raw.Update = () => Module.PrimaryActor.IsDestroyed && (_module.BruteJustice()?.IsDestroyed ?? true) && (_module.CruiseChaser()?.IsDestroyed ?? true); // TODO: improve...
+                .Raw.Update = () =>
+                {
+                    var alex = _module.AlexPrime();
+                    if (alex == null)
+                        return true; // shouldn't happen - alex should exist from the start
+                    if (Module.PrimaryActor.IsDestroyed && alex.IsDestroyed)
+                        return true; // wipe in p1/p2/p3 => all actors are destroyed; alex is not destroyed otherwise
+                    // alex swaps between targetable and untargetable state; consider that state transition happens at 1hp when enrage cast is interrupted
+                    return alex.HP.Cur <= 1 && alex.CastInfo == null;
+                };
+            SimplePhase(3, Phase4PerfectAlexander, "P4: Perfect Alex")
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed && (_module.PerfectAlex()?.IsDestroyed ?? true); // perfect alex should not be destroyed until either wipe or kill
         }
 
         private void Phase1LivingLiquid(uint id)
@@ -199,7 +210,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
 
         private void Phase2BruteJusticeCruiseChaser(uint id)
         {
-            P2Intermission(id);
+            P2Intermission(id, 0);
             P2WhirlwindDebuffs(id + 0x10000, 5.2f);
             P2ChakramOpticalSightPhoton(id + 0x20000, 6);
             P2SpinCrusherCompressedWaterLightning(id + 0x30000, 6.9f);
@@ -212,23 +223,21 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
-        private void P2Intermission(uint id)
+        private void P2Intermission(uint id, float delay)
         {
-            Timeout(id, 0)
+            Timeout(id, delay)
                 .SetHint(StateMachine.StateHint.DowntimeStart);
             ComponentCondition<P2IntermissionHawkBlaster>(id + 0x10, 5.2f, comp => comp.NumCasts > 0, "First aoe")
-                .ActivateOnEnter<P2IntermissionOrder>()
+                .ActivateOnEnter<P2IntermissionLimitCut>()
                 .ActivateOnEnter<P2IntermissionHawkBlaster>();
-            ComponentCondition<P2IntermissionKnockbacks>(id + 0x20, 7.4f, comp => comp.NumCasts >= 1, "Hit 1")
-                .ActivateOnEnter<P2IntermissionKnockbacks>();
-            ComponentCondition<P2IntermissionKnockbacks>(id + 0x30, 4.6f, comp => comp.NumCasts >= 3, "Hit 3");
-            ComponentCondition<P2IntermissionKnockbacks>(id + 0x40, 4.6f, comp => comp.NumCasts >= 5, "Hit 5");
-            ComponentCondition<P2IntermissionKnockbacks>(id + 0x50, 4.6f, comp => comp.NumCasts >= 7, "Hit 7");
+            ComponentCondition<P2IntermissionLimitCut>(id + 0x20, 7.4f, comp => comp.NumCasts >= 1, "Hit 1");
+            ComponentCondition<P2IntermissionLimitCut>(id + 0x30, 4.6f, comp => comp.NumCasts >= 3, "Hit 3");
+            ComponentCondition<P2IntermissionLimitCut>(id + 0x40, 4.6f, comp => comp.NumCasts >= 5, "Hit 5");
+            ComponentCondition<P2IntermissionLimitCut>(id + 0x50, 4.6f, comp => comp.NumCasts >= 7, "Hit 7");
             ComponentCondition<P2JKick>(id + 0x100, 4.6f, comp => comp.NumCasts > 0)
                 .ActivateOnEnter<P2JKick>()
-                .DeactivateOnExit<P2IntermissionOrder>()
                 .DeactivateOnExit<P2IntermissionHawkBlaster>()
-                .DeactivateOnExit<P2IntermissionKnockbacks>()
+                .DeactivateOnExit<P2IntermissionLimitCut>()
                 .DeactivateOnExit<P2JKick>()
                 .SetHint(StateMachine.StateHint.Raidwide);
             ActorTargetable(id + 0x101, _module.BruteJustice, true, 3, "Intermission end")
@@ -384,9 +393,8 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             P3InceptionFormation(id + 0x20000, 5.3f);
             P3ChasteningHeat(id + 0x30000, 5.1f, true);
             P3WormholeFormation(id + 0x40000, 5.2f);
-            P3MegaHoly(id + 0x50000, 4.7f);
+            P3MegaHoly(id + 0x50000, 4.3f);
             P3SummonAlexander(id + 0x60000, 6.4f);
-            SimpleState(id + 0xFF0000, 200, "???");
         }
 
         private void P3TemporalStasis(uint id, float delay)
@@ -461,7 +469,6 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
         }
 
-        // TODO: components...
         private void P3WormholeFormation(uint id, float delay)
         {
             ActorCast(id, _module.AlexPrime, AID.WormholeFormation, delay, 4);
@@ -471,31 +478,53 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             // +3.4s: CC starts casting limit cut (to 5.4)
             // +5.4s: BJ starts casting link-up (to 8.4)
             ActorCast(id + 0x100, _module.AlexPrime, AID.VoidOfRepentance, 8.4f, 3, true)
-                .ActivateOnEnter<P2IntermissionOrder>() // icons appear ~0.7s after cast start
+                .ActivateOnEnter<P3WormholeLimitCut>() // icons appear ~0.7s after cast start
+                .ActivateOnEnter<P3WormholeRepentance>()
                 .ActivateOnEnter<P2EyeOfTheChakram>(); // chakrams start casts around cast end
             // +1.0s: wormholes appear
             // +1.8s: eobjanim 00010002 on wormholes
-            // +3.2s: BJ starts super jump
-            ComponentCondition<P2EyeOfTheChakram>(id + 0x200, 6, comp => comp.NumCasts > 0, "Chakrams")
-                .ActivateOnEnter<P2IntermissionKnockbacks>() // TODO: replace with proper component...
+            ActorCastStart(id + 0x110, _module.BruteJustice, AID.SuperJump, 3.2f);
+            ComponentCondition<P2EyeOfTheChakram>(id + 0x120, 2.7f, comp => comp.NumCasts > 0, "Chakrams")
+                .ActivateOnEnter<P2SuperJump>() // TODO: reconsider activation time?..
                 .DeactivateOnExit<P2EyeOfTheChakram>();
-            // +1.1s: BJ ends super jump
-            // +1.3s: alpha sword 1
-            // +1.4s: super jump aoe
-            ActorCast(id + 0x300, _module.AlexPrime, AID.SacramentWormhole, 2.2f, 6, true);
-            // (from cast start)
-            // +0.6s: super blasty 2
-            // +1.6s: BJ apoc ray
-            // ...
-            // (from cast end)
-            // +5.7s: BJ starts missile command
-            ActorCast(id + 0x400, _module.AlexPrime, AID.IncineratingHeat, 7.2f, 5, true, "Stack")
-                .SetHint(StateMachine.StateHint.Raidwide);
-            // ?? enumerations?
+            ActorCastEnd(id + 0x130, _module.BruteJustice, 1.1f);
+            // +0.2s: alpha sword @ 1
+            ComponentCondition<P2SuperJump>(id + 0x140, 0.3f, comp => comp.NumCasts > 0, "Jump")
+                .DeactivateOnExit<P2SuperJump>();
 
-            ActorTargetable(id + 0x500, _module.AlexPrime, true, 4.3f, "Wormhole resolve")
-                .DeactivateOnExit<P2IntermissionOrder>()
+            ActorCastStart(id + 0x200, _module.AlexPrime, AID.SacramentWormhole, 0.8f, true)
+                .ActivateOnEnter<P3ApocalypticRay>();
+            // +0.6s: blasty charge @ 2
+            ComponentCondition<P3ApocalypticRay>(id + 0x210, 1.6f, comp => comp.Source != null)
+                .ActivateOnEnter<P3WormholeSacrament>();
+            // +1.8s: alpha sword @ 3
+            ComponentCondition<P3WormholeRepentance>(id + 0x220, 2.1f, comp => comp.NumSoaks >= 1, "Wormhole 1");
+            // +1.2s: blasty charge @ 4
+            ActorCastEnd(id + 0x230, _module.AlexPrime, 2.3f, true)
+                .DeactivateOnExit<P3WormholeSacrament>();
+            ComponentCondition<P3ApocalypticRay>(id + 0x240, 0.5f, comp => comp.NumCasts >= 5)
+                .DeactivateOnExit<P3ApocalypticRay>();
+            // +1.2s: alpha sword @ 5
+            ComponentCondition<P3WormholeRepentance>(id + 0x250, 1.5f, comp => comp.NumSoaks >= 2, "Wormhole 2");
+            // +1.2s: blasty charge @ 6
+            // +3.8s: BJ starts missile command
+            // +3.9s: alpha sword @ 7
+            ComponentCondition<P3WormholeRepentance>(id + 0x260, 4.2f, comp => comp.NumSoaks >= 3, "Wormhole 3")
+                .DeactivateOnExit<P3WormholeRepentance>();
+
+            ActorCastStart(id + 0x300, _module.AlexPrime, AID.IncineratingHeat, 1.0f, true);
+            ComponentCondition<P3WormholeLimitCut>(id + 0x310, 0.1f, comp => comp.NumCasts >= 8)
+                .DeactivateOnExit<P3WormholeLimitCut>();
+            // +1.4s: BJ ends missile command
+            ActorCastEnd(id + 0x320, _module.AlexPrime, 4.9f, true, "Stack")
+                .ActivateOnEnter<P3WormholeIncineratingHeat>()
+                .ActivateOnEnter<P3WormholeEnumeration>() // note: icons appear ~0.3s before cast end
+                .DeactivateOnExit<P3WormholeIncineratingHeat>()
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ActorTargetable(id + 0x330, _module.AlexPrime, true, 4.2f)
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
+            ComponentCondition<P3WormholeEnumeration>(id + 0x340, 0.5f, comp => !comp.Active, "Enumerations")
+                .DeactivateOnExit<P3WormholeEnumeration>();
         }
 
         private void P3MegaHoly(uint id, float delay)
@@ -511,10 +540,62 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             ActorCast(id, _module.AlexPrime, AID.SummonAlexander, delay, 3, true);
             ActorTargetable(id + 0x10, _module.AlexPrime, false, 6.2f, "Alex disappers");
             // +0.2s: j storm
-            // +1.2s: cc & alex targetable
-            // +1.3s: cc & alex start casting their enrages
-            // +2.2s: bj targetable
-            // +5.4s: j wave 1, then every 3s
+            ActorCast(id + 0x20, _module.AlexPrime, AID.DivineJudgment, 1.3f, 75, true, "Enrage");
+            // +0.9s after cast start: bj targetable
+            // +4.1s after cast start: j wave 1, then every 3s
+        }
+
+        private void Phase4PerfectAlexander(uint id)
+        {
+            P4Intermission(id, 2.1f);
+            P4FinalWord(id + 0x10000, 10.1f);
+            P4DoubleOpticalSight(id + 0x20000, 7.2f);
+            // TODO: fate calibration alpha > tankbusters > fate calibration beta > tankbusters > exatrines > tankbusters > exatrines > enrage
+            SimpleState(id + 0xFF0000, 200, "???");
+        }
+
+        private void P4Intermission(uint id, float delay)
+        {
+            ActorTargetable(id, _module.AlexPrime, false, delay)
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ComponentCondition<P3DivineJudgmentRaidwide>(id + 1, 13.5f, comp => comp.NumCasts > 0, "Tank LB")
+                .ActivateOnEnter<P3DivineJudgmentRaidwide>()
+                .DeactivateOnExit<P3DivineJudgmentRaidwide>()
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ActorTargetable(id + 2, _module.PerfectAlex, true, 57.8f, "Alex appear")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+        }
+
+        private State P4OrdainedMotionStillness(uint id, float delay)
+        {
+            return ActorCastMulti(id, _module.PerfectAlex, new[] { AID.OrdainedMotion, AID.OrdainedStillness }, delay, 4, true, "Stay/move");
+        }
+
+        private void P4FinalWord(uint id, float delay)
+        {
+            ActorCast(id, _module.PerfectAlex, AID.FinalWord, delay, 4, true)
+                .ActivateOnEnter<P4FinalWordDebuffs>(); // debuffs appear ~0.8s after cast
+            P4OrdainedMotionStillness(id + 0x10, 3.1f)
+                .ActivateOnEnter<P4FinalWordStillnessMotion>();
+            ComponentCondition<P4FinalWordDebuffs>(id + 0x20, 3.5f, comp => comp.Done, "Forced march");
+            P4OrdainedMotionStillness(id + 0x30, 3.6f)
+                .DeactivateOnExit<P4FinalWordDebuffs>() // forced movement resolve is ~1.4 after cast start
+                .DeactivateOnExit<P4FinalWordStillnessMotion>();
+        }
+
+        private void P4OpticalSight(uint id, float delay)
+        {
+            ActorCastStartMulti(id, _module.PerfectAlex, new[] { AID.OpticalSightSpread, AID.OpticalSightStack }, delay, true)
+                .ActivateOnEnter<P4OpticalSight>(); // icons appear right before cast start
+            ActorCastEnd(id + 1, _module.PerfectAlex, 3, true);
+            ComponentCondition<P4OpticalSight>(id + 2, 2.1f, comp => !comp.Active, "Spread/stack")
+                .DeactivateOnExit<P4OpticalSight>();
+        }
+
+        private void P4DoubleOpticalSight(uint id, float delay)
+        {
+            P4OpticalSight(id, delay);
+            P4OpticalSight(id + 0x10, 1.1f);
         }
     }
 }

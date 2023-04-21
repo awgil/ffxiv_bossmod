@@ -4,25 +4,9 @@ using System.Linq;
 
 namespace BossMod.Shadowbringers.Ultimate.TEA
 {
-    class P2IntermissionOrder : BossComponent
+    class P2IntermissionLimitCut : LimitCut
     {
-        public int[] PlayerOrder = new int[PartyState.MaxPartySize];
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (PlayerOrder[slot] > 0)
-                hints.Add($"Order: {PlayerOrder[slot]}", false);
-        }
-
-        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
-        {
-            if (iconID >= 79 && iconID <= 86)
-            {
-                int slot = module.Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0)
-                    PlayerOrder[slot] = (int)iconID - 78;
-            }
-        }
+        public P2IntermissionLimitCut() : base(3.2f) { }
     }
 
     class P2IntermissionHawkBlaster : Components.GenericAOEs
@@ -134,91 +118,9 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             if (strategy == TEAConfig.P2Intermission.None)
                 return null;
 
-            bool invert = strategy == TEAConfig.P2Intermission.FirstForOddPairs && (module.FindComponent<P2IntermissionOrder>()?.PlayerOrder[slot] is 3 or 4 or 7 or 8);
+            bool invert = strategy == TEAConfig.P2Intermission.FirstForOddPairs && (module.FindComponent<LimitCut>()?.PlayerOrder[slot] is 3 or 4 or 7 or 8);
             var offset = _blasterOffset * _blasterStartingDirection.ToDirection();
             return module.Bounds.Center + (invert ? -offset : offset);
-        }
-    }
-
-    class P2IntermissionKnockbacks : Components.GenericBaitAway
-    {
-        private enum State { Teleport, Alpha, Blasty }
-
-        private P2IntermissionOrder? _order;
-        private State _nextState;
-        private Actor? _chaser;
-        private WPos _prevPos;
-        private DateTime _nextHit;
-
-        private static AOEShapeCone _shapeAlpha = new(30, 45.Degrees());
-        private static AOEShapeRect _shapeBlasty = new(55, 5);
-
-        public override void Init(BossModule module)
-        {
-            _order = module.FindComponent<P2IntermissionOrder>();
-            _chaser = module.Enemies(OID.CruiseChaser).FirstOrDefault();
-            _prevPos = _chaser?.Position ?? default;
-            _nextHit = module.WorldState.CurrentTime.AddSeconds(7.4f); // assumed to be created at first hawk blaster aoe; hawk blasters happen every ~2.2s
-        }
-
-        public override void Update(BossModule module)
-        {
-            if (_nextState == State.Teleport && _chaser != null && _chaser.Position != _prevPos)
-            {
-                _nextState = State.Alpha;
-                _prevPos = _chaser.Position;
-                SetNextBaiter(module, NumCasts + 1, _shapeAlpha);
-            }
-        }
-
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            var playerOrder = _order != null ? _order.PlayerOrder[slot] : 0;
-            if (playerOrder > NumCasts)
-            {
-                var hitIn = Math.Max(0, (float)(_nextHit - module.WorldState.CurrentTime).TotalSeconds);
-                var hitIndex = NumCasts + 1;
-                while (playerOrder > hitIndex)
-                {
-                    hitIn += (hitIndex & 1) != 0 ? 1.5f : 3.2f;
-                    ++hitIndex;
-                }
-                if (hitIn < 5)
-                {
-                    var action = actor.Class.GetClassCategory() is ClassCategory.Healer or ClassCategory.Caster ? ActionID.MakeSpell(WHM.AID.Surecast) : ActionID.MakeSpell(WAR.AID.ArmsLength);
-                    hints.PlannedActions.Add((action, actor, hitIn, false));
-                }
-            }
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.AlphaSwordP2:
-                    ++NumCasts;
-                    _nextState = State.Blasty;
-                    SetNextBaiter(module, NumCasts + 1, _shapeBlasty);
-                    _nextHit = module.WorldState.CurrentTime.AddSeconds(1.5f);
-                    break;
-                case AID.SuperBlasstyChargeP2:
-                case AID.SuperBlasstyChargeP3:
-                    ++NumCasts;
-                    _nextState = State.Teleport;
-                    CurrentBaits.Clear();
-                    _nextHit = module.WorldState.CurrentTime.AddSeconds(3.2f);
-                    break;
-
-            }
-        }
-
-        private void SetNextBaiter(BossModule module, int order, AOEShape shape)
-        {
-            CurrentBaits.Clear();
-            int slot = _order != null ? Array.IndexOf(_order.PlayerOrder, order) : -1;
-            var target = module.Raid[slot];
-            if (_chaser != null && target != null)
-                CurrentBaits.Add(new(_chaser, target, shape));
         }
     }
 }

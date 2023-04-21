@@ -29,10 +29,11 @@
         Wormhole2 = 0x1EA1E0, // R0.500, EventObj type, spawn during fight
         Wormhole3 = 0x1EA1E1, // R0.500, EventObj type, spawn during fight
 
-        PerfectAlexander = 0x2C55, // R10.800, x1
-        CruiseChaser2 = 0x2C9D, // R0.850, x1
-        AlexanderPrime2 = 0x2C9E, // R7.200, x1
-        PerfectAlexander2 = 0x2C9F, // R10.800, x1
+        PerfectAlexander = 0x2C55, // R10.800, x1, and more spawn during fight
+
+        CruiseChaserCutscene = 0x2C9D, // R0.850, x1
+        AlexanderPrimeCutscene = 0x2C9E, // R7.200, x1
+        PerfectAlexanderCutscene = 0x2C9F, // R10.800, x1
         Alexander = 0x18D6, // R0.500, x1
 
         Helper = 0x233C, // R0.500, x17
@@ -109,6 +110,7 @@
         ApocalypticRay = 18507, // BruteJustice->self, no cast, single-target, visual
         ApocalypticRayAOE = 18508, // Helper->self, no cast, range 25+R ?-degree cone aoe
         FinalSentence = 18518, // BruteJustice->self, 8.0s cast, single-target, visual (enrage)
+        EternalDarknessP2 = 18490, // CruiseChaser->location, 8.0s cast, range 100 circle, ??? (enrage)
         //SevereContamination = 18891, // LiquidRage->self, no cast, range 80 circle
 
         AutoAttackP3 = 18812, // AlexanderPrime->player, no cast, single-target
@@ -126,7 +128,7 @@
         JudgmentCrystalAOE = 18524, // Helper->location, no cast, range 5 circle baited aoe
         UndyingAffection = 19020, // Shanoa->self, no cast, single-target, visual (spawn true heart)
         Aetheroplasm = 18546, // Plasmasphere->self, no cast, range 6 circle (orb explosion)
-        //_Weaponskill_ElectromagneticBurst = 18548, // Helper->self, no cast, range 50 circle
+        ElectromagneticBurst = 18548, // Helper->self, no cast, range 50 circle, raidwide if aetheroplasm explosions intersect
         Tetrashatter = 19080, // JudgmentCrystal->self, no cast, range 80+R circle (light raidwide, if mechanic succeeded)
         TetrashatterFail = 18525, // JudgmentCrystal->self, 5.5s cast, range 80+R circle
         Inception = 18526, // AlexanderPrime->self, 5.0s cast, range 100 width 16 cross, ???
@@ -141,14 +143,33 @@
         Repentance3 = 18535, // Helper->self, no cast, ???, third wormhole soak
         Repentance2 = 18536, // Helper->self, no cast, ???, second wormhole soak
         Repentance1 = 18537, // Helper->self, no cast, ???, first wormhole soak
-        //_Weaponskill_Confession = 18538, // Helper->self, no cast, range 80+R circle
+        Confession = 18538, // Helper->self, no cast, range 80+R circle, unsoaked wormhole
         IncineratingHeat = 19025, // AlexanderPrime->players, 5.0s cast, range 5 circle stack
         MegaHoly = 19075, // AlexanderPrime->self, 4.0s cast, range 80+R circle
         SummonAlexander = 19029, // AlexanderPrime->self, 3.0s cast, single-target, visual
         JStorm = 18550, // BruteJustice->self, no cast, range 80+R circle
         JWave = 18551, // Helper->self, no cast, range 80 circle
-        EternalDarkness = 18549, // CruiseChaser->self, 25.0s cast, enrage
+        EternalDarknessP3 = 18549, // CruiseChaser->self, 25.0s cast, enrage
         DivineJudgment = 18552, // AlexanderPrime->self, 75.0s cast, enrage?
+        DivineJudgmentSuccess = 18553, // AlexanderPrime->self, no cast, single-target, visual (if enrage is interrupted by killing)
+        P4TransitionVisual = 19034, // Helper->location, 5.0s cast, range 80 circle, visual?
+        DivineJudgmentRaidwide = 18554, // Alexander->self, no cast, raidwide requiring tank LB3
+
+        AutoAttackP4 = 19083, // PerfectAlexander->player, no cast, single-target
+        FinalWord = 18557, // PerfectAlexander->self, 4.0s cast, single-target, visual (mechanic start)
+        OrdainedMotion = 18558, // PerfectAlexander->self, 4.0s cast, single-target, visual
+        OrdainedMotionSuccess = 19039, // Helper->player, no cast, single-target, always misses
+        OrdainedMotionFail = 18560, // Helper->player, no cast, single-target, kills target
+        OrdainedStillness = 18559, // PerfectAlexander->self, 4.0s cast, single-target, visual
+        OrdainedStillnessSuccess = 19040, // Helper->player, no cast, single-target, always misses
+        OrdainedStillnessFail = 18561, // Helper->player, no cast, single-target, kills target
+        OpticalSightSpread = 18570, // PerfectAlexander->self, 3.0s cast, single-target, visual (spreads)
+        OpticalSightStack = 18571, // PerfectAlexander->self, 3.0s cast, single-target, visual (stacks)
+        IndividualReprobation = 18572, // Helper->player, no cast, range 6 circle spread
+        CollectiveReprobation = 18573, // Helper->players, no cast, range 6 circle stack
+        Faithlessness = 19073, // Helper->self, no cast, range 100 circle, ??? (wipe if something failed)
+        DivineRetribution = 18563, // Helper->player, no cast, single-target, kill if ??? (distance check failed?)
+        //_Weaponskill_ = 18581, // PerfectAlexander->location, no cast, single-target
     };
 
     public enum SID : uint
@@ -173,6 +194,14 @@
         SharedSentence = 1122, // none->player, extra=0x0
         HouseArrest = 1123, // none->player, extra=0x0
         RestrainingOrder = 1124, // none->player, extra=0x0
+        FinalWordContactProhibition = 2152, // none->player, extra=0x0
+        FinalWordContactRegulation = 2153, // none->player, extra=0x0
+        FinalWordEscapeProhibition = 2154, // none->player, extra=0x0
+        FinalWordEscapeDetection = 2155, // none->player, extra=0x0
+        ContactProhibitionOrdained = 3055, // player->player, extra=0x0
+        ContactRegulationOrdained = 3056, // none->player, extra=0x0
+        EscapeProhibitionOrdained = 3057, // player->player, extra=0x0
+        EscapeDetectionOrdained = 3058, // none->player, extra=0x0
         //_Gen_EnigmaCodex = 2147, // none->TrueHeart, extra=0x171
         //_Gen_EnigmaCodex = 2146, // TrueHeart->player, extra=0x0
         //_Gen_DamageDown = 1016, // none->Plasmasphere, extra=0x1/0x2/0x3/0x4
@@ -208,5 +237,7 @@
         EarthMissileIce = 67, // player
         JudgmentCrystal = 96, // player
         IncineratingHeat = 93, // player
+        OpticalSightSpread = 139, // player
+        OpticalSightStack = 62, // player
     }
 }
