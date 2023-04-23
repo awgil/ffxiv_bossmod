@@ -38,7 +38,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
                     return alex.HP.Cur <= 1 && alex.CastInfo == null;
                 };
             SimplePhase(3, Phase4PerfectAlexander, "P4: Perfect Alex")
-                .Raw.Update = () => Module.PrimaryActor.IsDestroyed && (_module.PerfectAlex()?.IsDestroyed ?? true); // perfect alex should not be destroyed until either wipe or kill
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed && (_module.PerfectAlex()?.IsDestroyed ?? true) || (_module.PerfectAlex()?.IsDead ?? false); // perfect alex should not be destroyed until either wipe or kill
         }
 
         private void Phase1LivingLiquid(uint id)
@@ -218,9 +218,9 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             P2VerdictGavel(id + 0x50000, 1.4f);
             P2PhotonDoubleRocketPunch(id + 0x60000, 5.5f);
             P2SuperJumpApocalypticRay(id + 0x70000, 3.2f);
-            P2Whirlwind(id + 0x80000, 1.4f);
-            // TODO: second whirlwind > enrage
-            SimpleState(id + 0xFF0000, 100, "???");
+            P2Whirlwind(id + 0x80000, 1.5f);
+            P2Whirlwind(id + 0x90000, 4.2f);
+            SimpleState(id + 0xA0000, 10, "Enrage"); // TODO: timing; i think there are no more mechanics here?
         }
 
         private void P2Intermission(uint id, float delay)
@@ -550,8 +550,14 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             P4Intermission(id, 2.1f);
             P4FinalWord(id + 0x10000, 10.1f);
             P4DoubleOpticalSight(id + 0x20000, 7.2f);
-            // TODO: fate calibration alpha > tankbusters > fate calibration beta > tankbusters > exatrines > tankbusters > exatrines > enrage
-            SimpleState(id + 0xFF0000, 200, "???");
+            P4FateCalibrationAlpha(id + 0x30000, 7.9f);
+            P4OrdainedPunishment(id + 0x40000, 5.1f);
+            P4FateCalibrationBeta(id + 0x50000, 10.1f);
+            P4OrdainedPunishment(id + 0x60000, 5.2f);
+            P4AlmightyJudgmentIrresistibleGrace(id + 0x70000, 7.1f);
+            P4OrdainedPunishment(id + 0x80000, 7.1f);
+            P4AlmightyJudgmentIrresistibleGrace(id + 0x90000, 6.9f);
+            P4TemporalInterference(id + 0xA0000, 10.0f);
         }
 
         private void P4Intermission(uint id, float delay)
@@ -596,6 +602,125 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         {
             P4OpticalSight(id, delay);
             P4OpticalSight(id + 0x10, 1.1f);
+        }
+
+        private void P4OrdainedPunishment(uint id, float delay)
+        {
+            ActorCast(id, _module.PerfectAlex, AID.OrdainedCapitalPunishment, delay, 3, true)
+                .ActivateOnEnter<P4OrdainedCapitalPunishment>();
+            ComponentCondition<P4OrdainedCapitalPunishment>(id + 0x10, 3.1f, comp => comp.NumCasts >= 1, "Shared tankbuster 1")
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ActorCastStart(id + 0x20, _module.PerfectAlex, AID.OrdainedPunishment, 1.1f, true)
+                .SetHint(StateMachine.StateHint.Tankbuster); // second shared hit happens at the same time as cast start
+            ComponentCondition<P4OrdainedCapitalPunishment>(id + 0x30, 1.0f, comp => comp.NumCasts >= 3, "Shared tankbuster 3")
+                .DeactivateOnExit<P4OrdainedCapitalPunishment>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ActorCastEnd(id + 0x40, _module.PerfectAlex, 4, true, "Solo tankbuster")
+                .ActivateOnEnter<P4OrdainedPunishment>()
+                .DeactivateOnExit<P4OrdainedPunishment>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+        }
+
+        private void P4FateCalibrationAlpha(uint id, float delay)
+        {
+            ActorCast(id, _module.PerfectAlex, AID.FateProjectionAlpha, delay, 5, true)
+                .ActivateOnEnter<P4FateProjection>(); // tethers appear ~1.2s after cast end
+            ActorCast(id + 0x10, _module.PerfectAlex, AID.FateCalibrationAlpha, 3.2f, 22, true)
+                .ActivateOnEnter<P4FateCalibrationAlphaStillnessMotion>()
+                .ActivateOnEnter<P4FateCalibrationAlphaDebuffs>()
+                .ActivateOnEnter<P4FateCalibrationAlphaSacrament>();
+            // timeline during fate calibration cast:
+            // +5.1s: 1s-long stillness/motion cast
+            // +6.2s: stillness or motion castevents on projections
+            // +12.1s: defamation on helper near projection
+            // +12.6s: shared sentence on projection
+            // +13.1s: stillness/motion cast start, 3x aggravated assault on projections
+            // +14.1s: stillness/motion cast end
+            // +14.9s: stillness or motion castevents on remaining projections
+            // +15.1s: sacrament 1
+            // +15.7s: sacrament 2
+            // +16.2s: sacrament 3
+
+            ActorTargetable(id + 0x100, _module.PerfectAlex, false, 3, "Fate calibration alpha")
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ComponentCondition<P4FateCalibrationAlphaStillnessMotion>(id + 0x110, 4.1f, comp => comp.NumCasts >= 1, "Stay/move")
+                .OnEnter(() => Module.FindComponent<P4FateCalibrationAlphaStillnessMotion>()?.ApplyNextRequirement());
+            // +3.0s: defamation
+            // +3.5s: shared sentence
+            ComponentCondition<P4FateCalibrationAlphaStillnessMotion>(id + 0x140, 4.1f, comp => comp.NumCasts >= 2, "Stay/move") // also aggravated resolve & sacrament 1
+                .DeactivateOnExit<P4FateCalibrationAlphaDebuffs>()
+                .DeactivateOnExit<P4FateCalibrationAlphaStillnessMotion>();
+            // +0.5s: sacrament 2
+            ComponentCondition<P4FateCalibrationAlphaSacrament>(id + 0x160, 1.1f, comp => comp.NumCasts >= 3)
+                .DeactivateOnExit<P4FateCalibrationAlphaSacrament>()
+                .DeactivateOnExit<P4FateProjection>();
+
+            ActorTargetable(id + 0x200, _module.PerfectAlex, true, 5.1f, "Boss reappear")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+        }
+
+        private void P4FateCalibrationBeta(uint id, float delay)
+        {
+            ActorCast(id, _module.PerfectAlex, AID.FateProjectionBeta, delay, 5, true)
+                .ActivateOnEnter<P4FateProjection>(); // tethers appear ~1.2s after cast end
+            ActorCast(id + 0x10, _module.PerfectAlex, AID.FateCalibrationBeta, 3.2f, 35, true)
+                .ActivateOnEnter<P4FateCalibrationBetaDebuffs>()
+                .ActivateOnEnter<P4FateCalibrationBetaJJump>()
+                .ActivateOnEnter<P4FateCalibrationBetaOpticalSight>()
+                .ActivateOnEnter<P4FateCalibrationBetaRadiantSacrament>();
+            // timeline during fate calibration cast:
+            // +10.0s: tethers + status 2195 (extra 0x84/85)
+            // +11.8-13.1s: kill 4 tethered projections
+            // +14.1s: shared sentence on untethered light projection
+            // +15.1s: jumps
+            // +20.7s: stack/spread effect
+            // +22.7s: kill beacons with stack/spread
+            // +26.2s: donut
+
+            ActorTargetable(id + 0x100, _module.PerfectAlex, false, 3.1f, "Fate calibration beta")
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ComponentCondition<P4FateCalibrationBetaDebuffs>(id + 0x110, 2, comp => comp.Done); // forced march apply
+            ComponentCondition<P4FateCalibrationBetaJJump>(id + 0x120, 8.1f, comp => comp.NumCasts > 0, "Jumps")
+                .OnEnter(() => Module.FindComponent<P4FateCalibrationBetaJJump>()?.Show())
+                .DeactivateOnExit<P4FateCalibrationBetaDebuffs>() // tethers & shared sentence resolve ~1s before jumps
+                .DeactivateOnExit<P4FateCalibrationBetaJJump>();
+            ComponentCondition<P4FateCalibrationBetaOpticalSight>(id + 0x130, 6, comp => comp.Done, "Stack/spread")
+                .OnEnter(() => Module.FindComponent<P4FateCalibrationBetaOpticalSight>()?.Show(Module))
+                .DeactivateOnExit<P4FateCalibrationBetaOpticalSight>();
+            ComponentCondition<P4FateCalibrationBetaRadiantSacrament>(id + 0x140, 5, comp => comp.NumCasts > 0, "Donut")
+                .OnEnter(() => Module.FindComponent<P4FateCalibrationBetaRadiantSacrament>()?.Show())
+                .DeactivateOnExit<P4FateCalibrationBetaRadiantSacrament>()
+                .DeactivateOnExit<P4FateProjection>();
+
+            ActorTargetable(id + 0x200, _module.PerfectAlex, true, 5.2f, "Boss reappear")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+        }
+
+        private void P4AlmightyJudgmentIrresistibleGrace(uint id, float delay)
+        {
+            ActorCast(id, _module.PerfectAlex, AID.AlmightyJudgment, delay, 3, true);
+            ActorCastStart(id + 0x10, _module.PerfectAlex, AID.IrresistibleGrace, 11.1f, true, "Exatrines 1") // first exatrine aoe happens together with cast start
+                .ActivateOnEnter<P4AlmightyJudgment>();
+            ComponentCondition<P4AlmightyJudgment>(id + 0x20, 4, comp => !comp.Active, "Exatrines 3")
+                .DeactivateOnExit<P4AlmightyJudgment>();
+            ActorCastEnd(id + 0x30, _module.PerfectAlex, 1, true, "Stack")
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P4TemporalInterference(uint id, float delay)
+        {
+            ActorCast(id, _module.PerfectAlex, AID.TemporalInterference, delay, 5, true)
+                .ActivateOnEnter<P4TemporalPrison>();
+            ActorCastStart(id + 0x10, _module.PerfectAlex, AID.TemporalPrison, 3.2f, true);
+            ComponentCondition<P4TemporalPrison>(id + 0x20, 10, comp => comp.NumPrisons >= 1, "Prison 1");
+            ComponentCondition<P4TemporalPrison>(id + 0x21, 5, comp => comp.NumPrisons >= 2, "Prison 2");
+            ComponentCondition<P4TemporalPrison>(id + 0x22, 5, comp => comp.NumPrisons >= 3, "Prison 3");
+            ComponentCondition<P4TemporalPrison>(id + 0x23, 5, comp => comp.NumPrisons >= 4, "Prison 4");
+            ComponentCondition<P4TemporalPrison>(id + 0x24, 5, comp => comp.NumPrisons >= 5, "Prison 5");
+            ComponentCondition<P4TemporalPrison>(id + 0x25, 5, comp => comp.NumPrisons >= 6, "Prison 6");
+            ComponentCondition<P4TemporalPrison>(id + 0x26, 5, comp => comp.NumPrisons >= 7, "Prison 7");
+            ActorCastEnd(id + 0x30, _module.PerfectAlex, 2, true, "Enrage");
+            SimpleState(id + 0x40, 3, "???");
         }
     }
 }

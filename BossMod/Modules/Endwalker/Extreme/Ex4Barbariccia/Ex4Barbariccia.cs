@@ -45,7 +45,7 @@
         public WindingGaleCharge() : base(ActionID.MakeSpell(AID.WindingGaleCharge), 2) { }
     }
 
-    class BoulderBreak : Components.SharedTankbuster
+    class BoulderBreak : Components.CastSharedTankbuster
     {
         public BoulderBreak() : base(ActionID.MakeSpell(AID.BoulderBreak), 5) { }
     }

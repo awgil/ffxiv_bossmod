@@ -64,7 +64,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public override IEnumerable<Actor> BlockerActors(BossModule module) => module.Enemies(OID.GelidGaol);
     }
 
-    class P2DoubleRocketPunch : Components.SharedTankbuster
+    class P2DoubleRocketPunch : Components.CastSharedTankbuster
     {
         public P2DoubleRocketPunch() : base(ActionID.MakeSpell(AID.DoubleRocketPunch), 3) { }
     }

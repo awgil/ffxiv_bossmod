@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P2SHippokampos
 {
-    class DoubledImpact : Components.SharedTankbuster
+    class DoubledImpact : Components.CastSharedTankbuster
     {
         public DoubledImpact() : base(ActionID.MakeSpell(AID.DoubledImpact), 6) { }
     }

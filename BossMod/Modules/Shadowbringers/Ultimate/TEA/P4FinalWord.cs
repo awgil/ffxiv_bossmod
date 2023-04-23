@@ -7,9 +7,43 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         protected override WDir SafeSpotDirection(int slot) => Debuffs[slot] switch
         {
             Debuff.LightBeacon => new(0, -15), // N
-            Debuff.DarkBeacon => new(0, 15), // S
+            Debuff.DarkBeacon => new(0, 13), // S
             _ => new(0, 10), // slightly N of dark beacon
         };
+
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+            switch ((SID)status.ID)
+            {
+                case SID.FinalWordContactProhibition:
+                    AssignDebuff(module, actor, Debuff.LightFollow);
+                    break;
+                case SID.FinalWordContactRegulation:
+                    AssignDebuff(module, actor, Debuff.LightBeacon);
+                    LightBeacon = actor;
+                    break;
+                case SID.FinalWordEscapeProhibition:
+                    AssignDebuff(module, actor, Debuff.DarkFollow);
+                    break;
+                case SID.FinalWordEscapeDetection:
+                    AssignDebuff(module, actor, Debuff.DarkBeacon);
+                    DarkBeacon = actor;
+                    break;
+                case SID.ContactProhibitionOrdained:
+                case SID.ContactRegulationOrdained:
+                case SID.EscapeProhibitionOrdained:
+                case SID.EscapeDetectionOrdained:
+                    Done = true;
+                    break;
+            }
+        }
+
+        private void AssignDebuff(BossModule module, Actor actor, Debuff debuff)
+        {
+            var slot = module.Raid.FindSlot(actor.InstanceID);
+            if (slot >= 0)
+                Debuffs[slot] = debuff;
+        }
     }
 
     class P4FinalWordStillnessMotion : Components.StayMove

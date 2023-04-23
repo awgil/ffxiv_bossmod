@@ -156,7 +156,7 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
         {
             ComponentCondition<WarningGale>(id, delay, comp => comp.ActiveCasters.Any())
                 .ActivateOnEnter<WarningGale>();
-            ComponentCondition<BoulderBreak>(id + 1, 0.8f, comp => comp.CastActive)
+            ComponentCondition<BoulderBreak>(id + 1, 0.8f, comp => comp.Active)
                 .ActivateOnEnter<BoulderBreak>();
             ComponentCondition<WarningGale>(id + 2, 4.2f, comp => comp.NumCasts > 0, "Spirals")
                 .ActivateOnEnter<WindingGale>()

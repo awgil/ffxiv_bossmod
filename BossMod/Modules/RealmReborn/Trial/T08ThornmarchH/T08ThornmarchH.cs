@@ -116,7 +116,7 @@ namespace BossMod.RealmReborn.Trial.T08ThornmarchH
         public MogStone() : base(ActionID.MakeSpell(AID.MogStoneAOE), 6, 8) { }
     }
 
-    class TwinPomMeteor : Components.SharedTankbuster
+    class TwinPomMeteor : Components.CastSharedTankbuster
     {
         public TwinPomMeteor() : base(ActionID.MakeSpell(AID.TwinPomMeteorAOE), 6) { }
     }

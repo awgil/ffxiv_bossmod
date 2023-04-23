@@ -4,30 +4,29 @@ namespace BossMod.Components
 {
     // generic 'shared tankbuster' component; assumes only 1 concurrent cast is active
     // TODO: revise and improve (track invuln, ai hints, num stacked tanks?)
-    public class SharedTankbuster : CastCounter
+    public class GenericSharedTankbuster : CastCounter
     {
         public AOEShape Shape { get; private init; }
         public bool OriginAtTarget { get; private init; }
-        private Actor? _caster;
-        private Actor? _target;
+        protected Actor? Source;
+        protected Actor? Target;
 
-        public bool CastActive => _caster != null;
+        public bool Active => Source != null;
 
-        // oriented shapes (cones/rects) typically have origin at caster
-        public SharedTankbuster(ActionID aid, AOEShape shape, bool originAtTarget = false) : base(aid)
+        public GenericSharedTankbuster(ActionID aid, AOEShape shape, bool originAtTarget = false) : base(aid)
         {
             Shape = shape;
             OriginAtTarget = originAtTarget;
         }
 
         // circle shapes typically have origin at target
-        public SharedTankbuster(ActionID aid, float radius) : this(aid, new AOEShapeCircle(radius), true) { }
+        public GenericSharedTankbuster(ActionID aid, float radius) : this(aid, new AOEShapeCircle(radius), true) { }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_target == null)
+            if (Target == null)
                 return;
-            if (_target == actor)
+            if (Target == actor)
             {
                 hints.Add("Stack with other tanks or press invuln!", !module.Raid.WithoutSlot().Any(a => a != actor && a.Role == Role.Tank && InAOE(a)));
             }
@@ -43,47 +42,54 @@ namespace BossMod.Components
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            if (_caster != null && _target != null && _target != actor)
+            if (Source != null && Target != null && Target != actor)
             {
-                var shape = OriginAtTarget ? Shape.Distance(_target.Position, _target.Rotation) : Shape.Distance(_caster.Position, Angle.FromDirection(_target.Position - _caster.Position));
+                var shape = OriginAtTarget ? Shape.Distance(Target.Position, Target.Rotation) : Shape.Distance(Source.Position, Angle.FromDirection(Target.Position - Source.Position));
                 if (actor.Role == Role.Tank)
-                    hints.AddForbiddenZone(p => -shape(p), _caster.CastInfo!.FinishAt);
+                    hints.AddForbiddenZone(p => -shape(p), Source.CastInfo!.FinishAt);
                 else
-                    hints.AddForbiddenZone(shape, _caster.CastInfo!.FinishAt);
+                    hints.AddForbiddenZone(shape, Source.CastInfo!.FinishAt);
             }
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {
-            return _target == player ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
+            return Target == player ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_caster != null && _target != null)
+            if (Source != null && Target != null)
             {
                 if (OriginAtTarget)
-                    Shape.Outline(arena, _target);
+                    Shape.Outline(arena, Target);
                 else
-                    Shape.Outline(arena, _caster.Position, Angle.FromDirection(_target.Position - _caster.Position));
+                    Shape.Outline(arena, Source.Position, Angle.FromDirection(Target.Position - Source.Position));
             }
         }
+
+        private bool InAOE(Actor actor) => Source != null && Target != null && (OriginAtTarget ? Shape.Check(actor.Position, Target) : Shape.Check(actor.Position, Source.Position, Angle.FromDirection(Target.Position - Source.Position)));
+    }
+
+    // shared tankbuster at cast target
+    public class CastSharedTankbuster : GenericSharedTankbuster
+    {
+        public CastSharedTankbuster(ActionID aid, AOEShape shape, bool originAtTarget = false) : base(aid, shape, originAtTarget) { }
+        public CastSharedTankbuster(ActionID aid, float radius) : base(aid, radius) { }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction)
             {
-                _caster = caster;
-                _target = module.WorldState.Actors.Find(spell.TargetID);
+                Source = caster;
+                Target = module.WorldState.Actors.Find(spell.TargetID);
             }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (caster == _caster)
-                _caster = _target = null;
+            if (caster == Source)
+                Source = Target = null;
         }
-
-        private bool InAOE(Actor actor) => _caster != null && _target != null && (OriginAtTarget ? Shape.Check(actor.Position, _target) : Shape.Check(actor.Position, _caster.Position, Angle.FromDirection(_target.Position - _caster.Position)));
     }
 }

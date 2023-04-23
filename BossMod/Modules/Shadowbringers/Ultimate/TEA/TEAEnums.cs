@@ -30,13 +30,13 @@
         Wormhole3 = 0x1EA1E1, // R0.500, EventObj type, spawn during fight
 
         PerfectAlexander = 0x2C55, // R10.800, x1, and more spawn during fight
+        FateProjection = 0x2C56, // R0.500, spawn during fight
 
+        Helper = 0x233C, // R0.500, x17
         CruiseChaserCutscene = 0x2C9D, // R0.850, x1
         AlexanderPrimeCutscene = 0x2C9E, // R7.200, x1
         PerfectAlexanderCutscene = 0x2C9F, // R10.800, x1
         Alexander = 0x18D6, // R0.500, x1
-
-        Helper = 0x233C, // R0.500, x17
 
         //_Gen_Actor1EA1A1 = 0x1EA1A1, // R0.500-2.000, x8, EventObj type
         //_Gen_Actor1E8536 = 0x1E8536, // R0.500-2.000, x1, EventObj type
@@ -116,6 +116,7 @@
         AutoAttackP3 = 18812, // AlexanderPrime->player, no cast, single-target
         TemporalStasis = 18522, // AlexanderPrime->self, 8.0s cast, single-target, visual (debuffs & baits)
         PlaintOfSeverity = 18529, // Helper->player, no cast, single-target, small damage + vulns on aggravated assault targets
+        PlaintOfObloquy = 18528, // Helper->self, no cast, range 30 circle, p4 defamation
         PlaintOfSolidarity = 18530, // Helper->players, no cast, range 4 circle 3-person stack
         PlaintOfSurety = 18531, // Helper->self, no cast, ???, 1 damage or kill on close/far tethers
         AlphaSwordP3 = 18539, // CruiseChaser->self, no cast, range 25+R ?-degree cone on 3 closest
@@ -168,8 +169,47 @@
         IndividualReprobation = 18572, // Helper->player, no cast, range 6 circle spread
         CollectiveReprobation = 18573, // Helper->players, no cast, range 6 circle stack
         Faithlessness = 19073, // Helper->self, no cast, range 100 circle, ??? (wipe if something failed)
-        DivineRetribution = 18563, // Helper->player, no cast, single-target, kill if ??? (distance check failed?)
-        //_Weaponskill_ = 18581, // PerfectAlexander->location, no cast, single-target
+        DivineRetribution = 18563, // Helper->player, no cast, single-target, kill if distance check failed
+        FateProjectionPrepare = 18581, // PerfectAlexander->location, no cast, single-target, visual (???)
+        FateProjectionAlpha = 18555, // PerfectAlexander->self, 5.0s cast, single-target, visual (spawn clones)
+        FateCalibrationAlpha = 18556, // PerfectAlexander->self, 22.0s cast, single-target, visual (execute mechanics on clones)
+        FateCalibrationAlphaOrdainedMotionStillness1 = 18584, // PerfectAlexander[clone]->self, 1.0s cast, single-target (common for both mechanics)
+        FateCalibrationAlphaOrdainedMotion1 = 19213, // Helper->FateProjection, no cast, single-target, visual (motion fx)
+        FateCalibrationAlphaOrdainedStillness1 = 19214, // Helper->FateProjection, no cast, single-target, visual (stillness fx)
+        FateCalibrationAlphaDefamation = 18596, // Helper->self, no cast, single-target, visual (fx near defamation target)
+        FateCalibrationAlphaAggravatedAssault = 18597, // Helper->FateProjection, no cast, single-target (kills clones by aggravated assault)
+        FateCalibrationAlphaSharedSentence = 18598, // Helper->FateProjection, no cast, single-target (kills clone by shared sentence)
+        FateCalibrationAlphaOrdainedMotionStillness2 = 18858, // PerfectAlexander[clone]->self, 1.0s cast, single-target (common for both mechanics)
+        FateCalibrationAlphaOrdainedMotion2 = 18585, // Helper->FateProjection, no cast, single-target, kill (motion fx)
+        // FateCalibrationAlphaOrdainedStillness2 = ???
+        FateCalibrationAlphaSacrament = 18591, // PerfectAlexander[clone]->self, no cast, single-target, sacrament fx
+        FateCalibrationAlphaResolveOrdainedMotion = 18859, // PerfectAlexander->self, no cast, single-target
+        FateCalibrationAlphaResolveOrdainedStillness = 18860, // PerfectAlexander->self, no cast, single-target
+        FateCalibrationAlphaResolveSacrament = 18569, // PerfectAlexander->self, no cast, range 100 width 16 cross
+        OrdainedCapitalPunishment = 18578, // PerfectAlexander->self, 3.0s cast, single-target, visual (tankbuster sequence)
+        OrdainedCapitalPunishmentAOE = 18579, // Helper->players, no cast, range 4 circle, shared 3-hit tankbuster
+        OrdainedPunishment = 18577, // PerfectAlexander->player, 5.0s cast, range 5 circle aoe tankbuster
+        FateProjectionBeta = 19219, // PerfectAlexander->self, 5.0s cast, single-target, visual (spawn clones)
+        FateCalibrationBeta = 19220, // PerfectAlexander->self, 35.0s cast, single-target, visual (execute mechanics on clones)
+        FateCalibrationBetaKillDarkTethered = 18587, // Helper->FateProjection, no cast, single-target (kills tethered dark clones)
+        FateCalibrationBetaKillLightTethered = 18588, // Helper->FateProjection, no cast, single-target (kills tethered light clones)
+        FateCalibrationBetaJump = 18589, // PerfectAlexander[clone]->location, no cast, single-target, visual (baited jumps)
+        FateCalibrationBetaDonut = 18590, // PerfectAlexander[clone]->self, no cast, single-target
+        FateCalibrationBetaOpticalSightSpread = 18592, // PerfectAlexander[clone]->self, no cast, single-target, visual (spread fx)
+        FateCalibrationBetaOpticalSightStack = 18593, // PerfectAlexander[clone]->self, no cast, single-target, visual (stack fx)
+        FateCalibrationBetaKillBeaconSpread = 18594, // Helper->FateProjection, no cast, single-target (kills beacon clones)
+        FateCalibrationBetaKillBeaconStack = 18595, // Helper->FateProjection, no cast, single-target (kills beacon clones)
+        //_Weaponskill_DivineRetribution = 18562, // Helper->player, no cast, single-target
+        FateCalibrationBetaJJump = 18565, // PerfectAlexander[clone]->location, no cast, range 10 circle baited jump
+        FateCalibrationBetaResolveOpticalSightSpread = 18861, // PerfectAlexander->self, no cast, single-target, visual (spread fx)
+        FateCalibrationBetaResolveOpticalSightStack = 18862, // PerfectAlexander->self, no cast, single-target, visual (stack fx)
+        FateCalibrationBetaRadiantSacrament = 18566, // PerfectAlexander->self, no cast, range ?-60 donut
+        AlmightyJudgment = 18574, // PerfectAlexander->self, 3.0s cast, single-target, visual (exatrines mechanic start)
+        AlmightyJudgmentVisual = 18575, // Helper->self, 1.5s cast, range 6 circle, visual
+        AlmightyJudgmentAOE = 18576, // Helper->self, no cast, range 6 circle aoe
+        IrresistibleGrace = 18580, // PerfectAlexander->players, 5.0s cast, range 6 circle stack
+        TemporalInterference = 18582, // PerfectAlexander->self, 5.0s cast, single-target, visual (enrage sequence start)
+        TemporalPrison = 18583, // PerfectAlexander->self, 42.0s cast, range 100 circle, enrage
     };
 
     public enum SID : uint
@@ -202,6 +242,8 @@
         ContactRegulationOrdained = 3056, // none->player, extra=0x0
         EscapeProhibitionOrdained = 3057, // player->player, extra=0x0
         EscapeDetectionOrdained = 3058, // none->player, extra=0x0
+        FateCalibrationBeta = 2195, // none->player, extra=0x84 (light) / 0x85 (dark)
+        TemporalPrison = 2165, // none->player, extra=0x0
         //_Gen_EnigmaCodex = 2147, // none->TrueHeart, extra=0x171
         //_Gen_EnigmaCodex = 2146, // TrueHeart->player, extra=0x0
         //_Gen_DamageDown = 1016, // none->Plasmasphere, extra=0x1/0x2/0x3/0x4
@@ -218,6 +260,7 @@
         HouseArrest = 28, // player->player (stay at range <= 5; 4.93 is ok, 5.34 is fatal)
         RestrainingOrder = 29, // player->player (stay at range >= 30 or so; 25.45 is fatal, 31.25 is ok)
         Plasmasphere = 12, // Plasmasphere->player
+        FateProjection = 98, // player->FateProjection (note that it appears before target is created)
     }
 
     public enum IconID : uint
