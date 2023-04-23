@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace BossMod.Components
 {
@@ -10,6 +11,7 @@ namespace BossMod.Components
         public bool OriginAtTarget { get; private init; }
         protected Actor? Source;
         protected Actor? Target;
+        protected DateTime Activation;
 
         public bool Active => Source != null;
 
@@ -46,9 +48,9 @@ namespace BossMod.Components
             {
                 var shape = OriginAtTarget ? Shape.Distance(Target.Position, Target.Rotation) : Shape.Distance(Source.Position, Angle.FromDirection(Target.Position - Source.Position));
                 if (actor.Role == Role.Tank)
-                    hints.AddForbiddenZone(p => -shape(p), Source.CastInfo!.FinishAt);
+                    hints.AddForbiddenZone(p => -shape(p), Activation);
                 else
-                    hints.AddForbiddenZone(shape, Source.CastInfo!.FinishAt);
+                    hints.AddForbiddenZone(shape, Activation);
             }
         }
 
@@ -83,6 +85,7 @@ namespace BossMod.Components
             {
                 Source = caster;
                 Target = module.WorldState.Actors.Find(spell.TargetID);
+                Activation = spell.FinishAt;
             }
         }
 

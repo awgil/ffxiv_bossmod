@@ -12,7 +12,10 @@
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.OrdainedCapitalPunishment)
+            {
                 Source = caster;
+                Activation = spell.FinishAt.AddSeconds(3.1f);
+            }
         }
     }
 
