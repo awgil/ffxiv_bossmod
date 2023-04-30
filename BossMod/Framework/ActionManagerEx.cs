@@ -246,7 +246,8 @@ namespace BossMod
         {
             var dt = Framework.Instance()->FrameDeltaTime;
             var imminentAction = QueueActive ? QueueAction : AutoQueue.Action;
-            var imminentRecast = imminentAction ? _inst->GetRecastGroupDetail(GetRecastGroup(imminentAction)) : null;
+            var imminentActionAdj = imminentAction.Type == ActionType.Spell ? new(ActionType.Spell, GetAdjustedActionID(imminentAction.ID)) : imminentAction;
+            var imminentRecast = imminentActionAdj ? _inst->GetRecastGroupDetail(GetRecastGroup(imminentActionAdj)) : null;
             if (imminentRecast != null && Config.RemoveCooldownDelay)
             {
                 var cooldownOverflow = imminentRecast->IsActive != 0 ? imminentRecast->Elapsed + dt - imminentRecast->Total : dt;
@@ -262,7 +263,7 @@ namespace BossMod
 
             // check whether movement is safe; block movement if not and if desired
             MoveMightInterruptCast &= CastTimeRemaining > 0; // previous cast could have ended without action effect
-            MoveMightInterruptCast |= imminentAction && CastTimeRemaining <= 0 && AnimationLock < 0.1f && GetAdjustedCastTime(imminentAction) > 0 && GCD() < 0.1f; // if we're not casting, but will start soon, moving might interrupt future cast
+            MoveMightInterruptCast |= imminentActionAdj && CastTimeRemaining <= 0 && AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && GCD() < 0.1f; // if we're not casting, but will start soon, moving might interrupt future cast
             bool blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast;
 
             // restore rotation logic; note that movement abilities (like charge) can take multiple frames until they allow changing facing
