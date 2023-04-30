@@ -187,7 +187,7 @@
             if (state.Unlocked(AID.LifeSurge) && state.CanWeave(state.CD(CDGroup.LifeSurge) - 45, 0.6f, deadline) && UseLifeSurge(state, strategy))
                 return ActionID.MakeSpell(AID.LifeSurge);
 
-            // TODO: L80+
+            // TODO: L90+
             // TODO: better buff conditions, reconsider priorities
             if (state.Unlocked(AID.LanceCharge) && state.CanWeave(CDGroup.LanceCharge, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.LanceCharge);
@@ -209,6 +209,8 @@
             //    return ActionID.MakeSpell(AID.DragonfireDive);
             //if (canJump && state.Unlocked(AID.SpineshatterDive) && state.CanWeave(CDGroup.SpineshatterDive, 0.8f, deadline))
             //    return ActionID.MakeSpell(AID.SpineshatterDive);
+            if (canJump && state.Unlocked(AID.Stardiver) && state.LifeOfTheDragonLeft > state.AnimationLock && state.CanWeave(CDGroup.Stardiver, 1.5f, deadline))
+                return ActionID.MakeSpell(AID.Stardiver);
 
             // no suitable oGCDs...
             return new();
