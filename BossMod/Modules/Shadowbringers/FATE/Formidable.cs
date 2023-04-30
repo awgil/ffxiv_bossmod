@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
-namespace BossMod.Modules.Shadowbringers.FATE.Formidable
+namespace BossMod.Shadowbringers.FATE.Formidable
 {
     public enum OID : uint
     {

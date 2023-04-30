@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand
 {
     public enum OID : uint
     {
