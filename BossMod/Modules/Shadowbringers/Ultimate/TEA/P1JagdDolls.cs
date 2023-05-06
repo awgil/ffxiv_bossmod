@@ -27,6 +27,12 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             }
         }
 
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            foreach (var t in hints.PotentialTargets.Where(t => (OID)t.Actor.OID == OID.JagdDoll))
+                t.ForbidDOTs = true;
+        }
+
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var doll in ActiveDolls)

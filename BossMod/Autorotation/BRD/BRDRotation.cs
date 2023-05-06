@@ -77,6 +77,7 @@ namespace BossMod.BRD
             public PotionUse PotionStrategy; // how are we supposed to use potions
             public OffensiveAbilityUse RagingStrikesUse; // how are we supposed to use RS
             public OffensiveAbilityUse BloodletterUse; // how are we supposed to use bloodletters
+            public OffensiveAbilityUse EmpyrealArrowUse; // how are we supposed to use EA
             public int NumLadonsbiteTargets; // range 12 90-degree cone
             public int NumRainOfDeathTargets; // range 8 circle around target
 
@@ -88,12 +89,13 @@ namespace BossMod.BRD
             // TODO: these bindings should be done by the framework...
             public void ApplyStrategyOverrides(uint[] overrides)
             {
-                if (overrides.Length >= 4)
+                if (overrides.Length >= 5)
                 {
                     SongStrategy = (SongUse)overrides[0];
                     PotionStrategy = (PotionUse)overrides[1];
                     RagingStrikesUse = (OffensiveAbilityUse)overrides[2];
                     BloodletterUse = (OffensiveAbilityUse)overrides[3];
+                    EmpyrealArrowUse = (OffensiveAbilityUse)overrides[4];
                 }
                 else
                 {
@@ -101,6 +103,7 @@ namespace BossMod.BRD
                     PotionStrategy = PotionUse.Manual;
                     RagingStrikesUse = OffensiveAbilityUse.Automatic;
                     BloodletterUse = OffensiveAbilityUse.Automatic;
+                    EmpyrealArrowUse = OffensiveAbilityUse.Automatic;
                 }
             }
         }
@@ -144,6 +147,14 @@ namespace BossMod.BRD
                 state.ActiveSong == Song.MagesBallad || // don't try to pool BLs during MB, it's risky
                 state.BattleVoiceLeft > state.AnimationLock || // don't pool BLs during buffs
                 state.CD(CDGroup.Bloodletter) - (state.Unlocked(TraitID.EnhancedBloodletter) ? 0 : 15) <= Math.Min(state.CD(CDGroup.RagingStrikes), state.CD(CDGroup.BattleVoice)) // don't pool BLs if they will overcap before next buffs
+        };
+
+        // by default, we use EA asap if in combat
+        public static bool ShouldUseEmpyrealArrow(State state, Strategy strategy) => strategy.EmpyrealArrowUse switch
+        {
+            Strategy.OffensiveAbilityUse.Delay => false,
+            Strategy.OffensiveAbilityUse.Force => true,
+            _ => strategy.CombatTimer >= 0
         };
 
         public static AID GetNextBestGCD(State state, Strategy strategy)
@@ -319,7 +330,7 @@ namespace BossMod.BRD
             // EA - important not to drift (TODO: is it actually better to delay it if we're capped on PP/BL?)
             // we should not be at risk of capping BL (since we spend charges asap in WM/MB anyway)
             // we might risk capping PP, but we should've dealt with that on previous slots by using PP2
-            if (state.TargetingEnemy && strategy.CombatTimer >= 0 && state.Unlocked(AID.EmpyrealArrow) && state.CanWeave(CDGroup.EmpyrealArrow, 0.6f, deadline))
+            if (state.TargetingEnemy && ShouldUseEmpyrealArrow(state, strategy) && state.Unlocked(AID.EmpyrealArrow) && state.CanWeave(CDGroup.EmpyrealArrow, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.EmpyrealArrow);
 
             // PP here should not conflict with anything priority-wise
