@@ -135,17 +135,18 @@ namespace BossMod
             var posRot = new Vector4(obj.Position, obj.Rotation);
             var hp = new ActorHP();
             uint curMP = 0;
+            bool inCombat = false;
             if (character != null)
             {
                 hp.Cur = character.CurrentHp;
                 hp.Max = character.MaxHp;
                 hp.Shield = (uint)(Utils.CharacterShieldValue(character) * 0.01f * hp.Max);
                 curMP = character.CurrentMp;
+                inCombat = Utils.CharacterInCombat(character);
             }
             var targetable = Utils.GameObjectIsTargetable(obj);
             var friendly = Utils.GameObjectIsFriendly(obj);
             var isDead = Utils.GameObjectIsDead(obj);
-            var inCombat = character?.StatusFlags.HasFlag(StatusFlags.InCombat) ?? false;
             var target = character == null ? 0 : SanitizedObjectID(obj != Service.ClientState.LocalPlayer ? Utils.CharacterTargetID(character) : (Service.TargetManager.Target?.ObjectId ?? 0)); // this is a bit of a hack - when changing targets, we want AI to see changes immediately rather than wait for server response
             var modelState = character != null ? new ActorModelState() { ModelState = Utils.CharacterModelState(character), AnimState1 = Utils.CharacterAnimationState(character, false), AnimState2 = Utils.CharacterAnimationState(character, true) } : new ActorModelState();
             var eventState = Utils.GameObjectEventState(obj);

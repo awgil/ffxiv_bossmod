@@ -108,13 +108,14 @@ namespace BossMod
         public static unsafe float GameObjectRadius(GameObject obj) => GameObjectInternal(obj)->GetRadius();
         //public static unsafe Vector3 GameObjectNonInterpolatedPosition(GameObject obj) => ReadField<Vector3>(GameObjectInternal(obj), 0x10);
         //public static unsafe float GameObjectNonInterpolatedRotation(GameObject obj) => ReadField<float>(GameObjectInternal(obj), 0x20);
-        public static unsafe byte CharacterShieldValue(Character chr) => CharacterInternal(chr)->ShieldValue; // % of max hp; see effect result
-        public static unsafe byte CharacterAnimationState(Character chr, bool second) => ReadField<byte>(CharacterInternal(chr), second ? 0x1B09 : 0x1B08); // see actor control 62
-        public static unsafe byte CharacterModelState(Character chr) => ReadField<byte>(CharacterInternal(chr), 0x1B0A); // see actor control 63
-        public static unsafe float CharacterCastRotation(Character chr) => ReadField<float>(CharacterInternal(chr), 0x1AA4); // see ActorCast -> Character::StartCast
-        public static unsafe ulong CharacterTargetID(Character chr) => ReadField<ulong>(CharacterInternal(chr), 0x1A88); // until FFXIVClientStructs fixes offset and type...
-        public static unsafe byte CharacterTetherID(Character chr) => ReadField<byte>(CharacterInternal(chr), 0x1A20); // see actor control 35 -> Character::SetTether (note that there is also a secondary tether...)
-        public static unsafe ulong CharacterTetherTargetID(Character chr) => ReadField<ulong>(CharacterInternal(chr), 0x1A30);
+        public static unsafe byte CharacterShieldValue(Character chr) => ReadField<byte>(CharacterInternal(chr), 0x1ED); // CharacterInternal(chr)->ShieldValue; // % of max hp; see effect result
+        public static unsafe bool CharacterInCombat(Character chr) => (ReadField<byte>(CharacterInternal(chr), 0x1F2) & 0x20) != 0; // see actor control 4
+        public static unsafe byte CharacterAnimationState(Character chr, bool second) => ReadField<byte>(CharacterInternal(chr), second ? 0x1B2B : 0x1B2A); // see actor control 62
+        public static unsafe byte CharacterModelState(Character chr) => ReadField<byte>(CharacterInternal(chr), 0x1B2C); // see actor control 63
+        public static unsafe float CharacterCastRotation(Character chr) => ReadField<float>(CharacterInternal(chr), 0x1AD0); // see ActorCast -> Character::StartCast
+        public static unsafe ulong CharacterTargetID(Character chr) => ReadField<ulong>(CharacterInternal(chr), 0x1AB8); // until FFXIVClientStructs fixes offset and type...
+        public static unsafe byte CharacterTetherID(Character chr) => ReadField<byte>(CharacterInternal(chr), 0x1A50); // see actor control 35 -> Character::SetTether (note that there is also a secondary tether...)
+        public static unsafe ulong CharacterTetherTargetID(Character chr) => ReadField<ulong>(CharacterInternal(chr), 0x1A60);
         public static unsafe Vector3 BattleCharaCastLocation(BattleChara chara) => BattleCharaInternal(chara)->SpellCastInfo.CastLocation; // see ActorCast -> Character::StartCast -> Character::StartOmen
 
         public static unsafe ulong SceneObjectFlags(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o)

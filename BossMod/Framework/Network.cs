@@ -47,7 +47,7 @@ namespace BossMod
 
             // this is lifted from dalamud - for some reason they stopped dispatching client messages :(
             //Service.GameNetwork.NetworkMessage += HandleMessage;
-            var processZonePacketDownAddress = Service.SigScanner.ScanText("48 89 5C 24 ?? 56 48 83 EC 50 8B F2");
+            var processZonePacketDownAddress = Service.SigScanner.ScanText("40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 8B F2");
             _processZonePacketDownHook = Hook<ProcessZonePacketDownDelegate>.FromAddress(processZonePacketDownAddress, ProcessZonePacketDownDetour);
             _processZonePacketDownHook.Enable();
 
