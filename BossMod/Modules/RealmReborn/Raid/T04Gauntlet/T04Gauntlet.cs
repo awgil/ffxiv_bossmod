@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if DEBUG // disabling for release for now, since this boss module is loaded in unexpected instances - it uses generic ARR helper OID; think of a better solution...
+
 using System.Collections.Generic;
 using System.Linq;
 
@@ -137,3 +138,5 @@ namespace BossMod.RealmReborn.Raid.T04Gauntlet
         }
     }
 }
+
+#endif
