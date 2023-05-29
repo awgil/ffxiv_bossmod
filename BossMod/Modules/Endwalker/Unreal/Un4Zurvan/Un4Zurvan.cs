@@ -62,6 +62,12 @@ namespace BossMod.Endwalker.Unreal.Un4Zurvan
         public P2TyrfingFire() : base(ActionID.MakeSpell(AID.TyrfingFire), new AOEShapeCircle(5), (uint)OID.BossP2, originAtTarget: true) { }
     }
 
+    [ConfigDisplay(Order = 0x340, Parent = typeof(EndwalkerConfig))]
+    public class Un4ZurvanConfig : CooldownPlanningConfigNode
+    {
+        public Un4ZurvanConfig() : base(90) { }
+    }
+
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1)]
     public class Un4Zurvan : BossModule
     {
