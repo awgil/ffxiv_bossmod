@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors></Authors>
     <Company></Company>
-    <Version>0.0.0.95</Version>
+    <Version>0.0.0.96</Version>
     <Description>Boss mod.</Description>
     <Copyright></Copyright>
     <PackageProjectUrl></PackageProjectUrl>
@@ -19,9 +19,9 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+<!--  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <OutputPath>$(AppData)\XIVLauncher\devPlugins\BossMod\</OutputPath>
-  </PropertyGroup>
+  </PropertyGroup>-->
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <OutputPath>..\..\PluginDistribution\plugins</OutputPath>
   </PropertyGroup>
