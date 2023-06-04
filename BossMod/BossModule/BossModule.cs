@@ -65,7 +65,7 @@ namespace BossMod
         {
             if (FindComponent<T>() != null)
             {
-                ReportError(null, $"Activating a component of type {typeof(T)} when another of the same type is already active; old one is deactivated automatically");
+                ReportError(null, $"State {StateMachine.ActiveState?.ID:X}: Activating a component of type {typeof(T)} when another of the same type is already active; old one is deactivated automatically");
                 DeactivateComponent<T>();
             }
             T comp = new();
@@ -96,7 +96,7 @@ namespace BossMod
         {
             int count = _components.RemoveAll(x => x is T);
             if (count == 0)
-                ReportError(null, $"Could not find a component of type {typeof(T)} to deactivate");
+                ReportError(null, $"State {StateMachine.ActiveState?.ID:X}: Could not find a component of type {typeof(T)} to deactivate");
         }
 
         public void ClearComponents(Predicate<BossComponent> condition) => _components.RemoveAll(condition);

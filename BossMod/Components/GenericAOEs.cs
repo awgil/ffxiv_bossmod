@@ -128,19 +128,22 @@ namespace BossMod.Components
     public class LocationTargetedAOEs : GenericAOEs
     {
         public AOEShapeCircle Shape { get; private init; }
+        public int MaxCasts { get; private init; } // used for staggered aoes, when showing all active would be pointless
         public uint Color = ArenaColor.AOE; // can be customized if needed
         public bool Risky = true; // can be customized if needed
         private List<Actor> _casters = new();
         public IReadOnlyList<Actor> Casters => _casters;
+        public IEnumerable<Actor> ActiveCasters => _casters.Take(MaxCasts);
 
-        public LocationTargetedAOEs(ActionID aid, float radius, string warningText = "GTFO from puddle!") : base(aid, warningText)
+        public LocationTargetedAOEs(ActionID aid, float radius, string warningText = "GTFO from puddle!", int maxCasts = int.MaxValue) : base(aid, warningText)
         {
             Shape = new(radius);
+            MaxCasts = maxCasts;
         }
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            foreach (var c in _casters)
+            foreach (var c in ActiveCasters)
                 yield return new(Shape, c.CastInfo!.LocXZ, c.CastInfo.Rotation, c.CastInfo.FinishAt, Color, Risky);
         }
 
