@@ -227,7 +227,7 @@ namespace BossMod.WAR
             SupportedActions.OGCD(AID.Holmgang, 6, CDGroup.Holmgang, 240.0f).EffectDuration = 10;
             SupportedActions.OGCD(AID.Equilibrium, 0, CDGroup.Equilibrium, 60.0f).EffectDuration = 0;
             SupportedActions.OGCD(AID.Reprisal, 0, CDGroup.Reprisal, 60.0f).EffectDuration = 10;
-            SupportedActions.OGCD(AID.ShakeItOff, 0, CDGroup.ShakeItOff, 90.0f).EffectDuration = 15;
+            SupportedActions.OGCD(AID.ShakeItOff, 0, CDGroup.ShakeItOff, 90.0f).EffectDuration = 30;
             SupportedActions.OGCD(AID.RawIntuition, 0, CDGroup.Bloodwhetting, 25.0f).EffectDuration = 4;
             SupportedActions.OGCD(AID.NascentFlash, 30, CDGroup.Bloodwhetting, 25.0f).EffectDuration = 4;
             SupportedActions.OGCD(AID.Bloodwhetting, 0, CDGroup.Bloodwhetting, 25.0f).EffectDuration = 4;

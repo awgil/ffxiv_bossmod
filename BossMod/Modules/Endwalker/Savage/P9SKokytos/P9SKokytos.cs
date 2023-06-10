@@ -16,9 +16,9 @@
     }
 
     [ConfigDisplay(Order = 0x190, Parent = typeof(EndwalkerConfig))]
-    public class P9SConfig : CooldownPlanningConfigNode
+    public class P9SKokytosConfig : CooldownPlanningConfigNode
     {
-        public P9SConfig() : base(90) { }
+        public P9SKokytosConfig() : base(90) { }
     }
 
     public class P9SKokytos : BossModule
