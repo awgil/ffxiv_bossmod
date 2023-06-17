@@ -12,12 +12,14 @@ namespace UIDev.Analysis
         {
             public double Duration;
             public Replay Replay;
+            public Replay.Encounter Encounter;
             public DateTime Time;
 
-            public TransitionMetric(double duration, Replay replay, DateTime time)
+            public TransitionMetric(double duration, Replay replay, Replay.Encounter encounter, DateTime time)
             {
                 Duration = duration;
                 Replay = replay;
+                Encounter = encounter;
                 Time = time;
             }
         }
@@ -51,7 +53,7 @@ namespace UIDev.Analysis
         }
 
         private SortedDictionary<uint, StateMetrics> _metrics = new();
-        private List<(Replay, Replay.EncounterError)> _errors = new();
+        private List<(Replay, Replay.Encounter, Replay.EncounterError)> _errors = new();
         private List<(Replay, Replay.Encounter)> _encounters = new();
 
         public StateTransitionTimings(List<Replay> replays, uint oid)
@@ -74,13 +76,13 @@ namespace UIDev.Analysis
                     for (int i = 0; i < enc.States.Count; ++i)
                     {
                         var from = enc.States[i];
-                        _metrics[from.ID].Transitions.GetOrAdd(i < enc.States.Count - 1 ? enc.States[i + 1].ID : uint.MaxValue).Instances.Add(new TransitionMetric((from.Exit - enter).TotalSeconds, replay, enter));
+                        _metrics[from.ID].Transitions.GetOrAdd(i < enc.States.Count - 1 ? enc.States[i + 1].ID : uint.MaxValue).Instances.Add(new TransitionMetric((from.Exit - enter).TotalSeconds, replay, enc, enter));
                         enter = from.Exit;
                     }
 
                     foreach (var e in enc.Errors)
                     {
-                        _errors.Add((replay, e));
+                        _errors.Add((replay, enc, e));
                     }
                 }
             }
@@ -106,7 +108,7 @@ namespace UIDev.Analysis
 
             foreach (var n in tree.Node("Errors", _errors.Count == 0))
             {
-                tree.LeafNodes(_errors, error => $"{error.Item1.Path} @ {error.Item2.Timestamp:O} [{error.Item2.CompType}] {error.Item2.Message}");
+                tree.LeafNodes(_errors, error => $"{LocationString(error.Item1, error.Item2, error.Item3.Timestamp)} [{error.Item3.CompType}] {error.Item3.Message}");
             }
 
             MetricsToRemove delContext = new();
@@ -126,12 +128,14 @@ namespace UIDev.Analysis
                     foreach (var inst in m.Instances)
                     {
                         bool warn = Math.Abs(inst.Duration - m.AvgTime) > m.StdDev;
-                        tree.LeafNode($"{inst.Duration:f2}: {inst.Replay.Path} @ {inst.Time:O}", warn ? 0xff00ffff : 0xffffffff, () => TransitionInstanceContextMenu(from, toID, m, inst, delContext));
+                        tree.LeafNode($"{inst.Duration:f2}: {LocationString(inst.Replay, inst.Encounter, inst.Time)}", warn ? 0xff00ffff : 0xffffffff, () => TransitionInstanceContextMenu(from, toID, m, inst, delContext));
                     }
                 }
             }
             ExecuteDeletes(delContext);
         }
+
+        private string LocationString(Replay replay, Replay.Encounter enc, DateTime timestamp) => $"{replay.Path} @ {enc.Time.Start:O} + {(timestamp - enc.Time.Start).TotalSeconds:f3} / {enc.Time.Duration:f3}";
 
         private void RecalculateMetrics(TransitionMetrics trans)
         {
