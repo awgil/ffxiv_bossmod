@@ -245,7 +245,8 @@ namespace UIDev
 
         private string ActorString(ulong instanceID, DateTime timestamp)
         {
-            return ActorString(FindParticipant(instanceID, timestamp), timestamp);
+            var p = FindParticipant(instanceID, timestamp);
+            return p != null || instanceID == 0 ? ActorString(p, timestamp) : $"<unknown> {instanceID:X}";
         }
 
         private string CastEventTargetString(ActorCastEvent ev, DateTime timestamp)

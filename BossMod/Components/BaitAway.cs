@@ -29,7 +29,7 @@ namespace BossMod.Components
         public bool AllowDeadTargets = true; // if false, baits with dead targets are ignored
         public bool EnableHints = true;
         public PlayerPriority BaiterPriority = PlayerPriority.Interesting;
-        public BitMask ForbiddenPlayers;
+        public BitMask ForbiddenPlayers; // these players should avoid baiting
         public List<Bait> CurrentBaits = new();
 
         public IEnumerable<Bait> ActiveBaits => AllowDeadTargets ? CurrentBaits : CurrentBaits.Where(b => !b.Target.IsDead);

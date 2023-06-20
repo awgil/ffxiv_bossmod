@@ -6,7 +6,7 @@
         public bool RBridgeActive { get; private set; }
 
         public static float MainPlatformCenterZ = 100;
-        public static WDir MainPlatformHalfSize = new(13, 14);
+        public static WDir MainPlatformHalfSize = new(13, 15);
         public static float SidePlatformOffsetX = 25;
         public static float SidePlayformCenterZ = 85;
         public static WDir SidePlatformHalfSize = new(4, 15);

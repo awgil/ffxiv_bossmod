@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
         public override void Update(BossModule module)
         {
             Stacks.Clear();
-            var target = JumpActive ? module.Raid.WithoutSlot().Farthest(module.PrimaryActor.Position) : null;
+            var target = JumpActive ? module.Raid.WithSlot().ExcludedFromMask(_forbiddenStack).Actors().Farthest(module.PrimaryActor.Position) : null;
             if (target != null)
                 AddStack(target, _jumpActivation, _forbiddenStack);
             base.Update(module);

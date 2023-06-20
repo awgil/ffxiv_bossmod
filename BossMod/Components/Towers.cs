@@ -24,7 +24,7 @@ namespace BossMod.Components
 
             public bool IsInside(WPos pos) => pos.InCircle(Position, Radius);
             public bool IsInside(Actor actor) => IsInside(actor.Position);
-            public int NumInside(BossModule module) => module.Raid.WithoutSlot().InRadius(Position, Radius).Count();
+            public int NumInside(BossModule module) => module.Raid.WithSlot().ExcludedFromMask(ForbiddenSoakers).InRadius(Position, Radius).Count();
             public bool CorrectAmountInside(BossModule module) => NumInside(module) is var count && count >= MinSoakers && count <= MaxSoakers;
         }
 
