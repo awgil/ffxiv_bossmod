@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie
         {
             if ((AID)spell.Action.ID is AID.NBrimOver or AID.SBrimOver)
             {
-                Lines.Add(new() { Next = caster.Position, Advance = new(0, 5.1f), LastExplosion = spell.FinishAt.AddSeconds(-0.8f), TimeToMove = 0.8f, ExplosionsLeft = 11, MaxShownExplosions = int.MaxValue });
+                Lines.Add(new() { Next = caster.Position, Advance = new(0, 5.1f), NextExplosion = spell.FinishAt, TimeToMove = 0.8f, ExplosionsLeft = 11, MaxShownExplosions = int.MaxValue });
             }
         }
 

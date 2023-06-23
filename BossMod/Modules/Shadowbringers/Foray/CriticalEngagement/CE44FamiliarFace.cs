@@ -111,7 +111,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
         {
             if ((AID)spell.Action.ID == AID.IntractableLandFirst)
             {
-                Lines.Add(new() { Next = caster.Position, Advance = 8 * spell.Rotation.ToDirection(), LastExplosion = spell.FinishAt.AddSeconds(-0.8f), TimeToMove = 0.8f, ExplosionsLeft = 8, MaxShownExplosions = 4 });
+                Lines.Add(new() { Next = caster.Position, Advance = 8 * spell.Rotation.ToDirection(), NextExplosion = spell.FinishAt, TimeToMove = 0.8f, ExplosionsLeft = 8, MaxShownExplosions = 4 });
             }
         }
 

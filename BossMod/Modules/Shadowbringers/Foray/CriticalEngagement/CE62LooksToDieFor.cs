@@ -90,7 +90,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE62LooksToDieFor
         {
             if ((AID)spell.Action.ID == AID.CloudToGroundFirst)
             {
-                Lines.Add(new() { Next = caster.Position, Advance = 5 * spell.Rotation.ToDirection(), LastExplosion = spell.FinishAt.AddSeconds(-1.1f), TimeToMove = 1.1f, ExplosionsLeft = 4, MaxShownExplosions = 2 });
+                Lines.Add(new() { Next = caster.Position, Advance = 5 * spell.Rotation.ToDirection(), NextExplosion = spell.FinishAt, TimeToMove = 1.1f, ExplosionsLeft = 4, MaxShownExplosions = 2 });
             }
         }
 

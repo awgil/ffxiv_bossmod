@@ -4,7 +4,8 @@
     {
         public P12S1AthenaStates(BossModule module) : base(module)
         {
-            DeathPhase(0, SinglePhase);
+            SimplePhase(0, SinglePhase, "Single phase")
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HP.Cur <= 1 && !Module.PrimaryActor.IsTargetable;
         }
 
         private void SinglePhase(uint id)

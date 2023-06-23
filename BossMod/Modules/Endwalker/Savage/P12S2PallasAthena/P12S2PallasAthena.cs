@@ -1,20 +1,16 @@
 ﻿namespace BossMod.Endwalker.Savage.P12S2PallasAthena
 {
-    class P12S2PallasAthenaStates : StateMachineBuilder
+    [ConfigDisplay(Order = 0x1C2, Parent = typeof(EndwalkerConfig))]
+    public class P12S2PallasAthenaConfig : CooldownPlanningConfigNode
     {
-        public P12S2PallasAthenaStates(BossModule module) : base(module)
-        {
-            DeathPhase(0, SinglePhase);
-        }
-
-        private void SinglePhase(uint id)
-        {
-            SimpleState(id + 0xFF0000, 523, "Enrage");
-        }
+        public P12S2PallasAthenaConfig() : base(90) { }
     }
 
     public class P12S2PallasAthena : BossModule
     {
-        public P12S2PallasAthena(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }
+        public static ArenaBoundsRect DefaultBounds = new ArenaBoundsRect(new(100, 95), 20, 15);
+        public static ArenaBoundsCircle SmallBounds = new ArenaBoundsCircle(new(100, 90), 7);
+
+        public P12S2PallasAthena(WorldState ws, Actor primary) : base(ws, primary, DefaultBounds) { }
     }
 }

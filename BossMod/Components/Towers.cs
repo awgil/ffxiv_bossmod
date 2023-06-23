@@ -43,7 +43,10 @@ namespace BossMod.Components
             }
             else if (Towers.FindIndex(t => !t.ForbiddenSoakers[slot] && t.IsInside(actor)) is var soakedIndex && soakedIndex >= 0) // note: this assumes towers don't overlap
             {
-                if (!Towers[soakedIndex].CorrectAmountInside(module))
+                var count = Towers[soakedIndex].NumInside(module);
+                if (count < Towers[soakedIndex].MinSoakers)
+                    hints.Add("Too few soakers in the tower!");
+                else if (count > Towers[soakedIndex].MaxSoakers)
                     hints.Add("Too many soakers in the tower!");
             }
             else if (Towers.Any(t => !t.ForbiddenSoakers[slot] && !t.CorrectAmountInside(module)))

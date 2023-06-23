@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Components
 {
@@ -10,7 +11,7 @@ namespace BossMod.Components
         {
             public WPos Next;
             public WDir Advance;
-            public DateTime LastExplosion;
+            public DateTime NextExplosion;
             public float TimeToMove;
             public int ExplosionsLeft;
             public int MaxShownExplosions;
@@ -29,30 +30,34 @@ namespace BossMod.Components
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            foreach (var l in Lines)
-                foreach (var (i, c, t) in ImminentAOEs(module, l))
-                    yield return new(Shape, c, activation: t, color: i == 0 ? ArenaColor.Danger : ArenaColor.AOE);
+            foreach (var (c, t) in FutureAOEs(module.WorldState.CurrentTime))
+                yield return new(Shape, c, activation: t);
+            foreach (var (c, t) in ImminentAOEs())
+                yield return new(Shape, c, activation: t, color: ArenaColor.Danger);
         }
 
-        protected IEnumerable<(int, WPos, DateTime)> ImminentAOEs(BossModule module, Line l)
+        protected IEnumerable<(WPos, DateTime)> ImminentAOEs() => Lines.Where(l => l.ExplosionsLeft > 0).Select(l => (l.Next, l.NextExplosion));
+
+        protected IEnumerable<(WPos, DateTime)> FutureAOEs(DateTime currentTime)
         {
-            int num = Math.Min(l.ExplosionsLeft, l.MaxShownExplosions);
-            var pos = l.Next;
-            var time = l.LastExplosion.AddSeconds(l.TimeToMove);
-            if (time < module.WorldState.CurrentTime)
-                time = module.WorldState.CurrentTime;
-            for (int i = 0; i < num; ++i)
+            foreach (var l in Lines)
             {
-                yield return (i, pos, time);
-                pos += l.Advance;
-                time = time.AddSeconds(l.TimeToMove);
+                int num = Math.Min(l.ExplosionsLeft, l.MaxShownExplosions);
+                var pos = l.Next;
+                var time = l.NextExplosion > currentTime ? l.NextExplosion : currentTime;
+                for (int i = 1; i < num; ++i)
+                {
+                    pos += l.Advance;
+                    time = time.AddSeconds(l.TimeToMove);
+                    yield return (pos, time);
+                }
             }
         }
 
         protected void AdvanceLine(BossModule module, Line l, WPos pos)
         {
             l.Next = pos + l.Advance;
-            l.LastExplosion = module.WorldState.CurrentTime;
+            l.NextExplosion = module.WorldState.CurrentTime.AddSeconds(l.TimeToMove);
             --l.ExplosionsLeft;
         }
     }
