@@ -43,12 +43,12 @@
                 .SetHint(StateMachine.StateHint.PositioningStart);
             ComponentCondition<P2AscalonMercy>(id + 2, 1.6f, comp => comp.NumCasts > 0, "Baited cones")
                 .ActivateOnEnter<P2AscalonMercy>()
-                .DeactivateOnExit<P2AscalonMercy>();
+                .DeactivateOnExit<P2AscalonMercy>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
             ComponentCondition<P2AscalonMight>(id + 0x1000, 4.9f, comp => comp.NumCasts > 2, "3x tankbuster cones")
                 .ActivateOnEnter<P2AscalonMight>()
                 .DeactivateOnExit<P2AscalonMight>()
-                .SetHint(StateMachine.StateHint.Tankbuster)
-                .SetHint(StateMachine.StateHint.PositioningEnd);
+                .SetHint(StateMachine.StateHint.Tankbuster);
         }
 
         private void P2StrengthOfTheWard(uint id, float delay)

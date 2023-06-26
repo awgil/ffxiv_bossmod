@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.DSW2
@@ -11,18 +10,35 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     {
         public bool LeapsDone { get; private set; }
         public bool RageDone { get; private set; }
+        private Actor? _leftCharge;
+        private Actor? _rightCharge;
         private Angle _dirToStackPos;
 
         public P2StrengthOfTheWard2SpreadStack() : base(8, 24, 5) { }
 
         public override void Init(BossModule module)
         {
-            WDir offset = new();
-            foreach (var s in module.Enemies(OID.SerAdelphel))
-                offset += s.Position - module.Bounds.Center;
-            foreach (var s in module.Enemies(OID.SerJanlenoux))
-                offset += s.Position - module.Bounds.Center;
-            _dirToStackPos = Angle.FromDirection(offset) + 180.Degrees();
+            var c1 = module.Enemies(OID.SerAdelphel).FirstOrDefault();
+            var c2 = module.Enemies(OID.SerJanlenoux).FirstOrDefault();
+            if (c1 == null || c2 == null)
+            {
+                module.ReportError(this, $"Failed to find charge sources");
+                return;
+            }
+
+            var offset1 = c1.Position - module.Bounds.Center;
+            var offset2 = c2.Position - module.Bounds.Center;
+            var toStack = -(offset1 + offset2);
+            (_leftCharge, _rightCharge) = toStack.OrthoL().Dot(offset1) > 0 ? (c1, c2) : (c2, c1);
+            _dirToStackPos = Angle.FromDirection(toStack);
+        }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            base.AddHints(module, slot, actor, hints, movementHints);
+            if (movementHints != null)
+                foreach (var safespot in EnumSafeSpots(module, actor))
+                    movementHints.Add(actor.Position, safespot, ArenaColor.Safe);
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => PlayerPriority.Normal;
@@ -30,20 +46,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
-
-            // draw safe spots
-            bool pcIsLeapTarget = IsSpreadTarget(pc);
-            if (pcIsLeapTarget && !LeapsDone)
-            {
-                // TODO: select single safe spot for a player based on some criterion...
-                DrawSafeSpot(arena, _dirToStackPos + 90.Degrees());
-                DrawSafeSpot(arena, _dirToStackPos + 180.Degrees());
-                DrawSafeSpot(arena, _dirToStackPos - 90.Degrees());
-            }
-            if (!pcIsLeapTarget && !RageDone)
-            {
-                DrawSafeSpot(arena, _dirToStackPos);
-            }
+            foreach (var safespot in EnumSafeSpots(module, pc))
+                arena.AddCircle(safespot, 1, ArenaColor.Safe);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -67,10 +71,33 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 AddSpread(actor);
         }
 
-        private void DrawSafeSpot(MiniArena arena, Angle dir)
+        private IEnumerable<WPos> EnumSafeSpots(BossModule module, Actor player)
         {
-            arena.AddCircle(arena.Bounds.Center + 20 * dir.ToDirection(), 2, ArenaColor.Safe);
+            if (IsSpreadTarget(player))
+            {
+                if (!LeapsDone)
+                {
+                    // TODO: select single safe spot for a player based on some criterion...
+                    yield return SafeSpotAt(module, _dirToStackPos + 100.Degrees());
+                    yield return SafeSpotAt(module, _dirToStackPos + 180.Degrees());
+                    yield return SafeSpotAt(module, _dirToStackPos - 100.Degrees());
+                }
+            }
+            else if (_leftCharge?.Tether.Target == player.InstanceID)
+            {
+                yield return SafeSpotAt(module, _dirToStackPos - 18.Degrees());
+            }
+            else if (_rightCharge?.Tether.Target == player.InstanceID)
+            {
+                yield return SafeSpotAt(module, _dirToStackPos + 18.Degrees());
+            }
+            else if (!RageDone)
+            {
+                yield return SafeSpotAt(module, _dirToStackPos);
+            }
         }
+
+        private WPos SafeSpotAt(BossModule module, Angle dir) => module.Bounds.Center + 20 * dir.ToDirection();
     }
 
     // growing voidzones
@@ -171,36 +198,14 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
     // towers
     // TODO: assign tower to proper player
-    class P2StrengthOfTheWard2Towers : Components.CastCounter
+    class P2StrengthOfTheWard2Towers : Components.CastTowers
     {
-        private List<Actor> _towers = new();
-
-        private static float _towerRadius = 3;
-
-        public P2StrengthOfTheWard2Towers() : base(ActionID.MakeSpell(AID.Conviction1AOE)) { }
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (_towers.Count > 0 && actor.Role != Role.Tank)
-                hints.Add("Soak tower", !_towers.InRadius(actor.Position, _towerRadius).Any());
-        }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            foreach (var t in _towers)
-                arena.AddCircle(t.CastInfo!.LocXZ, _towerRadius, ArenaColor.Safe);
-        }
+        public P2StrengthOfTheWard2Towers() : base(ActionID.MakeSpell(AID.Conviction1AOE), 3) { }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction)
-                _towers.Add(caster);
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == WatchedAction)
-                _towers.Remove(caster);
+                Towers.Add(new(spell.LocXZ, Radius, forbiddenSoakers: module.Raid.WithSlot(true).WhereActor(p => p.Role == Role.Tank).Mask()));
         }
     }
 }

@@ -27,7 +27,24 @@ namespace BossMod
         }
     }
 
-    // attribute that specifies slider should be used for displaying property
+    // attribute that specifies combobox should be used for displaying int/bool property
+    [AttributeUsage(AttributeTargets.Field)]
+    public class PropertyComboAttribute : Attribute
+    {
+        public string[] Values;
+
+        public PropertyComboAttribute(string[] values)
+        {
+            Values = values;
+        }
+
+        public PropertyComboAttribute(string falseText, string trueText)
+        {
+            Values = new[] { falseText, trueText };
+        }
+    }
+
+    // attribute that specifies slider should be used for displaying float property
     [AttributeUsage(AttributeTargets.Field)]
     public class PropertySliderAttribute : Attribute
     {

@@ -99,10 +99,22 @@ namespace BossMod
 
         private bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, bool v)
         {
-            if (ImGui.Checkbox(props.Label, ref v))
+            var combo = member.GetCustomAttribute<PropertyComboAttribute>();
+            if (combo != null)
             {
-                member.SetValue(node, v);
-                node.NotifyModified();
+                if (UICombo.Bool(props.Label, combo.Values, ref v))
+                {
+                    member.SetValue(node, v);
+                    node.NotifyModified();
+                }
+            }
+            else
+            {
+                if (ImGui.Checkbox(props.Label, ref v))
+                {
+                    member.SetValue(node, v);
+                    node.NotifyModified();
+                }
             }
             return true;
         }

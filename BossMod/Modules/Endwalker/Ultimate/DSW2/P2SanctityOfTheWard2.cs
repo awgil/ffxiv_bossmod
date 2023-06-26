@@ -26,6 +26,15 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     class P2SanctityOfTheWard2Knockback : Components.KnockbackFromCastTarget
     {
         public P2SanctityOfTheWard2Knockback() : base(ActionID.MakeSpell(AID.FaithUnmoving), 16) { }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            if (Casters.Count > 0 && !actor.Position.InCircle(module.Bounds.Center, 12))
+            {
+                var action = actor.Class.GetClassCategory() is ClassCategory.Healer or ClassCategory.Caster ? ActionID.MakeSpell(WHM.AID.Surecast) : ActionID.MakeSpell(WAR.AID.ArmsLength);
+                hints.PlannedActions.Add((action, actor, (float)((Casters.FirstOrDefault()?.CastInfo?.FinishAt ?? module.WorldState.CurrentTime) - module.WorldState.CurrentTime).TotalSeconds, false));
+            }
+        }
     }
 
     // this component is about tower assignments, depending on initial assignments, tower positions and prey markers
@@ -70,6 +79,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private bool _preyOnTH;
         private bool _preyGoCCW;
         private bool _preyGoEW;
+        private bool _nonPreyGoCCW; // this is for non-prey players of prey role!
         private int _preyScore;
         private int _preyLimitedRangeQuadrant = -1; // if score is < 2, index of quadrant that has less than 180 degrees of distance to place comets
         private string _preySwap = "none";
@@ -301,6 +311,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     _preyLimitedRangeQuadrant = altQ;
                 }
             }
+            _nonPreyGoCCW = _config.P2Sanctity2AllowNonPreferredTowerAsNonPrey ? _preyGoCCW : !_config.P2Sanctity2PreferCWTowerAsPrey;
         }
 
         private bool InitQuadrantAssignments(BossModule module)
@@ -329,17 +340,27 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (slot1Swaps && slot2Swaps)
             {
                 // both prey markers at wrong cardinals
-                if (_config.P2Sanctity2SwapBothNE)
+                if (_config.P2Sanctity2PreferNoSwapsPrey && _config.P2Sanctity2ForcePreferredPrey)
                 {
-                    SwapPreyQuadrants(0, 1);
-                    SwapPreyQuadrants(2, 3);
+                    // ... but we really don't like doing both swaps
+                    _preyGoEW = !_preyGoEW;
+                    InitPreyPositionsForCurrentCardinals();
+                    _preySwap = "none";
                 }
                 else
                 {
-                    SwapPreyQuadrants(0, 3);
-                    SwapPreyQuadrants(1, 2);
+                    if (_config.P2Sanctity2SwapBothNE)
+                    {
+                        SwapPreyQuadrants(0, 1);
+                        SwapPreyQuadrants(2, 3);
+                    }
+                    else
+                    {
+                        SwapPreyQuadrants(0, 3);
+                        SwapPreyQuadrants(1, 2);
+                    }
+                    _preySwap = "both";
                 }
-                _preySwap = "both";
             }
             else if (slot1Swaps || slot2Swaps)
             {
@@ -359,15 +380,18 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private void InitTowers1(BossModule module)
         {
             // assign outer towers
-            // TODO: reconsider - preyGoCCW is not necessarily how players in non-prey quadrants want to handle their assignments...
             for (int q = 0; q < _quadrants.Length; ++q)
             {
+                bool isEW = q is 1 or 3;
+                bool isPrey = _preyGoEW == isEW;
+                bool ccw = isPrey ? _preyGoCCW : _nonPreyGoCCW;
+
                 // first (or only) - to prey role
-                var t1 = SelectOuterTower(q, _preyGoCCW);
+                var t1 = SelectOuterTower(q, ccw);
                 AssignTower(_quadrants[q].PreySlot, t1);
 
                 // if there is second one, assign to non-prey role
-                var t2 = SelectOuterTower(q, !_preyGoCCW);
+                var t2 = SelectOuterTower(q, !ccw);
                 if (t2 != t1)
                 {
                     AssignTower(_quadrants[q].NonPreySlot, t2);

@@ -21,8 +21,11 @@
         [GroupPreset("MT/R1 N, OT/R2 S, H1/M1 W, H2/M2 E", new[] { 0, 2, 3, 1, 3, 1, 0, 2 })]
         public GroupAssignmentDDSupportPairs P2Sanctity2Pairs = GroupAssignmentDDSupportPairs.DefaultOneMeleePerPair();
 
-        [PropertyDisplay("P2 Sanctity of the Ward (meteors): prefer E/W for prey rather than N/S")]
+        [PropertyDisplay("P2 Sanctity of the Ward (meteors): prey targets prefer E/W, rather than N/S")]
         public bool P2Sanctity2PreferEWPrey = false;
+
+        [PropertyDisplay("P2 Sanctity of the Ward (meteors): if both prey targets are at non-preferred cardinal, prefer not swapping")]
+        public bool P2Sanctity2PreferNoSwapsPrey = false;
 
         [PropertyDisplay("P2 Sanctity of the Ward (meteors): force preferred cardinals even for 120-degree best distance (simpler swaps, but trickier movement)")]
         public bool P2Sanctity2ForcePreferredPrey = false;
@@ -35,6 +38,9 @@
 
         [PropertyDisplay("P2 Sanctity of the Ward (meteors): use non-preferred outer tower as prey role if it increases distance")]
         public bool P2Sanctity2AllowNonPreferredTowerAsPrey = true;
+
+        [PropertyDisplay("P2 Sanctity of the Ward (meteors): all prey role use same direction (preferred or non-preferred, depending on what is better for prey), rather than always preferred")]
+        public bool P2Sanctity2AllowNonPreferredTowerAsNonPrey = false;
 
         [PropertyDisplay("P2 Sanctity of the Ward (meteors): if selecting non-preferred outer towers for prey, continue moving in non-preferred direction (rather than always moving in preferred direction)")]
         public bool P2Sanctity2PreyFollowsSelectedDirection = false;

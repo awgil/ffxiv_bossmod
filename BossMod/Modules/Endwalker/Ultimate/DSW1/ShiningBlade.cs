@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.DSW1
@@ -111,10 +110,16 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_target == actor && module.Raid.WithoutSlot().InRadiusExcluding(_target, _executionRadius).Any())
-                hints.Add("GTFO from raid!");
-            else if (_target != null && actor.Position.InCircle(_target.Position, _executionRadius))
-                hints.Add("GTFO from tank!");
+            if (_target == actor)
+            {
+                if (module.Raid.WithoutSlot().InRadiusExcluding(_target, _executionRadius).Any())
+                    hints.Add("GTFO from raid!");
+            }
+            else if (_target != null)
+            {
+                if (actor.Position.InCircle(_target.Position, _executionRadius))
+                    hints.Add("GTFO from tank!");
+            }
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)

@@ -290,9 +290,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             foreach (var safespot in MovementHintOffsets(pcSlot).Take(1))
             {
-                arena.AddCircle(module.Bounds.Center + safespot, 2, ArenaColor.Safe);
+                arena.AddCircle(module.Bounds.Center + safespot, 1, ArenaColor.Safe);
                 if (_groupEast.None())
-                    arena.AddCircle(module.Bounds.Center - safespot, 2, ArenaColor.Safe); // if there are no valid assignments, draw spots for both groups
+                    arena.AddCircle(module.Bounds.Center - safespot, 1, ArenaColor.Safe); // if there are no valid assignments, draw spots for both groups
             }
         }
 

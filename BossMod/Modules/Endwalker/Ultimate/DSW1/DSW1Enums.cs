@@ -52,7 +52,7 @@
         TheBullsSteel = 25293, // SerGrinnaux->self, 3.0s cast, enrage (heal + invuln + damage-up)
 
         PlanarPrison = 25313, // SerGrinnaux->self, no cast, range 70 circle, applies small damage, pulls to grinnaux and stuns for a second the whole raid right before pure-of-heart phase
-        PlanarPrison2 = 25580, // Helper->self, no cast, range ?-70 donut, ??? (cast extremely often and does nothing, some sort of fail mechanic?)
+        PlanarPrisonAOE = 25580, // Helper->self, no cast, range ?-70 donut, prevent moving outside small range of (89,100)
         SpearOfTheFury = 25314, // SerZephirin->self, 10.0s cast, range 22 width 10 rect, ??? (hits haurchefant??)
         BrightwingedFlight = 25366, // SerAdelphel->self, no cast, range 8 ?-degree cone, ??? (applies two buffs on ser charibert)
         PureOfHeart = 25316, // SerCharibert->self, 35.5s cast, raidwide, damage depends on caster hp %?

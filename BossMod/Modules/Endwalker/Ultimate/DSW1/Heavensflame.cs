@@ -59,7 +59,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
             foreach (var hint in PositionHints(module, pcSlot))
             {
-                module.Arena.AddCircle(hint, 2, ArenaColor.Safe);
+                module.Arena.AddCircle(hint, 1, ArenaColor.Safe);
                 //var dir = Vector3.Normalize(pos.Value - _knockbackSource.Position);
                 //var adjPos = module.Arena.ClampToBounds(_knockbackSource.Position + 50 * dir);
                 //module.Arena.AddLine(module.Bounds.Center, adjPos, ArenaColor.Safe);
@@ -131,8 +131,26 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                     {
                         var angle = 135.Degrees() - icon * 45.Degrees();
                         var offset = _tetherBreakDistance * 0.5f * angle.ToDirection();
-                        yield return module.Bounds.Center + offset;
-                        yield return module.Bounds.Center - offset;
+                        switch (icon)
+                        {
+                            case 1: // circle - both on DPS, show both E and W and let players adjust
+                                yield return module.Bounds.Center + offset;
+                                yield return module.Bounds.Center - offset;
+                                break;
+                            case 2: // triangle - healer SE, dps NW
+                            case 3: // cross - healer S, tank N
+                                if (module.Raid[slot]?.Role == Role.Healer)
+                                    yield return module.Bounds.Center + offset;
+                                else
+                                    yield return module.Bounds.Center - offset;
+                                break;
+                            case 4: // square - tank NE, dps SW
+                                if (module.Raid[slot]?.Role == Role.Tank)
+                                    yield return module.Bounds.Center - offset;
+                                else
+                                    yield return module.Bounds.Center + offset;
+                                break;
+                        }
                     }
                     break;
             }
