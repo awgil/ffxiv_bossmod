@@ -117,22 +117,26 @@
                 .DeactivateOnExit<P2SanctityOfTheWard1Flares>()
                 .DeactivateOnExit<P2SanctityOfTheWard1Sever>();
 
-            ComponentCondition<P2SanctityOfTheWard2>(id + 0x100, 11.9f, comp => comp.StormDone, "Storms")
+            ComponentCondition<P2SanctityOfTheWard2HiemalStorm>(id + 0x100, 11.9f, comp => comp.NumCasts > 0, "Storms")
                 .ActivateOnEnter<P2SanctityOfTheWard2HeavensStakeCircles>()
                 .ActivateOnEnter<P2SanctityOfTheWard2HeavensStakeDonut>()
-                .ActivateOnEnter<P2SanctityOfTheWard2>()
+                .ActivateOnEnter<P2SanctityOfTheWard2HiemalStorm>()
+                .ActivateOnEnter<P2SanctityOfTheWard2Towers1>()
                 .DeactivateOnExit<P2SanctityOfTheWard2HeavensStakeCircles>()
-                .DeactivateOnExit<P2SanctityOfTheWard2HeavensStakeDonut>();
-            ComponentCondition<P2SanctityOfTheWard2>(id + 0x110, 4.2f, comp => comp.Towers1Done > 0, "Towers 1")
+                .DeactivateOnExit<P2SanctityOfTheWard2HeavensStakeDonut>()
+                .DeactivateOnExit<P2SanctityOfTheWard2HiemalStorm>();
+            ComponentCondition<P2SanctityOfTheWard2Towers1>(id + 0x110, 4.2f, comp => comp.NumCasts > 0, "Towers 1")
                 .ActivateOnEnter<P2SanctityOfTheWard2VoidzoneFire>()
-                .ActivateOnEnter<P2SanctityOfTheWard2VoidzoneIce>();
+                .ActivateOnEnter<P2SanctityOfTheWard2VoidzoneIce>()
+                .ActivateOnEnter<P2SanctityOfTheWard2Towers2>();
             ComponentCondition<P2SanctityOfTheWard2Knockback>(id + 0x120, 10.4f, comp => comp.NumCasts > 0, "Knockback")
                 .ActivateOnEnter<P2SanctityOfTheWard2Knockback>()
                 .DeactivateOnExit<P2SanctityOfTheWard2Knockback>()
                 .DeactivateOnExit<P2SanctityOfTheWard2VoidzoneFire>()
                 .DeactivateOnExit<P2SanctityOfTheWard2VoidzoneIce>();
-            ComponentCondition<P2SanctityOfTheWard2>(id + 0x130, 3, comp => comp.Towers2Done > 0, "Towers 2")
-                .DeactivateOnExit<P2SanctityOfTheWard2>();
+            ComponentCondition<P2SanctityOfTheWard2Towers2>(id + 0x130, 3, comp => comp.NumCasts > 0, "Towers 2")
+                .DeactivateOnExit<P2SanctityOfTheWard2Towers1>() // TODO: reconsider...
+                .DeactivateOnExit<P2SanctityOfTheWard2Towers2>();
 
             Targetable(id + 0x200, true, 4.5f, "Reappear");
         }

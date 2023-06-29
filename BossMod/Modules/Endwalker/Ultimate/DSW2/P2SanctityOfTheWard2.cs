@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BossMod.AI;
+using System;
 using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.DSW2
@@ -37,21 +38,29 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         }
     }
 
-    // this component is about tower assignments, depending on initial assignments, tower positions and prey markers
+    // note: technically it's a 2-man stack, but that is not really helpful here...
+    class P2SanctityOfTheWard2HiemalStorm : Components.CastCounter
+    {
+        public P2SanctityOfTheWard2HiemalStorm() : base(ActionID.MakeSpell(AID.HiemalStormAOE)) { }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            arena.AddCircle(pc.Position, 7, ArenaColor.Danger);
+        }
+    }
+
     // identifiers used by this component:
     // - quadrant: N=0, E=1, S=2, W=3
     // - towers 1: [0,11] are outer towers in CW order, starting from '11 o'clock' (CCW tower of N quadrant); [12,15] are inner towers in CCW order, starting from NE (NE-SE-SW-NW)
     //   so, inner towers for quadrant k are [3*k, 3*k+2]; neighbouring inner are 12+k & 12+(k+3)%4
-    // - towers 2: [0,7] - CW order, starting from N
     // TODO: move hints for prey (position for new meteor is snapshotted approximately when previous meteors do their aoes; actual actor appears ~0.5s later)
-    class P2SanctityOfTheWard2 : BossComponent
+    class P2SanctityOfTheWard2Towers1 : Components.CastTowers
     {
         struct PlayerData
         {
-            public bool HavePrey;
             public int AssignedQuadrant;
-            public BitMask AssignedTowers1; // note: typically we have only 1 assigned tower, but in some cases two players can have two towers assigned to them, since we can't determine reliable priority
-            public int AssignedTower2;
+            public BitMask AssignedTowers; // note: typically we have only 1 assigned tower, but in some cases two players can have two towers assigned to them, since we can't determine reliable priority
+            public int PreyDistance; // 0 for non-prey targets
         }
 
         struct QuadrantData
@@ -60,57 +69,64 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             public int NonPreySlot;
         }
 
-        struct Tower1Data
+        [Flags]
+        enum AssignmentDebug
         {
-            public Actor? Actor; // null if tower is inactive
-            public BitMask AssignedPlayers;
+            PreySwapLazy = 0x01,
+            PreySwapCursed = 0x02,
+            OuterSync = 0x04,
+            OuterCenter = 0x08,
         }
 
-        public bool StormDone { get; private set; }
-        public int Towers1Done { get; private set; }
-        public int Towers2Done { get; private set; }
-        private DSW2Config _config;
+        private AssignmentDebug _assignmentDebug;
+        private bool _stormsDone;
+        private bool _preyOnTH;
+        private BitMask _preyTargets;
+        private int[] _towerIndices = new int[16];
         private PlayerData[] _players = new PlayerData[PartyState.MaxPartySize];
         private QuadrantData[] _quadrants = new QuadrantData[4];
-        private Tower1Data[] _towers1 = new Tower1Data[16];
-        private Actor?[] _towers2 = new Actor?[8];
-        private int _activeTowers1;
-        private int _assignedPreys;
-        private bool _preyOnTH;
-        private bool _preyGoCCW;
-        private bool _preyGoEW;
-        private bool _nonPreyGoCCW; // this is for non-prey players of prey role!
-        private int _preyScore;
-        private int _preyLimitedRangeQuadrant = -1; // if score is < 2, index of quadrant that has less than 180 degrees of distance to place comets
-        private string _preySwap = "none";
+        private BitMask _activeTowers;
+        private string _preySwap = "";
+        private string _preyHint = "";
 
-        private static float _towerRadius = 3;
-        private static float _stormRadius = 7;
         private static float _stormPlacementOffset = 10;
         private static float _cometLinkRange = 5;
 
-        public P2SanctityOfTheWard2()
+        public bool Active => Towers.Count == 8;
+
+        public P2SanctityOfTheWard2Towers1() : base(ActionID.MakeSpell(AID.Conviction2AOE), 3)
         {
-            _config = Service.Config.Get<DSW2Config>();
-            for (int i = 0; i < _players.Length; ++i)
-                _players[i] = new() { AssignedQuadrant = -1, AssignedTower2 = -1 };
+            Array.Fill(_towerIndices, -1);
+            Array.Fill(_players, new() { AssignedQuadrant = -1 });
+            Array.Fill(_quadrants, new() { PreySlot = -1, NonPreySlot = -1 });
         }
+
+        // TODO: use some sort of a config update hook to simplify debugging...
+        //public override void Update(BossModule module)
+        //{
+        //    if (Active)
+        //    {
+        //        for (int i = 0; i < _players.Length; ++i)
+        //            _players[i].AssignedTowers.Reset();
+        //        for (int i = 0; i < Towers.Count; ++i)
+        //            Towers.AsSpan()[i].ForbiddenSoakers.Reset();
+        //        InitAssignments(module);
+        //    }
+        //}
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_activeTowers1 != 8 || _assignedPreys != 2)
-                return;
-
-            if (_players[slot].HavePrey && _players[slot].AssignedQuadrant == _preyLimitedRangeQuadrant)
+            // note: we're not showing standard 'soak/gtfo' hints, they are useless - player should know where to go based on other hints...
+            if (_players[slot].PreyDistance is var dist && dist > 0)
             {
-                hints.Add("Limited range", false);
+                hints.Add($"Prey distance: {dist}deg", false);
             }
 
-            if (movementHints != null && _players[slot].AssignedQuadrant >= 0)
+            if (Active && movementHints != null && _players[slot].AssignedQuadrant >= 0)
             {
                 var from = actor.Position;
                 var color = ArenaColor.Safe;
-                if (!StormDone)
+                if (!_stormsDone)
                 {
                     var stormPos = StormPlacementPosition(module, _players[slot].AssignedQuadrant);
                     movementHints.Add(from, stormPos, color);
@@ -118,65 +134,39 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     color = ArenaColor.Danger;
                 }
 
-                foreach (var tower in _towers1)
+                foreach (var tower in Towers.Where(t => !t.ForbiddenSoakers[slot]))
                 {
-                    if (tower.Actor?.CastInfo != null && tower.AssignedPlayers[slot])
-                    {
-                        movementHints.Add(from, tower.Actor.CastInfo.LocXZ, color);
-                    }
+                    movementHints.Add(from, tower.Position, color);
                 }
             }
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            if (_activeTowers1 == 8 && _assignedPreys == 2)
+            if (Active)
             {
-                hints.Add($"Prey: {(_preyOnTH ? "T/H" : "DD")}, swap {_preySwap}, {(_preyGoCCW ? "counterclockwise" : "clockwise")} ({_preyScore * 30 + 120} degrees)");
+                hints.Add($"Prey: {(_preyOnTH ? "T/H" : "DD")}, swap {_preySwap}, prey towers {_preyHint}");
             }
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {
-            return _players[playerSlot].HavePrey ? PlayerPriority.Danger : PlayerPriority.Normal;
+            return _preyTargets[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Normal;
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_activeTowers1 == 8)
+            base.DrawArenaForeground(module, pcSlot, pc, arena);
+
+            if (Active)
             {
                 float diag = module.Bounds.HalfSize / 1.414214f;
-                arena.AddLine(module.Bounds.Center + new WDir(diag,  diag), module.Bounds.Center - new WDir(diag,  diag), ArenaColor.Border);
+                arena.AddLine(module.Bounds.Center + new WDir(diag, diag), module.Bounds.Center - new WDir(diag, diag), ArenaColor.Border);
                 arena.AddLine(module.Bounds.Center + new WDir(diag, -diag), module.Bounds.Center - new WDir(diag, -diag), ArenaColor.Border);
-
-                foreach (var tower in _towers1)
-                {
-                    if (tower.Actor?.CastInfo != null)
-                    {
-                        if (tower.AssignedPlayers[pcSlot])
-                            arena.AddCircle(tower.Actor.CastInfo.LocXZ, _towerRadius, ArenaColor.Safe, 2);
-                        else
-                            arena.AddCircle(tower.Actor.CastInfo.LocXZ, _towerRadius, ArenaColor.Danger, 1);
-                    }
-                }
-
-                if (!StormDone)
-                    arena.AddCircle(pc.Position, _stormRadius, ArenaColor.Danger);
             }
 
-            for (int i = 0; i < _towers2.Length; ++i)
-            {
-                var tower = _towers2[i];
-                if (tower?.CastInfo != null)
-                {
-                    if (_players[pcSlot].AssignedTower2 == i)
-                        arena.AddCircle(tower.CastInfo.LocXZ, _towerRadius, ArenaColor.Safe, 2);
-                    else
-                        arena.AddCircle(tower.CastInfo.LocXZ, _towerRadius, ArenaColor.Danger, 1);
-                }
-            }
-
-            if (_players[pcSlot].HavePrey)
+            // TODO: move to separate comet component...
+            if (_preyTargets[pcSlot])
             {
                 foreach (var comet in module.Enemies(OID.HolyComet))
                 {
@@ -188,59 +178,38 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            switch ((AID)spell.Action.ID)
+            base.OnCastStarted(module, caster, spell);
+            if (spell.Action == WatchedAction)
             {
-                case AID.Conviction2AOE:
-                    int id1 = ClassifyTower1(module, caster);
-                    _towers1[id1].Actor = caster;
-                    ++_activeTowers1;
-                    InitAssignments(module);
-                    break;
-                case AID.Conviction3AOE:
-                    int id2 = ClassifyTower2(module, caster);
-                    _towers2[id2] = caster;
-                    break;
-            }
-        }
+                // mark tower as active
+                int index = ClassifyTower(module, spell.LocXZ);
+                _towerIndices[index] = Towers.Count - 1;
+                _activeTowers.Set(index);
 
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.Conviction2AOE:
-                    --_activeTowers1;
-                    ++Towers1Done;
-                    break;
-                case AID.Conviction3AOE:
-                    ++Towers2Done;
-                    break;
+                if (Active)
+                    InitAssignments(module);
             }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if ((AID)spell.Action.ID == AID.HiemalStormAOE)
-                StormDone = true;
+            if ((AID)spell.Action.ID is AID.HiemalStormAOE)
+                _stormsDone = true;
         }
 
+        // note: might as well use statuses...
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Prey)
             {
-                int slot = module.Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0)
-                {
-                    _preyOnTH = actor.Role is Role.Tank or Role.Healer;
-                    _players[slot].HavePrey = true;
-                    ++_assignedPreys;
-                }
-                InitAssignments(module);
+                _preyOnTH = actor.Class.IsSupport();
+                _preyTargets.Set(module.Raid.FindSlot(actor.InstanceID));
             }
         }
 
-        private int ClassifyTower1(BossModule module, Actor tower)
+        public static int ClassifyTower(BossModule module, WPos tower)
         {
-            var offset = tower.Position - module.Bounds.Center;
+            var offset = tower - module.Bounds.Center;
             var dir = Angle.FromDirection(offset);
             if (offset.LengthSq() < 7 * 7)
             {
@@ -254,75 +223,49 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        private int ClassifyTower2(BossModule module, Actor tower)
+        // bit 0 = CCW, bit 1 = center, bit 2 = CW
+        private ulong OuterTowersMask(int quadrant) => (_activeTowers.Raw >> (quadrant * 3)) & 0b111;
+
+        private int SelectOuterTower(ulong mask, bool cw)
         {
-            var offset = tower.Position - module.Bounds.Center;
-            var dir = Angle.FromDirection(offset);
-            return (4 - (int)MathF.Round(dir.Rad / MathF.PI * 4)) % 8;
+            var cmask = new BitMask(mask);
+            return cw ? cmask.HighestSetBit() : cmask.LowestSetBit();
+        }
+
+        // 0 = 180 degrees, 1 = 150 degrees, 2 = 120 degrees
+        private int OuterTowerPenalty(int t1, int t2) => Math.Abs(t1 - t2);
+
+        private bool TowerUnassigned(int t)
+        {
+            var index = _towerIndices[t];
+            return index >= 0 && Towers[index].ForbiddenSoakers.None();
         }
 
         private void InitAssignments(BossModule module)
         {
-            if (_activeTowers1 != 8 || _assignedPreys != 2)
-                return; // not ready yet...
-
-            // prey position assignment - can be done even if we don't have valid group assignments
-            InitPreyPositions(module);
-
-            // the rest is only done if we have proper group assignments
-            // assign cardinal bait positions: start with assigned groups
-            if (InitQuadrantAssignments(module))
+            _preySwap = "unconfigured";
+            _preyHint = "unknown";
+            var config = Service.Config.Get<DSW2Config>();
+            if (InitQuadrantAssignments(module, config))
             {
-                // swap prey role to desired cardinals
-                InitQuadrantSwaps(module);
-
-                // now assign towers to players
-                InitTowers1(module);
-                InitTowers2(module);
-            }
-            else
-            {
-                _preySwap = "unconfigured";
-            }
-        }
-
-        private void InitPreyPositions(BossModule module)
-        {
-            _preyGoEW = _config.P2Sanctity2PreferEWPrey;
-            InitPreyPositionsForCurrentCardinals();
-            if (_preyScore == 0 && !_config.P2Sanctity2ForcePreferredPrey)
-            {
-                _preyGoEW = !_preyGoEW;
-                InitPreyPositionsForCurrentCardinals();
-            }
-        }
-
-        private void InitPreyPositionsForCurrentCardinals()
-        {
-            _preyGoCCW = !_config.P2Sanctity2PreferCWTowerAsPrey;
-            (_preyScore, _preyLimitedRangeQuadrant) = ScoreForAssignment(_preyGoEW, _preyGoCCW, _preyGoCCW);
-            if (_config.P2Sanctity2AllowNonPreferredTowerAsPrey)
-            {
-                var (altScore, altQ) = ScoreForAssignment(_preyGoEW, !_preyGoCCW, _config.P2Sanctity2PreyFollowsSelectedDirection ? !_preyGoCCW : _preyGoCCW);
-                if (altScore > _preyScore)
+                InitQuadrantSwaps(module, config);
+                if (InitOuterTowers(module, config))
                 {
-                    _preyGoCCW = !_preyGoCCW;
-                    _preyScore = altScore;
-                    _preyLimitedRangeQuadrant = altQ;
+                    InitInnerTowers(module, config);
                 }
             }
-            _nonPreyGoCCW = _config.P2Sanctity2AllowNonPreferredTowerAsNonPrey ? _preyGoCCW : !_config.P2Sanctity2PreferCWTowerAsPrey;
         }
 
-        private bool InitQuadrantAssignments(BossModule module)
+        // initial assignments, before swaps
+        private bool InitQuadrantAssignments(BossModule module, DSW2Config config)
         {
             bool validAssignments = false;
-            foreach (var (slot, quadrant) in _config.P2Sanctity2Pairs.Resolve(module.Raid))
+            foreach (var (slot, quadrant) in config.P2Sanctity2Pairs.Resolve(module.Raid))
             {
                 validAssignments = true;
                 _players[slot].AssignedQuadrant = quadrant;
 
-                bool isTH = module.Raid[slot]!.Role is Role.Tank or Role.Healer;
+                bool isTH = module.Raid[slot]?.Role is Role.Tank or Role.Healer;
                 if (isTH == _preyOnTH)
                     _quadrants[quadrant].PreySlot = slot;
                 else
@@ -331,45 +274,77 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             return validAssignments;
         }
 
-        private void InitQuadrantSwaps(BossModule module)
+        // swap quadrants for prey roles according to our strategy
+        private void InitQuadrantSwaps(BossModule module, DSW2Config config)
         {
-            int preyQ1 = _preyGoEW ? 1 : 0;
-            int preyQ2 = preyQ1 + 2;
-            bool slot1Swaps = !_players[_quadrants[preyQ1].PreySlot].HavePrey;
-            bool slot2Swaps = !_players[_quadrants[preyQ2].PreySlot].HavePrey;
-            if (slot1Swaps && slot2Swaps)
+            // preferred prey cardinals
+            var q1 = config.P2Sanctity2PreyCardinals is DSW2Config.P2PreyCardinals.AlwaysEW or DSW2Config.P2PreyCardinals.PreferEW ? 1 : 0;
+            var q2 = q1 + 2;
+
+            // lazy preferences: if both preys are at wrong cardinal, prefer not moving
+            if (config.P2Sanctity2PreyCardinals is DSW2Config.P2PreyCardinals.PreferNS or DSW2Config.P2PreyCardinals.PreferEW && !_preyTargets[_quadrants[q1].PreySlot] && !_preyTargets[_quadrants[q2].PreySlot])
             {
-                // both prey markers at wrong cardinals
-                if (_config.P2Sanctity2PreferNoSwapsPrey && _config.P2Sanctity2ForcePreferredPrey)
+                _assignmentDebug |= AssignmentDebug.PreySwapLazy;
+                q1 ^= 1;
+                q2 ^= 1;
+            }
+
+            // check whether we don't have cursed pattern
+            if (!config.P2Sanctity2ForcePreferredPrey)
+            {
+                // cursed patterns are CW+CCW or CCW+CW
+                var q1towers = OuterTowersMask(q1);
+                var q2towers = OuterTowersMask(q2);
+                bool cursed = (q1towers & q2towers) == 0 && (q1towers | q2towers) == 0b101; // 100+001 or 001+100
+                if (cursed)
                 {
-                    // ... but we really don't like doing both swaps
-                    _preyGoEW = !_preyGoEW;
-                    InitPreyPositionsForCurrentCardinals();
-                    _preySwap = "none";
-                }
-                else
-                {
-                    if (_config.P2Sanctity2SwapBothNE)
-                    {
-                        SwapPreyQuadrants(0, 1);
-                        SwapPreyQuadrants(2, 3);
-                    }
-                    else
-                    {
-                        SwapPreyQuadrants(0, 3);
-                        SwapPreyQuadrants(1, 2);
-                    }
-                    _preySwap = "both";
+                    _assignmentDebug |= AssignmentDebug.PreySwapCursed;
+                    q1 ^= 1;
+                    q2 ^= 1;
                 }
             }
-            else if (slot1Swaps || slot2Swaps)
+
+            // now that we've selected cardinals for preys, see whether any prey roles need to swap
+            var q1swap = !_preyTargets[_quadrants[q1].PreySlot];
+            var q2swap = !_preyTargets[_quadrants[q2].PreySlot];
+            if (q1swap && q2swap)
             {
-                int swapQ1 = slot1Swaps ? preyQ1 : preyQ2;
-                int swapQ2 = _preyGoEW ? 0 : 1;
-                if (!_players[_quadrants[swapQ2].PreySlot].HavePrey)
-                    swapQ2 += 2;
+                // both preys at wrong cardinal, swap according to our strategy
+                switch (config.P2Sanctity2SwapDirection)
+                {
+                    case DSW2Config.P2PreySwapDirection.RotateCW:
+                        // 0123->1230; this is equivalent to 3 swaps: 0123->1023->1032->1230
+                        SwapPreyQuadrants(0, 1);
+                        SwapPreyQuadrants(2, 3);
+                        SwapPreyQuadrants(1, 3);
+                        break;
+                    case DSW2Config.P2PreySwapDirection.RotateCCW:
+                        // 0123->3012 => 0123->1023->1032->3012
+                        SwapPreyQuadrants(0, 1);
+                        SwapPreyQuadrants(2, 3);
+                        SwapPreyQuadrants(0, 2);
+                        break;
+                    case DSW2Config.P2PreySwapDirection.PairsNE:
+                        // 0123->1032
+                        SwapPreyQuadrants(0, 1);
+                        SwapPreyQuadrants(2, 3);
+                        break;
+                    case DSW2Config.P2PreySwapDirection.PairsNW:
+                        // 0123->3210
+                        SwapPreyQuadrants(0, 3);
+                        SwapPreyQuadrants(1, 2);
+                        break;
+                }
+                _preySwap = "both";
+            }
+            else if (q1swap || q2swap)
+            {
+                int swapQ1 = q1swap ? q1 : q2; // prey-role assigned to this quadrant is not a prey target
+                int swapQ2 = q1 ^ 1; // arbitrary
+                if (!_preyTargets[_quadrants[swapQ2].PreySlot])
+                    swapQ2 ^= 2; // we guessed wrong - our prey target to swap with is in remaining quadrant
                 SwapPreyQuadrants(swapQ1, swapQ2);
-                _preySwap = $"{WaymarkForQuadrant(module, swapQ1)}/{WaymarkForQuadrant(module, swapQ2)}";
+                _preySwap = $"{QuadrantSwapHint(module, swapQ1)}/{QuadrantSwapHint(module, swapQ2)}";
             }
             else
             {
@@ -377,29 +352,97 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        private void InitTowers1(BossModule module)
+        private void SwapPreyQuadrants(int q1, int q2)
         {
-            // assign outer towers
-            for (int q = 0; q < _quadrants.Length; ++q)
+            int s1 = _quadrants[q1].PreySlot;
+            int s2 = _quadrants[q2].PreySlot;
+            _quadrants[q1].PreySlot = s2;
+            _quadrants[q2].PreySlot = s1;
+            _players[s1].AssignedQuadrant = q2;
+            _players[s2].AssignedQuadrant = q1;
+        }
+
+        // outer tower assignments
+        private bool InitOuterTowers(BossModule module, DSW2Config config)
+        {
+            if (config.P2Sanctity2OuterTowers == DSW2Config.P2OuterTowers.None)
+                return false;
+
+            // start by assigning towers in preferred direction
+            var q1 = _preyTargets[_quadrants[0].PreySlot] ? 0 : 1;
+            var q2 = q1 + 2;
+            var q1towers = OuterTowersMask(q1);
+            var q2towers = OuterTowersMask(q2);
+            var q12cw = config.P2Sanctity2PreferCWTowerAsPrey;
+            var q1selected = SelectOuterTower(q1towers, q12cw);
+            var q2selected = SelectOuterTower(q2towers, q12cw);
+
+            // try synchronized swap, if allowed
+            // note that in 1-1 pattern it won't make any difference, in 1-2 pattern it can find better solution
+            if (config.P2Sanctity2OuterTowers != DSW2Config.P2OuterTowers.AlwaysPreferred)
             {
-                bool isEW = q is 1 or 3;
-                bool isPrey = _preyGoEW == isEW;
-                bool ccw = isPrey ? _preyGoCCW : _nonPreyGoCCW;
-
-                // first (or only) - to prey role
-                var t1 = SelectOuterTower(q, ccw);
-                AssignTower(_quadrants[q].PreySlot, t1);
-
-                // if there is second one, assign to non-prey role
-                var t2 = SelectOuterTower(q, !ccw);
-                if (t2 != t1)
+                // try synchronized swap
+                var q1alt = SelectOuterTower(q1towers, !q12cw);
+                var q2alt = SelectOuterTower(q2towers, !q12cw);
+                if (OuterTowerPenalty(q1selected, q2selected) > OuterTowerPenalty(q1alt, q2alt))
                 {
-                    AssignTower(_quadrants[q].NonPreySlot, t2);
+                    q12cw = !q12cw;
+                    q1selected = q1alt;
+                    q2selected = q2alt;
+                    _assignmentDebug |= AssignmentDebug.OuterSync;
                 }
             }
+            _preyHint = q12cw ? "cw" : "ccw";
 
+            // try individual mixed swap, if allowed
+            // note that for 1-1 or 1-2 patterns, this can never be better than sync swap (since there are only 2 options anyway)
+            // for 2-2 pattern, the worst case is 150-degree pattern even without any swaps, sync swap could have improved that to optimal - in such case individual swaps won't matter
+            // the only way individual swaps could be better if both synchronized options are 150, but there exists a 180 option 'both to central' (CW+center vs CCW+center)
+            if (config.P2Sanctity2OuterTowers == DSW2Config.P2OuterTowers.Individual && q1selected != q2selected && (q1towers & q2towers & 0x010) != 0)
+            {
+                q1selected = 1;
+                q2selected = 1;
+                _preyHint = "center";
+                // note: q12cw is now meaningless, but it doesn't matter
+                _assignmentDebug |= AssignmentDebug.OuterCenter;
+            }
+
+            // ok, assign outer towers for prey targets
+            AssignTower(_quadrants[q1].PreySlot, q1 * 3 + q1selected);
+            AssignTower(_quadrants[q2].PreySlot, q2 * 3 + q2selected);
+            _players[_quadrants[q1].PreySlot].PreyDistance = 180 + 30 * (q2selected - q1selected);
+            _players[_quadrants[q2].PreySlot].PreyDistance = 180 + 30 * (q1selected - q2selected);
+
+            // assign outer targets for remaining prey roles
+            var q3 = q1 ^ 1;
+            var q4 = q3 + 2;
+            var q3towers = OuterTowersMask(q3);
+            var q4towers = OuterTowersMask(q4);
+            var q34cw = config.P2Sanctity2OuterTowers == DSW2Config.P2OuterTowers.SynchronizedRole ? q12cw : config.P2Sanctity2PreferCWTowerAsPrey;
+            var q3selected = SelectOuterTower(q3towers, q34cw);
+            var q4selected = SelectOuterTower(q4towers, q34cw);
+            AssignTower(_quadrants[q3].PreySlot, q3 * 3 + q3selected);
+            AssignTower(_quadrants[q4].PreySlot, q4 * 3 + q4selected);
+
+            // and finally assign towers for non-prey roles
+            Action<int, ulong, int> assignNonPrey = (q, towers, taken) =>
+            {
+                var remaining = new BitMask(towers ^ (1u << taken));
+                if (remaining.Any())
+                    AssignTower(_quadrants[q].NonPreySlot, remaining.LowestSetBit() + 3 * q);
+            };
+            assignNonPrey(q1, q1towers, q1selected);
+            assignNonPrey(q2, q2towers, q2selected);
+            assignNonPrey(q3, q3towers, q3selected);
+            assignNonPrey(q4, q4towers, q4selected);
+
+            return true;
+        }
+
+        private void InitInnerTowers(BossModule module, DSW2Config config)
+        {
             // now assign inner towers, as long as it can be done non-ambiguously
-            switch (_config.P2Sanctity2InnerTowers)
+            switch (config.P2Sanctity2InnerTowers)
             {
                 case DSW2Config.P2InnerTowers.Closest:
                     AssignInnerTowersClosest();
@@ -410,16 +453,29 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
 
             // if we still have unassigned towers, assign each of them to each remaining player
-            var ambiguousQuadrants = _quadrants.Where(q => _players[q.NonPreySlot].AssignedTowers1.None()).ToArray();
-            for (int t = 12; t < _towers1.Length; ++t)
+            var ambiguousSlots = _quadrants.Select(q => q.NonPreySlot).Where(slot => _players[slot].AssignedTowers.None()).ToArray();
+            for (int t = 12; t < _towerIndices.Length; ++t)
             {
-                if (_towers1[t].Actor != null && _towers1[t].AssignedPlayers.None())
+                if (TowerUnassigned(t))
                 {
-                    foreach (var q in ambiguousQuadrants)
+                    foreach (var slot in ambiguousSlots)
                     {
-                        AssignTower(q.NonPreySlot, t);
+                        AssignTower(slot, t);
                     }
                 }
+            }
+        }
+
+        private void AssignTower(int slot, int tower)
+        {
+            _players[slot].AssignedTowers.Set(tower);
+            var index = _towerIndices[tower];
+            if (index >= 0)
+            {
+                ref var t = ref Towers.AsSpan()[index];
+                if (t.ForbiddenSoakers.None())
+                    t.ForbiddenSoakers = new(ulong.MaxValue);
+                t.ForbiddenSoakers.Clear(slot);
             }
         }
 
@@ -431,7 +487,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 int unambiguousQuadrant = -1;
                 for (int q = 0; q < _quadrants.Length; ++q)
                 {
-                    if (_players[_quadrants[q].NonPreySlot].AssignedTowers1.Any())
+                    if (_players[_quadrants[q].NonPreySlot].AssignedTowers.Any())
                         continue;
 
                     int potential = FindUnassignedUnambiguousInnerTower(q);
@@ -466,91 +522,28 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 for (int q = 0; q < _quadrants.Length; ++q)
                 {
-                    if (_players[_quadrants[q].NonPreySlot].AssignedTowers1.Any())
-                        continue;
-
-                    var tower = 12 + ((q + distance) & 3);
-                    if (_towers1[tower].Actor == null || _towers1[tower].AssignedPlayers.Any())
-                        continue; // tower is unavailable or already assigned
-
-                    AssignTower(_quadrants[q].NonPreySlot, tower);
+                    if (_players[_quadrants[q].NonPreySlot].AssignedTowers.None())
+                    {
+                        var tower = 12 + ((q + distance) & 3);
+                        if (TowerUnassigned(tower))
+                        {
+                            AssignTower(_quadrants[q].NonPreySlot, tower);
+                        }
+                    }
                 }
             }
-        }
-
-        private void InitTowers2(BossModule module)
-        {
-            for (int q = 0; q < _quadrants.Length; ++q)
-            {
-                var quadrant = _quadrants[q];
-                _players[quadrant.PreySlot].AssignedTower2 = _players[quadrant.PreySlot].HavePrey ? (2 * q + 4) % 8 : (2 * q);
-                _players[quadrant.NonPreySlot].AssignedTower2 = _config.P2Sanctity2NonPreyTowerCW ? (2 * q + 1) : (2 * q + 7) % 8;
-            }
-        }
-
-        // 'score' depends on angle between preys: 0 for 120, 1 for 150, 2 for 180
-        // 'limited quadrant' is -1 if angle is 180, otherwise it is index of the quadrant that has shorter movement range
-        private (int, int) ScoreForAssignment(bool ew, bool ccwTowers, bool ccwMovement)
-        {
-            int q1 = ew ? 1 : 0;
-            int q2 = q1 + 2;
-            int t1 = SelectOuterTower(q1, ccwTowers);
-            int t2 = SelectOuterTower(q2, ccwTowers);
-            return (t2 - t1) switch
-            {
-                4 => (0, ccwMovement ? q2 : q1),
-                5 => (1, ccwMovement ? q2 : q1),
-                6 => (2, -1),
-                7 => (1, ccwMovement ? q1 : q2),
-                8 => (0, ccwMovement ? q1 : q2),
-                _ => (2, -1) // that's an error, really...
-            };
-        }
-
-        private int SelectOuterTower(int quadrant, bool ccw)
-        {
-            int begin = 3 * quadrant, end = begin + 3;
-            if (ccw)
-            {
-                for (int i = begin; i < end; ++i)
-                    if (_towers1[i].Actor != null)
-                        return i;
-            }
-            else
-            {
-                for (int i = end - 1; i >= begin; --i)
-                    if (_towers1[i].Actor != null)
-                        return i;
-            }
-            return -1;
-        }
-
-        private void SwapPreyQuadrants(int q1, int q2)
-        {
-            int s1 = _quadrants[q1].PreySlot;
-            int s2 = _quadrants[q2].PreySlot;
-            _quadrants[q1].PreySlot = s2;
-            _quadrants[q2].PreySlot = s1;
-            _players[s1].AssignedQuadrant = q2;
-            _players[s2].AssignedQuadrant = q1;
         }
 
         private int FindUnassignedUnambiguousInnerTower(int quadrant)
         {
             int candidate1 = 12 + quadrant;
             int candidate2 = 12 + ((quadrant + 3) & 3);
-            bool available1 = _towers1[candidate1].Actor != null && _towers1[candidate1].AssignedPlayers.None();
-            bool available2 = _towers1[candidate2].Actor != null && _towers1[candidate2].AssignedPlayers.None();
+            bool available1 = TowerUnassigned(candidate1);
+            bool available2 = TowerUnassigned(candidate2);
             if (available1 == available2)
                 return -1;
             else
                 return available1 ? candidate1 : candidate2;
-        }
-
-        private void AssignTower(int slot, int tower)
-        {
-            _players[slot].AssignedTowers1.Set(tower);
-            _towers1[tower].AssignedPlayers.Set(slot);
         }
 
         private WPos StormPlacementPosition(BossModule module, int quadrant)
@@ -559,25 +552,127 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             return module.Bounds.Center + _stormPlacementOffset * dir.ToDirection();
         }
 
-        private string WaymarkForQuadrant(BossModule module, int quadrant)
+        private string QuadrantSwapHint(BossModule module, int quadrant)
         {
-            var pos = StormPlacementPosition(module, quadrant);
-
-            Waymark closest = Waymark.Count;
-            float closestD = float.MaxValue;
-
-            for (int i = 0; i < (int)Waymark.Count; ++i)
+            return quadrant switch
             {
-                var w = (Waymark)i;
-                var p = module.WorldState.Waymarks[w];
-                float d = p != null ? (pos - new WPos(p.Value.XZ())).LengthSq() : float.MaxValue;
-                if (d < closestD)
+                0 => "N",
+                1 => "E",
+                2 => "S",
+                3 => "W",
+                _ => "?"
+            };
+
+            //var pos = StormPlacementPosition(module, quadrant);
+
+            //Waymark closest = Waymark.Count;
+            //float closestD = float.MaxValue;
+
+            //for (int i = 0; i < (int)Waymark.Count; ++i)
+            //{
+            //    var w = (Waymark)i;
+            //    var p = module.WorldState.Waymarks[w];
+            //    float d = p != null ? (pos - new WPos(p.Value.XZ())).LengthSq() : float.MaxValue;
+            //    if (d < closestD)
+            //    {
+            //        closest = w;
+            //        closestD = d;
+            //    }
+            //}
+            //return closest < Waymark.Count ? closest.ToString() : "-";
+        }
+    }
+
+    // identifiers used by this component:
+    // - towers 2: [0,7] - CW order, starting from N
+    class P2SanctityOfTheWard2Towers2 : Components.CastTowers
+    {
+        private bool _preyOnTH;
+        private BitMask _preyTargets;
+        private int[] _playerTowers = new int[PartyState.MaxPartySize];
+
+        public P2SanctityOfTheWard2Towers2() : base(ActionID.MakeSpell(AID.Conviction3AOE), 3)
+        {
+            Array.Fill(_playerTowers, -1);
+        }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            // note: not drawing any default hints here...
+        }
+
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+            if ((SID)status.ID == SID.Prey)
+            {
+                bool first = _preyTargets.None();
+                _preyOnTH = actor.Class.IsSupport();
+                _preyTargets.Set(module.Raid.FindSlot(actor.InstanceID));
+
+                // assign non-prey-role positions here
+                if (first)
+                    InitNonPreyAssignments(module);
+            }
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction)
+            {
+                var index = ClassifyTower(module, spell.LocXZ);
+                var forbidden = module.Raid.WithSlot(true).WhereSlot(s => _playerTowers[s] >= 0 && _playerTowers[s] != index).Mask();
+                Towers.Add(new(spell.LocXZ, Radius, forbiddenSoakers: forbidden));
+            }
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            base.OnEventCast(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.Conviction2AOE && !spell.TargetXZ.InCircle(module.Bounds.Center, 7))
+            {
+                // we assign towers to prey role players according to the quadrant they were soaking their tower - this handles unexpected swaps on first towers gracefully
+                foreach (var t in spell.Targets)
                 {
-                    closest = w;
-                    closestD = d;
+                    var slot = module.Raid.FindSlot(t.ID);
+                    if (module.Raid[slot]?.Class.IsSupport() == _preyOnTH)
+                    {
+                        var towerOffset = spell.TargetXZ - module.Bounds.Center;
+                        var towerIndex = towerOffset.Z switch
+                        {
+                            < -10 => 0, // N tower
+                            > +10 => 4, // S tower
+                            _ => towerOffset.X > 0 ? 2 : 6
+                        };
+                        if (_preyTargets[slot])
+                            towerIndex = (towerIndex + 4) & 7; // preys will rotate 180 degrees
+                        _playerTowers[slot] = towerIndex;
+                    }
                 }
             }
-            return closest < Waymark.Count ? closest.ToString() : "-";
+        }
+
+        private int ClassifyTower(BossModule module, WPos tower)
+        {
+            var offset = tower - module.Bounds.Center;
+            var dir = Angle.FromDirection(offset);
+            return (4 - (int)MathF.Round(dir.Rad / MathF.PI * 4)) % 8;
+        }
+
+        private void InitNonPreyAssignments(BossModule module)
+        {
+            var config = Service.Config.Get<DSW2Config>();
+            foreach (var (slot, quadrant) in config.P2Sanctity2Pairs.Resolve(module.Raid))
+            {
+                if (module.Raid[slot]?.Class.IsSupport() != _preyOnTH)
+                {
+                    var tower = 2 * quadrant;
+                    if (config.P2Sanctity2NonPreyTowerCW)
+                        tower += 1;
+                    else
+                        tower = tower == 0 ? 7 : tower - 1;
+                    _playerTowers[slot] = tower;
+                }
+            }
         }
     }
 }

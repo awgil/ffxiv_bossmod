@@ -21,29 +21,69 @@
         [GroupPreset("MT/R1 N, OT/R2 S, H1/M1 W, H2/M2 E", new[] { 0, 2, 3, 1, 3, 1, 0, 2 })]
         public GroupAssignmentDDSupportPairs P2Sanctity2Pairs = GroupAssignmentDDSupportPairs.DefaultOneMeleePerPair();
 
-        [PropertyDisplay("P2 Sanctity of the Ward (meteors): prey targets prefer E/W, rather than N/S")]
-        public bool P2Sanctity2PreferEWPrey = false;
+        public enum P2PreyCardinals
+        {
+            [PropertyDisplay("N/S always")]
+            AlwaysNS,
 
-        [PropertyDisplay("P2 Sanctity of the Ward (meteors): if both prey targets are at non-preferred cardinal, prefer not swapping")]
-        public bool P2Sanctity2PreferNoSwapsPrey = false;
+            [PropertyDisplay("E/W always")]
+            AlwaysEW,
 
-        [PropertyDisplay("P2 Sanctity of the Ward (meteors): force preferred cardinals even for 120-degree best distance (simpler swaps, but trickier movement)")]
-        public bool P2Sanctity2ForcePreferredPrey = false;
+            [PropertyDisplay("N/S, unless both preys start at E & W")]
+            PreferNS,
 
-        [PropertyDisplay("P2 Sanctity of the Ward (meteors): swap N/E and S/W (rather than N/W and S/E) when both soakers are on wrong cardinals")]
-        public bool P2Sanctity2SwapBothNE = false;
+            [PropertyDisplay("E/W, unless both preys start at N & S")]
+            PreferEW,
+        }
 
-        [PropertyDisplay("P2 Sanctity of the Ward (meteors): prefer CW (rather than CCW) outer tower as prey role")]
+        [PropertyDisplay("P2 Sanctity of the Ward (meteors): preferred cardinals for prey targets")]
+        public P2PreyCardinals P2Sanctity2PreyCardinals;
+
+        [PropertyDisplay("P2 Sanctity of the Ward (meteors): force preferred cardinals even for 120-degree pattern (simpler swaps, but trickier movement)")]
+        public bool P2Sanctity2ForcePreferredPrey = true;
+
+        public enum P2PreySwapDirection
+        {
+            [PropertyDisplay("All prey roles rotate clockwise")]
+            RotateCW,
+
+            [PropertyDisplay("All prey roles rotate counterclockwise")]
+            RotateCCW,
+
+            [PropertyDisplay("Pairwise: N <-> E, S <-> W")]
+            PairsNE,
+
+            [PropertyDisplay("Pairwise: N <-> W, S <-> E")]
+            PairsNW,
+        }
+
+        [PropertyDisplay("P2 Sanctity of the Ward (meteors): swap direction if both prey targets are on wrong cardinals")]
+        public P2PreySwapDirection P2Sanctity2SwapDirection;
+
+        [PropertyDisplay("P2 Sanctity of the Ward (meteors): preferred outer tower for prey role")]
+        [PropertyCombo("CCW (leftmost, if facing outside)", "CW (rightmost, if facing outside)")]
         public bool P2Sanctity2PreferCWTowerAsPrey = true;
 
-        [PropertyDisplay("P2 Sanctity of the Ward (meteors): use non-preferred outer tower as prey role if it increases distance")]
-        public bool P2Sanctity2AllowNonPreferredTowerAsPrey = true;
+        public enum P2OuterTowers
+        {
+            [PropertyDisplay("Don't try to assign outer towers")]
+            None,
 
-        [PropertyDisplay("P2 Sanctity of the Ward (meteors): all prey role use same direction (preferred or non-preferred, depending on what is better for prey), rather than always preferred")]
-        public bool P2Sanctity2AllowNonPreferredTowerAsNonPrey = false;
+            [PropertyDisplay("Always use preferred direction")]
+            AlwaysPreferred,
 
-        [PropertyDisplay("P2 Sanctity of the Ward (meteors): if selecting non-preferred outer towers for prey, continue moving in non-preferred direction (rather than always moving in preferred direction)")]
-        public bool P2Sanctity2PreyFollowsSelectedDirection = false;
+            [PropertyDisplay("Prey targets both use common opposite direction, if it gives better angle; players in quadrants without prey targets still use preferred direction")]
+            SynchronizedTargets,
+
+            [PropertyDisplay("Prey targets both use common opposite direction, if it gives better angle; players in all quadrants use same direction")]
+            SynchronizedRole,
+
+            [PropertyDisplay("Prey targets use whatever direction gives the best angle; players in quadrants without prey targets still use preferred direction")]
+            Individual
+        }
+
+        [PropertyDisplay("P2 Sanctity of the Ward (meteors): outer tower assignment strategy")]
+        public P2OuterTowers P2Sanctity2OuterTowers = P2OuterTowers.Individual;
 
         public enum P2InnerTowers
         {
@@ -60,7 +100,8 @@
         [PropertyDisplay("P2 Sanctity of the Ward (meteors): inner tower assignment strategy")]
         public P2InnerTowers P2Sanctity2InnerTowers = P2InnerTowers.CW;
 
-        [PropertyDisplay("P2 Sanctity of the Ward (meteors): take CW (rather than CCW) intercardinal as non-prey role for second towers")]
+        [PropertyDisplay("P2 Sanctity of the Ward (meteors): intercardinal for non-prey role for second towers")]
+        [PropertyCombo("CCW", "CW")]
         public bool P2Sanctity2NonPreyTowerCW = false;
 
         [PropertyDisplay("P3 four towers with counters: assignments")]
