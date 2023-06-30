@@ -106,6 +106,8 @@
 
         [PropertyDisplay("P3 four towers with counters: assignments")]
         [GroupDetails(new string[] { "NW Flex", "NE Flex", "SE Flex", "SW Flex", "NW Stay", "NE Stay", "SE Stay", "SW Stay" })]
+        [GroupPreset("LPDU", new[] { 1, 3, 6, 0, 2, 4, 5, 7 })]
+        [GroupPreset("LPDU but CCW", new[] { 0, 2, 5, 7, 1, 3, 4, 6 })]
         public GroupAssignmentUnique P3DarkdragonDiveCounterGroups = GroupAssignmentUnique.Default();
 
         [PropertyDisplay("P3 four towers with counters: prefer flexing to CCW tower (rather than to CW)")]

@@ -2,9 +2,9 @@
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
-    class P2AscalonMercy : Components.SelfTargetedLegacyRotationAOEs
+    class P2AscalonsMercyConcealed : Components.SelfTargetedAOEs
     {
-        public P2AscalonMercy() : base(ActionID.MakeSpell(AID.AscalonsMercyConcealedAOE), new AOEShapeCone(50, 15.Degrees())) { }
+        public P2AscalonsMercyConcealed() : base(ActionID.MakeSpell(AID.AscalonsMercyConcealedAOE), new AOEShapeCone(50, 15.Degrees())) { }
     }
 
     class P2AscalonMight : Components.Cleave
@@ -17,12 +17,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P2UltimateEnd() : base(ActionID.MakeSpell(AID.UltimateEndAOE)) { }
     }
 
-    class P3Geirskogul : Components.SelfTargetedLegacyRotationAOEs
-    {
-        public P3Geirskogul() : base(ActionID.MakeSpell(AID.Geirskogul), new AOEShapeRect(62, 4)) { }
-    }
-
-    class P3Drachenlance : Components.SelfTargetedLegacyRotationAOEs
+    class P3Drachenlance : Components.SelfTargetedAOEs
     {
         public P3Drachenlance() : base(ActionID.MakeSpell(AID.DrachenlanceAOE), new AOEShapeCone(13, 45.Degrees())) { }
     }
@@ -32,24 +27,42 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P3SoulTether() : base(ActionID.MakeSpell(AID.SoulTether), (uint)TetherID.HolyShieldBash, 5) { }
     }
 
+    class P4Resentment : Components.CastCounter
+    {
+        public P4Resentment() : base(ActionID.MakeSpell(AID.Resentment)) { }
+    }
+
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP2)]
     public class DSW2 : BossModule
     {
+        public static ArenaBoundsCircle BoundsCircle = new ArenaBoundsCircle(new (100, 100), 21); // p2
+        public static ArenaBoundsSquare BoundsSquare = new ArenaBoundsSquare(new (100, 100), 21); // p3, p4
+
         private Actor? _bossP3;
+        private Actor? _leftEyeP4;
+        private Actor? _rightEyeP4;
         public Actor? BossP2() => PrimaryActor;
         public Actor? BossP3() => _bossP3;
+        public Actor? LeftEyeP4() => _leftEyeP4;
+        public Actor? RightEyeP4() => _rightEyeP4;
 
-        public DSW2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 22)) { }
+        public DSW2(WorldState ws, Actor primary) : base(ws, primary, BoundsCircle) { }
 
         protected override void UpdateModule()
         {
             // TODO: this is an ugly hack, think how multi-actor fights can be implemented without it...
             // the problem is that on wipe, any actor can be deleted and recreated in the same frame
             _bossP3 ??= StateMachine.ActivePhaseIndex == 1 ? Enemies(OID.BossP3).FirstOrDefault() : null;
+            _leftEyeP4 ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.LeftEye).FirstOrDefault() : null;
+            _rightEyeP4 ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.RightEye).FirstOrDefault() : null;
         }
 
-        protected override void DrawArenaForeground(int pcSlot, Actor pc)
+        protected override void DrawEnemies(int pcSlot, Actor pc)
         {
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
+            Arena.Actor(_bossP3, ArenaColor.Enemy);
+            Arena.Actor(_leftEyeP4, ArenaColor.Enemy);
+            Arena.Actor(_rightEyeP4, ArenaColor.Enemy);
             //Arena.Actor(Enemies(OID.SerJanlenoux).FirstOrDefault(), 0xffffffff);
             //Arena.Actor(Enemies(OID.SerVellguine).FirstOrDefault(), 0xff0000ff);
             //Arena.Actor(Enemies(OID.SerPaulecrain).FirstOrDefault(), 0xff00ff00);
@@ -62,12 +75,6 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             //Arena.Actor(Enemies(OID.SerAdelphel).FirstOrDefault(), 0xff80ff80);
             //Arena.Actor(Enemies(OID.SerGrinnaux).FirstOrDefault(), 0xffff8080);
             //Arena.Actor(Enemies(OID.SerCharibert).FirstOrDefault(), 0xff80ffff);
-        }
-
-        protected override void DrawEnemies(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
-            Arena.Actor(_bossP3, ArenaColor.Enemy);
             //Arena.AddLine(PrimaryActor.Position, PrimaryActor.Position + GeometryUtils.DirectionToVec3(PrimaryActor.Rotation) * 5, ArenaColor.Enemy);
         }
     }

@@ -23,15 +23,34 @@
         VoidzoneIce = 0x1EB682, // R0.500, EventObj type, spawn during fight - ice voidzones spawned on hiemal storm targets during meteors
 
         BossP3 = 0x313D, // R8.019, nidhogg - p3
-        NidhoggDrake = 0x313E, // R8.019, x8 - p3
-        // 34FB (x3), 34FC (x3), 34FD, 34FE, 34FF, 3500 (x3) 3501, 3502 - wtf is this shit, spawn together with nidhogg and attack each other with 870's for 5 dmg...
+        NidhoggDrake = 0x313E, // R8.019, x8 - p3, x2 - p4
+        Background1 = 0x34FB, // R3.600, x3 - p3/p4 (these are fighting in background, outside the arena)
+        Background2 = 0x34FC, // R5.000, x3 - p3
+        Background3 = 0x34FD, // R0.500, x1 - p3
+        Background4 = 0x34FE, // R0.500, x1 - p3
+        Background5 = 0x34FF, // R0.500, x1 - p3
+        Background6 = 0x3500, // R12.000, x3 - p3
+        Background7 = 0x3501, // R6.000, x1 - p3
+        Background8 = 0x3502, // R0.500, x1 - p3
+
+        LeftEye = 0x3141, // R4.000, x1 - p4
+        RightEye = 0x3142, // R4.000, x1 - p4
+        Nidhogg = 0x3147, // R12.000, x1 - p4
+        Alphinaud = 0x35C9, // R0.500, x1 - p4
+        Haurchefant = 0x333D, // R0.500, x1 - p4
+        Ysayle = 0x333E, // R0.500, x1 - p4
+        Estinien = 0x333F, // R0.500, x1 - p4
+        AzurePrice = 0x313F, // R1.000-2.000, x4 spawn during p4 (blue orb)
+        GildedPrice = 0x3140, // R1.000-2.000, x2 spawn during p4 (yellow orb)
     };
 
     public enum AID : uint
     {
+        AutoAttackBackground = 870, // Background1/Background2/Background3/Background4/Background5/Background6/Background7->location/Background1/Background2/Background3/Background4/Background5/Background6/Background7, no cast, single-target
+
         // phase 2
         AutoAttackP2 = 25531, // BossP2->mt, no cast, range 10 ?-degree cone
-        Teleport = 25540, // BossP2->location, no cast
+        TeleportP2 = 25540, // BossP2->location, no cast
         Reappear = 25532, // BossP2->self, no cast
         WalkTo = 25535, // BossP2->location, no cast
 
@@ -103,16 +122,16 @@
         AutoAttackP3 = 26416, // BossP3->player, no cast, range 60 half-width width 3 rect aoe
 
         DiveFromGrace = 26381, // BossP3->self, 5.0s cast, visual
-        GnashAndLash = 26386, // BossP3->self, 7.6s cast, visual
-        LashAndGnash = 26387, // BossP3->self, 7.6s cast, visual
-        EyeOfTheTyrant = 26388, // BossP3->player, no cast, range 6 shared aoe
-        GnashingWheel = 26389, // BossP3->self, no cast, range 8 aoe
-        LashingWheel = 26390, // BossP3->self, no cast, range 8-40 donut aoe
         DarkHighJump = 26382, // NidhoggDrake->players, no cast, range 5 aoe
         DarkSpineshatterDive = 26383, // NidhoggDrake->player, no cast, range 5 aoe
         DarkElusiveJump = 26384, // NidhoggDrake->player, no cast, range 5 aoe
         DarkdragonDive = 26385, // NidhoggDrake->self, 2.5s cast, range 5 tower aoe
         DarkdragonDiveFail = 26395, // Helper->self, no cast, raidwide if tower is not soaked
+        GnashAndLash = 26386, // BossP3->self, 7.6s cast, visual
+        LashAndGnash = 26387, // BossP3->self, 7.6s cast, visual
+        EyeOfTheTyrant = 26388, // BossP3->player, no cast, range 6 shared aoe
+        GnashingWheel = 26389, // BossP3->self, no cast, range 8 aoe
+        LashingWheel = 26390, // BossP3->self, no cast, range 8-40 donut aoe
         Geirskogul = 26378, // NidhoggDrake->self, 4.5s cast, range 62 width 8 baited rect aoe
 
         Drachenlance = 26379, // BossP3->self, 2.9s cast, visual
@@ -124,25 +143,51 @@
         DarkdragonDive4 = 26394,// NidhoggDrake->self, 2.5s cast, range 5 tower aoe, should be soaked by 4 persons
         SoulTether = 26396, // BossP3/NidhoggDrake->player, no cast, range 5 aoe tankbuster on tether targets
         RevengeOfTheHorde = 29750, // BossP3->self, 11.0s cast, enrage
+
+        // phase 4
+        //_Spell_ = 25584, // Alphinaud->LeftEye, 2.0s cast, single-target
+        //_Spell_ = 25585, // Alphinaud->LeftEye, 2.0s cast, single-target
+        //_Ability_ = 25586, // Alphinaud->LeftEye, no cast, single-target
+        AutoAttackEye = 26811, // RightEye/LeftEye->player, no cast, single-target
+        TeleportEye = 29050, // RightEye/LeftEye->location, no cast, single-target, teleport
+        SoulOfFriendship = 26821, // Haurchefant->players, no cast, range 5 circle, applies buff
+        SoulOfDevotion = 26822, // Ysayle->Alphinaud, no cast, range 5 circle, applies buff
+        Resentment = 26810, // Estinien->self, no cast, range 40 circle, raidwide with bleed
+
+        Hatebound = 26814, // RightEye/LeftEye->self, 3.0s cast, single-target, visual (tethers)
+        FlareStar = 26815, // AzurePrice->self, no cast, range 6 circle
+        FlareNova = 26817, // GildedPrice->self, no cast, range 6 circle
+        FlareNovaFail = 26818, // GildedPrice->self, no cast, range 65 circle (raidwide + damage down if unsoaked)
+
+        MirageDive = 26819, // LeftEye/RightEye->self, 3.0s cast, single-target, visual
+        MirageDiveAOE = 26820, // NidhoggDrake->player, no cast, range 4 circle
     };
 
     public enum SID : uint
     {
         None = 0,
-        Prey = 562,
-        Discomposed = 2733,
-        Jump1 = 3004, // 'First in Line'
-        Jump2 = 3005, // 'Second in Line'
-        Jump3 = 3006, // 'Third in Line'
-        JumpCenter = 2755, // 'High Jump Target'
-        JumpForward = 2756, // 'Spineshatter Dive Target'
-        JumpBackward = 2757, // 'Elusive Jump Target'
+        Prey = 562, // none->player, extra=0x0
+        Discomposed = 2733, // none->BossP2, extra=0x0
+        Jump1 = 3004, // none->player, extra=0x0, 'First in Line'
+        Jump2 = 3005, // none->player, extra=0x0, 'Second in Line'
+        Jump3 = 3006, // none->player, extra=0x0, 'Third in Line'
+        JumpCenter = 2755, // none->player, extra=0x0, 'High Jump Target'
+        JumpForward = 2756, // none->player, extra=0x0, 'Spineshatter Dive Target'
+        JumpBackward = 2757, // none->player, extra=0x0, 'Elusive Jump Target'
+        Clawbound = 2775, // none->player, extra=0x0, red tether
+        Fangbound = 2776, // none->player, extra=0x0, blue tether
+        BoundAndDetermined = 2777, // none->player, extra=0x0, prevents swap for next 3s
     }
 
     public enum TetherID : uint
     {
         None = 0,
-        HolyShieldBash = 84, // SerJanlenoux/SerAdelphel->player
+        HolyShieldBash = 84, // SerJanlenoux/SerAdelphel/NidhoggDrake/BossP3->player
+        LeftEye = 178, // LeftEye->Estinien
+        RightEye = 179, // RightEye->Estinien
+        SoulOfFriendshipDevotion = 12, // Haurchefant/Ysayle->player/Alphinaud
+        Fangbound = 51, // player->RightEye, blue tether
+        Clawbound = 52, // player->LeftEye, red tether
     }
 
     public enum IconID : uint
@@ -155,5 +200,7 @@
         Jump1 = 319, // player
         Jump2 = 320, // player
         Jump3 = 321, // player
+        SoulOfFriendship = 286, // player
+        SoulOfDevotion = 287, // Alphinaud
     }
 }

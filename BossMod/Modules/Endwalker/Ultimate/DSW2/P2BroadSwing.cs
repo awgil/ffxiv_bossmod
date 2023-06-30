@@ -1,80 +1,44 @@
-﻿namespace BossMod.Endwalker.Ultimate.DSW2
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace BossMod.Endwalker.Ultimate.DSW2
 {
-    // TODO: refactor (generic-aoe, use cast rotation)
-    class P2BroadSwing : Components.CastCounter
+    class P2BroadSwing : Components.GenericAOEs
     {
-        private Actor? _caster;
-        private bool _lr;
+        private List<AOEInstance> _aoes = new();
 
         private static AOEShapeCone _aoe = new(40, 60.Degrees());
 
         public P2BroadSwing() : base(ActionID.MakeSpell(AID.BroadSwingAOE)) { }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (_caster == null)
-                return;
-            bool inAOE = NumCasts switch
-            {
-                0 => _aoe.Check(actor.Position, _caster.Position, _caster.Rotation + AngleOffset(0)) || _aoe.Check(actor.Position, _caster.Position, _caster.Rotation + AngleOffset(1)),
-                1 => _aoe.Check(actor.Position, _caster.Position, _caster.Rotation + AngleOffset(1)) || _aoe.Check(actor.Position, _caster.Position, _caster.Rotation + AngleOffset(2)),
-                2 => _aoe.Check(actor.Position, _caster.Position, _caster.Rotation + AngleOffset(2)),
-                _ => false
-            };
-            if (inAOE)
-                hints.Add("GTFO from aoe!");
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            if (_caster == null)
-                return;
-            switch (NumCasts)
-            {
-                case 0:
-                    DrawZone(arena, _caster, 0, ArenaColor.Danger);
-                    DrawZone(arena, _caster, 1, ArenaColor.AOE);
-                    break;
-                case 1:
-                    DrawZone(arena, _caster, 1, ArenaColor.Danger);
-                    DrawZone(arena, _caster, 2, ArenaColor.AOE);
-                    break;
-                case 2:
-                    DrawZone(arena, _caster, 2, ArenaColor.Danger);
-                    break;
-            }
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(2);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            switch ((AID)spell.Action.ID)
+            var rot = (AID)spell.Action.ID switch
             {
-                case AID.BroadSwingRL:
-                    _caster = caster;
-                    _lr = false;
-                    break;
-                case AID.BroadSwingLR:
-                    _caster = caster;
-                    _lr = true;
-                    break;
+                AID.BroadSwingRL => -60.Degrees(),
+                AID.BroadSwingLR => 60.Degrees(),
+                _ => default
+            };
+            if (rot != default)
+            {
+                _aoes.Add(new(_aoe, caster.Position, spell.Rotation + rot, spell.FinishAt.AddSeconds(0.8f), ArenaColor.Danger));
+                _aoes.Add(new(_aoe, caster.Position, spell.Rotation - rot, spell.FinishAt.AddSeconds(1.8f)));
+                _aoes.Add(new(_aoe, caster.Position, spell.Rotation + 180.Degrees(), spell.FinishAt.AddSeconds(2.8f)));
             }
         }
 
-        private Angle AngleOffset(int order)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            var dir = order switch
+            if (spell.Action == WatchedAction)
             {
-                0 => -60.Degrees(),
-                1 =>  60.Degrees(),
-                _ => 180.Degrees()
-            };
-            return _lr ? -dir : dir;
-        }
-
-        private void DrawZone(MiniArena arena, Actor caster, int order, uint color)
-        {
-            var dir = caster.Rotation + AngleOffset(order);
-            arena.ZoneCone(caster.Position, 0, _aoe.Radius, dir, _aoe.HalfAngle, color);
+                ++NumCasts;
+                if (_aoes.Count > 0)
+                    _aoes.RemoveAt(0);
+                if (_aoes.Count > 0)
+                    _aoes.AsSpan()[0].Color = ArenaColor.Danger;
+            }
         }
     }
 }

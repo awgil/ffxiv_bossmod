@@ -4,18 +4,23 @@
     {
         private DSW2 _module;
 
+        private bool ActorDestroyedOrDead(Actor? actor) => actor == null || actor.IsDestroyed || actor.IsDead;
+
         public DSW2States(DSW2 module) : base(module)
         {
             _module = module;
             SimplePhase(1, Phase2Thordan, "P2: Thordan") // TODO: auto-attack cleave component
                 .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead;
             SimplePhase(2, Phase3Nidhogg, "P3: Nidhogg") // TODO: auto-attack cleave component
-                .Raw.Update = () => Module.PrimaryActor.IsDestroyed && (_module.BossP3()?.IsDestroyed ?? true);
+                .OnEnter(() => Module.Arena.Bounds = DSW2.BoundsSquare)
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed && ActorDestroyedOrDead(_module.BossP3());
+            SimplePhase(3, Phase4Eyes, "P4: Eyes")
+                .Raw.Update = () => (_module.BossP3()?.IsDestroyed ?? true) && ActorDestroyedOrDead(_module.LeftEyeP4()) && ActorDestroyedOrDead(_module.RightEyeP4());
         }
 
         private void Phase2Thordan(uint id)
         {
-            P2AscalonMercyMight(id, 8.4f);
+            P2AscalonsMercyConcealedMight(id, 8.4f);
             P2StrengthOfTheWard(id + 0x10000, 7.1f);
             P2AncientQuaga(id + 0x20000, 0.1f);
             P2HeavenlyHeelAscalonMight(id + 0x30000, 6.2f);
@@ -23,7 +28,7 @@
             P2UltimateEnd(id + 0x50000, 13.5f);
             P2BroadSwing(id + 0x60000, 6.0f);
             P2BroadSwing(id + 0x70000, 2.7f);
-            P2AethericBurst(id + 0x80000, 2.4f);
+            Cast(id + 0x80000, AID.AethericBurst, 2.4f, 6, "Enrage");
         }
 
         private void Phase3Nidhogg(uint id)
@@ -33,17 +38,25 @@
             P3Drachenlance(id + 0x20000, 1.9f);
             P3SoulTether(id + 0x30000, 1.4f);
             P3Drachenlance(id + 0x40000, 20.9f);
-            P3RevengeOfTheHorde(id + 0x50000, 1.4f);
+            ActorCast(id + 0x50000, _module.BossP3, AID.RevengeOfTheHorde, 1.4f, 11, true, "Enrage");
         }
 
-        private void P2AscalonMercyMight(uint id, float delay)
+        private void Phase4Eyes(uint id)
+        {
+            P4SoulOfFriendshipDevotion(id);
+            P4Hatebound(id + 0x10000, 5.5f);
+
+            SimpleState(id + 0xFF0000, 100, "???");
+        }
+
+        private void P2AscalonsMercyConcealedMight(uint id, float delay)
         {
             CastStart(id, AID.AscalonsMercyConcealed, delay);
             CastEnd(id + 1, 3)
                 .SetHint(StateMachine.StateHint.PositioningStart);
-            ComponentCondition<P2AscalonMercy>(id + 2, 1.6f, comp => comp.NumCasts > 0, "Baited cones")
-                .ActivateOnEnter<P2AscalonMercy>()
-                .DeactivateOnExit<P2AscalonMercy>()
+            ComponentCondition<P2AscalonsMercyConcealed>(id + 2, 1.6f, comp => comp.NumCasts > 0, "Baited cones")
+                .ActivateOnEnter<P2AscalonsMercyConcealed>()
+                .DeactivateOnExit<P2AscalonsMercyConcealed>()
                 .SetHint(StateMachine.StateHint.PositioningEnd);
             ComponentCondition<P2AscalonMight>(id + 0x1000, 4.9f, comp => comp.NumCasts > 2, "3x tankbuster cones")
                 .ActivateOnEnter<P2AscalonMight>()
@@ -66,9 +79,9 @@
                 .DeactivateOnExit<P2StrengthOfTheWard1LightningStorm>(); // event happens ~0.2s after previous state
             ComponentCondition<P2StrengthOfTheWard1HeavyImpact>(id + 0x60, 1.9f, comp => comp.NumCasts > 2, "Ring 3");
             ComponentCondition<P2StrengthOfTheWard1HeavyImpact>(id + 0x80, 1.9f, comp => comp.NumCasts > 3, "Ring 4")
-                .ActivateOnEnter<P2AscalonMercy>();
-            ComponentCondition<P2AscalonMercy>(id + 0x90, 1, comp => comp.NumCasts > 0, "Baited cones")
-                .DeactivateOnExit<P2AscalonMercy>();
+                .ActivateOnEnter<P2AscalonsMercyConcealed>();
+            ComponentCondition<P2AscalonsMercyConcealed>(id + 0x90, 1, comp => comp.NumCasts > 0, "Baited cones")
+                .DeactivateOnExit<P2AscalonsMercyConcealed>();
             ComponentCondition<P2StrengthOfTheWard1HeavyImpact>(id + 0xA0, 0.9f, comp => comp.NumCasts > 4, "Ring 5")
                 .ActivateOnEnter<P2StrengthOfTheWard2SpreadStack>() // note: PATE 1E43 happens right after ring-2, could start showing something (boss/charging mobs/?) much earlier
                 .ActivateOnEnter<P2StrengthOfTheWard2Voidzones>()
@@ -161,16 +174,11 @@
                 .DeactivateOnExit<P2BroadSwing>();
         }
 
-        private void P2AethericBurst(uint id, float delay)
-        {
-            Cast(id, AID.AethericBurst, delay, 6, "Enrage");
-        }
-
         private void P3FinalChorus(uint id)
         {
             Timeout(id, 0)
                 .SetHint(StateMachine.StateHint.DowntimeStart);
-            ActorTargetable(id + 1, _module.BossP3, true, 9.2f, "Raidwide")
+            ActorTargetable(id + 1, _module.BossP3, true, 9.2f, "Raidwide + Reappear")
                 .SetHint(StateMachine.StateHint.DowntimeEnd | StateMachine.StateHint.Raidwide); // final chorus raidwide happens together with boss becoming targetable
         }
 
@@ -181,22 +189,24 @@
                 .ActivateOnEnter<P3Geirskogul>();
 
             ActorCastMulti(id + 0x10, _module.BossP3, new AID[] { AID.GnashAndLash, AID.LashAndGnash }, 2.1f, 7.6f, true, "Stack + Jump 1")
+                .ActivateOnEnter<P3GnashAndLash>()
                 .SetHint(StateMachine.StateHint.Raidwide);
+            // TODO: consider adding a state 0.3s later when stack happens; first jumps happen +/- 0.1s around it
 
-            ComponentCondition<P3DiveFromGrace>(id + 0x20, 3.7f, comp => comp.NextEvent > P3DiveFromGrace.State.InOut1, "In/out 1");
-            ComponentCondition<P3DiveFromGrace>(id + 0x30, 3.1f, comp => comp.NextEvent > P3DiveFromGrace.State.Towers1InOut2, "Towers 1 + In/out 2");
-            ComponentCondition<P3DiveFromGrace>(id + 0x40, 2.5f, comp => comp.NextEvent > P3DiveFromGrace.State.Bait1);
-            ComponentCondition<P3DiveFromGrace>(id + 0x50, 0.8f, comp => comp.NextEvent > P3DiveFromGrace.State.Jump2, "Jump 2");
+            ComponentCondition<P3GnashAndLash>(id + 0x20, 3.7f, comp => comp.NumCasts >= 1, "In/out 1");
+            ComponentCondition<P3GnashAndLash>(id + 0x30, 3.1f, comp => comp.NumCasts >= 2, "Towers 1 + In/out 2"); // note: towers happen ~0.1s earlier
+            ComponentCondition<P3Geirskogul>(id + 0x40, 2.5f, comp => comp.Casters.Count > 0);
+            ComponentCondition<P3DiveFromGrace>(id + 0x50, 0.8f, comp => comp.NumJumps > 3, "Jump 2");
             ActorCastStartMulti(id + 0x58, _module.BossP3, new AID[] { AID.GnashAndLash, AID.LashAndGnash }, 3.8f, true);
-            ComponentCondition<P3DiveFromGrace>(id + 0x60, 2.8f, comp => comp.NextEvent > P3DiveFromGrace.State.Towers2, "Towers 2");
-            ComponentCondition<P3DiveFromGrace>(id + 0x70, 2.6f, comp => comp.NextEvent > P3DiveFromGrace.State.Bait2);
-            ComponentCondition<P3DiveFromGrace>(id + 0x80, 1.8f, comp => comp.NextEvent > P3DiveFromGrace.State.Jump3Stack2, "Stack + Jump 3");
+            ComponentCondition<P3DiveFromGrace>(id + 0x60, 2.8f, comp => comp.NumCasts > 3, "Towers 2");
+            ComponentCondition<P3Geirskogul>(id + 0x70, 2.6f, comp => comp.Casters.Count > 0);
+            ComponentCondition<P3DiveFromGrace>(id + 0x80, 1.8f, comp => comp.NumJumps > 5, "Stack + Jump 3");
             ActorCastEnd(id + 0x88, _module.BossP3, 0.4f, true)
                 .SetHint(StateMachine.StateHint.Raidwide);
-            ComponentCondition<P3DiveFromGrace>(id + 0x90, 3.7f, comp => comp.NextEvent > P3DiveFromGrace.State.InOut3, "In/out 3");
-            ComponentCondition<P3DiveFromGrace>(id + 0xA0, 3.1f, comp => comp.NextEvent > P3DiveFromGrace.State.Towers3InOut4, "Towers 3 + In/out 4");
-            ComponentCondition<P3DiveFromGrace>(id + 0xB0, 2.0f, comp => comp.NextEvent > P3DiveFromGrace.State.Bait3);
-            ComponentCondition<P3DiveFromGrace>(id + 0xC0, 4.5f, comp => comp.NextEvent > P3DiveFromGrace.State.Resolve, "Dive resolve")
+            ComponentCondition<P3GnashAndLash>(id + 0x90, 3.7f, comp => comp.NumCasts >= 3, "In/out 3");
+            ComponentCondition<P3GnashAndLash>(id + 0xA0, 3.1f, comp => comp.NumCasts >= 4, "Towers 3 + In/out 4"); // note: towers happen ~0.6s earlier
+            ComponentCondition<P3Geirskogul>(id + 0xB0, 2.0f, comp => comp.Casters.Count > 0);
+            ComponentCondition<P3Geirskogul>(id + 0xC0, 4.5f, comp => comp.Casters.Count == 0, "Dive resolve")
                 .DeactivateOnExit<P3DiveFromGrace>()
                 .DeactivateOnExit<P3Geirskogul>();
         }
@@ -211,9 +221,9 @@
 
         private void P3SoulTether(uint id, float delay)
         {
-            ComponentCondition<P3DarkdragonDiveCounter>(id, delay, comp => comp.Active)
+            ComponentCondition<P3DarkdragonDiveCounter>(id, delay, comp => comp.Towers.Count > 0)
                 .ActivateOnEnter<P3DarkdragonDiveCounter>();
-            ComponentCondition<P3DarkdragonDiveCounter>(id + 1, 5, comp => !comp.Active, "Towers")
+            ComponentCondition<P3DarkdragonDiveCounter>(id + 1, 5, comp => comp.Towers.Count == 0, "Towers")
                 .DeactivateOnExit<P3DarkdragonDiveCounter>();
             ComponentCondition<P3SoulTether>(id + 0x10, 7, comp => comp.NumCasts > 0, "Tethers")
                 .ActivateOnEnter<P3SoulTether>()
@@ -222,9 +232,27 @@
                 .DeactivateOnExit<P3Geirskogul>();
         }
 
-        private void P3RevengeOfTheHorde(uint id, float delay)
+        private void P4SoulOfFriendshipDevotion(uint id)
         {
-            ActorCast(id, _module.BossP3, AID.RevengeOfTheHorde, delay, 11, true, "Enrage");
+            Timeout(id, 0)
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ActorTargetable(id + 1, _module.LeftEyeP4, true, 17.3f, "Buffs + eyes appear") // note: soul of x casts happen ~0.2s later
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+
+            ComponentCondition<P4Resentment>(id + 0x10, 7.3f, comp => comp.NumCasts > 0, "Raidwide")
+                .ActivateOnEnter<P4Resentment>()
+                .DeactivateOnExit<P4Resentment>()
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P4Hatebound(uint id, float delay)
+        {
+            ActorCast(id, _module.LeftEyeP4, AID.Hatebound, delay, 3); // both eyes cast it at the same time
+            ComponentCondition<P4Hatebound>(id + 0x10, 6.8f, comp => comp.YellowReady, "Pop yellow orbs")
+                .ActivateOnEnter<P4Hatebound>(); // note: debuffs/tethers appear 0.7s after cast end, orbs spawn 0.9s after cast end
+            ComponentCondition<P4Hatebound>(id + 0x20, 6.0f, comp => comp.BlueReady, "Pop blue orbs");
+
+            ActorCast(id + 0x1000, _module.LeftEyeP4, AID.MirageDive, 10.2f, 3, false, "Dives TBD..."); // both eyes cast it at the same time
         }
     }
 }

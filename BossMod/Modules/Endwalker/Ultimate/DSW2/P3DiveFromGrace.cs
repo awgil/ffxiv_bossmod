@@ -1,120 +1,132 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
-    // TODO: invent some better algorithm for assigning people to spots
+    class P3Geirskogul : Components.SelfTargetedAOEs
+    {
+        public P3Geirskogul() : base(ActionID.MakeSpell(AID.Geirskogul), new AOEShapeRect(62, 4)) { }
+    }
+
+    class P3GnashAndLash : Components.GenericAOEs
+    {
+        private List<AOEInstance> _aoes = new();
+
+        private static AOEShapeCircle _aoeGnash = new(8);
+        private static AOEShapeDonut _aoeLash = new(8, 40);
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(1);
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            (AOEShape? first, AOEShape? second) = (AID)spell.Action.ID switch
+            {
+                AID.GnashAndLash => (_aoeGnash, _aoeLash),
+                AID.LashAndGnash => (_aoeLash, _aoeGnash),
+                _ => ((AOEShape?)null, (AOEShape?)null)
+            };
+            if (first != null && second != null)
+            {
+                // note: marking aoes as non-risky, so that we don't spam warnings - reconsider (maybe mark as risky when cast ends?)
+                _aoes.Add(new(first, caster.Position, default, module.WorldState.CurrentTime.AddSeconds(3.7f), risky: false));
+                _aoes.Add(new(second, caster.Position, default, module.WorldState.CurrentTime.AddSeconds(6.8f), risky: false));
+            }
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID is AID.GnashingWheel or AID.LashingWheel)
+            {
+                ++NumCasts;
+                if (_aoes.Count > 0)
+                    _aoes.RemoveAt(0);
+            }
+        }
+    }
+
     // currently we make some arbitrary decisions:
     // 1. raid stacks to the north
     // 2. if there are forward/backward jumps at given order, forward takes W spot, backward takes E spot (center takes S)
-    // 3. otherwise, players with given order are sorted by party role and assigned spots in E-S-W order
-    class P3DiveFromGrace : BossComponent
+    // 3. otherwise, no specific assignments are assumed until player baits or soaks the tower
+    // TODO: split into towers & bait-away?
+    class P3DiveFromGrace : Components.CastTowers
     {
-        // current 'state' is next event that will happen
-        // note that some mechanics happen with slight delay (~0.1-0.2s) - we merge them together to protect against potential reordering
-        public enum State
-        {
-            AssignOrder,
-            AssignDirection,
-            Jump1Stack1,
-            InOut1,
-            Towers1InOut2,
-            Bait1,
-            Jump2,
-            Towers2,
-            Bait2,
-            Jump3Stack2,
-            InOut3,
-            Towers3InOut4,
-            Bait3,
-            Resolve,
-            Done
-        }
-
-        private class PlayerState
+        private struct PlayerState
         {
             public int JumpOrder; // 0 if unassigned, otherwise [1,3]
             public int JumpDirection; // -1 for backward, +1 for forward
             public int AssignedSpot; // 0 if unassigned, 1 for 'backward' spot, 2 for 'center' spot, 3 for 'forward' spot
             //public string Hint = "";
-            public WPos SafeSpot;
-            public bool IsBaitingJump;
+            //public WPos SafeSpot;
+            //public bool IsBaitingJump;
+
+            public bool CanBait(int order, int spot) => JumpOrder == order && (AssignedSpot == 0 || AssignedSpot == spot);
         }
 
-        private class OrderState
-        {
-            public List<int> PlayerSlots = new();
-            public bool HaveDirections = false;
-            public bool HaveAssignments = false;
-        }
+        public int NumJumps { get; private set; }
+        private bool _haveDirections;
+        private PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
+        private BitMask[] _orderPlayers = new BitMask[3]; // [0] = players with order 1, etc.
+        private BitMask _ordersWithArrows; // bit 1 = order 1, etc.
+        private List<Tower> _predictedTowers = new();
 
-        public State NextEvent { get; private set; }
-        private int _eventProgress;
-        private int _wheelsDone;
-        private Actor? _boss;
-        private PlayerState[] _playerStates = { new(), new(), new(), new(), new(), new(), new(), new() };
-        private OrderState[] _orderState = { new(), new(), new() };
-        private string _orderHint = "";
-        private AOEShape? _nextAOE;
-        private List<WPos> _predictedTowers = new();
-        private List<Actor> _castingTowers = new();
-
-        private static AOEShapeCircle _aoeGnash = new(8);
-        private static AOEShapeDonut _aoeLash = new(8, 40);
-        private static float _towerRadius = 5;
         private static float _towerOffset = 14;
         private static float _spotOffset = 7f;
-        private static float _stepToBait = 1.2f;
 
-        public override void Init(BossModule module)
-        {
-            _boss = module.Enemies(OID.BossP3).FirstOrDefault();
-        }
+        public P3DiveFromGrace() : base(ActionID.MakeSpell(AID.DarkdragonDive), 5) { }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (movementHints != null && _playerStates[slot].SafeSpot != new WPos())
-            {
-                movementHints.Add(actor.Position, _playerStates[slot].SafeSpot, ArenaColor.Safe);
-            }
+            var state = _playerStates[slot];
+            if (state.JumpOrder > 0)
+                hints.Add($"Order: {state.JumpOrder}", false);
+            if (_haveDirections)
+                hints.Add($"Spot: {state.AssignedSpot switch
+                {
+                    1 => "E",
+                    2 => "S",
+                    3 => "W",
+                    _ => "flex"
+                }}", false);
+
+            base.AddHints(module, slot, actor, hints, movementHints);
+
+            if (movementHints != null)
+                foreach (var s in SafeSpots(module, slot))
+                    movementHints.Add(actor.Position, s, ArenaColor.Safe);
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            if (_orderHint.Length > 0)
-                hints.Add(_orderHint);
+            if (_haveDirections)
+                hints.Add($"Arrows for: {(_ordersWithArrows.Any() ? string.Join(", ", _ordersWithArrows.SetBits()) : "none")}");
         }
 
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {
-            _nextAOE?.Draw(arena, _boss);
+            return _playerStates[playerSlot].JumpOrder == CurrentBaitOrder() ? PlayerPriority.Interesting : PlayerPriority.Normal;
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_playerStates[pcSlot].SafeSpot != new WPos())
-            {
-                arena.AddCircle(_playerStates[pcSlot].SafeSpot, 2, ArenaColor.Safe);
-            }
+            base.DrawArenaForeground(module, pcSlot, pc, arena);
+            foreach (var t in _predictedTowers)
+                DrawTower(arena, t.Position, t.Radius, !t.ForbiddenSoakers[pcSlot]);
 
             // draw baited jumps
-            foreach (var (slot, player) in module.Raid.WithSlot(true))
+            var baitOrder = CurrentBaitOrder();
+            foreach (var (slot, player) in module.Raid.WithSlot(true).WhereSlot(i => _playerStates[i].JumpOrder == baitOrder))
             {
-                var state = _playerStates[slot];
-                if (state.IsBaitingJump)
-                {
-                    var pos = player.Position + state.JumpDirection * player.Rotation.ToDirection() * _towerOffset;
-                    arena.AddCircle(pos, _towerRadius, ArenaColor.Object);
-                    if (slot == pcSlot)
-                        arena.AddLine(pc.Position, pos, ArenaColor.Object);
-                }
+                var pos = player.Position + _playerStates[slot].JumpDirection * player.Rotation.ToDirection() * _towerOffset;
+                arena.AddCircle(pos, Radius, ArenaColor.Object);
+                if (slot == pcSlot)
+                    arena.AddLine(pc.Position, pos, ArenaColor.Object);
             }
 
-            // draw active towers
-            foreach (var t in _predictedTowers)
-                arena.AddCircle(t, _towerRadius, ArenaColor.Danger);
-            foreach (var t in _castingTowers)
-                arena.AddCircle(t.Position, _towerRadius, ArenaColor.Danger);
+            // safe spots
+            foreach (var s in SafeSpots(module, pcSlot))
+                arena.AddCircle(s, 1, ArenaColor.Safe);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
@@ -144,34 +156,10 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            switch ((AID)spell.Action.ID)
+            if (spell.Action == WatchedAction)
             {
-                case AID.GnashAndLash:
-                    _nextAOE = _aoeGnash;
-                    break;
-                case AID.LashAndGnash:
-                    _nextAOE = _aoeLash;
-                    break;
-                case AID.Geirskogul:
-                    if (NextEvent is State.Bait1 or State.Bait2 or State.Bait3)
-                        AdvanceState(module);
-                    break;
-                case AID.DarkdragonDive:
-                    _predictedTowers.Clear();
-                    _castingTowers.Add(caster);
-                    break;
-            }
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.DarkdragonDive:
-                    _castingTowers.Remove(caster);
-                    if (NextEvent is State.Towers2)
-                        AdvanceState(module);
-                    break;
+                _predictedTowers.Clear();
+                Towers.Add(CreateTower(module, caster.Position));
             }
         }
 
@@ -179,31 +167,18 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             switch ((AID)spell.Action.ID)
             {
-                case AID.GnashingWheel:
-                case AID.LashingWheel:
-                    ++_wheelsDone;
-                    _nextAOE = (_wheelsDone & 1) == 0 ? null : (_nextAOE == _aoeGnash ? _aoeLash : _aoeGnash);
-                    if (NextEvent is State.InOut1 or State.Towers1InOut2 or State.InOut3 or State.Towers3InOut4)
-                        AdvanceState(module);
+                case AID.DarkdragonDive:
+                    foreach (var t in spell.Targets)
+                        AssignLateSpot(module, t.ID, caster.Position);
+                    ++NumCasts;
                     break;
                 case AID.DarkHighJump:
-                    AddPredictedTower(module, spell.MainTargetID, 0);
-                    if (NextEvent is State.Jump1Stack1 or State.Jump2 or State.Jump3Stack2)
-                        AdvanceState(module);
-                    break;
                 case AID.DarkSpineshatterDive:
-                    AddPredictedTower(module, spell.MainTargetID, 1);
-                    if (NextEvent is State.Jump1Stack1 or State.Jump2 or State.Jump3Stack2)
-                        AdvanceState(module);
-                    break;
                 case AID.DarkElusiveJump:
-                    AddPredictedTower(module, spell.MainTargetID, -1);
-                    if (NextEvent is State.Jump1Stack1 or State.Jump2 or State.Jump3Stack2)
-                        AdvanceState(module);
-                    break;
-                case AID.Geirskogul:
-                    if (NextEvent is State.Resolve)
-                        AdvanceState(module);
+                    ++NumJumps;
+                    AssignLateSpot(module, spell.MainTargetID, caster.Position);
+                    var offset = (AID)spell.Action.ID != AID.DarkHighJump ? _towerOffset * caster.Rotation.ToDirection() : new();
+                    _predictedTowers.Add(CreateTower(module, caster.Position + offset));
                     break;
             }
         }
@@ -214,28 +189,63 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (slot >= 0)
             {
                 _playerStates[slot].JumpOrder = order;
-                _orderState[order - 1].PlayerSlots.Add(slot);
-            }
-            if (NextEvent == State.AssignOrder && ++_eventProgress == 8)
-            {
-                AdvanceState(module);
+                _orderPlayers[order - 1].Set(slot);
             }
         }
 
         private void AssignJumpDirection(BossModule module, Actor actor, int direction)
         {
+            _haveDirections = true;
             int slot = module.Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
             {
                 _playerStates[slot].JumpDirection = direction;
-                if (direction != 0)
-                    _orderState[_playerStates[slot].JumpOrder - 1].HaveDirections = true;
+                if (direction != 0 && _playerStates[slot].JumpOrder is var order && order > 0)
+                {
+                    _ordersWithArrows.Set(order);
+                    foreach (var p in _orderPlayers[order - 1].SetBits())
+                    {
+                        _playerStates[p].AssignedSpot = _playerStates[p].JumpDirection + 2;
+                    }
+                }
             }
-            if (NextEvent == State.AssignDirection && ++_eventProgress == 8)
+        }
+
+        private void AssignLateSpot(BossModule module, ulong target, WPos pos)
+        {
+            var slot = module.Raid.FindSlot(target);
+            if (slot >= 0 && _playerStates[slot].AssignedSpot == 0)
+                _playerStates[slot].AssignedSpot = TowerSpot(module, pos);
+        }
+
+        private int CurrentBaitOrder() => _haveDirections ? NumJumps switch
+        {
+            < 3 => 1,
+            < 5 => 2,
+            < 8 => 3,
+            _ => -1
+        } : -1;
+
+        private int TowerSpot(BossModule module, WPos pos)
+        {
+            var towerOffset = pos - module.Bounds.Center;
+            var toStack = DirectionForStack();
+            var dotForward = toStack.OrthoL().Dot(towerOffset); // TODO: this is arbitrary
+            return -toStack.Dot(towerOffset) > Math.Abs(dotForward) ? 2 : dotForward > 0 ? 3 : 1;
+        }
+
+        private Tower CreateTower(BossModule module, WPos pos)
+        {
+            var spot = TowerSpot(module, pos);
+            var soakerOrder = NumCasts switch
             {
-                InitAssignments(module);
-                AdvanceState(module);
-            }
+                < 3 => 3,
+                < 5 => 1,
+                < 8 => spot != 2 ? 2 : 1,
+                _ => -1
+            };
+            var forbidden = module.Raid.WithSlot(true).WhereSlot(i => !_playerStates[i].CanBait(soakerOrder, spot)).Mask();
+            return new(pos, Radius, forbiddenSoakers: forbidden);
         }
 
         private WDir DirectionForStack() => new(0, -_spotOffset); // TODO: this is arbitrary
@@ -253,190 +263,139 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             return dir;
         }
 
-        private void InitAssignments(BossModule module)
+        private IEnumerable<WPos> SafeSpots(BossModule module, int slot)
         {
-            var roles = Service.Config.Get<PartyRolesConfig>().AssignmentsPerSlot(module.Raid);
-            foreach (var order in _orderState)
-            {
-                if (order.HaveDirections)
-                {
-                    order.PlayerSlots.SortBy(e => _playerStates[e].JumpDirection);
-                    AssignPlayerSequence(order);
-                }
-                else if (roles.Length > 0)
-                {
-                    order.PlayerSlots.SortBy(e => roles[e]); // TODO: this is completely arbitrary, but we need stable sort order...
-                    AssignPlayerSequence(order);
-                }
-            }
-            _orderHint = $"1: {HintForOrder(module, _orderState[0])}, 3: {HintForOrder(module, _orderState[2])}";
-        }
-
-        private void AssignPlayerSequence(OrderState state)
-        {
-            switch (state.PlayerSlots.Count)
-            {
-                case 2:
-                    _playerStates[state.PlayerSlots[0]].AssignedSpot = 1;
-                    _playerStates[state.PlayerSlots[1]].AssignedSpot = 3;
-                    state.HaveAssignments = true;
-                    break;
-                case 3:
-                    _playerStates[state.PlayerSlots[0]].AssignedSpot = 1;
-                    _playerStates[state.PlayerSlots[1]].AssignedSpot = 2;
-                    _playerStates[state.PlayerSlots[2]].AssignedSpot = 3;
-                    state.HaveAssignments = true;
-                    break;
-            }
-        }
-
-        private string HintForOrder(BossModule module, OrderState state)
-        {
-            if (!state.HaveAssignments || state.PlayerSlots.Count < 2)
-                return "???";
-            var ab = module.Raid[state.PlayerSlots.First()]!;
-            var af = module.Raid[state.PlayerSlots.Last()]!;
-            return $"{ab.Name} / {af.Name}";
-        }
-
-        private void AdvanceState(BossModule module)
-        {
-            _eventProgress = 0;
-            switch (NextEvent++)
-            {
-                case State.AssignOrder: // 2/3 can immediately go stack, 1's need to wait for arrows...
-                    foreach (var ps in _playerStates)
-                    {
-                        if (ps.JumpOrder != 1)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForStack();
-                        }
-                    }
-                    break;
-                case State.AssignDirection: // 1's should now have assignments for jumps
-                    foreach (var ps in _playerStates)
-                    {
-                        if (ps.JumpOrder == 1)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false);
-                            ps.IsBaitingJump = true;
-                        }
-                    }
-                    break;
-                case State.Jump1Stack1: // 1's should now return to stack, 3's should run to the towers, 2's can stay until in/out resolves
-                    foreach (var ps in _playerStates)
-                    {
-                        if (ps.JumpOrder == 1)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForStack();
-                            ps.IsBaitingJump = false;
-                        }
-                        else if (ps.JumpOrder == 3)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false);
-                        }
-                    }
-                    break;
-                case State.Towers1InOut2: // 3's should step to bait, 2's can go bait jumps
-                    foreach (var ps in _playerStates)
-                    {
-                        if (ps.JumpOrder == 3)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false) * _stepToBait;
-                        }
-                        else if (ps.JumpOrder == 2)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, true);
-                            ps.IsBaitingJump = true;
-                        }
-                    }
-                    break;
-                case State.Bait1: // 3's should return to stack
-                    foreach (var ps in _playerStates)
-                    {
-                        if (ps.JumpOrder == 3)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForStack();
-                        }
-                    }
-                    break;
-                case State.Jump2: // 2's should return to stack, side 1's should run to the towers, 3's can go bait jumps
-                    foreach (var ps in _playerStates)
-                    {
-                        if (ps.JumpOrder == 2)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForStack();
-                            ps.IsBaitingJump = false;
-                        }
-                        else if (ps.JumpOrder == 1 && ps.AssignedSpot is 1 or 3)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, true);
-                        }
-                        else if (ps.JumpOrder == 3)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false);
-                            ps.IsBaitingJump = true;
-                        }
-                    }
-                    break;
-                case State.Towers2: // side 1's should step to bait
-                    foreach (var ps in _playerStates)
-                    {
-                        if (ps.JumpOrder == 1 && ps.AssignedSpot is 1 or 3)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, true) * _stepToBait;
-                        }
-                    }
-                    break;
-                case State.Bait2: // side 1's should return to stack
-                    foreach (var ps in _playerStates)
-                    {
-                        if (ps.JumpOrder == 1 && ps.AssignedSpot is 1 or 3)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForStack();
-                        }
-                    }
-                    break;
-                case State.Jump3Stack2: // 3's should return to stack (?), center 1 and 2's should run to the towers
-                    foreach (var ps in _playerStates)
-                    {
-                        if (ps.JumpOrder == 3)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForStack();
-                            ps.IsBaitingJump = false;
-                        }
-                        else if (ps.JumpOrder == 2 || ps.JumpOrder == 1 && ps.AssignedSpot == 2)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false);
-                        }
-                    }
-                    break;
-                case State.Towers3InOut4: // center 1 and 2's should step to bait
-                    foreach (var ps in _playerStates)
-                    {
-                        if (ps.JumpOrder == 2 || ps.JumpOrder == 1 && ps.AssignedSpot == 2)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false) * _stepToBait;
-                        }
-                    }
-                    break;
-                case State.Bait3: // center 1 and 2's should return to stack (?)
-                    foreach (var ps in _playerStates)
-                    {
-                        if (ps.JumpOrder == 2 || ps.JumpOrder == 1 && ps.AssignedSpot == 2)
-                        {
-                            ps.SafeSpot = module.Bounds.Center + DirectionForStack();
-                        }
-                    }
-                    break;
-            }
-        }
-
-        private void AddPredictedTower(BossModule module, ulong actorID, int direction)
-        {
-            var actor = module.WorldState.Actors.Find(actorID);
-            if (actor != null)
-                _predictedTowers.Add(actor.Position + direction * actor.Rotation.ToDirection() * _towerOffset);
+            // TODO: implement
+            //float _stepToBait = 1.2f;
+            //switch (NextEvent++)
+            //{
+            //    case State.AssignOrder: // 2/3 can immediately go stack, 1's need to wait for arrows...
+            //        foreach (var ps in _playerStates)
+            //        {
+            //            if (ps.JumpOrder != 1)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForStack();
+            //            }
+            //        }
+            //        break;
+            //    case State.AssignDirection: // 1's should now have assignments for jumps
+            //        foreach (var ps in _playerStates)
+            //        {
+            //            if (ps.JumpOrder == 1)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false);
+            //                ps.IsBaitingJump = true;
+            //            }
+            //        }
+            //        break;
+            //    case State.Jump1Stack1: // 1's should now return to stack, 3's should run to the towers, 2's can stay until in/out resolves
+            //        foreach (var ps in _playerStates)
+            //        {
+            //            if (ps.JumpOrder == 1)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForStack();
+            //                ps.IsBaitingJump = false;
+            //            }
+            //            else if (ps.JumpOrder == 3)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false);
+            //            }
+            //        }
+            //        break;
+            //    case State.Towers1: // 3's should step to bait, 2's can go bait jumps
+            //        foreach (var ps in _playerStates)
+            //        {
+            //            if (ps.JumpOrder == 3)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false) * _stepToBait;
+            //            }
+            //            else if (ps.JumpOrder == 2)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, true);
+            //                ps.IsBaitingJump = true;
+            //            }
+            //        }
+            //        break;
+            //    case State.Bait1: // 3's should return to stack
+            //        foreach (var ps in _playerStates)
+            //        {
+            //            if (ps.JumpOrder == 3)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForStack();
+            //            }
+            //        }
+            //        break;
+            //    case State.Jump2: // 2's should return to stack, side 1's should run to the towers, 3's can go bait jumps
+            //        foreach (var ps in _playerStates)
+            //        {
+            //            if (ps.JumpOrder == 2)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForStack();
+            //                ps.IsBaitingJump = false;
+            //            }
+            //            else if (ps.JumpOrder == 1 && ps.AssignedSpot is 1 or 3)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, true);
+            //            }
+            //            else if (ps.JumpOrder == 3)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false);
+            //                ps.IsBaitingJump = true;
+            //            }
+            //        }
+            //        break;
+            //    case State.Towers2: // side 1's should step to bait
+            //        foreach (var ps in _playerStates)
+            //        {
+            //            if (ps.JumpOrder == 1 && ps.AssignedSpot is 1 or 3)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, true) * _stepToBait;
+            //            }
+            //        }
+            //        break;
+            //    case State.Bait2: // side 1's should return to stack
+            //        foreach (var ps in _playerStates)
+            //        {
+            //            if (ps.JumpOrder == 1 && ps.AssignedSpot is 1 or 3)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForStack();
+            //            }
+            //        }
+            //        break;
+            //    case State.Jump3Stack2: // 3's should return to stack (?), center 1 and 2's should run to the towers
+            //        foreach (var ps in _playerStates)
+            //        {
+            //            if (ps.JumpOrder == 3)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForStack();
+            //                ps.IsBaitingJump = false;
+            //            }
+            //            else if (ps.JumpOrder == 2 || ps.JumpOrder == 1 && ps.AssignedSpot == 2)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false);
+            //            }
+            //        }
+            //        break;
+            //    case State.Towers3: // center 1 and 2's should step to bait
+            //        foreach (var ps in _playerStates)
+            //        {
+            //            if (ps.JumpOrder == 2 || ps.JumpOrder == 1 && ps.AssignedSpot == 2)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false) * _stepToBait;
+            //            }
+            //        }
+            //        break;
+            //    case State.Bait3: // center 1 and 2's should return to stack (?)
+            //        foreach (var ps in _playerStates)
+            //        {
+            //            if (ps.JumpOrder == 2 || ps.JumpOrder == 1 && ps.AssignedSpot == 2)
+            //            {
+            //                ps.SafeSpot = module.Bounds.Center + DirectionForStack();
+            //            }
+            //        }
+            //        break;
+            //}
+            yield break;
         }
     }
 }
