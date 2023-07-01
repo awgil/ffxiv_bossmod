@@ -19,9 +19,9 @@ namespace UIDev
         public static string ActionEffectString(ActionEffect eff)
         {
             var s = $"{eff.Type}: {eff.Param0:X2} {eff.Param1:X2} {eff.Param2:X2} {eff.Param3:X2} {eff.Param4:X2} {eff.Value:X4}";
-            if ((eff.Param4 & 0x20) != 0)
+            if (eff.FromTarget)
                 s = "(from target) " + s;
-            if ((eff.Param4 & 0x80) != 0)
+            if (eff.AtSource)
                 s = "(at source) " + s;
             var desc = ActionEffectParser.DescribeFields(eff);
             if (desc.Length > 0)
@@ -40,8 +40,8 @@ namespace UIDev
         public static int ActionDamage(Replay.ActionTarget a)
         {
             int res = 0;
-            foreach (var eff in a.Effects.Where(eff => eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage && (eff.Param4 & 0x80) == 0))
-                res += eff.Value + ((eff.Param4 & 0x40) != 0 ? eff.Param3 * 0x10000 : 0);
+            foreach (var eff in a.Effects.Where(eff => eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage && !eff.AtSource))
+                res += eff.DamageHealValue;
             return res;
         }
     }

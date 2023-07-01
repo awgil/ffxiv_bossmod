@@ -32,7 +32,7 @@ namespace UIDev.Analysis
                             {
                                 if (t.Target == a.Source)
                                     expectConfirmSource = expectConfirmTarget = true;
-                                else if ((eff.Param4 & 0x80) != 0)
+                                else if (eff.AtSource)
                                     expectConfirmSource = true;
                                 else
                                     expectConfirmTarget = true;

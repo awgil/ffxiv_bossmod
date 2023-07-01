@@ -46,7 +46,7 @@ namespace UIDev
                 {
                     var (p, c) = n.Columns[i];
                     if (c != null)
-                        c.DrawConfig();
+                        c.DrawConfig(tree);
                     else if (ImGui.Button($"Show details for {ReplayUtils.ParticipantString(p)}"))
                         n.Columns[i] = (p, Add(new ColumnEnemyDetails(Timeline, _tree, _phaseBranches, _replay, _encounter, p)));
                 }

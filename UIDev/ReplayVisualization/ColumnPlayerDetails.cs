@@ -16,14 +16,17 @@ namespace UIDev
         private ModuleRegistry.Info? _moduleInfo;
 
         private ColumnPlayerActions _actions;
-        private ColumnSeparator _separator;
+        private ColumnActorStatuses _statuses;
+
+        private ColumnActorHP _hp;
+        private ColumnPlayerGauge? _gauge;
+        private ColumnSeparator _resourceSep;
 
         private CooldownPlanningConfigNode? _planConfig;
         private int _selectedPlan = -1;
         private bool _planModified;
         private CooldownPlannerColumns? _planner;
 
-        public bool AnyVisible => _actions.Width > 0 || _planner != null;
         public bool PlanModified => _planModified;
 
         public ColumnPlayerDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass)
@@ -40,7 +43,13 @@ namespace UIDev
             _actions = Add(new ColumnPlayerActions(timeline, tree, phaseBranches, replay, enc, player, playerClass));
             _actions.Name = player.Name;
 
-            _separator = Add(new ColumnSeparator(timeline));
+            _statuses = Add(new ColumnActorStatuses(timeline, tree, phaseBranches, replay, enc, player));
+
+            _hp = Add(new ColumnActorHP(timeline, tree, phaseBranches, replay, enc, player));
+            _gauge = ColumnPlayerGauge.Create(timeline, tree, phaseBranches, replay, enc, player, playerClass);
+            if (_gauge != null)
+                Add(_gauge);
+            _resourceSep = Add(new ColumnSeparator(timeline));
 
             var info = ModuleRegistry.FindByOID(enc.OID);
             if (info?.CooldownPlanningSupported ?? false)
@@ -57,7 +66,15 @@ namespace UIDev
             DrawConfigPlanner(tree);
             foreach (var n in tree.Node("Actions"))
                 _actions.DrawConfig(tree);
-            _separator.Width = AnyVisible ? 1 : 0;
+            foreach (var n in tree.Node("Statuses"))
+                _statuses.DrawConfig(tree);
+
+            foreach (var n in tree.Node("Resources"))
+            {
+                DrawResourceColumnToggle(_hp, "HP");
+                if (_gauge != null)
+                    DrawResourceColumnToggle(_gauge, "Gauge");
+            }
         }
 
         public void SaveChanges()
@@ -158,6 +175,16 @@ namespace UIDev
                     if (track != null)
                         track.AddHistoryEntryDot(_enc.Time.Start, a.Timestamp, $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget)} #{a.GlobalSequence}", 0xffffffff).AddActionTooltip(a);
                 }
+            }
+        }
+
+        private void DrawResourceColumnToggle(IToggleableColumn col, string name)
+        {
+            bool visible = col.Visible;
+            if (ImGui.Checkbox(name, ref visible))
+            {
+                col.Visible = visible;
+                _resourceSep.Width = _hp.Visible || (_gauge?.Visible ?? false) ? 1 : 0;
             }
         }
     }

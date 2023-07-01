@@ -4,8 +4,14 @@ using System.Linq;
 
 namespace UIDev
 {
-    public class ColumnEnemyCasts : ColumnGenericHistory
+    public class ColumnEnemyCasts : ColumnGenericHistory, IToggleableColumn
     {
+        public bool Visible
+        {
+            get => Width > 0;
+            set => Width = value ? DefaultWidth : 0;
+        }
+
         public ColumnEnemyCasts(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant enemy)
             : base(timeline, tree, phaseBranches)
         {

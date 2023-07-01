@@ -245,6 +245,9 @@ namespace BossMod
             r = t;
         }
 
+        // linear interpolation
+        public static float Lerp(float a, float b, float t) => a + (b - a) * t;
+
         // get all types defined in specified assembly
         public static IEnumerable<Type?> GetAllTypes(Assembly asm)
         {

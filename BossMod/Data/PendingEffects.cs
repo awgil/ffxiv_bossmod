@@ -36,7 +36,7 @@ namespace BossMod
                         {
                             if (ev.Targets[i].ID == source)
                                 confirmSource = confirmTarget = true;
-                            else if ((eff.Param4 & 0x80) != 0)
+                            else if (eff.AtSource)
                                 confirmSource = true;
                             else
                                 confirmTarget = true;
@@ -122,11 +122,11 @@ namespace BossMod
             {
                 if (eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage)
                 {
-                    res -= HealOrDamageValue(eff);
+                    res -= eff.DamageHealValue;
                 }
                 else if (eff.Type == ActionEffectType.Heal)
                 {
-                    res += HealOrDamageValue(eff);
+                    res += eff.DamageHealValue;
                 }
             }
             return res;
@@ -156,7 +156,7 @@ namespace BossMod
                         bool selfTargeted = e.Event.Targets[i].ID == e.Source;
                         foreach (var eff in e.Event.Targets[i].Effects)
                         {
-                            if (selfTargeted || (eff.Param4 & 0x80) != 0)
+                            if (selfTargeted || eff.AtSource)
                             {
                                 yield return eff;
                             }
@@ -171,7 +171,7 @@ namespace BossMod
                         {
                             foreach (var eff in e.Event.Targets[i].Effects)
                             {
-                                if ((eff.Param4 & 0x80) == 0)
+                                if (!eff.AtSource)
                                 {
                                     yield return eff;
                                 }
@@ -181,7 +181,5 @@ namespace BossMod
                 }
             }
         }
-
-        private int HealOrDamageValue(ActionEffect eff) => eff.Value + ((eff.Param4 & 0x40) != 0 ? eff.Param3 * 0x10000 : 0);
     }
 }

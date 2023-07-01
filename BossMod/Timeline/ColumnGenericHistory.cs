@@ -20,12 +20,13 @@ namespace BossMod
             public float Duration; // used for hover tests to display tooltip
             public string Name;
             public uint Color;
+            public float WidthRel;
             public List<string> TooltipExtra = new();
 
             public float TimeSincePhaseStart() => (AttachNode.Predecessor?.Time ?? 0) + Delay;
             public float TimeSinceGlobalStart(StateMachineTree tree) => tree.Phases[AttachNode.PhaseID].StartTime + TimeSincePhaseStart();
 
-            public Entry(Type type, StateMachineTree.Node attachNode, float delay, float duration, string name, uint color)
+            public Entry(Type type, StateMachineTree.Node attachNode, float delay, float duration, string name, uint color, float widthRel = 1.0f)
             {
                 EntryType = type;
                 AttachNode = attachNode;
@@ -33,6 +34,7 @@ namespace BossMod
                 Duration = duration;
                 Name = name;
                 Color = color;
+                WidthRel = widthRel;
             }
         }
 
@@ -81,19 +83,19 @@ namespace BossMod
                 var eStart = e.TimeSinceGlobalStart(Tree);
                 var yStart = Timeline.TimeToScreenCoord(eStart);
                 var yEnd = Timeline.TimeToScreenCoord(eStart + e.Duration);
-                drawlist.AddRectFilled(new(trackMin.X, yStart), new(trackMax.X, yEnd), e.Color);
+                drawlist.AddRectFilled(new(trackMin.X, yStart), new(Utils.Lerp(trackMin.X, trackMax.X, e.WidthRel), yEnd), e.Color);
             }
 
             foreach (var e in Entries.Where(e => e.EntryType == Entry.Type.Line && IsEntryVisible(e)))
             {
                 var y = Timeline.TimeToScreenCoord(e.TimeSinceGlobalStart(Tree));
-                drawlist.AddLine(new(trackMin.X, y), new(trackMax.X, y), e.Color);
+                drawlist.AddLine(new(trackMin.X, y), new(Utils.Lerp(trackMin.X, trackMax.X, e.WidthRel), y), e.Color);
             }
 
             foreach (var e in Entries.Where(e => e.EntryType == Entry.Type.Dot && IsEntryVisible(e)))
             {
                 var y = Timeline.TimeToScreenCoord(e.TimeSinceGlobalStart(Tree));
-                drawlist.AddCircleFilled(new((trackMin.X + trackMax.X) * 0.5f, y), _eventRadius, e.Color);
+                drawlist.AddCircleFilled(new(Utils.Lerp(trackMin.X, trackMax.X, e.WidthRel * 0.5f), y), _eventRadius, e.Color);
             }
         }
 
@@ -140,7 +142,7 @@ namespace BossMod
         private List<string> EntryTooltip(Entry e)
         {
             List<string> res = new();
-            res.Add($"{e.TimeSinceGlobalStart(Tree):f1}: {e.Name}");
+            res.Add($"{e.TimeSinceGlobalStart(Tree):f3}: {e.Name}");
             res.AddRange(e.TooltipExtra);
             return res;
         }

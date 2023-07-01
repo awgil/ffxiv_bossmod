@@ -110,12 +110,41 @@ namespace UIDev
                     continue;
 
                 var name = $"{a.ID} ({_moduleInfo?.ActionIDType?.GetEnumName(a.ID.ID)}) {ReplayUtils.ParticipantString(a.Source)} -> {ReplayUtils.ParticipantString(a.MainTarget)} #{a.GlobalSequence}";
+                var color = EventColor(a);
                 foreach (var c in cols.SetBits())
                 {
                     var col = (ColumnGenericHistory)Columns[c];
-                    col.AddHistoryEntryDot(_encounter.Time.Start, a.Timestamp, name, ColumnUtils.ActionHasDamageToPlayerEffects(a) ? 0xffffffff : 0x80808080).AddActionTooltip(a);
+                    col.AddHistoryEntryDot(_encounter.Time.Start, a.Timestamp, name, color).AddActionTooltip(a);
                 }
             }
+        }
+
+        private uint EventColor(Replay.Action action)
+        {
+            bool phys = false;
+            bool magic = false;
+            foreach (var t in action.Targets.Where(t => t.Target?.Type == ActorType.Player))
+            {
+                foreach (var e in t.Effects.Where(e => e.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage))
+                {
+                    switch (e.DamageType)
+                    {
+                        case DamageType.Slashing:
+                        case DamageType.Piercing:
+                        case DamageType.Blunt:
+                        case DamageType.Shot:
+                            phys = true;
+                            break;
+                        case DamageType.Magic:
+                            magic = true;
+                            break;
+                        default:
+                            phys = magic = true; // TODO: reconsider
+                            break;
+                    }
+                }
+            }
+            return phys ? (magic ? 0xffffffff : 0xff0080ff) : (magic ? 0xffff00ff : 0x80808080);
         }
     }
 }

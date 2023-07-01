@@ -439,7 +439,7 @@ namespace BossMod
                     data.Classes.Add(args.actor.Class);
                     data.Actions.Add(args.ev.Action);
 
-                    bool onTarget = eff.Type == ActionEffectType.ApplyStatusEffectTarget && t.ID != args.actor.InstanceID && (eff.Param4 & 0x80) == 0;
+                    bool onTarget = eff.Type == ActionEffectType.ApplyStatusEffectTarget && t.ID != args.actor.InstanceID && !eff.AtSource;
                     if (onTarget)
                         data.OnTarget = true;
                     else

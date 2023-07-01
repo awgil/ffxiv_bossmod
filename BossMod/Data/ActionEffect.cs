@@ -44,34 +44,22 @@ namespace BossMod
         unknown_30 = 48, // 0x30
         unknown_31 = 49, // 0x31
         Unknown_32 = 50, // 0x32
-        Unknown_33 = 51, // 0x33
-        FullResistStatus = 52, // 0x34
-        Unknown_37 = 55, // 0x37 - 'arms length' has value = 9 on source, is this 'attack speed slow'?
+        ReviveLB = 51, // 0x33 - heal lb3 revive with full hp; seen value == 1
+        Unknown_34 = 52, // 0x34
+        FullResistStatus = 55, // 0x37 - full resist status (e.g. 9 = resist 'arms length' slow, 2 = resist 'low blow' stun)
         Unknown_38 = 56, // 0x38
-        Unknown_39 = 57, // 0x39
+        Unknown_39 = 57, // 0x39 - 'you have been sentenced to death!' message
         VFX = 59, // 0x3B
-        Gauge = 60, // 0x3C
-        Resource = 61, // 0x3D - value 0x34 = gain war gauge (amount == hitSeverity)
-        Unknown_40 = 64, // 0x40
-        Unknown_42 = 66, // 0x42
-        Unknown_46 = 70, // 0x46
+        Unknown_3D = 61, // 0x3D - was called 'gauge', but i think it's incorrect
+        Resource = 62, // 0x3E - value 0x34 = gain war gauge (amount == hitSeverity)
+        Unknown_41 = 65, // 0x41
+        Unknown_43 = 67, // 0x43
         Unknown_47 = 71, // 0x47
-        SetModelState = 72, // 0x48 - value == model state
-        SetHP = 73, // 0x49 - e.g. zodiark's kokytos
-        Partial_Invulnerable = 74, // 0x4A
-        Interrupt = 75, // 0x4B
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public unsafe struct ActionEffect
-    {
-        public ActionEffectType Type;
-        public byte Param0;
-        public byte Param1;
-        public byte Param2;
-        public byte Param3;
-        public byte Param4;
-        public ushort Value;
+        Unknown_48 = 72, // 0x48
+        SetModelState = 73, // 0x49 - value == model state
+        SetHP = 74, // 0x4A - e.g. zodiark's kokytos
+        Partial_Invulnerable = 75, // 0x4B
+        Interrupt = 76, // 0x4C
     }
 
     public enum DamageType
@@ -107,6 +95,29 @@ namespace BossMod
         SourceForward = 3, // direction = src.direction
         SourceRight = 4, // direction = src.direction - pi/2
         SourceLeft = 5, // direction = src.direction + pi/2
+    }
+
+    public enum ActionResourceType
+    {
+        WARGauge = 0x34,
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public unsafe struct ActionEffect
+    {
+        public ActionEffectType Type;
+        public byte Param0;
+        public byte Param1;
+        public byte Param2;
+        public byte Param3;
+        public byte Param4;
+        public ushort Value;
+
+        public bool FromTarget => (Param4 & 0x20) != 0;
+        public bool AtSource => (Param4 & 0x80) != 0;
+        public DamageType DamageType => (DamageType)(Param1 & 0x0F); // for various damage effects
+        public DamageElementType DamageElement => (DamageElementType)(Param1 >> 4); // for various damage effects
+        public int DamageHealValue => Value + ((Param4 & 0x40) != 0 ? Param3 * 0x10000 : 0); // for damage/heal effects
     }
 
     public unsafe struct ActionEffects : IEnumerable<ActionEffect>
@@ -156,7 +167,7 @@ namespace BossMod
                     // param3: third (high) byte of value (if bit 6 in param4 is set), 0 otherwise
                     // param4: bit1 = ? (seen when part of damage is absorbed by BLM manaward), bit2 = partial absorb? (seen when part of damage is absorbed by SMN succor), bit4 = immune (e.g. because of transcendent after raise),
                     //         bit5 = originating from target (e.g. retaliation damage from vengeance), bit 6 = large value, bit 7 = applied to source, others unused
-                    res.Append($"amount={eff.Value + ((eff.Param4 & 0x40) != 0 ? eff.Param3 * 0x10000 : 0)} {(DamageType)(eff.Param1 & 0x0F)} {(DamageElementType)(eff.Param1 >> 4)} ({(sbyte)eff.Param2}% bonus)");
+                    res.Append($"amount={eff.DamageHealValue} {eff.DamageType} {eff.DamageElement} ({(sbyte)eff.Param2}% bonus)");
                     if ((eff.Param0 & 0x20) != 0)
                         res.Append(", crit");
                     if ((eff.Param0 & 0x40) != 0)
@@ -174,7 +185,7 @@ namespace BossMod
                     // param2: unused
                     // param3: third (high) byte of value (if bit 6 in param4 is set), 0 otherwise
                     // param4: bit 6 = large value, bit 7 = applied to source, others unused
-                    res.Append($"amount={eff.Value + ((eff.Param4 & 0x40) != 0 ? eff.Param3 * 0x10000 : 0)}");
+                    res.Append($"amount={eff.DamageHealValue}");
                     if ((eff.Param1 & 0x20) != 0)
                         res.Append(", crit");
                     if ((eff.Param0 & 1) != 0)
@@ -229,6 +240,17 @@ namespace BossMod
                 case ActionEffectType.Mount:
                     res.Append($"{eff.Value} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Mount>(eff.Value)?.Singular}'");
                     break;
+                case ActionEffectType.FullResistStatus:
+                    res.Append(Utils.StatusString(eff.Value));
+                    break;
+                case ActionEffectType.Resource:
+                    switch ((ActionResourceType)eff.Value)
+                    {
+                        case ActionResourceType.WARGauge:
+                            res.Append($"WAR Gauge: {eff.Param0}");
+                            break;
+                    }
+                    break;
                 case ActionEffectType.SetHP:
                     res.Append($"value={eff.Value}");
                     break;
@@ -243,6 +265,7 @@ namespace BossMod
                 case ActionEffectType.Miss:
                 case ActionEffectType.FullResist:
                 case ActionEffectType.FailMissingStatus: // e.g. deployment tactics or bane when target doesn't have required status
+                case ActionEffectType.Interrupt:
                     // so far never seen any non-zero params
                     return eff.Param0 != 0 || eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0 || eff.Value != 0 ? "non-zero params" : "";
                 case ActionEffectType.NoEffectText: // e.g. taunt immune
@@ -280,6 +303,7 @@ namespace BossMod
                 case ActionEffectType.MpGain:
                 case ActionEffectType.TpGain:
                 case ActionEffectType.StartActionCombo:
+                case ActionEffectType.FullResistStatus:
                 case ActionEffectType.SetHP:
                     // so far only seen 'source' flag and non-zero values
                     return eff.Param0 != 0 || eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || (eff.Param4 & ~0x80) != 0 ? "non-zero params" : "";
@@ -324,6 +348,16 @@ namespace BossMod
                         return "non-zero params";
                     else
                         return $"param0={eff.Param0}"; // 0 or 1, TODO investigate
+                case ActionEffectType.ReviveLB:
+                    return eff.Param0 != 0 || eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0 || eff.Value != 1 ? "unknown payload" : "";
+                case ActionEffectType.Resource:
+                    switch ((ActionResourceType)eff.Value)
+                    {
+                        case ActionResourceType.WARGauge:
+                            return eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0 ? "non-zero params" : "";
+                        default:
+                            return $"unknown value {eff.Value}";
+                    }
                 default:
                     return $"unknown type";
             }

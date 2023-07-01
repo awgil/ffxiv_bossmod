@@ -14,6 +14,7 @@ namespace UIDev
             public DateTime Cursor;
             public DateTime ChargeCooldownEnd;
             public int ChargesOnCooldown;
+            public int MaxCharges;
             public float ChargeCooldown;
             public ActionID CooldownAction;
         }
@@ -21,13 +22,17 @@ namespace UIDev
         private ColumnGenericHistory _autoAttacks;
         private ColumnGenericHistory _animLocks;
         private CooldownGroup[] _cdGroups = new CooldownGroup[80];
+        private ColumnSeparator _sep;
+        private Dictionary<ActionID, (int group, float cd)> _cooldownReductions = new();
 
         public ColumnPlayerActions(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass)
             : base(timeline)
         {
             _autoAttacks = Add<ColumnGenericHistory>(new(timeline, tree, phaseBranches, "Auto attacks"));
             _animLocks = Add<ColumnGenericHistory>(new(timeline, tree, phaseBranches, "Abilities with animation locks"));
+            _sep = Add(new ColumnSeparator(timeline));
             GetCooldownColumn(CommonDefinitions.GCDGroup, new()).Name = "GCD"; // make sure GCD column always exists and is before any others
+            SetupClass(playerClass);
 
             var classDef = PlanDefinitions.Classes.GetValueOrDefault(playerClass);
             int iCast = 0;
@@ -75,7 +80,7 @@ namespace UIDev
                 }
 
                 AddAnimationLock(_animLocks, a, enc.Time.Start, effectStart, actionName);
-                _animLocks.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, actionName, actionDef != null ? 0xffffffff : 0xff0000ff).AddActionTooltip(a);
+                _animLocks.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, actionName, actionDef != null ? (ActionConfirmed(a) ? 0xffffffff : 0xff00ffff) : 0xff0000ff).AddActionTooltip(a);
 
                 if (actionDef != null)
                 {
@@ -86,8 +91,33 @@ namespace UIDev
                         col.AddHistoryEntryRange(enc.Time.Start, effectStart, actionDef.EffectDuration, actionName, 0x8000ff00).TooltipExtra.Add($"- effect: {actionDef.EffectDuration:f1}s");
                         AdvanceCooldown(actionDef.CooldownGroup, enc.Time.Start, effectStart.AddSeconds(actionDef.EffectDuration), false);
                     }
-                    // TODO: support cooldown reduction effects
                     col.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, actionName, 0xffffffff).AddActionTooltip(a);
+                }
+
+                // cooldown reduction
+                if (_cooldownReductions.TryGetValue(a.ID, out var cdr))
+                {
+                    AdvanceCooldown(cdr.group, enc.Time.Start, a.Timestamp, true);
+                    ref var data = ref _cdGroups[cdr.group];
+                    float actualReduction = 0;
+                    if (data.ChargesOnCooldown > 0)
+                    {
+                        actualReduction = cdr.cd;
+                        data.ChargeCooldownEnd = data.ChargeCooldownEnd.AddSeconds(-cdr.cd);
+                        if (a.Timestamp >= data.ChargeCooldownEnd)
+                        {
+                            if (--data.ChargesOnCooldown > 0)
+                            {
+                                data.Column?.AddHistoryEntryLine(enc.Time.Start, data.Cursor, "", 0xffffffff);
+                                data.ChargeCooldownEnd = data.ChargeCooldownEnd.AddSeconds(data.ChargeCooldown);
+                            }
+                            else
+                            {
+                                actualReduction -= (float)(a.Timestamp - data.ChargeCooldownEnd).TotalSeconds;
+                            }
+                        }
+                    }
+                    data.Column?.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, $"CD reduced by {actualReduction:f1}/{cdr.cd:f1}s: {actionName}", actualReduction < cdr.cd ? 0xff00ffff : 0xffffff00).AddActionTooltip(a);
                 }
             }
 
@@ -121,6 +151,29 @@ namespace UIDev
                     col.Width = visible ? ColumnGenericHistory.DefaultWidth : 0;
                 }
             }
+
+            _sep.Width = Columns.Any(c => c.Width > 0) ? 1 : 0;
+        }
+
+        private void SetupClass(Class playerClass)
+        {
+            switch (playerClass)
+            {
+                case Class.WAR:
+                    // make sure important damage cooldowns are in consistent order
+                    GetCooldownColumn((int)BossMod.WAR.CDGroup.Infuriate, ActionID.MakeSpell(BossMod.WAR.AID.Infuriate));
+                    GetCooldownColumn((int)BossMod.WAR.CDGroup.InnerRelease, ActionID.MakeSpell(BossMod.WAR.AID.InnerRelease));
+                    GetCooldownColumn((int)BossMod.WAR.CDGroup.Upheaval, ActionID.MakeSpell(BossMod.WAR.AID.Upheaval));
+                    GetCooldownColumn((int)BossMod.WAR.CDGroup.Onslaught, ActionID.MakeSpell(BossMod.WAR.AID.Onslaught));
+                    // infuriate cooldown reductions
+                    _cooldownReductions[ActionID.MakeSpell(BossMod.WAR.AID.InnerBeast)] = ((int)BossMod.WAR.CDGroup.Infuriate, 5);
+                    _cooldownReductions[ActionID.MakeSpell(BossMod.WAR.AID.FellCleave)] = ((int)BossMod.WAR.CDGroup.Infuriate, 5);
+                    _cooldownReductions[ActionID.MakeSpell(BossMod.WAR.AID.InnerChaos)] = ((int)BossMod.WAR.CDGroup.Infuriate, 5);
+                    _cooldownReductions[ActionID.MakeSpell(BossMod.WAR.AID.SteelCyclone)] = ((int)BossMod.WAR.CDGroup.Infuriate, 5);
+                    _cooldownReductions[ActionID.MakeSpell(BossMod.WAR.AID.Decimate)] = ((int)BossMod.WAR.CDGroup.Infuriate, 5);
+                    _cooldownReductions[ActionID.MakeSpell(BossMod.WAR.AID.ChaoticCyclone)] = ((int)BossMod.WAR.CDGroup.Infuriate, 5);
+                    break;
+            }
         }
 
         private void AddUnfinishedCast(Replay.Cast cast, DateTime encStart, PlanDefinitions.ClassData? classDef)
@@ -147,8 +200,19 @@ namespace UIDev
         {
             var col = _cdGroups[cooldownGroup].Column;
             if (col == null)
-                col = _cdGroups[cooldownGroup].Column = Add<ColumnGenericHistory>(new(Timeline, _autoAttacks.Tree, _autoAttacks.PhaseBranches, defaultAction.ToString()));
+                col = _cdGroups[cooldownGroup].Column = AddBefore<ColumnGenericHistory>(new(Timeline, _autoAttacks.Tree, _autoAttacks.PhaseBranches, defaultAction.ToString()), _sep);
             return col;
+        }
+
+        private void AddCooldownRange(ref CooldownGroup data, DateTime encStart, DateTime rangeEnd)
+        {
+            if (data.Column == null)
+                return;
+            var width = data.MaxCharges > 0 ? (float)data.ChargesOnCooldown / data.MaxCharges : 1;
+            var e = data.Column.AddHistoryEntryRange(encStart, data.Cursor, rangeEnd, data.CooldownAction.ToString(), 0x80808080, width);
+            e.TooltipExtra.Add($"- charges remaining: {data.MaxCharges - data.ChargesOnCooldown}/{data.MaxCharges}");
+            e.TooltipExtra.Add($"- start CD: {(data.ChargeCooldownEnd - data.Cursor).TotalSeconds:f3}s");
+            e.TooltipExtra.Add($"- end CD: {(data.ChargeCooldownEnd - rangeEnd).TotalSeconds:f3}s");
         }
 
         private void AdvanceCooldown(int cdGroup, DateTime encStart, DateTime timestamp, bool addRanges)
@@ -159,7 +223,7 @@ namespace UIDev
             {
                 // next charge is fully finished
                 if (addRanges)
-                    data.Column?.AddHistoryEntryRange(encStart, data.Cursor, data.ChargeCooldownEnd, data.CooldownAction.ToString(), 0x80808080).TooltipExtra.Add($"- cooldown: {data.ChargeCooldown:f1}s ({data.ChargesOnCooldown} charges) ");
+                    AddCooldownRange(ref data, encStart, data.ChargeCooldownEnd);
                 data.Cursor = data.ChargeCooldownEnd;
                 if (--data.ChargesOnCooldown > 0)
                 {
@@ -173,7 +237,7 @@ namespace UIDev
             {
                 // assertion: timestamp < data.ChargeCooldownEnd
                 if (addRanges)
-                    data.Column?.AddHistoryEntryRange(encStart, data.Cursor, timestamp, data.CooldownAction.ToString(), 0x80808080).TooltipExtra.Add($"- cooldown: {data.ChargeCooldown:f1}s ({data.ChargesOnCooldown} charges) ");
+                    AddCooldownRange(ref data, encStart, timestamp);
             }
 
             data.Cursor = timestamp;
@@ -188,6 +252,7 @@ namespace UIDev
                 // off cd -> cd
                 data.ChargeCooldownEnd = data.Cursor.AddSeconds(actionDef.Cooldown);
                 data.ChargesOnCooldown = 1;
+                data.MaxCharges = actionDef.MaxChargesAtCap;
             }
             else if (data.ChargesOnCooldown < actionDef.MaxChargesAtCap)
             {
@@ -203,5 +268,7 @@ namespace UIDev
             data.ChargeCooldown = actionDef.Cooldown;
             data.CooldownAction = aid;
         }
+
+        private bool ActionConfirmed(Replay.Action a) => a.Targets.Count == 0 || a.Targets.Any(t => t.ConfirmationSource != default || t.ConfirmationTarget != default);
     }
 }

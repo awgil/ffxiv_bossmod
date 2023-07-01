@@ -27,7 +27,7 @@ namespace UIDev.Analysis
                             {
                                 if (t.Target == a.Source)
                                     damageSource = damageTarget = true;
-                                else if ((eff.Param4 & 0x80) != 0)
+                                else if (eff.AtSource)
                                     damageSource = true;
                                 else
                                     damageTarget = true;
@@ -36,7 +36,7 @@ namespace UIDev.Analysis
                             {
                                 if (t.Target == a.Source)
                                     healSource = healTarget = true;
-                                else if ((eff.Param4 & 0x80) != 0)
+                                else if (eff.AtSource)
                                     healSource = true;
                                 else
                                     healTarget = true;

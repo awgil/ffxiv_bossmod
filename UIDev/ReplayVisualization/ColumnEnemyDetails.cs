@@ -9,9 +9,11 @@ namespace UIDev
     {
         private Replay.Participant _enemy;
         private ColumnEnemyCasts _casts;
+        private ColumnActorStatuses _statuses;
+        private ColumnActorHP _hp;
         private ColumnSeparator _separator;
 
-        public bool AnyVisible => _casts.Width > 0;
+        public bool AnyVisible => _casts.Visible || _statuses.Visible || _hp.Visible;
 
         public ColumnEnemyDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant enemy)
             : base(timeline)
@@ -19,26 +21,30 @@ namespace UIDev
             //Name = ReplayUtils.ParticipantString(enemy);
             _enemy = enemy;
             _casts = Add(new ColumnEnemyCasts(timeline, tree, phaseBranches, replay, enc, enemy));
+            _statuses = Add(new ColumnActorStatuses(timeline, tree, phaseBranches, replay, enc, enemy));
+            _hp = Add(new ColumnActorHP(timeline, tree, phaseBranches, replay, enc, enemy));
             _separator = Add(new ColumnSeparator(timeline));
         }
 
-        public void DrawConfig()
+        public void DrawConfig(UITree tree)
         {
-            ImGui.PushID(_enemy.InstanceID.ToString());
-            DrawColumnToggle(_casts, "Casts");
-            ImGui.TextUnformatted(ReplayUtils.ParticipantString(_enemy));
-            ImGui.PopID();
+            foreach (var n in tree.Node(ReplayUtils.ParticipantString(_enemy)))
+            {
+                DrawColumnToggle(_casts, "Casts");
+                DrawColumnToggle(_hp, "HP");
+                foreach (var nn in tree.Node("Statuses"))
+                    _statuses.DrawConfig(tree);
+            }
+            _separator.Width = AnyVisible ? 1 : 0;
         }
 
-        private void DrawColumnToggle(Timeline.Column col, string name)
+        private void DrawColumnToggle(IToggleableColumn col, string name)
         {
-            bool visible = col.Width > 0;
+            bool visible = col.Visible;
             if (ImGui.Checkbox(name, ref visible))
             {
-                col.Width = visible ? ColumnGenericHistory.DefaultWidth : 0;
-                _separator.Width = AnyVisible ? 1 : 0;
+                col.Visible = visible;
             }
-            ImGui.SameLine();
         }
     }
 }
