@@ -35,16 +35,22 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP2)]
     public class DSW2 : BossModule
     {
-        public static ArenaBoundsCircle BoundsCircle = new ArenaBoundsCircle(new (100, 100), 21); // p2
+        public static ArenaBoundsCircle BoundsCircle = new ArenaBoundsCircle(new (100, 100), 21); // p2, intermission
         public static ArenaBoundsSquare BoundsSquare = new ArenaBoundsSquare(new (100, 100), 21); // p3, p4
 
+        private Actor? _arenaFeatures;
         private Actor? _bossP3;
         private Actor? _leftEyeP4;
         private Actor? _rightEyeP4;
+        private Actor? _nidhoggP4;
+        private Actor? _serCharibert;
+        public Actor? ArenaFeatures => _arenaFeatures;
         public Actor? BossP2() => PrimaryActor;
         public Actor? BossP3() => _bossP3;
         public Actor? LeftEyeP4() => _leftEyeP4;
         public Actor? RightEyeP4() => _rightEyeP4;
+        public Actor? NidhoggP4() => _nidhoggP4;
+        public Actor? SerCharibert() => _serCharibert;
 
         public DSW2(WorldState ws, Actor primary) : base(ws, primary, BoundsCircle) { }
 
@@ -52,9 +58,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             // TODO: this is an ugly hack, think how multi-actor fights can be implemented without it...
             // the problem is that on wipe, any actor can be deleted and recreated in the same frame
+            _arenaFeatures ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.ArenaFeatures).FirstOrDefault() : null;
             _bossP3 ??= StateMachine.ActivePhaseIndex == 1 ? Enemies(OID.BossP3).FirstOrDefault() : null;
             _leftEyeP4 ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.LeftEye).FirstOrDefault() : null;
             _rightEyeP4 ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.RightEye).FirstOrDefault() : null;
+            _nidhoggP4 ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.Nidhogg).FirstOrDefault() : null;
+            _serCharibert ??= StateMachine.ActivePhaseIndex == 3 ? Enemies(OID.SerCharibert).FirstOrDefault() : null;
         }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
@@ -63,6 +72,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             Arena.Actor(_bossP3, ArenaColor.Enemy);
             Arena.Actor(_leftEyeP4, ArenaColor.Enemy);
             Arena.Actor(_rightEyeP4, ArenaColor.Enemy);
+            Arena.Actor(_nidhoggP4, ArenaColor.Enemy);
+            Arena.Actor(_serCharibert, ArenaColor.Enemy);
             //Arena.Actor(Enemies(OID.SerJanlenoux).FirstOrDefault(), 0xffffffff);
             //Arena.Actor(Enemies(OID.SerVellguine).FirstOrDefault(), 0xff0000ff);
             //Arena.Actor(Enemies(OID.SerPaulecrain).FirstOrDefault(), 0xff00ff00);

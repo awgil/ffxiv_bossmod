@@ -249,153 +249,31 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         }
 
         private WDir DirectionForStack() => new(0, -_spotOffset); // TODO: this is arbitrary
-        private WDir DirectionForSpot(int spot, bool secondOrder)
-        {
-            var dir = spot switch
-            {
-                1 => DirectionForStack().OrthoR(), // TODO: this is arbitrary
-                2 => -DirectionForStack(),
-                3 => DirectionForStack().OrthoL(),
-                _ => new()
-            };
-            if (spot != 0 && secondOrder)
-                dir += DirectionForStack();
-            return dir;
-        }
 
         private IEnumerable<WPos> SafeSpots(BossModule module, int slot)
         {
-            // TODO: implement
-            //float _stepToBait = 1.2f;
-            //switch (NextEvent++)
-            //{
-            //    case State.AssignOrder: // 2/3 can immediately go stack, 1's need to wait for arrows...
-            //        foreach (var ps in _playerStates)
-            //        {
-            //            if (ps.JumpOrder != 1)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForStack();
-            //            }
-            //        }
-            //        break;
-            //    case State.AssignDirection: // 1's should now have assignments for jumps
-            //        foreach (var ps in _playerStates)
-            //        {
-            //            if (ps.JumpOrder == 1)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false);
-            //                ps.IsBaitingJump = true;
-            //            }
-            //        }
-            //        break;
-            //    case State.Jump1Stack1: // 1's should now return to stack, 3's should run to the towers, 2's can stay until in/out resolves
-            //        foreach (var ps in _playerStates)
-            //        {
-            //            if (ps.JumpOrder == 1)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForStack();
-            //                ps.IsBaitingJump = false;
-            //            }
-            //            else if (ps.JumpOrder == 3)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false);
-            //            }
-            //        }
-            //        break;
-            //    case State.Towers1: // 3's should step to bait, 2's can go bait jumps
-            //        foreach (var ps in _playerStates)
-            //        {
-            //            if (ps.JumpOrder == 3)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false) * _stepToBait;
-            //            }
-            //            else if (ps.JumpOrder == 2)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, true);
-            //                ps.IsBaitingJump = true;
-            //            }
-            //        }
-            //        break;
-            //    case State.Bait1: // 3's should return to stack
-            //        foreach (var ps in _playerStates)
-            //        {
-            //            if (ps.JumpOrder == 3)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForStack();
-            //            }
-            //        }
-            //        break;
-            //    case State.Jump2: // 2's should return to stack, side 1's should run to the towers, 3's can go bait jumps
-            //        foreach (var ps in _playerStates)
-            //        {
-            //            if (ps.JumpOrder == 2)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForStack();
-            //                ps.IsBaitingJump = false;
-            //            }
-            //            else if (ps.JumpOrder == 1 && ps.AssignedSpot is 1 or 3)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, true);
-            //            }
-            //            else if (ps.JumpOrder == 3)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false);
-            //                ps.IsBaitingJump = true;
-            //            }
-            //        }
-            //        break;
-            //    case State.Towers2: // side 1's should step to bait
-            //        foreach (var ps in _playerStates)
-            //        {
-            //            if (ps.JumpOrder == 1 && ps.AssignedSpot is 1 or 3)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, true) * _stepToBait;
-            //            }
-            //        }
-            //        break;
-            //    case State.Bait2: // side 1's should return to stack
-            //        foreach (var ps in _playerStates)
-            //        {
-            //            if (ps.JumpOrder == 1 && ps.AssignedSpot is 1 or 3)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForStack();
-            //            }
-            //        }
-            //        break;
-            //    case State.Jump3Stack2: // 3's should return to stack (?), center 1 and 2's should run to the towers
-            //        foreach (var ps in _playerStates)
-            //        {
-            //            if (ps.JumpOrder == 3)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForStack();
-            //                ps.IsBaitingJump = false;
-            //            }
-            //            else if (ps.JumpOrder == 2 || ps.JumpOrder == 1 && ps.AssignedSpot == 2)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false);
-            //            }
-            //        }
-            //        break;
-            //    case State.Towers3: // center 1 and 2's should step to bait
-            //        foreach (var ps in _playerStates)
-            //        {
-            //            if (ps.JumpOrder == 2 || ps.JumpOrder == 1 && ps.AssignedSpot == 2)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForSpot(ps.AssignedSpot, false) * _stepToBait;
-            //            }
-            //        }
-            //        break;
-            //    case State.Bait3: // center 1 and 2's should return to stack (?)
-            //        foreach (var ps in _playerStates)
-            //        {
-            //            if (ps.JumpOrder == 2 || ps.JumpOrder == 1 && ps.AssignedSpot == 2)
-            //            {
-            //                ps.SafeSpot = module.Bounds.Center + DirectionForStack();
-            //            }
-            //        }
-            //        break;
-            //}
-            yield break;
+            if (!_haveDirections)
+                yield break;
+
+            // show safespot hints only if there are no towers to soak (TODO: or geirskoguls to bait?..)
+            var state = _playerStates[slot];
+            if (state.JumpOrder == CurrentBaitOrder())
+            {
+                var origin = module.Bounds.Center;
+                if (state.JumpOrder == 2)
+                    origin += DirectionForStack();
+
+                if (state.AssignedSpot is 0 or 1)
+                    yield return origin + DirectionForStack().OrthoR(); // TODO: this is arbitrary
+                if (state.AssignedSpot is 0 or 2)
+                    yield return origin - DirectionForStack();
+                if (state.AssignedSpot is 0 or 3)
+                    yield return origin + DirectionForStack().OrthoL();
+            }
+            else if (NumJumps < (state.JumpOrder == 3 ? 3 : 8))
+            {
+                yield return module.Bounds.Center + DirectionForStack();
+            }
         }
     }
 }

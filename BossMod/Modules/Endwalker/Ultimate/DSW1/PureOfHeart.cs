@@ -9,9 +9,10 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public override void Update(BossModule module)
         {
             CurrentBaits.Clear();
-            if (NumCasts < 8 && ((DSW1)module).SerCharibert() is var source && source != null)
-                foreach (var target in module.Raid.WithoutSlot().SortedByRange(source.Position).Take(2))
-                    CurrentBaits.Add(new(source, target, _shape));
+            if (NumCasts < 8)
+                foreach (var source in module.Enemies(OID.SerCharibert))
+                    foreach (var target in module.Raid.WithoutSlot().SortedByRange(source.Position).Take(2))
+                        CurrentBaits.Add(new(source, target, _shape));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

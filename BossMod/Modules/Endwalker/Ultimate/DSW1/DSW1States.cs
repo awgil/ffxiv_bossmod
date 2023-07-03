@@ -45,7 +45,8 @@
             ComponentCondition<PureOfHeartBrightwing>(id + 0x10, 15.4f, comp => comp.NumCasts > 0, "Cone 1");
             ComponentCondition<PureOfHeartBrightwing>(id + 0x20, 5, comp => comp.NumCasts > 2, "Cone 2");
             ComponentCondition<PureOfHeartBrightwing>(id + 0x30, 5, comp => comp.NumCasts > 4, "Cone 3");
-            ComponentCondition<PureOfHeartBrightwing>(id + 0x40, 5, comp => comp.NumCasts > 6, "Cone 4");
+            ComponentCondition<PureOfHeartBrightwing>(id + 0x40, 5, comp => comp.NumCasts > 6, "Cone 4")
+                .DeactivateOnExit<PureOfHeartBrightwing>();
             ActorCastEnd(id + 0x50, _module.SerCharibert, 5, true, "Raidwide");
             ActorTargetable(id + 0x60, _module.SerCharibert, false, 2.1f, "Disappear");
         }

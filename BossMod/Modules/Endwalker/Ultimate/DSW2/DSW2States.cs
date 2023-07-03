@@ -1,21 +1,27 @@
-﻿namespace BossMod.Endwalker.Ultimate.DSW2
+﻿using System.Linq;
+
+namespace BossMod.Endwalker.Ultimate.DSW2
 {
     class DSW2States : StateMachineBuilder
     {
         private DSW2 _module;
 
-        private bool ActorDestroyedOrDead(Actor? actor) => actor == null || actor.IsDestroyed || actor.IsDead;
+        private bool IsReset => _module.PrimaryActor.IsDestroyed && (_module.ArenaFeatures?.IsDestroyed ?? true);
+        private bool IsDead(Actor? actor) => actor != null && (actor.IsDestroyed || actor.IsDead);
 
         public DSW2States(DSW2 module) : base(module)
         {
             _module = module;
             SimplePhase(1, Phase2Thordan, "P2: Thordan") // TODO: auto-attack cleave component
-                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead;
+                .Raw.Update = () => IsReset || Module.PrimaryActor.IsDead;
             SimplePhase(2, Phase3Nidhogg, "P3: Nidhogg") // TODO: auto-attack cleave component
                 .OnEnter(() => Module.Arena.Bounds = DSW2.BoundsSquare)
-                .Raw.Update = () => Module.PrimaryActor.IsDestroyed && ActorDestroyedOrDead(_module.BossP3());
+                .Raw.Update = () => IsReset || IsDead(_module.BossP3());
             SimplePhase(3, Phase4Eyes, "P4: Eyes")
-                .Raw.Update = () => (_module.BossP3()?.IsDestroyed ?? true) && ActorDestroyedOrDead(_module.LeftEyeP4()) && ActorDestroyedOrDead(_module.RightEyeP4());
+                .Raw.Update = () => IsReset || IsDead(_module.LeftEyeP4()) && IsDead(_module.RightEyeP4()) && IsDead(_module.NidhoggP4());
+            SimplePhase(4, Phase4Intermission, "P4: Intermission")
+                .OnEnter(() => Module.Arena.Bounds = DSW2.BoundsCircle)
+                .Raw.Update = () => IsReset || Module.Enemies(OID.BossP2).Any();
         }
 
         private void Phase2Thordan(uint id)
@@ -38,13 +44,34 @@
             P3Drachenlance(id + 0x20000, 1.9f);
             P3SoulTether(id + 0x30000, 1.4f);
             P3Drachenlance(id + 0x40000, 20.9f);
-            ActorCast(id + 0x50000, _module.BossP3, AID.RevengeOfTheHorde, 1.4f, 11, true, "Enrage");
+            ActorCast(id + 0x50000, _module.BossP3, AID.RevengeOfTheHordeP3, 1.4f, 11, true, "Enrage");
         }
 
         private void Phase4Eyes(uint id)
         {
             P4SoulOfFriendshipDevotion(id);
             P4Hatebound(id + 0x10000, 5.5f);
+            P4SteepInRage(id + 0x20000, 3.8f);
+        }
+
+        private void Phase4Intermission(uint id)
+        {
+            Timeout(id, 0)
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ActorTargetable(id + 1, _module.SerCharibert, true, 20.1f, "Boss appears")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+            ActorCastStart(id + 2, _module.SerCharibert, AID.PureOfHeart, 0.1f, true)
+                .ActivateOnEnter<P4IntermissionBrightwing>()
+                .ActivateOnEnter<P4IntermissionSkyblindBait>()
+                .ActivateOnEnter<P4IntermissionSkyblind>();
+
+            ComponentCondition<P4IntermissionBrightwing>(id + 0x10, 15.4f, comp => comp.NumCasts > 0, "Cone 1");
+            ComponentCondition<P4IntermissionBrightwing>(id + 0x20, 5, comp => comp.NumCasts > 2, "Cone 2");
+            ComponentCondition<P4IntermissionBrightwing>(id + 0x30, 5, comp => comp.NumCasts > 4, "Cone 3");
+            ComponentCondition<P4IntermissionBrightwing>(id + 0x40, 5, comp => comp.NumCasts > 6, "Cone 4")
+                .DeactivateOnExit<P4IntermissionBrightwing>();
+            ActorCastEnd(id + 0x50, _module.SerCharibert, 5, true, "Raidwide");
+            ActorTargetable(id + 0x60, _module.SerCharibert, false, 2.1f, "Disappear");
 
             SimpleState(id + 0xFF0000, 100, "???");
         }
@@ -248,11 +275,26 @@
         private void P4Hatebound(uint id, float delay)
         {
             ActorCast(id, _module.LeftEyeP4, AID.Hatebound, delay, 3); // both eyes cast it at the same time
-            ComponentCondition<P4Hatebound>(id + 0x10, 6.8f, comp => comp.YellowReady, "Pop yellow orbs")
-                .ActivateOnEnter<P4Hatebound>(); // note: debuffs/tethers appear 0.7s after cast end, orbs spawn 0.9s after cast end
+            ComponentCondition<P4Hatebound>(id + 2, 0.8f, comp => comp.ColorsAssigned, "Colors")
+                .ActivateOnEnter<P4Hatebound>();
+            ComponentCondition<P4Hatebound>(id + 0x10, 6.0f, comp => comp.YellowReady, "Pop yellow orbs");
             ComponentCondition<P4Hatebound>(id + 0x20, 6.0f, comp => comp.BlueReady, "Pop blue orbs");
 
-            ActorCast(id + 0x1000, _module.LeftEyeP4, AID.MirageDive, 10.2f, 3, false, "Dives TBD..."); // both eyes cast it at the same time
+            ActorCast(id + 0x1000, _module.LeftEyeP4, AID.MirageDive, 10.2f, 3) // both eyes cast it at the same time
+                .ActivateOnEnter<P4MirageDive>();
+            ComponentCondition<P4MirageDive>(id + 0x1010, 0.8f, comp => comp.NumCasts >= 2, "Dive 1");
+            ComponentCondition<P4MirageDive>(id + 0x1020, 5.1f, comp => comp.NumCasts >= 4, "Dive 2");
+            ComponentCondition<P4MirageDive>(id + 0x1030, 5.1f, comp => comp.NumCasts >= 6, "Dive 3");
+            ComponentCondition<P4MirageDive>(id + 0x1040, 5.1f, comp => comp.NumCasts >= 8, "Dive 4")
+                .DeactivateOnExit<P4MirageDive>()
+                .DeactivateOnExit<P4Hatebound>();
+        }
+
+        private void P4SteepInRage(uint id, float delay)
+        {
+            ActorCast(id, _module.LeftEyeP4, AID.SteepInRage, delay, 6, false, "Raidwide") // note: while both eyes cast it at the same time, typically right eye is killed before or during cast
+                .SetHint(StateMachine.StateHint.Raidwide);
+            Condition(id + 0x1000, 7.2f, () => !(_module.LeftEyeP4()?.IsTargetable ?? false) && !(_module.RightEyeP4()?.IsTargetable ?? false), "Enrage");
         }
     }
 }

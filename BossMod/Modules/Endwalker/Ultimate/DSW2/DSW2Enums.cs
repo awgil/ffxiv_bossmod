@@ -2,6 +2,8 @@
 {
     public enum OID : uint
     {
+        ArenaFeatures = 0x1EA1A1, // R2.000, x1, EventObj type
+
         BossP2 = 0x313C, // R5.001, x1 - king thordan - p2
         SerZephirin = 0x3130, // R4.002, x1 - ??
         SerAdelphel = 0x3139, // R4.002, x1 - p1, p2
@@ -42,6 +44,10 @@
         Estinien = 0x333F, // R0.500, x1 - p4
         AzurePrice = 0x313F, // R1.000-2.000, x4 spawn during p4 (blue orb)
         GildedPrice = 0x3140, // R1.000-2.000, x2 spawn during p4 (yellow orb)
+
+        SpearOfTheFury = 0x2E22, // R2.000, x1 - intermission
+        //_Gen_Actorfd8a1 = 0xFD8A1, // R1.000, x0, EventNpc type, and more spawn during fight
+        //_Gen_Actor1eb681 = 0x1EB681, // R0.500, x0, EventObj type, and more spawn during fight
     };
 
     public enum AID : uint
@@ -142,25 +148,37 @@
         DarkdragonDive3 = 26393,// NidhoggDrake->self, 2.5s cast, range 5 tower aoe, should be soaked by 3 persons
         DarkdragonDive4 = 26394,// NidhoggDrake->self, 2.5s cast, range 5 tower aoe, should be soaked by 4 persons
         SoulTether = 26396, // BossP3/NidhoggDrake->player, no cast, range 5 aoe tankbuster on tether targets
-        RevengeOfTheHorde = 29750, // BossP3->self, 11.0s cast, enrage
+        RevengeOfTheHordeP3 = 29750, // BossP3->self, 11.0s cast, enrage
 
         // phase 4
-        //_Spell_ = 25584, // Alphinaud->LeftEye, 2.0s cast, single-target
-        //_Spell_ = 25585, // Alphinaud->LeftEye, 2.0s cast, single-target
-        //_Ability_ = 25586, // Alphinaud->LeftEye, no cast, single-target
+        AlphinaudVisual1 = 25584, // Alphinaud->LeftEye, 2.0s cast, single-target, visual
+        AlphinaudVisual2 = 25585, // Alphinaud->LeftEye, 2.0s cast, single-target, visual
+        AlphinaudVisual3 = 25586, // Alphinaud->LeftEye, no cast, single-target, visual
         AutoAttackEye = 26811, // RightEye/LeftEye->player, no cast, single-target
         TeleportEye = 29050, // RightEye/LeftEye->location, no cast, single-target, teleport
         SoulOfFriendship = 26821, // Haurchefant->players, no cast, range 5 circle, applies buff
         SoulOfDevotion = 26822, // Ysayle->Alphinaud, no cast, range 5 circle, applies buff
         Resentment = 26810, // Estinien->self, no cast, range 40 circle, raidwide with bleed
-
         Hatebound = 26814, // RightEye/LeftEye->self, 3.0s cast, single-target, visual (tethers)
         FlareStar = 26815, // AzurePrice->self, no cast, range 6 circle
+        FlareStarFail = 26816, // AzurePrice->self, no cast, range 65 circle (raidwide + damage down if unsoaked)
         FlareNova = 26817, // GildedPrice->self, no cast, range 6 circle
         FlareNovaFail = 26818, // GildedPrice->self, no cast, range 65 circle (raidwide + damage down if unsoaked)
-
         MirageDive = 26819, // LeftEye/RightEye->self, 3.0s cast, single-target, visual
         MirageDiveAOE = 26820, // NidhoggDrake->player, no cast, range 4 circle
+        SteepInRage = 26813, // RightEye/LeftEye->self, 6.0s cast, range 60 circle, raidwide
+        CreepingShadows = 26823, // RightEye/LeftEye->Estinien, no cast, single-target, visual (enrage sequence)
+        RevengeOfTheHordeP4 = 26402, // Nidhogg->self, 6.0s cast, range 80 circle, enrage
+
+        // intermission
+        PlanarPrison = 25313, // SerGrinnaux->self, no cast, range 70 circle, applies small damage, pulls to grinnaux and stuns for a second the whole raid right before pure-of-heart phase
+        PlanarPrisonAOE = 25580, // Helper->self, no cast, range ?-70 donut, prevent moving outside small range of (89,100)
+        SpearOfTheFury = 25314, // SerZephirin->self, 10.0s cast, range 22 width 10 rect, visual (hits haurchefant??)
+        BrightwingedFlight = 25366, // SerAdelphel->self, no cast, range 8 ?-degree cone, ??? (applies two buffs on ser charibert)
+        PureOfHeart = 25316, // SerCharibert->self, 35.5s cast, raidwide, damage depends on caster hp %?
+        Shockwave = 25368, // SpearOfTheFury->self, no cast, raidwide, multiple casts every ~1.1s
+        Brightwing = 25369, // Helper->self, no cast, range 18 ?-degree cone, baited on 2 closest targets
+        Skyblind = 25370, // Helper->location, 2.5s cast, range 3 puddle
     };
 
     public enum SID : uint
@@ -177,6 +195,7 @@
         Clawbound = 2775, // none->player, extra=0x0, red tether
         Fangbound = 2776, // none->player, extra=0x0, blue tether
         BoundAndDetermined = 2777, // none->player, extra=0x0, prevents swap for next 3s
+        PiercingResistanceDown = 3131, // NidhoggDrake->player, extra=0x0
     }
 
     public enum TetherID : uint
