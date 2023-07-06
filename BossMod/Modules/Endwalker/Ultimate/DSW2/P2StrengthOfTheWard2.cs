@@ -54,7 +54,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             switch ((AID)spell.Action.ID)
             {
-                case AID.SkywardLeap:
+                case AID.SkywardLeapP2:
                     LeapsDone = true;
                     Spreads.Clear();
                     break;
@@ -67,7 +67,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
-            if ((IconID)iconID == IconID.SkywardLeap)
+            if ((IconID)iconID == IconID.SkywardLeapP2)
                 AddSpread(actor);
         }
 

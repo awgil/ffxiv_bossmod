@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using BossMod.Endwalker.Savage.P5SProtoCarbuncle;
+using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
@@ -7,6 +8,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private DSW2 _module;
 
         private bool IsReset => _module.PrimaryActor.IsDestroyed && (_module.ArenaFeatures?.IsDestroyed ?? true);
+        private bool IsResetOrRewindFailed => IsReset || Module.Enemies(OID.BossP2).Any();
         private bool IsDead(Actor? actor) => actor != null && (actor.IsDestroyed || actor.IsDead);
 
         public DSW2States(DSW2 module) : base(module)
@@ -21,7 +23,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .Raw.Update = () => IsReset || IsDead(_module.LeftEyeP4()) && IsDead(_module.RightEyeP4()) && IsDead(_module.NidhoggP4());
             SimplePhase(4, Phase4Intermission, "P4: Intermission")
                 .OnEnter(() => Module.Arena.Bounds = DSW2.BoundsCircle)
-                .Raw.Update = () => IsReset || Module.Enemies(OID.BossP2).Any();
+                .Raw.Update = () => IsResetOrRewindFailed || IsDead(_module.Spear());
+            SimplePhase(5, Phase5KingThordan, "P5: King Thordan") // TODO: auto-attack cleave component
+                .Raw.Update = () => IsResetOrRewindFailed;
         }
 
         private void Phase2Thordan(uint id)
@@ -56,23 +60,14 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private void Phase4Intermission(uint id)
         {
-            Timeout(id, 0)
-                .SetHint(StateMachine.StateHint.DowntimeStart);
-            ActorTargetable(id + 1, _module.SerCharibert, true, 20.1f, "Boss appears")
-                .SetHint(StateMachine.StateHint.DowntimeEnd);
-            ActorCastStart(id + 2, _module.SerCharibert, AID.PureOfHeart, 0.1f, true)
-                .ActivateOnEnter<P4IntermissionBrightwing>()
-                .ActivateOnEnter<P4IntermissionSkyblindBait>()
-                .ActivateOnEnter<P4IntermissionSkyblind>();
+            P4IntermissionCharibert(id);
+            ActorCast(id + 0x10000, _module.Spear, AID.Pierce, 2.6f, 11, true, "Enrage");
+        }
 
-            ComponentCondition<P4IntermissionBrightwing>(id + 0x10, 15.4f, comp => comp.NumCasts > 0, "Cone 1");
-            ComponentCondition<P4IntermissionBrightwing>(id + 0x20, 5, comp => comp.NumCasts > 2, "Cone 2");
-            ComponentCondition<P4IntermissionBrightwing>(id + 0x30, 5, comp => comp.NumCasts > 4, "Cone 3");
-            ComponentCondition<P4IntermissionBrightwing>(id + 0x40, 5, comp => comp.NumCasts > 6, "Cone 4")
-                .DeactivateOnExit<P4IntermissionBrightwing>();
-            ActorCastEnd(id + 0x50, _module.SerCharibert, 5, true, "Raidwide");
-            ActorTargetable(id + 0x60, _module.SerCharibert, false, 2.1f, "Disappear");
-
+        private void Phase5KingThordan(uint id)
+        {
+            P5Start(id);
+            P5WrathOfHeavens(id + 0x10000, 0.1f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -125,9 +120,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             Targetable(id + 0x120, true, 1.7f, "Reappear");
         }
 
-        private void P2AncientQuaga(uint id, float delay)
+        private State P2AncientQuaga(uint id, float delay)
         {
-            Cast(id, AID.AncientQuaga, delay, 6, "Raidwide")
+            return Cast(id, AID.AncientQuaga, delay, 6, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide);
         }
 
@@ -295,6 +290,84 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ActorCast(id, _module.LeftEyeP4, AID.SteepInRage, delay, 6, false, "Raidwide") // note: while both eyes cast it at the same time, typically right eye is killed before or during cast
                 .SetHint(StateMachine.StateHint.Raidwide);
             Condition(id + 0x1000, 7.2f, () => !(_module.LeftEyeP4()?.IsTargetable ?? false) && !(_module.RightEyeP4()?.IsTargetable ?? false), "Enrage");
+        }
+
+        private void P4IntermissionCharibert(uint id)
+        {
+            Timeout(id, 0)
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ActorTargetable(id + 1, _module.SerCharibert, true, 20.1f, "Boss appears")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+            ActorCastStart(id + 2, _module.SerCharibert, AID.PureOfHeart, 0.1f, true)
+                .ActivateOnEnter<P4IntermissionBrightwing>()
+                .ActivateOnEnter<P4IntermissionSkyblindBait>()
+                .ActivateOnEnter<P4IntermissionSkyblind>();
+            ComponentCondition<P4Haurchefant>(id + 3, 6.5f, comp => comp.Appear, "Tank LB3")
+                .ActivateOnEnter<P4Haurchefant>()
+                .DeactivateOnExit<P4Haurchefant>();
+            ComponentCondition<P4IntermissionBrightwing>(id + 0x10, 8.8f, comp => comp.NumCasts > 0, "Cone 1");
+            ComponentCondition<P4IntermissionBrightwing>(id + 0x20, 5, comp => comp.NumCasts > 2, "Cone 2");
+            ComponentCondition<P4IntermissionBrightwing>(id + 0x30, 5, comp => comp.NumCasts > 4, "Cone 3");
+            ComponentCondition<P4IntermissionBrightwing>(id + 0x40, 5, comp => comp.NumCasts > 6, "Cone 4")
+                .DeactivateOnExit<P4IntermissionBrightwing>();
+            ActorCastEnd(id + 0x50, _module.SerCharibert, 5, true, "Raidwide");
+            ActorTargetable(id + 0x60, _module.SerCharibert, false, 2.1f, "Disappear");
+        }
+
+        private void P5Start(uint id)
+        {
+            Timeout(id, 0)
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ActorTargetable(id + 1, _module.BossP5, true, 15.2f, "Reappear")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+        }
+
+        private void P5WrathOfHeavens(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP5, AID.Incarnation, delay, 4, true);
+            ActorCast(id + 0x10, _module.BossP5, AID.DragonsEye, 3.1f, 3, true);
+            ActorCast(id + 0x20, _module.BossP5, AID.WrathOfTheHeavens, 14.7f, 4, true);
+            ActorTargetable(id + 0x30, _module.BossP5, false, 3.1f, "Trio 1");
+
+            ComponentCondition<P5WrathOfTheHeavensSkywardLeap>(id + 0x100, 2.7f, comp => comp.Active) // icons + tethers
+                .ActivateOnEnter<P5WrathOfTheHeavensSkywardLeap>();
+            ComponentCondition<P5WrathOfTheHeavensChainLightning>(id + 0x110, 3.6f, comp => comp.Targets.Any()) // lighting debuffs
+                .ActivateOnEnter<P5WrathOfTheHeavensSpiralPierce>() // tethers appear together with skyward leap icon
+                .ActivateOnEnter<P5WrathOfTheHeavensTwistingDive>() // cast starts right after skyward leap icon / tethers
+                .ActivateOnEnter<P5WrathOfTheHeavensChainLightning>();
+            ComponentCondition<P5WrathOfTheHeavensEmptyDimension>(id + 0x120, 1.5f, comp => comp.KnowPosition)
+                .ActivateOnEnter<P5WrathOfTheHeavensEmptyDimension>()
+                .ActivateOnEnter<P5WrathOfTheHeavensCauterizeBait>(); // icon appears right as spiral pierces complete
+            ComponentCondition<P5WrathOfTheHeavensSpiralPierce>(id + 0x130, 1.0f, comp => comp.NumCasts > 0, "Charges")
+                .DeactivateOnExit<P5WrathOfTheHeavensTwistingDive>() // note: this happens ~0.1s before
+                .DeactivateOnExit<P5WrathOfTheHeavensSpiralPierce>();
+            ComponentCondition<P5WrathOfTheHeavensSkywardLeap>(id + 0x131, 0.2f, comp => !comp.Active, "Blue spread resolve")
+                .ActivateOnEnter<P5WrathOfTheHeavensTwister>() // TODO: reconsider activation point
+                .DeactivateOnExit<P5WrathOfTheHeavensSkywardLeap>();
+            ComponentCondition<P5WrathOfTheHeavensTwister>(id + 0x140, 1.2f, comp => comp.Active, "Twisters");
+
+            ActorCast(id + 0x200, _module.BossP5, AID.AscalonsMercyRevealed, 0.8f, 3.3f, true)
+                .ActivateOnEnter<P5WrathOfTheHeavensAscalonsMercyRevealed>();
+            ComponentCondition<P5WrathOfTheHeavensAscalonsMercyRevealed>(id + 0x202, 0.8f, comp => comp.NumCasts > 0, "Proteans")
+                .DeactivateOnExit<P5WrathOfTheHeavensAscalonsMercyRevealed>()
+                .DeactivateOnExit<P5WrathOfTheHeavensTwister>(); // twisters disappear together with protean hits
+            ComponentCondition<P5WrathOfTheHeavensCauterize1>(id + 0x210, 0.8f, comp => comp.Casters.Count > 0, "Green marker bait")
+                .ActivateOnEnter<P5WrathOfTheHeavensCauterize1>()
+                .ActivateOnEnter<P5WrathOfTheHeavensCauterize2>()
+                .ActivateOnEnter<P5WrathOfTheHeavensAltarFlare>() // first cast starts right as proteans resolve
+                .ActivateOnEnter<P5WrathOfTheHeavensLiquidHeaven>() // first cast happens right after proteans, then every 1.1s
+                .DeactivateOnExit<P5WrathOfTheHeavensCauterizeBait>();
+            ComponentCondition<P5WrathOfTheHeavensEmptyDimension>(id + 0x220, 1.2f, comp => comp.Casters.Count > 0);
+            ComponentCondition<P5WrathOfTheHeavensEmptyDimension>(id + 0x230, 5.0f, comp => comp.NumCasts > 0, "Trio 1 resolve")
+                .OnEnter(() => Module.FindComponent<P5WrathOfTheHeavensChainLightning>()?.ShowSpreads(Module, 5.2f))
+                .DeactivateOnExit<P5WrathOfTheHeavensCauterize1>() // these casts resolve ~0.2s before donut
+                .DeactivateOnExit<P5WrathOfTheHeavensCauterize2>()
+                .DeactivateOnExit<P5WrathOfTheHeavensEmptyDimension>();
+
+            P2AncientQuaga(id + 0x1000, 1.0f)
+                .DeactivateOnExit<P5WrathOfTheHeavensChainLightning>() // lightings resolve right after donuts
+                .DeactivateOnExit<P5WrathOfTheHeavensAltarFlare>() // last cast finishes ~0.3s into cast
+                .DeactivateOnExit<P5WrathOfTheHeavensLiquidHeaven>(); // voidzones disappear ~4.2s into cast
         }
     }
 }

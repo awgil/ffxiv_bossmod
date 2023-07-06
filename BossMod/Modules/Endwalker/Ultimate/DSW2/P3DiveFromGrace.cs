@@ -261,11 +261,11 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 var origin = module.Bounds.Center;
                 if (state.JumpOrder == 2)
-                    origin += DirectionForStack();
+                    origin += DirectionForStack() * 0.6f; // TODO: the coefficient is arbitrary
 
                 if (state.AssignedSpot is 0 or 1)
                     yield return origin + DirectionForStack().OrthoR(); // TODO: this is arbitrary
-                if (state.AssignedSpot is 0 or 2)
+                if (state.AssignedSpot is 0 or 2 && state.JumpOrder != 2)
                     yield return origin - DirectionForStack();
                 if (state.AssignedSpot is 0 or 3)
                     yield return origin + DirectionForStack().OrthoL();

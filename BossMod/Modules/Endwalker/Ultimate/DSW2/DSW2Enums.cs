@@ -46,8 +46,18 @@
         GildedPrice = 0x3140, // R1.000-2.000, x2 spawn during p4 (yellow orb)
 
         SpearOfTheFury = 0x2E22, // R2.000, x1 - intermission
-        //_Gen_Actorfd8a1 = 0xFD8A1, // R1.000, x0, EventNpc type, and more spawn during fight
-        //_Gen_Actor1eb681 = 0x1EB681, // R0.500, x0, EventObj type, and more spawn during fight
+        //_Gen_Actorfd8a1 = 0xFD8A1, // R1.000, EventNpc type, x1 - intermission
+        //_Gen_Actor1eb681 = 0x1EB681, // R0.500, EventObj type, x1 - intermission
+
+        //_Gen_Actor1eb687 = 0x1EB687, // R0.500, EventObj type, x8 - p5
+        BossP5 = 0x3143, // R5.001, king thordan, x1 - p5
+        Vedrfolnir = 0x3166, // R12.000, x1 - p5
+        DarkscaleVisual = 0x3167, // R7.000, x1 - p5
+        VidofnirVisual = 0x3168, // R6.000, x1 - p5
+        Darkscale = 0x3156, // R16.800, x1 - p5
+        Vidofnir = 0x3157, // R14.400, x1 - p5
+        VoidzoneTwister = 0x1E8910, // R0.500, EventObj type, x8 spawn during p5
+        VoidzoneLiquidHeaven = 0x1EB684, // R0.500, EventObj type, x5 spawn during p5
     };
 
     public enum AID : uint
@@ -80,7 +90,7 @@
         DragonsRageAOE = 25551, // Helper->players, no cast, range 8 shared aoe
         DimensionalCollapse = 25563, // SerGrinnaux->self, 8.0s cast, visual (growing void zones)
         DimensionalCollapseAOE = 25564, // Helper->location, 9.0s cast, range 3+6 aoe
-        SkywardLeap = 25565, // SerIgnasse/SerVellguine/SerPaulecrain->player, no cast, range 24 aoe on player with blue mark
+        SkywardLeapP2 = 25565, // SerIgnasse/SerVellguine/SerPaulecrain->player, no cast, range 24 aoe on player with blue mark
         Conviction1 = 25566, // SerHermenost->self, 8.2s cast, visual towers
         Conviction1AOE = 25567, // Helper->location, 11.0s cast, range 3 aoe, soaked towers
         EternalConviction = 25568, // Helper->self, no cast, raidwide from unsoaked towers
@@ -173,12 +183,34 @@
         // intermission
         PlanarPrison = 25313, // SerGrinnaux->self, no cast, range 70 circle, applies small damage, pulls to grinnaux and stuns for a second the whole raid right before pure-of-heart phase
         PlanarPrisonAOE = 25580, // Helper->self, no cast, range ?-70 donut, prevent moving outside small range of (89,100)
-        SpearOfTheFury = 25314, // SerZephirin->self, 10.0s cast, range 22 width 10 rect, visual (hits haurchefant??)
         BrightwingedFlight = 25366, // SerAdelphel->self, no cast, range 8 ?-degree cone, ??? (applies two buffs on ser charibert)
+        SpearOfTheFury = 25314, // SerZephirin->self, 10.0s cast, range 22 width 10 rect, visual (hits haurchefant??)
+        Shockwave = 25315, // SpearOfTheFury->self, no cast, raidwide, multiple casts every ~1.1s (if not mitigated by lb3)
         PureOfHeart = 25316, // SerCharibert->self, 35.5s cast, raidwide, damage depends on caster hp %?
-        Shockwave = 25368, // SpearOfTheFury->self, no cast, raidwide, multiple casts every ~1.1s
+        ShockwaveMitigated = 25368, // SpearOfTheFury->self, no cast, raidwide, multiple casts every ~1.1s (if mitigated by lb3)
         Brightwing = 25369, // Helper->self, no cast, range 18 ?-degree cone, baited on 2 closest targets
         Skyblind = 25370, // Helper->location, 2.5s cast, range 3 puddle
+        Pierce = 26971, // SpearOfTheFury->Haurchefant, 11.0s cast, single-target, kill target (enrage)
+        PierceSuccess = 25367, // Haurchefant->self, no cast, single-target, visual
+
+        // phase 5
+        Incarnation = 27526, // BossP5->self, 4.0s cast, single-target, visual (tether to dragons)
+        DragonsEye = 27527, // BossP5->self, 3.0s cast, single-target, visual (resurrect dragons)
+        WrathOfTheHeavens = 27529, // BossP5->self, 4.0s cast, single-target, visual (trio 1 start)
+        SkywardLeapP5 = 29346, // SerPaulecrain->player, no cast, range 24 circle spread
+        SpiralPierce = 27530, // SerVellguine/SerIgnasse->player, no cast, width 16 rect charge
+        TwistingDive = 27531, // Vedrfolnir->self, 6.0s cast, range 60 width 10 rect
+        Twister = 27532, // Helper->self, no cast, ???, (range 8 knockback 50 if touched)
+        Cauterize1 = 27533, // Darkscale->self, 6.0s cast, range 48 width 20 rect
+        Cauterize2 = 27534, // Vidofnir->self, 6.0s cast, range 48 width 20 rect
+        ChainLightning = 27535, // Darkscale->self, no cast, apply debuffs to 2 players
+        ChainLightningAOE = 27536, // Helper->self, no cast, range 5? spread
+        AscalonsMercyRevealed = 25546, // BossP5->self, 3.3s cast, single-target, visual (proteans)
+        AscalonsMercyRevealedAOE = 25547, // Helper->self, no cast, range 50 30?-degree cone
+        LiquidHeaven = 27537, // Vedrfolnir->location, no cast, range 6 circle voidzones (x5)
+        AltarFlare = 25572, // SerCharibert->self, 3.5s cast, single-target, visual
+        AltarFlareAOE = 25573, // Helper->location, 4.0s cast, range 8 circle puddle (x4)
+        EmptyDimension = 25306, // SerGrinnaux->self, 5.0s cast, range 6-70 donut
     };
 
     public enum SID : uint
@@ -207,6 +239,9 @@
         SoulOfFriendshipDevotion = 12, // Haurchefant/Ysayle->player/Alphinaud
         Fangbound = 51, // player->RightEye, blue tether
         Clawbound = 52, // player->LeftEye, red tether
+        Incarnation = 165, // Vedrfolnir/VidofnirVisual/DarkscaleVisual->BossP5
+        SpiralPierce = 5, // SerVellguine/SerIgnasse->player
+        //_Gen_Tether_53 = 53, // player->SerGrinnaux
     }
 
     public enum IconID : uint
@@ -214,12 +249,14 @@
         None = 0,
         SacredSever1 = 50, // player
         SacredSever2 = 51, // player
-        SkywardLeap = 330, // player
+        SkywardLeapP2 = 330, // player
         Prey = 285, // player
         Jump1 = 319, // player
         Jump2 = 320, // player
         Jump3 = 321, // player
         SoulOfFriendship = 286, // player
         SoulOfDevotion = 287, // Alphinaud
+        SkywardLeapP5 = 14, // player
+        Cauterize = 20, // player
     }
 }

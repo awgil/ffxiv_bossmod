@@ -52,6 +52,12 @@ namespace BossMod.WAR
 
                 [PropertyDisplay("Force extend ST buff, potentially overcapping gauge and/or ST", 0x80ff00ff)]
                 ForceExtendST = 4, // force combo to extend buff (useful before downtime of medium length)
+
+                [PropertyDisplay("Force SP combo, potentially overcapping gauge", 0x80ff0080)]
+                ForceSPCombo = 5, // force SP combo (useful to get max gauge, if ST extension is not needed)
+
+                [PropertyDisplay("Use tomahawk if outside melee", 0x80c08000)]
+                TomahawkIfNotInMelee = 6,
             }
 
             public enum InfuriateUse : uint
@@ -219,11 +225,12 @@ namespace BossMod.WAR
         // by default, we spend resources either under raid buffs or if another raid buff window will cover at least 4 GCDs of the fight
         public static bool ShouldSpendGauge(State state, Strategy strategy) => strategy.GaugeStrategy switch
         {
-            Strategy.GaugeUse.Automatic => (state.RaidBuffsLeft > state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10) && state.SurgingTempestLeft > state.GCD,
+            Strategy.GaugeUse.Automatic or Strategy.GaugeUse.TomahawkIfNotInMelee => (state.RaidBuffsLeft > state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10) && state.SurgingTempestLeft > state.GCD,
             Strategy.GaugeUse.Spend => true,
             Strategy.GaugeUse.ConserveIfNoBuffs => state.RaidBuffsLeft > state.GCD,
             Strategy.GaugeUse.Conserve => false,
             Strategy.GaugeUse.ForceExtendST => false,
+            Strategy.GaugeUse.ForceSPCombo => false,
             _ => true
         };
 
@@ -408,13 +415,18 @@ namespace BossMod.WAR
             // forced PR
             if (strategy.PrimalRendUse == Strategy.OffensiveAbilityUse.Force && state.PrimalRendLeft > state.GCD)
                 return AID.PrimalRend;
-            // forbid automatic PR when out of melee range, to avoid fucking up player positioning when avoiding mechanics
-            float primalRendWindow = (strategy.PrimalRendUse == Strategy.OffensiveAbilityUse.Delay || state.RangeToTarget > 3) ? 0 : MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);
-
+            // forced tomahawk
+            if (strategy.GaugeStrategy == Strategy.GaugeUse.TomahawkIfNotInMelee && state.RangeToTarget > 3)
+                return AID.Tomahawk;
             // forced surging tempest combo (TODO: at which point does AOE combo start giving ST?)
             if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceExtendST && state.Unlocked(AID.StormEye))
                 return aoe ? GetNextAOEComboAction(state.ComboLastMove) : GetNextSTComboAction(state.ComboLastMove, AID.StormEye);
+            // forced SP combo
+            if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceSPCombo)
+                return GetNextSTComboAction(state.ComboLastMove, AID.StormPath);
 
+            // forbid automatic PR when out of melee range, to avoid fucking up player positioning when avoiding mechanics
+            float primalRendWindow = (strategy.PrimalRendUse == Strategy.OffensiveAbilityUse.Delay || state.RangeToTarget > 3) ? 0 : MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);
             var irCD = state.CD(state.Unlocked(AID.InnerRelease) ? CDGroup.InnerRelease : CDGroup.Berserk);
 
             bool spendGauge = ShouldSpendGauge(state, strategy);

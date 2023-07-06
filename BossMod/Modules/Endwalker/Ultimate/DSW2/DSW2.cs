@@ -44,6 +44,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private Actor? _rightEyeP4;
         private Actor? _nidhoggP4;
         private Actor? _serCharibert;
+        private Actor? _spear;
+        private Actor? _bossP5;
         public Actor? ArenaFeatures => _arenaFeatures;
         public Actor? BossP2() => PrimaryActor;
         public Actor? BossP3() => _bossP3;
@@ -51,6 +53,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public Actor? RightEyeP4() => _rightEyeP4;
         public Actor? NidhoggP4() => _nidhoggP4;
         public Actor? SerCharibert() => _serCharibert;
+        public Actor? Spear() => _spear;
+        public Actor? BossP5() => _bossP5;
 
         public DSW2(WorldState ws, Actor primary) : base(ws, primary, BoundsCircle) { }
 
@@ -64,6 +68,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             _rightEyeP4 ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.RightEye).FirstOrDefault() : null;
             _nidhoggP4 ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.Nidhogg).FirstOrDefault() : null;
             _serCharibert ??= StateMachine.ActivePhaseIndex == 3 ? Enemies(OID.SerCharibert).FirstOrDefault() : null;
+            _spear ??= StateMachine.ActivePhaseIndex == 3 ? Enemies(OID.SpearOfTheFury).FirstOrDefault() : null;
+            _bossP5 ??= StateMachine.ActivePhaseIndex == 4 ? Enemies(OID.BossP5).FirstOrDefault() : null;
         }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
@@ -74,6 +80,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             Arena.Actor(_rightEyeP4, ArenaColor.Enemy);
             Arena.Actor(_nidhoggP4, ArenaColor.Enemy);
             Arena.Actor(_serCharibert, ArenaColor.Enemy);
+            Arena.Actor(_spear, ArenaColor.Enemy);
+            Arena.Actor(_bossP5, ArenaColor.Enemy);
             //Arena.Actor(Enemies(OID.SerJanlenoux).FirstOrDefault(), 0xffffffff);
             //Arena.Actor(Enemies(OID.SerVellguine).FirstOrDefault(), 0xff0000ff);
             //Arena.Actor(Enemies(OID.SerPaulecrain).FirstOrDefault(), 0xff00ff00);
