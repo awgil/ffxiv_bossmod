@@ -44,5 +44,16 @@ namespace UIDev
                 update();
             }
         }
+
+        public DateTime NextTimestamp() => _nextOp < Replay.Ops.Count ? Replay.Ops[_nextOp].Timestamp : default;
+        public DateTime CurrTimestamp() => _nextOp > 0 ? Replay.Ops[_nextOp - 1].Timestamp : default;
+        public DateTime PrevTimestamp()
+        {
+            var curr = CurrTimestamp();
+            for (int i = _nextOp - 1; i >= 0; i--)
+                if (Replay.Ops[i].Timestamp < curr)
+                    return Replay.Ops[i].Timestamp;
+            return default;
+        }
     }
 }

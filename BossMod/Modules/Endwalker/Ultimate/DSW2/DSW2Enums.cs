@@ -211,6 +211,12 @@
         AltarFlare = 25572, // SerCharibert->self, 3.5s cast, single-target, visual
         AltarFlareAOE = 25573, // Helper->location, 4.0s cast, range 8 circle puddle (x4)
         EmptyDimension = 25306, // SerGrinnaux->self, 5.0s cast, range 6-70 donut
+
+        DeathOfTheHeavens = 27538, // BossP5->self, 4.0s cast, single-target, visual (trio 2 start)
+        SpearOfTheFury = 27539, // SerZephirin->self, 6.0s cast, range 50 width 10 rect
+        Deathstorm = 27540, // Darkscale->self, no cast, applies dooms
+        WingsOfSalvation = 27541, // Vidofnir->self, 5.3s cast, single-target, visual (??? cleansing puddles?)
+        WingsOfSalvationAOE = 27542, // Helper->location, 10.0s cast, range 4 circle (cleansing puddle?)
     };
 
     public enum SID : uint

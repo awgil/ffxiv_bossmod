@@ -7,6 +7,20 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     {
         public P5WrathOfTheHeavensSkywardLeap() : base(0, 24, alwaysShowSpreads: true, raidwideOnResolve: false) { }
 
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            base.AddHints(module, slot, actor, hints, movementHints);
+            if (movementHints != null && IsSpreadTarget(actor) && SafeSpot(module) is var safespot && safespot != default)
+                movementHints.Add(actor.Position, safespot, ArenaColor.Safe);
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            base.DrawArenaForeground(module, pcSlot, pc, arena);
+            if (IsSpreadTarget(pc) && SafeSpot(module) is var safespot && safespot != default)
+                arena.AddCircle(safespot, 1, ArenaColor.Safe);
+        }
+
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.SkywardLeapP5)
@@ -18,11 +32,49 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if ((AID)spell.Action.ID == AID.SkywardLeapP5)
                 Spreads.Clear();
         }
+
+        // note: this assumes LPDU strat
+        private WPos SafeSpot(BossModule module)
+        {
+            var relNorth = module.Enemies(OID.Vedrfolnir).FirstOrDefault();
+            if (relNorth == null)
+                return default;
+            var dirToNorth = Angle.FromDirection(relNorth.Position - module.Bounds.Center);
+            return module.Bounds.Center + 20 * (dirToNorth + 60.Degrees()).ToDirection();
+        }
     }
 
     class P5WrathOfTheHeavensSpiralPierce : Components.BaitAwayTethers
     {
         public P5WrathOfTheHeavensSpiralPierce() : base(new AOEShapeRect(50, 8), (uint)TetherID.SpiralPierce, ActionID.MakeSpell(AID.SpiralPierce)) { }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            base.AddHints(module, slot, actor, hints, movementHints);
+            if (movementHints != null && SafeSpot(module, actor) is var safespot && safespot != default)
+                movementHints.Add(actor.Position, safespot, ArenaColor.Safe);
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            base.DrawArenaForeground(module, pcSlot, pc, arena);
+            if (SafeSpot(module, pc) is var safespot && safespot != default)
+                arena.AddCircle(safespot, 1, ArenaColor.Safe);
+        }
+
+        private WPos SafeSpot(BossModule module, Actor actor)
+        {
+            // stay as close to twisting dive as possible, while stretching the tether through the center
+            var bait = ActiveBaitsOn(actor).FirstOrDefault();
+            if (bait.Source == null)
+                return default;
+            WDir toMidpoint = default;
+            foreach (var b in CurrentBaits)
+                toMidpoint += b.Source.Position - module.Bounds.Center;
+            var relSouthDir = Angle.FromDirection(-toMidpoint);
+            var offset = toMidpoint.OrthoL().Dot(bait.Source.Position - module.Bounds.Center) > 0 ? 20.Degrees() : -20.Degrees();
+            return module.Bounds.Center + 20 * (relSouthDir + offset).ToDirection();
+        }
     }
 
     class P5WrathOfTheHeavensTwistingDive : Components.SelfTargetedAOEs
@@ -32,11 +84,18 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
     class P5WrathOfTheHeavensChainLightning : Components.UniformStackSpread
     {
-        public BitMask Targets { get; private set; }
+        public BitMask Targets;
 
         public void ShowSpreads(BossModule module, float delay) => AddSpreads(module.Raid.WithSlot(true).IncludedInMask(Targets).Actors(), module.WorldState.CurrentTime.AddSeconds(delay));
 
         public P5WrathOfTheHeavensChainLightning() : base(0, 5) { }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            if (Spreads.Count == 0 && Targets[slot])
+                hints.Add("Prepare for lightning!", false);
+            base.AddHints(module, slot, actor, hints, movementHints);
+        }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {
@@ -91,21 +150,38 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         }
     }
 
-    class P5WrathOfTheHeavensCauterizeBait : Components.GenericBaitAway
+    // note: we're not really showing baits here, it's more misleading than helpful...
+    class P5WrathOfTheHeavensCauterizeBait : BossComponent
     {
-        private static AOEShapeRect _shape = new(48, 10);
+        private Actor? _target;
 
-        public P5WrathOfTheHeavensCauterizeBait() : base(alwaysDrawOtherBaits: true) { }
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            if (_target != actor)
+                return;
+            hints.Add("Prepare for divebomb!", false);
+            if (movementHints != null)
+                movementHints.Add(actor.Position, SafeSpot(module), ArenaColor.Safe);
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            if (_target == pc)
+                arena.AddCircle(SafeSpot(module), 1, ArenaColor.Safe);
+        }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Cauterize)
-            {
-                foreach (var s in module.Enemies(OID.Darkscale))
-                    CurrentBaits.Add(new(s, actor, _shape));
-                foreach (var s in module.Enemies(OID.Vidofnir))
-                    CurrentBaits.Add(new(s, actor, _shape));
-            }
+                _target = actor;
+        }
+
+        private WPos SafeSpot(BossModule module)
+        {
+            var charibert = module.Enemies(OID.SerCharibert).FirstOrDefault();
+            if (charibert == null)
+                return default;
+            return module.Bounds.Center + 20 * (charibert.Position - module.Bounds.Center).Normalized();
         }
     }
 

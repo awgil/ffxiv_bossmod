@@ -111,8 +111,14 @@ namespace UIDev
             if (ImGui.Button("<"))
                 Rewind(1);
             ImGui.SameLine();
+            if (ImGui.Button("|<"))
+                RewindPrevFrame();
+            ImGui.SameLine();
             if (ImGui.Button("||"))
                 _playSpeed = _playSpeed == 0 ? 1 : 0;
+            ImGui.SameLine();
+            if (ImGui.Button(">|"))
+                AdvanceNextFrame();
             ImGui.SameLine();
             if (ImGui.Button(">"))
                 _playSpeed = 0.2f;
@@ -378,6 +384,20 @@ namespace UIDev
         {
             _playSpeed = 0;
             MoveTo(_curTime.AddSeconds(-seconds));
+        }
+
+        private void AdvanceNextFrame()
+        {
+            _playSpeed = 0;
+            var ts = _player.NextTimestamp();
+            if (ts != default)
+                MoveTo(ts);
+        }
+
+        private void RewindPrevFrame()
+        {
+            _playSpeed = 0;
+            MoveTo(_player.PrevTimestamp());
         }
 
         private void ResetPF()

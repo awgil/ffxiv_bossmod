@@ -1,5 +1,4 @@
-﻿using BossMod.AI;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 

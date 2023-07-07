@@ -32,6 +32,11 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P4Resentment() : base(ActionID.MakeSpell(AID.Resentment)) { }
     }
 
+    class P5AscalonMight : Components.Cleave
+    {
+        public P5AscalonMight() : base(ActionID.MakeSpell(AID.AscalonsMight), new AOEShapeCone(50, 30.Degrees()), (uint)OID.BossP5) { }
+    }
+
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP2)]
     public class DSW2 : BossModule
     {

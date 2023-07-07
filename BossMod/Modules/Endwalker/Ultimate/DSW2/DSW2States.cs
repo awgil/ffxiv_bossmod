@@ -61,13 +61,15 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private void Phase4Intermission(uint id)
         {
             P4IntermissionCharibert(id);
-            ActorCast(id + 0x10000, _module.Spear, AID.Pierce, 2.6f, 11, true, "Enrage");
+            ActorCast(id + 0x10000, _module.Spear, AID.Pierce, 2.7f, 11, true, "Enrage");
         }
 
         private void Phase5KingThordan(uint id)
         {
             P5Start(id);
             P5WrathOfHeavens(id + 0x10000, 0.1f);
+            P5HeavenlyHeelAscalonMight(id + 0x20000, 6.4f);
+            P5DeathOfTheHeavens(id + 0x30000, 7.1f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -120,9 +122,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             Targetable(id + 0x120, true, 1.7f, "Reappear");
         }
 
-        private State P2AncientQuaga(uint id, float delay)
+        private void P2AncientQuaga(uint id, float delay)
         {
-            return Cast(id, AID.AncientQuaga, delay, 6, "Raidwide")
+            Cast(id, AID.AncientQuaga, delay, 6, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide);
         }
 
@@ -311,15 +313,30 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ComponentCondition<P4IntermissionBrightwing>(id + 0x40, 5, comp => comp.NumCasts > 6, "Cone 4")
                 .DeactivateOnExit<P4IntermissionBrightwing>();
             ActorCastEnd(id + 0x50, _module.SerCharibert, 5, true, "Raidwide");
-            ActorTargetable(id + 0x60, _module.SerCharibert, false, 2.1f, "Disappear");
+            ActorTargetable(id + 0x60, _module.Spear, true, 2.0f, "Spear appears");
         }
 
         private void P5Start(uint id)
         {
             Timeout(id, 0)
                 .SetHint(StateMachine.StateHint.DowntimeStart);
-            ActorTargetable(id + 1, _module.BossP5, true, 15.2f, "Reappear")
+            ActorTargetable(id + 1, _module.BossP5, true, 15.2f, "Boss appears")
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
+        }
+
+        private State P5AncientQuaga(uint id, float delay)
+        {
+            return ActorCast(id, _module.BossP5, AID.AncientQuaga, delay, 6, true, "Raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P5HeavenlyHeelAscalonMight(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP5, AID.HeavenlyHeel, delay, 4, true, "Tankbuster")
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ComponentCondition<P5AscalonMight>(id + 0x1000, 6.5f, comp => comp.NumCasts > 2, "3x tankbuster cones")
+                .ActivateOnEnter<P5AscalonMight>()
+                .DeactivateOnExit<P5AscalonMight>();
         }
 
         private void P5WrathOfHeavens(uint id, float delay)
@@ -327,7 +344,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ActorCast(id, _module.BossP5, AID.Incarnation, delay, 4, true);
             ActorCast(id + 0x10, _module.BossP5, AID.DragonsEye, 3.1f, 3, true);
             ActorCast(id + 0x20, _module.BossP5, AID.WrathOfTheHeavens, 14.7f, 4, true);
-            ActorTargetable(id + 0x30, _module.BossP5, false, 3.1f, "Trio 1");
+            ActorTargetable(id + 0x30, _module.BossP5, false, 3.1f, "Trio 1")
+                .SetHint(StateMachine.StateHint.DowntimeStart);
 
             ComponentCondition<P5WrathOfTheHeavensSkywardLeap>(id + 0x100, 2.7f, comp => comp.Active) // icons + tethers
                 .ActivateOnEnter<P5WrathOfTheHeavensSkywardLeap>();
@@ -338,13 +356,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ComponentCondition<P5WrathOfTheHeavensEmptyDimension>(id + 0x120, 1.5f, comp => comp.KnowPosition)
                 .ActivateOnEnter<P5WrathOfTheHeavensEmptyDimension>()
                 .ActivateOnEnter<P5WrathOfTheHeavensCauterizeBait>(); // icon appears right as spiral pierces complete
-            ComponentCondition<P5WrathOfTheHeavensSpiralPierce>(id + 0x130, 1.0f, comp => comp.NumCasts > 0, "Charges")
+            ComponentCondition<P5WrathOfTheHeavensSpiralPierce>(id + 0x130, 1.0f, comp => comp.NumCasts > 0, "Charges + blue marker")
                 .DeactivateOnExit<P5WrathOfTheHeavensTwistingDive>() // note: this happens ~0.1s before
+                .DeactivateOnExit<P5WrathOfTheHeavensSkywardLeap>() // note: this happens within ~0.1s, either slightly before or slightly later
                 .DeactivateOnExit<P5WrathOfTheHeavensSpiralPierce>();
-            ComponentCondition<P5WrathOfTheHeavensSkywardLeap>(id + 0x131, 0.2f, comp => !comp.Active, "Blue spread resolve")
-                .ActivateOnEnter<P5WrathOfTheHeavensTwister>() // TODO: reconsider activation point
-                .DeactivateOnExit<P5WrathOfTheHeavensSkywardLeap>();
-            ComponentCondition<P5WrathOfTheHeavensTwister>(id + 0x140, 1.2f, comp => comp.Active, "Twisters");
+            ComponentCondition<P5WrathOfTheHeavensTwister>(id + 0x140, 1.2f, comp => comp.Active, "Twisters")
+                .ActivateOnEnter<P5WrathOfTheHeavensTwister>(); // note: positions are determined slightly later, but regardless this is a good activation point
 
             ActorCast(id + 0x200, _module.BossP5, AID.AscalonsMercyRevealed, 0.8f, 3.3f, true)
                 .ActivateOnEnter<P5WrathOfTheHeavensAscalonsMercyRevealed>();
@@ -352,6 +369,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .DeactivateOnExit<P5WrathOfTheHeavensAscalonsMercyRevealed>()
                 .DeactivateOnExit<P5WrathOfTheHeavensTwister>(); // twisters disappear together with protean hits
             ComponentCondition<P5WrathOfTheHeavensCauterize1>(id + 0x210, 0.8f, comp => comp.Casters.Count > 0, "Green marker bait")
+                .OnEnter(() => Module.FindComponent<P5WrathOfTheHeavensChainLightning>()?.ShowSpreads(Module, 5.2f))
                 .ActivateOnEnter<P5WrathOfTheHeavensCauterize1>()
                 .ActivateOnEnter<P5WrathOfTheHeavensCauterize2>()
                 .ActivateOnEnter<P5WrathOfTheHeavensAltarFlare>() // first cast starts right as proteans resolve
@@ -359,15 +377,38 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .DeactivateOnExit<P5WrathOfTheHeavensCauterizeBait>();
             ComponentCondition<P5WrathOfTheHeavensEmptyDimension>(id + 0x220, 1.2f, comp => comp.Casters.Count > 0);
             ComponentCondition<P5WrathOfTheHeavensEmptyDimension>(id + 0x230, 5.0f, comp => comp.NumCasts > 0, "Trio 1 resolve")
-                .OnEnter(() => Module.FindComponent<P5WrathOfTheHeavensChainLightning>()?.ShowSpreads(Module, 5.2f))
                 .DeactivateOnExit<P5WrathOfTheHeavensCauterize1>() // these casts resolve ~0.2s before donut
                 .DeactivateOnExit<P5WrathOfTheHeavensCauterize2>()
                 .DeactivateOnExit<P5WrathOfTheHeavensEmptyDimension>();
 
-            P2AncientQuaga(id + 0x1000, 1.0f)
+            ActorTargetable(id + 0x300, _module.BossP5, true, 1.0f, "Boss reappears")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+            P5AncientQuaga(id + 0x1000, 0.1f)
                 .DeactivateOnExit<P5WrathOfTheHeavensChainLightning>() // lightings resolve right after donuts
                 .DeactivateOnExit<P5WrathOfTheHeavensAltarFlare>() // last cast finishes ~0.3s into cast
                 .DeactivateOnExit<P5WrathOfTheHeavensLiquidHeaven>(); // voidzones disappear ~4.2s into cast
+        }
+
+        private void P5DeathOfTheHeavens(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP5, AID.DeathOfTheHeavens, delay, 4, true);
+            ActorTargetable(id + 0x10, _module.BossP5, false, 3.1f, "Trio 2")
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            // +1.6s: a bunch of PATEs: 1E44 on vidofnir and darkscale, 1E43 on vedrfolnir, ser guerrique, ser zephirin and thordan - show heavy impacts here
+            // +3.8s: eyes envcontrol - should know eye positions, but don't show yet!
+            // +3.9s: deathstorm cast (applies dooms 0.8s later) - can figure out safespots?..
+            // +6.1s: heavy impact cast starts
+            // +8.0s: wings of salvation + twisting dive + cauterize + spear of the fury + lightning storm casts start - good place to show all aoes + spreads
+            // +10.4s: heavy impact visual cast end
+            // +12.1s: heavy impact 1 cast end
+            // +13.3s: wings of salvation cast end
+            // +13.7s: lightning storm (boss) cast end
+            // +14.0s: twisting dive + cauterize + spear of the fury casts end
+            // +14.1s: heavy impact 2, then wings of salvation (puddles?) casts start
+            // +14.2s: lightning storm aoes resolve
+            // ???
+            // +15.9s: heavy impact 3
+            // +17.8s: heavy impact 4
         }
     }
 }
