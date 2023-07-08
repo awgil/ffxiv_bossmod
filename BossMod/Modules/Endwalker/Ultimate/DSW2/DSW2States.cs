@@ -1,5 +1,4 @@
-﻿using BossMod.Endwalker.Savage.P5SProtoCarbuncle;
-using System.Linq;
+﻿using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
@@ -351,13 +350,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .ActivateOnEnter<P5WrathOfTheHeavensSkywardLeap>();
             ComponentCondition<P5WrathOfTheHeavensChainLightning>(id + 0x110, 3.6f, comp => comp.Targets.Any()) // lighting debuffs
                 .ActivateOnEnter<P5WrathOfTheHeavensSpiralPierce>() // tethers appear together with skyward leap icon
-                .ActivateOnEnter<P5WrathOfTheHeavensTwistingDive>() // cast starts right after skyward leap icon / tethers
+                .ActivateOnEnter<P5TwistingDive>() // cast starts right after skyward leap icon / tethers
                 .ActivateOnEnter<P5WrathOfTheHeavensChainLightning>();
             ComponentCondition<P5WrathOfTheHeavensEmptyDimension>(id + 0x120, 1.5f, comp => comp.KnowPosition)
                 .ActivateOnEnter<P5WrathOfTheHeavensEmptyDimension>()
                 .ActivateOnEnter<P5WrathOfTheHeavensCauterizeBait>(); // icon appears right as spiral pierces complete
             ComponentCondition<P5WrathOfTheHeavensSpiralPierce>(id + 0x130, 1.0f, comp => comp.NumCasts > 0, "Charges + blue marker")
-                .DeactivateOnExit<P5WrathOfTheHeavensTwistingDive>() // note: this happens ~0.1s before
+                .DeactivateOnExit<P5TwistingDive>() // note: this happens ~0.1s before
                 .DeactivateOnExit<P5WrathOfTheHeavensSkywardLeap>() // note: this happens within ~0.1s, either slightly before or slightly later
                 .DeactivateOnExit<P5WrathOfTheHeavensSpiralPierce>();
             ComponentCondition<P5WrathOfTheHeavensTwister>(id + 0x140, 1.2f, comp => comp.Active, "Twisters")
@@ -368,17 +367,17 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ComponentCondition<P5WrathOfTheHeavensAscalonsMercyRevealed>(id + 0x202, 0.8f, comp => comp.NumCasts > 0, "Proteans")
                 .DeactivateOnExit<P5WrathOfTheHeavensAscalonsMercyRevealed>()
                 .DeactivateOnExit<P5WrathOfTheHeavensTwister>(); // twisters disappear together with protean hits
-            ComponentCondition<P5WrathOfTheHeavensCauterize1>(id + 0x210, 0.8f, comp => comp.Casters.Count > 0, "Green marker bait")
+            ComponentCondition<P5Cauterize1>(id + 0x210, 0.8f, comp => comp.Casters.Count > 0, "Green marker bait")
                 .OnEnter(() => Module.FindComponent<P5WrathOfTheHeavensChainLightning>()?.ShowSpreads(Module, 5.2f))
-                .ActivateOnEnter<P5WrathOfTheHeavensCauterize1>()
-                .ActivateOnEnter<P5WrathOfTheHeavensCauterize2>()
+                .ActivateOnEnter<P5Cauterize1>()
+                .ActivateOnEnter<P5Cauterize2>()
                 .ActivateOnEnter<P5WrathOfTheHeavensAltarFlare>() // first cast starts right as proteans resolve
                 .ActivateOnEnter<P5WrathOfTheHeavensLiquidHeaven>() // first cast happens right after proteans, then every 1.1s
                 .DeactivateOnExit<P5WrathOfTheHeavensCauterizeBait>();
             ComponentCondition<P5WrathOfTheHeavensEmptyDimension>(id + 0x220, 1.2f, comp => comp.Casters.Count > 0);
             ComponentCondition<P5WrathOfTheHeavensEmptyDimension>(id + 0x230, 5.0f, comp => comp.NumCasts > 0, "Trio 1 resolve")
-                .DeactivateOnExit<P5WrathOfTheHeavensCauterize1>() // these casts resolve ~0.2s before donut
-                .DeactivateOnExit<P5WrathOfTheHeavensCauterize2>()
+                .DeactivateOnExit<P5Cauterize1>() // these casts resolve ~0.2s before donut
+                .DeactivateOnExit<P5Cauterize2>()
                 .DeactivateOnExit<P5WrathOfTheHeavensEmptyDimension>();
 
             ActorTargetable(id + 0x300, _module.BossP5, true, 1.0f, "Boss reappears")
@@ -409,6 +408,30 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             // ???
             // +15.9s: heavy impact 3
             // +17.8s: heavy impact 4
+
+            ComponentCondition<P5DeathOfTheHeavensHeavyImpact>(id + 0x100, 1.6f, comp => comp.Active)
+                .ActivateOnEnter<P5DeathOfTheHeavensHeavyImpact>();
+            ComponentCondition<P5DeathOfTheHeavensGaze>(id + 0x110, 2.2f, comp => comp.Active)
+                .ActivateOnEnter<P5DeathOfTheHeavensGaze>()
+                .ActivateOnEnter<P5DeathOfTheHeavensDooms>();
+            ComponentCondition<P5DeathOfTheHeavensDooms>(id + 0x111, 0.1f, comp => comp.Dooms.Any());
+            ActorCastStart(id + 0x120, _module.BossP5, AID.LightningStorm, 4.1f, true);
+            ComponentCondition<P5DeathOfTheHeavensHeavyImpact>(id + 0x130, 4.1f, comp => comp.NumCasts >= 1)
+                .ActivateOnEnter<P5TwistingDive>() // TODO: consider activating earlier, when PATE's happen
+                .ActivateOnEnter<P5Cauterize1>()
+                .ActivateOnEnter<P5SpearOfTheFury>()
+                .ActivateOnEnter<P5DeathOfTheHeavensLightningStorm>();
+            ActorCastEnd(id + 0x140, _module.BossP5, 1.6f, true);
+            ComponentCondition<P5TwistingDive>(id + 0x150, 0.3f, comp => comp.NumCasts > 0, "Charges")
+                .DeactivateOnExit<P5TwistingDive>()
+                .DeactivateOnExit<P5Cauterize1>() // these all three happen at the same time
+                .DeactivateOnExit<P5SpearOfTheFury>();
+            ComponentCondition<P5DeathOfTheHeavensHeavyImpact>(id + 0x151, 0.1f, comp => comp.NumCasts >= 2, "Ring 2");
+            ComponentCondition<P5DeathOfTheHeavensLightningStorm>(id + 0x152, 0.1f, comp => !comp.Active, "Spreads")
+                .DeactivateOnExit<P5DeathOfTheHeavensLightningStorm>();
+            // TODO: more stuff here...
+            ComponentCondition<P5DeathOfTheHeavensHeavyImpact>(id + 0x200, 1.8f, comp => comp.NumCasts >= 3, "Ring 3")
+                .ActivateOnEnter<P5WrathOfTheHeavensTwister>();
         }
     }
 }

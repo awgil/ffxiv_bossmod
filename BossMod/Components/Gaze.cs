@@ -14,12 +14,14 @@ namespace BossMod.Components
             public WPos Position;
             public DateTime Activation;
             public Angle Forward; // if non-zero, treat specified side as 'forward' for hit calculations
+            public bool Risky;
 
-            public Eye(WPos position, DateTime activation = new(), Angle forward = new())
+            public Eye(WPos position, DateTime activation = new(), Angle forward = new(), bool risky = true)
             {
                 Position = position;
                 Activation = activation;
                 Forward = forward;
+                Risky = risky;
             }
         }
 
@@ -41,7 +43,7 @@ namespace BossMod.Components
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (ActiveEyes(module, slot, actor).Any(eye => HitByEye(actor, eye) != Inverted))
+            if (ActiveEyes(module, slot, actor).Any(eye => eye.Risky && HitByEye(actor, eye) != Inverted))
                 hints.Add(Inverted ? "Face the eye!" : "Turn away from gaze!");
         }
 
@@ -49,12 +51,12 @@ namespace BossMod.Components
         {
             if (Inverted)
             {
-                foreach (var eye in ActiveEyes(module, slot, actor))
+                foreach (var eye in ActiveEyes(module, slot, actor).Where(eye => eye.Risky))
                     hints.ForbiddenDirections.Add((Angle.FromDirection(actor.Position - eye.Position) - eye.Forward, 135.Degrees(), eye.Activation));
             }
             else
             {
-                foreach (var eye in ActiveEyes(module, slot, actor))
+                foreach (var eye in ActiveEyes(module, slot, actor).Where(eye => eye.Risky))
                     hints.ForbiddenDirections.Add((Angle.FromDirection(eye.Position - actor.Position) - eye.Forward, 45.Degrees(), eye.Activation));
             }
         }
@@ -71,11 +73,12 @@ namespace BossMod.Components
                 dl.PathFillConvex(danger ? ArenaColor.Enemy : ArenaColor.PC);
                 dl.AddCircleFilled(eyeCenter, _eyeInnerR, ArenaColor.Border);
 
-                if (Inverted)
-                    arena.PathArcTo(pc.Position, 1, (pc.Rotation + eye.Forward + 45.Degrees()).Rad, (pc.Rotation + eye.Forward + 315.Degrees()).Rad);
-                else
-                    arena.PathArcTo(pc.Position, 1, (pc.Rotation + eye.Forward - 45.Degrees()).Rad, (pc.Rotation + eye.Forward + 45.Degrees()).Rad);
-                arena.PathStroke(false, ArenaColor.Enemy);
+                if (eye.Risky)
+                {
+                    var (min, max) = Inverted ? (45, 315) : (-45, 45);
+                    arena.PathArcTo(pc.Position, 1, (pc.Rotation + eye.Forward + min.Degrees()).Rad, (pc.Rotation + eye.Forward + max.Degrees()).Rad);
+                    arena.PathStroke(false, ArenaColor.Enemy);
+                }
             }
         }
 

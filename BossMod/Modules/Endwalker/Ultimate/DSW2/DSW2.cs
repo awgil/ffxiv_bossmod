@@ -32,6 +32,26 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P4Resentment() : base(ActionID.MakeSpell(AID.Resentment)) { }
     }
 
+    class P5TwistingDive : Components.SelfTargetedAOEs
+    {
+        public P5TwistingDive() : base(ActionID.MakeSpell(AID.TwistingDive), new AOEShapeRect(60, 5)) { }
+    }
+
+    class P5Cauterize1 : Components.SelfTargetedAOEs
+    {
+        public P5Cauterize1() : base(ActionID.MakeSpell(AID.Cauterize1), new AOEShapeRect(48, 10)) { }
+    }
+
+    class P5Cauterize2 : Components.SelfTargetedAOEs
+    {
+        public P5Cauterize2() : base(ActionID.MakeSpell(AID.Cauterize2), new AOEShapeRect(48, 10)) { }
+    }
+
+    class P5SpearOfTheFury : Components.SelfTargetedAOEs
+    {
+        public P5SpearOfTheFury() : base(ActionID.MakeSpell(AID.SpearOfTheFuryP5), new AOEShapeRect(50, 5)) { }
+    }
+
     class P5AscalonMight : Components.Cleave
     {
         public P5AscalonMight() : base(ActionID.MakeSpell(AID.AscalonsMight), new AOEShapeCone(50, 30.Degrees()), (uint)OID.BossP5) { }

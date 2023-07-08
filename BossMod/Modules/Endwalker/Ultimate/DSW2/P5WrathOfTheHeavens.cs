@@ -77,11 +77,6 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         }
     }
 
-    class P5WrathOfTheHeavensTwistingDive : Components.SelfTargetedAOEs
-    {
-        public P5WrathOfTheHeavensTwistingDive() : base(ActionID.MakeSpell(AID.TwistingDive), new AOEShapeRect(60, 5)) { }
-    }
-
     class P5WrathOfTheHeavensChainLightning : Components.UniformStackSpread
     {
         public BitMask Targets;
@@ -183,16 +178,6 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 return default;
             return module.Bounds.Center + 20 * (charibert.Position - module.Bounds.Center).Normalized();
         }
-    }
-
-    class P5WrathOfTheHeavensCauterize1 : Components.SelfTargetedAOEs
-    {
-        public P5WrathOfTheHeavensCauterize1() : base(ActionID.MakeSpell(AID.Cauterize1), new AOEShapeRect(48, 10)) { }
-    }
-
-    class P5WrathOfTheHeavensCauterize2 : Components.SelfTargetedAOEs
-    {
-        public P5WrathOfTheHeavensCauterize2() : base(ActionID.MakeSpell(AID.Cauterize2), new AOEShapeRect(48, 10)) { }
     }
 
     class P5WrathOfTheHeavensAscalonsMercyRevealed : Components.BaitAwayEveryone

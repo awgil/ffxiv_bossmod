@@ -184,7 +184,7 @@
         PlanarPrison = 25313, // SerGrinnaux->self, no cast, range 70 circle, applies small damage, pulls to grinnaux and stuns for a second the whole raid right before pure-of-heart phase
         PlanarPrisonAOE = 25580, // Helper->self, no cast, range ?-70 donut, prevent moving outside small range of (89,100)
         BrightwingedFlight = 25366, // SerAdelphel->self, no cast, range 8 ?-degree cone, ??? (applies two buffs on ser charibert)
-        SpearOfTheFury = 25314, // SerZephirin->self, 10.0s cast, range 22 width 10 rect, visual (hits haurchefant??)
+        SpearOfTheFuryIntermission = 25314, // SerZephirin->self, 10.0s cast, range 22 width 10 rect, visual (hits haurchefant??)
         Shockwave = 25315, // SpearOfTheFury->self, no cast, raidwide, multiple casts every ~1.1s (if not mitigated by lb3)
         PureOfHeart = 25316, // SerCharibert->self, 35.5s cast, raidwide, damage depends on caster hp %?
         ShockwaveMitigated = 25368, // SpearOfTheFury->self, no cast, raidwide, multiple casts every ~1.1s (if mitigated by lb3)
@@ -213,7 +213,7 @@
         EmptyDimension = 25306, // SerGrinnaux->self, 5.0s cast, range 6-70 donut
 
         DeathOfTheHeavens = 27538, // BossP5->self, 4.0s cast, single-target, visual (trio 2 start)
-        SpearOfTheFury = 27539, // SerZephirin->self, 6.0s cast, range 50 width 10 rect
+        SpearOfTheFuryP5 = 27539, // SerZephirin->self, 6.0s cast, range 50 width 10 rect
         Deathstorm = 27540, // Darkscale->self, no cast, applies dooms
         WingsOfSalvation = 27541, // Vidofnir->self, 5.3s cast, single-target, visual (??? cleansing puddles?)
         WingsOfSalvationAOE = 27542, // Helper->location, 10.0s cast, range 4 circle (cleansing puddle?)
