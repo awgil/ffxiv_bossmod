@@ -108,6 +108,14 @@ namespace BossMod.WAR
                 UseOutsideMelee = 6, // use immediately if outside melee range
             }
 
+            public enum SpecialAction : uint
+            {
+                None = 0, // don't use any special actions
+
+                [PropertyDisplay("LB3", 0x8000ff00)]
+                LB3, // use LB3 if available
+            }
+
             public GaugeUse GaugeStrategy; // how are we supposed to handle gauge
             public InfuriateUse InfuriateStrategy; // how are we supposed to use infuriate
             public PotionUse PotionStrategy; // how are we supposed to use potions
@@ -115,6 +123,7 @@ namespace BossMod.WAR
             public OffensiveAbilityUse UpheavalUse; // how are we supposed to use upheaval
             public OffensiveAbilityUse PrimalRendUse; // how are we supposed to use PR
             public OnslaughtUse OnslaughtStrategy; // how are we supposed to use onslaught
+            public SpecialAction SpecialActionUse; // any special actions we want to use
             public bool Aggressive; // if true, we use buffs and stuff at last possible moment; otherwise we make sure to keep at least 1 GCD safety net
 
             public override string ToString()
@@ -125,7 +134,7 @@ namespace BossMod.WAR
             // TODO: these bindings should be done by the framework...
             public void ApplyStrategyOverrides(uint[] overrides)
             {
-                if (overrides.Length >= 7)
+                if (overrides.Length >= 8)
                 {
                     GaugeStrategy = (GaugeUse)overrides[0];
                     InfuriateStrategy = (InfuriateUse)overrides[1];
@@ -134,6 +143,7 @@ namespace BossMod.WAR
                     UpheavalUse = (OffensiveAbilityUse)overrides[4];
                     PrimalRendUse = (OffensiveAbilityUse)overrides[5];
                     OnslaughtStrategy = (OnslaughtUse)overrides[6];
+                    SpecialActionUse = (SpecialAction)overrides[7];
                 }
                 else
                 {
@@ -144,6 +154,7 @@ namespace BossMod.WAR
                     UpheavalUse = OffensiveAbilityUse.Automatic;
                     PrimalRendUse = OffensiveAbilityUse.Automatic;
                     OnslaughtStrategy = OnslaughtUse.Automatic;
+                    SpecialActionUse = SpecialAction.None;
                 }
             }
         }
@@ -522,6 +533,10 @@ namespace BossMod.WAR
         // window-end is either GCD or GCD - time-for-second-ogcd; we are allowed to use ogcds only if their animation lock would complete before window-end
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline, bool aoe)
         {
+            // LB3 if requested (TODO: condition)
+            if (strategy.SpecialActionUse == Strategy.SpecialAction.LB3)
+                return ActionID.MakeSpell(AID.LandWaker);
+
             // 0. onslaught as a gap-filler - this should be used asap even if we're delaying GCD, since otherwise we'll probably end up delaying it even more
             bool wantOnslaught = state.Unlocked(AID.Onslaught) && state.TargetingEnemy && ShouldUseOnslaught(state, strategy);
             if (wantOnslaught && state.RangeToTarget > 3)

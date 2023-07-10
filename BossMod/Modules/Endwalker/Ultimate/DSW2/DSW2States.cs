@@ -393,23 +393,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ActorCast(id, _module.BossP5, AID.DeathOfTheHeavens, delay, 4, true);
             ActorTargetable(id + 0x10, _module.BossP5, false, 3.1f, "Trio 2")
                 .SetHint(StateMachine.StateHint.DowntimeStart);
-            // +1.6s: a bunch of PATEs: 1E44 on vidofnir and darkscale, 1E43 on vedrfolnir, ser guerrique, ser zephirin and thordan - show heavy impacts here
-            // +3.8s: eyes envcontrol - should know eye positions, but don't show yet!
-            // +3.9s: deathstorm cast (applies dooms 0.8s later) - can figure out safespots?..
-            // +6.1s: heavy impact cast starts
-            // +8.0s: wings of salvation + twisting dive + cauterize + spear of the fury + lightning storm casts start - good place to show all aoes + spreads
-            // +10.4s: heavy impact visual cast end
-            // +12.1s: heavy impact 1 cast end
-            // +13.3s: wings of salvation cast end
-            // +13.7s: lightning storm (boss) cast end
-            // +14.0s: twisting dive + cauterize + spear of the fury casts end
-            // +14.1s: heavy impact 2, then wings of salvation (puddles?) casts start
-            // +14.2s: lightning storm aoes resolve
-            // ???
-            // +15.9s: heavy impact 3
-            // +17.8s: heavy impact 4
 
-            ComponentCondition<P5DeathOfTheHeavensHeavyImpact>(id + 0x100, 1.6f, comp => comp.Active)
+            ComponentCondition<P5DeathOfTheHeavensHeavyImpact>(id + 0x100, 1.5f, comp => comp.Active)
                 .ActivateOnEnter<P5DeathOfTheHeavensHeavyImpact>();
             ComponentCondition<P5DeathOfTheHeavensGaze>(id + 0x110, 2.2f, comp => comp.Active)
                 .ActivateOnEnter<P5DeathOfTheHeavensGaze>()
@@ -429,9 +414,34 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ComponentCondition<P5DeathOfTheHeavensHeavyImpact>(id + 0x151, 0.1f, comp => comp.NumCasts >= 2, "Ring 2");
             ComponentCondition<P5DeathOfTheHeavensLightningStorm>(id + 0x152, 0.1f, comp => !comp.Active, "Spreads")
                 .DeactivateOnExit<P5DeathOfTheHeavensLightningStorm>();
-            // TODO: more stuff here...
-            ComponentCondition<P5DeathOfTheHeavensHeavyImpact>(id + 0x200, 1.8f, comp => comp.NumCasts >= 3, "Ring 3")
+            ComponentCondition<P5WrathOfTheHeavensTwister>(id + 0x160, 1.1f, comp => comp.Active, "Twisters")
                 .ActivateOnEnter<P5WrathOfTheHeavensTwister>();
+            ComponentCondition<P5DeathOfTheHeavensHeavyImpact>(id + 0x170, 0.6f, comp => comp.NumCasts >= 3, "Ring 3");
+            ComponentCondition<P5DeathOfTheHeavensHeavyImpact>(id + 0x180, 1.9f, comp => comp.NumCasts >= 4, "Ring 4");
+            ComponentCondition<P5DeathOfTheHeavensHeavyImpact>(id + 0x190, 1.9f, comp => comp.NumCasts >= 5)
+                .DeactivateOnExit<P5DeathOfTheHeavensHeavyImpact>();
+            ComponentCondition<P5WrathOfTheHeavensTwister>(id + 0x1A0, 0.8f, comp => !comp.Active)
+                .DeactivateOnExit<P5WrathOfTheHeavensTwister>();
+
+            ActorCastStart(id + 0x200, _module.BossP5, AID.DragonsGaze, 1.8f, true)
+                .ActivateOnEnter<P5DeathOfTheHeavensHeavensflame>(); // heavensflame cast starts at the same time, icons appear ~0.1s before cast start
+            // +1.1s: faith unmoving and holy meteor casts start
+            // +1.9s: wings of salvation aoes end
+            // +2.6s: wings of salvation voidzones appear
+            ActorCastEnd(id + 0x201, _module.BossP5, 4, true) // chains appear just as cast ends
+                .OnEnter(() => _module.FindComponent<P5DeathOfTheHeavensGaze>()!.EnableHints = true);
+            ComponentCondition<P5DeathOfTheHeavensHeavensflame>(id + 0x210, 1.1f, comp => comp.KnockbackDone, "Knockback");
+            ComponentCondition<P5DeathOfTheHeavensGaze>(id + 0x220, 0.1f, comp => comp.NumCasts > 0, "Gaze")
+                .DeactivateOnExit<P5DeathOfTheHeavensGaze>();
+            ComponentCondition<P5DeathOfTheHeavensHeavensflame>(id + 0x230, 2.5f, comp => comp.NumCasts > 0, "Playstation resolve")
+                .DeactivateOnExit<P5DeathOfTheHeavensHeavensflame>()
+                .DeactivateOnExit<P5DeathOfTheHeavensDooms>();
+
+            ComponentCondition<P5DeathOfTheHeavensMeteorCircle>(id + 0x300, 2.2f, comp => comp.ActiveActors.Any(), "Meteors spawn")
+                .ActivateOnEnter<P5DeathOfTheHeavensMeteorCircle>()
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+            Timeout(id + 0x310, 14.8f, "Meteors enrage")
+                .DeactivateOnExit<P5DeathOfTheHeavensMeteorCircle>();
         }
     }
 }

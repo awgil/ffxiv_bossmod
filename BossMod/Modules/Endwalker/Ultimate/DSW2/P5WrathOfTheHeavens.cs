@@ -107,6 +107,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                         Targets.Set(module.Raid.FindSlot(t.ID));
                     break;
                 case AID.ChainLightningAOE:
+                    Targets.Reset();
                     Spreads.Clear();
                     break;
             }

@@ -193,6 +193,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
+            base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID is AID.HiemalStormAOE)
                 _stormsDone = true;
         }
@@ -398,7 +399,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             // note that for 1-1 or 1-2 patterns, this can never be better than sync swap (since there are only 2 options anyway)
             // for 2-2 pattern, the worst case is 150-degree pattern even without any swaps, sync swap could have improved that to optimal - in such case individual swaps won't matter
             // the only way individual swaps could be better if both synchronized options are 150, but there exists a 180 option 'both to central' (CW+center vs CCW+center)
-            if (config.P2Sanctity2OuterTowers == DSW2Config.P2OuterTowers.Individual && q1selected != q2selected && (q1towers & q2towers & 0x010) != 0)
+            if (config.P2Sanctity2OuterTowers == DSW2Config.P2OuterTowers.Individual && q1selected != q2selected && (q1towers & q2towers & 0b010) != 0)
             {
                 q1selected = 1;
                 q2selected = 1;

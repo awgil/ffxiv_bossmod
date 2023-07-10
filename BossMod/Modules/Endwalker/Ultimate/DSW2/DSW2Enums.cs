@@ -49,7 +49,6 @@
         //_Gen_Actorfd8a1 = 0xFD8A1, // R1.000, EventNpc type, x1 - intermission
         //_Gen_Actor1eb681 = 0x1EB681, // R0.500, EventObj type, x1 - intermission
 
-        //_Gen_Actor1eb687 = 0x1EB687, // R0.500, EventObj type, x8 - p5
         BossP5 = 0x3143, // R5.001, king thordan, x1 - p5
         Vedrfolnir = 0x3166, // R12.000, x1 - p5
         DarkscaleVisual = 0x3167, // R7.000, x1 - p5
@@ -58,6 +57,9 @@
         Vidofnir = 0x3157, // R14.400, x1 - p5
         VoidzoneTwister = 0x1E8910, // R0.500, EventObj type, x8 spawn during p5
         VoidzoneLiquidHeaven = 0x1EB684, // R0.500, EventObj type, x5 spawn during p5
+        VoidzoneCleanse = 0x1EB685, // R0.500, EventObj type, x4 spawn during p5, where wings of salvations aoes were cast (cleanses dooms)
+        MeteorVisual = 0x1EB687, // R0.500, EventObj type, x8 - p5
+        MeteorCircle = 0x3660, // R3.000, x8 spawn during p5
     };
 
     public enum AID : uint
@@ -215,8 +217,13 @@
         DeathOfTheHeavens = 27538, // BossP5->self, 4.0s cast, single-target, visual (trio 2 start)
         SpearOfTheFuryP5 = 27539, // SerZephirin->self, 6.0s cast, range 50 width 10 rect
         Deathstorm = 27540, // Darkscale->self, no cast, applies dooms
-        WingsOfSalvation = 27541, // Vidofnir->self, 5.3s cast, single-target, visual (??? cleansing puddles?)
-        WingsOfSalvationAOE = 27542, // Helper->location, 10.0s cast, range 4 circle (cleansing puddle?)
+        WingsOfSalvation = 27541, // Vidofnir->self, 5.3s cast, single-target, visual (cleansing puddles)
+        WingsOfSalvationAOE = 27542, // Helper->location, 10.0s cast, range 4 circle (cleansing puddle visual)
+        Heavensflame = 25310, // SerCharibert->self, 7.0s cast, single-target, visual (playstation)
+        HeavensflameAOE = 25311, // Helper->players, no cast, range 10 circle spread
+        HolyChain = 25312, // Helper->self, no cast, heavy hit and damage down on unbroken chains
+        HolyMeteor = 27543, // SerNoudenet->self, 8.0s cast, single-target, visual (spawn meteors)
+        MeteorImpact = 27544, // MeteorCircle->self, no cast, range 60 circle (meteor enrage)
     };
 
     public enum SID : uint
@@ -234,6 +241,8 @@
         Fangbound = 2776, // none->player, extra=0x0, blue tether
         BoundAndDetermined = 2777, // none->player, extra=0x0, prevents swap for next 3s
         PiercingResistanceDown = 3131, // NidhoggDrake->player, extra=0x0
+        Doom = 2976, // Darkscale->player, extra=0x0
+        BurningChains = 769, // none->player, extra=0x0
     }
 
     public enum TetherID : uint
@@ -248,6 +257,7 @@
         Incarnation = 165, // Vedrfolnir/VidofnirVisual/DarkscaleVisual->BossP5
         SpiralPierce = 5, // SerVellguine/SerIgnasse->player
         //_Gen_Tether_53 = 53, // player->SerGrinnaux
+        Heavensflame = 9, // player->player
     }
 
     public enum IconID : uint
@@ -264,5 +274,9 @@
         SoulOfDevotion = 287, // Alphinaud
         SkywardLeapP5 = 14, // player
         Cauterize = 20, // player
+        HeavensflameCircle = 281,
+        HeavensflameTriangle = 282,
+        HeavensflameSquare = 283,
+        HeavensflameCross = 284,
     }
 }
