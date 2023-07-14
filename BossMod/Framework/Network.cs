@@ -4,6 +4,7 @@ using Dalamud.Memory;
 using System;
 using System.IO;
 using System.Numerics;
+using System.Text;
 
 namespace BossMod
 {
@@ -81,17 +82,17 @@ namespace BossMod
 
         private unsafe void ProcessZonePacketDownDetour(void* self, uint targetId, void* dataPtr)
         {
-            HandleMessage((IntPtr)dataPtr + sizeof(Protocol.Server_IPCHeader), ((Protocol.Server_IPCHeader*)dataPtr)->MessageType, 0, targetId, NetworkMessageDirection.ZoneDown);
+            HandleMessage((IntPtr)dataPtr + sizeof(Protocol.Server_IPCHeader), ((Protocol.Server_IPCHeader*)dataPtr)->MessageType, 0, targetId, NetworkMessageDirection.ZoneDown, 0);
             _processZonePacketDownHook.Original(self, targetId, dataPtr);
         }
 
         private unsafe byte ProcessZonePacketUpDetour(void* self, void* dataPtr, void* a3, byte a4)
         {
-            HandleMessage((IntPtr)dataPtr + 0x20, Utils.ReadField<ushort>(dataPtr, 0), 0, 0, NetworkMessageDirection.ZoneUp);
+            HandleMessage((IntPtr)dataPtr + 0x20, Utils.ReadField<ushort>(dataPtr, 0), 0, 0, NetworkMessageDirection.ZoneUp, Utils.ReadField<uint>(dataPtr, 8));
             return _processZonePacketUpHook.Original(self, dataPtr, a3, a4);
         }
 
-        private unsafe void HandleMessage(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
+        private unsafe void HandleMessage(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction, uint packetLength)
         {
             if (direction == NetworkMessageDirection.ZoneDown)
             {
@@ -176,7 +177,7 @@ namespace BossMod
                 // client->server
                 if (_config.DumpClientPackets)
                 {
-                    DumpClientMessage(dataPtr, opCode);
+                    DumpClientMessage(dataPtr, opCode, packetLength);
                 }
             }
         }
@@ -333,9 +334,12 @@ namespace BossMod
             EventRSVData?.Invoke(this, (key, value));
         }
 
-        private unsafe void DumpClientMessage(IntPtr dataPtr, ushort opCode)
+        private unsafe void DumpClientMessage(IntPtr dataPtr, ushort opCode, uint length)
         {
-            //Service.Log($"[Network] Client message {(Protocol.Opcode)opCode}");
+            var sb = new StringBuilder($"[Network] Client message {opCode}: ");
+            for (int i = 0; i < length; ++i)
+                sb.Append($"{((byte*)dataPtr)[i]:X2}");
+            Service.Log(sb.ToString());
             //switch ((Protocol.Opcode)opCode)
             //{
             //    case Protocol.Opcode.ActionRequest:

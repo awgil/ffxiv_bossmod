@@ -37,7 +37,7 @@
 
         LeftEye = 0x3141, // R4.000, x1 - p4
         RightEye = 0x3142, // R4.000, x1 - p4
-        Nidhogg = 0x3147, // R12.000, x1 - p4
+        NidhoggP4 = 0x3147, // R12.000, x1 - p4
         Alphinaud = 0x35C9, // R0.500, x1 - p4
         Haurchefant = 0x333D, // R0.500, x1 - p4
         Ysayle = 0x333E, // R0.500, x1 - p4
@@ -60,6 +60,9 @@
         VoidzoneCleanse = 0x1EB685, // R0.500, EventObj type, x4 spawn during p5, where wings of salvations aoes were cast (cleanses dooms)
         MeteorVisual = 0x1EB687, // R0.500, EventObj type, x8 - p5
         MeteorCircle = 0x3660, // R3.000, x8 spawn during p5
+
+        NidhoggP6 = 0x3144, // R19.000, x1 - p6
+        HraesvelgrP6 = 0x3145, // R19.000, x1 - p6
     };
 
     public enum AID : uint
@@ -180,7 +183,7 @@
         MirageDiveAOE = 26820, // NidhoggDrake->player, no cast, range 4 circle
         SteepInRage = 26813, // RightEye/LeftEye->self, 6.0s cast, range 60 circle, raidwide
         CreepingShadows = 26823, // RightEye/LeftEye->Estinien, no cast, single-target, visual (enrage sequence)
-        RevengeOfTheHordeP4 = 26402, // Nidhogg->self, 6.0s cast, range 80 circle, enrage
+        RevengeOfTheHordeP4 = 26402, // NidhoggP4->self, 6.0s cast, range 80 circle, enrage
 
         // intermission
         PlanarPrison = 25313, // SerGrinnaux->self, no cast, range 70 circle, applies small damage, pulls to grinnaux and stuns for a second the whole raid right before pure-of-heart phase
@@ -224,6 +227,25 @@
         HolyChain = 25312, // Helper->self, no cast, heavy hit and damage down on unbroken chains
         HolyMeteor = 27543, // SerNoudenet->self, 8.0s cast, single-target, visual (spawn meteors)
         MeteorImpact = 27544, // MeteorCircle->self, no cast, range 60 circle (meteor enrage)
+        Surrender = 26215, // BossP5->self, no cast, single-target, visual (surrender at 3%)
+
+        // phase 6
+        AutoAttackYsayle = 872, // Ysayle->Background1, no cast, single-target
+        YsayleBlizzard = 29751, // Ysayle->Background1, 1.0s cast, single-target
+        WyrmclawN = 27946, // NidhoggP6->player, no cast, single-target (autoattack)
+        WyrmclawH = 27938, // HraesvelgrP6->player, no cast, single-target (autoattack)
+        // non-glowing = 27954
+        DreadWyrmsbreathGlow = 27955, // NidhoggP6->self, 6.3s cast, single-target, visual (glowing)
+        // non-glowing = 27956
+        GreatWyrmsbreathGlow = 27957, // HraesvelgrP6->self, 6.3s cast, single-target, visual (glowing)
+        FlameBreath = 27958, // Helper->self, no cast, range 100 20?-degree cone
+        IceBreath = 27959, // Helper->self, no cast, range 100 20?-degree cone
+        SwirlingBlizzard = 27960, // Helper->self, 7.0s cast, range 20-35 donut
+        DarkOrb = 27961, // Helper->players, no cast, range 6 circle shared tankbuster
+        HolyOrb = 27962, // Helper->players, no cast, range 6 circle shared tankbuster
+        //_Ability_ = 27951, // Helper->self, no cast, single-target
+        AkhAfahN = 27971, // NidhoggP6->self, 8.0s cast, single-target
+        AkhAfahH = 27969, // HraesvelgrP6->self, 8.0s cast, single-target
     };
 
     public enum SID : uint
@@ -258,6 +280,10 @@
         SpiralPierce = 5, // SerVellguine/SerIgnasse->player
         //_Gen_Tether_53 = 53, // player->SerGrinnaux
         Heavensflame = 9, // player->player
+        FlameBreath = 194, // player->NidhoggP6
+        IceBreath = 195, // player->HraesvelgrP6
+        FlameBreathNear = 196, // player->NidhoggP6
+        //_Gen_Tether_2 = 2, // NidhoggP6->HraesvelgrP6
     }
 
     public enum IconID : uint

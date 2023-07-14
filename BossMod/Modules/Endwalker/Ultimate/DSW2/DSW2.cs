@@ -57,6 +57,16 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P5AscalonMight() : base(ActionID.MakeSpell(AID.AscalonsMight), new AOEShapeCone(50, 30.Degrees()), (uint)OID.BossP5) { }
     }
 
+    class P5Surrender : Components.CastCounter
+    {
+        public P5Surrender() : base(ActionID.MakeSpell(AID.Surrender)) { }
+    }
+
+    class P6SwirlingBlizzard : Components.SelfTargetedAOEs
+    {
+        public P6SwirlingBlizzard() : base(ActionID.MakeSpell(AID.SwirlingBlizzard), new AOEShapeDonut(20, 35)) { }
+    }
+
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP2)]
     public class DSW2 : BossModule
     {
@@ -71,6 +81,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private Actor? _serCharibert;
         private Actor? _spear;
         private Actor? _bossP5;
+        private Actor? _nidhoggP6;
+        private Actor? _hraesvelgrP6;
         public Actor? ArenaFeatures => _arenaFeatures;
         public Actor? BossP2() => PrimaryActor;
         public Actor? BossP3() => _bossP3;
@@ -80,6 +92,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public Actor? SerCharibert() => _serCharibert;
         public Actor? Spear() => _spear;
         public Actor? BossP5() => _bossP5;
+        public Actor? NidhoggP6() => _nidhoggP6;
+        public Actor? HraesvelgrP6() => _hraesvelgrP6;
 
         public DSW2(WorldState ws, Actor primary) : base(ws, primary, BoundsCircle) { }
 
@@ -91,10 +105,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             _bossP3 ??= StateMachine.ActivePhaseIndex == 1 ? Enemies(OID.BossP3).FirstOrDefault() : null;
             _leftEyeP4 ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.LeftEye).FirstOrDefault() : null;
             _rightEyeP4 ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.RightEye).FirstOrDefault() : null;
-            _nidhoggP4 ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.Nidhogg).FirstOrDefault() : null;
+            _nidhoggP4 ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.NidhoggP4).FirstOrDefault() : null;
             _serCharibert ??= StateMachine.ActivePhaseIndex == 3 ? Enemies(OID.SerCharibert).FirstOrDefault() : null;
             _spear ??= StateMachine.ActivePhaseIndex == 3 ? Enemies(OID.SpearOfTheFury).FirstOrDefault() : null;
             _bossP5 ??= StateMachine.ActivePhaseIndex == 4 ? Enemies(OID.BossP5).FirstOrDefault() : null;
+            _nidhoggP6 ??= StateMachine.ActivePhaseIndex == 5 ? Enemies(OID.NidhoggP6).FirstOrDefault() : null;
+            _hraesvelgrP6 ??= StateMachine.ActivePhaseIndex == 5 ? Enemies(OID.HraesvelgrP6).FirstOrDefault() : null;
         }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
@@ -107,6 +123,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             Arena.Actor(_serCharibert, ArenaColor.Enemy);
             Arena.Actor(_spear, ArenaColor.Enemy);
             Arena.Actor(_bossP5, ArenaColor.Enemy);
+            Arena.Actor(_nidhoggP6, ArenaColor.Enemy);
+            Arena.Actor(_hraesvelgrP6, ArenaColor.Enemy);
             //Arena.Actor(Enemies(OID.SerJanlenoux).FirstOrDefault(), 0xffffffff);
             //Arena.Actor(Enemies(OID.SerVellguine).FirstOrDefault(), 0xff0000ff);
             //Arena.Actor(Enemies(OID.SerPaulecrain).FirstOrDefault(), 0xff00ff00);

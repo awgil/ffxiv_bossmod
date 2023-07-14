@@ -24,6 +24,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .OnEnter(() => Module.Arena.Bounds = DSW2.BoundsCircle)
                 .Raw.Update = () => IsResetOrRewindFailed || IsDead(_module.Spear());
             SimplePhase(5, Phase5KingThordan, "P5: King Thordan") // TODO: auto-attack cleave component
+                .ActivateOnEnter<P5Surrender>()
+                .Raw.Update = () => IsResetOrRewindFailed || _module.FindComponent<P5Surrender>()?.NumCasts > 0;
+            SimplePhase(6, Phase6Dragons, "P6: Nidhogg + Hraesvelgr")
                 .Raw.Update = () => IsResetOrRewindFailed;
         }
 
@@ -69,6 +72,16 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             P5WrathOfHeavens(id + 0x10000, 0.1f);
             P5HeavenlyHeelAscalonMight(id + 0x20000, 6.4f);
             P5DeathOfTheHeavens(id + 0x30000, 7.1f);
+            P5AncientQuaga(id + 0x40000, 2.1f);
+            P5HeavenlyHeelAscalonMight(id + 0x50000, 6.2f);
+            SimpleState(id + 0xFF0000, 100, "???"); // TODO: next is enrage cast...
+        }
+
+        private void Phase6Dragons(uint id)
+        {
+            P6Start(id);
+            P6Wyrmsbreath(id + 0x10000, 11.4f);
+            P6AkhAfah(id + 0x20000, 10.3f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -440,8 +453,35 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ComponentCondition<P5DeathOfTheHeavensMeteorCircle>(id + 0x300, 2.2f, comp => comp.ActiveActors.Any(), "Meteors spawn")
                 .ActivateOnEnter<P5DeathOfTheHeavensMeteorCircle>()
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
-            Timeout(id + 0x310, 14.8f, "Meteors enrage")
+            ActorTargetable(id + 0x310, _module.BossP5, true, 14.8f, "Meteors enrage") // boss will reappear as soon as final meteor dies
                 .DeactivateOnExit<P5DeathOfTheHeavensMeteorCircle>();
+        }
+
+        private void P6Start(uint id)
+        {
+            Timeout(id, 0)
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ActorTargetable(id + 1, _module.BossP5, false, 7, "Boss disappears");
+            ActorTargetable(id + 2, _module.NidhoggP6, true, 10.4f, "Dragons appear")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+        }
+
+        private void P6Wyrmsbreath(uint id, float delay)
+        {
+            ActorCastMulti(id, _module.NidhoggP6, new[] { AID.DreadWyrmsbreathGlow }, delay, 6.3f, true)
+                .ActivateOnEnter<P6Wyrmsbreath1>()
+                .ActivateOnEnter<P6WyrmsbreathTankbusterShared>()
+                .ActivateOnEnter<P6SwirlingBlizzard>();
+            ComponentCondition<P6SwirlingBlizzard>(id + 0x10, 0.7f, comp => comp.NumCasts > 0)
+                .DeactivateOnExit<P6SwirlingBlizzard>();
+            ComponentCondition<P6Wyrmsbreath>(id + 0x20, 0.1f, comp => comp.NumCasts > 0, "Wyrmsbreath 1")
+                .DeactivateOnExit<P6WyrmsbreathTankbusterShared>()
+                .DeactivateOnExit<P6Wyrmsbreath1>();
+        }
+
+        private void P6AkhAfah(uint id, float delay)
+        {
+            ActorCast(id, _module.NidhoggP6, AID.AkhAfahN, delay, 8, true, "Akh Afah...");
         }
     }
 }
