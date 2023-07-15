@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Alliance.A3Azeyma
+﻿namespace BossMod.Endwalker.Alliance.A13Azeyma
 {
     class WardensWarmth : Components.SpreadFromCastTargets
     {
@@ -35,9 +35,9 @@
         public SublimeSunset() : base(ActionID.MakeSpell(AID.SublimeSunsetAOE), 40) { } // TODO: check falloff
     }
 
-    public class A3AzeymaStates : StateMachineBuilder
+    public class A13AzeymaStates : StateMachineBuilder
     {
-        public A3AzeymaStates(BossModule module) : base(module)
+        public A13AzeymaStates(BossModule module) : base(module)
         {
             // TODO: reconsider
             TrivialPhase()
@@ -56,8 +56,8 @@
     }
 
     // TODO: FarFlungFire mechanic - sometimes (on first cast?) we get visual & stack marker, but no aoe...
-    public class A3Azeyma : BossModule
+    public class A13Azeyma : BossModule
     {
-        public A3Azeyma(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-750, -750), 30)) { }
+        public A13Azeyma(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-750, -750), 30)) { }
     }
 }

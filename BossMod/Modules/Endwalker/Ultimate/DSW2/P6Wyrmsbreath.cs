@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using static BossMod.Components.GenericBaitAway;
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {

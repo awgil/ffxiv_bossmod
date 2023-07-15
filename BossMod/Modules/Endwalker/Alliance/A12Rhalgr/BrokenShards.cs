@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace BossMod.Endwalker.Alliance.A2Rhalgr
+namespace BossMod.Endwalker.Alliance.A12Rhalgr
 {
     // this is not an official mechanic name - it refers to broken world + hand of the destroyer combo, which creates multiple small aoes
     class BrokenShards : BossComponent

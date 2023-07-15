@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Alliance.A2Rhalgr
+﻿namespace BossMod.Endwalker.Alliance.A12Rhalgr
 {
     class DestructiveBolt : Components.SpreadFromCastTargets
     {
@@ -41,9 +41,9 @@
         public RhalgrBeacon() : base(ActionID.MakeSpell(AID.RhalgrsBeaconAOE), new AOEShapeCircle(10)) { }
     }
 
-    public class A2RhalgrStates : StateMachineBuilder
+    public class A12RhalgrStates : StateMachineBuilder
     {
-        public A2RhalgrStates(BossModule module) : base(module)
+        public A12RhalgrStates(BossModule module) : base(module)
         {
             // TODO: reconsider
             TrivialPhase()
@@ -59,9 +59,9 @@
         }
     }
 
-    public class A2Rhalgr : BossModule
+    public class A12Rhalgr : BossModule
     {
-        public A2Rhalgr(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-15, 275), 30)) // note: arena has a really complex shape...
+        public A12Rhalgr(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-15, 275), 30)) // note: arena has a really complex shape...
         {
         }
 

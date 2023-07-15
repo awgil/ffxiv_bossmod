@@ -1,5 +1,4 @@
-﻿using BossMod.Endwalker.Alliance.A4Naldthal;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
 

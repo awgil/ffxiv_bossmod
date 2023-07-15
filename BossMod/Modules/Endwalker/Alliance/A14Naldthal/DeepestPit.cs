@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Endwalker.Alliance.A4Naldthal
+namespace BossMod.Endwalker.Alliance.A14Naldthal
 {
     // TODO: we can use icon to determine targets much earlier, but how to clear them if they turn out to be fake?
     class DeepestPit : BossComponent

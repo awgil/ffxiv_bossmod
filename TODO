@@ -1,7 +1,12 @@
+general:
+- switch to using time from framework
+- compressed binary format for logs
+- better ui for recording logs
+- optionally log raw ipcs when recording, visualize in replay analysis
+- simulate autorotation in replay analysis
+- move replay analysis to plugin
+
 boss modules:
-- dsw2
--- p2 sanctity 2: aoes during second set of towers
--- p3 drachenlance 2 and later
 - generalize components as much as possible
 - fail log
 - wipe should not fast forward all phases
@@ -18,7 +23,6 @@ autorotation:
 - war
 -- simulate gauge changes (message can arrive few frames after ActionEffect...)
 -- low-level rotation - improve berserk delay logic
--- gauge & buff visualization
 - whm:
 -- 6.1 adjustments
 -- planner
@@ -27,9 +31,6 @@ autorotation:
 cooldown planner:
 - in-combat cooldown plan ui
 - select columns to show (concrete actions, categories)
-- plan tankswaps
-- plan raid cooldowns (think about ui and storage for that...)
-- show hp, statuses, ...
 
 world rendering:
 - danger zones (modify action vfx?)
@@ -39,18 +40,11 @@ replay encounter analysis:
 - tether & debuff passing range
 - pull range
 
-network:
-- hook send/recv (a-la xivalexander)
-- store raw packets, create visualizer
-- auto detect new opcodes for known packets based on size
-- allow injecting custom client messages in next sent bundle (or just create new bundle?..)
-
 misc:
 - memory show/watch utility
 - clip circles to arena bounds...
 - draw target max-melee and boss positioning hints?..
 - assignments/config sharing (webservice?)
-- ?? aoe checks should take hitbox into account (0.5 for players) - cones, circles, rects... - apparently not really...
 
 notes on targeting:
 - aoe (e.g. cone) will hit if shape intersects target's hitbox; for players it is == 0.5

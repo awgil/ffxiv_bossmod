@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Endwalker.Alliance.A4Naldthal
+namespace BossMod.Endwalker.Alliance.A14Naldthal
 {
     // TODO: refactor, it's quite hacky...
     class OnceAboveEverBelow : BossComponent

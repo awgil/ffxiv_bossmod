@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Endwalker.Alliance.A4Naldthal
+namespace BossMod.Endwalker.Alliance.A14Naldthal
 {
     class HeavensTrial : BossComponent
     {

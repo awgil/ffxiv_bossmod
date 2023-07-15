@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Alliance.A3Azeyma
+﻿namespace BossMod.Endwalker.Alliance.A13Azeyma
 {
     public enum OID : uint
     {

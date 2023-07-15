@@ -1,8 +1,8 @@
-﻿//namespace BossMod.Endwalker.Alliance.A1Byregot
+﻿//namespace BossMod.Endwalker.Alliance.A11Byregot
 //{
-//    class A1ByregotStates : StateMachineBuilder
+//    class A11ByregotStates : StateMachineBuilder
 //    {
-//        public A1ByregotStates(BossModule module) : base(module)
+//        public A11ByregotStates(BossModule module) : base(module)
 //        {
 //            OrdealOfThunder(0x00000000, 6.5f);
 //            ByregotStrike(0x00010000, 5.9f);

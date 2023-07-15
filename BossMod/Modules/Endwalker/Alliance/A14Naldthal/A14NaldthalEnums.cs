@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Alliance.A4Naldthal
+﻿namespace BossMod.Endwalker.Alliance.A14Naldthal
 {
     public enum OID : uint
     {

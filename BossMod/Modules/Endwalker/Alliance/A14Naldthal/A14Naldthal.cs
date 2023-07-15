@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Alliance.A4Naldthal
+﻿namespace BossMod.Endwalker.Alliance.A14Naldthal
 {
     class GoldenTenet : Components.CastSharedTankbuster
     {
@@ -40,9 +40,9 @@
         public Twingaze() : base(ActionID.MakeSpell(AID.Twingaze), new AOEShapeCone(60, 15.Degrees())) { }
     }
 
-    public class A4NaldthalStates : StateMachineBuilder
+    public class A14NaldthalStates : StateMachineBuilder
     {
-        public A4NaldthalStates(BossModule module) : base(module)
+        public A14NaldthalStates(BossModule module) : base(module)
         {
             // TODO: reconsider
             TrivialPhase()
@@ -62,8 +62,8 @@
     }
 
     // TODO: balancing counter, magmatic spell raid stack
-    public class A4Naldthal : BossModule
+    public class A14Naldthal : BossModule
     {
-        public A4Naldthal(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(750, -750), 25)) { }
+        public A14Naldthal(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(750, -750), 25)) { }
     }
 }
