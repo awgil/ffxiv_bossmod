@@ -57,11 +57,11 @@
 
     class MoonsetRays : Components.StackWithCastTargets
     {
-        public MoonsetRays() : base(ActionID.MakeSpell(AID.MoonsetRays), 6, 4) { }
+        public MoonsetRays() : base(ActionID.MakeSpell(AID.MoonsetRaysAOE), 6, 4) { }
     }
 
     public class A24Menphina : BossModule
     {
-        public A24Menphina(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(800, 750), 25)) { }
+        public A24Menphina(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(800, 750), 30)) { }
     }
 }

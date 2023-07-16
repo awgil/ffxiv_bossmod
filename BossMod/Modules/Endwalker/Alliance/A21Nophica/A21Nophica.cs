@@ -32,6 +32,6 @@
 
     public class A21Nophica : BossModule
     {
-        public A21Nophica(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -238), 20)) { }
+        public A21Nophica(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -238), 30)) { }
     }
 }

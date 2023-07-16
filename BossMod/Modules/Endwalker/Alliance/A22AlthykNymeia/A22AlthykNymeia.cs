@@ -20,7 +20,7 @@ namespace BossMod.Endwalker.Alliance.A22AlthykNymeia
         public Actor? Althyk() => PrimaryActor;
         public Actor? Nymeia() => _nymeia;
 
-        public A22AlthykNymeia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(50, -750), 20)) { }
+        public A22AlthykNymeia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(50, -750), 25)) { }
 
         protected override void UpdateModule()
         {
