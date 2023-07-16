@@ -19,6 +19,7 @@ namespace BossMod.Components
 
         public Dictionary<ulong, PlayerState> State = new(); // key = instance ID
         public float MovementSpeed = 6; // default movement speed, can be overridden if necessary
+        public float ActivationLimit = float.MaxValue; // do not show pending moves that activate later than this limit
 
         // called to determine whether we need to show hint
         public virtual bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => !module.Bounds.Contains(pos);
@@ -65,7 +66,8 @@ namespace BossMod.Components
                 from = to;
             }
 
-            foreach (var move in state.PendingMoves)
+            var limit = ActivationLimit < float.MaxValue ? module.WorldState.CurrentTime.AddSeconds(ActivationLimit) : DateTime.MaxValue;
+            foreach (var move in state.PendingMoves.TakeWhile(move => move.activation <= limit))
             {
                 dir += move.dir;
                 var to = from + MovementSpeed * move.duration * dir.ToDirection();
