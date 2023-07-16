@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.Alliance.A24Menphina
             MoonsetRays(id + 0x150000, 6.0f);
             LovesLightMountedFour(id + 0x160000, 5.7f);
             SilverMirrorMounted(id + 0x170000, 2.0f);
-            LovesLightMountedOneMidnightFrost(id + 0x180000, 7.3f);
+            LovesLightMountedOneMidnightFrost(id + 0x180000, 7.2f);
             MoonsetRays(id + 0x190000, 6.0f);
             LunarKiss(id + 0x1A0000, 7.6f, true);
             LovesLightMountedFourMidnightFrost(id + 0x1B0000, 3.9f);
