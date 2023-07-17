@@ -81,7 +81,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             P6Start(id);
             P6Wyrmsbreath(id + 0x10000, 11.4f);
-            P6AkhAfah(id + 0x20000, 10.3f);
+            P6MortalVow(id + 0x20000, 7.2f);
+            P6AkhAfah(id + 0x30000, 3.1f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -468,15 +469,26 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private void P6Wyrmsbreath(uint id, float delay)
         {
-            ActorCastMulti(id, _module.NidhoggP6, new[] { AID.DreadWyrmsbreathGlow }, delay, 6.3f, true)
+            ActorCastMulti(id, _module.NidhoggP6, new[] { AID.DreadWyrmsbreathNormal, AID.DreadWyrmsbreathGlow }, delay, 6.3f, true)
                 .ActivateOnEnter<P6Wyrmsbreath1>()
                 .ActivateOnEnter<P6WyrmsbreathTankbusterShared>()
+                .ActivateOnEnter<P6WyrmsbreathTankbusterSolo>()
+                .ActivateOnEnter<P6WyrmsbreathCone>()
                 .ActivateOnEnter<P6SwirlingBlizzard>();
             ComponentCondition<P6SwirlingBlizzard>(id + 0x10, 0.7f, comp => comp.NumCasts > 0)
                 .DeactivateOnExit<P6SwirlingBlizzard>();
             ComponentCondition<P6Wyrmsbreath>(id + 0x20, 0.1f, comp => comp.NumCasts > 0, "Wyrmsbreath 1")
                 .DeactivateOnExit<P6WyrmsbreathTankbusterShared>()
+                .DeactivateOnExit<P6WyrmsbreathTankbusterSolo>()
+                .DeactivateOnExit<P6WyrmsbreathCone>()
                 .DeactivateOnExit<P6Wyrmsbreath1>();
+        }
+
+        private void P6MortalVow(uint id, float delay)
+        {
+            ComponentCondition<P6MortalVow>(id, delay, comp => comp.NumCasts > 0, "Mortal vow apply")
+                .ActivateOnEnter<P6MortalVow>()
+                .DeactivateOnExit<P6MortalVow>();
         }
 
         private void P6AkhAfah(uint id, float delay)

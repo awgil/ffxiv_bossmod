@@ -7,7 +7,7 @@ using System.Text;
 
 namespace UIDev.Analysis
 {
-    class TetherInfo
+    class TetherInfo : CommonEnumInfo
     {
         private class TetherData
         {
@@ -15,7 +15,6 @@ namespace UIDev.Analysis
             public HashSet<uint> TargetOIDs = new();
         }
 
-        private Type? _oidType;
         private Type? _tidType;
         private Dictionary<uint, TetherData> _data = new();
 
@@ -58,21 +57,26 @@ namespace UIDev.Analysis
         {
             if (ImGui.MenuItem("Generate enum for boss module"))
             {
-                var sb = new StringBuilder("public enum TetherID : uint\n{");
+                var sb = new StringBuilder("public enum TetherID : uint\n{\n");
                 foreach (var (tid, data) in _data)
-                {
-                    var name = _tidType?.GetEnumName(tid) ?? $"_Gen_Tether_{tid}";
-                    sb.Append($"\n    {name} = {tid}, // {OIDListString(data.SourceOIDs)}->{OIDListString(data.TargetOIDs)}");
-                }
-                sb.Append("\n};\n");
+                    sb.Append($"    {EnumMemberString(tid, data)}\n");
+                sb.Append("};\n");
+                ImGui.SetClipboardText(sb.ToString());
+            }
+
+            if (ImGui.MenuItem("Generate missing enum values for boss module"))
+            {
+                var sb = new StringBuilder();
+                foreach (var (tid, data) in _data.Where(kv => _tidType?.GetEnumName(kv.Key) == null))
+                    sb.AppendLine(EnumMemberString(tid, data));
                 ImGui.SetClipboardText(sb.ToString());
             }
         }
 
-        private string OIDListString(IEnumerable<uint> oids)
+        private string EnumMemberString(uint tid, TetherData data)
         {
-            var s = string.Join('/', oids.Select(oid => oid == 0 ? "player" : _oidType?.GetEnumName(oid) ?? $"{oid:X}"));
-            return s.Length > 0 ? s : "none";
+            var name = _tidType?.GetEnumName(tid) ?? $"_Gen_Tether_{tid}";
+            return $"{name} = {tid}, // {OIDListString(data.SourceOIDs)}->{OIDListString(data.TargetOIDs)}";
         }
     }
 }

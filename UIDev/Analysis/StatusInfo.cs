@@ -7,7 +7,7 @@ using System.Text;
 
 namespace UIDev.Analysis
 {
-    class StatusInfo
+    class StatusInfo : CommonEnumInfo
     {
         private class StatusData
         {
@@ -16,7 +16,6 @@ namespace UIDev.Analysis
             public HashSet<ushort> Extras = new();
         }
 
-        private Type? _oidType;
         private Type? _sidType;
         private Dictionary<uint, StatusData> _data = new();
 
@@ -61,25 +60,26 @@ namespace UIDev.Analysis
         {
             if (ImGui.MenuItem("Generate enum for boss module"))
             {
-                var sb = new StringBuilder("public enum SID : uint\n{");
+                var sb = new StringBuilder("public enum SID : uint\n{\n");
                 foreach (var (sid, data) in _data)
-                {
-                    string name = _sidType?.GetEnumName(sid) ?? $"_Gen_{Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(sid)?.Name.ToString() ?? $"Status{sid}")}";
-                    sb.Append($"\n    {name} = {sid}, // {OIDListString(data.SourceOIDs)}->{OIDListString(data.TargetOIDs)}");
-
-                    var extras = string.Join('/', data.Extras.Select(extra => $"0x{extra:X}"));
-                    if (extras.Length > 0)
-                        sb.Append($", extra={extras}");
-                }
+                    sb.Append($"    {EnumMemberString(sid, data)}\n");
                 sb.Append("\n};\n");
+                ImGui.SetClipboardText(sb.ToString());
+            }
+
+            if (ImGui.MenuItem("Generate missing enum values for boss module"))
+            {
+                var sb = new StringBuilder();
+                foreach (var (sid, data) in _data.Where(kv => _sidType?.GetEnumName(kv.Key) == null))
+                    sb.AppendLine(EnumMemberString(sid, data));
                 ImGui.SetClipboardText(sb.ToString());
             }
         }
 
-        private string OIDListString(IEnumerable<uint> oids)
+        private string EnumMemberString(uint sid, StatusData data)
         {
-            var s = string.Join('/', oids.Select(oid => oid == 0 ? "player" : _oidType?.GetEnumName(oid) ?? $"{oid:X}"));
-            return s.Length > 0 ? s : "none";
+            string name = _sidType?.GetEnumName(sid) ?? $"_Gen_{Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(sid)?.Name.ToString() ?? $"Status{sid}")}";
+            return $"{name} = {sid}, // {OIDListString(data.SourceOIDs)}->{OIDListString(data.TargetOIDs)}, extra={JoinStrings(data.Extras.Select(extra => $"0x{extra:X}"))}";
         }
     }
 }

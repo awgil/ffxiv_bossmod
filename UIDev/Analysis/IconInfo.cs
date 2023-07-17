@@ -7,14 +7,13 @@ using System.Text;
 
 namespace UIDev.Analysis
 {
-    class IconInfo
+    class IconInfo : CommonEnumInfo
     {
         private class IconData
         {
             public HashSet<uint> TargetOIDs = new();
         }
 
-        private Type? _oidType;
         private Type? _iidType;
         private Dictionary<uint, IconData> _data = new();
 
@@ -54,21 +53,26 @@ namespace UIDev.Analysis
         {
             if (ImGui.MenuItem("Generate enum for boss module"))
             {
-                var sb = new StringBuilder("public enum IconID : uint\n{");
+                var sb = new StringBuilder("public enum IconID : uint\n{\n");
                 foreach (var (iid, data) in _data)
-                {
-                    var name = _iidType?.GetEnumName(iid) ?? $"_Gen_Icon_{iid}";
-                    sb.Append($"\n    {name} = {iid}, // {OIDListString(data.TargetOIDs)}");
-                }
-                sb.Append("\n};\n");
+                    sb.Append($"    {EnumMemberString(iid, data)}\n");
+                sb.Append("};\n");
+                ImGui.SetClipboardText(sb.ToString());
+            }
+
+            if (ImGui.MenuItem("Generate missing enum values for boss module"))
+            {
+                var sb = new StringBuilder();
+                foreach (var (iid, data) in _data.Where(kv => _iidType?.GetEnumName(kv.Key) == null))
+                    sb.AppendLine(EnumMemberString(iid, data));
                 ImGui.SetClipboardText(sb.ToString());
             }
         }
 
-        private string OIDListString(IEnumerable<uint> oids)
+        private string EnumMemberString(uint iid, IconData data)
         {
-            var s = string.Join('/', oids.Select(oid => oid == 0 ? "player" : _oidType?.GetEnumName(oid) ?? $"{oid:X}"));
-            return s.Length > 0 ? s : "none";
+            var name = _iidType?.GetEnumName(iid) ?? $"_Gen_Icon_{iid}";
+            return $"{name} = {iid}, // {OIDListString(data.TargetOIDs)}";
         }
     }
 }

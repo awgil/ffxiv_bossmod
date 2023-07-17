@@ -58,6 +58,9 @@ namespace BossMod.WAR
 
                 [PropertyDisplay("Use tomahawk if outside melee", 0x80c08000)]
                 TomahawkIfNotInMelee = 6,
+
+                [PropertyDisplay("Use combo, unless it can't be finished before downtime and unless gauge and/or ST would overcap", 0x80c0c000)]
+                ComboFitBeforeDowntime = 7, // useful on late phases before downtime
             }
 
             public enum InfuriateUse : uint
@@ -159,46 +162,33 @@ namespace BossMod.WAR
             }
         }
 
-        public static int GaugeGainedFromAction(State state, AID action)
+        public static int GaugeGainedFromAction(State state, AID action) => action switch
         {
-            return action switch
-            {
-                AID.Maim or AID.StormEye => 10,
-                AID.StormPath => 20,
-                AID.MythrilTempest => state.Unlocked(TraitID.MasteringTheBeast) ? 20 : 0,
-                _ => 0
-            };
-        }
+            AID.Maim or AID.StormEye => 10,
+            AID.StormPath => 20,
+            AID.MythrilTempest => state.Unlocked(TraitID.MasteringTheBeast) ? 20 : 0,
+            _ => 0
+        };
 
-        public static AID GetNextSTComboAction(AID comboLastMove, AID finisher)
+        public static AID GetNextSTComboAction(AID comboLastMove, AID finisher) => comboLastMove switch
         {
-            return comboLastMove switch
-            {
-                AID.Maim => finisher,
-                AID.HeavySwing => AID.Maim,
-                _ => AID.HeavySwing
-            };
-        }
+            AID.Maim => finisher,
+            AID.HeavySwing => AID.Maim,
+            _ => AID.HeavySwing
+        };
 
-        public static int GetSTComboLength(AID comboLastMove)
+        public static int GetSTComboLength(AID comboLastMove) => comboLastMove switch
         {
-            return comboLastMove switch
-            {
-                AID.Maim => 1,
-                AID.HeavySwing => 2,
-                _ => 3
-            };
-        }
+            AID.Maim => 1,
+            AID.HeavySwing => 2,
+            _ => 3
+        };
 
-        public static AID GetNextMaimComboAction(AID comboLastMove)
-        {
-            return comboLastMove == AID.HeavySwing ? AID.Maim : AID.HeavySwing;
-        }
+        public static int GetAOEComboLength(AID comboLastMove) => comboLastMove == AID.Overpower ? 1 : 2;
 
-        public static AID GetNextAOEComboAction(AID comboLastMove)
-        {
-            return comboLastMove == AID.Overpower ? AID.MythrilTempest : AID.Overpower;
-        }
+        public static AID GetNextMaimComboAction(AID comboLastMove) => comboLastMove == AID.HeavySwing ? AID.Maim : AID.HeavySwing;
+
+        public static AID GetNextAOEComboAction(AID comboLastMove) => comboLastMove == AID.Overpower ? AID.MythrilTempest : AID.Overpower;
 
         public static AID GetNextUnlockedComboAction(State state, float minBuffToRefresh, bool aoe)
         {
@@ -234,7 +224,7 @@ namespace BossMod.WAR
         }
 
         // by default, we spend resources either under raid buffs or if another raid buff window will cover at least 4 GCDs of the fight
-        public static bool ShouldSpendGauge(State state, Strategy strategy) => strategy.GaugeStrategy switch
+        public static bool ShouldSpendGauge(State state, Strategy strategy, bool aoe) => strategy.GaugeStrategy switch
         {
             Strategy.GaugeUse.Automatic or Strategy.GaugeUse.TomahawkIfNotInMelee => (state.RaidBuffsLeft > state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10) && state.SurgingTempestLeft > state.GCD,
             Strategy.GaugeUse.Spend => true,
@@ -242,10 +232,11 @@ namespace BossMod.WAR
             Strategy.GaugeUse.Conserve => false,
             Strategy.GaugeUse.ForceExtendST => false,
             Strategy.GaugeUse.ForceSPCombo => false,
+            Strategy.GaugeUse.ComboFitBeforeDowntime => state.SurgingTempestLeft > state.GCD && strategy.FightEndIn <= state.GCD + 2.5f * ((aoe ? GetAOEComboLength(state.ComboLastMove) : GetSTComboLength(state.ComboLastMove)) - 1),
             _ => true
         };
 
-        public static bool ShouldUseInfuriate(State state, Strategy strategy)
+        public static bool ShouldUseInfuriate(State state, Strategy strategy, bool aoe)
         {
             switch (strategy.InfuriateStrategy)
             {
@@ -269,7 +260,7 @@ namespace BossMod.WAR
                     if (state.Unlocked(AID.InnerRelease))
                     {
                         // with IR, main purpose of infuriate is to generate gauge to burn in spend mode
-                        if (ShouldSpendGauge(state, strategy))
+                        if (ShouldSpendGauge(state, strategy, aoe))
                             return true;
 
                         // don't delay if we risk overcapping stacks
@@ -440,7 +431,7 @@ namespace BossMod.WAR
             float primalRendWindow = (strategy.PrimalRendUse == Strategy.OffensiveAbilityUse.Delay || state.RangeToTarget > 3) ? 0 : MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);
             var irCD = state.CD(state.Unlocked(AID.InnerRelease) ? CDGroup.InnerRelease : CDGroup.Berserk);
 
-            bool spendGauge = ShouldSpendGauge(state, strategy);
+            bool spendGauge = ShouldSpendGauge(state, strategy, aoe);
             if (!state.Unlocked(AID.InnerRelease))
                 spendGauge &= irCD > 5; // TODO: improve...
 
@@ -564,7 +555,7 @@ namespace BossMod.WAR
                 return ActionID.MakeSpell(aoe && state.Unlocked(AID.Orogeny) ? AID.Orogeny : AID.Upheaval);
 
             // 4. infuriate, if not forbidden and not delayed; note that infuriate can't be used out of combat
-            if (state.Unlocked(AID.Infuriate) && strategy.CombatTimer >= 0 && state.CanWeave(state.CD(CDGroup.Infuriate) - 60, 0.6f, deadline) && ShouldUseInfuriate(state, strategy))
+            if (state.Unlocked(AID.Infuriate) && strategy.CombatTimer >= 0 && state.CanWeave(state.CD(CDGroup.Infuriate) - 60, 0.6f, deadline) && ShouldUseInfuriate(state, strategy, aoe))
                 return ActionID.MakeSpell(AID.Infuriate);
 
             // 5. onslaught, if surging tempest up and not forbidden

@@ -234,18 +234,23 @@
         YsayleBlizzard = 29751, // Ysayle->Background1, 1.0s cast, single-target
         WyrmclawN = 27946, // NidhoggP6->player, no cast, single-target (autoattack)
         WyrmclawH = 27938, // HraesvelgrP6->player, no cast, single-target (autoattack)
-        // non-glowing = 27954
+        DreadWyrmsbreathNormal = 27954, // NidhoggP6->self, 6.3s cast, single-target, visual (non-glowing)
         DreadWyrmsbreathGlow = 27955, // NidhoggP6->self, 6.3s cast, single-target, visual (glowing)
-        // non-glowing = 27956
+        GreatWyrmsbreathNormal = 27956, // HraesvelgrP6->self, 6.3s cast, single-target, visual (non-glowing)
         GreatWyrmsbreathGlow = 27957, // HraesvelgrP6->self, 6.3s cast, single-target, visual (glowing)
         FlameBreath = 27958, // Helper->self, no cast, range 100 20?-degree cone
         IceBreath = 27959, // Helper->self, no cast, range 100 20?-degree cone
         SwirlingBlizzard = 27960, // Helper->self, 7.0s cast, range 20-35 donut
         DarkOrb = 27961, // Helper->players, no cast, range 6 circle shared tankbuster
         HolyOrb = 27962, // Helper->players, no cast, range 6 circle shared tankbuster
+        HolyBreath = 27964, // Helper->self, no cast, range 50 ?-degree cone
+        StaggeringBreath = 27965, // Helper->player, no cast, range 15 circle solo tankbuster
         //_Ability_ = 27951, // Helper->self, no cast, single-target
+        MortalVow = 27952, // NidhoggP6->player, no cast, range 5 circle, apply debuff
         AkhAfahN = 27971, // NidhoggP6->self, 8.0s cast, single-target
         AkhAfahH = 27969, // HraesvelgrP6->self, 8.0s cast, single-target
+        AkhAfahNAOE = 27972, // NidhoggP6->player, no cast, range 4 circle stack
+        AkhAfahHAOE = 27970, // HraesvelgrP6->player, no cast, range 4 circle stack
     };
 
     public enum SID : uint
@@ -282,7 +287,8 @@
         Heavensflame = 9, // player->player
         FlameBreath = 194, // player->NidhoggP6
         IceBreath = 195, // player->HraesvelgrP6
-        FlameBreathNear = 196, // player->NidhoggP6
+        FlameIceBreathNear = 196, // player->NidhoggP6
+        //_Gen_Tether_1 = 1, // NidhoggP6->HraesvelgrP6
         //_Gen_Tether_2 = 2, // NidhoggP6->HraesvelgrP6
     }
 

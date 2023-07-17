@@ -1,8 +1,9 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
-    // cones part of the mechanic
+    // baited cones part of the mechanic
     class P6Wyrmsbreath : Components.GenericBaitAway
     {
         public Actor?[] Dragons = { null, null }; // nidhogg & hraesvelgr
@@ -56,9 +57,15 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             switch ((AID)spell.Action.ID)
             {
+                case AID.DreadWyrmsbreathNormal:
+                    Dragons[0] = caster;
+                    break;
                 case AID.DreadWyrmsbreathGlow:
                     Dragons[0] = caster;
                     Glows.Set(0);
+                    break;
+                case AID.GreatWyrmsbreathNormal:
+                    Dragons[1] = caster;
                     break;
                 case AID.GreatWyrmsbreathGlow:
                     Dragons[1] = caster;
@@ -69,7 +76,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
-            if ((TetherID)tether.ID is TetherID.FlameBreath or TetherID.IceBreath or TetherID.FlameBreathNear)
+            if ((TetherID)tether.ID is TetherID.FlameBreath or TetherID.IceBreath or TetherID.FlameIceBreathNear)
             {
                 var slot = module.Raid.FindSlot(source.InstanceID);
                 var boss = module.WorldState.Actors.Find(tether.Target);
@@ -77,7 +84,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 {
                     if (_tetheredTo[slot] == null)
                         CurrentBaits.Add(new(boss, source, _shape));
-                    _tooClose[slot] = (TetherID)tether.ID is TetherID.FlameBreathNear;
+                    _tooClose[slot] = (TetherID)tether.ID == TetherID.FlameIceBreathNear;
                     _tetheredTo[slot] = boss;
                 }
             }
@@ -107,5 +114,47 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 Activation = Source?.CastInfo?.FinishAt ?? module.WorldState.CurrentTime;
             }
         }
+    }
+
+    class P6WyrmsbreathTankbusterSolo : Components.GenericBaitAway
+    {
+        private P6Wyrmsbreath? _main;
+
+        private static AOEShapeCircle _shape = new(15);
+
+        public P6WyrmsbreathTankbusterSolo() : base(centerAtTarget: true) { }
+
+        public override void Init(BossModule module) => _main = module.FindComponent<P6Wyrmsbreath>();
+
+        public override void Update(BossModule module)
+        {
+            CurrentBaits.Clear();
+            if (_main?.Glows.Raw is 1 or 2)
+            {
+                var source = _main.Dragons[_main.Glows.Raw == 1 ? 1 : 0];
+                var target = module.WorldState.Actors.Find(source?.TargetID ?? 0);
+                if (source != null && target != null)
+                    CurrentBaits.Add(new(source, target, _shape));
+            }
+        }
+    }
+
+    class P6WyrmsbreathCone : Components.GenericAOEs
+    {
+        private P6Wyrmsbreath? _main;
+
+        private static AOEShapeCone _shape = new(50, 15.Degrees()); // TODO: verify angle
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (_main?.Glows.Raw is 1 or 2)
+            {
+                var source = _main.Dragons[_main.Glows.Raw == 1 ? 0 : 1];
+                if (source != null)
+                    yield return new(_shape, source.Position, source.Rotation); // TODO: activation
+            }
+        }
+
+        public override void Init(BossModule module) => _main = module.FindComponent<P6Wyrmsbreath>();
     }
 }

@@ -8,7 +8,7 @@ using System.Text;
 
 namespace UIDev.Analysis
 {
-    class AbilityInfo
+    class AbilityInfo : CommonEnumInfo
     {
         class SourcePositionAnalysis
         {
@@ -254,7 +254,6 @@ namespace UIDev.Analysis
             public CasterLinkAnalysis? CasterLinkAnalysis;
         }
 
-        private Type? _oidType;
         private Type? _aidType;
         private Dictionary<ActionID, ActionData> _data = new();
 
@@ -300,7 +299,7 @@ namespace UIDev.Analysis
             {
                 tree.LeafNode($"Caster IDs: {OIDListString(data.CasterOIDs)}");
                 tree.LeafNode($"Target IDs: {OIDListString(data.TargetOIDs)}");
-                tree.LeafNode($"Targets:{(data.SeenTargetSelf ? " self" : "")}{(data.SeenTargetOtherEnemy ? " enemy" : "")}{(data.SeenTargetPlayer ? " player" : "")}{(data.SeenTargetLocation ? " location" : "")}{(data.SeenAOE ? " aoe" : "")}");
+                tree.LeafNode($"Targets:{JoinStrings(ActionTargetStrings(data))}");
                 tree.LeafNode($"Cast time: {data.CastTime:f1}");
                 if (aid.Type == ActionType.Spell)
                 {
@@ -393,43 +392,18 @@ namespace UIDev.Analysis
         {
             if (ImGui.MenuItem("Generate enum for boss module"))
             {
-                var sb = new StringBuilder("public enum AID : uint\n{");
+                var sb = new StringBuilder("public enum AID : uint\n{\n");
                 foreach (var (aid, data) in _data)
-                {
-                    var ldata = aid.Type == ActionType.Spell ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID) : null;
-                    string name = aid.Type != ActionType.Spell ? $"// {aid}" : _aidType?.GetEnumName(aid.ID) ?? $"_{Utils.StringToIdentifier(ldata?.ActionCategory?.Value?.Name ?? "")}_{Utils.StringToIdentifier(ldata?.Name ?? $"Ability{aid.ID}")}";
-                    sb.Append($"\n    {name} = {aid.ID}, // {OIDListString(data.CasterOIDs)}->");
+                    sb.Append($"    {EnumMemberString(aid, data)}\n");
+                sb.Append("};\n");
+                ImGui.SetClipboardText(sb.ToString());
+            }
 
-                    var tarSB = new StringBuilder();
-                    if (data.SeenTargetSelf)
-                        tarSB.Append("self");
-                    if (data.SeenTargetPlayer)
-                    {
-                        if (tarSB.Length > 0)
-                            tarSB.Append('/');
-                        tarSB.Append(data.SeenAOE ? "players" : "player");
-                    }
-                    if (data.SeenTargetLocation)
-                    {
-                        if (tarSB.Length > 0)
-                            tarSB.Append('/');
-                        tarSB.Append("location");
-                    }
-                    if (data.SeenTargetOtherEnemy)
-                    {
-                        if (tarSB.Length > 0)
-                            tarSB.Append('/');
-                        tarSB.Append(OIDListString(data.TargetOIDs.Where(oid => oid != 0)));
-                    }
-                    if (tarSB.Length == 0)
-                        tarSB.Append("none");
-
-                    sb.Append(tarSB);
-                    sb.Append($", {(data.CastTime > 0 ? $"{data.CastTime:f1}s" : "no")} cast");
-                    if (ldata != null)
-                        sb.Append($", {DescribeShape(ldata)}");
-                }
-                sb.Append("\n};\n");
+            if (ImGui.MenuItem("Generate missing enum values for boss module"))
+            {
+                var sb = new StringBuilder();
+                foreach (var (aid, data) in _data.Where(kv => kv.Key.Type != ActionType.Spell || _aidType?.GetEnumName(kv.Key.ID) == null))
+                    sb.AppendLine(EnumMemberString(aid, data));
                 ImGui.SetClipboardText(sb.ToString());
             }
         }
@@ -479,15 +453,31 @@ namespace UIDev.Analysis
             return r.Participants.Where(p => p.Type is ActorType.Player or ActorType.Chocobo && p.Existence.Contains(t) && !p.DeadAt(t));
         }
 
-        private string OIDListString(IEnumerable<uint> oids)
+        private IEnumerable<string> ActionTargetStrings(ActionData data)
         {
-            var s = string.Join('/', oids.Select(oid => oid == 0 ? "player" : _oidType?.GetEnumName(oid) ?? $"{oid:X}"));
-            return s.Length > 0 ? s : "none";
+            if (data.SeenTargetSelf)
+                yield return "self";
+            if (data.SeenTargetPlayer)
+                yield return data.SeenAOE ? "players" : "player";
+            if (data.SeenTargetLocation)
+                yield return "location";
+            if (data.SeenTargetOtherEnemy)
+                foreach (var oid in data.TargetOIDs.Where(oid => oid != 0))
+                    yield return OIDString(oid);
         }
 
-        private string DescribeShape(Lumina.Excel.GeneratedSheets.Action data)
+        private string CastTimeString(ActionData data) => data.CastTime > 0 ? $"{data.CastTime:f1}s cast" : "no cast";
+
+        private string EnumMemberString(ActionID aid, ActionData data)
         {
-            return data.CastType switch
+            var ldata = aid.Type == ActionType.Spell ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID) : null;
+            string name = aid.Type != ActionType.Spell ? $"// {aid}" : _aidType?.GetEnumName(aid.ID) ?? $"_{Utils.StringToIdentifier(ldata?.ActionCategory?.Value?.Name ?? "")}_{Utils.StringToIdentifier(ldata?.Name ?? $"Ability{aid.ID}")}";
+            return $"{name} = {aid.ID}, // {OIDListString(data.CasterOIDs)}->{JoinStrings(ActionTargetStrings(data))}, {CastTimeString(data)}, {DescribeShape(ldata)}";
+        }
+
+        private string DescribeShape(Lumina.Excel.GeneratedSheets.Action? data)
+        {
+            return data != null ? data.CastType switch
             {
                 1 => "single-target",
                 2 => $"range {data.EffectRange} circle",
@@ -500,7 +490,7 @@ namespace UIDev.Analysis
                 12 => $"range {data.EffectRange} width {data.XAxisModifier} rect",
                 13 => $"range {data.EffectRange} {DetermineConeAngle(data)?.ToString() ?? "?"}-degree cone",
                 _ => "???"
-            };
+            } : "???";
         }
 
         private Angle? DetermineConeAngle(Lumina.Excel.GeneratedSheets.Action data)

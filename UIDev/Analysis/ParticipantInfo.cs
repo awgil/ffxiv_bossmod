@@ -7,7 +7,7 @@ using System.Text;
 
 namespace UIDev.Analysis
 {
-    class ParticipantInfo
+    class ParticipantInfo : CommonEnumInfo
     {
         class ParticipantData
         {
@@ -30,7 +30,6 @@ namespace UIDev.Analysis
         }
 
         private uint _encOID;
-        private Type? _oidType;
         private Dictionary<uint, ParticipantData> _data = new();
 
         public ParticipantInfo(List<Replay> replays, uint oid)
@@ -112,24 +111,34 @@ namespace UIDev.Analysis
         {
             if (ImGui.MenuItem("Generate enum for boss module"))
             {
-                var sb = new StringBuilder($"public enum OID : uint\n{{");
+                var sb = new StringBuilder("public enum OID : uint\n{\n");
                 foreach (var (oid, data) in _data)
-                {
-                    sb.Append($"\n    {_oidType?.GetEnumName(oid) ?? $"_Gen_{Utils.StringToIdentifier(data.Name.Length > 0 ? data.Name : $"Actor{oid:X}")}"} = 0x{oid:X}, // R{RadiusString(data)}, x{data.SpawnedPreFight}");
-                    if (data.Type != ActorType.Enemy)
-                    {
-                        sb.Append(data.Type == ActorType.None ? ", mixed types" : $", {data.Type} type");
-                    }
-                    if (data.SpawnedMidFight)
-                    {
-                        sb.Append(", and more spawn during fight");
-                    }
-                }
-                sb.Append("\n};\n");
+                    sb.Append($"    {EnumMemberString(oid, data)}\n");
+                sb.Append("};\n");
+                ImGui.SetClipboardText(sb.ToString());
+            }
+
+            if (ImGui.MenuItem("Generate missing enum values for boss module"))
+            {
+                var sb = new StringBuilder();
+                foreach (var (oid, data) in _data.Where(kv => _oidType?.GetEnumName(kv.Key) == null))
+                    sb.AppendLine(EnumMemberString(oid, data));
                 ImGui.SetClipboardText(sb.ToString());
             }
         }
 
         private string RadiusString(ParticipantData d) => d.MinRadius != d.MaxRadius ? $"{d.MinRadius:f3}-{d.MaxRadius:f3}" : $"{d.MinRadius:f3}";
+
+        private string EnumMemberString(uint oid, ParticipantData data)
+        {
+            var res = $"{_oidType?.GetEnumName(oid) ?? $"_Gen_{Utils.StringToIdentifier(data.Name.Length > 0 ? data.Name : $"Actor{oid:X}")}"} = 0x{oid:X}, // R{RadiusString(data)}";
+            if (data.SpawnedPreFight > 0)
+                res += $", x{data.SpawnedPreFight}";
+            if (data.Type != ActorType.Enemy)
+                res += data.Type == ActorType.None ? ", mixed types" : $", {data.Type} type";
+            if (data.SpawnedMidFight)
+                res += data.SpawnedPreFight > 0 ? ", and more spawn during fight" : ", spawn during fight";
+            return res;
+        }
     }
 }
