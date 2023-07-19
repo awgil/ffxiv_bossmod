@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private Actor?[] _tetheredTo = new Actor?[PartyState.MaxPartySize];
         private BitMask _tooClose;
 
-        private static AOEShapeCone _shape = new(100, 10.Degrees());
+        private static AOEShapeCone _shape = new(100, 10.Degrees()); // TODO: verify angle
 
         public P6Wyrmsbreath(bool allowIntersect) : base(ActionID.MakeSpell(AID.FlameBreath)) // note: cast is arbitrary
         {

@@ -135,7 +135,7 @@
         BroadSwingRL = 25536, // BossP2->self, 3.0s cast, visual
         BroadSwingLR = 25537, // BossP2->self, 3.0s cast, visual
         BroadSwingAOE = 25538, // Helper->self, no cast, range 40 120-degree cone
-        AethericBurst = 25539, // BossP2->self, 6.0s cast, enrage
+        AethericBurstP2 = 25539, // BossP2->self, 6.0s cast, enrage
 
         // phase 3
         FinalChorus = 26376, // BossP3->self, no cast, visual
@@ -228,6 +228,7 @@
         HolyMeteor = 27543, // SerNoudenet->self, 8.0s cast, single-target, visual (spawn meteors)
         MeteorImpact = 27544, // MeteorCircle->self, no cast, range 60 circle (meteor enrage)
         Surrender = 26215, // BossP5->self, no cast, single-target, visual (surrender at 3%)
+        AethericBurstP5 = 27528, // BossP5->self, 6.0s cast, range 50 circle, enrage
 
         // phase 6
         AutoAttackYsayle = 872, // Ysayle->Background1, no cast, single-target
@@ -243,7 +244,8 @@
         SwirlingBlizzard = 27960, // Helper->self, 7.0s cast, range 20-35 donut
         DarkOrb = 27961, // Helper->players, no cast, range 6 circle shared tankbuster
         HolyOrb = 27962, // Helper->players, no cast, range 6 circle shared tankbuster
-        HolyBreath = 27964, // Helper->self, no cast, range 50 ?-degree cone
+        DarkBreath = 27963, // Helper->self, no cast, range 50 ?-degree cone (fixed direction)
+        HolyBreath = 27964, // Helper->self, no cast, range 50 ?-degree cone (fixed direction)
         StaggeringBreath = 27965, // Helper->player, no cast, range 15 circle solo tankbuster
         //_Ability_ = 27951, // Helper->self, no cast, single-target
         MortalVow = 27952, // NidhoggP6->player, no cast, range 5 circle, apply debuff
@@ -251,6 +253,10 @@
         AkhAfahH = 27969, // HraesvelgrP6->self, 8.0s cast, single-target
         AkhAfahNAOE = 27972, // NidhoggP6->player, no cast, range 4 circle stack
         AkhAfahHAOE = 27970, // HraesvelgrP6->player, no cast, range 4 circle stack
+        //_Weaponskill_HallowedWings = 27942, // HraesvelgrP6->self, 7.5s cast, single-target
+        //_Weaponskill_HallowedPlume = 27945, // Helper->player, no cast, range 10 circle
+        //_Weaponskill_HallowedWings = 27944, // Helper->self, no cast, range 50 width 22 rect
+        //_Weaponskill_Cauterize = 27966, // NidhoggP6->self, 5.0s cast, range 80 width 22 rect
     };
 
     public enum SID : uint

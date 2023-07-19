@@ -40,7 +40,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             P2UltimateEnd(id + 0x50000, 13.5f);
             P2BroadSwing(id + 0x60000, 6.0f);
             P2BroadSwing(id + 0x70000, 2.7f);
-            Cast(id + 0x80000, AID.AethericBurst, 2.4f, 6, "Enrage");
+            Cast(id + 0x80000, AID.AethericBurstP2, 2.4f, 6, "Enrage");
         }
 
         private void Phase3Nidhogg(uint id)
@@ -74,7 +74,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             P5DeathOfTheHeavens(id + 0x30000, 7.1f);
             P5AncientQuaga(id + 0x40000, 2.1f);
             P5HeavenlyHeelAscalonMight(id + 0x50000, 6.2f);
-            SimpleState(id + 0xFF0000, 100, "???"); // TODO: next is enrage cast...
+            Cast(id + 0x60000, AID.AethericBurstP5, 4.8f, 6, "Enrage");
         }
 
         private void Phase6Dragons(uint id)
