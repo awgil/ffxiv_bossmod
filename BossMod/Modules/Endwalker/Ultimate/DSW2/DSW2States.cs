@@ -24,6 +24,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .OnEnter(() => Module.Arena.Bounds = DSW2.BoundsCircle)
                 .Raw.Update = () => IsResetOrRewindFailed || IsDead(_module.Spear());
             SimplePhase(5, Phase5KingThordan, "P5: King Thordan") // TODO: auto-attack cleave component
+                .OnEnter(() => Module.Arena.Bounds = DSW2.BoundsSquare)
                 .ActivateOnEnter<P5Surrender>()
                 .Raw.Update = () => IsResetOrRewindFailed || _module.FindComponent<P5Surrender>()?.NumCasts > 0;
             SimplePhase(6, Phase6Dragons, "P6: Nidhogg + Hraesvelgr")
@@ -83,6 +84,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             P6Wyrmsbreath(id + 0x10000, 11.4f);
             P6MortalVow(id + 0x20000, 7.2f);
             P6AkhAfah(id + 0x30000, 3.1f);
+            P6HallowedWingsPlume(id + 0x40000, 3.8f);
+            P6WrothFlames(id + 0x50000, 3.1f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -470,6 +473,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private void P6Wyrmsbreath(uint id, float delay)
         {
             ActorCastMulti(id, _module.NidhoggP6, new[] { AID.DreadWyrmsbreathNormal, AID.DreadWyrmsbreathGlow }, delay, 6.3f, true)
+                .ActivateOnEnter<P6HPCheck>()
                 .ActivateOnEnter<P6Wyrmsbreath1>()
                 .ActivateOnEnter<P6WyrmsbreathTankbusterShared>()
                 .ActivateOnEnter<P6WyrmsbreathTankbusterSolo>()
@@ -486,14 +490,45 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private void P6MortalVow(uint id, float delay)
         {
-            ComponentCondition<P6MortalVow>(id, delay, comp => comp.NumCasts > 0, "Mortal vow apply")
-                .ActivateOnEnter<P6MortalVow>()
-                .DeactivateOnExit<P6MortalVow>();
+            ComponentCondition<P6MortalVowApply>(id, delay, comp => comp.Done, "Mortal vow apply")
+                .ActivateOnEnter<P6MortalVowApply>()
+                .DeactivateOnExit<P6MortalVowApply>();
         }
 
         private void P6AkhAfah(uint id, float delay)
         {
-            ActorCast(id, _module.NidhoggP6, AID.AkhAfahN, delay, 8, true, "Akh Afah...");
+            ActorCast(id, _module.NidhoggP6, AID.AkhAfahN, delay, 8, true)
+                .ActivateOnEnter<P6AkhAfah>();
+            ComponentCondition<P6AkhAfah>(id + 0x10, 0.2f, comp => comp.Done, "Party stacks + HP check")
+                .DeactivateOnExit<P6AkhAfah>();
+        }
+
+        private void P6HallowedWingsPlume(uint id, float delay)
+        {
+            ActorTargetable(id, _module.NidhoggP6, false, delay, "Nidhogg disappears");
+            ActorCastMulti(id + 0x10, _module.HraesvelgrP6, new[] { AID.HallowedWingsLN, AID.HallowedWingsLF, AID.HallowedWingsRN, AID.HallowedWingsRF }, 1.8f, 7.5f, true)
+                .ActivateOnEnter<P6HallowedWings>()
+                .ActivateOnEnter<P6CauterizeN>()
+                .ActivateOnEnter<P6HallowedPlume>();
+            ComponentCondition<P6HallowedWings>(id + 0x20, 1.2f, comp => comp.NumCasts > 0, "Safe quarter + near/far tankbusters")
+                .DeactivateOnExit<P6HallowedWings>()
+                .DeactivateOnExit<P6CauterizeN>()
+                .DeactivateOnExit<P6HallowedPlume>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ActorTargetable(id + 0x30, _module.NidhoggP6, true, 3.1f, "Nidhogg reappears")
+                .ActivateOnEnter<P6MortalVowPass>();
+            ComponentCondition<P6MortalVowPass>(id + 0x100, 5.3f, comp => !comp.Active, "Mortal vow pass 1")
+                .DeactivateOnExit<P6MortalVowPass>();
+        }
+
+        private void P6WrothFlames(uint id, float delay)
+        {
+            ActorCast(id, _module.NidhoggP6, AID.WrothFlames, delay, 2.5f, true);
+            ActorTargetable(id + 0x10, _module.HraesvelgrP6, false, 0.6f, "Hraesvelgr disappears");
+            // +1.0s: 4x spreading flames, 2x entangling flames
+            // +1.6s: spawn first 3 orbs
+            // +3.6s: spawn second 3 orbs
+            // +6.8s: spawn third 3 orbs
         }
     }
 }

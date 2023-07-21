@@ -40,6 +40,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (Glows.Any())
+                hints.Add(Glows.Raw == 3 ? "Share" : "Solo");
+        }
+
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             Actor? partner = IgnoredPartner(module, pcSlot, pc);

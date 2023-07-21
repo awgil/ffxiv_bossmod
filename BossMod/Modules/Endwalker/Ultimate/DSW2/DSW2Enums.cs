@@ -63,6 +63,8 @@
 
         NidhoggP6 = 0x3144, // R19.000, x1 - p6
         HraesvelgrP6 = 0x3145, // R19.000, x1 - p6
+        ScarletPrice = 0x33B6, // R1.000, spawn during p6
+        //_Gen_Actor1eb683 = 0x1EB683, // R0.500, EventObj type, spawn during fight
     };
 
     public enum AID : uint
@@ -248,15 +250,31 @@
         HolyBreath = 27964, // Helper->self, no cast, range 50 ?-degree cone (fixed direction)
         StaggeringBreath = 27965, // Helper->player, no cast, range 15 circle solo tankbuster
         //_Ability_ = 27951, // Helper->self, no cast, single-target
-        MortalVow = 27952, // NidhoggP6->player, no cast, range 5 circle, apply debuff
+        MortalVowApply = 27952, // NidhoggP6->player, no cast, range 5 circle, apply debuff
+        MortalVowPass = 27953, // Helper->self, no cast, range 5 circle, pass debuff
         AkhAfahN = 27971, // NidhoggP6->self, 8.0s cast, single-target
         AkhAfahH = 27969, // HraesvelgrP6->self, 8.0s cast, single-target
         AkhAfahNAOE = 27972, // NidhoggP6->player, no cast, range 4 circle stack
         AkhAfahHAOE = 27970, // HraesvelgrP6->player, no cast, range 4 circle stack
-        //_Weaponskill_HallowedWings = 27942, // HraesvelgrP6->self, 7.5s cast, single-target
-        //_Weaponskill_HallowedPlume = 27945, // Helper->player, no cast, range 10 circle
-        //_Weaponskill_HallowedWings = 27944, // Helper->self, no cast, range 50 width 22 rect
-        //_Weaponskill_Cauterize = 27966, // NidhoggP6->self, 5.0s cast, range 80 width 22 rect
+        HallowedWingsLN = 27939, // HraesvelgrP6->self, 7.5s cast, single-target (left side, near tankbuster)
+        HallowedWingsLF = 27940, // HraesvelgrP6->self, 7.5s cast, single-target (left side, far tankbuster)
+        HallowedWingsRN = 27942, // HraesvelgrP6->self, 7.5s cast, single-target (right side, near tankbuster)
+        HallowedWingsRF = 27943, // HraesvelgrP6->self, 7.5s cast, single-target (right side, far tankbuster)
+        HallowedWingsAOELeft = 27941, // Helper->self, no cast, range 50 width 22 rect (hit left side)
+        HallowedWingsAOERight = 27944, // Helper->self, no cast, range 50 width 22 rect (hit right side)
+        HallowedPlume = 27945, // Helper->players, no cast, range 10 circle tankbuster
+        CauterizeN = 27966, // NidhoggP6->self, 5.0s cast, range 80 width 22 rect
+
+        WrothFlames = 27973, // NidhoggP6->self, 2.5s cast, single-target, visual (orbs mechanic start)
+        //_Weaponskill_EntangledFlames = 29740, // Helper->self, no cast, range 4 circle
+        //_Weaponskill_EntangledPyre = 29741, // Helper->self, no cast, range 100 circle
+        //_Weaponskill_SpreadingFlames = 29739, // Helper->self, no cast, range 5 circle
+        CauterizeH = 27967, // HraesvelgrP6->self, 5.0s cast, range 80 width 22 rect
+        //_Weaponskill_AkhMorn = 27974, // NidhoggP6->players, 8.0s cast, range 6 circle
+        //_Weaponskill_FlameBlast = 26409, // ScarletPrice->self, 5.0s cast, range 44 width 6 cross
+        //_Weaponskill_AkhMorn = 27975, // NidhoggP6->player, no cast, range 6 circle
+        //_Weaponskill_HotWing = 27948, // Helper->self, 6.5s cast, range 50 width 21 rect
+        //_Weaponskill_HotWing = 27947, // NidhoggP6->self, 5.5s cast, single-target
     };
 
     public enum SID : uint
@@ -276,6 +294,11 @@
         PiercingResistanceDown = 3131, // NidhoggDrake->player, extra=0x0
         Doom = 2976, // Darkscale->player, extra=0x0
         BurningChains = 769, // none->player, extra=0x0
+        MortalVow = 2896, // NidhoggP6/Helper->player, extra=0xFFA1
+        MortalAtonement = 2897, // none->player, extra=0x0
+        SpreadingFlames = 2758, // none->player, extra=0x0
+        EntangledFlames = 2759, // none->player, extra=0x0
+        //_Gen_Suppuration = 3133, // Helper->player, extra=0x0
     }
 
     public enum TetherID : uint

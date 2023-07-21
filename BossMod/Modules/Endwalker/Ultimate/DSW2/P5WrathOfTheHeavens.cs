@@ -83,7 +83,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public void ShowSpreads(BossModule module, float delay) => AddSpreads(module.Raid.WithSlot(true).IncludedInMask(Targets).Actors(), module.WorldState.CurrentTime.AddSeconds(delay));
 
-        public P5WrathOfTheHeavensChainLightning() : base(0, 5) { }
+        public P5WrathOfTheHeavensChainLightning() : base(0, 5, alwaysShowSpreads: true) { }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
