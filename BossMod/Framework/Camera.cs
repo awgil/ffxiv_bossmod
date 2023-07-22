@@ -95,6 +95,18 @@ namespace BossMod
             DrawWorldLine(prev, center, color);
         }
 
+        public void DrawWorldCircle(Vector3 center, float radius, uint color)
+        {
+            int numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), 1);
+            var prev = center + new Vector3(0, 0, radius);
+            for (int i = 1; i <= numSegments; ++i)
+            {
+                var curr = center + radius * (i * 360.0f / numSegments).Degrees().ToDirection().ToVec3();
+                DrawWorldLine(curr, prev, color);
+                prev = curr;
+            }
+        }
+
         private unsafe SharpDX.Matrix ReadMatrix(IntPtr address)
         {
             var p = (float*)address;

@@ -1,64 +1,87 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Memory;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using ImGuiNET;
 using System;
+using System.Numerics;
 using System.Text;
 
 namespace BossMod
 {
     public class DebugObjects
     {
+        private UITree _tree = new();
         private bool _showCrap = false;
+        private uint _selectedID = 0;
 
         public unsafe void DrawObjectTable()
         {
             ImGui.Checkbox("Show players, minions and mounts", ref _showCrap);
 
-            int i = 0;
-            ImGui.BeginTable("objects", 13, ImGuiTableFlags.Resizable);
-            ImGui.TableSetupColumn("Index");
-            ImGui.TableSetupColumn("Actor");
-            ImGui.TableSetupColumn("Kind/Subkind");
-            ImGui.TableSetupColumn("Class");
-            ImGui.TableSetupColumn("OwnerID/LocalID");
-            ImGui.TableSetupColumn("HP");
-            ImGui.TableSetupColumn("Flags");
-            ImGui.TableSetupColumn("Friendly?");
-            ImGui.TableSetupColumn("Pos/Rot");
-            //ImGui.TableSetupColumn("Ros/Rot non-interpolated");
-            ImGui.TableSetupColumn("Cast");
-            ImGui.TableSetupColumn("Render flags");
-            ImGui.TableSetupColumn("Draw data");
-            ImGui.TableHeadersRow();
-            foreach (var obj in Service.ObjectTable)
+            GameObject? selected = null;
+            for (int i = 0; i < Service.ObjectTable.Length; ++i)
             {
-                int idx = i++;
-                bool isCrap = obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player
-                    || obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion
-                    || obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.MountType;
-                if (isCrap && !_showCrap)
+                var obj = Service.ObjectTable[i];
+                if (obj == null)
+                    continue;
+                if (!_showCrap && obj.ObjectKind is Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player or Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion or Dalamud.Game.ClientState.Objects.Enums.ObjectKind.MountType)
                     continue;
 
-                var character = obj as Character;
-                var battleChara = obj as BattleChara;
                 var internalObj = Utils.GameObjectInternal(obj);
-                var internalChara = Utils.BattleCharaInternal(battleChara);
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{idx} ({internalObj->ObjectIndex})");
-                ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectString(obj));
-                ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectKindString(obj));
-                ImGui.TableNextColumn(); ImGui.TextUnformatted(character != null ? $"{character.ClassJob.Id} ({(Class)character.ClassJob.Id})" : "---");
-                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{obj.OwnerId:X} / {Utils.ReadField<uint>(internalObj, 0x78):X}");
-                ImGui.TableNextColumn(); ImGui.TextUnformatted(character != null ? $"{character.CurrentHp}/{character.MaxHp} ({(character != null ? Utils.CharacterShieldValue(character) : 0)})" : "---");
-                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{character?.StatusFlags}");
-                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{Utils.GameObjectIsFriendly(obj)}");
-                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{Utils.Vec3String(obj.Position)} {obj.Rotation.Radians()}");
-                //ImGui.TableNextColumn(); ImGui.TextUnformatted($"{Utils.Vec3String(Utils.GameObjectNonInterpolatedPosition(obj))} {Utils.GameObjectNonInterpolatedRotation(obj).Radians()} [{Utils.ReadField<byte>(Utils.GameObjectInternal(obj), 0x1F0 + 0x3F4)}, {Utils.ReadField<byte>(Utils.GameObjectInternal(obj), 0x1F0 + 0x110 + 0xA4)}]");
-                ImGui.TableNextColumn(); ImGui.TextUnformatted(battleChara != null ? $"{battleChara.CurrentCastTime:f2}/{battleChara.TotalCastTime:f2}" : "---");
-                ImGui.TableNextColumn(); ImGui.TextUnformatted($"{internalObj->RenderFlags:X}");
-                ImGui.TableNextColumn(); ImGui.TextUnformatted($"0x{(IntPtr)internalObj->DrawObject:X}");
+                var localID = Utils.ReadField<uint>(internalObj, 0x78);
+                var uniqueID = obj.ObjectId != 0xE0000000 ? obj.ObjectId : localID;
+
+                var posRot = new Vector4(obj.Position.X, obj.Position.Y, obj.Position.Z, obj.Rotation);
+                foreach (var n in _tree.Node($"#{i} {Utils.ObjectString(obj)} ({localID:X}) ({Utils.ObjectKindString(obj)}) {Utils.PosRotString(posRot)}###{uniqueID:X}", contextMenu: () => ObjectContextMenu(obj), select: () => _selectedID = uniqueID))
+                {
+                    var character = obj as Character;
+                    var battleChara = obj as BattleChara;
+                    var internalChara = Utils.BattleCharaInternal(battleChara);
+
+                    _tree.LeafNode($"Gimmick ID: {Utils.ReadField<uint>(internalObj, 0x7C):X}");
+                    _tree.LeafNode($"Targetable: {obj.IsTargetable}");
+                    _tree.LeafNode($"Radius: {obj.HitboxRadius:f3}");
+                    _tree.LeafNode($"Owner: {Utils.ObjectString(obj.OwnerId)}");
+                    _tree.LeafNode($"Friendly: {Utils.GameObjectIsFriendly(obj)}");
+                    if (character != null)
+                    {
+                        _tree.LeafNode($"Class: {(Class)character.ClassJob.Id} ({character.ClassJob.Id})");
+                        _tree.LeafNode($"HP: {character.CurrentHp}/{character.MaxHp} ({Utils.CharacterShieldValue(character)})");
+                        _tree.LeafNode($"Status flags: {character.StatusFlags}");
+                    }
+                    if (battleChara != null)
+                    {
+                        _tree.LeafNode($"Cast: {Utils.CastTimeString(battleChara.CurrentCastTime, battleChara.TotalCastTime)} {new ActionID((ActionType)battleChara.CastActionType, battleChara.CastActionId)}");
+                        foreach (var nn in _tree.Node("Statuses"))
+                        {
+                            for (int j = 0; j < battleChara.StatusList.Length; ++j)
+                            {
+                                var s = battleChara.StatusList[j];
+                                if (s == null || s.StatusId == 0)
+                                    continue;
+                                _tree.LeafNode($"#{j}: {Utils.StatusString(s.StatusId)} ({s.Param}:X) from {Utils.ObjectString(s.SourceId)}, {s.RemainingTime:f3}s left");
+                            }
+                        }
+                    }
+                }
+
+                if (uniqueID == _selectedID)
+                    selected = obj;
             }
-            ImGui.EndTable();
+
+            if (selected != null)
+            {
+                var h = new Vector3(0, Utils.GameObjectInternal(selected)->Height, 0);
+                Camera.Instance?.DrawWorldCircle(selected.Position, selected.HitboxRadius, 0xff00ff00);
+                Camera.Instance?.DrawWorldCircle(selected.Position + h, selected.HitboxRadius, 0xff00ff00);
+                Camera.Instance?.DrawWorldCircle(selected.Position - h, selected.HitboxRadius, 0xff00ff00);
+                int numSegments = CurveApprox.CalculateCircleSegments(selected.HitboxRadius, 360.Degrees(), 1);
+                for (int i = 0; i < numSegments; ++i)
+                {
+                    var p = selected.Position + selected.HitboxRadius * (i * 360.0f / numSegments).Degrees().ToDirection().ToVec3();
+                    Camera.Instance?.DrawWorldLine(p - h, p + h, 0xff00ff00);
+                }
+            }
         }
 
         public unsafe void DrawUIObjects()
@@ -111,6 +134,19 @@ namespace BossMod
                 }
             }
             Service.Log(res.ToString());
+        }
+
+        private unsafe void ObjectContextMenu(GameObject obj)
+        {
+            if (ImGui.MenuItem("Target"))
+            {
+                Service.TargetManager.Target = obj;
+            }
+
+            if (ImGui.MenuItem("Interact"))
+            {
+                TargetSystem.Instance()->InteractWithObject(Utils.GameObjectInternal(obj));
+            }
         }
     }
 }
