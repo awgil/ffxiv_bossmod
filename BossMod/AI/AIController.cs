@@ -11,7 +11,6 @@ namespace BossMod.AI
     {
         private class NaviAxis
         {
-            private InputOverride _input;
             private VirtualKey _keyFwd;
             private VirtualKey _keyBack;
             private int _curDirection;
@@ -24,25 +23,24 @@ namespace BossMod.AI
                     if (_curDirection == value)
                     {
                         if (value != 0 && !Service.KeyState[value > 0 ? _keyFwd : _keyBack])
-                            _input.SimulatePress(value > 0 ? _keyFwd : _keyBack);
+                            ActionManagerEx.Instance!.InputOverride.SimulatePress(value > 0 ? _keyFwd : _keyBack);
                         return;
                     }
 
                     if (_curDirection > 0)
-                        _input.SimulateRelease(_keyFwd);
+                        ActionManagerEx.Instance!.InputOverride.SimulateRelease(_keyFwd);
                     else if (_curDirection < 0)
-                        _input.SimulateRelease(_keyBack);
+                        ActionManagerEx.Instance!.InputOverride.SimulateRelease(_keyBack);
                     _curDirection = value;
                     if (value > 0)
-                        _input.SimulatePress(_keyFwd);
+                        ActionManagerEx.Instance!.InputOverride.SimulatePress(_keyFwd);
                     else if (value < 0)
-                        _input.SimulatePress(_keyBack);
+                        ActionManagerEx.Instance!.InputOverride.SimulatePress(_keyBack);
                 }
             }
 
-            public NaviAxis(InputOverride input, VirtualKey keyFwd, VirtualKey keyBack)
+            public NaviAxis(VirtualKey keyFwd, VirtualKey keyBack)
             {
-                _input = input;
                 _keyFwd = keyFwd;
                 _keyBack = keyBack;
             }
@@ -50,7 +48,6 @@ namespace BossMod.AI
 
         private class NaviInput
         {
-            private InputOverride _input;
             private VirtualKey _key;
             private bool _held;
 
@@ -62,26 +59,24 @@ namespace BossMod.AI
                     if (_held == value)
                     {
                         if (value && !Service.KeyState[_key])
-                            _input.SimulatePress(_key);
+                            ActionManagerEx.Instance!.InputOverride.SimulatePress(_key);
                         return;
                     }
 
                     if (_held)
-                        _input.SimulateRelease(_key);
+                        ActionManagerEx.Instance!.InputOverride.SimulateRelease(_key);
                     _held = value;
                     if (value)
-                        _input.SimulatePress(_key);
+                        ActionManagerEx.Instance!.InputOverride.SimulatePress(_key);
                 }
             }
 
-            public NaviInput(InputOverride input, VirtualKey key)
+            public NaviInput(VirtualKey key)
             {
-                _input = input;
                 _key = key;
             }
         }
 
-        public InputOverride Input { get; private init; }
         public WPos? NaviTargetPos;
         public WDir? NaviTargetRot;
         public float? NaviTargetVertical;
@@ -95,7 +90,6 @@ namespace BossMod.AI
         private NaviAxis _axisRotate;
         private NaviAxis _axisVertical;
         private NaviInput _keyJump;
-        private Autorotation _autorot;
 
         public bool InCutscene => Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas] || Service.Condition[ConditionFlag.OccupiedInQuestEvent];
         public bool IsMounted => Service.Condition[ConditionFlag.Mounted];
@@ -103,15 +97,13 @@ namespace BossMod.AI
         public Angle CameraFacing => ((Camera.Instance?.CameraAzimuth ?? 0).Radians() + 180.Degrees());
         public Angle CameraAltitude => (Camera.Instance?.CameraAltitude ?? 0).Radians();
 
-        public AIController(InputOverride input, Autorotation autorot)
+        public AIController()
         {
-            Input = input;
-            _axisForward = new(input, VirtualKey.W, VirtualKey.S);
-            _axisStrafe = new(input, VirtualKey.D, VirtualKey.A);
-            _axisRotate = new(input, VirtualKey.LEFT, VirtualKey.RIGHT);
-            _axisVertical = new(input, VirtualKey.UP, VirtualKey.DOWN);
-            _keyJump = new(input, VirtualKey.SPACE);
-            _autorot = autorot;
+            _axisForward = new(VirtualKey.W, VirtualKey.S);
+            _axisStrafe = new(VirtualKey.D, VirtualKey.A);
+            _axisRotate = new(VirtualKey.LEFT, VirtualKey.RIGHT);
+            _axisVertical = new(VirtualKey.UP, VirtualKey.DOWN);
+            _keyJump = new(VirtualKey.SPACE);
         }
 
         public void Clear()
@@ -128,13 +120,13 @@ namespace BossMod.AI
         public void SetPrimaryTarget(Actor? actor)
         {
             if (Service.TargetManager.Target?.ObjectId != actor?.InstanceID)
-                Service.TargetManager.SetTarget(actor != null ? Service.ObjectTable.SearchById((uint)actor.InstanceID) : null);
+                Service.TargetManager.Target = actor != null ? Service.ObjectTable.SearchById((uint)actor.InstanceID) : null;
         }
 
         public void SetFocusTarget(Actor? actor)
         {
             if (Service.TargetManager.FocusTarget?.ObjectId != actor?.InstanceID)
-                Service.TargetManager.SetFocusTarget(actor != null ? Service.ObjectTable.SearchById((uint)actor.InstanceID) : null);
+                Service.TargetManager.FocusTarget = actor != null ? Service.ObjectTable.SearchById((uint)actor.InstanceID) : null;
         }
 
         public void Update(Actor? player)
@@ -146,7 +138,7 @@ namespace BossMod.AI
                 _axisRotate.CurDirection = 0;
                 _axisVertical.CurDirection = 0;
                 _keyJump.Held = false;
-                Input.GamepadOverridesEnabled = false;
+                ActionManagerEx.Instance!.InputOverride.GamepadOverridesEnabled = false;
                 return;
             }
 
@@ -155,7 +147,7 @@ namespace BossMod.AI
                 ActionManagerEx.Instance!.FaceDirection(NaviTargetRot.Value);
             }
 
-            bool moveRequested = Input.IsMoveRequested();
+            bool moveRequested = ActionManagerEx.Instance!.InputOverride.IsMoveRequested();
             var cameraFacing = CameraFacing;
             var cameraFacingDir = cameraFacing.ToDirection();
             if (!moveRequested && NaviTargetRot != null && NaviTargetRot.Value.Dot(cameraFacingDir) < 0.996f) // ~5 degrees
@@ -172,15 +164,15 @@ namespace BossMod.AI
             if (NaviTargetPos != null && !forbidMovement && (NaviTargetPos.Value - player.Position).LengthSq() > 0.01f)
             {
                 var dir = cameraFacing - Angle.FromDirection(NaviTargetPos.Value - player.Position);
-                Input.GamepadOverridesEnabled = true;
-                Input.GamepadOverrides[3] = (int)(100 * dir.Sin());
-                Input.GamepadOverrides[4] = (int)(100 * dir.Cos());
-                _axisForward.CurDirection = Input.GamepadOverrides[4] > 10 ? 1 : Input.GamepadOverrides[4] < 10 ? -1 : 0; // this is a hack, needed to prevent afk :( this will be ignored anyway due to gamepad inputs
+                ActionManagerEx.Instance!.InputOverride.GamepadOverridesEnabled = true;
+                ActionManagerEx.Instance!.InputOverride.GamepadOverrides[3] = (int)(100 * dir.Sin());
+                ActionManagerEx.Instance!.InputOverride.GamepadOverrides[4] = (int)(100 * dir.Cos());
+                _axisForward.CurDirection = ActionManagerEx.Instance!.InputOverride.GamepadOverrides[4] > 10 ? 1 : ActionManagerEx.Instance!.InputOverride.GamepadOverrides[4] < 10 ? -1 : 0; // this is a hack, needed to prevent afk :( this will be ignored anyway due to gamepad inputs
                 _keyJump.Held = !_keyJump.Held && WantJump;
             }
             else
             {
-                Input.GamepadOverridesEnabled = false;
+                ActionManagerEx.Instance!.InputOverride.GamepadOverridesEnabled = false;
                 _axisForward.CurDirection = ForceCancelCast && castInProgress ? 1 : 0; // this is a hack to cancel any cast...
                 _keyJump.Held = false;
             }
@@ -189,12 +181,12 @@ namespace BossMod.AI
             {
                 var deltaY = NaviTargetVertical.Value - player.PosRot.Y;
                 var deltaXZ = (NaviTargetPos.Value - player.Position).Length();
-                var deltaAltitude = (CameraAltitude - Angle.FromDirection(new(Input.GamepadOverrides[4] < 0 ? deltaY : -deltaY, deltaXZ))).Deg;
-                Input.GamepadOverrides[6] = Math.Clamp((int)(deltaAltitude * 5), -100, 100);
+                var deltaAltitude = (CameraAltitude - Angle.FromDirection(new(ActionManagerEx.Instance!.InputOverride.GamepadOverrides[4] < 0 ? deltaY : -deltaY, deltaXZ))).Deg;
+                ActionManagerEx.Instance!.InputOverride.GamepadOverrides[6] = Math.Clamp((int)(deltaAltitude * 5), -100, 100);
             }
             else
             {
-                Input.GamepadOverrides[6] = 0;
+                ActionManagerEx.Instance!.InputOverride.GamepadOverrides[6] = 0;
             }
         }
     }

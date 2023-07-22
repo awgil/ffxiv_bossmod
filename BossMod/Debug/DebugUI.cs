@@ -19,12 +19,12 @@ namespace BossMod
         private DebugAutorotation _debugAutorot;
         private DebugClassDefinitions _debugClassDefinitions;
 
-        public DebugUI(WorldState ws, Autorotation autorot, InputOverride inputOverride)
+        public DebugUI(WorldState ws, Autorotation autorot)
         {
             _ws = ws;
             _autorot = autorot;
             _debugAction = new(ws);
-            _debugInput = new(inputOverride, autorot);
+            _debugInput = new(autorot);
             _debugAutorot = new(autorot);
             _debugClassDefinitions = new(ws);
         }
@@ -197,7 +197,7 @@ namespace BossMod
             {
                 var closest = Service.ObjectTable.Where(o => o.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.BattleNpc && o.SubKind == 5).MinBy(o => (o.Position - selfPos).LengthSquared());
                 if (closest != null)
-                    Service.TargetManager.SetTarget(closest);
+                    Service.TargetManager.Target = closest;
             }
         }
 

@@ -1,5 +1,4 @@
-﻿using Dalamud.Game.ClientState.Keys;
-using Dalamud.Game.Text;
+﻿using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using ImGuiNET;
@@ -17,10 +16,10 @@ namespace BossMod.AI
         private AIBehaviour? _beh;
         private WindowManager.Window? _ui;
 
-        public AIManager(InputOverride inputOverride, Autorotation autorot)
+        public AIManager(Autorotation autorot)
         {
             _autorot = autorot;
-            _controller = new(inputOverride, autorot);
+            _controller = new();
             _config = Service.Config.Get<AIConfig>();
             Service.ChatGui.ChatMessage += OnChatMessage;
         }

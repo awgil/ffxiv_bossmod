@@ -25,12 +25,12 @@ namespace BossMod
         private int _gamepadButtonValue;
         private bool _gamepadNavigate;
 
-        public DebugInput(InputOverride inputOverride, Autorotation autorot)
+        public DebugInput(Autorotation autorot)
         {
             _convertVirtualKey = Service.KeyState.GetType().GetMethod("ConvertVirtualKey", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<ConvertVirtualKeyDelegate>(Service.KeyState);
             _getKeyRef = Service.KeyState.GetType().GetMethod("GetRefValue", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<GetRefValueDelegate>(Service.KeyState);
             _ws = autorot.WorldState;
-            _navi = new(inputOverride, autorot);
+            _navi = new();
         }
 
         public void Dispose()
@@ -94,29 +94,30 @@ namespace BossMod
 
             ImGui.Checkbox("Gamepad navigate", ref _gamepadNavigate);
 
-            Array.Fill(_navi.Input.GamepadOverrides, 0);
-            if (_gamepadButtonOverride >= 0 && _gamepadButtonOverride < _navi.Input.GamepadOverrides.Length)
+            var input = ActionManagerEx.Instance!.InputOverride;
+            Array.Fill(input.GamepadOverrides, 0);
+            if (_gamepadButtonOverride >= 0 && _gamepadButtonOverride < input.GamepadOverrides.Length)
             {
-                _navi.Input.GamepadOverridesEnabled = true;
-                _navi.Input.GamepadOverrides[_gamepadButtonOverride] = _gamepadButtonValue;
+                input.GamepadOverridesEnabled = true;
+                input.GamepadOverrides[_gamepadButtonOverride] = _gamepadButtonValue;
             }
             else if (_gamepadAxisOverrideEnable)
             {
-                _navi.Input.GamepadOverridesEnabled = true;
-                _navi.Input.GamepadOverrides[3] = (int)(100 * _gamepadAxisOverrideAngle.Degrees().Sin());
-                _navi.Input.GamepadOverrides[4] = (int)(100 * _gamepadAxisOverrideAngle.Degrees().Cos());
+                input.GamepadOverridesEnabled = true;
+                input.GamepadOverrides[3] = (int)(100 * _gamepadAxisOverrideAngle.Degrees().Sin());
+                input.GamepadOverrides[4] = (int)(100 * _gamepadAxisOverrideAngle.Degrees().Cos());
             }
             else if (_gamepadNavigate)
             {
                 var dest = new WPos(_dest);
                 var dir = (Camera.Instance?.CameraAzimuth ?? 0).Radians() - Angle.FromDirection(dest - (_ws.Party.Player()?.Position ?? dest)) + 180.Degrees();
-                _navi.Input.GamepadOverridesEnabled = true;
-                _navi.Input.GamepadOverrides[3] = (int)(100 * dir.Sin());
-                _navi.Input.GamepadOverrides[4] = (int)(100 * dir.Cos());
+                input.GamepadOverridesEnabled = true;
+                input.GamepadOverrides[3] = (int)(100 * dir.Sin());
+                input.GamepadOverrides[4] = (int)(100 * dir.Cos());
             }
             else
             {
-                _navi.Input.GamepadOverridesEnabled = false;
+                input.GamepadOverridesEnabled = false;
             }
         }
     }

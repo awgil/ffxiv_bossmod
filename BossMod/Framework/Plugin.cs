@@ -56,7 +56,7 @@ namespace BossMod
             _debugLogger = new(_ws, dalamud.ConfigDirectory);
             _bossmod = new(_ws);
             _autorotation = new(_bossmod);
-            _ai = new(ActionManagerEx.Instance.InputOverride, _autorotation);
+            _ai = new(_autorotation);
             _broadcast = new();
 
             dalamud.UiBuilder.DisableAutomaticUiHide = true;
@@ -110,7 +110,7 @@ namespace BossMod
 
         private void OpenDebugUI()
         {
-            var ui = new DebugUI(_ws, _autorotation, ActionManagerEx.Instance!.InputOverride);
+            var ui = new DebugUI(_ws, _autorotation);
             var w = WindowManager.CreateWindow("Boss mod debug UI", ui.Draw, ui.Dispose, () => true);
             w.SizeHint = new Vector2(300, 200);
         }
