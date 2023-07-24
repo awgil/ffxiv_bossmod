@@ -128,6 +128,7 @@ namespace BossMod.WAR
             public OnslaughtUse OnslaughtStrategy; // how are we supposed to use onslaught
             public SpecialAction SpecialActionUse; // any special actions we want to use
             public bool Aggressive; // if true, we use buffs and stuff at last possible moment; otherwise we make sure to keep at least 1 GCD safety net
+            public bool OnslaughtHeadroom; // if true, consider onslaught to have slightly higher animation lock than in reality, to account for potential small movement animation delay
 
             public override string ToString()
             {
@@ -559,7 +560,7 @@ namespace BossMod.WAR
                 return ActionID.MakeSpell(AID.Infuriate);
 
             // 5. onslaught, if surging tempest up and not forbidden
-            if (wantOnslaught && state.CanWeave(state.CD(CDGroup.Onslaught) - 60, 0.6f, deadline))
+            if (wantOnslaught && state.CanWeave(state.CD(CDGroup.Onslaught) - 60, strategy.OnslaughtHeadroom ? 0.8f : 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Onslaught);
 
             // no suitable oGCDs...
