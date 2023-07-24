@@ -218,8 +218,8 @@ namespace BossMod.Components
     {
         public ActionID StackAction { get; private init; }
         public ActionID SpreadAction { get; private init; }
-        public int NumFinishedStacks { get; private set; }
-        public int NumFinishedSpreads { get; private set; }
+        public int NumFinishedStacks { get; protected set; }
+        public int NumFinishedSpreads { get; protected set; }
 
         public CastStackSpread(ActionID stackAID, ActionID spreadAID, float stackRadius, float spreadRadius, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false)
             : base(stackRadius, spreadRadius, minStackSize, maxStackSize, alwaysShowSpreads)

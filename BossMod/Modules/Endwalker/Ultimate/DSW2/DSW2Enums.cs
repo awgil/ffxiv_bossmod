@@ -64,7 +64,7 @@
         NidhoggP6 = 0x3144, // R19.000, x1 - p6
         HraesvelgrP6 = 0x3145, // R19.000, x1 - p6
         ScarletPrice = 0x33B6, // R1.000, spawn during p6
-        //_Gen_Actor1eb683 = 0x1EB683, // R0.500, EventObj type, spawn during fight
+        VoidzoneAhkMorn = 0x1EB683, // R0.500, EventObj type, spawn during p6
     };
 
     public enum AID : uint
@@ -266,15 +266,17 @@
         CauterizeN = 27966, // NidhoggP6->self, 5.0s cast, range 80 width 22 rect
 
         WrothFlames = 27973, // NidhoggP6->self, 2.5s cast, single-target, visual (orbs mechanic start)
-        //_Weaponskill_EntangledFlames = 29740, // Helper->self, no cast, range 4 circle
-        //_Weaponskill_EntangledPyre = 29741, // Helper->self, no cast, range 100 circle
-        //_Weaponskill_SpreadingFlames = 29739, // Helper->self, no cast, range 5 circle
         CauterizeH = 27967, // HraesvelgrP6->self, 5.0s cast, range 80 width 22 rect
-        //_Weaponskill_AkhMorn = 27974, // NidhoggP6->players, 8.0s cast, range 6 circle
-        //_Weaponskill_FlameBlast = 26409, // ScarletPrice->self, 5.0s cast, range 44 width 6 cross
-        //_Weaponskill_AkhMorn = 27975, // NidhoggP6->player, no cast, range 6 circle
-        //_Weaponskill_HotWing = 27948, // Helper->self, 6.5s cast, range 50 width 21 rect
-        //_Weaponskill_HotWing = 27947, // NidhoggP6->self, 5.5s cast, single-target
+        AkhMornFirst = 27974, // NidhoggP6->players, 8.0s cast, range 6 circle stack
+        AkhMornRest = 27975, // NidhoggP6->player, no cast, range 6 circle stack
+        FlameBlast = 26409, // ScarletPrice->self, 5.0s cast, range 44 width 6 cross
+        HotWing = 27947, // NidhoggP6->self, 5.5s cast, single-target, visual (side cleaves)
+        HotWingAOE = 27948, // Helper->self, 6.5s cast, range 50 width 21 rect
+        HotTail = 27949, // NidhoggP6->self, 5.5s cast, single-target, visual (center cleave)
+        HotTailAOE = 27950, // Helper->self, 6.5s cast, range 50 width 16 rect
+        SpreadingFlames = 29739, // Helper->self, no cast, range 5 circle spread (knockback 15 on others)
+        EntangledFlames = 29740, // Helper->self, no cast, range 4 circle two-man stack (?)
+        EntangledPyre = 29741, // Helper->self, no cast, range 100 circle (stack fail?)
     };
 
     public enum SID : uint

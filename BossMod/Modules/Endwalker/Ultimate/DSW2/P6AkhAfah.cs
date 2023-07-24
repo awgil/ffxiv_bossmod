@@ -32,7 +32,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.AkhAfahN)
-                AddStacks(module.Raid.WithoutSlot().Where(p => p.Role == Role.Healer));
+                AddStacks(module.Raid.WithoutSlot(true).Where(p => p.Role == Role.Healer));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

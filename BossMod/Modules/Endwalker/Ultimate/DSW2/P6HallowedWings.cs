@@ -1,20 +1,16 @@
-﻿using BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D132MagitekVanguardF1;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
     class P6HallowedWings : Components.GenericAOEs
     {
-        private AOEInstance? _aoe;
+        public WPos SafeSpotCenter { get; private set; }
+        private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeRect _shape = new(50, 11);
+        private static AOEShapeRect _shape = new(80, 11); // note: hallowed wings are actually length 50, but that doesn't really matter
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_aoe != null)
-                yield return _aoe.Value;
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
@@ -25,33 +21,34 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 _ => 0
             };
             if (offset != 0)
-                _aoe = new(_shape, caster.Position + offset * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, spell.FinishAt.AddSeconds(1.2f));
+            {
+                _aoes.Add(new(_shape, caster.Position + offset * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, spell.FinishAt.AddSeconds(0.8f)));
+                if (module.Enemies(OID.NidhoggP6).FirstOrDefault() is var cauterizeCaster && cauterizeCaster != null)
+                {
+                    _aoes.Add(new(_shape, cauterizeCaster.Position, cauterizeCaster.Rotation, spell.FinishAt.AddSeconds(1.1f)));
+                    SafeSpotCenter = new(2 * module.Bounds.Center.X - cauterizeCaster.Position.X, 2 * module.Bounds.Center.Z - _aoes[0].Origin.Z);
+                }
+            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if ((AID)spell.Action.ID is AID.HallowedWingsAOELeft or AID.HallowedWingsAOERight)
-            {
+            if ((AID)spell.Action.ID is AID.HallowedWingsAOELeft or AID.HallowedWingsAOERight or AID.CauterizeN)
                 ++NumCasts;
-                _aoe = null;
-            }
         }
-    }
-
-    // TODO: show hints earlier (when activated at nidhogg pos)
-    class P6CauterizeN : Components.SelfTargetedAOEs
-    {
-        public P6CauterizeN() : base(ActionID.MakeSpell(AID.CauterizeN), new AOEShapeRect(80, 11)) { }
     }
 
     class P6HallowedPlume : Components.GenericBaitAway
     {
+        private P6HallowedWings? _wings;
         private Actor? _caster;
         private bool _far;
 
         private static AOEShapeCircle _shape = new(10);
 
         public P6HallowedPlume() : base(ActionID.MakeSpell(AID.HallowedPlume), centerAtTarget: true) { }
+
+        public override void Init(BossModule module) => _wings = module.FindComponent<P6HallowedWings>();
 
         public override void Update(BossModule module)
         {
@@ -65,10 +62,43 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            bool shouldBait = actor.Role == Role.Tank;
+            bool isBaiting = ActiveBaitsOn(actor).Any();
+            bool stayFar = shouldBait == _far;
+            hints.Add(stayFar ? "Stay far!" : "Stay close!", shouldBait != isBaiting);
+
+            if (shouldBait == isBaiting)
+            {
+                if (shouldBait)
+                {
+                    if (ActiveBaitsOn(actor).Any(b => PlayersClippedBy(module, b).Any()))
+                        hints.Add("Bait away from raid!");
+                }
+                else
+                {
+                    if (ActiveBaitsNotOn(actor).Any(b => IsClippedBy(actor, b)))
+                        hints.Add("GTFO from baited aoe!");
+                }
+            }
+
+            if (movementHints != null)
+                foreach (var p in SafeSpots(actor))
+                    movementHints.Add(actor.Position, p, ArenaColor.Safe);
+        }
+
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (_caster != null)
                 hints.Add($"Tankbuster {(_far ? "far" : "near")}");
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            base.DrawArenaForeground(module, pcSlot, pc, arena);
+            foreach (var p in SafeSpots(pc))
+                arena.AddCircle(p, 1, ArenaColor.Safe);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -81,9 +111,27 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             };
             if (far != null)
             {
-                ForbiddenPlayers = module.Raid.WithSlot().WhereActor(p => p.Role != Role.Tank).Mask();
                 _caster = caster;
                 _far = far.Value;
+            }
+        }
+
+        private IEnumerable<WPos> SafeSpots(Actor actor)
+        {
+            if (_wings == null)
+                yield break;
+
+            bool shouldBait = actor.Role == Role.Tank;
+            bool stayFar = shouldBait == _far;
+            float xOffset = stayFar ? -9 : +9; // assume hraesvelgr is always at +22
+            if (shouldBait)
+            {
+                yield return _wings.SafeSpotCenter + new WDir(xOffset, 9);
+                yield return _wings.SafeSpotCenter + new WDir(xOffset, -9);
+            }
+            else
+            {
+                yield return _wings.SafeSpotCenter + new WDir(xOffset, 0);
             }
         }
     }

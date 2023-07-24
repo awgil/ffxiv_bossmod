@@ -39,10 +39,11 @@ namespace BossMod
                     var internalChara = Utils.BattleCharaInternal(battleChara);
 
                     _tree.LeafNode($"Gimmick ID: {Utils.ReadField<uint>(internalObj, 0x7C):X}");
-                    _tree.LeafNode($"Targetable: {obj.IsTargetable}");
                     _tree.LeafNode($"Radius: {obj.HitboxRadius:f3}");
                     _tree.LeafNode($"Owner: {Utils.ObjectString(obj.OwnerId)}");
+                    _tree.LeafNode($"Targetable: {obj.IsTargetable}");
                     _tree.LeafNode($"Friendly: {Utils.GameObjectIsFriendly(obj)}");
+                    _tree.LeafNode($"Is character: {internalObj->IsCharacter()}");
                     if (character != null)
                     {
                         _tree.LeafNode($"Class: {(Class)character.ClassJob.Id} ({character.ClassJob.Id})");
@@ -59,7 +60,7 @@ namespace BossMod
                                 var s = battleChara.StatusList[j];
                                 if (s == null || s.StatusId == 0)
                                     continue;
-                                _tree.LeafNode($"#{j}: {Utils.StatusString(s.StatusId)} ({s.Param}:X) from {Utils.ObjectString(s.SourceId)}, {s.RemainingTime:f3}s left");
+                                _tree.LeafNode($"#{j}: {Utils.StatusString(s.StatusId)} ({s.Param:X}) from {Utils.ObjectString(s.SourceId)}, {s.RemainingTime:f3}s left");
                             }
                         }
                     }

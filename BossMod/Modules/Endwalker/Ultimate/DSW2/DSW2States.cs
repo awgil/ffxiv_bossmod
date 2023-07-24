@@ -24,10 +24,10 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .OnEnter(() => Module.Arena.Bounds = DSW2.BoundsCircle)
                 .Raw.Update = () => IsResetOrRewindFailed || IsDead(_module.Spear());
             SimplePhase(5, Phase5KingThordan, "P5: King Thordan") // TODO: auto-attack cleave component
-                .OnEnter(() => Module.Arena.Bounds = DSW2.BoundsSquare)
                 .ActivateOnEnter<P5Surrender>()
                 .Raw.Update = () => IsResetOrRewindFailed || _module.FindComponent<P5Surrender>()?.NumCasts > 0;
             SimplePhase(6, Phase6Dragons, "P6: Nidhogg + Hraesvelgr")
+                .OnEnter(() => Module.Arena.Bounds = DSW2.BoundsSquare)
                 .Raw.Update = () => IsResetOrRewindFailed;
         }
 
@@ -508,11 +508,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ActorTargetable(id, _module.NidhoggP6, false, delay, "Nidhogg disappears");
             ActorCastMulti(id + 0x10, _module.HraesvelgrP6, new[] { AID.HallowedWingsLN, AID.HallowedWingsLF, AID.HallowedWingsRN, AID.HallowedWingsRF }, 1.8f, 7.5f, true)
                 .ActivateOnEnter<P6HallowedWings>()
-                .ActivateOnEnter<P6CauterizeN>()
                 .ActivateOnEnter<P6HallowedPlume>();
-            ComponentCondition<P6HallowedWings>(id + 0x20, 1.2f, comp => comp.NumCasts > 0, "Safe quarter + near/far tankbusters")
+            ComponentCondition<P6HallowedWings>(id + 0x20, 1.2f, comp => comp.NumCasts > 1, "Safe quarter + near/far tankbusters")
                 .DeactivateOnExit<P6HallowedWings>()
-                .DeactivateOnExit<P6CauterizeN>()
                 .DeactivateOnExit<P6HallowedPlume>()
                 .SetHint(StateMachine.StateHint.Tankbuster);
             ActorTargetable(id + 0x30, _module.NidhoggP6, true, 3.1f, "Nidhogg reappears")
@@ -526,9 +524,28 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ActorCast(id, _module.NidhoggP6, AID.WrothFlames, delay, 2.5f, true);
             ActorTargetable(id + 0x10, _module.HraesvelgrP6, false, 0.6f, "Hraesvelgr disappears");
             // +1.0s: 4x spreading flames, 2x entangling flames
-            // +1.6s: spawn first 3 orbs
-            // +3.6s: spawn second 3 orbs
-            // +6.8s: spawn third 3 orbs
+            ActorTargetable(id + 0x20, _module.HraesvelgrP6, true, 1.3f);
+            ActorCastStart(id + 0x30, _module.NidhoggP6, AID.AkhMornFirst, 1.0f, true)
+                .ActivateOnEnter<P6WrothFlames>(); // first set spawns soon after hraesvelgr reappears, then next set spawns in 2s, then in 3s
+            // +3.1s: hraesvelgr starts cauterize
+            ActorCastEnd(id + 0x31, _module.NidhoggP6, 8, true, "Stack 1") // stacks repeat every 1.6s
+                .ActivateOnEnter<P6AkhMorn>();
+            ComponentCondition<P6WrothFlames>(id + 0x32, 0.1f, comp => comp.NumCasts > 0, "Line")
+                .ActivateOnEnter<P6AkhMornVoidzone>();
+            // +1.6s: akh morn 2
+            // +3.1f: akh morn 3
+            ComponentCondition<P6WrothFlames>(id + 0x40, 3.2f, comp => comp.NumCasts > 1, "Cross 1");
+            // +1.5f: akh morn 4
+            ComponentCondition<P6WrothFlames>(id + 0x50, 2.1f, comp => comp.NumCasts > 4, "Cross 2");
+
+            ActorCastStartMulti(id + 0x60, _module.NidhoggP6, new[] { AID.HotWing, AID.HotTail }, 1.0f); // TODO: akh morn ends somewhere here...
+            ComponentCondition<P6WrothFlames>(id + 0x70, 1.9f, comp => comp.NumCasts > 7, "Cross 3")
+                .DeactivateOnExit<P6AkhMorn>();
+            ActorCastEnd(id + 0x80, _module.NidhoggP6, 3.6f);
+            ComponentCondition<P6WrothFlames>(id + 0x90, 1.0f, comp => comp.NumCasts > 10, "Sides/center")
+                .DeactivateOnExit<P6WrothFlames>();
+
+            // TODO: debuffs resolve
         }
     }
 }
