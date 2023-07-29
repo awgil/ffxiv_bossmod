@@ -104,14 +104,29 @@
         [PropertyCombo("CCW", "CW")]
         public bool P2Sanctity2NonPreyTowerCW = false;
 
-        [PropertyDisplay("P3 four towers with counters: assignments")]
+        [PropertyDisplay("P3 enumeration towers: assignments")]
         [GroupDetails(new string[] { "NW Flex", "NE Flex", "SE Flex", "SW Flex", "NW Stay", "NE Stay", "SE Stay", "SW Stay" })]
         [GroupPreset("LPDU", new[] { 1, 3, 6, 0, 2, 4, 5, 7 })]
         [GroupPreset("LPDU but CCW", new[] { 0, 2, 5, 7, 1, 3, 4, 6 })]
         public GroupAssignmentUnique P3DarkdragonDiveCounterGroups = GroupAssignmentUnique.Default();
 
-        [PropertyDisplay("P3 four towers with counters: prefer flexing to CCW tower (rather than to CW)")]
+        [PropertyDisplay("P3 enumeration towers: prefer flexing to CCW tower (rather than to CW)")]
         public bool P3DarkdragonDiveCounterPreferCCWFlex = false;
+
+        public enum P6MortalVow
+        {
+            [PropertyDisplay("Don't assume any order")]
+            None,
+
+            [PropertyDisplay("LPDU: MT->OT->M1 (M2 as fallback)->R1")]
+            TanksMeleeR1,
+
+            [PropertyDisplay("LPDU: MT->OT->M1 (M2 as fallback)->R2")]
+            TanksMeleeR2,
+        }
+
+        [PropertyDisplay("P6 Mortal Vow pass order")]
+        public P6MortalVow P6MortalVowOrder = P6MortalVow.None;
 
         public DSW2Config() : base(90) { }
     }

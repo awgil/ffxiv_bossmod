@@ -164,6 +164,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             float xOffset = stayFar ? -9 : +9; // assume hraesvelgr is always at +22
             if (shouldBait)
             {
+                // TODO: configurable tank assignments (e.g. MT always center/out/N/S)
                 yield return safeSpotCenter + new WDir(xOffset, 9);
                 yield return safeSpotCenter + new WDir(xOffset, -9);
             }
@@ -203,6 +204,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             float xOffset = stayFar ? -20 : +20; // assume hraesvelgr is always at +22
             if (shouldBait)
             {
+                // TODO: configurable tank assignments (e.g. MT always center/border/near/far)
                 yield return safeSpotCenter;
                 yield return safeSpotCenter + new WDir(xOffset, 0);
             }

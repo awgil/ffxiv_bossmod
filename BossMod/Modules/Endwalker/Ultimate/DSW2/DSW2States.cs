@@ -512,9 +512,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private void P6MortalVow(uint id, float delay)
         {
-            ComponentCondition<P6MortalVowApply>(id, delay, comp => comp.Done, "Mortal vow apply")
-                .ActivateOnEnter<P6MortalVowApply>()
-                .DeactivateOnExit<P6MortalVowApply>();
+            ComponentCondition<P6MortalVow>(id, delay, comp => comp.Progress > 0, "Mortal vow apply")
+                .ActivateOnEnter<P6MortalVow>();
         }
 
         private void P6AkhAfah(uint id, float delay)
@@ -538,9 +537,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .DeactivateOnExit<P6HallowedPlume1>() // tankbusters typically happen at the same time as wings
                 .SetHint(StateMachine.StateHint.Tankbuster);
             ActorTargetable(id + 0x30, _module.NidhoggP6, true, 3.1f, "Nidhogg reappears")
-                .ActivateOnEnter<P6MortalVowPass>();
-            ComponentCondition<P6MortalVowPass>(id + 0x100, 5.3f, comp => !comp.Active, "Mortal vow pass 1")
-                .DeactivateOnExit<P6MortalVowPass>();
+                .OnEnter(() => _module.FindComponent<P6MortalVow>()?.ShowNextPass(_module));
+            ComponentCondition<P6MortalVow>(id + 0x100, 5.3f, comp => comp.Progress > 1, "Mortal vow pass 1");
         }
 
         private void P6HallowedWingsPlume2(uint id, float delay)
@@ -555,9 +553,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .DeactivateOnExit<P6HallowedPlume2>(); // tankbusters typically happen at the same time as wings
 
             // TODO: not sure about timings below...
-            ComponentCondition<P6MortalVowPass>(id + 0x100, 10, comp => !comp.Active, "Mortal vow pass 3")
-                .ActivateOnEnter<P6MortalVowPass>()
-                .DeactivateOnExit<P6MortalVowPass>();
+            ComponentCondition<P6MortalVow>(id + 0x100, 10, comp => comp.Progress > 3, "Mortal vow pass 3")
+                .OnEnter(() => _module.FindComponent<P6MortalVow>()?.ShowNextPass(_module));
         }
 
         private void P6WrothFlames(uint id, float delay)
@@ -589,9 +586,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ComponentCondition<P6SpreadingEntangledFlames>(id + 0xA0, 0.9f, comp => !comp.Active, "Stack/spread")
                 .DeactivateOnExit<P6SpreadingEntangledFlames>()
                 .DeactivateOnExit<P6HotWingTail>();
-            ComponentCondition<P6MortalVowPass>(id + 0x100, 4.1f, comp => !comp.Active, "Mortal vow pass 2")
-                .ActivateOnEnter<P6MortalVowPass>()
-                .DeactivateOnExit<P6MortalVowPass>();
+            ComponentCondition<P6MortalVow>(id + 0x100, 4.1f, comp => comp.Progress > 2, "Mortal vow pass 2")
+                .OnEnter(() => _module.FindComponent<P6MortalVow>()?.ShowNextPass(_module));
             // note: voidzones disappear slightly later...
         }
     }

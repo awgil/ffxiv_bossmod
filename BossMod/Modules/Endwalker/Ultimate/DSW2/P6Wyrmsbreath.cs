@@ -43,7 +43,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (Glows.Any())
-                hints.Add(Glows.Raw == 3 ? "Share" : "Solo");
+                hints.Add(Glows.Raw == 3 ? "Tankbuster: shared" : "Tankbuster: solo");
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
