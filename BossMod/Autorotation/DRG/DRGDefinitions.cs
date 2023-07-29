@@ -12,9 +12,9 @@ namespace BossMod.DRG
         VorpalThrust = 78, // L4, instant, range 3, single-target 0/0, targets=hostile
         Disembowel = 87, // L18, instant, range 3, single-target 0/0, targets=hostile
         FullThrust = 84, // L26, instant, range 3, single-target 0/0, targets=hostile
-        HeavensThrust = 25771, // L86, instant, range 3, single-target 0/0, targets=hostile, animLock=???
+        HeavensThrust = 25771, // L86, instant, range 3, single-target 0/0, targets=hostile
         ChaosThrust = 88, // L50, instant, range 3, single-target 0/0, targets=hostile
-        ChaoticSpring = 25772, // L86, instant, range 3, single-target 0/0, targets=hostile, animLock=???
+        ChaoticSpring = 25772, // L86, instant, range 3, single-target 0/0, targets=hostile
         FangAndClaw = 3554, // L56, instant, range 3, single-target 0/0, targets=hostile
         WheelingThrust = 3556, // L58, instant, range 3, single-target 0/0, targets=hostile
         RaidenThrust = 16479, // L76, instant, range 3, single-target 0/0, targets=hostile
@@ -23,7 +23,7 @@ namespace BossMod.DRG
         DoomSpike = 86, // L40, instant, range 10, AOE rect 10/4, targets=hostile
         SonicThrust = 7397, // L62, instant, range 10, AOE rect 10/4, targets=hostile
         CoerthanTorment = 16477, // L72, instant, range 10, AOE rect 10/4, targets=hostile
-        DraconianFury = 25770, // L82, instant, range 10, AOE rect 10/4, targets=hostile, animLock=???
+        DraconianFury = 25770, // L82, instant, range 10, AOE rect 10/4, targets=hostile
 
         // oGCDs
         Jump = 92, // L30, instant, 30.0s CD (group 4), range 20, single-target 0/0, targets=hostile, animLock=0.800s
@@ -103,6 +103,7 @@ namespace BossMod.DRG
         BattleLitany = 786, // applied by Battle Litany to self
         PowerSurge = 2720, // applied by Disembowel & Sonic Thrust to self, damage buff
         ChaosThrust = 118, // applied by Chaos Thrust to target, dot
+        ChaoticSpring = 2719, // applied by Chaotic Spring to target, dot
         FangAndClawBared = 802, // applied by Full Thrust to self
         WheelInMotion = 803, // applied by Chaos Thrust to self
         DraconianFire = 1863, // applied by Fang and Claw, Wheeling Thrust to self

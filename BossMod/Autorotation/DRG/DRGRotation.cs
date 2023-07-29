@@ -26,6 +26,9 @@
             public AID BestTrueThrust => DraconianFireLeft > GCD ? AID.RaidenThrust : AID.TrueThrust;
             public AID BestDoomSpike => DraconianFireLeft > GCD && Unlocked(AID.DraconianFury) ? AID.DraconianFury : AID.DoomSpike;
 
+            // statuses
+            public SID ExpectedChaoticSpring => Unlocked(AID.ChaoticSpring) ? SID.ChaoticSpring : SID.ChaosThrust;
+
             public AID ComboLastMove => (AID)ComboLastAction;
 
             public State(float[] cooldowns) : base(cooldowns) { }

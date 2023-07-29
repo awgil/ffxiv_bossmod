@@ -138,7 +138,7 @@ namespace BossMod.DRG
             _state.RightEyeLeft = StatusDetails(Player, SID.RightEye, Player.InstanceID).Left;
             _state.TrueNorthLeft = StatusDetails(Player, SID.TrueNorth, Player.InstanceID).Left;
 
-            _state.TargetChaosThrustLeft = StatusDetails(Autorot.PrimaryTarget, SID.ChaosThrust, Player.InstanceID).Left;
+            _state.TargetChaosThrustLeft = StatusDetails(Autorot.PrimaryTarget, _state.ExpectedChaoticSpring, Player.InstanceID).Left;
         }
 
         private void OnConfigModified(object? sender, EventArgs args)
