@@ -5,13 +5,11 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 {
     class P6WrothFlames : Components.GenericAOEs
     {
-        private List<AOEInstance> _aoes = new(); // cauterize, then flame blasts, then wings/tail
+        private List<AOEInstance> _aoes = new(); // cauterize, then flame blasts
         private WPos _startingSpot;
 
         private static AOEShapeRect _shapeCauterize = new(80, 11);
         private static AOEShapeCross _shapeBlast = new(44, 3);
-        private static AOEShapeRect _shapeWing = new(50, 10.5f);
-        private static AOEShapeRect _shapeTail = new(50, 8);
 
         public bool ShowStartingSpot => _startingSpot.X != 0 && _startingSpot.Z != 0 && NumCasts == 0;
 
@@ -58,21 +56,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            AOEShape? shape = (AID)spell.Action.ID switch
-            {
-                AID.HotWingAOE => _shapeWing,
-                AID.HotTailAOE => _shapeTail,
-                _ => null
-            };
-            if (shape != null)
-                _aoes.Add(new(shape, caster.Position, spell.Rotation, spell.FinishAt));
-        }
-
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if ((AID)spell.Action.ID is AID.CauterizeH or AID.FlameBlast or AID.HotWingAOE or AID.HotTailAOE)
+            if ((AID)spell.Action.ID is AID.CauterizeH or AID.FlameBlast)
             {
                 ++NumCasts;
                 if (_aoes.Count > 0)
@@ -90,18 +76,43 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID is AID.AkhMornFirst or AID.AkhMornRest)
-                ++NumFinishedStacks;
+                if (++NumFinishedStacks >= 4)
+                    Stacks.Clear();
         }
     }
 
-    class P6AkhMornVoidzone : Components.PersistentVoidzoneAtCastTarget
+    class P6AkhMornVoidzone : Components.PersistentVoidzone
     {
-        public P6AkhMornVoidzone() : base(6, ActionID.MakeSpell(AID.AkhMornRest), m => m.Enemies(OID.VoidzoneAhkMorn).Where(z => z.EventState != 7), 1.0f) { }
+        public P6AkhMornVoidzone() : base(6, m => m.Enemies(OID.VoidzoneAhkMorn).Where(z => z.EventState != 7)) { }
     }
 
     class P6SpreadingEntangledFlames : Components.UniformStackSpread
     {
+        private P6HotWingTail? _wingTail;
+        private bool _voidzonesNorth;
+
         public P6SpreadingEntangledFlames() : base(4, 5, 2, alwaysShowSpreads: true) { }
+
+        public override void Init(BossModule module)
+        {
+            _wingTail = module.FindComponent<P6HotWingTail>();
+            _voidzonesNorth = module.Enemies(OID.VoidzoneAhkMorn).Sum(z => z.Position.Z - module.Bounds.Center.Z) < 0;
+        }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            base.AddHints(module, slot, actor, hints, movementHints);
+            if (movementHints != null)
+                foreach (var p in SafeSpots(module, actor))
+                    movementHints.Add(actor.Position, p, ArenaColor.Safe);
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            base.DrawArenaForeground(module, pcSlot, pc, arena);
+            foreach (var p in SafeSpots(module, pc))
+                arena.AddCircle(p, 1, ArenaColor.Safe);
+        }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
@@ -114,6 +125,28 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 case SID.EntangledFlames:
                     AddStack(actor);
                     break;
+            }
+        }
+
+        // note: this assumes standard positions (spreads = black debuffs = under black dragon nidhogg, etc)
+        // TODO: consider assigning concrete spots to each player
+        private IEnumerable<WPos> SafeSpots(BossModule module, Actor actor)
+        {
+            if (_wingTail == null || _wingTail.NumAOEs == 0)
+                yield break;
+
+            float z = module.Bounds.Center.Z + (_wingTail.NumAOEs == 2 ? 0 : _voidzonesNorth ? 10 : -10);
+            if (IsSpreadTarget(actor))
+            {
+                yield return new WPos(module.Bounds.Center.X - 18, z);
+                yield return new WPos(module.Bounds.Center.X - 12, z);
+                yield return new WPos(module.Bounds.Center.X - 6, z);
+                yield return new WPos(module.Bounds.Center.X, z);
+            }
+            else
+            {
+                yield return new WPos(module.Bounds.Center.X + 9, z);
+                yield return new WPos(module.Bounds.Center.X + 18, z);
             }
         }
     }

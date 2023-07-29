@@ -98,8 +98,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private Actor? IgnoredPartner(BossModule module, int slot, Actor actor) => _allowIntersect && _tetheredTo[slot] != null ? module.Raid.WithSlot().WhereSlot(i => _tetheredTo[i] != null && _tetheredTo[i] != _tetheredTo[slot]).Closest(actor.Position).Item2 : null;
     }
-
     class P6Wyrmsbreath1 : P6Wyrmsbreath { public P6Wyrmsbreath1() : base(true) { } }
+    class P6Wyrmsbreath2 : P6Wyrmsbreath { public P6Wyrmsbreath2() : base(false) { } }
 
     // note: it is actually symmetrical (both tanks get tankbusters), but that is hard to express, so we select one to show arbitrarily (nidhogg)
     class P6WyrmsbreathTankbusterShared : Components.GenericSharedTankbuster

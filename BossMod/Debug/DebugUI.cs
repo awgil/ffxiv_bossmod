@@ -18,6 +18,7 @@ namespace BossMod
         private DebugInput _debugInput;
         private DebugAutorotation _debugAutorot;
         private DebugClassDefinitions _debugClassDefinitions;
+        private DebugAddon _debugAddon = new();
 
         public DebugUI(WorldState ws, Autorotation autorot)
         {
@@ -33,6 +34,7 @@ namespace BossMod
         {
             _debugInput.Dispose();
             _debugClassDefinitions.Dispose();
+            _debugAddon.Dispose();
         }
 
         public unsafe void Draw()
@@ -125,6 +127,10 @@ namespace BossMod
             if (ImGui.CollapsingHeader("Countdown"))
             {
                 DrawCountdown();
+            }
+            if (ImGui.CollapsingHeader("Addon"))
+            {
+                _debugAddon.Draw();
             }
         }
 

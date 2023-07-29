@@ -275,8 +275,8 @@
         HotTail = 27949, // NidhoggP6->self, 5.5s cast, single-target, visual (center cleave)
         HotTailAOE = 27950, // Helper->self, 6.5s cast, range 50 width 16 rect
         SpreadingFlames = 29739, // Helper->self, no cast, range 5 circle spread (knockback 15 on others)
-        EntangledFlames = 29740, // Helper->self, no cast, range 4 circle two-man stack (?)
-        EntangledPyre = 29741, // Helper->self, no cast, range 100 circle (stack fail?)
+        EntangledFlames = 29740, // Helper->self, no cast, range 4 circle two-man stack
+        EntangledPyre = 29741, // Helper->self, no cast, range 100 circle two-man stack fail?
     };
 
     public enum SID : uint
