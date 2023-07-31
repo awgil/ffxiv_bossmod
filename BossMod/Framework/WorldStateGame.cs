@@ -247,7 +247,7 @@ namespace BossMod
                 return; // was not casting and is not casting
 
             // note: ignore small finish-at differences, assume these are due to frame time irregularities
-            if (cast != null && act.CastInfo != null && cast.Action == act.CastInfo.Action && cast.TargetID == act.CastInfo.TargetID && Math.Abs((cast.FinishAt - act.CastInfo.FinishAt).TotalSeconds) < 0.05)
+            if (cast != null && act.CastInfo != null && cast.Action == act.CastInfo.Action && cast.TargetID == act.CastInfo.TargetID && Math.Abs((cast.FinishAt - act.CastInfo.FinishAt).TotalSeconds) < 0.2)
             {
                 // continuing casting same spell
                 act.CastInfo.TotalTime = cast.TotalTime;

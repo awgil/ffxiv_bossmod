@@ -277,6 +277,10 @@
         SpreadingFlames = 29739, // Helper->self, no cast, range 5 circle spread (knockback 15 on others)
         EntangledFlames = 29740, // Helper->self, no cast, range 4 circle two-man stack
         EntangledPyre = 29741, // Helper->self, no cast, range 100 circle two-man stack fail?
+
+        Touchdown = 27968, // NidhoggP6/HraesvelgrP6->self, no cast, single-target, visual (proximity)
+        TouchdownAOE = 28903, // Helper->self, no cast, range 80 circle with ? falloff
+        RevengeOfTheHordeP6 = 27937, // NidhoggP6/HraesvelgrP6->self, 25.0s cast, range 80 circle, enrage
     };
 
     public enum SID : uint
@@ -298,9 +302,11 @@
         BurningChains = 769, // none->player, extra=0x0
         MortalVow = 2896, // NidhoggP6/Helper->player, extra=0xFFA1
         MortalAtonement = 2897, // none->player, extra=0x0
+        Suppuration = 3133, // Helper->player, extra=0x0 (extra targets for mortal vow pass)
         SpreadingFlames = 2758, // none->player, extra=0x0
         EntangledFlames = 2759, // none->player, extra=0x0
-        //_Gen_Suppuration = 3133, // Helper->player, extra=0x0
+        Boiling = 2898, // Helper->player, extra=0x0
+        Freezing = 2899, // Helper->player, extra=0x0
     }
 
     public enum TetherID : uint

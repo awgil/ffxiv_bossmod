@@ -89,8 +89,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             P6WrothFlames(id + 0x50000, 3.1f);
             P6AkhAfah(id + 0x60000, 4.2f);
             P6HallowedWingsPlume2(id + 0x70000, 4.4f);
-            P6Wyrmsbreath2(id + 0x80000, 10); // TODO: timing...
-            SimpleState(id + 0xFF0000, 100, "???");
+            P6Wyrmsbreath2(id + 0x80000, 3.9f);
+            P6Touchdown(id + 0x90000, 5.0f);
         }
 
         private void P2AscalonsMercyConcealedMight(uint id, float delay)
@@ -248,7 +248,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ActorCastEnd(id + 0x88, _module.BossP3, 0.4f, true)
                 .SetHint(StateMachine.StateHint.Raidwide);
             ComponentCondition<P3GnashAndLash>(id + 0x90, 3.7f, comp => comp.NumCasts >= 3, "In/out 3");
-            ComponentCondition<P3GnashAndLash>(id + 0xA0, 3.1f, comp => comp.NumCasts >= 4, "Towers 3 + In/out 4"); // note: towers happen ~0.6s earlier
+            ComponentCondition<P3GnashAndLash>(id + 0xA0, 3.1f, comp => comp.NumCasts >= 4, "Towers 3 + In/out 4") // note: towers happen ~0.6s earlier
+                .DeactivateOnExit<P3GnashAndLash>();
             ComponentCondition<P3Geirskogul>(id + 0xB0, 2.0f, comp => comp.Casters.Count > 0);
             ComponentCondition<P3Geirskogul>(id + 0xC0, 4.5f, comp => comp.Casters.Count == 0, "Dive resolve")
                 .DeactivateOnExit<P3DiveFromGrace>()
@@ -474,6 +475,20 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
         }
 
+        private void P6MortalVow(uint id, float delay)
+        {
+            ComponentCondition<P6MortalVow>(id, delay, comp => comp.Progress > 0, "Mortal vow apply")
+                .ActivateOnEnter<P6MortalVow>();
+        }
+
+        private void P6AkhAfah(uint id, float delay)
+        {
+            ActorCast(id, _module.NidhoggP6, AID.AkhAfahN, delay, 8, true)
+                .ActivateOnEnter<P6AkhAfah>();
+            ComponentCondition<P6AkhAfah>(id + 0x10, 0.2f, comp => comp.Done, "Party stacks + HP check")
+                .DeactivateOnExit<P6AkhAfah>();
+        }
+
         private void P6Wyrmsbreath1(uint id, float delay)
         {
             ActorCastMulti(id, _module.NidhoggP6, new[] { AID.DreadWyrmsbreathNormal, AID.DreadWyrmsbreathGlow }, delay, 6.3f, true)
@@ -494,7 +509,6 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private void P6Wyrmsbreath2(uint id, float delay)
         {
-            // TODO: timings...
             ActorCastMulti(id, _module.NidhoggP6, new[] { AID.DreadWyrmsbreathNormal, AID.DreadWyrmsbreathGlow }, delay, 6.3f, true)
                 .ActivateOnEnter<P6Wyrmsbreath2>()
                 .ActivateOnEnter<P6WyrmsbreathTankbusterShared>()
@@ -510,20 +524,6 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .DeactivateOnExit<P6Wyrmsbreath2>();
         }
 
-        private void P6MortalVow(uint id, float delay)
-        {
-            ComponentCondition<P6MortalVow>(id, delay, comp => comp.Progress > 0, "Mortal vow apply")
-                .ActivateOnEnter<P6MortalVow>();
-        }
-
-        private void P6AkhAfah(uint id, float delay)
-        {
-            ActorCast(id, _module.NidhoggP6, AID.AkhAfahN, delay, 8, true)
-                .ActivateOnEnter<P6AkhAfah>();
-            ComponentCondition<P6AkhAfah>(id + 0x10, 0.2f, comp => comp.Done, "Party stacks + HP check")
-                .DeactivateOnExit<P6AkhAfah>();
-        }
-
         private void P6HallowedWingsPlume1(uint id, float delay)
         {
             ActorTargetable(id, _module.NidhoggP6, false, delay, "Nidhogg disappears");
@@ -533,12 +533,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .ActivateOnEnter<P6HallowedPlume1>();
             ComponentCondition<P6HallowedWings>(id + 0x20, 1.2f, comp => comp.NumCasts > 0, "Safe quarter + near/far tankbusters")
                 .DeactivateOnExit<P6HallowedWings>()
-                .DeactivateOnExit<P6CauterizeN>() // cauterize typically happens slightly earlier than wings
-                .DeactivateOnExit<P6HallowedPlume1>() // tankbusters typically happen at the same time as wings
+                .DeactivateOnExit<P6CauterizeN>() // cauterize happens +-0.3s
+                .DeactivateOnExit<P6HallowedPlume1>() // tankbusters happen at the same time as wings
                 .SetHint(StateMachine.StateHint.Tankbuster);
-            ActorTargetable(id + 0x30, _module.NidhoggP6, true, 3.1f, "Nidhogg reappears")
+
+            ComponentCondition<P6MortalVow>(id + 0x100, 8.8f, comp => comp.Progress > 1, "Mortal vow pass 1")
                 .OnEnter(() => _module.FindComponent<P6MortalVow>()?.ShowNextPass(_module));
-            ComponentCondition<P6MortalVow>(id + 0x100, 5.3f, comp => comp.Progress > 1, "Mortal vow pass 1");
         }
 
         private void P6HallowedWingsPlume2(uint id, float delay)
@@ -550,10 +550,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ComponentCondition<P6HotWingTail>(id + 0x10, 1.1f, comp => comp.NumCasts > 0, "Safe line + near/far tankbusters")
                 .DeactivateOnExit<P6HallowedWings>() // this typically happens slightly earlier than wing/tail
                 .DeactivateOnExit<P6HotWingTail>()
-                .DeactivateOnExit<P6HallowedPlume2>(); // tankbusters typically happen at the same time as wings
+                .DeactivateOnExit<P6HallowedPlume2>(); // tankbusters happen at the same time as wings
 
-            // TODO: not sure about timings below...
-            ComponentCondition<P6MortalVow>(id + 0x100, 10, comp => comp.Progress > 3, "Mortal vow pass 3")
+            ComponentCondition<P6MortalVow>(id + 0x100, 8.4f, comp => comp.Progress > 3, "Mortal vow pass 3")
                 .OnEnter(() => _module.FindComponent<P6MortalVow>()?.ShowNextPass(_module));
         }
 
@@ -586,9 +585,28 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ComponentCondition<P6SpreadingEntangledFlames>(id + 0xA0, 0.9f, comp => !comp.Active, "Stack/spread")
                 .DeactivateOnExit<P6SpreadingEntangledFlames>()
                 .DeactivateOnExit<P6HotWingTail>();
-            ComponentCondition<P6MortalVow>(id + 0x100, 4.1f, comp => comp.Progress > 2, "Mortal vow pass 2")
+
+            ComponentCondition<P6MortalVow>(id + 0x100, 4.0f, comp => comp.Progress > 2, "Mortal vow pass 2")
                 .OnEnter(() => _module.FindComponent<P6MortalVow>()?.ShowNextPass(_module));
             // note: voidzones disappear slightly later...
+        }
+
+        private void P6Touchdown(uint id, float delay)
+        {
+            ActorTargetable(id, _module.NidhoggP6, false, delay, "Bosses disappear"); // both
+            ActorTargetable(id + 1, _module.NidhoggP6, true, 1.4f); // both
+            ActorCast(id + 0x10, _module.NidhoggP6, AID.CauterizeN, 1.2f, 5, true, "Wild charges")
+                .ActivateOnEnter<P6TouchdownCauterize>()
+                .DeactivateOnExit<P6TouchdownCauterize>();
+            ComponentCondition<P6Touchdown>(id + 0x20, 7.0f, comp => comp.NumCasts > 0, "Proximity")
+                .ActivateOnEnter<P6Touchdown>()
+                .DeactivateOnExit<P6Touchdown>();
+
+            ActorCastStart(id + 0x100, _module.NidhoggP6, AID.RevengeOfTheHordeP6, 1.2f, true)
+                .OnEnter(() => _module.FindComponent<P6MortalVow>()?.ShowNextPass(_module));
+            ComponentCondition<P6MortalVow>(id + 0x101, 2.3f, comp => comp.Progress > 4, "Mortal vow pass 4")
+                .DeactivateOnExit<P6MortalVow>();
+            ActorCastEnd(id + 0x102, _module.NidhoggP6, 22.7f, true, "Enrage");
         }
     }
 }

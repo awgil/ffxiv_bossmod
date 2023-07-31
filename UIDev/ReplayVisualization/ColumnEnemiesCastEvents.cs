@@ -9,18 +9,13 @@ namespace UIDev
     // by default contains a single column showing all actions from all sources, but extra columns can be added and per-column filters can be assigned
     public class ColumnEnemiesCastEvents : Timeline.ColumnGroup
     {
-        private class ActionFilter
-        {
-            public Dictionary<Replay.Participant, BitMask> FromSource = new();
-            public BitMask? NullSource;
-        }
-
         private StateMachineTree _tree;
         private List<int> _phaseBranches;
+        private Replay _replay;
         private Replay.Encounter _encounter;
         private ModuleRegistry.Info? _moduleInfo;
         private List<Replay.Action> _actions;
-        private Dictionary<ActionID, ActionFilter> _filters = new();
+        private Dictionary<ActionID, Dictionary<ulong, BitMask>> _filters = new(); // [action][sourceid]
 
         public ColumnEnemiesCastEvents(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc)
             : base(timeline)
@@ -28,17 +23,12 @@ namespace UIDev
             //Name = "Enemy cast events";
             _tree = tree;
             _phaseBranches = phaseBranches;
+            _replay = replay;
             _encounter = enc;
             _moduleInfo = ModuleRegistry.FindByOID(enc.OID);
             _actions = replay.EncounterActions(enc).Where(a => !(a.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)).ToList();
             foreach (var a in _actions)
-            {
-                var f = _filters.GetOrAdd(a.ID);
-                if (a.Source != null)
-                    f.FromSource[a.Source] = new(1);
-                else
-                    f.NullSource = new(1);
-            }
+                _filters.GetOrAdd(a.ID)[a.Source?.InstanceID ?? 0] = new(1);
             AddColumn();
             RebuildEvents();
         }
@@ -51,22 +41,13 @@ namespace UIDev
             bool needRebuild = false;
             foreach (var na in tree.Nodes(_filters, kv => new($"{kv.Key} ({_moduleInfo?.ActionIDType?.GetEnumName(kv.Key.ID)})")))
             {
-                if (na.Value.NullSource != null)
-                {
-                    var mask = na.Value.NullSource.Value;
-                    if (DrawConfigColumns(ref mask, "(no source)"))
-                    {
-                        na.Value.NullSource = mask;
-                        needRebuild = true;
-                    }
-                }
-
-                foreach (var src in na.Value.FromSource)
+                foreach (var src in na.Value)
                 {
                     var mask = src.Value;
-                    if (DrawConfigColumns(ref mask, $"{ReplayUtils.ParticipantString(src.Key)} ({_moduleInfo?.ObjectIDType?.GetEnumName(src.Key.OID)})"))
+                    var p = src.Key != 0 ? _replay.Participants.Find(p => p.InstanceID == src.Key) : null; // TODO: what if there are multiple?..
+                    if (DrawConfigColumns(ref mask, $"{ReplayUtils.ParticipantString(p)} ({_moduleInfo?.ObjectIDType?.GetEnumName(p?.OID ?? 0)})"))
                     {
-                        _filters[na.Key].FromSource[src.Key] = mask;
+                        _filters[na.Key][src.Key] = mask;
                         needRebuild = true;
                     }
                 }
@@ -105,7 +86,7 @@ namespace UIDev
 
             foreach (var a in _actions)
             {
-                var cols = a.Source != null ? _filters[a.ID].FromSource[a.Source] : _filters[a.ID].NullSource!.Value;
+                var cols = _filters[a.ID][a.Source?.InstanceID ?? 0];
                 if (cols.None())
                     continue;
 

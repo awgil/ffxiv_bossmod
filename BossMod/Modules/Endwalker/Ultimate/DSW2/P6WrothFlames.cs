@@ -128,14 +128,27 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.SpreadingFlames:
+                    Spreads.Clear();
+                    break;
+                case AID.EntangledFlames:
+                    Stacks.Clear();
+                    break;
+            }
+        }
+
         // note: this assumes standard positions (spreads = black debuffs = under black dragon nidhogg, etc)
         // TODO: consider assigning concrete spots to each player
         private IEnumerable<WPos> SafeSpots(BossModule module, Actor actor)
         {
-            if (_wingTail == null || _wingTail.NumAOEs == 0)
+            if (_wingTail == null)
                 yield break;
 
-            float z = module.Bounds.Center.Z + (_wingTail.NumAOEs == 2 ? 0 : _voidzonesNorth ? 10 : -10);
+            float z = module.Bounds.Center.Z + (_wingTail.NumAOEs != 1 ? 0 : _voidzonesNorth ? 10 : -10);
             if (IsSpreadTarget(actor))
             {
                 yield return new WPos(module.Bounds.Center.X - 18, z);

@@ -28,6 +28,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             };
             if (first != null && second != null)
             {
+                _aoes.Clear(); // just a precaution, in one pull i had unfortunate cast time updates which 'restarted' the spell several times
                 // note: marking aoes as non-risky, so that we don't spam warnings - reconsider (maybe mark as risky when cast ends?)
                 _aoes.Add(new(first, caster.Position, default, module.WorldState.CurrentTime.AddSeconds(3.7f), risky: false));
                 _aoes.Add(new(second, caster.Position, default, module.WorldState.CurrentTime.AddSeconds(6.8f), risky: false));
