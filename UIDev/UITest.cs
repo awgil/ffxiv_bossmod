@@ -114,6 +114,11 @@ namespace UIDev
             {
                 ConvertLog(_path, LoggingConfig.LogFormat.TextCondensed, false);
             }
+            ImGui.SameLine();
+            if (ImGui.Button("Convert to compressed text"))
+            {
+                ConvertLog(_path, LoggingConfig.LogFormat.TextCondensed, true);
+            }
 
             foreach (var t in _testTypes)
             {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Numerics;
 
 namespace BossMod
@@ -156,8 +157,14 @@ namespace BossMod
                 try
                 {
                     _config.TargetDirectory.Create();
-                    var logfile = new FileStream($"{_config.TargetDirectory.FullName}/{_config.LogPrefix}_{_ws.CurrentTime:yyyy_MM_dd_HH_mm_ss}.log", FileMode.Create, FileAccess.Write, FileShare.Read);
-                    _logger = new TextOutput(logfile, _config.WorldLogFormat == LoggingConfig.LogFormat.TextVerbose ? _ws.Actors : null);
+                    Stream stream = new FileStream($"{_config.TargetDirectory.FullName}/{_config.LogPrefix}_{_ws.CurrentTime:yyyy_MM_dd_HH_mm_ss}.log", FileMode.Create, FileAccess.Write, FileShare.Read);
+                    if (_config.CompressLog)
+                    {
+                        var header = new byte[] { (byte)'B', (byte)'L', (byte)'C', (byte)'B' }; // bossmod log compressed brotli
+                        stream.Write(header);
+                        stream = new BrotliStream(stream, CompressionLevel.Optimal, false);
+                    }
+                    _logger = new TextOutput(stream, _config.WorldLogFormat == LoggingConfig.LogFormat.TextVerbose ? _ws.Actors : null);
                 }
                 catch (IOException e)
                 {

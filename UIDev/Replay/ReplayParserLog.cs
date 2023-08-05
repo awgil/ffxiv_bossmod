@@ -2,6 +2,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Numerics;
 
@@ -14,7 +15,18 @@ namespace UIDev
             try
             {
                 ReplayParserLog parser = new(relogConfig);
-                using (var reader = new StreamReader(path))
+                Stream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var header = new byte[4];
+                if (stream.Read(header, 0, header.Length) == header.Length && header[0] == 'B' && header[1] == 'L' && header[2] == 'C' && header[3] == 'B')
+                {
+                    stream = new BrotliStream(stream, CompressionMode.Decompress, false);
+                }
+                else
+                {
+                    stream.Seek(0, SeekOrigin.Begin);
+                }
+
+                using (var reader = new StreamReader(stream))
                 {
                     string? line;
                     while ((line = reader.ReadLine()) != null)
