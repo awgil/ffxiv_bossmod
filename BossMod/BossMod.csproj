@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors></Authors>
     <Company></Company>
-    <Version>0.0.0.103</Version>
+    <Version>0.0.0.104</Version>
     <Description>Boss mod.</Description>
     <Copyright></Copyright>
     <PackageProjectUrl></PackageProjectUrl>
@@ -17,20 +17,15 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
 
 <!--  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <OutputPath>$(AppData)\XIVLauncher\devPlugins\BossMod\</OutputPath>
   </PropertyGroup>-->
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <OutputPath>..\..\PluginDistribution\plugins</OutputPath>
-  </PropertyGroup>
 
   <ItemGroup>
     <Content Include="BossMod.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Data\modules\*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -76,4 +71,7 @@
     </Reference>
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="DefaultDalamudPackagerRelease" Condition="'$(Configuration)' == 'Release'">
+    <Exec Command="robocopy $(TargetDir)$(ProjectName) ..\..\PluginDistribution\plugins\$(ProjectName) /mir" IgnoreExitCode="true"></Exec>
+  </Target>
 </Project>
