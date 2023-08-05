@@ -104,6 +104,16 @@ namespace UIDev
                 var a = new AnalysisManager(_path);
                 WindowManager.CreateWindow($"Multiple logs: {_path}", a.Draw, a.Dispose, () => true);
             }
+            ImGui.SameLine();
+            if (ImGui.Button("Convert to verbose"))
+            {
+                ConvertLog(_path, LoggingConfig.LogFormat.TextVerbose, false);
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Convert to short text"))
+            {
+                ConvertLog(_path, LoggingConfig.LogFormat.TextCondensed, false);
+            }
 
             foreach (var t in _testTypes)
             {
@@ -117,6 +127,21 @@ namespace UIDev
                     }
                 }
             }
+        }
+
+        private void ConvertLog(string input, LoggingConfig.LogFormat format, bool compress)
+        {
+            var config = new LoggingConfig()
+            {
+                DumpWorldStateEvents = true,
+                WorldLogFormat = format,
+                CompressLog = compress,
+                DumpServerPackets = true,
+                DumpClientPackets = true,
+                TargetDirectory = new DirectoryInfo(input).Parent,
+                LogPrefix = $"Cvt{format}{(compress ? "Compressed" : "")}",
+            };
+            ReplayParserLog.Parse(_path, config);
         }
 
         private string FindGameDataPath()

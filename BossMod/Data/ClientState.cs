@@ -40,7 +40,15 @@ namespace BossMod
                 ws.Client.ActionRequested?.Invoke(ws, this);
             }
 
-            public override string Str(WorldState? ws) => $"CLAR|{Request.Action}|{Request.TargetID:X8}|{StrVec3(Request.TargetPos)}|{Request.SourceSequence}|{Request.InitialAnimationLock:f3}|{Request.InitialCastTimeElapsed:f3}/{Request.InitialCastTimeTotal:f3}|{Request.InitialRecastElapsed:f3}/{Request.InitialRecastTotal:f3}";
+            public override void Write(WorldStateLogger.Output output) => output
+                .Emit("CLAR")
+                .Emit(Request.Action)
+                .EmitActor(Request.TargetID)
+                .Emit(Request.TargetPos)
+                .Emit(Request.SourceSequence)
+                .Emit(Request.InitialAnimationLock, "f3")
+                .EmitTimePair(Request.InitialCastTimeElapsed, Request.InitialCastTimeTotal)
+                .EmitTimePair(Request.InitialRecastElapsed, Request.InitialRecastTotal);
         }
 
         public event EventHandler<OpActionReject>? ActionRejected;
@@ -53,7 +61,12 @@ namespace BossMod
                 ws.Client.ActionRejected?.Invoke(ws, this);
             }
 
-            public override string Str(WorldState? ws) => $"CLRJ|{Value.Action}|{Value.SourceSequence}|{Value.RecastElapsed:f3}/{Value.RecastTotal:f3}|{Value.LogMessageID}";
+            public override void Write(WorldStateLogger.Output output) => output
+                .Emit("CLRJ")
+                .Emit(Value.Action)
+                .Emit(Value.SourceSequence)
+                .EmitTimePair(Value.RecastElapsed, Value.RecastTotal)
+                .Emit(Value.LogMessageID);
         }
     }
 }

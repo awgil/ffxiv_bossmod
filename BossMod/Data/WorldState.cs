@@ -1,4 +1,6 @@
-﻿using System;
+﻿using BossMod.Endwalker.HuntS.Ker;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -40,10 +42,7 @@ namespace BossMod
             }
 
             protected abstract void Exec(WorldState ws);
-            public abstract string Str(WorldState? ws);
-            public override string ToString() => Str(null);
-
-            protected static string StrVec3(Vector3 v) => $"{v.X:f3}/{v.Y:f3}/{v.Z:f3}";
+            public abstract void Write(WorldStateLogger.Output output);
         }
 
         public void Execute(Operation op)
@@ -81,7 +80,16 @@ namespace BossMod
                 ws.FrameStarted?.Invoke(ws, this);
             }
 
-            public override string Str(WorldState? ws) => $"FRAM|{PrevUpdateTime.TotalMilliseconds:f3}||{GaugePayload:X16}|{Frame.QPC}|{Frame.Index}|{Frame.DurationRaw:g9}|{Frame.Duration:g9}|{Frame.TickSpeedMultiplier}";
+            public override void Write(WorldStateLogger.Output output) => output
+                .Emit("FRAM")
+                .Emit(PrevUpdateTime.TotalMilliseconds, "f3")
+                .Emit()
+                .Emit(GaugePayload, "X16")
+                .Emit(Frame.QPC)
+                .Emit(Frame.Index)
+                .Emit(Frame.DurationRaw)
+                .Emit(Frame.Duration)
+                .Emit(Frame.TickSpeedMultiplier);
         }
 
         public event EventHandler<OpRSVData>? RSVDataReceived;
@@ -96,7 +104,7 @@ namespace BossMod
                 ws.RSVDataReceived?.Invoke(ws, this);
             }
 
-            public override string Str(WorldState? ws) => $"RSV |{Key}|{Value}";
+            public override void Write(WorldStateLogger.Output output) => output.Emit("RSV ").Emit(Key).Emit(Value);
         }
 
         public event EventHandler<OpZoneChange>? CurrentZoneChanged;
@@ -110,7 +118,7 @@ namespace BossMod
                 ws.CurrentZoneChanged?.Invoke(ws, this);
             }
 
-            public override string Str(WorldState? ws) => $"ZONE|{Zone}";
+            public override void Write(WorldStateLogger.Output output) => output.Emit("ZONE").Emit(Zone);
         }
 
         // global events
@@ -129,7 +137,7 @@ namespace BossMod
                 ws.DirectorUpdate?.Invoke(ws, this);
             }
 
-            public override string Str(WorldState? ws) => $"DIRU|{DirectorID:X8}|{UpdateID:X8}|{Param1:X8}|{Param2:X8}|{Param3:X8}|{Param4:X8}";
+            public override void Write(WorldStateLogger.Output output) => output.Emit("DIRU").Emit(DirectorID, "X8").Emit(UpdateID, "X8").Emit(Param1, "X8").Emit(Param2, "X8").Emit(Param3, "X8").Emit(Param4, "X8");
         }
 
         public event EventHandler<OpEnvControl>? EnvControl;
@@ -144,7 +152,7 @@ namespace BossMod
                 ws.EnvControl?.Invoke(ws, this);
             }
 
-            public override string Str(WorldState? ws) => $"ENVC|{DirectorID:X8}|{Index:X2}|{State:X8}";
+            public override void Write(WorldStateLogger.Output output) => output.Emit("ENVC").Emit(DirectorID, "X8").Emit(Index, "X2").Emit(State, "X8");
         }
     }
 }

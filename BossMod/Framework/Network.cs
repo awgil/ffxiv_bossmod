@@ -26,7 +26,7 @@ namespace BossMod
         public event EventHandler<(Waymark waymark, Vector3? pos)>? EventWaymark;
         public event EventHandler<(string key, string value)>? EventRSVData;
 
-        private GeneralConfig _config;
+        private LoggingConfig _config;
         //private Logger _logger;
 
         private unsafe delegate void ProcessZonePacketDownDelegate(void* a, uint targetId, void* dataPtr);
@@ -42,7 +42,7 @@ namespace BossMod
 
         public unsafe Network(DirectoryInfo logDir)
         {
-            _config = Service.Config.Get<GeneralConfig>();
+            _config = Service.Config.Get<LoggingConfig>();
             _config.Modified += ApplyConfig;
             //_logger = new("Network", logDir);
 

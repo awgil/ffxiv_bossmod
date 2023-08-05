@@ -9,11 +9,11 @@ namespace UIDev
 {
     class ReplayParserLog : ReplayParser
     {
-        public static Replay Parse(string path)
+        public static Replay Parse(string path, LoggingConfig? relogConfig = null)
         {
             try
             {
-                ReplayParserLog parser = new();
+                ReplayParserLog parser = new(relogConfig);
                 using (var reader = new StreamReader(path))
                 {
                     string? line;
@@ -39,6 +39,8 @@ namespace UIDev
         }
 
         private int _version = 0;
+
+        private ReplayParserLog(LoggingConfig? relogConfig) : base(relogConfig) { }
 
         private void ParseLine(string[] payload)
         {
@@ -103,7 +105,7 @@ namespace UIDev
             _version = int.Parse(payload[2]);
             if (_version < 2)
                 throw new Exception($"Version {_version} is too old and is no longer supported, sorry");
-            _res.QPF = _ws.QPF = payload.Length > 3 ? ulong.Parse(payload[3]) : TimeSpan.TicksPerSecond; // newer windows versions have 10mhz qpc frequency
+            Start(DateTime.Parse(payload[0]), payload.Length > 3 ? ulong.Parse(payload[3]) : TimeSpan.TicksPerSecond); // newer windows versions have 10mhz qpc frequency
         }
 
         private void ParseFrameStart(string[] payload)
@@ -161,31 +163,55 @@ namespace UIDev
         {
             AddOp(new WaymarkState.OpWaymarkChange()
             {
-                ID = Enum.Parse<Waymark>(payload[2]),
+                ID = _version < 10 ? Enum.Parse<Waymark>(payload[2]) : (Waymark)byte.Parse(payload[2]),
                 Pos = set ? Vec3(payload[3]) : null,
             });
         }
 
         private void ParseActorCreate(string[] payload)
         {
-            var parts = payload[2].Split('/');
-            var hpmp = payload.Length > 7 ? ActorHPMP(payload[7]) : new();
-            AddOp(new ActorState.OpCreate()
+            ActorState.OpCreate op;
+            if (_version < 10)
             {
-                InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber),
-                OID = uint.Parse(parts[1], NumberStyles.HexNumber),
-                SpawnIndex = payload.Length > 9 ? int.Parse(payload[9]) : -1,
-                Name = parts[2],
-                Type = Enum.Parse<ActorType>(parts[3]),
-                Class = Enum.Parse<Class>(payload[3]),
-                PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]).Degrees().Rad),
-                HitboxRadius = float.Parse(payload[5]),
-                HP = hpmp.hp,
-                CurMP = hpmp.curMP,
-                IsTargetable = bool.Parse(payload[4]),
-                IsAlly = payload.Length > 8 ? bool.Parse(payload[8]) : false,
-                OwnerID = payload.Length > 6 ? ActorID(payload[6]) : 0,
-            });
+                var parts = payload[2].Split('/');
+                var hpmp = payload.Length > 7 ? ActorHPMP(payload[7]) : new();
+                op = new()
+                {
+                    InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber),
+                    OID = uint.Parse(parts[1], NumberStyles.HexNumber),
+                    SpawnIndex = payload.Length > 9 ? int.Parse(payload[9]) : -1,
+                    Name = parts[2],
+                    Type = Enum.Parse<ActorType>(parts[3]),
+                    Class = Enum.Parse<Class>(payload[3]),
+                    PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]).Degrees().Rad),
+                    HitboxRadius = float.Parse(payload[5]),
+                    HP = hpmp.hp,
+                    CurMP = hpmp.curMP,
+                    IsTargetable = bool.Parse(payload[4]),
+                    IsAlly = payload.Length > 8 ? bool.Parse(payload[8]) : false,
+                    OwnerID = payload.Length > 6 ? ActorID(payload[6]) : 0,
+                };
+            }
+            else
+            {
+                op = new()
+                {
+                    InstanceID = ulong.Parse(payload[2], NumberStyles.HexNumber),
+                    OID = uint.Parse(payload[3], NumberStyles.HexNumber),
+                    SpawnIndex = int.Parse(payload[4]),
+                    Name = payload[5],
+                    Type = (ActorType)ushort.Parse(payload[6], NumberStyles.HexNumber),
+                    Class = Enum.Parse<Class>(payload[7]),
+                    PosRot = new(Vec3(payload[8]), float.Parse(payload[9]).Degrees().Rad),
+                    HitboxRadius = float.Parse(payload[10]),
+                    HP = new() { Cur = uint.Parse(payload[11]), Max = uint.Parse(payload[12]), Shield = uint.Parse(payload[13]) },
+                    CurMP = uint.Parse(payload[14]),
+                    IsTargetable = bool.Parse(payload[15]),
+                    IsAlly = bool.Parse(payload[16]),
+                    OwnerID = ActorID(payload[17]),
+                };
+            }
+            AddOp(op);
         }
 
         private void ParseActorDestroy(string[] payload)
@@ -195,8 +221,17 @@ namespace UIDev
 
         private void ParseActorRename(string[] payload)
         {
-            var parts = payload[2].Split('/');
-            AddOp(new ActorState.OpRename() { InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber), Name = parts[2] });
+            ActorState.OpRename op;
+            if (_version < 10)
+            {
+                var parts = payload[2].Split('/');
+                op = new() { InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber), Name = parts[2] };
+            }
+            else
+            {
+                op = new() { InstanceID = ulong.Parse(payload[2], NumberStyles.HexNumber), Name = payload[3] };
+            }
+            AddOp(op);
         }
 
         private void ParseActorClassChange(string[] payload)
@@ -206,8 +241,17 @@ namespace UIDev
 
         private void ParseActorMove(string[] payload)
         {
-            var parts = payload[2].Split('/');
-            AddOp(new ActorState.OpMove() { InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber), PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]).Degrees().Rad) });
+            ActorState.OpMove op;
+            if (_version < 10)
+            {
+                var parts = payload[2].Split('/');
+                op = new() { InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber), PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]).Degrees().Rad) };
+            }
+            else
+            {
+                op = new() { InstanceID = ulong.Parse(payload[2], NumberStyles.HexNumber), PosRot = new(Vec3(payload[3]), float.Parse(payload[4]).Degrees().Rad) };
+            }
+            AddOp(op);
         }
 
         private void ParseActorSizeChange(string[] payload)
@@ -217,8 +261,17 @@ namespace UIDev
 
         private void ParseActorHPMP(string[] payload)
         {
-            var hpmp = ActorHPMP(payload[3]);
-            AddOp(new ActorState.OpHPMP() { InstanceID = ActorID(payload[2]), HP = hpmp.hp, CurMP = hpmp.curMP });
+            ActorState.OpHPMP op;
+            if (_version < 10)
+            {
+                var hpmp = ActorHPMP(payload[3]);
+                op = new() { InstanceID = ActorID(payload[2]), HP = hpmp.hp, CurMP = hpmp.curMP };
+            }
+            else
+            {
+                op = new() { InstanceID = ActorID(payload[2]), HP = new() { Cur = uint.Parse(payload[3]), Max = uint.Parse(payload[4]), Shield = uint.Parse(payload[5]) }, CurMP = uint.Parse(payload[6]) };
+            }
+            AddOp(op);
         }
 
         private void ParseActorTargetable(string[] payload, bool targetable)

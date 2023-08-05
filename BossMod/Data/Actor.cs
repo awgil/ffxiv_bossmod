@@ -5,7 +5,7 @@ using System.Numerics;
 namespace BossMod
 {
     // objkind << 8 + objsubkind
-    public enum ActorType
+    public enum ActorType : ushort
     {
         None = 0,
         Player = 0x104,

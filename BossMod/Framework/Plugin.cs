@@ -51,9 +51,12 @@ namespace BossMod
             _commandManager = commandManager;
             _commandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
+            var logSettings = Service.Config.Get<LoggingConfig>();
+            logSettings.TargetDirectory = dalamud.ConfigDirectory;
+
             _network = new(dalamud.ConfigDirectory);
             _ws = new(_network);
-            _debugLogger = new(_ws, dalamud.ConfigDirectory);
+            _debugLogger = new(_ws, logSettings);
             _bossmod = new(_ws);
             _autorotation = new(_bossmod);
             _ai = new(_autorotation);

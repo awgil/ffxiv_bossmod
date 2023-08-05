@@ -40,7 +40,13 @@ namespace BossMod
                 ws.Waymarks.Changed?.Invoke(ws, this);
             }
 
-            public override string Str(WorldState? ws) => Pos != null ? $"WAY+|{ID}|{StrVec3(Pos.Value)}" : $"WAY-|{ID}";
+            public override void Write(WorldStateLogger.Output output)
+            {
+                if (Pos != null)
+                    output.Emit("WAY+").Emit((byte)ID).Emit(Pos.Value);
+                else
+                    output.Emit("WAY-").Emit((byte)ID);
+            }
         }
     }
 }
