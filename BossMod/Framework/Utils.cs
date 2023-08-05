@@ -118,6 +118,13 @@ namespace BossMod
         public static unsafe ulong CharacterTetherTargetID(Character chr) => ReadField<ulong>(CharacterInternal(chr), 0x1A60);
         public static unsafe Vector3 BattleCharaCastLocation(BattleChara chara) => BattleCharaInternal(chara)->SpellCastInfo.CastLocation; // see ActorCast -> Character::StartCast -> Character::StartOmen
 
+        public static unsafe uint FrameIndex() => FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->FrameCounter;
+        public static unsafe ulong FrameQPF() => ReadField<ulong>(FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance(), 0x16A0);
+        public static unsafe ulong FrameQPC() => ReadField<ulong>(FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance(), 0x16A8);
+        public static unsafe float FrameDuration() => FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->FrameDeltaTime;
+        public static unsafe float FrameDurationRaw() => ReadField<float>(FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance(), 0x16BC);
+        public static unsafe float TickSpeedMultiplier() => ReadField<float>(FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance(), 0x17B0);
+
         public static unsafe ulong SceneObjectFlags(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o)
         {
             return ReadField<ulong>(o, 0x38);

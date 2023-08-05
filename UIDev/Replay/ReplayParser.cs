@@ -60,7 +60,7 @@ namespace UIDev
         }
 
         protected Replay _res = new();
-        protected WorldState _ws = new();
+        protected WorldState _ws = new(TimeSpan.TicksPerSecond);
         private BossModuleManagerWrapper _mgr;
         private Dictionary<ulong, LoadedModuleData> _modules = new();
         private Dictionary<ulong, Replay.Participant> _participants = new();

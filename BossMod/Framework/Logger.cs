@@ -22,14 +22,13 @@ namespace BossMod
             Deactivate();
         }
 
-        public bool Activate(int version)
+        public bool Activate(int version, DateTime startTime, string payload)
         {
             try
             {
                 _logDir.Create();
-                var now = DateTime.Now;
-                _logger = new StreamWriter($"{_logDir.FullName}/{_prefix}_{now:yyyy_MM_dd_HH_mm_ss}.log");
-                Log(now, $"VER |{version}");
+                _logger = new StreamWriter($"{_logDir.FullName}/{_prefix}_{startTime:yyyy_MM_dd_HH_mm_ss}.log");
+                Log(startTime, $"VER |{version}|{payload}");
                 return true;
             }
             catch (IOException e)

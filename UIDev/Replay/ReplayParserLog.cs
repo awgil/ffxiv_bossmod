@@ -46,7 +46,7 @@ namespace UIDev
             {
                 var timestamp = DateTime.Parse(payload[0]);
                 if (_res.Ops.Count == 0 || _res.Ops.Last().Timestamp < timestamp)
-                    AddOp(new WorldState.OpFrameStart() { NewTimestamp = timestamp });
+                    AddOp(new WorldState.OpFrameStart() { Frame = new() { Timestamp = timestamp } });
             }
             switch (payload[1])
             {
@@ -103,14 +103,24 @@ namespace UIDev
             _version = int.Parse(payload[2]);
             if (_version < 2)
                 throw new Exception($"Version {_version} is too old and is no longer supported, sorry");
+            _res.QPF = _ws.QPF = payload.Length > 3 ? ulong.Parse(payload[3]) : TimeSpan.TicksPerSecond; // newer windows versions have 10mhz qpc frequency
         }
 
         private void ParseFrameStart(string[] payload)
         {
+            var ts = DateTime.Parse(payload[0]);
+            var frame = new FrameState
+            {
+                Timestamp = ts,
+                QPC = payload.Length > 5 ? ulong.Parse(payload[5]) : (ulong)(ts - _ws.CurrentTime).Ticks,
+                Index = payload.Length > 6 ? uint.Parse(payload[6]) : _ws.Frame.Index + 1,
+                DurationRaw = payload.Length > 7 ? float.Parse(payload[7]) : (float)(ts - _ws.CurrentTime).TotalSeconds,
+                Duration = payload.Length > 8 ? float.Parse(payload[8]) : (float)(ts - _ws.CurrentTime).TotalSeconds,
+                TickSpeedMultiplier = payload.Length > 9 ? float.Parse(payload[9]) : 1,
+            };
             AddOp(new WorldState.OpFrameStart() {
-                NewTimestamp = DateTime.Parse(payload[0]),
+                Frame = frame,
                 PrevUpdateTime = TimeSpan.FromMilliseconds(double.Parse(payload[2])),
-                FrameTimeMS = payload.Length > 3 ? long.Parse(payload[3]) : 0,
                 GaugePayload = payload.Length > 4 ? ulong.Parse(payload[4], NumberStyles.HexNumber) : 0,
             });
         }

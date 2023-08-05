@@ -10,7 +10,8 @@ namespace BossMod
     public class WorldState
     {
         // state access
-        public DateTime CurrentTime { get; private set; }
+        public ulong QPF;
+        public FrameState Frame;
         public ushort CurrentZone { get; private set; }
         public WaymarkState Waymarks { get; init; } = new();
         public ActorState Actors { get; init; } = new();
@@ -18,8 +19,11 @@ namespace BossMod
         public ClientState Client { get; init; } = new();
         public PendingEffects PendingEffects { get; init; } = new();
 
-        public WorldState()
+        public DateTime CurrentTime => Frame.Timestamp;
+
+        public WorldState(ulong qpf)
         {
+            QPF = qpf;
             Party = new(Actors);
         }
 
@@ -52,7 +56,7 @@ namespace BossMod
         public IEnumerable<Operation> CompareToInitial()
         {
             if (CurrentTime != default)
-                yield return new OpFrameStart() { NewTimestamp = CurrentTime };
+                yield return new OpFrameStart() { Frame = Frame };
             if (CurrentZone != 0)
                 yield return new OpZoneChange() { Zone = CurrentZone };
             foreach (var o in Waymarks.CompareToInitial())
@@ -67,18 +71,17 @@ namespace BossMod
         public event EventHandler<OpFrameStart>? FrameStarted;
         public class OpFrameStart : Operation
         {
-            public DateTime NewTimestamp;
+            public FrameState Frame;
             public TimeSpan PrevUpdateTime;
-            public long FrameTimeMS;
             public ulong GaugePayload;
 
             protected override void Exec(WorldState ws)
             {
-                ws.CurrentTime = NewTimestamp;
+                ws.Frame = Frame;
                 ws.FrameStarted?.Invoke(ws, this);
             }
 
-            public override string Str(WorldState? ws) => $"FRAM|{PrevUpdateTime.TotalMilliseconds:f3}|{FrameTimeMS}|{GaugePayload:X16}";
+            public override string Str(WorldState? ws) => $"FRAM|{PrevUpdateTime.TotalMilliseconds:f3}||{GaugePayload:X16}|{Frame.QPC}|{Frame.Index}|{Frame.DurationRaw:g9}|{Frame.Duration:g9}|{Frame.TickSpeedMultiplier}";
         }
 
         public event EventHandler<OpRSVData>? RSVDataReceived;

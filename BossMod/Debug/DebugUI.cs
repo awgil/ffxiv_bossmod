@@ -19,6 +19,7 @@ namespace BossMod
         private DebugAutorotation _debugAutorot;
         private DebugClassDefinitions _debugClassDefinitions;
         private DebugAddon _debugAddon = new();
+        private DebugTiming _debugTiming = new();
 
         public DebugUI(WorldState ws, Autorotation autorot)
         {
@@ -131,6 +132,10 @@ namespace BossMod
             if (ImGui.CollapsingHeader("Addon"))
             {
                 _debugAddon.Draw();
+            }
+            if (ImGui.CollapsingHeader("Timing"))
+            {
+                _debugTiming.Draw();
             }
         }
 

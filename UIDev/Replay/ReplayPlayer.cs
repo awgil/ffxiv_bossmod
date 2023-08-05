@@ -7,18 +7,19 @@ namespace UIDev
     class ReplayPlayer
     {
         public Replay Replay;
-        public WorldState WorldState = new();
+        public WorldState WorldState;
         private int _nextOp = 0; // first unexecuted operation; note that it corresponds to first operation with timestamp > that worldstate's current
 
         public ReplayPlayer(Replay r)
         {
             Replay = r;
+            WorldState = new(r.QPF);
         }
 
         // reset to empty state; note that world state is recreated
         public void Reset()
         {
-            WorldState = new();
+            WorldState = new(Replay.QPF);
             _nextOp = 0;
         }
 

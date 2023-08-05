@@ -11,7 +11,7 @@ namespace UIDev
 
         public ConfigTest()
         {
-            _ui = new(Service.Config, new());
+            _ui = new(Service.Config, new(TimeSpan.TicksPerSecond));
         }
 
         public void Dispose()

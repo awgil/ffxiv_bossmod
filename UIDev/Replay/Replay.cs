@@ -189,6 +189,7 @@ namespace UIDev
         }
 
         public string Path = "";
+        public ulong QPF = TimeSpan.TicksPerSecond;
         public List<WorldState.Operation> Ops = new();
         public List<Participant> Participants = new();
         public List<Action> Actions = new();

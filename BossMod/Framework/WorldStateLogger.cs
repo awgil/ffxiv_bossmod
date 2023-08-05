@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Numerics;
-using System.Text;
 
 namespace BossMod
 {
@@ -38,7 +36,7 @@ namespace BossMod
         {
             if (!_logger.Active)
             {
-                if (!_logger.Activate(9))
+                if (!_logger.Activate(10, _ws.CurrentTime, $"{_ws.QPF}"))
                 {
                     _config.DumpWorldStateEvents = false;
                     return;
