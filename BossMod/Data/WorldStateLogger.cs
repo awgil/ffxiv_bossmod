@@ -7,13 +7,18 @@ namespace BossMod
     {
         private WorldState _ws;
         private GeneralConfig _config;
-        private Logger _logger;
+        private DirectoryInfo _logDir;
+        private StreamWriter? _logger = null;
+
+        public bool Active => _logger != null;
+
+        public const int Version = 10;
 
         public WorldStateLogger(WorldState ws, DirectoryInfo logDir)
         {
             _ws = ws;
             _config = Service.Config.Get<GeneralConfig>();
-            _logger = new("World", logDir);
+            _logDir = logDir;
 
             _config.Modified += ApplyConfig;
         }
@@ -21,48 +26,54 @@ namespace BossMod
         public void Dispose()
         {
             _config.Modified -= ApplyConfig;
-            Unsubscribe();
+            Deactivate();
         }
 
         private void ApplyConfig(object? sender, EventArgs args)
         {
             if (_config.DumpWorldStateEvents)
-                Subscribe();
+                Activate();
             else
-                Unsubscribe();
+                Deactivate();
         }
 
-        private void Subscribe()
+        private void Activate()
         {
-            if (!_logger.Active)
+            if (!Active)
             {
-                if (!_logger.Activate(10, _ws.CurrentTime, $"{_ws.QPF}"))
+                try
                 {
+                    _logDir.Create();
+                    _logger = new StreamWriter($"{_logDir.FullName}/World_{_ws.CurrentTime:yyyy_MM_dd_HH_mm_ss}.log");
+                }
+                catch (IOException e)
+                {
+                    Service.Log($"Failed to start logging: {e}");
                     _config.DumpWorldStateEvents = false;
                     return;
                 }
 
                 // log initial state
+                Log($"VER |{Version}|{_ws.QPF}");
                 foreach (var op in _ws.CompareToInitial())
-                    LogModification(null, op);
+                    Log(op.Str(_ws));
 
                 // log changes
                 _ws.Modified += LogModification;
             }
         }
 
-        private void Unsubscribe()
+        private void Deactivate()
         {
-            if (_logger.Active)
+            if (Active)
             {
                 _ws.Modified -= LogModification;
-                _logger.Deactivate();
+                _logger?.Dispose();
+                _logger = null;
             }
         }
 
-        private void LogModification(object? sender, WorldState.Operation op)
-        {
-            _logger.Log(_ws.CurrentTime, op.Str(_ws));
-        }
+        private void LogModification(object? sender, WorldState.Operation op) => Log(op.Str(_ws));
+        private void Log(string message) => _logger?.WriteLine($"{_ws.CurrentTime:O}|{message}");
     }
 }
