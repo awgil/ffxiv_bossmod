@@ -1,11 +1,11 @@
 general:
-- better ui for recording logs
 - optionally log raw ipcs when recording, visualize in replay analysis
 - simulate autorotation in replay analysis
 - move replay analysis to plugin
 - proper lb support
 - bozja action support
 - better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
+- replay: global participant, track oid (existence) / name histories
 
 boss modules:
 - generalize components as much as possible

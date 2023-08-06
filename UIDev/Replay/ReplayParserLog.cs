@@ -210,7 +210,7 @@ namespace UIDev
             public override ulong ReadActorID() => _input.ReadUInt64();
        }
 
-        public static Replay Parse(string path, LoggingConfig? relogConfig = null)
+        public static Replay Parse(string path, ReplayRecorderConfig? relogConfig = null)
         {
             try
             {
@@ -252,7 +252,7 @@ namespace UIDev
         private DateTime _tsStart;
         private ulong _qpcStart;
 
-        private ReplayParserLog(LoggingConfig? relogConfig, Input input) : base(relogConfig)
+        private ReplayParserLog(ReplayRecorderConfig? relogConfig, Input input) : base(relogConfig)
         {
             _input = input;
         }
@@ -270,6 +270,7 @@ namespace UIDev
             {
                 case "VER ": ParseVersion(); break;
                 case "FRAM": ParseFrameStart(); break;
+                case "UMRK": ParseUserMarker(); break;
                 case "RSV ": ParseRSVData(); break;
                 case "ZONE": ParseZoneChange(); break;
                 case "DIRU": ParseDirectorUpdate(); break;
@@ -360,6 +361,11 @@ namespace UIDev
                 op.Frame.TickSpeedMultiplier = 1;
             }
             AddOp(op);
+        }
+
+        private void ParseUserMarker()
+        {
+            AddOp(new WorldState.OpUserMarker() { Text = _input.ReadString() });
         }
 
         private void ParseRSVData()

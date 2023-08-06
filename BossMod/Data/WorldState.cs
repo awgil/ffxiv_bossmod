@@ -1,8 +1,5 @@
-﻿using BossMod.Endwalker.HuntS.Ker;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
 
 namespace BossMod
 {
@@ -15,6 +12,7 @@ namespace BossMod
         public ulong QPF;
         public FrameState Frame;
         public ushort CurrentZone { get; private set; }
+        public Dictionary<string, string> RSVEntries { get; init; } = new();
         public WaymarkState Waymarks { get; init; } = new();
         public ActorState Actors { get; init; } = new();
         public PartyState Party { get; init; }
@@ -41,10 +39,10 @@ namespace BossMod
                 Timestamp = ws.CurrentTime;
             }
 
-            protected WorldStateLogger.Output WriteTag(WorldStateLogger.Output output, string tag) => output.Entry(tag, Timestamp);
+            protected ReplayRecorder.Output WriteTag(ReplayRecorder.Output output, string tag) => output.Entry(tag, Timestamp);
 
             protected abstract void Exec(WorldState ws);
-            public abstract void Write(WorldStateLogger.Output output);
+            public abstract void Write(ReplayRecorder.Output output);
         }
 
         public void Execute(Operation op)
@@ -60,6 +58,8 @@ namespace BossMod
                 yield return new OpFrameStart() { Frame = Frame };
             if (CurrentZone != 0)
                 yield return new OpZoneChange() { Zone = CurrentZone };
+            foreach (var (k, v) in RSVEntries)
+                yield return new OpRSVData() { Key = k, Value = v };
             foreach (var o in Waymarks.CompareToInitial())
                 yield return o;
             foreach (var o in Actors.CompareToInitial())
@@ -82,7 +82,7 @@ namespace BossMod
                 ws.FrameStarted?.Invoke(ws, this);
             }
 
-            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "FRAM")
+            public override void Write(ReplayRecorder.Output output) => WriteTag(output, "FRAM")
                 .Emit(PrevUpdateTime.TotalMilliseconds, "f3")
                 .Emit()
                 .Emit(GaugePayload, "X16")
@@ -91,6 +91,19 @@ namespace BossMod
                 .Emit(Frame.DurationRaw)
                 .Emit(Frame.Duration)
                 .Emit(Frame.TickSpeedMultiplier);
+        }
+
+        public event EventHandler<OpUserMarker>? UserMarkerAdded;
+        public class OpUserMarker : Operation
+        {
+            public string Text = "";
+
+            protected override void Exec(WorldState ws)
+            {
+                ws.UserMarkerAdded?.Invoke(ws, this);
+            }
+
+            public override void Write(ReplayRecorder.Output output) => WriteTag(output, "UMRK").Emit(Text);
         }
 
         public event EventHandler<OpRSVData>? RSVDataReceived;
@@ -102,10 +115,11 @@ namespace BossMod
             protected override void Exec(WorldState ws)
             {
                 Service.LuminaGameData?.Excel.RsvProvider.Add(Key, Value);
+                ws.RSVEntries[Key] = Value;
                 ws.RSVDataReceived?.Invoke(ws, this);
             }
 
-            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "RSV ").Emit(Key).Emit(Value);
+            public override void Write(ReplayRecorder.Output output) => WriteTag(output, "RSV ").Emit(Key).Emit(Value);
         }
 
         public event EventHandler<OpZoneChange>? CurrentZoneChanged;
@@ -119,7 +133,7 @@ namespace BossMod
                 ws.CurrentZoneChanged?.Invoke(ws, this);
             }
 
-            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "ZONE").Emit(Zone);
+            public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ZONE").Emit(Zone);
         }
 
         // global events
@@ -138,7 +152,7 @@ namespace BossMod
                 ws.DirectorUpdate?.Invoke(ws, this);
             }
 
-            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "DIRU").Emit(DirectorID, "X8").Emit(UpdateID, "X8").Emit(Param1, "X8").Emit(Param2, "X8").Emit(Param3, "X8").Emit(Param4, "X8");
+            public override void Write(ReplayRecorder.Output output) => WriteTag(output, "DIRU").Emit(DirectorID, "X8").Emit(UpdateID, "X8").Emit(Param1, "X8").Emit(Param2, "X8").Emit(Param3, "X8").Emit(Param4, "X8");
         }
 
         public event EventHandler<OpEnvControl>? EnvControl;
@@ -153,7 +167,7 @@ namespace BossMod
                 ws.EnvControl?.Invoke(ws, this);
             }
 
-            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "ENVC").Emit(DirectorID, "X8").Emit(Index, "X2").Emit(State, "X8");
+            public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ENVC").Emit(DirectorID, "X8").Emit(Index, "X2").Emit(State, "X8");
         }
     }
 }

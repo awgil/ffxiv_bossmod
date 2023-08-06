@@ -1,7 +1,5 @@
-﻿using Dalamud.Game;
-using Dalamud.Game.ClientState.Conditions;
+﻿using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
-using Dalamud.Interface;
 using Dalamud.IoC;
 using Dalamud.Logging;
 using Dalamud.Plugin;
@@ -18,7 +16,7 @@ namespace BossMod
 
         private Network _network;
         private WorldStateGame _ws;
-        private WorldStateLogger _debugLogger;
+        private ReplayRecorderUI _recorder;
         private BossModuleManagerGame _bossmod;
         private Autorotation _autorotation;
         private AI.AIManager _ai;
@@ -51,12 +49,12 @@ namespace BossMod
             _commandManager = commandManager;
             _commandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
-            var logSettings = Service.Config.Get<LoggingConfig>();
-            logSettings.TargetDirectory = dalamud.ConfigDirectory;
+            var recorderSettings = Service.Config.Get<ReplayRecorderConfig>();
+            recorderSettings.TargetDirectory = dalamud.ConfigDirectory;
 
             _network = new(dalamud.ConfigDirectory);
             _ws = new(_network);
-            _debugLogger = new(_ws, logSettings);
+            _recorder = new(_ws, recorderSettings);
             _bossmod = new(_ws);
             _autorotation = new(_bossmod);
             _ai = new(_autorotation);
@@ -71,7 +69,7 @@ namespace BossMod
         {
             Service.Condition.ConditionChange -= OnConditionChanged;
             WindowManager.Reset();
-            _debugLogger.Dispose();
+            _recorder.Dispose();
             _bossmod.Dispose();
             _network.Dispose();
             _ai.Dispose();

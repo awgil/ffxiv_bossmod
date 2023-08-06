@@ -40,7 +40,7 @@ namespace BossMod
                 ws.Waymarks.Changed?.Invoke(ws, this);
             }
 
-            public override void Write(WorldStateLogger.Output output)
+            public override void Write(ReplayRecorder.Output output)
             {
                 if (Pos != null)
                     WriteTag(output, "WAY+").Emit((byte)ID).Emit(Pos.Value);

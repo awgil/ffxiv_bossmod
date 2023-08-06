@@ -152,6 +152,10 @@ namespace UIDev
                 DrawCheckpoint(e.Time.Start, 0xff00ff00, cursor, w);
                 DrawCheckpoint(e.Time.End, 0xff0000ff, cursor, w);
             }
+            foreach (var m in _player.Replay.UserMarkers)
+            {
+                DrawCheckpoint(m.Key, 0xffff0000, cursor, w);
+            }
             if (ImGui.IsMouseClicked(ImGuiMouseButton.Left) || ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
             {
                 var pos = ImGui.GetMousePos();

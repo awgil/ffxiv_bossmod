@@ -135,7 +135,7 @@ namespace UIDev
         {
             using (var stream = new MemoryStream(1024))
             {
-                var writer = new WorldStateLogger.TextOutput(stream, null);
+                var writer = new ReplayRecorder.TextOutput(stream, null);
                 op.Write(writer);
                 writer.Flush();
                 stream.Position = 0;

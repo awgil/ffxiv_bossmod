@@ -40,7 +40,7 @@ namespace BossMod
                 ws.Client.ActionRequested?.Invoke(ws, this);
             }
 
-            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "CLAR")
+            public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLAR")
                 .Emit(Request.Action)
                 .EmitActor(Request.TargetID)
                 .Emit(Request.TargetPos)
@@ -60,7 +60,7 @@ namespace BossMod
                 ws.Client.ActionRejected?.Invoke(ws, this);
             }
 
-            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "CLRJ")
+            public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLRJ")
                 .Emit(Value.Action)
                 .Emit(Value.SourceSequence)
                 .EmitFloatPair(Value.RecastElapsed, Value.RecastTotal)

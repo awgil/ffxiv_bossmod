@@ -61,8 +61,8 @@ namespace UIDev
 
         protected Replay _res = new();
         protected WorldState _ws = new(TimeSpan.TicksPerSecond);
-        private LoggingConfig? _relogConfig;
-        private WorldStateLogger? _relogger;
+        private ReplayRecorderConfig? _relogConfig;
+        private ReplayRecorder? _relogger;
         private BossModuleManagerWrapper _mgr;
         private Dictionary<ulong, LoadedModuleData> _modules = new();
         private Dictionary<ulong, Replay.Participant> _participants = new();
@@ -70,7 +70,7 @@ namespace UIDev
         private Dictionary<ulong, Replay.Tether> _tethers = new();
         private List<Replay.ClientAction> _pendingClientActions = new();
 
-        protected ReplayParser(LoggingConfig? relogConfig)
+        protected ReplayParser(ReplayRecorderConfig? relogConfig)
         {
             _relogConfig = relogConfig;
             _mgr = new(this);
@@ -90,6 +90,7 @@ namespace UIDev
             _ws.Actors.IconAppeared += EventIcon;
             _ws.Actors.CastEvent += EventCast;
             _ws.Actors.EffectResult += EventConfirm;
+            _ws.UserMarkerAdded += EventUserMarker;
             _ws.DirectorUpdate += EventDirectorUpdate;
             _ws.EnvControl += EventEnvControl;
             _ws.Client.ActionRequested += ClientActionRequested;
@@ -387,6 +388,11 @@ namespace UIDev
             {
                 Service.Log($"Skipping confirmation #{args.Seq}/{args.TargetIndex} for {args.Source.InstanceID:X} for unexpected target (src={a.Source?.InstanceID:X}, tgt={t.TargetID:X})");
             }
+        }
+
+        private void EventUserMarker(object? sender, WorldState.OpUserMarker op)
+        {
+            _res.UserMarkers.Add(_ws.CurrentTime, op.Text);
         }
 
         private void EventDirectorUpdate(object? sender, WorldState.OpDirectorUpdate op)

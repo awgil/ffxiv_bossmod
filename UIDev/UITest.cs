@@ -107,22 +107,22 @@ namespace UIDev
             ImGui.SameLine();
             if (ImGui.Button("Convert to verbose"))
             {
-                ConvertLog(_path, LoggingConfig.LogFormat.TextVerbose);
+                ConvertLog(_path, ReplayRecorderConfig.LogFormat.TextVerbose);
             }
             ImGui.SameLine();
             if (ImGui.Button("Convert to short text"))
             {
-                ConvertLog(_path, LoggingConfig.LogFormat.TextCondensed);
+                ConvertLog(_path, ReplayRecorderConfig.LogFormat.TextCondensed);
             }
             ImGui.SameLine();
             if (ImGui.Button("Convert to uncompressed binary"))
             {
-                ConvertLog(_path, LoggingConfig.LogFormat.BinaryUncompressed);
+                ConvertLog(_path, ReplayRecorderConfig.LogFormat.BinaryUncompressed);
             }
             ImGui.SameLine();
             if (ImGui.Button("Convert to compressed binary"))
             {
-                ConvertLog(_path, LoggingConfig.LogFormat.BinaryCompressed);
+                ConvertLog(_path, ReplayRecorderConfig.LogFormat.BinaryCompressed);
             }
 
             foreach (var t in _testTypes)
@@ -139,11 +139,10 @@ namespace UIDev
             }
         }
 
-        private void ConvertLog(string input, LoggingConfig.LogFormat format)
+        private void ConvertLog(string input, ReplayRecorderConfig.LogFormat format)
         {
-            var config = new LoggingConfig()
+            var config = new ReplayRecorderConfig()
             {
-                DumpWorldStateEvents = true,
                 WorldLogFormat = format,
                 DumpServerPackets = true,
                 DumpClientPackets = true,

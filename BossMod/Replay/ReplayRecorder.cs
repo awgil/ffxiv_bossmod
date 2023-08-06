@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace BossMod
 {
-    public class WorldStateLogger : IDisposable
+    public class ReplayRecorder : IDisposable
     {
         public abstract class Output : IDisposable
         {
@@ -173,96 +173,58 @@ namespace BossMod
         }
 
         private WorldState _ws;
-        private LoggingConfig _config;
-        private Output? _logger = null;
-
-        public bool Active => _logger != null;
+        private Output _logger;
 
         public const int Version = 10;
 
-        public WorldStateLogger(WorldState ws, LoggingConfig config)
+        public ReplayRecorder(WorldState ws, ReplayRecorderConfig config)
         {
             _ws = ws;
-            _config = config;
-            _config.Modified += ApplyConfig;
-            if (_config.DumpWorldStateEvents)
-                Activate();
+            if (config.TargetDirectory == null)
+                throw new Exception("Target directory is not configured properly");
+
+            config.TargetDirectory.Create();
+            Stream stream = new FileStream($"{config.TargetDirectory.FullName}/{config.LogPrefix}_{_ws.CurrentTime:yyyy_MM_dd_HH_mm_ss}.log", FileMode.Create, FileAccess.Write, FileShare.Read);
+            switch (config.WorldLogFormat)
+            {
+                case ReplayRecorderConfig.LogFormat.BinaryCompressed:
+                    WriteHeader(stream, "BLCB");// bossmod log compressed brotli
+                    stream = new BrotliStream(stream, CompressionLevel.Optimal, false);
+                    _logger = new BinaryOutput(stream);
+                    break;
+                case ReplayRecorderConfig.LogFormat.BinaryUncompressed:
+                    WriteHeader(stream, "BLOG");// bossmod log
+                    _logger = new BinaryOutput(stream);
+                    break;
+                case ReplayRecorderConfig.LogFormat.TextCondensed:
+                    _logger = new TextOutput(stream, null);
+                    break;
+                case ReplayRecorderConfig.LogFormat.TextVerbose:
+                    _logger = new TextOutput(stream, _ws.Actors);
+                    break;
+                default:
+                    throw new Exception("Bad format");
+            }
+
+            // log initial state
+            _logger.Entry("VER ", _ws.CurrentTime).Emit(Version).Emit(_ws.QPF);
+            if (_logger is BinaryOutput)
+                _logger.Emit(_ws.CurrentTime.Ticks);
+            _logger.EndEntry();
+            foreach (var op in _ws.CompareToInitial())
+            {
+                op.Timestamp = _ws.CurrentTime;
+                Log(null, op);
+            }
+
+            // log changes
+            _ws.Modified += Log;
         }
 
         public void Dispose()
         {
-            _config.Modified -= ApplyConfig;
-            Deactivate();
-        }
-
-        private void ApplyConfig(object? sender, EventArgs args)
-        {
-            if (_config.DumpWorldStateEvents)
-                Activate();
-            else
-                Deactivate();
-        }
-
-        private void Activate()
-        {
-            if (!Active && _config.TargetDirectory != null)
-            {
-                try
-                {
-                    _config.TargetDirectory.Create();
-                    Stream stream = new FileStream($"{_config.TargetDirectory.FullName}/{_config.LogPrefix}_{_ws.CurrentTime:yyyy_MM_dd_HH_mm_ss}.log", FileMode.Create, FileAccess.Write, FileShare.Read);
-                    switch (_config.WorldLogFormat)
-                    {
-                        case LoggingConfig.LogFormat.BinaryCompressed:
-                            WriteHeader(stream, "BLCB");// bossmod log compressed brotli
-                            stream = new BrotliStream(stream, CompressionLevel.Optimal, false);
-                            _logger = new BinaryOutput(stream);
-                            break;
-                        case LoggingConfig.LogFormat.BinaryUncompressed:
-                            WriteHeader(stream, "BLOG");// bossmod log
-                            _logger = new BinaryOutput(stream);
-                            break;
-                        case LoggingConfig.LogFormat.TextCondensed:
-                            _logger = new TextOutput(stream, null);
-                            break;
-                        case LoggingConfig.LogFormat.TextVerbose:
-                            _logger = new TextOutput(stream, _ws.Actors);
-                            break;
-                        default:
-                            throw new IOException("Bad format");
-                    }
-                }
-                catch (IOException e)
-                {
-                    Service.Log($"Failed to start logging: {e}");
-                    _config.DumpWorldStateEvents = false;
-                    return;
-                }
-
-                // log initial state
-                _logger.Entry("VER ", _ws.CurrentTime).Emit(Version).Emit(_ws.QPF);
-                if (_logger is BinaryOutput)
-                    _logger.Emit(_ws.CurrentTime.Ticks);
-                _logger.EndEntry();
-                foreach (var op in _ws.CompareToInitial())
-                {
-                    op.Timestamp = _ws.CurrentTime;
-                    Log(null, op);
-                }
-
-                // log changes
-                _ws.Modified += Log;
-            }
-        }
-
-        private void Deactivate()
-        {
-            if (Active)
-            {
-                _ws.Modified -= Log;
-                _logger?.Dispose();
-                _logger = null;
-            }
+            _ws.Modified -= Log;
+            _logger.Dispose();
         }
 
         private void WriteHeader(Stream stream, string header)
@@ -273,11 +235,8 @@ namespace BossMod
 
         private void Log(object? sender, WorldState.Operation op)
         {
-            if (_logger != null)
-            {
-                op.Write(_logger);
-                _logger.EndEntry();
-            }
+            op.Write(_logger);
+            _logger.EndEntry();
         }
     }
 }

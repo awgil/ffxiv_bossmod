@@ -32,6 +32,7 @@ namespace UIDev
                 }
 
                 DrawContents(null, null);
+                DrawUserMarkers();
             }
             foreach (var e in _tree.Nodes(_replay.Encounters, e => new($"{ModuleRegistry.FindByOID(e.OID)?.ModuleType.Name}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}")))
             {
@@ -223,6 +224,12 @@ namespace UIDev
             {
                 _tree.LeafNodes(enc.Errors, error => $"{tp(error.Timestamp)} [{error.CompType}] {error.Message}");
             }
+        }
+
+        private void DrawUserMarkers()
+        {
+            foreach (var n in _tree.Node("User markers"))
+                _tree.LeafNodes(_replay.UserMarkers, kv => $"{kv.Key:O}: {kv.Value}");
         }
 
         private Func<DateTime, string> TimePrinter(DateTime start)

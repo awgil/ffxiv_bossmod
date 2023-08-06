@@ -3,8 +3,8 @@ using System.IO;
 
 namespace BossMod
 {
-    [ConfigDisplay(Name = "Logging settings", Order = 0)]
-    public class LoggingConfig : ConfigNode
+    [ConfigDisplay(Name = "Replay recorder settings", Order = 0)]
+    public class ReplayRecorderConfig : ConfigNode
     {
         public enum LogFormat
         {
@@ -21,18 +21,17 @@ namespace BossMod
             TextVerbose,
         }
 
-        [JsonIgnore]
-        [PropertyDisplay("Write event log")]
-        public bool DumpWorldStateEvents = false;
+        [PropertyDisplay("Show recorder UI")]
+        public bool ShowUI = false;
+
+        [PropertyDisplay("Store server packets in the replay")]
+        public bool DumpServerPackets = false;
+
+        [PropertyDisplay("Store client packets in the replay")]
+        public bool DumpClientPackets = false;
 
         [PropertyDisplay("Log format")]
         public LogFormat WorldLogFormat = LogFormat.BinaryCompressed;
-
-        [PropertyDisplay("Store server packets in the event log")]
-        public bool DumpServerPackets = false;
-
-        [PropertyDisplay("Store client packets in the event log")]
-        public bool DumpClientPackets = false;
 
         [JsonIgnore]
         public DirectoryInfo? TargetDirectory;

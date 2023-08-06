@@ -200,6 +200,7 @@ namespace UIDev
         public List<EnvControl> EnvControls = new();
         public List<ClientAction> ClientActions = new();
         public List<Encounter> Encounters = new();
+        public SortedList<DateTime, string> UserMarkers = new();
 
         public IEnumerable<Action> EncounterActions(Encounter e) => Actions.Skip(e.FirstAction).TakeWhile(a => a.Timestamp <= e.Time.End);
         public IEnumerable<Status> EncounterStatuses(Encounter e) => Statuses.Skip(e.FirstStatus).TakeWhile(s => s.Time.Start <= e.Time.End);
