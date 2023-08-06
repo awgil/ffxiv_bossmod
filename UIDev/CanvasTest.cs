@@ -4,12 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace UIDev
 {
-    class CanvasTest : ITest
+    class CanvasTest : TestWindow
     {
         private Vector2 _screenSize = new(300, 300);
         private WPos _start = new(5, 150);
@@ -20,7 +18,7 @@ namespace UIDev
         int _mouseoverIndex = 0;
         bool _mouseoverPoint = false;
 
-        public CanvasTest()
+        public CanvasTest() : base("Canvas test", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
         {
             var c1 = new List<WPos>();
             c1.Add(new(30, 100));
@@ -48,11 +46,7 @@ namespace UIDev
             _contours.Add(c3);
         }
 
-        public void Dispose()
-        {
-        }
-
-        public void Draw()
+        public override void Draw()
         {
             var cursor = ImGui.GetCursorScreenPos();
             ImGui.InvisibleButton("canvas", _screenSize, ImGuiButtonFlags.MouseButtonLeft);

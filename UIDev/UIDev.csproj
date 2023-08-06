@@ -35,6 +35,12 @@
     <Reference Include="SharpDX.Direct3D11">
       <HintPath>$(DalamudLibPath)SharpDX.Direct3D11.dll</HintPath>
     </Reference>
+    <Reference Include="SharpDX.DXGI">
+      <HintPath>$(DalamudLibPath)SharpDX.DXGI.dll</HintPath>
+    </Reference>
+    <Reference Include="Dalamud">
+      <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

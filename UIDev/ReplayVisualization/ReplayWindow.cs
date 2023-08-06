@@ -7,7 +7,7 @@ using System.Numerics;
 
 namespace UIDev
 {
-    class ReplayVisualizer : IDisposable
+    class ReplayWindow : SimpleWindow
     {
         private ReplayPlayer _player;
         private BossModuleManager _mgr;
@@ -30,7 +30,7 @@ namespace UIDev
         private Positional _pfPositional = Positional.Any;
         private bool _pfTank = false;
 
-        public ReplayVisualizer(Replay data)
+        public ReplayWindow(Replay data) : base($"Replay: {data.Path}")
         {
             _player = new(data);
             _mgr = new(_player.WorldState);
@@ -40,13 +40,11 @@ namespace UIDev
             _config = new(Service.Config, _player.WorldState);
             _events = new(data, MoveTo);
             _analysis = new(data);
+            Size = new(1500, 1000);
+            SizeCondition = ImGuiCond.Once;
         }
 
-        public void Dispose()
-        {
-        }
-
-        public void Draw()
+        public override void Draw()
         {
             var curFrame = DateTime.Now;
             if (_playSpeed > 0)

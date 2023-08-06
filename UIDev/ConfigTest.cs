@@ -4,21 +4,17 @@ using System;
 
 namespace UIDev
 {
-    class ConfigTest : ITest
+    class ConfigTest : TestWindow
     {
         private string _command = "";
         private ConfigUI _ui;
 
-        public ConfigTest()
+        public ConfigTest() : base("Config", ImGuiWindowFlags.None)
         {
             _ui = new(Service.Config, new(TimeSpan.TicksPerSecond));
         }
 
-        public void Dispose()
-        {
-        }
-
-        public void Draw()
+        public override void Draw()
         {
             ImGui.InputText("##console", ref _command, 1024);
             ImGui.SameLine();
@@ -33,7 +29,5 @@ namespace UIDev
 
             _ui.Draw();
         }
-
-        public ImGuiWindowFlags WindowFlags() => ImGuiWindowFlags.None;
     }
 }

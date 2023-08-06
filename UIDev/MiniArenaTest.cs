@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace UIDev
 {
-    class MiniArenaTest : ITest
+    class MiniArenaTest : TestWindow
     {
         private MiniArena _arena = new(new(), new ArenaBoundsSquare(new(100, 100), 20));
         private bool _arenaIsCircle = false;
@@ -24,11 +24,9 @@ namespace UIDev
         private Vector2 _kbCenter = new(110, 100);
         private float _kbDistance = 5;
 
-        public void Dispose()
-        {
-        }
+        public MiniArenaTest() : base("Arena test", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse) { }
 
-        public void Draw()
+        public override void Draw()
         {
             ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, +180);
             ImGui.DragFloat("Camera altitude", ref _altitude, 1, -90, +90);

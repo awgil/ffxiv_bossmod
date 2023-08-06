@@ -1,23 +1,20 @@
 ﻿using BossMod;
+using ImGuiNET;
 
 namespace UIDev
 {
-    class PlotTest : ITest
+    class PlotTest : TestWindow
     {
         private UIPlot _plot = new();
 
-        public PlotTest()
+        public PlotTest() : base("Plot test", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
         {
             _plot.DataMin = new(-180, 0);
             _plot.DataMax = new(180, 60);
             _plot.TickAdvance = new(45, 5);
         }
 
-        public void Dispose()
-        {
-        }
-
-        public void Draw()
+        public override void Draw()
         {
             _plot.Begin();
             _plot.Point(new(-45, 1), 0xffffffff, () => "first");

@@ -7,7 +7,7 @@ using System.Numerics;
 
 namespace UIDev
 {
-    class PathfindingTest : ITest
+    class PathfindingTest : TestWindow
     {
         private MapVisualizer _visu;
 
@@ -37,16 +37,12 @@ namespace UIDev
         private float _blockRectRotationDeg;
         private float _blockRectG = 0;
 
-        public PathfindingTest()
+        public PathfindingTest() : base("Pathfinding test", ImGuiWindowFlags.None)
         {
             _visu = RebuildMap();
         }
 
-        public void Dispose()
-        {
-        }
-
-        public void Draw()
+        public override void Draw()
         {
             _visu.Draw();
 
@@ -90,8 +86,6 @@ namespace UIDev
             if (rebuild)
                 _visu = RebuildMap();
         }
-
-        public ImGuiWindowFlags WindowFlags() { return ImGuiWindowFlags.None; }
 
         private MapVisualizer RebuildMap()
         {

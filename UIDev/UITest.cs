@@ -1,158 +1,129 @@
-﻿using ImGuiNET;
+﻿using BossMod;
+using Dalamud.Interface;
+using ImGuiNET;
 using ImGuiScene;
-using BossMod;
+using Microsoft.Win32;
 using System;
 using System.Diagnostics;
-using System.Collections.Generic;
 using System.IO;
-using Microsoft.Win32;
+using System.Linq;
+using System.Numerics;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using static SDL2.SDL;
 
 namespace UIDev
 {
-    class UITest : IPluginUIMock
+    class UITest
     {
         public static void Main(string[] args)
         {
-            UIBootstrap.Inititalize(new UITest());
-        }
+            // you can edit this if you want more control over things
+            // mainly if you want a regular window instead of transparent overlay
+            // Typically you don't want to change any colors here if you keep the fullscreen overlay
+            using var scene = new SimpleImGuiScene(RendererFactory.RendererBackend.DirectX11, new WindowCreateInfo
+            {
+                Title = "UI Test",
+                XPos = -10,
+                //YPos = 20,
+                //Width = 1200,
+                //Height = 800,
+                Fullscreen = true,
+                TransparentColor = new float[] { 0, 0, 0 },
+            });
 
-        private SimpleImGuiScene? _scene;
-        private List<Type> _testTypes = new();
-        private string _path = "";
-        private string _configPath = "";
-        private bool _configModified;
+            // the background color of your window - typically don't change this for fullscreen overlays
+            scene.Renderer.ClearColor = new Vector4(0, 0, 0, 0);
 
-        public void Initialize(SimpleImGuiScene scene)
-        {
-            _configPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "pluginConfigs", "BossMod.json");
+            InitializeDalamudStyle();
 
             Service.LogHandler = msg => Debug.WriteLine(msg);
             Service.LuminaGameData = new(FindGameDataPath());
             Service.LuminaGameData.Options.PanicOnSheetChecksumMismatch = false; // TODO: remove - temporary workaround until lumina is updated
-            Service.Config.Initialize();
-            Service.Config.LoadFromFile(new(_configPath));
-            Service.Config.Modified += (_, _) => _configModified = true;
+            Service.WindowSystem = new("uitest");
             //Service.Device = (SharpDX.Direct3D11.Device?)scene.Renderer.GetType().GetField("_device", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(scene.Renderer);
 
-            // scene is a little different from what you have access to in dalamud
-            // but it can accomplish the same things, and is really only used for initial setup here
-
-            scene.OnBuildUI += WindowManager.DrawAll;
-
-            // saving this only so we can kill the test application by closing the window
-            // (instead of just by hitting escape)
-            _scene = scene;
-
-            var testType = typeof(ITest);
-            foreach (var t in testType.Assembly.GetTypes())
+            // esc should close focused window
+            bool escDown = false;
+            scene.Window.OnSDLEvent += (ref SDL_Event sdlEvent) =>
             {
-                if (t != testType && testType.IsAssignableFrom(t))
+                if (sdlEvent.type == SDL_EventType.SDL_KEYDOWN && sdlEvent.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_ESCAPE && !escDown)
                 {
-                    _testTypes.Add(t);
+                    escDown = true;
+                    var focusWindow = Service.WindowSystem.HasAnyFocus ? Service.WindowSystem.Windows.FirstOrDefault(w => w.IsFocused && w.RespectCloseHotkey) : null;
+                    if (focusWindow != null)
+                        focusWindow.IsOpen = false;
                 }
-            }
-
-            WindowManager.CreateWindow("Boss mod UI development", DrawMainWindow, () => scene.ShouldQuit = true, () => true);
-        }
-
-        public void Dispose()
-        {
-        }
-
-        private void DrawMainWindow()
-        {
-            ImGui.InputText("Config", ref _configPath, 500);
-            ImGui.SameLine();
-            if (ImGui.Button("Reload"))
-            {
-                Service.Config.LoadFromFile(new(_configPath));
-                _configModified = false;
-            }
-            ImGui.SameLine();
-            if (ImGui.Button(_configModified ? "Save (modified)" : "Save (no changes)"))
-            {
-                Service.Config.SaveToFile(new(_configPath));
-                _configModified = false;
-            }
-
-            ImGui.Separator();
-
-            ImGui.InputText("Path", ref _path, 500);
-            if (ImGui.Button("Open native log..."))
-            {
-                var data = ReplayParserLog.Parse(_path);
-                if (data.Ops.Count > 0)
+                else if (sdlEvent.type == SDL_EventType.SDL_KEYUP && sdlEvent.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_ESCAPE)
                 {
-                    var visu = new ReplayVisualizer(data);
-                    var w = WindowManager.CreateWindow($"Native log: {_path}", visu.Draw, visu.Dispose, () => true);
-                    w.SizeHint = new(1000, 1000);
+                    escDown = false;
                 }
-            }
-            //ImGui.SameLine();
-            //if (ImGui.Button("Open ACT log..."))
-            //{
-            //    var data = ReplayParserAct.Parse(_path, 0);
-            //    if (data.Ops.Count > 0)
-            //    {
-            //        var visu = new ReplayVisualizer(data);
-            //        WindowManager.CreateWindow($"ACT log: {_path}", visu.Draw, visu.Dispose, () => true);
-            //    }
-            //}
-            ImGui.SameLine();
-            if (ImGui.Button("Analyze all logs..."))
-            {
-                var a = new AnalysisManager(_path);
-                WindowManager.CreateWindow($"Multiple logs: {_path}", a.Draw, a.Dispose, () => true);
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Convert to verbose"))
-            {
-                ConvertLog(_path, ReplayRecorderConfig.LogFormat.TextVerbose);
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Convert to short text"))
-            {
-                ConvertLog(_path, ReplayRecorderConfig.LogFormat.TextCondensed);
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Convert to uncompressed binary"))
-            {
-                ConvertLog(_path, ReplayRecorderConfig.LogFormat.BinaryUncompressed);
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Convert to compressed binary"))
-            {
-                ConvertLog(_path, ReplayRecorderConfig.LogFormat.BinaryCompressed);
-            }
-
-            foreach (var t in _testTypes)
-            {
-                if (ImGui.Button($"Show {t}"))
-                {
-                    var inst = (ITest?)Activator.CreateInstance(t);
-                    if (inst != null)
-                    {
-                        var window = WindowManager.CreateWindow(t.ToString(), inst.Draw, inst.Dispose, () => true);
-                        window.Flags = inst.WindowFlags();
-                    }
-                }
-            }
-        }
-
-        private void ConvertLog(string input, ReplayRecorderConfig.LogFormat format)
-        {
-            var config = new ReplayRecorderConfig()
-            {
-                WorldLogFormat = format,
-                DumpServerPackets = true,
-                DumpClientPackets = true,
-                TargetDirectory = new DirectoryInfo(input).Parent,
-                LogPrefix = format.ToString(),
             };
-            ReplayParserLog.Parse(_path, config);
+
+            var newFrame = (Action)Delegate.CreateDelegate(typeof(Action), typeof(ImGuiHelpers).GetMethod("NewFrame", BindingFlags.Static | BindingFlags.NonPublic)!);
+            scene.OnBuildUI += () =>
+            {
+                // this hack is needed to ensure we use correct global scale
+                newFrame.Invoke();
+                Service.WindowSystem.Draw();
+                WindowManager.DrawAll();
+            };
+
+            new UITestWindow(scene, Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "pluginConfigs", "BossMod.json")).Register();
+            scene.Run();
         }
 
-        private string FindGameDataPath()
+        private static unsafe void InitializeDalamudStyle()
+        {
+            // all of this is taken straight from dalamud
+            ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
+            fontConfig.MergeMode = true;
+            fontConfig.PixelSnapH = true;
+
+            var fontPathJp = "NotoSansCJKjp-Medium.otf";
+            ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, ImGui.GetIO().Fonts.GetGlyphRangesJapanese());
+
+            var fontPathGame = "gamesym.ttf";
+            var rangeHandle = GCHandle.Alloc(new ushort[] { 0xE020, 0xE0DB, 0 }, GCHandleType.Pinned);
+            ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, rangeHandle.AddrOfPinnedObject());
+
+            ImGui.GetIO().Fonts.Build();
+
+            fontConfig.Destroy();
+            rangeHandle.Free();
+
+
+            ImGui.GetStyle().GrabRounding = 3f;
+            ImGui.GetStyle().FrameRounding = 4f;
+            ImGui.GetStyle().WindowRounding = 4f;
+            ImGui.GetStyle().WindowBorderSize = 0f;
+            ImGui.GetStyle().WindowMenuButtonPosition = ImGuiDir.Right;
+            ImGui.GetStyle().ScrollbarSize = 16f;
+
+            ImGui.GetStyle().Colors[(int)ImGuiCol.WindowBg] = new Vector4(0.06f, 0.06f, 0.06f, 0.87f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBg] = new Vector4(0.29f, 0.29f, 0.29f, 0.54f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBgHovered] = new Vector4(0.54f, 0.54f, 0.54f, 0.40f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBgActive] = new Vector4(0.64f, 0.64f, 0.64f, 0.67f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.TitleBgActive] = new Vector4(0.29f, 0.29f, 0.29f, 1.00f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.CheckMark] = new Vector4(0.86f, 0.86f, 0.86f, 1.00f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.SliderGrab] = new Vector4(0.54f, 0.54f, 0.54f, 1.00f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.SliderGrabActive] = new Vector4(0.67f, 0.67f, 0.67f, 1.00f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.Button] = new Vector4(0.71f, 0.71f, 0.71f, 0.40f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.ButtonHovered] = new Vector4(0.47f, 0.47f, 0.47f, 1.00f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.ButtonActive] = new Vector4(0.74f, 0.74f, 0.74f, 1.00f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.Header] = new Vector4(0.59f, 0.59f, 0.59f, 0.31f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.HeaderHovered] = new Vector4(0.50f, 0.50f, 0.50f, 0.80f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.HeaderActive] = new Vector4(0.60f, 0.60f, 0.60f, 1.00f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.ResizeGrip] = new Vector4(0.79f, 0.79f, 0.79f, 0.25f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.ResizeGripHovered] = new Vector4(0.78f, 0.78f, 0.78f, 0.67f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.ResizeGripActive] = new Vector4(0.88f, 0.88f, 0.88f, 0.95f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.Tab] = new Vector4(0.23f, 0.23f, 0.23f, 0.86f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.TabHovered] = new Vector4(0.71f, 0.71f, 0.71f, 0.80f);
+            ImGui.GetStyle().Colors[(int)ImGuiCol.TabActive] = new Vector4(0.36f, 0.36f, 0.36f, 1.00f);
+            // end dalamud copy
+        }
+
+        private static string FindGameDataPath()
         {
             // stolen from FFXIVLauncher/src/XIVLauncher/AppUtil.cs
             foreach (var registryView in new RegistryView[] { RegistryView.Registry32, RegistryView.Registry64 })

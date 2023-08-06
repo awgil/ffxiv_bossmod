@@ -5,7 +5,7 @@ using System;
 
 namespace UIDev
 {
-    class WARSimulator : ITest
+    class WARSimulator : TestWindow
     {
         [Flags]
         public enum Mistake
@@ -37,7 +37,9 @@ namespace UIDev
         public float BuffWindowDuration = 20;
         public float BuffWindowFreq = 120;
 
-        public void Draw()
+        public WARSimulator() : base("WAR Simulator", ImGuiWindowFlags.None) { }
+
+        public override void Draw()
         {
             ImGui.InputInt("Sim duration (GCDs)", ref Duration);
             ImGui.Checkbox("Keep onslaught charge", ref KeepOnslaughtCharge);
@@ -107,15 +109,6 @@ namespace UIDev
             }
 
             ImGui.EndTable();
-        }
-
-        public ImGuiWindowFlags WindowFlags()
-        {
-            return ImGuiWindowFlags.None;
-        }
-
-        public void Dispose()
-        {
         }
 
         public ActionID GetNextBestAction(Rotation.State state, Rotation.Strategy strategy, bool aoe)

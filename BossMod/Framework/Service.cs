@@ -1,6 +1,5 @@
 ﻿using Dalamud.Data;
 using Dalamud.Game;
-using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.JobGauge;
 using Dalamud.Game.ClientState.Keys;
@@ -8,6 +7,7 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Party;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Network;
+using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using System;
 
@@ -40,6 +40,8 @@ namespace BossMod
 
         public static Lumina.GameData? LuminaGameData = null;
         public static T? LuminaRow<T>(uint row) where T : Lumina.Excel.ExcelRow => LuminaGameData?.GetExcelSheet<T>(Lumina.Data.Language.English)?.GetRow(row);
+
+        public static WindowSystem? WindowSystem = null;
 
         public static ConfigRoot Config = new();
 
