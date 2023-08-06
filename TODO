@@ -1,5 +1,4 @@
 general:
-- compressed binary format for logs
 - better ui for recording logs
 - optionally log raw ipcs when recording, visualize in replay analysis
 - simulate autorotation in replay analysis

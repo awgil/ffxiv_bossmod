@@ -43,9 +43,9 @@ namespace BossMod
             public override void Write(WorldStateLogger.Output output)
             {
                 if (Pos != null)
-                    output.Emit("WAY+").Emit((byte)ID).Emit(Pos.Value);
+                    WriteTag(output, "WAY+").Emit((byte)ID).Emit(Pos.Value);
                 else
-                    output.Emit("WAY-").Emit((byte)ID);
+                    WriteTag(output, "WAY-").Emit((byte)ID);
             }
         }
     }

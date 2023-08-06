@@ -8,8 +8,11 @@ namespace BossMod
     {
         public enum LogFormat
         {
-            [PropertyDisplay("Binary")]
-            Binary,
+            [PropertyDisplay("Compressed binary")]
+            BinaryCompressed,
+
+            [PropertyDisplay("Raw binary")]
+            BinaryUncompressed,
 
             [PropertyDisplay("Condensed text")]
             TextCondensed,
@@ -23,10 +26,7 @@ namespace BossMod
         public bool DumpWorldStateEvents = false;
 
         [PropertyDisplay("Log format")]
-        public LogFormat WorldLogFormat = LogFormat.Binary;
-
-        [PropertyDisplay("Compress log")]
-        public bool CompressLog = true;
+        public LogFormat WorldLogFormat = LogFormat.BinaryCompressed;
 
         [PropertyDisplay("Store server packets in the event log")]
         public bool DumpServerPackets = false;

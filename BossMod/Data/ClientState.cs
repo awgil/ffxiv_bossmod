@@ -40,15 +40,14 @@ namespace BossMod
                 ws.Client.ActionRequested?.Invoke(ws, this);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output
-                .Emit("CLAR")
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "CLAR")
                 .Emit(Request.Action)
                 .EmitActor(Request.TargetID)
                 .Emit(Request.TargetPos)
                 .Emit(Request.SourceSequence)
                 .Emit(Request.InitialAnimationLock, "f3")
-                .EmitTimePair(Request.InitialCastTimeElapsed, Request.InitialCastTimeTotal)
-                .EmitTimePair(Request.InitialRecastElapsed, Request.InitialRecastTotal);
+                .EmitFloatPair(Request.InitialCastTimeElapsed, Request.InitialCastTimeTotal)
+                .EmitFloatPair(Request.InitialRecastElapsed, Request.InitialRecastTotal);
         }
 
         public event EventHandler<OpActionReject>? ActionRejected;
@@ -61,11 +60,10 @@ namespace BossMod
                 ws.Client.ActionRejected?.Invoke(ws, this);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output
-                .Emit("CLRJ")
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "CLRJ")
                 .Emit(Value.Action)
                 .Emit(Value.SourceSequence)
-                .EmitTimePair(Value.RecastElapsed, Value.RecastTotal)
+                .EmitFloatPair(Value.RecastElapsed, Value.RecastTotal)
                 .Emit(Value.LogMessageID);
         }
     }

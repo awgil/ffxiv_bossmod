@@ -72,8 +72,7 @@ namespace BossMod
                 ws.Actors.Added?.Invoke(ws, actor);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output
-                .Emit("ACT+")
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "ACT+")
                 .Emit(InstanceID, "X8")
                 .Emit(OID, "X")
                 .Emit(SpawnIndex)
@@ -125,7 +124,7 @@ namespace BossMod
                 ws.Actors._actors.Remove(InstanceID);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("ACT-").Emit(InstanceID, "X8");
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "ACT-").Emit(InstanceID, "X8");
         }
 
         public event EventHandler<Actor>? Renamed;
@@ -139,7 +138,7 @@ namespace BossMod
                 ws.Actors.Renamed?.Invoke(ws, actor);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("NAME").Emit(InstanceID, "X8").Emit(Name);
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "NAME").Emit(InstanceID, "X8").Emit(Name);
         }
 
         public event EventHandler<Actor>? ClassChanged;
@@ -153,7 +152,7 @@ namespace BossMod
                 ws.Actors.ClassChanged?.Invoke(ws, actor);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("CLSR").EmitActor(InstanceID).Emit().Emit(Class);
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "CLSR").EmitActor(InstanceID).Emit().Emit(Class);
         }
 
         public event EventHandler<Actor>? Moved;
@@ -167,7 +166,7 @@ namespace BossMod
                 ws.Actors.Moved?.Invoke(ws, actor);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("MOVE").Emit(InstanceID, "X8").Emit(PosRot.XYZ()).Emit(PosRot.W.Radians());
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "MOVE").Emit(InstanceID, "X8").Emit(PosRot.XYZ()).Emit(PosRot.W.Radians());
         }
 
         public event EventHandler<Actor>? SizeChanged;
@@ -181,7 +180,7 @@ namespace BossMod
                 ws.Actors.SizeChanged?.Invoke(ws, actor);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("ACSZ").EmitActor(InstanceID).Emit(HitboxRadius, "f3");
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "ACSZ").EmitActor(InstanceID).Emit(HitboxRadius, "f3");
         }
 
         public event EventHandler<Actor>? HPMPChanged;
@@ -197,7 +196,7 @@ namespace BossMod
                 ws.Actors.HPMPChanged?.Invoke(ws, actor);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("HP  ").EmitActor(InstanceID).Emit(HP.Cur).Emit(HP.Max).Emit(HP.Shield).Emit(CurMP);
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "HP  ").EmitActor(InstanceID).Emit(HP.Cur).Emit(HP.Max).Emit(HP.Shield).Emit(CurMP);
         }
 
         public event EventHandler<Actor>? IsTargetableChanged;
@@ -211,7 +210,7 @@ namespace BossMod
                 ws.Actors.IsTargetableChanged?.Invoke(ws, actor);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit(Value ? "ATG+" : "ATG-").EmitActor(InstanceID);
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, Value ? "ATG+" : "ATG-").EmitActor(InstanceID);
         }
 
         public event EventHandler<Actor>? IsAllyChanged;
@@ -225,7 +224,7 @@ namespace BossMod
                 ws.Actors.IsAllyChanged?.Invoke(ws, actor);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("ALLY").EmitActor(InstanceID).Emit(Value);
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "ALLY").EmitActor(InstanceID).Emit(Value);
         }
 
         public event EventHandler<Actor>? IsDeadChanged;
@@ -239,7 +238,7 @@ namespace BossMod
                 ws.Actors.IsDeadChanged?.Invoke(ws, actor);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit(Value ? "DIE+" : "DIE-").EmitActor(InstanceID);
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, Value ? "DIE+" : "DIE-").EmitActor(InstanceID);
         }
 
         public event EventHandler<Actor>? InCombatChanged;
@@ -253,7 +252,7 @@ namespace BossMod
                 ws.Actors.InCombatChanged?.Invoke(ws, actor);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit(Value ? "COM+" : "COM-").EmitActor(InstanceID);
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, Value ? "COM+" : "COM-").EmitActor(InstanceID);
         }
 
         public event EventHandler<Actor>? ModelStateChanged;
@@ -267,7 +266,7 @@ namespace BossMod
                 ws.Actors.ModelStateChanged?.Invoke(ws, actor);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("MDLS").EmitActor(InstanceID).Emit(Value.ModelState).Emit(Value.AnimState1).Emit(Value.AnimState2);
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "MDLS").EmitActor(InstanceID).Emit(Value.ModelState).Emit(Value.AnimState1).Emit(Value.AnimState2);
         }
 
         public event EventHandler<Actor>? EventStateChanged;
@@ -281,7 +280,7 @@ namespace BossMod
                 ws.Actors.EventStateChanged?.Invoke(ws, actor);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("EVTS").EmitActor(InstanceID).Emit(Value);
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "EVTS").EmitActor(InstanceID).Emit(Value);
         }
 
         public event EventHandler<Actor>? TargetChanged;
@@ -295,7 +294,7 @@ namespace BossMod
                 ws.Actors.TargetChanged?.Invoke(ws, actor);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("TARG").EmitActor(InstanceID).EmitActor(Value);
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "TARG").EmitActor(InstanceID).EmitActor(Value);
         }
 
         // note: this is currently based on network events rather than per-frame state inspection
@@ -314,7 +313,7 @@ namespace BossMod
                     ws.Actors.Tethered?.Invoke(ws, actor);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("TETH").EmitActor(InstanceID).Emit(Value.ID).EmitActor(Value.Target);
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "TETH").EmitActor(InstanceID).Emit(Value.ID).EmitActor(Value.Target);
         }
 
         public event EventHandler<Actor>? CastStarted;
@@ -335,9 +334,9 @@ namespace BossMod
             public override void Write(WorldStateLogger.Output output)
             {
                 if (Value != null)
-                    output.Emit("CST+").EmitActor(InstanceID).Emit(Value.Action).EmitActor(Value.TargetID).Emit(Value.Location).EmitTimePair(Value.FinishAt, Value.TotalTime).Emit(Value.Interruptible).Emit(Value.Rotation);
+                    WriteTag(output, "CST+").EmitActor(InstanceID).Emit(Value.Action).EmitActor(Value.TargetID).Emit(Value.Location).EmitTimePair(Value.FinishAt, Value.TotalTime).Emit(Value.Interruptible).Emit(Value.Rotation);
                 else
-                    output.Emit("CST-").EmitActor(InstanceID);
+                    WriteTag(output, "CST-").EmitActor(InstanceID);
             }
         }
 
@@ -354,8 +353,7 @@ namespace BossMod
                 ws.Actors.CastEvent?.Invoke(ws, (actor, Value));
             }
 
-            public override void Write(WorldStateLogger.Output output) => output
-                .Emit("CST!")
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "CST!")
                 .EmitActor(InstanceID)
                 .Emit(Value.Action)
                 .EmitActor(Value.MainTargetID)
@@ -379,7 +377,7 @@ namespace BossMod
                 ws.Actors.EffectResult?.Invoke(ws, (actor, Seq, TargetIndex));
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("ER  ").EmitActor(InstanceID).Emit(Seq).Emit(TargetIndex);
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "ER  ").EmitActor(InstanceID).Emit(Seq).Emit(TargetIndex);
         }
 
         public event EventHandler<(Actor, int)>? StatusGain; // called when status appears -or- when extra or expiration time is changed
@@ -403,9 +401,9 @@ namespace BossMod
             public override void Write(WorldStateLogger.Output output)
             {
                 if (Value.ID != 0)
-                    output.Emit("STA+").EmitActor(InstanceID).Emit(Index).Emit(Value);
+                    WriteTag(output, "STA+").EmitActor(InstanceID).Emit(Index).Emit(Value);
                 else
-                    output.Emit("STA-").EmitActor(InstanceID).Emit(Index);
+                    WriteTag(output, "STA-").EmitActor(InstanceID).Emit(Index);
             }
         }
 
@@ -420,7 +418,7 @@ namespace BossMod
                 ws.Actors.IconAppeared?.Invoke(ws, (actor, IconID));
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("ICON").EmitActor(InstanceID).Emit(IconID);
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "ICON").EmitActor(InstanceID).Emit(IconID);
         }
 
         // TODO: this should be an actor field (?)
@@ -434,7 +432,7 @@ namespace BossMod
                 ws.Actors.EventObjectStateChange?.Invoke(ws, (actor, State));
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("ESTA").EmitActor(InstanceID).Emit(State, "X4");
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "ESTA").EmitActor(InstanceID).Emit(State, "X4");
         }
 
         // TODO: this should be an actor field (?)
@@ -449,7 +447,7 @@ namespace BossMod
                 ws.Actors.EventObjectAnimation?.Invoke(ws, (actor, Param1, Param2));
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("EANM").EmitActor(InstanceID).Emit(Param1, "X4").Emit(Param2, "X4");
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "EANM").EmitActor(InstanceID).Emit(Param1, "X4").Emit(Param2, "X4");
         }
 
         // TODO: this needs more reversing...
@@ -463,7 +461,7 @@ namespace BossMod
                 ws.Actors.PlayActionTimelineEvent?.Invoke(ws, (actor, ActionTimelineID));
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("PATE").EmitActor(InstanceID).Emit(ActionTimelineID, "X4");
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "PATE").EmitActor(InstanceID).Emit(ActionTimelineID, "X4");
         }
     }
 }

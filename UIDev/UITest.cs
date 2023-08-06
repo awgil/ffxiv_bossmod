@@ -107,17 +107,22 @@ namespace UIDev
             ImGui.SameLine();
             if (ImGui.Button("Convert to verbose"))
             {
-                ConvertLog(_path, LoggingConfig.LogFormat.TextVerbose, false);
+                ConvertLog(_path, LoggingConfig.LogFormat.TextVerbose);
             }
             ImGui.SameLine();
             if (ImGui.Button("Convert to short text"))
             {
-                ConvertLog(_path, LoggingConfig.LogFormat.TextCondensed, false);
+                ConvertLog(_path, LoggingConfig.LogFormat.TextCondensed);
             }
             ImGui.SameLine();
-            if (ImGui.Button("Convert to compressed text"))
+            if (ImGui.Button("Convert to uncompressed binary"))
             {
-                ConvertLog(_path, LoggingConfig.LogFormat.TextCondensed, true);
+                ConvertLog(_path, LoggingConfig.LogFormat.BinaryUncompressed);
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Convert to compressed binary"))
+            {
+                ConvertLog(_path, LoggingConfig.LogFormat.BinaryCompressed);
             }
 
             foreach (var t in _testTypes)
@@ -134,17 +139,16 @@ namespace UIDev
             }
         }
 
-        private void ConvertLog(string input, LoggingConfig.LogFormat format, bool compress)
+        private void ConvertLog(string input, LoggingConfig.LogFormat format)
         {
             var config = new LoggingConfig()
             {
                 DumpWorldStateEvents = true,
                 WorldLogFormat = format,
-                CompressLog = compress,
                 DumpServerPackets = true,
                 DumpClientPackets = true,
                 TargetDirectory = new DirectoryInfo(input).Parent,
-                LogPrefix = $"Cvt{format}{(compress ? "Compressed" : "")}",
+                LogPrefix = format.ToString(),
             };
             ReplayParserLog.Parse(_path, config);
         }

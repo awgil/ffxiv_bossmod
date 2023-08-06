@@ -33,13 +33,15 @@ namespace BossMod
         public event EventHandler<Operation>? Modified;
         public abstract class Operation
         {
-            public DateTime Timestamp { get; private set; } // TODO: this should be removed...
+            public DateTime Timestamp; // TODO: this should be removed...
 
             internal void Execute(WorldState ws)
             {
                 Exec(ws);
                 Timestamp = ws.CurrentTime;
             }
+
+            protected WorldStateLogger.Output WriteTag(WorldStateLogger.Output output, string tag) => output.Entry(tag, Timestamp);
 
             protected abstract void Exec(WorldState ws);
             public abstract void Write(WorldStateLogger.Output output);
@@ -80,8 +82,7 @@ namespace BossMod
                 ws.FrameStarted?.Invoke(ws, this);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output
-                .Emit("FRAM")
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "FRAM")
                 .Emit(PrevUpdateTime.TotalMilliseconds, "f3")
                 .Emit()
                 .Emit(GaugePayload, "X16")
@@ -104,7 +105,7 @@ namespace BossMod
                 ws.RSVDataReceived?.Invoke(ws, this);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("RSV ").Emit(Key).Emit(Value);
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "RSV ").Emit(Key).Emit(Value);
         }
 
         public event EventHandler<OpZoneChange>? CurrentZoneChanged;
@@ -118,7 +119,7 @@ namespace BossMod
                 ws.CurrentZoneChanged?.Invoke(ws, this);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("ZONE").Emit(Zone);
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "ZONE").Emit(Zone);
         }
 
         // global events
@@ -137,7 +138,7 @@ namespace BossMod
                 ws.DirectorUpdate?.Invoke(ws, this);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("DIRU").Emit(DirectorID, "X8").Emit(UpdateID, "X8").Emit(Param1, "X8").Emit(Param2, "X8").Emit(Param3, "X8").Emit(Param4, "X8");
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "DIRU").Emit(DirectorID, "X8").Emit(UpdateID, "X8").Emit(Param1, "X8").Emit(Param2, "X8").Emit(Param3, "X8").Emit(Param4, "X8");
         }
 
         public event EventHandler<OpEnvControl>? EnvControl;
@@ -152,7 +153,7 @@ namespace BossMod
                 ws.EnvControl?.Invoke(ws, this);
             }
 
-            public override void Write(WorldStateLogger.Output output) => output.Emit("ENVC").Emit(DirectorID, "X8").Emit(Index, "X2").Emit(State, "X8");
+            public override void Write(WorldStateLogger.Output output) => WriteTag(output, "ENVC").Emit(DirectorID, "X8").Emit(Index, "X2").Emit(State, "X8");
         }
     }
 }

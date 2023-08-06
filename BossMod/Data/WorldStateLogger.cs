@@ -11,9 +11,7 @@ namespace BossMod
         public abstract class Output : IDisposable
         {
             public abstract void Dispose();
-            public abstract void StartEntry(DateTime t);
-            public abstract void EndEntry();
-            public abstract void Flush();
+            public abstract Output Entry(string tag, DateTime t);
             public abstract Output Emit();
             public abstract Output Emit(string v);
             public abstract Output Emit(float v, string format = "g9");
@@ -33,9 +31,11 @@ namespace BossMod
             public abstract Output Emit(Class v);
             public abstract Output Emit(ActorStatus v);
             public abstract Output Emit(List<ActorCastEvent.Target> v);
-            public abstract Output EmitTimePair(float t1, float t2);
+            public abstract Output EmitFloatPair(float t1, float t2);
             public abstract Output EmitTimePair(DateTime t1, float t2);
             public abstract Output EmitActor(ulong instanceID);
+            public abstract void EndEntry();
+            public abstract void Flush();
         }
 
         public class TextOutput : Output
@@ -55,19 +55,12 @@ namespace BossMod
                 _dest.Dispose();
             }
 
-            public override void StartEntry(DateTime t)
+            public override Output Entry(string tag, DateTime t)
             {
                 _curEntry = t;
                 _dest.Write(t.ToString("O"));
+                return WriteEntry(tag);
             }
-
-            public override void EndEntry()
-            {
-                _dest.WriteLine();
-                _curEntry = default;
-            }
-
-            public override void Flush() => _dest.Flush();
 
             public override Output Emit() => WriteEntry("");
             public override Output Emit(string v) => WriteEntry(v);
@@ -98,13 +91,21 @@ namespace BossMod
                 }
                 return this;
             }
-            public override Output EmitTimePair(float t1, float t2) => WriteEntry($"{t1:f3}/{t2:f3}");
+            public override Output EmitFloatPair(float t1, float t2) => WriteEntry($"{t1:f3}/{t2:f3}");
             public override Output EmitTimePair(DateTime t1, float t2) => WriteEntry($"{(t1 - _curEntry).TotalSeconds:f3}/{t2:f3}");
             public override Output EmitActor(ulong instanceID)
             {
                 var actor = _actorLookup?.Find(instanceID);
                 return WriteEntry(actor != null ? $"{actor.InstanceID:X8}/{actor.OID:X}/{actor.Name}/{actor.Type}/{actor.PosRot.X:f3}/{actor.PosRot.Y:f3}/{actor.PosRot.Z:f3}/{actor.Rotation}" : $"{instanceID:X8}");
             }
+
+            public override void EndEntry()
+            {
+                _dest.WriteLine();
+                _curEntry = default;
+            }
+
+            public override void Flush() => _dest.Flush();
 
             private TextOutput WriteEntry(string v)
             {
@@ -114,10 +115,62 @@ namespace BossMod
             }
         }
 
-        //public class BinaryOutput : Output
-        //{
+        public class BinaryOutput : Output
+        {
+            private BinaryWriter _dest;
 
-        //}
+            public BinaryOutput(Stream dest)
+            {
+                _dest = new(dest);
+            }
+
+            public override void Dispose()
+            {
+                _dest.Dispose();
+            }
+
+            public override Output Entry(string tag, DateTime t)
+            {
+                foreach (var c in tag)
+                    _dest.Write((byte)c);
+                return this;
+            }
+
+            public override Output Emit() => this;
+            public override Output Emit(string v) { _dest.Write(v); return this; }
+            public override Output Emit(float v, string format) { _dest.Write(v); return this; }
+            public override Output Emit(double v, string format) { _dest.Write(v); return this; }
+            public override Output Emit(Vector3 v) { _dest.Write(v.X); _dest.Write(v.Y); _dest.Write(v.Z); return this; }
+            public override Output Emit(Angle v) { _dest.Write(v.Rad); return this; }
+            public override Output Emit(bool v) { _dest.Write(v); return this; }
+            public override Output Emit(sbyte v) { _dest.Write(v); return this; }
+            public override Output Emit(short v) { _dest.Write(v); return this; }
+            public override Output Emit(int v) { _dest.Write(v); return this; }
+            public override Output Emit(long v) { _dest.Write(v); return this; }
+            public override Output Emit(byte v, string format = "d") { _dest.Write(v); return this; }
+            public override Output Emit(ushort v, string format = "d") { _dest.Write(v); return this; }
+            public override Output Emit(uint v, string format = "d") { _dest.Write(v); return this; }
+            public override Output Emit(ulong v, string format = "d") { _dest.Write(v); return this; }
+            public override Output Emit(ActionID v) { _dest.Write(v.Raw); return this; }
+            public override Output Emit(Class v) { _dest.Write((byte)v); return this; }
+            public override Output Emit(ActorStatus v) { _dest.Write(v.ID); _dest.Write(v.Extra); _dest.Write(v.ExpireAt.Ticks); _dest.Write(v.SourceID); return this; }
+            public override Output Emit(List<ActorCastEvent.Target> v)
+            {
+                _dest.Write(v.Count);
+                foreach (var t in v)
+                {
+                    _dest.Write(t.ID);
+                    for (int i = 0; i < 8; ++i)
+                        _dest.Write(t.Effects[i]);
+                }
+                return this;
+            }
+            public override Output EmitFloatPair(float t1, float t2) { _dest.Write(t1); _dest.Write(t2); return this; }
+            public override Output EmitTimePair(DateTime t1, float t2) { _dest.Write(t1.Ticks); _dest.Write(t2); return this; }
+            public override Output EmitActor(ulong instanceID) { _dest.Write(instanceID); return this; }
+            public override void EndEntry() { }
+            public override void Flush() => _dest.Flush();
+        }
 
         private WorldState _ws;
         private LoggingConfig _config;
@@ -158,13 +211,26 @@ namespace BossMod
                 {
                     _config.TargetDirectory.Create();
                     Stream stream = new FileStream($"{_config.TargetDirectory.FullName}/{_config.LogPrefix}_{_ws.CurrentTime:yyyy_MM_dd_HH_mm_ss}.log", FileMode.Create, FileAccess.Write, FileShare.Read);
-                    if (_config.CompressLog)
+                    switch (_config.WorldLogFormat)
                     {
-                        var header = new byte[] { (byte)'B', (byte)'L', (byte)'C', (byte)'B' }; // bossmod log compressed brotli
-                        stream.Write(header);
-                        stream = new BrotliStream(stream, CompressionLevel.Optimal, false);
+                        case LoggingConfig.LogFormat.BinaryCompressed:
+                            WriteHeader(stream, "BLCB");// bossmod log compressed brotli
+                            stream = new BrotliStream(stream, CompressionLevel.Optimal, false);
+                            _logger = new BinaryOutput(stream);
+                            break;
+                        case LoggingConfig.LogFormat.BinaryUncompressed:
+                            WriteHeader(stream, "BLOG");// bossmod log
+                            _logger = new BinaryOutput(stream);
+                            break;
+                        case LoggingConfig.LogFormat.TextCondensed:
+                            _logger = new TextOutput(stream, null);
+                            break;
+                        case LoggingConfig.LogFormat.TextVerbose:
+                            _logger = new TextOutput(stream, _ws.Actors);
+                            break;
+                        default:
+                            throw new IOException("Bad format");
                     }
-                    _logger = new TextOutput(stream, _config.WorldLogFormat == LoggingConfig.LogFormat.TextVerbose ? _ws.Actors : null);
                 }
                 catch (IOException e)
                 {
@@ -174,11 +240,15 @@ namespace BossMod
                 }
 
                 // log initial state
-                _logger.StartEntry(_ws.CurrentTime);
-                _logger.Emit("VER ").Emit(Version).Emit(_ws.QPF);
+                _logger.Entry("VER ", _ws.CurrentTime).Emit(Version).Emit(_ws.QPF);
+                if (_logger is BinaryOutput)
+                    _logger.Emit(_ws.CurrentTime.Ticks);
                 _logger.EndEntry();
                 foreach (var op in _ws.CompareToInitial())
+                {
+                    op.Timestamp = _ws.CurrentTime;
                     Log(null, op);
+                }
 
                 // log changes
                 _ws.Modified += Log;
@@ -195,11 +265,16 @@ namespace BossMod
             }
         }
 
+        private void WriteHeader(Stream stream, string header)
+        {
+            foreach (var c in header)
+                stream.WriteByte((byte)c);
+        }
+
         private void Log(object? sender, WorldState.Operation op)
         {
             if (_logger != null)
             {
-                _logger.StartEntry(_ws.CurrentTime);
                 op.Write(_logger);
                 _logger.EndEntry();
             }
