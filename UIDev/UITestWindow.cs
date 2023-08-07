@@ -101,6 +101,28 @@ namespace UIDev
             {
                 ConvertLog(_path, ReplayRecorderConfig.LogFormat.BinaryCompressed);
             }
+            //ImGui.SameLine();
+            //if (ImGui.Button("Raw decompress"))
+            //{
+            //    Stream inStream = new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            //    inStream.Seek(4, SeekOrigin.Begin);
+            //    inStream = new BrotliStream(inStream, CompressionMode.Decompress, false);
+            //    var outStream = new FileStream($"{_path}.decompressed", FileMode.Create, FileAccess.Write, FileShare.Read);
+            //    outStream.WriteByte((byte)'B');
+            //    outStream.WriteByte((byte)'L');
+            //    outStream.WriteByte((byte)'O');
+            //    outStream.WriteByte((byte)'G');
+            //    var buffer = new byte[65536];
+            //    while (true)
+            //    {
+            //        var numRead = inStream.Read(buffer, 0, buffer.Length);
+            //        if (numRead == 0)
+            //            break;
+            //        outStream.Write(buffer, 0, numRead);
+            //    }
+            //    inStream.Dispose();
+            //    outStream.Dispose();
+            //}
 
             foreach (var t in _testTypes)
             {

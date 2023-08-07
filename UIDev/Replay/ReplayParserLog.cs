@@ -167,10 +167,16 @@ namespace UIDev
 
             public override string NextEntry()
             {
-                var header = new byte[4];
-                if (_input.Read(header, 0, header.Length) < header.Length)
+                try
+                {
+                    var headerRaw = _input.ReadUInt32();
+                    var header = new byte[] { (byte)headerRaw, (byte)(headerRaw >> 8), (byte)(headerRaw >> 16), (byte)(headerRaw >> 24) };
+                    return Encoding.UTF8.GetString(header);
+                }
+                catch (EndOfStreamException)
+                {
                     return "";
-                return Encoding.UTF8.GetString(header);
+                }
             }
 
             public override bool CanRead() => true;
