@@ -2,18 +2,20 @@
 
 namespace BossMod
 {
-    public class StateMachineVisualizer
+    public class StateMachineWindow : SimpleWindow
     {
         private Timeline _timeline = new();
         private ColumnStateMachineTree _col;
 
-        public StateMachineVisualizer(StateMachine sm)
+        public StateMachineWindow(BossModule module) : base($"{module.GetType().Name} timeline")
         {
-            _col = _timeline.Columns.Add(new ColumnStateMachineTree(_timeline, new(sm), sm));
+            _col = _timeline.Columns.Add(new ColumnStateMachineTree(_timeline, new(module.StateMachine), module.StateMachine));
             _timeline.MaxTime = _col.Tree.TotalMaxTime;
+
+            Size = new(600, 600);
         }
 
-        public void Draw()
+        public override void Draw()
         {
             if (ImGui.CollapsingHeader("Settings"))
             {

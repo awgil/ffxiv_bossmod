@@ -18,13 +18,15 @@ namespace BossMod
         // register with window system if possible, otherwise (if another window with same name already exists) destroy self
         public bool Register()
         {
-            if (Service.WindowSystem != null && !IsRegistered(WindowName))
+            var existingWindow = Service.WindowSystem?.Windows.FirstOrDefault(w => w.WindowName == WindowName);
+            if (Service.WindowSystem != null && existingWindow == null)
             {
                 Service.WindowSystem.AddWindow(this);
                 return true;
             }
             else
             {
+                existingWindow?.BringToFront();
                 Dispose();
                 return false;
             }

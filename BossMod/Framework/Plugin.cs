@@ -34,6 +34,7 @@ namespace BossMod
             Service.LogHandler = (string msg) => PluginLog.Debug(msg);
 #endif
             Service.LuminaGameData = Service.DataManager.GameData;
+            Service.WindowSystem = new("vbm");
             //Service.Device = pluginInterface.UiBuilder.Device;
             Service.Condition.ConditionChange += OnConditionChanged;
             MultiboxUnlock.Exec();
@@ -129,7 +130,10 @@ namespace BossMod
 
             bool uiHidden = Service.GameGui.GameUiHidden || Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.WatchingCutscene];
             if (!uiHidden)
+            {
                 WindowManager.DrawAll();
+                Service.WindowSystem?.Draw();
+            }
 
             Camera.Instance?.DrawWorldPrimitives();
             _prevUpdateTime = DateTime.Now - tsStart;

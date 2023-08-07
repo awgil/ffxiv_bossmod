@@ -68,10 +68,7 @@ namespace UIDev
                     var sm = _mgr.ActiveModule.StateMachine;
                     if (ImGui.Button("Show timeline"))
                     {
-                        var timeline = new StateMachineVisualizer(sm);
-                        var w = WindowManager.CreateWindow($"{_mgr.ActiveModule.GetType().Name} timeline", timeline.Draw, () => { }, () => true);
-                        w.SizeHint = new(600, 600);
-                        w.MinSize = new(100, 100);
+                        new StateMachineWindow(_mgr.ActiveModule).Register();
                     }
                     ImGui.SameLine();
                     _mgr.ActiveModule.PlanConfig?.DrawSelectionUI(_mgr.ActiveModule.Raid[_povSlot]?.Class ?? Class.None, sm, _mgr.ActiveModule.Info);
