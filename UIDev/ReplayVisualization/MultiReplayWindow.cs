@@ -7,11 +7,9 @@ namespace UIDev
     {
         private AnalysisManager _analysis;
 
-        public MultiReplayWindow(string path) : base($"Multiple logs: {path}")
+        public MultiReplayWindow(string path) : base($"Multiple logs: {path}", new(1200, 800))
         {
             _analysis = new(path);
-            Size = new(1200, 800);
-            SizeCondition = ImGuiCond.Once;
         }
 
         public override void Draw()

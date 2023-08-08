@@ -7,12 +7,10 @@ namespace BossMod
         private Timeline _timeline = new();
         private ColumnStateMachineTree _col;
 
-        public StateMachineWindow(BossModule module) : base($"{module.GetType().Name} timeline")
+        public StateMachineWindow(BossModule module) : base($"{module.GetType().Name} timeline", new(600, 600))
         {
             _col = _timeline.Columns.Add(new ColumnStateMachineTree(_timeline, new(module.StateMachine), module.StateMachine));
             _timeline.MaxTime = _col.Tree.TotalMaxTime;
-
-            Size = new(600, 600);
         }
 
         public override void Draw()

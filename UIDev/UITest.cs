@@ -66,7 +66,6 @@ namespace UIDev
                 // this hack is needed to ensure we use correct global scale
                 newFrame.Invoke();
                 Service.WindowSystem.Draw();
-                WindowManager.DrawAll();
             };
 
             new UITestWindow(scene, Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "pluginConfigs", "BossMod.json")).Register();

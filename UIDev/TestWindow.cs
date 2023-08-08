@@ -5,6 +5,6 @@ namespace UIDev
 {
     abstract class TestWindow : SimpleWindow
     {
-        public TestWindow(string name, ImGuiWindowFlags flags) : base(name, flags) { }
+        public TestWindow(string name, ImGuiWindowFlags flags) : base(name, null, flags) { }
     }
 }

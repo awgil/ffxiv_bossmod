@@ -2,6 +2,7 @@
 using ImGuiNET;
 using System;
 using System.Linq;
+using System.Numerics;
 
 namespace BossMod
 {
@@ -10,8 +11,13 @@ namespace BossMod
     {
         public static bool IsRegistered(string name) => Service.WindowSystem?.Windows.Any(w => w.WindowName == name) ?? false;
 
-        public SimpleWindow(string name, ImGuiWindowFlags flags = ImGuiWindowFlags.None) : base(name, flags)
+        public bool UnregisterOnClose;
+
+        public SimpleWindow(string name, Vector2? sizeHint = null, ImGuiWindowFlags flags = ImGuiWindowFlags.None, bool unregisterOnClose = true) : base(name, flags)
         {
+            UnregisterOnClose = unregisterOnClose;
+            Size = sizeHint;
+            SizeCondition = ImGuiCond.FirstUseEver;
             IsOpen = true;
         }
 
@@ -32,12 +38,31 @@ namespace BossMod
             }
         }
 
-        public virtual void Dispose() { }
-
-        public override void OnClose()
+        public void Unregister()
         {
             Dispose();
             Service.WindowSystem?.RemoveWindow(this);
         }
+
+        public virtual void Dispose() { }
+
+        public override void OnClose()
+        {
+            if (UnregisterOnClose)
+                Unregister();
+        }
+    }
+
+    // simple window that executes action on draw; useful when having a separate class is inconvenient
+    public class SimpleActionWindow : SimpleWindow
+    {
+        private Action _draw;
+
+        public SimpleActionWindow(string name, Action draw, Vector2? sizeHint = null, ImGuiWindowFlags flags = ImGuiWindowFlags.None, bool unregisterOnClose = true) : base(name, sizeHint, flags, unregisterOnClose)
+        {
+            _draw = draw;
+        }
+
+        public override void Draw() => _draw();
     }
 }

@@ -239,10 +239,7 @@ namespace UIDev
 
         private void OpenTimeline(Replay.Encounter enc, BitMask showPlayers)
         {
-            var tl = new ReplayTimeline(_replay, enc, showPlayers);
-            var w = WindowManager.CreateWindow($"Replay timeline: {_replay.Path} @ {enc.Time.Start:O}", tl.Draw, tl.Close, () => true);
-            w.SizeHint = new(1200, 1000);
-            w.MinSize = new(100, 100);
+            new ReplayTimelineWindow(_replay, enc, showPlayers).Register();
         }
 
         private void DrawTimelines(Replay.Encounter enc)
