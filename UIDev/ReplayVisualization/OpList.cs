@@ -15,7 +15,7 @@ namespace UIDev
         private IEnumerable<WorldState.Operation> _ops;
         private DateTime _relativeTS;
         private Action<DateTime> _scrollTo;
-        private List<(DateTime Timestamp, string Text, Action<UITree>? Children, Action? ContextMenu)> _nodes = new();
+        private List<(int Index, DateTime Timestamp, string Text, Action<UITree>? Children, Action? ContextMenu)> _nodes = new();
         private HashSet<uint> _filteredOIDs = new();
         private HashSet<ActionID> _filteredActions = new();
         private HashSet<uint> _filteredStatuses = new();
@@ -50,9 +50,14 @@ namespace UIDev
             if (!_nodesUpToDate)
             {
                 _nodes.Clear();
-                foreach (var op in _ops.Where(FilterOp))
+                int i = 0;
+                foreach (var op in _ops)
                 {
-                    _nodes.Add((op.Timestamp, OpName(op), OpChildren(op), OpContextMenu(op)));
+                    if (FilterOp(op))
+                    {
+                        _nodes.Add((i, op.Timestamp, OpName(op), OpChildren(op), OpContextMenu(op)));
+                    }
+                    ++i;
                 }
                 _nodesUpToDate = true;
             }
@@ -60,7 +65,7 @@ namespace UIDev
             var timeRef = ImGui.GetIO().KeyShift && _relativeTS != default ? _relativeTS : reference;
             foreach (var node in _nodes)
             {
-                foreach (var n in tree.Node($"{(node.Timestamp - timeRef).TotalSeconds:f3}: {node.Text}", node.Children == null, 0xffffffff, node.ContextMenu, () => _scrollTo(node.Timestamp), () => _relativeTS = node.Timestamp))
+                foreach (var n in tree.Node($"{(node.Timestamp - timeRef).TotalSeconds:f3}: {node.Text}###{node.Index}", node.Children == null, 0xffffffff, node.ContextMenu, () => _scrollTo(node.Timestamp), () => _relativeTS = node.Timestamp))
                 {
                     if (node.Children != null)
                         node.Children(tree);
@@ -141,7 +146,8 @@ namespace UIDev
                 stream.Position = 0;
                 var bytes = new byte[stream.Length];
                 stream.Read(bytes, 0, bytes.Length);
-                return Encoding.UTF8.GetString(bytes);
+                var start = Array.IndexOf(bytes, (byte)'|') + 1;
+                return Encoding.UTF8.GetString(bytes, start, bytes.Length - start);
             }
         }
 
@@ -180,9 +186,20 @@ namespace UIDev
 
         private void DrawEventCast(UITree tree, ActorState.OpCastEvent op)
         {
-            foreach (var t in tree.Nodes(op.Value.Targets, t => new(ActorString(t.ID, op.Timestamp))))
+            var action = _replay.Actions.Find(a => a.GlobalSequence == op.Value.GlobalSequence);
+            if (action != null && action.Timestamp == op.Timestamp && action.Source?.InstanceID == op.InstanceID)
             {
-                tree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
+                foreach (var t in tree.Nodes(action.Targets, t => new(ReplayUtils.ActionTargetString(t, op.Timestamp))))
+                {
+                    tree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
+                }
+            }
+            else
+            {
+                foreach (var t in tree.Nodes(op.Value.Targets, t => new(ActorString(t.ID, op.Timestamp))))
+                {
+                    tree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
+                }
             }
         }
 

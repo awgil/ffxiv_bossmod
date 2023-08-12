@@ -55,7 +55,7 @@ namespace BossMod.Endwalker.Unreal.Un4Zurvan
 
     class P2SoarFlamingHalberdVoidzone : Components.PersistentVoidzone
     {
-        public P2SoarFlamingHalberdVoidzone() : base(12, m => m.Enemies(OID.FlamingHalberdVoidzone).Where(z => z.EventState != 7)) { }
+        public P2SoarFlamingHalberdVoidzone() : base(8, m => m.Enemies(OID.FlamingHalberdVoidzone).Where(z => z.EventState != 7)) { }
     }
 
     class P2SoarDemonicDiveCoolFlame : Components.UniformStackSpread

@@ -76,6 +76,8 @@
         NorthStarUnsoaked = 34165, // Helper->self, no cast, range 100 circle (aoe if ice tower is not soaked)
         SouthStarWrong = 34178, // Helper->self, no cast, range 2 circle (oneshot if fire tower is soaked by wrong debuff)
         NorthStarWrong = 34179, // Helper->self, no cast, range 2 circle (oneshot if fire tower is soaked by wrong debuff)
+        Enrage = 34177, // BossP2->self, 10.0s cast, single-target, visual (enrage)
+        EnrageAOE = 34176, // Helper->location, no cast, range 12 circle, enrage
     };
 
     public enum IconID : uint

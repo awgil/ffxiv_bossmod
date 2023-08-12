@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using static BossMod.ActorCastEvent;
 
 namespace BossMod.Endwalker.Unreal.Un4Zurvan
 {
@@ -29,7 +30,7 @@ namespace BossMod.Endwalker.Unreal.Un4Zurvan
 
     class P2DemonsClawWaveCannon : Components.GenericWildCharge
     {
-        private ulong _targetID;
+        public Actor? Target { get; private set; }
 
         public P2DemonsClawWaveCannon() : base(5, ActionID.MakeSpell(AID.WaveCannonShared)) { }
 
@@ -40,12 +41,12 @@ namespace BossMod.Endwalker.Unreal.Un4Zurvan
                 Source = caster;
                 foreach (var (slot, player) in module.Raid.WithSlot())
                 {
-                    PlayerRoles[slot] = player.InstanceID == _targetID ? PlayerRole.Target : PlayerRole.Share;
+                    PlayerRoles[slot] = player == Target ? PlayerRole.Target : PlayerRole.Share;
                 }
             }
             else if ((AID)spell.Action.ID == AID.DemonsClaw)
             {
-                _targetID = spell.TargetID;
+                Target = module.WorldState.Actors.Find(spell.TargetID);
             }
         }
 
