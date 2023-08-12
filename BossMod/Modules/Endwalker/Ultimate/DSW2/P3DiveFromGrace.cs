@@ -6,7 +6,34 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 {
     class P3Geirskogul : Components.SelfTargetedAOEs
     {
+        private List<Actor> _predicted = new();
+
         public P3Geirskogul() : base(ActionID.MakeSpell(AID.Geirskogul), new AOEShapeRect(62, 4)) { }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            foreach (var p in _predicted)
+            {
+                arena.Actor(p, ArenaColor.Object, true);
+                var target = module.Raid.WithoutSlot().Closest(p.Position);
+                if (target != null)
+                    Shape.Outline(arena, p.Position, Angle.FromDirection(target.Position - p.Position));
+            }
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            base.OnCastStarted(module, caster, spell);
+            if (spell.Action == WatchedAction)
+                _predicted.Clear();
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            base.OnCastFinished(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.DarkdragonDive)
+                _predicted.Add(caster);
+        }
     }
 
     class P3GnashAndLash : Components.GenericAOEs
