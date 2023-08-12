@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static BossMod.BossComponent;
 
 namespace BossMod.Endwalker.Savage.P9SKokytos
 {
@@ -73,6 +74,14 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
             return _aoes.Take(1);
         }
 
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            base.AddHints(module, slot, actor, hints, movementHints);
+            if (movementHints != null)
+                foreach (var p in SafeSpots(module))
+                    movementHints.Add(actor.Position, p, ArenaColor.Safe);
+        }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             var (inOutShape, offset) = (AID)spell.Action.ID switch
@@ -114,6 +123,24 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
             ++NumCasts;
             if (_aoes.Count > 0)
                 _aoes.RemoveAt(0);
+        }
+
+        private IEnumerable<WPos> SafeSpots(BossModule module)
+        {
+            if (NumCasts == 0 && _aoes.Count > 0 && _aoes[0].Shape == _shapeOut && module.FindComponent<ArchaicRockbreakerLine>() is var forbidden && forbidden?.NumCasts == 0)
+            {
+                var safespots = new ArcList(_aoes[0].Origin, _shapeOut.Radius + 0.25f);
+                foreach (var f in forbidden.ActiveCasters)
+                    safespots.ForbidCircle(f.Position, forbidden.Shape.Radius);
+                if (safespots.Forbidden.Segments.Count > 0)
+                {
+                    foreach (var a in safespots.Allowed(default))
+                    {
+                        var mid = ((a.Item1.Rad + a.Item2.Rad) * 0.5f).Radians();
+                        yield return safespots.Center + safespots.Radius * mid.ToDirection();
+                    }
+                }
+            }
         }
     }
 

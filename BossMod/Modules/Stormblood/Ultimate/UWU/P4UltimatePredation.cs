@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod.Stormblood.Ultimate.UWU
 {
@@ -11,8 +10,8 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         public State CurState { get; private set; }
         private List<WPos> _hints = new();
-        private DisjointSegmentList _forbiddenFirst = new();
-        private DisjointSegmentList _forbiddenSecond = new();
+        private ArcList _first = new(new(), _dodgeRadius);
+        private ArcList _second = new(new(), _dodgeRadius);
 
         private static float _dodgeRadius = 19;
         private static Angle _dodgeCushion = 2.5f.Degrees();
@@ -80,8 +79,9 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         private void RecalculateHints(BossModule module)
         {
-            _forbiddenFirst.Clear();
-            _forbiddenSecond.Clear();
+            _first.Center = _second.Center = module.Bounds.Center;
+            _first.Forbidden.Clear();
+            _second.Forbidden.Clear();
             _hints.Clear();
 
             var castModule = (UWU)module;
@@ -92,18 +92,18 @@ namespace BossMod.Stormblood.Ultimate.UWU
             if (garuda == null || titan == null || ifrit == null || ultima == null)
                 return;
 
-            ForbidRect(module, titan.Position, titan.Rotation, 3, _forbiddenFirst);
-            ForbidRect(module, titan.Position, titan.Rotation + 45.Degrees(), 3, _forbiddenFirst);
-            ForbidRect(module, titan.Position, titan.Rotation - 45.Degrees(), 3, _forbiddenFirst);
-            ForbidRect(module, titan.Position, titan.Rotation + 22.5f.Degrees(), 3, _forbiddenSecond);
-            ForbidRect(module, titan.Position, titan.Rotation - 22.5f.Degrees(), 3, _forbiddenSecond);
-            ForbidRect(module, titan.Position, titan.Rotation + 90.Degrees(), 3, _forbiddenSecond);
-            ForbidRect(module, ifrit.Position, ifrit.Rotation, 9, _forbiddenFirst);
-            ForbidRect(module, module.Bounds.Center - new WDir(module.Bounds.HalfSize, 0), 90.Degrees(), 5, _forbiddenSecond);
-            ForbidRect(module, module.Bounds.Center - new WDir(0, module.Bounds.HalfSize), 0.Degrees(), 5, _forbiddenSecond);
-            ForbidCircle(module, garuda.Position, 20, _forbiddenFirst);
-            ForbidCircle(module, garuda.Position, 20, _forbiddenSecond);
-            ForbidCircle(module, ultima.Position, 14, _forbiddenSecond);
+            _first.ForbidInfiniteRect(titan.Position, titan.Rotation, 3);
+            _first.ForbidInfiniteRect(titan.Position, titan.Rotation + 45.Degrees(), 3);
+            _first.ForbidInfiniteRect(titan.Position, titan.Rotation - 45.Degrees(), 3);
+            _second.ForbidInfiniteRect(titan.Position, titan.Rotation + 22.5f.Degrees(), 3);
+            _second.ForbidInfiniteRect(titan.Position, titan.Rotation - 22.5f.Degrees(), 3);
+            _second.ForbidInfiniteRect(titan.Position, titan.Rotation + 90.Degrees(), 3);
+            _first.ForbidInfiniteRect(ifrit.Position, ifrit.Rotation, 9);
+            _second.ForbidInfiniteRect(module.Bounds.Center - new WDir(module.Bounds.HalfSize, 0), 90.Degrees(), 5);
+            _second.ForbidInfiniteRect(module.Bounds.Center - new WDir(0, module.Bounds.HalfSize), 0.Degrees(), 5);
+            _first.ForbidCircle(garuda.Position, 20);
+            _second.ForbidCircle(garuda.Position, 20);
+            _second.ForbidCircle(ultima.Position, 14);
 
             var safespots = EnumeratePotentialSafespots();
             var (a1, a2) = safespots.MinBy(AngularDistance);
@@ -113,103 +113,10 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         private WPos GetSafePositionAtAngle(BossModule module, Angle angle) => module.Bounds.Center + _dodgeRadius * angle.ToDirection();
 
-        private void ForbidRect(BossModule module, WPos origin, Angle dir, float halfWidth, DisjointSegmentList res)
-        {
-            var direction = dir.ToDirection();
-            var o1 = origin + direction.OrthoL() * halfWidth;
-            var o2 = origin + direction.OrthoR() * halfWidth;
-            var i1 = IntersectLine(module, o1, direction);
-            var i2 = IntersectLine(module, o2, direction);
-            ForbidArc(res, i1.Item1, i2.Item1);
-            ForbidArc(res, i2.Item2, i1.Item2);
-        }
-
-        private void ForbidCircle(BossModule module, WPos origin, float radius, DisjointSegmentList res)
-        {
-            var oo = origin - module.Bounds.Center;
-            var center = Angle.FromDirection(oo);
-            var halfWidth = MathF.Acos((oo.LengthSq() + _dodgeRadius * _dodgeRadius - radius * radius) / (2 * oo.Length() * _dodgeRadius));
-            ForbidArcByLength(res, center, halfWidth.Radians());
-        }
-
-        private (Angle, Angle) IntersectLine(BossModule module, WPos origin, WDir dir)
-        {
-            var oo = origin - module.Bounds.Center;
-            // op = oo + dir * t, op^2 = R^2 => dir^2 * t^2 + 2 oo*dir t + oo^2 - R^2 = 0; dir^2 == 1
-            var b = 2 * oo.Dot(dir);
-            var c = oo.LengthSq() - _dodgeRadius * _dodgeRadius;
-            var d = b * b - 4 * c;
-            d = d > 0 ? MathF.Sqrt(d) : 0;
-            var t1 = (-b - d) * 0.5f;
-            var t2 = (-b + d) * 0.5f;
-            var op1 = oo + dir * t1;
-            var op2 = oo + dir * t2;
-            return (Angle.FromDirection(op1), Angle.FromDirection(op2));
-        }
-
-        private void ForbidArcByLength(DisjointSegmentList res, Angle center, Angle halfWidth)
-        {
-            var min = center - halfWidth;
-            if (min.Rad < -MathF.PI)
-            {
-                res.Add(min.Rad + 2 * MathF.PI, MathF.PI);
-            }
-            var max = center + halfWidth;
-            if (max.Rad > MathF.PI)
-            {
-                res.Add(-MathF.PI, max.Rad - 2 * MathF.PI);
-                max = MathF.PI.Radians();
-            }
-            res.Add(min.Rad, max.Rad);
-        }
-
-        private void ForbidArc(DisjointSegmentList res, Angle from, Angle to)
-        {
-            if (from.Rad < to.Rad)
-            {
-                res.Add(from.Rad, to.Rad);
-            }
-            else
-            {
-                res.Add(-MathF.PI, to.Rad);
-                res.Add(from.Rad, MathF.PI);
-            }
-        }
-
-        private IEnumerable<(Angle, Angle)> SafeSegments(DisjointSegmentList forbidden)
-        {
-            if (forbidden.Segments.Count == 0)
-            {
-                yield return (-180.Degrees(), 180.Degrees());
-                yield break;
-            }
-
-            var last = forbidden.Segments.Last();
-            if (forbidden.Segments[0].Min > -MathF.PI)
-                yield return (last.Max.Radians() - 360.Degrees(), forbidden.Segments[0].Min.Radians());
-
-            for (int i = 1; i < forbidden.Segments.Count; i++)
-                yield return (forbidden.Segments[i - 1].Max.Radians(), forbidden.Segments[i].Min.Radians());
-
-            if (last.Max < MathF.PI)
-                yield return (last.Max.Radians(), forbidden.Segments[0].Min.Radians() + 360.Degrees());
-        }
-
-        private IEnumerable<(Angle, Angle)> Cushioned(IEnumerable<(Angle, Angle)> segs)
-        {
-            foreach (var (min, max) in segs)
-            {
-                var minAdj = min + _dodgeCushion;
-                var maxAdj = max - _dodgeCushion;
-                if (minAdj.Rad < maxAdj.Rad)
-                    yield return (minAdj, maxAdj);
-            }
-        }
-
         private IEnumerable<(Angle, Angle)> EnumeratePotentialSafespots()
         {
-            var safeFirst = Cushioned(SafeSegments(_forbiddenFirst));
-            var safeSecond = Cushioned(SafeSegments(_forbiddenSecond));
+            var safeFirst = _first.Allowed(_dodgeCushion);
+            var safeSecond = _second.Allowed(_dodgeCushion);
             foreach (var (min1, max1) in safeFirst)
             {
                 foreach (var (min2, max2) in safeSecond)

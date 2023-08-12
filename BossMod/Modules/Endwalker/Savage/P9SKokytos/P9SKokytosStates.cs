@@ -43,8 +43,8 @@
             Dualspell(id + 0x650000, 1.0f);
             GluttonysAugur(id + 0x660000, 0.3f);
 
-            // TODO: ravening chimeric -> enrage
-            SimpleState(id + 0xFF0000, 10, "???");
+            Ravening(id + 0x700000, 16.8f, AID.RaveningChimeric, false, false);
+            Cast(id + 0x710000, AID.Disintegration, 2.5f, 10, "Enrage");
         }
 
         private void GluttonysAugur(uint id, float delay)

@@ -105,6 +105,9 @@
         PyremeldRear = 34708, // Boss->location, no cast, range 6 circle, baited 4-man stack
         SwingingKickFront = 34709, // Boss->self, 3.0s cast, range 40 180-degree cone
         SwingingKickRear = 34710, // Boss->self, 3.0s cast, range 40 180-degree cone
+
+        Disintegration = 33162, // Boss->self, 10.0s cast, single-target, visual (enrage)
+        DisintegrationAOE = 33163, // Helper->self, no cast, range 60 circle, enrage
     };
 
     public enum IconID : uint

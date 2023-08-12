@@ -7,6 +7,8 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
     // TODO: or is it a spread?.. one thing i like about bait-away better here is that it better distinguishes bait vs avoid
     class LevinstrikeSummoningIcemeld : Components.GenericBaitAway
     {
+        private List<Actor> _pendingBaiters = new(); // we only want to show max 1 baiter at a time
+
         private static AOEShapeCircle _shape = new(20);
 
         public LevinstrikeSummoningIcemeld() : base(centerAtTarget: true) { }
@@ -14,7 +16,12 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Icemeld)
-                CurrentBaits.Add(new(module.PrimaryActor, actor, _shape));
+            {
+                if (CurrentBaits.Count == 0)
+                    CurrentBaits.Add(new(module.PrimaryActor, actor, _shape));
+                else
+                    _pendingBaiters.Add(actor);
+            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -22,8 +29,12 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
             if ((AID)spell.Action.ID is AID.Icemeld1 or AID.Icemeld2 or AID.Icemeld3 or AID.Icemeld4)
             {
                 ++NumCasts;
-                if (CurrentBaits.Count > 0)
-                    CurrentBaits.RemoveAt(0);
+                CurrentBaits.Clear();
+                if (_pendingBaiters.Count > 0)
+                {
+                    CurrentBaits.Add(new(module.PrimaryActor, _pendingBaiters[0], _shape));
+                    _pendingBaiters.RemoveAt(0);
+                }
             }
         }
     }
