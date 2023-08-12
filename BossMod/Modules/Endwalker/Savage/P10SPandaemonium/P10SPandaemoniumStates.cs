@@ -33,8 +33,7 @@
             PandaemoniacPillarsTurrets(id + 0x140000, 2.4f, AID.PandaemoniacPillars);
             CirclesHolyPillars(id + 0x150000, 1.5f);
             PandaemoniacMeltdown(id + 0x160000, 2.0f);
-            // TODO: only harrowing hell enrage left?
-            SimpleState(id + 0xFF0000, 10, "???");
+            HarrowingHell(id + 0x170000, 17.1f, true);
         }
 
         private void Ultima(uint id, float delay)
@@ -239,6 +238,31 @@
                 .DeactivateOnExit<JadePassage>();
         }
 
+        private State HarrowingHell(uint id, float delay, bool isEnrage)
+        {
+            Cast(id, AID.HarrowingHell, delay, 5);
+            ComponentCondition<HarrowingHell>(id + 0x11, 1.0f, comp => comp.NumCasts >= 1, "Hell start")
+                .ActivateOnEnter<HarrowingHell>()
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ComponentCondition<HarrowingHell>(id + 0x12, 1.9f, comp => comp.NumCasts >= 2)
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ComponentCondition<HarrowingHell>(id + 0x13, 1.7f, comp => comp.NumCasts >= 3)
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ComponentCondition<HarrowingHell>(id + 0x14, 1.7f, comp => comp.NumCasts >= 4)
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ComponentCondition<HarrowingHell>(id + 0x15, 1.7f, comp => comp.NumCasts >= 5)
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ComponentCondition<HarrowingHell>(id + 0x16, 1.5f, comp => comp.NumCasts >= 6)
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ComponentCondition<HarrowingHell>(id + 0x17, 1.4f, comp => comp.NumCasts >= 7)
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ComponentCondition<HarrowingHell>(id + 0x18, 1.3f, comp => comp.NumCasts >= 8)
+                .SetHint(StateMachine.StateHint.Raidwide);
+            return ComponentCondition<HarrowingHell>(id + 0x20, 3.9f, comp => comp.NumCasts >= 9, isEnrage ? "Enrage" : "Hell resolve")
+                .DeactivateOnExit<HarrowingHell>()
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
         private void DividingWings1(uint id, float delay)
         {
             Cast(id, AID.DividingWings, delay, 3);
@@ -301,29 +325,9 @@
                 .ActivateOnEnter<DaemoniacBonds>()
                 .DeactivateOnExit<EntanglingWebAOE>();
 
-            Cast(id + 0x300, AID.HarrowingHell, 4.6f, 5)
-                .DeactivateOnExit<SteelWebTethers>();
-            ComponentCondition<HarrowingHell>(id + 0x311, 1.0f, comp => comp.NumCasts >= 1, "Hell start")
-                .ActivateOnEnter<HarrowingHell>()
-                .SetHint(StateMachine.StateHint.Raidwide);
-            ComponentCondition<HarrowingHell>(id + 0x312, 1.9f, comp => comp.NumCasts >= 2)
-                .SetHint(StateMachine.StateHint.Raidwide);
-            ComponentCondition<HarrowingHell>(id + 0x313, 1.7f, comp => comp.NumCasts >= 3)
-                .SetHint(StateMachine.StateHint.Raidwide);
-            ComponentCondition<HarrowingHell>(id + 0x314, 1.7f, comp => comp.NumCasts >= 4)
-                .SetHint(StateMachine.StateHint.Raidwide);
-            ComponentCondition<HarrowingHell>(id + 0x315, 1.7f, comp => comp.NumCasts >= 5)
-                .SetHint(StateMachine.StateHint.Raidwide);
-            ComponentCondition<HarrowingHell>(id + 0x316, 1.5f, comp => comp.NumCasts >= 6)
-                .SetHint(StateMachine.StateHint.Raidwide);
-            ComponentCondition<HarrowingHell>(id + 0x317, 1.4f, comp => comp.NumCasts >= 7)
-                .SetHint(StateMachine.StateHint.Raidwide);
-            ComponentCondition<HarrowingHell>(id + 0x318, 1.3f, comp => comp.NumCasts >= 8)
-                .SetHint(StateMachine.StateHint.Raidwide);
-            ComponentCondition<HarrowingHell>(id + 0x320, 3.9f, comp => comp.NumCasts >= 9, "Hell resolve")
-                .DeactivateOnExit<HarrowingHell>()
-                .OnExit(() => Module.FindComponent<DaemoniacBonds>()?.Show())
-                .SetHint(StateMachine.StateHint.Raidwide);
+            HarrowingHell(id + 0x300, 4.6f, false)
+                .DeactivateOnExit<SteelWebTethers>() // TODO: this can be deactivated much earlier?
+                .OnExit(() => Module.FindComponent<DaemoniacBonds>()?.Show());
 
             DaemoniacBondsResolve(id + 0x400, 5.4f);
         }
