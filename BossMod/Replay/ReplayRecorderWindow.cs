@@ -3,43 +3,32 @@ using System;
 
 namespace BossMod
 {
-    public class ReplayRecorderUI : IDisposable
+    public class ReplayRecorderWindow : SimpleWindow
     {
         private WorldState _ws;
         private ReplayRecorderConfig _config;
-        private WindowManager.Window? _wnd;
         private ReplayRecorder? _recorder;
         private string _message = "";
 
-        public ReplayRecorderUI(WorldState ws, ReplayRecorderConfig config)
+        private static string _windowID = "###Replay recorder";
+
+        public ReplayRecorderWindow(WorldState ws, ReplayRecorderConfig config) : base(_windowID, new(300, 200), ImGuiWindowFlags.None, false)
         {
             _ws = ws;
             _config = config;
             _config.Modified += ApplyConfig;
             ApplyConfig(null, EventArgs.Empty);
+            UpdateTitle();
+            RespectCloseHotkey = false;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             _config.Modified -= ApplyConfig;
             _recorder?.Dispose();
         }
 
-        private void ApplyConfig(object? sender, EventArgs args)
-        {
-            if (_config.ShowUI && _wnd == null)
-            {
-                _wnd = WindowManager.CreateWindow($"Replay recorder", Draw, () => _wnd = null, UserClose);
-                _wnd.SizeHint = new(300, 200);
-                UpdateTitle(_wnd);
-            }
-            else if (!_config.ShowUI && _wnd != null)
-            {
-                WindowManager.CloseWindow(_wnd);
-            }
-        }
-
-        private void Draw()
+        public override void Draw()
         {
             if (ImGui.Button(_recorder == null ? "Start" : "Stop"))
             {
@@ -59,7 +48,7 @@ namespace BossMod
                     _recorder.Dispose();
                     _recorder = null;
                 }
-                UpdateTitle(_wnd);
+                UpdateTitle();
             }
 
             if (_recorder != null)
@@ -74,19 +63,17 @@ namespace BossMod
             }
         }
 
-        private bool UserClose()
+        public override void OnClose()
         {
-            _config.ShowUI = false;
-            _config.NotifyModified();
-            return true;
-        }
-
-        private void UpdateTitle(WindowManager.Window? wnd)
-        {
-            if (wnd != null)
+            Service.Log($"Closing: {_config.ShowUI}");
+            if (_config.ShowUI)
             {
-                wnd.Title = _recorder != null ? "Recording..." : "Idle";
+                _config.ShowUI = false;
+                _config.NotifyModified();
             }
         }
+
+        private void ApplyConfig(object? sender, EventArgs args) => IsOpen = _config.ShowUI;
+        private void UpdateTitle() =>  WindowName = $"{(_recorder != null ? "Recording..." : "Idle")}{_windowID}";
     }
 }

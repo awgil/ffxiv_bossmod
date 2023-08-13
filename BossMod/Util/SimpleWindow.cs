@@ -32,7 +32,11 @@ namespace BossMod
             }
             else
             {
-                existingWindow?.BringToFront();
+                if (existingWindow != null)
+                {
+                    existingWindow.IsOpen = true;
+                    existingWindow.BringToFront();
+                }
                 Dispose();
                 return false;
             }
@@ -42,6 +46,12 @@ namespace BossMod
         {
             Dispose();
             Service.WindowSystem?.RemoveWindow(this);
+        }
+
+        public void OpenAndFocus()
+        {
+            IsOpen = true;
+            BringToFront();
         }
 
         public virtual void Dispose() { }

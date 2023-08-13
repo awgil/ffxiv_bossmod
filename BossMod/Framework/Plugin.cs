@@ -4,7 +4,6 @@ using Dalamud.IoC;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 using System;
-using System.Numerics;
 
 namespace BossMod
 {
@@ -16,12 +15,13 @@ namespace BossMod
 
         private Network _network;
         private WorldStateGame _ws;
-        private ReplayRecorderUI _recorder;
+        private ReplayRecorderWindow _recorder;
         private BossModuleManagerGame _bossmod;
         private Autorotation _autorotation;
         private AI.AIManager _ai;
         private AI.Broadcast _broadcast;
         private TimeSpan _prevUpdateTime;
+        private MainDebugWindow _debugUI;
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface dalamud,
@@ -56,10 +56,15 @@ namespace BossMod
             _network = new(dalamud.ConfigDirectory);
             _ws = new(_network);
             _recorder = new(_ws, recorderSettings);
+            _recorder.Register();
             _bossmod = new(_ws);
             _autorotation = new(_bossmod);
             _ai = new(_autorotation);
             _broadcast = new();
+
+            _debugUI = new(_ws, _autorotation);
+            _debugUI.IsOpen = false;
+            _debugUI.Register();
 
             dalamud.UiBuilder.DisableAutomaticUiHide = true;
             dalamud.UiBuilder.Draw += DrawUI;
@@ -69,8 +74,9 @@ namespace BossMod
         public void Dispose()
         {
             Service.Condition.ConditionChange -= OnConditionChanged;
+            _debugUI.Unregister();
             WindowManager.Reset();
-            _recorder.Dispose();
+            _recorder.Unregister();
             _bossmod.Dispose();
             _network.Dispose();
             _ai.Dispose();
@@ -93,7 +99,7 @@ namespace BossMod
             switch (split[0])
             {
                 case "d":
-                    OpenDebugUI();
+                    _debugUI.OpenAndFocus();
                     break;
                 case "cfg":
                     var output = Service.Config.ConsoleCommand(new ArraySegment<string>(split, 1, split.Length - 1));
@@ -105,16 +111,7 @@ namespace BossMod
 
         private void OpenConfigUI()
         {
-            var ui = new ConfigUI(Service.Config, _ws);
-            var w = WindowManager.CreateWindow("Boss mod config", ui.Draw, () => { }, () => true);
-            w.SizeHint = new Vector2(300, 300);
-        }
-
-        private void OpenDebugUI()
-        {
-            var ui = new DebugUI(_ws, _autorotation);
-            var w = WindowManager.CreateWindow("Boss mod debug UI", ui.Draw, ui.Dispose, () => true);
-            w.SizeHint = new Vector2(300, 200);
+            new SimpleActionWindow("Boss mod config", new ConfigUI(Service.Config, _ws).Draw, new(300, 300)).Register();
         }
 
         private void DrawUI()

@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace BossMod
 {
-    class DebugUI : IDisposable
+    class MainDebugWindow : SimpleWindow
     {
         private WorldState _ws;
         private Autorotation _autorot;
@@ -21,7 +21,7 @@ namespace BossMod
         private DebugAddon _debugAddon = new();
         private DebugTiming _debugTiming = new();
 
-        public DebugUI(WorldState ws, Autorotation autorot)
+        public MainDebugWindow(WorldState ws, Autorotation autorot) : base("Boss mod debug UI", new(300, 200), ImGuiWindowFlags.None, false)
         {
             _ws = ws;
             _autorot = autorot;
@@ -31,14 +31,14 @@ namespace BossMod
             _debugClassDefinitions = new(ws);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             _debugInput.Dispose();
             _debugClassDefinitions.Dispose();
             _debugAddon.Dispose();
         }
 
-        public unsafe void Draw()
+        public unsafe override void Draw()
         {
             var player = Service.ClientState.LocalPlayer;
             ImGui.TextUnformatted($"Current zone: {_ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={Service.ClientState.LocalContentId:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
