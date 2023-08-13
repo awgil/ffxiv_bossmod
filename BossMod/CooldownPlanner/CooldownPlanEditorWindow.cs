@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace BossMod
 {
-    public class CooldownPlanEditor
+    public class CooldownPlanEditorWindow : SimpleWindow
     {
         private Action _onModified;
         private Timeline _timeline = new();
@@ -13,7 +13,7 @@ namespace BossMod
         private int _selectedPhase = 0;
         private bool _modified = false;
 
-        public CooldownPlanEditor(CooldownPlan plan, StateMachine sm, ModuleRegistry.Info? moduleInfo, Action onModified)
+        public CooldownPlanEditorWindow(CooldownPlan plan, StateMachine sm, ModuleRegistry.Info? moduleInfo, Action onModified) : base("Cooldown planner", new(600, 600))
         {
             _onModified = onModified;
 
@@ -26,7 +26,9 @@ namespace BossMod
             _timeline.MaxTime = tree.TotalMaxTime;
         }
 
-        public void Draw()
+        public override void PreOpenCheck() => RespectCloseHotkey = !_modified;
+
+        public override void Draw()
         {
             if (ImGui.Button(_modified ? "Save" : "No changes") && _modified)
                 Save();

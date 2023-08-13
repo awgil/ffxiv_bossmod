@@ -34,7 +34,7 @@ namespace BossMod
         private AutorotationConfig _config;
         private BossModuleManager _bossmods;
         private AutoHints _autoHints;
-        private WindowManager.Window? _ui;
+        private SimpleActionWindow _ui;
         private CommonActions? _classActions;
 
         private unsafe delegate bool UseActionDelegate(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted);
@@ -60,6 +60,10 @@ namespace BossMod
             _bossmods = bossmods;
             _autoHints = new(bossmods.WorldState);
 
+            _ui = new("Autorotation", DrawOverlay, new(100, 100), ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing, false);
+            _ui.RespectCloseHotkey = false;
+            _ui.Register();
+
             ActionManagerEx.Instance!.ActionRequested += OnActionRequested;
             WorldState.Actors.CastEvent += OnCastEvent;
 
@@ -73,6 +77,7 @@ namespace BossMod
             ActionManagerEx.Instance!.ActionRequested -= OnActionRequested;
             WorldState.Actors.CastEvent -= OnCastEvent;
 
+            _ui.Unregister();
             _useActionHook.Dispose();
             _classActions?.Dispose();
             _autoHints.Dispose();
@@ -128,19 +133,7 @@ namespace BossMod
             _classActions?.Update();
             ActionManagerEx.Instance!.AutoQueue = _classActions?.CalculateNextAction() ?? default;
 
-            bool showUI = _classActions != null && _config.ShowUI;
-            if (showUI && _ui == null)
-            {
-                _ui = WindowManager.CreateWindow("Autorotation", DrawOverlay, () => { }, () => true);
-                _ui.SizeHint = new(100, 100);
-                _ui.MinSize = new(100, 100);
-                _ui.Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
-            }
-            else if (!showUI && _ui != null)
-            {
-                WindowManager.CloseWindow(_ui);
-                _ui = null;
-            }
+            _ui.IsOpen = _classActions != null && _config.ShowUI;
 
             if (_config.ShowPositionals && PrimaryTarget != null && _classActions != null && _classActions.AutoAction != CommonActions.AutoActionNone && !PrimaryTarget.Omnidirectional)
             {

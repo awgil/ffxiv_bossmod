@@ -14,19 +14,25 @@ namespace BossMod.AI
         private AIConfig _config;
         private int _masterSlot = PartyState.PlayerSlot; // non-zero means corresponding player is master
         private AIBehaviour? _beh;
-        private WindowManager.Window? _ui;
+        private SimpleActionWindow _ui;
 
         public AIManager(Autorotation autorot)
         {
             _autorot = autorot;
             _controller = new();
             _config = Service.Config.Get<AIConfig>();
+
+            _ui = new("AI", DrawOverlay, new(100, 100), ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing, false);
+            _ui.RespectCloseHotkey = false;
+            _ui.Register();
+
             Service.ChatGui.ChatMessage += OnChatMessage;
         }
 
         public void Dispose()
         {
             SwitchToIdle();
+            _ui.Unregister();
             Service.ChatGui.ChatMessage -= OnChatMessage;
         }
 
@@ -50,19 +56,7 @@ namespace BossMod.AI
             }
             _controller.Update(player);
 
-            bool showUI = _config.Enabled && player != null;
-            if (showUI && _ui == null)
-            {
-                _ui = WindowManager.CreateWindow("AI", DrawOverlay, () => { }, () => true);
-                _ui.SizeHint = new(100, 100);
-                _ui.MinSize = new(100, 100);
-                _ui.Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
-            }
-            else if (!showUI && _ui != null)
-            {
-                WindowManager.CloseWindow(_ui);
-                _ui = null;
-            }
+            _ui.IsOpen = _config.Enabled && player != null;
         }
 
         private void DrawOverlay()
