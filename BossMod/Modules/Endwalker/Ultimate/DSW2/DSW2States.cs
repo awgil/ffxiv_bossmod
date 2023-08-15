@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace BossMod.Endwalker.Ultimate.DSW2
 {
@@ -10,6 +9,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private bool IsReset => _module.PrimaryActor.IsDestroyed && (_module.ArenaFeatures?.IsDestroyed ?? true);
         private bool IsResetOrRewindFailed => IsReset || Module.Enemies(OID.BossP2).Any();
         private bool IsDead(Actor? actor) => actor != null && (actor.IsDestroyed || actor.IsDead);
+        private bool IsEffectivelyDead(Actor? actor) => actor != null && (actor.IsDestroyed || actor.IsDead || !actor.IsTargetable && actor.HP.Cur <= 1);
 
         public DSW2States(DSW2 module) : base(module)
         {
@@ -29,6 +29,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .Raw.Update = () => IsResetOrRewindFailed || _module.FindComponent<P5Surrender>()?.NumCasts > 0;
             SimplePhase(6, Phase6Dragons, "P6: Nidhogg + Hraesvelgr")
                 .OnEnter(() => Module.Arena.Bounds = DSW2.BoundsSquare)
+                .Raw.Update = () => IsResetOrRewindFailed || IsEffectivelyDead(_module.NidhoggP6()) && IsEffectivelyDead(_module.HraesvelgrP6());
+            SimplePhase(7, Phase7DragonKingThordan, "P7: DKT")
                 .Raw.Update = () => IsResetOrRewindFailed;
         }
 
@@ -91,6 +93,20 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             P6HallowedWingsPlume2(id + 0x70000, 4.4f);
             P6Wyrmsbreath2(id + 0x80000, 3.9f);
             P6Touchdown(id + 0x90000, 5.0f);
+        }
+
+        private void Phase7DragonKingThordan(uint id)
+        {
+            P7Start(id);
+            P7ExaflareEdge(id + 0x10000, 4.1f);
+            P7AkhMornsEdge(id + 0x20000, 1.9f);
+            P7GigaflaresEdge(id + 0x30000, 2); // TODO: timings below...
+            P7ExaflareEdge(id + 0x40000, 3);
+            P7AkhMornsEdge(id + 0x50000, 2);
+            P7GigaflaresEdge(id + 0x60000, 2);
+            P7ExaflareEdge(id + 0x70000, 3);
+            P7AkhMornsEdge(id + 0x80000, 2);
+            SimpleState(id + 0xFF0000, 100, "???");
         }
 
         private void P2AscalonsMercyConcealedMight(uint id, float delay)
@@ -607,6 +623,70 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ComponentCondition<P6MortalVow>(id + 0x101, 2.3f, comp => comp.Progress > 4, "Mortal vow pass 4")
                 .DeactivateOnExit<P6MortalVow>();
             ActorCastEnd(id + 0x102, _module.NidhoggP6, 22.7f, true, "Enrage");
+        }
+
+        private void P7Start(uint id)
+        {
+            Timeout(id, 0)
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ComponentCondition<P4Resentment>(id + 0x10, 10.3f, comp => comp.NumCasts > 0, "Raidwide")
+                .ActivateOnEnter<P4Resentment>()
+                .DeactivateOnExit<P4Resentment>()
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ComponentCondition<P7Shockwave>(id + 0x20, 17.1f, comp => comp.NumCasts > 0, "Raidwide")
+                .ActivateOnEnter<P7Shockwave>()
+                .DeactivateOnExit<P7Shockwave>()
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ComponentCondition<P7AlternativeEnd>(id + 0x30, 15.7f, comp => comp.NumCasts > 0, "Raidwide")
+                .ActivateOnEnter<P7AlternativeEnd>()
+                .DeactivateOnExit<P7AlternativeEnd>()
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ActorTargetable(id + 0x40, _module.BossP7, true, 9.1f, "Boss appears")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+        }
+
+        private void P7ExaflareEdge(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP7, AID.ExaflaresEdge, delay, 6, true)
+                .ActivateOnEnter<P7ExaflaresEdge>()
+                .ActivateOnEnter<P7FlamesIceOfAscalon>();
+            ComponentCondition<P7ExaflaresEdge>(id + 0x10, 0.9f, comp => comp.NumCasts > 0, "Exaflares 1");
+            ComponentCondition<P7FlamesIceOfAscalon>(id + 0x11, 0.2f, comp => comp.NumCasts > 0, "In/out")
+                .DeactivateOnExit<P7FlamesIceOfAscalon>();
+            ComponentCondition<P7ExaflaresEdge>(id + 0x20, 1.7f, comp => comp.NumCasts > 3, "Exaflares 2");
+            ComponentCondition<P7ExaflaresEdge>(id + 0x30, 1.9f, comp => comp.NumCasts > 12, "Exaflares 3");
+            // don't really care about remaining exaflares...
+            ComponentCondition<P7Trinity>(id + 0x100, 4.6f, comp => comp.NumCasts > 0, "Trinity 1")
+                .ActivateOnEnter<P7Trinity>();
+            ComponentCondition<P7Trinity>(id + 0x110, 4.0f, comp => comp.NumCasts > 3, "Trinity 2")
+                .DeactivateOnExit<P7Trinity>()
+                .DeactivateOnExit<P7ExaflaresEdge>();
+        }
+
+        private void P7AkhMornsEdge(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP7, AID.AkhMornsEdge, delay, 6, true, "Towers ???")
+                .ActivateOnEnter<P7FlamesIceOfAscalon>();
+            // TODO: timings below...
+            ComponentCondition<P7FlamesIceOfAscalon>(id + 0x11, 1.1f, comp => comp.NumCasts > 0, "In/out", 10)
+                .DeactivateOnExit<P7FlamesIceOfAscalon>();
+            ComponentCondition<P7Trinity>(id + 0x100, 15, comp => comp.NumCasts > 0, "Trinity 1", 10)
+                .ActivateOnEnter<P7Trinity>();
+            ComponentCondition<P7Trinity>(id + 0x110, 4.0f, comp => comp.NumCasts > 3, "Trinity 2")
+                .DeactivateOnExit<P7Trinity>();
+        }
+
+        private void P7GigaflaresEdge(uint id, float delay)
+        {
+            // TODO: implement...
+            Timeout(id, delay + 6, "Gigaflare ???")
+                .ActivateOnEnter<P7FlamesIceOfAscalon>();
+            ComponentCondition<P7FlamesIceOfAscalon>(id + 0x11, 1.1f, comp => comp.NumCasts > 0, "In/out", 10)
+                .DeactivateOnExit<P7FlamesIceOfAscalon>();
+            ComponentCondition<P7Trinity>(id + 0x100, 27, comp => comp.NumCasts > 0, "Trinity 1", 10)
+                .ActivateOnEnter<P7Trinity>();
+            ComponentCondition<P7Trinity>(id + 0x110, 4.0f, comp => comp.NumCasts > 3, "Trinity 2")
+                .DeactivateOnExit<P7Trinity>();
         }
     }
 }

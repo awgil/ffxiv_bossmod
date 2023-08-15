@@ -67,6 +67,16 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P6SwirlingBlizzard() : base(ActionID.MakeSpell(AID.SwirlingBlizzard), new AOEShapeDonut(20, 35)) { }
     }
 
+    class P7Shockwave : Components.CastCounter
+    {
+        public P7Shockwave() : base(ActionID.MakeSpell(AID.ShockwaveP7)) { }
+    }
+
+    class P7AlternativeEnd : Components.CastCounter
+    {
+        public P7AlternativeEnd() : base(ActionID.MakeSpell(AID.AlternativeEnd)) { }
+    }
+
     [ModuleInfo(PrimaryActorOID = (uint)OID.BossP2)]
     public class DSW2 : BossModule
     {
@@ -83,6 +93,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private Actor? _bossP5;
         private Actor? _nidhoggP6;
         private Actor? _hraesvelgrP6;
+        private Actor? _bossP7;
         public Actor? ArenaFeatures => _arenaFeatures;
         public Actor? BossP2() => PrimaryActor;
         public Actor? BossP3() => _bossP3;
@@ -94,6 +105,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public Actor? BossP5() => _bossP5;
         public Actor? NidhoggP6() => _nidhoggP6;
         public Actor? HraesvelgrP6() => _hraesvelgrP6;
+        public Actor? BossP7() => _bossP7;
 
         public DSW2(WorldState ws, Actor primary) : base(ws, primary, BoundsCircle) { }
 
@@ -111,6 +123,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             _bossP5 ??= StateMachine.ActivePhaseIndex == 4 ? Enemies(OID.BossP5).FirstOrDefault() : null;
             _nidhoggP6 ??= StateMachine.ActivePhaseIndex == 5 ? Enemies(OID.NidhoggP6).FirstOrDefault() : null;
             _hraesvelgrP6 ??= StateMachine.ActivePhaseIndex == 5 ? Enemies(OID.HraesvelgrP6).FirstOrDefault() : null;
+            _bossP7 ??= StateMachine.ActivePhaseIndex == 6 ? Enemies(OID.DragonKingThordan).FirstOrDefault() : null;
         }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
@@ -125,6 +138,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             Arena.Actor(_bossP5, ArenaColor.Enemy);
             Arena.Actor(_nidhoggP6, ArenaColor.Enemy);
             Arena.Actor(_hraesvelgrP6, ArenaColor.Enemy);
+            Arena.Actor(_bossP7, ArenaColor.Enemy);
             //Arena.Actor(Enemies(OID.SerJanlenoux).FirstOrDefault(), 0xffffffff);
             //Arena.Actor(Enemies(OID.SerVellguine).FirstOrDefault(), 0xff0000ff);
             //Arena.Actor(Enemies(OID.SerPaulecrain).FirstOrDefault(), 0xff00ff00);

@@ -6,6 +6,12 @@ general:
 - bozja action support
 - better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
 - replay: global participant, track oid (existence) / name histories
+- constrain bossmodules to zone id (e.g. for T04)
+- window refactor cleanup
+-- split bossmodulemanagergame into windows
+-- remove old windowmanager
+-- revise simplewindow api
+-- fix trisha mode on multimon
 
 boss modules:
 - generalize components as much as possible
