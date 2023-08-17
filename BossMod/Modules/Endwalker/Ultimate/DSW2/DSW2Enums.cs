@@ -300,9 +300,14 @@
         TrinityAOE2 = 28064, // Helper->players, no cast, range 3 circle (light)
         TrinityAOE3 = 28065, // Helper->players, no cast, range 3 circle (dark+light)
         AkhMornsEdge = 28051, // DragonKingThordan->self, 6.0s cast, single-target, visual (towers)
-        AkhMornsEdgeAOE1 = 29452, // Helper->self, 6.7s cast, range 4 circle
-        AkhMornsEdgeAOE2 = 29453, // Helper->self, 6.7s cast, range 4 circle
-        AkhMornsEdgeAOE3 = 29454, // Helper->self, 6.7s cast, range 4 circle
+        AkhMornsEdgeVisual1 = 28052, // DragonKingThordan->self, no cast, single-target
+        AkhMornsEdgeVisual2 = 28053, // DragonKingThordan->self, no cast, single-target
+        AkhMornsEdgeAOEFirstNormal1 = 29452, // Helper->self, 6.7s cast, range 4 circle tower
+        AkhMornsEdgeAOEFirstNormal2 = 29453, // Helper->self, 6.7s cast, range 4 circle tower
+        AkhMornsEdgeAOEFirstTanks = 29454, // Helper->self, 6.7s cast, range 4 circle tower (for tanks)
+        AkhMornsEdgeAOERestNormal = 28054, // Helper->self, no cast, range 4 circle tower secondary
+        AkhMornsEdgeAOERestTanks = 28055, // Helper->self, no cast, range 4 circle tower secondary (for tanks)
+        AkhMornsEdgeAOEFail = 28056, // Helper->self, no cast, range 60 circle tower fail
     };
 
     public enum SID : uint

@@ -6,7 +6,10 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 {
     class P7ExaflaresEdge : Components.Exaflare
     {
-        public P7ExaflaresEdge() : base(6) { }
+        public P7ExaflaresEdge() : base(6)
+        {
+            ImminentColor = ArenaColor.AOE;
+        }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
@@ -19,9 +22,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if ((AID)spell.Action.ID is AID.ExaflaresEdgeFirst)
             {
                 var advance = 7 * spell.Rotation.ToDirection();
-                Lines.Add(new() { Next = caster.Position, Advance = advance, NextExplosion = spell.FinishAt, TimeToMove = 1.9f, ExplosionsLeft = 6, MaxShownExplosions = 2 });
-                Lines.Add(new() { Next = caster.Position, Advance = advance.OrthoL(), NextExplosion = spell.FinishAt, TimeToMove = 1.9f, ExplosionsLeft = 6, MaxShownExplosions = 2 });
-                Lines.Add(new() { Next = caster.Position, Advance = advance.OrthoR(), NextExplosion = spell.FinishAt, TimeToMove = 1.9f, ExplosionsLeft = 6, MaxShownExplosions = 2 });
+                Lines.Add(new() { Next = caster.Position, Advance = advance, NextExplosion = spell.FinishAt, TimeToMove = 1.9f, ExplosionsLeft = 6, MaxShownExplosions = 1 });
+                Lines.Add(new() { Next = caster.Position, Advance = advance.OrthoL(), NextExplosion = spell.FinishAt, TimeToMove = 1.9f, ExplosionsLeft = 6, MaxShownExplosions = 1 });
+                Lines.Add(new() { Next = caster.Position, Advance = advance.OrthoR(), NextExplosion = spell.FinishAt, TimeToMove = 1.9f, ExplosionsLeft = 6, MaxShownExplosions = 1 });
             }
         }
 

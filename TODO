@@ -7,6 +7,7 @@ general:
 - better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
 - replay: global participant, track oid (existence) / name histories
 - constrain bossmodules to zone id (e.g. for T04)
+- cancel autorotation if countdown is canceled
 - window refactor cleanup
 -- split bossmodulemanagergame into windows
 -- remove old windowmanager
