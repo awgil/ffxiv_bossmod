@@ -73,6 +73,7 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
                     }
                 }
 
+                var cfg = Service.Config.Get<P12S2PallasAthenaConfig>();
                 BitMask forbiddenMask = default;
                 for (int i = 0; i < _states.Length; ++i)
                 {
@@ -81,8 +82,8 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
                     forbidden |= state.Color == towerColor; // forbid towers of same color
                     forbidden |= NumCasts switch
                     {
-                        < 2 => state.UnstableCount == 0 || state.ColorExpire > spell.FinishAt.AddSeconds(4), // for first towers, forbid if without any debuffs and if with long debuffs
-                        < 6 => (state.UnstableCount == 0) == isPrimary, // for second towers, forbid player without debuffs from taking primary (southern) tower, and others from taking non-primary tower; note that this will be updated once colors are assigned
+                        < 2 => state.UnstableCount == (cfg.PangenesisFirstStack ? 0 : 1) || state.ColorExpire > spell.FinishAt.AddSeconds(4), // for first towers, forbid players with long debuffs and with improper stack count (0 for 2+1, 1 for 2+0)
+                        < 6 => state.Color == Color.None && isPrimary == (cfg.PangenesisFirstStack ? state.UnstableCount == 0 : state.UnstableCount != 1), // for second towers, by default (before colors are assigned) for 2+1 strat only 0 goes to non-primary, for 2+0 strat only 1 goes to primary
                         _ => state.SoakedPrimary != isPrimary // for remaining towers, forbid changing lanes by default; note that this will be updated once colors are assigned
                     };
                     forbiddenMask[i] = forbidden;
