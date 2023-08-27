@@ -1,11 +1,32 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Game.ClientState.Keys;
+using ImGuiNET;
 using System;
+using System.Drawing;
+using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace BossMod
 {
-    class DebugInput : IDisposable
+    [StructLayout(LayoutKind.Explicit, Size = 0xB)]
+    public unsafe struct InputDataKeybind
+    {
+        [FieldOffset(0)] public fixed ushort Bindings[5];
+        [FieldOffset(10)] public byte Terminator;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 0x9C8)]
+    public unsafe struct InputData
+    {
+        [FieldOffset(0)] public void** Vtbl;
+
+        [FieldOffset(0x9AC)] public int KeybindCount;
+        [FieldOffset(0x9B0)] public InputDataKeybind* Keybinds;
+        [FieldOffset(0x9B8)] public fixed byte GamepadAxisRemap[7];
+    }
+
+    unsafe class DebugInput : IDisposable
     {
         private delegate byte ConvertVirtualKeyDelegate(int vkCode);
         private ConvertVirtualKeyDelegate _convertVirtualKey;
@@ -13,6 +34,7 @@ namespace BossMod
         private delegate ref int GetRefValueDelegate(int vkCode);
         private GetRefValueDelegate _getKeyRef;
 
+        private UITree _tree = new();
         private WorldState _ws;
         private AI.AIController _navi;
         private Vector2 _dest;
@@ -76,9 +98,33 @@ namespace BossMod
 
             DrawGamepad();
 
-            foreach (var vk in Service.KeyState.GetValidVirtualKeys())
+            foreach (var n in _tree.Node("Input data"))
             {
-                ImGui.TextUnformatted($"{vk} ({(int)vk}): internal code={_convertVirtualKey((int)vk)}, state={_getKeyRef((int)vk)}");
+                var idata = GetInputData();
+                foreach (var n2 in _tree.Node($"Keybinds ({idata->KeybindCount} total)"))
+                {
+                    var mapping = new VirtualKey[256];
+                    foreach (var vk in Service.KeyState.GetValidVirtualKeys())
+                        mapping[_convertVirtualKey((int)vk)] = vk;
+
+                    Func<byte, string> bindString = v => v switch
+                    {
+                        0 => "---",
+                        < 0xA0 => mapping[v].ToString(),
+                        < 0xA7 => $"mouse{v - 0xA0}",
+                        _ => $"gamepad{v-0xA7}"
+                    };
+                    Func<ushort, string> printBinding = v => $"{((v & 0x100) != 0 ? "shift+" : "")}{((v & 0x200) != 0 ? "ctrl+" : "")}{((v & 0x400) != 0 ? "alt+" : "")}{((v & 0xF800) != 0 ? "?+" : "")}{bindString((byte)v)} ({v:X4})";
+                    for (int i = 0; i < idata->KeybindCount; ++i)
+                    {
+                        _tree.LeafNode($"{i} = {string.Join(", ", Enumerable.Range(0, 5).Select(j => printBinding(idata->Keybinds[i].Bindings[j])))}");
+                    }
+                }
+            }
+
+            foreach (var n in _tree.Node("Virtual keys"))
+            {
+                _tree.LeafNodes(Service.KeyState.GetValidVirtualKeys(), vk => $"{vk} ({(int)vk}): internal code={_convertVirtualKey((int)vk)}, state={_getKeyRef((int)vk)}");
             }
         }
 
@@ -120,5 +166,7 @@ namespace BossMod
                 input.GamepadOverridesEnabled = false;
             }
         }
+
+        private InputData* GetInputData() => (InputData*)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUiModule()->GetUIInputData();
     }
 }
