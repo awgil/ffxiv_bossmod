@@ -9,7 +9,7 @@ namespace BossMod
     {
         public WorldState WorldState { get; init; }
         public RaidCooldowns RaidCooldowns { get; init; }
-        protected BossModuleConfig WindowConfig { get; init; }
+        public BossModuleConfig WindowConfig { get; init; }
 
         private bool _running = false;
         private bool _configOrModulesUpdated = false;
@@ -26,7 +26,7 @@ namespace BossMod
         public BossModule? ActiveModule
         {
             get => _activeModule;
-            protected set {
+            set {
                 _activeModule = value;
                 _configOrModulesUpdated = true;
                 _activeModuleOverridden = true;

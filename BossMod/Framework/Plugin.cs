@@ -15,13 +15,16 @@ namespace BossMod
 
         private Network _network;
         private WorldStateGame _ws;
-        private ReplayRecorderWindow _recorder;
         private BossModuleManagerGame _bossmod;
         private Autorotation _autorotation;
         private AI.AIManager _ai;
         private AI.Broadcast _broadcast;
         private TimeSpan _prevUpdateTime;
-        private MainDebugWindow _debugUI;
+
+        // windows
+        private BossModuleHintsWindow _wndBossmodHints;
+        private ReplayRecorderWindow _wndReplayRecorder;
+        private MainDebugWindow _wndDebug;
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface dalamud,
@@ -55,13 +58,14 @@ namespace BossMod
 
             _network = new(dalamud.ConfigDirectory);
             _ws = new(_network);
-            _recorder = new(_ws, recorderSettings);
             _bossmod = new(_ws);
             _autorotation = new(_bossmod);
             _ai = new(_autorotation);
             _broadcast = new();
 
-            _debugUI = new(_ws, _autorotation);
+            _wndBossmodHints = new(_bossmod);
+            _wndReplayRecorder = new(_ws, recorderSettings);
+            _wndDebug = new(_ws, _autorotation);
 
             dalamud.UiBuilder.DisableAutomaticUiHide = true;
             dalamud.UiBuilder.Draw += DrawUI;
@@ -71,9 +75,10 @@ namespace BossMod
         public void Dispose()
         {
             Service.Condition.ConditionChange -= OnConditionChanged;
-            _debugUI.Dispose();
+            _wndDebug.Dispose();
+            _wndReplayRecorder.Dispose();
+            _wndBossmodHints.Dispose();
             WindowManager.Reset();
-            _recorder.Dispose();
             _bossmod.Dispose();
             _network.Dispose();
             _ai.Dispose();
@@ -96,8 +101,8 @@ namespace BossMod
             switch (split[0])
             {
                 case "d":
-                    _debugUI.IsOpen = true;
-                    _debugUI.BringToFront();
+                    _wndDebug.IsOpen = true;
+                    _wndDebug.BringToFront();
                     break;
                 case "cfg":
                     var output = Service.Config.ConsoleCommand(new ArraySegment<string>(split, 1, split.Length - 1));
