@@ -8,7 +8,6 @@ namespace BossMod
     class BossModuleManagerGame : BossModuleManager
     {
         private WindowManager.Window? _mainWindow;
-        private WindowManager.Window? _planWindow;
 
         public BossModuleManagerGame(WorldState ws)
             : base(ws)
@@ -40,30 +39,6 @@ namespace BossMod
                     _mainWindow.Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
                 if (WindowConfig.Lock)
                     _mainWindow.Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
-            }
-
-            // create or destroy plan window if needed
-            bool showPlanWindow = WindowConfig.EnableTimerWindow && ActiveModule?.PlanConfig != null;
-            if (_planWindow != null && !showPlanWindow)
-            {
-                Service.Log("[BMM] Closing plan window");
-                WindowManager.CloseWindow(_planWindow);
-            }
-            else if (_planWindow == null && showPlanWindow)
-            {
-                Service.Log("[BMM] Opening plan window");
-                _planWindow = WindowManager.CreateWindow("Cooldown plan", DrawPlanWindow, PlanWindowClosed, () => true);
-                _planWindow.SizeHint = new(400, 400);
-            }
-
-            // update plan window properties
-            if (_planWindow != null)
-            {
-                _planWindow.Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
-                if (WindowConfig.TrishaMode)
-                    _planWindow.Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
-                if (WindowConfig.Lock)
-                    _planWindow.Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
             }
         }
 
@@ -136,27 +111,6 @@ namespace BossMod
                 Service.Log("[BMM] Bossmod window closed by user, disabling temporarily");
                 return true;
             }
-        }
-
-        private void DrawPlanWindow()
-        {
-            if (ActiveModule?.PlanExecution == null)
-                return;
-
-            if (ImGui.Button("Show timeline"))
-            {
-                new StateMachineWindow(ActiveModule);
-            }
-            ImGui.SameLine();
-            ActiveModule.PlanConfig?.DrawSelectionUI(ActiveModule.Raid.Player()?.Class ?? Class.None, ActiveModule.StateMachine, ActiveModule.Info);
-
-            ActiveModule.PlanExecution?.Draw(ActiveModule.StateMachine); // note: null check again, since plan could've been just deleted
-        }
-
-        private void PlanWindowClosed()
-        {
-            Service.Log("[BMM] Plan window closed");
-            _planWindow = null;
         }
     }
 }

@@ -137,6 +137,10 @@ namespace BossMod
             {
                 _debugTiming.Draw();
             }
+            if (ImGui.CollapsingHeader("Window system"))
+            {
+                DrawWindowSystem();
+            }
         }
 
         private void DrawStatuses()
@@ -251,6 +255,15 @@ namespace BossMod
             ImGui.TextUnformatted($"Active: {agent->Active != 0}");
             ImGui.TextUnformatted($"Initiator: {Utils.ObjectString(agent->Initiator)}");
             ImGui.TextUnformatted($"Time left: {agent->Timer:f3}");
+        }
+
+        private void DrawWindowSystem()
+        {
+            ImGui.TextUnformatted($"Any focus: {Service.WindowSystem!.HasAnyFocus}");
+            foreach (var w in Service.WindowSystem.Windows)
+            {
+                ImGui.TextUnformatted($"{w.WindowName}: focus={w.IsFocused}");
+            }
         }
     }
 }

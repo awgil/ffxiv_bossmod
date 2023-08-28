@@ -22,6 +22,7 @@ namespace BossMod
         private TimeSpan _prevUpdateTime;
 
         // windows
+        private BossModulePlanWindow _wndBossmodPlan;
         private BossModuleHintsWindow _wndBossmodHints;
         private ReplayRecorderWindow _wndReplayRecorder;
         private MainDebugWindow _wndDebug;
@@ -63,6 +64,7 @@ namespace BossMod
             _ai = new(_autorotation);
             _broadcast = new();
 
+            _wndBossmodPlan = new(_bossmod);
             _wndBossmodHints = new(_bossmod);
             _wndReplayRecorder = new(_ws, recorderSettings);
             _wndDebug = new(_ws, _autorotation);
@@ -78,6 +80,7 @@ namespace BossMod
             _wndDebug.Dispose();
             _wndReplayRecorder.Dispose();
             _wndBossmodHints.Dispose();
+            _wndBossmodPlan.Dispose();
             WindowManager.Reset();
             _bossmod.Dispose();
             _network.Dispose();
