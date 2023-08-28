@@ -458,7 +458,7 @@ namespace BossMod
         {
             if (_playerCombatStart != default)
                 return (float)(Autorot.WorldState.CurrentTime - _playerCombatStart).TotalSeconds;
-            return -Math.Max(0.001f, Autorot.WorldState.Client.CountdownRemaining ?? 10000);
+            return -Math.Max(0.001f, Autorot.WorldState.Client.CountdownRemaining ?? float.MaxValue);
         }
     }
 }
