@@ -22,6 +22,7 @@ namespace BossMod
         private TimeSpan _prevUpdateTime;
 
         // windows
+        private BossModuleMainWindow _wndBossmod;
         private BossModulePlanWindow _wndBossmodPlan;
         private BossModuleHintsWindow _wndBossmodHints;
         private ReplayRecorderWindow _wndReplayRecorder;
@@ -64,6 +65,7 @@ namespace BossMod
             _ai = new(_autorotation);
             _broadcast = new();
 
+            _wndBossmod = new(_bossmod);
             _wndBossmodPlan = new(_bossmod);
             _wndBossmodHints = new(_bossmod);
             _wndReplayRecorder = new(_ws, recorderSettings);
@@ -81,7 +83,7 @@ namespace BossMod
             _wndReplayRecorder.Dispose();
             _wndBossmodHints.Dispose();
             _wndBossmodPlan.Dispose();
-            WindowManager.Reset();
+            _wndBossmod.Dispose();
             _bossmod.Dispose();
             _network.Dispose();
             _ai.Dispose();
@@ -134,7 +136,6 @@ namespace BossMod
             bool uiHidden = Service.GameGui.GameUiHidden || Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.WatchingCutscene];
             if (!uiHidden)
             {
-                WindowManager.DrawAll();
                 Service.WindowSystem?.Draw();
             }
 

@@ -8,12 +8,12 @@ general:
 - better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
 - replay: global participant, track oid (existence) / name histories
 - constrain bossmodules to zone id (e.g. for T04)
-- cancel autorotation if countdown is canceled
 - waymarks from game state rather than network
-- window refactor cleanup
--- split bossmodulemanagergame into windows
--- remove old windowmanager
--- fix trisha mode on multimon
+- fix trisha mode on multimon
+- move countdown into worldstate
+-- remove BMMG
+-- analyze pull time
+-- cancel autorotation if countdown is canceled
 
 boss modules:
 - generalize components as much as possible
