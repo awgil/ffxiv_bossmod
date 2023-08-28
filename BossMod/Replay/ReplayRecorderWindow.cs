@@ -3,7 +3,7 @@ using System;
 
 namespace BossMod
 {
-    public class ReplayRecorderWindow : SimpleWindow
+    public class ReplayRecorderWindow : UIWindow
     {
         private WorldState _ws;
         private ReplayRecorderConfig _config;
@@ -12,7 +12,7 @@ namespace BossMod
 
         private static string _windowID = "###Replay recorder";
 
-        public ReplayRecorderWindow(WorldState ws, ReplayRecorderConfig config) : base(_windowID, new(300, 200), ImGuiWindowFlags.None, false)
+        public ReplayRecorderWindow(WorldState ws, ReplayRecorderConfig config) : base(_windowID, false, new(300, 200))
         {
             _ws = ws;
             _config = config;
@@ -22,7 +22,7 @@ namespace BossMod
             RespectCloseHotkey = false;
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
             _config.Modified -= ApplyConfig;
             _recorder?.Dispose();

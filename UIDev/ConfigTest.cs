@@ -9,7 +9,7 @@ namespace UIDev
         private string _command = "";
         private ConfigUI _ui;
 
-        public ConfigTest() : base("Config", ImGuiWindowFlags.None)
+        public ConfigTest() : base("Config", new(400, 400), ImGuiWindowFlags.None)
         {
             _ui = new(Service.Config, new(TimeSpan.TicksPerSecond));
         }

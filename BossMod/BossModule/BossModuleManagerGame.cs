@@ -191,7 +191,7 @@ namespace BossMod
 
             if (ImGui.Button("Show timeline"))
             {
-                new StateMachineWindow(ActiveModule).Register();
+                new StateMachineWindow(ActiveModule);
             }
             ImGui.SameLine();
             ActiveModule.PlanConfig?.DrawSelectionUI(ActiveModule.Raid.Player()?.Class ?? Class.None, ActiveModule.StateMachine, ActiveModule.Info);

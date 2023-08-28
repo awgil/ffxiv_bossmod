@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace BossMod
 {
-    public class CooldownPlanEditorWindow : SimpleWindow
+    public class CooldownPlanEditorWindow : UIWindow
     {
         private Action _onModified;
         private Timeline _timeline = new();
@@ -13,7 +13,7 @@ namespace BossMod
         private int _selectedPhase = 0;
         private bool _modified = false;
 
-        public CooldownPlanEditorWindow(CooldownPlan plan, StateMachine sm, ModuleRegistry.Info? moduleInfo, Action onModified) : base("Cooldown planner", new(600, 600))
+        public CooldownPlanEditorWindow(CooldownPlan plan, StateMachine sm, ModuleRegistry.Info? moduleInfo, Action onModified) : base("Cooldown planner", true, new(600, 600))
         {
             _onModified = onModified;
 

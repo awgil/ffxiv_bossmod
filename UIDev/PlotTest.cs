@@ -7,7 +7,7 @@ namespace UIDev
     {
         private UIPlot _plot = new();
 
-        public PlotTest() : base("Plot test", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+        public PlotTest() : base("Plot test", new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
         {
             _plot.DataMin = new(-180, 0);
             _plot.DataMax = new(180, 60);

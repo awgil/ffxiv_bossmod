@@ -34,7 +34,7 @@ namespace BossMod
         private AutorotationConfig _config;
         private BossModuleManager _bossmods;
         private AutoHints _autoHints;
-        private SimpleActionWindow _ui;
+        private UISimpleWindow _ui;
         private CommonActions? _classActions;
 
         private unsafe delegate bool UseActionDelegate(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted);
@@ -59,10 +59,7 @@ namespace BossMod
             _config = Service.Config.Get<AutorotationConfig>();
             _bossmods = bossmods;
             _autoHints = new(bossmods.WorldState);
-
-            _ui = new("Autorotation", DrawOverlay, new(100, 100), ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing, false);
-            _ui.RespectCloseHotkey = false;
-            _ui.Register();
+            _ui = new("Autorotation", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing) { RespectCloseHotkey = false };
 
             ActionManagerEx.Instance!.ActionRequested += OnActionRequested;
             WorldState.Actors.CastEvent += OnCastEvent;
@@ -77,7 +74,7 @@ namespace BossMod
             ActionManagerEx.Instance!.ActionRequested -= OnActionRequested;
             WorldState.Actors.CastEvent -= OnCastEvent;
 
-            _ui.Unregister();
+            _ui.Dispose();
             _useActionHook.Dispose();
             _classActions?.Dispose();
             _autoHints.Dispose();

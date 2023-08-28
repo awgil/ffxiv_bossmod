@@ -56,15 +56,12 @@ namespace BossMod
             _network = new(dalamud.ConfigDirectory);
             _ws = new(_network);
             _recorder = new(_ws, recorderSettings);
-            _recorder.Register();
             _bossmod = new(_ws);
             _autorotation = new(_bossmod);
             _ai = new(_autorotation);
             _broadcast = new();
 
             _debugUI = new(_ws, _autorotation);
-            _debugUI.IsOpen = false;
-            _debugUI.Register();
 
             dalamud.UiBuilder.DisableAutomaticUiHide = true;
             dalamud.UiBuilder.Draw += DrawUI;
@@ -74,9 +71,9 @@ namespace BossMod
         public void Dispose()
         {
             Service.Condition.ConditionChange -= OnConditionChanged;
-            _debugUI.Unregister();
+            _debugUI.Dispose();
             WindowManager.Reset();
-            _recorder.Unregister();
+            _recorder.Dispose();
             _bossmod.Dispose();
             _network.Dispose();
             _ai.Dispose();
@@ -99,7 +96,8 @@ namespace BossMod
             switch (split[0])
             {
                 case "d":
-                    _debugUI.OpenAndFocus();
+                    _debugUI.IsOpen = true;
+                    _debugUI.BringToFront();
                     break;
                 case "cfg":
                     var output = Service.Config.ConsoleCommand(new ArraySegment<string>(split, 1, split.Length - 1));
@@ -111,7 +109,7 @@ namespace BossMod
 
         private void OpenConfigUI()
         {
-            new SimpleActionWindow("Boss mod config", new ConfigUI(Service.Config, _ws).Draw, new(300, 300)).Register();
+            new UISimpleWindow("Boss mod config", new ConfigUI(Service.Config, _ws).Draw, true, new(300, 300));
         }
 
         private void DrawUI()

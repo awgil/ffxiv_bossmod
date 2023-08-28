@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace UIDev
 {
-    class ReplayTimelineWindow : SimpleWindow
+    class ReplayTimelineWindow : UIWindow
     {
         private Replay _replay;
         private Replay.Encounter _encounter;
@@ -17,10 +17,10 @@ namespace UIDev
         private ColumnStateMachineBranch _colStates;
         private ColumnEnemiesDetails _colEnemies;
         private ColumnPlayersDetails _colPlayers;
-        private SimpleActionWindow _config;
+        private UISimpleWindow? _config;
         private UITree _configTree = new();
 
-        public ReplayTimelineWindow(Replay replay, Replay.Encounter enc, BitMask showPlayers) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", new(1200, 1000))
+        public ReplayTimelineWindow(Replay replay, Replay.Encounter enc, BitMask showPlayers) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1200, 1000))
         {
             _replay = replay;
             _encounter = enc;
@@ -34,17 +34,22 @@ namespace UIDev
             _colEnemies = _timeline.Columns.Add(new ColumnEnemiesDetails(_timeline, _stateTree, _phaseBranches, replay, enc));
             _colPlayers = _timeline.Columns.Add(new ColumnPlayersDetails(_timeline, _stateTree, _phaseBranches, replay, enc, showPlayers));
 
-            // TODO: reconsider api...
-            _config = new($"Replay timeline config: {replay.Path} @ {enc.Time.Start:O}", DrawConfig, new(600, 600), unregisterOnClose: false);
-            _config.IsOpen = false;
-            _config.Register();
+            if (IsOpen)
+            {
+                _config = new($"Replay timeline config: {_replay.Path} @ {_encounter.Time.Start:O}", DrawConfig, false, new(600, 600));
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            _config?.Dispose();
         }
 
         public override void PreOpenCheck() => RespectCloseHotkey = !_colPlayers.AnyPlanModified;
 
         public override void Draw()
         {
-            if (ImGui.Button(!_config.IsOpen ? "Show config" : "Hide config"))
+            if (_config != null && ImGui.Button(!_config.IsOpen ? "Show config" : "Hide config"))
             {
                 _config.Toggle();
             }
@@ -55,11 +60,6 @@ namespace UIDev
             }
 
             _timeline.Draw();
-        }
-
-        public override void Dispose()
-        {
-            _config.Unregister();
         }
 
         private void DrawConfig()

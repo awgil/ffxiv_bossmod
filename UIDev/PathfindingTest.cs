@@ -37,7 +37,7 @@ namespace UIDev
         private float _blockRectRotationDeg;
         private float _blockRectG = 0;
 
-        public PathfindingTest() : base("Pathfinding test", ImGuiWindowFlags.None)
+        public PathfindingTest() : base("Pathfinding test", new(400, 400), ImGuiWindowFlags.None)
         {
             _visu = RebuildMap();
         }

@@ -172,7 +172,7 @@ namespace BossMod
         {
             if (sm == null)
                 return;
-            new CooldownPlanEditorWindow(plan, sm, moduleInfo, NotifyModified).Register();
+            new CooldownPlanEditorWindow(plan, sm, moduleInfo, NotifyModified);
         }
 
         private void StartPlanEditor(CooldownPlan plan)

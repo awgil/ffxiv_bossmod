@@ -37,7 +37,7 @@ namespace UIDev
         public float BuffWindowDuration = 20;
         public float BuffWindowFreq = 120;
 
-        public WARSimulator() : base("WAR Simulator", ImGuiWindowFlags.None) { }
+        public WARSimulator() : base("WAR Simulator", new(800, 800), ImGuiWindowFlags.None) { }
 
         public override void Draw()
         {

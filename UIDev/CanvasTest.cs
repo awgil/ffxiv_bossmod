@@ -18,7 +18,7 @@ namespace UIDev
         int _mouseoverIndex = 0;
         bool _mouseoverPoint = false;
 
-        public CanvasTest() : base("Canvas test", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+        public CanvasTest() : base("Canvas test", new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
         {
             var c1 = new List<WPos>();
             c1.Add(new(30, 100));

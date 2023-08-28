@@ -2,16 +2,17 @@ general:
 - optionally log raw ipcs when recording, visualize in replay analysis
 - simulate autorotation in replay analysis
 - move replay analysis to plugin
+- replay manager class
 - proper lb support
 - bozja action support
 - better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
 - replay: global participant, track oid (existence) / name histories
 - constrain bossmodules to zone id (e.g. for T04)
 - cancel autorotation if countdown is canceled
+- waymarks from game state rather than network
 - window refactor cleanup
 -- split bossmodulemanagergame into windows
 -- remove old windowmanager
--- revise simplewindow api
 -- fix trisha mode on multimon
 
 boss modules:

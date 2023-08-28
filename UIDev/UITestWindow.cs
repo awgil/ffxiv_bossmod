@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UIDev
 {
-    class UITestWindow : SimpleWindow
+    class UITestWindow : UIWindow
     {
         private SimpleImGuiScene _scene;
         private List<Type> _testTypes;
@@ -23,7 +23,7 @@ namespace UIDev
             set => RespectCloseHotkey = !value;
         }
 
-        public UITestWindow(SimpleImGuiScene scene, string configPath) : base("Boss mod UI development")
+        public UITestWindow(SimpleImGuiScene scene, string configPath) : base("Boss mod UI development", false, new(600, 600))
         {
             _scene = scene;
             _testTypes = Utils.GetDerivedTypes<TestWindow>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract).ToList();
@@ -34,7 +34,7 @@ namespace UIDev
             Service.Config.Modified += (_, _) => _configModified = true;
         }
 
-        public override void Dispose()
+        public override void OnClose()
         {
             _scene.ShouldQuit = true;
         }
@@ -63,7 +63,7 @@ namespace UIDev
                 var data = ReplayParserLog.Parse(_path);
                 if (data.Ops.Count > 0)
                 {
-                    new ReplayWindow(data).Register();
+                    new ReplayWindow(data);
                 }
             }
             //ImGui.SameLine();
@@ -79,7 +79,7 @@ namespace UIDev
             ImGui.SameLine();
             if (ImGui.Button("Analyze all logs..."))
             {
-                new MultiReplayWindow(_path).Register();
+                new UISimpleWindow($"Multiple logs: {_path}", new AnalysisManager(_path).Draw, true, new(1200, 800));
             }
             ImGui.SameLine();
             if (ImGui.Button("Convert to verbose"))
@@ -128,7 +128,7 @@ namespace UIDev
             {
                 if (ImGui.Button($"Show {t}"))
                 {
-                    ((TestWindow?)Activator.CreateInstance(t))?.Register();
+                    Activator.CreateInstance(t);
                 }
             }
         }

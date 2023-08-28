@@ -14,25 +14,21 @@ namespace BossMod.AI
         private AIConfig _config;
         private int _masterSlot = PartyState.PlayerSlot; // non-zero means corresponding player is master
         private AIBehaviour? _beh;
-        private SimpleActionWindow _ui;
+        private UISimpleWindow _ui;
 
         public AIManager(Autorotation autorot)
         {
             _autorot = autorot;
             _controller = new();
             _config = Service.Config.Get<AIConfig>();
-
-            _ui = new("AI", DrawOverlay, new(100, 100), ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing, false);
-            _ui.RespectCloseHotkey = false;
-            _ui.Register();
-
+            _ui = new("AI", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing) { RespectCloseHotkey = false };
             Service.ChatGui.ChatMessage += OnChatMessage;
         }
 
         public void Dispose()
         {
             SwitchToIdle();
-            _ui.Unregister();
+            _ui.Dispose();
             Service.ChatGui.ChatMessage -= OnChatMessage;
         }
 

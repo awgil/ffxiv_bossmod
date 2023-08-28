@@ -24,7 +24,7 @@ namespace UIDev
         private Vector2 _kbCenter = new(110, 100);
         private float _kbDistance = 5;
 
-        public MiniArenaTest() : base("Arena test", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse) { }
+        public MiniArenaTest() : base("Arena test", new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse) { }
 
         public override void Draw()
         {

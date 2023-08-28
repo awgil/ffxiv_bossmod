@@ -239,7 +239,7 @@ namespace UIDev
 
         private void OpenTimeline(Replay.Encounter enc, BitMask showPlayers)
         {
-            new ReplayTimelineWindow(_replay, enc, showPlayers).Register();
+            new ReplayTimelineWindow(_replay, enc, showPlayers);
         }
 
         private void DrawTimelines(Replay.Encounter enc)

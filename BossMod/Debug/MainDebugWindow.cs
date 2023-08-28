@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace BossMod
 {
-    class MainDebugWindow : SimpleWindow
+    class MainDebugWindow : UIWindow
     {
         private WorldState _ws;
         private Autorotation _autorot;
@@ -21,7 +21,7 @@ namespace BossMod
         private DebugAddon _debugAddon = new();
         private DebugTiming _debugTiming = new();
 
-        public MainDebugWindow(WorldState ws, Autorotation autorot) : base("Boss mod debug UI", new(300, 200), ImGuiWindowFlags.None, false)
+        public MainDebugWindow(WorldState ws, Autorotation autorot) : base("Boss mod debug UI", false, new(300, 200))
         {
             _ws = ws;
             _autorot = autorot;
@@ -31,7 +31,7 @@ namespace BossMod
             _debugClassDefinitions = new(ws);
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
             _debugInput.Dispose();
             _debugClassDefinitions.Dispose();
