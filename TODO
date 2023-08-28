@@ -9,7 +9,6 @@ general:
 - replay: global participant, track oid (existence) / name histories
 - constrain bossmodules to zone id (e.g. for T04)
 - waymarks from game state rather than network
-- fix trisha mode on multimon
 - move countdown into worldstate
 -- remove BMMG
 -- analyze pull time

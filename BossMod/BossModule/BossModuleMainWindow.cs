@@ -30,6 +30,7 @@ namespace BossMod
                 Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
             if (_mgr.WindowConfig.Lock)
                 Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
+            ForceMainWindow = _mgr.WindowConfig.TrishaMode; // NoBackground flag without ForceMainWindow works incorrectly for whatever reason
         }
 
         public override void OnOpen()
