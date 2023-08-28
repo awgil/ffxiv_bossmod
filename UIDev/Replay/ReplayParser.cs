@@ -167,6 +167,7 @@ namespace UIDev
                 {
                     if (m.ActiveState == null)
                     {
+                        m.Encounter.CountdownOnPull = _ws.Client.CountdownRemaining ?? 10000;
                         m.Encounter.Time.Start = _ws.CurrentTime;
                         m.Encounter.FirstAction = _res.Actions.Count;
                         m.Encounter.FirstStatus = _res.Statuses.Count;

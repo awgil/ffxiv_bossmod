@@ -93,6 +93,7 @@ namespace BossMod
 
             UpdateActors();
             UpdateParty();
+            UpdateClient();
         }
 
         private void UpdateActors()
@@ -336,6 +337,13 @@ namespace BossMod
         {
             if (contentID != (slot < PartyState.MaxPartySize ? Party.ContentIDs[slot] : 0) || instanceID != Party.ActorIDs[slot])
                 Execute(new PartyState.OpModify() { Slot = slot, ContentID = contentID, InstanceID = instanceID });
+        }
+
+        private void UpdateClient()
+        {
+            var countdown = Countdown.TimeRemaining();
+            if (Client.CountdownRemaining != countdown)
+                Execute(new ClientState.OpCountdownChange() { Value = countdown });
         }
 
         private ulong SanitizedObjectID(ulong raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;

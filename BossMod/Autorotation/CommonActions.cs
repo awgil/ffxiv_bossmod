@@ -81,6 +81,7 @@ namespace BossMod
         protected Autorotation Autorot;
         private DateTime _playerCombatStart;
         private DateTime _autoActionExpire;
+        private bool _forceExpireAtCountdownCancel;
         private QuestLockCheck _lock;
         private ManualActionOverride _mq;
 
@@ -107,11 +108,26 @@ namespace BossMod
             if (Player.InCombat && !wasInCombat)
             {
                 _playerCombatStart = Autorot.WorldState.CurrentTime;
+                _forceExpireAtCountdownCancel = false; // once we're in combat, pull has succeeded, so we don't want to cancel actions anymore
             }
             else if (!Player.InCombat && wasInCombat)
             {
                 _playerCombatStart = new();
                 _autoActionExpire = new(); // immediately expire auto actions, if any
+            }
+
+            // prepull expiration logic: if we queue up any action during countdown, and then countdown is cancelled, we don't really want to pull
+            if (!Player.InCombat)
+            {
+                if (!_forceExpireAtCountdownCancel && Autorot.WorldState.Client.CountdownRemaining != null)
+                {
+                    _forceExpireAtCountdownCancel = true;
+                }
+                else if (_forceExpireAtCountdownCancel && Autorot.WorldState.Client.CountdownRemaining == null)
+                {
+                    _forceExpireAtCountdownCancel = false;
+                    _autoActionExpire = new();
+                }
             }
 
             _mq.RemoveExpired();
@@ -442,8 +458,7 @@ namespace BossMod
         {
             if (_playerCombatStart != default)
                 return (float)(Autorot.WorldState.CurrentTime - _playerCombatStart).TotalSeconds;
-            var countdown = Countdown.TimeRemaining();
-            return countdown != null ? -Math.Max(0.001f, countdown.Value) : float.MinValue;
+            return -Math.Max(0.001f, Autorot.WorldState.Client.CountdownRemaining ?? 10000);
         }
     }
 }

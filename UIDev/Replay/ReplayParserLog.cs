@@ -320,6 +320,8 @@ namespace UIDev
                 case "PAR!": ParsePartyAssign(); break; // legacy (up to v3)
                 case "CLAR": ParseClientActionRequest(); break;
                 case "CLRJ": ParseClientActionReject(); break;
+                case "CDN+": ParseClientCountdown(true); break;
+                case "CDN-": ParseClientCountdown(false); break;
             }
 
             return true;
@@ -706,6 +708,11 @@ namespace UIDev
             (rej.RecastElapsed, rej.RecastTotal) = _input.ReadFloatPair();
             rej.LogMessageID = _input.ReadUInt(false);
             AddOp(new ClientState.OpActionReject() { Value = rej });
+        }
+
+        private void ParseClientCountdown(bool start)
+        {
+            AddOp(new ClientState.OpCountdownChange() { Value = start ? _input.ReadFloat() : null });
         }
 
         private static (ActorHP hp, uint curMP) ActorHPMP(string repr)

@@ -15,7 +15,7 @@ namespace BossMod
 
         private Network _network;
         private WorldStateGame _ws;
-        private BossModuleManagerGame _bossmod;
+        private BossModuleManager _bossmod;
         private Autorotation _autorotation;
         private AI.AIManager _ai;
         private AI.Broadcast _broadcast;

@@ -174,6 +174,7 @@ namespace UIDev
             public ulong InstanceID;
             public uint OID;
             public ushort Zone;
+            public float CountdownOnPull = 10000;
             public TimeRange Time = new(); // pull to deactivation
             public List<EncounterPhase> Phases = new();
             public List<EncounterState> States = new();

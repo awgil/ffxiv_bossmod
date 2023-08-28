@@ -66,6 +66,8 @@ namespace BossMod
                 yield return o;
             foreach (var o in Party.CompareToInitial())
                 yield return o;
+            foreach (var o in Client.CompareToInitial())
+                yield return o;
         }
 
         // implementation of operations
@@ -79,6 +81,7 @@ namespace BossMod
             protected override void Exec(WorldState ws)
             {
                 ws.Frame = Frame;
+                ws.Client.Tick(Frame.Duration);
                 ws.FrameStarted?.Invoke(ws, this);
             }
 
