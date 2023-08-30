@@ -296,9 +296,9 @@
         ExaflaresEdgeFirst = 28060, // Helper->self, 6.9s cast, range 6 circle
         ExaflaresEdgeRest = 28061, // Helper->location, no cast, range 6 circle
         Trinity = 28062, // DragonKingThordan->self, no cast, single-target, visual
-        TrinityAOE1 = 28063, // Helper->players, no cast, range 3 circle (dark)
-        TrinityAOE2 = 28064, // Helper->players, no cast, range 3 circle (light)
-        TrinityAOE3 = 28065, // Helper->players, no cast, range 3 circle (dark+light)
+        TrinityAOE1 = 28063, // Helper->players, no cast, range 3 circle (dark, mt)
+        TrinityAOE2 = 28064, // Helper->players, no cast, range 3 circle (light, ot)
+        TrinityAOE3 = 28065, // Helper->players, no cast, range 3 circle (dark+light, closest)
         AkhMornsEdge = 28051, // DragonKingThordan->self, 6.0s cast, single-target, visual (towers)
         AkhMornsEdgeVisual1 = 28052, // DragonKingThordan->self, no cast, single-target
         AkhMornsEdgeVisual2 = 28053, // DragonKingThordan->self, no cast, single-target
@@ -308,6 +308,10 @@
         AkhMornsEdgeAOERestNormal = 28054, // Helper->self, no cast, range 4 circle tower secondary
         AkhMornsEdgeAOERestTanks = 28055, // Helper->self, no cast, range 4 circle tower secondary (for tanks)
         AkhMornsEdgeAOEFail = 28056, // Helper->self, no cast, range 60 circle tower fail
+        GigaflaresEdge = 28057, // DragonKingThordan->self, 8.0s cast, single-target, visual (proximity)
+        GigaflaresEdgeAOE1 = 28058, // Helper->self, 9.0s cast, range 50 circle with 20? falloff
+        GigaflaresEdgeAOE2 = 28114, // Helper->self, 13.0s cast, range 50 circle with 20? falloff
+        GigaflaresEdgeAOE3 = 28115, // Helper->self, 17.0s cast, range 50 circle with 20? falloff
     };
 
     public enum SID : uint

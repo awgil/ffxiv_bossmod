@@ -100,8 +100,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             P7Start(id);
             P7ExaflareEdge(id + 0x10000, 4.1f);
             P7AkhMornsEdge(id + 0x20000, 1.9f, 5);
-            P7GigaflaresEdge(id + 0x30000, 2); // TODO: timings below...
-            P7ExaflareEdge(id + 0x40000, 3);
+            P7GigaflaresEdge(id + 0x30000, 2);
+            P7ExaflareEdge(id + 0x40000, 3); // TODO: timings below...
             P7AkhMornsEdge(id + 0x50000, 2, 6);
             P7GigaflaresEdge(id + 0x60000, 2);
             P7ExaflareEdge(id + 0x70000, 3);
@@ -669,12 +669,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .ActivateOnEnter<P7AkhMornsEdge>()
                 .ActivateOnEnter<P7FlamesIceOfAscalon>();
             ComponentCondition<P7AkhMornsEdge>(id + 0x10, 0.6f, comp => comp.NumCasts >= 1, "Towers 1");
-            ComponentCondition<P7FlamesIceOfAscalon>(id + 0x11, 0.1f, comp => comp.NumCasts > 0, "In/out", 10)
+            ComponentCondition<P7FlamesIceOfAscalon>(id + 0x11, 0.1f, comp => comp.NumCasts > 0, "In/out")
                 .DeactivateOnExit<P7FlamesIceOfAscalon>();
             ComponentCondition<P7AkhMornsEdge>(id + 0x20, 2.1f, comp => comp.NumCasts >= 2);
             ComponentCondition<P7AkhMornsEdge>(id + 0x30, 1.1f * (count - 2), comp => comp.NumCasts >= count, $"Towers {count}")
                 .DeactivateOnExit<P7AkhMornsEdge>();
-            ComponentCondition<P7Trinity>(id + 0x100, 10, comp => comp.NumCasts > 0, "Trinity 1", 10)
+            ComponentCondition<P7Trinity>(id + 0x100, 6.3f, comp => comp.NumCasts > 0, "Trinity 1")
                 .ActivateOnEnter<P7Trinity>();
             ComponentCondition<P7Trinity>(id + 0x110, 4.0f, comp => comp.NumCasts > 3, "Trinity 2")
                 .DeactivateOnExit<P7Trinity>();
@@ -682,12 +682,16 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private void P7GigaflaresEdge(uint id, float delay)
         {
-            // TODO: implement...
-            Timeout(id, delay + 6, "Gigaflare ???")
+            ActorCast(id, _module.BossP7, AID.GigaflaresEdge, delay, 8, true)
+                .ActivateOnEnter<P7GigaflaresEdge>()
                 .ActivateOnEnter<P7FlamesIceOfAscalon>();
-            ComponentCondition<P7FlamesIceOfAscalon>(id + 0x11, 1.1f, comp => comp.NumCasts > 0, "In/out", 10)
+            ComponentCondition<P7GigaflaresEdge>(id + 0x10, 1.0f, comp => comp.NumCasts >= 1, "Gigaflare 1");
+            ComponentCondition<P7FlamesIceOfAscalon>(id + 0x11, 0.1f, comp => comp.NumCasts > 0, "In/out")
                 .DeactivateOnExit<P7FlamesIceOfAscalon>();
-            ComponentCondition<P7Trinity>(id + 0x100, 27, comp => comp.NumCasts > 0, "Trinity 1", 10)
+            ComponentCondition<P7GigaflaresEdge>(id + 0x20, 3.9f, comp => comp.NumCasts >= 2, "Gigaflare 2");
+            ComponentCondition<P7GigaflaresEdge>(id + 0x30, 4.0f, comp => comp.NumCasts >= 3, "Gigaflare 3")
+                .DeactivateOnExit<P7GigaflaresEdge>();
+            ComponentCondition<P7Trinity>(id + 0x100, 10.3f, comp => comp.NumCasts > 0, "Trinity 1")
                 .ActivateOnEnter<P7Trinity>();
             ComponentCondition<P7Trinity>(id + 0x110, 4.0f, comp => comp.NumCasts > 3, "Trinity 2")
                 .DeactivateOnExit<P7Trinity>();
