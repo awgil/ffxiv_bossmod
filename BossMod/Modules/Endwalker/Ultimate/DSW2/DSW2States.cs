@@ -101,11 +101,11 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             P7ExaflareEdge(id + 0x10000, 4.1f);
             P7AkhMornsEdge(id + 0x20000, 1.9f, 5);
             P7GigaflaresEdge(id + 0x30000, 2);
-            P7ExaflareEdge(id + 0x40000, 3); // TODO: timings below...
-            P7AkhMornsEdge(id + 0x50000, 2, 6);
+            P7ExaflareEdge(id + 0x40000, 2);
+            P7AkhMornsEdge(id + 0x50000, 1.9f, 6);
             P7GigaflaresEdge(id + 0x60000, 2);
-            P7ExaflareEdge(id + 0x70000, 3);
-            P7AkhMornsEdge(id + 0x80000, 2, 7);
+            P7ExaflareEdge(id + 0x70000, 2);
+            P7AkhMornsEdge(id + 0x80000, 1.9f, 7);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -668,13 +668,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ActorCast(id, _module.BossP7, AID.AkhMornsEdge, delay, 6, true)
                 .ActivateOnEnter<P7AkhMornsEdge>()
                 .ActivateOnEnter<P7FlamesIceOfAscalon>();
-            ComponentCondition<P7AkhMornsEdge>(id + 0x10, 0.6f, comp => comp.NumCasts >= 1, "Towers 1");
+            ComponentCondition<P7AkhMornsEdge>(id + 0x10, 0.7f, comp => comp.NumCasts >= 1, "Towers 1");
             ComponentCondition<P7FlamesIceOfAscalon>(id + 0x11, 0.1f, comp => comp.NumCasts > 0, "In/out")
                 .DeactivateOnExit<P7FlamesIceOfAscalon>();
             ComponentCondition<P7AkhMornsEdge>(id + 0x20, 2.1f, comp => comp.NumCasts >= 2);
-            ComponentCondition<P7AkhMornsEdge>(id + 0x30, 1.1f * (count - 2), comp => comp.NumCasts >= count, $"Towers {count}")
+            ComponentCondition<P7AkhMornsEdge>(id + 0x30, 1.1f * (count - 2) - 0.1f, comp => comp.NumCasts >= count, $"Towers {count}")
                 .DeactivateOnExit<P7AkhMornsEdge>();
-            ComponentCondition<P7Trinity>(id + 0x100, 6.3f, comp => comp.NumCasts > 0, "Trinity 1")
+            ComponentCondition<P7Trinity>(id + 0x100, 6.4f, comp => comp.NumCasts > 0, "Trinity 1")
                 .ActivateOnEnter<P7Trinity>();
             ComponentCondition<P7Trinity>(id + 0x110, 4.0f, comp => comp.NumCasts > 3, "Trinity 2")
                 .DeactivateOnExit<P7Trinity>();
