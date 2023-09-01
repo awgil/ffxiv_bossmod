@@ -70,8 +70,14 @@ namespace BossMod
     [StructLayout(LayoutKind.Explicit, Size = 0x2B0)]
     public unsafe struct CameraX
     {
+        [FieldOffset(0x130)] public float DirH;
+        [FieldOffset(0x134)] public float DirV;
+        [FieldOffset(0x138)] public float InputDeltaHAdjusted;
+        [FieldOffset(0x13C)] public float InputDeltaVAdjusted;
         [FieldOffset(0x140)] public float InputDeltaH;
         [FieldOffset(0x144)] public float InputDeltaV;
+        [FieldOffset(0x148)] public float DirVMin;
+        [FieldOffset(0x14C)] public float DirVMax;
     }
 
     unsafe class DebugInput : IDisposable
@@ -90,12 +96,8 @@ namespace BossMod
         private delegate void RMIFlyDelegate(PlayerMoveControllerFly* self, PlayerMoveControllerFlyInput* result);
         private Hook<RMIFlyDelegate> _rmiFlyHook;
 
-        private delegate void RMICameraACDDelegate(CameraX* self, int inputMode, float speedH, float speedV);
-        private delegate void RMICameraBDelegate(CameraX* self, int inputMode, float speedH);
-        private Hook<RMICameraACDDelegate> _rmiCameraAHook;
-        private Hook<RMICameraBDelegate> _rmiCameraBHook;
-        private Hook<RMICameraACDDelegate> _rmiCameraCHook;
-        private Hook<RMICameraACDDelegate> _rmiCameraDHook;
+        private delegate void RMICameraDelegate(CameraX* self, int inputMode, float speedH, float speedV);
+        private Hook<RMICameraDelegate> _rmiCameraHook;
 
         private UITree _tree = new();
         private WorldState _ws;
@@ -110,7 +112,11 @@ namespace BossMod
         private bool _gamepadNavigate;
         private bool _pmcOverrideDirEnable;
         private float _pmcOverrideDir;
-        private int _pmcOverrideUp;
+        private float _pmcOverrideVertical;
+        private float _pmcDesiredAzimuth;
+        private float _pmcDesiredAltitude;
+        private float _pmcCameraSpeedH;
+        private float _pmcCameraSpeedV;
 
         public DebugInput(Autorotation autorot)
         {
@@ -130,31 +136,16 @@ namespace BossMod
             Service.Log($"[DebugInput] rmifly addess: 0x{rmiFlyAddress:X}");
             _rmiFlyHook = Hook<RMIFlyDelegate>.FromAddress(rmiFlyAddress, RMIFlyDetour);
 
-            var rmiCameraA = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 4F 85 F6");
-            Service.Log($"[DebugInput] rmicameraA addess: 0x{rmiCameraA:X}");
-            _rmiCameraAHook = Hook<RMICameraACDDelegate>.FromAddress(rmiCameraA, RMICameraADetour);
-
-            var rmiCameraB = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 1D 41 83 FF 03");
-            Service.Log($"[DebugInput] rmicameraB addess: 0x{rmiCameraB:X}");
-            _rmiCameraBHook = Hook<RMICameraBDelegate>.FromAddress(rmiCameraB, RMICameraBDetour);
-
-            var rmiCameraC = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 0F 28 7C 24 ?? 48 8B BC 24");
-            Service.Log($"[DebugInput] rmicameraC addess: 0x{rmiCameraC:X}");
-            _rmiCameraCHook = Hook<RMICameraACDDelegate>.FromAddress(rmiCameraC, RMICameraCDetour);
-
-            var rmiCameraD = Service.SigScanner.ScanText("40 53 48 83 EC 70 44 0F 29 44 24 ?? 48 8B D9");
-            Service.Log($"[DebugInput] rmicameraD addess: 0x{rmiCameraD:X}");
-            _rmiCameraDHook = Hook<RMICameraACDDelegate>.FromAddress(rmiCameraD, RMICameraDDetour);
+            var rmiCamera = Service.SigScanner.ScanText("40 53 48 83 EC 70 44 0F 29 44 24 ?? 48 8B D9");
+            Service.Log($"[DebugInput] rmicamera addess: 0x{rmiCamera:X}");
+            _rmiCameraHook = Hook<RMICameraDelegate>.FromAddress(rmiCamera, RMICameraDetour);
         }
 
         public void Dispose()
         {
             _rmiWalkHook.Dispose();
             _rmiFlyHook.Dispose();
-            _rmiCameraAHook.Dispose();
-            _rmiCameraBHook.Dispose();
-            _rmiCameraCHook.Dispose();
-            _rmiCameraDHook.Dispose();
+            _rmiCameraHook.Dispose();
         }
 
         public void Draw()
@@ -165,7 +156,7 @@ namespace BossMod
             var curPos = player?.PosRot.XYZ() ?? new();
             var speed = (curPos - _prevPos) / dt;
             _prevPos = curPos;
-            ImGui.TextUnformatted($"Speed={speed.Length():f3}, SpeedH={speed.XZ().Length():f3}, Azimuth={Angle.FromDirection(new(speed.XZ()))}, Altitude={Angle.FromDirection(new(speed.Y, speed.XZ().Length()))}");
+            ImGui.TextUnformatted($"Speed={speed.Length():f3}, SpeedH={speed.XZ().Length():f3}, SpeedV={speed.Y:f3}, Azimuth={Angle.FromDirection(new(speed.XZ()))}, Altitude={Angle.FromDirection(new(speed.Y, speed.XZ().Length()))}");
 
             ImGui.Checkbox("Jump!", ref _jump);
             ImGui.InputFloat2("Destination", ref _dest);
@@ -262,31 +253,28 @@ namespace BossMod
                     else
                         _rmiFlyHook.Disable();
                 }
-                bool cameraOverride = _rmiCameraAHook.IsEnabled;
-                if (ImGui.Checkbox("Override camera", ref cameraOverride))
-                {
-                    if (cameraOverride)
-                    {
-                        _rmiCameraAHook.Enable();
-                        _rmiCameraBHook.Enable();
-                        _rmiCameraCHook.Enable();
-                        _rmiCameraDHook.Enable();
-                    }
-                    else
-                    {
-                        _rmiCameraAHook.Disable();
-                        _rmiCameraBHook.Disable();
-                        _rmiCameraCHook.Disable();
-                        _rmiCameraDHook.Disable();
-                    }
-                }
-
                 if (walkOverride || flyOverride)
                 {
                     ImGui.Checkbox("Override move direction", ref _pmcOverrideDirEnable);
                     if (_pmcOverrideDirEnable)
                         ImGui.DragFloat("Override move direction", ref _pmcOverrideDir, 1, -180, 180);
-                    ImGui.DragInt("Override vertical", ref _pmcOverrideUp, 0.5f, -1, 1);
+                    ImGui.DragFloat("Override vertical", ref _pmcOverrideVertical, 1, -90, 90);
+                }
+
+                bool cameraOverride = _rmiCameraHook.IsEnabled;
+                if (ImGui.Checkbox("Override camera", ref cameraOverride))
+                {
+                    if (cameraOverride)
+                        _rmiCameraHook.Enable();
+                    else
+                        _rmiCameraHook.Disable();
+                }
+                if (cameraOverride)
+                {
+                    ImGui.DragFloat("Camera desired azimuth", ref _pmcDesiredAzimuth, 1, -180, 180);
+                    ImGui.DragFloat("Camera desired altitude", ref _pmcDesiredAltitude, 1, -85, 45);
+                    ImGui.DragFloat("Camera speed H (deg/sec)", ref _pmcCameraSpeedH, 1, 0, 360);
+                    ImGui.DragFloat("Camera speed V (deg/sec)", ref _pmcCameraSpeedV, 1, 0, 360);
                 }
             }
         }
@@ -363,32 +351,23 @@ namespace BossMod
                 result->Left = 0;
                 result->Forward = 0;
             }
-            result->Up = _pmcOverrideUp;
+            result->Up = _pmcOverrideVertical != 0 ? _pmcOverrideVertical.Degrees().Rad : float.Epsilon;
             //Service.Log($"RMIFly: f={result->Forward:f3}, l={result->Left:f3}, up={result->Up:f3}, t={result->Turn:f3}, f10={result->u10:f3}, dmode={result->DirMode}, bs={result->HaveBackwardOrStrafe}");
         }
 
-        private void RMICameraADetour(CameraX* self, int inputMode, float speedH, float speedV)
+        private void RMICameraDetour(CameraX* self, int inputMode, float speedH, float speedV)
         {
-            _rmiCameraAHook.Original(self, inputMode, speedH, speedV);
-            Service.Log($"RMICameraA: mode={inputMode}, dh={self->InputDeltaH}, dv={self->InputDeltaV}");
-        }
-
-        private void RMICameraBDetour(CameraX* self, int inputMode, float speedH)
-        {
-            _rmiCameraBHook.Original(self, inputMode, speedH);
-            Service.Log($"RMICameraB: mode={inputMode}, dh={self->InputDeltaH}, dv={self->InputDeltaV}");
-        }
-
-        private void RMICameraCDetour(CameraX* self, int inputMode, float speedH, float speedV)
-        {
-            _rmiCameraCHook.Original(self, inputMode, speedH, speedV);
-            Service.Log($"RMICameraC: mode={inputMode}, dh={self->InputDeltaH}, dv={self->InputDeltaV}");
-        }
-
-        private void RMICameraDDetour(CameraX* self, int inputMode, float speedH, float speedV)
-        {
-            _rmiCameraDHook.Original(self, inputMode, speedH, speedV);
-            Service.Log($"RMICameraD: mode={inputMode}, dh={self->InputDeltaH}, dv={self->InputDeltaV}");
+            _rmiCameraHook.Original(self, inputMode, speedH, speedV);
+            if (inputMode == 0) // let user override...
+            {
+                var deltaH = (_pmcDesiredAzimuth.Degrees() - self->DirH.Radians()).Normalized();
+                var deltaV = (_pmcDesiredAltitude.Degrees() - self->DirV.Radians()).Normalized();
+                var maxH = _pmcCameraSpeedH.Degrees().Rad * Utils.FrameDuration();
+                var maxV = _pmcCameraSpeedV.Degrees().Rad * Utils.FrameDuration();
+                self->InputDeltaH = Math.Clamp(deltaH.Rad, -maxH, maxH);
+                self->InputDeltaV = Math.Clamp(deltaV.Rad, -maxV, maxV);
+            }
+            //Service.Log($"RMICamera: dir={self->DirH.Radians()}/{self->DirV.Radians()} [{self->DirVMin.Radians()}-{self->DirVMax.Radians()}], mode={inputMode}, speed={speedH:f1}/{speedV:f1}, delta={self->InputDeltaH.Radians().Deg:f3}/{self->InputDeltaV.Radians().Deg:f3}, speed={self->InputDeltaH.Radians() / Utils.FrameDuration()}/{self->InputDeltaV.Radians() / Utils.FrameDuration()}");
         }
     }
 }
