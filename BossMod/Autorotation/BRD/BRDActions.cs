@@ -26,6 +26,8 @@ namespace BossMod.BRD
             SupportedSpell(AID.VenomousBite).TransformAction = SupportedSpell(AID.CausticBite).TransformAction = () => ActionID.MakeSpell(_state.BestCausticBite);
             SupportedSpell(AID.Windbite).TransformAction = SupportedSpell(AID.Stormbite).TransformAction = () => ActionID.MakeSpell(_state.BestStormbite);
             SupportedSpell(AID.QuickNock).TransformAction = SupportedSpell(AID.Ladonsbite).TransformAction = () => ActionID.MakeSpell(_state.BestLadonsbite);
+            // button replacement
+            SupportedSpell(AID.WanderersMinuet).TransformAction = SupportedSpell(AID.PitchPerfect).TransformAction = () => ActionID.MakeSpell(_state.ActiveSong == Rotation.Song.WanderersMinuet ? AID.PitchPerfect : AID.WanderersMinuet);
 
             SupportedSpell(AID.Peloton).Condition = _ => !Player.InCombat;
             SupportedSpell(AID.HeadGraze).Condition = target => target?.CastInfo?.Interruptible ?? false;
