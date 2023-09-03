@@ -107,6 +107,51 @@ namespace BossMod
             }
         }
 
+        public void DrawWorldSphere(Vector3 center, float radius, uint color)
+        {
+            int numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), 1);
+            var prev1 = center + new Vector3(0, 0, radius);
+            var prev2 = center + new Vector3(0, radius, 0);
+            var prev3 = center + new Vector3(radius, 0, 0);
+            for (int i = 1; i <= numSegments; ++i)
+            {
+                var dir = (i * 360.0f / numSegments).Degrees().ToDirection();
+                var curr1 = center + radius * new Vector3(dir.X, 0, dir.Z);
+                var curr2 = center + radius * new Vector3(0, dir.Z, dir.X);
+                var curr3 = center + radius * new Vector3(dir.Z, dir.X, 0);
+                DrawWorldLine(curr1, prev1, color);
+                DrawWorldLine(curr2, prev2, color);
+                DrawWorldLine(curr3, prev3, color);
+                prev1 = curr1;
+                prev2 = curr2;
+                prev3 = curr3;
+            }
+        }
+
+        public void DrawWorldOBB(Vector3 min, Vector3 max, SharpDX.Matrix transform, uint color)
+        {
+            var aaa = SharpDX.Vector3.TransformCoordinate(new(min.X, min.Y, min.Z), transform).ToSystem();
+            var aab = SharpDX.Vector3.TransformCoordinate(new(min.X, min.Y, max.Z), transform).ToSystem();
+            var aba = SharpDX.Vector3.TransformCoordinate(new(min.X, max.Y, min.Z), transform).ToSystem();
+            var abb = SharpDX.Vector3.TransformCoordinate(new(min.X, max.Y, max.Z), transform).ToSystem();
+            var baa = SharpDX.Vector3.TransformCoordinate(new(max.X, min.Y, min.Z), transform).ToSystem();
+            var bab = SharpDX.Vector3.TransformCoordinate(new(max.X, min.Y, max.Z), transform).ToSystem();
+            var bba = SharpDX.Vector3.TransformCoordinate(new(max.X, max.Y, min.Z), transform).ToSystem();
+            var bbb = SharpDX.Vector3.TransformCoordinate(new(max.X, max.Y, max.Z), transform).ToSystem();
+            DrawWorldLine(aaa, aab, color);
+            DrawWorldLine(aab, bab, color);
+            DrawWorldLine(bab, baa, color);
+            DrawWorldLine(baa, aaa, color);
+            DrawWorldLine(aba, abb, color);
+            DrawWorldLine(abb, bbb, color);
+            DrawWorldLine(bbb, bba, color);
+            DrawWorldLine(bba, aba, color);
+            DrawWorldLine(aaa, aba, color);
+            DrawWorldLine(aab, abb, color);
+            DrawWorldLine(baa, bba, color);
+            DrawWorldLine(bab, bbb, color);
+        }
+
         private unsafe SharpDX.Matrix ReadMatrix(IntPtr address)
         {
             var p = (float*)address;
