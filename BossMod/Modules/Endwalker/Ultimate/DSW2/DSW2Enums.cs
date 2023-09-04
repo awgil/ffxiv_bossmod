@@ -312,6 +312,13 @@
         GigaflaresEdgeAOE1 = 28058, // Helper->self, 9.0s cast, range 50 circle with 20? falloff
         GigaflaresEdgeAOE2 = 28114, // Helper->self, 13.0s cast, range 50 circle with 20? falloff
         GigaflaresEdgeAOE3 = 28115, // Helper->self, 17.0s cast, range 50 circle with 20? falloff
+        MornAfahsEdge = 28206, // DragonKingThordan->self, 10.0s cast, single-target, visual (enrage)
+        MornAfahsEdgeFirst1 = 29455, // Helper->self, 10.7s cast, range 4 circle tower
+        MornAfahsEdgeFirst2 = 29456, // Helper->self, 10.7s cast, range 4 circle tower
+        MornAfahsEdgeFirst3 = 29457, // Helper->self, 10.7s cast, range 4 circle tower
+        MornAfahsEdgeVisual = 28207, // DragonKingThordan->self, no cast, single-target, visual (subsequent)
+        MornAfahsEdgeRest = 28208, // Helper->self, no cast, range 4 circle tower
+        MornAfahsEdgeFail = 28209, // Helper->self, no cast, range 60 circle unsoaked tower
     };
 
     public enum SID : uint

@@ -31,7 +31,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .OnEnter(() => Module.Arena.Bounds = DSW2.BoundsSquare)
                 .Raw.Update = () => IsResetOrRewindFailed || IsEffectivelyDead(_module.NidhoggP6()) && IsEffectivelyDead(_module.HraesvelgrP6());
             SimplePhase(7, Phase7DragonKingThordan, "P7: DKT")
-                .Raw.Update = () => IsResetOrRewindFailed;
+                .Raw.Update = () => IsResetOrRewindFailed || IsDead(_module.BossP7());
         }
 
         private void Phase2Thordan(uint id)
@@ -106,7 +106,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             P7GigaflaresEdge(id + 0x60000, 2);
             P7ExaflareEdge(id + 0x70000, 2);
             P7AkhMornsEdge(id + 0x80000, 1.9f, 7);
-            SimpleState(id + 0xFF0000, 100, "???");
+            P7MornAfahsEdge(id + 0x90000, 1.9f);
         }
 
         private void P2AscalonsMercyConcealedMight(uint id, float delay)
@@ -695,6 +695,15 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .ActivateOnEnter<P7Trinity>();
             ComponentCondition<P7Trinity>(id + 0x110, 4.0f, comp => comp.NumCasts > 3, "Trinity 2")
                 .DeactivateOnExit<P7Trinity>();
+        }
+
+        private void P7MornAfahsEdge(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP7, AID.MornAfahsEdge, delay, 10, true)
+                .ActivateOnEnter<P7MornAfahsEdge>();
+            ComponentCondition<P7MornAfahsEdge>(id + 0x10, 0.7f, comp => comp.NumCasts > 0, "Enrage 1");
+            ComponentCondition<P7MornAfahsEdge>(id + 0x20, 3.1f, comp => comp.NumCasts > 3, "Enrage 2");
+            ComponentCondition<P7MornAfahsEdge>(id + 0x30, 3.1f, comp => comp.NumCasts > 6, "Enrage 3");
         }
     }
 }
