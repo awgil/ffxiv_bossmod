@@ -43,7 +43,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             P2SanctityOfTheWard(id + 0x40000, 7.1f);
             P2UltimateEnd(id + 0x50000, 13.5f);
             P2BroadSwing(id + 0x60000, 6.0f);
-            P2BroadSwing(id + 0x70000, 2.7f);
+            P2BroadSwing(id + 0x70000, 2.8f);
             Cast(id + 0x80000, AID.AethericBurstP2, 2.4f, 6, "Enrage");
         }
 
@@ -51,16 +51,16 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             P3FinalChorus(id);
             P3Dives(id + 0x10000, 13.2f);
-            P3Drachenlance(id + 0x20000, 1.9f);
-            P3SoulTether(id + 0x30000, 1.4f);
-            P3Drachenlance(id + 0x40000, 20.9f);
-            ActorCast(id + 0x50000, _module.BossP3, AID.RevengeOfTheHordeP3, 1.4f, 11, true, "Enrage");
+            P3Drachenlance(id + 0x20000, 2.1f);
+            P3SoulTether(id + 0x30000, 1.5f);
+            P3Drachenlance(id + 0x40000, 21.1f);
+            ActorCast(id + 0x50000, _module.BossP3, AID.RevengeOfTheHordeP3, 1.5f, 11, true, "Enrage");
         }
 
         private void Phase4Eyes(uint id)
         {
             P4SoulOfFriendshipDevotion(id);
-            P4Hatebound(id + 0x10000, 5.5f);
+            P4Hatebound(id + 0x10000, 5.4f);
             P4SteepInRage(id + 0x20000, 3.8f);
         }
 
@@ -78,7 +78,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             P5DeathOfTheHeavens(id + 0x30000, 7.1f);
             P5AncientQuaga(id + 0x40000, 2.1f);
             P5HeavenlyHeelAscalonMight(id + 0x50000, 6.2f);
-            Cast(id + 0x60000, AID.AethericBurstP5, 4.8f, 6, "Enrage");
+            ActorCast(id + 0x60000, _module.BossP5, AID.AethericBurstP5, 4.8f, 6, true, "Enrage");
         }
 
         private void Phase6Dragons(uint id)
@@ -88,9 +88,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             P6MortalVow(id + 0x20000, 7.2f);
             P6AkhAfah(id + 0x30000, 3.1f);
             P6HallowedWingsPlume1(id + 0x40000, 3.8f);
-            P6WrothFlames(id + 0x50000, 3.1f);
+            P6WrothFlames(id + 0x50000, 3.0f);
             P6AkhAfah(id + 0x60000, 4.2f);
-            P6HallowedWingsPlume2(id + 0x70000, 4.4f);
+            P6HallowedWingsPlume2(id + 0x70000, 4.5f);
             P6Wyrmsbreath2(id + 0x80000, 3.9f);
             P6Touchdown(id + 0x90000, 5.0f);
         }
@@ -98,21 +98,20 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private void Phase7DragonKingThordan(uint id)
         {
             P7Start(id);
-            P7ExaflareEdge(id + 0x10000, 4.1f);
-            P7AkhMornsEdge(id + 0x20000, 1.9f, 5);
-            P7GigaflaresEdge(id + 0x30000, 2);
-            P7ExaflareEdge(id + 0x40000, 2);
-            P7AkhMornsEdge(id + 0x50000, 1.9f, 6);
-            P7GigaflaresEdge(id + 0x60000, 2);
-            P7ExaflareEdge(id + 0x70000, 2);
-            P7AkhMornsEdge(id + 0x80000, 1.9f, 7);
+            P7ExaflareEdge(id + 0x10000, 4.2f);
+            P7AkhMornsEdge(id + 0x20000, 2.0f, 5);
+            P7GigaflaresEdge(id + 0x30000, 1.9f);
+            P7ExaflareEdge(id + 0x40000, 2.0f);
+            P7AkhMornsEdge(id + 0x50000, 2.0f, 6);
+            P7GigaflaresEdge(id + 0x60000, 1.9f);
+            P7ExaflareEdge(id + 0x70000, 2.0f);
+            P7AkhMornsEdge(id + 0x80000, 2.0f, 7);
             P7MornAfahsEdge(id + 0x90000, 1.9f);
         }
 
         private void P2AscalonsMercyConcealedMight(uint id, float delay)
         {
-            CastStart(id, AID.AscalonsMercyConcealed, delay);
-            CastEnd(id + 1, 3)
+            Cast(id, AID.AscalonsMercyConcealed, delay, 3)
                 .SetHint(StateMachine.StateHint.PositioningStart);
             ComponentCondition<P2AscalonsMercyConcealed>(id + 2, 1.6f, comp => comp.NumCasts > 0, "Baited cones")
                 .ActivateOnEnter<P2AscalonsMercyConcealed>()
@@ -183,7 +182,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .ActivateOnEnter<P2SanctityOfTheWard1Flares>()
                 .ActivateOnEnter<P2SanctityOfTheWard1Hints>();
             CastEnd(id + 0x21, 4);
-            ComponentCondition<P2SanctityOfTheWard1Gaze>(id + 0x30, 1.1f, comp => comp.NumCasts > 0, "Gazes")
+            ComponentCondition<P2SanctityOfTheWard1Gaze>(id + 0x30, 1.2f, comp => comp.NumCasts > 0, "Gazes")
                 .DeactivateOnExit<P2SanctityOfTheWard1Gaze>();
             ComponentCondition<P2SanctityOfTheWard1Flares>(id + 0x40, 6.1f, comp => comp.NumCasts >= 18, "Charges")
                 .DeactivateOnExit<P2SanctityOfTheWard1Hints>()
@@ -286,7 +285,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .ActivateOnEnter<P3DarkdragonDiveCounter>();
             ComponentCondition<P3DarkdragonDiveCounter>(id + 1, 5, comp => comp.Towers.Count == 0, "Towers")
                 .DeactivateOnExit<P3DarkdragonDiveCounter>();
-            ComponentCondition<P3SoulTether>(id + 0x10, 7, comp => comp.NumCasts > 0, "Tethers")
+            ComponentCondition<P3SoulTether>(id + 0x10, 7.1f, comp => comp.NumCasts > 0, "Tethers")
                 .ActivateOnEnter<P3SoulTether>()
                 .ActivateOnEnter<P3Geirskogul>()
                 .DeactivateOnExit<P3SoulTether>()
@@ -311,10 +310,10 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ActorCast(id, _module.LeftEyeP4, AID.Hatebound, delay, 3); // both eyes cast it at the same time
             ComponentCondition<P4Hatebound>(id + 2, 0.8f, comp => comp.ColorsAssigned, "Colors")
                 .ActivateOnEnter<P4Hatebound>();
-            ComponentCondition<P4Hatebound>(id + 0x10, 6.0f, comp => comp.YellowReady, "Pop yellow orbs");
+            ComponentCondition<P4Hatebound>(id + 0x10, 6.1f, comp => comp.YellowReady, "Pop yellow orbs");
             ComponentCondition<P4Hatebound>(id + 0x20, 6.0f, comp => comp.BlueReady, "Pop blue orbs");
 
-            ActorCast(id + 0x1000, _module.LeftEyeP4, AID.MirageDive, 10.2f, 3) // both eyes cast it at the same time
+            ActorCast(id + 0x1000, _module.LeftEyeP4, AID.MirageDive, 10.3f, 3) // both eyes cast it at the same time
                 .ActivateOnEnter<P4MirageDive>();
             ComponentCondition<P4MirageDive>(id + 0x1010, 0.8f, comp => comp.NumCasts >= 2, "Dive 1");
             ComponentCondition<P4MirageDive>(id + 0x1020, 5.1f, comp => comp.NumCasts >= 4, "Dive 2");
@@ -326,7 +325,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private void P4SteepInRage(uint id, float delay)
         {
-            ActorCast(id, _module.LeftEyeP4, AID.SteepInRage, delay, 6, false, "Raidwide") // note: while both eyes cast it at the same time, typically right eye is killed before or during cast
+            Condition(id, delay, () => (_module.LeftEyeP4()?.CastInfo?.IsSpell(AID.SteepInRage) ?? false) || (_module.RightEyeP4()?.CastInfo?.IsSpell(AID.SteepInRage) ?? false));
+            Condition(id + 1, 6, () => _module.LeftEyeP4()?.CastInfo == null && _module.RightEyeP4()?.CastInfo == null, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide);
             Condition(id + 0x1000, 7.2f, () => !(_module.LeftEyeP4()?.IsTargetable ?? false) && !(_module.RightEyeP4()?.IsTargetable ?? false), "Enrage");
         }
@@ -335,16 +335,16 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             Timeout(id, 0)
                 .SetHint(StateMachine.StateHint.DowntimeStart);
-            ActorTargetable(id + 1, _module.SerCharibert, true, 20.1f, "Boss appears")
+            ActorTargetable(id + 1, _module.SerCharibert, true, 19.9f, "Boss appears")
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
             ActorCastStart(id + 2, _module.SerCharibert, AID.PureOfHeart, 0.1f, true)
                 .ActivateOnEnter<P4IntermissionBrightwing>()
                 .ActivateOnEnter<P4IntermissionSkyblindBait>()
                 .ActivateOnEnter<P4IntermissionSkyblind>();
-            ComponentCondition<P4Haurchefant>(id + 3, 6.5f, comp => comp.Appear, "Tank LB3")
+            ComponentCondition<P4Haurchefant>(id + 3, 6.6f, comp => comp.Appear, "Tank LB3")
                 .ActivateOnEnter<P4Haurchefant>()
                 .DeactivateOnExit<P4Haurchefant>();
-            ComponentCondition<P4IntermissionBrightwing>(id + 0x10, 8.8f, comp => comp.NumCasts > 0, "Cone 1");
+            ComponentCondition<P4IntermissionBrightwing>(id + 0x10, 8.7f, comp => comp.NumCasts > 0, "Cone 1");
             ComponentCondition<P4IntermissionBrightwing>(id + 0x20, 5, comp => comp.NumCasts > 2, "Cone 2");
             ComponentCondition<P4IntermissionBrightwing>(id + 0x30, 5, comp => comp.NumCasts > 4, "Cone 3");
             ComponentCondition<P4IntermissionBrightwing>(id + 0x40, 5, comp => comp.NumCasts > 6, "Cone 4")
@@ -379,14 +379,14 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private void P5WrathOfHeavens(uint id, float delay)
         {
             ActorCast(id, _module.BossP5, AID.Incarnation, delay, 4, true);
-            ActorCast(id + 0x10, _module.BossP5, AID.DragonsEye, 3.1f, 3, true);
+            ActorCast(id + 0x10, _module.BossP5, AID.DragonsEye, 3.2f, 3, true);
             ActorCast(id + 0x20, _module.BossP5, AID.WrathOfTheHeavens, 14.7f, 4, true);
             ActorTargetable(id + 0x30, _module.BossP5, false, 3.1f, "Trio 1")
                 .SetHint(StateMachine.StateHint.DowntimeStart);
 
             ComponentCondition<P5WrathOfTheHeavensSkywardLeap>(id + 0x100, 2.7f, comp => comp.Active) // icons + tethers
                 .ActivateOnEnter<P5WrathOfTheHeavensSkywardLeap>();
-            ComponentCondition<P5WrathOfTheHeavensChainLightning>(id + 0x110, 3.6f, comp => comp.Targets.Any()) // lighting debuffs
+            ComponentCondition<P5WrathOfTheHeavensChainLightning>(id + 0x110, 3.7f, comp => comp.Targets.Any()) // lighting debuffs
                 .ActivateOnEnter<P5WrathOfTheHeavensSpiralPierce>() // tethers appear together with skyward leap icon
                 .ActivateOnEnter<P5TwistingDive>() // cast starts right after skyward leap icon / tethers
                 .ActivateOnEnter<P5WrathOfTheHeavensChainLightning>();
@@ -400,12 +400,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ComponentCondition<P5WrathOfTheHeavensTwister>(id + 0x140, 1.2f, comp => comp.Active, "Twisters")
                 .ActivateOnEnter<P5WrathOfTheHeavensTwister>(); // note: positions are determined slightly later, but regardless this is a good activation point
 
-            ActorCast(id + 0x200, _module.BossP5, AID.AscalonsMercyRevealed, 0.8f, 3.3f, true)
+            ActorCast(id + 0x200, _module.BossP5, AID.AscalonsMercyRevealed, 1.0f, 3.3f, true)
                 .ActivateOnEnter<P5WrathOfTheHeavensAscalonsMercyRevealed>();
             ComponentCondition<P5WrathOfTheHeavensAscalonsMercyRevealed>(id + 0x202, 0.8f, comp => comp.NumCasts > 0, "Proteans")
                 .DeactivateOnExit<P5WrathOfTheHeavensAscalonsMercyRevealed>()
                 .DeactivateOnExit<P5WrathOfTheHeavensTwister>(); // twisters disappear together with protean hits
-            ComponentCondition<P5Cauterize1>(id + 0x210, 0.8f, comp => comp.Casters.Count > 0, "Green marker bait")
+            ComponentCondition<P5Cauterize1>(id + 0x210, 0.9f, comp => comp.Casters.Count > 0, "Green marker bait")
                 .OnEnter(() => Module.FindComponent<P5WrathOfTheHeavensChainLightning>()?.ShowSpreads(Module, 5.2f))
                 .ActivateOnEnter<P5Cauterize1>()
                 .ActivateOnEnter<P5Cauterize2>()
@@ -432,7 +432,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ActorTargetable(id + 0x10, _module.BossP5, false, 3.1f, "Trio 2")
                 .SetHint(StateMachine.StateHint.DowntimeStart);
 
-            ComponentCondition<P5DeathOfTheHeavensHeavyImpact>(id + 0x100, 1.5f, comp => comp.Active)
+            ComponentCondition<P5DeathOfTheHeavensHeavyImpact>(id + 0x100, 1.6f, comp => comp.Active)
                 .ActivateOnEnter<P5DeathOfTheHeavensHeavyImpact>();
             ComponentCondition<P5DeathOfTheHeavensGaze>(id + 0x110, 2.2f, comp => comp.Active)
                 .ActivateOnEnter<P5DeathOfTheHeavensGaze>()
@@ -458,10 +458,10 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ComponentCondition<P5DeathOfTheHeavensHeavyImpact>(id + 0x180, 1.9f, comp => comp.NumCasts >= 4, "Ring 4");
             ComponentCondition<P5DeathOfTheHeavensHeavyImpact>(id + 0x190, 1.9f, comp => comp.NumCasts >= 5)
                 .DeactivateOnExit<P5DeathOfTheHeavensHeavyImpact>();
-            ComponentCondition<P5WrathOfTheHeavensTwister>(id + 0x1A0, 0.8f, comp => !comp.Active)
+            ComponentCondition<P5WrathOfTheHeavensTwister>(id + 0x1A0, 0.6f, comp => !comp.Active)
                 .DeactivateOnExit<P5WrathOfTheHeavensTwister>();
 
-            ActorCastStart(id + 0x200, _module.BossP5, AID.DragonsGaze, 1.8f, true)
+            ActorCastStart(id + 0x200, _module.BossP5, AID.DragonsGaze, 1.9f, true)
                 .ActivateOnEnter<P5DeathOfTheHeavensHeavensflame>(); // heavensflame cast starts at the same time, icons appear ~0.1s before cast start
             // +1.1s: faith unmoving and holy meteor casts start
             // +1.9s: wings of salvation aoes end
@@ -475,7 +475,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .DeactivateOnExit<P5DeathOfTheHeavensHeavensflame>()
                 .DeactivateOnExit<P5DeathOfTheHeavensDooms>();
 
-            ComponentCondition<P5DeathOfTheHeavensMeteorCircle>(id + 0x300, 2.2f, comp => comp.ActiveActors.Any(), "Meteors spawn")
+            ComponentCondition<P5DeathOfTheHeavensMeteorCircle>(id + 0x300, 2.4f, comp => comp.ActiveActors.Any(), "Meteors spawn")
                 .ActivateOnEnter<P5DeathOfTheHeavensMeteorCircle>()
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
             ActorTargetable(id + 0x310, _module.BossP5, true, 14.8f, "Meteors enrage") // boss will reappear as soon as final meteor dies
@@ -486,7 +486,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             Timeout(id, 0)
                 .SetHint(StateMachine.StateHint.DowntimeStart);
-            ActorTargetable(id + 1, _module.BossP5, false, 7, "Boss disappears");
+            ActorTargetable(id + 1, _module.BossP5, false, 6.6f, "Boss disappears");
             ActorTargetable(id + 2, _module.NidhoggP6, true, 10.4f, "Dragons appear")
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
         }
@@ -547,13 +547,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .ActivateOnEnter<P6HallowedWings>()
                 .ActivateOnEnter<P6CauterizeN>() // cauterize cast starts later, but nidhogg is already in position, so we start showing hints immediately
                 .ActivateOnEnter<P6HallowedPlume1>();
-            ComponentCondition<P6HallowedWings>(id + 0x20, 1.2f, comp => comp.NumCasts > 0, "Safe quarter + near/far tankbusters")
+            ComponentCondition<P6HallowedWings>(id + 0x20, 1.0f, comp => comp.NumCasts > 0, "Safe quarter + near/far tankbusters")
                 .DeactivateOnExit<P6HallowedWings>()
                 .DeactivateOnExit<P6CauterizeN>() // cauterize happens +-0.3s
                 .DeactivateOnExit<P6HallowedPlume1>() // tankbusters happen at the same time as wings
                 .SetHint(StateMachine.StateHint.Tankbuster);
 
-            ComponentCondition<P6MortalVow>(id + 0x100, 8.8f, comp => comp.Progress > 1, "Mortal vow pass 1")
+            ComponentCondition<P6MortalVow>(id + 0x100, 8.7f, comp => comp.Progress > 1, "Mortal vow pass 1")
                 .OnEnter(() => _module.FindComponent<P6MortalVow>()?.ShowNextPass(_module));
         }
 
@@ -563,19 +563,19 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .ActivateOnEnter<P6HallowedWings>()
                 .ActivateOnEnter<P6HotWingTail>() // this cast starts ~2s later
                 .ActivateOnEnter<P6HallowedPlume2>();
-            ComponentCondition<P6HotWingTail>(id + 0x10, 1.1f, comp => comp.NumCasts > 0, "Safe line + near/far tankbusters")
+            ComponentCondition<P6HotWingTail>(id + 0x10, 1.0f, comp => comp.NumCasts > 0, "Safe line + near/far tankbusters")
                 .DeactivateOnExit<P6HallowedWings>() // this typically happens slightly earlier than wing/tail
                 .DeactivateOnExit<P6HotWingTail>()
                 .DeactivateOnExit<P6HallowedPlume2>(); // tankbusters happen at the same time as wings
 
-            ComponentCondition<P6MortalVow>(id + 0x100, 8.4f, comp => comp.Progress > 3, "Mortal vow pass 3")
+            ComponentCondition<P6MortalVow>(id + 0x100, 8.7f, comp => comp.Progress > 3, "Mortal vow pass 3")
                 .OnEnter(() => _module.FindComponent<P6MortalVow>()?.ShowNextPass(_module));
         }
 
         private void P6WrothFlames(uint id, float delay)
         {
             ActorCast(id, _module.NidhoggP6, AID.WrothFlames, delay, 2.5f, true);
-            ActorTargetable(id + 0x10, _module.HraesvelgrP6, false, 0.6f, "Hraesvelgr disappears");
+            ActorTargetable(id + 0x10, _module.HraesvelgrP6, false, 0.5f, "Hraesvelgr disappears");
             // +1.0s: 4x spreading flames, 2x entangling flames
             ActorTargetable(id + 0x20, _module.HraesvelgrP6, true, 1.3f);
             ActorCastStart(id + 0x30, _module.NidhoggP6, AID.AkhMornFirst, 1.0f, true)
@@ -610,7 +610,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private void P6Touchdown(uint id, float delay)
         {
             ActorTargetable(id, _module.NidhoggP6, false, delay, "Bosses disappear"); // both
-            ActorTargetable(id + 1, _module.NidhoggP6, true, 1.4f); // both
+            ActorTargetable(id + 1, _module.NidhoggP6, true, 1.3f); // both
             ActorCast(id + 0x10, _module.NidhoggP6, AID.CauterizeN, 1.2f, 5, true, "Wild charges")
                 .ActivateOnEnter<P6TouchdownCauterize>()
                 .DeactivateOnExit<P6TouchdownCauterize>();
@@ -633,7 +633,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .ActivateOnEnter<P4Resentment>()
                 .DeactivateOnExit<P4Resentment>()
                 .SetHint(StateMachine.StateHint.Raidwide);
-            ComponentCondition<P7Shockwave>(id + 0x20, 17.1f, comp => comp.NumCasts > 0, "Raidwide")
+            ComponentCondition<P7Shockwave>(id + 0x20, 17.0f, comp => comp.NumCasts > 0, "Raidwide")
                 .ActivateOnEnter<P7Shockwave>()
                 .DeactivateOnExit<P7Shockwave>()
                 .SetHint(StateMachine.StateHint.Raidwide);
@@ -645,21 +645,26 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
         }
 
+        private State P7Trinity(uint id, float delay)
+        {
+            ComponentCondition<P7Trinity>(id, delay, comp => comp.NumCasts > 0, "Trinity 1")
+                .ActivateOnEnter<P7Trinity>();
+            return ComponentCondition<P7Trinity>(id + 0x10, 4.0f, comp => comp.NumCasts > 3, "Trinity 2")
+                .DeactivateOnExit<P7Trinity>();
+        }
+
         private void P7ExaflareEdge(uint id, float delay)
         {
             ActorCast(id, _module.BossP7, AID.ExaflaresEdge, delay, 6, true)
                 .ActivateOnEnter<P7ExaflaresEdge>()
                 .ActivateOnEnter<P7FlamesIceOfAscalon>();
             ComponentCondition<P7ExaflaresEdge>(id + 0x10, 0.9f, comp => comp.NumCasts > 0, "Exaflares 1");
-            ComponentCondition<P7FlamesIceOfAscalon>(id + 0x11, 0.2f, comp => comp.NumCasts > 0, "In/out")
+            ComponentCondition<P7FlamesIceOfAscalon>(id + 0x11, 0.3f, comp => comp.NumCasts > 0, "In/out")
                 .DeactivateOnExit<P7FlamesIceOfAscalon>();
-            ComponentCondition<P7ExaflaresEdge>(id + 0x20, 1.7f, comp => comp.NumCasts > 3, "Exaflares 2");
+            ComponentCondition<P7ExaflaresEdge>(id + 0x20, 1.6f, comp => comp.NumCasts > 3, "Exaflares 2");
             ComponentCondition<P7ExaflaresEdge>(id + 0x30, 1.9f, comp => comp.NumCasts > 12, "Exaflares 3");
             // don't really care about remaining exaflares...
-            ComponentCondition<P7Trinity>(id + 0x100, 4.6f, comp => comp.NumCasts > 0, "Trinity 1")
-                .ActivateOnEnter<P7Trinity>();
-            ComponentCondition<P7Trinity>(id + 0x110, 4.0f, comp => comp.NumCasts > 3, "Trinity 2")
-                .DeactivateOnExit<P7Trinity>()
+            P7Trinity(id + 0x100, 4.5f)
                 .DeactivateOnExit<P7ExaflaresEdge>();
         }
 
@@ -674,10 +679,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ComponentCondition<P7AkhMornsEdge>(id + 0x20, 2.1f, comp => comp.NumCasts >= 2);
             ComponentCondition<P7AkhMornsEdge>(id + 0x30, 1.1f * (count - 2) - 0.1f, comp => comp.NumCasts >= count, $"Towers {count}")
                 .DeactivateOnExit<P7AkhMornsEdge>();
-            ComponentCondition<P7Trinity>(id + 0x100, 6.4f, comp => comp.NumCasts > 0, "Trinity 1")
-                .ActivateOnEnter<P7Trinity>();
-            ComponentCondition<P7Trinity>(id + 0x110, 4.0f, comp => comp.NumCasts > 3, "Trinity 2")
-                .DeactivateOnExit<P7Trinity>();
+            P7Trinity(id + 0x100, 6.4f);
         }
 
         private void P7GigaflaresEdge(uint id, float delay)
@@ -686,15 +688,12 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .ActivateOnEnter<P7GigaflaresEdge>()
                 .ActivateOnEnter<P7FlamesIceOfAscalon>();
             ComponentCondition<P7GigaflaresEdge>(id + 0x10, 1.0f, comp => comp.NumCasts >= 1, "Gigaflare 1");
-            ComponentCondition<P7FlamesIceOfAscalon>(id + 0x11, 0.1f, comp => comp.NumCasts > 0, "In/out")
+            ComponentCondition<P7FlamesIceOfAscalon>(id + 0x11, 0.2f, comp => comp.NumCasts > 0, "In/out")
                 .DeactivateOnExit<P7FlamesIceOfAscalon>();
-            ComponentCondition<P7GigaflaresEdge>(id + 0x20, 3.9f, comp => comp.NumCasts >= 2, "Gigaflare 2");
+            ComponentCondition<P7GigaflaresEdge>(id + 0x20, 3.8f, comp => comp.NumCasts >= 2, "Gigaflare 2");
             ComponentCondition<P7GigaflaresEdge>(id + 0x30, 4.0f, comp => comp.NumCasts >= 3, "Gigaflare 3")
                 .DeactivateOnExit<P7GigaflaresEdge>();
-            ComponentCondition<P7Trinity>(id + 0x100, 10.3f, comp => comp.NumCasts > 0, "Trinity 1")
-                .ActivateOnEnter<P7Trinity>();
-            ComponentCondition<P7Trinity>(id + 0x110, 4.0f, comp => comp.NumCasts > 3, "Trinity 2")
-                .DeactivateOnExit<P7Trinity>();
+            P7Trinity(id + 0x100, 10.2f);
         }
 
         private void P7MornAfahsEdge(uint id, float delay)
@@ -702,8 +701,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             ActorCast(id, _module.BossP7, AID.MornAfahsEdge, delay, 10, true)
                 .ActivateOnEnter<P7MornAfahsEdge>();
             ComponentCondition<P7MornAfahsEdge>(id + 0x10, 0.7f, comp => comp.NumCasts > 0, "Enrage 1");
-            ComponentCondition<P7MornAfahsEdge>(id + 0x20, 3.1f, comp => comp.NumCasts > 3, "Enrage 2");
-            ComponentCondition<P7MornAfahsEdge>(id + 0x30, 3.1f, comp => comp.NumCasts > 6, "Enrage 3");
+            ComponentCondition<P7MornAfahsEdge>(id + 0x20, 3.2f, comp => comp.NumCasts > 3, "Enrage 2");
+            ComponentCondition<P7MornAfahsEdge>(id + 0x30, 3.2f, comp => comp.NumCasts > 6, "Enrage 3");
         }
     }
 }
