@@ -109,7 +109,7 @@ namespace BossMod
 
         public void DrawWorldSphere(Vector3 center, float radius, uint color)
         {
-            int numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), 1);
+            int numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), 0.1f);
             var prev1 = center + new Vector3(0, 0, radius);
             var prev2 = center + new Vector3(0, radius, 0);
             var prev3 = center + new Vector3(radius, 0, 0);
@@ -125,6 +125,24 @@ namespace BossMod
                 prev1 = curr1;
                 prev2 = curr2;
                 prev3 = curr3;
+            }
+        }
+
+        public void DrawWorldUnitCylinder(SharpDX.Matrix transform, uint color)
+        {
+            int numSegments = CurveApprox.CalculateCircleSegments(transform.Row1.Length(), 360.Degrees(), 0.1f);
+            var prev1 = SharpDX.Vector3.TransformCoordinate(new(0, +1, 1), transform).ToSystem();
+            var prev2 = SharpDX.Vector3.TransformCoordinate(new(0, -1, 1), transform).ToSystem();
+            for (int i = 1; i <= numSegments; ++i)
+            {
+                var dir = (i * 360.0f / numSegments).Degrees().ToDirection();
+                var curr1 = SharpDX.Vector3.TransformCoordinate(new(dir.X, +1, dir.Z), transform).ToSystem();
+                var curr2 = SharpDX.Vector3.TransformCoordinate(new(dir.X, -1, dir.Z), transform).ToSystem();
+                DrawWorldLine(curr1, prev1, color);
+                DrawWorldLine(curr2, prev2, color);
+                DrawWorldLine(curr1, curr2, color);
+                prev1 = curr1;
+                prev2 = curr2;
             }
         }
 
