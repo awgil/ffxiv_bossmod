@@ -13,6 +13,7 @@ namespace BossMod
         public WDir(Vector2 v) { X = v.X; Z = v.Y; }
         public Vector2 ToVec2() => new(X, Z);
         public Vector3 ToVec3() => new(X, 0, Z);
+        public Vector4 ToVec4() => new(X, 0, Z, 0);
 
         public static WDir operator +(WDir a, WDir b) => new(a.X + b.X, a.Z + b.Z);
         public static WDir operator -(WDir a, WDir b) => new(a.X - b.X, a.Z - b.Z);
@@ -21,6 +22,7 @@ namespace BossMod
         public static WDir operator *(float a, WDir b) => new(a * b.X, a * b.Z);
         public static WDir operator /(WDir a, float b) => new(a.X / b, a.Z / b);
         public WDir Abs() => new(Math.Abs(X), Math.Abs(Z));
+        public WDir Sign() => new(Math.Sign(X), Math.Sign(Z));
         public WDir OrthoL() => new(Z, -X); // CCW, same length
         public WDir OrthoR() => new(-Z, X); // CW, same length
         public static float Dot(WDir a, WDir b) => a.X * b.X + a.Z * b.Z;

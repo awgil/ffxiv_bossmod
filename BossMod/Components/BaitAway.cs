@@ -28,6 +28,7 @@ namespace BossMod.Components
         public bool CenterAtTarget; // if true, aoe source is at target
         public bool AllowDeadTargets = true; // if false, baits with dead targets are ignored
         public bool EnableHints = true;
+        public bool IgnoreOtherBaits = false; // if true, don't show hints/aoes for baits by others
         public PlayerPriority BaiterPriority = PlayerPriority.Interesting;
         public BitMask ForbiddenPlayers; // these players should avoid baiting
         public List<Bait> CurrentBaits = new();
@@ -61,7 +62,7 @@ namespace BossMod.Components
                     hints.Add("Bait away from raid!");
             }
 
-            if (ActiveBaitsNotOn(actor).Any(b => IsClippedBy(actor, b)))
+            if (!IgnoreOtherBaits && ActiveBaitsNotOn(actor).Any(b => IsClippedBy(actor, b)))
                 hints.Add("GTFO from baited aoe!");
         }
 
@@ -72,9 +73,10 @@ namespace BossMod.Components
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var bait in ActiveBaitsNotOn(pc))
-                if (AlwaysDrawOtherBaits || IsClippedBy(pc, bait))
-                    bait.Shape.Draw(arena, BaitOrigin(bait), bait.Rotation);
+            if (!IgnoreOtherBaits)
+                foreach (var bait in ActiveBaitsNotOn(pc))
+                    if (AlwaysDrawOtherBaits || IsClippedBy(pc, bait))
+                        bait.Shape.Draw(arena, BaitOrigin(bait), bait.Rotation);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

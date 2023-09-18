@@ -25,6 +25,8 @@ namespace BossMod.Components
                 Color = color;
                 Risky = risky;
             }
+
+            public bool Check(WPos pos) => Shape.Check(pos, Origin, Rotation);
         }
 
         private string _warningText;
@@ -38,7 +40,7 @@ namespace BossMod.Components
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (ActiveAOEs(module, slot, actor).Any(c => c.Risky && c.Shape.Check(actor.Position, c.Origin, c.Rotation)))
+            if (ActiveAOEs(module, slot, actor).Any(c => c.Risky && c.Check(actor.Position)))
                 hints.Add(_warningText);
         }
 
