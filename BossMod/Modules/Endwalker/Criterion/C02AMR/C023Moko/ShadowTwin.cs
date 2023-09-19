@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
     {
         public List<AOEInstance> AOEs = new();
 
-        private static AOEShapeCone _shape = new(25, 90.Degrees()); // TODO: verify range, it's definitely bigger than what table suggests... maybe origin is wrong?
+        private static AOEShapeCone _shape = new(27, 90.Degrees()); // TODO: verify range, it's definitely bigger than what table suggests... maybe origin is wrong?
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => AOEs;
 

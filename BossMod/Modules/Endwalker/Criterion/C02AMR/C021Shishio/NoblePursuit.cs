@@ -25,7 +25,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
 
         public override void OnActorCreated(BossModule module, Actor actor)
         {
-            if ((OID)actor.OID is OID.NRairin)
+            if ((OID)actor.OID is OID.NRairin or OID.SRairin)
             {
                 if (_charges.Count == 0)
                 {

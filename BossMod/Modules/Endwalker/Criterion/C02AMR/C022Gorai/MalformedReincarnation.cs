@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai
@@ -11,6 +10,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai
     class NMalformedReincarnation : MalformedReincarnation { public NMalformedReincarnation() : base(AID.NMalformedReincarnationAOE) { } }
     class SMalformedReincarnation : MalformedReincarnation { public SMalformedReincarnation() : base(AID.SMalformedReincarnationAOE) { } }
 
+    // TODO: initial hints (depending on strat?) + specific towers
     class MalformedPrayer2 : Components.GenericTowers
     {
         private BitMask _blueTowers;
@@ -107,6 +107,11 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai
             if ((AID)spell.Action.ID is AID.NBurstOrange or AID.NBurstBlue or AID.SBurstOrange or AID.SBurstBlue)
             {
                 ++NumCasts;
+                var index = Towers.FindIndex(t => t.Position.AlmostEqual(caster.Position, 1));
+                if (index >= 0)
+                    Towers.RemoveAt(index);
+                else
+                    module.ReportError(this, $"Failed to find at {caster.Position}");
                 if ((NumCasts & 3) == 0)
                     EnableNextTowers(module);
             }
@@ -127,9 +132,9 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai
                 if (_playerBlue[slot, blueSlot])
                     forbiddenOrange.Set(slot);
             var forbiddenBlue = forbiddenOrange ^ new BitMask(0xF);
-            for (int i = NumCasts, limit = Math.Min(NumCasts + 4, Towers.Count); i < limit; ++i)
+            for (int i = 0, limit = Math.Min(4, Towers.Count); i < limit; ++i)
             {
-                Towers.AsSpan()[i].ForbiddenSoakers = _blueTowers[i] ? forbiddenBlue : forbiddenOrange;
+                Towers.AsSpan()[i].ForbiddenSoakers = _blueTowers[i + NumCasts] ? forbiddenBlue : forbiddenOrange;
             }
         }
     }

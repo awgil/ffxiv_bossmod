@@ -54,7 +54,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
 
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
-            if ((OID)source.OID is OID.NHauntingThrall)
+            if ((OID)source.OID is OID.NHauntingThrall or OID.SHauntingThrall)
             {
                 _ghosts.Add(source);
                 _activation = module.WorldState.CurrentTime.AddSeconds(5.1f);

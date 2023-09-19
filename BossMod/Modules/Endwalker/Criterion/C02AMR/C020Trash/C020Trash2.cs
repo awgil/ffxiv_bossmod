@@ -43,7 +43,7 @@
 
     class MountainBreeze : Components.SelfTargetedAOEs
     {
-        public MountainBreeze(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeRect(40, 4)) { }
+        public MountainBreeze(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeRect(38, 4, 2)) { }
     }
     class NMountainBreeze : MountainBreeze { public NMountainBreeze() : base(AID.NMountainBreeze) { } }
     class SMountainBreeze : MountainBreeze { public SMountainBreeze() : base(AID.SMountainBreeze) { } }

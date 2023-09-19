@@ -21,7 +21,8 @@
     {
         NAutoAttack = 34527, // NBoss->player, no cast, single-target
         SAutoAttack = 34528, // NBoss->player, no cast, single-target
-        Teleport = 33821, // *Boss->location, no cast, single-target, teleport
+        NTeleport = 33821, // NBoss->location, no cast, single-target, teleport
+        STeleport = 33860, // SBoss->location, no cast, single-target, teleport
 
         NEnkyo = 33818, // NBoss->self, 5.0s cast, range 60 circle, raidwide
         NSplittingCry = 33819, // NBoss->self/players, 5.0s cast, range 60 width 14 rect tankbuster
@@ -105,7 +106,8 @@
 
         NEnrage = 33822, // NBoss->self, 10.0s cast, range 60 circle enrage
         SEnrage = 33861, // SBoss->self, 10.0s cast, range 60 circle enrage
-        EnrageRepeat = 33981, // *Boss->self, no cast, range 60 circle
+        NEnrageRepeat = 33981, // NBoss->self, no cast, range 60 circle
+        SEnrageRepeat = 33982, // SBoss->self, no cast, range 60 circle
     };
 
     public enum SID : uint

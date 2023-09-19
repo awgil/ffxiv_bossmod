@@ -11,30 +11,36 @@ general:
 - waymarks from game state rather than network
 
 boss modules:
-- generalize components as much as possible
-- fail log
 - wipe should not fast forward all phases
-- p3s - review, searing breeze component
 - aglaia revise, implement phases
+- fail log
 - boss module config presets/profiles
-
-ai:
-- improve healing AI: analyze incoming dps
-- movement: know time left, distance to travel => decide whether to swiftcast or slidecast or use movement rotation
 
 autorotation:
 - dot/regen server tick tracking
+- brd cd planning
+-- dots (do not apply but refresh / do not refresh / force refresh asap)
+-- AA (delay / force)
+-- songs (add options to force specific song asap)
+-- other misc ogcds - pp, barrage, sidewinder (delay / force)
+- drg
+-- l90
+-- cd planning
 - war
 -- simulate gauge changes (message can arrive few frames after ActionEffect...)
 -- low-level rotation - improve berserk delay logic
 - whm:
--- 6.1 adjustments
+-- resurrect (6.1 and later changes)
 -- planner
 -- smart-targeting for ST actions
 
 cooldown planner:
 - in-combat cooldown plan ui
 - select columns to show (concrete actions, categories)
+
+ai:
+- improve healing AI: analyze incoming dps
+- movement: know time left, distance to travel => decide whether to swiftcast or slidecast or use movement rotation
 
 world rendering:
 - danger zones (modify action vfx?)

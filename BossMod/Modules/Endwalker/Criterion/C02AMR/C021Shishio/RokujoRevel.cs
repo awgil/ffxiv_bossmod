@@ -46,6 +46,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
         public override void Init(BossModule module)
         {
             _clouds.AddRange(module.Enemies(OID.NRaiun));
+            _clouds.AddRange(module.Enemies(OID.SRaiun));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

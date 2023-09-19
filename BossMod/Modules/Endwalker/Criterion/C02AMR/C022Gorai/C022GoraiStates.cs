@@ -109,13 +109,15 @@
             Cast(id + 0x20, AID.MalformedPrayer, 1.8f, 4)
                 .ActivateOnEnter<MalformedPrayer1>(); // env controls are 2s after cast end, then every 6s; bursts are 10s after corresponding envcontrol
             Cast(id + 0x30, AID.PointedPurgation, 3.4f, 8)
-                .ActivateOnEnter<PointedPurgation>();
+                .ActivateOnEnter<PointedPurgation>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
             ComponentCondition<MalformedPrayer1>(id + 0x40, 0.7f, comp => comp.NumCasts > 0, "Towers/proteans 1");
             ComponentCondition<MalformedPrayer1>(id + 0x50, 6, comp => comp.NumCasts > 2, "Towers/proteans 2");
             ComponentCondition<MalformedPrayer1>(id + 0x60, 6, comp => comp.NumCasts > 4, "Towers/proteans 3");
             ComponentCondition<MalformedPrayer1>(id + 0x70, 6, comp => comp.NumCasts > 6, "Towers/proteans 4")
                 .DeactivateOnExit<MalformedPrayer1>()
-                .DeactivateOnExit<PointedPurgation>();
+                .DeactivateOnExit<PointedPurgation>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void FightingSpirits(uint id, float delay)
@@ -152,9 +154,9 @@
             CastEnd(id + 0x31, 3)
                 .ActivateOnEnter<NFlickeringFlame>(!_savage)
                 .ActivateOnEnter<SFlickeringFlame>(_savage);
-            ComponentCondition<MalformedPrayer2>(id + 0x40, 2.0f, comp => comp.NumCasts > 0, "Towers 1", 0); // TODO: implement...
-            ComponentCondition<MalformedPrayer2>(id + 0x50, 2.5f, comp => comp.NumCasts > 1, "Towers 2", 0); // TODO: implement...
-            ComponentCondition<MalformedPrayer2>(id + 0x60, 2.0f, comp => comp.NumCasts > 2, "Towers 3", 0) // TODO: implement...
+            ComponentCondition<MalformedPrayer2>(id + 0x40, 2.0f, comp => comp.NumCasts > 0, "Towers 1", 0);
+            ComponentCondition<MalformedPrayer2>(id + 0x50, 2.5f, comp => comp.NumCasts > 4, "Towers 2", 0);
+            ComponentCondition<MalformedPrayer2>(id + 0x60, 2.0f, comp => comp.NumCasts > 8, "Towers 3", 0)
                 .DeactivateOnExit<MalformedPrayer2>();
             ComponentCondition<FlickeringFlame>(id + 0x70, 0.5f, comp => comp.NumCasts >= 8, "Criss-cross 1");
             ComponentCondition<FlickeringFlame>(id + 0x80, 2.1f, comp => comp.NumCasts >= 16, "Criss-cross 2")

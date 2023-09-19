@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai
                 case AID.BrazenBalladSplitting:
                     foreach (var a in module.Enemies(OID.FlameAndSulphurFlame))
                     {
-                        var offset = a.Rotation.ToDirection().OrthoL() * 5;
+                        var offset = a.Rotation.ToDirection().OrthoL() * 7.5f;
                         _aoes.Add(new(_shapeFlameSplit, a.Position + offset, a.Rotation, spell.FinishAt.AddSeconds(3.1f)));
                         _aoes.Add(new(_shapeFlameSplit, a.Position - offset, a.Rotation, spell.FinishAt.AddSeconds(3.1f)));
                     }

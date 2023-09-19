@@ -84,9 +84,10 @@
 
         private void NoblePursuit(uint id, float delay)
         {
-            Cast(id, _savage ? AID.SNoblePursuitFirst : AID.NNoblePursuitFirst, delay, 8, "Charge 1")
-                .ActivateOnEnter<NoblePursuit>()
+            CastStart(id, _savage ? AID.SNoblePursuitFirst : AID.NNoblePursuitFirst, delay)
                 .SetHint(StateMachine.StateHint.PositioningStart);
+            CastEnd(id + 1, 8, "Charge 1")
+                .ActivateOnEnter<NoblePursuit>();
             ComponentCondition<NoblePursuit>(id + 0x10, 1.4f, comp => comp.NumCasts > 1, "Charge 2");
             ComponentCondition<NoblePursuit>(id + 0x20, 1.4f, comp => comp.NumCasts > 2, "Charge 3");
             ComponentCondition<NoblePursuit>(id + 0x30, 1.4f, comp => comp.NumCasts > 3, "Charge 4");
