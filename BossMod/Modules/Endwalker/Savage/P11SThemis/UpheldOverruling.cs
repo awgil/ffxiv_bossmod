@@ -49,11 +49,11 @@
 
     class DarkPerimeterBoss : Components.SelfTargetedAOEs
     {
-        public DarkPerimeterBoss() : base(ActionID.MakeSpell(AID.DarkPerimeterBoss), new AOEShapeDonut(7, 50)) { }
+        public DarkPerimeterBoss() : base(ActionID.MakeSpell(AID.DarkPerimeterBoss), new AOEShapeDonut(8, 50)) { }
     }
 
     class DarkPerimeterClone : Components.SelfTargetedAOEs
     {
-        public DarkPerimeterClone() : base(ActionID.MakeSpell(AID.DarkPerimeterClone), new AOEShapeDonut(7, 50)) { }
+        public DarkPerimeterClone() : base(ActionID.MakeSpell(AID.DarkPerimeterClone), new AOEShapeDonut(8, 50)) { }
     }
 }

@@ -41,7 +41,7 @@
         UpheldOverrulingAOELight = 33266, // Boss->players, no cast, range 6 circle, full party stack
         UpheldOverrulingAOEDark = 33267, // Boss->players, no cast, range 13 circle, tankbuster + knockback 50
         LightburstBoss = 33270, // Helper->self, 3.5s cast, range 13 circle
-        DarkPerimeterBoss = 33271, // Helper->self, 3.5s cast, range 7-50 donut
+        DarkPerimeterBoss = 33271, // Helper->self, 3.5s cast, range 8-50 donut
 
         DivisiveOverrulingSoloLight = 33260, // Boss->self, 6.3s cast, single-target, visual (out + out + party stacks)
         DivisiveOverrulingSoloDark = 33261, // Boss->self, 6.3s cast, single-target, visual (out + in + pair stacks)
@@ -59,7 +59,7 @@
         DismissalOverrulingLightAOE = 34694, // Helper->self, 5.5s cast, range 40 circle, knockback 11
         DismissalOverrulingDarkAOE = 34695, // Helper->self, 5.5s cast, range 40 circle, knockback 11
         InnerLight = 34696, // Helper->self, 10.5s cast, range 13 circle
-        OuterDark = 34697, // Helper->self, 10.5s cast, range 7-50 donut
+        OuterDark = 34697, // Helper->self, 10.5s cast, range 8-50 donut
 
         ShadowedMessengers = 33305, // Boss->self, 4.0s cast, single-target, visual (clones)
         DivisiveRulingLight = 33306, // IllusoryThemis->self, 8.7s cast, single-target, visual (light clone)
@@ -79,7 +79,7 @@
         UpheldRulingAOELight = 33312, // IllusoryThemis->players, no cast, range 6 circle, 7-man stack
         UpheldRulingAOEDark = 33313, // IllusoryThemis->players, no cast, range 13 circle, tankbuster
         LightburstClone = 33316, // Helper->self, 3.5s cast, range 13 circle
-        DarkPerimeterClone = 33317, // Helper->self, 3.5s cast, range 7-50 donut
+        DarkPerimeterClone = 33317, // Helper->self, 3.5s cast, range 8-50 donut
 
         Lightstream = 33283, // Boss->self, 4.0s cast, single-target, visual (rotating orbs)
         LightstreamVisual = 33285, // Helper->self, 4.0s cast, single-target, ???

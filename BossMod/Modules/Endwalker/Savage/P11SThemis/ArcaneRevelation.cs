@@ -86,6 +86,6 @@ namespace BossMod.Endwalker.Savage.P11SThemis
 
     class OuterDark : Components.SelfTargetedAOEs
     {
-        public OuterDark() : base(ActionID.MakeSpell(AID.OuterDark), new AOEShapeDonut(7, 50)) { }
+        public OuterDark() : base(ActionID.MakeSpell(AID.OuterDark), new AOEShapeDonut(8, 50)) { }
     }
 }
