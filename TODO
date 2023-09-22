@@ -17,12 +17,16 @@ boss modules:
 - boss module config presets/profiles
 
 autorotation:
+- don't fire 2mins on few % trash before boss...
+-- separate button?
+-- also don't re-dot?
+-- while shift is held?
 - dot/regen server tick tracking
 - brd cd planning
 -- dots (do not apply but refresh / do not refresh / force refresh asap)
 -- AA (delay / force)
--- songs (add options to force specific song asap)
--- other misc ogcds - pp, barrage, sidewinder (delay / force)
+-- other misc ogcds - barrage, sidewinder (delay / force)
+-- barrage for aoe
 - drg
 -- l90
 -- cd planning

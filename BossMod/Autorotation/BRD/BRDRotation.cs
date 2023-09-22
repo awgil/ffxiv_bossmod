@@ -60,6 +60,18 @@ namespace BossMod.BRD
 
                 [PropertyDisplay("Extend until last moment", 0x8000ffff)]
                 Overextend = 2, // extend currently active song until window end or until last possible moment
+
+                [PropertyDisplay("Force switch to Wanderer's Minuet", 0x80ff0000)]
+                ForceWM = 3,
+
+                [PropertyDisplay("Force switch to Mage's Ballad", 0x80ff00ff)]
+                ForceMB = 4,
+
+                [PropertyDisplay("Force switch to Army's Paeon", 0x80ffff00)]
+                ForceAP = 5,
+
+                [PropertyDisplay("Force Pitch Perfect (assuming WM is up)", 0x80ff8080)]
+                ForcePP = 6,
             }
 
             public enum PotionUse : uint
@@ -119,6 +131,7 @@ namespace BossMod.BRD
             },
             Strategy.SongUse.Extend => 3,
             Strategy.SongUse.Overextend => 0, // TODO: think more about it...
+            Strategy.SongUse.ForcePP => state.Repertoire > 0 ? 0 : 3, // if we still have PP charges, don't switch; otherwise switch after last tick (assuming we're under WM)
             _ => 3
         };
 
@@ -265,6 +278,13 @@ namespace BossMod.BRD
             // maintain songs
             if (state.TargetingEnemy && strategy.CombatTimer >= 0)
             {
+                if (strategy.SongStrategy == Strategy.SongUse.ForceWM && state.Unlocked(AID.WanderersMinuet) && state.CanWeave(CDGroup.WanderersMinuet, 0.6f, deadline))
+                    return ActionID.MakeSpell(AID.WanderersMinuet);
+                if (strategy.SongStrategy == Strategy.SongUse.ForceMB && state.Unlocked(AID.MagesBallad) && state.CanWeave(CDGroup.MagesBallad, 0.6f, deadline))
+                    return ActionID.MakeSpell(AID.MagesBallad);
+                if (strategy.SongStrategy == Strategy.SongUse.ForceAP && state.Unlocked(AID.ArmysPaeon) && state.CanWeave(CDGroup.ArmysPaeon, 0.6f, deadline))
+                    return ActionID.MakeSpell(AID.ArmysPaeon);
+
                 if (state.ActiveSong == Song.None)
                 {
                     // if no song is up, use best available one
@@ -339,6 +359,9 @@ namespace BossMod.BRD
             {
                 if (state.Repertoire == 3)
                     return ActionID.MakeSpell(AID.PitchPerfect); // PP3 is a no-brainer
+
+                if (strategy.SongStrategy == Strategy.SongUse.ForcePP)
+                    return ActionID.MakeSpell(AID.PitchPerfect); // PPx if strategy says so
 
                 var nextProcIn = state.ActiveSongLeft % 3.0f;
                 if (state.BattleVoiceLeft > state.AnimationLock && state.BattleVoiceLeft <= nextProcIn + 1)
