@@ -44,7 +44,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai
 
         public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
         {
-            if (directorID == 0x8003908B && state == 0x00020001)
+            if (directorID is 0x8003908B or 0x8003908C && state == 0x00020001)
             {
                 // orange (anim/circle, see RousingReincarnation) blue
                 // 17/3A                   18/3B | 1F/27                   20/28
