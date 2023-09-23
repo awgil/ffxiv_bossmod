@@ -136,6 +136,7 @@
         {
             Cast(id, AID.Paradeigma, delay, 3);
             Cast(id + 0x10, AID.EngravementOfSouls, 3.2f, 4)
+                .ActivateOnEnter<EngravementOfSouls3Hints>()
                 .ActivateOnEnter<EngravementOfSoulsTethers>(); // tethers appear ~2.3s after cast ends
             Cast(id + 0x20, AID.UnnaturalEnchainment, 3.2f, 7, "Fixed towers")
                 .ActivateOnEnter<UnnaturalEnchainment>() // note: tethers appear ~0.1s before cast start
@@ -159,7 +160,8 @@
                 .DeactivateOnExit<WhiteFlame>();
             ComponentCondition<EngravementOfSoulsTowers>(id + 0x50, 0.2f, comp => comp.CastsStarted);
             ComponentCondition<EngravementOfSoulsTowers>(id + 0x51, 2.0f, comp => comp.NumCasts > 0, "Towers resolve")
-                .DeactivateOnExit<EngravementOfSoulsTowers>();
+                .DeactivateOnExit<EngravementOfSoulsTowers>()
+                .DeactivateOnExit<EngravementOfSouls3Hints>();
 
             OnTheSoul(id + 0x1000, 1.0f)
                 .DeactivateOnExit<UnnaturalEnchainment>(); // TODO: deactivate 1.6s later, when env controls happen
