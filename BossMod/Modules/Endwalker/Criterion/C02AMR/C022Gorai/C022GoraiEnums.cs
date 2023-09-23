@@ -105,6 +105,8 @@
         FlickeringFlame = 34064, // *Boss->self, 3.0s cast, single-target, visual (criss-cross)
         NFireSpreadCross = 34065, // Helper->self, 3.5s cast, range 46 width 5 rect
         SFireSpreadCross = 34113, // Helper->self, 3.5s cast, range 46 width 5 rect
+
+        LivingHell = 34102, // *Boss->self, 10.0s cast, single-target, enrage
     };
 
     public enum SID : uint

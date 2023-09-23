@@ -23,9 +23,9 @@
             FightingSpirits(id + 0x80000, 10.3f);
             TorchingTorment(id + 0x90000, 7.1f);
             MalformedReincarnation(id + 0xA0000, 8.1f);
-            SealOfScurryingSparksFlameAndSulphur(id + 0xB0000, 9.5f); // TODO: not sure about timings below...
-            Unenlightenment(id + 0xC0000, 4.3f);
-            SimpleState(id + 0xFF0000, 10, "???");
+            SealOfScurryingSparksFlameAndSulphur(id + 0xB0000, 10.6f);
+            Unenlightenment(id + 0xC0000, 4.4f);
+            Cast(id + 0xD0000, AID.LivingHell, 6.3f, 10, "Enrage");
         }
 
         private void Unenlightenment(uint id, float delay)
@@ -66,12 +66,14 @@
             Cast(id, AID.SealOfScurryingSparks, delay, 4)
                 .ActivateOnEnter<SealOfScurryingSparks>();
             Cast(id + 0x10, AID.CloudToGround, 2.4f, 6.2f)
-                .ActivateOnEnter<CloudToGround>();
+                .ActivateOnEnter<CloudToGround>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
             ComponentCondition<CloudToGround>(id + 0x20, 0.8f, comp => comp.NumCasts > 0, "Exaflares start");
             ComponentCondition<SealOfScurryingSparks>(id + 0x30, 1.9f, comp => comp.NumMechanics > 0, "Stack/spread");
             ComponentCondition<SealOfScurryingSparks>(id + 0x40, 5.0f, comp => comp.NumMechanics > 1, "Spread/stack")
                 .DeactivateOnExit<CloudToGround>() // last exaflare ~0.5s before resolve
-                .DeactivateOnExit<SealOfScurryingSparks>();
+                .DeactivateOnExit<SealOfScurryingSparks>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void ImpurePurgation(uint id, float delay)
@@ -92,11 +94,13 @@
             // +3.1s: spawn 6 lightning orbs
             Cast(id + 0x10, AID.HumbleHammer, 5.9f, 5, "Reduce aoe size")
                 .ActivateOnEnter<Thundercall>()
-                .ActivateOnEnter<Flintlock>();
+                .ActivateOnEnter<Flintlock>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
             ComponentCondition<Flintlock>(id + 0x20, 4.1f, comp => comp.NumCasts > 0, "Wild charge")
                 .DeactivateOnExit<Flintlock>();
             ComponentCondition<Thundercall>(id + 0x21, 0.1f, comp => comp.NumCasts > 0, "AOEs")
-                .DeactivateOnExit<Thundercall>();
+                .DeactivateOnExit<Thundercall>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void RousingReincarnation(uint id, float delay)
@@ -150,7 +154,8 @@
                 .DeactivateOnExit<MalformedReincarnation>();
             Cast(id + 0x20, AID.MalformedPrayer, 1.8f, 4)
                 .ActivateOnEnter<MalformedPrayer2>(); // first env controls are 2s after cast end
-            CastStart(id + 0x30, AID.FlickeringFlame, 10.2f, "Towers drop");
+            CastStart(id + 0x30, AID.FlickeringFlame, 10.2f, "Towers drop")
+                .SetHint(StateMachine.StateHint.PositioningStart);
             CastEnd(id + 0x31, 3)
                 .ActivateOnEnter<NFlickeringFlame>(!_savage)
                 .ActivateOnEnter<SFlickeringFlame>(_savage);
@@ -160,7 +165,8 @@
                 .DeactivateOnExit<MalformedPrayer2>();
             ComponentCondition<FlickeringFlame>(id + 0x70, 0.5f, comp => comp.NumCasts >= 8, "Criss-cross 1");
             ComponentCondition<FlickeringFlame>(id + 0x80, 2.1f, comp => comp.NumCasts >= 16, "Criss-cross 2")
-                .DeactivateOnExit<FlickeringFlame>();
+                .DeactivateOnExit<FlickeringFlame>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
     }
 

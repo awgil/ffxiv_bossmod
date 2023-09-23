@@ -55,10 +55,12 @@
                 ? new[] { AID.STripleKasumiGiriOutFrontRest, AID.STripleKasumiGiriOutRightRest, AID.STripleKasumiGiriOutBackRest, AID.STripleKasumiGiriOutLeftRest, AID.STripleKasumiGiriInFrontRest, AID.STripleKasumiGiriInRightRest, AID.STripleKasumiGiriInBackRest, AID.STripleKasumiGiriInLeftRest }
                 : new[] { AID.NTripleKasumiGiriOutFrontRest, AID.NTripleKasumiGiriOutRightRest, AID.NTripleKasumiGiriOutBackRest, AID.NTripleKasumiGiriOutLeftRest, AID.NTripleKasumiGiriInFrontRest, AID.NTripleKasumiGiriInRightRest, AID.NTripleKasumiGiriInBackRest, AID.NTripleKasumiGiriInLeftRest };
             CastMulti(id, firstCasts, delay, 12, "Cleave 1")
-                .ActivateOnEnter<TripleKasumiGiri>();
+                .ActivateOnEnter<TripleKasumiGiri>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
             CastMulti(id + 0x10, restCasts, 2.1f, 1, "Cleave 2");
             return CastMulti(id + 0x20, restCasts, 2.1f, 1, "Cleave 3")
-                .DeactivateOnExit<TripleKasumiGiri>();
+                .DeactivateOnExit<TripleKasumiGiri>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void ScarletAuspice(uint id, float delay)
@@ -66,12 +68,14 @@
             Cast(id, _savage ? AID.SScarletAuspice : AID.NScarletAuspice, delay, 5, "Out")
                 .ActivateOnEnter<NScarletAuspice>(!_savage)
                 .ActivateOnEnter<SScarletAuspice>(_savage)
-                .DeactivateOnExit<ScarletAuspice>();
+                .DeactivateOnExit<ScarletAuspice>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
             Cast(id + 0x10, AID.BoundlessScarlet, 3.2f, 2.4f)
                 .ActivateOnEnter<NBoundlessScarletFirst>(!_savage)
                 .ActivateOnEnter<SBoundlessScarletFirst>(_savage);
             ComponentCondition<BoundlessScarletFirst>(id + 0x12, 0.6f, comp => comp.NumCasts > 0, "Lines")
-                .DeactivateOnExit<BoundlessScarletFirst>();
+                .DeactivateOnExit<BoundlessScarletFirst>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
             Cast(id + 0x20, AID.InvocationOfVengeance, 3.5f, 3)
                 .ActivateOnEnter<InvocationOfVengeance>(); // +0.8s: stack/spread debuffs
             Cast(id + 0x30, AID.FleetingIaiGiri, 3.2f, 9, "Jump")
@@ -94,12 +98,14 @@
             Cast(id, _savage ? AID.SAzureAuspice : AID.NAzureAuspice, delay, 5, "In")
                 .ActivateOnEnter<NAzureAuspice>(!_savage)
                 .ActivateOnEnter<SAzureAuspice>(_savage)
-                .DeactivateOnExit<AzureAuspice>();
+                .DeactivateOnExit<AzureAuspice>()
+                .SetHint(StateMachine.StateHint.PositioningStart);
             Cast(id + 0x10, AID.BoundlessAzure, 3.2f, 2.4f)
                 .ActivateOnEnter<NBoundlessAzure>(!_savage)
                 .ActivateOnEnter<SBoundlessAzure>(_savage);
             ComponentCondition<BoundlessAzure>(id + 0x12, 0.6f, comp => comp.NumCasts > 0, "Lines")
-                .DeactivateOnExit<BoundlessAzure>();
+                .DeactivateOnExit<BoundlessAzure>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
             ComponentCondition<Upwell>(id + 0x20, 11.0f, comp => comp.NumCasts > 0, "Expanding start")
                 .ActivateOnEnter<Upwell>();
 

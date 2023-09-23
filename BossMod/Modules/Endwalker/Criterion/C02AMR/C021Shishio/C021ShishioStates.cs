@@ -43,11 +43,14 @@
             Cast(id + 0x10, _savage ? AID.SSmokeaterFirst : AID.NSmokeaterFirst, 2.2f, 2.5f)
                 .ActivateOnEnter<RokujoRevel>();
             // +1.5s: first absorbs
-            Cast(id + 0x20, _savage ? AID.SRokujoRevelFirst : AID.NRokujoRevelFirst, 2.1f, 7.5f); // note: delay could be 4.2 or 6.3, depending on breath-in count
+            CastStart(id + 0x20, _savage ? AID.SRokujoRevelFirst : AID.NRokujoRevelFirst, 2.1f) // note: delay could be 4.2 or 6.3, depending on breath-in count
+                .SetHint(StateMachine.StateHint.PositioningStart);
+            CastEnd(id + 0x21, 7.5f);
             // subsequent revel casts start with 2.5s delay
             ComponentCondition<RokujoRevel>(id + 0x30, 0.5f, comp => comp.NumCasts > 0, "Lines + circles start");
             ComponentCondition<RokujoRevel>(id + 0x40, 4.3f, comp => !comp.Active, "Lines + circles resolve", 3) // note: delay could be 5.0 or 5.8, depending on breath-in count
-                .DeactivateOnExit<RokujoRevel>();
+                .DeactivateOnExit<RokujoRevel>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
         }
 
         private void StormcloudSummonsLightningBolt(uint id, float delay)
