@@ -13,6 +13,7 @@ namespace BossMod
         private Action _onModified;
         private StateMachineTree _tree;
         private List<int> _phaseBranches;
+        private ModuleRegistry.Info? _moduleInfo;
         private bool _syncTimings;
         private string _name = "";
         private StateMachineTimings _timings = new();
@@ -31,6 +32,7 @@ namespace BossMod
             _onModified = onModified;
             _tree = tree;
             _phaseBranches = phaseBranches;
+            _moduleInfo = moduleInfo;
             _syncTimings = syncTimings;
             var classDef = PlanDefinitions.Classes[plan.Class];
             foreach (var track in classDef.CooldownTracks)
@@ -131,23 +133,43 @@ namespace BossMod
 
         public void ExportToClipboard()
         {
-            ImGui.SetClipboardText(JObject.FromObject(BuildPlan()).ToString());
+            if (_moduleInfo == null)
+            {
+                Service.Log($"Failed to export plan, module info unavailable");
+                return;
+            }
+
+            var json = BuildPlan().ToJSON(Serialization.BuildSerializer());
+            json["Class"] = _plan.Class.ToString();
+            json["Encounter"] = _moduleInfo.ModuleType.FullName;
+            ImGui.SetClipboardText(json.ToString());
         }
 
         public void ImportFromClipboard()
         {
             try
             {
-                var plan = JObject.Parse(ImGui.GetClipboardText()).ToObject<CooldownPlan>();
-                if (plan != null && plan.Class == _plan.Class)
+                var json = JObject.Parse(ImGui.GetClipboardText());
+                var cls = Enum.Parse<Class>(json?["Class"]?.ToString() ?? "None");
+                if (cls != _plan.Class)
                 {
-                    ExtractPlanData(plan);
-                    _onModified();
+                    Service.Log($"Failed to import: plan belongs to {cls} instead of {_plan.Class}");
+                    return;
                 }
-                else
+                var module = json?["Encounter"]?.ToString() ?? "";
+                if (module != _moduleInfo?.ModuleType.FullName)
                 {
-                    Service.Log($"Failed to import: plan belong to {plan?.Class} instead of {_plan.Class}");
+                    Service.Log($"Failed to import: plan belongs to {module} instead of {_moduleInfo?.ModuleType.FullName}");
+                    return;
                 }
+                var plan = CooldownPlan.FromJSON(cls, _plan.Level, json, Serialization.BuildSerializer());
+                if (plan == null)
+                {
+                    Service.Log($"Failed to import: some error occured");
+                    return;
+                }
+                ExtractPlanData(plan);
+                _onModified();
             }
             catch (Exception ex)
             {
