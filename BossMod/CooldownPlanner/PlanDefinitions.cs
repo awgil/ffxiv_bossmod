@@ -138,7 +138,7 @@ namespace BossMod
             c.StrategyTracks.Add(new("Apex", typeof(BRD.Rotation.Strategy.ApexArrowUse)));
             c.StrategyTracks.Add(new("Blast", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("RS", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
-            c.StrategyTracks.Add(new("BL", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
+            c.StrategyTracks.Add(new("BL", typeof(BRD.Rotation.Strategy.BloodletterUse)));
             c.StrategyTracks.Add(new("EA", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("Barrage", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("SW", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));

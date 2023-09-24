@@ -44,7 +44,7 @@ namespace BossMod.BRD
 
             public override string ToString()
             {
-                return $"g={ActiveSong}/{ActiveSongLeft:f3}/{Repertoire}/{SoulVoice}/{NumCoda}, RB={RaidBuffsLeft:f3}, SS={StraightShotLeft:f3}, BA={BlastArrowLeft:f3}, SB={ShadowbiteLeft:f3}, Buffs={RagingStrikesLeft:f3}/{BattleVoiceLeft:f3}/{RadiantFinaleLeft:f3}, Muse={ArmysMuseLeft:f3}, Barr={BarrageLeft:f3}, Dots={TargetStormbiteLeft:f3}/{TargetCausticLeft:f3}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                return $"g={ActiveSong}/{ActiveSongLeft:f3}/{Repertoire}/{SoulVoice}/{NumCoda}, RB={RaidBuffsLeft:f3}, SS={StraightShotLeft:f3}, BA={BlastArrowLeft:f3}, SB={ShadowbiteLeft:f3}, Buffs={RagingStrikesLeft:f3}/{BattleVoiceLeft:f3}/{RadiantFinaleLeft:f3}, Muse={ArmysMuseLeft:f3}, Barr={BarrageLeft:f3}, Dots={TargetStormbiteLeft:f3}/{TargetCausticLeft:f3}, PotCD={PotionCD:f3}, BVCD={CD(CDGroup.BattleVoice):f3}, BLCD={CD(CDGroup.Bloodletter):f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -122,13 +122,30 @@ namespace BossMod.BRD
                 ForceCapGauge = 4, // force use if at 100 gauge (don't delay until raidbuffs)
             }
 
+            public enum BloodletterUse : uint
+            {
+                Automatic = 0, // pool for raid buffs, otherwise use freely
+
+                [PropertyDisplay("Delay", 0x800000ff)]
+                Delay = 1, // do not use, allowing overcap
+
+                [PropertyDisplay("Force use all charges", 0x8000ff00)]
+                Force = 2, // force use ASAP
+
+                [PropertyDisplay("Keep 1 charge, use if 2+ charges available", 0x8000ffff)]
+                KeepOneCharge = 3,
+
+                [PropertyDisplay("Keep 2 charges, use if overcap is imminent", 0x80ffff00)]
+                KeepTwoCharges = 4,
+            }
+
             public SongUse SongStrategy; // how are we supposed to switch songs
             public PotionUse PotionStrategy; // how are we supposed to use potions
             public DotUse DotStrategy; // how are we supposed to use dots/IJ
             public ApexArrowUse ApexArrowStrategy; // how are we supposed to use AA
             public OffensiveAbilityUse BlastArrowStrategy; // how are we supposed to use BA
             public OffensiveAbilityUse RagingStrikesUse; // how are we supposed to use RS
-            public OffensiveAbilityUse BloodletterUse; // how are we supposed to use bloodletters
+            public BloodletterUse BloodletterStrategy; // how are we supposed to use bloodletters
             public OffensiveAbilityUse EmpyrealArrowUse; // how are we supposed to use EA
             public OffensiveAbilityUse BarrageUse; // how are we supposed to use barrage
             public OffensiveAbilityUse SidewinderUse; // how are we supposed to use sidewinder
@@ -151,7 +168,7 @@ namespace BossMod.BRD
                     ApexArrowStrategy = (ApexArrowUse)overrides[3];
                     BlastArrowStrategy = (OffensiveAbilityUse)overrides[4];
                     RagingStrikesUse = (OffensiveAbilityUse)overrides[5];
-                    BloodletterUse = (OffensiveAbilityUse)overrides[6];
+                    BloodletterStrategy = (BloodletterUse)overrides[6];
                     EmpyrealArrowUse = (OffensiveAbilityUse)overrides[7];
                     BarrageUse = (OffensiveAbilityUse)overrides[8];
                     SidewinderUse = (OffensiveAbilityUse)overrides[9];
@@ -164,7 +181,7 @@ namespace BossMod.BRD
                     ApexArrowStrategy = ApexArrowUse.Automatic;
                     BlastArrowStrategy = OffensiveAbilityUse.Automatic;
                     RagingStrikesUse = OffensiveAbilityUse.Automatic;
-                    BloodletterUse = OffensiveAbilityUse.Automatic;
+                    BloodletterStrategy = BloodletterUse.Automatic;
                     EmpyrealArrowUse = OffensiveAbilityUse.Automatic;
                     BarrageUse = OffensiveAbilityUse.Automatic;
                     SidewinderUse = OffensiveAbilityUse.Automatic;
@@ -205,19 +222,20 @@ namespace BossMod.BRD
             if (AreActiveDOTsBuffed(state))
                 return false; // never extend buffed dots early: we obviously don't want to use multiple IJs in a single buff window, and outside buff window we don't want to overwrite buffed ticks, even if that means risking losing a proc
 
-            // early refresh conditions, active dots are unbuffed
-            int maxDotRemainingGCDs = 1; // by default, refresh on last possible GCD before we either drop dots or drop major buffs
-            if (state.StraightShotLeft <= state.GCD)
-                ++maxDotRemainingGCDs; // 1 extra gcd if we don't have RA proc (if we don't refresh early, we might use filler, which could give us a proc; then on next gcd we'll be forced to IJ to avoid dropping dots, which might give another proc)
+            // ok, dots aren't falling off imminently, and they are not buffed - see if we want to ij early and overwrite last ticks
+            if (state.StraightShotLeft <= state.GCD && refreshDotsDeadline <= state.GCD + 5 && !ShouldUseApexArrow(state, strategy) && (state.BlastArrowLeft <= state.GCD || strategy.BlastArrowStrategy == Strategy.OffensiveAbilityUse.Delay))
+                return true; // refresh 1 gcd early, if we would be forced to cast BS otherwise - if so, we could proc RA and then overwrite it by IJ on next gcd (TODO: i don't really like these conditions...)
+            if (state.BattleVoiceLeft <= state.GCD)
+                return false; // outside buff window, so no more reasons to extend early
 
-            if (state.BattleVoiceLeft > state.GCD)
-            {
-                refreshDotsDeadline = Math.Min(refreshDotsDeadline, state.BattleVoiceLeft); // we want to refresh dots inside buff window
-                // if we're almost at the gauge cap, we want to delay AA/BA (but still fit them into buff window), so we want to IJ earlier
-                if (state.SoulVoice is > 50 and < 100) // best we can hope for over 4 gcds is ~25 gauge (4 ticks + EA) - TODO: improve condition
-                    maxDotRemainingGCDs += state.Unlocked(AID.BlastArrow) ? 2 : 1; // 1/2 gcds for AA/BA; only under buffs - outside buffs it's simpler to delay AA
-            }
-            return refreshDotsDeadline <= state.GCD + 2.5f * maxDotRemainingGCDs;
+            // under buffs, we might want to do early IJ, so that AA can be slightly delayed, or so that we don't risk proc overwrites
+            int maxRemainingGCDs = 1; // by default, refresh on last possible GCD before we either drop dots or drop major buffs
+            if (state.StraightShotLeft <= state.GCD)
+                ++maxRemainingGCDs; // 1 extra gcd if we don't have RA proc (if we don't refresh early, we might use filler, which could give us a proc; then on next gcd we'll be forced to IJ to avoid dropping dots, which might give another proc)
+                                    // if we're almost at the gauge cap, we want to delay AA/BA (but still fit them into buff window), so we want to IJ earlier
+            if (state.SoulVoice is > 50 and < 100) // best we can hope for over 4 gcds is ~25 gauge (4 ticks + EA) - TODO: improve condition
+                maxRemainingGCDs += state.Unlocked(AID.BlastArrow) ? 2 : 1; // 1/2 gcds for AA/BA; only under buffs - outside buffs it's simpler to delay AA
+            return state.BattleVoiceLeft <= state.GCD + 2.5f * maxRemainingGCDs;
         }
 
         public static bool ShouldUseIronJaws(State state, Strategy strategy) => strategy.DotStrategy switch
@@ -279,10 +297,12 @@ namespace BossMod.BRD
         };
 
         // by default, we pool bloodletter for burst
-        public static bool ShouldUseBloodletter(State state, Strategy strategy) => strategy.BloodletterUse switch
+        public static bool ShouldUseBloodletter(State state, Strategy strategy) => strategy.BloodletterStrategy switch
         {
-            Strategy.OffensiveAbilityUse.Delay => false,
-            Strategy.OffensiveAbilityUse.Force => true,
+            Strategy.BloodletterUse.Delay => false,
+            Strategy.BloodletterUse.Force => true,
+            Strategy.BloodletterUse.KeepOneCharge => state.CD(CDGroup.Bloodletter) <= 15 + state.AnimationLock,
+            Strategy.BloodletterUse.KeepTwoCharges => state.Unlocked(TraitID.EnhancedBloodletter) ? state.CD(CDGroup.Bloodletter) <= state.AnimationLock : false,
             _ => !state.Unlocked(AID.WanderersMinuet) || // don't try to pool BLs at low level (reconsider)
                 state.ActiveSong == Song.MagesBallad || // don't try to pool BLs during MB, it's risky
                 state.BattleVoiceLeft > state.AnimationLock || // don't pool BLs during buffs
