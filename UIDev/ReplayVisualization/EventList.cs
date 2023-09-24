@@ -228,7 +228,7 @@ namespace UIDev
 
         private void DrawUserMarkers()
         {
-            foreach (var n in _tree.Node("User markers"))
+            foreach (var n in _tree.Node("User markers", _replay.UserMarkers.Count == 0))
                 _tree.LeafNodes(_replay.UserMarkers, kv => $"{kv.Key:O}: {kv.Value}");
         }
 

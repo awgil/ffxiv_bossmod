@@ -22,11 +22,8 @@ autorotation:
 -- also don't re-dot?
 -- while shift is held?
 - dot/regen server tick tracking
-- brd cd planning
--- dots (do not apply but refresh / do not refresh / force refresh asap)
--- AA (delay / force)
--- other misc ogcds - barrage, sidewinder (delay / force)
--- barrage for aoe
+- brd
+-- aoe rotation (2/3/4+ targets, barrage usage)
 - drg
 -- l90
 -- cd planning

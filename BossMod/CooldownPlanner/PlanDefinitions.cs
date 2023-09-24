@@ -134,9 +134,14 @@ namespace BossMod
             c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
             c.StrategyTracks.Add(new("Songs", typeof(BRD.Rotation.Strategy.SongUse)));
             c.StrategyTracks.Add(new("Potion", typeof(BRD.Rotation.Strategy.PotionUse)));
+            c.StrategyTracks.Add(new("DOTs", typeof(BRD.Rotation.Strategy.DotUse)));
+            c.StrategyTracks.Add(new("Apex", typeof(BRD.Rotation.Strategy.ApexArrowUse)));
+            c.StrategyTracks.Add(new("Blast", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("RS", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("BL", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("EA", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
+            c.StrategyTracks.Add(new("Barrage", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
+            c.StrategyTracks.Add(new("SW", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
             return c;
         }
 
