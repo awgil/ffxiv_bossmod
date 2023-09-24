@@ -5,6 +5,7 @@
         // full state needed for determining next action
         public class State : CommonRotation.PlayerState
         {
+            public int FirstmindFocusCount; // 2 max
             public int EyeCount; // 2 max
             public float LifeOfTheDragonLeft; // 20 max
             public float FangAndClawBaredLeft; // 30 max
@@ -38,7 +39,7 @@
 
             public override string ToString()
             {
-                return $"LotD={EyeCount}/{LifeOfTheDragonLeft:f3}, ComboEx={FangAndClawBaredLeft:f3}/{WheelInMotionLeft:f3}, DFire={DraconianFireLeft:f3}, Dive={DiveReadyLeft:f3}, RB={RaidBuffsLeft:f3}, PS={PowerSurgeLeft:f3}, LC={LanceChargeLeft:f3}, Eye={RightEyeLeft:f3}, TN={TrueNorthLeft:f3}, CT={TargetChaosThrustLeft:f3}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                return $"FF={FirstmindFocusCount}, LotD={EyeCount}/{LifeOfTheDragonLeft:f3}, ComboEx={FangAndClawBaredLeft:f3}/{WheelInMotionLeft:f3}, DFire={DraconianFireLeft:f3}, Dive={DiveReadyLeft:f3}, RB={RaidBuffsLeft:f3}, PS={PowerSurgeLeft:f3}, LC={LanceChargeLeft:f3}, Eye={RightEyeLeft:f3}, TN={TrueNorthLeft:f3}, CT={TargetChaosThrustLeft:f3}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -190,7 +191,6 @@
             if (state.Unlocked(AID.LifeSurge) && state.CanWeave(state.CD(CDGroup.LifeSurge) - 45, 0.6f, deadline) && UseLifeSurge(state, strategy))
                 return ActionID.MakeSpell(AID.LifeSurge);
 
-            // TODO: L90+
             // TODO: better buff conditions, reconsider priorities
             if (state.Unlocked(AID.LanceCharge) && state.CanWeave(CDGroup.LanceCharge, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.LanceCharge);
@@ -204,6 +204,8 @@
                 return ActionID.MakeSpell(AID.Geirskogul);
             if (state.DiveReadyLeft > state.AnimationLock && state.CanWeave(CDGroup.MirageDive, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.MirageDive);
+            if (state.FirstmindFocusCount >= 2 && state.CanWeave(CDGroup.WyrmwindThrust, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.WyrmwindThrust);
 
             bool canJump = strategy.PositionLockIn > state.AnimationLock;
             if (canJump && state.Unlocked(AID.Jump) && state.CanWeave(state.Unlocked(AID.HighJump) ? CDGroup.HighJump : CDGroup.Jump, 0.8f, deadline))

@@ -34,7 +34,7 @@ namespace BossMod.DRG
         Nastrond = 7400, // L70, instant, 10.0s CD (group 2), range 15, AOE rect 15/4, targets=hostile
         MirageDive = 7399, // L68, instant, 1.0s CD (group 0), range 20, single-target 0/0, targets=hostile
         Stardiver = 16480, // L80, instant, 30.0s CD (group 6), range 20, AOE circle 5/0, targets=hostile, animLock=1.500s
-        WyrmwindThrust = 25773, // L90, instant, 10.0s CD (group 1), range 15, AOE rect 15/4, targets=hostile, animLock=???
+        WyrmwindThrust = 25773, // L90, instant, 10.0s CD (group 1), range 15, AOE rect 15/4, targets=hostile
 
         // offsensive CDs
         LifeSurge = 83, // L6, instant, 45.0s CD (group 14), range 0, single-target 0/0, targets=self

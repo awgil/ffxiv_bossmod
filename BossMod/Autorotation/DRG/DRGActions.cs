@@ -126,6 +126,7 @@ namespace BossMod.DRG
             FillCommonPlayerState(_state);
 
             var gauge = Service.JobGauges.Get<DRGGauge>();
+            _state.FirstmindFocusCount = gauge.FirstmindsFocusCount;
             _state.EyeCount = gauge.EyeCount;
             _state.LifeOfTheDragonLeft = gauge.IsLOTDActive ? gauge.LOTDTimer * 0.001f : 0;
 
