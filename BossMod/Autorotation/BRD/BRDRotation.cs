@@ -232,7 +232,7 @@ namespace BossMod.BRD
             int maxRemainingGCDs = 1; // by default, refresh on last possible GCD before we either drop dots or drop major buffs
             if (state.StraightShotLeft <= state.GCD)
                 ++maxRemainingGCDs; // 1 extra gcd if we don't have RA proc (if we don't refresh early, we might use filler, which could give us a proc; then on next gcd we'll be forced to IJ to avoid dropping dots, which might give another proc)
-                                    // if we're almost at the gauge cap, we want to delay AA/BA (but still fit them into buff window), so we want to IJ earlier
+            // if we're almost at the gauge cap, we want to delay AA/BA (but still fit them into buff window), so we want to IJ earlier
             if (state.SoulVoice is > 50 and < 100) // best we can hope for over 4 gcds is ~25 gauge (4 ticks + EA) - TODO: improve condition
                 maxRemainingGCDs += state.Unlocked(AID.BlastArrow) ? 2 : 1; // 1/2 gcds for AA/BA; only under buffs - outside buffs it's simpler to delay AA
             return state.BattleVoiceLeft <= state.GCD + 2.5f * maxRemainingGCDs;
