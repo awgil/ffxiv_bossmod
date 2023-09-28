@@ -21,6 +21,7 @@ namespace BossMod
         private DebugAddon _debugAddon = new();
         private DebugTiming _debugTiming = new();
         private DebugCollision _debugCollision = new();
+        private DebugVfx _debugVfx = new();
 
         public MainDebugWindow(WorldState ws, Autorotation autorot) : base("Boss mod debug UI", false, new(300, 200))
         {
@@ -38,6 +39,7 @@ namespace BossMod
             _debugClassDefinitions.Dispose();
             _debugAddon.Dispose();
             _debugCollision.Dispose();
+            _debugVfx.Dispose();
         }
 
         public unsafe override void Draw()
@@ -146,6 +148,10 @@ namespace BossMod
             if (ImGui.CollapsingHeader("Collision"))
             {
                 _debugCollision.Draw();
+            }
+            if (ImGui.CollapsingHeader("VFX"))
+            {
+                _debugVfx.Draw();
             }
         }
 
